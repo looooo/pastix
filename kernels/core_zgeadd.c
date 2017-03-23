@@ -55,7 +55,7 @@
  *          Leading dimension of the array A. LDA >= max(1,K).
  *          K = M if trans == CblasNoTrans, K = N otherwise.
  *
- * @param[in,out] B
+ * @param[inout] B
  *          Matrix of size LDB-by-N.
  *
  * @param[in] LDB
@@ -69,7 +69,7 @@
  *          \retval 1, not yet implemented
  *
  ******************************************************************************/
-int core_zgeadd( pastix_int_t trans, pastix_int_t M, pastix_int_t N,
+int core_zgeadd( pastix_trans_t trans, pastix_int_t M, pastix_int_t N,
                        pastix_complex64_t  alpha,
                  const pastix_complex64_t *A, pastix_int_t LDA,
                        pastix_complex64_t  beta,
@@ -223,13 +223,13 @@ int core_zgeadd( pastix_int_t trans, pastix_int_t M, pastix_int_t N,
  *          The pointer to the lower matrix storing the coefficients of the
  *          updated panel. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in,out] U
+ * @param[inout] U
  *          The pointer to the upper matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width. Ignored if
  *          NULL.
  *
  *
- * @param[in,out] Cu
+ * @param[inout] Cu
  *          The pointer to the upper matrix storing the coefficients of the
  *          updated panel. Must be of size cblk.stride -by- cblk.width
  *
@@ -240,12 +240,12 @@ int core_zgeadd( pastix_int_t trans, pastix_int_t M, pastix_int_t N,
  *
  ******************************************************************************/
 int
-core_zgeaddsp1d(SolverCblk * cblk1,
-                SolverCblk * cblk2,
-                pastix_complex64_t * L,
-                pastix_complex64_t * Cl,
-                pastix_complex64_t * U,
-                pastix_complex64_t * Cu)
+core_zgeaddsp1d( SolverCblk * cblk1,
+                 SolverCblk * cblk2,
+                 pastix_complex64_t * L,
+                 pastix_complex64_t * Cl,
+                 pastix_complex64_t * U,
+                 pastix_complex64_t * Cu )
 {
     SolverBlok *iterblok;
     SolverBlok *firstblok;

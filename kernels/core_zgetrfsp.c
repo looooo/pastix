@@ -38,14 +38,14 @@ static pastix_complex64_t mzone = -1.;
  * @param[in] n
  *          The number of rows and columns of the matrix A.
  *
- * @param[in,out] A
+ * @param[inout] A
  *          The matrix A to factorize with LU factorization. The matrix
  *          is of size lda -by- n.
  *
  * @param[in] lda
  *          The leading dimension of the matrix A.
  *
- * @param[in,out] nbpivot
+ * @param[inout] nbpivot
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
@@ -116,14 +116,14 @@ static void core_zgetf2sp(pastix_int_t        m,
  * @param[in] n
  *          The number of rows and columns of the matrix A.
  *
- * @param[in,out] A
+ * @param[inout] A
  *          The matrix A to factorize with LU factorization. The matrix
  *          is of size lda -by- n.
  *
  * @param[in] lda
  *          The leading dimension of the matrix A.
  *
- * @param[in,out] nbpivot
+ * @param[inout] nbpivot
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
@@ -202,11 +202,11 @@ static void core_zgetrfsp(pastix_int_t        n,
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[in,out] L
+ * @param[inout] L
  *          The pointer to the lower matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in,out] U
+ * @param[inout] U
  *          The pointer to the upper matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
@@ -275,11 +275,11 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[in,out] L
+ * @param[inout] L
  *          The pointer to the lower matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in,out] U
+ * @param[inout] U
  *          The pointer to the upper matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
@@ -302,7 +302,7 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            pastix_complex64_t *U,
                            double              criteria,
-                           pastix_lr_t        *lowrank )
+                           const pastix_lr_t  *lowrank )
 {
     pastix_int_t nbpivot;
 
@@ -312,8 +312,12 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
      * column, and by transposition the L part of the diagonal block is
      * similarly stored in the U panel
      */
-    core_ztrsmsp(PastixLCoef, PastixRight, PastixUpper, PastixNoTrans, PastixNonUnit, cblk, L, L, lowrank);
-    core_ztrsmsp(PastixUCoef, PastixRight, PastixUpper, PastixNoTrans, PastixUnit,    cblk, U, U, lowrank);
+    cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixUpper,
+                     PastixNoTrans, PastixNonUnit,
+                     cblk, L, L, lowrank );
+    cpucblk_ztrsmsp( PastixUCoef, PastixRight, PastixUpper,
+                     PastixNoTrans, PastixUnit,
+                     cblk, U, U, lowrank );
     return nbpivot;
 }
 
@@ -369,13 +373,17 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
         fcblk = (solvmtx->cblktab + blok->fcblknm);
 
         /* Update on L */
-        core_zgemmsp( PastixUCoef, PastixLower, PastixTrans, cblk, blok, fcblk,
-                      L, U, fcblk->lcoeftab, work, &solvmtx->lowrank );
+        cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
+                         cblk, blok, fcblk,
+                         L, U, fcblk->lcoeftab,
+                         work, &solvmtx->lowrank );
 
         /* Update on U */
         if ( blok+1 < lblk ) {
-            core_zgemmsp( PastixLCoef, PastixUpper, PastixTrans, cblk, blok, fcblk,
-                          U, L, fcblk->ucoeftab, work, &solvmtx->lowrank );
+            cpucblk_zgemmsp( PastixUCoef, PastixLCoef, PastixTrans,
+                             cblk, blok, fcblk,
+                             U, L, fcblk->ucoeftab,
+                             work, &solvmtx->lowrank );
         }
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
     }

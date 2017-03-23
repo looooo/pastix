@@ -31,15 +31,24 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if defined(PRECISION_z)
+#if defined(PastixComplex64_PRECISION)
     typedef cuDoubleComplex FloatingPoint_t;
-#elif defined(PRECISION_c)
+#define GENERATE_SM_VERSION_NAME_I(func, version) fermi_z##func##_SM##version
+#elif defined(PastixComplex32_PRECISION)
     typedef cuFloatComplex FloatingPoint_t;
-#elif defined(PRECISION_d)
+#define GENERATE_SM_VERSION_NAME_I(func, version) fermi_c##func##_SM##version
+#elif defined(PastixDouble_PRECISION)
     typedef double FloatingPoint_t;
-#elif defined(PRECISION_s)
+#define GENERATE_SM_VERSION_NAME_I(func, version) fermi_d##func##_SM##version
+#elif defined(PastixFloat_PRECISION)
     typedef float FloatingPoint_t;
+#define GENERATE_SM_VERSION_NAME_I(func, version) fermi_s##func##_SM##version
 #endif
+#define GENERATE_SM_VERSION_KERNEL_NAME_I2(func, version) GENERATE_SM_VERSION_NAME_I(func, version)
+#define GENERATE_SM_VERSION_KERNEL_NAME(func) GENERATE_SM_VERSION_NAME_I2(func, CUDA_SM_VERSION)
+
+#define GENERATE_SM_VERSION_NAME_I2(func, version) GENERATE_SM_VERSION_NAME_I(func, version)
+#define GENERATE_SM_VERSION_NAME(func) GENERATE_SM_VERSION_NAME_I2(func, CUDA_SM_VERSION)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -50,7 +59,7 @@
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-#if defined(PRECISION_z)
+#if defined(PastixComplex64_PRECISION)
 
 #define conj(A)          cuConj(A)
 #define add(A, B)        cuCadd(A, B)
@@ -73,7 +82,7 @@ texture<int4, 1, cudaReadModeElementType> tex_ref_B;
 #endif/* defined(TEXTURE_1D) */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-#elif defined(PRECISION_c)
+#elif defined(PastixComplex32_PRECISION)
 
 #define conj(A)          cuConjf(A)
 #define add(A, B)        cuCaddf(A, B)
@@ -95,7 +104,7 @@ texture<float2, 1, cudaReadModeElementType> tex_ref_B;
 #endif/* defined(TEXTURE_1D) */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-#elif defined(PRECISION_d)
+#elif defined(PastixDouble_PRECISION)
 
 #define conj(A)           (A)
 #define add(A, B)         (A+B)
@@ -118,7 +127,7 @@ texture<int2, 1, cudaReadModeElementType> tex_ref_B;
 #endif/* defined(TEXTURE_1D) */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-#elif defined(PRECISION_s)
+#elif defined(PastixFloat_PRECISION)
 
 #define conj(A)           (A)
 #define add(A, B)         (A+B)
@@ -147,7 +156,7 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 //  Block sizes parameters
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if defined(PRECISION_z)
+#if defined(PastixComplex64_PRECISION)
 
 #define DIM_X  8
 #define DIM_Y  8
@@ -196,7 +205,7 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 #define DIM_YB_tn 8
 
 ////////////////////////////////////////////////////////////////////////////
-#elif defined(PRECISION_c)
+#elif defined(PastixComplex32_PRECISION)
 
 #define DIM_X 16
 #define DIM_Y 16
@@ -246,7 +255,7 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 #define DIM_YB_tn 16
 
 ////////////////////////////////////////////////////////////////////////////
-#elif defined(PRECISION_d)
+#elif defined(PastixDouble_PRECISION)
 
 #define DIM_X 16
 #define DIM_Y 16
@@ -296,7 +305,7 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 #define DIM_YB_tn 16
 
 ////////////////////////////////////////////////////////////////////////////
-#elif defined(PRECISION_s)
+#elif defined(PastixFloat_PRECISION)
 
 #define DIM_X 16
 #define DIM_Y 16
@@ -413,7 +422,7 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 #undef DIM_YB
 #undef version
 
-#if defined(PRECISION_z) || defined(PRECISION_c)
+#if defined(PastixComplex64_PRECISION) || defined(PastixComplex32_PRECISION)
 #define BLK_M  BLK_M_nt
 #define BLK_N  BLK_N_nt
 #define BLK_K  BLK_K_nt
@@ -473,7 +482,7 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 #undef DIM_YB
 #undef version
 
-#if defined(PRECISION_z) || defined(PRECISION_c)
+#if defined(PastixComplex64_PRECISION) || defined(PastixComplex32_PRECISION)
 #define BLK_M  BLK_M_tt
 #define BLK_N  BLK_N_tt
 #define BLK_K  BLK_K_tt
@@ -589,7 +598,7 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 #undef DIM_YB
 #undef version
 
-#if defined(PRECISION_z) || defined(PRECISION_c)
+#if defined(PastixComplex64_PRECISION) || defined(PastixComplex32_PRECISION)
 #define BLK_M  BLK_M_tn
 #define BLK_N  BLK_N_tn
 #define BLK_K  BLK_K_tn

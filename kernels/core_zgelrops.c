@@ -27,7 +27,7 @@ static pastix_complex64_t zzero =  0.;
  *
  * @ingroup pastix_kernel
  *
- * core_zlralloc - Allocate a low-rank matrix.
+ * @brief Allocate a low-rank matrix.
  *
  *******************************************************************************
  *
@@ -38,8 +38,8 @@ static pastix_complex64_t zzero =  0.;
  *          Number of columns of the matrix A.
  *
  * @param[in] rkmax
- *         @arg -1   : the matrix is full
- *         @arg k>0  : the matrix is low-rank of rank rkmax
+ *         @arg -1: the matrix is allocated tight to its rank.
+ *         @arg >0: the matrix is allocated to the maximu of its rank and rkmax.
  *
  * @param[out] A
  *          The allocated low-rank matrix
@@ -88,10 +88,11 @@ core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax,
  *
  * @ingroup pastix_kernel
  *
- * core_zlrfree - Destroy a low-rank matrix.
+ * @brief Free a low-rank matrix.
  *
  *******************************************************************************
- * @param[in, out] A
+ *
+ * @param[inout] A
  *          The low-rank matrix that will be desallocated.
  *
  *******************************************************************************/
@@ -119,13 +120,13 @@ core_zlrfree( pastix_lrblock_t *A )
  *
  * @ingroup pastix_kernel
  *
- * core_zlrsze - Resizes a low-rank matrix
+ * @brief Resize a low-rank matrix
  *
  *******************************************************************************
  *
  * @param[in] copy
- *          Copy the data contained in A->u and A->v in the new low-rank
- *          representation
+ *          Enable/disable the copy of the data from A->u and A->v into the new
+ *          low-rank representation.
  *
  * @param[in] M
  *          The number of rows of the matrix A.
@@ -133,7 +134,7 @@ core_zlrfree( pastix_lrblock_t *A )
  * @param[in] N
  *          The number of columns of the matrix A.
  *
- * @param[in, out] A
+ * @param[inout] A
  *          The low-rank representation of the matrix. At exit, this structure
  *          is modified with the new low-rank representation of A, is the rank
  *          is small enough
@@ -147,8 +148,7 @@ core_zlrfree( pastix_lrblock_t *A )
  *
  *******************************************************************************
  *
- * @return
- *          The new rank of A
+ * @return  The new rank of A
  *
  *******************************************************************************/
 int
@@ -235,7 +235,7 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
  *
  * @ingroup pastix_kernel
  *
- * core_zlr2ge - Convert a low rank matrix into a dense matrix.
+ * @brief Convert a low rank matrix into a dense matrix.
  *
  *******************************************************************************
  *
@@ -254,6 +254,11 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
  *
  * @param[in] lda
  *          The leading dimension of the matrix A. lda >= max(1, m)
+ *
+ *******************************************************************************
+ *
+ * @retval  0  in case of success.
+ * @retval  -i if the ith parameter is incorrect.
  *
  *******************************************************************************/
 int
@@ -314,11 +319,11 @@ core_zlr2ge( pastix_int_t m, pastix_int_t n,
  *
  * @ingroup pastix_kernel
  *
- * core_zgradd - Adds the dense matrix A to the low-rank matrix B.
+ * @brief Add the dense matrix A to the low-rank matrix B.
  *
  *******************************************************************************
  *
- * @param[in] *lowrank
+ * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
  * @param[in] alpha
@@ -342,7 +347,7 @@ core_zlr2ge( pastix_int_t m, pastix_int_t n,
  * @param[in] N2
  *          The number of columns of the matrix B.
  *
- * @param[in] B
+ * @param[inout] B
  *          The low-rank representation of the matrix B.
  *
  * @param[in] offx
@@ -353,13 +358,12 @@ core_zlr2ge( pastix_int_t m, pastix_int_t n,
  *
  *******************************************************************************
  *
- * @return
- *          The new rank of B or -1 if ranks are too large for recompression
+ * @return The new rank of B or -1 if ranks are too large for recompression
  *
  *******************************************************************************/
 int
-core_zgradd( pastix_lr_t *lowrank, pastix_complex64_t alpha,
-             pastix_int_t M1, pastix_int_t N1, pastix_complex64_t *A, pastix_int_t lda,
+core_zgradd( const pastix_lr_t *lowrank, pastix_complex64_t alpha,
+             pastix_int_t M1, pastix_int_t N1, const pastix_complex64_t *A, pastix_int_t lda,
              pastix_int_t M2, pastix_int_t N2, pastix_lrblock_t *B,
              pastix_int_t offx, pastix_int_t offy)
 {
@@ -412,7 +416,7 @@ core_zgradd( pastix_lr_t *lowrank, pastix_complex64_t alpha,
         pastix_lrblock_t lrA;
         lrA.rk = -1;
         lrA.rkmax = lda;
-        lrA.u = A;
+        lrA.u = (void*)A;
         lrA.v = NULL;
         rank = lowrank->core_rradd( tol, PastixNoTrans, &alpha,
                                     M1, N1, &lrA,
@@ -429,17 +433,17 @@ core_zgradd( pastix_lr_t *lowrank, pastix_complex64_t alpha,
  *
  * @ingroup pastix_kernel
  *
- * core_zlrm2 - Computes the product of two possible low-rank matrices and
- * returns the result in AB
+ * @brief Compute the product of two possible low-rank matrices and returns the
+ * result in AB.
  *
  *******************************************************************************
  * @param[in] transA
- *         @arg CblasNoTrans   :  No transpose, op( A ) = A;
- *         @arg CblasTrans     :  Transpose, op( A ) = A';
+ *         @arg PastixNoTrans: No transpose, op( A ) = A;
+ *         @arg PastixTrans:   Transpose, op( A ) = A';
  *
  * @param[in] transB
- *         @arg CblasNoTrans   :  No transpose, op( B ) = B;
- *         @arg CblasTrans     :  Transpose, op( B ) = B';
+ *         @arg PastixNoTrans: No transpose, op( B ) = B;
+ *         @arg PastixTrans:   Transpose, op( B ) = B';
  *
  * @param[in] M
  *          The number of rows of the matrix A.
@@ -460,28 +464,36 @@ core_zgradd( pastix_lr_t *lowrank, pastix_complex64_t alpha,
  * @param[out] AB
  *          The low-rank representation of the matrix AB.
  *
- * @param[in] work
+ * @param[inout] work
  *          The workspace used to store temporary data
  *
  * @param[in] ldwork
- *          Dimension of the workspace work
+ *          Dimension of the workspace work. It must be at least:
+ *          - if A and B are low-rank:
+ *             ldwork >= min( A->rk * ( N + B->rk ), B->rk * ( M + A->rk ) )
+ *          - if A is low-rank and B full-rank
+ *             ldwork >= A->rk * N
+ *          - if B is low-rank and A full-rank
+ *             ldwork >= B->rk * M
+ *          - if A and B are full-rank
+ *             ldwork >= M * N
  *
  *******************************************************************************
  *
- * @return
- *          The transposition (CblasTrans or CblasNoTrans) of the product AB
+ * @return The way the product AB is stored: AB or op(AB).
  *
  *******************************************************************************/
-int core_zlrm2( int transA, int transB,
-                pastix_int_t M, pastix_int_t N, pastix_int_t K,
-                const pastix_lrblock_t *A,
-                const pastix_lrblock_t *B,
-                pastix_lrblock_t *AB,
-                pastix_complex64_t *work,
-                pastix_int_t ldwork )
+pastix_trans_t
+core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
+            pastix_int_t M, pastix_int_t N, pastix_int_t K,
+            const pastix_lrblock_t *A,
+            const pastix_lrblock_t *B,
+            pastix_lrblock_t *AB,
+            pastix_complex64_t *work,
+            pastix_int_t ldwork )
 {
     pastix_int_t ldau, ldav, ldbu, ldbv;
-    int transV = PastixNoTrans;
+    pastix_trans_t transV = PastixNoTrans;
 
     assert( A->rk  <= A->rkmax);
     assert( B->rk  <= B->rkmax);
@@ -651,20 +663,21 @@ int core_zlrm2( int transA, int transB,
  *
  * @ingroup pastix_kernel
  *
- * core_zlrm3 - Computes the product of two low-rank matrices (rank != -1) and
- * returns the result in AB
+ * @brief Compute the product of two low-rank matrices (rank != -1) and returns
+ * the result in AB
  *
  *******************************************************************************
- * @param[in] *lowrank
+ *
+ * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
  * @param[in] transA
- *         @arg CblasNoTrans   :  No transpose, op( A ) = A;
- *         @arg CblasTrans     :  Transpose, op( A ) = A';
+ *         @arg PastixNoTrans: No transpose, op( A ) = A;
+ *         @arg PastixTrans:   Transpose, op( A ) = A';
  *
  * @param[in] transB
- *         @arg CblasNoTrans   :  No transpose, op( B ) = B;
- *         @arg CblasTrans     :  Transpose, op( B ) = B';
+ *         @arg PastixNoTrans: No transpose, op( B ) = B;
+ *         @arg PastixTrans:   Transpose, op( B ) = B';
  *
  * @param[in] M
  *          The number of rows of the matrix A.
@@ -683,20 +696,20 @@ int core_zlrm2( int transA, int transB,
  *          The low-rank representation of the matrix B.
  *
  * @param[out] AB
- *          The low-rank representation of the matrix AB.
+ *          The low-rank representation of the matrix op(A)op(B).
  *
  *******************************************************************************
  *
- * @return
- *          The transposition (CblasTrans or CblasNoTrans) of the product AB
+ * @return The way the product AB is stored: AB or op(AB).
  *
  *******************************************************************************/
-int core_zlrm3( pastix_lr_t *lowrank,
-                int transA, int transB,
-                pastix_int_t M, pastix_int_t N, pastix_int_t K,
-                const pastix_lrblock_t *A,
-                const pastix_lrblock_t *B,
-                pastix_lrblock_t *AB )
+pastix_trans_t
+core_zlrm3( const pastix_lr_t *lowrank,
+            pastix_trans_t transA, pastix_trans_t transB,
+            pastix_int_t M, pastix_int_t N, pastix_int_t K,
+            const pastix_lrblock_t *A,
+            const pastix_lrblock_t *B,
+            pastix_lrblock_t *AB )
 {
     pastix_int_t ldau, ldav, ldbu, ldbv;
     int transV = PastixNoTrans;
@@ -831,16 +844,16 @@ int core_zlrm3( pastix_lr_t *lowrank,
  *
  * @ingroup pastix_kernel
  *
- * core_zlrmm - A * B + C with three low-rank matrices
+ * @brief Compute A * B + C with three low-rank matrices
  *
  *******************************************************************************
  * @param[in] transA
- *         @arg CblasNoTrans   :  No transpose, op( A ) = A;
- *         @arg CblasTrans     :  Transpose, op( A ) = A';
+ *         @arg PastixNoTrans: No transpose, op( A ) = A;
+ *         @arg PastixTrans:   Transpose, op( A ) = A';
  *
  * @param[in] transB
- *         @arg CblasNoTrans   :  No transpose, op( B ) = B;
- *         @arg CblasTrans     :  Transpose, op( B ) = B';
+ *         @arg PastixNoTrans: No transpose, op( B ) = B;
+ *         @arg PastixTrans:   Transpose, op( B ) = B';
  *
  * @param[in] M
  *          The number of rows of the matrix A.
@@ -876,7 +889,7 @@ int core_zlrm3( pastix_lr_t *lowrank,
  * @param[in] beta
  *          The addition parameter: C = beta * C + alpha * AB
  *
- * @param[out] C
+ * @param[inout] C
  *          The low-rank representation of the matrix C
  *
  * @param[in] work
@@ -890,7 +903,8 @@ int core_zlrm3( pastix_lr_t *lowrank,
  *
  *******************************************************************************/
 void
-core_zlrmm( pastix_lr_t *lowrank, int transA, int transB,
+core_zlrmm( const pastix_lr_t *lowrank,
+            pastix_trans_t transA, pastix_trans_t transB,
             pastix_int_t M, pastix_int_t N, pastix_int_t K,
             pastix_int_t Cm, pastix_int_t Cn,
             pastix_int_t offx, pastix_int_t offy,
@@ -1070,16 +1084,16 @@ core_zlrmm( pastix_lr_t *lowrank, int transA, int transB,
  *
  * @ingroup pastix_kernel
  *
- * core_zlrmge - A * B + C with A, and B low-rank matrices, and C full rank
+ * @brief A * B + C with A, and B low-rank matrices, and C full rank
  *
  *******************************************************************************
  * @param[in] transA
- *         @arg CblasNoTrans   :  No transpose, op( A ) = A;
- *         @arg CblasTrans     :  Transpose, op( A ) = A';
+ *         @arg PastixNoTrans: No transpose, op( A ) = A;
+ *         @arg PastixTrans:   Transpose, op( A ) = A';
  *
  * @param[in] transB
- *         @arg CblasNoTrans   :  No transpose, op( B ) = B;
- *         @arg CblasTrans     :  Transpose, op( B ) = B';
+ *         @arg PastixNoTrans: No transpose, op( B ) = B;
+ *         @arg PastixTrans:   Transpose, op( B ) = B';
  *
  * @param[in] M
  *          The number of rows of the matrix A.
@@ -1103,7 +1117,7 @@ core_zlrmm( pastix_lr_t *lowrank, int transA, int transB,
  * @param[in] beta
  *          The addition parameter: C = beta * C + alpha * AB
  *
- * @param[out] C
+ * @param[inout] C
  *          The matrix C (full).
  *
  * @param[in] ldc
@@ -1120,7 +1134,8 @@ core_zlrmm( pastix_lr_t *lowrank, int transA, int transB,
  *
  *******************************************************************************/
 void
-core_zlrmge( pastix_lr_t *lowrank, int transA, int transB,
+core_zlrmge( const pastix_lr_t *lowrank,
+             pastix_trans_t transA, pastix_trans_t transB,
              pastix_int_t M, pastix_int_t N, pastix_int_t K,
              pastix_complex64_t alpha, const pastix_lrblock_t *A,
                                        const pastix_lrblock_t *B,

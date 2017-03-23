@@ -17,19 +17,81 @@
 #include "common.h"
 #include "cblas.h"
 #include "blend/solver.h"
+#include "kernels/models.h"
 #include "kernels/pastix_zcores.h"
 #include "kernels/pastix_cuda.h"
 #include <cublas.h>
+
+static char transstr[3] = { 'N', 'T', 'C' };
+static char sidestr[2] = { 'L', 'R' };
+static char uplostr[3] = { 'U', 'L', 'A' };
+static char diagstr[2] = { 'N', 'U' };
+
+void
+gpu_zgemmsp_fermi( const SolverMatrix *solvmatr,
+                   pastix_uplo_t uplo, pastix_trans_t trans,
+                   int *blocktab,
+                   const SolverCblk      *cblk,
+                   const SolverBlok      *blok,
+                         SolverCblk      *fcblk,
+                   const cuDoubleComplex *A,
+                   const cuDoubleComplex *B,
+                         cuDoubleComplex *C,
+                         cudaStream_t stream )
+{
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    cuDoubleComplex mzone = make_cuDoubleComplex(-1., 0.);
+    cuDoubleComplex zone  = make_cuDoubleComplex( 1., 0.);
+#else
+    double mzone = -1.;
+    double zone  =  1.;
+#endif
+
+    pastix_int_t lda, ldb, ldc;
+    pastix_int_t M, N, K, s;
+    pastix_int_t blocknbr, fblocknbr;
+
+    s = (uplo == PastixUpper) ? 1 : 0;
+
+    M = cblk->stride - blok[s].coefind;
+    N = blok_rownbr( blok );
+    K = cblk_colnbr( cblk );
+
+    lda = cblk->stride;
+    ldb = lda;
+    ldc = fcblk->stride;
+
+    blocknbr  = cblk[1].fblokptr - blok;
+    blocknbr -= s;
+    fblocknbr = fcblk[1].fblokptr - fcblk[0].fblokptr;
+
+    C = C + ldc * ( blok->frownum - fcblk->fcolnum );
+
+    pastix_fermi_zgemmsp( 'N', transstr[trans - PastixNoTrans], M, N, K,
+                          mzone, A + blok[s].coefind, lda,
+                                 B + blok[0].coefind, ldb,
+                          zone,  C, ldc,
+                          blocknbr,  blocktab + 2 * ((blok+s)        - solvmatr->bloktab),
+                          fblocknbr, blocktab + 2 * (fcblk->fblokptr - solvmatr->bloktab),
+                          stream );
+}
+
+
 
 /**
  *******************************************************************************
  *
  * @ingroup pastix_kernel
  *
- * gpu_zgemmsp_1d1d - Computes the updates associated to one off-diagonal block
- * between two cblk stored as 1D block columns.
+ * gpucblk_zgemmsp - Computes the updates associated to one off-diagonal block.
  *
  *******************************************************************************
+ *
+ * @param[in] sideB
+ *          Specify if B belongs to the L part, or to the U part. this is used
+ *          internally in the kernel to select the correct data pointer.
+ *          If PastixLCoef, B belongs to the L part, otherwise B belogns to the
+ *          U part.
  *
  * @param[in] uplo
  *          If uplo == PastixLower, the contribution of:
@@ -53,10 +115,10 @@
  * @param[in] blok
  *          The block from which we compute the contributions.
  *
- * @param[in] fcblk
+ * @param[inout] fcblk
  *          The pointer to the data structure that describes the panel on which
  *          we compute the contributions. The C pointer must be one of the
- *          oceftab from this fcblk. Next column blok must be accessible through
+ *          coeftab from this fcblk. Next column blok must be accessible through
  *          fcblk[1].
  *
  * @param[in] A
@@ -69,12 +131,15 @@
  *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
  *          cblk.stride -by- cblk.width
  *
- * @param[in,out] C
+ * @param[inout] C
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
  *
  * @param[in] work
  *          Temporary memory buffer.
+ *
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
  *
  *******************************************************************************
  *
@@ -84,14 +149,17 @@
  *
  *******************************************************************************/
 void
-gpu_zgemmsp( int uplo, int trans,
-             const SolverCblk      *cblk,
-             const SolverBlok      *blok,
-                   SolverCblk      *fcblk,
-             const cuDoubleComplex *A,
-             const cuDoubleComplex *B,
-                   cuDoubleComplex *C,
-                   cudaStream_t stream )
+gpucblk_zgemmsp(       pastix_coefside_t  sideA,
+                       pastix_coefside_t  sideB,
+                       pastix_trans_t     trans,
+                 const SolverCblk        *cblk,
+                 const SolverBlok        *blok,
+                       SolverCblk        *fcblk,
+                 const cuDoubleComplex   *A,
+                 const cuDoubleComplex   *B,
+                       cuDoubleComplex   *C,
+                 const pastix_lr_t       *lowrank,
+                       cudaStream_t       stream )
 {
 #if defined(PRECISION_z) || defined(PRECISION_c)
     cuDoubleComplex mzone = make_cuDoubleComplex(-1., 0.);
@@ -109,7 +177,12 @@ gpu_zgemmsp( int uplo, int trans,
     pastix_int_t N, K, max_m = 0;
     int i, shift, count, ldb;
 
-    shift = (uplo == PastixUpper) ? 1 : 0;
+    double time = modelGetTime();
+
+    assert( !(cblk->cblktype  & CBLK_COMPRESSED) );
+    assert( !(fcblk->cblktype & CBLK_COMPRESSED) );
+
+    shift = (sideA == PastixUCoef) ? 1 : 0;
 
     stride  = cblk->stride;
     stridef = fcblk->stride;
@@ -175,4 +248,311 @@ gpu_zgemmsp( int uplo, int trans,
             max_m, count,
             stream, params );
     }
+
+#if defined(PASTIX_GENERATE_MODEL)
+    cudaStreamSynchronize( stream );
+    {
+        pastix_int_t k = cblk_colnbr( cblk );
+        pastix_int_t n = blok_rownbr( blok );
+        pastix_int_t m = cblk->stride;
+
+        m -= (cblk->cblktype & CBLK_LAYOUT_2D) ? blok->coefind / k : blok->coefind;
+        m -= (sideA == PastixUCoef) ? blok_rownbr( blok ) : 0;
+
+        modelAddEntry( PastixKernelGpuGEMM1D,
+                       m, n, k, time );
+    }
+#endif
+    (void)sideB; (void)lowrank; (void)time;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * gpublok_zgemmsp - Computes the updates associated to one off-diagonal block.
+ *
+ *******************************************************************************
+ *
+ * @param[in] sideB
+ *          Specify if B belongs to the L part, or to the U part. this is used
+ *          internally in the kernel to select the correct data pointer.
+ *          If PastixLCoef, B belongs to the L part, otherwise B belogns to the
+ *          U part.
+ *
+ * @param[in] uplo
+ *          If uplo == PastixLower, the contribution of:
+ *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
+ *          C, otherwise the contribution:
+ *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
+ *          to C.
+ *          The pointer to the data structure that describes the panel from
+ *          which we compute the contributions. Next column blok must be
+ *          accessible through cblk[1].
+ *
+ * @param[in] trans
+ *          Specify the transposition used for the B matrix. It has to be either
+ *          PastixTrans or PastixConjTrans.
+ *
+ * @param[in] cblk
+ *          The cblk structure to which block belongs to. The A and B pointers
+ *          must be the coeftab of this column block.
+ *          Next column blok must be accessible through cblk[1].
+ *
+ * @param[in] blok
+ *          The block from which we compute the contributions.
+ *
+ * @param[inout] fcblk
+ *          The pointer to the data structure that describes the panel on which
+ *          we compute the contributions. The C pointer must be one of the
+ *          coeftab from this fcblk. Next column blok must be accessible through
+ *          fcblk[1].
+ *
+ * @param[in] A
+ *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
+ *          coefficients of the panel when the Lower part is computed,
+ *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] B The pointer to the coeftab of the cblk.lcoeftab matrix storing
+ *          the coefficients of the panel, if Symmetric/Hermitian cases or if
+ *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
+ *          cblk.stride -by- cblk.width
+ *
+ * @param[inout] C
+ *          The pointer to the fcblk.lcoeftab if the lower part is computed,
+ *          fcblk.ucoeftab otherwise.
+ *
+ * @param[in] work
+ *          Temporary memory buffer.
+ *
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal
+ *          block.
+ *
+ *******************************************************************************/
+void
+gpublok_zgemmsp(       pastix_coefside_t  sideA,
+                       pastix_coefside_t  sideB,
+                       pastix_trans_t     trans,
+                 const SolverCblk        *cblk,
+                       SolverCblk        *fcblk,
+                       pastix_int_t       blok_mk,
+                       pastix_int_t       blok_nk,
+                       pastix_int_t       blok_mn,
+                 const cuDoubleComplex   *A,
+                 const cuDoubleComplex   *B,
+                       cuDoubleComplex   *C,
+                 const pastix_lr_t       *lowrank,
+                       cudaStream_t       stream )
+{
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    cuDoubleComplex mzone = make_cuDoubleComplex(-1., 0.);
+    cuDoubleComplex zone  = make_cuDoubleComplex( 1., 0.);
+#else
+    double mzone = -1.;
+    double zone  =  1.;
+#endif
+    const SolverBlok *blokA, *blokB, *blokC;
+    const SolverBlok *bA, *bB, *bC;
+    const SolverBlok *fblokK, *lblokK;
+    const SolverBlok *fblokN, *lblokN;
+
+    const cuDoubleComplex *Aptr, *Bptr;
+    cuDoubleComplex *Cptr;
+    pastix_int_t M, N, K, lda, ldb, ldc, cblk_n, cblk_m;
+    size_t offsetA, offsetB, offsetC;
+
+    double time = modelGetTime();
+
+    /* Both cblk and fcblk must be stored in 2D */
+    assert( cblk->cblktype  & CBLK_LAYOUT_2D );
+    assert( fcblk->cblktype & CBLK_LAYOUT_2D );
+
+    /**
+     * Blocs on column K
+     */
+    fblokK = cblk[0].fblokptr;
+    lblokK = cblk[1].fblokptr;
+
+    blokB = fblokK + blok_nk;
+    offsetB = blokB->coefind;
+    cblk_n = blokB->fcblknm;
+
+    blokA = fblokK + blok_mk;
+    offsetA = blokA->coefind;
+    cblk_m = blokA->fcblknm;
+
+    /**
+     * Blocs on column N
+     */
+    fblokN = fcblk[0].fblokptr;
+    lblokN = fcblk[1].fblokptr;
+
+    blokC = fblokN + blok_mn;
+    offsetC = blokC->coefind;
+    assert( blokC->fcblknm == cblk_m );
+
+    K = cblk_colnbr( cblk );
+
+    cublasSetKernelStream( stream );
+    bC = blokC;
+    for (bA = blokA; (bA < lblokK) && (bA->fcblknm == cblk_m); bA++) {
+        M = blok_rownbr(bA);
+        Aptr = A + bA->coefind - offsetA;
+        lda = M;
+
+        /* Find facing C blok */
+        while (!is_block_inside_fblock( bA, bC )) {
+            bC++;
+            assert( bC < lblokN );
+        }
+
+        Cptr = C + bC->coefind - offsetC;
+        ldc = blok_rownbr(bC);
+
+        for (bB = blokB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++) {
+            N = blok_rownbr( bB );
+            Bptr = B + bB->coefind - offsetB;
+            ldb = N;
+
+            cublasZgemm( 'N', transstr[trans - PastixNoTrans],
+                         M, N, K,
+                         mzone, Aptr, lda,
+                                Bptr, ldb,
+                          zone, Cptr + (bA->frownum - bC->frownum)
+                                     + (bB->frownum - fcblk->fcolnum) * ldc, ldc );
+        }
+    }
+
+#if defined(PASTIX_GENERATE_MODEL)
+    cudaStreamSynchronize( stream );
+    modelAddEntry( PastixKernelGpuGEMM2D,
+                   blok_rownbr( cblk->fblokptr + blok_mk ),
+                   blok_rownbr( cblk->fblokptr + blok_nk ),
+                   cblk_colnbr( cblk ),
+                   time );
+#endif
+
+    (void)lblokN; (void)sideA; (void)sideB; (void)lowrank; (void)time;
+}
+
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_kernel
+ *
+ * cpublok_ztrsmsp - Computes the updates associated to one off-diagonal block.
+ *
+ *******************************************************************************
+ *
+ * @param[in] side
+ *          Specify whether the A matrix appears on the left or right in the
+ *          equation. It has to be either PastixLeft or PastixRight.
+ *
+ * @param[in] uplo
+ *          Specify whether the A matrix is upper or lower triangular. It has to
+ *          be either PastixUpper or PastixLower.
+ *
+ * @param[in] trans
+ *          Specify the transposition used for the A matrix. It has to be either
+ *          PastixTrans or PastixConjTrans.
+ *
+ * @param[in] diag
+ *          Specify if the A matrix is unit triangular. It has to be either
+ *          PastixUnit or PastixNonUnit.
+ *
+ * @param[in] cblk
+ *          The cblk structure to which block belongs to. The A and B pointers
+ *          must be the coeftab of this column block.
+ *          Next column blok must be accessible through cblk[1].
+ *
+ * @param[in] blok_m
+ *          Index of the first off-diagonal block in cblk that is solved. The
+ *          TRSM is also applied to all the folowing blocks which are facing the
+ *          same diagonal block
+ *
+ * @param[in] A
+ *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
+ *          coefficients of the panel when the Lower part is computed,
+ *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[inout] C
+ *          The pointer to the fcblk.lcoeftab if the lower part is computed,
+ *          fcblk.ucoeftab otherwise.
+ *
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The number of static pivoting during factorization of the diagonal
+ *          block.
+ *
+ *******************************************************************************/
+void
+gpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
+                 pastix_trans_t trans, pastix_diag_t diag,
+                       SolverCblk      *cblk,
+                       pastix_int_t     blok_m,
+                 const cuDoubleComplex *A,
+                       cuDoubleComplex *C,
+                 const pastix_lr_t     *lowrank,
+                       cudaStream_t     stream )
+{
+#if defined(PRECISION_z) || defined(PRECISION_c)
+    cuDoubleComplex zone  = make_cuDoubleComplex( 1., 0.);
+#else
+    double zone  =  1.;
+#endif
+    const SolverBlok *fblok, *lblok, *blok;
+    pastix_int_t M, N, lda, ldc, offset, cblk_m;
+    cuDoubleComplex *Cptr;
+
+    assert( !(cblk->cblktype & CBLK_COMPRESSED));
+
+    /* if ( cblk->cblktype & CBLK_COMPRESSED ) { */
+    /*     core_ztrsmsp_lrsub( coef, side, uplo, trans, diag, */
+    /*                         cblk, blok_m, lowrank ); */
+    /* } */
+    /* else { */
+
+    N     = cblk->lcolnum - cblk->fcolnum + 1;
+    fblok = cblk[0].fblokptr;  /* The diagonal block */
+    lblok = cblk[1].fblokptr;  /* The diagonal block of the next cblk */
+    lda   = blok_rownbr( fblok );
+
+    assert( blok_rownbr(fblok) == N );
+    assert( cblk->cblktype & CBLK_LAYOUT_2D );
+
+    blok   = fblok + blok_m;
+    offset = blok->coefind;
+    cblk_m = blok->fcblknm;
+
+    cublasSetKernelStream( stream );
+    for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
+
+        Cptr = C + blok->coefind - offset;
+        M   = blok_rownbr(blok);
+        ldc = M;
+
+        cublasZtrsm( sidestr[side - PastixLeft],
+                     uplostr[uplo - PastixUpper],
+                     transstr[trans - PastixNoTrans],
+                     diagstr[diag - PastixNonUnit],
+                     M, N, zone,
+                     A, lda,
+                     Cptr, ldc );
+    }
+
+    /* } */
+
+    (void)lowrank; (void)coef;
 }

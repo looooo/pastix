@@ -35,14 +35,14 @@ static pastix_complex64_t mzone = -1.;
  * @param[in] n
  *          The number of rows and columns of the matrix A.
  *
- * @param[in,out] A
+ * @param[inout] A
  *          The matrix A to factorize with Cholesky factorization. The matrix
  *          is of size lda -by- n.
  *
  * @param[in] lda
  *          The leading dimension of the matrix A.
  *
- * @param[in,out] nbpivot
+ * @param[inout] nbpivot
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
@@ -115,14 +115,14 @@ static void core_zpotf2sp(pastix_int_t        n,
  * @param[in] n
  *          The number of rows and columns of the matrix A.
  *
- * @param[in,out] A
+ * @param[inout] A
  *          The matrix A to factorize with Cholesky factorization. The matrix
  *          is of size lda -by- n.
  *
  * @param[in] lda
  *          The leading dimension of the matrix A.
  *
- * @param[in,out] nbpivot
+ * @param[inout] nbpivot
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
@@ -200,7 +200,7 @@ static void core_zpotrfsp(pastix_int_t        n,
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[in,out] L
+ * @param[inout] L
  *          The pointer to the matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
@@ -258,7 +258,7 @@ int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[in,out] L
+ * @param[inout] L
  *          The pointer to the matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
@@ -279,10 +279,12 @@ int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
 int core_zpotrfsp1d_panel( SolverCblk         *cblk,
                            pastix_complex64_t *L,
                            double              criteria,
-                           pastix_lr_t        *lowrank )
+                           const pastix_lr_t  *lowrank )
 {
     pastix_int_t  nbpivot = core_zpotrfsp1d_potrf(cblk, L, criteria);
-    core_ztrsmsp(PastixLCoef, PastixRight, PastixLower, PastixConjTrans, PastixNonUnit, cblk, L, L, lowrank);
+    cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
+                     PastixConjTrans, PastixNonUnit,
+                     cblk, L, L, lowrank );
     return nbpivot;
 }
 
@@ -302,7 +304,7 @@ int core_zpotrfsp1d_panel( SolverCblk         *cblk,
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[in,out] L
+ * @param[inout] L
  *          The pointer to the matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
@@ -338,8 +340,10 @@ core_zpotrfsp1d( SolverMatrix       *solvmtx,
     {
         fcblk = (solvmtx->cblktab + blok->fcblknm);
 
-        core_zgemmsp( PastixLCoef, PastixLower, PastixConjTrans, cblk, blok, fcblk,
-                      L, L, fcblk->lcoeftab, work, &solvmtx->lowrank );
+        cpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+                         cblk, blok, fcblk,
+                         L, L, fcblk->lcoeftab,
+                         work, &solvmtx->lowrank );
 
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
    }

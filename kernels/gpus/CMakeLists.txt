@@ -1,7 +1,9 @@
 include(RulesPrecisions)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/gemm_config)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/kepler)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/kepler/gemm_config)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/fermi)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/fermi)
 
 # reset variables
 set(cuda_generated_files "")
@@ -9,7 +11,8 @@ set(generated_headers "")
 
 ### Generate .c files from .jdf for all required precisions
 set(SOURCES
-  pastix_zgemm_vbatched.cu
+  kepler/pastix_zgemm_vbatched.cu
+  fermi/sparse_zgemm_fermi.cu
 )
 
 precisions_rules_py(cuda_generated_files
