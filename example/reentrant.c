@@ -71,7 +71,7 @@ static void *solve_smp(void *arg)
     /**
      * Perform the numerical factorization
      */
-    pastix_task_sopalin( pastix_data, spm );
+    pastix_task_numfact( pastix_data, spm );
 
     /**
      * Generates the b and x vector such that A * x = b

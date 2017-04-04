@@ -259,7 +259,7 @@ pastix( pastix_data_t **pastix_data_ptr,
 
     if (iparm[IPARM_START_TASK] == API_TASK_NUMFACT)
     {
-        ret = pastix_task_sopalin( pastix_data, spm );
+        ret = pastix_task_numfact( pastix_data, spm );
         if (PASTIX_SUCCESS != ret) {
             iparm[IPARM_ERROR_NUMBER] = ret;
             return;

@@ -1,9 +1,9 @@
 /**
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 5.2.0
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -181,8 +181,8 @@ void pastixFinalize( pastix_data_t **pastix_data,
  */
 int pastix_task_analyze( pastix_data_t      *pastix_data,
                          pastix_spm_t       *spm );
-int pastix_task_sopalin( pastix_data_t      *pastix_data,
-                         pastix_spm_t       *spm );
+int pastix_task_numfact( pastix_data_t      *pastix_data,
+                         const pastix_spm_t *spm );
 int pastix_task_solve  ( pastix_data_t      *pastix_data,
                          const pastix_spm_t *spm,
                          int                 nrhs,
@@ -210,8 +210,10 @@ int pastix_subtask_blend     ( pastix_data_t      *pastix_data );
  * Numerical factorization subtasks
  */
 int pastix_subtask_spm2bcsc  ( pastix_data_t      *pastix_data,
-                               pastix_spm_t       *spm );
+                               const pastix_spm_t *spm );
 int pastix_subtask_bcsc2ctab ( pastix_data_t      *pastix_data,
+                               const pastix_spm_t *spm );
+int pastix_subtask_sopalin   ( pastix_data_t      *pastix_data,
                                const pastix_spm_t *spm );
 
 void

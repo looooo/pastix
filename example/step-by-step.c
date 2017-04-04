@@ -95,7 +95,9 @@ int main (int argc, char **argv)
         /**
          * Perform the numerical factorization
          */
-        pastix_task_sopalin( pastix_data, spm );
+        pastix_subtask_spm2bcsc( pastix_data, spm );
+        pastix_subtask_bcsc2ctab( pastix_data, spm );
+        pastix_subtask_sopalin( pastix_data, spm );
         for (j = 0; j < nsolv; j++)
         {
             /**

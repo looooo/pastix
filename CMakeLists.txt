@@ -782,6 +782,8 @@ add_documented_files(
   #blend/task.c
   blend/pastix_subtask_blend.c
   blend/pastix_task_analyze.c
+  sopalin/pastix_task_sopalin.c
+  sopalin/pastix_task_solve.c
 )
 
 #

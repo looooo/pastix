@@ -2,11 +2,12 @@
  *
  * @file pastix_task_solve.c
  *
- *  PaStiX factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ *  PaStiX solve routines
  *
- * @version 5.1.0
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Pascal Henon
  * @author Xavier Lacoste
  * @author Pierre Ramet
@@ -98,32 +99,27 @@ pastix_diag( pastix_data_t *pastix_data, int flttype,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_sopalin
- * @ingroup pastix
+ * @ingroup pastix_users
  *
- * pastix_task_sopalin - Factorize the given problem using Cholesky(-Crout) or
- * LU decomposition.
- *
- * ...
+ * pastix_task_solve - Solve the given problem.
  *
  * This routine is affected by the following parameters:
- *   IPARM_VERBOSE, ...
+ *   IPARM_VERBOSE, IPARM_FACTORIZATION.
  *
  *******************************************************************************
  *
- * @param[in,out] pastix_data
+ * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.
- *          On exit, ...
+ *          On exit, the solution is stored in place of the right-hand-side vector.
  *
- * @param[in,out] spm
- *          ...
+ * @param[in] spm
+ *          The sparse matrix descriptor that describes problem instance.
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS on successful exit
- *          \retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
- *          \retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect,
+ * @retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
  *
  *******************************************************************************/
 int
@@ -145,15 +141,15 @@ pastix_task_solve( pastix_data_t *pastix_data,
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_task_sopalin: wrong pastix_data parameter");
+        errorPrint("pastix_task_solve: wrong pastix_data parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
     if (spm == NULL) {
-        errorPrint("pastix_task_sopalin: wrong spm parameter");
+        errorPrint("pastix_task_solve: wrong spm parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
-    if ( !(pastix_data->steps & STEP_ANALYSE) ) {
-        errorPrint("pastix_task_sopalin: All steps from pastix_task_init() to pastix_task_blend() have to be called before calling this function");
+    if ( !(pastix_data->steps & STEP_NUMFACT) ) {
+        errorPrint("pastix_task_solve: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
 
