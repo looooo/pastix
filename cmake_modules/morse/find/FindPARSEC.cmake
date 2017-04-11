@@ -37,8 +37,8 @@
 #  PARSEC_INCLUDE_DIRS_DEP       - parsec + dependencies include directories
 #  PARSEC_LIBRARY_DIRS_DEP       - parsec + dependencies link directories
 #  PARSEC_LIBRARIES_DEP          - parsec libraries + dependencies
-#  PARSEC_parsecpp_BIN_DIR       - path to parsec driver parsecpp
-#  PARSEC_PARSECPP               - parsec jdf compiler
+#  PARSEC_parsec_ptgpp_BIN_DIR       - path to parsec driver parsec_ptgpp
+#  PARSEC_PARSEC_PTGPP               - parsec jdf compiler
 # The user can give specific paths where to find the libraries adding cmake
 # options at configure (ex: cmake path/to/project -DPARSEC=path/to/parsec):
 #  PARSEC_DIR                    - Where to find the base directory of parsec
@@ -241,7 +241,7 @@ if(PKG_CONFIG_EXECUTABLE AND NOT PARSEC_GIVEN_BY_USER)
     set(PARSEC_LIBRARIES_DEP "${PARSEC_LIBRARIES}")
 
     # create list of binaries to find
-    set(PARSEC_bins_to_find "parsecpp")
+    set(PARSEC_bins_to_find "parsec_ptgpp")
 
     # call cmake macro to find the bin path
     if(PARSEC_PREFIX)
@@ -455,7 +455,7 @@ if( (NOT PKG_CONFIG_EXECUTABLE) OR (PKG_CONFIG_EXECUTABLE AND NOT PARSEC_FOUND) 
     list(REMOVE_DUPLICATES _bin_env)
 
     # create list of binaries to find
-    set(PARSEC_bins_to_find "parsecpp")
+    set(PARSEC_bins_to_find "parsec_ptgpp")
 
     # call cmake macro to find the bin path
     if(PARSEC_DIR)
@@ -474,13 +474,13 @@ if( (NOT PKG_CONFIG_EXECUTABLE) OR (PKG_CONFIG_EXECUTABLE AND NOT PARSEC_FOUND) 
                       HINTS ${_bin_env})
         endforeach()
     endif()
-    if (PARSEC_parsecpp_BIN_DIR)
+    if (PARSEC_parsec_ptgpp_BIN_DIR)
         if (NOT PARSEC_FIND_QUIETLY)
-            message(STATUS "Look for PARSEC - compiler parsecpp found in ${PARSEC_parsecpp_BIN_DIR}")
+            message(STATUS "Look for PARSEC - compiler parsec_ptgpp found in ${PARSEC_parsec_ptgpp_BIN_DIR}")
         endif()
     else()
         if (PARSEC_FIND_REQUIRED)
-            message(FATAL_ERROR "Look for PARSEC - compiler parsecpp not found while required")
+            message(FATAL_ERROR "Look for PARSEC - compiler parsec_ptgpp not found while required")
         endif()
     endif()
 
@@ -641,18 +641,18 @@ include(FindPackageHandleStandardArgs)
 if (PKG_CONFIG_EXECUTABLE AND PARSEC_FOUND)
     find_package_handle_standard_args(PARSEC DEFAULT_MSG
                                       PARSEC_LIBRARIES
-                                      PARSEC_parsecpp_BIN_DIR)
+                                      PARSEC_parsec_ptgpp_BIN_DIR)
 else()
     find_package_handle_standard_args(PARSEC DEFAULT_MSG
                                       PARSEC_LIBRARIES
-                                      PARSEC_parsecpp_BIN_DIR
+                                      PARSEC_parsec_ptgpp_BIN_DIR
                                       PARSEC_WORKS)
 endif()
 
-if ( PARSEC_parsecpp_BIN_DIR )
-    find_program(PARSEC_PARSECPP
-        NAMES parsecpp
-        HINTS ${PARSEC_parsecpp_BIN_DIR})
+if ( PARSEC_parsec_ptgpp_BIN_DIR )
+    find_program(PARSEC_PARSEC_PTGPP
+        NAMES parsec_ptgpp
+        HINTS ${PARSEC_parsec_ptgpp_BIN_DIR})
 else()
-    set(PARSEC_PARSECPP "PARSEC_PARSECPP-NOTFOUND")
+    set(PARSEC_PARSEC_PTGPP "PARSEC_PARSEC_PTGPP-NOTFOUND")
 endif()
