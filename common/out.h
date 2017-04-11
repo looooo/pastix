@@ -81,6 +81,8 @@
 
 #define OUT_BLEND_CHKSMBMTX                     \
     "    Check the symbol matrix\n"
+#define OUT_BLEND_CHKSOLVER                     \
+    "    Check the solver matrix\n"
 #define OUT_BLEND_ELIMTREE                      \
     "    Building elimination tree\n"
 #define OUT_BLEND_ELIMTREE_TIME                         \
