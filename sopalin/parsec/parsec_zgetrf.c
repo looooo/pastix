@@ -22,7 +22,6 @@
 #include "solver.h"
 #include "sopalin_data.h"
 #include "parsec/zgetrf_sp1dplus.h"
-#include "parsec/zgetrf_sp2d.h"
 
 parsec_handle_t*
 parsec_zgetrf_sp1dplus_New( sparse_matrix_desc_t *A,
