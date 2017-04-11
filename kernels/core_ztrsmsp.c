@@ -333,6 +333,9 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
  *
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
+ *
  *******************************************************************************
  *
  * @return

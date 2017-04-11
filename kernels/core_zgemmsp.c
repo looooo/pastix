@@ -470,13 +470,6 @@ core_zgemmsp_2d2d( pastix_coefside_t sideA, pastix_trans_t trans,
  *
  *******************************************************************************
  *
- * @param[in] uplo
- *          - PastixLower, all the contributions to the lower triangular block
- *          structure, diagonal blocks *included*, are applied.
- *          - PastixUpper, all the contributions to the upper triangular block
- *          structure, diagonal blocks *excluded*, are applied.
- *          - PastixUpperLower, all the contributions are applied
- *
  * @param[in] trans
  *          Specify the transposition used for the B matrices. It has to be either
  *          PastixTrans or PastixConjTrans.
@@ -629,18 +622,21 @@ core_zgemmsp_2d2dsub( pastix_trans_t trans,
  *
  *******************************************************************************
  *
- * @param[in] coef
- *          - PastixLCoef, use the lower part of A and C.
- *          - PastixUCoef, use the upper part of A and C
+ * @param[in] sideA
+ *          Specify if A and C belong to the lower part, or to the upper part.
+ *          If sideA == PastixLCoef, the contribution of:
+ *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
+ *          C, otherwise the contribution:
+ *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
+ *          to C.
  *
- * @param[in] uplo
- *          - PastixLower, all the contributions to the lower triangular block
- *          structure, diagonal blocks *included*, are applied.
- *          - PastixUpper, all the contributions to the upper triangular block
- *          structure, diagonal blocks *excluded*, are applied.
- *          - PastixUpperLower, all the contributions are applied
+ * @param[in] sideB
+ *          Specify if B belongs to the L part, or to the U part. this is used
+ *          internally in the kernel to select the correct data pointer.
+ *          If PastixLCoef, B belongs to the L part, otherwise B belogns to the
+ *          U part.
  *
- * @param[in] trans
+ * @param[in] transB
  *          Specify the transposition used for the B matrices. It has to be either
  *          PastixTrans or PastixConjTrans.
  *
@@ -768,9 +764,6 @@ core_zgemmsp_2dlrsub( pastix_coefside_t sideA,
  *          C, otherwise the contribution:
  *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
  *          to C.
- *          The pointer to the data structure that describes the panel from
- *          which we compute the contributions. Next column blok must be
- *          accessible through cblk[1].
  *
  * @param[in] trans
  *          Specify the transposition used for the B matrix. It has to be either
@@ -903,9 +896,12 @@ core_zgemmsp_fulllr( pastix_coefside_t sideA,
  *          C, otherwise the contribution:
  *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
  *          to C.
- *          The pointer to the data structure that describes the panel from
- *          which we compute the contributions. Next column blok must be
- *          accessible through cblk[1].
+ *
+ * @param[in] sideB
+ *          Specify if B belongs to the L part, or to the U part. this is used
+ *          internally in the kernel to select the correct data pointer.
+ *          If PastixLCoef, B belongs to the L part, otherwise B belogns to the
+ *          U part.
  *
  * @param[in] trans
  *          Specify the transposition used for the B matrix. It has to be either
@@ -1038,14 +1034,9 @@ core_zgemmsp_lr( pastix_coefside_t sideA,
  *
  *******************************************************************************
  *
- * @param[in] sideB
- *          Specify if B belongs to the L part, or to the U part. this is used
- *          internally in the kernel to select the correct data pointer.
- *          If PastixLCoef, B belongs to the L part, otherwise B belogns to the
- *          U part.
- *
- * @param[in] uplo
- *          If uplo == PastixLower, the contribution of:
+ * @param[in] sideA
+ *          Specify if A and C belong to the lower part, or to the upper part.
+ *          If sideA == PastixLCoef, the contribution of:
  *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
  *          C, otherwise the contribution:
  *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
@@ -1053,6 +1044,12 @@ core_zgemmsp_lr( pastix_coefside_t sideA,
  *          The pointer to the data structure that describes the panel from
  *          which we compute the contributions. Next column blok must be
  *          accessible through cblk[1].
+ *
+ * @param[in] sideB
+ *          Specify if B belongs to the L part, or to the U part. this is used
+ *          internally in the kernel to select the correct data pointer.
+ *          If PastixLCoef, B belongs to the L part, otherwise B belogns to the
+ *          U part.
  *
  * @param[in] trans
  *          Specify the transposition used for the B matrix. It has to be either

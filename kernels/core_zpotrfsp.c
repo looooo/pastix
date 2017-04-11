@@ -267,7 +267,7 @@ int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
- * @param[in] *lowrank
+ * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
  *******************************************************************************
@@ -312,6 +312,9 @@ int core_zpotrfsp1d_panel( SolverCblk         *cblk,
  *          Threshold use for static pivoting. If diagonal value is under this
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
+ *
+ * @param[in] work
+ *          Temporary memory buffer.
  *
  *******************************************************************************
  *

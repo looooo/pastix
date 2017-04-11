@@ -971,8 +971,37 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
 }
 
 /* Interfaces to transform pastix_complex64_t into void */
-void
-core_zge2lr_RRQR_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_devçkernel
+ *
+ * core_zge2lr_RRQR_interface - Interface to core_zge2lr_RRQR
+ *
+ *******************************************************************************
+ *
+ * @param[in] tol
+ *          The tolerance used as a criterai to eliminate information from the
+ *          full rank matrix
+ *
+ * @param[in] m
+ *          Number of rows of the matrix A, and of the low rank matrix Alr.
+ *
+ * @param[in] n
+ *          Number of columns of the matrix A, and of the low rank matrix Alr.
+ *
+ * @param[in] A
+ *          The matrix of dimension lda-by-n that need to be compressed
+ *
+ * @param[in] lda
+ *          The leading dimension of the matrix A. lda >= max(1, m)
+ *
+ * @param[out] Alr
+ *          The low rank matrix structure that will store the low rank
+ *          representation of A
+ *
+ *******************************************************************************/
+void core_zge2lr_RRQR_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
                             const void *Aptr, pastix_int_t lda,
                             void *Alr )
 {
@@ -980,8 +1009,57 @@ core_zge2lr_RRQR_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
     core_zge2lr_RRQR( tol, m, n, A, lda, Alr );
 }
 
-int
-core_zrradd_RRQR_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, const void *alphaptr,
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_dev_kernel
+ *
+ * core_zrradd_RRQR_interface - Interface to core_zrradd_RRQR
+ *
+ *******************************************************************************
+ *
+ * @param[in] tol
+ *          The absolute tolerance criteria
+ *
+ * @param[in] transA1
+ *         @arg PastixNoTrans:  No transpose, op( A ) = A;
+ *         @arg PastixTrans:  Transpose, op( A ) = A';
+ *
+ * @param[in] alpha
+ *          alpha * A is add to B
+ *
+ * @param[in] M1
+ *          The number of rows of the matrix A.
+ *
+ * @param[in] N1
+ *          The number of columns of the matrix A.
+ *
+ * @param[in] A
+ *          The low-rank representation of the matrix A.
+ *
+ * @param[in] M2
+ *          The number of rows of the matrix B.
+ *
+ * @param[in] N2
+ *          The number of columns of the matrix B.
+ *
+ * @param[in] B
+ *          The low-rank representation of the matrix B.
+ *
+ * @param[in] offx
+ *          The horizontal offset of A with respect to B.
+ *
+ * @param[in] offy
+ *          The vertical offset of A with respect to B.
+ *
+ *******************************************************************************
+ *
+ * @return
+ *          The new rank of u2 v2^T or -1 if ranks are too large for
+ *          recompression
+ *
+ *******************************************************************************/
+int core_zrradd_RRQR_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, const void *alphaptr,
                             pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                             pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
                             pastix_int_t offx, pastix_int_t offy )

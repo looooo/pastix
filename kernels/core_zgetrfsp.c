@@ -288,7 +288,7 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
- * @param[in] *lowrank
+ * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
  *******************************************************************************
@@ -343,6 +343,9 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
  *
  * @param[in] tol
  *          Tolerance for low-rank compression kernels
+ *
+ * @param[in] work
+ *          Temporary memory buffer.
  *
  *******************************************************************************
  *
