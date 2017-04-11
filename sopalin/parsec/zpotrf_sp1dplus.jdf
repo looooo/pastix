@@ -28,7 +28,7 @@ lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->
 p_work    [type = "parsec_memory_pool_t *"]
 
 /**************************************************
- *                POTRF                      *
+ *                   POTRF                        *
  * panel factorization: do trf of diagonal and    *
  *                    : trsm on off-diagonal      *
  **************************************************/
@@ -141,19 +141,21 @@ RW    C  <- (brownum == -1) ? NULL
 
 BODY
 {
-    /* If diagonal block, we skip */
+    /* If diagonal block, we skip it */
     if (brownum != -1) {
         SolverCblk *lcblk = datacode->cblktab + lcblknm;
         SolverCblk *fcblk = datacode->cblktab + fcblknm;
         SolverBlok *blok  = datacode->bloktab + bloknum;
-        pastix_complex64_t *work;
+        pastix_complex64_t *work = NULL;
 
-        work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
+        //work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
 
-        core_zgemmsp( PastixLCoef, PastixLower, PastixConjTrans, lcblk, blok, fcblk,
-                      A, A, C, work, &lowrank );
+        cpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+                         lcblk, blok, fcblk,
+                         A, A, C,
+                         work, &lowrank );
 
-        parsec_private_memory_push( p_work, (void *)work );
+        //parsec_private_memory_push( p_work, (void *)work );
     }
 }
 END

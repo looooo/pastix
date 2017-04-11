@@ -28,7 +28,7 @@ lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->
 p_work    [type = "parsec_memory_pool_t *"]
 
 /**************************************************
- *                GETRF                      *
+ *                   GETRF                        *
  * panel factorization: do trf of diagonal and    *
  *                    : trsm on off-diagonal      *
  **************************************************/
@@ -79,11 +79,11 @@ END
  * k-th block updating corresponding.
  *
  */
-GEMM1D(bloknum, s)
+GEMM1D(s, bloknum)
 
 // Execution space
-bloknum = 1 .. bloknbr
 s       = 0 .. 1
+bloknum = 1 .. bloknbr
 
 lcblknm = %{ SolverBlok *blok = datacode->bloktab + bloknum;     return blok->lcblknm; %}
 fcblknm = %{ SolverBlok *blok = datacode->bloktab + bloknum;     return blok->fcblknm; %}
@@ -138,36 +138,40 @@ READ  Au <- (brownum != -1) ? U GETRF( lcblknm ) : NULL
 
 RW    C  <- (brownum == -1) ? NULL
          <- (brownum != -1) && (brownum == first) ? descA( s, fcblknm, 0 )
-         <- (brownum != -1) && (brownum != first) ? C GEMM1D( prev, s )
+         <- (brownum != -1) && (brownum != first) ? C GEMM1D( s, prev )
 
          -> (brownum != -1) && (brownum == last) && (s == 0) ? L GETRF( fcblknm )
          -> (brownum != -1) && (brownum == last) && (s != 0) ? U GETRF( fcblknm )
-         -> (brownum != -1) && (brownum != last)             ? C GEMM1D( next, s )
+         -> (brownum != -1) && (brownum != last)             ? C GEMM1D( s, next )
 
 ; %{ return cblknbr - ((fcblknm + lcblknm) / 2 ) + last - brownum; %}
 
 BODY
 {
-    /* If diagonal block, we skip */
+    /* If diagonal block, we skip it */
     if (brownum != -1) {
         SolverCblk *lcblk = datacode->cblktab + lcblknm;
         SolverCblk *fcblk = datacode->cblktab + fcblknm;
         SolverBlok *blok  = datacode->bloktab + bloknum;
-        pastix_complex64_t *work;
+        pastix_complex64_t *work = NULL;
 
         /* Update */
         if ( blok+s < lcblk[1].fblokptr ) {
-            work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
+            //work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
 
             if (s == 0) {
-                core_zgemmsp( PastixUCoef, PastixLower, PastixTrans, lcblk, blok, fcblk,
-                              Al, Au, C, work, &lowrank );
+                cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
+                                 lcblk, blok, fcblk,
+                                 Al, Au, C,
+                                 work, &lowrank );
             }
             else {
-                core_zgemmsp( PastixLCoef, PastixUpper, PastixTrans, lcblk, blok, fcblk,
-                              Au, Al, C, work, &lowrank );
+                cpucblk_zgemmsp( PastixUCoef, PastixLCoef, PastixTrans,
+                                 lcblk, blok, fcblk,
+                                 Au, Al, C,
+                                 work, &lowrank );
             }
-            parsec_private_memory_push( p_work, (void *)work );
+            //parsec_private_memory_push( p_work, (void *)work );
         }
     }
 }
