@@ -24,6 +24,16 @@
 #include "s_raff_functions.h"
 #include "order.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_dev_raff
+ *
+ * @brief Select the refinement function to call depending on the matrix type and the
+ * precision
+ *
+ *
+ *******************************************************************************/
 static void (*sopalinRaff[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
 {
     //  API_RAF_GMRES
