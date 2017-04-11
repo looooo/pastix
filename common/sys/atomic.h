@@ -85,13 +85,13 @@ static inline uint64_t pastix_atomic_bor_xxb( volatile void* location,
 #ifdef PASTIX_ATOMIC_HAS_ATOMIC_ADD_32B
 #define pastix_atomic_inc_32b(l)  pastix_atomic_add_32b((int32_t*)l, 1)
 #else
-static inline uint32_t pastix_atomic_inc_32b( volatile uint32_t *location )
+static inline int32_t pastix_atomic_inc_32b( volatile int32_t *location )
 {
     uint32_t l;
     do {
-        l = *location;
+        l = (uint32_t)*location;
     } while( !pastix_atomic_cas_32b( location, l, l+1 ) );
-    return l+1;
+    return (int32_t)l+1;
 }
 #endif  /* PASTIX_ATOMIC_HAS_ATOMIC_ADD_32B */
 #endif  /* PASTIX_ATOMIC_HAS_ATOMIC_INC_32B */
@@ -102,20 +102,20 @@ static inline uint32_t pastix_atomic_inc_32b( volatile uint32_t *location )
 #ifdef PASTIX_ATOMIC_HAS_ATOMIC_SUB_32B
 #define pastix_atomic_dec_32b(l)  pastix_atomic_sub_32b((int32_t*)l, 1)
 #else
-static inline uint32_t pastix_atomic_dec_32b( volatile uint32_t *location )
+static inline int32_t pastix_atomic_dec_32b( volatile int32_t *location )
 {
     uint32_t l;
     do {
-        l = *location;
+        l = (uint32_t)*location;
     } while( !pastix_atomic_cas_32b( location, l, l-1 ) );
-    return l-1;
+    return (int32_t)l-1;
 }
 #endif  /* PASTIX_ATOMIC_HAS_ATOMIC_SUB_32B */
 #endif  /* PASTIX_ATOMIC_HAS_ATOMIC_DEC_32B */
 
 #ifndef PASTIX_ATOMIC_HAS_ATOMIC_ADD_32B
 #define PASTIX_ATOMIC_HAS_ATOMIC_ADD_32B
-static inline uint32_t pastix_atomic_add_32b( volatile uint32_t *location, int32_t d )
+static inline int32_t pastix_atomic_add_32b( volatile int32_t *location, int32_t d )
 {
     uint32_t l, n;
     do {
@@ -152,4 +152,13 @@ static inline long pastix_atomic_trylock( pastix_atomic_lock_t* atomic_lock )
     return pastix_atomic_cas( atomic_lock, 0, 1 );
 }
 
+static inline uint64_t pastix_atomic_add_64b( volatile uint64_t *location, uint64_t d )
+{
+    uint64_t l, n;
+    do {
+        l = (*location);
+        n = (l + d);
+    } while( !pastix_atomic_cas_64b( location, l, n ) );
+    return n;
+}
 #endif  /* PASTIX_ATOMIC_H_HAS_BEEN_INCLUDED */

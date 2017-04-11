@@ -80,7 +80,7 @@ static inline int pastix_atomic_cas_64b( volatile uint64_t* location,
 }
 
 #define PASTIX_ATOMIC_HAS_ATOMIC_ADD_32B
-static inline uint32_t pastix_atomic_add_32b( volatile int32_t *location, int32_t i )
+static inline int32_t pastix_atomic_add_32b( volatile int32_t *location, int32_t i )
 {
     register int32_t old_val, tmp_val;
 
@@ -95,7 +95,7 @@ static inline uint32_t pastix_atomic_add_32b( volatile int32_t *location, int32_
 }
 
 #define PASTIX_ATOMIC_HAS_ATOMIC_SUB_32B
-static inline uint32_t pastix_atomic_sub_32b( volatile int32_t *location, int32_t i )
+static inline int32_t pastix_atomic_sub_32b( volatile int32_t *location, int32_t i )
 {
     register int32_t old_val, tmp_val;
 
