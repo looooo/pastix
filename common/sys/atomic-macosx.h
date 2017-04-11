@@ -42,13 +42,13 @@ static inline int pastix_atomic_cas_64b( volatile uint64_t* location,
 }
 
 #define PASTIX_ATOMIC_HAS_ATOMIC_INC_32B
-static inline int32_t pastix_atomic_inc_32b( volatile uint32_t *location )
+static inline int32_t pastix_atomic_inc_32b( volatile int32_t *location )
 {
     return OSAtomicIncrement32( (int32_t*)location );
 }
 
 #define PASTIX_ATOMIC_HAS_ATOMIC_DEC_32B
-static inline int32_t pastix_atomic_dec_32b( volatile uint32_t *location )
+static inline int32_t pastix_atomic_dec_32b( volatile int32_t *location )
 {
     return OSAtomicDecrement32( (int32_t*)location );
 }
@@ -67,9 +67,9 @@ static inline int32_t pastix_atomic_sub_32b( volatile int32_t *location, int32_t
 
 #if defined(HAVE_ATOMIC_GCC_128_BUILTINS)
 #define PASTIX_ATOMIC_HAS_ATOMIC_CAS_128B
-static inline int pastix_atomic_cas_128b( volatile __uint128_t* location,
-                                         __uint128_t old_value,
-                                         __uint128_t new_value )
+static inline int pastix_atomic_cas_128b( volatile __int128_t* location,
+                                         __int128_t old_value,
+                                         __int128_t new_value )
 {
     return (__sync_bool_compare_and_swap(location, old_value, new_value) ? 1 : 0);
 }
