@@ -20,6 +20,13 @@
 #include "bcsc.h"
 #include "z_raff_functions.h"
 
+/**
+ *
+ * @brief GMRES parameters
+ *
+ * This structure describes gmres parameters.
+ *
+ */
 typedef struct gmres_s
 {
   volatile pastix_int_t gmresout_flag;     /*+ Flag for GMRES outter loop          +*/

@@ -83,6 +83,11 @@ static void (*sopalinRaff[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
  * @param[in] b
  *          The right hand side member.
  *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect,
+ *
  *******************************************************************************/
 int
 pastix_task_raff( pastix_data_t *pastix_data,

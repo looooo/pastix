@@ -114,7 +114,7 @@ void z_Pastix_Verbose( double t0, double tf, double err, pastix_int_t nb_iters )
  * @param[inout] x
  *          The vector that is to be overwritten by gmresx
  *
- * @param[in] gmres
+ * @param[in] gmresx
  *          The final solution
  *
  *******************************************************************************/
@@ -427,10 +427,10 @@ void z_Pastix_Dotc( pastix_int_t n, pastix_complex64_t *x,
  * @param[in] n
  *          The number of elements of vectors x, y and r
  *
- * @param[in] y
+ * @param[in] x
  *          The first vector of the scalar product
  *
- * @param[in] n
+ * @param[in] y
  *          The second vector of the scalar product
  *
  * @param[out] r
