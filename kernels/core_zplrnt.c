@@ -16,6 +16,7 @@
  **/
 #include "common.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define Rnd64_A  6364136223846793005ULL
 #define Rnd64_C  1ULL
 #define RndF_Mul 5.4210108624275222e-20f
@@ -46,11 +47,14 @@ Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
 #define NBELEM   1
 #endif
 
-/***************************************************************************//**
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+
+/**
+ *******************************************************************************
  *
- * @ingroup CORE_pastix_complex64_t
+ * @ingroup pastix_kernel
  *
- *  CORE_zplrnt generates a random tile.
+ * core_zplrnt generates a random tile.
  *
  *******************************************************************************
  *

@@ -8,8 +8,10 @@
 #ifndef _PASTIX_ZCORES_H_
 #define _PASTIX_ZCORES_H_
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define pastix_cblk_lock( cblk_ )    pastix_atomic_lock( &((cblk_)->lock) )
 #define pastix_cblk_unlock( cblk_ )  pastix_atomic_unlock( &((cblk_)->lock) )
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 void
 core_zlralloc( pastix_int_t M, pastix_int_t N,
@@ -83,10 +85,6 @@ void core_zplrnt( int m, int n, pastix_complex64_t *A, int lda,
 void core_zgetro(int m, int n,
                  const pastix_complex64_t *A, int lda,
                  pastix_complex64_t *B, int ldb);
-
-void core_zgetrox(pastix_complex64_t alpha, int m, int n,
-                  const pastix_complex64_t *A, int lda,
-                  pastix_complex64_t *B, int ldb);
 
 int core_zgeadd( pastix_trans_t trans, pastix_int_t M, pastix_int_t N,
                        pastix_complex64_t  alpha,

@@ -19,8 +19,10 @@
 #include "pastix_zcores.h"
 #include "z_nan_check.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t zzero =  0.;
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
@@ -98,7 +100,7 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
     /**
      * Query the workspace needed for the gesvd
      */
-#if defined(PASTIX_LR_CHECKNAN)
+#if defined(PASTIX_DEBUG_LR_NANCHECK)
     ws = minMN;
 #else
     ret = MYLAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
@@ -398,7 +400,7 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     lwork = pastix_imax( M, N ) * 32;
 
     /* Workspace needed for the gesvd */
-#if defined(PASTIX_LR_CHECKNAN)
+#if defined(PASTIX_DEBUG_LR_NANCHECK)
     querysize = rank;
 #else
     ret = MYLAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
@@ -660,7 +662,7 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
      * Let's now compute the final U = Q1 ([u] sigma)
      *                                     [0]
      */
-#if defined(PASTIX_LR_CHECKNAN)
+#if defined(PASTIX_DEBUG_LR_NANCHECK)
     ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, new_rank,
                                0., 0., B->u, ldbu );
     assert(ret == 0);

@@ -1,17 +1,24 @@
 /**
  * @file z_nan_check.h
  *
- * Copyright (c) 2016      Inria. All rights reserved.
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * @precisions normal z -> s d c
+ *
+ * @brief Manage nancheck for lowrank kernels.
+ *
+ * This header describes all the LAPACKE functions used for low-rank kernels,
+ * as well as some macros to manage nancheck.
+ *
  */
 #ifndef _Z_NAN_CHECK_H_
 #define _Z_NAN_CHECK_H_
 
-#define PASTIX_DEBUG_LR
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+// #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
-//#define PASTIX_LR_CHECKNAN
-#if defined(PASTIX_LR_CHECKNAN)
+#if defined(PASTIX_DEBUG_LR_NANCHECK)
 #define LAPACKE_zlacpy_work LAPACKE_zlacpy
 #define LAPACKE_zlaset_work LAPACKE_zlaset
 
@@ -43,6 +50,8 @@
     LAPACKE_zgesvd_work( _layout_, _jobu_, jobv_, _m_, _n_, _a_, _lda_, _s_, _u_, _ldu_, _v_, _ldv_, _w_, _ldw_ )
 #endif
 
-#endif /* defined(PASTIX_LR_CHECKNAN) */
+#endif /* defined(PASTIX_DEBUG_LR_NANCHECK) */
+
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif /* _Z_NAN_CHECK_H_ */

@@ -19,10 +19,11 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define MAXSIZEOFBLOCKS 64
-
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************

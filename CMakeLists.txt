@@ -124,6 +124,10 @@ option(PASTIX_DEBUG_FACTO
 cmake_dependent_option(PASTIX_DEBUG_PARSEC
   "Debug the parsec implementation of the factorization step" OFF
   "PASTIX_WITH_PARSEC" OFF)
+option(PASTIX_DEBUG_LR
+  "Debug the lowrank kernels (Valgrind)" OFF)
+option(PASTIX_DEBUG_LR_NANCHECK
+  "Debug the lowrank kernels (nancheck)" OFF)
 
 ###############################################################################
 # Look for dependencies #

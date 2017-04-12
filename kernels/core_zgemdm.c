@@ -45,12 +45,12 @@
  *******************************************************************************
  *
  * @param[in] transA
- *         @arg CblasNoTrans   : No transpose, op( A ) = A;
- *         @arg CblasConjTrans : Transpose, op( A ) = A'.
+ *         @arg PastixNoTrans   : No transpose, op( A ) = A;
+ *         @arg PastixConjTrans : Transpose, op( A ) = A'.
  *
  * @param[in] transB
- *         @arg CblasNoTrans   : No transpose, op( B ) = B;
- *         @arg CblasConjTrans : Transpose, op( B ) = B'.
+ *         @arg PastixNoTrans   : No transpose, op( B ) = B;
+ *         @arg PastixConjTrans : Transpose, op( B ) = B'.
  *
  * @param[in] M
  *         The number of rows of the matrix op( A ) and of the
@@ -70,29 +70,29 @@
  *
  * @param[in] A
  *         pastix_complex64_t array of DIMENSION ( LDA, ka ), where ka is
- *         k when transA = CblasTrans, and is m otherwise.
- *         Before entry with transA = CblasTrans, the leading m by k
+ *         k when transA = PastixTrans, and is m otherwise.
+ *         Before entry with transA = PastixTrans, the leading m by k
  *         part of the array A must contain the matrix A, otherwise
  *         the leading k by m part of the array A must contain the
  *         matrix A.
  *
  * @param[in] LDA
  *        On entry, LDA specifies the first dimension of A as declared
- *        in the calling (sub) program. When transA = CblasTrans then
+ *        in the calling (sub) program. When transA = PastixTrans then
  *        LDA must be at least  max( 1, m ), otherwise LDA must be at
  *        least max( 1, k ).
  *
  * @param[in] B
  *        pastix_complex64_t array of DIMENSION ( LDB, kb ), where kb is
- *        n  when transB = CblasTrans, and is k otherwise.
- *        Before entry with transB = CblasTrans, the leading k by n
+ *        n  when transB = PastixTrans, and is k otherwise.
+ *        Before entry with transB = PastixTrans, the leading k by n
  *        part of the array B must contain the matrix B, otherwise
  *        the leading n by k part of the array B must contain the
  *        matrix B.
  *
  * @param[in] LDB
  *       On entry, LDB specifies the first dimension of B as declared
- *       in the calling (sub) program. When transB = CblasTrans then
+ *       in the calling (sub) program. When transB = PastixTrans then
  *       LDB must be at least  max( 1, k ), otherwise LDB must be at
  *       least max( 1, n ).
  *
@@ -128,7 +128,7 @@
  *
  * @param[in] LWORK
  *       The length of WORK.
- *       On entry, if transA = CblasTrans and transB = CblasTrans then
+ *       On entry, if transA = PastixTrans and transB = PastixTrans then
  *       LWORK >= max(1, K*N). Otherwise LWORK >= max(1, M*K).
  *
  *******************************************************************************
@@ -138,7 +138,7 @@
  *          \retval <0 if -i, the i-th argument had an illegal value
  *
  ******************************************************************************/
-int core_zgemdm(int transA, int transB,
+int core_zgemdm(pastix_trans_t transA, pastix_trans_t transB,
                 int M, int N, int K,
                       pastix_complex64_t alpha,
                 const pastix_complex64_t *A,    int LDA,
@@ -153,15 +153,15 @@ int core_zgemdm(int transA, int transB,
     pastix_complex64_t *wD2, *w;
     const pastix_complex64_t *wD;
 
-    Am = (transA == CblasNoTrans ) ? M : K;
-    Bm = (transB == CblasNoTrans ) ? K : N;
+    Am = (transA == PastixNoTrans ) ? M : K;
+    Bm = (transB == PastixNoTrans ) ? K : N;
 
     /* Check input arguments */
-    if ((transA != CblasNoTrans) && (transA != CblasTrans) && (transA != CblasConjTrans)) {
+    if ((transA != PastixNoTrans) && (transA != PastixTrans) && (transA != PastixConjTrans)) {
         //coreblas_error(1, "Illegal value of transA");
         return -1;
     }
-    if ((transB != CblasNoTrans) && (transB != CblasTrans) && (transB != CblasConjTrans)) {
+    if ((transB != PastixNoTrans) && (transB != PastixTrans) && (transB != PastixConjTrans)) {
         //coreblas_error(2, "Illegal value of transB");
         return -2;
     }
@@ -193,12 +193,12 @@ int core_zgemdm(int transA, int transB,
         //coreblas_error(15, "Illegal value of incD");
         return -15;
     }
-    if ( ( ( transA == CblasNoTrans ) && ( LWORK < (M+1)*K) ) ||
-         ( ( transA != CblasNoTrans ) && ( LWORK < (N+1)*K) ) ){
+    if ( ( ( transA == PastixNoTrans ) && ( LWORK < (M+1)*K) ) ||
+         ( ( transA != PastixNoTrans ) && ( LWORK < (N+1)*K) ) ){
         errorPrint("CORE_gemdm: Illegal value of LWORK\n");
-        if (transA == CblasNoTrans )
+        if (transA == PastixNoTrans )
             errorPrint("LWORK %d < (M=%d+1)*K=%d ", LWORK, M, K);
-        if (transA == CblasNoTrans )
+        if (transA == PastixNoTrans )
             errorPrint("LWORK %d < (N=%d+1)*K=%d ", LWORK, N, K);
         //coreblas_error(17, "Illegal value of LWORK");
         return -17;
@@ -220,9 +220,9 @@ int core_zgemdm(int transA, int transB,
     w = WORK + K;
 
     /*
-     * transA == CblasNoTrans
+     * transA == PastixNoTrans
      */
-    if ( transA == CblasNoTrans )
+    if ( transA == PastixNoTrans )
     {
         /* WORK = A * D */
         for (j=0; j<K; j++, wD++) {
@@ -232,7 +232,7 @@ int core_zgemdm(int transA, int transB,
         }
 
         /* C = alpha * WORK * op(B) + beta * C */
-        cblas_zgemm(CblasColMajor, CblasNoTrans, transB,
+        cblas_zgemm(CblasColMajor, PastixNoTrans, transB,
                     M, N, K,
                     CBLAS_SADDR(alpha), w, M,
                                         B, LDB,
@@ -240,7 +240,7 @@ int core_zgemdm(int transA, int transB,
     }
     else
     {
-        if ( transB == CblasNoTrans ) /* Worst case*/
+        if ( transB == PastixNoTrans ) /* Worst case*/
         {
             /* WORK = (D * B)' */
           for (j=0; j<K; j++, wD++) {
@@ -250,7 +250,7 @@ int core_zgemdm(int transA, int transB,
             }
 
             /* C = alpha * op(A) * WORK' + beta * C */
-            cblas_zgemm(CblasColMajor, transA, CblasTrans,
+            cblas_zgemm(CblasColMajor, transA, PastixTrans,
                         M, N, K,
                         CBLAS_SADDR(alpha), A, LDA,
                                             w, N,
@@ -259,7 +259,7 @@ int core_zgemdm(int transA, int transB,
         else
         {
 #ifdef COMPLEX
-            if ( transB == CblasConjTrans )
+            if ( transB == PastixConjTrans )
             {
                 /* WORK = D * B' */
               for (j=0; j<K; j++, wD++) {
@@ -281,7 +281,7 @@ int core_zgemdm(int transA, int transB,
             }
 
             /* C = alpha * op(A) * WORK + beta * C */
-            cblas_zgemm(CblasColMajor, transA, CblasNoTrans,
+            cblas_zgemm(CblasColMajor, transA, PastixNoTrans,
                         M, N, K,
                         CBLAS_SADDR(alpha), A, LDA,
                                             w, N,
