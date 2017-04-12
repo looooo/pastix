@@ -198,7 +198,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_ISOLATE_ZEROS]         = API_NO;              /* Isolate null diagonal terms at the end of the matrix */
     iparm[IPARM_FACTORIZATION]         = API_FACT_LU;         /* LU by default     */
 
-    iparm[IPARM_DISTRIBUTION_LEVEL]    = iparm[IPARM_MIN_BLOCKSIZE];  /* Size limit to mark a cblk as 2d */
+    iparm[IPARM_DISTRIBUTION_LEVEL]    = -1;                  /* Size limit to mark a cblk as 2d */
     iparm[IPARM_LEVEL_OF_FILL]         = 0;                   /* level of fill */
     iparm[IPARM_IO_STRATEGY]           = API_IO_NO;           /* I/O */
     iparm[IPARM_RHS_MAKING]            = API_RHS_B;           /* generate rhs */
