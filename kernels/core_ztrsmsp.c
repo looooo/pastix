@@ -593,6 +593,10 @@ core_ztrsmsp_lrsub( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t up
  *
  *******************************************************************************
  *
+ * @param[in] coef
+ *          - PastixLCoef, use the lower part of the off-diagonal blocks.
+ *          - PastixUCoef, use the upper part of the off-diagonal blocks
+ *
  * @param[in] side
  *          Specify whether the A matrix appears on the left or right in the
  *          equation. It has to be either PastixLeft or PastixRight.

@@ -127,6 +127,9 @@ static void core_zhetf2sp(pastix_int_t        n,
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
+ * @param[in] work
+ *          Temporary memory buffer.
+ *
  *******************************************************************************
  *
  * @return
@@ -341,6 +344,10 @@ int core_zhetrfsp1d_trsm( SolverCblk         *cblk,
  * @param[inout] L
  *          The pointer to the matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[inout] C
+ *          The pointer to the matrix storing the coefficients of the
+ *          target.
  *
  * @param[inout] work1
  *          Temporary buffer used in core_zgemdm().

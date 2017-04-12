@@ -488,9 +488,6 @@ core_zgemmsp_2d2d( pastix_coefside_t sideA, pastix_trans_t trans,
  *          must be the coeftab of this column block.
  *          Next column blok must be accessible through cblk[1].
  *
- * @param[in] blok
- *          The block from which we compute the contributions.
- *
  * @param[inout] fcblk
  *          The pointer to the data structure that describes the panel on which
  *          we compute the contributions. The C pointer must be one of the
@@ -643,7 +640,7 @@ core_zgemmsp_2d2dsub( pastix_trans_t trans,
  * @param[in] blok_mk
  *          Index of the first off-diagonal block in cblk, that is used for A.
  *
- * @param[in] blok_nk
+ * @param[in] blok_kn
  *          Index of the first off-diagonal block in cblk, that is used for B.
  *
  * @param[in] blok_mn

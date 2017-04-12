@@ -2,45 +2,51 @@
  *
  * @file core_zgetro.c
  *
- *  PLASMA InPlaceTransformation module
- *  PLASMA is a software package provided by Univ. of Tennessee,
- *  Univ. of California Berkeley and Univ. of Colorado Denver
+ *  PaStiX kernel routines
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
  *
- *  This work is the implementation of an inplace transformation
- *  based on the GKK algorithm by Gustavson, Karlsson, Kagstrom
- *  and its fortran implementation.
+ * @copyright 2010-2015 Univ. of Tennessee, Univ. of California Berkeley and
+ *  Univ. of Colorado Denver. All rights reserved.
+ * @copyright 2015-2017
+ *  Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights
+ *  reserved.
  *
- * @version 2.4.2
+ * @version 1.0.0
  * @author Mathieu Faverge
  * @date 2010-11-15
- *
  * @precisions normal z -> c d s
  *
  **/
 #include "common.h"
 
-/** ****************************************************************************
+/**
+ ******************************************************************************
  *
- * @ingroup CORE_PLASMA_Complex64_t
+ * @ingroup pastix_kernel
  *
- *  CORE_zgetro transposes a m-by-n matrix in place using an extra
- *      workspace of size m-by-n.
- *      Note : For square tile, workspace is not used.
+ * core_zgetro transposes a  m-by-n matrix in place using an extra workspace of
+ * size m-by-n.
  *
  *******************************************************************************
  *
  * @param[in] m
- *         Number of lines of tile A
+ *         Number of rows of A.
  *
  * @param[in] n
- *         Number of columns of tile A
+ *         Number of columns of A.
  *
- * @param[inout] A
- *         Tile of size m-by-n
- *         On exit, A = trans(A)
+ * @param[in] A
+ *         Matrix to be transposed.
  *
- * @param[out] W
- *         Workspace of size n-by-m if n != m, NULL otherwise.
+ * @param[in] lda
+ *         Leading dimension of matrix A.
+ *
+ * @param[in] B
+ *         On exit B = trans(A).
+ *
+ * @param[in] ldb
+ *         Leading dimension of matrix B.
  *
  ******************************************************************************/
 void core_zgetro(int m, int n,
@@ -57,16 +63,17 @@ void core_zgetro(int m, int n,
     }
 }
 
-void core_zaxpyt(int m, int n, pastix_complex64_t alpha,
-                 const pastix_complex64_t *A, int lda,
-                 pastix_complex64_t *B, int ldb)
-{
-    int i, j;
+/* TODO: remove? apparently not used... */
+/* void core_zaxpyt(int m, int n, pastix_complex64_t alpha, */
+/*                  const pastix_complex64_t *A, int lda, */
+/*                  pastix_complex64_t *B, int ldb) */
+/* { */
+/*     int i, j; */
 
-    /* rectangular transposition (use workspace) */
-    for (j=0; j<n; j++) {
-        for (i=0; i<m; i++) {
-            B[j*ldb+i] = B[j*ldb+i] + alpha * A[j+i*lda];
-        }
-    }
-}
+/*     /\* rectangular transposition (use workspace) *\/ */
+/*     for (j=0; j<n; j++) { */
+/*         for (i=0; i<m; i++) { */
+/*             B[j*ldb+i] = B[j*ldb+i] + alpha * A[j+i*lda]; */
+/*         } */
+/*     } */
+/* } */

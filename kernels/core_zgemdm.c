@@ -2,11 +2,17 @@
  *
  * @file core_zgemdm.c
  *
- *  PLASMA core_blas kernel
- *  PLASMA is a software package provided by Univ. of Tennessee,
- *  Univ. of California Berkeley and Univ. of Colorado Denver
+ *  PaStiX kernel routines
+ *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
+ *  LaBRI, University of Bordeaux 1 and IPB.
  *
- * @version 2.4.5
+ * @copyright 2010-2015 Univ. of Tennessee, Univ. of California Berkeley and
+ *  Univ. of Colorado Denver. All rights reserved.
+ * @copyright 2015-2017
+ *  Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights
+ *  reserved.
+ *
+ * @version 1.0.0
  * @author Dulceneia Becker
  * @author Mathieu Faverge
  * @date 2011-1-18
@@ -38,118 +44,97 @@
  *
  *******************************************************************************
  *
- * @param[in] TRANSA
- *         INTEGER
- *         @arg PlasmaNoTrans   :  No transpose, op( A ) = A;
- *         @arg PlasmaConjTrans :  Transpose, op( A ) = A'.
+ * @param[in] transA
+ *         @arg CblasNoTrans   : No transpose, op( A ) = A;
+ *         @arg CblasConjTrans : Transpose, op( A ) = A'.
  *
- * @param[in] TRANSB
- *         INTEGER
- *         @arg PlasmaNoTrans   :  No transpose, op( B ) = B;
- *         @arg PlasmaConjTrans :  Transpose, op( B ) = B'.
+ * @param[in] transB
+ *         @arg CblasNoTrans   : No transpose, op( B ) = B;
+ *         @arg CblasConjTrans : Transpose, op( B ) = B'.
  *
  * @param[in] M
- *         INTEGER
- *         The number of rows  of the  matrix op( A ) and of the
- *         matrix C.  M  must  be at least  zero.
+ *         The number of rows of the matrix op( A ) and of the
+ *         matrix C. M must be at least zero.
  *
  * @param[in] N
- *         INTEGER
- *         The number of columns of the matrix  op( B ) and the
+ *         The number of columns of the matrix op( B ) and the
  *         number of columns of the matrix C. N must be at least zero.
  *
  * @param[in] K
- *         INTEGER
  *         The number of columns of the matrix op( A ), the number of
  *         rows of the matrix op( B ), and the number of rows and columns
- *         of matrix D. K must be at least  zero.
+ *         of matrix D. K must be at least zero.
  *
- * @param[in] ALPHA
- *         pastix_complex64_t.
- *         On entry, ALPHA specifies the scalar alpha.
- *         Unchanged on exit.
+ * @param[in] alpha
+ *         On entry, alpha specifies the scalar alpha.
  *
  * @param[in] A
  *         pastix_complex64_t array of DIMENSION ( LDA, ka ), where ka is
- *         k  when  TRANSA = PlasmaTrans, and is  m  otherwise.
- *         Before entry with  TRANSA = PlasmaTrans,  the leading  m by k
- *         part of the array  A  must contain the matrix  A,  otherwise
- *         the leading  k by m  part of the array  A  must contain  the
+ *         k when transA = CblasTrans, and is m otherwise.
+ *         Before entry with transA = CblasTrans, the leading m by k
+ *         part of the array A must contain the matrix A, otherwise
+ *         the leading k by m part of the array A must contain the
  *         matrix A.
- *         Unchanged on exit.
  *
  * @param[in] LDA
- *        INTEGER.
  *        On entry, LDA specifies the first dimension of A as declared
- *        in the calling (sub) program. When TRANSA = PlasmaTrans then
- *        LDA must be at least  max( 1, m ), otherwise  LDA must be at
- *        least  max( 1, k ).
- *        Unchanged on exit.
+ *        in the calling (sub) program. When transA = CblasTrans then
+ *        LDA must be at least  max( 1, m ), otherwise LDA must be at
+ *        least max( 1, k ).
  *
  * @param[in] B
  *        pastix_complex64_t array of DIMENSION ( LDB, kb ), where kb is
- *        n  when TRANSB = PlasmaTrans, and is k otherwise.
- *        Before entry with TRANSB = PlasmaTrans, the leading  k by n
- *        part of the array  B  must contain the matrix B, otherwise
- *        the leading n by k part of the array B must contain  the
+ *        n  when transB = CblasTrans, and is k otherwise.
+ *        Before entry with transB = CblasTrans, the leading k by n
+ *        part of the array B must contain the matrix B, otherwise
+ *        the leading n by k part of the array B must contain the
  *        matrix B.
- *        Unchanged on exit.
  *
  * @param[in] LDB
- *       INTEGER.
  *       On entry, LDB specifies the first dimension of B as declared
- *       in the calling (sub) program. When  TRANSB = PlasmaTrans then
- *       LDB must be at least  max( 1, k ), otherwise  LDB must be at
- *       least  max( 1, n ).
- *       Unchanged on exit.
+ *       in the calling (sub) program. When transB = CblasTrans then
+ *       LDB must be at least  max( 1, k ), otherwise LDB must be at
+ *       least max( 1, n ).
  *
- * @param[in] BETA
- *       pastix_complex64_t.
- *       On entry,  BETA  specifies the scalar  beta.  When  BETA  is
+ * @param[in] beta
+ *       On entry, beta specifies the scalar beta. When beta is
  *       supplied as zero then C need not be set on input.
- *       Unchanged on exit.
  *
  * @param[in] C
  *       pastix_complex64_t array of DIMENSION ( LDC, n ).
- *       Before entry, the leading  m by n  part of the array  C must
- *       contain the matrix  C,  except when  beta  is zero, in which
+ *       Before entry, the leading m by n part of the array C must
+ *       contain the matrix C,  except when beta is zero, in which
  *       case C need not be set on entry.
- *       On exit, the array  C  is overwritten by the  m by n  matrix
+ *       On exit, the array C is overwritten by the m by n matrix
  *       ( alpha*op( A )*D*op( B ) + beta*C ).
  *
  * @param[in] LDC
- *       INTEGER
  *       On entry, LDC specifies the first dimension of C as declared
- *       in  the  calling  (sub)  program.   LDC  must  be  at  least
+ *       in the calling (sub) program. LDC must be at least
  *       max( 1, m ).
- *       Unchanged on exit.
  *
  * @param[in] D
  *        pastix_complex64_t array of DIMENSION ( LDD, k ).
- *        Before entry, the leading  k by k part of the array  D
+ *        Before entry, the leading k by k part of the array D
  *        must contain the matrix D.
- *        Unchanged on exit.
  *
- * @param[in] LDD
- *       INTEGER.
+ * @param[in] incD
  *       On entry, LDD specifies the first dimension of D as declared
- *       in  the  calling  (sub)  program.   LDD  must  be  at  least
+ *       in the calling (sub) program. LDD must be at least
  *       max( 1, k ).
- *       Unchanged on exit.
  *
- * @param[workspace] WORK
+ * @param[in] WORK
  *       pastix_complex64_t array, dimension (MAX(1,LWORK))
  *
  * @param[in] LWORK
- *       INTEGER
  *       The length of WORK.
- *       On entry, if TRANSA = PlasmaTrans and TRANSB = PlasmaTrans then
+ *       On entry, if transA = CblasTrans and transB = CblasTrans then
  *       LWORK >= max(1, K*N). Otherwise LWORK >= max(1, M*K).
  *
  *******************************************************************************
  *
  * @return
- *          \retval PLASMA_SUCCESS successful exit
+ *          \retval PASTIX_SUCCESS successful exit
  *          \retval <0 if -i, the i-th argument had an illegal value
  *
  ******************************************************************************/

@@ -517,10 +517,10 @@ int core_zsytrfsp1d_panel( SolverCblk         *cblk,
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
- * @param[in] work
+ * @param[in] work1
  *          Temporary memory buffer for L factors.
  *
- * @param[in] work
+ * @param[in] work2
  *          Temporary memory buffer for U factors.
  *
  *******************************************************************************
