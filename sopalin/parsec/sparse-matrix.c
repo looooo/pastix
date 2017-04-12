@@ -246,6 +246,7 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
     key1      = ratio * cblknbr;
 
     /* Initialize 1D cblk handlers */
+    nbelt = 0;
     cblk = spmtx->solvmtx->cblktab;
     for(cblknum = 0;
         cblknum < cblkmin2d;
@@ -254,6 +255,7 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
         parsec_data_t **handler = (parsec_data_t**)(cblk->handler);
         size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
 
+        nbelt++;
         parsec_data_create( handler,
                             o, cblknum * ratio, cblk->lcoeftab, size );
 
@@ -272,6 +274,7 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
         parsec_data_t **handler = (parsec_data_t**)(cblk->handler);
         size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
 
+        nbelt++;
         parsec_data_create( handler,
                             o, cblknum * ratio, cblk->lcoeftab, size );
 
@@ -280,7 +283,7 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
                                 o, cblknum * ratio + 1, cblk->ucoeftab, size );
         }
 
-        if ( !(cblk->cblktype & CBLK_LAYOUT_2D) )
+        if ( !(cblk->cblktype & CBLK_TASKS_2D) )
             continue;
 
         /**
@@ -294,6 +297,7 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
         key2   = n * ld;
 
         assert(offset == 0);
+        nbelt++;
         parsec_data_create( (parsec_data_t**)&(blok->handler[0]),
                             o, key1 + key2,
                             ptrL + offset, size );
@@ -314,6 +318,7 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
         lblok = cblk[1].fblokptr;
         for( ; blok < lblok; blok++, key2+=ratio )
         {
+            fblok = blok;
             m = 0;
             size   = blok_rownbr( blok );
             offset = blok->coefind * (size_t)spmtx->typesze;
@@ -328,21 +333,28 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
             size *= cblk_colnbr( cblk )
                 *  (size_t)spmtx->typesze;
 
-            parsec_data_create( (parsec_data_t**)&(blok->handler[0]),
+            nbelt++;
+            parsec_data_create( (parsec_data_t**)&(fblok->handler[0]),
                                 &spmtx->super, key1 + key2,
                                 ptrL + offset, size );
 
             if ( ratio == 2 ) {
-                parsec_data_create( (parsec_data_t**)&(blok->handler[1]),
+                parsec_data_create( (parsec_data_t**)&(fblok->handler[1]),
                                     &spmtx->super, key1 + key2 + 1,
                                     ptrU + offset, size );
             }
             else {
-                blok->handler[1] = NULL;
+                fblok->handler[1] = NULL;
             }
 
             key2 += m * ratio;
         }
+    }
+
+    {
+        double mem = ratio * nbelt * (sizeof(parsec_data_t) + sizeof(parsec_data_copy_t));
+        fprintf( stdout, "  Memory space used by parsec data handlers   %e %co\n",
+                 printflopsv( mem ), printflopsu( mem ) );
     }
 }
 
