@@ -216,8 +216,8 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
     pastix_int_t   cblknbr, cblkmin2d, ld;
     parsec_data_key_t key1, key2;
     SolverCblk *cblk;
-    SolverBlok *blok, *lblok;
-    pastix_int_t m, n, cblknum;
+    SolverBlok *blok, *fblok, *lblok;
+    pastix_int_t m, n, cblknum, nbelt;
     size_t size, offset;
     char *ptrL, *ptrU;
     int ratio = ( mtxtype == PastixGeneral ) ? 2 : 1;
