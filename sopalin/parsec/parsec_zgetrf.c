@@ -68,6 +68,7 @@ parsec_zgetrf_sp1dplus( parsec_context_t *parsec,
     if ( parsec_zgetrf_sp1dplus != NULL )
     {
         parsec_enqueue( parsec, (parsec_handle_t*)parsec_zgetrf_sp1dplus);
+        parsec_context_start( parsec );
         parsec_context_wait( parsec );
         parsec_zgetrf_sp1dplus_Destruct( parsec_zgetrf_sp1dplus );
     }
