@@ -990,7 +990,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
  * @param[in] n
  *          Number of columns of the matrix A, and of the low rank matrix Alr.
  *
- * @param[in] A
+ * @param[in] Aptr
  *          The matrix of dimension lda-by-n that need to be compressed
  *
  * @param[in] lda
@@ -1025,7 +1025,7 @@ void core_zge2lr_RRQR_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int
  *         @arg PastixNoTrans:  No transpose, op( A ) = A;
  *         @arg PastixTrans:  Transpose, op( A ) = A';
  *
- * @param[in] alpha
+ * @param[in] alphaptr
  *          alpha * A is add to B
  *
  * @param[in] M1

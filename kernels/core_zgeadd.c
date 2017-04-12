@@ -55,6 +55,9 @@
  *          Leading dimension of the array A. LDA >= max(1,K).
  *          K = M if trans == CblasNoTrans, K = N otherwise.
  *
+ * @param[in] beta
+ *          Scalar factor of B.
+ *
  * @param[inout] B
  *          Matrix of size LDB-by-N.
  *

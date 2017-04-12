@@ -477,7 +477,7 @@ core_zgemmsp_2d2d( pastix_coefside_t sideA, pastix_trans_t trans,
  * @param[in] blok_mk
  *          Index of the first off-diagonal block in cblk, that is used for A.
  *
- * @param[in] blok_nk
+ * @param[in] blok_kn
  *          Index of the first off-diagonal block in cblk, that is used for B.
  *
  * @param[in] blok_mn
@@ -793,10 +793,6 @@ core_zgemmsp_2dlrsub( pastix_coefside_t sideA,
  *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
  *          cblk.stride -by- cblk.width
  *
- * @param[inout] C
- *          The pointer to the fcblk.lcoeftab if the lower part is computed,
- *          fcblk.ucoeftab otherwise.
- *
  * @param[in] work
  *          Temporary memory buffer.
  *
@@ -920,20 +916,6 @@ core_zgemmsp_fulllr( pastix_coefside_t sideA,
  *          we compute the contributions. The C pointer must be one of the
  *          coeftab from this fcblk. Next column blok must be accessible through
  *          fcblk[1].
- *
- * @param[in] A
- *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
- *          coefficients of the panel when the Lower part is computed,
- *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
- *
- * @param[in] B The pointer to the coeftab of the cblk.lcoeftab matrix storing
- *          the coefficients of the panel, if Symmetric/Hermitian cases or if
- *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
- *          cblk.stride -by- cblk.width
- *
- * @param[inout] C
- *          The pointer to the fcblk.lcoeftab if the lower part is computed,
- *          fcblk.ucoeftab otherwise.
  *
  * @param[in] work
  *          Temporary memory buffer.
@@ -1174,9 +1156,6 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
  *          The cblk structure to which block A and B belong to. The A and B
  *          pointers must be one of the [lu]coeftab of this column block.
  *          Next column blok must be accessible through cblk[1].
- *
- * @param[in] blok
- *          The block A from which we compute the contributions.
  *
  * @param[inout] fcblk
  *          The pointer to the data structure that describes the panel on which

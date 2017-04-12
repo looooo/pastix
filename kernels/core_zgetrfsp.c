@@ -19,6 +19,8 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 
+#define MAXSIZEOFBLOCKS 64
+
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
 
@@ -110,9 +112,6 @@ static void core_zgetf2sp(pastix_int_t        m,
  *
  *******************************************************************************
  *
- * @param[in] m
- *          The number of rows and columns of the matrix A.
- *
  * @param[in] n
  *          The number of rows and columns of the matrix A.
  *
@@ -139,8 +138,6 @@ static void core_zgetf2sp(pastix_int_t        m,
  *          factorization.
  *
  *******************************************************************************/
-#define MAXSIZEOFBLOCKS 64
-
 static void core_zgetrfsp(pastix_int_t        n,
                           pastix_complex64_t *A,
                           pastix_int_t        lda,
@@ -332,6 +329,9 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
  *
  *******************************************************************************
  *
+ * @param[in] solvmtx
+ *          PaStiX structure to store numerical data and flags
+ *
  * @param[in] cblk
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
@@ -340,9 +340,6 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
  *          Threshold use for static pivoting. If diagonal value is under this
  *          threshold, its value is replaced by the threshold and the number of
  *          pivots is incremented.
- *
- * @param[in] tol
- *          Tolerance for low-rank compression kernels
  *
  * @param[in] work
  *          Temporary memory buffer.

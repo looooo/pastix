@@ -19,6 +19,8 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 
+#define MAXSIZEOFBLOCKS 64
+
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
 
@@ -138,8 +140,6 @@ static void core_zpotf2sp(pastix_int_t        n,
  *          factorization.
  *
  *******************************************************************************/
-#define MAXSIZEOFBLOCKS 64
-
 static void core_zpotrfsp(pastix_int_t        n,
                           pastix_complex64_t *A,
                           pastix_int_t        lda,
@@ -300,13 +300,12 @@ int core_zpotrfsp1d_panel( SolverCblk         *cblk,
  *
  *******************************************************************************
  *
+ * @param[in] solvmtx
+ *          PaStiX structure to store numerical data and flags
+ *
  * @param[in] cblk
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
- *
- * @param[inout] L
- *          The pointer to the matrix storing the coefficients of the
- *          panel. Must be of size cblk.stride -by- cblk.width
  *
  * @param[in] criteria
  *          Threshold use for static pivoting. If diagonal value is under this

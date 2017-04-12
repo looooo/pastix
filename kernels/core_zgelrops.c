@@ -847,6 +847,10 @@ core_zlrm3( const pastix_lr_t *lowrank,
  * @brief Compute A * B + C with three low-rank matrices
  *
  *******************************************************************************
+ *
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
+ *
  * @param[in] transA
  *         @arg PastixNoTrans: No transpose, op( A ) = A;
  *         @arg PastixTrans:   Transpose, op( A ) = A';
@@ -1087,6 +1091,10 @@ core_zlrmm( const pastix_lr_t *lowrank,
  * @brief A * B + C with A, and B low-rank matrices, and C full rank
  *
  *******************************************************************************
+ *
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
+ *
  * @param[in] transA
  *         @arg PastixNoTrans: No transpose, op( A ) = A;
  *         @arg PastixTrans:   Transpose, op( A ) = A';

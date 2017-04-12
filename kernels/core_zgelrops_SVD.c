@@ -228,8 +228,8 @@ core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
  *    u2v2^T - u1v1^T = (u2 u1) (v2 v1)^T
  *    Compute QR decomposition of (u2 u1) = Q1 R1
  *    Compute QR decomposition of (v2 v1) = Q2 R2
- *    Compute SVD of R1 R2^T = u \sigma v^T
- *    Final solution is (Q1 u \sigma^[1/2]) (Q2 v \sigma^[1/2])^T
+ *    Compute SVD of R1 R2^T = u sigma v^T
+ *    Final solution is (Q1 u sigma^[1/2]) (Q2 v sigma^[1/2])^T
  *
  *******************************************************************************
  *
@@ -578,7 +578,7 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     relative_tolerance = tol * norm;
 
     /**
-     * Compute svd(R) = u \sigma v^t
+     * Compute svd(R) = u sigma v^t
      */
     ret = MYLAPACKE_zgesvd_work( CblasColMajor, 'S', 'S',
                                  rank, rank, R, rank,
@@ -657,7 +657,7 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     ldbv = B->rkmax;
 
     /**
-     * Let's now compute the final U = Q1 ([u] \sigma)
+     * Let's now compute the final U = Q1 ([u] sigma)
      *                                     [0]
      */
 #if defined(PASTIX_LR_CHECKNAN)
@@ -725,7 +725,7 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
  * @param[in] n
  *          Number of columns of the matrix A, and of the low rank matrix Alr.
  *
- * @param[in] A
+ * @param[in] Aptr
  *          The matrix of dimension lda-by-n that need to be compressed
  *
  * @param[in] lda
@@ -761,7 +761,7 @@ void core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_
  *         @arg CblasNoTrans   :  No transpose, op( A ) = A;
  *         @arg CblasTrans     :  Transpose, op( A ) = A';
  *
- * @param[in] alpha
+ * @param[in] alphaptr
  *          alpha * A is add to B
  *
  * @param[in] M1

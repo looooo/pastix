@@ -19,6 +19,8 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 
+#define MAXSIZEOFBLOCKS 64
+
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
 
@@ -132,8 +134,6 @@ static void core_zhetf2sp(pastix_int_t        n,
  *          factorization.
  *
  *******************************************************************************/
-#define MAXSIZEOFBLOCKS 64
-
 static void core_zhetrfsp(pastix_int_t        n,
                           pastix_complex64_t *A,
                           pastix_int_t        lda,
@@ -460,6 +460,9 @@ void core_zhetrfsp1d_gemm( SolverCblk         *cblk,
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
+ * @param[in] work
+ *          Temporary memory buffer.
+ *
  *******************************************************************************
  *
  * @return
@@ -489,18 +492,23 @@ int core_zhetrfsp1d_panel( SolverCblk         *cblk,
  *
  *******************************************************************************
  *
+ * @param[in] solvmtx
+ *          PaStiX structure to store numerical data and flags
+ *
  * @param[in] cblk
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
- *
- * @param[inout] L
- *          The pointer to the matrix storing the coefficients of the
- *          panel. Must be of size cblk.stride -by- cblk.width
  *
  * @param[in] criteria
  *          Threshold use for static pivoting. If diagonal value is under this
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
+ *
+ * @param[in] work1
+ *          Temporary memory buffer for L factors.
+ *
+ * @param[in] work2
+ *          Temporary memory buffer for U factors.
  *
  *******************************************************************************
  *
