@@ -232,8 +232,6 @@ blendCtrlInit( BlendCtrl    *ctrl,
     ctrl->costlevel   = 1;
 
     /* Spliting options */
-    ctrl->blcolmin = 60;
-    ctrl->blcolmax = 120;
     ctrl->blcolmin = iparm[IPARM_MIN_BLOCKSIZE];
     ctrl->blcolmax = iparm[IPARM_MAX_BLOCKSIZE];
     ctrl->abs      = iparm[IPARM_ABS];
@@ -246,14 +244,11 @@ blendCtrlInit( BlendCtrl    *ctrl,
 
     /* 2D options */
     ctrl->autolevel  = 1;
-    ctrl->level2D    = 100000000;
     ctrl->level2D    = iparm[IPARM_DISTRIBUTION_LEVEL];
-    ctrl->ratiolimit = 0;
     ctrl->ratiolimit = iparm[IPARM_DISTRIBUTION_LEVEL];
-    ctrl->blblokmin  = 90;
-    ctrl->blblokmax  = 140;
     ctrl->blblokmin  = iparm[IPARM_MIN_BLOCKSIZE];
     ctrl->blblokmax  = iparm[IPARM_MAX_BLOCKSIZE];
+
     /* OOC works only with 1D structures */
     if(ctrl->ooc)
     {

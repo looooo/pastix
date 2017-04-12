@@ -228,6 +228,8 @@ solverPrintStats( const SolverMatrix *solvptr )
     size_t memstruct, memcoef;
     pastix_int_t fcol2d, lcol2d;
     pastix_int_t itercblk, cblknbr;
+    pastix_int_t gemm2d = 0;
+    pastix_int_t gemm2dtot = 0;
     double avg2d;
 
     fcol2d = (solvptr->cblktab + solvptr->cblkmin2d )->fcolnum;
@@ -245,6 +247,12 @@ solverPrintStats( const SolverMatrix *solvptr )
         pastix_int_t rownbr = cblk->stride;
 
         memcoef += colnbr * rownbr;
+
+        if (cblk->cblktype & CBLK_TASKS_2D) {
+            pastix_int_t contrib = cblk[1].brownum - cblk[0].brown2d;
+            gemm2d += contrib;
+            gemm2dtot += contrib * (cblk[1].fblokptr - cblk[0].fblokptr);
+        }
     }
 
     memstruct = solver_size( solvptr );
@@ -258,15 +266,17 @@ solverPrintStats( const SolverMatrix *solvptr )
              "      First row handled in 2D           %10ld\n"
              "      Average 2D cblk size             %11.2lf\n"
              "      Structure memory space           %11.2lf %s\n"
-             "      Number of coeficients stored      %10ld\n",
+             "      Number of coeficients stored      %10ld\n"
+             "      Number of 2D brow                 %10ld\n"
+             "      Number of 2D Gemm tasks           %10ld\n",
              solvptr->cblknbr,
-             (long)0, /* solvptr->nb2dcblk, */
-             (long)0, /* solvptr->nb2dblok, */
+             solvptr->nb2dcblk,
+             solvptr->nb2dblok,
              solvptr->cblkmin2d,
              fcol2d,
              avg2d,
              MEMORY_WRITE( memstruct ), MEMORY_UNIT_WRITE( memstruct ),
-             memcoef );
+             memcoef, gemm2d, gemm2dtot );
 }
 
 /**

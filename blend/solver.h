@@ -201,8 +201,11 @@ struct solver_matrix_s {
     pastix_int_t            coefnbr;   /**< Number of coefficients (node after dof extension) */
     pastix_int_t            gcblknbr;  /**< Global number of column blocks                    */
     pastix_int_t            cblknbr;   /**< Number of column blocks                   */
+    pastix_int_t            cblkmax1d; /**< Rank of the last cblk not beeing enabled for 2D computations */
     pastix_int_t            cblkmin2d; /**< Rank of the first cblk beeing enabled for 2D computations        */
     pastix_int_t            cblkmaxblk;/**< Maximum number of blocks per cblk         */
+    pastix_int_t            nb2dcblk;  /**< Number of 2D cblks                        */
+    pastix_int_t            nb2dblok;  /**< Number of 2D blocks                       */
     pastix_int_t            bloknbr;   /**< Number of blocks                          */
     pastix_int_t            brownbr;   /**< Size of the browtab array                 */
     SolverCblk   * restrict cblktab;   /**< Array of solver column blocks             */

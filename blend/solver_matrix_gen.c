@@ -190,6 +190,7 @@ solverMatrixGen( pastix_int_t        clustnum,
         pastix_int_t nbcblk2d = 0;
         pastix_int_t nbblok2d = 0;
 
+        solvmtx->cblkmax1d  = -1;
         solvmtx->cblkmin2d  = solvmtx->cblknbr;
         solvmtx->cblkmaxblk = 1;
         cblknum = 0;
@@ -248,6 +249,11 @@ solverMatrixGen( pastix_int_t        clustnum,
                     }
                     nbcblk2d++;
                     nbblok2d += solvblok - fblokptr;
+                }
+                else {
+                    if (cblknum > solvmtx->cblkmax1d) {
+                        solvmtx->cblkmax1d = cblknum;
+                    }
                 }
 
                 /*
@@ -372,6 +378,10 @@ solverMatrixGen( pastix_int_t        clustnum,
         solvmtx->coefnbr = coefnbr;
         solvmtx->arftmax = blokamax;
 
+        solvmtx->nb2dcblk = nbcblk2d;
+        solvmtx->nb2dblok = nbblok2d;
+
+        assert( solvmtx->cblkmax1d+1 >= solvmtx->cblkmin2d );
         assert( solvmtx->cblknbr == cblknum );
         assert( solvmtx->bloknbr == solvblok - solvmtx->bloktab );
     }
