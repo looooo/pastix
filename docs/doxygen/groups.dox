@@ -131,4 +131,9 @@
  * @brief    This group describes all the routines to apply iterative
  *           refinement on the system.
  *
+ ********
+ *
+ * @defgroup pastix_dev_raff Refinement internal function documentation
+ * @ingroup  pastix_raff
+ *
 **/
