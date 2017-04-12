@@ -22,6 +22,7 @@
 #include "solver.h"
 #include "sopalin_data.h"
 #include "parsec/zgetrf_sp1dplus.h"
+#include "parsec/zgetrf_sp2d.h"
 
 parsec_handle_t*
 parsec_zgetrf_sp1dplus_New( sparse_matrix_desc_t *A,
@@ -75,6 +76,58 @@ parsec_zgetrf_sp1dplus( parsec_context_t *parsec,
     return info;
 }
 
+parsec_handle_t*
+parsec_zgetrf_sp2d_New( sparse_matrix_desc_t *A,
+                         sopalin_data_t *sopalin_data )
+{
+    parsec_zgetrf_sp2d_handle_t *parsec_zgetrf_sp2d = NULL;
+
+    parsec_zgetrf_sp2d = parsec_zgetrf_sp2d_new( A, sopalin_data, NULL );
+
+    parsec_zgetrf_sp2d->_g_p_work = (parsec_memory_pool_t*)malloc(sizeof(parsec_memory_pool_t));
+    parsec_private_memory_init( parsec_zgetrf_sp2d->_g_p_work, sopalin_data->solvmtx->gemmmax * sizeof(pastix_complex64_t) );
+
+    parsec_matrix_add2arena_rect( parsec_zgetrf_sp2d->arenas[PARSEC_zgetrf_sp2d_DEFAULT_ARENA],
+                                  parsec_datatype_double_complex_t,
+                                  /*sopalin_data->solvmtx->gemmmax*/ 1, 1, 1 );
+
+    return (parsec_handle_t*)parsec_zgetrf_sp2d;
+}
+
+void
+parsec_zgetrf_sp2d_Destruct( parsec_handle_t *handle )
+{
+    parsec_zgetrf_sp2d_handle_t *parsec_zgetrf_sp2d = NULL;
+    parsec_zgetrf_sp2d = (parsec_zgetrf_sp2d_handle_t *)handle;
+
+    parsec_matrix_del2arena( parsec_zgetrf_sp2d->arenas[PARSEC_zgetrf_sp2d_DEFAULT_ARENA] );
+
+    parsec_private_memory_fini( parsec_zgetrf_sp2d->_g_p_work );
+    free( parsec_zgetrf_sp2d->_g_p_work );
+
+    parsec_handle_free( handle );
+}
+
+int
+parsec_zgetrf_sp2d( parsec_context_t *parsec,
+                     sparse_matrix_desc_t *A,
+                     sopalin_data_t *sopalin_data )
+{
+    parsec_handle_t *parsec_zgetrf_sp2d = NULL;
+    int info = 0;
+
+    parsec_zgetrf_sp2d = parsec_zgetrf_sp2d_New( A, sopalin_data );
+
+    if ( parsec_zgetrf_sp2d != NULL )
+    {
+        parsec_enqueue( parsec, (parsec_handle_t*)parsec_zgetrf_sp2d );
+        parsec_context_start( parsec );
+        parsec_context_wait( parsec );
+        parsec_zgetrf_sp2d_Destruct( parsec_zgetrf_sp2d );
+    }
+    return info;
+}
+
 void
 parsec_zgetrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )
@@ -101,8 +154,18 @@ parsec_zgetrf( pastix_data_t  *pastix_data,
         sopalin_data->solvmtx->parsec_desc = sdesc;
     }
 
-    parsec_zgetrf_sp1dplus( ctx, sdesc,
+    /*
+     * Select 1D or 2D jdf based on distribution_level
+     */
+    if ( pastix_data->iparm[IPARM_DISTRIBUTION_LEVEL] >= 0 )
+    {
+        parsec_zgetrf_sp2d( ctx, sdesc,
                             sopalin_data );
+    }
+    else {
+        parsec_zgetrf_sp1dplus( ctx, sdesc,
+                                sopalin_data );
+    }
 
 #if defined(PASTIX_DEBUG_FACTO)
     coeftab_zdump( sopalin_data->solvmtx, "getrf.txt" );
