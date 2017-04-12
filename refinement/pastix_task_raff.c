@@ -69,7 +69,7 @@ static void (*sopalinRaff[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
 /**
  *******************************************************************************
  *
- * @ingroup pastix_raff
+ * @ingroup pastix_users
  *
  * @brief Perform iterative refinement.
  *
