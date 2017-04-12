@@ -48,12 +48,12 @@ lastblok  = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokp
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
-RW L <- ( browk0 == browk1 ) ? descA(0, k, 0) : C GEMM1D( lastbrow, 0 )
-     -> Al GEMM1D(firstblok .. lastblok, 0 .. 1)
+RW L <- ( browk0 == browk1 ) ? descA(0, k, 0) : C GEMM1D( 0, lastbrow )
+     -> Al GEMM1D(0 .. 1, firstblok .. lastblok)
      -> descA(0, k, 0)
 
-RW U <- ( browk0 == browk1 ) ? descA(1, k, 0) : C GEMM1D( lastbrow, 1 )
-     -> Au GEMM1D(firstblok .. lastblok, 0 .. 1)
+RW U <- ( browk0 == browk1 ) ? descA(1, k, 0) : C GEMM1D( 1, lastbrow )
+     -> Au GEMM1D(0 .. 1, firstblok .. lastblok)
      -> descA(1, k, 0)
 
 ; %{ return cblknbr - k; %}
