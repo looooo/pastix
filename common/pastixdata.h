@@ -47,7 +47,7 @@ typedef struct SolverMatrix_ SolverMatrix;
 /*  *\/ */
 /* typedef struct SopalinParam_ { */
 /*     pastix_bcsc_t  *bcsc;          /\*+ Compress Sparse Column matrix                    *\/ */
-/*     double          epsilonraff;     /\*+ epsilon to stop refinement                      *\/ */
+/*     double          epsilonrefine;     /\*+ epsilon to stop refinement                      *\/ */
 /*     double          rberror;         /\*+ ||r||/||b||                                      *\/ */
 /*     double          espilondiag;     /\*+ epsilon critere for diag control                 *\/ */
 /*     void *b;               /\*+ b vector (RHS and solution)                      *\/ */

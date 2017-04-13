@@ -188,7 +188,7 @@ int pastix_task_solve  ( pastix_data_t      *pastix_data,
                          int                 nrhs,
                          void               *b,
                          int                 ldb );
-int pastix_task_raff   ( pastix_data_t *pastix_data,
+int pastix_task_refine ( pastix_data_t *pastix_data,
                          void          *x,
                          pastix_int_t   rhsnbr,
                          void          *b);

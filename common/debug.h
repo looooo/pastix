@@ -23,7 +23,7 @@
 /* Sopalin */
 #define DBG_SOPALIN_NAN         0
 #define DBG_SOPALIN_INF         0
-#define DBG_SOPALIN_RAFF        0
+#define DBG_SOPALIN_REFINE      0
 #define DBG_SOPALIN_DEBUG       0
 #define DBG_SOPALIN_MAIN        0
 #define DBG_SOPALIN_THREADCOMM  0
@@ -66,9 +66,9 @@
 #define DBG_OOC_FTGT            0
 
 /* Raff */
-#define DBG_RAFF_PIVOT          0
-#define DBG_RAFF_GMRES          0
-#define DBG_RAFF_GRAD           0
+#define DBG_REFINE_PIVOT        0
+#define DBG_REFINE_GMRES        0
+#define DBG_REFINE_GRAD         0
 
 /* MURGE */
 #define DBG_MURGE               0

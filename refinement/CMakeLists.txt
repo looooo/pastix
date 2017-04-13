@@ -19,7 +19,7 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 ### Generate the headers in all precisions
 set(HEADERS
-  z_raff_functions.h
+  z_refine_functions.h
 )
 
 precisions_rules_py(generated_headers
@@ -35,11 +35,11 @@ add_custom_target(refinement_headers_tgt
 
 ### Generate the sources in all precisions
 set(SOURCES
-  z_raff_functions.c
-  z_raff_gmres.c
-  z_raff_grad.c
-  z_raff_pivot.c
-  z_raff_bicgstab.c
+  z_refine_functions.c
+  z_refine_gmres.c
+  z_refine_grad.c
+  z_refine_pivot.c
+  z_refine_bicgstab.c
 )
 
 precisions_rules_py(generated_sources
@@ -49,7 +49,7 @@ precisions_rules_py(generated_sources
 
 set(refinement_sources
   ${generated_sources}
-  pastix_task_raff.c
+  pastix_task_refine.c
 )
 
 # ### Add documented files to the global property
@@ -62,5 +62,5 @@ set(refinement_sources
 add_documented_files(
   # Headers
   # Source files
-  pastix_task_raff.c
+  pastix_task_refine.c
   )

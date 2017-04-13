@@ -119,7 +119,7 @@ int main (int argc, char **argv)
              * Solve the linear system
              */
             pastix_task_solve( pastix_data, spm, nrhs, x, spm->n );
-            pastix_task_raff(pastix_data, x, nrhs, b);
+            pastix_task_refine(pastix_data, x, nrhs, b);
 
             if ( check ) {
                 spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );

@@ -31,7 +31,7 @@ typedef enum Trace_State {
   STATE_L0_DOWN	     =  9,
   STATE_L0_DIAG	     = 10,
   STATE_L0_UP	     = 11,
-  STATE_L0_RAFF	     = 12,
+  STATE_L0_REFINE    = 12,
   STATE_COMPUTE	     = 13,
   STATE_BLOCK	     = 14,
   STATE_DIAG	     = 15,

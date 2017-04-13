@@ -26,12 +26,12 @@ set(HEADERS
 #  z_ooc.h
 #  # This C files is included in all other _he,_sy,_po,_ge
 #  z_sopalin3d.c
-#  z_raff_functions.c
-#  z_raff_functions.h
-#  z_raff_bicgstab.c
-#  z_raff.c
-#  z_raff_gmres.c
-#  z_raff_grad.c
+#  z_refine_functions.c
+#  z_refine_functions.h
+#  z_refine_bicgstab.c
+#  z_refine.c
+#  z_refine_gmres.c
+#  z_refine_grad.c
 #  # included in pastix.c
 #  z_scaling.h
 #  z_scaling.c
@@ -51,10 +51,10 @@ set(HEADERS
 #  z_updo.c
 #  z_updo_sendrecv.c
 #  z_updo_sendrecv.h
-#  z_raff_pivot.c
-#  z_raff_gmres.c
-#  z_raff_grad.c
-#  z_raff_bicgstab.c
+#  z_refine_pivot.c
+#  z_refine_gmres.c
+#  z_refine_grad.c
+#  z_refine_bicgstab.c
 )
 ### generate the dsparse_cores headers for all possible precisions
 precisions_rules_py(generated_headers
