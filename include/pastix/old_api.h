@@ -27,6 +27,14 @@ enum API_FACT {
   API_FACT_LDLH = PastixFactLDLH
 };
 
+/* _POS_ 8 */
+enum API_REFINE {
+    API_RAFF_GMRES    = API_REFINE_GMRES,
+    API_RAFF_GRAD     = API_REFINE_GRAD,
+    API_RAFF_PIVOT    = API_REFINE_PIVOT,
+    API_RAFF_BICGSTAB = API_REFINE_BICGSTAB
+};
+
 /* _POS_ 61 */
 enum API_FLOAT {
   API_REALSINGLE    = PastixFloat,
@@ -35,3 +43,8 @@ enum API_FLOAT {
   API_COMPLEXDOUBLE = PastixComplex64
 };
 
+/* The following parameters were modified (typo) in refinement */
+/* IPARM_ONLY_REFINE */
+/* IPARM_MURGE_MAY_REFINE */
+/* DPARM_REFINE_TIME */
+/* API_TASK_REFINE */
