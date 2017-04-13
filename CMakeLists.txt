@@ -785,11 +785,6 @@ add_documented_files(
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
 
-  refinement/z_refine_functions.c
-  refinement/z_refine_bicgstab.c
-  refinement/z_refine_gmres.c
-  refinement/z_refine_grad.c
-  refinement/z_refine_pivot.c
   refinement/pastix_task_refine.c
 )
 

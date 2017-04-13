@@ -49,18 +49,11 @@ precisions_rules_py(generated_sources
 
 set(refinement_sources
   ${generated_sources}
-  pastix_task_refine.c
 )
 
-# ### Add documented files to the global property
-# add_documented_files(
-#   DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-#   ${generated_headers}
-#   ${generated_sources}
-#   )
-
+### Add documented files to the global property
 add_documented_files(
-  # Headers
-  # Source files
-  pastix_task_refine.c
-  )
+   DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+   #${generated_headers}
+   ${generated_sources}
+   )
