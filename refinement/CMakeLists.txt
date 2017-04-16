@@ -30,9 +30,6 @@ set(refinement_headers
   ${generated_headers}
   )
 
-add_custom_target(refinement_headers_tgt
-  DEPENDS ${refinement_headers} )
-
 ### Generate the sources in all precisions
 set(SOURCES
   z_refine_functions.c
@@ -44,8 +41,10 @@ set(SOURCES
 
 precisions_rules_py(generated_sources
   "${SOURCES}"
-  PRECISIONS "p;s;d;c;z"
-  TARGETDIR "${CMAKE_CURRENT_BINARY_DIR}")
+  PRECISIONS "p;s;d;c;z")
+
+add_custom_target(refinement_headers_tgt
+  DEPENDS ${refinement_headers} ${generated_sources})
 
 set(refinement_sources
   ${generated_sources}
@@ -53,7 +52,7 @@ set(refinement_sources
 
 ### Add documented files to the global property
 add_documented_files(
-   DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-   #${generated_headers}
-   ${generated_sources}
-   )
+  DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  ${generated_headers}
+  ${generated_sources}
+  )
