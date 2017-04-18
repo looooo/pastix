@@ -79,7 +79,7 @@ static fct_rradd_t recompressMethod[2][4] =
  *******************************************************************************/
 int
 pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
-                         const pastix_spm_t  *spm )
+                         pastix_spm_t  *spm )
 {
     double time;
 
@@ -155,7 +155,7 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
  * @brief Fill the internal solver matrix structure.
  *
  * This step is linked with the pastix_subtask_sopalin() since this structure is
- * only used during the numerical factorization. 
+ * only used during the numerical factorization.
  *
  * This routine is affected by the following parameters:
  *   IPARM_VERBOSE, [IPARM_FACTORIZATION.
@@ -438,7 +438,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data,
  *******************************************************************************/
 int
 pastix_task_numfact( pastix_data_t *pastix_data,
-                     const pastix_spm_t  *spm )
+                     pastix_spm_t  *spm )
 {
     /* #ifdef PASTIX_WITH_MPI */
     /*     MPI_Comm       pastix_comm = pastix_data->inter_node_comm; */
