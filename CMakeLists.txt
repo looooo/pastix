@@ -121,6 +121,9 @@ option(PASTIX_DEBUG_BLEND
   "Debug the analyze step" OFF)
 option(PASTIX_DEBUG_FACTO
   "Debug the factorization step" OFF)
+cmake_dependent_option(PASTIX_DEBUG_PARSEC
+  "Debug the parsec implementation of the factorization step" OFF
+  "PASTIX_WITH_PARSEC" OFF)
 
 ###############################################################################
 # Look for dependencies #
@@ -581,13 +584,6 @@ if(PASTIX_WITH_PARSEC)
   set(PASTIX_LIB_SRCS
     ${PASTIX_LIB_SRCS}
     common/parsec.c
-    )
-endif()
-
-if(PASTIX_WITH_CUDA)
-  set(PASTIX_LIB_SRCS
-    ${PASTIX_LIB_SRCS}
-    blend/solver_compute_gpu_distrib.c
     )
 endif()
 

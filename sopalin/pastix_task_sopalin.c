@@ -228,6 +228,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t      *pastix_data,
                  pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU );
 
 #if defined(PASTIX_WITH_PARSEC)
+    if ( pastix_data->iparm[IPARM_SCHEDULER] == 2 )
     {
         sparse_matrix_desc_t *sdesc = pastix_data->solvmatr->parsec_desc;
         int mtxtype = ( pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU ) ? PastixGeneral : PastixHermitian;

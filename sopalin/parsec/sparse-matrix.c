@@ -365,6 +365,9 @@ sparse_matrix_destroy( sparse_matrix_desc_t *spmtx )
                 parsec_data_destroy( cblk->handler[1] );
             }
         }
+
+        cblk->handler[0] = NULL;
+        cblk->handler[1] = NULL;
     }
 
     for(i=cblkmin2d; i<spmtx->solvmtx->cblknbr; i++, cblk++)
@@ -376,6 +379,9 @@ sparse_matrix_destroy( sparse_matrix_desc_t *spmtx )
             }
         }
 
+        cblk->handler[0] = NULL;
+        cblk->handler[1] = NULL;
+
         blok = cblk->fblokptr;
         while( blok < cblk[1].fblokptr )
         {
@@ -385,6 +391,10 @@ sparse_matrix_destroy( sparse_matrix_desc_t *spmtx )
                     parsec_data_destroy( blok->handler[1] );
                 }
             }
+
+            blok->handler[0] = NULL;
+            blok->handler[1] = NULL;
+
             blok++;
         }
     }

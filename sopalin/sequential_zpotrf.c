@@ -27,9 +27,9 @@
 #include <parsec/data.h>
 #include <parsec/data_distribution.h>
 
-int dsparse_zpotrf_sp( parsec_context_t *parsec,
-                       sparse_matrix_desc_t *A,
-                       sopalin_data_t *sopalin_data );
+void
+parsec_zpotrf( pastix_data_t *parsec,
+               sopalin_data_t *sopalin_data );
 #endif
 
 void
@@ -111,25 +111,6 @@ thread_zpotrf( pastix_data_t  *pastix_data,
 {
     isched_parallel_call( pastix_data->isched, thread_pzpotrf, sopalin_data );
 }
-
-#if defined(PASTIX_WITH_PARSEC)
-void
-parsec_zpotrf( pastix_data_t  *pastix_data,
-               sopalin_data_t *sopalin_data )
-{
-    parsec_context_t *ctx;
-
-    /* Start PaRSEC */
-    if (pastix_data->parsec == NULL) {
-        int argc = 0;
-        pastix_parsec_init( pastix_data, &argc, NULL );
-    }
-    ctx = pastix_data->parsec;
-
-    /* Run the facto */
-    dsparse_zpotrf_sp( ctx, sopalin_data->solvmtx->parsec_desc, sopalin_data );
-}
-#endif
 
 static void (*zpotrf_table[4])(pastix_data_t *, sopalin_data_t *) = {
     sequential_zpotrf,

@@ -35,8 +35,6 @@ set(JDF
   zhetrf_sp1dplus.jdf
   zsytrf_sp1dplus.jdf
   #
-  # zpotrf_sp2d.jdf
-  # zgetrf_sp2d.jdf
   # # Solvers
   # zpotrs_sp1dplus.jdf
 )
@@ -51,12 +49,10 @@ set(SOURCES
   #zcsc2cblk_wrapper.c
   zsytrf_sp1dplus_wrapper.c
   zhetrf_sp1dplus_wrapper.c
-  zpotrf_sp1dplus_wrapper.c
-  zgetrf_sp1dplus_wrapper.c
   #zsytrf_sp2d_wrapper.c
   #zhetrf_sp2d_wrapper.c
-  #zpotrf_sp2d_wrapper.c
-  #zgetrf_sp2d_wrapper.c
+  parsec_zpotrf.c
+  parsec_zgetrf.c
   #zpotrs_sp1dplus_wrapper.c
 )
 

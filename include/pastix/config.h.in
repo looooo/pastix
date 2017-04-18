@@ -80,6 +80,7 @@
 #cmakedefine PASTIX_DEBUG_SYMBOL
 #cmakedefine PASTIX_DEBUG_BLEND
 #cmakedefine PASTIX_DEBUG_FACTO
+#cmakedefine PASTIX_DEBUG_PARSEC
 
 /* Datatypes used */
 #cmakedefine PASTIX_INT64
