@@ -385,6 +385,10 @@ propMappSubtree( const propmap_t *pmptr,
  * @param[in] etree
  *          The elimination tree to map on the ressources.
  *
+ * @param[in] candnbr
+ *          The total number of candidate to distribute over the elimination
+ *          tree.
+ *
  * @param[in] nocrossproc
  *          If nocrossproc is enabled, candidates can NOT be part of two
  *          subranches with different co-workers in each branch.

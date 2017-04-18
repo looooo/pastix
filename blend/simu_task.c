@@ -39,7 +39,6 @@ void simuTaskBuild( SimuCtrl *simuctrl,
     for(i=0;i<symbptr->cblknbr;i++)
     {
         if ( candtab[i].cblktype & (~CBLK_IN_SCHUR) ) {
-            task->taskid   = COMP_1D;
             task->prionum  = -1;
             task->cblknum  = i;
             task->bloknum  = symbptr->cblktab[i].bloknum;
@@ -60,28 +59,4 @@ void simuTaskBuild( SimuCtrl *simuctrl,
             task++;
         }
     }
-
-#ifdef DEBUG_BLEND
-    ASSERT(simuctrl->tasknbr == tasknbr,MOD_BLEND);
-    for(i=0;i<simuctrl->tasknbr;i++)
-        if(simuctrl->tasktab[i].tasknext != -1)
-            if(simuctrl->tasktab[simuctrl->tasktab[i].tasknext].taskid != -1)
-                ASSERT(simuctrl->tasktab[simuctrl->tasktab[i].tasknext].taskid == simuctrl->tasktab[i].taskid,MOD_BLEND);
-#endif
-    ;
-}
-
-double
-simuTaskSendCost(SimuTask *taskptr, const pastix_int_t clustsrc, const pastix_int_t clustdst, BlendCtrl *ctrl)
-{
-    double startup, bandwidth;
-
-    getCommunicationCosts( ctrl, clustsrc, clustdst,
-                           ctrl->candtab[taskptr->cblknum].lccandnum -
-                           ctrl->candtab[taskptr->cblknum].fccandnum + 1,
-                           &startup, &bandwidth );
-
-    assert( taskptr->taskid != COMP_1D );
-
-    return (startup + bandwidth * taskptr->mesglen);
 }

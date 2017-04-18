@@ -325,7 +325,7 @@ simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
         /* Source of this ftgt */
         clustdst = INDEX2CLUST(i, bloknum);
 
-        /** Task COMP_1D with several cand proc **/
+        /** Task with several cand proc **/
         /** The information about ftgt costs are in the ftgt of the diagonal block;
          this loop sums the cost of all the ftgt received by the blocks in this column block **/
         if(simuctrl->ftgttab[i].ftgt.infotab[FTGT_CTRBNBR]>0)
@@ -727,7 +727,6 @@ simuRun( SimuCtrl           *simuctrl,
 
             if(ctrl->costlevel)
                 assert(ctrl->candtab[i].costlevel < 0);
-            assert( simuctrl->tasktab[tasknum].taskid == COMP_1D );
 
             assert(simuctrl->tasktab[tasknum].cblknum == i);
             //assert(ctrl->candtab[i].cblktype == CBLK_1D);
@@ -807,7 +806,7 @@ simuRun( SimuCtrl           *simuctrl,
          */
         if(simuctrl->bloktab[bloknum].ftgtnum < simuctrl->bloktab[bloknum+1].ftgtnum)
         {
-            /* Task COMP_1D with several cand cluster */
+            /* Task with several cand cluster */
             for(b=bloknum; b<symbptr->cblktab[cblknum+1].bloknum; b++)
             {
                 for(j=simuctrl->bloktab[b].ftgtnum; j<simuctrl->bloktab[b+1].ftgtnum; j++)
@@ -880,9 +879,8 @@ simuRun( SimuCtrl           *simuctrl,
         if(!(simuctrl->bloktab[i].ownerclust>=0))
         {
             fprintf(stderr, "BLOCK %ld has no processor \n", (long)i);
-            fprintf(stdout, "ownerclust [ %ld ] = %ld type %ld \n", (long)i,
-                    (long)simuctrl->bloktab[i].ownerclust,
-                    (long)simuctrl->tasktab[simuctrl->bloktab[i].tasknum].taskid);
+            fprintf(stdout, "ownerclust [ %ld ] = %ld\n", (long)i,
+                    (long)simuctrl->bloktab[i].ownerclust);
             EXIT(MOD_BLEND,INTERNAL_ERR);
         }
     for(i=0;i<symbptr->bloknbr;i++)

@@ -350,7 +350,7 @@ solverMatrixGen( pastix_int_t        clustnum,
             {
                 assert( tasknum == tasklocalnum[i] );
 
-                solvtask->taskid  = simutask->taskid;
+                solvtask->taskid  = COMP_1D;
                 solvtask->prionum = simutask->prionum;
                 solvtask->cblknum = cblklocalnum[ simutask->cblknum ];
                 solvtask->bloknum = bloklocalnum[ simutask->bloknum ];
@@ -530,8 +530,6 @@ solverMatrixGen( pastix_int_t        clustnum,
             assert(bloklocalnum[simuctrl->tasktab[i].bloknum] == solvmtx->tasktab[tasklocalnum[i]].bloknum);
             assert(cblklocalnum[simuctrl->tasktab[i].cblknum] == solvmtx->tasktab[tasklocalnum[i]].cblknum);
 
-            switch(simuctrl->tasktab[i].taskid) {
-            case COMP_1D:
             {
                 pastix_int_t fbloknum = symbmtx->cblktab[cblknum  ].bloknum+1;
                 pastix_int_t lbloknum = symbmtx->cblktab[cblknum+1].bloknum;
@@ -571,10 +569,6 @@ solverMatrixGen( pastix_int_t        clustnum,
                     }
                 }
                 break;
-            }
-            default:
-                fprintf(stderr, "Error in solverMatrixgen: taskid unknown\n");
-                EXIT(MOD_BLEND,INTERNAL_ERR);
             }
         }
         assert(indnbr == solvmtx->indnbr);

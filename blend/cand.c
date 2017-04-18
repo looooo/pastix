@@ -335,10 +335,6 @@ candSubTreeBuild( pastix_int_t        rootnum,
  * @param[in]    symbmtx
  *               Pointer to the symbol matrix we are working with.
  *
- * @param[in]    costmtx
- *               Pointer to the cost matrix associated to the symbol matrix and
- *               that holds the cost of each cblk and blok.
- *
  *******************************************************************************/
 static inline void
 candSubTreeDistribWithSize( pastix_int_t        rootnum,

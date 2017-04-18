@@ -778,28 +778,28 @@ add_documented_files(
   #blend/task.c
 
   blend/blend.h
-  blend/blendctrl.c
   blend/blendctrl.h
-  blend/cand.c
+  blend/blendctrl.c
   blend/cand.h
-  blend/cost.c
+  blend/cand.c
   blend/cost.h
+  blend/cost.c
   blend/elimintree.h
   blend/elimintree.c
-  blend/extendVector.c
   blend/extendVector.h
-  blend/extracblk.c
+  blend/extendVector.c
   blend/extracblk.h
+  blend/extracblk.c
   blend/perf.h
   blend/propmap.c
-
-  blend/queue.c
   blend/queue.h
-  blend/simu.c
+  blend/queue.c
+
   blend/simu.h
+  blend/simu_timer.h
+  blend/simu.c
   blend/simu_run.c
   blend/simu_task.c
-  blend/simu_timer.h
   blend/solver.c
   blend/solver.h
   blend/solver_backup.c

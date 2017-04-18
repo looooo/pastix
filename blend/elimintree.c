@@ -80,7 +80,7 @@ eTreeExit(EliminTree *etree)
  *
  *******************************************************************************/
 pastix_int_t
-eTreeLeaveNbr(const EliminTree *etree)
+eTreeLeavesNbr(const EliminTree *etree)
 {
     pastix_int_t i;
     pastix_int_t leavenbr;
