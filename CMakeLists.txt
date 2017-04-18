@@ -539,7 +539,7 @@ set(PASTIX_LIB_SRCS
   blend/pastix_task_analyze.c
 
   blend/cand.c
-  blend/elimin_tree.c
+  blend/elimintree.c
   blend/propmap.c
   blend/extracblk.c
   blend/splitsymbol.c
@@ -776,8 +776,45 @@ add_documented_files(
   #blend/solver_io.c
   #blend/splitsymbol.c
   #blend/task.c
+
+  blend/blend.h
+  blend/blendctrl.c
+  blend/blendctrl.h
+  blend/cand.c
+  blend/cand.h
+  blend/cost.c
+  blend/cost.h
+  blend/elimintree.h
+  blend/elimintree.c
+  blend/extendVector.c
+  blend/extendVector.h
+  blend/extracblk.c
+  blend/extracblk.h
+
+  blend/perf.h
+  blend/propmap.c
+  blend/queue.c
+  blend/queue.h
+  blend/simu.c
+  blend/simu.h
+  blend/simu_run.c
+  blend/simu_task.c
+  blend/simu_timer.h
+  blend/solver.c
+  blend/solver.h
+  blend/solver_backup.c
+  blend/solver_check.c
+  blend/solver_compute_gpu_distrib.c
+  blend/solver_copy.c
+  blend/solver_draw.c
+  blend/solver_io.c
+  blend/solver_io.h
+  blend/solver_matrix_gen.c
+  blend/splitsymbol.c
+
   blend/pastix_subtask_blend.c
   blend/pastix_task_analyze.c
+
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
 
