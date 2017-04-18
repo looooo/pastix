@@ -124,7 +124,7 @@ propMappSubtree( const propmap_t *pmptr,
                  pastix_int_t     cluster,
                  double          *cost_remain )
 {
-    Queue *queue_tree;
+    pastix_queue_t *queue_tree;
     pastix_int_t p;
     pastix_int_t candnbr, scandnbr;
     pastix_int_t fcand = 0;
@@ -199,8 +199,8 @@ propMappSubtree( const propmap_t *pmptr,
     sonsnbr = pmptr->etree->nodetab[rootnum].sonsnbr;
 
     /* Create the list of sons sorted by descending order of cost */
-    MALLOC_INTERN(queue_tree, 1, Queue);
-    queueInit(queue_tree, sonsnbr);
+    MALLOC_INTERN(queue_tree, 1, pastix_queue_t);
+    pqueueInit(queue_tree, sonsnbr);
     for(i=0; i<sonsnbr; i++)
     {
         double soncost;
@@ -211,15 +211,15 @@ propMappSubtree( const propmap_t *pmptr,
         /* Cost of the root node in the subtree */
         soncost    = -pmptr->etree->nodetab[eTreeSonI(pmptr->etree, rootnum, i)].total;
 
-        queueAdd2(queue_tree, i, cumul_cost, (pastix_int_t)soncost);
+        pqueuePush2(queue_tree, i, cumul_cost, (pastix_int_t)soncost);
     }
 
     /* Proportionnal mapping of the subtree on remaining candidates           */
     /* The first stage deals only with nodes that require multiple candidates */
     lcand = fcand;
-    while (queueSize(queue_tree) > 0)
+    while (pqueueSize(queue_tree) > 0)
     {
-        i = queueGet2( queue_tree, &cumul_cost, NULL );
+        i = pqueuePop2( queue_tree, &cumul_cost, NULL );
         cumul_cost = -cumul_cost;
 
         /*
@@ -315,9 +315,9 @@ propMappSubtree( const propmap_t *pmptr,
         }
     }
 
-    if (queueSize(queue_tree) > 0)
+    if (pqueueSize(queue_tree) > 0)
     {
-        Queue *queue_proc;
+        pastix_queue_t *queue_proc;
 
         /*
          * Second stage:
@@ -327,19 +327,19 @@ propMappSubtree( const propmap_t *pmptr,
          */
 
         /* Fill queue proc order by remain cost descending */
-        MALLOC_INTERN(queue_proc, 1, Queue);
-        queueInit(queue_proc, candnbr);
+        MALLOC_INTERN(queue_proc, 1, pastix_queue_t);
+        pqueueInit(queue_proc, candnbr);
         for (i=0; i<candnbr; i++)
-            queueAdd(queue_proc, i, -cost_remain[i]);
+            pqueuePush1(queue_proc, i, -cost_remain[i]);
 
-        while (queueSize(queue_tree) > 0)
+        while (pqueueSize(queue_tree) > 0)
         {
             /* Get the largest node */
-            i = queueGet2( queue_tree, &cumul_cost, NULL );
+            i = pqueuePop2( queue_tree, &cumul_cost, NULL );
             cumul_cost = -cumul_cost;
 
             /* Get the candidate with the largest cost_remain */
-            fcand = queueGet(queue_proc);
+            fcand = pqueuePop(queue_proc);
 
             /* Map them together */
             propMappSubtreeOn1P( pmptr, eTreeSonI(pmptr->etree, rootnum, i),
@@ -347,14 +347,14 @@ propMappSubtree( const propmap_t *pmptr,
 
             /* Update cost_remain and re-insert into the sorted queue */
             cost_remain[fcand] -= cumul_cost;
-            queueAdd(queue_proc, fcand, -cost_remain[fcand]);
+            pqueuePush1(queue_proc, fcand, -cost_remain[fcand]);
         }
 
-        queueExit(queue_proc);
+        pqueueExit(queue_proc);
         memFree(queue_proc);
     }
 
-    queueExit(queue_tree);
+    pqueueExit(queue_tree);
     memFree(queue_tree);
     return;
 }

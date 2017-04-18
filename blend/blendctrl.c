@@ -8,7 +8,6 @@
 #include "cost.h"
 #include "extendVector.h"
 #include "cand.h"
-#include "queue.h"
 #include "blendctrl.h"
 #include "perf.h"
 
@@ -291,9 +290,6 @@ blendCtrlInit( BlendCtrl    *ctrl,
     ctrl->costmtx = NULL;
     ctrl->candtab = NULL;
 
-    MALLOC_INTERN(ctrl->lheap, 1, Queue);
-    queueInit(ctrl->lheap, 1000);
-
     MALLOC_INTERN(ctrl->intvec,  1, ExtendVectorINT);
     MALLOC_INTERN(ctrl->intvec2, 1, ExtendVectorINT);
     extendint_Init(ctrl->intvec,  10);
@@ -323,9 +319,6 @@ blendCtrlInit( BlendCtrl    *ctrl,
 void
 blendCtrlExit(BlendCtrl *ctrl)
 {
-    queueExit(ctrl->lheap);
-    memFree_null(ctrl->lheap);
-
     extendint_Exit(ctrl->intvec);
     memFree_null(ctrl->intvec);
 

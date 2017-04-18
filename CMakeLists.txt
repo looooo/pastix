@@ -790,9 +790,9 @@ add_documented_files(
   blend/extendVector.h
   blend/extracblk.c
   blend/extracblk.h
-
   blend/perf.h
   blend/propmap.c
+
   blend/queue.c
   blend/queue.h
   blend/simu.c
