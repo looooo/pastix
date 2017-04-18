@@ -5,7 +5,7 @@
 #include "symbol.h"
 #include "queue.h"
 #include "solver.h"
-#include "elimin.h"
+#include "elimintree.h"
 #include "cost.h"
 #include "cand.h"
 #include "extendVector.h"

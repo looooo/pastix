@@ -4,7 +4,7 @@
 
 #include "common.h"
 #include "symbol.h"
-#include "elimin.h"
+#include "elimintree.h"
 #include "cost.h"
 #include "cand.h"
 #include "queue.h"

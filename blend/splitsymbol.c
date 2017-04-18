@@ -6,7 +6,7 @@
 #include "common.h"
 #include "cost.h"
 #include "symbol.h"
-#include "elimin.h"
+#include "elimintree.h"
 #include "extendVector.h"
 #include "cand.h"
 #include "queue.h"

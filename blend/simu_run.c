@@ -11,7 +11,7 @@
 #include "symbol.h"
 #include "extendVector.h"
 #include "queue.h"
-#include "elimin.h"
+#include "elimintree.h"
 #include "cost.h"
 #include "cand.h"
 #include "blendctrl.h"

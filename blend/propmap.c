@@ -14,10 +14,11 @@
  *
  * @addtogroup blend_dev_propmap
  * @{
+ *
  **/
 #include "common.h"
 #include "symbol.h"
-#include "elimin.h"
+#include "elimintree.h"
 #include "cost.h"
 #include "cand.h"
 #include "extendVector.h"
@@ -348,3 +349,7 @@ propMappTree( Cand               *candtab,
         memFree_null(cost_remain);
     }
 }
+
+/**
+ * @}
+ */

@@ -11,7 +11,7 @@
 #include "queue.h"
 #include "solver.h"
 #include "extendVector.h"
-#include "elimin.h"
+#include "elimintree.h"
 #include "cand.h"
 #include "blendctrl.h"
 #include "simu.h"

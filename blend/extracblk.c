@@ -1,17 +1,46 @@
+/**
+ *
+ * @file extracblk.c
+ *
+ * PaStiX analyse headers for extra symbolic structure functions.
+ *
+ * @copyright 1998-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ * @addtogroup blend_dev_split
+ * @{
+ *
+ **/
 #include "common.h"
 #include "symbol.h"
 #include "cost.h"
-#include "elimin.h"
+#include "elimintree.h"
 #include "cand.h"
 #include "extracblk.h"
 
+/**
+ *******************************************************************************
+ *
+ * @brief Allocate the extracblk structure.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] extracblk
+ *          Allocate memory space to store extra cblk when they are created. The
+ *          initial number is the one given at extraCblkInit().
+ *
+ *******************************************************************************/
 static inline void
 extraCblkAlloc( ExtraCblk_t *extracblk )
 {
     pastix_int_t i;
 
-    MALLOC_INTERN( extracblk->sptcblk, extracblk->cblknbr, pastix_int_t);
-    MALLOC_INTERN( extracblk->sptcbnb, extracblk->cblknbr, pastix_int_t);
+    MALLOC_INTERN( extracblk->sptcblk, extracblk->cblknbr, pastix_int_t );
+    MALLOC_INTERN( extracblk->sptcbnb, extracblk->cblknbr, pastix_int_t );
 
     /*
      * Unsplitted cblk will keep sptcblk to -1 and sptcbnb to 1
@@ -25,12 +54,30 @@ extraCblkAlloc( ExtraCblk_t *extracblk )
     }
 
     /* We choose an arbitrary size for initial allocation of bloktab and cblktab (5%) */
-    extracblk->sizcblk = (extracblk->cblknbr + 20 ) / 20;
+    extracblk->sizcblk = ( extracblk->cblknbr + 20 ) / 20;
     MALLOC_INTERN( extracblk->cblktab, extracblk->cblknbr, SymbolCblk );
 
     return;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Increment the number of extra cblk that can be stored.
+ *
+ * If there is not enough space, the structure is reallocated to a larger space.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] extracblk
+ *          Allocate memory space to store extra cblk when they are created. The
+ *          initial number is the one given at extraCblkInit().
+ *
+ *******************************************************************************
+ *
+ * @return the current index for the next cblk added to the structure.
+ *
+ *******************************************************************************/
 static inline pastix_int_t
 extraCblkInc( ExtraCblk_t *extracblk )
 {
@@ -61,9 +108,23 @@ extraCblkInc( ExtraCblk_t *extracblk )
     return extracblk->curcblk;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Initialize the extracblk structure.
+ *
+ *******************************************************************************
+ *
+ * @param[in]    cblknbr
+ *          The starting number of cblk that the structure can hold.
+ *
+ * @param[inout] extracblk
+ *          Pointer to the allocated extracblk structure to initialize.
+ *
+ *******************************************************************************/
 void
-extraCblkInit( pastix_int_t cblknbr,
-               ExtraCblk_t *extracblk )
+extraCblkInit( pastix_int_t  cblknbr,
+               ExtraCblk_t  *extracblk )
 {
     extracblk->cblknbr = cblknbr;
     extracblk->addcblk = 0;
@@ -77,6 +138,17 @@ extraCblkInit( pastix_int_t cblknbr,
     return;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Free the extracblk structure.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] extracblk
+ *          Pointer to the allocated extracblk structure to free.
+ *
+ *******************************************************************************/
 void
 extraCblkExit( ExtraCblk_t *extracblk )
 {
@@ -90,6 +162,23 @@ extraCblkExit( ExtraCblk_t *extracblk )
     return;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Add a new additional cblk defined by its first and last columns.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] extracblk
+ *          Pointer to the extracblk structure to add the cblk.
+ *
+ * @param[in] fcolnum
+ *          Index of the first column in the new cblk.
+ *
+ * @param[in] lcolnum
+ *          Index of the last column in the new cblk.
+ *
+ *******************************************************************************/
 void
 extraCblkAdd( ExtraCblk_t *extracblk,
               pastix_int_t fcolnum,
@@ -102,10 +191,31 @@ extraCblkAdd( ExtraCblk_t *extracblk,
     extracblk->cblktab[ curcblk ].bloknum = -1;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Merge the existing symbol structure with the additional information
+ * from the extracblk structure.
+ *
+ *******************************************************************************
+ *
+ * @param[in] extracblk
+ *          Pointer to the extracblk structure that contains information about
+ *          splited cblk.
+ *
+ * @param[inout] newsymb
+ *          Symbol matrix to update. On exit, the symbol matrix structure is
+ *          extended by the splited cblk described in extracblk structure.
+ *
+ * @param[inout] candtab
+ *          On entry, the candtab aray associated to the input symbol matrix.
+ *          On exit, the updated candtab array with the extended number of cblk.
+ *
+ *******************************************************************************/
 void
-extraCblkMerge( ExtraCblk_t  *extracblk,
-                SymbolMatrix *newsymb,
-                Cand        **candtab )
+extraCblkMerge( const ExtraCblk_t *extracblk,
+                SymbolMatrix      *newsymb,
+                Cand             **candtab )
 {
     pastix_int_t  i, j, k, l;
     pastix_int_t  curbloknum, curcblknum;
@@ -379,10 +489,11 @@ extraCblkMerge( ExtraCblk_t  *extracblk,
 
     symbolBuildRowtab( newsymb );
 
-    extracblk->addblok = addblok;
-    extracblk->addblof = facing_splitted_cnt;
-
     *candtab = newcand;
 
     return;
 }
+
+/**
+ *@}
+ */
