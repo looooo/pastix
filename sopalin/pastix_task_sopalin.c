@@ -426,8 +426,9 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data,
  *          spm matrix and the solver matrix structure stores the factorization
  *          of the given problem.
  *
- * @param[in] spm
+ * @param[inout] spm
  *          The sparse matrix descriptor that describes problem instance.
+ *          On exit, the spm structure is freed if IPARM_FREE_CSCUSER is true.
  *
  *******************************************************************************
  *
