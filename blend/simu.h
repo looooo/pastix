@@ -110,9 +110,6 @@ typedef struct simuctrl_s {
 } SimuCtrl;
 
 
-void         taskBuild   ( SimuCtrl *, SymbolMatrix *, Cand *);
-double       taskSendCost( SimuTask *, const pastix_int_t, const pastix_int_t, BlendCtrl * );
-
 pastix_int_t simuInit        ( SimuCtrl *, const SymbolMatrix *, const Cand *, pastix_int_t, pastix_int_t );
 pastix_int_t simuRealloc     ( SimuCtrl *, pastix_int_t, pastix_int_t );
 void         simuExit        ( SimuCtrl *, pastix_int_t, pastix_int_t, pastix_int_t );

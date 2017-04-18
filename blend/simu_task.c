@@ -1,3 +1,19 @@
+/**
+ *
+ * @file simu_task.c
+ *
+ * PaStiX simulation task basic functions.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Pascal Henon
+ * @author Pierre Ramet
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ **/
 #include <stdio.h>
 #include <math.h>
 
@@ -12,9 +28,31 @@
 #include "solver.h"
 #include "simu.h"
 
-void simuTaskBuild( SimuCtrl *simuctrl,
-                    const SymbolMatrix *symbptr,
-                    const Cand *candtab )
+/**
+ *******************************************************************************
+ *
+ * @ingroup blend_dev_simu
+ *
+ * @brief Initialize the tasktab array of the simulation structure.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] simuctrl
+ *          The main simulation structure. On exit, the tasktab array is built
+ *          and initialized with default values.
+ *
+ * @param[in] symbptr
+ *          The pointer to the symbol matrix structure studied.
+ *
+ * @param[in] candtab
+ *          The pointer to the candidate information associated to the symbol
+ *          structure and that will guide the simulation.
+ *
+ *******************************************************************************/
+void
+simuTaskBuild( SimuCtrl           *simuctrl,
+               const SymbolMatrix *symbptr,
+               const Cand         *candtab )
 {
     pastix_int_t i, j;
     pastix_int_t tasknbr = 0;

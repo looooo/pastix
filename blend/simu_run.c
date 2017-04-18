@@ -1,3 +1,22 @@
+/**
+ *
+ * @file simu_run.c
+ *
+ * PaStiX simulation functions.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Pascal Henon
+ * @author Pierre Ramet
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ * @addtogroup blend_dev_simu
+ * @{
+ *
+ **/
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
@@ -23,13 +42,40 @@
 #include <GTG.h>
 #endif
 
+/**
+ *******************************************************************************
+ *
+ * @brief Compute the cost of a communication and its update.
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctrl
+ *          The blend control structure that describes the architecture and the
+ *          cost of the communication between nodes.
+ *
+ * @param[in] ftgt
+ *          The fan-in for which the cost is computed.
+ *
+ * @param[in] clustsrc
+ *          The index of the source pastix process.
+ *
+ * @param[in] sync_comm_nbr
+ *          The number of simultaneous communication.
+ *
+ * @param[out] send
+ *          The time cost of the send operation.
+ *
+ * @param[out] add
+ *          The time cost of the addition operation.
+ *
+ *******************************************************************************/
 static inline void
-simu_computeFtgtCosts( const BlendCtrl   *ctrl,
+simu_computeFtgtCosts( const BlendCtrl     *ctrl,
                        const solver_ftgt_t *ftgt,
-                       pastix_int_t dof,
-                       pastix_int_t clustsrc,
-                       pastix_int_t sync_comm_nbr,
-                       double *send, double *add )
+                       pastix_int_t         clustsrc,
+                       pastix_int_t         sync_comm_nbr,
+                       double              *send,
+                       double              *add )
 {
     pastix_int_t M, N;
     pastix_int_t clustdst = ctrl->core2clust[ftgt->infotab[FTGT_PROCDST]];
@@ -43,8 +89,8 @@ simu_computeFtgtCosts( const BlendCtrl   *ctrl,
 
     assert( (clustsrc >= 0) && (clustdst >= 0) );
 
-    N = (ftgt->infotab[FTGT_LCOLNUM] - ftgt->infotab[FTGT_FCOLNUM] + 1) * dof;
-    M = (ftgt->infotab[FTGT_LROWNUM] - ftgt->infotab[FTGT_FROWNUM] + 1) * dof;
+    N = (ftgt->infotab[FTGT_LCOLNUM] - ftgt->infotab[FTGT_FCOLNUM] + 1);
+    M = (ftgt->infotab[FTGT_LROWNUM] - ftgt->infotab[FTGT_FROWNUM] + 1);
 
     assert( (N > 0) && (M > 0) );
 
@@ -56,6 +102,26 @@ simu_computeFtgtCosts( const BlendCtrl   *ctrl,
     return;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Compute the number of contributions to each block.
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbptr
+ *          The symbol matrix structure describing the problem.
+ *
+ * @param[inout] simuctrl
+ *          The main simulation structure. On exit, the ctrbcnt field of the
+ *          blocks is updated with the number of contribution that they each
+ *          should receive.
+ *
+ * @param[in] ricar
+ *          True if ILU(k) factorization is applied to change the algorithm to
+ *          compute the number of contribution.
+ *
+ *******************************************************************************/
 static inline void
 simu_computeBlockCtrbNbr(const SymbolMatrix *symbptr,
                          SimuCtrl     *simuctrl,
@@ -64,8 +130,10 @@ simu_computeBlockCtrbNbr(const SymbolMatrix *symbptr,
     pastix_int_t i, j, k;
     pastix_int_t facebloknum, firstbloknum;
 
-    /* Compute the number of contribution per block to each block */
-    /* Might be optimized if we computed the input graph before */
+    /*
+     * Compute the number of contribution per block to each block.
+     * Might be optimized if we computed the input graph before.
+     */
     {
         SymbolCblk *curcblk;
 
@@ -113,6 +181,20 @@ simu_computeBlockCtrbNbr(const SymbolMatrix *symbptr,
 }
 
 
+/**
+ *******************************************************************************
+ *
+ * @brief Print the number of contribution per cblk and block for debug.
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbptr
+ *          The symbol matrix structure describing the problem.
+ *
+ * @param[in] simuctrl
+ *          The main simulation structure.
+ *
+ *******************************************************************************/
 static inline void
 simu_printBlockCtrbNbr( const SymbolMatrix *symbptr,
                         const SimuCtrl     *simuctrl )
@@ -144,19 +226,35 @@ simu_printBlockCtrbNbr( const SymbolMatrix *symbptr,
     fclose( fd2 );
 }
 
-
+/**
+ *******************************************************************************
+ *
+ * @brief Insert a task in the ready task queues of all its candidates.
+ *
+ * This function according to the ready date of a task put this task on the
+ * ready queue of a processor.
+ * When the ready date of a task is inferior to the proc timer then he
+ * task is ordered according to its priorities in the elimination tree.
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctrl
+ *          The blend control structure to provide the candtab and the
+ *          core2clust arrays.
+ *
+ * @param[inout] simuctrl
+ *          The main simulation structure. On exit, the ready tasks queues of
+ *          the candidates for tasknum are updated.
+ *
+ * @param[in] tasknum
+ *          The index of the task to insert as a ready task.
+ *
+ *******************************************************************************/
 static inline void
 simu_putInAllReadyQueues(const BlendCtrl *ctrl,
                          SimuCtrl        *simuctrl,
                          pastix_int_t     tasknum )
 {
-    /*---------------------------------------------------------/
-     / This function according to the ready date of a task      /
-     / put this task on the ready queue of a processor          /
-     / NOTE: when the ready date of a task is inferior to the   /
-     / proc timer then he task is ordered according to its      /
-     / priorities in the elimination tree                       /
-     /---------------------------------------------------------*/
     const SimuTask *task     = simuctrl->tasktab + tasknum;
     const Cand     *cblkcand = ctrl->candtab + task->cblknum;
     SimuProc  *sproc;
@@ -197,16 +295,40 @@ simu_putInAllReadyQueues(const BlendCtrl *ctrl,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Look for the best next couple (tasknum, corenum) that is ready to be
+ * executed.
+ *
+ * This function is the main and more costly one. It looks for each worker,
+ * which tasks is the first one available for execution, and from all those
+ * couples, which one is the first one to finish.
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctrl
+ *          The blend control structure to provide the candtab and the
+ *          core2clust arrays.
+ *
+ * @param[inout] simuctrl
+ *          The main simulation structure. On exit, the structure is updated
+ *          with the extraction of the next best task to run.
+ *
+ * @param[out] procnumptr
+ *          The index of the candidate to run the task.
+ *
+ *******************************************************************************
+ *
+ * @return The next task selected for execution in the simulator. The worker
+ *         selected is treturned in the procnumptr field.
+ *
+ *******************************************************************************/
 static inline pastix_int_t
 simu_getNextTaskNextProc( const BlendCtrl *ctrl,
                           SimuCtrl        *simuctrl,
                           pastix_int_t    *procnumptr )
 {
-    /*----------------------------------------------------------------------------------------------------/
-     /  Get the next task and the next proc in order that they are the first that can compute something    /
-     /  On return : earlier task index                                                                     /
-     /----------------------------------------------------------------------------------------------------*/
-
     pastix_int_t p;
     pastix_int_t procnum = -1;
     pastix_int_t tasknum;
@@ -215,24 +337,30 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
     double timeready;
     pastix_int_t earlytask = -1;
 
-    /** Find the earlier task in the processor heaps **/
+    /* Find the earlier task in the processor heaps */
     for(p=0;p<ctrl->total_nbcores;p++)
     {
         tasknum = -1;
-        /** First we search the earlier task in the set of task whose ready date is < proc timer **/
+        /*
+         * First we search the earlier task in the set of task whose ready date
+         * is < proc timer
+         */
         while(pqueueSize(simuctrl->proctab[p].readytask)>0)
         {
             tasknum = pqueueRead(simuctrl->proctab[p].readytask);
             if( simuctrl->bloktab[simuctrl->tasktab[tasknum].bloknum].ownerclust >= 0 )
             {
-                /** This task have to be remove from the heap (already mapped) **/
+                /* This task have to be remove from the heap (already mapped) */
                 pqueuePop(simuctrl->proctab[p].readytask);
                 tasknum = -1;
             }
             else
                 break;
         }
-        /** We found no task which ready date is < proc timer so we search one that minimizes ready date - proc-timer **/
+        /*
+         * We found no task which ready date is < proc timer so we search one
+         * that minimizes ready date - proc-timer
+         */
         if(tasknum == -1)
         {
             while(pqueueSize(simuctrl->proctab[p].futuretask)>0)
@@ -240,7 +368,7 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
                 tasknum = pqueueRead(simuctrl->proctab[p].futuretask);
                 if( simuctrl->bloktab[simuctrl->tasktab[tasknum].bloknum].ownerclust >= 0 )
                 {
-                    /** This task have to be remove from the heap (already mapped) **/
+                    /* This task have to be remove from the heap (already mapped) */
                     pqueuePop(simuctrl->proctab[p].futuretask);
                     tasknum = -1;
                 }
@@ -251,9 +379,13 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
 
         if(tasknum != -1)
         {
-            timeready = MAX(timerVal(TIMER(p)), timerVal(&(simuctrl->ftgttimetab[CLUST2INDEX(simuctrl->tasktab[tasknum].bloknum, ctrl->core2clust[p])])));
+            timeready = MAX(timerVal(TIMER(p)),
+                            timerVal(&(simuctrl->ftgttimetab[CLUST2INDEX(simuctrl->tasktab[tasknum].bloknum, ctrl->core2clust[p])])));
 
-            /** We prevent to distribute on the same processor set when all time are equals **/
+            /*
+             * We prevent to distribute on the same processor set when all time
+             * are equals
+             */
             if((timeready == earlytimeready) && (timerVal(TIMER(p)) < earlyproctimer))
             {
                 procnum = p;
@@ -285,18 +417,38 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
     return earlytask;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Compute the instant t where the task will be received by a node.
+ *
+ * Compute the time the cblk would have RECEIVED and ADDED all its contributions
+ * if it was mapped on a given cand CLUSTER.
+ * @warning These times do not include add time for fan in target
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctrl
+ *          The blend control structure to provide the candtab and the
+ *          core2clust arrays.
+ *
+ * @param[in] symbptr
+ *          The symbol matrix structure describing the problem.
+ *
+ * @param[inout] simuctrl
+ *          The main simulation structure. On exit, the ready tasks queues of
+ *          the candidates for tasknum are updated.
+ *
+ * @param[in] tasknum
+ *          The index of the task to insert as a ready task.
+ *
+ *******************************************************************************/
 static inline void
 simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
                              const SymbolMatrix *symbptr,
                              SimuCtrl           *simuctrl,
                              pastix_int_t        tasknum )
 {
-    /*-------------------------------------------------------------------------/
-     / Compute the time the cblk would have RECEIVED and ADDED                  /
-     / all its contributions if it was mapped on a given cand CLUSTER           /
-     / !! These times not include add time for fan in target !!                 /
-     /--------------------------------------------------------------------------*/
-
     pastix_int_t i, j;
     double lftgttime = 0;
     double sftgttime = 0;
@@ -312,22 +464,22 @@ simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
     if( ctrl->candtab[cblknum].fccandnum == ctrl->candtab[cblknum].lccandnum )
         return;
 
-    /*------------------------------------------------------------------------------------------------/
-     / Compute the cblk on proc timer that is time the cblk would have received                        /
-     / all its contributions if it was mapped on a given cand processor                                /
-     / These times INCLUDE add time for fan in target !!                                               /
-     /------------------------------------------------------------------------------------------------*/
+    /*
+     * Compute the cblk on proc timer that is time the cblk would have received
+     * all its contributions if it was mapped on a given cand processor These
+     * times INCLUDE add time for fan in target !!
+     */
 
-    /** Compute receive time (time at which a non-local processor should received the target **/
+    /* Compute receive time (time at which a non-local processor should received the target) */
     /* find the latest ftgt receive time and the second latest*/
     for(i=simuctrl->bloktab[bloknum].ftgtnum; i<simuctrl->bloktab[bloknum+1].ftgtnum; i++)
     {
         /* Source of this ftgt */
         clustdst = INDEX2CLUST(i, bloknum);
 
-        /** Task with several cand proc **/
-        /** The information about ftgt costs are in the ftgt of the diagonal block;
-         this loop sums the cost of all the ftgt received by the blocks in this column block **/
+        /* Task with several cand proc */
+        /* The information about ftgt costs are in the ftgt of the diagonal block;
+         this loop sums the cost of all the ftgt received by the blocks in this column block */
         if(simuctrl->ftgttab[i].ftgt.infotab[FTGT_CTRBNBR]>0)
             for(j=bloknum;j<symbptr->cblktab[cblknum+1].bloknum;j++)
             {
@@ -355,10 +507,10 @@ simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
         assert(simuctrl->ftgttab[i].costadd >= 0.0);
 #endif
 
-        /** ftgttab[].timerecv is the time this ftgt will be receive **/
+        /* ftgttab[].timerecv is the time this ftgt will be receive */
         timerSet(&(simuctrl->ftgttab[i].timerecv), timerVal(&(simuctrl->ftgttimetab[i])) + simuctrl->ftgttab[i].costsend + simuctrl->ftgttab[i].costadd);
 
-        /** If this ftgt the last reveived or the second last received ?? **/
+        /* If this ftgt the last reveived or the second last received ?? */
         if(timerVal(&(simuctrl->ftgttab[i].timerecv)) > lftgttime)
         {
             lftgttime = timerVal(&(simuctrl->ftgttab[i].timerecv));
@@ -370,11 +522,10 @@ simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
     }
 
 
-    /*------------------------------------------------------/
-     / Put in ftgttimetab[] the date at which the cluster    /
-     / would have received and add all the ftgt if the task  /
-     /  was mapped on it                                     /
-     /------------------------------------------------------*/
+    /*
+     * Put in ftgttimetab[] the date at which the cluster would have received
+     * and add all the ftgt if the task was mapped on it.
+     */
     for(i=simuctrl->bloktab[bloknum].ftgtnum; i<simuctrl->bloktab[bloknum+1].ftgtnum;i++)
     {
         if(i != lftgtnum)
@@ -387,17 +538,19 @@ simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_simulation
+ * @ingroup blend_dev_simu
  *
- * simu_updateFtgt - Update the Fan In target structure by incrementing the
- * contribution counter and integrating to the ftgt area the new contribution.
+ * @brief Update the Fan In target structure
+ *
+ * Increment the contribution counter of the fan-in and integrate to the ftgt
+ * area the new contribution.
  *
  *******************************************************************************
  *
  * @param[in] symbptr
  *          The pointer to the symbolic matrix structure.
  *
- * @param[in,out] simuctrl
+ * @param[inout] simuctrl
  *          The pointer to the simulation structure. On exit, data regarding the
  *          computational unit pr are updated.
  *
@@ -447,11 +600,12 @@ simu_updateFtgt( const SymbolMatrix *symbptr,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_simulation
+ * @ingroup blend_dev_simu
  *
- * simu_computetTask - This routine simulates the task execution by updating the
- * timers of selected processor, and cblk, as well as cblk targetted by the
- * updates.
+ * @brief Simulate the task execution.
+ *
+ * Update the timers of the selected worker, as well as those of the current
+ * cblk, and the targeted cblks by the update.
  *
  *******************************************************************************
  *
@@ -461,7 +615,7 @@ simu_updateFtgt( const SymbolMatrix *symbptr,
  * @param[in] symbptr
  *          The pointer to the symbolic matrix structure.
  *
- * @param[in,out] simuctrl
+ * @param[inout] simuctrl
  *          The pointer to the simulation structure. On exit, data regarding the
  *          computational unit pr are updated.
  *
@@ -470,7 +624,7 @@ simu_updateFtgt( const SymbolMatrix *symbptr,
  *
  *******************************************************************************
  *
- * Remark: In this function, we use the standard [f|l]blocknum for first and
+ * @remark In this function, we use the standard [f|l]blocknum for first and
  * last bloknum, and facingcblk, facingblok for the facing block and column
  * block.
  *
@@ -586,22 +740,24 @@ simu_computeTask( const BlendCtrl    *ctrl,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_simulation
+ * @ingroup blend_dev_simu
  *
- * simu_pushToReadyHeap - This routine pushes all future task from the future
- * task heap to the ready one, if the time at which the task will be ready is
- * already passed by the computation unit.
+ * @brief Push all task from future to ready
+ *
+ * This routine pushes all future task from the future task heap to the ready
+ * one, if the time at which the task will be ready is already passed by the
+ * computation unit.
  *
  *******************************************************************************
  *
  * @param[in] ctrl
  *          The pointer to the global blend control structure.
  *
- * @param[in,out] simuctrl
+ * @param[inout] simuctrl
  *          The pointer to the simulation structure. On exit, data regarding the
  *          computational unit pr are updated.
  *
- * @param[in] pr
+ * @param[in] procnum
  *          The computational unit index for which, the data need to be transfer
  *          from the future task heap to ready task heap if the computatuional
  *          unit timer is more advanced than the ready time of the tasks.
@@ -644,6 +800,32 @@ simu_pushToReadyHeap(const BlendCtrl *ctrl,
 }
 
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup blend_dev_simu
+ *
+ * @brief Run the simulation to map the data on the nodes
+ *
+ * This routine simulates the fnumerical factorization to generate the static
+ * scheduling and the final mapping of the column block onto the PaStiX
+ * processes.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] simuctrl
+ *          The pointer to the simulation structure initialized by simuInit().
+ *
+ * @param[in] ctrl
+ *          The pointer to the blend control structure which contains the
+ *          required data, such as the worker distribution among the processes,
+ *          the candidates array for each column block, and the cost of the
+ *          computations.
+ *
+ * @param[in] symbptr
+ *          The block symbol structure of the problem.
+ *
+ *******************************************************************************/
 void
 simuRun( SimuCtrl           *simuctrl,
          const BlendCtrl    *ctrl,
@@ -872,7 +1054,7 @@ simuRun( SimuCtrl           *simuctrl,
 
 #ifdef DEBUG_BLEND
     for(i=0;i<simuctrl->cblknbr;i++)
-        if(simuctrl->ownetab[i] < 0) /** Check valid for 1D distribution only **/
+        if(simuctrl->ownetab[i] < 0) /* Check valid for 1D distribution only */
             fprintf(stderr, "CBLK %ld has no processor \n", (long)i);
 
     for(i=0;i<symbptr->bloknbr;i++)
@@ -887,3 +1069,7 @@ simuRun( SimuCtrl           *simuctrl,
         assert(simuctrl->bloktab[i].ownerclust>=0);
 #endif
 }
+
+/**
+ * @}
+ */
