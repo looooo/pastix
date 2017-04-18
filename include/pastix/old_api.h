@@ -1,37 +1,48 @@
-/* Need to conserve it MURGE compliant */
-enum ERR_NUMBERS {
-  NO_ERR             = 0,
-  UNKNOWN_ERR        = 1,
-  ALLOC_ERR          = 2,
-  ASSERT_ERR         = 3,
-  NOTIMPLEMENTED_ERR = 4,
-  OUTOFMEMORY_ERR    = 5,
-  THREAD_ERR         = 6,
-  INTERNAL_ERR       = 7,
-  BADPARAMETER_ERR   = 8,
-  FILE_ERR           = 9,
-  BAD_DEFINE_ERR     = 10,
-  INTEGER_TYPE_ERR   = 11,
-  IO_ERR             = 12,
-  MATRIX_ERR         = 13,
-  FLOAT_TYPE_ERR     = 14,
-  STEP_ORDER_ERR     = 15,
-  MPI_ERR            = 16
-};
+/* Error numbers, need to conserve it MURGE compliant */
+#define NO_ERR             PASTIX_SUCCESS
+#define UNKNOWN_ERR        PASTIX_ERR_UNKNOWN
+#define ALLOC_ERR          PASTIX_ERR_ALLOC
+#define ASSERT_ERR         PASTIX_ERR_ASSERT
+#define NOTIMPLEMENTED_ERR PASTIX_ERR_NOTIMPLEMENTED
+#define OUTOFMEMORY_ERR    PASTIX_ERR_OUTOFMEMORY
+#define THREAD_ERR         PASTIX_ERR_THREAD
+#define INTERNAL_ERR       PASTIX_ERR_INTERNAL
+#define BADPARAMETER_ERR   PASTIX_ERR_BADPARAMETER
+#define FILE_ERR           PASTIX_ERR_FILE
+#define BAD_DEFINE_ERR     PASTIX_ERR_BAD_DEFINE
+#define INTEGER_TYPE_ERR   PASTIX_ERR_INTEGER_TYPE
+#define IO_ERR             PASTIX_ERR_IO
+#define MATRIX_ERR         PASTIX_ERR_MATRIX
+#define FLOAT_TYPE_ERR     PASTIX_ERR_FLOAT_TYPE
+#define STEP_ORDER_ERR     PASTIX_ERR_STEP_ORDER
+#define MPI_ERR            PASTIX_ERR_MPI
+
+/* Former IPARM values */
+#define IPARM_ONLY_RAFF      IPARM_ONLY_REFINE
+#define IPARM_MURGE_MAY_RAFF IPARM_MURGE_MAY_REFINE
+
+/* Former DPARM values */
+#define DPARM_RAFF_TIME DPARM_REFINE_TIME
+
+/* Former API values */
+
+/* _POS_ 1 */
+#define API_TASK_RAFF API_TASK_REFINE
 
 /* _POS_ 4 */
-enum API_FACT {
-  API_FACT_LLT  = PastixFactLLT,
-  API_FACT_LDLT = PastixFactLDLT,
-  API_FACT_LU   = PastixFactLU,
-  API_FACT_LDLH = PastixFactLDLH
-};
+#define API_FACT_LLT  PastixFactLLT
+#define API_FACT_LDLT PastixFactLDLT
+#define API_FACT_LU   PastixFactLU
+#define API_FACT_LDLH PastixFactLDLH
+
+/* _POS_ 8 */
+#define API_RAFF_GMRES    API_REFINE_GMRES
+#define API_RAFF_GRAD     API_REFINE_GRAD
+#define API_RAFF_PIVOT    API_REFINE_PIVOT
+#define API_RAFF_BICGSTAB API_REFINE_BICGSTAB
 
 /* _POS_ 61 */
-enum API_FLOAT {
-  API_REALSINGLE    = PastixFloat,
-  API_REALDOUBLE    = PastixDouble,
-  API_COMPLEXSINGLE = PastixComplex32,
-  API_COMPLEXDOUBLE = PastixComplex64
-};
-
+#define API_REALSINGLE    PastixFloat
+#define API_REALDOUBLE    PastixDouble
+#define API_COMPLEXSINGLE PastixComplex32
+#define API_COMPLEXDOUBLE PastixComplex64

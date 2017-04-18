@@ -1,6 +1,6 @@
 /**
  *
- * @file z_raff_functions.c
+ * @file z_refine_functions.c
  *
  * PaStiX refinement functions implementations.
  *
@@ -20,10 +20,12 @@
 #include "bcsc.h"
 #include "z_bcsc.h"
 #include "sopalin_data.h"
-#include "z_raff_functions.h"
+#include "z_refine_functions.h"
 
 /**
  *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
  *
  * @brief Allocate a vector
  *
@@ -48,6 +50,8 @@ void *z_Pastix_Malloc( size_t size )
 /**
  *******************************************************************************
  *
+ * @ingroup pastix_dev_refine
+ *
  * @brief Free a vector
  *
  *******************************************************************************
@@ -64,6 +68,8 @@ void z_Pastix_Free( void *x )
 
 /**
  *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
  *
  * @brief Print statistics about one iteration
  *
@@ -87,13 +93,15 @@ void z_Pastix_Verbose( double t0, double tf, double err, pastix_int_t nb_iters )
     double stt;
 
     stt = tf - t0;
-    fprintf(stdout, OUT_ITERRAFF_ITER, (int)nb_iters);
-    fprintf(stdout, OUT_ITERRAFF_TTT, stt);
-    fprintf(stdout, OUT_ITERRAFF_ERR, err);
+    fprintf(stdout, OUT_ITERREFINE_ITER, (int)nb_iters);
+    fprintf(stdout, OUT_ITERREFINE_TTT, stt);
+    fprintf(stdout, OUT_ITERREFINE_ERR, err);
 }
 
 /**
  *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
  *
  * @brief Final output
  *
@@ -114,7 +122,7 @@ void z_Pastix_Verbose( double t0, double tf, double err, pastix_int_t nb_iters )
  * @param[inout] x
  *          The vector that is to be overwritten by gmresx
  *
- * @param[in] gmres
+ * @param[in] gmresx
  *          The final solution
  *
  *******************************************************************************/
@@ -136,6 +144,8 @@ void z_Pastix_End( pastix_data_t *pastix_data, pastix_complex64_t err,
 /**
  *******************************************************************************
  *
+ * @ingroup pastix_dev_refine
+ *
  * @brief Initiate first solution depending on the use of a preconditioner
  *
  *******************************************************************************
@@ -156,7 +166,7 @@ void z_Pastix_X( pastix_data_t *pastix_data, void *x, pastix_complex64_t *gmresx
     pastix_int_t        n = pastix_data->bcsc->gN;
     pastix_complex64_t *xptr = (pastix_complex64_t *)x;
 
-    if (pastix_data->iparm[IPARM_ONLY_RAFF] == API_NO)
+    if (pastix_data->iparm[IPARM_ONLY_REFINE] == API_NO)
     {
         for (i=0; i<n; i++, xptr++)
             gmresx[i]= *xptr;
@@ -170,6 +180,8 @@ void z_Pastix_X( pastix_data_t *pastix_data, void *x, pastix_complex64_t *gmresx
 
 /**
  *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
  *
  * @brief The number of unknowns
  *
@@ -191,6 +203,8 @@ pastix_int_t z_Pastix_n( pastix_data_t *pastix_data )
 /**
  *******************************************************************************
  *
+ * @ingroup pastix_dev_refine
+ *
  * @brief Initiate the B vector used in iterative methods
  *
  *******************************************************************************
@@ -198,26 +212,28 @@ pastix_int_t z_Pastix_n( pastix_data_t *pastix_data )
  * @param[in] b
  *          The vector given by the user
  *
- * @param[out] raffb
+ * @param[out] refineb
  *          The vector used in iterative methods
  *
  * @param[in] n
- *          The number of elements of both b and raffb
+ *          The number of elements of both b and refineb
  *
  *******************************************************************************/
-void z_Pastix_B( void *b, pastix_complex64_t *raffb, pastix_int_t n )
+void z_Pastix_B( void *b, pastix_complex64_t *refineb, pastix_int_t n )
 {
     pastix_complex64_t *bptr = (pastix_complex64_t *)b;
     pastix_int_t i;
 
     for (i=0; i<n; i++, bptr++)
     {
-        raffb[i]= *bptr;
+        refineb[i]= *bptr;
     }
 }
 
 /**
  *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
  *
  * @brief The precision required
  *
@@ -238,6 +254,8 @@ pastix_complex64_t z_Pastix_Eps( pastix_data_t *pastix_data )
 
 /**
  *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
  *
  * @brief The maximum number of iterations
  *
@@ -260,6 +278,8 @@ pastix_int_t z_Pastix_Itermax( pastix_data_t *pastix_data )
 /**
  *******************************************************************************
  *
+ * @ingroup pastix_dev_refine
+ *
  * @brief The size of the Krylov space
  *
  *******************************************************************************
@@ -279,6 +299,8 @@ pastix_int_t z_Pastix_Krylov_Space( pastix_data_t *pastix_data )
 
 /**
  *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
  *
  * @brief Perform the norm2 of a vector
  *
@@ -306,6 +328,8 @@ pastix_complex64_t z_Pastix_Norm2( pastix_complex64_t *x, pastix_int_t n )
 /**
  *******************************************************************************
  *
+ * @ingroup pastix_dev_refine
+ *
  * @brief Apply a preconditionner
  *
  *******************************************************************************
@@ -327,7 +351,7 @@ void z_Pastix_Precond( pastix_data_t *pastix_data, pastix_complex64_t *s, pastix
     void* bptr = (void*)d;
 
     memcpy(d, s, n * sizeof( pastix_complex64_t ));
-    if (pastix_data->iparm[IPARM_ONLY_RAFF] == API_NO)
+    if (pastix_data->iparm[IPARM_ONLY_REFINE] == API_NO)
     {
         sopalin_data_t sopalin_data;
         sopalin_data.solvmtx = pastix_data->solvmatr;
@@ -370,6 +394,8 @@ void z_Pastix_Precond( pastix_data_t *pastix_data, pastix_complex64_t *s, pastix
 /**
  *******************************************************************************
  *
+ * @ingroup pastix_dev_refine
+ *
  * @brief Scale a vector
  *
  *******************************************************************************
@@ -392,6 +418,8 @@ void z_Pastix_Scal( pastix_int_t n, pastix_complex64_t alpha, pastix_complex64_t
 #if defined(PRECISION_z) || defined(PRECISION_c)
 /**
  *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
  *
  * @brief Compute a scalar product between complex vectors: x.conj(y)
  *
@@ -420,6 +448,8 @@ void z_Pastix_Dotc( pastix_int_t n, pastix_complex64_t *x,
 /**
  *******************************************************************************
  *
+ * @ingroup pastix_dev_refine
+ *
  * @brief Compute a regular scalar product x.y
  *
  *******************************************************************************
@@ -427,10 +457,10 @@ void z_Pastix_Dotc( pastix_int_t n, pastix_complex64_t *x,
  * @param[in] n
  *          The number of elements of vectors x, y and r
  *
- * @param[in] y
+ * @param[in] x
  *          The first vector of the scalar product
  *
- * @param[in] n
+ * @param[in] y
  *          The second vector of the scalar product
  *
  * @param[out] r
@@ -449,6 +479,8 @@ void z_Pastix_Dotu( pastix_int_t n, pastix_complex64_t *x,
 
 /**
  *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
  *
  * @brief Perform r = Ax
  *
@@ -476,6 +508,8 @@ void z_Pastix_Ax( pastix_bcsc_t *bcsc, pastix_complex64_t *x, pastix_complex64_t
 
 /**
  *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
  *
  * @brief Perform r = b - Ax
  *
@@ -509,6 +543,8 @@ void z_Pastix_bMAx( pastix_bcsc_t *bcsc, pastix_complex64_t *b,
 /**
  *******************************************************************************
  *
+ * @ingroup pastix_dev_refine
+ *
  * @brief Perform x = beta x + y
  *
  *******************************************************************************
@@ -539,6 +575,8 @@ void z_Pastix_BYPX( pastix_int_t n, pastix_complex64_t *beta,
 
 /**
  *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
  *
  * @brief Perform y = alpha * coeff x + y
  *
@@ -573,6 +611,8 @@ void z_Pastix_AXPY( pastix_int_t n, double coeff,
 /**
  *******************************************************************************
  *
+ * @ingroup pastix_dev_refine
+ *
  * @brief Rank of the thread
  *
  *******************************************************************************
@@ -594,6 +634,8 @@ pastix_int_t z_Pastix_me( void *arg )
 
 /**
  *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
  *
  * @brief Initiate functions pointers to define basic operations
  *

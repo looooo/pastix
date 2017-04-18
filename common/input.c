@@ -68,9 +68,9 @@ int iparm_to_int( char * string)
     {
         return IPARM_MC64;
     }
-    if(0 == strcmp("iparm_only_raff", string))
+    if(0 == strcmp("iparm_only_refine", string))
     {
-        return IPARM_ONLY_RAFF;
+        return IPARM_ONLY_REFINE;
     }
     if(0 == strcmp("iparm_cscd_correct", string))
     {
@@ -530,21 +530,21 @@ int api_to_int( char * string )
     {
         return API_RHS_0;
     }
-    if(0 == strcmp("api_raf_gmres", string))
+    if(0 == strcmp("api_refine_gmres", string))
     {
-        return API_RAF_GMRES;
+        return API_REFINE_GMRES;
     }
-    if(0 == strcmp("api_raf_grad", string))
+    if(0 == strcmp("api_refine_grad", string))
     {
-        return API_RAF_GRAD;
+        return API_REFINE_GRAD;
     }
-    if(0 == strcmp("api_raf_pivot", string))
+    if(0 == strcmp("api_refine_pivot", string))
     {
-        return API_RAF_PIVOT;
+        return API_REFINE_PIVOT;
     }
-    if(0 == strcmp("api_raf_bicgstab", string))
+    if(0 == strcmp("api_refine_bicgstab", string))
     {
-        return API_RAF_BICGSTAB;
+        return API_REFINE_BICGSTAB;
     }
     if(0 == strcmp("api_csc_preserve", string))
     {

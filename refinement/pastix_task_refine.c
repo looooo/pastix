@@ -1,6 +1,6 @@
 /**
  *
- * @file pastix_task_raff.c
+ * @file pastix_task_refine.c
  *
  * PaStiX refinement functions implementations.
  *
@@ -18,36 +18,46 @@
  **/
 #include "common.h"
 #include "bcsc.h"
-#include "z_raff_functions.h"
-#include "c_raff_functions.h"
-#include "d_raff_functions.h"
-#include "s_raff_functions.h"
+#include "z_refine_functions.h"
+#include "c_refine_functions.h"
+#include "d_refine_functions.h"
+#include "s_refine_functions.h"
 #include "order.h"
 
-static void (*sopalinRaff[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
+ *
+ * @brief Select the refinement function to call depending on the matrix type and the
+ * precision
+ *
+ *
+ *******************************************************************************/
+static void (*sopalinRefine[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
 {
-    //  API_RAF_GMRES
+    //  API_REFINE_GMRES
     {
         s_gmres_smp,
         d_gmres_smp,
         c_gmres_smp,
         z_gmres_smp
     },
-    //  API_RAF_PIVOT
+    //  API_REFINE_PIVOT
     {
         s_pivot_smp,
         d_pivot_smp,
         c_pivot_smp,
         z_pivot_smp
     },
-    //  API_RAF_GRAD
+    //  API_REFINE_GRAD
     {
         s_grad_smp,
         d_grad_smp,
         c_grad_smp,
         z_grad_smp
     },
-    //  API_RAF_BICGSTAB
+    //  API_REFINE_BICGSTAB
     {
         s_bicgstab_smp,
         d_bicgstab_smp,
@@ -59,7 +69,7 @@ static void (*sopalinRaff[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
 /**
  *******************************************************************************
  *
- * @ingroup pastix_raff
+ * @ingroup pastix_users
  *
  * @brief Perform iterative refinement.
  *
@@ -83,9 +93,14 @@ static void (*sopalinRaff[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
  * @param[in] b
  *          The right hand side member.
  *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect,
+ *
  *******************************************************************************/
 int
-pastix_task_raff( pastix_data_t *pastix_data,
+pastix_task_refine( pastix_data_t *pastix_data,
                   void          *x,
                   pastix_int_t   rhsnbr,
                   void          *b )
@@ -94,7 +109,7 @@ pastix_task_raff( pastix_data_t *pastix_data,
     Order         *ordemesh = pastix_data->ordemesh;
     double timer;
 
-    print_debug(DBG_STEP, "->pastix_task_raff\n");
+    print_debug(DBG_STEP, "->pastix_task_refine\n");
 
     if (rhsnbr > 1)
     {
@@ -132,10 +147,10 @@ pastix_task_raff( pastix_data_t *pastix_data,
     }
 
     clockStart(timer);
-    sopalinRaff[iparm[IPARM_REFINEMENT]][pastix_data->bcsc->flttype -2](pastix_data, x, b);
+    sopalinRefine[iparm[IPARM_REFINEMENT]][pastix_data->bcsc->flttype -2](pastix_data, x, b);
     clockStop(timer);
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT) {
-        pastix_print( 0, 0, OUT_TIME_RAFF, clockVal(timer) );
+        pastix_print( 0, 0, OUT_TIME_REFINE, clockVal(timer) );
     }
 
     if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,

@@ -43,11 +43,11 @@ typedef struct Pastix_Allreduce_ {
   SOPALIN_UPDO       - Runs factorisation and up down.
   SOPALIN_UPDO_GMRES - Runs factorisation, up down and GMRES.
   SOPALIN_UPDO_GRAD  - Runs factorisation, up down and conjugate gradient.
-  SOPALIN_UPDO_PIVOT - Runs factorisation, up down and simple iterative raffinement.
+  SOPALIN_UPDO_PIVOT - Runs factorisation, up down and simple iterative refinement.
   UPDO_ONLY          - Only up down.
-  RAFF_GMRES         - Only GMRES.
-  RAFF_GRAD          - Only conjugate gradient.
-  RAFF_PIVOT         - Only simple iterative raffinement.
+  REFINE_GMRES       - Only GMRES.
+  REFINE_GRAD        - Only conjugate gradient.
+  REFINE_PIVOT       - Only simple iterative refinement.
   SOPALIN_NBTASKS    - Number of existing tasks.
 */
 enum SOPALIN_TASK {
@@ -57,9 +57,9 @@ enum SOPALIN_TASK {
   SOPALIN_UPDO_GRAD,
   SOPALIN_UPDO_PIVOT,
   UPDO_ONLY,
-  RAFF_GMRES,
-  RAFF_GRAD,
-  RAFF_PIVOT,
+  REFINE_GMRES,
+  REFINE_GRAD,
+  REFINE_PIVOT,
   SOPALIN_NBTASKS
 };
 

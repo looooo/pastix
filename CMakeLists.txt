@@ -477,11 +477,11 @@ set(SOURCES
   sopalin/sequential_zsytrf.c
   sopalin/sequential_ztrsm.c
   #
-  refinement/z_raff_bicgstab.c
-  refinement/z_raff_functions.c
-  refinement/z_raff_gmres.c
-  refinement/z_raff_grad.c
-  refinement/z_raff_pivot.c
+  refinement/z_refine_bicgstab.c
+  refinement/z_refine_functions.c
+  refinement/z_refine_gmres.c
+  refinement/z_refine_grad.c
+  refinement/z_refine_pivot.c
   )
 precisions_rules_py(generated_files
   "${SOURCES}"
@@ -572,7 +572,7 @@ set(PASTIX_LIB_SRCS
   sopalin/pastix_task_solve.c
   sopalin/pastix.c
   #
-  refinement/pastix_task_raff.c
+  refinement/pastix_task_refine.c
   #
   ${generated_files}
   )
@@ -784,6 +784,8 @@ add_documented_files(
   blend/pastix_task_analyze.c
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
+
+  refinement/pastix_task_refine.c
 )
 
 #

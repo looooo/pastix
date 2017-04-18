@@ -308,22 +308,22 @@ pastix( pastix_data_t **pastix_data_ptr,
     }
 
     if (iparm[IPARM_START_TASK] == API_TASK_REFINE) {
-        void *raffB  = pastix_data->b;
-        void *raffX0 = pastix_data->x0;
+        void *refineB  = pastix_data->b;
+        void *refineX0 = pastix_data->x0;
         size = pastix_size_of( spm->flttype ) * spm->n;
-        if ( !raffB ) {
-            if ( !raffX0 ) {
+        if ( !refineB ) {
+            if ( !refineX0 ) {
                 /**
                  * Neither b or x0 have been saved.
                  * Then, we need to start with x0 as a null vector. For that, we
                  * backup the original b, and we use the given b as x in the
                  * refinement step to store the solution in place.
                  */
-                /* raffB = malloc(size); */
-                /* memcpy(raffB, b, size); */
+                /* refineB = malloc(size); */
+                /* memcpy(refineB, b, size); */
 
-                /* raffX0 = b; */
-                /* memset(raffX0, 0, size); */
+                /* refineX0 = b; */
+                /* memset(refineX0, 0, size); */
                 /* exit(0);  */
                 /**
                  * Neither b and x0 have been saved, this should never happen.
@@ -338,17 +338,17 @@ pastix( pastix_data_t **pastix_data_ptr,
                  * function call between the solve and refinemnet
                  * step. Therefor, b holds the original b.
                  */
-                raffB = b;
+                refineB = b;
             }
         }
         else {
-            if ( !raffX0 ) {
+            if ( !refineX0 ) {
                 /**
                  * b is saved, but not x0. It means that we did not exit the
                  * pastix function call between solve and refinement steps.
                  * Therefor, b holds the initial solution x0 from the solve step.
                  */
-                raffX0 = b;
+                refineX0 = b;
             }
             else {
                 /**
@@ -359,14 +359,14 @@ pastix( pastix_data_t **pastix_data_ptr,
                 return;
             }
         }
-        pastix_task_raff( pastix_data, raffX0, nrhs, raffB );
+        pastix_task_refine( pastix_data, refineX0, nrhs, refineB );
         iparm[IPARM_START_TASK]++;
 
         /**
          * Let's return the solution to the user
          */
-        if ( b != raffX0 ) {
-            memcpy(b, raffB, size);
+        if ( b != refineX0 ) {
+            memcpy(b, refineB, size);
         }
 
         if ( pastix_data->x0 ) {

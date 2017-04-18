@@ -124,4 +124,16 @@
  * @ingroup  pastix_users
  * @brief    This group describes all the routines to solve the system.
  *
+****
+ *
+ * @defgroup pastix_refine Refinement step
+ * @ingroup  pastix_users
+ * @brief    This group describes all the routines to apply iterative
+ *           refinement on the system.
+ *
+ ********
+ *
+ * @defgroup pastix_dev_refine Refinement internal function documentation
+ * @ingroup  pastix_refine
+ *
 **/

@@ -126,7 +126,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_ITERMAX]               = 250;                 /* Maximum iteration number for refinement              */
     iparm[IPARM_MATRIX_VERIFICATION]   = API_YES;             /* Check the input matrix                               */
     iparm[IPARM_MC64]                  = 0;                   /* MC64 operation <z_pastix.h> IGNORE                     */
-    iparm[IPARM_ONLY_RAFF]             = API_NO;              /* Refinement only                                      */
+    iparm[IPARM_ONLY_REFINE]           = API_NO;              /* Refinement only                                      */
     iparm[IPARM_TRACEFMT]              = API_TRACE_PAJE;      /* Trace format (see Trace modes)                       */
     iparm[IPARM_GRAPHDIST]             = API_YES;             /* UNUSED  */
 
@@ -202,7 +202,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_LEVEL_OF_FILL]         = 0;                   /* level of fill */
     iparm[IPARM_IO_STRATEGY]           = API_IO_NO;           /* I/O */
     iparm[IPARM_RHS_MAKING]            = API_RHS_B;           /* generate rhs */
-    iparm[IPARM_REFINEMENT]            = API_RAF_GMRES;       /* gmres */
+    iparm[IPARM_REFINEMENT]            = API_REFINE_GMRES;    /* gmres */
     iparm[IPARM_INCOMPLETE]            = API_NO;              /* direct */
     iparm[IPARM_ABS]                   = 0;                   /* ABS level to 1 */
     iparm[IPARM_ESP]                   = API_NO;              /* no esp */

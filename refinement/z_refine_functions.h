@@ -1,6 +1,6 @@
 /**
  *
- * @file z_raff_functions.h
+ * @file z_refine_functions.h
  *
  * PaStiX refinement functions implementations.
  *
@@ -16,16 +16,16 @@
  *
  **/
 
-#ifndef Z_RAFF_FUNCTIONS_H
-#define Z_RAFF_FUNCTIONS_H
+#ifndef Z_REFINE_FUNCTIONS_H
+#define Z_REFINE_FUNCTIONS_H
 
-#ifdef SMP_RAFF
+#ifdef SMP_REFINE
 #  define MULTITHREAD_BEGIN
 #  define MULTITHREAD_END(sync)
-#else /* SMP_RAFF */
+#else /* SMP_REFINE */
 #  define MULTITHREAD_BEGIN if (me == 0) {
 #  define MULTITHREAD_END(sync) } if (sync) {SYNCHRO_THREAD;}
-#endif /* SMP_RAFF */
+#endif /* SMP_REFINE */
 
 #define SYNCHRO(arg)                                                    \
   do {                                                                  \
@@ -58,7 +58,7 @@ pastix_int_t
 z_Pastix_n( pastix_data_t *pastix_data );
 
 void
-z_Pastix_B( void *b, pastix_complex64_t *raffb, pastix_int_t n );
+z_Pastix_B( void *b, pastix_complex64_t *refineb, pastix_int_t n );
 
 pastix_complex64_t
 z_Pastix_Eps( pastix_data_t *pastix_data );

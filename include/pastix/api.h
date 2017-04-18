@@ -32,7 +32,7 @@
    IPARM_ITERMAX               - Maximum iteration number for refinement                  Default: 250                 IN
    IPARM_MATRIX_VERIFICATION   - Check the input matrix                                   Default: API_NO              IN
    IPARM_MC64                  - MC64 operation <pastix.h> IGNORE                         Default: 0                   IN
-   IPARM_ONLY_RAFF             - Refinement only                                          Default: API_NO              IN
+   IPARM_ONLY_REFINE           - Refinement only                                          Default: API_NO              IN
    IPARM_CSCD_CORRECT          - Indicate if the cscd has been redistributed after blend  Default: API_NO              IN
    IPARM_NBITER                - Number of iterations performed in refinement             Default: -                   OUT
    IPARM_TRACEFMT              - Trace format (see Trace modes)                           Default: API_TRACE_PAJE      IN
@@ -89,7 +89,7 @@
    IPARM_LEVEL_OF_FILL         - Level of fill for incomplete factorization               Default: 1                   IN
    IPARM_IO_STRATEGY           - IO strategy (see Checkpoints modes)                      Default: API_IO_NO           IN
    IPARM_RHS_MAKING            - Right-hand-side making (see Right-hand-side modes)      Default: API_RHS_B           IN
-   IPARM_REFINEMENT            - Refinement type (see Refinement modes)                   Default: API_RAF_GMRES       IN
+   IPARM_REFINEMENT            - Refinement type (see Refinement modes)                   Default: API_REFINE_GMRES    IN
    IPARM_INCOMPLETE            - Incomplete factorization                                 Default: API_NO              IN
    IPARM_ABS                   - ABS level (Automatic Blocksize Splitting)                Default: 1                   IN
    IPARM_ESP                   - ESP (Enhanced Sparse Parallelism)                        Default: API_NO              IN
@@ -128,7 +128,7 @@ enum IPARM_ACCESS {
   IPARM_ITERMAX,
   IPARM_MATRIX_VERIFICATION,
   IPARM_MC64,
-  IPARM_ONLY_RAFF,
+  IPARM_ONLY_REFINE,
   IPARM_CSCD_CORRECT,
   IPARM_NBITER,
   IPARM_TRACEFMT,
@@ -267,7 +267,7 @@ enum IPARM_ACCESS_DEPRECATED {
    DPARM_SOLV_TIME          - Time for Solve step (wallclock)                   Default: -                OUT
    DPARM_FACT_FLOPS         - Numerical Factorization flops (rate!)             Default: -                OUT
    DPARM_SOLV_FLOPS         - Solve flops (rate!)                               Default: -                OUT
-   DPARM_RAFF_TIME          - Time for Refinement step (wallclock)              Default: -                OUT
+   DPARM_REFINE_TIME          - Time for Refinement step (wallclock)              Default: -                OUT
    DPARM_SIZE               - Dparm Size         IGNORE                         Default: -                IN
    DPARM_COMPRESS_TOLERANCE - Tolerance for low-rank kernels                    Default: 0.01             IN
  */
@@ -285,7 +285,7 @@ enum DPARM_ACCESS {
   DPARM_FACT_THFLOPS            = 22,
   DPARM_FACT_RLFLOPS            = 25,
   DPARM_SOLV_FLOPS              = 23,
-  DPARM_RAFF_TIME               = 24,
+  DPARM_REFINE_TIME             = 24,
   DPARM_A_NORM                  = 25,
   DPARM_COMPRESS_TOLERANCE      = 26,
   DPARM_SIZE                    = 64 /* Need to be greater or equal to 64 for backward compatibility */
@@ -403,7 +403,7 @@ enum API_RHS {
   API_RHS_B = 0, /* Utilisation du second membre fournit */
   API_RHS_1 = 1, /* Utilisation d'un second membre dont tous les coefficients valent 1 */
   API_RHS_I = 2, /* Utilisation d'un second membre tel que RHS(i) = i */
-  API_RHS_0 = 3  /* Initialisation en mode ONLY_RAFF d'une solution X0(i) = 0 */
+  API_RHS_0 = 3  /* Initialisation en mode ONLY_REFINE d'une solution X0(i) = 0 */
 };
 
 /**
@@ -419,21 +419,21 @@ typedef enum pastix_rhstype_e {
 
 /** Type de raffinement utilisé */
 /*
-  Enum: API_RAF
+  Enum: API_REFINE
 
   Refinement modes (index IPARM_REFINEMENT)
 
-  API_RAF_GMRES   - GMRES
-  API_RAF_GRAD    - Conjugate Gradient ($LL^t$ or $LDL^t$ factorization)
-  API_RAF_PIVOT   - Iterative Refinement (only for $LU$ factorization)
-  API_RAF_BICGSTAB - BICGSTAB
+  API_REFINE_GMRES   - GMRES
+  API_REFINE_GRAD    - Conjugate Gradient ($LL^t$ or $LDL^t$ factorization)
+  API_REFINE_PIVOT   - Iterative Refinement (only for $LU$ factorization)
+  API_REFINE_BICGSTAB - BICGSTAB
  */
 /* _POS_ 8 */
-enum API_RAF {
-  API_RAF_GMRES   = 0, /* Utilisation de GMRES */
-  API_RAF_GRAD    = 1, /* Utilisation du gradient conjugue */
-  API_RAF_PIVOT   = 2, /* Utilisation de la methode du pivot */
-  API_RAF_BICGSTAB = 3
+enum API_REFINE {
+  API_REFINE_GMRES    = 0, /* Utilisation de GMRES */
+  API_REFINE_GRAD     = 1, /* Utilisation du gradient conjugue */
+  API_REFINE_PIVOT    = 2, /* Utilisation de la methode du pivot */
+  API_REFINE_BICGSTAB = 3
 };
 
 /**

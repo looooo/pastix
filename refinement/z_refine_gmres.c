@@ -1,6 +1,6 @@
 /**
  *
- * @file z_raff_gmres.c
+ * @file z_refine_gmres.c
  *
  * PaStiX refinement functions implementations.
  *
@@ -18,8 +18,15 @@
  **/
 #include "common.h"
 #include "bcsc.h"
-#include "z_raff_functions.h"
+#include "z_refine_functions.h"
 
+/**
+ *
+ * @brief GMRES parameters
+ *
+ * This structure describes gmres parameters.
+ *
+ */
 typedef struct gmres_s
 {
   volatile pastix_int_t gmresout_flag;     /*+ Flag for GMRES outter loop          +*/
@@ -30,7 +37,7 @@ typedef struct gmres_s
 /**
  *******************************************************************************
  *
- * @ingroup pastix_raff
+ * @ingroup pastix_refine
  *
  * z_gmres_smp - Function computing GMRES iterative refinement.
  *
@@ -53,7 +60,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 
   pastix_bcsc_t                * bcsc         = pastix_data->bcsc;
   pastix_int_t                   n            = bcsc->gN;
-  Clock                          raff_clk;
+  Clock                          refine_clk;
   double                         t0           = 0.0;
   double                         t3           = 0.0;
   pastix_complex64_t          *  gmrestemp    = NULL;
@@ -114,7 +121,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
   gmresalpha = -1.0;
   gmresiters = 0;
 
-  clockInit(raff_clk);clockStart(raff_clk);
+  clockInit(refine_clk);clockStart(refine_clk);
 
   while (gmresdata->gmresout_flag)
   {
@@ -145,7 +152,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 
       while(gmresdata->gmresin_flag)
       {
-          clockStop((raff_clk));
+          clockStop((refine_clk));
           t0 = clockGet();
 
           i++;
@@ -221,7 +228,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
               gmresdata->gmresin_flag = 0;
           }
 
-          clockStop((raff_clk));
+          clockStop((refine_clk));
           t3 = clockGet();
           solveur.Verbose(t0, t3, gmresdata->gmresro/gmresnormb, gmresiters);
       }
@@ -250,7 +257,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
       }
   }
 
-  clockStop((raff_clk));
+  clockStop((refine_clk));
   t3 = clockGet();
 
   solveur.End(pastix_data, gmresdata->gmresro/gmresnormb, gmresiters, t3, x, gmresx);

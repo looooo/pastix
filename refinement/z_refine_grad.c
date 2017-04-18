@@ -1,6 +1,6 @@
 /**
  *
- * @file z_raff_grad.c
+ * @file z_refine_grad.c
  *
  * PaStiX refinement functions implementations.
  *
@@ -18,12 +18,12 @@
  **/
 #include "common.h"
 #include "bcsc.h"
-#include "z_raff_functions.h"
+#include "z_refine_functions.h"
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_raff
+ * @ingroup pastix_refine
  *
  * z_grad_smp - Refine the solution using conjugate gradian method.
  *
@@ -46,7 +46,7 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
 
   pastix_bcsc_t     * bcsc      = pastix_data->bcsc;
   pastix_int_t        n         = bcsc->gN;
-  Clock               raff_clk;
+  Clock               refine_clk;
   double              t0        = 0;
   double              t3        = 0;
   pastix_complex64_t  tmp       = 0.0;
@@ -75,7 +75,7 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
   beta  = (pastix_complex64_t *)solveur.Malloc(    sizeof(pastix_complex64_t));
   gradx = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
 
-  clockInit(raff_clk);clockStart(raff_clk);
+  clockInit(refine_clk);clockStart(refine_clk);
 
   solveur.B(b, gradb, n);
   solveur.X(pastix_data, x, gradx);
@@ -93,7 +93,7 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
 
   while (((double)tmp > (double)epsilon) && (nb_iter < itermax))
     {
-      clockStop((raff_clk));
+      clockStop((refine_clk));
       t0 = clockGet();
       nb_iter++;
 
@@ -126,7 +126,7 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
       normr = solveur.Norm(gradr, n);
       tmp = normr / normb;
 
-      clockStop((raff_clk));
+      clockStop((refine_clk));
       t3 = clockGet();
       solveur.Verbose(t0, t3, tmp, nb_iter);
       t0 = t3;

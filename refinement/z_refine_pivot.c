@@ -1,6 +1,6 @@
 /**
  *
- * @file z_raff_pivot.c
+ * @file z_refine_pivot.c
  *
  * PaStiX refinement functions implementations.
  *
@@ -18,12 +18,12 @@
 #include "common.h"
 #include "bcsc.h"
 #include "z_bcsc.h"
-#include "z_raff_functions.h"
+#include "z_refine_functions.h"
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_raff
+ * @ingroup pastix_refine
  *
  * z_grad_smp - Refine the solution using static pivoting method.
  *
@@ -46,7 +46,7 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
 
   pastix_bcsc_t      * bcsc           = pastix_data->bcsc;
   pastix_int_t         n              = bcsc->gN;
-  Clock                raff_clk;
+  Clock                refine_clk;
   double               t0             = 0;
   double               t1             = 0;
   double               t2             = 0;
@@ -60,20 +60,20 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
   double               rberror        = 0.0;
   int                  iter           = 0;
   int                  flag           = 1;
-  pastix_int_t         raffnbr        = 0.0;
+  pastix_int_t         refinenbr        = 0.0;
   pastix_int_t         itermax;
-  double               epsilonraff;
+  double               epsilonrefine;
 
   (void) rberror;
   (void) t0;
   (void) t1;
   (void) t2;
   itermax     = solveur.Itermax(pastix_data);
-  epsilonraff = solveur.Eps(pastix_data);
+  epsilonrefine = solveur.Eps(pastix_data);
 
   if (pastix_data->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
     {
-        fprintf(stdout, OUT_ITERRAFF_PIVOT);
+        fprintf(stdout, OUT_ITERREFINE_PIVOT);
     }
   lub  = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
   lur  = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
@@ -81,12 +81,12 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
 
   solveur.B(b, lub, n);
 
-  clockInit(raff_clk);clockStart(raff_clk);
+  clockInit(refine_clk);clockStart(refine_clk);
 
   while(flag)
     {
       iter++;
-      clockStop((raff_clk));
+      clockStop((refine_clk));
       t0 = clockGet();
 
       /* r=b-ax */
@@ -111,20 +111,20 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
 
       berr = tmp_berr;
       if (lberr == 0)
-        /* force le premier raffinement */
+        /* force le premier refineinement */
         lberr = 3*berr;
 
-      print_debug(DBG_RAFF_PIVOT, "RAFF : berr lberr %6g %6g\n",
+      print_debug(DBG_REFINE_PIVOT, "REFINE : berr lberr %6g %6g\n",
                   berr, lberr);
 
       /* Calcul de ||r|| et ||r||/||b|| */
       tmp_berr = z_bcscNormErr((void *)lur, (void *)lub, n);
 
       rberror = tmp_berr;
-      print_debug(DBG_RAFF_PIVOT, "RAFF : rberror %6g\n", rberror);
+      print_debug(DBG_REFINE_PIVOT, "REFINE : rberror %6g\n", rberror);
 
-      if ((raffnbr < itermax)
-          && (berr > epsilonraff)
+      if ((refinenbr < itermax)
+          && (berr > epsilonrefine)
           && (berr <= (lberr/2)))
         {
 
@@ -135,13 +135,13 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
           memcpy(lur2, x, n * sizeof( pastix_complex64_t ));
           memcpy(x, lur, n * sizeof( pastix_complex64_t ));
 
-          clockStop((raff_clk));
+          clockStop((refine_clk));
           t1 = clockGet();
 
 //           z_up_down_smp(arg);
           solveur.Precond(pastix_data, b, x);
 
-          clockStop((raff_clk));
+          clockStop((refine_clk));
           t2 = clockGet();
 
           /* updo_vect <= updo_vect (ie PRECOND(B-AX_i)) + lur2 (ie X_i) */
@@ -149,14 +149,14 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
 
           /* lastberr = berr */
           lberr = berr;
-          raffnbr++;
+          refinenbr++;
         }
       else
         {
           flag = 0;
         }
 
-      clockStop((raff_clk));
+      clockStop((refine_clk));
       t3 = clockGet();
 
 //       if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
@@ -173,10 +173,10 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
 //           MyMPI_Reduce(&stt,  &rtt, 1, MPI_DOUBLE, MPI_MAX, 0, pastix_comm);
 //           if (SOLV_PROCNUM == 0)
 //             {
-//               fprintf(stdout, OUT_ITERRAFF_ITER, (int)sopalin_data->raffnbr);
-//               fprintf(stdout, OUT_ITERRAFF_TTS, rst);
-//               fprintf(stdout, OUT_ITERRAFF_TTT, rtt);
-//               fprintf(stdout, OUT_ITERRAFF_ERR, err);
+//               fprintf(stdout, OUT_ITERREFINE_ITER, (int)sopalin_data->refinenbr);
+//               fprintf(stdout, OUT_ITERREFINE_TTS, rst);
+//               fprintf(stdout, OUT_ITERREFINE_TTT, rtt);
+//               fprintf(stdout, OUT_ITERREFINE_ERR, err);
 //             }
 //         }
       t0 = t3;
@@ -185,7 +185,7 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
   memFree_null(lub);
   memFree_null(lur);
   memFree_null(lur2);
-  itermax = raffnbr;
+  itermax = refinenbr;
 
 //   if (sopar->iparm[IPARM_END_TASK] >= API_TASK_REFINE)
 //     {
@@ -196,7 +196,7 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
 //         pthread_cond_broadcast(&(sopalin_data->cond_comm));
 //     }
 
-  clockStop((raff_clk));
-  print_debug(DBG_SOPALIN_RAFF, "%d : refinement time %lf\n", (int)me, clockGet());
-  pastix_data->dparm[DPARM_RAFF_TIME] = clockGet();
+  clockStop((refine_clk));
+  print_debug(DBG_SOPALIN_REFINE, "%d : refinement time %lf\n", (int)me, clockGet());
+  pastix_data->dparm[DPARM_REFINE_TIME] = clockGet();
 }
