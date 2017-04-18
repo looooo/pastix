@@ -15,7 +15,6 @@
 
 #include <parsec.h>
 #include <parsec/data.h>
-#include <parsec/data_internal.h>
 #include <parsec/data_distribution.h>
 
 #include "common.h"
