@@ -1,3 +1,22 @@
+/**
+ *
+ * @file perf.h
+ *
+ * PaStiX header of the performance model.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Pierre Ramet
+ * @author Pascal Henon
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ * @addtogroup blend_dev_cost
+ * @{
+ *
+ **/
 #ifndef PERF_H
 #define PERF_H
 
@@ -116,3 +135,7 @@
 #define PENALTY_BANDWIDTH   0.0
 
 #endif /* PERF_H */
+
+/**
+ * @}
+ */

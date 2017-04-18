@@ -43,9 +43,28 @@ typedef struct propmap_s {
 
 
 /**
- * @brief Proportional mapping structure to forward the arguments throught the
- *        recursive calls.
- */
+ *******************************************************************************
+ *
+ * @brief Set the given candidates to all the subtree w/o conditions.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pmptr
+ *          Pointer to the parameters of the proportional mapping algorithm.
+ *
+ * @param[in] rootnum
+ *          Index of the root of the subtree to be given to [fcandnum,lcandnum]
+ *
+ * @param[in] fcandnum
+ *          Rank of the first candidate attributed to this subtree.
+ *
+ * @param[in] lcandnum
+ *          Rank of the last candidate attributed to this subtree.
+ *
+ * @param[in] cluster
+ *          The cluster value for the subtree.
+ *
+ *******************************************************************************/
 static inline void
 propMappSubtreeOn1P( const propmap_t *pmptr,
                      pastix_int_t     rootnum,
@@ -69,6 +88,34 @@ propMappSubtreeOn1P( const propmap_t *pmptr,
     return;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Apply the proportional mapping algorithm to a subtree.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pmptr
+ *          Pointer to the parameters of the proportional mapping algorithm.
+ *
+ * @param[in] rootnum
+ *          Index of the root of the subtree to process.
+ *
+ * @param[in] fcandnum
+ *          Rank of the first candidate attributed to this subtree.
+ *
+ * @param[in] lcandnum
+ *          Rank of the last candidate attributed to this subtree.
+ *
+ * @param[in] cluster
+ *          The cluster value for the subtree.
+ *
+ * @param[inout] cost_remain
+ *          Array of size (lcandnum-fcandnum+1).
+ *          Stores the remaining idle time of each candidate to balance the load
+ *          among them. On exit, the cost is updated with the affected subtrees.
+ *
+ *******************************************************************************/
 static inline void
 propMappSubtree( const propmap_t *pmptr,
                  pastix_int_t     rootnum,
@@ -312,6 +359,44 @@ propMappSubtree( const propmap_t *pmptr,
     return;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Apply the proportional mapping algorithm.
+ *
+ * This function computes the proportionnal mapping of the elimination tree. The
+ * result is a set of potential candidates to compute each node of the
+ * elimination tree. The real candidate will be affected during the simulation
+ * with simuRun(). It is then important to reduce as much as possible the number
+ * of candidates per node, while keeping enough freedom for the scheduling to
+ * allow a good load balance and few idle times in the final static decision.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] candtab
+ *          On entry, the candtab array must conatins the cost of each node of
+ *          the elimination tree, and there depth in the tree as computed by
+ *          candBuild().
+ *          On exit, the fields fcandnum, and lcandnum are computed with the
+ *          proportional mapping algorithm that tries to balance the load
+ *          between the candidate and distribute the branches to everyone
+ *          according to their cost.
+ *
+ * @param[in] etree
+ *          The elimination tree to map on the ressources.
+ *
+ * @param[in] nocrossproc
+ *          If nocrossproc is enabled, candidates can NOT be part of two
+ *          subranches with different co-workers in each branch.
+ *          If nocrossproc is disabled, candidate can be shared between two
+ *          subranches if the amount of extra work exceeds 10%.
+ *
+ * @param[in] allcand
+ *          No proportional mapping is performed and everyone is candidate to
+ *          everything. This will have a large performance impact on the
+ *          simulation.
+ *
+ *******************************************************************************/
 void
 propMappTree( Cand               *candtab,
               const EliminTree   *etree,

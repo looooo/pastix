@@ -40,7 +40,8 @@ void          extendint_Clear (       ExtendVectorINT * );
 void          extendint_ToSize(       ExtendVectorINT *, pastix_int_t );
 void          extendint_incr  (       ExtendVectorINT * );
 
+#endif /* _EXTENDVECTOR_H_ */
+
 /**
  *@}
  */
-#endif /* _EXTENDVECTOR_H_ */

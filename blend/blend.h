@@ -40,7 +40,8 @@ int  solverMatrixGen( const pastix_int_t,
                       const SimuCtrl *,
                       const BlendCtrl *);
 
+#endif /* BLEND_H */
+
 /**
  * @}
  */
-#endif /* BLEND_H */

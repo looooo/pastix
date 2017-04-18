@@ -124,7 +124,8 @@ void getCommunicationCosts( const BlendCtrl *ctrl,
                             double *startup,
                             double *bandwidth);
 
+#endif /* _BLENDCTRL_H_ */
+
 /**
  * @}
  */
-#endif /* _BLENDCTRL_H_ */

@@ -37,7 +37,8 @@ CostMatrix *costMatrixBuild( const SymbolMatrix *symbmtx,
                              pastix_coeftype_t   flttype,
                              pastix_factotype_t  factotype );
 
+#endif /* COST_H */
+
 /**
  * @}
  */
-#endif /* COST_H */

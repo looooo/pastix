@@ -46,7 +46,8 @@ void extraCblkMerge( const ExtraCblk_t  *extracblk,
                      SymbolMatrix       *newsymb,
                      Cand              **candtab   );
 
+#endif /* _EXTRACBLK_H_ */
+
 /**
  *@}
  */
-#endif /* _EXTRACBLK_H_ */

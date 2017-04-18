@@ -121,7 +121,8 @@ eTreeRoot( const EliminTree *etree )
     return etree->nodenbr - 1;
 }
 
+#endif /* _ELIMINTREE_H_ */
+
 /**
  *@}
  */
-#endif /* _ELIMINTREE_H_ */
