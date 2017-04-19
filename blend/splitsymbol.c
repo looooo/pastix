@@ -1,3 +1,24 @@
+/**
+ *
+ * @file splitsymbol.c
+ *
+ * PaStiX simulation task basic functions.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Pascal Henon
+ * @author Pierre Ramet
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ * @addtogroup blend_dev_split
+ * @{
+ *   This module handles the splitting of the existing symbol matrix to generate
+ *   more parallelism with finer granularity tasks.
+ *
+ **/
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -33,7 +54,27 @@ int pastix_blend_split_percent() {
                                     10);
 }
 
-
+/**
+ *******************************************************************************
+ *
+ * @brief Compute the number of cut for a given cblk width and number of candidates.
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctrl
+ *          The blend control structure with the parameters.
+ *
+ * @param[in] candnbr
+ *          The number of candidates to compute the cblk.
+ *
+ * @param[in] width
+ *          The width of a cblk to cut.
+ *
+ *******************************************************************************
+ *
+ * @return The number of cut that should be done for this width.
+ *
+ *******************************************************************************/
 static inline pastix_int_t
 computeNbSplit( const BlendCtrl *ctrl,
                 pastix_int_t     candnbr,
@@ -103,6 +144,26 @@ computeNbSplit( const BlendCtrl *ctrl,
     return nseq;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Generate an array with the number of blocks facing each row to
+ * minimize the cuts.
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbmtx
+ *          The symbol matrix structure.
+ *
+ * @param[in] frowsplit
+ *          The index of the first row that might be split to avoid computing it
+ *          on the full matrix.
+ *
+ *******************************************************************************
+ *
+ * @return The array with the number of block on each row from frowsplit to n.
+ *
+ *******************************************************************************/
 static inline pastix_int_t *
 computeNbBlocksPerLine( const SymbolMatrix *symbmtx,
                         pastix_int_t frowsplit )
@@ -141,11 +202,39 @@ computeNbBlocksPerLine( const SymbolMatrix *symbmtx,
     return nblocksperline;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Compute the cut that minimizes the generation of off-diagonal blocks.
+ *
+ * This function searched first for a smaller block than the initial step to
+ * generate the cut, and then for a larger one that is return only if it is
+ * strictly better than the first solution found.
+ *
+ *******************************************************************************
+ *
+ * @param[in] nblocksperline
+ *          Array of size max with the number of blocks in front of the lines [0;max-1]
+ *
+ * @param[in] step
+ *          The starting cut to refine. 0 < step
+ *
+ * @param[in] max
+ *          The size of the nblocksperline array. nmax > 0.
+ *
+ * @param[in] authorized_percent
+ *          The authorized percentage move around the initial cut.
+ *
+ *******************************************************************************
+ *
+ * @return The optimal cut found.
+ *
+ *******************************************************************************/
 static inline pastix_int_t
-computeSmallestSplit( pastix_int_t *nblocksperline,
+computeSmallestSplit( const pastix_int_t *nblocksperline,
                       pastix_int_t step,
                       pastix_int_t max,
-                      pastix_int_t authorized_percent)
+                      pastix_int_t authorized_percent )
 {
     pastix_int_t limit = pastix_iceil( step*authorized_percent, 100 );
     pastix_int_t i, lcolnum, nbsplit;
@@ -183,6 +272,34 @@ computeSmallestSplit( pastix_int_t *nblocksperline,
     return lcolnum;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Compute the cut that minimizes the generation of off-diagonal blocks.
+ *
+ * This function searched for the largest cut in the range [step -
+ * authorized_percent, step + authorized_percent] that minimizes the number of
+ * off-diagonal blocks generated.
+ *
+ *******************************************************************************
+ *
+ * @param[in] nblocksperline
+ *          Array of size max with the number of blocks in front of the lines [0;max-1]
+ *
+ * @param[in] step
+ *          The starting cut to refine. 0 < step
+ *
+ * @param[in] max
+ *          The size of the nblocksperline array. nmax > 0.
+ *
+ * @param[in] authorized_percent
+ *          The authorized percentage move around the initial cut.
+ *
+ *******************************************************************************
+ *
+ * @return The optimal cut found.
+ *
+ *******************************************************************************/
 static inline pastix_int_t
 computeSmallestSplit_max( pastix_int_t *nblocksperline,
                           pastix_int_t step,
@@ -217,6 +334,30 @@ computeSmallestSplit_max( pastix_int_t *nblocksperline,
     return lcolnum;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Compute a constant cut with the given parameters.
+ *
+ *******************************************************************************
+ *
+ * @param[in] nblocksperline
+ *          Array of size max with the number of blocks in front of the lines [0;max-1]
+ *
+ * @param[in] step
+ *          The starting cut to refine. 0 < step
+ *
+ * @param[in] max
+ *          The size of the nblocksperline array. nmax > 0.
+ *
+ * @param[in] authorized_percent
+ *          The authorized percentage move around the initial cut.
+ *
+ *******************************************************************************
+ *
+ * @return The optimal cut found.
+ *
+ *******************************************************************************/
 static inline pastix_int_t
 computeConstantSplit( pastix_int_t *nblocksperline,
                       pastix_int_t step,
@@ -231,23 +372,39 @@ computeConstantSplit( pastix_int_t *nblocksperline,
     return step-1;
 }
 
-/*
- Function: splitOnProcs
-
- Parameters:
- symbmtx    - Symbolic matrix
- extracblk  -
- extracost  -
- ctrl       -
- dofptr     -
- cblknum    -
- procnbr    -
- */
+/**
+ *******************************************************************************
+ *
+ * @brief Split the column blocks to generate parallelism
+ *
+ * This algorithm can use three different strategies to cut, two of them tries
+ * to minimize the number of generated off-diagnonal blocks, one with the
+ * minimal size, and the seoncd with teh maximal size in the error percentage
+ * around the initially computed split. The third strategy cuts regularly the
+ * column blocks without paying attention to the facing off-diagonal blocks.
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctrl
+ *          The blend control structure.
+ *
+ * @param[in] symbmtx
+ *          The symbol matrix structure.
+ *
+ * @param[inout] extracblk
+ *          The initialized structure to store the newly created column
+ *          blocks. (Blocks are generated later during merge operation, see
+ *          extraCblkMerge()).
+ *
+ * @param[in] candtab
+ *          The candidate array for the initial symbo matrix structure.
+ *
+ *******************************************************************************/
 void
 splitSmart( const BlendCtrl    *ctrl,
             const SymbolMatrix *symbmtx,
             ExtraCblk_t        *extracblk,
-            Cand               *candtab)
+            const Cand         *candtab )
 {
     SymbolBlok   *curblok;
     pastix_int_t *nblocksperline = NULL;
@@ -375,20 +532,32 @@ splitSmart( const BlendCtrl    *ctrl,
 }
 
 
-/*
- Function: splitSymbol
-
- Repartitioning of the initial symbolic factorization
- and processing of candidate processors group for
- each colum bloc
-
- Parameters:
- symbmtx - Symbolic matrix.
- ctrl    -
- dofptr  -
- */
-void splitSymbol( BlendCtrl    *ctrl,
-                  SymbolMatrix *symbmtx )
+/**
+ *******************************************************************************
+ *
+ * @brief Split the column blocks of the symbol matrix to generate parallelism.
+ *
+ * This is the main function that cut the symbol matrix column blocks, and
+ * return the new symbolMatrix. Cost matrix, elimination tree, and candidate
+ * array are updated on exit of this function with respect to the newly created
+ * column blocks and blocks. See splitSmart() for the cutting algorithm.
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctrl
+ *          The blend control structure.
+ *          On entry, candtab must be initialized.
+ *          On exit, costmtx, etree, and candtab are updated accordinglyy to the
+ *          extended symbol matrix, if new cblk are generated.
+ *
+ * @param[in] symbmtx
+ *          On entry, the symbol matrix structure to split.
+ *          On exit, the new symbol matrix with the new cblk and blocks.
+ *
+ *******************************************************************************/
+void
+splitSymbol( BlendCtrl    *ctrl,
+             SymbolMatrix *symbmtx )
 {
     ExtraCblk_t extracblk;
 
@@ -439,3 +608,7 @@ void splitSymbol( BlendCtrl    *ctrl,
         }
     }
 }
+
+/**
+ *@}
+ */
