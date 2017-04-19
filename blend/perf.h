@@ -20,6 +20,8 @@
 #ifndef PERF_H
 #define PERF_H
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #define PERF_MODEL "AMD 6180  MKL"
 
 /**GEMM**/
@@ -133,6 +135,8 @@
 
 #define PENALTY_STARTUP     0.0
 #define PENALTY_BANDWIDTH   0.0
+
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif /* PERF_H */
 

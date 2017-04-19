@@ -445,6 +445,11 @@ candDistribWithDepth( pastix_int_t        depth,
  * @param[inout] candtab
  *               Pointer to the global candtab array that needs to be initialized.
  *
+ * @param[inout] etree
+ *               Pointer to the elimination tree that needs to be construct on entry.
+ *               On exit, the cost of each node, and the total cost of its
+ *               associated subtree is initialized.
+ *
  * @param[in]    symbmtx
  *               Pointer to the symbol matrix we are working with.
  *

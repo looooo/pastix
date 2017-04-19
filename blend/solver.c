@@ -1,21 +1,36 @@
 /**
- * solver.c -- SolverMatrix description.
+ * @file solver.c
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX solver structure basic functions.
  *
- * @version 1.0.0
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @date 2011-11-11
  *
+ * @addtogroup blend_dev_solver
+ * @{
+ *
  **/
-
 #include "common.h"
 #include "solver.h"
 #include "coeftab.h"
 
+/**
+ *******************************************************************************
+ *
+ * @brief Initialize the solver structure.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The solver structure to initialize.
+ *
+ *******************************************************************************/
 void
 solverInit(SolverMatrix *solvmtx)
 {
@@ -23,6 +38,22 @@ solverInit(SolverMatrix *solvmtx)
     return;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Free the content of the solver matrix structure.
+ *
+ * All the arrays from the structure are freed and the structure is memset to 0
+ * at exit, but the solver itself is not freed. It will require a new call to
+ * solverInit if the memory space area needs to be reused for a new solver
+ * matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The pointer to the structure to free.
+ *
+ *******************************************************************************/
 void
 solverExit(SolverMatrix *solvmtx)
 {
@@ -99,16 +130,23 @@ solverExit(SolverMatrix *solvmtx)
 }
 
 /**
- *  Function: sizeofsolver
+ *******************************************************************************
  *
- *  Computes the size in memory of the SolverMatrix.
+ * @brief Compute the memory size used by the solver sturcture itself.
  *
- *  Parameters:
- *    solvptr - address of the SolverMatrix
+ * This function doesn't count the memory space of the numerical information,
+ * but only the sapce of the data structure that describes the matrix.
  *
- *  Returns:
- *    SolverMatrix size.
- */
+ *******************************************************************************
+ *
+ * @param[in] solvptr
+ *          The pointer to the solver matrix structure.
+ *
+ *******************************************************************************
+ *
+ * @return the memory size in octet of the solver structure.
+ *
+ *******************************************************************************/
 static inline size_t
 solver_size( const SolverMatrix *solvptr )
 {
@@ -167,7 +205,17 @@ solver_size( const SolverMatrix *solvptr )
     return mem;
 }
 
-
+/**
+ *******************************************************************************
+ *
+ * @brief Print statistical information about the solver matrix structure.
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvptr
+ *          The pointer to the solver matrix structure.
+ *
+ *******************************************************************************/
 void
 solverPrintStats( const SolverMatrix *solvptr )
 {
@@ -215,3 +263,7 @@ solverPrintStats( const SolverMatrix *solvptr )
              MEMORY_WRITE( memstruct ), MEMORY_UNIT_WRITE( memstruct ),
              memcoef );
 }
+
+/**
+ *@}
+ */

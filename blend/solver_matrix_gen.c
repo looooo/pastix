@@ -1,3 +1,20 @@
+/**
+ *
+ * @file solver_matrix_gen.c
+ *
+ * PaStiX solver structure generation function.
+ *
+ * @copyright 1998-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Pascal Henon
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ **/
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -15,8 +32,47 @@
 #include "cand.h"
 #include "blendctrl.h"
 #include "simu.h"
-#include "solver_io.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup blend_dev_solver
+ *
+ * @brief Initialize the solver matrix structure
+ *
+ * This function takes all the global preprocessing steps: the symbol matrix,
+ * and the resul of the simulation step to generate the solver matrix that hold
+ * only local information to each PaStiX process.
+ *
+ *******************************************************************************
+ *
+ * @param[in] clustnum
+ *          The index of the local PaStiX process.
+ *
+ * @param[inout] solvmtx
+ *          On entry, the allocated pointer to a solver matrix structure.
+ *          On exit, this structure holds alls the local information required to
+ *          perform the numerical factorization.
+ *
+ * @param[in] symbmtx
+ *          The global symbol matrix structure.
+ *
+ * @param[in] simuctrl
+ *          The information resulting from the simulation that will provide the
+ *          data mapping, and the order of the task execution for the static
+ *          scheduling.
+ *
+ * @param[in] ctrl
+ *          The blend control structure that contaions extra information
+ *          computed during the analyze steps and the aprameters of the analyze
+ *          step.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS if success.
+ * @retval PASTIX_ERR_OUTOFMEMORY if one of the malloc failed.
+ *
+ *******************************************************************************/
 int
 solverMatrixGen( pastix_int_t        clustnum,
                  SolverMatrix       *solvmtx,
@@ -58,7 +114,7 @@ solverMatrixGen( pastix_int_t        clustnum,
     MALLOC_INTERN(solvmtx->proc2clust, solvmtx->procnbr, pastix_int_t);
     memcpy(solvmtx->proc2clust, ctrl->core2clust, sizeof(pastix_int_t)*solvmtx->procnbr);
 
-    /***************************************************************************
+    /*
      * Compute local indices to compress the symbol information into solver
      */
     {
@@ -182,8 +238,9 @@ solverMatrixGen( pastix_int_t        clustnum,
             {
                 pastix_int_t brownbr;
 
-                /**
-                 * 2D tasks: Compute the number of cblk split in 2D tasks, and the smallest id
+                /*
+                 * 2D tasks: Compute the number of cblk split in 2D tasks, and
+                 * the smallest id
                  */
                 if (tasks2D) {
                     if (cblknum < solvmtx->cblkmin2d) {
@@ -193,7 +250,7 @@ solverMatrixGen( pastix_int_t        clustnum,
                     nbblok2d += solvblok - fblokptr;
                 }
 
-                /**
+                /*
                  * Compute the maximum number of block per cblk for data
                  * structure in PaRSEC/StarPU
                  */
@@ -222,7 +279,7 @@ solverMatrixGen( pastix_int_t        clustnum,
 
                 solvcblk->procdiag = solvmtx->clustnum;
 
-                /**
+                /*
                  * Copy browtab information
                  * In case of 2D tasks, we reorder the browtab to first store
                  * the 1D contributions, and then the 2D updates.
@@ -319,7 +376,7 @@ solverMatrixGen( pastix_int_t        clustnum,
         assert( solvmtx->bloknbr == solvblok - solvmtx->bloktab );
     }
 
-    /***************************************************************************
+    /*
      * Update browind fields
      */
     for(i=0; i<solvmtx->brownbr; i++)
@@ -330,7 +387,7 @@ solverMatrixGen( pastix_int_t        clustnum,
         }
     }
 
-    /***************************************************************************
+    /*
      * Fill in tasktab
      */
     MALLOC_INTERN(solvmtx->tasktab, solvmtx->tasknbr+1, Task);
@@ -393,7 +450,7 @@ solverMatrixGen( pastix_int_t        clustnum,
         solvmtx->nbftmax = nbftmax;
     }
 
-    /***************************************************************************
+    /*
      * Fill in the ttsktab arrays (one per thread)
      *
      * TODO: This would definitely be better if each thread was initializing
@@ -429,7 +486,7 @@ solverMatrixGen( pastix_int_t        clustnum,
                 jloc = tasklocalnum[j];
                 solvmtx->ttsktab[p][i] = jloc;
 
-#if (defined PASTIX_DYNSCHED) || (defined TRACE_SOPALIN)
+#if defined(PASTIX_DYNSCHED)
                 solvmtx->tasktab[jloc].threadid = p;
 #endif
                 priomax = pastix_imax( solvmtx->tasktab[jloc].prionum, priomax );
@@ -443,7 +500,7 @@ solverMatrixGen( pastix_int_t        clustnum,
         }
     }
 
-    /***************************************************************************
+    /*
      * Fill in ftgttab
      */
     {
@@ -508,7 +565,7 @@ solverMatrixGen( pastix_int_t        clustnum,
     }
 
 
-    /***************************************************************************
+    /*
      * Fill in indtab
      */
     {
@@ -574,7 +631,7 @@ solverMatrixGen( pastix_int_t        clustnum,
         assert(indnbr == solvmtx->indnbr);
     }
 
-    /***************************************************************************
+    /*
      * Compute the maximum area of the temporary buffer used during computation
      *
      * During this loop, we compute the maximum area that will be used as

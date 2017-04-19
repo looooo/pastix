@@ -171,16 +171,16 @@ eTreeNodeLevel(const EliminTree *etree, pastix_int_t nodenum )
  *          The pointer to the elimination tree.
  *
  *
- * @param[in] out
+ * @param[inout] stream
  *          The file to which write the elimination tree in the dot format.
  *
  *******************************************************************************/
 void
-eTreeGenDot(const EliminTree *etree, FILE *out)
+eTreeGenDot(const EliminTree *etree, FILE *stream)
 {
     pastix_int_t i;
 
-    fprintf(out,
+    fprintf(stream,
             "digraph G {\n"
             "\tcolor=white\n"
             "rankdir=BT;\n");
@@ -189,10 +189,10 @@ eTreeGenDot(const EliminTree *etree, FILE *out)
     {
         if ((etree->nodetab[i]).fathnum == -1)
             continue;
-        fprintf(out, "\t\"%ld\"->\"%ld\"\n", (long)i, (long)((etree->nodetab[i]).fathnum));
+        fprintf(stream, "\t\"%ld\"->\"%ld\"\n", (long)i, (long)((etree->nodetab[i]).fathnum));
     }
 
-    fprintf(out, "}\n");
+    fprintf(stream, "}\n");
 }
 
 
@@ -214,7 +214,7 @@ eTreeGenDot(const EliminTree *etree, FILE *out)
  *          The pointer to the elimination tree.
  *
  *
- * @param[in] out
+ * @param[inout] stream
  *          The file to which write the elimination tree in the dot format.
  *
  * @param[in] rootnum

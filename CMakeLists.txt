@@ -735,49 +735,6 @@ add_documented_files(
   symbol/pastix_subtask_symbfact.c
   #
   blend/blend.h
-  blend/cand.h
-  #blend/blendctrl.h
-  #blend/bulles.h
-  #blend/cost.h
-  #blend/costfunc.h
-  #blend/elimin.h
-  #blend/extendVector.h
-  #blend/extracblk.h
-  #blend/fanboth2.h
-  #blend/ftgt.h
-  #blend/perf.h
-  #blend/queue.h
-  #blend/simu.h
-  #blend/simu_timer.h
-  #blend/solver.h
-  #blend/solverMatrixGen.h
-  #blend/solver_check.h
-  #blend/solver_io.h
-  #blend/splitpartlocal.h
-  #blend/task.h
-  #blend/blendctrl.c
-  #blend/bulles.c
-  #blend/cand.c
-  #blend/cost.c
-  #blend/elimin_graph.c
-  #blend/elimin_tree.c
-  #blend/extendVector.c
-  #blend/extracblk.c
-  #blend/propmap.c
-  #blend/queue.c
-  #blend/simu.c
-  #blend/simu_run.c
-  #blend/solver.c
-  #blend/solverMatrixGen.c
-  #blend/solver_backup.c
-  #blend/solver_check.c
-  #blend/solver_copy.c
-  #blend/solver_draw.c
-  #blend/solver_io.c
-  #blend/splitsymbol.c
-  #blend/task.c
-
-  blend/blend.h
   blend/blendctrl.h
   blend/blendctrl.c
   blend/cand.h
@@ -791,33 +748,32 @@ add_documented_files(
   blend/extracblk.h
   blend/extracblk.c
   blend/perf.h
-  blend/propmap.c
   blend/queue.h
   blend/queue.c
+  #
   blend/simu.h
   blend/simu_timer.h
   blend/simu.c
   blend/simu_run.c
   blend/simu_task.c
-  blend/splitsymbol.c
-
-  blend/solver.c
+  #
   blend/solver.h
+  blend/solver.c
   blend/solver_backup.c
   blend/solver_check.c
-  blend/solver_compute_gpu_distrib.c
   blend/solver_copy.c
   blend/solver_draw.c
   blend/solver_io.c
-  blend/solver_io.h
   blend/solver_matrix_gen.c
-
+  #
+  blend/propmap.c
+  blend/splitsymbol.c
   blend/pastix_subtask_blend.c
   blend/pastix_task_analyze.c
-
+  #
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
-
+  #
   refinement/pastix_task_refine.c
 )
 

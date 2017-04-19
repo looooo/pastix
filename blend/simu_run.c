@@ -487,8 +487,7 @@ simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
                 {
                     double send, add;
 
-                    simu_computeFtgtCosts( ctrl, &(simuctrl->ftgttab[CLUST2INDEX(j, clustdst)].ftgt),
-                                           symbptr->dof, clustdst,
+                    simu_computeFtgtCosts( ctrl, &(simuctrl->ftgttab[CLUST2INDEX(j, clustdst)].ftgt), clustdst,
                                            ctrl->candtab[cblknum].lccandnum - ctrl->candtab[cblknum].fccandnum + 1,
                                            &send, &add );
 

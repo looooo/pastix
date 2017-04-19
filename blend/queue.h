@@ -49,16 +49,39 @@ pastix_int_t pqueueRead ( const pastix_queue_t * );
 pastix_int_t pqueuePop2 (       pastix_queue_t *, double *, double * );
 void         pqueuePrint( const pastix_queue_t * );
 
+/**
+ * @brief Push an element with a single key.
+ * @param[inout] q
+ *               The queue structure.
+ * @param[in]    elt
+ *               The element to insert.
+ * @param[in]    key1
+ *               The first key of the element to insert (the second will be 0.).
+ */
 static inline void
 pqueuePush1(pastix_queue_t *q, pastix_int_t elt, double key1) {
     pqueuePush2( q, elt, key1, 0. );
 }
 
+/**
+ * @brief Pop the head of the queue whithout returning the keys.
+ * @param[inout] q
+ *               The queue structure.
+ * @return The element at the head of the queue.
+ */
 static inline pastix_int_t
 pqueuePop(pastix_queue_t *q){
     return pqueuePop2(q, NULL, NULL);
 }
 
+/**
+ * @brief Pop the head of the queue and get the associated first key.
+ * @param[inout] q
+ *               The queue structure.
+ * @param[out]   key1
+ *               The first key of the element removed from the head of the queue.
+ * @return The element at the head of the queue.
+ */
 static inline pastix_int_t
 pqueuePop1(pastix_queue_t *q, double *key1){
     return pqueuePop2(q, key1, NULL);
