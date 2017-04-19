@@ -1,14 +1,15 @@
 /**
  *
- * @file cand.c
+ * @file blendctrl.h
  *
- * PaStiX analyse headers for candidate array functions.
+ * PaStiX analyse control parameters structure.
  *
  * @copyright 1998-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
  * @author Pascal Henon
+ * @author Mathieu Faverge
  * @date 2013-06-24
  *
  * @addtogroup blend_dev_ctrl
