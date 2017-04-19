@@ -51,8 +51,8 @@ struct pastix_spm_s;
 typedef struct pastix_spm_s pastix_spm_t;
 typedef struct pastix_spm_s pastix_csc_t;
 
-struct SolverMatrix_;
-typedef struct SolverMatrix_ SolverMatrix;
+struct solver_matrix_s;
+typedef struct solver_matrix_s SolverMatrix;
 
 enum pastix_driver_e;
 typedef enum pastix_driver_e pastix_driver_t;

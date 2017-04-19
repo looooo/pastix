@@ -530,10 +530,14 @@ splitSmart( const BlendCtrl    *ctrl,
         memFree_null( nblocksperline );
     }
 }
-
+/**
+ *@}
+ */
 
 /**
  *******************************************************************************
+ *
+ * @ingroup pastix_blend
  *
  * @brief Split the column blocks of the symbol matrix to generate parallelism.
  *
@@ -608,7 +612,3 @@ splitSymbol( BlendCtrl    *ctrl,
         }
     }
 }
-
-/**
- *@}
- */

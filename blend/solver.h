@@ -148,7 +148,7 @@ typedef struct solver_ftgt_s {
 /**
  * @brief Solver block structure.
  */
-typedef struct SolverBlok_ {
+typedef struct solver_blok_s {
     void        *handler[2]; /*< Runtime data handler                     */
     pastix_int_t lcblknm;    /*< Local column block                       */
     pastix_int_t fcblknm;    /*< Facing column block                      */
@@ -165,7 +165,7 @@ typedef struct SolverBlok_ {
 /**
  * @brief Solver column block structure.
  */
-typedef struct SolverCblk_  {
+typedef struct solver_cblk_s  {
     pastix_atomic_lock_t lock;       /*< Lock to protect computation on the cblk */
     volatile uint32_t    ctrbcnt;    /*< Number of contribution to receive       */
     int8_t               cblktype;   /*< Type of cblk                            */
@@ -192,7 +192,7 @@ typedef struct SolverCblk_  {
  * process is stored in this structure.
  *
  */
-struct SolverMatrix_ {
+struct solver_matrix_s {
     int restore; /*< Flag to indicate if it is require to restore data with
                      solverBackupRestore: 0: No need, 1:After solve,
                      2:After Factorization */

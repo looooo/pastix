@@ -22,7 +22,7 @@
 /**
  * @brief Node of the elimination tree.
  */
-typedef struct eTreeNode_s {
+typedef struct etree_node_s {
     double         total;   /**< Cost of the treenode only (compute + send) */
     double         subtree; /**< Cost of the subtree (includes total)       */
     pastix_int_t   sonsnbr; /**< Number of sons                             */
@@ -33,7 +33,7 @@ typedef struct eTreeNode_s {
 /**
  * @brief Elimination tree.
  */
-typedef struct EliminTree_ {
+typedef struct etree_s {
     pastix_int_t   baseval; /**< Base value for numberings         */
     pastix_int_t   nodenbr; /**< Number of nodes                   */
     eTreeNode_t  * nodetab; /**< Array of node          [+1,based] */

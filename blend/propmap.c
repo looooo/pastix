@@ -359,8 +359,15 @@ propMappSubtree( const propmap_t *pmptr,
     return;
 }
 
+
+/**
+ * @}
+ */
+
 /**
  *******************************************************************************
+ *
+ * @ingroup pastix_blend
  *
  * @brief Apply the proportional mapping algorithm.
  *
@@ -438,7 +445,3 @@ propMappTree( Cand               *candtab,
         memFree_null(cost_remain);
     }
 }
-
-/**
- * @}
- */

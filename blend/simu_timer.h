@@ -22,7 +22,7 @@
 /**
  * @brief Timer for the simulation.
  */
-typedef struct SimuTimer_s {
+typedef struct simu_timer_s {
     double s; /**< Second in the timer */
     /*  double ms;*/
 } SimuTimer;

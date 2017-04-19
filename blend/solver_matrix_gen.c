@@ -36,7 +36,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup blend_dev_solver
+ * @ingroup pastix_blend
  *
  * @brief Initialize the solver matrix structure
  *

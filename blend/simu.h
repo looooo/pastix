@@ -25,7 +25,7 @@
 /**
  * @brief Process structure for the simulation.
  */
-typedef struct SimuCluster_ {
+typedef struct simu_cluster_s {
     pastix_int_t     fprocnum;   /**< Global index of the first processor belonging to the cluster (Check is it is not redundant) */
     pastix_int_t     lprocnum;   /**< Global index of the last processor belonging to the cluster (Check is it is not redundant)  */
     ExtendVectorINT *ftgtsend;   /**< Arrays of ftgt sent by this proc (one vector per processor)                                 */
@@ -35,7 +35,7 @@ typedef struct SimuCluster_ {
 /**
  * @brief Thread structure for the simulation.
  */
-typedef struct SimuProc_ {
+typedef struct simu_proc_s {
     SimuTimer        timer;      /**< Simulated clock of the processor                                  */
     pastix_queue_t  *readytask;  /**< Heap of tasks ready to be executed                                */
     pastix_queue_t  *futuretask; /**< Heap of tasks ready to be executed in a near future (after timer) */
@@ -45,7 +45,7 @@ typedef struct SimuProc_ {
 /**
  * @brief Fan-in structure for the simulation.
  */
-typedef struct SimuFtgt_ {
+typedef struct simu_ftgt_s {
     solver_ftgt_t ftgt;         /**< Fan-in informations                            */
     pastix_int_t  clustnum;     /**< Cluster sending the contribution               */
     SimuTimer     timerecv;     /**< Simulated clock of the reception time          */
@@ -56,14 +56,14 @@ typedef struct SimuFtgt_ {
 /**
  * @brief Column block structure for the simulation.
  */
-typedef struct SimuCblk_ {
+typedef struct simu_cblk_s {
     pastix_int_t ctrbcnt;       /**< Counter of remaining contributions for the cblk */
 } SimuCblk;
 
 /**
  * @brief Block structure for the simulation.
  */
-typedef struct SimuBlok_ {
+typedef struct simu_blok_s {
     pastix_int_t tasknum;       /**< Task index opeating on this block (stored per block for 2D computations)   */
     pastix_int_t ftgtnum;       /**< Index of the first fanin destinated to this
                                      block in the ftgttab. This index is also used to find the first cblk timer
@@ -76,7 +76,7 @@ typedef struct SimuBlok_ {
 /**
  * @brief Task structure for the simulation.
  */
-typedef struct SimuTask_ {
+typedef struct simu_task_s {
     pastix_int_t prionum;       /**< priority of the task                                      */
     pastix_int_t cblknum;       /**< Number of the cblknum the task deals with                 */
     pastix_int_t bloknum;       /**< number of the block that the task deals with              */
@@ -113,7 +113,6 @@ typedef struct simuctrl_s {
 pastix_int_t simuInit        ( SimuCtrl *, const SymbolMatrix *, const Cand *, pastix_int_t, pastix_int_t );
 pastix_int_t simuRealloc     ( SimuCtrl *, pastix_int_t, pastix_int_t );
 void         simuExit        ( SimuCtrl *, pastix_int_t, pastix_int_t, pastix_int_t );
-void         simuRun         ( SimuCtrl *, const BlendCtrl *, const SymbolMatrix * );
 void         simuTaskBuild   ( SimuCtrl *, const SymbolMatrix *, const Cand * );
 
 #define CLUST2INDEX(n,c) ((c) + simuctrl->bloktab[n].ftgtnum - simuctrl->bloktab[n].fccandnum)

@@ -24,7 +24,7 @@
 /**
  * @brief Extra symbol cblk structure
  */
-typedef struct ExtraCblk_s {
+typedef struct extracblk_s {
     pastix_int_t  cblknbr; /**< Number of cblk allocated                          */
     pastix_int_t  addcblk; /**< Number of cblk created                            */
     pastix_int_t  addblok; /**< Number of blok created                            */

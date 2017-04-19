@@ -537,8 +537,6 @@ simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
 /**
  *******************************************************************************
  *
- * @ingroup blend_dev_simu
- *
  * @brief Update the Fan In target structure
  *
  * Increment the contribution counter of the fan-in and integrate to the ftgt
@@ -598,8 +596,6 @@ simu_updateFtgt( const SymbolMatrix *symbptr,
 
 /**
  *******************************************************************************
- *
- * @ingroup blend_dev_simu
  *
  * @brief Simulate the task execution.
  *
@@ -739,8 +735,6 @@ simu_computeTask( const BlendCtrl    *ctrl,
 /**
  *******************************************************************************
  *
- * @ingroup blend_dev_simu
- *
  * @brief Push all task from future to ready
  *
  * This routine pushes all future task from the future task heap to the ready
@@ -800,9 +794,13 @@ simu_pushToReadyHeap(const BlendCtrl *ctrl,
 
 
 /**
+ * @}
+ */
+
+/**
  *******************************************************************************
  *
- * @ingroup blend_dev_simu
+ * @ingroup pastix_blend
  *
  * @brief Run the simulation to map the data on the nodes
  *
@@ -1068,7 +1066,3 @@ simuRun( SimuCtrl           *simuctrl,
         assert(simuctrl->bloktab[i].ownerclust>=0);
 #endif
 }
-
-/**
- * @}
- */

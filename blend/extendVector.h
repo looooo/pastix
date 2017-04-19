@@ -25,7 +25,7 @@
 /**
  * @brief The extend integer array structure.
 */
-typedef struct ExtendVectorINT_ {
+typedef struct ExtendVectorINT_s {
     pastix_int_t  vecsize; /**< The size of the vector             */
     pastix_int_t  eltnbr;  /**< The number of elements stored      */
     pastix_int_t *inttab;  /**< The actual array with the elements */
