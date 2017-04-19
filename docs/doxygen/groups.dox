@@ -160,6 +160,16 @@
  *           block CSC and the solver matrix structure before applying
  *           the numerical factorization.
  *
+ **********
+ *
+ * @defgroup pastix_kernel Numerical kernels
+ * @ingroup  pastix_numfact
+ *
+ **********
+ *
+ * @defgroup pastix_dev_kernel Numerical kernels
+ * @ingroup  pastix_kernel
+ *
  ****
  *
  * @defgroup pastix_solve Solve step

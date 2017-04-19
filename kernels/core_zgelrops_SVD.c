@@ -750,7 +750,7 @@ void core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_
 /**
  *******************************************************************************
  *
- * @ingroup pastix_devkernel
+ * @ingroup pastix_dev_kernel
  *
  * core_zrradd_SVD_interface - Interface to core_zrradd_SVD
  *
