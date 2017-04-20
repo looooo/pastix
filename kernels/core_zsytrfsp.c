@@ -2,11 +2,12 @@
  *
  * @file core_zsytrfsp.c
  *
- *  PaStiX kernel routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX kernel routines for LDL^t factorization.
  *
- * @version 1.0.0
+ * @copyright 2011-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -28,10 +29,10 @@ static pastix_complex64_t mzone = -1.;
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @ingroup kernel_blas_lapack_null
  *
- * core_zsytf2sp - Computes the sequential static pivoting
- * factorization of the hermitian matrix n-by-n A such that A = L * D * L^t.
+ * @brief Compute the sequential static pivoting factorization of the symmetric
+ * matrix n-by-n A such that A = L * D * L^t.
  *
  *******************************************************************************
  *
@@ -54,18 +55,13 @@ static pastix_complex64_t mzone = -1.;
  *          threshold, its value is replaced by the threshold and the number of
  *          pivots is incremented.
  *
- *******************************************************************************
- *
- * @return
- *          This routine will fail if it discovers a 0. on the diagonal during
- *          factorization.
- *
  *******************************************************************************/
-static void core_zsytf2sp(pastix_int_t        n,
-                          pastix_complex64_t *A,
-                          pastix_int_t        lda,
-                          pastix_int_t       *nbpivot,
-                          double              criteria )
+static void
+core_zsytf2sp( pastix_int_t        n,
+               pastix_complex64_t *A,
+               pastix_int_t        lda,
+               pastix_int_t       *nbpivot,
+               double              criteria )
 {
     pastix_int_t k;
     pastix_complex64_t *Akk = A;   /* A [k  ][k] */
@@ -108,10 +104,8 @@ static void core_zsytf2sp(pastix_int_t        n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * core_zsytrfsp - Computes the block static pivoting factorization of the
- * hermitian matrix n-by-n A such that A = L * D * L^t.
+ * @brief Compute the block static pivoting factorization of the hermitian
+ * matrix n-by-n A such that A = L * D * L^t.
  *
  *******************************************************************************
  *
@@ -119,8 +113,11 @@ static void core_zsytf2sp(pastix_int_t        n,
  *          The number of rows and columns of the matrix A.
  *
  * @param[inout] A
- *          The matrix A to factorize with Cholesky factorization. The matrix
+ *          The matrix A to factorize with LDL^t factorization. The matrix
  *          is of size lda -by- n.
+ *
+ * @param[inout] DLt
+ *          A worksapce matrix of size lda-by-n to store the product DL^t.
  *
  * @param[in] lda
  *          The leading dimension of the matrix A.
@@ -137,22 +134,17 @@ static void core_zsytf2sp(pastix_int_t        n,
  * @param[in] work
  *          Temporary memory buffer.
  *
- *******************************************************************************
- *
- * @return
- *          This routine will fail if it discovers a 0. on the diagonal during
- *          factorization.
- *
  *******************************************************************************/
-static void core_zsytrfsp(pastix_int_t        n,
-                          pastix_complex64_t *A,
-                          pastix_int_t        lda,
-                          pastix_int_t       *nbpivot,
-                          double              criteria,
-                          pastix_complex64_t *work)
+void
+core_zsytrfsp( pastix_int_t        n,
+               pastix_complex64_t *A,
+               pastix_int_t        lda,
+               pastix_int_t       *nbpivot,
+               double              criteria,
+               pastix_complex64_t *work )
 {
     pastix_int_t k, blocknbr, blocksize, matrixsize, col;
-    pastix_complex64_t *tmp,*tmp1,*tmp2;
+    pastix_complex64_t *tmp, *tmp1, *tmp2;
     pastix_complex64_t alpha;
 
     /* diagonal supernode is divided into MAXSIZEOFBLOCK-by-MAXSIZEOFBLOCKS blocks */
@@ -187,7 +179,7 @@ static void core_zsytrfsp(pastix_int_t        n,
             for(col = 0; col < blocksize; col++) {
                 /* copy L(k+1+col:n,k+col)*D(k+col,k+col) into work(:,col) */
                 cblas_zcopy(matrixsize, tmp1+col*lda,     1,
-                                        work+col*matrixsize, 1);
+                                        work +col*matrixsize, 1);
 
                                 /* compute L(k+1+col:n,k+col) = A(k+1+col:n,k+col)D(k+col,k+col)^{-1} */
                 alpha = 1. / *(tmp + col*(lda+1));
@@ -199,7 +191,7 @@ static void core_zsytrfsp(pastix_int_t        n,
             cblas_zgemm(CblasColMajor,
                         CblasNoTrans, CblasTrans,
                         matrixsize, matrixsize, blocksize,
-                        CBLAS_SADDR(mzone), work, matrixsize,
+                        CBLAS_SADDR(mzone), work,  matrixsize,
                                             tmp1, lda,
                         CBLAS_SADDR(zone),  tmp2, lda);
         }
@@ -209,9 +201,7 @@ static void core_zsytrfsp(pastix_int_t        n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * core_zsytrfsp1d_sytrf - Computes the LDL^H factorization of one panel.
+ * @brief Computes the LDL^t factorization of the diagonal block in a panel.
  *
  *******************************************************************************
  *
@@ -223,45 +213,45 @@ static void core_zsytrfsp(pastix_int_t        n,
  *          The pointer to the matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
+ * @param[inout] DLt
+ *          The pointer to the upper matrix storing the coefficients the
+ *          temporary DL^t product. Must be of size cblk.stride -by- cblk.width
+ *
  * @param[in] criteria
  *          Threshold use for static pivoting. If diagonal value is under this
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
- * @param[inout] work
- *          Temporary buffer used in core_zsytrfsp().
- *
  *******************************************************************************
  *
- * @return
- *          The number of static pivoting during factorization of the diagonal block.
+ * @return The number of static pivoting performed during the diagonal block
+ *         factorization.
  *
  *******************************************************************************/
-int core_zsytrfsp1d_sytrf( SolverCblk         *cblk,
-                           pastix_complex64_t *L,
-                           double              criteria,
-                           pastix_complex64_t *work )
+int
+core_zsytrfsp1d_sytrf( SolverCblk         *cblk,
+                       pastix_complex64_t *L,
+                       pastix_complex64_t *DLt,
+                       double              criteria )
 {
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
 
-    ncols   = cblk->lcolnum - cblk->fcolnum + 1;
-    stride  = cblk->stride;
+    ncols  = cblk->lcolnum - cblk->fcolnum + 1;
+    stride = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
 
     /* check if diagonal column block */
     assert( cblk->fcolnum == cblk->fblokptr->frownum );
     assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
     /* Factorize diagonal block (two terms version with workspace) */
-    core_zsytrfsp(ncols, L, stride, &nbpivot, criteria, work);
+    core_zsytrfsp( ncols, L, stride, &nbpivot, criteria, DLt );
 
     return nbpivot;
 }
 
 /**
  *******************************************************************************
- *
- * @ingroup pastix_kernel
  *
  * core_zsytrfsp1d_trsm - Apply all the trsm updates to one panel.
  *
@@ -326,8 +316,6 @@ int core_zsytrfsp1d_trsm( SolverCblk         *cblk,
 
 /**
  *******************************************************************************
- *
- * @ingroup pastix_kernel
  *
  * core_zsytrfsp1d_gemm - Computes the Cholesky factorization of one panel and
  * apply all the trsm updates to this panel.
@@ -454,10 +442,7 @@ void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * core_zsytrfsp1d - Computes the Cholesky factorization of one panel and apply
- * all the trsm updates to this panel.
+ * @brief Compute the LDL^t factorization of one panel.
  *
  *******************************************************************************
  *
@@ -469,28 +454,36 @@ void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
  *          The pointer to the matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
+ * @param[inout] DLt
+ *          The pointer to the upper matrix storing the coefficients the
+ *          temporary DL^t product. Must be of size cblk.stride -by- cblk.width
+ *
  * @param[in] criteria
  *          Threshold use for static pivoting. If diagonal value is under this
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
- * @param[in] work
- *          Temporary memory buffer.
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
  *
  *******************************************************************************
  *
- * @return
- *          The number of static pivoting during factorization of the diagonal block.
+ * @return The number of static pivoting during factorization of the diagonal
+ * block.
  *
  *******************************************************************************/
-int core_zsytrfsp1d_panel( SolverCblk         *cblk,
-                           pastix_complex64_t *L,
-                           double              criteria,
-                           pastix_complex64_t *work)
+int
+core_zsytrfsp1d_panel( SolverCblk         *cblk,
+                       pastix_complex64_t *L,
+                       pastix_complex64_t *DLt,
+                       double              criteria,
+                       const pastix_lr_t  *lowrank )
 {
-    pastix_int_t  nbpivot = core_zsytrfsp1d_sytrf(cblk, L, criteria, work);
-    core_zsytrfsp1d_trsm(cblk, L);
+    pastix_int_t  nbpivot;
+    (void)lowrank;
 
+    nbpivot = core_zsytrfsp1d_sytrf(cblk, L, DLt, criteria );
+    core_zsytrfsp1d_trsm(cblk, L);
     return nbpivot;
 }
 
@@ -498,11 +491,8 @@ int core_zsytrfsp1d_panel( SolverCblk         *cblk,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * core_zsytrfsp1d - Computes the Cholesky factorization of one panel, apply all
- * the trsm updates to this panel, and apply all updates to the right with no
- * lock.
+ * @brief Perform the LDL^t factorization of a given panel and apply all its
+ * updates.
  *
  *******************************************************************************
  *
@@ -526,8 +516,8 @@ int core_zsytrfsp1d_panel( SolverCblk         *cblk,
  *
  *******************************************************************************
  *
- * @return
- *          The number of static pivoting during factorization of the diagonal block.
+ * @return The number of static pivoting during factorization of the diagonal
+ * block.
  *
  *******************************************************************************/
 int
@@ -535,7 +525,7 @@ core_zsytrfsp1d( SolverMatrix       *solvmtx,
                  SolverCblk         *cblk,
                  double              criteria,
                  pastix_complex64_t *work1,
-                 pastix_complex64_t *work2)
+                 pastix_complex64_t *work2 )
 {
     pastix_complex64_t *L = cblk->lcoeftab;
     SolverCblk  *fcblk;
@@ -543,7 +533,7 @@ core_zsytrfsp1d( SolverMatrix       *solvmtx,
     pastix_int_t nbpivot;
 
     /* if there are off-diagonal supernodes in the column */
-    nbpivot = core_zsytrfsp1d_sytrf(cblk, L, criteria, work1);
+    nbpivot = core_zsytrfsp1d_sytrf(cblk, L, work1, criteria);
     core_zsytrfsp1d_trsm(cblk, L);
 
     blok = cblk->fblokptr+1;   /* this diagonal block */

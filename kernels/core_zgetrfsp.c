@@ -2,7 +2,7 @@
  *
  * @file core_zgetrfsp.c
  *
- *  PaStiX kernel routines for LU factorization.
+ * PaStiX kernel routines for LU factorization.
  *
  * @copyright 2011-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -58,11 +58,6 @@ static pastix_complex64_t mzone = -1.;
  *          threshold, its value is replaced by the threshold and the number of
  *          pivots is incremented.
  *
- *******************************************************************************
- *
- * @warning This routine will fail if it discovers a 0. on the diagonal during
- *          factorization.
- *
  *******************************************************************************/
 static inline void
 core_zgetf2sp( pastix_int_t        m,
@@ -107,8 +102,6 @@ core_zgetf2sp( pastix_int_t        m,
 /**
  *******************************************************************************
  *
- * @ingroup kernel_blas_lapack
- *
  * @brief Compute the block static pivoting LU factorization of the matrix
  * m-by-n A = L * U.
  *
@@ -132,11 +125,6 @@ core_zgetf2sp( pastix_int_t        m,
  *          Threshold use for static pivoting. If diagonal value is under this
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
- *
- *******************************************************************************
- *
- * @warning This routine will fail if it discovers a 0. on the diagonal during
- *          factorization.
  *
  *******************************************************************************/
 void
@@ -191,12 +179,7 @@ core_zgetrfsp( pastix_int_t        n,
 /**
  *******************************************************************************
  *
- * @ingroup kernel_solver
- *
  * @brief Compute the LU factorization of the diagonal block in a panel.
- *
- * @warning This routine will fail if it discovers a 0. on the diagonal during
- *          factorization.
  *
  *******************************************************************************
  *
@@ -268,9 +251,6 @@ core_zgetrfsp1d_getrf( SolverCblk         *cblk,
  *
  * @brief Compute the LU factorization of one panel.
  *
- * @warning This routine will fail if it discovers a 0. on the diagonal during
- *          factorization.
- *
  *******************************************************************************
  *
  * @param[in] cblk
@@ -325,8 +305,6 @@ core_zgetrfsp1d_panel( SolverCblk         *cblk,
 
 /**
  *******************************************************************************
- *
- * @ingroup pastix_kernel
  *
  * @brief Perform the LU factorization of a given panel and apply all its
  * updates.

@@ -2,7 +2,7 @@
  *
  * @file core_zpotrfsp.c
  *
- *  PaStiX kernel routines for Cholesky factorization.
+ * PaStiX kernel routines for Cholesky factorization.
  *
  * @copyright 2011-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -109,10 +109,8 @@ core_zpotf2sp( pastix_int_t        n,
 /**
  *******************************************************************************
  *
- * @ingroup kernel_blas_lapack
- *
- * core_zpotrfsp - Computes the block static pivoting Cholesky
- * factorization of the matrix n-by-n A = L * L^t .
+ * @brief Compute the block static pivoting Cholesky factorization of the matrix
+ * n-by-n A = L * L^t .
  *
  *******************************************************************************
  *
@@ -192,8 +190,6 @@ core_zpotrfsp( pastix_int_t        n,
 /**
  *******************************************************************************
  *
- * @ingroup kernel_solver
- *
  * @brief Compute the Cholesky factorization of the diagonal block in a panel.
  *
  * @warning This routine will fail if it discovers a null or negative value on
@@ -252,8 +248,6 @@ core_zpotrfsp1d_potrf( SolverCblk         *cblk,
 /**
  *******************************************************************************
  *
- * @ingroup kernel_solver
- *
  * @brief Compute the Cholesky factorization of one panel.
  *
  *******************************************************************************
@@ -276,7 +270,8 @@ core_zpotrfsp1d_potrf( SolverCblk         *cblk,
  *
  *******************************************************************************
  *
- * @return The number of static pivoting during factorization of the diagonal block.
+ * @return The number of static pivoting during factorization of the diagonal
+ * block.
  *
  *******************************************************************************/
 int
@@ -295,8 +290,6 @@ core_zpotrfsp1d_panel( SolverCblk         *cblk,
 
 /**
  *******************************************************************************
- *
- * @ingroup kernel_solver
  *
  * @brief Perform the Cholesky factorization of a given panel and apply all its
  * updates.
