@@ -148,6 +148,33 @@ RW    C  <- (brownum == -1) ? NULL
 
 ; %{ return cblknbr - ((fcblknm + lcblknm) / 2 ) + last - brownum; %}
 
+BODY [ type=CUDA ]
+{
+    SolverCblk *lcblk = datacode->cblktab + lcblknm;
+    SolverCblk *fcblk = datacode->cblktab + fcblknm;
+    SolverBlok *blok  = datacode->bloktab + bloknum;
+
+    /* Never execute the 1D GPU kernel on diagonal blocks */
+    if (brownum != -1) {
+#if defined(PASTIX_CUDA_FERMI)
+        gpu_zgemmsp_fermi( datacode,
+                           PastixLower, PastixConjTrans,
+                           descA->d_blocktab[parsec_body.index],
+                           lcblk, blok, fcblk,
+                           A, A, C,
+                           parsec_body.stream );
+#else
+        gpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+                         lcblk, blok, fcblk,
+                         A, A, C,
+                         &lowrank, parsec_body.stream );
+#endif /* defined(PASTIX_CUDA_FERMI) */
+
+        pastix_atomic_dec_32b( &parsec_nbtasks_on_gpu[parsec_body.index] );
+    }
+}
+END
+
 BODY
 {
     /* If diagonal block, we skip it */
@@ -157,14 +184,18 @@ BODY
         SolverBlok *blok  = datacode->bloktab + bloknum;
         pastix_complex64_t *work = NULL;
 
-        //work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
+        if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
+            work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
+        }
 
         cpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
                          lcblk, blok, fcblk,
                          A, A, C,
                          work, &lowrank );
 
-        //parsec_private_memory_push( p_work, (void *)work );
+        if ( work  ) {
+            parsec_private_memory_push( p_work, (void *)work );
+        }
     }
 }
 END

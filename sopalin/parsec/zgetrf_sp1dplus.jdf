@@ -155,6 +155,52 @@ RW    C  <- (brownum == -1) ? NULL
 
 ; %{ return cblknbr - ((fcblknm + lcblknm) / 2 ) + last - brownum; %}
 
+BODY [ type=CUDA ]
+{
+    SolverCblk *lcblk = datacode->cblktab + lcblknm;
+    SolverCblk *fcblk = datacode->cblktab + fcblknm;
+    SolverBlok *blok  = datacode->bloktab + bloknum;
+
+    /* Never execute the GPU kernel on diagonal blocks */
+    if (brownum != -1) {
+        if ( blok+s < lcblk[1].fblokptr ) {
+            if ( s == 0 ) {
+#if defined(PASTIX_CUDA_FERMI)
+                gpu_zgemmsp_fermi( datacode,
+                                   PastixLower, PastixTrans,
+                                   descA->d_blocktab[parsec_body.index],
+                                   lcblk, blok, fcblk,
+                                   Al, Au, C,
+                                   parsec_body.stream );
+#else
+                gpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
+                                 lcblk, blok, fcblk,
+                                 Al, Au, C,
+                                 &lowrank, parsec_body.stream );
+#endif /* defined(PASTIX_CUDA_FERMI) */
+            }
+            else {
+#if defined(PASTIX_CUDA_FERMI)
+                gpu_zgemmsp_fermi( datacode,
+                                   PastixUpper, PastixTrans,
+                                   descA->d_blocktab[parsec_body.index],
+                                   lcblk, blok, fcblk,
+                                   Au, Al, C,
+                                   parsec_body.stream );
+#else
+                gpucblk_zgemmsp( PastixUCoef, PastixLCoef, PastixTrans,
+                                 lcblk, blok, fcblk,
+                                 Au, Al, C,
+                                 &lowrank, parsec_body.stream );
+#endif /* defined(PASTIX_CUDA_FERMI) */
+            }
+        }
+
+        pastix_atomic_dec_32b( &parsec_nbtasks_on_gpu[parsec_body.index] );
+    }
+}
+END
+
 BODY
 {
     /* If diagonal block, we skip it */
@@ -166,7 +212,9 @@ BODY
 
         /* Update */
         if ( blok+s < lcblk[1].fblokptr ) {
-            //work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
+            if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
+                work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
+            }
 
             if (s == 0) {
                 cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
@@ -180,7 +228,10 @@ BODY
                                  Au, Al, C,
                                  work, &lowrank );
             }
-            //parsec_private_memory_push( p_work, (void *)work );
+
+            if ( work  ) {
+                parsec_private_memory_push( p_work, (void *)work );
+            }
         }
     }
 }
