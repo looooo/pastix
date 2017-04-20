@@ -1,30 +1,73 @@
 /**
  *
- * @file sparse-matrix.c
+ * @file parsec_sparse_matrix.c
  *
+ * PaStiX sparse matrix descriptor for parsec.
+ *
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2011-10-17
- * @precisions normal z -> c d s
+ * @date 2013-06-24
+ *
+ * @addtogroup pastix_parsec
+ * @{
  *
  **/
 #define _GNU_SOURCE
-#include "common.h"
-#include "solver.h"
-#include "sopalin/parsec/pastix_parsec.h"
-
 #include <parsec.h>
 #include <parsec/data.h>
 #include <parsec/data_distribution.h>
 
 #include "common.h"
+#include "solver.h"
+#include "sopalin/parsec/pastix_parsec.h"
 
+/**
+ *******************************************************************************
+ *
+ * @brief Compute the triplet (uplo, cblknum, bloknum) from the key.
+ *
+ * This function convert the unique key identifier of each piece of data, to its
+ * original information.
+ *
+ *******************************************************************************
+ *
+ * @param[in] key
+ *          The key identifier to decode.
+ *
+ * @param[in] ratio
+ *          @arg 1: The sparse matrix described is lower triangular and only L is
+ *          stored.
+ *          @arg 2: The sparse matrix described is general and both lower and
+ *          upper triangular part are stored.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure to access information about the blocks
+ *          and cblks.
+ *
+ * @param[out] uplo
+ *          On exit, uplo is 0 if the key corresponds to the lower part, or 1
+ *          for the upper part.
+ *
+ * @param[out] cblknum
+ *          On exit, the index of the cblk encoded in the key.
+ *
+ * @param[out] bloknum
+ *          On exit, the index of the blok encoded in the key.
+ *          bloknum = 0, if the piece of data is the full cblk for 1D kernels.
+ *          bloknum > 0, if the piece of data is the (bloknum-1)^th block in the cblk.
+ *
+ ******************************************************************************/
 static inline void
-spm_data_key_to_value( parsec_data_key_t key,
-                       int ratio, const SolverMatrix *solvmtx,
-                       int *uplo,
-                       pastix_int_t *cblknum,
-                       pastix_int_t *bloknum)
+spm_data_key_to_value( parsec_data_key_t   key,
+                       int                 ratio,
+                       const SolverMatrix *solvmtx,
+                       int                *uplo,
+                       pastix_int_t       *cblknum,
+                       pastix_int_t       *bloknum )
 {
     parsec_data_key_t key2;
     pastix_int_t cblkmin2d, cblknbr;
@@ -55,8 +98,33 @@ spm_data_key_to_value( parsec_data_key_t key,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Compute the unique key from the triplet (uplo, cblknum, bloknum).
+ *
+ * This function convert the unique triplet in a unique key identifier for each
+ * piece of data.
+ *
+ *******************************************************************************
+ *
+ * @param[in] mat
+ *          The sparse matrix descriptor.
+ *
+ * @param[in] ...
+ *          This function must receive three int:
+ *           - uplo: 0 for the lower part, 1 for the upper part
+ *           - cblknum: the index of the cblk
+ *           - bloknum: =0 if this is the full cblk,
+                        >0 for the (bloknum-1)^th block in the cblk.
+ *
+ *******************************************************************************
+ *
+ * @return The unique key identifier for the piece of data.
+ *
+ ******************************************************************************/
 static uint32_t
-sparse_matrix_data_key(parsec_ddesc_t *mat, ... )
+sparse_matrix_data_key( parsec_ddesc_t *mat, ... )
 {
     va_list ap;
     sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
@@ -90,36 +158,143 @@ sparse_matrix_data_key(parsec_ddesc_t *mat, ... )
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Return the rank of the owner of the piece of data (uplo, cblknum,
+ * bloknum).
+ *
+ *******************************************************************************
+ *
+ * @param[in] mat
+ *          The sparse matrix descriptor.
+ *
+ * @param[in] ...
+ *          This function must receive three int:
+ *           - uplo: 0 for the lower part, 1 for the upper part
+ *           - cblknum: the index of the cblk
+ *           - bloknum: =0 if this is the full cblk,
+ *                      >0 for the (bloknum-1)^th block in the cblk.
+ *
+ *******************************************************************************
+ *
+ * @return The rank index of the owner of the data.
+ *
+ ******************************************************************************/
 static uint32_t
-sparse_matrix_rank_of(parsec_ddesc_t *mat, ... )
+sparse_matrix_rank_of( parsec_ddesc_t *mat, ... )
 {
     (void)mat;
     return 0;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Return the rank of the owner of the piece of data (key)
+ *
+ *******************************************************************************
+ *
+ * @param[in] mat
+ *          The sparse matrix descriptor.
+ *
+ * @param[in] key
+ *          The unique key idenifier of a piece of data.
+ *
+ *******************************************************************************
+ *
+ * @return The rank index of the owner of the data.
+ *
+ ******************************************************************************/
 static uint32_t
-sparse_matrix_rank_of_key(parsec_ddesc_t *mat, parsec_data_key_t key )
+sparse_matrix_rank_of_key( parsec_ddesc_t    *mat,
+                           parsec_data_key_t  key )
 {
     (void)mat; (void)key;
     return 0;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Return the rank of the virtual process owner of the piece of data
+ * (uplo, cblknum, bloknum).
+ *
+ *******************************************************************************
+ *
+ * @param[in] mat
+ *          The sparse matrix descriptor.
+ *
+ * @param[in] ...
+ *          This function must receive three int:
+ *           - uplo: 0 for the lower part, 1 for the upper part
+ *           - cblknum: the index of the cblk
+ *           - bloknum: =0 if this is the full cblk,
+ *                      >0 for the (bloknum-1)^th block in the cblk.
+ *
+ *******************************************************************************
+ *
+ * @return The rank index of the virtual process owner of the data.
+ *
+ ******************************************************************************/
 static int32_t
-sparse_matrix_vpid_of(parsec_ddesc_t *mat, ... )
+sparse_matrix_vpid_of( parsec_ddesc_t *mat, ... )
 {
     (void)mat;
     return 0;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Return the rank of the virtual process owner of the piece of data (key)
+ *
+ *******************************************************************************
+ *
+ * @param[in] mat
+ *          The sparse matrix descriptor.
+ *
+ * @param[in] key
+ *          The unique key idenifier of a piece of data.
+ *
+ *******************************************************************************
+ *
+ * @return The rank index of the virtual process owner of the data.
+ *
+ ******************************************************************************/
 static int32_t
-sparse_matrix_vpid_of_key(parsec_ddesc_t *mat, parsec_data_key_t key )
+sparse_matrix_vpid_of_key( parsec_ddesc_t    *mat,
+                           parsec_data_key_t  key )
 {
     (void)mat; (void)key;
     return 0;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Return the data handler associated to the piece of data (uplo,
+ * cblknum, bloknum).
+ *
+ *******************************************************************************
+ *
+ * @param[in] mat
+ *          The sparse matrix descriptor.
+ *
+ * @param[in] ...
+ *          This function must receive three int:
+ *           - uplo: 0 for the lower part, 1 for the upper part
+ *           - cblknum: the index of the cblk
+ *           - bloknum: =0 if this is the full cblk,
+ *                      >0 for the (bloknum-1)^th block in the cblk.
+ *
+ *******************************************************************************
+ *
+ * @return The pointer to the data handler of the data.
+ *
+ ******************************************************************************/
 static parsec_data_t *
-sparse_matrix_data_of(parsec_ddesc_t *mat, ... )
+sparse_matrix_data_of( parsec_ddesc_t *mat, ... )
 {
     sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
     SolverCblk *cblk;
@@ -151,8 +326,27 @@ sparse_matrix_data_of(parsec_ddesc_t *mat, ... )
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Return the data handler associated to the piece of data (key).
+ *
+ *******************************************************************************
+ *
+ * @param[in] mat
+ *          The sparse matrix descriptor.
+ *
+ * @param[in] key
+ *          The unique key idenifier of a piece of data.
+ *
+ *******************************************************************************
+ *
+ * @return The pointer to the data handler of the data.
+ *
+ ******************************************************************************/
 static parsec_data_t *
-sparse_matrix_data_of_key(parsec_ddesc_t *mat, parsec_data_key_t key )
+sparse_matrix_data_of_key( parsec_ddesc_t    *mat,
+                           parsec_data_key_t  key )
 {
     sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
     SolverMatrix *solvmtx = spmtx->solvmtx;
@@ -180,10 +374,36 @@ sparse_matrix_data_of_key(parsec_ddesc_t *mat, parsec_data_key_t key )
     }
 }
 
-#ifdef PARSEC_PROF_TRACE
+#if defined(PARSEC_PROF_TRACE)
+/**
+ *******************************************************************************
+ *
+ * @brief Convert the uinque key identifier to a human readable string.
+ *
+ *******************************************************************************
+ *
+ * @param[in] mat
+ *          The sparse matrix descriptor.
+ *
+ * @param[in] key
+ *          The unique key idenifier of a piece of data.
+ *
+ * @param[inout] buffer
+ *          The char buffer of size buffer_size that will receive the string
+ *          describing the piece of data.
+ *
+ * @param[in] buffer_size
+ *          The size of the buffer buffer. buffer_size > 0.
+ *
+ *******************************************************************************
+ *
+ * @return The number of characters printed (excluding the null byte used to end
+ * output to strings) as returned by snprintf.
+ *
+ ******************************************************************************/
 static int
 sparse_matrix_key_to_string( parsec_ddesc_t *mat,
-                             uint32_t datakey,
+                             uint32_t key,
                              char *buffer, uint32_t buffer_size )
 {
     sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
@@ -192,7 +412,7 @@ sparse_matrix_key_to_string( parsec_ddesc_t *mat,
     int res, ratio;
 
     ratio = (spmtx->mtxtype == PastixGeneral) ? 2 : 1;
-    spm_data_key_to_value( datakey, ratio, spmtx->solvmtx,
+    spm_data_key_to_value( key, ratio, spmtx->solvmtx,
                            &uplo, &cblknum, &bloknum );
 
     res = snprintf(buffer, buffer_size, "(%d, %ld, %ld)",
@@ -200,12 +420,46 @@ sparse_matrix_key_to_string( parsec_ddesc_t *mat,
     if (res < 0)
     {
         printf("error in key_to_string for tile (%d, %ld, %ld) key: %u\n",
-               uplo, (long int)cblknum, (long int)bloknum, datakey);
+               uplo, (long int)cblknum, (long int)bloknum, key);
     }
     return res;
 }
 #endif
 
+/**
+ *******************************************************************************
+ *
+ * @brief Generate the PaRSEC descriptor of the sparse matrix.
+ *
+ * This function creates the PaRSEC descriptor that will provide tha data
+ * mapping and memory location to PaRSEC for the computation.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] spmtx
+ *          The allocated descriptor to initialize.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure that describes the sparse matrix for
+ *          PaStiX.
+ *
+ * @param[in] typesize
+ *          The memory size of the arithmetic used to store the matrix
+ *          coefficients.
+ *
+ * @param[in] mtxtype
+ *          The type of sparse matrix to describe.
+ *          @arg PastixGeneral:   The sparse matrix is general.
+ *          @arg PastixSymmetric: The sparse matrix is lower triangular symmetric.
+ *          @arg PastixHermitian: The sparse matrix is lower triangular hermitian.
+ *
+ * @param[in] nodes
+ *          The number of processes used to solve the problem.
+ *
+ * @param[in] rank
+ *          The rank of the calling process.
+ *
+ ******************************************************************************/
 void
 sparse_matrix_init( sparse_matrix_desc_t *spmtx,
                     SolverMatrix *solvmtx,
@@ -358,6 +612,20 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Free the PaRSEC descriptor of the sparse matrix.
+ *
+ * This function destroys the PaRSEC descriptor, but do not free the matrix data
+ * that are managed by PaStiX.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] spmtx
+ *          The descriptor to free.
+ *
+ ******************************************************************************/
 void
 sparse_matrix_destroy( sparse_matrix_desc_t *spmtx )
 {
@@ -413,3 +681,7 @@ sparse_matrix_destroy( sparse_matrix_desc_t *spmtx )
 
     parsec_ddesc_destroy( (parsec_ddesc_t*)spmtx );
 }
+
+/**
+ *@}
+ */

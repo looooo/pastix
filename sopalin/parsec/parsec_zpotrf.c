@@ -82,7 +82,8 @@ parsec_zpotrf_sp1dplus_New( sparse_matrix_desc_t *A,
     parsec_zpotrf_sp1dplus = parsec_zpotrf_sp1dplus_new( A, sopalin_data, NULL );
 
     parsec_zpotrf_sp1dplus->_g_p_work = (parsec_memory_pool_t*)malloc(sizeof(parsec_memory_pool_t));
-    parsec_private_memory_init( parsec_zpotrf_sp1dplus->_g_p_work, sopalin_data->solvmtx->gemmmax * sizeof(pastix_complex64_t) );
+    parsec_private_memory_init( parsec_zpotrf_sp1dplus->_g_p_work,
+                                sopalin_data->solvmtx->gemmmax * sizeof(pastix_complex64_t) );
 
     /* This is a default initializer for now, as it is not used in distributed */
     parsec_matrix_add2arena_rect( parsec_zpotrf_sp1dplus->arenas[PARSEC_zpotrf_sp1dplus_DEFAULT_ARENA],
@@ -234,7 +235,8 @@ parsec_zpotrf_sp2d_New( sparse_matrix_desc_t *A,
     parsec_zpotrf_sp2d = parsec_zpotrf_sp2d_new( A, sopalin_data, NULL );
 
     parsec_zpotrf_sp2d->_g_p_work = (parsec_memory_pool_t*)malloc(sizeof(parsec_memory_pool_t));
-    parsec_private_memory_init( parsec_zpotrf_sp2d->_g_p_work, sopalin_data->solvmtx->gemmmax * sizeof(pastix_complex64_t) );
+    parsec_private_memory_init( parsec_zpotrf_sp2d->_g_p_work,
+                                sopalin_data->solvmtx->gemmmax * sizeof(pastix_complex64_t) );
 
     parsec_matrix_add2arena_rect( parsec_zpotrf_sp2d->arenas[PARSEC_zpotrf_sp2d_DEFAULT_ARENA],
                                   parsec_datatype_double_complex_t,
