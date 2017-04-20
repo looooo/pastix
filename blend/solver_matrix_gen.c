@@ -421,16 +421,7 @@ solverMatrixGen( pastix_int_t        clustnum,
                  */
                 odb_nbr = symbmtx->cblktab[ simutask->cblknum + 1 ].bloknum - simutask->bloknum - 1;
 
-                switch(solvtask->taskid)
-                {
-                case COMP_1D:
-                    indnbr += (odb_nbr*(odb_nbr+1))/2;
-                    break;
-                default:
-                    fprintf(stderr, "solverMatrixgen: Error no task type \n");
-                    EXIT(MOD_BLEND,INTERNAL_ERR);
-                }
-
+                indnbr += (odb_nbr*(odb_nbr+1))/2;
                 tasknum++; solvtask++;
             }
         }
@@ -625,7 +616,6 @@ solverMatrixGen( pastix_int_t        clustnum,
                         indnbr++;
                     }
                 }
-                break;
             }
         }
         assert(indnbr == solvmtx->indnbr);
