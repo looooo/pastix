@@ -31,7 +31,7 @@
  *
  * @ingroup blend_dev_ctrl
  *
- * @brief Return the communication cos between two cores
+ * @brief Return the communication cost between two cores
  *
  *******************************************************************************
  *
@@ -45,7 +45,7 @@
  *          The remote cluster of the communication
  *
  * @param[in] sync_comm_nbr
- *          The number of simultaneus communication between clustsrc and clustdst
+ *          The number of simultaneous communication between clustsrc and clustdst
  *
  * @param[out] startup
  *          On exit, holds the startup/latency cost of the communication between

@@ -139,7 +139,7 @@
  *
  **********
  *
- * @defgroup blend_dev_simu Factiorization Simulation
+ * @defgroup blend_dev_simu Factorization Simulation
  * @ingroup  pastix_blend
  *
  **********

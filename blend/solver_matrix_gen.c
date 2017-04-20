@@ -63,8 +63,8 @@
  *          scheduling.
  *
  * @param[in] ctrl
- *          The blend control structure that contaions extra information
- *          computed during the analyze steps and the aprameters of the analyze
+ *          The blend control structure that contains extra information
+ *          computed during the analyze steps and the parameters of the analyze
  *          step.
  *
  *******************************************************************************

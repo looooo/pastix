@@ -25,7 +25,7 @@
 /**
  *******************************************************************************
  *
- * @brief Initialize the extendVetor structure with the initial size given.
+ * @brief Initialize the extendVector structure with the initial size given.
  *
  *******************************************************************************
  *
@@ -53,7 +53,7 @@ extendint_Init(ExtendVectorINT *vec, pastix_int_t size)
 /**
  *******************************************************************************
  *
- * @brief Free the extendVetor structure.
+ * @brief Free the extendVector structure.
  *
  *******************************************************************************
  *

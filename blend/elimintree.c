@@ -127,7 +127,7 @@ eTreeLevel(const EliminTree *etree)
 /**
  *******************************************************************************
  *
- * @brief Compute the nuber of level existing below a given node.
+ * @brief Compute the number of level existing below a given node.
  *
  *******************************************************************************
  *
@@ -246,7 +246,7 @@ eTreePrint(const EliminTree *etree, FILE *stream, pastix_int_t rootnum )
  *
  * @brief Build the elimination tree.
  *
- * The elimination tree is computed based on a given symbvolic structure,a nd
+ * The elimination tree is computed based on a given symbolic structure, and
  * not from the tree given by the ordering library. Each father of a node is
  * defined as the facing column block of the first off diagonal block.
  *

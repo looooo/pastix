@@ -13,8 +13,8 @@
  *
  * @addtogroup blend_dev_extint
  * @{
- *    This module contains all subroutines to mangae the extend int vector
- *    arrays. This structure manage a vectore of intger automatically extensible
+ *    This module contains all subroutines to manage the extend int vector
+ *    arrays. This structure manage a vector of integer automatically extensible
  *    when elements are added. This is used in the simulation algorithm to store
  *    the available tasks per worker.
  *

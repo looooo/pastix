@@ -440,7 +440,7 @@ candDistribWithDepth( pastix_int_t        depth,
  *
  * @param[in]    ratiolimit
  *               if autolevel is true, ratiolimit defines the minimal width of
- *               the node that will b e handled as 2D tasks.
+ *               the node that will be handled as 2D tasks.
  *
  * @param[inout] candtab
  *               Pointer to the global candtab array that needs to be initialized.

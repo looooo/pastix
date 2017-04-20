@@ -55,7 +55,7 @@ solver_copy( const SolverMatrix *solvin,
     SolverBlok *solvblok;
     pastix_int_t i;
 
-    /** Copy tasktab **/
+    /* Copy tasktab */
     MALLOC_INTERN(solvout->tasktab, solvout->tasknbr, Task);
     memcpy(solvout->tasktab, solvin->tasktab, solvout->tasknbr*sizeof(Task));
 #ifdef DEBUG_BLEND
@@ -63,7 +63,7 @@ solver_copy( const SolverMatrix *solvin,
         ASSERT((solvout->tasktab[i].btagptr == NULL), MOD_BLEND);
 #endif
 
-    /** Copy cblktab and bloktab **/
+    /* Copy cblktab and bloktab */
     MALLOC_INTERN(solvout->cblktab, solvout->cblknbr+1, SolverCblk);
     memcpy(solvout->cblktab, solvin->cblktab,
            (solvout->cblknbr+1)*sizeof(SolverCblk));
@@ -184,23 +184,25 @@ solver_copy( const SolverMatrix *solvin,
 
 #endif /* defined(PASTIX_WITH_STARPU) */
 
-    /** Copy ftgttab **/
+    /* Copy ftgttab */
     if (solvout->ftgtnbr != 0)
     {
         MALLOC_INTERN(solvout->ftgttab, solvout->ftgtnbr, solver_ftgt_t);
         memcpy(solvout->ftgttab, solvin->ftgttab,
                solvout->ftgtnbr*sizeof(solver_ftgt_t));
     }
-    /** copy infotab of fan intarget **/
-    /*for(i=0;i<solvin->ftgtnbr;i++)
-     memcpy(solvout->ftgttab[i].infotab, solvin->ftgttab[i].infotab, FTGT_MAXINFO*sizeof(pastix_int_t));*/
+    /* Copy infotab of fan intarget */
+    /*
+     for(i=0;i<solvin->ftgtnbr;i++)
+       memcpy(solvout->ftgttab[i].infotab, solvin->ftgttab[i].infotab, FTGT_MAXINFO*sizeof(pastix_int_t));
+     */
 
-    /** Copy indtab **/
+    /* Copy indtab */
     MALLOC_INTERN(solvout->indtab, solvout->indnbr, pastix_int_t);
     memcpy(solvout->indtab, solvin->indtab, solvout->indnbr*sizeof(pastix_int_t));
 
 
-    /** Copy ttsktab & ttsknbr **/
+    /* Copy ttsktab & ttsknbr */
     if (solvout->bublnbr>0)
     {
         MALLOC_INTERN(solvout->ttsknbr, solvout->bublnbr, pastix_int_t);

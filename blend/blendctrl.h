@@ -101,7 +101,7 @@ typedef struct blendctrl_s {
     Cand              *candtab;      /**< processor candidate tab                                           */
     ExtendVectorINT   *intvec;       /**< vector of pastix_int_t used by several routines.
                                           The aim of this variable is to avoid
-                                          repetedly memAlloc and memFree call                               */
+                                          repeatedly memAlloc and memFree call                               */
     ExtendVectorINT   *intvec2;      /**< Another one                                                       */
     FILE              *tracefile;    /**< File holding the simulated trace                                  */
     /**

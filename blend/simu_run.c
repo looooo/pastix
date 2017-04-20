@@ -804,7 +804,7 @@ simu_pushToReadyHeap(const BlendCtrl *ctrl,
  *
  * @brief Run the simulation to map the data on the nodes
  *
- * This routine simulates the fnumerical factorization to generate the static
+ * This routine simulates the numerical factorization to generate the static
  * scheduling and the final mapping of the column block onto the PaStiX
  * processes.
  *
