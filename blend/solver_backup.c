@@ -22,14 +22,14 @@
  * @brief Structure to store backup of counter modified during numerical factorization and solve steps.
  */
 struct SolverBackup_s {
-    pastix_int_t  arftmax;        /*< Maximum area of FanIn Target: doubled by LU decomposition                   */
-    pastix_int_t  nbftmax;        /*< Maximum number of FanIn Target: doubled by LU decomposition                 */
-    pastix_int_t *task_ctrbcnt;   /*< Number of contribution: the counter is decreased to 0 during factorization  */
-    pastix_int_t *task_ftgtcnt;   /*< Number of FanIn contrib: the counter is decreased to 0 during factorization */
-    pastix_int_t *fanin_ctrbnbr;  /*< Number of contribution to FanIn: decreased during facto and solve           */
-    pastix_int_t *fanin_prionum;  /*< Replaced by the number of msg packed during factorization sends             */
-    pastix_int_t *symbol_cblknum; /*< Replaced by the negative FanIn index during facto and solve                 */
-    pastix_int_t  symbol_nodenbr; /*< ???                                                                         */
+    pastix_int_t  arftmax;        /**< Maximum area of FanIn Target: doubled by LU decomposition                   */
+    pastix_int_t  nbftmax;        /**< Maximum number of FanIn Target: doubled by LU decomposition                 */
+    pastix_int_t *task_ctrbcnt;   /**< Number of contribution: the counter is decreased to 0 during factorization  */
+    pastix_int_t *task_ftgtcnt;   /**< Number of FanIn contrib: the counter is decreased to 0 during factorization */
+    pastix_int_t *fanin_ctrbnbr;  /**< Number of contribution to FanIn: decreased during facto and solve           */
+    pastix_int_t *fanin_prionum;  /**< Replaced by the number of msg packed during factorization sends             */
+    pastix_int_t *symbol_cblknum; /**< Replaced by the negative FanIn index during facto and solve                 */
+    pastix_int_t  symbol_nodenbr; /**< ???                                                                         */
 };
 
 /**

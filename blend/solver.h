@@ -102,13 +102,13 @@ typedef int  (*fct_rradd_t)( pastix_fixdbl_t, pastix_trans_t, const void *,
  *        kernels and their parmaeters.
  */
 typedef struct pastix_lr_s {
-    pastix_int_t compress_when;       /*< When to compress in the full solver              */
-    pastix_int_t compress_method;     /*< Compression method                               */
-    pastix_int_t compress_min_width;  /*< Minimum width to compress a supernode            */
-    pastix_int_t compress_min_height; /*< Minimum height to compress an off-diagonal block */
-    double       tolerance;           /*< Absolute compression tolerance                   */
-    fct_rradd_t  core_rradd;          /*< Recompression function                           */
-    fct_ge2lr_t  core_ge2lr;          /*< Compression function                             */
+    pastix_int_t compress_when;       /**< When to compress in the full solver              */
+    pastix_int_t compress_method;     /**< Compression method                               */
+    pastix_int_t compress_min_width;  /**< Minimum width to compress a supernode            */
+    pastix_int_t compress_min_height; /**< Minimum height to compress an off-diagonal block */
+    double       tolerance;           /**< Absolute compression tolerance                   */
+    fct_rradd_t  core_rradd;          /**< Recompression function                           */
+    fct_ge2lr_t  core_ge2lr;          /**< Compression function                             */
 } pastix_lr_t;
 
 /**
@@ -149,39 +149,39 @@ typedef struct solver_ftgt_s {
  * @brief Solver block structure.
  */
 typedef struct solver_blok_s {
-    void        *handler[2]; /*< Runtime data handler                     */
-    pastix_int_t lcblknm;    /*< Local column block                       */
-    pastix_int_t fcblknm;    /*< Facing column block                      */
-    pastix_int_t frownum;    /*< First row index                          */
-    pastix_int_t lrownum;    /*< Last row index (inclusive)               */
-    pastix_int_t coefind;    /*< Index in coeftab                         */
-    pastix_int_t browind;    /*< Index in browtab                         */
-    int8_t       gpuid;      /*< Store on which GPU the block is computed */
+    void        *handler[2]; /**< Runtime data handler                     */
+    pastix_int_t lcblknm;    /**< Local column block                       */
+    pastix_int_t fcblknm;    /**< Facing column block                      */
+    pastix_int_t frownum;    /**< First row index                          */
+    pastix_int_t lrownum;    /**< Last row index (inclusive)               */
+    pastix_int_t coefind;    /**< Index in coeftab                         */
+    pastix_int_t browind;    /**< Index in browtab                         */
+    int8_t       gpuid;      /**< Store on which GPU the block is computed */
 
     /* LR structures */
-    pastix_lrblock_t *LRblock; /*< Store the blok (L/U) in LR format. Allocated for the cblk. */
+    pastix_lrblock_t *LRblock; /**< Store the blok (L/U) in LR format. Allocated for the cblk. */
 } SolverBlok;
 
 /**
  * @brief Solver column block structure.
  */
 typedef struct solver_cblk_s  {
-    pastix_atomic_lock_t lock;       /*< Lock to protect computation on the cblk */
-    volatile uint32_t    ctrbcnt;    /*< Number of contribution to receive       */
-    int8_t               cblktype;   /*< Type of cblk                            */
-    int8_t               gpuid;      /*< Store on which GPU the cblk is computed */
-    pastix_int_t         fcolnum;    /*< First column index                      */
-    pastix_int_t         lcolnum;    /*< Last column index (inclusive)           */
-    SolverBlok          *fblokptr;   /*< First block in column (diagonal)        */
-    pastix_int_t         stride;     /*< Column block stride                     */
-    pastix_int_t         lcolidx;    /*< Local first column index to the location in the rhs vector       */
-    pastix_int_t         brownum;    /*< First block in row facing the diagonal block in browtab, 0-based */
-    pastix_int_t         brown2d;    /*< First 2D-block in row facing the diagonal block in browtab, 0-based */
-    pastix_int_t         gcblknum;   /*< Global column block index               */
-    void                *lcoeftab;   /*< Coefficients access vector              */
-    void                *ucoeftab;   /*< Coefficients access vector              */
-    void                *handler[2]; /*< Runtime data handler                    */
-    pastix_int_t         procdiag;   /*< Cluster owner of diagonal block (@todo: check if really required) */
+    pastix_atomic_lock_t lock;       /**< Lock to protect computation on the cblk */
+    volatile uint32_t    ctrbcnt;    /**< Number of contribution to receive       */
+    int8_t               cblktype;   /**< Type of cblk                            */
+    int8_t               gpuid;      /**< Store on which GPU the cblk is computed */
+    pastix_int_t         fcolnum;    /**< First column index                      */
+    pastix_int_t         lcolnum;    /**< Last column index (inclusive)           */
+    SolverBlok          *fblokptr;   /**< First block in column (diagonal)        */
+    pastix_int_t         stride;     /**< Column block stride                     */
+    pastix_int_t         lcolidx;    /**< Local first column index to the location in the rhs vector       */
+    pastix_int_t         brownum;    /**< First block in row facing the diagonal block in browtab, 0-based */
+    pastix_int_t         brown2d;    /**< First 2D-block in row facing the diagonal block in browtab, 0-based */
+    pastix_int_t         gcblknum;   /**< Global column block index               */
+    void                *lcoeftab;   /**< Coefficients access vector              */
+    void                *ucoeftab;   /**< Coefficients access vector              */
+    void                *handler[2]; /**< Runtime data handler                    */
+    pastix_int_t         procdiag;   /**< Cluster owner of diagonal block (@todo: check if really required) */
 } SolverCblk;
 
 /**
@@ -193,24 +193,24 @@ typedef struct solver_cblk_s  {
  *
  */
 struct solver_matrix_s {
-    int restore; /*< Flag to indicate if it is require to restore data with
-                     solverBackupRestore: 0: No need, 1:After solve,
-                     2:After Factorization */
-    pastix_int_t            baseval;   /*< Base value for numberings                         */
-    pastix_int_t            nodenbr;   /*< Number of nodes before dof extension              */
-    pastix_int_t            coefnbr;   /*< Number of coefficients (node after dof extension) */
-    pastix_int_t            gcblknbr;  /*< Global number of column blocks                    */
-    pastix_int_t            cblknbr;   /*< Number of column blocks                   */
-    pastix_int_t            cblkmin2d; /*< Rank of the first cblk beeing enabled for 2D computations        */
-    pastix_int_t            cblkmaxblk;/*< Maximum number of blocks per cblk         */
-    pastix_int_t            bloknbr;   /*< Number of blocks                          */
-    pastix_int_t            brownbr;   /*< Size of the browtab array                 */
-    SolverCblk   * restrict cblktab;   /*< Array of solver column blocks             */
-    SolverBlok   * restrict bloktab;   /*< Array of solver blocks                    */
-    pastix_int_t * restrict browtab;   /*< Array of blocks                           */
+    int restore; /**< Flag to indicate if it is require to restore data with
+                      solverBackupRestore: 0: No need, 1:After solve,
+                      2:After Factorization */
+    pastix_int_t            baseval;   /**< Base value for numberings                         */
+    pastix_int_t            nodenbr;   /**< Number of nodes before dof extension              */
+    pastix_int_t            coefnbr;   /**< Number of coefficients (node after dof extension) */
+    pastix_int_t            gcblknbr;  /**< Global number of column blocks                    */
+    pastix_int_t            cblknbr;   /**< Number of column blocks                   */
+    pastix_int_t            cblkmin2d; /**< Rank of the first cblk beeing enabled for 2D computations        */
+    pastix_int_t            cblkmaxblk;/**< Maximum number of blocks per cblk         */
+    pastix_int_t            bloknbr;   /**< Number of blocks                          */
+    pastix_int_t            brownbr;   /**< Size of the browtab array                 */
+    SolverCblk   * restrict cblktab;   /**< Array of solver column blocks             */
+    SolverBlok   * restrict bloktab;   /**< Array of solver blocks                    */
+    pastix_int_t * restrict browtab;   /**< Array of blocks                           */
 
-    pastix_lr_t             lowrank;   /*< Low-rank parameters                       */
-    pastix_factotype_t      factotype; /*< General or symmetric factorization?       */
+    pastix_lr_t             lowrank;   /**< Low-rank parameters                       */
+    pastix_factotype_t      factotype; /**< General or symmetric factorization?       */
 
 #if defined(PASTIX_WITH_PARSEC)
     sparse_matrix_desc_t   *parsec_desc;
