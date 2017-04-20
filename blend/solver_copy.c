@@ -279,6 +279,8 @@ solverCopy( const SolverMatrix *solvin,
  * All internal data of the solver structure are reallocated in a contiguous
  * manner to avoid the possible fragmentation from the initialization at
  * runtime.
+ * @warning This function is not able to copy a solver matrix with low rank
+ * blocks yet.
  *
  *******************************************************************************
  *
