@@ -2,17 +2,14 @@
  *
  * @file core_zgemdm.c
  *
- *  PaStiX kernel routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX kernel routines.
  *
  * @copyright 2010-2015 Univ. of Tennessee, Univ. of California Berkeley and
- *  Univ. of Colorado Denver. All rights reserved.
- * @copyright 2015-2017
- *  Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights
- *  reserved.
+ *                      Univ. of Colorado Denver. All rights reserved.
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 1.0.0
+ * @version 6.0.0
  * @author Dulceneia Becker
  * @author Mathieu Faverge
  * @date 2011-1-18
@@ -25,9 +22,7 @@
 /**
  ******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * core_zgemdm performs one of the matrix-matrix operations
+ * @brief Perform one of the following matrix-matrix operations
  *
  *       C := alpha*op( A )*D*op( B ) + beta*C,
  *
@@ -133,20 +128,20 @@
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS successful exit
- *          \retval <0 if -i, the i-th argument had an illegal value
+ * @retval PASTIX_SUCCESS successful exit
+ * @retval <0 if -i, the i-th argument had an illegal value
  *
  ******************************************************************************/
-int core_zgemdm(pastix_trans_t transA, pastix_trans_t transB,
-                int M, int N, int K,
-                      pastix_complex64_t alpha,
-                const pastix_complex64_t *A,    int LDA,
-                const pastix_complex64_t *B,    int LDB,
-                      pastix_complex64_t beta,
-                      pastix_complex64_t *C,    int LDC,
-                const pastix_complex64_t *D,    int incD,
-                      pastix_complex64_t *WORK, int LWORK)
+int
+core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
+             int M, int N, int K,
+                   pastix_complex64_t alpha,
+             const pastix_complex64_t *A,    int LDA,
+             const pastix_complex64_t *B,    int LDB,
+                   pastix_complex64_t beta,
+                   pastix_complex64_t *C,    int LDC,
+             const pastix_complex64_t *D,    int incD,
+                   pastix_complex64_t *WORK, int LWORK )
 {
     int j, Am, Bm;
     pastix_complex64_t delta;

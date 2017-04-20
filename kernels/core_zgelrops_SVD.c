@@ -2,11 +2,12 @@
  *
  * @file core_zgelrops_SVD.c
  *
- *  PaStiX kernel routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX low-rank kernel routines using SVD based on Lapack ZGESVD.
  *
- * @version 1.0.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Gregoire Pichon
  * @date 2016-23-03
  * @precisions normal z -> c d s
@@ -27,9 +28,9 @@ static pastix_complex64_t zzero =  0.;
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @ingroup kernel_lr_svd_null
  *
- * core_zge2lrx - Computes a SVD with truncation.
+ * @brief Computes a SVD with truncation.
  *
  *******************************************************************************
  *
@@ -55,11 +56,10 @@ static pastix_complex64_t zzero =  0.;
  *
  *******************************************************************************
  *
- * @return
- *          This routine will return the rank of A
+ * @return  This routine will return the rank of A
  *
  *******************************************************************************/
-int
+static inline int
 core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
              const pastix_complex64_t *A, pastix_int_t lda,
              pastix_lrblock_t *Alr )
@@ -158,9 +158,7 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * core_zge2lr_SVD - Convert a full rank matrix in a low rank matrix, using SVD.
+ * @brief Convert a full rank matrix in a low rank matrix, using SVD.
  *
  *******************************************************************************
  *
@@ -223,9 +221,7 @@ core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * core_zrradd_SVD - Adds two LR structures A=(-u1) v1^T and B=u2 v2^T into u2 v2^T
+ * @brief Add two LR structures A=(-u1) v1^T and B=u2 v2^T into u2 v2^T
  *
  *    u2v2^T - u1v1^T = (u2 u1) (v2 v1)^T
  *    Compute QR decomposition of (u2 u1) = Q1 R1
@@ -239,8 +235,8 @@ core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
  *          The absolute tolerance criteria
  *
  * @param[in] transA1
- *         @arg CblasNoTrans   :  No transpose, op( A ) = A;
- *         @arg CblasTrans     :  Transpose, op( A ) = A';
+ *         @arg PastixNoTrans: No transpose, op( A ) = A;
+ *         @arg PastixTrans:   Transpose, op( A ) = A';
  *
  * @param[in] alpha
  *          alpha * A is add to B
@@ -271,8 +267,7 @@ core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
  *
  *******************************************************************************
  *
- * @return
- *          The new rank of u2 v2^T or -1 if ranks are too large for recompression
+ * @return  The new rank of u2 v2^T or -1 if ranks are too large for recompression
  *
  *******************************************************************************/
 int
@@ -707,13 +702,10 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     return new_rank;
 }
 
-/* Interfaces to transform pastix_complex64_t into void */
 /**
  *******************************************************************************
  *
- * @ingroup pastix_dev_kernel
- *
- * core_zge2lr_SVD_interface - Interface to core_zge2lr_SVD
+ * @brief Arithmetic free interface to core_zge2lr_SVD
  *
  *******************************************************************************
  *
@@ -738,21 +730,19 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
  *          representation of A
  *
  *******************************************************************************/
-void core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
-                                const void *Aptr, pastix_int_t lda,
-                                void *Alr )
+void
+core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
+                           const void *Aptr, pastix_int_t lda,
+                           void *Alr )
 {
     const pastix_complex64_t *A = (const pastix_complex64_t *) Aptr;
     core_zge2lr_SVD( tol, m, n, A, lda, Alr );
 }
 
-
 /**
  *******************************************************************************
  *
- * @ingroup pastix_dev_kernel
- *
- * core_zrradd_SVD_interface - Interface to core_zrradd_SVD
+ * @brief Arithmetic free interface to core_zrradd_SVD
  *
  *******************************************************************************
  *
@@ -760,8 +750,8 @@ void core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_
  *          The absolute tolerance criteria
  *
  * @param[in] transA1
- *         @arg CblasNoTrans   :  No transpose, op( A ) = A;
- *         @arg CblasTrans     :  Transpose, op( A ) = A';
+ *         @arg PastixNoTrans: No transpose, op( A ) = A;
+ *         @arg PastixTrans:   Transpose, op( A ) = A';
  *
  * @param[in] alphaptr
  *          alpha * A is add to B
@@ -792,14 +782,14 @@ void core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_
  *
  *******************************************************************************
  *
- * @return
- *          The new rank of u2 v2^T or -1 if ranks are too large for recompression
+ * @return  The new rank of u2 v2^T or -1 if ranks are too large for recompression
  *
  *******************************************************************************/
-int core_zrradd_SVD_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, const void *alphaptr,
-                               pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                               pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                               pastix_int_t offx, pastix_int_t offy)
+int
+core_zrradd_SVD_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, const void *alphaptr,
+                           pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                           pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                           pastix_int_t offx, pastix_int_t offy)
 {
     const pastix_complex64_t *alpha = (const pastix_complex64_t *) alphaptr;
     return core_zrradd_SVD( tol, transA1, *alpha,

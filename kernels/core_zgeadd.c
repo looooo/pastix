@@ -224,11 +224,12 @@ core_zgeadd( pastix_trans_t            trans,
  *          The pointer to the lower matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in] Cl
+ * @param[inout] Cl
  *          The pointer to the lower matrix storing the coefficients of the
  *          updated panel. Must be of size cblk.stride -by- cblk.width
+ *          On exit Cl = Cl + L.
  *
- * @param[inout] U
+ * @param[in] U
  *          The pointer to the upper matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width. Ignored if
  *          NULL.
@@ -236,10 +237,11 @@ core_zgeadd( pastix_trans_t            trans,
  * @param[inout] Cu
  *          The pointer to the upper matrix storing the coefficients of the
  *          updated panel. Must be of size cblk.stride -by- cblk.width
+ *          On exit Cu = Cu + U.
  *
  *******************************************************************************
  *
- * @retval PASTIX_SUCCESS successful exit
+ * @retval PASTIX_SUCCESS on success.
  *
  ******************************************************************************/
 int

@@ -160,15 +160,45 @@
  *           block CSC and the solver matrix structure before applying
  *           the numerical factorization.
  *
- **********
+ ******
  *
  * @defgroup pastix_kernel Numerical kernels
  * @ingroup  pastix_numfact
  *
+ ********
+ *
+ * @defgroup kernel_blas_lapack Blas-Lapack like kernels
+ * @ingroup  pastix_kernel
+ *
+ ********
+ *
+ * @defgroup kernel_lr Low-rank kernels
+ * @ingroup  pastix_kernel
+ *
  **********
  *
- * @defgroup pastix_dev_kernel Numerical kernels
+ * @defgroup kernel_lr_null Internal functions for low-rank kernels
+ * @ingroup  kernel_lr
+ *
+ **********
+ *
+ * @defgroup kernel_lr_rrqr Rank-Revealing QR Low-rank kernels
+ * @ingroup  kernel_lr
+ *
+ **********
+ *
+ * @defgroup kernel_lr_svd SVD Low-rank kernels
+ * @ingroup  kernel_lr
+ *
+ ********
+ *
+ * @defgroup kernel_solver Kernel operating at the solver matrix level (cblk or blok)
  * @ingroup  pastix_kernel
+ *
+ **********
+ *
+ * @defgroup kernel_solver_null Internal functions solver matrix kernels
+ * @ingroup  kernel_solver
  *
  ****
  *

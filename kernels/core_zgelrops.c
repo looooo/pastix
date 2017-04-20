@@ -2,11 +2,12 @@
  *
  * @file core_zgelrops.c
  *
- *  PaStiX kernel routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX low-rank kernel routines
  *
- * @version 1.0.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Gregoire Pichon
  * @date 2016-23-03
  * @precisions normal z -> c d s
@@ -27,8 +28,6 @@ static pastix_complex64_t zzero =  0.;
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
  * @brief Allocate a low-rank matrix.
  *
  *******************************************************************************
@@ -41,14 +40,16 @@ static pastix_complex64_t zzero =  0.;
  *
  * @param[in] rkmax
  *         @arg -1: the matrix is allocated tight to its rank.
- *         @arg >0: the matrix is allocated to the maximu of its rank and rkmax.
+ *         @arg >0: the matrix is allocated to the minimum of rkmax and its maximum rank.
  *
  * @param[out] A
  *          The allocated low-rank matrix
  *
  *******************************************************************************/
 void
-core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax,
+core_zlralloc( pastix_int_t      M,
+               pastix_int_t      N,
+               pastix_int_t      rkmax,
                pastix_lrblock_t *A )
 {
     pastix_complex64_t *u, *v;
@@ -62,6 +63,9 @@ core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax,
         A->v = NULL;
     }
     else {
+        pastix_int_t rk = pastix_imin( M, N );
+        rkmax = pastix_imin( rkmax, rk );
+
 #if defined(PASTIX_DEBUG_LR)
         u = malloc( M * rkmax * sizeof(pastix_complex64_t) );
         v = malloc( N * rkmax * sizeof(pastix_complex64_t) );
@@ -87,8 +91,6 @@ core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax,
 
 /**
  *******************************************************************************
- *
- * @ingroup pastix_kernel
  *
  * @brief Free a low-rank matrix.
  *
@@ -119,8 +121,6 @@ core_zlrfree( pastix_lrblock_t *A )
 
 /**
  *******************************************************************************
- *
- * @ingroup pastix_kernel
  *
  * @brief Resize a low-rank matrix
  *
@@ -155,7 +155,8 @@ core_zlrfree( pastix_lrblock_t *A )
  *******************************************************************************/
 int
 core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
-             pastix_lrblock_t *A, int newrk, int newrkmax )
+             pastix_lrblock_t *A,
+             int newrk, int newrkmax )
 {
     pastix_int_t minmn = pastix_imin( M, N );
 
@@ -235,8 +236,6 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
  * @brief Convert a low rank matrix into a dense matrix.
  *
  *******************************************************************************
@@ -250,7 +249,7 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
  * @param[in] Alr
  *          The low rank matrix to be converted into a dense matrix
  *
- * @param[out] A
+ * @param[inout] A
  *          The matrix of dimension lda-by-n in which to store the uncompressed
  *          version of Alr.
  *
@@ -318,8 +317,6 @@ core_zlr2ge( pastix_int_t m, pastix_int_t n,
 
 /**
  *******************************************************************************
- *
- * @ingroup pastix_kernel
  *
  * @brief Add the dense matrix A to the low-rank matrix B.
  *
@@ -433,7 +430,7 @@ core_zgradd( const pastix_lr_t *lowrank, pastix_complex64_t alpha,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @ingroup kernel_lr_null
  *
  * @brief Compute the product of two possible low-rank matrices and returns the
  * result in AB.
@@ -663,7 +660,7 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @ingroup kernel_lr_null
  *
  * @brief Compute the product of two low-rank matrices (rank != -1) and returns
  * the result in AB
@@ -843,8 +840,6 @@ core_zlrm3( const pastix_lr_t *lowrank,
 
 /**
  *******************************************************************************
- *
- * @ingroup pastix_kernel
  *
  * @brief Compute A * B + C with three low-rank matrices
  *
@@ -1088,9 +1083,7 @@ core_zlrmm( const pastix_lr_t *lowrank,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * @brief A * B + C with A, and B low-rank matrices, and C full rank
+ * @brief Compute A * B + C with A, and B low-rank matrices, and C full rank
  *
  *******************************************************************************
  *

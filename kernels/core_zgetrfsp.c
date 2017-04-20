@@ -2,11 +2,12 @@
  *
  * @file core_zgetrfsp.c
  *
- *  PaStiX kernel routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ *  PaStiX kernel routines for LU factorization.
  *
- * @version 1.0.0
+ * @copyright 2011-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -28,10 +29,10 @@ static pastix_complex64_t mzone = -1.;
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @ingroup kernel_blas_lapack_null
  *
- * core_zgetf2sp - Computes the sequential static pivoting LU factorization of
- * the matrix m-by-n A = L * U.
+ * @brief Compute the sequential static pivoting LU factorization of the matrix
+ * m-by-n A = L * U.
  *
  *******************************************************************************
  *
@@ -59,17 +60,17 @@ static pastix_complex64_t mzone = -1.;
  *
  *******************************************************************************
  *
- * @return
- *          This routine will fail if it discovers a 0. on the diagonal during
+ * @warning This routine will fail if it discovers a 0. on the diagonal during
  *          factorization.
  *
  *******************************************************************************/
-static void core_zgetf2sp(pastix_int_t        m,
-                          pastix_int_t        n,
-                          pastix_complex64_t *A,
-                          pastix_int_t        lda,
-                          pastix_int_t       *nbpivot,
-                          double              criteria )
+static inline void
+core_zgetf2sp( pastix_int_t        m,
+               pastix_int_t        n,
+               pastix_complex64_t *A,
+               pastix_int_t        lda,
+               pastix_int_t       *nbpivot,
+               double              criteria )
 {
     pastix_int_t k, minMN;
     pastix_complex64_t *Akk, *Aik, alpha;
@@ -106,10 +107,10 @@ static void core_zgetf2sp(pastix_int_t        m,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @ingroup kernel_blas_lapack
  *
- * core_zgetrfsp - Computes the block static pivoting LU factorization of
- * the matrix m-by-n A = L * U.
+ * @brief Compute the block static pivoting LU factorization of the matrix
+ * m-by-n A = L * U.
  *
  *******************************************************************************
  *
@@ -134,16 +135,16 @@ static void core_zgetf2sp(pastix_int_t        m,
  *
  *******************************************************************************
  *
- * @return
- *          This routine will fail if it discovers a 0. on the diagonal during
+ * @warning This routine will fail if it discovers a 0. on the diagonal during
  *          factorization.
  *
  *******************************************************************************/
-static void core_zgetrfsp(pastix_int_t        n,
-                          pastix_complex64_t *A,
-                          pastix_int_t        lda,
-                          pastix_int_t       *nbpivot,
-                          double              criteria)
+void
+core_zgetrfsp( pastix_int_t        n,
+               pastix_complex64_t *A,
+               pastix_int_t        lda,
+               pastix_int_t       *nbpivot,
+               double              criteria )
 {
     pastix_int_t k, blocknbr, blocksize, matrixsize, tempm;
     pastix_complex64_t *Akk, *Lik, *Ukj, *Aij;
@@ -190,9 +191,12 @@ static void core_zgetrfsp(pastix_int_t        n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @ingroup kernel_solver
  *
- * core_zgetrfsp1d_getrf - Computes the LU factorization of one panel.
+ * @brief Compute the LU factorization of the diagonal block in a panel.
+ *
+ * @warning This routine will fail if it discovers a 0. on the diagonal during
+ *          factorization.
  *
  *******************************************************************************
  *
@@ -215,15 +219,15 @@ static void core_zgetrfsp(pastix_int_t        n,
  *
  *******************************************************************************
  *
- * @return
- *          This routine will fail if it discovers a 0. on the diagonal during
- *          factorization.
+ * @return The number of static pivoting performed during the diagonal block
+ *         factorization.
  *
  *******************************************************************************/
-int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
-                           pastix_complex64_t *L,
-                           pastix_complex64_t *U,
-                           double              criteria)
+int
+core_zgetrfsp1d_getrf( SolverCblk         *cblk,
+                       pastix_complex64_t *L,
+                       pastix_complex64_t *U,
+                       double              criteria )
 {
     pastix_int_t ncols, stride;
     pastix_int_t nbpivot = 0;
@@ -262,10 +266,10 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @brief Compute the LU factorization of one panel.
  *
- * core_zgetrfsp1d - Computes the LU factorization of one panel and apply
- * all the trsm updates to this panel.
+ * @warning This routine will fail if it discovers a 0. on the diagonal during
+ *          factorization.
  *
  *******************************************************************************
  *
@@ -291,16 +295,16 @@ int core_zgetrfsp1d_getrf( SolverCblk         *cblk,
  *
  *******************************************************************************
  *
- * @return
- *          This routine will fail if it discovers a 0. on the diagonal during
- *          factorization.
+ * @return The number of static pivoting performed during the diagonal block
+ *         factorization.
  *
  *******************************************************************************/
-int core_zgetrfsp1d_panel( SolverCblk         *cblk,
-                           pastix_complex64_t *L,
-                           pastix_complex64_t *U,
-                           double              criteria,
-                           const pastix_lr_t  *lowrank )
+int
+core_zgetrfsp1d_panel( SolverCblk         *cblk,
+                       pastix_complex64_t *L,
+                       pastix_complex64_t *U,
+                       double              criteria,
+                       const pastix_lr_t  *lowrank )
 {
     pastix_int_t nbpivot;
 
@@ -324,9 +328,8 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
  *
  * @ingroup pastix_kernel
  *
- * core_zgetrfsp1d - Computes the Cholesky factorization of one panel, apply all
- * the trsm updates to this panel, and apply all updates to the right with no
- * lock.
+ * @brief Perform the LU factorization of a given panel and apply all its
+ * updates.
  *
  *******************************************************************************
  *
@@ -347,8 +350,8 @@ int core_zgetrfsp1d_panel( SolverCblk         *cblk,
  *
  *******************************************************************************
  *
- * @return
- *          The number of static pivoting during factorization of the diagonal block.
+ * @return The number of static pivoting during factorization of the diagonal
+ * block.
  *
  *******************************************************************************/
 int

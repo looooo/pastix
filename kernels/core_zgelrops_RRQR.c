@@ -2,11 +2,13 @@
  *
  * @file core_zgelrops_RRQR.c
  *
- *  PaStiX kernel routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX low-rank kernel routines using Rank-revealing QR based on Lapack GEQP3.
  *
- * @version 1.0.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Alfredo Buttari
  * @author Gregoire Pichon
  * @date 2016-23-03
  * @precisions normal z -> c d s
@@ -28,9 +30,8 @@ static pastix_complex64_t zzero =  0.;
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @brief Compute a rank-reavealing QR factorization.
  *
- * core_zrrqr - Compute a rank-reavealing QR factorization.
  * This routine is originated from the LAPACK kernels zgeqp3/zlaqps and was
  * modified by A. Buttari for MUMPS-BLR.
  *
@@ -77,8 +78,7 @@ static pastix_complex64_t zzero =  0.;
  *
  *******************************************************************************
  *
- * @return
- *          This routine will return the rank of A (>=0) or an error (<0)
+ * @return  This routine will return the rank of A (>=0) or an error (<0)
  *
  *******************************************************************************/
 int
@@ -87,8 +87,8 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
             pastix_int_t *jpvt, pastix_complex64_t *tau,
             pastix_complex64_t *work, pastix_int_t ldwork,
             double *rwork,
-            double tol, pastix_int_t nb, pastix_int_t maxrank){
-
+            double tol, pastix_int_t nb, pastix_int_t maxrank)
+{
     pastix_int_t minMN = pastix_imin(m, n);
     pastix_int_t ldf   = ldwork;
 
@@ -107,7 +107,6 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
 
     /* Rank */
     pastix_int_t rk = 0;
-
 
     if (m < 0)
         return -1;
@@ -133,7 +132,7 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
         jpvt[j] = j;
     }
 
-    while(rk <= maxrank){
+    while(rk <= maxrank) {
         /* jb equivalent to kb in LAPACK xLAQPS: number of columns actually factorized */
         jb     = pastix_imin(nb, minMN-offset+1);
         lsticc = 0;
@@ -324,10 +323,7 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * core_zge2lr_RRQR - Convert a full rank matrix in a low rank matrix, using
- * RRQR.
+ * @brief Convert a full rank matrix in a low rank matrix, using RRQR.
  *
  *******************************************************************************
  *
@@ -468,10 +464,7 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * core_zrradd_RRQR - Adds two LR structures A=(-u1) v1^T and B=u2 v2^T into u2
- * v2^T
+ * @brief Add two LR structures A=(-u1) v1^T and B=u2 v2^T into u2 v2^T
  *
  *    u2v2^T - u1v1^T = (u2 u1) (v2 v1)^T
  *    Orthogonalize (u2 u1) = (u2, u1 - u2(u2^T u1)) * (I u2^T u1)
@@ -517,8 +510,7 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
  *
  *******************************************************************************
  *
- * @return
- *          The new rank of u2 v2^T or -1 if ranks are too large for
+ * @return  The new rank of u2 v2^T or -1 if ranks are too large for
  *          recompression
  *
  *******************************************************************************/
@@ -564,7 +556,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
         return -1;
     }
 
-    /**
+    /*
      * A is rank null, nothing to do
      */
     if (A->rk == 0) {
@@ -576,13 +568,13 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     ldbu = M;
     ldbv = B->rkmax;
 
-    /**
+    /*
      * Let's handle case where B is a null matrix
      *   B = alpha A
      */
     if (B->rk == 0) {
         if ( A->rk == -1 ) {
-            /**
+            /*
              * TODO: This case can be improved by compressing A, and then
              * copying it into B, however the criteria to keep A compressed or
              * not must be based on B dimension, and not on A ones
@@ -630,14 +622,14 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
         return 0;
     }
 
-    /**
+    /*
      * The rank is too big, let's try to compress
      */
     if ( rank > pastix_imin( M, N ) ) {
         assert(0);
     }
 
-    /**
+    /*
      * Let's compute the size of the workspace
      */
     /* u1u2 and v1v2 */
@@ -660,7 +652,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
 
     MALLOC_INTERN( jpvt, pastix_imax(rank, N), pastix_int_t );
 
-    /**
+    /*
      * Concatenate U2 and U1 in u1u2
      *  [ u2  0  ]
      *  [ u2  u1 ]
@@ -671,7 +663,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
 
     tmp = u1u2 + B->rk * M;
     if ( A->rk == -1 ) {
-        /**
+        /*
          * A is full of rank M1, so A will be integrated into v1v2
          */
         if ( M1 < N1 ) {
@@ -693,7 +685,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
             }
         }
         else {
-            /**
+            /*
              * A is full of rank N1, so A is integrated into u1u2
              */
             if (M1 != M) {
@@ -704,7 +696,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
             assert(ret == 0);
         }
     }
-    /**
+    /*
      * A is low rank of rank A->rk
      */
     else {
@@ -716,7 +708,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
         assert(ret == 0);
     }
 
-    /**
+    /*
      * Concatenate V2 and V1 in v1v2
      *  [ v2^h v2^h v2^h ]
      *  [ 0    v1^h 0    ]
@@ -728,7 +720,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     tmp = v1v2 + B->rk;
     if ( A->rk == -1 ) {
         assert( transA1 == PastixNoTrans );
-        /**
+        /*
          * A is full of rank M1, so it is integrated into v1v2
          */
         if ( M1 < N1 ) {
@@ -741,7 +733,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                          alpha, A->u, ldau,
                          0., tmp + offy * rank, rank );
         }
-        /**
+        /*
          * A is full of rank N1, so it has been integrated into u1u2
          */
         else {
@@ -765,7 +757,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
             }
         }
     }
-    /**
+    /*
      * A is low rank of rank A->rk
      */
     else {
@@ -780,13 +772,15 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     }
 
 
-    /**
+    /*
      * Perform RRQR factorization on v1v2 = (Q2 R2)
      */
 
-    /* Orthogonalize [u2, u1] */
-    /* [u2, u1] = [u2, u1 - u2(u2Tu1)] * (I u2Tu1)*/
-    /*                                   (0   I  ) */
+    /*
+     * Orthogonalize [u2, u1]
+     * [u2, u1] = [u2, u1 - u2(u2Tu1)] * (I u2Tu1)
+     *                                   (0   I  )
+     */
     {
         pastix_int_t rA = A->rk;
         pastix_int_t rB = B->rk;
@@ -881,7 +875,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                           rwork,
                           tol * norm, nb, rank-1);
 
-    /**
+    /*
      * First case: The rank is too big, so we decide to uncompress the result
      */
     if ( new_rank*2 > pastix_imin( M, N ) || new_rank == -1) {
@@ -922,7 +916,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
         return 0;
     }
 
-    /**
+    /*
      * We need to reallocate the buffer to store the new compressed version of B
      * because it wasn't big enough
      */
@@ -972,13 +966,10 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     return new_rank;
 }
 
-/* Interfaces to transform pastix_complex64_t into void */
 /**
  *******************************************************************************
  *
- * @ingroup pastix_devçkernel
- *
- * core_zge2lr_RRQR_interface - Interface to core_zge2lr_RRQR
+ * @brief Arithmetic free interface to core_zge2lr_RRQR
  *
  *******************************************************************************
  *
@@ -1003,7 +994,8 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
  *          representation of A
  *
  *******************************************************************************/
-void core_zge2lr_RRQR_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
+void
+core_zge2lr_RRQR_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
                             const void *Aptr, pastix_int_t lda,
                             void *Alr )
 {
@@ -1014,9 +1006,7 @@ void core_zge2lr_RRQR_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int
 /**
  *******************************************************************************
  *
- * @ingroup pastix_dev_kernel
- *
- * core_zrradd_RRQR_interface - Interface to core_zrradd_RRQR
+ * @brief Arithmetic free interface to core_zrradd_RRQR
  *
  *******************************************************************************
  *
@@ -1056,12 +1046,12 @@ void core_zge2lr_RRQR_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int
  *
  *******************************************************************************
  *
- * @return
- *          The new rank of u2 v2^T or -1 if ranks are too large for
+ * @return  The new rank of u2 v2^T or -1 if ranks are too large for
  *          recompression
  *
  *******************************************************************************/
-int core_zrradd_RRQR_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, const void *alphaptr,
+int
+core_zrradd_RRQR_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, const void *alphaptr,
                             pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                             pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
                             pastix_int_t offx, pastix_int_t offy )
