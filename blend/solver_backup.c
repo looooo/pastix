@@ -2,13 +2,12 @@
  *
  * @file solver_backup.c
  *
- *  PaStiX solver structure routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX solver structure routines.
  *
- * Contains functions to backup/restore data that can be modified during factorization/solve steps.
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
@@ -19,29 +18,30 @@
 #include "solver.h"
 
 /**
- * @ingroup pastix_solver
- * @struct SolverBackup_s - Structure to store backup of counter modified during
- *   factorization and solve steps.
+ * @ingroup blend_dev_solver
+ * @brief Structure to store backup of counter modified during numerical factorization and solve steps.
  */
 struct SolverBackup_s {
-    pastix_int_t  arftmax;        /*< Maximum area of FanIn Target: doubled by LU decomposition   */
-    pastix_int_t  nbftmax;        /*< Maximum number of FanIn Target: doubled by LU decomposition */
-    pastix_int_t *task_ctrbcnt;   /*< Number of contribution: the counter is decreased to 0 during factorization  */
-    pastix_int_t *task_ftgtcnt;   /*< Number of FanIn contrib: the counter is decreased to 0 during factorization */
-    pastix_int_t *fanin_ctrbnbr;  /*< Number of contribution to FanIn: decreased during facto and solve           */
-    pastix_int_t *fanin_prionum;  /*< Replaced by the number of msg packed during factorization sends             */
-    pastix_int_t *symbol_cblknum; /*< Replaced by the negative FanIn index during facto and solve                 */
-    pastix_int_t  symbol_nodenbr; /*< ???                              */
+    pastix_int_t  arftmax;        /**< Maximum area of FanIn Target: doubled by LU decomposition                   */
+    pastix_int_t  nbftmax;        /**< Maximum number of FanIn Target: doubled by LU decomposition                 */
+    pastix_int_t *task_ctrbcnt;   /**< Number of contribution: the counter is decreased to 0 during factorization  */
+    pastix_int_t *task_ftgtcnt;   /**< Number of FanIn contrib: the counter is decreased to 0 during factorization */
+    pastix_int_t *fanin_ctrbnbr;  /**< Number of contribution to FanIn: decreased during facto and solve           */
+    pastix_int_t *fanin_prionum;  /**< Replaced by the number of msg packed during factorization sends             */
+    pastix_int_t *symbol_cblknum; /**< Replaced by the negative FanIn index during facto and solve                 */
+    pastix_int_t  symbol_nodenbr; /**< ???                                                                         */
 };
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_solver
+ * @ingroup blend_dev_solver
  *
- * solverBackupInit - Initialize the backup structure and save counter initial
- * values before modifications. See structure description for more information
- * about what is saved and why.
+ * @brief Initialize the backup structure.
+ *
+ * This function saves the initial values of the counters before
+ * modifications. See structure description for more information about what is
+ * saved and why.
  *
  *******************************************************************************
  *
@@ -51,9 +51,8 @@ struct SolverBackup_s {
  *
  *******************************************************************************
  *
- * @return
- *          \retval Pointer to the allocated backup structure with the copy of
- *          information that might be destroyed.
+ * @retval Pointer to the allocated backup structure with the copy of
+ *         information that might be destroyed.
  *
  *******************************************************************************/
 SolverBackup_t *
@@ -120,11 +119,13 @@ solverBackupInit( const SolverMatrix *solvmtx )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_solver
+ * @ingroup blend_dev_solver
  *
- * solverBackupRestore - Restore counter values to be able to call a second
- * factorization or solve step. The amount of information restored depends on
- * the value of solvmtx->restore. If it is equal to:
+ * @brief Restore initial values.
+ *
+ * Restore counter values to be able to call a second factorization or solve
+ * step. The amount of information restored depends on the value of
+ * solvmtx->restore. If it is equal to:
  *     - 0: Nothing is restored
  *     - 1: A solve step has been performed and partial information is restored.
  *     - 2: A factorization step has been performed and full information is restored.
@@ -134,7 +135,7 @@ solverBackupInit( const SolverMatrix *solvmtx )
  *
  *******************************************************************************
  *
- * @param[in,out] solvmtx
+ * @param[inout] solvmtx
  *          The solver matrix structure holding information for factorization
  *          and solve steps.
  *          On exit, the counters have been restored to their original value
@@ -145,13 +146,13 @@ solverBackupInit( const SolverMatrix *solvmtx )
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS if the data has been restored
- *          \retval !PASTIX_SUCCESS if the data couldn't be restored.
+ * @retval PASTIX_SUCCESS if the data has been restored successfuly.
+ * @retval PASTIX_ERR_BADPARAMETER if one of the parameter is incorrect.
  *
  *******************************************************************************/
 int
-solverBackupRestore( SolverMatrix *solvmtx, const SolverBackup_t *b )
+solverBackupRestore( SolverMatrix         *solvmtx,
+                     const SolverBackup_t *b       )
 {
     pastix_int_t i;
 
@@ -212,15 +213,16 @@ solverBackupRestore( SolverMatrix *solvmtx, const SolverBackup_t *b )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_solver
+ * @ingroup blend_dev_solver
  *
- * solverBackupExit - Clean the data structure holding the information
- * backup and free the given pointer because it has necessarily been allocated
- * in solverBackupInit().
+ * @brief Free the solver backup data structure.
+ *
+ * Clean the data structure holding the information backup and free the given
+ * pointer because it has necessarily been allocated in solverBackupInit().
  *
  *******************************************************************************
  *
- * @param[in] b
+ * @param[inout] b
  *          The backup structure to destroy. On exit, b cannot be used anymore.
  *
  *******************************************************************************/

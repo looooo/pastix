@@ -1,3 +1,19 @@
+/**
+ *
+ * @file simu_task.c
+ *
+ * PaStiX simulation task basic functions.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Pascal Henon
+ * @author Pierre Ramet
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ **/
 #include <stdio.h>
 #include <math.h>
 
@@ -5,16 +21,38 @@
 #include "symbol.h"
 #include "queue.h"
 #include "extendVector.h"
-#include "elimin.h"
+#include "elimintree.h"
 #include "cost.h"
 #include "cand.h"
 #include "blendctrl.h"
 #include "solver.h"
 #include "simu.h"
 
-void simuTaskBuild( SimuCtrl *simuctrl,
-                    const SymbolMatrix *symbptr,
-                    const Cand *candtab )
+/**
+ *******************************************************************************
+ *
+ * @ingroup blend_dev_simu
+ *
+ * @brief Initialize the tasktab array of the simulation structure.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] simuctrl
+ *          The main simulation structure. On exit, the tasktab array is built
+ *          and initialized with default values.
+ *
+ * @param[in] symbptr
+ *          The pointer to the symbol matrix structure studied.
+ *
+ * @param[in] candtab
+ *          The pointer to the candidate information associated to the symbol
+ *          structure and that will guide the simulation.
+ *
+ *******************************************************************************/
+void
+simuTaskBuild( SimuCtrl           *simuctrl,
+               const SymbolMatrix *symbptr,
+               const Cand         *candtab )
 {
     pastix_int_t i, j;
     pastix_int_t tasknbr = 0;
@@ -39,7 +77,6 @@ void simuTaskBuild( SimuCtrl *simuctrl,
     for(i=0;i<symbptr->cblknbr;i++)
     {
         if ( candtab[i].cblktype & (~CBLK_IN_SCHUR) ) {
-            task->taskid   = COMP_1D;
             task->prionum  = -1;
             task->cblknum  = i;
             task->bloknum  = symbptr->cblktab[i].bloknum;
@@ -60,28 +97,4 @@ void simuTaskBuild( SimuCtrl *simuctrl,
             task++;
         }
     }
-
-#ifdef DEBUG_BLEND
-    ASSERT(simuctrl->tasknbr == tasknbr,MOD_BLEND);
-    for(i=0;i<simuctrl->tasknbr;i++)
-        if(simuctrl->tasktab[i].tasknext != -1)
-            if(simuctrl->tasktab[simuctrl->tasktab[i].tasknext].taskid != -1)
-                ASSERT(simuctrl->tasktab[simuctrl->tasktab[i].tasknext].taskid == simuctrl->tasktab[i].taskid,MOD_BLEND);
-#endif
-    ;
-}
-
-double
-simuTaskSendCost(SimuTask *taskptr, const pastix_int_t clustsrc, const pastix_int_t clustdst, BlendCtrl *ctrl)
-{
-    double startup, bandwidth;
-
-    getCommunicationCosts( ctrl, clustsrc, clustdst,
-                           ctrl->candtab[taskptr->cblknum].lccandnum -
-                           ctrl->candtab[taskptr->cblknum].fccandnum + 1,
-                           &startup, &bandwidth );
-
-    assert( taskptr->taskid != COMP_1D );
-
-    return (startup + bandwidth * taskptr->mesglen);
 }

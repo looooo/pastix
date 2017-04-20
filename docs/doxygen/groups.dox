@@ -101,13 +101,55 @@
  *
  * @defgroup pastix_blend Blend
  * @ingroup  pastix_analyze
- * @brief    This group describes all the routines of the Blend package
- *           that allow to re-split column blocs and distribute them
- *           on processors.
  *
  **********
  *
- * @defgroup blend_dev_cand Candidates
+ * @defgroup blend_dev_ctrl Control parameters
+ * @ingroup  pastix_blend
+ *
+ **********
+ *
+ * @defgroup blend_dev_cost Flops and time cost models
+ * @ingroup  pastix_blend
+ *
+ **********
+ *
+ * @defgroup blend_dev_extint Auto-extensible integer vector structure
+ * @ingroup  pastix_blend
+ *
+ **********
+ *
+ * @defgroup blend_dev_queue Sorted queue structure
+ * @ingroup  pastix_blend
+ *
+ **********
+ *
+ * @defgroup blend_dev_elim Elimination tree structure
+ * @ingroup  pastix_blend
+ *
+ **********
+ *
+ * @defgroup blend_dev_cand Candidate structure
+ * @ingroup  pastix_blend
+ *
+ **********
+ *
+ * @defgroup blend_dev_propmap Proportional mapping
+ * @ingroup  pastix_blend
+ *
+ **********
+ *
+ * @defgroup blend_dev_simu Factorization Simulation
+ * @ingroup  pastix_blend
+ *
+ **********
+ *
+ * @defgroup blend_dev_split Symbol spliting
+ * @ingroup  pastix_blend
+ *
+ **********
+ *
+ * @defgroup blend_dev_solver Solver matrix
  * @ingroup  pastix_blend
  *
  ****
@@ -118,13 +160,13 @@
  *           block CSC and the solver matrix structure before applying
  *           the numerical factorization.
  *
-****
+ ****
  *
  * @defgroup pastix_solve Solve step
  * @ingroup  pastix_users
  * @brief    This group describes all the routines to solve the system.
  *
-****
+ ****
  *
  * @defgroup pastix_refine Refinement step
  * @ingroup  pastix_users
@@ -136,4 +178,4 @@
  * @defgroup pastix_dev_refine Refinement internal function documentation
  * @ingroup  pastix_refine
  *
-**/
+ **/

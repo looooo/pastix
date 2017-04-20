@@ -1,53 +1,68 @@
-
-/*
- **  The defines and includes.
- */
-
-#define SOLVER_IO
-
+/**
+ *
+ * @file solver_io.c
+ *
+ * PaStiX solver structure I/O routines.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Xavier Lacoste
+ * @author Pierre Ramet
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ **/
 #include "common.h"
 #include "symbol.h"
 #include "queue.h"
 #include "solver.h"
-#include "solver_io.h"
 
-
-
-/*****************************************/
-/* The solver matrix handling routines.  */
-/*                                       */
-/*****************************************/
-
-/*+ This routine reads the given
- *** solver matrix structure from
- *** the given stream. The solver matrix
- *** structure must have been
- *** previously initialized.
- *** It returns:
- *** - 0   : on success.
- *** - !0  : on error.
- +*/
-
-pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
+/**
+ *******************************************************************************
+ *
+ * @ingroup blend_dev_solver
+ *
+ * @brief Load a solver matrix structure from a file.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvptr
+ *          The allocated pointer to a solver structure initialized. No need to
+ *          initialized it with solverInit().
+ *
+ * @param[in] stream
+ *          The stream where to read the informations.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCESS on successful exit,
+ * @retval PASTIX_ERR_FILE if a problem occurs during the read.
+ *
+ *******************************************************************************/
+int
+solverLoad( SolverMatrix *solvptr,
+            FILE         *stream  )
 {
-    pastix_int_t i,j;
-    pastix_int_t clustnbr, clustnum;
-    SolverCblk   *cblkptr;
-    SolverCblk   *cblktnd;
-    SolverBlok   *blokptr;
-    SolverBlok   *bloktnd;
-    solver_ftgt_t  *ftgtptr;
-    solver_ftgt_t  *ftgttnd;
-    Task         *taskptr;
-    Task         *tasknd;
+    pastix_int_t   i,j;
+    pastix_int_t   clustnbr, clustnum;
+    SolverCblk    *cblkptr;
+    SolverCblk    *cblktnd;
+    SolverBlok    *blokptr;
+    SolverBlok    *bloktnd;
+    solver_ftgt_t *ftgtptr;
+    solver_ftgt_t *ftgttnd;
+    Task          *taskptr;
+    Task          *tasknd;
 
-    pastix_int_t                 versval;
-    pastix_int_t                 baseval;
-    pastix_int_t                 nodenbr;
-    pastix_int_t                 cblknbr;
-    pastix_int_t                 cblknum;
-    pastix_int_t                 bloknbr;
-    pastix_int_t                 bloknum;
+    pastix_int_t   versval;
+    pastix_int_t   baseval;
+    pastix_int_t   nodenbr;
+    pastix_int_t   cblknbr;
+    pastix_int_t   cblknum;
+    pastix_int_t   bloknbr;
+    pastix_int_t   bloknum;
 
     solverInit(solvptr);
 
@@ -62,7 +77,7 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
         (bloknbr < cblknbr)               ||
         (nodenbr < cblknbr)) {
         errorPrint ("solverLoad: bad input (1)");
-        return     (1);
+        return PASTIX_ERR_FILE;
     }
     MALLOC_INTERN(solvptr->cblktab, cblknbr + 1, SolverCblk);
     MALLOC_INTERN(solvptr->bloktab, bloknbr,     SolverBlok);
@@ -70,7 +85,7 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
         errorPrint ("solverLoad: out of memory");
         solverExit (solvptr);
         solverInit (solvptr);
-        return     (1);
+        return PASTIX_ERR_FILE;
     }
     solvptr->baseval = baseval;
     solvptr->cblknbr = cblknbr;
@@ -85,7 +100,7 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
             errorPrint ("solverLoad: bad input (2)");
             /* solverExit (solvptr); */
             /* solverInit (solvptr); */
-            return     (1);
+            return PASTIX_ERR_FILE;
         }
         solvptr->cblktab[cblknum].fblokptr = solvptr->bloktab+bloknum;
     }
@@ -101,7 +116,7 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
             errorPrint ("solverLoad: bad input (3)");
             solverExit (solvptr);
             solverInit (solvptr);
-            return     (1);
+            return PASTIX_ERR_FILE;
         }
 
         {
@@ -112,7 +127,7 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
                 errorPrint ("solverLoad: bad input (4)");
                 solverExit (solvptr);
                 solverInit (solvptr);
-                return     (1);
+                return PASTIX_ERR_FILE;
             }
         }
     }
@@ -134,21 +149,20 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
          != 13)
     {
         errorPrint ("solverLoad: bad input (1)");
-        return     (1);
+        return PASTIX_ERR_FILE;
     }
 
     solvptr->clustnbr = (pastix_int_t)clustnbr;
     solvptr->clustnum = (pastix_int_t)clustnum;
 
-
-    if (((solvptr->cblktab = (SolverCblk *) memAlloc ((solvptr->cblknbr + 1) * sizeof (SolverCblk)))  == NULL) ||
-        ((solvptr->bloktab = (SolverBlok *) memAlloc (solvptr->bloknbr       * sizeof (SolverBlok)))  == NULL) ||
-        ((solvptr->ftgttab = (solver_ftgt_t *)memAlloc (solvptr->ftgtnbr               * sizeof (solver_ftgt_t))) == NULL) ||
-        ((solvptr->indtab  = (pastix_int_t *)        memAlloc (solvptr->indnbr                * sizeof (pastix_int_t)))         == NULL) ||
-        ((solvptr->tasktab = (Task *)       memAlloc ((solvptr->tasknbr+1)           * sizeof (Task)))        == NULL) ||
-        ((solvptr->ttsknbr = (pastix_int_t *)        memAlloc ((solvptr->thrdnbr)             * sizeof (pastix_int_t)))         == NULL) ||
-        ((solvptr->ttsktab = (pastix_int_t **)       memAlloc ((solvptr->thrdnbr)             * sizeof (pastix_int_t *)))       == NULL)
-        ) {
+    if (((solvptr->cblktab = (SolverCblk *)   memAlloc((solvptr->cblknbr + 1) * sizeof(SolverCblk)    )) == NULL) ||
+        ((solvptr->bloktab = (SolverBlok *)   memAlloc( solvptr->bloknbr      * sizeof(SolverBlok)    )) == NULL) ||
+        ((solvptr->ftgttab = (solver_ftgt_t *)memAlloc( solvptr->ftgtnbr      * sizeof(solver_ftgt_t) )) == NULL) ||
+        ((solvptr->indtab  = (pastix_int_t *) memAlloc( solvptr->indnbr       * sizeof(pastix_int_t)  )) == NULL) ||
+        ((solvptr->tasktab = (Task *)         memAlloc((solvptr->tasknbr+1)   * sizeof(Task)          )) == NULL) ||
+        ((solvptr->ttsknbr = (pastix_int_t *) memAlloc((solvptr->thrdnbr)     * sizeof(pastix_int_t)  )) == NULL) ||
+        ((solvptr->ttsktab = (pastix_int_t **)memAlloc((solvptr->thrdnbr)     * sizeof(pastix_int_t *))) == NULL) )
+    {
         errorPrint ("solverLoad: out of memory (1)");
         if (solvptr->cblktab != NULL)
             memFree_null (solvptr->cblktab);
@@ -160,7 +174,7 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
             memFree_null (solvptr->indtab);
         if (solvptr->tasktab != NULL)
             memFree_null (solvptr->tasktab);
-        return (1);
+        return PASTIX_ERR_FILE;
     }
 
     for (cblkptr = solvptr->cblktab,                /* Read column block data */
@@ -170,7 +184,7 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
         {
             errorPrint ("solverlLoad: bad input (2)");
             solverExit (solvptr);
-            return     (1);
+            return     PASTIX_ERR_FILE;
         }
     }
 
@@ -181,11 +195,10 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
         {
             errorPrint ("solverLoad: bad input (3)");
             solverExit (solvptr);
-            return     (1);
+            return     PASTIX_ERR_FILE;
         }
 
     }
-
 
     for (ftgtptr = solvptr->ftgttab,                /* Read fan in target data */
              ftgttnd = ftgtptr + solvptr->ftgtnbr;
@@ -252,7 +265,7 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
     /*      != 9) */
     /* { */
     /*     errorPrint ("solverLoad: bad input (1)"); */
-    /*     return     (1); */
+    /*     return     PASTIX_ERR_FILE; */
     /* } */
 
     /* MALLOC_INTERN(solvptr->updovct.cblktab,    solvptr->cblknbr,       UpDownCblk); */
@@ -318,32 +331,50 @@ pastix_int_t solverLoad(SolverMatrix *solvptr, FILE *stream)
     /*     intLoad(stream, &(solvptr->updovct.lblk2gcblk[i])); */
     /* } */
 
-    return (0);
+    return PASTIX_SUCESS;
 }
 
-
-pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
+/**
+ *******************************************************************************
+ *
+ * @ingroup blend_dev_solver
+ *
+ * @brief Save a solver matrix structure into a file.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvptr
+ *          The solver matrix structure to dump to disk.
+ *
+ * @param[in] stream
+ *          The stream where to write the ordering.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if the ordeptr structure is incorrect,
+ * @retval PASTIX_ERR_FILE if a problem occurs during the write.
+ *
+ *******************************************************************************/
+int
+solverSave( const SolverMatrix *solvptr,
+            FILE               *stream  )
 {
-    pastix_int_t i;
-    pastix_int_t j;
-    SolverCblk   *cblkptr;
-    SolverCblk   *cblktnd;
-    SolverBlok   *blokptr;
-    SolverBlok   *bloktnd;
-    solver_ftgt_t  *ftgtptr;
-    solver_ftgt_t  *ftgttnd;
-    Task         *taskptr;
+    pastix_int_t   i, j, o;
+    SolverCblk    *cblkptr;
+    SolverCblk    *cblktnd;
+    SolverBlok    *blokptr;
+    SolverBlok    *bloktnd;
+    solver_ftgt_t *ftgtptr;
+    solver_ftgt_t *ftgttnd;
+    Task          *taskptr;
 
-    pastix_int_t          o;
-
-
-    /** Save the solver matrix **/
+    /* Save the solver matrix */
     {
-        const SolverCblk *  cblktnd;
-        const SolverCblk *  cblkptr;
-        const SolverBlok *  bloktnd;
-        const SolverBlok *  blokptr;
-        int                 o;
+        const SolverCblk *cblktnd;
+        const SolverCblk *cblkptr;
+        const SolverBlok *bloktnd;
+        const SolverBlok *blokptr;
 
         o = (fprintf (stream, "1\n%ld\t%ld\t%ld\t%ld\n", /* Write file header */
                       (long) solvptr->cblknbr,
@@ -367,10 +398,8 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
         }
     }
 
-
-
-    /*fprintf(stream, "File header\n");*/
-    o = (fprintf (stream, "\n%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n", /* Write file header */
+    /* Write file header */
+    o = (fprintf (stream, "\n%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
                   (long) solvptr->coefnbr,
                   (long) solvptr->ftgtnbr,
                   (long) solvptr->gemmmax,
@@ -385,8 +414,8 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
                   (long) solvptr->gridldim,
                   (long) solvptr->gridcdim
                   ) == EOF);
+
     /* write cblk data */
-    /*fprintf(stream, "cblk data\n");*/
     for (cblkptr = solvptr->cblktab, cblktnd = cblkptr + solvptr->cblknbr;
          (cblkptr < cblktnd) && (o == 0); cblkptr ++)
     {
@@ -394,35 +423,35 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
                       (long) cblkptr->stride) == EOF);
     }
 
-
     /* write blok data */
-    /*fprintf(stream, "blok data\n");*/
-    for (blokptr = solvptr->bloktab, bloktnd = blokptr + solvptr->bloknbr;
-         (blokptr < bloktnd) && (o == 0); blokptr ++) {
+    for (blokptr = solvptr->bloktab,
+             bloktnd = blokptr + solvptr->bloknbr;
+         (blokptr < bloktnd) && (o == 0); blokptr ++)
+    {
         o = (fprintf (stream, "%ld\n",(long) blokptr->coefind) == EOF);
-
     }
 
-    /*fprintf(stream, "fan in target data\n");*/
-    for (ftgtptr = solvptr->ftgttab,                /* Write fan in target data */
+    /* Write fan in target data */
+    for (ftgtptr = solvptr->ftgttab,
              ftgttnd = ftgtptr + solvptr->ftgtnbr;
-         (ftgtptr < ftgttnd) && (o==0); ftgtptr ++) {
+         (ftgtptr < ftgttnd) && (o==0); ftgtptr ++)
+    {
         for(i=0;i<FTGT_MAXINFO;i++)
             o = (fprintf(stream, "%ld\t", (long)ftgtptr->infotab[i]) == EOF);
         fprintf(stream, "\n");
         fprintf(stream, "\n");
     }
 
-    /*fprintf(stream, "indtab data\n");*/
-    for(i=0;i<solvptr->indnbr;i++)                   /** Write indtab **/
+    /* Write indtab */
+    for(i=0;i<solvptr->indnbr;i++)
         fprintf(stream, "%ld\t", (long)solvptr->indtab[i]);
     fprintf(stream, "\n");
     fprintf(stream, "\n");
 
-    /*fprintf(stream, "task data\n");*/
+    /* Write Task data */
     {
         Task *taskend = solvptr->tasktab + solvptr->tasknbr;
-        for (taskptr = solvptr->tasktab;                /* Write Task data */
+        for (taskptr = solvptr->tasktab;
              (taskptr < taskend) && (o==0); taskptr ++)
         {
             fprintf(stream, "%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
@@ -433,8 +462,8 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
         }
     }
 
-    /*fprintf(stream, "ttsktab\n");*/
-    for (i=0; i<solvptr->thrdnbr; i++) /* Write ttsktab */
+    /* Write ttsktab */
+    for (i=0; i<solvptr->thrdnbr; i++)
     {
         fprintf(stream, "%ld\n", (long)solvptr->ttsknbr[i]);
         for (j=0; j<solvptr->ttsknbr[i]; j++)
@@ -443,8 +472,8 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
         }
     }
 
-    /*fprintf(stream, "proc2clust\n");*/
-    for (i=0; i<solvptr->procnbr; i++) /* Write proc2clust */
+    /* Write proc2clust */
+    for (i=0; i<solvptr->procnbr; i++)
     {
         fprintf(stream, "%ld\n", (long)solvptr->proc2clust[i]);
     }
@@ -500,6 +529,5 @@ pastix_int_t solverSave(const SolverMatrix * solvptr, FILE *stream)
     /*     fprintf(stream, "%ld\n", (long) solvptr->updovct.lblk2gcblk[i]); */
     /* } */
 
-
-    return o;
+    return o ? PASTIX_ERR_FILE : PASTIX_SUCESS;
 }

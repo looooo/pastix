@@ -1,3 +1,18 @@
+/**
+ *
+ * @file solver_check.c
+ *
+ * PaStiX check function fo rthe solver structure.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Pascal Henon
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ **/
 #include <stdio.h>
 #include <assert.h>
 
@@ -5,7 +20,7 @@
 #include "symbol.h"
 #include "queue.h"
 #include "solver.h"
-#include "elimin.h"
+#include "elimintree.h"
 #include "cost.h"
 #include "cand.h"
 #include "extendVector.h"
@@ -14,7 +29,26 @@
 
 /*#define DEBUG_PRIO*/
 
-void solverCheck(SolverMatrix *solvmtx)
+/**
+ *******************************************************************************
+ *
+ * @ingroup blend_dev_solver
+ *
+ * @brief Checks the consistency of the given solver matrix structure.
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure to check.
+ *
+ *******************************************************************************
+ *
+ * @retval 0 if the structure is correct
+ * @retval 1 if incorrect
+ *
+ *******************************************************************************/
+int
+solverCheck(const SolverMatrix *solvmtx)
 {
     pastix_int_t i, j, k = 0;
     pastix_int_t cblknum, bloknum, ftgtnum;
@@ -182,4 +216,5 @@ void solverCheck(SolverMatrix *solvmtx)
     }
 #endif
 
+    return 0;
 }

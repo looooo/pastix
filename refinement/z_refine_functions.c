@@ -627,6 +627,7 @@ void z_Pastix_AXPY( pastix_int_t n, double coeff,
  *******************************************************************************/
 pastix_int_t z_Pastix_me( void *arg )
 {
+    (void)arg;
     //sopthread_data_t *argument = (sopthread_data_t *)arg;
     pastix_int_t        me       = 0; //argument->me;
     return me;

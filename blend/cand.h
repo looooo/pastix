@@ -62,7 +62,8 @@ void candBuild          (       pastix_int_t  autolevel,
                           const SymbolMatrix *symbmtx,
                           const CostMatrix   *costmtx );
 
+#endif
+
 /**
  * @}
  */
-#endif

@@ -478,7 +478,7 @@ amalgamate(double rat_cblk, double rat_blas,
 
     double *gain   = NULL;
     double  key;
-    Queue heap;
+    pastix_queue_t heap;
     int blas_gain = 0;
     int procnum;
 
@@ -694,13 +694,13 @@ amalgamate(double rat_cblk, double rat_blas,
     }
 
     /* Initialize the first round with column sorted by nnzadd */
-    queueInit(&heap, (n-nbcblk_merged));
+    pqueueInit(&heap, (n-nbcblk_merged));
     for(i=0;i<n;i++) {
         if( (colweight[i] >  0) &&
             (treetab[i]   >  0) &&
             (treetab[i]   != i) )
         {
-            queueAdd(&heap, i, gain[i]);
+            pqueuePush1(&heap, i, gain[i]);
         }
     }
 
@@ -711,10 +711,10 @@ amalgamate(double rat_cblk, double rat_blas,
 
     /* Merge supernodes untill we reach the fillwhile limit */
     fill = 0.0;
-    while( (queueSize(&heap) > 0) &&
+    while( (pqueueSize(&heap) > 0) &&
            (fill < fillwhile) )
     {
-        i = queueGet2(&heap, &key, NULL);
+        i = pqueuePop1(&heap, &key);
 
         /* If we pop an old version of i, let's skip it */
         if( (gain[i] != key) || (colweight[i] <= 0) )
@@ -746,11 +746,11 @@ amalgamate(double rat_cblk, double rat_blas,
             if(blas_gain == 1) {
                 gain[father] = amalgamate_merge_gain(father, k, graphL, colweight, tmp2, cblktime) / nnzadd[father];
                 if(gain[father] <= 0)
-                    queueAdd(&heap, father, gain[father]);
+                    pqueuePush1(&heap, father, gain[father]);
             }
             else {
                 gain[father] = (double)(nnzadd[father]);
-                queueAdd(&heap, father, gain[father]);
+                pqueuePush1(&heap, father, gain[father]);
             }
         }
 
@@ -766,11 +766,11 @@ amalgamate(double rat_cblk, double rat_blas,
             if(blas_gain == 1) {
                 gain[k] = amalgamate_merge_gain(k, father, graphL, colweight, tmp2, cblktime) / nnzadd[k];
                 if(gain[k] <= 0)
-                    queueAdd(&heap, k, gain[k]);
+                    pqueuePush1(&heap, k, gain[k]);
             }
             else {
                 gain[k] = (double)(nnzadd[k]);
-                queueAdd(&heap, k, gain[k]);
+                pqueuePush1(&heap, k, gain[k]);
             }
         }
     }
@@ -779,7 +779,7 @@ amalgamate(double rat_cblk, double rat_blas,
         pastix_print(procnum, 0, "Number of cblk after amalgamation phase = %ld (reduced by %ld)\n",
                      (long)(n-nbcblk_merged), (long)nbcblk_merged);
     }
-    queueExit(&heap);
+    pqueueExit(&heap);
     if(fillwhile < fillblas)
     {
         /* Now the gain of amalgamation is based on the BLAS model */
@@ -789,7 +789,7 @@ amalgamate(double rat_cblk, double rat_blas,
         fillwhile = fillblas;
 
         /* Recompute the gain using BLAS model to restart the second round */
-        queueInit(&heap, (n-nbcblk_merged));
+        pqueueInit(&heap, (n-nbcblk_merged));
         for(i=0;i<n;i++)
         {
             father = treetab[i];
@@ -805,7 +805,7 @@ amalgamate(double rat_cblk, double rat_blas,
                 (treetab[i]   != i) &&
                 (gain[i] <= 0.) )
             {
-                queueAdd(&heap, i, gain[i]);
+                pqueuePush1(&heap, i, gain[i]);
             }
         }
 

@@ -51,8 +51,8 @@ struct pastix_spm_s;
 typedef struct pastix_spm_s pastix_spm_t;
 typedef struct pastix_spm_s pastix_csc_t;
 
-struct SolverMatrix_;
-typedef struct SolverMatrix_ SolverMatrix;
+struct solver_matrix_s;
+typedef struct solver_matrix_s SolverMatrix;
 
 enum pastix_driver_e;
 typedef enum pastix_driver_e pastix_driver_t;
@@ -182,7 +182,7 @@ void pastixFinalize( pastix_data_t **pastix_data,
 int pastix_task_analyze( pastix_data_t      *pastix_data,
                          pastix_spm_t       *spm );
 int pastix_task_numfact( pastix_data_t      *pastix_data,
-                         const pastix_spm_t *spm );
+                         pastix_spm_t       *spm );
 int pastix_task_solve  ( pastix_data_t      *pastix_data,
                          const pastix_spm_t *spm,
                          int                 nrhs,
@@ -210,7 +210,7 @@ int pastix_subtask_blend     ( pastix_data_t      *pastix_data );
  * Numerical factorization subtasks
  */
 int pastix_subtask_spm2bcsc  ( pastix_data_t      *pastix_data,
-                               const pastix_spm_t *spm );
+                               pastix_spm_t       *spm );
 int pastix_subtask_bcsc2ctab ( pastix_data_t      *pastix_data,
                                const pastix_spm_t *spm );
 int pastix_subtask_sopalin   ( pastix_data_t      *pastix_data,

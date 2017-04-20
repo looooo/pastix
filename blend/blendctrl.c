@@ -1,23 +1,68 @@
+/**
+ *
+ * @file blendctrl.c
+ *
+ * PaStiX analyse control parameters function.
+ *
+ * @copyright 1998-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Pascal Henon
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ **/
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
 #include "common.h"
-#include "elimin.h"
+#include "elimintree.h"
 #include "cost.h"
 #include "extendVector.h"
 #include "cand.h"
-#include "queue.h"
 #include "blendctrl.h"
 #include "perf.h"
 
-void getCommunicationCosts( const BlendCtrl *ctrl,
-                            pastix_int_t     clustsrc,
-                            pastix_int_t     clustdst,
-                            pastix_int_t     sync_comm_nbr,
-                            double          *startup,
-                            double          *bandwidth)
+/**
+ *******************************************************************************
+ *
+ * @ingroup blend_dev_ctrl
+ *
+ * @brief Return the communication cost between two cores
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctrl
+ *          The Blend control data structure that holds the cluster architecture
+ *
+ * @param[in] clustsrc
+ *          The source cluster of the communication
+ *
+ * @param[in] clustdst
+ *          The remote cluster of the communication
+ *
+ * @param[in] sync_comm_nbr
+ *          The number of simultaneous communication between clustsrc and clustdst
+ *
+ * @param[out] startup
+ *          On exit, holds the startup/latency cost of the communication between
+ *          the two nodes.
+ *
+ * @param[out] bandwidth
+ *          On exit, holds the bandwidth of the communication between the two
+ *          nodes.
+ *
+ *******************************************************************************/
+void
+getCommunicationCosts( const BlendCtrl *ctrl,
+                       pastix_int_t     clustsrc,
+                       pastix_int_t     clustdst,
+                       pastix_int_t     sync_comm_nbr,
+                       double          *startup,
+                       double          *bandwidth)
 {
     assert((clustsrc >= 0) && (clustsrc < ctrl->clustnbr));
     assert((clustdst >= 0) && (clustdst < ctrl->clustnbr));
@@ -87,6 +132,39 @@ void getCommunicationCosts( const BlendCtrl *ctrl,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup blend_dev_ctrl
+ *
+ * @brief Initialize the Blend control structure.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] ctrl
+ *          The Blend control data structure to initialize.
+ *
+ * @param[in] procnum
+ *          The index of the current PaStiX process.
+ *
+ * @param[in] procnbr
+ *          The number of PaStiX processes involved in the computation.
+ *
+ * @param[in] iparm
+ *          The array of integer parameters that are used to build the Blend
+ *          control structure. IPARM_ABS, IPARM_DISTRIBUTION_LEVEL,
+ *          IPARM_INCOMPLETE, IPARM_MAX_BLOCKSIZE, IPARM_MIN_BLOCKSIZE,
+ *          IPARM_THREAD_NBR, and IPARM_VERBOSE are used in this function.
+ *
+ * @param[in] dparm
+ *          The array of real parameters.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *
+ *******************************************************************************/
 int
 blendCtrlInit( BlendCtrl    *ctrl,
                pastix_int_t  procnum,
@@ -227,9 +305,6 @@ blendCtrlInit( BlendCtrl    *ctrl,
     ctrl->costmtx = NULL;
     ctrl->candtab = NULL;
 
-    MALLOC_INTERN(ctrl->lheap, 1, Queue);
-    queueInit(ctrl->lheap, 1000);
-
     MALLOC_INTERN(ctrl->intvec,  1, ExtendVectorINT);
     MALLOC_INTERN(ctrl->intvec2, 1, ExtendVectorINT);
     extendint_Init(ctrl->intvec,  10);
@@ -243,11 +318,22 @@ blendCtrlInit( BlendCtrl    *ctrl,
 }
 
 
-void blendCtrlExit(BlendCtrl *ctrl)
+/**
+ *******************************************************************************
+ *
+ * @ingroup blend_dev_ctrl
+ *
+ * @brief Finalize the Blend control structure.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] ctrl
+ *          The Blend control data structure to free.
+ *
+ *******************************************************************************/
+void
+blendCtrlExit(BlendCtrl *ctrl)
 {
-    queueExit(ctrl->lheap);
-    memFree_null(ctrl->lheap);
-
     extendint_Exit(ctrl->intvec);
     memFree_null(ctrl->intvec);
 

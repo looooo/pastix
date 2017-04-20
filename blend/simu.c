@@ -1,10 +1,29 @@
+/**
+ *
+ * @file simu.c
+ *
+ * PaStiX simulation basic functions.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Pascal Henon
+ * @author Pierre Ramet
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ * @addtogroup blend_dev_simu
+ * @{
+ *
+ **/
 #include <stdio.h>
 #include <strings.h>
 #include <math.h>
 
 #include "common.h"
 #include "symbol.h"
-#include "elimin.h"
+#include "elimintree.h"
 #include "cost.h"
 #include "cand.h"
 #include "queue.h"
@@ -13,12 +32,41 @@
 #include "solver.h"
 #include "simu.h"
 
+/**
+ *******************************************************************************
+ *
+ * @brief Initialize the simulation structures.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] simuctrl
+ *          The allocated pointer to main control structure for the simulation.
+ *
+ * @param[in] symbptr
+ *          The pointer to the symbol matrix structure studied.
+ *
+ * @param[in] candtab
+ *          The pointer to the candidate information associated to the symbol
+ *          structure and that will guide the simulation.
+ *
+ * @param[in] clustnbr
+ *          The number of PaStiX processes involved in the simulation.
+ *
+ * @param[in] procnbr
+ *          The total number of workers involved in the simulation.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS if success.
+ * @retval PASTIX_ERR_OUTOFMEMORY if one of the malloc failed.
+ *
+ *******************************************************************************/
 pastix_int_t
-simuInit( SimuCtrl     *simuctrl,
+simuInit( SimuCtrl           *simuctrl,
           const SymbolMatrix *symbptr,
           const Cand         *candtab,
-          pastix_int_t  clustnbr,
-          pastix_int_t  procnbr )
+          pastix_int_t        clustnbr,
+          pastix_int_t        procnbr )
 {
     pastix_int_t i, j;
     pastix_int_t p;
@@ -33,11 +81,11 @@ simuInit( SimuCtrl     *simuctrl,
     simuctrl->tasktab  = NULL;
     simuctrl->ftgtcnt  = 0;
 
-    /** Processor initialisation **/
+    /* Processor initialisation */
     MALLOC_INTERN(simuctrl->proctab, procnbr, SimuProc);
     for(i=0;i<procnbr;i++)
     {
-        timerSet(TIMER(i), 0.0); /** for paragraph numeric tolerance **/
+        timerSet(TIMER(i), 0.0); /* for paragraph numeric tolerance */
         MALLOC_INTERN(simuctrl->proctab[i].futuretask, 1, pastix_queue_t);
         MALLOC_INTERN(simuctrl->proctab[i].readytask,  1, pastix_queue_t);
         pqueueInit(simuctrl->proctab[i].futuretask, 100);
@@ -47,7 +95,7 @@ simuInit( SimuCtrl     *simuctrl,
         extendint_Init(simuctrl->proctab[i].tasktab, bloknbr/procnbr + 1);
     }
 
-    /** Cluster initialization **/
+    /* Cluster initialization */
     MALLOC_INTERN(simuctrl->clustab, clustnbr, SimuCluster);
     step = procnbr / clustnbr;
     for(i=0;i<clustnbr;i++)
@@ -63,7 +111,7 @@ simuInit( SimuCtrl     *simuctrl,
 
     MALLOC_INTERN(simuctrl->ownetab, cblknbr, pastix_int_t);
 
-    /* affect a negative value to cblk not mapped */
+    /* Affect a negative value to cblk not mapped */
     for(i=0;i<cblknbr;i++)
         simuctrl->ownetab[i] = -1;
 
@@ -87,13 +135,13 @@ simuInit( SimuCtrl     *simuctrl,
             ftgtcur += candnbr;
         }
     }
-    /* one extracblk for avoiding side effect */
+    /* One extracblk for avoiding side effect */
     simuctrl->bloktab[bloknbr].ftgtnum = ftgtcur;
     simuctrl->ftgtnbr = ftgtcur;
 
     if(simuctrl->ftgtnbr > 0)
     {
-        /** Allocate and Initialize the timer for the reception of each ftgt on a candidate cluster **/
+        /* Allocate and Initialize the timer for the reception of each ftgt on a candidate cluster */
         MALLOC_INTERN(simuctrl->ftgttimetab, simuctrl->ftgtnbr, SimuTimer);
         for(i=0;i<simuctrl->ftgtnbr;i++)
             timerSet(&(simuctrl->ftgttimetab[i]), 0.0);
@@ -118,11 +166,40 @@ simuInit( SimuCtrl     *simuctrl,
         simuctrl->ftgttimetab = NULL;
     }
 
-    return 1;
+    return PASTIX_SUCCESS;
 }
 
-
-pastix_int_t simuRealloc(SimuCtrl *simuctrl, pastix_int_t procnbr, pastix_int_t local_nbthrds)
+/**
+ *******************************************************************************
+ *
+ * @brief Reallocate the simulation structures to compact them.
+ *
+ * All data that were globally allocated and replicated on every node is freed,
+ * and only the local information are allocated. This is used only when a second
+ * proportionnal mapping with local information is performed for the dynamic
+ * scheduling.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] simuctrl
+ *          The simulation structure to reallocate.
+ *
+ * @param[in] procnbr
+ *          The total number of workers.
+ *
+ * @param[in] local_nbthrds
+ *          The number of local workers per process.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS if success.
+ * @retval PASTIX_ERR_OUTOFMEMORY if one of the malloc failed.
+ *
+ *******************************************************************************/
+pastix_int_t
+simuRealloc(SimuCtrl     *simuctrl,
+            pastix_int_t  procnbr,
+            pastix_int_t  local_nbthrds)
 {
     pastix_int_t i;
 
@@ -138,18 +215,46 @@ pastix_int_t simuRealloc(SimuCtrl *simuctrl, pastix_int_t procnbr, pastix_int_t 
     }
     memFree_null(simuctrl->proctab);
 
-    /** Initialisation for local thread **/
+    /* Initialization for local threads */
     MALLOC_INTERN(simuctrl->proctab, local_nbthrds, SimuProc);
     for(i=0;i<local_nbthrds;i++)
     {
         MALLOC_INTERN(simuctrl->proctab[i].tasktab, 1, ExtendVectorINT);
-        /* On initialise pas les vecteur d'entier, car il nous faudrait la structure d'arbre de bulles */
     }
 
-    return 1;
+    return PASTIX_SUCCESS;
 }
 
-void simuExit(SimuCtrl *simuctrl, pastix_int_t clustnbr, pastix_int_t procnbr, pastix_int_t local_nbthrds)
+/**
+ *******************************************************************************
+ *
+ * @brief Free the simulation structure.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] simuctrl
+ *          The simulation structure to free.
+ *
+ * @param[in] clustnbr
+ *          The total number of PaStiX processes.
+ *
+ * @param[in] procnbr
+ *          The total number of workers.
+ *
+ * @param[in] local_nbthrds
+ *          The number of local workers per process.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS if success.
+ * @retval PASTIX_ERR_OUTOFMEMORY if one of the malloc failed.
+ *
+ *******************************************************************************/
+void
+simuExit(SimuCtrl     *simuctrl,
+         pastix_int_t  clustnbr,
+         pastix_int_t  procnbr,
+         pastix_int_t  local_nbthrds)
 {
     pastix_int_t i,j;
     (void)local_nbthrds; (void)procnbr;
@@ -192,3 +297,7 @@ void simuExit(SimuCtrl *simuctrl, pastix_int_t clustnbr, pastix_int_t procnbr, p
     memFree_null(simuctrl->bloktab);
     memFree_null(simuctrl);
 }
+
+/**
+ *@}
+ */

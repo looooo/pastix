@@ -18,14 +18,14 @@
 #include "common.h"
 #include "order.h"
 #include "perf.h"
-#include "elimin.h"
+#include "elimintree.h"
 #include "cost.h"
 #include "cand.h"
 #include "extendVector.h"
 #include "blendctrl.h"
-#include "blend.h"
 #include "solver.h"
 #include "simu.h"
+#include "blend.h"
 
 /**
  *******************************************************************************
@@ -284,6 +284,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
      * candtab. If the symbmtx is modified, the costmtx is updated, as well as
      * the tree.
      */
+    if(1)
     {
         if( verbose > API_VERBOSE_YES ) {
             pastix_print( procnum, 0, OUT_BLEND_SPLITSYMB );
@@ -305,8 +306,6 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                         iparm[IPARM_FLOAT],
                         iparm[IPARM_FACTORIZATION],
                         &thflops, &(dparm[DPARM_FACT_RLFLOPS]) );
-        // TODO: check why the splitsymbol changes the number of flops, it should not.
-        //assert( thflops == dparm[DPARM_FACT_THFLOPS] );
     }
 
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)

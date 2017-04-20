@@ -22,7 +22,7 @@
  **/
 #include "common.h"
 #include "symbol.h"
-#include "elimin.h"
+#include "elimintree.h"
 #include "cost.h"
 #include "cand.h"
 #include "solver.h"
@@ -234,14 +234,26 @@ candCheck( const Cand         *candtab,
  *******************************************************************************
  *
  * @param[in]    rootnum
+ *               Root of the subtree.
  *
  * @param[inout] candtab
+ *               Pointer to the global candtab array where fields treelevel and
+ *               costlevel are updated. Treelevel represent the depth of the
+ *               node in the elimination tree, and costlevel the cost of the
+ *               path from rootnum to the root of the tree.
  *
  * @param[inout] etree
+ *               Pointer to the global elimination tree structure. The node
+ *               fields total and subtree are updated. Total represents the
+ *               total cost of of the current node only, and subtree the cost of
+ *               the current node and all its descendents.
  *
  * @param[in]    symbmtx
+ *               Pointer to the symbol matrix we are working with.
  *
  * @param[in]    costmtx
+ *               Pointer to the cost matrix associated to the symbol matrix and
+ *               that holds the cost of each cblk and blok.
  *
  *******************************************************************************
  *
@@ -286,6 +298,44 @@ candSubTreeBuild( pastix_int_t        rootnum,
     return etree->nodetab[ rootnum ].subtree;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Recursive function to compute the distribution of the nodes among the
+ * different levels.
+ *
+ * This function defines which cblk are candidates to be stored with a 2D layout,
+ * computed as 2D tasks, and/or be part of the Schur complement. The criteria to
+ * remove the 2D task flags is the width of the cblk.
+ *
+ *******************************************************************************
+ *
+ * @param[in]    rootnum
+ *               Root of the subtree.
+ *
+ * @param[in]    cblktype
+ *               List of flags that can be forwarded to rootnum and its
+ *               descendents.
+ *
+ * @param[in]    ratiolimit
+ *               Ratio that defines the minimal size to allow the flag 2D tasks
+ *               to be forwarded to the sons.
+ *
+ * @param[inout] candtab
+ *               Pointer to the global candtab array where field cblktype is
+ *               updated. cblktype defines the optimization/properties that are
+ *               defined on each cblk and which are defined by level in the
+ *               tree.
+ *
+ * @param[in]    etree
+ *               Pointer to the global elimination tree structure that is used
+ *               to travel through the cblk, and affect the properies with the
+ *               correct filiation property.
+ *
+ * @param[in]    symbmtx
+ *               Pointer to the symbol matrix we are working with.
+ *
+ *******************************************************************************/
 static inline void
 candSubTreeDistribWithSize( pastix_int_t        rootnum,
                             pastix_int_t        cblktype,
@@ -321,6 +371,31 @@ candSubTreeDistribWithSize( pastix_int_t        rootnum,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Recursive function to compute the distribution of the nodes among the
+ * different levels based on depth.
+ *
+ * This function defines which cblk are candidates to be stored with a 2D layout,
+ * computed as 2D tasks, and/or be part of the Schur complement. The criteria to
+ * remove the 2D task flags is the depth on the elimination tree.
+ *
+ *******************************************************************************
+ *
+ * @param[in]    depth
+ *               Depth until which 2D tasks is enabled.
+ *
+ * @param[in]    symbmtx
+ *               Pointer to the symbol matrix we are working with.
+ *
+ * @param[inout] candtab
+ *               Pointer to the global candtab array where the field cblktype is
+ *               updated. cblktype defines the optimization/properties that are
+ *               defined on each cblk and which are defined by level in the
+ *               tree.
+ *
+ *******************************************************************************/
 static inline void
 candDistribWithDepth( pastix_int_t        depth,
                       const SymbolMatrix *symbmtx,
@@ -344,6 +419,45 @@ candDistribWithDepth( pastix_int_t        depth,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Finish to build the candtab array for the proportionnal mapping.
+ *
+ * This function defines which cblk are candidates to be stored with a 2D
+ * layout, computed as 2D tasks, and/or be part of the Schur complement. It also
+ * set the cost of each cblk and the total cost of each subtree.
+ *
+ *******************************************************************************
+ *
+ * @param[in]    autolevel
+ *               If autolevel is defined, the width criteria is used to defined
+ *               the 2D tasks flag on the cblk.
+ *
+ * @param[in]    level2D
+ *               If autolevel is false, then level2d defines te number of levels
+ *               handles as 2D tasks.
+ *
+ * @param[in]    ratiolimit
+ *               if autolevel is true, ratiolimit defines the minimal width of
+ *               the node that will be handled as 2D tasks.
+ *
+ * @param[inout] candtab
+ *               Pointer to the global candtab array that needs to be initialized.
+ *
+ * @param[inout] etree
+ *               Pointer to the elimination tree that needs to be construct on entry.
+ *               On exit, the cost of each node, and the total cost of its
+ *               associated subtree is initialized.
+ *
+ * @param[in]    symbmtx
+ *               Pointer to the symbol matrix we are working with.
+ *
+ * @param[in]    costmtx
+ *               Pointer to the cost matrix associated to the symbol matrix and
+ *               that holds the cost of each cblk and blok.
+ *
+ *******************************************************************************/
 void
 candBuild( pastix_int_t autolevel, pastix_int_t level2D, pastix_int_t ratiolimit,
            Cand               *candtab,

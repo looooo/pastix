@@ -1,21 +1,117 @@
 /**
- * solver.c -- SolverMatrix description.
+ * @file solver.c
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX solver structure basic functions.
  *
- * @version 1.0.0
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @date 2011-11-11
  *
  **/
-
 #include "common.h"
 #include "solver.h"
 #include "coeftab.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup blend_dev_solver_null
+ *
+ * @brief Compute the memory size used by the solver sturcture itself.
+ *
+ * This function doesn't count the memory space of the numerical information,
+ * but only the sapce of the data structure that describes the matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvptr
+ *          The pointer to the solver matrix structure.
+ *
+ *******************************************************************************
+ *
+ * @return the memory size in octet of the solver structure.
+ *
+ *******************************************************************************/
+static inline size_t
+solver_size( const SolverMatrix *solvptr )
+{
+    size_t mem = sizeof(SolverMatrix);
+
+    /* cblk and blocks arrays */
+    if ( solvptr->cblktab ) {
+        mem += solvptr->cblknbr * sizeof( SolverCblk );
+    }
+    if ( solvptr->bloktab ) {
+        mem += solvptr->bloknbr * sizeof( SolverBlok );
+    }
+    if ( solvptr->browtab ) {
+        mem += solvptr->brownbr * sizeof( pastix_int_t );
+    }
+#if defined(PASTIX_WITH_PARSEC)
+    if ( solvptr->parsec_desc ) {
+        mem += sizeof( sparse_matrix_desc_t );
+    }
+#endif
+
+    /* Fanins */
+    if ( solvptr->ftgttab ) {
+        mem += solvptr->ftgtnbr * sizeof( solver_ftgt_t );
+    }
+    if ( solvptr->indtab ) {
+        mem += solvptr->indnbr  * sizeof( pastix_int_t );
+    }
+
+    /* /\* BubbleTree *\/ */
+    /* if ( solvptr->btree ) { */
+    /*     mem += solvptr->bublnbr * sizeof( BubbleTree ); */
+    /*     mem += solvptr->btree->nodemax * sizeof( BubbleTreeNode ); */
+    /*     mem += solvptr->btree->nodemax * sizeof( int ); */
+    /* } */
+
+    /* Tasks */
+    if ( solvptr->tasktab ) {
+        mem += solvptr->tasknbr * sizeof(Task);
+    }
+    if ( solvptr->ttsknbr ) {
+        int i;
+        mem += solvptr->thrdnbr * sizeof(pastix_int_t);
+        mem += solvptr->thrdnbr * sizeof(pastix_int_t*);
+
+        for( i=0; i<solvptr->thrdnbr; i++ ) {
+            mem += solvptr->ttsknbr[i] * sizeof(pastix_int_t);
+        }
+    }
+
+    /* proc2clust */
+    if ( solvptr->proc2clust ) {
+        mem += solvptr->procnbr * sizeof(pastix_int_t);
+    }
+
+    return mem;
+}
+
+/**
+ * @addtogroup blend_dev_solver
+ * @{
+ *
+ */
+
+/**
+ *******************************************************************************
+ *
+ * @brief Initialize the solver structure.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The solver structure to initialize.
+ *
+ *******************************************************************************/
 void
 solverInit(SolverMatrix *solvmtx)
 {
@@ -23,6 +119,22 @@ solverInit(SolverMatrix *solvmtx)
     return;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Free the content of the solver matrix structure.
+ *
+ * All the arrays from the structure are freed and the structure is memset to 0
+ * at exit, but the solver itself is not freed. It will require a new call to
+ * solverInit if the memory space area needs to be reused for a new solver
+ * matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The pointer to the structure to free.
+ *
+ *******************************************************************************/
 void
 solverExit(SolverMatrix *solvmtx)
 {
@@ -99,75 +211,16 @@ solverExit(SolverMatrix *solvmtx)
 }
 
 /**
- *  Function: sizeofsolver
+ *******************************************************************************
  *
- *  Computes the size in memory of the SolverMatrix.
+ * @brief Print statistical information about the solver matrix structure.
  *
- *  Parameters:
- *    solvptr - address of the SolverMatrix
+ *******************************************************************************
  *
- *  Returns:
- *    SolverMatrix size.
- */
-static inline size_t
-solver_size( const SolverMatrix *solvptr )
-{
-    size_t mem = sizeof(SolverMatrix);
-
-    /* cblk and blocks arrays */
-    if ( solvptr->cblktab ) {
-        mem += solvptr->cblknbr * sizeof( SolverCblk );
-    }
-    if ( solvptr->bloktab ) {
-        mem += solvptr->bloknbr * sizeof( SolverBlok );
-    }
-    if ( solvptr->browtab ) {
-        mem += solvptr->brownbr * sizeof( pastix_int_t );
-    }
-#if defined(PASTIX_WITH_PARSEC)
-    if ( solvptr->parsec_desc ) {
-        mem += sizeof( sparse_matrix_desc_t );
-    }
-#endif
-
-    /* Fanins */
-    if ( solvptr->ftgttab ) {
-        mem += solvptr->ftgtnbr * sizeof( solver_ftgt_t );
-    }
-    if ( solvptr->indtab ) {
-        mem += solvptr->indnbr  * sizeof( pastix_int_t );
-    }
-
-    /* /\* BubbleTree *\/ */
-    /* if ( solvptr->btree ) { */
-    /*     mem += solvptr->bublnbr * sizeof( BubbleTree ); */
-    /*     mem += solvptr->btree->nodemax * sizeof( BubbleTreeNode ); */
-    /*     mem += solvptr->btree->nodemax * sizeof( int ); */
-    /* } */
-
-    /* Tasks */
-    if ( solvptr->tasktab ) {
-        mem += solvptr->tasknbr * sizeof(Task);
-    }
-    if ( solvptr->ttsknbr ) {
-        int i;
-        mem += solvptr->thrdnbr * sizeof(pastix_int_t);
-        mem += solvptr->thrdnbr * sizeof(pastix_int_t*);
-
-        for( i=0; i<solvptr->thrdnbr; i++ ) {
-            mem += solvptr->ttsknbr[i] * sizeof(pastix_int_t);
-        }
-    }
-
-    /* proc2clust */
-    if ( solvptr->proc2clust ) {
-        mem += solvptr->procnbr * sizeof(pastix_int_t);
-    }
-
-    return mem;
-}
-
-
+ * @param[in] solvptr
+ *          The pointer to the solver matrix structure.
+ *
+ *******************************************************************************/
 void
 solverPrintStats( const SolverMatrix *solvptr )
 {
@@ -215,3 +268,7 @@ solverPrintStats( const SolverMatrix *solvptr )
              MEMORY_WRITE( memstruct ), MEMORY_UNIT_WRITE( memstruct ),
              memcoef );
 }
+
+/**
+ *@}
+ */

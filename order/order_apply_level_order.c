@@ -16,7 +16,7 @@
  **/
 #include <string.h>
 #include "common.h"
-#include "elimin.h"
+#include "elimintree.h"
 #include "order.h"
 
 static inline EliminTree *

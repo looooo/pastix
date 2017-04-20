@@ -2,39 +2,37 @@
  *
  * @file solver_draw.c
  *
- *  PaStiX factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX solver structure drawing function.
  *
- * @version 5.1.0
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Gregoire Pichon
  * @date 2016-12-05
  *
  **/
-
 #include "common.h"
 #include "symbol.h"
 #include "solver.h"
 
 /*+ Generic PostScript (tm) output definitions. +*/
-
-#define SYMBOL_PSDPI      72    /*+ PostScript dots-per-inch            +*/
-#define SYMBOL_PSPICTSIZE 6.6   /*+ PostScript picture size (in inches) +*/
+#define SOLVER_PSDPI      72    /*+ PostScript dots-per-inch            +*/
+#define SOLVER_PSPICTSIZE 6.6   /*+ PostScript picture size (in inches) +*/
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_sopalin
+ * @ingroup blend_dev_solver
  *
- * solverDraw - writes a PostScript picture of the low-rank symbolic block
- * matrix
+ * @brief Writes a PostScript picture of the low-rank solver matrix.
  *
  *******************************************************************************
  *
  * @param[in] solvptr
  *          The solver structure of PaStiX
  *
- * @param[in, out] stream
+ * @param[inout] stream
  *          File to write the PostScript
  *
  * @param[in] verbose
@@ -43,9 +41,8 @@
  *
  *******************************************************************************
  *
- * @return
- *          @arg 0    : SUCCESS
- *          @arg != 0 : FAILURE
+ * @retval 0 if success
+ * @retval != 0, otherwise
  *
  *******************************************************************************/
 int
@@ -67,8 +64,8 @@ solverDraw ( const SolverMatrix * const  solvptr,
     fprintf (stream, "%%%%Creator: symbolDraw (LaBRI, Universite Bordeaux I)\n");
     fprintf (stream, "%%%%CreationDate: %s", ctime (&picttime));
     fprintf (stream, "%%%%BoundingBox: 0 0 %ld %ld\n",
-             (long) (SYMBOL_PSPICTSIZE * SYMBOL_PSDPI),
-             (long) (SYMBOL_PSPICTSIZE * SYMBOL_PSDPI));
+             (long) (SOLVER_PSPICTSIZE * SOLVER_PSDPI),
+             (long) (SOLVER_PSPICTSIZE * SOLVER_PSDPI));
     fprintf (stream, "%%%%Pages: 0\n");
     fprintf (stream, "%%%%EndComments\n");          /* Write shortcuts */
     fprintf (stream, "/c { 4 2 roll pop pop newpath 2 copy 2 copy moveto dup lineto dup lineto closepath fill } bind def\n");
@@ -80,7 +77,7 @@ solverDraw ( const SolverMatrix * const  solvptr,
 
     fprintf (stream, "0 setlinecap\n");             /* Use miter caps       */
     fprintf (stream, "%f dup scale\n",              /* Print scaling factor */
-             (double) SYMBOL_PSDPI * SYMBOL_PSPICTSIZE / pictsize);
+             (double) SOLVER_PSDPI * SOLVER_PSPICTSIZE / pictsize);
     fprintf (stream, "/Times-Roman 70 selectfont\n"); /* activate text in eps file */
     fprintf (stream, "[ 1 0 0 -1 0 %d ] concat\n",  /* Reverse Y coordinate */
              (int) (solvptr->nodenbr + 1));

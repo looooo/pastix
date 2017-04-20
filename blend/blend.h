@@ -13,69 +13,41 @@
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
- * @addtogroup blend_dev_cand
+ * @addtogroup pastix_blend
  * @{
- *    This module contains all subroutines to initialize the candidates array
- *    for each supernode, as well as supernode properties that are defined by
- *    level such as 2D layouts and 2D tasks.
+ *    This module contains all the subroutines and structures to perform the
+ *    analyze step and prepare the numerical factorization and solve. It is
+ *    composed of four main steps. The first one is the computation of the
+ *    proportional mapping based on the elimination tree to attribute worker
+ *    candidates to all nodes in the tree. The second one is the cutting step of
+ *    the symbol matrix to generate more parallelism. Then, the simulation
+ *    predict the best mapping out of the candidates and returns the associated
+ *    static scheduling for the tasks. Finally, the local solver structure is
+ *    created to control the numerical factorization and solve and store the
+ *    problem data.
  *
  **/
-/************************************************************/
-/**                                                        **/
-/**   NAME       : blend.h                                 **/
-/**                                                        **/
-/**   AUTHORS    : Pascal HENON                            **/
-/**                                                        **/
-/**   FUNCTION   : Part of a parallel direct block solver. **/
-/**                Partition and distribute data           **/
-/**                for an optimal parallel resolution      **/
-/**                                                        **/
-/**   DATES      : # Version 0.0  : from : 22 jul 1998     **/
-/**                                 to                     **/
-/**                                                        **/
-/************************************************************/
 #ifndef BLEND_H
 #define BLEND_H
 
-#include "solver.h"
-
-/*
- * Function: solverBlend
- *
- * Main blend function
- *
- * Build the elimination graph from the symbolic partition.
- *
- * Build the cost matrix from the symbolic partition.
- *
- * Build the elimination tree from the symbolic partition.
- *
- * Distribute each column bloc on candidate processors.
- *
- * Build a new symbol matrix...
- *
- * Parameters:
- *   solvmtx    - Solver matrix structure.
- *   symbmtx    - Symbol matrix
- *   assemb1D   -
- *   assemb2D   -
- *   clustnbr   - Number of MPI processes.
- *   local_nbthrds - Number of threads.
- *   clustnum   - Processor ID number.
- *   option     - Blend parameters.
- */
-void splitSymbol( BlendCtrl    *ctrl,
-                  SymbolMatrix *symbmtx );
-
-void propMappTree( Cand               *candtab,
-                   const EliminTree   *etree,
-                   pastix_int_t        candnbr,
-                   int nocrossproc, int allcand );
-
-int  solverMatrixGen (const pastix_int_t,
-                      SolverMatrix *,
+void propMappTree   ( Cand             *candtab,
+                      const EliminTree *etree,
+                      pastix_int_t      candnbr,
+                      int               nocrossproc,
+                      int               allcand );
+void splitSymbol    ( BlendCtrl    *ctrl,
+                      SymbolMatrix *symbmtx );
+void simuRun        ( SimuCtrl *,
+                      const BlendCtrl *,
+                      const SymbolMatrix * );
+int  solverMatrixGen( const pastix_int_t,
+                            SolverMatrix *,
                       const SymbolMatrix *,
                       const SimuCtrl *,
                       const BlendCtrl *);
 
 #endif /* BLEND_H */
+
+/**
+ * @}
+ */
