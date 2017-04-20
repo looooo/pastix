@@ -273,7 +273,7 @@ parsec_zgetrf_sp2d_Destruct( parsec_handle_t *handle )
 /**
  *******************************************************************************
  *
- * @brief Perform a sparse Cholesky factorization with 1D and 2D kernels.
+ * @brief Perform a sparse LU factorization with 1D and 2D kernels.
  *
  * The function performs the LU factorization of a sparse general matrix A.
  * The factorization has the form
@@ -309,9 +309,9 @@ parsec_zgetrf_sp2d_Destruct( parsec_handle_t *handle )
  *
  ******************************************************************************/
 int
-parsec_zgetrf_sp2d( parsec_context_t *parsec,
+parsec_zgetrf_sp2d( parsec_context_t     *parsec,
                     sparse_matrix_desc_t *A,
-                    sopalin_data_t *sopalin_data )
+                    sopalin_data_t       *sopalin_data )
 {
     parsec_handle_t *parsec_zgetrf_sp2d = NULL;
     int info = 0;
@@ -331,7 +331,7 @@ parsec_zgetrf_sp2d( parsec_context_t *parsec,
 /**
  *******************************************************************************
  *
- * @brief Perform a sparse Cholesky factorization.
+ * @brief Perform a sparse LU factorization.
  *
  * The function performs the LU factorization of a sparse general matrix A.
  * The factorization has the form
@@ -355,15 +355,8 @@ parsec_zgetrf_sp2d( parsec_context_t *parsec,
  *
  *******************************************************************************
  *
- * @retval NULL if incorrect parameters are given.
- * @retval The parsec handle describing the operation that can be
- *         enqueued in the runtime with parsec_enqueue(). It, then, needs to be
- *         destroy with parsec_zgetrf_sp2d_Destruct().
- *
- *******************************************************************************
- *
- * @sa parsec_zgetrf_sp2d_New
- * @sa parsec_zgetrf_sp2d_Destruct
+ * @sa parsec_zgetrf_sp1dplus
+ * @sa parsec_zgetrf_sp2d
  *
  ******************************************************************************/
 void

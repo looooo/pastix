@@ -359,15 +359,8 @@ parsec_zpotrf_sp2d( parsec_context_t *parsec,
  *
  *******************************************************************************
  *
- * @retval NULL if incorrect parameters are given.
- * @retval The parsec handle describing the operation that can be
- *         enqueued in the runtime with parsec_enqueue(). It, then, needs to be
- *         destroy with parsec_zpotrf_sp2d_Destruct().
- *
- *******************************************************************************
- *
- * @sa parsec_zpotrf_sp2d_New
- * @sa parsec_zpotrf_sp2d_Destruct
+ * @sa parsec_zpotrf_sp1dplus
+ * @sa parsec_zpotrf_sp2d
  *
  ******************************************************************************/
 void
