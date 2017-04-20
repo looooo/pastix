@@ -415,6 +415,78 @@ sparse_matrix_key_to_string( parsec_ddesc_t *mat,
 }
 #endif
 
+#if defined(PASTIX_WITH_CUDA)
+void sparse_matrix_init_fermi( sparse_matrix_desc_t *spmtx,
+                               SolverMatrix *solvmtx )
+{
+    gpu_device_t* gpu_device;
+    SolverBlok *blok;
+    pastix_int_t i, b, bloknbr, ndevices;
+    size_t size;
+    int *tmp, *bloktab;
+
+    ndevices = parsec_devices_enabled();
+    if ( ndevices <= 2 )
+        return;
+
+    bloknbr = solvmtx->bloknbr;
+    size = 2 * bloknbr * sizeof(int);
+
+	/**
+     * Initialize array on CPU
+     */
+    bloktab = (int*)malloc( size );
+    tmp = bloktab;
+    for (b=0, blok = solvmtx->bloktab;
+         b < bloknbr;
+         b++, blok++, tmp+=2)
+    {
+        tmp[0] = blok->frownum;
+        tmp[1] = blok->lrownum;
+    }
+
+    ndevices -= 2;
+    spmtx->d_blocktab = calloc(ndevices, sizeof(void*));
+
+    fprintf(stderr, "ndevices = %ld\n", ndevices );
+    for(i = 0; i < ndevices; i++) {
+        if( NULL == (gpu_device = (gpu_device_t*)parsec_devices_get(i+2)) ) continue;
+
+        fprintf(stderr, "cuda index = %d\n", gpu_device->cuda_index );
+        cudaSetDevice( gpu_device->cuda_index );
+
+        cudaMalloc( &(spmtx->d_blocktab[i]),
+                    size );
+
+        cudaMemcpy( spmtx->d_blocktab[i],
+                    bloktab, size,
+                    cudaMemcpyHostToDevice );
+    }
+    free(bloktab);
+}
+
+void
+sparse_matrix_destroy_fermi( sparse_matrix_desc_t *spmtx )
+{
+    gpu_device_t* gpu_device;
+    pastix_int_t i, ndevices;
+
+    ndevices = parsec_devices_enabled();
+    if ( ndevices <= 2 )
+        return;
+
+    ndevices -= 2;
+    for(i = 0; i < ndevices; i++) {
+        if( NULL == (gpu_device = (gpu_device_t*)parsec_devices_get(i+2)) ) continue;
+
+        cudaSetDevice( gpu_device->cuda_index );
+        cudaFree( spmtx->d_blocktab[i] );
+    }
+
+    free( spmtx->d_blocktab );
+}
+#endif /*defined(PASTIX_WITH_CUDA)*/
+
 /**
  *******************************************************************************
  *
@@ -592,6 +664,10 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
             key2 += m * 2;
         }
     }
+
+#if defined(PASTIX_CUDA_FERMI)
+    sparse_matrix_init_fermi( spmtx, solvmtx );
+#endif
 }
 
 /**
@@ -614,6 +690,10 @@ sparse_matrix_destroy( sparse_matrix_desc_t *spmtx )
     SolverCblk *cblk;
     SolverBlok *blok;
     pastix_int_t i, cblkmin2d;
+
+#if defined(PASTIX_CUDA_FERMI)
+    sparse_matrix_destroy_fermi( spmtx );
+#endif
 
     cblkmin2d = spmtx->solvmtx->cblkmin2d;
     cblk = spmtx->solvmtx->cblktab;
