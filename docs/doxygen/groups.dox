@@ -200,6 +200,21 @@
  * @defgroup kernel_fact_null Internal functions for numerical factorization kernels
  * @ingroup  kernel_fact
  *
+ ******
+ *
+ * @defgroup pastix_parsec PaRSEC support for thenumerical factorization
+ * @ingroup  pastix_numfact
+ *
+ ********
+ *
+ * @defgroup parsec_potrf PaRSEC Cholesky factorization
+ * @ingroup  pastix_parsec
+ *
+ ********
+ *
+ * @defgroup parsec_getrf PaRSEC LU factorization
+ * @ingroup  pastix_parsec
+ *
  ****
  *
  * @defgroup pastix_solve Solve step

@@ -1,10 +1,19 @@
 extern "C" %{
-  /**
-   * PLASMA include for defined and constants.
-   *
-   * @precisions normal z -> c d s
-   *
-   */
+/**
+ *
+ * @file zgetrf_sp2d.jdf
+ *
+ * PaRSEC 2D algorithm jdf for LU factorization.
+ *
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ * @precisions normal z -> s d c
+ *
+ **/
 #include <parsec.h>
 #include <parsec/data_distribution.h>
 #include <parsec/private_mempool.h>
