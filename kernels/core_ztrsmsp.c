@@ -4,7 +4,7 @@
  *
  * PaStiX kernel routines
  *
- * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
@@ -28,6 +28,8 @@ static pastix_complex64_t mzone = -1.;
 
 /**
  *******************************************************************************
+ *
+ * @ingroup kernel_fact_null
  *
  * @brief Apply all the trsm updates on a panel stored in 1D layout.
  *
@@ -100,6 +102,8 @@ core_ztrsmsp_1d( pastix_side_t             side,
 
 /**
  *******************************************************************************
+ *
+ * @ingroup kernel_fact_null
  *
  * @brief Compute the updates associated to one off-diagonal block between two
  * cblk stored in 2D.
@@ -174,6 +178,8 @@ core_ztrsmsp_2d( pastix_side_t             side,
 
 /**
  *******************************************************************************
+ *
+ * @ingroup kernel_fact_null
  *
  * @brief Computes the updates associated to one off-diagonal block between two
  * cblk stored in low-rank format.
@@ -347,6 +353,8 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
 /**
  *******************************************************************************
  *
+ * @ingroup kernel_fact_null
+ *
  * @brief Compute the updates associated to one off-diagonal block between two
  * cblk stored in 2D.
  *
@@ -428,6 +436,8 @@ core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
 
 /**
  *******************************************************************************
+ *
+ * @ingroup kernel_fact_null
  *
  * @brief Compute the updates associated to one off-diagonal block between two
  * cblk stored in low-rank format.

@@ -4,7 +4,7 @@
  *
  * PaStiX kernel routines
  *
- * @copyright 2000-2012 Univ. of Tennessee, Univ. of California Berkeley and
+ * @copyright 2010-2015 Univ. of Tennessee, Univ. of California Berkeley and
  *                      Univ. of Colorado Denver. All rights reserved.
  * @copyright 2012-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.

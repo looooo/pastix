@@ -192,19 +192,24 @@
  *
  ********
  *
- * @defgroup kernel_solver Kernel operating at the solver matrix level (cblk or blok)
+ * @defgroup kernel_fact Numerical factorization kernels
  * @ingroup  pastix_kernel
  *
  **********
  *
- * @defgroup kernel_solver_null Internal functions solver matrix kernels
- * @ingroup  kernel_solver
+ * @defgroup kernel_fact_null Internal functions for numerical factorization kernels
+ * @ingroup  kernel_fact
  *
  ****
  *
  * @defgroup pastix_solve Solve step
  * @ingroup  pastix_users
  * @brief    This group describes all the routines to solve the system.
+ *
+ ********
+ *
+ * @defgroup kernel_solve Numerical solve kernels
+ * @ingroup  pastix_solve
  *
  ****
  *

@@ -116,9 +116,6 @@ core_zsytf2sp( pastix_int_t        n,
  *          The matrix A to factorize with LDL^t factorization. The matrix
  *          is of size lda -by- n.
  *
- * @param[inout] DLt
- *          A worksapce matrix of size lda-by-n to store the product DL^t.
- *
  * @param[in] lda
  *          The leading dimension of the matrix A.
  *

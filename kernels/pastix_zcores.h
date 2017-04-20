@@ -16,6 +16,8 @@
 /**
  * @addtogroup kernel_blas_lapack
  * @{
+ *    This module contains all the BLAS and LAPACK-like kernels that are working
+ *    on lapack layout matrices.
  */
 void core_zplrnt( int m, int n, pastix_complex64_t *A, int lda,
                   int gM, int m0, int n0, unsigned long long int seed );
@@ -51,6 +53,8 @@ void core_zsytrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
  *
  * @addtogroup kernel_lr
  * @{
+ *    This module contains all the low-rank kernels working on pastix_lr_t
+ *    matrix representations.
  */
 void core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax, pastix_lrblock_t *A );
 void core_zlrfree ( pastix_lrblock_t *A );
@@ -77,6 +81,8 @@ void core_zlrmge  ( const pastix_lr_t *lowrank, pastix_trans_t transA, pastix_tr
  *
  * @addtogroup kernel_lr_svd
  * @{
+ *    This is the SVD implementation of the low-rank kernels based on the LAPACK
+ *    GESVD function.
  */
 void core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
                       const pastix_complex64_t *A, pastix_int_t lda, pastix_lrblock_t *Alr );
@@ -97,6 +103,8 @@ int  core_zrradd_SVD_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, con
  *
  * @addtogroup kernel_lr_rrqr
  * @{
+ *    This is the rank-revealing QR implementation of the low-rank kernels based
+ *    on the modified LAPACK GEQP3 function.
  */
 void core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
                        const pastix_complex64_t *A, pastix_int_t lda, pastix_lrblock_t *Alr );
@@ -116,8 +124,10 @@ int  core_zrradd_RRQR_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, co
 /**
  * @}
  *
- * @addtogroup kernel_solver
+ * @addtogroup kernel_fact
  * @{
+ *    This module contains all the kernel working at the solver matrix structure
+ *    level for the numerical factorization step.
  */
 
 int  core_zgeaddsp1d( const SolverCblk *cblk1, SolverCblk *cblk2,
@@ -212,10 +222,18 @@ void core_zsytrfsp1d_gemm( SolverCblk *cblk, SolverBlok *blok, SolverCblk *fcblk
 
 /**
  * @}
+ *
+ * @addtogroup kernel_solve
+ * @{
+ *    This module contains all the kernel working on the solver matrix structure
+ *    for the solve step.
  */
 
 void solve_ztrsmsp( pastix_side_t side, pastix_uplo_t uplo, pastix_trans_t trans, pastix_diag_t diag,
                     SolverMatrix *datacode, SolverCblk *cblk,
                     int nrhs, pastix_complex64_t *b, int ldb );
 
+/**
+ * @}
+ */
 #endif /* _CORE_Z_H_ */
