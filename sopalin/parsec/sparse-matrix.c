@@ -38,12 +38,6 @@
  * @param[in] key
  *          The key identifier to decode.
  *
- * @param[in] ratio
- *          @arg 1: The sparse matrix described is lower triangular and only L is
- *          stored.
- *          @arg 2: The sparse matrix described is general and both lower and
- *          upper triangular part are stored.
- *
  * @param[in] solvmtx
  *          The solver matrix structure to access information about the blocks
  *          and cblks.
@@ -63,7 +57,6 @@
  ******************************************************************************/
 static inline void
 spm_data_key_to_value( parsec_data_key_t   key,
-                       int                 ratio,
                        const SolverMatrix *solvmtx,
                        int                *uplo,
                        pastix_int_t       *cblknum,
@@ -74,26 +67,26 @@ spm_data_key_to_value( parsec_data_key_t   key,
 
     cblknbr   = solvmtx->cblknbr;
     cblkmin2d = solvmtx->cblkmin2d;
-    key2 = ratio * cblknbr;
+    key2 = 2 * cblknbr;
 
     /* This is a block */
     if ( key >= key2 ) {
         pastix_int_t m, n, ld;
 
         key2 = key - key2;
-        ld   = solvmtx->cblkmaxblk * ratio;
+        ld   = solvmtx->cblkmaxblk * 2;
 
         m = key2 % ld;
         n = key2 / ld;
 
-        *uplo    = m % ratio;
-        *bloknum = m / ratio;
+        *uplo    = m % 2;
+        *bloknum = m / 2;
         *cblknum = cblkmin2d + n;
     }
     /* This is a cblk */
     else {
-        *uplo    = key % ratio;
-        *cblknum = key / ratio;
+        *uplo    = key % 2;
+        *cblknum = key / 2;
         *bloknum = -1;
     }
 }
@@ -128,7 +121,7 @@ sparse_matrix_data_key( parsec_ddesc_t *mat, ... )
 {
     va_list ap;
     sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
-    int uplo, ratio;
+    int uplo;
     pastix_int_t cblknum, bloknum;
 
     va_start(ap, mat);
@@ -137,12 +130,10 @@ sparse_matrix_data_key( parsec_ddesc_t *mat, ... )
     bloknum = va_arg(ap, int) - 1;
     va_end(ap);
 
-    ratio = spmtx->mtxtype == PastixGeneral ? 2 : 1;
     uplo = uplo ? 1 : 0;
-    assert( ratio == 2 || uplo == 0 );
 
     if ( bloknum == -1 ) {
-        return cblknum * ratio + uplo;
+        return cblknum * 2 + uplo;
     }
     else {
         pastix_int_t offset, ld, cblknbr;
@@ -150,11 +141,11 @@ sparse_matrix_data_key( parsec_ddesc_t *mat, ... )
 
         cblknbr   = spmtx->solvmtx->cblknbr;
         cblkmin2d = spmtx->solvmtx->cblkmin2d;
-        ld        = spmtx->solvmtx->cblkmaxblk * ratio;
-        offset    = cblknbr * ratio;
+        ld        = spmtx->solvmtx->cblkmaxblk * 2;
+        offset    = cblknbr * 2;
         n         = cblknum - cblkmin2d;
 
-        return offset + n * ld + bloknum * ratio + uplo;
+        return offset + n * ld + bloknum * 2 + uplo;
     }
 }
 
@@ -351,11 +342,10 @@ sparse_matrix_data_of_key( parsec_ddesc_t    *mat,
     sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
     SolverMatrix *solvmtx = spmtx->solvmtx;
     SolverCblk *cblk;
-    int uplo, ratio;
+    int uplo;
     pastix_int_t cblknum, bloknum;
 
-    ratio = (spmtx->mtxtype == PastixGeneral) ? 2 : 1;
-    spm_data_key_to_value( key, ratio, solvmtx,
+    spm_data_key_to_value( key, solvmtx,
                            &uplo, &cblknum, &bloknum );
 
     cblk = solvmtx->cblktab + cblknum;
@@ -409,10 +399,9 @@ sparse_matrix_key_to_string( parsec_ddesc_t *mat,
     sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
     int uplo;
     pastix_int_t cblknum, bloknum;
-    int res, ratio;
+    int res;
 
-    ratio = (spmtx->mtxtype == PastixGeneral) ? 2 : 1;
-    spm_data_key_to_value( key, ratio, spmtx->solvmtx,
+    spm_data_key_to_value( key, spmtx->solvmtx,
                            &uplo, &cblknum, &bloknum );
 
     res = snprintf(buffer, buffer_size, "(%d, %ld, %ld)",
@@ -474,7 +463,6 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
     pastix_int_t m, n, cblknum, nbelt;
     size_t size, offset;
     char *ptrL, *ptrU;
-    int ratio = ( mtxtype == PastixGeneral ) ? 2 : 1;
 
     parsec_ddesc_init( o, nodes, myrank );
 
@@ -496,8 +484,8 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
 
     cblknbr   = solvmtx->cblknbr;
     cblkmin2d = solvmtx->cblkmin2d;
-    ld        = solvmtx->cblkmaxblk * ratio;
-    key1      = ratio * cblknbr;
+    ld        = solvmtx->cblkmaxblk * 2;
+    key1      = 2 * cblknbr;
 
     /* Initialize 1D cblk handlers */
     nbelt = 0;
@@ -511,11 +499,11 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
 
         nbelt++;
         parsec_data_create( handler,
-                            o, cblknum * ratio, cblk->lcoeftab, size );
+                            o, cblknum * 2, cblk->lcoeftab, size );
 
-        if ( ratio == 2 ) {
+        if ( mtxtype == PastixGeneral ) {
             parsec_data_create( handler+1,
-                                o, cblknum * ratio + 1, cblk->ucoeftab, size );
+                                o, cblknum * 2 + 1, cblk->ucoeftab, size );
         }
     }
 
@@ -530,11 +518,11 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
 
         nbelt++;
         parsec_data_create( handler,
-                            o, cblknum * ratio, cblk->lcoeftab, size );
+                            o, cblknum * 2, cblk->lcoeftab, size );
 
-        if ( ratio == 2 ) {
+        if ( mtxtype == PastixGeneral ) {
             parsec_data_create( handler+1,
-                                o, cblknum * ratio + 1, cblk->ucoeftab, size );
+                                o, cblknum * 2 + 1, cblk->ucoeftab, size );
         }
 
         if ( !(cblk->cblktype & CBLK_TASKS_2D) )
@@ -556,7 +544,7 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
                             o, key1 + key2,
                             ptrL + offset, size );
 
-        if ( ratio == 2 ) {
+        if ( mtxtype == PastixGeneral ) {
             parsec_data_create( (parsec_data_t**)&(blok->handler[1]),
                                 o, key1 + key2 + 1,
                                 ptrU + offset, size );
@@ -568,9 +556,9 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
         /**
          * Lower Part
          */
-        blok++; key2 += ratio;
+        blok++; key2 += 2;
         lblok = cblk[1].fblokptr;
-        for( ; blok < lblok; blok++, key2+=ratio )
+        for( ; blok < lblok; blok++, key2+=2 )
         {
             fblok = blok;
             m = 0;
@@ -592,7 +580,7 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
                                 &spmtx->super, key1 + key2,
                                 ptrL + offset, size );
 
-            if ( ratio == 2 ) {
+            if ( mtxtype == PastixGeneral ) {
                 parsec_data_create( (parsec_data_t**)&(fblok->handler[1]),
                                     &spmtx->super, key1 + key2 + 1,
                                     ptrU + offset, size );
@@ -601,14 +589,8 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
                 fblok->handler[1] = NULL;
             }
 
-            key2 += m * ratio;
+            key2 += m * 2;
         }
-    }
-
-    {
-        double mem = ratio * nbelt * (sizeof(parsec_data_t) + sizeof(parsec_data_copy_t));
-        fprintf( stdout, "  Memory space used by parsec data handlers   %e %co\n",
-                 printflopsv( mem ), printflopsu( mem ) );
     }
 }
 
@@ -632,7 +614,6 @@ sparse_matrix_destroy( sparse_matrix_desc_t *spmtx )
     SolverCblk *cblk;
     SolverBlok *blok;
     pastix_int_t i, cblkmin2d;
-    int ratio = ( spmtx->mtxtype == PastixGeneral ) ? 2 : 1;
 
     cblkmin2d = spmtx->solvmtx->cblkmin2d;
     cblk = spmtx->solvmtx->cblktab;
@@ -641,7 +622,7 @@ sparse_matrix_destroy( sparse_matrix_desc_t *spmtx )
         if ( cblk->handler[0] ) {
             parsec_data_destroy( cblk->handler[0] );
 
-            if (ratio == 2) {
+            if ( spmtx->mtxtype == PastixGeneral ) {
                 parsec_data_destroy( cblk->handler[1] );
             }
         }
@@ -654,7 +635,7 @@ sparse_matrix_destroy( sparse_matrix_desc_t *spmtx )
     {
         if ( cblk->handler[0] ) {
             parsec_data_destroy( cblk->handler[0] );
-            if (ratio == 2) {
+            if ( spmtx->mtxtype == PastixGeneral ) {
                 parsec_data_destroy( cblk->handler[1] );
             }
         }
@@ -667,7 +648,7 @@ sparse_matrix_destroy( sparse_matrix_desc_t *spmtx )
         {
             if ( blok->handler[0] ) {
                 parsec_data_destroy( blok->handler[0] );
-                if (ratio == 2) {
+                if ( spmtx->mtxtype == PastixGeneral ) {
                     parsec_data_destroy( blok->handler[1] );
                 }
             }
