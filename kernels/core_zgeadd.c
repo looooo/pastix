@@ -2,17 +2,19 @@
  *
  * @file core_zgeadd.c
  *
- *  PLASMA core_blas kernel
- *  PLASMA is a software package provided by Univ. of Tennessee,
- *  Univ. of California Berkeley and Univ. of Colorado Denver
+ * PaStiX kernel routines
  *
- * @version 2.6.0
+ * @copyright 2000-2012 Univ. of Tennessee, Univ. of California Berkeley and
+ *                      Univ. of Colorado Denver. All rights reserved.
+ * @copyright 2012-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @date 2010-11-15
  * @precisions normal z -> c d s
  *
  **/
-
 #include "common.h"
 #include "blend/solver.h"
 #include "pastix_zcores.h"
@@ -21,18 +23,16 @@
 /**
  ******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @brief Add two matrices together.
  *
- *  core_zgeadd adds to matrices together.
- *
- *       B <- alpha * op(A)  + B
+ * Perform the operation:  B <- alpha * op(A) + B
  *
  *******************************************************************************
  *
  * @param[in] trans
- *         @arg CblasNoTrans   :  No transpose, op( A ) = A;
- *         @arg CblasTrans     :  Transpose, op( A ) = A';
- *         @arg CblasConjTrans :  Conjugate Transpose, op( A ) = conj(A').
+ *         @arg PastixNoTrans:   No transpose, op( A ) = A;
+ *         @arg PastixTrans:     Transpose, op( A ) = A';
+ *         @arg PastixConjTrans: Conjugate Transpose, op( A ) = conj(A').
  *
  * @param[in] M
  *          Number of rows of the matrix B.
@@ -66,17 +66,21 @@
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS successful exit
- *          \retval <0 if -i, the i-th argument had an illegal value
- *          \retval 1, not yet implemented
+ * @retval PASTIX_SUCCESS successful exit
+ * @retval <0 if -i, the i-th argument had an illegal value
+ * @retval 1, not yet implemented
  *
  ******************************************************************************/
-int core_zgeadd( pastix_trans_t trans, pastix_int_t M, pastix_int_t N,
-                       pastix_complex64_t  alpha,
-                 const pastix_complex64_t *A, pastix_int_t LDA,
-                       pastix_complex64_t  beta,
-                       pastix_complex64_t *B, pastix_int_t LDB)
+int
+core_zgeadd( pastix_trans_t            trans,
+             pastix_int_t              M,
+             pastix_int_t              N,
+             pastix_complex64_t        alpha,
+             const pastix_complex64_t *A,
+             pastix_int_t              LDA,
+             pastix_complex64_t        beta,
+             pastix_complex64_t       *B,
+             pastix_int_t              LDB)
 {
     int i, j;
 
@@ -201,11 +205,9 @@ int core_zgeadd( pastix_trans_t trans, pastix_int_t M, pastix_int_t N,
 /**
  ******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @brief Add two column blocks together.
  *
- *  core_zgeaddsp1d adds two column blocks together.
- *
- *       cblk2 <- cblk1  + cblk2
+ * Perform the operation: cblk2 <- cblk1 + cblk2 using core_zgeadd().
  *
  *******************************************************************************
  *
@@ -231,31 +233,30 @@ int core_zgeadd( pastix_trans_t trans, pastix_int_t M, pastix_int_t N,
  *          panel. Must be of size cblk.stride -by- cblk.width. Ignored if
  *          NULL.
  *
- *
  * @param[inout] Cu
  *          The pointer to the upper matrix storing the coefficients of the
  *          updated panel. Must be of size cblk.stride -by- cblk.width
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS successful exit
+ * @retval PASTIX_SUCCESS successful exit
  *
  ******************************************************************************/
 int
-core_zgeaddsp1d( SolverCblk * cblk1,
-                 SolverCblk * cblk2,
-                 pastix_complex64_t * L,
-                 pastix_complex64_t * Cl,
-                 pastix_complex64_t * U,
-                 pastix_complex64_t * Cu )
+core_zgeaddsp1d( const SolverCblk         *cblk1,
+                 SolverCblk               *cblk2,
+                 const pastix_complex64_t *L,
+                 pastix_complex64_t       *Cl,
+                 const pastix_complex64_t *U,
+                 pastix_complex64_t       *Cu )
 {
     SolverBlok *iterblok;
     SolverBlok *firstblok;
     SolverBlok *lastblok;
     SolverBlok *fblok;
     pastix_int_t ncol1 = cblk1->lcolnum - cblk1->fcolnum + 1;
-    pastix_complex64_t *ga, *gb;
+    const pastix_complex64_t *ga;
+    pastix_complex64_t *gb;
 
     assert(0 /* Outdated */);
 
