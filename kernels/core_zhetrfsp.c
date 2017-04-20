@@ -220,10 +220,10 @@ core_zhetrfsp( pastix_int_t        n,
  *
  *******************************************************************************/
 int
-core_zhetrfsp1d_hetrf( SolverCblk         *cblk,
-                       pastix_complex64_t *L,
-                       pastix_complex64_t *DLh,
-                       double              criteria )
+cpucblk_zhetrfsp1d_hetrf( SolverCblk         *cblk,
+                          pastix_complex64_t *L,
+                          pastix_complex64_t *DLh,
+                          double              criteria )
 {
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
@@ -464,16 +464,16 @@ void core_zhetrfsp1d_gemm( SolverCblk         *cblk,
  *
  *******************************************************************************/
 int
-core_zhetrfsp1d_panel( SolverCblk         *cblk,
-                       pastix_complex64_t *L,
-                       pastix_complex64_t *DLh,
-                       double              criteria,
-                       const pastix_lr_t  *lowrank )
+cpucblk_zhetrfsp1d_panel( SolverCblk         *cblk,
+                          pastix_complex64_t *L,
+                          pastix_complex64_t *DLh,
+                          double              criteria,
+                          const pastix_lr_t  *lowrank )
 {
     pastix_int_t  nbpivot;
     (void)lowrank;
 
-    nbpivot = core_zhetrfsp1d_hetrf(cblk, L, DLh, criteria );
+    nbpivot = cpucblk_zhetrfsp1d_hetrf(cblk, L, DLh, criteria );
     core_zhetrfsp1d_trsm(cblk, L);
     return nbpivot;
 }
@@ -512,11 +512,11 @@ core_zhetrfsp1d_panel( SolverCblk         *cblk,
  *
  *******************************************************************************/
 int
-core_zhetrfsp1d( SolverMatrix       *solvmtx,
-                 SolverCblk         *cblk,
-                 double              criteria,
-                 pastix_complex64_t *work1,
-                 pastix_complex64_t *work2 )
+cpucblk_zhetrfsp1d( SolverMatrix       *solvmtx,
+                    SolverCblk         *cblk,
+                    double              criteria,
+                    pastix_complex64_t *work1,
+                    pastix_complex64_t *work2 )
 {
     pastix_complex64_t *L = cblk->lcoeftab;
     SolverCblk  *fcblk;
@@ -524,7 +524,7 @@ core_zhetrfsp1d( SolverMatrix       *solvmtx,
     pastix_int_t nbpivot;
 
     /* if there are off-diagonal supernodes in the column */
-    nbpivot = core_zhetrfsp1d_hetrf(cblk, L, work1, criteria);
+    nbpivot = cpucblk_zhetrfsp1d_hetrf(cblk, L, work1, criteria);
     core_zhetrfsp1d_trsm(cblk, L);
 
     blok = cblk->fblokptr+1;   /* this diagonal block */

@@ -245,12 +245,12 @@ core_zgeadd( pastix_trans_t            trans,
  *
  ******************************************************************************/
 int
-core_zgeaddsp1d( const SolverCblk         *cblk1,
-                 SolverCblk               *cblk2,
-                 const pastix_complex64_t *L,
-                 pastix_complex64_t       *Cl,
-                 const pastix_complex64_t *U,
-                 pastix_complex64_t       *Cu )
+cpucblk_zgeaddsp1d( const SolverCblk         *cblk1,
+                    SolverCblk               *cblk2,
+                    const pastix_complex64_t *L,
+                    pastix_complex64_t       *Cl,
+                    const pastix_complex64_t *U,
+                    pastix_complex64_t       *Cu )
 {
     SolverBlok *iterblok;
     SolverBlok *firstblok;

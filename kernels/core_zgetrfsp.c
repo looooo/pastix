@@ -207,10 +207,10 @@ core_zgetrfsp( pastix_int_t        n,
  *
  *******************************************************************************/
 int
-core_zgetrfsp1d_getrf( SolverCblk         *cblk,
-                       pastix_complex64_t *L,
-                       pastix_complex64_t *U,
-                       double              criteria )
+cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
+                          pastix_complex64_t *L,
+                          pastix_complex64_t *U,
+                          double              criteria )
 {
     pastix_int_t ncols, stride;
     pastix_int_t nbpivot = 0;
@@ -280,15 +280,15 @@ core_zgetrfsp1d_getrf( SolverCblk         *cblk,
  *
  *******************************************************************************/
 int
-core_zgetrfsp1d_panel( SolverCblk         *cblk,
-                       pastix_complex64_t *L,
-                       pastix_complex64_t *U,
-                       double              criteria,
-                       const pastix_lr_t  *lowrank )
+cpucblk_zgetrfsp1d_panel( SolverCblk         *cblk,
+                          pastix_complex64_t *L,
+                          pastix_complex64_t *U,
+                          double              criteria,
+                          const pastix_lr_t  *lowrank )
 {
     pastix_int_t nbpivot;
 
-    nbpivot = core_zgetrfsp1d_getrf(cblk, L, U, criteria);
+    nbpivot = cpucblk_zgetrfsp1d_getrf(cblk, L, U, criteria);
     /**
      * We exploit the fact tha the upper triangle is stored at the top of the L
      * column, and by transposition the L part of the diagonal block is
@@ -333,10 +333,10 @@ core_zgetrfsp1d_panel( SolverCblk         *cblk,
  *
  *******************************************************************************/
 int
-core_zgetrfsp1d( SolverMatrix       *solvmtx,
-                 SolverCblk         *cblk,
-                 double              criteria,
-                 pastix_complex64_t *work )
+cpucblk_zgetrfsp1d( SolverMatrix       *solvmtx,
+                    SolverCblk         *cblk,
+                    double              criteria,
+                    pastix_complex64_t *work )
 {
     pastix_complex64_t *L = cblk->lcoeftab;
     pastix_complex64_t *U = cblk->ucoeftab;
@@ -344,7 +344,7 @@ core_zgetrfsp1d( SolverMatrix       *solvmtx,
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivot;
 
-    nbpivot = core_zgetrfsp1d_panel(cblk, L, U, criteria, &solvmtx->lowrank);
+    nbpivot = cpucblk_zgetrfsp1d_panel(cblk, L, U, criteria, &solvmtx->lowrank);
 
     blok = cblk->fblokptr + 1; /* this diagonal block */
     lblk = cblk[1].fblokptr;   /* the next diagonal block */

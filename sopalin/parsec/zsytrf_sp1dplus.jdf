@@ -61,7 +61,7 @@ BODY
 
     work1 = (pastix_complex64_t *)parsec_private_memory_pop( p_work1 );
 
-    core_zsytrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, work1 );
+    cpucblk_zsytrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, work1 );
 
     parsec_private_memory_push( p_work1, (void *)work1 );
 }

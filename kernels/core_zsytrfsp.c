@@ -226,10 +226,10 @@ core_zsytrfsp( pastix_int_t        n,
  *
  *******************************************************************************/
 int
-core_zsytrfsp1d_sytrf( SolverCblk         *cblk,
-                       pastix_complex64_t *L,
-                       pastix_complex64_t *DLt,
-                       double              criteria )
+cpucblk_zsytrfsp1d_sytrf( SolverCblk         *cblk,
+                          pastix_complex64_t *L,
+                          pastix_complex64_t *DLt,
+                          double              criteria )
 {
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
@@ -470,16 +470,16 @@ void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
  *
  *******************************************************************************/
 int
-core_zsytrfsp1d_panel( SolverCblk         *cblk,
-                       pastix_complex64_t *L,
-                       pastix_complex64_t *DLt,
-                       double              criteria,
-                       const pastix_lr_t  *lowrank )
+cpucblk_zsytrfsp1d_panel( SolverCblk         *cblk,
+                          pastix_complex64_t *L,
+                          pastix_complex64_t *DLt,
+                          double              criteria,
+                          const pastix_lr_t  *lowrank )
 {
     pastix_int_t  nbpivot;
     (void)lowrank;
 
-    nbpivot = core_zsytrfsp1d_sytrf(cblk, L, DLt, criteria );
+    nbpivot = cpucblk_zsytrfsp1d_sytrf(cblk, L, DLt, criteria );
     core_zsytrfsp1d_trsm(cblk, L);
     return nbpivot;
 }
@@ -518,7 +518,7 @@ core_zsytrfsp1d_panel( SolverCblk         *cblk,
  *
  *******************************************************************************/
 int
-core_zsytrfsp1d( SolverMatrix       *solvmtx,
+cpucblk_zsytrfsp1d( SolverMatrix       *solvmtx,
                  SolverCblk         *cblk,
                  double              criteria,
                  pastix_complex64_t *work1,
@@ -530,7 +530,7 @@ core_zsytrfsp1d( SolverMatrix       *solvmtx,
     pastix_int_t nbpivot;
 
     /* if there are off-diagonal supernodes in the column */
-    nbpivot = core_zsytrfsp1d_sytrf(cblk, L, work1, criteria);
+    nbpivot = cpucblk_zsytrfsp1d_sytrf(cblk, L, work1, criteria);
     core_zsytrfsp1d_trsm(cblk, L);
 
     blok = cblk->fblokptr+1;   /* this diagonal block */

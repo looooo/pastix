@@ -217,9 +217,9 @@ core_zpotrfsp( pastix_int_t        n,
  *
  *******************************************************************************/
 int
-core_zpotrfsp1d_potrf( SolverCblk         *cblk,
-                       pastix_complex64_t *L,
-                       double              criteria )
+cpucblk_zpotrfsp1d_potrf( SolverCblk         *cblk,
+                          pastix_complex64_t *L,
+                          double              criteria )
 {
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
@@ -275,12 +275,12 @@ core_zpotrfsp1d_potrf( SolverCblk         *cblk,
  *
  *******************************************************************************/
 int
-core_zpotrfsp1d_panel( SolverCblk         *cblk,
-                       pastix_complex64_t *L,
-                       double              criteria,
-                       const pastix_lr_t  *lowrank )
+cpucblk_zpotrfsp1d_panel( SolverCblk         *cblk,
+                          pastix_complex64_t *L,
+                          double              criteria,
+                          const pastix_lr_t  *lowrank )
 {
-    pastix_int_t  nbpivot = core_zpotrfsp1d_potrf(cblk, L, criteria);
+    pastix_int_t  nbpivot = cpucblk_zpotrfsp1d_potrf(cblk, L, criteria);
     cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
                      PastixConjTrans, PastixNonUnit,
                      cblk, L, L, lowrank );
@@ -318,17 +318,17 @@ core_zpotrfsp1d_panel( SolverCblk         *cblk,
  *
  *******************************************************************************/
 int
-core_zpotrfsp1d( SolverMatrix       *solvmtx,
-                 SolverCblk         *cblk,
-                 double              criteria,
-                 pastix_complex64_t *work )
+cpucblk_zpotrfsp1d( SolverMatrix       *solvmtx,
+                    SolverCblk         *cblk,
+                    double              criteria,
+                    pastix_complex64_t *work )
 {
     pastix_complex64_t *L = cblk->lcoeftab;
     SolverCblk  *fcblk;
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivot;
 
-    nbpivot = core_zpotrfsp1d_panel(cblk, L, criteria, &solvmtx->lowrank);
+    nbpivot = cpucblk_zpotrfsp1d_panel(cblk, L, criteria, &solvmtx->lowrank);
 
     blok = cblk->fblokptr + 1; /* First off-diagonal block */
     lblk = cblk[1].fblokptr;   /* Next diagonal block      */
