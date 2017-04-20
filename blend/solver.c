@@ -12,13 +12,94 @@
  * @author Xavier Lacoste
  * @date 2011-11-11
  *
- * @addtogroup blend_dev_solver
- * @{
- *
  **/
 #include "common.h"
 #include "solver.h"
 #include "coeftab.h"
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup blend_dev_solver_null
+ *
+ * @brief Compute the memory size used by the solver sturcture itself.
+ *
+ * This function doesn't count the memory space of the numerical information,
+ * but only the sapce of the data structure that describes the matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvptr
+ *          The pointer to the solver matrix structure.
+ *
+ *******************************************************************************
+ *
+ * @return the memory size in octet of the solver structure.
+ *
+ *******************************************************************************/
+static inline size_t
+solver_size( const SolverMatrix *solvptr )
+{
+    size_t mem = sizeof(SolverMatrix);
+
+    /* cblk and blocks arrays */
+    if ( solvptr->cblktab ) {
+        mem += solvptr->cblknbr * sizeof( SolverCblk );
+    }
+    if ( solvptr->bloktab ) {
+        mem += solvptr->bloknbr * sizeof( SolverBlok );
+    }
+    if ( solvptr->browtab ) {
+        mem += solvptr->brownbr * sizeof( pastix_int_t );
+    }
+#if defined(PASTIX_WITH_PARSEC)
+    if ( solvptr->parsec_desc ) {
+        mem += sizeof( sparse_matrix_desc_t );
+    }
+#endif
+
+    /* Fanins */
+    if ( solvptr->ftgttab ) {
+        mem += solvptr->ftgtnbr * sizeof( solver_ftgt_t );
+    }
+    if ( solvptr->indtab ) {
+        mem += solvptr->indnbr  * sizeof( pastix_int_t );
+    }
+
+    /* /\* BubbleTree *\/ */
+    /* if ( solvptr->btree ) { */
+    /*     mem += solvptr->bublnbr * sizeof( BubbleTree ); */
+    /*     mem += solvptr->btree->nodemax * sizeof( BubbleTreeNode ); */
+    /*     mem += solvptr->btree->nodemax * sizeof( int ); */
+    /* } */
+
+    /* Tasks */
+    if ( solvptr->tasktab ) {
+        mem += solvptr->tasknbr * sizeof(Task);
+    }
+    if ( solvptr->ttsknbr ) {
+        int i;
+        mem += solvptr->thrdnbr * sizeof(pastix_int_t);
+        mem += solvptr->thrdnbr * sizeof(pastix_int_t*);
+
+        for( i=0; i<solvptr->thrdnbr; i++ ) {
+            mem += solvptr->ttsknbr[i] * sizeof(pastix_int_t);
+        }
+    }
+
+    /* proc2clust */
+    if ( solvptr->proc2clust ) {
+        mem += solvptr->procnbr * sizeof(pastix_int_t);
+    }
+
+    return mem;
+}
+
+/**
+ * @addtogroup blend_dev_solver
+ * @{
+ *
+ */
 
 /**
  *******************************************************************************
@@ -127,82 +208,6 @@ solverExit(SolverMatrix *solvmtx)
     /* memFree_null(solvmtx->updovct.loc2glob); */
     /* memFree_null(solvmtx->updovct.cblktab); */
     /* memFree_null(solvmtx->updovct.listptr); */
-}
-
-/**
- *******************************************************************************
- *
- * @brief Compute the memory size used by the solver sturcture itself.
- *
- * This function doesn't count the memory space of the numerical information,
- * but only the sapce of the data structure that describes the matrix.
- *
- *******************************************************************************
- *
- * @param[in] solvptr
- *          The pointer to the solver matrix structure.
- *
- *******************************************************************************
- *
- * @return the memory size in octet of the solver structure.
- *
- *******************************************************************************/
-static inline size_t
-solver_size( const SolverMatrix *solvptr )
-{
-    size_t mem = sizeof(SolverMatrix);
-
-    /* cblk and blocks arrays */
-    if ( solvptr->cblktab ) {
-        mem += solvptr->cblknbr * sizeof( SolverCblk );
-    }
-    if ( solvptr->bloktab ) {
-        mem += solvptr->bloknbr * sizeof( SolverBlok );
-    }
-    if ( solvptr->browtab ) {
-        mem += solvptr->brownbr * sizeof( pastix_int_t );
-    }
-#if defined(PASTIX_WITH_PARSEC)
-    if ( solvptr->parsec_desc ) {
-        mem += sizeof( sparse_matrix_desc_t );
-    }
-#endif
-
-    /* Fanins */
-    if ( solvptr->ftgttab ) {
-        mem += solvptr->ftgtnbr * sizeof( solver_ftgt_t );
-    }
-    if ( solvptr->indtab ) {
-        mem += solvptr->indnbr  * sizeof( pastix_int_t );
-    }
-
-    /* /\* BubbleTree *\/ */
-    /* if ( solvptr->btree ) { */
-    /*     mem += solvptr->bublnbr * sizeof( BubbleTree ); */
-    /*     mem += solvptr->btree->nodemax * sizeof( BubbleTreeNode ); */
-    /*     mem += solvptr->btree->nodemax * sizeof( int ); */
-    /* } */
-
-    /* Tasks */
-    if ( solvptr->tasktab ) {
-        mem += solvptr->tasknbr * sizeof(Task);
-    }
-    if ( solvptr->ttsknbr ) {
-        int i;
-        mem += solvptr->thrdnbr * sizeof(pastix_int_t);
-        mem += solvptr->thrdnbr * sizeof(pastix_int_t*);
-
-        for( i=0; i<solvptr->thrdnbr; i++ ) {
-            mem += solvptr->ttsknbr[i] * sizeof(pastix_int_t);
-        }
-    }
-
-    /* proc2clust */
-    if ( solvptr->proc2clust ) {
-        mem += solvptr->procnbr * sizeof(pastix_int_t);
-    }
-
-    return mem;
 }
 
 /**

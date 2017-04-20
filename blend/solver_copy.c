@@ -20,7 +20,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup blend_dev_solver
+ * @ingroup blend_dev_solver_null
  *
  * @brief Copy the solver matrix data structure from solvin to solvout.
  *
