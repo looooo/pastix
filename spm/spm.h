@@ -27,6 +27,8 @@
 #ifndef _SPM_H_
 #define _SPM_H_
 
+#include "pastix/api.h"
+
 /**
  * @brief The list of matrix driver readers and generators
  */
@@ -50,31 +52,6 @@ typedef enum pastix_driver_e {
     /* PastixDriverBRGM,       /\**< Not supported yet *\/ */
     /* PastixDriverBRGMD,      /\**< Not supported yet *\/ */
 } pastix_driver_t;
-
-/**
- * @brief Arithmetic types.
- *
- * This describes the different arithmetics that can be stored in a sparse matrix.
- * @remark The values start at 2 for compatibility purpose with PLASMA and
- * DPLASMA libraries.
- */
-typedef enum pastix_coeftype_e {
-    PastixPattern   = 0, /**< Pattern only, no values are stored */
-    PastixFloat     = 2, /**< Single precision real              */
-    PastixDouble    = 3, /**< Double precision real              */
-    PastixComplex32 = 4, /**< Single precision complex           */
-    PastixComplex64 = 5  /**< Double precision complex           */
-} pastix_coeftype_t;
-
-/**
- * @brief Sparse matrix format
- */
-typedef enum pastix_fmttype_e {
-    PastixCSC = 0, /**< Compressed sparse column */
-    PastixCSR = 1, /**< Compressed sparse row    */
-    PastixIJV = 2  /**< Coordinates              */
-} pastix_fmttype_t;
-
 
 /**
  *
@@ -135,7 +112,7 @@ void          spmUpdateComputedFields( pastix_spm_t *spm );
  * @name SPM BLAS subroutines
  * @{
  */
-double        spmNorm( int ntype, const pastix_spm_t *spm );
+double        spmNorm( pastix_normtype_t ntype, const pastix_spm_t *spm );
 int           spmMatVec(const pastix_trans_t trans, const void *alpha, const pastix_spm_t *spm, const void *x, const void *beta, void *y );
 void          spmScal( const pastix_complex64_t alpha, pastix_spm_t* spm );
 
@@ -162,10 +139,10 @@ int           spmCheckAxb( int nrhs, const pastix_spm_t *spm, void *x0, int ldx0
  * @name SPM subroutines to manipulate integers arrays
  * @{
  */
-pastix_int_t *spmIntConvert( pastix_int_t n, int *input );
-void          spmIntSort1Asc1(void * const pbase, const pastix_int_t n);
-void          spmIntSort2Asc1(void * const pbase, const pastix_int_t n);
-void          spmIntSort2Asc2(void * const pbase, const pastix_int_t n);
+pastix_int_t *spmIntConvert(   pastix_int_t n, int *input );
+void          spmIntSort1Asc1( void * const pbase, const pastix_int_t n );
+void          spmIntSort2Asc1( void * const pbase, const pastix_int_t n );
+void          spmIntSort2Asc2( void * const pbase, const pastix_int_t n );
 
 /**
  * @}
@@ -189,10 +166,10 @@ int           spmReadDriver( pastix_driver_t  driver,
  * @name SPM debug subroutines
  * @{
  */
-void *        spm2Dense( const pastix_spm_t *spm );
-void          spmPrint( FILE *f, const pastix_spm_t *spm );
-pastix_spm_t *spmExpand(const pastix_spm_t* spm);
-pastix_spm_t *spmDofExtend( const int type, const int dof, const pastix_spm_t *spm );
+void *        spm2Dense   ( const pastix_spm_t *spm );
+void          spmPrint    ( const pastix_spm_t *spm, FILE *f );
+pastix_spm_t *spmExpand   ( const pastix_spm_t* spm );
+pastix_spm_t *spmDofExtend( const pastix_spm_t *spm, const int type, const int dof  );
 
 /**
  * @}

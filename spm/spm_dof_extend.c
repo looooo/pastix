@@ -32,6 +32,9 @@
  *
  *******************************************************************************
  *
+ * @param[in] spm
+ *          The sparse matrix used to generate the new multidof spm.
+ *
  * @param[in] type
  *          Defines how to generate dofs.
  *          - 0: Generate a constant dof vector,
@@ -40,18 +43,15 @@
  * @param[in] dof
  *          The maximum value for dofs.
  *
- * @param[in] spm
- *          The sparse matrix used to generate the new multidof spm.
- *
  ********************************************************************************
  *
  * @return the new multidof spm.
  *
  *******************************************************************************/
 pastix_spm_t *
-spmDofExtend( const int type,
-              const int dof,
-              const pastix_spm_t *spm )
+spmDofExtend( const pastix_spm_t *spm,
+              const int           type,
+              const int           dof )
 {
     pastix_spm_t *newspm;
 

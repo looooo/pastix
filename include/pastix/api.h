@@ -439,6 +439,30 @@ enum API_REFINE {
 };
 
 /**
+ * @brief Arithmetic types.
+ *
+ * This describes the different arithmetics that can be stored in a sparse matrix.
+ * @remark The values start at 2 for compatibility purpose with PLASMA and
+ * DPLASMA libraries.
+ */
+typedef enum pastix_coeftype_e {
+    PastixPattern   = 0, /**< Pattern only, no values are stored */
+    PastixFloat     = 2, /**< Single precision real              */
+    PastixDouble    = 3, /**< Double precision real              */
+    PastixComplex32 = 4, /**< Single precision complex           */
+    PastixComplex64 = 5  /**< Double precision complex           */
+} pastix_coeftype_t;
+
+/**
+ * @brief Sparse matrix format
+ */
+typedef enum pastix_fmttype_e {
+    PastixCSC = 0, /**< Compressed sparse column */
+    PastixCSR = 1, /**< Compressed sparse row    */
+    PastixIJV = 2  /**< Coordinates              */
+} pastix_fmttype_t;
+
+/**
  * Factorization algorithms available for IPARM_FACTORIZATION parameter
  */
 typedef enum pastix_factotype_e {
