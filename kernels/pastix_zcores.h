@@ -243,7 +243,6 @@ int cpucblk_zpotrfsp1d_panel( SolverCblk *cblk, pastix_complex64_t *L, double cr
                               const pastix_lr_t *lowrank );
 int cpucblk_zpotrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double criteria, pastix_complex64_t *work );
 
-#if defined(PRECISION_z) || defined(PRECISION_c)
 /**
  *    @}
  *    @name PastixComplex64 cblk LDL^h kernels
@@ -254,7 +253,6 @@ int cpucblk_zhetrfsp1d_panel( SolverCblk *cblk, pastix_complex64_t *L, pastix_co
                               const pastix_lr_t *lowrank );
 int cpucblk_zhetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double criteria,
                               pastix_complex64_t *work1, pastix_complex64_t *work2 );
-#endif /*defined(PRECISION_z) || defined(PRECISION_c) */
 
 /**
  *    @}
@@ -291,12 +289,10 @@ void solve_ztrsmsp( pastix_side_t side, pastix_uplo_t uplo, pastix_trans_t trans
  * @{
  *     To be removed
  */
-#if defined(PRECISION_z) || defined(PRECISION_c)
 int  core_zhetrfsp1d_trsm( SolverCblk *cblk, pastix_complex64_t *L );
 void core_zhetrfsp1d_gemm( SolverCblk *cblk, SolverBlok *blok, SolverCblk *fcblk,
                            pastix_complex64_t *L, pastix_complex64_t *C,
                            pastix_complex64_t *work1, pastix_complex64_t *work2 );
-#endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 int  core_zsytrfsp1d_trsm( SolverCblk *cblk, pastix_complex64_t *L );
 void core_zsytrfsp1d_gemm( SolverCblk *cblk, SolverBlok *blok, SolverCblk *fcblk,
                            pastix_complex64_t *L, pastix_complex64_t *C,

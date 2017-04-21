@@ -40,7 +40,7 @@ static pastix_complex64_t mzone = -1.;
  *          The number of rows and columns of the matrix A.
  *
  * @param[inout] A
- *          The matrix A to factorize with Cholesky factorization. The matrix
+ *          The matrix A to factorize with LDL^t factorization. The matrix
  *          is of size lda -by- n.
  *
  * @param[in] lda
@@ -104,7 +104,7 @@ core_zsytf2sp( pastix_int_t        n,
 /**
  *******************************************************************************
  *
- * @brief Compute the block static pivoting factorization of the hermitian
+ * @brief Compute the block static pivoting factorization of the symmetric
  * matrix n-by-n A such that A = L * D * L^t.
  *
  *******************************************************************************
@@ -314,7 +314,7 @@ int core_zsytrfsp1d_trsm( SolverCblk         *cblk,
 /**
  *******************************************************************************
  *
- * core_zsytrfsp1d_gemm - Computes the Cholesky factorization of one panel and
+ * core_zsytrfsp1d_gemm - Computes the LDL^t factorization of one panel and
  * apply all the trsm updates to this panel.
  *
  *******************************************************************************
