@@ -284,7 +284,7 @@ BODY
     if (isTwoD) {
         SolverCblk *cblk = datacode->cblktab + k;
         /* pastix_int_t  nbpivot = */
-        core_zgetrfsp1d_getrf( cblk, Al, Au, sopalin_data->diagthreshold );
+        cpucblk_zgetrfsp1d_getrf( cblk, Al, Au, sopalin_data->diagthreshold );
     }
 }
 END
