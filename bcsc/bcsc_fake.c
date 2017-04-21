@@ -27,7 +27,7 @@
  * factorization.
  */
 static inline void
-bcscInitFakeA( const pastix_csc_t  *csc,
+bcscInitFakeA( const pastix_spm_t  *spm,
                const Order         *ord,
                const SolverMatrix  *solvmtx,
                const pastix_int_t  *col2cblk,
@@ -36,15 +36,15 @@ bcscInitFakeA( const pastix_csc_t  *csc,
     double *Lvalues = (double*)(bcsc->Lvalues);
     pastix_int_t itercblk, itercol, baseval;
     pastix_int_t i, ival, idofcol, idofrow;
-    int dof = csc->dof;
+    int dof = spm->dof;
 
-    baseval = csc->colptr[0];
+    baseval = spm->colptr[0];
 
     /**
      * Initialize the value of the matrix A in the blocked csc format. This
      * applies the permutation to the values array.
      */
-    for (itercol=0; itercol<csc->gN; itercol++)
+    for (itercol=0; itercol<spm->gN; itercol++)
     {
         pastix_int_t *coltab;
         pastix_int_t  fcolnum, frow, lrow;
@@ -58,12 +58,12 @@ bcscInitFakeA( const pastix_csc_t  *csc,
         coltab  = bcsc->cscftab[itercblk].coltab;
         fcolnum = solvmtx->cblktab[itercblk].fcolnum;
 
-        frow = csc->colptr[itercol]   - baseval;
-        lrow = csc->colptr[itercol+1] - baseval;
+        frow = spm->colptr[itercol]   - baseval;
+        lrow = spm->colptr[itercol+1] - baseval;
 
         for (i=frow; i<lrow; i++)
         {
-            pastix_int_t iterrow  = csc->rowptr[i]-baseval;
+            pastix_int_t iterrow  = spm->rowptr[i]-baseval;
             pastix_int_t iterrow2 = ord->permtab[iterrow] * dof;
             ival = i * dof * dof;
 
@@ -88,7 +88,7 @@ bcscInitFakeA( const pastix_csc_t  *csc,
 }
 
 void
-bcscInitFakeLt( const pastix_csc_t  *csc,
+bcscInitFakeLt( const pastix_spm_t  *spm,
                 const Order         *ord,
                 const SolverMatrix  *solvmtx,
                 const pastix_int_t  *col2cblk,
@@ -97,27 +97,27 @@ bcscInitFakeLt( const pastix_csc_t  *csc,
     double *Lvalues = (double*)(bcsc->Lvalues);
     pastix_int_t itercblk, itercol, baseval;
     pastix_int_t i, ival, idofcol, idofrow;
-    int dof = csc->dof;
+    int dof = spm->dof;
 
-    baseval = csc->colptr[0];
+    baseval = spm->colptr[0];
 
     /**
      * Initialize the value of the matrix A^t in the blocked csc format. This
      * applies the permutation to the values array.
      */
-    for (itercol=0; itercol<csc->gN; itercol++)
+    for (itercol=0; itercol<spm->gN; itercol++)
     {
         pastix_int_t frow, lrow;
         pastix_int_t itercol2 = ord->permtab[itercol] * dof;
 
-        frow = csc->colptr[itercol]   - baseval;
-        lrow = csc->colptr[itercol+1] - baseval;
+        frow = spm->colptr[itercol]   - baseval;
+        lrow = spm->colptr[itercol+1] - baseval;
 
         for (i=frow; i<lrow; i++)
         {
             pastix_int_t *coltab;
             pastix_int_t fcolnum;
-            pastix_int_t iterrow  = csc->rowptr[i]-baseval;
+            pastix_int_t iterrow  = spm->rowptr[i]-baseval;
             pastix_int_t iterrow2 = ord->permtab[iterrow] * dof;
 
             itercblk = col2cblk[ iterrow2 ];
@@ -153,7 +153,7 @@ bcscInitFakeLt( const pastix_csc_t  *csc,
 }
 
 void
-bcscInitFakeAt( const pastix_csc_t  *csc,
+bcscInitFakeAt( const pastix_spm_t  *spm,
                 const Order         *ord,
                 const SolverMatrix  *solvmtx,
                 const pastix_int_t  *col2cblk,
@@ -163,27 +163,27 @@ bcscInitFakeAt( const pastix_csc_t  *csc,
     double *Uvalues = (double*)(bcsc->Uvalues);
     pastix_int_t itercblk, itercol, baseval;
     pastix_int_t i, ival, idofcol, idofrow;
-    int dof = csc->dof;
+    int dof = spm->dof;
 
-    baseval = csc->colptr[0];
+    baseval = spm->colptr[0];
 
     /**
      * Initialize the value of the matrix A^t in the blocked csc format. This
      * applies the permutation to the values array.
      */
-    for (itercol=0; itercol<csc->gN; itercol++)
+    for (itercol=0; itercol<spm->gN; itercol++)
     {
         pastix_int_t frow, lrow;
         pastix_int_t itercol2 = ord->permtab[itercol] * dof;
 
-        frow = csc->colptr[itercol]   - baseval;
-        lrow = csc->colptr[itercol+1] - baseval;
+        frow = spm->colptr[itercol]   - baseval;
+        lrow = spm->colptr[itercol+1] - baseval;
 
         for (i=frow; i<lrow; i++)
         {
             pastix_int_t *coltab;
             pastix_int_t fcolnum;
-            pastix_int_t iterrow  = csc->rowptr[i]-baseval;
+            pastix_int_t iterrow  = spm->rowptr[i]-baseval;
             pastix_int_t iterrow2 = ord->permtab[iterrow] * dof;
 
             itercblk = col2cblk[ iterrow2 ];
@@ -219,7 +219,7 @@ bcscInitFakeAt( const pastix_csc_t  *csc,
 }
 
 void
-bcscInitCentralizedFake( const pastix_csc_t  *csc,
+bcscInitCentralizedFake( const pastix_spm_t  *spm,
                          const Order         *ord,
                          const SolverMatrix  *solvmtx,
                          const pastix_int_t  *col2cblk,
@@ -228,14 +228,14 @@ bcscInitCentralizedFake( const pastix_csc_t  *csc,
 {
     pastix_int_t valuesize;
 
-    valuesize = bcsc_init_centralized_coltab( csc, ord, solvmtx, bcsc );
+    valuesize = bcsc_init_centralized_coltab( spm, ord, solvmtx, bcsc );
 
     /**
      * Initialize the blocked structure of the matrix A
      */
-    bcscInitFakeA( csc, ord, solvmtx, col2cblk, bcsc );
-    if ( csc->mtxtype == PastixSymmetric ) {
-        bcscInitFakeLt( csc, ord, solvmtx, col2cblk, bcsc );
+    bcscInitFakeA( spm, ord, solvmtx, col2cblk, bcsc );
+    if ( spm->mtxtype == PastixSymmetric ) {
+        bcscInitFakeLt( spm, ord, solvmtx, col2cblk, bcsc );
     }
 
     /* Restore the correct coltab arrays */
@@ -244,14 +244,14 @@ bcscInitCentralizedFake( const pastix_csc_t  *csc,
     /* Sort the csc */
     d_bcscSort( bcsc, bcsc->rowtab, bcsc->Lvalues );
 
-    if ( csc->mtxtype == PastixGeneral ) {
+    if ( spm->mtxtype == PastixGeneral ) {
 	/* A^t is not required if only refinment is performed */
         if (initAt) {
             pastix_int_t *trowtab;
             MALLOC_INTERN( bcsc->Uvalues, valuesize * sizeof( double ), char );
             MALLOC_INTERN( trowtab, valuesize, pastix_int_t);
 
-            bcscInitFakeAt( csc, ord, solvmtx, col2cblk, trowtab, bcsc );
+            bcscInitFakeAt( spm, ord, solvmtx, col2cblk, trowtab, bcsc );
 
             /* Restore the correct coltab arrays */
             bcsc_restore_coltab( bcsc );

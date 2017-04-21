@@ -113,7 +113,7 @@ orderBuildEtree( const Order *order,
  *
  *******************************************************************************
  *
- * @retval PASTIX_SUCESS on successful exit,
+ * @retval PASTIX_SUCCESS on successful exit,
  * @retval PASTIX_ERR_BADPARAMETER if the ordering structure is incorrect.
  *
  *******************************************************************************/
@@ -158,7 +158,7 @@ orderApplyLevelOrder( Order *order,
 
     /* Quick return */
     if (order->cblknbr == 0) {
-        return PASTIX_SUCESS;
+        return PASTIX_SUCCESS;
     }
 
     assert(baseval == order->rangtab[0]);
@@ -311,5 +311,5 @@ orderApplyLevelOrder( Order *order,
     orderExit( &oldorder );
     eTreeExit( etree );
 
-    return PASTIX_SUCESS;
+    return PASTIX_SUCCESS;
 }

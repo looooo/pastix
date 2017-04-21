@@ -35,7 +35,7 @@
  *
  *******************************************************************************
  *
- * @retval PASTIX_SUCESS on successful exit,
+ * @retval PASTIX_SUCCESS on successful exit,
  * @retval PASTIX_ERR_FILE if a problem occurs during the read.
  *
  *******************************************************************************/
@@ -122,7 +122,7 @@ ordering_load(Order * ordeptr,
  *
  *******************************************************************************
  *
- * @retval PASTIX_SUCESS on successful exit,
+ * @retval PASTIX_SUCCESS on successful exit,
  * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect,
  * @retval PASTIX_ERR_FILE if a problem occurs during the read.
  *
@@ -188,7 +188,7 @@ int orderLoad( Order *ordemesh,
  *
  *******************************************************************************
  *
- * @retval PASTIX_SUCESS on successful exit,
+ * @retval PASTIX_SUCCESS on successful exit,
  * @retval PASTIX_ERR_BADPARAMETER if the ordeptr structure is incorrect,
  * @retval PASTIX_ERR_FILE if a problem occurs during the write.
  *
@@ -257,7 +257,7 @@ ordering_save(const Order * const ordeptr,
         return PASTIX_ERR_FILE;
     }
 
-    return PASTIX_SUCESS;
+    return PASTIX_SUCCESS;
 }
 
 /**
@@ -280,7 +280,7 @@ ordering_save(const Order * const ordeptr,
  *
  *******************************************************************************
  *
- * @retval PASTIX_SUCESS on successful exit,
+ * @retval PASTIX_SUCCESS on successful exit,
  * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect,
  * @retval PASTIX_ERR_FILE if a problem occurs during the write.
  *

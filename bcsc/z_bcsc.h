@@ -21,7 +21,7 @@ z_bcscSort( const pastix_bcsc_t *bcsc,
             pastix_int_t        *rowtab,
             pastix_complex64_t  *valtab );
 
-void z_bcscInitCentralized( const pastix_csc_t  *csc,
+void z_bcscInitCentralized( const pastix_spm_t  *spm,
                             const Order         *ord,
                             const SolverMatrix  *solvmtx,
                             const pastix_int_t  *col2cblk,
@@ -95,4 +95,5 @@ int z_bcscApplyPerm( pastix_int_t m,
                      pastix_complex64_t *A,
                      pastix_int_t lda,
                      pastix_int_t *perm );
+
 #endif /* _Z_BCSC_H_ */

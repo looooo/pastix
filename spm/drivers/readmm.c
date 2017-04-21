@@ -18,7 +18,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc_driver
+ * @ingroup pastix_spm_driver
  *
  * z_readMM - Read the data part of a complex matrix in Matrix Market file.
  * For more information about matrix market format see mmio.c/mmio.h
@@ -29,8 +29,8 @@
  *          The file opened in readMM which contains the matrix stored in Matrix
  *          Market format.
  *
- * @param[inout] csc
- *          At exit, the data of the matrix are stored in the csc structure.
+ * @param[inout] spm
+ *          At exit, the data of the matrix are stored in the spm structure.
  *
  *******************************************************************************
  *
@@ -41,7 +41,7 @@
  *******************************************************************************/
 int
 z_readMM( FILE *file,
-          pastix_csc_t *csc )
+          pastix_spm_t *spm )
 {
     pastix_complex64_t *valptr;
     pastix_int_t *colptr;
@@ -50,13 +50,13 @@ z_readMM( FILE *file,
     long row, col;
     double re, im;
 
-    csc->values = malloc( csc->nnz * sizeof(pastix_complex64_t) );
+    spm->values = malloc( spm->nnz * sizeof(pastix_complex64_t) );
 
-    colptr = csc->colptr;
-    rowptr = csc->rowptr;
-    valptr = (pastix_complex64_t*)(csc->values);
+    colptr = spm->colptr;
+    rowptr = spm->rowptr;
+    valptr = (pastix_complex64_t*)(spm->values);
 
-    for (i=0; i<csc->nnz; i++, colptr++, rowptr++, valptr++)
+    for (i=0; i<spm->nnz; i++, colptr++, rowptr++, valptr++)
     {
         if (4 != fscanf(file,"%ld %ld %lg %lg\n", &row, &col, &re, &im))
         {
@@ -75,7 +75,7 @@ z_readMM( FILE *file,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc_driver
+ * @ingroup pastix_spm_driver
  *
  * d_readMM - Read the data part of a real matrix in Matrix Market file.
  * For more information about matrix market format see mmio.c/mmio.h
@@ -86,8 +86,8 @@ z_readMM( FILE *file,
  *          The file opened in readMM which contains the matrix stored in Matrix
  *          Market format.
  *
- * @param[inout] csc
- *          At exit, the data of the matrix are stored in the csc structure.
+ * @param[inout] spm
+ *          At exit, the data of the matrix are stored in the spm structure.
  *
  *******************************************************************************
  *
@@ -98,7 +98,7 @@ z_readMM( FILE *file,
  *******************************************************************************/
 int
 d_readMM( FILE *file,
-          pastix_csc_t *csc )
+          pastix_spm_t *spm )
 {
     double       *valptr;
     pastix_int_t *colptr;
@@ -107,13 +107,13 @@ d_readMM( FILE *file,
     long row, col;
     double re;
 
-    csc->values = malloc( csc->nnz * sizeof(double) );
+    spm->values = malloc( spm->nnz * sizeof(double) );
 
-    colptr = csc->colptr;
-    rowptr = csc->rowptr;
-    valptr = (double*)(csc->values);
+    colptr = spm->colptr;
+    rowptr = spm->rowptr;
+    valptr = (double*)(spm->values);
 
-    for (i=0; i<csc->nnz; i++, colptr++, rowptr++, valptr++)
+    for (i=0; i<spm->nnz; i++, colptr++, rowptr++, valptr++)
     {
         if (3 != fscanf(file,"%ld %ld %lg\n", &row, &col, &re))
         {
@@ -132,7 +132,7 @@ d_readMM( FILE *file,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc_driver
+ * @ingroup pastix_spm_driver
  *
  * p_readMM - Read the data part of a pattern matrix in Matrix Market file.
  * For more information about matrix market format see mmio.c/mmio.h
@@ -143,8 +143,8 @@ d_readMM( FILE *file,
  *          The file opened in readMM which contains the matrix stored in Matrix
  *          Market format.
  *
- * @param[inout] csc
- *          At exit, the data of the matrix are stored in the csc structure.
+ * @param[inout] spm
+ *          At exit, the data of the matrix are stored in the spm structure.
  *
  *******************************************************************************
  *
@@ -155,19 +155,19 @@ d_readMM( FILE *file,
  *******************************************************************************/
 int
 p_readMM( FILE *file,
-          pastix_csc_t *csc )
+          pastix_spm_t *spm )
 {
     pastix_int_t *colptr;
     pastix_int_t *rowptr;
     pastix_int_t i;
     long row, col;
 
-    csc->values = NULL;
+    spm->values = NULL;
 
-    colptr = csc->colptr;
-    rowptr = csc->rowptr;
+    colptr = spm->colptr;
+    rowptr = spm->rowptr;
 
-    for (i=0; i<csc->nnz; i++, colptr++, rowptr++)
+    for (i=0; i<spm->nnz; i++, colptr++, rowptr++)
     {
         if (2 != fscanf(file,"%ld %ld\n", &row, &col))
         {
@@ -185,7 +185,7 @@ p_readMM( FILE *file,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc_driver
+ * @ingroup pastix_spm_driver
  *
  * readMM - Read a matrix in Matrix Market fill. This corresponds to
  * IJV format with (%d %d[ %lf[ %lf]]) format per line.
@@ -196,8 +196,8 @@ p_readMM( FILE *file,
  * @param[in] filename
  *          The filename that contains the matrix stored in Matrix Market format.
  *
- * @param[in] csc
- *          At exit, contains the matrix in csc format.
+ * @param[in] spm
+ *          At exit, contains the matrix in spm format.
  *
  *******************************************************************************
  *
@@ -209,7 +209,7 @@ p_readMM( FILE *file,
  *******************************************************************************/
 int
 readMM( const char   *filename,
-        pastix_csc_t *csc )
+        pastix_spm_t *spm )
 {
     MM_typecode matcode;
     FILE *file;
@@ -229,14 +229,15 @@ readMM( const char   *filename,
     }
 
     /* Float values type */
+
     if (mm_is_complex(matcode)) {
-        csc->flttype = PastixComplex64;
+        spm->flttype = PastixComplex64;
     }
     else if (mm_is_real(matcode)) {
-        csc->flttype = PastixDouble;
+        spm->flttype = PastixDouble;
     }
     else if (mm_is_pattern(matcode)) {
-        csc->flttype = PastixPattern;
+        spm->flttype = PastixPattern;
     }
     else {
         fprintf(stderr,"readmm: Unsupported type of matrix.\n");
@@ -245,22 +246,22 @@ readMM( const char   *filename,
 
     /* Matrix structure */
     if (mm_is_general(matcode)) {
-        csc->mtxtype = PastixGeneral;
+        spm->mtxtype = PastixGeneral;
     }
     else if (mm_is_symmetric(matcode)) {
-        csc->mtxtype = PastixSymmetric;
+        spm->mtxtype = PastixSymmetric;
     }
     else if (mm_is_hermitian(matcode)) {
-        csc->mtxtype = PastixHermitian;
+        spm->mtxtype = PastixHermitian;
     }
     else {
         fprintf(stderr,"readmm: Unsupported type of matrix.\n");
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    csc->fmttype = PastixIJV;
-    csc->dof     = 1;
-    csc->loc2glob= NULL;
+    spm->fmttype = PastixIJV;
+    spm->dof     = 1;
+    spm->loc2glob= NULL;
 
     /* Read the size */
     {
@@ -270,27 +271,27 @@ readMM( const char   *filename,
             return PASTIX_ERR_IO;
         }
 
-        csc->gN   = n;
-        csc->n    = n;
-        csc->gnnz = nnz;
-        csc->nnz  = nnz;
+        spm->gN   = n;
+        spm->n    = n;
+        spm->gnnz = nnz;
+        spm->nnz  = nnz;
     }
 
-    csc->colptr = (pastix_int_t*)malloc(csc->nnz * sizeof(pastix_int_t));
-    csc->rowptr = (pastix_int_t*)malloc(csc->nnz * sizeof(pastix_int_t));
+    spm->colptr = (pastix_int_t*)malloc(spm->nnz * sizeof(pastix_int_t));
+    spm->rowptr = (pastix_int_t*)malloc(spm->nnz * sizeof(pastix_int_t));
 
-    switch( csc->flttype ) {
+    switch( spm->flttype ) {
     case PastixComplex64:
-        rc = z_readMM(file,csc);
+        rc = z_readMM(file, spm);
         break;
 
     case PastixDouble:
-        rc = d_readMM(file,csc);
+        rc = d_readMM(file, spm);
         break;
 
     case PastixPattern:
     default:
-        rc = p_readMM(file,csc);
+        rc = p_readMM(file, spm);
     }
 
     fclose(file);

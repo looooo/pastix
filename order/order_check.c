@@ -30,7 +30,7 @@
  *
  *******************************************************************************
  *
- * @retval PASTIX_SUCESS on successful exit,
+ * @retval PASTIX_SUCCESS on successful exit,
  * @retval PASTIX_ERR_BADPARAMETER if the ordering structure is incorrect.
  *
  *******************************************************************************/
@@ -140,5 +140,5 @@ orderCheck (const Order * const  ordeptr)
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    return PASTIX_SUCESS;
+    return PASTIX_SUCCESS;
 }

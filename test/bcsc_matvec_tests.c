@@ -25,10 +25,10 @@
 #include <bcsc.h>
 #include "sopalin_data.h"
 
-int z_bcsc_matvec_check( int trans, const pastix_csc_t *spm, const pastix_data_t *pastix_data );
-int c_bcsc_matvec_check( int trans, const pastix_csc_t *spm, const pastix_data_t *pastix_data );
-int d_bcsc_matvec_check( int trans, const pastix_csc_t *spm, const pastix_data_t *pastix_data );
-int s_bcsc_matvec_check( int trans, const pastix_csc_t *spm, const pastix_data_t *pastix_data );
+int z_bcsc_matvec_check( int trans, const pastix_spm_t *spm, const pastix_data_t *pastix_data );
+int c_bcsc_matvec_check( int trans, const pastix_spm_t *spm, const pastix_data_t *pastix_data );
+int d_bcsc_matvec_check( int trans, const pastix_spm_t *spm, const pastix_data_t *pastix_data );
+int s_bcsc_matvec_check( int trans, const pastix_spm_t *spm, const pastix_data_t *pastix_data );
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_) {                                 \

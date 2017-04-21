@@ -1,3 +1,8 @@
+#ifndef _OLD_API_H_
+#define _OLD_API_H_
+
+#define pastix_float_t void
+
 /* Error numbers, need to conserve it MURGE compliant */
 #define NO_ERR             PASTIX_SUCCESS
 #define UNKNOWN_ERR        PASTIX_ERR_UNKNOWN
@@ -46,3 +51,12 @@
 #define API_REALDOUBLE    PastixDouble
 #define API_COMPLEXSINGLE PastixComplex32
 #define API_COMPLEXDOUBLE PastixComplex64
+
+/**
+ * Some define for old pastix compatibility
+ */
+#define API_SYM_YES PastixSymmetric
+#define API_SYM_HER PastixHermitian
+#define API_SYM_NO  PastixGeneral
+
+#endif /* _OLD_API_H_ */
