@@ -186,7 +186,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
 #endif
 
     /*Symbol matrix loaded from file */
-    if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_LOAD))
+    if ( iparm[IPARM_IO_STRATEGY] & API_IO_LOAD )
     {
         FILE *stream;
         PASTIX_FOPEN(stream, "symbname", "r" );
@@ -319,7 +319,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
             /*
              * Save the new ordering structure
              */
-            if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE))
+            if ( iparm[IPARM_IO_STRATEGY] & API_IO_SAVE )
             {
                 if (procnum == 0) {
                     orderSave( ordemesh, NULL );
@@ -372,7 +372,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
     /*
      * Save the symbolic factorization
      */
-    if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE))
+    if ( iparm[IPARM_IO_STRATEGY] & API_IO_SAVE )
     {
         if (procnum == 0) {
             FILE *stream;

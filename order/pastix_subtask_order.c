@@ -419,7 +419,7 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
         pastix_print(procnum, 0, OUT_ORDER_TIME, clockVal(timer));
 
     /* Save i/o strategy */
-    if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE)) {
+    if ( iparm[IPARM_IO_STRATEGY] & API_IO_SAVE ) {
         if (procnum == 0) {
             retval = orderSave( ordemesh, NULL );
         }

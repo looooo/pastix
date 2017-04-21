@@ -1,19 +1,21 @@
-/*
-  header: api.h
-
-  Header file containing constants used in PaStiX and provided to users.
-
-  Authors:
-    Mathieu Faverge - faverge@labri.fr
-    Xavier   Lacoste - lacoste@labri.fr
-    Pierre Ramet     - ramet@labri.fr
-
- */
-
+/**
+ *
+ * @file api.h
+ *
+ * PaStiX API enums parameters.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Xavier Lacoste
+ * @author Pierre Ramet
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ **/
 #ifndef _PASTIX_API_H_
 #define _PASTIX_API_H_
-
-#define PASTIX_MASK_ISTRUE(var, mask) (var == (var | mask))
 
 /* Acces au tableau iparm*/
 /*
