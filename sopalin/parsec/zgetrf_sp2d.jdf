@@ -163,9 +163,9 @@ m  = %{ if (brownum == -1) return 0; else {
 READ  Al <- (brownum != -1 && !isTwoD) ? L GETRF( lcblknm ) : NULL
 READ  Au <- (brownum != -1 && !isTwoD) ? U GETRF( lcblknm ) : NULL
 
-RW    C  <- (brownum == -1) ? NULL
-         <- (brownum != -1) && (brownum == first) ? descA( s, fcblknm, 0 )
-         <- (brownum != -1) && (brownum != first) ? C GEMM1D( s, prev )
+RW    C  <- (brownum == -1) || isTwoD ? NULL
+         <- (brownum != -1) && !isTwoD && (brownum == first) ? descA( s, fcblknm, 0 )
+         <- (brownum != -1) && !isTwoD && (brownum != first) ? C GEMM1D( s, prev )
 
          -> (brownum != -1) && (brownum == last) && (s == 0) ? L GETRF( fcblknm )
          -> (brownum != -1) && (brownum == last) && (s != 0) ? U GETRF( fcblknm )
@@ -264,14 +264,14 @@ last    = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum;
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
-READ Al <-  isTwoD & (first == last) ? A OneToTwoD( k, 0, 0 )
+RW   Al <-  isTwoD & (first == last) ? A OneToTwoD( k, 0, 0 )
         <-  isTwoD & (first <  last) ? C GEMM2D( k, 0, last-1, 0 )
         <- !isTwoD ? NULL
 
         ->  isTwoD ? A TRSM2D( k, 1 .. (lblokk-fblokk), 0 )
         ->  isTwoD ? descA(0, k, 1)
 
-READ Au <-  isTwoD & (first == last) ? A OneToTwoD( k, 0, 1 )
+RW   Au <-  isTwoD & (first == last) ? A OneToTwoD( k, 0, 1 )
         <-  isTwoD & (first <  last) ? C GEMM2D( k, 0, last-1, 1 )
         <- !isTwoD ? NULL
 
