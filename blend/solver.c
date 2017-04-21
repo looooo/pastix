@@ -259,22 +259,21 @@ solverPrintStats( const SolverMatrix *solvptr )
 
     fprintf( stdout,
              "    Solver Matrix statistics:\n"
-             "      Number of cblk                    %10ld\n"
-             "      Number of cblks in 2D             %10ld\n"
-             "      Number of blocks in 2D            %10ld\n"
-             "      First cblk in 2D                  %10ld\n"
+             "      Number of cblk (1D|2D)            %10ld (%10ld | %10ld )\n"
+             "      Number of block (1D|2D)           %10ld (%10ld | %10ld )\n"
+             "      Cblk: last1D/first2d              %10ld | %10ld\n"
              "      First row handled in 2D           %10ld\n"
              "      Average 2D cblk size             %11.2lf\n"
+             "      Maximum block 1D                  %10ld\n"
              "      Structure memory space           %11.2lf %s\n"
              "      Number of coeficients stored      %10ld\n"
              "      Number of 2D brow                 %10ld\n"
              "      Number of 2D Gemm tasks           %10ld\n",
-             solvptr->cblknbr,
-             solvptr->nb2dcblk,
-             solvptr->nb2dblok,
-             solvptr->cblkmin2d,
-             fcol2d,
-             avg2d,
+             solvptr->cblknbr, solvptr->cblknbr - solvptr->nb2dcblk, solvptr->nb2dcblk,
+             solvptr->bloknbr, solvptr->bloknbr - solvptr->nb2dblok, solvptr->nb2dblok,
+             solvptr->cblkmax1d, solvptr->cblkmin2d,
+             fcol2d, avg2d,
+             ((solvptr->cblktab + solvptr->cblkmax1d + 1)->fblokptr - solvptr->bloktab) - 1,
              MEMORY_WRITE( memstruct ), MEMORY_UNIT_WRITE( memstruct ),
              memcoef, gemm2d, gemm2dtot );
 }

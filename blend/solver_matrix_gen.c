@@ -304,6 +304,7 @@ solverMatrixGen( pastix_int_t        clustnum,
                         pastix_int_t j2d, j1d, j, *b;
 
                         j2d = -1;
+                        /* First pass to copy 1D updates */
                         for( j=0, j1d=0; j<brownbr; j++ ) {
                             b = symbmtx->browtab + symbmtx->cblktab[i].brownum + j;
                             blok = solvmtx->bloktab + (*b);
@@ -314,11 +315,18 @@ solverMatrixGen( pastix_int_t        clustnum,
                                 j1d++;
                             }
                             else {
+                                /* Store the first non 1D index to not rediscover the begining */
                                 if (j2d == -1) {
                                     j2d = j;
                                 }
                             }
                         }
+
+                        /* Store the index of the first 2D contribution in the array */
+                        assert(j1d <= brownbr);
+                        solvcblk->brown2d = solvcblk->brownum + j1d;
+
+                        /* Second pass to copy 2D updates to the end */
                         if (j2d != -1) {
                             for( j=j2d; j<brownbr; j++ ) {
                                 b = symbmtx->browtab + symbmtx->cblktab[i].brownum + j;
@@ -327,7 +335,6 @@ solverMatrixGen( pastix_int_t        clustnum,
                                     j1d++;
                                 }
                             }
-                            solvcblk->brown2d = solvcblk->brownum + j2d;
                         }
                         assert(j1d == brownbr);
                     }
