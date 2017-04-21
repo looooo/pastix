@@ -200,7 +200,7 @@ int isched_nohwloc_unbind()
         /*     ); */
         /* if(ret != 0) { */
         /*     pastix_warning("pastix_unsetaffinity", "Could not unbind thread"); */
-        /*     return PASTIX_ERR_UNEXPECTED; */
+        /*     return PASTIX_ERR_UNKNOWN; */
         /* } */
 
         return 0;

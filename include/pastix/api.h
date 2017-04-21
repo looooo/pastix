@@ -694,19 +694,14 @@ enum MODULES {
    PASTIX_SUCCESS            - No error
    PASTIX_ERR_UNKNOWN        - Unknown error
    PASTIX_ERR_ALLOC          - Allocation error
-   PASTIX_ERR_ASSERT         - Error in one assertion
    PASTIX_ERR_NOTIMPLEMENTED - Not implemented feature
    PASTIX_ERR_OUTOFMEMORY    - Not enough memory (OOC)
    PASTIX_ERR_THREAD         - Error with threads
    PASTIX_ERR_INTERNAL       - Internal error
    PASTIX_ERR_BADPARAMETER   - Bad parameters given
    PASTIX_ERR_FILE           - Error in In/Out operations
-   PASTIX_ERR_BAD_DEFINEOR   - Error with defines during compilation
    PASTIX_ERR_INTEGER_TYPE   - Error with integer types
    PASTIX_ERR_IO             - Error with input/output
-   PASTIX_ERR_MATRIX         - Wrongly defined matrix
-   PASTIX_ERR_FLOAT_TYPE     - Wrong type of floating point values
-   PASTIX_ERR_STEP_ORDER     - Error in ordering
    PASTIX_ERR_MPI            - Error with MPI calls
 */
 /* Need to conserve it MURGE compliant */
@@ -714,20 +709,15 @@ enum pastix_error_e {
   PASTIX_SUCCESS            = 0,
   PASTIX_ERR_UNKNOWN        = 1,
   PASTIX_ERR_ALLOC          = 2,
-  PASTIX_ERR_ASSERT         = 3,
-  PASTIX_ERR_NOTIMPLEMENTED = 4,
-  PASTIX_ERR_OUTOFMEMORY    = 5,
-  PASTIX_ERR_THREAD         = 6,
-  PASTIX_ERR_INTERNAL       = 7,
-  PASTIX_ERR_BADPARAMETER   = 8,
-  PASTIX_ERR_FILE           = 9,
-  PASTIX_ERR_BAD_DEFINE     = 10,
-  PASTIX_ERR_INTEGER_TYPE   = 11,
-  PASTIX_ERR_IO             = 12,
-  PASTIX_ERR_MATRIX         = 13,
-  PASTIX_ERR_FLOAT_TYPE     = 14,
-  PASTIX_ERR_STEP_ORDER     = 15,
-  PASTIX_ERR_MPI            = 16
+  PASTIX_ERR_NOTIMPLEMENTED = 3,
+  PASTIX_ERR_OUTOFMEMORY    = 4,
+  PASTIX_ERR_THREAD         = 5,
+  PASTIX_ERR_INTERNAL       = 6,
+  PASTIX_ERR_BADPARAMETER   = 7,
+  PASTIX_ERR_FILE           = 8,
+  PASTIX_ERR_INTEGER_TYPE   = 9,
+  PASTIX_ERR_IO             = 10,
+  PASTIX_ERR_MPI            = 11
 };
 
 
