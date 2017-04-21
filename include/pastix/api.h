@@ -460,59 +460,73 @@ typedef enum pastix_coefside_e {
     PastixUCoef      = 1
 } pastix_coefside_t;
 
-/** ****************************************************************************
+/**
  *
- *  PaStiX constants - Compatible with CBLAS & LAPACK
- *  The naming and numbering is consistent with:
+ * @name Constant wompatible with CBLAS & LAPACK
+ * @{
+ *    The naming and numbering of the following constants is consistent with:
  *
- *    1) CBLAS from Netlib (http://www.netlib.org/blas/blast-forum/cblas.tgz)
- *    2) C Interface to LAPACK from Netlib (http://www.netlib.org/lapack/lapwrapc/)
- *    3) Plasma (http://icl.cs.utk.edu/plasma/index.html)
+ *       1) CBLAS from Netlib (http://www.netlib.org/blas/blast-forum/cblas.tgz)
+ *       2) C Interface to LAPACK from Netlib (http://www.netlib.org/lapack/lapwrapc/)
+ *       3) Plasma (http://icl.cs.utk.edu/plasma/index.html)
  *
- **/
+ */
+
+/**
+ * @brief Direction of the matrix storage
+ */
 typedef enum pastix_order_e {
-    PastixRowMajor  = 101,
-    PastixColMajor  = 102
+    PastixRowMajor  = 101, /**< Storage in row major order    */
+    PastixColMajor  = 102  /**< Storage in column major order */
 } pastix_order_t;
 
+/**
+ * @brief Transpostion
+ */
 typedef enum pastix_trans_e {
-    PastixNoTrans   = 111,
-    PastixTrans     = 112,
-    PastixConjTrans = 113
+    PastixNoTrans   = 111, /**< Use A         */
+    PastixTrans     = 112, /**< Use A^t       */
+    PastixConjTrans = 113  /**< Use conj(A^t) */
 } pastix_trans_t;
 
+/**
+ * @brief Upper/Lower part
+ */
 typedef enum pastix_uplo_e {
-    PastixUpper      = 121,
-    PastixLower      = 122,
-    PastixUpperLower = 123
+    PastixUpper      = 121, /**< Use lower triangle of A */
+    PastixLower      = 122, /**< Use upper triangle of A */
+    PastixUpperLower = 123  /**< Use the full A          */
 } pastix_uplo_t;
 
+/**
+ * @brief Diagonal
+ */
 typedef enum pastix_diag_e {
-    PastixNonUnit = 131,
-    PastixUnit    = 132
+    PastixNonUnit = 131, /**< Diagonal is non unitary */
+    PastixUnit    = 132  /**< Diagonal is unitary     */
 } pastix_diag_t;
 
+/**
+ * @brief Side of the operation
+ */
 typedef enum pastix_side_e {
-    PastixLeft  = 141,
-    PastixRight = 142
+    PastixLeft  = 141, /**< Apply operator on the left  */
+    PastixRight = 142  /**< Apply operator on the right */
 } pastix_side_t;
 
+/**
+ * @brief Norms
+ */
 typedef enum pastix_normtype_e {
-    PastixOneNorm       = 171,
-    PastixFrobeniusNorm = 174,
-    PastixInfNorm       = 175,
-    PastixMaxNorm       = 177
+    PastixOneNorm       = 171, /**< One norm:       max_j( sum_i( |a_{ij}| ) )   */
+    PastixFrobeniusNorm = 174, /**< Frobenius norm: sqrt( sum_{i,j} (a_{ij}^2) ) */
+    PastixInfNorm       = 175, /**< Inifinite norm: max_i( sum_j( |a_{ij}| ) )   */
+    PastixMaxNorm       = 177  /**< Inifinite norm: max_{i,j}( | a_{ij} | )      */
 } pastix_normtype_t;
 
-/** ****************************************************************************
- * Sparse matrix format
- **/
-typedef enum pastix_fmttype_e {
-    PastixCSC = 0,
-    PastixCSR = 1,
-    PastixIJV = 2
-} pastix_fmttype_t;
-
+/**
+ * @}
+ */
 
 /** Supressing user CSC(D) when not usefull anymore */
 /*
@@ -617,18 +631,6 @@ enum API_ORDER {
   API_ORDER_LOAD      = 3,
   API_ORDER_PTSCOTCH  = 4
 };
-
-/**
- * Type of elements used in the value array of the matrix and defined th IPARM_FLOAT parameter.
- * (Start at 2 for compatibility with Plasma in case of kernels use)
- */
-typedef enum pastix_coeftype_e {
-    PastixPattern   = 0,
-    PastixFloat     = 2,
-    PastixDouble    = 3,
-    PastixComplex32 = 4,
-    PastixComplex64 = 5
-} pastix_coeftype_t;
 
 /*
  * Enum: API_GPU_CRITERIUM
