@@ -2,7 +2,7 @@
  *
  * @file pastix.h
  *
- * PaStiX main interface for compatibility with former releases
+ * PaStiX main header file.
  *
  * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -40,24 +40,6 @@
 #include "pastix/nompi.h"
 #endif
 #include "pastix/old_api.h"
-
-/*
- * Main structure of the pastix solver associated to a given problem
- */
-struct pastix_data_s;
-typedef struct pastix_data_s pastix_data_t;
-
-struct pastix_graph_s;
-typedef struct pastix_graph_s pastix_graph_t;
-
-struct pastix_order_s;
-typedef struct pastix_order_s Order;
-
-struct pastix_spm_s;
-typedef struct pastix_spm_s pastix_spm_t;
-
-struct solver_matrix_s;
-typedef struct solver_matrix_s SolverMatrix;
 
 /*
  * Main function for compatibility with former versions
