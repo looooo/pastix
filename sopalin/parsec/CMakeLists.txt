@@ -23,23 +23,6 @@ set(HEADERS
   pastix_parsec.h
 )
 
-
-### Generate .c files from .jdf for all required precisions
-set(JDF
-  zpotrf_sp1dplus.jdf
-  zgetrf_sp1dplus.jdf
-  #
-  zpotrf_sp2d.jdf
-  zgetrf_sp2d.jdf
-)
-precisions_rules_py(generated_jdf
-  "${JDF}"
-  PRECISIONS "s;d;c;z")
-
-jdf_rules(generated_files
-	 "${generated_jdf}"
-	)
-
 ### Generate the pastix_parsec wrappers for all required precisions
 set(SOURCES
   parsec_zpotrf.c
@@ -56,6 +39,22 @@ add_documented_files(
   ${generated_headers}
   ${generated_sources}
   )
+
+### Generate .c files from .jdf for all required precisions
+set(JDF
+  zpotrf_sp1dplus.jdf
+  zgetrf_sp1dplus.jdf
+  #
+  zpotrf_sp2d.jdf
+  zgetrf_sp2d.jdf
+)
+precisions_rules_py(generated_jdf
+  "${JDF}"
+  PRECISIONS "s;d;c;z")
+
+jdf_rules(generated_sources
+	 "${generated_jdf}"
+	)
 
 add_library(pastix_parsec
   ${generated_headers}
