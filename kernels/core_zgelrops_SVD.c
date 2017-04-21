@@ -2,11 +2,12 @@
  *
  * @file core_zgelrops_SVD.c
  *
- *  PaStiX kernel routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX low-rank kernel routines using SVD based on Lapack ZGESVD.
  *
- * @version 1.0.0
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Gregoire Pichon
  * @date 2016-23-03
  * @precisions normal z -> c d s
@@ -19,15 +20,17 @@
 #include "pastix_zcores.h"
 #include "z_nan_check.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t zzero =  0.;
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @ingroup kernel_lr_svd_null
  *
- * core_zge2lrx - Computes a SVD with truncation.
+ * @brief Computes a SVD with truncation.
  *
  *******************************************************************************
  *
@@ -53,11 +56,10 @@ static pastix_complex64_t zzero =  0.;
  *
  *******************************************************************************
  *
- * @return
- *          This routine will return the rank of A
+ * @return  This routine will return the rank of A
  *
  *******************************************************************************/
-int
+static inline int
 core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
              const pastix_complex64_t *A, pastix_int_t lda,
              pastix_lrblock_t *Alr )
@@ -98,7 +100,7 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
     /**
      * Query the workspace needed for the gesvd
      */
-#if defined(PASTIX_LR_CHECKNAN)
+#if defined(PASTIX_DEBUG_LR_NANCHECK)
     ws = minMN;
 #else
     ret = MYLAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
@@ -156,9 +158,7 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * core_zge2lr_SVD - Convert a full rank matrix in a low rank matrix, using SVD.
+ * @brief Convert a full rank matrix in a low rank matrix, using SVD.
  *
  *******************************************************************************
  *
@@ -221,15 +221,13 @@ core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * core_zrradd_RRQR - Adds two LR structures A=(-u1) v1^T and B=u2 v2^T into u2 v2^T
+ * @brief Add two LR structures A=(-u1) v1^T and B=u2 v2^T into u2 v2^T
  *
  *    u2v2^T - u1v1^T = (u2 u1) (v2 v1)^T
  *    Compute QR decomposition of (u2 u1) = Q1 R1
  *    Compute QR decomposition of (v2 v1) = Q2 R2
- *    Compute SVD of R1 R2^T = u \sigma v^T
- *    Final solution is (Q1 u \sigma^[1/2]) (Q2 v \sigma^[1/2])^T
+ *    Compute SVD of R1 R2^T = u sigma v^T
+ *    Final solution is (Q1 u sigma^[1/2]) (Q2 v sigma^[1/2])^T
  *
  *******************************************************************************
  *
@@ -237,8 +235,8 @@ core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
  *          The absolute tolerance criteria
  *
  * @param[in] transA1
- *         @arg CblasNoTrans   :  No transpose, op( A ) = A;
- *         @arg CblasTrans     :  Transpose, op( A ) = A';
+ *         @arg PastixNoTrans: No transpose, op( A ) = A;
+ *         @arg PastixTrans:   Transpose, op( A ) = A';
  *
  * @param[in] alpha
  *          alpha * A is add to B
@@ -269,8 +267,7 @@ core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
  *
  *******************************************************************************
  *
- * @return
- *          The new rank of u2 v2^T or -1 if ranks are too large for recompression
+ * @return  The new rank of u2 v2^T or -1 if ranks are too large for recompression
  *
  *******************************************************************************/
 int
@@ -398,7 +395,7 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     lwork = pastix_imax( M, N ) * 32;
 
     /* Workspace needed for the gesvd */
-#if defined(PASTIX_LR_CHECKNAN)
+#if defined(PASTIX_DEBUG_LR_NANCHECK)
     querysize = rank;
 #else
     ret = MYLAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
@@ -578,7 +575,7 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     relative_tolerance = tol * norm;
 
     /**
-     * Compute svd(R) = u \sigma v^t
+     * Compute svd(R) = u sigma v^t
      */
     ret = MYLAPACKE_zgesvd_work( CblasColMajor, 'S', 'S',
                                  rank, rank, R, rank,
@@ -657,10 +654,10 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     ldbv = B->rkmax;
 
     /**
-     * Let's now compute the final U = Q1 ([u] \sigma)
+     * Let's now compute the final U = Q1 ([u] sigma)
      *                                     [0]
      */
-#if defined(PASTIX_LR_CHECKNAN)
+#if defined(PASTIX_DEBUG_LR_NANCHECK)
     ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, new_rank,
                                0., 0., B->u, ldbu );
     assert(ret == 0);
@@ -705,19 +702,94 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     return new_rank;
 }
 
-/* Interfaces to transform pastix_complex64_t into void */
-void core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
-                                const void *Aptr, pastix_int_t lda,
-                                void *Alr )
+/**
+ *******************************************************************************
+ *
+ * @brief Arithmetic free interface to core_zge2lr_SVD
+ *
+ *******************************************************************************
+ *
+ * @param[in] tol
+ *          The tolerance used as a criteria to eliminate information from the
+ *          full rank matrix
+ *
+ * @param[in] m
+ *          Number of rows of the matrix A, and of the low rank matrix Alr.
+ *
+ * @param[in] n
+ *          Number of columns of the matrix A, and of the low rank matrix Alr.
+ *
+ * @param[in] Aptr
+ *          The matrix of dimension lda-by-n that need to be compressed
+ *
+ * @param[in] lda
+ *          The leading dimension of the matrix A. lda >= max(1, m)
+ *
+ * @param[out] Alr
+ *          The low rank matrix structure that will store the low rank
+ *          representation of A
+ *
+ *******************************************************************************/
+void
+core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
+                           const void *Aptr, pastix_int_t lda,
+                           void *Alr )
 {
     const pastix_complex64_t *A = (const pastix_complex64_t *) Aptr;
     core_zge2lr_SVD( tol, m, n, A, lda, Alr );
 }
 
-int core_zrradd_SVD_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, const void *alphaptr,
-                               pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                               pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                               pastix_int_t offx, pastix_int_t offy)
+/**
+ *******************************************************************************
+ *
+ * @brief Arithmetic free interface to core_zrradd_SVD
+ *
+ *******************************************************************************
+ *
+ * @param[in] tol
+ *          The absolute tolerance criteria
+ *
+ * @param[in] transA1
+ *         @arg PastixNoTrans: No transpose, op( A ) = A;
+ *         @arg PastixTrans:   Transpose, op( A ) = A';
+ *
+ * @param[in] alphaptr
+ *          alpha * A is add to B
+ *
+ * @param[in] M1
+ *          The number of rows of the matrix A.
+ *
+ * @param[in] N1
+ *          The number of columns of the matrix A.
+ *
+ * @param[in] A
+ *          The low-rank representation of the matrix A.
+ *
+ * @param[in] M2
+ *          The number of rows of the matrix B.
+ *
+ * @param[in] N2
+ *          The number of columns of the matrix B.
+ *
+ * @param[in] B
+ *          The low-rank representation of the matrix B.
+ *
+ * @param[in] offx
+ *          The horizontal offset of A with respect to B.
+ *
+ * @param[in] offy
+ *          The vertical offset of A with respect to B.
+ *
+ *******************************************************************************
+ *
+ * @return  The new rank of u2 v2^T or -1 if ranks are too large for recompression
+ *
+ *******************************************************************************/
+int
+core_zrradd_SVD_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, const void *alphaptr,
+                           pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                           pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                           pastix_int_t offx, pastix_int_t offy)
 {
     const pastix_complex64_t *alpha = (const pastix_complex64_t *) alphaptr;
     return core_zrradd_SVD( tol, transA1, *alpha,

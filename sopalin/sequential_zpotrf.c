@@ -52,7 +52,7 @@ sequential_zpotrf( pastix_data_t  *pastix_data,
             break;
 
         /* Compute */
-        core_zpotrfsp1d( datacode, cblk, threshold, work );
+        cpucblk_zpotrfsp1d( datacode, cblk, threshold, work );
     }
 
 #if defined(PASTIX_DEBUG_FACTO)
@@ -91,7 +91,7 @@ thread_pzpotrf( isched_thread_t *ctx, void *args )
         do {} while( cblk->ctrbcnt );
 
         /* Compute */
-        core_zpotrfsp1d( datacode, cblk, sopalin_data->diagthreshold, work );
+        cpucblk_zpotrfsp1d( datacode, cblk, sopalin_data->diagthreshold, work );
     }
 
 #if defined(PASTIX_DEBUG_FACTO) && 0

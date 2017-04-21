@@ -2,11 +2,14 @@
  *
  * @file core_zgemdm.c
  *
- *  PLASMA core_blas kernel
- *  PLASMA is a software package provided by Univ. of Tennessee,
- *  Univ. of California Berkeley and Univ. of Colorado Denver
+ * PaStiX kernel routines.
  *
- * @version 2.4.5
+ * @copyright 2010-2015 Univ. of Tennessee, Univ. of California Berkeley and
+ *                      Univ. of Colorado Denver. All rights reserved.
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Dulceneia Becker
  * @author Mathieu Faverge
  * @date 2011-1-18
@@ -19,9 +22,7 @@
 /**
  ******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * core_zgemdm performs one of the matrix-matrix operations
+ * @brief Perform one of the following matrix-matrix operations
  *
  *       C := alpha*op( A )*D*op( B ) + beta*C,
  *
@@ -38,145 +39,124 @@
  *
  *******************************************************************************
  *
- * @param[in] TRANSA
- *         INTEGER
- *         @arg PlasmaNoTrans   :  No transpose, op( A ) = A;
- *         @arg PlasmaConjTrans :  Transpose, op( A ) = A'.
+ * @param[in] transA
+ *         @arg PastixNoTrans   : No transpose, op( A ) = A;
+ *         @arg PastixConjTrans : Transpose, op( A ) = A'.
  *
- * @param[in] TRANSB
- *         INTEGER
- *         @arg PlasmaNoTrans   :  No transpose, op( B ) = B;
- *         @arg PlasmaConjTrans :  Transpose, op( B ) = B'.
+ * @param[in] transB
+ *         @arg PastixNoTrans   : No transpose, op( B ) = B;
+ *         @arg PastixConjTrans : Transpose, op( B ) = B'.
  *
  * @param[in] M
- *         INTEGER
- *         The number of rows  of the  matrix op( A ) and of the
- *         matrix C.  M  must  be at least  zero.
+ *         The number of rows of the matrix op( A ) and of the
+ *         matrix C. M must be at least zero.
  *
  * @param[in] N
- *         INTEGER
- *         The number of columns of the matrix  op( B ) and the
+ *         The number of columns of the matrix op( B ) and the
  *         number of columns of the matrix C. N must be at least zero.
  *
  * @param[in] K
- *         INTEGER
  *         The number of columns of the matrix op( A ), the number of
  *         rows of the matrix op( B ), and the number of rows and columns
- *         of matrix D. K must be at least  zero.
+ *         of matrix D. K must be at least zero.
  *
- * @param[in] ALPHA
- *         pastix_complex64_t.
- *         On entry, ALPHA specifies the scalar alpha.
- *         Unchanged on exit.
+ * @param[in] alpha
+ *         On entry, alpha specifies the scalar alpha.
  *
  * @param[in] A
  *         pastix_complex64_t array of DIMENSION ( LDA, ka ), where ka is
- *         k  when  TRANSA = PlasmaTrans, and is  m  otherwise.
- *         Before entry with  TRANSA = PlasmaTrans,  the leading  m by k
- *         part of the array  A  must contain the matrix  A,  otherwise
- *         the leading  k by m  part of the array  A  must contain  the
+ *         k when transA = PastixTrans, and is m otherwise.
+ *         Before entry with transA = PastixTrans, the leading m by k
+ *         part of the array A must contain the matrix A, otherwise
+ *         the leading k by m part of the array A must contain the
  *         matrix A.
- *         Unchanged on exit.
  *
  * @param[in] LDA
- *        INTEGER.
  *        On entry, LDA specifies the first dimension of A as declared
- *        in the calling (sub) program. When TRANSA = PlasmaTrans then
- *        LDA must be at least  max( 1, m ), otherwise  LDA must be at
- *        least  max( 1, k ).
- *        Unchanged on exit.
+ *        in the calling (sub) program. When transA = PastixTrans then
+ *        LDA must be at least  max( 1, m ), otherwise LDA must be at
+ *        least max( 1, k ).
  *
  * @param[in] B
  *        pastix_complex64_t array of DIMENSION ( LDB, kb ), where kb is
- *        n  when TRANSB = PlasmaTrans, and is k otherwise.
- *        Before entry with TRANSB = PlasmaTrans, the leading  k by n
- *        part of the array  B  must contain the matrix B, otherwise
- *        the leading n by k part of the array B must contain  the
+ *        n  when transB = PastixTrans, and is k otherwise.
+ *        Before entry with transB = PastixTrans, the leading k by n
+ *        part of the array B must contain the matrix B, otherwise
+ *        the leading n by k part of the array B must contain the
  *        matrix B.
- *        Unchanged on exit.
  *
  * @param[in] LDB
- *       INTEGER.
  *       On entry, LDB specifies the first dimension of B as declared
- *       in the calling (sub) program. When  TRANSB = PlasmaTrans then
- *       LDB must be at least  max( 1, k ), otherwise  LDB must be at
- *       least  max( 1, n ).
- *       Unchanged on exit.
+ *       in the calling (sub) program. When transB = PastixTrans then
+ *       LDB must be at least  max( 1, k ), otherwise LDB must be at
+ *       least max( 1, n ).
  *
- * @param[in] BETA
- *       pastix_complex64_t.
- *       On entry,  BETA  specifies the scalar  beta.  When  BETA  is
+ * @param[in] beta
+ *       On entry, beta specifies the scalar beta. When beta is
  *       supplied as zero then C need not be set on input.
- *       Unchanged on exit.
  *
  * @param[in] C
  *       pastix_complex64_t array of DIMENSION ( LDC, n ).
- *       Before entry, the leading  m by n  part of the array  C must
- *       contain the matrix  C,  except when  beta  is zero, in which
+ *       Before entry, the leading m by n part of the array C must
+ *       contain the matrix C,  except when beta is zero, in which
  *       case C need not be set on entry.
- *       On exit, the array  C  is overwritten by the  m by n  matrix
+ *       On exit, the array C is overwritten by the m by n matrix
  *       ( alpha*op( A )*D*op( B ) + beta*C ).
  *
  * @param[in] LDC
- *       INTEGER
  *       On entry, LDC specifies the first dimension of C as declared
- *       in  the  calling  (sub)  program.   LDC  must  be  at  least
+ *       in the calling (sub) program. LDC must be at least
  *       max( 1, m ).
- *       Unchanged on exit.
  *
  * @param[in] D
  *        pastix_complex64_t array of DIMENSION ( LDD, k ).
- *        Before entry, the leading  k by k part of the array  D
+ *        Before entry, the leading k by k part of the array D
  *        must contain the matrix D.
- *        Unchanged on exit.
  *
- * @param[in] LDD
- *       INTEGER.
+ * @param[in] incD
  *       On entry, LDD specifies the first dimension of D as declared
- *       in  the  calling  (sub)  program.   LDD  must  be  at  least
+ *       in the calling (sub) program. LDD must be at least
  *       max( 1, k ).
- *       Unchanged on exit.
  *
- * @param[workspace] WORK
+ * @param[in] WORK
  *       pastix_complex64_t array, dimension (MAX(1,LWORK))
  *
  * @param[in] LWORK
- *       INTEGER
  *       The length of WORK.
- *       On entry, if TRANSA = PlasmaTrans and TRANSB = PlasmaTrans then
+ *       On entry, if transA = PastixTrans and transB = PastixTrans then
  *       LWORK >= max(1, K*N). Otherwise LWORK >= max(1, M*K).
  *
  *******************************************************************************
  *
- * @return
- *          \retval PLASMA_SUCCESS successful exit
- *          \retval <0 if -i, the i-th argument had an illegal value
+ * @retval PASTIX_SUCCESS successful exit
+ * @retval <0 if -i, the i-th argument had an illegal value
  *
  ******************************************************************************/
-int core_zgemdm(int transA, int transB,
-                int M, int N, int K,
-                      pastix_complex64_t alpha,
-                const pastix_complex64_t *A,    int LDA,
-                const pastix_complex64_t *B,    int LDB,
-                      pastix_complex64_t beta,
-                      pastix_complex64_t *C,    int LDC,
-                const pastix_complex64_t *D,    int incD,
-                      pastix_complex64_t *WORK, int LWORK)
+int
+core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
+             int M, int N, int K,
+                   pastix_complex64_t alpha,
+             const pastix_complex64_t *A,    int LDA,
+             const pastix_complex64_t *B,    int LDB,
+                   pastix_complex64_t beta,
+                   pastix_complex64_t *C,    int LDC,
+             const pastix_complex64_t *D,    int incD,
+                   pastix_complex64_t *WORK, int LWORK )
 {
     int j, Am, Bm;
     pastix_complex64_t delta;
     pastix_complex64_t *wD2, *w;
     const pastix_complex64_t *wD;
 
-    Am = (transA == CblasNoTrans ) ? M : K;
-    Bm = (transB == CblasNoTrans ) ? K : N;
+    Am = (transA == PastixNoTrans ) ? M : K;
+    Bm = (transB == PastixNoTrans ) ? K : N;
 
     /* Check input arguments */
-    if ((transA != CblasNoTrans) && (transA != CblasTrans) && (transA != CblasConjTrans)) {
+    if ((transA != PastixNoTrans) && (transA != PastixTrans) && (transA != PastixConjTrans)) {
         //coreblas_error(1, "Illegal value of transA");
         return -1;
     }
-    if ((transB != CblasNoTrans) && (transB != CblasTrans) && (transB != CblasConjTrans)) {
+    if ((transB != PastixNoTrans) && (transB != PastixTrans) && (transB != PastixConjTrans)) {
         //coreblas_error(2, "Illegal value of transB");
         return -2;
     }
@@ -208,12 +188,12 @@ int core_zgemdm(int transA, int transB,
         //coreblas_error(15, "Illegal value of incD");
         return -15;
     }
-    if ( ( ( transA == CblasNoTrans ) && ( LWORK < (M+1)*K) ) ||
-         ( ( transA != CblasNoTrans ) && ( LWORK < (N+1)*K) ) ){
+    if ( ( ( transA == PastixNoTrans ) && ( LWORK < (M+1)*K) ) ||
+         ( ( transA != PastixNoTrans ) && ( LWORK < (N+1)*K) ) ){
         errorPrint("CORE_gemdm: Illegal value of LWORK\n");
-        if (transA == CblasNoTrans )
+        if (transA == PastixNoTrans )
             errorPrint("LWORK %d < (M=%d+1)*K=%d ", LWORK, M, K);
-        if (transA == CblasNoTrans )
+        if (transA == PastixNoTrans )
             errorPrint("LWORK %d < (N=%d+1)*K=%d ", LWORK, N, K);
         //coreblas_error(17, "Illegal value of LWORK");
         return -17;
@@ -235,9 +215,9 @@ int core_zgemdm(int transA, int transB,
     w = WORK + K;
 
     /*
-     * transA == CblasNoTrans
+     * transA == PastixNoTrans
      */
-    if ( transA == CblasNoTrans )
+    if ( transA == PastixNoTrans )
     {
         /* WORK = A * D */
         for (j=0; j<K; j++, wD++) {
@@ -247,7 +227,7 @@ int core_zgemdm(int transA, int transB,
         }
 
         /* C = alpha * WORK * op(B) + beta * C */
-        cblas_zgemm(CblasColMajor, CblasNoTrans, transB,
+        cblas_zgemm(CblasColMajor, PastixNoTrans, transB,
                     M, N, K,
                     CBLAS_SADDR(alpha), w, M,
                                         B, LDB,
@@ -255,7 +235,7 @@ int core_zgemdm(int transA, int transB,
     }
     else
     {
-        if ( transB == CblasNoTrans ) /* Worst case*/
+        if ( transB == PastixNoTrans ) /* Worst case*/
         {
             /* WORK = (D * B)' */
           for (j=0; j<K; j++, wD++) {
@@ -265,7 +245,7 @@ int core_zgemdm(int transA, int transB,
             }
 
             /* C = alpha * op(A) * WORK' + beta * C */
-            cblas_zgemm(CblasColMajor, transA, CblasTrans,
+            cblas_zgemm(CblasColMajor, transA, PastixTrans,
                         M, N, K,
                         CBLAS_SADDR(alpha), A, LDA,
                                             w, N,
@@ -274,7 +254,7 @@ int core_zgemdm(int transA, int transB,
         else
         {
 #ifdef COMPLEX
-            if ( transB == CblasConjTrans )
+            if ( transB == PastixConjTrans )
             {
                 /* WORK = D * B' */
               for (j=0; j<K; j++, wD++) {
@@ -296,7 +276,7 @@ int core_zgemdm(int transA, int transB,
             }
 
             /* C = alpha * op(A) * WORK + beta * C */
-            cblas_zgemm(CblasColMajor, transA, CblasNoTrans,
+            cblas_zgemm(CblasColMajor, transA, PastixNoTrans,
                         M, N, K,
                         CBLAS_SADDR(alpha), A, LDA,
                                             w, N,

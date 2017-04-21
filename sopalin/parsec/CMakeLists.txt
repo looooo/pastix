@@ -32,8 +32,8 @@ set(JDF
   # zcsc2cblk.jdf
   zpotrf_sp1dplus.jdf
   zgetrf_sp1dplus.jdf
-  zhetrf_sp1dplus.jdf
-  zsytrf_sp1dplus.jdf
+#  zhetrf_sp1dplus.jdf
+#  zsytrf_sp1dplus.jdf
   #
   # # Solvers
   # zpotrs_sp1dplus.jdf
@@ -47,8 +47,8 @@ jdf_rules(generated_files "${generated_jdf}")
 ### Generate the pastix_parsec wrappers for all required precisions
 set(SOURCES
   #zcsc2cblk_wrapper.c
-  zsytrf_sp1dplus_wrapper.c
-  zhetrf_sp1dplus_wrapper.c
+#  zsytrf_sp1dplus_wrapper.c
+#  zhetrf_sp1dplus_wrapper.c
   #zsytrf_sp2d_wrapper.c
   #zhetrf_sp2d_wrapper.c
   parsec_zpotrf.c

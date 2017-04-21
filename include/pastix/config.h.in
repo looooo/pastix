@@ -81,6 +81,8 @@
 #cmakedefine PASTIX_DEBUG_BLEND
 #cmakedefine PASTIX_DEBUG_FACTO
 #cmakedefine PASTIX_DEBUG_PARSEC
+#cmakedefine PASTIX_DEBUG_LR
+#cmakedefine PASTIX_DEBUG_LR_NANCHECK
 
 /* Datatypes used */
 #cmakedefine PASTIX_INT64

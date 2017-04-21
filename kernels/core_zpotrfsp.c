@@ -2,11 +2,12 @@
  *
  * @file core_zpotrfsp.c
  *
- *  PaStiX kernel routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX kernel routines for Cholesky factorization.
  *
- * @version 1.0.0
+ * @copyright 2011-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -19,16 +20,19 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#define MAXSIZEOFBLOCKS 64
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t mzone = -1.;
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @ingroup kernel_blas_lapack_null
  *
- * core_zpotf2sp - Computes the sequential static pivoting Cholesky
- * factorization of the matrix n-by-n A = L * L^t .
+ * @brief Compute the sequential static pivoting Cholesky factorization of the
+ * matrix n-by-n A = L * L^t .
  *
  *******************************************************************************
  *
@@ -53,16 +57,16 @@ static pastix_complex64_t mzone = -1.;
  *
  *******************************************************************************
  *
- * @return
- *          This routine will fail if it discovers a 0. on the diagonal during
- *          factorization.
+ * @warning This routine will fail if it discovers a null or negative value on
+ *          the diagonal during factorization.
  *
  *******************************************************************************/
-static void core_zpotf2sp(pastix_int_t        n,
-                          pastix_complex64_t *A,
-                          pastix_int_t        lda,
-                          pastix_int_t       *nbpivot,
-                          double              criteria )
+static inline void
+core_zpotf2sp( pastix_int_t        n,
+               pastix_complex64_t *A,
+               pastix_int_t        lda,
+               pastix_int_t       *nbpivot,
+               double              criteria )
 {
     pastix_int_t k;
     pastix_complex64_t *Akk = A;   /* A [k  ][k] */
@@ -105,10 +109,8 @@ static void core_zpotf2sp(pastix_int_t        n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * core_zpotrfsp - Computes the block static pivoting Cholesky
- * factorization of the matrix n-by-n A = L * L^t .
+ * @brief Compute the block static pivoting Cholesky factorization of the matrix
+ * n-by-n A = L * L^t .
  *
  *******************************************************************************
  *
@@ -133,18 +135,16 @@ static void core_zpotf2sp(pastix_int_t        n,
  *
  *******************************************************************************
  *
- * @return
- *          This routine will fail if it discovers a 0. on the diagonal during
- *          factorization.
+ * @warning This routine will fail if it discovers a null or negative value on
+ *          the diagonal during factorization.
  *
  *******************************************************************************/
-#define MAXSIZEOFBLOCKS 64
-
-static void core_zpotrfsp(pastix_int_t        n,
-                          pastix_complex64_t *A,
-                          pastix_int_t        lda,
-                          pastix_int_t       *nbpivot,
-                          double              criteria)
+void
+core_zpotrfsp( pastix_int_t        n,
+               pastix_complex64_t *A,
+               pastix_int_t        lda,
+               pastix_int_t       *nbpivot,
+               double              criteria )
 {
     pastix_int_t k, blocknbr, blocksize, matrixsize;
     pastix_complex64_t *tmp,*tmp1,*tmp2;
@@ -190,9 +190,10 @@ static void core_zpotrfsp(pastix_int_t        n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @brief Compute the Cholesky factorization of the diagonal block in a panel.
  *
- * core_zpotrfsp1d_potrf - Computes the Cholesky factorization of one panel.
+ * @warning This routine will fail if it discovers a null or negative value on
+ *          the diagonal during factorization.
  *
  *******************************************************************************
  *
@@ -211,14 +212,14 @@ static void core_zpotrfsp(pastix_int_t        n,
  *
  *******************************************************************************
  *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
+ * @return The number of static pivoting performed during the diagonal block
+ *         factorization.
  *
  *******************************************************************************/
-int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
-                           pastix_complex64_t *L,
-                           double              criteria )
+int
+cpucblk_zpotrfsp1d_potrf( SolverCblk         *cblk,
+                          pastix_complex64_t *L,
+                          double              criteria )
 {
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
@@ -247,10 +248,7 @@ int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * core_zpotrfsp1d - Computes the Cholesky factorization of one panel and apply
- * all the trsm updates to this panel.
+ * @brief Compute the Cholesky factorization of one panel.
  *
  *******************************************************************************
  *
@@ -267,21 +265,22 @@ int core_zpotrfsp1d_potrf( SolverCblk         *cblk,
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
- * @param[in] *lowrank
+ * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
  *******************************************************************************
  *
- * @return
- *          The number of static pivoting during factorization of the diagonal block.
+ * @return The number of static pivoting during factorization of the diagonal
+ * block.
  *
  *******************************************************************************/
-int core_zpotrfsp1d_panel( SolverCblk         *cblk,
-                           pastix_complex64_t *L,
-                           double              criteria,
-                           const pastix_lr_t  *lowrank )
+int
+cpucblk_zpotrfsp1d_panel( SolverCblk         *cblk,
+                          pastix_complex64_t *L,
+                          double              criteria,
+                          const pastix_lr_t  *lowrank )
 {
-    pastix_int_t  nbpivot = core_zpotrfsp1d_potrf(cblk, L, criteria);
+    pastix_int_t  nbpivot = cpucblk_zpotrfsp1d_potrf(cblk, L, criteria);
     cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
                      PastixConjTrans, PastixNonUnit,
                      cblk, L, L, lowrank );
@@ -292,45 +291,44 @@ int core_zpotrfsp1d_panel( SolverCblk         *cblk,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * core_zpotrfsp1d - Computes the Cholesky factorization of one panel, apply all
- * the trsm updates to this panel, and apply all updates to the right with no
- * lock.
+ * @brief Perform the Cholesky factorization of a given panel and apply all its
+ * updates.
  *
  *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          PaStiX structure to store numerical data and flags
  *
  * @param[in] cblk
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
- *
- * @param[inout] L
- *          The pointer to the matrix storing the coefficients of the
- *          panel. Must be of size cblk.stride -by- cblk.width
  *
  * @param[in] criteria
  *          Threshold use for static pivoting. If diagonal value is under this
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
+ * @param[in] work
+ *          Temporary memory buffer.
+ *
  *******************************************************************************
  *
- * @return
- *          The number of static pivoting during factorization of the diagonal block.
+ * @return The number of static pivoting during factorization of the diagonal
+ * block.
  *
  *******************************************************************************/
 int
-core_zpotrfsp1d( SolverMatrix       *solvmtx,
-                 SolverCblk         *cblk,
-                 double              criteria,
-                 pastix_complex64_t *work)
+cpucblk_zpotrfsp1d( SolverMatrix       *solvmtx,
+                    SolverCblk         *cblk,
+                    double              criteria,
+                    pastix_complex64_t *work )
 {
     pastix_complex64_t *L = cblk->lcoeftab;
     SolverCblk  *fcblk;
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivot;
 
-    nbpivot = core_zpotrfsp1d_panel(cblk, L, criteria, &solvmtx->lowrank);
+    nbpivot = cpucblk_zpotrfsp1d_panel(cblk, L, criteria, &solvmtx->lowrank);
 
     blok = cblk->fblokptr + 1; /* First off-diagonal block */
     lblk = cblk[1].fblokptr;   /* Next diagonal block      */

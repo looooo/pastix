@@ -81,20 +81,13 @@ gpu_zgemmsp_fermi( const SolverMatrix *solvmatr,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * gpucblk_zgemmsp - Computes the updates associated to one off-diagonal block.
+ * @brief Compute the updates associated to one off-diagonal block on a GPU.
  *
  *******************************************************************************
  *
- * @param[in] sideB
- *          Specify if B belongs to the L part, or to the U part. this is used
- *          internally in the kernel to select the correct data pointer.
- *          If PastixLCoef, B belongs to the L part, otherwise B belogns to the
- *          U part.
- *
- * @param[in] uplo
- *          If uplo == PastixLower, the contribution of:
+ * @param[in] sideA
+ *          Specify if A and C belong to the lower part, or to the upper part.
+ *          If sideA == PastixLCoef, the contribution of:
  *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
  *          C, otherwise the contribution:
  *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
@@ -102,6 +95,12 @@ gpu_zgemmsp_fermi( const SolverMatrix *solvmatr,
  *          The pointer to the data structure that describes the panel from
  *          which we compute the contributions. Next column blok must be
  *          accessible through cblk[1].
+ *
+ * @param[in] sideB
+ *          Specify if B belongs to the L part, or to the U part. this is used
+ *          internally in the kernel to select the correct data pointer.
+ *          If PastixLCoef, B belongs to the L part, otherwise B belogns to the
+ *          U part.
  *
  * @param[in] trans
  *          Specify the transposition used for the B matrix. It has to be either
@@ -135,17 +134,11 @@ gpu_zgemmsp_fermi( const SolverMatrix *solvmatr,
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
  *
- * @param[in] work
- *          Temporary memory buffer.
- *
  * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
+ * @param[in] stream
+ *          The CUDA stream that will execute the kernel.
  *
  *******************************************************************************/
 void
@@ -269,45 +262,54 @@ gpucblk_zgemmsp(       pastix_coefside_t  sideA,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * gpublok_zgemmsp - Computes the updates associated to one off-diagonal block.
+ * @brief Compute the updates associated to one off-diagonal block on a GPU.
  *
  *******************************************************************************
  *
+ *    C_l = C_l - A_l * op(B_s), with B_s = B_l, or B_u
+ *  or
+ *    C_u = C_u - A_u * op(B_s), with B_s = B_l, or B_u
+ *
+ *******************************************************************************
+ *
+ * @param[in] sideA
+ *          Specify if A and C belong to the L part, or to the U part of the
+ *          matrix. This is used internally in the kernels to select the correct
+ *          data pointers.  If PastixLCoef, A and C belong to the L part,
+ *          otherwise A and C belong to the U part.
+ *
  * @param[in] sideB
- *          Specify if B belongs to the L part, or to the U part. this is used
- *          internally in the kernel to select the correct data pointer.
- *          If PastixLCoef, B belongs to the L part, otherwise B belogns to the
- *          U part.
+ *          Specify if B belongs to the lower or upper part of the matrix. This
+ *          is used internally in the kernels to select the correct data
+ *          pointers.  If PastixLCoef, B belongs to the L part, otherwise B
+ *          belongs to the U part.
  *
- * @param[in] uplo
- *          If uplo == PastixLower, the contribution of:
- *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
- *          C, otherwise the contribution:
- *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
- *          to C.
- *          The pointer to the data structure that describes the panel from
- *          which we compute the contributions. Next column blok must be
- *          accessible through cblk[1].
- *
- * @param[in] trans
- *          Specify the transposition used for the B matrix. It has to be either
- *          PastixTrans or PastixConjTrans.
+ * @param[in] transB
+ *          Specify wheter B should be used as PastixNoTrans, PastixTrans, or
+ *          PastixConjTrans in the computations.
  *
  * @param[in] cblk
- *          The cblk structure to which block belongs to. The A and B pointers
- *          must be the coeftab of this column block.
+ *          The cblk structure to which block A and B belong to. The A and B
+ *          pointers must be one of the [lu]coeftab of this column block.
  *          Next column blok must be accessible through cblk[1].
- *
- * @param[in] blok
- *          The block from which we compute the contributions.
  *
  * @param[inout] fcblk
  *          The pointer to the data structure that describes the panel on which
  *          we compute the contributions. The C pointer must be one of the
- *          coeftab from this fcblk. Next column blok must be accessible through
- *          fcblk[1].
+ *          [lu]coeftab from this fcblk.
+ *          Next column blok must be accessible through fcblk[1].
+ *
+ * @param[in] blok_mk
+ *          Specify the index of the A block in the cblk column. This index is
+ *          0-based for the diagonal block.
+ *
+ * @param[in] blok_nk
+ *          Specify the index of the B block in the cblk column. This index is
+ *          0-based for the diagonal block.
+ *
+ * @param[in] blok_mn
+ *          Specify the index of the C block in the fcblk column. This index is
+ *          0-based for the diagonal block.
  *
  * @param[in] A
  *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
@@ -323,17 +325,11 @@ gpucblk_zgemmsp(       pastix_coefside_t  sideA,
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
  *
- * @param[in] work
- *          Temporary memory buffer.
- *
  * @param[in] lowrank
- *          The structure with low-rank parameters.
+ *          The structure with the low-rank parameters.
  *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
+ * @param[in] stream
+ *          The CUDA stream that will execute the kernel.
  *
  *******************************************************************************/
 void
@@ -446,11 +442,13 @@ gpublok_zgemmsp(       pastix_coefside_t  sideA,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * cpublok_ztrsmsp - Computes the updates associated to one off-diagonal block.
+ * @brief Compute the solve update of a block in a panel.
  *
  *******************************************************************************
+ *
+ * @param[in] coef
+ *          - PastixLCoef, use the lower part of the off-diagonal blocks.
+ *          - PastixUCoef, use the upper part of the off-diagonal blocks
  *
  * @param[in] side
  *          Specify whether the A matrix appears on the left or right in the
@@ -489,12 +487,6 @@ gpublok_zgemmsp(       pastix_coefside_t  sideA,
  *
  * @param[in] lowrank
  *          The structure with low-rank parameters.
- *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
  *
  *******************************************************************************/
 void

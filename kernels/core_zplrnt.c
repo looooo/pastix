@@ -2,11 +2,14 @@
  *
  * @file core_zplrnt.c
  *
- *  PLASMA core_blas kernel
- *  PLASMA is a software package provided by Univ. of Tennessee,
- *  Univ. of California Berkeley and Univ. of Colorado Denver
+ * PaStiX kernel routines
  *
- * @version 2.7.1
+ * @copyright 2010-2015 Univ. of Tennessee, Univ. of California Berkeley and
+ *                      Univ. of Colorado Denver. All rights reserved.
+ * @copyright 2012-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Piotr Luszczek
  * @author Pierre Lemarinier
  * @author Mathieu Faverge
@@ -16,6 +19,7 @@
  **/
 #include "common.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define Rnd64_A  6364136223846793005ULL
 #define Rnd64_C  1ULL
 #define RndF_Mul 5.4210108624275222e-20f
@@ -46,11 +50,12 @@ Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
 #define NBELEM   1
 #endif
 
-/***************************************************************************//**
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+
+/**
+ *******************************************************************************
  *
- * @ingroup CORE_pastix_complex64_t
- *
- *  CORE_zplrnt generates a random tile.
+ * @brief Generate a random tile.
  *
  *******************************************************************************
  *
@@ -81,8 +86,9 @@ Rnd64_jump(unsigned long long int n, unsigned long long int seed ) {
  *         all tiles initialized with this routine.
  *
  ******************************************************************************/
-void core_zplrnt( int m, int n, pastix_complex64_t *A, int lda,
-                  int gM, int m0, int n0, unsigned long long int seed )
+void
+core_zplrnt( int m, int n, pastix_complex64_t *A, int lda,
+             int gM, int m0, int n0, unsigned long long int seed )
 {
     pastix_complex64_t *tmp = A;
     int64_t i, j;

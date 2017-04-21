@@ -50,8 +50,8 @@ sequential_zhetrf( pastix_data_t  *pastix_data,
             break;
 
         /* Compute */
-        core_zhetrfsp1d( datacode, cblk, threshold,
-                         work1, work2 );
+        cpucblk_zhetrfsp1d( datacode, cblk, threshold,
+                            work1, work2 );
     }
 
 #if defined(PASTIX_DEBUG_FACTO)
@@ -93,8 +93,8 @@ thread_pzhetrf( isched_thread_t *ctx, void *args )
         do {} while( cblk->ctrbcnt );
 
         /* Compute */
-        core_zhetrfsp1d( datacode, cblk, sopalin_data->diagthreshold,
-                         work1, work2 );
+        cpucblk_zhetrfsp1d( datacode, cblk, sopalin_data->diagthreshold,
+                            work1, work2 );
     }
 
 #if defined(PASTIX_DEBUG_FACTO) && 0

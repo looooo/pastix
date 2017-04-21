@@ -2,11 +2,12 @@
  *
  * @file core_ztrsmsp.c
  *
- *  PaStiX kernel routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX kernel routines
  *
- * @version 1.0.0
+ * @copyright 2012-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -19,17 +20,18 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t  zone =  1.;
 static pastix_complex64_t zzero =  0.;
 static pastix_complex64_t mzone = -1.;
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @ingroup kernel_fact_null
  *
- * core_ztrsmsp_1d - Apply all the trsm updates on a panel stored in 1D
- * layout.
+ * @brief Apply all the trsm updates on a panel stored in 1D layout.
  *
  *******************************************************************************
  *
@@ -63,19 +65,15 @@ static pastix_complex64_t mzone = -1.;
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
  *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
- *
  *******************************************************************************/
-static inline int
-core_ztrsmsp_1d( pastix_side_t side, pastix_uplo_t uplo,
-                 pastix_trans_t trans, pastix_diag_t diag,
-                       SolverCblk         *cblk,
+static inline void
+core_ztrsmsp_1d( pastix_side_t             side,
+                 pastix_uplo_t             uplo,
+                 pastix_trans_t            trans,
+                 pastix_diag_t             diag,
+                 SolverCblk               *cblk,
                  const pastix_complex64_t *A,
-                       pastix_complex64_t *C )
+                 pastix_complex64_t       *C )
 {
     SolverBlok *fblok;
     pastix_int_t M, N, lda;
@@ -100,17 +98,15 @@ core_ztrsmsp_1d( pastix_side_t side, pastix_uplo_t uplo,
                 M, N,
                 CBLAS_SADDR(zone), A, lda,
                                    C, lda);
-
-    return PASTIX_SUCCESS;
 }
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @ingroup kernel_fact_null
  *
- * core_ztrsmsp_2d - Computes the updates associated to one off-diagonal block
- * between two cblk stored in 2D.
+ * @brief Compute the updates associated to one off-diagonal block between two
+ * cblk stored in 2D.
  *
  *******************************************************************************
  *
@@ -144,19 +140,15 @@ core_ztrsmsp_1d( pastix_side_t side, pastix_uplo_t uplo,
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
  *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
- *
  *******************************************************************************/
-static inline int
-core_ztrsmsp_2d( pastix_side_t side, pastix_uplo_t uplo,
-                 pastix_trans_t trans, pastix_diag_t diag,
-                       SolverCblk         *cblk,
+static inline void
+core_ztrsmsp_2d( pastix_side_t             side,
+                 pastix_uplo_t             uplo,
+                 pastix_trans_t            trans,
+                 pastix_diag_t             diag,
+                 SolverCblk               *cblk,
                  const pastix_complex64_t *A,
-                       pastix_complex64_t *C )
+                 pastix_complex64_t       *C )
 {
     const SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, lda, ldc;
@@ -182,17 +174,15 @@ core_ztrsmsp_2d( pastix_side_t side, pastix_uplo_t uplo,
                     CBLAS_SADDR(zone), A, lda,
                                        blokC, ldc);
     }
-
-    return PASTIX_SUCCESS;
 }
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @ingroup kernel_fact_null
  *
- * core_ztrsmsp_lr - Computes the updates associated to one off-diagonal block
- * between two cblk stored in low-rank format.
+ * @brief Computes the updates associated to one off-diagonal block between two
+ * cblk stored in low-rank format.
  *
  *******************************************************************************
  *
@@ -293,10 +283,7 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * cpucblk_ztrsmsp - Computes the updates associated to a column of off-diagonal
- * blocks.
+ * @brief Compute the updates associated to a column of off-diagonal blocks.
  *
  *******************************************************************************
  *
@@ -333,11 +320,8 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
  *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
  *
  *******************************************************************************/
 void
@@ -369,10 +353,10 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @ingroup kernel_fact_null
  *
- * core_ztrsmsp_2dsub - Computes the updates associated to one off-diagonal block
- * between two cblk stored in 2D.
+ * @brief Compute the updates associated to one off-diagonal block between two
+ * cblk stored in 2D.
  *
  *******************************************************************************
  *
@@ -411,14 +395,8 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
  *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
- *
  *******************************************************************************/
-static inline int
+static inline void
 core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
                     pastix_trans_t trans, pastix_diag_t diag,
                           SolverCblk         *cblk,
@@ -454,17 +432,15 @@ core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
                      CBLAS_SADDR(zone), A, lda,
                                         Cptr, ldc );
     }
-
-    return PASTIX_SUCCESS;
 }
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
+ * @ingroup kernel_fact_null
  *
- * core_ztrsmsp_lrsub - Computes the updates associated to one off-diagonal
- * block between two cblk stored in low-rank format.
+ * @brief Compute the updates associated to one off-diagonal block between two
+ * cblk stored in low-rank format.
  *
  *******************************************************************************
  *
@@ -501,18 +477,15 @@ core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
  * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
- *
  *******************************************************************************/
-static inline int
-core_ztrsmsp_lrsub( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
-                    pastix_trans_t trans, pastix_diag_t diag,
-                          SolverCblk   *cblk,
-                          pastix_int_t  blok_m,
+static inline void
+core_ztrsmsp_lrsub( pastix_coefside_t   coef,
+                    pastix_side_t       side,
+                    pastix_uplo_t       uplo,
+                    pastix_trans_t      trans,
+                    pastix_diag_t       diag,
+                    SolverCblk         *cblk,
+                    pastix_int_t        blok_m,
                     const pastix_lr_t  *lowrank )
 {
     const SolverBlok *fblok, *lblok, *blok;
@@ -577,18 +550,18 @@ core_ztrsmsp_lrsub( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t up
             }
         }
     }
-
-    return PASTIX_SUCCESS;
 }
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * cpublok_ztrsmsp - Computes the updates associated to one off-diagonal block.
+ * @brief Compute the updates associated to one off-diagonal block.
  *
  *******************************************************************************
+ *
+ * @param[in] coef
+ *          - PastixLCoef, use the lower part of the off-diagonal blocks.
+ *          - PastixUCoef, use the upper part of the off-diagonal blocks
  *
  * @param[in] side
  *          Specify whether the A matrix appears on the left or right in the
@@ -628,12 +601,6 @@ core_ztrsmsp_lrsub( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t up
  * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal
- *          block.
- *
  *******************************************************************************/
 void
 cpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
@@ -657,15 +624,13 @@ cpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_kernel
- *
- * solve_ztrsmsp - Apply the solve related to one cblk to all the right hand side.
+ * @brief Apply the solve related to one cblk to all the right hand side.
  *
  *******************************************************************************
  *
  * @param[in] side
- *          Specify whether the off-diagonal blocks appear on the left or right in the
- *          equation. It has to be either PastixLeft or PastixRight.
+ *          Specify whether the off-diagonal blocks appear on the left or right
+ *          in the equation. It has to be either PastixLeft or PastixRight.
  *
  * @param[in] uplo
  *          Specify whether the off-diagonal blocks are upper or lower
@@ -696,14 +661,17 @@ cpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
  * @param[in] ldb
  *          The leading dimension of b
  *
- *******************************************************************************
- *
- * @return
- *
  *******************************************************************************/
-void solve_ztrsmsp( int side, int uplo, int trans, int diag,
-                    SolverMatrix *datacode, SolverCblk *cblk,
-                    int nrhs, pastix_complex64_t *b, int ldb )
+void
+solve_ztrsmsp( pastix_side_t       side,
+               pastix_uplo_t       uplo,
+               pastix_trans_t      trans,
+               pastix_diag_t       diag,
+               SolverMatrix       *datacode,
+               SolverCblk         *cblk,
+               int                 nrhs,
+               pastix_complex64_t *b,
+               int                 ldb )
 {
     SolverCblk *fcbk;
     SolverBlok *blok;
