@@ -1,9 +1,20 @@
 /**
+ *
  * @file pastix.c
  *
- * Old PaStiX external functions implementations.
+ * PaStiX main interface for compatibility with former releases
  *
- */
+ * @copyright 2011-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @author Mathias Hastaran
+ * @date 2011-11-11
+ *
+ **/
 #include "common.h"
 #include "spm.h"
 
@@ -17,7 +28,6 @@
  *  spm         - The sparse matrix to init.
  *
  */
-
 void
 pastix_setSchurUnknownList(pastix_data_t *pastix_data,
                            pastix_int_t   n,
@@ -50,6 +60,100 @@ pastix_setSchurUnknownList(pastix_data_t *pastix_data,
  *  iparm       - Integer parameters given to pastix.
  *  dparm       - Double parameters given to pâstix.
  *
+ */
+/*
+ * Group: Main PaStiX functions
+ */
+/*
+ * Function: pastix
+ *
+ * Computes steps of the resolution of Ax=b linear system,
+ * using direct methods.
+ *
+ * The matrix is given in CSC format.
+ *
+ * Parameters:
+ *   pastix_data - Data used for a step by step execution.
+ *   pastix_comm - MPI communicator which compute the resolution.
+ *   n           - Size of the system.
+ *   colptr      - Tabular containing the start of each column in row
+ *                 and avals tabulars.
+ *   row         - Tabular containing the row number for each element
+ *                 sorted by column.
+ *   avals       - Tabular containing the values of each element
+ *                 sorted by column.
+ *   perm        - Permutation tabular for the renumerotation of the unknowns.
+ *   invp        - Reverse permutation tabular for the renumerotation
+ *                 of the unknowns.
+ *   b           - Right hand side vector(s).
+ *   rhs         - Number of right hand side vector(s).
+ *   iparm       - Integer parameters given to pastix.
+ *   dparm       - Double parameters given to pâstix.
+ *
+ * About: Example
+ *
+ *   from file <simple.c> :
+ *
+ *   > /\*******************************************\/
+ *   > /\*    Check Matrix format                  *\/
+ *   > /\*******************************************\/
+ *   > /\*
+ *   >  * Matrix needs :
+ *   >  *    - to be in fortran numbering
+ *   >  *    - to have only the lower triangular part in symmetric case
+ *   >  *    - to have a graph with a symmetric structure in unsymmetric case
+ *   >  *\/
+ *   > mat_type = API_SYM_NO;
+ *   > if (MTX_ISSYM(type)) mat_type = API_SYM_YES;
+ *   > if (MTX_ISHER(type)) mat_type = API_SYM_HER;
+ *   > pastix_checkMatrix( MPI_COMM_WORLD, verbosemode,
+ *   >                     mat_sym,
+ *   >                     API_YES,
+ *   >                     ncol, &colptr, &rows, &values, NULL);
+ *   >
+ *   > /\*******************************************\/
+ *   > /\* Initialize parameters to default values *\/
+ *   > /\*******************************************\/
+ *   > iparm[IPARM_MODIFY_PARAMETER] = API_NO;
+ *   > pastix(&pastix_data, MPI_COMM_WORLD,
+ *   >        ncol, colptr, rows, values,
+ *   >        perm, invp, rhs, 1, iparm, dparm);
+ *   >
+ *   > /\*******************************************\/
+ *   > /\*       Customize some parameters         *\/
+ *   > /\*******************************************\/
+ *   > iparm[IPARM_THREAD_NBR] = nbthread;
+ *   > iparm[IPARM_SYM] = mat_type;
+ *   > switch (mat_type)
+ *   >   {
+ *   >     case API_SYM_YES:
+ *   >       iparm[IPARM_FACTORIZATION] = API_FACT_LDLT;
+ *   >       break;
+ *   >     case API_SYM_HER:
+ *   >       iparm[IPARM_FACTORIZATION] = API_FACT_LDLH;
+ *   >       break;
+ *   >     default:
+ *   >       iparm[IPARM_FACTORIZATION] = API_FACT_LU;
+ *   >   }
+ *   > iparm[IPARM_START_TASK]          = API_TASK_ORDERING;
+ *   > iparm[IPARM_END_TASK]            = API_TASK_CLEAN;
+ *   >
+ *   > /\*******************************************\/
+ *   > /\*           Save the rhs                  *\/
+ *   > /\*    (it will be replaced by solution)    *\/
+ *   > /\*******************************************\/
+ *   > rhssaved = malloc(ncol*sizeof(pastix_complex64_t));
+ *   > memcpy(rhssaved, rhs, ncol*sizeof(pastix_complex64_t));
+ *   >
+ *   > /\*******************************************\/
+ *   > /\*           Call pastix                   *\/
+ *   > /\*******************************************\/
+ *   > perm = malloc(ncol*sizeof(pastix_int_t));
+ *   > invp = malloc(ncol*sizeof(pastix_int_t));
+ *   >
+ *   > pastix(&pastix_data, MPI_COMM_WORLD,
+ *   >  ncol, colptr, rows, values,
+ *   >  perm, invp, rhs, 1, iparm, dparm);
  */
 void
 pastix( pastix_data_t **pastix_data_ptr,
