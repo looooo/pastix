@@ -41,6 +41,11 @@ macro(jdf_rules jdf_rules_OUTPUTLIST jdf_rules_SOURCES)
 
     set_source_files_properties(${jdf_rules_OSRC}.c PROPERTIES COMPILE_FLAGS "-I${PARSEC_DIR_FOUND}/include/parsec")
     list(APPEND ${jdf_rules_OUTPUTLIST} "${CMAKE_CURRENT_BINARY_DIR}/${jdf_rules_OSRC}.h;${CMAKE_CURRENT_BINARY_DIR}/${jdf_rules_OSRC}.c")
+
+    # Mark generated files as such.
+    set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/${jdf_rules_OSRC}.h ${CMAKE_CURRENT_BINARY_DIR}/${jdf_rules_OSRC}.c
+      PROPERTIES GENERATED 1)
+
     get_source_file_property(jdf_rules_CompileFlags ${jdf_rules_SOURCE} COMPILE_FLAGS )
     if( jdf_rules_CompileFlags )
         set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/${jdf_rules_OSRC}.c PROPERTIES COMPILE_FLAGS ${jdf_rules_CompileFlags} )
@@ -48,7 +53,4 @@ macro(jdf_rules jdf_rules_OUTPUTLIST jdf_rules_SOURCES)
 
   endforeach()
   #
-  # Mark all generated files as such.
-  #
-  set_source_files_properties(${jdf_rules_OUTPUTLIST} PROPERTIES GENERATED 1)
 endmacro(jdf_rules)
