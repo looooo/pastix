@@ -19,12 +19,6 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 ### Add trace generation
 if(PASTIX_WITH_EZTRACE)
-  if (NOT EZTRACE_FOUND)
-    find_package(EZTRACE REQUIRED)
-  endif()
-
-  include_directories(${EZTRACE_INCLUDE_DIRS})
-
   add_library(eztrace-convert-kernels SHARED
         eztrace_module/eztrace_convert_kernels.c
   )
@@ -101,10 +95,9 @@ add_dependencies(pastix_kernels
 )
 
 if(PASTIX_WITH_EZTRACE)
-   link_directories(${EZTRACE_LIBRARY_DIRS})
    target_link_libraries(pastix_kernels
-     ${EZTRACE_LIBRARY_DIRS}/libeztrace.so
-     ${EZTRACE_LIBRARY_DIRS}/liblitl.so.0
+     ${EZTRACE_LIBRARIES}
+     litl
    )
 endif(PASTIX_WITH_EZTRACE)
 

@@ -324,6 +324,17 @@ if (PASTIX_WITH_PARSEC)
 
 endif (PASTIX_WITH_PARSEC)
 
+### Add trace generation
+if(PASTIX_WITH_EZTRACE)
+  if (NOT EZTRACE_FOUND)
+    find_package(EZTRACE REQUIRED)
+  endif()
+
+  include_directories(${EZTRACE_INCLUDE_DIRS})
+  link_directories(${EZTRACE_LIBRARY_DIRS})
+endif(PASTIX_WITH_EZTRACE)
+
+
 # PaStiX might depend on Scotch/PT-Scotch
 #----------------------------------------
 if (PASTIX_ORDERING_PTSCOTCH)
