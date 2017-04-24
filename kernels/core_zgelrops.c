@@ -20,6 +20,12 @@
 #include "pastix_zcores.h"
 #include "z_nan_check.h"
 
+#ifdef PASTIX_WITH_EZTRACE
+#include "eztrace.h"
+#include "eztrace_sampling.h"
+#include "eztrace_module/kernels_ev_codes.h"
+#endif
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t zone  =  1.;
 static pastix_complex64_t zzero =  0.;
@@ -52,6 +58,9 @@ core_zlralloc( pastix_int_t      M,
                pastix_int_t      rkmax,
                pastix_lrblock_t *A )
 {
+    FUNCTION_ENTRY;
+    EZTRACE_EVENT_PACKED_1(KERNELS_LRALLOC_START, NULL);
+
     pastix_complex64_t *u, *v;
 
     if ( rkmax == -1 ) {
@@ -87,6 +96,9 @@ core_zlralloc( pastix_int_t      M,
         A->u = u;
         A->v = v;
     }
+
+    EZTRACE_EVENT_PACKED_1(KERNELS_LRALLOC_STOP, NULL);
+
 }
 
 /**
@@ -1188,4 +1200,32 @@ core_zlrmge( const pastix_lr_t *lowrank,
                 alpha, A, B, beta, &lrC,
                 work, ldwork,
                 fcblk );
+}
+
+/* START_INTERCEPT_MODULE(kernels) */
+  
+/* END_INTERCEPT_MODULE(kernels) */
+
+static void _kernels_init (void) __attribute__ ((constructor));
+/* Initialize the current library */
+static void
+_kernels_init (void)
+{
+  /* DYNAMIC_INTERCEPT_ALL(); */
+
+  /* start event recording */
+  //#ifdef EZTRACE_AUTOSTART
+  eztrace_start ();
+  //#endif
+
+  
+
+}
+
+static void _kernels_conclude (void) __attribute__ ((destructor));
+static void
+_kernels_conclude (void)
+{
+  /* stop event recording */
+  eztrace_stop ();
 }

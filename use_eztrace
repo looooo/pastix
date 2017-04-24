@@ -1,0 +1,5 @@
+export EZTRACE_TRACE=kernels
+export EZTRACE_LIBRARY_PATH=./../kernels/eztrace_module/
+~/eztrace-1.1-5_install/bin/eztrace_convert -o out.trace /tmp/pichon_eztrace_log_rank_1
+
+make -j 8 && (cd ../kernels/eztrace_module/ && make) && ./example/simple -9 20:20:20 -iparm iparm_compress_when 2

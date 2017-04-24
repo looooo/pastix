@@ -17,6 +17,17 @@ set(generated_headers "")
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
+### Add trace generation
+if(PASTIX_WITH_EZTRACE)
+  if (NOT EZTRACE_FOUND)
+    find_package(EZTRACE REQUIRED)
+  endif()
+  #add_subdirectory(eztrace_module)
+  message("EZTRACE_LIBRARIES" ${EZTRACE_LIBRARY_DIRS} ${EZTRACE_LIBRARIES} ${EZTRACE_INCLUDE_DIRS})
+  include_directories(${EZTRACE_INCLUDE_DIRS})
+  #link_directories(${EZTRACE_LIBRARY_DIRS})
+endif(PASTIX_WITH_EZTRACE)
+
 ### Generate the headers in all precisions
 set(HEADERS
   pastix_zcores.h
@@ -87,6 +98,9 @@ add_dependencies(pastix_kernels
   kernels_headers_tgt
 )
 
+target_link_libraries(pastix_kernels /home/pichon/eztrace-1.1-5_install/lib/libeztrace.so /home/pichon/eztrace-1.1-5_install/lib/liblitl.so.0)
+#${EZTRACE_LIBRARIES})
+
 target_link_libraries( pastix_kernels
   ${LAPACKE_LIBRARIES}
   ${LAPACK_SEQ_LIBRARIES}
@@ -104,7 +118,6 @@ if(PASTIX_WITH_CUDA)
                              pastix_cucores_sm35 )
     endif()
 endif()
-
 
 ### Add documented files to the global property
 add_documented_files(

@@ -59,6 +59,15 @@ option(PASTIX_WITH_CUDA
 cmake_dependent_option(PASTIX_CUDA_FERMI
     "Enable the Fermi kernel instead of the batched kernel" OFF "PASTIX_WITH_CUDA" OFF)
 
+### Tracing parameters
+option(PASTIX_WITH_EZTRACE
+  "Enable Eztrace for tracing CPU and GPU kernels" OFF)
+if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_C_COMPILER_VERSION VERSION_LESS 5.0)
+  if (PASTIX_WITH_EZTRACE)
+    message(ERROR "GCC versions < 5.0 are not generating the traces properly")
+  endif()
+endif()
+
 ### Runtime engines
 option(PASTIX_WITH_STARPU
     "Build PaStiX with StarPU runtime support" OFF)
