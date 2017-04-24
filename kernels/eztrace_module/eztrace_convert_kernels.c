@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include <strings.h>
-#include <GTG.h>
+//#include <GTG.h>
 #include "eztrace_convert.h"
 
 #include "kernels_ev_codes.h"
@@ -87,7 +87,7 @@ void libinit(void)
   /* Register the module to eztrace_convert */
   eztrace_convert_register_module(&kernels_module);
 
-  //printf("module  loaded\n");
+  printf("module  loaded\n");
 }
 
 void libfinalize(void) __attribute__ ((destructor));

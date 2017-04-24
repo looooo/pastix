@@ -22,10 +22,12 @@ if(PASTIX_WITH_EZTRACE)
   if (NOT EZTRACE_FOUND)
     find_package(EZTRACE REQUIRED)
   endif()
-  #add_subdirectory(eztrace_module)
-  message("EZTRACE_LIBRARIES" ${EZTRACE_LIBRARY_DIRS} ${EZTRACE_LIBRARIES} ${EZTRACE_INCLUDE_DIRS})
+
   include_directories(${EZTRACE_INCLUDE_DIRS})
-  #link_directories(${EZTRACE_LIBRARY_DIRS})
+
+  add_library(eztrace-convert-kernels SHARED
+        eztrace_module/eztrace_convert_kernels.c
+  )
 endif(PASTIX_WITH_EZTRACE)
 
 ### Generate the headers in all precisions
@@ -98,8 +100,13 @@ add_dependencies(pastix_kernels
   kernels_headers_tgt
 )
 
-target_link_libraries(pastix_kernels /home/pichon/eztrace-1.1-5_install/lib/libeztrace.so /home/pichon/eztrace-1.1-5_install/lib/liblitl.so.0)
-#${EZTRACE_LIBRARIES})
+if(PASTIX_WITH_EZTRACE)
+   link_directories(${EZTRACE_LIBRARY_DIRS})
+   target_link_libraries(pastix_kernels
+     ${EZTRACE_LIBRARY_DIRS}/libeztrace.so
+     ${EZTRACE_LIBRARY_DIRS}/liblitl.so.0
+   )
+endif(PASTIX_WITH_EZTRACE)
 
 target_link_libraries( pastix_kernels
   ${LAPACKE_LIBRARIES}

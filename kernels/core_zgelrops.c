@@ -58,7 +58,6 @@ core_zlralloc( pastix_int_t      M,
                pastix_int_t      rkmax,
                pastix_lrblock_t *A )
 {
-    FUNCTION_ENTRY;
     EZTRACE_EVENT_PACKED_1(KERNELS_LRALLOC_START, NULL);
 
     pastix_complex64_t *u, *v;
