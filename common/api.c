@@ -182,7 +182,6 @@ pastixInitParam( pastix_int_t *iparm,
      */
     iparm[IPARM_SCHEDULER]             = PastixSchedStatic;   /* cpu/node */
     iparm[IPARM_CPU_BY_NODE]           = 0;                   /* cpu/node */
-    iparm[IPARM_BINDTHRD]              = API_BIND_AUTO;       /* Default binding method */
     iparm[IPARM_THREAD_NBR]            = -1;                  /* thread/mpi */
 
     iparm[IPARM_STATIC_PIVOTING]       = 0;                   /* number of control of diagonal magnitude              */

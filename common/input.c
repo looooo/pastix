@@ -220,10 +220,6 @@ int iparm_to_int( char * string)
     {
         return IPARM_CPU_BY_NODE;
     }
-    if(0 == strcmp("iparm_bindthrd", string))
-    {
-        return IPARM_BINDTHRD;
-    }
     if(0 == strcmp("iparm_thread_nbr", string))
     {
         return IPARM_THREAD_NBR;
@@ -535,18 +531,6 @@ int api_to_int( char * string )
     if(0 == strcmp("api_thread_comm_nbproc", string))
     {
         return API_THREAD_COMM_NBPROC;
-    }
-    if(0 == strcmp("api_bind_no", string))
-    {
-        return API_BIND_NO;
-    }
-    if(0 == strcmp("api_bind_auto", string))
-    {
-        return API_BIND_AUTO;
-    }
-    if(0 == strcmp("api_bind_tab", string))
-    {
-        return API_BIND_TAB;
     }
     if(0 == strcmp("api_no", string))
     {

@@ -200,7 +200,6 @@ enum IPARM_ACCESS {
 
     IPARM_SCHEDULER,
     IPARM_CPU_BY_NODE,
-    IPARM_BINDTHRD,
     IPARM_THREAD_NBR,
     IPARM_NB_SMP_NODE_USED,
     IPARM_THREAD_COMM_MODE,
@@ -450,7 +449,7 @@ typedef enum pastix_trans_e {
  */
 #define PastixGeneral   PastixNoTrans    /**< The matrix is general   */
 #define PastixSymmetric PastixTrans      /**< The matrix is symmetric */
-#define PastixHermitian PastixHermitian  /**< The matrix is hermitian */
+#define PastixHermitian PastixConjTrans  /**< The matrix is hermitian */
 
 /**
  * @brief Upper/Lower part

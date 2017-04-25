@@ -38,7 +38,8 @@ enum IPARM_ACCESS_DEPRECATED {
     IPARM_CUDA_NBR              = IPARM_GPU_NBR,
     IPARM_RHS_MAKING            = -1,
     IPARM_ONLY_RAFF             = IPARM_ONLY_REFINE,
-    IPARM_MURGE_MAY_RAFF        = IPARM_MURGE_MAY_REFINE
+    IPARM_MURGE_MAY_RAFF        = IPARM_MURGE_MAY_REFINE,
+    IPARM_BINDTHRD              = -1
 };
 
 /* Former DPARM values */
