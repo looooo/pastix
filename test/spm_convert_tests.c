@@ -150,7 +150,7 @@ int main (int argc, char **argv)
             rc = asprintf( &filename, "convert_b%d_%s_CSC_cycle1.dat",
                            baseval, mtxnames[mtxtype - PastixGeneral] );
             f = fopen( filename, "w" );
-            spmPrint( f, &spm );
+            spmPrint( &spm, f );
             fclose(f); free(filename);
 
             printf("   -- Test Conversion CSC -> CSR: ");
@@ -161,7 +161,7 @@ int main (int argc, char **argv)
             rc = asprintf( &filename, "convert_b%d_%s_CSR_cycle1.dat",
                            baseval, mtxnames[mtxtype - PastixGeneral] );
             f = fopen( filename, "w" );
-            spmPrint( f, &spm );
+            spmPrint( &spm, f );
             fclose(f); free(filename);
 
             printf("   -- Test Conversion CSR -> IJV: ");
@@ -172,7 +172,7 @@ int main (int argc, char **argv)
             rc = asprintf( &filename, "convert_b%d_%s_IJV_cycle1.dat",
                            baseval, mtxnames[mtxtype - PastixGeneral] );
             f = fopen( filename, "w" );
-            spmPrint( f, &spm );
+            spmPrint( &spm, f );
             fclose(f); free(filename);
 
             printf("   -- Test Conversion IJV -> CSC: ");
@@ -194,7 +194,7 @@ int main (int argc, char **argv)
             rc = asprintf( &filename, "convert_b%d_%s_CSC_cycle2.dat",
                            baseval, mtxnames[mtxtype - PastixGeneral] );
             f = fopen( filename, "w" );
-            spmPrint( f, &spm );
+            spmPrint( &spm, f );
             fclose(f); free(filename);
 
             /**
@@ -208,7 +208,7 @@ int main (int argc, char **argv)
             rc = asprintf( &filename, "convert_b%d_%s_IJV_cycle2.dat",
                            baseval, mtxnames[mtxtype - PastixGeneral] );
             f = fopen( filename, "w" );
-            spmPrint( f, &spm );
+            spmPrint( &spm, f );
             fclose(f); free(filename);
 
             printf("   -- Test Conversion IJV -> CSR: ");
@@ -219,7 +219,7 @@ int main (int argc, char **argv)
             rc = asprintf( &filename, "convert_b%d_%s_CSR_cycle2.dat",
                            baseval, mtxnames[mtxtype - PastixGeneral] );
             f = fopen( filename, "w" );
-            spmPrint( f, &spm );
+            spmPrint( &spm, f );
             fclose(f); free(filename);
 
             printf("   -- Test Conversion CSR -> CSC: ");
@@ -230,7 +230,7 @@ int main (int argc, char **argv)
             rc = asprintf( &filename, "convert_b%d_%s_CSC_end.dat",
                            baseval, mtxnames[mtxtype - PastixGeneral] );
             f = fopen( filename, "w" );
-            spmPrint( f, &spm );
+            spmPrint( &spm, f );
             fclose(f); free(filename);
 
             /* Check that we came back to the initial state */
