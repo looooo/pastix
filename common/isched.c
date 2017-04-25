@@ -199,7 +199,7 @@ isched_parallel_section(isched_thread_t *ctx)
  *
  * @ingroup pastix_isched
  *
- *  ischedInit - Initialize the stuctures of the internal thread scheduler.
+ * @brief Initialize the stuctures of the internal thread scheduler.
  *
  *******************************************************************************
  *
@@ -212,13 +212,11 @@ isched_parallel_section(isched_thread_t *ctx)
  *          Array to specify where to bind each thread.
  *          Each thread i is binded to coresbind[hwloc(i)] if hwloc is
  *          provided, or to coresbind[i] otherwise.
- *          If coresbind = NULL, coresbind = PLASMA_AFF_THREADS if it
- *          is set, the identity function otherwise.
+ *          If coresbind = NULL, the identity function distribution is used.
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS successful exit
+ * @retval PASTIX_SUCCESS successful exit
  *
  ******************************************************************************/
 isched_t *ischedInit(int cores, int *coresbind)

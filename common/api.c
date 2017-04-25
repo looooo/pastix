@@ -201,7 +201,6 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_DISTRIBUTION_LEVEL]    = -1;                  /* Size limit to mark a cblk as 2d */
     iparm[IPARM_LEVEL_OF_FILL]         = 0;                   /* level of fill */
     iparm[IPARM_IO_STRATEGY]           = API_IO_NO;           /* I/O */
-    iparm[IPARM_RHS_MAKING]            = API_RHS_B;           /* generate rhs */
     iparm[IPARM_REFINEMENT]            = API_REFINE_GMRES;    /* gmres */
     iparm[IPARM_INCOMPLETE]            = API_NO;              /* direct */
     iparm[IPARM_ABS]                   = 0;                   /* ABS level to 1 */
