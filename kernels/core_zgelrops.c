@@ -58,7 +58,7 @@ core_zlralloc( pastix_int_t      M,
                pastix_int_t      rkmax,
                pastix_lrblock_t *A )
 {
-    EZTRACE_EVENT_PACKED_1(KERNELS_LRALLOC_START, NULL);
+    EZTRACE_EVENT_PACKED_1(KERNELS_LRALLOC_START, M*N);
 
     pastix_complex64_t *u, *v;
 
@@ -1201,30 +1201,16 @@ core_zlrmge( const pastix_lr_t *lowrank,
                 fcblk );
 }
 
-/* START_INTERCEPT_MODULE(kernels) */
-  
-/* END_INTERCEPT_MODULE(kernels) */
-
 static void _kernels_init (void) __attribute__ ((constructor));
-/* Initialize the current library */
 static void
 _kernels_init (void)
 {
-  /* DYNAMIC_INTERCEPT_ALL(); */
-
-  /* start event recording */
-  //#ifdef EZTRACE_AUTOSTART
   eztrace_start ();
-  //#endif
-
-  
-
 }
 
 static void _kernels_conclude (void) __attribute__ ((destructor));
 static void
 _kernels_conclude (void)
 {
-  /* stop event recording */
   eztrace_stop ();
 }
