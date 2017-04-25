@@ -114,11 +114,11 @@ int pastix_subtask_sopalin   ( pastix_data_t      *pastix_data,
 /*
  * Schur complement manipulation routines.
  */
-void pastix_setSchurUnknownList( pastix_data_t *pastix_data,
-                                 pastix_int_t   n,
-                                 pastix_int_t  *list );
-void pastix_getSchur           ( pastix_data_t *pastix_data,
-                                 void          *S,
-                                 pastix_int_t   lds );
+void pastix_setSchurUnknownList( pastix_data_t       *pastix_data,
+                                 pastix_int_t         n,
+                                 const pastix_int_t  *list );
+void pastix_getSchur           ( const pastix_data_t *pastix_data,
+                                 void                *S,
+                                 pastix_int_t         lds );
 
 #endif /* _PASTIX_H_ */

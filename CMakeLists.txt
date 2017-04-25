@@ -575,6 +575,7 @@ set(PASTIX_LIB_SRCS
   matrix_drivers/drivers.c
   #
   sopalin/coeftab.c
+  sopalin/schur.c
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
   sopalin/pastix.c
@@ -775,6 +776,7 @@ add_documented_files(
   blend/pastix_subtask_blend.c
   blend/pastix_task_analyze.c
   #
+  sopalin/schur.c
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
   #
