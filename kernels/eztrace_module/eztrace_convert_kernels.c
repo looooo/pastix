@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include <strings.h>
-//#include <GTG.h>
+#include <GTG.h>
 #include "eztrace_convert.h"
 
 #include "kernels_ev_codes.h"
@@ -93,7 +93,6 @@ void libinit(void)
 
   /* Register the module to eztrace_convert */
   eztrace_convert_register_module(&kernels_module);
-
 }
 
 void libfinalize(void) __attribute__ ((destructor));
@@ -112,11 +111,15 @@ void libfinalize(void)
 int
 eztrace_convert_kernels_init()
 {
-
+  if (get_mode() == EZTRACE_CONVERT) {
+      addEntityValue("STV_lralloc", "ST_Thread", "LRALLOC", GTG_GREEN);
+  }
+  return 0;
 }
 
 void handle_lralloc_start(eztrace_event_t *ev)
 {
+  DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
   DECLARE_CUR_THREAD(p_thread);
   INIT_KERNELS_THREAD_INFO(p_thread, p_info);
 
@@ -127,15 +130,19 @@ void handle_lralloc_start(eztrace_event_t *ev)
   p_info->size += size;
 
   p_info->time_start = CURRENT;
+
+  pushState(CURRENT, "ST_Thread", thread_id, "STV_lralloc");
 }
 
 void handle_lralloc_stop(eztrace_event_t *ev)
 {
+  DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
   DECLARE_CUR_THREAD(p_thread);
   INIT_KERNELS_THREAD_INFO(p_thread, p_info);
 
   p_info->time += (CURRENT - p_info->time_start);
 
+  pushState(CURRENT, "ST_Thread", thread_id, "STV_Working");
 }
 
 /* This function is called by eztrace_convert for each event to
