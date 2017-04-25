@@ -180,7 +180,7 @@ pastixInitParam( pastix_int_t *iparm,
     /**
      * Runtime parameters
      */
-    iparm[IPARM_SCHEDULER]             = 0;                   /* cpu/node */
+    iparm[IPARM_SCHEDULER]             = PastixSchedStatic;   /* cpu/node */
     iparm[IPARM_CPU_BY_NODE]           = 0;                   /* cpu/node */
     iparm[IPARM_BINDTHRD]              = API_BIND_AUTO;       /* Default binding method */
     iparm[IPARM_THREAD_NBR]            = -1;                  /* thread/mpi */
@@ -454,7 +454,7 @@ pastixInit( pastix_data_t **pastix_data,
      */
 #if defined(PASTIX_WITH_PARSEC)
     if ( pastix->parsec == NULL &&
-         iparm[IPARM_SCHEDULER] == 2 ) {
+         iparm[IPARM_SCHEDULER] == PastixSchedParsec ) {
         int argc = 0;
         pastix_parsec_init( pastix, &argc, NULL );
     }
