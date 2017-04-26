@@ -19,12 +19,7 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 #include "z_nan_check.h"
-
-#ifdef PASTIX_WITH_EZTRACE
-#include "eztrace.h"
-#include "eztrace_sampling.h"
 #include "eztrace_module/kernels_ev_codes.h"
-#endif
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t zone  =  1.;
@@ -58,8 +53,7 @@ core_zlralloc( pastix_int_t      M,
                pastix_int_t      rkmax,
                pastix_lrblock_t *A )
 {
-    EZTRACE_EVENT_PACKED_1(KERNELS_LRALLOC_START, M*N);
-
+    trace_kernel(KERNELS_LRALLOC_START, M*N);
     pastix_complex64_t *u, *v;
 
     if ( rkmax == -1 ) {
@@ -96,8 +90,7 @@ core_zlralloc( pastix_int_t      M,
         A->v = v;
     }
 
-    EZTRACE_EVENT_PACKED_1(KERNELS_LRALLOC_STOP, NULL);
-
+    trace_kernel(KERNELS_LRALLOC_STOP, NULL);
 }
 
 /**
@@ -1201,16 +1194,3 @@ core_zlrmge( const pastix_lr_t *lowrank,
                 fcblk );
 }
 
-static void _kernels_init (void) __attribute__ ((constructor));
-static void
-_kernels_init (void)
-{
-  eztrace_start ();
-}
-
-static void _kernels_conclude (void) __attribute__ ((destructor));
-static void
-_kernels_conclude (void)
-{
-  eztrace_stop ();
-}

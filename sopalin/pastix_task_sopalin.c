@@ -26,6 +26,9 @@
 #include "kernels/pastix_ccores.h"
 #include "kernels/pastix_dcores.h"
 #include "kernels/pastix_scores.h"
+#if defined(PASTIX_WITH_EZTRACE)
+#include <eztrace.h>
+#endif
 
 static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
 {
@@ -492,3 +495,21 @@ pastix_task_numfact( pastix_data_t *pastix_data,
 
     return EXIT_SUCCESS;
 }
+
+
+/* Constructor / destructor used for tracing kernels */
+#if defined(PASTIX_WITH_EZTRACE)
+static void kernels_init (void) __attribute__ ((constructor));
+static void
+kernels_init (void)
+{
+  eztrace_start ();
+}
+
+static void kernels_conclude (void) __attribute__ ((destructor));
+static void
+kernels_conclude (void)
+{
+  eztrace_stop ();
+}
+#endif
