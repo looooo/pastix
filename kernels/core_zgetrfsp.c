@@ -19,6 +19,7 @@
 #include "cblas.h"
 #include "blend/solver.h"
 #include "pastix_zcores.h"
+#include "eztrace_module/kernels_ev_codes.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define MAXSIZEOFBLOCKS 64
@@ -288,7 +289,10 @@ cpucblk_zgetrfsp1d_panel( SolverCblk         *cblk,
 {
     pastix_int_t nbpivot;
 
+    start_trace_kernel(KERNELS_GETRF_START, 32);
     nbpivot = cpucblk_zgetrfsp1d_getrf(cblk, L, U, criteria);
+    stop_trace_kernel();
+
     /**
      * We exploit the fact tha the upper triangle is stored at the top of the L
      * column, and by transposition the L part of the diagonal block is

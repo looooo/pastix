@@ -1,7 +1,17 @@
-/*
- * Copyright (C) CNRS, INRIA, Université Bordeaux 1, Télécom SudParis
- * See COPYING in top-level directory.
- */
+/**
+ *
+ * @file eztrace_convert_kernels.h
+ *
+ * Module to convert eztrace events
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Gregoire Pichon
+ * @date 2017-04-26
+ *
+ **/
 
 #ifndef __EZTRACE_CONVERT_KERNELS_H__
 #define __EZTRACE_CONVERT_KERNELS_H__
@@ -12,16 +22,20 @@
 #include "eztrace_convert.h"
 #include "kernels_ev_codes.h"
 
-/* thread-specific structure */
+#define MAX_EVENTS 5
+
+
 struct kernels_thread_info_t {
     struct thread_info_t *p_thread;
 
-    int nb_calls;
-    int size;
-    double time;
+    /* Use by KERNELS_STOP */
+    float                  time_start;
+    enum kernels_ev_code_e current_ev;
 
-    float time_start;
-    /* TO COMPLETE: You can add per-thread counters here */
+    /* Counters per event */
+    int    *nb;
+    int    *flops;
+    double *run_time;
 };
 
 #define INIT_KERNELS_THREAD_INFO(p_thread, var)                         \
@@ -36,7 +50,7 @@ int handle_kernels_events(eztrace_event_t *ev);
 int handle_kernels_stats(eztrace_event_t *ev);
 void print_kernels_stats();
 
-void handle_lralloc_start();
-void handle_lralloc_stop();
+/* void handle_lralloc_start(); */
+/* void handle_lralloc_stop(); */
 
 #endif /* __EZTRACE_CONVERT_KERNELS_H__ */
