@@ -330,11 +330,6 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data,
     iparm   = pastix_data->iparm;
     procnum = pastix_data->inter_node_procnum;
 
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT) {
-        pastix_print(procnum, 0, OUT_STEP_SOPALIN,
-                     pastixFactotypeStr( iparm[IPARM_FACTORIZATION] ) );
-    }
-
     /* Prepare the sopalin_data structure */
     {
         sopalin_data.solvmtx = pastix_data->solvmatr;
