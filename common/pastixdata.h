@@ -99,7 +99,7 @@ struct pastix_data_s {
     starpu_ctxt_t   *starpu;             /*< StarPU Context if available                                         */
 #endif
 
-    const pastix_csc_t *csc;             /*< Pointer to the user csc structure used as input                     */
+    const pastix_spm_t *csc;             /*< Pointer to the user csc structure used as input                     */
 
     pastix_graph_t  *graph;              /*< Symmetrized graph of the problem used within ordering
                                              and symbolic factorization steps.                                   */

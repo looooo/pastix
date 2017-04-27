@@ -220,10 +220,6 @@ int iparm_to_int( char * string)
     {
         return IPARM_CPU_BY_NODE;
     }
-    if(0 == strcmp("iparm_bindthrd", string))
-    {
-        return IPARM_BINDTHRD;
-    }
     if(0 == strcmp("iparm_thread_nbr", string))
     {
         return IPARM_THREAD_NBR;
@@ -239,10 +235,6 @@ int iparm_to_int( char * string)
     if(0 == strcmp("iparm_io_strategy", string))
     {
         return IPARM_IO_STRATEGY;
-    }
-    if(0 == strcmp("iparm_rhs_making", string))
-    {
-        return IPARM_RHS_MAKING;
     }
     if(0 == strcmp("iparm_refinement", string))
     {
@@ -375,11 +367,11 @@ int iparm_to_int( char * string)
  *******************************************************************************/
 int dparm_to_int( char * string)
 {
-    if(0 == strcmp("DPARM_EPSILON_REFINEMENT", string))
+    if(0 == strcmp("dparm_epsilon_refinement", string))
     {
         return DPARM_EPSILON_REFINEMENT;
     }
-    if(0 == strcmp("DPARM_EPSILON_MAGN_CTRL", string))
+    if(0 == strcmp("dparm_epsilon_magn_ctrl", string))
     {
         return DPARM_EPSILON_MAGN_CTRL;
     }
@@ -414,57 +406,39 @@ int api_to_int( char * string )
     {
         return API_TASK_INIT;
     }
-    if(0 == strcmp("api_task_ordering", string))
+    if( (0 == strcmp("api_task_ordering", string)) ||
+        (0 == strcmp("api_task_scotch",   string)) )
     {
         return API_TASK_ORDERING;
     }
-    if(0 == strcmp("api_task_symbfact", string))
+    if( (0 == strcmp("api_task_symbfact", string)) ||
+        (0 == strcmp("api_task_fax",      string)) )
     {
         return API_TASK_SYMBFACT;
     }
-    if(0 == strcmp("api_task_analyse", string))
+    if( (0 == strcmp("api_task_analyse", string)) ||
+        (0 == strcmp("api_task_blend",   string)) )
     {
         return API_TASK_ANALYSE;
     }
-    if(0 == strcmp("api_task_numfact", string))
+    if( (0 == strcmp("api_task_numfact", string)) ||
+        (0 == strcmp("api_task_sopalin", string)) )
     {
         return API_TASK_NUMFACT;
     }
-    if(0 == strcmp("api_task_solve", string))
+    if( (0 == strcmp("api_task_solve",  string)) ||
+        (0 == strcmp("api_task_updown", string)) )
     {
         return API_TASK_SOLVE;
     }
-    if(0 == strcmp("api_task_refine", string))
+    if( (0 == strcmp("api_task_refine",     string)) ||
+        (0 == strcmp("api_task_refinement", string)) )
     {
         return API_TASK_REFINE;
     }
     if(0 == strcmp("api_task_clean", string))
     {
         return API_TASK_CLEAN;
-    }
-    if(0 == strcmp("api_task_scotch", string))
-    {
-        return API_TASK_SCOTCH;
-    }
-    if(0 == strcmp("api_task_fax", string))
-    {
-        return API_TASK_FAX;
-    }
-    if(0 == strcmp("api_task_blend", string))
-    {
-        return API_TASK_BLEND;
-    }
-    if(0 == strcmp("api_task_sopalin", string))
-    {
-        return API_TASK_SOPALIN;
-    }
-    if(0 == strcmp("api_task_updown", string))
-    {
-        return API_TASK_UPDOWN;
-    }
-    if(0 == strcmp("api_task_refinement", string))
-    {
-        return API_TASK_REFINEMENT;
     }
     if(0 == strcmp("api_verbose_not", string))
     {
@@ -514,22 +488,6 @@ int api_to_int( char * string )
     {
         return API_IO_SAVE_CSC;
     }
-    if(0 == strcmp("api_rhs_b", string))
-    {
-        return API_RHS_B;
-    }
-    if(0 == strcmp("api_rhs_1", string))
-    {
-        return API_RHS_1;
-    }
-    if(0 == strcmp("api_rhs_i", string))
-    {
-        return API_RHS_I;
-    }
-    if(0 == strcmp("api_rhs_0", string))
-    {
-        return API_RHS_0;
-    }
     if(0 == strcmp("api_refine_gmres", string))
     {
         return API_REFINE_GMRES;
@@ -573,18 +531,6 @@ int api_to_int( char * string )
     if(0 == strcmp("api_thread_comm_nbproc", string))
     {
         return API_THREAD_COMM_NBPROC;
-    }
-    if(0 == strcmp("api_bind_no", string))
-    {
-        return API_BIND_NO;
-    }
-    if(0 == strcmp("api_bind_auto", string))
-    {
-        return API_BIND_AUTO;
-    }
-    if(0 == strcmp("api_bind_tab", string))
-    {
-        return API_BIND_TAB;
     }
     if(0 == strcmp("api_no", string))
     {
@@ -669,6 +615,26 @@ int api_to_int( char * string )
     if(0 == strcmp("pastixsymmetric", string))
     {
         return PastixSymmetric;
+    }
+    if(0 == strcmp("pastixschedsequential", string))
+    {
+        return PastixSchedSequential;
+    }
+    if(0 == strcmp("pastixschedstatic", string))
+    {
+        return PastixSchedStatic;
+    }
+    if(0 == strcmp("pastixscheddynamic", string))
+    {
+        return PastixSchedDynamic;
+    }
+    if(0 == strcmp("pastixschedparsec", string))
+    {
+        return PastixSchedParsec;
+    }
+    if(0 == strcmp("pastixschedstarpu", string))
+    {
+        return PastixSchedStarPU;
     }
     if(atoi(string) == 0)
     {

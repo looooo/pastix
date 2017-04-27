@@ -36,7 +36,7 @@ struct pastix_bcsc_s {
     void          *Uvalues; /*> Array of values of the matrix A^t                                              */
 };
 
-void bcscInitCentralizedFake( const pastix_csc_t  *csc,
+void bcscInitCentralizedFake( const pastix_spm_t  *spm,
                               const Order         *ord,
                               const SolverMatrix  *solvmtx,
                               const pastix_int_t  *col2cblk,
@@ -44,7 +44,7 @@ void bcscInitCentralizedFake( const pastix_csc_t  *csc,
                                     pastix_bcsc_t *bcsc );
 
 pastix_int_t
-bcsc_init_centralized_coltab( const pastix_csc_t  *csc,
+bcsc_init_centralized_coltab( const pastix_spm_t  *spm,
                               const Order         *ord,
                               const SolverMatrix  *solvmtx,
                                     pastix_bcsc_t *bcsc );
@@ -52,7 +52,7 @@ bcsc_init_centralized_coltab( const pastix_csc_t  *csc,
 void
 bcsc_restore_coltab( pastix_bcsc_t *bcsc );
 
-double bcscInit( const pastix_csc_t  *csc,
+double bcscInit( const pastix_spm_t  *spm,
                  const Order         *ord,
                  const SolverMatrix  *solvmtx,
                  pastix_int_t   initAt,
@@ -72,4 +72,5 @@ int bcscApplyPerm( pastix_bcsc_t *bcsc,
                    void          *b,
                    pastix_int_t   ldb,
                    pastix_int_t  *perm );
+
 #endif /* CSC_H */

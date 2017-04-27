@@ -18,7 +18,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc_driver
+ * @ingroup pastix_spm_driver
  *
  * threeFilesReadHeader - Read header from three file IJV format.
  *
@@ -67,7 +67,7 @@ threeFilesReadHeader(FILE         *infile,
 /**
  * ******************************************************************************
  *
- * @ingroup pastix_csc_driver
+ * @ingroup pastix_spm_driver
  *
  * readIJV - Read matrix from three files IJV
  *
@@ -81,7 +81,7 @@ threeFilesReadHeader(FILE         *infile,
  * @param[in] dirname
  *          Directory that contains the files.
  *
- * @param[out] csc
+ * @param[out] spm
  *          At exit, contains the matrix in ijv format.
  *
  *******************************************************************************
@@ -95,7 +95,7 @@ threeFilesReadHeader(FILE         *infile,
  *******************************************************************************/
 int
 readIJV( const char   *dirname,
-         pastix_csc_t *csc )
+         pastix_spm_t *spm )
 {
 
     FILE *iafile, *jafile, *rafile;
@@ -108,11 +108,11 @@ readIJV( const char   *dirname,
 
     filename = malloc(strlen(dirname)+10);
 
-    csc->flttype = PastixDouble;
-    csc->mtxtype = PastixGeneral;
-    csc->fmttype = PastixIJV;
-    csc->dof     = 1;
-    csc->loc2glob= NULL;
+    spm->flttype = PastixDouble;
+    spm->mtxtype = PastixGeneral;
+    spm->fmttype = PastixIJV;
+    spm->dof     = 1;
+    spm->loc2glob= NULL;
 
     /* Read the header information */
     {
@@ -127,13 +127,13 @@ readIJV( const char   *dirname,
         fclose(hdrfile);
     }
 
-    csc->gN      = Ncol;
-    csc->n       = Ncol;
-    csc->gnnz    = Nnzero;
-    csc->nnz     = Nnzero;
-    csc->colptr = (pastix_int_t *) malloc(Nnzero*sizeof(pastix_int_t));
-    csc->rowptr = (pastix_int_t *) malloc(Nnzero*sizeof(pastix_int_t));
-    csc->values = (double *)       malloc(Nnzero*sizeof(double));
+    spm->gN      = Ncol;
+    spm->n       = Ncol;
+    spm->gnnz    = Nnzero;
+    spm->nnz     = Nnzero;
+    spm->colptr = (pastix_int_t *) malloc(Nnzero*sizeof(pastix_int_t));
+    spm->rowptr = (pastix_int_t *) malloc(Nnzero*sizeof(pastix_int_t));
+    spm->values = (double *)       malloc(Nnzero*sizeof(double));
 
     /* Open the 3 files */
     sprintf(filename,"%s/ia_threeFiles",dirname);
@@ -164,9 +164,9 @@ readIJV( const char   *dirname,
     }
 
     /* Read the files */
-    tempcol = csc->colptr;
-    temprow = csc->rowptr;
-    tempval = csc->values;
+    tempcol = spm->colptr;
+    temprow = spm->rowptr;
+    tempval = spm->values;
 
     for (i=0; i<Nnzero; i++, tempcol++, temprow++, tempval++)
     {

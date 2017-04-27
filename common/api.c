@@ -180,9 +180,8 @@ pastixInitParam( pastix_int_t *iparm,
     /**
      * Runtime parameters
      */
-    iparm[IPARM_SCHEDULER]             = 0;                   /* cpu/node */
+    iparm[IPARM_SCHEDULER]             = PastixSchedStatic;   /* cpu/node */
     iparm[IPARM_CPU_BY_NODE]           = 0;                   /* cpu/node */
-    iparm[IPARM_BINDTHRD]              = API_BIND_AUTO;       /* Default binding method */
     iparm[IPARM_THREAD_NBR]            = -1;                  /* thread/mpi */
 
     iparm[IPARM_STATIC_PIVOTING]       = 0;                   /* number of control of diagonal magnitude              */
@@ -201,7 +200,6 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_DISTRIBUTION_LEVEL]    = -1;                  /* Size limit to mark a cblk as 2d */
     iparm[IPARM_LEVEL_OF_FILL]         = 0;                   /* level of fill */
     iparm[IPARM_IO_STRATEGY]           = API_IO_NO;           /* I/O */
-    iparm[IPARM_RHS_MAKING]            = API_RHS_B;           /* generate rhs */
     iparm[IPARM_REFINEMENT]            = API_REFINE_GMRES;    /* gmres */
     iparm[IPARM_INCOMPLETE]            = API_NO;              /* direct */
     iparm[IPARM_ABS]                   = 0;                   /* ABS level to 1 */
@@ -455,7 +453,7 @@ pastixInit( pastix_data_t **pastix_data,
      */
 #if defined(PASTIX_WITH_PARSEC)
     if ( pastix->parsec == NULL &&
-         iparm[IPARM_SCHEDULER] == 2 ) {
+         iparm[IPARM_SCHEDULER] == PastixSchedParsec ) {
         int argc = 0;
         pastix_parsec_init( pastix, &argc, NULL );
     }

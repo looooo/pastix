@@ -165,7 +165,7 @@ graphPrepare(      pastix_data_t   *pastix_data,
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
         pastix_print(procnum, 0, "%s", OUT_SUBSTEP_GRAPH);
 
-    if (PASTIX_MASK_ISTRUE(io_strategy, API_IO_LOAD_GRAPH))
+    if (io_strategy & API_IO_LOAD_GRAPH)
     {
         graphLoad( pastix_data, tmpgraph );
     }

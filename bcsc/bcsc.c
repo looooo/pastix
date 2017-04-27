@@ -93,22 +93,22 @@ bcsc_restore_coltab( pastix_bcsc_t *bcsc )
 }
 
 pastix_int_t
-bcsc_init_centralized_coltab( const pastix_csc_t  *csc,
+bcsc_init_centralized_coltab( const pastix_spm_t  *spm,
                               const Order         *ord,
                               const SolverMatrix  *solvmtx,
                                     pastix_bcsc_t *bcsc )
 {
     pastix_int_t  valuesize, baseval;
     pastix_int_t *globcol  = NULL;
-    pastix_int_t *colptr = csc->colptr;
-    pastix_int_t *rowptr = csc->rowptr;
-    int dof = csc->dof;
-    int sym = (csc->mtxtype == PastixSymmetric) || (csc->mtxtype == PastixHermitian);
+    pastix_int_t *colptr = spm->colptr;
+    pastix_int_t *rowptr = spm->rowptr;
+    int dof = spm->dof;
+    int sym = (spm->mtxtype == PastixSymmetric) || (spm->mtxtype == PastixHermitian);
 
-    bcsc->mtxtype = csc->mtxtype;
-    bcsc->flttype = csc->flttype;
+    bcsc->mtxtype = spm->mtxtype;
+    bcsc->flttype = spm->flttype;
 
-    baseval = csc->colptr[0];
+    baseval = spm->colptr[0];
 
     /**
      * Allocate and initialize globcol that contains the number of elements in
@@ -117,15 +117,15 @@ bcsc_init_centralized_coltab( const pastix_csc_t  *csc,
      * csc. The blocked csc integrate the perumtation computed within order
      * structure.
      */
-    MALLOC_INTERN( globcol, csc->gN+1, pastix_int_t );
-    memset( globcol, 0, (csc->gN+1) * sizeof(pastix_int_t) );
+    MALLOC_INTERN( globcol, spm->gN+1, pastix_int_t );
+    memset( globcol, 0, (spm->gN+1) * sizeof(pastix_int_t) );
 
-    assert( csc->loc2glob == NULL );
+    assert( spm->loc2glob == NULL );
 
     {
         pastix_int_t itercol, newcol;
 
-        for (itercol=0; itercol<csc->gN; itercol++)
+        for (itercol=0; itercol<spm->gN; itercol++)
         {
             pastix_int_t frow = colptr[itercol]   - baseval;
             pastix_int_t lrow = colptr[itercol+1] - baseval;
@@ -152,7 +152,7 @@ bcsc_init_centralized_coltab( const pastix_csc_t  *csc,
             pastix_int_t tmp, idx;
 
             idx = 0;
-            for (itercol=0; itercol<=csc->gN; itercol++)
+            for (itercol=0; itercol<=spm->gN; itercol++)
             {
                 tmp = globcol[itercol];
                 globcol[itercol] = idx;
@@ -168,7 +168,7 @@ bcsc_init_centralized_coltab( const pastix_csc_t  *csc,
 }
 
 void
-bcscInitCentralized( const pastix_csc_t  *csc,
+bcscInitCentralized( const pastix_spm_t  *spm,
                      const Order         *ord,
                      const SolverMatrix  *solvmtx,
                            pastix_int_t   initAt,
@@ -176,15 +176,15 @@ bcscInitCentralized( const pastix_csc_t  *csc,
 {
     pastix_int_t  itercol, itercblk;
     pastix_int_t  cblknbr = solvmtx->cblknbr;
-    pastix_int_t  eltnbr  = csc->gN * csc->dof + 1;
+    pastix_int_t  eltnbr  = spm->gN * spm->dof + 1;
     pastix_int_t *col2cblk = NULL;
 
-    bcsc->mtxtype = csc->mtxtype;
-    bcsc->flttype = csc->flttype;
-    bcsc->gN      = csc->gN;
-    bcsc->n       = csc->n;
+    bcsc->mtxtype = spm->mtxtype;
+    bcsc->flttype = spm->flttype;
+    bcsc->gN      = spm->gN;
+    bcsc->n       = spm->n;
 
-    assert( csc->loc2glob == NULL );
+    assert( spm->loc2glob == NULL );
 
     /**
      * Initialize the col2cblk array. col2cblk[i] contains the cblk index of the
@@ -213,46 +213,46 @@ bcscInitCentralized( const pastix_csc_t  *csc,
      * rows. The upper triangular part is done later if required through LU
      * factorization.
      */
-    switch( csc->flttype ) {
+    switch( spm->flttype ) {
     case PastixPattern:
-        bcscInitCentralizedFake( csc, ord, solvmtx, col2cblk, initAt, bcsc );
+        bcscInitCentralizedFake( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case PastixFloat:
-        s_bcscInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
+        s_bcscInitCentralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case PastixDouble:
-        d_bcscInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
+        d_bcscInitCentralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case PastixComplex32:
-        c_bcscInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
+        c_bcscInitCentralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case PastixComplex64:
-        z_bcscInitCentralized( csc, ord, solvmtx, col2cblk, initAt, bcsc );
+        z_bcscInitCentralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     default:
-        fprintf(stderr, "bcscInitCentralized: Error unknown floating type for input csc\n");
+        fprintf(stderr, "bcscInitCentralized: Error unknown floating type for input spm\n");
     }
 
     memFree_null(col2cblk);
 }
 
 double
-bcscInit( const pastix_csc_t  *csc,
+bcscInit( const pastix_spm_t  *spm,
           const Order         *ord,
           const SolverMatrix  *solvmtx,
                 pastix_int_t   initAt,
                 pastix_bcsc_t *bcsc )
 {
     assert( ord->baseval == 0 );
-    assert( ord->vertnbr == csc->n );
+    assert( ord->vertnbr == spm->n );
 
     double time = 0.;
     clockStart(time);
 
-    if ( csc->loc2glob == NULL )
-        bcscInitCentralized( csc, ord, solvmtx, initAt, bcsc );
+    if ( spm->loc2glob == NULL )
+        bcscInitCentralized( spm, ord, solvmtx, initAt, bcsc );
     else
-        fprintf(stderr, "bcscInit: Distributed CSC not yet supported");
+        fprintf(stderr, "bcscInit: Distributed SPM not yet supported");
 
     clockStop(time);
     return time;

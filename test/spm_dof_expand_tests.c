@@ -90,7 +90,7 @@ int main (int argc, char **argv)
                 for( fmttype=0; fmttype<3; fmttype++ )
                 {
                     spmConvert( fmttype, &original );
-                    spm = spmDofExtend( i, dofmax, &original );
+                    spm = spmDofExtend( &original, i, dofmax );
 
                     rc = asprintf( &filename, "%d_%s_%d_%s_%s",
                                    i, fmtnames[fmttype], baseval,

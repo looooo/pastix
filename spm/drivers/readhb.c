@@ -18,7 +18,7 @@
 /**
  * ******************************************************************************
  *
- * @ingroup pastix_csc_driver
+ * @ingroup pastix_spm_driver
  *
  * readHB - Interface to the Harwell-Boeing C driver (iohb.c)
  *
@@ -27,8 +27,8 @@
  * @param[in] filename
  *          The file containing the matrix.
  *
- * @param[in] csc
- *          At exit, contains the matrix in csc format.
+ * @param[in] spm
+ *          At exit, contains the matrix in spm format.
  *
  *******************************************************************************
  *
@@ -40,14 +40,14 @@
  *******************************************************************************/
 int
 readHB( const char   *filename,
-        pastix_csc_t *csc )
+        pastix_spm_t *spm )
 {
     int M, N, nz, nrhs;
 
     /* Harwell Boeing is a variant of RSA */
-    csc->fmttype = PastixCSC;
-    csc->dof     = 1;
-    csc->loc2glob= NULL;
+    spm->fmttype = PastixCSC;
+    spm->dof     = 1;
+    spm->loc2glob= NULL;
 
     /* Read header informations */
     {
@@ -62,24 +62,24 @@ readHB( const char   *filename,
             return PASTIX_ERR_BADPARAMETER;
         }
 
-        csc->gN   = M;
-        csc->n    = M;
-        csc->gnnz = nz;
-        csc->nnz  = nz;
+        spm->gN   = M;
+        spm->n    = M;
+        spm->gnnz = nz;
+        spm->nnz  = nz;
 
         /* Check float type */
         switch( Type[0] ) {
         case 'C':
         case 'c':
-            csc->flttype = PastixComplex64;
+            spm->flttype = PastixComplex64;
             break;
         case 'R':
         case 'r':
-            csc->flttype = PastixDouble;
+            spm->flttype = PastixDouble;
             break;
         case 'P':
         case 'p':
-            csc->flttype = PastixPattern;
+            spm->flttype = PastixPattern;
             break;
         default:
             fprintf(stderr, "readhb: Floating type unknown (%c)\n", Type[0]);
@@ -90,17 +90,17 @@ readHB( const char   *filename,
         switch( Type[1] ) {
         case 'S':
         case 's':
-            csc->mtxtype = PastixSymmetric;
+            spm->mtxtype = PastixSymmetric;
             break;
         case 'H':
         case 'h':
-            csc->mtxtype = PastixHermitian;
-            assert( csc->flttype == PastixDouble );
+            spm->mtxtype = PastixHermitian;
+            assert( spm->flttype == PastixDouble );
             break;
         case 'U':
         case 'u':
         default:
-            csc->mtxtype = PastixGeneral;
+            spm->mtxtype = PastixGeneral;
         }
         free(Type);
     }
@@ -111,7 +111,7 @@ readHB( const char   *filename,
         int     rc;
 
         rc = readHB_newmat_double( filename, &M, &N, &nz,
-                                   &colptr, &rowind, (double**)(&(csc->values)) );
+                                   &colptr, &rowind, (double**)(&(spm->values)) );
 
         if (rc == 0) {
             fprintf(stderr, "readhb: Error in reading the HB matrix values\n");
@@ -119,8 +119,8 @@ readHB( const char   *filename,
         }
 
         /* Move the colptr/rowind from int to pastix_int_t if different sizes */
-        csc->colptr = spmIntConvert(csc->n+1, colptr);
-        csc->rowptr = spmIntConvert(csc->nnz, rowind);
+        spm->colptr = spmIntConvert(spm->n+1, colptr);
+        spm->rowptr = spmIntConvert(spm->nnz, rowind);
     }
     return PASTIX_SUCCESS;
 }

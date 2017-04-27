@@ -459,7 +459,7 @@ spm2Dense( const pastix_spm_t *spm )
  *
  *******************************************************************************/
 double
-spmNorm( int ntype,
+spmNorm( pastix_normtype_t   ntype,
          const pastix_spm_t *spm )
 {
     pastix_spm_t *spmtmp = (pastix_spm_t*)spm;
@@ -811,15 +811,15 @@ spmCopy( const pastix_spm_t *spm )
  *
  *******************************************************************************
  *
- * @param[in] f
- *          File to print the spm matrix.
- *
  * @param[in] spm
  *          The sparse matrix to print.
  *
+ * @param[in] f
+ *          File to print the spm matrix.
+ *
  *******************************************************************************/
 void
-spmPrint(FILE *f, const pastix_spm_t* spm)
+spmPrint( const pastix_spm_t* spm, FILE *f )
 {
     switch(spm->flttype)
     {
@@ -862,7 +862,7 @@ spmPrint(FILE *f, const pastix_spm_t* spm)
  *
  *******************************************************************************/
 pastix_spm_t *
-spmExpand(const pastix_spm_t* spm)
+spmExpand( const pastix_spm_t* spm )
 {
     switch(spm->flttype)
     {

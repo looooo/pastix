@@ -119,4 +119,28 @@ static inline int pastix_size_of(int type)
     }
 }
 
+/** ****************************************************************************
+ * Pastix data structures
+ **/
+
+/* Sparse matrix */
+struct pastix_spm_s;
+typedef struct pastix_spm_s pastix_spm_t;
+
+/* Main structure of the pastix solver associated to a given problem */
+struct pastix_data_s;
+typedef struct pastix_data_s pastix_data_t;
+
+/* Graph structure (No values) */
+struct pastix_graph_s;
+typedef struct pastix_graph_s pastix_graph_t;
+
+/* Ordering structure */
+struct pastix_order_s;
+typedef struct pastix_order_s Order;
+
+/* Solver matrix structure to store L(U)*/
+struct solver_matrix_s;
+typedef struct solver_matrix_s SolverMatrix;
+
 #endif /* _PASTIX_DATATYPES_H_ */

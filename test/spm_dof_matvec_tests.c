@@ -92,7 +92,7 @@ int main (int argc, char **argv)
                 for( fmttype=0; fmttype<1; fmttype++ )
                 {
                     spmConvert( fmttype, &original );
-                    spm = spmDofExtend( i, dofmax, &original );
+                    spm = spmDofExtend( &original, i, dofmax );
 
                     switch( original.flttype ){
                     case PastixComplex64:

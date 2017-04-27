@@ -87,7 +87,7 @@ int main (int argc, char **argv)
                 for( fmttype=0; fmttype<3; fmttype++ )
                 {
                     spmConvert( fmttype, &original );
-                    spm = spmDofExtend( i, dofmax, &original );
+                    spm = spmDofExtend( &original, i, dofmax );
 
                     printf(" Case: %d / %s / %s / %d / %s\n",
                            i, fltnames[spm->flttype],

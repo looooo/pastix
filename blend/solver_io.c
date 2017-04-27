@@ -37,7 +37,7 @@
  *
  *******************************************************************************
  *
- * @retval PASTIX_SUCESS on successful exit,
+ * @retval PASTIX_SUCCESS on successful exit,
  * @retval PASTIX_ERR_FILE if a problem occurs during the read.
  *
  *******************************************************************************/
@@ -331,7 +331,7 @@ solverLoad( SolverMatrix *solvptr,
     /*     intLoad(stream, &(solvptr->updovct.lblk2gcblk[i])); */
     /* } */
 
-    return PASTIX_SUCESS;
+    return PASTIX_SUCCESS;
 }
 
 /**
@@ -351,7 +351,7 @@ solverLoad( SolverMatrix *solvptr,
  *
  *******************************************************************************
  *
- * @retval PASTIX_SUCESS on successful exit,
+ * @retval PASTIX_SUCCESS on successful exit,
  * @retval PASTIX_ERR_BADPARAMETER if the ordeptr structure is incorrect,
  * @retval PASTIX_ERR_FILE if a problem occurs during the write.
  *
@@ -529,5 +529,5 @@ solverSave( const SolverMatrix *solvptr,
     /*     fprintf(stream, "%ld\n", (long) solvptr->updovct.lblk2gcblk[i]); */
     /* } */
 
-    return o ? PASTIX_ERR_FILE : PASTIX_SUCESS;
+    return o ? PASTIX_ERR_FILE : PASTIX_SUCCESS;
 }

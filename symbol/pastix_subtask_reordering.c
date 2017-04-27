@@ -100,7 +100,7 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
                       iparm[IPARM_REORDERING_STOP] );
 
     /* Backup the new ordering */
-    if (PASTIX_MASK_ISTRUE(iparm[IPARM_IO_STRATEGY], API_IO_SAVE))
+    if ( iparm[IPARM_IO_STRATEGY] & API_IO_SAVE )
     {
         if (procnum == 0) {
             orderSave( ordemesh, NULL );

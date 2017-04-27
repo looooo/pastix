@@ -63,7 +63,7 @@ FC_GLOBAL(wreadmtc,WREADMTC)(int        *tmp1,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc_driver
+ * @ingroup pastix_spm_driver
  *
  * readRSAHeader - Read the header structure of a RSA file
  *
@@ -129,7 +129,7 @@ readRSAHeader( const char *filename,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_csc_driver
+ * @ingroup pastix_spm_driver
  *
  * readRSA - Read a RSA matrix file. This driver reads only real matrices, and
  * does not support complex matrices.
@@ -142,8 +142,8 @@ readRSAHeader( const char *filename,
  *          an interface to the wreadmtx fortran function provided within
  *          SparseKit.
  *
- * @param[in] csc
- *          At exit, contains the matrix in csc format.
+ * @param[in] spm
+ *          At exit, contains the matrix in spm format.
  *
  *******************************************************************************
  *
@@ -155,7 +155,7 @@ readRSAHeader( const char *filename,
  *******************************************************************************/
 int
 readRSA( const char   *filename,
-         pastix_csc_t *csc )
+         pastix_spm_t *spm )
 {
     char    Type[4];
     char    RhsType[4];
@@ -175,11 +175,11 @@ readRSA( const char   *filename,
     switch( Type[1] ){
     case 'S':
     case 's':
-        csc->mtxtype = PastixSymmetric;
+        spm->mtxtype = PastixSymmetric;
         break;
     case 'H':
     case 'h':
-        csc->mtxtype = PastixHermitian;
+        spm->mtxtype = PastixHermitian;
         /**
          * We should not arrive here, since the fortran driver is not able to
          * read complex matrices
@@ -188,21 +188,21 @@ readRSA( const char   *filename,
         return PASTIX_ERR_BADPARAMETER;
     case 'U':
     case 'u':
-        csc->mtxtype = PastixGeneral;
+        spm->mtxtype = PastixGeneral;
         break;
     default:
         fprintf(stderr,"readrsa: Unsupported type of matrix.\n");
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    csc->flttype = PastixDouble;
-    csc->fmttype = PastixCSC;
-    csc->gN      = N;
-    csc->n       = N;
-    csc->gnnz    = Nnz;
-    csc->nnz     = Nnz;
-    csc->dof     = 1;
-    csc->loc2glob= NULL;
+    spm->flttype = PastixDouble;
+    spm->fmttype = PastixCSC;
+    spm->gN      = N;
+    spm->n       = N;
+    spm->gnnz    = Nnz;
+    spm->nnz     = Nnz;
+    spm->dof     = 1;
+    spm->loc2glob= NULL;
 
     tmpcolptr = (int*) malloc( (N+1) * sizeof(int) );
     assert( tmpcolptr );
@@ -211,21 +211,21 @@ readRSA( const char   *filename,
     assert( tmprows );
 
     /* RSA reads only double */
-    csc->values = (double*) malloc( Nnz * sizeof(double) );
-    assert( csc->values );
+    spm->values = (double*) malloc( Nnz * sizeof(double) );
+    assert( spm->values );
 
     len  = strlen(filename);
     tmp  = 2;
     nrhs = 0;
 
     FC_GLOBAL(wreadmtc,WREADMTC)
-        (&N, &Nnz, &tmp, filename, &len, csc->values, tmprows, tmpcolptr, crhs,
+        (&N, &Nnz, &tmp, filename, &len, spm->values, tmprows, tmpcolptr, crhs,
          &nrhs, RhsType, &M, &N, &Nnz, title, key, Type, &ierr );
 
     assert( (tmpcolptr[N]-tmpcolptr[0]) == Nnz );
 
-    csc->colptr  = spmIntConvert( N+1, tmpcolptr );
-    csc->rowptr  = spmIntConvert( Nnz, tmprows );
+    spm->colptr  = spmIntConvert( N+1, tmpcolptr );
+    spm->rowptr  = spmIntConvert( Nnz, tmprows );
 
     RhsType[0] = '\0';
     if(ierr != 0) {
