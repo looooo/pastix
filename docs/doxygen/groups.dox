@@ -202,7 +202,7 @@
  *
  ******
  *
- * @defgroup pastix_parsec PaRSEC support for thenumerical factorization
+ * @defgroup pastix_parsec PaRSEC support for the numerical factorization
  * @ingroup  pastix_numfact
  *
  ********
