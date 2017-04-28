@@ -79,7 +79,7 @@ void core_zsytrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
 void core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax, pastix_lrblock_t *A );
 void core_zlrfree ( pastix_lrblock_t *A );
 int  core_zlrsze  ( int copy, pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, int newrk, int newrkmax );
-int  core_zlr2ge  ( pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *Alr, pastix_complex64_t *A, pastix_int_t lda );
+int  core_zlr2ge  ( pastix_trans_t trans, pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *Alr, pastix_complex64_t *A, pastix_int_t lda );
 int  core_zgradd  ( const pastix_lr_t *lowrank, pastix_complex64_t alpha,
                     pastix_int_t M1, pastix_int_t N1, const pastix_complex64_t *A, pastix_int_t lda,
                     pastix_int_t M2, pastix_int_t N2, pastix_lrblock_t *B,

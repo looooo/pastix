@@ -110,11 +110,11 @@ z_ge2lr_test( double tolerance, pastix_int_t rank,
                       A, lda,
                       &LR_SVD );
 
-    core_zlr2ge( m, n,
+    core_zlr2ge( PastixNoTrans, m, n,
                  &LR_RRQR,
                  A_RRQR, lda );
 
-    core_zlr2ge( m, n,
+    core_zlr2ge( PastixNoTrans, m, n,
                  &LR_SVD,
                  A_SVD, lda );
 

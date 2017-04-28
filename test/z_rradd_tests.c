@@ -161,11 +161,11 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
     printf(" The rank of A+B is: RRQR %d SVD %d\n", LR_B_RRQR.rk, LR_B_SVD.rk);
 
     /* Build uncompressed LR+LR matrix */
-    core_zlr2ge( mB, nB,
+    core_zlr2ge( PastixNoTrans, mB, nB,
                  &LR_B_SVD,
                  C_SVD, mB );
 
-    core_zlr2ge( mB, nB,
+    core_zlr2ge( PastixNoTrans, mB, nB,
                  &LR_B_RRQR,
                  C_RRQR, mB );
 

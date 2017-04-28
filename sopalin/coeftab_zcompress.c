@@ -2,15 +2,15 @@
  *
  * @file coeftab_zcompress.c
  *
- *  PaStiX factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * Precision dependent function to compress/uncompress the coefficients
  *
- * @version 5.1.0
- * @author Xavier Lacoste
- * @author Pierre Ramet
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Gregoire Pichon
  * @author Mathieu Faverge
- * @date 2013-06-24
+ * @date 2017-04-28
  *
  * @precisions normal z -> s d c
  *
@@ -239,14 +239,14 @@ coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
     {
         pastix_int_t nrows = blok_rownbr( blok );
 
-        ret = core_zlr2ge( nrows, ncols,
+        ret = core_zlr2ge( PastixNoTrans, nrows, ncols,
                            blok->LRblock,
                            lcoeftab + blok->coefind, nrows );
         assert( ret == 0 );
         core_zlrfree( blok->LRblock );
 
         if (factoLU) {
-            ret = core_zlr2ge( nrows, ncols,
+            ret = core_zlr2ge( PastixNoTrans, nrows, ncols,
                                blok->LRblock+1,
                                ucoeftab + blok->coefind, nrows );
             assert( ret == 0 );
