@@ -28,6 +28,7 @@ int main (int argc, char **argv)
     int             check = 1;
     int             nrhs = 1;
     double          normA;
+    pastix_int_t    nschur;
 
     /**
      * Initialize parameters to default values
@@ -70,17 +71,19 @@ int main (int argc, char **argv)
      * Initialize the schur list with the first third of the unknowns
      */
     {
-        pastix_int_t n = spm->gN / 3;
+        nschur = spm->gN / 3;
+        /* Set to a maximum to avoid memory problem with the test */
+        nschur = (nschur > 5000) ? 5000 : nschur;
 
-        if ( n > 0 ) {
+        if ( nschur > 0 ) {
             pastix_int_t i;
             pastix_int_t baseval = spmFindBase(spm);
-            pastix_int_t *list = (pastix_int_t*)malloc(n * sizeof(pastix_int_t));
+            pastix_int_t *list = (pastix_int_t*)malloc(nschur * sizeof(pastix_int_t));
 
-            for (i=0; i<n; i++) {
+            for (i=0; i<nschur; i++) {
                 list[i] = i+baseval;
             }
-            pastix_setSchurUnknownList( pastix_data, n, list );
+            pastix_setSchurUnknownList( pastix_data, nschur, list );
             free( list );
 
             iparm[IPARM_SCHUR] = API_YES;
@@ -96,6 +99,18 @@ int main (int argc, char **argv)
      * Perform the numerical factorization
      */
     pastix_task_numfact( pastix_data, spm );
+
+    /**
+     * Get the Schur complement back.
+     */
+    {
+        pastix_int_t lds = nschur;
+        void *S = malloc( pastix_size_of( spm->flttype ) * nschur * lds );
+
+        pastix_getSchur( pastix_data, S, lds );
+
+        free(S);
+    }
 
     /**
      * Generates the b and x vector such that A * x = b

@@ -173,7 +173,7 @@ coeftab_zgetschur( const SolverMatrix *solvmtx,
     int upper_part = (solvmtx->factotype == PastixFactLU);
     fcolnum = cblk->fcolnum;
 
-    assert( solvmtx->coefnbr - fcolnum + 1 <= lds );
+    assert( solvmtx->nodenbr - fcolnum <= lds );
 
     for (itercblk=solvmtx->cblkschur; itercblk<solvmtx->cblknbr; itercblk++, cblk++)
     {
