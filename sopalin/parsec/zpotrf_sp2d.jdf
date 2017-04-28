@@ -187,8 +187,6 @@ BODY [ type=CUDA ]
                          A, A, C,
                          &lowrank, parsec_body.stream );
 #endif /* defined(PASTIX_CUDA_FERMI) */
-
-        pastix_atomic_dec_32b( &parsec_nbtasks_on_gpu[parsec_body.index] );
     }
 }
 END
@@ -341,8 +339,6 @@ BODY [ type=CUDA ]
                          PastixConjTrans, PastixNonUnit,
                          cblk, m, A, C, &lowrank,
                          parsec_body.stream );
-
-        pastix_atomic_dec_32b( &parsec_nbtasks_on_gpu[parsec_body.index] );
     }
 }
 END
@@ -525,8 +521,6 @@ BODY [ type=CUDA ]
                          cblk, fcblk, blok_mk, nk, blok_mn,
                          A, B, C, &lowrank,
                          parsec_body.stream );
-
-        pastix_atomic_dec_32b( &parsec_nbtasks_on_gpu[parsec_body.index] );
     }
 }
 END
