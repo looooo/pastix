@@ -1,10 +1,10 @@
 /**
  *
- * @file pastix.c
+ * @file schur.c
  *
  * PaStiX schur interface functions
  *
- * @copyright 2011-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2017      Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
@@ -12,7 +12,7 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Mathias Hastaran
- * @date 2011-11-11
+ * @date 2017-04-28
  *
  * @addtogroup pastix_schur
  * @{
@@ -20,6 +20,11 @@
  **/
 #include "common.h"
 #include "spm.h"
+#include "blend/solver.h"
+#include "sopalin/coeftab_z.h"
+#include "sopalin/coeftab_c.h"
+#include "sopalin/coeftab_d.h"
+#include "sopalin/coeftab_s.h"
 
 /**
  *******************************************************************************
@@ -74,11 +79,50 @@ pastix_setSchurUnknownList( pastix_data_t      *pastix_data,
  *          The leading dimension of the S array.
  *
  *******************************************************************************/
-void
+int
 pastix_getSchur( const pastix_data_t *pastix_data,
                  void                *S,
                  pastix_int_t         lds )
 {
-    return;
-}
+    pastix_int_t *iparm;
 
+    /*
+     * Check parameters
+     */
+    if (pastix_data == NULL) {
+        errorPrint("pastix_getSchur: wrong pastix_data parameter");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if (S == NULL) {
+        errorPrint("pastix_getSchur: S parameter");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if (lds <= 0) {
+        errorPrint("pastix_getSchur: lds parameter");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( !(pastix_data->steps & STEP_NUMFACT) ) {
+        errorPrint("pastix_getSchur: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    iparm   = pastix_data->iparm;
+    switch(iparm[IPARM_FLOAT])
+    {
+    case PastixPattern:
+        break;
+    case PastixFloat:
+        coeftab_sgetschur( pastix_data->solvmatr, S, lds );
+        break;
+    case PastixComplex32:
+        coeftab_cgetschur( pastix_data->solvmatr, S, lds );
+        break;
+    case PastixComplex64:
+        coeftab_zgetschur( pastix_data->solvmatr, S, lds );
+        break;
+    case PastixDouble:
+    default:
+        coeftab_dgetschur( pastix_data->solvmatr, S, lds );
+    }
+    return PASTIX_SUCCESS;
+}

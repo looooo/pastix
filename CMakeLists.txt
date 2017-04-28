@@ -477,6 +477,7 @@ set(SOURCES
   sopalin/coeftab_z.c
   sopalin/coeftab_zcompress.c
   sopalin/coeftab_zdiff.c
+  sopalin/coeftab_zschur.c
   sopalin/sequential_zdiag.c
   sopalin/sequential_zgetrf.c
   sopalin/sequential_zhetrf.c

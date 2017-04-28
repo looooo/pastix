@@ -117,7 +117,7 @@ int pastix_subtask_sopalin   ( pastix_data_t      *pastix_data,
 void pastix_setSchurUnknownList( pastix_data_t       *pastix_data,
                                  pastix_int_t         n,
                                  const pastix_int_t  *list );
-void pastix_getSchur           ( const pastix_data_t *pastix_data,
+int  pastix_getSchur           ( const pastix_data_t *pastix_data,
                                  void                *S,
                                  pastix_int_t         lds );
 

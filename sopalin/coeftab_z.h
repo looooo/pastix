@@ -46,4 +46,7 @@ void coeftab_zdump( const SolverMatrix *solvmtx,
 int coeftab_zdiff( const SolverMatrix *solvA,
                    SolverMatrix *solvB );
 
+void coeftab_zgetschur( const SolverMatrix *solvmtx,
+                        pastix_complex64_t *S, pastix_int_t lds );
+
 #endif /* _coeftab_z_h_ */
