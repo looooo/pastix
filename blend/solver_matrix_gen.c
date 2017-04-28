@@ -193,6 +193,7 @@ solverMatrixGen( pastix_int_t        clustnum,
         solvmtx->cblkmax1d  = -1;
         solvmtx->cblkmin2d  = solvmtx->cblknbr;
         solvmtx->cblkmaxblk = 1;
+        solvmtx->cblkschur  = solvmtx->cblknbr;
         cblknum = 0;
         brownum = 0;
         nodenbr = 0;
@@ -253,6 +254,15 @@ solverMatrixGen( pastix_int_t        clustnum,
                 else {
                     if (cblknum > solvmtx->cblkmax1d) {
                         solvmtx->cblkmax1d = cblknum;
+                    }
+                }
+
+                /*
+                 * Store first local cblk in Schur
+                 */
+                if (candcblk->cblktype & CBLK_IN_SCHUR) {
+                    if (cblknum < solvmtx->cblkschur) {
+                        solvmtx->cblkschur = cblknum;
                     }
                 }
 

@@ -204,6 +204,7 @@ struct solver_matrix_s {
     pastix_int_t            cblkmax1d; /**< Rank of the last cblk not beeing enabled for 2D computations */
     pastix_int_t            cblkmin2d; /**< Rank of the first cblk beeing enabled for 2D computations        */
     pastix_int_t            cblkmaxblk;/**< Maximum number of blocks per cblk         */
+    pastix_int_t            cblkschur; /**< Index of the first local cblk in Schur    */
     pastix_int_t            nb2dcblk;  /**< Number of 2D cblks                        */
     pastix_int_t            nb2dblok;  /**< Number of 2D blocks                       */
     pastix_int_t            bloknbr;   /**< Number of blocks                          */
