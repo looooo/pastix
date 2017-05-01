@@ -45,7 +45,7 @@
  *          The leading dimension of the S array.
  *
  *******************************************************************************/
-void
+static inline void
 coeftab_zgetschur_lowrank( const SolverCblk *cblk, int upper_part,
                            pastix_complex64_t *S, pastix_int_t lds )
 {
@@ -100,7 +100,7 @@ coeftab_zgetschur_lowrank( const SolverCblk *cblk, int upper_part,
  *          The leading dimension of the S array.
  *
  *******************************************************************************/
-void
+static inline void
 coeftab_zgetschur_fullrank( const SolverCblk *cblk, int upper_part,
                             pastix_complex64_t *S, pastix_int_t lds )
 {
@@ -149,6 +149,9 @@ coeftab_zgetschur_fullrank( const SolverCblk *cblk, int upper_part,
  *******************************************************************************
  *
  * @brief Extract the Schur complement
+ *
+ * This routine is sequential and returne the full Schur complement
+ * uncommpressed in Lapack format.
  *
  *******************************************************************************
  *

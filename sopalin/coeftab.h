@@ -29,9 +29,14 @@ coeftabInit( const pastix_data_t *pastix_data,
 void
 coeftabExit( SolverMatrix *solvmtx );
 
-int  (*coeftabDiff[4])(const SolverMatrix*, SolverMatrix*);
-void (*coeftabMemory[4])(SolverMatrix*);
-void (*coeftabCompress[4])(SolverMatrix*);
-void (*coeftabUncompress[4])(SolverMatrix*);
+typedef pastix_int_t (*coeftab_fct_compress_t)  ( SolverMatrix * );
+typedef void         (*coeftab_fct_uncompress_t)( SolverMatrix * );
+typedef pastix_int_t (*coeftab_fct_memory_t)    ( const SolverMatrix * );
+typedef int          (*coeftab_fct_diff_t)      ( const SolverMatrix *, SolverMatrix * );
+
+coeftab_fct_diff_t       coeftabDiff[4];
+coeftab_fct_memory_t     coeftabMemory[4];
+coeftab_fct_compress_t   coeftabCompress[4];
+coeftab_fct_uncompress_t coeftabUncompress[4];
 
 #endif /* _COEFTAB_H_ */
