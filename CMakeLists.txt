@@ -475,6 +475,7 @@ set(SOURCES
   common/z_integer.c
   #
   sopalin/coeftab_z.c
+  sopalin/coeftab_zdump.c
   sopalin/coeftab_zcompress.c
   sopalin/coeftab_zdiff.c
   sopalin/coeftab_zschur.c
