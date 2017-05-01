@@ -55,8 +55,12 @@ void coeftab_zinitcblk( const SolverMatrix  *solvmtx,
  *    @name PastixComplex64 Schur routines
  *    @{
  */
-void coeftab_zgetschur( const SolverMatrix *solvmtx,
-                        pastix_complex64_t *S, pastix_int_t lds );
+void coeftab_zgetschur_one_fullrank( const SolverCblk *cblk, int upper_part,
+                                     pastix_complex64_t *S, pastix_int_t lds );
+void coeftab_zgetschur_one_lowrank ( const SolverCblk *cblk, int upper_part,
+                                     pastix_complex64_t *S, pastix_int_t lds );
+void coeftab_zgetschur             ( const SolverMatrix *solvmtx,
+                                     pastix_complex64_t *S, pastix_int_t lds );
 
 /**
  *    @}
@@ -64,7 +68,7 @@ void coeftab_zgetschur( const SolverMatrix *solvmtx,
  *    @{
  */
 void coeftab_zdumpcblk( const SolverCblk   *cblk,
-                        void               *array,
+                        const void         *array,
                         FILE               *stream );
 void coeftab_zdump    ( const SolverMatrix *solvmtx,
                         const char         *filename );

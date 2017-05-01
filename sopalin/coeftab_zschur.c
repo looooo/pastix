@@ -14,14 +14,11 @@
  *
  * @precisions normal z -> s d c
  *
- * @addtogroup coeftab
- * @{
- *
  **/
 #include "common.h"
 #include "solver.h"
 #include "lapacke.h"
-#include "coeftab.h"
+#include "coeftab_z.h"
 #include "pastix_zcores.h"
 
 /**
@@ -45,9 +42,9 @@
  *          The leading dimension of the S array.
  *
  *******************************************************************************/
-static inline void
-coeftab_zgetschur_lowrank( const SolverCblk *cblk, int upper_part,
-                           pastix_complex64_t *S, pastix_int_t lds )
+void
+coeftab_zgetschur_one_lowrank( const SolverCblk *cblk, int upper_part,
+                               pastix_complex64_t *S, pastix_int_t lds )
 {
     SolverBlok *blok  = cblk[0].fblokptr;
     SolverBlok *lblok = cblk[1].fblokptr;
@@ -100,9 +97,9 @@ coeftab_zgetschur_lowrank( const SolverCblk *cblk, int upper_part,
  *          The leading dimension of the S array.
  *
  *******************************************************************************/
-static inline void
-coeftab_zgetschur_fullrank( const SolverCblk *cblk, int upper_part,
-                            pastix_complex64_t *S, pastix_int_t lds )
+void
+coeftab_zgetschur_one_fullrank( const SolverCblk *cblk, int upper_part,
+                                pastix_complex64_t *S, pastix_int_t lds )
 {
     SolverBlok *blok  = cblk[0].fblokptr;
     SolverBlok *lblok = cblk[1].fblokptr;
@@ -186,14 +183,10 @@ coeftab_zgetschur( const SolverMatrix *solvmtx,
         localS = S + (cblk->fcolnum - fcolnum) * lds + (cblk->fcolnum - fcolnum);
 
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            coeftab_zgetschur_lowrank( cblk, upper_part, localS, lds );
+            coeftab_zgetschur_one_lowrank( cblk, upper_part, localS, lds );
         }
         else {
-            coeftab_zgetschur_fullrank( cblk, upper_part, localS, lds );
+            coeftab_zgetschur_one_fullrank( cblk, upper_part, localS, lds );
         }
     }
 }
-
-/**
- * @}
- */
