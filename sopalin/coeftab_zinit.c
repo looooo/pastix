@@ -19,7 +19,7 @@
 #include "common.h"
 #include "solver.h"
 #include "bcsc.h"
-#include "coeftab_z.h"
+#include "sopalin/coeftab_z.h"
 
 void
 coeftab_zffbcsc( const SolverMatrix  *solvmtx,
