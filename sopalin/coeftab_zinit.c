@@ -1,6 +1,6 @@
 /**
  *
- * @file coeftab_z.c
+ * @file coeftab_zinit.c
  *
  * Precision dependent coeficient array initialization routines.
  *

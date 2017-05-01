@@ -474,10 +474,10 @@ set(generated_files "")
 set(SOURCES
   common/z_integer.c
   #
-  sopalin/coeftab_z.c
-  sopalin/coeftab_zdump.c
   sopalin/coeftab_zcompress.c
   sopalin/coeftab_zdiff.c
+  sopalin/coeftab_zdump.c
+  sopalin/coeftab_zinit.c
   sopalin/coeftab_zschur.c
   sopalin/sequential_zdiag.c
   sopalin/sequential_zgetrf.c

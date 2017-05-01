@@ -2,11 +2,12 @@
  *
  * @file coeftab.c
  *
- *  PaStiX factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX coefficient array initialization and free routines.
  *
- * @version 5.1.0
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
