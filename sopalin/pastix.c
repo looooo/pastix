@@ -19,78 +19,77 @@
 #include "spm.h"
 
 /**
+ *******************************************************************************
  *
- *  Function: pastix_setSchurUnknownList
+ * @brief PaStiX main solver function.
  *
- *  Initialize the schur
+ *******************************************************************************
  *
- *  pastix_data - Data used for a step by step execution.
- *  spm         - The sparse matrix to init.
+ * @param[inout] pastix_data
+ *          The pastix data structure of the solver to store the state of the
+ *          solver at every call.
  *
- */
-void
-pastix_setSchurUnknownList(pastix_data_t *pastix_data,
-                           pastix_int_t   n,
-                           pastix_int_t  *list)
-{
-    pastix_data->schur_n    = n;
-    pastix_data->schur_list = (pastix_int_t*)malloc(n * sizeof(pastix_int_t));
-    memcpy( pastix_data->schur_list, list, n * sizeof(pastix_int_t) );
-}
-
-/**
+ * @param[in] pastix_comm
+ *          The MPI communicator to use for the distributed solver.
  *
- *  Function: pastix
+ * @param[in] n
+ *          The size of the sparse matrix system to solve.
  *
- *  Computes one to all steps of the resolution of Ax=b linear system, using direct methods.
+ * @param[inout] colptr
+ *          The pointer to the column index of the sparse matrix in the CSC
+ *          format.
+ *          On exit, the base value of the array might have changed, and/or the
+ *          pointer might have been freed if IPARM_FREE_CSCUSER is set, and the
+ *          factorization step is performed.
  *
- *  The matrix is given in CSC format.
+ * @param[inout] row
+ *          The pointer to the row array of the sparse matrix in the CSC
+ *          format.
+ *          On exit, the base value of the array might have changed, and/or the
+ *          pointer might have been freed if IPARM_FREE_CSCUSER is set, and the
+ *          factorization step is performed.
  *
- *  Parameters:
- *  pastix_data - Data used for a step by step execution.
- *  pastix_comm - MPI communicator which compute the resolution.
- *  n           - Size of the system.
- *  colptr      - Tabular containing the start of each column in row and avals tabulars.
- *  row         - Tabular containing the row number for each element sorted by column.
- *  avals       - Tabular containing the values of each elements sorted by column.
- *  perm        - Permutation tabular for the renumerotation of the unknowns.
- *  invp        - Reverse permutation tabular for the renumerotation of the unknowns.
- *  b           - Right hand side vector(s).
- *  rhs         - Number of right hand side vector(s).
- *  iparm       - Integer parameters given to pastix.
- *  dparm       - Double parameters given to pâstix.
+ * @param[inout] avals
+ *          The pointer to the values array of the sparse matrix in the CSC
+ *          format.
+ *          On exit, the pointer might have been freed if IPARM_FREE_CSCUSER is
+ *          set, and the factorization step is performed.
  *
- */
-/*
- * Group: Main PaStiX functions
- */
-/*
- * Function: pastix
+ * @param[inout] perm
+ *          The pointer to the permutation array.
+ *          On entry: the pointer might be allocated to store the generated
+ *          permutation on exit, or to provide the user permutation.
+ *          On exit, the permutation used by the solver is returned if perm is
+ *          not NULL.
  *
- * Computes steps of the resolution of Ax=b linear system,
- * using direct methods.
+ * @param[inout] invp
+ *          The pointer to the inverse permutation array.
+ *          On entry: the pointer might be allocated to store the generated
+ *          inverse permutation on exit, or to provide the user permutation.
+ *          On exit, the inverse permutation used by the solver is returned if
+ *          invp is not NULL.
  *
- * The matrix is given in CSC format.
+ * @param[inout] b
+ *          Array of size n -by- nrhs
+ *          On entry, contains the nrhs vectors of the problem.
+ *          On exit, contains the nrhs solution vectors of the problem.
  *
- * Parameters:
- *   pastix_data - Data used for a step by step execution.
- *   pastix_comm - MPI communicator which compute the resolution.
- *   n           - Size of the system.
- *   colptr      - Tabular containing the start of each column in row
- *                 and avals tabulars.
- *   row         - Tabular containing the row number for each element
- *                 sorted by column.
- *   avals       - Tabular containing the values of each element
- *                 sorted by column.
- *   perm        - Permutation tabular for the renumerotation of the unknowns.
- *   invp        - Reverse permutation tabular for the renumerotation
- *                 of the unknowns.
- *   b           - Right hand side vector(s).
- *   rhs         - Number of right hand side vector(s).
- *   iparm       - Integer parameters given to pastix.
- *   dparm       - Double parameters given to pâstix.
+ * @param[in] nrhs
+ *          The number of right hand side in the problem.
  *
- * About: Example
+ * @param[inout] iparm
+ *          Array of size IPARM_SIZE
+ *          On entry, contains all the integer parameters of the solver.
+ *          On exit, the aray is updated with integer outputs of the solver.
+ *
+ * @param[inout] dparm
+ *          Array of size DPARM_SIZE
+ *          On entry, contains all the double parameters of the solver.
+ *          On exit, the aray is updated with double outputs of the solver.
+ *
+ *******************************************************************************
+ *
+ * Example:
  *
  *   from file <simple.c> :
  *
@@ -154,6 +153,8 @@ pastix_setSchurUnknownList(pastix_data_t *pastix_data,
  *   > pastix(&pastix_data, MPI_COMM_WORLD,
  *   >  ncol, colptr, rows, values,
  *   >  perm, invp, rhs, 1, iparm, dparm);
+ *
+ *******************************************************************************
  */
 void
 pastix( pastix_data_t **pastix_data_ptr,
@@ -176,7 +177,7 @@ pastix( pastix_data_t **pastix_data_ptr,
 
     iparm[IPARM_ERROR_NUMBER] = PASTIX_SUCCESS;
 
-    /**
+    /*
      * Initialize iparm/dparm to default values and exit when called with
      * IPARM_MODIFY_PARAMETER set to API_NO
      */
@@ -187,7 +188,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         return;
     }
 
-    /**
+    /*
      * Initialization step
      * Create the pastix_data structure and initialize the runtimes
      */
@@ -198,7 +199,7 @@ pastix( pastix_data_t **pastix_data_ptr,
     if (iparm[IPARM_START_TASK] == API_TASK_INIT) {
         if (*pastix_data_ptr != NULL)
         {
-            /**
+            /*
              * Let's consider the user want to restart pastix with different
              * parameters
              */
@@ -208,7 +209,7 @@ pastix( pastix_data_t **pastix_data_ptr,
             pastixFinalize( pastix_data_ptr, pastix_comm, iparm, dparm );
         }
 
-        /**
+        /*
          * Initialize pastix_data structure, and start scheduler(s)
          */
         pastixInit( pastix_data_ptr, pastix_comm, iparm, dparm );
@@ -216,7 +217,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         iparm[IPARM_START_TASK]++;
     }
 
-    /**
+    /*
      * Return now if only initialization is required
      */
     if (iparm[IPARM_END_TASK] < API_TASK_ORDERING) {
@@ -225,7 +226,7 @@ pastix( pastix_data_t **pastix_data_ptr,
 
     pastix_data = *pastix_data_ptr;
 
-    /**
+    /*
      * Initialize the internal spm structure.
      * We perform if only if starting step is lower than numerical
      * factorization, because further steps are using the internal bcsc for
@@ -238,7 +239,7 @@ pastix( pastix_data_t **pastix_data_ptr,
               (pastix_data->csc->colptr != colptr)                  ||
               (pastix_data->csc->rowptr != row)) )
         {
-            /**
+            /*
              * This is a new csc, we need to delete the old one stored in pastix_data, and create a new one
              * We do not use spmExit, because the user allocated the fields.
              */
@@ -250,7 +251,7 @@ pastix( pastix_data_t **pastix_data_ptr,
             spm = malloc(sizeof( pastix_spm_t ));
             spmInit( spm );
 
-            /**
+            /*
              * Check and set the matrix type
              */
             if (iparm[IPARM_MTX_TYPE] == -1 ) {
@@ -293,7 +294,7 @@ pastix( pastix_data_t **pastix_data_ptr,
             spm = (pastix_spm_t*)(pastix_data->csc);
         }
 
-        /**
+        /*
          * Update value field if given only at numerical steps
          */
         if ( spm->values == NULL ) {
@@ -304,7 +305,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         spm = (pastix_spm_t*)(pastix_data->csc);
     }
 
-    /**
+    /*
      * Ordering
      */
     if (iparm[IPARM_START_TASK] == API_TASK_ORDERING)
@@ -318,7 +319,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         iparm[IPARM_START_TASK]++;
     }
 
-    /**
+    /*
      * Symbolic factorization
      */
     if (iparm[IPARM_END_TASK] < API_TASK_SYMBFACT) {
@@ -336,7 +337,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         iparm[IPARM_START_TASK]++;
     }
 
-    /**
+    /*
      * Analyze step
      */
     if (iparm[IPARM_END_TASK] < API_TASK_ANALYSE) {
@@ -354,7 +355,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         iparm[IPARM_START_TASK]++;
     }
 
-    /**
+    /*
      * Numerical factorisation
      */
     if (iparm[IPARM_END_TASK] < API_TASK_NUMFACT) {
@@ -371,7 +372,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         iparm[IPARM_START_TASK]++;
     }
 
-    /**
+    /*
      * Solve
      */
     if (iparm[IPARM_END_TASK] < API_TASK_SOLVE) {
@@ -383,7 +384,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         size = pastix_size_of( spm->flttype ) * spm->n;
         tmp = malloc(size);
 
-        /**
+        /*
          * Backup the initial b if we need to perform an iterative
          * refinement after the solve step
          */
@@ -394,7 +395,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         pastix_task_solve( pastix_data, spm, nrhs, b, spm->n );
         iparm[IPARM_START_TASK]++;
 
-        /**
+        /*
          * Backup the first solution x0 if the user wants to come back later for
          * iterative refinement
          */
@@ -404,7 +405,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         }
     }
 
-    /**
+    /*
      * Refinement
      */
     if (iparm[IPARM_END_TASK] < API_TASK_REFINE) {
@@ -417,7 +418,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         size = pastix_size_of( spm->flttype ) * spm->n;
         if ( !refineB ) {
             if ( !refineX0 ) {
-                /**
+                /*
                  * Neither b or x0 have been saved.
                  * Then, we need to start with x0 as a null vector. For that, we
                  * backup the original b, and we use the given b as x in the
@@ -429,7 +430,7 @@ pastix( pastix_data_t **pastix_data_ptr,
                 /* refineX0 = b; */
                 /* memset(refineX0, 0, size); */
                 /* exit(0);  */
-                /**
+                /*
                  * Neither b and x0 have been saved, this should never happen.
                  */
                 fprintf(stderr, "Neither b and x0 have been saved, this should never happen\n");
@@ -437,7 +438,7 @@ pastix( pastix_data_t **pastix_data_ptr,
                 return;
             }
             else {
-                /**
+                /*
                  * x0 is saved, but not b. It means that we exit the pastix
                  * function call between the solve and refinemnet
                  * step. Therefor, b holds the original b.
@@ -447,7 +448,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         }
         else {
             if ( !refineX0 ) {
-                /**
+                /*
                  * b is saved, but not x0. It means that we did not exit the
                  * pastix function call between solve and refinement steps.
                  * Therefor, b holds the initial solution x0 from the solve step.
@@ -455,7 +456,7 @@ pastix( pastix_data_t **pastix_data_ptr,
                 refineX0 = b;
             }
             else {
-                /**
+                /*
                  * Both x0 and b are saved. This should never happen.
                  */
                 fprintf(stderr, "Both b and x0 are defined, this should never happen\n");
@@ -466,7 +467,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         pastix_task_refine( pastix_data, refineX0, nrhs, refineB );
         iparm[IPARM_START_TASK]++;
 
-        /**
+        /*
          * Let's return the solution to the user
          */
         if ( b != refineX0 ) {
@@ -483,7 +484,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         }
     }
 
-    /**
+    /*
      * Cleaning
      */
     if (iparm[IPARM_END_TASK] < API_TASK_CLEAN) {

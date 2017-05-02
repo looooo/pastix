@@ -1,12 +1,13 @@
 /**
  *
- * @file coeftab_z.c
+ * @file coeftab_zinit.c
  *
- *  PaStiX factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * Precision dependent coeficient array initialization routines.
  *
- * @version 5.1.0
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
@@ -15,18 +16,10 @@
  * @precisions normal z -> s d c
  *
  **/
-#define _GNU_SOURCE
 #include "common.h"
 #include "solver.h"
 #include "bcsc.h"
-#include "lapacke.h"
-#include "coeftab.h"
-#include "pastix_zcores.h"
-
-void
-coeftab_zdumpcblk( const SolverCblk *cblk,
-                   void *array,
-                   FILE *stream );
+#include "sopalin/coeftab_z.h"
 
 void
 coeftab_zffbcsc( const SolverMatrix  *solvmtx,
@@ -100,7 +93,6 @@ coeftab_zffbcsc( const SolverMatrix  *solvmtx,
         }
     }
 }
-
 
 /*
  * Function: z_CoefMatrix_Allocate
@@ -215,114 +207,4 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
             }
         }
     }
-}
-
-/*
- * Function: z_dump3
- *
- * Prints z_solver matrix informations, in (i,j,v) format, in a file,
- * for LLt or LDLt decomposition.
- *
- * Parameters:
- *   datacode - z_SolverMatrix.
- *   stream   - FILE * opened in write mode.
- */
-void
-coeftab_zdumpcblk( const SolverCblk *cblk,
-                   void *array,
-                   FILE *stream )
-{
-    pastix_complex64_t *coeftab = (pastix_complex64_t*)array;
-    SolverBlok *blok;
-    pastix_int_t itercol;
-    pastix_int_t iterrow;
-    pastix_int_t coefindx;
-
-    /* We don't know how to dump the compressed block for now */
-    if ( cblk->cblktype & CBLK_COMPRESSED )
-        return;
-
-    for (itercol  = cblk->fcolnum;
-         itercol <= cblk->lcolnum;
-         itercol++)
-    {
-        /* Diagonal Block */
-        blok     = cblk->fblokptr;
-        coefindx = blok->coefind;
-        if (cblk->cblktype & CBLK_LAYOUT_2D) {
-            coefindx += (itercol - cblk->fcolnum) * blok_rownbr( blok );
-        }
-        else {
-            coefindx += (itercol - cblk->fcolnum) * cblk->stride;
-        }
-
-        for (iterrow  = blok->frownum;
-             iterrow <= blok->lrownum;
-             iterrow++, coefindx++)
-        {
-            if ((cabs( coeftab[coefindx] ) > 0.) &&
-                (itercol <= iterrow))
-            {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                fprintf(stream, "%ld %ld (%13e,%13e)\n",
-                        (long)itercol, (long)iterrow,
-                        creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
-#else
-                fprintf(stream, "%ld %ld %13e\n",
-                        (long)itercol, (long)iterrow,
-                        coeftab[coefindx]);
-#endif
-            }
-        }
-
-        /* Off diagonal blocks */
-        blok++;
-        while( blok < (cblk+1)->fblokptr )
-        {
-            coefindx  = blok->coefind;
-            if (cblk->cblktype & CBLK_LAYOUT_2D) {
-                coefindx += (itercol - cblk->fcolnum) * blok_rownbr( blok );
-            }
-            else {
-                coefindx += (itercol - cblk->fcolnum) * cblk->stride;
-            }
-
-            for (iterrow  = blok->frownum;
-                 iterrow <= blok->lrownum;
-                 iterrow++, coefindx++)
-            {
-                if (cabs( coeftab[coefindx]) > 0.)
-                {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                    fprintf(stream, "%ld %ld (%13e,%13e)\n",
-                            (long)itercol, (long)iterrow,
-                            creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
-#else
-                    fprintf(stream, "%ld %ld %13e\n",
-                            (long)itercol, (long)iterrow,
-                            coeftab[coefindx]);
-#endif
-                }
-            }
-            blok++;
-        }
-    }
-}
-
-void
-coeftab_zdump( const SolverMatrix *solvmtx,
-               const char   *filename )
-{
-    SolverCblk *cblk = solvmtx->cblktab;
-    pastix_int_t itercblk;
-    FILE *stream = fopen( filename, "w" );
-
-    for (itercblk=0; itercblk<solvmtx->cblknbr; itercblk++, cblk++)
-    {
-        coeftab_zdumpcblk( cblk, cblk->lcoeftab, stream );
-        if ( NULL != cblk->ucoeftab )
-            coeftab_zdumpcblk( cblk, cblk->ucoeftab, stream );
-    }
-
-    fclose( stream );
 }

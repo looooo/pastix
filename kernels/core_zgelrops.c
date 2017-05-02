@@ -238,7 +238,14 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
  *
  * @brief Convert a low rank matrix into a dense matrix.
  *
+ * A = op( u * v^t ) with op(A) = A, A^t
+ *
  *******************************************************************************
+ *
+ * @param[in] trans
+ *          Number of rows of the matrix A, and of the low rank matrix Alr.
+ *          @arg PastixNoTrans: returns A = u * v^t
+ *          @arg PastixTrans: returns A = v * u^t
  *
  * @param[in] m
  *          Number of rows of the matrix A, and of the low rank matrix Alr.
@@ -263,7 +270,7 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
  *
  *******************************************************************************/
 int
-core_zlr2ge( pastix_int_t m, pastix_int_t n,
+core_zlr2ge( pastix_trans_t trans, pastix_int_t m, pastix_int_t n,
              const pastix_lrblock_t *Alr,
              pastix_complex64_t *A, pastix_int_t lda )
 {
@@ -279,11 +286,16 @@ core_zlr2ge( pastix_int_t m, pastix_int_t n,
     if (Alr == NULL || Alr->rk > Alr->rkmax) {
         return -3;
     }
-    if ( lda < m ) {
+    if ( (trans == PastixNoTrans && lda < m) ||
+         (trans != PastixNoTrans && lda < n) )
+    {
         return -5;
     }
     if ( Alr->rk == -1 ) {
-        if (Alr->u == NULL || Alr->v != NULL || Alr->rkmax < m) {
+        if (Alr->u == NULL || Alr->v != NULL ||
+            (trans == PastixNoTrans && Alr->rkmax < m) ||
+            (trans != PastixNoTrans && Alr->rkmax < n))
+        {
             return -6;
         }
     }
@@ -294,22 +306,41 @@ core_zlr2ge( pastix_int_t m, pastix_int_t n,
     }
 #endif
 
-    if ( Alr->rk == -1 ) {
-        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
-                                   Alr->u, Alr->rkmax, A, lda );
-        assert( ret == 0 );
-    }
-    else if ( Alr->rk == 0 ) {
-        ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', m, n,
-                                   0., 0., A, lda );
-        assert( ret == 0 );
+    if ( trans == PastixNoTrans ) {
+        if ( Alr->rk == -1 ) {
+            ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
+                                       Alr->u, Alr->rkmax, A, lda );
+            assert( ret == 0 );
+        }
+        else if ( Alr->rk == 0 ) {
+            ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', m, n,
+                                       0., 0., A, lda );
+            assert( ret == 0 );
+        }
+        else {
+            cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
+                        m, n, Alr->rk,
+                        CBLAS_SADDR(zone),  Alr->u, m,
+                                            Alr->v, Alr->rkmax,
+                        CBLAS_SADDR(zzero), A, lda);
+        }
     }
     else {
-        cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
-                    m, n, Alr->rk,
-                    CBLAS_SADDR(zone),  Alr->u, m,
-                                        Alr->v, Alr->rkmax,
-                    CBLAS_SADDR(zzero), A, lda);
+        if ( Alr->rk == -1 ) {
+            core_zgetro( m, n, Alr->u, Alr->rkmax, A, lda );
+        }
+        else if ( Alr->rk == 0 ) {
+            ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', n, m,
+                                       0., 0., A, lda );
+            assert( ret == 0 );
+        }
+        else {
+            cblas_zgemm(CblasColMajor, CblasTrans, CblasTrans,
+                        n, m, Alr->rk,
+                        CBLAS_SADDR(zone),  Alr->v, Alr->rkmax,
+                                            Alr->u, m,
+                        CBLAS_SADDR(zzero), A,      lda);
+        }
     }
 
     return ret;

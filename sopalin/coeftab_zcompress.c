@@ -2,15 +2,15 @@
  *
  * @file coeftab_zcompress.c
  *
- *  PaStiX factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * Precision dependent function to compress/uncompress the coefficients
  *
- * @version 5.1.0
- * @author Xavier Lacoste
- * @author Pierre Ramet
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Gregoire Pichon
  * @author Mathieu Faverge
- * @date 2013-06-24
+ * @date 2017-04-28
  *
  * @precisions normal z -> s d c
  *
@@ -18,13 +18,115 @@
 #include "common.h"
 #include "solver.h"
 #include <lapacke.h>
-#include "coeftab.h"
+#include "sopalin/coeftab_z.h"
 #include "pastix_zcores.h"
 
-/* Section: Functions */
+/**
+ *******************************************************************************
+ *
+ * @brief Allocate the low-rank structure storage for a single column block.
+ *
+ * When stored in low-rank format, the data pointer in the low-rank structure of
+ * each lock must be initialized. This routines move the data from the single
+ * allocation per column block to an allocation per block handled by the LRblock
+ * strucuture.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] cblk
+ *          The column block to allocate.
+ *
+ *******************************************************************************/
+void
+coeftab_zalloc_one( SolverCblk *cblk )
+{
+    pastix_lrblock_t   *LRblocks;
+    SolverBlok         *blok     = cblk[0].fblokptr;
+    SolverBlok         *lblok    = cblk[1].fblokptr;
+    pastix_complex64_t *lcoeftab = cblk->lcoeftab;
+    pastix_complex64_t *ucoeftab = cblk->ucoeftab;
+    pastix_int_t        ncols    = cblk_colnbr( cblk );
+    int factoLU = (cblk->ucoeftab == NULL) ? 0 : 1;
+
+    /* One allocation per cblk */
+    LRblocks = malloc( (factoLU+1) * (lblok - blok) * sizeof(pastix_lrblock_t) );
+
+    /* H then split */
+    assert( cblk->cblktype & CBLK_LAYOUT_2D );
+
+    /*
+     * Diagonal block (Not compressed)
+     */
+    core_zlralloc( ncols, ncols, -1, LRblocks );
+    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', ncols, ncols,
+                         lcoeftab,    ncols,
+                         LRblocks->u, LRblocks->rkmax );
+    blok->LRblock = LRblocks; LRblocks++;
+
+    if (factoLU) {
+        core_zlralloc( ncols, ncols, -1, LRblocks );
+        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', ncols, ncols,
+                             ucoeftab,    ncols,
+                             LRblocks->u, LRblocks->rkmax );
+        LRblocks++;
+    }
+    for (blok++; blok<lblok; blok++)
+    {
+        pastix_int_t nrows = blok_rownbr( blok );
+
+        blok->LRblock = LRblocks;
+
+        core_zlralloc( nrows, ncols, -1, LRblocks );
+        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', nrows, ncols,
+                             lcoeftab + blok->coefind, nrows,
+                             LRblocks->u, LRblocks->rkmax );
+        LRblocks++;
+
+        if (factoLU) {
+
+            core_zlralloc( nrows, ncols, -1, LRblocks );
+            LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', nrows, ncols,
+                                 ucoeftab + blok->coefind, nrows,
+                                 LRblocks->u, LRblocks->rkmax );
+            LRblocks++;
+        }
+    }
+
+    cblk->cblktype |= CBLK_COMPRESSED;
+    /*
+     * Free the dense version
+     */
+    free(cblk->lcoeftab); cblk->lcoeftab = NULL;
+    if (cblk->ucoeftab) {
+        free(cblk->ucoeftab); cblk->ucoeftab = NULL;
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Compress a single column block from full-rank to low-rank format
+ *
+ * The compression to low-rank format is parameterized by the input information
+ * stored in the lowrank structure.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] cblk
+ *          The column block to compress.
+ *
+ * @param[in] lowrank
+ *          The low-rank parameters to describe the low-rank compression format.
+ *
+ *******************************************************************************
+ *
+ * @return The memory gain resulting from the compression to low-rank format in
+ * Bytes.
+ *
+ *******************************************************************************/
 pastix_int_t
-coeftab_zcompress_one( SolverCblk *cblk,
-                       pastix_lr_t lowrank )
+coeftab_zcompress_one( SolverCblk  *cblk,
+                       pastix_lr_t  lowrank )
 {
     pastix_lrblock_t   *LRblocks;
     SolverBlok         *blok     = cblk[0].fblokptr;
@@ -42,7 +144,7 @@ coeftab_zcompress_one( SolverCblk *cblk,
     /* H then split */
     assert( cblk->cblktype & CBLK_LAYOUT_2D );
 
-    /**
+    /*
      * Diagonal block (Not compressed)
      */
     core_zlralloc( ncols, ncols, -1, LRblocks );
@@ -111,7 +213,7 @@ coeftab_zcompress_one( SolverCblk *cblk,
     }
 
     cblk->cblktype |= CBLK_COMPRESSED;
-    /**
+    /*
      * Free the dense version
      */
     free(cblk->lcoeftab); cblk->lcoeftab = NULL;
@@ -122,73 +224,161 @@ coeftab_zcompress_one( SolverCblk *cblk,
     return gainL + gainU;
 }
 
-void
-coeftab_zalloc_one( SolverCblk *cblk )
+/**
+ *******************************************************************************
+ *
+ * @brief Compress all the cblks marked as valid for low-rank format.
+ *
+ * All the cblk in the top levels of the elimination tree markes as candidates
+ * for compression are compressed if there is a gain to compress them. The
+ * compression to low-rank format is parameterized by the input information
+ * stored in the lowrank structure. On exit, all the cblks marked for
+ * compression are stored through the low-rank structure, even if they are kept
+ * in their full-rank form.
+ *
+ * @remark This routine is sequential
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The solver matrix of the problem to compress.
+ *
+ *******************************************************************************
+ *
+ * @return The memory gain resulting from the compression to low-rank format in
+ * Bytes.
+ *
+ *******************************************************************************/
+pastix_int_t
+coeftab_zcompress( SolverMatrix *solvmtx )
 {
-    pastix_lrblock_t   *LRblocks;
-    SolverBlok         *blok     = cblk[0].fblokptr;
-    SolverBlok         *lblok    = cblk[1].fblokptr;
-    pastix_complex64_t *lcoeftab = cblk->lcoeftab;
-    pastix_complex64_t *ucoeftab = cblk->ucoeftab;
-    pastix_int_t        ncols    = cblk_colnbr( cblk );
-    int factoLU = (cblk->ucoeftab == NULL) ? 0 : 1;
+    SolverCblk *cblk  = solvmtx->cblktab;
+    pastix_int_t cblknum, gain = 0;
+
+    for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
+        if (!(cblk->cblktype & CBLK_COMPRESSED)) {
+            gain += coeftab_zcompress_one( cblk, solvmtx->lowrank );
+        }
+    }
+    return gain;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Uncompress a single column block from low-rank format to full-rank
+ * format.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] cblk
+ *          The column block to uncompress.
+ *
+ * @param[in] factoLU
+ *          Indicates if the U part is stored too, or not.
+ *
+ *******************************************************************************/
+void
+coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
+{
+    SolverBlok *blok  = cblk[0].fblokptr;
+    SolverBlok *lblok = cblk[1].fblokptr;
+
+    pastix_int_t ncols = cblk_colnbr( cblk );
+    pastix_complex64_t *lcoeftab = NULL;
+    pastix_complex64_t *ucoeftab = NULL;
+    int ret;
 
     /* One allocation per cblk */
-    LRblocks = malloc( (factoLU+1) * (lblok - blok) * sizeof(pastix_lrblock_t) );
+    assert( cblk->lcoeftab == NULL );
+    lcoeftab = malloc( cblk->stride * ncols * sizeof(pastix_complex64_t) );
 
-    /* H then split */
-    assert( cblk->cblktype & CBLK_LAYOUT_2D );
-
-    /**
-     * Diagonal block (Not compressed)
-     */
-    core_zlralloc( ncols, ncols, -1, LRblocks );
-    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', ncols, ncols,
-                         lcoeftab,    ncols,
-                         LRblocks->u, LRblocks->rkmax );
-    blok->LRblock = LRblocks; LRblocks++;
-
-    if (factoLU) {
-        core_zlralloc( ncols, ncols, -1, LRblocks );
-        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', ncols, ncols,
-                             ucoeftab,    ncols,
-                             LRblocks->u, LRblocks->rkmax );
-        LRblocks++;
+    if ( factoLU ) {
+        assert( cblk->ucoeftab == NULL );
+        ucoeftab = malloc( cblk->stride * ncols * sizeof(pastix_complex64_t) );
     }
-    for (blok++; blok<lblok; blok++)
+
+    for (; blok<lblok; blok++)
     {
         pastix_int_t nrows = blok_rownbr( blok );
 
-        blok->LRblock = LRblocks;
-
-        core_zlralloc( nrows, ncols, -1, LRblocks );
-        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', nrows, ncols,
-                             lcoeftab + blok->coefind, nrows,
-                             LRblocks->u, LRblocks->rkmax );
-        LRblocks++;
+        ret = core_zlr2ge( PastixNoTrans, nrows, ncols,
+                           blok->LRblock,
+                           lcoeftab + blok->coefind, nrows );
+        assert( ret == 0 );
+        core_zlrfree( blok->LRblock );
 
         if (factoLU) {
-
-            core_zlralloc( nrows, ncols, -1, LRblocks );
-            LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', nrows, ncols,
-                                 ucoeftab + blok->coefind, nrows,
-                                 LRblocks->u, LRblocks->rkmax );
-            LRblocks++;
+            ret = core_zlr2ge( PastixNoTrans, nrows, ncols,
+                               blok->LRblock+1,
+                               ucoeftab + blok->coefind, nrows );
+            assert( ret == 0 );
+            core_zlrfree( blok->LRblock+1 );
         }
     }
 
-    cblk->cblktype |= CBLK_COMPRESSED;
-    /**
-     * Free the dense version
+    cblk->lcoeftab = lcoeftab;
+    cblk->ucoeftab = ucoeftab;
+
+    /*
+     * Free all the LRblock structures associated to the cblk
      */
-    free(cblk->lcoeftab); cblk->lcoeftab = NULL;
-    if (cblk->ucoeftab) {
-        free(cblk->ucoeftab); cblk->ucoeftab = NULL;
+    cblk->cblktype &= ~(CBLK_COMPRESSED);
+    free(cblk->fblokptr->LRblock);
+
+    (void)ret;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Uncompress all column blocjk in low-rank format into full-rank format
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The solver matrix of the problem.
+ *
+ *******************************************************************************/
+void
+coeftab_zuncompress( SolverMatrix *solvmtx )
+{
+    SolverCblk  *cblk   = solvmtx->cblktab;
+    pastix_int_t cblknum;
+    int          factoLU = (solvmtx->factotype == PastixFactLU) ? 1 : 0;
+
+    for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
+        if (cblk->cblktype & CBLK_COMPRESSED) {
+            coeftab_zuncompress_one( cblk, factoLU );
+        }
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Return the memory gain of the low-rank form over the full-rank form
+ * for a single column-block.
+ *
+ * This function returns the memory gain in bytes for a single column block when
+ * it is stored in low-rank format compared to a full rank storage.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          The column block to study.
+ *
+ * @param[in] factoLU
+ *          Indicates if the U part is stored too, or not.
+ *
+ *******************************************************************************
+ *
+ * @return The difference in favor of the low-rank storage against the full rank
+ *         storage.
+ *
+ *******************************************************************************/
 pastix_int_t
-coeftab_zmemory_one( SolverCblk *cblk, int factoLU )
+coeftab_zmemory_one( const SolverCblk *cblk, int factoLU )
 {
     SolverBlok *blok  = cblk[0].fblokptr;
     SolverBlok *lblok = cblk[1].fblokptr;
@@ -215,60 +405,28 @@ coeftab_zmemory_one( SolverCblk *cblk, int factoLU )
     return gainL + gainU;
 }
 
-void
-coeftab_zuncompress_one( SolverCblk *cblk, int factoLU )
-{
-    SolverBlok *blok  = cblk[0].fblokptr;
-    SolverBlok *lblok = cblk[1].fblokptr;
-
-    pastix_int_t ncols = cblk_colnbr( cblk );
-    pastix_complex64_t *lcoeftab = NULL;
-    pastix_complex64_t *ucoeftab = NULL;
-    int ret;
-
-    /* One allocation per cblk */
-    assert( cblk->lcoeftab == NULL );
-    lcoeftab = malloc( cblk->stride * ncols * sizeof(pastix_complex64_t) );
-
-    if ( factoLU ) {
-        assert( cblk->ucoeftab == NULL );
-        ucoeftab = malloc( cblk->stride * ncols * sizeof(pastix_complex64_t) );
-    }
-
-    for (; blok<lblok; blok++)
-    {
-        pastix_int_t nrows = blok_rownbr( blok );
-
-        ret = core_zlr2ge( nrows, ncols,
-                           blok->LRblock,
-                           lcoeftab + blok->coefind, nrows );
-        assert( ret == 0 );
-        core_zlrfree( blok->LRblock );
-
-        if (factoLU) {
-            ret = core_zlr2ge( nrows, ncols,
-                               blok->LRblock+1,
-                               ucoeftab + blok->coefind, nrows );
-            assert( ret == 0 );
-            core_zlrfree( blok->LRblock+1 );
-        }
-    }
-
-    cblk->lcoeftab = lcoeftab;
-    cblk->ucoeftab = ucoeftab;
-
-    /**
-     * Free all the LRblock structures associated to the cblk
-     */
-    cblk->cblktype &= ~(CBLK_COMPRESSED);
-    free(cblk->fblokptr->LRblock);
-
-    (void)ret;
-}
-
-
-void
-coeftab_zmemory( SolverMatrix *solvmtx )
+/**
+ *******************************************************************************
+ *
+ * @brief Compute the memory gain of the low-rank form over the full-rank form
+ * for the entire matrix.
+ *
+ * This function returns the memory gain in bytes for the full matrix when
+ * column blocks are stored in low-rank format compared to a full rank storage.
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          The solver matrix of the problem.
+ *
+ *******************************************************************************
+ *
+ * @return The difference in favor of the low-rank storage against the full rank
+ *         storage.
+ *
+ *******************************************************************************/
+pastix_int_t
+coeftab_zmemory( const SolverMatrix *solvmtx )
 {
     SolverCblk  *cblk   = solvmtx->cblktab;
     pastix_int_t cblknum;
@@ -295,31 +453,6 @@ coeftab_zmemory( SolverMatrix *solvmtx )
                  gain, original,
                  MEMORY_WRITE(memgain),     MEMORY_UNIT_WRITE(memgain),
                  MEMORY_WRITE(memoriginal), MEMORY_UNIT_WRITE(memoriginal));
-}
 
-void
-coeftab_zuncompress( SolverMatrix *solvmtx )
-{
-    SolverCblk  *cblk   = solvmtx->cblktab;
-    pastix_int_t cblknum;
-    int          factoLU = (solvmtx->factotype == PastixFactLU) ? 1 : 0;
-
-    for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
-        if (cblk->cblktype & CBLK_COMPRESSED) {
-            coeftab_zuncompress_one( cblk, factoLU );
-        }
-    }
-}
-
-void
-coeftab_zcompress( SolverMatrix *solvmtx )
-{
-    SolverCblk *cblk  = solvmtx->cblktab;
-    pastix_int_t cblknum;
-
-    for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
-        if (!(cblk->cblktype & CBLK_COMPRESSED)) {
-            coeftab_zcompress_one( cblk, solvmtx->lowrank );
-        }
-    }
+    return gain;
 }

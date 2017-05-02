@@ -2,11 +2,12 @@
  *
  * @file coeftab.c
  *
- *  PaStiX factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX coefficient array initialization and free routines.
  *
- * @version 5.1.0
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
@@ -20,22 +21,22 @@
 #include "coeftab.h"
 #include "pastix_zcores.h"
 
-int (*coeftabDiff[4])(const SolverMatrix*, SolverMatrix*) =
+coeftab_fct_diff_t coeftabDiff[4] =
 {
     coeftab_sdiff, coeftab_ddiff, coeftab_cdiff, coeftab_zdiff
 };
 
-void (*coeftabMemory[4])(SolverMatrix*) =
+coeftab_fct_memory_t coeftabMemory[4] =
 {
     coeftab_smemory, coeftab_dmemory, coeftab_cmemory, coeftab_zmemory
 };
 
-void (*coeftabUncompress[4])(SolverMatrix*) =
+coeftab_fct_uncompress_t coeftabUncompress[4] =
 {
     coeftab_suncompress, coeftab_duncompress, coeftab_cuncompress, coeftab_zuncompress
 };
 
-void (*coeftabCompress[4])(SolverMatrix*) =
+coeftab_fct_compress_t coeftabCompress[4] =
 {
     coeftab_scompress, coeftab_dcompress, coeftab_ccompress, coeftab_zcompress
 };

@@ -2,15 +2,17 @@
  *
  * @file coeftab_zdiff.c
  *
- *  PaStiX factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * Precision dependent routines to differentiate two solver matrix structures when debuging.
  *
- * @version 5.1.0
- * @author Xavier Lacoste
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @author Gregoire Pichon
  * @author Mathieu Faverge
- * @date 2013-06-24
+ * @date 2017-04-28
  *
  * @precisions normal z -> s d c
  *
@@ -18,12 +20,40 @@
 #include "common.h"
 #include "solver.h"
 #include "lapacke.h"
-#include "coeftab.h"
+#include "sopalin/coeftab_z.h"
 #include "pastix_zcores.h"
 
+/**
+ *******************************************************************************
+ *
+ * @brief Compare two column blocks in full-rank format.
+ *
+ * The second cblk is overwritten by the difference of the two column blocks.
+ * The frobenius norm of the difference is computed and the functions returns 0
+ * if the result:
+ *      || B - A || / ( || A || * eps )
+ *
+ * is below 10. Otherwise, an error message is printed and 1 is returned.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblkA
+ *          The column block of the A matrix.
+ *
+ * @param[inout] cblkB
+ *          The column block of the B matrix that matches the A matrix in
+ *          stucture.
+ *          On exit, cblkB coefficient arrays are overwritten by the result of
+ *          (B-A).
+ *
+ *******************************************************************************
+ *
+ * @return 0 if the test is passed, >= 0 otherwise.
+ *
+ *******************************************************************************/
 int
 coeftab_zdiffcblk( const SolverCblk *cblkA,
-                  SolverCblk *cblkB )
+                   SolverCblk *cblkB )
 {
     pastix_complex64_t *lcoefA = cblkA->lcoeftab;
     pastix_complex64_t *ucoefA = cblkA->ucoeftab;
@@ -92,7 +122,34 @@ coeftab_zdiffcblk( const SolverCblk *cblkA,
     return rc;
 }
 
-
+/**
+ *******************************************************************************
+ *
+ * @brief Compare two solver matrices full-rank format.
+ *
+ * The second solver matrix is overwritten by the difference of the two
+ * matrices.  The frobenius norm of the difference of each clolumn block is
+ * computed and the functions returns 0 if the result for all the column blocks
+ * of:
+ *      || B_k - A_k || / ( || A_k || * eps )
+ *
+ * is below 10. Otherwise, an error message is printed and 1 is returned.
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvA
+ *          The solver matrix A.
+ *
+ * @param[inout] cblkB
+ *          The solver matrix B.
+ *          On exit, B coefficient arrays are overwritten by the result of
+ *          (B-A).
+ *
+ *******************************************************************************
+ *
+ * @return 0 if the test is passed, >= 0 otherwise.
+ *
+ *******************************************************************************/
 int
 coeftab_zdiff( const SolverMatrix *solvA, SolverMatrix *solvB )
 {
@@ -112,4 +169,3 @@ coeftab_zdiff( const SolverMatrix *solvA, SolverMatrix *solvB )
 
     return rc;
 }
-
