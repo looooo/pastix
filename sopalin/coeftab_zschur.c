@@ -147,7 +147,7 @@ coeftab_zgetschur_one_fullrank( const SolverCblk *cblk, int upper_part,
  *
  * @brief Extract the Schur complement
  *
- * This routine is sequential and returne the full Schur complement
+ * This routine is sequential and returns the full Schur complement
  * uncommpressed in Lapack format.
  *
  *******************************************************************************
@@ -177,7 +177,7 @@ coeftab_zgetschur( const SolverMatrix *solvmtx,
     assert( nbcol <= lds );
 
     /* Initialize the array to 0 */
-    LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', nbcol, nbcol, S, lds );
+    LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', nbcol, nbcol, 0., 0., S, lds );
 
     for (itercblk=solvmtx->cblkschur; itercblk<solvmtx->cblknbr; itercblk++, cblk++)
     {
