@@ -30,18 +30,22 @@
 enum kernels_ev_code_e {
     STOP,
 
+    /* Low-rank operations */
     LR_ALLOC,
     LR_TRSM,
     LR_GEMM,
 
+    /* General kernels: similar in low-rank and dense */
     GETRF,
     POTRF,
 
+    /* Dense operations */
     DENSE_TRSM,
     DENSE_GEMM,
 
     NB_EVENTS,
 };
+typedef enum kernels_ev_code_e kernels_ev_code_t;
 
 /**
  *******************************************************************************
@@ -59,7 +63,7 @@ enum kernels_ev_code_e {
  *          The number of operations performed
  *
  *******************************************************************************/
-void start_trace_kernel(enum kernels_ev_code_e state, pastix_int_t flops);
+void start_trace_kernel(kernels_ev_code_t state, pastix_int_t flops);
 
 /**
  *******************************************************************************

@@ -24,39 +24,41 @@
 
 #define MAX_EVENTS 20
 
-typedef struct kernels_s {
+typedef struct kernels_e {
     char *name;
     gtg_color_t color;
 } kernels_t;
 
-static kernels_t kernels_properties[MAX_EVENTS];
-
-struct kernels_thread_info_t {
+typedef struct kernels_thread_info_e {
     struct thread_info_t *p_thread;
 
     /* Use by KERNELS_STOP */
-    float                  time_start;
-    enum kernels_ev_code_e current_ev;
+    float             time_start;
+    kernels_ev_code_t current_ev;
 
     /* Counters per event */
     int    *nb;
     int    *flops;
     double *run_time;
-};
+} kernels_thread_info_t;
+
+/* Properties (name/color) of each event */
+static kernels_t kernels_properties[MAX_EVENTS];
 
 #define INIT_KERNELS_THREAD_INFO(p_thread, var)                         \
-    struct kernels_thread_info_t *var = (struct kernels_thread_info_t*) \
+    kernels_thread_info_t *var = (kernels_thread_info_t *) \
         ezt_hook_list_retrieve_data(&p_thread->hooks, (uint8_t)KERNELS_EVENTS_ID); \
     if(!(var)) {                                                        \
-        var = _kernels_register_thread_hook(p_thread);                  \
+        var = kernels_register_thread_hook(p_thread);                  \
     }
+
+void define_kernels_properties();
+void handle_start(kernels_ev_code_t ev);
+void handle_stop();
 
 int eztrace_convert_kernels_init();
 int handle_kernels_events(eztrace_event_t *ev);
 int handle_kernels_stats(eztrace_event_t *ev);
 void print_kernels_stats();
-
-/* void handle_lralloc_start(); */
-/* void handle_lralloc_stop(); */
 
 #endif /* __EZTRACE_CONVERT_KERNELS_H__ */

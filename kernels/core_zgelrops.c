@@ -1190,4 +1190,3 @@ core_zlrmge( const pastix_lr_t *lowrank,
                 work, ldwork,
                 fcblk );
 }
-

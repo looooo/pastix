@@ -120,6 +120,7 @@ if(PASTIX_WITH_CUDA)
     endif()
 endif()
 
+
 ### Add documented files to the global property
 add_documented_files(
   DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}

@@ -20,7 +20,7 @@
 #include "eztrace.h"
 #include "eztrace_sampling.h"
 
-void start_trace_kernel(enum kernels_ev_code_e state, pastix_int_t flops){
+void start_trace_kernel(kernels_ev_code_t state, pastix_int_t flops){
     EZTRACE_EVENT_PACKED_1(KERNELS_CODE(state), flops);
 }
 
@@ -29,7 +29,7 @@ void stop_trace_kernel(){
 }
 
 #else
-void start_trace_kernel(enum kernels_ev_code_e state, pastix_int_t flops){
+void start_trace_kernel(kernels_ev_code_t state, pastix_int_t flops){
     (void) state;
     (void) flops;
 }

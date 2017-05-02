@@ -15,10 +15,10 @@
 
 #include "eztrace_convert_kernels.h"
 
-static struct kernels_thread_info_t *_kernels_register_thread_hook(
+static kernels_thread_info_t *kernels_register_thread_hook(
     struct thread_info_t *p_thread) {
-    struct kernels_thread_info_t *p_info = (struct kernels_thread_info_t*) malloc(
-        sizeof(struct kernels_thread_info_t));
+    kernels_thread_info_t *p_info = (kernels_thread_info_t*) malloc(
+        sizeof(kernels_thread_info_t));
 
     p_info->p_thread = p_thread;
 
@@ -101,13 +101,14 @@ eztrace_convert_kernels_init()
     return 0;
 }
 
-void handle_start(enum kernels_ev_code_e ev)
+void handle_start(kernels_ev_code_t ev)
 {
+    int size;
+
     DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
     DECLARE_CUR_THREAD(p_thread);
     INIT_KERNELS_THREAD_INFO(p_thread, p_info);
 
-    int size;
     GET_PARAM_PACKED_1(CUR_EV, size);
 
     p_info->nb[ev]++;
@@ -144,7 +145,7 @@ handle_kernels_events(eztrace_event_t *ev)
         break;
     default:
         if (LITL_READ_GET_CODE(ev) > KERNELS_PREFIX)
-            handle_start((enum kernels_ev_code_e) (LITL_READ_GET_CODE(ev) - KERNELS_PREFIX));
+            handle_start((kernels_ev_code_t) (LITL_READ_GET_CODE(ev) - KERNELS_PREFIX));
         break;
     }
     return 1;
