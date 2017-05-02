@@ -487,6 +487,14 @@ typedef enum pastix_normtype_e {
 } pastix_normtype_t;
 
 /**
+ * @brief Direction
+ */
+typedef enum pastix_dir_e {
+    PastixDirForward  = 391, /**< Forward direction   */
+    PastixDirBackward = 392, /**< Backward direction  */
+} pastix_dir_t;
+
+/**
  * @}
  */
 

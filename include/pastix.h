@@ -80,9 +80,9 @@ int pastix_task_numfact( pastix_data_t      *pastix_data,
                          pastix_spm_t       *spm );
 int pastix_task_solve  ( pastix_data_t      *pastix_data,
                          const pastix_spm_t *spm,
-                         int                 nrhs,
+                         pastix_int_t        nrhs,
                          void               *b,
-                         int                 ldb );
+                         pastix_int_t        ldb );
 int pastix_task_refine ( pastix_data_t      *pastix_data,
                          void               *x,
                          pastix_int_t        rhsnbr,
@@ -110,6 +110,31 @@ int pastix_subtask_bcsc2ctab ( pastix_data_t      *pastix_data,
                                const pastix_spm_t *spm );
 int pastix_subtask_sopalin   ( pastix_data_t      *pastix_data,
                                const pastix_spm_t *spm );
+
+/*
+ * Numerical solve subtasks
+ */
+int pastix_subtask_applyorder( pastix_data_t    *pastix_data,
+                               pastix_coeftype_t flttype,
+                               pastix_dir_t      dir,
+                               pastix_int_t      m,
+                               pastix_int_t      n,
+                               void             *b,
+                               pastix_int_t      ldb );
+int pastix_subtask_trsm( pastix_data_t    *pastix_data,
+                         pastix_coeftype_t flttype,
+                         pastix_side_t     side,
+                         pastix_uplo_t     uplo,
+                         pastix_trans_t    trans,
+                         pastix_diag_t     diag,
+                         pastix_int_t      nrhs,
+                         void             *b,
+                         pastix_int_t      ldb );
+int pastix_subtask_diag( pastix_data_t    *pastix_data,
+                         pastix_coeftype_t flttype,
+                         pastix_int_t      nrhs,
+                         void             *b,
+                         pastix_int_t      ldb );
 
 /*
  * Schur complement manipulation routines.

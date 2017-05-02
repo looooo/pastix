@@ -2,18 +2,196 @@
  *
  * @file schur.c
  *
- * PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- * LaBRI, University of Bordeaux 1 and IPB.
- * Construct the schur complement of the matrix.
+ * Schur usage example.
  *
- * @version 5.1.0
- * @author  Hastaran Matias
- * @date    2017-01-17
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Pierre Ramet
+ * @author Mathieu Faverge
+ * @author Hastaran Matias
+ * @date 2017-05-02
  *
  **/
 #include <pastix.h>
 #include <spm.h>
 #include "drivers.h"
+#include "lapacke.h"
+
+void
+schurFactorize( pastix_coeftype_t  flttype,
+                pastix_factotype_t factotype,
+                pastix_int_t N,
+                void *S,
+                pastix_int_t lds,
+                int **ipiv )
+{
+    int info;
+
+    assert( ipiv != NULL );
+    if ( factotype == PastixFactLU ) {
+        *ipiv = malloc( N * sizeof(int) );
+    }
+
+    switch (flttype) {
+    case PastixFloat:
+        switch (factotype) {
+        case PastixFactLLT:
+            info = LAPACKE_spotrf_work( LAPACK_COL_MAJOR, 'L', N, S, lds );
+            break;
+        case PastixFactLU:
+            info = LAPACKE_sgetrf_work( LAPACK_COL_MAJOR, N, N, S, lds, *ipiv );
+            break;
+        default:
+            fprintf(stderr, "Factorization type not handled by Schur example\n");
+        }
+        break;
+    case PastixComplex32:
+        switch (factotype) {
+        case PastixFactLLT:
+            info = LAPACKE_cpotrf_work( LAPACK_COL_MAJOR, 'L', N, S, lds );
+            break;
+        case PastixFactLU:
+            info = LAPACKE_cgetrf_work( LAPACK_COL_MAJOR, N, N, S, lds, *ipiv );
+            break;
+        default:
+            fprintf(stderr, "Factorization type not handled by Schur example\n");
+        }
+        break;
+    case PastixComplex64:
+        switch (factotype) {
+        case PastixFactLLT:
+            info = LAPACKE_zpotrf_work( LAPACK_COL_MAJOR, 'L', N, S, lds );
+            break;
+        case PastixFactLU:
+            info = LAPACKE_zgetrf_work( LAPACK_COL_MAJOR, N, N, S, lds, *ipiv );
+            break;
+        default:
+            fprintf(stderr, "Factorization type not handled by Schur example\n");
+        }
+        break;
+    case PastixDouble:
+        switch (factotype) {
+        case PastixFactLLT:
+            info = LAPACKE_dpotrf_work( LAPACK_COL_MAJOR, 'L', N, S, lds );
+            break;
+        case PastixFactLU:
+            info = LAPACKE_dgetrf_work( LAPACK_COL_MAJOR, N, N, S, lds, *ipiv );
+            break;
+        default:
+            fprintf(stderr, "Factorization type not handled by Schur example\n");
+        }
+        break;
+    default:
+        fprintf(stderr, "Incorrect arithmetic type\n");
+    }
+    if (info != 0) {
+        fprintf(stderr, "Error in schurFactorize with info =%d\n", info );
+    }
+    return;
+}
+
+void
+schurSolve( pastix_coeftype_t  flttype,
+            pastix_factotype_t factotype,
+            pastix_int_t N,
+            pastix_int_t Nschur,
+            pastix_int_t NRHS,
+            void *S,
+            pastix_int_t lds,
+            void *bptr,
+            pastix_int_t ldb,
+            int **ipiv )
+{
+    int info;
+
+    assert(ipiv != NULL);
+
+    switch (flttype) {
+    case PastixFloat:
+    {
+        float *b = (float *)bptr;
+        b += N - Nschur;
+
+        switch (factotype) {
+        case PastixFactLLT:
+            info = LAPACKE_spotrs_work( LAPACK_COL_MAJOR, 'L', Nschur, NRHS, S, lds, b, ldb );
+            break;
+        case PastixFactLU:
+            info = LAPACKE_sgetrs_work( LAPACK_COL_MAJOR, 'N', Nschur, NRHS, S, lds, *ipiv, b, ldb );
+            break;
+        default:
+            fprintf(stderr, "Factorization type not handled by Schur example\n");
+        }
+    }
+    break;
+    case PastixComplex32:
+    {
+        pastix_complex32_t *b = (pastix_complex32_t *)bptr;
+        b += N - Nschur;
+
+        switch (factotype) {
+        case PastixFactLLT:
+            info = LAPACKE_cpotrs_work( LAPACK_COL_MAJOR, 'L', Nschur, NRHS, S, lds, b, ldb );
+            break;
+        case PastixFactLU:
+            info = LAPACKE_cgetrs_work( LAPACK_COL_MAJOR, 'N', Nschur, NRHS, S, lds, *ipiv, b, ldb );
+            break;
+        default:
+            fprintf(stderr, "Factorization type not handled by Schur example\n");
+        }
+    }
+    break;
+    case PastixComplex64:
+    {
+        pastix_complex64_t *b = (pastix_complex64_t *)bptr;
+        b += N - Nschur;
+
+        switch (factotype) {
+        case PastixFactLLT:
+            info = LAPACKE_zpotrs_work( LAPACK_COL_MAJOR, 'L', Nschur, NRHS, S, lds, b, ldb );
+            break;
+        case PastixFactLU:
+            info = LAPACKE_zgetrs_work( LAPACK_COL_MAJOR, 'N', Nschur, NRHS, S, lds, *ipiv, b, ldb );
+            break;
+        default:
+            fprintf(stderr, "Factorization type not handled by Schur example\n");
+        }
+    }
+    break;
+    case PastixDouble:
+    {
+        double *b = (double *)bptr;
+        b += N - Nschur;
+
+        switch (factotype) {
+        case PastixFactLLT:
+            info = LAPACKE_dpotrs_work( LAPACK_COL_MAJOR, 'L', Nschur, NRHS, S, lds, b, ldb );
+            break;
+        case PastixFactLU:
+            info = LAPACKE_dgetrs_work( LAPACK_COL_MAJOR, 'N', Nschur, NRHS, S, lds, *ipiv, b, ldb );
+            break;
+        default:
+            fprintf(stderr, "Factorization type not handled by Schur example\n");
+        }
+    }
+    break;
+    default:
+        fprintf(stderr, "Incorrect arithmetic type\n");
+    }
+
+    if (*ipiv != NULL) {
+        free(*ipiv);
+        *ipiv = NULL;
+    }
+
+    if (info != 0) {
+        fprintf(stderr, "Error in schurSolve with info =%d\n", info );
+    }
+
+    return;
+}
 
 int main (int argc, char **argv)
 {
@@ -23,26 +201,36 @@ int main (int argc, char **argv)
     pastix_driver_t driver;
     char           *filename;
     pastix_spm_t   *spm, *spm2;
-    void           *x0, *x, *b;
+    void           *x0, *x, *b, *S;
     size_t          size;
     int             check = 1;
     int             nrhs = 1;
     double          normA;
-    pastix_int_t    nschur;
+    pastix_int_t    nschur, lds, ldb;
+    int            *ipiv = NULL;
+    pastix_diag_t   diag = PastixNonUnit;
 
-    /**
+    /*
      * Initialize parameters to default values
      */
     pastixInitParam( iparm, dparm );
 
-    /**
+    /*
      * Get options from command line
      */
     pastix_ex_getoptions( argc, argv,
                           iparm, dparm,
                           &driver, &filename );
 
-    /**
+
+    if ( (iparm[IPARM_FACTORIZATION] == PastixFactLDLT) ||
+         (iparm[IPARM_FACTORIZATION] == PastixFactLDLH) )
+    {
+        fprintf(stderr, "This types of factorization are not supported by this example.\n");
+        return EXIT_FAILURE;
+    }
+
+    /*
      * Read the sparse matrix with the driver
      */
     spm = malloc( sizeof( pastix_spm_t ) );
@@ -56,18 +244,18 @@ int main (int argc, char **argv)
         spm = spm2;
     }
 
-    /**
+    /*
      * Scal the matrix to avoid unexpected rouding errors
      */
     normA = spmNorm( PastixFrobeniusNorm, spm );
     spmScal( 1./normA, spm );
 
-    /**
+    /*
      * Startup PaStiX
      */
     pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
-    /**
+    /*
      * Initialize the schur list with the first third of the unknowns
      */
     {
@@ -90,35 +278,39 @@ int main (int argc, char **argv)
         }
     }
 
-    /**
+    /*
      * Perform ordering, symbolic factorization, and analyze steps
      */
     pastix_task_analyze( pastix_data, spm );
 
-    /**
+    /*
      * Perform the numerical factorization
      */
     pastix_task_numfact( pastix_data, spm );
 
-    /**
-     * Get the Schur complement back.
+    /*
+     * Get the Schur complement back
      */
-    {
-        pastix_int_t lds = nschur;
-        void *S = malloc( pastix_size_of( spm->flttype ) * nschur * lds );
+    lds = nschur;
+    S = malloc( pastix_size_of( spm->flttype ) * nschur * lds );
 
-        pastix_getSchur( pastix_data, S, lds );
+    pastix_getSchur( pastix_data, S, lds );
 
-        free(S);
-    }
 
-    /**
+    /*
+     * Factorize the Schur complement
+     */
+    schurFactorize( spm->flttype, iparm[IPARM_FACTORIZATION],
+                    nschur, S, lds, &ipiv );
+
+    /*
      * Generates the b and x vector such that A * x = b
      * Compute the norms of the initial vectors if checking purpose.
      */
     size = pastix_size_of( spm->flttype ) * spm->n;
     x = malloc( size );
     b = malloc( size );
+    ldb = spm->n;
 
     if ( check )
     {
@@ -138,23 +330,55 @@ int main (int argc, char **argv)
         memcpy( b, x, size );
     }
 
-    /**
-     * Solve the linear system
+    /*
+     * Solve the linear system Ax = (P^tLUP)x = b
      */
-    pastix_task_solve( pastix_data, spm, nrhs, x, spm->n );
+    /* 1- Apply P to b */
+    pastix_subtask_applyorder( pastix_data, spm->flttype,
+                               PastixDirForward, spm->n, nrhs, b, ldb );
 
-    pastix_task_refine(pastix_data, x, nrhs, b);
+    /* 2- Forward solve on the non Schur complement part of the system */
+    if ( iparm[IPARM_FACTORIZATION] == PastixFactLLT ) {
+        diag = PastixNonUnit;
+    }
+    else if( iparm[IPARM_FACTORIZATION] == PastixFactLU ) {
+        diag = PastixUnit;
+    }
+
+    pastix_subtask_trsm( pastix_data, spm->flttype,
+                         PastixLeft, PastixLower, PastixNoTrans, diag,
+                         nrhs, b, ldb );
+
+    /* 3- Solve the Schur complement part */
+    schurSolve( spm->flttype, iparm[IPARM_FACTORIZATION],
+                spm->n, nschur, nrhs, S, lds, b, ldb, &ipiv );
+
+    /* 4- Backward solve on the non Schur complement part of the system */
+    if ( iparm[IPARM_FACTORIZATION] == PastixFactLLT ) {
+        pastix_subtask_trsm( pastix_data, spm->flttype,
+                             PastixLeft, PastixLower, PastixConjTrans, PastixNonUnit,
+                             nrhs, b, ldb );
+    }
+    else if( iparm[IPARM_FACTORIZATION] == PastixFactLU ) {
+        pastix_subtask_trsm( pastix_data, spm->flttype,
+                             PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit,
+                             nrhs, b, ldb );
+    }
+
+    /* 5- Apply P^t to x */
+    pastix_subtask_applyorder( pastix_data, spm->flttype,
+                               PastixDirBackward, spm->n, nrhs, b, ldb );
 
     if ( check )
     {
         spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
 
         if (x0) free(x0);
-
     }
 
     spmExit( spm );
     free( spm );
+    free(S);
     free(x);
     free(b);
     pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
