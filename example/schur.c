@@ -335,7 +335,7 @@ int main (int argc, char **argv)
      */
     /* 1- Apply P to b */
     pastix_subtask_applyorder( pastix_data, spm->flttype,
-                               PastixDirForward, spm->n, nrhs, b, ldb );
+                               PastixDirForward, spm->n, nrhs, x, ldb );
 
     /* 2- Forward solve on the non Schur complement part of the system */
     if ( iparm[IPARM_FACTORIZATION] == PastixFactLLT ) {
@@ -347,27 +347,27 @@ int main (int argc, char **argv)
 
     pastix_subtask_trsm( pastix_data, spm->flttype,
                          PastixLeft, PastixLower, PastixNoTrans, diag,
-                         nrhs, b, ldb );
+                         nrhs, x, ldb );
 
     /* 3- Solve the Schur complement part */
     schurSolve( spm->flttype, iparm[IPARM_FACTORIZATION],
-                spm->n, nschur, nrhs, S, lds, b, ldb, &ipiv );
+                spm->n, nschur, nrhs, S, lds, x, ldb, &ipiv );
 
     /* 4- Backward solve on the non Schur complement part of the system */
     if ( iparm[IPARM_FACTORIZATION] == PastixFactLLT ) {
         pastix_subtask_trsm( pastix_data, spm->flttype,
                              PastixLeft, PastixLower, PastixConjTrans, PastixNonUnit,
-                             nrhs, b, ldb );
+                             nrhs, x, ldb );
     }
     else if( iparm[IPARM_FACTORIZATION] == PastixFactLU ) {
         pastix_subtask_trsm( pastix_data, spm->flttype,
                              PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit,
-                             nrhs, b, ldb );
+                             nrhs, x, ldb );
     }
 
     /* 5- Apply P^t to x */
     pastix_subtask_applyorder( pastix_data, spm->flttype,
-                               PastixDirBackward, spm->n, nrhs, b, ldb );
+                               PastixDirBackward, spm->n, nrhs, x, ldb );
 
     if ( check )
     {
