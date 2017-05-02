@@ -53,7 +53,7 @@ core_zlralloc( pastix_int_t      M,
                pastix_int_t      rkmax,
                pastix_lrblock_t *A )
 {
-    start_trace_kernel(KERNELS_LRALLOC_START, M*N);
+    start_trace_kernel(LRALLOC, M*N);
     pastix_complex64_t *u, *v;
 
     if ( rkmax == -1 ) {

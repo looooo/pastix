@@ -289,7 +289,7 @@ cpucblk_zgetrfsp1d_panel( SolverCblk         *cblk,
 {
     pastix_int_t nbpivot;
 
-    start_trace_kernel(KERNELS_GETRF_START, 32);
+    start_trace_kernel(GETRF, 32);
     nbpivot = cpucblk_zgetrfsp1d_getrf(cblk, L, U, criteria);
     stop_trace_kernel();
 

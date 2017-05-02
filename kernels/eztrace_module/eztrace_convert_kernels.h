@@ -24,6 +24,12 @@
 
 #define MAX_EVENTS 5
 
+typedef struct kernels_s {
+    char *name;
+    gtg_color_t color;
+} kernels_t;
+
+static kernels_t kernels_properties[MAX_EVENTS];
 
 struct kernels_thread_info_t {
     struct thread_info_t *p_thread;

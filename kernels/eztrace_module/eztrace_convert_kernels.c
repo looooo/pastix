@@ -70,7 +70,16 @@ int
 eztrace_convert_kernels_init()
 {
     if (get_mode() == EZTRACE_CONVERT) {
-        addEntityValue("STV_lralloc", "ST_Thread", "LRALLOC", GTG_GREEN);
+
+        kernels_properties[STOP]    = (kernels_t) {"stop"   , GTG_BLACK};
+        kernels_properties[LRALLOC] = (kernels_t) {"lralloc", GTG_YELLOW};
+        kernels_properties[GETRF]   = (kernels_t) {"getrf"  , GTG_RED};
+
+        int k;
+        for (k=1; k<NB_EVENTS; k++){
+            addEntityValue(kernels_properties[k].name, "ST_Thread",
+                           kernels_properties[k].name, kernels_properties[k].color);
+        }
     }
     return 0;
 }
@@ -90,7 +99,7 @@ void handle_start(enum kernels_ev_code_e ev)
     p_info->current_ev = ev;
     p_info->time_start = CURRENT;
 
-    pushState(CURRENT, "ST_Thread", thread_id, "STV_lralloc");
+    pushState(CURRENT, "ST_Thread", thread_id, kernels_properties[ev].name);
 }
 
 void handle_stop()
@@ -113,13 +122,13 @@ handle_kernels_events(eztrace_event_t *ev)
 
     switch (LITL_READ_GET_CODE(ev)) {
 
-    case KERNELS_CODE(KERNELS_LRALLOC_START):
-        handle_start(KERNELS_LRALLOC_START);
+    case KERNELS_CODE(LRALLOC):
+        handle_start(LRALLOC);
         break;
-    case KERNELS_CODE(KERNELS_GETRF_START):
-        handle_start(KERNELS_GETRF_START);
+    case KERNELS_CODE(GETRF):
+        handle_start(GETRF);
         break;
-    case KERNELS_CODE(KERNELS_STOP):
+    case KERNELS_CODE(STOP):
         handle_stop();
         break;
     default:
@@ -158,7 +167,7 @@ print_kernels_stats()
             printf("\tThread %20s\n", thread_container->name);
 
             int k;
-            for (k=1; k<KERNELS_NB_EVENTS; k++){
+            for (k=1; k<NB_EVENTS; k++){
                 printf("NB CALLS %5d SIZE %8d TIME %.3g\n",
                        p_info->nb[k], p_info->flops[k], p_info->run_time[k]);
             }

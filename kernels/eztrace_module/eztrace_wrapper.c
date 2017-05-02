@@ -25,7 +25,7 @@ void start_trace_kernel(enum kernels_ev_code_e state, pastix_int_t flops){
 }
 
 void stop_trace_kernel(){
-    EZTRACE_EVENT_PACKED_0(KERNELS_CODE(KERNELS_STOP));
+    EZTRACE_EVENT_PACKED_0(KERNELS_CODE(STOP));
 }
 
 #else
