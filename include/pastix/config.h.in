@@ -71,6 +71,8 @@
 #cmakedefine PASTIX_WITH_STARPU
 #cmakedefine PASTIX_WITH_STARPU_PROFILING
 
+#cmakedefine PASTIX_CUDA_FERMI
+
 #cmakedefine PASTIX_FUNNELED
 #cmakedefine PASTIX_DISTRIBUTED
 #cmakedefine PASTIX_THREAD_COMM
