@@ -17,11 +17,14 @@
  *
  **/
 #define _GNU_SOURCE
+#include "common.h"
 #include <parsec.h>
 #include <parsec/data.h>
 #include <parsec/data_distribution.h>
+#if defined(PASTIX_CUDA_FERMI)
+#include <parsec/devices/cuda/dev_cuda.h>
+#endif
 
-#include "common.h"
 #include "solver.h"
 #include "sopalin/parsec/pastix_parsec.h"
 
@@ -415,9 +418,10 @@ sparse_matrix_key_to_string( parsec_ddesc_t *mat,
 }
 #endif
 
-#if defined(PASTIX_WITH_CUDA)
-void sparse_matrix_init_fermi( sparse_matrix_desc_t *spmtx,
-                               SolverMatrix *solvmtx )
+#if defined(PASTIX_CUDA_FERMI)
+void
+sparse_matrix_init_fermi( sparse_matrix_desc_t *spmtx,
+                          const SolverMatrix   *solvmtx )
 {
     gpu_device_t* gpu_device;
     SolverBlok *blok;
@@ -485,7 +489,7 @@ sparse_matrix_destroy_fermi( sparse_matrix_desc_t *spmtx )
 
     free( spmtx->d_blocktab );
 }
-#endif /*defined(PASTIX_WITH_CUDA)*/
+#endif /*defined(PASTIX_CUDA_FERMI)*/
 
 /**
  *******************************************************************************
