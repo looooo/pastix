@@ -16,7 +16,6 @@
 #ifndef __KERNELS_EV_CODES_H__
 #define __KERNELS_EV_CODES_H__
 
-#include <GTG.h>
 #include "common.h"
 
 #if defined(PASTIX_WITH_EZTRACE)
@@ -25,12 +24,22 @@
 #define KERNELS_EVENTS_ID    USER_MODULE_ID(0x99)
 #define KERNELS_PREFIX       (KERNELS_EVENTS_ID << 3)
 #define KERNELS_CODE(event)  (KERNELS_PREFIX | event )
+
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 
 enum kernels_ev_code_e {
     STOP,
-    LRALLOC,
+
+    LR_ALLOC,
+    LR_TRSM,
+    LR_GEMM,
+
     GETRF,
+    POTRF,
+
+    DENSE_TRSM,
+    DENSE_GEMM,
+
     NB_EVENTS,
 };
 

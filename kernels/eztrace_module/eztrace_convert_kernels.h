@@ -22,7 +22,7 @@
 #include "eztrace_convert.h"
 #include "kernels_ev_codes.h"
 
-#define MAX_EVENTS 5
+#define MAX_EVENTS 20
 
 typedef struct kernels_s {
     char *name;

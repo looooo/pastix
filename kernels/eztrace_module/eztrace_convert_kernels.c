@@ -66,14 +66,31 @@ void libfinalize(void)
     printf("unloading module \n");
 }
 
+
+void define_kernels_properties()
+{
+    /* Low-rank operations */
+    kernels_properties[LR_ALLOC] = (kernels_t) {"lr_alloc", GTG_YELLOW};
+    kernels_properties[LR_TRSM]  = (kernels_t) {"lr_trsm" , GTG_DARKBLUE};
+    kernels_properties[LR_GEMM]  = (kernels_t) {"lr_gemm" , GTG_LIGHTPINK};
+
+    /* Dense operations */
+    kernels_properties[GETRF]      = (kernels_t) {"getrf"  ,    GTG_RED};
+    kernels_properties[POTRF]      = (kernels_t) {"potrf"  ,    GTG_RED};
+    kernels_properties[DENSE_TRSM] = (kernels_t) {"dense_trsm", GTG_SEABLUE};
+    kernels_properties[DENSE_GEMM] = (kernels_t) {"dense_gemm", GTG_GREEN};
+}
+
 int
 eztrace_convert_kernels_init()
 {
+    if (NB_EVENTS > MAX_EVENTS + 1){
+        printf("FATAL ERROR: static table is not large enough\n");
+    }
+
     if (get_mode() == EZTRACE_CONVERT) {
 
-        kernels_properties[STOP]    = (kernels_t) {"stop"   , GTG_BLACK};
-        kernels_properties[LRALLOC] = (kernels_t) {"lralloc", GTG_YELLOW};
-        kernels_properties[GETRF]   = (kernels_t) {"getrf"  , GTG_RED};
+        define_kernels_properties();
 
         int k;
         for (k=1; k<NB_EVENTS; k++){
@@ -122,18 +139,13 @@ handle_kernels_events(eztrace_event_t *ev)
 
     switch (LITL_READ_GET_CODE(ev)) {
 
-    case KERNELS_CODE(LRALLOC):
-        handle_start(LRALLOC);
-        break;
-    case KERNELS_CODE(GETRF):
-        handle_start(GETRF);
-        break;
     case KERNELS_CODE(STOP):
         handle_stop();
         break;
     default:
-        /* The event was not handled */
-        return 0;
+        if (LITL_READ_GET_CODE(ev) > KERNELS_PREFIX)
+            handle_start((enum kernels_ev_code_e) (LITL_READ_GET_CODE(ev) - KERNELS_PREFIX));
+        break;
     }
     return 1;
 }
@@ -148,6 +160,8 @@ handle_kernels_stats(eztrace_event_t *ev)
 void
 print_kernels_stats()
 {
+    define_kernels_properties();
+
     printf("\n:\n");
     printf("-------\n");
 
@@ -168,8 +182,8 @@ print_kernels_stats()
 
             int k;
             for (k=1; k<NB_EVENTS; k++){
-                printf("NB CALLS %5d SIZE %8d TIME %.3g\n",
-                       p_info->nb[k], p_info->flops[k], p_info->run_time[k]);
+                printf("Kernel %20s was called %5d times, flops=%8d, duration=%.3g\n",
+                       kernels_properties[k].name, p_info->nb[k], p_info->flops[k], p_info->run_time[k]);
             }
         }
     }
