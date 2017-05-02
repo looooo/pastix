@@ -169,11 +169,15 @@ coeftab_zgetschur( const SolverMatrix *solvmtx,
 {
     SolverCblk *cblk = solvmtx->cblktab + solvmtx->cblkschur;
     pastix_complex64_t *localS;
-    pastix_int_t itercblk, fcolnum;
+    pastix_int_t itercblk, fcolnum, nbcol;
     int upper_part = (solvmtx->factotype == PastixFactLU);
     fcolnum = cblk->fcolnum;
 
-    assert( solvmtx->nodenbr - fcolnum <= lds );
+    nbcol = solvmtx->nodenbr - fcolnum;
+    assert( nbcol <= lds );
+
+    /* Initialize the array to 0 */
+    LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', nbcol, nbcol, S, lds );
 
     for (itercblk=solvmtx->cblkschur; itercblk<solvmtx->cblknbr; itercblk++, cblk++)
     {
