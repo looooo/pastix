@@ -66,7 +66,8 @@ RW L <- ( browk0 == browk1 ) ? descA(0, k, 0) : C GEMM1D( lastbrow )
 BODY
 {
     SolverCblk *cblk = datacode->cblktab + k;
-    cpucblk_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, &lowrank );
+    if (!(cblk->cblktype & CBLK_IN_SCHUR))
+        cpucblk_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, &lowrank );
 }
 END
 
@@ -150,25 +151,27 @@ RW    C  <- (brownum == -1) ? NULL
 
 BODY [ type=CUDA ]
 {
-    SolverCblk *lcblk = datacode->cblktab + lcblknm;
-    SolverCblk *fcblk = datacode->cblktab + fcblknm;
-    SolverBlok *blok  = datacode->bloktab + bloknum;
-
-    /* Never execute the 1D GPU kernel on diagonal blocks */
     if (brownum != -1) {
+        SolverCblk *lcblk = datacode->cblktab + lcblknm;
+        SolverCblk *fcblk = datacode->cblktab + fcblknm;
+        SolverBlok *blok  = datacode->bloktab + bloknum;
+
+        if (!(lcblk->cblktype & CBLK_IN_SCHUR)) {
+            /* Never execute the 1D GPU kernel on diagonal blocks */
 #if defined(PASTIX_CUDA_FERMI)
-        gpu_zgemmsp_fermi( datacode,
-                           PastixLower, PastixConjTrans,
-                           descA->d_blocktab[parsec_body.index],
-                           lcblk, blok, fcblk,
-                           A, A, C,
-                           parsec_body.stream );
+            gpu_zgemmsp_fermi( datacode,
+                               PastixLower, PastixConjTrans,
+                               descA->d_blocktab[parsec_body.index],
+                               lcblk, blok, fcblk,
+                               A, A, C,
+                               parsec_body.stream );
 #else
-        gpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
-                         lcblk, blok, fcblk,
-                         A, A, C,
-                         &lowrank, parsec_body.stream );
+            gpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+                             lcblk, blok, fcblk,
+                             A, A, C,
+                             &lowrank, parsec_body.stream );
 #endif /* defined(PASTIX_CUDA_FERMI) */
+        }
     }
 }
 END
@@ -182,17 +185,19 @@ BODY
         SolverBlok *blok  = datacode->bloktab + bloknum;
         pastix_complex64_t *work = NULL;
 
-        if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
-            work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
-        }
+        if (!(lcblk->cblktype & CBLK_IN_SCHUR)) {
+            if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
+                work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
+            }
 
-        cpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
-                         lcblk, blok, fcblk,
-                         A, A, C,
-                         work, &lowrank );
+            cpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+                             lcblk, blok, fcblk,
+                             A, A, C,
+                             work, &lowrank );
 
-        if ( work  ) {
-            parsec_private_memory_push( p_work, (void *)work );
+            if ( work  ) {
+                parsec_private_memory_push( p_work, (void *)work );
+            }
         }
     }
 }
