@@ -68,7 +68,7 @@ void coeftab_zgetschur             ( const SolverMatrix *solvmtx,
  *    @{
  */
 void coeftab_zdumpcblk( const SolverCblk   *cblk,
-                        const void         *array,
+                        pastix_uplo_t       uplo,
                         FILE               *stream );
 void coeftab_zdump    ( const SolverMatrix *solvmtx,
                         const char         *filename );

@@ -62,6 +62,7 @@ coeftab_zgetschur_one_lowrank( const SolverCblk *cblk, int upper_part,
                            blok->LRblock,
                            S + (blok->coefind / ncols), lds );
         assert( ret == 0 );
+        /* TODO: check/fix with respect to full rank (L+U instead of just L or U)*/
 
         if ( upper_part &&
              (blok > cblk[0].fblokptr) )
@@ -129,12 +130,11 @@ coeftab_zgetschur_one_fullrank( const SolverCblk *cblk, int upper_part,
                                    S + coefind, lds );
         assert( ret == 0 );
 
-        if ( upper_part &&
-             (blok > cblk[0].fblokptr) )
+        if ( upper_part )
         {
-            core_zgetro( nrows, ncols,
-                         ucoeftab + blok->coefind, stride,
-                         S + coefind, lds );
+            core_zgeadd( PastixTrans, ncols, nrows,
+                         1.0, ucoeftab + blok->coefind, stride,
+                         1.0, S + coefind * lds, lds );
         }
     }
 

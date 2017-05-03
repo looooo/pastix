@@ -391,8 +391,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data,
     }
 
     /* Invalidate following steps, and add factorization step to the ones performed */
-    pastix_data->steps &= ~( STEP_BCSC2CTAB |
-                             STEP_SOLVE     |
+    pastix_data->steps &= ~( STEP_SOLVE     |
                              STEP_REFINE );
     pastix_data->steps |= STEP_NUMFACT;
 
@@ -488,8 +487,7 @@ pastix_task_numfact( pastix_data_t *pastix_data,
     }
 
     /* Invalidate following steps, and add factorization step to the ones performed */
-    pastix_data->steps &= ~( STEP_BCSC2CTAB |
-                             STEP_SOLVE     |
+    pastix_data->steps &= ~( STEP_SOLVE     |
                              STEP_REFINE );
     pastix_data->steps |= STEP_NUMFACT;
 
