@@ -233,7 +233,7 @@ cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
         assert( stride == cblk->fblokptr->LRblock[1].rkmax );
     }
 
-    core_zgeadd( CblasTrans, ncols, ncols,
+    core_zgeadd( PastixTrans, ncols, ncols,
                  1.0, U, stride,
                  1.0, L, stride );
 
