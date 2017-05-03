@@ -698,13 +698,15 @@ solve_ztrsmsp( pastix_side_t       side,
             /*  We store U^t, so we swap uplo and trans */
             if (trans == PastixNoTrans) {
 
-                /* Solve the diagonal block */
-                cblas_ztrsm(
-                    CblasColMajor, CblasLeft, CblasLower,
-                    CblasTrans, (enum CBLAS_DIAG)diag,
-                    tempn, nrhs,
-                    CBLAS_SADDR(zone), A, lda,
-                                       b + cblk->lcolidx, ldb );
+                if ( !(cblk->cblktype & CBLK_IN_SCHUR) ) {
+                    /* Solve the diagonal block */
+                    cblas_ztrsm(
+                        CblasColMajor, CblasLeft, CblasLower,
+                        CblasTrans, (enum CBLAS_DIAG)diag,
+                        tempn, nrhs,
+                        CBLAS_SADDR(zone), A, lda,
+                                           b + cblk->lcolidx, ldb );
+                }
 
                 /* Apply the update */
                 for (j = cblk[1].brownum-1; j>=cblk[0].brownum; j-- ) {
@@ -714,6 +716,9 @@ solve_ztrsmsp( pastix_side_t       side,
                     tempn = blok->lrownum - blok->frownum + 1;
                     A   = (pastix_complex64_t*)(fcbk->ucoeftab);
                     lda = (fcbk->cblktype & CBLK_LAYOUT_2D) ? tempn : fcbk->stride;
+
+                    if ( fcbk->cblktype & CBLK_IN_SCHUR )
+                        continue;
 
                     pastix_cblk_lock( fcbk );
                     if ( fcbk->cblktype & CBLK_COMPRESSED ) {
@@ -765,6 +770,9 @@ solve_ztrsmsp( pastix_side_t       side,
              *  Left / Upper / [Conj]Trans (Forward)
              */
             else {
+                if ( cblk->cblktype & CBLK_IN_SCHUR )
+                    return;
+
                 assert(0 /* Not implemented */);
             }
         }
@@ -775,6 +783,9 @@ solve_ztrsmsp( pastix_side_t       side,
              *  Left / Lower / NoTrans (Forward)
              */
             if (trans == PastixNoTrans) {
+
+                if ( cblk->cblktype & CBLK_IN_SCHUR )
+                    return;
 
                 /* In sequential */
                 assert( cblk->fcolnum == cblk->lcolidx );
@@ -796,10 +807,6 @@ solve_ztrsmsp( pastix_side_t       side,
                         tempm = blok->lrownum - blok->frownum + 1;
                         lrA   = blok->LRblock;
 
-                        /* Do not solve the schur */
-                        if (fcbk->cblktype & CBLK_IN_SCHUR ) {
-                            break;
-                        }
                         assert( blok->frownum >= fcbk->fcolnum );
                         assert( tempm <= (fcbk->lcolnum - fcbk->fcolnum + 1));
 
@@ -853,11 +860,6 @@ solve_ztrsmsp( pastix_side_t       side,
                         fcbk  = datacode->cblktab + blok->fcblknm;
                         tempm = blok->lrownum - blok->frownum + 1;
 
-                        /* Do not solve the schur */
-                        if (fcbk->cblktype & CBLK_IN_SCHUR ) {
-                            break;
-                        }
-
                         assert( blok->frownum >= fcbk->fcolnum );
                         assert( tempm <= (fcbk->lcolnum - fcbk->fcolnum + 1));
 
@@ -881,6 +883,7 @@ solve_ztrsmsp( pastix_side_t       side,
              *  Left / Lower / [Conj]Trans (Backward)
              */
             else {
+                /* For cblk in the schur, only apply the update on the non Schur part */
 
                 if ( cblk->cblktype & CBLK_COMPRESSED ) {
                     A = (pastix_complex64_t*)(cblk->fblokptr->LRblock[0].u);
@@ -890,12 +893,14 @@ solve_ztrsmsp( pastix_side_t       side,
                 }
 
                 /* Solve the diagonal block */
-                cblas_ztrsm(
-                    CblasColMajor, CblasLeft, CblasLower,
-                    (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
-                    tempn, nrhs,
-                    CBLAS_SADDR(zone), A, lda,
-                    b + cblk->lcolidx, ldb );
+                if ( !(cblk->cblktype & CBLK_IN_SCHUR) ) {
+                    cblas_ztrsm(
+                        CblasColMajor, CblasLeft, CblasLower,
+                        (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
+                        tempn, nrhs,
+                        CBLAS_SADDR(zone), A, lda,
+                                           b + cblk->lcolidx, ldb );
+                }
 
                 /* Apply the update */
                 for (j = cblk[1].brownum-1; j>=cblk[0].brownum; j-- ) {
@@ -905,6 +910,9 @@ solve_ztrsmsp( pastix_side_t       side,
                     tempn = blok->lrownum - blok->frownum + 1;
                     A   = (pastix_complex64_t*)(fcbk->lcoeftab);
                     lda = (fcbk->cblktype & CBLK_LAYOUT_2D) ? tempn : fcbk->stride;
+
+                    if (fcbk->cblktype & CBLK_IN_SCHUR )
+                        continue;
 
                     pastix_cblk_lock( fcbk );
                     if ( fcbk->cblktype & CBLK_COMPRESSED ) {
