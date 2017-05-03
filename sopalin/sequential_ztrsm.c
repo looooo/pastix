@@ -45,6 +45,7 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
     pastix_int_t i;
     (void)pastix_data;
 
+    /* Backward like */
     if ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
          ( (side == PastixLeft)  && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
          ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
@@ -52,14 +53,11 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
     {
         cblk = datacode->cblktab + datacode->cblknbr - 1;
         for (i=0; i<datacode->cblknbr; i++, cblk--){
-
-            if ( cblk->cblktype & CBLK_IN_SCHUR )
-                continue;
-
             solve_ztrsmsp( side, uplo, trans, diag,
                            datacode, cblk, nrhs, b, ldb );
         }
     }
+    /* Forward like */
     else
         /**
          * ( (side == PastixRight) && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
@@ -70,9 +68,6 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
     {
         cblk = datacode->cblktab;
         for (i=0; i<datacode->cblknbr; i++, cblk++){
-
-            if ( cblk->cblktype & CBLK_IN_SCHUR )
-                break;
 
             solve_ztrsmsp( side, uplo, trans, diag,
                            datacode, cblk, nrhs, b, ldb );
