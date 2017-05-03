@@ -35,9 +35,8 @@
  * @param[in] cblk
  *          The column block to dump into the file.
  *
- * @param[in] array
- *          The generic pointer to lcoeftab or ucoeftab from the cblk, depending
- *          on wheter L or U is printed.
+ * @param[in] uplo
+ *          Specify if upper or lower part is printed.
  *
  * @param[inout] stream
  *          The FILE structure opened in write mode.
@@ -45,11 +44,11 @@
  *******************************************************************************/
 void
 coeftab_zdumpcblk( const SolverCblk *cblk,
-                   const void       *array,
+                   pastix_uplo_t     uplo,
                    FILE             *stream )
 {
-    const pastix_complex64_t *coeftab = (const pastix_complex64_t*)array;
-    SolverBlok *blok;
+    const pastix_complex64_t *coeftab = uplo == PastixUpper ? cblk->ucoeftab : cblk->lcoeftab;
+    SolverBlok  *blok;
     pastix_int_t itercol;
     pastix_int_t iterrow;
     pastix_int_t coefindx;
@@ -79,15 +78,28 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
             if ((cabs( coeftab[coefindx] ) > 0.) &&
                 (itercol <= iterrow))
             {
+                if ( uplo == PastixUpper ) {
 #if defined(PRECISION_z) || defined(PRECISION_c)
-                fprintf(stream, "%ld %ld (%13e,%13e)\n",
-                        (long)itercol, (long)iterrow,
-                        creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
+                    fprintf(stream, "%ld %ld (%13e,%13e) [U]\n",
+                            (long)itercol, (long)iterrow,
+                            creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
 #else
-                fprintf(stream, "%ld %ld %13e\n",
-                        (long)itercol, (long)iterrow,
-                        coeftab[coefindx]);
+                    fprintf(stream, "%ld %ld %13e [U]\n",
+                            (long)itercol, (long)iterrow,
+                            coeftab[coefindx]);
 #endif
+                }
+                else {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                    fprintf(stream, "%ld %ld (%13e,%13e) [L]\n",
+                            (long)iterrow, (long)itercol,
+                            creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
+#else
+                    fprintf(stream, "%ld %ld %13e [L]\n",
+                            (long)iterrow, (long)itercol,
+                            coeftab[coefindx]);
+#endif
+                }
             }
         }
 
@@ -109,15 +121,28 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
             {
                 if (cabs( coeftab[coefindx]) > 0.)
                 {
+                    if ( uplo == PastixUpper ) {
 #if defined(PRECISION_z) || defined(PRECISION_c)
-                    fprintf(stream, "%ld %ld (%13e,%13e)\n",
-                            (long)itercol, (long)iterrow,
-                            creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
+                        fprintf(stream, "%ld %ld (%13e,%13e) [U]\n",
+                                (long)itercol, (long)iterrow,
+                                creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
 #else
-                    fprintf(stream, "%ld %ld %13e\n",
-                            (long)itercol, (long)iterrow,
-                            coeftab[coefindx]);
+                        fprintf(stream, "%ld %ld %13e [U]\n",
+                                (long)itercol, (long)iterrow,
+                                coeftab[coefindx]);
 #endif
+                    }
+                    else {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                        fprintf(stream, "%ld %ld (%13e,%13e) [L]\n",
+                                (long)iterrow, (long)itercol,
+                                creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
+#else
+                        fprintf(stream, "%ld %ld %13e [L]\n",
+                                (long)iterrow, (long)itercol,
+                                coeftab[coefindx]);
+#endif
+                    }
                 }
             }
             blok++;
@@ -159,9 +184,9 @@ coeftab_zdump( const SolverMatrix *solvmtx,
 
     for (itercblk=0; itercblk<solvmtx->cblknbr; itercblk++, cblk++)
     {
-        coeftab_zdumpcblk( cblk, cblk->lcoeftab, stream );
+        coeftab_zdumpcblk( cblk, PastixLower, stream );
         if ( NULL != cblk->ucoeftab )
-            coeftab_zdumpcblk( cblk, cblk->ucoeftab, stream );
+            coeftab_zdumpcblk( cblk, PastixUpper, stream );
     }
 
     fclose( stream );
