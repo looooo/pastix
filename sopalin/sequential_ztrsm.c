@@ -98,7 +98,6 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
     int nrhs  = arg->nrhs;
     int ldb   = arg->ldb;
     SolverCblk *cblk;
-    SolverBlok *blok;
     Task       *t;
     pastix_int_t i,ii;
     pastix_int_t tasknbr, *tasktab;
@@ -119,15 +118,12 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
             t = datacode->tasktab + i;
             cblk = datacode->cblktab + t->cblknum;
 
-            /* Start with the last block of the column */
-            blok = (cblk[1].fblokptr) - 1;
-            while( (blok > cblk[0].fblokptr) &&
-                   (datacode->cblktab + blok->fcblknm)->cblktype & CBLK_IN_SCHUR )
-            {
-                /* Move up as long as facing Schur */
-                blok--;
+            if ( cblk->cblktype & CBLK_IN_SCHUR ) {
+                cblk->ctrbcnt = 0;
             }
-            cblk->ctrbcnt = (blok - cblk[0].fblokptr);
+            else {
+                cblk->ctrbcnt = cblk[1].fblokptr - cblk[0].fblokptr - 1;
+            }
         }
         isched_barrier_wait( &(ctx->global_ctx->barrier) );
 
@@ -135,9 +131,6 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
             i = tasktab[ii];
             t = datacode->tasktab + i;
             cblk = datacode->cblktab + t->cblknum;
-
-            if ( cblk->cblktype & CBLK_IN_SCHUR )
-                continue;
 
             /* Wait */
             do {} while( cblk->ctrbcnt );
