@@ -19,9 +19,11 @@
 #include "common.h"
 
 #if defined(PASTIX_WITH_EZTRACE)
+#include "eztrace.h"
+#include "eztrace_sampling.h"
 #include "ev_codes.h"
 
-#define KERNELS_EVENTS_ID    USER_MODULE_ID(0x99)
+#define KERNELS_EVENTS_ID    USER_MODULE_ID(0x51)
 #define KERNELS_PREFIX       (KERNELS_EVENTS_ID << 3)
 #define KERNELS_CODE(event)  (KERNELS_PREFIX | event )
 
@@ -63,7 +65,14 @@ typedef enum kernels_ev_code_e kernels_ev_code_t;
  *          The number of operations performed
  *
  *******************************************************************************/
-void start_trace_kernel(kernels_ev_code_t state, pastix_int_t flops);
+static inline void start_trace_kernel(kernels_ev_code_t state, double flops){
+#if defined(PASTIX_WITH_EZTRACE)
+    EZTRACE_EVENT_PACKED_1(KERNELS_CODE(state), flops);
+#else
+    (void) state;
+    (void) flops;
+#endif /* defined(PASTIX_WITH_EZTRACE) */
+}
 
 /**
  *******************************************************************************
@@ -73,6 +82,10 @@ void start_trace_kernel(kernels_ev_code_t state, pastix_int_t flops);
  * @brief Stop to trace a kernel
  *
  *******************************************************************************/
-void stop_trace_kernel();
+static inline void stop_trace_kernel(){
+#if defined(PASTIX_WITH_EZTRACE)
+    EZTRACE_EVENT_PACKED_0(KERNELS_CODE(STOP));
+#endif /* defined(PASTIX_WITH_EZTRACE) */
+}
 
 #endif	/* __KERNELS_EV_CODES_H__ */

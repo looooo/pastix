@@ -38,7 +38,7 @@ typedef struct kernels_thread_info_e {
 
     /* Counters per event */
     int    *nb;
-    int    *flops;
+    double *flops;
     double *run_time;
 } kernels_thread_info_t;
 

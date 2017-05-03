@@ -23,7 +23,7 @@ static kernels_thread_info_t *kernels_register_thread_hook(
     p_info->p_thread = p_thread;
 
     int    *nb       = malloc(MAX_EVENTS * sizeof(int));
-    int    *flops    = malloc(MAX_EVENTS * sizeof(int));
+    double *flops    = malloc(MAX_EVENTS * sizeof(double));
     double *run_time = malloc(MAX_EVENTS * sizeof(double));
 
     int i;
@@ -103,7 +103,7 @@ eztrace_convert_kernels_init()
 
 void handle_start(kernels_ev_code_t ev)
 {
-    int size;
+    double size;
 
     DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
     DECLARE_CUR_THREAD(p_thread);
@@ -183,7 +183,7 @@ print_kernels_stats()
 
             int k;
             for (k=1; k<NB_EVENTS; k++){
-                printf("Kernel %20s was called %5d times, flops=%8d, duration=%.3g\n",
+                printf("Kernel %20s was called %5d times, flops=%8.3g, duration=%.3g\n",
                        kernels_properties[k].name, p_info->nb[k], p_info->flops[k], p_info->run_time[k]);
             }
         }
