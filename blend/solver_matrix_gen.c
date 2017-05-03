@@ -721,18 +721,6 @@ solverMatrixGen( pastix_int_t        clustnum,
         }
     }
 
-#if defined(PASTIX_WITH_CUDA)
-    if (ctrl->iparm[IPARM_CUDA_NBR] > 0) {
-        size_t eltsize = 32 * 1024 * (pastix_size_of(ctrl->iparm[IPARM_FLOAT]) / sizeof(float));
-        solverComputeGPUDistrib( solvmtx,
-                                 ctrl->iparm[IPARM_GPU_NBR],
-                                 ctrl->iparm[IPARM_GPU_MEMORY_PERCENTAGE],
-                                 eltsize,
-                                 ctrl->iparm[IPARM_GPU_CRITERIUM],
-                                 ctrl->iparm[IPARM_FACTORIZATION] );
-    }
-#endif
-
     memFree_null(cblklocalnum);
     memFree_null(bloklocalnum);
     memFree_null(tasklocalnum);

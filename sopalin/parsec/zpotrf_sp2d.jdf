@@ -166,6 +166,31 @@ RW    C  <- (brownum == -1) || isTwoD ? NULL
 
 ; %{ return cblknbr - ((fcblknm + lcblknm) / 2 ) + last - brownum; %}
 
+BODY [ type=CUDA ]
+{
+    /* Never execute the 1D GPU kernel on diagonal blocks, and 2D cblks */
+    if ((brownum != -1) && !isTwoD) {
+        SolverCblk *lcblk = datacode->cblktab + lcblknm;
+        SolverCblk *fcblk = datacode->cblktab + fcblknm;
+        SolverBlok *blok  = datacode->bloktab + bloknum;
+
+#if defined(PASTIX_CUDA_FERMI)
+        gpu_zgemmsp_fermi( datacode,
+                           PastixLower, PastixConjTrans,
+                           descA->d_blocktab[parsec_body.index],
+                           lcblk, blok, fcblk,
+                           A, A, C,
+                           parsec_body.stream );
+#else
+        gpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+                         lcblk, blok, fcblk,
+                         A, A, C,
+                         &lowrank, parsec_body.stream );
+#endif /* defined(PASTIX_CUDA_FERMI) */
+    }
+}
+END
+
 BODY
 {
     /* If diagonal block, or 2D, we skip it */
@@ -175,14 +200,18 @@ BODY
         SolverBlok *blok  = datacode->bloktab + bloknum;
         pastix_complex64_t *work = NULL;
 
-        //work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
+        if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
+            work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
+        }
 
         cpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
                          lcblk, blok, fcblk,
                          A, A, C,
                          work, &lowrank );
 
-        //parsec_private_memory_push( p_work, (void *)work );
+        if ( work  ) {
+            parsec_private_memory_push( p_work, (void *)work );
+        }
     }
 }
 END
@@ -223,6 +252,7 @@ READ A <- isTwoD && noskip ? descA(0, k, noskip) : NULL
 CTL  ctl <- (isTwoD) ? ctl POTRF(k)
 
 ; %{ return cblknbr - k; %}
+
 BODY
 {
     /* Switch from 1D data handlers to 2D data handlers */
@@ -252,6 +282,7 @@ RW   A  <-  isTwoD & (first == last) ? A OneToTwoD( k, 0 )
         ->  isTwoD ? descA(0, k, 1)
 
 ; %{ return cblknbr - k; %}
+
 BODY
 {
     if (isTwoD) {
@@ -299,6 +330,19 @@ RW    C   <-  isTwoD & noskip & (first == last) ? A OneToTwoD( k, m )
 
 ; %{ return cblknbr - k; %}
 
+BODY [ type=CUDA ]
+{
+    if( isTwoD && noskip ) {
+        SolverCblk *cblk  = datacode->cblktab + k;
+
+        gpublok_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
+                         PastixConjTrans, PastixNonUnit,
+                         cblk, m, A, C, &lowrank,
+                         parsec_body.stream );
+    }
+}
+END
+
 BODY
 {
     if (isTwoD && noskip) {
@@ -306,7 +350,7 @@ BODY
         cpublok_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
                          PastixConjTrans, PastixNonUnit,
                          cblk, m, A, C, &lowrank );
-    }
+   }
 }
 END
 
@@ -463,6 +507,23 @@ RW    C  <- (k == first) ? A OneToTwoD( cblk_n, blok_mn )
          -> (last != k) ? C GEMM2D( cblk_n, blok_mn, k+1 )
 
 ; %{ return cblknbr - ( ((k-first) * (cblk_n - cblk_k)) / (last-first+1) ) - cblk_n; %}
+
+BODY [ type=CUDA ]
+{
+    /* is2dA && is2dC && noskipC && blok_nk && blok_mk */
+    /* Skip the update on diagonal block if upper part */
+    if( todo ) {
+        SolverCblk *cblk  = datacode->cblktab + cblk_k;
+        SolverCblk *fcblk = datacode->cblktab + cblk_n;
+        pastix_int_t nk = blok_nk - fblokk;
+
+        gpublok_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+                         cblk, fcblk, blok_mk, nk, blok_mn,
+                         A, B, C, &lowrank,
+                         parsec_body.stream );
+    }
+}
+END
 
 BODY
 {

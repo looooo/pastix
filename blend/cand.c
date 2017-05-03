@@ -477,7 +477,11 @@ candBuild( pastix_int_t autolevel, pastix_int_t level2D, pastix_int_t ratiolimit
     if(autolevel)
     {
         candSubTreeDistribWithSize( eTreeRoot(etree),
+#if defined(PASTIX_CUDA_FERMI)
+                                    CBLK_IN_SCHUR,
+#else
                                     CBLK_LAYOUT_2D | CBLK_TASKS_2D | CBLK_IN_SCHUR,
+#endif
                                     ratiolimit,
                                     candtab, etree, symbmtx );
     }

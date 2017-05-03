@@ -34,7 +34,6 @@ int main (int argc, char **argv)
     int             nsolv = 2;
     long            i,j;
 
-
     /**
      * Initialize parameters to default values
      */

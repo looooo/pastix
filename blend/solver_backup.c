@@ -196,6 +196,7 @@ solverBackupRestore( SolverMatrix         *solvmtx,
 
         for (i=0; i<solvmtx->bloknbr; i++, blok++) {
             blok->fcblknm = b->symbol_cblknum[i];
+            blok->gpuid = GPUID_UNDEFINED;
         }
     }
     solvmtx->nodenbr = b->symbol_nodenbr;

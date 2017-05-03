@@ -56,6 +56,9 @@ option(PASTIX_WITH_MPI
 option(PASTIX_WITH_CUDA
     "Enable GPU support using CUDA kernels" OFF)
 
+cmake_dependent_option(PASTIX_CUDA_FERMI
+    "Enable the Fermi kernel instead of the batched kernel" OFF "PASTIX_WITH_CUDA" OFF)
+
 ### Runtime engines
 option(PASTIX_WITH_STARPU
     "Build PaStiX with StarPU runtime support" OFF)
