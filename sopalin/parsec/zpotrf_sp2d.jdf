@@ -73,14 +73,15 @@ CTL ctl -> isTwoD ? ctl OneToTwoD(k, 0 .. (lastblok-firstblok+1))
 
 BODY
 {
+    SolverCblk *cblk = datacode->cblktab + k;
+
     if (!isTwoD) {
-        SolverCblk *cblk = datacode->cblktab + k;
-        cpucblk_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, &lowrank );
+        if (!(cblk->cblktype & CBLK_IN_SCHUR))
+            cpucblk_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, &lowrank );
     }
     else {
         /* Compression between 1D and 2D updates */
         if ( lowrank.compress_when == PastixCompressWhenDuring ) {
-            SolverCblk *cblk = datacode->cblktab + k;
             coeftab_zcompress_one( cblk, lowrank );
         }
     }
@@ -174,19 +175,21 @@ BODY [ type=CUDA ]
         SolverCblk *fcblk = datacode->cblktab + fcblknm;
         SolverBlok *blok  = datacode->bloktab + bloknum;
 
+        if (!(lcblk->cblktype & CBLK_IN_SCHUR)) {
 #if defined(PASTIX_CUDA_FERMI)
-        gpu_zgemmsp_fermi( datacode,
-                           PastixLower, PastixConjTrans,
-                           descA->d_blocktab[parsec_body.index],
-                           lcblk, blok, fcblk,
-                           A, A, C,
-                           parsec_body.stream );
+            gpu_zgemmsp_fermi( datacode,
+                               PastixLower, PastixConjTrans,
+                               descA->d_blocktab[parsec_body.index],
+                               lcblk, blok, fcblk,
+                               A, A, C,
+                               parsec_body.stream );
 #else
-        gpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
-                         lcblk, blok, fcblk,
-                         A, A, C,
-                         &lowrank, parsec_body.stream );
+            gpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+                             lcblk, blok, fcblk,
+                             A, A, C,
+                             &lowrank, parsec_body.stream );
 #endif /* defined(PASTIX_CUDA_FERMI) */
+        }
     }
 }
 END
@@ -200,17 +203,19 @@ BODY
         SolverBlok *blok  = datacode->bloktab + bloknum;
         pastix_complex64_t *work = NULL;
 
-        if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
-            work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
-        }
+        if (!(lcblk->cblktype & CBLK_IN_SCHUR)) {
+            if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
+                work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
+            }
 
-        cpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
-                         lcblk, blok, fcblk,
-                         A, A, C,
-                         work, &lowrank );
+            cpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+                             lcblk, blok, fcblk,
+                             A, A, C,
+                             work, &lowrank );
 
-        if ( work  ) {
-            parsec_private_memory_push( p_work, (void *)work );
+            if ( work  ) {
+                parsec_private_memory_push( p_work, (void *)work );
+            }
         }
     }
 }
@@ -288,7 +293,8 @@ BODY
     if (isTwoD) {
         SolverCblk *cblk = datacode->cblktab + k;
         /* pastix_int_t  nbpivot = */
-        cpucblk_zpotrfsp1d_potrf( cblk, A, sopalin_data->diagthreshold );
+        if (!(cblk->cblktype & CBLK_IN_SCHUR))
+            cpucblk_zpotrfsp1d_potrf( cblk, A, sopalin_data->diagthreshold );
     }
 }
 END
@@ -335,10 +341,12 @@ BODY [ type=CUDA ]
     if( isTwoD && noskip ) {
         SolverCblk *cblk  = datacode->cblktab + k;
 
-        gpublok_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
-                         PastixConjTrans, PastixNonUnit,
-                         cblk, m, A, C, &lowrank,
-                         parsec_body.stream );
+        if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
+            gpublok_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
+                             PastixConjTrans, PastixNonUnit,
+                             cblk, m, A, C, &lowrank,
+                             parsec_body.stream );
+        }
     }
 }
 END
@@ -347,10 +355,13 @@ BODY
 {
     if (isTwoD && noskip) {
         SolverCblk *cblk = datacode->cblktab + k;
-        cpublok_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
-                         PastixConjTrans, PastixNonUnit,
-                         cblk, m, A, C, &lowrank );
-   }
+
+        if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
+            cpublok_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
+                             PastixConjTrans, PastixNonUnit,
+                             cblk, m, A, C, &lowrank );
+        }
+    }
 }
 END
 
@@ -517,10 +528,12 @@ BODY [ type=CUDA ]
         SolverCblk *fcblk = datacode->cblktab + cblk_n;
         pastix_int_t nk = blok_nk - fblokk;
 
-        gpublok_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
-                         cblk, fcblk, blok_mk, nk, blok_mn,
-                         A, B, C, &lowrank,
-                         parsec_body.stream );
+        if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
+            gpublok_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+                             cblk, fcblk, blok_mk, nk, blok_mn,
+                             A, B, C, &lowrank,
+                             parsec_body.stream );
+        }
     }
 }
 END
@@ -533,9 +546,11 @@ BODY
         SolverCblk  *fcblk = datacode->cblktab + cblk_n;
         pastix_int_t nk = blok_nk - fblokk;
 
-        cpublok_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
-                         cblk, fcblk, blok_mk, nk, blok_mn,
-                         A, B, C, &lowrank );
+        if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
+            cpublok_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+                             cblk, fcblk, blok_mk, nk, blok_mn,
+                             A, B, C, &lowrank );
+        }
     }
 }
 END
