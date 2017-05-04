@@ -58,7 +58,6 @@ void handle_stop();
 
 int eztrace_convert_kernels_init();
 int handle_kernels_events(eztrace_event_t *ev);
-int handle_kernels_stats(eztrace_event_t *ev);
 void print_kernels_stats();
 
 #endif /* __EZTRACE_CONVERT_KERNELS_H__ */

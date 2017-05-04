@@ -15,6 +15,21 @@
 
 #include "eztrace_convert_kernels.h"
 
+/**
+ *******************************************************************************
+ *
+ * @brief Initialize data associated with each kernel for a thread
+ *
+ *******************************************************************************
+ *
+ * @param[in] p_thread
+ *          The reference to the thread managed by eztrace
+ *
+ *******************************************************************************
+ *
+ * @return  The structure containing the thread and statistics for each kernel
+ *
+ *******************************************************************************/
 static kernels_thread_info_t *kernels_register_thread_hook(
     struct thread_info_t *p_thread) {
     kernels_thread_info_t *p_info = (kernels_thread_info_t*) malloc(
@@ -42,15 +57,21 @@ static kernels_thread_info_t *kernels_register_thread_hook(
     return p_info;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Start to use eztrace by loading PaStiX module
+ *
+ *******************************************************************************/
 struct eztrace_convert_module kernels_module;
 void libinit(void) __attribute__ ((constructor));
 void libinit(void)
 {
-    kernels_module.api_version = EZTRACE_API_VERSION;
-    kernels_module.init = eztrace_convert_kernels_init;
-    kernels_module.handle = handle_kernels_events;
-    kernels_module.handle_stats = handle_kernels_stats;
-    kernels_module.print_stats = print_kernels_stats;
+    kernels_module.api_version   = EZTRACE_API_VERSION;
+    kernels_module.init          = eztrace_convert_kernels_init;
+    kernels_module.handle        = handle_kernels_events;
+    kernels_module.handle_stats  = handle_kernels_events;
+    kernels_module.print_stats   = print_kernels_stats;
     kernels_module.module_prefix = KERNELS_EVENTS_ID;
 
     asprintf(&kernels_module.name, "kernels");
@@ -60,6 +81,12 @@ void libinit(void)
     eztrace_convert_register_module(&kernels_module);
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Stop to use eztrace
+ *
+ *******************************************************************************/
 void libfinalize(void) __attribute__ ((destructor));
 void libfinalize(void)
 {
@@ -67,6 +94,12 @@ void libfinalize(void)
 }
 
 
+/**
+ *******************************************************************************
+ *
+ * @brief Define events properties such as name or color
+ *
+ *******************************************************************************/
 void define_kernels_properties()
 {
     /* Low-rank operations */
@@ -81,11 +114,23 @@ void define_kernels_properties()
     kernels_properties[DENSE_GEMM] = (kernels_t) {"dense_gemm", GTG_GREEN};
 }
 
-int
-eztrace_convert_kernels_init()
+/**
+ *******************************************************************************
+ *
+ * @brief Init events metainformation such as name or color
+ *
+ *******************************************************************************
+ *
+ * @retval 0 The events where correcly initialized
+ *
+ * @retval 1 The events where not correcly initialized
+ *
+ *******************************************************************************/
+int eztrace_convert_kernels_init()
 {
     if (NB_EVENTS > MAX_EVENTS + 1){
         printf("FATAL ERROR: static table is not large enough\n");
+        return 1;
     }
 
     if (get_mode() == EZTRACE_CONVERT) {
@@ -101,6 +146,17 @@ eztrace_convert_kernels_init()
     return 0;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Handle the start of an elemental event
+ *
+ *******************************************************************************
+ *
+ * @param[in] ev
+ *          The reference of the kernel for which statistics will be updated
+ *
+ *******************************************************************************/
 void handle_start(kernels_ev_code_t ev)
 {
     double size;
@@ -120,6 +176,12 @@ void handle_start(kernels_ev_code_t ev)
     pushState(CURRENT, "ST_Thread", thread_id, kernels_properties[ev].name);
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Handle the end of an elemental event
+ *
+ *******************************************************************************/
 void handle_stop()
 {
     DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
@@ -131,10 +193,25 @@ void handle_stop()
     popState(CURRENT, "ST_Thread", thread_id);
 }
 
-int
-handle_kernels_events(eztrace_event_t *ev)
+/**
+ *******************************************************************************
+ *
+ * @brief Fonction called by eztrace_stats to handle a single event
+ *
+ *******************************************************************************
+ *
+ * @param[in] ev
+ *          The event to be handled
+ *
+ *******************************************************************************
+ *
+ * @retval 0 The event was not correclty handled
+ *
+ * @retval 1 The event was correclty handled
+ *
+ *******************************************************************************/
+int handle_kernels_events(eztrace_event_t *ev)
 {
-
     if(! CUR_TRACE->start)
         return 0;
 
@@ -151,15 +228,13 @@ handle_kernels_events(eztrace_event_t *ev)
     return 1;
 }
 
-int
-handle_kernels_stats(eztrace_event_t *ev)
-{
-    return handle_kernels_events(ev);
-}
-
-
-void
-print_kernels_stats()
+/**
+ *******************************************************************************
+ *
+ * @brief Print the statistics of each kernel for each thread
+ *
+ *******************************************************************************/
+void print_kernels_stats()
 {
     define_kernels_properties();
 
@@ -174,20 +249,21 @@ print_kernels_stats()
         int j;
         /* For each process, browse the list of threads */
         for(j=0; j<p_process->nb_children; j++) {
+            int k;
             struct eztrace_container_t *thread_container = p_process->children[j];
-            struct thread_info_t *p_thread = (struct thread_info_t*) thread_container->container_info;
+            struct thread_info_t *p_thread = (struct thread_info_t*)
+                thread_container->container_info;
+
             if(!p_thread)
                 continue;
             INIT_KERNELS_THREAD_INFO(p_thread, p_info);
             printf("\tThread %20s\n", thread_container->name);
 
-            int k;
             for (k=1; k<NB_EVENTS; k++){
                 printf("Kernel %20s was called %5d times, flops=%8.3g, duration=%.3g\n",
-                       kernels_properties[k].name, p_info->nb[k], p_info->flops[k], p_info->run_time[k]);
+                       kernels_properties[k].name, p_info->nb[k],
+                       p_info->flops[k], p_info->run_time[k]);
             }
         }
     }
 }
-
-
