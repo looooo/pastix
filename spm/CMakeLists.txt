@@ -80,6 +80,11 @@ add_library(pastix_spm
   ${spm_sources}
   )
 
+target_link_libraries(pastix_spm
+  ${LAPACKE_LIBRARIES}
+  ${CBLAS_LIBRARIES}
+  )
+
 add_dependencies(pastix_spm
   spm_headers_tgt
 )
