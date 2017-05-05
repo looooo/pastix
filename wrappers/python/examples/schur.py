@@ -1,83 +1,123 @@
-from mpi4py import MPI
-from pymumps import Mumps
+"""
+ @file simple.py
+
+ PaStiX simple python example
+
+ @copyright 2017      Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+                      Univ. Bordeaux. All rights reserved.
+
+ @version 6.0.0
+ @author Pierre Ramet
+ @author Mathieu Faverge
+ @date 2017-05-04
+
+"""
+#from pypastix import pastix
+from pastix_api import *
+from pyspm import spm
+from pypastix import pastix
 import scipy.sparse as spp
-import scipy.linalg as sl
+import scipy.linalg as la
 import numpy as np
 
-# Initialize mumps wrapper
-driver_mumps = Mumps('D')
-# Get corresponding numpy type
-nptype = driver_mumps.nptype
+flttype   = pastix_coeftype.PastixDouble
+mtxtype   = pastix_mtxtype.PastixGeneral
+factotype = pastix_factotype.PaStiXFactLU
 
-# MPI stuff
-comm = MPI.COMM_WORLD
-myid = comm.Get_rank()
-nprocs = comm.Get_size()
+# Get corresponding numpy type for arithmetic and integers array
+nptype = 'f8'
+npinttype = 'i8'
 
-# Set fortran communicator
-id = driver_mumps.id
-id.comm_fortran = comm.py2f()
-
-# Set par to 1 for sequential version
-if nprocs == 1:
-    id.par = 1
-
-# Init mumps
-driver_mumps.initialize()
+iscomplex=0
+if flttype == pastix_coeftype.PastixComplex32 or flttype == pastix_coeftype.PastixComplex64:
+    iscomplex = 1
 
 # Set matrix A
-n = 3
-nnz = 6
-row = np.zeros((nnz,), dtype='i')
-col = np.zeros((nnz,), dtype='i')
-data = np.zeros((nnz,),dtype=nptype)
-cnt_ = [0] # To use closure in the function
+n    = 9
+nrhs = 1
+row  = np.array([0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8], dtype=npinttype)
+col  = np.array([0, 1, 3, 0, 1, 2, 4, 1, 2, 5, 0, 3, 4, 6, 1, 3, 4, 5, 7, 2, 4, 5, 8, 3, 6, 7, 4, 6, 7, 8, 5, 7, 8], dtype=npinttype)
+data = np.array([4.0, -1.0, -1.0, -1.0, 4.0, -1.0, -1.0, -1.0, 4.0, -1.0, -1.0, 4.0, -1.0, -1.0, -1.0, -1.0, 4.0,
+                 -1.0, -1.0, -1.0, -1.0, 4.0, -1.0, -1.0, 4.0, -1.0, -1.0, -1.0, 4.0, -1.0, -1.0, -1.0, 4.0], dtype=nptype)
 
-def set_ijv(i, j, v):
-    cnt = cnt_[0]
-    row[cnt] = i
-    col[cnt] = j
-    data[cnt] = v
-    cnt_[0] = cnt_[0] + 1
+if iscomplex:
+    data.imag += 1
 
-set_ijv(0,0, 1.0)
-set_ijv(0,1, 2.0)
-set_ijv(0,2, 3.0)
-set_ijv(1,0, 1.0)
-set_ijv(2,0, -2.0)
-set_ijv(1,2, 10.0)
-
+# Construct the matrix in SciPY sparse matrix format
 A = spp.coo_matrix((data, (row, col)), shape=(n, n))
 
-print (A.todense())
+# Construct an initial solution
+x0 = np.zeros((n, nrhs,), dtype=nptype)
+for i in range(nrhs):
+    k = i * nrhs
+    if iscomplex:
+        x0[:,i].real = np.arange(k+1.0, k+n+1.0)
+        x0[:,i].imag = np.arange(-n-k, -k)
+    else:
+        x0[:,i] = np.arange(k+1.0, k+n+1.0, dtype=nptype)
 
-# Set rhs
-#rhs = np.arange(n, dtype=nptype)
+# Construct b as b = A * x_0
+b = np.matmul(A.todense(), x0)
+x = b.copy()
 
-if myid == 0:
-    driver_mumps.set_A(A)
-    #driver_mumps.set_RHS(rhs)
+# Convert the scipy sparse matrix to spm storage format
+spmA = spm( A, mtxtype );
+spmA.printInfo()
 
-# Set icntl
-driver_mumps.ICNTL[1] = 6
-driver_mumps.ICNTL[2] = 6
-driver_mumps.ICNTL[3] = 6
-driver_mumps.ICNTL[4] = 6
+# Initialize parameters to default values
+iparm = np.array( np.zeros( pastix_iparm.iparm_size ), dtype=pastix_np_int )
+dparm = np.array( np.zeros( pastix_dparm.dparm_size ), dtype='float64' )
+pastix.initParam( iparm, dparm )
 
-# Give indices to keep in the schur complement
-driver_mumps.set_schur_listvar([1,2]) # Python numbering
+# Startup PaStiX
+pastix_data = pastix.init( iparm, dparm )
 
-# Call mumps
-driver_mumps.drive(1) # Analysis
-driver_mumps.drive(2) # Facto
+# Initialize the Schur list
+nschur = 2
+schurlist = np.array( [3, 4], dtype=pastix_np_int )
+pastix.setSchurUnknownList ( pastix_data, nschur, schurlist )
+iparm[IPARM_SCHUR] = API_YES
 
-if myid == 0:
-    schur = driver_mumps.get_schur()
-    print("Found:")
-    print(schur)
+# Perform analyze
+pastix.analyze( pastix_data, spmA )
 
-# Finalize mumps
-driver_mumps.finalize()
+# Perform numerical factorization
+pastix.numfact( pastix_data, spmA )
 
-if myid == 0:
-    print("done")
+# Get the Schur complement
+S = np.array( np.zeros( nschur * nschur ), dtype=nptype )
+pastix.getSchur( pastix_data, S, nschur )
+
+# Factorize the Schur complement
+if factotype == pastix_factotype.PaStiXFactLU:
+    (F,P)=la.lu_factor(S, True)
+else:
+    (F,L)=la.cho_factor(S, True, True)
+
+# 1- Apply P to b
+pastix.subtask_applyorder( pastix_data, pastix_dir.PastixDirForward, n, nrhs, x, n )
+
+# 2- Forward solve on the non Schur complement part of the system
+if factotype == pastix_factotype.PaStiXFactLU:
+    pastix.subtask_trsm( pastix_data, pastix_side.PastiXLeft, pastix_uplo.PastixLower, pastix_trans.PastixNoTrans, pastix_diag.PastixNonUnit, nrhs, x, n )
+else:
+    pastix.subtask_trsm( pastix_data, pastix_side.PastiXLeft, pastix_uplo.PastixLower, pastix_trans.PastixNoTrans, pastix_diag.PastixUnit, nrhs, x, n )
+
+# 3- Solve the Schur complement part
+if factotype == pastix_factotype.PaStiXFactLU:
+    la.lu_solve((F,P), x[n-nschur:], 0, True)
+else:
+    la.cho_solve((F,L), x[n-nschur:], True)
+
+# 4- Backward solve on the non Schur complement part of the system
+if factotype == pastix_factotype.PaStiXFactLU:
+    pastix.subtask_trsm( pastix_data, pastix_side.PastiXLeft, pastix_uplo.PastixUpper, pastix_trans.PastixNoTrans, pastix_diag.PastiXNonUnit, nrhs, x, n )
+else:
+    pastix.subtask_trsm( pastix_data, pastix_side.PastiXLeft, pastix_uplo.PastixLower, pastix_trans.PastixConjTrans, pastix_diag.PastiXNonUnit, nrhs, x, n )
+#  5- Apply P^t to x
+pastix.subtask_applyorder( pastix_data, pastix_dir.PastixDirBackward, n, nrhs, x, n )
+
+# Check solution
+spmA.checkAxb( nrhs, x0, n, b, n, x, n )
+
+pastix.finalize( pastix_data, iparm, dparm )
