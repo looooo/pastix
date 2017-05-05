@@ -821,7 +821,7 @@ spmCopy( const pastix_spm_t *spm )
 void
 spmPrintInfo( const pastix_spm_t* spm, FILE *stream )
 {
-    char *mtxtypestr[4] = { "General", "Symmetry", "Hermitian", "Incorrect" };
+    char *mtxtypestr[4] = { "General", "Symmetric", "Hermitian", "Incorrect" };
     char *flttypestr[7] = { "Pattern", "", "Float", "Double", "Complex32", "Complex64", "Incorrect" };
     char *fmttypestr[4] = { "CSC", "CSR", "IJV", "Incorrect" };
     int  mtxtype = spm->mtxtype - PastixGeneral;
