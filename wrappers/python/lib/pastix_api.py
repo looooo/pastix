@@ -63,6 +63,19 @@ class pastix_coeftype:
         else:
             return -1
 
+    @staticmethod
+    def getdtype ( flttype ):
+        np_dict = {
+            pastix_coeftype.PastixFloat     : np.dtype('float32'),
+            pastix_coeftype.PastixDouble    : np.dtype('float64'),
+            pastix_coeftype.PastixComplex32 : np.dtype('complex64'),
+            pastix_coeftype.PastixComplex64 : np.dtype('complex128')
+        }
+        if dtype in np_dict:
+            return np_dict[flttype]
+        else:
+            return -1
+
 class pastix_fmttype:
     PastixCSC = 0 # Compressed sparse column
     PastixCSR = 1 # Compressed sparse row
@@ -121,3 +134,11 @@ class pastix_mtxtype:
     PastixSymmetric = pastix_trans.PastixTrans      # The matrix is symmetric
     PastixHermitian = pastix_trans.PastixConjTrans  # The matrix is hermitian
 
+class pastix_driver:
+    PastixDriverRSA        = 0  # RSA driver
+    PastixDriverHB         = 1  # Harwell Boeing driver
+    PastixDriverIJV        = 2  # IJV Coordinate driver
+    PastixDriverMM         = 3  # Matrix Market driver
+    PastixDriverLaplacian  = 4  # 3, 5, or 7 points Lapalacian stencil generator
+    PastixDriverXLaplacian = 5  # 15-points Laplacian stencil generator
+    PastixDriverGraph      = 6  # Scotch Graph driver
