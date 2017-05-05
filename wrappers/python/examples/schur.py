@@ -21,8 +21,8 @@ import scipy.linalg as la
 import numpy as np
 
 flttype   = pastix_coeftype.PastixDouble
-mtxtype   = pastix_mtxtype.PastixGeneral
-factotype = pastix_factotype.PastixFactLU
+mtxtype   = pastix_mtxtype.PastixSymmetric
+factotype = pastix_factotype.PastixFactLLT
 
 # Get corresponding numpy type for arithmetic and integers array
 nptype = 'f8'
@@ -74,6 +74,7 @@ pastix.initParam( iparm, dparm )
 
 # Startup PaStiX
 pastix_data = pastix.init( iparm, dparm )
+iparm[pastix_iparm.iparm_factorization] = factotype
 
 # Initialize the Schur list
 nschur = 2
