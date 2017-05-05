@@ -47,7 +47,7 @@ if iscomplex:
 A = spp.coo_matrix((data, (row, col)), shape=(n, n))
 
 # Construct an initial solution
-x0 = np.zeros((n, nrhs,), dtype=nptype)
+x0 = np.zeros((n, nrhs), dtype=nptype)
 for i in range(nrhs):
     k = i * nrhs
     if iscomplex:
@@ -76,7 +76,6 @@ pastix_data = pastix.init( iparm, dparm )
 nschur = 2
 schurlist = np.array( [3, 4], dtype=pastix_np_int )
 pastix.setSchurUnknownList ( pastix_data, nschur, schurlist )
-iparm[pastix_iparm.iparm_schur] = 1
 
 # Perform analyze
 pastix.analyze( pastix_data, spmA )
@@ -85,47 +84,50 @@ pastix.analyze( pastix_data, spmA )
 pastix.numfact( pastix_data, spmA )
 
 # Get the Schur complement
-S = np.array( np.zeros( (nschur, nschur) ), dtype=nptype )
+S = np.array( np.zeros( (nschur, nschur) ), order='F', dtype=nptype )
 pastix.getSchur( pastix_data, S )
-print("Schur")
-print S
+print( "Schur\n", S )
 
 # Factorize the Schur complement
 if factotype == pastix_factotype.PastixFactLU:
-    (F,P)=la.lu_factor(S, True)
-    print("Factor")
-    print F
-    print("Pivots")
-    print P
+    (F,P) = la.lu_factor(S, True)
 else:
-    (F,L)=la.cho_factor(S, True, True)
+    (F,L) = la.cho_factor(S, True, True)
 
 # 1- Apply P to b
+print("B\n", x )
 pastix.subtask_applyorder( pastix_data, pastix_dir.PastixDirForward, n, nrhs, x, n )
+print("P B\n", x )
 
 # 2- Forward solve on the non Schur complement part of the system
 if factotype == pastix_factotype.PastixFactLU:
-    pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixLower, pastix_trans.PastixNoTrans, pastix_diag.PastixNonUnit, nrhs, x, n )
-else:
     pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixLower, pastix_trans.PastixNoTrans, pastix_diag.PastixUnit, nrhs, x, n )
+else:
+    pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixLower, pastix_trans.PastixNoTrans, pastix_diag.PastixNonUnit, nrhs, x, n )
+
+print("X after interior forward solve\n", x )
 
 # 3- Solve the Schur complement part
 if factotype == pastix_factotype.PastixFactLU:
-    print("X1")
-    print x[n-nschur:]
-    la.lu_solve((F,P), x[n-nschur:], 0, True)
-    print("X2")
-    print x[n-nschur:]
+    la.lu_solve((F,P), x[n-nschur:,:], 0, True)
 else:
-    la.cho_solve((F,L), x[n-nschur:], True)
+    la.cho_solve((F,L), x[n-nschur:,:], True)
+
+print("X after schur solve\n", x )
 
 # 4- Backward solve on the non Schur complement part of the system
 if factotype == pastix_factotype.PastixFactLU:
     pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixUpper, pastix_trans.PastixNoTrans, pastix_diag.PastixNonUnit, nrhs, x, n )
 else:
     pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixLower, pastix_trans.PastixConjTrans, pastix_diag.PastixNonUnit, nrhs, x, n )
+
+print("X after backward solve\n", x )
+
 #  5- Apply P^t to x
 pastix.subtask_applyorder( pastix_data, pastix_dir.PastixDirBackward, n, nrhs, x, n )
+
+print("Final X\n", x )
+print("X0\n", x0 )
 
 # Check solution
 spmA.checkAxb( nrhs, x0, n, b, n, x, n )
