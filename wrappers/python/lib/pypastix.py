@@ -66,6 +66,17 @@ class pastix():
         return pastix_data
 
     @staticmethod
+    def finalize( pastix_data, iparm, dparm ):
+
+        pastix.libpastix.pastixFinalize.argtypes = [POINTER(c_void_p), c_int, POINTER(pastix_c_int), POINTER(c_double)]
+        pastix.libpastix.pastixFinalize( pointer( pastix_data ), c_int(0),
+                                         iparm.ctypes.data_as(POINTER(pastix_c_int)),
+                                         dparm.ctypes.data_as(POINTER(c_double)) )
+
+    #
+    # Pastix Tasks
+    #
+    @staticmethod
     def analyze( pastix_data, spm ):
         if pastix.libpastix == None:
             pastix.__init__()
@@ -111,10 +122,69 @@ class pastix():
                                              b.ctypes.data_as(c_void_p) )
 
 
-    @staticmethod
-    def finalize( pastix_data, iparm, dparm ):
 
-        pastix.libpastix.pastixFinalize.argtypes = [POINTER(c_void_p), c_int, POINTER(pastix_c_int), POINTER(c_double)]
-        pastix.libpastix.pastixFinalize( pointer( pastix_data ), c_int(0),
-                                         iparm.ctypes.data_as(POINTER(pastix_c_int)),
-                                         dparm.ctypes.data_as(POINTER(c_double)) )
+    #
+    # Pastix Schur
+    #
+    @staticmethod
+    def setSchurUnknownList( pastix_data, n, list ):
+        if pastix.libpastix == None:
+            pastix.__init__()
+
+        if _dtype != list.dtype:
+            raise TypeError( "list must use the same integer type as the pastix library" )
+
+        pastix.libpastix.pastix_setSchurUnknownList.argtypes = [c_void_p, pastix_c_int, POINTER(pastix_c_int)]
+        pastix.libpastix.pastix_setSchurUnknownList( pastix_data, n,
+                                                     list.ctypes.data_as(POINTER(pastix_c_int)) )
+
+    @staticmethod
+    def getSchur( pastix_data, S ):
+        if pastix.libpastix == None:
+            pastix.__init__()
+
+        if _dtype != list.dtype:
+            raise TypeError( "list must use the same integer type as the pastix library" )
+
+        pastix.libpastix.pastix_getSchur.argtypes = [c_void_p, c_void_p, pastix_c_int ]
+        pastix.libpastix.pastix_getSchur.restype  = c_void_p
+        S = np.array( pastix.libpastix.pastix_getSchur( pastix_data,
+                                                        S.ctypes.data_as(c_void_p),
+                                                        S.shape[0] ), order='F' ).reshape( S.shape[0], S.shape[1] )
+
+    #
+    # Pastix Schur
+    #
+    @staticmethod
+    def subtask_applyorder( pastix_data, dir, m, n, b, ldb ):
+        if pastix.libpastix == None:
+            pastix.__init__()
+
+        flttype = pastix_coeftype.get( b.dtype )
+
+        pastix.libpastix.pastix_pastix_subtask_applyorder.argtypes = [c_void_p, c_int, c_int, pastix_c_int, pastix_c_int, c_void_p, pastix_c_int]
+        pastix.libpastix.pastix_pastix_subtask_applyorder( pastix_data, flttype, dir, m, n,
+                                                           b.ctypes.data_as(c_void_p), ldb )
+
+    @staticmethod
+    def subtask_trsm( pastix_data, side, uplo, trans, diag, nrhs, b, ldb ):
+        if pastix.libpastix == None:
+            pastix.__init__()
+
+        flttype = pastix_coeftype.get( b.dtype )
+
+        pastix.libpastix.pastix_pastix_subtask_trsm.argtypes = [c_void_p, c_int, c_int, c_int, c_int, c_int, pastix_c_int, c_void_p, pastix_c_int]
+        pastix.libpastix.pastix_pastix_subtask_trsm( pastix_data, flttype, side, uplo, trans, diag, nrhs,
+                                                     b.ctypes.data_as(c_void_p), ldb )
+
+    @staticmethod
+    def subtask_diag( pastix_data, nrhs, b, ldb ):
+        if pastix.libpastix == None:
+            pastix.__init__()
+
+        flttype = pastix_coeftype.get( b.dtype )
+
+        pastix.libpastix.pastix_pastix_subtask_diag.argtypes = [c_void_p, c_int, pastix_c_int, c_void_p, pastix_c_int]
+        pastix.libpastix.pastix_pastix_subtask_diag( pastix_data, flttype, nrhs,
+                                                     b.ctypes.data_as(c_void_p), ldb )
+
