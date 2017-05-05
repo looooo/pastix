@@ -101,8 +101,8 @@ class spm():
 
         self.id_ptr = pointer( self.spm_c )
 
-        self.libspm.spmUpdateComputedFields.argtypes = [POINTER(self.c_spm)]
-        self.libspm.spmUpdateComputedFields( self.id_ptr )
+        self.updateComputedField()
+        self.checkAndCorrect()
 
     def fromdriver( self, driver=pastix_driver.PastixDriverLaplacian, filename="10:10:10" ):
         """
@@ -116,9 +116,22 @@ class spm():
         print(self.spm_c.flttype)
         self.dtype = pastix_coeftype.getdtype( self.spm_c.flttype )
 
+    def updateComputedField( self ):
+        self.libspm.spmUpdateComputedFields.argtypes = [POINTER(self.c_spm)]
+        self.libspm.spmUpdateComputedFields( self.id_ptr )
+
     def printInfo( self ):
         self.libspm.spmPrintInfo.argtypes = [POINTER(self.c_spm), c_void_p]
         self.libspm.spmPrintInfo( self.id_ptr, None )
+
+    def print( self ):
+        self.libspm.spmPrint.argtypes = [POINTER(self.c_spm), c_void_p]
+        self.libspm.spmPrint( self.id_ptr, None )
+
+    def checkAndCorrect( self ):
+        self.libspm.spmCheckAndCorrect.argtypes = [POINTER(self.c_spm)]
+        self.libspm.spmCheckAndCorrect.restype = POINTER(self.c_spm)
+        self.id_ptr = self.libspm.spmCheckAndCorrect( self.id_ptr )
 
     def checkAxb( self, nrhs, x0, ldx0, b, ldb, x, ldx ):
         if self.libspm == None:
