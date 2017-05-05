@@ -40,7 +40,8 @@ target_link_libraries( spm_test
   pastix_kernels
   pastix_bcsc
   pastix_spm
-  ${LAPACKE_LIBRARIES} )
+  ${LAPACKE_LIBRARIES}
+  ${LAPACK_SEQ_LIBRARIES} )
 
 
 ## Generate all test executables
