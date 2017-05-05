@@ -131,7 +131,7 @@ class pastix():
         if pastix.libpastix == None:
             pastix.__init__()
 
-        if _dtype != list.dtype:
+        if pastix._dtype != list.dtype:
             raise TypeError( "list must use the same integer type as the pastix library" )
 
         pastix.libpastix.pastix_setSchurUnknownList.argtypes = [c_void_p, pastix_c_int, POINTER(pastix_c_int)]
@@ -143,14 +143,10 @@ class pastix():
         if pastix.libpastix == None:
             pastix.__init__()
 
-        if _dtype != list.dtype:
-            raise TypeError( "list must use the same integer type as the pastix library" )
-
         pastix.libpastix.pastix_getSchur.argtypes = [c_void_p, c_void_p, pastix_c_int ]
-        pastix.libpastix.pastix_getSchur.restype  = c_void_p
-        S = np.array( pastix.libpastix.pastix_getSchur( pastix_data,
-                                                        S.ctypes.data_as(c_void_p),
-                                                        S.shape[0] ), order='F' ).reshape( S.shape[0], S.shape[1] )
+        pastix.libpastix.pastix_getSchur( pastix_data,
+                                          S.ctypes.data_as(c_void_p),
+                                          S.shape[0] )
 
     #
     # Pastix Schur
@@ -162,9 +158,9 @@ class pastix():
 
         flttype = pastix_coeftype.get( b.dtype )
 
-        pastix.libpastix.pastix_pastix_subtask_applyorder.argtypes = [c_void_p, c_int, c_int, pastix_c_int, pastix_c_int, c_void_p, pastix_c_int]
-        pastix.libpastix.pastix_pastix_subtask_applyorder( pastix_data, flttype, dir, m, n,
-                                                           b.ctypes.data_as(c_void_p), ldb )
+        pastix.libpastix.pastix_subtask_applyorder.argtypes = [c_void_p, c_int, c_int, pastix_c_int, pastix_c_int, c_void_p, pastix_c_int]
+        pastix.libpastix.pastix_subtask_applyorder( pastix_data, flttype, dir, m, n,
+                                                    b.ctypes.data_as(c_void_p), ldb )
 
     @staticmethod
     def subtask_trsm( pastix_data, side, uplo, trans, diag, nrhs, b, ldb ):
@@ -173,9 +169,9 @@ class pastix():
 
         flttype = pastix_coeftype.get( b.dtype )
 
-        pastix.libpastix.pastix_pastix_subtask_trsm.argtypes = [c_void_p, c_int, c_int, c_int, c_int, c_int, pastix_c_int, c_void_p, pastix_c_int]
-        pastix.libpastix.pastix_pastix_subtask_trsm( pastix_data, flttype, side, uplo, trans, diag, nrhs,
-                                                     b.ctypes.data_as(c_void_p), ldb )
+        pastix.libpastix.pastix_subtask_trsm.argtypes = [c_void_p, c_int, c_int, c_int, c_int, c_int, pastix_c_int, c_void_p, pastix_c_int]
+        pastix.libpastix.pastix_subtask_trsm( pastix_data, flttype, side, uplo, trans, diag, nrhs,
+                                              b.ctypes.data_as(c_void_p), ldb )
 
     @staticmethod
     def subtask_diag( pastix_data, nrhs, b, ldb ):
@@ -184,7 +180,7 @@ class pastix():
 
         flttype = pastix_coeftype.get( b.dtype )
 
-        pastix.libpastix.pastix_pastix_subtask_diag.argtypes = [c_void_p, c_int, pastix_c_int, c_void_p, pastix_c_int]
-        pastix.libpastix.pastix_pastix_subtask_diag( pastix_data, flttype, nrhs,
-                                                     b.ctypes.data_as(c_void_p), ldb )
+        pastix.libpastix.pastix_subtask_diag.argtypes = [c_void_p, c_int, pastix_c_int, c_void_p, pastix_c_int]
+        pastix.libpastix.pastix_subtask_diag( pastix_data, flttype, nrhs,
+                                              b.ctypes.data_as(c_void_p), ldb )
 
