@@ -47,10 +47,24 @@
  * Errors functions
  */
 void errorProg  (const char * const);
-void errorPrint (const char * const, ...);
 void errorPrintW(const char * const, ...);
 
-static inline void pastix_error_print( char *fmt, ... )
+/*
+  Function: errorPrint
+
+  This routine prints an error message with
+  a variable number of arguments, as printf ()
+  does, and exits.
+
+  Parameters:
+  errstr - Format for the error to string.
+  ...    - arguments depending on the format.
+  printf-like variable argument list.
+
+  Returns:
+  VOID - in all cases.
+*/
+static inline void pastix_error_print( const char * const fmt, ... )
 {
     va_list arglist;
     va_start(arglist, fmt);
@@ -58,6 +72,8 @@ static inline void pastix_error_print( char *fmt, ... )
     va_end(arglist);
     assert(0);
 }
+
+#define errorPrint pastix_error_print
 
 /*
   Macro: EXIT

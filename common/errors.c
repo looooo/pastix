@@ -81,35 +81,6 @@ void errorProg (const char * const progstr)
 }
 
 /*
-  Function: errorPrint
-
-  This routine prints an error message with
-  a variable number of arguments, as printf ()
-  does, and exits.
-
-  Parameters:
-  errstr - Format for the error to string.
-  ...    - arguments depending on the format.
-  printf-like variable argument list.
-
-  Returns:
-  VOID - in all cases.
-*/
-
-void errorPrint (const char * const errstr,
-                 ...)
-{
-    va_list             errlist;                    /* Argument list of the call */
-
-    fprintf  (stderr, "\n%sERROR: ", errorProgName);
-    va_start (errlist, errstr);
-    vfprintf (stderr, errstr, errlist);             /* Print arguments */
-    va_end   (errlist);
-    fprintf  (stderr, "\n\n");
-    fflush   (stderr);                              /* In case it has been set to buffered mode */
-}
-
-/*
    Funciton: errorPrintW
 
    This routine prints a warning message with
