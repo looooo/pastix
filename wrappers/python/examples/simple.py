@@ -60,7 +60,7 @@ x = b.copy()
 
 # Convert the scipy sparse matrix to spm storage format
 spmA = spm();
-spmA.fromspp( A, mtxtype );
+spmA.fromdriver( );
 spmA.printInfo()
 
 # Initialize parameters to default values
