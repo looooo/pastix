@@ -22,7 +22,7 @@ import numpy as np
 
 flttype   = pastix_coeftype.PastixDouble
 mtxtype   = pastix_mtxtype.PastixGeneral
-factotype = pastix_factotype.PaStiXFactLU
+factotype = pastix_factotype.PastixFactLU
 
 # Get corresponding numpy type for arithmetic and integers array
 nptype = 'f8'
@@ -76,7 +76,7 @@ pastix_data = pastix.init( iparm, dparm )
 nschur = 2
 schurlist = np.array( [3, 4], dtype=pastix_np_int )
 pastix.setSchurUnknownList ( pastix_data, nschur, schurlist )
-iparm[IPARM_SCHUR] = API_YES
+iparm[pastix_iparm.iparm_schur] = 1
 
 # Perform analyze
 pastix.analyze( pastix_data, spmA )
@@ -85,12 +85,18 @@ pastix.analyze( pastix_data, spmA )
 pastix.numfact( pastix_data, spmA )
 
 # Get the Schur complement
-S = np.array( np.zeros( nschur * nschur ), dtype=nptype )
-pastix.getSchur( pastix_data, S, nschur )
+S = np.array( np.zeros( (nschur, nschur) ), dtype=nptype )
+pastix.getSchur( pastix_data, S )
+print("Schur")
+print S
 
 # Factorize the Schur complement
-if factotype == pastix_factotype.PaStiXFactLU:
+if factotype == pastix_factotype.PastixFactLU:
     (F,P)=la.lu_factor(S, True)
+    print("Factor")
+    print F
+    print("Pivots")
+    print P
 else:
     (F,L)=la.cho_factor(S, True, True)
 
@@ -98,22 +104,26 @@ else:
 pastix.subtask_applyorder( pastix_data, pastix_dir.PastixDirForward, n, nrhs, x, n )
 
 # 2- Forward solve on the non Schur complement part of the system
-if factotype == pastix_factotype.PaStiXFactLU:
-    pastix.subtask_trsm( pastix_data, pastix_side.PastiXLeft, pastix_uplo.PastixLower, pastix_trans.PastixNoTrans, pastix_diag.PastixNonUnit, nrhs, x, n )
+if factotype == pastix_factotype.PastixFactLU:
+    pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixLower, pastix_trans.PastixNoTrans, pastix_diag.PastixNonUnit, nrhs, x, n )
 else:
-    pastix.subtask_trsm( pastix_data, pastix_side.PastiXLeft, pastix_uplo.PastixLower, pastix_trans.PastixNoTrans, pastix_diag.PastixUnit, nrhs, x, n )
+    pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixLower, pastix_trans.PastixNoTrans, pastix_diag.PastixUnit, nrhs, x, n )
 
 # 3- Solve the Schur complement part
-if factotype == pastix_factotype.PaStiXFactLU:
+if factotype == pastix_factotype.PastixFactLU:
+    print("X1")
+    print x[n-nschur:]
     la.lu_solve((F,P), x[n-nschur:], 0, True)
+    print("X2")
+    print x[n-nschur:]
 else:
     la.cho_solve((F,L), x[n-nschur:], True)
 
 # 4- Backward solve on the non Schur complement part of the system
-if factotype == pastix_factotype.PaStiXFactLU:
-    pastix.subtask_trsm( pastix_data, pastix_side.PastiXLeft, pastix_uplo.PastixUpper, pastix_trans.PastixNoTrans, pastix_diag.PastiXNonUnit, nrhs, x, n )
+if factotype == pastix_factotype.PastixFactLU:
+    pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixUpper, pastix_trans.PastixNoTrans, pastix_diag.PastixNonUnit, nrhs, x, n )
 else:
-    pastix.subtask_trsm( pastix_data, pastix_side.PastiXLeft, pastix_uplo.PastixLower, pastix_trans.PastixConjTrans, pastix_diag.PastiXNonUnit, nrhs, x, n )
+    pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixLower, pastix_trans.PastixConjTrans, pastix_diag.PastixNonUnit, nrhs, x, n )
 #  5- Apply P^t to x
 pastix.subtask_applyorder( pastix_data, pastix_dir.PastixDirBackward, n, nrhs, x, n )
 
