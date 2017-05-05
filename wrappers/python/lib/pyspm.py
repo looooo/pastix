@@ -43,46 +43,6 @@ class spm():
                     ("loc2glob",POINTER(pastix_c_int)),
                     ("values",  c_void_p             ) ]
 
-    def __init__( self, A, mtxtype=pastix_mtxtype.PastixGeneral ):
-        """
-        Initialize the SPM wrapper by loading the libraries
-        """
-        if self.libspm == None:
-            self.libspm = self.__load_spm();
-
-        # Assume A is already in Scipy sparse format
-        self.dtype = A.dtype
-        flttype = pastix_coeftype.get( A.dtype )
-        print( "Floating point arithmetic is", flttype )
-        if flttype == -1:
-            raise TypeError( "Invalid data type. Must be part of (f4, f8, c8 or c16)" )
-
-        A  = spp.csc_matrix( A )
-        A.sort_indices()
-        n   = A.shape[0]
-        nnz = A.getnnz()
-
-        # Pointer variables
-        self.py_dofs      = None
-        self.py_colptr    = np.array( A.indptr[:],  dtype=pastix_np_int )
-        self.py_rowptr    = np.array( A.indices[:], dtype=pastix_np_int )
-        self.py_values    = np.array( A.data[:] )
-        self.py_loc2glob  = None
-
-        self.spm_c = self.c_spm( mtxtype, flttype, pastix_fmttype.PastixCSC,
-                                 0, n, 0, nnz, 0, 0, 0, 0,
-                                 1, None,
-                                 pastix_order.PastixColMajor,
-                                 self.py_colptr.ctypes.data_as(POINTER(pastix_c_int)),
-                                 self.py_rowptr.ctypes.data_as(POINTER(pastix_c_int)),
-                                 None,
-                                 self.py_values.ctypes.data_as(c_void_p))
-
-        self.id_ptr = pointer( self.spm_c )
-
-        self.libspm.spmUpdateComputedFields.argtypes = [POINTER(self.c_spm)]
-        self.libspm.spmUpdateComputedFields( self.id_ptr )
-
     def __load_spm(self):
         """
         Load the SPM library
@@ -93,6 +53,56 @@ class spm():
             raise EnvironmentError("Could not find shared library: pastix_spm")
         __spm_loaded = 1
         return cdll.LoadLibrary(self.libspm)
+
+    def __init__( self ):
+        """
+        Initialize the SPM wrapper by loading the libraries
+        """
+        if self.libspm == None:
+            self.libspm = self.__load_spm();
+
+        self.spm_c = self.c_spm( pastix_mtxtype.PastixGeneral,
+                                 pastix_coeftype.PastixDouble,
+                                 pastix_fmttype.PastixCSC,
+                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                 1, None,
+                                 pastix_order.PastixColMajor,
+                                 None, None, None, None)
+        self.id_ptr = pointer( self.spm_c )
+
+    def fromspp( self, A, mtxtype=pastix_mtxtype.PastixGeneral ):
+        """
+        Initialize the SPM wrapper by loading the libraries
+        """
+
+        # Assume A is already in Scipy sparse format
+        self.dtype = A.dtype
+        flttype = pastix_coeftype.get( A.dtype )
+        print( "Floating point arithmetic is", flttype )
+        if flttype == -1:
+            raise TypeError( "Invalid data type. Must be part of (f4, f8, c8 or c16)" )
+
+        A = spp.csc_matrix( A )
+        A.sort_indices()
+
+        # Pointer variables
+        self.py_colptr    = np.array( A.indptr[:],  dtype=pastix_np_int )
+        self.py_rowptr    = np.array( A.indices[:], dtype=pastix_np_int )
+        self.py_values    = np.array( A.data[:] )
+
+        self.spm_c.mtxtype= mtxtype
+        self.spm_c.flttype= flttype
+        self.spm_c.n      = A.shape[0]
+        self.spm_c.n      = A.shape[0]
+        self.spm_c.nnz    = A.getnnz()
+        self.spm_c.colptr = self.py_colptr.ctypes.data_as(POINTER(pastix_c_int))
+        self.spm_c.rowptr = self.py_rowptr.ctypes.data_as(POINTER(pastix_c_int))
+        self.spm_c.values = self.py_values.ctypes.data_as(c_void_p)
+
+        self.id_ptr = pointer( self.spm_c )
+
+        self.libspm.spmUpdateComputedFields.argtypes = [POINTER(self.c_spm)]
+        self.libspm.spmUpdateComputedFields( self.id_ptr )
 
     def printInfo( self ):
         self.libspm.spmPrintInfo.argtypes = [POINTER(self.c_spm), c_void_p]

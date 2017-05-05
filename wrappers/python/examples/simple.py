@@ -59,7 +59,8 @@ b = np.matmul(A.todense(), x0)
 x = b.copy()
 
 # Convert the scipy sparse matrix to spm storage format
-spmA = spm( A, mtxtype );
+spmA = spm();
+spmA.fromspp( A, mtxtype );
 spmA.printInfo()
 
 # Initialize parameters to default values
