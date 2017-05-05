@@ -60,6 +60,7 @@ x = b.copy()
 
 # Convert the scipy sparse matrix to spm storage format
 spmA = spm( A, mtxtype );
+spmA.printInfo()
 
 # Initialize parameters to default values
 iparm = np.array( np.zeros( pastix_iparm.iparm_size ), dtype=pastix_np_int )

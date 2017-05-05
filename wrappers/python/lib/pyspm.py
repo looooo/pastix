@@ -94,6 +94,9 @@ class spm():
         __spm_loaded = 1
         return cdll.LoadLibrary(self.libspm)
 
+    def printInfo( self ):
+        self.libspm.spmPrintInfo.argtypes = [POINTER(self.c_spm), c_void_p]
+        self.libspm.spmPrintInfo( self.id_ptr, None )
 
     def checkAxb( self, nrhs, x0, ldx0, b, ldb, x, ldx ):
         if self.libspm == None:

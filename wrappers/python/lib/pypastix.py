@@ -17,7 +17,6 @@ from ctypes.util import find_library
 from pastix_api import *
 from pyspm import *
 import os
-import re
 import numpy as np
 import scipy.sparse as spp
 
