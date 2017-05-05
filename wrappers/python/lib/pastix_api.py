@@ -71,7 +71,7 @@ class pastix_coeftype:
             pastix_coeftype.PastixComplex32 : np.dtype('complex64'),
             pastix_coeftype.PastixComplex64 : np.dtype('complex128')
         }
-        if dtype in np_dict:
+        if flttype in np_dict:
             return np_dict[flttype]
         else:
             return -1

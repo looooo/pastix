@@ -104,6 +104,18 @@ class spm():
         self.libspm.spmUpdateComputedFields.argtypes = [POINTER(self.c_spm)]
         self.libspm.spmUpdateComputedFields( self.id_ptr )
 
+    def fromdriver( self, driver=pastix_driver.PastixDriverLaplacian, filename="10:10:10" ):
+        """
+        Initialize the SPM wrapper by loading the libraries
+        """
+        print(filename)
+        self.libspm.spmReadDriver.argtypes = [c_int, c_char_p, POINTER(self.c_spm), c_int]
+        self.libspm.spmReadDriver( driver, filename.encode('utf-8'), self.id_ptr, c_int(0) )
+
+        # Assume A is already in Scipy sparse format
+        print(self.spm_c.flttype)
+        self.dtype = pastix_coeftype.getdtype( self.spm_c.flttype )
+
     def printInfo( self ):
         self.libspm.spmPrintInfo.argtypes = [POINTER(self.c_spm), c_void_p]
         self.libspm.spmPrintInfo( self.id_ptr, None )
