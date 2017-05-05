@@ -57,6 +57,9 @@ add_library(pastix_bcsc
 add_dependencies( pastix_bcsc
   bcsc_headers_tgt )
 
+target_link_libraries( pastix_bcsc
+  pastix_spm )
+
 install(TARGETS pastix_bcsc
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
