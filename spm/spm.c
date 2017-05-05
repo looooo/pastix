@@ -880,25 +880,29 @@ spmPrintInfo( const pastix_spm_t* spm, FILE *stream )
  *
  *******************************************************************************/
 void
-spmPrint( const pastix_spm_t* spm, FILE *f )
+spmPrint( const pastix_spm_t* spm, FILE *stream )
 {
+    if (stream == NULL) {
+        stream = stdout;
+    }
+
     switch(spm->flttype)
     {
     case PastixPattern:
         //return p_f, spmPrint(f, spm);
         break;
     case PastixFloat:
-        s_spmPrint(f, spm);
+        s_spmPrint(stream, spm);
         break;
     case PastixComplex32:
-        c_spmPrint(f, spm);
+        c_spmPrint(stream, spm);
         break;
     case PastixComplex64:
-        z_spmPrint(f, spm);
+        z_spmPrint(stream, spm);
         break;
     case PastixDouble:
     default:
-        d_spmPrint(f, spm);
+        d_spmPrint(stream, spm);
     }
 }
 

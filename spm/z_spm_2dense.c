@@ -639,7 +639,7 @@ z_spm2dense( const pastix_spm_t *spm )
  *
  *******************************************************************************/
 void
-z_spmDensePrint( FILE *f, pastix_int_t m, pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda )
+z_spmDensePrint( FILE *f, pastix_int_t m, pastix_int_t n, const pastix_complex64_t *A, pastix_int_t lda )
 {
     pastix_int_t i, j;
 

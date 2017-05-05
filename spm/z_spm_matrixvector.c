@@ -225,7 +225,6 @@ z_spmSyCSCv(      pastix_complex64_t  alpha,
             {
                 row = spm->rowptr[i-baseval]-baseval;
                 yptr[row] += alpha * valptr[i-baseval] * xptr[col];
-                if( col != row )
                 {
                     yptr[col] += alpha * valptr[i-baseval] * xptr[row];
                 }
