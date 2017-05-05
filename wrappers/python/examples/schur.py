@@ -60,6 +60,8 @@ for i in range(nrhs):
 b = np.matmul(A.todense(), x0)
 x = b.copy()
 
+print( A.todense() )
+
 # Convert the scipy sparse matrix to spm storage format
 spmA = spm();
 spmA.fromspp( A, mtxtype );
