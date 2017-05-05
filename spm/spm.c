@@ -807,6 +807,67 @@ spmCopy( const pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
+ * @brief Print basic informations about the spm matrix into a given stream.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The sparse matrix to print.
+ *
+ * @param[inout] stream
+ *          Stream to print the spm matrix. stdout is used if stream == NULL.
+ *
+ *******************************************************************************/
+void
+spmPrintInfo( const pastix_spm_t* spm, FILE *stream )
+{
+    char *mtxtypestr[4] = { "General", "Symmetry", "Hermitian", "Incorrect" };
+    char *flttypestr[7] = { "Pattern", "", "Float", "Double", "Complex32", "Complex64", "Incorrect" };
+    char *fmttypestr[4] = { "CSC", "CSR", "IJV", "Incorrect" };
+    int  mtxtype = spm->mtxtype - PastixGeneral;
+    int  flttype = spm->flttype - PastixPattern;
+    int  fmttype = spm->fmttype - PastixCSC;
+
+    if (stream == NULL) {
+        stream = stdout;
+    }
+
+    mtxtype = (mtxtype > 2 || mtxtype < 0) ? 3 : mtxtype;
+    flttype = (flttype > 5 || flttype < 0) ? 6 : flttype;
+    fmttype = (fmttype > 2 || fmttype < 0) ? 3 : fmttype;
+
+    fprintf(stream,
+            "  Matrix type:  %s\n"
+            "  Arithmetic:   %s\n"
+            "  Format:       %s\n"
+            "  N:            %ld\n"
+            "  nnz:          %ld\n",
+            mtxtypestr[mtxtype],
+            flttypestr[flttype],
+            fmttypestr[fmttype],
+            spm->gN, spm->gnnz );
+
+    if ( spm->dof != 1 ) {
+        if ( spm->dof > 1 ) {
+            fprintf(stream,
+                    "  Dof:          %ld\n",
+                    spm->dof );
+        }
+        else {
+            fprintf(stream,
+                    "  Dof:          Variadic\n" );
+        }
+
+        fprintf(stream,
+                "  N expanded:   %ld\n"
+                "  NNZ expanded: %ld\n",
+                spm->gNexp, spm->gnnzexp );
+    }
+}
+
+/**
+ *******************************************************************************
+ *
  * @brief Print an spm matrix into into a given file.
  *
  *******************************************************************************
