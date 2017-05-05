@@ -117,8 +117,6 @@ int main (int argc, char **argv)
             }
             pastix_setSchurUnknownList( pastix_data, n, list );
             free( list );
-
-            iparm[IPARM_SCHUR] = API_YES;
         }
     }
 

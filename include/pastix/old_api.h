@@ -39,7 +39,9 @@ enum IPARM_ACCESS_DEPRECATED {
     IPARM_RHS_MAKING            = -1,
     IPARM_ONLY_RAFF             = IPARM_ONLY_REFINE,
     IPARM_MURGE_MAY_RAFF        = IPARM_MURGE_MAY_REFINE,
-    IPARM_BINDTHRD              = -1
+    IPARM_BINDTHRD              = -1,
+    IPARM_SCHUR                 = -1,
+    IPARM_ISOLATE_ZEROS         = -1,
 };
 
 /* Former DPARM values */

@@ -196,14 +196,6 @@ int iparm_to_int( char * string)
     {
         return IPARM_COMPRESS_METHOD;
     }
-    if(0 == strcmp("iparm_schur", string))
-    {
-        return IPARM_SCHUR;
-    }
-    if(0 == strcmp("iparm_isolate_zeros", string))
-    {
-        return IPARM_ISOLATE_ZEROS;
-    }
     if(0 == strcmp("iparm_rhsd_check", string))
     {
         return IPARM_RHSD_CHECK;

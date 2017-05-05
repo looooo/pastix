@@ -76,8 +76,6 @@
  IPARM_COMPRESS_MIN_HEIGHT   - Minimum height to compress an off-diagonal block         Default: 20                  IN
  IPARM_COMPRESS_WHEN         - When to compress a supernode                             Default: 0                   IN
  IPARM_COMPRESS_METHOD       - Compression method (SVD/RRQR)                            Default: 0                   IN
- IPARM_SCHUR                 - Schur mode                                               Default: API_NO              IN
- IPARM_ISOLATE_ZEROS         - Isolate null diagonal terms at the end of the matrix     Default: API_NO              IN
  IPARM_RHSD_CHECK            - Set to API_NO to avoid RHS redistribution                Default: API_YES             IN
  IPARM_FACTORIZATION         - Factorization mode (see Factorization modes)             Default: API_FACT_LDLT       IN
  IPARM_NNZEROS_BLOCK_LOCAL   - Number of nonzero entries in the local block factorized matrix Default: -                   OUT
@@ -179,8 +177,6 @@ enum IPARM_ACCESS {
     IPARM_COMPRESS_MIN_HEIGHT,
     IPARM_COMPRESS_WHEN,
     IPARM_COMPRESS_METHOD,
-    IPARM_SCHUR,
-    IPARM_ISOLATE_ZEROS,
     IPARM_RHSD_CHECK,
     IPARM_FACTORIZATION,
     IPARM_NNZEROS_BLOCK_LOCAL,
