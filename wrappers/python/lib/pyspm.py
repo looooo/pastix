@@ -124,27 +124,46 @@ class spm():
         self.libspm.spmPrintInfo.argtypes = [POINTER(self.c_spm), c_void_p]
         self.libspm.spmPrintInfo( self.id_ptr, None )
 
-    def print( self ):
-        self.libspm.spmPrint.argtypes = [POINTER(self.c_spm), c_void_p]
-        self.libspm.spmPrint( self.id_ptr, None )
+    #def print( self ):
+    #    self.libspm.spmPrint.argtypes = [POINTER(self.c_spm), c_void_p]
+    #    self.libspm.spmPrint( self.id_ptr, None )
 
     def checkAndCorrect( self ):
         self.libspm.spmCheckAndCorrect.argtypes = [POINTER(self.c_spm)]
         self.libspm.spmCheckAndCorrect.restype = POINTER(self.c_spm)
         self.id_ptr = self.libspm.spmCheckAndCorrect( self.id_ptr )
 
-    def checkAxb( self, nrhs, x0, ldx0, b, ldb, x, ldx ):
+    def __checkVector( self, n, nrhs, x ):
+        if x.dtype != self.dtype:
+            raise TypeError( "Vectors must use the same arithmetic as the spm" )
+
+        if x.ndim > 2:
+            raise TypeError( "Vectors must be of dimension 1 or 2" )
+
+        if x.shape[0] < n:
+            raise TypeError( "Vectors must be of dimension at least ", n )
+
+        if x.shape[1] < nrhs:
+            raise TypeError( "At least nrhs vectors must be stored in the vector" )
+
+    def checkAxb( self, x0, b, x, nrhs=-1 ):
         if self.libspm == None:
             raise EnvironmentError( "SPM Instance badly instanciated" )
 
-        if x0.dtype != self.dtype:
-            raise TypeError( "b must use the same arithmetic as the spm" )
+        n = self.spm_c.n
+        if nrhs == -1:
+            if x.ndim == 1:
+                nrhs = 1
+            else:
+                nrhs = x.shape[1]
 
-        if b.dtype != self.dtype:
-            raise TypeError( "b must use the same arithmetic as the spm" )
+        self.__checkVector( n, nrhs, x0 )
+        self.__checkVector( n, nrhs, b )
+        self.__checkVector( n, nrhs, x )
 
-        if x.dtype != self.dtype:
-            raise TypeError( "x must use the same arithmetic as the spm" )
+        ldx0 = x0.shape[0]
+        ldb  = b.shape[0]
+        ldx  = x.shape[0]
 
         self.libspm.spmCheckAxb.argtypes = [ c_int, POINTER(self.c_spm), c_void_p, c_int, c_void_p, c_int, c_void_p, c_int]
         self.libspm.spmCheckAxb( nrhs, self.id_ptr,

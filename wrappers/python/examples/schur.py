@@ -123,6 +123,6 @@ else:
 pastix.subtask_applyorder( pastix_data, pastix_dir.PastixDirBackward, n, nrhs, x, n )
 
 # Check solution
-spmA.checkAxb( nrhs, x0, n, b, n, x, n )
+spmA.checkAxb( x0, b, x )
 
 pastix.finalize( pastix_data, iparm, dparm )

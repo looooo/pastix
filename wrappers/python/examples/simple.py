@@ -84,6 +84,6 @@ pastix.solve( pastix_data, spmA, nrhs, x, n )
 pastix.refine( pastix_data, nrhs, b, n, x, n )
 
 # Check solution
-spmA.checkAxb( nrhs, x0, n, b, n, x, n )
+spmA.checkAxb( x0, b, x )
 
 pastix.finalize( pastix_data, iparm, dparm )
