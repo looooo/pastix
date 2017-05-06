@@ -48,29 +48,41 @@ coeftab_zgetschur_one_lowrank( const SolverCblk *cblk, int upper_part,
 {
     SolverBlok *blok  = cblk[0].fblokptr;
     SolverBlok *lblok = cblk[1].fblokptr;
-
+    pastix_int_t coefind;
     pastix_int_t ncols = cblk_colnbr( cblk );
     int ret;
 
     assert( cblk->cblktype & CBLK_COMPRESSED );
+    assert( cblk->cblktype & CBLK_LAYOUT_2D );
 
     for (; blok<lblok; blok++)
     {
         pastix_int_t nrows = blok_rownbr( blok );
 
+        nrows   = blok_rownbr( blok );
+        coefind = blok->coefind / ncols;
+
         ret = core_zlr2ge( PastixNoTrans, nrows, ncols,
                            blok->LRblock,
-                           S + (blok->coefind / ncols), lds );
+                           S + coefind, lds );
         assert( ret == 0 );
         /* TODO: check/fix with respect to full rank (L+U instead of just L or U)*/
 
-        if ( upper_part &&
-             (blok > cblk[0].fblokptr) )
-        {
-            ret = core_zlr2ge( PastixTrans, nrows, ncols,
-                               blok->LRblock+1,
-                               S + (blok->coefind / ncols) * lds, lds );
-            assert( ret == 0 );
+        if ( upper_part ) {
+            if ( blok == cblk[0].fblokptr ) {
+                assert( cblk->fblokptr->LRblock[1].rk    == -1    );
+                assert( cblk->fblokptr->LRblock[1].rkmax == ncols );
+
+                core_zgeadd( PastixTrans, ncols, ncols,
+                             1.0, cblk->fblokptr->LRblock[1].u, ncols,
+                             1.0, S + coefind * lds, lds );
+
+            } else {
+                ret = core_zlr2ge( PastixTrans, nrows, ncols,
+                                   blok->LRblock+1,
+                                   S + coefind * lds, lds );
+                assert( ret == 0 );
+            }
         }
     }
 
