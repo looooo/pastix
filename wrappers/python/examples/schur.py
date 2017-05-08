@@ -79,7 +79,7 @@ iparm[pastix_iparm.iparm_factorization] = factotype
 # Initialize the Schur list
 nschur = 2
 schurlist = np.array( [3, 4], dtype=pastix_np_int )
-pastix.setSchurUnknownList ( pastix_data, nschur, schurlist )
+pastix.setSchurUnknownList ( pastix_data, schurlist )
 
 # Perform analyze
 pastix.analyze( pastix_data, spmA )
@@ -98,13 +98,13 @@ else:
     (F,L) = la.cho_factor(S, lower=True, overwrite_a=True)
 
 # 1- Apply P to b
-pastix.subtask_applyorder( pastix_data, pastix_dir.PastixDirForward, n, nrhs, x, n )
+pastix.subtask_applyorder( pastix_data, pastix_dir.PastixDirForward, x )
 
 # 2- Forward solve on the non Schur complement part of the system
 if factotype == pastix_factotype.PastixFactLU:
-    pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixLower, pastix_trans.PastixNoTrans, pastix_diag.PastixUnit, nrhs, x, n )
+    pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixLower, pastix_trans.PastixNoTrans, pastix_diag.PastixUnit, x )
 else:
-    pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixLower, pastix_trans.PastixNoTrans, pastix_diag.PastixNonUnit, nrhs, x, n )
+    pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixLower, pastix_trans.PastixNoTrans, pastix_diag.PastixNonUnit, x )
 
 # 3- Solve the Schur complement part
 if factotype == pastix_factotype.PastixFactLU:
@@ -114,12 +114,12 @@ else:
 
 # 4- Backward solve on the non Schur complement part of the system
 if factotype == pastix_factotype.PastixFactLU:
-    pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixUpper, pastix_trans.PastixNoTrans, pastix_diag.PastixNonUnit, nrhs, x, n )
+    pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixUpper, pastix_trans.PastixNoTrans, pastix_diag.PastixNonUnit, x )
 else:
-    pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixLower, pastix_trans.PastixConjTrans, pastix_diag.PastixNonUnit, nrhs, x, n )
+    pastix.subtask_trsm( pastix_data, pastix_side.PastixLeft, pastix_uplo.PastixLower, pastix_trans.PastixConjTrans, pastix_diag.PastixNonUnit, x )
 
 #  5- Apply P^t to x
-pastix.subtask_applyorder( pastix_data, pastix_dir.PastixDirBackward, n, nrhs, x, n )
+pastix.subtask_applyorder( pastix_data, pastix_dir.PastixDirBackward, x )
 
 # Check solution
 spmA.checkAxb( x0, b, x )

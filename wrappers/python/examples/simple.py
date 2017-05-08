@@ -77,10 +77,10 @@ pastix.analyze( pastix_data, spmA )
 pastix.numfact( pastix_data, spmA )
 
 # Perform solve
-pastix.solve( pastix_data, spmA, nrhs, x, n )
+pastix.solve( pastix_data, spmA, x )
 
 # Perform refinement
-pastix.refine( pastix_data, nrhs, b, n, x, n )
+pastix.refine( pastix_data, b, x )
 
 # Check solution
 spmA.checkAxb( x0, b, x )

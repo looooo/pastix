@@ -129,7 +129,7 @@ class spm():
         if x.shape[0] < n:
             raise TypeError( "Vectors must be of dimension at least ", n )
 
-        if x.shape[1] < nrhs:
+        if (x.ndim == 1 and nrhs > 1) or (x.shape[1] < nrhs):
             raise TypeError( "At least nrhs vectors must be stored in the vector" )
 
     def checkAxb( self, x0, b, x, nrhs=-1 ):

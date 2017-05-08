@@ -6,6 +6,14 @@ PyPaStiX
 import ctypes
 import ctypes.util
 
+def __getnrhs(nrhs, x):
+    if nrhs == -1:
+        if x.ndim == 1:
+            nrhs = 1
+        else:
+            nrhs = x.shape[1]
+    return nrhs
+
 __libpastix_name = None
 __libspm_name = None
 libpastix = None
@@ -28,4 +36,5 @@ __all__ = [ 'libpastix', 'libspm' ]
 from .enum   import *
 from .spm    import *
 from .pastix import *
+
 
