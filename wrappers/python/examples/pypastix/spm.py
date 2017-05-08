@@ -1,5 +1,5 @@
 """
- @file pyspm.py
+ @file spm.py
 
  SPM python wrapper
 
@@ -13,14 +13,14 @@
 
 """
 from ctypes import *
-from ctypes.util import find_library
-from pastix_api import *
 import numpy as np
 import scipy.sparse as spp
 
+from . import libspm
+from .enum import *
+
 class spm():
 
-    libspm = None
     dtype = None
 
     class c_spm(Structure):
@@ -43,24 +43,10 @@ class spm():
                     ("loc2glob",POINTER(pastix_c_int)),
                     ("values",  c_void_p             ) ]
 
-    def __load_spm(self):
-        """
-        Load the SPM library
-        """
-
-        self.libspm = find_library('pastix_spm')
-        if self.libspm == None:
-            raise EnvironmentError("Could not find shared library: pastix_spm")
-        __spm_loaded = 1
-        return cdll.LoadLibrary(self.libspm)
-
     def __init__( self ):
         """
         Initialize the SPM wrapper by loading the libraries
         """
-        if self.libspm == None:
-            self.libspm = self.__load_spm();
-
         self.spm_c = self.c_spm( pastix_mtxtype.PastixGeneral,
                                  pastix_coeftype.PastixDouble,
                                  pastix_fmttype.PastixCSC,
@@ -109,29 +95,29 @@ class spm():
         Initialize the SPM wrapper by loading the libraries
         """
         print(filename)
-        self.libspm.spmReadDriver.argtypes = [c_int, c_char_p, POINTER(self.c_spm), c_int]
-        self.libspm.spmReadDriver( driver, filename.encode('utf-8'), self.id_ptr, c_int(0) )
+        libspm.spmReadDriver.argtypes = [c_int, c_char_p, POINTER(self.c_spm), c_int]
+        libspm.spmReadDriver( driver, filename.encode('utf-8'), self.id_ptr, c_int(0) )
 
         # Assume A is already in Scipy sparse format
         print(self.spm_c.flttype)
         self.dtype = pastix_coeftype.getdtype( self.spm_c.flttype )
 
     def updateComputedField( self ):
-        self.libspm.spmUpdateComputedFields.argtypes = [POINTER(self.c_spm)]
-        self.libspm.spmUpdateComputedFields( self.id_ptr )
+        libspm.spmUpdateComputedFields.argtypes = [POINTER(self.c_spm)]
+        libspm.spmUpdateComputedFields( self.id_ptr )
 
     def printInfo( self ):
-        self.libspm.spmPrintInfo.argtypes = [POINTER(self.c_spm), c_void_p]
-        self.libspm.spmPrintInfo( self.id_ptr, None )
+        libspm.spmPrintInfo.argtypes = [POINTER(self.c_spm), c_void_p]
+        libspm.spmPrintInfo( self.id_ptr, None )
 
     #def print( self ):
-    #    self.libspm.spmPrint.argtypes = [POINTER(self.c_spm), c_void_p]
-    #    self.libspm.spmPrint( self.id_ptr, None )
+    #    libspm.spmPrint.argtypes = [POINTER(self.c_spm), c_void_p]
+    #    libspm.spmPrint( self.id_ptr, None )
 
     def checkAndCorrect( self ):
-        self.libspm.spmCheckAndCorrect.argtypes = [POINTER(self.c_spm)]
-        self.libspm.spmCheckAndCorrect.restype = POINTER(self.c_spm)
-        self.id_ptr = self.libspm.spmCheckAndCorrect( self.id_ptr )
+        libspm.spmCheckAndCorrect.argtypes = [POINTER(self.c_spm)]
+        libspm.spmCheckAndCorrect.restype = POINTER(self.c_spm)
+        self.id_ptr = libspm.spmCheckAndCorrect( self.id_ptr )
 
     def __checkVector( self, n, nrhs, x ):
         if x.dtype != self.dtype:
@@ -147,7 +133,7 @@ class spm():
             raise TypeError( "At least nrhs vectors must be stored in the vector" )
 
     def checkAxb( self, x0, b, x, nrhs=-1 ):
-        if self.libspm == None:
+        if libspm == None:
             raise EnvironmentError( "SPM Instance badly instanciated" )
 
         n = self.spm_c.n
@@ -165,8 +151,8 @@ class spm():
         ldb  = b.shape[0]
         ldx  = x.shape[0]
 
-        self.libspm.spmCheckAxb.argtypes = [ c_int, POINTER(self.c_spm), c_void_p, c_int, c_void_p, c_int, c_void_p, c_int]
-        self.libspm.spmCheckAxb( nrhs, self.id_ptr,
+        libspm.spmCheckAxb.argtypes = [ c_int, POINTER(self.c_spm), c_void_p, c_int, c_void_p, c_int, c_void_p, c_int]
+        libspm.spmCheckAxb( nrhs, self.id_ptr,
                                  x0.ctypes.data_as(c_void_p), ldx0,
                                  b.ctypes.data_as(c_void_p),  ldb,
                                  x.ctypes.data_as(c_void_p),  ldx )

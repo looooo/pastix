@@ -12,10 +12,9 @@
  @date 2017-05-04
 
 """
-#from pypastix import pastix
-from pastix_api import *
-from pyspm import spm
-from pypastix import pastix
+import pypastix as pastix
+from pypastix.enum import *
+from pypastix.spm  import spm
 import scipy.sparse as spp
 import scipy.linalg as la
 import numpy as np
