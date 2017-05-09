@@ -168,6 +168,7 @@ int           spmReadDriver( pastix_driver_t  driver,
  */
 void *        spm2Dense   ( const pastix_spm_t *spm );
 void          spmPrint    ( const pastix_spm_t *spm, FILE *f );
+void          spmPrintInfo( const pastix_spm_t* spm, FILE *f );
 pastix_spm_t *spmExpand   ( const pastix_spm_t* spm );
 pastix_spm_t *spmDofExtend( const pastix_spm_t *spm, const int type, const int dof  );
 

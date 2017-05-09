@@ -238,30 +238,31 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
  *
  * @brief Convert a low rank matrix into a dense matrix.
  *
- * A = op( u * v^t ) with op(A) = A, A^t
+ * Convert a low-rank matrix of size m-by-n into a full rank matrix.
+ * A = op( u * v^t ) with op(A) = A or A^t
  *
  *******************************************************************************
  *
  * @param[in] trans
- *          Number of rows of the matrix A, and of the low rank matrix Alr.
  *          @arg PastixNoTrans: returns A = u * v^t
  *          @arg PastixTrans: returns A = v * u^t
  *
  * @param[in] m
- *          Number of rows of the matrix A, and of the low rank matrix Alr.
+ *          Number of rows of the low-rank matrix Alr.
  *
  * @param[in] n
- *          Number of columns of the matrix A, and of the low rank matrix Alr.
+ *          Number of columns of the low-rank matrix Alr.
  *
  * @param[in] Alr
- *          The low rank matrix to be converted into a dense matrix
+ *          The low rank matrix to be converted into a full rank matrix
  *
  * @param[inout] A
- *          The matrix of dimension lda-by-n in which to store the uncompressed
- *          version of Alr.
+ *          The matrix of dimension lda-by-k in which to store the uncompressed
+ *          version of Alr. k = n if trans == PastixNoTrans, m otherwise.
  *
  * @param[in] lda
- *          The leading dimension of the matrix A. lda >= max(1, m)
+ *          The leading dimension of the matrix A. lda >= max(1, m) if trans ==
+ *          PastixNoTrans, lda >= max(1,n) otherwise.
  *
  *******************************************************************************
  *
@@ -292,9 +293,7 @@ core_zlr2ge( pastix_trans_t trans, pastix_int_t m, pastix_int_t n,
         return -5;
     }
     if ( Alr->rk == -1 ) {
-        if (Alr->u == NULL || Alr->v != NULL ||
-            (trans == PastixNoTrans && Alr->rkmax < m) ||
-            (trans != PastixNoTrans && Alr->rkmax < n))
+        if (Alr->u == NULL || Alr->v != NULL || (Alr->rkmax < m))
         {
             return -6;
         }

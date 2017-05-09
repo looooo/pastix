@@ -45,8 +45,7 @@
  * and/or invp arrays where the results is stored after computation.
  *
  * This routine is affected by the following parameters:
- *   IPARM_VERBOSE, IPARM_ORDERING, IPARM_SCHUR, IPARM_ISOLATE_ZEROS,
- *   IPARM_IO_STRATEGY
+ *   IPARM_VERBOSE, IPARM_ORDERING, IPARM_IO_STRATEGY
  *
  *******************************************************************************
  *
@@ -55,18 +54,18 @@
  *          On exit, the field ordemesh is initialize with the result of the
  *          ordering.
  *          - IPARM_ORDERING will determine which ordering tool is used.
- *          - IPARM_SCHUR enables the extraction of the schur complement from the
- *          user's graph to isolate it at the end of the matrix. The list of
- *          vertices to isolated must be provided through the
- *          pastix_setSchurUnknownList() function.
- *          - IPARM_ISOLATE_ZEROS enables the extraction of the diagonal elements
- *          from the user's graph to isolate it at the end of the matrix. The
- *          list of vertices to isolated must be provided through the
- *          pastix_setZerosUnknownList() function.
  *          - IPARM_IO_STRATEGY will enable the results to be written on files
  *          if set to API_IO_SAVE, or the results to be directly loaded from
  *          file if set to APÏ_IO_LOAD without going through an ordering
  *          library.
+ *          - If the function pastix_setSchurUnknownList() function has been
+ *          previously called to set the list of vertices to isolate in the
+ *          schur complement, those vertices are isolated at the end of the
+ *          matrix in a dedicated supernode..
+ *          - If the function pastix_setZerosUnknownList() function has been
+ *          previously called to set the list of diagonal elements that may
+ *          cause problem during the factorization, those vertices are isolated
+ *          at the end of the matrix in a dedicated supernode..
  *
  * @param[in] spm
  *          The sparse matrix given by the user on which the ordering will be
@@ -143,8 +142,7 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    if ((iparm[IPARM_SCHUR] == API_YES) &&
-        (pastix_data->schur_n > 0))
+    if (pastix_data->schur_n > 0)
     {
         /*
          * If ordering is set to API_ORDER_PERSONAL or API_ORDER_LOAD, we
@@ -158,8 +156,7 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
     } else {
         do_schur = 0;
     }
-    if ((iparm[IPARM_ISOLATE_ZEROS] == API_YES) &&
-        (pastix_data->zeros_n > 0) )
+    if (pastix_data->zeros_n > 0)
     {
         /*
          * If ordering is set to API_ORDER_PERSONAL or API_ORDER_LOAD, we

@@ -36,6 +36,14 @@ precisions_rules_py(generated_exfiles
 
 add_library(spm_test ${generated_libfiles} )
 
+target_link_libraries( spm_test
+  pastix_kernels
+  pastix_bcsc
+  pastix_spm
+  ${LAPACKE_LIBRARIES}
+  ${LAPACK_SEQ_LIBRARIES} )
+
+
 ## Generate all test executables
 set (TESTS
   spm_convert_tests.c

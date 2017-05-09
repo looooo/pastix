@@ -63,7 +63,7 @@ int z_spmCheckAxb( int nrhs, const pastix_spm_t *spm, void *x0, int ldx0, void *
 /**
  * Output routines
  */
-void z_spmDensePrint( FILE *f, pastix_int_t m, pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda );
+void z_spmDensePrint( FILE *f, pastix_int_t m, pastix_int_t n, const pastix_complex64_t *A, pastix_int_t lda );
 void z_spmPrint( FILE *f, const pastix_spm_t *spm );
 
 pastix_spm_t *z_spmExpand(const pastix_spm_t *spm);

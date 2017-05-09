@@ -51,9 +51,11 @@ pastix_setSchurUnknownList( pastix_data_t      *pastix_data,
                             pastix_int_t        n,
                             const pastix_int_t *list)
 {
-    pastix_data->schur_n    = n;
-    pastix_data->schur_list = (pastix_int_t*)malloc(n * sizeof(pastix_int_t));
-    memcpy( pastix_data->schur_list, list, n * sizeof(pastix_int_t) );
+    if ( n > 0 ) {
+        pastix_data->schur_n    = n;
+        pastix_data->schur_list = (pastix_int_t*)malloc(n * sizeof(pastix_int_t));
+        memcpy( pastix_data->schur_list, list, n * sizeof(pastix_int_t) );
+    }
 }
 
 /**
