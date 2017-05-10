@@ -14,7 +14,7 @@
 """
 from ctypes import *
 import numpy as np
-import scipy.sparse as spp
+import scipy.sparse as sps
 
 from . import libspm
 from .enum import *
@@ -27,53 +27,57 @@ class spm():
         _fields_ = [("mtxtype", c_int                ),
                     ("flttype", c_int                ),
                     ("fmttype", c_int                ),
-                    ("gN",      pastix_c_int         ),
-                    ("n",       pastix_c_int         ),
-                    ("gnnz",    pastix_c_int         ),
-                    ("nnz",     pastix_c_int         ),
-                    ("gNexp",   pastix_c_int         ),
-                    ("nexp",    pastix_c_int         ),
-                    ("gnnzexp", pastix_c_int         ),
-                    ("nnzexp",  pastix_c_int         ),
-                    ("dof",     pastix_c_int         ),
-                    ("dofs",    POINTER(pastix_c_int)),
+                    ("gN",      pastix_int         ),
+                    ("n",       pastix_int         ),
+                    ("gnnz",    pastix_int         ),
+                    ("nnz",     pastix_int         ),
+                    ("gNexp",   pastix_int         ),
+                    ("nexp",    pastix_int         ),
+                    ("gnnzexp", pastix_int         ),
+                    ("nnzexp",  pastix_int         ),
+                    ("dof",     pastix_int         ),
+                    ("dofs",    POINTER(pastix_int)),
                     ("layout",  c_int                ),
-                    ("colptr",  POINTER(pastix_c_int)),
-                    ("rowptr",  POINTER(pastix_c_int)),
-                    ("loc2glob",POINTER(pastix_c_int)),
+                    ("colptr",  POINTER(pastix_int)),
+                    ("rowptr",  POINTER(pastix_int)),
+                    ("loc2glob",POINTER(pastix_int)),
                     ("values",  c_void_p             ) ]
 
-    def __init__( self ):
+    def __init__( self, A=None, mtxtype=mtxtype.General, driver=None, filename="" ):
         """
         Initialize the SPM wrapper by loading the libraries
         """
-        self.spm_c = self.c_spm( pastix_mtxtype.PastixGeneral,
-                                 pastix_coeftype.PastixDouble,
-                                 pastix_fmttype.PastixCSC,
+        self.spm_c = self.c_spm( mtxtype,
+                                 coeftype.PastixDouble,
+                                 fmttype.CSC,
                                  0, 0, 0, 0, 0, 0, 0, 0,
                                  1, None,
-                                 pastix_order.PastixColMajor,
+                                 order.ColMajor,
                                  None, None, None, None)
         self.id_ptr = pointer( self.spm_c )
+        if A is not None:
+            self.fromsps( A, mtxtype )
+        elif driver is not None:
+            self.fromdriver( driver, filename )
 
-    def fromspp( self, A, mtxtype=pastix_mtxtype.PastixGeneral ):
+    def fromsps( self, A, mtxtype=mtxtype.General ):
         """
         Initialize the SPM wrapper by loading the libraries
         """
 
         # Assume A is already in Scipy sparse format
         self.dtype = A.dtype
-        flttype = pastix_coeftype.get( A.dtype )
+        flttype = coeftype.get( A.dtype )
         print( "Floating point arithmetic is", flttype )
         if flttype == -1:
             raise TypeError( "Invalid data type. Must be part of (f4, f8, c8 or c16)" )
 
-        A = spp.csc_matrix( A )
+        A = sps.csc_matrix( A )
         A.sort_indices()
 
         # Pointer variables
-        self.py_colptr    = np.array( A.indptr[:],  dtype=pastix_np_int )
-        self.py_rowptr    = np.array( A.indices[:], dtype=pastix_np_int )
+        self.py_colptr    = np.array( A.indptr[:], dtype=pastix_int )
+        self.py_rowptr    = np.array( A.indices[:], dtype=pastix_int )
         self.py_values    = np.array( A.data[:] )
 
         self.spm_c.mtxtype= mtxtype
@@ -81,8 +85,8 @@ class spm():
         self.spm_c.n      = A.shape[0]
         self.spm_c.n      = A.shape[0]
         self.spm_c.nnz    = A.getnnz()
-        self.spm_c.colptr = self.py_colptr.ctypes.data_as(POINTER(pastix_c_int))
-        self.spm_c.rowptr = self.py_rowptr.ctypes.data_as(POINTER(pastix_c_int))
+        self.spm_c.colptr = self.py_colptr.ctypes.data_as(POINTER(pastix_int))
+        self.spm_c.rowptr = self.py_rowptr.ctypes.data_as(POINTER(pastix_int))
         self.spm_c.values = self.py_values.ctypes.data_as(c_void_p)
 
         self.id_ptr = pointer( self.spm_c )
@@ -90,7 +94,7 @@ class spm():
         self.updateComputedField()
         self.checkAndCorrect()
 
-    def fromdriver( self, driver=pastix_driver.PastixDriverLaplacian, filename="10:10:10" ):
+    def fromdriver( self, driver=driver.Laplacian, filename="10:10:10" ):
         """
         Initialize the SPM wrapper by loading the libraries
         """
@@ -100,7 +104,7 @@ class spm():
 
         # Assume A is already in Scipy sparse format
         print(self.spm_c.flttype)
-        self.dtype = pastix_coeftype.getdtype( self.spm_c.flttype )
+        self.dtype = coeftype.getdtype( self.spm_c.flttype )
 
     def updateComputedField( self ):
         libspm.spmUpdateComputedFields.argtypes = [POINTER(self.c_spm)]
@@ -127,14 +131,18 @@ class spm():
             raise TypeError( "Vectors must be of dimension 1 or 2" )
 
         if x.shape[0] < n:
-            raise TypeError( "Vectors must be of dimension at least ", n )
+            raise TypeError( "Vectors must be of size at least ", n )
 
-        if (x.ndim == 1 and nrhs > 1) or (x.shape[1] < nrhs):
+        if (x.ndim == 1 and nrhs > 1) or (x.ndim>1 and x.shape[1] < nrhs):
             raise TypeError( "At least nrhs vectors must be stored in the vector" )
 
     def checkAxb( self, x0, b, x, nrhs=-1 ):
         if libspm == None:
             raise EnvironmentError( "SPM Instance badly instanciated" )
+
+        x0 = np.asarray(x0, self.dtype)
+        b = np.array(b, self.dtype)
+        x = np.asarray(x, self.dtype)
 
         n = self.spm_c.n
         if nrhs == -1:
