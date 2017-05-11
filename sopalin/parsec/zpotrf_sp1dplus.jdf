@@ -70,7 +70,9 @@ BODY
 {
     SolverCblk *cblk = datacode->cblktab + k;
     if (!(cblk->cblktype & CBLK_IN_SCHUR))
+    {
         cpucblk_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, &lowrank );
+    }
 }
 END
 
@@ -202,8 +204,95 @@ BODY
 
             if ( work  ) {
                 parsec_private_memory_push( p_work, (void *)work );
-            }
+	        }
         }
     }
 }
 END
+
+extern "C" %{
+#if defined(PASTIX_WITH_CUDA)
+int
+zpotrf_sp1dplus_zgemm1d_selectgpu_fct( const __parsec_zpotrf_sp1dplus_GEMM1D_task_t *this_task,
+                                       double weight )
+{
+    pastix_int_t dev_index, gpuid = -2;
+    const int brownum = this_task->locals.brownum.value;
+
+    if (brownum == -1) {
+        return -2;
+    }
+
+    /**
+     * Look if one of the GPU owns the C data
+     */
+    dev_index = this_task->data._f_C.data_in->original->owner_device;
+    if (dev_index > 1) {
+        gpuid = dev_index - 2;
+    }
+
+    /**
+     * If not already on the GPU, find the best one
+     */
+    if ( gpuid == -2 ) {
+        __parsec_zpotrf_sp1dplus_internal_handle_t *__parsec_handle = (__parsec_zpotrf_sp1dplus_internal_handle_t *)this_task->parsec_handle;
+        const __parsec_zpotrf_sp1dplus_GEMM1D_assignment_t *assignments = &(this_task->locals);
+        const int bloknum = assignments->bloknum.value;
+        const int lcblknm = assignments->lcblknm.value;
+        const int fcblknm = assignments->fcblknm.value;
+        SolverMatrix *datacode = __parsec_handle->super._g_datacode;
+        SolverCblk *cblk  = (datacode)->cblktab + lcblknm;
+        SolverCblk *fcblk = (datacode)->cblktab + fcblknm;
+        SolverBlok *blok  = (datacode)->bloktab + bloknum;
+        pastix_int_t M, N, K, lda, ldc;
+        double gpu_cost, mintime, transfer_cost;
+        int dev, nbdevices;
+        double cost;
+
+        K = cblk_colnbr( cblk );
+        M = cblk->stride;
+        M-= (cblk->cblktype & CBLK_LAYOUT_2D) ? blok->coefind / K : blok->coefind;
+        N = blok_rownbr( blok );
+        lda = cblk->stride;
+        ldc = fcblk->stride;
+
+        mintime = cost_gemm( M, N, K, 0 ) / 1.e9; /* CPU_COST in s. */
+        mintime = mintime > 0. ? mintime : 0.;
+
+        gpu_cost = cost_gemm( M, N, K, 1 ) / 1.e9;
+        gpu_cost = gpu_cost > 0. ? gpu_cost : 0.;
+
+        transfer_cost = sizeof(pastix_complex64_t) / 1.e9 / bandwidth;
+
+        nbdevices = parsec_devices_enabled()-2;
+        for( dev = 0; dev < nbdevices; dev++ ) {
+            cost = ( 1 + parsec_nbtasks_on_gpu[dev] ) * gpu_cost + transfer_cost;
+
+            /* Compute the transfer cost of A */
+            if ( (weight < 5) && (this_task->data._f_A.data_in->original->device_copies[dev+2] != NULL) ) {
+                cost += lda * K * transfer_cost;
+            }
+
+            /* Compute the transfer cost of B */
+            if ( this_task->data._f_C.data_in->original->device_copies[dev+2] != NULL ) {
+                cost += ldc * cblk_colnbr( fcblk ) * transfer_cost;
+            }
+
+	    if ( cost < mintime )
+            {
+		gpuid = dev;
+		mintime = cost;
+            }
+        }
+    }
+
+    if ( gpuid >= 0 ) {
+        pastix_atomic_inc_32b( &parsec_nbtasks_on_gpu[gpuid] );
+    }
+
+    (void)weight;
+    return gpuid;
+}
+#endif
+
+%}
