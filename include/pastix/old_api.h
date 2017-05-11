@@ -24,8 +24,8 @@
 #define MATRIX_ERR         -1
 #define STEP_ORDER_ERR     -1
 
-#define API_NO 0
-#define API_YEP 1
+#define API_NO  0
+#define API_YES 1
 
 /* Former IPARM values */
 /*
