@@ -72,6 +72,26 @@ void pastix_parsec_init( pastix_data_t *pastix,
                          const int *bindtab );
 void pastix_parsec_finalize( pastix_data_t *pastix );
 
+extern volatile int parsec_nbtasks_on_gpu[32];
+extern volatile uint64_t pastix_nbflops_on_device[32];
+extern double bandwidth;
+extern double coefgemm[][8];
+
+static inline pastix_fixdbl_t
+cost_gemm( pastix_int_t M, pastix_int_t N, pastix_int_t K, int i )
+{
+    pastix_fixdbl_t *coef = coefgemm[i];
+    return
+        coef[0] * M * N * K +
+        coef[1] * M * N +
+        coef[2] * K * M +
+        coef[3] * K * N +
+        coef[4] * K +
+        coef[5] * M +
+        coef[6] * N +
+        coef[7];
+}
+
 #endif /* _pastix_parsec_h_ */
 
 /**
