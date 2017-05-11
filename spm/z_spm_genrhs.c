@@ -193,7 +193,7 @@ z_spmRndVect( double scale, int m, int n, pastix_complex64_t *A, int lda,
  *
  *******************************************************************************/
 int
-z_spmGenRHS( int type, int nrhs,
+z_spmGenRHS( pastix_rhstype_t type, int nrhs,
              const pastix_spm_t  *spm,
              void                *x, int ldx,
              void                *b, int ldb )

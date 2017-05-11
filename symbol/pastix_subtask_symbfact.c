@@ -416,7 +416,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
                 / (double)( (pastix_data->csc)->gnnz );
 
             pastix_print( procnum, 0, OUT_FAX_SUMMARY,
-                          iparm[ IPARM_NNZEROS ],
+                          (long)iparm[IPARM_NNZEROS],
                           fillin, clockVal(timer) );
         }
     }

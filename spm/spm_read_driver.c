@@ -152,13 +152,9 @@ spmReadDriver( pastix_driver_t  driver,
 
     if ( mpiinit )
     {
-        pastix_int_t nnz;
+        pastix_int_t nnz = spm->nnz;
 
-        if (mpirank == 0) {
-            nnz = spm->nnz;
-        }
-
-        MPI_Bcast( spm, 2*sizeof(int)+3*sizeof(pastix_int_t), MPI_CHAR, 0, comm );
+        MPI_Bcast( spm, sizeof(pastix_spm_t), MPI_CHAR, 0, comm );
         MPI_Bcast( &nnz, 1, PASTIX_MPI_INT, 0, comm );
 
         fprintf(stderr, "%d: mtxtype=%d, flttype=%d, nnz=%ld, gN=%ld\n",

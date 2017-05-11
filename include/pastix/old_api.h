@@ -24,6 +24,9 @@
 #define MATRIX_ERR         -1
 #define STEP_ORDER_ERR     -1
 
+#define API_NO 0
+#define API_YEP 1
+
 /* Former IPARM values */
 /*
  * Backward compatibility
@@ -37,8 +40,8 @@ enum IPARM_ACCESS_DEPRECATED {
     IPARM_AMALGAMATION_LEVEL    = IPARM_AMALGAMATION_LVLCBLK,
     IPARM_CUDA_NBR              = IPARM_GPU_NBR,
     IPARM_RHS_MAKING            = -1,
+    IPARM_ONLY_REFINE           = 0,
     IPARM_ONLY_RAFF             = IPARM_ONLY_REFINE,
-    IPARM_MURGE_MAY_RAFF        = IPARM_MURGE_MAY_REFINE,
     IPARM_BINDTHRD              = -1,
     IPARM_SCHUR                 = -1,
     IPARM_ISOLATE_ZEROS         = -1,
@@ -46,18 +49,25 @@ enum IPARM_ACCESS_DEPRECATED {
 
 /* Former DPARM values */
 #define DPARM_RAFF_TIME DPARM_REFINE_TIME
+#define DPARM_FACT_FLOPS DPARM_FACT_THFLOPS
 
 /* Former API values */
 
 /* _POS_ 1 */
-enum API_TASK_OLD {
-    API_TASK_SCOTCH     = API_TASK_ORDERING,
-    API_TASK_FAX        = API_TASK_SYMBFACT,
-    API_TASK_BLEND      = API_TASK_ANALYSE,
-    API_TASK_SOPALIN    = API_TASK_NUMFACT,
-    API_TASK_UPDOWN     = API_TASK_SOLVE,
-    API_TASK_REFINEMENT = API_TASK_REFINE
-};
+#define API_TASK_INIT       PastixTaskInit
+#define API_TASK_SCOTCH     PastixTaskOrdering
+#define API_TASK_ORDERING   PastixTaskOrdering
+#define API_TASK_FAX        PastixTaskSymbfact
+#define API_TASK_SYMBFACT   PastixTaskSymbfact
+#define API_TASK_BLEND      PastixTaskAnalyze
+#define API_TASK_ANALYSE    PastixTaskAnalyze
+#define API_TASK_SOPALIN    PastixTaskNumfact
+#define API_TASK_NUMFACT    PastixTaskNumfact
+#define API_TASK_UPDOWN     PastixTaskSolve
+#define API_TASK_SOLVE      PastixTaskSolve
+#define API_TASK_REFINE     PastixTaskRefine
+#define API_TASK_REFINEMENT PastixTaskRefine
+#define API_TASK_CLEAN      PastixTaskClean
 
 /* _POS_ 4 */
 #define API_FACT_LLT  PastixFactLLT
@@ -65,17 +75,38 @@ enum API_TASK_OLD {
 #define API_FACT_LU   PastixFactLU
 #define API_FACT_LDLH PastixFactLDLH
 
-/* Removed */
-#define API_RHS_B -1
-#define API_RHS_1 -1
-#define API_RHS_I -1
-#define API_RHS_0 -1
+/* _POS_ 5 */
+#define API_VERBOSE_NOT PastixVerboseNot
+#define API_VERBOSE_NO  PastixVerboseNo
+#define API_VERBOSE_YES PastixVerboseYes
+
+/* _POS_ 6 */
+#define API_IO_NO         PastixIONo
+#define API_IO_LOAD       PastixIOLoad
+#define API_IO_SAVE       PastixIOSave
+#define API_IO_LOAD_GRAPH PastixIOLoadGraph
+#define API_IO_SAVE_GRAPH PastixIOSaveGraph
+#define API_IO_LOAD_CSC   PastixIOLoadCSC
+#define API_IO_SAVE_CSC   PastixIOSaveCSC
+
+/* _POS_ 7 */
+#define API_RHS_B PastixRhsRndB
+#define API_RHS_1 PastixRhsOne
+#define API_RHS_I PastixRhsI
+#define API_RHS_0 PastixRhsRndX
 
 /* _POS_ 8 */
-#define API_RAFF_GMRES    API_REFINE_GMRES
-#define API_RAFF_GRAD     API_REFINE_GRAD
-#define API_RAFF_PIVOT    API_REFINE_PIVOT
-#define API_RAFF_BICGSTAB API_REFINE_BICGSTAB
+#define API_RAFF_GMRES    PastixGMRES
+#define API_RAFF_GRAD     PastixCG
+#define API_RAFF_PIVOT    PastixSR
+#define API_RAFF_BICGSTAB PastixBiGSTAB
+
+/* _POS_ 11 */
+#define API_ORDER_SCOTCH   PastixOrderScotch
+#define API_ORDER_METIS    PastixOrderMetis
+#define API_ORDER_PERSONAL PastixOrderPersonal
+#define API_ORDER_LOAD     PastixOrderLoad
+#define API_ORDER_PTSCOTCH PastixOrderPtscotch
 
 /* _POS_ 61 */
 #define API_REALSINGLE    PastixFloat

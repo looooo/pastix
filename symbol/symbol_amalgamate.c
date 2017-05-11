@@ -503,11 +503,6 @@ amalgamate(double rat_cblk, double rat_blas,
         rat_blas = -rat_blas;
         rat_cblk = MIN(rat_blas, RAT_CBLK);
     }
-    else
-    {
-        rat_blas = rat_blas;
-        rat_cblk = rat_cblk;
-    }
 
     /*
      * We always start by the structural amalgamation and then we start the

@@ -89,6 +89,13 @@
  *
  *******************************************************************************
  *
+ * @retval PASTIX_SUCCESS on succesful exit,
+ * @retval PASTIX_ERR_BADPARAMETER on incorrect input parameter,
+ * @retval PASTIX_ERR_NOTIMPLEMENTED on variadic dofs,
+ * @retval PASTIX_ERR_UNKNOWN on undefined behaviors.
+ *
+ *******************************************************************************
+ *
  * Example:
  *
  *   from file <simple.c> :
@@ -156,7 +163,7 @@
  *
  *******************************************************************************
  */
-void
+int
 pastix( pastix_data_t **pastix_data_ptr,
         MPI_Comm        pastix_comm,
         pastix_int_t    n,
@@ -175,17 +182,15 @@ pastix( pastix_data_t **pastix_data_ptr,
     int ret;
     size_t size;
 
-    iparm[IPARM_ERROR_NUMBER] = PASTIX_SUCCESS;
-
     /*
      * Initialize iparm/dparm to default values and exit when called with
-     * IPARM_MODIFY_PARAMETER set to API_NO
+     * IPARM_MODIFY_PARAMETER set to 0
      */
-    if (iparm[IPARM_MODIFY_PARAMETER] == API_NO)
+    if (!iparm[IPARM_MODIFY_PARAMETER])
     {
         pastixInitParam(iparm, dparm);
-        iparm[IPARM_MODIFY_PARAMETER] = API_YES;
-        return;
+        iparm[IPARM_MODIFY_PARAMETER] = 1;
+        return PASTIX_SUCCESS;
     }
 
     /*
@@ -193,7 +198,7 @@ pastix( pastix_data_t **pastix_data_ptr,
      * Create the pastix_data structure and initialize the runtimes
      */
     if (iparm[IPARM_END_TASK] < API_TASK_INIT) {
-        return;
+        return PASTIX_SUCCESS;
     }
 
     if (iparm[IPARM_START_TASK] == API_TASK_INIT) {
@@ -221,7 +226,7 @@ pastix( pastix_data_t **pastix_data_ptr,
      * Return now if only initialization is required
      */
     if (iparm[IPARM_END_TASK] < API_TASK_ORDERING) {
-        return;
+        return PASTIX_SUCCESS;
     }
 
     pastix_data = *pastix_data_ptr;
@@ -256,10 +261,9 @@ pastix( pastix_data_t **pastix_data_ptr,
              */
             if (iparm[IPARM_MTX_TYPE] == -1 ) {
                 printf("Pastix old interface: you have to use --iparm iparm_mtx_type\n");
-                iparm[IPARM_ERROR_NUMBER] = PASTIX_ERR_BADPARAMETER;
                 spmExit( spm );
                 free(spm);
-                return  ;
+                return PASTIX_ERR_BADPARAMETER;
             } else {
                 spm->mtxtype = iparm[IPARM_MTX_TYPE];
             }
@@ -271,11 +275,9 @@ pastix( pastix_data_t **pastix_data_ptr,
                 fprintf(stderr,
                         "pastix: Variadic dofs are not supported in old pastix interface."
                         "        Please switch to the new interface to use this feature\n");
-                memFree_null( spm );
-                iparm[IPARM_ERROR_NUMBER] = PASTIX_ERR_NOTIMPLEMENTED;
                 spmExit( spm );
                 free(spm);
-                return;
+                return PASTIX_ERR_NOTIMPLEMENTED;
             }
             spm->dof  = iparm[IPARM_DOF_NBR];
 
@@ -313,8 +315,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         ret = pastix_subtask_order( pastix_data, spm, perm, invp );
         if (PASTIX_SUCCESS != ret)
         {
-            iparm[IPARM_ERROR_NUMBER] = ret;
-            return;
+            return ret;
         }
         iparm[IPARM_START_TASK]++;
     }
@@ -323,7 +324,7 @@ pastix( pastix_data_t **pastix_data_ptr,
      * Symbolic factorization
      */
     if (iparm[IPARM_END_TASK] < API_TASK_SYMBFACT) {
-        return;
+        return PASTIX_SUCCESS;
     }
 
     if (iparm[IPARM_START_TASK] == API_TASK_SYMBFACT)
@@ -331,8 +332,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         ret = pastix_subtask_symbfact( pastix_data, perm, invp );
         if (PASTIX_SUCCESS != ret)
         {
-            iparm[IPARM_ERROR_NUMBER] = ret;
-            return;
+            return ret;
         }
         iparm[IPARM_START_TASK]++;
     }
@@ -341,7 +341,7 @@ pastix( pastix_data_t **pastix_data_ptr,
      * Analyze step
      */
     if (iparm[IPARM_END_TASK] < API_TASK_ANALYSE) {
-        return;
+        return PASTIX_SUCCESS;
     }
 
     if (iparm[IPARM_START_TASK] == API_TASK_ANALYSE)
@@ -349,8 +349,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         ret = pastix_subtask_blend( pastix_data );
         if (PASTIX_SUCCESS != ret)
         {
-            iparm[IPARM_ERROR_NUMBER] = ret;
-            return;
+            return ret;
         }
         iparm[IPARM_START_TASK]++;
     }
@@ -359,15 +358,14 @@ pastix( pastix_data_t **pastix_data_ptr,
      * Numerical factorisation
      */
     if (iparm[IPARM_END_TASK] < API_TASK_NUMFACT) {
-        return;
+        return PASTIX_SUCCESS;
     }
 
     if (iparm[IPARM_START_TASK] == API_TASK_NUMFACT)
     {
         ret = pastix_task_numfact( pastix_data, spm );
         if (PASTIX_SUCCESS != ret) {
-            iparm[IPARM_ERROR_NUMBER] = ret;
-            return;
+            return ret;
         }
         iparm[IPARM_START_TASK]++;
     }
@@ -376,7 +374,7 @@ pastix( pastix_data_t **pastix_data_ptr,
      * Solve
      */
     if (iparm[IPARM_END_TASK] < API_TASK_SOLVE) {
-        return;
+        return PASTIX_SUCCESS;
     }
 
     if (iparm[IPARM_START_TASK] == API_TASK_SOLVE) {
@@ -409,7 +407,7 @@ pastix( pastix_data_t **pastix_data_ptr,
      * Refinement
      */
     if (iparm[IPARM_END_TASK] < API_TASK_REFINE) {
-        return;
+        return PASTIX_SUCCESS;
     }
 
     if (iparm[IPARM_START_TASK] == API_TASK_REFINE) {
@@ -434,8 +432,7 @@ pastix( pastix_data_t **pastix_data_ptr,
                  * Neither b and x0 have been saved, this should never happen.
                  */
                 fprintf(stderr, "Neither b and x0 have been saved, this should never happen\n");
-                iparm[IPARM_ERROR_NUMBER] = PASTIX_ERR_UNKNOWN;
-                return;
+                return PASTIX_ERR_UNKNOWN;
             }
             else {
                 /*
@@ -460,8 +457,7 @@ pastix( pastix_data_t **pastix_data_ptr,
                  * Both x0 and b are saved. This should never happen.
                  */
                 fprintf(stderr, "Both b and x0 are defined, this should never happen\n");
-                iparm[IPARM_ERROR_NUMBER] = PASTIX_ERR_UNKNOWN;
-                return;
+                return PASTIX_ERR_UNKNOWN;
             }
         }
         pastix_task_refine( pastix_data, refineX0, nrhs, refineB );
@@ -488,11 +484,13 @@ pastix( pastix_data_t **pastix_data_ptr,
      * Cleaning
      */
     if (iparm[IPARM_END_TASK] < API_TASK_CLEAN) {
-        return;
+        return PASTIX_SUCCESS;
     }
 
     if (iparm[IPARM_START_TASK] == API_TASK_CLEAN) {
         pastixFinalize( pastix_data_ptr, pastix_comm, iparm, dparm );
         iparm[IPARM_START_TASK]++;
     }
+
+    return PASTIX_SUCCESS;
 }

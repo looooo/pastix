@@ -727,8 +727,8 @@ symbolReorderingPrintComplexity( const SymbolMatrix *symbptr )
         if ( itercblk == (cblknbr-1) ) {
             pastix_int_t localflops = nbcblk * (width-1);
             fprintf(stdout, " Number of operations in reordering for last supernode: %ld (%lf)\n",
-                    localflops, (double)localflops / (double)(nbflops) * 100. );
+                    (long)localflops, (double)localflops / (double)(nbflops) * 100. );
         }
     }
-    fprintf(stdout, " Number of operations in reordering: %ld\n", nbflops );
+    fprintf(stdout, " Number of operations in reordering: %ld\n", (long)nbflops );
 }

@@ -79,18 +79,18 @@ candSave( const Cand *candtab,
 {
     FILE *f = fopen("candtab.txt", "w");
     pastix_int_t i;
-    fprintf(f, "%ld\n", cblknbr );
+    fprintf(f, "%ld\n", (long)cblknbr );
     for(i=0;i<cblknbr;i++)
     {
-        fprintf(f, "%lf %ld %ld %ld %ld %ld %ld %d\n",
-                candtab[i].costlevel,
-                candtab[i].treelevel,
-                candtab[i].fcandnum,
-                candtab[i].lcandnum,
-                candtab[i].fccandnum,
-                candtab[i].lccandnum,
-                candtab[i].cluster,
-                candtab[i].cblktype );
+        fprintf(f, "%lf %ld %ld %ld %ld %ld %ld %ld\n",
+                (double)candtab[i].costlevel,
+                (long)candtab[i].treelevel,
+                (long)candtab[i].fcandnum,
+                (long)candtab[i].lcandnum,
+                (long)candtab[i].fccandnum,
+                (long)candtab[i].lccandnum,
+                (long)candtab[i].cluster,
+                (long)candtab[i].cblktype );
     }
     fclose(f);
 }

@@ -98,13 +98,9 @@ computeNbSplit( const BlendCtrl *ctrl,
 
     if(candnbr == 1)
     {
-        /*** Need to split big supernode because
-         the diagonal block factorization is written
-         in BLAS1 (due to the pivoting in LDLt and LU) ***/
-        /*
-         * if the column block size is small enough there is no need to
-         * split it.
-         */
+        /* Need to split big supernode because the diagonal block factorization is written
+         in BLAS1 (due to the pivoting in LDLt and LU) */
+        /* If the column block size is small enough there is no need to split it. */
         if( width <= blas_max_col) {
             return 1;
         }

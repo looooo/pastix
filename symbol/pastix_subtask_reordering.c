@@ -82,8 +82,8 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
     /* Start the step */
     if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT ) {
         pastix_print(procnum, 0, OUT_STEP_REORDER,
-                     iparm[IPARM_REORDERING_SPLIT],
-                     iparm[IPARM_REORDERING_STOP]);
+                     (long)iparm[IPARM_REORDERING_SPLIT],
+                     (long)iparm[IPARM_REORDERING_STOP]);
     }
 
     /* Print the reordering complexity */

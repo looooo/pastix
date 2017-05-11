@@ -76,9 +76,6 @@ static void (*sopalinRefine[4][4])(pastix_data_t *pastix_data, void *x, void *b)
  * This routine is affected by the following parameters:
  *   IPARM_REFINEMENT, DPARM_EPSILON_REFINEMENT
  *
- * On exit, the following parameters are set:
- *   IPARM_ERROR_NUMBER
- *
  *******************************************************************************
  *
  * @param[in] pastix_data
@@ -132,7 +129,6 @@ pastix_task_refine( pastix_data_t *pastix_data,
                                          pastix_data->bcsc->gN,
                                          ordemesh->permtab ))
     {
-        iparm[IPARM_ERROR_NUMBER] = PASTIX_ERR_BADPARAMETER;
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -142,7 +138,6 @@ pastix_task_refine( pastix_data_t *pastix_data,
                                          pastix_data->bcsc->gN,
                                          ordemesh->permtab ))
     {
-        iparm[IPARM_ERROR_NUMBER] = PASTIX_ERR_BADPARAMETER;
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -159,7 +154,6 @@ pastix_task_refine( pastix_data_t *pastix_data,
                                          pastix_data->bcsc->gN,
                                          ordemesh->peritab ))
     {
-        iparm[IPARM_ERROR_NUMBER] = PASTIX_ERR_BADPARAMETER;
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -169,7 +163,6 @@ pastix_task_refine( pastix_data_t *pastix_data,
                                          pastix_data->bcsc->gN,
                                          ordemesh->peritab ))
     {
-        iparm[IPARM_ERROR_NUMBER] = PASTIX_ERR_BADPARAMETER;
         return PASTIX_ERR_BADPARAMETER;
     }
 

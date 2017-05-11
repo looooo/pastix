@@ -716,8 +716,8 @@ solverMatrixGen( pastix_int_t        clustnum,
             pastix_print(clustnum, 0,
                          "Coefmax: diagonal %ld ((%ld+1) x %ld)\n"
                          "         update   %ld (%ld x %ld)\n",
-                         diagmax, maxd_m, maxd_n,
-                         gemmmax, maxg_m, maxg_n );
+                         (long)diagmax, (long)maxd_m, (long)maxd_n,
+                         (long)gemmmax, (long)maxg_m, (long)maxg_n );
         }
     }
 
