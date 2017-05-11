@@ -107,7 +107,7 @@ def getSchur( pastix_data, S ):
 # Pastix Schur
 #
 def subtask_applyorder( pastix_data, direction, b ):
-    flttype = coeftype.get( b.dtype )
+    flttype = coeftype.getptype( b.dtype )
 
     m = b.shape[0]
     if b.ndim == 1:
@@ -118,10 +118,10 @@ def subtask_applyorder( pastix_data, direction, b ):
 
     libpastix.pastix_subtask_applyorder.argtypes = [c_void_p, c_int, c_int, pastix_int, pastix_int, c_void_p, pastix_int]
     libpastix.pastix_subtask_applyorder( pastix_data, flttype, direction, m, n,
-                                                b.ctypes.data_as(c_void_p), ldb )
+                                         b.ctypes.data_as(c_void_p), ldb )
 
 def subtask_trsm( pastix_data, side, uplo, trans, diag, b, nrhs=-1 ):
-    flttype = coeftype.get( b.dtype )
+    flttype = coeftype.getptype( b.dtype )
 
     n    = b.shape[0]
     nrhs = __getnrhs( nrhs, b )
@@ -132,7 +132,7 @@ def subtask_trsm( pastix_data, side, uplo, trans, diag, b, nrhs=-1 ):
                                    b.ctypes.data_as(c_void_p), ldb )
 
 def subtask_diag( pastix_data, b ):
-    flttype = coeftype.get( b.dtype )
+    flttype = coeftype.getptype( b.dtype )
 
     ldb  = b.shape[0]
     nrhs = __getnrhs( nrhs, b )

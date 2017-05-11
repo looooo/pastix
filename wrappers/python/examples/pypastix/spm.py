@@ -48,7 +48,7 @@ class spm():
         Initialize the SPM wrapper by loading the libraries
         """
         self.spm_c = self.c_spm( mtxtype,
-                                 coeftype.PastixDouble,
+                                 coeftype.Double,
                                  fmttype.CSC,
                                  0, 0, 0, 0, 0, 0, 0, 0,
                                  1, None,
@@ -67,7 +67,7 @@ class spm():
 
         # Assume A is already in Scipy sparse format
         self.dtype = A.dtype
-        flttype = coeftype.get( A.dtype )
+        flttype = coeftype.getptype( A.dtype )
         print( "Floating point arithmetic is", flttype )
         if flttype == -1:
             raise TypeError( "Invalid data type. Must be part of (f4, f8, c8 or c16)" )
@@ -104,7 +104,7 @@ class spm():
 
         # Assume A is already in Scipy sparse format
         print(self.spm_c.flttype)
-        self.dtype = coeftype.getdtype( self.spm_c.flttype )
+        self.dtype = coeftype.getnptype( self.spm_c.flttype )
 
     def updateComputedField( self ):
         libspm.spmUpdateComputedFields.argtypes = [POINTER(self.c_spm)]

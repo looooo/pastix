@@ -42,19 +42,19 @@ class refine:
     BiCGSTAB = 3 # BiCGstab
 
 class coeftype:
-    PastixPattern   = 0 # Pattern only, no values are stored
-    PastixFloat     = 2 # Single precision real
-    PastixDouble    = 3 # Double precision real
-    PastixComplex32 = 4 # Single precision complex
-    PastixComplex64 = 5 # Double precision complex
+    Pattern   = 0 # Pattern only, no values are stored
+    Float     = 2 # Single precision real
+    Double    = 3 # Double precision real
+    Complex32 = 4 # Single precision complex
+    Complex64 = 5 # Double precision complex
 
     @staticmethod
-    def get ( dtype ):
+    def getptype ( dtype ):
         np_dict = {
-            np.dtype('float32')    : coeftype.PastixFloat,
-            np.dtype('float64')    : coeftype.PastixDouble,
-            np.dtype('complex64')  : coeftype.PastixComplex32,
-            np.dtype('complex128') : coeftype.PastixComplex64,
+            np.dtype('float32')    : coeftype.Float,
+            np.dtype('float64')    : coeftype.Double,
+            np.dtype('complex64')  : coeftype.Complex32,
+            np.dtype('complex128') : coeftype.Complex64,
         }
         if dtype in np_dict:
             return np_dict[dtype]
@@ -62,12 +62,12 @@ class coeftype:
             return -1
 
     @staticmethod
-    def getdtype ( flttype ):
+    def getnptype ( flttype ):
         np_dict = {
-            coeftype.PastixFloat     : np.dtype('float32'),
-            coeftype.PastixDouble    : np.dtype('float64'),
-            coeftype.PastixComplex32 : np.dtype('complex64'),
-            coeftype.PastixComplex64 : np.dtype('complex128')
+            coeftype.Float     : np.dtype('float32'),
+            coeftype.Double    : np.dtype('float64'),
+            coeftype.Complex32 : np.dtype('complex64'),
+            coeftype.Complex64 : np.dtype('complex128')
         }
         if flttype in np_dict:
             return np_dict[flttype]
