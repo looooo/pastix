@@ -511,7 +511,7 @@ solverMatrixGen( pastix_int_t        clustnum,
                 priomin = pastix_imin( solvmtx->tasktab[jloc].prionum, priomin );
             }
 
-#ifdef PASTIX_DYNSCHED
+#if defined(PASTIX_DYNSCHED)
             solvmtx->btree->nodetab[p].priomin = priomin;
             solvmtx->btree->nodetab[p].priomax = priomax;
 #endif

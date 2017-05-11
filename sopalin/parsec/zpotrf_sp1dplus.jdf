@@ -149,7 +149,7 @@ RW    C  <- (brownum == -1) ? NULL
 
 ; %{ return cblknbr - ((fcblknm + lcblknm) / 2 ) + last - brownum; %}
 
-BODY [ type=CUDA ]
+BODY [ type=CUDA device=%{ return -2; %} ]
 {
     if (brownum != -1) {
         SolverCblk *lcblk = datacode->cblktab + lcblknm;

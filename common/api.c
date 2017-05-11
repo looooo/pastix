@@ -193,7 +193,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_COMPRESS_MIN_HEIGHT]   = 20;                  /* minimum height to compress an off-diagonal block     */
     iparm[IPARM_COMPRESS_WHEN]         = PastixCompressNever;    /* when to compress */
     iparm[IPARM_COMPRESS_METHOD]       = PastixCompressMethodRRQR; /* compression technique */
-     iparm[IPARM_FACTORIZATION]         = API_FACT_LU;         /* LU by default     */
+    iparm[IPARM_FACTORIZATION]         = API_FACT_LU;         /* LU by default     */
 
     iparm[IPARM_DISTRIBUTION_LEVEL]    = -1;                  /* Size limit to mark a cblk as 2d */
     iparm[IPARM_LEVEL_OF_FILL]         = 0;                   /* level of fill */

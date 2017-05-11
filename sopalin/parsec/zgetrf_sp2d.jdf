@@ -174,7 +174,7 @@ RW    C  <- (brownum == -1) || isTwoD ? NULL
 
 ; %{ return cblknbr - ((fcblknm + lcblknm) / 2 ) + last - brownum; %}
 
-BODY [ type=CUDA ]
+BODY [ type=CUDA device=%{ return -2; %} ]
 {
     /* Never execute the 1D GPU kernel on diagonal blocks, and 2D cblks */
     if ((brownum != -1) && !isTwoD) {
@@ -385,7 +385,7 @@ RW    C   <-  isTwoD & noskip & (first == last) ? A OneToTwoD( k, m, s )
 
 ; %{ return cblknbr - k; %}
 
-BODY [ type=CUDA ]
+BODY [ type=CUDA device=%{ return -2; %} ]
 {
     if( isTwoD && noskip ) {
         SolverCblk *cblk  = datacode->cblktab + k;
@@ -586,7 +586,7 @@ RW    C  <- (k == first) ? A OneToTwoD( cblk_n, blok_mn, s )
 
 ; %{ return cblknbr - ( ((k-first) * (cblk_n - cblk_k)) / (last-first+1) ) - cblk_n; %}
 
-BODY [ type=CUDA ]
+BODY [ type=CUDA device=%{ return -2; %} ]
 {
     /* is2dA && is2dC && noskipC && blok_nk && blok_mk */
     /* Skip the update on diagonal block if upper part */
