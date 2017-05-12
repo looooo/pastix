@@ -16,6 +16,7 @@
  *
  **/
 #include "common.h"
+#include "spm.h"
 #include "order.h"
 #include "perf.h"
 #include "elimintree.h"
@@ -173,7 +174,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
     /* Start the analyze step */
     clockStart(timer_all);
-    if ( verbose > API_VERBOSE_NOT ) {
+    if ( verbose > PastixVerboseNot ) {
         pastix_print( procnum, 0, OUT_STEP_BLEND );
     }
 
@@ -181,14 +182,14 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     blendCtrlInit( &ctrl, procnum, procnbr,
                    iparm, dparm );
 
-    if( verbose > API_VERBOSE_NO)
+    if( verbose > PastixVerboseNo)
         pastix_print( procnum, 0, OUT_BLEND_CONF,
                       (long)ctrl.clustnbr, (long)ctrl.local_nbcores, (long)ctrl.local_nbthrds);
 
     /* Verify the coherence of the initial symbol matrix */
     if(ctrl.debug)
     {
-        if( verbose > API_VERBOSE_YES ) {
+        if( verbose > PastixVerboseYes ) {
             pastix_print( procnum, 0, OUT_BLEND_CHKSMBMTX );
         }
         symbolCheck(symbmtx);
@@ -196,7 +197,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
     /* Build the elimination tree from the symbolic partition */
     {
-        if( verbose > API_VERBOSE_YES) {
+        if( verbose > PastixVerboseYes) {
             pastix_print( procnum, 0, OUT_BLEND_ELIMTREE );
         }
         clockStart(timer_current);
@@ -204,7 +205,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         ctrl.etree = eTreeBuild(symbmtx);
 
         clockStop(timer_current);
-        if( verbose > API_VERBOSE_NO ) {
+        if( verbose > PastixVerboseNo ) {
             pastix_print( procnum, 0, OUT_BLEND_ELIMTREE_TIME,
                           clockVal(timer_current) );
         }
@@ -212,7 +213,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
     /* Build the cost matrix from the symbolic partition */
     {
-        if( verbose > API_VERBOSE_YES ) {
+        if( verbose > PastixVerboseYes ) {
             pastix_print( procnum, 0, OUT_BLEND_COSTMATRIX );
         }
         clockStart(timer_current);
@@ -222,7 +223,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                                          iparm[IPARM_FACTORIZATION] );
 
         clockStop(timer_current);
-        if( verbose > API_VERBOSE_NO ) {
+        if( verbose > PastixVerboseNo ) {
             pastix_print( procnum, 0, OUT_BLEND_COSTMATRIX_TIME,
                           clockVal(timer_current) );
         }
@@ -241,7 +242,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                    ctrl.etree,
                    symbmtx,
                    ctrl.costmtx );
-        if( verbose > API_VERBOSE_NO ) {
+        if( verbose > PastixVerboseNo ) {
             pastix_print( procnum, 0, OUT_BLEND_ELIMTREE_TOTAL_COST,
                           ctrl.etree->nodetab[ eTreeRoot(ctrl.etree) ].subtree );
         }
@@ -249,7 +250,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
     /* Proportional mapping step that distributes the candidates over the tree */
     {
-        if( verbose > API_VERBOSE_YES ) {
+        if( verbose > PastixVerboseYes ) {
             pastix_print( procnum, 0, OUT_BLEND_PROPMAP );
         }
         clockStart(timer_current);
@@ -266,7 +267,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
         clockStop(timer_current);
 
-        if( verbose > API_VERBOSE_NO ) {
+        if( verbose > PastixVerboseNo ) {
             pastix_print( procnum, 0, OUT_BLEND_PROPMAP_TIME,
                           clockVal(timer_current) );
         }
@@ -286,7 +287,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
      */
     if(1)
     {
-        if( verbose > API_VERBOSE_YES ) {
+        if( verbose > PastixVerboseYes ) {
             pastix_print( procnum, 0, OUT_BLEND_SPLITSYMB );
         }
         clockStart(timer_current);
@@ -294,18 +295,18 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         splitSymbol(&ctrl, symbmtx);
 
         clockStop(timer_current);
-        if( verbose > API_VERBOSE_NO ) {
+        if( verbose > PastixVerboseNo ) {
             pastix_print( procnum, 0, OUT_BLEND_SPLITSYMB_TIME,
                           clockVal(timer_current) );
         }
     }
 
     if(ctrl.count_ops && (ctrl.leader == procnum)) {
-        double thflops = 0.;
         symbolGetFlops( symbmtx,
                         iparm[IPARM_FLOAT],
                         iparm[IPARM_FACTORIZATION],
-                        &thflops, &(dparm[DPARM_FACT_RLFLOPS]) );
+                        &(dparm[DPARM_FACT_THFLOPS]),
+                        &(dparm[DPARM_FACT_RLFLOPS]) );
     }
 
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
@@ -327,7 +328,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
     /* Simulation step to perform the data distribution over the nodes and compute the priorities of each task */
     {
-        if( verbose > API_VERBOSE_YES ) {
+        if( verbose > PastixVerboseYes ) {
             pastix_print( procnum, 0, OUT_BLEND_BUILDSIMU );
         }
         clockStart(timer_current);
@@ -342,13 +343,13 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         simuTaskBuild(simuctrl, symbmtx, ctrl.candtab);
         clockStop(timer_current);
 
-        if( verbose > API_VERBOSE_NO ) {
+        if( verbose > PastixVerboseNo ) {
             pastix_print( procnum, 0, OUT_BLEND_BUILDSIMU_TIME,
                           clockVal(timer_current),
                           (long)simuctrl->tasknbr );
         }
 
-        if( verbose > API_VERBOSE_YES ) {
+        if( verbose > PastixVerboseYes ) {
             pastix_print( procnum, 0, OUT_BLEND_SIMU );
         }
         clockStart(timer_current);
@@ -356,7 +357,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         simuRun( simuctrl, &ctrl, symbmtx );
 
         clockStop(timer_current);
-        if( verbose > API_VERBOSE_NO ) {
+        if( verbose > PastixVerboseNo ) {
             pastix_print( procnum, 0, OUT_BLEND_SIMU_TIME,
                           clockVal(timer_current) );
         }
@@ -375,7 +376,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         splitPartLocal( &ctrl, simuctrl, symbmtx );
 
         clockStop(timer_current);
-        if( verbose>API_VERBOSE_NO)
+        if( verbose>PastixVerboseNo)
             pastix_print( procnum, 0, "  -- Split build at time: %g --\n", clockVal(timer_current));
     }
 #endif
@@ -390,7 +391,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
      * simulation structures and convert to local numbering
      */
     {
-        if( verbose > API_VERBOSE_YES ) {
+        if( verbose > PastixVerboseYes ) {
             pastix_print( procnum, 0, OUT_BLEND_SOLVER );
         }
         clockStart(timer_current);
@@ -398,10 +399,10 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         solverMatrixGen(ctrl.clustnum, solvmtx, symbmtx, simuctrl, &ctrl);
 
         clockStop(timer_current);
-        if( verbose > API_VERBOSE_NO ) {
+        if( verbose > PastixVerboseNo ) {
             pastix_print( procnum, 0, OUT_BLEND_SOLVER_TIME,
                           clockVal(timer_current) );
-            if( verbose > API_VERBOSE_YES ) {
+            if( verbose > PastixVerboseYes ) {
                 solverPrintStats( solvmtx );
             }
         }
@@ -416,7 +417,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
 #if defined(PASTIX_DEBUG_BLEND)
         if (!ctrl.ricar) {
-            if( verbose > API_VERBOSE_YES ) {
+            if( verbose > PastixVerboseYes ) {
                 pastix_print( procnum, 0, OUT_BLEND_CHKSOLVER );
             }
             solverCheck(solvmtx);
@@ -430,7 +431,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     clockStop(timer_all);
     set_dparm(dparm, DPARM_ANALYZE_TIME, clockVal(timer_all) );
 
-    if (verbose > API_VERBOSE_YES)
+    if (verbose > PastixVerboseYes)
         symbolPrintStats( pastix_data->symbmtx );
 
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
@@ -449,7 +450,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
     /* Computes and print statistics */
     {
-        if (iparm[IPARM_FACTORIZATION] == API_FACT_LU)
+        if (iparm[IPARM_FACTORIZATION] == PastixFactLU)
         {
             iparm[IPARM_NNZEROS]        *= 2;
             dparm[DPARM_PRED_FACT_TIME] *= 2.;
@@ -459,25 +460,24 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         iparm[IPARM_NNZEROS_BLOCK_LOCAL] = solvmtx->coefnbr;
 
         /* Affichage */
-        dparm[DPARM_FILL_IN] = dparm[DPARM_FILL_IN]
-            * (double)(iparm[IPARM_NNZEROS] / (iparm[IPARM_DOF_NBR]*iparm[IPARM_DOF_NBR]));
+        dparm[DPARM_FILL_IN] = 0.; /* TODO (double)(iparm[IPARM_NNZEROS]) / (double)(pastix_data->csc->gnnz); */
 
-        if (verbose > API_VERBOSE_NOT) {
+        if (verbose > PastixVerboseNot) {
             pastix_print( 0, 0, OUT_BLEND_SUMMARY,
                           (long)iparm[IPARM_NNZEROS],
                           (double)dparm[DPARM_FILL_IN],
                           pastixFactotypeStr( iparm[IPARM_FACTORIZATION] ),
-                          printflopsv( dparm[DPARM_FACT_FLOPS] ), printflopsu( dparm[DPARM_FACT_FLOPS] ),
+                          printflopsv( dparm[DPARM_FACT_THFLOPS] ), printflopsu( dparm[DPARM_FACT_THFLOPS] ),
                           PERF_MODEL, dparm[DPARM_PRED_FACT_TIME],
                           dparm[DPARM_ANALYZE_TIME] );
 
             if (0) /* TODO: consider that when movig to distributed */
             {
-                if ((verbose > API_VERBOSE_NO))
+                if ((verbose > PastixVerboseNo))
                 {
                     fprintf(stdout, NNZERO_WITH_FILLIN, (int)procnum, (long)iparm[IPARM_NNZEROS_BLOCK_LOCAL]);
                 }
-                if (verbose > API_VERBOSE_YES)
+                if (verbose > PastixVerboseYes)
                 {
 #ifdef PASTIX_WITH_MPI
                     MPI_Comm pastix_comm = pastix_data->inter_node_comm;
@@ -490,7 +490,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                     if (procnum == 0)
                     {
                         sizeG *= sizeof(pastix_complex64_t);
-                        if (iparm[IPARM_FACTORIZATION] == API_FACT_LU)
+                        if (iparm[IPARM_FACTORIZATION] == PastixFactLU)
                             sizeG *= 2;
 
                         fprintf(stdout, OUT_COEFSIZE, (double)MEMORY_WRITE(sizeG),

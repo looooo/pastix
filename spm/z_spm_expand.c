@@ -414,7 +414,7 @@ z_spmIJVExpand(const pastix_spm_t *spm)
     pastix_spm_t       *newspm;
     pastix_int_t        i, j, k, ii, jj, dofi, dofj, col, row, baseval;
     pastix_int_t       *newcol, *newrow, *oldcol, *oldrow, *dofs;
-    pastix_complex64_t *newval, *oldval;
+    pastix_complex64_t *newval, *oldval=NULL;
 
     assert( spm->fmttype == PastixIJV );
     assert( spm->flttype == PastixComplex64 );

@@ -102,11 +102,11 @@ static inline void *pastix_malloc_func( size_t size,
  *   ptr      - address where to allocate.
  *   size     - Number of elements to allocate.
  *   types    - Type of the elements to allocate.
- *   flag_int - API_YES for internal allocation, API_NO for external.
+ *   flag_int - 1 for internal allocation, 0 for external.
  */
 #define MALLOC_INTOREXTERN(ptr, size, type, flag_int) \
   do {                                                \
-    if (flag_int == API_YES)                          \
+    if (flag_int == 1)                          \
       {                                               \
         MALLOC_INTERN(ptr, size, type);               \
       }                                               \
@@ -118,7 +118,7 @@ static inline void *pastix_malloc_func( size_t size,
 
 #define FREE_NULL_INTOREXT(ptr, flag_int)         \
   do {                                            \
-    if (flag_int == API_YES)                      \
+    if (flag_int == 1)                      \
       {                                           \
         memFree_null(ptr);                        \
       }                                           \

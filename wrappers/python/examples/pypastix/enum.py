@@ -5,44 +5,42 @@ pastix_c_int  = c_int64
 pastix_np_int = np.dtype('int64')
 
 class pastix_iparm:
-    iparm_factorization = 44
+    iparm_factorization = 35 # DANGER !!!
     iparm_size = 128
 
 class pastix_dparm:
     dparm_size = 128
 
 class pastix_task:
-    API_TASK_INIT       = 0 # Startup the library
-    API_TASK_ORDERING   = 1 # Ordering
-    API_TASK_SYMBFACT   = 2 # Symbolic factorization
-    API_TASK_ANALYSE    = 3 # Tasks mapping and scheduling
-    API_TASK_NUMFACT    = 4 # Numerical factorization
-    API_TASK_SOLVE      = 5 # Numerical solve
-    API_TASK_REFINE     = 6 # Numerical refinement
-    API_TASK_CLEAN      = 7 # Clean
+    PastixTaskInit       = 0 # Startup the library
+    PastixTaskOrdering   = 1 # Ordering
+    PastixTaskSymbfact   = 2 # Symbolic factorization
+    PastixTaskAnalyze    = 3 # Tasks mapping and scheduling
+    PastixTaskNumfact    = 4 # Numerical factorization
+    PastixTaskSolve      = 5 # Numerical solve
+    PastixTaskRefine     = 6 # Numerical refinement
+    PastixTaskClean      = 7 # Clean
 
 
 class pastix_verbose:
-    API_VERBOSE_NOT        = 0 # Nothing
-    API_VERBOSE_NO         = 1 # Default
-    API_VERBOSE_YES        = 2 # Extended
-    API_VERBOSE_CHATTERBOX = 3
-    API_VERBOSE_UNBEARABLE = 4
+    PastixVerboseNot        = 0 # Nothing
+    PastixVerboseNo         = 1 # Default
+    PastixVerboseYes        = 2 # Extended
 
 class pastix_io:
-    API_IO_NO         = 0
-    API_IO_LOAD       = 1
-    API_IO_SAVE       = 2
-    API_IO_LOAD_GRAPH = 4
-    API_IO_SAVE_GRAPH = 8
-    API_IO_LOAD_CSC   = 16
-    API_IO_SAVE_CSC   = 32
+    PastixIONo         = 0
+    PastixIOLoad       = 1
+    PastixIOSave       = 2
+    PastixIOLoadGraph  = 4
+    PastixIOSaveGraph  = 8
+    PastixIOLoadCSC    = 16
+    PastixIOSaveCSC    = 32
 
 class pastix_refine:
-    API_REFINE_GMRES    = 0 # GMRES
-    API_REFINE_GRAD     = 1 # CG
-    API_REFINE_PIVOT    = 2 # Iterate
-    API_REFINE_BICGSTAB = 3 # BiCGstab
+    PastixRefineGMRES    = 0 # GMRES
+    PastixRefineCG       = 1 # CG
+    PastixRefineSR       = 2 # SR
+    PastixRefineBiCGSTAB = 3 # BiCGstab
 
 class pastix_coeftype:
     PastixPattern   = 0 # Pattern only, no values are stored

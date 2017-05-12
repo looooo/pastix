@@ -54,6 +54,16 @@ typedef enum pastix_driver_e {
 } pastix_driver_t;
 
 /**
+ * @brief How to generate RHS
+ */
+typedef enum pastix_rhstype_e {
+    PastixRhsOne,
+    PastixRhsI,
+    PastixRhsRndX,
+    PastixRhsRndB
+} pastix_rhstype_t;
+
+/**
  *
  * @brief The sparse matrix data structure
  *
@@ -87,7 +97,7 @@ typedef struct pastix_spm_s {
                                     otherwise, irregular degree of freedom (refer to dofs)         */
     pastix_int_t     *dofs;    /**< Array of the first column of each element in the
                                     expanded matrix [+baseval]                                     */
-    pastix_order_t    layout;  /**< PastixColMajor, or PastixRowMajor                              */
+    pastix_layout_t   layout;  /**< PastixColMajor, or PastixRowMajor                              */
 
     pastix_int_t     *colptr;  /**< List of indirections to rows for each vertex [+baseval]        */
     pastix_int_t     *rowptr;  /**< List of edges for each vertex [+baseval]                       */
@@ -131,7 +141,7 @@ pastix_spm_t *spmCheckAndCorrect( pastix_spm_t *spm );
  * @name SPM subroutines to check factorization/solve
  * @{
  */
-int           spmGenRHS( int type, int nrhs, const pastix_spm_t *spm, void *x, int ldx, void *b, int ldb );
+int           spmGenRHS( pastix_rhstype_t type, int nrhs, const pastix_spm_t *spm, void *x, int ldx, void *b, int ldb );
 int           spmCheckAxb( int nrhs, const pastix_spm_t *spm, void *x0, int ldx0, void *b, int ldb, const void *x, int ldx );
 
 /**

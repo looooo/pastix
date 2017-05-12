@@ -406,7 +406,7 @@ core_zgradd( const pastix_lr_t *lowrank, pastix_complex64_t alpha,
         pastix_complex64_t *tmp = B->u;
         ldub = B->rkmax;
         tmp += ldub * offy + offx;
-        core_zgeadd( CblasNoTrans, M1, N1,
+        core_zgeadd( PastixNoTrans, M1, N1,
                      alpha, A,   lda,
                        1.0, tmp, ldub );
         return 0;
@@ -562,13 +562,13 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
                 AB->u = A->u;
                 AB->v = work + A->rk * B->rk;
 
-                cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
                              A->rk, B->rk, K,
                              CBLAS_SADDR(zone),  A->v, ldav,
                                                  B->v, ldbv,
                              CBLAS_SADDR(zzero), work, A->rk );
 
-                cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
                              A->rk, N, B->rk,
                              CBLAS_SADDR(zone),  work,  A->rk,
                                                  B->u,  ldbu,
@@ -585,7 +585,7 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
                 AB->u = work + A->rk * B->rk;
                 AB->v = B->u;
 
-                cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
                              A->rk, B->rk, K,
                              CBLAS_SADDR(zone),  A->v, ldav,
                                                  B->v, ldbv,
@@ -615,7 +615,7 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
             AB->u = A->u;
             AB->v = work;
 
-            cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+            cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
                          A->rk, N, K,
                          CBLAS_SADDR(zone),  A->v,  ldav,
                                              B->u,  ldbu,
@@ -638,7 +638,7 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
             AB->u = work;
             AB->v = B->u;
 
-            cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+            cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
                          M, B->rk, K,
                          CBLAS_SADDR(zone),  A->u,  ldau,
                                              B->v,  ldbv,
@@ -670,7 +670,7 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
                 AB->u = work;
                 AB->v = NULL;
 
-                cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
                              M, N, K,
                              CBLAS_SADDR(zone),  A->u, ldau,
                                                  B->u, ldbu,
@@ -770,7 +770,7 @@ core_zlrm3( const pastix_lr_t *lowrank,
     /**
      * Let's compute A * B' = Au Av^h (Bu Bv^h)' with the smallest ws
      */
-    cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+    cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
                  A->rk, B->rk, K,
                  CBLAS_SADDR(zone),  A->v, ldav,
                                      B->v, ldbv,
@@ -798,7 +798,7 @@ core_zlrm3( const pastix_lr_t *lowrank,
             AB->u = A->u;
             AB->v = work;
 
-            cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+            cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
                          A->rk, N, B->rk,
                          CBLAS_SADDR(zone),  work2,  A->rk,
                          B->u,  ldbu,
@@ -851,7 +851,7 @@ core_zlrm3( const pastix_lr_t *lowrank,
                                          rArB.u, A->rk,
                      CBLAS_SADDR(zzero), AB->u,  M );
 
-        cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+        cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
                      rArB.rk, N, B->rk,
                      CBLAS_SADDR(zone),  rArB.v, rArB.rkmax,
                                          B->u, ldbu,

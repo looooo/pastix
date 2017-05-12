@@ -177,7 +177,7 @@ solverDraw ( const SolverMatrix * const  solvptr,
         double color         = 0.2;
         int    factoLU = (solvptr->factotype == PastixFactLU) ? 1 : 0;
 
-        fprintf(fd3, "%ld\n", solvptr->bloknbr-solvptr->cblknbr);
+        fprintf(fd3, "%ld\n", (long)(solvptr->bloknbr-solvptr->cblknbr));
 
         fprintf (stream, "0 0\n");                      /* Output fake column block */
         for (cblknum = 0; cblknum < solvptr->cblknbr; cblknum ++) {

@@ -104,7 +104,7 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
      */
     {
         pastix_data->dparm[ DPARM_A_NORM ] = spmNorm( PastixFrobeniusNorm, spm );
-        if (pastix_data->iparm[IPARM_VERBOSE] > API_VERBOSE_NO ) {
+        if (pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
             pastix_print( 0, 0,
                           "    ||A||_2  =                            %e\n",
                           pastix_data->dparm[ DPARM_A_NORM ] );
@@ -126,11 +126,10 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
     time = bcscInit( spm,
                      pastix_data->ordemesh,
                      pastix_data->solvmatr,
-                     ( (pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU)
-                       && (! pastix_data->iparm[IPARM_ONLY_REFINE]) ),
+                     (pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU), /*&& (! pastix_data->iparm[IPARM_ONLY_REFINE]) )*/
                      pastix_data->bcsc );
 
-    if ( pastix_data->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT ) {
+    if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
         pastix_print( 0, 0, OUT_BCSC_TIME, time );
     }
 
@@ -248,7 +247,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t      *pastix_data,
 #endif
 
     clockStop(timer);
-    if (pastix_data->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT) {
+    if (pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot) {
         pastix_print( 0, 0, OUT_COEFTAB_TIME,
                       clockVal(timer) );
     }
@@ -298,7 +297,6 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data,
 /* #ifdef PASTIX_WITH_MPI */
 /*     MPI_Comm       pastix_comm = pastix_data->inter_node_comm; */
 /* #endif */
-    pastix_int_t  procnum;
     pastix_int_t *iparm;
 /*     double        *dparm    = pastix_data->dparm; */
 /*     SolverMatrix  *solvmatr = pastix_data->solvmatr; */
@@ -328,7 +326,6 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data,
     }
 
     iparm   = pastix_data->iparm;
-    procnum = pastix_data->inter_node_procnum;
 
     /* Prepare the sopalin_data structure */
     {
@@ -362,8 +359,9 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data,
         factofct( pastix_data, &sopalin_data );
         clockStop(timer);
 
-        flops = pastix_data->dparm[DPARM_FACT_FLOPS] / clockVal(timer);
-        if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT) {
+        flops = pastix_data->dparm[DPARM_FACT_THFLOPS] / clockVal(timer);
+        pastix_data->dparm[DPARM_FACT_FLOPS] = flops;
+        if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
             pastix_print( 0, 0, OUT_SOPALIN_TIME,
                           clockVal(timer),
                           printflopsv( flops ), printflopsu( flops ) );
@@ -383,7 +381,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data,
     }
 #endif
 
-    if ( (pastix_data->iparm[IPARM_VERBOSE] > API_VERBOSE_NO) &&
+    if ( (pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo) &&
          (pastix_data->iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever) )
     {
         /* Compute the memory gain */
@@ -463,7 +461,7 @@ pastix_task_numfact( pastix_data_t *pastix_data,
     iparm   = pastix_data->iparm;
     procnum = pastix_data->inter_node_procnum;
 
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT) {
+    if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
         pastix_print(procnum, 0, OUT_STEP_SOPALIN,
                      pastixFactotypeStr( iparm[IPARM_FACTORIZATION] ) );
     }

@@ -159,7 +159,7 @@ int main (int argc, char **argv)
 
     for (m=100; m<300; m+=100){
         for (r=10; r<100; r+=10){
-            printf("   -- Test GE2LR M=N=LDA=%ld R=%ld\n", m, r);
+            printf("   -- Test GE2LR M=N=LDA=%ld R=%ld\n", (long)m, (long)r);
 
             ret = z_ge2lr_test(tolerance, r, m, m, m);
             PRINT_RES(ret);

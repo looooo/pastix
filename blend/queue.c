@@ -327,9 +327,9 @@ pqueuePrint(const pastix_queue_t *q)
     fprintf(stderr, "Queue :\n");
     for (i = 0; i < q->used; i++, item++) {
         fprintf(stderr, "(%ld %ld %ld) ",
-                (int64_t)(item->eltptr),
-                (int64_t)(item->key1),
-                (int64_t)(item->key2) );
+                (long)(item->eltptr),
+                (long)(item->key1),
+                (long)(item->key2) );
         if (i%4 == 3)
             fprintf(stderr, "\n");
     }

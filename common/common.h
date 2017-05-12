@@ -182,8 +182,8 @@ pastix_env_is_set_to(char * str, char * value) {
     char * val;
     if ( (val = pastix_getenv(str)) &&
          !strcmp(val, value))
-        return API_YES;
-    return API_NO;
+        return 1;
+    return 0;
 }
 
 static inline int
@@ -234,12 +234,12 @@ int pastix_getenv_get_value_int(char * string, int default_value) {
 
 /* **************************************** */
 
-static inline void set_iparm(pastix_int_t *iparm, enum IPARM_ACCESS offset, pastix_int_t value)
+static inline void set_iparm(pastix_int_t *iparm, pastix_iparm_t offset, pastix_int_t value)
 {
     if (iparm != NULL) iparm[offset] = (pastix_int_t)value;
 }
 
-static inline void set_dparm(double *dparm, enum DPARM_ACCESS offset, double value)
+static inline void set_dparm(double *dparm, pastix_dparm_t offset, double value)
 {
     if (dparm != NULL) dparm[offset] = (double)value;
 }

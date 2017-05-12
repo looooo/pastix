@@ -166,7 +166,7 @@ void z_Pastix_X( pastix_data_t *pastix_data, void *x, pastix_complex64_t *gmresx
     pastix_int_t        n = pastix_data->bcsc->gN;
     pastix_complex64_t *xptr = (pastix_complex64_t *)x;
 
-    if (pastix_data->iparm[IPARM_ONLY_REFINE] == API_NO)
+    if (0 /*pastix_data->iparm[IPARM_ONLY_REFINE] == 0*/)
     {
         for (i=0; i<n; i++, xptr++)
             gmresx[i]= *xptr;
@@ -351,7 +351,7 @@ void z_Pastix_Precond( pastix_data_t *pastix_data, pastix_complex64_t *s, pastix
     void* bptr = (void*)d;
 
     memcpy(d, s, n * sizeof( pastix_complex64_t ));
-    if (pastix_data->iparm[IPARM_ONLY_REFINE] == API_NO)
+    /*if (pastix_data->iparm[IPARM_ONLY_REFINE] == 0)*/
     {
         sopalin_data_t sopalin_data;
         sopalin_data.solvmtx = pastix_data->solvmatr;

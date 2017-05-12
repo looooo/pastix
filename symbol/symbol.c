@@ -381,9 +381,9 @@ symbolPrintStats( const SymbolMatrix *symbptr )
             "      Blok height avg                  %11.2lf\n"
             "      Blok height stdev                %11.2lf\n"
             "      Memory space                     %11.2lf %s\n",
-            cblknbr, bloknbr,
-            cblkmin, cblkmax, cblkavg1, cblkavg2,
-            blokmin, blokmax, blokavg1, blokavg2,
+            (long)cblknbr, (long)bloknbr,
+            (long)cblkmin, (long)cblkmax, cblkavg1, cblkavg2,
+            (long)blokmin, (long)blokmax, blokavg1, blokavg2,
             MEMORY_WRITE( mem ), MEMORY_UNIT_WRITE( mem ) );
 }
 

@@ -148,12 +148,12 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
     }
 
     /* Add A and B in their LR format */
-    core_zrradd_SVD( tolerance, CblasNoTrans, -1.0,
+    core_zrradd_SVD( tolerance, PastixNoTrans, -1.0,
                      mA, nA, &LR_A_SVD,
                      mB, nB, &LR_B_SVD,
                      offx, offy );
 
-    core_zrradd_RRQR( tolerance, CblasNoTrans, -1.0,
+    core_zrradd_RRQR( tolerance, PastixNoTrans, -1.0,
                       mA, nA, &LR_A_RRQR,
                       mB, nB, &LR_B_RRQR,
                       offx, offy );
@@ -171,7 +171,7 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
 
     /* Compute A+B in dense */
     B_tmp = B + offx + mB * offy;
-    core_zgeadd( CblasNoTrans, mA, nA,
+    core_zgeadd( PastixNoTrans, mA, nA,
                  -1.0, A, mA,
                  1.0, B_tmp, mB );
 
@@ -218,7 +218,7 @@ int main (int argc, char **argv)
 
     for (m=200; m<=400; m+=100){
         for (r=10; r<=100; r+=10){
-            printf("   -- Test RRADD MA=NA=LDA=%ld MB=NB=LDB=%ld RA=%ld RB=%ld\n", m, m, r, r/2);
+            printf("   -- Test RRADD MA=NA=LDA=%ld MB=NB=LDB=%ld RA=%ld RB=%ld\n", (long)m, (long)m, (long)r, (long)(r/2));
 
             ret = z_rradd_test(tolerance, r, r/2,
                                m, m,

@@ -388,7 +388,7 @@ void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
     ldw = (dimi+1) * dima;
 
     /* Compute the contribution */
-    ret = core_zgemdm( CblasNoTrans, CblasTrans,
+    ret = core_zgemdm( PastixNoTrans, PastixTrans,
                        dimi, dimj, dima,
                        1.,  Aik,   stride,
                             Aik,   stride,
@@ -425,7 +425,7 @@ void core_zsytrfsp1d_gemm( SolverCblk         *cblk,
         dimb = iterblok->lrownum - iterblok->frownum + 1;
 
         pastix_cblk_lock( fcblk );
-        core_zgeadd( CblasNoTrans, dimb, dimj,
+        core_zgeadd( PastixNoTrans, dimb, dimj,
                      -1.0, work1, dimi,
                       1.0, Aij,   stridefc );
         pastix_cblk_unlock( fcblk );

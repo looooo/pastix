@@ -14,6 +14,7 @@
  *
  **/
 #include <pastix.h>
+#include <pastix/old_api.h>
 #include <spm.h>
 #include "drivers.h"
 

@@ -69,16 +69,21 @@ pastixWelcome( pastix_data_t *pastix,
 #endif
                   /* MPI nbr   */ pastix->procnbr,
                   /* Thrd nbr  */ (int)(pastix->iparm[IPARM_THREAD_NBR]),
-                  /* MPI mode  */ ((iparm[IPARM_THREAD_COMM_MODE] == API_THREAD_MULTIPLE) ? "Multiple" : "Funneled"),
+#if defined(PASTIX_WITH_MPI)
+                  /* MPI mode  */ ((iparm[IPARM_THREAD_COMM_MODE] == PastixThreadMultiple) ? "Multiple" : "Funneled"),
+#else
+                  "Disabled",
+#endif
+                  /* Distrib */ ((iparm[IPARM_DISTRIBUTION_LEVEL] == -1) ? "1D" : "2D"), (long)iparm[IPARM_DISTRIBUTION_LEVEL],
                   /* Strategy        */ ((iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever) ? "No compression" : (iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin) ? "Memory Optimal" : "Just-In-Time") );
 
 
     if ( iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever ) {
         pastix_print( pastix->procnum, 0, OUT_HEADER_LR,
-                      /* Tolerance       */ dparm[DPARM_COMPRESS_TOLERANCE],
+                      /* Tolerance       */ (double)dparm[DPARM_COMPRESS_TOLERANCE],
                       /* Compress method */ ((iparm[IPARM_COMPRESS_METHOD] == PastixCompressMethodSVD) ? "SVD" : "RRQR"),
-                      /* Compress width  */ iparm[IPARM_COMPRESS_MIN_WIDTH],
-                      /* Compress height */ iparm[IPARM_COMPRESS_MIN_HEIGHT] );
+                      /* Compress width  */ (long)iparm[IPARM_COMPRESS_MIN_WIDTH],
+                      /* Compress height */ (long)iparm[IPARM_COMPRESS_MIN_HEIGHT] );
     }
 }
 
@@ -89,8 +94,7 @@ pastixWelcome( pastix_data_t *pastix,
  * @ingroup pastix_internal
  *
  * pastix_init_param - Initialize the iparm and dparm arrays to their default
- * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to
- * API_NO.
+ * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to 0.
  *
  *******************************************************************************
  *
@@ -108,40 +112,30 @@ pastixInitParam( pastix_int_t *iparm,
     memset( iparm, 0, IPARM_SIZE * sizeof(pastix_int_t) );
     memset( dparm, 0, DPARM_SIZE * sizeof(double) );
 
-    iparm[IPARM_MODIFY_PARAMETER] = API_YES; /* Indicate if parameters have been set by user         */
+    iparm[IPARM_VERBOSE]               = PastixVerboseNo;
+    iparm[IPARM_IO_STRATEGY]           = PastixIONo;
 
-    /**
-     * Parameters used by the old pastix interface
-     */
-    iparm[IPARM_START_TASK] = API_TASK_ORDERING;   /* Indicate the first step to execute (see PaStiX steps)*/
-    iparm[IPARM_END_TASK]   = API_TASK_CLEAN;      /* Indicate the last step to execute (see PaStiX steps) */
-    iparm[IPARM_FLOAT]      = PastixDouble;
-    iparm[IPARM_MTX_TYPE]   = -1;                  /* Used with old interface to force matrix type */
-    iparm[IPARM_DOF_NBR]    = 1;                   /* Degree of freedom per node                           */
+    /* Stats */
+    iparm[IPARM_NNZEROS]               = 0;
+    iparm[IPARM_NNZEROS_BLOCK_LOCAL]   = 0;
+    iparm[IPARM_ALLOCATED_TERMS]       = 0;
+    iparm[IPARM_PRODUCE_STATS]         = 0;
 
-    /**
-     * Common parameters
-     */
-    iparm[IPARM_VERBOSE]               = API_VERBOSE_NO;      /* Verbose mode (see Verbose modes)                     */
-    iparm[IPARM_ITERMAX]               = 250;                 /* Maximum iteration number for refinement              */
-    iparm[IPARM_MATRIX_VERIFICATION]   = API_YES;             /* Check the input matrix                               */
-    iparm[IPARM_MC64]                  = 0;                   /* MC64 operation <z_pastix.h> IGNORE                     */
-    iparm[IPARM_ONLY_REFINE]           = API_NO;              /* Refinement only                                      */
-    iparm[IPARM_TRACEFMT]              = API_TRACE_PAJE;      /* Trace format (see Trace modes)                       */
-    iparm[IPARM_GRAPHDIST]             = API_YES;             /* UNUSED  */
+    /* Scaling */
+    iparm[IPARM_MC64]                  = 0;
 
     /**
      * Ordering parameters
      */
-    iparm[IPARM_ORDERING]              = API_ORDER_SCOTCH;    /* Choose ordering                                      */
-    iparm[IPARM_ORDERING_DEFAULT]      = API_YES;             /* Use default ordering parameters with scotch or metis */
+    iparm[IPARM_ORDERING]              = PastixOrderScotch;
+    iparm[IPARM_ORDERING_DEFAULT]      = 1;
 
     /* Scotch */
     {
-        iparm[IPARM_ORDERING_SWITCH_LEVEL] = 120;    /* Ordering switch level    (see Scotch User's Guide)   */
-        iparm[IPARM_ORDERING_CMIN]         = 0;      /* Ordering cmin parameter  (see Scotch User's Guide)   */
-        iparm[IPARM_ORDERING_CMAX]         = 100000; /* Ordering cmax parameter  (see Scotch User's Guide)   */
-        iparm[IPARM_ORDERING_FRAT]         = 8;      /* Ordering frat parameter  (see Scotch User's Guide)   */
+        iparm[IPARM_SCOTCH_SWITCH_LEVEL] = 120;
+        iparm[IPARM_SCOTCH_CMIN]         = 0;
+        iparm[IPARM_SCOTCH_CMAX]         = 100000;
+        iparm[IPARM_SCOTCH_FRAT]         = 8;
     }
 
     /* Metis */
@@ -164,78 +158,70 @@ pastixInitParam( pastix_int_t *iparm,
         iparm[IPARM_METIS_DBGLVL  ] = 0;
     }
 
-    /**
-     * Symbolic factorization parameters
-     */
-    iparm[IPARM_SF_KASS]               = API_NO;              /* Force KASS */
-    iparm[IPARM_AMALGAMATION_LVLCBLK]  = 5;                   /* Amalgamation level                                   */
-    iparm[IPARM_AMALGAMATION_LVLBLAS]  = 5;                   /* Amalgamation level                                   */
+    /* Symbolic factorization */
+    iparm[IPARM_SF_KASS]               = 0;
+    iparm[IPARM_AMALGAMATION_LVLCBLK]  = 5;
+    iparm[IPARM_AMALGAMATION_LVLBLAS]  = 5;
 
-    /**
-     * Reordering parameters
-     */
-    iparm[IPARM_REORDERING_SPLIT] = 0;                   /* Split level for reordering                           */
-    iparm[IPARM_REORDERING_STOP]  = INT_MAX;             /* Stop criteria for reordering                         */
+    /* Reordering */
+    iparm[IPARM_REORDERING_SPLIT]      = 0;
+    iparm[IPARM_REORDERING_STOP]       = INT_MAX;
 
-    /**
-     * Runtime parameters
-     */
-    iparm[IPARM_SCHEDULER]             = PastixSchedStatic;   /* cpu/node */
-    iparm[IPARM_CPU_BY_NODE]           = 0;                   /* cpu/node */
-    iparm[IPARM_THREAD_NBR]            = -1;                  /* thread/mpi */
+    /* Analyze */
+    iparm[IPARM_MIN_BLOCKSIZE]         = 160;
+    iparm[IPARM_MAX_BLOCKSIZE]         = 320;
+    iparm[IPARM_DISTRIBUTION_LEVEL]    = -1;
+    iparm[IPARM_ABS]                   = 0;
 
-    iparm[IPARM_STATIC_PIVOTING]       = 0;                   /* number of control of diagonal magnitude              */
-    iparm[IPARM_NNZEROS]               = 0;                   /* memory space for coefficients                        */
-    iparm[IPARM_ALLOCATED_TERMS]       = 0;                   /* number of non zero in factorized sparse matrix       */
-    iparm[IPARM_MIN_BLOCKSIZE]         = 160;                 /* min blocksize                                        */
-    iparm[IPARM_MAX_BLOCKSIZE]         = 320;                 /* max blocksize (at least 2*min_blocksize)             */
-    iparm[IPARM_COMPRESS_MIN_WIDTH]    = 120;                 /* minimum width to compress a supernode                */
-    iparm[IPARM_COMPRESS_MIN_HEIGHT]   = 20;                  /* minimum height to compress an off-diagonal block     */
-    iparm[IPARM_COMPRESS_WHEN]         = PastixCompressNever;    /* when to compress */
-    iparm[IPARM_COMPRESS_METHOD]       = PastixCompressMethodRRQR; /* compression technique */
-    iparm[IPARM_FACTORIZATION]         = API_FACT_LU;         /* LU by default     */
+    /* Incomplete */
+    iparm[IPARM_INCOMPLETE]            = 0;
+    iparm[IPARM_LEVEL_OF_FILL]         = 0;
 
-    iparm[IPARM_DISTRIBUTION_LEVEL]    = -1;                  /* Size limit to mark a cblk as 2d */
-    iparm[IPARM_LEVEL_OF_FILL]         = 0;                   /* level of fill */
-    iparm[IPARM_IO_STRATEGY]           = API_IO_NO;           /* I/O */
-    iparm[IPARM_REFINEMENT]            = API_REFINE_GMRES;    /* gmres */
-    iparm[IPARM_INCOMPLETE]            = API_NO;              /* direct */
-    iparm[IPARM_ABS]                   = 0;                   /* ABS level to 1 */
-    iparm[IPARM_ESP]                   = API_NO;              /* no esp */
-#ifdef OOC
-    iparm[IPARM_GMRES_IM]              = 1;                   /* gmres_im */
-    iparm[IPARM_ITERMAX]               = 1;
-#else
-    iparm[IPARM_GMRES_IM]              = 25;                  /* gmres_im */
-#endif
-    iparm[IPARM_FREE_CSCUSER]          = API_CSC_PRESERVE;    /* Free user csc after coefinit */
-    iparm[IPARM_FREE_CSCPASTIX]        = API_CSC_PRESERVE;    /* Free internal csc after coefinit */
-    iparm[IPARM_OOC_LIMIT]             = 2000;                /* memory limit */
-    iparm[IPARM_OOC_THREAD]            = 1;                   /* ooc thrdnbr */
-    iparm[IPARM_OOC_ID]                = -1;                  /* Out of core run ID */
-    iparm[IPARM_NB_SMP_NODE_USED]      = 0;                   /* Nb SMP node used (0 for 1 per MPI process) */
-    iparm[IPARM_MURGE_REFINEMENT]      = API_YES;
-    iparm[IPARM_TRANSPOSE_SOLVE]       = API_NO;
+    /* Factorization */
+    iparm[IPARM_FACTORIZATION]         = PastixFactLU;
+    iparm[IPARM_STATIC_PIVOTING]       = 0;
+    iparm[IPARM_INERTIA]               = -1;
+    iparm[IPARM_FREE_CSCUSER]          = 0;
 
-    /**
-     * Communication modes
-     */
-    iparm[IPARM_THREAD_COMM_MODE] = 0;
+    /* Refinement */
+    iparm[IPARM_REFINEMENT]            = PastixRefineGMRES;
+    iparm[IPARM_NBITER]                = 0;
+    iparm[IPARM_ITERMAX]               = 250;
+    iparm[IPARM_GMRES_IM]              = 25;
+
+    /* Context */
+    iparm[IPARM_SCHEDULER]             = PastixSchedStatic;
+    iparm[IPARM_THREAD_NBR]            = -1;
+    iparm[IPARM_AUTOSPLIT_COMM]        = 0;
+
+    /* GPU */
+    iparm[IPARM_GPU_NBR]               = 0;
+    iparm[IPARM_GPU_MEMORY_PERCENTAGE] = 95;
+    iparm[IPARM_GPU_MEMORY_BLOCK_SIZE] = 32 * 1024;
+
+    /* Compression */
+    iparm[IPARM_COMPRESS_MIN_WIDTH]    = 120;
+    iparm[IPARM_COMPRESS_MIN_HEIGHT]   = 20;
+    iparm[IPARM_COMPRESS_WHEN]         = PastixCompressNever;
+    iparm[IPARM_COMPRESS_METHOD]       = PastixCompressMethodRRQR;
+
+    /* MPI modes */
 #if defined(PASTIX_WITH_MPI)
     {
         int flag = 0;
         int provided = MPI_THREAD_SINGLE;
         MPI_Initialized(&flag);
 
+        iparm[IPARM_THREAD_COMM_MODE] = 0;
         if (flag) {
             MPI_Query_thread(&provided);
             switch( provided ) {
             case MPI_THREAD_MULTIPLE:
-                iparm[IPARM_THREAD_COMM_MODE] = API_THREAD_MULTIPLE;
+                iparm[IPARM_THREAD_COMM_MODE] = PastixThreadMultiple;
                 break;
             case MPI_THREAD_SERIALIZED:
             case MPI_THREAD_FUNNELED:
-                iparm[IPARM_THREAD_COMM_MODE] = API_THREAD_FUNNELED;
+                iparm[IPARM_THREAD_COMM_MODE] = PastixThreadFunneled;
                 break;
                 /**
                  * In the folowing cases, we consider that any MPI implementation
@@ -243,40 +229,37 @@ pastixInitParam( pastix_int_t *iparm,
                  */
             case MPI_THREAD_SINGLE:
             default:
-                iparm[IPARM_THREAD_COMM_MODE] = API_THREAD_FUNNELED;
+                iparm[IPARM_THREAD_COMM_MODE] = PastixThreadFunneled;
             }
         }
     }
 #endif /* defined(PASTIX_WITH_MPI) */
 
-    iparm[IPARM_NB_THREAD_COMM]     = 1;                   /* Nb thread quand iparm[IPARM_THREAD_COMM_MODE] == API_THCOMM_DEFINED */
-    iparm[IPARM_FILL_MATRIX]        = API_NO;              /* fill matrix */
-    iparm[IPARM_INERTIA]            = -1;
-    iparm[IPARM_ESP_NBTASKS]        = -1;
-    iparm[IPARM_ESP_THRESHOLD]      = 16384;               /* Taille de bloc minimale pour passer en esp (2**14) = 128 * 128 */
-    iparm[IPARM_DOF_COST]           = 0;                   /* Degree of freedom for cost computation
-                                                               (If different from IPARM_DOF_NBR) */
-    iparm[IPARM_ERROR_NUMBER]       = PASTIX_SUCCESS;
-    iparm[IPARM_RHSD_CHECK]         = API_YES;
-    iparm[IPARM_STARPU]             = API_NO;
-    iparm[IPARM_AUTOSPLIT_COMM]     = API_NO;
-    iparm[IPARM_STARPU_CTX_DEPTH]   = 3;
-    iparm[IPARM_STARPU_CTX_NBR]     = -1;
-    iparm[IPARM_PRODUCE_STATS]      = API_NO;
+    /* Subset for old pastix interface  */
+    iparm[IPARM_MODIFY_PARAMETER] = 1;
+    iparm[IPARM_START_TASK] = PastixTaskOrdering;
+    iparm[IPARM_END_TASK]   = PastixTaskClean;
+    iparm[IPARM_BASEVAL]    = 0;
+    iparm[IPARM_FLOAT]      = PastixDouble;
+    iparm[IPARM_MTX_TYPE]   = -1;
+    iparm[IPARM_DOF_NBR]    = 1;
 
-    iparm[IPARM_GPU_NBR]               = 0;                   /* CUDA devices */
-    iparm[IPARM_GPU_CRITERIUM]         = API_GPU_CRITERION_FLOPS;
-    iparm[IPARM_GPU_MEMORY_PERCENTAGE] = 95;
-    iparm[IPARM_GPU_MEMORY_BLOCK_SIZE] = 32 * 1024;
-
+    dparm[DPARM_FILL_IN]            =  0.;
     dparm[DPARM_EPSILON_REFINEMENT] = -1.;
     dparm[DPARM_RELATIVE_ERROR]     = -1.;
-    dparm[DPARM_SCALED_RESIDUAL]    = -1.;
     dparm[DPARM_EPSILON_MAGN_CTRL]  =  0.;
+    dparm[DPARM_ANALYZE_TIME]       =  0.;
+    dparm[DPARM_PRED_FACT_TIME]     =  0.;
+    dparm[DPARM_FACT_TIME]          =  0.;
+    dparm[DPARM_SOLV_TIME]          =  0.;
     dparm[DPARM_FACT_FLOPS]         =  0.;
+    dparm[DPARM_FACT_THFLOPS]       =  0.;
+    dparm[DPARM_FACT_RLFLOPS]       =  0.;
     dparm[DPARM_SOLV_FLOPS]         =  0.;
+    dparm[DPARM_SOLV_THFLOPS]       =  0.;
+    dparm[DPARM_SOLV_RLFLOPS]       =  0.;
+    dparm[DPARM_REFINE_TIME]        =  0.;
     dparm[DPARM_A_NORM]             = -1.;
-
     dparm[DPARM_COMPRESS_TOLERANCE] = 0.01;
 }
 
@@ -365,8 +348,7 @@ apiInitMPI( pastix_data_t *pastix,
  * @ingroup pastix_common
  *
  * pastixInit - Initialize the iparm and dparm arrays to their default
- * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to
- * API_NO.
+ * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to 0.
  *
  *******************************************************************************
  *
@@ -414,7 +396,7 @@ pastixInit( pastix_data_t **pastix_data,
      * Initialize iparm/dparm vectors and set them to default values if not set
      * by the user.
      */
-    if ( iparm[IPARM_MODIFY_PARAMETER] == API_NO ) {
+    if ( iparm[IPARM_MODIFY_PARAMETER] == 0 ) {
         pastixInitParam( iparm, dparm );
     }
 
@@ -469,56 +451,6 @@ pastixInit( pastix_data_t **pastix_data,
     pastix->bcsc       = NULL;
     pastix->solvmatr   = NULL;
 
-/*     if (pastix->procnum == 0) */
-/*     { */
-/*         pastix->pastix_id = getpid(); */
-/*     } */
-/*     MPI_Bcast(&(pastix->pastix_id), 1, PASTIX_MPI_INT, 0, pastix_comm); */
-
-/* #ifdef WITH_SEM_BARRIER */
-/*     if (pastix->intra_node_procnbr > 1) */
-/*     { */
-/*         char sem_name[256]; */
-/*         sprintf(sem_name, "/pastix_%d", pastix->pastix_id); */
-/*         OPEN_SEM(pastix->sem_barrier, sem_name, 0); */
-/*     } */
-/* #endif */
-
-/*     if (iparm != NULL) */
-/*     { */
-/*         if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) */
-/*         { */
-/*             fprintf(stdout, "AUTOSPLIT_COMM : global rank : %d," */
-/*                     " inter node rank %d," */
-/*                     " intra node rank %d, threads %d\n", */
-/*                     (int)(pastix->procnum), */
-/*                     (int)(pastix->inter_node_procnum), */
-/*                     (int)(pastix->intra_node_procnum), */
-/*                     (int)iparm[IPARM_THREAD_NBR]); */
-/*         } */
-
-/*         iparm[IPARM_PID] = pastix->pastix_id; */
-/*     } */
-
-/*     pastix->sopar.bindtab    = NULL; */
-/*     pastix->sopar.b          = NULL; */
-/*     pastix->sopar.transcsc   = NULL; */
-/*     pastix->sopar.stopthrd   = API_NO; */
-/*     pastix->bindtab          = NULL; */
-/*     pastix->cscInternFilled  = API_NO; */
-
-/* #ifdef PASTIX_DISTRIBUTED */
-/*     pastix->malrhsd_int      = API_NO; */
-/*     pastix->l2g_int          = NULL; */
-/*     pastix->mal_l2g_int      = API_NO; */
-/*     pastix->glob2loc         = NULL; */
-/*     pastix->PTS_permtab      = NULL; */
-/*     pastix->PTS_peritab      = NULL; */
-/* #endif */
-/*     pastix->schur_tab        = NULL; */
-/*     pastix->schur_tab_set    = API_NO; */
-/*     pastix->scaling  = API_NO; */
-
     /* DIRTY Initialization for Scotch */
     srand(1);
 
@@ -526,7 +458,7 @@ pastixInit( pastix_data_t **pastix_data,
     /* On Mac set VECLIB_MAXIMUM_THREADS if not setted */
     setenv("VECLIB_MAXIMUM_THREADS", "1", 0);
 
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
         pastixWelcome( pastix, iparm, dparm );
 
     /* Initialization step done, overwrite anything done before */

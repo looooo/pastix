@@ -17,356 +17,182 @@
 #ifndef _PASTIX_API_H_
 #define _PASTIX_API_H_
 
-/* Acces au tableau iparm*/
-/*
- enum: IPARM_ACCESS
-
- Integer parameters tabular accessors
-
- IPARM_MODIFY_PARAMETER      - Indicate if parameters have been set by user             Default: API_YES             IN
-
- IPARM_START_TASK            - Indicate the first step to execute (see PaStiX steps)    Default: API_TASK_ORDERING   IN
- IPARM_END_TASK              - Indicate the last step to execute (see PaStiX steps)     Default: API_TASK_CLEAN      IN
- IPARM_VERBOSE               - Verbose mode (see Verbose modes)                         Default: API_VERBOSE_NO      IN
- IPARM_DOF_NBR               - Degree of freedom per node                               Default: 1                   IN
- IPARM_FLOAT                 - Indicate the floating point type  IGNORE                 Default: -                   INOUT
-
- IPARM_ITERMAX               - Maximum iteration number for refinement                  Default: 250                 IN
- IPARM_MATRIX_VERIFICATION   - Check the input matrix                                   Default: API_NO              IN
- IPARM_MC64                  - MC64 operation <pastix.h> IGNORE                         Default: 0                   IN
- IPARM_ONLY_REFINE           - Refinement only                                          Default: API_NO              IN
- IPARM_CSCD_CORRECT          - Indicate if the cscd has been redistributed after blend  Default: API_NO              IN
- IPARM_NBITER                - Number of iterations performed in refinement             Default: -                   OUT
- IPARM_TRACEFMT              - Trace format (see Trace modes)                           Default: API_TRACE_PAJE      IN
-
- IPARM_ORDERING              - Choose ordering                                          Default: API_ORDER_SCOTCH    IN
- IPARM_ORDERING_DEFAULT      - Use default ordering parameters with \scotch{} or \metis{} Default: API_YES           IN
-
- IPARM_SCOTCH_SWITCH_LEVEL   - Ordering switch level    (see \scotch{} User's Guide)    Default: 120                 IN
- IPARM_SCOTCH_CMIN           - Ordering cmin parameter  (see \scotch{} User's Guide)    Default: 0                   IN
- IPARM_SCOTCH_CMAX           - Ordering cmax parameter  (see \scotch{} User's Guide)    Default: 100000              IN
- IPARM_SCOTCH_FRAT           - Ordering frat parameter  (see \scotch{} User's Guide)    Default: 8                   IN
-
- IPARM_METIS_CTYPE           - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: METIS_CTYPE_SHEM       IN
- IPARM_METIS_RTYPE           - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: METIS_RTYPE_SEP1SIDED  IN
- IPARM_METIS_NO2HOP          - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: 0                      IN
- IPARM_METIS_NSEPS           - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: 1                      IN
- IPARM_METIS_NITER           - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: 10                     IN
- IPARM_METIS_UFACTOR         - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: 200                    IN
- IPARM_METIS_COMPRESS        - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: 1                      IN
- IPARM_METIS_CCORDER         - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: 0                      IN
- IPARM_METIS_PFACTOR         - \metis{} parameters (see \metis{} Manual), used only if IPARM_ORDERING_DEFAULT set to API_NO   Default: 0                      IN
- IPARM_METIS_SEED            - \metis{} parameters (see \metis{} Manual)                                                      Default: 3452                   IN
- IPARM_METIS_DBGLVL          - \metis{} parameters (see \metis{} Manual)                                                      Default: 0                      IN
-
- IPARM_SF_KASS               - Force the use of KASS instead of Fax to perform the symbolic factorization  Default: API_NO                   IN
- IPARM_AMALGAMATION_LVLCBLK  - Amalgamation level                                       Default: 5                   IN
- IPARM_AMALGAMATION_LVLBLAS  - Amalgamation level                                       Default: 5                   IN
-
- IPARM_REORDERING_SPLIT      - Reordering split level                                   Default: 0                   IN
- IPARM_REORDERING_STOP       - Reordering stop criteria                                 Default: INT_MAX             IN
-
- IPARM_STATIC_PIVOTING       - Static pivoting                                          Default: -                   OUT
- IPARM_NNZEROS               - Number of nonzero entries in the factorized matrix       Default: -                   OUT
- IPARM_ALLOCATED_TERMS       - Maximum memory allocated for matrix terms                Default: -                   OUT
- IPARM_BASEVAL               - Baseval used for the matrix                              Default: 0                   IN
- IPARM_MIN_BLOCKSIZE         - Minimum block size                                       Default: 60                  IN
- IPARM_MAX_BLOCKSIZE         - Maximum block size                                       Default: 120                 IN
- IPARM_COMPRESS_MIN_WIDTH    - Minimum width to compress a supernode                    Default: 120                 IN
- IPARM_COMPRESS_MIN_HEIGHT   - Minimum height to compress an off-diagonal block         Default: 20                  IN
- IPARM_COMPRESS_WHEN         - When to compress a supernode                             Default: 0                   IN
- IPARM_COMPRESS_METHOD       - Compression method (SVD/RRQR)                            Default: 0                   IN
- IPARM_RHSD_CHECK            - Set to API_NO to avoid RHS redistribution                Default: API_YES             IN
- IPARM_FACTORIZATION         - Factorization mode (see Factorization modes)             Default: API_FACT_LDLT       IN
- IPARM_NNZEROS_BLOCK_LOCAL   - Number of nonzero entries in the local block factorized matrix Default: -                   OUT
-
- IPARM_SCHEDULER
- IPARM_CPU_BY_NODE           - Number of CPUs per SMP node                              Default: 0                   IN
- IPARM_BINDTHRD              - Thread binding mode (see Thread binding modes)           Default: API_BIND_AUTO       IN
- IPARM_THREAD_NBR            - Number of threads per MPI process                        Default: 1                   IN
-
- IPARM_DISTRIBUTION_LEVEL    - Distribution level IGNORE                                Default:                     IN
- IPARM_LEVEL_OF_FILL         - Level of fill for incomplete factorization               Default: 1                   IN
- IPARM_IO_STRATEGY           - IO strategy (see Checkpoints modes)                      Default: API_IO_NO           IN
- IPARM_REFINEMENT            - Refinement type (see Refinement modes)                   Default: API_REFINE_GMRES    IN
- IPARM_INCOMPLETE            - Incomplete factorization                                 Default: API_NO              IN
- IPARM_ABS                   - ABS level (Automatic Blocksize Splitting)                Default: 1                   IN
- IPARM_ESP                   - ESP (Enhanced Sparse Parallelism)                        Default: API_NO              IN
- IPARM_GMRES_IM              - GMRES restart parameter                                  Default: 25                  IN
- IPARM_FREE_CSCUSER          - Free user CSC                                            Default: API_CSC_PRESERVE    IN
- IPARM_FREE_CSCPASTIX        - Free internal CSC (Use only without call to Refin. step) Default: API_CSC_PRESERVE    IN
- IPARM_OOC_LIMIT             - Out of core memory limit (Mo)                            Default: 2000                IN
- IPARM_OOC_THREAD            - Out of core thread number IGNORE                         Default: 1                   IN
- IPARM_OOC_ID                - Out of core run ID        IGNORE                         Default: -                   OUT
- IPARM_NB_SMP_NODE_USED      - Number of SMP node used   IGNORE                         Default:                     IN
- IPARM_THREAD_COMM_MODE      - Threaded communication mode (see Communication modes)    Default: API_THREAD_MULT     IN
- IPARM_NB_THREAD_COMM        - Number of thread(s) for communication                    Default: 1                   IN
- IPARM_FILL_MATRIX           - Initialize matrix coefficients (for test only)  IGNORE   Default:                     IN
- IPARM_INERTIA               - Return the inertia (symmetric matrix without pivoting)   Default: -                   OUT
- IPARM_ESP_NBTASKS           - Return the number of tasks generated by ESP              Default: -                   OUT
- IPARM_ESP_THRESHOLD         - Minimal block sizee to switch in ESP mode (128 * 128)    Default: 16384               IN
- IPARM_DOF_COST              - Degree of freedom for cost computation (If different from IPARM_DOF_NBR) Default: 0                    IN
- IPARM_MURGE_REFINEMENT      - Enable refinement in MURGE                               Default: API_YES             IN
- IPARM_STARPU                - Use StarPU runtime                                       Default: API_NO              IN
- IPARM_AUTOSPLIT_COMM        - Automaticaly split communicator to have one MPI task by node             Default: API_NO               IN
- IPARM_PID                   - Pid of the first process (used for naming the log directory) Default: -1                  OUT
- IPARM_ERROR_NUMBER          - Return value                                             Default: -                   OUT
- IPARM_CUDA_NBR              - Number of cuda devices                                   Default: 0                   IN
- IPARM_TRANSPOSE_SOLVE       - Use transposed matrix during solve                       Default: API_NO              IN
- IPARM_STARPU_CTX_DEPTH      - Tree depth of the contexts given to StarPU               Default:3                    IN
- IPARM_STARPU_CTX_NBR        - Number of contexts created                               Default:-1                   INOUT
- IPARM_PRODUCE_STATS         - Compute some statistiques (such as precision error)      Default:API_NO               IN
- IPARM_GPU_CRITERIUM         - Criterium for sorting GPU                                Default:0                    IN
- IPARM_MURGE_MAY_REFINE      - Enable refinement in MURGE                               Default: API_NO             IN
- IPARM_SIZE                  - Iparm Size                IGNORE                         Default:                     IN
+/**
+ * @brief Integer parameters
  */
-enum IPARM_ACCESS {
-    IPARM_MODIFY_PARAMETER,
-    IPARM_VERBOSE,
-    IPARM_DOF_NBR,
-    IPARM_ITERMAX,
-    IPARM_MATRIX_VERIFICATION,
-    IPARM_MC64,
-    IPARM_ONLY_REFINE,
-    IPARM_CSCD_CORRECT,
-    IPARM_NBITER,
-    IPARM_TRACEFMT,
-    IPARM_GRAPHDIST,
+typedef enum pastix_iparm_e {
+    IPARM_VERBOSE,               /**< Verbose mode (see Verbose modes)                               Default: PastixVerboseNo          IN    */
+    IPARM_IO_STRATEGY,           /**< IO strategy (see Checkpoints modes)                            Default: PastixIONo               IN    */
 
-    /*
-     * Ordering
-     */
-    IPARM_ORDERING,
-    IPARM_ORDERING_DEFAULT,
+    /* Stats */
+    IPARM_NNZEROS,               /**< Number of nonzero entries in the factorized matrix             Default: -                        OUT   */
+    IPARM_NNZEROS_BLOCK_LOCAL,   /**< Number of nonzero entries in the local block factorized matrix Default: -                        OUT   */
+    IPARM_ALLOCATED_TERMS,       /**< Maximum memory allocated for matrix terms                      Default: -                        OUT   */
+    IPARM_PRODUCE_STATS,         /**< Compute some statistiques (such as precision error)            Default: 0                        IN    */
+
+    /* Scaling */
+    IPARM_MC64,                  /**< MC64 operation                                                 Default: 0                        IN    */
+
+    /* Ordering */
+    IPARM_ORDERING,              /**< Choose ordering                                                Default: PastixOrderScotch        IN    */
+    IPARM_ORDERING_DEFAULT,      /**< Use default ordering parameters with \scotch{} or \metis{}     Default: 1                        IN    */
 
     /* Subset for Scotch */
-    IPARM_SCOTCH_SWITCH_LEVEL,
-    IPARM_SCOTCH_CMIN,
-    IPARM_SCOTCH_CMAX,
-    IPARM_SCOTCH_FRAT,
+    IPARM_SCOTCH_SWITCH_LEVEL,   /**< Ordering switch level    (see \scotch{} Manual)                Default: 120                      IN    */
+    IPARM_SCOTCH_CMIN,           /**< Ordering cmin parameter  (see \scotch{} Manual)                Default: 0                        IN    */
+    IPARM_SCOTCH_CMAX,           /**< Ordering cmax parameter  (see \scotch{} Manual)                Default: 100000                   IN    */
+    IPARM_SCOTCH_FRAT,           /**< Ordering frat parameter  (see \scotch{} Manual)                Default: 8                        IN    */
 
     /* Subset for Metis */
-    IPARM_METIS_CTYPE,
-    IPARM_METIS_RTYPE,
-    IPARM_METIS_NO2HOP,
-    IPARM_METIS_NSEPS,
-    IPARM_METIS_NITER,
-    IPARM_METIS_UFACTOR,
-    IPARM_METIS_COMPRESS,
-    IPARM_METIS_CCORDER,
-    IPARM_METIS_PFACTOR,
-    IPARM_METIS_SEED,
-    IPARM_METIS_DBGLVL,
+    IPARM_METIS_CTYPE,           /**< \metis{} parameters      (see \metis{}  Manual)                Default: METIS_CTYPE_SHEM         IN    */
+    IPARM_METIS_RTYPE,           /**< \metis{} parameters      (see \metis{}  Manual)                Default: METIS_RTYPE_SEP1SIDED    IN    */
+    IPARM_METIS_NO2HOP,          /**< \metis{} parameters      (see \metis{}  Manual)                Default: 0                        IN    */
+    IPARM_METIS_NSEPS,           /**< \metis{} parameters      (see \metis{}  Manual)                Default: 1                        IN    */
+    IPARM_METIS_NITER,           /**< \metis{} parameters      (see \metis{}  Manual)                Default: 10                       IN    */
+    IPARM_METIS_UFACTOR,         /**< \metis{} parameters      (see \metis{}  Manual)                Default: 200                      IN    */
+    IPARM_METIS_COMPRESS,        /**< \metis{} parameters      (see \metis{}  Manual)                Default: 1                        IN    */
+    IPARM_METIS_CCORDER,         /**< \metis{} parameters      (see \metis{}  Manual)                Default: 0                        IN    */
+    IPARM_METIS_PFACTOR,         /**< \metis{} parameters      (see \metis{}  Manual)                Default: 0                        IN    */
+    IPARM_METIS_SEED,            /**< \metis{} parameters      (see \metis{}  Manual)                Default: 3452                     IN    */
+    IPARM_METIS_DBGLVL,          /**< \metis{} parameters      (see \metis{}  Manual)                Default: 0                        IN    */
 
-    /* Symbolic Factoization */
-    IPARM_SF_KASS,
-    IPARM_AMALGAMATION_LVLBLAS,
-    IPARM_AMALGAMATION_LVLCBLK,
+    /* Symbolic Factorization */
+    IPARM_SF_KASS,               /**< Force KASS instead of Fax to perform symbolic factorization    Default: 0                        IN    */
+    IPARM_AMALGAMATION_LVLBLAS,  /**< Amalgamation level                                             Default: 5                        IN    */
+    IPARM_AMALGAMATION_LVLCBLK,  /**< Amalgamation level                                             Default: 5                        IN    */
 
     /* Reordering */
-    IPARM_REORDERING_SPLIT,
-    IPARM_REORDERING_STOP,
+    IPARM_REORDERING_SPLIT,      /**< Reordering split level                                         Default: 0                        IN    */
+    IPARM_REORDERING_STOP,       /**< Reordering stop criteria                                       Default: INT_MAX                  IN    */
 
-    IPARM_STATIC_PIVOTING,
-    IPARM_NNZEROS,
-    IPARM_ALLOCATED_TERMS,
-    IPARM_BASEVAL,
-    IPARM_MIN_BLOCKSIZE,
-    IPARM_MAX_BLOCKSIZE,
-    IPARM_COMPRESS_MIN_WIDTH,
-    IPARM_COMPRESS_MIN_HEIGHT,
-    IPARM_COMPRESS_WHEN,
-    IPARM_COMPRESS_METHOD,
-    IPARM_RHSD_CHECK,
-    IPARM_FACTORIZATION,
-    IPARM_NNZEROS_BLOCK_LOCAL,
-    IPARM_DISTRIBUTION_LEVEL,
-    IPARM_LEVEL_OF_FILL,
-    IPARM_IO_STRATEGY,
-    IPARM_REFINEMENT,
-    IPARM_INCOMPLETE,
-    IPARM_ABS,
-    IPARM_ESP,
-    IPARM_GMRES_IM,
-    IPARM_FREE_CSCUSER,
-    IPARM_FREE_CSCPASTIX,
-    IPARM_OOC_LIMIT,
-    IPARM_OOC_THREAD,
-    IPARM_OOC_ID,
+    /* Analyze */
+    IPARM_MIN_BLOCKSIZE,         /**< Minimum block size                                             Default: 160                      IN    */
+    IPARM_MAX_BLOCKSIZE,         /**< Maximum block size                                             Default: 320                      IN    */
+    IPARM_DISTRIBUTION_LEVEL,    /**< Distribution level (min cblk width for 2D, -1 for 1D only)     Default: -1                       IN    */
+    IPARM_ABS,                   /**< ABS level (Automatic Blocksize Splitting)                      Default: 0                        IN    */
 
-    IPARM_SCHEDULER,
-    IPARM_CPU_BY_NODE,
-    IPARM_THREAD_NBR,
-    IPARM_NB_SMP_NODE_USED,
-    IPARM_THREAD_COMM_MODE,
-    IPARM_NB_THREAD_COMM,
+    /* Incomplete */
+    IPARM_INCOMPLETE,            /**< Incomplete factorization                                       Default: 0                        IN    */
+    IPARM_LEVEL_OF_FILL,         /**< Level of fill for incomplete factorization                     Default: 0                        IN    */
 
-    IPARM_GPU_NBR,
-    IPARM_GPU_CRITERIUM,
-    IPARM_GPU_MEMORY_PERCENTAGE,
-    IPARM_GPU_MEMORY_BLOCK_SIZE,
+    /* Factorization */
+    IPARM_FACTORIZATION,         /**< Factorization mode                                             Default: PastixFactLU             IN    */
+    IPARM_STATIC_PIVOTING,       /**< Static pivoting                                                Default: -                        OUT   */
+    IPARM_INERTIA,               /**< Return the inertia (symmetric matrix without pivoting)         Default: -                        OUT   */
+    IPARM_FREE_CSCUSER,          /**< Free user CSC                                                  Default: 0                        IN    */
 
-    IPARM_FILL_MATRIX,
-    IPARM_INERTIA,
-    IPARM_ESP_NBTASKS,
-    IPARM_ESP_THRESHOLD,
-    IPARM_DOF_COST,
-    IPARM_MURGE_REFINEMENT,
-    IPARM_STARPU,
-    IPARM_AUTOSPLIT_COMM,
-    IPARM_PID,
-    IPARM_ERROR_NUMBER,
-    IPARM_TRANSPOSE_SOLVE,
-    IPARM_STARPU_CTX_DEPTH,
-    IPARM_STARPU_CTX_NBR,
-    IPARM_PRODUCE_STATS,
-    IPARM_MURGE_MAY_REFINE,
+    /* Refinement */
+    IPARM_REFINEMENT,            /**< Refinement mode                                                Default: PastixRefineGMRES        IN    */
+    IPARM_NBITER,                /**< Number of iterations performed in refinement                   Default: -                        OUT   */
+    IPARM_ITERMAX,               /**< Maximum iteration number for refinement                        Default: 250                      IN    */
+    IPARM_GMRES_IM,              /**< GMRES restart parameter                                        Default: 25                       IN    */
 
-    /* Subset for old pastix interface*/
-    IPARM_MTX_TYPE,
-    IPARM_FLOAT,
-    IPARM_START_TASK,
-    IPARM_END_TASK,
+    /* Context */
+    IPARM_SCHEDULER,             /**< Scheduler mode                                                 Default: PastixSchedStatic        IN    */
+    IPARM_THREAD_NBR,            /**< Number of threads per process (-1 for auto detect)             Default: -1                       IN    */
+    IPARM_AUTOSPLIT_COMM,        /**< Automaticaly split communicator to have one MPI task by node   Default: 0                        IN    */
 
-    IPARM_SIZE
-};
+    /* GPU */
+    IPARM_GPU_NBR,               /**< Number of GPU devices                                          Default: 0                        IN    */
+    IPARM_GPU_MEMORY_PERCENTAGE, /**< Maximum percentage of the GPU memory used by the solver        Default: 95                       IN    */
+    IPARM_GPU_MEMORY_BLOCK_SIZE, /**< Size of GPU memory pages (for PaRSEC runtime)                  Default: 32 * 1024                IN    */
 
+    /* Compression */
+    IPARM_COMPRESS_MIN_WIDTH,    /**< Minimum width to compress a supernode                          Default: 120                      IN    */
+    IPARM_COMPRESS_MIN_HEIGHT,   /**< Minimum height to compress an off-diagonal block               Default: 20                       IN    */
+    IPARM_COMPRESS_WHEN,         /**< When to compress a supernode                                   Default: PastixCompressNever      IN    */
+    IPARM_COMPRESS_METHOD,       /**< Compression method (SVD/RRQR)                                  Default: PastixCompressMethodRRQR IN    */
 
-/* Acces au tableau dparm */
-/*
- Enum: DPARM_ACCESS
+#if defined(PASTIX_WITH_MPI)
+    /* MPI modes */
+    IPARM_THREAD_COMM_MODE,      /**< Threaded communication mode                                    Default: PastixThreadMultiple     IN    */
+#endif /* defined(PASTIX_WITH_MPI) */
 
- Floating point parameters tabular accossors
+    /* Subset for old interface */
+    IPARM_MODIFY_PARAMETER,      /**< Indicate if parameters have been set by user                   Default: 1                        IN    */
+    IPARM_START_TASK,            /**< Indicate the first step to execute                             Default: PastixTaskOrdering       IN    */
+    IPARM_END_TASK,              /**< Indicate the last step to execute                              Default: PastixTaskClean          IN    */
+    IPARM_BASEVAL,               /**< Baseval used for the matrix                                    Default: 0                        IN    */
+    IPARM_FLOAT,                 /**< Indicate the arithmetics                                       Default: PastixDouble             IN    */
+    IPARM_MTX_TYPE,              /**< Indicate matrix format                                         Default: -1                       IN    */
+    IPARM_DOF_NBR,               /**< Degree of freedom per node                                     Default: 1                        IN    */
 
- DPARM_FILL_IN            - Fill-in                                           Default: -                OUT
- DPARM_MEM_MAX            - Maximum memory (-DMEMORY_USAGE)                   Default: -                OUT
- DPARM_EPSILON_REFINEMENT - Epsilon for refinement                            Default: 1e^{-12}         IN
- DPARM_RELATIVE_ERROR     - Relative backward error                           Default: -                OUT
- DPARM_EPSILON_MAGN_CTRL  - Epsilon for magnitude control                     Default: 1e^{-31}         IN
- DPARM_ANALYZE_TIME       - Time for Analyse step (wallclock)                 Default: -                OUT
- DPARM_PRED_FACT_TIME     - Predicted factorization time                      Default: -                OUT
- DPARM_FACT_TIME          - Time for Numerical Factorization step (wallclock) Default: -                OUT
- DPARM_SOLV_TIME          - Time for Solve step (wallclock)                   Default: -                OUT
- DPARM_FACT_FLOPS         - Numerical Factorization flops (rate!)             Default: -                OUT
- DPARM_SOLV_FLOPS         - Solve flops (rate!)                               Default: -                OUT
- DPARM_REFINE_TIME          - Time for Refinement step (wallclock)              Default: -                OUT
- DPARM_SIZE               - Dparm Size         IGNORE                         Default: -                IN
- DPARM_COMPRESS_TOLERANCE - Tolerance for low-rank kernels                    Default: 0.01             IN
- */
-enum DPARM_ACCESS {
-    DPARM_FILL_IN                 = 1,
-    DPARM_MEM_MAX                 = 2,
-    DPARM_EPSILON_REFINEMENT      = 5,
-    DPARM_RELATIVE_ERROR          = 6,
-    DPARM_SCALED_RESIDUAL         = 7,
-    DPARM_EPSILON_MAGN_CTRL       = 10,
-    DPARM_ANALYZE_TIME            = 18,
-    DPARM_PRED_FACT_TIME          = 19,
-    DPARM_FACT_TIME               = 20,
-    DPARM_SOLV_TIME               = 21,
-    DPARM_FACT_THFLOPS            = 22,
-    DPARM_FACT_RLFLOPS            = 25,
-    DPARM_SOLV_FLOPS              = 23,
-    DPARM_REFINE_TIME             = 24,
-    DPARM_A_NORM                  = 25,
-    DPARM_COMPRESS_TOLERANCE      = 26,
-    DPARM_SIZE                    = 64 /* Need to be greater or equal to 64 for backward compatibility */
-};
+    IPARM_SIZE                   /**< iparm tabular size                                                                                     */
+} pastix_iparm_t;
 
-#define DPARM_FACT_FLOPS DPARM_FACT_THFLOPS
 
 /**
- * @brief PaStiX main steps for the pastix() interface.
+ * @brief Float parameters
+ */
+typedef enum pastix_dparm_e {
+    DPARM_FILL_IN,               /**< Maximum memory (-DMEMORY_USAGE)                   Default: -                OUT */
+    DPARM_EPSILON_REFINEMENT,    /**< Epsilon for refinement                            Default: -1.              IN  */
+    DPARM_RELATIVE_ERROR,        /**< Relative backward error                           Default: -                OUT */
+    DPARM_EPSILON_MAGN_CTRL,     /**< Epsilon for magnitude control                     Default: 0.               IN  */
+    DPARM_ANALYZE_TIME,          /**< Time for Analyse step (wallclock)                 Default: -                OUT */
+    DPARM_PRED_FACT_TIME,        /**< Predicted factorization time                      Default: -                OUT */
+    DPARM_FACT_TIME,             /**< Time for Numerical Factorization step (wallclock) Default: -                OUT */
+    DPARM_SOLV_TIME,             /**< Time for Solve step (wallclock)                   Default: -                OUT */
+    DPARM_FACT_FLOPS,            /**< Factorization GFlops/s                            Default: -                OUT */
+    DPARM_FACT_THFLOPS,          /**< Factorization theoretical Flops                   Default: -                OUT */
+    DPARM_FACT_RLFLOPS,          /**< Factorization performed Flops                     Default: -                OUT */
+    DPARM_SOLV_FLOPS,            /**< Solve GFlops/s                                    Default: -                OUT */
+    DPARM_SOLV_THFLOPS,          /**< Solve theoretical Flops                           Default: -                OUT */
+    DPARM_SOLV_RLFLOPS,          /**< Solve performed Flops                             Default: -                OUT */
+    DPARM_REFINE_TIME,           /**< Time for Refinement step (wallclock)              Default: -                OUT */
+    DPARM_A_NORM,                /**< ||A||_f norm                                      Default: -                OUT */
+    DPARM_COMPRESS_TOLERANCE,    /**< Tolerance for low-rank kernels                    Default: 0.01             IN  */
+    DPARM_SIZE                   /**< dparm tabular size                                                              */
+} pastix_dparm_t;
+
+/**
+ * @brief Main steps for the pastix() interface.
  *
  * Those enums are used of the IPARM_START_TASK and IPARM_END_TASK parameters
  * that configure the pastix() call.
  */
 typedef enum pastix_task_e {
-    API_TASK_INIT       = 0, /**< Startup the library          */
-    API_TASK_ORDERING   = 1, /**< Ordering                     */
-    API_TASK_SYMBFACT   = 2, /**< Symbolic factorization       */
-    API_TASK_ANALYSE    = 3, /**< Tasks mapping and scheduling */
-    API_TASK_NUMFACT    = 4, /**< Numerical factorization      */
-    API_TASK_SOLVE      = 5, /**< Numerical solve              */
-    API_TASK_REFINE     = 6, /**< Numerical refinement         */
-    API_TASK_CLEAN      = 7  /**< Clean                        */
+    PastixTaskInit       = 0, /**< Startup the library          */
+    PastixTaskOrdering   = 1, /**< Ordering                     */
+    PastixTaskSymbfact   = 2, /**< Symbolic factorization       */
+    PastixTaskAnalyze    = 3, /**< Tasks mapping and scheduling */
+    PastixTaskNumfact    = 4, /**< Numerical factorization      */
+    PastixTaskSolve      = 5, /**< Numerical solve              */
+    PastixTaskRefine     = 6, /**< Numerical refinement         */
+    PastixTaskClean      = 7  /**< Clean                        */
 } pastix_task_t;
 
-/** Affichage de PaStiX */
-/*
- Enum: API_VERBOSE
-
- Verbose modes (index IPARM_VERBOSE)
-
- API_VERBOSE_NOT        - Silent mode, no messages
- API_VERBOSE_NO         - Some messages
- API_VERBOSE_YES        - Many messages
- API_VERBOSE_CHATTERBOX - Like a gossip
- API_VERBOSE_UNBEARABLE - Really talking too much...
+/**
+ * @brief Verbose modes
  */
-/* _POS_ 5 */
-enum API_VERBOSE {
-    API_VERBOSE_NOT        = 0, /* Nothing  */
-    API_VERBOSE_NO         = 1, /* Default  */
-    API_VERBOSE_YES        = 2, /* Extended */
-    API_VERBOSE_CHATTERBOX = 3,
-    API_VERBOSE_UNBEARABLE = 4
-};
-
-/** Load strategy for graph and ordering */
-/*
- Enum: API_IO
-
- Check-points modes (index IPARM_IO)
-
- API_IO_NO         - No output or input
- API_IO_LOAD       - Load ordering during ordering step and symbol matrix instead of symbolic factorisation.
- API_IO_SAVE       - Save ordering during ordering step and symbol matrix instead of symbolic factorisation.
- API_IO_LOAD_GRAPH - Load graph during ordering step.
- API_IO_SAVE_GRAPH - Save graph during ordering step.
- API_IO_LOAD_CSC   - Load CSC(d) during ordering step.
- API_IO_SAVE_CSC   - Save CSC(d) during ordering step.
- */
-/* _POS_ 6 */
-enum API_IO {
-    API_IO_NO         = 0,
-    API_IO_LOAD       = 1,
-    API_IO_SAVE       = 2,
-    API_IO_LOAD_GRAPH = 4,
-    API_IO_SAVE_GRAPH = 8,
-    API_IO_LOAD_CSC   = 16,
-    API_IO_SAVE_CSC   = 32
-};
+typedef enum pastix_verbose_e {
+    PastixVerboseNot = 0, /**< Nothing  */
+    PastixVerboseNo  = 1, /**< Default  */
+    PastixVerboseYes = 2  /**< Extended */
+} pastix_verbose_t;
 
 /**
- * Type of RHS generated to test the solver
+ * @brief IO strategy for graph and ordering
  */
-typedef enum pastix_rhstype_e {
-    PastixRhsOne,
-    PastixRhsI,
-    PastixRhsRndX,
-    PastixRhsRndB
-} pastix_rhstype_t;
+typedef enum pastix_io_e {
+    PastixIONo         = 0, /**< No output or input */
+    PastixIOLoad       = 1, /**< Load ordering and symbol matrix instead of applying symbolic factorisation step */
+    PastixIOSave       = 2, /**< Save ordering and symbol matrix after symbolic factorisation step */
+    PastixIOLoadGraph  = 4, /**< Load graph  during ordering step */
+    PastixIOSaveGraph  = 8, /**< Save graph  during ordering step */
+    PastixIOLoadCSC    = 16,/**< Load CSC(d) during ordering step */
+    PastixIOSaveCSC    = 32 /**< Save CSC(d) during ordering step */
+} pastix_io_t;
 
-
-/** Type de raffinement utilisé */
-/*
- Enum: API_REFINE
-
- Refinement modes (index IPARM_REFINEMENT)
-
- API_REFINE_GMRES   - GMRES
- API_REFINE_GRAD    - Conjugate Gradient ($LL^t$ or $LDL^t$ factorization)
- API_REFINE_PIVOT   - Iterative Refinement (only for $LU$ factorization)
- API_REFINE_BICGSTAB - BICGSTAB
+/**
+ * @brief Iterative refinement algorithms
  */
-/* _POS_ 8 */
-enum API_REFINE {
-    API_REFINE_GMRES    = 0, /* Utilisation de GMRES */
-    API_REFINE_GRAD     = 1, /* Utilisation du gradient conjugue */
-    API_REFINE_PIVOT    = 2, /* Utilisation de la methode du pivot */
-    API_REFINE_BICGSTAB = 3
-};
+typedef enum pastix_refine_e {
+    PastixRefineGMRES,   /**< GMRES              */
+    PastixRefineCG,      /**< Conjugate Gradiant */
+    PastixRefineSR,      /**< Simple refinement  */
+    PastixRefineBiCGSTAB /**< BiCGStab           */
+} pastix_refine_t;
 
 /**
  * @brief Arithmetic types.
@@ -387,9 +213,9 @@ typedef enum pastix_coeftype_e {
  * @brief Sparse matrix format
  */
 typedef enum pastix_fmttype_e {
-    PastixCSC = 0, /**< Compressed sparse column */
-    PastixCSR = 1, /**< Compressed sparse row    */
-    PastixIJV = 2  /**< Coordinates              */
+    PastixCSC, /**< Compressed sparse column */
+    PastixCSR, /**< Compressed sparse row    */
+    PastixIJV  /**< Coordinates              */
 } pastix_fmttype_t;
 
 /**
@@ -403,12 +229,73 @@ typedef enum pastix_factotype_e {
 } pastix_factotype_t;
 
 /**
- * @brief Data blocks used in the kernel
+ * @brief Scheduler
  */
-typedef enum pastix_coefside_e {
-    PastixLCoef = 0, /**< Coefficients of the lower triangular L are used */
-    PastixUCoef = 1  /**< Coefficients of the upper triangular U are used */
-} pastix_coefside_t;
+typedef enum pastix_scheduler_e {
+    PastixSchedSequential = 0, /**< Sequential                           */
+    PastixSchedStatic     = 1, /**< Shared memory with static scheduler  */
+    PastixSchedParsec     = 2, /**< PaRSEC scheduler                     */
+    PastixSchedDynamic    = 3, /**< Shared memory with dynamic scheduler */
+    PastixSchedStarPU     = 4, /**< *StarPU scheduler                    */
+} pastix_scheduler_t;
+
+/**
+ * @brief Ordering strategy 
+ */
+typedef enum pastix_order_e {
+    PastixOrderScotch,   /**< Use \scotch{} ordering    */
+    PastixOrderMetis,    /**< Use \metis{} ordering     */
+    PastixOrderPersonal, /**< Apply user's permutation  */
+    PastixOrderLoad,     /**< Load ordering from file   */
+    PastixOrderPtscotch, /**< Use \pt-scotch{} ordering */
+    PastixOrderParMetis  /**< Use \parmetis{} ordering  */
+} pastix_order_t;
+
+#if defined(PASTIX_WITH_MPI)
+/**
+ * @brief MPI thread mode
+ */
+typedef enum pastix_threadmode_e {
+    PastixThreadMultiple = 1, /**< All threads communicate              */
+    PastixThreadFunneled = 2  /**< One thread perform all the MPI Calls */
+} pastix_threadmode_t;
+#endif /* defined(PASTIX_WITH_MPI) */
+
+/**
+ * @brief Error codes
+ */
+typedef enum pastix_error_e {
+    PASTIX_SUCCESS            = 0,  /**< No error                     */
+    PASTIX_ERR_UNKNOWN        = 1,  /**< Unknown error                */
+    PASTIX_ERR_ALLOC          = 2,  /**< Allocation error             */
+    PASTIX_ERR_NOTIMPLEMENTED = 3,  /**< Not implemented feature      */
+    PASTIX_ERR_OUTOFMEMORY    = 4,  /**< Not enough memory (OOC)      */
+    PASTIX_ERR_THREAD         = 5,  /**< Error with threads           */
+    PASTIX_ERR_INTERNAL       = 6,  /**< Internal error               */
+    PASTIX_ERR_BADPARAMETER   = 7,  /**< Bad parameters given         */
+    PASTIX_ERR_FILE           = 8,  /**< Error in In/Out operations   */
+    PASTIX_ERR_INTEGER_TYPE   = 9,  /**< Error with integer types     */
+    PASTIX_ERR_IO             = 10, /**< Error with input/output      */
+    PASTIX_ERR_MPI            = 11  /**< Error with MPI calls         */
+} pastix_error_t;
+
+/**
+ * Compression strategy available for IPARM_COMPRESS_WHEN parameter
+ */
+typedef enum pastix_compress_when_e {
+    PastixCompressNever,
+    PastixCompressWhenBegin,
+    PastixCompressWhenEnd,
+    PastixCompressWhenDuring
+} pastix_compress_when_t;
+
+/**
+ * Compression method available for IPARM_COMPRESS_METHOD parameter
+ */
+typedef enum pastix_compress_method_e {
+    PastixCompressMethodSVD,
+    PastixCompressMethodRRQR
+} pastix_compress_method_t;
 
 /**
  *
@@ -425,10 +312,10 @@ typedef enum pastix_coefside_e {
 /**
  * @brief Direction of the matrix storage
  */
-typedef enum pastix_order_e {
+typedef enum pastix_layout_e {
     PastixRowMajor  = 101, /**< Storage in row major order    */
     PastixColMajor  = 102  /**< Storage in column major order */
-} pastix_order_t;
+} pastix_layout_t;
 
 /**
  * @brief Transpostion
@@ -441,11 +328,13 @@ typedef enum pastix_trans_e {
 
 /**
  * @brief Matrix symmetry property.
- * @remark Must match transposition
+ * @remark Must match transposition.
  */
-#define PastixGeneral   PastixNoTrans    /**< The matrix is general   */
-#define PastixSymmetric PastixTrans      /**< The matrix is symmetric */
-#define PastixHermitian PastixConjTrans  /**< The matrix is hermitian */
+typedef enum pastix_symmetry_e {
+    PastixGeneral   = PastixNoTrans,    /**< The matrix is general   */
+    PastixSymmetric = PastixTrans,      /**< The matrix is symmetric */
+    PastixHermitian = PastixConjTrans   /**< The matrix is hermitian */
+} pastix_symmetry_t;
 
 /**
  * @brief Upper/Lower part
@@ -455,6 +344,15 @@ typedef enum pastix_uplo_e {
     PastixLower      = 122, /**< Use upper triangle of A */
     PastixUpperLower = 123  /**< Use the full A          */
 } pastix_uplo_t;
+
+/**
+ * @brief Data blocks used in the kernel
+ */
+typedef enum pastix_coefside_e {
+    PastixLCoef =  0, /**< Coefficients of the lower triangular L are used         */
+    PastixUCoef =  1, /**< Coefficients of the upper triangular U are used         */
+    PastixLUCoef = 2  /**< Coefficients of the upper/lower triangular U/L are used */
+} pastix_coefside_t;
 
 /**
  * @brief Diagonal
@@ -493,198 +391,5 @@ typedef enum pastix_dir_e {
 /**
  * @}
  */
-
-/** Supressing user CSC(D) when not usefull anymore */
-/*
- Enum: API_ERASE_CSC
-
- CSC Management modes (index IPARM_FREE_CSCUSER and IPARM_FREE_CSCPASTIX)
-
- API_CSC_PRESERVE - Do not free the CSC
- API_CSC_FREE     - Free the CSC when no longer needed
- */
-/* _POS_ 11 */
-enum API_ERASE_CSC{
-    API_CSC_PRESERVE = 0,
-    API_CSC_FREE     = 1
-};
-
-/** DMP communication mode */
-/*
- Enum: API_THREAD_MODE
-
- Comunication modes (index IPARM_THREAD_COMM_MODE)
-
- API_THREAD_MULTIPLE      - All threads communicate.
- API_THREAD_FUNNELED      - One thread perform all the MPI Calls.
- API_THREAD_COMM_ONE      - One dedicated communication thread will receive messages.
- API_THREAD_COMM_DEFINED  - Then number of threads receiving the messages is given by IPARM_NB_THREAD_COMM.
- API_THREAD_COMM_NBPROC   - One communication thread per computation thread will receive messages.
- */
-/* _POS_ 9 */
-enum API_THREAD_MODE {
-    API_THREAD_MULTIPLE      = 1,
-    API_THREAD_FUNNELED      = 2,
-    API_THREAD_COMM_ONE      = 4,
-    API_THREAD_COMM_DEFINED  = 8,
-    API_THREAD_COMM_NBPROC   = 16
-};
-
-/**
- * @brief Pastix scheduler
- */
-typedef enum pastix_scheduler_e {
-    PastixSchedSequential = 0,
-    PastixSchedStatic     = 1,
-    PastixSchedParsec     = 2,
-    PastixSchedDynamic,
-    PastixSchedStarPU,
-} pastix_scheduler_t;
-
-/** Boolean */
-/*
- Enum: API_BOOLEAN
-
- Boolean modes (All boolean)
-
- API_NO  - No
- API_YES - Yes
- */
-/* _POS_ 2 */
-enum API_BOOLEAN {
-    API_NO  = 0,
-    API_YES = 1
-};
-
-/** Trace format */
-/*
- Enum: API_TRACEFMT
-
- Trace modes (index IPARM_TRACEFMT)
-
- API_TRACE_PAJE       - Use Paje trace format
- API_TRACE_HUMREAD    - Use human-readable text trace format
- API_TRACE_UNFORMATED - Unformated trace format
- */
-/* _POS_ 10 */
-enum API_TRACEFMT {
-    API_TRACE_PAJE       = 1, /* Use Paje trace format       */
-    API_TRACE_HUMREAD    = 2, /* Use text trace format       */
-    API_TRACE_UNFORMATED = 3  /* Use unformated trace format */
-};
-
-/*
- Enum: API_ORDER
-
- Ordering modes (index IPARM_ORDERING)
-
- API_ORDER_SCOTCH   - Use \scotch{} ordering
- API_ORDER_METIS    - Use \metis{} ordering
- API_ORDER_PERSONAL - Apply user's permutation
- API_ORDER_LOAD     - Load ordering from disk
- */
-/* _POS_ 11 */
-enum API_ORDER {
-    API_ORDER_SCOTCH    = 0,
-    API_ORDER_METIS     = 1,
-    API_ORDER_PERSONAL  = 2,
-    API_ORDER_LOAD      = 3,
-    API_ORDER_PTSCOTCH  = 4
-};
-
-/*
- * Enum: API_GPU_CRITERIUM
- *
- * Criterium used to decide to put tasks on GPUs.
- *
- * API_GPU_CRITERION_UPDATES  - Number of updates on the panel.
- * API_GPU_CRITERION_CBLKSIZE - Size of the target panel.
- * API_GPU_CRITERION_FLOPS    - Number of FLOP involved in updates.
- * API_GPU_CRITERION_PRIORITY - Priority computed in static scheduler.
- */
-enum API_GPU_CRITERIUM {
-    API_GPU_CRITERION_UPDATES  = 0,
-    API_GPU_CRITERION_CBLKSIZE = 1,
-    API_GPU_CRITERION_FLOPS    = 2,
-    API_GPU_CRITERION_PRIORITY = 3
-};
-/*
- Enum: MODULES
-
- Module Identification number.
-
- If an error occurs, error value is set to
- MODULE + EER_NUMBER.
-
- User can catch error by computing iparm[IPARM_ERROR_NUMBER]%100.
-
- MODULE can be catch by computing iparm[IPARM_ERROR_NUMBER] - iparm[IPARM_ERROR_NUMBER]%100.
-
- MOD_UNKNOWN - Unknown module
- MOD_SOPALIN - Numerical factorisation module
- MOD_BLEND   - Analysing module
- MOD_SCOTCH  - Scotch module
- MOD_FAX     - Symbolic factorisation module
- MOD_ORDER   - Order module
- MOD_COMMON  - Common module
- MOD_SI      -
- MOD_GRAPH   - Graph module
- MOD_SYMBOL  - Symbol structure module
- MOD_KASS    - Kass module
- MOD_BUBBLE  - Bubble
- MOD_MURGE   - Murge
-
- */
-enum MODULES {
-    MOD_UNKNOWN =    0,
-    MOD_SOPALIN =  100,
-    MOD_BLEND   =  200,
-    MOD_SCOTCH  =  300,
-    MOD_FAX     =  400,
-    MOD_ORDER   =  500,
-    MOD_COMMON  =  600,
-    MOD_SI      =  700,
-    MOD_GRAPH   =  800,
-    MOD_SYMBOL  =  900,
-    MOD_KASS    = 1000,
-    MOD_BUBBLE  = 1100,
-    MOD_MURGE   = 1200
-};
-
-/**
- * @brief Pastix error codes
- */
-enum pastix_error_e {
-    PASTIX_SUCCESS            = 0,  /**< No error                     */
-    PASTIX_ERR_UNKNOWN        = 1,  /**< Unknown error                */
-    PASTIX_ERR_ALLOC          = 2,  /**< Allocation error             */
-    PASTIX_ERR_NOTIMPLEMENTED = 3,  /**< Not implemented feature      */
-    PASTIX_ERR_OUTOFMEMORY    = 4,  /**< Not enough memory (OOC)      */
-    PASTIX_ERR_THREAD         = 5,  /**< Error with threads           */
-    PASTIX_ERR_INTERNAL       = 6,  /**< Internal error               */
-    PASTIX_ERR_BADPARAMETER   = 7,  /**< Bad parameters given         */
-    PASTIX_ERR_FILE           = 8,  /**< Error in In/Out operations   */
-    PASTIX_ERR_INTEGER_TYPE   = 9,  /**< Error with integer types     */
-    PASTIX_ERR_IO             = 10, /**< Error with input/output      */
-    PASTIX_ERR_MPI            = 11  /**< Error with MPI calls         */
-};
-
-/**
- * Compression strategy available for IPARM_COMPRESS_WHEN parameter
- */
-typedef enum pastix_compress_when_e {
-    PastixCompressNever      = 0,
-    PastixCompressWhenBegin  = 1,
-    PastixCompressWhenEnd    = 2,
-    PastixCompressWhenDuring = 3
-} pastix_compress_when_t;
-
-/**
- * Compression method available for IPARM_COMPRESS_METHOD parameter
- */
-typedef enum pastix_compress_method_e {
-    PastixCompressMethodSVD  = 0,
-    PastixCompressMethodRRQR = 1
-} pastix_compress_method_t;
 
 #endif /* _PASTIX_API_H_ */

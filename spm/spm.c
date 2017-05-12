@@ -845,13 +845,13 @@ spmPrintInfo( const pastix_spm_t* spm, FILE *stream )
             mtxtypestr[mtxtype],
             flttypestr[flttype],
             fmttypestr[fmttype],
-            spm->gN, spm->gnnz );
+            (long)spm->gN, (long)spm->gnnz );
 
     if ( spm->dof != 1 ) {
         if ( spm->dof > 1 ) {
             fprintf(stream,
                     "  Dof:          %ld\n",
-                    spm->dof );
+                    (long)spm->dof );
         }
         else {
             fprintf(stream,
@@ -861,7 +861,7 @@ spmPrintInfo( const pastix_spm_t* spm, FILE *stream )
         fprintf(stream,
                 "  N expanded:   %ld\n"
                 "  NNZ expanded: %ld\n",
-                spm->gNexp, spm->gnnzexp );
+                (long)spm->gNexp, (long)spm->gnnzexp );
     }
 }
 
@@ -1076,12 +1076,12 @@ spmMatVec(const pastix_trans_t trans,
  *
  *******************************************************************************/
 int
-spmGenRHS( int type, int nrhs,
+spmGenRHS( pastix_rhstype_t type, int nrhs,
            const pastix_spm_t  *spm,
            void                *x, int ldx,
            void                *b, int ldb )
 {
-    static int (*ptrfunc[4])(int, int,
+    static int (*ptrfunc[4])(pastix_rhstype_t, int,
                              const pastix_spm_t *,
                              void *, int, void *, int) =
         {

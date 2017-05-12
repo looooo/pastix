@@ -463,7 +463,7 @@ int
 spmLoad( pastix_spm_t  *spm,
          FILE          *infile )
 {
-    pastix_int_t colsize, rowsize;
+    pastix_int_t colsize=0, rowsize=0;
     char line[256], *test;
     int rc = PASTIX_SUCCESS;
 

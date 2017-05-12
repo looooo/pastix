@@ -140,7 +140,7 @@ core_zgemmsp_1d1d( pastix_coefside_t sideA, pastix_trans_t trans,
      * Compute update A * B'
      */
     wtmp = work;
-    cblas_zgemm( CblasColMajor, CblasNoTrans, trans,
+    cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
                  M, N, K,
                  CBLAS_SADDR(zone),  A,    stride,
                                      B,    stride,
@@ -172,7 +172,7 @@ core_zgemmsp_1d1d( pastix_coefside_t sideA, pastix_trans_t trans,
         m = blok_rownbr( iterblok );
 
         pastix_cblk_lock( fcblk );
-        core_zgeadd( CblasNoTrans, m, N,
+        core_zgeadd( PastixNoTrans, m, N,
                      -1.0, wtmp, M,
                       1.0, tmpC, stridef );
         pastix_cblk_unlock( fcblk );
@@ -311,7 +311,7 @@ core_zgemmsp_1d2d( pastix_coefside_t sideA, pastix_trans_t trans,
             + (blok->frownum - fcblk->fcolnum) * stridef;
 
         pastix_cblk_lock( fcblk );
-        cblas_zgemm( CblasColMajor, CblasNoTrans, trans,
+        cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
                      M, N, K,
                      CBLAS_SADDR(mzone), blokA, stride,
                                          blokB, stride,
@@ -447,7 +447,7 @@ core_zgemmsp_2d2d( pastix_coefside_t sideA, pastix_trans_t trans,
             + (blok->frownum - fcblk->fcolnum) * ldc;
 
         pastix_cblk_lock( fcblk );
-        cblas_zgemm( CblasColMajor, CblasNoTrans, trans,
+        cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
                      M, N, K,
                      CBLAS_SADDR(mzone), blokA, lda,
                                          blokB, ldb,
@@ -591,7 +591,7 @@ core_zgemmsp_2d2dsub( pastix_trans_t trans,
             Bptr = B + bB->coefind - offsetB;
             ldb = N;
 
-            cblas_zgemm( CblasColMajor, CblasNoTrans, trans,
+            cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
                          M, N, K,
                          CBLAS_SADDR(mzone), Aptr, lda,
                          Bptr, ldb,

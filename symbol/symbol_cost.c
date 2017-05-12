@@ -404,14 +404,14 @@ symbolGetFlops( const SymbolMatrix *symbmtx,
 {
     int iscomplex = ((flttype == PastixComplex32) || (flttype == PastixComplex64)) ? 1 : 0;
 
-    /* Compute theroritical flops */
+    /* Compute theoretical flops */
     if ( thflops != NULL ) {
         *thflops = recursive_sum(0, symbmtx->cblknbr-1, sum1d,
                                  &(flopstable[iscomplex][factotype]),
                                  symbmtx);
     }
 
-    /* Compute real flops */
+    /* Compute performed flops */
     if ( rlflops != NULL ) {
         *rlflops = recursive_sum(0, symbmtx->cblknbr-1, sum2d,
                                  &(flopstable[iscomplex][factotype]),

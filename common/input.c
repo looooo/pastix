@@ -60,25 +60,9 @@ int iparm_to_int( char * string)
     {
         return IPARM_ITERMAX;
     }
-    if(0 == strcmp("iparm_matrix_verification", string))
-    {
-        return IPARM_MATRIX_VERIFICATION;
-    }
     if(0 == strcmp("iparm_mc64", string))
     {
         return IPARM_MC64;
-    }
-    if(0 == strcmp("iparm_only_refine", string))
-    {
-        return IPARM_ONLY_REFINE;
-    }
-    if(0 == strcmp("iparm_cscd_correct", string))
-    {
-        return IPARM_CSCD_CORRECT;
-    }
-    if(0 == strcmp("iparm_tracefmt", string))
-    {
-        return IPARM_TRACEFMT;
     }
     if(0 == strcmp("iparm_ordering", string))
     {
@@ -196,10 +180,6 @@ int iparm_to_int( char * string)
     {
         return IPARM_COMPRESS_METHOD;
     }
-    if(0 == strcmp("iparm_rhsd_check", string))
-    {
-        return IPARM_RHSD_CHECK;
-    }
     if(0 == strcmp("iparm_factorization", string))
     {
         return IPARM_FACTORIZATION;
@@ -207,10 +187,6 @@ int iparm_to_int( char * string)
     if(0 == strcmp("iparm_scheduler", string))
     {
         return IPARM_SCHEDULER;
-    }
-    if(0 == strcmp("iparm_cpu_by_node", string))
-    {
-        return IPARM_CPU_BY_NODE;
     }
     if(0 == strcmp("iparm_thread_nbr", string))
     {
@@ -240,10 +216,6 @@ int iparm_to_int( char * string)
     {
         return IPARM_ABS;
     }
-    if(0 == strcmp("iparm_esp", string))
-    {
-        return IPARM_ESP;
-    }
     if(0 == strcmp("iparm_gmres_im", string))
     {
         return IPARM_GMRES_IM;
@@ -252,85 +224,17 @@ int iparm_to_int( char * string)
     {
         return IPARM_FREE_CSCUSER;
     }
-    if(0 == strcmp("iparm_free_cscpastix", string))
-    {
-        return IPARM_FREE_CSCPASTIX;
-    }
-    if(0 == strcmp("iparm_ooc_limit", string))
-    {
-        return IPARM_OOC_LIMIT;
-    }
-    if(0 == strcmp("iparm_ooc_thread", string))
-    {
-        return IPARM_OOC_THREAD;
-    }
-    if(0 == strcmp("iparm_ooc_id", string))
-    {
-        return IPARM_OOC_ID;
-    }
-    if(0 == strcmp("iparm_nb_smp_node_used", string))
-    {
-        return IPARM_NB_SMP_NODE_USED;
-    }
-    if(0 == strcmp("iparm_thread_comm_mode", string))
-    {
-        return IPARM_THREAD_COMM_MODE;
-    }
-    if(0 == strcmp("iparm_nb_thread_comm", string))
-    {
-        return IPARM_NB_THREAD_COMM;
-    }
-    if(0 == strcmp("iparm_fill_matrix", string))
-    {
-        return IPARM_FILL_MATRIX;
-    }
-    if(0 == strcmp("iparm_esp_threshold", string))
-    {
-        return IPARM_ESP_THRESHOLD;
-    }
-    if(0 == strcmp("iparm_dof_cost", string))
-    {
-        return IPARM_DOF_COST;
-    }
-    if(0 == strcmp("iparm_murge_refinement", string))
-    {
-        return IPARM_MURGE_REFINEMENT;
-    }
-    if(0 == strcmp("iparm_starpu", string))
-    {
-        return IPARM_STARPU;
-    }
     if(0 == strcmp("iparm_autosplit_comm", string))
     {
         return IPARM_AUTOSPLIT_COMM;
     }
-    if(0 == strcmp("iparm_cuda_nbr", string))
+    if(0 == strcmp("iparm_gpu_nbr", string))
     {
-        return IPARM_CUDA_NBR;
-    }
-    if(0 == strcmp("iparm_transpose_solve", string))
-    {
-        return IPARM_TRANSPOSE_SOLVE;
-    }
-    if(0 == strcmp("iparm_starpu_ctx_depth", string))
-    {
-        return IPARM_STARPU_CTX_DEPTH;
-    }
-    if(0 == strcmp("iparm_starpu_ctx_nbr", string))
-    {
-        return IPARM_STARPU_CTX_NBR;
+        return IPARM_GPU_NBR;
     }
     if(0 == strcmp("iparm_produce_stats", string))
     {
         return IPARM_PRODUCE_STATS;
-    }
-    if(0 == strcmp("iparm_gpu_criterium", string))
-    {
-        return IPARM_GPU_CRITERIUM;
-    }
-    if(0 == strcmp("iparm_murge_may_refine", string))
-    {
-        return IPARM_MURGE_MAY_REFINE;
     }
     if(0 == strcmp("iparm_mtx_type", string))
     {
@@ -394,191 +298,123 @@ int dparm_to_int( char * string)
  *******************************************************************************/
 int api_to_int( char * string )
 {
-    if(0 == strcmp("api_task_init", string))
+    if(0 == strcmp("pastix_task_init", string))
     {
-        return API_TASK_INIT;
+        return PastixTaskInit;
     }
-    if( (0 == strcmp("api_task_ordering", string)) ||
-        (0 == strcmp("api_task_scotch",   string)) )
+    if( (0 == strcmp("pastixtaskordering", string)) ||
+        (0 == strcmp("pastixtaskscotch",   string)) )
     {
-        return API_TASK_ORDERING;
+        return PastixTaskOrdering;
     }
-    if( (0 == strcmp("api_task_symbfact", string)) ||
-        (0 == strcmp("api_task_fax",      string)) )
+    if( (0 == strcmp("pastixtasksymbfact", string)) ||
+        (0 == strcmp("pastixtaskfax",      string)) )
     {
-        return API_TASK_SYMBFACT;
+        return PastixTaskSymbfact;
     }
-    if( (0 == strcmp("api_task_analyse", string)) ||
-        (0 == strcmp("api_task_blend",   string)) )
+    if( (0 == strcmp("pastixtaskanalyse", string)) ||
+        (0 == strcmp("pastixtaskblend",   string)) )
     {
-        return API_TASK_ANALYSE;
+        return PastixTaskAnalyze;
     }
-    if( (0 == strcmp("api_task_numfact", string)) ||
-        (0 == strcmp("api_task_sopalin", string)) )
+    if( (0 == strcmp("pastixtasknumfact", string)) ||
+        (0 == strcmp("pastixtasksopalin", string)) )
     {
-        return API_TASK_NUMFACT;
+        return PastixTaskNumfact;
     }
-    if( (0 == strcmp("api_task_solve",  string)) ||
-        (0 == strcmp("api_task_updown", string)) )
+    if( (0 == strcmp("pastixtasksolve",  string)) ||
+        (0 == strcmp("pastixtaskupdown", string)) )
     {
-        return API_TASK_SOLVE;
+        return PastixTaskSolve;
     }
-    if( (0 == strcmp("api_task_refine",     string)) ||
-        (0 == strcmp("api_task_refinement", string)) )
+    if( (0 == strcmp("pastixtaskrefine",     string)) ||
+        (0 == strcmp("pastixtaskrefinement", string)) )
     {
-        return API_TASK_REFINE;
+        return PastixTaskRefine;
     }
-    if(0 == strcmp("api_task_clean", string))
+    if(0 == strcmp("pastixtaskclean", string))
     {
-        return API_TASK_CLEAN;
+        return PastixTaskClean;
     }
-    if(0 == strcmp("api_verbose_not", string))
+    if(0 == strcmp("pastixverbosenot", string))
     {
-        return API_VERBOSE_NOT;
+        return PastixVerboseNot;
     }
-    if(0 == strcmp("api_verbose_no", string))
+    if(0 == strcmp("pastixverboseno", string))
     {
-        return API_VERBOSE_NO;
+        return PastixVerboseNo;
     }
-    if(0 == strcmp("api_verbose_yes", string))
+    if(0 == strcmp("pastixverboseyes", string))
     {
-        return API_VERBOSE_YES;
+        return PastixVerboseYes;
     }
-    if(0 == strcmp("api_verbose_chatterbox", string))
+    if(0 == strcmp("pastixiono", string))
     {
-        return API_VERBOSE_CHATTERBOX;
+        return PastixIONo;
     }
-    if(0 == strcmp("api_verbose_unbearable", string))
+    if(0 == strcmp("pastixioload", string))
     {
-        return API_VERBOSE_UNBEARABLE;
+        return PastixIOLoad;
     }
-    if(0 == strcmp("api_io_no", string))
+    if(0 == strcmp("pastixiosave", string))
     {
-        return API_IO_NO;
+        return PastixIOSave;
     }
-    if(0 == strcmp("api_io_load", string))
+    if(0 == strcmp("pastixioloadgraph", string))
     {
-        return API_IO_LOAD;
+        return PastixIOLoadGraph;
     }
-    if(0 == strcmp("api_io_save", string))
+    if(0 == strcmp("pastixiosavegraph", string))
     {
-        return API_IO_SAVE;
+        return PastixIOSaveGraph;
     }
-    if(0 == strcmp("api_io_load_graph", string))
+    if(0 == strcmp("pastixioloadcsc", string))
     {
-        return API_IO_LOAD_GRAPH;
+        return PastixIOLoadCSC;
     }
-    if(0 == strcmp("api_io_save_graph", string))
+    if(0 == strcmp("pastixiosavecsc", string))
     {
-        return API_IO_SAVE_GRAPH;
+        return PastixIOSaveCSC;
     }
-    if(0 == strcmp("api_io_load_csc", string))
+    if(0 == strcmp("pastixrefinegmres", string))
     {
-        return API_IO_LOAD_CSC;
+        return PastixRefineGMRES;
     }
-    if(0 == strcmp("api_io_save_csc", string))
+    if(0 == strcmp("pastixrefinecg", string))
     {
-        return API_IO_SAVE_CSC;
+        return PastixRefineCG;
     }
-    if(0 == strcmp("api_refine_gmres", string))
+    if(0 == strcmp("pastixrefinesr", string))
     {
-        return API_REFINE_GMRES;
+        return PastixRefineSR;
     }
-    if(0 == strcmp("api_refine_grad", string))
+    if(0 == strcmp("pastixrefinebicgstab", string))
     {
-        return API_REFINE_GRAD;
+        return PastixRefineBiCGSTAB;
     }
-    if(0 == strcmp("api_refine_pivot", string))
+    if(0 == strcmp("pastixorderscotch", string))
     {
-        return API_REFINE_PIVOT;
+        return PastixOrderScotch;
     }
-    if(0 == strcmp("api_refine_bicgstab", string))
+    if(0 == strcmp("pastixordermetis", string))
     {
-        return API_REFINE_BICGSTAB;
+        return PastixOrderMetis;
     }
-    if(0 == strcmp("api_csc_preserve", string))
+    if(0 == strcmp("pastixorderpersonal", string))
     {
-        return API_CSC_PRESERVE;
+        return PastixOrderPersonal;
     }
-    if(0 == strcmp("api_csc_free", string))
+    if(0 == strcmp("pastixorderload", string))
     {
-        return API_CSC_FREE;
+        return PastixOrderLoad;
     }
-    if(0 == strcmp("api_thread_multiple", string))
+    if(0 == strcmp("pastixorderptscotch", string))
     {
-        return API_THREAD_MULTIPLE;
+        return PastixOrderPtscotch;
     }
-    if(0 == strcmp("api_thread_funneled", string))
+    if(0 == strcmp("pastixorderparmetis", string))
     {
-        return API_THREAD_FUNNELED;
-    }
-    if(0 == strcmp("api_thread_comm_one", string))
-    {
-        return API_THREAD_COMM_ONE;
-    }
-    if(0 == strcmp("api_thread_comm_defined", string))
-    {
-        return API_THREAD_COMM_DEFINED;
-    }
-    if(0 == strcmp("api_thread_comm_nbproc", string))
-    {
-        return API_THREAD_COMM_NBPROC;
-    }
-    if(0 == strcmp("api_no", string))
-    {
-        return API_NO;
-    }
-    if(0 == strcmp("api_yes", string))
-    {
-        return API_YES;
-    }
-    if(0 == strcmp("api_trace_paje", string))
-    {
-        return API_TRACE_PAJE;
-    }
-    if(0 == strcmp("api_trace_humread", string))
-    {
-        return API_TRACE_HUMREAD;
-    }
-    if(0 == strcmp("api_trace_unformated", string))
-    {
-        return API_TRACE_UNFORMATED;
-    }
-    if(0 == strcmp("api_order_scotch", string))
-    {
-        return API_ORDER_SCOTCH;
-    }
-    if(0 == strcmp("api_order_metis", string))
-    {
-        return API_ORDER_METIS;
-    }
-    if(0 == strcmp("api_order_personal", string))
-    {
-        return API_ORDER_PERSONAL;
-    }
-    if(0 == strcmp("api_order_load", string))
-    {
-        return API_ORDER_LOAD;
-    }
-    if(0 == strcmp("api_order_ptscotch", string))
-    {
-        return API_ORDER_PTSCOTCH;
-    }
-    if(0 == strcmp("api_gpu_criterion_updates", string))
-    {
-        return API_GPU_CRITERION_UPDATES;
-    }
-    if(0 == strcmp("api_gpu_criterion_cblksize", string))
-    {
-        return API_GPU_CRITERION_CBLKSIZE;
-    }
-    if(0 == strcmp("api_gpu_criterion_flops", string))
-    {
-        return API_GPU_CRITERION_FLOPS;
-    }
-    if(0 == strcmp("api_gpu_criterion_priority", string))
-    {
-        return API_GPU_CRITERION_PRIORITY;
+        return PastixOrderParMetis;
     }
     if(0 == strcmp("pastixfactllt", string))
     {

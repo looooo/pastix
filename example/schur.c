@@ -27,7 +27,7 @@ schurFactorize( pastix_coeftype_t  flttype,
                 pastix_int_t lds,
                 int **ipiv )
 {
-    int info;
+    int info=0;
 
     assert( ipiv != NULL );
     if ( factotype == PastixFactLU ) {
@@ -104,7 +104,7 @@ schurSolve( pastix_coeftype_t  flttype,
             pastix_int_t ldb,
             int **ipiv )
 {
-    int info;
+    int info=0;
 
     assert(ipiv != NULL);
 

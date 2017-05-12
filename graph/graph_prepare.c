@@ -162,10 +162,10 @@ graphPrepare(      pastix_data_t   *pastix_data,
     MALLOC_INTERN( tmpgraph, 1, pastix_graph_t );
     memset( tmpgraph, 0, sizeof(pastix_graph_t) );
 
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+    if (iparm[IPARM_VERBOSE] > PastixVerboseNo)
         pastix_print(procnum, 0, "%s", OUT_SUBSTEP_GRAPH);
 
-    if (io_strategy & API_IO_LOAD_GRAPH)
+    if (io_strategy & PastixIOLoadGraph)
     {
         graphLoad( pastix_data, tmpgraph );
     }
@@ -185,7 +185,7 @@ graphPrepare(      pastix_data_t   *pastix_data,
             if ( (spm->mtxtype == PastixSymmetric) ||
                  (spm->mtxtype == PastixHermitian) )
             {
-                if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+                if (iparm[IPARM_VERBOSE] > PastixVerboseNo)
                     pastix_print(procnum, 0, "%s", OUT_ORDER_SYMGRAPH);
 
                 graphSymmetrize( n, colptr, rows, loc2glob, tmpgraph );
@@ -200,14 +200,14 @@ graphPrepare(      pastix_data_t   *pastix_data,
                 memcpy(tmpgraph->colptr, colptr, (n+1)*sizeof(pastix_int_t));
                 memcpy(tmpgraph->rows,   rows,     nnz*sizeof(pastix_int_t));
 
-                if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) {
+                if (iparm[IPARM_VERBOSE] > PastixVerboseNo) {
                     pastix_print(procnum, 0, "%s", OUT_ORDER_SORT);
                 }
                 graphSort( tmpgraph );
             }
 
             {
-                if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) {
+                if (iparm[IPARM_VERBOSE] > PastixVerboseNo) {
                     pastix_print(procnum, 0, "%s", OUT_ORDER_NODIAG);
                 }
 
@@ -236,7 +236,7 @@ graphPrepare(      pastix_data_t   *pastix_data,
                                   &(tmpgraph->colptr),
                                   &(tmpgraph->rows), NULL,
                                   loc2glob,
-                                  pastix_comm, API_YES );
+                                  pastix_comm, 1);
                 assert( n == tmpgraph->n );
             }
             else

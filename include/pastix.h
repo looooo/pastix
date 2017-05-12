@@ -39,23 +39,22 @@
 #else
 #include "pastix/nompi.h"
 #endif
-#include "pastix/old_api.h"
 
 /*
  * Main function for compatibility with former versions
  */
-void pastix( pastix_data_t **pastix_data,
-             MPI_Comm        pastix_comm,
-             pastix_int_t    n,
-             pastix_int_t   *colptr,
-             pastix_int_t   *row,
-             void           *avals,
-             pastix_int_t   *perm,
-             pastix_int_t   *invp,
-             void           *b,
-             pastix_int_t    nrhs,
-             pastix_int_t   *iparm,
-             double         *dparm );
+int pastix( pastix_data_t **pastix_data,
+            MPI_Comm        pastix_comm,
+            pastix_int_t    n,
+            pastix_int_t   *colptr,
+            pastix_int_t   *row,
+            void           *avals,
+            pastix_int_t   *perm,
+            pastix_int_t   *invp,
+            void           *b,
+            pastix_int_t    nrhs,
+            pastix_int_t   *iparm,
+            double         *dparm );
 
 /*
  * Solver initialization

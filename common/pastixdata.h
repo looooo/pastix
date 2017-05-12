@@ -43,12 +43,12 @@ typedef struct pastix_bcsc_s pastix_bcsc_t;
 /*   Parameters for factorisation, updown and refinement. */
 /*  *\/ */
 /* typedef struct SopalinParam_ { */
-/*     pastix_bcsc_t  *bcsc;          /\*+ Compress Sparse Column matrix                    *\/ */
-/*     double          epsilonrefine;     /\*+ epsilon to stop refinement                      *\/ */
+/*     pastix_bcsc_t  *bcsc;          /\*+ Compress Sparse Column matrix                      *\/ */
+/*     double          epsilonrefine;     /\*+ epsilon to stop refinement                     *\/ */
 /*     double          rberror;         /\*+ ||r||/||b||                                      *\/ */
 /*     double          espilondiag;     /\*+ epsilon critere for diag control                 *\/ */
-/*     void *b;               /\*+ b vector (RHS and solution)                      *\/ */
-/*     void *transcsc;        /\*+ transpose csc                                    *\/ */
+/*     void *b;               /\*+ b vector (RHS and solution)                                *\/ */
+/*     void *transcsc;        /\*+ transpose csc                                              *\/ */
 /*     pastix_int_t    itermax;         /\*+ max number of iteration                          *\/ */
 /*     pastix_int_t    diagchange;      /\*+ number of change of diag                         *\/ */
 /*     pastix_int_t    gmresim;         /\*+ Krylov subspace size for GMRES                   *\/ */
@@ -63,7 +63,7 @@ typedef struct pastix_bcsc_s pastix_bcsc_t;
 /*     double         *dparm;           /\*+ In/Out float parameters                          *\/ */
 /*     int            *bindtab;         /\*+ Define where to bin threads                      *\/ */
 /*     int             stopthrd;        /\*+ Boolean for communication thread controlling     *\/ */
-/*     int             schur;           /\*+ If API_YES won't compute last diag               *\/ */
+/*     int             schur;           /\*+ If 1 won't compute last diag                     *\/ */
 /*     pastix_int_t    n;               /\*+ size of the matrix                               *\/ */
 /*     pastix_int_t    gN; */
 /* } SopalinParam; */

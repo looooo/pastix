@@ -14,6 +14,7 @@
  *
  **/
 #include <pastix.h>
+#include <pastix/old_api.h>
 #include <spm.h>
 #include "drivers.h"
 
@@ -101,10 +102,10 @@ int main (int argc, char **argv)
      */
     iparm[IPARM_START_TASK] = API_TASK_INIT;
     iparm[IPARM_END_TASK]   = API_TASK_CLEAN;
-    pastix( &pastix_data, MPI_COMM_WORLD,
-            spm->n, spm->colptr, spm->rowptr, spm->values,
-            NULL, NULL, x, nrhs, iparm, dparm );
-    if (iparm[IPARM_ERROR_NUMBER] != PASTIX_SUCCESS)
+    ret = pastix( &pastix_data, MPI_COMM_WORLD,
+                  spm->n, spm->colptr, spm->rowptr, spm->values,
+                  NULL, NULL, x, nrhs, iparm, dparm );
+    if (ret != PASTIX_SUCCESS)
         return ret;
 
     /**

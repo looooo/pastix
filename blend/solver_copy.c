@@ -137,7 +137,7 @@ solver_copy( const SolverMatrix *solvin,
         solvcblk->fblokptr = solvblok;
     }
 
-    if (pastix_starpu_with_fanin() == API_YES) {
+    if (pastix_starpu_with_fanin() == 1) {
         /* FANIN info */
         pastix_int_t clustnum;
         MALLOC_INTERN(solvout->fcblktab, solvout->clustnbr, SolverCblk*);

@@ -177,7 +177,7 @@ solverExit(SolverMatrix *solvmtx)
     memFree_null(solvmtx->hcblktab);
     memFree_null(solvmtx->hbloktab);
     memFree_null(solvmtx->gcblk2halo);
-    if (pastix_starpu_with_fanin() == API_YES) {
+    if (pastix_starpu_with_fanin() == 1) {
         pastix_int_t clustnum;
         for (clustnum = 0; clustnum < solvmtx->clustnbr; clustnum++) {
             if (solvmtx->fcblknbr[clustnum] > 0) {
@@ -269,13 +269,13 @@ solverPrintStats( const SolverMatrix *solvptr )
              "      Number of coeficients stored      %10ld\n"
              "      Number of 2D brow                 %10ld\n"
              "      Number of 2D Gemm tasks           %10ld\n",
-             solvptr->cblknbr, solvptr->cblknbr - solvptr->nb2dcblk, solvptr->nb2dcblk,
-             solvptr->bloknbr, solvptr->bloknbr - solvptr->nb2dblok, solvptr->nb2dblok,
-             solvptr->cblkmax1d, solvptr->cblkmin2d,
-             fcol2d, avg2d,
-             ((solvptr->cblktab + solvptr->cblkmax1d + 1)->fblokptr - solvptr->bloktab) - 1,
+             (long)solvptr->cblknbr, (long)(solvptr->cblknbr - solvptr->nb2dcblk), (long)solvptr->nb2dcblk,
+             (long)solvptr->bloknbr, (long)(solvptr->bloknbr - solvptr->nb2dblok), (long)solvptr->nb2dblok,
+             (long)solvptr->cblkmax1d, (long)solvptr->cblkmin2d,
+             (long)fcol2d, (double)avg2d,
+             (long)(((solvptr->cblktab + solvptr->cblkmax1d + 1)->fblokptr - solvptr->bloktab) - 1),
              MEMORY_WRITE( memstruct ), MEMORY_UNIT_WRITE( memstruct ),
-             memcoef, gemm2d, gemm2dtot );
+             (long)memcoef, (long)gemm2d, (long)gemm2dtot );
 }
 
 /**

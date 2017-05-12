@@ -1,12 +1,12 @@
 /*
-  File: trace.h                                 
+  File: trace.h
 
   trace instruction for different format
 
-  Authors: 
+  Authors:
     Mathieu Faverge - faverge@labri.fr
 
-  Dates: 
+  Dates:
     Varsion 0.0 - from 12 apr 2008
                   to   12 apr 2008
 */
@@ -60,7 +60,7 @@ typedef enum Trace_State {
   STATE_L2_DOWN	     = 38,
   STATE_L2_UP	     = 39,
   STATE_NBSTATES     = 40,
-} Trace_State_t;       
+} Trace_State_t;
 
 typedef enum Trace_Comm {
   COMM_FANIN = 0,

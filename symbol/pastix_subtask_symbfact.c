@@ -79,7 +79,7 @@
  *          computed.
  *          - IPARM_INCOMPLETE switches the factorization mode from direct to ILU(k).
  *          - IPARM_LEVEL_OF_FILL defines the level of incomplete factorization
- *            if IPARM_INCOMPLETE == API_YES. If IPARM_LEVEL_OF_FILL < 0, the
+ *            if IPARM_INCOMPLETE == 1. If IPARM_LEVEL_OF_FILL < 0, the
  *            full pattern is generated as for direct factorization.
  *          - IPARM_AMALGAMATION_LVLCBLK is the ratio of amalgamation allowed
  *            based on reducing the number of supernodes only.
@@ -87,7 +87,7 @@
  *            based on reducing the computational cost (solve for ILU(k), or
  *            factorization for direct factorization).
  *          - IPARM_IO_STRATEGY will enable to load/store the result to files.
- *          If set to API_IO_SAVE, the symbmtx and the generated ordemesh is
+ *          If set to PastixIOSave, the symbmtx and the generated ordemesh is
  *          dump to file.
  *          If set to APÏ_IO_LOAD, the symbmtx (only) is loaded from the files.
  *
@@ -169,7 +169,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
     graphBase( graph, 0 );
 
     print_debug(DBG_STEP, "-> pastix_subtask_symbfact\n");
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
         pastix_print(procnum, 0, OUT_STEP_FAX );
 
     /* Allocate the symbol matrix structure */
@@ -182,11 +182,11 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
 
     /* Force Load of symbmtx */
 #if defined(PASTIX_SYMBOL_FORCELOAD)
-    iparm[IPARM_IO_STRATEGY] = API_IO_LOAD;
+    iparm[IPARM_IO_STRATEGY] = PastixIOLoad;
 #endif
 
     /*Symbol matrix loaded from file */
-    if ( iparm[IPARM_IO_STRATEGY] & API_IO_LOAD )
+    if ( iparm[IPARM_IO_STRATEGY] & PastixIOLoad )
     {
         FILE *stream;
         PASTIX_FOPEN(stream, "symbname", "r" );
@@ -202,20 +202,20 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
         pastix_int_t *rowfax;
 
         /* Check correctness of parameters */
-        if (iparm[IPARM_INCOMPLETE] == API_NO)
+        if (iparm[IPARM_INCOMPLETE] == 0)
         {
 #if defined(COMPACT_SMX)
             if (procnum == 0)
                 errorPrintW("COMPACT_SMX only works with incomplete factorization, force ILU(%d) factorization.",
                             iparm[IPARM_LEVEL_OF_FILL]);
-            iparm[IPARM_INCOMPLETE] = API_YES;
+            iparm[IPARM_INCOMPLETE] = 1;
 #endif
         }
         /* End of parameters check */
 
-        if ( ((iparm[IPARM_ORDERING] == API_ORDER_SCOTCH) ||
-              (iparm[IPARM_ORDERING] == API_ORDER_PTSCOTCH)) &&
-             (iparm[IPARM_SF_KASS] == API_NO) )
+        if ( ((iparm[IPARM_ORDERING] == PastixOrderScotch) ||
+              (iparm[IPARM_ORDERING] == PastixOrderPtscotch)) &&
+             (iparm[IPARM_SF_KASS] == 0) )
         {
             fax = 1;
         }
@@ -237,7 +237,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
                           NULL, NULL, NULL, NULL,
                           graph->loc2glob,
                           pastix_data->pastix_comm,
-                          iparm[IPARM_DOF_NBR], API_YES);
+                          iparm[IPARM_DOF_NBR], 1);
         }
         else
 #endif
@@ -257,7 +257,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
          */
         if (fax)
         {
-            if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+            if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
                 pastix_print(procnum, 0, OUT_FAX_METHOD, "Fax " );
             symbolFaxGraph(pastix_data->symbmtx, /* Symbol Matrix   */
                            nfax,                 /* Number of nodes */
@@ -281,7 +281,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
             tmpgraph.rows   = rowfax;
             tmpgraph.loc2glob = NULL;
 
-            if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+            if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
                 pastix_print(procnum, 0, OUT_FAX_METHOD, "Kass" );
             symbolKass(iparm[IPARM_VERBOSE],
                        iparm[IPARM_INCOMPLETE],
@@ -319,7 +319,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
             /*
              * Save the new ordering structure
              */
-            if ( iparm[IPARM_IO_STRATEGY] & API_IO_SAVE )
+            if ( iparm[IPARM_IO_STRATEGY] & PastixIOSave )
             {
                 if (procnum == 0) {
                     orderSave( ordemesh, NULL );
@@ -341,7 +341,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
             memFree_null(colptrfax);
             memFree_null(rowfax);
         }
-    } /* not API_IO_LOAD */
+    } /* not PastixIOLoad */
 
     /* Rebase to 0 */
     symbolBase( pastix_data->symbmtx, 0 );
@@ -372,7 +372,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
     /*
      * Save the symbolic factorization
      */
-    if ( iparm[IPARM_IO_STRATEGY] & API_IO_SAVE )
+    if ( iparm[IPARM_IO_STRATEGY] & PastixIOSave )
     {
         if (procnum == 0) {
             FILE *stream;
@@ -408,15 +408,15 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
     clockStop(timer);
 
     if ( procnum == 0 ) {
-        if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+        if (iparm[IPARM_VERBOSE] > PastixVerboseNo)
             symbolPrintStats( pastix_data->symbmtx );
 
-        if ( iparm[IPARM_VERBOSE] > API_VERBOSE_NOT ) {
+        if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
             double fillin = (double)(iparm[IPARM_NNZEROS])
                 / (double)( (pastix_data->csc)->gnnz );
 
             pastix_print( procnum, 0, OUT_FAX_SUMMARY,
-                          iparm[ IPARM_NNZEROS ],
+                          (long)iparm[IPARM_NNZEROS],
                           fillin, clockVal(timer) );
         }
     }

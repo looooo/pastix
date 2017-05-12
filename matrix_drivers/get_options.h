@@ -43,7 +43,7 @@ void global_usage(MPI_Comm mpi_comm,
     filename      - Matrix filename (output).
     nbthread      - number of thread (left unchanged if not in options).
     verbose       - verbose level 1,2 or 3
-    ordering      - ordering to choose (see <API_ORDER>).
+    ordering      - ordering to choose.
     incomplete    - indicate if -incomp is present
     level_of_fill - Level of fill for incomplete factorization.
     amalgamation  - Amalgamation for kass.

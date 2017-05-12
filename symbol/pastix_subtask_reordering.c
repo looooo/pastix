@@ -46,9 +46,9 @@
  *          exit, the field symbmtx is updated with the new symbol matrix, and
  *          the field ordemesh is updated with the new ordering.
  *          - IPARM_IO_STRATEGY will enable to load/store the result to files.
- *          If set to API_IO_SAVE, the symbmtx and the generated ordemesh are
+ *          If set to PastixIOSave, the symbmtx and the generated ordemesh are
  *          dump to file.
- *          If set to API_IO_LOAD, the symbmtx (only) is loaded from the files.
+ *          If set to PastixIOLoad, the symbmtx (only) is loaded from the files.
  *
  *******************************************************************************
  *
@@ -80,14 +80,14 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
     assert(ordemesh->treetab);
 
     /* Start the step */
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT ) {
+    if (iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
         pastix_print(procnum, 0, OUT_STEP_REORDER,
-                     iparm[IPARM_REORDERING_SPLIT],
-                     iparm[IPARM_REORDERING_STOP]);
+                     (long)iparm[IPARM_REORDERING_SPLIT],
+                     (long)iparm[IPARM_REORDERING_STOP]);
     }
 
     /* Print the reordering complexity */
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
+    if (iparm[IPARM_VERBOSE] > PastixVerboseYes)
         symbolReorderingPrintComplexity( pastix_data->symbmtx );
 
     clockStart(timer);
@@ -100,7 +100,7 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
                       iparm[IPARM_REORDERING_STOP] );
 
     /* Backup the new ordering */
-    if ( iparm[IPARM_IO_STRATEGY] & API_IO_SAVE )
+    if ( iparm[IPARM_IO_STRATEGY] & PastixIOSave )
     {
         if (procnum == 0) {
             orderSave( ordemesh, NULL );
@@ -133,7 +133,7 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
 #endif
 
     clockStop(timer);
-    if ( iparm[IPARM_VERBOSE] > API_VERBOSE_NOT ) {
+    if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
         pastix_print(procnum, 0, OUT_REORDERING_TIME,
                      (double)clockVal(timer));
     }
