@@ -96,7 +96,10 @@ coeftab_zdiffcblk( const SolverCblk *cblkA,
         resU = (normfAU == 0.) ? 0. : (normU / (normfAU * eps));
     }
     else {
-        resU = 0.;
+        normfAU = 0.;
+        normcAU = 0.;
+        normU   = 0.;
+        resU    = 0.;
     }
 
     if ( resL > 10 ) {
