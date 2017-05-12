@@ -148,12 +148,12 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
     }
 
     /* Add A and B in their LR format */
-    core_zrradd_SVD( tolerance, CblasNoTrans, -1.0,
+    core_zrradd_SVD( tolerance, PastixNoTrans, -1.0,
                      mA, nA, &LR_A_SVD,
                      mB, nB, &LR_B_SVD,
                      offx, offy );
 
-    core_zrradd_RRQR( tolerance, CblasNoTrans, -1.0,
+    core_zrradd_RRQR( tolerance, PastixNoTrans, -1.0,
                       mA, nA, &LR_A_RRQR,
                       mB, nB, &LR_B_RRQR,
                       offx, offy );
@@ -171,7 +171,7 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
 
     /* Compute A+B in dense */
     B_tmp = B + offx + mB * offy;
-    core_zgeadd( CblasNoTrans, mA, nA,
+    core_zgeadd( PastixNoTrans, mA, nA,
                  -1.0, A, mA,
                  1.0, B_tmp, mB );
 

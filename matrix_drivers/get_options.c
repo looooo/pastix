@@ -53,28 +53,6 @@ getfilename(char **filename, char *source, char *defaultname)
     return 1;
 }
 
-
-/* int api_iparmreader(char * filename, pastix_int_t *iparmtab); */
-/* int api_dparmreader(char * filename, double       *dparmtab); */
-
-/*   Function: str_tolower */
-
-/*   Rewrites *string* in lower case. */
-
-/*   Parameters: */
-/*   string - string to rewrite in lower case. */
-static inline void
-str_tolower(char * string)
-{
-    int j = 0;
-    while (string[j] != '\0')
-    {
-        string[j] = (char)tolower(string[j]);
-        j++;
-    }
-    return;
-}
-
 static inline void
 pastix_ex_usage(void)
 {

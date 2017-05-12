@@ -36,24 +36,24 @@
  *
  * @param[in] M
  *          Number of rows of the matrix B.
- *          Number of rows of the matrix A, if trans == CblasNoTrans, number of
+ *          Number of rows of the matrix A, if trans == PastixNoTrans, number of
  *          columns of A otherwise.
  *
  * @param[in] N
  *          Number of columns of the matrix B.
- *          Number of columns of the matrix A, if trans == CblasNoTrans, number
+ *          Number of columns of the matrix A, if trans == PastixNoTrans, number
  *          of rows of A otherwise.
  *
  * @param[in] alpha
  *          Scalar factor of A.
  *
  * @param[in] A
- *          Matrix of size LDA-by-N, if trans == CblasNoTrans, LDA-by-M,
+ *          Matrix of size LDA-by-N, if trans == PastixNoTrans, LDA-by-M,
  *          otherwise.
  *
  * @param[in] LDA
  *          Leading dimension of the array A. LDA >= max(1,K).
- *          K = M if trans == CblasNoTrans, K = N otherwise.
+ *          K = M if trans == PastixNoTrans, K = N otherwise.
  *
  * @param[in] beta
  *          Scalar factor of B.
@@ -280,7 +280,7 @@ cpucblk_zgeaddsp1d( const SolverCblk         *cblk1,
             fblok->coefind +
             iterblok->frownum - fblok->frownum;
         nrow = iterblok->lrownum - iterblok->frownum + 1;
-        core_zgeadd( CblasNoTrans,
+        core_zgeadd( PastixNoTrans,
                      nrow, ncol1,
                      1.0, ga, cblk1->stride,
 		     1.0, gb, cblk2->stride );
@@ -289,7 +289,7 @@ cpucblk_zgeaddsp1d( const SolverCblk         *cblk1,
             gb = Cu + cblk2->stride*(cblk1->fcolnum-cblk2->fcolnum) +
                 fblok->coefind +
                 iterblok->frownum - fblok->frownum;
-            core_zgeadd( CblasNoTrans,
+            core_zgeadd( PastixNoTrans,
                          nrow, ncol1,
                          1.0, ga, cblk1->stride,
                          1.0, gb, cblk2->stride );

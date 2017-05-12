@@ -626,7 +626,7 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                          zone, u + offy * M + offx, M);
         }
         else {
-            cblas_zgemm(CblasColMajor, CblasNoTrans, transA1,
+            cblas_zgemm(CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transA1,
                         M1, N1, A->rk,
                         CBLAS_SADDR(alpha), A->u, ldau,
                                             A->v, ldav,

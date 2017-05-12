@@ -94,7 +94,7 @@ core_ztrsmsp_1d( pastix_side_t             side,
     C = C + fblok[1].coefind;
 
     cblas_ztrsm(CblasColMajor,
-                side, uplo, trans, diag,
+                (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
                 M, N,
                 CBLAS_SADDR(zone), A, lda,
                                    C, lda);
@@ -169,7 +169,7 @@ core_ztrsmsp_2d( pastix_side_t             side,
         ldc = M;
 
         cblas_ztrsm(CblasColMajor,
-                    side, uplo, trans, diag,
+                    (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
                     M, N,
                     CBLAS_SADDR(zone), A, lda,
                                        blokC, ldc);
@@ -263,7 +263,7 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
         if ( lrC->rk != 0 ) {
             if ( lrC->rk != -1 ) {
                 cblas_ztrsm(CblasColMajor,
-                            side, uplo, trans, diag,
+                            (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
                             lrC->rk, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->v, lrC->rkmax);
@@ -271,7 +271,7 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
             else {
                 M = blok_rownbr(blok);
                 cblas_ztrsm(CblasColMajor,
-                            side, uplo, trans, diag,
+                            (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
                             M, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->u, lrC->rkmax);
@@ -427,7 +427,7 @@ core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
         ldc = M;
 
         cblas_ztrsm( CblasColMajor,
-                     side, uplo, trans, diag,
+                     (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
                      M, N,
                      CBLAS_SADDR(zone), A, lda,
                                         Cptr, ldc );
@@ -535,7 +535,7 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
         if ( lrC->rk != 0 ) {
             if ( lrC->rk != -1 ) {
                 cblas_ztrsm(CblasColMajor,
-                            side, uplo, trans, diag,
+                            (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
                             lrC->rk, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->v, lrC->rkmax);
@@ -543,7 +543,7 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
             else {
                 M = blok_rownbr(blok);
                 cblas_ztrsm(CblasColMajor,
-                            side, uplo, trans, diag,
+                            (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
                             M, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->u, lrC->rkmax);

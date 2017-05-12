@@ -74,6 +74,7 @@ pastixWelcome( pastix_data_t *pastix,
 #else
                   "Disabled",
 #endif
+                  /* Distrib */ ((iparm[IPARM_DISTRIBUTION_LEVEL] == -1)? "1D" : "2D"), (long)iparm[IPARM_DISTRIBUTION_LEVEL],
                   /* Strategy        */ ((iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever) ? "No compression" : (iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin) ? "Memory Optimal" : "Just-In-Time") );
 
 

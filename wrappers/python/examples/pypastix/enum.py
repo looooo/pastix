@@ -5,7 +5,7 @@ pastix_c_int  = c_int64
 pastix_np_int = np.dtype('int64')
 
 class pastix_iparm:
-    iparm_factorization = 44
+    iparm_factorization = 35 # DANGER !!!
     iparm_size = 128
 
 class pastix_dparm:
