@@ -25,7 +25,7 @@
     "  Number of MPI processes:                %8d\n"           \
     "  Number of threads per process:          %8d\n"           \
     "  MPI communication support:              %8s\n"           \
-    "  Distribution level:                 %8s(%2ld)\n"         \
+    "  Distribution level:               %8s(%4ld)\n"           \
     "  Low rank parameters:\n"                                  \
     "    Strategy                      %16s\n"
 
