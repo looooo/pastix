@@ -11,6 +11,9 @@
  * @author Gregoire Pichon
  * @date 2017-04-26
  *
+ * @addtogroup eztrace_dev
+ * @{
+ *
  **/
 
 #ifndef __KERNELS_EV_CODES_H__
@@ -29,7 +32,7 @@
 
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 
-enum kernels_ev_code_e {
+typedef enum kernels_ev_code_e {
     STOP,
 
     /* Low-rank operations */
@@ -45,14 +48,11 @@ enum kernels_ev_code_e {
     DENSE_TRSM,
     DENSE_GEMM,
 
-    NB_EVENTS,
-};
-typedef enum kernels_ev_code_e kernels_ev_code_t;
+    KERNELS_NB_EVENTS,
+} kernels_ev_code_t;
 
 /**
  *******************************************************************************
- *
- * @ingroup pastix_eztrace
  *
  * @brief Start to trace a kernel
  *
@@ -75,16 +75,29 @@ static inline void start_trace_kernel(kernels_ev_code_t state, double flops){
 }
 
 /**
- *******************************************************************************
- *
- * @ingroup pastix_eztrace
- *
  * @brief Stop to trace a kernel
- *
- *******************************************************************************/
+ */
 static inline void stop_trace_kernel(){
 #if defined(PASTIX_WITH_EZTRACE)
     EZTRACE_EVENT_PACKED_0(KERNELS_CODE(STOP));
+#endif /* defined(PASTIX_WITH_EZTRACE) */
+}
+
+/**
+ * @brief Start eztrace module
+ */
+static inline void start_eztrace_kernels(){
+#if defined(PASTIX_WITH_EZTRACE)
+  eztrace_start ();
+#endif /* defined(PASTIX_WITH_EZTRACE) */
+}
+
+/**
+ * @brief Stop eztrace module
+ */
+static inline void stop_eztrace_kernels(){
+#if defined(PASTIX_WITH_EZTRACE)
+  eztrace_stop ();
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 }
 

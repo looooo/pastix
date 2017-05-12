@@ -37,12 +37,12 @@ static kernels_thread_info_t *kernels_register_thread_hook(
 
     p_info->p_thread = p_thread;
 
-    int    *nb       = malloc(MAX_EVENTS * sizeof(int));
-    double *flops    = malloc(MAX_EVENTS * sizeof(double));
-    double *run_time = malloc(MAX_EVENTS * sizeof(double));
+    int    *nb       = malloc(KERNELS_NB_EVENTS * sizeof(int));
+    double *flops    = malloc(KERNELS_NB_EVENTS * sizeof(double));
+    double *run_time = malloc(KERNELS_NB_EVENTS * sizeof(double));
 
     int i;
-    for (i=0; i<MAX_EVENTS; i++){
+    for (i=0; i<KERNELS_NB_EVENTS; i++){
         nb[i]        = 0;
         flops[i]     = 0;
         run_time[i]  = 0;
@@ -58,11 +58,8 @@ static kernels_thread_info_t *kernels_register_thread_hook(
 }
 
 /**
- *******************************************************************************
- *
  * @brief Start to use eztrace by loading PaStiX module
- *
- *******************************************************************************/
+ */
 struct eztrace_convert_module kernels_module;
 void libinit(void) __attribute__ ((constructor));
 void libinit(void)
@@ -82,11 +79,8 @@ void libinit(void)
 }
 
 /**
- *******************************************************************************
- *
  * @brief Stop to use eztrace
- *
- *******************************************************************************/
+ */
 void libfinalize(void) __attribute__ ((destructor));
 void libfinalize(void)
 {
@@ -95,11 +89,8 @@ void libfinalize(void)
 
 
 /**
- *******************************************************************************
- *
  * @brief Define events properties such as name or color
- *
- *******************************************************************************/
+ */
 void define_kernels_properties()
 {
     /* Low-rank operations */
@@ -128,17 +119,12 @@ void define_kernels_properties()
  *******************************************************************************/
 int eztrace_convert_kernels_init()
 {
-    if (NB_EVENTS > MAX_EVENTS + 1){
-        printf("FATAL ERROR: static table is not large enough\n");
-        return 1;
-    }
-
     if (get_mode() == EZTRACE_CONVERT) {
 
         define_kernels_properties();
 
         int k;
-        for (k=1; k<NB_EVENTS; k++){
+        for (k=1; k<KERNELS_NB_EVENTS; k++){
             addEntityValue(kernels_properties[k].name, "ST_Thread",
                            kernels_properties[k].name, kernels_properties[k].color);
         }
@@ -177,11 +163,8 @@ void handle_start(kernels_ev_code_t ev)
 }
 
 /**
- *******************************************************************************
- *
  * @brief Handle the end of an elemental event
- *
- *******************************************************************************/
+ */
 void handle_stop()
 {
     DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
@@ -229,11 +212,8 @@ int handle_kernels_events(eztrace_event_t *ev)
 }
 
 /**
- *******************************************************************************
- *
  * @brief Print the statistics of each kernel for each thread
- *
- *******************************************************************************/
+ */
 void print_kernels_stats()
 {
     define_kernels_properties();
@@ -259,7 +239,7 @@ void print_kernels_stats()
             INIT_KERNELS_THREAD_INFO(p_thread, p_info);
             printf("\tThread %20s\n", thread_container->name);
 
-            for (k=1; k<NB_EVENTS; k++){
+            for (k=1; k<KERNELS_NB_EVENTS; k++){
                 printf("Kernel %20s was called %5d times, flops=%8.3g, duration=%.3g\n",
                        kernels_properties[k].name, p_info->nb[k],
                        p_info->flops[k], p_info->run_time[k]);

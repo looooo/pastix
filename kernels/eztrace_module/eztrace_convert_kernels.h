@@ -11,6 +11,9 @@
  * @author Gregoire Pichon
  * @date 2017-04-26
  *
+ * @addtogroup eztrace_dev
+ * @{
+ *
  **/
 
 #ifndef __EZTRACE_CONVERT_KERNELS_H__
@@ -21,8 +24,6 @@
 #include <GTG.h>
 #include "eztrace_convert.h"
 #include "kernels_ev_codes.h"
-
-#define MAX_EVENTS 20
 
 typedef struct kernels_e {
     char *name;
@@ -43,7 +44,7 @@ typedef struct kernels_thread_info_e {
 } kernels_thread_info_t;
 
 /* Properties (name/color) of each event */
-static kernels_t kernels_properties[MAX_EVENTS];
+static kernels_t kernels_properties[KERNELS_NB_EVENTS];
 
 #define INIT_KERNELS_THREAD_INFO(p_thread, var)                         \
     kernels_thread_info_t *var = (kernels_thread_info_t *) \

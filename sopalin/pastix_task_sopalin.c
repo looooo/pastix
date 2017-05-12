@@ -26,9 +26,7 @@
 #include "kernels/pastix_ccores.h"
 #include "kernels/pastix_dcores.h"
 #include "kernels/pastix_scores.h"
-#if defined(PASTIX_WITH_EZTRACE)
-#include <eztrace.h>
-#endif
+#include "kernels/eztrace_module/kernels_ev_codes.h"
 
 static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
 {
@@ -465,6 +463,8 @@ pastix_task_numfact( pastix_data_t *pastix_data,
     iparm   = pastix_data->iparm;
     procnum = pastix_data->inter_node_procnum;
 
+    start_eztrace_kernels();
+
     if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
         pastix_print(procnum, 0, OUT_STEP_SOPALIN,
                      pastixFactotypeStr( iparm[IPARM_FACTORIZATION] ) );
@@ -488,6 +488,8 @@ pastix_task_numfact( pastix_data_t *pastix_data,
             return rc;
     }
 
+    stop_eztrace_kernels();
+
     /* Invalidate following steps, and add factorization step to the ones performed */
     pastix_data->steps &= ~( STEP_SOLVE     |
                              STEP_REFINE );
@@ -495,21 +497,3 @@ pastix_task_numfact( pastix_data_t *pastix_data,
 
     return EXIT_SUCCESS;
 }
-
-
-/* Constructor / destructor used for tracing kernels */
-#if defined(PASTIX_WITH_EZTRACE)
-static void kernels_init (void) __attribute__ ((constructor));
-static void
-kernels_init (void)
-{
-  eztrace_start ();
-}
-
-static void kernels_conclude (void) __attribute__ ((destructor));
-static void
-kernels_conclude (void)
-{
-  eztrace_stop ();
-}
-#endif
