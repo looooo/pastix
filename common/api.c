@@ -93,8 +93,7 @@ pastixWelcome( pastix_data_t *pastix,
  * @ingroup pastix_internal
  *
  * pastix_init_param - Initialize the iparm and dparm arrays to their default
- * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to
- * API_NO.
+ * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to 0.
  *
  *******************************************************************************
  *
@@ -217,11 +216,11 @@ pastixInitParam( pastix_int_t *iparm,
             MPI_Query_thread(&provided);
             switch( provided ) {
             case MPI_THREAD_MULTIPLE:
-                iparm[IPARM_THREAD_COMM_MODE] = API_THREAD_MULTIPLE;
+                iparm[IPARM_THREAD_COMM_MODE] = PastixThreadMultiple;
                 break;
             case MPI_THREAD_SERIALIZED:
             case MPI_THREAD_FUNNELED:
-                iparm[IPARM_THREAD_COMM_MODE] = API_THREAD_FUNNELED;
+                iparm[IPARM_THREAD_COMM_MODE] = PastixThreadFunneled;
                 break;
                 /**
                  * In the folowing cases, we consider that any MPI implementation
@@ -229,7 +228,7 @@ pastixInitParam( pastix_int_t *iparm,
                  */
             case MPI_THREAD_SINGLE:
             default:
-                iparm[IPARM_THREAD_COMM_MODE] = API_THREAD_FUNNELED;
+                iparm[IPARM_THREAD_COMM_MODE] = PastixThreadFunneled;
             }
         }
     }
@@ -338,8 +337,7 @@ apiInitMPI( pastix_data_t *pastix,
  * @ingroup pastix_common
  *
  * pastixInit - Initialize the iparm and dparm arrays to their default
- * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to
- * API_NO.
+ * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to 0.
  *
  *******************************************************************************
  *
@@ -387,7 +385,7 @@ pastixInit( pastix_data_t **pastix_data,
      * Initialize iparm/dparm vectors and set them to default values if not set
      * by the user.
      */
-    if ( iparm[IPARM_MODIFY_PARAMETER] == API_NO ) {
+    if ( iparm[IPARM_MODIFY_PARAMETER] == 0 ) {
         pastixInitParam( iparm, dparm );
     }
 
@@ -442,56 +440,6 @@ pastixInit( pastix_data_t **pastix_data,
     pastix->bcsc       = NULL;
     pastix->solvmatr   = NULL;
 
-/*     if (pastix->procnum == 0) */
-/*     { */
-/*         pastix->pastix_id = getpid(); */
-/*     } */
-/*     MPI_Bcast(&(pastix->pastix_id), 1, PASTIX_MPI_INT, 0, pastix_comm); */
-
-/* #ifdef WITH_SEM_BARRIER */
-/*     if (pastix->intra_node_procnbr > 1) */
-/*     { */
-/*         char sem_name[256]; */
-/*         sprintf(sem_name, "/pastix_%d", pastix->pastix_id); */
-/*         OPEN_SEM(pastix->sem_barrier, sem_name, 0); */
-/*     } */
-/* #endif */
-
-/*     if (iparm != NULL) */
-/*     { */
-/*         if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO) */
-/*         { */
-/*             fprintf(stdout, "AUTOSPLIT_COMM : global rank : %d," */
-/*                     " inter node rank %d," */
-/*                     " intra node rank %d, threads %d\n", */
-/*                     (int)(pastix->procnum), */
-/*                     (int)(pastix->inter_node_procnum), */
-/*                     (int)(pastix->intra_node_procnum), */
-/*                     (int)iparm[IPARM_THREAD_NBR]); */
-/*         } */
-
-/*         iparm[IPARM_PID] = pastix->pastix_id; */
-/*     } */
-
-/*     pastix->sopar.bindtab    = NULL; */
-/*     pastix->sopar.b          = NULL; */
-/*     pastix->sopar.transcsc   = NULL; */
-/*     pastix->sopar.stopthrd   = API_NO; */
-/*     pastix->bindtab          = NULL; */
-/*     pastix->cscInternFilled  = API_NO; */
-
-/* #ifdef PASTIX_DISTRIBUTED */
-/*     pastix->malrhsd_int      = API_NO; */
-/*     pastix->l2g_int          = NULL; */
-/*     pastix->mal_l2g_int      = API_NO; */
-/*     pastix->glob2loc         = NULL; */
-/*     pastix->PTS_permtab      = NULL; */
-/*     pastix->PTS_peritab      = NULL; */
-/* #endif */
-/*     pastix->schur_tab        = NULL; */
-/*     pastix->schur_tab_set    = API_NO; */
-/*     pastix->scaling  = API_NO; */
-
     /* DIRTY Initialization for Scotch */
     srand(1);
 
@@ -499,7 +447,7 @@ pastixInit( pastix_data_t **pastix_data,
     /* On Mac set VECLIB_MAXIMUM_THREADS if not setted */
     setenv("VECLIB_MAXIMUM_THREADS", "1", 0);
 
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
         pastixWelcome( pastix, iparm, dparm );
 
     /* Initialization step done, overwrite anything done before */

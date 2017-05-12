@@ -450,7 +450,7 @@ coeftab_zmemory( const SolverMatrix *solvmtx )
     memoriginal = original * pastix_size_of( PastixComplex64 );
     pastix_print(0, 0,
                  OUT_LOWRANK_SUMMARY,
-                 gain, original,
+                 (long)gain, (long)original,
                  MEMORY_WRITE(memgain),     MEMORY_UNIT_WRITE(memgain),
                  MEMORY_WRITE(memoriginal), MEMORY_UNIT_WRITE(memoriginal));
 

@@ -126,8 +126,7 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
     time = bcscInit( spm,
                      pastix_data->ordemesh,
                      pastix_data->solvmatr,
-                     ( (pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU)
-                       && (! pastix_data->iparm[IPARM_ONLY_REFINE]) ),
+                     (pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU), /*&& (! pastix_data->iparm[IPARM_ONLY_REFINE])*/
                      pastix_data->bcsc );
 
     if ( pastix_data->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT ) {

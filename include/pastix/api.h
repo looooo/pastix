@@ -103,6 +103,11 @@ typedef enum pastix_iparm_e {
     IPARM_COMPRESS_WHEN,         /**< When to compress a supernode                                   Default: PastixCompressNever      IN    */
     IPARM_COMPRESS_METHOD,       /**< Compression method (SVD/RRQR)                                  Default: PastixCompressMethodRRQR IN    */
 
+#if defined(PASTIX_WITH_MPI)
+    /* MPI modes */
+    IPARM_THREAD_COMM_MODE,      /**< Threaded communication mode                                    Default: PastixThreadMultiple     IN    */
+#endif /* defined(PASTIX_WITH_MPI) */
+
     /* Subset for old interface */
     IPARM_MODIFY_PARAMETER,      /**< Indicate if parameters have been set by user                   Default: 1                        IN    */
     IPARM_START_TASK,            /**< Indicate the first step to execute                             Default: PastixTaskOrdering       IN    */
@@ -121,9 +126,9 @@ typedef enum pastix_iparm_e {
  */
 typedef enum pastix_dparm_e {
     DPARM_FILL_IN,               /**< Maximum memory (-DMEMORY_USAGE)                   Default: -                OUT */
-    DPARM_EPSILON_REFINEMENT,    /**< Epsilon for refinement                            Default: 1e^{-12}         IN  */
+    DPARM_EPSILON_REFINEMENT,    /**< Epsilon for refinement                            Default: -1.              IN  */
     DPARM_RELATIVE_ERROR,        /**< Relative backward error                           Default: -                OUT */
-    DPARM_EPSILON_MAGN_CTRL,     /**< Epsilon for magnitude control                     Default: 1e^{-31}         IN  */
+    DPARM_EPSILON_MAGN_CTRL,     /**< Epsilon for magnitude control                     Default: 0.               IN  */
     DPARM_ANALYZE_TIME,          /**< Time for Analyse step (wallclock)                 Default: -                OUT */
     DPARM_PRED_FACT_TIME,        /**< Predicted factorization time                      Default: -                OUT */
     DPARM_FACT_TIME,             /**< Time for Numerical Factorization step (wallclock) Default: -                OUT */
@@ -186,7 +191,7 @@ typedef enum pastix_refine_e {
     PastixRefineGMRES,   /**< GMRES              */
     PastixRefineCG,      /**< Conjugate Gradiant */
     PastixRefineSR,      /**< Simple refinement  */
-    PastixRefineBiCGSTAB  /**< BiCGStab           */
+    PastixRefineBiCGSTAB /**< BiCGStab           */
 } pastix_refine_t;
 
 /**
@@ -227,11 +232,11 @@ typedef enum pastix_factotype_e {
  * @brief Scheduler
  */
 typedef enum pastix_scheduler_e {
-    PastixSchedSequential = 0, /**< */
-    PastixSchedStatic     = 1, /**< */
-    PastixSchedParsec     = 2, /**< */
-    PastixSchedDynamic    = 3, /**< */
-    PastixSchedStarPU     = 4, /**< */
+    PastixSchedSequential = 0, /**< Sequential                           */
+    PastixSchedStatic     = 1, /**< Shared memory with static scheduler  */
+    PastixSchedParsec     = 2, /**< PaRSEC scheduler                     */
+    PastixSchedDynamic    = 3, /**< Shared memory with dynamic scheduler */
+    PastixSchedStarPU     = 4, /**< *StarPU scheduler                    */
 } pastix_scheduler_t;
 
 /**
@@ -245,6 +250,16 @@ typedef enum pastix_order_e {
     PastixOrderPtscotch, /**< Use \pt-scotch{} ordering */
     PastixOrderParMetis  /**< Use \parmetis{} ordering  */
 } pastix_order_t;
+
+#if defined(PASTIX_WITH_MPI)
+/**
+ * @brief MPI thread mode
+ */
+typedef enum pastix_threadmode_e {
+    PastixThreadMultiple = 1, /**< All threads communicate              */
+    PastixThreadFunneled = 2  /**< One thread perform all the MPI Calls */
+} pastix_threadmode_t;
+#endif /* defined(PASTIX_WITH_MPI) */
 
 /**
  * @brief Error codes

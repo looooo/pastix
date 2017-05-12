@@ -256,7 +256,7 @@ blendCtrlInit( BlendCtrl    *ctrl,
         ctrl->ratiolimit = INTVALMAX;
     }
 
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES) {
+    if (iparm[IPARM_VERBOSE] > PastixVerboseYes) {
         if (ctrl->autolevel)
             printf("ratiolimit=%ld\n", (long) (ctrl->ratiolimit) );
         else

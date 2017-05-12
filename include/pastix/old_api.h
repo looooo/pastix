@@ -38,18 +38,16 @@ enum IPARM_ACCESS_DEPRECATED {
     IPARM_ORDERING_CMAX         = IPARM_SCOTCH_CMAX,
     IPARM_ORDERING_FRAT         = IPARM_SCOTCH_FRAT,
     IPARM_AMALGAMATION_LEVEL    = IPARM_AMALGAMATION_LVLCBLK,
-    IPARM_CUDA_NBR              = IPARM_GPU_NBR,
-    IPARM_RHS_MAKING            = -1,
     IPARM_ONLY_REFINE           = 0,
-    IPARM_ONLY_RAFF             = IPARM_ONLY_REFINE,
+    IPARM_RHS_MAKING            = -1,
     IPARM_BINDTHRD              = -1,
     IPARM_SCHUR                 = -1,
-    IPARM_ISOLATE_ZEROS         = -1,
+    IPARM_ISOLATE_ZEROS         = -1
 };
 
 /* Former DPARM values */
-#define DPARM_RAFF_TIME DPARM_REFINE_TIME
-#define DPARM_FACT_FLOPS DPARM_FACT_THFLOPS
+#define DPARM_RAFF_TIME     DPARM_REFINE_TIME
+#define DPARM_FACT_FLOPS    DPARM_FACT_THFLOPS
 
 /* Former API values */
 
@@ -70,55 +68,55 @@ enum IPARM_ACCESS_DEPRECATED {
 #define API_TASK_CLEAN      PastixTaskClean
 
 /* _POS_ 4 */
-#define API_FACT_LLT  PastixFactLLT
-#define API_FACT_LDLT PastixFactLDLT
-#define API_FACT_LU   PastixFactLU
-#define API_FACT_LDLH PastixFactLDLH
+#define API_FACT_LLT        PastixFactLLT
+#define API_FACT_LDLT       PastixFactLDLT
+#define API_FACT_LU         PastixFactLU
+#define API_FACT_LDLH       PastixFactLDLH
 
 /* _POS_ 5 */
-#define API_VERBOSE_NOT PastixVerboseNot
-#define API_VERBOSE_NO  PastixVerboseNo
-#define API_VERBOSE_YES PastixVerboseYes
+#define API_VERBOSE_NOT     PastixVerboseNot
+#define API_VERBOSE_NO      PastixVerboseNo
+#define API_VERBOSE_YES     PastixVerboseYes
 
 /* _POS_ 6 */
-#define API_IO_NO         PastixIONo
-#define API_IO_LOAD       PastixIOLoad
-#define API_IO_SAVE       PastixIOSave
-#define API_IO_LOAD_GRAPH PastixIOLoadGraph
-#define API_IO_SAVE_GRAPH PastixIOSaveGraph
-#define API_IO_LOAD_CSC   PastixIOLoadCSC
-#define API_IO_SAVE_CSC   PastixIOSaveCSC
+#define API_IO_NO           PastixIONo
+#define API_IO_LOAD         PastixIOLoad
+#define API_IO_SAVE         PastixIOSave
+#define API_IO_LOAD_GRAPH   PastixIOLoadGraph
+#define API_IO_SAVE_GRAPH   PastixIOSaveGraph
+#define API_IO_LOAD_CSC     PastixIOLoadCSC
+#define API_IO_SAVE_CSC     PastixIOSaveCSC
 
 /* _POS_ 7 */
-#define API_RHS_B PastixRhsRndB
-#define API_RHS_1 PastixRhsOne
-#define API_RHS_I PastixRhsI
-#define API_RHS_0 PastixRhsRndX
+#define API_RHS_B           PastixRhsRndB
+#define API_RHS_1           PastixRhsOne
+#define API_RHS_I           PastixRhsI
+#define API_RHS_0           PastixRhsRndX
 
 /* _POS_ 8 */
-#define API_RAFF_GMRES    PastixGMRES
-#define API_RAFF_GRAD     PastixCG
-#define API_RAFF_PIVOT    PastixSR
-#define API_RAFF_BICGSTAB PastixBiGSTAB
+#define API_RAFF_GMRES      PastixGMRES
+#define API_RAFF_GRAD       PastixCG
+#define API_RAFF_PIVOT      PastixSR
+#define API_RAFF_BICGSTAB   PastixBiGSTAB
 
 /* _POS_ 11 */
-#define API_ORDER_SCOTCH   PastixOrderScotch
-#define API_ORDER_METIS    PastixOrderMetis
-#define API_ORDER_PERSONAL PastixOrderPersonal
-#define API_ORDER_LOAD     PastixOrderLoad
-#define API_ORDER_PTSCOTCH PastixOrderPtscotch
+#define API_ORDER_SCOTCH    PastixOrderScotch
+#define API_ORDER_METIS     PastixOrderMetis
+#define API_ORDER_PERSONAL  PastixOrderPersonal
+#define API_ORDER_LOAD      PastixOrderLoad
+#define API_ORDER_PTSCOTCH  PastixOrderPtscotch
 
 /* _POS_ 61 */
-#define API_REALSINGLE    PastixFloat
-#define API_REALDOUBLE    PastixDouble
-#define API_COMPLEXSINGLE PastixComplex32
-#define API_COMPLEXDOUBLE PastixComplex64
+#define API_REALSINGLE      PastixFloat
+#define API_REALDOUBLE      PastixDouble
+#define API_COMPLEXSINGLE   PastixComplex32
+#define API_COMPLEXDOUBLE   PastixComplex64
 
 /**
  * Some define for old pastix compatibility
  */
-#define API_SYM_YES PastixSymmetric
-#define API_SYM_HER PastixHermitian
-#define API_SYM_NO  PastixGeneral
+#define API_SYM_YES         PastixSymmetric
+#define API_SYM_HER         PastixHermitian
+#define API_SYM_NO          PastixGeneral
 
 #endif /* _OLD_API_H_ */
