@@ -74,7 +74,7 @@ pastixWelcome( pastix_data_t *pastix,
 #else
                   "Disabled",
 #endif
-                  /* Distrib */ ((iparm[IPARM_DISTRIBUTION_LEVEL] == -1)? "1D" : "2D"), (long)iparm[IPARM_DISTRIBUTION_LEVEL],
+                  /* Distrib */ ((iparm[IPARM_DISTRIBUTION_LEVEL] == -1) ? "1D" : "2D"), (long)iparm[IPARM_DISTRIBUTION_LEVEL],
                   /* Strategy        */ ((iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever) ? "No compression" : (iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin) ? "Memory Optimal" : "Just-In-Time") );
 
 
@@ -244,11 +244,21 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_MTX_TYPE]   = -1;
     iparm[IPARM_DOF_NBR]    = 1;
 
+    dparm[DPARM_FILL_IN]            =  0.;
     dparm[DPARM_EPSILON_REFINEMENT] = -1.;
     dparm[DPARM_RELATIVE_ERROR]     = -1.;
     dparm[DPARM_EPSILON_MAGN_CTRL]  =  0.;
+    dparm[DPARM_ANALYZE_TIME]       =  0.;
+    dparm[DPARM_PRED_FACT_TIME]     =  0.;
+    dparm[DPARM_FACT_TIME]          =  0.;
+    dparm[DPARM_SOLV_TIME]          =  0.;
     dparm[DPARM_FACT_FLOPS]         =  0.;
+    dparm[DPARM_FACT_THFLOPS]       =  0.;
+    dparm[DPARM_FACT_RLFLOPS]       =  0.;
     dparm[DPARM_SOLV_FLOPS]         =  0.;
+    dparm[DPARM_SOLV_THFLOPS]       =  0.;
+    dparm[DPARM_SOLV_RLFLOPS]       =  0.;
+    dparm[DPARM_REFINE_TIME]        =  0.;
     dparm[DPARM_A_NORM]             = -1.;
     dparm[DPARM_COMPRESS_TOLERANCE] = 0.01;
 }

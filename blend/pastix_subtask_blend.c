@@ -16,6 +16,7 @@
  *
  **/
 #include "common.h"
+#include "spm.h"
 #include "order.h"
 #include "perf.h"
 #include "elimintree.h"
@@ -301,11 +302,11 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     }
 
     if(ctrl.count_ops && (ctrl.leader == procnum)) {
-        double thflops = 0.;
         symbolGetFlops( symbmtx,
                         iparm[IPARM_FLOAT],
                         iparm[IPARM_FACTORIZATION],
-                        &thflops, &(dparm[DPARM_FACT_RLFLOPS]) );
+                        &(dparm[DPARM_FACT_THFLOPS]),
+                        &(dparm[DPARM_FACT_RLFLOPS]) );
     }
 
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
@@ -459,15 +460,14 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         iparm[IPARM_NNZEROS_BLOCK_LOCAL] = solvmtx->coefnbr;
 
         /* Affichage */
-        dparm[DPARM_FILL_IN] = dparm[DPARM_FILL_IN]
-            * (double)(iparm[IPARM_NNZEROS] / (iparm[IPARM_DOF_NBR]*iparm[IPARM_DOF_NBR]));
+        dparm[DPARM_FILL_IN] = 0.; /* TODO (double)(iparm[IPARM_NNZEROS]) / (double)(pastix_data->csc->gnnz); */
 
         if (verbose > PastixVerboseNot) {
             pastix_print( 0, 0, OUT_BLEND_SUMMARY,
                           (long)iparm[IPARM_NNZEROS],
                           (double)dparm[DPARM_FILL_IN],
                           pastixFactotypeStr( iparm[IPARM_FACTORIZATION] ),
-                          printflopsv( dparm[DPARM_FACT_FLOPS] ), printflopsu( dparm[DPARM_FACT_FLOPS] ),
+                          printflopsv( dparm[DPARM_FACT_THFLOPS] ), printflopsu( dparm[DPARM_FACT_THFLOPS] ),
                           PERF_MODEL, dparm[DPARM_PRED_FACT_TIME],
                           dparm[DPARM_ANALYZE_TIME] );
 

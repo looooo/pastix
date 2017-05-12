@@ -359,7 +359,8 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data,
         factofct( pastix_data, &sopalin_data );
         clockStop(timer);
 
-        flops = pastix_data->dparm[DPARM_FACT_FLOPS] / clockVal(timer);
+        flops = pastix_data->dparm[DPARM_FACT_THFLOPS] / clockVal(timer);
+        pastix_data->dparm[DPARM_FACT_FLOPS] = flops;
         if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
             pastix_print( 0, 0, OUT_SOPALIN_TIME,
                           clockVal(timer),
