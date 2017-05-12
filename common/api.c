@@ -70,7 +70,7 @@ pastixWelcome( pastix_data_t *pastix,
                   /* MPI nbr   */ pastix->procnbr,
                   /* Thrd nbr  */ (int)(pastix->iparm[IPARM_THREAD_NBR]),
 #if defined(PASTIX_WITH_MPI)
-                  /* MPI mode  */ ((iparm[IPARM_THREAD_COMM_MODE] == API_THREAD_MULTIPLE) ? "Multiple" : "Funneled"),
+                  /* MPI mode  */ ((iparm[IPARM_THREAD_COMM_MODE] == PastixThreadMultiple) ? "Multiple" : "Funneled"),
 #else
                   "Disabled",
 #endif
