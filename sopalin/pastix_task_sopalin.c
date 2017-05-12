@@ -297,7 +297,6 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data,
 /* #ifdef PASTIX_WITH_MPI */
 /*     MPI_Comm       pastix_comm = pastix_data->inter_node_comm; */
 /* #endif */
-    pastix_int_t  procnum;
     pastix_int_t *iparm;
 /*     double        *dparm    = pastix_data->dparm; */
 /*     SolverMatrix  *solvmatr = pastix_data->solvmatr; */
@@ -327,7 +326,6 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data,
     }
 
     iparm   = pastix_data->iparm;
-    procnum = pastix_data->inter_node_procnum;
 
     /* Prepare the sopalin_data structure */
     {
