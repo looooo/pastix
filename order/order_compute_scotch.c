@@ -87,7 +87,7 @@ orderComputeScotch( pastix_data_t  *pastix_data,
 
     /* Centralized */
 #if 0
-    if (iparm[IPARM_GRAPHDIST] == API_NO) {
+    if (iparm[IPARM_GRAPHDIST] == 0) {
 #endif
         n      = graph->n;
         colptr = graph->colptr;
@@ -107,7 +107,7 @@ orderComputeScotch( pastix_data_t  *pastix_data,
                       graph->loc2glob,
                       pastix_data->pastix_comm,
                       0, /* DoF to 0 as we have no values */
-                      API_YES);
+                      1);
     }
 #endif
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphInit <\n");
@@ -140,7 +140,7 @@ orderComputeScotch( pastix_data_t  *pastix_data,
             EXIT(MOD_SOPALIN,INTERNAL_ERR);
         }
         clockStop(timer);
-        if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
+        if (iparm[IPARM_VERBOSE] > PastixVerboseYes)
             pastix_print( procnum, 0, "SCOTCH_graphCheck done in %lf second\n", clockVal(timer) );
     }
 #endif
@@ -153,14 +153,14 @@ orderComputeScotch( pastix_data_t  *pastix_data,
      * Create Strategy string for Scotch
      */
     /* default ordering */
-    if (iparm[IPARM_DEFAULT_ORDERING] == API_YES) {
-        if (iparm[IPARM_INCOMPLETE] == API_NO) {
-            if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+    if (iparm[IPARM_ORDERING_DEFAULT] == 1) {
+        if (iparm[IPARM_INCOMPLETE] == 0) {
+            if (iparm[IPARM_VERBOSE] > PastixVerboseNo)
                 pastix_print(procnum, 0, "      Scotch direct strategy\n");
             sprintf(strat, SCOTCH_STRAT_DIRECT);
         }
         else {
-            if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+            if (iparm[IPARM_VERBOSE] > PastixVerboseNo)
                 pastix_print(procnum, 0, "      Scotch incomplete strategy\n");
             sprintf(strat, SCOTCH_STRAT_INCOMP);
         }
@@ -168,15 +168,15 @@ orderComputeScotch( pastix_data_t  *pastix_data,
     /* personal ordering */
     else {
         sprintf(strat, SCOTCH_STRAT_PERSO,
-                (long)  iparm[IPARM_ORDERING_SWITCH_LEVEL],
-                (long)  iparm[IPARM_ORDERING_CMIN],
-                (long)  iparm[IPARM_ORDERING_CMAX],
-                ((float)iparm[IPARM_ORDERING_FRAT])/100,
-                (long)  iparm[IPARM_ORDERING_SWITCH_LEVEL],
-                (long)  iparm[IPARM_ORDERING_CMIN],
-                (long)  iparm[IPARM_ORDERING_CMAX],
-                ((float)iparm[IPARM_ORDERING_FRAT])/100);
-        if (iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+                (long)  iparm[IPARM_SCOTCH_SWITCH_LEVEL],
+                (long)  iparm[IPARM_SCOTCH_CMIN],
+                (long)  iparm[IPARM_SCOTCH_CMAX],
+                ((float)iparm[IPARM_SCOTCH_FRAT])/100,
+                (long)  iparm[IPARM_SCOTCH_SWITCH_LEVEL],
+                (long)  iparm[IPARM_SCOTCH_CMIN],
+                (long)  iparm[IPARM_SCOTCH_CMAX],
+                ((float)iparm[IPARM_SCOTCH_FRAT])/100);
+        if (iparm[IPARM_VERBOSE] > PastixVerboseNo)
             pastix_print(procnum, 0, "Scotch personal strategy |%s|\n", strat);
     }
 
@@ -197,7 +197,7 @@ orderComputeScotch( pastix_data_t  *pastix_data,
     SCOTCH_stratExit (&stratdat);
     SCOTCH_graphExit( &scotchgraph );
 #if 0
-    if (iparm[IPARM_GRAPHDIST] == API_YES) {
+    if (iparm[IPARM_GRAPHDIST] == 1) {
         memFree_null(colptr);
         memFree_null(rows);
     }

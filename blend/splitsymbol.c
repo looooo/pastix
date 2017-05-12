@@ -575,7 +575,7 @@ splitSymbol( BlendCtrl    *ctrl,
         symbolCheck(symbmtx);
 
     if ( ctrl->clustnum == 0 ) {
-        if (ctrl->iparm[IPARM_VERBOSE] > API_VERBOSE_NO)
+        if (ctrl->iparm[IPARM_VERBOSE] > PastixVerboseNo)
             symbolPrintStats( symbmtx );
     }
 

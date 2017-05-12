@@ -306,7 +306,7 @@ pastix_task_solve( pastix_data_t *pastix_data,
         }
         clockStop(timer);
 
-        if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT) {
+        if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
             pastix_print( 0, 0, OUT_TIME_SOLV, clockVal(timer) );
         }
     }

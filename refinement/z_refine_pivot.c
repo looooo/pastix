@@ -71,7 +71,7 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
   itermax     = solveur.Itermax(pastix_data);
   epsilonrefine = solveur.Eps(pastix_data);
 
-  if (pastix_data->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+  if (pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot)
     {
         fprintf(stdout, OUT_ITERREFINE_PIVOT);
     }
@@ -159,7 +159,7 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
       clockStop((refine_clk));
       t3 = clockGet();
 
-//       if (sopar->iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+//       if (sopar->iparm[IPARM_VERBOSE] > PastixVerboseNot)
 //         {
 //           double sst, rst = 0.0;
 //           double stt, rtt;
@@ -187,7 +187,7 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
   memFree_null(lur2);
   itermax = refinenbr;
 
-//   if (sopar->iparm[IPARM_END_TASK] >= API_TASK_REFINE)
+//   if (sopar->iparm[IPARM_END_TASK] >= PastixTaskRefine)
 //     {
 //         MUTEX_LOCK(&(sopalin_data->mutex_comm));
 //         sopalin_data->step_comm = COMMSTEP_END;

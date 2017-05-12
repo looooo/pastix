@@ -55,8 +55,8 @@
  *          ordering.
  *          - IPARM_ORDERING will determine which ordering tool is used.
  *          - IPARM_IO_STRATEGY will enable the results to be written on files
- *          if set to API_IO_SAVE, or the results to be directly loaded from
- *          file if set to APÏ_IO_LOAD without going through an ordering
+ *          if set to PastixIOSave, or the results to be directly loaded from
+ *          file if set to PastixIOLoad without going through an ordering
  *          library.
  *          - If the function pastix_setSchurUnknownList() function has been
  *          previously called to set the list of vertices to isolate in the
@@ -74,17 +74,17 @@
  * @param[inout] perm
  *          Array of size n.
  *          On entry, the permutation array if IPARM_ORDERING parameter set to
- *          API_ORDER_PERSONAL. Not read otherwise.
+ *          PatixOrderPersonal. Not read otherwise.
  *          On exit, if perm != NULL and IPARM_ORDERING parameter is not set to
- *          API_ORDER_PERSONAL, contains the permutation array
+ *          PastixOrderPersonal, contains the permutation array
  *          generated. Otherwise, it is not referenced.
  *
  * @param[inout] invp
  *          Array of size n.
  *          On entry, the inverse permutation array if IPARM_ORDERING parameter
- *          set to API_ORDER_PERSONAL. Not read otherwise.
+ *          set to PastixOrderPersonal. Not read otherwise.
  *          On exit, if invp != NULL and IPARM_ORDERING parameter is not set to
- *          API_ORDER_PERSONAL, contains the inverse permutation array
+ *          PastixOrderPersonal, contains the inverse permutation array
  *          generated. Otherwise, it is not referenced.
  *
  *******************************************************************************
@@ -145,12 +145,12 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
     if (pastix_data->schur_n > 0)
     {
         /*
-         * If ordering is set to API_ORDER_PERSONAL or API_ORDER_LOAD, we
+         * If ordering is set to PastixOrderPersonal or PastixOrderLoad, we
          * consider that the schur complement is already isolated at the end of
          * permutation array
          */
-        if ((iparm[IPARM_ORDERING] == API_ORDER_PERSONAL) ||
-            (iparm[IPARM_ORDERING] == API_ORDER_LOAD)) {
+        if ((iparm[IPARM_ORDERING] == PastixOrderPersonal) ||
+            (iparm[IPARM_ORDERING] == PastixOrderLoad)) {
             do_schur = 0;
         }
     } else {
@@ -159,12 +159,12 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
     if (pastix_data->zeros_n > 0)
     {
         /*
-         * If ordering is set to API_ORDER_PERSONAL or API_ORDER_LOAD, we
+         * If ordering is set to PastixOrderPersonal or PastixOrderLoad, we
          * consider that the zeros on diagonal are already isolated at the end of
          * permutation array
          */
-        if ((iparm[IPARM_ORDERING] == API_ORDER_PERSONAL) ||
-            (iparm[IPARM_ORDERING] == API_ORDER_LOAD) ) {
+        if ((iparm[IPARM_ORDERING] == PastixOrderPersonal) ||
+            (iparm[IPARM_ORDERING] == PastixOrderLoad) ) {
             do_zeros = 0;
         }
     } else {
@@ -184,7 +184,7 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
     procnum  = pastix_data->procnum;
     orderAlloc( ordemesh, 0, 0 );
 
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
         pastix_print(procnum, 0, "%s", OUT_STEP_ORDER);
 
     /*
@@ -244,7 +244,7 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
         zeros_rows   = schur_rows;
     }
 
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_YES)
+    if (iparm[IPARM_VERBOSE] > PastixVerboseYes)
         pastix_print(procnum, 0, "%s", OUT_ORDER_INIT);
 
     clockStart(timer);
@@ -261,8 +261,8 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
         /*
          * Scotch Ordering
          */
-    case API_ORDER_SCOTCH:
-        if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+    case PastixOrderScotch:
+        if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "Scotch" );
 #if defined(HAVE_SCOTCH)
         retval = orderComputeScotch( pastix_data, &subgraph );
@@ -275,8 +275,8 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
         /*
          * PT-Scotch Ordering
          */
-    case API_ORDER_PTSCOTCH:
-        if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+    case PastixOrderPtscotch:
+        if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "PT-Scotch" );
 #if defined(HAVE_PTSCOTCH)
         retval = orderComputePTScotch( pastix_data, &subgraph );
@@ -289,8 +289,8 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
         /*
          *  METIS ordering
          */
-    case API_ORDER_METIS:
-        if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+    case PastixOrderMetis:
+        if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "Metis" );
 #if defined(HAVE_METIS)
         retval = orderComputeMetis( pastix_data, &subgraph );
@@ -304,14 +304,14 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
         /*
          * Personal Ordering
          */
-    case API_ORDER_PERSONAL:
+    case PastixOrderPersonal:
         {
             pastix_int_t i, n;
             n = spm->gN;
             orderAlloc(ordemesh, n, 0);
             if (perm == NULL) {
                 if (invp == NULL) {
-                    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+                    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
                         pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (identity)" );
                     for(i=0; i<n; i++) {
                         ordemesh->permtab[i] = i;
@@ -319,7 +319,7 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
                     }
                 }
                 else {
-                    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+                    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
                         pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (from invp)" );
                     // TODO: generate perm from invp
                     assert(0);
@@ -328,14 +328,14 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
             }
             else {
                 if (invp == NULL) {
-                    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+                    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
                         pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (from perm)" );
                     // TODO: generate invp from perm
                     assert(0);
                     memcpy(ordemesh->permtab, perm, n*sizeof(pastix_int_t));
                 }
                 else {
-                    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+                    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
                         pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (perm/invp)" );
                     memcpy(ordemesh->permtab, perm, n*sizeof(pastix_int_t));
                     memcpy(ordemesh->peritab, invp, n*sizeof(pastix_int_t));
@@ -350,8 +350,8 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
         /*
          * Load ordering
          */
-    case API_ORDER_LOAD:
-        if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+    case PastixOrderLoad:
+        if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "Load" );
         retval = orderLoad( ordemesh, NULL );
         break;
@@ -412,11 +412,11 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
         return retval_rcv;
 
     clockStop(timer);
-    if (iparm[IPARM_VERBOSE] > API_VERBOSE_NOT)
+    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
         pastix_print(procnum, 0, OUT_ORDER_TIME, clockVal(timer));
 
     /* Save i/o strategy */
-    if ( iparm[IPARM_IO_STRATEGY] & API_IO_SAVE ) {
+    if ( iparm[IPARM_IO_STRATEGY] & PastixIOSave ) {
         if (procnum == 0) {
             retval = orderSave( ordemesh, NULL );
         }
@@ -429,7 +429,7 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
      * Return the ordering to user if perm/invp are not NULL
      * Remark: No need to copy back for personal
      */
-    if (iparm[IPARM_ORDERING] != API_ORDER_PERSONAL) {
+    if (iparm[IPARM_ORDERING] != PastixOrderPersonal) {
         if (spm->loc2glob == NULL) {
             if (perm != NULL) memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
             if (invp != NULL) memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));

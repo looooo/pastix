@@ -36,11 +36,11 @@
  *          Adjust the level of verbosity of the function
  *
  * @param[in] ilu
- *          - API_YES: incomplete factorization will be performed.
- *          - API_NO : direct factorization will be performed.
+ *          - 1: incomplete factorization will be performed.
+ *          - 0 : direct factorization will be performed.
  *
  * @param[in] levelk
- *          Unused if ilu == API_NO.
+ *          Unused if ilu == 0.
  *          - k >= 0: symbol matrix for ILU(k) factorization will be generated.
  *          - < 0: symbol matrix for direct factorization will be generated.
  *
@@ -107,7 +107,7 @@ symbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
     MPI_Comm_rank(pastix_comm, &procnum);
 
     /* Check parameters correctness */
-    if ( (ilu == API_NO) || (levelk < 0) ) {
+    if ( (ilu == 0) || (levelk < 0) ) {
         /* Forces levelk to -1 */
         levelk = -1;
     }
@@ -140,7 +140,7 @@ symbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
     kass_csrInit( n, &graphPA );
     kass_csrGenPA( csc, perm, &graphPA );
 
-    if (verbose > API_VERBOSE_YES)
+    if (verbose > PastixVerboseYes)
         pastix_print(procnum, 0,
                      "Level of fill = %ld\n"
                      "Amalgamation ratio: cblk = %d, blas = %d\n",
@@ -150,7 +150,7 @@ symbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
      * Compute the graph of the factorized matrix L
      */
     /* Direct Factorization */
-    if((ilu == API_NO) || (levelk == -1))
+    if((ilu == 0) || (levelk == -1))
     {
         /*
          * (Re)compute the streetab
@@ -160,7 +160,7 @@ symbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
         clockStart(timer);
         nnzL = kassFactDirect( &graphPA, snodenbr, snodetab, streetab, &graphL );
         clockStop(timer);
-        if (verbose > API_VERBOSE_YES)
+        if (verbose > PastixVerboseYes)
             pastix_print(procnum, 0,
                          "Time to compute scalar symbolic direct factorization  %.3g s\n",
                          clockVal(timer));
@@ -171,7 +171,7 @@ symbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
         clockStart(timer);
         nnzL = kassFactLevel( &graphPA, levelk, &graphL );
         clockStop(timer);
-        if (verbose > API_VERBOSE_YES)
+        if (verbose > PastixVerboseYes)
             pastix_print(procnum, 0,
                          "Time to compute scalar symbolic factorization of ILU(%ld) %.3g s\n",
                          (long)levelk, clockVal(timer));
@@ -211,7 +211,7 @@ symbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
     nnzA = ( kass_csrGetNNZ( &graphPA ) + n ) / 2;
     kass_csrClean( &graphPA );
 
-    if (verbose > API_VERBOSE_YES)
+    if (verbose > PastixVerboseYes)
         pastix_print( procnum, 0,
                       "Scalar nnza = %ld nnzlk = %ld, fillrate0 = %.3g \n",
                       (long)nnzA, (long)nnzL, (double)nnzL / (double)nnzA );
@@ -260,7 +260,7 @@ symbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
     if (levelk != -1) {
         nnzS = symbolGetNNZ( symbmtx );
 
-        if (verbose > API_VERBOSE_YES) {
+        if (verbose > PastixVerboseYes) {
             pastix_print(procnum, 0, "Number of blocks in the non patched symbol matrix = %ld \n",
                          (long)symbmtx->bloknbr);
             pastix_print(procnum, 0, "Number of non zeroes in the non patched symbol matrix = %g, fillrate1 %.3g \n",
@@ -278,7 +278,7 @@ symbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
     nnzS = symbolGetNNZ( symbmtx );
 
     clockStop(timer);
-    if (verbose > API_VERBOSE_YES) {
+    if (verbose > PastixVerboseYes) {
         pastix_print(procnum, 0, "Time to compute the amalgamation of supernodes %.3g s\n", clockVal(timer));
         pastix_print(procnum, 0, "Number of cblk in the amalgamated symbol matrix = %ld \n", (long)newcblknbr);
         pastix_print(procnum, 0, "Number of block in final symbol matrix = %ld \n",

@@ -131,10 +131,10 @@ pastixInitParam( pastix_int_t *iparm,
 
     /* Scotch */
     {
-        iparm[IPARM_ORDERING_SWITCH_LEVEL] = 120;
-        iparm[IPARM_ORDERING_CMIN]         = 0;
-        iparm[IPARM_ORDERING_CMAX]         = 100000;
-        iparm[IPARM_ORDERING_FRAT]         = 8;
+        iparm[IPARM_SCOTCH_SWITCH_LEVEL] = 120;
+        iparm[IPARM_SCOTCH_CMIN]         = 0;
+        iparm[IPARM_SCOTCH_CMAX]         = 100000;
+        iparm[IPARM_SCOTCH_FRAT]         = 8;
     }
 
     /* Metis */

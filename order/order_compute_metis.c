@@ -73,7 +73,7 @@ orderComputeMetis( pastix_data_t  *pastix_data,
 
     /* Set of valid options for METIS_NodeND */
     METIS_SetDefaultOptions(opt);
-    if (iparm[IPARM_DEFAULT_ORDERING] != API_YES) {
+    if (iparm[IPARM_ORDERING_DEFAULT] != 1) {
         opt[METIS_OPTION_CTYPE   ] = iparm[IPARM_METIS_CTYPE   ];
         opt[METIS_OPTION_RTYPE   ] = iparm[IPARM_METIS_RTYPE   ];
         opt[METIS_OPTION_NO2HOP  ] = iparm[IPARM_METIS_NO2HOP  ];

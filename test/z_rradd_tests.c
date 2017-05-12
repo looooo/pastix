@@ -218,7 +218,7 @@ int main (int argc, char **argv)
 
     for (m=200; m<=400; m+=100){
         for (r=10; r<=100; r+=10){
-            printf("   -- Test RRADD MA=NA=LDA=%ld MB=NB=LDB=%ld RA=%ld RB=%ld\n", m, m, r, r/2);
+            printf("   -- Test RRADD MA=NA=LDA=%ld MB=NB=LDB=%ld RA=%ld RB=%ld\n", (long)m, (long)m, (long)r, (long)(r/2));
 
             ret = z_rradd_test(tolerance, r, r/2,
                                m, m,

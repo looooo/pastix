@@ -177,7 +177,7 @@ solverExit(SolverMatrix *solvmtx)
     memFree_null(solvmtx->hcblktab);
     memFree_null(solvmtx->hbloktab);
     memFree_null(solvmtx->gcblk2halo);
-    if (pastix_starpu_with_fanin() == API_YES) {
+    if (pastix_starpu_with_fanin() == 1) {
         pastix_int_t clustnum;
         for (clustnum = 0; clustnum < solvmtx->clustnbr; clustnum++) {
             if (solvmtx->fcblknbr[clustnum] > 0) {

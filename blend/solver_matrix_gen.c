@@ -712,7 +712,7 @@ solverMatrixGen( pastix_int_t        clustnum,
 
         solvmtx->diagmax = diagmax;
         solvmtx->gemmmax = gemmmax;
-        if (ctrl->iparm[IPARM_VERBOSE]>API_VERBOSE_NO && 0) {
+        if (ctrl->iparm[IPARM_VERBOSE]>PastixVerboseNo && 0) {
             pastix_print(clustnum, 0,
                          "Coefmax: diagonal %ld ((%ld+1) x %ld)\n"
                          "         update   %ld (%ld x %ld)\n",

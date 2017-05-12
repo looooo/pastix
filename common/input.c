@@ -64,10 +64,6 @@ int iparm_to_int( char * string)
     {
         return IPARM_MC64;
     }
-    if(0 == strcmp("iparm_only_refine", string))
-    {
-        return IPARM_ONLY_REFINE;
-    }
     if(0 == strcmp("iparm_ordering", string))
     {
         return IPARM_ORDERING;
