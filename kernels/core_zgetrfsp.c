@@ -124,7 +124,7 @@ core_zgetf2sp( pastix_int_t        m,
  *
  * @param[in] criteria
  *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          threshold, its value is replaced by the threshold and the number of
  *          pivots is incremented.
  *
  *******************************************************************************/
