@@ -84,30 +84,25 @@ core_zgeadd( pastix_trans_t            trans,
 {
     int i, j;
 
-#if defined(PASTIX_DEBUG)
+#if !defined(NDEBUG)
     if ((trans < PastixNoTrans)   ||
         (trans > PastixConjTrans))
     {
-        //coreblas_error(1, "illegal value of trans");
         return -1;
     }
 
     if (M < 0) {
-        //coreblas_error(2, "Illegal value of M");
         return -2;
     }
     if (N < 0) {
-        coreblas_error(3, "Illegal value of N");
         return -3;
     }
-    if ( ((trans == PastixNoTrans) && (LDA < max(1,M)) && (M > 0)) ||
-         ((trans != PastixNoTrans) && (LDA < max(1,N)) && (N > 0)) )
+    if ( ((trans == PastixNoTrans) && (LDA < pastix_imax(1,M)) && (M > 0)) ||
+         ((trans != PastixNoTrans) && (LDA < pastix_imax(1,N)) && (N > 0)) )
     {
-        //coreblas_error(6, "Illegal value of LDA");
         return -6;
     }
-    if ( (LDB < max(1,M)) && (M > 0) ) {
-        //coreblas_error(8, "Illegal value of LDB");
+    if ( (LDB < pastix_imax(1,M)) && (M > 0) ) {
         return -8;
     }
 #endif

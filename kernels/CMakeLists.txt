@@ -48,6 +48,7 @@ set(SOURCES
   core_zgetro.c
   core_zgeadd.c
   core_zplrnt.c
+  core_ztradd.c
   core_zgemmsp.c
   core_ztrsmsp.c
   # Kernels

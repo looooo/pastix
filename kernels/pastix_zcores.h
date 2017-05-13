@@ -49,6 +49,9 @@ int  core_zrrqr ( pastix_int_t m, pastix_int_t n,
                   pastix_int_t *jpvt, pastix_complex64_t *tau,
                   pastix_complex64_t *work, pastix_int_t ldwork, double *rwork,
                   double tol, pastix_int_t nb, pastix_int_t maxrank);
+int  core_ztradd( pastix_uplo_t uplo, pastix_trans_t trans, pastix_int_t M, pastix_int_t N,
+                  pastix_complex64_t alpha, const pastix_complex64_t *A, pastix_int_t LDA,
+                  pastix_complex64_t beta,        pastix_complex64_t *B, pastix_int_t LDB);
 
 /**
  *    @}
