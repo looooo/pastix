@@ -219,10 +219,6 @@ cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
     ncols  = cblk->lcolnum - cblk->fcolnum + 1;
     stride = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
 
-    /* check if diagonal column block */
-    assert( cblk->fcolnum == cblk->fblokptr->frownum );
-    assert( cblk->lcolnum == cblk->fblokptr->lrownum );
-
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
         assert( cblk->fblokptr->LRblock[0].rk == -1 &&
                 cblk->fblokptr->LRblock[1].rk == -1 );
