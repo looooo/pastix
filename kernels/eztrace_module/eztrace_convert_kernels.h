@@ -54,11 +54,12 @@ static kernels_t kernels_properties[KERNELS_NB_EVENTS];
     }
 
 void define_kernels_properties();
-void handle_start(kernels_ev_code_t ev);
-void handle_stop();
+void handle_start(kernels_ev_code_t ev, int stats);
+void handle_stop(int stats);
 
 int eztrace_convert_kernels_init();
 int handle_kernels_events(eztrace_event_t *ev);
+int handle_kernels_stats(eztrace_event_t *ev);
 void print_kernels_stats();
 
 #endif /* __EZTRACE_CONVERT_KERNELS_H__ */

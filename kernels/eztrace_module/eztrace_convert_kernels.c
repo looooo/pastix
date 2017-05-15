@@ -67,7 +67,7 @@ void libinit(void)
     kernels_module.api_version   = EZTRACE_API_VERSION;
     kernels_module.init          = eztrace_convert_kernels_init;
     kernels_module.handle        = handle_kernels_events;
-    kernels_module.handle_stats  = handle_kernels_events;
+    kernels_module.handle_stats  = handle_kernels_stats;
     kernels_module.print_stats   = print_kernels_stats;
     kernels_module.module_prefix = KERNELS_EVENTS_ID;
 
@@ -142,8 +142,11 @@ int eztrace_convert_kernels_init()
  * @param[in] ev
  *          The reference of the kernel for which statistics will be updated
  *
+ * @param[in] stats
+ *          If stats == 1, it saves statistics associated with the event
+ *
  *******************************************************************************/
-void handle_start(kernels_ev_code_t ev)
+void handle_start(kernels_ev_code_t ev, int stats)
 {
     double size;
 
@@ -153,24 +156,34 @@ void handle_start(kernels_ev_code_t ev)
 
     GET_PARAM_PACKED_1(CUR_EV, size);
 
-    p_info->nb[ev]++;
-    p_info->flops[ev]+=size;
+    if (stats == 1){
+        p_info->nb[ev]++;
+        p_info->flops[ev]+=size;
 
-    p_info->current_ev = ev;
-    p_info->time_start = CURRENT;
-
+        p_info->current_ev = ev;
+        p_info->time_start = CURRENT;
+    }
     pushState(CURRENT, "ST_Thread", thread_id, kernels_properties[ev].name);
 }
 
 /**
+ *******************************************************************************
+ *
  * @brief Handle the end of an elemental event
- */
-void handle_stop()
+ *
+ *******************************************************************************
+ *
+ * @param[in] stats
+ *          If stats == 1, it saves statistics associated with the event
+ *
+ *******************************************************************************/
+void handle_stop(int stats)
 {
     DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
     DECLARE_CUR_THREAD(p_thread);
     INIT_KERNELS_THREAD_INFO(p_thread, p_info);
 
+    if (stats == 1);
     p_info->run_time[p_info->current_ev] += (CURRENT - p_info->time_start);
 
     popState(CURRENT, "ST_Thread", thread_id);
@@ -179,7 +192,7 @@ void handle_stop()
 /**
  *******************************************************************************
  *
- * @brief Fonction called by eztrace_stats to handle a single event
+ * @brief Fonction called by eztrace_convert to handle a single event
  *
  *******************************************************************************
  *
@@ -201,11 +214,46 @@ int handle_kernels_events(eztrace_event_t *ev)
     switch (LITL_READ_GET_CODE(ev)) {
 
     case KERNELS_CODE(STOP):
-        handle_stop();
+        handle_stop(0);
         break;
     default:
         if (LITL_READ_GET_CODE(ev) > KERNELS_PREFIX)
-            handle_start((kernels_ev_code_t) (LITL_READ_GET_CODE(ev) - KERNELS_PREFIX));
+            handle_start((kernels_ev_code_t) (LITL_READ_GET_CODE(ev) - KERNELS_PREFIX), 0);
+        break;
+    }
+    return 1;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Fonction called by eztrace_stats to handle a single event
+ *
+ *******************************************************************************
+ *
+ * @param[in] ev
+ *          The event to be handled
+ *
+ *******************************************************************************
+ *
+ * @retval 0 The event was not correclty handled
+ *
+ * @retval 1 The event was correclty handled
+ *
+ *******************************************************************************/
+int handle_kernels_stats(eztrace_event_t *ev)
+{
+    if(! CUR_TRACE->start)
+        return 0;
+
+    switch (LITL_READ_GET_CODE(ev)) {
+
+    case KERNELS_CODE(STOP):
+        handle_stop(1);
+        break;
+    default:
+        if (LITL_READ_GET_CODE(ev) > KERNELS_PREFIX)
+            handle_start((kernels_ev_code_t) (LITL_READ_GET_CODE(ev) - KERNELS_PREFIX), 1);
         break;
     }
     return 1;
