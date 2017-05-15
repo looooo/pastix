@@ -61,8 +61,8 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
         errorPrint("pastix_subtask_applyorder: wrong b parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
-    if ( !(pastix_data->steps & STEP_BCSC2CTAB) ) {
-        errorPrint("pastix_subtask_applyorder: All steps from pastix_task_init() to pastix_subtask_bcsc2ctab() have to be called before calling this function");
+    if ( !(pastix_data->steps & STEP_CSC2BCSC) ) {
+        errorPrint("pastix_subtask_applyorder: All steps from pastix_task_init() to pastix_subtask_csc2bcsc() have to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -112,8 +112,8 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
         errorPrint("pastix_subtask_trsm: wrong b parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
-    if ( !(pastix_data->steps & STEP_BCSC2CTAB) ) {
-        errorPrint("pastix_subtask_trsm: All steps from pastix_task_init() to pastix_subtask_bcsc2ctab() have to be called before calling this function");
+    if ( !(pastix_data->steps & STEP_NUMFACT) ) {
+        errorPrint("pastix_subtask_trsm: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -161,8 +161,8 @@ pastix_subtask_diag( pastix_data_t *pastix_data, pastix_coeftype_t flttype,
         errorPrint("pastix_subtask_diag: wrong b parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
-    if ( !(pastix_data->steps & STEP_BCSC2CTAB) ) {
-        errorPrint("pastix_subtask_diag: All steps from pastix_task_init() to pastix_subtask_bcsc2ctab() have to be called before calling this function");
+    if ( !(pastix_data->steps & STEP_NUMFACT) ) {
+        errorPrint("pastix_subtask_trsm: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
 

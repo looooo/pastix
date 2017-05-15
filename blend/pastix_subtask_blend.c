@@ -460,7 +460,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         iparm[IPARM_NNZEROS_BLOCK_LOCAL] = solvmtx->coefnbr;
 
         /* Affichage */
-        dparm[DPARM_FILL_IN] = 0.; /* TODO (double)(iparm[IPARM_NNZEROS]) / (double)(pastix_data->csc->gnnz); */
+        dparm[DPARM_FILL_IN] = (double)(iparm[IPARM_NNZEROS]) / (double)(pastix_data->csc->gnnzexp);
 
         if (verbose > PastixVerboseNot) {
             pastix_print( 0, 0, OUT_BLEND_SUMMARY,
