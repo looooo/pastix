@@ -126,7 +126,7 @@ int main (int argc, char **argv)
         }
     }
 
-    pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+    pastixFinalize( &pastix_data );
 
     spmExit( spm );
     free(spm);
@@ -134,5 +134,6 @@ int main (int argc, char **argv)
     free(x);
     if (x0)
         free(x0);
+
     return EXIT_SUCCESS;
 }

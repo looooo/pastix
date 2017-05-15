@@ -379,7 +379,7 @@ int main (int argc, char **argv)
     free(S);
     free(x);
     free(b);
-    pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+    pastixFinalize( &pastix_data );
 
     return EXIT_SUCCESS;
 }

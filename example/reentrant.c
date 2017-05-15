@@ -111,8 +111,9 @@ static void *solve_smp(void *arg)
     free(x);
     free(b);
     free( spm );
-    pastixFinalize( &pastix_data, MPI_COMM_WORLD, param.iparm, param.dparm );
-    return NULL;
+    pastixFinalize( &pastix_data );
+
+    return EXIT_SUCCESS;
 }
 
 int main (int argc, char **argv)

@@ -13,6 +13,9 @@
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
+ * @addtogroup pastix_api
+ * @{
+ *
  **/
 #ifndef _PASTIX_API_H_
 #define _PASTIX_API_H_
@@ -116,8 +119,7 @@ typedef enum pastix_iparm_e {
     IPARM_FLOAT,                 /**< Indicate the arithmetics                                       Default: PastixDouble             IN    */
     IPARM_MTX_TYPE,              /**< Indicate matrix format                                         Default: -1                       IN    */
     IPARM_DOF_NBR,               /**< Degree of freedom per node                                     Default: 1                        IN    */
-
-    IPARM_SIZE                   /**< iparm tabular size                                                                                     */
+    IPARM_SIZE
 } pastix_iparm_t;
 
 
@@ -142,7 +144,7 @@ typedef enum pastix_dparm_e {
     DPARM_REFINE_TIME,           /**< Time for Refinement step (wallclock)              Default: -                OUT */
     DPARM_A_NORM,                /**< ||A||_f norm                                      Default: -                OUT */
     DPARM_COMPRESS_TOLERANCE,    /**< Tolerance for low-rank kernels                    Default: 0.01             IN  */
-    DPARM_SIZE                   /**< dparm tabular size                                                              */
+    DPARM_SIZE
 } pastix_dparm_t;
 
 /**
@@ -299,13 +301,13 @@ typedef enum pastix_compress_method_e {
 
 /**
  *
- * @name Constant compatible with CBLAS & LAPACK
+ * @name Constants compatible with CBLAS & LAPACK & PLASMA
  * @{
  *    The naming and numbering of the following constants is consistent with:
  *
- *       1) CBLAS from Netlib (http://www.netlib.org/blas/blast-forum/cblas.tgz)
- *       2) C Interface to LAPACK from Netlib (http://www.netlib.org/lapack/lapwrapc/)
- *       3) Plasma (http://icl.cs.utk.edu/plasma/index.html)
+ *       - CBLAS from Netlib (http://www.netlib.org/blas/blast-forum/cblas.tgz)
+ *       - C Interface to LAPACK from Netlib (http://www.netlib.org/lapack/lapwrapc/)
+ *       - Plasma (http://icl.cs.utk.edu/plasma/index.html)
  *
  */
 
@@ -393,3 +395,8 @@ typedef enum pastix_dir_e {
  */
 
 #endif /* _PASTIX_API_H_ */
+
+/**
+ * @}
+ */
+

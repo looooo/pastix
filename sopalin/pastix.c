@@ -211,7 +211,7 @@ pastix( pastix_data_t **pastix_data_ptr,
             if (iparm[IPARM_VERBOSE] > PastixVerboseNo) {
                 pastix_print( 0, 0, "WARNING: PaStiX schedulers restarted\n" );
             }
-            pastixFinalize( pastix_data_ptr, pastix_comm, iparm, dparm );
+            pastixFinalize( pastix_data_ptr );
         }
 
         /*
@@ -488,7 +488,7 @@ pastix( pastix_data_t **pastix_data_ptr,
     }
 
     if (iparm[IPARM_START_TASK] == PastixTaskClean) {
-        pastixFinalize( pastix_data_ptr, pastix_comm, iparm, dparm );
+        pastixFinalize( pastix_data_ptr );
         iparm[IPARM_START_TASK]++;
     }
 

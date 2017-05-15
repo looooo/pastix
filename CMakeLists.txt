@@ -697,6 +697,8 @@ add_subdirectory(test)
 add_documented_files(
   #
   include/pastix.h
+  include/pastix/api.h
+  common/api.c
   #
   graph/graph.h
   graph/graph.c
