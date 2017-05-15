@@ -344,7 +344,7 @@ apiInitMPI( pastix_data_t *pastix,
  *
  *******************************************************************************
  *
- * @param[inout] pastix
+ * @param[inout] pastix_data
  *          The main data structure.
  *
  * @param[in] pastix_comm
@@ -474,7 +474,7 @@ pastixInit( pastix_data_t **pastix_data,
  *
  *******************************************************************************
  *
- * @param[inout] pastix
+ * @param[inout] pastix_data
  *          The main data structure.
  *
  *******************************************************************************/
@@ -482,7 +482,7 @@ void
 pastixFinalize( pastix_data_t **pastix_data)
 {
     pastix_data_t *pastix = *pastix_data;
-    
+
     ischedFinalize( pastix->isched );
 
     if ( pastix->graph != NULL )

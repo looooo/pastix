@@ -50,7 +50,7 @@
  *
  ****
  *
- * @defgroup pastix_api Interface
+ * @defgroup pastix_api Parameters
  * @ingroup  pastix_users
  * @brief    This group describes parameters and constants to control the solver
  *
@@ -160,7 +160,7 @@
  *
  ****
  *
- * @defgroup pastix_numfact Numerical Factorization step
+ * @defgroup pastix_numfact Factorization step
  * @ingroup  pastix_users
  * @brief    This group describes all the routines of the internal
  *           block CSC and the solver matrix structure before applying
@@ -168,7 +168,7 @@
  *
  ******
  *
- * @defgroup pastix_kernel Numerical kernels
+ * @defgroup pastix_kernel Factorization kernels
  * @ingroup  pastix_numfact
  *
  ********
@@ -198,7 +198,7 @@
  *
  ********
  *
- * @defgroup kernel_fact Numerical factorization kernels
+ * @defgroup kernel_fact Numerical kernels
  * @ingroup  pastix_kernel
  *
  **********
@@ -229,7 +229,7 @@
  *
  ********
  *
- * @defgroup kernel_solve Numerical solve kernels
+ * @defgroup kernel_solve Solve kernels
  * @ingroup  pastix_solve
  *
  ****

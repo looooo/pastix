@@ -351,9 +351,9 @@ parsec_zpotrf_sp2d( parsec_context_t *parsec,
  *
  *******************************************************************************
  *
- * @param[inout] parsec
- *          The parsec context of the application that will run the operation.
- *
+ * @param[inout] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+  *
  * @param[inout] sopalin_data
  *          Solver matrix information structure that will guide the algorithm.
  *

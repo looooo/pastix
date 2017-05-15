@@ -43,6 +43,45 @@ static inline void dump_rhs( char *name, int n, double *b )
 #define dump_rhs(...) do {} while(0)
 #endif
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_solve
+ *
+ * @brief Apply a permutation on the right-and-side vector before the solve step.
+ *
+ * This routine is affected by the following parameters:
+ *   IPARM_VERBOSE, IPARM_FACTORIZATION.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+ *
+ * @param[in] flttype
+ *          This arithmetic of the sparse matrix.
+ *
+ * @param[in] dir
+ *          Forward or backword application of the permutation.
+ *
+ * @param[in] m
+ *          Size of the right-and-side vectors.
+ *
+ * @param[in] n
+ *          Number of right-and-side vectors.
+ *
+ * @param[inout] b
+ *          The right-and-side vectors (can be multiple RHS).
+ *
+ * @param[in] ldb
+ *          The leading dimension of the right-and-side vectors.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *
+ *******************************************************************************/
 int
 pastix_subtask_applyorder( pastix_data_t *pastix_data,
                            pastix_coeftype_t flttype, pastix_dir_t dir,
@@ -94,9 +133,56 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_solve
+ *
+ * @brief Apply a triangular solve on the right-and-side vectors.
+ *
+ * This routine is affected by the following parameters:
+ *   IPARM_VERBOSE, IPARM_FACTORIZATION.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+ *
+ * @param[in] flttype
+ *          This arithmetic of the sparse matrix.
+ *
+ * @param[in] side
+ *          Left or right application.
+ *
+ * @param[in] uplo
+ *          Upper or Lower part.
+ *
+ * @param[in] trans
+ *          With or without transposition (or conjugate transposition).
+ *
+ * @param[in] diag
+ *          Diagonal terms are unit or not.
+ *
+ * @param[in] nrhs
+ *          The number of right-and-side vectors.
+ *
+ * @param[inout] b
+ *          The right-and-side vector (can be multiple RHS).
+ *          On exit, the solution is stored in place of the right-hand-side vector.
+ *
+ * @param[in] ldb
+ *          The leading dimension of the right-and-side vectors.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *
+ *******************************************************************************/
 int
 pastix_subtask_trsm( pastix_data_t *pastix_data,
-                     pastix_coeftype_t flttype, pastix_side_t side, pastix_uplo_t uplo, pastix_trans_t trans, pastix_diag_t diag,
+                     pastix_coeftype_t flttype, pastix_side_t side,
+                     pastix_uplo_t uplo, pastix_trans_t trans, pastix_diag_t diag,
                      pastix_int_t nrhs, void *b, pastix_int_t ldb )
 {
     sopalin_data_t sopalin_data;
@@ -145,6 +231,40 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_solve
+ *
+ * @brief Apply a diagonal operation on the right-and-side vectors. 
+ *
+ * This routine is affected by the following parameters:
+ *   IPARM_VERBOSE, IPARM_FACTORIZATION.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+ *
+ * @param[in] flttype
+ *          This arithmetic of the sparse matrix.
+ *
+ * @param[in] nrhs
+ *          The number of right-and-side vectors.
+ *
+ * @param[inout] b
+ *          The right-and-side vector (can be multiple RHS).
+ *          On exit, the solution is stored in place of the right-hand-side vector.
+ *
+ * @param[in] ldb
+ *          The leading dimension of the right-and-side vectors.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *
+ *******************************************************************************/
 int
 pastix_subtask_diag( pastix_data_t *pastix_data, pastix_coeftype_t flttype,
                      pastix_int_t nrhs, void *b, pastix_int_t ldb )
@@ -193,7 +313,7 @@ pastix_subtask_diag( pastix_data_t *pastix_data, pastix_coeftype_t flttype,
  *
  * @ingroup pastix_users
  *
- * pastix_task_solve - Solve the given problem.
+ * @brief Solve the given problem.
  *
  * This routine is affected by the following parameters:
  *   IPARM_VERBOSE, IPARM_FACTORIZATION.
@@ -202,16 +322,24 @@ pastix_subtask_diag( pastix_data_t *pastix_data, pastix_coeftype_t flttype,
  *
  * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.
- *          On exit, the solution is stored in place of the right-hand-side vector.
  *
  * @param[in] spm
  *          The sparse matrix descriptor that describes problem instance.
  *
+ * @param[in] nrhs
+ *          The number of right-and-side vectors.
+ *
+ * @param[inout] b
+ *          The right-and-side vectors (can be multiple RHS).
+ *          On exit, the solution is stored in place of the right-hand-side vector.
+ *
+ * @param[in] ldb
+ *          The leading dimension of the right-and-side vectors.
+ *
  *******************************************************************************
  *
  * @retval PASTIX_SUCCESS on successful exit,
- * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect,
- * @retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
  *
  *******************************************************************************/
 int

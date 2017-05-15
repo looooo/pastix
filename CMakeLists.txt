@@ -784,6 +784,7 @@ add_documented_files(
   blend/pastix_task_analyze.c
   #
   sopalin/schur.c
+  sopalin/pastix.c
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
   #
