@@ -46,11 +46,11 @@ typedef struct kernels_thread_info_e {
 /* Properties (name/color) of each event */
 static kernels_t kernels_properties[KERNELS_NB_EVENTS];
 
-#define INIT_KERNELS_THREAD_INFO(p_thread, var)                         \
+#define INIT_KERNELS_THREAD_INFO(p_thread, var, stats)           \
     kernels_thread_info_t *var = (kernels_thread_info_t *) \
         ezt_hook_list_retrieve_data(&p_thread->hooks, (uint8_t)KERNELS_EVENTS_ID); \
     if(!(var)) {                                                        \
-        var = kernels_register_thread_hook(p_thread);                  \
+        var = kernels_register_thread_hook(p_thread, stats);                  \
     }
 
 void define_kernels_properties();

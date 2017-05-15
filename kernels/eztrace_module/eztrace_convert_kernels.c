@@ -25,32 +25,38 @@
  * @param[in] p_thread
  *          The reference to the thread managed by eztrace
  *
+ * @param[in] stats
+ *          - stats == 0, save event
+ *          - stats == 1, save statistics
+ *
  *******************************************************************************
  *
  * @return  The structure containing the thread and statistics for each kernel
  *
  *******************************************************************************/
-static kernels_thread_info_t *kernels_register_thread_hook(
-    struct thread_info_t *p_thread) {
-    kernels_thread_info_t *p_info = (kernels_thread_info_t*) malloc(
-        sizeof(kernels_thread_info_t));
+static kernels_thread_info_t *kernels_register_thread_hook(struct thread_info_t *p_thread,
+                                                           int stats) {
+
+    kernels_thread_info_t *p_info = (kernels_thread_info_t*) malloc(sizeof(kernels_thread_info_t));
 
     p_info->p_thread = p_thread;
 
-    int    *nb       = malloc(KERNELS_NB_EVENTS * sizeof(int));
-    double *flops    = malloc(KERNELS_NB_EVENTS * sizeof(double));
-    double *run_time = malloc(KERNELS_NB_EVENTS * sizeof(double));
+    if (stats == 1){
+        int    *nb       = malloc(KERNELS_NB_EVENTS * sizeof(int));
+        double *flops    = malloc(KERNELS_NB_EVENTS * sizeof(double));
+        double *run_time = malloc(KERNELS_NB_EVENTS * sizeof(double));
 
-    int i;
-    for (i=0; i<KERNELS_NB_EVENTS; i++){
-        nb[i]        = 0;
-        flops[i]     = 0;
-        run_time[i]  = 0;
+        int i;
+        for (i=0; i<KERNELS_NB_EVENTS; i++){
+            nb[i]        = 0;
+            flops[i]     = 0;
+            run_time[i]  = 0;
+        }
+
+        p_info->nb       = nb;
+        p_info->flops    = flops;
+        p_info->run_time = run_time;
     }
-
-    p_info->nb       = nb;
-    p_info->flops    = flops;
-    p_info->run_time = run_time;
 
     ezt_hook_list_add(&p_info->p_thread->hooks, p_info,
                       (uint8_t) KERNELS_EVENTS_ID);
@@ -143,7 +149,8 @@ int eztrace_convert_kernels_init()
  *          The reference of the kernel for which statistics will be updated
  *
  * @param[in] stats
- *          If stats == 1, it saves statistics associated with the event
+ *          - stats == 0, save event
+ *          - stats == 1, save statistics
  *
  *******************************************************************************/
 void handle_start(kernels_ev_code_t ev, int stats)
@@ -152,7 +159,7 @@ void handle_start(kernels_ev_code_t ev, int stats)
 
     DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
     DECLARE_CUR_THREAD(p_thread);
-    INIT_KERNELS_THREAD_INFO(p_thread, p_info);
+    INIT_KERNELS_THREAD_INFO(p_thread, p_info, stats);
 
     GET_PARAM_PACKED_1(CUR_EV, size);
 
@@ -163,7 +170,9 @@ void handle_start(kernels_ev_code_t ev, int stats)
         p_info->current_ev = ev;
         p_info->time_start = CURRENT;
     }
-    pushState(CURRENT, "ST_Thread", thread_id, kernels_properties[ev].name);
+    else{
+        pushState(CURRENT, "ST_Thread", thread_id, kernels_properties[ev].name);
+    }
 }
 
 /**
@@ -174,19 +183,20 @@ void handle_start(kernels_ev_code_t ev, int stats)
  *******************************************************************************
  *
  * @param[in] stats
- *          If stats == 1, it saves statistics associated with the event
+ *          - stats == 0, save event
+ *          - stats == 1, save statistics
  *
  *******************************************************************************/
 void handle_stop(int stats)
 {
     DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
     DECLARE_CUR_THREAD(p_thread);
-    INIT_KERNELS_THREAD_INFO(p_thread, p_info);
+    INIT_KERNELS_THREAD_INFO(p_thread, p_info, stats);
 
-    if (stats == 1);
-    p_info->run_time[p_info->current_ev] += (CURRENT - p_info->time_start);
-
-    popState(CURRENT, "ST_Thread", thread_id);
+    if (stats == 1)
+        p_info->run_time[p_info->current_ev] += (CURRENT - p_info->time_start);
+    else
+        popState(CURRENT, "ST_Thread", thread_id);
 }
 
 /**
@@ -284,7 +294,7 @@ void print_kernels_stats()
 
             if(!p_thread)
                 continue;
-            INIT_KERNELS_THREAD_INFO(p_thread, p_info);
+            INIT_KERNELS_THREAD_INFO(p_thread, p_info, 1);
             printf("\tThread %20s\n", thread_container->name);
 
             for (k=1; k<KERNELS_NB_EVENTS; k++){
