@@ -32,10 +32,8 @@ def init( iparm, dparm ):
     return pastix_data
 
 def finalize( pastix_data, iparm, dparm ):
-    libpastix.pastixFinalize.argtypes = [POINTER(c_void_p), c_int, POINTER(pastix_c_int), POINTER(c_double)]
-    libpastix.pastixFinalize( pointer( pastix_data ), c_int(0),
-                                     iparm.ctypes.data_as(POINTER(pastix_c_int)),
-                                     dparm.ctypes.data_as(POINTER(c_double)) )
+    libpastix.pastixFinalize.argtypes = [POINTER(c_void_p)]
+    libpastix.pastixFinalize( pointer( pastix_data ) )
 
 #
 # Pastix Tasks
