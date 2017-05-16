@@ -1,6 +1,0 @@
-export PKG_CONFIG_PATH=/home/pichon/eztrace-1.1-5_install/lib/pkgconfig
-export EZTRACE_LIBRARY_PATH=/home/pichon/pastix_eztrace/build/kernels
-export EZTRACE_TRACE=kernels
-
-/home/pichon/eztrace-1.1-5_install/bin/eztrace_stats -o out /tmp/pichon_eztrace_log_rank_1
-/home/pichon/eztrace-1.1-5_install/bin/eztrace_convert -o out /tmp/pichon_eztrace_log_rank_1
