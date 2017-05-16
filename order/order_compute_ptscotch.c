@@ -201,7 +201,9 @@ orderComputePTScotch( pastix_data_t  *pastix_data,
     /*    EXIT(MOD_SOPALIN,INTERNAL_ERR); */
     /*  } */
 
-    orderInit(ordemesh, gN, gN);
+    /* TODO: orderInit prototype has changed !!! */
+    assert(0);
+    orderInit(ordemesh, gN, gN); 
     memset( ordemesh->rangtab, 0, (gN+1)*sizeof(pastix_int_t));
 
     SCOTCH_dgraphCorderInit (&dgraph,

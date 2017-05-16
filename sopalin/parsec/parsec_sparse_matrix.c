@@ -536,7 +536,7 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
     parsec_data_key_t key1, key2;
     SolverCblk *cblk;
     SolverBlok *blok, *fblok, *lblok;
-    pastix_int_t m, n, cblknum, nbelt;
+    pastix_int_t m=0, n=0, cblknum, nbelt;
     size_t size, offset;
     char *ptrL, *ptrU;
 

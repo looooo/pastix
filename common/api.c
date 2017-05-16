@@ -398,8 +398,8 @@ pastixInit( pastix_data_t **pastix_data,
         pastixInitParam( iparm, dparm );
     }
 
-    pastix->iparm = iparm; /* TODO: copy here ? */
-    pastix->dparm = dparm; /* TODO: copy here ? */
+    pastix->iparm = iparm;
+    pastix->dparm = dparm;
 
     pastix->steps = 0;
 

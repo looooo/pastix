@@ -113,8 +113,7 @@
  *******************************************************************************/
 int
 pastix_subtask_symbfact( pastix_data_t *pastix_data,
-                         pastix_int_t  *perm,
-                         pastix_int_t  *invp )
+                         Order  *myorder )
 {
     pastix_int_t   *iparm;
     double         *dparm;
@@ -329,8 +328,11 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
             /*
              * Return the new ordering to the user
              */
-            if (perm != NULL) memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
-            if (invp != NULL) memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
+            if (myorder != NULL)
+            {
+                memcpy(myorder->permtab, ordemesh->permtab, n*sizeof(pastix_int_t));
+                memcpy(myorder->peritab, ordemesh->peritab, n*sizeof(pastix_int_t));
+            }
         }
 
         /* Set the beginning of the Schur complement */

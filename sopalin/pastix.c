@@ -17,6 +17,7 @@
  **/
 #include "common.h"
 #include "spm.h"
+#include "order.h"
 
 /**
  *******************************************************************************
@@ -246,11 +247,22 @@ pastix( pastix_data_t **pastix_data_ptr,
      */
     if (iparm[IPARM_START_TASK] == PastixTaskOrdering)
     {
-        ret = pastix_subtask_order( pastix_data, spm, perm, invp );
+        Order o;
+        ret = orderAlloc(&o, n, 0);
+        memcpy( o.permtab, perm, o.vertnbr*sizeof(pastix_int_t));
+        memcpy( o.peritab, invp, o.vertnbr*sizeof(pastix_int_t));
         if (PASTIX_SUCCESS != ret)
         {
             return ret;
         }
+        ret = pastix_subtask_order( pastix_data, spm, &o );
+        if (PASTIX_SUCCESS != ret)
+        {
+            return ret;
+        }
+        memcpy( perm, o.permtab, o.vertnbr*sizeof(pastix_int_t));
+        memcpy( invp, o.peritab, o.vertnbr*sizeof(pastix_int_t));
+        orderExit(&o);
         iparm[IPARM_START_TASK]++;
     }
 
@@ -263,11 +275,22 @@ pastix( pastix_data_t **pastix_data_ptr,
 
     if (iparm[IPARM_START_TASK] == PastixTaskSymbfact)
     {
-        ret = pastix_subtask_symbfact( pastix_data, perm, invp );
+        Order o;
+        ret = orderAlloc(&o, n, 0);
+        memcpy( o.permtab, perm, o.vertnbr*sizeof(pastix_int_t));
+        memcpy( o.peritab, invp, o.vertnbr*sizeof(pastix_int_t));
         if (PASTIX_SUCCESS != ret)
         {
             return ret;
         }
+        ret = pastix_subtask_symbfact( pastix_data, &o );
+        if (PASTIX_SUCCESS != ret)
+        {
+            return ret;
+        }
+        memcpy( perm, o.permtab, o.vertnbr*sizeof(pastix_int_t));
+        memcpy( invp, o.peritab, o.vertnbr*sizeof(pastix_int_t));
+        orderExit(&o);
         iparm[IPARM_START_TASK]++;
     }
 

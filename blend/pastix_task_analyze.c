@@ -69,7 +69,8 @@ pastix_task_analyze( pastix_data_t *pastix_data,
     /*
      * Ordering step
      */
-    rc = pastix_subtask_order( pastix_data, spm, NULL, NULL );
+
+    rc = pastix_subtask_order( pastix_data, spm, NULL );
     if (rc != PASTIX_SUCCESS) {
         return rc;
     }
@@ -77,7 +78,7 @@ pastix_task_analyze( pastix_data_t *pastix_data,
     /*
      * Symbolic factorization step
      */
-    rc = pastix_subtask_symbfact( pastix_data, NULL, NULL );
+    rc = pastix_subtask_symbfact( pastix_data, NULL );
     if (rc != PASTIX_SUCCESS) {
         return rc;
     }

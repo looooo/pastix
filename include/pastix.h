@@ -89,11 +89,9 @@ int pastix_task_refine ( pastix_data_t      *pastix_data,
  */
 int pastix_subtask_order     ( pastix_data_t      *pastix_data,
                                const pastix_spm_t *spm,
-                               pastix_int_t       *perm,
-                               pastix_int_t       *invp );
+                               Order              *myorder );
 int pastix_subtask_symbfact  ( pastix_data_t      *pastix_data,
-                               pastix_int_t       *perm,
-                               pastix_int_t       *invp );
+                               Order              *myorder );
 int pastix_subtask_reordering( pastix_data_t      *pastix_data );
 int pastix_subtask_blend     ( pastix_data_t      *pastix_data );
 
