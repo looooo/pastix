@@ -1,15 +1,19 @@
 /**
  * @file personal.c
  *
- *  This an example calling PaStiX in step-by-step mode with a personal ordering (identity)
+ * @brief A step-by-step example with a personal ordering (identity).
  *
- * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
  * @author  Pierre Ramet
  * @date    2017-05-17
  *
- **/
+ * @ingroup pastix_examples
+ * @code
+ *
+ */
 #include <pastix.h>
 #include <spm.h>
 #include "order.h"
@@ -144,3 +148,7 @@ int main (int argc, char **argv)
 
     return EXIT_SUCCESS;
 }
+
+/**
+ * @endcode
+ */

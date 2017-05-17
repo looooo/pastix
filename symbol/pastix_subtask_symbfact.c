@@ -89,17 +89,7 @@
  *          dump to file.
  *          If set to APÏ_IO_LOAD, the symbmtx (only) is loaded from the files.
  *
- * @param[inout] perm
- *          Array of size n.
- *          On entry, unused.
- *          On exit, if perm != NULL, contains the permutation array generated.
- *
- * @param[inout] invp
- *          Array of size n.
- *          On entry, unused.
- *          On exit, if invp != NULL, contains the inverse permutation array generated.
- *
- *******************************************************************************
+  *******************************************************************************
  *
  * @retval PASTIX_SUCCESS on successful exit
  * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.

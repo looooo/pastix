@@ -1,17 +1,19 @@
 /**
  * @file simple.c
  *
- * This is a simple example that:
- * reads the matrix, checks if it is correct and corrects it if needed,
- * and then runs pastix in one call.
+ * @brief A simple example that reads the matrix and then runs pastix in one call.
  *
- * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
  * @author  Hastaran Matias
  * @date    2017-01-17
  *
- **/
+ * @ingroup pastix_examples
+ * @code
+ *
+ */
 #include <pastix.h>
 #include <spm.h>
 #include "drivers.h"
@@ -122,3 +124,7 @@ int main (int argc, char **argv)
 
     return EXIT_SUCCESS;
 }
+
+/**
+ * @endcode
+ */

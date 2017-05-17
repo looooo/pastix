@@ -1,8 +1,7 @@
 /**
- *
  * @file schur.c
  *
- * Schur usage example.
+ * @brief Schur usage example.
  *
  * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -13,7 +12,10 @@
  * @author Hastaran Matias
  * @date 2017-05-02
  *
- **/
+ * @ingroup pastix_examples
+ * @code
+ *
+ */
 #include <pastix.h>
 #include <spm.h>
 #include "drivers.h"
@@ -383,3 +385,7 @@ int main (int argc, char **argv)
 
     return EXIT_SUCCESS;
 }
+
+/**
+ * @endcode
+ */

@@ -1,14 +1,17 @@
 /**
  * @file: bench_facto.c
  *
- * A bench example :
- * apply 3 successive numerical factorization.
+ * @brief A bench example that performs 3 successive numerical factorization.
  *
- * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
  * @author  Hastaran Matias
  * @date    2017-01-17
+ *
+ * @ingroup pastix_examples
+ * @code
  *
  */
 #include <pastix.h>
@@ -120,3 +123,7 @@ int main (int argc, char **argv)
 
     return EXIT_SUCCESS;
 }
+
+/**
+ * @endcode
+ */

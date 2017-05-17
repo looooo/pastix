@@ -1,17 +1,19 @@
 /**
  * @file step-by-step.c
  *
- * This an example calling PaStiX in step-by-step mode.
- * If runs one full analyze (ordering, symbolic factorization, analyze), then
- * it loops over 2 factorizations that are both used for 2 solves each.
+ * @brief A step-by-step example that runs one full analyze (ordering, symbolic factorization, analyze), then loops over 2 factorizations that are both used for 2 solves each.
  *
- * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
  * @author  Hastaran Matias
  * @date    2017-01-17
  *
- **/
+ * @ingroup pastix_examples
+ * @code
+ *
+ */
 #include <pastix.h>
 #include <spm.h>
 #include "drivers.h"
@@ -136,3 +138,7 @@ int main (int argc, char **argv)
 
     return EXIT_SUCCESS;
 }
+
+/**
+ * @endcode
+ */

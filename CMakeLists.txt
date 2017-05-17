@@ -794,7 +794,14 @@ add_documented_files(
   sopalin/pastix_task_solve.c
   #
   refinement/pastix_task_refine.c
-)
+  #
+  example/analyze.c
+  example/simple.c
+  example/step-by-step.c
+  example/reentrant.c
+  example/schur.c
+  example/personal.c
+  )
 
 #
 # Build documentation

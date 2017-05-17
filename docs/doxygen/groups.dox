@@ -54,6 +54,12 @@
  * @ingroup  pastix_users
  * @brief    This group describes parameters and constants to control the solver
  *
+ ****
+ *
+ * @defgroup pastix_examples Examples
+ * @ingroup  pastix_users
+ * @brief    This group describes how to use the solver with some examples
+ *
  ******
  *
  * @defgroup pastix_analyze Analyze step
