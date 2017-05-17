@@ -488,7 +488,7 @@ int api_to_int( char * string )
     {
         return PastixCompressMethodRRQR;
     }
-if(atoi(string) == 0)
+    if(atoi(string) == 0)
     {
         if(0 == strcmp("0", string))
         {

@@ -479,7 +479,7 @@ pastixInit( pastix_data_t **pastix_data,
  *
  *******************************************************************************/
 void
-pastixFinalize( pastix_data_t **pastix_data)
+pastixFinalize( pastix_data_t **pastix_data )
 {
     pastix_data_t *pastix = *pastix_data;
 

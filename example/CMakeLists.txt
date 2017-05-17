@@ -32,6 +32,13 @@ set( PASTIX_DRIVERS
   analyze simple step-by-step schur ) # reentrant fails with Scotch parser !
 set( PASTIX_TESTS
   simple )
+if (PASTIX_WITH_PARSEC)
+  set( PASTIX_SCHEDS
+    0 1 2) # sequential, static, parsec
+else()
+  set( PASTIX_SCHEDS
+    0 1)   # sequential, static
+endif (PASTIX_WITH_PARSEC)
 
 ### All drivers with Laplacian and default parameters
 foreach(example ${PASTIX_DRIVERS} )
@@ -47,19 +54,14 @@ foreach(example ${PASTIX_TESTS} )
   # Harwell Boeing
   add_test(hb_${example}  ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua   -f 2)
   # Matrix Market - Hermitian
-  add_test(mm2_${example} ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx -f 4)
+  add_test(mm2_${example} ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx -f 2)
 endforeach()
 
 ### Scheduling
 foreach(example ${PASTIX_TESTS} )
-  # Sequential
-  add_test(seq_${example}      ./${example} -lap 30:30:30 -s 0)
-  # Static
-  add_test(static_${example}   ./${example} -lap 30:30:30 -s 1)
-  # Parsec
-  if (PASTIX_WITH_PARSEC)
-    add_test(parsec_${example} ./${example} -lap 30:30:30 -s 2)
-  endif (PASTIX_WITH_PARSEC)
+  foreach(scheduler ${PASTIX_SCHEDS} )
+    add_test(sched${scheduler}_${example}   ./${example} -lap 30:30:30 -s ${scheduler})
+  endforeach()
 endforeach()
 
 ### Refinement
@@ -70,21 +72,25 @@ foreach(example ${PASTIX_TESTS} )
 endforeach()
 
 ### Distribution
-foreach(example ${PASTIX_TESTS} )
-  # 2D
-  add_test(2d_${example}   ./${example} -lap 30:30:30 -i iparm_distribution_level 0 )
-  # 1D/2D
-  add_test(1d2d_${example} ./${example} -lap 30:30:30 -i iparm_distribution_level 16)
-endforeach()
+if (PASTIX_WITH_PARSEC)
+  foreach(example ${PASTIX_TESTS} )
+    # 2D
+    add_test(2d_${example}   ./${example} -lap 30:30:30 -s 2 -i iparm_distribution_level 0 )
+    # 1D/2D
+    add_test(1d2d_${example} ./${example} -lap 30:30:30 -s 2 -i iparm_distribution_level 16)
+  endforeach()
+endif (PASTIX_WITH_PARSEC)
 
 # Low Rank
 foreach(example ${PASTIX_TESTS} )
-  # SVD Begin
-  add_test(svdbegin_${example}  ./${example} -lap 30:30:30 -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodsvd)
-  # SVD End
-  add_test(svdend_${example}    ./${example} -lap 30:30:30 -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodsvd)
-  # RRQR Begin
-  add_test(rrqrbegin_${example} ./${example} -lap 30:30:30 -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodrrqr)
-  # RRQR End
-  add_test(rrqrend_${example}   ./${example} -lap 30:30:30 -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodrrqr)
+  foreach(scheduler ${PASTIX_SCHEDS} )
+    # SVD Begin
+    add_test(svdbegin_sched${scheduler}_${example}  ./${example} -lap 30:30:30 -s ${scheduler} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodsvd)
+    # SVD End
+    add_test(svdend_sched${scheduler}_${example}    ./${example} -lap 30:30:30 -s ${scheduler} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodsvd)
+    # RRQR Begin
+    add_test(rrqrbegin_sched${scheduler}_${example} ./${example} -lap 30:30:30 -s ${scheduler} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodrrqr)
+    # RRQR End
+    add_test(rrqrend_sched${scheduler}_${example}   ./${example} -lap 30:30:30 -s ${scheduler} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodrrqr)
+    endforeach()
 endforeach()
