@@ -27,6 +27,9 @@ foreach (_file ${EXAMPLES})
   install(FILES   ${_file}            DESTINATION examples )
 endforeach()
 
+find_program( MEMORYCHECK_COMMAND valgrind )
+set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
+
 ## CTest execution
 set( PASTIX_DRIVERS
   analyze simple step-by-step schur ) # reentrant fails with Scotch parser !

@@ -6,8 +6,8 @@ pastix:
     - cd build
     - cmake ..
     - make -j2
-    - ctest
-    
+    - ctest -D ExperimentalMemCheck
+
 pages:
   script:
   - echo "J'ai reussi" > index.html
