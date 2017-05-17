@@ -75,7 +75,7 @@ int main (int argc, char **argv)
      * Perform ordering, symbolic factorization, and analyze steps
      */
     pastix_subtask_order( pastix_data, spm, NULL );
-    pastix_subtask_symbfact( pastix_data, NULL );
+    pastix_subtask_symbfact( pastix_data );
     pastix_subtask_reordering( pastix_data );
     pastix_subtask_blend( pastix_data );
 

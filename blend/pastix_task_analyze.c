@@ -78,7 +78,7 @@ pastix_task_analyze( pastix_data_t *pastix_data,
     /*
      * Symbolic factorization step
      */
-    rc = pastix_subtask_symbfact( pastix_data, NULL );
+    rc = pastix_subtask_symbfact( pastix_data );
     if (rc != PASTIX_SUCCESS) {
         return rc;
     }

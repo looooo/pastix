@@ -55,12 +55,10 @@
  * node to compute the symbol matrix.
  * If symbolKass() is used, the ordering structure will be modified due to the
  * assembly step. Then, permutation, inverse permutation, partition, and
- * partition tree are modified internally. The new permutation arrays perm and
- * invp can be returned to the user if and invp vector will be modified and
- * returned to the user. The associated partition with its tree will be updated
- * accordingly.
- * BE CAREFULL if you give your own ordering and wants to keep it because it
- * will be overwritten by the updated one.
+ * partition tree are modified internally.
+ * @warning If the user need to manipulate the ordering, the new perm/invp vectors
+ * and the associated partition and tree have to be extract from the pastix_data
+ * structure.
  *
  * This routine is affected by the following parameters:
  *   IPARM_VERBOSE, IPARM_INCOMPLETE, IPARM_LEVEL_OF_FILL,
@@ -112,8 +110,7 @@
  *
  *******************************************************************************/
 int
-pastix_subtask_symbfact( pastix_data_t *pastix_data,
-                         Order  *myorder )
+pastix_subtask_symbfact( pastix_data_t *pastix_data )
 {
     pastix_int_t   *iparm;
     double         *dparm;
@@ -328,11 +325,13 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
             /*
              * Return the new ordering to the user
              */
+            /*
             if (myorder != NULL)
             {
                 memcpy(myorder->permtab, ordemesh->permtab, n*sizeof(pastix_int_t));
                 memcpy(myorder->peritab, ordemesh->peritab, n*sizeof(pastix_int_t));
             }
+             */
         }
 
         /* Set the beginning of the Schur complement */

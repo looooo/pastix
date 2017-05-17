@@ -117,7 +117,7 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
     verbose = iparm[IPARM_VERBOSE];
     iparm[IPARM_VERBOSE] = pastix_imax( 0, verbose-2 );
 
-    pastix_subtask_symbfact( pastix_data, NULL );
+    pastix_subtask_symbfact( pastix_data );
 
     iparm[IPARM_VERBOSE] = verbose;
 

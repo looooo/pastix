@@ -275,22 +275,11 @@ pastix( pastix_data_t **pastix_data_ptr,
 
     if (iparm[IPARM_START_TASK] == PastixTaskSymbfact)
     {
-        Order o;
-        ret = orderAlloc(&o, n, 0);
-        memcpy( o.permtab, perm, o.vertnbr*sizeof(pastix_int_t));
-        memcpy( o.peritab, invp, o.vertnbr*sizeof(pastix_int_t));
+        ret = pastix_subtask_symbfact( pastix_data );
         if (PASTIX_SUCCESS != ret)
         {
             return ret;
         }
-        ret = pastix_subtask_symbfact( pastix_data, &o );
-        if (PASTIX_SUCCESS != ret)
-        {
-            return ret;
-        }
-        memcpy( perm, o.permtab, o.vertnbr*sizeof(pastix_int_t));
-        memcpy( invp, o.peritab, o.vertnbr*sizeof(pastix_int_t));
-        orderExit(&o);
         iparm[IPARM_START_TASK]++;
     }
 
