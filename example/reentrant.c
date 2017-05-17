@@ -1,8 +1,14 @@
 /**
- *  @file reentrant.c
+ * @file reentrant.c
  *
- *  A simple example :
- *  run two threads then run two instances of PaStiX in each.
+ * A reentrant example :
+ * run two threads then run two instances of PaStiX in each.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *
+ * @version 6.0.0
+ * @author  Hastaran Matias
+ * @date    2017-01-17
  *
  */
 #include <pthread.h>

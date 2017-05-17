@@ -1,9 +1,14 @@
 /**
- *  @file: analyze.c
+ * @file: analyze.c
  *
- *  A simple example that performs only the analyses steps onto the given graph.
- *  These tests doesn't require the values of the matrix.
+ * A simple example that performs only the analyses steps onto the given graph.
+ * These tests doesn't require the values of the matrix.
  *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *
+ * @version 6.0.0
+ * @author  Pierre Ramet
+ * @date    2017-05-17
  */
 #include <pastix.h>
 #include <spm.h>

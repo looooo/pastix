@@ -1,14 +1,13 @@
 /**
- *  @file step-by-step.c
+ * @file step-by-step.c
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * This an example calling PaStiX in step-by-step mode.
+ * If runs one full analyze (ordering, symbolic factorization, analyze), then
+ * it loops over 2 factorizations that are both used for 2 solves each.
  *
- *  This an example calling PaStiX in step-by-step mode.
- *  If runs one full analyze (ordering, symbolic factorization, analyze), then
- *  it loops over 2 factorizations that are both used for 2 solves each.
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author  Hastaran Matias
  * @date    2017-01-17
  *

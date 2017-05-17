@@ -1,9 +1,14 @@
 /**
- *  @file: simple.c
+ * @file: bench_facto.c
  *
- *  A simple example :
- *  read the matrix, check it is correct and correct it if needed,
- *  then run pastix in one call.
+ * A bench example :
+ * apply 3 successive numerical factorization.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *
+ * @version 6.0.0
+ * @author  Hastaran Matias
+ * @date    2017-01-17
  *
  */
 #include <pastix.h>
