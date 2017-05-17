@@ -464,7 +464,31 @@ int api_to_int( char * string )
     {
         return PastixSchedStarPU;
     }
-    if(atoi(string) == 0)
+    if(0 == strcmp("pastixcompressnever", string))
+    {
+        return PastixCompressNever;
+    }
+    if(0 == strcmp("pastixcompresswhenbegin", string))
+    {
+        return PastixCompressWhenBegin;
+    }
+    if(0 == strcmp("pastixcompresswhenend", string))
+    {
+        return PastixCompressWhenEnd;
+    }
+    if(0 == strcmp("pastixcompresswhenduring", string))
+    {
+        return PastixCompressWhenDuring;
+    }
+    if(0 == strcmp("pastixcompressmethodsvd", string))
+    {
+        return PastixCompressMethodSVD;
+    }
+    if(0 == strcmp("pastixcompressmethodrrqr", string))
+    {
+        return PastixCompressMethodRRQR;
+    }
+if(atoi(string) == 0)
     {
         if(0 == strcmp("0", string))
         {

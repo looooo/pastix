@@ -25,5 +25,66 @@ foreach (_file ${EXAMPLES})
 
   install(TARGETS ${_name_we} RUNTIME DESTINATION examples )
   install(FILES   ${_file}            DESTINATION examples )
+endforeach()
 
+## CTest execution
+set( PASTIX_DRIVERS
+  analyze simple step-by-step schur ) # reentrant fails with Scotch parser !
+set( PASTIX_TESTS
+  simple )
+
+### All drivers with Laplacian and default parameters
+foreach(example ${PASTIX_DRIVERS} )
+  add_test(drv_${example} ./${example} -lap 30:30:30)
+endforeach()
+
+### Factotype
+foreach(example ${PASTIX_TESTS} )
+  # RSA
+  add_test(rsa_${example} ./${example} -rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa   -f 2) # LLt fails with negative pivot !
+  # Matrix Market
+  add_test(mm_${example}  ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx  -f 2) # LLt fails with negative pivot !
+  # Harwell Boeing
+  add_test(hb_${example}  ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua   -f 2)
+  # Matrix Market - Hermitian
+  add_test(mm2_${example} ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx -f 4)
+endforeach()
+
+### Scheduling
+foreach(example ${PASTIX_TESTS} )
+  # Sequential
+  add_test(seq_${example}      ./${example} -lap 30:30:30 -s 0)
+  # Static
+  add_test(static_${example}   ./${example} -lap 30:30:30 -s 1)
+  # Parsec
+  if (PASTIX_WITH_PARSEC)
+    add_test(parsec_${example} ./${example} -lap 30:30:30 -s 2)
+  endif (PASTIX_WITH_PARSEC)
+endforeach()
+
+### Refinement
+foreach(example ${PASTIX_TESTS} )
+  add_test(cg_${example}       ./${example} -rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa -f 2 -i iparm_refinement pastixrefinecg) # LLt fails with negative pivot !
+  add_test(gmres_${example}    ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refimenent pastixrefinegmres)
+  add_test(bicgstab_${example} ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinebicgstab)
+endforeach()
+
+### Distribution
+foreach(example ${PASTIX_TESTS} )
+  # 2D
+  add_test(2d_${example}   ./${example} -lap 30:30:30 -i iparm_distribution_level 0 )
+  # 1D/2D
+  add_test(1d2d_${example} ./${example} -lap 30:30:30 -i iparm_distribution_level 16)
+endforeach()
+
+# Low Rank
+foreach(example ${PASTIX_TESTS} )
+  # SVD Begin
+  add_test(svdbegin_${example}  ./${example} -lap 30:30:30 -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodsvd)
+  # SVD End
+  add_test(svdend_${example}    ./${example} -lap 30:30:30 -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodsvd)
+  # RRQR Begin
+  add_test(rrqrbegin_${example} ./${example} -lap 30:30:30 -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodrrqr)
+  # RRQR End
+  add_test(rrqrend_${example}   ./${example} -lap 30:30:30 -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodrrqr)
 endforeach()
