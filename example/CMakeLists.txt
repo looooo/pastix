@@ -16,6 +16,7 @@ set (EXAMPLES
   bench_facto.c
   step-by-step.c
   schur.c
+  personal.c
   )
 
 foreach (_file ${EXAMPLES})
@@ -29,7 +30,7 @@ endforeach()
 
 ### CTest execution
 set( PASTIX_DRIVERS
-  analyze simple step-by-step schur ) # reentrant fails with Scotch parser !
+  analyze simple step-by-step schur personal) # reentrant fails with Scotch parser !
 set( PASTIX_TESTS
   simple )
 if (PASTIX_WITH_PARSEC)
@@ -42,7 +43,7 @@ endif (PASTIX_WITH_PARSEC)
 
 ### All drivers with Laplacian and default parameters
 foreach(example ${PASTIX_DRIVERS} )
-  add_test(drv_${example} ./${example} -lap 30:30:30)
+  add_test(drv_${example} ./${example} -lap 10:10:10)
 endforeach()
 
 ### Factotype
@@ -55,13 +56,6 @@ foreach(example ${PASTIX_TESTS} )
   add_test(hb_${example}  ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua   -f 2)
   # Matrix Market - Hermitian
   add_test(mm2_${example} ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx -f 2)
-endforeach()
-
-### Scheduling
-foreach(example ${PASTIX_TESTS} )
-  foreach(scheduler ${PASTIX_SCHEDS} )
-    add_test(sched${scheduler}_${example}   ./${example} -lap 30:30:30 -s ${scheduler})
-  endforeach()
 endforeach()
 
 ### Refinement
@@ -80,6 +74,13 @@ if (PASTIX_WITH_PARSEC)
     add_test(1d2d_${example} ./${example} -lap 30:30:30 -s 2 -i iparm_distribution_level 16)
   endforeach()
 endif (PASTIX_WITH_PARSEC)
+
+### Scheduling
+foreach(example ${PASTIX_TESTS} )
+  foreach(scheduler ${PASTIX_SCHEDS} )
+    add_test(sched${scheduler}_${example}   ./${example} -lap 30:30:30 -s ${scheduler})
+  endforeach()
+endforeach()
 
 # Low Rank
 foreach(example ${PASTIX_TESTS} )
