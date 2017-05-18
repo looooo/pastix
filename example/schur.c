@@ -1,5 +1,5 @@
 /**
- * @file schur.c
+ * @file example/schur.c
  *
  * @brief Schur usage example.
  *
