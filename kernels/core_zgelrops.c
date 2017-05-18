@@ -19,6 +19,7 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 #include "z_nan_check.h"
+#include "eztrace_module/kernels_ev_codes.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t zone  =  1.;

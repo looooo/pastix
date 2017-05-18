@@ -59,6 +59,10 @@ option(PASTIX_WITH_CUDA
 cmake_dependent_option(PASTIX_CUDA_FERMI
     "Enable the Fermi kernel instead of the batched kernel" OFF "PASTIX_WITH_CUDA" OFF)
 
+### Tracing parameters
+option(PASTIX_WITH_EZTRACE
+  "Enable Eztrace for tracing CPU and GPU kernels" OFF)
+
 ### Runtime engines
 option(PASTIX_WITH_STARPU
     "Build PaStiX with StarPU runtime support" OFF)
@@ -314,6 +318,17 @@ if (PASTIX_WITH_PARSEC)
     endif()
 
 endif (PASTIX_WITH_PARSEC)
+
+### Add trace generation
+if(PASTIX_WITH_EZTRACE)
+  if (NOT EZTRACE_FOUND)
+    find_package(EZTRACE REQUIRED)
+  endif()
+
+  include_directories(${EZTRACE_INCLUDE_DIRS})
+  link_directories(${EZTRACE_LIBRARY_DIRS})
+endif(PASTIX_WITH_EZTRACE)
+
 
 # PaStiX might depend on Scotch/PT-Scotch
 #----------------------------------------

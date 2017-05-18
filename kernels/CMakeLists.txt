@@ -17,6 +17,13 @@ set(generated_headers "")
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
+### Add trace generation
+if(PASTIX_WITH_EZTRACE)
+  add_library(eztrace-convert-kernels SHARED
+        eztrace_module/eztrace_convert_kernels.c
+  )
+endif(PASTIX_WITH_EZTRACE)
+
 ### Generate the headers in all precisions
 set(HEADERS
   pastix_zcores.h
@@ -86,6 +93,13 @@ add_library(pastix_kernels
 add_dependencies(pastix_kernels
   kernels_headers_tgt
 )
+
+if(PASTIX_WITH_EZTRACE)
+   target_link_libraries(pastix_kernels
+     ${EZTRACE_LIBRARIES}
+     litl
+   )
+endif(PASTIX_WITH_EZTRACE)
 
 target_link_libraries( pastix_kernels
   ${LAPACKE_LIBRARIES}

@@ -19,6 +19,7 @@
 #include "cblas.h"
 #include "blend/solver.h"
 #include "pastix_zcores.h"
+#include "eztrace_module/kernels_ev_codes.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define MAXSIZEOFBLOCKS 64
@@ -280,7 +281,12 @@ cpucblk_zpotrfsp1d_panel( SolverCblk         *cblk,
                           double              criteria,
                           const pastix_lr_t  *lowrank )
 {
-    pastix_int_t  nbpivot = cpucblk_zpotrfsp1d_potrf(cblk, L, criteria);
+    pastix_int_t nbpivot;
+
+    start_trace_kernel(POTRF, 0);
+    nbpivot = cpucblk_zpotrfsp1d_potrf(cblk, L, criteria);
+    stop_trace_kernel();
+
     cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
                      PastixConjTrans, PastixNonUnit,
                      cblk, L, L, lowrank );
