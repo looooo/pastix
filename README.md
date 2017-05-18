@@ -33,7 +33,7 @@ Future releases will be available on this gitlab project.
 Documentation
 ---------------------
 
-
+A temporary link to the Doxygen [documentation](http://www.labri.fr/perso/ramet/pastix/out/html/index.html). (we are waiting for availability of pages functionality in gitlab...)
 
 Installation
 ---------------------
