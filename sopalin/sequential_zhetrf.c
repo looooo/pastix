@@ -41,7 +41,8 @@ sequential_zhetrf( pastix_data_t  *pastix_data,
 
     MALLOC_INTERN( work1, pastix_imax(datacode->gemmmax, datacode->diagmax),
                    pastix_complex64_t );
-    MALLOC_INTERN( work2, datacode->gemmmax, pastix_complex64_t );
+    MALLOC_INTERN( work2, pastix_imax(datacode->gemmmax, datacode->arftmax),
+                   pastix_complex64_t );
 
     cblk = datacode->cblktab;
     for (i=0; i<datacode->cblknbr; i++, cblk++){
