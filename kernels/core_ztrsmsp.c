@@ -19,6 +19,7 @@
 #include "cblas.h"
 #include "blend/solver.h"
 #include "pastix_zcores.h"
+#include "eztrace_module/kernels_ev_codes.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t  zone =  1.;
@@ -334,10 +335,13 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
 {
     if (  cblk[0].fblokptr + 1 < cblk[1].fblokptr ) {
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
+            start_trace_kernel(LR_TRSM, 0);
             core_ztrsmsp_lr( coef, side, uplo, trans, diag,
                              cblk, lowrank );
+            stop_trace_kernel();
         }
         else {
+            start_trace_kernel(DENSE_TRSM, 0);
             if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
                 core_ztrsmsp_2d( side, uplo, trans, diag,
                                  cblk, A, C );
@@ -346,6 +350,7 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                 core_ztrsmsp_1d( side, uplo, trans, diag,
                                  cblk, A, C );
             }
+            stop_trace_kernel();
         }
     }
 }
