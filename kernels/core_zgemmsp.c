@@ -423,7 +423,7 @@ core_zgemmsp_2d2d( pastix_coefside_t sideA, pastix_trans_t trans,
     K = cblk_colnbr( cblk );
     N = blok_rownbr( blok );
 
-    /**
+    /*
      * Add contribution to C in fcblk:
      *    Get the first facing block of the distant panel, and the last block of
      *    the current cblk

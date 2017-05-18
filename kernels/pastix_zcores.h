@@ -293,13 +293,13 @@ void solve_ztrsmsp( pastix_side_t side, pastix_uplo_t uplo, pastix_trans_t trans
  *     To be removed
  */
 int  core_zhetrfsp1d_trsm( SolverCblk *cblk, pastix_complex64_t *L );
-void core_zhetrfsp1d_gemm( SolverCblk *cblk, SolverBlok *blok, SolverCblk *fcblk,
-                           pastix_complex64_t *L, pastix_complex64_t *C,
-                           pastix_complex64_t *work1, pastix_complex64_t *work2 );
+void core_zhetrfsp1d_gemm( const SolverCblk *cblk, const SolverBlok *blok, SolverCblk *fcblk,
+                           const pastix_complex64_t *L, pastix_complex64_t *C,
+                           pastix_complex64_t *work );
 int  core_zsytrfsp1d_trsm( SolverCblk *cblk, pastix_complex64_t *L );
-void core_zsytrfsp1d_gemm( SolverCblk *cblk, SolverBlok *blok, SolverCblk *fcblk,
-                           pastix_complex64_t *L, pastix_complex64_t *C,
-                           pastix_complex64_t *work1, pastix_complex64_t *work2 );
+void core_zsytrfsp1d_gemm( const SolverCblk *cblk, const SolverBlok *blok, SolverCblk *fcblk,
+                           const pastix_complex64_t *L, pastix_complex64_t *C,
+                           pastix_complex64_t *work );
 
 /**
  * @}
