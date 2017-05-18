@@ -288,8 +288,8 @@ cpucblk_zgetrfsp1d_panel( SolverCblk         *cblk,
     pastix_int_t nbpivot;
     nbpivot = cpucblk_zgetrfsp1d_getrf(cblk, L, U, criteria);
 
-    /**
-     * We exploit the fact tha the upper triangle is stored at the top of the L
+    /*
+     * We exploit the fact that the upper triangle is stored at the top of the L
      * column, and by transposition the L part of the diagonal block is
      * similarly stored in the U panel
      */
