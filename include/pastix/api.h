@@ -13,6 +13,9 @@
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
+ * @addtogroup pastix_api
+ * @{
+ *
  **/
 #ifndef _PASTIX_API_H_
 #define _PASTIX_API_H_
@@ -35,26 +38,26 @@ typedef enum pastix_iparm_e {
 
     /* Ordering */
     IPARM_ORDERING,              /**< Choose ordering                                                Default: PastixOrderScotch        IN    */
-    IPARM_ORDERING_DEFAULT,      /**< Use default ordering parameters with \scotch{} or \metis{}     Default: 1                        IN    */
+    IPARM_ORDERING_DEFAULT,      /**< Use default ordering parameters with Scotch or Metis           Default: 1                        IN    */
 
     /* Subset for Scotch */
-    IPARM_SCOTCH_SWITCH_LEVEL,   /**< Ordering switch level    (see \scotch{} Manual)                Default: 120                      IN    */
-    IPARM_SCOTCH_CMIN,           /**< Ordering cmin parameter  (see \scotch{} Manual)                Default: 0                        IN    */
-    IPARM_SCOTCH_CMAX,           /**< Ordering cmax parameter  (see \scotch{} Manual)                Default: 100000                   IN    */
-    IPARM_SCOTCH_FRAT,           /**< Ordering frat parameter  (see \scotch{} Manual)                Default: 8                        IN    */
+    IPARM_SCOTCH_SWITCH_LEVEL,   /**< Ordering switch level    (see Scotch Manual)                   Default: 120                      IN    */
+    IPARM_SCOTCH_CMIN,           /**< Ordering cmin parameter  (see Scotch Manual)                   Default: 0                        IN    */
+    IPARM_SCOTCH_CMAX,           /**< Ordering cmax parameter  (see Scotch Manual)                   Default: 100000                   IN    */
+    IPARM_SCOTCH_FRAT,           /**< Ordering frat parameter  (see Scotch Manual)                   Default: 8                        IN    */
 
     /* Subset for Metis */
-    IPARM_METIS_CTYPE,           /**< \metis{} parameters      (see \metis{}  Manual)                Default: METIS_CTYPE_SHEM         IN    */
-    IPARM_METIS_RTYPE,           /**< \metis{} parameters      (see \metis{}  Manual)                Default: METIS_RTYPE_SEP1SIDED    IN    */
-    IPARM_METIS_NO2HOP,          /**< \metis{} parameters      (see \metis{}  Manual)                Default: 0                        IN    */
-    IPARM_METIS_NSEPS,           /**< \metis{} parameters      (see \metis{}  Manual)                Default: 1                        IN    */
-    IPARM_METIS_NITER,           /**< \metis{} parameters      (see \metis{}  Manual)                Default: 10                       IN    */
-    IPARM_METIS_UFACTOR,         /**< \metis{} parameters      (see \metis{}  Manual)                Default: 200                      IN    */
-    IPARM_METIS_COMPRESS,        /**< \metis{} parameters      (see \metis{}  Manual)                Default: 1                        IN    */
-    IPARM_METIS_CCORDER,         /**< \metis{} parameters      (see \metis{}  Manual)                Default: 0                        IN    */
-    IPARM_METIS_PFACTOR,         /**< \metis{} parameters      (see \metis{}  Manual)                Default: 0                        IN    */
-    IPARM_METIS_SEED,            /**< \metis{} parameters      (see \metis{}  Manual)                Default: 3452                     IN    */
-    IPARM_METIS_DBGLVL,          /**< \metis{} parameters      (see \metis{}  Manual)                Default: 0                        IN    */
+    IPARM_METIS_CTYPE,           /**< Metis parameters      (see Metis  Manual)                      Default: METIS_CTYPE_SHEM         IN    */
+    IPARM_METIS_RTYPE,           /**< Metis parameters      (see Metis  Manual)                      Default: METIS_RTYPE_SEP1SIDED    IN    */
+    IPARM_METIS_NO2HOP,          /**< Metis parameters      (see Metis  Manual)                      Default: 0                        IN    */
+    IPARM_METIS_NSEPS,           /**< Metis parameters      (see Metis  Manual)                      Default: 1                        IN    */
+    IPARM_METIS_NITER,           /**< Metis parameters      (see Metis  Manual)                      Default: 10                       IN    */
+    IPARM_METIS_UFACTOR,         /**< Metis parameters      (see Metis  Manual)                      Default: 200                      IN    */
+    IPARM_METIS_COMPRESS,        /**< Metis parameters      (see Metis  Manual)                      Default: 1                        IN    */
+    IPARM_METIS_CCORDER,         /**< Metis parameters      (see Metis  Manual)                      Default: 0                        IN    */
+    IPARM_METIS_PFACTOR,         /**< Metis parameters      (see Metis  Manual)                      Default: 0                        IN    */
+    IPARM_METIS_SEED,            /**< Metis parameters      (see Metis  Manual)                      Default: 3452                     IN    */
+    IPARM_METIS_DBGLVL,          /**< Metis parameters      (see Metis  Manual)                      Default: 0                        IN    */
 
     /* Symbolic Factorization */
     IPARM_SF_KASS,               /**< Force KASS instead of Fax to perform symbolic factorization    Default: 0                        IN    */
@@ -116,8 +119,7 @@ typedef enum pastix_iparm_e {
     IPARM_FLOAT,                 /**< Indicate the arithmetics                                       Default: PastixDouble             IN    */
     IPARM_MTX_TYPE,              /**< Indicate matrix format                                         Default: -1                       IN    */
     IPARM_DOF_NBR,               /**< Degree of freedom per node                                     Default: 1                        IN    */
-
-    IPARM_SIZE                   /**< iparm tabular size                                                                                     */
+    IPARM_SIZE
 } pastix_iparm_t;
 
 
@@ -142,7 +144,7 @@ typedef enum pastix_dparm_e {
     DPARM_REFINE_TIME,           /**< Time for Refinement step (wallclock)              Default: -                OUT */
     DPARM_A_NORM,                /**< ||A||_f norm                                      Default: -                OUT */
     DPARM_COMPRESS_TOLERANCE,    /**< Tolerance for low-rank kernels                    Default: 0.01             IN  */
-    DPARM_SIZE                   /**< dparm tabular size                                                              */
+    DPARM_SIZE
 } pastix_dparm_t;
 
 /**
@@ -243,12 +245,12 @@ typedef enum pastix_scheduler_e {
  * @brief Ordering strategy 
  */
 typedef enum pastix_order_e {
-    PastixOrderScotch,   /**< Use \scotch{} ordering    */
-    PastixOrderMetis,    /**< Use \metis{} ordering     */
+    PastixOrderScotch,   /**< Use Scotch ordering       */
+    PastixOrderMetis,    /**< Use Metis ordering        */
     PastixOrderPersonal, /**< Apply user's permutation  */
     PastixOrderLoad,     /**< Load ordering from file   */
-    PastixOrderPtscotch, /**< Use \pt-scotch{} ordering */
-    PastixOrderParMetis  /**< Use \parmetis{} ordering  */
+    PastixOrderPtscotch, /**< Use Pt-Scotch ordering    */
+    PastixOrderParMetis  /**< Use ParMetis ordering     */
 } pastix_order_t;
 
 #if defined(PASTIX_WITH_MPI)
@@ -269,7 +271,7 @@ typedef enum pastix_error_e {
     PASTIX_ERR_UNKNOWN        = 1,  /**< Unknown error                */
     PASTIX_ERR_ALLOC          = 2,  /**< Allocation error             */
     PASTIX_ERR_NOTIMPLEMENTED = 3,  /**< Not implemented feature      */
-    PASTIX_ERR_OUTOFMEMORY    = 4,  /**< Not enough memory (OOC)      */
+    PASTIX_ERR_OUTOFMEMORY    = 4,  /**< Not enough memory            */
     PASTIX_ERR_THREAD         = 5,  /**< Error with threads           */
     PASTIX_ERR_INTERNAL       = 6,  /**< Internal error               */
     PASTIX_ERR_BADPARAMETER   = 7,  /**< Bad parameters given         */
@@ -299,13 +301,13 @@ typedef enum pastix_compress_method_e {
 
 /**
  *
- * @name Constant compatible with CBLAS & LAPACK
+ * @name Constants compatible with CBLAS & LAPACK & PLASMA
  * @{
  *    The naming and numbering of the following constants is consistent with:
  *
- *       1) CBLAS from Netlib (http://www.netlib.org/blas/blast-forum/cblas.tgz)
- *       2) C Interface to LAPACK from Netlib (http://www.netlib.org/lapack/lapwrapc/)
- *       3) Plasma (http://icl.cs.utk.edu/plasma/index.html)
+ *       - CBLAS from Netlib (http://www.netlib.org/blas/blast-forum/cblas.tgz)
+ *       - C Interface to LAPACK from Netlib (http://www.netlib.org/lapack/lapwrapc/)
+ *       - Plasma (http://icl.cs.utk.edu/plasma/index.html)
  *
  */
 
@@ -393,3 +395,8 @@ typedef enum pastix_dir_e {
  */
 
 #endif /* _PASTIX_API_H_ */
+
+/**
+ * @}
+ */
+

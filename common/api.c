@@ -2,11 +2,12 @@
  *
  * @file api.c
  *
- *  PaStiX API routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX API routines
  *
- * @version 5.1.0
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
@@ -28,27 +29,18 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_common
- * @ingroup pastix_internal
+ * @ingroup pastix_api
  *
- * pastixWelcome - Print information about the PaStiX configuration.
+ * @brief Print informations about the solver configuration
  *
  *******************************************************************************
  *
  * @param[in] pastix
  *          The main data structure.
  *
- * @param[in] iparm
- *          The integer array of parameters.
- *
- * @param[in] dparm
- *          The floating point array of parameters.
- *
  *******************************************************************************/
 void
-pastixWelcome( pastix_data_t *pastix,
-               pastix_int_t  *iparm,
-               double        *dparm )
+pastixWelcome( const pastix_data_t *pastix )
 {
     pastix_print( pastix->procnum, 0, OUT_HEADER,
                   /* Version    */ PASTIX_VERSION_MAJOR, PASTIX_VERSION_MINOR, PASTIX_VERSION_MICRO,
@@ -70,38 +62,39 @@ pastixWelcome( pastix_data_t *pastix,
                   /* MPI nbr   */ pastix->procnbr,
                   /* Thrd nbr  */ (int)(pastix->iparm[IPARM_THREAD_NBR]),
 #if defined(PASTIX_WITH_MPI)
-                  /* MPI mode  */ ((iparm[IPARM_THREAD_COMM_MODE] == PastixThreadMultiple) ? "Multiple" : "Funneled"),
+                  /* MPI mode  */ ((pastix->iparm[IPARM_THREAD_COMM_MODE] == PastixThreadMultiple) ? "Multiple" : "Funneled"),
 #else
                   "Disabled",
 #endif
-                  /* Distrib */ ((iparm[IPARM_DISTRIBUTION_LEVEL] == -1) ? "1D" : "2D"), (long)iparm[IPARM_DISTRIBUTION_LEVEL],
-                  /* Strategy        */ ((iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever) ? "No compression" : (iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin) ? "Memory Optimal" : "Just-In-Time") );
+                  /* Distrib */ ((pastix->iparm[IPARM_DISTRIBUTION_LEVEL] == -1) ? "1D" : "2D"), (long)pastix->iparm[IPARM_DISTRIBUTION_LEVEL],
+                  /* Strategy        */ ((pastix->iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever) ? "No compression" : (pastix->iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin) ? "Memory Optimal" : "Just-In-Time") );
 
 
-    if ( iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever ) {
+    if ( pastix->iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever ) {
         pastix_print( pastix->procnum, 0, OUT_HEADER_LR,
-                      /* Tolerance       */ (double)dparm[DPARM_COMPRESS_TOLERANCE],
-                      /* Compress method */ ((iparm[IPARM_COMPRESS_METHOD] == PastixCompressMethodSVD) ? "SVD" : "RRQR"),
-                      /* Compress width  */ (long)iparm[IPARM_COMPRESS_MIN_WIDTH],
-                      /* Compress height */ (long)iparm[IPARM_COMPRESS_MIN_HEIGHT] );
+                      /* Tolerance       */ (double)pastix->dparm[DPARM_COMPRESS_TOLERANCE],
+                      /* Compress method */ ((pastix->iparm[IPARM_COMPRESS_METHOD] == PastixCompressMethodSVD) ? "SVD" : "RRQR"),
+                      /* Compress width  */ (long)pastix->iparm[IPARM_COMPRESS_MIN_WIDTH],
+                      /* Compress height */ (long)pastix->iparm[IPARM_COMPRESS_MIN_HEIGHT] );
     }
 }
 
 /**
  *******************************************************************************
  *
- * @ingroup pastix_common
- * @ingroup pastix_internal
+ * @ingroup pastix_api
  *
- * pastix_init_param - Initialize the iparm and dparm arrays to their default
- * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to 0.
+ * @brief Initialize the iparm and dparm arrays to their default
+ * values.
+ *
+ * This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to 0.
  *
  *******************************************************************************
  *
- * @param[in,out] iparm
+ * @param[inout] iparm
  *          The integer array of parameters to initialize.
  *
- * @param[in,out] dparm
+ * @param[inout] dparm
  *          The floating point array of parameters to initialize.
  *
  *******************************************************************************/
@@ -124,7 +117,7 @@ pastixInitParam( pastix_int_t *iparm,
     /* Scaling */
     iparm[IPARM_MC64]                  = 0;
 
-    /**
+    /*
      * Ordering parameters
      */
     iparm[IPARM_ORDERING]              = PastixOrderScotch;
@@ -223,7 +216,7 @@ pastixInitParam( pastix_int_t *iparm,
             case MPI_THREAD_FUNNELED:
                 iparm[IPARM_THREAD_COMM_MODE] = PastixThreadFunneled;
                 break;
-                /**
+                /*
                  * In the folowing cases, we consider that any MPI implementation
                  * should provide enough level of parallelism to turn in Funneled mode
                  */
@@ -266,18 +259,18 @@ pastixInitParam( pastix_int_t *iparm,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_common
+ * @ingroup pastix_internal
  *
- * apiInitMPI - Internal function that setups the multiple communcators in order
+ * @brief Internal function that setups the multiple communicators in order
  * to perform the ordering step in MPI only mode, and the factorization in
  * MPI+Thread mode with the same amount of ressources.
  *
  *******************************************************************************
  *
- * @param[in,out] pastix_data
+ * @param[inout] pastix_data
  *          The integer array of parameters to initialize.
  *
- * @param[in,out] dparm
+ * @param[inout] dparm
  *          The floating point array of parameters to initialize.
  *
  *******************************************************************************/
@@ -286,7 +279,7 @@ apiInitMPI( pastix_data_t *pastix,
             MPI_Comm       comm,
             int autosplit )
 {
-    /**
+    /*
      * Setup all communicators for autosplitmode and initialize number/rank of
      * processes.
      */
@@ -303,7 +296,7 @@ apiInitMPI( pastix_data_t *pastix,
         int64_t color;
         (void)rc;
 
-        /**
+        /*
          * Get hostname to generate a hash that will be the color of each node
          * MPI_Get_processor_name is not used as it can returned different
          * strings for processes of a same physical node.
@@ -345,17 +338,22 @@ apiInitMPI( pastix_data_t *pastix,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_common
+ * @ingroup pastix_api
  *
- * pastixInit - Initialize the iparm and dparm arrays to their default
- * values. This is performed only if iparm[IPARM_MODIFY_PARAMETER] is set to 0.
+ * @brief Initialize the solver instance
  *
  *******************************************************************************
  *
- * @param[in,out] iparm
+ * @param[inout] pastix_data
+ *          The main data structure.
+ *
+ * @param[in] pastix_comm
+ *          The MPI communicator.
+ *
+ * @param[inout] iparm
  *          The integer array of parameters to initialize.
  *
- * @param[in,out] dparm
+ * @param[inout] dparm
  *          The floating point array of parameters to initialize.
  *
  *******************************************************************************/
@@ -367,13 +365,13 @@ pastixInit( pastix_data_t **pastix_data,
 {
     pastix_data_t *pastix;
 
-    /**
+    /*
      * Allocate pastix_data structure when we enter PaStiX for the first time.
      */
     MALLOC_INTERN(pastix, 1, pastix_data_t);
     memset( pastix, 0, sizeof(pastix_data_t) );
 
-    /**
+    /*
      * Check if MPI is initialized
      */
     pastix->initmpi = 0;
@@ -392,7 +390,7 @@ pastixInit( pastix_data_t **pastix_data,
     }
 #endif
 
-    /**
+    /*
      * Initialize iparm/dparm vectors and set them to default values if not set
      * by the user.
      */
@@ -422,13 +420,13 @@ pastixInit( pastix_data_t **pastix_data,
         iparm[IPARM_THREAD_NBR] = pastix->intra_node_procnbr;
     }
 
-    /**
+    /*
      * Start the internal threads
      */
     pastix->isched = ischedInit( pastix->iparm[IPARM_THREAD_NBR], NULL );
     pastix->iparm[IPARM_THREAD_NBR] = pastix->isched->world_size;
 
-    /**
+    /*
      * Start PaRSEC if compiled with it and scheduler set to PaRSEC
      */
 #if defined(PASTIX_WITH_PARSEC)
@@ -459,7 +457,7 @@ pastixInit( pastix_data_t **pastix_data,
     setenv("VECLIB_MAXIMUM_THREADS", "1", 0);
 
     if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
-        pastixWelcome( pastix, iparm, dparm );
+        pastixWelcome( pastix );
 
     /* Initialization step done, overwrite anything done before */
     pastix->steps = STEP_INIT;
@@ -470,27 +468,20 @@ pastixInit( pastix_data_t **pastix_data,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_common
+ * @ingroup pastix_api
  *
- * pastixFinalize -
+ * @brief Finalize the solver instance
  *
  *******************************************************************************
  *
- * @param[in,out] iparm
- *          The integer array of parameters to initialize.
- *
- * @param[in,out] dparm
- *          The floating point array of parameters to initialize.
+ * @param[inout] pastix_data
+ *          The main data structure.
  *
  *******************************************************************************/
 void
-pastixFinalize( pastix_data_t **pastix_data,
-                MPI_Comm        pastix_comm,
-                pastix_int_t   *iparm,
-                double         *dparm )
+pastixFinalize( pastix_data_t **pastix_data )
 {
     pastix_data_t *pastix = *pastix_data;
-    (void)pastix_comm; (void)iparm; (void)dparm;
 
     ischedFinalize( pastix->isched );
 

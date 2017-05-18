@@ -55,12 +55,10 @@
  * node to compute the symbol matrix.
  * If symbolKass() is used, the ordering structure will be modified due to the
  * assembly step. Then, permutation, inverse permutation, partition, and
- * partition tree are modified internally. The new permutation arrays perm and
- * invp can be returned to the user if and invp vector will be modified and
- * returned to the user. The associated partition with its tree will be updated
- * accordingly.
- * BE CAREFULL if you give your own ordering and wants to keep it because it
- * will be overwritten by the updated one.
+ * partition tree are modified internally.
+ * @warning If the user need to manipulate the ordering, the new perm/invp vectors
+ * and the associated partition and tree have to be extract from the pastix_data
+ * structure.
  *
  * This routine is affected by the following parameters:
  *   IPARM_VERBOSE, IPARM_INCOMPLETE, IPARM_LEVEL_OF_FILL,
@@ -91,17 +89,7 @@
  *          dump to file.
  *          If set to APÏ_IO_LOAD, the symbmtx (only) is loaded from the files.
  *
- * @param[inout] perm
- *          Array of size n.
- *          On entry, unused.
- *          On exit, if perm != NULL, contains the permutation array generated.
- *
- * @param[inout] invp
- *          Array of size n.
- *          On entry, unused.
- *          On exit, if invp != NULL, contains the inverse permutation array generated.
- *
- *******************************************************************************
+  *******************************************************************************
  *
  * @retval PASTIX_SUCCESS on successful exit
  * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
@@ -112,9 +100,7 @@
  *
  *******************************************************************************/
 int
-pastix_subtask_symbfact( pastix_data_t *pastix_data,
-                         pastix_int_t  *perm,
-                         pastix_int_t  *invp )
+pastix_subtask_symbfact( pastix_data_t *pastix_data )
 {
     pastix_int_t   *iparm;
     double         *dparm;
@@ -329,8 +315,13 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data,
             /*
              * Return the new ordering to the user
              */
-            if (perm != NULL) memcpy(perm, ordemesh->permtab, n*sizeof(pastix_int_t));
-            if (invp != NULL) memcpy(invp, ordemesh->peritab, n*sizeof(pastix_int_t));
+            /*
+            if (myorder != NULL)
+            {
+                memcpy(myorder->permtab, ordemesh->permtab, n*sizeof(pastix_int_t));
+                memcpy(myorder->peritab, ordemesh->peritab, n*sizeof(pastix_int_t));
+            }
+             */
         }
 
         /* Set the beginning of the Schur complement */

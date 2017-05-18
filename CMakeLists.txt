@@ -386,6 +386,11 @@ if (PASTIX_BLEND_GENTRACE)
   set(GTG_LIBRARIES    "gtg")
 endif()
 
+# valgrind detection
+#-------------------
+find_program( MEMORYCHECK_COMMAND valgrind )
+set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
+
 #
 ##
 ###
@@ -697,6 +702,8 @@ add_subdirectory(test)
 add_documented_files(
   #
   include/pastix.h
+  include/pastix/api.h
+  common/api.c
   #
   graph/graph.h
   graph/graph.c
@@ -782,11 +789,19 @@ add_documented_files(
   blend/pastix_task_analyze.c
   #
   sopalin/schur.c
+  sopalin/pastix.c
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
   #
   refinement/pastix_task_refine.c
-)
+  #
+  example/analyze.c
+  example/simple.c
+  example/step-by-step.c
+  example/reentrant.c
+  example/schur.c
+  example/personal.c
+  )
 
 #
 # Build documentation

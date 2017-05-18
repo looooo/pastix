@@ -54,6 +54,7 @@ int  orderAlloc(      Order * const ordeptr, pastix_int_t cblknbr, pastix_int_t 
 void orderExit (      Order * const ordeptr);
 void orderBase (      Order * const ordeptr, pastix_int_t baseval);
 int  orderCheck(const Order * const ordeptr);
+int  orderCopy (      Order * const ordedst, const Order * const ordesrc);
 
 /**
  * @}

@@ -17,15 +17,17 @@
  **/
 #include "common.h"
 #include "spm.h"
+#include "order.h"
 
 /**
  *******************************************************************************
  *
- * @brief PaStiX main solver function.
+ * @ingroup pastix_api
+ * @brief Main function for compatibility with former releases
  *
  *******************************************************************************
  *
- * @param[inout] pastix_data
+ * @param[inout] pastix_data_ptr
  *          The pastix data structure of the solver to store the state of the
  *          solver at every call.
  *
@@ -95,73 +97,6 @@
  * @retval PASTIX_ERR_UNKNOWN on undefined behaviors.
  *
  *******************************************************************************
- *
- * Example:
- *
- *   from file <simple.c> :
- *
- *   > /\*******************************************\/
- *   > /\*    Check Matrix format                  *\/
- *   > /\*******************************************\/
- *   > /\*
- *   >  * Matrix needs :
- *   >  *    - to be in fortran numbering
- *   >  *    - to have only the lower triangular part in symmetric case
- *   >  *    - to have a graph with a symmetric structure in unsymmetric case
- *   >  *\/
- *   > mat_type = PastixGeneral;
- *   > if (MTX_ISSYM(type)) mat_type = PastixSymmetric;
- *   > if (MTX_ISHER(type)) mat_type = PastixHermitian;
- *   > pastix_checkMatrix( MPI_COMM_WORLD, verbosemode,
- *   >                     mat_sym,
- *   >                     1,
- *   >                     ncol, &colptr, &rows, &values, NULL);
- *   >
- *   > /\*******************************************\/
- *   > /\* Initialize parameters to default values *\/
- *   > /\*******************************************\/
- *   > iparm[IPARM_MODIFY_PARAMETER] = 0;
- *   > pastix(&pastix_data, MPI_COMM_WORLD,
- *   >        ncol, colptr, rows, values,
- *   >        perm, invp, rhs, 1, iparm, dparm);
- *   >
- *   > /\*******************************************\/
- *   > /\*       Customize some parameters         *\/
- *   > /\*******************************************\/
- *   > iparm[IPARM_THREAD_NBR] = nbthread;
- *   > iparm[IPARM_SYM] = mat_type;
- *   > switch (mat_type)
- *   >   {
- *   >     case PastixSymmetric:
- *   >       iparm[IPARM_FACTORIZATION] = PastixFactLDLT;
- *   >       break;
- *   >     case PastixHermitian:
- *   >       iparm[IPARM_FACTORIZATION] = PastixFactLDLH;
- *   >       break;
- *   >     default:
- *   >       iparm[IPARM_FACTORIZATION] = PastixFactLU;
- *   >   }
- *   > iparm[IPARM_START_TASK]          = PastixTaskOrdering;
- *   > iparm[IPARM_END_TASK]            = PastixTaskClean;
- *   >
- *   > /\*******************************************\/
- *   > /\*           Save the rhs                  *\/
- *   > /\*    (it will be replaced by solution)    *\/
- *   > /\*******************************************\/
- *   > rhssaved = malloc(ncol*sizeof(pastix_complex64_t));
- *   > memcpy(rhssaved, rhs, ncol*sizeof(pastix_complex64_t));
- *   >
- *   > /\*******************************************\/
- *   > /\*           Call pastix                   *\/
- *   > /\*******************************************\/
- *   > perm = malloc(ncol*sizeof(pastix_int_t));
- *   > invp = malloc(ncol*sizeof(pastix_int_t));
- *   >
- *   > pastix(&pastix_data, MPI_COMM_WORLD,
- *   >  ncol, colptr, rows, values,
- *   >  perm, invp, rhs, 1, iparm, dparm);
- *
- *******************************************************************************
  */
 int
 pastix( pastix_data_t **pastix_data_ptr,
@@ -211,7 +146,7 @@ pastix( pastix_data_t **pastix_data_ptr,
             if (iparm[IPARM_VERBOSE] > PastixVerboseNo) {
                 pastix_print( 0, 0, "WARNING: PaStiX schedulers restarted\n" );
             }
-            pastixFinalize( pastix_data_ptr, pastix_comm, iparm, dparm );
+            pastixFinalize( pastix_data_ptr );
         }
 
         /*
@@ -312,11 +247,22 @@ pastix( pastix_data_t **pastix_data_ptr,
      */
     if (iparm[IPARM_START_TASK] == PastixTaskOrdering)
     {
-        ret = pastix_subtask_order( pastix_data, spm, perm, invp );
+        Order o;
+        ret = orderAlloc(&o, n, 0);
+        memcpy( o.permtab, perm, o.vertnbr*sizeof(pastix_int_t));
+        memcpy( o.peritab, invp, o.vertnbr*sizeof(pastix_int_t));
         if (PASTIX_SUCCESS != ret)
         {
             return ret;
         }
+        ret = pastix_subtask_order( pastix_data, spm, &o );
+        if (PASTIX_SUCCESS != ret)
+        {
+            return ret;
+        }
+        memcpy( perm, o.permtab, o.vertnbr*sizeof(pastix_int_t));
+        memcpy( invp, o.peritab, o.vertnbr*sizeof(pastix_int_t));
+        orderExit(&o);
         iparm[IPARM_START_TASK]++;
     }
 
@@ -329,7 +275,7 @@ pastix( pastix_data_t **pastix_data_ptr,
 
     if (iparm[IPARM_START_TASK] == PastixTaskSymbfact)
     {
-        ret = pastix_subtask_symbfact( pastix_data, perm, invp );
+        ret = pastix_subtask_symbfact( pastix_data );
         if (PASTIX_SUCCESS != ret)
         {
             return ret;
@@ -488,7 +434,7 @@ pastix( pastix_data_t **pastix_data_ptr,
     }
 
     if (iparm[IPARM_START_TASK] == PastixTaskClean) {
-        pastixFinalize( pastix_data_ptr, pastix_comm, iparm, dparm );
+        pastixFinalize( pastix_data_ptr );
         iparm[IPARM_START_TASK]++;
     }
 

@@ -281,3 +281,58 @@ orderBase (Order * const ordeptr,
 
     ordeptr->baseval = baseval;
 }
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_order
+ *
+ * @brief This routine copy a given ordering in a new one.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] ordedst
+ *          The destination ordering
+ *
+ * @param[in] ordesrc
+ *          The source ordering
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *
+ *******************************************************************************/
+int
+orderCopy (Order * const ordedst,
+           const Order * const ordesrc)
+{
+    /* Parameter checks */
+    if ( ordedst == NULL ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( ordesrc == NULL ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( ordesrc == ordedst ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    ordedst->baseval = ordesrc->baseval;
+    ordedst->vertnbr = ordesrc->vertnbr;
+    ordedst->cblknbr = ordesrc->cblknbr;
+    if (ordedst->permtab == NULL )
+        MALLOC_INTERN(ordedst->permtab, ordesrc->vertnbr, pastix_int_t);
+    memcpy(ordedst->permtab, ordesrc->permtab, ordesrc->vertnbr*sizeof(pastix_int_t));
+    if (ordedst->peritab == NULL )
+        MALLOC_INTERN(ordedst->peritab, ordesrc->vertnbr, pastix_int_t);
+    memcpy(ordedst->peritab, ordesrc->peritab, ordesrc->vertnbr*sizeof(pastix_int_t));
+    if (ordedst->rangtab == NULL )
+        MALLOC_INTERN(ordedst->rangtab, ordesrc->cblknbr+1, pastix_int_t);
+    memcpy(ordedst->rangtab, ordesrc->rangtab, (ordesrc->cblknbr+1)*sizeof(pastix_int_t));
+    if (ordedst->treetab == NULL )
+        MALLOC_INTERN(ordedst->treetab, ordesrc->cblknbr, pastix_int_t);
+    memcpy(ordedst->treetab, ordesrc->treetab, ordesrc->cblknbr*sizeof(pastix_int_t));
+
+    return PASTIX_SUCCESS;
+}

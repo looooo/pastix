@@ -1,8 +1,17 @@
 /**
- *  @file reentrant.c
+ * @file reentrant.c
  *
- *  A simple example :
- *  run two threads then run two instances of PaStiX in each.
+ * @brief A reentrant example that runs two threads then run two instances of the solver in each thread.
+ *
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author  Hastaran Matias
+ * @date    2017-01-17
+ *
+ * @ingroup pastix_examples
+ * @code
  *
  */
 #include <pthread.h>
@@ -111,8 +120,9 @@ static void *solve_smp(void *arg)
     free(x);
     free(b);
     free( spm );
-    pastixFinalize( &pastix_data, MPI_COMM_WORLD, param.iparm, param.dparm );
-    return NULL;
+    pastixFinalize( &pastix_data );
+
+    return EXIT_SUCCESS;
 }
 
 int main (int argc, char **argv)
@@ -171,3 +181,7 @@ int main (int argc, char **argv)
     free(solve_param);
     return EXIT_SUCCESS;
 }
+
+/**
+ * @endcode
+ */

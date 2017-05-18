@@ -1,14 +1,14 @@
 /**
- * @file: bench_facto.c
+ * @file personal.c
  *
- * @brief A bench example that performs 3 successive numerical factorization.
+ * @brief A step-by-step example with a personal ordering (identity).
  *
  * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
- * @author  Hastaran Matias
- * @date    2017-01-17
+ * @author  Pierre Ramet
+ * @date    2017-05-17
  *
  * @ingroup pastix_examples
  * @code
@@ -16,6 +16,7 @@
  */
 #include <pastix.h>
 #include <spm.h>
+#include "order.h"
 #include "drivers.h"
 
 int main (int argc, char **argv)
@@ -30,7 +31,9 @@ int main (int argc, char **argv)
     size_t          size;
     int             check = 1;
     int             nrhs = 1;
-    int             i, nbruns = 3;
+    double          normA;
+    Order           ord;
+    pastix_int_t    i;
 
     /**
      * Initialize parameters to default values
@@ -47,6 +50,7 @@ int main (int argc, char **argv)
     /**
      * Startup PaStiX
      */
+    iparm[IPARM_ORDERING] = PastixOrderPersonal;
     pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
@@ -64,40 +68,58 @@ int main (int argc, char **argv)
     }
 
     /**
+     * Scal the matrix to avoid unexpected rouding errors
+     */
+    normA = spmNorm( PastixFrobeniusNorm, spm );
+    spmScal( 1./normA, spm );
+
+    /**
+     * Build personal ordering (identity)
+     */
+    orderAlloc( &ord, spm->gN, 0 );
+    for (i=0; i<ord.vertnbr; i++)
+    {
+        ord.permtab[i]=i;
+        ord.peritab[i]=i;
+    }
+
+    /**
      * Perform ordering, symbolic factorization, and analyze steps
      */
-    pastix_task_analyze( pastix_data, spm );
 
-    for(i=0; i<nbruns; i++) {
-        /**
-         * Perform the numerical factorization
-         */
-        pastix_task_numfact( pastix_data, spm );
+    pastix_subtask_order( pastix_data, spm, &ord );
+    pastix_subtask_symbfact( pastix_data );
+    pastix_subtask_reordering( pastix_data );
+    pastix_subtask_blend( pastix_data );
+
+    size = pastix_size_of( spm->flttype ) * spm->n;
+    x = malloc( size );
+    b = malloc( size );
+    if ( check > 1 ) {
+        x0 = malloc( size );
+    } else {
+        x0 = NULL;
     }
+
+    /**
+     * Perform the numerical factorization
+     */
+    pastix_subtask_spm2bcsc( pastix_data, spm );
+    pastix_subtask_bcsc2ctab( pastix_data, spm );
+    pastix_subtask_sopalin( pastix_data, spm );
 
     /**
      * Generates the b and x vector such that A * x = b
      * Compute the norms of the initial vectors if checking purpose.
      */
-    size = pastix_size_of( spm->flttype ) * spm->n;
-    x = malloc( size );
-    b = malloc( size );
-
     if ( check )
     {
-        if ( check > 1 ) {
-            x0 = malloc( size );
-        } else {
-            x0 = NULL;
-        }
         spmGenRHS( PastixRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
         memcpy( x, b, size );
     }
     else {
         spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
-
         /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
-        b = malloc( size );
         memcpy( b, x, size );
     }
 
@@ -105,21 +127,24 @@ int main (int argc, char **argv)
      * Solve the linear system
      */
     pastix_task_solve( pastix_data, spm, nrhs, x, spm->n );
-
     pastix_task_refine(pastix_data, x, nrhs, b);
 
-    if ( check )
-    {
+    if ( check ) {
         spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
-
-        if (x0) free(x0);
     }
 
-    spmExit( spm );
-    free( spm );
-    free( x );
-    free( b );
+    /**
+     * Exit PaStiX
+     */
     pastixFinalize( &pastix_data );
+
+    orderExit( &ord );
+    spmExit( spm );
+    free(spm);
+    free(b);
+    free(x);
+    if (x0)
+        free(x0);
 
     return EXIT_SUCCESS;
 }

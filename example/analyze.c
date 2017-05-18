@@ -1,8 +1,19 @@
 /**
- *  @file: analyze.c
+ * @file: analyze.c
  *
- *  A simple example that performs only the analyses steps onto the given graph.
- *  These tests doesn't require the values of the matrix.
+ * @brief A simple example that performs only the analyses steps onto the given graph.
+
+ * These tests doesn't require the values of the matrix.
+ *
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author  Pierre Ramet
+ * @date    2017-05-17
+ *
+ * @ingroup pastix_examples
+ * @code
  *
  */
 #include <pastix.h>
@@ -56,7 +67,11 @@ int main (int argc, char **argv)
 
     spmExit( spm );
     free( spm );
-    pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+    pastixFinalize( &pastix_data );
 
     return EXIT_SUCCESS;
 }
+
+/**
+ * @endcode
+ */

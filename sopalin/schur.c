@@ -80,6 +80,11 @@ pastix_setSchurUnknownList( pastix_data_t      *pastix_data,
  * @param[in] lds
  *          The leading dimension of the S array.
  *
+ ********************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *
  *******************************************************************************/
 int
 pastix_getSchur( const pastix_data_t *pastix_data,
@@ -128,3 +133,8 @@ pastix_getSchur( const pastix_data_t *pastix_data,
     }
     return PASTIX_SUCCESS;
 }
+
+/**
+ * @}
+ */
+

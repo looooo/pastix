@@ -1,18 +1,19 @@
 /**
- *  @file simple.c
+ * @file simple.c
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @brief A simple example that reads the matrix and then runs pastix in one call.
  *
- *  This is a simple example that:
- *  reads the matrix, checks if it is correct and corrects it if needed,
- *  and then runs pastix in one call.
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author  Hastaran Matias
  * @date    2017-01-17
  *
- **/
+ * @ingroup pastix_examples
+ * @code
+ *
+ */
 #include <pastix.h>
 #include <spm.h>
 #include "drivers.h"
@@ -119,7 +120,11 @@ int main (int argc, char **argv)
     spmExit( spm );
     free( spm );
     free(b); free(x);
-    pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+    pastixFinalize( &pastix_data );
 
     return EXIT_SUCCESS;
 }
+
+/**
+ * @endcode
+ */

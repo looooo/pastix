@@ -6,8 +6,9 @@ pastix:
     - cd build
     - cmake ..
     - make -j2
-    - ctest
-    
+    - if [ `which valgrind` ]; then ctest -D ExperimentalMemCheck; fi
+    - ctest -D ExperimentalTest
+
 pages:
   script:
   - echo "J'ai reussi" > index.html

@@ -1,18 +1,19 @@
 /**
- *  @file step-by-step.c
+ * @file step-by-step.c
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @brief A step-by-step example that runs one full analyze (ordering, symbolic factorization, analyze), then loops over 2 factorizations that are both used for 2 solves each.
  *
- *  This an example calling PaStiX in step-by-step mode.
- *  If runs one full analyze (ordering, symbolic factorization, analyze), then
- *  it loops over 2 factorizations that are both used for 2 solves each.
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author  Hastaran Matias
  * @date    2017-01-17
  *
- **/
+ * @ingroup pastix_examples
+ * @code
+ *
+ */
 #include <pastix.h>
 #include <spm.h>
 #include "drivers.h"
@@ -74,8 +75,8 @@ int main (int argc, char **argv)
     /**
      * Perform ordering, symbolic factorization, and analyze steps
      */
-    pastix_subtask_order( pastix_data, spm, NULL, NULL );
-    pastix_subtask_symbfact( pastix_data, NULL, NULL );
+    pastix_subtask_order( pastix_data, spm, NULL );
+    pastix_subtask_symbfact( pastix_data );
     pastix_subtask_reordering( pastix_data );
     pastix_subtask_blend( pastix_data );
 
@@ -126,7 +127,7 @@ int main (int argc, char **argv)
         }
     }
 
-    pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+    pastixFinalize( &pastix_data );
 
     spmExit( spm );
     free(spm);
@@ -134,5 +135,10 @@ int main (int argc, char **argv)
     free(x);
     if (x0)
         free(x0);
+
     return EXIT_SUCCESS;
 }
+
+/**
+ * @endcode
+ */

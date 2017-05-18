@@ -1,9 +1,17 @@
 /**
- *  @file: simple.c
+ * @file: simple_vdof.c
  *
- *  A simple example :
- *  read the matrix, check it is correct and correct it if needed,
- *  then run pastix in one call.
+ * @brief A variadic dofs example.
+ *
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author  Hastaran Matias
+ * @date    2017-01-17
+ *
+ * @ingroup pastix_examples
+ * @code
  *
  */
 #include <pastix.h>
@@ -119,7 +127,11 @@ int main (int argc, char **argv)
     free( spm );
     free(x);
     free(b);
-    pastixFinalize( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+    pastixFinalize( &pastix_data );
 
     return EXIT_SUCCESS;
 }
+
+/**
+ * @endcode
+ */
