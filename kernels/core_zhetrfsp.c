@@ -20,6 +20,8 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 
+#include <lapacke.h>
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define MAXSIZEOFBLOCKS 64
 static pastix_complex64_t zone  =  1.;
@@ -40,7 +42,7 @@ static pastix_complex64_t mzone = -1.;
  *          The number of rows and columns of the matrix A.
  *
  * @param[inout] A
- *          The matrix A to factorize with Cholesky factorization. The matrix
+ *          The matrix A to factorize with LDL^h factorization. The matrix
  *          is of size lda -by- n.
  *
  * @param[in] lda
@@ -155,7 +157,10 @@ core_zhetrfsp( pastix_int_t        n,
 
             matrixsize = n-(k*MAXSIZEOFBLOCKS+blocksize);
 
-            /* Compute the column L(k+1:n,k) = (L(k,k)D(k,k))^{-1}A(k+1:n,k)    */
+            /*
+             * Solve the lower rectangle below the diagonal block
+             *      L(k+1:n,k) = (L(k,k) D(k,k))^{-1} A(k+1:n,k)
+             */
             /* 1) Compute A(k+1:n,k) = A(k+1:n,k)L(k,k)^{-T} = D(k,k)L(k+1:n,k) */
                         /* input: L(k,k) in tmp, A(k+1:n,k) in tmp1   */
                         /* output: A(k+1:n,k) in tmp1                 */
@@ -192,7 +197,7 @@ core_zhetrfsp( pastix_int_t        n,
 /**
  *******************************************************************************
  *
- * @brief Computes the LDL^H factorization of the diagonal block in a panel.
+ * @brief Computes the LDL^h factorization of the diagonal block in a panel.
  *
  *******************************************************************************
  *
@@ -231,13 +236,25 @@ cpucblk_zhetrfsp1d_hetrf( SolverCblk         *cblk,
     ncols  = cblk->lcolnum - cblk->fcolnum + 1;
     stride = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
 
-    /* check if diagonal column block */
-    assert( cblk->fcolnum == cblk->fblokptr->frownum );
-    assert( cblk->lcolnum == cblk->fblokptr->lrownum );
+    if ( cblk->cblktype & CBLK_COMPRESSED ) {
+        assert( cblk->fblokptr->LRblock[0].rk == -1 );
+        L = cblk->fblokptr->LRblock[0].u;
+        stride = ncols;
+
+        assert( stride == cblk->fblokptr->LRblock[0].rkmax );
+    }
 
     /* Factorize diagonal block (two terms version with workspace) */
-    core_zhetrfsp( ncols, L, stride, &nbpivot, criteria, DLh );
-
+    if (1) {
+        core_zhetrfsp( ncols, L, stride, &nbpivot, criteria, DLh );
+    }
+    else {
+        /* With this version, lower triangular part holds L, and upper (DL^h) */
+        core_ztradd( PastixLower, PastixConjTrans, ncols-1, ncols-1,
+                     1., L+1, stride,
+                     0, L+stride, stride );
+        core_zgetrfsp( ncols, L, stride, &nbpivot, criteria );
+    }
     return nbpivot;
 }
 
@@ -265,40 +282,62 @@ cpucblk_zhetrfsp1d_hetrf( SolverCblk         *cblk,
 int core_zhetrfsp1d_trsm( SolverCblk         *cblk,
                           pastix_complex64_t *L)
 {
-    SolverBlok   *blok;
-    pastix_int_t  ncols, stride;
-    SolverBlok   *lblk;
+    const SolverBlok *blok, *lblk;
 
-    ncols  = cblk->lcolnum - cblk->fcolnum + 1;
-    stride = cblk->stride;
-    blok = cblk->fblokptr;   /* this diagonal block */
-    lblk = cblk[1].fblokptr; /* the next diagonal block */
+    blok = cblk->fblokptr + 1; /* Firt off-diagonal block */
+    lblk = cblk[1].fblokptr;   /* Next diagonal block     */
 
     /* if there are off-diagonal supernodes in the column */
-    if ( blok+1 < lblk )
+    if ( blok < lblk )
     {
-        pastix_complex64_t *fL;
-        pastix_int_t nrows, k;
+        const pastix_complex64_t *A;
+        pastix_complex64_t *B;
+        pastix_int_t M, N, lda, ldb, j;
 
-        /* vertical dimension */
-        nrows = stride - ncols;
+        N = cblk_colnbr( cblk );
+        A = L;
 
-        /* the first off-diagonal block in column block address */
-        fL = L + blok[1].coefind;
+        if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
+            lda = N;
 
-        /* Three terms version, no need to keep L and L*D */
-        cblas_ztrsm(CblasColMajor,
-                    CblasRight, CblasLower,
-                    CblasConjTrans, CblasUnit,
-                    nrows, ncols,
-                    CBLAS_SADDR(zone), L,  stride,
-                                       fL, stride);
+            for(; blok < lblk; blok++) {
+                M   = blok_rownbr( blok );
+                B   = L + blok->coefind;
+                ldb = M;
 
-        for (k=0; k<ncols; k++)
-        {
-            pastix_complex64_t alpha;
-            alpha = 1. / L[k+k*stride];
-            cblas_zscal(nrows, CBLAS_SADDR(alpha), &(fL[k*stride]), 1);
+                /* Three terms version, no need to keep L and L*D */
+                cblas_ztrsm( CblasColMajor, CblasRight, CblasLower,
+                             CblasConjTrans, CblasUnit, M, N,
+                             CBLAS_SADDR(zone), A, lda,
+                                                B, ldb);
+
+                for (j=0; j<N; j++)
+                {
+                    pastix_complex64_t alpha;
+                    alpha = 1. / A[j + j * lda];
+                    cblas_zscal(M, CBLAS_SADDR(alpha), B + j * ldb, 1);
+                }
+            }
+
+        }
+        else {
+            lda = cblk->stride;
+            M   = cblk->stride - N;
+            B   = L + blok->coefind;
+            ldb = cblk->stride;
+
+            /* Three terms version, no need to keep L and L*D */
+            cblas_ztrsm( CblasColMajor, CblasRight, CblasLower,
+                         CblasConjTrans, CblasUnit, M, N,
+                         CBLAS_SADDR(zone), A, lda,
+                                            B, ldb);
+
+            for (j=0; j<N; j++)
+            {
+                pastix_complex64_t alpha;
+                alpha = 1. / A[j + j * lda];
+                cblas_zscal(M, CBLAS_SADDR(alpha), B + j * ldb, 1);
+            }
         }
     }
 
@@ -308,7 +347,7 @@ int core_zhetrfsp1d_trsm( SolverCblk         *cblk,
 /**
  *******************************************************************************
  *
- * core_zhetrfsp1d_gemm - Computes the Cholesky factorization of one panel and
+ * core_zhetrfsp1d_gemm - Computes the LDL^h factorization of one panel and
  * apply all the trsm updates to this panel.
  *
  *******************************************************************************
@@ -335,10 +374,7 @@ int core_zhetrfsp1d_trsm( SolverCblk         *cblk,
  *          The pointer to the matrix storing the coefficients of the
  *          target.
  *
- * @param[inout] work1
- *          Temporary buffer used in core_zgemdm().
- *
- * @param[inout] work2
+ * @param[inout] work
  *          Temporary buffer used in core_zgemdm().
  *
  *******************************************************************************
@@ -347,65 +383,47 @@ int core_zhetrfsp1d_trsm( SolverCblk         *cblk,
  *          The number of static pivoting during factorization of the diagonal block.
  *
  *******************************************************************************/
-void core_zhetrfsp1d_gemm( SolverCblk         *cblk,
-                           SolverBlok         *blok,
-                           SolverCblk         *fcblk,
-                           pastix_complex64_t *L,
-                           pastix_complex64_t *C,
-                           pastix_complex64_t *work1,
-                           pastix_complex64_t *work2 )
+void core_zhetrfsp1d_gemm( const SolverCblk         *cblk,
+                           const SolverBlok         *blok,
+                                 SolverCblk         *fcblk,
+                           const pastix_complex64_t *L,
+                                 pastix_complex64_t *C,
+                                 pastix_complex64_t *work )
 {
-    SolverBlok *iterblok;
-    SolverBlok *fblok; /* facing blok */
-    SolverBlok *lblok; /* first blok of panel cblk+1 */
+    const SolverBlok *iterblok;
+    const SolverBlok *fblok;
+    const SolverBlok *lblok;
+    const pastix_complex64_t *blokA;
+    const pastix_complex64_t *blokB;
+    const pastix_complex64_t *blokD;
+    pastix_complex64_t *blokC;
 
-    pastix_complex64_t *Aik, *Aij;
-    pastix_int_t stride, stridefc, indblok;
-    pastix_int_t dimi, dimj, dima, dimb;
-    pastix_int_t ldw;
-    pastix_int_t ret;
-    (void)ret;
+    pastix_int_t M, N, K, lda, ldb, ldc, ldd;
 
-    stride = cblk->stride;
-    dima = cblk_colnbr( cblk );
+    /* Get the panel update dimensions */
+    K = cblk_colnbr( cblk );
+    N = blok_rownbr( blok );
 
-    /* First blok */
-    indblok = blok->coefind;
-
-    dimj = blok_rownbr( blok );
-    dimi = stride - indblok;
-
-    /* Matrix A = Aik */
-    Aik = L + indblok;
-
-    /* Compute ldw which should never be larger than SOLVE_COEFMAX */
-    ldw = (dimi+1) * dima;
-
-    /* Compute the contribution */
-    ret = core_zgemdm( PastixNoTrans, PastixConjTrans,
-                       dimi, dimj, dima,
-                       1.,  Aik,   stride,
-                            Aik,   stride,
-                       0.,  work1, dimi,
-                            L,     stride+1,
-                            work2, ldw );
-    assert(ret == PASTIX_SUCCESS);
+    /* Get info for diagonal, and the B block */
+    blokD = L;
+    blokB = L + blok->coefind;
+    if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
+        ldb = N;
+        ldd = K + 1;
+    }
+    else {
+        ldb = cblk->stride;
+        ldd = cblk->stride + 1;
+    }
 
     /*
-     * Add contribution to facing cblk
-     * A(i,i+1:n) += work1
+     * Add contribution to C in fcblk:
+     *    Get the first facing block of the distant panel, and the last block of
+     *    the current cblk
      */
-
-    /* Get the first block of the distant panel */
     fblok = fcblk->fblokptr;
-
-    /* Move the pointer to the top of the right column */
-    stridefc = fcblk->stride;
-    C = C + (blok->frownum - fcblk->fcolnum) * stridefc;
-
     lblok = cblk[1].fblokptr;
 
-    /* for all following blocks in block column */
     for (iterblok=blok; iterblok<lblok; iterblok++) {
 
         /* Find facing blok */
@@ -415,19 +433,38 @@ void core_zhetrfsp1d_gemm( SolverCblk         *cblk,
             assert( fblok < fcblk[1].fblokptr );
         }
 
-        Aij = C + fblok->coefind + iterblok->frownum - fblok->frownum;
-        dimb = iterblok->lrownum - iterblok->frownum + 1;
+        /* Get the A block and its dimensions */
+        M     = blok_rownbr( iterblok );
+        blokA = L + iterblok->coefind;
+        lda   = (cblk->cblktype & CBLK_LAYOUT_2D) ? M : cblk->stride;
 
-        pastix_cblk_lock( fcblk );
-        core_zgeadd( PastixNoTrans, dimb, dimj,
-                     -1.0, work1, dimi,
-                      1.0, Aij,   stridefc );
-        pastix_cblk_unlock( fcblk );
+        /* Get the C block */
+        ldc = (fcblk->cblktype & CBLK_LAYOUT_2D) ? blok_rownbr(fblok) : fcblk->stride;
 
-        /* Displacement to next block */
-        work1 += dimb;
+        blokC = C + fblok->coefind
+            + iterblok->frownum - fblok->frownum
+            + (blok->frownum - fcblk->fcolnum) * ldc;
+
+        {
+            pastix_int_t ldw;
+            int ret;
+
+            /* Compute ldw which should never be larger than SOLVE_COEFMAX */
+            ldw = (M+1) * K;
+
+            pastix_cblk_lock( fcblk );
+            ret = core_zgemdm( PastixNoTrans, PastixConjTrans,
+                               M, N, K,
+                               -1., blokA, lda,
+                                    blokB, ldb,
+                                1., blokC, ldc,
+                                    blokD, ldd,
+                               work, ldw );
+            pastix_cblk_unlock( fcblk );
+            assert(ret == PASTIX_SUCCESS);
+            (void)ret;
+        }
     }
-    pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
 }
 
 /**
@@ -473,8 +510,29 @@ cpucblk_zhetrfsp1d_panel( SolverCblk         *cblk,
     pastix_int_t  nbpivot;
     (void)lowrank;
 
-    nbpivot = cpucblk_zhetrfsp1d_hetrf(cblk, L, DLh, criteria );
-    core_zhetrfsp1d_trsm(cblk, L);
+    nbpivot = cpucblk_zhetrfsp1d_hetrf( cblk, L, DLh, criteria );
+
+    if (1) {
+        core_zhetrfsp1d_trsm(cblk, L);
+    }
+    else {
+        /*
+         * Let's generate a temporary (DL^h)' to have more efficient GEMM
+         */
+        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', cblk->stride, cblk_colnbr( cblk ),
+                             L, cblk->stride, DLh, cblk->stride );
+
+        /*
+         * We exploit the fact that (DL^h) is stored in the top triangle matrix of L
+         */
+        cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixUpper,
+                         PastixNoTrans, PastixNonUnit,
+                         cblk, L, L, lowrank );
+
+        cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
+                         PastixNoTrans, PastixUnit,
+                         cblk, DLh, DLh, lowrank );
+    }
     return nbpivot;
 }
 
@@ -515,7 +573,7 @@ int
 cpucblk_zhetrfsp1d( SolverMatrix       *solvmtx,
                     SolverCblk         *cblk,
                     double              criteria,
-                    pastix_complex64_t *work1,
+                    pastix_complex64_t *DLh,
                     pastix_complex64_t *work2 )
 {
     pastix_complex64_t *L = cblk->lcoeftab;
@@ -524,20 +582,29 @@ cpucblk_zhetrfsp1d( SolverMatrix       *solvmtx,
     pastix_int_t nbpivot;
 
     /* if there are off-diagonal supernodes in the column */
-    nbpivot = cpucblk_zhetrfsp1d_hetrf(cblk, L, work1, criteria);
-    core_zhetrfsp1d_trsm(cblk, L);
+    nbpivot = cpucblk_zhetrfsp1d_panel(cblk, L, DLh, criteria, &solvmtx->lowrank );
 
     blok = cblk->fblokptr+1;   /* this diagonal block */
     lblk = cblk[1].fblokptr;   /* the next diagonal block */
+
     for( ; blok < lblk; blok++ )
     {
         fcblk = (solvmtx->cblktab + blok->fcblknm);
 
-        core_zhetrfsp1d_gemm( cblk, blok, fcblk,
-                              L, fcblk->lcoeftab,
-                              work1, work2 );
+        /* Update on L */
+        if (1) {
+            core_zhetrfsp1d_gemm( cblk, blok, fcblk,
+                                  L, fcblk->lcoeftab,
+                                  work2 );
+        }
+        else {
+            cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixConjTrans,
+                             cblk, blok, fcblk,
+                             L, DLh, fcblk->lcoeftab,
+                             work2, &solvmtx->lowrank );
+        }
+        pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
     }
 
     return nbpivot;
 }
-
