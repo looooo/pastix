@@ -6,8 +6,8 @@ pastix:
     - cd build
     - cmake ..
     - make -j2
-    - if [ `which valgrind` ]; then ctest -D ExperimentalMemCheck; fi
     - ctest -D ExperimentalTest
+    #- if [ `which valgrind` ]; then ctest -D ExperimentalMemCheck; fi
 
 pages:
   script:

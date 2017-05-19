@@ -401,6 +401,11 @@ if (PASTIX_BLEND_GENTRACE)
   set(GTG_LIBRARIES    "gtg")
 endif()
 
+# valgrind detection
+#-------------------
+find_program( MEMORYCHECK_COMMAND valgrind )
+set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
+
 #
 ##
 ###

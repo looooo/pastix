@@ -29,11 +29,6 @@ foreach (_file ${EXAMPLES})
   install(FILES   ${_file}            DESTINATION examples )
 endforeach()
 
-# valgrind detection
-#-------------------
-find_program( MEMORYCHECK_COMMAND valgrind )
-set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
-
 ### CTest execution
 set( PASTIX_DRIVERS
   analyze simple step-by-step schur personal) # reentrant fails with Scotch parser !
@@ -49,35 +44,35 @@ endif (PASTIX_WITH_PARSEC)
 
 ### All drivers with Laplacian and default parameters
 foreach(example ${PASTIX_DRIVERS} )
-  add_test(drv_${example} ./${example} -lap 10:10:10)
+  add_test(example_drv_${example} ./${example} -lap 10:10:10)
 endforeach()
 
 ### Factotype
 foreach(example ${PASTIX_TESTS} )
   # RSA
-  add_test(rsa_${example} ./${example} -rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa   -f 2) # LLt fails with negative pivot !
+  add_test(example_rsa_${example} ./${example} -rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa   -f 2) # LLt fails with negative pivot !
   # Matrix Market
-  add_test(mm_${example}  ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx  -f 2) # LLt fails with negative pivot !
+  add_test(example_mm_${example}  ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx  -f 2) # LLt fails with negative pivot !
   # Harwell Boeing
-  add_test(hb_${example}  ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua   -f 2)
+  add_test(example_hb_${example}  ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua   -f 2)
   # Matrix Market - Hermitian
-  add_test(mm2_${example} ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx -f 2)
+  add_test(example_mm2_${example} ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx -f 2)
 endforeach()
 
 ### Refinement
 foreach(example ${PASTIX_TESTS} )
-  add_test(cg_${example}       ./${example} -rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa -f 2 -i iparm_refinement pastixrefinegmres) # LLt fails with negative pivot !
-  add_test(gmres_${example}    ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refimenent pastixrefinegmres)
-  add_test(bicgstab_${example} ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinebicgstab)
+  add_test(example_cg_${example}       ./${example} -rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa -f 2 -i iparm_refinement pastixrefinegmres) # LLt fails with negative pivot !
+  add_test(example_gmres_${example}    ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refimenent pastixrefinegmres)
+  add_test(example_bicgstab_${example} ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinebicgstab)
 endforeach()
 
 ### Distribution
 if (PASTIX_WITH_PARSEC)
   foreach(example ${PASTIX_TESTS} )
     # 2D
-    add_test(2d_${example}   ./${example} -lap 10:10:10 -s 2 -i iparm_distribution_level 0 )
+    add_test(example_2d_${example}   ./${example} -lap 10:10:10 -s 2 -i iparm_distribution_level 0 )
     # 1D/2D
-    add_test(1d2d_${example} ./${example} -lap 10:10:10 -s 2 -i iparm_distribution_level 16)
+    add_test(example_1d2d_${example} ./${example} -lap 10:10:10 -s 2 -i iparm_distribution_level 16)
   endforeach()
 endif (PASTIX_WITH_PARSEC)
 
@@ -92,12 +87,12 @@ endforeach()
 foreach(example ${PASTIX_TESTS} )
   foreach(scheduler ${PASTIX_SCHEDS} )
     # SVD Begin
-    add_test(svdbegin_sched${scheduler}_${example}  ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodsvd -i iparm_compress_min_width 16 -i iparm_Ccmpress_min_height 16)
+    add_test(example_svdbegin_sched${scheduler}_${example}  ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodsvd -i iparm_compress_min_width 16 -i iparm_Ccmpress_min_height 16)
     # SVD End
-    add_test(svdend_sched${scheduler}_${example}    ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodsvd iparm_compress_min_width 16 -i iparm_Ccmpress_min_height 16)
+    add_test(example_svdend_sched${scheduler}_${example}    ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodsvd iparm_compress_min_width 16 -i iparm_Ccmpress_min_height 16)
     # RRQR Begin
-    add_test(rrqrbegin_sched${scheduler}_${example} ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodrrqr iparm_compress_min_width 16 -i iparm_Ccmpress_min_height 16)
+    add_test(example_rrqrbegin_sched${scheduler}_${example} ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodrrqr iparm_compress_min_width 16 -i iparm_Ccmpress_min_height 16)
     # RRQR End
-    add_test(rrqrend_sched${scheduler}_${example}   ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodrrqr iparm_compress_min_width 16 -i iparm_Ccmpress_min_height 16)
+    add_test(example_rrqrend_sched${scheduler}_${example}   ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodrrqr iparm_compress_min_width 16 -i iparm_Ccmpress_min_height 16)
     endforeach()
 endforeach()
