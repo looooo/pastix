@@ -17,7 +17,7 @@ libpastix = ctypes.cdll.LoadLibrary(libpastix_name)
 # Load the SPM library
 libspm_name = ctypes.util.find_library('pastix_spm')
 if libspm_name == None:
-    raise EnvironmentError("Could not find shared library: spm."
+    raise EnvironmentError("Could not find shared library: pastix_spm."
                            "The path to libpastix_spm.so should be in "
                            "$LIBRARY_PATH and $LD_LYBRARY_PATH.")
 libspm = ctypes.cdll.LoadLibrary(libspm_name)
