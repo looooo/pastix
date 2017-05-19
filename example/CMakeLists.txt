@@ -8,6 +8,7 @@
 #  @date 2013-06-24
 #
 ###
+
 add_subdirectory(old)
 set (EXAMPLES
   analyze.c
@@ -27,6 +28,11 @@ foreach (_file ${EXAMPLES})
   install(TARGETS ${_name_we} RUNTIME DESTINATION examples )
   install(FILES   ${_file}            DESTINATION examples )
 endforeach()
+
+# valgrind detection
+#-------------------
+find_program( MEMORYCHECK_COMMAND valgrind )
+set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
 
 ### CTest execution
 set( PASTIX_DRIVERS
@@ -60,7 +66,7 @@ endforeach()
 
 ### Refinement
 foreach(example ${PASTIX_TESTS} )
-  add_test(cg_${example}       ./${example} -rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa -f 2 -i iparm_refinement pastixrefinecg) # LLt fails with negative pivot !
+  add_test(cg_${example}       ./${example} -rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa -f 2 -i iparm_refinement pastixrefinegmres) # LLt fails with negative pivot !
   add_test(gmres_${example}    ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refimenent pastixrefinegmres)
   add_test(bicgstab_${example} ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinebicgstab)
 endforeach()
@@ -69,16 +75,16 @@ endforeach()
 if (PASTIX_WITH_PARSEC)
   foreach(example ${PASTIX_TESTS} )
     # 2D
-    add_test(2d_${example}   ./${example} -lap 30:30:30 -s 2 -i iparm_distribution_level 0 )
+    add_test(2d_${example}   ./${example} -lap 10:10:10 -s 2 -i iparm_distribution_level 0 )
     # 1D/2D
-    add_test(1d2d_${example} ./${example} -lap 30:30:30 -s 2 -i iparm_distribution_level 16)
+    add_test(1d2d_${example} ./${example} -lap 10:10:10 -s 2 -i iparm_distribution_level 16)
   endforeach()
 endif (PASTIX_WITH_PARSEC)
 
 ### Scheduling
 foreach(example ${PASTIX_TESTS} )
   foreach(scheduler ${PASTIX_SCHEDS} )
-    add_test(sched${scheduler}_${example}   ./${example} -lap 30:30:30 -s ${scheduler})
+    add_test(sched${scheduler}_${example}   ./${example} -lap 10:10:10 -s ${scheduler})
   endforeach()
 endforeach()
 
