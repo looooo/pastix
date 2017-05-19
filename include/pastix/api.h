@@ -106,10 +106,8 @@ typedef enum pastix_iparm_e {
     IPARM_COMPRESS_WHEN,         /**< When to compress a supernode                                   Default: PastixCompressNever      IN    */
     IPARM_COMPRESS_METHOD,       /**< Compression method (SVD/RRQR)                                  Default: PastixCompressMethodRRQR IN    */
 
-#if defined(PASTIX_WITH_MPI)
     /* MPI modes */
     IPARM_THREAD_COMM_MODE,      /**< Threaded communication mode                                    Default: PastixThreadMultiple     IN    */
-#endif /* defined(PASTIX_WITH_MPI) */
 
     /* Subset for old interface */
     IPARM_MODIFY_PARAMETER,      /**< Indicate if parameters have been set by user                   Default: 1                        IN    */
