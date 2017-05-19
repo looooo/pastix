@@ -26,22 +26,9 @@ A = sps.spdiags([np.ones(n)*i for i in [4, -1, -1, -1, -1]],
 x0 = np.arange(n).reshape(n,1)
 # Construct b as b = A * x_0
 b = A.dot(x0)
-
-tmp = np.eye(2).dot(np.ones(2))  # Hack to make sure that the mkl is loaded
-solver = pastix.Solver()
-
-solver.schur(A, [2, 3])
-S = solver.S
-f = solver.b2f(b)
-y = la.solve(S, f)
-x = solver.y2x(y, b)
-
-solver.spmA.checkAxb( x0, b, x )
-
-solver.finalize()
-
 x = b.copy()
 
+tmp = np.eye(2).dot(np.ones(2))  # Hack to make sure that the mkl is loaded
 
 # Convert the scipy sparse matrix to spm storage format
 spmA = pastix.spm( A )
@@ -62,10 +49,10 @@ schurlist = np.array( [2, 3] )
 pastix.setSchurUnknownList ( pastix_data, schurlist )
 
 # Perform analyze
-pastix.analyze( pastix_data, spmA )
+pastix.task_analyze( pastix_data, spmA )
 
 # Perform numerical factorization
-pastix.numfact( pastix_data, spmA )
+pastix.task_numfact( pastix_data, spmA )
 
 # Get the Schur complement
 S = np.array( np.zeros( (nschur, nschur) ), order='F', dtype=A.dtype )
@@ -93,7 +80,7 @@ else:
 pastix.subtask_applyorder( pastix_data, pastix.direction.Backward, x )
 
 # 6- Refine the solution
-pastix.refine(pastix_data, b, x)
+pastix.task_refine(pastix_data, b, x)
 
 # Check solution
 spmA.checkAxb( x0, b, x )

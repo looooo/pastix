@@ -1,7 +1,7 @@
 """
- @file simple.py
+ @file schur-obj.py
 
- PaStiX schur python example with the Solver object
+ PaStiX Schur python example with an object oriented programing solution.
 
  @copyright 2017      Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
@@ -11,6 +11,9 @@
  @author Mathieu Faverge
  @author Louis Poirel
  @date 2017-05-04
+
+ This example shows how to use pastix solver to solve a system with a
+ Schur complement.
 
 """
 import pypastix as pastix
@@ -25,13 +28,13 @@ A = sps.spdiags([np.ones(n)*i for i in [4, -1, -1, -1, -1]],
 
 x0 = np.arange(n).reshape(n,1)
 # Construct b as b = A * x_0
-b = A.dot(x0)
+b  = A.dot(x0)
 
 tmp = np.eye(2).dot(np.ones(2))  # Hack to make sure that the mkl is loaded
-solver = pastix.Solver()
+solver = pastix.solver()
 
 solver.schur(A, [2, 3])
 S = solver.S
 f = solver.b2f(b)
 y = la.solve(S, f)
-x = solver.y2x(y, b, x_check=x0)
+x = solver.y2x(y, b, x0=x0, check=True)

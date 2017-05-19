@@ -27,8 +27,6 @@ b = A.dot(x0)
 # Hack to make sure that the mkl is loaded
 tmp = np.eye(2).dot(np.ones(2))
 
-
-
 # Convert the scipy sparse matrix to spm storage format
 spmA = pastix.spm( A )
 spmA.printInfo()
@@ -43,17 +41,17 @@ factotype = pastix.factotype.LLT
 iparm[pastix.iparm.factorization] = factotype
 
 # Perform analyze
-pastix.analyze( pastix_data, spmA )
+pastix.task_analyze( pastix_data, spmA )
 
 # Perform numerical factorization
-pastix.numfact( pastix_data, spmA )
+pastix.task_numfact( pastix_data, spmA )
 
 # Perform solve
 x = b.copy()
-pastix.solve( pastix_data, spmA, x)
+pastix.task_solve( pastix_data, spmA, x)
 
 # Refine the solution
-pastix.refine(pastix_data, b, x)
+pastix.task_refine(pastix_data, b, x)
 
 # Check solution
 spmA.checkAxb( x0, b, x )

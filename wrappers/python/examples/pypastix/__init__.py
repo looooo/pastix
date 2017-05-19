@@ -27,4 +27,4 @@ __all__ = [ 'libpastix', 'libspm' ]
 from .enum   import *
 from .spm    import *
 from .pastix import *
-from .Solver import *
+from .solver import *

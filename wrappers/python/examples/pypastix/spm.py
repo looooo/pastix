@@ -68,7 +68,6 @@ class spm():
         # Assume A is already in Scipy sparse format
         self.dtype = A.dtype
         flttype = coeftype.getptype( A.dtype )
-        print( "Floating point arithmetic is", flttype )
         if flttype == -1:
             raise TypeError( "Invalid data type. Must be part of (f4, f8, c8 or c16)" )
 
@@ -140,7 +139,6 @@ class spm():
         if libspm == None:
             raise EnvironmentError( "SPM Instance badly instanciated" )
 
-        x0 = np.asarray(x0, self.dtype)
         b = np.array(b, self.dtype)
         x = np.asarray(x, self.dtype)
 
@@ -151,16 +149,23 @@ class spm():
             else:
                 nrhs = x.shape[1]
 
-        self.__checkVector( n, nrhs, x0 )
+        if x0 is not None:
+            x0 = np.asarray(x0, self.dtype)
+            self.__checkVector( n, nrhs, x0 )
+            ldx0 = x0.shape[0]
+            x0ptr = x0.ctypes.data_as(c_void_p)
+        else:
+            ldx0 = 1
+            x0ptr = None
         self.__checkVector( n, nrhs, b )
         self.__checkVector( n, nrhs, x )
 
-        ldx0 = x0.shape[0]
         ldb  = b.shape[0]
         ldx  = x.shape[0]
 
-        libspm.spmCheckAxb.argtypes = [ c_int, POINTER(self.c_spm), c_void_p, c_int, c_void_p, c_int, c_void_p, c_int]
+        libspm.spmCheckAxb.argtypes = [ c_int, POINTER(self.c_spm), c_void_p, c_int,
+                                        c_void_p, c_int, c_void_p, c_int]
         libspm.spmCheckAxb( nrhs, self.id_ptr,
-                                 x0.ctypes.data_as(c_void_p), ldx0,
-                                 b.ctypes.data_as(c_void_p),  ldb,
-                                 x.ctypes.data_as(c_void_p),  ldx )
+                            x0ptr, ldx0,
+                            b.ctypes.data_as(c_void_p), ldb,
+                            x.ctypes.data_as(c_void_p), ldx )

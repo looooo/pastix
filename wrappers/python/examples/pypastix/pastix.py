@@ -50,15 +50,15 @@ def __getnrhs(nrhs, x):
 #
 # Pastix Tasks
 #
-def analyze( pastix_data, spm ):
+def task_analyze( pastix_data, spm ):
     libpastix.pastix_task_analyze.argtypes = [c_void_p, POINTER(spm.c_spm)]
     libpastix.pastix_task_analyze( pastix_data, spm.id_ptr )
 
-def numfact( pastix_data, spm ):
+def task_numfact( pastix_data, spm ):
     libpastix.pastix_task_numfact.argtypes = [c_void_p, POINTER(spm.c_spm)]
     libpastix.pastix_task_numfact( pastix_data, spm.id_ptr )
 
-def solve( pastix_data, spm, x, nrhs=-1 ):
+def task_solve( pastix_data, spm, x, nrhs=-1 ):
 
     n    = spm.spm_c.n
     nrhs = __getnrhs( nrhs, x )
@@ -71,7 +71,7 @@ def solve( pastix_data, spm, x, nrhs=-1 ):
     libpastix.pastix_task_solve( pastix_data, spm.id_ptr, nrhs,
                                  x.ctypes.data_as(c_void_p), x.shape[0] )
 
-def refine( pastix_data, b, x, nrhs=-1 ):
+def task_refine( pastix_data, b, x, nrhs=-1 ):
 
     nrhs = __getnrhs( nrhs, x )
     b = np.asarray(b, spm.dtype)
@@ -100,8 +100,8 @@ def setSchurUnknownList( pastix_data, schur_list ):
 def getSchur( pastix_data, S ):
     libpastix.pastix_getSchur.argtypes = [c_void_p, c_void_p, pastix_int ]
     libpastix.pastix_getSchur( pastix_data,
-                                      S.ctypes.data_as(c_void_p),
-                                      S.shape[0] )
+                               S.ctypes.data_as(c_void_p),
+                               S.shape[0] )
 
 #
 # Pastix Schur

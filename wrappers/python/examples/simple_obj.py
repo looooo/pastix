@@ -1,7 +1,7 @@
 """
  @file simple_obj.py
 
- PaStiX simple python example with the Solver object
+ PaStiX simple python example with the solver object
 
  @copyright 2017      Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
@@ -28,8 +28,8 @@ b = A.dot(x0)
 tmp = np.eye(2).dot(np.ones(2))
 
 # Factorize
-solver = pastix.Solver(A, verbose=True)
+solver = pastix.solver(A, verbose=True)
 
 # Solve
-x = solver.solve(b, x_check=x0)
+x = solver.solve(b, x0=x0, check=True)
 solver.finalize()
