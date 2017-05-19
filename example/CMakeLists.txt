@@ -86,12 +86,12 @@ endforeach()
 foreach(example ${PASTIX_TESTS} )
   foreach(scheduler ${PASTIX_SCHEDS} )
     # SVD Begin
-    add_test(svdbegin_sched${scheduler}_${example}  ./${example} -lap 30:30:30 -s ${scheduler} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodsvd)
+    add_test(svdbegin_sched${scheduler}_${example}  ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodsvd -i iparm_compress_min_width 16 -i iparm_Ccmpress_min_height 16)
     # SVD End
-    add_test(svdend_sched${scheduler}_${example}    ./${example} -lap 30:30:30 -s ${scheduler} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodsvd)
+    add_test(svdend_sched${scheduler}_${example}    ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodsvd iparm_compress_min_width 16 -i iparm_Ccmpress_min_height 16)
     # RRQR Begin
-    add_test(rrqrbegin_sched${scheduler}_${example} ./${example} -lap 30:30:30 -s ${scheduler} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodrrqr)
+    add_test(rrqrbegin_sched${scheduler}_${example} ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodrrqr iparm_compress_min_width 16 -i iparm_Ccmpress_min_height 16)
     # RRQR End
-    add_test(rrqrend_sched${scheduler}_${example}   ./${example} -lap 30:30:30 -s ${scheduler} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodrrqr)
+    add_test(rrqrend_sched${scheduler}_${example}   ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodrrqr iparm_compress_min_width 16 -i iparm_Ccmpress_min_height 16)
     endforeach()
 endforeach()
