@@ -116,11 +116,14 @@ macro(generate_pkgconfig_file)
 
     # Create .pc file
     # ---------------
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/pastix.pc.in" lib/pkgconfig/pastix.pc @ONLY)
+    configure_file(
+      "${CMAKE_CURRENT_SOURCE_DIR}/pastix.pc.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/lib/pkgconfig/pastix.pc" @ONLY)
 
     # installation
     # ------------
-    install(FILES lib/pkgconfig/pastix.pc DESTINATION lib/pkgconfig)
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/lib/pkgconfig/pastix.pc"
+      DESTINATION lib/pkgconfig)
 
 endmacro(generate_pkgconfig_file)
 
