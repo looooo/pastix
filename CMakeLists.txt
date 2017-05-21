@@ -708,6 +708,9 @@ add_subdirectory(example)
 # Testing executables
 add_subdirectory(test)
 
+### Build pkg-config file
+include(GenPkgConfig)
+generate_pkgconfig_file()
 
 #############################################################
 #
