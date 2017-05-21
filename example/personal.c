@@ -16,8 +16,7 @@
  */
 #include <pastix.h>
 #include <spm.h>
-#include "order.h"
-#include "drivers.h"
+#include <order.h>
 
 int main (int argc, char **argv)
 {
@@ -43,7 +42,7 @@ int main (int argc, char **argv)
     /**
      * Get options from command line
      */
-    pastix_ex_getoptions( argc, argv,
+    pastix_getOptions( argc, argv,
                           iparm, dparm,
                           &driver, &filename );
 
@@ -79,14 +78,13 @@ int main (int argc, char **argv)
     orderAlloc( &ord, spm->gN, 0 );
     for (i=0; i<ord.vertnbr; i++)
     {
-        ord.permtab[i]=i;
-        ord.peritab[i]=i;
+        ord.permtab[i] = i;
+        ord.peritab[i] = i;
     }
 
     /**
      * Perform ordering, symbolic factorization, and analyze steps
      */
-
     pastix_subtask_order( pastix_data, spm, &ord );
     pastix_subtask_symbfact( pastix_data );
     pastix_subtask_reordering( pastix_data );

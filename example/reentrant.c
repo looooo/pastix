@@ -17,7 +17,6 @@
 #include <pthread.h>
 #include <pastix.h>
 #include <spm.h>
-#include "../matrix_drivers/drivers.h"
 
 /**
  *  Struct: solv_param
@@ -144,7 +143,7 @@ int main (int argc, char **argv)
     /**
      * Get options from command line
      */
-    pastix_ex_getoptions( argc, argv,
+    pastix_getOptions( argc, argv,
                           iparm, dparm,
                           &driver, &filename );
 

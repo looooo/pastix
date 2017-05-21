@@ -18,8 +18,7 @@
  */
 #include <pastix.h>
 #include <spm.h>
-#include "drivers.h"
-#include "lapacke.h"
+#include <lapacke.h>
 
 void
 schurFactorize( pastix_coeftype_t  flttype,
@@ -220,7 +219,7 @@ int main (int argc, char **argv)
     /*
      * Get options from command line
      */
-    pastix_ex_getoptions( argc, argv,
+    pastix_getOptions( argc, argv,
                           iparm, dparm,
                           &driver, &filename );
 

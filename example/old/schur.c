@@ -14,7 +14,6 @@
 #include <pastix.h>
 #include <pastix/old_api.h>
 #include <spm.h>
-#include "drivers.h"
 
 int main (int argc, char **argv)
 {
@@ -40,7 +39,7 @@ int main (int argc, char **argv)
     /**
      * Update options from command line, and get the matrix filename
      */
-    pastix_ex_getoptions( argc, argv,
+    pastix_getOptions( argc, argv,
                           iparm, dparm,
                           &driver, &filename );
 

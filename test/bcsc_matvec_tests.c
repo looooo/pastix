@@ -19,7 +19,6 @@
 #include <assert.h>
 #include <time.h>
 #include <pastix.h>
-#include "../matrix_drivers/drivers.h"
 #include "common.h"
 #include <spm.h>
 #include <bcsc.h>
@@ -64,7 +63,7 @@ int main (int argc, char **argv)
     /**
      * Get options from command line
      */
-    pastix_ex_getoptions( argc, argv,
+    pastix_getOptions( argc, argv,
                           NULL, NULL,
                           &driver, &filename );
 
