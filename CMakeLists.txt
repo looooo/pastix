@@ -594,9 +594,9 @@ set(PASTIX_LIB_SRCS
   common/isched.c
   common/memory.c
   common/input.c
+  common/get_options.c
 #  common/trace.c
 #
-  matrix_drivers/get_options.c
   #
   sopalin/coeftab.c
   sopalin/schur.c
@@ -695,6 +695,10 @@ set(PASTIX_HDRS
   include/pastix/old_api.h
   include/pastix/datatypes.h
   include/pastix/nompi.h
+  graph/graph.h
+  order/order.h
+  include/lapacke.h
+  include/lapacke_mangling.h
 )
 install(FILES include/pastix.h DESTINATION include )
 install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
