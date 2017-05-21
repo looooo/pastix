@@ -29,6 +29,22 @@ foreach (_file ${EXAMPLES})
   install(FILES   ${_file}            DESTINATION examples )
 endforeach()
 
+### Install a makefile for user compilation test
+set( EXAMPLE_LIBS
+  ${LAPACKE_LIBRARIES}
+  ${LAPACK_LIBRARIES}
+  ${CBLAS_LIBRARIES}
+  ${BLAS_LIBRARIES}
+  ${EXAMPLE_LIBS}
+  )
+list(REMOVE_DUPLICATES EXAMPLE_LIBS)
+string(REPLACE ";" " " EXAMPLE_LIBS "${EXAMPLE_LIBS}")
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/Makefile.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/toto/Makefile" @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/toto/Makefile"
+  DESTINATION examples)
+
 ### CTest execution
 set( PASTIX_DRIVERS
   analyze simple step-by-step schur personal) # reentrant fails with Scotch parser !
