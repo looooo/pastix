@@ -597,7 +597,6 @@ set(PASTIX_LIB_SRCS
 #  common/trace.c
 #
   matrix_drivers/get_options.c
-  matrix_drivers/drivers.c
   #
   sopalin/coeftab.c
   sopalin/schur.c
