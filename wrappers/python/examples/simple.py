@@ -9,78 +9,46 @@
  @version 6.0.0
  @author Pierre Ramet
  @author Mathieu Faverge
+ @author Louis Poirel
  @date 2017-05-04
 
 """
 import pypastix as pastix
-from pypastix.enum import *
-from pypastix.spm  import spm
-import scipy.sparse as spp
+import scipy.sparse as sps
 import numpy as np
 
-flttype = pastix_coeftype.PastixDouble
-mtxtype = pastix_mtxtype.PastixGeneral
+# Hack to make sure that the mkl is loaded
+tmp = np.eye(2).dot(np.ones(2))
 
-# Get corresponding numpy type for arithmetic and integers array
-nptype = 'f8'
-npinttype = 'i8'
-
-iscomplex=0
-if flttype == pastix_coeftype.PastixComplex32 or flttype == pastix_coeftype.PastixComplex64:
-    iscomplex = 1
-
-# Set matrix A
-n    = 9
-nrhs = 1
-row  = np.array([0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8], dtype=npinttype)
-col  = np.array([0, 1, 3, 0, 1, 2, 4, 1, 2, 5, 0, 3, 4, 6, 1, 3, 4, 5, 7, 2, 4, 5, 8, 3, 6, 7, 4, 6, 7, 8, 5, 7, 8], dtype=npinttype)
-data = np.array([4.0, -1.0, -1.0, -1.0, 4.0, -1.0, -1.0, -1.0, 4.0, -1.0, -1.0, 4.0, -1.0, -1.0, -1.0, -1.0, 4.0,
-                 -1.0, -1.0, -1.0, -1.0, 4.0, -1.0, -1.0, 4.0, -1.0, -1.0, -1.0, 4.0, -1.0, -1.0, -1.0, 4.0], dtype=nptype)
-
-if iscomplex:
-    data.imag += 1
-
-# Construct the matrix in SciPY sparse matrix format
-A = spp.coo_matrix((data, (row, col)), shape=(n, n))
-
-# Construct an initial solution
-x0 = np.zeros((n, nrhs,), dtype=nptype)
-for i in range(nrhs):
-    k = i * nrhs
-    if iscomplex:
-        x0[:,i].real = np.arange(k+1.0, k+n+1.0)
-        x0[:,i].imag = np.arange(-n-k, -k)
-    else:
-        x0[:,i] = np.arange(k+1.0, k+n+1.0, dtype=nptype)
-
-# Construct b as b = A * x_0
-b = np.matmul(A.todense(), x0)
-x = b.copy()
-
-# Convert the scipy sparse matrix to spm storage format
-spmA = spm();
-spmA.fromspp( A, mtxtype );
+# Load a sparse matrix from RSA driver
+spmA = pastix.spm( None, driver=pastix.driver.Laplacian, filename="10:10:10" )
+#spmA = pastix.spm( None, driver=driver.RSA, filename="$PASTIX_DIR/test/matrix/oilpan.rsa" )
 spmA.printInfo()
 
+# Generate b and x0 vector such that A * x0 = b
+x0, b = spmA.genRHS( pastix.rhstype.RndX )
+
 # Initialize parameters to default values
-iparm = np.array( np.zeros( pastix_iparm.iparm_size ), dtype=pastix_np_int )
-dparm = np.array( np.zeros( pastix_dparm.dparm_size ), dtype='float64' )
-pastix.initParam( iparm, dparm )
+iparm, dparm = pastix.initParam()
 
 # Startup PaStiX
 pastix_data = pastix.init( iparm, dparm )
 
+# Change some parameters
+iparm[pastix.iparm.factorization] = pastix.factotype.LU
+
 # Perform analyze
-pastix.analyze( pastix_data, spmA )
+pastix.task_analyze( pastix_data, spmA )
 
 # Perform numerical factorization
-pastix.numfact( pastix_data, spmA )
+pastix.task_numfact( pastix_data, spmA )
 
 # Perform solve
-pastix.solve( pastix_data, spmA, x )
+x = b.copy()
+pastix.task_solve( pastix_data, spmA, x)
 
-# Perform refinement
-pastix.refine( pastix_data, b, x )
+# Refine the solution
+pastix.task_refine(pastix_data, b, x)
 
 # Check solution
 spmA.checkAxb( x0, b, x )
