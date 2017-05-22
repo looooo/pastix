@@ -30,40 +30,6 @@
 #include "pastix/api.h"
 
 /**
- * @brief The list of matrix driver readers and generators
- */
-typedef enum pastix_driver_e {
-    PastixDriverRSA,        /**< RSA driver                                      */
-    PastixDriverHB,         /**< Harwell Boeing driver                           */
-    PastixDriverIJV,        /**< IJV Coordinate driver                           */
-    PastixDriverMM,         /**< Matrix Market driver                            */
-    PastixDriverLaplacian,  /**< 3, 5, or 7 points Lapalacian stencil generator  */
-    PastixDriverXLaplacian, /**< 15-points Laplacian stencil generator           */
-    PastixDriverGraph,      /**< Scotch Graph driver                             */
-    /* PastixDriverDMM,        /\**< Distributed Matrix Market driver                *\/ */
-    /* PastixDriverCSCD,       /\**< CSC distributed driver                          *\/ */
-    /* PastixDriverPetscS,     /\**< Petsc Symmetric driver                          *\/ */
-    /* PastixDriverPetscU,     /\**< Pestc Unssymmetric driver                       *\/ */
-    /* PastixDriverPetscH,     /\**< Pestc Hermitian driver                          *\/ */
-    /* PastixDriverCCC,        /\**< Not supported yet *\/ */
-    /* PastixDriverRCC,        /\**< Not supported yet *\/ */
-    /* PastixDriverOlaf,       /\**< Not supported yet *\/ */
-    /* PastixDriverPeer,       /\**< Not supported yet *\/ */
-    /* PastixDriverBRGM,       /\**< Not supported yet *\/ */
-    /* PastixDriverBRGMD,      /\**< Not supported yet *\/ */
-} pastix_driver_t;
-
-/**
- * @brief How to generate RHS
- */
-typedef enum pastix_rhstype_e {
-    PastixRhsOne,
-    PastixRhsI,
-    PastixRhsRndX,
-    PastixRhsRndB
-} pastix_rhstype_t;
-
-/**
  *
  * @brief The sparse matrix data structure
  *

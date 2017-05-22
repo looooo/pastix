@@ -1,0 +1,24 @@
+PASTIX_DIR=@CMAKE_INSTALL_PREFIX@
+
+PKG_CONFIG_PATH:=${PKG_CONFIG_PATH}:@CMAKE_INSTALL_PREFIX@/lib/pkgconfig
+
+EXTRALIBS= @EXAMPLE_LIBS@
+
+CFLAGS=`PKG_CONFIG_PATH=${PKG_CONFIG_PATH} pkg-config --cflags pastix` -Wall -O2
+LDFLAGS=`PKG_CONFIG_PATH=${PKG_CONFIG_PATH} pkg-config --libs pastix` ${EXTRALIBS}
+
+EXAMPLES=       analyze	        \
+		bench_facto     \
+		personal	\
+		reentrant       \
+		schur	        \
+		simple	        \
+		step-by-step
+
+default: $(EXAMPLES)
+
+% : %.c
+	$(CC) -o $@ $< ${CFLAGS} ${LDFLAGS}
+
+clean:
+	rm -f ${EXAMPLES}

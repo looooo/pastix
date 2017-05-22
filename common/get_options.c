@@ -16,7 +16,6 @@
 #include <getopt.h>
 #endif  /* defined(HAVE_GETOPT_H) */
 #include <string.h>
-#include "drivers.h"
 
 /**
  *******************************************************************************
@@ -54,43 +53,39 @@ getfilename(char **filename, char *source, char *defaultname)
 }
 
 static inline void
-pastix_ex_usage(void)
+pastix_usage(void)
 {
     fprintf(stderr,
             "Matrix input (mandatory):\n"
-            " -0 --rsa          : RSA format (use Fortran, only real)\n"
-            " -1 --hb           : Harwell Boeing (RSA Driver in C, support real/complex)\n"
-            " -2 --ccc          : CCC format\n"
-            " -3 --rcc          : RCC format\n"
-            " -4 --olaf         : OLAF format\n"
-            " -5 --peer         : PEER format\n"
-            " -7 --ijv          : IJV 3 files format\n"
-            " -8 --mm           : Matrix Market format\n"
-            "    --dmm          : Matrix Market distributed format\n"
-            " -9 --lap          : Generate a random 2D Laplacian of specified size\n"
-            "    --fdup         : BRGM (Fabrice Dupros)\n"
-            "    --fdupd        : BRGM (Fabrice Dupros) distributed\n"
-            "    --petsc_s      : PETSc symmetric\n"
-            "    --petsc_h      : PETSc hermitian\n"
-            "    --petsc_u      : PETSc unsymmetric\n"
+            " -0 --rsa          : RSA/Matrix Market Fortran driver (only real)\n"
+            " -1 --hb           : Harwell Boeing C driver\n"
+            " -2 --ijv          : IJV coordinate C driver\n"
+            " -3 --mm           : Matrix Market C driver\n"
+            " -9 --lap          : Generate a Laplacian (5-points stencil)\n"
+            " -x --xlap         : Generate an extended Laplacian (9-points stencil)\n"
             " -G --graph        : SCOTCH Graph file\n"
             "\n"
             "Architecture arguments:\n"
-            " -t --threads      : Number of threads\n"
-            " -g --gpus         : Number of gpus\n"
+            " -t --threads      : Number of threads per node\n"
+            " -g --gpus         : Number of gpus per node\n"
+            " -s --sched        : Set the default scheduler (default: 1)\n"
+            "                     0: Sequential, 1: Static, 2:PaRSEC\n"
             "\n"
             "Optional arguments:\n"
+            " -f --fact                     : Choose factorization method (default: LU)\n"
+            "                                 0: Cholesky, 1: LDL^[th], 2: LU, 3:LL^t, 4:LDL^t\n"
+            "                                 3 and 4 are for complex matrices only\n"
             " -o --ord                      : Choose between ordering libraries [scotch|ptscotch|metis]\n"
-            " -i --iparm <IPARM_ID> <value> : set an integer parameter\n"
-            " -d --dparm <DPARM_ID> <value> : set a floating parameter\n"
+            " -i --iparm <IPARM_ID> <value> : set any given integer parameter\n"
+            " -d --dparm <DPARM_ID> <value> : set any given floating parameter\n"
             "\n"
-            " -v --verbose      : extra verbose output\n"
-            " -h --help         : this message\n"
+            " -v --verbose[=lvl] : extra verbose output\n"
+            " -h --help          : this message\n"
             "\n"
             );
 }
 
-#define GETOPT_STRING "0:1:2:3:9:x:G:t:g:o:i:d:f:s:v::h"
+#define GETOPT_STRING "0:1:2:3:9:x:G:t:g:d:f:o:i:d:v::h"
 
 #if defined(HAVE_GETOPT_LONG)
 static struct option long_options[] =
@@ -114,13 +109,13 @@ static struct option long_options[] =
     {"t",           required_argument,  0, 't'},
     {"gpus",        required_argument,  0, 'g'},
     {"g",           required_argument,  0, 'g'},
+    {"sched",       required_argument,  0, 's'},
+    {"s",           required_argument,  0, 's'},
 
     {"ord",         required_argument,  0, 'o'},
     {"o",           required_argument,  0, 'o'},
     {"fact",        required_argument,  0, 'f'},
     {"f",           required_argument,  0, 'f'},
-    {"sched",       required_argument,  0, 's'},
-    {"s",           required_argument,  0, 's'},
     {"iparm",       required_argument,  0, 'i'},
     {"i",           required_argument,  0, 'i'},
     {"dparm",       required_argument,  0, 'd'},
@@ -130,23 +125,21 @@ static struct option long_options[] =
     {"v",           optional_argument,  0, 'v'},
     {"help",        no_argument,        0, 'h'},
     {"h",           no_argument,        0, 'h'},
-    /*{"iparmfile",   no_argument,        0, 'i'},*/
-    {"iparm",       no_argument,        0, 'i'},
-    {"i",           no_argument,        0, 'i'},
     {0, 0, 0, 0}
 };
 #endif  /* defined(HAVE_GETOPT_LONG) */
 
-void pastix_ex_getoptions(int argc, char **argv,
-                          pastix_int_t *iparam, double *dparam,
-                          pastix_driver_t *driver, char **filename )
+void
+pastix_getOptions( int argc, char **argv,
+                   pastix_int_t *iparam, double *dparam,
+                   pastix_driver_t *driver, char **filename )
 {
     int opt = 0;
     int c;
     (void)dparam;
 
     if (argc == 1) {
-        pastix_ex_usage(); exit(0);
+        pastix_usage(); exit(0);
     }
 
     do
@@ -280,7 +273,7 @@ void pastix_ex_getoptions(int argc, char **argv,
             else        iparam[IPARM_VERBOSE] = 2;
             break;
 
-        case 'h': pastix_ex_usage(); exit(0);
+        case 'h': pastix_usage(); exit(0);
 
         case '?': /* getopt_long already printed an error message. */
             exit(1);
@@ -293,5 +286,5 @@ void pastix_ex_getoptions(int argc, char **argv,
 
   unknown_option:
     fprintf(stderr, "ERROR: Unknown option\n");
-    pastix_ex_usage(); exit(0);
+    pastix_usage(); exit(0);
 }

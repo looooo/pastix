@@ -1,7 +1,9 @@
 /**
  * @file step-by-step.c
  *
- * @brief A step-by-step example that runs one full analyze (ordering, symbolic factorization, analyze), then loops over 2 factorizations that are both used for 2 solves each.
+ * @brief A step-by-step example that runs one full analyze (ordering, symbolic
+ *       factorization, analyze), then loops over 2 factorizations that are both
+ *       used for 2 solves each.
  *
  * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -16,7 +18,6 @@
  */
 #include <pastix.h>
 #include <spm.h>
-#include "drivers.h"
 
 int main (int argc, char **argv)
 {
@@ -43,7 +44,7 @@ int main (int argc, char **argv)
     /**
      * Get options from command line
      */
-    pastix_ex_getoptions( argc, argv,
+    pastix_getOptions( argc, argv,
                           iparm, dparm,
                           &driver, &filename );
 

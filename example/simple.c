@@ -16,7 +16,6 @@
  */
 #include <pastix.h>
 #include <spm.h>
-#include "drivers.h"
 
 int main (int argc, char **argv)
 {
@@ -40,7 +39,7 @@ int main (int argc, char **argv)
     /**
      * Get options from command line
      */
-    pastix_ex_getoptions( argc, argv,
+    pastix_getOptions( argc, argv,
                           iparm, dparm,
                           &driver, &filename );
 

@@ -99,6 +99,9 @@ install(TARGETS pastix_spm
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib)
 
+install(FILES spm.h
+  DESTINATION include )
+
 ### Add documented files to the global property
 add_documented_files(
   DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}

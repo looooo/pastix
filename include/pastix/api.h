@@ -240,7 +240,7 @@ typedef enum pastix_scheduler_e {
 } pastix_scheduler_t;
 
 /**
- * @brief Ordering strategy 
+ * @brief Ordering strategy
  */
 typedef enum pastix_order_e {
     PastixOrderScotch,   /**< Use Scotch ordering       */
@@ -280,7 +280,7 @@ typedef enum pastix_error_e {
 } pastix_error_t;
 
 /**
- * Compression strategy available for IPARM_COMPRESS_WHEN parameter
+ * @brief Compression strategy available for IPARM_COMPRESS_WHEN parameter
  */
 typedef enum pastix_compress_when_e {
     PastixCompressNever,
@@ -290,12 +290,46 @@ typedef enum pastix_compress_when_e {
 } pastix_compress_when_t;
 
 /**
- * Compression method available for IPARM_COMPRESS_METHOD parameter
+ * @brief Compression method available for IPARM_COMPRESS_METHOD parameter
  */
 typedef enum pastix_compress_method_e {
     PastixCompressMethodSVD,
     PastixCompressMethodRRQR
 } pastix_compress_method_t;
+
+/**
+ * @brief The list of matrix driver readers and generators
+ */
+typedef enum pastix_driver_e {
+    PastixDriverRSA,        /**< RSA Fortran driver                              */
+    PastixDriverHB,         /**< Harwell Boeing driver                           */
+    PastixDriverIJV,        /**< IJV Coordinate driver                           */
+    PastixDriverMM,         /**< Matrix Market C driver                          */
+    PastixDriverLaplacian,  /**< 3, 5, or 7 points Laplacian stencil generator   */
+    PastixDriverXLaplacian, /**< 15-points Laplacian stencil generator           */
+    PastixDriverGraph,      /**< Scotch Graph driver                             */
+    /* PastixDriverDMM,        /\**< Distributed Matrix Market driver                *\/ */
+    /* PastixDriverCSCD,       /\**< CSC distributed driver                          *\/ */
+    /* PastixDriverPetscS,     /\**< Petsc Symmetric driver                          *\/ */
+    /* PastixDriverPetscU,     /\**< Pestc Unssymmetric driver                       *\/ */
+    /* PastixDriverPetscH,     /\**< Pestc Hermitian driver                          *\/ */
+    /* PastixDriverCCC,        /\**< Not supported yet *\/ */
+    /* PastixDriverRCC,        /\**< Not supported yet *\/ */
+    /* PastixDriverOlaf,       /\**< Not supported yet *\/ */
+    /* PastixDriverPeer,       /\**< Not supported yet *\/ */
+    /* PastixDriverBRGM,       /\**< Not supported yet *\/ */
+    /* PastixDriverBRGMD,      /\**< Not supported yet *\/ */
+} pastix_driver_t;
+
+/**
+ * @brief How to generate RHS
+ */
+typedef enum pastix_rhstype_e {
+    PastixRhsOne,
+    PastixRhsI,
+    PastixRhsRndX,
+    PastixRhsRndB
+} pastix_rhstype_t;
 
 /**
  *
@@ -397,4 +431,3 @@ typedef enum pastix_dir_e {
 /**
  * @}
  */
-

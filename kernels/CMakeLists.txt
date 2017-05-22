@@ -119,6 +119,10 @@ if(PASTIX_WITH_CUDA)
     endif()
 endif()
 
+### Install library
+install(TARGETS pastix_kernels
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib)
 
 ### Add documented files to the global property
 add_documented_files(

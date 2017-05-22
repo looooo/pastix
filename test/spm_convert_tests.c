@@ -22,7 +22,6 @@
 #include <time.h>
 #include <pastix.h>
 #include <spm.h>
-#include "../matrix_drivers/drivers.h"
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_ == -1) {                           \
@@ -111,7 +110,7 @@ int main (int argc, char **argv)
     FILE *f;
     int rc;
 
-    pastix_ex_getoptions( argc, argv,
+    pastix_getOptions( argc, argv,
                           NULL, NULL,
                           &driver, &filename );
 
