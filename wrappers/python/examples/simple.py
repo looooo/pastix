@@ -17,19 +17,16 @@ import pypastix as pastix
 import scipy.sparse as sps
 import numpy as np
 
-# Set the problem
-n = 9
-A = sps.spdiags([np.ones(n)*i for i in [4, -1, -1, -1, -1]],
-                [0, 1, 3, -1, -3], n, n)
-x0 = np.arange(n)
-b = A.dot(x0)
-
 # Hack to make sure that the mkl is loaded
 tmp = np.eye(2).dot(np.ones(2))
 
-# Convert the scipy sparse matrix to spm storage format
-spmA = pastix.spm( A )
+# Load a sparse matrix from RSA driver
+spmA = pastix.spm( None, driver=pastix.driver.Laplacian, filename="10:10:10" )
+#spmA = pastix.spm( None, driver=driver.RSA, filename="$PASTIX_DIR/test/matrix/oilpan.rsa" )
 spmA.printInfo()
+
+# Generate b and x0 vector such that A * x0 = b
+x0, b = spmA.genRHS( pastix.rhstype.RndX )
 
 # Initialize parameters to default values
 iparm, dparm = pastix.initParam()
@@ -37,8 +34,8 @@ iparm, dparm = pastix.initParam()
 # Startup PaStiX
 pastix_data = pastix.init( iparm, dparm )
 
-factotype = pastix.factotype.LLT
-iparm[pastix.iparm.factorization] = factotype
+# Change some parameters
+iparm[pastix.iparm.factorization] = pastix.factotype.LU
 
 # Perform analyze
 pastix.task_analyze( pastix_data, spmA )
