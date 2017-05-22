@@ -1,5 +1,5 @@
 """
- @file schur-obj.py
+ @file schur_obj.py
 
  PaStiX Schur python example with an object oriented programing solution.
 
@@ -35,6 +35,6 @@ solver = pastix.solver()
 
 solver.schur(A, [2, 3])
 S = solver.S
-f = solver.b2f(b)
+f = solver.schur_forward(b)
 y = la.solve(S, f)
-x = solver.y2x(y, b, x0=x0, check=True)
+x = solver.schur_backward(y, b, x0=x0, check=True)

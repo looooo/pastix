@@ -24,6 +24,9 @@ class solver(object):
             self.setup(A)
 
     def setup(self, A):
+        """
+        Setup the solver object for the classic case w/o Schur complement
+        """
         self.A = A
         self.spmA = spm(A)
         if self.parameters.setdefault("verbose", False):
@@ -33,10 +36,7 @@ class solver(object):
 
     def solve(self, b, refine=True, x0=None, check=False):
         """
-        Solves the forward step of the Schur problem:
-               A x = b with A = L S L^h
-
-        This step solves  L f = b with f = S L^h x
+        Solve and refine the full problem Ax = b with refinement when no Schur Complement is involved
         """
         x = b.copy()
         task_solve(self.pastix_data, self.spmA, x)
@@ -47,6 +47,9 @@ class solver(object):
         return x
 
     def schur(self, A, schur_list):
+        """
+        Setup the solver object to work in Schur complement mode
+        """
 
         self.factotype = factotype.LLT
         self.iparm[iparm.factorization] = self.factotype
@@ -67,7 +70,7 @@ class solver(object):
         self.S = np.zeros( (nschur, nschur), order='F', dtype=A.dtype )
         getSchur( self.pastix_data, self.S )
 
-    def b2f(self, b):
+    def schur_forward(self, b):
         """
         Solves the forward step of the Schur problem:
                A x = b with A = L S L^h
@@ -92,7 +95,7 @@ class solver(object):
         nschur = len(self.schur_list)
         return x[-nschur:]
 
-    def y2x(self, y, b, refine=True, x0=None, check=False):
+    def schur_backward(self, y, b, refine=True, x0=None, check=False):
         """
         Solves the backward step of the Schur problem:
                A x = b with A = L S L^h
