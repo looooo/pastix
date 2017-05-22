@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
  @file schur_obj.py
 

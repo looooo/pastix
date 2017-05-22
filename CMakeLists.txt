@@ -728,6 +728,9 @@ set(PASTIX_HDRS
 install(FILES include/pastix.h DESTINATION include )
 install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
 
+### Wrappers
+add_subdirectory(wrappers)
+
 ## Executable and tests
 enable_testing()
 include(CTest)
