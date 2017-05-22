@@ -164,8 +164,29 @@ class spm():
         ldx  = x.shape[0]
 
         libspm.spmCheckAxb.argtypes = [ c_int, POINTER(self.c_spm), c_void_p, c_int,
-                                        c_void_p, c_int, c_void_p, c_int]
+                                        c_void_p, c_int, c_void_p, c_int ]
         libspm.spmCheckAxb( nrhs, self.id_ptr,
                             x0ptr, ldx0,
                             b.ctypes.data_as(c_void_p), ldb,
                             x.ctypes.data_as(c_void_p), ldx )
+
+    def genRHS( self, rhstype=rhstype.One, nrhs=1 ):
+        if libspm == None:
+            raise EnvironmentError( "SPM Instance badly instanciated" )
+
+        n = self.spm_c.n
+        b = np.zeros(n, self.dtype)
+        x = np.zeros(n, self.dtype)
+
+        ldb  = b.shape[0]
+        ldx  = x.shape[0]
+
+        self.__checkVector( n, nrhs, x )
+        self.__checkVector( n, nrhs, b )
+
+        libspm.spmGenRHS.argtypes = [ c_int, c_int, POINTER(self.c_spm), c_void_p, c_int,
+                                      c_void_p, c_int ]
+        libspm.spmGenRHS( rhstype, nrhs, self.id_ptr,
+                          x.ctypes.data_as(c_void_p), ldx,
+                          b.ctypes.data_as(c_void_p), ldb )
+        return x, b
