@@ -65,7 +65,7 @@ endmacro(clean_lib_list)
 
 ###
 #
-# generate_pkgconfig_file: generate files pastix.pc
+# generate_pkgconfig_file: generate file pastix.pc
 #
 ###
 macro(generate_pkgconfig_file)
@@ -126,6 +126,26 @@ macro(generate_pkgconfig_file)
       DESTINATION lib/pkgconfig)
 
 endmacro(generate_pkgconfig_file)
+
+###
+#
+# generate_env_file: generate files pastix.pc
+#
+###
+macro(generate_env_file)
+
+    # Create .sh file
+    # ---------------
+    configure_file(
+      "${CMAKE_CURRENT_SOURCE_DIR}/pastix_env.sh.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/bin/pastix_env.sh" @ONLY)
+
+    # installation
+    # ------------
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/bin/pastix_env.sh"
+      DESTINATION bin)
+
+endmacro(generate_env_file)
 
 ##
 ## @end file GenPkgConfig.cmake
