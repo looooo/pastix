@@ -1,7 +1,7 @@
 import numpy as np
 import ctypes
 
-pastix_int = @PASTIX_PYTHON_INTEGER@
+pastix_int = ctypes.@PASTIX_PYTHON_INTEGER@
 
 class iparm:
     verbose               = 0
