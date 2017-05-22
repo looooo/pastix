@@ -31,11 +31,7 @@ endforeach()
 
 ### Install a makefile for user compilation test
 set( EXAMPLE_LIBS
-  ${LAPACKE_LIBRARIES}
-  ${LAPACK_LIBRARIES}
-  ${CBLAS_LIBRARIES}
-  ${BLAS_LIBRARIES}
-  ${EXAMPLE_LIBS}
+  ${DEPS_LIBRARIES}
   )
 list(REMOVE_DUPLICATES EXAMPLE_LIBS)
 string(REPLACE ";" " " EXAMPLE_LIBS "${EXAMPLE_LIBS}")
@@ -45,70 +41,4 @@ configure_file(
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/toto/Makefile"
   DESTINATION examples)
 
-### CTest execution
-set( PASTIX_DRIVERS
-  analyze simple step-by-step schur personal) # reentrant fails with Scotch parser !
-set( PASTIX_TESTS
-  simple )
-if (PASTIX_WITH_PARSEC)
-  set( PASTIX_SCHEDS
-    0 1 2) # sequential, static, parsec
-else()
-  set( PASTIX_SCHEDS
-    0 1)   # sequential, static
-endif (PASTIX_WITH_PARSEC)
-
-### All drivers with Laplacian and default parameters
-foreach(example ${PASTIX_DRIVERS} )
-  add_test(example_drv_${example} ./${example} -lap 10:10:10)
-endforeach()
-
-### Factotype
-foreach(example ${PASTIX_TESTS} )
-  # RSA
-  add_test(example_rsa_${example} ./${example} -rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa   -f 2) # LLt fails with negative pivot !
-  # Matrix Market
-  add_test(example_mm_${example}  ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx  -f 2) # LLt fails with negative pivot !
-  # Harwell Boeing
-  add_test(example_hb_${example}  ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua   -f 2)
-  # Matrix Market - Hermitian
-  add_test(example_mm2_${example} ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx -f 2)
-endforeach()
-
-### Refinement
-foreach(example ${PASTIX_TESTS} )
-  add_test(example_cg_${example}       ./${example} -rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa -f 2 -i iparm_refinement pastixrefinegmres) # LLt fails with negative pivot !
-  add_test(example_gmres_${example}    ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refimenent pastixrefinegmres)
-  add_test(example_bicgstab_${example} ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinebicgstab)
-endforeach()
-
-### Distribution
-if (PASTIX_WITH_PARSEC)
-  foreach(example ${PASTIX_TESTS} )
-    # 2D
-    add_test(example_2d_${example}   ./${example} -lap 10:10:10 -s 2 -i iparm_distribution_level 0 )
-    # 1D/2D
-    add_test(example_1d2d_${example} ./${example} -lap 10:10:10 -s 2 -i iparm_distribution_level 16)
-  endforeach()
-endif (PASTIX_WITH_PARSEC)
-
-### Scheduling
-foreach(example ${PASTIX_TESTS} )
-  foreach(scheduler ${PASTIX_SCHEDS} )
-    add_test(sched${scheduler}_${example}   ./${example} -lap 10:10:10 -s ${scheduler})
-  endforeach()
-endforeach()
-
-# Low Rank
-foreach(example ${PASTIX_TESTS} )
-  foreach(scheduler ${PASTIX_SCHEDS} )
-    # SVD Begin
-    add_test(example_svdbegin_sched${scheduler}_${example}  ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodsvd -i iparm_compress_min_width 16 -i iparm_Ccmpress_min_height 16)
-    # SVD End
-    add_test(example_svdend_sched${scheduler}_${example}    ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodsvd iparm_compress_min_width 16 -i iparm_Ccmpress_min_height 16)
-    # RRQR Begin
-    add_test(example_rrqrbegin_sched${scheduler}_${example} ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodrrqr iparm_compress_min_width 16 -i iparm_Ccmpress_min_height 16)
-    # RRQR End
-    add_test(example_rrqrend_sched${scheduler}_${example}   ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodrrqr iparm_compress_min_width 16 -i iparm_Ccmpress_min_height 16)
-    endforeach()
-endforeach()
+include(CTestLists.txt)

@@ -162,6 +162,14 @@ if(LAPACKE_FOUND)
   include_directories(${LAPACKE_INCLUDE_DIRS})
 endif()
 
+### Store dependencies not handled with pkg-config
+set( DEPS_LIBRARIES
+  ${LAPACKE_LIBRARIES}
+  ${LAPACK_LIBRARIES}
+  ${CBLAS_LIBRARIES}
+  ${BLAS_LIBRARIES}
+  )
+
 # PaStiX depends on HwLoc
 #---------------------------
 find_package(HWLOC)
@@ -319,6 +327,11 @@ if (PASTIX_WITH_PARSEC)
 
 endif (PASTIX_WITH_PARSEC)
 
+set( DEPS_LIBRARIES
+  ${DEPS_LIBRARIES}
+  ${PARSEC_LIBRARIES}
+  )
+
 ### Add trace generation
 if(PASTIX_WITH_EZTRACE)
   if (NOT EZTRACE_FOUND)
@@ -337,6 +350,7 @@ if (PASTIX_ORDERING_PTSCOTCH)
   if (PTSCOTCH_FOUND)
     include_directories( ${PTSCOTCH_INCLUDE_DIRS} )
     link_directories( ${PTSCOTCH_LIBRARY_DIRS} )
+    link_libraries( ${PTSCOTCH_LIBRARIES} )
     list(INSERT EXTRA_LIBS 1 ${PTSCOTCH_LIBRARIES} )
   else (PTSCOTCH_FOUND)
     message(ERROR "PTSCOTCH is required if PASTIX_ORDERING_PTSCOCTH is on but was not found. Please provide an PtScotch library in your environment or configure with -DPASTIX_ORDERING_PTSCOTCH=OFF")
@@ -358,6 +372,7 @@ if (PASTIX_ORDERING_SCOTCH)
     include_directories( ${SCOTCH_INCLUDE_DIRS} )
     link_directories( ${SCOTCH_LIBRARY_DIRS} )
     link_libraries( ${SCOTCH_LIBRARIES} )
+    list(APPEND EXTRA_LIBS ${SCOTCH_LIBRARIES} )
   else()
     message(ERROR "Scotch is required but was not found. Please provide a Scotch library in your environment or configure with -DPASTIX_ORDERING_SCOTCH=OFF")
   endif()
@@ -371,6 +386,11 @@ if (PASTIX_ORDERING_SCOTCH)
   endif()
 endif()
 
+set( DEPS_LIBRARIES
+  ${DEPS_LIBRARIES}
+  ${PTSCOTCH_LIBRARIES}
+  ${SCOTCH_LIBRARIES}
+  )
 
 # PaStiX might depend on Metis/ParMetis
 #--------------------------------------
@@ -392,6 +412,11 @@ if (PASTIX_ORDERING_METIS)
     message(ERROR "PASTIX_INT64 is disabled and provided Metis is not compiled with int32 support.")
   endif()
 endif()
+
+set( DEPS_LIBRARIES
+  ${DEPS_LIBRARIES}
+  ${METIS_LIBRARIES}
+  )
 
 # PaStiX might depend on GTG
 #---------------------------
