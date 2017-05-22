@@ -35,6 +35,7 @@ install(FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/python/examples/simple_obj.py
   ${CMAKE_CURRENT_SOURCE_DIR}/python/examples/schur.py
   ${CMAKE_CURRENT_SOURCE_DIR}/python/examples/schur_obj.py
-  DESTINATION bin
+  DESTINATION examples
   )
+
 
