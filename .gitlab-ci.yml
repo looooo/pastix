@@ -36,7 +36,7 @@ test_pastix:
     - lcov --directory . --capture --output-file pastix.lcov
     - genhtml -o coverage pastix.lcov
     - /builds/sonar/lcov-to-cobertura-xml-1.6/lcov_cobertura/lcov_cobertura.py pastix.lcov --output pastix-coverage.xml
-    - export SOURCES_TO_ANALYZE="bcsc blend common example graph include kernels matrix_drivers order refinement sopalin spm symbol test"
+    - export SOURCES_TO_ANALYZE="bcsc blend common example graph include kernels order refinement sopalin spm symbol test"
     - /usr/bin/cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingIncludeSystem ${SOURCES_TO_ANALYZE} 2> pastix-cppcheck.xml
     - rats -w 3 --xml ${SOURCES_TO_ANALYZE} > pastix-rats.xml
 
