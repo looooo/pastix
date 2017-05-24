@@ -1,17 +1,71 @@
-pastix:
+stages:
+  - build
+  - test
+  - sonar
+  - doc
+
+build_pastix:
+  stage: build
+  artifacts:
+    name: pastix_build
+    expire_in: 42 minutes
+    untracked: true
+    paths:
+      - ./
+  script:
+    - git submodule init
+    - git submodule update
+    - cmake . -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_C_FLAGS="-O0 -g -fPIC --coverage -Wall -fdiagnostics-show-option -fno-inline" -DCMAKE_EXE_LINKER_FLAGS="--coverage"
+    - make -j2 | tee pastix-build.log
+
+test_pastix:
+  stage: test
+  dependencies:
+  - build_pastix
+  artifacts:
+    name: pastix_analysis
+    expire_in: 1 week
+    paths:
+      - pastix.lcov
+      - coverage/
+      - pastix-coverage.xml
+      - pastix-cppcheck.xml
+      - pastix-rats.xml
+  script:
+    - ctest -D ExperimentalTest
+    - lcov --directory . --capture --output-file pastix.lcov
+    - genhtml -o coverage pastix.lcov
+    - /builds/sonar/lcov-to-cobertura-xml-1.6/lcov_cobertura/lcov_cobertura.py pastix.lcov --output pastix-coverage.xml
+    - export SOURCES_TO_ANALYZE="attic bcsc blend common example graph include kernels matrix_drivers order refinement sopalin spm symbol test"
+    - /usr/bin/cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingIncludeSystem ${SOURCES_TO_ANALYZE} 2> pastix-cppcheck.xml
+    - rats -w 3 --xml ${SOURCES_TO_ANALYZE} > pastix-rats.xml
+
+sonar_pastix:
+  stage: sonar
+  dependencies:
+  - test_pastix
+  artifacts:
+    name: pastix_sonar
+    expire_in: 1 week
+    paths:
+      - sonar.log
+  script:
+    - /builds/sonar/sonar-scanner-2.9.0.670/bin/sonar-scanner -X > sonar.log
+  only:
+    - master
+
+pages:
+  stage: doc
   script:
     - git submodule init
     - git submodule update
     - mkdir build
     - cd build
-    - cmake ..
-    - make -j2
-    - ctest -D ExperimentalTest
-    #- if [ `which valgrind` ]; then ctest -D ExperimentalMemCheck; fi
-
-pages:
-  script:
-  - echo "J'ai reussi" > index.html
+    - cmake .. -DBUILD_DOCUMENTATION=ON
+    - make
+    - mv docs/out/html ../public/
   artifacts:
     paths:
-    - public
+      - public
+  only:
+    - master
