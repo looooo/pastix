@@ -57,11 +57,9 @@ sonar_pastix:
 pages:
   stage: doc
   script:
-    - git submodule init
-    - git submodule update
     - mkdir build
     - cd build && cmake .. -DBUILD_DOCUMENTATION=ON
-    - make -C build
+    - make doc
     - mv build/docs/out/html ../public/
   artifacts:
     paths:
