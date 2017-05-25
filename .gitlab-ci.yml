@@ -60,10 +60,9 @@ pages:
     - git submodule init
     - git submodule update
     - mkdir build
-    - cd build
-    - cmake .. -DBUILD_DOCUMENTATION=ON
-    - make
-    - mv docs/out/html ../public/
+    - cd build && cmake .. -DBUILD_DOCUMENTATION=ON
+    - make -C build
+    - mv build/docs/out/html ../public/
   artifacts:
     paths:
       - public
