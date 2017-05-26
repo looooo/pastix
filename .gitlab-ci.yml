@@ -15,7 +15,9 @@ build_pastix:
   script:
     - git submodule init
     - git submodule update
-    - cmake . -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_C_FLAGS="-O0 -g -fPIC --coverage -Wall -fdiagnostics-show-option -fno-inline" -DCMAKE_EXE_LINKER_FLAGS="--coverage"
+    - mkdir build
+    - cd build
+    - cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_C_FLAGS="-O0 -g -fPIC --coverage -Wall -fdiagnostics-show-option -fno-inline" -DCMAKE_EXE_LINKER_FLAGS="--coverage"
     - make -j2 | tee pastix-build.log
 
 test_pastix:
@@ -32,11 +34,11 @@ test_pastix:
       - pastix-cppcheck.xml
       - pastix-rats.xml
   script:
-    - ctest -D ExperimentalTest
-    - lcov --directory . --capture --output-file pastix.lcov
+    - (cd build && ctest -D ExperimentalTest)
+    - lcov --directory build --capture --output-file pastix.lcov
     - genhtml -o coverage pastix.lcov
     - /builds/sonar/lcov-to-cobertura-xml-1.6/lcov_cobertura/lcov_cobertura.py pastix.lcov --output pastix-coverage.xml
-    - export SOURCES_TO_ANALYZE="bcsc blend common example graph include kernels order refinement sopalin spm symbol test"
+    - export SOURCES_TO_ANALYZE="build bcsc blend common example graph include kernels order refinement sopalin spm symbol test"
     - /usr/bin/cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingIncludeSystem ${SOURCES_TO_ANALYZE} 2> pastix-cppcheck.xml
     - rats -w 3 --xml ${SOURCES_TO_ANALYZE} > pastix-rats.xml
 
@@ -57,10 +59,9 @@ sonar_pastix:
 pages:
   stage: doc
   script:
-    - mkdir build
     - cd build && cmake .. -DBUILD_DOCUMENTATION=ON
-    - make doc
-    - mv build/docs/out/html ../public/
+    - make
+    - mv docs/out/html ../public/
   artifacts:
     paths:
       - public
