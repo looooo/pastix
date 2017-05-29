@@ -81,6 +81,7 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_tasks2d_level",         iparm)) { return IPARM_TASKS2D_LEVEL; }
     if(0 == strcasecmp("iparm_tasks2d_width",         iparm)) { return IPARM_TASKS2D_WIDTH; }
     if(0 == strcasecmp("iparm_abs",                   iparm)) { return IPARM_ABS; }
+    if(0 == strcasecmp("iparm_allcand",               iparm)) { return IPARM_ALLCAND; }
 
     if(0 == strcasecmp("iparm_incomplete",            iparm)) { return IPARM_INCOMPLETE; }
     if(0 == strcasecmp("iparm_level_of_fill",         iparm)) { return IPARM_LEVEL_OF_FILL; }
