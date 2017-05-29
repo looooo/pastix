@@ -11,14 +11,15 @@ build_pastix:
     expire_in: 42 minutes
     untracked: true
     paths:
-      - ./
+      - build/
+      - pastix-build.log
   script:
     - git submodule init
     - git submodule update
     - mkdir build
     - cd build
     - cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_C_FLAGS="-O0 -g -fPIC --coverage -Wall -fdiagnostics-show-option -fno-inline" -DCMAKE_EXE_LINKER_FLAGS="--coverage"
-    - make -j2 | tee pastix-build.log
+    - make -j2 | tee ../pastix-build.log
 
 test_pastix:
   stage: test
@@ -28,6 +29,7 @@ test_pastix:
     name: pastix_analysis
     expire_in: 1 week
     paths:
+      - pastix-build.log
       - pastix.lcov
       - coverage/
       - pastix-coverage.xml
@@ -45,6 +47,7 @@ test_pastix:
 sonar_pastix:
   stage: sonar
   dependencies:
+  - build_pastix
   - test_pastix
   artifacts:
     name: pastix_sonar
@@ -59,7 +62,9 @@ sonar_pastix:
 pages:
   stage: doc
   script:
-    - cd build && cmake .. -DBUILD_DOCUMENTATION=ON
+    - mkdir -p build
+    - cd build
+    - cmake .. -DBUILD_DOCUMENTATION=ON
     - make
     - mv docs/out/html ../public/
   artifacts:
@@ -67,3 +72,4 @@ pages:
       - public
   only:
     - master
+
