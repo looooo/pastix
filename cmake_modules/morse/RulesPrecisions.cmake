@@ -157,6 +157,10 @@ endif()
 # the target receives a -DPRECISION_p in its cflags.
 #
 include(ParseArguments)
+
+# Add a hint to help Cmake to find the correct python version:
+# (see https://cmake.org/cmake/help/v3.0/module/FindPythonInterp.html)
+set(Python_ADDITIONAL_VERSIONS 2)
 find_package(PythonInterp REQUIRED)
 
 MACRO(precisions_rules_py)
@@ -222,26 +226,26 @@ MACRO(precisions_rules_py)
       # Force the copy of the original files in the binary_dir
       # for VPATH compilation
       if( NOT ${CMAKE_PROJECT_NAME}_COMPILE_INPLACE )
-        set(generate_out 1)
+	set(generate_out 1)
       else( NOT ${CMAKE_PROJECT_NAME}_COMPILE_INPLACE )
-        string(COMPARE NOTEQUAL "${_dependency_OUTPUT}" "${_dependency_INPUT}" generate_out )
+	string(COMPARE NOTEQUAL "${_dependency_OUTPUT}" "${_dependency_INPUT}" generate_out )
       endif()
 
       # We generate a dependency only if a file will be generated
       if( got_file )
-        if( generate_out )
-          # the custom command is executed in CMAKE_CURRENT_BINARY_DIR
-          ADD_CUSTOM_COMMAND(
-            OUTPUT ${_dependency_OUTPUT}
-            COMMAND ${CMAKE_COMMAND} -E remove -f ${_dependency_OUTPUT} && ${pythoncmd} && chmod a-w ${_dependency_OUTPUT}
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${_dependency_INPUT} ${RP_CODEGEN} ${RP_${CMAKE_PROJECT_NAME}_DICTIONNARY})
+	if( generate_out )
+	  # the custom command is executed in CMAKE_CURRENT_BINARY_DIR
+	  ADD_CUSTOM_COMMAND(
+	    OUTPUT ${_dependency_OUTPUT}
+	    COMMAND ${CMAKE_COMMAND} -E remove -f ${_dependency_OUTPUT} && ${pythoncmd} && chmod a-w ${_dependency_OUTPUT}
+	    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${_dependency_INPUT} ${RP_CODEGEN} ${RP_${CMAKE_PROJECT_NAME}_DICTIONNARY})
 
           set_source_files_properties(${_dependency_OUTPUT} PROPERTIES COMPILE_FLAGS "-DPRECISION_${_dependency_PREC}" GENERATED 1 IS_IN_BINARY_DIR 1 )
-        else( generate_out )
+	else( generate_out )
           set_source_files_properties(${_dependency_OUTPUT} PROPERTIES COMPILE_FLAGS "-DPRECISION_${_dependency_PREC}" GENERATED 0 )
-        endif( generate_out )
+	endif( generate_out )
 
-        list(APPEND ${OUTPUTLIST} ${_dependency_OUTPUT})
+	list(APPEND ${OUTPUTLIST} ${_dependency_OUTPUT})
       endif( got_file )
     endif()
   endforeach()
