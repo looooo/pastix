@@ -279,6 +279,14 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         }
     }
 
+    /* Dump the dot of the eTree */
+    if ( verbose > PastixVerboseYes ) {
+        FILE *stream;
+        PASTIX_FOPEN(stream, "etree.dot", "w");
+        eTreeGenDot( ctrl.etree, stream );
+        fclose(stream);
+    }
+
     /*
      * Split the existing symbol matrix according to the number of candidates
      * and cblk types.
@@ -286,7 +294,6 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
      * candtab. If the symbmtx is modified, the costmtx is updated, as well as
      * the tree.
      */
-    if(1)
     {
         if( verbose > PastixVerboseYes ) {
             pastix_print( procnum, 0, OUT_BLEND_SPLITSYMB );
