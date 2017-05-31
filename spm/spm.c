@@ -25,6 +25,8 @@
 #include "s_spm.h"
 #include "p_spm.h"
 
+#include <cblas.h>
+
 #if !defined(DOXYGEN_SHOULD_SKIP_THIS)
 
 static int (*conversionTable[3][3][6])(pastix_spm_t*) = {
@@ -1179,7 +1181,7 @@ spmCheckAxb( int nrhs,
  *
  *******************************************************************************/
 void
-spmScal(const pastix_complex64_t alpha, pastix_spm_t* spm)
+spmScalMatrix(const pastix_complex64_t alpha, pastix_spm_t* spm)
 {
     switch(spm->flttype)
     {
@@ -1197,6 +1199,47 @@ spmScal(const pastix_complex64_t alpha, pastix_spm_t* spm)
     case PastixDouble:
     default:
         d_spmScal(alpha, spm);
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Scale a vector according to the spm type.
+ *
+ * x = alpha * x
+ *
+ *******************************************************************************
+ *
+ * @param[in] alpha
+ *           The scaling parameter.
+ *
+ * @param[in] spm
+ *          The spm structure to know the type of the vector.
+ *
+ * @param[inout] x
+ *          The vector to scal.
+ *
+ *******************************************************************************/
+void
+spmScalVector(const double alpha, pastix_spm_t* spm, void *x)
+{
+    switch(spm->flttype)
+    {
+    case PastixPattern:
+        break;
+    case PastixFloat:
+        cblas_sscal(spm->n, alpha, x, 1);
+        break;
+    case PastixComplex32:
+        cblas_csscal(spm->n, alpha, x, 1);
+        break;
+    case PastixComplex64:
+        cblas_zdscal(spm->n, alpha, x, 1);
+        break;
+    case PastixDouble:
+    default:
+        cblas_dscal(spm->n, alpha, x, 1);
     }
 }
 

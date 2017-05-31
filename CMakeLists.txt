@@ -851,6 +851,7 @@ add_documented_files(
   example/reentrant.c
   example/schur.c
   example/personal.c
+  example/compress.c
   )
 
 #

@@ -23,7 +23,6 @@ int main (int argc, char **argv)
     char            *filename;
     int              nrhs = 1;
     pastix_spm_t    *spm, *spm2;
-    double           normA;
     pastix_driver_t  driver;
     void            *x, *x0, *b;
     size_t           size;
@@ -59,12 +58,6 @@ int main (int argc, char **argv)
         free(spm);
         spm = spm2;
     }
-
-    /**
-     * Scale the matrix to avoid unexpected rouding errors
-     */
-    normA = spmNorm( PastixFrobeniusNorm, spm );
-    spmScal( 1./normA, spm );
 
     /**
      * Generates the b and x vector such that A * x = b

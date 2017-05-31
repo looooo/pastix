@@ -68,12 +68,6 @@ int main (int argc, char **argv)
     }
 
     /**
-     * Scal the matrix to avoid unexpected rouding errors
-     */
-    normA = spmNorm( PastixFrobeniusNorm, spm );
-    spmScal( 1./normA, spm );
-
-    /**
      * Perform ordering, symbolic factorization, and analyze steps
      */
     pastix_subtask_order( pastix_data, spm, NULL );

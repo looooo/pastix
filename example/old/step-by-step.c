@@ -33,7 +33,6 @@ int main (int argc, char **argv)
     int              nrhs        = 1;
     pastix_spm_t    *spm;
     pastix_spm_t    *spm2;
-    double           normA;
     void            *x           = NULL;
     void            *x0          = NULL;
     size_t           size;
@@ -69,12 +68,6 @@ int main (int argc, char **argv)
         free(spm);
         spm = spm2;
     }
-
-    /**
-     * Scale the matrix to avoid unexpected rouding errors
-     */
-    normA = spmNorm( PastixFrobeniusNorm, spm );
-    spmScal( 1./normA, spm );
 
     /**
      * Step 0 - Initialize pastix

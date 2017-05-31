@@ -18,6 +18,7 @@ set (EXAMPLES
   step-by-step.c
   schur.c
   personal.c
+  compress.c
   )
 
 foreach (_file ${EXAMPLES})

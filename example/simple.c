@@ -29,7 +29,6 @@ int main (int argc, char **argv)
     size_t          size;
     int             check = 1;
     int             nrhs = 1;
-    double          normA;
 
     /**
      * Initialize parameters to default values
@@ -56,12 +55,6 @@ int main (int argc, char **argv)
         free(spm);
         spm = spm2;
     }
-
-    /**
-     * Scal the matrix to avoid unexpected rouding errors
-     */
-    normA = spmNorm( PastixFrobeniusNorm, spm );
-    spmScal( 1./normA, spm );
 
     /**
      * Startup PaStiX
