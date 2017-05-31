@@ -846,12 +846,12 @@ add_documented_files(
   refinement/pastix_task_refine.c
   #
   example/analyze.c
-  example/simple.c
-  example/step-by-step.c
+  example/compress.c
+  example/personal.c
   example/reentrant.c
   example/schur.c
-  example/personal.c
-  example/compress.c
+  example/simple.c
+  example/step-by-step.c
   )
 
 #

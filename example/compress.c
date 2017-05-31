@@ -1,14 +1,16 @@
 /**
  * @file compress.c
  *
- * @brief A simple example that reads the matrix and then runs pastix in one call.
+ * @brief A compression example that factorizes the matrix with the Just-In-Time
+ * strategy and Rank-Revealing kernels. This is the fastest combination to solve
+ * the problem as fast as possible.
  *
  * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
- * @author  Hastaran Matias
- * @date    2017-01-17
+ * @author  Gregoire Pichon
+ * @date    2017-06-31
  *
  * @ingroup pastix_examples
  * @code

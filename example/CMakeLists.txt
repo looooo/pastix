@@ -12,13 +12,13 @@
 add_subdirectory(old)
 set (EXAMPLES
   analyze.c
-  simple.c
-  reentrant.c
   bench_facto.c
-  step-by-step.c
-  schur.c
-  personal.c
   compress.c
+  personal.c
+  reentrant.c
+  schur.c
+  simple.c
+  step-by-step.c
   )
 
 foreach (_file ${EXAMPLES})
