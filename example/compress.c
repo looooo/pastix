@@ -2,8 +2,7 @@
  * @file compress.c
  *
  * @brief A compression example that factorizes the matrix with the Just-In-Time
- * strategy and Rank-Revealing kernels. This is the fastest combination to solve
- * the problem as fast as possible.
+ * strategy and Rank-Revealing kernels.
  *
  * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
