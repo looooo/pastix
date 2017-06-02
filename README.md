@@ -27,7 +27,7 @@ To get sources please use these commands:
       git submodule update
 
 Last releases of PaStiX are hosted on the
-[gforge.inria.fr](https://gforge.inria.fr/frs/?group_id=2884) for now.
+[gforge.inria.fr](https://gforge.inria.fr/frs/?group_id=186) for now.
 Future releases will be available on this gitlab project.
 
 Available Features
