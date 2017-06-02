@@ -45,8 +45,8 @@ Available Features
 
  * MPI is not available yet and will come with 6.1.0
  * StarPU support is not available yet, and should be available in final 6.0.0
- * GPUs kernels are in the code but not exploted yet, we are targetting for a more simple scheduing that would allow everyone to get correct performance out of the box
-
+ * GPUs kernels are in the code but not exploted yet, we are targeting for a simpler scheduling that would allow everyone to get correct performance out of the box in final 6.0.0
+x
 Documentation
 -------------
 
@@ -63,22 +63,22 @@ installed on the system.
 
 The main options to configure the PaStiX configuration build are:
    * Classic cmake options:
-       * CMAKE_BUILD_TYPE: Debug, RelWithDebInfo, Release, MinSizeRel; we recommend to use the Release, or RelWithDebInfo, for performances.
-       * CMAKE_INSTALL_PREFIX!: Specify the prefix directry to install the library
+       * CMAKE_BUILD_TYPE: Debug, RelWithDebInfo, Release, MinSizeRel; we recommend to use the Release, or RelWithDebInfo, for performance.
+       * CMAKE_INSTALL_PREFIX!: Specify the prefix directory to install the library
        * BUILD_SHARED_LIBS=[OFF]: Enable the shared libraries build. This option needs to be enabled for the Python wrapper.
    * Integer type:
        * PASTIX_INT64[=ON]: Enable/disable int64_t for integers arrays.
    * Ordering libraries:
-       * Ordering libraries must macth the integer type chosen for integer arrays in PaStiX
+       * Ordering libraries must match the integer type chosen for integer arrays in PaStiX
        * PASTIX_ORDERING_SCOTCH[=ON]: Enable/Disable the support of the Scotch library to compute the ordering.
        * PASTIX_ORDERING_METIS[=OFF]: Enable/Disable the support of the Metis library to compute the ordering. Metis 5.1 is required.
    * External schedulers:
        * PASTIX_WITH_PARSEC[=OFF]: Enable/disable the PaRSEC runtime support. Require to install PaRSEC tag pastix-releasenumber (mymaster for master branch) from the repository https://bitbucket.org/mfaverge/parsec that includes a few patches on top of the original PaRSEC runtime system.
        * PASTIX_WITH_STARPU[=OFF]: Enable/disable the StarPU runtime support. Require to install StarPU 1.2. Not supported for now.
    * Distributed memory:
-       * PASTIX_WITH_MPI=[OFF]: Distrbuted memory is not supported yet in PaStiX, hwever you might need to enable this option if your PaRSEC library has been compiled with MPI support.
+       * PASTIX_WITH_MPI=[OFF]: Distributed memory is not supported yet in PaStiX, however you might need to enable this option if your PaRSEC library has been compiled with MPI support.
    * Documentation:
-       * BUILD_DOCUMENTATION[=OFF] to enable the doxygen documentation generation
+       * BUILD_DOCUMENTATION[=OFF] to enable the Doxygen documentation generation
 
 
 Get involved!
@@ -86,7 +86,7 @@ Get involved!
 
 ### Reporting an issue
 
-We strongly recommend all users to use the issue tracker to report any problems with the software, or for any feature request. We will try our best to answer them in a short timeframe.
+We strongly recommend all users to use the issue tracker to report any problems with the software, or for any feature request. We will try our best to answer them in a short time frame.
 
 ### Contributions
 
