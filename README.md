@@ -5,7 +5,7 @@ PaStiX (Parallel Sparse matriX package) is a scientific library that provides a
 high performance parallel solver for very large sparse linear systems based on
 direct methods.  Numerical algorithms are implemented in single or double
 precision (real or complex) using LLt, LDLt and LU with static pivoting (for non
-symmetric matrices having a symmetric pattern).  This solver provides also an
+symmetric matrices having a symmetric pattern).  This solver also provides an
 adaptive blockwise iLU(k) factorization that can be used as a parallel
 preconditioner using approximated supernodes to build a coarser block structure
 of the incomplete factors.
@@ -45,8 +45,8 @@ Available Features
 
  * MPI is not available yet and will come with 6.1.0
  * StarPU support is not available yet, and should be available in final 6.0.0
- * GPUs kernels are in the code but not exploted yet, we are targeting for a simpler scheduling that would allow everyone to get correct performance out of the box in final 6.0.0
-x
+ * GPUs kernels are in the code but not exploited yet, we are targeting for a simpler scheduling that would allow everyone to get correct performance out of the box in final 6.0.0
+
 Documentation
 -------------
 
@@ -67,7 +67,7 @@ The main options to configure the PaStiX configuration build are:
        * CMAKE_INSTALL_PREFIX: Specify the prefix directory to install the library
        * BUILD_SHARED_LIBS=[OFF]: Enable the shared libraries build. This option needs to be enabled for the Python wrapper.
    * Integer type:
-       * PASTIX_INT64[=ON]: Enable/disable int64_t for integers arrays.
+       * PASTIX_INT64[=ON]: Enable/disable int64_t for integer arrays.
    * Ordering libraries:
        * Ordering libraries must match the integer type chosen for integer arrays in PaStiX
        * PASTIX_ORDERING_SCOTCH[=ON]: Enable/Disable the support of the Scotch library to compute the ordering.
