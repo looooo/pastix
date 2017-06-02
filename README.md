@@ -35,17 +35,17 @@ Available Features
 
 |       | Seq    | Static | Dyn    | StarPU | PaRSEC      |
 |-------|--------|--------|--------|--------|-------------|
-| POTRF | SHM/LR | SHM/LR | SHM/LR | -      | SHM/LR (GPU coming)|
-| PXTRF | Coming | Coming | Coming | -      | Coming      |
-|-------|--------|--------|--------|--------|-------------|
-| HETRF | Coming | Coming | Coming | -      | -           |
-| SYTRF | Coming | Coming | Coming | -      | -           |
-|-------|--------|--------|--------|--------|-------------|
-| GETRF | SHM/LR | SHM/LR | SHM/LR | -      | SHM/LR (GPU coming)|
-|-------|--------|--------|--------|--------|-------------|
-| TRSM  | SHM/LR | SHM/LR | SHM/LR | -      | -           |
-| DIAG  | SHM/LR | SHM/LR | SHM/LR | -      | -           |
+| POTRF (Cholesky) | SHM/LR | SHM/LR | SHM/LR | -      | SHM/LR (GPU coming)|
+| PXTRF (LL^t for complex)| Coming | Coming | Coming | -      | Coming      |
+| HETRF (LDL^h)    | Coming | Coming | Coming | -      | -           |
+| SYTRF (LDL^t)    | Coming | Coming | Coming | -      | -           |
+| GETRF (LU)       | SHM/LR | SHM/LR | SHM/LR | -      | SHM/LR (GPU coming)|
+| TRSM             | SHM/LR | SHM/LR | SHM/LR | -      | -           |
+| DIAG             | SHM/LR | SHM/LR | SHM/LR | -      | -           |
 
+ * MPI is not available yet and will come with 6.1.0
+ * StarPU support is not available yet, and should be available in final 6.0.0
+ * GPUs kernels are in the code but not exploted yet, we are targetting for a more simple scheduing that would allow everyone to get correct performance out of the box
 
 Documentation
 -------------
