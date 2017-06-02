@@ -482,12 +482,11 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blend")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/matrix_drivers")
 
 add_subdirectory(spm)
 
 # Sub modules
-set(modules bcsc kernels refinement) #csc kernels sopalin matrix_drivers common)
+set(modules bcsc kernels refinement) #csc kernels sopalin common)
 foreach (module ${modules})
    add_subdirectory(${module})
 endforeach()
