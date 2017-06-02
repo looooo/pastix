@@ -5,10 +5,8 @@ PaStiX (Parallel Sparse matriX package) is a scientific library that provides a
 high performance parallel solver for very large sparse linear systems based on
 direct methods.  Numerical algorithms are implemented in single or double
 precision (real or complex) using LLt, LDLt and LU with static pivoting (for non
-symmetric matrices having a symmetric pattern).  This solver also provides an
-adaptive blockwise iLU(k) factorization that can be used as a parallel
-preconditioner using approximated supernodes to build a coarser block structure
-of the incomplete factors.
+symmetric matrices having a symmetric pattern).
+This solver also provides some low-rank compression methods to reduce the memory footprint and/or the time-to-solution.
 
 Get PaStiX
 ----------
@@ -43,6 +41,8 @@ Available Features
 | TRSM             | SHM/LR | SHM/LR | SHM/LR | -      | -           |
 | DIAG             | SHM/LR | SHM/LR | SHM/LR | -      | -           |
 
+ * SHM means Shared Memory using POSIX theads for multicores architectures
+ * LR means (block) Low-Rank compression technique to reduce the memory footprint and/or the time-to-solution 
  * MPI is not available yet and will come with 6.1.0
  * StarPU support is not available yet, and should be available in final 6.0.0
  * GPUs kernels are in the code but not exploited yet, we are targeting for a simpler scheduling that would allow everyone to get correct performance out of the box in final 6.0.0
