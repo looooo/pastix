@@ -50,7 +50,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 ### Distributed engine parameters
 option(PASTIX_WITH_MPI
-    "Build PaStiX for distributed memory with MPI" ON)
+    "Build PaStiX for distributed memory with MPI" OFF)
 
 ### GPU engine parameters
 option(PASTIX_WITH_CUDA

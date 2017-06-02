@@ -64,7 +64,7 @@ installed on the system.
 The main options to configure the PaStiX configuration build are:
    * Classic cmake options:
        * CMAKE_BUILD_TYPE: Debug, RelWithDebInfo, Release, MinSizeRel; we recommend to use the Release, or RelWithDebInfo, for performance.
-       * CMAKE_INSTALL_PREFIX!: Specify the prefix directory to install the library
+       * CMAKE_INSTALL_PREFIX: Specify the prefix directory to install the library
        * BUILD_SHARED_LIBS=[OFF]: Enable the shared libraries build. This option needs to be enabled for the Python wrapper.
    * Integer type:
        * PASTIX_INT64[=ON]: Enable/disable int64_t for integers arrays.
