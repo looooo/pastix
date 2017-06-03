@@ -147,18 +147,19 @@ FortranCInterface_HEADER(common/FCmangle.h
 
 # PaStiX depends on CBLAS
 #----------------------------
-find_package(CBLAS REQUIRED COMPONENTS BLASEXT)
+find_package(CBLAS COMPONENTS BLASEXT)
 if(CBLAS_FOUND)
     message(STATUS "cblas: ${CBLAS_INCLUDE_DIRS}")
     include_directories(${CBLAS_INCLUDE_DIRS})
 endif()
 
-find_package(LAPACKE REQUIRED COMPONENTS LAPACKEXT)
-find_package(TMG)
+find_package(LAPACKE COMPONENTS LAPACKEXT)
 if(LAPACKE_FOUND)
   message(STATUS "lapacke: ${LAPACKE_INCLUDE_DIRS}")
   include_directories(${LAPACKE_INCLUDE_DIRS})
 endif()
+
+find_package(TMG)
 
 ### Store dependencies not handled with pkg-config
 set( DEPS_LIBRARIES
