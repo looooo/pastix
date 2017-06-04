@@ -285,6 +285,10 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         PASTIX_FOPEN(stream, "etree.dot", "w");
         eTreeGenDot( ctrl.etree, stream );
         fclose(stream);
+
+        PASTIX_FOPEN(stream, "ctree.dot", "w");
+        candGenCompressedDot( ctrl.etree, ctrl.candtab, stream );
+        fclose(stream);
     }
 
     /*

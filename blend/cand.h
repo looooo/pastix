@@ -64,6 +64,9 @@ void candBuild          (       pastix_int_t           level_tasks2d,
                           const symbol_matrix_t       *symbmtx,
                           const CostMatrix            *costmtx );
 
+void candGenDot(const EliminTree *etree, const Cand *candtab, FILE *stream);
+void candGenCompressedDot(const EliminTree *etree, const Cand *candtab, FILE *stream);
+
 #endif
 
 /**
