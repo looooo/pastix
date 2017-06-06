@@ -9,8 +9,6 @@
  * @author Theophile Terraz
  * @date 2015-01-01
  *
- * @precisions normal z -> c d s p
- *
  **/
 #define _GNU_SOURCE
 #include <stdint.h>

@@ -3,7 +3,6 @@
  *
  * Copyright (c) 2016      Inria. All rights reserved.
  *
- * @precisions normal z -> s d c
  */
 #ifndef _PASTIX_CUDA_H_
 #define _PASTIX_CUDA_H_
