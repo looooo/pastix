@@ -113,7 +113,7 @@ int mm_read_banner(FILE *f, MM_typecode *matcode)
     if (fgets(line, MM_MAX_LINE_LENGTH, f) == NULL)
         return MM_PREMATURE_EOF;
 
-    if (sscanf(line, "%s %s %s %s %s", banner, mtx, crd, data_type,
+    if (sscanf(line, "%63s %63s %63s %63s %63s", banner, mtx, crd, data_type,
         storage_scheme) != 5)
         return MM_PREMATURE_EOF;
 
@@ -347,17 +347,21 @@ int mm_read_mtx_crd(char *fname, int *M, int *N, int *nz, int **row, int **col,
     if ((f = fopen(fname, "r")) == NULL)
         return MM_COULD_NOT_READ_FILE;
 
-
-    if ((ret_code = mm_read_banner(f, matcode)) != 0)
+    if ((ret_code = mm_read_banner(f, matcode)) != 0) {
+        if (f != stdin) fclose(f);
         return ret_code;
-
-    if (!(mm_is_valid(*matcode) && mm_is_sparse(*matcode) &&
-            mm_is_matrix(*matcode)))
+    }
+    if (!(mm_is_valid(*matcode)  &&
+          mm_is_sparse(*matcode) &&
+          mm_is_matrix(*matcode)) )
+    {
+        if (f != stdin) fclose(f);
         return MM_UNSUPPORTED_TYPE;
-
-    if ((ret_code = mm_read_mtx_crd_size(f, M, N, nz)) != 0)
+    }
+    if ((ret_code = mm_read_mtx_crd_size(f, M, N, nz)) != 0) {
+        if (f != stdin) fclose(f);
         return ret_code;
-
+    }
 
     *row = (int *)  malloc(*nz * sizeof(int));
     *col = (int *)  malloc(*nz * sizeof(int));
@@ -368,21 +372,30 @@ int mm_read_mtx_crd(char *fname, int *M, int *N, int *nz, int **row, int **col,
         *val = (double *) malloc(*nz * 2 * sizeof(double));
         ret_code = mm_read_mtx_crd_data(f, *M, *N, *nz, *row, *col, *val,
                 *matcode);
-        if (ret_code != 0) return ret_code;
+        if (ret_code != 0) {
+            if (f != stdin) fclose(f);
+            return ret_code;
+        }
     }
     else if (mm_is_real(*matcode))
     {
         *val = (double *) malloc(*nz * sizeof(double));
         ret_code = mm_read_mtx_crd_data(f, *M, *N, *nz, *row, *col, *val,
                 *matcode);
-        if (ret_code != 0) return ret_code;
+        if (ret_code != 0) {
+            if (f != stdin) fclose(f);
+            return ret_code;
+        }
     }
 
     else if (mm_is_pattern(*matcode))
     {
         ret_code = mm_read_mtx_crd_data(f, *M, *N, *nz, *row, *col, *val,
                 *matcode);
-        if (ret_code != 0) return ret_code;
+        if (ret_code != 0) {
+            if (f != stdin) fclose(f);
+            return ret_code;
+        }
     }
 
     if (f != stdin) fclose(f);

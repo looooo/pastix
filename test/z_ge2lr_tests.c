@@ -39,7 +39,7 @@
     }
 
 int
-z_ge2lr_test( double tolerance, pastix_int_t rank,
+z_ge2lr_test( int mode, double tolerance, pastix_int_t rank,
               pastix_int_t m, pastix_int_t n, pastix_int_t lda )
 {
 
@@ -51,7 +51,6 @@ z_ge2lr_test( double tolerance, pastix_int_t rank,
     double res_SVD, res_RRQR;
 
     pastix_int_t minMN    = pastix_imin(m, n);
-    int          mode     = 0;
     double       rcond    = (double) minMN;
     double       dmax     = 1.0;
     int          ISEED[4] = {0,0,0,1};   /* initial seed for zlarnv() */
@@ -162,7 +161,7 @@ int main (int argc, char **argv)
         for (r=10; r<100; r+=10){
             printf("   -- Test GE2LR M=N=LDA=%ld R=%ld\n", (long)m, (long)r);
 
-            ret = z_ge2lr_test(tolerance, r, m, m, m);
+            ret = z_ge2lr_test(0, tolerance, r, m, m, m);
             PRINT_RES(ret);
         }
     }
