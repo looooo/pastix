@@ -189,8 +189,7 @@ pqueuePush2(pastix_queue_t *q,
         memcpy(q->elttab, tmp, q->size * sizeof(pastix_queue_item_t));
 
         q->size = q->size*2 +1;
-        if (tmp != NULL)
-            memFree_null(tmp);
+        memFree_null(tmp);
     }
 
     q->elttab[q->used].key1   = key1;

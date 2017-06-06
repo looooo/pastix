@@ -976,6 +976,7 @@ simuRun( SimuCtrl           *simuctrl,
 
 #if defined(PASTIX_BLEND_GENTRACE)
         if (ctrl->clustnum == 0) {
+            assert( procnames != NULL );
             setState( timerVal( TIMER(pr) ), "ST_TS", procnames[pr], "Comp" );
         }
 #endif
@@ -1021,6 +1022,7 @@ simuRun( SimuCtrl           *simuctrl,
 
 #if defined(PASTIX_BLEND_GENTRACE)
         if (ctrl->clustnum == 0) {
+            assert( procnames != NULL );
             setState( timerVal( TIMER(pr) ), "ST_TS", procnames[pr], "Wait" );
         }
 #endif
@@ -1040,6 +1042,7 @@ simuRun( SimuCtrl           *simuctrl,
 
 #if defined(PASTIX_BLEND_GENTRACE)
     if (ctrl->clustnum == 0) {
+        assert( procnames != NULL );
         for(pr=0; pr<ctrl->total_nbthrds; pr++) {
             free(procnames[pr]);
         }

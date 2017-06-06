@@ -187,6 +187,7 @@ solverDraw ( const SolverMatrix * const  solvptr,
             SolverBlok *blok   = cblk[0].fblokptr+1;
             SolverBlok *lblok  = cblk[1].fblokptr;
             if ( 3 != fscanf(fd2, "%d %d %d\n", &unused, &nb_contrib, &original_cblk) ) {
+                fclose(fd1); fclose(fd2); fclose(fd3);
                 return PASTIX_ERR_FILE;
             }
             fprintf (stream, "%.2g g %ld\t%ld\tc\n",             /* Begin new column block */
@@ -207,6 +208,7 @@ solverDraw ( const SolverMatrix * const  solvptr,
                 double gain = 0;
 
                 if ( 2 != fscanf(fd1, "%d %d\n", &unused, &nb_contrib) ) {
+                    fclose(fd1); fclose(fd2); fclose(fd3);
                     return PASTIX_ERR_FILE;
                 }
                 fprintf (stream, "%ld\t%ld\ta\n",         /* Write block in column block */

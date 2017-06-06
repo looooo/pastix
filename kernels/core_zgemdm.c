@@ -152,11 +152,11 @@ core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
     Bm = (transB == PastixNoTrans ) ? K : N;
 
     /* Check input arguments */
-    if ((transA != PastixNoTrans) && (transA != PastixTrans) && (transA != PastixConjTrans)) {
+    if ((transA < PastixNoTrans) || (transA > PastixConjTrans)) {
         //coreblas_error(1, "Illegal value of transA");
         return -1;
     }
-    if ((transB != PastixNoTrans) && (transB != PastixTrans) && (transB != PastixConjTrans)) {
+    if ((transB < PastixNoTrans) || (transB > PastixConjTrans)) {
         //coreblas_error(2, "Illegal value of transB");
         return -2;
     }

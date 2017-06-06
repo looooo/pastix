@@ -33,14 +33,15 @@
  *******************************************************************************/
 void graphExit( pastix_graph_t *graph )
 {
-    graph->gN = 0;
-    graph->n  = 0;
-
     /* Parameter checks */
     if ( graph == NULL ) {
         errorPrint("graphClean: graph pointer is NULL");
         return;
     }
+
+    graph->gN = 0;
+    graph->n  = 0;
+
     if ( (graph->colptr == NULL) ||
          (graph->rows   == NULL) )
     {
@@ -50,7 +51,11 @@ void graphExit( pastix_graph_t *graph )
 
     memFree_null(graph->colptr);
     memFree_null(graph->rows);
-    if (graph->loc2glob != NULL) { memFree_null( graph->loc2glob );}
+
+    if (graph->loc2glob != NULL)
+    {
+        memFree_null( graph->loc2glob );
+    }
 
     return;
 }

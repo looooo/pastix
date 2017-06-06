@@ -255,8 +255,8 @@ isched_t *ischedInit(int cores, int *coresbind)
         isched->world_size = cores;
 
     if (isched->world_size <= 0) {
-        fprintf(stderr, "ischedInit: failed to get system size\n");
-        return NULL;
+        fprintf(stderr, "ischedInit: failed to get system size, set to 1\n");
+        isched->world_size = 1;
     }
 
     /* Initialize barrier */

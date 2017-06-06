@@ -85,9 +85,8 @@ core_zgeadd( pastix_trans_t            trans,
     int i, j;
 
 #if defined(PASTIX_DEBUG)
-    if ((trans != PastixNoTrans) &&
-        (trans != PastixTrans)   &&
-        (trans != PastixConjTrans))
+    if ((trans < PastixNoTrans)   ||
+        (trans > PastixConjTrans))
     {
         //coreblas_error(1, "illegal value of trans");
         return -1;

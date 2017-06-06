@@ -592,12 +592,14 @@ int readHB_aux_double(const char* filename, const char AuxType, double b[])
     if (Nrhs <= 0)
     {
         fprintf(stderr, "Warn: Attempt to read auxillary vector(s) when none are present.\n");
+        fclose(in_file);
         return 0;
     }
     if (Rhstype[0] != 'F' )
     {
         fprintf(stderr,"Warn: Attempt to read auxillary vector(s) which are not stored in Full form.\n");
         fprintf(stderr,"       Rhs must be specified as full. \n");
+        fclose(in_file);
         return 0;
     }
 
@@ -615,10 +617,12 @@ int readHB_aux_double(const char* filename, const char AuxType, double b[])
 
     if ( AuxType == 'G' && Rhstype[1] != 'G' ) {
         fprintf(stderr, "Warn: Attempt to read auxillary Guess vector(s) when none are present.\n");
+        fclose(in_file);
         return 0;
     }
     if ( AuxType == 'X' && Rhstype[2] != 'X' ) {
         fprintf(stderr, "Warn: Attempt to read auxillary eXact solution vector(s) when none are present.\n");
+        fclose(in_file);
         return 0;
     }
 
@@ -1344,7 +1348,7 @@ int writeHB_mat_char(const char* filename, int M, int N,
     int Ptrperline, Ptrwidth, Indperline, Indwidth;
     int Rhsperline, Rhswidth, Rhsprec;
     char Rhsflag;
-    int Valperline=0, Valwidth, Valprec;
+    int Valperline=1, Valwidth, Valprec;
     char Valflag;           /* Indicates 'E','D', or 'F' float format */
     char pformat[16],iformat[16],vformat[19],rformat[19];
 

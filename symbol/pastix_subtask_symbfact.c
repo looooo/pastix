@@ -106,13 +106,12 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     double         *dparm;
     pastix_graph_t *graph;
     Order          *ordemesh;
-    pastix_int_t    n;
     int             procnum;
     Clock           timer;
 
 #if defined(PASTIX_DISTRIBUTED)
-    pastix_int_t           * PTS_perm     = pastix_data->PTS_permtab;
-    pastix_int_t           * PTS_rev_perm = pastix_data->PTS_peritab;
+    pastix_int_t           * PTS_perm     = NULL;
+    pastix_int_t           * PTS_rev_perm = NULL;
     pastix_int_t           * tmpperm      = NULL;
     pastix_int_t           * tmpperi      = NULL;
     pastix_int_t             gN;
@@ -146,7 +145,6 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
         errorPrint("pastix_subtask_symbfact: the pastix_data->ordemesh field has not been initialized, pastix_subtask_order should be called first");
         return PASTIX_ERR_BADPARAMETER;
     }
-    n = ordemesh->vertnbr;
 
     clockStart(timer);
 
@@ -282,7 +280,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
 #if defined(PASTIX_DISTRIBUTED)
             if (PTS_perm != NULL)
             {
-                gN = n;
+                gN = ordemesh->vertnbr;
 
                 MALLOC_INTERN(tmpperm, gN, pastix_int_t);
                 MALLOC_INTERN(tmpperi, gN, pastix_int_t);

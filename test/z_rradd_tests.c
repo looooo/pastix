@@ -65,17 +65,17 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
     double *SA, *SB;
     double alphaA, alphaB;
 
-    MALLOC_INTERN(A,      mA * nA, pastix_complex64_t);
-    MALLOC_INTERN(B,      mB * nB, pastix_complex64_t);
-    MALLOC_INTERN(C_RRQR, mA * nA, pastix_complex64_t);
-    MALLOC_INTERN(C_SVD,  mA * nA, pastix_complex64_t);
+    A      = malloc(mA * nA * sizeof(pastix_complex64_t));
+    B      = malloc(mB * nB * sizeof(pastix_complex64_t));
+    C_RRQR = malloc(mA * nA * sizeof(pastix_complex64_t));
+    C_SVD  = malloc(mA * nA * sizeof(pastix_complex64_t));
+    SA     = malloc(minMN_A * sizeof(double));
+    SB     = malloc(minMN_B * sizeof(double));
+    work   = malloc(3 * pastix_imax(pastix_imax(mA, nA), pastix_imax(mB, nB)) * sizeof(pastix_complex64_t));
 
-    MALLOC_INTERN(SA, minMN_A, double);
-    MALLOC_INTERN(SB, minMN_B, double);
-    MALLOC_INTERN(work, 3*pastix_imax(pastix_imax(mA, nA), pastix_imax(mB, nB)), pastix_complex64_t);
-
-    if ((!A)||(!B)||(!C_SVD)||(!C_RRQR)||(!SA)||(!SB)||(!work)){
+    if ( (!A) || (!B) || (!C_SVD) || (!C_RRQR) || (!SA) || (!SB) || (!work) ) {
         printf("Out of Memory \n ");
+        free(A); free(B); free(C_RRQR); free(C_SVD); free(SA); free(SB); free(work);
         return -2;
     }
 
@@ -140,10 +140,12 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
 
     if (LR_A_RRQR.rk == -1 || LR_B_RRQR.rk == -1 || (LR_A_RRQR.rk + LR_B_RRQR.rk) > pastix_imin(mA, nA)){
         printf("Operation non supported\n");
+        free(A); free(B); free(C_RRQR); free(C_SVD); free(SA); free(SB); free(work);
         return 0;
     }
     if (LR_A_SVD.rk == -1 || LR_B_SVD.rk == -1 || (LR_A_SVD.rk + LR_B_SVD.rk) > pastix_imin(mA, nA)){
         printf("Operation non supported\n");
+        free(A); free(B); free(C_RRQR); free(C_SVD); free(SA); free(SB); free(work);
         return 0;
     }
 
@@ -194,13 +196,13 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
 
     printf("RES SVD=%.3g RRQR=%.3g\n", res_SVD, res_RRQR);
 
-    memFree_null(A);
-    memFree_null(B);
-    memFree_null(C_SVD);
-    memFree_null(C_RRQR);
-    memFree_null(SA);
-    memFree_null(SB);
-    memFree_null(work);
+    free(A);
+    free(B);
+    free(C_SVD);
+    free(C_RRQR);
+    free(SA);
+    free(SB);
+    free(work);
 
     if ((res_RRQR < 10) && (res_SVD < 10))
         return 0;
