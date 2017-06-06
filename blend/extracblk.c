@@ -91,6 +91,7 @@ extraCblkInc( ExtraCblk_t *extracblk )
     /* Check that we have enough space and make it bigger if required */
     if( extracblk->curcblk >= extracblk->sizcblk )
     {
+        /* Add 5% of original cblknbr to the cblktab */
         pastix_int_t extrasize = (extracblk->cblknbr + 20 ) / 20;
         SymbolCblk *tmp;
 
@@ -98,7 +99,6 @@ extraCblkInc( ExtraCblk_t *extracblk )
         tmp = extracblk->cblktab;
         extracblk->sizcblk += extrasize;
 
-        /* Add 5% of original cblknbr to the cblktab */
         MALLOC_INTERN( extracblk->cblktab, extracblk->sizcblk, SymbolCblk );
         memcpy(extracblk->cblktab, tmp, sizeof(SymbolCblk)*extracblk->curcblk);
 

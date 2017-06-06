@@ -1066,6 +1066,7 @@ int readHB_mat_char(const char* filename, int colptr[], int rowind[],
         }
     }
 
+    fclose(in_file);
     return 1;
 }
 
@@ -1162,12 +1163,14 @@ int readHB_aux_char(const char* filename, const char AuxType, char b[])
     if (Nrhs <= 0)
     {
         fprintf(stderr, "Warn: Attempt to read auxillary vector(s) when none are present.\n");
+        fclose(in_file);
         return 0;
     }
     if (Rhstype[0] != 'F' )
     {
         fprintf(stderr,"Warn: Attempt to read auxillary vector(s) which are not stored in Full form.\n");
         fprintf(stderr,"       Rhs must be specified as full. \n");
+        fclose(in_file);
         return 0;
     }
 
@@ -1185,10 +1188,12 @@ int readHB_aux_char(const char* filename, const char AuxType, char b[])
 
     if ( AuxType == 'G' && Rhstype[1] != 'G' ) {
         fprintf(stderr, "Warn: Attempt to read auxillary Guess vector(s) when none are present.\n");
+        fclose(in_file);
         return 0;
     }
     if ( AuxType == 'X' && Rhstype[2] != 'X' ) {
         fprintf(stderr, "Warn: Attempt to read auxillary eXact solution vector(s) when none are present.\n");
+        fclose(in_file);
         return 0;
     }
 
@@ -1276,9 +1281,7 @@ int readHB_aux_char(const char* filename, const char AuxType, char b[])
                 col = 0;
             }
         }
-
     }
-
 
     fclose(in_file);
     return Nrhs;
@@ -1505,19 +1508,24 @@ int ParseIfmt(char* fmt, int* perline, int* width)
     /*  width and number of elements per line.       */
     /*************************************************/
     char *tmp;
+    *perline = 0; *width = 0;
     if (fmt == NULL ) {
-        *perline = 0; *width = 0; return 0;
+        return 0;
     }
     upcase(fmt);
     tmp = strchr(fmt,'(');
-    tmp = substr(fmt,tmp - fmt + 1, strchr(fmt,'I') - tmp - 1);
-    *perline = atoi(tmp);
-    if (tmp) free(tmp);
+    if (tmp) {
+        tmp = substr(fmt,tmp - fmt + 1, strchr(fmt,'I') - tmp - 1);
+        *perline = atoi(tmp);
+        free(tmp);
+    }
 
     tmp = strchr(fmt,'I');
-    tmp = substr(fmt,tmp - fmt + 1, strchr(fmt,')') - tmp - 1);
-    *width = atoi(tmp);
-    if (tmp) free(tmp);
+    if (tmp) {
+        tmp = substr(fmt,tmp - fmt + 1, strchr(fmt,')') - tmp - 1);
+        *width = atoi(tmp);
+        free(tmp);
+    }
 
     return *width;
 }
@@ -1535,9 +1543,9 @@ int ParseRfmt(char* fmt, int* perline, int* width, int* prec, char* flag)
     char* tmp3;
     int len;
 
+    *perline = 0;
+    *width = 0;
     if (fmt == NULL ) {
-        *perline = 0;
-        *width = 0;
         flag = NULL;
         return 0;
     }
@@ -1580,18 +1588,25 @@ int ParseRfmt(char* fmt, int* perline, int* width, int* prec, char* flag)
     tmp = substr(fmt,tmp - fmt + 1, strchr(fmt,*flag) - tmp - 1);
     *perline = atoi(tmp);
     free(tmp);
-    tmp = strchr(fmt,*flag);
-    if ( strchr(fmt,'.') ) {
-        char *tmp2 = substr( fmt, strchr(fmt,'.') - fmt + 1, strchr(fmt,')') - strchr(fmt,'.')-1);
-        *prec = atoi( tmp2 );
-        if (tmp2) free(tmp2);
-        tmp = substr(fmt,tmp - fmt + 1, strchr(fmt,'.') - tmp - 1);
-    } else {
-        tmp = substr(fmt,tmp - fmt + 1, strchr(fmt,')') - tmp - 1);
+    {
+        char c;
+        if ( strchr(fmt,'.') ) {
+            char *tmp2 = substr( fmt, strchr(fmt,'.') - fmt + 1, strchr(fmt,')') - strchr(fmt,'.')-1);
+            if (tmp2) {
+                *prec = atoi( tmp2 );
+                free(tmp2);
+            }
+            c = '.';
+        } else {
+            c = ')';
+        }
+        tmp = strchr(fmt,*flag);
+        if (tmp) {
+            tmp = substr(fmt,tmp - fmt + 1, strchr(fmt,c) - tmp - 1);
+            *width = atoi(tmp);
+            free(tmp);
+        }
     }
-    *width = atoi(tmp);
-
-    if (tmp) free(tmp);
     return *width;
 }
 

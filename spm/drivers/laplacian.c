@@ -92,7 +92,7 @@ laplacian_parse_info( const char   *filename,
         char flt;
         char *tmpf = strdup( filename );
 
-        if ( sscanf( filename, "%c:%s", &flt, tmpf ) == 2 ) {
+        if ( sscanf( filename, "%c:%256s", &flt, tmpf ) == 2 ) {
             filename += 2;
             switch( flt ){
             case 'Z':

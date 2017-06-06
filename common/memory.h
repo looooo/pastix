@@ -133,7 +133,5 @@ static inline void *pastix_malloc_func( size_t size,
 //void  memFree(void *ptr);
 //void *memRealloc(void *ptr, size_t size);
 #define memRealloc realloc
-void *memAllocGroup  (void **, ...);
-void *memReallocGroup(void *, ...);
 
 #endif /* _MEMORY_H_ */

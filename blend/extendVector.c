@@ -190,10 +190,11 @@ extendint_incr(ExtendVectorINT *vec)
     {
         pastix_int_t *tmp;
         tmp = vec->inttab;
-        /* add memory space */
-        MALLOC_INTERN(vec->inttab, vec->vecsize + vec->vecsize/2 +1, pastix_int_t);
-        memcpy(vec->inttab, tmp, sizeof(pastix_int_t)*vec->eltnbr);
+
         vec->vecsize = vec->vecsize + vec->vecsize/2 +1;
+
+        MALLOC_INTERN(vec->inttab, vec->vecsize, pastix_int_t);
+        memcpy(vec->inttab, tmp, sizeof(pastix_int_t)*vec->eltnbr);
         memFree_null(tmp);
     }
 }

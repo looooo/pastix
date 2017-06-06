@@ -249,7 +249,7 @@ propMappSubtree( const propmap_t *pmptr,
         }
 
         /* If the first candidate doesn't have enough ressources, we skip it */
-        if( (cost_remain[fcand] <= epsilon) && (fcand < candnbr-1) )
+        if( (fcand < candnbr-1) && (cost_remain[fcand] <= epsilon) )
         {
             fcand++;
         }

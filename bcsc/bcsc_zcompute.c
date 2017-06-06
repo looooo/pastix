@@ -94,14 +94,13 @@ z_bcscBerr( void         *r1,
 {
     pastix_complex64_t *r1ptr = (pastix_complex64_t*)r1;
     pastix_complex64_t *r2ptr = (pastix_complex64_t*)r2;
-    double module1, module2;
     double berr = 0.;
     pastix_int_t i;
 
     for( i = 0; i < n; i++)
     {
-        module1 = cabs(r1ptr[i]);
-        module2 = cabs(r2ptr[i]);
+        double module1 = cabs(r1ptr[i]);
+        double module2 = cabs(r2ptr[i]);
         if( (module2 > 0.) && ((module1 / module2) > berr) )
             berr = module1 / module2;
     }

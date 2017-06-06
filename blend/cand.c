@@ -268,17 +268,20 @@ candSubTreeBuild( pastix_int_t        rootnum,
                   const CostMatrix   *costmtx )
 {
     double cost;
-    pastix_int_t i, son, bloknum;
+    pastix_int_t i, son;
 
     /* Compute cost of current node */
 #if defined(BLEND_COST_LL)
     cost = costmtx->cblkcost[rootnum];
 #else
-    cost = 0.;
-    for( bloknum = symbmtx->cblktab[ rootnum   ].bloknum;
-         bloknum < symbmtx->cblktab[ rootnum+1 ].bloknum; bloknum++)
     {
-        cost += costmtx->blokcost[ bloknum ];
+        pastix_int_t bloknum;
+        cost = 0.;
+        for( bloknum = symbmtx->cblktab[ rootnum   ].bloknum;
+             bloknum < symbmtx->cblktab[ rootnum+1 ].bloknum; bloknum++)
+        {
+            cost += costmtx->blokcost[ bloknum ];
+        }
     }
 #endif
 
