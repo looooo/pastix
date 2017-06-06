@@ -141,6 +141,7 @@ readIJV( const char   *dirname,
     if (iafile == NULL)
     {
         fprintf(stderr,"readijv: Cannot open the ia file (%s)\n", filename);
+        free(filename);
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -150,6 +151,7 @@ readIJV( const char   *dirname,
     {
         fprintf(stderr,"readijv: Cannot open the ja file (%s)\n", filename);
         fclose(iafile);
+        free(filename);
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -160,6 +162,7 @@ readIJV( const char   *dirname,
         fprintf(stderr,"readijv: Cannot open the ra file (%s)\n", filename);
         fclose(iafile);
         fclose(jafile);
+        free(filename);
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -178,6 +181,10 @@ readIJV( const char   *dirname,
             ( 1 != fscanf(rafile,"%le\n", &temp3)) )
         {
             fprintf(stderr, "ERROR: reading matrix\n");
+            fclose(iafile);
+            fclose(jafile);
+            fclose(rafile);
+            free(filename);
             return PASTIX_ERR_IO;
         }
         *temprow = (pastix_int_t)temp1;
@@ -187,6 +194,6 @@ readIJV( const char   *dirname,
     fclose(iafile);
     fclose(jafile);
     fclose(rafile);
-
+    free(filename);
     return PASTIX_SUCCESS;
 }

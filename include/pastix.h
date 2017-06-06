@@ -143,7 +143,7 @@ int  pastix_getSchur           ( const pastix_data_t *pastix_data,
  * Function to provide a common way to read binary options in examples/testings
  */
 void pastix_getOptions( int argc, char **argv,
-                        pastix_int_t *iparam, double *dparam,
-                        pastix_driver_t *driver, char **filename );
+                       pastix_int_t *iparam, double *dparam,
+                       pastix_driver_t *driver, char **filename );
 
 #endif /* _PASTIX_H_ */

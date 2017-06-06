@@ -50,38 +50,39 @@ z_ge2lr_test( double tolerance, pastix_int_t rank,
     double norm_diff_RRQR, norm_diff_SVD;
     double res_SVD, res_RRQR;
 
-    pastix_int_t minMN = pastix_imin(m, n);
-    int mode           = 0;
-    double rcond       = (double) minMN;
-    double dmax        = 1.0;
-    int ISEED[4]       = {0,0,0,1};   /* initial seed for zlarnv() */
+    pastix_int_t minMN    = pastix_imin(m, n);
+    int          mode     = 0;
+    double       rcond    = (double) minMN;
+    double       dmax     = 1.0;
+    int          ISEED[4] = {0,0,0,1};   /* initial seed for zlarnv() */
 
     pastix_complex64_t *work;
     double *S;
 
     double alpha;
 
-    MALLOC_INTERN(A,      n * lda, pastix_complex64_t);
-    MALLOC_INTERN(A_RRQR, n * lda, pastix_complex64_t);
-    MALLOC_INTERN(A_SVD,  n * lda, pastix_complex64_t);
-
-    MALLOC_INTERN(S, minMN, double);
-    MALLOC_INTERN(work, 3*pastix_imax(m, n), pastix_complex64_t);
-
-    if ((!A)||(!A_SVD)||(!A_RRQR)||(!S)||(!work)){
-        printf("Out of Memory \n ");
-        return -2;
-    }
-
     if (lda < m || lda < n){
         printf("Invalid lda parameter\n");
         return -3;
     }
 
+    A      = malloc(n * lda * sizeof(pastix_complex64_t));
+    A_RRQR = malloc(n * lda * sizeof(pastix_complex64_t));
+    A_SVD  = malloc(n * lda * sizeof(pastix_complex64_t));
+
+    S    = malloc(minMN * sizeof(double));
+    work = malloc(3 * pastix_imax(m, n)* sizeof(pastix_complex64_t));
+
+    if ((!A)||(!A_SVD)||(!A_RRQR)||(!S)||(!work)){
+        printf("Out of Memory \n ");
+        free(A); free(A_RRQR); free(A_SVD); free(S); free(work);
+        return -2;
+    }
+
     /* Chose alpha such that alpha^rank = tolerance */
     alpha = exp(log(tolerance) / rank);
 
-    if (mode == 0){
+    if (mode == 0) {
         pastix_int_t i;
         S[0] = 1;
         for (i=1; i<minMN; i++){
@@ -137,11 +138,11 @@ z_ge2lr_test( double tolerance, pastix_int_t rank,
     res_RRQR = norm_diff_RRQR / ( tolerance * norm_dense );
     res_SVD  = norm_diff_SVD  / ( tolerance * norm_dense );
 
-    memFree_null(A);
-    memFree_null(A_SVD);
-    memFree_null(A_RRQR);
-    memFree_null(S);
-    memFree_null(work);
+    free(A);
+    free(A_SVD);
+    free(A_RRQR);
+    free(S);
+    free(work);
 
     if ((res_RRQR < 10) && (res_SVD < 10) && (LR_RRQR.rk >= LR_SVD.rk || LR_RRQR.rk == -1))
         return 0;

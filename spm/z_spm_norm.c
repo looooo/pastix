@@ -184,8 +184,7 @@ z_spmInfNorm( const pastix_spm_t *spm )
                 sumrow[row] += cabs( valptr[i] );
 
                 /* Add the symmetric/hermitian part */
-                if ( ((spm->mtxtype == PastixHermitian) ||
-                      (spm->mtxtype == PastixSymmetric)) &&
+                if ( ( spm->mtxtype != PastixGeneral ) &&
                      ( row != col ) )
                 {
                     sumrow[col] += cabs( valptr[i] );
@@ -204,8 +203,7 @@ z_spmInfNorm( const pastix_spm_t *spm )
         }
 
         /* Add the symmetric/hermitian part */
-        if ( (spm->mtxtype == PastixHermitian) ||
-             (spm->mtxtype == PastixSymmetric) )
+        if ( spm->mtxtype != PastixGeneral )
         {
             for( row=0; row < spm->gN; row++ )
             {
@@ -228,8 +226,7 @@ z_spmInfNorm( const pastix_spm_t *spm )
         }
 
         /* Add the symmetric/hermitian part */
-        if ( (spm->mtxtype == PastixHermitian) ||
-             (spm->mtxtype == PastixSymmetric) )
+        if ( spm->mtxtype != PastixGeneral )
         {
             for(i=0; i < spm->nnz; i++)
             {
@@ -300,8 +297,7 @@ z_spmOneNorm( const pastix_spm_t *spm )
         }
 
         /* Add the symmetric/hermitian part */
-        if ( (spm->mtxtype == PastixHermitian) ||
-             (spm->mtxtype == PastixSymmetric) )
+        if ( spm->mtxtype != PastixGeneral )
         {
             for( col=0; col < spm->gN; col++ )
             {
@@ -325,8 +321,7 @@ z_spmOneNorm( const pastix_spm_t *spm )
                 sumcol[col] += cabs( valptr[i] );
 
                 /* Add the symmetric/hermitian part */
-                if ( ((spm->mtxtype == PastixHermitian) ||
-                      (spm->mtxtype == PastixSymmetric)) &&
+                if ( ( spm->mtxtype != PastixGeneral ) &&
                      ( row != col ) )
                 {
                     sumcol[row] += cabs( valptr[i] );
@@ -342,8 +337,7 @@ z_spmOneNorm( const pastix_spm_t *spm )
         }
 
         /* Add the symmetric/hermitian part */
-        if ( (spm->mtxtype == PastixHermitian) ||
-             (spm->mtxtype == PastixSymmetric) )
+        if ( spm->mtxtype != PastixGeneral )
         {
             for(i=0; i < spm->nnz; i++)
             {

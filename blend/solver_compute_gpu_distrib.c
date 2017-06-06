@@ -288,6 +288,8 @@ int solverComputeGPUDistrib( SolverMatrix *solvmtx,
                 egpu->avail_pages, egpu->total_pages );
     }
 
+    free(devices_gemm);
+    free(devices_cblk);
     pqueueExit(&cblkQueue);
     pqueueExit(&gpuQueue);
     return PASTIX_SUCCESS;
