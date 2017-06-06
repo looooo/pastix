@@ -39,7 +39,7 @@
     }
 
 int
-z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
+z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB,
               pastix_int_t mA, pastix_int_t nA,
               pastix_int_t mB, pastix_int_t nB,
               pastix_int_t offx, pastix_int_t offy )
@@ -56,7 +56,6 @@ z_rradd_test( double tolerance, pastix_int_t rankA, pastix_int_t rankB,
     pastix_int_t minMN_A = pastix_imin(mA, nA);
     pastix_int_t minMN_B = pastix_imin(mB, nB);
 
-    int mode     = 0;
     double rcond = (double) minMN_A;
     double dmax  = 1.0;
     int ISEED[4] = {0,0,0,1};   /* initial seed for zlarnv() */
@@ -222,7 +221,7 @@ int main (int argc, char **argv)
         for (r=10; r<=100; r+=10){
             printf("   -- Test RRADD MA=NA=LDA=%ld MB=NB=LDB=%ld RA=%ld RB=%ld\n", (long)m, (long)m, (long)r, (long)(r/2));
 
-            ret = z_rradd_test(tolerance, r, r/2,
+            ret = z_rradd_test(0, tolerance, r, r/2,
                                m, m,
                                m, m,
                                0, 0);
