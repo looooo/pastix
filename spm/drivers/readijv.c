@@ -126,7 +126,6 @@ readIJV( const char   *dirname,
         }
         threeFilesReadHeader(hdrfile, &Nrow, &Ncol, &Nnzero);
         fclose(hdrfile);
-        free(filename);
     }
 
     spm->gN      = Ncol;
@@ -146,7 +145,6 @@ readIJV( const char   *dirname,
         free(filename);
         return PASTIX_ERR_BADPARAMETER;
     }
-    free(filename);
 
     sprintf(filename,"%s/ja_threeFiles",dirname);
     jafile = fopen(filename,"r");
@@ -157,7 +155,6 @@ readIJV( const char   *dirname,
         free(filename);
         return PASTIX_ERR_BADPARAMETER;
     }
-    free(filename);
 
     sprintf(filename,"%s/ra_threeFiles",dirname);
     rafile = fopen(filename,"r");
@@ -169,7 +166,6 @@ readIJV( const char   *dirname,
         free(filename);
         return PASTIX_ERR_BADPARAMETER;
     }
-    free(filename);
 
     /* Read the files */
     tempcol = spm->colptr;
@@ -199,5 +195,6 @@ readIJV( const char   *dirname,
     fclose(iafile);
     fclose(jafile);
     fclose(rafile);
+    free(filename);
     return PASTIX_SUCCESS;
 }
