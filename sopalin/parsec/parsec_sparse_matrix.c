@@ -536,7 +536,7 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
     parsec_data_key_t key1, key2;
     SolverCblk *cblk;
     SolverBlok *blok, *fblok, *lblok;
-    pastix_int_t m=0, n=0, cblknum, nbelt;
+    pastix_int_t m=0, n=0, cblknum;
     size_t size, offset;
     char *ptrL, *ptrU;
 
@@ -564,7 +564,6 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
     key1      = 2 * cblknbr;
 
     /* Initialize 1D cblk handlers */
-    nbelt = 0;
     cblk = spmtx->solvmtx->cblktab;
     for(cblknum = 0;
         cblknum < cblkmin2d;
@@ -573,7 +572,6 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
         parsec_data_t **handler = (parsec_data_t**)(cblk->handler);
         size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
 
-        nbelt++;
         parsec_data_create( handler,
                             o, cblknum * 2, cblk->lcoeftab, size );
 
@@ -592,7 +590,6 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
         parsec_data_t **handler = (parsec_data_t**)(cblk->handler);
         size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
 
-        nbelt++;
         parsec_data_create( handler,
                             o, cblknum * 2, cblk->lcoeftab, size );
 
@@ -615,7 +612,6 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
         key2   = n * ld;
 
         assert(offset == 0);
-        nbelt++;
         parsec_data_create( (parsec_data_t**)&(blok->handler[0]),
                             o, key1 + key2,
                             ptrL + offset, size );
@@ -651,7 +647,6 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
             size *= cblk_colnbr( cblk )
                 *  (size_t)spmtx->typesze;
 
-            nbelt++;
             parsec_data_create( (parsec_data_t**)&(fblok->handler[0]),
                                 &spmtx->super, key1 + key2,
                                 ptrL + offset, size );
