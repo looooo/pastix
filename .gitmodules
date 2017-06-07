@@ -1,0 +1,3 @@
+[submodule "cmake_modules/morse_cmake"]
+	path = cmake_modules/morse_cmake
+	url = git@gitlab.inria.fr:solverstack/morse_cmake.git
