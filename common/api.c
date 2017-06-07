@@ -437,6 +437,17 @@ pastixInit( pastix_data_t **pastix_data,
     }
 #endif /* defined(PASTIX_WITH_PARSEC) */
 
+    /*
+     * Start PaRSEC if compiled with it and scheduler set to PaRSEC
+     */
+#if defined(PASTIX_WITH_STARPU)
+    if ( pastix->starpu == NULL &&
+         iparm[IPARM_SCHEDULER] == PastixSchedStarPU ) {
+        int argc = 0;
+        pastix_starpu_init( pastix, &argc, NULL );
+    }
+#endif /* defined(PASTIX_WITH_STARPU) */
+
     pastix->graph      = NULL;
     pastix->schur_n    = 0;
     pastix->schur_list = NULL;
@@ -524,6 +535,11 @@ pastixFinalize( pastix_data_t **pastix_data )
         pastix_parsec_finalize( pastix );
     }
 #endif /* defined(PASTIX_WITH_PARSEC) */
+#if defined(PASTIX_WITH_STARPU)
+    if (pastix->starpu != NULL) {
+        pastix_starpu_finalize( pastix );
+    }
+#endif /* defined(PASTIX_WITH_STARPU) */
 
 #if defined(PASTIX_WITH_MPI)
     if ( pastix->initmpi ) {

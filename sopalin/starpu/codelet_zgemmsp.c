@@ -12,13 +12,16 @@
  * @author Pierre Ramet
  * @date 2013-06-24
  *
- * @precisions all z -> z c d s
+ * @precisions normal z -> z c d s
  *
  * @addtogroup pastix_starpu
  * @{
  *
  **/
 #include "common.h"
+#include "solver.h"
+#include "sopalin_data.h"
+#include "pastix_zcores.h"
 #include "sopalin/starpu/codelets.h"
 
 #if !defined(PASTIX_STARPU_SIMULATION)
@@ -40,10 +43,10 @@ static void cl_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
     C = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[2]);
 
     /* Check layout due to workspace */
+    starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data);
+
     assert( cblk->cblktype & CBLK_LAYOUT_2D );
     assert( fcblk->cblktype & CBLK_LAYOUT_2D );
-
-    starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data);
 
     cpucblk_zgemmsp( sideA, sideB, trans,
                      cblk, blok, fcblk,
@@ -84,7 +87,7 @@ static void cl_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_GPU( cblk_zgemmsp, 3 )
+CODELETS_GPU( cblk_zgemmsp, 3, STARPU_CUDA_ASYNC )
 
 void
 starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
@@ -95,8 +98,6 @@ starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
                           SolverCblk       *fcblk,
                           sopalin_data_t   *sopalin_data )
 {
-    (void)nb;
-
     starpu_insert_task(
         pastix_codelet(&cl_cblk_zgemmsp),
         STARPU_VALUE, &sideA,             sizeof(pastix_coefside_t),
@@ -108,7 +109,7 @@ starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
         STARPU_R,      cblk->handler[sideA],
         STARPU_R,      cblk->handler[sideB],
         STARPU_RW,     fcblk->handler[sideA],
-        STARPU_VALUE, &sopalin_data,     sizeof(sopalin_data*),
+        STARPU_VALUE, &sopalin_data,     sizeof(sopalin_data_t*),
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "cblk_zgemmsp",
 #endif

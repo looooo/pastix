@@ -12,11 +12,16 @@
  * @author Pierre Ramet
  * @date 2013-06-24
  *
+ * @precisions normal z -> z c d s
+ *
  * @addtogroup pastix_starpu
  * @{
  *
  **/
 #include "common.h"
+#include "solver.h"
+#include "sopalin_data.h"
+#include "pastix_zcores.h"
 #include "sopalin/starpu/codelets.h"
 
 #if !defined(PASTIX_STARPU_SIMULATION)
@@ -44,12 +49,10 @@ void
 starpu_task_cblk_zpotrfsp1d_panel( sopalin_data_t *sopalin_data,
                                    SolverCblk     *cblk )
 {
-    (void)nb;
-
     starpu_insert_task(
         pastix_codelet(&cl_cblk_zpotrfsp1d_panel),
         STARPU_VALUE, &cblk,             sizeof(SolverCblk*),
-        STARPU_VALUE, &sopalin_data,     sizeof(sopalin_data*),
+        STARPU_VALUE, &sopalin_data,     sizeof(sopalin_data_t*),
         STARPU_RW,     cblk->handler[0],
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "cblk_zpotrfsp1d_panel",
