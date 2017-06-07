@@ -16,6 +16,7 @@ set(generated_jdf     "")
 set(generated_headers "")
 
 set(EXTRA_SOURCES
+  starpu.c
   starpu_sparse_matrix.c
 )
 

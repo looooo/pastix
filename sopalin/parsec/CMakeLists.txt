@@ -16,6 +16,7 @@ set(generated_jdf     "")
 set(generated_headers "")
 
 set(EXTRA_SOURCES
+  parsec.c
   parsec_sparse_matrix.c
 )
 
