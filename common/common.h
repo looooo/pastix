@@ -43,6 +43,10 @@
 #include "sopalin/parsec/pastix_parsec.h"
 #endif
 
+#if defined(PASTIX_WITH_STARPU)
+#include "sopalin/starpu/pastix_starpu.h"
+#endif
+
 /********************************************************************
  * Errors functions
  */

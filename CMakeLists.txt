@@ -294,6 +294,11 @@ if (PASTIX_WITH_STARPU)
 
 endif (PASTIX_WITH_STARPU)
 
+set( DEPS_LIBRARIES
+  ${DEPS_LIBRARIES}
+  ${STARPU_LIBRARIES}
+  )
+
 # PaStiX might depend on Parsec
 #------------------------------
 if (PASTIX_WITH_PARSEC)
@@ -493,6 +498,11 @@ endforeach()
 if (PASTIX_WITH_PARSEC)
     include_directories("${CMAKE_CURRENT_BINARY_DIR}/sopalin")
     add_subdirectory(sopalin/parsec)
+endif()
+
+if (PASTIX_WITH_STARPU)
+    include_directories("${CMAKE_CURRENT_BINARY_DIR}/sopalin")
+    add_subdirectory(sopalin/starpu)
 endif()
 
 include(RulesPrecisions)
