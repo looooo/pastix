@@ -649,6 +649,13 @@ if(PASTIX_WITH_PARSEC)
     )
 endif()
 
+if(PASTIX_WITH_STARPU)
+  set(PASTIX_LIB_SRCS
+    ${PASTIX_LIB_SRCS}
+    common/starpu.c
+    )
+endif()
+
 set_source_files_properties(
   sopalin/coeftab.h
   PROPERTIES DEPENDS sopalin_headers
@@ -710,6 +717,12 @@ target_link_libraries(pastix
 if(PASTIX_WITH_PARSEC)
   target_link_libraries(pastix
     pastix_parsec
+  )
+endif()
+
+if(PASTIX_WITH_STARPU)
+  target_link_libraries(pastix
+    pastix_starpu
   )
 endif()
 
