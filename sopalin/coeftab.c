@@ -139,10 +139,19 @@ coeftabExit( SolverMatrix *solvmtx )
 #if defined(PASTIX_WITH_PARSEC)
     {
         if ( solvmtx->parsec_desc != NULL ) {
-            sparse_matrix_destroy( solvmtx->parsec_desc );
+            parsec_sparse_matrix_destroy( solvmtx->parsec_desc );
             free( solvmtx->parsec_desc );
         }
         solvmtx->parsec_desc = NULL;
+    }
+#endif
+#if defined(PASTIX_WITH_STARPU)
+    {
+        if ( solvmtx->starpu_desc != NULL ) {
+            starpu_sparse_matrix_destroy( solvmtx->starpu_desc );
+            free( solvmtx->starpu_desc );
+        }
+        solvmtx->starpu_desc = NULL;
     }
 #endif
 

@@ -54,7 +54,12 @@ solver_size( const SolverMatrix *solvptr )
     }
 #if defined(PASTIX_WITH_PARSEC)
     if ( solvptr->parsec_desc ) {
-        mem += sizeof( sparse_matrix_desc_t );
+        mem += sizeof( parsec_sparse_matrix_desc_t );
+    }
+#endif
+#if defined(PASTIX_WITH_STARPU)
+    if ( solvptr->starpu_desc ) {
+        mem += sizeof( starpu_sparse_matrix_desc_t );
     }
 #endif
 

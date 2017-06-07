@@ -115,13 +115,11 @@ starpu_zpotrf( pastix_data_t  *pastix_data,
     }
 
     if ( sdesc == NULL ) {
-        sdesc = (starpu_sparse_matrix_desc_t*)malloc(sizeof(starpu_sparse_matrix_desc_t));
-
         /* Create the matrix descriptor */
-        starpu_sparse_matrix_init( sdesc, sopalin_data->solvmtx,
-                                   sizeof( pastix_complex64_t ), PastixGeneral,
+        starpu_sparse_matrix_init( sopalin_data->solvmtx,
+                                   sizeof( pastix_complex64_t ), PastixHermitian,
                                    1, 0 );
-        sopalin_data->solvmtx->starpu_desc = sdesc;
+        sdesc = sopalin_data->solvmtx->starpu_desc;
     }
 
     /*
@@ -135,6 +133,12 @@ starpu_zpotrf( pastix_data_t  *pastix_data,
     {
         starpu_zpotrf_sp1dplus( sopalin_data, sdesc );
     }
+
+    starpu_sparse_matrix_getoncpu( sdesc );
+    starpu_task_wait_for_all();
+#if defined(PASTIX_WITH_MPI)
+    starpu_mpi_barrier(MPI_COMM_WORLD);
+#endif
 
 #if defined(PASTIX_DEBUG_FACTO)
     coeftab_zdump( sopalin_data->solvmtx, "potrf.txt" );

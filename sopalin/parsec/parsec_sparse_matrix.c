@@ -120,10 +120,10 @@ spm_data_key_to_value( parsec_data_key_t   key,
  *
  ******************************************************************************/
 static uint32_t
-sparse_matrix_data_key( parsec_ddesc_t *mat, ... )
+parsec_sparse_matrix_data_key( parsec_ddesc_t *mat, ... )
 {
     va_list ap;
-    sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
+    parsec_sparse_matrix_desc_t *spmtx = (parsec_sparse_matrix_desc_t*)mat;
     int uplo;
     pastix_int_t cblknum, bloknum;
 
@@ -176,7 +176,7 @@ sparse_matrix_data_key( parsec_ddesc_t *mat, ... )
  *
  ******************************************************************************/
 static uint32_t
-sparse_matrix_rank_of( parsec_ddesc_t *mat, ... )
+parsec_sparse_matrix_rank_of( parsec_ddesc_t *mat, ... )
 {
     (void)mat;
     return 0;
@@ -201,7 +201,7 @@ sparse_matrix_rank_of( parsec_ddesc_t *mat, ... )
  *
  ******************************************************************************/
 static uint32_t
-sparse_matrix_rank_of_key( parsec_ddesc_t    *mat,
+parsec_sparse_matrix_rank_of_key( parsec_ddesc_t    *mat,
                            parsec_data_key_t  key )
 {
     (void)mat; (void)key;
@@ -232,7 +232,7 @@ sparse_matrix_rank_of_key( parsec_ddesc_t    *mat,
  *
  ******************************************************************************/
 static int32_t
-sparse_matrix_vpid_of( parsec_ddesc_t *mat, ... )
+parsec_sparse_matrix_vpid_of( parsec_ddesc_t *mat, ... )
 {
     (void)mat;
     return 0;
@@ -257,7 +257,7 @@ sparse_matrix_vpid_of( parsec_ddesc_t *mat, ... )
  *
  ******************************************************************************/
 static int32_t
-sparse_matrix_vpid_of_key( parsec_ddesc_t    *mat,
+parsec_sparse_matrix_vpid_of_key( parsec_ddesc_t    *mat,
                            parsec_data_key_t  key )
 {
     (void)mat; (void)key;
@@ -288,9 +288,9 @@ sparse_matrix_vpid_of_key( parsec_ddesc_t    *mat,
  *
  ******************************************************************************/
 static parsec_data_t *
-sparse_matrix_data_of( parsec_ddesc_t *mat, ... )
+parsec_sparse_matrix_data_of( parsec_ddesc_t *mat, ... )
 {
-    sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
+    parsec_sparse_matrix_desc_t *spmtx = (parsec_sparse_matrix_desc_t*)mat;
     SolverCblk *cblk;
     va_list ap;
     int uplo;
@@ -339,10 +339,10 @@ sparse_matrix_data_of( parsec_ddesc_t *mat, ... )
  *
  ******************************************************************************/
 static parsec_data_t *
-sparse_matrix_data_of_key( parsec_ddesc_t    *mat,
+parsec_sparse_matrix_data_of_key( parsec_ddesc_t    *mat,
                            parsec_data_key_t  key )
 {
-    sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
+    parsec_sparse_matrix_desc_t *spmtx = (parsec_sparse_matrix_desc_t*)mat;
     SolverMatrix *solvmtx = spmtx->solvmtx;
     SolverCblk *cblk;
     int uplo;
@@ -395,11 +395,11 @@ sparse_matrix_data_of_key( parsec_ddesc_t    *mat,
  *
  ******************************************************************************/
 static int
-sparse_matrix_key_to_string( parsec_ddesc_t *mat,
+parsec_sparse_matrix_key_to_string( parsec_ddesc_t *mat,
                              uint32_t key,
                              char *buffer, uint32_t buffer_size )
 {
-    sparse_matrix_desc_t *spmtx = (sparse_matrix_desc_t*)mat;
+    parsec_sparse_matrix_desc_t *spmtx = (parsec_sparse_matrix_desc_t*)mat;
     int uplo;
     pastix_int_t cblknum, bloknum;
     int res;
@@ -420,7 +420,7 @@ sparse_matrix_key_to_string( parsec_ddesc_t *mat,
 
 #if defined(PASTIX_CUDA_FERMI)
 void
-sparse_matrix_init_fermi( sparse_matrix_desc_t *spmtx,
+parsec_sparse_matrix_init_fermi( parsec_sparse_matrix_desc_t *spmtx,
                           const SolverMatrix   *solvmtx )
 {
     gpu_device_t* gpu_device;
@@ -470,7 +470,7 @@ sparse_matrix_init_fermi( sparse_matrix_desc_t *spmtx,
 }
 
 void
-sparse_matrix_destroy_fermi( sparse_matrix_desc_t *spmtx )
+parsec_sparse_matrix_destroy_fermi( parsec_sparse_matrix_desc_t *spmtx )
 {
     gpu_device_t* gpu_device;
     pastix_int_t i, ndevices;
@@ -526,12 +526,12 @@ sparse_matrix_destroy_fermi( sparse_matrix_desc_t *spmtx )
  *
  ******************************************************************************/
 void
-sparse_matrix_init( sparse_matrix_desc_t *spmtx,
-                    SolverMatrix *solvmtx,
-                    int typesize, int mtxtype,
-                    int nodes, int myrank )
+parsec_sparse_matrix_init( SolverMatrix *solvmtx,
+                           int typesize, int mtxtype,
+                           int nodes, int myrank )
 {
-    parsec_ddesc_t *o = (parsec_ddesc_t*)spmtx;
+    parsec_sparse_matrix_desc_t *spmtx = solvmtx->parsec_desc;
+    parsec_ddesc_t *o;
     pastix_int_t   cblknbr, cblkmin2d, ld;
     parsec_data_key_t key1, key2;
     SolverCblk *cblk;
@@ -540,19 +540,27 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
     size_t size, offset;
     char *ptrL, *ptrU;
 
+    if ( spmtx != NULL ) {
+        parsec_sparse_matrix_destroy( spmtx );
+    }
+    else {
+        spmtx = (parsec_sparse_matrix_desc_t*)malloc(sizeof(parsec_sparse_matrix_desc_t));
+    }
+
+    o = (parsec_ddesc_t*)spmtx;
     parsec_ddesc_init( o, nodes, myrank );
 
-    o->data_key      = sparse_matrix_data_key;
+    o->data_key      = parsec_sparse_matrix_data_key;
 #if defined(PARSEC_PROF_TRACE)
-    o->key_to_string = sparse_matrix_key_to_string;
+    o->key_to_string = parsec_sparse_matrix_key_to_string;
 #endif
 
-    o->rank_of     = sparse_matrix_rank_of;
-    o->rank_of_key = sparse_matrix_rank_of_key;
-    o->vpid_of     = sparse_matrix_vpid_of;
-    o->vpid_of_key = sparse_matrix_vpid_of_key;
-    o->data_of     = sparse_matrix_data_of;
-    o->data_of_key = sparse_matrix_data_of_key;
+    o->rank_of     = parsec_sparse_matrix_rank_of;
+    o->rank_of_key = parsec_sparse_matrix_rank_of_key;
+    o->vpid_of     = parsec_sparse_matrix_vpid_of;
+    o->vpid_of_key = parsec_sparse_matrix_vpid_of_key;
+    o->data_of     = parsec_sparse_matrix_data_of;
+    o->data_of_key = parsec_sparse_matrix_data_of_key;
 
     spmtx->typesze = typesize;
     spmtx->mtxtype = mtxtype;
@@ -665,8 +673,10 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
     }
 
 #if defined(PASTIX_CUDA_FERMI)
-    sparse_matrix_init_fermi( spmtx, solvmtx );
+    parsec_sparse_matrix_init_fermi( spmtx, solvmtx );
 #endif
+
+    solvmtx->parsec_desc = spmtx;
 }
 
 /**
@@ -684,14 +694,14 @@ sparse_matrix_init( sparse_matrix_desc_t *spmtx,
  *
  ******************************************************************************/
 void
-sparse_matrix_destroy( sparse_matrix_desc_t *spmtx )
+parsec_sparse_matrix_destroy( parsec_sparse_matrix_desc_t *spmtx )
 {
     SolverCblk *cblk;
     SolverBlok *blok;
     pastix_int_t i, cblkmin2d;
 
 #if defined(PASTIX_CUDA_FERMI)
-    sparse_matrix_destroy_fermi( spmtx );
+    parsec_sparse_matrix_destroy_fermi( spmtx );
 #endif
 
     cblkmin2d = spmtx->solvmtx->cblkmin2d;

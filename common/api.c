@@ -49,13 +49,13 @@ pastixWelcome( const pastix_data_t *pastix )
                   /* Sched. dyn */ "Disabled",
                   /* Sched. PaR */
 #if defined(PASTIX_WITH_PARSEC)
-                  (pastix->parsec ? "Started" : "Enabled"),
+                  (pastix->parsec == NULL ? "Enabled" : "Started" ),
 #else
                   "Disabled",
 #endif
                   /* Sched. SPU */
 #if defined(PASTIX_WITH_STARPU)
-                  (pastix->starpu ? "Started" : "Enabled"),
+                  (pastix->starpu == NULL ? "Enabled" : "Started" ),
 #else
                   "Disabled",
 #endif
@@ -438,7 +438,7 @@ pastixInit( pastix_data_t **pastix_data,
 #endif /* defined(PASTIX_WITH_PARSEC) */
 
     /*
-     * Start PaRSEC if compiled with it and scheduler set to PaRSEC
+     * Start StarPU if compiled with it and scheduler set to StarPU
      */
 #if defined(PASTIX_WITH_STARPU)
     if ( pastix->starpu == NULL &&

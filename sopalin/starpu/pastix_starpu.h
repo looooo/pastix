@@ -68,11 +68,12 @@ typedef struct starpu_sparse_vector_desc_t {
     SolverMatrix   *solvmtx; /**< Solver matrix structure that describes the problem and stores the original data */
 } starpu_sparse_vector_desc_t;
 
-void starpu_sparse_matrix_init( starpu_sparse_matrix_desc_t *desc,
-                                SolverMatrix *solvmtx,
+void starpu_sparse_matrix_init( SolverMatrix *solvmtx,
                                 int typesize, int mtxtype,
                                 int nodes, int myrank );
 void starpu_sparse_matrix_destroy( starpu_sparse_matrix_desc_t *desc );
+
+void starpu_sparse_matrix_getoncpu( starpu_sparse_matrix_desc_t *spmtx );
 
 void starpu_sparse_vector_init( starpu_sparse_vector_desc_t *desc,
                                 int typesze, int nodes, int myrank );

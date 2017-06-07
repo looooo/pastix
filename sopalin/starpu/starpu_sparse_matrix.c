@@ -21,8 +21,7 @@
 #include <starpu_data.h>
 
 void
-starpu_sparse_matrix_init( starpu_sparse_matrix_desc_t *spmtx,
-                           SolverMatrix *solvmtx,
+starpu_sparse_matrix_init( SolverMatrix *solvmtx,
                            int typesize, int mtxtype,
                            int nodes, int myrank )
 {
@@ -34,6 +33,14 @@ starpu_sparse_matrix_init( starpu_sparse_matrix_desc_t *spmtx,
     pastix_int_t nbcol, nbrow, ld;
     size_t offset;
     char *ptrL, *ptrU;
+
+    starpu_sparse_matrix_desc_t *spmtx = solvmtx->starpu_desc;
+    if ( spmtx != NULL ) {
+        starpu_sparse_matrix_destroy( spmtx );
+    }
+    else {
+        spmtx = (starpu_sparse_matrix_desc_t*)malloc(sizeof(starpu_sparse_matrix_desc_t));
+    }
 
     spmtx->typesze = typesize;
     spmtx->mtxtype = mtxtype;
@@ -144,6 +151,9 @@ starpu_sparse_matrix_init( starpu_sparse_matrix_desc_t *spmtx,
             key2 += m * 2;
         }
     }
+
+    solvmtx->starpu_desc = spmtx;
+
     (void)key1; (void)key2;
     (void)nodes; (void)myrank;
 }
@@ -204,8 +214,6 @@ starpu_sparse_matrix_getoncpu( starpu_sparse_matrix_desc_t *spmtx )
             blok++;
         }
     }
-
-    parsec_ddesc_destroy( (parsec_ddesc_t*)spmtx );
 }
 
 void

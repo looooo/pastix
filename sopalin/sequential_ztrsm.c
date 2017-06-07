@@ -23,18 +23,6 @@
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 
-#if defined(PASTIX_WITH_PARSEC)
-#include <parsec.h>
-#include <parsec/data.h>
-#include <parsec/data_distribution.h>
-
-int dsparse_ztrsm_sp( parsec_context_t *parsec,
-                      sparse_matrix_desc_t *A,
-                      int side, int uplo, int trans, int diag,
-                      sopalin_data_t *sopalin_data,
-                      int nrhs, pastix_complex64_t *b, int ldb);
-#endif
-
 void
 sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
                   sopalin_data_t *sopalin_data,
@@ -182,28 +170,6 @@ thread_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int dia
     struct args_ztrsm_t args_ztrsm = {side, uplo, trans, diag, sopalin_data, nrhs, b, ldb};
     isched_parallel_call( pastix_data->isched, thread_pztrsm, &args_ztrsm );
 }
-
-#if defined(PASTIX_WITH_PARSEC)
-void
-parsec_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
-              sopalin_data_t *sopalin_data,
-              int nrhs, pastix_complex64_t *b, int ldb )
-{
-    parsec_context_t *ctx;
-
-    /* Start PaRSEC */
-    if (pastix_data->parsec == NULL) {
-        int argc = 0;
-        pastix_parsec_init( pastix_data, &argc, NULL );
-    }
-    ctx = pastix_data->parsec;
-
-    /* Run the trsm */
-    exit(0); /* not yet implemented */
-    dsparse_ztrsm_sp( ctx, sopalin_data->solvmtx->parsec_desc, side, uplo, trans, diag, sopalin_data,
-                      nrhs, b, ldb);
-}
-#endif
 
 static void (*ztrsm_table[4])(pastix_data_t *, int, int, int, int, sopalin_data_t *,
                               int, pastix_complex64_t *, int) = {

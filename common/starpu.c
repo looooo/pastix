@@ -30,7 +30,7 @@ pastix_starpu_init( pastix_data_t *pastix,
     if ( pastix->starpu != NULL )
         return;
 
-    pastix->starpu =  malloc(sizeof(struct starpu_conf));
+    pastix->starpu = malloc(sizeof(struct starpu_conf));
     starpu_conf_init( pastix->starpu );
 
     conf = pastix->starpu;
@@ -78,6 +78,8 @@ pastix_starpu_init( pastix_data_t *pastix,
 #if defined(PASTIX_WITH_CUDA) && !defined(PASTIX_STARPU_SIMULATION)
     starpu_cublas_init();
 #endif
+
+    assert( pastix->starpu != NULL );
 
     (void)argc; (void)argv;
     (void)rc;

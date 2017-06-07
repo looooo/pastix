@@ -74,7 +74,7 @@
  *
  ******************************************************************************/
 parsec_handle_t*
-parsec_zpotrf_sp1dplus_New( sparse_matrix_desc_t *A,
+parsec_zpotrf_sp1dplus_New( parsec_sparse_matrix_desc_t *A,
                             sopalin_data_t *sopalin_data )
 {
     parsec_zpotrf_sp1dplus_handle_t *parsec_zpotrf_sp1dplus = NULL;
@@ -161,7 +161,7 @@ parsec_zpotrf_sp1dplus_Destruct( parsec_handle_t *handle )
  ******************************************************************************/
 int
 parsec_zpotrf_sp1dplus( parsec_context_t *parsec,
-                        sparse_matrix_desc_t *A,
+                        parsec_sparse_matrix_desc_t *A,
                         sopalin_data_t *sopalin_data )
 {
     parsec_handle_t *parsec_zpotrf_sp1dplus = NULL;
@@ -227,7 +227,7 @@ parsec_zpotrf_sp1dplus( parsec_context_t *parsec,
  *
  ******************************************************************************/
 parsec_handle_t*
-parsec_zpotrf_sp2d_New( sparse_matrix_desc_t *A,
+parsec_zpotrf_sp2d_New( parsec_sparse_matrix_desc_t *A,
                         sopalin_data_t *sopalin_data )
 {
     parsec_zpotrf_sp2d_handle_t *parsec_zpotrf_sp2d = NULL;
@@ -313,7 +313,7 @@ parsec_zpotrf_sp2d_Destruct( parsec_handle_t *handle )
  ******************************************************************************/
 int
 parsec_zpotrf_sp2d( parsec_context_t *parsec,
-                    sparse_matrix_desc_t *A,
+                    parsec_sparse_matrix_desc_t *A,
                     sopalin_data_t *sopalin_data )
 {
     parsec_handle_t *parsec_zpotrf_sp2d = NULL;
@@ -367,7 +367,7 @@ void
 parsec_zpotrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )
 {
-    sparse_matrix_desc_t *sdesc = sopalin_data->solvmtx->parsec_desc;
+    parsec_sparse_matrix_desc_t *sdesc = sopalin_data->solvmtx->parsec_desc;
     parsec_context_t *ctx;
 
     /*
@@ -380,13 +380,11 @@ parsec_zpotrf( pastix_data_t  *pastix_data,
     ctx = pastix_data->parsec;
 
     if ( sdesc == NULL ) {
-        sdesc = (sparse_matrix_desc_t*)malloc(sizeof(sparse_matrix_desc_t));
-
         /* Create the matrix descriptor */
-        sparse_matrix_init( sdesc, sopalin_data->solvmtx,
-                            sizeof( pastix_complex64_t ), PastixGeneral,
-                            1, 0 );
-        sopalin_data->solvmtx->parsec_desc = sdesc;
+        parsec_sparse_matrix_init( sopalin_data->solvmtx,
+                                   sizeof( pastix_complex64_t ), PastixHermitian,
+                                   1, 0 );
+        sdesc = sopalin_data->solvmtx->parsec_desc;
     }
 
     /*

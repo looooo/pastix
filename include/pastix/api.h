@@ -235,8 +235,8 @@ typedef enum pastix_scheduler_e {
     PastixSchedSequential = 0, /**< Sequential                           */
     PastixSchedStatic     = 1, /**< Shared memory with static scheduler  */
     PastixSchedParsec     = 2, /**< PaRSEC scheduler                     */
-    PastixSchedDynamic    = 3, /**< Shared memory with dynamic scheduler */
-    PastixSchedStarPU     = 4, /**< *StarPU scheduler                    */
+    PastixSchedStarPU     = 3, /**< *StarPU scheduler                    */
+    PastixSchedDynamic    = 4, /**< Shared memory with dynamic scheduler */
 } pastix_scheduler_t;
 
 /**
