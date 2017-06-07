@@ -22,14 +22,26 @@
 #include "pastix_zcores.h"
 
 void
-starpu_zpotrf_sp1d( sopalin_data_t              *sopalin_data,
-                    starpu_sparse_matrix_desc_t *desc )
+starpu_task_cblk_zpotrfsp1d_panel( sopalin_data_t *sopalin_data,
+                                   SolverCblk     *cblk );
+
+void
+starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
+                          pastix_coefside_t sideB,
+                          pastix_trans_t    trans,
+                          const SolverCblk *cblk,
+                          const SolverBlok *blok,
+                          SolverCblk       *fcblk,
+                          sopalin_data_t   *sopalin_data );
+
+
+void
+starpu_zpotrf_sp1dplus( sopalin_data_t              *sopalin_data,
+                        starpu_sparse_matrix_desc_t *desc )
 {
-    const SolverMatrix *solvmtx   = sopalin_data->solvmtx;
-    double              threshold = sopalin_data->diagthreshold;
-    const pastix_lr_t  *lowrank   = solvmtx->lowrank;
+    const SolverMatrix *solvmtx = sopalin_data->solvmtx;
     SolverCblk         *cblk;
-    SolverBlok         *blok, *lblock;
+    SolverBlok         *blok;
     pastix_int_t  i;
 
     cblk = solvmtx->cblktab;
@@ -43,7 +55,8 @@ starpu_zpotrf_sp1d( sopalin_data_t              *sopalin_data,
         for(blok=cblk->fblokptr + 1; blok<cblk[1].fblokptr; blok++) {
 
             starpu_task_cblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
-                                      cblk, blok, blok->fcblk, sopalin_data );
+                                      cblk, blok,
+                                      solvmtx->cblktab + blok->fcblknm, sopalin_data );
 
         }
     }
@@ -51,17 +64,16 @@ starpu_zpotrf_sp1d( sopalin_data_t              *sopalin_data,
 #if defined(PASTIX_DEBUG_FACTO)
     coeftab_zdump( datacode, "potrf_L.txt" );
 #endif
+    (void)desc;
 }
 
 void
 starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
                     starpu_sparse_matrix_desc_t *desc )
 {
-    const SolverMatrix *solvmtx   = sopalin_data->solvmtx;
-    double              threshold = sopalin_data->diagthreshold;
-    const pastix_lr_t  *lowrank   = solvmtx->lowrank;
+    const SolverMatrix *solvmtx = sopalin_data->solvmtx;
     SolverCblk         *cblk;
-    SolverBlok         *blok, *lblock;
+    SolverBlok         *blok;
     pastix_int_t  i;
 
     cblk = solvmtx->cblktab;
@@ -75,7 +87,8 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
         for(blok=cblk->fblokptr + 1; blok<cblk[1].fblokptr; blok++) {
 
             starpu_task_cblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
-                                      cblk, blok, blok->fcblk, sopalin_data );
+                                      cblk, blok,
+                                      solvmtx->cblktab + blok->fcblknm, sopalin_data );
 
         }
     }
@@ -83,6 +96,8 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
 #if defined(PASTIX_DEBUG_FACTO)
     coeftab_zdump( datacode, "potrf_L.txt" );
 #endif
+
+    (void)desc;
 }
 
 void

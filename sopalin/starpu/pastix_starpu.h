@@ -21,7 +21,27 @@
 #ifndef _PASTIX_STARPU_H_
 #define _PASTIX_STARPU_H_
 
+#if defined(PASTIX_WITH_MPI)
+#include <starpu_mpi.h>
+#else
 #include <starpu.h>
+#endif
+
+#include <starpu_profiling.h>
+
+#if defined(PASTIX_WITH_CUDA) && !defined(PASTIX_STARPU_SIMULATION)
+#include <starpu_scheduler.h>
+#include <starpu_cuda.h>
+
+#include <cublas.h>
+#include <starpu_cublas.h>
+#if defined(PASTIX_WITH_CUBLAS_V2)
+#include <cublas_v2.h>
+#include <starpu_cublas_v2.h>
+#endif
+#endif
+
+typedef struct starpu_conf starpu_conf_t;
 
 #if defined(PASTIX_WITH_MPI)
 #define starpu_insert_task starpu_mpi_insert_task
