@@ -42,6 +42,8 @@
 void z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
 {
     struct z_solver solveur;
+    memset( &solveur, 0, sizeof(struct z_solver) );
+
     z_Pastix_Solveur(&solveur);
 
     pastix_bcsc_t      * bcsc    = pastix_data->bcsc;
