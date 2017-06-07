@@ -14,8 +14,7 @@ build_pastix:
       - build/
       - pastix-build.log
   script:
-    - git submodule init
-    - git submodule update
+    - git submodule update --init --recursive
     - mkdir build
     - cd build
     - cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_C_FLAGS="-O0 -g -fPIC --coverage -Wall -fdiagnostics-show-option -fno-inline" -DCMAKE_EXE_LINKER_FLAGS="--coverage"
