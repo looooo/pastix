@@ -2,11 +2,11 @@
  *
  * @file parsec.c
  *
- *  PaStiX PaRSECroutines
+ *  PaStiX PaRSEC routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
@@ -47,8 +47,8 @@ void pastix_parsec_init( pastix_data_t *pastix,
             parsec_setenv_mca_param( "device_show_capabilities", "1", &environ );
         }
     }
-    pastix->parsec = parsec_init( pastix->iparm[IPARM_THREAD_NBR],
-                                 argc, argv );
+    pastix->parsec = parsec_init( iparm[IPARM_THREAD_NBR],
+                                  argc, argv );
 
     (void)rc;
 }
