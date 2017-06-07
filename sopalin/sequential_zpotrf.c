@@ -23,12 +23,14 @@
 #include "pastix_zcores.h"
 
 #if defined(PASTIX_WITH_PARSEC)
-#include <parsec.h>
-#include <parsec/data.h>
-#include <parsec/data_distribution.h>
-
 void
-parsec_zpotrf( pastix_data_t *parsec,
+parsec_zpotrf( pastix_data_t  *pastix_data,
+               sopalin_data_t *sopalin_data );
+#endif
+
+#if defined(PASTIX_WITH_STARPU)
+void
+starpu_zpotrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data );
 #endif
 
@@ -120,7 +122,11 @@ static void (*zpotrf_table[4])(pastix_data_t *, sopalin_data_t *) = {
 #else
     NULL,
 #endif
+#if defined(PASTIX_WITH_STARPU)
+    starpu_zpotrf
+#else
     NULL
+#endif
 };
 
 void
