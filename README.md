@@ -42,7 +42,7 @@ Available Features
 | DIAG             | SHM/LR | SHM/LR | SHM/LR | -      | -           |
 
  * SHM means Shared Memory using POSIX theads for multicores architectures
- * LR means (block) Low-Rank compression technique to reduce the memory footprint and/or the time-to-solution 
+ * LR means (block) Low-Rank compression technique to reduce the memory footprint and/or the time-to-solution
  * MPI is not available yet and will come with 6.1.0
  * StarPU support is not available yet, and should be available in final 6.0.0
  * GPUs kernels are in the code but not exploited yet, we are targeting for a simpler scheduling that would allow everyone to get correct performance out of the box in final 6.0.0
