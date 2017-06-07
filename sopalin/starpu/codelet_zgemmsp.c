@@ -12,6 +12,8 @@
  * @author Pierre Ramet
  * @date 2013-06-24
  *
+ * @precisions all z -> z c d s
+ *
  * @addtogroup pastix_starpu
  * @{
  *

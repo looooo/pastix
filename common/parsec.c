@@ -57,6 +57,6 @@ void pastix_parsec_init( pastix_data_t *pastix,
 void pastix_parsec_finalize( pastix_data_t *pastix )
 {
     if (pastix->parsec != NULL) {
-        parsec_fini( &(pastix->parsec) );
+        parsec_fini( (parsec_context_t**)&(pastix->parsec) );
     }
 }

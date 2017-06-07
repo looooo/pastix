@@ -23,9 +23,8 @@ void
 pastix_starpu_init( pastix_data_t *pastix,
                     int *argc, char **argv[] )
 {
-    extern char **environ;
+    struct starpu_conf *conf;
     pastix_int_t *iparm = pastix->iparm;
-    char *value;
     int rc;
 
     if ( pastix->starpu != NULL )
@@ -34,6 +33,7 @@ pastix_starpu_init( pastix_data_t *pastix,
     pastix->starpu =  malloc(sizeof(struct starpu_conf));
     starpu_conf_init( pastix->starpu );
 
+    conf = pastix->starpu;
     conf->ncpus = iparm[IPARM_THREAD_NBR];
     conf->ncuda = iparm[IPARM_GPU_NBR];
     conf->nopencl = 0;
@@ -71,7 +71,7 @@ pastix_starpu_init( pastix_data_t *pastix,
 #if !defined(PASTIX_STARPU_SIMULATION)
         MPI_Initialized( &flag );
 #endif
-        starpu_mpi_init(NULL, NULL, !flag);
+        starpu_mpi_init( argc, argv, !flag );
     }
 #endif
 
@@ -79,6 +79,7 @@ pastix_starpu_init( pastix_data_t *pastix,
     starpu_cublas_init();
 #endif
 
+    (void)argc; (void)argv;
     (void)rc;
 }
 
