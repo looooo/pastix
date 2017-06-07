@@ -26,7 +26,7 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
                            int nodes, int myrank )
 {
     pastix_int_t   cblknbr, cblkmin2d;
-    parsec_data_key_t key1, key2;
+    size_t key1, key2;
     SolverCblk *cblk;
     SolverBlok *blok, *fblok, *lblok;
     pastix_int_t m=0, n=0, cblknum;
