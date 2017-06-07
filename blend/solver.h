@@ -219,6 +219,9 @@ struct solver_matrix_s {
 #if defined(PASTIX_WITH_PARSEC)
     sparse_matrix_desc_t   *parsec_desc;
 #endif
+#if defined(PASTIX_WITH_STARPU)
+    starpu_sparse_matrix_desc_t *starpu_desc;
+#endif
 
     pastix_int_t              ftgtnbr;              /*+ Number of fanintargets                    +*/
     pastix_int_t              ftgtcnt;              /*+ Number of fanintargets to receive         +*/
