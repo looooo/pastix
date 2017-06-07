@@ -20,20 +20,7 @@
 #include "solver.h"
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
-
-void
-starpu_task_cblk_zpotrfsp1d_panel( sopalin_data_t *sopalin_data,
-                                   SolverCblk     *cblk );
-
-void
-starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
-                          pastix_coefside_t sideB,
-                          pastix_trans_t    trans,
-                          const SolverCblk *cblk,
-                          const SolverBlok *blok,
-                          SolverCblk       *fcblk,
-                          sopalin_data_t   *sopalin_data );
-
+#include "pastix_zstarpu.h"
 
 void
 starpu_zpotrf_sp1dplus( sopalin_data_t              *sopalin_data,

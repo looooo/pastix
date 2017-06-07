@@ -29,9 +29,7 @@ parsec_zpotrf( pastix_data_t  *pastix_data,
 #endif
 
 #if defined(PASTIX_WITH_STARPU)
-void
-starpu_zpotrf( pastix_data_t  *pastix_data,
-               sopalin_data_t *sopalin_data );
+#include "starpu/pastix_zstarpu.h"
 #endif
 
 void

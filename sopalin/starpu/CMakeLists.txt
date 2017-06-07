@@ -23,6 +23,22 @@ set(HEADERS
   pastix_starpu.h
 )
 
+### Generate the headers in all precisions
+set(HEADERS
+  pastix_zstarpu.h
+)
+
+precisions_rules_py(generated_headers
+  "${HEADERS}"
+  PRECISIONS "s;d;c;z")
+
+set(starpu_headers
+  ${generated_headers}
+  )
+
+add_custom_target(starpu_headers_tgt
+  DEPENDS ${starpu_headers} pastix_starpu.h )
+
 ### Generate the pastix_parsec wrappers for all required precisions
 set(SOURCES
   codelet_zgemmsp.c
@@ -54,6 +70,7 @@ target_link_libraries(pastix_starpu
 
 add_dependencies(pastix_starpu
   sopalin_headers
+  starpu_headers_tgt
 )
 
 ### Generate the lib

@@ -725,7 +725,11 @@ endif()
 if(PASTIX_WITH_STARPU)
   target_link_libraries(pastix
     pastix_starpu
-  )
+    )
+
+  add_dependencies(pastix
+    starpu_headers_tgt
+    )
 endif()
 
 # foreach (module2 ${modules})
