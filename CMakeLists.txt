@@ -26,7 +26,7 @@ set( PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VE
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
 include(AddSourceFiles)
 
-set( MORSE_CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules/morse )
+set( MORSE_CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules/morse_cmake/modules )
 list(APPEND CMAKE_MODULE_PATH ${MORSE_CMAKE_MODULE_PATH})
 include(MorseInit)
 
@@ -147,20 +147,19 @@ FortranCInterface_HEADER(common/FCmangle.h
 
 # PaStiX depends on CBLAS
 #----------------------------
-find_package(CBLAS REQUIRED)
-find_package(BLASEXT REQUIRED)
+find_package(CBLAS COMPONENTS BLASEXT)
 if(CBLAS_FOUND)
     message(STATUS "cblas: ${CBLAS_INCLUDE_DIRS}")
     include_directories(${CBLAS_INCLUDE_DIRS})
 endif()
 
-find_package(LAPACKE REQUIRED)
-find_package(LAPACKEXT REQUIRED)
-find_package(TMG REQUIRED)
+find_package(LAPACKE COMPONENTS LAPACKEXT)
 if(LAPACKE_FOUND)
   message(STATUS "lapacke: ${LAPACKE_INCLUDE_DIRS}")
   include_directories(${LAPACKE_INCLUDE_DIRS})
 endif()
+
+find_package(TMG)
 
 ### Store dependencies not handled with pkg-config
 set( DEPS_LIBRARIES
