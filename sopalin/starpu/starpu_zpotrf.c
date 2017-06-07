@@ -30,7 +30,6 @@ starpu_zpotrf_sp1d( sopalin_data_t              *sopalin_data,
     const pastix_lr_t  *lowrank   = solvmtx->lowrank;
     SolverCblk         *cblk;
     SolverBlok         *blok, *lblock;
-    pastix_complex64_t *work;
     pastix_int_t  i;
 
     cblk = solvmtx->cblktab;
@@ -63,7 +62,6 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
     const pastix_lr_t  *lowrank   = solvmtx->lowrank;
     SolverCblk         *cblk;
     SolverBlok         *blok, *lblock;
-    pastix_complex64_t *work;
     pastix_int_t  i;
 
     cblk = solvmtx->cblktab;
@@ -92,7 +90,6 @@ starpu_zpotrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )
 {
     starpu_sparse_matrix_desc_t *sdesc = sopalin_data->solvmtx->starpu_desc;
-    parsec_context_t *ctx;
 
     /*
      * Start StarPU if not already started
@@ -101,7 +98,6 @@ starpu_zpotrf( pastix_data_t  *pastix_data,
         int argc = 0;
         pastix_starpu_init( pastix_data, &argc, NULL );
     }
-    ctx = pastix_data->parsec;
 
     if ( sdesc == NULL ) {
         sdesc = (starpu_sparse_matrix_desc_t*)malloc(sizeof(starpu_sparse_matrix_desc_t));
@@ -118,12 +114,11 @@ starpu_zpotrf( pastix_data_t  *pastix_data,
      */
     if ( pastix_data->iparm[IPARM_DISTRIBUTION_LEVEL] >= 0 )
     {
-        starpu_zpotrf_sp2d( ctx, sdesc,
-                            sopalin_data );
+        starpu_zpotrf_sp2d( sopalin_data, sdesc );
     }
-    else {
-        starpu_zpotrf_sp1dplus( ctx, sdesc,
-                                sopalin_data );
+    else
+    {
+        starpu_zpotrf_sp1dplus( sopalin_data, sdesc );
     }
 
 #if defined(PASTIX_DEBUG_FACTO)

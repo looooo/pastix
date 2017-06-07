@@ -25,8 +25,9 @@ set(HEADERS
 
 ### Generate the pastix_parsec wrappers for all required precisions
 set(SOURCES
+  codelet_zgemmsp.c
+  codelet_zpotrfsp.c
   starpu_zpotrf.c
-  starpu_zgetrf.c
 )
 
 precisions_rules_py(generated_sources
