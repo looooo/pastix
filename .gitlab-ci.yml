@@ -57,7 +57,7 @@ sonar_pastix:
   script:
     - /builds/sonar/sonar-scanner-2.9.0.670/bin/sonar-scanner -X > sonar.log
   only:
-    - master
+    - master@gitlab.inria.fr:pastix/pastix.git
 
 pages:
   stage: doc
@@ -71,5 +71,5 @@ pages:
     paths:
       - public
   only:
-    - master
+    -  master@gitlab.inria.fr:pastix/pastix.git
 
