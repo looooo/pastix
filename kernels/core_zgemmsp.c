@@ -1032,7 +1032,7 @@ core_zgemmsp_lr( pastix_coefside_t         sideA,
  * @param[in] sideB
  *          Specify if B belongs to the L part, or to the U part. this is used
  *          internally in the kernel to select the correct data pointer.
- *          If PastixLCoef, B belongs to the L part, otherwise B belogns to the
+ *          If PastixLCoef, B belongs to the L part, otherwise B belongs to the
  *          U part.
  *
  * @param[in] trans
