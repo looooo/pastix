@@ -80,7 +80,7 @@ static void cl_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
 
     gpucblk_zgemmsp( sideA, sideB, trans,
                      cblk, blok, fcblk,
-                     A, B, C, NULL,
+                     A, B, C,
                      &(sopalin_data->solvmtx->lowrank),
                      starpu_cuda_get_local_stream() );
 }
