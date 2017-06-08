@@ -20,9 +20,21 @@ set(EXTRA_SOURCES
   parsec_sparse_matrix.c
 )
 
+### Generate the headers in all precisions
 set(HEADERS
-  pastix_parsec.h
+  pastix_zparsec.h
 )
+
+precisions_rules_py(generated_headers
+  "${HEADERS}"
+  PRECISIONS "s;d;c;z")
+
+set(parsec_headers
+  ${generated_headers}
+  )
+
+add_custom_target(parsec_headers_tgt
+  DEPENDS ${parsec_headers} pastix_parsec.h )
 
 ### Generate the pastix_parsec wrappers for all required precisions
 set(SOURCES
@@ -73,6 +85,7 @@ target_link_libraries(pastix_parsec
 
 add_dependencies(pastix_parsec
   sopalin_headers
+  parsec_headers_tgt
 )
 
 ### Generate the lib

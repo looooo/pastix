@@ -649,10 +649,6 @@ set_source_files_properties(
   PROPERTIES DEPENDS sopalin_headers
   )
 
-if(PASTIX_WITH_STARPU)
- list(APPEND PASTIX_LIB_SRCS ${PASTIX_STARPU_SRCS})
-endif(PASTIX_WITH_STARPU)
-
 if(PASTIX_ORDERING_SCOTCH) # AND HAVE_SCOTCH)
   set(PASTIX_LIB_SRCS
     ${PASTIX_LIB_SRCS}
@@ -706,6 +702,10 @@ if(PASTIX_WITH_PARSEC)
   target_link_libraries(pastix
     pastix_parsec
   )
+
+  add_dependencies(pastix
+    parsec_headers_tgt
+    )
 endif()
 
 if(PASTIX_WITH_STARPU)

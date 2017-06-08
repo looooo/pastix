@@ -26,6 +26,7 @@
 #include "sopalin_data.h"
 #include "parsec/zpotrf_sp1dplus.h"
 #include "parsec/zpotrf_sp2d.h"
+#include "parsec/pastix_zparsec.h"
 
 /**
  *******************************************************************************
