@@ -21,6 +21,10 @@ starpu_task_cblk_zpotrfsp1d_panel( sopalin_data_t *sopalin_data,
                                    SolverCblk     *cblk );
 
 void
+starpu_task_cblk_zgetrfsp1d_panel( sopalin_data_t *sopalin_data,
+                                   SolverCblk     *cblk );
+
+void
 starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
                           pastix_coefside_t sideB,
                           pastix_trans_t    trans,
@@ -31,6 +35,10 @@ starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
 
 void
 starpu_zpotrf( pastix_data_t  *pastix_data,
+               sopalin_data_t *sopalin_data );
+
+void
+starpu_zgetrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data );
 
 

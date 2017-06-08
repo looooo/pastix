@@ -2,18 +2,19 @@
  *
  * @file starpu_zpotrf.c
  *
- *  PaStiX factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX zpotrf StarPU wrapper.
  *
- * @version 5.1.0
- * @author Pascal Henon
- * @author Xavier Lacoste
- * @author Pierre Ramet
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
- * @date 2013-06-24
- *
+ * @author Pierre Ramet
+ * @date 2017-06-24
  * @precisions normal z -> s d c
+ *
+ * @addtogroup starpu_potrf
+ * @{
  *
  **/
 #include "common.h"
@@ -133,3 +134,7 @@ starpu_zpotrf( pastix_data_t  *pastix_data,
 
     return;
 }
+
+/**
+ *@}
+ */
