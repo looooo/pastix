@@ -20,10 +20,6 @@ set(EXTRA_SOURCES
   starpu_sparse_matrix.c
 )
 
-set(HEADERS
-  pastix_starpu.h
-)
-
 ### Generate the headers in all precisions
 set(HEADERS
   pastix_zstarpu.h
