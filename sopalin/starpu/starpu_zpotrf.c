@@ -62,11 +62,12 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
     const SolverMatrix *solvmtx = sopalin_data->solvmtx;
     SolverCblk         *cblk;
     SolverBlok         *blok, *lblok, *blokA, *blokB;
+    starpu_cblk_t      *cblkhandle;
     pastix_int_t  i;
 
     /* Let's submit all 1D tasks first */
     cblk = solvmtx->cblktab;
-    for (i=0; i<solvmtx->cblkmax1d; i++, cblk++){
+    for (i=0; i<=solvmtx->cblkmax1d; i++, cblk++){
 
         if ( cblk->cblktype & CBLK_IN_SCHUR )
             break;
@@ -82,11 +83,23 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
         }
     }
 
-    starpu_task_wait_for_all();
+    /* Let's submit the partitionning */
+    cblk       = solvmtx->cblktab + solvmtx->cblkmin2d;
+    cblkhandle = desc->cblktab_handle;
+    for (i=solvmtx->cblkmin2d; i<solvmtx->cblknbr; i++, cblk++, cblkhandle++){
+
+        if ( !(cblk->cblktype & CBLK_TASKS_2D) )
+            continue;
+
+        starpu_data_partition_submit( cblk->handler[0],
+                                      cblkhandle->handlenbr,
+                                      cblkhandle->handletab );
+    }
 
     /* Now we submit all 2D tasks */
-    cblk = solvmtx->cblktab + solvmtx->cblkmin2d;
-    for (i=solvmtx->cblkmin2d; i<solvmtx->cblknbr; i++, cblk++){
+    cblk       = solvmtx->cblktab + solvmtx->cblkmin2d;
+    cblkhandle = desc->cblktab_handle;
+    for (i=solvmtx->cblkmin2d; i<solvmtx->cblknbr; i++, cblk++, cblkhandle++){
 
         if ( (cblk->cblktype & CBLK_IN_SCHUR) ||
              !(cblk->cblktype & CBLK_TASKS_2D) )
@@ -101,14 +114,14 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
                                       PastixConjTrans, PastixNonUnit,
                                       cblk, blokA, sopalin_data );
 
-            for(blokB=cblk->fblokptr + 1; blokB<lblok; blokB++) {
+            for(blokB=cblk->fblokptr + 1; blokB<blokA; blokB++) {
 
                 starpu_task_blok_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
                                           cblk, solvmtx->cblktab + blokB->fcblknm,
                                           blokA, blokB, sopalin_data );
 
                 /* Skip B blocks facing the same cblk */
-                while( (blokB < lblok) &&
+                while( (blokB < blokA) &&
                        (blokB[0].fcblknm == blokB[1].fcblknm) &&
                        (blokB[0].lcblknm == blokB[1].lcblknm) )
                 {
@@ -124,6 +137,10 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
                 blokA++;
             }
         }
+
+        starpu_data_unpartition_submit( cblk->handler[0],
+                                        cblkhandle->handlenbr,
+                                        cblkhandle->handletab, STARPU_MAIN_RAM );
     }
 
 #if defined(PASTIX_DEBUG_FACTO)
@@ -158,7 +175,7 @@ starpu_zpotrf( pastix_data_t  *pastix_data,
     /*
      * Select 1D or 2D jdf based on distribution_level
      */
-    if ( pastix_data->iparm[IPARM_DISTRIBUTION_LEVEL] >= 0 )
+    if ( 1 || pastix_data->iparm[IPARM_DISTRIBUTION_LEVEL] >= 0 )
     {
         starpu_zpotrf_sp2d( sopalin_data, sdesc );
     }

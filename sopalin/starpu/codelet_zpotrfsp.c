@@ -88,7 +88,7 @@ starpu_task_blok_zpotrf( sopalin_data_t *sopalin_data,
         pastix_codelet(&cl_blok_zpotrfsp),
         STARPU_VALUE, &cblk,             sizeof(SolverCblk*),
         STARPU_VALUE, &sopalin_data,     sizeof(sopalin_data_t*),
-        STARPU_RW,     cblk->handler[0],
+        STARPU_RW,     cblk->fblokptr->handler[0],
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "blok_zpotrfsp",
 #endif
