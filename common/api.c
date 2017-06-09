@@ -430,8 +430,8 @@ pastixInit( pastix_data_t **pastix_data,
      * Start PaRSEC if compiled with it and scheduler set to PaRSEC
      */
 #if defined(PASTIX_WITH_PARSEC)
-    if ( pastix->parsec == NULL &&
-         iparm[IPARM_SCHEDULER] == PastixSchedParsec ) {
+    if ( (pastix->parsec == NULL) &&
+         (iparm[IPARM_SCHEDULER] == PastixSchedParsec) ) {
         int argc = 0;
         pastix_parsec_init( pastix, &argc, NULL );
     }
@@ -441,8 +441,8 @@ pastixInit( pastix_data_t **pastix_data,
      * Start StarPU if compiled with it and scheduler set to StarPU
      */
 #if defined(PASTIX_WITH_STARPU)
-    if ( pastix->starpu == NULL &&
-         iparm[IPARM_SCHEDULER] == PastixSchedStarPU ) {
+    if ( (pastix->starpu == NULL) &&
+         (iparm[IPARM_SCHEDULER] == PastixSchedStarPU) ) {
         int argc = 0;
         pastix_starpu_init( pastix, &argc, NULL );
     }
