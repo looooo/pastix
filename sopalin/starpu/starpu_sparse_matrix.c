@@ -76,6 +76,8 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
     spmtx->typesze = typesize;
     spmtx->mtxtype = mtxtype;
     spmtx->solvmtx = solvmtx;
+    spmtx->cblktab_handle = NULL;
+    spmtx->d_blocktab     = NULL;
 
     cblknbr   = solvmtx->cblknbr;
     cblkmin2d = solvmtx->cblkmin2d;
@@ -103,10 +105,14 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
     }
 
     /* Initialize 2D cblk handlers */
+    if ( cblkmin2d < cblknbr ) {
+        spmtx->cblktab_handle = (starpu_cblk_t*)malloc( (cblknbr-cblkmin2d) * sizeof(starpu_cblk_t) );
+    }
     cblk = spmtx->solvmtx->cblktab + cblkmin2d;
+    cblkhandle = spmtx->cblktab_handle;
     for(cblknum = cblkmin2d, n = 0;
         cblknum < cblknbr;
-        cblknum++, n++, cblk++ )
+        cblknum++, n++, cblk++, cblkhandle++ )
     {
         starpu_data_handle_t *handler = (starpu_data_handle_t*)(cblk->handler);
         nbrow = cblk->stride;
@@ -147,7 +153,7 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
             blok->handler[1] = NULL;
         }
 
-        /**
+        /*
          * Lower Part
          */
         blok++; key2 += 2;

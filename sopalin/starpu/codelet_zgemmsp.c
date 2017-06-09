@@ -116,6 +116,131 @@ starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
         0);
 }
 
+#if !defined(PASTIX_STARPU_SIMULATION)
+static void cl_blok_zgemmsp_cpu(void *descr[], void *cl_arg)
+{
+    pastix_coefside_t sideA;
+    pastix_coefside_t sideB;
+    pastix_trans_t    trans;
+    const SolverCblk *cblk;
+    SolverCblk       *fcblk;
+    pastix_int_t      blok_mk, blok_nk, blok_mn;
+    sopalin_data_t   *sopalin_data;
+    const pastix_complex64_t *A;
+    const pastix_complex64_t *B;
+    pastix_complex64_t *C;
+
+    A = (const pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[0]);
+    B = (const pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
+    C = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[2]);
+
+    /* Check layout due to workspace */
+    assert( cblk->cblktype  & CBLK_TASKS_2D );
+    assert( fcblk->cblktype & CBLK_TASKS_2D );
+
+    starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &fcblk,
+                               &blok_mk, &blok_nk, &blok_mn, &sopalin_data);
+
+    cpublok_zgemmsp( sideA, sideB, trans,
+                     cblk, fcblk,
+                     blok_mk, blok_nk, blok_mn,
+                     A, B, C,
+                     &(sopalin_data->solvmtx->lowrank) );
+}
+
+#if defined(PASTIX_WITH_CUDA)
+static void cl_blok_zgemmsp_gpu(void *descr[], void *cl_arg)
+{
+    pastix_coefside_t sideA;
+    pastix_coefside_t sideB;
+    pastix_trans_t    trans;
+    const SolverCblk *cblk;
+    SolverCblk       *fcblk;
+    pastix_int_t      blok_mk, blok_nk, blok_mn;
+    sopalin_data_t   *sopalin_data;
+    const cuDoubleComplex *A;
+    const cuDoubleComplex *B;
+    cuDoubleComplex *C;
+
+    A = (const cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[0]);
+    B = (const cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[1]);
+    C = (cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[2]);
+
+    /* Check layout due to workspace */
+    assert( cblk->cblktype  & CBLK_TASKS_2D );
+    assert( fcblk->cblktype & CBLK_TASKS_2D );
+
+    starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &fcblk,
+                               &blok_mk, &blok_nk, &blok_mn, &sopalin_data);
+
+    gpublok_zgemmsp( sideA, sideB, trans,
+                     cblk, fcblk,
+                     blok_mk, blok_nk, blok_mn,
+                     A, B, C,
+                     &(sopalin_data->solvmtx->lowrank),
+                     starpu_cuda_get_local_stream() );
+}
+#endif /* defined(PASTIX_WITH_CUDA) */
+#endif /* !defined(PASTIX_STARPU_SIMULATION) */
+
+CODELETS_GPU( blok_zgemmsp, 3, STARPU_CUDA_ASYNC )
+
+void
+starpu_task_blok_zgemmsp( pastix_coefside_t sideA,
+                          pastix_coefside_t sideB,
+                          pastix_trans_t    trans,
+                          const SolverCblk *cblk,
+                          SolverCblk       *fcblk,
+                          const SolverBlok *blokA,
+                          const SolverBlok *blokB,
+                          sopalin_data_t   *sopalin_data )
+{
+    SolverBlok *blokC = fcblk->fblokptr;
+
+    pastix_int_t frownum = blokC->frownum;
+    pastix_int_t lrownum = blokC->lrownum;
+    pastix_int_t blok_mn = 0, j = 0;
+
+    do {
+        frownum = blokC->frownum;
+        lrownum = blokC->lrownum;
+        blok_mn += j;
+        j = 1;
+
+        /* Increase lrownum as long as blocks are facing the same cblk */
+        while( (cblk_n < cblknbr) &&
+               (blokC[0].fcblknm == blokC[1].fcblknm) &&
+               (blokC[0].lcblknm == blokC[1].lcblknm) )
+        {
+            blokC++; j++;
+            lrownum = blokC->lrownum;
+        }
+        blokC++;
+    }
+    while( !((blokA->frownum >= frownum) &&
+             (blokA->lrownum <= lrownum)) );
+
+    blokC = fcblk->fblokptr + blok_mn;
+    starpu_insert_task(
+        pastix_codelet(&cl_blok_zgemmsp),
+        STARPU_VALUE, &sideA,             sizeof(pastix_coefside_t),
+        STARPU_VALUE, &sideB,             sizeof(pastix_coefside_t),
+        STARPU_VALUE, &trans,             sizeof(pastix_trans_t),
+        STARPU_VALUE, &cblk,              sizeof(SolverCblk*),
+        STARPU_VALUE, &fcblk,             sizeof(SolverCblk*),
+        STARPU_VALUE, &blok_mk,           sizeof(pastix_int_t),
+        STARPU_VALUE, &blok_nk,           sizeof(pastix_int_t),
+        STARPU_VALUE, &blok_mn,           sizeof(pastix_int_t),
+        STARPU_R,      blokA->handler[sideA],
+        STARPU_R,      blokB->handler[sideB],
+        STARPU_RW,     blokC->handler[sideA],
+        STARPU_VALUE, &sopalin_data,     sizeof(sopalin_data_t*),
+#if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
+        STARPU_NAME, "blok_zgemmsp",
+#endif
+        0);
+}
+
 /**
  * @}
  */

@@ -50,6 +50,11 @@ typedef struct starpu_conf starpu_conf_t;
 #define pastix_codelet(_codelet_) _codelet_
 #endif
 
+typedef struct starpu_cblk_s {
+    pastix_int_t          handlenbr;
+    starpu_data_handle_t *handletab;
+} starpu_cblk_t;
+
 /**
  * @brief StarPU descriptor stucture for the sparse matrix.
  */
@@ -57,6 +62,7 @@ typedef struct starpu_sparse_matrix_desc_s {
     int             typesze;    /**< Arithmetic size                                                                 */
     int             mtxtype;    /**< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.            */
     SolverMatrix   *solvmtx;    /**< Solver matrix structure that describes the problem and stores the original data */
+    starpu_cblk_t  *cblktab_handle;
     void          **d_blocktab; /**< Pointer to GPU arrays that contains frownum,lrownum of each block for Fermi     */
 } starpu_sparse_matrix_desc_t;
 

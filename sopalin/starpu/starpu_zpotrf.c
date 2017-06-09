@@ -61,11 +61,12 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
 {
     const SolverMatrix *solvmtx = sopalin_data->solvmtx;
     SolverCblk         *cblk;
-    SolverBlok         *blok;
+    SolverBlok         *blok, *lblok;
     pastix_int_t  i;
 
+    /* Let's submit all 1D tasks first */
     cblk = solvmtx->cblktab;
-    for (i=0; i<solvmtx->cblknbr; i++, cblk++){
+    for (i=0; i<solvmtx->cblkmax1d; i++, cblk++){
 
         if ( cblk->cblktype & CBLK_IN_SCHUR )
             break;
@@ -79,6 +80,63 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
                                       solvmtx->cblktab + blok->fcblknm, sopalin_data );
 
         }
+    }
+
+    /* for (i=solvmtx->cblkmin2d; i<solvmtx->cblknbr; i++, cblk++){ */
+
+    /*     if ( (cblk->cblktype & CBLK_IN_SCHUR) || */
+    /*          !(cblk->cblktype & CBLK_TASKS_2D) ) */
+    /*         break; */
+
+    /*     starpu_partition_submit( cblk->handler[0], */
+    /*                              nblocks, children ); */
+    /* } */
+    starpu_task_wait_for_all();
+
+    /* Now we submit all 2D tasks */
+    cblk = solvmtx->cblktab + solvmtx->cblkmin2d;
+    for (i=solvmtx->cblkmin2d; i<solvmtx->cblknbr; i++, cblk++){
+
+        if ( (cblk->cblktype & CBLK_IN_SCHUR) ||
+             !(cblk->cblktype & CBLK_TASKS_2D) )
+            break;
+
+        starpu_task_blok_potrf( sopalin_data, cblk );
+
+        lblok = cblk[1].fblokptr;
+        for(blokA=cblk->fblokptr + 1; blokA<lblok; blokA++) {
+
+            starpu_task_blok_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
+                                      PastixConjTrans, PastixNonUnit,
+                                      cblk, blokA, sopalin_data );
+
+            for(blokB=cblk->fblokptr + 1; blokB<lblok; blokB++) {
+
+                starpu_task_blok_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+                                          cblk, solvmtx->cblktab + blok->fcblknm,
+                                          blokA, blokB, sopalin_data );
+
+                /* Skip B blocks facing the same cblk */
+                while( (blockB < lblock) &&
+                       (blockB[0].fcblknm == blockB[1].fcblknm) &&
+                       (blockB[0].lcblknm == blockB[1].lcblknm) )
+                {
+                    blockB++;
+                }
+            }
+
+            /* Skip A blocks facing the same cblk */
+            while( (blockA < lblock) &&
+                   (blockA[0].fcblknm == blockA[1].fcblknm) &&
+                   (blockA[0].lcblknm == blockA[1].lcblknm) )
+            {
+                blockA++;
+            }
+        }
+
+        /* starpu_unpartition_submit( cblk->handler[0], */
+        /*                            nblocks, children, */
+        /*                            STARPU_MAIN_RAM ); */
     }
 
 #if defined(PASTIX_DEBUG_FACTO)
