@@ -100,7 +100,6 @@ void libfinalize(void)
 void define_kernels_properties()
 {
     /* Low-rank operations */
-    kernels_properties[LR_ALLOC] = (kernels_t) {"lr_alloc", GTG_YELLOW};
     kernels_properties[LR_TRSM]  = (kernels_t) {"lr_trsm" , GTG_DARKBLUE};
     kernels_properties[LR_GEMM]  = (kernels_t) {"lr_gemm" , GTG_LIGHTPINK};
 
@@ -155,17 +154,13 @@ int eztrace_convert_kernels_init()
  *******************************************************************************/
 void handle_start(kernels_ev_code_t ev, int stats)
 {
-    double size;
-
     DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
     DECLARE_CUR_THREAD(p_thread);
     INIT_KERNELS_THREAD_INFO(p_thread, p_info, stats);
 
-    GET_PARAM_PACKED_1(CUR_EV, size);
-
     if (stats == 1){
+
         p_info->nb[ev]++;
-        p_info->flops[ev]+=size;
 
         p_info->current_ev = ev;
         p_info->time_start = CURRENT;
@@ -189,14 +184,21 @@ void handle_start(kernels_ev_code_t ev, int stats)
  *******************************************************************************/
 void handle_stop(int stats)
 {
+    double size;
+
     DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
     DECLARE_CUR_THREAD(p_thread);
     INIT_KERNELS_THREAD_INFO(p_thread, p_info, stats);
 
-    if (stats == 1)
+    if (stats == 1){
+        GET_PARAM_PACKED_1(CUR_EV, size);
         p_info->run_time[p_info->current_ev] += (CURRENT - p_info->time_start);
-    else
+        p_info->flops[p_info->current_ev] += size;
+
+    }
+    else{
         popState(CURRENT, "ST_Thread", thread_id);
+    }
 }
 
 /**
@@ -281,6 +283,8 @@ void print_kernels_stats()
 
     int i;
 
+    double total_flops = 0;
+
     /* Browse the list of processes */
     for (i = 0; i < NB_TRACES; i++) {
         struct eztrace_container_t *p_process = GET_PROCESS_CONTAINER(i);
@@ -298,10 +302,15 @@ void print_kernels_stats()
             printf("\tThread %20s\n", thread_container->name);
 
             for (k=1; k<KERNELS_NB_EVENTS; k++){
-                printf("Kernel %20s was called %5d times, flops=%8.3g, duration=%.3g\n",
+                double perf = 1000 * p_info->flops[k] / p_info->run_time[k];
+                total_flops += p_info->flops[k];
+                printf("Kernel %20s was called %10d times, flops=%8.3g, perf=%5.2lf %cFlop/s\n",
                        kernels_properties[k].name, p_info->nb[k],
-                       p_info->flops[k], p_info->run_time[k]);
+                       p_info->flops[k],
+                       printflopsv( perf ), printflopsu( perf ) );
             }
         }
     }
+    printf(" Number of operations: %5.2lf %cFlops\n",
+           printflopsv( total_flops ), printflopsu( total_flops ) );
 }

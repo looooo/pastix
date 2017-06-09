@@ -141,11 +141,13 @@ core_zgemmsp_1d1d( pastix_coefside_t sideA, pastix_trans_t trans,
      * Compute update A * B'
      */
     wtmp = work;
+    start_trace_kernel(DENSE_GEMM);
     cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
                  M, N, K,
                  CBLAS_SADDR(zone),  A,    stride,
                                      B,    stride,
                  CBLAS_SADDR(zzero), wtmp, M );
+    stop_trace_kernel( FLOPS_ZGEMM( M, N, K ) );
 
     /*
      * Add contribution to C in fcblk
@@ -312,11 +314,13 @@ core_zgemmsp_1d2d( pastix_coefside_t sideA, pastix_trans_t trans,
             + (blok->frownum - fcblk->fcolnum) * stridef;
 
         pastix_cblk_lock( fcblk );
+        start_trace_kernel(DENSE_GEMM);
         cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
                      M, N, K,
                      CBLAS_SADDR(mzone), blokA, stride,
                                          blokB, stride,
                      CBLAS_SADDR(zone),  blokC, stridef );
+        stop_trace_kernel( FLOPS_ZGEMM( M, N, K ) );
         pastix_cblk_unlock( fcblk );
     }
 }
@@ -448,11 +452,13 @@ core_zgemmsp_2d2d( pastix_coefside_t sideA, pastix_trans_t trans,
             + (blok->frownum - fcblk->fcolnum) * ldc;
 
         pastix_cblk_lock( fcblk );
+        start_trace_kernel(DENSE_GEMM);
         cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
                      M, N, K,
                      CBLAS_SADDR(mzone), blokA, lda,
                                          blokB, ldb,
                      CBLAS_SADDR(zone),  blokC, ldc );
+        stop_trace_kernel( FLOPS_ZGEMM( M, N, K ) );
         pastix_cblk_unlock( fcblk );
     }
 }
@@ -1093,7 +1099,6 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
                  const pastix_lr_t        *lowrank )
 {
     if ( fcblk->cblktype & CBLK_COMPRESSED ) {
-        start_trace_kernel(LR_GEMM, 0);
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
             core_zgemmsp_lr( sideA, sideB, trans,
                              cblk, blok, fcblk,
@@ -1104,10 +1109,8 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
                                  cblk, blok, fcblk,
                                  A, B, C, lowrank );
         }
-        stop_trace_kernel();
     }
     else if ( fcblk->cblktype & CBLK_LAYOUT_2D ) {
-        start_trace_kernel(DENSE_GEMM, 0);
         if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
             core_zgemmsp_2d2d( sideA, trans,
                                cblk, blok, fcblk,
@@ -1118,14 +1121,11 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
                                cblk, blok, fcblk,
                                A, B, C );
         }
-        stop_trace_kernel();
     }
     else {
-        start_trace_kernel(DENSE_GEMM, 0);
         core_zgemmsp_1d1d( sideA, trans,
                            cblk, blok, fcblk,
                            A, B, C, work );
-        stop_trace_kernel();
     }
 }
 
