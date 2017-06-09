@@ -11,6 +11,9 @@
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
+ * @addtogroup pastix_starpu
+ * @{
+ *
  **/
 #include "common.h"
 #if !defined(PASTIX_WITH_STARPU)
@@ -19,6 +22,26 @@
 #include <stdio.h>
 #include <starpu.h>
 
+/**
+ *******************************************************************************
+ *
+ * @brief Startup the StarPU runtime system.
+ *
+ * This function initialize and startup the StarPU runtime system with PaStix
+ * configuration variables
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix
+ *          The main pastix_data structure.
+ *
+ * @param[inout] argc
+ *          The number of arguments of the main program.
+ *
+ * @param[inout] argv
+ *          The list of argument given to the main program.
+ *
+ ******************************************************************************/
 void
 pastix_starpu_init( pastix_data_t *pastix,
                     int *argc, char **argv[] )
@@ -42,7 +65,7 @@ pastix_starpu_init( pastix_data_t *pastix,
         conf->sched_policy_name = "dmdas";
     }
     else {
-        /**
+        /*
          * Set scheduling to "ws"/"lws" if no cuda devices used because it
          * behaves better on homogneneous architectures. If the user wants
          * to use another scheduling strategy, he can set STARPU_SCHED
@@ -85,8 +108,21 @@ pastix_starpu_init( pastix_data_t *pastix,
     (void)rc;
 }
 
-
-void pastix_starpu_finalize( pastix_data_t *pastix )
+/**
+ *******************************************************************************
+ *
+ * @brief Finalize the StarPU runtime system.
+ *
+ * This function stop the StarPU runtime system.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix
+ *          The main pastix_data structure.
+ *
+ ******************************************************************************/
+void
+pastix_starpu_finalize( pastix_data_t *pastix )
 {
     if (pastix->starpu != NULL) {
 #if defined(PASTIX_WITH_MPI)
@@ -101,3 +137,7 @@ void pastix_starpu_finalize( pastix_data_t *pastix )
         pastix->starpu = NULL;
     }
 }
+
+/**
+ * @}
+ */

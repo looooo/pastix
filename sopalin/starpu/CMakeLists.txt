@@ -86,5 +86,6 @@ add_documented_files(
   # Headers
   pastix_starpu.h
   # Source files
+  starpu.c
   starpu_sparse_matrix.c
   )

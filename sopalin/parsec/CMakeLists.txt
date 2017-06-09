@@ -102,5 +102,6 @@ add_documented_files(
   # Headers
   pastix_parsec.h
   # Source files
+  parsec.c
   parsec_sparse_matrix.c
   )

@@ -2,7 +2,7 @@
  *
  * @file codelet_zgemmsp.c
  *
- * StarPU codelets for Cholesky functions
+ * StarPU codelets for blas-like functions
  *
  * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -45,7 +45,7 @@ static void cl_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
     /* Check layout due to workspace */
     starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data);
 
-    assert( cblk->cblktype & CBLK_LAYOUT_2D );
+    assert( cblk->cblktype  & CBLK_LAYOUT_2D );
     assert( fcblk->cblktype & CBLK_LAYOUT_2D );
 
     cpucblk_zgemmsp( sideA, sideB, trans,

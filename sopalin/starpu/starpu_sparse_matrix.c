@@ -20,6 +20,37 @@
 #include "solver.h"
 #include <starpu_data.h>
 
+/**
+ *******************************************************************************
+ *
+ * @brief Generate the StarPU descriptor of the sparse matrix.
+ *
+ * This function creates the StarPU descriptor that will provide tha data
+ * mapping and memory location to StarPU for the computation.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The solver matrix structure that describes the sparse matrix for
+ *          PaStiX.
+ *
+ * @param[in] typesize
+ *          The memory size of the arithmetic used to store the matrix
+ *          coefficients.
+ *
+ * @param[in] mtxtype
+ *          The type of sparse matrix to describe.
+ *          @arg PastixGeneral:   The sparse matrix is general.
+ *          @arg PastixSymmetric: The sparse matrix is lower triangular symmetric.
+ *          @arg PastixHermitian: The sparse matrix is lower triangular hermitian.
+ *
+ * @param[in] nodes
+ *          The number of processes used to solve the problem.
+ *
+ * @param[in] rank
+ *          The rank of the calling process.
+ *
+ ******************************************************************************/
 void
 starpu_sparse_matrix_init( SolverMatrix *solvmtx,
                            int typesize, int mtxtype,
@@ -93,7 +124,7 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
         if ( !(cblk->cblktype & CBLK_TASKS_2D) )
             continue;
 
-        /**
+        /*
          * Diagonal block
          */
         ptrL   = cblk->lcoeftab;
@@ -158,6 +189,17 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
     (void)nodes; (void)myrank;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Submit asynchronous calls to retrieve the data on main memory.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] spmtx
+ *          The sparse matrix descriptor to retrieve on main memory.
+ *
+ ******************************************************************************/
 void
 starpu_sparse_matrix_getoncpu( starpu_sparse_matrix_desc_t *spmtx )
 {
@@ -216,6 +258,20 @@ starpu_sparse_matrix_getoncpu( starpu_sparse_matrix_desc_t *spmtx )
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Free the StarPU descriptor of the sparse matrix.
+ *
+ * This function destroys the StarPU descriptor, but do not free the matrix data
+ * that are managed by PaStiX.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] spmtx
+ *          The descriptor to free.
+ *
+ ******************************************************************************/
 void
 starpu_sparse_matrix_destroy( starpu_sparse_matrix_desc_t *spmtx )
 {

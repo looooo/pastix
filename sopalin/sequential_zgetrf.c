@@ -23,9 +23,7 @@
 #include "pastix_zcores.h"
 
 #if defined(PASTIX_WITH_PARSEC)
-void
-parsec_zgetrf( pastix_data_t *parsec,
-               sopalin_data_t *sopalin_data );
+#include "parsec/pastix_zparsec.h"
 #endif
 
 #if defined(PASTIX_WITH_STARPU)

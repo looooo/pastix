@@ -501,10 +501,7 @@ parsec_sparse_matrix_destroy_fermi( parsec_sparse_matrix_desc_t *spmtx )
  *
  *******************************************************************************
  *
- * @param[inout] spmtx
- *          The allocated descriptor to initialize.
- *
- * @param[in] solvmtx
+ * @param[inout] solvmtx
  *          The solver matrix structure that describes the sparse matrix for
  *          PaStiX.
  *
