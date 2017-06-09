@@ -206,7 +206,6 @@ void handle_stop(int stats)
         GET_PARAM_PACKED_1(CUR_EV, size);
         p_info->run_time[p_info->current_ev] += (CURRENT - p_info->time_start);
         p_info->flops[p_info->current_ev]    += size;
-
     }
     else{
         popState(CURRENT, "ST_Thread", thread_id);
