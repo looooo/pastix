@@ -39,6 +39,7 @@ add_custom_target(starpu_headers_tgt
 ### Generate the pastix_parsec wrappers for all required precisions
 set(SOURCES
   codelet_zgemmsp.c
+  codelet_ztrsmsp.c
   codelet_zpotrfsp.c
   codelet_zgetrfsp.c
   starpu_zpotrf.c

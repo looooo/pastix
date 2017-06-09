@@ -73,10 +73,10 @@ static void cl_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
     C = (cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[2]);
 
     /* Check layout due to workspace */
+    starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data);
+
     assert( cblk->cblktype & CBLK_LAYOUT_2D );
     assert( fcblk->cblktype & CBLK_LAYOUT_2D );
-
-    starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data);
 
     gpucblk_zgemmsp( sideA, sideB, trans,
                      cblk, blok, fcblk,
@@ -135,11 +135,11 @@ static void cl_blok_zgemmsp_cpu(void *descr[], void *cl_arg)
     C = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[2]);
 
     /* Check layout due to workspace */
-    assert( cblk->cblktype  & CBLK_TASKS_2D );
-    assert( fcblk->cblktype & CBLK_TASKS_2D );
-
     starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &fcblk,
                                &blok_mk, &blok_nk, &blok_mn, &sopalin_data);
+
+    assert( cblk->cblktype  & CBLK_TASKS_2D );
+    assert( fcblk->cblktype & CBLK_TASKS_2D );
 
     cpublok_zgemmsp( sideA, sideB, trans,
                      cblk, fcblk,
@@ -167,11 +167,11 @@ static void cl_blok_zgemmsp_gpu(void *descr[], void *cl_arg)
     C = (cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[2]);
 
     /* Check layout due to workspace */
-    assert( cblk->cblktype  & CBLK_TASKS_2D );
-    assert( fcblk->cblktype & CBLK_TASKS_2D );
-
     starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &fcblk,
                                &blok_mk, &blok_nk, &blok_mn, &sopalin_data);
+
+    assert( cblk->cblktype  & CBLK_TASKS_2D );
+    assert( fcblk->cblktype & CBLK_TASKS_2D );
 
     gpublok_zgemmsp( sideA, sideB, trans,
                      cblk, fcblk,
@@ -197,9 +197,11 @@ starpu_task_blok_zgemmsp( pastix_coefside_t sideA,
 {
     SolverBlok *blokC = fcblk->fblokptr;
 
-    pastix_int_t frownum = blokC->frownum;
-    pastix_int_t lrownum = blokC->lrownum;
+    pastix_int_t frownum;
+    pastix_int_t lrownum;
     pastix_int_t blok_mn = 0, j = 0;
+    pastix_int_t blok_mk = blokA - cblk->fblokptr;
+    pastix_int_t blok_nk = blokB - cblk->fblokptr;
 
     do {
         frownum = blokC->frownum;
@@ -208,7 +210,7 @@ starpu_task_blok_zgemmsp( pastix_coefside_t sideA,
         j = 1;
 
         /* Increase lrownum as long as blocks are facing the same cblk */
-        while( (cblk_n < cblknbr) &&
+        while( (blokC < fcblk[1].fblokptr-1) &&
                (blokC[0].fcblknm == blokC[1].fcblknm) &&
                (blokC[0].lcblknm == blokC[1].lcblknm) )
         {
