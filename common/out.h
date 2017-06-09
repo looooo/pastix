@@ -20,8 +20,8 @@
     "    sequential:                           %8s\n"           \
     "    thread static:                        %8s\n"           \
     "    thread dynamic:                       %8s\n"           \
-    "    parsec:                               %8s\n"           \
-    "    starpu:                               %8s\n"           \
+    "    PaRSEC:                               %8s\n"           \
+    "    StarPU:                               %8s\n"           \
     "  Number of MPI processes:                %8d\n"           \
     "  Number of threads per process:          %8d\n"           \
     "  MPI communication support:              %8s\n"           \

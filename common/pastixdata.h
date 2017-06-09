@@ -14,10 +14,6 @@
 #define PASTIX_DATA_H_
 
 #include "isched.h"
-#if defined(PASTIX_WITH_PARSEC)
-#include <parsec.h>
-#endif
-
 #include "symbol.h"
 #include "queue.h"
 
@@ -92,12 +88,8 @@ struct pastix_data_s {
     int              inter_node_procnum; /*< Local MPI rank in inter node communicator                           */
 
     isched_t        *isched;             /*< Internal scheduler structure that is always available               */
-#if defined(PASTIX_WITH_PARSEC)
-    parsec_context_t *parsec;             /*< PaRSEC Context if available                                         */
-#endif
-#if defined(PASTIX_WITH_STARPU)
-    starpu_ctxt_t   *starpu;             /*< StarPU Context if available                                         */
-#endif
+    void            *parsec;             /*< PaRSEC Context if available                                         */
+    void            *starpu;             /*< StarPU configuration if available                                   */
 
     const pastix_spm_t *csc;             /*< Pointer to the user csc structure used as input                     */
 

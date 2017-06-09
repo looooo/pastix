@@ -217,7 +217,10 @@ struct solver_matrix_s {
     pastix_factotype_t      factotype; /**< General or symmetric factorization?       */
 
 #if defined(PASTIX_WITH_PARSEC)
-    sparse_matrix_desc_t   *parsec_desc;
+    parsec_sparse_matrix_desc_t *parsec_desc;
+#endif
+#if defined(PASTIX_WITH_STARPU)
+    starpu_sparse_matrix_desc_t *starpu_desc;
 #endif
 
     pastix_int_t              ftgtnbr;              /*+ Number of fanintargets                    +*/

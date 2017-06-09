@@ -69,7 +69,6 @@
 /* Scheduling options */
 #cmakedefine PASTIX_WITH_PARSEC
 #cmakedefine PASTIX_WITH_STARPU
-#cmakedefine PASTIX_WITH_STARPU
 #cmakedefine PASTIX_WITH_STARPU_PROFILING
 
 #cmakedefine PASTIX_CUDA_FERMI

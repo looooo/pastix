@@ -182,6 +182,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t      *pastix_data,
                           const pastix_spm_t *spm )
 {
     Clock timer;
+    int mtxtype;
 
     /*
      * Check parameters
@@ -227,23 +228,25 @@ pastix_subtask_bcsc2ctab( pastix_data_t      *pastix_data,
                  spm->flttype == PastixPattern,
                  pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU );
 
+    mtxtype = ( pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU ) ? PastixGeneral : PastixHermitian;
+
 #if defined(PASTIX_WITH_PARSEC)
     if ( pastix_data->iparm[IPARM_SCHEDULER] == PastixSchedParsec )
     {
-        sparse_matrix_desc_t *sdesc = pastix_data->solvmatr->parsec_desc;
-        int mtxtype = ( pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU ) ? PastixGeneral : PastixHermitian;
-        if ( sdesc != NULL ) {
-            sparse_matrix_destroy( sdesc );
-        }
-        else {
-            sdesc = (sparse_matrix_desc_t*)malloc(sizeof(sparse_matrix_desc_t));
-        }
-
         /* Create the matrix descriptor */
-        sparse_matrix_init( sdesc, pastix_data->solvmatr,
-                            pastix_size_of( spm->flttype ), mtxtype,
-                            1, 0 );
-        pastix_data->solvmatr->parsec_desc = sdesc;
+        parsec_sparse_matrix_init( pastix_data->solvmatr,
+                                   pastix_size_of( spm->flttype ), mtxtype,
+                                   1, 0 );
+    }
+#endif
+
+#if defined(PASTIX_WITH_STARPU)
+    if ( pastix_data->iparm[IPARM_SCHEDULER] == PastixSchedStarPU )
+    {
+        /* Create the matrix descriptor */
+        starpu_sparse_matrix_init( pastix_data->solvmatr,
+                                   pastix_size_of( spm->flttype ), mtxtype,
+                                   1, 0 );
     }
 #endif
 

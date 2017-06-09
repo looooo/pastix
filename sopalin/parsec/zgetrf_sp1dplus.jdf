@@ -26,7 +26,7 @@ extern "C" %{
 
 /* Globals
  */
-descA        [type = "sparse_matrix_desc_t *" ]
+descA        [type = "parsec_sparse_matrix_desc_t *" ]
 sopalin_data [type = "sopalin_data_t *" ]
 
 datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]

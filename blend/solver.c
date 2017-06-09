@@ -54,7 +54,12 @@ solver_size( const SolverMatrix *solvptr )
     }
 #if defined(PASTIX_WITH_PARSEC)
     if ( solvptr->parsec_desc ) {
-        mem += sizeof( sparse_matrix_desc_t );
+        mem += sizeof( parsec_sparse_matrix_desc_t );
+    }
+#endif
+#if defined(PASTIX_WITH_STARPU)
+    if ( solvptr->starpu_desc ) {
+        mem += sizeof( starpu_sparse_matrix_desc_t );
     }
 #endif
 
@@ -170,44 +175,6 @@ solverExit(SolverMatrix *solvmtx)
     }
     memFree_null(solvmtx->ttsktab);
     memFree_null(solvmtx->proc2clust);
-
-
-    /*memFree_null(solvmtx);*/
-#if defined(PASTIX_WITH_STARPU)
-    memFree_null(solvmtx->hcblktab);
-    memFree_null(solvmtx->hbloktab);
-    memFree_null(solvmtx->gcblk2halo);
-    if (pastix_starpu_with_fanin() == 1) {
-        pastix_int_t clustnum;
-        for (clustnum = 0; clustnum < solvmtx->clustnbr; clustnum++) {
-            if (solvmtx->fcblknbr[clustnum] > 0) {
-                memFree_null(solvmtx->fcblktab[clustnum]);
-                memFree_null(solvmtx->fbloktab[clustnum]);
-            }
-        }
-        memFree_null(solvmtx->fcblknbr);
-        memFree_null(solvmtx->fcblktab);
-        memFree_null(solvmtx->fbloktab);
-    }
-#endif
-
-    /* /\* Pour l'instant uniquement si on est en 1d *\/ */
-    /* if (solvmtx->updovct.cblktab) { */
-    /*     for (i=0; i<solvmtx->cblknbr; i++) */
-    /*     { */
-    /*         if (solvmtx->updovct.cblktab[i].browcblktab) */
-    /*             memFree_null(solvmtx->updovct.cblktab[i].browcblktab); */
-    /*         if (solvmtx->updovct.cblktab[i].browproctab) */
-    /*             memFree_null(solvmtx->updovct.cblktab[i].browproctab); */
-    /*     } */
-    /* } */
-    /* memFree_null(solvmtx->updovct.lblk2gcblk); */
-    /* memFree_null(solvmtx->updovct.listblok); */
-    /* memFree_null(solvmtx->updovct.listcblk); */
-    /* memFree_null(solvmtx->updovct.gcblk2list); */
-    /* memFree_null(solvmtx->updovct.loc2glob); */
-    /* memFree_null(solvmtx->updovct.cblktab); */
-    /* memFree_null(solvmtx->updovct.listptr); */
 }
 
 /**

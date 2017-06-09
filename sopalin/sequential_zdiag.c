@@ -22,17 +22,6 @@
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 
-#if defined(PASTIX_WITH_PARSEC)
-#include <parsec.h>
-#include <parsec/data.h>
-#include <parsec/data_distribution.h>
-
-int dsparse_zdiag_sp( parsec_context_t *parsec,
-                      sparse_matrix_desc_t *A,
-                      sopalin_data_t *sopalin_data,
-                      int nrhs, pastix_complex64_t *b, int ldb);
-#endif
-
 void
 sequential_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
                   int nrhs, pastix_complex64_t *b, int ldb )
@@ -142,26 +131,6 @@ thread_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
     struct args_zdiag_t args_zdiag = {sopalin_data, nrhs, b, ldb};
     isched_parallel_call( pastix_data->isched, thread_pzdiag, &args_zdiag );
 }
-
-#if defined(PASTIX_WITH_PARSEC)
-void
-parsec_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
-              int nrhs, pastix_complex64_t *b, int ldb )
-{
-    parsec_context_t *ctx;
-
-    /* Start PaRSEC */
-    if (pastix_data->parsec == NULL) {
-        int argc = 0;
-        pastix_parsec_init( pastix_data, &argc, NULL );
-    }
-    ctx = pastix_data->parsec;
-
-    /* Run the diag */
-    exit(0); /* not yet implemented */
-    dsparse_zdiag_sp( ctx, sopalin_data->solvmtx->parsec_desc, sopalin_data, nrhs, b, ldb);
-}
-#endif
 
 static void (*zdiag_table[4])(pastix_data_t *, sopalin_data_t *,
                               int, pastix_complex64_t *, int) = {

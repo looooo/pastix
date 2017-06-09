@@ -241,58 +241,65 @@ endif()
 #---------------------------------
 if (PASTIX_WITH_STARPU)
 
-    set(PASTIX_STARPU_VERSION "1.1" CACHE STRING "oldest STARPU version desired")
+  set(PASTIX_STARPU_VERSION "1.2" CACHE STRING "oldest STARPU version desired")
 
-    # Create list of components in order to make a single call to find_package(starpu...)
-    set(STARPU_COMPONENT_LIST "HWLOC")
-    if(PASTIX_WITH_MPI)
-        list(APPEND STARPU_COMPONENT_LIST "MPI")
+  # Create list of components in order to make a single call to find_package(starpu...)
+  set(STARPU_COMPONENT_LIST "HWLOC")
+  if(PASTIX_WITH_MPI)
+    list(APPEND STARPU_COMPONENT_LIST "MPI")
+  endif()
+  if(PASTIX_WITH_CUDA)
+    list(APPEND STARPU_COMPONENT_LIST "CUDA")
+  endif()
+  if(PASTIX_WITH_FXT)
+    list(APPEND STARPU_COMPONENT_LIST "FXT")
+  endif()
+
+  find_package(STARPU ${PASTIX_STARPU_VERSION} REQUIRED
+    COMPONENTS ${STARPU_COMPONENT_LIST})
+
+  set(HAVE_STARPU ${STARPU_FOUND})
+
+  # Add definition and include_dir if found
+  if(STARPU_FOUND)
+    include_directories(${STARPU_INCLUDE_DIRS_DEP})
+    link_directories(${STARPU_LIBRARY_DIRS_DEP})
+
+    set(CMAKE_REQUIRED_INCLUDES "${STARPU_INCLUDE_DIRS}")
+    foreach(libdir ${STARPU_LIBRARY_DIRS})
+      list(APPEND CMAKE_REQUIRED_FLAGS "-L${libdir}")
+    endforeach()
+    string(REPLACE ";" " " CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
+    if(PASTIX_USE_FXT)
+      # check if fxt profiling is accessible in starpu and activate it in magmamorse
+      set(CMAKE_REQUIRED_LIBRARIES "${STARPU_SHM_LIBRARIES}")
+      unset(STARPU_FXT_START_PROFILING_FOUND CACHE)
+      check_function_exists(starpu_fxt_start_profiling STARPU_FXT_START_PROFILING_FOUND)
+      if ( STARPU_FXT_START_PROFILING_FOUND )
+        message(STATUS "Set HAVE_STARPU_FXT_PROFILING - Activate FxT profiling through StarPU")
+        add_definitions(-DHAVE_STARPU_FXT_PROFILING)
+      endif()
     endif()
-    if(PASTIX_WITH_CUDA)
-        list(APPEND STARPU_COMPONENT_LIST "CUDA")
+    if (STARPU_MPI_LIBRARIES)
+      # Check if a specific function exist
+      set(CMAKE_REQUIRED_LIBRARIES "${STARPU_MPI_LIBRARIES}")
+      unset(STARPU_MPI_DATA_REGISTER_FOUND CACHE)
+      check_function_exists(starpu_mpi_data_register STARPU_MPI_DATA_REGISTER_FOUND)
+      if ( STARPU_MPI_DATA_REGISTER_FOUND )
+        add_definitions(-DHAVE_STARPU_MPI_DATA_REGISTER)
+      endif()
     endif()
-    if(PASTIX_WITH_FXT)
-        list(APPEND STARPU_COMPONENT_LIST "FXT")
-    endif()
 
-    find_package(STARPU ${PASTIX_STARPU_VERSION} REQUIRED
-                 COMPONENTS ${STARPU_COMPONENT_LIST})
-
-    set(HAVE_STARPU ${STARPU_FOUND})
-
-    # Add definition and include_dir if found
-    if(STARPU_FOUND)
-        include_directories(${STARPU_INCLUDE_DIRS})
-        set(CMAKE_REQUIRED_INCLUDES "${STARPU_INCLUDE_DIRS}")
-        foreach(libdir ${STARPU_LIBRARY_DIRS})
-            list(APPEND CMAKE_REQUIRED_FLAGS "-L${libdir}")
-        endforeach()
-        string(REPLACE ";" " " CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
-        if(PASTIX_USE_FXT)
-            # check if fxt profiling is accessible in starpu and activate it in magmamorse
-            set(CMAKE_REQUIRED_LIBRARIES "${STARPU_SHM_LIBRARIES}")
-            unset(STARPU_FXT_START_PROFILING_FOUND CACHE)
-            check_function_exists(starpu_fxt_start_profiling STARPU_FXT_START_PROFILING_FOUND)
-            if ( STARPU_FXT_START_PROFILING_FOUND )
-                message(STATUS "Set HAVE_STARPU_FXT_PROFILING - Activate FxT profiling through StarPU")
-                add_definitions(-DHAVE_STARPU_FXT_PROFILING)
-            endif()
-        endif()
-        if (STARPU_MPI_LIBRARIES)
-            # Check if a specific function exist
-            set(CMAKE_REQUIRED_LIBRARIES "${STARPU_MPI_LIBRARIES}")
-            unset(STARPU_MPI_DATA_REGISTER_FOUND CACHE)
-            check_function_exists(starpu_mpi_data_register STARPU_MPI_DATA_REGISTER_FOUND)
-            if ( STARPU_MPI_DATA_REGISTER_FOUND )
-                add_definitions(-DHAVE_STARPU_MPI_DATA_REGISTER)
-            endif()
-        endif()
-
-    else(STARPU_FOUND)
-        message(ERROR "StarPU with ${STARPU_COMPONENT_LIST} components is required but was not found. Please provide the StarPU library in your environment or configure with -DPASTIX_WITH_STARPU=OFF")
-    endif()
+  else(STARPU_FOUND)
+    message(ERROR "StarPU with ${STARPU_COMPONENT_LIST} components is required but was not found. Please provide the StarPU library in your environment or configure with -DPASTIX_WITH_STARPU=OFF")
+  endif()
 
 endif (PASTIX_WITH_STARPU)
+
+set( DEPS_LIBRARIES
+  ${DEPS_LIBRARIES}
+  ${STARPU_LIBRARIES}
+  )
 
 # PaStiX might depend on Parsec
 #------------------------------
@@ -495,6 +502,11 @@ if (PASTIX_WITH_PARSEC)
     add_subdirectory(sopalin/parsec)
 endif()
 
+if (PASTIX_WITH_STARPU)
+    include_directories("${CMAKE_CURRENT_BINARY_DIR}/sopalin")
+    add_subdirectory(sopalin/starpu)
+endif()
+
 include(RulesPrecisions)
 
 ##
@@ -632,21 +644,10 @@ set(PASTIX_LIB_SRCS
   ${generated_files}
   )
 
-if(PASTIX_WITH_PARSEC)
-  set(PASTIX_LIB_SRCS
-    ${PASTIX_LIB_SRCS}
-    common/parsec.c
-    )
-endif()
-
 set_source_files_properties(
   sopalin/coeftab.h
   PROPERTIES DEPENDS sopalin_headers
   )
-
-if(PASTIX_WITH_STARPU)
- list(APPEND PASTIX_LIB_SRCS ${PASTIX_STARPU_SRCS})
-endif(PASTIX_WITH_STARPU)
 
 if(PASTIX_ORDERING_SCOTCH) # AND HAVE_SCOTCH)
   set(PASTIX_LIB_SRCS
@@ -701,6 +702,20 @@ if(PASTIX_WITH_PARSEC)
   target_link_libraries(pastix
     pastix_parsec
   )
+
+  add_dependencies(pastix
+    parsec_headers_tgt
+    )
+endif()
+
+if(PASTIX_WITH_STARPU)
+  target_link_libraries(pastix
+    pastix_starpu
+    )
+
+  add_dependencies(pastix
+    starpu_headers_tgt
+    )
 endif()
 
 # foreach (module2 ${modules})
