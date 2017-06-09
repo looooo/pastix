@@ -153,7 +153,7 @@ static void cl_blok_ztrsmsp_gpu(void *descr[], void *cl_arg)
     pastix_uplo_t     uplo;
     pastix_trans_t    trans;
     pastix_diag_t     diag;
-    const SolverCblk *cblk;
+    SolverCblk       *cblk;
     pastix_int_t      blok_m;
     sopalin_data_t   *sopalin_data;
 
