@@ -114,7 +114,7 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
                                       PastixConjTrans, PastixNonUnit,
                                       cblk, blokA, sopalin_data );
 
-            for(blokB=cblk->fblokptr + 1; blokB<blokA; blokB++) {
+            for(blokB=cblk->fblokptr + 1; blokB<=blokA; blokB++) {
 
                 starpu_task_blok_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
                                           cblk, solvmtx->cblktab + blokB->fcblknm,
@@ -175,7 +175,7 @@ starpu_zpotrf( pastix_data_t  *pastix_data,
     /*
      * Select 1D or 2D jdf based on distribution_level
      */
-    if ( 1 || pastix_data->iparm[IPARM_DISTRIBUTION_LEVEL] >= 0 )
+    if ( pastix_data->iparm[IPARM_DISTRIBUTION_LEVEL] >= 0 )
     {
         starpu_zpotrf_sp2d( sopalin_data, sdesc );
     }

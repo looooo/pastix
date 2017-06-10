@@ -174,7 +174,7 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
             blok  = cblk[0].fblokptr;
             lblok = cblk[1].fblokptr;
 
-            if ( (lblok - blok) > sizenbr ) {
+            if ( (lblok - blok) >= sizenbr ) {
                 sizenbr = (lblok - blok) + 1;
                 free( sizetab );
                 sizetab = malloc( sizenbr * sizeof(size_t) );

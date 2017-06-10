@@ -201,7 +201,7 @@ starpu_task_blok_ztrsmsp( pastix_coefside_t coef,
         STARPU_VALUE, &cblk,             sizeof(SolverCblk*),
         STARPU_VALUE, &blok_m,           sizeof(pastix_int_t),
         STARPU_R,      cblk->fblokptr->handler[coef],
-        STARPU_R,      blok->handler[coef],
+        STARPU_RW,     blok->handler[coef],
         STARPU_VALUE, &sopalin_data,     sizeof(sopalin_data_t*),
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "blok_ztrsmsp",

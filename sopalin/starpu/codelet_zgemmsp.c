@@ -75,7 +75,7 @@ static void cl_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
     /* Check layout due to workspace */
     starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data);
 
-    assert( cblk->cblktype & CBLK_LAYOUT_2D );
+    assert( cblk->cblktype  & CBLK_LAYOUT_2D );
     assert( fcblk->cblktype & CBLK_LAYOUT_2D );
 
     gpucblk_zgemmsp( sideA, sideB, trans,
@@ -202,6 +202,8 @@ starpu_task_blok_zgemmsp( pastix_coefside_t sideA,
     pastix_int_t blok_mn = 0, j = 0;
     pastix_int_t blok_mk = blokA - cblk->fblokptr;
     pastix_int_t blok_nk = blokB - cblk->fblokptr;
+
+    assert( blok_nk <= blok_mk );
 
     do {
         frownum = blokC->frownum;
