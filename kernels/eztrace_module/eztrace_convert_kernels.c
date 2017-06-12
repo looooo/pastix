@@ -15,6 +15,8 @@
 
 #include "eztrace_convert_kernels.h"
 
+static kernels_t kernels_properties[KERNELS_NB_EVENTS];
+
 /**
  *******************************************************************************
  *
@@ -58,8 +60,7 @@ static kernels_thread_info_t *kernels_register_thread_hook(struct thread_info_t 
         p_info->run_time = run_time;
     }
 
-    ezt_hook_list_add(&p_info->p_thread->hooks, p_info,
-                      (uint8_t) KERNELS_EVENTS_ID);
+    ezt_hook_list_add(&p_info->p_thread->hooks, p_info, KERNELS_EVENTS_ID);
     return p_info;
 }
 
@@ -99,13 +100,20 @@ void libfinalize(void)
  */
 void define_kernels_properties()
 {
+    int i;
+    for (i=1; i<KERNELS_NB_EVENTS; i++){
+        kernels_properties[i] = (kernels_t) {"unknown", GTG_BLACK};
+    }
+
     /* Low-rank operations */
-    kernels_properties[LR_TRSM]  = (kernels_t) {"lr_trsm" , GTG_DARKBLUE};
-    kernels_properties[LR_GEMM]  = (kernels_t) {"lr_gemm" , GTG_LIGHTPINK};
+    kernels_properties[LR_INIT]   = (kernels_t) {"lr_init",   GTG_YELLOW};
+    kernels_properties[LR_INIT_Q] = (kernels_t) {"lr_init_q", GTG_YELLOW};
+    kernels_properties[LR_TRSM]   = (kernels_t) {"lr_trsm",   GTG_DARKBLUE};
+    kernels_properties[LR_GEMM]   = (kernels_t) {"lr_gemm",   GTG_DARKGREY};
 
     /* Dense operations */
-    kernels_properties[GETRF]      = (kernels_t) {"getrf"  ,    GTG_RED};
-    kernels_properties[POTRF]      = (kernels_t) {"potrf"  ,    GTG_RED};
+    kernels_properties[GETRF]      = (kernels_t) {"getrf",      GTG_RED};
+    kernels_properties[POTRF]      = (kernels_t) {"potrf",      GTG_RED};
     kernels_properties[DENSE_TRSM] = (kernels_t) {"dense_trsm", GTG_SEABLUE};
     kernels_properties[DENSE_GEMM] = (kernels_t) {"dense_gemm", GTG_GREEN};
 }
@@ -161,7 +169,6 @@ void handle_start(kernels_ev_code_t ev, int stats)
     if (stats == 1){
 
         p_info->nb[ev]++;
-
         p_info->current_ev = ev;
         p_info->time_start = CURRENT;
     }
@@ -193,7 +200,7 @@ void handle_stop(int stats)
     if (stats == 1){
         GET_PARAM_PACKED_1(CUR_EV, size);
         p_info->run_time[p_info->current_ev] += (CURRENT - p_info->time_start);
-        p_info->flops[p_info->current_ev] += size;
+        p_info->flops[p_info->current_ev]    += size;
 
     }
     else{
@@ -278,11 +285,7 @@ void print_kernels_stats()
 {
     define_kernels_properties();
 
-    printf("\n:\n");
-    printf("-------\n");
-
     int i;
-
     double total_flops = 0;
 
     /* Browse the list of processes */
@@ -304,10 +307,17 @@ void print_kernels_stats()
             for (k=1; k<KERNELS_NB_EVENTS; k++){
                 double perf = 1000 * p_info->flops[k] / p_info->run_time[k];
                 total_flops += p_info->flops[k];
-                printf("Kernel %20s was called %10d times, flops=%8.3g, perf=%5.2lf %cFlop/s\n",
-                       kernels_properties[k].name, p_info->nb[k],
-                       p_info->flops[k],
-                       printflopsv( perf ), printflopsu( perf ) );
+
+                if (p_info->nb[k] > 0)
+                    printf("Kernel %20s was called %10d times, flops=%8.3g, perf=%5.2lf %cFlop/s\n",
+                           kernels_properties[k].name, p_info->nb[k],
+                           p_info->flops[k],
+                           printflopsv( perf ), printflopsu( perf ) );
+                else
+                    printf("Kernel %20s was called %10d times, flops=%8.3g, perf=%5.2lf %cFlop/s\n",
+                           kernels_properties[k].name, p_info->nb[k],
+                           p_info->flops[k],
+                           printflopsv( perf ), printflopsu( perf ) );
             }
         }
     }

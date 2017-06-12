@@ -28,7 +28,7 @@
 #include "ev_codes.h"
 
 #define KERNELS_EVENTS_ID    USER_MODULE_ID(0x51)
-#define KERNELS_PREFIX       (KERNELS_EVENTS_ID << 3)
+#define KERNELS_PREFIX       (KERNELS_EVENTS_ID << 5)
 #define KERNELS_CODE(event)  (KERNELS_PREFIX | event )
 
 #endif /* defined(PASTIX_WITH_EZTRACE) */
@@ -37,6 +37,8 @@ typedef enum kernels_ev_code_e {
     STOP,
 
     /* Low-rank operations */
+    LR_INIT,
+    LR_INIT_Q,
     LR_TRSM,
     LR_GEMM,
 

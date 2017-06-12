@@ -20,6 +20,7 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 #include "z_nan_check.h"
+#include "eztrace_module/kernels_ev_codes.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t mzone = -1.;
@@ -393,12 +394,17 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
                                A, lda, Acpy, m );
     assert(ret == 0);
 
+    start_trace_kernel(LR_INIT);
     ret = core_zrrqr( m, n,
                       Acpy, m,
                       jpvt, tau,
                       work, ldwork,
                       rwork,
                       tol * norm, nb, pastix_imin(m,n) - 1 );
+    if (ret == -1)
+        stop_trace_kernel( FLOPS_ZGEQRF( m, n ) );
+    else
+        stop_trace_kernel( FLOPS_ZGEQRF( m, ret ) );
 
     /**
      * Resize the space used by the low rank matrix
@@ -452,9 +458,11 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
                                    Acpy, m, U, m );
         assert(ret == 0);
 
+        start_trace_kernel(LR_INIT_Q);
         ret = LAPACKE_zungqr( LAPACK_COL_MAJOR, m, Alr->rk, Alr->rk,
                               U , m, tau );
         assert(ret == 0);
+        stop_trace_kernel( FLOPS_ZUNGQR( m, Alr->rk, Alr->rk ) );
     }
 
     memFree_null( zwork );
