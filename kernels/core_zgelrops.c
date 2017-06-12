@@ -735,6 +735,7 @@ core_zlrm3( const pastix_lr_t *lowrank,
                  CBLAS_SADDR(zone),  A->v, ldav,
                                      B->v, ldbv,
                  CBLAS_SADDR(zzero), work2, A->rk );
+    flops+= FLOPS_ZGEMM( A->rk, B->rk, K );
 
     stop_trace_kernel( FLOPS_ZGEMM( A->rk, B->rk, K ) );
 

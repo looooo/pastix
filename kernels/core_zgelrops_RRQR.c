@@ -971,7 +971,8 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     }
 
     /* Compute Q2 factor */
-    {    pastix_int_t flops = 0;
+    {
+        pastix_int_t flops = 0;
         start_trace_kernel(LR_GEMM_ADD_Q);
         ret = LAPACKE_zungqr( LAPACK_COL_MAJOR, rank, new_rank, new_rank,
                               v1v2, rank, tauV );
