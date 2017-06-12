@@ -109,7 +109,12 @@ void define_kernels_properties()
     kernels_properties[LR_INIT]   = (kernels_t) {"lr_init",   GTG_YELLOW};
     kernels_properties[LR_INIT_Q] = (kernels_t) {"lr_init_q", GTG_YELLOW};
     kernels_properties[LR_TRSM]   = (kernels_t) {"lr_trsm",   GTG_DARKBLUE};
-    kernels_properties[LR_GEMM]   = (kernels_t) {"lr_gemm",   GTG_DARKGREY};
+
+    kernels_properties[LR_GEMM_PRODUCT]  = (kernels_t) {"lr_gemm_product",  GTG_DARKGREY};
+    kernels_properties[LR_GEMM_ADD_Q]    = (kernels_t) {"lr_gemm_add_q",    GTG_DARKGREY};
+    kernels_properties[LR_GEMM_ADD_RRQR] = (kernels_t) {"lr_gemm_add_rrqr", GTG_DARKGREY};
+
+    kernels_properties[UNCOMPRESS] = (kernels_t) {"lr_uncompress", GTG_DARKBLUE};
 
     /* Dense operations */
     kernels_properties[GETRF]      = (kernels_t) {"getrf",      GTG_RED};
@@ -309,12 +314,12 @@ void print_kernels_stats()
                 total_flops += p_info->flops[k];
 
                 if (p_info->nb[k] > 0)
-                    printf("Kernel %20s was called %10d times, flops=%8.3g, perf=%5.2lf %cFlop/s\n",
+                    printf("Kernel %20s was called %8d times, flops=%8.3g, perf=%7.2lf %cFlop/s\n",
                            kernels_properties[k].name, p_info->nb[k],
                            p_info->flops[k],
                            printflopsv( perf ), printflopsu( perf ) );
                 else
-                    printf("Kernel %20s was called %10d times, flops=%8.3g, perf=%5.2lf %cFlop/s\n",
+                    printf("Kernel %20s was called %8d times, flops=%8.3g, perf=%7.2lf %cFlop/s\n",
                            kernels_properties[k].name, p_info->nb[k],
                            p_info->flops[k],
                            printflopsv( perf ), printflopsu( perf ) );

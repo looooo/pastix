@@ -267,19 +267,23 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
 
         if ( lrC->rk != 0 ) {
             if ( lrC->rk != -1 ) {
+                start_trace_kernel(LR_TRSM);
                 cblas_ztrsm(CblasColMajor,
                             (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
                             lrC->rk, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->v, lrC->rkmax);
+                stop_trace_kernel( FLOPS_ZTRSM( side, lrC->rk, N ) );
             }
             else {
                 M = blok_rownbr(blok);
+                start_trace_kernel(DENSE_TRSM);
                 cblas_ztrsm(CblasColMajor,
                             (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
                             M, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->u, lrC->rkmax);
+                stop_trace_kernel( FLOPS_ZTRSM( side, M, N ) );
             }
         }
     }

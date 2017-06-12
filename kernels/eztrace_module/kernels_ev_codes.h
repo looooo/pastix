@@ -40,7 +40,10 @@ typedef enum kernels_ev_code_e {
     LR_INIT,
     LR_INIT_Q,
     LR_TRSM,
-    LR_GEMM,
+    LR_GEMM_PRODUCT,
+    LR_GEMM_ADD_Q,
+    LR_GEMM_ADD_RRQR,
+    UNCOMPRESS,
 
     /* General kernels: similar in low-rank and dense */
     GETRF,

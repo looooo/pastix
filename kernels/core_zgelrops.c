@@ -549,57 +549,8 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
          * A and B are both low rank
          */
         if ( B->rk != -1 ) {
-            /**
-             * Let's compute A * B' = Au Av^h (Bu Bv^h)' with the smallest ws
-             */
-            if ( (A->rk * N) <= (B->rk * M) ) {
-                /**
-                 *    ABu = Au
-                 *    ABv = (Av^h Bv^h') * Bu'
-                 */
-                assert( (A->rk * ( N + B->rk )) <= ldwork );
-                AB->rk = A->rk;
-                AB->rkmax = A->rk;
-                AB->u = A->u;
-                AB->v = work + A->rk * B->rk;
-
-                cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
-                             A->rk, B->rk, K,
-                             CBLAS_SADDR(zone),  A->v, ldav,
-                                                 B->v, ldbv,
-                             CBLAS_SADDR(zzero), work, A->rk );
-
-                cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
-                             A->rk, N, B->rk,
-                             CBLAS_SADDR(zone),  work,  A->rk,
-                                                 B->u,  ldbu,
-                             CBLAS_SADDR(zzero), AB->v, AB->rkmax );
-            }
-            else {
-                /**
-                 *    ABu = Au * (Av^h Bv^h')
-                 *    ABv = Bu'
-                 */
-                assert( (B->rk * ( M + A->rk )) <= ldwork );
-                AB->rk = B->rk;
-                AB->rkmax = B->rk;
-                AB->u = work + A->rk * B->rk;
-                AB->v = B->u;
-
-                cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
-                             A->rk, B->rk, K,
-                             CBLAS_SADDR(zone),  A->v, ldav,
-                                                 B->v, ldbv,
-                             CBLAS_SADDR(zzero), work, A->rk );
-
-                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
-                             M, B->rk, A->rk,
-                             CBLAS_SADDR(zone),  A->u,  ldau,
-                                                 work,  A->rk,
-                             CBLAS_SADDR(zzero), AB->u, M );
-
-                transV = transB;
-            }
+            assert(0);
+            printf("USELESS\n");
         }
         /**
          * A is low rank and not B
@@ -616,11 +567,13 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
             AB->u = A->u;
             AB->v = work;
 
+            start_trace_kernel(LR_GEMM_PRODUCT);
             cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
                          A->rk, N, K,
                          CBLAS_SADDR(zone),  A->v,  ldav,
                                              B->u,  ldbu,
                          CBLAS_SADDR(zzero), AB->v, AB->rkmax );
+            stop_trace_kernel( FLOPS_ZGEMM( A->rk, N, K ) );
         }
     }
     else {
@@ -639,11 +592,13 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
             AB->u = work;
             AB->v = B->u;
 
+            start_trace_kernel(LR_GEMM_PRODUCT);
             cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
                          M, B->rk, K,
                          CBLAS_SADDR(zone),  A->u,  ldau,
                                              B->v,  ldbv,
                          CBLAS_SADDR(zzero), AB->u, M );
+            stop_trace_kernel( FLOPS_ZGEMM( M, B->rk, K ) );
 
             transV = transB;
         }
@@ -671,11 +626,13 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
                 AB->u = work;
                 AB->v = NULL;
 
+                start_trace_kernel(DENSE_GEMM);
                 cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
                              M, N, K,
                              CBLAS_SADDR(zone),  A->u, ldau,
                                                  B->u, ldbu,
                              CBLAS_SADDR(zzero), work, M );
+                stop_trace_kernel( FLOPS_ZGEMM( M, N, K ) );
             /* } */
         }
     }
@@ -745,6 +702,7 @@ core_zlrm3( const pastix_lr_t *lowrank,
     int transV = PastixNoTrans;
     pastix_complex64_t *work2;
     pastix_lrblock_t rArB;
+    pastix_int_t flops = 0;
 
     assert( A->rk  <= A->rkmax);
     assert( B->rk  <= B->rkmax);
@@ -767,6 +725,7 @@ core_zlrm3( const pastix_lr_t *lowrank,
 
     work2 = malloc( A->rk * B->rk * sizeof(pastix_complex64_t));
 
+    start_trace_kernel(LR_GEMM_PRODUCT);
 
     /**
      * Let's compute A * B' = Au Av^h (Bu Bv^h)' with the smallest ws
@@ -776,6 +735,7 @@ core_zlrm3( const pastix_lr_t *lowrank,
                  CBLAS_SADDR(zone),  A->v, ldav,
                                      B->v, ldbv,
                  CBLAS_SADDR(zzero), work2, A->rk );
+    flops+= FLOPS_ZGEMM( A->rk, B->rk, K );
 
     /**
      * Try to compress (Av^h Bv^h')
@@ -804,6 +764,7 @@ core_zlrm3( const pastix_lr_t *lowrank,
                          CBLAS_SADDR(zone),  work2,  A->rk,
                          B->u,  ldbu,
                          CBLAS_SADDR(zzero), AB->v, AB->rkmax );
+            flops+= FLOPS_ZGEMM( A->rk, N, B->rk );
         }
         else {
             /**
@@ -823,6 +784,7 @@ core_zlrm3( const pastix_lr_t *lowrank,
                          CBLAS_SADDR(zone),  A->u,  ldau,
                          work2,  A->rk,
                          CBLAS_SADDR(zzero), AB->u, M );
+            flops+= FLOPS_ZGEMM( M, B->rk, A->rk );
 
             transV = transB;
 
@@ -858,6 +820,8 @@ core_zlrm3( const pastix_lr_t *lowrank,
                                          B->u, ldbu,
                      CBLAS_SADDR(zzero), AB->v, rArB.rk );
 
+        flops+= FLOPS_ZGEMM( M, rArB.rk, A->rk ) + FLOPS_ZGEMM( rArB.rk, N, B->rk );
+
         /* free(work); */
     }
     core_zlrfree(&rArB);
@@ -865,6 +829,8 @@ core_zlrm3( const pastix_lr_t *lowrank,
 
     /* Not used for now */
     (void)transA;
+
+    stop_trace_kernel( flops );
 
     return transV;
 }
@@ -1029,11 +995,13 @@ core_zlrmm( const pastix_lr_t *lowrank,
                          beta,  Cptr, ldcu );
         }
         else {
+            start_trace_kernel(DENSE_GEMM);
             cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
                          M, N, AB.rk,
                          CBLAS_SADDR(alpha), AB.u, ldabu,
                                              AB.v, ldabv,
                          CBLAS_SADDR(beta),  Cptr, ldcu );
+            stop_trace_kernel( FLOPS_ZGEMM( M, N, AB.rk ) );
         }
     }
      /**
@@ -1054,22 +1022,26 @@ core_zlrmm( const pastix_lr_t *lowrank,
                 /* Do not uncompress a null LR structure */
                 if (C->rk > 0){
                     /* Uncompress C */
+                    start_trace_kernel(UNCOMPRESS);
                     cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                                  Cm, Cn, C->rk,
                                  CBLAS_SADDR(beta),  C->u, ldcu,
                                                      C->v, ldcv,
                                  CBLAS_SADDR(zzero), work, Cm );
+                    stop_trace_kernel( FLOPS_ZGEMM( Cm, Cn, C->rk ) );
                 }
                 else{
                     memset(work, 0, Cm * Cn * sizeof(pastix_complex64_t) );
                 }
 
                 /* Add A*B */
+                start_trace_kernel(DENSE_GEMM);
                 cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
                              M, N, AB.rk,
                              CBLAS_SADDR(alpha), AB.u, ldabu,
                                                  AB.v, ldabv,
                              CBLAS_SADDR(zone), work + Cm * offy + offx, Cm );
+                stop_trace_kernel( FLOPS_ZGEMM( M, N, AB.rk ) );
 
                 core_zlrfree(C);
                 lowrank->core_ge2lr( tol, Cm, Cn, work, Cm, C );

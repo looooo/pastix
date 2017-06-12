@@ -803,6 +803,9 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
             pastix_complex64_t *tmpU = u1u2 + offx;
             pastix_complex64_t *tmpV = v1v2 + rB;
 
+            pastix_int_t flops = 0;
+            start_trace_kernel(LR_GEMM_ADD_Q);
+
             /* Form u2Tu1 */
             if (rA == N1){
                 cblas_zgemm(CblasColMajor, CblasTrans, CblasNoTrans,
@@ -810,6 +813,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                             CBLAS_SADDR(zone), tmpU, ldbu,
                             A->u, ldau,
                             CBLAS_SADDR(zzero), u2Tu1, rB );
+                flops += FLOPS_ZGEMM( rB, rA, N1 );
             }
             else if (rA == M1){
                 pastix_int_t i, j;
@@ -825,6 +829,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                             CBLAS_SADDR(zone), tmpU, ldbu,
                             A->u, ldau,
                             CBLAS_SADDR(zzero), u2Tu1, rB );
+                flops += FLOPS_ZGEMM( rB, rA, N1 );
             }
 
             /* Orthogonalize u1u2 */
@@ -834,6 +839,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                         CBLAS_SADDR(mzone), u1u2, M,
                         u2Tu1, rB,
                         CBLAS_SADDR(zone), tmpU, M );
+            flops += FLOPS_ZGEMM( M, rA, rB );
 
             /* Update v1v2 */
             cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
@@ -841,6 +847,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                         CBLAS_SADDR(zone), u2Tu1, rB,
                         tmpV, rank,
                         CBLAS_SADDR(zone), v1v2, rank );
+            flops += FLOPS_ZGEMM( rB, N, rA );
 
             /* Orthonormalize u1u2 */
             {
@@ -867,8 +874,9 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                         }
                     }
                 }
+                flops += (M + N) * rank;
             }
-
+            stop_trace_kernel( flops );
             memFree_null(u2Tu1);
         }
     }
@@ -876,12 +884,17 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, N,
                                 v1v2, rank, NULL );
 
+    start_trace_kernel(LR_GEMM_ADD_RRQR);
     new_rank = core_zrrqr(rank, N,
                           v1v2, rank,
                           jpvt, tauV,
                           zwork, ldwork,
                           rwork,
                           tol * norm, nb, rank-1);
+    if (new_rank == -1)
+        stop_trace_kernel( FLOPS_ZGEQRF( rank, N ) );
+    else
+        stop_trace_kernel( FLOPS_ZGEQRF( rank, new_rank ) );
 
     /*
      * First case: The rank is too big, so we decide to uncompress the result
@@ -893,11 +906,13 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
         u = B->u;
 
         /* Uncompress B */
+        start_trace_kernel(UNCOMPRESS);
         cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
                     M, N, Bbackup.rk,
                     CBLAS_SADDR(zone),  Bbackup.u, ldbu,
                                         Bbackup.v, ldbv,
                     CBLAS_SADDR(zzero), u, M );
+        stop_trace_kernel( FLOPS_ZGEMM( M, N, Bbackup.rk ) );
 
         /* Add A into it */
         if ( A->rk == -1 ) {
@@ -906,11 +921,14 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                          zone, u + offy * M + offx, M);
         }
         else {
+            start_trace_kernel(DENSE_GEMM);
             cblas_zgemm(CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transA1,
                         M1, N1, A->rk,
                         CBLAS_SADDR(alpha), A->u, ldau,
                                             A->v, ldav,
                         CBLAS_SADDR(zone), u + offy * M + offx, M);
+            stop_trace_kernel( FLOPS_ZGEMM( M1, N1, A->rk ) );
+
         }
         core_zlrfree(&Bbackup);
         memFree_null(zbuf);
@@ -953,15 +971,19 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     }
 
     /* Compute Q2 factor */
+    start_trace_kernel(LR_GEMM_ADD_Q);
     ret = LAPACKE_zungqr( LAPACK_COL_MAJOR, rank, new_rank, new_rank,
                           v1v2, rank, tauV );
+    stop_trace_kernel( FLOPS_ZUNGQR( rank, new_rank, new_rank ) );
     assert(ret == 0);
 
+    start_trace_kernel(LR_GEMM_ADD_Q);
     cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
                 M, new_rank, rank,
                 CBLAS_SADDR(zone),  u1u2, M,
                 v1v2, rank,
                 CBLAS_SADDR(zzero), B->u, ldbu);
+    stop_trace_kernel( FLOPS_ZGEMM( M, new_rank, rank ) );
 
     memcpy(B->v, work2, new_rank * N * sizeof(pastix_complex64_t));
 

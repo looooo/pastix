@@ -829,6 +829,8 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
     pastix_int_t stride, shift;
     pastix_int_t M, N, K;
 
+    printf("CALL FULL -> LR\n");
+
     /* Update from a dense block to a low rank block */
     assert(!(cblk->cblktype  & CBLK_COMPRESSED));
     assert(  fcblk->cblktype & CBLK_COMPRESSED );
