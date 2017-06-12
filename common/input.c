@@ -410,7 +410,7 @@ int api_to_int( char * string )
     }
     if(0 == strcasecmp("pastixorderptscotch", string))
     {
-        return PastixOrderPtscotch;
+        return PastixOrderPtScotch;
     }
     if(0 == strcasecmp("pastixorderparmetis", string))
     {

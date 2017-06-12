@@ -52,7 +52,7 @@ class spm():
                                  fmttype.CSC,
                                  0, 0, 0, 0, 0, 0, 0, 0,
                                  1, None,
-                                 order.ColMajor,
+                                 layout.ColMajor,
                                  None, None, None, None)
         self.id_ptr = pointer( self.spm_c )
         if A is not None:

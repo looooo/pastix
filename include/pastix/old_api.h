@@ -104,7 +104,7 @@ enum IPARM_ACCESS_DEPRECATED {
 #define API_ORDER_METIS     PastixOrderMetis
 #define API_ORDER_PERSONAL  PastixOrderPersonal
 #define API_ORDER_LOAD      PastixOrderLoad
-#define API_ORDER_PTSCOTCH  PastixOrderPtscotch
+#define API_ORDER_PTSCOTCH  PastixOrderPtScotch
 
 /* _POS_ 61 */
 #define API_REALSINGLE      PastixFloat

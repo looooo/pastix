@@ -162,19 +162,65 @@ class factotype:
     LU   = 2 # LU factorization
     LDLH = 3 # LDL^h factorization for complex matrices
 
+class scheduler:
+    Sequential = 0 # Sequential
+    Static     = 1 # Shared memory with static scheduler
+    Parsec     = 2 # PaRSEC scheduler
+    Starpu     = 3 # StarPU scheduler
+    Dynamic    = 4 # Shared memory with dynamic scheduler
+
+class order:
+    Scotch   = 0 # Use Scotch ordering
+    Metis    = 1 # Use Metis ordering
+    Personal = 2 # Apply user's permutation
+    Load     = 3 # Load ordering from file
+    PtScotch = 4 # Use Pt-Scotch ordering
+    ParMetis = 5 # Use ParMetis ordering
+
+class threadmode:
+    Multiple = 1 # All threads communicate
+    Funneled = 2 # One thread perform all the MPI Calls
+
+class error:
+    SUCCESS        = 0, # No error
+    UNKNOWN        = 1, # Unknown error
+    ALLOC          = 2, # Allocation error
+    NOTIMPLEMENTED = 3, # Not implemented feature
+    OUTOFMEMORY    = 4, # Not enough memory
+    THREAD         = 5, # Error with threads
+    INTERNAL       = 6, # Internal error
+    BADPARAMETER   = 7, # Bad parameters given
+    FILE           = 8, # Error in In/Out operations
+    INTEGER_TYPE   = 9, # Error with integer types
+    IO             = 10,# Error with input/output
+    MPI            = 11 # Error with MPI calls
+
+class compress_when:
+    Never  = 0
+    Begin  = 1
+    End    = 2
+    During = 3
+
+class compress_method:
+    SVD  = 0
+    RRQR = 1
+
+class driver:
+    RSA        = 0 # RSA Fortran driver
+    HB         = 1 # Harwell Boeing driver
+    IJV        = 2 # IJV Coordinate driver
+    MM         = 3 # Matrix Market C driver
+    Laplacian  = 4 # 3, 5, or 7 points Laplacian stencil generator
+    XLaplacian = 5 # 15-points Laplacian stencil generator
+    Graph      = 6 # Scotch Graph driver
+
 class rhstype:
     One =  0
     I   =  1
     RndX = 2
     RndB = 3
 
-class normtype:
-    One       = 171 # One norm:       max_j( sum_i( |a_{ij}| ) )
-    Frobenius = 174 # Frobenius norm: sqrt( sum_{i,j} (a_{ij}^2) )
-    Inf       = 175 # Inifinite norm: max_i( sum_j( |a_{ij}| ) )
-    Max       = 177 # Inifinite norm: max_{i,j}( | a_{ij} | )
-
-class order:
+class layout:
     RowMajor  = 101 # Storage in row major order
     ColMajor  = 102 # Storage in column major order
 
@@ -183,10 +229,20 @@ class trans:
     Trans     = 112 # Use A^t
     ConjTrans = 113 # Use conj(A^t)
 
+class mtxtype:
+    General   = trans.NoTrans    # The matrix is general
+    Symmetric = trans.Trans      # The matrix is symmetric
+    Hermitian = trans.ConjTrans  # The matrix is hermitian
+
 class uplo:
     Upper      = 121 # Use lower triangle of A
     Lower      = 122 # Use upper triangle of A
     UpperLower = 123 # Use the full A
+
+class coefside:
+    LCoef  = 0 # Coefficients of the lower triangular L are used
+    UCoef  = 1 # Coefficients of the upper triangular U are used
+    LUCoef = 2 # Coefficients of the upper/lower triangular U/L are used
 
 class diag:
     NonUnit = 131 # Diagonal is non unitary
@@ -196,24 +252,13 @@ class side:
     Left  = 141 # Apply operator on the left
     Right = 142 # Apply operator on the right
 
-class coefside:
-    LCoef = 0 # Coefficients of the lower triangular L are used
-    UCoef = 1 # Coefficients of the upper triangular U are used
+class normtype:
+    One       = 171 # One norm:       max_j( sum_i( |a_{ij}| ) )
+    Frobenius = 174 # Frobenius norm: sqrt( sum_{i,j} (a_{ij}^2) )
+    Inf       = 175 # Inifinite norm: max_i( sum_j( |a_{ij}| ) )
+    Max       = 177 # Inifinite norm: max_{i,j}( | a_{ij} | )
 
 class direction:
     Forward  = 391 # Forward direction
     Backward = 392 # Backward direction
 
-class mtxtype:
-    General   = trans.NoTrans    # The matrix is general
-    Symmetric = trans.Trans      # The matrix is symmetric
-    Hermitian = trans.ConjTrans  # The matrix is hermitian
-
-class driver:
-    RSA        = 0  # RSA driver
-    HB         = 1  # Harwell Boeing driver
-    IJV        = 2  # IJV Coordinate driver
-    MM         = 3  # Matrix Market driver
-    Laplacian  = 4  # 3, 5, or 7 points Lapalacian stencil generator
-    XLaplacian = 5  # 15-points Laplacian stencil generator
-    Graph      = 6  # Scotch Graph driver

@@ -266,7 +266,7 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
         /*
          * PT-Scotch Ordering
          */
-    case PastixOrderPtscotch:
+    case PastixOrderPtScotch:
         if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "PT-Scotch" );
 #if defined(HAVE_PTSCOTCH)
