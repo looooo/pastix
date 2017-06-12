@@ -403,7 +403,7 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
                       tol * norm, nb, pastix_imin(m,n) - 1 );
     if (ret == -1)
         stop_trace_kernel( FLOPS_ZGEQRF( m, n ) );
-    else if (ret != 0)
+    else
         stop_trace_kernel( FLOPS_ZGEQRF( m, ret ) + FLOPS_ZUNMQR( m, n-ret, ret, PastixLeft ) );
 
     /**
