@@ -138,6 +138,17 @@ static void cl_blok_zgemmsp_cpu(void *descr[], void *cl_arg)
     starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &fcblk,
                                &blok_mk, &blok_nk, &blok_mn, &sopalin_data);
 
+    fprintf(stderr,
+            "blok_zgemmsp : sA=%s sB=%s t=%s cblk=%ld fcblk=%ld mn=%ld nk=%ld mn=%ld\n",
+            (sideA==PastixLCoef?"L":"U"),
+            (sideB==PastixLCoef?"L":"U"),
+            (trans==PastixNoTrans?"NoTrans":"Trans"),
+            (long)(cblk-sopalin_data->solvmtx->cblktab),
+            (long)(fcblk-sopalin_data->solvmtx->cblktab),
+            (long)blok_mk,
+            (long)blok_nk,
+            (long)blok_mn);
+
     assert( cblk->cblktype  & CBLK_TASKS_2D );
     assert( fcblk->cblktype & CBLK_TASKS_2D );
 

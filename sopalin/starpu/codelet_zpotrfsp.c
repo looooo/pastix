@@ -72,6 +72,14 @@ static void cl_blok_zpotrfsp_cpu(void *descr[], void *cl_arg)
 
     starpu_codelet_unpack_args(cl_arg, &cblk, &sopalin_data);
 
+    fprintf(stderr,
+            "blok_zpotrf : cblk=%ld %ld %ld %x %x\n",
+            (long)(cblk-sopalin_data->solvmtx->cblktab),
+            (long)cblk->fcolnum,
+            (long)cblk->lcolnum,
+            cblk->lcoeftab,
+            L);
+
     nbpivot = cpucblk_zpotrfsp1d_potrf( cblk, L, sopalin_data->diagthreshold );
 
     (void)nbpivot;
