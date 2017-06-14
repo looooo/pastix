@@ -14,13 +14,14 @@ set( PASTIX_DRIVERS
   analyze simple step-by-step schur personal) # reentrant fails with Scotch parser !
 set( PASTIX_TESTS
   simple )
+set( PASTIX_SCHEDS
+     0 1) # sequential, static
 if (PASTIX_WITH_PARSEC)
-  set( PASTIX_SCHEDS
-    0 1 2) # sequential, static, parsec
-else()
-  set( PASTIX_SCHEDS
-    0 1)   # sequential, static
+  list( APPEND PASTIX_SCHEDS 2 ) # parsec
 endif (PASTIX_WITH_PARSEC)
+if (PASTIX_WITH_STARPU)
+  list( APPEND PASTIX_SCHEDS 3 ) # starpu
+endif (PASTIX_WITH_STARPU)
 
 ### All drivers with Laplacian and default parameters
 foreach(example ${PASTIX_DRIVERS} )
@@ -46,20 +47,16 @@ foreach(example ${PASTIX_TESTS} )
   add_test(example_bicgstab_${example} ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinebicgstab)
 endforeach()
 
-### Distribution
-if (PASTIX_WITH_PARSEC)
-  foreach(example ${PASTIX_TESTS} )
-    # 2D
-    add_test(example_2d_${example}   ./${example} -lap 10:10:10 -s 2 -i iparm_distribution_level 0 )
-    # 1D/2D
-    add_test(example_1d2d_${example} ./${example} -lap 10:10:10 -s 2 -i iparm_distribution_level 16)
-  endforeach()
-endif (PASTIX_WITH_PARSEC)
-
 ### Scheduling
 foreach(example ${PASTIX_TESTS} )
   foreach(scheduler ${PASTIX_SCHEDS} )
-    add_test(sched${scheduler}_${example}   ./${example} -lap 10:10:10 -s ${scheduler})
+    add_test(example_sched${scheduler}_${example}         ./${example} -lap 10:10:10 -s ${scheduler})
+    if ((${scheduler} EQUAL 2) OR (${scheduler} EQUAL 3))
+       # 2D
+       add_test(example_sched${scheduler}_2d_${example}   ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_distribution_level 0 )
+       # 1D/2D
+       add_test(example_sched${scheduler}_1d2d_${example} ./${example} -lap 10:10:10 -s ${scheduler} -i iparm_distribution_level 16)
+    endif()
   endforeach()
 endforeach()
 

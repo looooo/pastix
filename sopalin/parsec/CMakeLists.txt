@@ -103,5 +103,7 @@ add_documented_files(
   pastix_parsec.h
   # Source files
   parsec.c
+  parsec_zpotrf.c
+  parsec_zgetrf.c
   parsec_sparse_matrix.c
   )

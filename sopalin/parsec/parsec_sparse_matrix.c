@@ -606,7 +606,7 @@ parsec_sparse_matrix_init( SolverMatrix *solvmtx,
         if ( !(cblk->cblktype & CBLK_TASKS_2D) )
             continue;
 
-        /**
+        /*
          * Diagonal block
          */
         ptrL   = cblk->lcoeftab;
@@ -630,8 +630,8 @@ parsec_sparse_matrix_init( SolverMatrix *solvmtx,
             blok->handler[1] = NULL;
         }
 
-        /**
-         * Lower Part
+        /*
+         * Off-diagonal blocks
          */
         blok++; key2 += 2;
         lblok = cblk[1].fblokptr;

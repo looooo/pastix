@@ -39,7 +39,7 @@
  * the complex case) matrix A.
  * The factorization has the form
  *
- *    \f[ A = \{_{L\times L^H} \f]
+ *    \f[ A = L\times L^H \f]
  *
  * where L is a sparse lower triangular matrix.
  *
@@ -131,7 +131,7 @@ parsec_zpotrf_sp1dplus_Destruct( parsec_handle_t *handle )
  * A.
  * The factorization has the form
  *
- *    \f[ A = \{_{L\times L^H} \f]
+ *    \f[ A = L\times L^H \f]
  *
  * where L is a sparse lower triangular matrix.
  *
@@ -191,7 +191,7 @@ parsec_zpotrf_sp1dplus( parsec_context_t *parsec,
  * the complex case) matrix A.
  * The factorization has the form
  *
- *    \f[ A = \{_{L\times L^H} \f]
+ *    \f[ A = L\times L^H \f]
  *
  * where L is a sparse lower triangular matrix.
  *
@@ -283,7 +283,7 @@ parsec_zpotrf_sp2d_Destruct( parsec_handle_t *handle )
  * A.
  * The factorization has the form
  *
- *    \f[ A = \{_{L\times L^H} \f]
+ *    \f[ A = L\times L^H \f]
  *
  * where L is a sparse lower triangular matrix.
  *
@@ -335,14 +335,14 @@ parsec_zpotrf_sp2d( parsec_context_t *parsec,
 /**
  *******************************************************************************
  *
- * @brief Perform a sparse Cholesky factorization.
+ * @brief Perform a sparse Cholesky factorization using PaRSEC runtime.
  *
  * The function performs the Cholesky factorization of a sparse symmetric
  * positive definite (or Hermitian positive definite in the complex case) matrix
  * A.
  * The factorization has the form
  *
- *    \f[ A = \{_{L\times L^H} \f]
+ *    \f[ A = L\times L^H \f]
  *
  * where L is a sparse lower triangular matrix.
  *

@@ -23,13 +23,36 @@
 #include "pastix_zcores.h"
 #include "pastix_zstarpu.h"
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform a sparse Cholesky factorization with 1D kernels.
+ *
+ * The function performs the Cholesky factorization of a sparse symmetric
+ * positive definite (or Hermitian positive definite in the complex case) matrix
+ * A.
+ * The factorization has the form
+ *
+ *    \f[ A = L\times L^H \f]
+ *
+ * where L is a sparse lower triangular matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] sopalin_data
+ *          Solver matrix information structure that will guide the algorithm.
+ *
+ * @param[inout] desc
+ *          StarPU descriptor of the sparse matrix.
+ *
+ ******************************************************************************/
 void
 starpu_zpotrf_sp1dplus( sopalin_data_t              *sopalin_data,
                         starpu_sparse_matrix_desc_t *desc )
 {
     const SolverMatrix *solvmtx = sopalin_data->solvmtx;
-    SolverCblk         *cblk;
-    SolverBlok         *blok;
+    SolverCblk         *cblk, *fcblk;
+    SolverBlok         *blok, *lblk;
     pastix_int_t  i;
 
     cblk = solvmtx->cblktab;
@@ -40,12 +63,16 @@ starpu_zpotrf_sp1dplus( sopalin_data_t              *sopalin_data,
 
         starpu_task_cblk_zpotrfsp1d_panel( sopalin_data, cblk );
 
-        for(blok=cblk->fblokptr + 1; blok<cblk[1].fblokptr; blok++) {
+        blok = cblk->fblokptr + 1; /* this diagonal block */
+        lblk = cblk[1].fblokptr;   /* the next diagonal block */
+
+        /* if there are off-diagonal supernodes in the column */
+        for( ; blok < lblk; blok++ )
+        {
+            fcblk = (solvmtx->cblktab + blok->fcblknm);
 
             starpu_task_cblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
-                                      cblk, blok,
-                                      solvmtx->cblktab + blok->fcblknm, sopalin_data );
-
+                                      cblk, blok, fcblk, sopalin_data );
         }
     }
 
@@ -55,39 +82,163 @@ starpu_zpotrf_sp1dplus( sopalin_data_t              *sopalin_data,
     (void)desc;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform a sparse Cholesky factorization with 1D and 2D kernels.
+ *
+ * The function performs the Cholesky factorization of a sparse symmetric
+ * positive definite (or Hermitian positive definite in the complex case) matrix
+ * A.
+ * The factorization has the form
+ *
+ *    \f[ A = L\times L^H \f]
+ *
+ * where L is a sparse lower triangular matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] sopalin_data
+ *          Solver matrix information structure that will guide the algorithm.
+ *
+ * @param[inout] desc
+ *          StarPU descriptor of the sparse matrix.
+ *
+ ******************************************************************************/
 void
 starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
                     starpu_sparse_matrix_desc_t *desc )
 {
     const SolverMatrix *solvmtx = sopalin_data->solvmtx;
-    SolverCblk         *cblk;
-    SolverBlok         *blok;
+    SolverCblk         *cblk, *fcblk;
+    SolverBlok         *blok, *lblk, *blokA, *blokB;
+    starpu_cblk_t      *cblkhandle;
     pastix_int_t  i;
 
+    /* Let's submit all 1D tasks first */
     cblk = solvmtx->cblktab;
-    for (i=0; i<solvmtx->cblknbr; i++, cblk++){
+    for (i=0; i<=solvmtx->cblkmax1d; i++, cblk++){
 
         if ( cblk->cblktype & CBLK_IN_SCHUR )
             break;
 
+        if ( cblk->cblktype & CBLK_TASKS_2D )
+            continue;
+
         starpu_task_cblk_zpotrfsp1d_panel( sopalin_data, cblk );
 
-        for(blok=cblk->fblokptr + 1; blok<cblk[1].fblokptr; blok++) {
+        blok  = cblk->fblokptr + 1; /* this diagonal block */
+        lblk = cblk[1].fblokptr;   /* the next diagonal block */
+
+        /* if there are off-diagonal supernodes in the column */
+        for( ; blok < lblk; blok++ )
+        {
+            fcblk = (solvmtx->cblktab + blok->fcblknm);
 
             starpu_task_cblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
-                                      cblk, blok,
-                                      solvmtx->cblktab + blok->fcblknm, sopalin_data );
-
+                                      cblk, blok, fcblk, sopalin_data );
         }
+    }
+
+    /* Let's submit the partitionning */
+    cblk       = solvmtx->cblktab + solvmtx->cblkmin2d;
+    cblkhandle = desc->cblktab_handle;
+    for (i=solvmtx->cblkmin2d; i<solvmtx->cblknbr; i++, cblk++, cblkhandle++){
+
+        if ( !(cblk->cblktype & CBLK_TASKS_2D) )
+            continue;
+
+        starpu_data_partition_submit( cblk->handler[0],
+                                      cblkhandle->handlenbr,
+                                      cblkhandle->handletab );
+    }
+
+    /* Now we submit all 2D tasks */
+    cblk       = solvmtx->cblktab + solvmtx->cblkmin2d;
+    cblkhandle = desc->cblktab_handle;
+    for (i=solvmtx->cblkmin2d; i<solvmtx->cblknbr; i++, cblk++, cblkhandle++){
+
+        if ( !(cblk->cblktype & CBLK_TASKS_2D) )
+            continue; /* skip 1D cblk */
+
+        if (cblk->cblktype & CBLK_IN_SCHUR)
+        {
+            starpu_data_unpartition_submit( cblk->handler[0],
+                                            cblkhandle->handlenbr,
+                                            cblkhandle->handletab, STARPU_MAIN_RAM );
+            continue;
+        }
+
+        starpu_task_blok_zpotrf( sopalin_data, cblk );
+
+        lblk = cblk[1].fblokptr;
+        for(blokA=cblk->fblokptr + 1; blokA<lblk; blokA++) {
+
+            starpu_task_blok_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
+                                      PastixConjTrans, PastixNonUnit,
+                                      cblk, blokA, sopalin_data );
+
+            for(blokB=cblk->fblokptr + 1; blokB<=blokA; blokB++) {
+
+                starpu_task_blok_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+                                          cblk, solvmtx->cblktab + blokB->fcblknm,
+                                          blokA, blokB, sopalin_data );
+
+                /* Skip B blocks facing the same cblk */
+                while( (blokB < blokA) &&
+                       (blokB[0].fcblknm == blokB[1].fcblknm) &&
+                       (blokB[0].lcblknm == blokB[1].lcblknm) )
+                {
+                    blokB++;
+                }
+            }
+
+            /* Skip A blocks facing the same cblk */
+            while( (blokA < lblk) &&
+                   (blokA[0].fcblknm == blokA[1].fcblknm) &&
+                   (blokA[0].lcblknm == blokA[1].lcblknm) )
+            {
+                blokA++;
+            }
+        }
+        starpu_data_unpartition_submit( cblk->handler[0],
+                                        cblkhandle->handlenbr,
+                                        cblkhandle->handletab, STARPU_MAIN_RAM );
     }
 
 #if defined(PASTIX_DEBUG_FACTO)
     coeftab_zdump( datacode, "potrf_L.txt" );
 #endif
-
     (void)desc;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform a sparse Cholesky factorization using StarPU runtime.
+ *
+ * The function performs the Cholesky factorization of a sparse symmetric
+ * positive definite (or Hermitian positive definite in the complex case) matrix
+ * A.
+ * The factorization has the form
+ *
+ *    \f[ A = L\times L^H \f]
+ *
+ * where L is a sparse lower triangular matrix.
+ *
+ * The algorithm is automatically chosen between the 1D and 2D version based on
+ * the API parameter IPARM_DISTRIBUTION_LEVEL. If IPARM_DISTRIBUTION_LEVEL >= 0
+ * the 2D scheme is applied, the 1D otherwise.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+ *
+ * @param[inout] sopalin_data
+ *          Solver matrix information structure that will guide the algorithm.
+ *
+ ******************************************************************************/
 void
 starpu_zpotrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )
