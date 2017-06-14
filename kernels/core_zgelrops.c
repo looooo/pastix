@@ -735,12 +735,15 @@ core_zlrm3( const pastix_lr_t *lowrank,
                  CBLAS_SADDR(zone),  A->v, ldav,
                                      B->v, ldbv,
                  CBLAS_SADDR(zzero), work2, A->rk );
-    flops+= FLOPS_ZGEMM( A->rk, B->rk, K );
+
+    stop_trace_kernel( FLOPS_ZGEMM( A->rk, B->rk, K ) );
 
     /**
      * Try to compress (Av^h Bv^h')
      */
     lowrank->core_ge2lr( lowrank->tolerance, A->rk, B->rk, work2, A->rk, &rArB );
+
+    start_trace_kernel(LR_GEMM_PRODUCT);
 
     /**
      * The rank of AB is not smaller than min(rankA, rankB)

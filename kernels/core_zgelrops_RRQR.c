@@ -403,8 +403,8 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
                       tol * norm, nb, pastix_imin(m,n) - 1 );
     if (ret == -1)
         stop_trace_kernel( FLOPS_ZGEQRF( m, n ) );
-    else
-        stop_trace_kernel( FLOPS_ZGEQRF( m, ret ) );
+    else if (ret != 0)
+        stop_trace_kernel( FLOPS_ZGEQRF( m, ret ) + FLOPS_ZUNMQR( m, n-ret, ret, PastixLeft ) );
 
     /**
      * Resize the space used by the low rank matrix
@@ -894,7 +894,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     if (new_rank == -1)
         stop_trace_kernel( FLOPS_ZGEQRF( rank, N ) );
     else
-        stop_trace_kernel( FLOPS_ZGEQRF( rank, new_rank ) );
+        stop_trace_kernel( FLOPS_ZGEQRF( rank, new_rank ) + FLOPS_ZUNMQR( rank, N-new_rank, new_rank, PastixLeft ) );
 
     /*
      * First case: The rank is too big, so we decide to uncompress the result
