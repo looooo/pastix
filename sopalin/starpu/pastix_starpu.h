@@ -52,6 +52,9 @@ typedef struct starpu_conf starpu_conf_t;
 
 /**
  * @brief Additional StarPU handlers for a column-block when using 2D kernels.
+ *
+ * Handle requirements for contiguous allocation of the block handlers when
+ * using StarPU data partitioning.
  */
 typedef struct starpu_cblk_s {
     pastix_int_t          handlenbr; /**< Number of 2D block handlers in the column-block */
