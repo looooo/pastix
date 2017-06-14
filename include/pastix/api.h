@@ -235,7 +235,7 @@ typedef enum pastix_scheduler_e {
     PastixSchedSequential = 0, /**< Sequential                           */
     PastixSchedStatic     = 1, /**< Shared memory with static scheduler  */
     PastixSchedParsec     = 2, /**< PaRSEC scheduler                     */
-    PastixSchedStarPU     = 3, /**< *StarPU scheduler                    */
+    PastixSchedStarPU     = 3, /**< StarPU scheduler                     */
     PastixSchedDynamic    = 4, /**< Shared memory with dynamic scheduler */
 } pastix_scheduler_t;
 
@@ -247,7 +247,7 @@ typedef enum pastix_order_e {
     PastixOrderMetis,    /**< Use Metis ordering        */
     PastixOrderPersonal, /**< Apply user's permutation  */
     PastixOrderLoad,     /**< Load ordering from file   */
-    PastixOrderPtscotch, /**< Use Pt-Scotch ordering    */
+    PastixOrderPtScotch, /**< Use Pt-Scotch ordering    */
     PastixOrderParMetis  /**< Use ParMetis ordering     */
 } pastix_order_t;
 

@@ -198,7 +198,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
         /* End of parameters check */
 
         if ( ((iparm[IPARM_ORDERING] == PastixOrderScotch) ||
-              (iparm[IPARM_ORDERING] == PastixOrderPtscotch)) &&
+              (iparm[IPARM_ORDERING] == PastixOrderPtScotch)) &&
              (iparm[IPARM_SF_KASS] == 0) )
         {
             fax = 1;

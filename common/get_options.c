@@ -204,7 +204,7 @@ pastix_getOptions( int argc, char **argv,
             }
             else if (strcmp(optarg, "ptscotch") == 0)
             {
-                iparam[IPARM_ORDERING] = PastixOrderPtscotch;
+                iparam[IPARM_ORDERING] = PastixOrderPtScotch;
             }
             else if (strcmp(optarg, "personal") == 0)
             {
