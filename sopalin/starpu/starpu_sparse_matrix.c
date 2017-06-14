@@ -79,7 +79,7 @@ starpu_pastix_filter_list( void *father_interface,
  * @param[in] nodes
  *          The number of processes used to solve the problem.
  *
- * @param[in] rank
+ * @param[in] myrank
  *          The rank of the calling process.
  *
  ******************************************************************************/
@@ -247,7 +247,7 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
             nchildren++;
 
             /*
-             * Lower Part
+             * Off-diagonal blocks
              */
             blok++;
             for( ; blok < lblok; blok++ )

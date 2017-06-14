@@ -23,6 +23,29 @@
 #include "pastix_zcores.h"
 #include "pastix_zstarpu.h"
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform a sparse Cholesky factorization with 1D kernels.
+ *
+ * The function performs the Cholesky factorization of a sparse symmetric
+ * positive definite (or Hermitian positive definite in the complex case) matrix
+ * A.
+ * The factorization has the form
+ *
+ *    \f[ A = L\times L^H \f]
+ *
+ * where L is a sparse lower triangular matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] sopalin_data
+ *          Solver matrix information structure that will guide the algorithm.
+ *
+ * @param[inout] desc
+ *          StarPU descriptor of the sparse matrix.
+ *
+ ******************************************************************************/
 void
 starpu_zpotrf_sp1dplus( sopalin_data_t              *sopalin_data,
                         starpu_sparse_matrix_desc_t *desc )
@@ -59,6 +82,29 @@ starpu_zpotrf_sp1dplus( sopalin_data_t              *sopalin_data,
     (void)desc;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform a sparse Cholesky factorization with 1D and 2D kernels.
+ *
+ * The function performs the Cholesky factorization of a sparse symmetric
+ * positive definite (or Hermitian positive definite in the complex case) matrix
+ * A.
+ * The factorization has the form
+ *
+ *    \f[ A = L\times L^H \f]
+ *
+ * where L is a sparse lower triangular matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] sopalin_data
+ *          Solver matrix information structure that will guide the algorithm.
+ *
+ * @param[inout] desc
+ *          StarPU descriptor of the sparse matrix.
+ *
+ ******************************************************************************/
 void
 starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
                     starpu_sparse_matrix_desc_t *desc )
@@ -166,6 +212,33 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
     (void)desc;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform a sparse Cholesky factorization using StarPU runtime.
+ *
+ * The function performs the Cholesky factorization of a sparse symmetric
+ * positive definite (or Hermitian positive definite in the complex case) matrix
+ * A.
+ * The factorization has the form
+ *
+ *    \f[ A = L\times L^H \f]
+ *
+ * where L is a sparse lower triangular matrix.
+ *
+ * The algorithm is automatically chosen between the 1D and 2D version based on
+ * the API parameter IPARM_DISTRIBUTION_LEVEL. If IPARM_DISTRIBUTION_LEVEL >= 0
+ * the 2D scheme is applied, the 1D otherwise.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+ *
+ * @param[inout] sopalin_data
+ *          Solver matrix information structure that will guide the algorithm.
+ *
+ ******************************************************************************/
 void
 starpu_zpotrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )

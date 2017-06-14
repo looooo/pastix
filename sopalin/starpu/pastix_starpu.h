@@ -50,20 +50,23 @@ typedef struct starpu_conf starpu_conf_t;
 #define pastix_codelet(_codelet_) _codelet_
 #endif
 
+/**
+ * @brief Additional StarPU handlers for a column-block when using 2D kernels.
+ */
 typedef struct starpu_cblk_s {
-    pastix_int_t          handlenbr;
-    starpu_data_handle_t *handletab;
+    pastix_int_t          handlenbr; /**< Number of 2D block handlers in the column-block */
+    starpu_data_handle_t *handletab; /**< Array of 2D block handlers for the column-block */
 } starpu_cblk_t;
 
 /**
  * @brief StarPU descriptor stucture for the sparse matrix.
  */
 typedef struct starpu_sparse_matrix_desc_s {
-    int             typesze;    /**< Arithmetic size                                                                 */
-    int             mtxtype;    /**< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.            */
-    SolverMatrix   *solvmtx;    /**< Solver matrix structure that describes the problem and stores the original data */
-    starpu_cblk_t  *cblktab_handle;
-    void          **d_blocktab; /**< Pointer to GPU arrays that contains frownum,lrownum of each block for Fermi     */
+    int             typesze;        /**< Arithmetic size                                                                              */
+    int             mtxtype;        /**< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.                         */
+    SolverMatrix   *solvmtx;        /**< Solver matrix structure that describes the problem and stores the original data              */
+    starpu_cblk_t  *cblktab_handle; /**< Array of 2D column-block handlers (NULL when using 1D kernels only)                          */
+    void          **d_blocktab;     /**< Pointer to GPU arrays that contains frownum,lrownum of each block for Fermi (NULL otherwise) */
 } starpu_sparse_matrix_desc_t;
 
 /**

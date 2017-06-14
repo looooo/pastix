@@ -23,6 +23,28 @@
 #include "pastix_zcores.h"
 #include "pastix_zstarpu.h"
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform a sparse LU factorization with 1D kernels.
+ *
+ * The function performs the LU factorization of a sparse general matrix A.
+ * The factorization has the form
+ *
+ *    \f[ A = L\times U \f]
+ *
+ * where L is a sparse lower triangular matrix, and U a sparse upper triangular
+ * with the same pattern as L^t.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] sopalin_data
+ *          Solver matrix information structure that will guide the algorithm.
+ *
+ * @param[inout] desc
+ *          StarPU descriptor of the sparse matrix.
+ *
+ ******************************************************************************/
 void
 starpu_zgetrf_sp1dplus( sopalin_data_t              *sopalin_data,
                         starpu_sparse_matrix_desc_t *desc )
@@ -66,6 +88,28 @@ starpu_zgetrf_sp1dplus( sopalin_data_t              *sopalin_data,
     (void)desc;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform a sparse LU factorization with 1D and 2D kernels.
+ *
+ * The function performs the LU factorization of a sparse general matrix A.
+ * The factorization has the form
+ *
+ *    \f[ A = L\times U \f]
+ *
+ * where L is a sparse lower triangular matrix, and U a sparse upper triangular
+ * with the same pattern as L^t.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] sopalin_data
+ *          Solver matrix information structure that will guide the algorithm.
+ *
+ * @param[inout] desc
+ *          StarPU descriptor of the sparse matrix.
+ *
+ ******************************************************************************/
 void
 starpu_zgetrf_sp2d( sopalin_data_t              *sopalin_data,
                     starpu_sparse_matrix_desc_t *desc )
@@ -205,6 +249,32 @@ starpu_zgetrf_sp2d( sopalin_data_t              *sopalin_data,
     (void)desc;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform a sparse LU factorization using StarPU runtime.
+ *
+ * The function performs the LU factorization of a sparse general matrix A.
+ * The factorization has the form
+ *
+ *    \f[ A = L\times U \f]
+ *
+ * where L is a sparse lower triangular matrix, and U a sparse upper triangular
+ * with the same pattern as L^t.
+ *
+ * The algorithm is automatically chosen between the 1D and 2D version based on
+ * the API parameter IPARM_DISTRIBUTION_LEVEL. If IPARM_DISTRIBUTION_LEVEL >= 0
+ * the 2D scheme is applied, the 1D otherwise.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+ *
+ * @param[inout] sopalin_data
+ *          Solver matrix information structure that will guide the algorithm.
+ *
+ ******************************************************************************/
 void
 starpu_zgetrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )

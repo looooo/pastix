@@ -37,7 +37,7 @@
  * sparse general matrix A.
  * The factorization has the form
  *
- *    \f[ A = \{_{L\times U} \f]
+ *    \f[ A = L\times U \f]
  *
  * where L is a sparse lower triangular matrix, and U a sparse upper triangular
  * with the same pattern as L^t.
@@ -127,7 +127,7 @@ parsec_zgetrf_sp1dplus_Destruct( parsec_handle_t *handle )
  * The function performs the LU factorization of a sparse general matrix A.
  * The factorization has the form
  *
- *    \f[ A = \{_{L\times U} \f]
+ *    \f[ A = L\times U \f]
  *
  * where L is a sparse lower triangular matrix, and U a sparse upper triangular
  * with the same pattern as L^t.
@@ -187,7 +187,7 @@ parsec_zgetrf_sp1dplus( parsec_context_t *parsec,
  * sparse general matrix A.
  * The factorization has the form
  *
- *    \f[ A = \{_{L\times U} \f]
+ *    \f[ A = L\times U \f]
  *
  * where L is a sparse lower triangular matrix, and U a sparse upper triangular
  * with the same pattern as L^t.
@@ -278,7 +278,7 @@ parsec_zgetrf_sp2d_Destruct( parsec_handle_t *handle )
  * The function performs the LU factorization of a sparse general matrix A.
  * The factorization has the form
  *
- *    \f[ A = \{_{L\times U} \f]
+ *    \f[ A = L\times U \f]
  *
  * where L is a sparse lower triangular matrix, and U a sparse upper triangular
  * with the same pattern as L^t.
@@ -331,12 +331,12 @@ parsec_zgetrf_sp2d( parsec_context_t     *parsec,
 /**
  *******************************************************************************
  *
- * @brief Perform a sparse LU factorization.
+ * @brief Perform a sparse LU factorization using PaRSEC runtime.
  *
  * The function performs the LU factorization of a sparse general matrix A.
  * The factorization has the form
  *
- *    \f[ A = \{_{L\times U} \f]
+ *    \f[ A = L\times U \f]
  *
  * where L is a sparse lower triangular matrix, and U a sparse upper triangular
  * with the same pattern as L^t.

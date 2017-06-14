@@ -227,6 +227,21 @@
  * @defgroup parsec_getrf PaRSEC LU factorization
  * @ingroup  pastix_parsec
  *
+ ******
+ *
+ * @defgroup pastix_starpu StarPU support for the numerical factorization
+ * @ingroup  pastix_numfact
+ *
+ ********
+ *
+ * @defgroup starpu_potrf StarPU Cholesky factorization
+ * @ingroup  pastix_starpu
+ *
+ ********
+ *
+ * @defgroup starpu_getrf StarPU LU factorization
+ * @ingroup  pastix_starpu
+ *
  ****
  *
  * @defgroup pastix_solve Solve step
