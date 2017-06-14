@@ -134,7 +134,6 @@ static void cl_blok_ztrsmsp_cpu(void *descr[], void *cl_arg)
     A = (const pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[0]);
     C = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
 
-    /* Check layout due to workspace */
     starpu_codelet_unpack_args(cl_arg, &coef, &side, &uplo, &trans, &diag,
                                &cblk, &blok_m, &sopalin_data);
 
@@ -166,8 +165,7 @@ static void cl_blok_ztrsmsp_gpu(void *descr[], void *cl_arg)
     starpu_codelet_unpack_args(cl_arg, &coef, &side, &uplo, &trans, &diag,
                                &cblk, &blok_m, &sopalin_data);
 
-    /* Check layout due to workspace */
-    assert( cblk->cblktype  & CBLK_TASKS_2D );
+    assert( cblk->cblktype & CBLK_TASKS_2D );
 
     gpublok_ztrsmsp( coef, side, uplo, trans, diag,
                      cblk, blok_m, A, C,

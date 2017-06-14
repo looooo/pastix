@@ -42,11 +42,10 @@ static void cl_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
     B = (const pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
     C = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[2]);
 
-    /* Check layout due to workspace */
     starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data);
 
-    assert( cblk->cblktype  & CBLK_LAYOUT_2D );
-    assert( ! (cblk->cblktype  & CBLK_TASKS_2D) );
+    /* Check layout due to NULL workspace for now */
+    assert(  cblk->cblktype & CBLK_LAYOUT_2D );
     assert( fcblk->cblktype & CBLK_LAYOUT_2D );
 
     cpucblk_zgemmsp( sideA, sideB, trans,
@@ -73,12 +72,7 @@ static void cl_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
     B = (const cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[1]);
     C = (cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[2]);
 
-    /* Check layout due to workspace */
     starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data);
-
-    assert( cblk->cblktype  & CBLK_LAYOUT_2D );
-    assert( ! (cblk->cblktype  & CBLK_TASKS_2D) );
-    assert( fcblk->cblktype & CBLK_LAYOUT_2D );
 
     gpucblk_zgemmsp( sideA, sideB, trans,
                      cblk, blok, fcblk,
@@ -136,7 +130,6 @@ static void cl_blok_zgemmsp_cpu(void *descr[], void *cl_arg)
     B = (const pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
     C = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[2]);
 
-    /* Check layout due to workspace */
     starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &fcblk,
                                &blok_mk, &blok_nk, &blok_mn, &sopalin_data);
 
@@ -168,7 +161,6 @@ static void cl_blok_zgemmsp_gpu(void *descr[], void *cl_arg)
     B = (const cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[1]);
     C = (cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[2]);
 
-    /* Check layout due to workspace */
     starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &fcblk,
                                &blok_mk, &blok_nk, &blok_mn, &sopalin_data);
 
@@ -227,6 +219,14 @@ starpu_task_blok_zgemmsp( pastix_coefside_t sideA,
              (blokA->lrownum <= lrownum)) );
 
     blokC = fcblk->fblokptr + blok_mn;
+
+    assert( blokA->lcblknm == blokB->lcblknm );
+    assert( blokB->fcblknm == blokC->lcblknm );
+    assert( blokC->frownum <= blokA->frownum );
+    assert( blokA[-1].fcblknm != blokA[0].fcblknm );
+    assert( blokB[-1].fcblknm != blokB[0].fcblknm );
+    assert( (blok_mn == 0) || (blokC[-1].fcblknm != blokC[0].fcblknm) );
+
     starpu_insert_task(
         pastix_codelet(&cl_blok_zgemmsp),
         STARPU_VALUE, &sideA,             sizeof(pastix_coefside_t),

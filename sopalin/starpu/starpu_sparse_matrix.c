@@ -190,21 +190,21 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
             nchildren++;
 
             /*
-             * Lower part
+             * Off-diagonal blocks
              */
             blok++;
             for( ; blok < lblok; blok++ )
             {
-                size   = blok_rownbr( blok );
+                nbrow = blok_rownbr( blok );
 
-                while( (blok < lblok) &&
+                while( (blok+1 < lblok) &&
                        (blok[0].fcblknm == blok[1].fcblknm) &&
                        (blok[0].lcblknm == blok[1].lcblknm) )
                 {
                     blok++;
                     nbrow += blok_rownbr( blok );
                 }
-                size *= cblk_colnbr( cblk );
+                size = nbrow * cblk_colnbr( cblk );
 
                 sizetab[nchildren+1] = sizetab[nchildren] + size;
                 nchildren++;
