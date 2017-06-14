@@ -28,8 +28,8 @@ starpu_zpotrf_sp1dplus( sopalin_data_t              *sopalin_data,
                         starpu_sparse_matrix_desc_t *desc )
 {
     const SolverMatrix *solvmtx = sopalin_data->solvmtx;
-    SolverCblk         *cblk;
-    SolverBlok         *blok;
+    SolverCblk         *cblk, *fcblk;
+    SolverBlok         *blok, *lblk;
     pastix_int_t  i;
 
     cblk = solvmtx->cblktab;
@@ -40,12 +40,16 @@ starpu_zpotrf_sp1dplus( sopalin_data_t              *sopalin_data,
 
         starpu_task_cblk_zpotrfsp1d_panel( sopalin_data, cblk );
 
-        for(blok=cblk->fblokptr + 1; blok<cblk[1].fblokptr; blok++) {
+        blok = cblk->fblokptr + 1; /* this diagonal block */
+        lblk = cblk[1].fblokptr;   /* the next diagonal block */
+
+        /* if there are off-diagonal supernodes in the column */
+        for( ; blok < lblk; blok++ )
+        {
+            fcblk = (solvmtx->cblktab + blok->fcblknm);
 
             starpu_task_cblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
-                                      cblk, blok,
-                                      solvmtx->cblktab + blok->fcblknm, sopalin_data );
-
+                                      cblk, blok, fcblk, sopalin_data );
         }
     }
 
@@ -60,8 +64,8 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
                     starpu_sparse_matrix_desc_t *desc )
 {
     const SolverMatrix *solvmtx = sopalin_data->solvmtx;
-    SolverCblk         *cblk;
-    SolverBlok         *blok, *lblok, *blokA, *blokB;
+    SolverCblk         *cblk, *fcblk;
+    SolverBlok         *blok, *lblk, *blokA, *blokB;
     starpu_cblk_t      *cblkhandle;
     pastix_int_t  i;
 
@@ -77,11 +81,16 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
 
         starpu_task_cblk_zpotrfsp1d_panel( sopalin_data, cblk );
 
-        for(blok=cblk->fblokptr + 1; blok<cblk[1].fblokptr; blok++) {
+        blok  = cblk->fblokptr + 1; /* this diagonal block */
+        lblk = cblk[1].fblokptr;   /* the next diagonal block */
+
+        /* if there are off-diagonal supernodes in the column */
+        for( ; blok < lblk; blok++ )
+        {
+            fcblk = (solvmtx->cblktab + blok->fcblknm);
 
             starpu_task_cblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
-                                      cblk, blok,
-                                      solvmtx->cblktab + blok->fcblknm, sopalin_data );
+                                      cblk, blok, fcblk, sopalin_data );
         }
     }
 
@@ -116,8 +125,8 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
 
         starpu_task_blok_zpotrf( sopalin_data, cblk );
 
-        lblok = cblk[1].fblokptr;
-        for(blokA=cblk->fblokptr + 1; blokA<lblok; blokA++) {
+        lblk = cblk[1].fblokptr;
+        for(blokA=cblk->fblokptr + 1; blokA<lblk; blokA++) {
 
             starpu_task_blok_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
                                       PastixConjTrans, PastixNonUnit,
@@ -139,7 +148,7 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
             }
 
             /* Skip A blocks facing the same cblk */
-            while( (blokA < lblok) &&
+            while( (blokA < lblk) &&
                    (blokA[0].fcblknm == blokA[1].fcblknm) &&
                    (blokA[0].lcblknm == blokA[1].lcblknm) )
             {
@@ -154,7 +163,6 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
 #if defined(PASTIX_DEBUG_FACTO)
     coeftab_zdump( datacode, "potrf_L.txt" );
 #endif
-
     (void)desc;
 }
 

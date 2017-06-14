@@ -360,7 +360,7 @@ starpu_sparse_matrix_destroy( starpu_sparse_matrix_desc_t *spmtx )
                                               cblkhandle->handlenbr,
                                               cblkhandle->handletab );
                  if ( spmtx->mtxtype == PastixGeneral ) {
-                     starpu_data_partition_clean( cblk->handler[0],
+                     starpu_data_partition_clean( cblk->handler[1],
                                                   cblkhandle->handlenbr,
                                                   cblkhandle->handletab + cblkhandle->handlenbr);
                  }

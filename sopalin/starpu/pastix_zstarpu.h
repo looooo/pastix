@@ -38,6 +38,10 @@ starpu_task_blok_zpotrf( sopalin_data_t *sopalin_data,
                          SolverCblk     *cblk );
 
 void
+starpu_task_blok_zgetrf( sopalin_data_t *sopalin_data,
+                         SolverCblk     *cblk );
+
+void
 starpu_task_blok_ztrsmsp( pastix_coefside_t coef,
                           pastix_side_t     side,
                           pastix_uplo_t     uplo,
