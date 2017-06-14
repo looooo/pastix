@@ -150,6 +150,7 @@ RW    C  <- (brownum == -1) ? NULL
 ; %{ return cblknbr - ((fcblknm + lcblknm) / 2 ) + last - brownum; %}
 
 BODY [ type=CUDA device=%{ return -2; %} ]
+#if defined(PASTIX_WITH_CUDA)
 {
     if (brownum != -1) {
         SolverCblk *lcblk = datacode->cblktab + lcblknm;
@@ -174,6 +175,7 @@ BODY [ type=CUDA device=%{ return -2; %} ]
         }
     }
 }
+#endif
 END
 
 BODY
