@@ -524,7 +524,7 @@ amalgamate(double rat_cblk, double rat_blas,
             assert( (graphL->nnz[i] >= colweight[i]) &&
                     (colweight[i] > 0) );
 
-#if defined(PASTIX_DEBUG_SYMBOL)
+#if !defined(NDEBUG) && defined(PASTIX_DEBUG_SYMBOL)
             {
                 pastix_int_t j;
                 /* Check that the first elements of graphL are those from the supernode (the diagonal elements) */
@@ -532,7 +532,8 @@ amalgamate(double rat_cblk, double rat_blas,
                 {
                     pastix_int_t l, k = 0;
                     for(l=snodetab[j]; l<snodetab[j+1]; l++) {
-                        assert(graphL->rows[j][k++] == l);
+                        assert(graphL->rows[j][k] == l);
+                        k++;
                     }
                 }
             }

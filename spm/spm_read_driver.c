@@ -118,7 +118,9 @@ spmReadDriver( pastix_driver_t  driver,
 #if defined(HAVE_SCOTCH)
         {
             SCOTCH_Graph sgraph;
-            FILE *file = fopen( filename, "r" );
+            FILE *file;
+
+            PASTIX_FOPEN( file, filename, "r" );
 
             /* Check integer compatibility */
             if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num)) {

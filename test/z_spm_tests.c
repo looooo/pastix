@@ -40,14 +40,20 @@ z_spm_print_check( char *filename, const pastix_spm_t *spm )
     int rc;
 
     rc = asprintf( &file, "expand_%s_sparse_cp.dat", filename );
-    f = fopen(file, "w");
+    if ( (f = fopen( file, "w" )) == NULL ) {
+        perror("z_spm_print_check:sparse_cp");
+        return;
+    }
     z_spmPrint( f, spm );
     fclose(f);
     free(file);
 
     A = z_spm2dense( spm );
     rc = asprintf( &file, "expand_%s_dense_cp.dat", filename );
-    f = fopen(file, "w");
+    if ( (f = fopen( file, "w" )) == NULL ) {
+        perror("z_spm_print_check:dense_cp");
+        return;
+    }
     z_spmDensePrint( f, spm->nexp, spm->nexp, A, spm->nexp );
     fclose(f);
     free(file);
@@ -57,14 +63,20 @@ z_spm_print_check( char *filename, const pastix_spm_t *spm )
         pastix_spm_t *espm = z_spmExpand( spm );
 
         rc = asprintf( &file, "expand_%s_sparse_ucp.dat", filename );
-        f = fopen(file, "w");
+        if ( (f = fopen( file, "w" )) == NULL ) {
+            perror("z_spm_print_check:sparse_ucp");
+            return;
+        }
         z_spmPrint( f, espm );
         fclose(f);
         free(file);
 
         A = z_spm2dense( espm );
         rc = asprintf( &file, "expand_%s_dense_ucp.dat", filename );
-        f = fopen(file, "w");
+        if ( (f = fopen( file, "w" )) == NULL ) {
+            perror("z_spm_print_check:dense_ucp");
+            return;
+        }
         z_spmDensePrint( f, espm->nexp, espm->nexp, A, espm->nexp );
         fclose(f);
         free(file);

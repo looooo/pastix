@@ -199,10 +199,12 @@ static inline void
 simu_printBlockCtrbNbr( const SymbolMatrix *symbptr,
                         const SimuCtrl     *simuctrl )
 {
-    FILE *fd1 = fopen( "contribblok.txt", "w" );
-    FILE *fd2 = fopen( "contribcblk.txt", "w" );
+    FILE *fd1, *fd2;
     pastix_int_t i, j;
     SymbolCblk *curcblk;
+
+    PASTIX_FOPEN( fd1, "contribblok.txt", "w" );
+    PASTIX_FOPEN( fd2, "contribcblk.txt", "w" );
 
     curcblk = symbptr->cblktab;
     for(i=0; i<symbptr->cblknbr; i++, curcblk++)

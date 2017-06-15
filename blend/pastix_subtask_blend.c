@@ -321,8 +321,9 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
     if (0)
     {
-        FILE *file = fopen("symbgen2", "w");
-        symbolSave( symbmtx, file );
+        FILE *file;
+        PASTIX_FOPEN(file, "symbgen2", "w");
+        symbolSave(symbmtx, file);
         fclose(file);
     }
 
@@ -504,8 +505,9 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     /* Backup the solver for debug */
     if (0)
     {
-        FILE *file = fopen("solvergen", "w");
-        solverSave( solvmtx, file );
+        FILE *file;
+        PASTIX_FOPEN(file, "solvergen", "w");
+        solverSave(solvmtx, file);
         fclose(file);
     }
 

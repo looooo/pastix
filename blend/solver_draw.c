@@ -170,12 +170,14 @@ solverDraw ( const SolverMatrix * const  solvptr,
     if (verbose > 4){
         int nb_bloks = 0;
         int nb_cblks = 0;
-        FILE *fd1 = fopen( "contribblok.txt", "r" );
-        FILE *fd2 = fopen( "contribcblk.txt", "r" );
-        FILE *fd3 = fopen( "stats.txt", "w" );
+        FILE  *fd1, *fd2, *fd3;
         int    original_cblk = 1;
         double color         = 0.2;
         int    factoLU = (solvptr->factotype == PastixFactLU) ? 1 : 0;
+
+        PASTIX_FOPEN( fd1, "contribblok.txt", "r" );
+        PASTIX_FOPEN( fd2, "contribcblk.txt", "r" );
+        PASTIX_FOPEN( fd3, "stats.txt", "w" );
 
         fprintf(fd3, "%ld\n", (long)(solvptr->bloknbr-solvptr->cblknbr));
 

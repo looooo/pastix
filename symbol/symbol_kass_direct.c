@@ -123,14 +123,16 @@ kassFactDirect( const kass_csr_t   *graphA,
             tmp  = tmp2;
         }
 
-#if defined(PASTIX_DEBUG_SYMBOL)
+#if !defined(NDEBUG) && defined(PASTIX_DEBUG_SYMBOL)
         /* Check that the first elements are the diagonal ones */
         {
             pastix_int_t ind;
             ind = 0;
             assert(nnznbr >= (rangtab[k+1]-rangtab[k]));
-            for(j=rangtab[k]; j<rangtab[k+1]; j++)
-                assert(tmpj[ind++] == j);
+            for(j=rangtab[k]; j<rangtab[k+1]; j++) {
+                assert(tmpj[ind] == j);
+                ind++;
+            }
             assert(nnznbr > 0);
         }
 #endif

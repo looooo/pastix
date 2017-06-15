@@ -177,14 +177,14 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
         char *filename;
 
         asprintf( &filename, "Lcblk%05ld.txt", itercblk );
-        f = fopen( filename, "w" );
+        PASTIX_FOPEN( f, filename, "w" );
         coeftab_zdumpcblk( cblk, cblk->lcoeftab, f );
         fclose( f );
         free( filename );
 
         if ( cblk->ucoeftab ) {
             asprintf( &filename, "Ucblk%05ld.txt", itercblk );
-            f = fopen( filename, "w" );
+            PASTIX_FOPEN( f, filename, "w" );
             coeftab_zdumpcblk( cblk, cblk->ucoeftab, f );
             fclose( f );
             free( filename );

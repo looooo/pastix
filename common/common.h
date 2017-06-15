@@ -115,36 +115,18 @@ static inline void pastix_error_print( const char * const fmt, ... )
   mode      - String containing the opening mode.
 
 */
-#define PASTIX_FOPEN(FILE, filenamne, mode)                                \
-  {                                                                 \
-    FILE = NULL;                                                    \
-    if (NULL == (FILE = fopen(filenamne, mode)))                    \
-      {                                                             \
-        errorPrint("%s:%d Couldn't open file : %s with mode %s\n",  \
-                   __FILE__, __LINE__, filenamne, mode);            \
-        EXIT(MOD_UNKNOWN,FILE_ERR);                                 \
-      }                                                             \
-  }
-/*
-  Macro: PASTIX_FREAD
-
-  Calls fread function and test his return value
-
-  Parameters:
-  buff   - Memory area where to copy read data.
-  size   - Size of an element to read.
-  count  - Number of elements to read
-  stream - Stream to read from
-*/
-#define PASTIX_FREAD(buff, size, count, stream)        \
-  {                                             \
-    if ( 0 == fread(buff, size, count, stream)) \
-      {                                         \
-        errorPrint("%s:%d fread error\n",       \
-                   __FILE__, __LINE__);         \
-        EXIT(MOD_UNKNOWN,FILE_ERR);             \
-      }                                         \
-  }
+#define PASTIX_FOPEN( _file_, _filename_, _mode_)                       \
+    do                                                                  \
+    {                                                                   \
+        (_file_) = NULL;                                                \
+        if (NULL == ((_file_) = fopen((_filename_), (_mode_))))         \
+        {                                                               \
+            perror("pastix_fopen");                                     \
+            errorPrint("%s:%d Couldn't open file: %s with mode %s\n",   \
+                       __FILE__, __LINE__, (_filename_), (_mode_));     \
+        }                                                               \
+    }                                                                   \
+    while(0)
 
 /*
  * Get environment variable

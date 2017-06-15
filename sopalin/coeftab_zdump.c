@@ -175,7 +175,9 @@ coeftab_zdump( const SolverMatrix *solvmtx,
 {
     SolverCblk *cblk = solvmtx->cblktab;
     pastix_int_t itercblk;
-    FILE *stream = fopen( filename, "w" );
+    FILE *stream;
+
+    PASTIX_FOPEN( stream, filename, "w" );
 
     /*
      * TODO: there is a problem right here for now, because there are no

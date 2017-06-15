@@ -146,7 +146,10 @@ int main (int argc, char **argv)
              */
             rc = asprintf( &filename, "convert_b%d_%s_CSC_cycle1.dat",
                            baseval, mtxnames[mtxtype - PastixGeneral] );
-            f = fopen( filename, "w" );
+            if ( (f = fopen( filename, "w" )) == NULL ) {
+                perror("spm_convert_test:cycle1:csc");
+                return EXIT_FAILURE;
+            }
             spmPrint( &spm, f );
             fclose(f); free(filename);
 
@@ -157,7 +160,10 @@ int main (int argc, char **argv)
 
             rc = asprintf( &filename, "convert_b%d_%s_CSR_cycle1.dat",
                            baseval, mtxnames[mtxtype - PastixGeneral] );
-            f = fopen( filename, "w" );
+            if ( (f = fopen( filename, "w" )) == NULL ) {
+                perror("spm_convert_test:cycle1:csr");
+                return EXIT_FAILURE;
+            }
             spmPrint( &spm, f );
             fclose(f); free(filename);
 
@@ -168,7 +174,10 @@ int main (int argc, char **argv)
 
             rc = asprintf( &filename, "convert_b%d_%s_IJV_cycle1.dat",
                            baseval, mtxnames[mtxtype - PastixGeneral] );
-            f = fopen( filename, "w" );
+            if ( (f = fopen( filename, "w" )) == NULL ) {
+                perror("spm_convert_test:cycle1:ijv");
+                return EXIT_FAILURE;
+            }
             spmPrint( &spm, f );
             fclose(f); free(filename);
 
@@ -190,7 +199,10 @@ int main (int argc, char **argv)
 
             rc = asprintf( &filename, "convert_b%d_%s_CSC_cycle2.dat",
                            baseval, mtxnames[mtxtype - PastixGeneral] );
-            f = fopen( filename, "w" );
+            if ( (f = fopen( filename, "w" )) == NULL ) {
+                perror("spm_convert_test:cycle2:csc");
+                return EXIT_FAILURE;
+            }
             spmPrint( &spm, f );
             fclose(f); free(filename);
 
@@ -204,7 +216,10 @@ int main (int argc, char **argv)
 
             rc = asprintf( &filename, "convert_b%d_%s_IJV_cycle2.dat",
                            baseval, mtxnames[mtxtype - PastixGeneral] );
-            f = fopen( filename, "w" );
+            if ( (f = fopen( filename, "w" )) == NULL ) {
+                perror("spm_convert_test:cycle2:ijv");
+                return EXIT_FAILURE;
+            }
             spmPrint( &spm, f );
             fclose(f); free(filename);
 
@@ -215,7 +230,10 @@ int main (int argc, char **argv)
 
             rc = asprintf( &filename, "convert_b%d_%s_CSR_cycle2.dat",
                            baseval, mtxnames[mtxtype - PastixGeneral] );
-            f = fopen( filename, "w" );
+            if ( (f = fopen( filename, "w" )) == NULL ) {
+                perror("spm_convert_test:cycle2:csr");
+                return EXIT_FAILURE;
+            }
             spmPrint( &spm, f );
             fclose(f); free(filename);
 
@@ -226,7 +244,10 @@ int main (int argc, char **argv)
 
             rc = asprintf( &filename, "convert_b%d_%s_CSC_end.dat",
                            baseval, mtxnames[mtxtype - PastixGeneral] );
-            f = fopen( filename, "w" );
+            if ( (f = fopen( filename, "w" )) == NULL ) {
+                perror("spm_convert_test:end");
+                return EXIT_FAILURE;
+            }
             spmPrint( &spm, f );
             fclose(f); free(filename);
 

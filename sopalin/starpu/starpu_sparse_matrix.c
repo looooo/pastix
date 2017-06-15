@@ -93,7 +93,7 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
     SolverCblk *cblk;
     SolverBlok *blok, *lblok;
     pastix_int_t n=0, cblknum;
-    pastix_int_t nbcol, nbrow, ld;
+    pastix_int_t nbcol, nbrow;
     size_t size;
 
     starpu_sparse_matrix_desc_t *spmtx = solvmtx->starpu_desc;
@@ -112,7 +112,6 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
 
     cblknbr   = solvmtx->cblknbr;
     cblkmin2d = solvmtx->cblkmin2d;
-    ld        = solvmtx->cblkmaxblk * 2;
     key1      = 2 * cblknbr;
 
     /* Initialize 1D cblk handlers */
@@ -124,7 +123,6 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
         starpu_data_handle_t *handler = (starpu_data_handle_t*)(cblk->handler);
         nbrow = cblk->stride;
         nbcol = cblk_colnbr( cblk );
-        ld = nbrow;
 
         starpu_vector_data_register( handler, STARPU_MAIN_RAM,
                                      (uintptr_t)(cblk->lcoeftab), nbrow * nbcol, spmtx->typesze );
@@ -157,7 +155,6 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
 
             nbrow = cblk->stride;
             nbcol = cblk_colnbr( cblk );
-            ld = nbrow;
 
             starpu_vector_data_register( handler, STARPU_MAIN_RAM,
                                          (uintptr_t)(cblk->lcoeftab), nbrow * nbcol, spmtx->typesze );

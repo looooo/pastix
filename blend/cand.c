@@ -77,8 +77,11 @@ void
 candSave( const Cand *candtab,
           pastix_int_t cblknbr )
 {
-    FILE *f = fopen("candtab.txt", "w");
     pastix_int_t i;
+    FILE *f;
+
+    PASTIX_FOPEN(f, "candtab.txt", "w");
+
     fprintf(f, "%ld\n", (long)cblknbr );
     for(i=0;i<cblknbr;i++)
     {
