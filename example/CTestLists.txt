@@ -25,7 +25,10 @@ endif (PASTIX_WITH_STARPU)
 
 ### All drivers with Laplacian and default parameters
 foreach(example ${PASTIX_DRIVERS} )
-  add_test(example_drv_${example} ./${example} -lap 10:10:10)
+  add_test(example_drv_s_${example} ./${example} -lap s:10:10:10 -f 2) # LLt fails with negative pivot !
+  add_test(example_drv_d_${example} ./${example} -lap d:10:10:10 -f 2) # LLt fails with negative pivot !
+  add_test(example_drv_c_${example} ./${example} -lap c:10:10:10 -f 2) # LLt fails with negative pivot !
+  add_test(example_drv_z_${example} ./${example} -lap z:10:10:10 -f 2) # LLt fails with negative pivot !
 endforeach()
 
 ### Factotype
