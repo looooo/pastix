@@ -141,7 +141,7 @@ core_zgemmsp_1d1d( pastix_coefside_t sideA, pastix_trans_t trans,
      * Compute update A * B'
      */
     wtmp = work;
-    start_trace_kernel(DENSE_GEMM);
+    start_trace_kernel( DENSE_GEMM );
     cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
                  M, N, K,
                  CBLAS_SADDR(zone),  A,    stride,
@@ -314,7 +314,7 @@ core_zgemmsp_1d2d( pastix_coefside_t sideA, pastix_trans_t trans,
             + (blok->frownum - fcblk->fcolnum) * stridef;
 
         pastix_cblk_lock( fcblk );
-        start_trace_kernel(DENSE_GEMM);
+        start_trace_kernel( DENSE_GEMM );
         cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
                      M, N, K,
                      CBLAS_SADDR(mzone), blokA, stride,
@@ -452,7 +452,7 @@ core_zgemmsp_2d2d( pastix_coefside_t sideA, pastix_trans_t trans,
             + (blok->frownum - fcblk->fcolnum) * ldc;
 
         pastix_cblk_lock( fcblk );
-        start_trace_kernel(DENSE_GEMM);
+        start_trace_kernel( DENSE_GEMM );
         cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
                      M, N, K,
                      CBLAS_SADDR(mzone), blokA, lda,
@@ -829,9 +829,7 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
     pastix_int_t stride, shift;
     pastix_int_t M, N, K;
 
-    printf("CALL FULL -> LR\n");
-
-    /* Update from a dense block to a low rank block */
+   /* Update from a dense block to a low rank block */
     assert(!(cblk->cblktype  & CBLK_COMPRESSED));
     assert(  fcblk->cblktype & CBLK_COMPRESSED );
     assert(  fcblk->cblktype & CBLK_LAYOUT_2D  );

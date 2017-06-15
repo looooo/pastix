@@ -239,7 +239,7 @@ cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
                  1.0, L, stride );
 
     /* Factorize diagonal block */
-    start_trace_kernel(GETRF);
+    start_trace_kernel( GETRF );
     core_zgetrfsp(ncols, L, stride, &nbpivot, criteria);
     stop_trace_kernel( FLOPS_ZGETRF( ncols, ncols ) );
 

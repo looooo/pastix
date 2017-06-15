@@ -394,7 +394,7 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
                                A, lda, Acpy, m );
     assert(ret == 0);
 
-    start_trace_kernel(LR_INIT);
+    start_trace_kernel( LR_INIT );
     ret = core_zrrqr( m, n,
                       Acpy, m,
                       jpvt, tau,
@@ -458,7 +458,7 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
                                    Acpy, m, U, m );
         assert(ret == 0);
 
-        start_trace_kernel(LR_INIT_Q);
+        start_trace_kernel( LR_INIT_Q );
         ret = LAPACKE_zungqr( LAPACK_COL_MAJOR, m, Alr->rk, Alr->rk,
                               U , m, tau );
         assert(ret == 0);
@@ -804,7 +804,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
             pastix_complex64_t *tmpV = v1v2 + rB;
 
             pastix_int_t flops = 0;
-            start_trace_kernel(LR_GEMM_ADD_Q);
+            start_trace_kernel( LR_GEMM_ADD_Q );
 
             /* Form u2Tu1 */
             if (rA == N1){
@@ -884,7 +884,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, N,
                                 v1v2, rank, NULL );
 
-    start_trace_kernel(LR_GEMM_ADD_RRQR);
+    start_trace_kernel( LR_GEMM_ADD_RRQR );
     new_rank = core_zrrqr(rank, N,
                           v1v2, rank,
                           jpvt, tauV,
@@ -906,7 +906,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
         u = B->u;
 
         /* Uncompress B */
-        start_trace_kernel(UNCOMPRESS);
+        start_trace_kernel( UNCOMPRESS );
         cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
                     M, N, Bbackup.rk,
                     CBLAS_SADDR(zone),  Bbackup.u, ldbu,
@@ -921,7 +921,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                          zone, u + offy * M + offx, M);
         }
         else {
-            start_trace_kernel(DENSE_GEMM);
+            start_trace_kernel( DENSE_GEMM );
             cblas_zgemm(CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transA1,
                         M1, N1, A->rk,
                         CBLAS_SADDR(alpha), A->u, ldau,
@@ -973,7 +973,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     /* Compute Q2 factor */
     {
         pastix_int_t flops = 0;
-        start_trace_kernel(LR_GEMM_ADD_Q);
+        start_trace_kernel( LR_GEMM_ADD_Q );
         ret = LAPACKE_zungqr( LAPACK_COL_MAJOR, rank, new_rank, new_rank,
                               v1v2, rank, tauV );
         flops += FLOPS_ZUNGQR( rank, new_rank, new_rank );
