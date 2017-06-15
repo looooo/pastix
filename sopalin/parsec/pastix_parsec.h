@@ -49,7 +49,7 @@ void parsec_sparse_matrix_init( SolverMatrix *solvmtx,
 void parsec_sparse_matrix_destroy( parsec_sparse_matrix_desc_t *desc );
 
 void parsec_sparse_vector_init( parsec_sparse_vector_desc_t *desc,
-                                int typesze, int nodes, int myrank);
+                                int typesze, int nodes, int myrank );
 void parsec_sparse_vector_destroy( parsec_sparse_vector_desc_t *desc );
 
 void pastix_parsec_init( pastix_data_t *pastix,

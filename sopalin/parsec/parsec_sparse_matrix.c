@@ -202,7 +202,7 @@ parsec_sparse_matrix_rank_of( parsec_ddesc_t *mat, ... )
  ******************************************************************************/
 static uint32_t
 parsec_sparse_matrix_rank_of_key( parsec_ddesc_t    *mat,
-                           parsec_data_key_t  key )
+                                  parsec_data_key_t  key )
 {
     (void)mat; (void)key;
     return 0;
@@ -258,7 +258,7 @@ parsec_sparse_matrix_vpid_of( parsec_ddesc_t *mat, ... )
  ******************************************************************************/
 static int32_t
 parsec_sparse_matrix_vpid_of_key( parsec_ddesc_t    *mat,
-                           parsec_data_key_t  key )
+                                  parsec_data_key_t  key )
 {
     (void)mat; (void)key;
     return 0;
@@ -518,7 +518,7 @@ parsec_sparse_matrix_destroy_fermi( parsec_sparse_matrix_desc_t *spmtx )
  * @param[in] nodes
  *          The number of processes used to solve the problem.
  *
- * @param[in] rank
+ * @param[in] myrank
  *          The rank of the calling process.
  *
  ******************************************************************************/
