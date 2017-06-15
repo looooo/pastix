@@ -71,40 +71,40 @@ typedef struct pastix_bcsc_s pastix_bcsc_t;
  */
 
 struct pastix_data_s {
-    pastix_int_t    *iparm;              /*< Store integer parameters (input/output)                             */
-    double          *dparm;              /*< Store floating parameters (input/output)                            */
+    pastix_int_t    *iparm;              /**< Store integer parameters (input/output)                             */
+    double          *dparm;              /**< Store floating parameters (input/output)                            */
 
-    pastix_int_t     steps;              /*< Bitmask of the steps performed or not                               */
+    pastix_int_t     steps;              /**< Bitmask of the steps performed or not                               */
 
-    MPI_Comm         pastix_comm;        /*< PaStiX MPI communicator used for the ordering step                  */
-    MPI_Comm         intra_node_comm;    /*< PaStiX intra node MPI communicator used for synchronizations        */
-    MPI_Comm         inter_node_comm;    /*< PaStiX inter node MPI communicator used for the factorization       */
-    int              initmpi;            /*< MPI Initialized by PaStiX                                           */
-    int              procnbr;            /*< Total number of MPI processes                                       */
-    int              procnum;            /*< Local MPI rank                                                      */
-    int              intra_node_procnbr; /*< Number of MPI tasks in intra node communicator                      */
-    int              intra_node_procnum; /*< Local MPI rank in intra node communicator                           */
-    int              inter_node_procnbr; /*< Number of MPI tasks in inter node communicator                      */
-    int              inter_node_procnum; /*< Local MPI rank in inter node communicator                           */
+    MPI_Comm         pastix_comm;        /**< PaStiX MPI communicator used for the ordering step                  */
+    MPI_Comm         intra_node_comm;    /**< PaStiX intra node MPI communicator used for synchronizations        */
+    MPI_Comm         inter_node_comm;    /**< PaStiX inter node MPI communicator used for the factorization       */
+    int              initmpi;            /**< MPI Initialized by PaStiX                                           */
+    int              procnbr;            /**< Total number of MPI processes                                       */
+    int              procnum;            /**< Local MPI rank                                                      */
+    int              intra_node_procnbr; /**< Number of MPI tasks in intra node communicator                      */
+    int              intra_node_procnum; /**< Local MPI rank in intra node communicator                           */
+    int              inter_node_procnbr; /**< Number of MPI tasks in inter node communicator                      */
+    int              inter_node_procnum; /**< Local MPI rank in inter node communicator                           */
 
-    isched_t        *isched;             /*< Internal scheduler structure that is always available               */
-    void            *parsec;             /*< PaRSEC Context if available                                         */
-    void            *starpu;             /*< StarPU configuration if available                                   */
+    isched_t        *isched;             /**< Internal scheduler structure that is always available               */
+    void            *parsec;             /**< PaRSEC Context if available                                         */
+    void            *starpu;             /**< StarPU configuration if available                                   */
 
-    const pastix_spm_t *csc;             /*< Pointer to the user csc structure used as input                     */
+    const pastix_spm_t *csc;             /**< Pointer to the user csc structure used as input                     */
 
-    pastix_graph_t  *graph;              /*< Symmetrized graph of the problem used within ordering
-                                             and symbolic factorization steps.                                   */
-    pastix_int_t     schur_n;            /*< Number of entries for the Schur complement                          */
-    pastix_int_t    *schur_list;         /*< List of entries for the schur complement                            */
-    pastix_int_t     zeros_n;            /*< Number of diagonal entries considered as zeros                      */
-    pastix_int_t    *zeros_list;         /*< List of diagonal entries considered as zeros                        */
-    Order           *ordemesh;           /*< Ordering structure                                                  */
+    pastix_graph_t  *graph;              /**< Symmetrized graph of the problem used within ordering
+                                              and symbolic factorization steps.                                   */
+    pastix_int_t     schur_n;            /**< Number of entries for the Schur complement                          */
+    pastix_int_t    *schur_list;         /**< List of entries for the schur complement                            */
+    pastix_int_t     zeros_n;            /**< Number of diagonal entries considered as zeros                      */
+    pastix_int_t    *zeros_list;         /**< List of diagonal entries considered as zeros                        */
+    Order           *ordemesh;           /**< Ordering structure                                                  */
 
-    SymbolMatrix    *symbmtx;            /*< Symbol Matrix                                                       */
+    SymbolMatrix    *symbmtx;            /**< Symbol Matrix                                                       */
 
-    pastix_bcsc_t   *bcsc;               /*< Csc after reordering grouped by cblk                                */
-    SolverMatrix    *solvmatr;           /*< Solver informations associted to the matrix problem                 */
+    pastix_bcsc_t   *bcsc;               /**< Csc after reordering grouped by cblk                                */
+    SolverMatrix    *solvmatr;           /**< Solver informations associted to the matrix problem                 */
 
     /* Backup for old pastix interface */
     void            *b;

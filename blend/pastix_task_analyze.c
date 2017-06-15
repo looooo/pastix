@@ -69,7 +69,6 @@ pastix_task_analyze( pastix_data_t *pastix_data,
     /*
      * Ordering step
      */
-
     rc = pastix_subtask_order( pastix_data, spm, NULL );
     if (rc != PASTIX_SUCCESS) {
         return rc;

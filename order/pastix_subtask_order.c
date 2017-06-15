@@ -133,6 +133,11 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
+    /*
+     * Backup flttype from the spm into iparm[IPARM_FLOAT] for later use
+     */
+    iparm[IPARM_FLOAT] = spm->flttype;
+
     if (pastix_data->schur_n > 0)
     {
         /*
