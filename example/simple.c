@@ -39,8 +39,8 @@ int main (int argc, char **argv)
      * Get options from command line
      */
     pastix_getOptions( argc, argv,
-                          iparm, dparm,
-                          &driver, &filename );
+                       iparm, dparm,
+                       &check, &driver, &filename );
 
     /**
      * Read the sparse matrix with the driver
@@ -48,6 +48,8 @@ int main (int argc, char **argv)
     spm = malloc( sizeof( pastix_spm_t ) );
     spmReadDriver( driver, filename, spm, MPI_COMM_WORLD );
     free(filename);
+
+    spmPrintInfo( spm, stdout );
 
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {

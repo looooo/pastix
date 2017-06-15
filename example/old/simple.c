@@ -44,8 +44,8 @@ int main (int argc, char **argv)
      * Update options from command line, and get the matrix filename
      */
     pastix_getOptions( argc, argv,
-                          iparm, dparm,
-                          &driver, &filename );
+                       iparm, dparm,
+                       &check, &driver, &filename );
 
     /**
      * Read Matrice
@@ -53,6 +53,8 @@ int main (int argc, char **argv)
     spm = malloc( sizeof( pastix_spm_t ) );
     spmReadDriver( driver, filename, spm, MPI_COMM_WORLD );
     free(filename);
+
+    spmPrintInfo( spm, stdout );
 
     /**
      * Check Matrix format

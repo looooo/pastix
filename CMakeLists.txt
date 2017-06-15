@@ -628,7 +628,6 @@ set(PASTIX_LIB_SRCS
   common/integer.c
   common/isched.c
   common/memory.c
-  common/input.c
   common/get_options.c
 #  common/trace.c
 #

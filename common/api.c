@@ -31,7 +31,7 @@
  *
  * @ingroup pastix_api
  *
- * @brief Print informations about the solver configuration
+ * @brief Print information about the solver configuration
  *
  *******************************************************************************
  *
@@ -77,6 +77,25 @@ pastixWelcome( const pastix_data_t *pastix )
                       /* Compress width  */ (long)pastix->iparm[IPARM_COMPRESS_MIN_WIDTH],
                       /* Compress height */ (long)pastix->iparm[IPARM_COMPRESS_MIN_HEIGHT] );
     }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_api
+ *
+ * @brief Print summary information
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix
+ *          The main data structure.
+ *
+ *******************************************************************************/
+void
+pastixSummary( const pastix_data_t *pastix )
+{
+    (void)pastix;
 }
 
 /**
@@ -493,6 +512,8 @@ void
 pastixFinalize( pastix_data_t **pastix_data )
 {
     pastix_data_t *pastix = *pastix_data;
+
+    pastixSummary( *pastix_data );
 
     ischedFinalize( pastix->isched );
 

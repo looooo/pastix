@@ -88,29 +88,22 @@ spmReadDriver( pastix_driver_t  driver,
 
         case PastixDriverHB:
             /* TODO: Possible to read the RHS, the solution or a guess of the solution */
-            printf("driver: HB file: %s\n", filename);
             readHB( filename, spm );
             break;
 
         case PastixDriverIJV:
-            printf("driver: 3files file: %s\n", filename);
             readIJV( filename, spm );
             break;
 
         case PastixDriverMM:
-            printf("driver: MatrixMarket file: %s\n", filename);
             readMM( filename, spm );
             break;
 
         case PastixDriverLaplacian:
-            if (mpirank == 0)
-                printf("driver Laplacian: %s\n", filename);
             genLaplacian( filename, spm );
             break;
 
         case PastixDriverXLaplacian:
-            if (mpirank == 0)
-                printf("driver Extended Laplacian: %s\n", filename);
             genExtendedLaplacian( filename, spm );
             break;
 
@@ -148,7 +141,7 @@ spmReadDriver( pastix_driver_t  driver,
         break;
 
         default:
-            fprintf(stderr, "driver: Driver not implemented\n");
+            fprintf(stderr, "spmReadDriver: Driver not implemented\n");
         }
     }
 
@@ -158,9 +151,6 @@ spmReadDriver( pastix_driver_t  driver,
 
         MPI_Bcast( spm, sizeof(pastix_spm_t), MPI_CHAR, 0, comm );
         MPI_Bcast( &nnz, 1, PASTIX_MPI_INT, 0, comm );
-
-        fprintf(stderr, "%d: mtxtype=%d, flttype=%d, nnz=%ld, gN=%ld\n",
-                mpirank, spm->mtxtype, spm->flttype, (long)nnz, (long)spm->gN );
 
         if ( mpirank != 0 )
         {

@@ -52,8 +52,8 @@ int main (int argc, char **argv)
      * Get options from command line
      */
     pastix_getOptions( argc, argv,
-                          NULL, NULL,
-                          &driver, &filename );
+                       NULL, NULL,
+                       NULL, &driver, &filename );
 
     spmReadDriver( driver, filename, &spm, MPI_COMM_WORLD );
     free(filename);

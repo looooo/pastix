@@ -231,11 +231,6 @@ static inline void set_dparm(double *dparm, pastix_dparm_t offset, double value)
 }
 
 void api_dumparm(FILE *stream, pastix_int_t *iparm, double *dparm);
-int  api_dparmreader(char * filename, double       *dparmtab);
-int  api_iparmreader(char * filename, pastix_int_t *iparmtab);
-int  dparm_to_int( char * string);
-int  iparm_to_int( char * string);
-int  api_to_int( char * string);
 
 #endif /* _COMMON_H_ */
 

@@ -29,6 +29,7 @@ typedef struct solve_param {
     double              dparm[DPARM_SIZE];
     char                *filename;
     pastix_driver_t     driver;
+    int                 check;
 } solve_param_t;
 
 /**
@@ -48,10 +49,11 @@ static void *solve_smp(void *arg)
     void                *x;
     void                *b;
     size_t              size;
-    int                 check = 1;
+    int                 check;
     int                 nrhs = 1;
     solve_param_t       param = *(solve_param_t *)arg;
     param.iparm[IPARM_THREAD_NBR] = 1;
+    check = param.check;
 
     /**
      * Startup PaStiX
@@ -63,6 +65,8 @@ static void *solve_smp(void *arg)
      */
     spm = malloc( sizeof( pastix_spm_t ) );
     spmReadDriver( param.driver, param.filename, spm, MPI_COMM_WORLD );
+
+    spmPrintInfo( spm, stdout );
 
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {
@@ -133,7 +137,7 @@ int main (int argc, char **argv)
     int                 nbcallingthreads = 2;
     solve_param_t       *solve_param;
     pthread_t           *threads;
-    int                 i;
+    int                 i, check = 1;
 
     /**
      * Initialize parameters to default values
@@ -144,8 +148,8 @@ int main (int argc, char **argv)
      * Get options from command line
      */
     pastix_getOptions( argc, argv,
-                          iparm, dparm,
-                          &driver, &filename );
+                       iparm, dparm,
+                       &check, &driver, &filename );
 
     /**
      *    Set parameters for each thread
@@ -160,8 +164,9 @@ int main (int argc, char **argv)
     {
         memcpy(solve_param[i].iparm, iparm, sizeof(solve_param[i].iparm));
         memcpy(solve_param[i].dparm, dparm, sizeof(solve_param[i].dparm));
-        solve_param[i].driver           = driver;
-        solve_param[i].filename         = filename;
+        solve_param[i].check    = check;
+        solve_param[i].driver   = driver;
+        solve_param[i].filename = filename;
 
         /**
          *   Launch instance of solver

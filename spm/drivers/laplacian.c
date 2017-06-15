@@ -90,9 +90,9 @@ laplacian_parse_info( const char   *filename,
     /* Look for the datatype */
     {
         char flt;
-        char *tmpf = strdup( filename );
+        char *tmpf = strndup( filename, 256 );
 
-        if ( sscanf( filename, "%c:%256s", &flt, tmpf ) == 2 ) {
+        if ( sscanf( filename, "%c:%254s", &flt, tmpf ) == 2 ) {
             filename += 2;
             switch( flt ){
             case 'Z':
