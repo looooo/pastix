@@ -102,25 +102,25 @@ endforeach()
 
 # Laplacian
 foreach(example ${SPM_TESTS} ${SPM_DOF_TESTS} ${BCSC_TESTS} )
-  add_test(test_lap_${example} ./${example} -lap 10:10:10)
+  add_test(test_lap_${example} ./${example} --lap 10:10:10)
 endforeach()
 
 # RSA
 foreach(example ${SPM_TESTS} ${BCSC_TESTS} )
-  add_test(test_rsa_${example} ./${example} -rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa)
+  add_test(test_rsa_${example} ./${example} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa)
 endforeach()
 
 # Matrix Market
 foreach(example ${SPM_TESTS} ${SPM_DOF_TESTS} ${BCSC_TESTS} )
-  add_test(test_mm_${example} ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx)
+  add_test(test_mm_${example} ./${example} --mm ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx)
 endforeach()
 
 # Harwell Boeing
 foreach(example ${SPM_TESTS} ${SPM_DOF_TESTS} ${BCSC_TESTS} )
-  add_test(test_hb_${example} ./${example} -hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua)
+  add_test(test_hb_${example} ./${example} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua)
 endforeach()
 
 # Matrix Market - Hermitian
 foreach(example ${SPM_TESTS} ${SPM_DOF_TESTS} ${BCSC_TESTS} )
-  add_test(test_mm2_${example} ./${example} -mm ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx)
+  add_test(test_mm2_${example} ./${example} --mm ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx)
 endforeach()
