@@ -488,7 +488,7 @@ splitSmart( const BlendCtrl    *ctrl,
                                                         authorized_percent );
                 }
 
-                assert( (lcol > fcol) && (lcol <= lcolnum) );
+                assert( (lcol >= fcol) && (lcol <= lcolnum) );
 
                 extraCblkAdd( extracblk, fcol, lcol );
                 nbcblk++;
