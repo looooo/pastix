@@ -38,7 +38,7 @@ test_pastix:
       - pastix-rats.xml
   script:
     - source .gitlab-ci-env.sh
-    - source install/bin/pastx_env.sh
+    - source install/bin/pastix_env.sh
     - (cd build && ctest -D ExperimentalTest)
     - lcov --directory build --capture --output-file pastix.lcov
     - genhtml -o coverage pastix.lcov
