@@ -26,7 +26,7 @@ if (PASTIX_WITH_STARPU)
 endif (PASTIX_WITH_STARPU)
 
 ### Python wrapper
-add_test(python_simple python ../wrappers/python/examples/simple.py)
+add_test(python_simple python ../../wrappers/python/examples/simple.py)
 
 ### All drivers with Laplacian and default parameters
 foreach(example ${PASTIX_DRIVERS} )
