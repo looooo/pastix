@@ -69,12 +69,11 @@ int main (int argc, char **argv)
     x = malloc( size );
     b = malloc( size );
 
+    x0 = NULL;
     if ( check )
     {
         if ( check > 1 ) {
             x0 = malloc( size );
-        } else {
-            x0 = NULL;
         }
         spmGenRHS( PastixRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
         memcpy( x, b, size );
