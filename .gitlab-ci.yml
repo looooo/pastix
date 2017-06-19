@@ -18,7 +18,7 @@ build_pastix:
     - git submodule update --init --recursive
     - mkdir build
     - cd build
-    - cmake .. -DCMAKE_INSTALL_PREFIX=${PASTIX_INSTALL_DIR} -DPASTIX_WITH_STARPU=ON -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_C_FLAGS="-O0 -g -fPIC --coverage -Wall -fdiagnostics-show-option -fno-inline" -DCMAKE_EXE_LINKER_FLAGS="--coverage"
+    - cmake .. -DCMAKE_INSTALL_PREFIX=${PASTIX_INSTALL_DIR} -DBUILD_SHARED_LIBS=ON -DPASTIX_WITH_STARPU=OFF -DPASTIX_WITH_PARSEC=OFF -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_C_FLAGS="-O0 -g -fPIC --coverage -Wall -fdiagnostics-show-option -fno-inline" -DCMAKE_EXE_LINKER_FLAGS="--coverage"
     - make -j2 | tee ../pastix-build.log
     - make install
 
