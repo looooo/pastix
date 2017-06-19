@@ -33,11 +33,11 @@ Available Features
 
 |       | Seq    | Static | Dyn    | StarPU | PaRSEC      |
 |-------|--------|--------|--------|--------|-------------|
-| POTRF (Cholesky) | SHM/LR | SHM/LR | SHM/LR | -      | SHM/LR (GPU coming)|
+| POTRF (Cholesky) | SHM/LR | SHM/LR | SHM/LR | SHM/GPU (LR coming) | SHM/LR (GPU coming)|
 | PXTRF (LL^t for complex)| Coming | Coming | Coming | -      | Coming      |
 | HETRF (LDL^h)    | Coming | Coming | Coming | -      | -           |
 | SYTRF (LDL^t)    | Coming | Coming | Coming | -      | -           |
-| GETRF (LU)       | SHM/LR | SHM/LR | SHM/LR | -      | SHM/LR (GPU coming)|
+| GETRF (LU)       | SHM/LR | SHM/LR | SHM/LR | SHM/GPU (LR coming) | SHM/LR (GPU coming)|
 | TRSM             | SHM/LR | SHM/LR | SHM/LR | -      | -           |
 | DIAG             | SHM/LR | SHM/LR | SHM/LR | -      | -           |
 
