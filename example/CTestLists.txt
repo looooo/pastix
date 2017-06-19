@@ -25,6 +25,9 @@ if (PASTIX_WITH_STARPU)
   list( APPEND PASTIX_SCHEDS 3 ) # starpu
 endif (PASTIX_WITH_STARPU)
 
+### Python wrapper
+add_test(python_simple python ../wrappers/python/examples/simple.py)
+
 ### All drivers with Laplacian and default parameters
 foreach(example ${PASTIX_DRIVERS} )
   foreach(arithm ${PASTIX_ARITHM} )
