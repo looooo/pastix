@@ -106,7 +106,8 @@ extern pastix_complex32_t csqrtf(pastix_complex32_t z);
 #endif /* HAVE_COMPLEX_H */
 
 
-static inline int pastix_size_of(int type)
+static inline size_t
+pastix_size_of(pastix_coeftype_t type)
 {
     switch(type) {
     case PastixFloat:     return   sizeof(float);
