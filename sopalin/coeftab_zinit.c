@@ -173,20 +173,20 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
 
 #if defined(PASTIX_DUMP_COEFTAB)
     {
-        FILE *f;
+        FILE *fl,*fu;
         char *filename;
 
         asprintf( &filename, "Lcblk%05ld.txt", itercblk );
-        PASTIX_FOPEN( f, filename, "w" );
-        coeftab_zdumpcblk( cblk, cblk->lcoeftab, f );
-        fclose( f );
+        PASTIX_FOPEN( fl, filename, "w" );
+        coeftab_zdumpcblk( cblk, cblk->lcoeftab, fl );
+        fclose( fl );
         free( filename );
 
         if ( cblk->ucoeftab ) {
             asprintf( &filename, "Ucblk%05ld.txt", itercblk );
-            PASTIX_FOPEN( f, filename, "w" );
-            coeftab_zdumpcblk( cblk, cblk->ucoeftab, f );
-            fclose( f );
+            PASTIX_FOPEN( fu, filename, "w" );
+            coeftab_zdumpcblk( cblk, cblk->ucoeftab, fu );
+            fclose( fu );
             free( filename );
         }
     }

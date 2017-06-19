@@ -105,7 +105,6 @@ static void *solve_smp(void *arg)
     else {
         spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
         /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
-        b = malloc( size );
         memcpy( b, x, size );
     }
 
