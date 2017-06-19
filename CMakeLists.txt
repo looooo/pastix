@@ -740,9 +740,6 @@ set(PASTIX_HDRS
 install(FILES include/pastix.h DESTINATION include )
 install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
 
-### Wrappers
-add_subdirectory(wrappers)
-
 ## Executable and tests
 enable_testing()
 include(CTest)
@@ -750,6 +747,9 @@ include(CTest)
 add_subdirectory(example)
 # Testing executables
 add_subdirectory(test)
+
+### Wrappers
+add_subdirectory(wrappers)
 
 ### Build pkg-config and environment file
 include(GenPkgConfig)
