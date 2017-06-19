@@ -14,7 +14,7 @@ build_pastix:
       - build/
       - pastix-build.log
   script:
-    - env
+    - source /builds/tmp/myenv.sh
     - git submodule update --init --recursive
     - mkdir build
     - cd build
