@@ -92,6 +92,25 @@ class spm():
         self.updateComputedField()
         self.checkAndCorrect()
 
+    def tosps( self ):
+        """
+        Return a Scipy sparse matrix
+        """
+
+        n      = int( self.spm_c.n )
+        nnz    = int( self.spm_c.nnz )
+        cflt   = coeftype.getctype( self.spm_c.flttype )
+        nflt   = coeftype.getnptype( self.spm_c.flttype )
+        colptr = np.frombuffer( (pastix_int * (n+1)).from_address( cast(self.spm_c.colptr, c_void_p).value ), pastix_int ).copy()
+        rowptr = np.frombuffer( (pastix_int *  nnz ).from_address( cast(self.spm_c.rowptr, c_void_p).value ), pastix_int ).copy()
+        values = np.frombuffer( (cflt       *  nnz ).from_address( self.spm_c.values ), nflt ).copy()
+
+        baseval = colptr[0]
+        colptr = colptr - baseval
+        rowptr = rowptr - baseval
+
+        return sps.csc_matrix((values, rowptr, colptr), shape=(n, n))
+
     def fromdriver( self, driver=driver.Laplacian, filename="10:10:10" ):
         """
         Initialize the SPM wrapper by loading the libraries
