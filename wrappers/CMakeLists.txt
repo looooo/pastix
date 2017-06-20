@@ -40,13 +40,11 @@ install(FILES
 
 ## CTest execution
 find_package(PythonInterp QUIET)
-message(STATUS "TOTO")
 if (PYTHONINTERP_FOUND)
   set( PYTHON_TESTS
     simple schur simple_obj schur_obj)
 
   foreach(example ${PYTHON_TESTS} )
-    message(STATUS "python_${example} ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/python/examples/${example}.py")
     add_test(python_${example} ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/python/examples/${example}.py)
   endforeach()
 endif()
