@@ -82,7 +82,6 @@ class spm():
         self.spm_c.mtxtype= mtxtype
         self.spm_c.flttype= flttype
         self.spm_c.n      = A.shape[0]
-        self.spm_c.n      = A.shape[0]
         self.spm_c.nnz    = A.getnnz()
         self.spm_c.colptr = self.py_colptr.ctypes.data_as(POINTER(pastix_int))
         self.spm_c.rowptr = self.py_rowptr.ctypes.data_as(POINTER(pastix_int))
@@ -113,9 +112,9 @@ class spm():
         libspm.spmPrintInfo.argtypes = [POINTER(self.c_spm), c_void_p]
         libspm.spmPrintInfo( self.id_ptr, None )
 
-    #def print( self ):
-    #    libspm.spmPrint.argtypes = [POINTER(self.c_spm), c_void_p]
-    #    libspm.spmPrint( self.id_ptr, None )
+    def printSpm( self ):
+        libspm.spmPrint.argtypes = [POINTER(self.c_spm), c_void_p]
+        libspm.spmPrint( self.id_ptr, None )
 
     def checkAndCorrect( self ):
         libspm.spmCheckAndCorrect.argtypes = [POINTER(self.c_spm)]
