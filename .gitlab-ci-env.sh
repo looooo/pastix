@@ -13,8 +13,3 @@ export PKG_CONFIG_PATH=/builds/tmp/starpu/install/lib/pkgconfig:$PKG_CONFIG_PATH
 export PATH=/builds/tmp/parsec/install/bin:$PATH
 export LD_LIBRARY_PATH=/builds/tmp/parsec/install/lib:$LD_LIBRARY_PATH
 export PKG_CONFIG_PATH=/builds/tmp/parsec/install/lib/pkgconfig:$PKG_CONFIG_PATH
-#PaStiX with Python
-export PASTIX_INSTALL_DIR=$CI_PROJECT_DIR/install
-export PYTHONPATH=$PASTIX_INSTALL_DIR/lib/python
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PASTIX_INSTALL_DIR/lib
-export LIBRARY_PATH=$LIBRARY_PATH:$PASTIX_INSTALL_DIR/lib
