@@ -39,9 +39,9 @@
 #define CODELETS_ALL( _name_, _nbuffers_, _cpu_func_name_, _cuda_func_name_, _original_location_, _cuda_flags_ ) \
     struct starpu_codelet cl_##_name_ = {                               \
         .where     = (_original_location_),                             \
-        .cpu_func  = (_cpu_func_name_),                                 \
+        .cpu_funcs[0] = (_cpu_func_name_),                              \
         CODELET_CUDA_FLAGS(_cuda_flags_)                                \
-        .cuda_func = (_cuda_func_name_),                                \
+        .cuda_funcs[0] = (_cuda_func_name_),                            \
         .nbuffers  = (_nbuffers_),                                      \
         .name      = #_name_                                            \
     };

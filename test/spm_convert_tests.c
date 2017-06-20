@@ -89,6 +89,8 @@ int spmComp( const pastix_spm_t *spm1,
         valptr2 = (int*)(spm2->values);
         for (i=0; i<size; i++, valptr1++, valptr2++) {
             if (*valptr1 != *valptr2) {
+                z_spmPrintElt( stderr, i, i, *valptr1 );
+                z_spmPrintElt( stderr, i, i, *valptr2 );
                 return 4;
             }
         }
@@ -258,6 +260,7 @@ int main (int argc, char **argv)
         }
         printf("\n");
         spmExit( spm2 );
+        free( spm2 );
     }
     spmExit( &spm  );
 

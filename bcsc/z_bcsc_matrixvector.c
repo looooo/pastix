@@ -24,9 +24,9 @@
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscMatVec - Compute the matrix-vector product
- *         y = alpha * op(A) * x + beta * y,
- * where A is given in the bcsc format, x and y are two vectors of size n, and
+ * @brief Compute the matrix-vector product  y = alpha * op(A) * x + beta * y
+ *
+ * Where A is given in the bcsc format, x and y are two vectors of size n, and
  * alpha and beta are two scalars.
  * The op function is specified by the trans parameter and performs the
  * operation as follows:
@@ -60,9 +60,8 @@
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ * @retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
 int

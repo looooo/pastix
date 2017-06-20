@@ -24,7 +24,7 @@ int main (int argc, char **argv)
     int              nrhs = 1;
     pastix_spm_t    *spm, *spm2;
     pastix_driver_t  driver;
-    void            *x, *x0, *b;
+    void            *x, *b, *x0 = NULL;
     size_t           size;
     int              check = 1;
 
@@ -73,8 +73,6 @@ int main (int argc, char **argv)
     {
         if ( check > 1 ) {
             x0 = malloc( size );
-        } else {
-            x0 = NULL;
         }
         spmGenRHS( PastixRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
         memcpy( x, b, size );
@@ -83,7 +81,6 @@ int main (int argc, char **argv)
         spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
         /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
-        b = malloc( size );
         memcpy( b, x, size );
     }
 

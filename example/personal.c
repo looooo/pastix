@@ -26,7 +26,7 @@ int main (int argc, char **argv)
     pastix_driver_t driver;
     char           *filename;
     pastix_spm_t   *spm, *spm2;
-    void           *x0, *x, *b;
+    void           *x, *b, *x0 = NULL;
     size_t          size;
     int             check = 1;
     int             nrhs = 1;
@@ -90,8 +90,6 @@ int main (int argc, char **argv)
     b = malloc( size );
     if ( check > 1 ) {
         x0 = malloc( size );
-    } else {
-        x0 = NULL;
     }
 
     /**
@@ -136,8 +134,7 @@ int main (int argc, char **argv)
     free(spm);
     free(b);
     free(x);
-    if (x0)
-        free(x0);
+    if (x0) free(x0);
 
     return EXIT_SUCCESS;
 }

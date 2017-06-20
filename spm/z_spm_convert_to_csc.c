@@ -160,11 +160,15 @@ z_spmConvertCSR2CSC( pastix_spm_t *spm )
     {
         /* Similar to PastixSymmetric case with conjugate of the values */
         pastix_complex64_t *valptr = spm->values;
-        pastix_int_t i;
+        pastix_int_t *colptr = spm->colptr;
+        pastix_int_t *rowptr = spm->rowptr;
+        pastix_int_t  i, j;
 
-        for(i=0; i<spm->nnz; i++, valptr++){
-            if (spm->rowptr[i] != spm->colptr[i]) {
-                *valptr = conj( *valptr );
+        for(i=0; i<spm->n; i++, rowptr++){
+            for(j=rowptr[0]; j<rowptr[1]; j++, colptr++, valptr++) {
+                if ( *colptr != i ) {
+                    *valptr = conj( *valptr );
+                }
             }
         }
     }

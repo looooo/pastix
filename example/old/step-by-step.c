@@ -119,8 +119,6 @@ int main (int argc, char **argv)
     b = malloc( size );
     if ( check > 1 ) {
         x0 = malloc( size );
-    } else {
-        x0 = NULL;
     }
 
     /* Do nfact factorization */
@@ -204,7 +202,6 @@ int main (int argc, char **argv)
     free(spm);
     free(b);
     free(x);
-    if (x0)
-        free(x0);
+    if (x0) free(x0);
     return EXIT_SUCCESS;
 }

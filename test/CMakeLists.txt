@@ -102,7 +102,9 @@ endforeach()
 
 # Laplacian
 foreach(example ${SPM_TESTS} ${SPM_DOF_TESTS} ${BCSC_TESTS} )
-  add_test(test_lap_${example} ./${example} --lap 10:10:10)
+  foreach(arithm ${PASTIX_PRECISIONS} )
+    add_test(test_lap_${arithm}_${example} ./${example} --lap ${arithm}:10:10:10)
+  endforeach()
 endforeach()
 
 # RSA

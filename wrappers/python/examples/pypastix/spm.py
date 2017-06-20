@@ -82,7 +82,6 @@ class spm():
         self.spm_c.mtxtype= mtxtype
         self.spm_c.flttype= flttype
         self.spm_c.n      = A.shape[0]
-        self.spm_c.n      = A.shape[0]
         self.spm_c.nnz    = A.getnnz()
         self.spm_c.colptr = self.py_colptr.ctypes.data_as(POINTER(pastix_int))
         self.spm_c.rowptr = self.py_rowptr.ctypes.data_as(POINTER(pastix_int))
@@ -92,6 +91,25 @@ class spm():
 
         self.updateComputedField()
         self.checkAndCorrect()
+
+    def tosps( self ):
+        """
+        Return a Scipy sparse matrix
+        """
+
+        n      = int( self.spm_c.n )
+        nnz    = int( self.spm_c.nnz )
+        cflt   = coeftype.getctype( self.spm_c.flttype )
+        nflt   = coeftype.getnptype( self.spm_c.flttype )
+        colptr = np.frombuffer( (pastix_int * (n+1)).from_address( cast(self.spm_c.colptr, c_void_p).value ), pastix_int ).copy()
+        rowptr = np.frombuffer( (pastix_int *  nnz ).from_address( cast(self.spm_c.rowptr, c_void_p).value ), pastix_int ).copy()
+        values = np.frombuffer( (cflt       *  nnz ).from_address( self.spm_c.values ), nflt ).copy()
+
+        baseval = colptr[0]
+        colptr = colptr - baseval
+        rowptr = rowptr - baseval
+
+        return sps.csc_matrix((values, rowptr, colptr), shape=(n, n))
 
     def fromdriver( self, driver=driver.Laplacian, filename="10:10:10" ):
         """
@@ -113,9 +131,9 @@ class spm():
         libspm.spmPrintInfo.argtypes = [POINTER(self.c_spm), c_void_p]
         libspm.spmPrintInfo( self.id_ptr, None )
 
-    #def print( self ):
-    #    libspm.spmPrint.argtypes = [POINTER(self.c_spm), c_void_p]
-    #    libspm.spmPrint( self.id_ptr, None )
+    def printSpm( self ):
+        libspm.spmPrint.argtypes = [POINTER(self.c_spm), c_void_p]
+        libspm.spmPrint( self.id_ptr, None )
 
     def checkAndCorrect( self ):
         libspm.spmCheckAndCorrect.argtypes = [POINTER(self.c_spm)]
