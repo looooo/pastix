@@ -27,7 +27,7 @@ int main (int argc, char **argv)
     int              nrhs        = 1;
     pastix_spm_t    *spm, *spm2;
     pastix_driver_t  driver;
-    void            *x, *x0;
+    void            *x, *x0 = NULL;
     size_t           size;
     int              check = 1;
     int              ret   = PASTIX_SUCCESS;
@@ -78,8 +78,6 @@ int main (int argc, char **argv)
     {
         if ( check > 1 ) {
             x0 = malloc( size );
-        } else {
-            x0 = NULL;
         }
         spmGenRHS( PastixRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
         memcpy( x, b, size );

@@ -338,12 +338,12 @@ bcscExit( pastix_bcsc_t *bcsc )
  *
  *******************************************************************************/
 int
-bcscMatVec(      int            trans,
-           const void          *alpha,
-           const pastix_bcsc_t *bcsc,
-           const void          *x,
-           const void          *beta,
-                 void          *y )
+bcscMatVec(       int            trans,
+            const void          *alpha,
+            const pastix_bcsc_t *bcsc,
+            const void          *x,
+            const void          *beta,
+                  void          *y )
 {
     switch (bcsc->flttype) {
     case PastixFloat:

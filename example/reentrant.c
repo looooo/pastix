@@ -45,7 +45,7 @@ static void *solve_smp(void *arg)
     pastix_data_t       *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
     pastix_spm_t        *spm;
     pastix_spm_t        *spm2;
-    void                *x0;
+    void                *x0 = NULL;
     void                *x;
     void                *b;
     size_t              size;
@@ -96,8 +96,6 @@ static void *solve_smp(void *arg)
     {
         if ( check > 1 ) {
             x0 = malloc( size );
-        } else {
-            x0 = NULL;
         }
         spmGenRHS( PastixRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
         memcpy( x, b, size );
