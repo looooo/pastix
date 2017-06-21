@@ -14,6 +14,8 @@ set( PASTIX_DRIVERS
   analyze simple step-by-step schur personal) # reentrant fails with Scotch parser !
 set( PASTIX_TESTS
   simple )
+set( PASTIX_FACTO
+     0 2) # LLt, LU
 set( PASTIX_SCHEDS
      0 1) # sequential, static
 if (PASTIX_WITH_PARSEC)
@@ -26,7 +28,9 @@ endif (PASTIX_WITH_STARPU)
 ### All drivers with Laplacian and default parameters
 foreach(example ${PASTIX_DRIVERS} )
   foreach(arithm ${PASTIX_PRECISIONS} )
-    add_test(example_drv_${arithm}_${example} ./${example} -9 ${arithm}:10:10:10 -f 2) # LLt fails with negative pivot !
+    foreach(facto ${PASTIX_FACTO} )
+      add_test(example_drv_facto${facto}_${arithm}_${example} ./${example} -9 ${arithm}:10:10:10:2 -f ${facto})
+    endforeach()
   endforeach()
 endforeach()
 
@@ -53,13 +57,15 @@ endforeach()
 foreach(example ${PASTIX_TESTS} )
   foreach(scheduler ${PASTIX_SCHEDS} )
     foreach(arithm ${PASTIX_PRECISIONS} )
-      add_test(example_sched${scheduler}_1d_${arithm}_${example}     ./${example} -9 ${arithm}:10:10:10 -s ${scheduler})
-      if ((${scheduler} EQUAL 2) OR (${scheduler} EQUAL 3))
-        # 2D
-        add_test(example_sched${scheduler}_2d_${arithm}_${example}   ./${example} -9 ${arithm}:10:10:10 -s ${scheduler} -i iparm_distribution_level 0 )
-        # 1D/2D
-        add_test(example_sched${scheduler}_1d2d_${arithm}_${example} ./${example} -9 ${arithm}:10:10:10 -s ${scheduler} -i iparm_distribution_level 16)
-      endif()
+      foreach(facto ${PASTIX_FACTO} )
+        add_test(example_sched${scheduler}_1d_facto${facto}_${arithm}_${example}     ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto})
+        if ((${scheduler} EQUAL 2) OR (${scheduler} EQUAL 3))
+          # 2D
+          add_test(example_sched${scheduler}_2d_facto${facto}_${arithm}_${example}   ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} -i iparm_distribution_level 0)
+          # 1D/2D
+          add_test(example_sched${scheduler}_1d2d_facto${facto}_${arithm}_${example} ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} -i iparm_distribution_level 16)
+        endif()
+      endforeach()
     endforeach()
   endforeach()
 endforeach()
@@ -69,14 +75,16 @@ foreach(example ${PASTIX_TESTS} )
   foreach(scheduler ${PASTIX_SCHEDS} )
     if (NOT (${scheduler} EQUAL 3) ) # no low-rank with StarPU
       foreach(arithm ${PASTIX_PRECISIONS} )
-        # SVD Begin
-        add_test(example_svdbegin_sched${scheduler}_${arithm}_${example}  ./${example} -9 ${arithm}:10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodsvd  -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
-        # SVD End
-        add_test(example_svdend_sched${scheduler}_${arithm}_${example}    ./${example} -9 ${arithm}:10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodsvd  -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
-        # RRQR Begin
-        add_test(example_rrqrbegin_sched${scheduler}_${arithm}_${example} ./${example} -9 ${arithm}:10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodrrqr -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
-        # RRQR End
-        add_test(example_rrqrend_sched${scheduler}_${arithm}_${example}   ./${example} -9 ${arithm}:10:10:10 -s ${scheduler} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodrrqr -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
+        foreach(facto ${PASTIX_FACTO} )
+          # SVD Begin
+          add_test(example_svdbegin_sched${scheduler}_facto${facto}_${arithm}_${example}  ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodsvd  -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
+          # SVD End
+          add_test(example_svdend_sched${scheduler}_facto${facto}_${arithm}_${example}    ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodsvd  -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
+          # RRQR Begin
+          add_test(example_rrqrbegin_sched${scheduler}_facto${facto}_${arithm}_${example} ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodrrqr -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
+          # RRQR End
+          add_test(example_rrqrend_sched${scheduler}_facto${facto}_${arithm}_${example}   ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodrrqr -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
+        endforeach()
       endforeach()
     endif()
   endforeach()
