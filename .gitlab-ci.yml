@@ -58,6 +58,7 @@ sonar_pastix:
     paths:
       - sonar.log
   script:
+    - source .gitlab-ci-env.sh
     - sonar-scanner -X > sonar.log
   only:
     - master@pastix/pastix
