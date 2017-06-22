@@ -20,7 +20,7 @@
 #include <parsec/data_distribution.h>
 #include <parsec/private_mempool.h>
 #include <parsec/arena.h>
-#include <data_dist/matrix/matrix.h>
+#include <parsec/data_dist/matrix/matrix.h>
 #include "common.h"
 #include "solver.h"
 #include "sopalin_data.h"
