@@ -230,7 +230,6 @@ int isched_hwloc_numa_id(int core_id )
 unsigned int isched_hwloc_nb_cores_per_obj( hwloc_obj_type_t type, int index )
 {
     hwloc_obj_t obj = hwloc_get_obj_by_type(topology, type, index);
-    fprintf(stderr, "TYPE: %s %d\n", hwloc_obj_type_string( obj->type ), obj->depth );
     assert( obj != NULL );
     return hwloc_get_nbobjs_inside_cpuset_by_type(topology, obj->cpuset, HWLOC_OBJ_CORE);
 }
@@ -254,8 +253,7 @@ int isched_hwloc_bind_on_core_index(int cpu_index)
     /* Get the core of index cpu_index */
     core = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, cpu_index);
     if (!core) {
-        printf("isched_hwloc: unable to get the core of index %i (nb physical cores = %i )\n",
-                 cpu_index,  isched_hwloc_nb_real_cores());
+        fprintf(stderr, "isched_hwloc_bind_on_core_index: unable to get the core of index %i (nb physical cores = %i )\n", cpu_index, isched_hwloc_nb_real_cores());
         return -1;
     }
 
@@ -276,7 +274,7 @@ int isched_hwloc_bind_on_core_index(int cpu_index)
 #else
         hwloc_bitmap_asprintf(&str, core->cpuset);
 #endif
-        printf("isched_hwloc: couldn't bind to cpuset %s\n", str);
+        fprintf(stderr, "isched_hwloc: couldn't bind to cpuset %s\n", str);
         free(str);
 
         /* Free our cpuset copy */
@@ -314,7 +312,7 @@ int isched_hwloc_bind_on_mask_index(hwloc_cpuset_t cpuset)
         /* Get the core of index cpu */
         obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, cpu_index);
         if (!obj) {
-            //printf("isched_hwloc_bind_on_mask_index: unable to get the core of index %i\n", cpu_index);
+            fprintf(stderr, "isched_hwloc_bind_on_mask_index: unable to get the core of index %i\n", cpu_index);
         } else {
             hwloc_bitmap_or(binding_mask, binding_mask, obj->cpuset);
         }
@@ -324,7 +322,7 @@ int isched_hwloc_bind_on_mask_index(hwloc_cpuset_t cpuset)
     if (hwloc_set_cpubind(topology, binding_mask, HWLOC_CPUBIND_THREAD)) {
         char *str = NULL;
         hwloc_bitmap_asprintf(&str, binding_mask);
-        printf("Couldn't bind to cpuset %s\n", str);
+        fprintf(stderr, "isched_hwloc_bind_on_mask_index: Couldn't bind to cpuset %s\n", str);
         free(str);
         return -1;
     }
@@ -333,7 +331,7 @@ int isched_hwloc_bind_on_mask_index(hwloc_cpuset_t cpuset)
     {
         char *str = NULL;
         hwloc_bitmap_asprintf(&str,  binding_mask);
-        //printf("Thread bound on the cpuset  %s\n", str);
+        fprintf(stderr, "isched_hwloc_bind_on_mask_index: Thread bound on the cpuset  %s\n", str);
         free(str);
     }
 #endif /* PASTIX_DEBUG_VERBOSE */
@@ -351,22 +349,22 @@ int isched_hwloc_unbind()
 {
 #if defined(HAVE_HWLOC_BITMAP)
     hwloc_obj_t      obj;      /* Hwloc object    */
-    hwloc_cpuset_t   cpuset;   /* HwLoc cpuset    */
     isched_hwloc_init();
 
     /* Get last one.  */
     obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_MACHINE, 0);
     if (!obj) {
-        fprintf(stderr, "plasma_unsetaffinity: Could not get object\n");
+        fprintf(stderr, "isched_hwloc_unbind: Could not get object\n");
         return PASTIX_ERR_UNKNOWN;
     }
 
-    cpuset = hwloc_bitmap_dup(obj->cpuset);
-
-    isched_hwloc_bind_on_mask_index(cpuset);
-
-    /* Free our cpuset copy */
-    hwloc_bitmap_free(cpuset);
+    if (hwloc_set_cpubind(topology, obj->cpuset, HWLOC_CPUBIND_THREAD)) {
+        char *str = NULL;
+        hwloc_bitmap_asprintf(&str, obj->cpuset);
+        fprintf(stderr, "isched_hwloc_unbind: Couldn't unbind with cpuset %s\n", str);
+        free(str);
+        return -1;
+    }
 #endif
     return PASTIX_SUCCESS;
 }
@@ -380,7 +378,7 @@ int isched_hwloc_allow_ht(int htnb)
     if (htnb > 1){
         int pu_per_core = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_PU)/hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
         if( htnb > pu_per_core){
-            printf("Warning:: HT:: There are not enough logical processors to consider %i HyperThreads per core (set up to %i)\n", htnb,  pu_per_core);
+            fprintf(stderr, "Warning:: HT:: There are not enough logical processors to consider %i HyperThreads per core (set up to %i)\n", htnb,  pu_per_core);
             ht=pu_per_core;
         }else{
             ht=htnb;

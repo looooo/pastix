@@ -152,7 +152,9 @@ isched_thread_init(void *ptr)
 void *
 isched_thread_destroy(isched_thread_t *ctx)
 {
-    isched_topo_unbind();
+    /* thread 0 is not bound */
+    if ( ctx->rank != 0 )
+        isched_topo_unbind();
     memFree_null( ctx );
 
     return NULL;
