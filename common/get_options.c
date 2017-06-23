@@ -107,7 +107,6 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_modify_parameter",      iparm)) { return IPARM_MODIFY_PARAMETER; }
     if(0 == strcasecmp("iparm_start_task",            iparm)) { return IPARM_START_TASK; }
     if(0 == strcasecmp("iparm_end_task",              iparm)) { return IPARM_END_TASK; }
-    if(0 == strcasecmp("iparm_baseval",               iparm)) { return IPARM_BASEVAL; }
     if(0 == strcasecmp("iparm_mtx_type",              iparm)) { return IPARM_MTX_TYPE; }
     if(0 == strcasecmp("iparm_dof_nbr",               iparm)) { return IPARM_DOF_NBR; }
 

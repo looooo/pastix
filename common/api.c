@@ -251,7 +251,6 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_MODIFY_PARAMETER] = 1;
     iparm[IPARM_START_TASK] = PastixTaskOrdering;
     iparm[IPARM_END_TASK]   = PastixTaskClean;
-    iparm[IPARM_BASEVAL]    = 0;
     iparm[IPARM_FLOAT]      = PastixDouble;
     iparm[IPARM_MTX_TYPE]   = -1;
     iparm[IPARM_DOF_NBR]    = 1;
