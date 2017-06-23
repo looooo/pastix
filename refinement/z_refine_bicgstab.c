@@ -198,7 +198,8 @@ void z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
         t3 = clockGet();
 
         tmp = normr / normb;
-        solveur.Verbose(t0, t3, tmp, nb_iter);
+        if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot )
+            solveur.Verbose(t0, t3, tmp, nb_iter);
     }
 
     solveur.End(pastix_data, tmp, nb_iter, t3, x, gradx);

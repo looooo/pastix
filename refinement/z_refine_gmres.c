@@ -232,7 +232,8 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 
             clockStop((refine_clk));
             t3 = clockGet();
-            solveur.Verbose(t0, t3, gmresdata->gmresro/gmresnormb, gmresiters);
+            if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot )
+                solveur.Verbose(t0, t3, gmresdata->gmresro/gmresnormb, gmresiters);
         }
 
         gmresrs[i] = gmresrs[i]/gmreshh[i][i];
