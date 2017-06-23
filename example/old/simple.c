@@ -32,7 +32,7 @@ int main (int argc, char **argv)
     int              check = 1;
     int              ret   = PASTIX_SUCCESS;
 
-    /**
+    /*
      * Initialize parameters to default values
      */
     iparm[IPARM_MODIFY_PARAMETER] = API_NO;
@@ -40,14 +40,14 @@ int main (int argc, char **argv)
             -1, NULL, NULL, NULL,
             NULL, NULL, NULL, 1, iparm, dparm );
 
-    /**
+    /*
      * Update options from command line, and get the matrix filename
      */
     pastix_getOptions( argc, argv,
                        iparm, dparm,
                        &check, &driver, &filename );
 
-    /**
+    /*
      * Read Matrice
      */
     spm = malloc( sizeof( pastix_spm_t ) );
@@ -56,7 +56,7 @@ int main (int argc, char **argv)
 
     spmPrintInfo( spm, stdout );
 
-    /**
+    /*
      * Check Matrix format
      */
     spm2 = spmCheckAndCorrect( spm );
@@ -65,8 +65,11 @@ int main (int argc, char **argv)
         free(spm);
         spm = spm2;
     }
+    iparm[IPARM_FLOAT]    = spm->flttype;
+    iparm[IPARM_MTX_TYPE] = spm->mtxtype;
+    iparm[IPARM_DOF_NBR]  = spm->dof;
 
-    /**
+    /*
      * Generates the b and x vector such that A * x = b
      * Compute the norms of the initial vectors if checking purpose.
      */
@@ -89,7 +92,7 @@ int main (int argc, char **argv)
         memcpy( b, x, size );
     }
 
-    /**
+    /*
      * Call pastix
      */
     iparm[IPARM_START_TASK] = API_TASK_INIT;
@@ -100,7 +103,7 @@ int main (int argc, char **argv)
     if (ret != PASTIX_SUCCESS)
         return ret;
 
-    /**
+    /*
      * Check the solution
      */
     if ( check )

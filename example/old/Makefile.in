@@ -7,8 +7,7 @@ EXTRALIBS= @EXAMPLE_LIBS@
 CFLAGS=`PKG_CONFIG_PATH=${PKG_CONFIG_PATH} pkg-config --cflags pastix` -Wall -O2
 LDFLAGS=`PKG_CONFIG_PATH=${PKG_CONFIG_PATH} pkg-config --libs pastix` ${EXTRALIBS}
 
-EXAMPLES=       schur	        \
-		simple	        \
+EXAMPLES=       simple	        \
 		step-by-step
 
 default: $(EXAMPLES)

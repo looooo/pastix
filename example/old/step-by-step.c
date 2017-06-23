@@ -38,21 +38,21 @@ int main (int argc, char **argv)
     size_t           size;
     int              check       = 1;
 
-    /**
+    /*
      * Initialize parameters to default values
      */
     iparm[IPARM_MODIFY_PARAMETER] = API_NO;
     pastix( &pastix_data, MPI_COMM_WORLD, -1, NULL, NULL, NULL,
             NULL, NULL, NULL, 1, iparm, dparm );
 
-    /**
+    /*
      * Update options from command line, and get the matrix filename
      */
     pastix_getOptions( argc, argv,
                        iparm, dparm,
                        &check, &driver, &filename );
 
-    /**
+    /*
      * Read Matrice
      */
     spm = malloc( sizeof( pastix_spm_t ) );
@@ -61,7 +61,7 @@ int main (int argc, char **argv)
 
     spmPrintInfo( spm, stdout );
 
-    /**
+    /*
      * Check Matrix format
      */
     spm2 = spmCheckAndCorrect( spm );
@@ -70,8 +70,11 @@ int main (int argc, char **argv)
         free(spm);
         spm = spm2;
     }
+    iparm[IPARM_FLOAT]    = spm->flttype;
+    iparm[IPARM_MTX_TYPE] = spm->mtxtype;
+    iparm[IPARM_DOF_NBR]  = spm->dof;
 
-    /**
+    /*
      * Step 0 - Initialize pastix
      */
     iparm[IPARM_START_TASK] = API_TASK_INIT;
@@ -80,7 +83,7 @@ int main (int argc, char **argv)
             -1, NULL, NULL, NULL,
             NULL, NULL, NULL, 1, iparm, dparm );
 
-    /**
+    /*
      * Step 1 - Ordering / Scotch
      * Perform it only when the pattern of matrix change.
      * eg: mesh refinement
@@ -94,7 +97,7 @@ int main (int argc, char **argv)
            NULL, NULL, NULL, nrhs, iparm, dparm );
 
 
-    /**
+    /*
      * Step 2 - Symbolic factorization
      * Perform it only when the pattern of matrix change.
      */
@@ -105,7 +108,7 @@ int main (int argc, char **argv)
            spm->n, spm->colptr, spm->rowptr, spm->values,
            NULL, NULL, NULL, nrhs, iparm, dparm );
 
-    /**
+    /*
      * Step 3 - Mapping and Compute scheduling
      * Perform it only when the pattern of matrix change.
      */
@@ -124,7 +127,7 @@ int main (int argc, char **argv)
     /* Do nfact factorization */
     for (i = 0; i < nfact; i++)
     {
-        /**
+        /*
          * Step 4 - Numerical Factorisation
          * Perform it each time the values of the
          * matrix changed.
@@ -140,7 +143,7 @@ int main (int argc, char **argv)
         for (j = 0; j < nsolv; j++)
         {
 
-            /**
+            /*
              * Generates the b and x vector such that A * x = b
              * Compute the norms of the initial vectors if checking purpose.
              */
@@ -155,7 +158,7 @@ int main (int argc, char **argv)
                 memcpy( b, x, size );
             }
 
-            /**
+            /*
              * Step 5.1 - Solve
              * If you don't need iterative refinement
              * x contains the RHS b as input
@@ -169,7 +172,7 @@ int main (int argc, char **argv)
                    spm->n, spm->colptr, spm->rowptr, spm->values,
                    NULL, NULL, x, nrhs, iparm, dparm );
 
-            /**
+            /*
              * Step 5.2 - Refinnement
              * b contains the RHS b as input
              * b returns the soluton as output
@@ -187,7 +190,7 @@ int main (int argc, char **argv)
         }
     }
 
-    /**
+    /*
      * Step 6 - Clean structures
      * When you don't need PaStiX anymore
      */

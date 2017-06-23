@@ -1,7 +1,6 @@
 set (EXAMPLES
   simple.c
   step-by-step.c
-  schur.c
   )
 
 foreach (_file ${EXAMPLES})
@@ -10,8 +9,7 @@ foreach (_file ${EXAMPLES})
   target_link_libraries("old_${_name_we}" pastix)
 
   install(TARGETS old_${_name_we} RUNTIME DESTINATION examples/old )
-  install(FILES   ${_file}            DESTINATION examples/old )
-
+  install(FILES   ${_file}                DESTINATION examples/old )
 endforeach()
 
 ### Install a makefile for user compilation test
