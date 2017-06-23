@@ -23,10 +23,6 @@
 #ifndef _FLOPS_H_
 #define _FLOPS_H_
 
-#ifndef _PLASMA_H_
-#define PlasmaLeft  141
-#define PlasmaRight 142
-#endif
 /************************************************************************
  *           Generic formula coming from LAWN 41
  ***********************************************************************/
@@ -48,8 +44,8 @@
 #define FMULS_GEMM(__m, __n, __k) ((double)(__m) * (double)(__n) * (double)(__k))
 #define FADDS_GEMM(__m, __n, __k) ((double)(__m) * (double)(__n) * (double)(__k))
 
-#define FMULS_SYMM(__side, __m, __n) ( ( (__side) == PlasmaLeft ) ? FMULS_GEMM((__m), (__m), (__n)) : FMULS_GEMM((__m), (__n), (__n)) )
-#define FADDS_SYMM(__side, __m, __n) ( ( (__side) == PlasmaLeft ) ? FADDS_GEMM((__m), (__m), (__n)) : FADDS_GEMM((__m), (__n), (__n)) )
+#define FMULS_SYMM(__side, __m, __n) ( ( (__side) == PastixLeft ) ? FMULS_GEMM((__m), (__m), (__n)) : FMULS_GEMM((__m), (__n), (__n)) )
+#define FADDS_SYMM(__side, __m, __n) ( ( (__side) == PastixLeft ) ? FADDS_GEMM((__m), (__m), (__n)) : FADDS_GEMM((__m), (__n), (__n)) )
 #define FMULS_HEMM FMULS_SYMM
 #define FADDS_HEMM FADDS_SYMM
 
@@ -67,8 +63,8 @@
 #define FADDS_TRMM_2(__m, __n) (0.5 * (double)(__n) * (double)(__m) * ((double)(__m)-1.))
 
 
-#define FMULS_TRMM(__side, __m, __n) ( ( (__side) == PlasmaLeft ) ? FMULS_TRMM_2((__m), (__n)) : FMULS_TRMM_2((__n), (__m)) )
-#define FADDS_TRMM(__side, __m, __n) ( ( (__side) == PlasmaLeft ) ? FADDS_TRMM_2((__m), (__n)) : FADDS_TRMM_2((__n), (__m)) )
+#define FMULS_TRMM(__side, __m, __n) ( ( (__side) == PastixLeft ) ? FMULS_TRMM_2((__m), (__n)) : FMULS_TRMM_2((__n), (__m)) )
+#define FADDS_TRMM(__side, __m, __n) ( ( (__side) == PastixLeft ) ? FADDS_TRMM_2((__m), (__n)) : FADDS_TRMM_2((__n), (__m)) )
 
 #define FMULS_TRSM FMULS_TRMM
 #define FADDS_TRSM FMULS_TRMM

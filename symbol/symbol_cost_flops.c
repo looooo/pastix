@@ -95,7 +95,7 @@ flops_dsytrf_diag( pastix_int_t N ) {
  */
 static inline double
 flops_zpotrf_trsm( pastix_int_t M, pastix_int_t N ) {
-    return FLOPS_ZTRSM( PlasmaRight, M, N );
+    return FLOPS_ZTRSM( PastixRight, M, N );
 }
 
 /**
@@ -104,7 +104,7 @@ flops_zpotrf_trsm( pastix_int_t M, pastix_int_t N ) {
  */
 static inline double
 flops_dpotrf_trsm( pastix_int_t M, pastix_int_t N ) {
-    return FLOPS_DTRSM( PlasmaRight, M, N );
+    return FLOPS_DTRSM( PastixRight, M, N );
 }
 
 /**
@@ -113,7 +113,7 @@ flops_dpotrf_trsm( pastix_int_t M, pastix_int_t N ) {
  */
 static double
 flops_zgetrf_trsm( pastix_int_t M, pastix_int_t N ) {
-    return 2. * FLOPS_ZTRSM( PlasmaRight, M, N );
+    return 2. * FLOPS_ZTRSM( PastixRight, M, N );
 }
 
 /**
@@ -122,7 +122,7 @@ flops_zgetrf_trsm( pastix_int_t M, pastix_int_t N ) {
  */
 static inline double
 flops_dgetrf_trsm( pastix_int_t M, pastix_int_t N ) {
-    return 2. * FLOPS_DTRSM( PlasmaRight, M, N );
+    return 2. * FLOPS_DTRSM( PastixRight, M, N );
 }
 
 /**
@@ -131,7 +131,7 @@ flops_dgetrf_trsm( pastix_int_t M, pastix_int_t N ) {
  */
 static inline double
 flops_zsytrf_trsm( pastix_int_t M, pastix_int_t N ) {
-    return FLOPS_ZTRSM( PlasmaRight, M, N ) + 6. * (double)N * (double)M;
+    return FLOPS_ZTRSM( PastixRight, M, N ) + 6. * (double)N * (double)M;
 }
 
 /**
@@ -140,7 +140,7 @@ flops_zsytrf_trsm( pastix_int_t M, pastix_int_t N ) {
  */
 static inline double
 flops_dsytrf_trsm( pastix_int_t M, pastix_int_t N ) {
-    return FLOPS_DTRSM( PlasmaRight, M, N ) + (double)N * (double)M;
+    return FLOPS_DTRSM( PastixRight, M, N ) + (double)N * (double)M;
 }
 
 /**
