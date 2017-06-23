@@ -306,8 +306,9 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
 
             n = spm->gN;
             /* Personal ordering have to be global ordering */
-            assert(spm->gN == spm->n);
-            assert(n==myorder->vertnbr);
+            assert( spm->gN == spm->n );
+            assert( myorder != NULL );
+            assert( myorder->vertnbr == n );
 
             orderAlloc(ordemesh, n, 0);
 

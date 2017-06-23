@@ -52,7 +52,7 @@
 int
 orderAlloc( Order * const ordeptr,
             pastix_int_t vertnbr,
-            pastix_int_t cblknbr)
+            pastix_int_t cblknbr )
 {
     /* Parameter checks */
     if ( ordeptr == NULL ) {
