@@ -172,7 +172,7 @@ pastix( pastix_data_t **pastix_data_ptr,
      * factorization, because further steps are using the internal bcsc for
      * computations with A.
      */
-    if ( iparm[IPARM_START_TASK] <= PastixTaskNumfact) {
+    if (iparm[IPARM_START_TASK] <= PastixTaskNumfact) {
         if ( (pastix_data->csc != NULL) &&
              ((pastix_data->csc->n      != n)                       ||
               (pastix_data->csc->nnz    != (colptr[n] - colptr[0])) ||
@@ -188,36 +188,35 @@ pastix( pastix_data_t **pastix_data_ptr,
 
         if ( pastix_data->csc == NULL )
         {
-            spm = malloc(sizeof( pastix_spm_t ));
-            spmInit( spm );
-
             /*
              * Check and set the matrix type
              */
-            if (iparm[IPARM_MTX_TYPE] == -1 ) {
-                printf("Pastix old interface: you have to use --iparm iparm_mtx_type\n");
-                spmExit( spm );
-                free(spm);
+            if (iparm[IPARM_FLOAT] == -1) {
+                printf("Pastix old interface: you have to set iparm[IPARM_FLOAT]\n");
                 return PASTIX_ERR_BADPARAMETER;
-            } else {
-                spm->mtxtype = iparm[IPARM_MTX_TYPE];
+            }
+            if (iparm[IPARM_MTX_TYPE] == -1) {
+                printf("Pastix old interface: you have to set iparm[IPARM_MTX_TYPE]\n");
+                return PASTIX_ERR_BADPARAMETER;
+            }
+            if (iparm[IPARM_DOF_NBR] < 1) {
+                fprintf(stderr,
+                        "pastix: Variadic dofs are not supported in old pastix interface.\n"
+                        "        Please switch to the new interface to use this feature, \n"
+                        "        or set to a positive value\n");
+                return PASTIX_ERR_BADPARAMETER;
             }
 
+            spm = malloc(sizeof( pastix_spm_t ));
+            spmInit( spm );
+
+            spm->mtxtype = iparm[IPARM_MTX_TYPE];
             spm->flttype = iparm[IPARM_FLOAT];
             spm->fmttype = PastixCSC;
 
-            if ( iparm[IPARM_DOF_NBR] < 1 ) {
-                fprintf(stderr,
-                        "pastix: Variadic dofs are not supported in old pastix interface."
-                        "        Please switch to the new interface to use this feature\n");
-                spmExit( spm );
-                free(spm);
-                return PASTIX_ERR_NOTIMPLEMENTED;
-            }
-            spm->dof  = iparm[IPARM_DOF_NBR];
-
             spm->n    = n;
             spm->nnz  = colptr[n] - colptr[0];
+            spm->dof  = iparm[IPARM_DOF_NBR];
 
             spm->colptr = colptr;
             spm->rowptr = row;
@@ -247,22 +246,43 @@ pastix( pastix_data_t **pastix_data_ptr,
      */
     if (iparm[IPARM_START_TASK] == PastixTaskOrdering)
     {
-        Order o;
-        ret = orderAlloc(&o, n, 0);
-        memcpy( o.permtab, perm, o.vertnbr*sizeof(pastix_int_t));
-        memcpy( o.peritab, invp, o.vertnbr*sizeof(pastix_int_t));
-        if (PASTIX_SUCCESS != ret)
-        {
+        Order *o = NULL;
+
+        if ( (perm != NULL) || (invp != NULL) ) {
+            o = malloc( sizeof(Order) );
+            ret = orderAlloc( o, 0, 0 );
+
+            if ( perm != NULL ) {
+                MALLOC_INTERN(o->permtab, n, pastix_int_t);
+                memcpy( o->permtab, perm, n * sizeof(pastix_int_t) );
+                o->vertnbr = n;
+            }
+            if ( invp != NULL ) {
+                MALLOC_INTERN(o->peritab, n, pastix_int_t);
+                memcpy( o->peritab, invp, n * sizeof(pastix_int_t) );
+                o->vertnbr = n;
+            }
+        }
+
+        ret = pastix_subtask_order( pastix_data, spm, o );
+        if (PASTIX_SUCCESS != ret) {
             return ret;
         }
-        ret = pastix_subtask_order( pastix_data, spm, &o );
-        if (PASTIX_SUCCESS != ret)
-        {
-            return ret;
+
+        if ( o != NULL ) {
+            if ( perm != NULL ) {
+                assert( o->permtab != NULL );
+                assert( o->vertnbr == n );
+                memcpy( perm, o->permtab, n * sizeof(pastix_int_t));
+            }
+            if ( invp != NULL ) {
+                assert( o->peritab != NULL );
+                assert( o->vertnbr == n );
+                memcpy( invp, o->peritab, n * sizeof(pastix_int_t));
+            }
+            orderExit(o);
+            free(o);
         }
-        memcpy( perm, o.permtab, o.vertnbr*sizeof(pastix_int_t));
-        memcpy( invp, o.peritab, o.vertnbr*sizeof(pastix_int_t));
-        orderExit(&o);
         iparm[IPARM_START_TASK]++;
     }
 
