@@ -11,7 +11,8 @@
 
 ### CTest execution
 set( PASTIX_DRIVERS
-  analyze simple step-by-step schur personal) # reentrant fails with Scotch parser !
+   # reentrant fails with Scotch parser !
+  analyze simple step-by-step schur personal old/old_simple old/old_step-by-step )
 set( PASTIX_TESTS
   simple )
 set( PASTIX_FACTO
