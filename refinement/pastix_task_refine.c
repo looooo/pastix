@@ -114,6 +114,12 @@ pastix_task_refine( pastix_data_t *pastix_data,
         rhsnbr = 1;
     }
 
+    if (pastix_data->schur_n > 0)
+    {
+        fprintf(stderr, "Refinement is not available with Schur complement mode for now\n");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
     /* Prepare the refinment threshold, if not set by the user */
     if ( pastix_data->dparm[DPARM_EPSILON_REFINEMENT] < 0. ) {
         if ( (pastix_data->bcsc->flttype == PastixFloat) ||
