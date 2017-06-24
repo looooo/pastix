@@ -58,9 +58,9 @@ def task_numfact( pastix_data, spm ):
     libpastix.pastix_task_numfact.argtypes = [c_void_p, POINTER(spm.c_spm)]
     libpastix.pastix_task_numfact( pastix_data, spm.id_ptr )
 
-def task_solve( pastix_data, spm, x, nrhs=-1 ):
+def task_solve( pastix_data, x, nrhs=-1 ):
 
-    n    = spm.spm_c.n
+    n    = x.shape[0]
     nrhs = __getnrhs( nrhs, x )
 
     x = np.asarray(x, spm.dtype)
@@ -68,7 +68,7 @@ def task_solve( pastix_data, spm, x, nrhs=-1 ):
     spm._spm__checkVector( n, nrhs, x )
 
     libpastix.pastix_task_solve.argtypes = [c_void_p, POINTER(spm.c_spm), pastix_int, c_void_p, pastix_int]
-    libpastix.pastix_task_solve( pastix_data, spm.id_ptr, nrhs,
+    libpastix.pastix_task_solve( pastix_data, nrhs,
                                  x.ctypes.data_as(c_void_p), x.shape[0] )
 
 def task_refine( pastix_data, b, x, nrhs=-1 ):

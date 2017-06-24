@@ -39,7 +39,7 @@ class solver(object):
         Solve and refine the full problem Ax = b with refinement when no Schur Complement is involved
         """
         x = b.copy()
-        task_solve(self.pastix_data, self.spmA, x)
+        task_solve(self.pastix_data, x)
         if refine:
             task_refine(self.pastix_data, b, x)
         if check:
