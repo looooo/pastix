@@ -65,17 +65,14 @@ def task_solve( pastix_data, x, nrhs=-1 ):
 
     x = np.asarray(x, spm.dtype)
 
-    spm._spm__checkVector( n, nrhs, x )
-
-    libpastix.pastix_task_solve.argtypes = [c_void_p, POINTER(spm.c_spm), pastix_int, c_void_p, pastix_int]
-    libpastix.pastix_task_solve( pastix_data, nrhs,
-                                 x.ctypes.data_as(c_void_p), x.shape[0] )
+    libpastix.pastix_task_solve.argtypes = [c_void_p, pastix_int, c_void_p, pastix_int]
+    libpastix.pastix_task_solve( pastix_data, nrhs, x.ctypes.data_as(c_void_p), n )
 
 def task_refine( pastix_data, b, x, nrhs=-1 ):
 
     nrhs = __getnrhs( nrhs, x )
-    b = np.asarray(b, spm.dtype)
-    x = np.asarray(x, spm.dtype)
+    b = np.asarray( b, spm.dtype )
+    x = np.asarray( x, spm.dtype )
 
     if b.dtype != x.dtype:
         raise TypeError( "b and x must use the same arithmetic" )
@@ -86,25 +83,7 @@ def task_refine( pastix_data, b, x, nrhs=-1 ):
                                   b.ctypes.data_as(c_void_p) )
 
 #
-# Pastix Schur
-#
-def setSchurUnknownList( pastix_data, schur_list ):
-    n = schur_list.shape[0]
-
-    schur_list = np.array(schur_list, dtype=pastix_int)
-
-    libpastix.pastix_setSchurUnknownList.argtypes = [c_void_p, pastix_int, POINTER(pastix_int)]
-    libpastix.pastix_setSchurUnknownList( pastix_data, n,
-                                          schur_list.ctypes.data_as(POINTER(pastix_int)) )
-
-def getSchur( pastix_data, S ):
-    libpastix.pastix_getSchur.argtypes = [c_void_p, c_void_p, pastix_int ]
-    libpastix.pastix_getSchur( pastix_data,
-                               S.ctypes.data_as(c_void_p),
-                               S.shape[0] )
-
-#
-# Pastix Schur
+# Numerical solve subtasks
 #
 def subtask_applyorder( pastix_data, direction, b ):
     flttype = coeftype.getptype( b.dtype )
@@ -140,3 +119,20 @@ def subtask_diag( pastix_data, b ):
     libpastix.pastix_subtask_diag.argtypes = [c_void_p, c_int, pastix_int, c_void_p, pastix_int]
     libpastix.pastix_subtask_diag( pastix_data, flttype, nrhs,
                                    b.ctypes.data_as(c_void_p), ldb )
+
+#
+# Schur complement manipulation routines.
+#
+def setSchurUnknownList( pastix_data, schur_list ):
+    n = schur_list.shape[0]
+    schur_list = np.array(schur_list, dtype=pastix_int)
+
+    libpastix.pastix_setSchurUnknownList.argtypes = [c_void_p, pastix_int, POINTER(pastix_int)]
+    libpastix.pastix_setSchurUnknownList( pastix_data, n,
+                                          schur_list.ctypes.data_as(POINTER(pastix_int)) )
+
+def getSchur( pastix_data, S ):
+    libpastix.pastix_getSchur.argtypes = [c_void_p, c_void_p, pastix_int ]
+    libpastix.pastix_getSchur( pastix_data,
+                               S.ctypes.data_as(c_void_p),
+                               S.shape[0] )

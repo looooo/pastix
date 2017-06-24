@@ -60,7 +60,7 @@ class solver(object):
             self.spmA.printInfo()
 
         schur_list = np.asarray(schur_list, pastix_int)
-        self.schur_list = schur_list
+        self.schur_list = schur_list + self.spmA.findBase()
         setSchurUnknownList(self.pastix_data, schur_list)
 
         task_analyze(self.pastix_data, self.spmA)
@@ -117,8 +117,6 @@ class solver(object):
 
         #  5- Apply P^t to x
         subtask_applyorder( self.pastix_data, direction.Backward, x )
-        if refine:
-            task_refine(self.pastix_data, b, x)
 
         if check:
             self.spmA.checkAxb(x0, b, x)
