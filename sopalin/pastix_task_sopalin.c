@@ -167,9 +167,6 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
  *          On exit, the internal solver structure is filled with entries from
  *          the internal block CSC matrix.
  *
- * @param[in] spm
- *          The sparse matrix descriptor that describes problem instance.
- *
  *******************************************************************************
  *
  * @retval PASTIX_SUCCESS on successful exit,
@@ -178,9 +175,10 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
  *
  *******************************************************************************/
 int
-pastix_subtask_bcsc2ctab( pastix_data_t      *pastix_data,
-                          const pastix_spm_t *spm )
+pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
 {
+    pastix_bcsc_t *bcsc;
+    pastix_lr_t   *lr;
     Clock timer;
     int mtxtype;
 
@@ -191,26 +189,28 @@ pastix_subtask_bcsc2ctab( pastix_data_t      *pastix_data,
         errorPrint("pastix_subtask_bcsc2ctab: wrong pastix_data parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
-    if (spm == NULL) {
-        errorPrint("pastix_subtask_bcsc2ctab: wrong spm parameter");
-        return PASTIX_ERR_BADPARAMETER;
-    }
     if ( !(pastix_data->steps & STEP_CSC2BCSC) ) {
         errorPrint("pastix_subtask_bcsc2ctab: All steps from pastix_task_init() to pastix_stask_blend() have to be called before calling this function");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if (pastix_data->bcsc == NULL) {
+        errorPrint("pastix_subtask_bcsc2ctab: wrong pastix_data->bcsc parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
 
     clockStart(timer);
 
     /* Initialize low-rank parameters */
-    pastix_data->solvmatr->lowrank.compress_when       = pastix_data->iparm[IPARM_COMPRESS_WHEN];
-    pastix_data->solvmatr->lowrank.compress_method     = pastix_data->iparm[IPARM_COMPRESS_METHOD];
-    pastix_data->solvmatr->lowrank.compress_min_width  = pastix_data->iparm[IPARM_COMPRESS_MIN_WIDTH];
-    pastix_data->solvmatr->lowrank.compress_min_height = pastix_data->iparm[IPARM_COMPRESS_MIN_HEIGHT];
-    pastix_data->solvmatr->lowrank.tolerance           = sqrt(pastix_data->dparm[DPARM_COMPRESS_TOLERANCE]);
+    lr = &(pastix_data->solvmatr->lowrank);
+    lr->compress_when       = pastix_data->iparm[IPARM_COMPRESS_WHEN];
+    lr->compress_method     = pastix_data->iparm[IPARM_COMPRESS_METHOD];
+    lr->compress_min_width  = pastix_data->iparm[IPARM_COMPRESS_MIN_WIDTH];
+    lr->compress_min_height = pastix_data->iparm[IPARM_COMPRESS_MIN_HEIGHT];
+    lr->tolerance           = sqrt( pastix_data->dparm[DPARM_COMPRESS_TOLERANCE] );
 
-    pastix_data->solvmatr->lowrank.core_ge2lr = compressMethod[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][spm->flttype-2];
-    pastix_data->solvmatr->lowrank.core_rradd = recompressMethod[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][spm->flttype-2];
+    bcsc = pastix_data->bcsc;
+    lr->core_ge2lr = compressMethod[   pastix_data->iparm[IPARM_COMPRESS_METHOD] ][bcsc->flttype-2];
+    lr->core_rradd = recompressMethod[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][bcsc->flttype-2];
 
     pastix_data->solvmatr->factotype = pastix_data->iparm[IPARM_FACTORIZATION];
 
@@ -225,7 +225,6 @@ pastix_subtask_bcsc2ctab( pastix_data_t      *pastix_data,
     }
 
     coeftabInit( pastix_data,
-                 spm->flttype == PastixPattern,
                  pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU );
 
     mtxtype = ( pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU ) ? PastixGeneral : PastixHermitian;
@@ -235,7 +234,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t      *pastix_data,
     {
         /* Create the matrix descriptor */
         parsec_sparse_matrix_init( pastix_data->solvmatr,
-                                   pastix_size_of( spm->flttype ), mtxtype,
+                                   pastix_size_of( bcsc->flttype ), mtxtype,
                                    1, 0 );
     }
 #endif
@@ -245,7 +244,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t      *pastix_data,
     {
         /* Create the matrix descriptor */
         starpu_sparse_matrix_init( pastix_data->solvmatr,
-                                   pastix_size_of( spm->flttype ), mtxtype,
+                                   pastix_size_of( bcsc->flttype ), mtxtype,
                                    1, 0 );
     }
 #endif
@@ -293,11 +292,11 @@ pastix_subtask_bcsc2ctab( pastix_data_t      *pastix_data,
  *
  *******************************************************************************/
 int
-pastix_subtask_sopalin( pastix_data_t *pastix_data,
-                        const pastix_spm_t  *spm )
+pastix_subtask_sopalin( pastix_data_t *pastix_data )
 {
     sopalin_data_t  sopalin_data;
     SolverBackup_t *sbackup;
+    pastix_bcsc_t  *bcsc;
 /* #ifdef PASTIX_WITH_MPI */
 /*     MPI_Comm       pastix_comm = pastix_data->inter_node_comm; */
 /* #endif */
@@ -309,27 +308,29 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data,
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_task_sopalin: wrong pastix_data parameter");
-        return PASTIX_ERR_BADPARAMETER;
-    }
-    if (spm == NULL) {
-        errorPrint("pastix_task_sopalin: wrong spm parameter");
+        errorPrint("pastix_subtask_sopalin: wrong pastix_data parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_ANALYSE) ) {
-        errorPrint("pastix_task_sopalin: All steps from pastix_task_init() to pastix_task_blend() have to be called before calling this function");
+        errorPrint("pastix_subtask_sopalin: All steps from pastix_task_init() to pastix_task_analyze() have to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_CSC2BCSC) ) {
-        errorPrint("pastix_task_sopalin: All steps from pastix_task_init() to pastix_task_blend() have to be called before calling this function");
+        errorPrint("pastix_subtask_sopalin: All steps from pastix_task_init() to pastix_task_analyze() have to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_BCSC2CTAB) ) {
-        errorPrint("pastix_task_sopalin: All steps from pastix_task_init() to pastix_task_blend() have to be called before calling this function");
+        errorPrint("pastix_subtask_sopalin: All steps from pastix_task_init() to pastix_task_analyze() have to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    iparm   = pastix_data->iparm;
+    bcsc = pastix_data->bcsc;
+    if (bcsc == NULL) {
+        errorPrint("pastix_subtask_sopalin: wrong pastix_data_bcsc parameter");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    iparm = pastix_data->iparm;
 
     /* Prepare the sopalin_data structure */
     {
@@ -340,7 +341,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data,
             sopalin_data.diagthreshold = - pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ];
         }
         else if ( pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] == 0. ) {
-            if ( (spm->flttype == PastixFloat) || (spm->flttype == PastixComplex32) )
+            if ( (bcsc->flttype == PastixFloat) || (bcsc->flttype == PastixComplex32) )
                 sopalin_data.diagthreshold = 1e-7  * pastix_data->dparm[DPARM_A_NORM];
             else
                 sopalin_data.diagthreshold = 1e-15 * pastix_data->dparm[DPARM_A_NORM];
@@ -356,7 +357,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data,
         void (*factofct)( pastix_data_t *, sopalin_data_t *);
         double timer, flops;
 
-        factofct = sopalinFacto[ pastix_data->iparm[IPARM_FACTORIZATION] ][spm->flttype-2];
+        factofct = sopalinFacto[ pastix_data->iparm[IPARM_FACTORIZATION] ][bcsc->flttype-2];
         assert(factofct);
 
         clockStart(timer);
@@ -389,7 +390,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data,
          (pastix_data->iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever) )
     {
         /* Compute the memory gain */
-        coeftabMemory[spm->flttype-2]( pastix_data->solvmatr );
+        coeftabMemory[bcsc->flttype-2]( pastix_data->solvmatr );
     }
 
     /* Invalidate following steps, and add factorization step to the ones performed */
@@ -480,13 +481,13 @@ pastix_task_numfact( pastix_data_t *pastix_data,
     }
 
     if ( !(pastix_data->steps & STEP_BCSC2CTAB) ) {
-        rc = pastix_subtask_bcsc2ctab( pastix_data, spm );
+        rc = pastix_subtask_bcsc2ctab( pastix_data );
         if (rc != PASTIX_SUCCESS)
             return rc;
     }
 
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
-        rc = pastix_subtask_sopalin( pastix_data, spm );
+        rc = pastix_subtask_sopalin( pastix_data );
         if (rc != PASTIX_SUCCESS)
             return rc;
     }
