@@ -115,12 +115,10 @@ void
 coeftab_zinitcblk( const SolverMatrix  *solvmtx,
                    const pastix_bcsc_t *bcsc,
                    pastix_int_t itercblk,
-                   int fakefillin, int factoLU )
+                   int factoLU )
 {
     SolverCblk *cblk     = solvmtx->cblktab + itercblk;
     pastix_int_t coefnbr = cblk->stride * cblk_colnbr( cblk );
-    pastix_int_t j;
-
     pastix_int_t compress_when = solvmtx->lowrank.compress_when;
 
     /* If not NULL, allocated to store the shur complement for exemple */
@@ -138,38 +136,7 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
         cblk->ucoeftab = NULL;
     }
 
-    /**
-     * Fake initialization of the bloc column such that:
-     *       - L is filled with 1.
-     *       - U is filled with 2.
-     *       - The diagonal is made dominant
-     */
-    if ( fakefillin ) {
-        pastix_complex64_t *L = cblk->lcoeftab;
-        pastix_complex64_t *U = cblk->ucoeftab;
-
-        for (j=0; j<coefnbr; j++, L++)
-        {
-            *L = (pastix_complex64_t)1.;
-        }
-
-        if ( factoLU ) {
-            for (j=0; j<coefnbr; j++, U++)
-            {
-                *U = (pastix_complex64_t)2.;
-            }
-        }
-
-        /* for (j=0; j<size; itercol++) */
-        /* { */
-        /*     /\* On s'assure que la matrice est diagonale dominante *\/ */
-        /*     SOLV_COEFTAB(itercblk)[index+itercol*stride+itercol] = (pastix_complex64_t) (UPDOWN_GNODENBR*UPDOWN_GNODENBR); */
-        /* } */
-    }
-    else
-    {
-        coeftab_zffbcsc( solvmtx, bcsc, itercblk );
-    }
+    coeftab_zffbcsc( solvmtx, bcsc, itercblk );
 
 #if defined(PASTIX_DUMP_COEFTAB)
     {

@@ -48,7 +48,7 @@ void coeftab_zffbcsc  ( const SolverMatrix  *solvmtx,
 void coeftab_zinitcblk( const SolverMatrix  *solvmtx,
                         const pastix_bcsc_t *bcsc,
                         pastix_int_t itercblk,
-                        int fakefillin, int factoLU );
+                        int factoLU );
 
 /**
  *    @}
