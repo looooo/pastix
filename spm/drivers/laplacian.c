@@ -179,7 +179,7 @@ laplacian_parse_info( const char   *filename,
     }
 
     /* Scan the dimensions */
-    *dim1 = *dim2 = *dim3 = 0;
+    *dim1 = *dim2 = *dim3 = 1;
 
     if ( sscanf( filename, "%ld:%ld:%ld:%lf:%lf", &tmp1, &tmp2, &tmp3, &val1, &val2 ) == 5 ) {
         *dim1 = (pastix_int_t)tmp1;
