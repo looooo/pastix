@@ -17,7 +17,6 @@
  * @{
  *
  **/
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -917,7 +916,7 @@ simuRun( SimuCtrl           *simuctrl,
     }
 
     /*
-     * Run simulation and mapp the task onto a single candidate
+     * Run simulation and map the task onto a single candidate
      */
     while(1)
     {

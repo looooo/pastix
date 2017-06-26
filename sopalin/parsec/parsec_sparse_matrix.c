@@ -16,7 +16,6 @@
  * @{
  *
  **/
-#define _GNU_SOURCE
 #include "common.h"
 #include <parsec.h>
 #include <parsec/data.h>
