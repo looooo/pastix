@@ -90,8 +90,8 @@ void          spmUpdateComputedFields( pastix_spm_t *spm );
  */
 double        spmNorm( pastix_normtype_t ntype, const pastix_spm_t *spm );
 int           spmMatVec(const pastix_trans_t trans, const void *alpha, const pastix_spm_t *spm, const void *x, const void *beta, void *y );
-void          spmScalMatrix( const pastix_complex64_t alpha, pastix_spm_t* spm );
-void          spmScalVector( const double alpha, pastix_spm_t* spm, void *x );
+void          spmScalMatrix( const pastix_complex64_t alpha, pastix_spm_t *spm );
+void          spmScalVector( const double alpha, pastix_spm_t *spm, void *x );
 
 /**
  * @}
@@ -145,8 +145,8 @@ int           spmReadDriver( pastix_driver_t  driver,
  */
 void *        spm2Dense   ( const pastix_spm_t *spm );
 void          spmPrint    ( const pastix_spm_t *spm, FILE *f );
-void          spmPrintInfo( const pastix_spm_t* spm, FILE *f );
-pastix_spm_t *spmExpand   ( const pastix_spm_t* spm );
+void          spmPrintInfo( const pastix_spm_t *spm, FILE *f );
+pastix_spm_t *spmExpand   ( const pastix_spm_t *spm );
 pastix_spm_t *spmDofExtend( const pastix_spm_t *spm, const int type, const int dof  );
 
 /**
