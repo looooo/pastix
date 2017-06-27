@@ -3,7 +3,7 @@ module pastix_mod
   implicit none
 
   ! iparm enum
-  integer, parameter :: iparm_verbose               = 0
+  integer, parameter :: iparm_verbose               = 1
   integer, parameter :: iparm_io_strategy           = iparm_verbose               + 1
   integer, parameter :: iparm_nnzeros               = iparm_io_strategy           + 1
   integer, parameter :: iparm_nnzeros_block_local   = iparm_nnzeros               + 1
@@ -66,7 +66,7 @@ module pastix_mod
   integer, parameter :: iparm_size                  = iparm_dof_nbr               + 1
 
   ! dparm enum
-  integer, parameter :: dparm_fill_in            = 0
+  integer, parameter :: dparm_fill_in            = 1
   integer, parameter :: dparm_epsilon_refinement = dparm_fill_in            + 1
   integer, parameter :: dparm_relative_error     = dparm_epsilon_refinement + 1
   integer, parameter :: dparm_epsilon_magn_ctrl  = dparm_relative_error     + 1
@@ -1434,5 +1434,5 @@ contains
 
     call c_f_pointer(spmDofExtend_c(c_loc(spm), type, dof), spmo)
   end subroutine spmDofExtend
-  
+
 end module pastix_mod

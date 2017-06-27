@@ -126,7 +126,6 @@ z_spmMergeDuplicate( pastix_spm_t *spm )
     pastix_int_t dof2    = spm->dof * spm->dof;
     pastix_int_t idx, i, j, d, size;
     pastix_int_t merge = 0;
-    (void)d;
 
     if ( spm->fmttype == PastixCSC ) {
         idx = 0;
@@ -180,6 +179,7 @@ z_spmMergeDuplicate( pastix_spm_t *spm )
         }
     }
 
+    (void)d;
     return merge;
 }
 
