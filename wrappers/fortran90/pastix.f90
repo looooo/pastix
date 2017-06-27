@@ -233,19 +233,31 @@ module pastix_mod
   integer, parameter :: PastixBackward = 392 ! Backward direction
 
   ! C structs converted to derived types.
+  type, bind(c) :: pastix_data_t
+     type(c_ptr) :: ptr
+  end type pastix_data_t
+
+  type, bind(c) :: pastix_int_t
+     integer(c_int) :: value
+  end type pastix_int_t
+
+  type, bind(c) :: Order
+     type(c_ptr) :: ptr
+  end type Order
+
   type, bind(c) :: pastix_spm_t
      integer(kind=c_int) :: mtxtype
      integer(c_int) :: flttype
      integer(c_int) :: fmttype
-     integer(c_int) :: gN
-     integer(c_int) :: n
-     integer(c_int) :: gnnz
-     integer(c_int) :: nnz
-     integer(c_int) :: gNexp
-     integer(c_int) :: nexp
-     integer(c_int) :: gnnzexp
-     integer(c_int) :: nnzexp
-     integer(c_int) :: dof
+     type(pastix_int_t) :: gN
+     type(pastix_int_t) :: n
+     type(pastix_int_t) :: gnnz
+     type(pastix_int_t) :: nnz
+     type(pastix_int_t) :: gNexp
+     type(pastix_int_t) :: nexp
+     type(pastix_int_t) :: gnnzexp
+     type(pastix_int_t) :: nnzexp
+     type(pastix_int_t) :: dof
      type(c_ptr) :: dofs
      integer(c_int) :: layout
      type(c_ptr) :: colptr
@@ -260,18 +272,19 @@ module pastix_mod
           b, nrhs, iparm, dparm) &
           bind(c, name='pastix')
        use iso_c_binding
+       import pastix_int_t
        implicit none
        integer(kind=c_int) :: pastix_c
        type(c_ptr) :: pastix_data
        integer(kind=c_int), value :: pastix_comm
-       integer(c_int), value :: n
+       type(pastix_int_t), value :: n
        type(c_ptr), value :: colptr
        type(c_ptr), value :: row
        type(c_ptr), value :: avals
        type(c_ptr), value :: perm
        type(c_ptr), value :: invp
        type(c_ptr), value :: b
-       integer(c_int), value :: nrhs
+       type(pastix_int_t), value :: nrhs
        type(c_ptr), value :: iparm
        type(c_ptr), value :: dparm
      end function pastix_c
@@ -334,13 +347,14 @@ module pastix_mod
      function pastix_task_solve_c(pastix_data, spm, nrhs, b, ldb) &
           bind(c, name='pastix_task_solve')
        use iso_c_binding
+       import pastix_int_t
        implicit none
        integer(kind=c_int) :: pastix_task_solve_c
        type(c_ptr), value :: pastix_data
        type(c_ptr), value :: spm
-       integer(c_int), value :: nrhs
+       type(pastix_int_t), value :: nrhs
        type(c_ptr), value :: b
-       integer(c_int), value :: ldb
+       type(pastix_int_t), value :: ldb
      end function pastix_task_solve_c
   end interface
 
@@ -348,11 +362,12 @@ module pastix_mod
      function pastix_task_refine_c(pastix_data, x, rhsnbr, b) &
           bind(c, name='pastix_task_refine')
        use iso_c_binding
+       import pastix_int_t
        implicit none
        integer(kind=c_int) :: pastix_task_refine_c
        type(c_ptr), value :: pastix_data
        type(c_ptr), value :: x
-       integer(c_int), value :: rhsnbr
+       type(pastix_int_t), value :: rhsnbr
        type(c_ptr), value :: b
      end function pastix_task_refine_c
   end interface
@@ -436,15 +451,16 @@ module pastix_mod
      function pastix_subtask_applyorder_c(pastix_data, flttype, dir, m, n, b, ldb) &
           bind(c, name='pastix_subtask_applyorder')
        use iso_c_binding
+       import pastix_int_t
        implicit none
        integer(kind=c_int) :: pastix_subtask_applyorder_c
        type(c_ptr), value :: pastix_data
        integer(c_int), value :: flttype
        integer(c_int), value :: dir
-       integer(c_int), value :: m
-       integer(c_int), value :: n
+       type(pastix_int_t), value :: m
+       type(pastix_int_t), value :: n
        type(c_ptr), value :: b
-       integer(c_int), value :: ldb
+       type(pastix_int_t), value :: ldb
      end function pastix_subtask_applyorder_c
   end interface
 
@@ -453,6 +469,7 @@ module pastix_mod
           ldb) &
           bind(c, name='pastix_subtask_trsm')
        use iso_c_binding
+       import pastix_int_t
        implicit none
        integer(kind=c_int) :: pastix_subtask_trsm_c
        type(c_ptr), value :: pastix_data
@@ -461,9 +478,9 @@ module pastix_mod
        integer(c_int), value :: uplo
        integer(c_int), value :: trans
        integer(c_int), value :: diag
-       integer(c_int), value :: nrhs
+       type(pastix_int_t), value :: nrhs
        type(c_ptr), value :: b
-       integer(c_int), value :: ldb
+       type(pastix_int_t), value :: ldb
      end function pastix_subtask_trsm_c
   end interface
 
@@ -471,13 +488,14 @@ module pastix_mod
      function pastix_subtask_diag_c(pastix_data, flttype, nrhs, b, ldb) &
           bind(c, name='pastix_subtask_diag')
        use iso_c_binding
+       import pastix_int_t
        implicit none
        integer(kind=c_int) :: pastix_subtask_diag_c
        type(c_ptr), value :: pastix_data
        integer(c_int), value :: flttype
-       integer(c_int), value :: nrhs
+       type(pastix_int_t), value :: nrhs
        type(c_ptr), value :: b
-       integer(c_int), value :: ldb
+       type(pastix_int_t), value :: ldb
      end function pastix_subtask_diag_c
   end interface
 
@@ -485,9 +503,10 @@ module pastix_mod
      subroutine pastix_setSchurUnknownList_c(pastix_data, n, list) &
           bind(c, name='pastix_setSchurUnknownList')
        use iso_c_binding
+       import pastix_int_t
        implicit none
        type(c_ptr), value :: pastix_data
-       integer(c_int), value :: n
+       type(pastix_int_t), value :: n
        type(c_ptr), value :: list
      end subroutine pastix_setSchurUnknownList_c
   end interface
@@ -496,11 +515,12 @@ module pastix_mod
      function pastix_getSchur_c(pastix_data, S, lds) &
           bind(c, name='pastix_getSchur')
        use iso_c_binding
+       import pastix_int_t
        implicit none
        integer(kind=c_int) :: pastix_getSchur_c
        type(c_ptr), value :: pastix_data
        type(c_ptr), value :: S
-       integer(c_int), value :: lds
+       type(pastix_int_t), value :: lds
      end function pastix_getSchur_c
   end interface
 
@@ -566,8 +586,9 @@ module pastix_mod
           bind(c, name='spmFindBase')
        use iso_c_binding
        import pastix_spm_t
+       import pastix_int_t
        implicit none
-       integer(c_int) :: spmFindBase_c
+       type(pastix_int_t) :: spmFindBase_c
        type(c_ptr), value :: spm
      end function spmFindBase_c
   end interface
@@ -661,8 +682,9 @@ module pastix_mod
           bind(c, name='spmMergeDuplicate')
        use iso_c_binding
        import pastix_spm_t
+       import pastix_int_t
        implicit none
-       integer(c_int) :: spmMergeDuplicate_c
+       type(pastix_int_t) :: spmMergeDuplicate_c
        type(c_ptr), value :: spm
      end function spmMergeDuplicate_c
   end interface
@@ -672,8 +694,9 @@ module pastix_mod
           bind(c, name='spmSymmetrize')
        use iso_c_binding
        import pastix_spm_t
+       import pastix_int_t
        implicit none
-       integer(c_int) :: spmSymmetrize_c
+       type(pastix_int_t) :: spmSymmetrize_c
        type(c_ptr), value :: spm
      end function spmSymmetrize_c
   end interface
@@ -728,9 +751,10 @@ module pastix_mod
      function spmIntConvert_c(n, input) &
           bind(c, name='spmIntConvert')
        use iso_c_binding
+       import pastix_int_t
        implicit none
        type(c_ptr) :: spmIntConvert_c
-       integer(c_int), value :: n
+       type(pastix_int_t), value :: n
        type(c_ptr), value :: input
      end function spmIntConvert_c
   end interface
@@ -739,9 +763,10 @@ module pastix_mod
      subroutine spmIntSort1Asc1_c(pbase, n) &
           bind(c, name='spmIntSort1Asc1')
        use iso_c_binding
+       import pastix_int_t
        implicit none
        type(c_ptr), value :: pbase
-       integer(c_int), value :: n
+       type(pastix_int_t), value :: n
      end subroutine spmIntSort1Asc1_c
   end interface
 
@@ -749,9 +774,10 @@ module pastix_mod
      subroutine spmIntSort2Asc1_c(pbase, n) &
           bind(c, name='spmIntSort2Asc1')
        use iso_c_binding
+       import pastix_int_t
        implicit none
        type(c_ptr), value :: pbase
-       integer(c_int), value :: n
+       type(pastix_int_t), value :: n
      end subroutine spmIntSort2Asc1_c
   end interface
 
@@ -759,10 +785,35 @@ module pastix_mod
      subroutine spmIntSort2Asc2_c(pbase, n) &
           bind(c, name='spmIntSort2Asc2')
        use iso_c_binding
+       import pastix_int_t
        implicit none
        type(c_ptr), value :: pbase
-       integer(c_int), value :: n
+       type(pastix_int_t), value :: n
      end subroutine spmIntSort2Asc2_c
+  end interface
+
+  interface
+     function spmLoad_c(spm, infile) &
+          bind(c, name='spmLoad')
+       use iso_c_binding
+       import pastix_spm_t
+       implicit none
+       integer(kind=c_int) :: spmLoad_c
+       type(c_ptr), value :: spm
+       type(c_ptr), value :: infile
+     end function spmLoad_c
+  end interface
+
+  interface
+     function spmSave_c(spm, outfile) &
+          bind(c, name='spmSave')
+       use iso_c_binding
+       import pastix_spm_t
+       implicit none
+       integer(kind=c_int) :: spmSave_c
+       type(c_ptr), value :: spm
+       type(c_ptr), value :: outfile
+     end function spmSave_c
   end interface
 
   interface
@@ -787,6 +838,28 @@ module pastix_mod
        implicit none
        type(c_ptr), value :: spm
      end subroutine spm2Dense_c
+  end interface
+
+  interface
+     subroutine spmPrint_c(spm, f) &
+          bind(c, name='spmPrint')
+       use iso_c_binding
+       import pastix_spm_t
+       implicit none
+       type(c_ptr), value :: spm
+       type(c_ptr), value :: f
+     end subroutine spmPrint_c
+  end interface
+
+  interface
+     subroutine spmPrintInfo_c(spm, f) &
+          bind(c, name='spmPrintInfo')
+       use iso_c_binding
+       import pastix_spm_t
+       implicit none
+       type(c_ptr), value :: spm
+       type(c_ptr), value :: f
+     end subroutine spmPrintInfo_c
   end interface
 
   interface
@@ -820,17 +893,17 @@ contains
        b, nrhs, iparm, dparm, info)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), pointer :: pastix_data
+    type(pastix_data_t), intent(inout), pointer :: pastix_data
     integer(kind=c_int), intent(in) :: pastix_comm
-    integer(c_int), intent(in) :: n
-    integer(c_int), intent(inout), target :: colptr
-    integer(c_int), intent(inout), target :: row
+    type(pastix_int_t), intent(in) :: n
+    type(pastix_int_t), intent(inout), target :: colptr
+    type(pastix_int_t), intent(inout), target :: row
     type(c_ptr), intent(inout), target :: avals
-    integer(c_int), intent(inout), target :: perm
-    integer(c_int), intent(inout), target :: invp
+    type(pastix_int_t), intent(inout), target :: perm
+    type(pastix_int_t), intent(inout), target :: invp
     type(c_ptr), intent(inout), target :: b
-    integer(c_int), intent(in) :: nrhs
-    integer(c_int), intent(inout), target :: iparm
+    type(pastix_int_t), intent(in) :: nrhs
+    type(pastix_int_t), intent(inout), target :: iparm
     real(kind=c_double), intent(inout), target :: dparm
     integer(kind=c_int), intent(out) :: info
 
@@ -844,7 +917,7 @@ contains
   subroutine pastixInitParam(iparm, dparm)
     use iso_c_binding
     implicit none
-    integer(c_int), intent(inout), target :: iparm
+    type(pastix_int_t), intent(inout), target :: iparm
     real(kind=c_double), intent(inout), target :: dparm
 
     call pastixInitParam_c(c_loc(iparm), c_loc(dparm))
@@ -853,9 +926,9 @@ contains
   subroutine pastixInit(pastix_data, pastix_comm, iparm, dparm)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), pointer :: pastix_data
+    type(pastix_data_t), intent(inout), pointer :: pastix_data
     integer(kind=c_int), intent(in) :: pastix_comm
-    integer(c_int), intent(inout), target :: iparm
+    type(pastix_int_t), intent(inout), target :: iparm
     real(kind=c_double), intent(inout), target :: dparm
 
     type(c_ptr) :: pastix_data_aux
@@ -867,7 +940,7 @@ contains
   subroutine pastixFinalize(pastix_data)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), pointer :: pastix_data
+    type(pastix_data_t), intent(inout), pointer :: pastix_data
 
     type(c_ptr) :: pastix_data_aux
 
@@ -878,7 +951,7 @@ contains
   subroutine pastix_task_analyze(pastix_data, spm, info)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     type(pastix_spm_t), intent(inout), target :: spm
     integer(kind=c_int), intent(out) :: info
 
@@ -888,7 +961,7 @@ contains
   subroutine pastix_task_numfact(pastix_data, spm, info)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     type(pastix_spm_t), intent(inout), target :: spm
     integer(kind=c_int), intent(out) :: info
 
@@ -898,11 +971,11 @@ contains
   subroutine pastix_task_solve(pastix_data, spm, nrhs, b, ldb, info)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     type(pastix_spm_t), intent(inout), target :: spm
-    integer(c_int), intent(in) :: nrhs
+    type(pastix_int_t), intent(in) :: nrhs
     type(c_ptr), intent(inout), target :: b
-    integer(c_int), intent(in) :: ldb
+    type(pastix_int_t), intent(in) :: ldb
     integer(kind=c_int), intent(out) :: info
 
     info = pastix_task_solve_c(c_loc(pastix_data), c_loc(spm), nrhs, c_loc(b), ldb)
@@ -911,9 +984,9 @@ contains
   subroutine pastix_task_refine(pastix_data, x, rhsnbr, b, info)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     type(c_ptr), intent(inout), target :: x
-    integer(c_int), intent(in) :: rhsnbr
+    type(pastix_int_t), intent(in) :: rhsnbr
     type(c_ptr), intent(inout), target :: b
     integer(kind=c_int), intent(out) :: info
 
@@ -923,9 +996,9 @@ contains
   subroutine pastix_subtask_order(pastix_data, spm, myorder, info)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     type(pastix_spm_t), intent(inout), target :: spm
-    type(c_ptr), intent(inout), target :: myorder
+    type(Order), intent(inout), target :: myorder
     integer(kind=c_int), intent(out) :: info
 
     info = pastix_subtask_order_c(c_loc(pastix_data), c_loc(spm), c_loc(myorder))
@@ -934,7 +1007,7 @@ contains
   subroutine pastix_subtask_symbfact(pastix_data, info)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     integer(kind=c_int), intent(out) :: info
 
     info = pastix_subtask_symbfact_c(c_loc(pastix_data))
@@ -943,7 +1016,7 @@ contains
   subroutine pastix_subtask_reordering(pastix_data, info)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     integer(kind=c_int), intent(out) :: info
 
     info = pastix_subtask_reordering_c(c_loc(pastix_data))
@@ -952,7 +1025,7 @@ contains
   subroutine pastix_subtask_blend(pastix_data, info)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     integer(kind=c_int), intent(out) :: info
 
     info = pastix_subtask_blend_c(c_loc(pastix_data))
@@ -961,7 +1034,7 @@ contains
   subroutine pastix_subtask_spm2bcsc(pastix_data, spm, info)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     type(pastix_spm_t), intent(inout), target :: spm
     integer(kind=c_int), intent(out) :: info
 
@@ -971,7 +1044,7 @@ contains
   subroutine pastix_subtask_bcsc2ctab(pastix_data, spm, info)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     type(pastix_spm_t), intent(inout), target :: spm
     integer(kind=c_int), intent(out) :: info
 
@@ -981,7 +1054,7 @@ contains
   subroutine pastix_subtask_sopalin(pastix_data, spm, info)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     type(pastix_spm_t), intent(inout), target :: spm
     integer(kind=c_int), intent(out) :: info
 
@@ -991,13 +1064,13 @@ contains
   subroutine pastix_subtask_applyorder(pastix_data, flttype, dir, m, n, b, ldb, info)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     integer(c_int), intent(in) :: flttype
     integer(c_int), intent(in) :: dir
-    integer(c_int), intent(in) :: m
-    integer(c_int), intent(in) :: n
+    type(pastix_int_t), intent(in) :: m
+    type(pastix_int_t), intent(in) :: n
     type(c_ptr), intent(inout), target :: b
-    integer(c_int), intent(in) :: ldb
+    type(pastix_int_t), intent(in) :: ldb
     integer(kind=c_int), intent(out) :: info
 
     info = pastix_subtask_applyorder_c(c_loc(pastix_data), flttype, dir, m, n, c_loc(b), ldb)
@@ -1007,15 +1080,15 @@ contains
        ldb, info)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     integer(c_int), intent(in) :: flttype
     integer(c_int), intent(in) :: side
     integer(c_int), intent(in) :: uplo
     integer(c_int), intent(in) :: trans
     integer(c_int), intent(in) :: diag
-    integer(c_int), intent(in) :: nrhs
+    type(pastix_int_t), intent(in) :: nrhs
     type(c_ptr), intent(inout), target :: b
-    integer(c_int), intent(in) :: ldb
+    type(pastix_int_t), intent(in) :: ldb
     integer(kind=c_int), intent(out) :: info
 
     info = pastix_subtask_trsm_c(c_loc(pastix_data), flttype, side, uplo, trans, diag, nrhs, c_loc(b), &
@@ -1025,11 +1098,11 @@ contains
   subroutine pastix_subtask_diag(pastix_data, flttype, nrhs, b, ldb, info)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     integer(c_int), intent(in) :: flttype
-    integer(c_int), intent(in) :: nrhs
+    type(pastix_int_t), intent(in) :: nrhs
     type(c_ptr), intent(inout), target :: b
-    integer(c_int), intent(in) :: ldb
+    type(pastix_int_t), intent(in) :: ldb
     integer(kind=c_int), intent(out) :: info
 
     info = pastix_subtask_diag_c(c_loc(pastix_data), flttype, nrhs, c_loc(b), ldb)
@@ -1038,9 +1111,9 @@ contains
   subroutine pastix_setSchurUnknownList(pastix_data, n, list)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), target :: pastix_data
-    integer(c_int), intent(in) :: n
-    integer(c_int), intent(inout), target :: list
+    type(pastix_data_t), intent(inout), target :: pastix_data
+    type(pastix_int_t), intent(in) :: n
+    type(pastix_int_t), intent(inout), target :: list
 
     call pastix_setSchurUnknownList_c(c_loc(pastix_data), n, c_loc(list))
   end subroutine pastix_setSchurUnknownList
@@ -1048,9 +1121,9 @@ contains
   subroutine pastix_getSchur(pastix_data, S, lds, info)
     use iso_c_binding
     implicit none
-    type(c_ptr), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     type(c_ptr), intent(inout), target :: S
-    integer(c_int), intent(in) :: lds
+    type(pastix_int_t), intent(in) :: lds
     integer(kind=c_int), intent(out) :: info
 
     info = pastix_getSchur_c(c_loc(pastix_data), c_loc(S), lds)
@@ -1061,7 +1134,7 @@ contains
     implicit none
     integer(kind=c_int), intent(in) :: argc
     character(kind=c_char), intent(inout), pointer :: argv
-    integer(c_int), intent(inout), target :: iparam
+    type(pastix_int_t), intent(inout), target :: iparam
     real(kind=c_double), intent(inout), target :: dparam
     integer(kind=c_int), intent(inout), target :: check
     integer(c_int), intent(inout), target :: driver
@@ -1114,7 +1187,7 @@ contains
     use iso_c_binding
     implicit none
     type(pastix_spm_t), intent(inout), target :: spm
-    integer(c_int), intent(out) :: value
+    type(pastix_int_t), intent(out) :: value
 
     value = spmFindBase_c(c_loc(spm))
   end subroutine spmFindBase
@@ -1193,7 +1266,7 @@ contains
     use iso_c_binding
     implicit none
     type(pastix_spm_t), intent(inout), target :: spm
-    integer(c_int), intent(out) :: value
+    type(pastix_int_t), intent(out) :: value
 
     value = spmMergeDuplicate_c(c_loc(spm))
   end subroutine spmMergeDuplicate
@@ -1202,7 +1275,7 @@ contains
     use iso_c_binding
     implicit none
     type(pastix_spm_t), intent(inout), target :: spm
-    integer(c_int), intent(out) :: value
+    type(pastix_int_t), intent(out) :: value
 
     value = spmSymmetrize_c(c_loc(spm))
   end subroutine spmSymmetrize
@@ -1250,9 +1323,9 @@ contains
   subroutine spmIntConvert(n, input, value)
     use iso_c_binding
     implicit none
-    integer(c_int), intent(in) :: n
+    type(pastix_int_t), intent(in) :: n
     integer(kind=c_int), intent(inout), target :: input
-    integer(c_int), intent(out), pointer :: value
+    type(pastix_int_t), intent(out), pointer :: value
 
     call c_f_pointer(spmIntConvert_c(n, c_loc(input)), value)
   end subroutine spmIntConvert
@@ -1261,7 +1334,7 @@ contains
     use iso_c_binding
     implicit none
     type(c_ptr), intent(inout), target :: pbase
-    integer(c_int), intent(in) :: n
+    type(pastix_int_t), intent(in) :: n
 
     call spmIntSort1Asc1_c(c_loc(pbase), n)
   end subroutine spmIntSort1Asc1
@@ -1270,7 +1343,7 @@ contains
     use iso_c_binding
     implicit none
     type(c_ptr), intent(inout), target :: pbase
-    integer(c_int), intent(in) :: n
+    type(pastix_int_t), intent(in) :: n
 
     call spmIntSort2Asc1_c(c_loc(pbase), n)
   end subroutine spmIntSort2Asc1
@@ -1279,10 +1352,30 @@ contains
     use iso_c_binding
     implicit none
     type(c_ptr), intent(inout), target :: pbase
-    integer(c_int), intent(in) :: n
+    type(pastix_int_t), intent(in) :: n
 
     call spmIntSort2Asc2_c(c_loc(pbase), n)
   end subroutine spmIntSort2Asc2
+
+  subroutine spmLoad(spm, infile, info)
+    use iso_c_binding
+    implicit none
+    type(pastix_spm_t), intent(inout), target :: spm
+    type(c_ptr), intent(inout), target :: infile
+    integer(kind=c_int), intent(out) :: info
+
+    info = spmLoad_c(c_loc(spm), c_loc(infile))
+  end subroutine spmLoad
+
+  subroutine spmSave(spm, outfile, info)
+    use iso_c_binding
+    implicit none
+    type(pastix_spm_t), intent(inout), target :: spm
+    type(c_ptr), intent(inout), target :: outfile
+    integer(kind=c_int), intent(out) :: info
+
+    info = spmSave_c(c_loc(spm), c_loc(outfile))
+  end subroutine spmSave
 
   subroutine spmReadDriver(driver, filename, spm, pastix_comm, info)
     use iso_c_binding
@@ -1303,6 +1396,24 @@ contains
 
     call spm2Dense_c(c_loc(spm))
   end subroutine spm2Dense
+
+  subroutine spmPrint(spm, f)
+    use iso_c_binding
+    implicit none
+    type(pastix_spm_t), intent(inout), target :: spm
+    type(c_ptr), intent(inout), target :: f
+
+    call spmPrint_c(c_loc(spm), c_loc(f))
+  end subroutine spmPrint
+
+  subroutine spmPrintInfo(spm, f)
+    use iso_c_binding
+    implicit none
+    type(pastix_spm_t), intent(inout), target :: spm
+    type(c_ptr), intent(inout), target :: f
+
+    call spmPrintInfo_c(c_loc(spm), c_loc(f))
+  end subroutine spmPrintInfo
 
   subroutine spmExpand(spm, spmo)
     use iso_c_binding
