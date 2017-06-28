@@ -382,8 +382,8 @@ typedef enum pastix_uplo_e {
  * @brief Data blocks used in the kernel
  */
 typedef enum pastix_coefside_e {
-    PastixLCoef =  0, /**< Coefficients of the lower triangular L are used         */
-    PastixUCoef =  1, /**< Coefficients of the upper triangular U are used         */
+    PastixLCoef  = 0, /**< Coefficients of the lower triangular L are used         */
+    PastixUCoef  = 1, /**< Coefficients of the upper triangular U are used         */
     PastixLUCoef = 2  /**< Coefficients of the upper/lower triangular U/L are used */
 } pastix_coefside_t;
 

@@ -42,7 +42,7 @@
  *
  */
 typedef struct pastix_spm_s {
-    int               mtxtype; /**< Matrix structure: PastixGeneral, PastixSymmetric
+    pastix_symmetry_t mtxtype; /**< Matrix structure: PastixGeneral, PastixSymmetric
                                     or PastixHermitian.                                            */
     pastix_coeftype_t flttype; /**< avals datatype: PastixPattern, PastixFloat, PastixDouble,
                                     PastixComplex32 or PastixComplex64                             */
@@ -83,6 +83,20 @@ pastix_int_t  spmFindBase( const pastix_spm_t *spm );
 int           spmConvert( int ofmttype, pastix_spm_t *ospm );
 void          spmUpdateComputedFields( pastix_spm_t *spm );
 
+void          spm( pastix_spm_t      *spm,
+                   pastix_symmetry_t  mtxtype,
+                   pastix_coeftype_t  flttype,
+                   pastix_fmttype_t   fmttype,
+                   pastix_int_t       n,
+                   pastix_int_t       nnz,
+                   pastix_int_t      *colptr,
+                   pastix_int_t      *rowptr,
+                   void              *values,
+                   pastix_int_t      *loc2glob,
+                   pastix_int_t       dof,
+                   pastix_layout_t    layout,
+                   pastix_int_t      *dofs );
+
 /**
  * @}
  * @name SPM BLAS subroutines
@@ -108,8 +122,8 @@ pastix_spm_t *spmCheckAndCorrect( pastix_spm_t *spm );
  * @name SPM subroutines to check factorization/solve
  * @{
  */
-int           spmGenRHS( pastix_rhstype_t type, int nrhs, const pastix_spm_t *spm, void *x, int ldx, void *b, int ldb );
-int           spmCheckAxb( int nrhs, const pastix_spm_t *spm, void *x0, int ldx0, void *b, int ldb, const void *x, int ldx );
+int           spmGenRHS( pastix_rhstype_t type, pastix_int_t nrhs, const pastix_spm_t *spm, void *x, pastix_int_t ldx, void *b, pastix_int_t ldb );
+int           spmCheckAxb( pastix_int_t nrhs, const pastix_spm_t *spm, void *x0, pastix_int_t ldx0, void *b, pastix_int_t ldb, const void *x, pastix_int_t ldx );
 
 /**
  * @}
@@ -135,7 +149,7 @@ int           spmSave( pastix_spm_t *spm, FILE *outfile );
  * @{
  */
 int           spmReadDriver( pastix_driver_t  driver,
-                             char            *filename,
+                             const char      *filename,
                              pastix_spm_t    *spm,
                              MPI_Comm         pastix_comm );
 /**
