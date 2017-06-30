@@ -663,6 +663,9 @@ symbolReordering( const SymbolMatrix *symbptr,
     MALLOC_INTERN( depthweight, maxdepth, pastix_int_t );
     for (itercblk=0; itercblk<cblknbr; itercblk++, cblk++) {
 
+        if (cblk->fcolnum >= symbptr->schurfcol )
+            continue;
+
         memset( depthweight, 0, maxdepth * sizeof(pastix_int_t) );
 
         symbol_reorder_cblk( symbptr, cblk, order,
@@ -714,6 +717,9 @@ symbolReorderingPrintComplexity( const SymbolMatrix *symbptr )
     for (itercblk=0; itercblk<cblknbr; itercblk++, cblk++) {
         pastix_int_t width;
         pastix_int_t nbcblk = 0;
+
+        if (cblk->fcolnum >= symbptr->schurfcol )
+            continue;
 
         for (iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++) {
             SymbolBlok *blok = symbptr->bloktab + symbptr->browtab[iterblok];
