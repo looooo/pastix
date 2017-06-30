@@ -44,7 +44,6 @@ coeftab_fct_compress_t coeftabCompress[4] =
 struct coeftabinit_s {
     const SolverMatrix  *datacode;
     const pastix_bcsc_t *bcsc;
-    int fakefillin;
     int factoLU;
 };
 
@@ -71,7 +70,6 @@ pcoeftabInit( isched_thread_t *ctx, void *args )
     struct coeftabinit_s *ciargs = (struct coeftabinit_s*)args;
     const SolverMatrix  *datacode = ciargs->datacode;
     const pastix_bcsc_t *bcsc     = ciargs->bcsc;
-    int fakefillin = ciargs->fakefillin;
     int factoLU    = ciargs->factoLU;
     pastix_int_t i, itercblk;
     pastix_int_t task;
@@ -79,7 +77,7 @@ pcoeftabInit( isched_thread_t *ctx, void *args )
     void (*initfunc)(const SolverMatrix*,
                      const pastix_bcsc_t*,
                      pastix_int_t,
-                     int, int) = NULL;
+                     int) = NULL;
     void (*dumpfunc)(const SolverMatrix*,
                      const char *) = NULL;
 
@@ -108,7 +106,7 @@ pcoeftabInit( isched_thread_t *ctx, void *args )
         task = datacode->ttsktab[rank][i];
         itercblk = datacode->tasktab[task].cblknum;
 
-        initfunc( datacode, bcsc, itercblk, fakefillin, factoLU );
+        initfunc( datacode, bcsc, itercblk, factoLU );
     }
 
     (void)dumpfunc;
@@ -117,13 +115,12 @@ pcoeftabInit( isched_thread_t *ctx, void *args )
 
 void
 coeftabInit( const pastix_data_t *pastix_data,
-             int fakefillin, int factoLU )
+             int factoLU )
 {
     struct coeftabinit_s args;
 
     args.datacode   = pastix_data->solvmatr;
     args.bcsc       = pastix_data->bcsc;
-    args.fakefillin = fakefillin;
     args.factoLU    = factoLU;
 
     isched_parallel_call( pastix_data->isched, pcoeftabInit, &args );

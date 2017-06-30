@@ -344,19 +344,17 @@ pastix( pastix_data_t **pastix_data_ptr,
     }
 
     if (iparm[IPARM_START_TASK] == PastixTaskSolve) {
-        void *tmp;
         size = pastix_size_of( spm->flttype ) * spm->n;
-        tmp = malloc(size);
 
         /*
          * Backup the initial b if we need to perform an iterative
          * refinement after the solve step
          */
         if (iparm[IPARM_END_TASK] > PastixTaskSolve) {
-            memcpy(tmp, b, size);
-            pastix_data->b = tmp;
+            pastix_data->b = malloc(size);
+            memcpy(pastix_data->b, b, size);
         }
-        pastix_task_solve( pastix_data, spm, nrhs, b, spm->n );
+        pastix_task_solve( pastix_data, nrhs, b, spm->n );
         iparm[IPARM_START_TASK]++;
 
         /*
@@ -364,8 +362,8 @@ pastix( pastix_data_t **pastix_data_ptr,
          * iterative refinement
          */
         if (iparm[IPARM_END_TASK] == PastixTaskSolve) {
-            memcpy(tmp, b, size);
-            pastix_data->x0 = tmp;
+            pastix_data->x0 = malloc(size);
+            memcpy(pastix_data->x0, b, size);
         }
     }
 

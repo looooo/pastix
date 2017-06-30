@@ -46,10 +46,10 @@ pastix.task_numfact( pastix_data, spmA )
 
 # Perform solve
 x = b.copy()
-pastix.task_solve( pastix_data, spmA, x)
+pastix.task_solve( pastix_data, x )
 
 # Refine the solution
-pastix.task_refine(pastix_data, b, x)
+pastix.task_refine( pastix_data, b, x )
 
 # Check solution
 spmA.checkAxb( x0, b, x )

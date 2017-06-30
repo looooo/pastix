@@ -123,6 +123,15 @@ class spm():
         print(self.spm_c.flttype)
         self.dtype = coeftype.getnptype( self.spm_c.flttype )
 
+    def base( self, baseval ):
+        libspm.spmBase.argtypes = [POINTER(self.c_spm), c_int]
+        libspm.spmBase( self.id_ptr, baseval )
+
+    def findBase( self ):
+        libspm.spmFindBase.argtypes = [POINTER(self.c_spm)]
+        libspm.spmFindBase.restype = pastix_int
+        return libspm.spmFindBase( self.id_ptr )
+
     def updateComputedField( self ):
         libspm.spmUpdateComputedFields.argtypes = [POINTER(self.c_spm)]
         libspm.spmUpdateComputedFields( self.id_ptr )

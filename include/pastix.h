@@ -75,7 +75,6 @@ int pastix_task_analyze( pastix_data_t      *pastix_data,
 int pastix_task_numfact( pastix_data_t      *pastix_data,
                          pastix_spm_t       *spm );
 int pastix_task_solve  ( pastix_data_t      *pastix_data,
-                         const pastix_spm_t *spm,
                          pastix_int_t        nrhs,
                          void               *b,
                          pastix_int_t        ldb );
@@ -99,10 +98,8 @@ int pastix_subtask_blend     ( pastix_data_t      *pastix_data );
  */
 int pastix_subtask_spm2bcsc  ( pastix_data_t      *pastix_data,
                                pastix_spm_t       *spm );
-int pastix_subtask_bcsc2ctab ( pastix_data_t      *pastix_data,
-                               const pastix_spm_t *spm );
-int pastix_subtask_sopalin   ( pastix_data_t      *pastix_data,
-                               const pastix_spm_t *spm );
+int pastix_subtask_bcsc2ctab ( pastix_data_t      *pastix_data );
+int pastix_subtask_sopalin   ( pastix_data_t      *pastix_data );
 
 /*
  * Numerical solve subtasks

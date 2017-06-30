@@ -228,6 +228,7 @@ bcscInitCentralizedFake( const pastix_spm_t  *spm,
 {
     pastix_int_t valuesize;
 
+    bcsc->flttype = PastixDouble;
     valuesize = bcsc_init_centralized_coltab( spm, ord, solvmtx, bcsc );
 
     /**

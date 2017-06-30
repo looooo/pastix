@@ -96,8 +96,8 @@ int main (int argc, char **argv)
      * Perform the numerical factorization
      */
     pastix_subtask_spm2bcsc( pastix_data, spm );
-    pastix_subtask_bcsc2ctab( pastix_data, spm );
-    pastix_subtask_sopalin( pastix_data, spm );
+    pastix_subtask_bcsc2ctab( pastix_data );
+    pastix_subtask_sopalin( pastix_data );
 
     /**
      * Generates the b and x vector such that A * x = b
@@ -117,8 +117,8 @@ int main (int argc, char **argv)
     /**
      * Solve the linear system
      */
-    pastix_task_solve( pastix_data, spm, nrhs, x, spm->n );
-    pastix_task_refine(pastix_data, x, nrhs, b);
+    pastix_task_solve( pastix_data, nrhs, x, spm->n );
+    pastix_task_refine( pastix_data, x, nrhs, b );
 
     if ( check ) {
         spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );

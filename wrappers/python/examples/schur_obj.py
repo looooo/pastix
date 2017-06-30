@@ -22,20 +22,27 @@ import scipy.sparse as sps
 import scipy.linalg as la
 import numpy as np
 
-# Set matrix A
-n = 9
-A = sps.spdiags([np.ones(n)*i for i in [4, -1, -1, -1, -1]],
-                [0, 1, 3, -1, -3], n, n)
+# Hack to make sure that the mkl is loaded
+tmp = np.eye(2).dot(np.ones(2))
+
+# Set matrix A from Scipy Sparse matrices
+n = 30
+A = sps.spdiags([np.ones(n)*i for i in [4., -1, -1]],
+                [0, 1, -1], n, n)
 
 x0 = np.arange(n).reshape(n,1)
 # Construct b as b = A * x_0
-b  = A.dot(x0)
+b = A.dot(x0)
+x = b.copy()
 
-tmp = np.eye(2).dot(np.ones(2))  # Hack to make sure that the mkl is loaded
-solver = pastix.solver()
+# Initialize the Schur list as the first third of the elements
+nschur = min( int(n / 3), 5000 )
+schurlist = np.arange(nschur)
 
-solver.schur(A, [2, 3])
+solver = pastix.solver(verbose=2)
+
+solver.schur(A, schurlist)
 S = solver.S
 f = solver.schur_forward(b)
-y = la.solve(S, f)
+y = la.solve(S, f, sym_pos=True, lower=True)
 x = solver.schur_backward(y, b, x0=x0, check=True)

@@ -106,8 +106,6 @@ bcsc_init_centralized_coltab( const pastix_spm_t  *spm,
     int sym = (spm->mtxtype == PastixSymmetric) || (spm->mtxtype == PastixHermitian);
 
     bcsc->mtxtype = spm->mtxtype;
-    bcsc->flttype = spm->flttype;
-
     baseval = spm->colptr[0];
 
     /**

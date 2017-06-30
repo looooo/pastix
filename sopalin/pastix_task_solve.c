@@ -16,7 +16,6 @@
  *
  **/
 #include "common.h"
-#include "spm.h"
 #include "bcsc.h"
 #include "order.h"
 #include "solver.h"
@@ -323,9 +322,6 @@ pastix_subtask_diag( pastix_data_t *pastix_data, pastix_coeftype_t flttype,
  * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.
  *
- * @param[in] spm
- *          The sparse matrix descriptor that describes problem instance.
- *
  * @param[in] nrhs
  *          The number of right-and-side vectors.
  *
@@ -344,14 +340,14 @@ pastix_subtask_diag( pastix_data_t *pastix_data, pastix_coeftype_t flttype,
  *******************************************************************************/
 int
 pastix_task_solve( pastix_data_t *pastix_data,
-                   const pastix_spm_t  *spm,
                    pastix_int_t nrhs, void *b, pastix_int_t ldb )
 {
 /* #ifdef PASTIX_WITH_MPI */
 /*     MPI_Comm       pastix_comm = pastix_data->inter_node_comm; */
 /* #endif */
-    pastix_int_t  procnum;
-    pastix_int_t *iparm;
+    pastix_int_t   procnum;
+    pastix_int_t  *iparm;
+    pastix_bcsc_t *bcsc;
 /*     double        *dparm    = pastix_data->dparm; */
 /*     SolverMatrix  *solvmatr = pastix_data->solvmatr; */
     (void)procnum;
@@ -363,10 +359,6 @@ pastix_task_solve( pastix_data_t *pastix_data,
         errorPrint("pastix_task_solve: wrong pastix_data parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
-    if (spm == NULL) {
-        errorPrint("pastix_task_solve: wrong spm parameter");
-        return PASTIX_ERR_BADPARAMETER;
-    }
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
         errorPrint("pastix_task_solve: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
@@ -374,10 +366,11 @@ pastix_task_solve( pastix_data_t *pastix_data,
 
     iparm   = pastix_data->iparm;
     procnum = pastix_data->inter_node_procnum;
+    bcsc    = pastix_data->bcsc;
 
     /* Compute P * b */
-    pastix_subtask_applyorder( pastix_data, spm->flttype,
-                               PastixDirForward, spm->gN, nrhs, b, ldb );
+    pastix_subtask_applyorder( pastix_data, bcsc->flttype,
+                               PastixDirForward, bcsc->gN, nrhs, b, ldb );
 
     {
         double timer;
@@ -385,31 +378,31 @@ pastix_task_solve( pastix_data_t *pastix_data,
         clockStart(timer);
         switch ( pastix_data->iparm[IPARM_FACTORIZATION] ){
         case PastixFactLLT:
-            dump_rhs( "AfterPerm", spm->gN, b );
+            dump_rhs( "AfterPerm", bcsc->gN, b );
 
             /* Solve L y = P b with y = L^t P x */
             pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans,   PastixNonUnit, nrhs, b, ldb );
-            dump_rhs( "AfterDown", spm->gN, b );
+            dump_rhs( "AfterDown", bcsc->gN, b );
 
             /* Solve y = L^t (P x) */
             pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixConjTrans, PastixNonUnit, nrhs, b, ldb );
-            dump_rhs( "AfterUp", spm->gN, b );
+            dump_rhs( "AfterUp", bcsc->gN, b );
             break;
 
         case PastixFactLDLT:
-            dump_rhs( "AfterPerm", spm->gN, b );
+            dump_rhs( "AfterPerm", bcsc->gN, b );
 
             /* Solve L y = P b with y = D L^t P x */
             pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit, nrhs, b, ldb );
-            dump_rhs( "AfterDown", spm->gN, b );
+            dump_rhs( "AfterDown", bcsc->gN, b );
 
             /* Solve y = D z with z = (L^t P x) */
             pastix_subtask_diag( pastix_data, pastix_data->bcsc->flttype, nrhs, b, ldb );
-            dump_rhs( "AfterDiag", spm->gN, b );
+            dump_rhs( "AfterDiag", bcsc->gN, b );
 
             /* Solve z = L^t (P x) */
             pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixTrans,   PastixUnit, nrhs, b, ldb );
-            dump_rhs( "AfterUp", spm->gN, b );
+            dump_rhs( "AfterUp", bcsc->gN, b );
             break;
 
         case PastixFactLDLH:
@@ -440,9 +433,9 @@ pastix_task_solve( pastix_data_t *pastix_data,
     }
 
     /* Compute P^t * b */
-    pastix_subtask_applyorder( pastix_data, spm->flttype,
-                               PastixDirBackward, spm->gN, nrhs, b, ldb );
-    dump_rhs( "Final", spm->gN, b );
+    pastix_subtask_applyorder( pastix_data, bcsc->flttype,
+                               PastixDirBackward, bcsc->gN, nrhs, b, ldb );
+    dump_rhs( "Final", bcsc->gN, b );
 
     /* Invalidate following steps, and add factorization step to the ones performed */
     pastix_data->steps &= ~( STEP_SOLVE  |

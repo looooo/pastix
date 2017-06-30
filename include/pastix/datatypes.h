@@ -110,6 +110,7 @@ static inline size_t
 pastix_size_of(pastix_coeftype_t type)
 {
     switch(type) {
+    case PastixPattern:   return   sizeof(double);
     case PastixFloat:     return   sizeof(float);
     case PastixDouble:    return   sizeof(double);
     case PastixComplex32: return 2*sizeof(float);

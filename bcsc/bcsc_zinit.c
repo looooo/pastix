@@ -327,6 +327,7 @@ z_bcscInitCentralized( const pastix_spm_t  *spm,
 {
     pastix_int_t valuesize;
 
+    bcsc->flttype = spm->flttype;
     valuesize = bcsc_init_centralized_coltab( spm, ord, solvmtx, bcsc );
 
     /**
