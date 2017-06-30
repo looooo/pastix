@@ -9,16 +9,24 @@
  @version 6.0.0
  @author Pierre Ramet
  @author Mathieu Faverge
- @date 2017-05-04
+ @author Louis Poirel
+ @date 2017-06-29
 
 """
 from .pastix import *
+from .enum import *
 
 class solver(object):
 
     def __init__(self, A=None, **kwargs):
-        self.parameters = kwargs
         self.iparm, self.dparm = initParam()
+        self.verbose = kwargs.setdefault("verbose", 1)
+        if not self.verbose: # 0 or False
+            self.iparm[iparm.verbose] = verbose.Not
+        elif self.verbose==2:
+            self.iparm[iparm.verbose] = verbose.Yes
+        else: # 1 or True or anything else, default value
+            self.iparm[iparm.verbose] = verbose.No
         self.pastix_data = init( self.iparm, self.dparm )
         if A is not None:
             self.setup(A)
@@ -29,7 +37,7 @@ class solver(object):
         """
         self.A = A
         self.spmA = spm(A)
-        if self.parameters.setdefault("verbose", False):
+        if self.verbose:
             self.spmA.printInfo()
         task_analyze(self.pastix_data, self.spmA)
         task_numfact(self.pastix_data, self.spmA)
@@ -56,7 +64,7 @@ class solver(object):
         self.A    = A
         self.spmA = spm(A)
 
-        if self.parameters.setdefault("verbose", False):
+        if self.verbose:
             self.spmA.printInfo()
 
         schur_list = np.asarray(schur_list, pastix_int)
