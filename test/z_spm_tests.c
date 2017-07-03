@@ -12,7 +12,9 @@
  * @precisions normal z -> c d s
  *
  **/
-#define _GNU_SOURCE
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>

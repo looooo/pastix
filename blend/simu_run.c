@@ -17,7 +17,11 @@
  * @{
  *
  **/
-#define _GNU_SOURCE
+#if defined(PASTIX_BLEND_GENTRACE)
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -917,7 +921,7 @@ simuRun( SimuCtrl           *simuctrl,
     }
 
     /*
-     * Run simulation and mapp the task onto a single candidate
+     * Run simulation and map the task onto a single candidate
      */
     while(1)
     {
