@@ -17,6 +17,11 @@
  * @{
  *
  **/
+#if defined(PASTIX_BLEND_GENTRACE)
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
