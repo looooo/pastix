@@ -233,6 +233,6 @@ module pastix_enums
   integer, parameter :: PastixBackward = 392 ! Backward direction
 
   ! C structs converted to derived types.
-  integer, parameter :: pastix_int_t = 8
+  integer, parameter :: pastix_int_t = PASTIX_INT_KIND
 
 end module pastix_enums
