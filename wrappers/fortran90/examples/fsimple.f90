@@ -52,7 +52,7 @@ program fsimple
   call pastix_task_analyze( pastix_data, spm, info )
 
   ! 3- Factorize the matrix
-  call pastix_task_numfact( pastix_data, info )
+  call pastix_task_numfact( pastix_data, spm, info )
 
   ! 4- Solve the problem
   call pastix_task_solve( pastix_data, nrhs, x_ptr, spm%n, info )

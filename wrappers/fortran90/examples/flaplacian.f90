@@ -59,7 +59,7 @@ program fsimple
               values(l) = values(l) - 1.
            end if
 
-           values(l) = values(l) * 4.
+           values(l) = values(l) * 8.
            l = l + 1
 
            if (i < dim1) then
@@ -144,7 +144,7 @@ program fsimple
   call pastix_task_analyze( pastix_data, spm, info )
 
   ! 3- Factorize the matrix
-  call pastix_task_numfact( pastix_data, info )
+  call pastix_task_numfact( pastix_data, spm, info )
 
   ! 4- Solve the problem
   call pastix_task_solve( pastix_data, nrhs, x_ptr, spm%n, info )
@@ -158,7 +158,6 @@ program fsimple
   call spmCheckAxb( nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, x_ptr, spm%n, info )
 
   call spmExit( spm )
-  deallocate(spm)
   deallocate(x0)
   deallocate(x)
   deallocate(b)

@@ -80,12 +80,13 @@ module pastixf
   end interface
 
   interface
-     function pastix_task_numfact_c(pastix_data) &
+     function pastix_task_numfact_c(pastix_data, spm) &
           bind(c, name='pastix_task_numfact')
        use iso_c_binding
        implicit none
        integer(kind=c_int) :: pastix_task_numfact_c
        type(c_ptr), value  :: pastix_data
+       type(c_ptr), value  :: spm
      end function pastix_task_numfact_c
   end interface
 
@@ -356,13 +357,14 @@ contains
     info = pastix_task_analyze_c(c_loc(pastix_data), c_loc(spm))
   end subroutine pastix_task_analyze
 
-  subroutine pastix_task_numfact(pastix_data, info)
+  subroutine pastix_task_numfact(pastix_data, spm, info)
     use iso_c_binding
     implicit none
     type(pastix_data_t), intent(inout), target :: pastix_data
+    type(pastix_spm_t), intent(inout), target :: spm
     integer(kind=c_int), intent(out) :: info
 
-    info = pastix_task_numfact_c(c_loc(pastix_data))
+    info = pastix_task_numfact_c(c_loc(pastix_data), c_loc(spm))
   end subroutine pastix_task_numfact
 
   subroutine pastix_task_solve(pastix_data, nrhs, b, ldb, info)
