@@ -131,28 +131,28 @@ module spmf
      end function spmMatVec_c
   end interface
 
-  interface
-     subroutine spmScalMatrix_c(alpha, spm) &
-          bind(c, name='spmScalMatrix')
-       use iso_c_binding
-       import pastix_spm_t
-       implicit none
-       complex(kind=c_double_complex), value :: alpha
-       type(c_ptr), value :: spm
-     end subroutine spmScalMatrix_c
-  end interface
+  ! interface
+  !    subroutine spmScalMatrix_c(alpha, spm) &
+  !         bind(c, name='spmScalMatrix')
+  !      use iso_c_binding
+  !      import pastix_spm_t
+  !      implicit none
+  !      complex(kind=c_double_complex), value :: alpha
+  !      type(c_ptr), value :: spm
+  !    end subroutine spmScalMatrix_c
+  ! end interface
 
-  interface
-     subroutine spmScalVector_c(alpha, spm, x) &
-          bind(c, name='spmScalVector')
-       use iso_c_binding
-       import pastix_spm_t
-       implicit none
-       real(kind=c_double), value :: alpha
-       type(c_ptr), value :: spm
-       type(c_ptr), value :: x
-     end subroutine spmScalVector_c
-  end interface
+  ! interface
+  !    subroutine spmScalVector_c(alpha, spm, x) &
+  !         bind(c, name='spmScalVector')
+  !      use iso_c_binding
+  !      import pastix_spm_t
+  !      implicit none
+  !      real(kind=c_double), value :: alpha
+  !      type(c_ptr), value :: spm
+  !      type(c_ptr), value :: x
+  !    end subroutine spmScalVector_c
+  ! end interface
 
   interface
      function spmSort_c(spm) &
@@ -398,8 +398,8 @@ contains
   subroutine spmCopy(spm, spmo)
     use iso_c_binding
     implicit none
-    type(pastix_spm_t), intent(inout), target :: spm
-    type(pastix_spm_t), intent(out), pointer :: spmo
+    type(pastix_spm_t), intent(inout), target  :: spm
+    type(pastix_spm_t), intent(out),   pointer :: spmo
 
     call c_f_pointer(spmCopy_c(c_loc(spm)), spmo)
   end subroutine spmCopy
@@ -407,8 +407,8 @@ contains
   subroutine spmBase(spm, baseval)
     use iso_c_binding
     implicit none
-    type(pastix_spm_t), intent(inout), target :: spm
-    integer(kind=c_int), intent(in) :: baseval
+    type(pastix_spm_t),  intent(inout), target :: spm
+    integer(kind=c_int), intent(in)            :: baseval
 
     call spmBase_c(c_loc(spm), baseval)
   end subroutine spmBase
@@ -416,8 +416,8 @@ contains
   subroutine spmFindBase(spm, value)
     use iso_c_binding
     implicit none
-    type(pastix_spm_t), intent(inout), target :: spm
-    integer(kind=pastix_int_t), intent(out) :: value
+    type(pastix_spm_t),         intent(in), target :: spm
+    integer(kind=pastix_int_t), intent(out)        :: value
 
     value = spmFindBase_c(c_loc(spm))
   end subroutine spmFindBase
@@ -425,9 +425,9 @@ contains
   subroutine spmConvert(ofmttype, ospm, info)
     use iso_c_binding
     implicit none
-    integer(kind=c_int), intent(in) :: ofmttype
-    type(pastix_spm_t), intent(inout), target :: ospm
-    integer(kind=c_int), intent(out) :: info
+    integer(kind=c_int), intent(in)            :: ofmttype
+    type(pastix_spm_t),  intent(inout), target :: ospm
+    integer(kind=c_int), intent(out)           :: info
 
     info = spmConvert_c(ofmttype, c_loc(ospm))
   end subroutine spmConvert
@@ -443,9 +443,9 @@ contains
   subroutine spmNorm(ntype, spm, value)
     use iso_c_binding
     implicit none
-    integer(c_int), intent(in) :: ntype
-    type(pastix_spm_t), intent(inout), target :: spm
-    real(kind=c_double), intent(out) :: value
+    integer(c_int),      intent(in)         :: ntype
+    type(pastix_spm_t),  intent(in), target :: spm
+    real(kind=c_double), intent(out)        :: value
 
     value = spmNorm_c(ntype, c_loc(spm))
   end subroutine spmNorm
@@ -453,41 +453,41 @@ contains
   subroutine spmMatVec(trans, alpha, spm, x, beta, y, info)
     use iso_c_binding
     implicit none
-    integer(c_int), intent(in) :: trans
-    type(c_ptr), intent(inout), target :: alpha
-    type(pastix_spm_t), intent(inout), target :: spm
-    type(c_ptr), intent(inout), target :: x
-    type(c_ptr), intent(inout), target :: beta
-    type(c_ptr), intent(inout), target :: y
-    integer(kind=c_int), intent(out) :: info
+    integer(c_int),      intent(in)            :: trans
+    type(c_ptr),         intent(in),    target :: alpha
+    type(pastix_spm_t),  intent(in),    target :: spm
+    type(c_ptr),         intent(in),    target :: x
+    type(c_ptr),         intent(in),    target :: beta
+    type(c_ptr),         intent(inout), target :: y
+    integer(kind=c_int), intent(out)           :: info
 
     info = spmMatVec_c(trans, c_loc(alpha), c_loc(spm), c_loc(x), c_loc(beta), c_loc(y))
   end subroutine spmMatVec
 
-  subroutine spmScalMatrix(alpha, spm)
-    use iso_c_binding
-    implicit none
-    complex(kind=c_double_complex), intent(in) :: alpha
-    type(pastix_spm_t), intent(inout), target :: spm
+  ! subroutine spmScalMatrix(alpha, spm)
+  !   use iso_c_binding
+  !   implicit none
+  !   complex(kind=c_double_complex), intent(in)            :: alpha
+  !   type(pastix_spm_t),             intent(inout), target :: spm
 
-    call spmScalMatrix_c(alpha, c_loc(spm))
-  end subroutine spmScalMatrix
+  !   call spmScalMatrix_c(alpha, c_loc(spm))
+  ! end subroutine spmScalMatrix
 
-  subroutine spmScalVector(alpha, spm, x)
-    use iso_c_binding
-    implicit none
-    real(kind=c_double), intent(in) :: alpha
-    type(pastix_spm_t), intent(inout), target :: spm
-    type(c_ptr), intent(inout), target :: x
+  ! subroutine spmScalVector(alpha, spm, x)
+  !   use iso_c_binding
+  !   implicit none
+  !   real(kind=c_double), intent(in)            :: alpha
+  !   type(pastix_spm_t),  intent(inout), target :: spm
+  !   type(c_ptr),         intent(inout), target :: x
 
-    call spmScalVector_c(alpha, c_loc(spm), c_loc(x))
-  end subroutine spmScalVector
+  !   call spmScalVector_c(alpha, c_loc(spm), c_loc(x))
+  ! end subroutine spmScalVector
 
   subroutine spmSort(spm, info)
     use iso_c_binding
     implicit none
-    type(pastix_spm_t), intent(inout), target :: spm
-    integer(kind=c_int), intent(out) :: info
+    type(pastix_spm_t),  intent(inout), target :: spm
+    integer(kind=c_int), intent(out)           :: info
 
     info = spmSort_c(c_loc(spm))
   end subroutine spmSort
@@ -495,8 +495,8 @@ contains
   subroutine spmMergeDuplicate(spm, value)
     use iso_c_binding
     implicit none
-    type(pastix_spm_t), intent(inout), target :: spm
-    integer(kind=pastix_int_t), intent(out) :: value
+    type(pastix_spm_t),         intent(inout), target :: spm
+    integer(kind=pastix_int_t), intent(out)           :: value
 
     value = spmMergeDuplicate_c(c_loc(spm))
   end subroutine spmMergeDuplicate
@@ -504,8 +504,8 @@ contains
   subroutine spmSymmetrize(spm, value)
     use iso_c_binding
     implicit none
-    type(pastix_spm_t), intent(inout), target :: spm
-    integer(kind=pastix_int_t), intent(out) :: value
+    type(pastix_spm_t),         intent(inout), target :: spm
+    integer(kind=pastix_int_t), intent(out)           :: value
 
     value = spmSymmetrize_c(c_loc(spm))
   end subroutine spmSymmetrize
@@ -513,23 +513,23 @@ contains
   subroutine spmCheckAndCorrect(spm, spmo)
     use iso_c_binding
     implicit none
-    type(pastix_spm_t), intent(inout), target :: spm
-    type(pastix_spm_t), intent(out), pointer :: spmo
+    type(pastix_spm_t), intent(inout), target  :: spm
+    type(pastix_spm_t), intent(out),   pointer :: spmo
 
-    call c_f_pointer(spmCheckAndCorrect_c(c_loc(spm)), spmo )
+    call c_f_pointer(spmCheckAndCorrect_c(c_loc(spm)), spmo)
   end subroutine spmCheckAndCorrect
 
   subroutine spmGenRHS(type, nrhs, spm, x, ldx, b, ldb, info)
     use iso_c_binding
     implicit none
-    integer(c_int),      intent(in)            :: type
-    integer(kind=pastix_int_t), intent(in)            :: nrhs
-    type(pastix_spm_t),  intent(inout), target :: spm
-    type(c_ptr),         intent(inout)         :: x
-    integer(kind=pastix_int_t), intent(in)            :: ldx
-    type(c_ptr),         intent(inout)         :: b
-    integer(kind=pastix_int_t), intent(in)            :: ldb
-    integer(kind=c_int), intent(out)           :: info
+    integer(c_int),             intent(in)         :: type
+    integer(kind=pastix_int_t), intent(in)         :: nrhs
+    type(pastix_spm_t),         intent(in), target :: spm
+    type(c_ptr),                intent(in)         :: x
+    integer(kind=pastix_int_t), intent(in)         :: ldx
+    type(c_ptr),                intent(in)         :: b
+    integer(kind=pastix_int_t), intent(in)         :: ldb
+    integer(kind=c_int),        intent(out)        :: info
 
     info = spmGenRHS_c(type, nrhs, c_loc(spm), x, ldx, b, ldb)
   end subroutine spmGenRHS
@@ -537,15 +537,15 @@ contains
   subroutine spmCheckAxb(nrhs, spm, x0, ldx0, b, ldb, x, ldx, info)
     use iso_c_binding
     implicit none
-    integer(kind=pastix_int_t), intent(in)            :: nrhs
-    type(pastix_spm_t),  intent(inout), target :: spm
-    type(c_ptr),         intent(inout)         :: x0
-    integer(kind=pastix_int_t), intent(in)            :: ldx0
-    type(c_ptr),         intent(inout)         :: b
-    integer(kind=pastix_int_t), intent(in)            :: ldb
-    type(c_ptr),         intent(inout)         :: x
-    integer(kind=pastix_int_t), intent(in)            :: ldx
-    integer(kind=c_int), intent(out)           :: info
+    integer(kind=pastix_int_t), intent(in)         :: nrhs
+    type(pastix_spm_t),         intent(in), target :: spm
+    type(c_ptr),                intent(in)         :: x0
+    integer(kind=pastix_int_t), intent(in)         :: ldx0
+    type(c_ptr),                intent(in)         :: b
+    integer(kind=pastix_int_t), intent(in)         :: ldb
+    type(c_ptr),                intent(in)         :: x
+    integer(kind=pastix_int_t), intent(in)         :: ldx
+    integer(kind=c_int),        intent(out)        :: info
 
     info = spmCheckAxb_c(nrhs, c_loc(spm), x0, ldx0, b, ldb, x, ldx)
   end subroutine spmCheckAxb
@@ -553,46 +553,19 @@ contains
   subroutine spmIntConvert(n, input, value)
     use iso_c_binding
     implicit none
-    integer(kind=pastix_int_t), intent(in) :: n
-    integer(kind=c_int), intent(inout), target :: input
-    integer(kind=pastix_int_t), intent(out), pointer :: value
+    integer(kind=pastix_int_t), intent(in)             :: n
+    integer(kind=c_int),        intent(inout), target  :: input
+    integer(kind=pastix_int_t), intent(out),   pointer :: value
 
     call c_f_pointer(spmIntConvert_c(n, c_loc(input)), value)
   end subroutine spmIntConvert
 
-  subroutine spmIntSort1Asc1(pbase, n)
-    use iso_c_binding
-    implicit none
-    type(c_ptr), intent(inout), target :: pbase
-    integer(kind=pastix_int_t), intent(in) :: n
-
-    call spmIntSort1Asc1_c(c_loc(pbase), n)
-  end subroutine spmIntSort1Asc1
-
-  subroutine spmIntSort2Asc1(pbase, n)
-    use iso_c_binding
-    implicit none
-    type(c_ptr), intent(inout), target :: pbase
-    integer(kind=pastix_int_t), intent(in) :: n
-
-    call spmIntSort2Asc1_c(c_loc(pbase), n)
-  end subroutine spmIntSort2Asc1
-
-  subroutine spmIntSort2Asc2(pbase, n)
-    use iso_c_binding
-    implicit none
-    type(c_ptr), intent(inout), target :: pbase
-    integer(kind=pastix_int_t), intent(in) :: n
-
-    call spmIntSort2Asc2_c(c_loc(pbase), n)
-  end subroutine spmIntSort2Asc2
-
   subroutine spmLoad(spm, infile, info)
     use iso_c_binding
     implicit none
-    type(pastix_spm_t), intent(inout), target :: spm
-    type(c_ptr), intent(in), target :: infile
-    integer(kind=c_int), intent(out) :: info
+    type(pastix_spm_t),  intent(inout), target :: spm
+    type(c_ptr),         intent(in)            :: infile
+    integer(kind=c_int), intent(out)           :: info
 
     info = spmLoad_c(c_loc(spm), infile)
   end subroutine spmLoad
@@ -600,9 +573,9 @@ contains
   subroutine spmSave(spm, outfile, info)
     use iso_c_binding
     implicit none
-    type(pastix_spm_t), intent(inout), target :: spm
-    type(c_ptr), intent(in), target :: outfile
-    integer(kind=c_int), intent(out) :: info
+    type(pastix_spm_t),  intent(in), target :: spm
+    type(c_ptr),         intent(in)         :: outfile
+    integer(kind=c_int), intent(out)        :: info
 
     info = spmSave_c(c_loc(spm), outfile)
   end subroutine spmSave
@@ -610,11 +583,11 @@ contains
   subroutine spmReadDriver(driver, filename, spm, pastix_comm, info)
     use iso_c_binding
     implicit none
-    integer(c_int), intent(in) :: driver
-    character(kind=c_char), intent(in), target :: filename
-    type(pastix_spm_t), intent(inout), target :: spm
-    integer(kind=c_int), intent(in) :: pastix_comm
-    integer(kind=c_int), intent(out) :: info
+    integer(c_int),         intent(in)            :: driver
+    character(kind=c_char), intent(in),    target :: filename
+    type(pastix_spm_t),     intent(inout), target :: spm
+    integer(kind=c_int),    intent(in)            :: pastix_comm
+    integer(kind=c_int),    intent(out)           :: info
 
     info = spmReadDriver_c(driver, c_loc(filename), c_loc(spm), pastix_comm)
   end subroutine spmReadDriver
@@ -622,7 +595,7 @@ contains
   subroutine spm2Dense(spm)
     use iso_c_binding
     implicit none
-    type(pastix_spm_t), intent(inout), target :: spm
+    type(pastix_spm_t), intent(in), target :: spm
 
     call spm2Dense_c(c_loc(spm))
   end subroutine spm2Dense
@@ -630,24 +603,25 @@ contains
   subroutine spmPrint(spm, f)
     use iso_c_binding
     implicit none
-    type(pastix_spm_t), intent(inout), target :: spm
-    type(c_ptr), intent(inout), target :: f
+    type(pastix_spm_t), intent(in), target :: spm
+    type(c_ptr),        intent(in)         :: f
 
-    call spmPrint_c(c_loc(spm), c_loc(f))
+    call spmPrint_c(c_loc(spm), f)
   end subroutine spmPrint
 
-  subroutine spmPrintInfo(spm)
+  subroutine spmPrintInfo(spm, f)
     use iso_c_binding
     implicit none
-    type(pastix_spm_t), intent(inout), target :: spm
+    type(pastix_spm_t), intent(in), target :: spm
+    type(c_ptr),        intent(in)         :: f
 
-    call spmPrintInfo_c(c_loc(spm), c_null_ptr)
+    call spmPrintInfo_c(c_loc(spm), f)
   end subroutine spmPrintInfo
 
   subroutine spmExpand(spm, spmo)
     use iso_c_binding
     implicit none
-    type(pastix_spm_t), intent(inout), target :: spm
+    type(pastix_spm_t), intent(in),  target  :: spm
     type(pastix_spm_t), intent(out), pointer :: spmo
 
     call c_f_pointer(spmExpand_c(c_loc(spm)), spmo)
@@ -656,10 +630,10 @@ contains
   subroutine spmDofExtend(spm, type, dof, spmo)
     use iso_c_binding
     implicit none
-    type(pastix_spm_t), intent(inout), target :: spm
-    integer(kind=c_int), intent(in) :: type
-    integer(kind=c_int), intent(in) :: dof
-    type(pastix_spm_t), intent(out), pointer :: spmo
+    type(pastix_spm_t),  intent(in),  target  :: spm
+    integer(kind=c_int), intent(in)           :: type
+    integer(kind=c_int), intent(in)           :: dof
+    type(pastix_spm_t),  intent(out), pointer :: spmo
 
     call c_f_pointer(spmDofExtend_c(c_loc(spm), type, dof), spmo)
   end subroutine spmDofExtend

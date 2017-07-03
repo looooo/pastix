@@ -26,7 +26,7 @@ program fsimple
      spm = spm2
   end if
 
-  call spmPrintInfo( spm )
+  call spmPrintInfo( spm, c_null_ptr )
 
   call spmSave( spm, c_null_ptr, info )
 

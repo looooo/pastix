@@ -637,9 +637,9 @@ spmLoad( pastix_spm_t  *spm,
  *
  *******************************************************************************/
 static inline int
-writeArrayOfComplex64( FILE               *outfile,
-                       pastix_int_t        n,
-                       pastix_complex64_t *array )
+writeArrayOfComplex64( FILE                     *outfile,
+                       pastix_int_t              n,
+                       const pastix_complex64_t *array )
 {
     pastix_int_t i;
 
@@ -678,9 +678,9 @@ writeArrayOfComplex64( FILE               *outfile,
  *
  *******************************************************************************/
 static inline int
-writeArrayOfComplex32( FILE               *outfile,
-                       pastix_int_t        n,
-                       pastix_complex32_t *array )
+writeArrayOfComplex32( FILE                     *outfile,
+                       pastix_int_t              n,
+                       const pastix_complex32_t *array )
 {
     pastix_int_t i;
 
@@ -721,7 +721,7 @@ writeArrayOfComplex32( FILE               *outfile,
 static inline int
 writeArrayOfDouble( FILE         *outfile,
                     pastix_int_t  n,
-                    double       *array )
+                    const double *array )
 {
     pastix_int_t i;
 
@@ -763,7 +763,7 @@ writeArrayOfDouble( FILE         *outfile,
 static inline int
 writeArrayOfFloat( FILE         *outfile,
                    pastix_int_t  n,
-                   float        *array )
+                   const float  *array )
 {
     pastix_int_t i;
 
@@ -788,7 +788,7 @@ writeArrayOfFloat( FILE         *outfile,
  *
  *******************************************************************************
  *
- * @param[inout] spm
+ * @param[in] spm
  *          The sparse matrix to write into the file.
  *
  * @param[in] outfile
@@ -801,8 +801,8 @@ writeArrayOfFloat( FILE         *outfile,
  *
  *******************************************************************************/
 int
-spmSave( pastix_spm_t *spm,
-         FILE         *outfile )
+spmSave( const pastix_spm_t *spm,
+         FILE               *outfile )
 {
     pastix_int_t i, colsize, rowsize;
     int local_stream = 0;

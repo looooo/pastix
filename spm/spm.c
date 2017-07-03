@@ -1115,12 +1115,12 @@ spmExpand( const pastix_spm_t* spm )
  *
  *******************************************************************************/
 int
-spmMatVec(const pastix_trans_t trans,
-          const void          *alpha,
-          const pastix_spm_t  *spm,
-          const void          *x,
-          const void          *beta,
-                void          *y )
+spmMatVec(       pastix_trans_t trans,
+           const void          *alpha,
+           const pastix_spm_t  *spm,
+           const void          *x,
+           const void          *beta,
+                 void          *y )
 {
     pastix_spm_t *espm = (pastix_spm_t*)spm;
     int rc = PASTIX_SUCCESS;

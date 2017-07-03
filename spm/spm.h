@@ -103,7 +103,7 @@ void          spm( pastix_spm_t      *spm,
  * @{
  */
 double        spmNorm( pastix_normtype_t ntype, const pastix_spm_t *spm );
-int           spmMatVec(const pastix_trans_t trans, const void *alpha, const pastix_spm_t *spm, const void *x, const void *beta, void *y );
+int           spmMatVec( pastix_trans_t trans, const void *alpha, const pastix_spm_t *spm, const void *x, const void *beta, void *y );
 void          spmScalMatrix( const pastix_complex64_t alpha, pastix_spm_t *spm );
 void          spmScalVector( const double alpha, pastix_spm_t *spm, void *x );
 
@@ -140,8 +140,8 @@ void          spmIntSort2Asc2( void * const pbase, const pastix_int_t n );
  * @name SPM IO subroutines
  * @{
  */
-int           spmLoad( pastix_spm_t *spm, FILE *infile );
-int           spmSave( pastix_spm_t *spm, FILE *outfile );
+int           spmLoad(       pastix_spm_t *spm, FILE *infile );
+int           spmSave( const pastix_spm_t *spm, FILE *outfile );
 
 /**
  * @}
@@ -161,7 +161,7 @@ void *        spm2Dense   ( const pastix_spm_t *spm );
 void          spmPrint    ( const pastix_spm_t *spm, FILE *f );
 void          spmPrintInfo( const pastix_spm_t *spm, FILE *f );
 pastix_spm_t *spmExpand   ( const pastix_spm_t *spm );
-pastix_spm_t *spmDofExtend( const pastix_spm_t *spm, const int type, const int dof  );
+pastix_spm_t *spmDofExtend( const pastix_spm_t *spm, const int type, const int dof );
 
 /**
  * @}
