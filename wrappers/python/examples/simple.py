@@ -22,7 +22,7 @@ import numpy as np
 tmp = np.eye(2).dot(np.ones(2))
 
 # Load a sparse matrix from RSA driver
-spmA = pastix.spm( None, driver=pastix.driver.Laplacian, filename="10:10:10" )
+spmA = pastix.spm( None, driver=pastix.driver.Laplacian, filename="10:10:10:2.:1." )
 #spmA = pastix.spm( None, driver=driver.RSA, filename="$PASTIX_DIR/test/matrix/oilpan.rsa" )
 spmA.printInfo()
 

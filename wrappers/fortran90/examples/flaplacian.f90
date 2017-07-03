@@ -25,8 +25,8 @@ program fsimple
   dim1 = 10
   dim2 = 10
   dim3 = 10
-  n   = dim1 * dim2 * dim3
-  nnz = (2*(dim1)-1) * dim2 * dim3 + (dim2-1)*dim1*dim3 + dim2*dim1*(dim3-1)
+  n    = dim1 * dim2 * dim3
+  nnz  = (2*(dim1)-1) * dim2 * dim3 + (dim2-1)*dim1*dim3 + dim2*dim1*(dim3-1)
 
   allocate(rowptr(nnz))
   allocate(colptr(nnz))
