@@ -147,19 +147,19 @@ FortranCInterface_HEADER(common/FCmangle.h
 
 # PaStiX depends on CBLAS
 #----------------------------
-find_package(CBLAS COMPONENTS BLASEXT)
+find_package(CBLAS REQUIRED COMPONENTS BLASEXT)
 if(CBLAS_FOUND)
     message(STATUS "cblas: ${CBLAS_INCLUDE_DIRS}")
     include_directories(${CBLAS_INCLUDE_DIRS})
 endif()
 
-find_package(LAPACKE COMPONENTS LAPACKEXT)
+find_package(LAPACKE REQUIRED COMPONENTS LAPACKEXT)
 if(LAPACKE_FOUND)
   message(STATUS "lapacke: ${LAPACKE_INCLUDE_DIRS}")
   include_directories(${LAPACKE_INCLUDE_DIRS})
 endif()
 
-find_package(TMG)
+find_package(TMG REQUIRED)
 
 ### Store dependencies not handled with pkg-config
 set( DEPS_LIBRARIES
@@ -199,7 +199,7 @@ if (PASTIX_WITH_MPI)
     set(CMAKE_REQUIRED_LIBRARIES "${saved_libs}")
 
   else (MPI_C_FOUND)
-    message(ERROR "MPI is required but was not found. Please provide an MPI compiler in your environment or configure with -DPASTIX_WITH_MPI=OFF")
+    message(FATAL_ERROR "MPI is required but was not found. Please provide an MPI compiler in your environment or configure with -DPASTIX_WITH_MPI=OFF")
   endif (MPI_C_FOUND)
 endif (PASTIX_WITH_MPI)
 
@@ -232,7 +232,7 @@ if( PASTIX_WITH_CUDA )
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DCUDA_SM_VERSION=20")
 
     else(CUDA_FOUND)
-        message(ERROR "CUDA is required but was not found. Please provide a CUDA library in your environment or configure with -DPASTIX_WITH_CUDA=OFF")
+        message(FATAL_ERROR "CUDA is required but was not found. Please provide a CUDA library in your environment or configure with -DPASTIX_WITH_CUDA=OFF")
     endif (CUDA_FOUND)
 
 endif()
@@ -291,7 +291,7 @@ if (PASTIX_WITH_STARPU)
     endif()
 
   else(STARPU_FOUND)
-    message(ERROR "StarPU with ${STARPU_COMPONENT_LIST} components is required but was not found. Please provide the StarPU library in your environment or configure with -DPASTIX_WITH_STARPU=OFF")
+    message(FATAL_ERROR "StarPU with ${STARPU_COMPONENT_LIST} components is required but was not found. Please provide the StarPU library in your environment or configure with -DPASTIX_WITH_STARPU=OFF")
   endif()
 
 endif (PASTIX_WITH_STARPU)
@@ -328,7 +328,7 @@ if (PASTIX_WITH_PARSEC)
       link_directories(${PARSEC_LIBRARY_DIRS_DEP})
 
     else(PARSEC_FOUND)
-        message(ERROR "Parsec with ${PARSEC_COMPONENT_LIST} components is required but was not found. Please provide the PaRSEC library in your environment or configure with -DPASTIX_WITH_PARSEC=OFF")
+        message(FATAL_ERROR "Parsec with ${PARSEC_COMPONENT_LIST} components is required but was not found. Please provide the PaRSEC library in your environment or configure with -DPASTIX_WITH_PARSEC=OFF")
     endif()
 
 endif (PASTIX_WITH_PARSEC)
@@ -359,15 +359,15 @@ if (PASTIX_ORDERING_PTSCOTCH)
     link_libraries( ${PTSCOTCH_LIBRARIES} )
     list(INSERT EXTRA_LIBS 1 ${PTSCOTCH_LIBRARIES} )
   else (PTSCOTCH_FOUND)
-    message(ERROR "PTSCOTCH is required if PASTIX_ORDERING_PTSCOCTH is on but was not found. Please provide an PtScotch library in your environment or configure with -DPASTIX_ORDERING_PTSCOTCH=OFF")
+    message(FATAL_ERROR "PTSCOTCH is required if PASTIX_ORDERING_PTSCOCTH is on but was not found. Please provide an PtScotch library in your environment or configure with -DPASTIX_ORDERING_PTSCOTCH=OFF")
   endif (PTSCOTCH_FOUND)
 
   # Check coherency for integer size
   if(PASTIX_INT64 AND NOT PTSCOTCH_Num_8)
-    message(ERROR "PASTIX_INT64 is enabled and provided PT-Scotch is not compiled with int64 support.")
+    message(FATAL_ERROR "PASTIX_INT64 is enabled and provided PT-Scotch is not compiled with int64 support.")
   endif()
   if(NOT PASTIX_INT64 AND NOT PTSCOTCH_Num_4)
-    message(ERROR "PASTIX_INT64 is disabled and provided PT-Scotch is not compiled with int32 support.")
+    message(FATAL_ERROR "PASTIX_INT64 is disabled and provided PT-Scotch is not compiled with int32 support.")
   endif()
 endif()
 
@@ -380,15 +380,15 @@ if (PASTIX_ORDERING_SCOTCH)
     link_libraries( ${SCOTCH_LIBRARIES} )
     list(APPEND EXTRA_LIBS ${SCOTCH_LIBRARIES} )
   else()
-    message(ERROR "Scotch is required but was not found. Please provide a Scotch library in your environment or configure with -DPASTIX_ORDERING_SCOTCH=OFF")
+    message(FATAL_ERROR "Scotch is required but was not found. Please provide a Scotch library in your environment or configure with -DPASTIX_ORDERING_SCOTCH=OFF")
   endif()
 
   # Check coherency for integer size
   if(PASTIX_INT64 AND NOT SCOTCH_Num_8)
-    message(ERROR "PASTIX_INT64 is enabled and provided Scotch is not compiled with int64 support.")
+    message(FATAL_ERROR "PASTIX_INT64 is enabled and provided Scotch is not compiled with int64 support.")
   endif()
   if(NOT PASTIX_INT64 AND NOT SCOTCH_Num_4)
-    message(ERROR "PASTIX_INT64 is disabled and provided Scotch is not compiled with int32 support.")
+    message(FATAL_ERROR "PASTIX_INT64 is disabled and provided Scotch is not compiled with int32 support.")
   endif()
 endif()
 
@@ -407,15 +407,15 @@ if (PASTIX_ORDERING_METIS)
     link_directories( ${METIS_LIBRARY_DIRS} )
     link_libraries( ${METIS_LIBRARIES} )
   else()
-    message(ERROR "Metis is required but was not found. Please provide a Metis library in your environment or configure with -DPASTIX_ORDERING_METIS=OFF")
+    message(FATAL_ERROR "Metis is required but was not found. Please provide a Metis library in your environment or configure with -DPASTIX_ORDERING_METIS=OFF")
   endif()
 
   # Check coherency for integer size
   if(PASTIX_INT64 AND NOT METIS_Idx_8)
-    message(ERROR "PASTIX_INT64 is enabled and provided Metis is not compiled with int64 support.")
+    message(FATAL_ERROR "PASTIX_INT64 is enabled and provided Metis is not compiled with int64 support.")
   endif()
   if(NOT PASTIX_INT64 AND NOT METIS_Idx_4)
-    message(ERROR "PASTIX_INT64 is disabled and provided Metis is not compiled with int32 support.")
+    message(FATAL_ERROR "PASTIX_INT64 is disabled and provided Metis is not compiled with int32 support.")
   endif()
 endif()
 
