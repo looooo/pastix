@@ -30,9 +30,9 @@ program fsimple
 
   !   2- The right hand side
   nrhs = 1
-  allocate(x0(spm%nnz))
-  allocate(x(spm%nnz))
-  allocate(b(spm%nnz))
+  allocate(x0(spm%n))
+  allocate(x(spm%n))
+  allocate(b(spm%n))
   x0_ptr = c_loc(x0)
   x_ptr  = c_loc(x)
   b_ptr  = c_loc(b)
@@ -52,10 +52,10 @@ program fsimple
   call pastix_task_analyze( pastix_data, spm, info )
 
   ! 3- Factorize the matrix
-  call pastix_task_numfact( pastix_data, spm, info )
+  call pastix_task_numfact( pastix_data, info )
 
   ! 4- Solve the problem
-  call pastix_task_solve( pastix_data, spm, nrhs, x_ptr, spm%n, info )
+  call pastix_task_solve( pastix_data, nrhs, x_ptr, spm%n, info )
 
   ! 3- Refine the solution
   call pastix_task_refine( pastix_data, x_ptr, nrhs, b_ptr, info )
