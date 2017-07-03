@@ -41,3 +41,9 @@ add_executable( fsimple
 
 target_link_libraries( fsimple
   pastixf )
+
+add_executable( flaplacian
+  examples/flaplacian.f90 )
+
+target_link_libraries( flaplacian
+  pastixf )
