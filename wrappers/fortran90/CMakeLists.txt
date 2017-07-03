@@ -54,5 +54,5 @@ set( FORTRAN90_TESTS
   fsimple flaplacian )
 
 foreach(example ${FORTRAN90_TESTS} )
-  add_test(fortran90_${example})
+  add_test(fortran90_${example} ./${example})
 endforeach()
