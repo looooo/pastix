@@ -35,7 +35,9 @@ install(TARGETS pastixf
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib )
 
-
+#
+# Add examples
+#
 add_executable( fsimple
   examples/fsimple.f90 )
 
@@ -47,3 +49,10 @@ add_executable( flaplacian
 
 target_link_libraries( flaplacian
   pastixf )
+
+set( FORTRAN90_TESTS
+  fsimple flaplacian )
+
+foreach(example ${FORTRAN90_TESTS} )
+  add_test(fortran90_${example})
+endforeach()

@@ -8,18 +8,20 @@ program fsimple
   integer(kind=pastix_int_t),     dimension(:), allocatable, target :: rowptr
   integer(kind=pastix_int_t),     dimension(:), allocatable, target :: colptr
   complex(kind=c_double_complex), dimension(:), allocatable, target :: values
-  integer(kind=pastix_int_t) :: dim1, dim2, dim3, n, nnz, i, j, k, l, nrhs
-
-
-  type(pastix_data_t),        pointer :: pastix_data
-  type(pastix_spm_t),         target  :: spm
-  type(pastix_spm_t),         pointer :: spm2
-  integer(kind=pastix_int_t), target  :: iparm(iparm_size)
-  real(kind=c_double),        target  :: dparm(dparm_size)
-  integer(c_int)                      :: info
   complex(kind=c_double_complex), dimension(:), allocatable, target :: x0, x, b
   type(c_ptr)                                                       :: x0_ptr, x_ptr, b_ptr
+  type(pastix_data_t),        pointer                               :: pastix_data
+  type(pastix_spm_t),         target                                :: spm
+  type(pastix_spm_t),         pointer                               :: spm2
+  integer(kind=pastix_int_t), target                                :: iparm(iparm_size)
+  real(kind=c_double),        target                                :: dparm(dparm_size)
+  integer(kind=pastix_int_t)                                        :: dim1, dim2, dim3, n, nnz
+  integer(kind=pastix_int_t)                                        :: i, j, k, l, nrhs
+  integer(c_int)                                                    :: info
 
+  !
+  ! Generate a 10x10x10 complex Laplacian
+  !
   dim1 = 10
   dim2 = 10
   dim3 = 10
@@ -86,6 +88,9 @@ program fsimple
      write(6,*) 'l ', l, " nnz ", nnz
   end if
 
+  !
+  ! Create the spm out of the internal data
+  !
   call spmInit( spm )
   spm%mtxtype = PastixHermitian
   spm%flttype = PastixComplex64
@@ -93,15 +98,11 @@ program fsimple
   spm%n       = n
   spm%nnz     = nnz
   spm%dof     = 1
-
-  !---- Local matrix A
-  spm%rowptr = c_loc(rowptr)
-  spm%colptr = c_loc(colptr)
-  spm%values = c_loc(values)
+  spm%rowptr  = c_loc(rowptr)
+  spm%colptr  = c_loc(colptr)
+  spm%values  = c_loc(values)
 
   call spmUpdateComputedFields( spm )
-
-  call spmPrintInfo( spm )
 
   call spmCheckAndCorrect( spm, spm2 )
   if (.not. c_associated(c_loc(spm), c_loc(spm2))) then
@@ -157,6 +158,7 @@ program fsimple
   call spmCheckAxb( nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, x_ptr, spm%n, info )
 
   call spmExit( spm )
+  deallocate(spm)
   deallocate(x0)
   deallocate(x)
   deallocate(b)

@@ -5,15 +5,15 @@ program fsimple
   use pastixf
   implicit none
 
-  type(pastix_data_t),        pointer :: pastix_data
-  type(pastix_spm_t),         target  :: spm
-  type(pastix_spm_t),         pointer :: spm2
-  integer(kind=pastix_int_t), target  :: iparm(iparm_size)
-  real(kind=c_double),        target  :: dparm(dparm_size)
-  integer(c_int)                      :: info
-  integer(kind=pastix_int_t)          :: nrhs
+  type(pastix_data_t),        pointer                    :: pastix_data
+  type(pastix_spm_t),         target                     :: spm
+  type(pastix_spm_t),         pointer                    :: spm2
+  integer(kind=pastix_int_t), target                     :: iparm(iparm_size)
+  real(kind=c_double),        target                     :: dparm(dparm_size)
+  integer(c_int)                                         :: info
+  integer(kind=pastix_int_t)                             :: nrhs
   real(kind=c_double), dimension(:), allocatable, target :: x0, x, b
-  type(c_ptr)                         :: x0_ptr, x_ptr, b_ptr
+  type(c_ptr)                                            :: x0_ptr, x_ptr, b_ptr
 
   !
   ! Initialize the problem
