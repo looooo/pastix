@@ -918,12 +918,12 @@ spmCopy( const pastix_spm_t *spm )
     }
     if(spm->dofs != NULL) {
         newspm->dofs = (pastix_int_t*)malloc(dofsize * sizeof(pastix_int_t));
-        memcpy( newspm->dofs, spm->dofs, dofsize * sizeof(pastix_int_t));
+        memcpy( newspm->dofs, spm->dofs, dofsize * sizeof(pastix_int_t) );
     }
     if(spm->values != NULL) {
         valsize = valsize * pastix_size_of( spm->flttype );
         newspm->values = malloc(valsize);
-        memcpy( newspm->values, spm->values, valsize);
+        memcpy( newspm->values, spm->values, valsize );
     }
     return newspm;
 }
