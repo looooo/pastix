@@ -591,20 +591,20 @@ contains
     use iso_c_binding
     implicit none
     type(pastix_spm_t), intent(inout), target :: spm
-    type(c_ptr), intent(inout), target :: infile
+    type(c_ptr), intent(in), target :: infile
     integer(kind=c_int), intent(out) :: info
 
-    info = spmLoad_c(c_loc(spm), c_loc(infile))
+    info = spmLoad_c(c_loc(spm), infile)
   end subroutine spmLoad
 
   subroutine spmSave(spm, outfile, info)
     use iso_c_binding
     implicit none
     type(pastix_spm_t), intent(inout), target :: spm
-    type(c_ptr), intent(inout), target :: outfile
+    type(c_ptr), intent(in), target :: outfile
     integer(kind=c_int), intent(out) :: info
 
-    info = spmSave_c(c_loc(spm), c_loc(outfile))
+    info = spmSave_c(c_loc(spm), outfile)
   end subroutine spmSave
 
   subroutine spmReadDriver(driver, filename, spm, pastix_comm, info)
