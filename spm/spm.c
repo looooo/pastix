@@ -999,12 +999,13 @@ spmPrintInfo( const pastix_spm_t* spm, FILE *stream )
  * @param[in] spm
  *          The sparse matrix to print.
  *
- * @param[in] f
- *          File to print the spm matrix.
+ * @param[in] stream
+ *          File to print the spm matrix. stdout, if stream == NULL.
  *
  *******************************************************************************/
 void
-spmPrint( const pastix_spm_t* spm, FILE *stream )
+spmPrint( const pastix_spm_t *spm,
+          FILE               *stream )
 {
     if (stream == NULL) {
         stream = stdout;

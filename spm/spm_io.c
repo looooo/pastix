@@ -451,7 +451,8 @@ readArrayOfFloat( FILE         *stream,
  *          On exit, the spm filled with the information read in the file.
  *
  * @param[in] infile
- *          The opened file in which the spm is stored.
+ *          The opened file in which the spm is stored. If infile == NULL,
+ *          matrix.spm is opened.
  *
  *******************************************************************************
  *
@@ -466,6 +467,12 @@ spmLoad( pastix_spm_t  *spm,
     pastix_int_t colsize=0, rowsize=0;
     char line[256], *test;
     int rc = PASTIX_SUCCESS;
+    int local_stream = 0;
+
+    if ( infile == NULL ) {
+        PASTIX_FOPEN( infile, "matrix.spm", "r" );
+        local_stream = 1;
+    }
 
     /*
      * Skip comments
@@ -597,6 +604,10 @@ spmLoad( pastix_spm_t  *spm,
     case PastixComplex64:
         rc = readArrayOfComplex64( infile, spm->nnzexp, spm->values );
         break;
+    }
+
+    if (local_stream) {
+        fclose(infile);
     }
 
     return rc;
@@ -781,7 +792,8 @@ writeArrayOfFloat( FILE         *outfile,
  *          The sparse matrix to write into the file.
  *
  * @param[in] outfile
- *          The opened file in which to store the spm.
+ *          The opened file in which to store the spm. If outfile == NULL, data
+ *          is saved into matrix.spm file.
  *
  ********************************************************************************
  *
@@ -793,6 +805,12 @@ spmSave( pastix_spm_t *spm,
          FILE         *outfile )
 {
     pastix_int_t i, colsize, rowsize;
+    int local_stream = 0;
+
+    if ( outfile == NULL ) {
+        PASTIX_FOPEN( outfile, "matrix.spm", "w" );
+        local_stream = 1;
+    }
 
     /*
      * Write header
@@ -886,5 +904,8 @@ spmSave( pastix_spm_t *spm,
         break;
     }
 
+    if (local_stream) {
+        fclose(outfile);
+    }
     return PASTIX_SUCCESS;
 }
