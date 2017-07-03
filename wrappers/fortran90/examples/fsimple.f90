@@ -28,8 +28,6 @@ program fsimple
 
   call spmPrintInfo( spm, c_null_ptr )
 
-  call spmSave( spm, c_null_ptr, info )
-
   !   2- The right hand side
   nrhs = 1
   allocate(x0(spm%n))
