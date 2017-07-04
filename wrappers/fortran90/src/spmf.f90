@@ -27,29 +27,29 @@ module spmf
   end type pastix_spm_t
 
   ! Interfaces of the C functions.
-  interface
-     function spmNew_c(mtxtype, flttype, fmttype, n, nnz, colptr, rowptr, values, &
-          loc2glob, dof, layout, dofs) &
-          bind(c, name='spmNew')
-       use iso_c_binding
-       import pastix_spm_t
-       import pastix_int_t
-       implicit none
-       type(c_ptr)                       :: spmNew_c
-       integer(c_int),             value :: mtxtype
-       integer(c_int),             value :: flttype
-       integer(c_int),             value :: fmttype
-       integer(kind=pastix_int_t), value :: n
-       integer(kind=pastix_int_t), value :: nnz
-       type(c_ptr),                value :: colptr
-       type(c_ptr),                value :: rowptr
-       type(c_ptr),                value :: values
-       type(c_ptr),                value :: loc2glob
-       integer(kind=pastix_int_t), value :: dof
-       integer(c_int),             value :: layout
-       type(c_ptr),                value :: dofs
-     end function spmNew_c
-  end interface
+  ! interface
+  !    function spmNew_c(mtxtype, flttype, fmttype, n, nnz, colptr, rowptr, values, &
+  !         loc2glob, dof, layout, dofs) &
+  !         bind(c, name='spmNew')
+  !      use iso_c_binding
+  !      import pastix_spm_t
+  !      import pastix_int_t
+  !      implicit none
+  !      type(c_ptr)                       :: spmNew_c
+  !      integer(c_int),             value :: mtxtype
+  !      integer(c_int),             value :: flttype
+  !      integer(c_int),             value :: fmttype
+  !      integer(kind=pastix_int_t), value :: n
+  !      integer(kind=pastix_int_t), value :: nnz
+  !      type(c_ptr),                value :: colptr
+  !      type(c_ptr),                value :: rowptr
+  !      type(c_ptr),                value :: values
+  !      type(c_ptr),                value :: loc2glob
+  !      integer(kind=pastix_int_t), value :: dof
+  !      integer(c_int),             value :: layout
+  !      type(c_ptr),                value :: dofs
+  !    end function spmNew_c
+  ! end interface
 
   interface
      subroutine spmInit_c(spm) &
@@ -71,15 +71,15 @@ module spmf
      end subroutine spmExit_c
   end interface
 
-  interface
-     subroutine spmFree_c(spm) &
-          bind(c, name='spmFree')
-       use iso_c_binding
-       import pastix_spm_t
-       implicit none
-       type(c_ptr), value :: spm
-     end subroutine spmFree_c
-  end interface
+  ! interface
+  !    subroutine spmFree_c(spm) &
+  !         bind(c, name='spmFree')
+  !      use iso_c_binding
+  !      import pastix_spm_t
+  !      implicit none
+  !      type(c_ptr), value :: spm
+  !    end subroutine spmFree_c
+  ! end interface
 
   interface
      function spmCopy_c(spm) &
@@ -380,27 +380,42 @@ module spmf
 contains
 
   ! Wrappers of the C functions.
-  subroutine spmNew(mtxtype, flttype, fmttype, n, nnz, colptr, rowptr, values, &
-       loc2glob, dof, layout, dofs, spmo)
-    use iso_c_binding
-    implicit none
-    integer(c_int),             intent(in)            :: mtxtype
-    integer(c_int),             intent(in)            :: flttype
-    integer(c_int),             intent(in)            :: fmttype
-    integer(kind=pastix_int_t), intent(in)            :: n
-    integer(kind=pastix_int_t), intent(in)            :: nnz
-    integer(kind=pastix_int_t), intent(inout), target :: colptr
-    integer(kind=pastix_int_t), intent(inout), target :: rowptr
-    type(c_ptr),                intent(inout), target :: values(*)
-    integer(kind=pastix_int_t), intent(inout), target :: loc2glob
-    integer(kind=pastix_int_t), intent(in)            :: dof
-    integer(c_int),             intent(in)            :: layout
-    integer(kind=pastix_int_t), intent(inout), target :: dofs
-    type(pastix_spm_t),         intent(out), pointer  :: spmo
+  ! subroutine spmNew(mtxtype, flttype, fmttype, n, nnz, colptr, rowptr, values, &
+  !      loc2glob, dof, layout, dofs, spmo)
+  !   use iso_c_binding
+  !   implicit none
+  !   integer(c_int),             intent(in)           :: mtxtype
+  !   integer(c_int),             intent(in)           :: flttype
+  !   integer(c_int),             intent(in)           :: fmttype
+  !   integer(kind=pastix_int_t), intent(in)           :: n
+  !   integer(kind=pastix_int_t), intent(in)           :: nnz
+  !   integer(kind=pastix_int_t), intent(in),  target  :: colptr(*)
+  !   integer(kind=pastix_int_t), intent(in),  target  :: rowptr(*)
+  !   type(c_ptr),                intent(in)           :: values
+  !   integer(kind=pastix_int_t), intent(in),  target  :: loc2glob(:)
+  !   integer(kind=pastix_int_t), intent(in)           :: dof
+  !   integer(c_int),             intent(in)           :: layout
+  !   integer(kind=pastix_int_t), intent(in),  target  :: dofs(:)
+  !   type(pastix_spm_t),         intent(out), pointer :: spmo
 
-    call c_f_pointer(spmNew_c(mtxtype, flttype, fmttype, n, nnz, c_loc(colptr), c_loc(rowptr), c_loc(values), &
-         c_loc(loc2glob), dof, layout, c_loc(dofs)), spmo)
-  end subroutine spmNew
+  !   type(c_ptr) :: loc2glob_ptr
+  !   type(c_ptr) :: dofs_ptr
+
+  !   if (size(loc2glob) .eq. 0) then
+  !      loc2glob_ptr = c_null_ptr
+  !   else
+  !      loc2glob_ptr = c_loc(loc2glob)
+  !   end if
+
+  !   if (size(dofs) .eq. 0) then
+  !      dofs_ptr = c_null_ptr
+  !   else
+  !      dofs_ptr = c_loc(dofs)
+  !   end if
+
+  !   call c_f_pointer(spmNew_c(mtxtype, flttype, fmttype, n, nnz, c_loc(colptr), c_loc(rowptr), values, &
+  !        loc2glob_ptr, dof, layout, dofs_ptr), spmo)
+  ! end subroutine spmNew
 
   subroutine spmInit(spm)
     use iso_c_binding
@@ -418,13 +433,13 @@ contains
     call spmExit_c(c_loc(spm))
   end subroutine spmExit
 
-  subroutine spmFree(spm)
-    use iso_c_binding
-    implicit none
-    type(pastix_spm_t), intent(inout), target :: spm
+  ! subroutine spmFree(spm)
+  !   use iso_c_binding
+  !   implicit none
+  !   type(pastix_spm_t), intent(inout), target :: spm
 
-    call spmFree_c(c_loc(spm))
-  end subroutine spmFree
+  !   call spmFree_c(c_loc(spm))
+  ! end subroutine spmFree
 
   subroutine spmCopy(spm, spmo)
     use iso_c_binding
