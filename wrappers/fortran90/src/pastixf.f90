@@ -543,7 +543,7 @@ contains
     type(c_ptr) :: argv_aux
     type(c_ptr) :: filename_aux
 
-    call pastix_getOptions_c(argc, argv_aux, c_loc(iparam), c_loc(dparam), c_loc(check), c_loc(driver), filename_aux)
+    call pastix_getOptions_c(argc, argv_aux, c_loc(iparm), c_loc(dparm), c_loc(check), c_loc(driver), filename_aux)
     call c_f_pointer(argv_aux, argv)
     call c_f_pointer(filename_aux, filename)
   end subroutine pastix_getOptions
