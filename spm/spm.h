@@ -75,27 +75,28 @@ typedef struct pastix_spm_s {
  * @name SPM basic subroutines
  * @{
  */
-void          spmInit( pastix_spm_t *spm );
-void          spmExit( pastix_spm_t *spm );
+pastix_spm_t *spmNew(  pastix_symmetry_t  mtxtype,
+                       pastix_coeftype_t  flttype,
+                       pastix_fmttype_t   fmttype,
+                       pastix_int_t       n,
+                       pastix_int_t       nnz,
+                       pastix_int_t      *colptr,
+                       pastix_int_t      *rowptr,
+                       void              *values,
+                       pastix_int_t      *loc2glob,
+                       pastix_int_t       dof,
+                       pastix_layout_t    layout,
+                       pastix_int_t      *dofs );
+void          spmInit( pastix_spm_t      *spm );
+void          spmExit( pastix_spm_t      *spm );
+void          spmFree( pastix_spm_t      *spm );
+
 pastix_spm_t *spmCopy( const pastix_spm_t *spm );
 void          spmBase( pastix_spm_t *spm, int baseval );
 pastix_int_t  spmFindBase( const pastix_spm_t *spm );
 int           spmConvert( int ofmttype, pastix_spm_t *ospm );
 void          spmUpdateComputedFields( pastix_spm_t *spm );
 
-void          spm( pastix_spm_t      *spm,
-                   pastix_symmetry_t  mtxtype,
-                   pastix_coeftype_t  flttype,
-                   pastix_fmttype_t   fmttype,
-                   pastix_int_t       n,
-                   pastix_int_t       nnz,
-                   pastix_int_t      *colptr,
-                   pastix_int_t      *rowptr,
-                   void              *values,
-                   pastix_int_t      *loc2glob,
-                   pastix_int_t       dof,
-                   pastix_layout_t    layout,
-                   pastix_int_t      *dofs );
 
 /**
  * @}
