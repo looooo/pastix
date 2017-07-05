@@ -627,7 +627,7 @@ set(PASTIX_LIB_SRCS
   common/errors.c
   common/integer.c
   common/isched.c
-  common/memory.c
+#  common/memory.c
   common/get_options.c
 #  common/trace.c
 #
