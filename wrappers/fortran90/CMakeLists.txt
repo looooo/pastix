@@ -38,21 +38,16 @@ install(TARGETS pastixf
 #
 # Add examples
 #
-add_executable( fsimple
-  examples/fsimple.f90 )
+set (EXAMPLES
+  fsimple.f90
+  flaplacian.f90
+  )
 
-target_link_libraries( fsimple
-  pastixf )
+foreach (_file ${EXAMPLES})
+  get_filename_component(_name_we ${_file} NAME_WE)
+  add_executable(${_name_we} examples/${_file})
+  target_link_libraries(${_name_we} pastixf)
 
-add_executable( flaplacian
-  examples/flaplacian.f90 )
-
-target_link_libraries( flaplacian
-  pastixf )
-
-set( FORTRAN90_TESTS
-  fsimple flaplacian )
-
-foreach(example ${FORTRAN90_TESTS} )
-  add_test(fortran90_${example} ./${example})
+  install(TARGETS ${_name_we}       RUNTIME DESTINATION examples )
+  install(FILES   examples/${_file}         DESTINATION examples )
 endforeach()
