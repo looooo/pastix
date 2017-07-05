@@ -191,7 +191,202 @@ spmUpdateComputedFields( pastix_spm_t *spm )
 /**
  *******************************************************************************
  *
- * @brief Free the spm structure.
+ * @brief Generate a new spm structure out of the provided information.
+ *
+ *******************************************************************************
+ *
+ * @param[in] mtxtype
+ *          Specify the matrix symmetry property
+ *          - PastixGeneral, if the matrix is general
+ *          - PastixSymmetric, if the matrix is symmetric
+ *          - PastixHermitian, if the matrix is complex hermitian
+ *
+ * @param[in] flttype
+ *          Specify the floating point arithmetic used by the matrix
+ *          - PastixPattern, if only the pattern is provided and no values
+ *          - PastixFloat, if the values are real single precision
+ *          - PastixDouble, if the values are real double precision
+ *          - PastixComplex32, if the values are complex single precision
+ *          - PastixComplex64, if the values are complex double precision
+ *
+ * @param[in] fmttype
+ *          Specify the format used to store the matrix
+ *          - PastixIJV, if in the IJV format
+ *          - PastixCSC, if in the compressed sparse column format
+ *          - PastixCSR, if in the compressed sparse row format
+ *
+ * @param[in] n
+ *          Specify the number of unknow in the matrix graph
+ *
+ * @param[in] nnz
+ *          Specify the number of non-zeros in the matrix graph (ie the number
+ *          of edges)
+ *
+ * @param[in] colptr
+ *          The column index array of size n+1 if fmttype == PastixCSC, nnz
+ *          otherwise.
+ *
+ * @param[in] rowptr
+ *          The row index array of size n+1 if fmttype == PastixCSR, nnz
+ *          otherwise.
+ *
+ * @param[in] values
+ *          The values array in type flttype and of size nnz, or nnz * (the size
+ *          of each elemental matrix) if the numbef of degrees of freedom is
+ *          different from 1.
+ *
+ * @param[in] loc2glob
+ *          The correspondance array of local indices vertices to global
+ *          numbering. (Unused for now)
+ *
+ * @param[in] dof Sepecify the degrees of freedom of each elementary. It must be
+ *          1 by default. If dof > 1, the a constant degree of freedom is used,
+ *          otherwise if dof < 1, variadic degrees are used and specified by
+ *          dofs.
+ *
+ * @param[in] layout
+ *          Specify the layout used to stotre each elementatry matrix in the
+ *          values array.
+ *          - PastixRowMajor, if row major layout
+ *          - PastixColMajor, if column major layout
+ *
+ * @param[in] dofs
+ *          The index array of each local vertex in the expanded matrix of size
+ *          n+1. The degree of freedom of the vertex i is given by
+ *          dofs[i+1]-dofs[i].
+ *
+ *******************************************************************************
+ *
+ * @return The newly allocated matrix on success, and NULL otherwise.
+ *
+ *******************************************************************************/
+pastix_spm_t *
+spmNew( pastix_symmetry_t  mtxtype,
+        pastix_coeftype_t  flttype,
+        pastix_fmttype_t   fmttype,
+        pastix_int_t       n,
+        pastix_int_t       nnz,
+        pastix_int_t      *colptr,
+        pastix_int_t      *rowptr,
+        void              *values,
+        pastix_int_t      *loc2glob,
+        pastix_int_t       dof,
+        pastix_layout_t    layout,
+        pastix_int_t      *dofs )
+{
+    pastix_spm_t *spm = malloc( sizeof(pastix_spm_t) );
+    spmInit( spm );
+
+    if ( ( mtxtype != PastixGeneral   ) &&
+         ( mtxtype != PastixSymmetric ) &&
+         ( mtxtype != PastixHermitian ) )
+    {
+        fprintf(stderr, "spmNew: The sparse matrix type must be PastixGeneral, PastixSymmetric or PastixHermitian\n");
+        free( spm );
+        return NULL;
+    }
+    spm->mtxtype = mtxtype;
+
+    if ( ( flttype != PastixPattern   ) &&
+         ( flttype != PastixFloat     ) &&
+         ( flttype != PastixDouble    ) &&
+         ( flttype != PastixComplex32 ) &&
+         ( flttype != PastixComplex64 ) )
+    {
+        fprintf(stderr, "spmNew: The sparse matrix coefficient type must be PastixPattern, PastixFloat, PastixDouble, PastixComplex32, or PastixComplex64\n");
+        free( spm );
+        return NULL;
+    }
+    spm->flttype = flttype;
+
+    if ( ( fmttype != PastixCSC ) &&
+         ( fmttype != PastixCSR ) &&
+         ( fmttype != PastixIJV ) )
+    {
+        fprintf(stderr, "spmNew: The sparse matrix format type must be PastixCSC, PastixCSR, or PastixIJV\n");
+        free( spm );
+        return NULL;
+    }
+    spm->fmttype = fmttype;
+
+    if ( n <= 0 )
+    {
+        fprintf(stderr, "spmNew: The local matrix size n, must be strictly positive\n");
+        free( spm );
+        return NULL;
+    }
+    spm->n = n;
+
+    if ( nnz <= 0 )
+    {
+        fprintf(stderr, "spmNew: The number of non zeros in the local matrix must be strictly positive\n");
+        free( spm );
+        return NULL;
+    }
+    spm->nnz = nnz;
+
+    if ( colptr == NULL ) {
+        fprintf(stderr, "spmNew: The colptr array must be provided and of size n+1, if PastixCSC, nnz otherwise\n");
+        free( spm );
+        return NULL;
+    }
+    spm->colptr   = colptr;
+
+    if ( rowptr == NULL ) {
+        fprintf(stderr, "spmNew: The rowptr array must be provided and of size n+1, if PastixCSR, nnz otherwise\n");
+        free( spm );
+        return NULL;
+    }
+    spm->rowptr   = rowptr;
+
+
+    if ( loc2glob != NULL ) {
+        fprintf(stderr, "spmNew: The distributed interface is not supported for now\n");
+        free( spm );
+        return NULL;
+    }
+    spm->loc2glob = NULL;
+
+    if ( (flttype != PastixPattern) && (values == NULL) ) {
+        fprintf(stderr, "spmNew: The values array of size nnz, and of type flttype must be provided\n");
+        free( spm );
+        return NULL;
+    }
+    spm->values = values;
+
+    spm->dof = dof;
+    spm->layout = PastixColMajor;
+
+    if ( spm->dof != 1 ) {
+        if ( ( layout != PastixColMajor ) &&
+             ( layout != PastixRowMajor ) )
+        {
+            fprintf(stderr, "spmNew: The sparse matrix layout for multi-dof must be PastixColMajor or PastixRowMajor\n");
+            free( spm );
+            return NULL;
+        }
+        spm->layout = layout;
+
+        if ( dof < 1 ) {
+            if ( dofs == NULL ) {
+                fprintf(stderr, "spmNew: The dofs array must be provided when dof < 1\n");
+                free( spm );
+                return NULL;
+            }
+            spm->dofs = dofs;
+        }
+        else {
+            spm->dofs = NULL;
+        }
+    }
+    spmUpdateComputedFields( spm );
+    return spm;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Cleanup the spm structure but do not free the spm pointer.
  *
  *******************************************************************************
  *
@@ -212,6 +407,24 @@ spmExit( pastix_spm_t *spm )
         memFree_null(spm->values);
     if(spm->dofs != NULL)
         memFree_null(spm->dofs);
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Cleanup the spm structure and free the spm pointer.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] spm
+ *          The sparse matrix to free.
+ *
+ *******************************************************************************/
+void
+spmFree( pastix_spm_t *spm )
+{
+    spmExit( spm );
+    free( spm );
 }
 
 /**
@@ -796,12 +1009,12 @@ spmCopy( const pastix_spm_t *spm )
     }
     if(spm->dofs != NULL) {
         newspm->dofs = (pastix_int_t*)malloc(dofsize * sizeof(pastix_int_t));
-        memcpy( newspm->dofs, spm->dofs, dofsize * sizeof(pastix_int_t));
+        memcpy( newspm->dofs, spm->dofs, dofsize * sizeof(pastix_int_t) );
     }
     if(spm->values != NULL) {
         valsize = valsize * pastix_size_of( spm->flttype );
         newspm->values = malloc(valsize);
-        memcpy( newspm->values, spm->values, valsize);
+        memcpy( newspm->values, spm->values, valsize );
     }
     return newspm;
 }
@@ -826,9 +1039,9 @@ spmPrintInfo( const pastix_spm_t* spm, FILE *stream )
     char *mtxtypestr[4] = { "General", "Symmetric", "Hermitian", "Incorrect" };
     char *flttypestr[7] = { "Pattern", "", "Float", "Double", "Complex32", "Complex64", "Incorrect" };
     char *fmttypestr[4] = { "CSC", "CSR", "IJV", "Incorrect" };
-    int  mtxtype = spm->mtxtype - PastixGeneral;
-    int  flttype = spm->flttype - PastixPattern;
-    int  fmttype = spm->fmttype - PastixCSC;
+    int mtxtype = spm->mtxtype - PastixGeneral;
+    int flttype = spm->flttype - PastixPattern;
+    int fmttype = spm->fmttype - PastixCSC;
 
     if (stream == NULL) {
         stream = stdout;
@@ -877,12 +1090,13 @@ spmPrintInfo( const pastix_spm_t* spm, FILE *stream )
  * @param[in] spm
  *          The sparse matrix to print.
  *
- * @param[in] f
- *          File to print the spm matrix.
+ * @param[in] stream
+ *          File to print the spm matrix. stdout, if stream == NULL.
  *
  *******************************************************************************/
 void
-spmPrint( const pastix_spm_t* spm, FILE *stream )
+spmPrint( const pastix_spm_t *spm,
+          FILE               *stream )
 {
     if (stream == NULL) {
         stream = stdout;
@@ -992,12 +1206,12 @@ spmExpand( const pastix_spm_t* spm )
  *
  *******************************************************************************/
 int
-spmMatVec(const pastix_trans_t trans,
-          const void          *alpha,
-          const pastix_spm_t  *spm,
-          const void          *x,
-          const void          *beta,
-                void          *y )
+spmMatVec(       pastix_trans_t trans,
+           const void          *alpha,
+           const pastix_spm_t  *spm,
+           const void          *x,
+           const void          *beta,
+                 void          *y )
 {
     pastix_spm_t *espm = (pastix_spm_t*)spm;
     int rc = PASTIX_SUCCESS;
@@ -1078,10 +1292,10 @@ spmMatVec(const pastix_trans_t trans,
  *
  *******************************************************************************/
 int
-spmGenRHS( pastix_rhstype_t type, int nrhs,
+spmGenRHS( pastix_rhstype_t type, pastix_int_t nrhs,
            const pastix_spm_t  *spm,
-           void                *x, int ldx,
-           void                *b, int ldb )
+           void                *x, pastix_int_t ldx,
+           void                *b, pastix_int_t ldb )
 {
     static int (*ptrfunc[4])(pastix_rhstype_t, int,
                              const pastix_spm_t *,
@@ -1143,11 +1357,11 @@ spmGenRHS( pastix_rhstype_t type, int nrhs,
  *
  *******************************************************************************/
 int
-spmCheckAxb( int nrhs,
+spmCheckAxb( pastix_int_t nrhs,
              const pastix_spm_t  *spm,
-                   void *x0, int ldx0,
-                   void *b,  int ldb,
-             const void *x,  int ldx )
+                   void *x0, pastix_int_t ldx0,
+                   void *b,  pastix_int_t ldb,
+             const void *x,  pastix_int_t ldx )
 {
     static int (*ptrfunc[4])(int, const pastix_spm_t *,
                              void *, int, void *, int, const void *, int) =

@@ -42,7 +42,7 @@
  *
  */
 typedef struct pastix_spm_s {
-    int               mtxtype; /**< Matrix structure: PastixGeneral, PastixSymmetric
+    pastix_symmetry_t mtxtype; /**< Matrix structure: PastixGeneral, PastixSymmetric
                                     or PastixHermitian.                                            */
     pastix_coeftype_t flttype; /**< avals datatype: PastixPattern, PastixFloat, PastixDouble,
                                     PastixComplex32 or PastixComplex64                             */
@@ -75,13 +75,28 @@ typedef struct pastix_spm_s {
  * @name SPM basic subroutines
  * @{
  */
-void          spmInit( pastix_spm_t *spm );
-void          spmExit( pastix_spm_t *spm );
+pastix_spm_t *spmNew(  pastix_symmetry_t  mtxtype,
+                       pastix_coeftype_t  flttype,
+                       pastix_fmttype_t   fmttype,
+                       pastix_int_t       n,
+                       pastix_int_t       nnz,
+                       pastix_int_t      *colptr,
+                       pastix_int_t      *rowptr,
+                       void              *values,
+                       pastix_int_t      *loc2glob,
+                       pastix_int_t       dof,
+                       pastix_layout_t    layout,
+                       pastix_int_t      *dofs );
+void          spmInit( pastix_spm_t      *spm );
+void          spmExit( pastix_spm_t      *spm );
+void          spmFree( pastix_spm_t      *spm );
+
 pastix_spm_t *spmCopy( const pastix_spm_t *spm );
 void          spmBase( pastix_spm_t *spm, int baseval );
 pastix_int_t  spmFindBase( const pastix_spm_t *spm );
 int           spmConvert( int ofmttype, pastix_spm_t *ospm );
 void          spmUpdateComputedFields( pastix_spm_t *spm );
+
 
 /**
  * @}
@@ -89,9 +104,9 @@ void          spmUpdateComputedFields( pastix_spm_t *spm );
  * @{
  */
 double        spmNorm( pastix_normtype_t ntype, const pastix_spm_t *spm );
-int           spmMatVec(const pastix_trans_t trans, const void *alpha, const pastix_spm_t *spm, const void *x, const void *beta, void *y );
-void          spmScalMatrix( const pastix_complex64_t alpha, pastix_spm_t* spm );
-void          spmScalVector( const double alpha, pastix_spm_t* spm, void *x );
+int           spmMatVec( pastix_trans_t trans, const void *alpha, const pastix_spm_t *spm, const void *x, const void *beta, void *y );
+void          spmScalMatrix( const pastix_complex64_t alpha, pastix_spm_t *spm );
+void          spmScalVector( const double alpha, pastix_spm_t *spm, void *x );
 
 /**
  * @}
@@ -108,8 +123,8 @@ pastix_spm_t *spmCheckAndCorrect( pastix_spm_t *spm );
  * @name SPM subroutines to check factorization/solve
  * @{
  */
-int           spmGenRHS( pastix_rhstype_t type, int nrhs, const pastix_spm_t *spm, void *x, int ldx, void *b, int ldb );
-int           spmCheckAxb( int nrhs, const pastix_spm_t *spm, void *x0, int ldx0, void *b, int ldb, const void *x, int ldx );
+int           spmGenRHS( pastix_rhstype_t type, pastix_int_t nrhs, const pastix_spm_t *spm, void *x, pastix_int_t ldx, void *b, pastix_int_t ldb );
+int           spmCheckAxb( pastix_int_t nrhs, const pastix_spm_t *spm, void *x0, pastix_int_t ldx0, void *b, pastix_int_t ldb, const void *x, pastix_int_t ldx );
 
 /**
  * @}
@@ -126,8 +141,8 @@ void          spmIntSort2Asc2( void * const pbase, const pastix_int_t n );
  * @name SPM IO subroutines
  * @{
  */
-int           spmLoad( pastix_spm_t *spm, FILE *infile );
-int           spmSave( pastix_spm_t *spm, FILE *outfile );
+int           spmLoad(       pastix_spm_t *spm, FILE *infile );
+int           spmSave( const pastix_spm_t *spm, FILE *outfile );
 
 /**
  * @}
@@ -135,7 +150,7 @@ int           spmSave( pastix_spm_t *spm, FILE *outfile );
  * @{
  */
 int           spmReadDriver( pastix_driver_t  driver,
-                             char            *filename,
+                             const char      *filename,
                              pastix_spm_t    *spm,
                              MPI_Comm         pastix_comm );
 /**
@@ -145,9 +160,9 @@ int           spmReadDriver( pastix_driver_t  driver,
  */
 void *        spm2Dense   ( const pastix_spm_t *spm );
 void          spmPrint    ( const pastix_spm_t *spm, FILE *f );
-void          spmPrintInfo( const pastix_spm_t* spm, FILE *f );
-pastix_spm_t *spmExpand   ( const pastix_spm_t* spm );
-pastix_spm_t *spmDofExtend( const pastix_spm_t *spm, const int type, const int dof  );
+void          spmPrintInfo( const pastix_spm_t *spm, FILE *f );
+pastix_spm_t *spmExpand   ( const pastix_spm_t *spm );
+pastix_spm_t *spmDofExtend( const pastix_spm_t *spm, const int type, const int dof );
 
 /**
  * @}

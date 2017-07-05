@@ -64,7 +64,7 @@
  *******************************************************************************/
 int
 spmReadDriver( pastix_driver_t  driver,
-               char            *filename,
+               const char      *filename,
                pastix_spm_t    *spm,
                MPI_Comm         comm )
 {

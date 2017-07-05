@@ -222,9 +222,6 @@ laplacian_parse_info( const char   *filename,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    fprintf(stderr, "x=%ld, y=%ld, z=%ld, alpha=%lf, beta=%lf\n",
-            *dim1, *dim2, *dim3, *alpha, *beta );
-
     spm->n = spm->gN;
     return PASTIX_SUCCESS;
 }

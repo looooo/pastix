@@ -120,9 +120,15 @@ macro(generate_pkgconfig_file)
       "${CMAKE_CURRENT_SOURCE_DIR}/pastix.pc.in"
       "${CMAKE_CURRENT_BINARY_DIR}/lib/pkgconfig/pastix.pc" @ONLY)
 
+    configure_file(
+      "${CMAKE_CURRENT_SOURCE_DIR}/pastixf.pc.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/lib/pkgconfig/pastixf.pc" @ONLY)
+
     # installation
     # ------------
-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/lib/pkgconfig/pastix.pc"
+    install(FILES
+      "${CMAKE_CURRENT_BINARY_DIR}/lib/pkgconfig/pastix.pc"
+      "${CMAKE_CURRENT_BINARY_DIR}/lib/pkgconfig/pastixf.pc"
       DESTINATION lib/pkgconfig)
 
 endmacro(generate_pkgconfig_file)

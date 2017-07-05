@@ -80,7 +80,7 @@ int pastix_task_solve  ( pastix_data_t      *pastix_data,
                          pastix_int_t        ldb );
 int pastix_task_refine ( pastix_data_t      *pastix_data,
                          void               *x,
-                         pastix_int_t        rhsnbr,
+                         pastix_int_t        nrhs,
                          void               *b );
 
 /*

@@ -259,6 +259,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     pastix_data->steps &= ~STEP_NUMFACT;
     pastix_data->steps |= STEP_BCSC2CTAB;
 
+    (void)mtxtype;
     return PASTIX_SUCCESS;
 }
 
