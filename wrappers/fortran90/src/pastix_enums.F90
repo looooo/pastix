@@ -235,9 +235,12 @@ module pastix_enums
   ! C structs converted to derived types.
   integer, parameter :: pastix_int_t = PASTIX_INT_KIND
 
+contains
+
   function pastix_getintsize()
-    integer, parameter :: pastix_getintsize
+    integer :: pastix_getintsize
     pastix_getintsize = PASTIX_INT_KIND
+    return
   end function pastix_getintsize
 
 end module pastix_enums
