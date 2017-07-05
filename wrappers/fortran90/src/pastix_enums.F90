@@ -185,8 +185,8 @@ module pastix_enums
   integer, parameter :: PastixDriverGraph      = 6 ! Scotch Graph driver
 
   ! class rhstype:
-  integer, parameter :: PastixRhsOne =  0
-  integer, parameter :: PastixRhsI   =  1
+  integer, parameter :: PastixRhsOne  = 0
+  integer, parameter :: PastixRhsI    = 1
   integer, parameter :: PastixRhsRndX = 2
   integer, parameter :: PastixRhsRndB = 3
 
@@ -234,5 +234,10 @@ module pastix_enums
 
   ! C structs converted to derived types.
   integer, parameter :: pastix_int_t = PASTIX_INT_KIND
+
+  function pastix_getintsize()
+    integer, parameter :: pastix_getintsize
+    pastix_getintsize = PASTIX_INT_KIND
+  end function pastix_getintsize
 
 end module pastix_enums
