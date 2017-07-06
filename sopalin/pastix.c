@@ -345,6 +345,8 @@ pastix( pastix_data_t **pastix_data_ptr,
 
     if (iparm[IPARM_START_TASK] == PastixTaskSolve) {
         size = pastix_size_of( spm->flttype ) * spm->n;
+        pastix_data->x0 = NULL;
+        pastix_data->b  = NULL;
 
         /*
          * Backup the initial b if we need to perform an iterative
@@ -433,15 +435,15 @@ pastix( pastix_data_t **pastix_data_ptr,
         if ( b != refineX0 ) {
             memcpy(b, refineB, size);
         }
+    }
 
-        if ( pastix_data->x0 ) {
-            free( pastix_data->x0 );
-            pastix_data->x0 = NULL;
-        }
-        if ( pastix_data->b ) {
-            free( pastix_data->b );
-            pastix_data->b = NULL;
-        }
+    if ( pastix_data->x0 != NULL ) {
+        free( pastix_data->x0 );
+        pastix_data->x0 = NULL;
+    }
+    if ( pastix_data->b != NULL ) {
+        free( pastix_data->b );
+        pastix_data->b = NULL;
     }
 
     /*
