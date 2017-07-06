@@ -9,8 +9,6 @@
 #cmakedefine PASTIX_WITH_CUDA
 #cmakedefine PASTIX_WITH_EZTRACE
 
-#cmakedefine PASTIX_DUMP_CBLK
-
 /* system */
 #cmakedefine HAVE_PTHREAD
 #cmakedefine HAVE_SCHED_SETAFFINITY
@@ -81,6 +79,7 @@
 #cmakedefine PASTIX_DEBUG_GRAPH
 #cmakedefine PASTIX_DEBUG_SYMBOL
 #cmakedefine PASTIX_DEBUG_BLEND
+#cmakedefine PASTIX_DEBUG_DUMP_COEFTAB
 #cmakedefine PASTIX_DEBUG_FACTO
 #cmakedefine PASTIX_DEBUG_PARSEC
 #cmakedefine PASTIX_DEBUG_LR

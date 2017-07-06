@@ -16,6 +16,9 @@
  * @precisions normal z -> s d c
  *
  **/
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
 #include "common.h"
 #include "solver.h"
 #include "bcsc.h"
@@ -138,26 +141,26 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
 
     coeftab_zffbcsc( solvmtx, bcsc, itercblk );
 
-#if defined(PASTIX_DUMP_COEFTAB)
+#if defined(PASTIX_DEBUG_DUMP_COEFTAB)
     {
         FILE *fl,*fu;
         char *filename;
 
         asprintf( &filename, "Lcblk%05ld.txt", itercblk );
         PASTIX_FOPEN( fl, filename, "w" );
-        coeftab_zdumpcblk( cblk, cblk->lcoeftab, fl );
+        coeftab_zdumpcblk( cblk, PastixLower, fl );
         fclose( fl );
         free( filename );
 
         if ( cblk->ucoeftab ) {
             asprintf( &filename, "Ucblk%05ld.txt", itercblk );
             PASTIX_FOPEN( fu, filename, "w" );
-            coeftab_zdumpcblk( cblk, cblk->ucoeftab, fu );
+            coeftab_zdumpcblk( cblk, PastixUpper, fu );
             fclose( fu );
             free( filename );
         }
     }
-#endif /* defined(PASTIX_DUMP_COEFTAB) */
+#endif /* defined(PASTIX_DEBUG_DUMP_COEFTAB) */
 
     /**
      * Try to compress the cblk if needs to be compressed

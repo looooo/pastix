@@ -72,7 +72,7 @@ option(PASTIX_WITH_PARSEC
   "Build PaStiX with PaRSEC runtime support" OFF)
 
 # Internal options
-option(PASTIX_DUMP_CBLK
+option(PASTIX_DEBUG_DUMP_COEFTAB
   "Dump all cblk on disk after modifications" OFF)
 
 cmake_dependent_option(PASTIX_DISTRIBUTED
