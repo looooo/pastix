@@ -96,7 +96,7 @@ class solver(object):
         nschur = len(schur_list)
         self.S = np.zeros( (nschur, nschur), order='F', dtype=A.dtype )
         getSchur( self.pastix_data, self.S )
-        if full_matrix and self.factotype!=factotype.LU:
+        if full_matrix and (self.factotype != factotype.LU):
             self.S += la.tril(self.S, -1).T
 
     def schur_forward(self, b):
