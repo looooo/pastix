@@ -10,16 +10,18 @@
  @author Pierre Ramet
  @author Mathieu Faverge
  @author Louis Poirel
- @date 2017-06-29
+ @date 2017-07-06
 
 """
 from .pastix import *
 from .enum import *
+import scipy.linalg as la
 
 class solver(object):
 
     def __init__(self, A=None, **kwargs):
         self.iparm, self.dparm = initParam()
+
         self.verbose = kwargs.setdefault("verbose", 1)
         if not self.verbose: # 0 or False
             self.iparm[iparm.verbose] = verbose.Not
@@ -27,6 +29,18 @@ class solver(object):
             self.iparm[iparm.verbose] = verbose.Yes
         else: # 1 or True or anything else, default value
             self.iparm[iparm.verbose] = verbose.No
+
+        self.sym = kwargs.setdefault("symmetry", 0)
+        if not self.sym: # 0 or False, general
+            self.factotype = factotype.LU
+        elif self.sym==2: # Symmetric positive definite
+            self.factotype = factotype.LLT
+        else: # 1 or True, symmetric
+            self.factotype = factotype.LDLT # Not implemented
+            print("LDLT not supported yet in Pastix, fall back to LU")
+            self.factotype = factotype.LU
+        self.iparm[iparm.factorization] = self.factotype
+
         self.pastix_data = init( self.iparm, self.dparm )
         if A is not None:
             self.setup(A)
@@ -54,7 +68,12 @@ class solver(object):
             self.spmA.checkAxb(x0, b, x)
         return x
 
-    def schur(self, A, schur_list):
+    def schur(self, A, schur_list, full_matrix=True):
+        """Setup the solver object to work in Schur complement mode
+        
+        full_matrix: boolean, default True. If full_matrix is False
+        and a symmetric factorization is used, only the lower part of
+        the Schur matrix is stored in self.S
         """
         Setup the solver object to work in Schur complement mode
         """
@@ -64,7 +83,6 @@ class solver(object):
         self.iparm[iparm.schur_solv_mode] = solv_mode.Interface
         self.A    = A
         self.spmA = spm(A)
-
         if self.verbose:
             self.spmA.printInfo()
 
@@ -78,6 +96,8 @@ class solver(object):
         nschur = len(schur_list)
         self.S = np.zeros( (nschur, nschur), order='F', dtype=A.dtype )
         getSchur( self.pastix_data, self.S )
+        if full_matrix and self.factotype!=factotype.LU:
+            self.S += la.tril(self.S, -1).T
 
     def schur_forward(self, b):
         """
