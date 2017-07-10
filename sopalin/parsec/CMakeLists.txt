@@ -24,6 +24,12 @@ set(EXTRA_SOURCES
   parsec_sparse_matrix.c
 )
 
+if(PASTIX_WITH_CUDA)
+  set( EXTRA_SOURCES
+    ${EXTRA_SOURCES}
+    pastix_parsec_gpu.c )
+endif()
+
 ### Generate the headers in all precisions
 set(HEADERS
   pastix_zparsec.h

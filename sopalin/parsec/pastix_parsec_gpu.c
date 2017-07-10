@@ -14,8 +14,10 @@
 #include "sopalin/parsec/pastix_parsec.h"
 
 #if defined(PASTIX_WITH_CUDA)
-#include "parsec/devices/device.h"
-#include "parsec/devices/cuda/dev_cuda.h"
+#include <parsec.h>
+#include <parsec/sys/atomic.h>
+#include <parsec/devices/device.h>
+#include <parsec/devices/cuda/dev_cuda.h>
 #endif
 
 volatile int parsec_nbtasks_on_gpu[32] = {0};
