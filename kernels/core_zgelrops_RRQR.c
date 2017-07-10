@@ -273,7 +273,6 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
                         }
                         temp2 = temp * ( VN1[j] / VN2[j]) * ( VN1[j] / VN2[j]);
                         if (temp2 < machine_prec){
-                            /* printf("LSTICC %ld\n", j); */
                             VN2[j] = lsticc;
                             lsticc = j;
                         }

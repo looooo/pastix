@@ -549,8 +549,8 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
          * A and B are both low rank
          */
         if ( B->rk != -1 ) {
+            errorPrint("core_zlrm2: we should not end up here\n");
             assert(0);
-            printf("USELESS\n");
         }
         /**
          * A is low rank and not B
