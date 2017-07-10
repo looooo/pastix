@@ -866,8 +866,8 @@ zgetrf_sp2d_zgemm2d_selectgpu_fct( const __parsec_zgetrf_sp2d_GEMM2D_task_t *thi
 #else
 
 int
-zgetrf_sp1dplus_zgemm1d_selectgpu_fct( const __parsec_zgetrf_sp1dplus_GEMM1D_task_t *this_task,
-                                       double weight )
+zgetrf_sp2d_zgemm1d_selectgpu_fct( const __parsec_zgetrf_sp2d_GEMM1D_task_t *this_task,
+                                   double weight )
 {
     return -2;
 }
