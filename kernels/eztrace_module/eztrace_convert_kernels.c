@@ -11,8 +11,10 @@
  * @author Gregoire Pichon
  * @date 2017-04-26
  *
- **/
-
+ */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
 #include "eztrace_convert_kernels.h"
 
 static kernels_t kernels_properties[KERNELS_NB_EVENTS];
@@ -287,24 +289,27 @@ int handle_kernels_stats(eztrace_event_t *ev)
  */
 void print_kernels_stats()
 {
-    define_kernels_properties();
-
-    int i;
+    int i, j, k;
     double total_flops = 0;
+
+    define_kernels_properties();
 
     /* Browse the list of processes */
     for (i = 0; i < NB_TRACES; i++) {
         struct eztrace_container_t *p_process = GET_PROCESS_CONTAINER(i);
-        int j;
+
         /* For each process, browse the list of threads */
-        for(j=0; j<p_process->nb_children; j++) {
-            int k;
-            struct eztrace_container_t *thread_container = p_process->children[j];
-            struct thread_info_t *p_thread = (struct thread_info_t*)
-                thread_container->container_info;
+        for(j=0; j<(int)(p_process->nb_children); j++) {
+
+            struct eztrace_container_t *thread_container;
+            struct thread_info_t       *p_thread;
+
+            thread_container = p_process->children[j];
+            p_thread = (struct thread_info_t*)(thread_container->container_info);
 
             if(!p_thread)
                 continue;
+
             INIT_KERNELS_THREAD_INFO(p_thread, p_info, 1);
             printf("\tThread %20s\n", thread_container->name);
 
@@ -320,6 +325,6 @@ void print_kernels_stats()
             }
         }
     }
-    printf(" Number of operations: %5.2lf %cFlops\n",
+    printf("\n\n\tTotal number of operations: %5.2lf %cFlops\n",
            printflopsv( total_flops ), printflopsu( total_flops ) );
 }

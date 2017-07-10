@@ -138,11 +138,11 @@
 #define FMULS_GEQRS(__m, __n, __nrhs) ((double)(__nrhs) * ((double)(__n) * ( 2.* (double)(__m) - 0.5 * (double)(__n) + 2.5)))
 #define FADDS_GEQRS(__m, __n, __nrhs) ((double)(__nrhs) * ((double)(__n) * ( 2.* (double)(__m) - 0.5 * (double)(__n) + 0.5)))
 
-#define FMULS_UNMQR(__m, __n, __k, __side) (( (__side) == PastixLeft ) ?  ((double)(__n) * (double)(__k) * (2. * (double)(__m) - (double)(__k) + 2. )) \
-    :                                                                     ((double)(__k) * ((double(__m) * (2. * (double)(__n) - (double)(__k) + 1.) + (double)(__n) - .5 * (double)(__k) + .5)))
+#define FMULS_UNMQR(__m, __n, __k, __side) (( (__side) == PastixLeft ) ?  ((double)(__n) *  (double)(__k) * (2. * (double)(__m) - (double)(__k) + 2. )) \
+                                            :                             ((double)(__k) * ((double)(__m) * (2. * (double)(__n) - (double)(__k) + 1.) + (double)(__n) - .5 * (double)(__k) + .5)))
 
 #define FADDS_UNMQR(__m, __n, __k, __side) (( (__side) == PastixLeft ) ?  ((double)(__n) * (double)(__k) * (2. * (double)(__m) - (double)(__k) + 1. )) \
-    :                                                                     ((double)(__m) * (double)(__k) * (2. * (double)(__n) - (double)(__k) + 1. ))
+                                            :                             ((double)(__m) * (double)(__k) * (2. * (double)(__n) - (double)(__k) + 1. )))
 
 #define FMULS_ORMQR FMULS_UNMQR
 #define FADDS_ORMQR FADDS_UNMQR
