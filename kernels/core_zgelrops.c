@@ -767,7 +767,7 @@ core_zlrm3( const pastix_lr_t *lowrank,
                          CBLAS_SADDR(zone),  work2,  A->rk,
                          B->u,  ldbu,
                          CBLAS_SADDR(zzero), AB->v, AB->rkmax );
-            flops += FLOPS_ZGEMM( A->rk, N, B->rk );
+            flops = FLOPS_ZGEMM( A->rk, N, B->rk );
         }
         else {
             /**
@@ -787,7 +787,7 @@ core_zlrm3( const pastix_lr_t *lowrank,
                          CBLAS_SADDR(zone),  A->u,  ldau,
                          work2,  A->rk,
                          CBLAS_SADDR(zzero), AB->u, M );
-            flops+= FLOPS_ZGEMM( M, B->rk, A->rk );
+            flops = FLOPS_ZGEMM( M, B->rk, A->rk );
 
             transV = transB;
 
@@ -823,7 +823,7 @@ core_zlrm3( const pastix_lr_t *lowrank,
                                          B->u, ldbu,
                      CBLAS_SADDR(zzero), AB->v, rArB.rk );
 
-        flops+= FLOPS_ZGEMM( M, rArB.rk, A->rk ) + FLOPS_ZGEMM( rArB.rk, N, B->rk );
+        flops = FLOPS_ZGEMM( M, rArB.rk, A->rk ) + FLOPS_ZGEMM( rArB.rk, N, B->rk );
 
         /* free(work); */
     }
