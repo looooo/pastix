@@ -33,25 +33,28 @@
 
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 
+/**
+ * @brief Kerneks
+ */
 typedef enum kernels_ev_code_e {
     STOP,
 
     /* Low-rank operations */
-    LR_INIT,
-    LR_INIT_Q,
-    LR_TRSM,
-    LR_GEMM_PRODUCT,
-    LR_GEMM_ADD_Q,
-    LR_GEMM_ADD_RRQR,
-    UNCOMPRESS,
+    LR_INIT,          /**< try to compress a dense block (RRQR)                  */
+    LR_INIT_Q,        /**< form Q when compression succeeded                     */
+    LR_TRSM,          /**< trsm on a low-rank block                              */
+    LR_GEMM_PRODUCT,  /**< formation of a product of low-rank blocks             */
+    LR_GEMM_ADD_Q,    /**< getrf/unmqr during recompression                      */
+    LR_GEMM_ADD_RRQR, /**< compression of concatenated matrices in recompression */
+    UNCOMPRESS,       /**< uncompress a low-rank block into a dense block        */
 
     /* General kernels: similar in low-rank and dense */
-    GETRF,
-    POTRF,
+    GETRF, /**< getrf on a dense block */
+    POTRF, /**< potrf on a dense block */
 
     /* Dense operations */
-    DENSE_TRSM,
-    DENSE_GEMM,
+    DENSE_TRSM, /**< trsm on a dense block           */
+    DENSE_GEMM, /**< gemm between three dense blocks */
 
     KERNELS_NB_EVENTS,
 } kernels_ev_code_t;
