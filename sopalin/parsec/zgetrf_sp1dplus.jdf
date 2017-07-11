@@ -345,6 +345,7 @@ int
 zgetrf_sp1dplus_zgemm1d_selectgpu_fct( const __parsec_zgetrf_sp1dplus_GEMM1D_task_t *this_task,
                                        double weight )
 {
+    (void)this_task; (void)weight;
     return -2;
 }
 

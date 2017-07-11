@@ -204,7 +204,7 @@ BODY
 
             if ( work  ) {
                 parsec_private_memory_push( p_work, (void *)work );
-	        }
+            }
         }
     }
 }
@@ -290,6 +290,8 @@ zpotrf_sp1dplus_zgemm1d_selectgpu_fct( const __parsec_zpotrf_sp1dplus_GEMM1D_tas
 
     if ( gpuid >= 0 ) {
         pastix_atomic_inc_32b( &parsec_nbtasks_on_gpu[gpuid] );
+        pastix_atomic_add_64b( &(pastix_nbflops_on_device[gpuid + 1]),
+                               FLOPS_ZGEMM( M, N, K ) );
     }
 
     (void)weight;
@@ -302,6 +304,7 @@ int
 zpotrf_sp1dplus_zgemm1d_selectgpu_fct( const __parsec_zpotrf_sp1dplus_GEMM1D_task_t *this_task,
                                        double weight )
 {
+    (void)this_task; (void)weight;
     return -2;
 }
 

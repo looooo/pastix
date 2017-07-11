@@ -786,6 +786,7 @@ int
 zpotrf_sp2d_zgemm1d_selectgpu_fct( const __parsec_zpotrf_sp2d_GEMM1D_task_t *this_task,
                                    double weight )
 {
+    (void)this_task; (void)weight;
     return -2;
 }
 
@@ -793,6 +794,7 @@ int
 zpotrf_sp2d_ztrsm2d_selectgpu_fct( const __parsec_zpotrf_sp2d_TRSM2D_task_t *this_task,
                                    double weight )
 {
+    (void)this_task; (void)weight;
     return -2;
 }
 
@@ -800,6 +802,7 @@ int
 zpotrf_sp2d_zgemm2d_selectgpu_fct( const __parsec_zpotrf_sp2d_GEMM2D_task_t *this_task,
                                    double weight )
 {
+    (void)this_task; (void)weight;
     return -2;
 }
 
