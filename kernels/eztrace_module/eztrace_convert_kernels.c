@@ -289,7 +289,7 @@ int handle_kernels_stats(eztrace_event_t *ev)
  */
 void print_kernels_stats()
 {
-    int i, j, k;
+    int64_t i, j, k;
     double total_flops = 0;
 
     define_kernels_properties();
@@ -299,7 +299,7 @@ void print_kernels_stats()
         struct eztrace_container_t *p_process = GET_PROCESS_CONTAINER(i);
 
         /* For each process, browse the list of threads */
-        for(j=0; j<(int)(p_process->nb_children); j++) {
+        for(j=0; j<(int64_t)(p_process->nb_children); j++) {
 
             struct eztrace_container_t *thread_container;
             struct thread_info_t       *p_thread;
