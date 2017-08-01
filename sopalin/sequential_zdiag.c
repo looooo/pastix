@@ -33,30 +33,33 @@ sequential_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
 
     cblk = datacode->cblktab;
     for (i=0; i<datacode->cblknbr; i++, cblk++){
-        pastix_complex64_t *coeftab = cblk->lcoeftab;
+        pastix_complex64_t *coeftab;
         pastix_complex64_t *tmp, *lb;
-        pastix_int_t size = cblk->lcolnum - cblk->fcolnum + 1;
+        pastix_int_t colnbr, ldd;
 
         if ( cblk->cblktype & CBLK_IN_SCHUR )
             break;
 
+        colnbr = cblk_colnbr( cblk );
+        coeftab = cblk->lcoeftab;
         lb = b + cblk->lcolidx;
+        ldd = (cblk->cblktype & CBLK_LAYOUT_2D ? colnbr : cblk->stride) + 1;
 
-        if( nrhs == 1 ) {
-            MALLOC_INTERN( tmp, size, pastix_complex64_t );
-            cblas_zcopy( size, coeftab, cblk->stride+1, tmp, 1 );
+        if( nrhs != 1 ) {
+            MALLOC_INTERN( tmp, colnbr, pastix_complex64_t );
+            cblas_zcopy( colnbr, coeftab, ldd, tmp, 1 );
 
             /* Compute */
             for (k=0; k<nrhs; k++, lb+=ldb)
             {
-                for (j=0; j<size; j++) {
+                for (j=0; j<colnbr; j++) {
                     lb[j] /= tmp[j];
                 }
             }
             memFree_null(tmp);
         }
         else {
-            for (j=0; j<size; j++, lb++, coeftab+=(cblk->stride+1)) {
+            for (j=0; j<colnbr; j++, lb++, coeftab+=ldd) {
                 *lb = (*lb) / (*coeftab);
             }
         }

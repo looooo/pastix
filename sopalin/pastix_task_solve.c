@@ -26,6 +26,7 @@
 #include "d_bcsc.h"
 #include "s_bcsc.h"
 
+#define PASTIX_DEBUG_SOLVE
 #if defined(PASTIX_DEBUG_SOLVE)
 static inline void dump_rhs( char *name, int n, double *b )
 {
