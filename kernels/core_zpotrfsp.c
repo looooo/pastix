@@ -283,9 +283,7 @@ cpucblk_zpotrfsp1d_panel( SolverCblk         *cblk,
 {
     pastix_int_t nbpivot;
 
-    start_trace_kernel(POTRF, 0);
     nbpivot = cpucblk_zpotrfsp1d_potrf(cblk, L, criteria);
-    stop_trace_kernel();
 
     cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
                      PastixConjTrans, PastixNonUnit,

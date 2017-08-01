@@ -20,6 +20,7 @@
 #define __KERNELS_EV_CODES_H__
 
 #include "common.h"
+#include "flops.h"
 
 #if defined(PASTIX_WITH_EZTRACE)
 #include "eztrace.h"
@@ -27,26 +28,33 @@
 #include "ev_codes.h"
 
 #define KERNELS_EVENTS_ID    USER_MODULE_ID(0x51)
-#define KERNELS_PREFIX       (KERNELS_EVENTS_ID << 3)
+#define KERNELS_PREFIX       (KERNELS_EVENTS_ID << 5)
 #define KERNELS_CODE(event)  (KERNELS_PREFIX | event )
 
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 
+/**
+ * @brief Kerneks
+ */
 typedef enum kernels_ev_code_e {
     STOP,
 
     /* Low-rank operations */
-    LR_ALLOC,
-    LR_TRSM,
-    LR_GEMM,
+    LR_INIT,          /**< try to compress a dense block (RRQR)                  */
+    LR_INIT_Q,        /**< form Q when compression succeeded                     */
+    LR_TRSM,          /**< trsm on a low-rank block                              */
+    LR_GEMM_PRODUCT,  /**< formation of a product of low-rank blocks             */
+    LR_GEMM_ADD_Q,    /**< getrf/unmqr during recompression                      */
+    LR_GEMM_ADD_RRQR, /**< compression of concatenated matrices in recompression */
+    UNCOMPRESS,       /**< uncompress a low-rank block into a dense block        */
 
     /* General kernels: similar in low-rank and dense */
-    GETRF,
-    POTRF,
+    GETRF, /**< getrf on a dense block */
+    POTRF, /**< potrf on a dense block */
 
     /* Dense operations */
-    DENSE_TRSM,
-    DENSE_GEMM,
+    DENSE_TRSM, /**< trsm on a dense block           */
+    DENSE_GEMM, /**< gemm between three dense blocks */
 
     KERNELS_NB_EVENTS,
 } kernels_ev_code_t;
@@ -61,25 +69,31 @@ typedef enum kernels_ev_code_e {
  * @param[in] state
  *          The kernel's name
  *
- * @param[in] flops
- *          The number of operations performed
- *
  *******************************************************************************/
-static inline void start_trace_kernel(kernels_ev_code_t state, double flops){
+static inline void start_trace_kernel(kernels_ev_code_t state){
 #if defined(PASTIX_WITH_EZTRACE)
-    EZTRACE_EVENT_PACKED_1(KERNELS_CODE(state), flops);
+    EZTRACE_EVENT_PACKED_0(KERNELS_CODE(state));
 #else
     (void) state;
-    (void) flops;
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 }
 
 /**
+ *******************************************************************************
+ *
  * @brief Stop to trace a kernel
- */
-static inline void stop_trace_kernel(){
+ *
+ *******************************************************************************
+ *
+ * @param[in] flops
+ *          The number of operations performed during the call
+ *
+ *******************************************************************************/
+static inline void stop_trace_kernel(double flops){
 #if defined(PASTIX_WITH_EZTRACE)
-    EZTRACE_EVENT_PACKED_0(KERNELS_CODE(STOP));
+    EZTRACE_EVENT_PACKED_1(KERNELS_CODE(STOP), flops);
+#else
+    (void) flops;
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 }
 

@@ -11,9 +11,13 @@
  * @author Gregoire Pichon
  * @date 2017-04-26
  *
- **/
-
+ */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
 #include "eztrace_convert_kernels.h"
+
+static kernels_t kernels_properties[KERNELS_NB_EVENTS];
 
 /**
  *******************************************************************************
@@ -58,8 +62,7 @@ static kernels_thread_info_t *kernels_register_thread_hook(struct thread_info_t 
         p_info->run_time = run_time;
     }
 
-    ezt_hook_list_add(&p_info->p_thread->hooks, p_info,
-                      (uint8_t) KERNELS_EVENTS_ID);
+    ezt_hook_list_add(&p_info->p_thread->hooks, p_info, KERNELS_EVENTS_ID);
     return p_info;
 }
 
@@ -99,14 +102,25 @@ void libfinalize(void)
  */
 void define_kernels_properties()
 {
+    int i;
+    for (i=1; i<KERNELS_NB_EVENTS; i++){
+        kernels_properties[i] = (kernels_t) {"unknown", GTG_BLACK};
+    }
+
     /* Low-rank operations */
-    kernels_properties[LR_ALLOC] = (kernels_t) {"lr_alloc", GTG_YELLOW};
-    kernels_properties[LR_TRSM]  = (kernels_t) {"lr_trsm" , GTG_DARKBLUE};
-    kernels_properties[LR_GEMM]  = (kernels_t) {"lr_gemm" , GTG_LIGHTPINK};
+    kernels_properties[LR_INIT]   = (kernels_t) {"lr_init",   GTG_YELLOW};
+    kernels_properties[LR_INIT_Q] = (kernels_t) {"lr_init_q", GTG_YELLOW};
+    kernels_properties[LR_TRSM]   = (kernels_t) {"lr_trsm",   GTG_SEABLUE};
+
+    kernels_properties[LR_GEMM_PRODUCT]  = (kernels_t) {"lr_gemm_product",  GTG_GREEN};
+    kernels_properties[LR_GEMM_ADD_Q]    = (kernels_t) {"lr_gemm_add_q",    GTG_ORANGE};
+    kernels_properties[LR_GEMM_ADD_RRQR] = (kernels_t) {"lr_gemm_add_rrqr", GTG_LIGHTBROWN};
+
+    kernels_properties[UNCOMPRESS] = (kernels_t) {"lr_uncompress", GTG_PINK};
 
     /* Dense operations */
-    kernels_properties[GETRF]      = (kernels_t) {"getrf"  ,    GTG_RED};
-    kernels_properties[POTRF]      = (kernels_t) {"potrf"  ,    GTG_RED};
+    kernels_properties[GETRF]      = (kernels_t) {"getrf",      GTG_RED};
+    kernels_properties[POTRF]      = (kernels_t) {"potrf",      GTG_RED};
     kernels_properties[DENSE_TRSM] = (kernels_t) {"dense_trsm", GTG_SEABLUE};
     kernels_properties[DENSE_GEMM] = (kernels_t) {"dense_gemm", GTG_GREEN};
 }
@@ -155,18 +169,13 @@ int eztrace_convert_kernels_init()
  *******************************************************************************/
 void handle_start(kernels_ev_code_t ev, int stats)
 {
-    double size;
-
     DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
     DECLARE_CUR_THREAD(p_thread);
     INIT_KERNELS_THREAD_INFO(p_thread, p_info, stats);
 
-    GET_PARAM_PACKED_1(CUR_EV, size);
-
     if (stats == 1){
-        p_info->nb[ev]++;
-        p_info->flops[ev]+=size;
 
+        p_info->nb[ev]++;
         p_info->current_ev = ev;
         p_info->time_start = CURRENT;
     }
@@ -189,14 +198,20 @@ void handle_start(kernels_ev_code_t ev, int stats)
  *******************************************************************************/
 void handle_stop(int stats)
 {
+    double size;
+
     DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
     DECLARE_CUR_THREAD(p_thread);
     INIT_KERNELS_THREAD_INFO(p_thread, p_info, stats);
 
-    if (stats == 1)
+    if (stats == 1){
+        GET_PARAM_PACKED_1(CUR_EV, size);
         p_info->run_time[p_info->current_ev] += (CURRENT - p_info->time_start);
-    else
+        p_info->flops[p_info->current_ev]    += size;
+    }
+    else{
         popState(CURRENT, "ST_Thread", thread_id);
+    }
 }
 
 /**
@@ -274,34 +289,42 @@ int handle_kernels_stats(eztrace_event_t *ev)
  */
 void print_kernels_stats()
 {
+    int64_t i, j, k;
+    double total_flops = 0;
+
     define_kernels_properties();
-
-    printf("\n:\n");
-    printf("-------\n");
-
-    int i;
 
     /* Browse the list of processes */
     for (i = 0; i < NB_TRACES; i++) {
         struct eztrace_container_t *p_process = GET_PROCESS_CONTAINER(i);
-        int j;
+
         /* For each process, browse the list of threads */
-        for(j=0; j<p_process->nb_children; j++) {
-            int k;
-            struct eztrace_container_t *thread_container = p_process->children[j];
-            struct thread_info_t *p_thread = (struct thread_info_t*)
-                thread_container->container_info;
+        for(j=0; j<(int64_t)(p_process->nb_children); j++) {
+
+            struct eztrace_container_t *thread_container;
+            struct thread_info_t       *p_thread;
+
+            thread_container = p_process->children[j];
+            p_thread = (struct thread_info_t*)(thread_container->container_info);
 
             if(!p_thread)
                 continue;
+
             INIT_KERNELS_THREAD_INFO(p_thread, p_info, 1);
             printf("\tThread %20s\n", thread_container->name);
 
             for (k=1; k<KERNELS_NB_EVENTS; k++){
-                printf("Kernel %20s was called %5d times, flops=%8.3g, duration=%.3g\n",
-                       kernels_properties[k].name, p_info->nb[k],
-                       p_info->flops[k], p_info->run_time[k]);
+                double perf = 1000 * p_info->flops[k] / p_info->run_time[k];
+                total_flops += p_info->flops[k];
+
+                if (p_info->nb[k] > 0)
+                    printf("Kernel %20s was called %8d times, flops=%8.3g, time=%7.2g s, perf=%7.2lf %cFlop/s\n",
+                           kernels_properties[k].name, p_info->nb[k],
+                           p_info->flops[k], p_info->run_time[k] / 1000.,
+                           printflopsv( perf ), printflopsu( perf ) );
             }
         }
     }
+    printf("\n\n\tTotal number of operations: %5.2lf %cFlops\n",
+           printflopsv( total_flops ), printflopsu( total_flops ) );
 }

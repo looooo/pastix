@@ -239,7 +239,9 @@ cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
                  1.0, L, stride );
 
     /* Factorize diagonal block */
+    start_trace_kernel( GETRF );
     core_zgetrfsp(ncols, L, stride, &nbpivot, criteria);
+    stop_trace_kernel( FLOPS_ZGETRF( ncols, ncols ) );
 
     /* Transpose Akk in ucoeftab */
     core_zgetro(ncols, ncols, L, stride, U, stride);
@@ -288,10 +290,7 @@ cpucblk_zgetrfsp1d_panel( SolverCblk         *cblk,
                           const pastix_lr_t  *lowrank )
 {
     pastix_int_t nbpivot;
-
-    start_trace_kernel(GETRF, 0);
     nbpivot = cpucblk_zgetrfsp1d_getrf(cblk, L, U, criteria);
-    stop_trace_kernel();
 
     /**
      * We exploit the fact tha the upper triangle is stored at the top of the L
