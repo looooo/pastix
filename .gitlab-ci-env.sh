@@ -13,3 +13,6 @@ export PKG_CONFIG_PATH=/builds/tmp/starpu/install/lib/pkgconfig:$PKG_CONFIG_PATH
 export PATH=/builds/tmp/parsec/install/bin:$PATH
 export LD_LIBRARY_PATH=/builds/tmp/parsec/install/lib:$LD_LIBRARY_PATH
 export PKG_CONFIG_PATH=/builds/tmp/parsec/install/lib/pkgconfig:$PKG_CONFIG_PATH
+#Scotc
+export LD_LIBRARY_PATH=/builds/tmp/scotch/lib:$LD_LIBRARY_PATH
+export SCOTCH_DIR=/builds/tmp/scotch/
