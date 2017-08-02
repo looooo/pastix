@@ -282,6 +282,11 @@ void solve_ztrsmsp( pastix_side_t side, pastix_uplo_t uplo, pastix_trans_t trans
                     SolverMatrix *datacode, SolverCblk *cblk,
                     int nrhs, pastix_complex64_t *b, int ldb );
 
+void solve_zdiag( SolverCblk         *cblk,
+                  int                 nrhs,
+                  pastix_complex64_t *b,
+                  int                 ldb,
+                  pastix_complex64_t *work );
 /**
  * @}
  */
