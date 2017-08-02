@@ -307,16 +307,18 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
             n = spm->gN;
             /* Personal ordering have to be global ordering */
             assert( spm->gN == spm->n );
-            assert( myorder != NULL );
-            assert( myorder->vertnbr == n );
 
             orderAlloc(ordemesh, n, 0);
 
             /* Rebase the Personal ordering to 0 */
-            orderBase(myorder, 0);
+            if ( myorder != NULL ) {
+                assert( myorder != NULL );
+                assert( myorder->vertnbr == n );
+                orderBase(myorder, 0);
+            }
 
-            if (myorder->permtab == NULL) {
-                if (myorder->peritab == NULL) {
+            if ( (myorder == NULL) || (myorder->permtab == NULL) ) {
+                if ( (myorder == NULL) || (myorder->peritab == NULL) ) {
                     if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
                         pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (identity)" );
                     for(i=0; i<n; i++) {
@@ -355,18 +357,21 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
             memFree_null( ordemesh->rangtab );
             /* Destroy the treetab */
             memFree_null( ordemesh->treetab );
+
             /* If treetab is provided, user must also provide rangtab */
-            assert( !( (myorder->rangtab == NULL) && (myorder->treetab != NULL) ) );
-            if (myorder->rangtab != NULL )
-            {
-                ordemesh->cblknbr = myorder->cblknbr;
-                MALLOC_INTERN(ordemesh->rangtab, myorder->cblknbr+1, pastix_int_t);
-                memcpy(ordemesh->rangtab, myorder->rangtab, (myorder->cblknbr+1)*sizeof(pastix_int_t));
-            }
-            if (myorder->treetab != NULL )
-            {
-                MALLOC_INTERN(ordemesh->treetab, myorder->cblknbr, pastix_int_t);
-                memcpy(ordemesh->treetab, myorder->treetab, myorder->cblknbr*sizeof(pastix_int_t));
+            if ( myorder != NULL ) {
+                assert( !( (myorder->rangtab == NULL) && (myorder->treetab != NULL) ) );
+                if (myorder->rangtab != NULL )
+                {
+                    ordemesh->cblknbr = myorder->cblknbr;
+                    MALLOC_INTERN(ordemesh->rangtab, myorder->cblknbr+1, pastix_int_t);
+                    memcpy(ordemesh->rangtab, myorder->rangtab, (myorder->cblknbr+1)*sizeof(pastix_int_t));
+                }
+                if (myorder->treetab != NULL )
+                {
+                    MALLOC_INTERN(ordemesh->treetab, myorder->cblknbr, pastix_int_t);
+                    memcpy(ordemesh->treetab, myorder->treetab, myorder->cblknbr*sizeof(pastix_int_t));
+                }
             }
         }
         break;
