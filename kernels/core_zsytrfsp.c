@@ -180,8 +180,8 @@ core_zsytrfsp( pastix_int_t        n,
             /* Compute L(k+1:n,k) = A(k+1:n,k)D(k,k)^{-1}     */
             for(col = 0; col < blocksize; col++) {
                 /* copy L(k+1+col:n,k+col)*D(k+col,k+col) into work(:,col) */
-                cblas_zcopy(matrixsize, tmp1+col*lda,     1,
-                                        work +col*matrixsize, 1);
+                cblas_zcopy(matrixsize, tmp1 + col*lda,        1,
+                                        work + col*matrixsize, 1);
 
                                 /* compute L(k+1+col:n,k+col) = A(k+1+col:n,k+col)D(k+col,k+col)^{-1} */
                 alpha = 1. / *(tmp + col*(lda+1));
@@ -251,14 +251,14 @@ cpucblk_zsytrfsp1d_sytrf( SolverCblk         *cblk,
     }
 
     /* Factorize diagonal block (two terms version with workspace) */
-    if (1) {
+    if (0) {
         core_zsytrfsp( ncols, L, stride, &nbpivot, criteria, DLt );
     }
     else {
         /* With this version, lower triangular part holds L, and upper (DL^h) */
         core_ztradd( PastixLower, PastixTrans, ncols-1, ncols-1,
-                     1., L+1, stride,
-                     0, L+stride, stride );
+                     1., L+1,      stride,
+                     0,  L+stride, stride );
         core_zgetrfsp( ncols, L, stride, &nbpivot, criteria );
     }
     return nbpivot;
@@ -518,27 +518,27 @@ cpucblk_zsytrfsp1d_panel( SolverCblk         *cblk,
 
     nbpivot = cpucblk_zsytrfsp1d_sytrf( cblk, L, DLt, criteria );
 
-    if (1) {
-        core_zsytrfsp1d_trsm(cblk, L);
-    }
-    else {
-        /*
-         * Let's generate a temporary (DL^h)' to have more efficient GEMM
-         */
-        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', cblk->stride, cblk_colnbr( cblk ),
-                             L, cblk->stride, DLt, cblk->stride );
+    /*
+     * We exploit the fact that (DL^h) is stored in the top triangle matrix of L
+     */
+    cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixUpper,
+                     PastixNoTrans, PastixNonUnit,
+                     cblk, L, L, lowrank );
 
-        /*
-         * We exploit the fact that (DL^h) is stored in the top triangle matrix of L
-         */
-        cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixUpper,
-                         PastixNoTrans, PastixNonUnit,
-                         cblk, L, L, lowrank );
+    /* if ( 1 ) { */
+    /*     core_zsytrfsp1d_trsm( cblk, L ); */
+    /* } */
+    /* else { */
+    /*     /\* */
+    /*      * Let's generate a temporary (DL^h)' to have more efficient GEMM */
+    /*      *\/ */
+    /*     LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', cblk->stride, cblk_colnbr( cblk ), */
+    /*                          L, cblk->stride, DLt, cblk->stride ); */
 
-        cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
-                         PastixNoTrans, PastixUnit,
-                         cblk, DLt, DLt, lowrank );
-    }
+    /*     cpucblk_zsclcpy( PastixLCoef, PastixRight, PastixLower, */
+    /*                      PastixNoTrans, PastixUnit, */
+    /*                      cblk, DLt, DLt, lowrank ); */
+    /* } */
     return nbpivot;
 }
 
