@@ -40,7 +40,7 @@ static inline int pastix_atomic_cas_64b( volatile uint64_t* location,
     return __compare_and_swaplp( (volatile long*)location, &old, new_value );
 }
 #else
-#include "pastix/debug.h"
+#include "debug.h"
 static inline int pastix_atomic_cas_64b( volatile uint64_t* location,
                                         uint64_t old_value,
                                         uint64_t new_value )
