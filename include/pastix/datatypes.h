@@ -115,7 +115,7 @@ pastix_size_of(pastix_coeftype_t type)
     case PastixComplex32: return 2*sizeof(float);
     case PastixComplex64: return 2*sizeof(double);
     default:
-        fprintf(stderr, "pastix_size_of: invalide type parameter\n");
+        fprintf(stderr, "pastix_size_of: invalid type parameter\n");
         assert(0);
         return -1;
     }
