@@ -73,7 +73,7 @@ The main options to configure the PaStiX configuration build are:
        * PASTIX_ORDERING_SCOTCH[=ON]: Enable/Disable the support of the Scotch library to compute the ordering.
        * PASTIX_ORDERING_METIS[=OFF]: Enable/Disable the support of the Metis library to compute the ordering. Metis 5.1 is required.
    * External schedulers:
-       * PASTIX_WITH_PARSEC[=OFF]: Enable/disable the PaRSEC runtime support. Require to install PaRSEC tag pastix-releasenumber (mymaster for master branch) from the repository https://bitbucket.org/mfaverge/parsec that includes a few patches on top of the original PaRSEC runtime system.
+       * PASTIX_WITH_PARSEC[=OFF]: Enable/disable the PaRSEC runtime support. Require to install PaRSEC tag pastix-releasenumber (mymaster for master branch) from the repository https://bitbucket.org/mfaverge/parsec that includes a few patches on top of the original PaRSEC runtime system. PaRSEC needs to be compiled with option -DPARSEC_WITH_DEVEL_HEADERS=ON.
        * PASTIX_WITH_STARPU[=OFF]: Enable/disable the StarPU runtime support. Require to install StarPU 1.2. Not supported for now.
    * Distributed memory:
        * PASTIX_WITH_MPI=[OFF]: Distributed memory is not supported yet in PaStiX, however you might need to enable this option if your PaRSEC library has been compiled with MPI support.
