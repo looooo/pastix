@@ -65,13 +65,15 @@ core_zhetf2sp( pastix_int_t        n,
                pastix_int_t       *nbpivot,
                double              criteria )
 {
-    pastix_int_t k;
-    pastix_complex64_t *Akk = A;   /* A [k  ][k] */
-    pastix_complex64_t *Amk = A+1; /* A [k+1][k] */
+    pastix_int_t k, m;
+    pastix_complex64_t *Akk = A;     /* A [k  ][k  ] */
+    pastix_complex64_t *Amk = A+1;   /* A [k+1][k  ] */
+    pastix_complex64_t *Akm = A+lda; /* A [k  ][k+1] */
     pastix_complex64_t  zalpha;
-    double  dalpha;
+    double dalpha;
 
-    for (k=0; k<n; k++){
+    m = n-1;
+    for (k=0; k<n; k++, m--){
         if ( cabs(*Akk) < criteria ) {
             (*Akk) = (pastix_complex64_t)criteria;
             (*nbpivot)++;
@@ -80,15 +82,18 @@ core_zhetf2sp( pastix_int_t        n,
         zalpha = 1. / (*Akk);
 
         /* Scale the diagonal to compute L((k+1):n,k) */
-        cblas_zscal(n-k-1, CBLAS_SADDR( zalpha ), Amk, 1 );
+        cblas_zscal(m, CBLAS_SADDR( zalpha ), Amk, 1 );
 
         dalpha = -1. * creal(*Akk);
+
+        cblas_zcopy( m, Amk, 1, Akm, lda );
+        LAPACKE_zlacgv_work( m, Akm, 1 );
 
         /* Move to next Akk */
         Akk += (lda+1);
 
         cblas_zher(CblasColMajor, CblasLower,
-                   n-k-1, dalpha,
+                   m, dalpha,
                    Amk, 1,
                    Akk, lda);
 
@@ -133,11 +138,10 @@ core_zhetrfsp( pastix_int_t        n,
                pastix_complex64_t *A,
                pastix_int_t        lda,
                pastix_int_t       *nbpivot,
-               double              criteria,
-               pastix_complex64_t *work )
+               double              criteria )
 {
     pastix_int_t k, blocknbr, blocksize, matrixsize, col;
-    pastix_complex64_t *tmp, *tmp1, *tmp2;
+    pastix_complex64_t *Akk, *Amk, *Akm, *Amm;
     pastix_complex64_t alpha;
 
     /* diagonal supernode is divided into MAXSIZEOFBLOCK-by-MAXSIZEOFBLOCKS blocks */
@@ -146,12 +150,13 @@ core_zhetrfsp( pastix_int_t        n,
     for (k=0; k<blocknbr; k++) {
 
         blocksize = pastix_imin(MAXSIZEOFBLOCKS, n-k*MAXSIZEOFBLOCKS);
-        tmp  = A+(k*MAXSIZEOFBLOCKS)*(lda+1); /* Lk,k     */
-        tmp1 = tmp  + blocksize;              /* Lk+1,k   */
-        tmp2 = tmp1 + blocksize * lda;        /* Lk+1,k+1 */
+        Akk = A+(k*MAXSIZEOFBLOCKS)*(lda+1); /* Lk,k     */
+        Amk = Akk + blocksize;               /* Lk+1,k   */
+        Akm = Akk + blocksize * lda;         /* Lk,k+1   */
+        Amm = Amk + blocksize * lda;         /* Lk+1,k+1 */
 
         /* Factorize the diagonal block Akk*/
-        core_zhetf2sp(blocksize, tmp, lda, nbpivot, criteria);
+        core_zhetf2sp(blocksize, Akk, lda, nbpivot, criteria);
 
         if ((k*MAXSIZEOFBLOCKS+blocksize) < n) {
 
@@ -168,28 +173,29 @@ core_zhetrfsp( pastix_int_t        n,
                         CblasRight, CblasLower,
                         CblasConjTrans, CblasUnit,
                         matrixsize, blocksize,
-                        CBLAS_SADDR(zone), tmp,  lda,
-                                           tmp1, lda);
+                        CBLAS_SADDR(zone), Akk, lda,
+                                           Amk, lda);
 
             /* Compute L(k+1:n,k) = A(k+1:n,k)D(k,k)^{-1}     */
             for(col = 0; col < blocksize; col++) {
                 /* copy L(k+1+col:n,k+col)*D(k+col,k+col) into work(:,col) */
-                cblas_zcopy(matrixsize, tmp1+col*lda,     1,
-                                        work +col*matrixsize, 1);
+                cblas_zcopy(matrixsize, Amk + col*lda, 1,
+                                        Akm + col,     lda);
+                LAPACKE_zlacgv_work( matrixsize, Akm + col, lda );
 
-                                /* compute L(k+1+col:n,k+col) = A(k+1+col:n,k+col)D(k+col,k+col)^{-1} */
-                alpha = 1. / *(tmp + col*(lda+1));
-                cblas_zscal(matrixsize, CBLAS_SADDR(alpha),
-                            tmp1+col*lda, 1);
+                /* compute L(k+1+col:n,k+col) = A(k+1+col:n,k+col)D(k+col,k+col)^{-1} */
+                alpha = 1. / *(Akk + col*(lda+1));
+                cblas_zscal( matrixsize, CBLAS_SADDR(alpha),
+                             Amk + col*lda, 1 );
             }
 
             /* Update A(k+1:n,k+1:n) = A(k+1:n,k+1:n) - (L(k+1:n,k)*D(k,k))*L(k+1:n,k)^T */
             cblas_zgemm(CblasColMajor,
-                        CblasNoTrans, CblasConjTrans,
+                        CblasNoTrans, CblasNoTrans,
                         matrixsize, matrixsize, blocksize,
-                        CBLAS_SADDR(mzone), work,  matrixsize,
-                                            tmp1, lda,
-                        CBLAS_SADDR(zone),  tmp2, lda);
+                        CBLAS_SADDR(mzone), Amk, lda,
+                                            Akm, lda,
+                        CBLAS_SADDR(zone),  Amm, lda);
         }
     }
 }
@@ -209,10 +215,6 @@ core_zhetrfsp( pastix_int_t        n,
  *          The pointer to the matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
- * @param[inout] DLh
- *          The pointer to the upper matrix storing the coefficients the
- *          temporary DL^h product. Must be of size cblk.stride -by- cblk.width
- *
  * @param[in] criteria
  *          Threshold use for static pivoting. If diagonal value is under this
  *          threshold, its value is replaced by the threshold and the nu,ber of
@@ -227,7 +229,6 @@ core_zhetrfsp( pastix_int_t        n,
 int
 cpucblk_zhetrfsp1d_hetrf( SolverCblk         *cblk,
                           pastix_complex64_t *L,
-                          pastix_complex64_t *DLh,
                           double              criteria )
 {
     pastix_int_t  ncols, stride;
@@ -244,17 +245,15 @@ cpucblk_zhetrfsp1d_hetrf( SolverCblk         *cblk,
         assert( stride == cblk->fblokptr->LRblock[0].rkmax );
     }
 
-    /* Factorize diagonal block (two terms version with workspace) */
-    if (1) {
-        core_zhetrfsp( ncols, L, stride, &nbpivot, criteria, DLh );
-    }
-    else {
-        /* With this version, lower triangular part holds L, and upper (DL^h) */
-        core_ztradd( PastixLower, PastixConjTrans, ncols-1, ncols-1,
-                     1., L+1, stride,
-                     0, L+stride, stride );
-        core_zgetrfsp( ncols, L, stride, &nbpivot, criteria );
-    }
+    /*
+     * Factorize diagonal block in L D L^h
+     *
+     *  - lower part holds L
+     *  - diagonal holds D
+     *  - uppert part holds (DL^h)
+     */
+    core_zhetrfsp( ncols, L, stride, &nbpivot, criteria );
+
     return nbpivot;
 }
 
@@ -510,7 +509,7 @@ cpucblk_zhetrfsp1d_panel( SolverCblk         *cblk,
     pastix_int_t  nbpivot;
     (void)lowrank;
 
-    nbpivot = cpucblk_zhetrfsp1d_hetrf( cblk, L, DLh, criteria );
+    nbpivot = cpucblk_zhetrfsp1d_hetrf( cblk, L, criteria );
 
     if (1) {
         core_zhetrfsp1d_trsm(cblk, L);
