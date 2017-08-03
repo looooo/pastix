@@ -51,6 +51,7 @@ set(SOURCES
   core_ztradd.c
   core_zgemmsp.c
   core_ztrsmsp.c
+  core_zscalo.c
   # Kernels
   core_zsytrfsp.c
   core_zhetrfsp.c

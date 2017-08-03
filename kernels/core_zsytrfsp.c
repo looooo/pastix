@@ -80,12 +80,13 @@ core_zsytf2sp( pastix_int_t        n,
 
         alpha = 1. / (*Akk);
 
+        /* Transpose the column before scaling */
+        cblas_zcopy( m, Amk, 1, Akm, lda );
+
         /* Scale the diagonal to compute L((k+1):n,k) */
         cblas_zscal(m, CBLAS_SADDR( alpha ), Amk, 1 );
 
         alpha = -(*Akk);
-
-        cblas_zcopy( m, Amk, 1, Akm, lda );
 
         /* Move to next Akk */
         Akk += (lda+1);
@@ -97,6 +98,7 @@ core_zsytf2sp( pastix_int_t        n,
 
         /* Move to next Amk */
         Amk = Akk+1;
+        Akm = Akk+lda;
     }
 }
 
@@ -148,9 +150,9 @@ core_zsytrfsp( pastix_int_t        n,
     for (k=0; k<blocknbr; k++) {
 
         blocksize = pastix_imin(MAXSIZEOFBLOCKS, n-k*MAXSIZEOFBLOCKS);
-        Akk = A+(k*MAXSIZEOFBLOCKS)*(lda+1); /* Lk,k     */
+        Akk = A+(k*MAXSIZEOFBLOCKS)*(lda+1); /* Lk,  k   */
         Amk = Akk + blocksize;               /* Lk+1,k   */
-        Akm = Akk + blocksize * lda;         /* Lk,k+1   */
+        Akm = Akk + blocksize * lda;         /* Lk,  k+1 */
         Amm = Amk + blocksize * lda;         /* Lk+1,k+1 */
 
         /* Factorize the diagonal block Akk*/
@@ -503,32 +505,22 @@ cpucblk_zsytrfsp1d_panel( SolverCblk         *cblk,
                           double              criteria,
                           const pastix_lr_t  *lowrank )
 {
-    pastix_int_t  nbpivot;
+    pastix_int_t nbpivot;
     (void)lowrank;
 
     nbpivot = cpucblk_zsytrfsp1d_sytrf( cblk, L, criteria );
 
     /*
-     * We exploit the fact that (DL^h) is stored in the top triangle matrix of L
+     * We exploit the fact that (DL^t) is stored in the upper triangle part of L
      */
     cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixUpper,
                      PastixNoTrans, PastixNonUnit,
                      cblk, L, L, lowrank );
 
-    /* if ( 1 ) { */
-    /*     core_zsytrfsp1d_trsm( cblk, L ); */
-    /* } */
-    /* else { */
-    /*     /\* */
-    /*      * Let's generate a temporary (DL^h)' to have more efficient GEMM */
-    /*      *\/ */
-    /*     LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', cblk->stride, cblk_colnbr( cblk ), */
-    /*                          L, cblk->stride, DLt, cblk->stride ); */
-
-    /*     cpucblk_zsclcpy( PastixLCoef, PastixRight, PastixLower, */
-    /*                      PastixNoTrans, PastixUnit, */
-    /*                      cblk, DLt, DLt, lowrank ); */
-    /* } */
+    if ( DLt != NULL ) {
+        /* Copy L into the temporary buffer and multiply by D */
+        cpucblk_zscalo( PastixNoTrans, cblk, DLt );
+    }
     return nbpivot;
 }
 
@@ -588,7 +580,7 @@ cpucblk_zsytrfsp1d( SolverMatrix       *solvmtx,
         fcblk = (solvmtx->cblktab + blok->fcblknm);
 
         /* Update on L */
-        if (1) {
+        if (DLt == NULL) {
             core_zsytrfsp1d_gemm( cblk, blok, fcblk,
                                   L, fcblk->lcoeftab,
                                   work2 );
