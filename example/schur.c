@@ -226,7 +226,7 @@ int main (int argc, char **argv)
     if ( (iparm[IPARM_FACTORIZATION] == PastixFactLDLT) ||
          (iparm[IPARM_FACTORIZATION] == PastixFactLDLH) )
     {
-        fprintf(stderr, "This types of factorization are not supported by this example.\n");
+        fprintf(stderr, "This types of factorization (LDL^t and LDL^h) are not supported by this example.\n");
         return EXIT_FAILURE;
     }
 
