@@ -52,6 +52,10 @@ int  core_zrrqr ( pastix_int_t m, pastix_int_t n,
 int  core_ztradd( pastix_uplo_t uplo, pastix_trans_t trans, pastix_int_t M, pastix_int_t N,
                   pastix_complex64_t alpha, const pastix_complex64_t *A, pastix_int_t LDA,
                   pastix_complex64_t beta,        pastix_complex64_t *B, pastix_int_t LDB);
+int  core_zscalo( pastix_trans_t trans, pastix_int_t M, pastix_int_t N,
+                  const pastix_complex64_t *A, pastix_int_t lda,
+                  const pastix_complex64_t *D, pastix_int_t ldd,
+                  pastix_complex64_t *B, pastix_int_t ldb );
 
 /**
  *    @}
@@ -176,6 +180,7 @@ void cpucblk_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_t
 void cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                       pastix_trans_t trans, pastix_diag_t diag, SolverCblk *cblk,
                       const pastix_complex64_t *A, pastix_complex64_t *C, const pastix_lr_t *lowrank );
+void cpucblk_zscalo ( pastix_trans_t trans, SolverCblk *cblk, pastix_complex64_t *LD );
 
 void cpublok_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_trans_t trans,
                       const SolverCblk *cblk, SolverCblk *fcblk,
