@@ -36,7 +36,7 @@ sequential_zhetrf( pastix_data_t  *pastix_data,
     SolverCblk         *cblk;
     double              threshold = sopalin_data->diagthreshold;
     pastix_complex64_t *work1, *work2;
-    pastix_int_t  i;
+    pastix_int_t  N, i;
     (void)pastix_data;
 
     MALLOC_INTERN( work1, pastix_imax(datacode->gemmmax, datacode->diagmax),
@@ -50,9 +50,11 @@ sequential_zhetrf( pastix_data_t  *pastix_data,
         if ( cblk->cblktype & CBLK_IN_SCHUR )
             break;
 
+        N = cblk_colnbr( cblk );
+
         /* Compute */
         cpucblk_zhetrfsp1d( datacode, cblk, threshold,
-                            work1, work2 );
+                            work1 - (N*N), work2 );
     }
 
 #if defined(PASTIX_DEBUG_FACTO)
@@ -71,7 +73,7 @@ thread_pzhetrf( isched_thread_t *ctx, void *args )
     SolverCblk         *cblk;
     Task               *t;
     pastix_complex64_t *work1, *work2;
-    pastix_int_t  i, ii;
+    pastix_int_t  N, i, ii;
     pastix_int_t  tasknbr, *tasktab;
     int rank = ctx->rank;
 
@@ -90,12 +92,14 @@ thread_pzhetrf( isched_thread_t *ctx, void *args )
         if ( cblk->cblktype & CBLK_IN_SCHUR )
             continue;
 
+        N = cblk_colnbr( cblk );
+
         /* Wait */
         do {} while( cblk->ctrbcnt );
 
         /* Compute */
         cpucblk_zhetrfsp1d( datacode, cblk, sopalin_data->diagthreshold,
-                            work1, work2 );
+                            work1 - (N*N), work2 );
     }
 
 #if defined(PASTIX_DEBUG_FACTO) && 0
