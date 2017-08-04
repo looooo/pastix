@@ -1,3 +1,5 @@
+image: hpclib/hiepacs
+
 stages:
   - build
   - test
@@ -13,6 +15,7 @@ build_pastix:
     paths:
       - build
       - pastix-build.log
+      - install
   script:
     - source .gitlab-ci-env.sh
     - git submodule update --init --recursive
@@ -42,7 +45,7 @@ test_pastix:
     - (cd build && ctest -D ExperimentalTest)
     - lcov --directory build --capture --output-file pastix.lcov
     - genhtml -o coverage pastix.lcov
-    - ${COBERTURA_PATH}/lcov_cobertura.py pastix.lcov --output pastix-coverage.xml
+    - lcov_cobertura.py pastix.lcov --output pastix-coverage.xml
     - export SOURCES_TO_ANALYZE="build bcsc blend common example graph include kernels order refinement sopalin spm symbol test"
     - cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingIncludeSystem -UPARSEC_DEBUG_NOISIER -DPINS_ENABLE ${SOURCES_TO_ANALYZE} 2> pastix-cppcheck.xml
     - rats -w 3 --xml ${SOURCES_TO_ANALYZE} > pastix-rats.xml
