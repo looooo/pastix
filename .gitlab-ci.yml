@@ -21,7 +21,7 @@ build_pastix:
     - git submodule update --init --recursive
     - mkdir build
     - cd build
-    - cmake .. -DCMAKE_INSTALL_PREFIX=${PWD}/../install -DBUILD_SHARED_LIBS=ON -DPASTIX_WITH_STARPU=ON -DPASTIX_WITH_PARSEC=ON -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_C_FLAGS="-O0 -g -fPIC --coverage -Wall -fdiagnostics-show-option -fno-inline" -DCMAKE_EXE_LINKER_FLAGS="--coverage"
+    - cmake .. -DCMAKE_INSTALL_PREFIX=${PWD}/../install -DBUILD_SHARED_LIBS=ON -DPASTIX_WITH_STARPU=ON -DPASTIX_WITH_PARSEC=ON -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_C_FLAGS="-O0 -g -fPIC --coverage -Wall -fdiagnostics-show-option -fno-inline" -DCMAKE_EXE_LINKER_FLAGS="--coverage" -DPASTIX_WITH_CUDA=ON
     - make -j2 | tee ../pastix-build.log
     - make install
 
@@ -30,25 +30,15 @@ test_pastix:
   dependencies:
   - build_pastix
   artifacts:
-    name: pastix_analysis
-    expire_in: 1 week
+    name: pastix_test
+    expire_in: 42 minutes
+    untracked: true
     paths:
-      - pastix-build.log
-      - pastix.lcov
-      - coverage/
-      - pastix-coverage.xml
-      - pastix-cppcheck.xml
-      - pastix-rats.xml
+      - build
   script:
     - source .gitlab-ci-env.sh
     - source install/bin/pastix_env.sh
     - (cd build && ctest -D ExperimentalTest)
-    - lcov --directory build --capture --output-file pastix.lcov
-    - genhtml -o coverage pastix.lcov
-    - lcov_cobertura.py pastix.lcov --output pastix-coverage.xml
-    - export SOURCES_TO_ANALYZE="build bcsc blend common example graph include kernels order refinement sopalin spm symbol test"
-    - cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingIncludeSystem -UPARSEC_DEBUG_NOISIER -DPINS_ENABLE ${SOURCES_TO_ANALYZE} 2> pastix-cppcheck.xml
-    - rats -w 3 --xml ${SOURCES_TO_ANALYZE} > pastix-rats.xml
 
 sonar_pastix:
   stage: sonar
@@ -59,9 +49,21 @@ sonar_pastix:
     name: pastix_sonar
     expire_in: 1 week
     paths:
+      - pastix-build.log
+      - pastix.lcov
+      - coverage/
+      - pastix-coverage.xml
+      - pastix-cppcheck.xml
+      - pastix-rats.xml
       - sonar.log
   script:
     - source .gitlab-ci-env.sh
+    - lcov --directory build --capture --output-file pastix.lcov
+    - genhtml -o coverage pastix.lcov
+    - lcov_cobertura.py pastix.lcov --output pastix-coverage.xml
+    - export SOURCES_TO_ANALYZE="build bcsc blend common example graph include kernels order refinement sopalin spm symbol test"
+    - cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingIncludeSystem -UPARSEC_DEBUG_NOISIER -DPINS_ENABLE ${SOURCES_TO_ANALYZE} 2> pastix-cppcheck.xml
+    - rats -w 3 --xml ${SOURCES_TO_ANALYZE} > pastix-rats.xml
     - sonar-scanner -X > sonar.log
   only:
     - master@pastix/pastix
