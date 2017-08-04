@@ -15,6 +15,7 @@ build_pastix:
     paths:
       - build
       - pastix-build.log
+      - install
   script:
     - source .gitlab-ci-env.sh
     - git submodule update --init --recursive
