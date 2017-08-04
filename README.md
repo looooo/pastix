@@ -31,18 +31,19 @@ Future releases will be available on this gitlab project.
 Available Features
 ------------------
 
-|       | Seq    | Static | Dyn    | StarPU | PaRSEC      |
-|-------|--------|--------|--------|--------|-------------|
-| POTRF (Cholesky) | SHM/LR | SHM/LR | SHM/LR | SHM/GPU (LR coming) | SHM/LR (GPU coming)|
-| PXTRF (LL^t for complex)| Coming | Coming | Coming | -      | Coming      |
-| HETRF (LDL^h)    | Coming | Coming | Coming | -      | -           |
-| SYTRF (LDL^t)    | Coming | Coming | Coming | -      | -           |
-| GETRF (LU)       | SHM/LR | SHM/LR | SHM/LR | SHM/GPU (LR coming) | SHM/LR (GPU coming)|
-| TRSM             | SHM/LR | SHM/LR | SHM/LR | -      | -           |
-| DIAG             | SHM/LR | SHM/LR | SHM/LR | -      | -           |
+|                         | Seq    | Static | Dyn    | StarPU  | PaRSEC     |
+|-------------------------|--------|--------|--------|---------|------------|
+| POTRF (Cholesky)        | SHM/LR | SHM/LR | -      | SHM/GPU | SHM/LR/GPU |
+| PXTRF (LL^t for complex)| -      | -      | -      | -       | -          |
+| HETRF (LDL^h)           | SHM    | SHM    | -      | -       | -          |
+| SYTRF (LDL^t)           | SHM    | SHM    | -      | -       | -          |
+| GETRF (LU)              | SHM/LR | SHM/LR | -      | SHM/GPU | SHM/LR/GPU |
+| TRSM                    | SHM/LR | SHM/LR | -      | -       | -          |
+| DIAG                    | SHM/LR | SHM/LR | -      | -       | -          |
 
  * SHM means Shared Memory using POSIX theads for multicores architectures
  * LR means (block) Low-Rank compression technique to reduce the memory footprint and/or the time-to-solution
+   * *WARNING* GPU kernels are not available when compression techniques are enabled
  * MPI is not available yet and will come with 6.1.0
  * StarPU support is not available yet, and should be available in final 6.0.0
  * GPUs kernels are in the code but not exploited yet, we are targeting for a simpler scheduling that would allow everyone to get correct performance out of the box in final 6.0.0
@@ -73,7 +74,7 @@ The main options to configure the PaStiX configuration build are:
        * PASTIX_ORDERING_SCOTCH[=ON]: Enable/Disable the support of the Scotch library to compute the ordering.
        * PASTIX_ORDERING_METIS[=OFF]: Enable/Disable the support of the Metis library to compute the ordering. Metis 5.1 is required.
    * External schedulers:
-       * PASTIX_WITH_PARSEC[=OFF]: Enable/disable the PaRSEC runtime support. Require to install PaRSEC tag pastix-releasenumber (mymaster for master branch) from the repository https://bitbucket.org/mfaverge/parsec that includes a few patches on top of the original PaRSEC runtime system. PaRSEC needs to be compiled with option -DPARSEC_WITH_DEVEL_HEADERS=ON.
+       * PASTIX_WITH_PARSEC[=OFF]: Enable/disable the PaRSEC runtime support. Require to install PaRSEC tag pastix-_releasenumber_ (mymaster for master branch) from the repository https://bitbucket.org/mfaverge/parsec that includes a few patches on top of the original PaRSEC runtime system. PaRSEC needs to be compiled with option -DPARSEC_WITH_DEVEL_HEADERS=ON.
        * PASTIX_WITH_STARPU[=OFF]: Enable/disable the StarPU runtime support. Require to install StarPU 1.2. Not supported for now.
    * Distributed memory:
        * PASTIX_WITH_MPI=[OFF]: Distributed memory is not supported yet in PaStiX, however you might need to enable this option if your PaRSEC library has been compiled with MPI support.
