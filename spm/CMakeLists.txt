@@ -66,6 +66,7 @@ set(spm_sources
   spm_integers.c
   spm_dof_extend.c
   spm_read_driver.c
+  spm_gen_fake_values.c
   drivers/skitf.f
   drivers/iohb.c
   drivers/mmio.c

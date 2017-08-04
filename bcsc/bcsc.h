@@ -36,13 +36,6 @@ struct pastix_bcsc_s {
     void          *Uvalues; /*> Array of values of the matrix A^t                                              */
 };
 
-void bcscInitCentralizedFake( const pastix_spm_t  *spm,
-                              const Order         *ord,
-                              const SolverMatrix  *solvmtx,
-                              const pastix_int_t  *col2cblk,
-                                    int            initAt,
-                                    pastix_bcsc_t *bcsc );
-
 pastix_int_t
 bcsc_init_centralized_coltab( const pastix_spm_t  *spm,
                               const Order         *ord,

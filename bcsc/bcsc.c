@@ -212,9 +212,6 @@ bcscInitCentralized( const pastix_spm_t  *spm,
      * factorization.
      */
     switch( spm->flttype ) {
-    case PastixPattern:
-        bcscInitCentralizedFake( spm, ord, solvmtx, col2cblk, initAt, bcsc );
-        break;
     case PastixFloat:
         s_bcscInitCentralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
@@ -227,6 +224,7 @@ bcscInitCentralized( const pastix_spm_t  *spm,
     case PastixComplex64:
         z_bcscInitCentralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
+    case PastixPattern:
     default:
         fprintf(stderr, "bcscInitCentralized: Error unknown floating type for input spm\n");
     }

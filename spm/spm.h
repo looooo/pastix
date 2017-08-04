@@ -96,7 +96,7 @@ void          spmBase( pastix_spm_t *spm, int baseval );
 pastix_int_t  spmFindBase( const pastix_spm_t *spm );
 int           spmConvert( int ofmttype, pastix_spm_t *ospm );
 void          spmUpdateComputedFields( pastix_spm_t *spm );
-
+void          spmGenFakeValues( pastix_spm_t *spm );
 
 /**
  * @}
@@ -215,6 +215,15 @@ static inline void d_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, doubl
 static inline void s_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, float A ){
     fprintf( f, "%ld %ld %e\n", (long)i, (long)j, A );
 }
+/**
+ * @copydoc z_spmPrintElt
+ * @details Pattern case
+ *
+ * @remark: uses a macro to avoid accessing A that would generate segfault.
+ */
+#define p_spmPrintElt( f, i, j, A ) {                   \
+        fprintf( f, "%ld %ld\n", (long)i, (long)j );    \
+    }
 
 /**
  * @}
