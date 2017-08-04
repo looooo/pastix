@@ -52,39 +52,40 @@ starpu_zgetrf_sp1dplus( sopalin_data_t              *sopalin_data,
     const SolverMatrix *solvmtx = sopalin_data->solvmtx;
     SolverCblk         *cblk, *fcblk;
     SolverBlok         *blok, *lblk;
-    pastix_int_t  i;
+    pastix_int_t        k, m, cblknbr, cblk_n;
 
+    cblknbr = solvmtx->cblknbr;
     cblk = solvmtx->cblktab;
-    for (i=0; i<solvmtx->cblknbr; i++, cblk++){
+    for (k=0; k<solvmtx->cblknbr; k++, cblk++){
 
         if ( cblk->cblktype & CBLK_IN_SCHUR )
             break;
 
-        starpu_task_cblk_zgetrfsp1d_panel( sopalin_data, cblk );
+        starpu_task_cblk_zgetrfsp1d_panel( sopalin_data, cblk,
+                                           cblknbr - k );
 
         blok = cblk->fblokptr + 1; /* this diagonal block */
         lblk = cblk[1].fblokptr;   /* the next diagonal block */
 
         /* if there are off-diagonal supernodes in the column */
-        for( ; blok < lblk; blok++ )
+        for(m=0; blok < lblk; blok++, m++ )
         {
             fcblk = (solvmtx->cblktab + blok->fcblknm);
+            cblk_n = fcblk - solvmtx->cblktab;
 
             /* Update on L */
             starpu_task_cblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
-                                      cblk, blok, fcblk, sopalin_data );
+                                      cblk, blok, fcblk, sopalin_data,
+                                      cblknbr - pastix_imin( k + m, cblk_n ) );
 
             /* Update on U */
             if ( blok+1 < lblk ) {
                 starpu_task_cblk_zgemmsp( PastixUCoef, PastixLCoef, PastixTrans,
-                                          cblk, blok, fcblk, sopalin_data );
+                                          cblk, blok, fcblk, sopalin_data,
+                                          cblknbr - pastix_imin( k + m, cblk_n ) );
             }
         }
     }
-
-#if defined(PASTIX_DEBUG_FACTO)
-    coeftab_zdump( datacode, "getrf_L.txt" );
-#endif
     (void)desc;
 }
 
@@ -118,11 +119,13 @@ starpu_zgetrf_sp2d( sopalin_data_t              *sopalin_data,
     SolverCblk         *cblk, *fcblk;
     SolverBlok         *blok, *lblk, *blokA, *blokB;
     starpu_cblk_t      *cblkhandle;
-    pastix_int_t  i;
+    pastix_int_t        k, m, cblknbr, cblk_n;
+
+    cblknbr = solvmtx->cblknbr;
 
     /* Let's submit all 1D tasks first */
     cblk = solvmtx->cblktab;
-    for (i=0; i<=solvmtx->cblkmax1d; i++, cblk++){
+    for (k=0; k<=solvmtx->cblkmax1d; k++, cblk++){
 
         if ( cblk->cblktype & CBLK_IN_SCHUR )
             break;
@@ -130,24 +133,28 @@ starpu_zgetrf_sp2d( sopalin_data_t              *sopalin_data,
         if ( cblk->cblktype & CBLK_TASKS_2D )
             continue;
 
-        starpu_task_cblk_zgetrfsp1d_panel( sopalin_data, cblk );
+        starpu_task_cblk_zgetrfsp1d_panel( sopalin_data, cblk,
+                                           cblknbr - k );
 
         blok  = cblk->fblokptr + 1; /* this diagonal block */
         lblk = cblk[1].fblokptr;   /* the next diagonal block */
 
         /* if there are off-diagonal supernodes in the column */
-        for( ; blok < lblk; blok++ )
+        for(m=0; blok < lblk; blok++, m++ )
         {
             fcblk = (solvmtx->cblktab + blok->fcblknm);
+            cblk_n = fcblk - solvmtx->cblktab;
 
             /* Update on L */
             starpu_task_cblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
-                                      cblk, blok, fcblk, sopalin_data );
+                                      cblk, blok, fcblk, sopalin_data,
+                                      cblknbr - pastix_imin( k + m, cblk_n ) );
 
             /* Update on U */
             if ( blok+1 < lblk ) {
                 starpu_task_cblk_zgemmsp( PastixUCoef, PastixLCoef, PastixTrans,
-                                          cblk, blok, fcblk, sopalin_data );
+                                          cblk, blok, fcblk, sopalin_data,
+                                      cblknbr - pastix_imin( k + m, cblk_n ) );
             }
         }
     }
@@ -155,7 +162,7 @@ starpu_zgetrf_sp2d( sopalin_data_t              *sopalin_data,
     /* Let's submit the partitionning */
     cblk       = solvmtx->cblktab + solvmtx->cblkmin2d;
     cblkhandle = desc->cblktab_handle;
-    for (i=solvmtx->cblkmin2d; i<solvmtx->cblknbr; i++, cblk++, cblkhandle++){
+    for (k=solvmtx->cblkmin2d; k<solvmtx->cblknbr; k++, cblk++, cblkhandle++) {
 
         if ( !(cblk->cblktype & CBLK_TASKS_2D) )
             continue;
@@ -172,7 +179,7 @@ starpu_zgetrf_sp2d( sopalin_data_t              *sopalin_data,
     /* Now we submit all 2D tasks */
     cblk       = solvmtx->cblktab + solvmtx->cblkmin2d;
     cblkhandle = desc->cblktab_handle;
-    for (i=solvmtx->cblkmin2d; i<solvmtx->cblknbr; i++, cblk++, cblkhandle++){
+    for (k=solvmtx->cblkmin2d; k<solvmtx->cblknbr; k++, cblk++, cblkhandle++){
 
         if ( !(cblk->cblktype & CBLK_TASKS_2D) )
             continue; /* skip 1D cblk */
@@ -188,28 +195,35 @@ starpu_zgetrf_sp2d( sopalin_data_t              *sopalin_data,
             continue;
         }
 
-        starpu_task_blok_zgetrf( sopalin_data, cblk );
+        starpu_task_blok_zgetrf( sopalin_data, cblk,
+                                 cblknbr - k );
 
         lblk = cblk[1].fblokptr;
-        for(blokA=cblk->fblokptr + 1; blokA<lblk; blokA++) {
+        for(blokA=cblk->fblokptr + 1, m=0; blokA<lblk; blokA++, m++) {
+
+            cblk_n = blokA->fcblknm;
 
             starpu_task_blok_ztrsmsp( PastixLCoef, PastixRight, PastixUpper,
                                       PastixNoTrans, PastixNonUnit,
-                                      cblk, blokA, sopalin_data );
+                                      cblk, blokA, sopalin_data,
+                                      cblknbr - k );
 
             starpu_task_blok_ztrsmsp( PastixUCoef, PastixRight, PastixUpper,
                                       PastixNoTrans, PastixUnit,
-                                      cblk, blokA, sopalin_data );
+                                      cblk, blokA, sopalin_data,
+                                      cblknbr - k );
 
             for(blokB=cblk->fblokptr + 1; blokB<blokA; blokB++) {
 
                 fcblk = solvmtx->cblktab + blokB->fcblknm;
 
                 starpu_task_blok_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
-                                          cblk, fcblk, blokA, blokB, sopalin_data );
+                                          cblk, fcblk, blokA, blokB, sopalin_data,
+                                          cblknbr - pastix_imin( k + m, cblk_n ) );
 
                 starpu_task_blok_zgemmsp( PastixUCoef, PastixLCoef, PastixTrans,
-                                          cblk, fcblk, blokA, blokB, sopalin_data );
+                                          cblk, fcblk, blokA, blokB, sopalin_data,
+                                          cblknbr - pastix_imin( k + m, cblk_n ) );
 
                 /* Skip B blocks facing the same cblk */
                 while( (blokB < blokA) &&
@@ -224,7 +238,8 @@ starpu_zgetrf_sp2d( sopalin_data_t              *sopalin_data,
             fcblk = solvmtx->cblktab + blokA->fcblknm;
 
             starpu_task_blok_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
-                                      cblk, fcblk, blokA, blokA, sopalin_data );
+                                      cblk, fcblk, blokA, blokA, sopalin_data,
+                                      cblknbr - pastix_imin( k + m, cblk_n ) );
 
             /* Skip A blocks facing the same cblk */
             while( (blokA < lblk) &&
@@ -242,10 +257,6 @@ starpu_zgetrf_sp2d( sopalin_data_t              *sopalin_data,
                                         cblkhandle->handlenbr,
                                         cblkhandle->handletab + cblkhandle->handlenbr, STARPU_MAIN_RAM );
     }
-
-#if defined(PASTIX_DEBUG_FACTO)
-    coeftab_zdump( datacode, "getrf_L.txt" );
-#endif
     (void)desc;
 }
 

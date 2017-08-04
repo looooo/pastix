@@ -18,11 +18,13 @@
 
 void
 starpu_task_cblk_zpotrfsp1d_panel( sopalin_data_t *sopalin_data,
-                                   SolverCblk     *cblk );
+                                   SolverCblk     *cblk,
+                                   int             prio );
 
 void
 starpu_task_cblk_zgetrfsp1d_panel( sopalin_data_t *sopalin_data,
-                                   SolverCblk     *cblk );
+                                   SolverCblk     *cblk,
+                                   int             prio );
 
 void
 starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
@@ -31,15 +33,18 @@ starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
                           const SolverCblk *cblk,
                           const SolverBlok *blok,
                           SolverCblk       *fcblk,
-                          sopalin_data_t   *sopalin_data );
+                          sopalin_data_t   *sopalin_data,
+                          int               prio );
 
 void
 starpu_task_blok_zpotrf( sopalin_data_t *sopalin_data,
-                         SolverCblk     *cblk );
+                         SolverCblk     *cblk,
+                         int             prio );
 
 void
 starpu_task_blok_zgetrf( sopalin_data_t *sopalin_data,
-                         SolverCblk     *cblk );
+                         SolverCblk     *cblk,
+                         int             prio );
 
 void
 starpu_task_blok_ztrsmsp( pastix_coefside_t coef,
@@ -49,7 +54,8 @@ starpu_task_blok_ztrsmsp( pastix_coefside_t coef,
                           pastix_diag_t     diag,
                           const SolverCblk *cblk,
                           SolverBlok       *blok,
-                          sopalin_data_t   *sopalin_data );
+                          sopalin_data_t   *sopalin_data,
+                          int               prio );
 
 void
 starpu_task_blok_zgemmsp( pastix_coefside_t sideA,
@@ -59,7 +65,8 @@ starpu_task_blok_zgemmsp( pastix_coefside_t sideA,
                           SolverCblk       *fcblk,
                           const SolverBlok *blokA,
                           const SolverBlok *blokB,
-                          sopalin_data_t   *sopalin_data );
+                          sopalin_data_t   *sopalin_data,
+                          int               prio );
 
 void
 starpu_zpotrf( pastix_data_t  *pastix_data,
