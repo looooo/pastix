@@ -133,7 +133,7 @@ static inline void pastix_error_print( const char * const fmt, ... )
  */
 #if defined PASTIX_OS_WINDOWS
 
-static inline char * pastix_getenv( char *var ) {
+static inline char * pastix_getenv( const char *var ) {
     char *str;
     int len = 512;
     int rc;
@@ -152,7 +152,7 @@ static inline void pastix_cleanenv( char *str ) {
 
 #else /* Other OS systems */
 
-static inline char * pastix_getenv( char *var ) {
+static inline char * pastix_getenv( const char *var ) {
     return getenv( var );
 }
 
