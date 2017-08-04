@@ -138,6 +138,16 @@ module spmf
   end interface
 
   interface
+     subroutine spmGenFakeValues_c(spm) &
+          bind(c, name='spmGenFakeValues')
+       use iso_c_binding
+       import pastix_spm_t
+       implicit none
+       type(c_ptr), value :: spm
+     end subroutine spmGenFakeValues_c
+  end interface
+
+  interface
      function spmNorm_c(ntype, spm) &
           bind(c, name='spmNorm')
        use iso_c_binding
@@ -485,6 +495,14 @@ contains
 
     call spmUpdateComputedFields_c(c_loc(spm))
   end subroutine spmUpdateComputedFields
+
+  subroutine spmGenFakeValues(spm)
+    use iso_c_binding
+    implicit none
+    type(pastix_spm_t), intent(inout), target :: spm
+
+    call spmGenFakeValues_c(c_loc(spm))
+  end subroutine spmGenFakeValues
 
   subroutine spmNorm(ntype, spm, value)
     use iso_c_binding

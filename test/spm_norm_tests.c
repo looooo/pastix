@@ -58,6 +58,10 @@ int main (int argc, char **argv)
     spmReadDriver( driver, filename, &spm, MPI_COMM_WORLD );
     free(filename);
 
+    if ( spm.flttype == PastixPattern ) {
+        spmGenFakeValues( &spm );
+    }
+
     spmtype = spm.mtxtype;
     printf(" -- SPM Norms Test --\n");
 

@@ -110,13 +110,13 @@ static inline size_t
 pastix_size_of(pastix_coeftype_t type)
 {
     switch(type) {
-    case PastixPattern:   return   sizeof(double);
     case PastixFloat:     return   sizeof(float);
     case PastixDouble:    return   sizeof(double);
     case PastixComplex32: return 2*sizeof(float);
     case PastixComplex64: return 2*sizeof(double);
     default:
         fprintf(stderr, "pastix_size_of: invalide type parameter\n");
+        assert(0);
         return -1;
     }
 }

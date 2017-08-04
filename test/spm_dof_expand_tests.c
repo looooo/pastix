@@ -32,6 +32,7 @@ void z_spm_print_check( char *filename, const pastix_spm_t *spm );
 void c_spm_print_check( char *filename, const pastix_spm_t *spm );
 void d_spm_print_check( char *filename, const pastix_spm_t *spm );
 void s_spm_print_check( char *filename, const pastix_spm_t *spm );
+void p_spm_print_check( char *filename, const pastix_spm_t *spm );
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_) {                                 \
@@ -110,6 +111,10 @@ int main (int argc, char **argv)
 
                     case PastixFloat:
                         s_spm_print_check( filename, spm );
+                        break;
+
+                    case PastixPattern:
+                        p_spm_print_check( filename, spm );
                         break;
 
                     case PastixDouble:

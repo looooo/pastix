@@ -70,6 +70,14 @@ int main (int argc, char **argv)
         free(spm);
         spm = spm2;
     }
+
+    /*
+     * Generate a Fake values array if needed for the numerical part
+     */
+    if ( spm->flttype == PastixPattern ) {
+        spmGenFakeValues( spm );
+    }
+
     iparm[IPARM_FLOAT]    = spm->flttype;
     iparm[IPARM_MTX_TYPE] = spm->mtxtype;
     iparm[IPARM_DOF_NBR]  = spm->dof;

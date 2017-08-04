@@ -51,7 +51,6 @@ precisions_rules_py(generated_sources
 add_library(pastix_bcsc
   ${generated_sources}
   bcsc.c        # Not finished
-  bcsc_fake.c   # Not finished
 )
 
 add_dependencies( pastix_bcsc

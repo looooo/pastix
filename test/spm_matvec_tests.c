@@ -55,6 +55,10 @@ int main (int argc, char **argv)
     spmReadDriver( driver, filename, &spm, MPI_COMM_WORLD );
     free(filename);
 
+    if ( spm.flttype == PastixPattern ) {
+        spmGenFakeValues( &spm );
+    }
+
     /**
      * Only CSC is supported for now
      */

@@ -21,6 +21,9 @@
 #include "bcsc.h"
 #include "d_bcsc.h"
 
+static double alpha = 10.;
+static double beta  = 1.;
+
 /**
  * Fill in the lower triangular part of the blocked csc with values and
  * rows. The upper triangular part is done later if required through LU
@@ -35,8 +38,9 @@ bcscInitFakeA( const pastix_spm_t  *spm,
 {
     double *Lvalues = (double*)(bcsc->Lvalues);
     pastix_int_t itercblk, itercol, baseval;
-    pastix_int_t i, ival, idofcol, idofrow;
+    pastix_int_t i, idofcol, idofrow;
     int dof = spm->dof;
+    double iival;
 
     baseval = spm->colptr[0];
 
@@ -61,11 +65,17 @@ bcscInitFakeA( const pastix_spm_t  *spm,
         frow = spm->colptr[itercol]   - baseval;
         lrow = spm->colptr[itercol+1] - baseval;
 
+        if ( spm->mtxtype == PastixGeneral ) {
+            iival = pastix_imax( lrow - frow - 1, 1 ) * alpha;
+        }
+        else {
+            iival = pastix_imax( 2 * (lrow - frow - 1), 1 ) * alpha;
+        }
+
         for (i=frow; i<lrow; i++)
         {
             pastix_int_t iterrow  = spm->rowptr[i]-baseval;
             pastix_int_t iterrow2 = ord->permtab[iterrow] * dof;
-            ival = i * dof * dof;
 
             for (idofcol = 0; idofcol < dof; idofcol++)
             {
@@ -74,10 +84,15 @@ bcscInitFakeA( const pastix_spm_t  *spm,
                 pastix_int_t pos = coltab[ colidx ];
 
                 for (idofrow = 0; idofrow < dof;
-                     idofrow++, ival++, rowidx++, pos++)
+                     idofrow++, rowidx++, pos++)
                 {
                     bcsc->rowtab[ pos ] = rowidx;
-                    Lvalues[ pos ] = (rowidx >= colidx) ? 1. : 2.;
+                    if ( rowidx == colidx ) {
+                        Lvalues[ pos ] = iival;
+                    }
+                    else {
+                        Lvalues[ pos ] = - beta;
+                    }
                 }
 
                 coltab[ colidx ] += dof;
@@ -96,8 +111,9 @@ bcscInitFakeLt( const pastix_spm_t  *spm,
 {
     double *Lvalues = (double*)(bcsc->Lvalues);
     pastix_int_t itercblk, itercol, baseval;
-    pastix_int_t i, ival, idofcol, idofrow;
+    pastix_int_t i, idofcol, idofrow;
     int dof = spm->dof;
+    double iival;
 
     baseval = spm->colptr[0];
 
@@ -112,6 +128,8 @@ bcscInitFakeLt( const pastix_spm_t  *spm,
 
         frow = spm->colptr[itercol]   - baseval;
         lrow = spm->colptr[itercol+1] - baseval;
+
+        iival = pastix_imax( 2 * (lrow - frow - 1), 1 ) * alpha;
 
         for (i=frow; i<lrow; i++)
         {
@@ -129,8 +147,6 @@ bcscInitFakeLt( const pastix_spm_t  *spm,
             coltab  = bcsc->cscftab[itercblk].coltab;
             fcolnum = solvmtx->cblktab[itercblk].fcolnum;
 
-            ival = i * dof * dof;
-
             for (idofcol = 0; idofcol < dof; idofcol++)
             {
                 pastix_int_t colidx = itercol2 + idofcol;
@@ -138,13 +154,17 @@ bcscInitFakeLt( const pastix_spm_t  *spm,
                 pastix_int_t pos;
 
                 for (idofrow = 0; idofrow < dof;
-                     idofrow++, ival++, rowidx++, pos++)
+                     idofrow++, rowidx++, pos++)
                 {
                     pos = coltab[ rowidx ];
 
                     bcsc->rowtab[ pos ] = colidx;
-                    Lvalues[ pos ] = (colidx >= rowidx) ? 1. : 2.;
-
+                    if ( rowidx == colidx ) {
+                        Lvalues[ pos ] = iival;
+                    }
+                    else {
+                        Lvalues[ pos ] = - beta;
+                    }
                     coltab[ rowidx ]++;
                 }
             }
@@ -162,8 +182,9 @@ bcscInitFakeAt( const pastix_spm_t  *spm,
 {
     double *Uvalues = (double*)(bcsc->Uvalues);
     pastix_int_t itercblk, itercol, baseval;
-    pastix_int_t i, ival, idofcol, idofrow;
+    pastix_int_t i, idofcol, idofrow;
     int dof = spm->dof;
+    double iival;
 
     baseval = spm->colptr[0];
 
@@ -178,6 +199,8 @@ bcscInitFakeAt( const pastix_spm_t  *spm,
 
         frow = spm->colptr[itercol]   - baseval;
         lrow = spm->colptr[itercol+1] - baseval;
+
+        iival = pastix_imax( lrow - frow - 1, 1 ) * alpha;
 
         for (i=frow; i<lrow; i++)
         {
@@ -195,8 +218,6 @@ bcscInitFakeAt( const pastix_spm_t  *spm,
             coltab  = bcsc->cscftab[itercblk].coltab;
             fcolnum = solvmtx->cblktab[itercblk].fcolnum;
 
-            ival = i * dof * dof;
-
             for (idofcol = 0; idofcol < dof; idofcol++)
             {
                 pastix_int_t colidx = itercol2 + idofcol;
@@ -204,12 +225,17 @@ bcscInitFakeAt( const pastix_spm_t  *spm,
                 pastix_int_t pos;
 
                 for (idofrow = 0; idofrow < dof;
-                     idofrow++, ival++, rowidx++, pos++)
+                     idofrow++, rowidx++, pos++)
                 {
                     pos = coltab[ rowidx ];
 
                     trowtab[ pos ] = colidx;
-                    Uvalues[ pos ] = (colidx >= rowidx) ? 2. : 1.; /*values[ ival ];*/
+                    if ( rowidx == colidx ) {
+                        Uvalues[ pos ] = iival;
+                    }
+                    else {
+                        Uvalues[ pos ] = - beta;
+                    }
 
                     coltab[ rowidx ]++;
                 }
@@ -231,7 +257,36 @@ bcscInitCentralizedFake( const pastix_spm_t  *spm,
     bcsc->flttype = PastixDouble;
     valuesize = bcsc_init_centralized_coltab( spm, ord, solvmtx, bcsc );
 
-    /**
+    /*
+     * Read environment values for alpha/beta
+     */
+    {
+        char *str = pastix_getenv( "PASTIX_FAKE_ALPHA" );
+        double value;
+
+        if ( str != NULL ) {
+            value = strtod( str, NULL );
+            if ( (value != HUGE_VAL) && (value != 0.) &&
+                 !isnan(value) && !isinf(value) )
+            {
+                alpha = value;
+            }
+            pastix_cleanenv( str );
+        }
+
+        str = pastix_getenv( "PASTIX_FAKE_BETA" );
+        if ( str != NULL ) {
+            value = strtod( str, NULL );
+            if ( (value != HUGE_VAL) && (value != 0.) &&
+                 !isnan(value) && !isinf(value) )
+            {
+                beta = value;
+            }
+            pastix_cleanenv( str );
+        }
+    }
+
+    /*
      * Initialize the blocked structure of the matrix A
      */
     bcscInitFakeA( spm, ord, solvmtx, col2cblk, bcsc );
