@@ -13,7 +13,7 @@
  * @author Alban Bellot
  * @date 2015-01-01
  *
- * @precisions normal z -> c d s
+ * @precisions normal z -> c d s p
  *
  **/
 #include <stdint.h>

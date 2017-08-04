@@ -26,9 +26,11 @@ do
                     do
                         for comp in cp ucp
                         do
-
-                            echo -n "---- CSC Sparse CP VS $fmttype $storage $comp $baseval: "
-                            diff $basefile expand_${i}_${fmttype}_${baseval}_${mtxtype}_${fltname}_${storage}_${comp}.dat.sort | wc -l
+                            if [ -f expand_${i}_${fmttype}_${baseval}_${mtxtype}_${fltname}_${storage}_${comp}.dat.sort ]
+                            then
+                                echo -n "---- CSC Sparse CP VS $fmttype $storage $comp $baseval: "
+                                diff $basefile expand_${i}_${fmttype}_${baseval}_${mtxtype}_${fltname}_${storage}_${comp}.dat.sort | wc -l
+                            fi
                         done
                     done
                 done
@@ -54,8 +56,11 @@ do
                     do
                         for comp in cp ucp
                         do
-                            echo -n "---- $fmtype Sparse CP VS $fmttype $storage $comp $baseval: "
-                            diff $basefile expand_${i}_${fmttype}_${baseval}_${mtxtype}_${fltname}_${storage}_${comp}.dat.sort | wc -l
+                            if [ -f expand_${i}_${fmttype}_${baseval}_${mtxtype}_${fltname}_${storage}_${comp}.dat.sort ]
+                            then
+                               echo -n "---- $fmtype Sparse CP VS $fmttype $storage $comp $baseval: "
+                               diff $basefile expand_${i}_${fmttype}_${baseval}_${mtxtype}_${fltname}_${storage}_${comp}.dat.sort | wc -l
+                            fi
                         done
                     done
                 fi

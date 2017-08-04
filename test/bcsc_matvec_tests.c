@@ -78,6 +78,10 @@ int main (int argc, char **argv)
     }
     spmBase( spm, 0 );
 
+    if ( spm->flttype == PastixPattern ) {
+        spmGenFakeValues( spm );
+    }
+
     /**
      * Run preprocessing steps required to generate the blocked csc
      */

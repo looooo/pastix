@@ -69,6 +69,13 @@ int main (int argc, char **argv)
     }
 
     /**
+     * Generate a Fake values array if needed for the numerical part
+     */
+    if ( spm->flttype == PastixPattern ) {
+        spmGenFakeValues( spm );
+    }
+
+    /**
      * Perform ordering, symbolic factorization, and analyze steps
      */
     pastix_subtask_order( pastix_data, spm, NULL );
