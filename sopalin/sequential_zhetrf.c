@@ -54,6 +54,12 @@ sequential_zhetrf( pastix_data_t  *pastix_data,
 
         /* Compute */
         cpucblk_zhetrfsp1d( datacode, cblk, threshold,
+                            /*
+                             * Workspace size has been computed without the
+                             * diagonal block, thus in order to work with generic
+                             * TRSM and GEMM kernels, we must shift the DLh workspace
+                             * by the diagonal block size
+                             */
                             work1 - (N*N), work2 );
     }
 
@@ -99,6 +105,12 @@ thread_pzhetrf( isched_thread_t *ctx, void *args )
 
         /* Compute */
         cpucblk_zhetrfsp1d( datacode, cblk, sopalin_data->diagthreshold,
+                            /*
+                             * Workspace size has been computed without the
+                             * diagonal block, thus in order to work with generic
+                             * TRSM and GEMM kernels, we must shift the DLh workspace
+                             * by the diagonal block size
+                             */
                             work1 - (N*N), work2 );
     }
 
