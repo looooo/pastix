@@ -978,3 +978,79 @@ solve_ztrsmsp( pastix_side_t       side,
         assert(0 /* Not implemented */);
     }
 }
+
+/**
+ *******************************************************************************
+ *
+ * @brief Apply the diagonal solve related to one cblk to all the right hand side.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          The cblk structure to which diagonal block belongs to.
+ *
+ * @param[in] nrhs
+ *          The number of right hand side
+ *
+ * @param[inout] b
+ *          The pointer to vectors of the right hand side
+ *
+ * @param[in] ldb
+ *          The leading dimension of b
+ *
+ * @param[inout] work
+ *          Workspace to temporarily store the diagonal when multiple RHS are
+ *          involved. Might be set to NULL for internal allocation on need.
+ *
+ *******************************************************************************/
+void
+solve_zdiag( SolverCblk         *cblk,
+             int                 nrhs,
+             pastix_complex64_t *b,
+             int                 ldb,
+             pastix_complex64_t *work )
+{
+    pastix_complex64_t *A, *tmp;
+    pastix_int_t k, j, tempn, lda;
+
+    tempn = cblk->lcolnum - cblk->fcolnum + 1;
+    lda = (cblk->cblktype & CBLK_LAYOUT_2D) ? tempn : cblk->stride;
+    assert( blok_rownbr( cblk->fblokptr ) == tempn );
+
+    if ( cblk->cblktype & CBLK_COMPRESSED ) {
+        A = (pastix_complex64_t*)(cblk->fblokptr->LRblock[0].u);
+        assert( cblk->fblokptr->LRblock[0].rkmax == lda );
+    }
+    else {
+        A = (pastix_complex64_t*)(cblk->lcoeftab);
+    }
+
+    /* Add shift for diagonal elements */
+    lda++;
+
+    if( nrhs == 1 ) {
+        for (j=0; j<tempn; j++, b++, A+=lda) {
+            *b = (*b) / (*A);
+        }
+    }
+    else {
+        /* Copy the diagonal to a temporary buffer */
+        tmp = work;
+        if ( work == NULL ) {
+            MALLOC_INTERN( tmp, tempn, pastix_complex64_t );
+        }
+        cblas_zcopy( tempn, A, lda, tmp, 1 );
+
+        /* Compute */
+        for (k=0; k<nrhs; k++, b+=ldb)
+        {
+            for (j=0; j<tempn; j++) {
+                b[j] /= tmp[j];
+            }
+        }
+
+        if ( work == NULL ) {
+            memFree_null(tmp);
+        }
+    }
+}

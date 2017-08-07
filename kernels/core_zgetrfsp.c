@@ -124,7 +124,7 @@ core_zgetf2sp( pastix_int_t        m,
  *
  * @param[in] criteria
  *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the nu,ber of
+ *          threshold, its value is replaced by the threshold and the number of
  *          pivots is incremented.
  *
  *******************************************************************************/
@@ -219,10 +219,6 @@ cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
     ncols  = cblk->lcolnum - cblk->fcolnum + 1;
     stride = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
 
-    /* check if diagonal column block */
-    assert( cblk->fcolnum == cblk->fblokptr->frownum );
-    assert( cblk->lcolnum == cblk->fblokptr->lrownum );
-
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
         assert( cblk->fblokptr->LRblock[0].rk == -1 &&
                 cblk->fblokptr->LRblock[1].rk == -1 );
@@ -292,8 +288,8 @@ cpucblk_zgetrfsp1d_panel( SolverCblk         *cblk,
     pastix_int_t nbpivot;
     nbpivot = cpucblk_zgetrfsp1d_getrf(cblk, L, U, criteria);
 
-    /**
-     * We exploit the fact tha the upper triangle is stored at the top of the L
+    /*
+     * We exploit the fact that the upper triangle is stored at the top of the L
      * column, and by transposition the L part of the diagonal block is
      * similarly stored in the U panel
      */

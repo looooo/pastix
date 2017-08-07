@@ -687,7 +687,7 @@ solverMatrixGen( pastix_int_t        clustnum,
              * will be performed.
              */
             m -= n;
-            diagarea = (m+1) * n;
+            diagarea = (n+1) * n;
             if ( diagarea > diagmax ) {
                 diagmax = diagarea;
                 maxd_m = m;

@@ -49,6 +49,13 @@ int  core_zrrqr ( pastix_int_t m, pastix_int_t n,
                   pastix_int_t *jpvt, pastix_complex64_t *tau,
                   pastix_complex64_t *work, pastix_int_t ldwork, double *rwork,
                   double tol, pastix_int_t nb, pastix_int_t maxrank);
+int  core_ztradd( pastix_uplo_t uplo, pastix_trans_t trans, pastix_int_t M, pastix_int_t N,
+                  pastix_complex64_t alpha, const pastix_complex64_t *A, pastix_int_t LDA,
+                  pastix_complex64_t beta,        pastix_complex64_t *B, pastix_int_t LDB);
+int  core_zscalo( pastix_trans_t trans, pastix_int_t M, pastix_int_t N,
+                  const pastix_complex64_t *A, pastix_int_t lda,
+                  const pastix_complex64_t *D, pastix_int_t ldd,
+                  pastix_complex64_t *B, pastix_int_t ldb );
 
 /**
  *    @}
@@ -60,9 +67,9 @@ void core_zpotrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
 void core_zgetrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
                     pastix_int_t *nbpivot, double criteria );
 void core_zhetrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
-                    pastix_int_t *nbpivot, double criteria, pastix_complex64_t *work );
+                    pastix_int_t *nbpivot, double criteria );
 void core_zsytrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
-                    pastix_int_t *nbpivot, double criteria, pastix_complex64_t *work );
+                    pastix_int_t *nbpivot, double criteria );
 
 /**
  *     @}
@@ -173,6 +180,7 @@ void cpucblk_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_t
 void cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                       pastix_trans_t trans, pastix_diag_t diag, SolverCblk *cblk,
                       const pastix_complex64_t *A, pastix_complex64_t *C, const pastix_lr_t *lowrank );
+void cpucblk_zscalo ( pastix_trans_t trans, SolverCblk *cblk, pastix_complex64_t *LD );
 
 void cpublok_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_trans_t trans,
                       const SolverCblk *cblk, SolverCblk *fcblk,
@@ -248,7 +256,7 @@ int cpucblk_zpotrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double cr
  *    @name PastixComplex64 cblk LDL^h kernels
  *    @{
  */
-int cpucblk_zhetrfsp1d_hetrf( SolverCblk *cblk, pastix_complex64_t *L, pastix_complex64_t *DLh, double criteria );
+int cpucblk_zhetrfsp1d_hetrf( SolverCblk *cblk, pastix_complex64_t *L, double criteria );
 int cpucblk_zhetrfsp1d_panel( SolverCblk *cblk, pastix_complex64_t *L, pastix_complex64_t *DLh, double criteria,
                               const pastix_lr_t *lowrank );
 int cpucblk_zhetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double criteria,
@@ -259,7 +267,7 @@ int cpucblk_zhetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double cr
  *    @name PastixComplex64 cblk LDL^t kernels
  *    @{
  */
-int cpucblk_zsytrfsp1d_sytrf( SolverCblk *cblk, pastix_complex64_t *L, pastix_complex64_t *DLt, double criteria );
+int cpucblk_zsytrfsp1d_sytrf( SolverCblk *cblk, pastix_complex64_t *L, double criteria );
 int cpucblk_zsytrfsp1d_panel( SolverCblk *cblk, pastix_complex64_t *L, pastix_complex64_t *DLt, double criteria,
                               const pastix_lr_t *lowrank );
 int cpucblk_zsytrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double criteria,
@@ -279,6 +287,11 @@ void solve_ztrsmsp( pastix_side_t side, pastix_uplo_t uplo, pastix_trans_t trans
                     SolverMatrix *datacode, SolverCblk *cblk,
                     int nrhs, pastix_complex64_t *b, int ldb );
 
+void solve_zdiag( SolverCblk         *cblk,
+                  int                 nrhs,
+                  pastix_complex64_t *b,
+                  int                 ldb,
+                  pastix_complex64_t *work );
 /**
  * @}
  */
@@ -290,13 +303,13 @@ void solve_ztrsmsp( pastix_side_t side, pastix_uplo_t uplo, pastix_trans_t trans
  *     To be removed
  */
 int  core_zhetrfsp1d_trsm( SolverCblk *cblk, pastix_complex64_t *L );
-void core_zhetrfsp1d_gemm( SolverCblk *cblk, SolverBlok *blok, SolverCblk *fcblk,
-                           pastix_complex64_t *L, pastix_complex64_t *C,
-                           pastix_complex64_t *work1, pastix_complex64_t *work2 );
+void core_zhetrfsp1d_gemm( const SolverCblk *cblk, const SolverBlok *blok, SolverCblk *fcblk,
+                           const pastix_complex64_t *L, pastix_complex64_t *C,
+                           pastix_complex64_t *work );
 int  core_zsytrfsp1d_trsm( SolverCblk *cblk, pastix_complex64_t *L );
-void core_zsytrfsp1d_gemm( SolverCblk *cblk, SolverBlok *blok, SolverCblk *fcblk,
-                           pastix_complex64_t *L, pastix_complex64_t *C,
-                           pastix_complex64_t *work1, pastix_complex64_t *work2 );
+void core_zsytrfsp1d_gemm( const SolverCblk *cblk, const SolverBlok *blok, SolverCblk *fcblk,
+                           const pastix_complex64_t *L, pastix_complex64_t *C,
+                           pastix_complex64_t *work );
 
 /**
  * @}
