@@ -253,7 +253,7 @@ z_spm_norm_check( const pastix_spm_t *spm )
     printf(" -- Test norm Frb :");
     norms = spmNorm( PastixFrobeniusNorm, spm );
     normd = LAPACKE_zlange( LAPACK_COL_MAJOR, 'F', spm->gNexp, spm->gNexp, A, spm->gNexp );
-    result = abs(norms - normd) / (normd * eps);
+    result = fabs(norms - normd) / (normd * eps);
     result = result / ((double)spm->gnnzexp);
 
     if ( (result >= 0.) && (result < 1.) ) {

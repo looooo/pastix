@@ -180,7 +180,7 @@ z_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc )
     printf(" -- Test norm Frb :");
     norms = spmNorm( PastixFrobeniusNorm, spm );
     normd = z_bcscNorm( PastixFrobeniusNorm, bcsc );
-    result = abs(norms - normd) / (norms * eps);
+    result = fabs(norms - normd) / (norms * eps);
     result = result / ((double)spm->gnnz);
 
     if ( (result >= 0.) && (result < 1.) ) {
