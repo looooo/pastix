@@ -138,6 +138,7 @@ struct pastix_data_s {
     sem_t           *sem_barrier;        /*+ Semaphore used for AUTOSPLIT_COMM barrier                           */
 #endif
     pastix_int_t     pastix_id;          /*+ Id of the pastix instance (PID of first MPI task)                   */
+    char            *dirtemp;            /*+ Unique directory name to store output files                         */
 };
 
 #endif /* PASTIX_DATA_H_ */

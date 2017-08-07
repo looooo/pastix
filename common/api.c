@@ -14,6 +14,7 @@
  * @date 2013-06-24
  *
  **/
+#define _GNU_SOURCE 1
 #include "common.h"
 #if defined(HAVE_METIS)
 #include <metis.h>
@@ -25,6 +26,64 @@
 #include "solver.h"
 #include "bcsc.h"
 #include "isched.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+
+FILE *
+pastix_fopenw( pastix_data_t *pastix,
+               const char    *filename,
+               const char    *mode )
+{
+    char *fullname;
+    FILE *f = NULL;
+    int rc;
+
+    if ( pastix->dirtemp == NULL ) {
+        mode_t old_mask = umask(S_IWGRP | S_IWOTH);
+
+        pastix->dirtemp = strdup( "pastix-XXXXX" );
+        pastix->dirtemp = mkdtemp( pastix->dirtemp );
+        (void)umask(old_mask);
+
+        if ( pastix->dirtemp == NULL ) {
+            errorPrint("pastix_fopenw: Couldn't not generate the tempory directory to store the output files");
+            return NULL;
+        }
+    }
+
+    rc = asprintf( &fullname, "%s/%s", pastix->dirtemp, filename );
+    if (rc != 0 ) {
+        errorPrint("pastix_fopenw: Couldn't not generate the tempory filename for the output file");
+        return NULL;
+    }
+
+    if (NULL == (f = fopen(fullname, mode)))
+    {
+        perror("pastix_fopenw");
+        errorPrint( "pastix_fopenw: Couldn't open file: %s with mode %s\n",
+                    filename, mode );
+        return NULL;
+    }
+
+    return f;
+}
+
+FILE *
+pastix_fopen( const char *filename,
+              const char *mode )
+{
+    FILE *f = NULL;
+
+    if (NULL == (f = fopen(filename, mode)))
+    {
+        perror("pastix_fopen");
+        errorPrint( "pastix_fopen: Couldn't open file: %s with mode %s\n",
+                    filename, mode );
+        return NULL;
+    }
+
+    return f;
+}
 
 /**
  *******************************************************************************
@@ -477,6 +536,8 @@ pastixInit( pastix_data_t **pastix_data,
 
     pastix->bcsc       = NULL;
     pastix->solvmatr   = NULL;
+
+    pastix->dirtemp    = NULL;
 
     /* DIRTY Initialization for Scotch */
     srand(1);

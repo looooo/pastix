@@ -332,4 +332,13 @@ pastixFactotypeStr( pastix_factotype_t ft ) {
     }
 }
 
+FILE *
+pastix_fopenw( pastix_data_t *pastix,
+               const char    *filename,
+               const char    *mode );
+
+FILE *
+pastix_fopen( const char    *filename,
+              const char    *mode );
+
 #endif /* _OUT_H_ */

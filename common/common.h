@@ -32,12 +32,12 @@
 #include "sys/atomic.h"
 #include "FCmangle.h"
 #include "debug.h"
-#include "out.h"
 #include "memory.h"
 #include "integer.h"
 #include "timing.h"
 #include "trace.h"
 #include "pastixdata.h"
+#include "out.h"
 
 #if defined(PASTIX_WITH_PARSEC)
 #include "sopalin/parsec/pastix_parsec.h"
@@ -110,9 +110,9 @@ static inline void pastix_error_print( const char * const fmt, ... )
   Open a file and handle errors.
 
   Parameters:
-  FILE      - Stream (FILE*) to link to the file.
-  filenamne - String containing the path to the file.
-  mode      - String containing the opening mode.
+  FILE     - Stream (FILE*) to link to the file.
+  filename - String containing the path to the file.
+  mode     - String containing the opening mode.
 
 */
 #define PASTIX_FOPEN( _file_, _filename_, _mode_)                       \
@@ -133,7 +133,8 @@ static inline void pastix_error_print( const char * const fmt, ... )
  */
 #if defined PASTIX_OS_WINDOWS
 
-static inline char * pastix_getenv( const char *var ) {
+static inline char *
+pastix_getenv( const char *var ) {
     char *str;
     int len = 512;
     int rc;
@@ -146,17 +147,20 @@ static inline char * pastix_getenv( const char *var ) {
     return str;
 }
 
-static inline void pastix_cleanenv( char *str ) {
+static inline void
+pastix_cleanenv( char *str ) {
     if (str != NULL) free(str);
 }
 
 #else /* Other OS systems */
 
-static inline char * pastix_getenv( const char *var ) {
+static inline char *
+pastix_getenv( const char *var ) {
     return getenv( var );
 }
 
-static inline void pastix_cleanenv( char *str ) {
+static inline void
+pastix_cleanenv( char *str ) {
     (void)str;
 }
 
