@@ -10,29 +10,18 @@
 ###
 include(RulesPrecisions)
 
-## reset variables
-set(generated_files "")
-set(generated_files2 "")
-
-## Generate the dsparse wrappers for all required precisions
+## Generate the test library files for all required precisions
 set(LIB_SOURCES
   z_spm_tests.c
   z_bcsc_tests.c
 )
 
-set(TESTS_SOURCES
-  z_ge2lr_tests.c
-  z_rradd_tests.c
-)
+## reset variables
+set(generated_libfiles "")
 
 precisions_rules_py(generated_libfiles
    "${LIB_SOURCES}"
    PRECISIONS "p;s;d;c;z")
-
-precisions_rules_py(generated_exfiles
-   "${TESTS_SOURCES}"
-   PRECISIONS "p;s;d;c;z")
-
 
 add_library(spm_test ${generated_libfiles} )
 
@@ -42,7 +31,6 @@ target_link_libraries( spm_test
   pastix_spm
   ${LAPACKE_LIBRARIES}
   ${LAPACK_SEQ_LIBRARIES} )
-
 
 ## Generate all test executables
 set (TESTS
@@ -62,21 +50,6 @@ foreach (_file ${TESTS})
   target_link_libraries(${_name_we} pastix spm_test)
 endforeach()
 
-foreach (_file ${generated_exfiles})
-  get_filename_component(_name_we ${_file} NAME_WE)
-  add_executable(${_name_we} ${_file})
-  target_link_libraries(${_name_we}
-    pastix_kernels
-    pastix
-    ${LAPACKE_LIBRARIES}
-    ${TMG_LIBRARIES}
-    ${LAPACK_SEQ_LIBRARIES}
-    ${BLAS_SEQ_LIBRARIES}
-    ${EXTRA_LIBS}
-    m)
-endforeach()
-
-
 ## CTest execution
 set( SPM_TESTS
   spm_convert_tests spm_norm_tests spm_matvec_tests )
@@ -84,21 +57,6 @@ set( SPM_DOF_TESTS
   spm_dof_expand_tests spm_dof_norm_tests spm_dof_matvec_tests)
 set( BCSC_TESTS
   bcsc_norm_tests bcsc_matvec_tests )
-
-set( GE2LR_TESTS
-  s_ge2lr_tests d_ge2lr_tests c_ge2lr_tests z_ge2lr_tests )
-set( RRADD_TESTS
-  s_rradd_tests d_rradd_tests c_rradd_tests z_rradd_tests )
-
-# GE2LR
-foreach(example ${GE2LR_TESTS} )
-  add_test(test_${example} ./${example})
-endforeach()
-
-# RRADD
-foreach(example ${RRADD_TESTS} )
-  add_test(test_${example} ./${example})
-endforeach()
 
 # Laplacian
 foreach(example ${SPM_TESTS} ${SPM_DOF_TESTS} ${BCSC_TESTS} )
@@ -126,3 +84,55 @@ endforeach()
 foreach(example ${SPM_TESTS} ${SPM_DOF_TESTS} ${BCSC_TESTS} )
   add_test(test_mm2_${example} ./${example} --mm ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx)
 endforeach()
+
+###################################
+#   Low-rank testings
+###
+
+## Tests requires TMG lib to generate random matrices.
+find_package(TMG)
+
+if(TMG_FOUND)
+  set(TESTS_SOURCES
+    z_ge2lr_tests.c
+    z_rradd_tests.c
+    )
+
+  ## reset variables
+  set(generated_exfiles "")
+
+  precisions_rules_py(generated_exfiles
+    "${TESTS_SOURCES}"
+    PRECISIONS "p;s;d;c;z")
+
+  foreach (_file ${generated_exfiles})
+    get_filename_component(_name_we ${_file} NAME_WE)
+    add_executable(${_name_we} ${_file})
+    target_link_libraries(${_name_we}
+      pastix_kernels
+      pastix
+      ${LAPACKE_LIBRARIES}
+      ${TMG_LIBRARIES}
+      ${LAPACK_SEQ_LIBRARIES}
+      ${BLAS_SEQ_LIBRARIES}
+      ${EXTRA_LIBS}
+      m)
+  endforeach()
+
+  set( GE2LR_TESTS
+    s_ge2lr_tests d_ge2lr_tests c_ge2lr_tests z_ge2lr_tests )
+  set( RRADD_TESTS
+    s_rradd_tests d_rradd_tests c_rradd_tests z_rradd_tests )
+
+  # GE2LR
+  foreach(example ${GE2LR_TESTS} )
+    add_test(test_${example} ./${example})
+  endforeach()
+
+  # RRADD
+  foreach(example ${RRADD_TESTS} )
+    add_test(test_${example} ./${example})
+  endforeach()
+
+endif()
+

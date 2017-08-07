@@ -155,8 +155,6 @@ if(LAPACKE_FOUND)
   include_directories(${LAPACKE_INCLUDE_DIRS})
 endif()
 
-find_package(TMG REQUIRED)
-
 ### Store dependencies not handled with pkg-config
 set( DEPS_LIBRARIES
   ${LAPACKE_LIBRARIES}
