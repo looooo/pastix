@@ -45,7 +45,7 @@ Available Features
  * LR means (block) Low-Rank compression technique to reduce the memory footprint and/or the time-to-solution
    * *WARNING* GPU kernels are not available when compression techniques are enabled
  * MPI is not available yet and will come with 6.1.0
- * StarPU support is not available yet, and should be available in final 6.0.0
+ * StarPU support is available only when low-rank compression is disabled.
  * GPUs kernels are in the code but not exploited yet, we are targeting for a simpler scheduling that would allow everyone to get correct performance out of the box in final 6.0.0
 
 Documentation
@@ -75,7 +75,7 @@ The main options to configure the PaStiX configuration build are:
        * PASTIX_ORDERING_METIS[=OFF]: Enable/Disable the support of the Metis library to compute the ordering. Metis 5.1 is required.
    * External schedulers:
        * PASTIX_WITH_PARSEC[=OFF]: Enable/disable the PaRSEC runtime support. Require to install PaRSEC tag pastix-_releasenumber_ (mymaster for master branch) from the repository https://bitbucket.org/mfaverge/parsec that includes a few patches on top of the original PaRSEC runtime system. PaRSEC needs to be compiled with option -DPARSEC_WITH_DEVEL_HEADERS=ON.
-       * PASTIX_WITH_STARPU[=OFF]: Enable/disable the StarPU runtime support. Require to install StarPU 1.2. Not supported for now.
+       * PASTIX_WITH_STARPU[=OFF]: Enable/disable the StarPU runtime support. Require to install StarPU 1.2.
    * Distributed memory:
        * PASTIX_WITH_MPI=[OFF]: Distributed memory is not supported yet in PaStiX, however you might need to enable this option if your PaRSEC library has been compiled with MPI support.
    * Documentation:
