@@ -53,10 +53,6 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
         cpucblk_zgetrfsp1d( datacode, cblk, threshold, work );
     }
 
-#if defined(PASTIX_DEBUG_FACTO)
-    coeftab_zdump( datacode, "getrf_L.txt" );
-#endif
-
     memFree_null( work );
 }
 
@@ -91,14 +87,6 @@ thread_pzgetrf( isched_thread_t *ctx, void *args )
         /* Compute */
         cpucblk_zgetrfsp1d( datacode, cblk, sopalin_data->diagthreshold, work );
     }
-
-#if defined(PASTIX_DEBUG_FACTO) && 0
-    isched_barrier_wait( &(ctx->global_ctx->barrier) );
-    if (rank == 0) {
-        coeftab_zdump( datacode, "getrf_L.txt" );
-    }
-    isched_barrier_wait( &(ctx->global_ctx->barrier) );
-#endif
 
     memFree_null( work );
 }
@@ -136,4 +124,8 @@ sopalin_zgetrf( pastix_data_t  *pastix_data,
         zgetrf = thread_zgetrf;
     }
     zgetrf( pastix_data, sopalin_data );
+
+#if defined(PASTIX_DEBUG_FACTO)
+    coeftab_zdump( pastix_data, sopalin_data->solvmtx, "getrf.txt" );
+#endif
 }

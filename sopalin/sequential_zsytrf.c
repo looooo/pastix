@@ -63,10 +63,6 @@ sequential_zsytrf( pastix_data_t  *pastix_data,
                             work1 - (N*N), work2 );
     }
 
-#if defined(PASTIX_DEBUG_FACTO)
-    coeftab_zdump( datacode, "sytrf_L.txt" );
-#endif
-
     memFree_null( work1 );
     memFree_null( work2 );
 }
@@ -113,14 +109,6 @@ thread_pzsytrf( isched_thread_t *ctx, void *args )
                              */
                             work1 - (N*N), work2 );
     }
-
-#if defined(PASTIX_DEBUG_FACTO) && 0
-    isched_barrier_wait( &(ctx->global_ctx->barrier) );
-    if (rank == 0) {
-        coeftab_zdump( datacode, "sytrf_L.txt" );
-    }
-    isched_barrier_wait( &(ctx->global_ctx->barrier) );
-#endif
 
     memFree_null( work1 );
     memFree_null( work2 );
@@ -174,4 +162,8 @@ sopalin_zsytrf( pastix_data_t  *pastix_data,
         zsytrf = thread_zsytrf;
     }
     zsytrf( pastix_data, sopalin_data );
+
+#if defined(PASTIX_DEBUG_FACTO)
+    coeftab_zdump( pastix_data, sopalin_data->solvmtx, "sytrf.txt" );
+#endif
 }

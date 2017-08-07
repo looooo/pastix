@@ -70,7 +70,8 @@ void coeftab_zgetschur             ( const SolverMatrix *solvmtx,
 void coeftab_zdumpcblk( const SolverCblk   *cblk,
                         pastix_uplo_t       uplo,
                         FILE               *stream );
-void coeftab_zdump    ( const SolverMatrix *solvmtx,
+void coeftab_zdump    ( pastix_data_t      *pastix_data,
+                        const SolverMatrix *solvmtx,
                         const char         *filename );
 int  coeftab_zdiff    ( const SolverMatrix *solvA,
                         SolverMatrix       *solvB );

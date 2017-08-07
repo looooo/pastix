@@ -376,14 +376,15 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
     solverBackupRestore( pastix_data->solvmatr, sbackup );
     solverBackupExit( sbackup );
 
-#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
+#if defined(PASTIX_NUMFACT_DUMP_SOLVER)
     {
-        FILE *stream;
-        PASTIX_FOPEN(stream, "symbol.eps", "w");
-        solverDraw(pastix_data->solvmatr,
-                   stream,
-                   iparm[IPARM_VERBOSE]);
-        fclose(stream);
+        FILE *stream = NULL;
+        stream = pastix_fopenw( pastix_data, "solver.eps", "w" );
+        if ( stream ) {
+            solverDraw( pastix_data->solvmatr,
+                        stream, iparm[IPARM_VERBOSE] );
+            fclose(stream);
+        }
     }
 #endif
 

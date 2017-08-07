@@ -401,10 +401,6 @@ parsec_zpotrf( pastix_data_t  *pastix_data,
                                 sopalin_data );
     }
 
-#if defined(PASTIX_DEBUG_FACTO)
-    coeftab_zdump( sopalin_data->solvmtx, "potrf.txt" );
-#endif
-
     return;
 }
 
