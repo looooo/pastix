@@ -24,6 +24,15 @@
 #include "pastix_zcores.h"
 #include "sopalin/starpu/codelets.h"
 
+/**
+ * Cblk version
+ */
+static struct starpu_perfmodel starpu_cblk_zgemmsp_model =
+{
+    .type = STARPU_HISTORY_BASED,
+    .symbol = "cblk_zgemmsp",
+};
+
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void cl_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
 {
@@ -92,7 +101,8 @@ starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
                           const SolverCblk *cblk,
                           const SolverBlok *blok,
                           SolverCblk       *fcblk,
-                          sopalin_data_t   *sopalin_data )
+                          sopalin_data_t   *sopalin_data,
+                          int               prio )
 {
     starpu_insert_task(
         pastix_codelet(&cl_cblk_zgemmsp),
@@ -109,8 +119,18 @@ starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "cblk_zgemmsp",
 #endif
+        STARPU_PRIORITY, prio,
         0);
 }
+
+/**
+ * Blok version
+ */
+static struct starpu_perfmodel starpu_blok_zgemmsp_model =
+{
+    .type = STARPU_HISTORY_BASED,
+    .symbol = "blok_zgemmsp",
+};
 
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void cl_blok_zgemmsp_cpu(void *descr[], void *cl_arg)
@@ -187,7 +207,8 @@ starpu_task_blok_zgemmsp( pastix_coefside_t sideA,
                           SolverCblk       *fcblk,
                           const SolverBlok *blokA,
                           const SolverBlok *blokB,
-                          sopalin_data_t   *sopalin_data )
+                          sopalin_data_t   *sopalin_data,
+                          int               prio )
 {
     SolverBlok *blokC = fcblk->fblokptr;
 
@@ -244,6 +265,7 @@ starpu_task_blok_zgemmsp( pastix_coefside_t sideA,
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "blok_zgemmsp",
 #endif
+        STARPU_PRIORITY, prio,
         0);
 }
 

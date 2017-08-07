@@ -24,6 +24,15 @@
 #include "pastix_zcores.h"
 #include "sopalin/starpu/codelets.h"
 
+/**
+ * Cblk version
+ */
+static struct starpu_perfmodel starpu_cblk_zpotrfsp1d_panel_model =
+{
+    .type = STARPU_HISTORY_BASED,
+    .symbol = "cblk_zpotrfsp",
+};
+
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void cl_cblk_zpotrfsp1d_panel_cpu(void *descr[], void *cl_arg)
 {
@@ -49,7 +58,8 @@ CODELETS_CPU( cblk_zpotrfsp1d_panel, 1 )
 
 void
 starpu_task_cblk_zpotrfsp1d_panel( sopalin_data_t *sopalin_data,
-                                   SolverCblk     *cblk )
+                                   SolverCblk     *cblk,
+                                   int             prio )
 {
     starpu_insert_task(
         pastix_codelet(&cl_cblk_zpotrfsp1d_panel),
@@ -59,8 +69,18 @@ starpu_task_cblk_zpotrfsp1d_panel( sopalin_data_t *sopalin_data,
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "cblk_zpotrfsp1d_panel",
 #endif
+        STARPU_PRIORITY, prio,
         0);
 }
+
+/**
+ * Blok version
+ */
+static struct starpu_perfmodel starpu_blok_zpotrfsp_model =
+{
+    .type = STARPU_HISTORY_BASED,
+    .symbol = "blok_zpotrfsp",
+};
 
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void cl_blok_zpotrfsp_cpu(void *descr[], void *cl_arg)
@@ -86,7 +106,8 @@ CODELETS_CPU( blok_zpotrfsp, 1 )
 
 void
 starpu_task_blok_zpotrf( sopalin_data_t *sopalin_data,
-                         SolverCblk     *cblk )
+                         SolverCblk     *cblk,
+                         int             prio )
 {
     starpu_insert_task(
         pastix_codelet(&cl_blok_zpotrfsp),
@@ -96,6 +117,7 @@ starpu_task_blok_zpotrf( sopalin_data_t *sopalin_data,
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "blok_zpotrfsp",
 #endif
+        STARPU_PRIORITY, prio,
         0);
 }
 

@@ -24,6 +24,15 @@
 #include "pastix_zcores.h"
 #include "sopalin/starpu/codelets.h"
 
+/**
+ * Cblk version
+ */
+/* static struct starpu_perfmodel starpu_cblk_ztrsmsp_model = */
+/* { */
+/* 	.type = STARPU_HISTORY_BASED, */
+/* 	.symbol = "cblk_ztrsmsp", */
+/* }; */
+
 /* #if !defined(PASTIX_STARPU_SIMULATION) */
 /* static void cl_cblk_ztrsmsp_cpu(void *descr[], void *cl_arg) */
 /* { */
@@ -116,6 +125,16 @@
 /*         0); */
 /* } */
 
+
+/**
+ * Block version
+ */
+static struct starpu_perfmodel starpu_blok_ztrsmsp_model =
+{
+    .type = STARPU_HISTORY_BASED,
+    .symbol = "blok_ztrsmsp",
+};
+
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void cl_blok_ztrsmsp_cpu(void *descr[], void *cl_arg)
 {
@@ -185,7 +204,8 @@ starpu_task_blok_ztrsmsp( pastix_coefside_t coef,
                           pastix_diag_t     diag,
                           SolverCblk       *cblk,
                           SolverBlok       *blok,
-                          sopalin_data_t   *sopalin_data )
+                          sopalin_data_t   *sopalin_data,
+                          int               prio )
 {
     pastix_int_t blok_m = blok - cblk->fblokptr;
 
@@ -204,6 +224,7 @@ starpu_task_blok_ztrsmsp( pastix_coefside_t coef,
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "blok_ztrsmsp",
 #endif
+        STARPU_PRIORITY, prio,
         0);
 }
 

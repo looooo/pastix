@@ -43,6 +43,7 @@
         CODELET_CUDA_FLAGS(_cuda_flags_)                                \
         .cuda_funcs[0] = (_cuda_func_name_),                            \
         .nbuffers  = (_nbuffers_),                                      \
+        .model     = &starpu_##_name_##_model,                          \
         .name      = #_name_                                            \
     };
 
