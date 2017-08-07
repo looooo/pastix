@@ -35,28 +35,59 @@
  *
  * @param[inout] graph
  *          The graph structure to store the loaded graph.
+ *          The graph is read from the file named by the environment variable
+ *          PASTIX_FILE_GRAPH, and if PASTIX_FILE_GRAPH is not defined, the
+ *          default filename "graphname" in the current directory is used.
  *
  *******************************************************************************/
-void graphLoad( const pastix_data_t  *pastix_data,
-                      pastix_graph_t *graph )
+void
+graphLoad( const pastix_data_t  *pastix_data,
+           pastix_graph_t       *graph )
 {
     pastix_spm_t spm;
-    FILE *stream;
+    FILE *stream = NULL;
+    char *filename = NULL;
+    int env = 1;
 
     assert( pastix_data->procnbr == 1 );
 
-    PASTIX_FOPEN(stream, "graphname","r");
-    spmLoad( &spm, stream );
-    fclose(stream);
+    /* Parameter checks */
+    if ( graph == NULL ) {
+        return;
+    }
 
-    spmConvert( PastixCSC, &spm );
-    graph->gN       = spm.gN;
-    graph->n        = spm.n;
-    graph->dof      = spm.dof;
-    assert( spm.dof == 1 );
-    graph->colptr   = spm.colptr;
-    graph->rows     = spm.rowptr;
-    graph->loc2glob = spm.loc2glob;
+    /*
+     * Get the environment variable as second option
+     */
+    filename = pastix_getenv( "PASTIX_FILE_GRAPH" );
+    env = 1;
+
+    /*
+     * Get the default name as third option
+     */
+    if ( filename == NULL ) {
+        filename = "graphname";
+        env = 0;
+    }
+
+    stream = pastix_fopen( filename, "r" );
+    if ( stream ) {
+        spmLoad( &spm, stream );
+        fclose(stream);
+
+        spmConvert( PastixCSC, &spm );
+        graph->gN       = spm.gN;
+        graph->n        = spm.n;
+        graph->dof      = spm.dof;
+        assert( spm.dof == 1 );
+        graph->colptr   = spm.colptr;
+        graph->rows     = spm.rowptr;
+        graph->loc2glob = spm.loc2glob;
+    }
+
+    if (env) {
+        pastix_cleanenv( filename );
+    }
 
     (void)pastix_data;
 }
@@ -78,13 +109,37 @@ void graphLoad( const pastix_data_t  *pastix_data,
  *
  * @param[in] graph
  *          The graph structure to store the loaded graph.
+ *          The graph is written to the file named by the environment variable
+ *          PASTIX_FILE_GRAPH, and if PASTIX_FILE_GRAPH is not defined, the
+ *          default filename "graphname" in the current directory is used.
  *
  *******************************************************************************/
-void graphSave( const pastix_data_t  *pastix_data,
-                const pastix_graph_t *graph )
+void
+graphSave( pastix_data_t        *pastix_data,
+           const pastix_graph_t *graph )
 {
     pastix_spm_t spm;
-    FILE *stream;
+    FILE *stream   = NULL;
+    int   env      = 1;
+    char *filename = NULL;
+
+    /* Parameter checks */
+    if ( graph == NULL ) {
+        return;
+    }
+
+    /*
+     * Get the environment variable as first option
+     */
+    filename = pastix_getenv( "PASTIX_FILE_GRAPH" );
+
+    /*
+     * Get the default name as second option
+     */
+    if ( filename == NULL ) {
+        filename = "graphgen";
+        env = 0;
+    }
 
     assert( pastix_data->procnbr == 1 );
     spm.n   = graph->n;
@@ -98,9 +153,13 @@ void graphSave( const pastix_data_t  *pastix_data,
 
     spmUpdateComputedFields( &spm );
 
-    PASTIX_FOPEN(stream, "graphgen","r");
-    spmSave( &spm, stream );
-    fclose(stream);
+    stream = pastix_fopenw( pastix_data, filename, "w" );
+    if ( stream ) {
+        spmSave( &spm, stream );
+        fclose(stream);
+    }
 
-    (void)pastix_data;
+    if (env) {
+        pastix_cleanenv( filename );
+    }
 }

@@ -382,7 +382,7 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
     case PastixOrderLoad:
         if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "Load" );
-        retval = orderLoad( ordemesh, NULL );
+        retval = orderLoad( pastix_data, ordemesh );
         break;
 
     default:
@@ -448,7 +448,7 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
     /* Save i/o strategy */
     if ( iparm[IPARM_IO_STRATEGY] & PastixIOSave ) {
         if (procnum == 0) {
-            retval = orderSave( ordemesh, NULL );
+            retval = orderSave( pastix_data, ordemesh );
         }
         /* TODO: synchro of retval */
         if (retval != PASTIX_SUCCESS)
