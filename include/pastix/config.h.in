@@ -56,7 +56,6 @@
 #cmakedefine PASTIX_ORDERING_PTSCOTCH
 
 /* Symbolic factorization options */
-#cmakedefine PASTIX_SYMBOL_FORCELOAD
 #cmakedefine PASTIX_SYMBOL_DUMP_SYMBMTX
 
 #cmakedefine PASTIX_BLEND_GENTRACE

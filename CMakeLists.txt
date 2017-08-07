@@ -106,8 +106,6 @@ cmake_dependent_option(PASTIX_ORDERING_PTSCOTCH
 # Symbolic factorization options
 option(PASTIX_SYMBOL_DUMP_SYMBMTX
   "Dump the generated symbol matrix in a postscript file" OFF)
-option(PASTIX_SYMBOL_FORCELOAD
-  "Force the symbol matrix to be loaded from file" OFF)
 
 # Options to check
 option(FORGET_PARTITION
