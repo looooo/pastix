@@ -35,32 +35,33 @@ typedef struct cand_s {
     int8_t       cblktype;  /**< type of the distribution                            */
 } Cand;
 
-void candInit           (       Cand         *candtab,
-                                pastix_int_t  cblknbr );
+void candInit           (       Cand          *candtab,
+                                pastix_int_t   cblknbr );
 
-void candSetSubCandidate(       Cand         *candtab,
-                          const EliminTree   *etree,
-                                pastix_int_t  rootnum,
-                                pastix_int_t  procnum );
+void candSetSubCandidate(       Cand          *candtab,
+                          const EliminTree    *etree,
+                                pastix_int_t   rootnum,
+                                pastix_int_t   procnum );
 
-int  candCheck          ( const Cand         *candtab,
-                          const SymbolMatrix *symbmtx );
+int  candCheck          ( const Cand          *candtab,
+                          const SymbolMatrix  *symbmtx );
 
-void candSetClusterCand (       Cand         *candtab,
-                                pastix_int_t  cblknbr,
-                          const pastix_int_t *core2clust,
-                                pastix_int_t  coresnbr );
+void candSetClusterCand (       Cand          *candtab,
+                                pastix_int_t   cblknbr,
+                          const pastix_int_t  *core2clust,
+                                pastix_int_t   coresnbr );
 
-void candSave           ( const Cand         *candtab,
-                                pastix_int_t  cblknbr );
+void candSave           (       pastix_data_t *pastix,
+                          const Cand          *candtab,
+                                pastix_int_t   cblknbr );
 
-void candBuild          (       pastix_int_t  autolevel,
-                                pastix_int_t  level2D,
-                                pastix_int_t  ratiolimit,
-                                Cand         *candtab,
-                                EliminTree   *etree,
-                          const SymbolMatrix *symbmtx,
-                          const CostMatrix   *costmtx );
+void candBuild          (       pastix_int_t   autolevel,
+                                pastix_int_t   level2D,
+                                pastix_int_t   ratiolimit,
+                                Cand          *candtab,
+                                EliminTree    *etree,
+                          const SymbolMatrix  *symbmtx,
+                          const CostMatrix    *costmtx );
 
 #endif
 

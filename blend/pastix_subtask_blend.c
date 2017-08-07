@@ -311,20 +311,23 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
     {
-        FILE *stream;
-        PASTIX_FOPEN(stream, "symbolblend.eps", "w");
-        symbolDraw(symbmtx,
-                   stream);
-        fclose(stream);
+        FILE *stream == NULL;
+        stream = pastix_fopenw( pastix_data, "symbol_after_split.eps", "w" );
+        if ( stream ) {
+            symbolDraw( symbmtx, stream );
+            fclose( stream );
+        }
     }
 #endif
 
     if (0)
     {
-        FILE *file;
-        PASTIX_FOPEN(file, "symbgen2", "w");
-        symbolSave(symbmtx, file);
-        fclose(file);
+        FILE *file = NULL;
+        file = pastix_fopenw( pastix_data, "symbol_after_split", "w" );
+        if ( file ) {
+            symbolSave( symbmtx, file );
+            fclose( file );
+        }
     }
 
     /* Simulation step to perform the data distribution over the nodes and compute the priorities of each task */
@@ -435,16 +438,6 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     if (verbose > PastixVerboseYes)
         symbolPrintStats( pastix_data->symbmtx );
 
-#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
-    {
-        FILE *stream;
-        PASTIX_FOPEN(stream, "symbol.eps", "w");
-        symbolDraw(pastix_data->symbmtx,
-                   stream);
-        fclose(stream);
-    }
-#endif
-
     /* Symbol is not used anymore */
     symbolExit(pastix_data->symbmtx);
     memFree_null(pastix_data->symbmtx);
@@ -505,10 +498,12 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     /* Backup the solver for debug */
     if (0)
     {
-        FILE *file;
-        PASTIX_FOPEN(file, "solvergen", "w");
-        solverSave(solvmtx, file);
-        fclose(file);
+        FILE *file = NULL;
+        file = pastix_fopenw( pastix_data, "solvergen", "w" );
+        if ( file ) {
+            solverSave( solvmtx, file );
+            fclose(file);
+        }
     }
 
     /* Invalidate following steps, and add analyze step to the ones performed */

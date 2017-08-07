@@ -66,6 +66,10 @@ candInit( Cand *candtab,
  *
  *******************************************************************************
  *
+ * @param[in] pastix
+ *          The pastix_data structure to acces the temporay directory in whioch
+ *          to store the files.
+ *
  * @param[in] candtab
  *          The array of size cblknbr to print in the file.
  *
@@ -74,13 +78,14 @@ candInit( Cand *candtab,
  *
  *******************************************************************************/
 void
-candSave( const Cand *candtab,
-          pastix_int_t cblknbr )
+candSave( pastix_data_t * pastix,
+          const Cand    *candtab,
+          pastix_int_t   cblknbr )
 {
     pastix_int_t i;
-    FILE *f;
+    FILE *f = NULL;
 
-    PASTIX_FOPEN(f, "candtab.txt", "w");
+    f = pastix_fopenw( pastix, "candtab.txt", "w" );
 
     fprintf(f, "%ld\n", (long)cblknbr );
     for(i=0;i<cblknbr;i++)
