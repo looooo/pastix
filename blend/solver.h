@@ -184,6 +184,12 @@ typedef struct solver_cblk_s  {
     pastix_int_t         procdiag;   /**< Cluster owner of diagonal block (@todo: check if really required) */
 } SolverCblk;
 
+struct parsec_sparse_matrix_desc_s;
+typedef struct parsec_sparse_matrix_desc_s parsec_sparse_matrix_desc_t;
+
+struct starpu_sparse_matrix_desc_s;
+typedef struct starpu_sparse_matrix_desc_s starpu_sparse_matrix_desc_t;
+
 /**
  * @brief Solver column block structure.
  *

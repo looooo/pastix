@@ -22,7 +22,8 @@
 #include "solver.h"
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
-#include "sopalin/starpu/codelets.h"
+#include "pastix_starpu.h"
+#include "codelets.h"
 
 /**
  * Cblk version
