@@ -109,16 +109,18 @@ ordering_load(Order * ordeptr,
  *
  * @brief Load an ordering from a file.
  *
+ * The filename is defined by the environment variable PASTIX_FILE_ORDER, and if
+ * PASTIX_FILE_ORDER is not defined, the default filename "ordername" in the
+ * current directory is used.
+ *
  *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pointer to the solver instance to get options as rank,
+ *          communicators, ...
  *
  * @param[inout] ordemesh
  *          The initialized ordering structure to fill in.
- *
- * @param[in] filename
- *          The filename where to read the ordering. If filename == NULL, the
- *          environment variable PASTIX_FILE_ORDER is used, and if
- *          PASTIX_FILE_ORDER is not defined, the default filename "ordername" in
- *          the current directory is used.
  *
  *******************************************************************************
  *
@@ -127,8 +129,8 @@ ordering_load(Order * ordeptr,
  * @retval PASTIX_ERR_FILE if a problem occurs during the read.
  *
  *******************************************************************************/
-int orderLoad( pastix_data_t *pastix_data,
-               Order *ordemesh )
+int orderLoad( const pastix_data_t *pastix_data,
+               Order               *ordemesh )
 {
     FILE *stream   = NULL;
     char *filename = NULL;
@@ -153,7 +155,7 @@ int orderLoad( pastix_data_t *pastix_data,
         env = 0;
     }
 
-    stream = pastix_fopen( filename, "r" );
+    stream = pastix_fopen( filename );
     if ( stream ) {
         rc = ordering_load(ordemesh, stream);
         if (rc != PASTIX_SUCCESS)
@@ -268,16 +270,18 @@ ordering_save(const Order * const ordeptr,
  *
  * @brief Save an ordering to a file.
  *
+ * The graph file is store in the directory pastix-XXXXXX uniquely generated per
+ * instance, and is named by the PASTIX_FILE_ORDER environment variable, or
+ * ordergen by default.
+ *
  *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pointer to the solver instance to get options as rank,
+ *          communicators, ...
  *
  * @param[in] ordemesh
  *          The initialized ordering structure to save.
- *
- * @param[in] filename
- *          The filename where to save the ordering. If filename == NULL, the
- *          environment variable PASTIX_FILE_ORDER is used, and if
- *          PASTIX_FILE_ORDER is not defined, the default filename "ordergen" in
- *          the current directory is used.
  *
  *******************************************************************************
  *
@@ -287,7 +291,7 @@ ordering_save(const Order * const ordeptr,
  *
  *******************************************************************************/
 int
-orderSave( pastix_data_t  *pastix_data,
+orderSave( pastix_data_t      *pastix_data,
            const Order * const ordemesh )
 {
     FILE *stream   = NULL;
@@ -313,7 +317,7 @@ orderSave( pastix_data_t  *pastix_data,
         env = 0;
     }
 
-    stream = pastix_fopenw( pastix_data, filename, "w" );
+    stream = pastix_fopenw(  &(pastix_data->dirtemp), filename, "w" );
     rc = ordering_save(ordemesh, stream);
     if (rc != PASTIX_SUCCESS )
     {
