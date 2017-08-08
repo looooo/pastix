@@ -173,7 +173,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     if ( iparm[IPARM_IO_STRATEGY] & PastixIOLoad )
     {
         FILE *stream = NULL;
-        stream = pastix_fopen( "symbname", "r" );
+        stream = pastix_fopen( "symbname" );
         if ( stream ) {
             symbolLoad( pastix_data->symbmtx, stream );
             fclose(stream);
@@ -367,7 +367,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     {
         if (procnum == 0) {
             FILE *stream = NULL;
-            stream = pastix_fopenw( pastix_data, "symbgen", "w" );
+            stream = pastix_fopenw( &(pastix_data->dirtemp), "symbgen", "w" );
             if ( stream ) {
                 symbolSave( pastix_data->symbmtx, stream );
                 fclose(stream);
@@ -382,10 +382,9 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     if (procnum == 0)
     {
         FILE *stream = NULL;
-        stream = pastix_fopenw( pastix_data, "symbol.eps", "w" );
+        stream = pastix_fopenw( &(pastix_data->dirtemp), "symbol.eps", "w" );
         if ( stream ) {
-            symbolDraw( pastix_data,
-                        pastix_data->symbmtx,
+            symbolDraw( pastix_data->symbmtx,
                         stream );
             fclose(stream);
         }
