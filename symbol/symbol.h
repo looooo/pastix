@@ -54,7 +54,7 @@ typedef struct symbol_blok_s {
     pastix_int_t lrownum; /**< Last row index (inclusive) */
     pastix_int_t lcblknm; /**< Local column block         */
     pastix_int_t fcblknm; /**< Facing column block        */
-} SymbolBlok;
+} symbol_blok_t;
 
 /**
  * @brief Symbol matrix structure.
@@ -68,58 +68,61 @@ typedef struct symbol_blok_s {
  *
  */
 typedef struct symbol_matrix_s {
-    pastix_int_t            baseval;  /**< Base value for numbering                */
-    pastix_int_t            dof;      /**< Degrees of freedom per node
-                                          (constant if > 0, unconstant if 0 (not implemented)) */
-    pastix_int_t            cblknbr;  /**< Number of column blocks                 */
-    pastix_int_t            bloknbr;  /**< Number of blocks                        */
-    pastix_int_t            nodenbr;  /**< Number of node in the compressed symbol */
-    pastix_int_t            schurfcol;/**< First column of the schur complement    */
-    symbol_cblk_t   * restrict cblktab;  /**< Array of column blocks [+1,based]       */
-    SymbolBlok   * restrict bloktab;  /**< Array of blocks in CSC format [based]   */
-    pastix_int_t * restrict browtab;  /**< Array of blocks in CSR format [based]   */
+    pastix_int_t   baseval;  /**< Base value for numbering                */
+    pastix_int_t   dof;      /**< Degrees of freedom per node
+                                 (constant if > 0, unconstant if 0 (not implemented)) */
+    pastix_int_t   cblknbr;  /**< Number of column blocks                 */
+    pastix_int_t   bloknbr;  /**< Number of blocks                        */
+    pastix_int_t   nodenbr;  /**< Number of node in the compressed symbol */
+    pastix_int_t   schurfcol;/**< First column of the schur complement    */
+    symbol_cblk_t *cblktab;  /**< Array of column blocks [+1,based]       */
+    symbol_blok_t    *bloktab;  /**< Array of blocks in CSC format [based]   */
+    pastix_int_t  *browtab;  /**< Array of blocks in CSR format [based]   */
 } symbol_matrix_t;
 
 /**
  * @name Symbol basic subroutines
  * @{
  */
-void symbolInit       (      symbol_matrix_t *symbptr);
-void symbolExit       (      symbol_matrix_t *symbptr);
-void symbolBase       (      symbol_matrix_t *symbptr, const pastix_int_t baseval);
-void symbolRealloc    (      symbol_matrix_t *symbptr);
-int  symbolCheck      (const symbol_matrix_t *symbptr);
+void symbolInit   (       symbol_matrix_t *symbptr );
+void symbolExit   (       symbol_matrix_t *symbptr );
+void symbolBase   (       symbol_matrix_t *symbptr,
+                    const pastix_int_t     baseval );
+void symbolRealloc(       symbol_matrix_t *symbptr );
+int  symbolCheck  ( const symbol_matrix_t *symbptr );
 
 /**
  * @}
  * @name Symbol IO subroutines
  * @{
  */
-int  symbolSave       (const symbol_matrix_t *symbptr, FILE *stream);
-int  symbolLoad       (      symbol_matrix_t *symbptr, FILE *stream);
-int  symbolDraw       (const symbol_matrix_t *symbptr, FILE *stream);
+int symbolSave( const symbol_matrix_t *symbptr, FILE *stream );
+int symbolLoad(       symbol_matrix_t *symbptr, FILE *stream );
+int symbolDraw( const symbol_matrix_t *symbptr, FILE *stream );
 
 /**
  * @}
  * @name Symbol statistical information subroutines
  * @{
  */
-void         symbolPrintStats ( const symbol_matrix_t *symbptr );
-pastix_int_t symbolGetNNZ     ( const symbol_matrix_t *symbptr );
-void         symbolGetFlops   ( const symbol_matrix_t *symbmtx,
-                                pastix_coeftype_t flttype, pastix_factotype_t factotype,
-                                double *thflops, double *rlflops );
-void         symbolGetTimes   ( const symbol_matrix_t *symbmtx,
-                                pastix_coeftype_t flttype, pastix_factotype_t factotype,
-                                double *cblkcost, double *blokcost );
+void         symbolPrintStats( const symbol_matrix_t *symbptr );
+pastix_int_t symbolGetNNZ    ( const symbol_matrix_t *symbptr );
+void         symbolGetFlops  ( const symbol_matrix_t *symbmtx,
+                               pastix_coeftype_t  flttype,
+                               pastix_factotype_t factotype,
+                               double *thflops, double *rlflops );
+void         symbolGetTimes  ( const symbol_matrix_t *symbmtx,
+                               pastix_coeftype_t  flttype,
+                               pastix_factotype_t factotype,
+                               double *cblkcost, double *blokcost );
 
 /**
  * @}
  * @name Symbol reordering subroutines
  * @{
  */
-void         symbolReordering( const symbol_matrix_t *, pastix_order_t *, pastix_int_t, int );
-void         symbolReorderingPrintComplexity( const symbol_matrix_t *symbptr );
+void symbolReordering( const symbol_matrix_t *, pastix_order_t *, pastix_int_t, int );
+void symbolReorderingPrintComplexity( const symbol_matrix_t *symbptr );
 
 /**
  * @}

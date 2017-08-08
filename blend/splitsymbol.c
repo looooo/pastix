@@ -164,7 +164,7 @@ static inline pastix_int_t *
 computeNbBlocksPerLine( const symbol_matrix_t *symbmtx,
                         pastix_int_t frowsplit )
 {
-    SymbolBlok   *curblok;
+    symbol_blok_t   *curblok;
     pastix_int_t *nblocksperline;
     pastix_int_t  bloknum, line;
     pastix_int_t  size = symbmtx->nodenbr - frowsplit + 1;
@@ -402,7 +402,7 @@ splitSmart( const BlendCtrl    *ctrl,
             ExtraCblk_t        *extracblk,
             const Cand         *candtab )
 {
-    SymbolBlok   *curblok;
+    symbol_blok_t   *curblok;
     pastix_int_t *nblocksperline = NULL;
     pastix_int_t  cblknum, bloknum, line;
     pastix_int_t  fsplitrow = -1;

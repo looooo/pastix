@@ -38,7 +38,7 @@ symbolBase ( symbol_matrix_t * const symbptr,
              const pastix_int_t   baseval)
 {
     symbol_cblk_t  *cblk;
-    SymbolBlok  *blok;
+    symbol_blok_t  *blok;
     pastix_int_t baseadj; /* Base adjust */
     pastix_int_t cblknum;
     pastix_int_t bloknum;

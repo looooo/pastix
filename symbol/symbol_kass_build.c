@@ -135,7 +135,7 @@ kassBuildSymbol(      kass_csr_t   *P,
     symbmtx->browtab = NULL;
 
     MALLOC_INTERN(symbmtx->cblktab, cblknbr+1,        symbol_cblk_t);
-    MALLOC_INTERN(symbmtx->bloktab, symbmtx->bloknbr, SymbolBlok);
+    MALLOC_INTERN(symbmtx->bloktab, symbmtx->bloknbr, symbol_blok_t);
 
     ind = 0;
     for(k=0;k<cblknbr;k++)
@@ -199,16 +199,16 @@ kassPatchSymbol( symbol_matrix_t *symbmtx )
 {
     pastix_int_t  i, j, k;
     pastix_int_t *father     = NULL; /** For the cblk of the symbol matrix **/
-    SymbolBlok *newbloktab = NULL;
+    symbol_blok_t *newbloktab = NULL;
     symbol_cblk_t *cblktab    = NULL;
-    SymbolBlok *bloktab    = NULL;
+    symbol_blok_t *bloktab    = NULL;
     kass_csr_t Q;
 
     cblktab = symbmtx->cblktab;
     bloktab = symbmtx->bloktab;
 
     MALLOC_INTERN(father,     symbmtx->cblknbr,                    pastix_int_t);
-    MALLOC_INTERN(newbloktab, symbmtx->cblknbr + symbmtx->bloknbr, SymbolBlok  );
+    MALLOC_INTERN(newbloktab, symbmtx->cblknbr + symbmtx->bloknbr, symbol_blok_t  );
 
     kass_csrInit( symbmtx->cblknbr, &Q );
 
@@ -275,7 +275,7 @@ kassPatchSymbol( symbol_matrix_t *symbmtx )
         pastix_int_t odb, fbloknum;
 
         fbloknum = cblktab[i].bloknum;
-        memcpy(newbloktab+k, bloktab + fbloknum, sizeof(SymbolBlok));
+        memcpy(newbloktab+k, bloktab + fbloknum, sizeof(symbol_blok_t));
         cblktab[i].bloknum = k;
         k++;
         odb = cblktab[i+1].bloknum-fbloknum;
@@ -296,14 +296,14 @@ kassPatchSymbol( symbol_matrix_t *symbmtx )
 
         if( odb > 1)
         {
-            memcpy(newbloktab +k, bloktab + fbloknum+1, sizeof(SymbolBlok)*(odb-1));
+            memcpy(newbloktab +k, bloktab + fbloknum+1, sizeof(symbol_blok_t)*(odb-1));
             k+=odb-1;
         }
 
     }
 
     /** Copy the last one **/
-    memcpy(newbloktab+k, bloktab + symbmtx->cblktab[symbmtx->cblknbr-1].bloknum, sizeof(SymbolBlok));
+    memcpy(newbloktab+k, bloktab + symbmtx->cblktab[symbmtx->cblknbr-1].bloknum, sizeof(symbol_blok_t));
     cblktab[symbmtx->cblknbr-1].bloknum = k;
     k++;
     /** Virtual cblk **/
@@ -315,8 +315,8 @@ kassPatchSymbol( symbol_matrix_t *symbmtx )
 #endif
     symbmtx->bloknbr = k;
     memFree(symbmtx->bloktab);
-    MALLOC_INTERN(symbmtx->bloktab, k, SymbolBlok);
-    memcpy( symbmtx->bloktab, newbloktab, sizeof(SymbolBlok)*symbmtx->bloknbr);
+    MALLOC_INTERN(symbmtx->bloktab, k, symbol_blok_t);
+    memcpy( symbmtx->bloktab, newbloktab, sizeof(symbol_blok_t)*symbmtx->bloknbr);
     /*  virtual cblk to avoid side effect in the loops on cblk bloks */
     cblktab[symbmtx->cblknbr].bloknum = k;
 

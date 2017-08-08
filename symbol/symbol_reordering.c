@@ -457,7 +457,7 @@ symbol_reorder_cblk( const symbol_matrix_t *symbptr,
                      pastix_int_t        split_level,
                      int                 stop_criteria )
 {
-    SymbolBlok *blok;
+    symbol_blok_t *blok;
     pastix_int_t **up_vectors, *up_vectors_size;
     pastix_int_t **lw_vectors, *lw_vectors_size;
 
@@ -722,7 +722,7 @@ symbolReorderingPrintComplexity( const symbol_matrix_t *symbptr )
             continue;
 
         for (iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++) {
-            SymbolBlok *blok = symbptr->bloktab + symbptr->browtab[iterblok];
+            symbol_blok_t *blok = symbptr->bloktab + symbptr->browtab[iterblok];
             assert( blok->fcblknm == itercblk );
 
             nbcblk += blok->lrownum - blok->frownum + 1;

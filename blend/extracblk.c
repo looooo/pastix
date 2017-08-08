@@ -230,7 +230,7 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
     Cand         *newcand;
 
     symbol_cblk_t *curcblk;
-    SymbolBlok *curblok;
+    symbol_blok_t *curblok;
 
     /* No splitted cblk: partition remains the same */
     if( extracblk->addcblk == 0 ) {
@@ -380,7 +380,7 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
 
     /* Allocate new bloktab */
     newsymb->bloknbr = oldsymb->bloknbr + addblok;
-    MALLOC_INTERN(newsymb->bloktab, newsymb->bloknbr,   SymbolBlok);
+    MALLOC_INTERN(newsymb->bloktab, newsymb->bloknbr,   symbol_blok_t);
 
     /* Fill in the new symbolic matrix resulting from the splitting of the former one */
     curbloknum = 0;

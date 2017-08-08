@@ -72,7 +72,7 @@ symbolLoad ( symbol_matrix_t * const symbptr,
     }
 
     if (((symbptr->cblktab = (symbol_cblk_t *) memAlloc ((cblknbr + 1) * sizeof (symbol_cblk_t))) == NULL) ||
-        ((symbptr->bloktab = (SymbolBlok *) memAlloc ( bloknbr      * sizeof (SymbolBlok))) == NULL)) {
+        ((symbptr->bloktab = (symbol_blok_t *) memAlloc ( bloknbr      * sizeof (symbol_blok_t))) == NULL)) {
         errorPrint ("symbolLoad: out of memory");
         symbolExit (symbptr);
         symbolInit (symbptr);
@@ -152,8 +152,8 @@ symbolSave( const symbol_matrix_t * const symbptr,
 {
     const symbol_cblk_t *  cblktnd;
     const symbol_cblk_t *  cblkptr;
-    const SymbolBlok *  bloktnd;
-    const SymbolBlok *  blokptr;
+    const symbol_blok_t *  bloktnd;
+    const symbol_blok_t *  blokptr;
     int                 o;
 
     o = (fprintf (stream, "1\n%ld\t%ld\t%ld\t%ld\n", /* Write file header */

@@ -582,8 +582,8 @@ simu_updateFtgt( const symbol_matrix_t *symbptr,
 {
     solver_ftgt_t  *ftgt     = &(simuctrl->ftgttab[ftgtnum].ftgt);
     pastix_int_t *infotab  = ftgt->infotab;
-    SymbolBlok   *blokptr  = (symbptr->bloktab) + bloknum;
-    SymbolBlok   *fblokptr = (symbptr->bloktab) + fbloknum;
+    symbol_blok_t   *blokptr  = (symbptr->bloktab) + bloknum;
+    symbol_blok_t   *fblokptr = (symbptr->bloktab) + fbloknum;
 
     infotab[FTGT_CTRBNBR]++;
 

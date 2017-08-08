@@ -183,7 +183,7 @@ solverMatrixGen( pastix_int_t        clustnum,
         SolverCblk *solvcblk = solvmtx->cblktab;
         SolverBlok *solvblok = solvmtx->bloktab;
         symbol_cblk_t *symbcblk = symbmtx->cblktab;
-        SymbolBlok *symbblok = symbmtx->bloktab;
+        symbol_blok_t *symbblok = symbmtx->bloktab;
         SimuBlok   *simublok = simuctrl->bloktab;
         Cand       *candcblk = ctrl->candtab;
         pastix_int_t blokamax = 0; /* Maximum area of a block in the global matrix */

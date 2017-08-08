@@ -327,7 +327,7 @@ pastix_int_t
 symbolGetNNZ( const symbol_matrix_t *symbptr )
 {
     symbol_cblk_t *cblk;
-    SymbolBlok *blok;
+    symbol_blok_t *blok;
     pastix_int_t itercblk;
     pastix_int_t cblknbr;
     pastix_int_t nnz = 0;

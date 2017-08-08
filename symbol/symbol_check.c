@@ -50,7 +50,7 @@ symbolCheck(const symbol_matrix_t * const  symbptr)
     const symbol_cblk_t *cblktax; /* Based access to cblktab              */
     pastix_int_t      cblkmax; /* Maximum column block index           */
     pastix_int_t      cblknum; /* Based number of current column block */
-    const SymbolBlok *bloktax; /* Based access to bloktab              */
+    const symbol_blok_t *bloktax; /* Based access to bloktab              */
     pastix_int_t      blokmax; /* Maximum block index                  */
     pastix_int_t      bloknum; /* Based number of current block        */
     pastix_int_t      nodemax; /* Maximum node index                   */
