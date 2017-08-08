@@ -47,7 +47,7 @@ void          eTreePrint     (const EliminTree *, FILE *, pastix_int_t );
 pastix_int_t  eTreeLeavesNbr (const EliminTree *);
 pastix_int_t  eTreeLevel     (const EliminTree *);
 pastix_int_t  eTreeNodeLevel (const EliminTree *, pastix_int_t );
-EliminTree   *eTreeBuild     (const SymbolMatrix *);
+EliminTree   *eTreeBuild     (const symbol_matrix_t *);
 
 /**
  *******************************************************************************

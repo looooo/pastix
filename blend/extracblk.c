@@ -214,7 +214,7 @@ extraCblkAdd( ExtraCblk_t *extracblk,
  *******************************************************************************/
 void
 extraCblkMerge( const ExtraCblk_t *extracblk,
-                SymbolMatrix      *newsymb,
+                symbol_matrix_t      *newsymb,
                 Cand             **candtab )
 {
     pastix_int_t  i, j, k, l;
@@ -225,7 +225,7 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
     pastix_int_t *extranewnum = NULL;
     pastix_int_t  facing_splitted_cnt = 0;
 
-    SymbolMatrix *oldsymb;
+    symbol_matrix_t *oldsymb;
     Cand         *oldcand = *candtab;
     Cand         *newcand;
 
@@ -238,8 +238,8 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
     }
 
     /* Backup the old symbol */
-    MALLOC_INTERN(oldsymb, 1, SymbolMatrix);
-    memcpy( oldsymb, newsymb, sizeof(SymbolMatrix) );
+    MALLOC_INTERN(oldsymb, 1, symbol_matrix_t);
+    memcpy( oldsymb, newsymb, sizeof(symbol_matrix_t) );
 
     /* Allocate new cblktab */
     newsymb->cblknbr = oldsymb->cblknbr + extracblk->addcblk;

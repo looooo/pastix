@@ -148,7 +148,7 @@
 */
 
 int
-symbolFax (SymbolMatrix * const   symbptr,
+symbolFax (symbol_matrix_t * const   symbptr,
            const pastix_int_t     vertnbr,
            const pastix_int_t     edgenbr,
            const pastix_int_t     baseval,

@@ -157,7 +157,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
 
     /* Allocate the symbol matrix structure */
     if (pastix_data->symbmtx == NULL) {
-        MALLOC_INTERN( pastix_data->symbmtx, 1, SymbolMatrix );
+        MALLOC_INTERN( pastix_data->symbmtx, 1, symbol_matrix_t );
     }
     else {
         errorPrint("pastix_subtask_symbfact: Symbol Matrix already allocated !!!");

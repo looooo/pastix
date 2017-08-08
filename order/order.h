@@ -23,8 +23,8 @@
  *   fill-in and maximize the level of parallelism.
  *
  **/
-#ifndef _ORDER_H_
-#define _ORDER_H_
+#ifndef _PASTIX_ORDER_H_
+#define _PASTIX_ORDER_H_
 
 #include "graph.h"
 
@@ -93,7 +93,7 @@ int  pastixOrderAddIsolate( pastix_order_t     *ordeptr,
  * @}
  */
 
-#endif /* _ORDER_H_ */
+#endif /* _PASTIX_ORDER_H_ */
 
 /**
  * @}

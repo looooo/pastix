@@ -119,7 +119,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     pastix_int_t   *iparm;
     double         *dparm;
     pastix_order_t *ordeptr;
-    SymbolMatrix   *symbmtx;
+    symbol_matrix_t   *symbmtx;
     SolverMatrix   *solvmtx;
     SimuCtrl       *simuctrl;
     double          timer_all     = 0.;

@@ -37,8 +37,8 @@
  *
  *******************************************************************************/
 void
-symbolRustine( SymbolMatrix *       matrsymb,
-               SymbolMatrix * const matrsymb2 )
+symbolRustine( symbol_matrix_t *       matrsymb,
+               symbol_matrix_t * const matrsymb2 )
 {
     pastix_int_t i,iter,add,cblknum,bloknum,bloknum2;
     SymbolBlok *bloktmp = NULL;

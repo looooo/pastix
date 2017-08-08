@@ -207,7 +207,7 @@ candSetClusterCand(       Cand         *candtab,
  *******************************************************************************/
 int
 candCheck( const Cand         *candtab,
-           const SymbolMatrix *symbmtx )
+           const symbol_matrix_t *symbmtx )
 {
     pastix_int_t i, j;
     pastix_int_t facecblknum;
@@ -272,7 +272,7 @@ static inline double
 candSubTreeBuild( pastix_int_t        rootnum,
                   Cand               *candtab,
                   EliminTree         *etree,
-                  const SymbolMatrix *symbmtx,
+                  const symbol_matrix_t *symbmtx,
                   const CostMatrix   *costmtx )
 {
     double cost;
@@ -353,7 +353,7 @@ candSubTreeDistribWithSize( pastix_int_t        rootnum,
                             pastix_int_t        ratiolimit,
                             Cand               *candtab,
                             const EliminTree   *etree,
-                            const SymbolMatrix *symbmtx )
+                            const symbol_matrix_t *symbmtx )
 {
     pastix_int_t i, son;
 
@@ -409,7 +409,7 @@ candSubTreeDistribWithSize( pastix_int_t        rootnum,
  *******************************************************************************/
 static inline void
 candDistribWithDepth( pastix_int_t        depth,
-                      const SymbolMatrix *symbmtx,
+                      const symbol_matrix_t *symbmtx,
                       Cand               *candtab )
 {
     pastix_int_t i, cblknbr, schurfcol;
@@ -473,7 +473,7 @@ void
 candBuild( pastix_int_t autolevel, pastix_int_t level2D, pastix_int_t ratiolimit,
            Cand               *candtab,
            EliminTree         *etree,
-           const SymbolMatrix *symbmtx,
+           const symbol_matrix_t *symbmtx,
            const CostMatrix   *costmtx )
 {
     pastix_int_t root = eTreeRoot(etree);

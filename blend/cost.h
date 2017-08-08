@@ -33,7 +33,7 @@ typedef struct cost_matrix_s {
 
 void        costMatrixInit ( CostMatrix *costmtx );
 void        costMatrixExit ( CostMatrix *costmtx );
-CostMatrix *costMatrixBuild( const SymbolMatrix *symbmtx,
+CostMatrix *costMatrixBuild( const symbol_matrix_t *symbmtx,
                              pastix_coeftype_t   flttype,
                              pastix_factotype_t  factotype );
 

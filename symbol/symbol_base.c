@@ -34,7 +34,7 @@
  *
  *******************************************************************************/
 void
-symbolBase ( SymbolMatrix * const symbptr,
+symbolBase ( symbol_matrix_t * const symbptr,
              const pastix_int_t   baseval)
 {
     SymbolCblk  *cblk;

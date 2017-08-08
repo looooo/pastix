@@ -44,7 +44,7 @@
  *
  *******************************************************************************/
 int
-symbolCheck(const SymbolMatrix * const  symbptr)
+symbolCheck(const symbol_matrix_t * const  symbptr)
 {
     pastix_int_t      baseval; /* Base value                           */
     const SymbolCblk *cblktax; /* Based access to cblktab              */

@@ -82,7 +82,7 @@
  *******************************************************************************/
 int
 symbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
-           SymbolMatrix   *symbmtx,
+           symbol_matrix_t   *symbmtx,
            pastix_graph_t *csc,
            pastix_order_t *orderptr,
            MPI_Comm        pastix_comm)

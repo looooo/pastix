@@ -161,7 +161,7 @@ computeNbSplit( const BlendCtrl *ctrl,
  *
  *******************************************************************************/
 static inline pastix_int_t *
-computeNbBlocksPerLine( const SymbolMatrix *symbmtx,
+computeNbBlocksPerLine( const symbol_matrix_t *symbmtx,
                         pastix_int_t frowsplit )
 {
     SymbolBlok   *curblok;
@@ -398,7 +398,7 @@ computeConstantSplit( pastix_int_t *nblocksperline,
  *******************************************************************************/
 void
 splitSmart( const BlendCtrl    *ctrl,
-            const SymbolMatrix *symbmtx,
+            const symbol_matrix_t *symbmtx,
             ExtraCblk_t        *extracblk,
             const Cand         *candtab )
 {
@@ -557,7 +557,7 @@ splitSmart( const BlendCtrl    *ctrl,
  *******************************************************************************/
 void
 splitSymbol( BlendCtrl    *ctrl,
-             SymbolMatrix *symbmtx )
+             symbol_matrix_t *symbmtx )
 {
     ExtraCblk_t extracblk;
 

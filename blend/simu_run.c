@@ -125,7 +125,7 @@ simu_computeFtgtCosts( const BlendCtrl     *ctrl,
  *
  *******************************************************************************/
 static inline void
-simu_computeBlockCtrbNbr(const SymbolMatrix *symbptr,
+simu_computeBlockCtrbNbr(const symbol_matrix_t *symbptr,
                          SimuCtrl     *simuctrl,
                          pastix_int_t  ricar )
 {
@@ -199,7 +199,7 @@ simu_computeBlockCtrbNbr(const SymbolMatrix *symbptr,
  *******************************************************************************/
 static inline void
 simu_printBlockCtrbNbr( const BlendCtrl    *ctrl,
-                        const SymbolMatrix *symbptr,
+                        const symbol_matrix_t *symbptr,
                         const SimuCtrl     *simuctrl )
 {
     FILE *fd1 = NULL;
@@ -455,7 +455,7 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
  *******************************************************************************/
 static inline void
 simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
-                             const SymbolMatrix *symbptr,
+                             const symbol_matrix_t *symbptr,
                              SimuCtrl           *simuctrl,
                              pastix_int_t        tasknum )
 {
@@ -574,7 +574,7 @@ simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
  *
  *******************************************************************************/
 static inline void
-simu_updateFtgt( const SymbolMatrix *symbptr,
+simu_updateFtgt( const symbol_matrix_t *symbptr,
                  SimuCtrl           *simuctrl,
                  pastix_int_t        ftgtnum,
                  pastix_int_t        bloknum,
@@ -636,7 +636,7 @@ simu_updateFtgt( const SymbolMatrix *symbptr,
  *******************************************************************************/
 static inline void
 simu_computeTask( const BlendCtrl    *ctrl,
-                  const SymbolMatrix *symbptr,
+                  const symbol_matrix_t *symbptr,
                   SimuCtrl           *simuctrl,
                   pastix_int_t        tasknum )
 {
@@ -836,7 +836,7 @@ simu_pushToReadyHeap(const BlendCtrl *ctrl,
 void
 simuRun( SimuCtrl           *simuctrl,
          const BlendCtrl    *ctrl,
-         const SymbolMatrix *symbptr )
+         const symbol_matrix_t *symbptr )
 {
 
     pastix_int_t             i, j, b;

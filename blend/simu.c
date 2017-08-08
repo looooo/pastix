@@ -63,7 +63,7 @@
  *******************************************************************************/
 pastix_int_t
 simuInit( SimuCtrl           *simuctrl,
-          const SymbolMatrix *symbptr,
+          const symbol_matrix_t *symbptr,
           const Cand         *candtab,
           pastix_int_t        clustnbr,
           pastix_int_t        procnbr )

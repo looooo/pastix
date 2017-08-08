@@ -47,7 +47,7 @@
  *
  *******************************************************************************/
 int
-symbolLoad ( SymbolMatrix * const symbptr,
+symbolLoad ( symbol_matrix_t * const symbptr,
              FILE * const         stream )
 {
     pastix_int_t                 versval;
@@ -147,7 +147,7 @@ symbolLoad ( SymbolMatrix * const symbptr,
  *
  *******************************************************************************/
 int
-symbolSave( const SymbolMatrix * const symbptr,
+symbolSave( const symbol_matrix_t * const symbptr,
             FILE * const               stream )
 {
     const SymbolCblk *  cblktnd;
@@ -194,7 +194,7 @@ symbolSave( const SymbolMatrix * const symbptr,
  *
  *******************************************************************************/
 void
-symbolPrint( const SymbolMatrix *symbptr,
+symbolPrint( const symbol_matrix_t *symbptr,
              FILE *file )
 {
     pastix_int_t i, j;

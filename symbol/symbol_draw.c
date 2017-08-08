@@ -119,9 +119,9 @@ symbolDrawColor ( const pastix_int_t labl,
  *******************************************************************************/
 int
 symbolDrawFunc (
-    const SymbolMatrix * const  symbptr,
-    int                         (* diagfunc) (const SymbolMatrix * const, const SymbolBlok * const, void * const, float * const),
-    int                         (* offdfunc) (const SymbolMatrix * const, const SymbolBlok * const, void * const, float * const),
+    const symbol_matrix_t * const  symbptr,
+    int                         (* diagfunc) (const symbol_matrix_t * const, const SymbolBlok * const, void * const, float * const),
+    int                         (* offdfunc) (const symbol_matrix_t * const, const SymbolBlok * const, void * const, float * const),
     void * const                dataptr,              /* Data structure for block coloring */
     FILE * const                stream)
 {
@@ -244,7 +244,7 @@ symbolDrawFunc (
  *
  *******************************************************************************/
 int
-symbolDraw ( const SymbolMatrix * const  symbptr,
+symbolDraw ( const symbol_matrix_t * const  symbptr,
              FILE * const                stream )
 {
     return (symbolDrawFunc (symbptr, NULL, NULL, NULL, stream));

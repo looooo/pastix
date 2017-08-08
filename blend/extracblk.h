@@ -43,7 +43,7 @@ void extraCblkAdd  ( ExtraCblk_t        *extracblk,
                      pastix_int_t        fcolnum,
                      pastix_int_t        lcolnum   );
 void extraCblkMerge( const ExtraCblk_t  *extracblk,
-                     SymbolMatrix       *newsymb,
+                     symbol_matrix_t       *newsymb,
                      Cand              **candtab   );
 
 #endif /* _EXTRACBLK_H_ */

@@ -44,7 +44,7 @@ void candSetSubCandidate(       Cand          *candtab,
                                 pastix_int_t   procnum );
 
 int  candCheck          ( const Cand          *candtab,
-                          const SymbolMatrix  *symbmtx );
+                          const symbol_matrix_t  *symbmtx );
 
 void candSetClusterCand (       Cand          *candtab,
                                 pastix_int_t   cblknbr,
@@ -60,7 +60,7 @@ void candBuild          (       pastix_int_t   autolevel,
                                 pastix_int_t   ratiolimit,
                                 Cand          *candtab,
                                 EliminTree    *etree,
-                          const SymbolMatrix  *symbmtx,
+                          const symbol_matrix_t  *symbmtx,
                           const CostMatrix    *costmtx );
 
 #endif

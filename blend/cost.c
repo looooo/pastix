@@ -85,7 +85,7 @@ costMatrixExit( CostMatrix *costmtx )
  *
  *******************************************************************************/
 CostMatrix *
-costMatrixBuild( const SymbolMatrix *symbmtx,
+costMatrixBuild( const symbol_matrix_t *symbmtx,
                  pastix_coeftype_t   flttype,
                  pastix_factotype_t  factotype )
 {

@@ -346,7 +346,7 @@ void solverExit( SolverMatrix *solvmtx );
 
 int  solverMatrixGen( pastix_int_t        clustnum,
                       SolverMatrix       *solvmtx,
-                      const SymbolMatrix *symbmtx,
+                      const symbol_matrix_t *symbmtx,
                       const SimuCtrl     *simuctl,
                       const BlendCtrl    *ctrl );
 

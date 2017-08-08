@@ -33,9 +33,9 @@
  *
  *******************************************************************************/
 void
-symbolInit ( SymbolMatrix *symbptr )
+symbolInit ( symbol_matrix_t *symbptr )
 {
-    memset (symbptr, 0, sizeof (SymbolMatrix));
+    memset (symbptr, 0, sizeof (symbol_matrix_t));
     symbptr->schurfcol = -1;
     return;
 }
@@ -57,7 +57,7 @@ symbolInit ( SymbolMatrix *symbptr )
  *
  *******************************************************************************/
 void
-symbolExit( SymbolMatrix *symbptr )
+symbolExit( symbol_matrix_t *symbptr )
 {
     if (symbptr->cblktab != NULL)
         memFree_null (symbptr->cblktab);
@@ -65,7 +65,7 @@ symbolExit( SymbolMatrix *symbptr )
         memFree_null (symbptr->bloktab);
     if (symbptr->browtab != NULL)
         memFree_null (symbptr->browtab);
-    memset (symbptr, 0, sizeof (SymbolMatrix));
+    memset (symbptr, 0, sizeof (symbol_matrix_t));
 }
 
 /**
@@ -84,7 +84,7 @@ symbolExit( SymbolMatrix *symbptr )
  *
  *******************************************************************************/
 void
-symbolRealloc( SymbolMatrix *symbptr )
+symbolRealloc( symbol_matrix_t *symbptr )
 {
     SymbolCblk *cblktab = NULL;
     SymbolBlok *bloktab = NULL;
@@ -146,7 +146,7 @@ symbolRealloc( SymbolMatrix *symbptr )
  *
  *******************************************************************************/
 pastix_int_t
-symbolGetFacingBloknum( const SymbolMatrix *symbptr,
+symbolGetFacingBloknum( const symbol_matrix_t *symbptr,
                         pastix_int_t bloksrc,
                         pastix_int_t bloknum,
                         pastix_int_t startsearch,
@@ -216,7 +216,7 @@ symbolGetFacingBloknum( const SymbolMatrix *symbptr,
  *
  *******************************************************************************/
 void
-symbolBuildRowtab( SymbolMatrix *symbptr )
+symbolBuildRowtab( symbol_matrix_t *symbptr )
 {
     SymbolCblk *cblk;
     SymbolBlok *blok;
@@ -301,7 +301,7 @@ symbolBuildRowtab( SymbolMatrix *symbptr )
  *
  *******************************************************************************/
 void
-symbolPrintStats( const SymbolMatrix *symbptr )
+symbolPrintStats( const symbol_matrix_t *symbptr )
 {
     SymbolCblk *cblk;
     SymbolBlok *blok;
@@ -363,7 +363,7 @@ symbolPrintStats( const SymbolMatrix *symbptr )
     blokavg2 = sqrt( ((blokavg2 * (double)dof * (double)dof) / (double)bloknbr) - blokavg1 * blokavg1 );
 
     /* Compute symbol matrix space */
-    mem = sizeof( SymbolMatrix );
+    mem = sizeof( symbol_matrix_t );
     mem += sizeof( SymbolCblk )   * (cblknbr + 1);
     mem += sizeof( SymbolBlok )   * symbptr->bloknbr;
     mem += sizeof( pastix_int_t ) * bloknbr;

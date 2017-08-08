@@ -71,7 +71,7 @@
  *
  *******************************************************************************/
 int
-symbolFaxGraph(       SymbolMatrix   *symbptr,
+symbolFaxGraph(       symbol_matrix_t   *symbptr,
                       pastix_int_t    vertnbr,
                 const pastix_int_t   *verttab,
                 const pastix_int_t   *edgetab,

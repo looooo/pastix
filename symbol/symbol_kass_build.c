@@ -48,7 +48,7 @@ void
 kassBuildSymbol(      kass_csr_t   *P,
                       pastix_int_t  cblknbr,
                 const pastix_int_t *rangtab,
-                      SymbolMatrix *symbmtx)
+                      symbol_matrix_t *symbmtx)
 {
     pastix_int_t i, j, k, l;
     pastix_int_t cblknum;
@@ -195,7 +195,7 @@ kassBuildSymbol(      kass_csr_t   *P,
  *
  *******************************************************************************/
 void
-kassPatchSymbol( SymbolMatrix *symbmtx )
+kassPatchSymbol( symbol_matrix_t *symbmtx )
 {
     pastix_int_t  i, j, k;
     pastix_int_t *father     = NULL; /** For the cblk of the symbol matrix **/

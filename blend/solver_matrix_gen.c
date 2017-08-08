@@ -76,7 +76,7 @@
 int
 solverMatrixGen( pastix_int_t        clustnum,
                  SolverMatrix       *solvmtx,
-                 const SymbolMatrix *symbmtx,
+                 const symbol_matrix_t *symbmtx,
                  const SimuCtrl     *simuctrl,
                  const BlendCtrl    *ctrl )
 {

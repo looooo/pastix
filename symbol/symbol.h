@@ -22,7 +22,7 @@
  *
  *   This module provides the set of function to generate the symbolic
  *   factorization structure based on a given graph, and an associated
- *   ordering. The symbolic structure is described in the SymbolMatrix
+ *   ordering. The symbolic structure is described in the symbol_matrix_t
  *   structure, and it can be generated through two different algorithms: Fax or
  *   Kass. The first one is used when no amalgamation is required. This is the
  *   case when the ordering comes from Scotch for example. The second one, is
@@ -78,38 +78,38 @@ typedef struct symbol_matrix_s {
     SymbolCblk   * restrict cblktab;  /**< Array of column blocks [+1,based]       */
     SymbolBlok   * restrict bloktab;  /**< Array of blocks in CSC format [based]   */
     pastix_int_t * restrict browtab;  /**< Array of blocks in CSR format [based]   */
-} SymbolMatrix;
+} symbol_matrix_t;
 
 /**
  * @name Symbol basic subroutines
  * @{
  */
-void symbolInit       (      SymbolMatrix *symbptr);
-void symbolExit       (      SymbolMatrix *symbptr);
-void symbolBase       (      SymbolMatrix *symbptr, const pastix_int_t baseval);
-void symbolRealloc    (      SymbolMatrix *symbptr);
-int  symbolCheck      (const SymbolMatrix *symbptr);
+void symbolInit       (      symbol_matrix_t *symbptr);
+void symbolExit       (      symbol_matrix_t *symbptr);
+void symbolBase       (      symbol_matrix_t *symbptr, const pastix_int_t baseval);
+void symbolRealloc    (      symbol_matrix_t *symbptr);
+int  symbolCheck      (const symbol_matrix_t *symbptr);
 
 /**
  * @}
  * @name Symbol IO subroutines
  * @{
  */
-int  symbolSave       (const SymbolMatrix *symbptr, FILE *stream);
-int  symbolLoad       (      SymbolMatrix *symbptr, FILE *stream);
-int  symbolDraw       (const SymbolMatrix *symbptr, FILE *stream);
+int  symbolSave       (const symbol_matrix_t *symbptr, FILE *stream);
+int  symbolLoad       (      symbol_matrix_t *symbptr, FILE *stream);
+int  symbolDraw       (const symbol_matrix_t *symbptr, FILE *stream);
 
 /**
  * @}
  * @name Symbol statistical information subroutines
  * @{
  */
-void         symbolPrintStats ( const SymbolMatrix *symbptr );
-pastix_int_t symbolGetNNZ     ( const SymbolMatrix *symbptr );
-void         symbolGetFlops   ( const SymbolMatrix *symbmtx,
+void         symbolPrintStats ( const symbol_matrix_t *symbptr );
+pastix_int_t symbolGetNNZ     ( const symbol_matrix_t *symbptr );
+void         symbolGetFlops   ( const symbol_matrix_t *symbmtx,
                                 pastix_coeftype_t flttype, pastix_factotype_t factotype,
                                 double *thflops, double *rlflops );
-void         symbolGetTimes   ( const SymbolMatrix *symbmtx,
+void         symbolGetTimes   ( const symbol_matrix_t *symbmtx,
                                 pastix_coeftype_t flttype, pastix_factotype_t factotype,
                                 double *cblkcost, double *blokcost );
 
@@ -118,15 +118,15 @@ void         symbolGetTimes   ( const SymbolMatrix *symbmtx,
  * @name Symbol reordering subroutines
  * @{
  */
-void         symbolReordering( const SymbolMatrix *, pastix_order_t *, pastix_int_t, int );
-void         symbolReorderingPrintComplexity( const SymbolMatrix *symbptr );
+void         symbolReordering( const symbol_matrix_t *, pastix_order_t *, pastix_int_t, int );
+void         symbolReorderingPrintComplexity( const symbol_matrix_t *symbptr );
 
 /**
  * @}
  * @name Symbol construction subroutines
  * @{
  */
-int          symbolFaxGraph  ( SymbolMatrix         *symbptr,
+int          symbolFaxGraph  ( symbol_matrix_t         *symbptr,
                                const pastix_int_t    vertnbr,
                                const pastix_int_t   *verttab,
                                const pastix_int_t   *edgetab,
@@ -136,13 +136,13 @@ int          symbolKass      ( int             verbose,
                                int             levelk,
                                int             rat_cblk,
                                int             rat_blas,
-                               SymbolMatrix   *symbmtx,
+                               symbol_matrix_t   *symbmtx,
                                pastix_graph_t *graph,
                                pastix_order_t *orderptr,
                                MPI_Comm        pastix_comm );
-void         symbolRustine   ( SymbolMatrix *symbptr, SymbolMatrix *symbptr2 );
-void         symbolBuildRowtab( SymbolMatrix *symbptr );
-pastix_int_t symbolGetFacingBloknum( const SymbolMatrix *symbptr,
+void         symbolRustine   ( symbol_matrix_t *symbptr, symbol_matrix_t *symbptr2 );
+void         symbolBuildRowtab( symbol_matrix_t *symbptr );
+pastix_int_t symbolGetFacingBloknum( const symbol_matrix_t *symbptr,
                                      pastix_int_t bloksrc,
                                      pastix_int_t bloknum,
                                      pastix_int_t startsearch,

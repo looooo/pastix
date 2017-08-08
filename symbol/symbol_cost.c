@@ -51,7 +51,7 @@
  *******************************************************************************/
 static double
 sum1d( const symbol_function_t *fptr,
-       const SymbolMatrix      *symbmtx,
+       const symbol_matrix_t      *symbmtx,
              pastix_int_t       cblknum )
 {
     SymbolCblk *cblk = symbmtx->cblktab + cblknum;
@@ -119,7 +119,7 @@ sum1d( const symbol_function_t *fptr,
  *******************************************************************************/
 static double
 sum2d( const symbol_function_t *fptr,
-       const SymbolMatrix      *symbmtx,
+       const symbol_matrix_t      *symbmtx,
              pastix_int_t       cblknum )
 {
     SymbolCblk *cblk = symbmtx->cblktab + cblknum;
@@ -200,7 +200,7 @@ sum2d( const symbol_function_t *fptr,
  *******************************************************************************/
 static double
 sum2dext( const symbol_function_t *fptr,
-          const SymbolMatrix     *symbmtx,
+          const symbol_matrix_t     *symbmtx,
                 pastix_int_t      cblknum,
                 double           *blokcost )
 {
@@ -285,9 +285,9 @@ sum2dext( const symbol_function_t *fptr,
  *******************************************************************************/
 static double
 recursive_sum( pastix_int_t a, pastix_int_t b,
-               double (*fval)(const symbol_function_t *, const SymbolMatrix *, pastix_int_t),
+               double (*fval)(const symbol_function_t *, const symbol_matrix_t *, pastix_int_t),
                const symbol_function_t *fptr,
-               const SymbolMatrix      *symbmtx )
+               const symbol_matrix_t      *symbmtx )
 {
     if(a != b)
         return recursive_sum(        a, (a+b)/2, fval, fptr, symbmtx)
@@ -324,7 +324,7 @@ recursive_sum( pastix_int_t a, pastix_int_t b,
  *
  *******************************************************************************/
 pastix_int_t
-symbolGetNNZ( const SymbolMatrix *symbptr )
+symbolGetNNZ( const symbol_matrix_t *symbptr )
 {
     SymbolCblk *cblk;
     SymbolBlok *blok;
@@ -396,7 +396,7 @@ symbolGetNNZ( const SymbolMatrix *symbptr )
  *
  *******************************************************************************/
 void
-symbolGetFlops( const SymbolMatrix *symbmtx,
+symbolGetFlops( const symbol_matrix_t *symbmtx,
                 pastix_coeftype_t   flttype,
                 pastix_factotype_t  factotype,
                 double             *thflops,
@@ -454,7 +454,7 @@ symbolGetFlops( const SymbolMatrix *symbmtx,
  *
  *******************************************************************************/
 void
-symbolGetTimes( const SymbolMatrix *symbmtx,
+symbolGetTimes( const symbol_matrix_t *symbmtx,
                 pastix_coeftype_t   flttype,
                 pastix_factotype_t  factotype,
                 double             *cblkcost,
