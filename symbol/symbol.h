@@ -30,8 +30,8 @@
  *   amalgamation needs to be performed to improve solver efficiency.
  *
  **/
-#ifndef _SYMBOL_H_
-#define _SYMBOL_H_
+#ifndef _PASTIX_SYMBOL_H_
+#define _PASTIX_SYMBOL_H_
 
 /**
  * @brief Symbol column block structure.
@@ -44,7 +44,7 @@ typedef struct symbol_cblk_s {
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
     pastix_int_t split_cblk;
 #endif
-} SymbolCblk;
+} symbol_cblk_t;
 
 /**
  * @brief Symbol block structure.
@@ -75,7 +75,7 @@ typedef struct symbol_matrix_s {
     pastix_int_t            bloknbr;  /**< Number of blocks                        */
     pastix_int_t            nodenbr;  /**< Number of node in the compressed symbol */
     pastix_int_t            schurfcol;/**< First column of the schur complement    */
-    SymbolCblk   * restrict cblktab;  /**< Array of column blocks [+1,based]       */
+    symbol_cblk_t   * restrict cblktab;  /**< Array of column blocks [+1,based]       */
     SymbolBlok   * restrict bloktab;  /**< Array of blocks in CSC format [based]   */
     pastix_int_t * restrict browtab;  /**< Array of blocks in CSR format [based]   */
 } symbol_matrix_t;
@@ -152,4 +152,4 @@ pastix_int_t symbolGetFacingBloknum( const symbol_matrix_t *symbptr,
  * @} End of pastix_symbol group
  */
 
-#endif /* SYMBOL_H */
+#endif /* _PASTIX_SYMBOL_H_ */

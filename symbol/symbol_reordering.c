@@ -449,7 +449,7 @@ symbol_reorder_tsp( pastix_int_t size, pastix_order_t *order, pastix_int_t sn_id
  *******************************************************************************/
 static inline void
 symbol_reorder_cblk( const symbol_matrix_t *symbptr,
-                     const SymbolCblk   *cblk,
+                     const symbol_cblk_t   *cblk,
                      pastix_order_t     *order,
                      const pastix_int_t *levels,
                      pastix_int_t       *depthweight,
@@ -637,7 +637,7 @@ symbolReordering( const symbol_matrix_t *symbptr,
                   pastix_int_t        split_level,
                   int                 stop_criteria )
 {
-    SymbolCblk  *cblk;
+    symbol_cblk_t  *cblk;
     pastix_int_t itercblk;
     pastix_int_t cblknbr = symbptr->cblknbr;
 
@@ -701,7 +701,7 @@ symbolReordering( const symbol_matrix_t *symbptr,
 void
 symbolReorderingPrintComplexity( const symbol_matrix_t *symbptr )
 {
-    SymbolCblk  *cblk;
+    symbol_cblk_t  *cblk;
     pastix_int_t itercblk, iterblok;
     pastix_int_t cblknbr;
     pastix_int_t nbflops;

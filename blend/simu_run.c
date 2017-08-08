@@ -137,7 +137,7 @@ simu_computeBlockCtrbNbr(const symbol_matrix_t *symbptr,
      * Might be optimized if we computed the input graph before.
      */
     {
-        SymbolCblk *curcblk;
+        symbol_cblk_t *curcblk;
 
         curcblk = symbptr->cblktab;
         for(i=0; i<symbptr->cblknbr; i++, curcblk++)
@@ -205,7 +205,7 @@ simu_printBlockCtrbNbr( const BlendCtrl    *ctrl,
     FILE *fd1 = NULL;
     FILE *fd2 = NULL;
     pastix_int_t i, j;
-    SymbolCblk *curcblk;
+    symbol_cblk_t *curcblk;
 
     fd1 = pastix_fopenw( ctrl->dirtemp, "contribblok.txt", "w" );
     if ( fd1 == NULL )

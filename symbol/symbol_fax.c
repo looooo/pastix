@@ -165,7 +165,7 @@ symbolFax (symbol_matrix_t * const   symbptr,
     const pastix_int_t * restrict      peritax;  /* Based access to inverse permutation array         */
     const pastix_int_t * restrict      rangtax;  /* Based access to column block range array          */
     pastix_int_t * restrict            ctrbtax;  /* Based access to array of contribution chains      */
-    SymbolCblk * restrict              cblktax;  /* Based access to column block array                */
+    symbol_cblk_t * restrict              cblktax;  /* Based access to column block array                */
     pastix_int_t                       cblknum;  /* Based number of current column block              */
     pastix_int_t                       cblkctr;  /* Based number of current contributing column block */
     SymbolBlok * restrict              bloktax;  /* Based access to block array                       */
@@ -189,11 +189,11 @@ symbolFax (symbol_matrix_t * const   symbptr,
     /* Allocate arrays for factoring   */
     {
         pastix_int_t *ctrbtab = NULL; /* Array for contribution chaining */
-        SymbolCblk   *cblktab = NULL; /* Column block array              */
+        symbol_cblk_t   *cblktab = NULL; /* Column block array              */
         SymbolBlok   *bloktab = NULL; /* Block array                     */
 
         MALLOC_INTERN(ctrbtab, ordeptr->cblknbr,     pastix_int_t);
-        MALLOC_INTERN(cblktab, ordeptr->cblknbr + 1, SymbolCblk);
+        MALLOC_INTERN(cblktab, ordeptr->cblknbr + 1, symbol_cblk_t);
         MALLOC_INTERN(bloktab, blokmax,              SymbolBlok);
 
         cblktax = cblktab - baseval;                  /* Set based accesses */

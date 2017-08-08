@@ -37,7 +37,7 @@ void
 symbolBase ( symbol_matrix_t * const symbptr,
              const pastix_int_t   baseval)
 {
-    SymbolCblk  *cblk;
+    symbol_cblk_t  *cblk;
     SymbolBlok  *blok;
     pastix_int_t baseadj; /* Base adjust */
     pastix_int_t cblknum;

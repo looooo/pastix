@@ -182,7 +182,7 @@ solverMatrixGen( pastix_int_t        clustnum,
     {
         SolverCblk *solvcblk = solvmtx->cblktab;
         SolverBlok *solvblok = solvmtx->bloktab;
-        SymbolCblk *symbcblk = symbmtx->cblktab;
+        symbol_cblk_t *symbcblk = symbmtx->cblktab;
         SymbolBlok *symbblok = symbmtx->bloktab;
         SimuBlok   *simublok = simuctrl->bloktab;
         Cand       *candcblk = ctrl->candtab;

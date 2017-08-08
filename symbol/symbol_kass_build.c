@@ -134,7 +134,7 @@ kassBuildSymbol(      kass_csr_t   *P,
     symbmtx->nodenbr = n;
     symbmtx->browtab = NULL;
 
-    MALLOC_INTERN(symbmtx->cblktab, cblknbr+1,        SymbolCblk);
+    MALLOC_INTERN(symbmtx->cblktab, cblknbr+1,        symbol_cblk_t);
     MALLOC_INTERN(symbmtx->bloktab, symbmtx->bloknbr, SymbolBlok);
 
     ind = 0;
@@ -200,7 +200,7 @@ kassPatchSymbol( symbol_matrix_t *symbmtx )
     pastix_int_t  i, j, k;
     pastix_int_t *father     = NULL; /** For the cblk of the symbol matrix **/
     SymbolBlok *newbloktab = NULL;
-    SymbolCblk *cblktab    = NULL;
+    symbol_cblk_t *cblktab    = NULL;
     SymbolBlok *bloktab    = NULL;
     kass_csr_t Q;
 

@@ -54,7 +54,7 @@ sum1d( const symbol_function_t *fptr,
        const symbol_matrix_t      *symbmtx,
              pastix_int_t       cblknum )
 {
-    SymbolCblk *cblk = symbmtx->cblktab + cblknum;
+    symbol_cblk_t *cblk = symbmtx->cblktab + cblknum;
     pastix_int_t M, N, k;
     double nbops = 0.;
     double dof = (double)(symbmtx->dof);
@@ -122,7 +122,7 @@ sum2d( const symbol_function_t *fptr,
        const symbol_matrix_t      *symbmtx,
              pastix_int_t       cblknum )
 {
-    SymbolCblk *cblk = symbmtx->cblktab + cblknum;
+    symbol_cblk_t *cblk = symbmtx->cblktab + cblknum;
     pastix_int_t M, N, K, l;
     double nbops = 0.;
     double dof = (double)(symbmtx->dof);
@@ -204,7 +204,7 @@ sum2dext( const symbol_function_t *fptr,
                 pastix_int_t      cblknum,
                 double           *blokcost )
 {
-    SymbolCblk *cblk = symbmtx->cblktab + cblknum;
+    symbol_cblk_t *cblk = symbmtx->cblktab + cblknum;
     pastix_int_t M, N, K, l;
     double nbops = 0.;
     double dof = (double)(symbmtx->dof);
@@ -326,7 +326,7 @@ recursive_sum( pastix_int_t a, pastix_int_t b,
 pastix_int_t
 symbolGetNNZ( const symbol_matrix_t *symbptr )
 {
-    SymbolCblk *cblk;
+    symbol_cblk_t *cblk;
     SymbolBlok *blok;
     pastix_int_t itercblk;
     pastix_int_t cblknbr;

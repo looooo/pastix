@@ -42,10 +42,10 @@ symbolRustine( symbol_matrix_t *       matrsymb,
 {
     pastix_int_t i,iter,add,cblknum,bloknum,bloknum2;
     SymbolBlok *bloktmp = NULL;
-    SymbolCblk *cblktmp = NULL;
+    symbol_cblk_t *cblktmp = NULL;
 
     MALLOC_INTERN(bloktmp, matrsymb->bloknbr+matrsymb->cblknbr, SymbolBlok);
-    MALLOC_INTERN(cblktmp, matrsymb->cblknbr+1,                 SymbolCblk);
+    MALLOC_INTERN(cblktmp, matrsymb->cblknbr+1,                 symbol_cblk_t);
     for (i=0;i<matrsymb->cblknbr+1;i++)
     {
         cblktmp[i].fcolnum = matrsymb->cblktab[i].fcolnum;

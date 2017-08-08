@@ -47,7 +47,7 @@ int
 symbolCheck(const symbol_matrix_t * const  symbptr)
 {
     pastix_int_t      baseval; /* Base value                           */
-    const SymbolCblk *cblktax; /* Based access to cblktab              */
+    const symbol_cblk_t *cblktax; /* Based access to cblktab              */
     pastix_int_t      cblkmax; /* Maximum column block index           */
     pastix_int_t      cblknum; /* Based number of current column block */
     const SymbolBlok *bloktax; /* Based access to bloktab              */

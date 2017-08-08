@@ -33,7 +33,7 @@ typedef struct extracblk_s {
     pastix_int_t *sptcbnb; /**< Number of splitted cblk for a cblk                */
     pastix_int_t  curcblk; /**< Cursor for cblktab                                */
     pastix_int_t  sizcblk; /**< Size of allocated cblktab                         */
-    SymbolCblk   *cblktab; /**< Array of column blocks [+1,based]                 */
+    symbol_cblk_t   *cblktab; /**< Array of column blocks [+1,based]                 */
 } ExtraCblk_t;
 
 void extraCblkInit ( pastix_int_t        cblknbr,
