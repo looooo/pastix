@@ -50,9 +50,9 @@
  *
  *******************************************************************************/
 void
-simuTaskBuild( SimuCtrl           *simuctrl,
+simuTaskBuild( SimuCtrl              *simuctrl,
                const symbol_matrix_t *symbptr,
-               const Cand         *candtab )
+               const Cand            *candtab )
 {
     pastix_int_t i, j;
     pastix_int_t tasknbr = 0;

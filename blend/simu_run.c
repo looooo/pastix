@@ -126,8 +126,8 @@ simu_computeFtgtCosts( const BlendCtrl     *ctrl,
  *******************************************************************************/
 static inline void
 simu_computeBlockCtrbNbr(const symbol_matrix_t *symbptr,
-                         SimuCtrl     *simuctrl,
-                         pastix_int_t  ricar )
+                               SimuCtrl        *simuctrl,
+                               pastix_int_t     ricar )
 {
     pastix_int_t i, j, k;
     pastix_int_t facebloknum, firstbloknum;
@@ -153,7 +153,7 @@ simu_computeBlockCtrbNbr(const symbol_matrix_t *symbptr,
                 /* Add contribution due to E2 */
                 for(k=j; k<lbloknum; k++)
                 {
-                    facebloknum = symbolGetFacingBloknum( symbptr, j, k, firstbloknum, ricar );
+                    facebloknum = pastixSymbolGetFacingBloknum( symbptr, j, k, firstbloknum, ricar );
                     if(facebloknum >= 0) {
                         simuctrl->bloktab[facebloknum].ctrbcnt++;
                         firstbloknum = facebloknum;
@@ -198,9 +198,9 @@ simu_computeBlockCtrbNbr(const symbol_matrix_t *symbptr,
  *
  *******************************************************************************/
 static inline void
-simu_printBlockCtrbNbr( const BlendCtrl    *ctrl,
+simu_printBlockCtrbNbr( const BlendCtrl       *ctrl,
                         const symbol_matrix_t *symbptr,
-                        const SimuCtrl     *simuctrl )
+                        const SimuCtrl        *simuctrl )
 {
     FILE *fd1 = NULL;
     FILE *fd2 = NULL;
@@ -454,10 +454,10 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
  *
  *******************************************************************************/
 static inline void
-simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
+simu_computeTaskReceiveTime( const BlendCtrl       *ctrl,
                              const symbol_matrix_t *symbptr,
-                             SimuCtrl           *simuctrl,
-                             pastix_int_t        tasknum )
+                                   SimuCtrl        *simuctrl,
+                                   pastix_int_t     tasknum )
 {
     pastix_int_t i, j;
     double lftgttime = 0;
@@ -575,15 +575,15 @@ simu_computeTaskReceiveTime( const BlendCtrl    *ctrl,
  *******************************************************************************/
 static inline void
 simu_updateFtgt( const symbol_matrix_t *symbptr,
-                 SimuCtrl           *simuctrl,
-                 pastix_int_t        ftgtnum,
-                 pastix_int_t        bloknum,
-                 pastix_int_t        fbloknum )
+                       SimuCtrl        *simuctrl,
+                       pastix_int_t     ftgtnum,
+                       pastix_int_t     bloknum,
+                       pastix_int_t     fbloknum )
 {
-    solver_ftgt_t  *ftgt     = &(simuctrl->ftgttab[ftgtnum].ftgt);
-    pastix_int_t *infotab  = ftgt->infotab;
-    symbol_blok_t   *blokptr  = (symbptr->bloktab) + bloknum;
-    symbol_blok_t   *fblokptr = (symbptr->bloktab) + fbloknum;
+    solver_ftgt_t *ftgt     = &(simuctrl->ftgttab[ftgtnum].ftgt);
+    pastix_int_t  *infotab  = ftgt->infotab;
+    symbol_blok_t *blokptr  = (symbptr->bloktab) + bloknum;
+    symbol_blok_t *fblokptr = (symbptr->bloktab) + fbloknum;
 
     infotab[FTGT_CTRBNBR]++;
 
@@ -635,10 +635,10 @@ simu_updateFtgt( const symbol_matrix_t *symbptr,
  *
  *******************************************************************************/
 static inline void
-simu_computeTask( const BlendCtrl    *ctrl,
+simu_computeTask( const BlendCtrl       *ctrl,
                   const symbol_matrix_t *symbptr,
-                  SimuCtrl           *simuctrl,
-                  pastix_int_t        tasknum )
+                        SimuCtrl        *simuctrl,
+                        pastix_int_t     tasknum )
 {
     pastix_int_t  i, j;
     pastix_int_t  cblknum;
@@ -688,7 +688,7 @@ simu_computeTask( const BlendCtrl    *ctrl,
         for(j=i; j<lbloknum; j++)
         {
             /* TODO: symbolGetFacingBloknum is too expensive !! */
-            facingblok = symbolGetFacingBloknum(symbptr, i, j, firstfacingblok, ctrl->ricar);
+            facingblok = pastixSymbolGetFacingBloknum(symbptr, i, j, firstfacingblok, ctrl->ricar);
 
             /* If the couple (i, j) generates a contribution, applies it */
             if( facingblok >= 0 ) {
@@ -767,9 +767,9 @@ simu_computeTask( const BlendCtrl    *ctrl,
  *
  *******************************************************************************/
 static inline void
-simu_pushToReadyHeap(const BlendCtrl *ctrl,
-                     SimuCtrl        *simuctrl,
-                     pastix_int_t     procnum )
+simu_pushToReadyHeap( const BlendCtrl *ctrl,
+                      SimuCtrl        *simuctrl,
+                      pastix_int_t     procnum )
 {
     SimuProc    *sproc;
     pastix_int_t tasknum;
@@ -802,7 +802,6 @@ simu_pushToReadyHeap(const BlendCtrl *ctrl,
     }
 }
 
-
 /**
  * @}
  */
@@ -834,15 +833,15 @@ simu_pushToReadyHeap(const BlendCtrl *ctrl,
  *
  *******************************************************************************/
 void
-simuRun( SimuCtrl           *simuctrl,
-         const BlendCtrl    *ctrl,
+simuRun( SimuCtrl              *simuctrl,
+         const BlendCtrl       *ctrl,
          const symbol_matrix_t *symbptr )
 {
 
-    pastix_int_t             i, j, b;
-    pastix_int_t             cblknum, bloknum;
-    /*pastix_int_t             c;*/
-    pastix_int_t             pr;
+    pastix_int_t i, j, b;
+    pastix_int_t cblknum, bloknum;
+    /*pastix_int_t c;*/
+    pastix_int_t pr;
 
 #if defined(PASTIX_BLEND_GENTRACE)
     static volatile pastix_atomic_lock_t trace_lock = PASTIX_ATOMIC_UNLOCKED;

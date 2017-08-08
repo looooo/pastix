@@ -88,14 +88,14 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
 
     /* Print the reordering complexity */
     if (iparm[IPARM_VERBOSE] > PastixVerboseYes)
-        symbolReorderingPrintComplexity( pastix_data->symbmtx );
+        pastixSymbolReorderingPrintComplexity( pastix_data->symbmtx );
 
     clockStart(timer);
 
     /**
      * Reorder the rows of each supernode in order to compact coupling blocks
      */
-    symbolReordering( pastix_data->symbmtx, ordemesh,
+    pastixSymbolReordering( pastix_data->symbmtx, ordemesh,
                       iparm[IPARM_REORDERING_SPLIT],
                       iparm[IPARM_REORDERING_STOP] );
 
@@ -107,7 +107,7 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
         }
     }
 
-    symbolExit(pastix_data->symbmtx);
+    pastixSymbolExit(pastix_data->symbmtx);
     memFree_null(pastix_data->symbmtx);
     pastix_data->symbmtx = NULL;
 
@@ -126,7 +126,7 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
         errorPrint("pastix_subtask_reordering: pastixOrderCheck on final ordering failed !!!");
         assert(0);
     }
-    if( symbolCheck(pastix_data->symbmtx) != 0 ) {
+    if( pastixSymbolCheck(pastix_data->symbmtx) != 0 ) {
         errorPrint("pastix_subtask_reordering: symbolCheck on final symbol matrix failed !!!");
         assert(0);
     }

@@ -603,7 +603,7 @@ pastixFinalize( pastix_data_t **pastix_data )
 
     if ( pastix->symbmtx != NULL )
     {
-        symbolExit( pastix->symbmtx );
+        pastixSymbolExit( pastix->symbmtx );
         memFree_null( pastix->symbmtx );
     }
 

@@ -74,28 +74,28 @@
  *
  *******************************************************************************/
 int
-solverMatrixGen( pastix_int_t        clustnum,
-                 SolverMatrix       *solvmtx,
+solverMatrixGen( pastix_int_t           clustnum,
+                 SolverMatrix          *solvmtx,
                  const symbol_matrix_t *symbmtx,
-                 const SimuCtrl     *simuctrl,
-                 const BlendCtrl    *ctrl )
+                 const SimuCtrl        *simuctrl,
+                 const BlendCtrl       *ctrl )
 {
     pastix_int_t  p, c;
     pastix_int_t  cursor;
     pastix_int_t  i, j, k;
-    pastix_int_t  ftgtnum          = 0;
-    pastix_int_t  coefnbr          = 0;
-    pastix_int_t  nodenbr          = 0;
-    pastix_int_t  odb_nbr          = 0;
-    pastix_int_t  cblknum          = 0;
-    pastix_int_t  tasknum          = 0;
-    pastix_int_t  brownum          = 0;
-    pastix_int_t  indnbr           = 0;
-    pastix_int_t *cblklocalnum     = NULL;
-    pastix_int_t *bloklocalnum     = NULL;
-    pastix_int_t *tasklocalnum     = NULL;
-    pastix_int_t *ftgtlocalnum     = NULL;
-    pastix_int_t  flaglocal        = 0;
+    pastix_int_t  ftgtnum      = 0;
+    pastix_int_t  coefnbr      = 0;
+    pastix_int_t  nodenbr      = 0;
+    pastix_int_t  odb_nbr      = 0;
+    pastix_int_t  cblknum      = 0;
+    pastix_int_t  tasknum      = 0;
+    pastix_int_t  brownum      = 0;
+    pastix_int_t  indnbr       = 0;
+    pastix_int_t *cblklocalnum = NULL;
+    pastix_int_t *bloklocalnum = NULL;
+    pastix_int_t *tasklocalnum = NULL;
+    pastix_int_t *ftgtlocalnum = NULL;
+    pastix_int_t  flaglocal    = 0;
     pastix_int_t  dof = symbmtx->dof;
 
     solverInit(solvmtx);
@@ -180,15 +180,15 @@ solverMatrixGen( pastix_int_t        clustnum,
     MALLOC_INTERN(solvmtx->browtab, solvmtx->brownbr,   pastix_int_t);
 
     {
-        SolverCblk *solvcblk = solvmtx->cblktab;
-        SolverBlok *solvblok = solvmtx->bloktab;
+        SolverCblk    *solvcblk = solvmtx->cblktab;
+        SolverBlok    *solvblok = solvmtx->bloktab;
         symbol_cblk_t *symbcblk = symbmtx->cblktab;
         symbol_blok_t *symbblok = symbmtx->bloktab;
-        SimuBlok   *simublok = simuctrl->bloktab;
-        Cand       *candcblk = ctrl->candtab;
-        pastix_int_t blokamax = 0; /* Maximum area of a block in the global matrix */
-        pastix_int_t nbcblk2d = 0;
-        pastix_int_t nbblok2d = 0;
+        SimuBlok      *simublok = simuctrl->bloktab;
+        Cand          *candcblk = ctrl->candtab;
+        pastix_int_t   blokamax = 0; /* Maximum area of a block in the global matrix */
+        pastix_int_t   nbcblk2d = 0;
+        pastix_int_t   nbblok2d = 0;
 
         solvmtx->cblkmax1d  = -1;
         solvmtx->cblkmin2d  = solvmtx->cblknbr;
@@ -535,9 +535,9 @@ solverMatrixGen( pastix_int_t        clustnum,
         }
 
         if(solvmtx->ftgtnbr > 0) {
-            SimuCluster *simuclust = &(simuctrl->clustab[clustnum]);
+            SimuCluster   *simuclust = &(simuctrl->clustab[clustnum]);
             solver_ftgt_t *solvftgt;
-            pastix_int_t ftgtnbr;
+            pastix_int_t   ftgtnbr;
 
             MALLOC_INTERN(solvmtx->ftgttab, solvmtx->ftgtnbr, solver_ftgt_t);
 
@@ -582,7 +582,6 @@ solverMatrixGen( pastix_int_t        clustnum,
         }
     }
 
-
     /*
      * Fill in indtab
      */
@@ -620,7 +619,7 @@ solverMatrixGen( pastix_int_t        clustnum,
 
                     for(j=bloknum; j<lbloknum; j++)
                     {
-                        facebloknum = symbolGetFacingBloknum(symbmtx, bloknum, j, firstbloknum, ctrl->ricar);
+                        facebloknum = pastixSymbolGetFacingBloknum(symbmtx, bloknum, j, firstbloknum, ctrl->ricar);
 
                         if(facebloknum >= 0) {
                             firstbloknum = facebloknum;
@@ -662,8 +661,8 @@ solverMatrixGen( pastix_int_t        clustnum,
      * to be peviously computed.
      */
     {
-        SolverCblk *solvcblk = solvmtx->cblktab;
-        SolverBlok *solvblok = solvmtx->bloktab;
+        SolverCblk  *solvcblk = solvmtx->cblktab;
+        SolverBlok  *solvblok = solvmtx->bloktab;
         pastix_int_t gemmmax = 0;
         pastix_int_t diagmax = 0;
         pastix_int_t gemmarea;

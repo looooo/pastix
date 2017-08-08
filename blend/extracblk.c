@@ -214,7 +214,7 @@ extraCblkAdd( ExtraCblk_t *extracblk,
  *******************************************************************************/
 void
 extraCblkMerge( const ExtraCblk_t *extracblk,
-                symbol_matrix_t      *newsymb,
+                symbol_matrix_t   *newsymb,
                 Cand             **candtab )
 {
     pastix_int_t  i, j, k, l;
@@ -226,8 +226,9 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
     pastix_int_t  facing_splitted_cnt = 0;
 
     symbol_matrix_t *oldsymb;
-    Cand         *oldcand = *candtab;
-    Cand         *newcand;
+
+    Cand *oldcand = *candtab;
+    Cand *newcand;
 
     symbol_cblk_t *curcblk;
     symbol_blok_t *curblok;
@@ -280,7 +281,7 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
         {
             pastix_int_t fcblknum = oldsymb->bloktab[j].fcblknm;
             pastix_int_t sptfcbnb = extracblk->sptcbnb[fcblknum];
-	    pastix_int_t sptcbnbh = 0;
+            pastix_int_t sptcbnbh = 0;
 
             /* If facing cblk is splitted */
             if ( sptfcbnb > 1 )
@@ -305,8 +306,8 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
                     frownum = newfcblk->lcolnum+1;
                 }
             }
-	    else
-	      sptcbnbh = 1;
+            else
+                sptcbnbh = 1;
 
             /*
              * The number of extra blocks is the number of times the block
@@ -477,7 +478,7 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
     assert((curblok - newsymb->bloktab) == newsymb->bloknbr);
 
     /* Free old versions and temporary buffer */
-    symbolExit(oldsymb);
+    pastixSymbolExit(oldsymb);
     memFree_null(oldsymb);
     memFree_null(newnum);
     memFree_null(extranewnum);
@@ -487,7 +488,7 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
     newsymb->cblktab[newsymb->cblknbr].lcolnum = newsymb->cblktab[newsymb->cblknbr-1].lcolnum+1;
     newsymb->cblktab[newsymb->cblknbr].bloknum = curbloknum;
 
-    symbolBuildRowtab( newsymb );
+    pastixSymbolBuildRowtab( newsymb );
 
     *candtab = newcand;
 

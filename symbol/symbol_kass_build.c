@@ -39,15 +39,15 @@
  *          Contains the supernode partition of the graph.
  *
  * @param[out] symbmtx
- *          On entry, an initialized structure of symbol matrix (see symbolInit()).
+ *          On entry, an initialized structure of symbol matrix (see pastixSymbolInit()).
  *          On exit, contains the symbol matrix associated to the graph P and
  *          the supernode partition given.
  *
  *******************************************************************************/
 void
-kassBuildSymbol(      kass_csr_t   *P,
-                      pastix_int_t  cblknbr,
-                const pastix_int_t *rangtab,
+kassBuildSymbol(      kass_csr_t      *P,
+                      pastix_int_t     cblknbr,
+                const pastix_int_t    *rangtab,
                       symbol_matrix_t *symbmtx)
 {
     pastix_int_t i, j, k, l;
@@ -197,8 +197,8 @@ kassBuildSymbol(      kass_csr_t   *P,
 void
 kassPatchSymbol( symbol_matrix_t *symbmtx )
 {
-    pastix_int_t  i, j, k;
-    pastix_int_t *father     = NULL; /** For the cblk of the symbol matrix **/
+    pastix_int_t   i, j, k;
+    pastix_int_t  *father     = NULL; /** For the cblk of the symbol matrix **/
     symbol_blok_t *newbloktab = NULL;
     symbol_cblk_t *cblktab    = NULL;
     symbol_blok_t *bloktab    = NULL;
@@ -293,13 +293,11 @@ kassPatchSymbol( symbol_matrix_t *symbmtx )
             k++;
         }
 
-
         if( odb > 1)
         {
             memcpy(newbloktab +k, bloktab + fbloknum+1, sizeof(symbol_blok_t)*(odb-1));
             k+=odb-1;
         }
-
     }
 
     /** Copy the last one **/

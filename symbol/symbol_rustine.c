@@ -37,8 +37,8 @@
  *
  *******************************************************************************/
 void
-symbolRustine( symbol_matrix_t *       matrsymb,
-               symbol_matrix_t * const matrsymb2 )
+pastixSymbolRustine( symbol_matrix_t *       matrsymb,
+                     symbol_matrix_t * const matrsymb2 )
 {
     pastix_int_t i,iter,add,cblknum,bloknum,bloknum2;
     symbol_blok_t *bloktmp = NULL;
@@ -140,4 +140,3 @@ symbolRustine( symbol_matrix_t *       matrsymb,
     matrsymb->bloknbr += add;
     assert( add < matrsymb->cblknbr );
 }
-

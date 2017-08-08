@@ -114,16 +114,16 @@
 int
 pastix_subtask_blend( pastix_data_t *pastix_data )
 {
-    BlendCtrl       ctrl;
-    pastix_int_t    procnum, verbose;
-    pastix_int_t   *iparm;
-    double         *dparm;
-    pastix_order_t *ordeptr;
-    symbol_matrix_t   *symbmtx;
-    SolverMatrix   *solvmtx;
-    SimuCtrl       *simuctrl;
-    double          timer_all     = 0.;
-    double          timer_current = 0.;
+    BlendCtrl        ctrl;
+    pastix_int_t     procnum, verbose;
+    pastix_int_t    *iparm;
+    double          *dparm;
+    pastix_order_t  *ordeptr;
+    symbol_matrix_t *symbmtx;
+    SolverMatrix    *solvmtx;
+    SimuCtrl        *simuctrl;
+    double           timer_all     = 0.;
+    double           timer_current = 0.;
 
     /*
      * Check parameters
@@ -190,7 +190,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         if( verbose > PastixVerboseYes ) {
             pastix_print( procnum, 0, OUT_BLEND_CHKSMBMTX );
         }
-        symbolCheck(symbmtx);
+        pastixSymbolCheck(symbmtx);
     }
 
     /* Build the elimination tree from the symbolic partition */
@@ -300,7 +300,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     }
 
     if(ctrl.count_ops && (ctrl.leader == procnum)) {
-        symbolGetFlops( symbmtx,
+        pastixSymbolGetFlops( symbmtx,
                         iparm[IPARM_FLOAT],
                         iparm[IPARM_FACTORIZATION],
                         &(dparm[DPARM_FACT_THFLOPS]),
@@ -312,7 +312,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         FILE *stream = NULL;
         stream = pastix_fopenw( &(pastix_data->dirtemp), "symbol_after_split.eps", "w" );
         if ( stream ) {
-            symbolDraw( symbmtx, stream );
+            pastixSymbolDraw( symbmtx, stream );
             fclose( stream );
         }
     }
@@ -323,7 +323,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         FILE *file = NULL;
         file = pastix_fopenw( &(pastix_data->dirtemp), "symbol_after_split", "w" );
         if ( file ) {
-            symbolSave( symbmtx, file );
+            pastixSymbolSave( symbmtx, file );
             fclose( file );
         }
     }
@@ -434,10 +434,10 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     set_dparm(dparm, DPARM_ANALYZE_TIME, clockVal(timer_all) );
 
     if (verbose > PastixVerboseYes)
-        symbolPrintStats( pastix_data->symbmtx );
+        pastixSymbolPrintStats( pastix_data->symbmtx );
 
     /* Symbol is not used anymore */
-    symbolExit(pastix_data->symbmtx);
+    pastixSymbolExit(pastix_data->symbmtx);
     memFree_null(pastix_data->symbmtx);
 
     /* Computes and print statistics */

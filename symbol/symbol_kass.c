@@ -55,7 +55,7 @@
  *
  * @param[inout] symbmtx
  *          The symbol matrix structure to construct. On entry, the initialized
- *          structure (see symbolInit()). On exit, the symbol matrix generated
+ *          structure (see pastixSymbolInit()). On exit, the symbol matrix generated
  *          after the amalgamation process.
  *
  * @param[inout] csc
@@ -81,11 +81,11 @@
  *
  *******************************************************************************/
 int
-symbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
-           symbol_matrix_t   *symbmtx,
-           pastix_graph_t *csc,
-           pastix_order_t *orderptr,
-           MPI_Comm        pastix_comm)
+pastixSymbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
+                 symbol_matrix_t   *symbmtx,
+                 pastix_graph_t *csc,
+                 pastix_order_t *orderptr,
+                 MPI_Comm        pastix_comm)
 {
     kass_csr_t graphPA, graphL;
     pastix_int_t snodenbr;
@@ -258,7 +258,7 @@ symbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
 
     /* Patch the symbol matrix to have a real elimination tree */
     if (levelk != -1) {
-        nnzS = symbolGetNNZ( symbmtx );
+        nnzS = pastixSymbolGetNNZ( symbmtx );
 
         if (verbose > PastixVerboseYes) {
             pastix_print(procnum, 0, "Number of blocks in the non patched symbol matrix = %ld \n",
@@ -266,7 +266,7 @@ symbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
             pastix_print(procnum, 0, "Number of non zeroes in the non patched symbol matrix = %g, fillrate1 %.3g \n",
                          nnzS+n, (nnzS+n)/(ia[n]/2.0 +n) );
         }
-        if(symbolCheck(symbmtx) != 0) {
+        if(pastixSymbolCheck(symbmtx) != 0) {
             errorPrint("SymbolCheck on symbol matrix before patch failed !!!");
             assert(0);
         }
@@ -275,7 +275,7 @@ symbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
         kassPatchSymbol( symbmtx );
     }
 
-    nnzS = symbolGetNNZ( symbmtx );
+    nnzS = pastixSymbolGetNNZ( symbmtx );
 
     clockStop(timer);
     if (verbose > PastixVerboseYes) {

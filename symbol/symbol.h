@@ -76,7 +76,7 @@ typedef struct symbol_matrix_s {
     pastix_int_t   nodenbr;  /**< Number of node in the compressed symbol */
     pastix_int_t   schurfcol;/**< First column of the schur complement    */
     symbol_cblk_t *cblktab;  /**< Array of column blocks [+1,based]       */
-    symbol_blok_t    *bloktab;  /**< Array of blocks in CSC format [based]   */
+    symbol_blok_t *bloktab;  /**< Array of blocks in CSC format [based]   */
     pastix_int_t  *browtab;  /**< Array of blocks in CSR format [based]   */
 } symbol_matrix_t;
 
@@ -84,75 +84,79 @@ typedef struct symbol_matrix_s {
  * @name Symbol basic subroutines
  * @{
  */
-void symbolInit   (       symbol_matrix_t *symbptr );
-void symbolExit   (       symbol_matrix_t *symbptr );
-void symbolBase   (       symbol_matrix_t *symbptr,
-                    const pastix_int_t     baseval );
-void symbolRealloc(       symbol_matrix_t *symbptr );
-int  symbolCheck  ( const symbol_matrix_t *symbptr );
+void pastixSymbolInit   (       symbol_matrix_t *symbptr );
+void pastixSymbolExit   (       symbol_matrix_t *symbptr );
+void pastixSymbolBase   (       symbol_matrix_t *symbptr,
+                          const pastix_int_t     baseval );
+void pastixSymbolRealloc(       symbol_matrix_t *symbptr );
+int  pastixSymbolCheck  ( const symbol_matrix_t *symbptr );
 
 /**
  * @}
  * @name Symbol IO subroutines
  * @{
  */
-int symbolSave( const symbol_matrix_t *symbptr, FILE *stream );
-int symbolLoad(       symbol_matrix_t *symbptr, FILE *stream );
-int symbolDraw( const symbol_matrix_t *symbptr, FILE *stream );
+int pastixSymbolSave( const symbol_matrix_t *symbptr, FILE *stream );
+int pastixSymbolLoad(       symbol_matrix_t *symbptr, FILE *stream );
+int pastixSymbolDraw( const symbol_matrix_t *symbptr, FILE *stream );
 
 /**
  * @}
  * @name Symbol statistical information subroutines
  * @{
  */
-void         symbolPrintStats( const symbol_matrix_t *symbptr );
-pastix_int_t symbolGetNNZ    ( const symbol_matrix_t *symbptr );
-void         symbolGetFlops  ( const symbol_matrix_t *symbmtx,
-                               pastix_coeftype_t  flttype,
-                               pastix_factotype_t factotype,
-                               double *thflops, double *rlflops );
-void         symbolGetTimes  ( const symbol_matrix_t *symbmtx,
-                               pastix_coeftype_t  flttype,
-                               pastix_factotype_t factotype,
-                               double *cblkcost, double *blokcost );
+void         pastixSymbolPrintStats( const symbol_matrix_t *symbptr );
+pastix_int_t pastixSymbolGetNNZ    ( const symbol_matrix_t *symbptr );
+void         pastixSymbolGetFlops  ( const symbol_matrix_t *symbmtx,
+                                     pastix_coeftype_t  flttype,
+                                     pastix_factotype_t factotype,
+                                     double *thflops, double *rlflops );
+void         pastixSymbolGetTimes  ( const symbol_matrix_t *symbmtx,
+                                     pastix_coeftype_t  flttype,
+                                     pastix_factotype_t factotype,
+                                     double *cblkcost, double *blokcost );
 
 /**
  * @}
  * @name Symbol reordering subroutines
  * @{
  */
-void symbolReordering( const symbol_matrix_t *, pastix_order_t *, pastix_int_t, int );
-void symbolReorderingPrintComplexity( const symbol_matrix_t *symbptr );
+void pastixSymbolReordering( const symbol_matrix_t *, pastix_order_t *, pastix_int_t, int );
+void pastixSymbolReorderingPrintComplexity( const symbol_matrix_t *symbptr );
 
 /**
  * @}
  * @name Symbol construction subroutines
  * @{
  */
-int          symbolFaxGraph  ( symbol_matrix_t         *symbptr,
-                               const pastix_int_t    vertnbr,
-                               const pastix_int_t   *verttab,
-                               const pastix_int_t   *edgetab,
-                               const pastix_order_t *ordeptr );
-int          symbolKass      ( int             verbose,
-                               int             ilu,
-                               int             levelk,
-                               int             rat_cblk,
-                               int             rat_blas,
-                               symbol_matrix_t   *symbmtx,
-                               pastix_graph_t *graph,
-                               pastix_order_t *orderptr,
-                               MPI_Comm        pastix_comm );
-void         symbolRustine   ( symbol_matrix_t *symbptr, symbol_matrix_t *symbptr2 );
-void         symbolBuildRowtab( symbol_matrix_t *symbptr );
-pastix_int_t symbolGetFacingBloknum( const symbol_matrix_t *symbptr,
-                                     pastix_int_t bloksrc,
-                                     pastix_int_t bloknum,
-                                     pastix_int_t startsearch,
-                                     int ricar );
+int          pastixSymbolFaxGraph  ( symbol_matrix_t      *symbptr,
+                                     const pastix_int_t    vertnbr,
+                                     const pastix_int_t   *verttab,
+                                     const pastix_int_t   *edgetab,
+                                     const pastix_order_t *ordeptr );
+int          pastixSymbolKass      ( int             verbose,
+                                     int             ilu,
+                                     int             levelk,
+                                     int             rat_cblk,
+                                     int             rat_blas,
+                                     symbol_matrix_t   *symbmtx,
+                                     pastix_graph_t *graph,
+                                     pastix_order_t *orderptr,
+                                     MPI_Comm        pastix_comm );
+void         pastixSymbolRustine   ( symbol_matrix_t *symbptr, symbol_matrix_t *symbptr2 );
+void         pastixSymbolBuildRowtab( symbol_matrix_t *symbptr );
+pastix_int_t pastixSymbolGetFacingBloknum( const symbol_matrix_t *symbptr,
+                                           pastix_int_t bloksrc,
+                                           pastix_int_t bloknum,
+                                           pastix_int_t startsearch,
+                                           int ricar );
 /**
  * @}
- * @} End of pastix_symbol group
  */
 
 #endif /* _PASTIX_SYMBOL_H_ */
+
+/**
+ * @}
+ */
+

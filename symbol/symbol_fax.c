@@ -148,15 +148,15 @@
 */
 
 int
-symbolFax (symbol_matrix_t * const   symbptr,
-           const pastix_int_t     vertnbr,
-           const pastix_int_t     edgenbr,
-           const pastix_int_t     baseval,
-           void * const           ngbdptr,
-           pastix_int_t           ngbfrst (void * const, const pastix_int_t),
-           pastix_int_t           ngbnext (void * const),
-           pastix_int_t           ngbdegr (void * const, const pastix_int_t),
-           const pastix_order_t * const    ordeptr)
+pastixSymbolFax( symbol_matrix_t * const symbptr,
+                 const pastix_int_t      vertnbr,
+                 const pastix_int_t      edgenbr,
+                 const pastix_int_t      baseval,
+                 void * const            ngbdptr,
+                 pastix_int_t            ngbfrst (void * const, const pastix_int_t),
+                 pastix_int_t            ngbnext (void * const),
+                 pastix_int_t            ngbdegr (void * const, const pastix_int_t),
+                 const pastix_order_t * const ordeptr )
 #endif /* SYMBOL_FAX_INCLUDED */
 {
     pastix_int_t                       vertnum;  /* Vertex number of current column                   */
@@ -165,10 +165,10 @@ symbolFax (symbol_matrix_t * const   symbptr,
     const pastix_int_t * restrict      peritax;  /* Based access to inverse permutation array         */
     const pastix_int_t * restrict      rangtax;  /* Based access to column block range array          */
     pastix_int_t * restrict            ctrbtax;  /* Based access to array of contribution chains      */
-    symbol_cblk_t * restrict              cblktax;  /* Based access to column block array                */
+    symbol_cblk_t * restrict           cblktax;  /* Based access to column block array                */
     pastix_int_t                       cblknum;  /* Based number of current column block              */
     pastix_int_t                       cblkctr;  /* Based number of current contributing column block */
-    symbol_blok_t * restrict              bloktax;  /* Based access to block array                       */
+    symbol_blok_t * restrict           bloktax;  /* Based access to block array                       */
     pastix_int_t                       bloknum;  /* Based number of current first free block slot     */
     pastix_int_t                       blokmax;  /* Maximum number of blocks in array                 */
     SymbolFaxTlok * restrict           tloktab;  /* Beginning of array of temporary blocks            */
@@ -188,9 +188,9 @@ symbolFax (symbol_matrix_t * const   symbptr,
 
     /* Allocate arrays for factoring   */
     {
-        pastix_int_t *ctrbtab = NULL; /* Array for contribution chaining */
-        symbol_cblk_t   *cblktab = NULL; /* Column block array              */
-        symbol_blok_t   *bloktab = NULL; /* Block array                     */
+        pastix_int_t  *ctrbtab = NULL; /* Array for contribution chaining */
+        symbol_cblk_t *cblktab = NULL; /* Column block array              */
+        symbol_blok_t *bloktab = NULL; /* Block array                     */
 
         MALLOC_INTERN(ctrbtab, ordeptr->cblknbr,     pastix_int_t);
         MALLOC_INTERN(cblktab, ordeptr->cblknbr + 1, symbol_cblk_t);
@@ -484,9 +484,9 @@ symbolFax (symbol_matrix_t * const   symbptr,
     symbptr->browtab = NULL;
 
 #ifdef FAX_DEBUG
-    if (symbolCheck (symbptr) != 0) {
+    if (pastixSymbolCheck (symbptr) != 0) {
         errorPrint ("symbolFax: internal error (2)");
-        symbolExit (symbptr);
+        pastixSymbolExit (symbptr);
         return     (1);
     }
 #endif /* FAX_DEBUG */

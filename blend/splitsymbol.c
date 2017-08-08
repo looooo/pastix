@@ -164,10 +164,10 @@ static inline pastix_int_t *
 computeNbBlocksPerLine( const symbol_matrix_t *symbmtx,
                         pastix_int_t frowsplit )
 {
-    symbol_blok_t   *curblok;
-    pastix_int_t *nblocksperline;
-    pastix_int_t  bloknum, line;
-    pastix_int_t  size = symbmtx->nodenbr - frowsplit + 1;
+    symbol_blok_t *curblok;
+    pastix_int_t  *nblocksperline;
+    pastix_int_t   bloknum, line;
+    pastix_int_t   size = symbmtx->nodenbr - frowsplit + 1;
 
     /*
      * Allocate the temporary buffer nblocksperline, nbblocksperline stores the
@@ -397,16 +397,16 @@ computeConstantSplit( pastix_int_t *nblocksperline,
  *
  *******************************************************************************/
 void
-splitSmart( const BlendCtrl    *ctrl,
+splitSmart( const BlendCtrl       *ctrl,
             const symbol_matrix_t *symbmtx,
-            ExtraCblk_t        *extracblk,
-            const Cand         *candtab )
+            ExtraCblk_t           *extracblk,
+            const Cand            *candtab )
 {
-    symbol_blok_t   *curblok;
-    pastix_int_t *nblocksperline = NULL;
-    pastix_int_t  cblknum, bloknum, line;
-    pastix_int_t  fsplitrow = -1;
-    pastix_int_t  method, authorized_percent;
+    symbol_blok_t *curblok;
+    pastix_int_t  *nblocksperline = NULL;
+    pastix_int_t   cblknum, bloknum, line;
+    pastix_int_t   fsplitrow = -1;
+    pastix_int_t   method, authorized_percent;
 #define SPLITSYMBOL_METHOD_DEFAULT  0
 #define SPLITSYMBOL_METHOD_CONSTANT 1
 #define SPLITSYMBOL_METHOD_UPPER    2
@@ -556,7 +556,7 @@ splitSmart( const BlendCtrl    *ctrl,
  *
  *******************************************************************************/
 void
-splitSymbol( BlendCtrl    *ctrl,
+splitSymbol( BlendCtrl       *ctrl,
              symbol_matrix_t *symbmtx )
 {
     ExtraCblk_t extracblk;
@@ -572,11 +572,11 @@ splitSymbol( BlendCtrl    *ctrl,
 
     /* Check that the generated symbol matrix is correct */
     if (ctrl->debug)
-        symbolCheck(symbmtx);
+        pastixSymbolCheck(symbmtx);
 
     if ( ctrl->clustnum == 0 ) {
         if (ctrl->iparm[IPARM_VERBOSE] > PastixVerboseNo)
-            symbolPrintStats( symbmtx );
+            pastixSymbolPrintStats( symbmtx );
     }
 
     /* Rk: addcblk field is not erased by Exit call, so we can freely use it */

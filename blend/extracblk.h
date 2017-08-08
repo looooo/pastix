@@ -25,15 +25,15 @@
  * @brief Extra symbol cblk structure
  */
 typedef struct extracblk_s {
-    pastix_int_t  cblknbr; /**< Number of cblk allocated                          */
-    pastix_int_t  addcblk; /**< Number of cblk created                            */
-    pastix_int_t  addblok; /**< Number of blok created                            */
-    pastix_int_t  addblof; /**< Number of blok created due to facing cblk splited */
-    pastix_int_t *sptcblk; /**< Index for splitted cblk in the cblktab            */
-    pastix_int_t *sptcbnb; /**< Number of splitted cblk for a cblk                */
-    pastix_int_t  curcblk; /**< Cursor for cblktab                                */
-    pastix_int_t  sizcblk; /**< Size of allocated cblktab                         */
-    symbol_cblk_t   *cblktab; /**< Array of column blocks [+1,based]                 */
+    pastix_int_t   cblknbr; /**< Number of cblk allocated                          */
+    pastix_int_t   addcblk; /**< Number of cblk created                            */
+    pastix_int_t   addblok; /**< Number of blok created                            */
+    pastix_int_t   addblof; /**< Number of blok created due to facing cblk splited */
+    pastix_int_t  *sptcblk; /**< Index for splitted cblk in the cblktab            */
+    pastix_int_t  *sptcbnb; /**< Number of splitted cblk for a cblk                */
+    pastix_int_t   curcblk; /**< Cursor for cblktab                                */
+    pastix_int_t   sizcblk; /**< Size of allocated cblktab                         */
+    symbol_cblk_t *cblktab; /**< Array of column blocks [+1,based]                 */
 } ExtraCblk_t;
 
 void extraCblkInit ( pastix_int_t        cblknbr,
@@ -43,7 +43,7 @@ void extraCblkAdd  ( ExtraCblk_t        *extracblk,
                      pastix_int_t        fcolnum,
                      pastix_int_t        lcolnum   );
 void extraCblkMerge( const ExtraCblk_t  *extracblk,
-                     symbol_matrix_t       *newsymb,
+                     symbol_matrix_t    *newsymb,
                      Cand              **candtab   );
 
 #endif /* _EXTRACBLK_H_ */

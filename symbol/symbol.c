@@ -33,7 +33,7 @@
  *
  *******************************************************************************/
 void
-symbolInit ( symbol_matrix_t *symbptr )
+pastixSymbolInit ( symbol_matrix_t *symbptr )
 {
     memset (symbptr, 0, sizeof (symbol_matrix_t));
     symbptr->schurfcol = -1;
@@ -57,7 +57,7 @@ symbolInit ( symbol_matrix_t *symbptr )
  *
  *******************************************************************************/
 void
-symbolExit( symbol_matrix_t *symbptr )
+pastixSymbolExit( symbol_matrix_t *symbptr )
 {
     if (symbptr->cblktab != NULL)
         memFree_null (symbptr->cblktab);
@@ -84,7 +84,7 @@ symbolExit( symbol_matrix_t *symbptr )
  *
  *******************************************************************************/
 void
-symbolRealloc( symbol_matrix_t *symbptr )
+pastixSymbolRealloc( symbol_matrix_t *symbptr )
 {
     symbol_cblk_t *cblktab = NULL;
     symbol_blok_t *bloktab = NULL;
@@ -146,11 +146,11 @@ symbolRealloc( symbol_matrix_t *symbptr )
  *
  *******************************************************************************/
 pastix_int_t
-symbolGetFacingBloknum( const symbol_matrix_t *symbptr,
-                        pastix_int_t bloksrc,
-                        pastix_int_t bloknum,
-                        pastix_int_t startsearch,
-                        int ricar )
+pastixSymbolGetFacingBloknum( const symbol_matrix_t *symbptr,
+                              pastix_int_t bloksrc,
+                              pastix_int_t bloknum,
+                              pastix_int_t startsearch,
+                              int ricar )
 {
     symbol_blok_t *bsrc;
     symbol_blok_t *bdst;
@@ -216,14 +216,14 @@ symbolGetFacingBloknum( const symbol_matrix_t *symbptr,
  *
  *******************************************************************************/
 void
-symbolBuildRowtab( symbol_matrix_t *symbptr )
+pastixSymbolBuildRowtab( symbol_matrix_t *symbptr )
 {
     symbol_cblk_t *cblk;
     symbol_blok_t *blok;
-    pastix_int_t *innbr, *intmp, *browtab;
-    pastix_int_t  itercblk;
-    pastix_int_t  cblknbr;
-    pastix_int_t  edgenbr = symbptr->bloknbr - symbptr->cblknbr;
+    pastix_int_t  *innbr, *intmp, *browtab;
+    pastix_int_t   itercblk;
+    pastix_int_t   cblknbr;
+    pastix_int_t   edgenbr = symbptr->bloknbr - symbptr->cblknbr;
 
     cblknbr = symbptr->cblknbr;
 
@@ -301,7 +301,7 @@ symbolBuildRowtab( symbol_matrix_t *symbptr )
  *
  *******************************************************************************/
 void
-symbolPrintStats( const symbol_matrix_t *symbptr )
+pastixSymbolPrintStats( const symbol_matrix_t *symbptr )
 {
     symbol_cblk_t *cblk;
     symbol_blok_t *blok;

@@ -632,10 +632,10 @@ symbol_reorder_cblk( const symbol_matrix_t *symbptr,
  *
  *******************************************************************************/
 void
-symbolReordering( const symbol_matrix_t *symbptr,
-                  pastix_order_t     *order,
-                  pastix_int_t        split_level,
-                  int                 stop_criteria )
+pastixSymbolReordering( const symbol_matrix_t *symbptr,
+                        pastix_order_t     *order,
+                        pastix_int_t        split_level,
+                        int                 stop_criteria )
 {
     symbol_cblk_t  *cblk;
     pastix_int_t itercblk;
@@ -699,7 +699,7 @@ symbolReordering( const symbol_matrix_t *symbptr,
  *
  *******************************************************************************/
 void
-symbolReorderingPrintComplexity( const symbol_matrix_t *symbptr )
+pastixSymbolReorderingPrintComplexity( const symbol_matrix_t *symbptr )
 {
     symbol_cblk_t  *cblk;
     pastix_int_t itercblk, iterblok;

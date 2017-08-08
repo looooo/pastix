@@ -101,7 +101,7 @@ struct pastix_data_s {
     pastix_int_t    *zeros_list;         /**< List of diagonal entries considered as zeros                        */
     pastix_order_t  *ordemesh;           /**< Ordering structure                                                  */
 
-    symbol_matrix_t    *symbmtx;            /**< Symbol Matrix                                                       */
+    symbol_matrix_t *symbmtx;            /**< Symbol Matrix                                                       */
 
     pastix_bcsc_t   *bcsc;               /**< Csc after reordering grouped by cblk                                */
     SolverMatrix    *solvmatr;           /**< Solver informations associted to the matrix problem                 */
