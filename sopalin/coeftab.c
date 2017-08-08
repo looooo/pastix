@@ -21,29 +21,10 @@
 #include "coeftab.h"
 #include "pastix_zcores.h"
 
-coeftab_fct_diff_t coeftabDiff[4] =
-{
-    coeftab_sdiff, coeftab_ddiff, coeftab_cdiff, coeftab_zdiff
-};
-
-coeftab_fct_memory_t coeftabMemory[4] =
-{
-    coeftab_smemory, coeftab_dmemory, coeftab_cmemory, coeftab_zmemory
-};
-
-coeftab_fct_uncompress_t coeftabUncompress[4] =
-{
-    coeftab_suncompress, coeftab_duncompress, coeftab_cuncompress, coeftab_zuncompress
-};
-
-coeftab_fct_compress_t coeftabCompress[4] =
-{
-    coeftab_scompress, coeftab_dcompress, coeftab_ccompress, coeftab_zcompress
-};
-
 struct coeftabinit_s {
     const SolverMatrix  *datacode;
     const pastix_bcsc_t *bcsc;
+    char               **dirtemp;
     int factoLU;
 };
 
@@ -67,38 +48,33 @@ struct coeftabinit_s {
 void
 pcoeftabInit( isched_thread_t *ctx, void *args )
 {
-    struct coeftabinit_s *ciargs = (struct coeftabinit_s*)args;
-    const SolverMatrix  *datacode = ciargs->datacode;
-    const pastix_bcsc_t *bcsc     = ciargs->bcsc;
-    int factoLU    = ciargs->factoLU;
+    struct coeftabinit_s *ciargs   = (struct coeftabinit_s*)args;
+    const SolverMatrix   *datacode = ciargs->datacode;
+    const pastix_bcsc_t  *bcsc     = ciargs->bcsc;
+    char                **dirtemp  = ciargs->dirtemp;
+    int                   factoLU  = ciargs->factoLU;
     pastix_int_t i, itercblk;
     pastix_int_t task;
     int rank = ctx->rank;
+
     void (*initfunc)(const SolverMatrix*,
                      const pastix_bcsc_t*,
-                     pastix_int_t,
-                     int) = NULL;
-    void (*dumpfunc)(const SolverMatrix*,
-                     const char *) = NULL;
+                     pastix_int_t, int, char **) = NULL;
 
     switch( bcsc->flttype ) {
     case PastixComplex32:
-        initfunc = coeftab_cinitcblk;
-        dumpfunc = coeftab_cdump;
+        initfunc = coeftab_ccblkinit;
         break;
     case PastixComplex64:
-        initfunc = coeftab_zinitcblk;
-        dumpfunc = coeftab_zdump;
+        initfunc = coeftab_zcblkinit;
         break;
     case PastixFloat:
-        initfunc = coeftab_sinitcblk;
-        dumpfunc = coeftab_sdump;
+        initfunc = coeftab_scblkinit;
         break;
     case PastixDouble:
     case PastixPattern:
     default:
-        initfunc = coeftab_dinitcblk;
-        dumpfunc = coeftab_ddump;
+        initfunc = coeftab_dcblkinit;
     }
 
     for (i=0; i < datacode->ttsknbr[rank]; i++)
@@ -106,11 +82,9 @@ pcoeftabInit( isched_thread_t *ctx, void *args )
         task = datacode->ttsktab[rank][i];
         itercblk = datacode->tasktab[task].cblknum;
 
-        initfunc( datacode, bcsc, itercblk, factoLU );
+        /* Init as full rank */
+        initfunc( datacode, bcsc, itercblk, factoLU, dirtemp );
     }
-
-    (void)dumpfunc;
-    //dumpfunc( datacode, "lcoeftab.txt" );
 }
 
 void
@@ -122,10 +96,14 @@ coeftabInit( const pastix_data_t *pastix_data,
     args.datacode   = pastix_data->solvmatr;
     args.bcsc       = pastix_data->bcsc;
     args.factoLU    = factoLU;
+    args.dirtemp    = &(pastix_data->dirtemp);
+
+#if defined(PASTIX_DEBUG_DUMP_COEFTAB)
+    /* Make sure dirtemp is initialized before calling it with multiple threads */
+    pastix_gendirtemp( args.dirtemp );
+#endif
 
     isched_parallel_call( pastix_data->isched, pcoeftabInit, &args );
-
-    //dumpfunc( datacode, "lcoeftab.txt" );
 }
 
 void

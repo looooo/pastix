@@ -43,7 +43,7 @@
  *
  *******************************************************************************/
 void
-coeftab_zdumpcblk( const SolverCblk *cblk,
+coeftab_zcblkdump( const SolverCblk *cblk,
                    pastix_uplo_t     uplo,
                    FILE             *stream )
 {
@@ -182,7 +182,7 @@ coeftab_zdump( pastix_data_t      *pastix_data,
     pastix_int_t itercblk;
     FILE *stream = NULL;
 
-    stream = pastix_fopenw( pastix_data, filename, "w" );
+    stream = pastix_fopenw( &(pastix_data->dirtemp), filename, "w" );
     if ( stream == NULL ){
         return;
     }
@@ -191,12 +191,11 @@ coeftab_zdump( pastix_data_t      *pastix_data,
      * TODO: there is a problem right here for now, because there are no
      * distinctions between L and U coeffcients in the final file
      */
-
     for (itercblk=0; itercblk<solvmtx->cblknbr; itercblk++, cblk++)
     {
-        coeftab_zdumpcblk( cblk, PastixLower, stream );
+        coeftab_zcblkdump( cblk, PastixLower, stream );
         if ( NULL != cblk->ucoeftab )
-            coeftab_zdumpcblk( cblk, PastixUpper, stream );
+            coeftab_zcblkdump( cblk, PastixUpper, stream );
     }
 
     fclose( stream );
