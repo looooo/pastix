@@ -56,8 +56,8 @@
  *
  *******************************************************************************/
 int
-orderComputeMetis( pastix_data_t  *pastix_data,
-                   pastix_graph_t *graph )
+pastixOrderComputeMetis( pastix_data_t  *pastix_data,
+                         pastix_graph_t *graph )
 {
     pastix_int_t   *iparm    = pastix_data->iparm;
     pastix_order_t *ordemesh = pastix_data->ordemesh;
@@ -89,10 +89,10 @@ orderComputeMetis( pastix_data_t  *pastix_data,
     opt[METIS_OPTION_DBGLVL   ] = iparm[IPARM_METIS_DBGLVL];
 
     n = graph->n;
-    rc = orderAlloc( ordemesh, graph->n, 0 );
+    rc = pastixOrderAlloc( ordemesh, graph->n, 0 );
     if (rc != PASTIX_SUCCESS )
     {
-        errorPrint("orderComputeMetis: Error during odering initialization\n");
+        errorPrint("pastixOrderComputeMetis: Error during odering initialization\n");
         return rc;
     }
     ordemesh->baseval = baseval;
@@ -102,7 +102,7 @@ orderComputeMetis( pastix_data_t  *pastix_data,
     assert( n == graph->n );
     if (rc != METIS_OK )
     {
-        errorPrint("orderComputeMetis: Invalid code returned by METIS_NodeND (%d)\n", rc);
+        errorPrint("pastixOrderComputeMetis: Invalid code returned by METIS_NodeND (%d)\n", rc);
         return PASTIX_ERR_INTERNAL;
     }
 

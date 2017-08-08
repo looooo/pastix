@@ -105,7 +105,7 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
     }
 
     /* Make sure ordering is 0 based */
-    orderBase( pastix_data->ordemesh, 0 );
+    pastixOrderBase( pastix_data->ordemesh, 0 );
 
     perm = (dir == PastixDirForward) ? pastix_data->ordemesh->permtab : pastix_data->ordemesh->peritab;
 

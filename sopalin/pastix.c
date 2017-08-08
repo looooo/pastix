@@ -250,7 +250,7 @@ pastix( pastix_data_t **pastix_data_ptr,
 
         if ( (perm != NULL) || (invp != NULL) ) {
             o = malloc( sizeof(pastix_order_t) );
-            ret = orderAlloc( o, 0, 0 );
+            ret = pastixOrderAlloc( o, 0, 0 );
 
             if ( perm != NULL ) {
                 MALLOC_INTERN(o->permtab, n, pastix_int_t);
@@ -280,7 +280,7 @@ pastix( pastix_data_t **pastix_data_ptr,
                 assert( o->vertnbr == n );
                 memcpy( invp, o->peritab, n * sizeof(pastix_int_t));
             }
-            orderExit(o);
+            pastixOrderExit(o);
             free(o);
         }
         iparm[IPARM_START_TASK]++;

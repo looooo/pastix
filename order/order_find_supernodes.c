@@ -351,8 +351,8 @@ compute_elimination_tree(      pastix_int_t n,
  *
  *******************************************************************************/
 void
-orderFindSupernodes( const pastix_graph_t *graph,
-                     pastix_order_t * const ordeptr )
+pastixOrderFindSupernodes( const pastix_graph_t *graph,
+                           pastix_order_t * const ordeptr )
 {
     pastix_int_t *father     = NULL; /* father[i] is the father of node i in he elimination tree of A */
     pastix_int_t *T;                 /* T[j] is the number of node in the subtree rooted in node j in

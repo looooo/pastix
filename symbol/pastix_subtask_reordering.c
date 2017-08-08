@@ -103,7 +103,7 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
     if ( iparm[IPARM_IO_STRATEGY] & PastixIOSave )
     {
         if (procnum == 0) {
-            orderSave( pastix_data, ordemesh );
+            pastixOrderSave( pastix_data, ordemesh );
         }
     }
 
@@ -122,8 +122,8 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
     iparm[IPARM_VERBOSE] = verbose;
 
 #if !defined(NDEBUG)
-    if ( orderCheck( ordemesh ) != 0) {
-        errorPrint("pastix_subtask_reordering: orderCheck on final ordering failed !!!");
+    if ( pastixOrderCheck( ordemesh ) != 0) {
+        errorPrint("pastix_subtask_reordering: pastixOrderCheck on final ordering failed !!!");
         assert(0);
     }
     if( symbolCheck(pastix_data->symbmtx) != 0 ) {

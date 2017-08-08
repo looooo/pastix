@@ -61,8 +61,8 @@ void global2localperm(pastix_int_t  lN,
  *
  *******************************************************************************/
 int
-orderComputePTScotch( pastix_data_t  *pastix_data,
-                      pastix_graph_t *graph )
+pastixOrderComputePTScotch( pastix_data_t  *pastix_data,
+                            pastix_graph_t *graph )
 {
     SCOTCH_Dordering ordedat;
     SCOTCH_Ordering  ordering;
@@ -85,7 +85,7 @@ orderComputePTScotch( pastix_data_t  *pastix_data,
 
     /* Check integer compatibility */
     if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num)) {
-        errorPrint("orderComputePTScotch: Inconsistent integer type between Pastix and PT-Scotch\n");
+        errorPrint("pastixOrderComputePTScotch: Inconsistent integer type between Pastix and PT-Scotch\n");
         return PASTIX_ERR_INTEGER_TYPE;
     }
 
@@ -124,7 +124,7 @@ orderComputePTScotch( pastix_data_t  *pastix_data,
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
 
-    print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_dgraphCheck <\n");
+    print_debug(DBG_PASTIXORDER_SCOTCH, "> SCOTCH_dgraphCheck <\n");
     if (SCOTCH_dgraphCheck(&dgraph)) {
         errorPrint("pastix: SCOTCH_dgraphCheck");
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
@@ -201,9 +201,9 @@ orderComputePTScotch( pastix_data_t  *pastix_data,
     /*    EXIT(MOD_SOPALIN,INTERNAL_ERR); */
     /*  } */
 
-    /* TODO: orderInit prototype has changed !!! */
+    /* TODO: pastixOrderInit prototype has changed !!! */
     assert(0);
-    orderInit(ordemesh, gN, gN);
+    pastixOrderInit(ordemesh, gN, gN);
     memset( ordemesh->rangtab, 0, (gN+1)*sizeof(pastix_int_t));
 
     SCOTCH_dgraphCorderInit (&dgraph,
@@ -231,7 +231,7 @@ orderComputePTScotch( pastix_data_t  *pastix_data,
     SCOTCH_dgraphOrderExit( &dgraph, &ordedat );
     SCOTCH_dgraphExit( &dgraph );
 
-    orderBase(ordemesh, 0);
+    pastixOrderBase(ordemesh, 0);
 
     if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
         pastix_print(procnum, 0, TIME_COMPUTE_ORDERING, clockVal(timer));

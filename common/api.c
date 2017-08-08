@@ -597,7 +597,7 @@ pastixFinalize( pastix_data_t **pastix_data )
 
     if ( pastix->ordemesh != NULL )
     {
-        orderExit( pastix->ordemesh );
+        pastixOrderExit( pastix->ordemesh );
         memFree_null( pastix->ordemesh );
     }
 

@@ -29,7 +29,7 @@
  *
  * @param[inout] ordeptr
  *          The data structure is set to 0 and then initialize.
- *          Need to call orderExit to release the memory first if required to
+ *          Need to call pastixOrderExit() to release the memory first if required to
  *          prevent memory leak.
  *
  * @param[in] vertnbr
@@ -50,9 +50,9 @@
  *
  *******************************************************************************/
 int
-orderAlloc( pastix_order_t * const ordeptr,
-            pastix_int_t           vertnbr,
-            pastix_int_t           cblknbr )
+pastixOrderAlloc( pastix_order_t * const ordeptr,
+                  pastix_int_t           vertnbr,
+                  pastix_int_t           cblknbr )
 {
     /* Parameter checks */
     if ( ordeptr == NULL ) {
@@ -144,14 +144,14 @@ orderAlloc( pastix_order_t * const ordeptr,
  *
  *******************************************************************************/
 int
-orderInit( pastix_order_t * const ordeptr,
-           pastix_int_t           baseval,
-           pastix_int_t           vertnbr,
-           pastix_int_t           cblknbr,
-           pastix_int_t          *permtab,
-           pastix_int_t          *peritab,
-           pastix_int_t          *rangtab,
-           pastix_int_t          *treetab )
+pastixOrderInit( pastix_order_t * const ordeptr,
+                 pastix_int_t           baseval,
+                 pastix_int_t           vertnbr,
+                 pastix_int_t           cblknbr,
+                 pastix_int_t          *permtab,
+                 pastix_int_t          *peritab,
+                 pastix_int_t          *rangtab,
+                 pastix_int_t          *treetab )
 {
     /* Parameter checks */
     if ( ordeptr == NULL ) {
@@ -201,7 +201,7 @@ orderInit( pastix_order_t * const ordeptr,
  *
  *******************************************************************************/
 void
-orderExit( pastix_order_t * const ordeptr )
+pastixOrderExit( pastix_order_t * const ordeptr )
 {
     /* Parameter check */
     if ( ordeptr == NULL ) {
@@ -238,8 +238,8 @@ orderExit( pastix_order_t * const ordeptr )
  *
  *******************************************************************************/
 void
-orderBase( pastix_order_t * const ordeptr,
-	   pastix_int_t           baseval )
+pastixOrderBase( pastix_order_t * const ordeptr,
+                 pastix_int_t           baseval )
 {
     pastix_int_t baseadj;                    /* Base adjust */
     pastix_int_t cblknum;
@@ -247,13 +247,13 @@ orderBase( pastix_order_t * const ordeptr,
 
     /* Parameter checks */
     if ( ordeptr == NULL ) {
-        errorPrint("orderBase: ordeptr pointer is NULL");
+        errorPrint("pastixOrderBase: ordeptr pointer is NULL");
         return;
     }
     if ( (baseval != 0) &&
          (baseval != 1) )
     {
-        errorPrint("orderBase: baseval is incorrect, must be 0 or 1");
+        errorPrint("pastixOrderBase: baseval is incorrect, must be 0 or 1");
         return;
     }
 
@@ -304,8 +304,8 @@ orderBase( pastix_order_t * const ordeptr,
  *
  *******************************************************************************/
 int
-orderCopy( pastix_order_t       * const ordedst,
-           const pastix_order_t * const ordesrc )
+pastixOrderCopy( pastix_order_t       * const ordedst,
+                 const pastix_order_t * const ordesrc )
 {
     /* Parameter checks */
     if ( ordedst == NULL ) {

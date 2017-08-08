@@ -58,8 +58,8 @@
  *
  *******************************************************************************/
 int
-orderComputeScotch( pastix_data_t  *pastix_data,
-                    pastix_graph_t *graph )
+pastixOrderComputeScotch( pastix_data_t  *pastix_data,
+                          pastix_graph_t *graph )
 {
     pastix_order_t *ordemesh = pastix_data->ordemesh;
     SCOTCH_Graph    scotchgraph;
@@ -111,7 +111,7 @@ orderComputeScotch( pastix_data_t  *pastix_data,
     }
 #endif
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphInit <\n");
-    orderAlloc(ordemesh, n, n);
+    pastixOrderAlloc(ordemesh, n, n);
     SCOTCH_graphInit( &scotchgraph );
 
     print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphBuild <\n");
@@ -209,7 +209,7 @@ orderComputeScotch( pastix_data_t  *pastix_data,
 #endif
 
     if (ret != 0) {           /* If something failed in Scotch */
-        orderExit (ordemesh);    /* Free ordering arrays          */
+        pastixOrderExit (ordemesh);    /* Free ordering arrays          */
         return PASTIX_ERR_INTERNAL;
     }
 

@@ -148,7 +148,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     clockStart(timer);
 
     /* Make sure they are both 0-based */
-    orderBase( ordemesh, 0 );
+    pastixOrderBase( ordemesh, 0 );
     graphBase( graph, 0 );
 
     print_debug(DBG_STEP, "-> pastix_subtask_symbfact\n");
@@ -302,7 +302,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
             if ( iparm[IPARM_IO_STRATEGY] & PastixIOSave )
             {
                 if (procnum == 0) {
-                    orderSave( pastix_data, ordemesh );
+                    pastixOrderSave( pastix_data, ordemesh );
                 }
             }
 
@@ -344,8 +344,8 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     symbolRealloc( pastix_data->symbmtx );
 
 #if !defined(NDEBUG)
-    if ( orderCheck( ordemesh ) != 0) {
-        errorPrint("pastix_subtask_symbfact: orderCheck on final ordering after symbolic factorization failed !!!");
+    if ( pastixOrderCheck( ordemesh ) != 0) {
+        errorPrint("pastix_subtask_symbfact: pastixOrderCheck on final ordering after symbolic factorization failed !!!");
         assert(0);
     }
     if( symbolCheck(pastix_data->symbmtx) != 0 ) {

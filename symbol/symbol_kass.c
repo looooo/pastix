@@ -126,7 +126,7 @@ symbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
 
     /* Convert Fortran to C numbering */
     graphBase( csc, 0 );
-    orderBase( orderptr, 0 );
+    pastixOrderBase( orderptr, 0 );
 
     n  = csc->n;
     ia = csc->colptr;
