@@ -14,7 +14,7 @@ cmake_policy(SET CMP0054 NEW)
 ### CTest execution
 set( PASTIX_DRIVERS
    # reentrant fails with Scotch parser !
-  analyze simple step-by-step schur personal old/old_simple old/old_step-by-step )
+  analyze simple step-by-step schur personal reentrant old/old_simple old/old_step-by-step )
 set( PASTIX_TESTS
   simple )
 set( PASTIX_FACTO
