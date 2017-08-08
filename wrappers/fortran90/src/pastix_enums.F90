@@ -42,7 +42,9 @@ module pastix_enums
   integer, parameter :: iparm_static_pivoting       = iparm_factorization         + 1
   integer, parameter :: iparm_inertia               = iparm_static_pivoting       + 1
   integer, parameter :: iparm_free_cscuser          = iparm_inertia               + 1
-  integer, parameter :: iparm_refinement            = iparm_free_cscuser          + 1
+  integer, parameter :: iparm_schur_fact_mode       = iparm_free_cscuser          + 1
+  integer, parameter :: iparm_schur_solv_mode       = iparm_schur_fact_mode       + 1
+  integer, parameter :: iparm_refinement            = iparm_schur_solv_mode       + 1
   integer, parameter :: iparm_nbiter                = iparm_refinement            + 1
   integer, parameter :: iparm_itermax               = iparm_nbiter                + 1
   integer, parameter :: iparm_gmres_im              = iparm_itermax               + 1
@@ -107,6 +109,16 @@ module pastix_enums
   integer, parameter :: PastixIOSaveGraph  = 8
   integer, parameter :: PastixIOLoadCSC    = 16
   integer, parameter :: PastixIOSaveCSC    = 32
+
+  ! class factmode:
+  integer, parameter :: PastixFactModeLocal = 0
+  integer, parameter :: PastixFactModeSchur = 1
+  integer, parameter :: PastixFactModeBoth  = 2
+
+  ! class solvmode:
+  integer, parameter :: PastixSolvModeLocal     = 0
+  integer, parameter :: PastixSolvModeInterface = 1
+  integer, parameter :: PastixSolvModeSchur     = 2
 
   ! class refine:
   integer, parameter :: PastixRefineGMRES    = 0
