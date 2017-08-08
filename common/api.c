@@ -29,30 +29,38 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+void
+pastix_gendirtemp( char **dirtemp )
+{
+    if ( *dirtemp == NULL ) {
+        mode_t old_mask = umask(S_IWGRP | S_IWOTH);
+
+        *dirtemp = strdup( "pastix-XXXXXX" );
+        *dirtemp = mkdtemp( *dirtemp );
+        (void)umask(old_mask);
+
+        if ( *dirtemp == NULL ) {
+            errorPrint("pastix_gendirtemp: Couldn't not generate the tempory directory to store the output files");
+        }
+    }
+}
+
 FILE *
-pastix_fopenw( pastix_data_t *pastix,
-               const char    *filename,
-               const char    *mode )
+pastix_fopenw( char       **dirtemp,
+               const char  *filename,
+               const char  *mode )
 {
     char *fullname;
     FILE *f = NULL;
     int rc;
 
-    if ( pastix->dirtemp == NULL ) {
-        mode_t old_mask = umask(S_IWGRP | S_IWOTH);
-
-        pastix->dirtemp = strdup( "pastix-XXXXX" );
-        pastix->dirtemp = mkdtemp( pastix->dirtemp );
-        (void)umask(old_mask);
-
-        if ( pastix->dirtemp == NULL ) {
-            errorPrint("pastix_fopenw: Couldn't not generate the tempory directory to store the output files");
-            return NULL;
-        }
+    pastix_gendirtemp( dirtemp );
+    if ( *dirtemp == NULL ) {
+        return NULL;
     }
 
-    rc = asprintf( &fullname, "%s/%s", pastix->dirtemp, filename );
-    if (rc != 0 ) {
+    rc = asprintf( &fullname, "%s/%s", *dirtemp, filename );
+    if (rc <= 0 ) {
         errorPrint("pastix_fopenw: Couldn't not generate the tempory filename for the output file");
         return NULL;
     }
@@ -65,20 +73,20 @@ pastix_fopenw( pastix_data_t *pastix,
         return NULL;
     }
 
+    free( fullname );
     return f;
 }
 
 FILE *
-pastix_fopen( const char *filename,
-              const char *mode )
+pastix_fopen( const char *filename )
 {
     FILE *f = NULL;
 
-    if (NULL == (f = fopen(filename, mode)))
+    if (NULL == (f = fopen(filename, "r")))
     {
         perror("pastix_fopen");
-        errorPrint( "pastix_fopen: Couldn't open file: %s with mode %s\n",
-                    filename, mode );
+        errorPrint( "pastix_fopen: Couldn't open file: %s with mode r\n",
+                    filename );
         return NULL;
     }
 
@@ -627,5 +635,9 @@ pastixFinalize( pastix_data_t **pastix_data )
         MPI_Finalize();
     }
 #endif
+
+    if ( pastix->dirtemp != NULL ) {
+        free( pastix->dirtemp );
+    }
     memFree_null(*pastix_data);
 }
