@@ -310,8 +310,8 @@ contains
 
     pastix_data_aux = c_loc(pastix_data)
 
-    info = pastix_c(pastix_data_aux, pastix_comm, n, c_loc(colptr), c_loc(row), c_loc(avals), c_loc(perm), c_loc(invp), &
-         c_loc(b), nrhs, c_loc(iparm), c_loc(dparm))
+    info = pastix_c(pastix_data_aux, pastix_comm, n, c_loc(colptr), c_loc(row), avals, c_loc(perm), c_loc(invp), &
+         b, nrhs, c_loc(iparm), c_loc(dparm))
     call c_f_pointer(pastix_data_aux, pastix_data)
   end subroutine pastix
 
@@ -473,7 +473,7 @@ contains
     integer(kind=pastix_int_t), intent(in)            :: ldb
     integer(kind=c_int),        intent(out)           :: info
 
-    info = pastix_subtask_applyorder_c(c_loc(pastix_data), flttype, dir, m, n, c_loc(b), ldb)
+    info = pastix_subtask_applyorder_c(c_loc(pastix_data), flttype, dir, m, n, b, ldb)
   end subroutine pastix_subtask_applyorder
 
   subroutine pastix_subtask_trsm(pastix_data, flttype, side, uplo, trans, diag, nrhs, b, &
@@ -492,7 +492,7 @@ contains
     integer(kind=c_int),        intent(out)           :: info
 
     info = pastix_subtask_trsm_c(c_loc(pastix_data), flttype, side, uplo, trans, diag, &
-         nrhs, c_loc(b), ldb)
+         nrhs, b, ldb)
   end subroutine pastix_subtask_trsm
 
   subroutine pastix_subtask_diag(pastix_data, flttype, nrhs, b, ldb, info)
@@ -505,7 +505,7 @@ contains
     integer(kind=pastix_int_t), intent(in)            :: ldb
     integer(kind=c_int),        intent(out)           :: info
 
-    info = pastix_subtask_diag_c(c_loc(pastix_data), flttype, nrhs, c_loc(b), ldb)
+    info = pastix_subtask_diag_c(c_loc(pastix_data), flttype, nrhs, b, ldb)
   end subroutine pastix_subtask_diag
 
   subroutine pastix_setSchurUnknownList(pastix_data, n, list)
@@ -526,7 +526,7 @@ contains
     integer(kind=pastix_int_t), intent(in)            :: lds
     integer(kind=c_int),        intent(out)           :: info
 
-    info = pastix_getSchur_c(c_loc(pastix_data), c_loc(S), lds)
+    info = pastix_getSchur_c(c_loc(pastix_data), S, lds)
   end subroutine pastix_getSchur
 
   subroutine pastix_getOptions(argc, argv, iparm, dparm, check, driver, filename)
