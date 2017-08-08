@@ -27,7 +27,7 @@
 typedef struct solve_param {
     pastix_int_t        iparm[IPARM_SIZE];
     double              dparm[DPARM_SIZE];
-    char                *filename;
+    char               *filename;
     pastix_driver_t     driver;
     int                 check;
 } solve_param_t;

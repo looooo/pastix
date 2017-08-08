@@ -18,7 +18,7 @@ set( PASTIX_DRIVERS
 set( PASTIX_TESTS
   simple )
 set( PASTIX_FACTO
-     0 1 2) # LLt, LDLt, LU, LDLh
+     0 1 2) # LLt, LDLt, LU
 set( PASTIX_SCHEDS
      0 1) # sequential, static
 if (PASTIX_WITH_PARSEC)
