@@ -109,16 +109,18 @@ ordering_load(Order * ordeptr,
  *
  * @brief Load an ordering from a file.
  *
+ * The filename is defined by the environment variable PASTIX_FILE_ORDER, and if
+ * PASTIX_FILE_ORDER is not defined, the default filename "ordername" in the
+ * current directory is used.
+ *
  *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pointer to the solver instance to get options as rank,
+ *          communicators, ...
  *
  * @param[inout] ordemesh
  *          The initialized ordering structure to fill in.
- *
- * @param[in] filename
- *          The filename where to read the ordering. If filename == NULL, the
- *          environment variable PASTIX_FILE_ORDER is used, and if
- *          PASTIX_FILE_ORDER is not defined, the default filename "ordername" in
- *          the current directory is used.
  *
  *******************************************************************************
  *
@@ -127,12 +129,13 @@ ordering_load(Order * ordeptr,
  * @retval PASTIX_ERR_FILE if a problem occurs during the read.
  *
  *******************************************************************************/
-int orderLoad( Order *ordemesh,
-               char  *filename )
+int orderLoad( const pastix_data_t *pastix_data,
+               Order               *ordemesh )
 {
-    FILE  *stream;
-    int rc = PASTIX_SUCCESS;
-    int env = 0;
+    FILE *stream   = NULL;
+    char *filename = NULL;
+    int   rc  = PASTIX_SUCCESS;
+    int   env = 1;
 
     /* Parameter checks */
     if ( ordemesh == NULL ) {
@@ -142,10 +145,7 @@ int orderLoad( Order *ordemesh,
     /*
      * Get the environment variable as second option
      */
-    if ( filename == NULL ) {
-        filename = pastix_getenv( "PASTIX_FILE_ORDER" );
-        env = 1;
-    }
+    filename = pastix_getenv( "PASTIX_FILE_ORDER" );
 
     /*
      * Get the default name as third option
@@ -155,19 +155,22 @@ int orderLoad( Order *ordemesh,
         env = 0;
     }
 
-    PASTIX_FOPEN(stream, filename, "r");
-    rc = ordering_load(ordemesh, stream);
-    if (rc != PASTIX_SUCCESS)
-    {
-        errorPrint("test: cannot load order");
-        EXIT(MOD_SOPALIN, PASTIX_ERR_INTERNAL);
+    stream = pastix_fopen( filename );
+    if ( stream ) {
+        rc = ordering_load(ordemesh, stream);
+        if (rc != PASTIX_SUCCESS)
+        {
+            errorPrint("test: cannot load order");
+            EXIT(MOD_SOPALIN, PASTIX_ERR_INTERNAL);
+        }
+        fclose(stream);
     }
-    fclose(stream);
 
     if (env) {
         pastix_cleanenv( filename );
     }
 
+    (void)pastix_data;
     return rc;
 }
 
@@ -267,16 +270,18 @@ ordering_save(const Order * const ordeptr,
  *
  * @brief Save an ordering to a file.
  *
+ * The graph file is store in the directory pastix-XXXXXX uniquely generated per
+ * instance, and is named by the PASTIX_FILE_ORDER environment variable, or
+ * ordergen by default.
+ *
  *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pointer to the solver instance to get options as rank,
+ *          communicators, ...
  *
  * @param[in] ordemesh
  *          The initialized ordering structure to save.
- *
- * @param[in] filename
- *          The filename where to save the ordering. If filename == NULL, the
- *          environment variable PASTIX_FILE_ORDER is used, and if
- *          PASTIX_FILE_ORDER is not defined, the default filename "ordergen" in
- *          the current directory is used.
  *
  *******************************************************************************
  *
@@ -285,12 +290,14 @@ ordering_save(const Order * const ordeptr,
  * @retval PASTIX_ERR_FILE if a problem occurs during the write.
  *
  *******************************************************************************/
-int orderSave( const Order * const ordemesh,
-               char  *filename )
+int
+orderSave( pastix_data_t      *pastix_data,
+           const Order * const ordemesh )
 {
-    FILE *stream;
-    int rc = PASTIX_SUCCESS;
-    int env = 0;
+    FILE *stream   = NULL;
+    int   rc       = PASTIX_SUCCESS;
+    int   env      = 1;
+    char *filename = NULL;
 
     /* Parameter checks */
     if ( ordemesh == NULL ) {
@@ -300,10 +307,7 @@ int orderSave( const Order * const ordemesh,
     /*
      * Get the environment variable as second option
      */
-    if ( filename == NULL ) {
-        filename = pastix_getenv( "PASTIX_FILE_ORDER" );
-        env = 1;
-    }
+    filename = pastix_getenv( "PASTIX_FILE_ORDER" );
 
     /*
      * Get the default name as third option
@@ -313,7 +317,7 @@ int orderSave( const Order * const ordemesh,
         env = 0;
     }
 
-    PASTIX_FOPEN(stream, filename, "w");
+    stream = pastix_fopenw(  &(pastix_data->dirtemp), filename, "w" );
     rc = ordering_save(ordemesh, stream);
     if (rc != PASTIX_SUCCESS )
     {

@@ -61,8 +61,8 @@ int  orderCopy (      Order * const ordedst, const Order * const ordesrc);
  * @name Order IO subroutines
  * @{
  */
-int  orderLoad(       Order * const ordeptr, char *filename );
-int  orderSave( const Order * const ordeptr, char *filename );
+int  orderLoad( const pastix_data_t *pastix_data,       Order * const ordeptr );
+int  orderSave(       pastix_data_t *pastix_data, const Order * const ordeptr );
 
 /**
  * @}

@@ -113,7 +113,11 @@ spmReadDriver( pastix_driver_t  driver,
             SCOTCH_Graph sgraph;
             FILE *file;
 
-            PASTIX_FOPEN( file, filename, "r" );
+            file = fopen( filename, "r" );
+            if ( file == NULL ) {
+                pastix_error_print("spmReadDriver: impossible to open the file %s\n", filename );
+                return PASTIX_ERR_FILE;
+            }
 
             /* Check integer compatibility */
             if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num)) {

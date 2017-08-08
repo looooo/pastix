@@ -27,7 +27,7 @@
 typedef struct solve_param {
     pastix_int_t        iparm[IPARM_SIZE];
     double              dparm[DPARM_SIZE];
-    char                *filename;
+    char               *filename;
     pastix_driver_t     driver;
     int                 check;
 } solve_param_t;
@@ -137,10 +137,10 @@ int main (int argc, char **argv)
     pastix_int_t        iparm[IPARM_SIZE];      /*< Integer in/out parameters for pastix                */
     double              dparm[DPARM_SIZE];      /*< Floating in/out parameters for pastix               */
     pastix_driver_t     driver;                 /*< Matrix driver(s) requested by user                  */
-    char                *filename;              /*< Filename(s) given by user                           */
+    char               *filename;               /*< Filename(s) given by user                           */
     int                 nbcallingthreads = 2;
-    solve_param_t       *solve_param;
-    pthread_t           *threads;
+    solve_param_t      *solve_param;
+    pthread_t          *threads;
     int                 i, check = 1;
 
     /**
@@ -158,11 +158,8 @@ int main (int argc, char **argv)
     /**
      *    Set parameters for each thread
      */
-    if (iparm[IPARM_THREAD_NBR] > 2)
-        nbcallingthreads = iparm[IPARM_THREAD_NBR];
     solve_param = (solve_param_t*) malloc(nbcallingthreads * sizeof(solve_param_t));
     threads     = (pthread_t*)     malloc(nbcallingthreads * sizeof(pthread_t));
-
 
     for (i = 0; i < nbcallingthreads; i++)
     {

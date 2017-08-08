@@ -218,6 +218,7 @@ spmGenFakeValues( pastix_spm_t *spm )
     degrees = malloc( spm->n * sizeof(pastix_int_t));
     spm_compute_degrees( spm, degrees );
     spm_generate_fake_values( spm, degrees, alpha, beta );
+    free( degrees );
 
     return;
 }

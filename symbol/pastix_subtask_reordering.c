@@ -103,7 +103,7 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
     if ( iparm[IPARM_IO_STRATEGY] & PastixIOSave )
     {
         if (procnum == 0) {
-            orderSave( ordemesh, NULL );
+            orderSave( pastix_data, ordemesh );
         }
     }
 

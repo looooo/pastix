@@ -115,7 +115,7 @@ int
 pastix_subtask_blend( pastix_data_t *pastix_data )
 {
     BlendCtrl      ctrl;
-    pastix_int_t   procnbr, procnum, verbose;
+    pastix_int_t   procnum, verbose;
     pastix_int_t  *iparm;
     double        *dparm;
     Order         *ordeptr;
@@ -139,7 +139,6 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
     iparm   = pastix_data->iparm;
     dparm   = pastix_data->dparm;
-    procnbr = pastix_data->inter_node_procnbr;
     procnum = pastix_data->inter_node_procnum;
     ordeptr = pastix_data->ordemesh;
     symbmtx = pastix_data->symbmtx;
@@ -179,8 +178,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     }
 
     /* Create the control structure that parameterize the analyze step */
-    blendCtrlInit( &ctrl, procnum, procnbr,
-                   iparm, dparm );
+    blendCtrlInit( pastix_data, &ctrl );
 
     if( verbose > PastixVerboseNo)
         pastix_print( procnum, 0, OUT_BLEND_CONF,
@@ -311,20 +309,23 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
     {
-        FILE *stream;
-        PASTIX_FOPEN(stream, "symbolblend.eps", "w");
-        symbolDraw(symbmtx,
-                   stream);
-        fclose(stream);
+        FILE *stream = NULL;
+        stream = pastix_fopenw( &(pastix_data->dirtemp), "symbol_after_split.eps", "w" );
+        if ( stream ) {
+            symbolDraw( symbmtx, stream );
+            fclose( stream );
+        }
     }
 #endif
 
     if (0)
     {
-        FILE *file;
-        PASTIX_FOPEN(file, "symbgen2", "w");
-        symbolSave(symbmtx, file);
-        fclose(file);
+        FILE *file = NULL;
+        file = pastix_fopenw( &(pastix_data->dirtemp), "symbol_after_split", "w" );
+        if ( file ) {
+            symbolSave( symbmtx, file );
+            fclose( file );
+        }
     }
 
     /* Simulation step to perform the data distribution over the nodes and compute the priorities of each task */
@@ -435,16 +436,6 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     if (verbose > PastixVerboseYes)
         symbolPrintStats( pastix_data->symbmtx );
 
-#if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
-    {
-        FILE *stream;
-        PASTIX_FOPEN(stream, "symbol.eps", "w");
-        symbolDraw(pastix_data->symbmtx,
-                   stream);
-        fclose(stream);
-    }
-#endif
-
     /* Symbol is not used anymore */
     symbolExit(pastix_data->symbmtx);
     memFree_null(pastix_data->symbmtx);
@@ -472,7 +463,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                           PERF_MODEL, dparm[DPARM_PRED_FACT_TIME],
                           dparm[DPARM_ANALYZE_TIME] );
 
-            if (0) /* TODO: consider that when movig to distributed */
+            if (0) /* TODO: consider that when moving to distributed */
             {
                 if ((verbose > PastixVerboseNo))
                 {
@@ -505,10 +496,12 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     /* Backup the solver for debug */
     if (0)
     {
-        FILE *file;
-        PASTIX_FOPEN(file, "solvergen", "w");
-        solverSave(solvmtx, file);
-        fclose(file);
+        FILE *file = NULL;
+        file = pastix_fopenw( &(pastix_data->dirtemp), "solvergen", "w" );
+        if ( file ) {
+            solverSave( solvmtx, file );
+            fclose(file);
+        }
     }
 
     /* Invalidate following steps, and add analyze step to the ones performed */

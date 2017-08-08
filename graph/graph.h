@@ -58,8 +58,8 @@ void graphExit   (       pastix_graph_t  *graph );
  * @{
  */
 void graphLoad( const pastix_data_t  *pastix_data,
-                      pastix_graph_t *graph );
-void graphSave( const pastix_data_t  *pastix_data,
+                pastix_graph_t       *graph );
+void graphSave( pastix_data_t        *pastix_data,
                 const pastix_graph_t *graph );
 
 /**

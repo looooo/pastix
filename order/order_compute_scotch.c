@@ -180,7 +180,12 @@ orderComputeScotch( pastix_data_t  *pastix_data,
             pastix_print(procnum, 0, "Scotch personal strategy |%s|\n", strat);
     }
 
-    ret = SCOTCH_stratGraphOrder (&stratdat, strat);
+    {
+        static volatile pastix_atomic_lock_t strat_lock = PASTIX_ATOMIC_UNLOCKED;
+        pastix_atomic_lock( &strat_lock );
+        ret = SCOTCH_stratGraphOrder (&stratdat, strat);
+        pastix_atomic_unlock( &strat_lock );
+    }
     if (ret == 0) {
         /* Compute graph ordering */
         ret = SCOTCH_graphOrderList(&scotchgraph,

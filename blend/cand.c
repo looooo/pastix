@@ -72,15 +72,20 @@ candInit( Cand *candtab,
  * @param[in] cblknbr
  *          The size of the candtab array.
  *
+ * @param[inout] directory
+ *          Directory where to store the file. If NULL, initialized to
+ *          pastix-XXXXXX, with XXXXXX a random generated string.
+ *
  *******************************************************************************/
 void
-candSave( const Cand *candtab,
-          pastix_int_t cblknbr )
+candSave( const Cand    *candtab,
+          pastix_int_t   cblknbr,
+          char         **directory )
 {
     pastix_int_t i;
-    FILE *f;
+    FILE *f = NULL;
 
-    PASTIX_FOPEN(f, "candtab.txt", "w");
+    f = pastix_fopenw( directory, "candtab.txt", "w" );
 
     fprintf(f, "%ld\n", (long)cblknbr );
     for(i=0;i<cblknbr;i++)

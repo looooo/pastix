@@ -285,10 +285,6 @@ starpu_zpotrf( pastix_data_t  *pastix_data,
     starpu_mpi_barrier(MPI_COMM_WORLD);
 #endif
 
-#if defined(PASTIX_DEBUG_FACTO)
-    coeftab_zdump( sopalin_data->solvmtx, "potrf.txt" );
-#endif
-
     return;
 }
 

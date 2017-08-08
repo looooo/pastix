@@ -353,7 +353,7 @@ void          solverRealloc( SolverMatrix       *solvptr);
 SolverMatrix *solverCopy   ( const SolverMatrix *solvptr,
                              int                 flttype );
 
-
+int           solverCheck     ( const SolverMatrix *solvmtx );
 int           solverDraw      ( const SolverMatrix *solvptr,
                                 FILE               *stream,
                                 int                 verbose );

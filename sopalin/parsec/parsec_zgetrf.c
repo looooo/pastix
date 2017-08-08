@@ -396,10 +396,6 @@ parsec_zgetrf( pastix_data_t  *pastix_data,
                                 sopalin_data );
     }
 
-#if defined(PASTIX_DEBUG_FACTO)
-    coeftab_zdump( sopalin_data->solvmtx, "getrf.txt" );
-#endif
-
     return;
 }
 

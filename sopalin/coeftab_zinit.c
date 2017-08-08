@@ -115,14 +115,13 @@ coeftab_zffbcsc( const SolverMatrix  *solvmtx,
  *     assigned to each thread.)
  */
 void
-coeftab_zinitcblk( const SolverMatrix  *solvmtx,
+coeftab_zcblkfill( const SolverMatrix  *solvmtx,
                    const pastix_bcsc_t *bcsc,
                    pastix_int_t itercblk,
                    int factoLU )
 {
     SolverCblk *cblk     = solvmtx->cblktab + itercblk;
     pastix_int_t coefnbr = cblk->stride * cblk_colnbr( cblk );
-    pastix_int_t compress_when = solvmtx->lowrank.compress_when;
 
     /* If not NULL, allocated to store the shur complement for exemple */
     assert( cblk->lcoeftab == NULL );
@@ -140,25 +139,61 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
     }
 
     coeftab_zffbcsc( solvmtx, bcsc, itercblk );
+}
+
+/*
+ * Function: z_CoefMatrix_Allocate
+ *
+ * Allocate matrix coefficients in coeftab and ucoeftab.
+ *
+ * Should be first called with me = -1 to allocated coeftab.
+ * Then, should be called with me set to thread ID
+ * to allocate column blocks coefficients arrays.
+ *
+ * Parameters
+ *
+ *    datacode  - solverMatrix
+ *    factotype - factorization type (LU, LLT ou LDLT)
+ *    me        - thread number. (-1 for first call,
+ *                from main thread. >=0 to allocate column blocks
+ *     assigned to each thread.)
+ */
+void
+coeftab_zcblkinit( const SolverMatrix  *solvmtx,
+                   const pastix_bcsc_t *bcsc,
+                   pastix_int_t         itercblk,
+                   int                  factoLU,
+                   char               **directory )
+{
+    SolverCblk *cblk           = solvmtx->cblktab + itercblk;
+    pastix_int_t compress_when = solvmtx->lowrank.compress_when;
+
+    coeftab_zcblkfill( solvmtx, bcsc, itercblk, factoLU );
 
 #if defined(PASTIX_DEBUG_DUMP_COEFTAB)
     {
-        FILE *fl,*fu;
+        FILE *f = NULL;
         char *filename;
+        int rc;
 
-        asprintf( &filename, "Lcblk%05ld.txt", itercblk );
-        PASTIX_FOPEN( fl, filename, "w" );
-        coeftab_zdumpcblk( cblk, PastixLower, fl );
-        fclose( fl );
+        rc = asprintf( &filename, "Lcblk%05ld_init.txt", itercblk );
+        f  = pastix_fopenw( directory, filename, "w" );
+        if ( f != NULL ) {
+            coeftab_zcblkdump( cblk, PastixLower, f );
+            fclose( f );
+        }
         free( filename );
 
         if ( cblk->ucoeftab ) {
-            asprintf( &filename, "Ucblk%05ld.txt", itercblk );
-            PASTIX_FOPEN( fu, filename, "w" );
-            coeftab_zdumpcblk( cblk, PastixUpper, fu );
-            fclose( fu );
+            rc = asprintf( &filename, "Ucblk%05ld_init.txt", itercblk );
+            f  = pastix_fopenw( directory, filename, "w" );
+            if ( f != NULL ) {
+                coeftab_zcblkdump( cblk, PastixUpper, f );
+                fclose( f );
+            }
             free( filename );
         }
+        (void)rc;
     }
 #endif /* defined(PASTIX_DEBUG_DUMP_COEFTAB) */
 
@@ -166,15 +201,13 @@ coeftab_zinitcblk( const SolverMatrix  *solvmtx,
      * Try to compress the cblk if needs to be compressed
      * TODO: change the criteria based on the level in the tree
      */
+    if ( cblk->cblktype & CBLK_LAYOUT_2D )
     {
-        if ( cblk->cblktype & CBLK_LAYOUT_2D )
-        {
-            if ( compress_when == PastixCompressWhenBegin ){
-                coeftab_zcompress_one( cblk, solvmtx->lowrank );
-            }
-            else if ( compress_when == PastixCompressWhenEnd ){
-                coeftab_zalloc_one( cblk );
-            }
+        if ( compress_when == PastixCompressWhenBegin ){
+            coeftab_zcompress_one( cblk, solvmtx->lowrank );
+        }
+        else if ( compress_when == PastixCompressWhenEnd ){
+            coeftab_zalloc_one( cblk );
         }
     }
 }

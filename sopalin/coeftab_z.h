@@ -45,10 +45,11 @@ pastix_int_t coeftab_zmemory    ( const SolverMatrix *solvmtx );
 void coeftab_zffbcsc  ( const SolverMatrix  *solvmtx,
                         const pastix_bcsc_t *bcsc,
                         pastix_int_t         itercblk );
-void coeftab_zinitcblk( const SolverMatrix  *solvmtx,
+void coeftab_zcblkinit( const SolverMatrix  *solvmtx,
                         const pastix_bcsc_t *bcsc,
-                        pastix_int_t itercblk,
-                        int factoLU );
+                        pastix_int_t         itercblk,
+                        int                  factoLU,
+                        char               **directory );
 
 /**
  *    @}
@@ -67,10 +68,11 @@ void coeftab_zgetschur             ( const SolverMatrix *solvmtx,
  *    @name PastixComplex64 debug routines
  *    @{
  */
-void coeftab_zdumpcblk( const SolverCblk   *cblk,
+void coeftab_zcblkdump( const SolverCblk   *cblk,
                         pastix_uplo_t       uplo,
                         FILE               *stream );
-void coeftab_zdump    ( const SolverMatrix *solvmtx,
+void coeftab_zdump    ( pastix_data_t      *pastix_data,
+                        const SolverMatrix *solvmtx,
                         const char         *filename );
 int  coeftab_zdiff    ( const SolverMatrix *solvA,
                         SolverMatrix       *solvB );

@@ -23,11 +23,6 @@ struct sopalin_data_s {
 };
 typedef struct sopalin_data_s sopalin_data_t;
 
-void coeftab_zdump( const SolverMatrix *solvmtx, const char *filename );
-void coeftab_cdump( const SolverMatrix *solvmtx, const char *filename );
-void coeftab_ddump( const SolverMatrix *solvmtx, const char *filename );
-void coeftab_sdump( const SolverMatrix *solvmtx, const char *filename );
-
 void sopalin_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, int nrhs, pastix_complex64_t *b, int ldb );
 void sopalin_ctrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, int nrhs, pastix_complex32_t *b, int ldb );
 void sopalin_dtrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, int nrhs, double *b, int ldb );

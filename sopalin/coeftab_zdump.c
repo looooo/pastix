@@ -43,7 +43,7 @@
  *
  *******************************************************************************/
 void
-coeftab_zdumpcblk( const SolverCblk *cblk,
+coeftab_zcblkdump( const SolverCblk *cblk,
                    pastix_uplo_t     uplo,
                    FILE             *stream )
 {
@@ -153,7 +153,7 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
 /**
  *******************************************************************************
  *
- * @brief Dump the sovler matrix coefficients into a file in human readable
+ * @brief Dump the solver matrix coefficients into a file in human readable
  * format.
  *
  * All non-zeroes coefficients are dumped in the format:
@@ -161,6 +161,10 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
  * with one value per row.
  *
  *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix_data instance to access the unique directory id in which
+ *          output the files.
  *
  * @param[in] solvmtx
  *          The solver matrix to print.
@@ -170,25 +174,28 @@ coeftab_zdumpcblk( const SolverCblk *cblk,
  *
  *******************************************************************************/
 void
-coeftab_zdump( const SolverMatrix *solvmtx,
-               const char   *filename )
+coeftab_zdump( pastix_data_t      *pastix_data,
+               const SolverMatrix *solvmtx,
+               const char         *filename )
 {
     SolverCblk *cblk = solvmtx->cblktab;
     pastix_int_t itercblk;
-    FILE *stream;
+    FILE *stream = NULL;
 
-    PASTIX_FOPEN( stream, filename, "w" );
+    stream = pastix_fopenw( &(pastix_data->dirtemp), filename, "w" );
+    if ( stream == NULL ){
+        return;
+    }
 
     /*
      * TODO: there is a problem right here for now, because there are no
      * distinctions between L and U coeffcients in the final file
      */
-
     for (itercblk=0; itercblk<solvmtx->cblknbr; itercblk++, cblk++)
     {
-        coeftab_zdumpcblk( cblk, PastixLower, stream );
+        coeftab_zcblkdump( cblk, PastixLower, stream );
         if ( NULL != cblk->ucoeftab )
-            coeftab_zdumpcblk( cblk, PastixUpper, stream );
+            coeftab_zcblkdump( cblk, PastixUpper, stream );
     }
 
     fclose( stream );

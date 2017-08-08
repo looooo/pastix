@@ -26,8 +26,9 @@
 #if defined(HAVE_HWLOC)
 
 static hwloc_topology_t topology;
-static int first_init = 1;
+static int first_init = 0;
 static int ht = 1;
+static volatile pastix_atomic_lock_t topo_lock = PASTIX_ATOMIC_UNLOCKED;
 
 #if defined(HAVE_HWLOC_PARENT_MEMBER)
 #define HWLOC_GET_PARENT(OBJ)  (OBJ)->parent
@@ -37,18 +38,24 @@ static int ht = 1;
 
 int isched_hwloc_init(void)
 {
-    if ( first_init ) {
+    pastix_atomic_lock( &topo_lock );
+    if ( first_init == 0 ) {
         hwloc_topology_init(&topology);
         hwloc_topology_load(topology);
-        first_init = 0;
+        first_init++;
     }
+    pastix_atomic_unlock( &topo_lock );
     return 0;
 }
 
 int isched_hwloc_destroy(void)
 {
-    hwloc_topology_destroy(topology);
-    first_init = 1;
+    pastix_atomic_lock( &topo_lock );
+    first_init--;
+    if ( first_init == 0 ) {
+        hwloc_topology_destroy(topology);
+    }
+    pastix_atomic_unlock( &topo_lock );
     return 0;
 }
 

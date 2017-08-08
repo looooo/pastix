@@ -89,7 +89,8 @@ typedef struct blendctrl_s {
      */
     pastix_int_t   *iparm;           /**< In/Out Integer parameters                                         */
     double         *dparm;           /**< In/Out Float parameters                                           */
-
+    char          **dirtemp;         /**< Temporary unique directory to store output files
+                                          (must point to pastix_data->dirtemp                               */
     /**
      * @}
      * @name Other
@@ -109,11 +110,8 @@ typedef struct blendctrl_s {
      */
 } BlendCtrl;
 
-int  blendCtrlInit ( BlendCtrl *ctrl,
-                     pastix_int_t  clustnum,
-                     pastix_int_t  clustnbr,
-                     pastix_int_t *iparam,
-                     double       *dparam );
+int  blendCtrlInit ( pastix_data_t *pastix_data,
+                     BlendCtrl     *ctrl );
 
 void blendCtrlExit (BlendCtrl *);
 

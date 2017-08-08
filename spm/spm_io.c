@@ -470,7 +470,13 @@ spmLoad( pastix_spm_t  *spm,
     int local_stream = 0;
 
     if ( infile == NULL ) {
-        PASTIX_FOPEN( infile, "matrix.spm", "r" );
+        infile = fopen( "matrix.spm", "r" );
+
+        if ( infile == NULL ) {
+            pastix_error_print( "spmLoad: Impossible to open the file matrix.spm\n");
+            return PASTIX_ERR_FILE;
+        }
+
         local_stream = 1;
     }
 
@@ -808,7 +814,12 @@ spmSave( const pastix_spm_t *spm,
     int local_stream = 0;
 
     if ( outfile == NULL ) {
-        PASTIX_FOPEN( outfile, "matrix.spm", "w" );
+        outfile = fopen( "matrix.spm", "w" );
+        if ( outfile == NULL ) {
+            pastix_error_print( "spmSave: Impossible to open the file matrix.spm\n");
+            return PASTIX_ERR_FILE;
+        }
+
         local_stream = 1;
     }
 
