@@ -102,8 +102,8 @@ pastix_task_refine( pastix_data_t *pastix_data,
                     pastix_int_t   rhsnbr,
                     void          *b )
 {
-    pastix_int_t  *iparm    = pastix_data->iparm;
-    Order         *ordemesh = pastix_data->ordemesh;
+    pastix_int_t   *iparm    = pastix_data->iparm;
+    pastix_order_t *ordemesh = pastix_data->ordemesh;
     double timer;
 
     print_debug(DBG_STEP, "->pastix_task_refine\n");

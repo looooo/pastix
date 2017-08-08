@@ -59,12 +59,12 @@ int
 orderComputeMetis( pastix_data_t  *pastix_data,
                    pastix_graph_t *graph )
 {
-    pastix_int_t *iparm    = pastix_data->iparm;
-    Order        *ordemesh = pastix_data->ordemesh;
-    pastix_int_t  n;
-    pastix_int_t  baseval = graph->colptr[0];
+    pastix_int_t   *iparm    = pastix_data->iparm;
+    pastix_order_t *ordemesh = pastix_data->ordemesh;
+    pastix_int_t    n;
+    pastix_int_t    baseval = graph->colptr[0];
     idx_t opt[METIS_NOPTIONS];
-    int rc;
+    int   rc;
 
     if ( sizeof(pastix_int_t) != sizeof(idx_t)) {
         errorPrint("Inconsistent integer type between PaStiX and Metis\n");

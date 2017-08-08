@@ -99,7 +99,7 @@ struct pastix_data_s {
     pastix_int_t    *schur_list;         /**< List of entries for the schur complement                            */
     pastix_int_t     zeros_n;            /**< Number of diagonal entries considered as zeros                      */
     pastix_int_t    *zeros_list;         /**< List of diagonal entries considered as zeros                        */
-    Order           *ordemesh;           /**< Ordering structure                                                  */
+    pastix_order_t  *ordemesh;           /**< Ordering structure                                                  */
 
     SymbolMatrix    *symbmtx;            /**< Symbol Matrix                                                       */
 

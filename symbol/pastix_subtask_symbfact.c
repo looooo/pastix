@@ -104,7 +104,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     pastix_int_t   *iparm;
     double         *dparm;
     pastix_graph_t *graph;
-    Order          *ordemesh;
+    pastix_order_t *ordemesh;
     int             procnum;
     Clock           timer;
 

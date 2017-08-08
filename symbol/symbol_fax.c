@@ -156,7 +156,7 @@ symbolFax (SymbolMatrix * const   symbptr,
            pastix_int_t           ngbfrst (void * const, const pastix_int_t),
            pastix_int_t           ngbnext (void * const),
            pastix_int_t           ngbdegr (void * const, const pastix_int_t),
-           const Order * const    ordeptr)
+           const pastix_order_t * const    ordeptr)
 #endif /* SYMBOL_FAX_INCLUDED */
 {
     pastix_int_t                       vertnum;  /* Vertex number of current column                   */

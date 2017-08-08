@@ -42,27 +42,27 @@ typedef struct pastix_order_s {
     pastix_int_t *peritab;   /**< Inverse permutation array [based]   */
     pastix_int_t *rangtab;   /**< Supernode array [based,+1]          */
     pastix_int_t *treetab;   /**< Partitioning tree [based]           */
-} Order;
+} pastix_order_t;
 
 /**
  * @name Order basic subroutines
  * @{
  */
-int  orderInit (      Order * const ordeptr, pastix_int_t baseval, pastix_int_t cblknbr, pastix_int_t vertnbr,
+int  orderInit (      pastix_order_t * const ordeptr, pastix_int_t baseval, pastix_int_t cblknbr, pastix_int_t vertnbr,
                       pastix_int_t *perm, pastix_int_t *peri, pastix_int_t *rang, pastix_int_t *tree );
-int  orderAlloc(      Order * const ordeptr, pastix_int_t cblknbr, pastix_int_t vertnbr);
-void orderExit (      Order * const ordeptr);
-void orderBase (      Order * const ordeptr, pastix_int_t baseval);
-int  orderCheck(const Order * const ordeptr);
-int  orderCopy (      Order * const ordedst, const Order * const ordesrc);
+int  orderAlloc(      pastix_order_t * const ordeptr, pastix_int_t cblknbr, pastix_int_t vertnbr);
+void orderExit (      pastix_order_t * const ordeptr);
+void orderBase (      pastix_order_t * const ordeptr, pastix_int_t baseval);
+int  orderCheck(const pastix_order_t * const ordeptr);
+int  orderCopy (      pastix_order_t * const ordedst, const pastix_order_t * const ordesrc);
 
 /**
  * @}
  * @name Order IO subroutines
  * @{
  */
-int  orderLoad( const pastix_data_t *pastix_data,       Order * const ordeptr );
-int  orderSave(       pastix_data_t *pastix_data, const Order * const ordeptr );
+int  orderLoad( const pastix_data_t *pastix_data,       pastix_order_t *ordeptr );
+int  orderSave(       pastix_data_t *pastix_data, const pastix_order_t *ordeptr );
 
 /**
  * @}
@@ -80,11 +80,12 @@ int  orderComputeParMetis( pastix_data_t *pastix_data, pastix_graph_t *graph );
  * @{
  */
 void orderFindSupernodes( const pastix_graph_t *graph,
-                          Order * const ordeptr );
+                          pastix_order_t * const ordeptr );
 
-int  orderApplyLevelOrder( Order *ordeptr, pastix_int_t distribution_level );
+int  orderApplyLevelOrder( pastix_order_t *ordeptr,
+                           pastix_int_t    distribution_level );
 
-int  orderAddIsolate( Order              *ordeptr,
+int  orderAddIsolate( pastix_order_t     *ordeptr,
                       pastix_int_t        new_n,
                       const pastix_int_t *perm );
 

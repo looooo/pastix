@@ -139,7 +139,7 @@ typedef struct pastix_graph_s pastix_graph_t;
 
 /* Ordering structure */
 struct pastix_order_s;
-typedef struct pastix_order_s Order;
+typedef struct pastix_order_s pastix_order_t;
 
 /* Solver matrix structure to store L(U)*/
 struct solver_matrix_s;

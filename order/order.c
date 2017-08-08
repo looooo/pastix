@@ -50,9 +50,9 @@
  *
  *******************************************************************************/
 int
-orderAlloc( Order * const ordeptr,
-            pastix_int_t vertnbr,
-            pastix_int_t cblknbr )
+orderAlloc( pastix_order_t * const ordeptr,
+            pastix_int_t           vertnbr,
+            pastix_int_t           cblknbr )
 {
     /* Parameter checks */
     if ( ordeptr == NULL ) {
@@ -65,7 +65,7 @@ orderAlloc( Order * const ordeptr,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    memset(ordeptr, 0, sizeof(Order));
+    memset(ordeptr, 0, sizeof(pastix_order_t));
 
     ordeptr->vertnbr = vertnbr;
     ordeptr->cblknbr = cblknbr;
@@ -144,14 +144,14 @@ orderAlloc( Order * const ordeptr,
  *
  *******************************************************************************/
 int
-orderInit ( Order * const ordeptr,
-            pastix_int_t baseval,
-            pastix_int_t vertnbr,
-            pastix_int_t cblknbr,
-            pastix_int_t *permtab,
-            pastix_int_t *peritab,
-            pastix_int_t *rangtab,
-            pastix_int_t *treetab )
+orderInit( pastix_order_t * const ordeptr,
+           pastix_int_t           baseval,
+           pastix_int_t           vertnbr,
+           pastix_int_t           cblknbr,
+           pastix_int_t          *permtab,
+           pastix_int_t          *peritab,
+           pastix_int_t          *rangtab,
+           pastix_int_t          *treetab )
 {
     /* Parameter checks */
     if ( ordeptr == NULL ) {
@@ -164,7 +164,7 @@ orderInit ( Order * const ordeptr,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    memset(ordeptr, 0, sizeof(Order));
+    memset(ordeptr, 0, sizeof(pastix_order_t));
 
     ordeptr->baseval = baseval;
     ordeptr->vertnbr = vertnbr;
@@ -201,7 +201,7 @@ orderInit ( Order * const ordeptr,
  *
  *******************************************************************************/
 void
-orderExit (Order * const ordeptr)
+orderExit( pastix_order_t * const ordeptr )
 {
     /* Parameter check */
     if ( ordeptr == NULL ) {
@@ -217,7 +217,7 @@ orderExit (Order * const ordeptr)
     if (ordeptr->treetab != NULL)
         memFree_null (ordeptr->treetab);
 
-    memset(ordeptr, 0, sizeof(Order) );
+    memset(ordeptr, 0, sizeof(pastix_order_t) );
 }
 
 /**
@@ -238,8 +238,8 @@ orderExit (Order * const ordeptr)
  *
  *******************************************************************************/
 void
-orderBase (Order * const ordeptr,
-	   pastix_int_t  baseval)
+orderBase( pastix_order_t * const ordeptr,
+	   pastix_int_t           baseval )
 {
     pastix_int_t baseadj;                    /* Base adjust */
     pastix_int_t cblknum;
@@ -304,8 +304,8 @@ orderBase (Order * const ordeptr,
  *
  *******************************************************************************/
 int
-orderCopy (Order * const ordedst,
-           const Order * const ordesrc)
+orderCopy( pastix_order_t       * const ordedst,
+           const pastix_order_t * const ordesrc )
 {
     /* Parameter checks */
     if ( ordedst == NULL ) {

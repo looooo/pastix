@@ -35,7 +35,7 @@
  *
  *******************************************************************************/
 int
-orderCheck (const Order * const  ordeptr)
+orderCheck (const pastix_order_t * const  ordeptr)
 {
     pastix_int_t         baseval;                  /* Node base value            */
     pastix_int_t         cblkmax;                  /* Maximum supernode value    */

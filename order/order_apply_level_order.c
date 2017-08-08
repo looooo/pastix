@@ -20,9 +20,9 @@
 #include "order.h"
 
 static inline EliminTree *
-orderBuildEtree( const Order *order,
-                 pastix_int_t *nbroots,
-                 pastix_int_t *roots )
+orderBuildEtree( const pastix_order_t *order,
+                 pastix_int_t         *nbroots,
+                 pastix_int_t         *roots )
 {
     EliminTree *etree = NULL;
     eTreeNode_t *enode;
@@ -118,14 +118,14 @@ orderBuildEtree( const Order *order,
  *
  *******************************************************************************/
 int
-orderApplyLevelOrder( Order *order,
-                      pastix_int_t distribution_level )
+orderApplyLevelOrder( pastix_order_t *order,
+                      pastix_int_t    distribution_level )
 {
-    Order               oldorder;
-    EliminTree         *etree;
-    pastix_int_t        baseval;                  /* Node base value            */
-    pastix_int_t        i, s, nbroots, node, sonsnbr;
-    pastix_int_t        nfcol, ofcol, size;
+    pastix_order_t  oldorder;
+    EliminTree     *etree;
+    pastix_int_t    baseval;                  /* Node base value            */
+    pastix_int_t    i, s, nbroots, node, sonsnbr;
+    pastix_int_t    nfcol, ofcol, size;
 
     /* Parameter checks */
     if ( order == NULL ) {
@@ -163,7 +163,7 @@ orderApplyLevelOrder( Order *order,
 
     assert(baseval == order->rangtab[0]);
 
-    memcpy( &oldorder, order, sizeof( Order ) );
+    memcpy( &oldorder, order, sizeof(pastix_order_t) );
     orderAlloc( order,
                 oldorder.vertnbr,
                 oldorder.cblknbr );

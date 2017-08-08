@@ -30,7 +30,7 @@ int main (int argc, char **argv)
     size_t          size;
     int             check = 1;
     int             nrhs = 1;
-    Order           ord;
+    pastix_order_t  ord;
     pastix_int_t    i;
 
     /**

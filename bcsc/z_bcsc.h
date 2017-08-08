@@ -21,12 +21,12 @@ z_bcscSort( const pastix_bcsc_t *bcsc,
             pastix_int_t        *rowtab,
             pastix_complex64_t  *valtab );
 
-void z_bcscInitCentralized( const pastix_spm_t  *spm,
-                            const Order         *ord,
-                            const SolverMatrix  *solvmtx,
-                            const pastix_int_t  *col2cblk,
-                                  int            initAt,
-                                  pastix_bcsc_t *bcsc );
+void z_bcscInitCentralized( const pastix_spm_t   *spm,
+                            const pastix_order_t *ord,
+                            const SolverMatrix   *solvmtx,
+                            const pastix_int_t   *col2cblk,
+                                  int             initAt,
+                                  pastix_bcsc_t  *bcsc );
 
 int z_bcscGemv(      pastix_trans_t      trans,
                      pastix_complex64_t  alpha,

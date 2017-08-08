@@ -114,16 +114,16 @@
 int
 pastix_subtask_blend( pastix_data_t *pastix_data )
 {
-    BlendCtrl      ctrl;
-    pastix_int_t   procnum, verbose;
-    pastix_int_t  *iparm;
-    double        *dparm;
-    Order         *ordeptr;
-    SymbolMatrix  *symbmtx;
-    SolverMatrix  *solvmtx;
-    SimuCtrl      *simuctrl;
-    double         timer_all     = 0.;
-    double         timer_current = 0.;
+    BlendCtrl       ctrl;
+    pastix_int_t    procnum, verbose;
+    pastix_int_t   *iparm;
+    double         *dparm;
+    pastix_order_t *ordeptr;
+    SymbolMatrix   *symbmtx;
+    SolverMatrix   *solvmtx;
+    SimuCtrl       *simuctrl;
+    double          timer_all     = 0.;
+    double          timer_current = 0.;
 
     /*
      * Check parameters

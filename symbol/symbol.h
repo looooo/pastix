@@ -118,7 +118,7 @@ void         symbolGetTimes   ( const SymbolMatrix *symbmtx,
  * @name Symbol reordering subroutines
  * @{
  */
-void         symbolReordering( const SymbolMatrix *, Order *, pastix_int_t, int );
+void         symbolReordering( const SymbolMatrix *, pastix_order_t *, pastix_int_t, int );
 void         symbolReorderingPrintComplexity( const SymbolMatrix *symbptr );
 
 /**
@@ -126,11 +126,11 @@ void         symbolReorderingPrintComplexity( const SymbolMatrix *symbptr );
  * @name Symbol construction subroutines
  * @{
  */
-int          symbolFaxGraph  ( SymbolMatrix * const symbptr,
-                               const pastix_int_t   vertnbr,
-                               const pastix_int_t * verttab,
-                               const pastix_int_t * edgetab,
-                               const Order  * const ordeptr );
+int          symbolFaxGraph  ( SymbolMatrix         *symbptr,
+                               const pastix_int_t    vertnbr,
+                               const pastix_int_t   *verttab,
+                               const pastix_int_t   *edgetab,
+                               const pastix_order_t *ordeptr );
 int          symbolKass      ( int             verbose,
                                int             ilu,
                                int             levelk,
@@ -138,7 +138,7 @@ int          symbolKass      ( int             verbose,
                                int             rat_blas,
                                SymbolMatrix   *symbmtx,
                                pastix_graph_t *graph,
-                               Order          *orderptr,
+                               pastix_order_t *orderptr,
                                MPI_Comm        pastix_comm );
 void         symbolRustine   ( SymbolMatrix *symbptr, SymbolMatrix *symbptr2 );
 void         symbolBuildRowtab( SymbolMatrix *symbptr );

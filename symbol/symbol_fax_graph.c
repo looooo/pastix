@@ -71,11 +71,11 @@
  *
  *******************************************************************************/
 int
-symbolFaxGraph(       SymbolMatrix * const symbptr,
-                      pastix_int_t         vertnbr,
-                const pastix_int_t *       verttab,
-                const pastix_int_t *       edgetab,
-                const Order        * const ordeptr)
+symbolFaxGraph(       SymbolMatrix   *symbptr,
+                      pastix_int_t    vertnbr,
+                const pastix_int_t   *verttab,
+                const pastix_int_t   *edgetab,
+                const pastix_order_t *ordeptr)
 {
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
     pastix_int_t baseval = verttab[0];

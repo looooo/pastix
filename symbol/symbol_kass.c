@@ -84,7 +84,7 @@ int
 symbolKass(int verbose, int ilu, int levelk, int rat_cblk, int rat_blas,
            SymbolMatrix   *symbmtx,
            pastix_graph_t *csc,
-           Order          *orderptr,
+           pastix_order_t *orderptr,
            MPI_Comm        pastix_comm)
 {
     kass_csr_t graphPA, graphL;

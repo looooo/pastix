@@ -59,10 +59,10 @@
 int
 pastix_subtask_reordering( pastix_data_t *pastix_data )
 {
-    Clock         timer;
-    pastix_int_t *iparm;
-    Order        *ordemesh;
-    pastix_int_t  procnum;
+    Clock           timer;
+    pastix_int_t   *iparm;
+    pastix_order_t *ordemesh;
+    pastix_int_t    procnum;
     int verbose;
 
     /**

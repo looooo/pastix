@@ -210,7 +210,7 @@ hamming_distance( pastix_int_t **vectors,
  *
  *******************************************************************************/
 static inline void
-symbol_reorder_tsp( pastix_int_t size, Order *order, pastix_int_t sn_id,
+symbol_reorder_tsp( pastix_int_t size, pastix_order_t *order, pastix_int_t sn_id,
                     pastix_int_t **lw_vectors, pastix_int_t *lw_vectors_size,
                     pastix_int_t **up_vectors, pastix_int_t *up_vectors_size,
                     pastix_int_t stop_criteria )
@@ -450,7 +450,7 @@ symbol_reorder_tsp( pastix_int_t size, Order *order, pastix_int_t sn_id,
 static inline void
 symbol_reorder_cblk( const SymbolMatrix *symbptr,
                      const SymbolCblk   *cblk,
-                     Order              *order,
+                     pastix_order_t     *order,
                      const pastix_int_t *levels,
                      pastix_int_t       *depthweight,
                      pastix_int_t        depthmax,
@@ -633,7 +633,7 @@ symbol_reorder_cblk( const SymbolMatrix *symbptr,
  *******************************************************************************/
 void
 symbolReordering( const SymbolMatrix *symbptr,
-                  Order              *order,
+                  pastix_order_t     *order,
                   pastix_int_t        split_level,
                   int                 stop_criteria )
 {

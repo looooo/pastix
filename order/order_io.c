@@ -40,8 +40,8 @@
  *
  *******************************************************************************/
 static inline int
-ordering_load(Order * ordeptr,
-              FILE  * stream)
+ordering_load( pastix_order_t *ordeptr,
+               FILE           *stream )
 {
     pastix_int_t  versval;
     pastix_int_t  cblknbr;
@@ -130,7 +130,7 @@ ordering_load(Order * ordeptr,
  *
  *******************************************************************************/
 int orderLoad( const pastix_data_t *pastix_data,
-               Order               *ordemesh )
+               pastix_order_t      *ordemesh )
 {
     FILE *stream   = NULL;
     char *filename = NULL;
@@ -197,8 +197,8 @@ int orderLoad( const pastix_data_t *pastix_data,
  *
  *******************************************************************************/
 static inline int
-ordering_save(const Order * const ordeptr,
-              FILE * const        stream)
+ordering_save( const pastix_order_t *ordeptr,
+               FILE                 *stream )
 {
     pastix_int_t vertnbr;
     pastix_int_t vertnum;
@@ -291,8 +291,8 @@ ordering_save(const Order * const ordeptr,
  *
  *******************************************************************************/
 int
-orderSave( pastix_data_t      *pastix_data,
-           const Order * const ordemesh )
+orderSave( pastix_data_t        *pastix_data,
+           const pastix_order_t *ordemesh )
 {
     FILE *stream   = NULL;
     int   rc       = PASTIX_SUCCESS;

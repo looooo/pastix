@@ -246,10 +246,10 @@ pastix( pastix_data_t **pastix_data_ptr,
      */
     if (iparm[IPARM_START_TASK] == PastixTaskOrdering)
     {
-        Order *o = NULL;
+        pastix_order_t *o = NULL;
 
         if ( (perm != NULL) || (invp != NULL) ) {
-            o = malloc( sizeof(Order) );
+            o = malloc( sizeof(pastix_order_t) );
             ret = orderAlloc( o, 0, 0 );
 
             if ( perm != NULL ) {

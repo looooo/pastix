@@ -93,10 +93,10 @@ bcsc_restore_coltab( pastix_bcsc_t *bcsc )
 }
 
 pastix_int_t
-bcsc_init_centralized_coltab( const pastix_spm_t  *spm,
-                              const Order         *ord,
-                              const SolverMatrix  *solvmtx,
-                                    pastix_bcsc_t *bcsc )
+bcsc_init_centralized_coltab( const pastix_spm_t   *spm,
+                              const pastix_order_t *ord,
+                              const SolverMatrix   *solvmtx,
+                                    pastix_bcsc_t  *bcsc )
 {
     pastix_int_t  valuesize, baseval;
     pastix_int_t *globcol  = NULL;
@@ -166,11 +166,11 @@ bcsc_init_centralized_coltab( const pastix_spm_t  *spm,
 }
 
 void
-bcscInitCentralized( const pastix_spm_t  *spm,
-                     const Order         *ord,
-                     const SolverMatrix  *solvmtx,
-                           pastix_int_t   initAt,
-                           pastix_bcsc_t *bcsc )
+bcscInitCentralized( const pastix_spm_t   *spm,
+                     const pastix_order_t *ord,
+                     const SolverMatrix   *solvmtx,
+                           pastix_int_t    initAt,
+                           pastix_bcsc_t  *bcsc )
 {
     pastix_int_t  itercol, itercblk;
     pastix_int_t  cblknbr = solvmtx->cblknbr;
@@ -233,11 +233,11 @@ bcscInitCentralized( const pastix_spm_t  *spm,
 }
 
 double
-bcscInit( const pastix_spm_t  *spm,
-          const Order         *ord,
-          const SolverMatrix  *solvmtx,
-                pastix_int_t   initAt,
-                pastix_bcsc_t *bcsc )
+bcscInit( const pastix_spm_t   *spm,
+          const pastix_order_t *ord,
+          const SolverMatrix   *solvmtx,
+                pastix_int_t    initAt,
+                pastix_bcsc_t  *bcsc )
 {
     assert( ord->baseval == 0 );
     assert( ord->vertnbr == spm->n );

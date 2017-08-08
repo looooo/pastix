@@ -90,9 +90,9 @@
  *
  *******************************************************************************/
 int
-pastix_subtask_order(       pastix_data_t *pastix_data,
-                      const pastix_spm_t  *spm,
-                            Order         *myorder )
+pastix_subtask_order(       pastix_data_t  *pastix_data,
+                      const pastix_spm_t   *spm,
+                            pastix_order_t *myorder )
 {
     pastix_int_t    n;
     pastix_int_t    schur_n;
@@ -106,7 +106,7 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
     pastix_int_t   *iparm;
     pastix_graph_t  subgraph;
     pastix_graph_t *graph;
-    Order          *ordemesh;
+    pastix_order_t *ordemesh;
     Clock           timer;
     int             procnum;
     int             retval = PASTIX_SUCCESS;
@@ -173,7 +173,7 @@ pastix_subtask_order(       pastix_data_t *pastix_data,
     if (pastix_data->ordemesh != NULL) {
         orderExit(pastix_data->ordemesh);
     } else {
-        MALLOC_INTERN( pastix_data->ordemesh, 1, Order );
+        MALLOC_INTERN( pastix_data->ordemesh, 1, pastix_order_t );
     }
 
     ordemesh = pastix_data->ordemesh;

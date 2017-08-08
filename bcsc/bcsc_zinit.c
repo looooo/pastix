@@ -27,11 +27,11 @@
  * factorization.
  */
 static inline void
-z_bcscInitA( const pastix_spm_t  *spm,
-             const Order         *ord,
-             const SolverMatrix  *solvmtx,
-             const pastix_int_t  *col2cblk,
-                   pastix_bcsc_t *bcsc )
+z_bcscInitA( const pastix_spm_t   *spm,
+             const pastix_order_t *ord,
+             const SolverMatrix   *solvmtx,
+             const pastix_int_t   *col2cblk,
+                   pastix_bcsc_t  *bcsc )
 {
     pastix_complex64_t *values  = (pastix_complex64_t*)(spm->values);
     pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
@@ -89,11 +89,11 @@ z_bcscInitA( const pastix_spm_t  *spm,
 }
 
 static inline void
-z_bcscInitLt( const pastix_spm_t  *spm,
-              const Order         *ord,
-              const SolverMatrix  *solvmtx,
-              const pastix_int_t  *col2cblk,
-                    pastix_bcsc_t *bcsc )
+z_bcscInitLt( const pastix_spm_t   *spm,
+              const pastix_order_t *ord,
+              const SolverMatrix   *solvmtx,
+              const pastix_int_t   *col2cblk,
+                    pastix_bcsc_t  *bcsc )
 {
     pastix_complex64_t *values  = (pastix_complex64_t*)(spm->values);
     pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
@@ -156,11 +156,11 @@ z_bcscInitLt( const pastix_spm_t  *spm,
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
 static inline void
-z_bcscInitLh( const pastix_spm_t  *spm,
-              const Order         *ord,
-              const SolverMatrix  *solvmtx,
-              const pastix_int_t  *col2cblk,
-                    pastix_bcsc_t *bcsc )
+z_bcscInitLh( const pastix_spm_t   *spm,
+              const pastix_order_t *ord,
+              const SolverMatrix   *solvmtx,
+              const pastix_int_t   *col2cblk,
+                    pastix_bcsc_t  *bcsc )
 {
     pastix_complex64_t *values  = (pastix_complex64_t*)(spm->values);
     pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
@@ -223,12 +223,12 @@ z_bcscInitLh( const pastix_spm_t  *spm,
 #endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 
 void
-z_bcscInitAt( const pastix_spm_t  *spm,
-              const Order         *ord,
-              const SolverMatrix  *solvmtx,
-              const pastix_int_t  *col2cblk,
-                    pastix_int_t  *trowtab,
-                    pastix_bcsc_t *bcsc )
+z_bcscInitAt( const pastix_spm_t   *spm,
+              const pastix_order_t *ord,
+              const SolverMatrix   *solvmtx,
+              const pastix_int_t   *col2cblk,
+                    pastix_int_t   *trowtab,
+                    pastix_bcsc_t  *bcsc )
 {
     pastix_complex64_t *values  = (pastix_complex64_t*)(spm->values);
     pastix_complex64_t *Uvalues = (pastix_complex64_t*)(bcsc->Uvalues);
@@ -318,12 +318,12 @@ z_bcscSort( const pastix_bcsc_t *bcsc,
 }
 
 void
-z_bcscInitCentralized( const pastix_spm_t  *spm,
-                       const Order         *ord,
-                       const SolverMatrix  *solvmtx,
-                       const pastix_int_t  *col2cblk,
-                             int            initAt,
-                             pastix_bcsc_t *bcsc )
+z_bcscInitCentralized( const pastix_spm_t   *spm,
+                       const pastix_order_t *ord,
+                       const SolverMatrix   *solvmtx,
+                       const pastix_int_t   *col2cblk,
+                             int             initAt,
+                             pastix_bcsc_t  *bcsc )
 {
     pastix_int_t valuesize;
 

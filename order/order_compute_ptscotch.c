@@ -71,14 +71,14 @@ orderComputePTScotch( pastix_data_t  *pastix_data,
 #if defined(PERSONAL_PTSCOTCH_STRATEGY)
     char             strat[1024];
 #endif
-    MPI_Comm      pastix_comm;
-    Order        *ordemesh = pastix_data->ordemesh;
-    Clock         timer;
-    pastix_int_t *colptr;
-    pastix_int_t *rows;
-    pastix_int_t *iparm = pastix_data->iparm;
-    pastix_int_t  procnum;
-    pastix_int_t  n, gN, nnz, baseval;
+    MPI_Comm         pastix_comm;
+    pastix_order_t  *ordemesh = pastix_data->ordemesh;
+    Clock            timer;
+    pastix_int_t    *colptr;
+    pastix_int_t    *rows;
+    pastix_int_t    *iparm = pastix_data->iparm;
+    pastix_int_t     procnum;
+    pastix_int_t     n, gN, nnz, baseval;
 
     procnum     = pastix_data->procnum;
     pastix_comm = pastix_data->pastix_comm;
@@ -203,7 +203,7 @@ orderComputePTScotch( pastix_data_t  *pastix_data,
 
     /* TODO: orderInit prototype has changed !!! */
     assert(0);
-    orderInit(ordemesh, gN, gN); 
+    orderInit(ordemesh, gN, gN);
     memset( ordemesh->rangtab, 0, (gN+1)*sizeof(pastix_int_t));
 
     SCOTCH_dgraphCorderInit (&dgraph,
