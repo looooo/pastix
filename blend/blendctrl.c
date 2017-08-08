@@ -141,23 +141,15 @@ getCommunicationCosts( const BlendCtrl *ctrl,
  *
  *******************************************************************************
  *
- * @param[inout] ctrl
- *          The Blend control data structure to initialize.
- *
- * @param[in] procnum
- *          The index of the current PaStiX process.
- *
- * @param[in] procnbr
- *          The number of PaStiX processes involved in the computation.
- *
- * @param[in] iparm
- *          The array of integer parameters that are used to build the Blend
+ * @param[inout] pastix_data
+ *          The pastix_data structure of the problem instance.
+ *          Integer parameters that are used to build the Blend
  *          control structure. IPARM_ABS, IPARM_DISTRIBUTION_LEVEL,
  *          IPARM_INCOMPLETE, IPARM_MAX_BLOCKSIZE, IPARM_MIN_BLOCKSIZE,
  *          IPARM_THREAD_NBR, and IPARM_VERBOSE are used in this function.
  *
- * @param[in] dparm
- *          The array of real parameters.
+ * @param[inout] ctrl
+ *          The Blend control data structure to initialize.
  *
  *******************************************************************************
  *
@@ -166,15 +158,16 @@ getCommunicationCosts( const BlendCtrl *ctrl,
  *
  *******************************************************************************/
 int
-blendCtrlInit( BlendCtrl    *ctrl,
-               pastix_int_t  procnum,
-               pastix_int_t  procnbr,
-               pastix_int_t *iparm,
-               double       *dparm )
+blendCtrlInit( pastix_data_t *pastix_data,
+               BlendCtrl     *ctrl )
 {
+    pastix_int_t  procnum = pastix_data->inter_node_procnum;
+    pastix_int_t  procnbr = pastix_data->inter_node_procnbr;
+    pastix_int_t *iparm   = pastix_data->iparm;
+    double       *dparm   = pastix_data->dparm;
     pastix_int_t  local_coresnbr = iparm[IPARM_THREAD_NBR];
     pastix_int_t  local_thrdsnbr = iparm[IPARM_THREAD_NBR];
-    pastix_int_t i;
+    pastix_int_t  i;
 
     /* Check parameters */
     if( ctrl == NULL )
@@ -265,6 +258,7 @@ blendCtrlInit( BlendCtrl    *ctrl,
     /* Save iparm for other options */
     ctrl->iparm = iparm;
     ctrl->dparm = dparm;
+    ctrl->dirtemp = &(pastix_data->dirtemp);
 
     /*
      * Initialize architecture description

@@ -51,9 +51,9 @@ void candSetClusterCand (       Cand          *candtab,
                           const pastix_int_t  *core2clust,
                                 pastix_int_t   coresnbr );
 
-void candSave           (       pastix_data_t *pastix,
-                          const Cand          *candtab,
-                                pastix_int_t   cblknbr );
+void candSave           ( const Cand          *candtab,
+                                pastix_int_t   cblknbr,
+                                char         **directory );
 
 void candBuild          (       pastix_int_t   autolevel,
                                 pastix_int_t   level2D,

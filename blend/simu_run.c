@@ -17,10 +17,8 @@
  * @{
  *
  **/
-#if defined(PASTIX_BLEND_GENTRACE)
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
-#endif
 #endif
 #include <stdio.h>
 #include <string.h>
@@ -200,15 +198,21 @@ simu_computeBlockCtrbNbr(const SymbolMatrix *symbptr,
  *
  *******************************************************************************/
 static inline void
-simu_printBlockCtrbNbr( const SymbolMatrix *symbptr,
+simu_printBlockCtrbNbr( const BlendCtrl    *ctrl,
+                        const SymbolMatrix *symbptr,
                         const SimuCtrl     *simuctrl )
 {
-    FILE *fd1, *fd2;
+    FILE *fd1 = NULL;
+    FILE *fd2 = NULL;
     pastix_int_t i, j;
     SymbolCblk *curcblk;
 
-    PASTIX_FOPEN( fd1, "contribblok.txt", "w" );
-    PASTIX_FOPEN( fd2, "contribcblk.txt", "w" );
+    fd1 = pastix_fopenw( ctrl->dirtemp, "contribblok.txt", "w" );
+    if ( fd1 == NULL )
+        return;
+    fd2 = pastix_fopenw( ctrl->dirtemp, "contribcblk.txt", "w" );
+    if ( fd2 == NULL )
+        return;
 
     curcblk = symbptr->cblktab;
     for(i=0; i<symbptr->cblknbr; i++, curcblk++)
@@ -257,9 +261,9 @@ simu_printBlockCtrbNbr( const SymbolMatrix *symbptr,
  *
  *******************************************************************************/
 static inline void
-simu_putInAllReadyQueues(const BlendCtrl *ctrl,
-                         SimuCtrl        *simuctrl,
-                         pastix_int_t     tasknum )
+simu_putInAllReadyQueues( const BlendCtrl *ctrl,
+                          SimuCtrl        *simuctrl,
+                          pastix_int_t     tasknum )
 {
     const SimuTask *task     = simuctrl->tasktab + tasknum;
     const Cand     *cblkcand = ctrl->candtab + task->cblknum;
@@ -841,19 +845,31 @@ simuRun( SimuCtrl           *simuctrl,
     pastix_int_t             pr;
 
 #if defined(PASTIX_BLEND_GENTRACE)
+    static volatile pastix_atomic_lock_t trace_lock = PASTIX_ATOMIC_UNLOCKED;
     char **procnames = NULL;
 
     if (ctrl->clustnum == 0)
     {
+        pastix_atomic_lock( &trace_lock );
+        char *tracename = NULL;
         int rc;
 
-        setTraceType (PAJE);
-        initTrace ("blend", 0, GTG_FLAG_NONE);
+        pastix_gendirtemp( ctrl->dirtemp );
+        if ( *(ctrl->dirtemp) == NULL ) {
+            tracename = strdup( "blend" );
+        }
+        else {
+            rc = asprintf( &tracename, "%s/blend", *(ctrl->dirtemp) );
+        }
 
-        addContType ("CT_Appli", "0", "Application");
-        addContType ("CT_P",  "CT_Appli", "Process");
-        addContType ("CT_T",  "CT_P", "Thread"     );
-        addStateType("ST_TS", "CT_T", "Thread State");
+        setTraceType (PAJE);
+        initTrace (tracename, 0, GTG_FLAG_NONE);
+        free(tracename);
+
+        addContType ("CT_Appli", "0",        "Application" );
+        addContType ("CT_P",     "CT_Appli", "Process"     );
+        addContType ("CT_T",     "CT_P",     "Thread"      );
+        addStateType("ST_TS",    "CT_T",     "Thread State");
 
         addLinkType ("LT_TL", "Split Event Link", "CT_P", "CT_T", "CT_T");
 
@@ -896,7 +912,7 @@ simuRun( SimuCtrl           *simuctrl,
     simu_computeBlockCtrbNbr( symbptr, simuctrl, ctrl->ricar );
 
     if ( ctrl->iparm[IPARM_VERBOSE] > 4 ) {
-        simu_printBlockCtrbNbr( symbptr, simuctrl );
+        simu_printBlockCtrbNbr( ctrl, symbptr, simuctrl );
     }
 
     /*
@@ -982,7 +998,7 @@ simuRun( SimuCtrl           *simuctrl,
 
 #if defined(PASTIX_BLEND_GENTRACE)
         if (ctrl->clustnum == 0) {
-            assert( (procnames != NULL) && (pr < ctr->total_nbthrds) );
+            assert( (procnames != NULL) && (pr < ctrl->total_nbthrds) );
             setState( timerVal( TIMER(pr) ), "ST_TS", procnames[pr], "Comp" );
         }
 #endif
@@ -1028,7 +1044,7 @@ simuRun( SimuCtrl           *simuctrl,
 
 #if defined(PASTIX_BLEND_GENTRACE)
         if (ctrl->clustnum == 0) {
-            assert( (procnames != NULL) && (pr < ctr->total_nbthrds) );
+            assert( (procnames != NULL) && (pr < ctrl->total_nbthrds) );
             setState( timerVal( TIMER(pr) ), "ST_TS", procnames[pr], "Wait" );
         }
 #endif
@@ -1055,6 +1071,7 @@ simuRun( SimuCtrl           *simuctrl,
         free(procnames);
 
         endTrace();
+        pastix_atomic_unlock( &trace_lock );
     }
 #endif
 
