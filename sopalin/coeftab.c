@@ -21,6 +21,26 @@
 #include "coeftab.h"
 #include "pastix_zcores.h"
 
+coeftab_fct_diff_t coeftabDiff[4] =
+{
+    coeftab_sdiff, coeftab_ddiff, coeftab_cdiff, coeftab_zdiff
+};
+
+coeftab_fct_memory_t coeftabMemory[4] =
+{
+    coeftab_smemory, coeftab_dmemory, coeftab_cmemory, coeftab_zmemory
+};
+
+coeftab_fct_uncompress_t coeftabUncompress[4] =
+{
+    coeftab_suncompress, coeftab_duncompress, coeftab_cuncompress, coeftab_zuncompress
+};
+
+coeftab_fct_compress_t coeftabCompress[4] =
+{
+    coeftab_scompress, coeftab_dcompress, coeftab_ccompress, coeftab_zcompress
+};
+
 struct coeftabinit_s {
     const SolverMatrix  *datacode;
     const pastix_bcsc_t *bcsc;
@@ -88,7 +108,7 @@ pcoeftabInit( isched_thread_t *ctx, void *args )
 }
 
 void
-coeftabInit( const pastix_data_t *pastix_data,
+coeftabInit( pastix_data_t *pastix_data,
              int factoLU )
 {
     struct coeftabinit_s args;
