@@ -43,7 +43,9 @@ class iparm:
     static_pivoting       = factorization          + 1
     inertia               = static_pivoting        + 1
     free_cscuser          = inertia                + 1
-    refinement            = free_cscuser           + 1
+    schur_fact_mode       = free_cscuser           + 1
+    schur_solv_mode       = schur_fact_mode        + 1
+    refinement            = schur_solv_mode        + 1
     nbiter                = refinement             + 1
     itermax               = nbiter                 + 1
     gmres_im              = itermax                + 1
@@ -112,11 +114,21 @@ class io:
     LoadCSC    = 16
     SaveCSC    = 32
 
+class factmode:
+    Local      = 0
+    Schur      = 1
+    Both       = 2
+
+class solvmode:
+    Local     = 0
+    Interface = 1
+    Schur     = 2
+
 class refine:
-    GMRES    = 0 # GMRES
-    CG       = 1 # CG
-    SR       = 2 # SR
-    BiCGSTAB = 3 # BiCGstab
+    GMRES     = 0 # GMRES
+    CG        = 1 # CG
+    SR        = 2 # SR
+    BiCGSTAB  = 3 # BiCGstab
 
 class coeftype:
     Pattern   = 0 # Pattern only, no values are stored

@@ -31,6 +31,7 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
     SolverMatrix *datacode = sopalin_data->solvmtx;
     SolverCblk *cblk;
     pastix_int_t i;
+    pastix_solv_mode_t mode = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
     (void)pastix_data;
 
     /* Backward like */
@@ -41,7 +42,7 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
     {
         cblk = datacode->cblktab + datacode->cblknbr - 1;
         for (i=0; i<datacode->cblknbr; i++, cblk--){
-            solve_ztrsmsp( side, uplo, trans, diag,
+            solve_ztrsmsp( mode, side, uplo, trans, diag,
                            datacode, cblk, nrhs, b, ldb );
         }
     }
@@ -57,7 +58,7 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
         cblk = datacode->cblktab;
         for (i=0; i<datacode->cblknbr; i++, cblk++){
 
-            solve_ztrsmsp( side, uplo, trans, diag,
+            solve_ztrsmsp( mode, side, uplo, trans, diag,
                            datacode, cblk, nrhs, b, ldb );
         }
     }
@@ -90,6 +91,7 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
     pastix_int_t i,ii;
     pastix_int_t tasknbr, *tasktab;
     int rank = ctx->rank;
+    pastix_solv_mode_t mode = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
 
     tasknbr = datacode->ttsknbr[rank];
     tasktab = datacode->ttsktab[rank];
@@ -106,7 +108,7 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
             t = datacode->tasktab + i;
             cblk = datacode->cblktab + t->cblknum;
 
-            if ( cblk->cblktype & CBLK_IN_SCHUR ) {
+            if ( (cblk->cblktype & CBLK_IN_SCHUR) && (mode != PastixSolvModeSchur) ) {
                 cblk->ctrbcnt = 0;
             }
             else {
@@ -123,7 +125,7 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
             /* Wait */
             do {} while( cblk->ctrbcnt );
 
-            solve_ztrsmsp( side, uplo, trans, diag,
+            solve_ztrsmsp( mode, side, uplo, trans, diag,
                            datacode, cblk, nrhs, b, ldb );
         }
     }
@@ -150,13 +152,13 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
             t = datacode->tasktab + i;
             cblk = datacode->cblktab + t->cblknum;
 
-            if ( cblk->cblktype & CBLK_IN_SCHUR )
+            if ( (cblk->cblktype & CBLK_IN_SCHUR) && (mode != PastixSolvModeSchur) )
                 continue;
 
             /* Wait */
             do {} while( cblk->ctrbcnt );
 
-            solve_ztrsmsp( side, uplo, trans, diag,
+            solve_ztrsmsp( mode, side, uplo, trans, diag,
                            datacode, cblk, nrhs, b, ldb );
         }
     }

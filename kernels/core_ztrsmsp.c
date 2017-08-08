@@ -637,6 +637,11 @@ cpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
  *
  *******************************************************************************
  *
+ * @param[in] mode
+ *          Specify whether the schur complement and interface are applied to
+ *          the right-hand-side. It has to be either PastixSolvModeLocal,
+ *          PastixSolvModeInterface or PastixSolvModeSchur.
+ *
  * @param[in] side
  *          Specify whether the off-diagonal blocks appear on the left or right
  *          in the equation. It has to be either PastixLeft or PastixRight.
@@ -672,7 +677,8 @@ cpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
  *
  *******************************************************************************/
 void
-solve_ztrsmsp( pastix_side_t       side,
+solve_ztrsmsp( pastix_solv_mode_t  mode,
+               pastix_side_t       side,
                pastix_uplo_t       uplo,
                pastix_trans_t      trans,
                pastix_diag_t       diag,

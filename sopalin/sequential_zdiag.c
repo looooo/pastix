@@ -34,7 +34,7 @@ sequential_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
     cblk = datacode->cblktab;
     for (i=0; i<datacode->cblknbr; i++, cblk++){
 
-        if ( cblk->cblktype & CBLK_IN_SCHUR )
+        if ( (cblk->cblktype & CBLK_IN_SCHUR) && (sopalin_data->solvmode != PastixSolvModeSchur) )
             break;
 
         solve_zdiag( cblk, nrhs,
@@ -73,7 +73,7 @@ thread_pzdiag( isched_thread_t *ctx, void *args )
         t = datacode->tasktab + i;
         cblk = datacode->cblktab + t->cblknum;
 
-        if ( cblk->cblktype & CBLK_IN_SCHUR )
+        if ( (cblk->cblktype & CBLK_IN_SCHUR) && (sopalin_data->solvmode != PastixSolvModeSchur) )
             continue;
 
         solve_zdiag( cblk, nrhs,

@@ -24,8 +24,8 @@
  * @brief Integer parameters
  */
 typedef enum pastix_iparm_e {
-    IPARM_VERBOSE,               /**< Verbose mode (see Verbose modes)                               Default: PastixVerboseNo          IN    */
-    IPARM_IO_STRATEGY,           /**< IO strategy (see Checkpoints modes)                            Default: PastixIONo               IN    */
+    IPARM_VERBOSE,               /**< Verbose mode (@see pastix_verbose_t)                           Default: PastixVerboseNo          IN    */
+    IPARM_IO_STRATEGY,           /**< IO strategy  (@see pastix_io_t)                                Default: PastixIONo               IN    */
 
     /* Stats */
     IPARM_NNZEROS,               /**< Number of nonzero entries in the factorized matrix             Default: -                        OUT   */
@@ -47,17 +47,17 @@ typedef enum pastix_iparm_e {
     IPARM_SCOTCH_FRAT,           /**< Ordering frat parameter  (see Scotch Manual)                   Default: 8                        IN    */
 
     /* Subset for Metis */
-    IPARM_METIS_CTYPE,           /**< Metis parameters      (see Metis  Manual)                      Default: METIS_CTYPE_SHEM         IN    */
-    IPARM_METIS_RTYPE,           /**< Metis parameters      (see Metis  Manual)                      Default: METIS_RTYPE_SEP1SIDED    IN    */
-    IPARM_METIS_NO2HOP,          /**< Metis parameters      (see Metis  Manual)                      Default: 0                        IN    */
-    IPARM_METIS_NSEPS,           /**< Metis parameters      (see Metis  Manual)                      Default: 1                        IN    */
-    IPARM_METIS_NITER,           /**< Metis parameters      (see Metis  Manual)                      Default: 10                       IN    */
-    IPARM_METIS_UFACTOR,         /**< Metis parameters      (see Metis  Manual)                      Default: 200                      IN    */
-    IPARM_METIS_COMPRESS,        /**< Metis parameters      (see Metis  Manual)                      Default: 1                        IN    */
-    IPARM_METIS_CCORDER,         /**< Metis parameters      (see Metis  Manual)                      Default: 0                        IN    */
-    IPARM_METIS_PFACTOR,         /**< Metis parameters      (see Metis  Manual)                      Default: 0                        IN    */
-    IPARM_METIS_SEED,            /**< Metis parameters      (see Metis  Manual)                      Default: 3452                     IN    */
-    IPARM_METIS_DBGLVL,          /**< Metis parameters      (see Metis  Manual)                      Default: 0                        IN    */
+    IPARM_METIS_CTYPE,           /**< Metis parameters (see Metis Manual)                            Default: METIS_CTYPE_SHEM         IN    */
+    IPARM_METIS_RTYPE,           /**< Metis parameters (see Metis Manual)                            Default: METIS_RTYPE_SEP1SIDED    IN    */
+    IPARM_METIS_NO2HOP,          /**< Metis parameters (see Metis Manual)                            Default: 0                        IN    */
+    IPARM_METIS_NSEPS,           /**< Metis parameters (see Metis Manual)                            Default: 1                        IN    */
+    IPARM_METIS_NITER,           /**< Metis parameters (see Metis Manual)                            Default: 10                       IN    */
+    IPARM_METIS_UFACTOR,         /**< Metis parameters (see Metis Manual)                            Default: 200                      IN    */
+    IPARM_METIS_COMPRESS,        /**< Metis parameters (see Metis Manual)                            Default: 1                        IN    */
+    IPARM_METIS_CCORDER,         /**< Metis parameters (see Metis Manual)                            Default: 0                        IN    */
+    IPARM_METIS_PFACTOR,         /**< Metis parameters (see Metis Manual)                            Default: 0                        IN    */
+    IPARM_METIS_SEED,            /**< Metis parameters (see Metis Manual)                            Default: 3452                     IN    */
+    IPARM_METIS_DBGLVL,          /**< Metis parameters (see Metis Manual)                            Default: 0                        IN    */
 
     /* Symbolic Factorization */
     IPARM_SF_KASS,               /**< Force KASS instead of Fax to perform symbolic factorization    Default: 0                        IN    */
@@ -83,6 +83,10 @@ typedef enum pastix_iparm_e {
     IPARM_STATIC_PIVOTING,       /**< Static pivoting                                                Default: -                        OUT   */
     IPARM_INERTIA,               /**< Return the inertia (symmetric matrix without pivoting)         Default: -                        OUT   */
     IPARM_FREE_CSCUSER,          /**< Free user CSC                                                  Default: 0                        IN    */
+    IPARM_SCHUR_FACT_MODE,       /**< Specify if the Schur is factorized (@see pastix_fact_mode_t)   Default: PastixFactModeLocal      IN    */
+
+    /* Solve */
+    IPARM_SCHUR_SOLV_MODE,       /**< Specify the solve parts to apply (@see pastix_solv_mode_t)     Default: PastixSolvModeLocal      IN    */
 
     /* Refinement */
     IPARM_REFINEMENT,            /**< Refinement mode                                                Default: PastixRefineGMRES        IN    */
@@ -182,6 +186,21 @@ typedef enum pastix_io_e {
     PastixIOLoadCSC    = 16,/**< Load CSC(d) during ordering step */
     PastixIOSaveCSC    = 32 /**< Save CSC(d) during ordering step */
 } pastix_io_t;
+
+/**
+ * @brief Schur modes
+ */
+typedef enum pastix_fact_mode_e {
+    PastixFactModeLocal   = 0,
+    PastixFactModeSchur   = 1,
+    PastixFactModeBoth    = 2
+} pastix_fact_mode_t;
+
+typedef enum pastix_solv_mode_e {
+    PastixSolvModeLocal     = 0,
+    PastixSolvModeInterface = 1,
+    PastixSolvModeSchur     = 2
+} pastix_solv_mode_t;
 
 /**
  * @brief Iterative refinement algorithms
