@@ -702,6 +702,21 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
      */
     if (side == PastixLeft) {
         if (uplo == PastixUpper) {
+            /*
+             * If cblk is in the schur complement, all brow blocks are in
+             * the interface.  Thus, it doesn't generate any update in local
+             * mode, and we know that we are at least in interface mode
+             * after this test.
+             */
+            if ( (cblk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeLocal) ) {
+                for (j = cblk[0].brownum; j < cblk[1].brownum; j++ ) {
+                    blok = datacode->bloktab + datacode->browtab[j];
+                    fcbk = datacode->cblktab + blok->lcblknm;
+                    pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
+                }
+                return;
+            }
+
             if ( cblk->cblktype & CBLK_COMPRESSED ) {
                 A = (pastix_complex64_t*)(cblk->fblokptr->LRblock[1].u);
                 assert( cblk->fblokptr->LRblock[1].rkmax == lda );
@@ -713,7 +728,7 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
             /*  We store U^t, so we swap uplo and trans */
             if (trans == PastixNoTrans) {
 
-                if ( !(cblk->cblktype & CBLK_IN_SCHUR) ) {
+                if ( !(cblk->cblktype & CBLK_IN_SCHUR) || (mode == PastixSolvModeSchur) ) {
                     /* Solve the diagonal block */
                     cblas_ztrsm(
                         CblasColMajor, CblasLeft, CblasLower,
@@ -727,13 +742,15 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                 for (j = cblk[1].brownum-1; j>=cblk[0].brownum; j-- ) {
                     blok = datacode->bloktab + datacode->browtab[j];
                     fcbk = datacode->cblktab + blok->lcblknm;
+
+                    if ( (fcbk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeInterface) ) {
+                        continue;
+                    }
+
                     tempm = fcbk->lcolnum - fcbk->fcolnum + 1;
                     tempn = blok->lrownum - blok->frownum + 1;
                     A   = (pastix_complex64_t*)(fcbk->ucoeftab);
                     lda = (fcbk->cblktype & CBLK_LAYOUT_2D) ? tempn : fcbk->stride;
-
-                    if ( fcbk->cblktype & CBLK_IN_SCHUR )
-                        continue;
 
                     pastix_cblk_lock( fcbk );
                     if ( fcbk->cblktype & CBLK_COMPRESSED ) {
@@ -799,7 +816,7 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
              */
             if (trans == PastixNoTrans) {
 
-                if ( cblk->cblktype & CBLK_IN_SCHUR )
+                if ( (cblk->cblktype & CBLK_IN_SCHUR) && (mode != PastixSolvModeSchur) )
                     return;
 
                 /* In sequential */
@@ -819,6 +836,11 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                     /* Apply the update */
                     for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
                         fcbk  = datacode->cblktab + blok->fcblknm;
+
+                        if ( (fcbk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeLocal) ) {
+                            return;
+                        }
+
                         tempm = blok->lrownum - blok->frownum + 1;
                         lrA   = blok->LRblock;
 
@@ -873,6 +895,11 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                     /* Apply the update */
                     for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
                         fcbk  = datacode->cblktab + blok->fcblknm;
+
+                        if ( (fcbk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeLocal) ) {
+                            return;
+                        }
+
                         tempm = blok->lrownum - blok->frownum + 1;
 
                         assert( blok->frownum >= fcbk->fcolnum );
@@ -898,8 +925,17 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
              *  Left / Lower / [Conj]Trans (Backward)
              */
             else {
-                /* For cblk in the schur, only apply the update on the non Schur part */
+                /*
+                 * If cblk is in the schur complement, all brow blocks are in
+                 * the interface.  Thus, it doesn't generate any update in local
+                 * mode, and we know that we are at least in interface mode
+                 * after this test.
+                 */
+                if ( (cblk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeLocal) ) {
+                    return;
+                }
 
+                /* For cblk in the schur, only apply the update on the non Schur part */
                 if ( cblk->cblktype & CBLK_COMPRESSED ) {
                     A = (pastix_complex64_t*)(cblk->fblokptr->LRblock[0].u);
                     assert( cblk->fblokptr->LRblock[0].rkmax == lda );
@@ -908,7 +944,7 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                 }
 
                 /* Solve the diagonal block */
-                if ( !(cblk->cblktype & CBLK_IN_SCHUR) ) {
+                if ( !(cblk->cblktype & CBLK_IN_SCHUR) || (mode == PastixSolvModeSchur) ) {
                     cblas_ztrsm(
                         CblasColMajor, CblasLeft, CblasLower,
                         (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
@@ -926,7 +962,7 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                     A   = (pastix_complex64_t*)(fcbk->lcoeftab);
                     lda = (fcbk->cblktype & CBLK_LAYOUT_2D) ? tempn : fcbk->stride;
 
-                    if (fcbk->cblktype & CBLK_IN_SCHUR )
+                    if ( (fcbk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeInterface) )
                         continue;
 
                     pastix_cblk_lock( fcbk );

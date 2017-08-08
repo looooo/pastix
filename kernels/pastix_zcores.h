@@ -283,7 +283,8 @@ int cpucblk_zsytrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double cr
  *    for the solve step.
  */
 
-void solve_ztrsmsp( pastix_side_t side, pastix_uplo_t uplo, pastix_trans_t trans, pastix_diag_t diag,
+void solve_ztrsmsp( pastix_solv_mode_t mode, pastix_side_t side, pastix_uplo_t uplo,
+                    pastix_trans_t trans, pastix_diag_t diag,
                     SolverMatrix *datacode, SolverCblk *cblk,
                     int nrhs, pastix_complex64_t *b, int ldb );
 

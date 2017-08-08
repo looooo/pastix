@@ -30,9 +30,8 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
     SolverCblk *cblk;
-    pastix_int_t i;
+    pastix_int_t i, cblknbr;
     pastix_solv_mode_t mode = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
-    (void)pastix_data;
 
     /* Backward like */
     if ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
@@ -40,7 +39,9 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
          ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
          ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) )
     {
-        cblk = datacode->cblktab + datacode->cblknbr - 1;
+        cblknbr = (mode == PastixSolvModeLocal) ? datacode->cblkschur : datacode->cblknbr;
+
+        cblk = datacode->cblktab + cblknbr - 1;
         for (i=0; i<datacode->cblknbr; i++, cblk--){
             solve_ztrsmsp( mode, side, uplo, trans, diag,
                            datacode, cblk, nrhs, b, ldb );
@@ -55,9 +56,10 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
          * ( (side == PastixLeft)  && (uplo == PastixLower) && (trans == PastixNoTrans) )
          */
     {
+        cblknbr = (mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
+
         cblk = datacode->cblktab;
         for (i=0; i<datacode->cblknbr; i++, cblk++){
-
             solve_ztrsmsp( mode, side, uplo, trans, diag,
                            datacode, cblk, nrhs, b, ldb );
         }
@@ -66,6 +68,7 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
 
 struct args_ztrsm_t
 {
+    pastix_data_t  *pastix_data;
     int side, uplo, trans, diag;
     sopalin_data_t *sopalin_data;
     int nrhs;
@@ -77,6 +80,7 @@ void
 thread_pztrsm( isched_thread_t *ctx, void *args )
 {
     struct args_ztrsm_t *arg = (struct args_ztrsm_t*)args;
+    pastix_data_t      *pastix_data  = arg->pastix_data;
     sopalin_data_t     *sopalin_data = arg->sopalin_data;
     SolverMatrix       *datacode = sopalin_data->solvmtx;
     pastix_complex64_t *b = arg->b;
@@ -88,10 +92,10 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
     int ldb   = arg->ldb;
     SolverCblk *cblk;
     Task       *t;
-    pastix_int_t i,ii;
+    pastix_int_t i, ii;
     pastix_int_t tasknbr, *tasktab;
-    int rank = ctx->rank;
     pastix_solv_mode_t mode = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
+    int rank = ctx->rank;
 
     tasknbr = datacode->ttsknbr[rank];
     tasktab = datacode->ttsktab[rank];
@@ -169,7 +173,7 @@ thread_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int dia
               sopalin_data_t *sopalin_data,
               int nrhs, pastix_complex64_t *b, int ldb )
 {
-    struct args_ztrsm_t args_ztrsm = {side, uplo, trans, diag, sopalin_data, nrhs, b, ldb};
+    struct args_ztrsm_t args_ztrsm = {pastix_data, side, uplo, trans, diag, sopalin_data, nrhs, b, ldb};
     isched_parallel_call( pastix_data->isched, thread_pztrsm, &args_ztrsm );
 }
 
