@@ -24,9 +24,9 @@
 #include "common.h"
 #include "solver.h"
 #include "sopalin_data.h"
-#include "parsec/zpotrf_sp1dplus.h"
-#include "parsec/zpotrf_sp2d.h"
-#include "parsec/pastix_zparsec.h"
+#include "zpotrf_sp1dplus.h"
+#include "zpotrf_sp2d.h"
+#include "pastix_parsec.h"
 
 /**
  *******************************************************************************

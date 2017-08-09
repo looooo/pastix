@@ -67,15 +67,21 @@ set(spm_sources
   spm_dof_extend.c
   spm_read_driver.c
   spm_gen_fake_values.c
-  drivers/skitf.f
   drivers/iohb.c
   drivers/mmio.c
   drivers/laplacian.c
   drivers/readhb.c
   drivers/readijv.c
   drivers/readmm.c
-  drivers/readrsa.c
   )
+
+if (PASTIX_WITH_FORTRAN)
+  set(spm_sources
+    ${spm_sources}
+    drivers/skitf.f
+    drivers/readrsa.c
+    )
+endif()
 
 add_library(pastix_spm
   ${spm_sources}

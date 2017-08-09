@@ -72,8 +72,8 @@ option(PASTIX_WITH_PARSEC
   "Build PaStiX with PaRSEC runtime support" OFF)
 
 # Internal options
-option(PASTIX_DEBUG_DUMP_COEFTAB
-  "Dump all cblk on disk after modifications" OFF)
+option(PASTIX_WITH_FORTRAN
+  "Enable Fortran files/interface/examples to be compiled" ON)
 
 cmake_dependent_option(PASTIX_DISTRIBUTED
  "Enable the distributed interface (requires PASTIX_WITH_MPI)" OFF "PASTIX_WITH_MPI" OFF)
@@ -120,6 +120,8 @@ option(PASTIX_DEBUG_SYMBOL
   "Debug the symbol matrix factorization" OFF)
 option(PASTIX_DEBUG_BLEND
   "Debug the analyze step" OFF)
+option(PASTIX_DEBUG_DUMP_COEFTAB
+  "Dump all cblk on disk after modifications" OFF)
 option(PASTIX_DEBUG_FACTO
   "Debug the factorization step" OFF)
 cmake_dependent_option(PASTIX_DEBUG_PARSEC

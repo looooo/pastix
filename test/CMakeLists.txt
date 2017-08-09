@@ -66,9 +66,11 @@ foreach(example ${SPM_TESTS} ${SPM_DOF_TESTS} ${BCSC_TESTS} )
 endforeach()
 
 # RSA
-foreach(example ${SPM_TESTS} ${BCSC_TESTS} )
-  add_test(test_rsa_${example} ./${example} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa)
-endforeach()
+if (PASTIX_WITH_FORTRAN)
+  foreach(example ${SPM_TESTS} ${BCSC_TESTS} )
+    add_test(test_rsa_${example} ./${example} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa)
+  endforeach()
+endif()
 
 # Matrix Market
 foreach(example ${SPM_TESTS} ${SPM_DOF_TESTS} ${BCSC_TESTS} )

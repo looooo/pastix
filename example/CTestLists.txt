@@ -46,12 +46,14 @@ foreach(example ${PASTIX_DRIVERS} )
   endforeach()
 endforeach()
 
-### Factotype
+### Driver
 foreach(example ${PASTIX_TESTS} )
   # RSA
-  add_test(example_rsa_${example} ./${example} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa    -f 2) # LLt fails with negative pivot !
+  if (PASTIX_WITH_FORTRAN)
+    add_test(example_rsa_${example} ./${example} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1)
+  endif()
   # Matrix Market
-  add_test(example_mm_${example}  ./${example} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx  -f 2) # LLt fails with negative pivot !
+  add_test(example_mm_${example}  ./${example} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx  -f 1)
   # Harwell Boeing
   add_test(example_hb_${example}  ./${example} --hb  ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua   -f 2)
   # Matrix Market - Hermitian
@@ -60,9 +62,9 @@ endforeach()
 
 ### Refinement
 foreach(example ${PASTIX_TESTS} )
-  add_test(example_cg_${example}       ./${example} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 2 -i iparm_refinement pastixrefinegmres) # LLt fails with negative pivot !
-  add_test(example_gmres_${example}    ./${example} --hb  ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinegmres)
-  add_test(example_bicgstab_${example} ./${example} --hb  ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinebicgstab)
+  add_test(example_cg_${example}       ./${example} --hb ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1 -i iparm_refinement pastixrefinegmres)
+  add_test(example_gmres_${example}    ./${example} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinegmres)
+  add_test(example_bicgstab_${example} ./${example} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinebicgstab)
 endforeach()
 
 ### Scheduling
