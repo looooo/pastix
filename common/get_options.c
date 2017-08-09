@@ -383,8 +383,13 @@ pastix_getOptions( int argc, char **argv,
         switch(c)
         {
         case '0':
+#if defined(PASTIX_WITH_FORTRAN)
             *driver = PastixDriverRSA;
             *filename = strdup( optarg );
+#else
+            fprintf(stderr, "pastix_getOptions: Please compile with PASTIX_WITH_FORTRAN option to enable RSA driver or use HB driver instead\n");
+            goto unknown_option;
+#endif
             break;
 
         case '1':

@@ -21,6 +21,14 @@
 #include "coeftab.h"
 #include "pastix_zcores.h"
 
+#if defined(PASTIX_WITH_PARSEC)
+#include "sopalin/parsec/pastix_parsec.h"
+#endif
+
+#if defined(PASTIX_WITH_STARPU)
+#include "sopalin/starpu/pastix_starpu.h"
+#endif
+
 coeftab_fct_diff_t coeftabDiff[4] =
 {
     coeftab_sdiff, coeftab_ddiff, coeftab_cdiff, coeftab_zdiff

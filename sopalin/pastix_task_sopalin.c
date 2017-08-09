@@ -28,6 +28,14 @@
 #include "kernels/pastix_scores.h"
 #include "kernels/eztrace_module/kernels_ev_codes.h"
 
+#if defined(PASTIX_WITH_PARSEC)
+#include "sopalin/parsec/pastix_parsec.h"
+#endif
+
+#if defined(PASTIX_WITH_STARPU)
+#include "sopalin/starpu/pastix_starpu.h"
+#endif
+
 static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
 {
     { sopalin_spotrf, sopalin_dpotrf, sopalin_cpotrf, sopalin_zpotrf },

@@ -9,5 +9,7 @@
 #
 ###
 
-add_subdirectory( fortran90 )
+if (PASTIX_WITH_FORTRAN)
+  add_subdirectory( fortran90 )
+endif()
 add_subdirectory( python )

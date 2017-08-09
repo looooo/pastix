@@ -82,10 +82,11 @@ spmReadDriver( pastix_driver_t  driver,
     {
         switch(driver)
         {
+#if defined(PASTIX_WITH_FORTRAN)
         case PastixDriverRSA:
             readRSA( filename, spm );
             break;
-
+#endif
         case PastixDriverHB:
             /* TODO: Possible to read the RHS, the solution or a guess of the solution */
             readHB( filename, spm );

@@ -19,15 +19,18 @@
 #if defined(HAVE_METIS)
 #include <metis.h>
 #endif
-#if defined(PASTIX_WITH_PARSEC)
-#include <parsec.h>
-#endif
 #include "order.h"
 #include "solver.h"
 #include "bcsc.h"
 #include "isched.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#if defined(PASTIX_WITH_PARSEC)
+#include "sopalin/parsec/pastix_parsec.h"
+#endif
+#if defined(PASTIX_WITH_STARPU)
+#include "sopalin/starpu/pastix_starpu.h"
+#endif
 
 void
 pastix_gendirtemp( char **dirtemp )
