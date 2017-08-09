@@ -55,11 +55,13 @@ costMatrixInit( CostMatrix *costmtx )
 void
 costMatrixExit( CostMatrix *costmtx )
 {
-    if(costmtx->blokcost != NULL)
+    if(costmtx->blokcost != NULL) {
 	memFree_null(costmtx->blokcost);
+    }
 
-    if(costmtx->cblkcost != NULL)
+    if(costmtx->cblkcost != NULL) {
 	memFree_null(costmtx->cblkcost);
+    }
 }
 
 /**

@@ -294,12 +294,14 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
                 for(k = 0; k < sptfcbnb; k++, newfcblk++)
                 {
                     /* This block doesn't face this new cblk */
-                    if ( frownum > newfcblk->lcolnum )
+                    if ( frownum > newfcblk->lcolnum ) {
                         continue;
+                    }
 
                     /* No more facing cblk will be found */
-                    if ( lrownum < newfcblk->fcolnum )
+                    if ( lrownum < newfcblk->fcolnum ) {
                         break;
+                    }
 
                     assert( frownum <= lrownum );
                     sptcbnbh++;
@@ -438,12 +440,14 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
                     for(l=0; l<sptfcbnb; l++, newfcblk++)
                     {
                         /* This block doesn't face this new cblk */
-                        if ( frownum > newfcblk->lcolnum )
+                        if ( frownum > newfcblk->lcolnum ) {
                             continue;
+                        }
 
                         /* No more facing cblk will be found */
-                        if ( lrownum < newfcblk->fcolnum )
+                        if ( lrownum < newfcblk->fcolnum ) {
                             break;
+                        }
 
                         assert( frownum <= lrownum );
                         assert( frownum >= newfcblk->fcolnum );

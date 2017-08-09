@@ -85,9 +85,11 @@ eTreeLeavesNbr(const EliminTree *etree)
     pastix_int_t i;
     pastix_int_t leavenbr;
     leavenbr = 0;
-    for(i=0;i<etree->nodenbr;i++)
-        if(etree->nodetab[i].sonsnbr == 0)
+    for(i=0;i<etree->nodenbr;i++) {
+        if(etree->nodetab[i].sonsnbr == 0) {
             leavenbr++;
+        }
+    }
 
     return leavenbr;
 }
@@ -117,8 +119,9 @@ eTreeLevel(const EliminTree *etree)
     for(i=0;i<etree->nodenbr;i++)
     {
         nodelevel = eTreeNodeLevel(etree, i);
-        if(nodelevel>maxlevel)
+        if(nodelevel>maxlevel) {
             maxlevel = nodelevel;
+        }
     }
 
     return maxlevel;
@@ -149,8 +152,9 @@ eTreeNodeLevel(const EliminTree *etree, pastix_int_t nodenum )
     pastix_int_t level;
 
     level = 1;
-    if(nodenum == eTreeRoot(etree))
+    if(nodenum == eTreeRoot(etree)) {
         return level;
+    }
     level++;
     while(etree->nodetab[nodenum].fathnum != eTreeRoot(etree))
     {
@@ -187,8 +191,9 @@ eTreeGenDot(const EliminTree *etree, FILE *stream)
 
     for (i=0;  i < etree->nodenbr; i++)
     {
-        if ((etree->nodetab[i]).fathnum == -1)
+        if ((etree->nodetab[i]).fathnum == -1) {
             continue;
+        }
         fprintf(stream, "\t\"%ld\"->\"%ld\"\n", (long)i, (long)((etree->nodetab[i]).fathnum));
     }
 
@@ -230,14 +235,16 @@ eTreePrint(const EliminTree *etree, FILE *stream, pastix_int_t rootnum )
     sonsnbr = etree->nodetab[ rootnum ].sonsnbr;
 
     fprintf(stream, "Rootnum %ld %d\n", (long)rootnum, sonsnbr);
-    for(i=0;i<sonsnbr;i++)
+    for(i=0;i<sonsnbr;i++) {
         fprintf(stream,"       (%4ld)\n",  (long)eTreeSonI(etree, rootnum, i));
+    }
 
     for(i=0;i<sonsnbr;i++)
     {
         son = eTreeSonI(etree, rootnum, i);
-        if (etree->nodetab[son].sonsnbr)
+        if (etree->nodetab[son].sonsnbr) {
             eTreePrint(etree, stream, son);
+        }
     }
 }
 

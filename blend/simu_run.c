@@ -86,8 +86,9 @@ simu_computeFtgtCosts( const BlendCtrl     *ctrl,
     *send = 0.;
     *add  = 0.;
 
-    if( clustsrc == clustdst )
+    if( clustsrc == clustdst ) {
         return;
+    }
 
     assert( (clustsrc >= 0) && (clustdst >= 0) );
 
@@ -173,8 +174,9 @@ simu_computeBlockCtrbNbr(const symbol_matrix_t *symbptr,
             pastix_int_t lbloknum = symbptr->cblktab[task->cblknum+1].bloknum;
 
             task->ctrbcnt = 0;
-            for(j=fbloknum; j<lbloknum; j++)
+            for(j=fbloknum; j<lbloknum; j++) {
                 task->ctrbcnt += simuctrl->bloktab[j].ctrbcnt;
+            }
 
             simuctrl->cblktab[task->cblknum].ctrbcnt = task->ctrbcnt;
             task++;
@@ -208,11 +210,13 @@ simu_printBlockCtrbNbr( const BlendCtrl       *ctrl,
     symbol_cblk_t *curcblk;
 
     fd1 = pastix_fopenw( ctrl->dirtemp, "contribblok.txt", "w" );
-    if ( fd1 == NULL )
+    if ( fd1 == NULL ) {
         return;
+    }
     fd2 = pastix_fopenw( ctrl->dirtemp, "contribcblk.txt", "w" );
-    if ( fd2 == NULL )
+    if ( fd2 == NULL ) {
         return;
+    }
 
     curcblk = symbptr->cblktab;
     for(i=0; i<symbptr->cblknbr; i++, curcblk++)
@@ -282,10 +286,12 @@ simu_putInAllReadyQueues( const BlendCtrl *ctrl,
         for(procnum =  cblkcand->fcandnum;
             procnum <= cblkcand->lcandnum; procnum++, sproc++)
         {
-            if(ready_date > timerVal(TIMER(procnum)))
+            if(ready_date > timerVal(TIMER(procnum))) {
                 pqueuePush2( sproc->futuretask, tasknum, ready_date, treelevel);
-            else
+            }
+            else {
                 pqueuePush2( sproc->readytask, tasknum, treelevel, bloknum);
+            }
         }
     }
     else
@@ -297,10 +303,12 @@ simu_putInAllReadyQueues( const BlendCtrl *ctrl,
         {
             ready_date = timerVal( simuctrl->ftgttimetab + CLUST2INDEX(bloknum, ctrl->core2clust[procnum]) );
 
-            if(ready_date > timerVal(TIMER(procnum)))
+            if(ready_date > timerVal(TIMER(procnum))) {
                 pqueuePush2( sproc->futuretask, tasknum, ready_date, treelevel);
-            else
+            }
+            else {
                 pqueuePush2( sproc->readytask, tasknum, treelevel, bloknum);
+            }
         }
     }
 }
@@ -382,8 +390,9 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
                     pqueuePop(simuctrl->proctab[p].futuretask);
                     tasknum = -1;
                 }
-                else
+                else {
                     break;
+                }
             }
         }
 
@@ -471,8 +480,9 @@ simu_computeTaskReceiveTime( const BlendCtrl       *ctrl,
     cblknum = simuctrl->tasktab[tasknum].cblknum;
 
     /* If the task is local, all sons sending contributions are local => no treatment */
-    if( ctrl->candtab[cblknum].fccandnum == ctrl->candtab[cblknum].lccandnum )
+    if( ctrl->candtab[cblknum].fccandnum == ctrl->candtab[cblknum].lccandnum ) {
         return;
+    }
 
     /*
      * Compute the cblk on proc timer that is time the cblk would have received
@@ -490,7 +500,7 @@ simu_computeTaskReceiveTime( const BlendCtrl       *ctrl,
         /* Task with several cand proc */
         /* The information about ftgt costs are in the ftgt of the diagonal block;
          this loop sums the cost of all the ftgt received by the blocks in this column block */
-        if(simuctrl->ftgttab[i].ftgt.infotab[FTGT_CTRBNBR]>0)
+        if(simuctrl->ftgttab[i].ftgt.infotab[FTGT_CTRBNBR]>0) {
             for(j=bloknum;j<symbptr->cblktab[cblknum+1].bloknum;j++)
             {
                 if(simuctrl->ftgttab[simuctrl->bloktab[j].ftgtnum + i-simuctrl->bloktab[bloknum].ftgtnum].ftgt.infotab[FTGT_CTRBNBR]>0)
@@ -505,12 +515,15 @@ simu_computeTaskReceiveTime( const BlendCtrl       *ctrl,
                     simuctrl->ftgttab[i].costsend += send;
                 }
             }
+        }
 
 #ifdef DEBUG_BLEND
-        if(!(simuctrl->ftgttab[i].costsend >= 0.0))
+        if(!(simuctrl->ftgttab[i].costsend >= 0.0)) {
             errorPrint("ftgt %ld costsend %f", (long)i, simuctrl->ftgttab[i].costsend);
-        if(!(simuctrl->ftgttab[i].costadd >= 0.0))
+        }
+        if(!(simuctrl->ftgttab[i].costadd >= 0.0)) {
             errorPrint("ftgt %ld costadd %f", (long)i, simuctrl->ftgttab[i].costadd);
+        }
 
         assert(simuctrl->ftgttab[i].costsend >= 0.0);
         assert(simuctrl->ftgttab[i].costadd >= 0.0);
@@ -525,9 +538,11 @@ simu_computeTaskReceiveTime( const BlendCtrl       *ctrl,
             lftgttime = timerVal(&(simuctrl->ftgttab[i].timerecv));
             lftgtnum  = i;
         }
-        else
-            if(timerVal(&(simuctrl->ftgttab[i].timerecv)) > sftgttime)
+        else {
+            if(timerVal(&(simuctrl->ftgttab[i].timerecv)) > sftgttime) {
                 sftgttime = timerVal(&(simuctrl->ftgttab[i].timerecv));
+            }
+        }
     }
 
 
@@ -537,10 +552,12 @@ simu_computeTaskReceiveTime( const BlendCtrl       *ctrl,
      */
     for(i=simuctrl->bloktab[bloknum].ftgtnum; i<simuctrl->bloktab[bloknum+1].ftgtnum;i++)
     {
-        if(i != lftgtnum)
+        if(i != lftgtnum) {
             timerSet(&(simuctrl->ftgttimetab[i]), lftgttime);
-        else
+        }
+        else {
             timerSetMax( &(simuctrl->ftgttimetab[i]), sftgttime );
+        }
     }
 }
 
@@ -588,17 +605,21 @@ simu_updateFtgt( const symbol_matrix_t *symbptr,
     infotab[FTGT_CTRBNBR]++;
 
     /* Update ftgt dimensions to the maximum area covering all contributions */
-    if( blokptr->frownum < infotab[FTGT_FCOLNUM] )
+    if( blokptr->frownum < infotab[FTGT_FCOLNUM] ) {
         infotab[FTGT_FCOLNUM] = blokptr->frownum;
+    }
 
-    if( blokptr->lrownum > infotab[FTGT_LCOLNUM] )
+    if( blokptr->lrownum > infotab[FTGT_LCOLNUM] ) {
         infotab[FTGT_LCOLNUM] = blokptr->lrownum;
+    }
 
-    if( fblokptr->frownum < infotab[FTGT_FROWNUM] )
+    if( fblokptr->frownum < infotab[FTGT_FROWNUM] ) {
         infotab[FTGT_FROWNUM] = fblokptr->frownum;
+    }
 
-    if( fblokptr->lrownum > infotab[FTGT_LROWNUM] )
+    if( fblokptr->lrownum > infotab[FTGT_LROWNUM] ) {
         infotab[FTGT_LROWNUM] = fblokptr->lrownum;
+    }
 
     assert( (infotab[FTGT_LCOLNUM] - infotab[FTGT_FCOLNUM] + 1) > 0 );
     assert( (infotab[FTGT_LROWNUM] - infotab[FTGT_FROWNUM] + 1) > 0 );
@@ -731,8 +752,9 @@ simu_computeTask( const BlendCtrl       *ctrl,
                 }
 
                 if( simuctrl->cblktab[facingcblk].ctrbcnt == 0 ) {
-                    if (!local)
+                    if (!local) {
                         simu_computeTaskReceiveTime(ctrl, symbptr, simuctrl, facingtask );
+                    }
 
                     /* Put the task in the ready heap of its local candidat processor */
                     simu_putInAllReadyQueues( ctrl, simuctrl, facingtask );
@@ -797,8 +819,9 @@ simu_pushToReadyHeap( const BlendCtrl *ctrl,
                         ctrl->candtab[cblknum].treelevel,
                         simuctrl->tasktab[tasknum].bloknum );
         }
-        else
+        else {
             break;
+        }
     }
 }
 
@@ -947,8 +970,9 @@ simuRun( SimuCtrl              *simuctrl,
         i = simu_getNextTaskNextProc(ctrl, simuctrl, &pr);
 
         /* No more tasks */
-        if( i == -1 )
+        if( i == -1 ) {
             break;
+        }
 
         task    = &(simuctrl->tasktab[i]);
         bloknum = task->bloknum;
@@ -1027,8 +1051,9 @@ simuRun( SimuCtrl              *simuctrl,
 
                         simuctrl->tasktab[simuctrl->bloktab[bloknum].tasknum].ftgtcnt++;
 
-                        if (clustnum == ctrl->clustnum)
+                        if (clustnum == ctrl->clustnum) {
                             simuctrl->ftgtcnt++;
+                        }
                     }
                 }
             }
@@ -1055,8 +1080,9 @@ simuRun( SimuCtrl              *simuctrl,
         double maxtime = 0;
         for(pr=0; pr<ctrl->total_nbcores; pr++)
         {
-            if(timerVal(TIMER(pr)) > maxtime)
+            if(timerVal(TIMER(pr)) > maxtime) {
                 maxtime = timerVal(TIMER(pr));
+            }
         }
         set_dparm(ctrl->dparm, DPARM_PRED_FACT_TIME, maxtime);
     }
@@ -1075,11 +1101,12 @@ simuRun( SimuCtrl              *simuctrl,
 #endif
 
 #ifdef DEBUG_BLEND
-    for(i=0;i<simuctrl->cblknbr;i++)
-        if(simuctrl->ownetab[i] < 0) /* Check valid for 1D distribution only */
+    for(i=0;i<simuctrl->cblknbr;i++) {
+        if(simuctrl->ownetab[i] < 0) { /* Check valid for 1D distribution only */
             fprintf(stderr, "CBLK %ld has no processor \n", (long)i);
-
-    for(i=0;i<symbptr->bloknbr;i++)
+        }
+    }
+    for(i=0;i<symbptr->bloknbr;i++) {
         if(!(simuctrl->bloktab[i].ownerclust>=0))
         {
             fprintf(stderr, "BLOCK %ld has no processor \n", (long)i);
@@ -1087,7 +1114,9 @@ simuRun( SimuCtrl              *simuctrl,
                     (long)simuctrl->bloktab[i].ownerclust);
             EXIT(MOD_BLEND,INTERNAL_ERR);
         }
-    for(i=0;i<symbptr->bloknbr;i++)
+    }
+    for(i=0;i<symbptr->bloknbr;i++) {
         assert(simuctrl->bloktab[i].ownerclust>=0);
+    }
 #endif
 }

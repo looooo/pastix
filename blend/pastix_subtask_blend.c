@@ -180,9 +180,10 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     /* Create the control structure that parameterize the analyze step */
     blendCtrlInit( pastix_data, &ctrl );
 
-    if( verbose > PastixVerboseNo)
+    if( verbose > PastixVerboseNo) {
         pastix_print( procnum, 0, OUT_BLEND_CONF,
                       (long)ctrl.clustnbr, (long)ctrl.local_nbcores, (long)ctrl.local_nbthrds);
+    }
 
     /* Verify the coherence of the initial symbol matrix */
     if(ctrl.debug)
@@ -433,8 +434,9 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     clockStop(timer_all);
     set_dparm(dparm, DPARM_ANALYZE_TIME, clockVal(timer_all) );
 
-    if (verbose > PastixVerboseYes)
+    if (verbose > PastixVerboseYes) {
         pastixSymbolPrintStats( pastix_data->symbmtx );
+    }
 
     /* Symbol is not used anymore */
     pastixSymbolExit(pastix_data->symbmtx);
@@ -482,8 +484,9 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                     if (procnum == 0)
                     {
                         sizeG *= sizeof(pastix_complex64_t);
-                        if (iparm[IPARM_FACTORIZATION] == PastixFactLU)
+                        if (iparm[IPARM_FACTORIZATION] == PastixFactLU) {
                             sizeG *= 2;
+                        }
 
                         fprintf(stdout, OUT_COEFSIZE, (double)MEMORY_WRITE(sizeG),
                                 MEMORY_UNIT_WRITE(sizeG));

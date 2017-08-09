@@ -95,12 +95,14 @@ solverDraw ( const SolverMatrix * const  solvptr,
         coloval[1] = 0.5;
         coloval[2] = 0.5;
         if ((coloval[0] == coloval[1]) &&
-            (coloval[1] == coloval[2]))
+            (coloval[1] == coloval[2])) {
             fprintf (stream, "%.2g g ",
                      (float) coloval[0]);
-        else
+        }
+        else {
             fprintf (stream, "%.2g %.2g %.2g r \n",
                      (float) coloval[0], (float) coloval[1], (float) coloval[2]);
+        }
 
         fprintf (stream, "%ld\t%ld\tc\n",             /* Begin new column block */
                  (long) (cblk->fcolnum - solvptr->baseval),
@@ -146,15 +148,16 @@ solverDraw ( const SolverMatrix * const  solvptr,
                             0., 0., 0.);
                 }
                 /* Small amount of compression: red */
-                else if (gain < 5.){
+                else if (gain < 5.) {
                     fprintf(stream, "%.2g %.2g %.2g r \n",
                             gain / 5., 0., 0.);
                 }
                 /* Huge amount of compression */
-                else{
+                else {
                     float color = 0.5 + (gain-5) / 10.;
-                    if (color > 1)
+                    if (color > 1) {
                         color = 1.;
+                    }
                     fprintf(stream, "%.2g %.2g %.2g r \n",
                             0., color, 0.);
                 }
@@ -248,10 +251,12 @@ solverDraw ( const SolverMatrix * const  solvptr,
             }
 
             if (original_cblk == 0){
-                if (color < 0.3)
+                if (color < 0.3) {
                     color = 0.8;
-                else
+                }
+                else {
                     color = 0.2;
+                }
             }
             nb_cblks++;
         }

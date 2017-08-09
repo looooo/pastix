@@ -250,10 +250,12 @@ blendCtrlInit( pastix_data_t *pastix_data,
     }
 
     if (iparm[IPARM_VERBOSE] > PastixVerboseYes) {
-        if (ctrl->autolevel)
+        if (ctrl->autolevel) {
             printf("ratiolimit=%ld\n", (long) (ctrl->ratiolimit) );
-        else
+        }
+        else {
             printf("level2D=%ld\n", (long)(ctrl->level2D) );
+        }
     }
     /* Save iparm for other options */
     ctrl->iparm = iparm;
@@ -281,14 +283,16 @@ blendCtrlInit( pastix_data_t *pastix_data,
     /* Rq: We could use a MPI reduction for irregular pattern                     */
     /* TODO: insert back the number of MPI processes per node                     */
     MALLOC_INTERN(ctrl->clust2smp, ctrl->clustnbr, pastix_int_t);
-    for(i=0; i < ctrl->clustnbr; i++)
+    for(i=0; i < ctrl->clustnbr; i++) {
         ctrl->clust2smp[i] = i;
+    }
 
     /* Create the array of associativity bewteen core ids and MPI process ids */
     /* Rq: We could use a MPI reduction for irregular pattern             */
     MALLOC_INTERN(ctrl->core2clust, ctrl->total_nbcores, pastix_int_t);
-    for(i=0; i < ctrl->total_nbcores; i++)
+    for(i=0; i < ctrl->total_nbcores; i++) {
         ctrl->core2clust[i] = i / ctrl->local_nbcores;
+    }
 
     ctrl->etree   = NULL;
     ctrl->costmtx = NULL;
@@ -329,10 +333,13 @@ blendCtrlExit(BlendCtrl *ctrl)
     extendint_Exit(ctrl->intvec2);
     memFree_null(ctrl->intvec2);
 
-    if(ctrl->clust2smp)
+    if(ctrl->clust2smp) {
         memFree_null(ctrl->clust2smp);
-    if(ctrl->core2clust)
+    }
+    if(ctrl->core2clust) {
         memFree_null(ctrl->core2clust);
-    if(ctrl->candtab)
+    }
+    if(ctrl->candtab) {
         memFree_null(ctrl->candtab);
+    }
 }

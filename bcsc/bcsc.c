@@ -193,7 +193,9 @@ bcscInitCentralized( const pastix_spm_t   *spm,
 
         MALLOC_INTERN( col2cblk, eltnbr, pastix_int_t );
         for (itercol=0; itercol<eltnbr; itercol++)
+        {
             col2cblk[itercol] = -1;
+        }
 
         for (itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
         {
@@ -245,10 +247,12 @@ bcscInit( const pastix_spm_t   *spm,
     double time = 0.;
     clockStart(time);
 
-    if ( spm->loc2glob == NULL )
+    if ( spm->loc2glob == NULL ) {
         bcscInitCentralized( spm, ord, solvmtx, initAt, bcsc );
-    else
+    }
+    else {
         fprintf(stderr, "bcscInit: Distributed SPM not yet supported");
+    }
 
     clockStop(time);
     return time;

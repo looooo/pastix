@@ -47,10 +47,12 @@ pqueueItemComparison(const pastix_queue_item_t *item1,
     /* if elt1 = elt2 return 0  */
     /* if elt1 > elt2 return 0 */
 
-    if ( item1->key1 == item2->key1)
+    if ( item1->key1 == item2->key1) {
         return item1->key2 < item2->key2;
-    else
+    }
+    else {
         return item1->key1 < item2->key1;
+    }
 }
 
 /**
@@ -263,12 +265,13 @@ pqueuePop2(pastix_queue_t *q, double *key1, double*key2)
     pastix_int_t i, j;
     pastix_int_t return_elt;
 
-    if (q->used == 0)
+    if (q->used == 0) {
         return -1;
+    }
 
     return_elt = q->elttab[0].eltptr;
-    if (key1 != NULL) *key1 = q->elttab[0].key1;
-    if (key2 != NULL) *key2 = q->elttab[0].key2;
+    if (key1 != NULL) { *key1 = q->elttab[0].key1; }
+    if (key2 != NULL) { *key2 = q->elttab[0].key2; }
 
     q->elttab[0] = q->elttab[q->used-1];
     q->used--;
@@ -297,8 +300,9 @@ pqueuePop2(pastix_queue_t *q, double *key1, double*key2)
 
             i = j;
         }
-        else
+        else {
             break;
+        }
     }
     return return_elt;
 }
@@ -329,8 +333,9 @@ pqueuePrint(const pastix_queue_t *q)
                 (long)(item->eltptr),
                 (long)(item->key1),
                 (long)(item->key2) );
-        if (i%4 == 3)
+        if (i%4 == 3) {
             fprintf(stderr, "\n");
+        }
     }
     fprintf(stderr, "\n");
 }

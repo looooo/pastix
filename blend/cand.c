@@ -136,8 +136,9 @@ candSetSubCandidate( Cand *candtab,
     candtab[rootnum].fcandnum = procnum;
     candtab[rootnum].lcandnum = procnum;
 
-    for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
+    for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++) {
         candSetSubCandidate( candtab, etree, eTreeSonI(etree, rootnum, i), procnum );
+    }
 }
 
 /**
@@ -366,10 +367,12 @@ candSubTreeDistribWithSize( pastix_int_t           rootnum,
     if(cblktype & CBLK_TASKS_2D) {
         pastix_int_t width = symbmtx->cblktab[ rootnum ].lcolnum - symbmtx->cblktab[ rootnum ].fcolnum + 1;
 
-        if((ratiolimit >= 0) && (width >= ratiolimit))
+        if((ratiolimit >= 0) && (width >= ratiolimit)) {
             candtab[ rootnum ].cblktype = cblktype;
-        else
+        }
+        else {
             candtab[ rootnum ].cblktype = cblktype & (~CBLK_TASKS_2D);
+        }
     }
     else {
         candtab[ rootnum ].cblktype = cblktype;
@@ -419,10 +422,12 @@ candDistribWithDepth( pastix_int_t           depth,
 
     for(i=0;i<cblknbr;i++)
     {
-        if( candtab[i].treelevel > depth )
+        if( candtab[i].treelevel > depth ) {
             candtab[i].cblktype = CBLK_LAYOUT_2D | CBLK_TASKS_2D;
-        else
+        }
+        else {
             candtab[i].cblktype = CBLK_LAYOUT_2D;
+        }
 
         if ( symbmtx->cblktab[ i ].fcolnum >= schurfcol ) {
             candtab[i].cblktype &= CBLK_IN_SCHUR;

@@ -64,8 +64,9 @@ extendint_Init(ExtendVectorINT *vec, pastix_int_t size)
 void
 extendint_Exit(ExtendVectorINT *vec)
 {
-    if(vec->inttab != NULL)
+    if(vec->inttab != NULL) {
         memFree_null(vec->inttab);
+    }
     /*memFree_null(vec);*/
 }
 
@@ -158,11 +159,13 @@ extendint_ToSize(ExtendVectorINT *vec, pastix_int_t size)
 {
     extendint_Clear(vec);
 
-    if(size <= vec->vecsize)  /* there 's enough space */
+    if(size <= vec->vecsize) {  /* there 's enough space */
         return;
+    }
 
-    if(vec->inttab != NULL)
+    if(vec->inttab != NULL) {
         memFree_null(vec->inttab);
+    }
 
     MALLOC_INTERN(vec->inttab, size, pastix_int_t);
     vec->vecsize = size;

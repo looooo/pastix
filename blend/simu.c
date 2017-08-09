@@ -104,16 +104,18 @@ simuInit( SimuCtrl              *simuctrl,
         simuctrl->clustab[i].lprocnum = simuctrl->clustab[i].fprocnum + step - 1;
         MALLOC_INTERN(simuctrl->clustab[i].ftgtsend, clustnbr, ExtendVectorINT);
         simuctrl->clustab[i].prionum  = 0;
-        for(p=0;p<clustnbr;p++)
+        for(p=0;p<clustnbr;p++) {
             extendint_Init(&(simuctrl->clustab[i].ftgtsend[p]), cblknbr/(2*clustnbr)+1);
+        }
     }
     simuctrl->clustab[clustnbr-1].lprocnum = procnbr-1;
 
     MALLOC_INTERN(simuctrl->ownetab, cblknbr, pastix_int_t);
 
     /* Affect a negative value to cblk not mapped */
-    for(i=0;i<cblknbr;i++)
+    for(i=0;i<cblknbr;i++) {
         simuctrl->ownetab[i] = -1;
+    }
 
     MALLOC_INTERN(simuctrl->cblktab, cblknbr+1, SimuCblk);
     MALLOC_INTERN(simuctrl->bloktab, bloknbr+1, SimuBlok);
@@ -143,8 +145,9 @@ simuInit( SimuCtrl              *simuctrl,
     {
         /* Allocate and Initialize the timer for the reception of each ftgt on a candidate cluster */
         MALLOC_INTERN(simuctrl->ftgttimetab, simuctrl->ftgtnbr, SimuTimer);
-        for(i=0;i<simuctrl->ftgtnbr;i++)
+        for(i=0;i<simuctrl->ftgtnbr;i++) {
             timerSet(&(simuctrl->ftgttimetab[i]), 0.0);
+        }
 
         MALLOC_INTERN(simuctrl->ftgttab, ftgtcur, SimuFtgt);
         for(i=0;i<simuctrl->ftgtnbr;i++)
@@ -279,8 +282,9 @@ simuExit(SimuCtrl     *simuctrl,
 
     for(i=0;i<clustnbr;i++)
     {
-        for(j=0;j<clustnbr;j++)
+        for(j=0;j<clustnbr;j++) {
             extendint_Exit(&(simuctrl->clustab[i].ftgtsend[j]));
+        }
         memFree_null(simuctrl->clustab[i].ftgtsend);
     }
 

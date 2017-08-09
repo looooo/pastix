@@ -63,13 +63,15 @@ solverCheck(const SolverMatrix *solvmtx)
         indnum  = solvmtx->tasktab[i].indnum;
         assert(cblknum < solvmtx->cblknbr);
         assert(bloknum < solvmtx->bloknbr);
-        if(indnum >= solvmtx->indnbr)
+        if(indnum >= solvmtx->indnbr) {
             printf("tasknbr %ld Tasknum %ld type %ld indnum %ld indnbr %ld \n", (long)solvmtx->tasknbr, (long)i, (long)solvmtx->tasktab[i].taskid, (long)indnum, (long)solvmtx->indnbr);
+        }
         /** OIMBE ce test foire (ligne precedente) si il y a du 1D jusqu'au bout !! mais a priori on s'en fout **/
         /*if(solvmtx->tasktab[i].taskid != 0 && solvmtx->cblktab[solvmtx->tasktab[i].cblknum]
          assert(indnum < solvmtx->indnbr);*/
-        if(indnum >= solvmtx->indnbr)
+        if(indnum >= solvmtx->indnbr) {
             printf("cblknbr %ld cblknum %ld indnum %ld indnbr %ld \n", (long)solvmtx->cblknbr, (long)solvmtx->tasktab[i].cblknum, (long)indnum, (long)solvmtx->indnbr);
+        }
         assert(solvmtx->tasktab[i].taskid >= 0);
         assert(solvmtx->tasktab[i].prionum >= 0);
         switch(solvmtx->tasktab[i].taskid)
@@ -100,13 +102,15 @@ solverCheck(const SolverMatrix *solvmtx)
                             assert(facecblknum == solvmtx->tasktab[tasknum].cblknum);
                             facebloknum = solvmtx->cblktab[facecblknum].fblokptr-solvmtx->bloktab;
 
-                            while ( ! (    ( solvmtx->bloktab[k].frownum >= solvmtx->bloktab[facebloknum].frownum &&
-                                             solvmtx->bloktab[k].frownum <= solvmtx->bloktab[facebloknum].lrownum)
-                                           || ( solvmtx->bloktab[k].lrownum >= solvmtx->bloktab[facebloknum].frownum &&
-                                                solvmtx->bloktab[k].lrownum <= solvmtx->bloktab[facebloknum].lrownum)
-                                           || ( solvmtx->bloktab[k].frownum <= solvmtx->bloktab[facebloknum].frownum &&
-                                                solvmtx->bloktab[k].lrownum >= solvmtx->bloktab[facebloknum].lrownum)))
+                            while ( !(( (solvmtx->bloktab[k].frownum >= solvmtx->bloktab[facebloknum].frownum) &&
+                                        (solvmtx->bloktab[k].frownum <= solvmtx->bloktab[facebloknum].lrownum) ) ||
+                                      ( (solvmtx->bloktab[k].lrownum >= solvmtx->bloktab[facebloknum].frownum) &&
+                                        (solvmtx->bloktab[k].lrownum <= solvmtx->bloktab[facebloknum].lrownum) ) ||
+                                      ( (solvmtx->bloktab[k].frownum <= solvmtx->bloktab[facebloknum].frownum) &&
+                                        (solvmtx->bloktab[k].lrownum >= solvmtx->bloktab[facebloknum].lrownum) )) )
+                            {
                                 facebloknum++;
+                            }
 
                             assert(solvmtx->bloktab[k].frownum >= solvmtx->bloktab[facebloknum].frownum);
                             assert(solvmtx->bloktab[k].lrownum <= solvmtx->bloktab[facebloknum].lrownum);
@@ -134,9 +138,11 @@ solverCheck(const SolverMatrix *solvmtx)
                         solvmtx->ftgttab[ftgtnum].infotab[FTGT_CTRBCNT]--;
 
 #ifdef DEBUG_PRIO
-                        if( solvmtx->ftgttab[ftgtnum].infotab[FTGT_CTRBCNT] == 0)
-                            if(solvmtx->ftgttab[ftgtnum].infotab[FTGT_PRIONUM] != solvmtx->tasktab[i].prionum)
+                        if( solvmtx->ftgttab[ftgtnum].infotab[FTGT_CTRBCNT] == 0) {
+                            if(solvmtx->ftgttab[ftgtnum].infotab[FTGT_PRIONUM] != solvmtx->tasktab[i].prionum) {
                                 fprintf(stdout, "Task1D %ld FTGT %ld  taskprio %ld ftgtprio %ld \n", (long)i, (long)ftgtnum, (long)solvmtx->tasktab[i].prionum, (long)solvmtx->ftgttab[ftgtnum].infotab[FTGT_PRIONUM]);
+                            }
+                        }
 #endif
                         /*fprintf(stdout ," [ %ld %ld ] [%ld %ld ] \n", (long)solvmtx->ftgttab[ftgtnum].infotab[FTGT_FCOLNUM],
                          (long)solvmtx->ftgttab[ftgtnum].infotab[FTGT_LCOLNUM],
@@ -172,8 +178,9 @@ solverCheck(const SolverMatrix *solvmtx)
         printf("i = %d, ttsknbr = %d\n", (int)i, (int)(solvmtx->ttsknbr[i]));
         total += solvmtx->ttsknbr[i];
     }
-    if(total != solvmtx->tasknbr)
+    if(total != solvmtx->tasknbr) {
         fprintf(stderr, " total %ld tasknbr %ld \n", (long)total, (long)solvmtx->tasknbr);
+    }
 
     assert(total == solvmtx->tasknbr);
 
@@ -183,18 +190,18 @@ solverCheck(const SolverMatrix *solvmtx)
         MALLOC_INTERN(flag, solvmtx->tasknbr, pastix_int_t);
         bzero(flag, sizeof(pastix_int_t)*solvmtx->tasknbr);
 
-        for(i=0;i<solvmtx->bublnbr;i++)
+        for(i=0;i<solvmtx->bublnbr;i++) {
             for(j=0;j<solvmtx->ttsknbr[i];j++)
             {
                 if(flag[solvmtx->ttsktab[i][j]] != 0)
                     fprintf(stderr, "flag %ld thread %ld task %ld already on another thread \n", (long)flag[solvmtx->ttsktab[i][j]], (long)i, (long)solvmtx->ttsktab[i][j]);
                 flag[solvmtx->ttsktab[i][j]]++;
-
             }
+        }
 
-        for(i=0;i<solvmtx->tasknbr;i++)
+        for(i=0;i<solvmtx->tasknbr;i++) {
             assert(flag[i] == 1);
-
+        }
         memFree(flag);
     }
 #endif
@@ -208,10 +215,12 @@ solverCheck(const SolverMatrix *solvmtx)
             int father = BFATHER( solvmtx->btree, k );
             if ( (father != -1) &&
                  (  solvmtx->btree->nodetab[k].priomax >  solvmtx->btree->nodetab[father].priomin ) )
+            {
                 fprintf(stderr, "We have a problem of task distribution\n"
                         " Bubble[%d] priorities (%ld,%ld) intersect with bubble[%d](%ld,%ld)\n",
                         k,      (long)solvmtx->btree->nodetab[k].priomin,      (long)solvmtx->btree->nodetab[k].priomax,
                         father, (long)solvmtx->btree->nodetab[father].priomin, (long)solvmtx->btree->nodetab[father].priomax) ;
+            }
         }
     }
 #endif

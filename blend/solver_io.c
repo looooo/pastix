@@ -164,22 +164,28 @@ solverLoad( SolverMatrix *solvptr,
         ((solvptr->ttsktab = (pastix_int_t **)memAlloc((solvptr->thrdnbr)     * sizeof(pastix_int_t *))) == NULL) )
     {
         errorPrint ("solverLoad: out of memory (1)");
-        if (solvptr->cblktab != NULL)
+        if (solvptr->cblktab != NULL) {
             memFree_null (solvptr->cblktab);
-        if (solvptr->bloktab != NULL)
+        }
+        if (solvptr->bloktab != NULL) {
             memFree_null (solvptr->bloktab);
-        if (solvptr->ftgttab != NULL)
+        }
+        if (solvptr->ftgttab != NULL) {
             memFree_null (solvptr->ftgttab);
-        if (solvptr->indtab != NULL)
+        }
+        if (solvptr->indtab != NULL) {
             memFree_null (solvptr->indtab);
-        if (solvptr->tasktab != NULL)
+        }
+        if (solvptr->tasktab != NULL) {
             memFree_null (solvptr->tasktab);
+        }
         return PASTIX_ERR_FILE;
     }
 
     for (cblkptr = solvptr->cblktab,                /* Read column block data */
              cblktnd = cblkptr + solvptr->cblknbr;
-         cblkptr < cblktnd; cblkptr ++){
+         cblkptr < cblktnd; cblkptr ++)
+    {
         if (intLoad (stream, &cblkptr->stride) != 1)
         {
             errorPrint ("solverlLoad: bad input (2)");
@@ -190,7 +196,8 @@ solverLoad( SolverMatrix *solvptr,
 
     for (blokptr = solvptr->bloktab,                /* Read block data */
              bloktnd = blokptr + solvptr->bloknbr;
-         blokptr < bloktnd; blokptr ++) {
+         blokptr < bloktnd; blokptr ++)
+    {
         if (intLoad (stream, &blokptr->coefind) != 1)
         {
             errorPrint ("solverLoad: bad input (3)");
@@ -204,14 +211,15 @@ solverLoad( SolverMatrix *solvptr,
              ftgttnd = ftgtptr + solvptr->ftgtnbr;
          ftgtptr < ftgttnd; ftgtptr ++)
     {
-        for(i=0;i<FTGT_MAXINFO;i++)
+        for(i=0;i<FTGT_MAXINFO;i++) {
             intLoad (stream, &(ftgtptr->infotab[i]));
+        }
         ftgtptr->coeftab = NULL;
     }
 
-    for(i=0;i<solvptr->indnbr;i++)                   /** Read indtab **/
+    for(i=0;i<solvptr->indnbr;i++) {                   /** Read indtab **/
         intLoad(stream, &(solvptr->indtab[i]));
-
+    }
 
     for (taskptr = solvptr->tasktab,                /** Read Task data **/
              tasknd = taskptr + solvptr->tasknbr +1;
@@ -436,15 +444,17 @@ solverSave( const SolverMatrix *solvptr,
              ftgttnd = ftgtptr + solvptr->ftgtnbr;
          (ftgtptr < ftgttnd) && (o==0); ftgtptr ++)
     {
-        for(i=0;i<FTGT_MAXINFO;i++)
+        for(i=0;i<FTGT_MAXINFO;i++) {
             o = (fprintf(stream, "%ld\t", (long)ftgtptr->infotab[i]) == EOF);
+        }
         fprintf(stream, "\n");
         fprintf(stream, "\n");
     }
 
     /* Write indtab */
-    for(i=0;i<solvptr->indnbr;i++)
+    for(i=0;i<solvptr->indnbr;i++) {
         fprintf(stream, "%ld\t", (long)solvptr->indtab[i]);
+    }
     fprintf(stream, "\n");
     fprintf(stream, "\n");
 

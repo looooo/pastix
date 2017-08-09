@@ -40,10 +40,12 @@ timerComp(const SimuTimer *t1,
           const SimuTimer *t2)
 {
     /* Return (t1 < t2) */
-    if(t1->s < t2->s)
+    if(t1->s < t2->s) {
         return 1;
-    else
+    }
+    else {
         return 0;
+    }
 }
 
 /**

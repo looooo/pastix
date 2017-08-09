@@ -56,8 +56,9 @@ bcscInitFakeA( const pastix_spm_t   *spm,
         itercblk = col2cblk[ itercol2 ];
 
         /* The block column is not stored locally, we skip it */
-        if (itercblk == -1)
+        if (itercblk == -1) {
             continue;
+        }
 
         coltab  = bcsc->cscftab[itercblk].coltab;
         fcolnum = solvmtx->cblktab[itercblk].fcolnum;
@@ -141,8 +142,9 @@ bcscInitFakeLt( const pastix_spm_t   *spm,
             itercblk = col2cblk[ iterrow2 ];
 
             /* The block column is not stored locally, we skip it */
-            if ((itercblk == -1) || (iterrow == itercol))
+            if ((itercblk == -1) || (iterrow == itercol)) {
                 continue;
+            }
 
             coltab  = bcsc->cscftab[itercblk].coltab;
             fcolnum = solvmtx->cblktab[itercblk].fcolnum;
@@ -212,8 +214,9 @@ bcscInitFakeAt( const pastix_spm_t   *spm,
             itercblk = col2cblk[ iterrow2 ];
 
             /* The block column is not stored locally, we skip it */
-            if ((itercblk == -1) || (iterrow == itercol))
+            if ((itercblk == -1) || (iterrow == itercol)) {
                 continue;
+            }
 
             coltab  = bcsc->cscftab[itercblk].coltab;
             fcolnum = solvmtx->cblktab[itercblk].fcolnum;

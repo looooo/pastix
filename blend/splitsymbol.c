@@ -180,8 +180,9 @@ computeNbBlocksPerLine( const symbol_matrix_t *symbmtx,
     curblok = symbmtx->bloktab;
     for(bloknum=0; bloknum<symbmtx->bloknbr; bloknum++, curblok++ )
     {
-        if ( curblok->lrownum < frowsplit )
+        if ( curblok->lrownum < frowsplit ) {
             continue;
+        }
 
         /*
          * For each couple of rows (i,i+1) in the block, we increment
@@ -236,8 +237,9 @@ computeSmallestSplit( const pastix_int_t *nblocksperline,
     pastix_int_t i, lcolnum, nbsplit;
     pastix_int_t lmin, lmax, lavg;
 
-    if (step >= max)
+    if (step >= max) {
         return max-1;
+    }
     assert( step > 1 );
 
     lavg = step - 1;
@@ -306,8 +308,9 @@ computeSmallestSplit_max( pastix_int_t *nblocksperline,
     pastix_int_t i, lcolnum, nbsplit;
     pastix_int_t lmin, lmax, lavg;
 
-    if (step >= max)
+    if (step >= max) {
         return max-1;
+    }
     assert( step > 1 );
 
     lavg = step - 1;
@@ -411,10 +414,12 @@ splitSmart( const BlendCtrl       *ctrl,
 #define SPLITSYMBOL_METHOD_CONSTANT 1
 #define SPLITSYMBOL_METHOD_UPPER    2
     method = SPLITSYMBOL_METHOD_DEFAULT;
-    if (pastix_blend_with_constant_split())
+    if (pastix_blend_with_constant_split()) {
         method = SPLITSYMBOL_METHOD_CONSTANT;
-    else if (pastix_blend_with_smallest_upper_split())
+    }
+    else if (pastix_blend_with_smallest_upper_split()) {
         method = SPLITSYMBOL_METHOD_UPPER;
+    }
     authorized_percent = pastix_blend_split_percent();
 
     for(cblknum = 0; cblknum<symbmtx->cblknbr; cblknum++)
@@ -436,8 +441,9 @@ splitSmart( const BlendCtrl       *ctrl,
         width = lcolnum - fcolnum + 1;
 
         nseq = computeNbSplit( ctrl, candnbr, width );
-        if (nseq <= 1)
+        if (nseq <= 1) {
             continue;
+        }
 
         if ( fsplitrow == -1 ) {
             fsplitrow = fcolnum;
@@ -575,8 +581,9 @@ splitSymbol( BlendCtrl       *ctrl,
         pastixSymbolCheck(symbmtx);
 
     if ( ctrl->clustnum == 0 ) {
-        if (ctrl->iparm[IPARM_VERBOSE] > PastixVerboseNo)
+        if (ctrl->iparm[IPARM_VERBOSE] > PastixVerboseNo) {
             pastixSymbolPrintStats( symbmtx );
+        }
     }
 
     /* Rk: addcblk field is not erased by Exit call, so we can freely use it */
@@ -592,8 +599,9 @@ splitSymbol( BlendCtrl       *ctrl,
         if (ctrl->updatecandtab)
         {
             /* Update elimination tree */
-            if (ctrl->etree != NULL)
+            if (ctrl->etree != NULL) {
                 eTreeExit(ctrl->etree);
+            }
 
             ctrl->etree = eTreeBuild(symbmtx);
 

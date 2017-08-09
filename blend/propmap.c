@@ -81,9 +81,10 @@ propMappSubtreeOn1P( const propmap_t *pmptr,
 
     /* Recursively apply the affectation to the sons */
     sonsnbr = pmptr->etree->nodetab[rootnum].sonsnbr;
-    for(i=0;i<sonsnbr;i++)
+    for(i=0;i<sonsnbr;i++) {
         propMappSubtreeOn1P( pmptr, eTreeSonI(pmptr->etree, rootnum, i),
                              fcandnum, lcandnum, cluster );
+    }
 
     return;
 }
@@ -435,8 +436,9 @@ propMappTree( Cand               *candtab,
         MALLOC_INTERN(cost_remain, candnbr, double);
         isocost = etree->nodetab[ eTreeRoot(etree) ].subtree / candnbr;
 
-        for(p=0; p<candnbr; p++)
+        for(p=0; p<candnbr; p++) {
             cost_remain[p] = isocost;
+        }
 
         propMappSubtree( &pmdata, eTreeRoot(etree),
                          0, candnbr-1,
