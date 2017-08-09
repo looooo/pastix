@@ -1,6 +1,6 @@
 /**
  *
- * @file z_spm_matvec_test.c
+ * @file z_spm_test.c
  *
  * Tests and validate the spm_convert routines.
  *
@@ -9,7 +9,7 @@
  * @author Theophile Terraz
  * @date 2015-01-01
  *
- * @precisions normal z -> c d s p
+ * @precisions normal z -> c d s
  *
  **/
 #ifndef _GNU_SOURCE
@@ -28,9 +28,7 @@
 #include "lapacke.h"
 #include <z_spm.h>
 #include "blend/solver.h"
-#if !defined(PRECISION_p)
 #include "kernels/pastix_zcores.h"
-#endif
 
 /*------------------------------------------------------------------------
  *  Check the accuracy of the solution
@@ -52,7 +50,6 @@ z_spm_print_check( char *filename, const pastix_spm_t *spm )
     fclose(f);
     free(file);
 
-#if !defined(PRECISION_p)
     A = z_spm2dense( spm );
     rc = asprintf( &file, "expand_%s_dense_cp.dat", filename );
     if ( (f = fopen( file, "w" )) == NULL ) {
@@ -63,7 +60,6 @@ z_spm_print_check( char *filename, const pastix_spm_t *spm )
     fclose(f);
     free(file);
     free(A);
-#endif
 
     if ( spm->dof != 1 ) {
         pastix_spm_t *espm = z_spmExpand( spm );
@@ -77,7 +73,6 @@ z_spm_print_check( char *filename, const pastix_spm_t *spm )
         fclose(f);
         free(file);
 
-#if !defined(PRECISION_p)
         A = z_spm2dense( espm );
         rc = asprintf( &file, "expand_%s_dense_ucp.dat", filename );
         if ( (f = fopen( file, "w" )) == NULL ) {
@@ -88,7 +83,6 @@ z_spm_print_check( char *filename, const pastix_spm_t *spm )
         fclose(f);
         free(file);
         free(A);
-#endif
 
         spmExit( espm );
         free(espm);
@@ -98,7 +92,6 @@ z_spm_print_check( char *filename, const pastix_spm_t *spm )
     return;
 }
 
-#if !defined(PRECISION_p)
 /*------------------------------------------------------------------------
  *  Check the accuracy of the solution
  */
@@ -269,4 +262,3 @@ z_spm_norm_check( const pastix_spm_t *spm )
     free(A);
     return ret;
 }
-#endif

@@ -23,7 +23,10 @@ precisions_rules_py(generated_libfiles
    "${LIB_SOURCES}"
    PRECISIONS "p;s;d;c;z")
 
-add_library(spm_test ${generated_libfiles} )
+ add_library(spm_test
+   ${generated_libfiles}
+   p_spm_tests.c
+   )
 
 target_link_libraries( spm_test
   pastix_kernels
