@@ -97,9 +97,8 @@ core_ztradd( pastix_uplo_t uplo, pastix_trans_t trans, pastix_int_t M, pastix_in
         return -1;
     }
 
-    if ((trans != PastixNoTrans) &&
-        (trans != PastixTrans)   &&
-        (trans != PastixConjTrans))
+    if ((trans < PastixNoTrans)   ||
+        (trans > PastixConjTrans))
     {
         return -2;
     }
