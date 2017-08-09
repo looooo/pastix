@@ -106,8 +106,6 @@ cmake_dependent_option(PASTIX_ORDERING_PTSCOTCH
 # Symbolic factorization options
 option(PASTIX_SYMBOL_DUMP_SYMBMTX
   "Dump the generated symbol matrix in a postscript file" OFF)
-option(PASTIX_SYMBOL_FORCELOAD
-  "Force the symbol matrix to be loaded from file" OFF)
 
 # Options to check
 option(FORGET_PARTITION
@@ -154,8 +152,6 @@ if(LAPACKE_FOUND)
   message(STATUS "lapacke: ${LAPACKE_INCLUDE_DIRS}")
   include_directories(${LAPACKE_INCLUDE_DIRS})
 endif()
-
-find_package(TMG REQUIRED)
 
 ### Store dependencies not handled with pkg-config
 set( DEPS_LIBRARIES

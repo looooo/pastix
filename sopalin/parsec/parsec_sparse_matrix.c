@@ -25,7 +25,7 @@
 #endif
 
 #include "solver.h"
-#include "sopalin/parsec/pastix_parsec.h"
+#include "pastix_parsec.h"
 
 /**
  *******************************************************************************

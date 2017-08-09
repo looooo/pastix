@@ -5,7 +5,6 @@
  * PaStiX symbolic factorizations task.
  * Contains wrappers to the symbolic factorization step.
  * Affetcted by the compilation time options:
- *    - PASTIX_SYMBOL_FORCELOAD: Force to load the symbol matrix from file
  *    - PASTIX_SYMBOL_DUMP_SYMBMTX: Dump the symbol matrix in a postscript file.
  *    - COMPACT_SMX: Optimization for solve step (TODO: check if not obsolete)
  *    - FORGET_PARTITION: Force to forget the precomputed partition
@@ -163,11 +162,6 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     else {
         errorPrint("pastix_subtask_symbfact: Symbol Matrix already allocated !!!");
     }
-
-    /* Force Load of symbmtx */
-#if defined(PASTIX_SYMBOL_FORCELOAD)
-    iparm[IPARM_IO_STRATEGY] = PastixIOLoad;
-#endif
 
     /*Symbol matrix loaded from file */
     if ( iparm[IPARM_IO_STRATEGY] & PastixIOLoad )
