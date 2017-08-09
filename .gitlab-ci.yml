@@ -59,7 +59,8 @@ sonar_pastix:
     - genhtml -o coverage pastix.lcov
     - lcov_cobertura.py pastix.lcov --output pastix-coverage.xml
     - export SOURCES_TO_ANALYZE="build bcsc blend common example graph include kernels order refinement sopalin spm symbol test"
-    - cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingIncludeSystem -UPARSEC_PROF_DRY_BODY -UPARSEC_PROF_TRACE -UPARSEC_PROF_GRAPHER -UPARSEC_SIM -UPARSEC_DEBUG_NOISIER -DPINS_ENABLE ${SOURCES_TO_ANALYZE} 2> pastix-cppcheck.xml
+    - find ${SOURCES_TO_ANALYZE} -name "*\.[ch]" | grep -v ./kernels/gpus | grep -v CMakeFiles | grep -v "sopalin/parsec/[sdcz].*trf_.*\.[ch]" > filelist.txt
+    - cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingIncludeSystem -UPARSEC_PROF_DRY_BODY -UPARSEC_PROF_TRACE -UPARSEC_PROF_GRAPHER -UPARSEC_SIM -UPARSEC_DEBUG_NOISIER -DPINS_ENABLE --file-list=./filelist.txt -j 8 2> pastix-cppcheck.xml
     - rats -w 3 --xml ${SOURCES_TO_ANALYZE} > pastix-rats.xml
     - sonar-scanner -X > sonar.log
   only:
