@@ -56,6 +56,7 @@ pastix_data = pastix.init( iparm, dparm )
 factotype = pastix.factotype.LLT
 iparm[pastix.iparm.factorization] = factotype
 iparm[pastix.iparm.scheduler] = pastix.scheduler.Sequential
+iparm[pastix.iparm.schur_solv_mode] = pastix.solvmode.Interface
 
 # Initialize the Schur list as the first third of the elements
 nschur = min( int(n / 3), 5000 )

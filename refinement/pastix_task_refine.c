@@ -98,9 +98,9 @@ static void (*sopalinRefine[4][4])(pastix_data_t *pastix_data, void *x, void *b)
  *******************************************************************************/
 int
 pastix_task_refine( pastix_data_t *pastix_data,
-                  void          *x,
-                  pastix_int_t   rhsnbr,
-                  void          *b )
+                    void          *x,
+                    pastix_int_t   rhsnbr,
+                    void          *b )
 {
     pastix_int_t  *iparm    = pastix_data->iparm;
     Order         *ordemesh = pastix_data->ordemesh;
@@ -114,9 +114,9 @@ pastix_task_refine( pastix_data_t *pastix_data,
         rhsnbr = 1;
     }
 
-    if (pastix_data->schur_n > 0)
+    if ( (pastix_data->schur_n > 0) && (iparm[IPARM_SCHUR_SOLV_MODE] != PastixSolvModeLocal))
     {
-        fprintf(stderr, "Refinement is not available with Schur complement mode for now\n");
+        fprintf(stderr, "Refinement is not available with Schur complement when non local solve is required\n");
         return PASTIX_ERR_BADPARAMETER;
     }
 

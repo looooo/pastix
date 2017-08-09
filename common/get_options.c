@@ -86,6 +86,9 @@ parse_iparm( const char *iparm )
 
     if(0 == strcasecmp("iparm_factorization",         iparm)) { return IPARM_FACTORIZATION; }
     if(0 == strcasecmp("iparm_free_cscuser",          iparm)) { return IPARM_FREE_CSCUSER; }
+    if(0 == strcasecmp("iparm_schur_fact_mode",       iparm)) { return IPARM_SCHUR_FACT_MODE; }
+
+    if(0 == strcasecmp("iparm_schur_solv_mode",       iparm)) { return IPARM_SCHUR_SOLV_MODE; }
 
     if(0 == strcasecmp("iparm_refinement",            iparm)) { return IPARM_REFINEMENT; }
     if(0 == strcasecmp("iparm_itermax",               iparm)) { return IPARM_ITERMAX; }
@@ -215,6 +218,14 @@ parse_enums( const char *string )
     if(0 == strcasecmp("pastixiosavegraph", string)) { return PastixIOSaveGraph; }
     if(0 == strcasecmp("pastixioloadcsc",   string)) { return PastixIOLoadCSC;   }
     if(0 == strcasecmp("pastixiosavecsc",   string)) { return PastixIOSaveCSC;   }
+
+    if(0 == strcasecmp("pastixfactmodelocal", string)) { return PastixFactModeLocal; }
+    if(0 == strcasecmp("pastixfactmodeschur", string)) { return PastixFactModeSchur; }
+    if(0 == strcasecmp("pastixfactmodeboth",  string)) { return PastixFactModeBoth;  }
+
+    if(0 == strcasecmp("pastixsolvmodelocal",     string)) { return PastixSolvModeLocal;     }
+    if(0 == strcasecmp("pastixsolvmodeinterface", string)) { return PastixSolvModeInterface; }
+    if(0 == strcasecmp("pastixsolvmodeschur",     string)) { return PastixSolvModeSchur;     }
 
     if(0 == strcasecmp("pastixrefinegmres",    string)) { return PastixRefineGMRES;    }
     if(0 == strcasecmp("pastixrefinecg",       string)) { return PastixRefineCG;       }

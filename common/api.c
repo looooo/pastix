@@ -261,6 +261,10 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_STATIC_PIVOTING]       = 0;
     iparm[IPARM_INERTIA]               = -1;
     iparm[IPARM_FREE_CSCUSER]          = 0;
+    iparm[IPARM_SCHUR_FACT_MODE]       = PastixFactModeLocal;
+
+    /* Solve */
+    iparm[IPARM_SCHUR_SOLV_MODE]       = PastixSolvModeLocal;
 
     /* Refinement */
     iparm[IPARM_REFINEMENT]            = PastixRefineGMRES;

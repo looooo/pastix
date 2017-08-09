@@ -61,6 +61,7 @@ class solver(object):
 
         self.factotype = factotype.LLT
         self.iparm[iparm.factorization] = self.factotype
+        self.iparm[iparm.schur_solv_mode] = solvmode.Interface
         self.A    = A
         self.spmA = spm(A)
 
