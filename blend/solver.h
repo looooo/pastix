@@ -304,8 +304,9 @@ cblk_rownbr( const SolverCblk *cblk )
 {
     pastix_int_t rownbr = 0;
     SolverBlok * blok;
-    for (blok = cblk->fblokptr; blok < cblk[1].fblokptr; blok++)
+    for (blok = cblk->fblokptr; blok < cblk[1].fblokptr; blok++) {
         rownbr += blok_rownbr(blok);
+    }
     return rownbr;
 }
 

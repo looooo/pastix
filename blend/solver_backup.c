@@ -100,8 +100,9 @@ solverBackupInit( const SolverMatrix *solvmtx )
 
         MALLOC_INTERN(b->symbol_cblknum, solvmtx->bloknbr, pastix_int_t);
 
-        for (i=0; i<solvmtx->bloknbr; i++, blok++)
+        for (i=0; i<solvmtx->bloknbr; i++, blok++) {
             b->symbol_cblknum[i] = blok->fcblknm;
+        }
     }
 
     b->symbol_nodenbr = solvmtx->nodenbr;
@@ -156,11 +157,13 @@ solverBackupRestore( SolverMatrix         *solvmtx,
 {
     pastix_int_t i;
 
-    if ( solvmtx == NULL || b == NULL )
+    if ( solvmtx == NULL || b == NULL ) {
         return PASTIX_ERR_BADPARAMETER;
+    }
 
-    if ( solvmtx->restore == 0)
+    if ( solvmtx->restore == 0) {
         return PASTIX_SUCCESS;
+    }
 
     /* After factorization */
     if ( solvmtx->restore == 2 ) {
