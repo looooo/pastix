@@ -262,7 +262,7 @@ eTreePrint(const EliminTree *etree, FILE *stream, pastix_int_t rootnum )
  *
  *******************************************************************************/
 EliminTree *
-eTreeBuild(const SymbolMatrix *symbmtx)
+eTreeBuild(const symbol_matrix_t *symbmtx)
 {
     eTreeNode_t *enode;
     EliminTree *etree = NULL;

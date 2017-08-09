@@ -40,8 +40,8 @@ void         kass_csrCompact(kass_csr_t *csr );
 void         kassBuildSymbol(kass_csr_t   *P,
                              pastix_int_t  cblknbr,
                              const pastix_int_t *rangtab,
-                             SymbolMatrix *symbmtx);
-void         kassPatchSymbol( SymbolMatrix *symbmtx );
+                             symbol_matrix_t *symbmtx);
+void         kassPatchSymbol( symbol_matrix_t *symbmtx );
 
 pastix_int_t kassFactDirect(const kass_csr_t *graphA,
                                   pastix_int_t  cblknbr,

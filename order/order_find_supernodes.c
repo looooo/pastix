@@ -317,7 +317,7 @@ compute_elimination_tree(      pastix_int_t n,
  * of the initial ordering.
  *
  * WARNING: The matrix pattern is assumed to be symmetric.
- * 
+ *
  * NOTE: This function can take on entry the lower triangular part or the whole
  * matrix A.
  *
@@ -328,7 +328,7 @@ compute_elimination_tree(      pastix_int_t n,
  *          find the supernodes.
  *
  * @param[inout] ordeptr
- *          Pointer to an Order structure, that will be further initialized by
+ *          Pointer to a pastix_order_t structure, that will be further initialized by
  *          the routine.
  *
  *          On entry:
@@ -351,8 +351,8 @@ compute_elimination_tree(      pastix_int_t n,
  *
  *******************************************************************************/
 void
-orderFindSupernodes( const pastix_graph_t *graph,
-                     Order * const ordeptr )
+pastixOrderFindSupernodes( const pastix_graph_t *graph,
+                           pastix_order_t * const ordeptr )
 {
     pastix_int_t *father     = NULL; /* father[i] is the father of node i in he elimination tree of A */
     pastix_int_t *T;                 /* T[j] is the number of node in the subtree rooted in node j in

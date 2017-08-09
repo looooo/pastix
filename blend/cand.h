@@ -43,8 +43,8 @@ void candSetSubCandidate(       Cand          *candtab,
                                 pastix_int_t   rootnum,
                                 pastix_int_t   procnum );
 
-int  candCheck          ( const Cand          *candtab,
-                          const SymbolMatrix  *symbmtx );
+int  candCheck          ( const Cand            *candtab,
+                          const symbol_matrix_t *symbmtx );
 
 void candSetClusterCand (       Cand          *candtab,
                                 pastix_int_t   cblknbr,
@@ -55,13 +55,13 @@ void candSave           ( const Cand          *candtab,
                                 pastix_int_t   cblknbr,
                                 char         **directory );
 
-void candBuild          (       pastix_int_t   autolevel,
-                                pastix_int_t   level2D,
-                                pastix_int_t   ratiolimit,
-                                Cand          *candtab,
-                                EliminTree    *etree,
-                          const SymbolMatrix  *symbmtx,
-                          const CostMatrix    *costmtx );
+void candBuild          (       pastix_int_t     autolevel,
+                                pastix_int_t     level2D,
+                                pastix_int_t     ratiolimit,
+                                Cand            *candtab,
+                                EliminTree      *etree,
+                          const symbol_matrix_t *symbmtx,
+                          const CostMatrix      *costmtx );
 
 #endif
 

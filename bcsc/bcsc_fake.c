@@ -30,11 +30,11 @@ static double beta  = 1.;
  * factorization.
  */
 static inline void
-bcscInitFakeA( const pastix_spm_t  *spm,
-               const Order         *ord,
-               const SolverMatrix  *solvmtx,
-               const pastix_int_t  *col2cblk,
-                     pastix_bcsc_t *bcsc )
+bcscInitFakeA( const pastix_spm_t   *spm,
+               const pastix_order_t *ord,
+               const SolverMatrix   *solvmtx,
+               const pastix_int_t   *col2cblk,
+                     pastix_bcsc_t  *bcsc )
 {
     double *Lvalues = (double*)(bcsc->Lvalues);
     pastix_int_t itercblk, itercol, baseval;
@@ -103,11 +103,11 @@ bcscInitFakeA( const pastix_spm_t  *spm,
 }
 
 void
-bcscInitFakeLt( const pastix_spm_t  *spm,
-                const Order         *ord,
-                const SolverMatrix  *solvmtx,
-                const pastix_int_t  *col2cblk,
-                      pastix_bcsc_t *bcsc )
+bcscInitFakeLt( const pastix_spm_t   *spm,
+                const pastix_order_t *ord,
+                const SolverMatrix   *solvmtx,
+                const pastix_int_t   *col2cblk,
+                      pastix_bcsc_t  *bcsc )
 {
     double *Lvalues = (double*)(bcsc->Lvalues);
     pastix_int_t itercblk, itercol, baseval;
@@ -173,12 +173,12 @@ bcscInitFakeLt( const pastix_spm_t  *spm,
 }
 
 void
-bcscInitFakeAt( const pastix_spm_t  *spm,
-                const Order         *ord,
-                const SolverMatrix  *solvmtx,
-                const pastix_int_t  *col2cblk,
-                      pastix_int_t  *trowtab,
-                      pastix_bcsc_t *bcsc )
+bcscInitFakeAt( const pastix_spm_t   *spm,
+                const pastix_order_t *ord,
+                const SolverMatrix   *solvmtx,
+                const pastix_int_t   *col2cblk,
+                      pastix_int_t   *trowtab,
+                      pastix_bcsc_t  *bcsc )
 {
     double *Uvalues = (double*)(bcsc->Uvalues);
     pastix_int_t itercblk, itercol, baseval;
@@ -245,12 +245,12 @@ bcscInitFakeAt( const pastix_spm_t  *spm,
 }
 
 void
-bcscInitCentralizedFake( const pastix_spm_t  *spm,
-                         const Order         *ord,
-                         const SolverMatrix  *solvmtx,
-                         const pastix_int_t  *col2cblk,
-                               int            initAt,
-                               pastix_bcsc_t *bcsc )
+bcscInitCentralizedFake( const pastix_spm_t   *spm,
+                         const pastix_order_t *ord,
+                         const SolverMatrix   *solvmtx,
+                         const pastix_int_t   *col2cblk,
+                               int             initAt,
+                               pastix_bcsc_t  *bcsc )
 {
     pastix_int_t valuesize;
 

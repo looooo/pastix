@@ -36,13 +36,13 @@ void propMappTree   ( Cand             *candtab,
                       int               nocrossproc,
                       int               allcand );
 void splitSymbol    ( BlendCtrl    *ctrl,
-                      SymbolMatrix *symbmtx );
+                      symbol_matrix_t *symbmtx );
 void simuRun        ( SimuCtrl *,
                       const BlendCtrl *,
-                      const SymbolMatrix * );
+                      const symbol_matrix_t * );
 int  solverMatrixGen( const pastix_int_t,
                             SolverMatrix *,
-                      const SymbolMatrix *,
+                      const symbol_matrix_t *,
                       const SimuCtrl *,
                       const BlendCtrl *);
 

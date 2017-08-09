@@ -34,14 +34,14 @@
  *
  *******************************************************************************/
 void
-symbolBase ( SymbolMatrix * const symbptr,
-             const pastix_int_t   baseval)
+pastixSymbolBase ( symbol_matrix_t * const symbptr,
+                   const pastix_int_t      baseval )
 {
-    SymbolCblk  *cblk;
-    SymbolBlok  *blok;
-    pastix_int_t baseadj; /* Base adjust */
-    pastix_int_t cblknum;
-    pastix_int_t bloknum;
+    symbol_cblk_t *cblk;
+    symbol_blok_t *blok;
+    pastix_int_t   baseadj; /* Base adjust */
+    pastix_int_t   cblknum;
+    pastix_int_t   bloknum;
 
     baseadj = baseval - symbptr->baseval; /* Set base adjust     */
     if (baseadj == 0)                     /* If base already set */

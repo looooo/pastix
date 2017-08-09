@@ -30,7 +30,7 @@ int main (int argc, char **argv)
     size_t          size;
     int             check = 1;
     int             nrhs = 1;
-    Order           ord;
+    pastix_order_t  ord;
     pastix_int_t    i;
 
     /**
@@ -77,7 +77,7 @@ int main (int argc, char **argv)
     /**
      * Build personal ordering (identity)
      */
-    orderAlloc( &ord, spm->gN, 0 );
+    pastixOrderAlloc( &ord, spm->gN, 0 );
     for (i=0; i<ord.vertnbr; i++)
     {
         ord.permtab[i] = i;
@@ -136,7 +136,7 @@ int main (int argc, char **argv)
      */
     pastixFinalize( &pastix_data );
 
-    orderExit( &ord );
+    pastixOrderExit( &ord );
     spmExit( spm );
     free(spm);
     free(b);

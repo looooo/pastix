@@ -85,9 +85,9 @@ costMatrixExit( CostMatrix *costmtx )
  *
  *******************************************************************************/
 CostMatrix *
-costMatrixBuild( const SymbolMatrix *symbmtx,
-                 pastix_coeftype_t   flttype,
-                 pastix_factotype_t  factotype )
+costMatrixBuild( const symbol_matrix_t *symbmtx,
+                 pastix_coeftype_t      flttype,
+                 pastix_factotype_t     factotype )
 {
     CostMatrix *costmtx = NULL;
 
@@ -97,7 +97,7 @@ costMatrixBuild( const SymbolMatrix *symbmtx,
     MALLOC_INTERN( costmtx->cblkcost, symbmtx->cblknbr, double );
     MALLOC_INTERN( costmtx->blokcost, symbmtx->bloknbr, double );
 
-    symbolGetTimes( symbmtx, flttype, factotype,
+    pastixSymbolGetTimes( symbmtx, flttype, factotype,
                     costmtx->cblkcost, costmtx->blokcost );
 
     return costmtx;

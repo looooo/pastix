@@ -597,13 +597,13 @@ pastixFinalize( pastix_data_t **pastix_data )
 
     if ( pastix->ordemesh != NULL )
     {
-        orderExit( pastix->ordemesh );
+        pastixOrderExit( pastix->ordemesh );
         memFree_null( pastix->ordemesh );
     }
 
     if ( pastix->symbmtx != NULL )
     {
-        symbolExit( pastix->symbmtx );
+        pastixSymbolExit( pastix->symbmtx );
         memFree_null( pastix->symbmtx );
     }
 

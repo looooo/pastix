@@ -210,7 +210,7 @@ hamming_distance( pastix_int_t **vectors,
  *
  *******************************************************************************/
 static inline void
-symbol_reorder_tsp( pastix_int_t size, Order *order, pastix_int_t sn_id,
+symbol_reorder_tsp( pastix_int_t size, pastix_order_t *order, pastix_int_t sn_id,
                     pastix_int_t **lw_vectors, pastix_int_t *lw_vectors_size,
                     pastix_int_t **up_vectors, pastix_int_t *up_vectors_size,
                     pastix_int_t stop_criteria )
@@ -448,16 +448,16 @@ symbol_reorder_tsp( pastix_int_t size, Order *order, pastix_int_t sn_id,
  *
  *******************************************************************************/
 static inline void
-symbol_reorder_cblk( const SymbolMatrix *symbptr,
-                     const SymbolCblk   *cblk,
-                     Order              *order,
+symbol_reorder_cblk( const symbol_matrix_t *symbptr,
+                     const symbol_cblk_t   *cblk,
+                     pastix_order_t     *order,
                      const pastix_int_t *levels,
                      pastix_int_t       *depthweight,
                      pastix_int_t        depthmax,
                      pastix_int_t        split_level,
                      int                 stop_criteria )
 {
-    SymbolBlok *blok;
+    symbol_blok_t *blok;
     pastix_int_t **up_vectors, *up_vectors_size;
     pastix_int_t **lw_vectors, *lw_vectors_size;
 
@@ -632,12 +632,12 @@ symbol_reorder_cblk( const SymbolMatrix *symbptr,
  *
  *******************************************************************************/
 void
-symbolReordering( const SymbolMatrix *symbptr,
-                  Order              *order,
-                  pastix_int_t        split_level,
-                  int                 stop_criteria )
+pastixSymbolReordering( const symbol_matrix_t *symbptr,
+                        pastix_order_t     *order,
+                        pastix_int_t        split_level,
+                        int                 stop_criteria )
 {
-    SymbolCblk  *cblk;
+    symbol_cblk_t  *cblk;
     pastix_int_t itercblk;
     pastix_int_t cblknbr = symbptr->cblknbr;
 
@@ -699,9 +699,9 @@ symbolReordering( const SymbolMatrix *symbptr,
  *
  *******************************************************************************/
 void
-symbolReorderingPrintComplexity( const SymbolMatrix *symbptr )
+pastixSymbolReorderingPrintComplexity( const symbol_matrix_t *symbptr )
 {
-    SymbolCblk  *cblk;
+    symbol_cblk_t  *cblk;
     pastix_int_t itercblk, iterblok;
     pastix_int_t cblknbr;
     pastix_int_t nbflops;
@@ -722,7 +722,7 @@ symbolReorderingPrintComplexity( const SymbolMatrix *symbptr )
             continue;
 
         for (iterblok=cblk[0].brownum; iterblok<cblk[1].brownum; iterblok++) {
-            SymbolBlok *blok = symbptr->bloktab + symbptr->browtab[iterblok];
+            symbol_blok_t *blok = symbptr->bloktab + symbptr->browtab[iterblok];
             assert( blok->fcblknm == itercblk );
 
             nbcblk += blok->lrownum - blok->frownum + 1;

@@ -33,9 +33,9 @@
  *
  *******************************************************************************/
 void
-symbolInit ( SymbolMatrix *symbptr )
+pastixSymbolInit ( symbol_matrix_t *symbptr )
 {
-    memset (symbptr, 0, sizeof (SymbolMatrix));
+    memset (symbptr, 0, sizeof (symbol_matrix_t));
     symbptr->schurfcol = -1;
     return;
 }
@@ -57,7 +57,7 @@ symbolInit ( SymbolMatrix *symbptr )
  *
  *******************************************************************************/
 void
-symbolExit( SymbolMatrix *symbptr )
+pastixSymbolExit( symbol_matrix_t *symbptr )
 {
     if (symbptr->cblktab != NULL)
         memFree_null (symbptr->cblktab);
@@ -65,7 +65,7 @@ symbolExit( SymbolMatrix *symbptr )
         memFree_null (symbptr->bloktab);
     if (symbptr->browtab != NULL)
         memFree_null (symbptr->browtab);
-    memset (symbptr, 0, sizeof (SymbolMatrix));
+    memset (symbptr, 0, sizeof (symbol_matrix_t));
 }
 
 /**
@@ -84,20 +84,20 @@ symbolExit( SymbolMatrix *symbptr )
  *
  *******************************************************************************/
 void
-symbolRealloc( SymbolMatrix *symbptr )
+pastixSymbolRealloc( symbol_matrix_t *symbptr )
 {
-    SymbolCblk *cblktab = NULL;
-    SymbolBlok *bloktab = NULL;
+    symbol_cblk_t *cblktab = NULL;
+    symbol_blok_t *bloktab = NULL;
 
     /* Move column block array */
-    MALLOC_INTERN( cblktab, symbptr->cblknbr+1, SymbolCblk );
-    memcpy(cblktab, symbptr->cblktab, (symbptr->cblknbr + 1) * sizeof (SymbolCblk));
+    MALLOC_INTERN( cblktab, symbptr->cblknbr+1, symbol_cblk_t );
+    memcpy(cblktab, symbptr->cblktab, (symbptr->cblknbr + 1) * sizeof (symbol_cblk_t));
     memFree(symbptr->cblktab);
     symbptr->cblktab = cblktab;
 
     /* Move block array */
-    MALLOC_INTERN( bloktab, symbptr->bloknbr+1, SymbolBlok );
-    memcpy(bloktab, symbptr->bloktab, (symbptr->bloknbr + 1) * sizeof (SymbolBlok));
+    MALLOC_INTERN( bloktab, symbptr->bloknbr+1, symbol_blok_t );
+    memcpy(bloktab, symbptr->bloktab, (symbptr->bloknbr + 1) * sizeof (symbol_blok_t));
     memFree(symbptr->bloktab);
     symbptr->bloktab = bloktab;
 }
@@ -146,14 +146,14 @@ symbolRealloc( SymbolMatrix *symbptr )
  *
  *******************************************************************************/
 pastix_int_t
-symbolGetFacingBloknum( const SymbolMatrix *symbptr,
-                        pastix_int_t bloksrc,
-                        pastix_int_t bloknum,
-                        pastix_int_t startsearch,
-                        int ricar )
+pastixSymbolGetFacingBloknum( const symbol_matrix_t *symbptr,
+                              pastix_int_t bloksrc,
+                              pastix_int_t bloknum,
+                              pastix_int_t startsearch,
+                              int ricar )
 {
-    SymbolBlok *bsrc;
-    SymbolBlok *bdst;
+    symbol_blok_t *bsrc;
+    symbol_blok_t *bdst;
     pastix_int_t i, fcblknum, fbloknum, lbloknum;
 
     fcblknum = symbptr->bloktab[bloksrc].fcblknm;
@@ -216,14 +216,14 @@ symbolGetFacingBloknum( const SymbolMatrix *symbptr,
  *
  *******************************************************************************/
 void
-symbolBuildRowtab( SymbolMatrix *symbptr )
+pastixSymbolBuildRowtab( symbol_matrix_t *symbptr )
 {
-    SymbolCblk *cblk;
-    SymbolBlok *blok;
-    pastix_int_t *innbr, *intmp, *browtab;
-    pastix_int_t  itercblk;
-    pastix_int_t  cblknbr;
-    pastix_int_t  edgenbr = symbptr->bloknbr - symbptr->cblknbr;
+    symbol_cblk_t *cblk;
+    symbol_blok_t *blok;
+    pastix_int_t  *innbr, *intmp, *browtab;
+    pastix_int_t   itercblk;
+    pastix_int_t   cblknbr;
+    pastix_int_t   edgenbr = symbptr->bloknbr - symbptr->cblknbr;
 
     cblknbr = symbptr->cblknbr;
 
@@ -301,10 +301,10 @@ symbolBuildRowtab( SymbolMatrix *symbptr )
  *
  *******************************************************************************/
 void
-symbolPrintStats( const SymbolMatrix *symbptr )
+pastixSymbolPrintStats( const symbol_matrix_t *symbptr )
 {
-    SymbolCblk *cblk;
-    SymbolBlok *blok;
+    symbol_cblk_t *cblk;
+    symbol_blok_t *blok;
     pastix_int_t itercblk, dof;
     pastix_int_t cblknbr, bloknbr;
     pastix_int_t cblkmin, cblkmax;
@@ -363,9 +363,9 @@ symbolPrintStats( const SymbolMatrix *symbptr )
     blokavg2 = sqrt( ((blokavg2 * (double)dof * (double)dof) / (double)bloknbr) - blokavg1 * blokavg1 );
 
     /* Compute symbol matrix space */
-    mem = sizeof( SymbolMatrix );
-    mem += sizeof( SymbolCblk )   * (cblknbr + 1);
-    mem += sizeof( SymbolBlok )   * symbptr->bloknbr;
+    mem = sizeof( symbol_matrix_t );
+    mem += sizeof( symbol_cblk_t )   * (cblknbr + 1);
+    mem += sizeof( symbol_blok_t )   * symbptr->bloknbr;
     mem += sizeof( pastix_int_t ) * bloknbr;
 
     fprintf(stdout,

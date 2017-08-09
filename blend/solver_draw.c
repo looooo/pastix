@@ -59,9 +59,9 @@ solverDraw ( const SolverMatrix * const  solvptr,
     pictsize = (double) (solvptr->nodenbr + 1);     /* Get matrix size  */
 
     fprintf (stream, "%%!PS-Adobe-2.0 EPSF-2.0\n"); /* Write header */
-    fprintf (stream, "%%%%Title: symbolmatrix (%ld,%ld,%ld)\n",
+    fprintf (stream, "%%%%Title: pastixSymbolmatrix (%ld,%ld,%ld)\n",
              (long) solvptr->cblknbr, (long) solvptr->bloknbr, (long)solvptr->nodenbr);
-    fprintf (stream, "%%%%Creator: symbolDraw (LaBRI, Universite Bordeaux I)\n");
+    fprintf (stream, "%%%%Creator: pastixSymbolDraw (LaBRI, Universite Bordeaux I)\n");
     fprintf (stream, "%%%%CreationDate: %s", ctime (&picttime));
     fprintf (stream, "%%%%BoundingBox: 0 0 %ld %ld\n",
              (long) (SOLVER_PSPICTSIZE * SOLVER_PSDPI),

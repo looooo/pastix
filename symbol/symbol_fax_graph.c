@@ -36,9 +36,9 @@
  * @brief Compute the block symbolic factorization of
  * the given matrix graph according to the given vertex ordering.
  *
- * symbolFaxGraph() could have called symbolFax() in the regular way, as do all
+ * pastixSymbolFaxGraph() could have called pastixSymbolFax() in the regular way, as do all
  * of the grid-like factorization routines. However, for efficiency reasons, we
- * have decided to inline symbolFax(), to avoid a function call for every arc.
+ * have decided to inline pastixSymbolFax(), to avoid a function call for every arc.
  *
  *******************************************************************************
  *
@@ -71,11 +71,11 @@
  *
  *******************************************************************************/
 int
-symbolFaxGraph(       SymbolMatrix * const symbptr,
-                      pastix_int_t         vertnbr,
-                const pastix_int_t *       verttab,
-                const pastix_int_t *       edgetab,
-                const Order        * const ordeptr)
+pastixSymbolFaxGraph(       symbol_matrix_t *symbptr,
+                            pastix_int_t     vertnbr,
+                      const pastix_int_t    *verttab,
+                      const pastix_int_t    *edgetab,
+                      const pastix_order_t  *ordeptr )
 {
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
     pastix_int_t baseval = verttab[0];

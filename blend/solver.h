@@ -344,11 +344,11 @@ is_block_inside_fblock( const SolverBlok *blok,
 void solverInit( SolverMatrix *solvmtx );
 void solverExit( SolverMatrix *solvmtx );
 
-int  solverMatrixGen( pastix_int_t        clustnum,
-                      SolverMatrix       *solvmtx,
-                      const SymbolMatrix *symbmtx,
-                      const SimuCtrl     *simuctl,
-                      const BlendCtrl    *ctrl );
+int  solverMatrixGen( pastix_int_t           clustnum,
+                      SolverMatrix          *solvmtx,
+                      const symbol_matrix_t *symbmtx,
+                      const SimuCtrl        *simuctl,
+                      const BlendCtrl       *ctrl );
 
 int  solverLoad( SolverMatrix       *solvptr,
                  FILE               *stream );

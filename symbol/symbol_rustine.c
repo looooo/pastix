@@ -37,15 +37,15 @@
  *
  *******************************************************************************/
 void
-symbolRustine( SymbolMatrix *       matrsymb,
-               SymbolMatrix * const matrsymb2 )
+pastixSymbolRustine( symbol_matrix_t *       matrsymb,
+                     symbol_matrix_t * const matrsymb2 )
 {
     pastix_int_t i,iter,add,cblknum,bloknum,bloknum2;
-    SymbolBlok *bloktmp = NULL;
-    SymbolCblk *cblktmp = NULL;
+    symbol_blok_t *bloktmp = NULL;
+    symbol_cblk_t *cblktmp = NULL;
 
-    MALLOC_INTERN(bloktmp, matrsymb->bloknbr+matrsymb->cblknbr, SymbolBlok);
-    MALLOC_INTERN(cblktmp, matrsymb->cblknbr+1,                 SymbolCblk);
+    MALLOC_INTERN(bloktmp, matrsymb->bloknbr+matrsymb->cblknbr, symbol_blok_t);
+    MALLOC_INTERN(cblktmp, matrsymb->cblknbr+1,                 symbol_cblk_t);
     for (i=0;i<matrsymb->cblknbr+1;i++)
     {
         cblktmp[i].fcolnum = matrsymb->cblktab[i].fcolnum;
@@ -140,4 +140,3 @@ symbolRustine( SymbolMatrix *       matrsymb,
     matrsymb->bloknbr += add;
     assert( add < matrsymb->cblknbr );
 }
-

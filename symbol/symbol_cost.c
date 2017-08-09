@@ -51,10 +51,10 @@
  *******************************************************************************/
 static double
 sum1d( const symbol_function_t *fptr,
-       const SymbolMatrix      *symbmtx,
+       const symbol_matrix_t   *symbmtx,
              pastix_int_t       cblknum )
 {
-    SymbolCblk *cblk = symbmtx->cblktab + cblknum;
+    symbol_cblk_t *cblk = symbmtx->cblktab + cblknum;
     pastix_int_t M, N, k;
     double nbops = 0.;
     double dof = (double)(symbmtx->dof);
@@ -119,10 +119,10 @@ sum1d( const symbol_function_t *fptr,
  *******************************************************************************/
 static double
 sum2d( const symbol_function_t *fptr,
-       const SymbolMatrix      *symbmtx,
+       const symbol_matrix_t      *symbmtx,
              pastix_int_t       cblknum )
 {
-    SymbolCblk *cblk = symbmtx->cblktab + cblknum;
+    symbol_cblk_t *cblk = symbmtx->cblktab + cblknum;
     pastix_int_t M, N, K, l;
     double nbops = 0.;
     double dof = (double)(symbmtx->dof);
@@ -200,11 +200,11 @@ sum2d( const symbol_function_t *fptr,
  *******************************************************************************/
 static double
 sum2dext( const symbol_function_t *fptr,
-          const SymbolMatrix     *symbmtx,
+          const symbol_matrix_t     *symbmtx,
                 pastix_int_t      cblknum,
                 double           *blokcost )
 {
-    SymbolCblk *cblk = symbmtx->cblktab + cblknum;
+    symbol_cblk_t *cblk = symbmtx->cblktab + cblknum;
     pastix_int_t M, N, K, l;
     double nbops = 0.;
     double dof = (double)(symbmtx->dof);
@@ -285,9 +285,9 @@ sum2dext( const symbol_function_t *fptr,
  *******************************************************************************/
 static double
 recursive_sum( pastix_int_t a, pastix_int_t b,
-               double (*fval)(const symbol_function_t *, const SymbolMatrix *, pastix_int_t),
+               double (*fval)(const symbol_function_t *, const symbol_matrix_t *, pastix_int_t),
                const symbol_function_t *fptr,
-               const SymbolMatrix      *symbmtx )
+               const symbol_matrix_t      *symbmtx )
 {
     if(a != b)
         return recursive_sum(        a, (a+b)/2, fval, fptr, symbmtx)
@@ -324,10 +324,10 @@ recursive_sum( pastix_int_t a, pastix_int_t b,
  *
  *******************************************************************************/
 pastix_int_t
-symbolGetNNZ( const SymbolMatrix *symbptr )
+pastixSymbolGetNNZ( const symbol_matrix_t *symbptr )
 {
-    SymbolCblk *cblk;
-    SymbolBlok *blok;
+    symbol_cblk_t *cblk;
+    symbol_blok_t *blok;
     pastix_int_t itercblk;
     pastix_int_t cblknbr;
     pastix_int_t nnz = 0;
@@ -396,7 +396,7 @@ symbolGetNNZ( const SymbolMatrix *symbptr )
  *
  *******************************************************************************/
 void
-symbolGetFlops( const SymbolMatrix *symbmtx,
+pastixSymbolGetFlops( const symbol_matrix_t *symbmtx,
                 pastix_coeftype_t   flttype,
                 pastix_factotype_t  factotype,
                 double             *thflops,
@@ -454,11 +454,11 @@ symbolGetFlops( const SymbolMatrix *symbmtx,
  *
  *******************************************************************************/
 void
-symbolGetTimes( const SymbolMatrix *symbmtx,
-                pastix_coeftype_t   flttype,
-                pastix_factotype_t  factotype,
-                double             *cblkcost,
-                double             *blokcost )
+pastixSymbolGetTimes( const symbol_matrix_t *symbmtx,
+                      pastix_coeftype_t      flttype,
+                      pastix_factotype_t     factotype,
+                      double                *cblkcost,
+                      double                *blokcost )
 {
     symbol_function_t *f;
     double *cblkptr, *blokptr;

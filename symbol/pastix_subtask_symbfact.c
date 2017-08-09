@@ -44,15 +44,15 @@
  * array) and returns the modified ordemesh structure if changed, and the
  * symbolic structure.
  *  - If (PT-)Scotch has been used, it generates the structure with
- * symbolFaxGraph() thanks to the supernode partition given by Scotch.
+ * pastixSymbolFaxGraph() thanks to the supernode partition given by Scotch.
  *  - If ILU(k) factorization will be performed or if the ordering tools didn't
- * provide the supernode partition, symbolKass() is used to generate both
+ * provide the supernode partition, pastixSymbolKass() is used to generate both
  * supernode partition and associated symbol matrix structure.
  *
  * Both algorithms are working with a centralized version of the graph and are
  * on every nodes. If a distributed graph has been used, it is gather on each
  * node to compute the symbol matrix.
- * If symbolKass() is used, the ordering structure will be modified due to the
+ * If pastixSymbolKass() is used, the ordering structure will be modified due to the
  * assembly step. Then, permutation, inverse permutation, partition, and
  * partition tree are modified internally.
  * @warning If the user need to manipulate the ordering, the new perm/invp vectors
@@ -104,7 +104,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     pastix_int_t   *iparm;
     double         *dparm;
     pastix_graph_t *graph;
-    Order          *ordemesh;
+    pastix_order_t *ordemesh;
     int             procnum;
     Clock           timer;
 
@@ -148,7 +148,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     clockStart(timer);
 
     /* Make sure they are both 0-based */
-    orderBase( ordemesh, 0 );
+    pastixOrderBase( ordemesh, 0 );
     graphBase( graph, 0 );
 
     print_debug(DBG_STEP, "-> pastix_subtask_symbfact\n");
@@ -157,7 +157,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
 
     /* Allocate the symbol matrix structure */
     if (pastix_data->symbmtx == NULL) {
-        MALLOC_INTERN( pastix_data->symbmtx, 1, SymbolMatrix );
+        MALLOC_INTERN( pastix_data->symbmtx, 1, symbol_matrix_t );
     }
     else {
         errorPrint("pastix_subtask_symbfact: Symbol Matrix already allocated !!!");
@@ -169,7 +169,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
         FILE *stream = NULL;
         stream = pastix_fopen( "symbname" );
         if ( stream ) {
-            symbolLoad( pastix_data->symbmtx, stream );
+            pastixSymbolLoad( pastix_data->symbmtx, stream );
             fclose(stream);
         }
     }
@@ -227,7 +227,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
             rowfax    = graph->rows;
         }
 
-        symbolInit(pastix_data->symbmtx);
+        pastixSymbolInit(pastix_data->symbmtx);
         pastix_data->symbmtx->dof = graph->dof;
 
         /*
@@ -239,7 +239,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
         {
             if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
                 pastix_print(procnum, 0, OUT_FAX_METHOD, "Fax " );
-            symbolFaxGraph(pastix_data->symbmtx, /* Symbol Matrix   */
+            pastixSymbolFaxGraph(pastix_data->symbmtx, /* Symbol Matrix   */
                            nfax,                 /* Number of nodes */
                            colptrfax,            /* Nodes list      */
                            rowfax,               /* Edges list      */
@@ -263,7 +263,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
 
             if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
                 pastix_print(procnum, 0, OUT_FAX_METHOD, "Kass" );
-            symbolKass(iparm[IPARM_VERBOSE],
+            pastixSymbolKass(iparm[IPARM_VERBOSE],
                        iparm[IPARM_INCOMPLETE],
                        iparm[IPARM_LEVEL_OF_FILL],
                        iparm[IPARM_AMALGAMATION_LVLCBLK],
@@ -302,7 +302,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
             if ( iparm[IPARM_IO_STRATEGY] & PastixIOSave )
             {
                 if (procnum == 0) {
-                    orderSave( pastix_data, ordemesh );
+                    pastixOrderSave( pastix_data, ordemesh );
                 }
             }
 
@@ -329,26 +329,26 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     } /* not PastixIOLoad */
 
     /* Rebase to 0 */
-    symbolBase( pastix_data->symbmtx, 0 );
+    pastixSymbolBase( pastix_data->symbmtx, 0 );
 
     /* Rustine to be sure we have a tree
      * TODO: check difference with kassSymbolPatch */
 #define RUSTINE
 #ifdef RUSTINE
-    symbolRustine( pastix_data->symbmtx,
+    pastixSymbolRustine( pastix_data->symbmtx,
                    pastix_data->symbmtx );
 #endif
 
     /* Build the browtabs and Realign data structure */
-    symbolBuildRowtab( pastix_data->symbmtx );
-    symbolRealloc( pastix_data->symbmtx );
+    pastixSymbolBuildRowtab( pastix_data->symbmtx );
+    pastixSymbolRealloc( pastix_data->symbmtx );
 
 #if !defined(NDEBUG)
-    if ( orderCheck( ordemesh ) != 0) {
-        errorPrint("pastix_subtask_symbfact: orderCheck on final ordering after symbolic factorization failed !!!");
+    if ( pastixOrderCheck( ordemesh ) != 0) {
+        errorPrint("pastix_subtask_symbfact: pastixOrderCheck on final ordering after symbolic factorization failed !!!");
         assert(0);
     }
-    if( symbolCheck(pastix_data->symbmtx) != 0 ) {
+    if( pastixSymbolCheck(pastix_data->symbmtx) != 0 ) {
         errorPrint("pastix_subtask_symbfact: symbolCheck on final symbol matrix failed !!!");
         assert(0);
     }
@@ -363,7 +363,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
             FILE *stream = NULL;
             stream = pastix_fopenw( &(pastix_data->dirtemp), "symbgen", "w" );
             if ( stream ) {
-                symbolSave( pastix_data->symbmtx, stream );
+                pastixSymbolSave( pastix_data->symbmtx, stream );
                 fclose(stream);
             }
         }
@@ -378,7 +378,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
         FILE *stream = NULL;
         stream = pastix_fopenw( &(pastix_data->dirtemp), "symbol.eps", "w" );
         if ( stream ) {
-            symbolDraw( pastix_data->symbmtx,
+            pastixSymbolDraw( pastix_data->symbmtx,
                         stream );
             fclose(stream);
         }
@@ -388,8 +388,8 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     /*
      * Computes statistics and print informations
      */
-    iparm[IPARM_NNZEROS] = symbolGetNNZ( pastix_data->symbmtx );
-    symbolGetFlops( pastix_data->symbmtx,
+    iparm[IPARM_NNZEROS] = pastixSymbolGetNNZ( pastix_data->symbmtx );
+    pastixSymbolGetFlops( pastix_data->symbmtx,
                     iparm[IPARM_FLOAT], iparm[IPARM_FACTORIZATION],
                     &(dparm[DPARM_FACT_THFLOPS]),
                     &(dparm[DPARM_FACT_RLFLOPS]) );
@@ -398,7 +398,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
 
     if ( procnum == 0 ) {
         if (iparm[IPARM_VERBOSE] > PastixVerboseNo)
-            symbolPrintStats( pastix_data->symbmtx );
+            pastixSymbolPrintStats( pastix_data->symbmtx );
 
         if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
             double fillin = (double)(iparm[IPARM_NNZEROS])

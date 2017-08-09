@@ -246,11 +246,11 @@ pastix( pastix_data_t **pastix_data_ptr,
      */
     if (iparm[IPARM_START_TASK] == PastixTaskOrdering)
     {
-        Order *o = NULL;
+        pastix_order_t *o = NULL;
 
         if ( (perm != NULL) || (invp != NULL) ) {
-            o = malloc( sizeof(Order) );
-            ret = orderAlloc( o, 0, 0 );
+            o = malloc( sizeof(pastix_order_t) );
+            ret = pastixOrderAlloc( o, 0, 0 );
 
             if ( perm != NULL ) {
                 MALLOC_INTERN(o->permtab, n, pastix_int_t);
@@ -280,7 +280,7 @@ pastix( pastix_data_t **pastix_data_ptr,
                 assert( o->vertnbr == n );
                 memcpy( invp, o->peritab, n * sizeof(pastix_int_t));
             }
-            orderExit(o);
+            pastixOrderExit(o);
             free(o);
         }
         iparm[IPARM_START_TASK]++;

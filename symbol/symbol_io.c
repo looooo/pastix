@@ -47,8 +47,8 @@
  *
  *******************************************************************************/
 int
-symbolLoad ( SymbolMatrix * const symbptr,
-             FILE * const         stream )
+pastixSymbolLoad ( symbol_matrix_t * const symbptr,
+                   FILE            * const stream )
 {
     pastix_int_t                 versval;
     pastix_int_t                 baseval;
@@ -71,11 +71,11 @@ symbolLoad ( SymbolMatrix * const symbptr,
         return     (1);
     }
 
-    if (((symbptr->cblktab = (SymbolCblk *) memAlloc ((cblknbr + 1) * sizeof (SymbolCblk))) == NULL) ||
-        ((symbptr->bloktab = (SymbolBlok *) memAlloc ( bloknbr      * sizeof (SymbolBlok))) == NULL)) {
+    if (((symbptr->cblktab = (symbol_cblk_t *) memAlloc ((cblknbr + 1) * sizeof (symbol_cblk_t))) == NULL) ||
+        ((symbptr->bloktab = (symbol_blok_t *) memAlloc ( bloknbr      * sizeof (symbol_blok_t))) == NULL)) {
         errorPrint ("symbolLoad: out of memory");
-        symbolExit (symbptr);
-        symbolInit (symbptr);
+        pastixSymbolExit (symbptr);
+        pastixSymbolInit (symbptr);
         return     (1);
     }
     symbptr->baseval = baseval;
@@ -89,8 +89,8 @@ symbolLoad ( SymbolMatrix * const symbptr,
              intLoad (stream, &symbptr->cblktab[cblknum].bloknum) != 3) ||
             (symbptr->cblktab[cblknum].fcolnum > symbptr->cblktab[cblknum].lcolnum)) {
             errorPrint ("symbolLoad: bad input (2)");
-            symbolExit (symbptr);
-            symbolInit (symbptr);
+            pastixSymbolExit (symbptr);
+            pastixSymbolInit (symbptr);
             return     (1);
         }
     }
@@ -104,8 +104,8 @@ symbolLoad ( SymbolMatrix * const symbptr,
              intLoad (stream, &symbptr->bloktab[bloknum].fcblknm) != 3) ||
             (symbptr->bloktab[bloknum].frownum > symbptr->bloktab[bloknum].lrownum)) {
             errorPrint ("symbolLoad: bad input (3)");
-            symbolExit (symbptr);
-            symbolInit (symbptr);
+            pastixSymbolExit (symbptr);
+            pastixSymbolInit (symbptr);
             return     (1);
         }
 
@@ -115,8 +115,8 @@ symbolLoad ( SymbolMatrix * const symbptr,
             pastix_int_t tmp;
             if ((versval > 0) && (intLoad (stream, &tmp) != 1)) {
                 errorPrint ("symbolLoad: bad input (4)");
-                symbolExit (symbptr);
-                symbolInit (symbptr);
+                pastixSymbolExit (symbptr);
+                pastixSymbolInit (symbptr);
                 return     (1);
             }
         }
@@ -147,14 +147,14 @@ symbolLoad ( SymbolMatrix * const symbptr,
  *
  *******************************************************************************/
 int
-symbolSave( const SymbolMatrix * const symbptr,
-            FILE * const               stream )
+pastixSymbolSave( const symbol_matrix_t * const symbptr,
+                  FILE                  * const stream )
 {
-    const SymbolCblk *  cblktnd;
-    const SymbolCblk *  cblkptr;
-    const SymbolBlok *  bloktnd;
-    const SymbolBlok *  blokptr;
-    int                 o;
+    const symbol_cblk_t *cblktnd;
+    const symbol_cblk_t *cblkptr;
+    const symbol_blok_t *bloktnd;
+    const symbol_blok_t *blokptr;
+    int o;
 
     o = (fprintf (stream, "1\n%ld\t%ld\t%ld\t%ld\n", /* Write file header */
                   (long) symbptr->cblknbr,
@@ -194,8 +194,8 @@ symbolSave( const SymbolMatrix * const symbptr,
  *
  *******************************************************************************/
 void
-symbolPrint( const SymbolMatrix *symbptr,
-             FILE *file )
+pastixSymbolPrint( const symbol_matrix_t *symbptr,
+                   FILE *file )
 {
     pastix_int_t i, j;
     for(i=0;i<symbptr->cblknbr;i++)

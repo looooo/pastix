@@ -55,7 +55,7 @@ extraCblkAlloc( ExtraCblk_t *extracblk )
 
     /* We choose an arbitrary size for initial allocation of bloktab and cblktab (5%) */
     extracblk->sizcblk = ( extracblk->cblknbr + 20 ) / 20;
-    MALLOC_INTERN( extracblk->cblktab, extracblk->cblknbr, SymbolCblk );
+    MALLOC_INTERN( extracblk->cblktab, extracblk->cblknbr, symbol_cblk_t );
 
     return;
 }
@@ -93,14 +93,14 @@ extraCblkInc( ExtraCblk_t *extracblk )
     {
         /* Add 5% of original cblknbr to the cblktab */
         pastix_int_t extrasize = (extracblk->cblknbr + 20 ) / 20;
-        SymbolCblk *tmp;
+        symbol_cblk_t *tmp;
 
         assert( extracblk->curcblk == extracblk->sizcblk);
         tmp = extracblk->cblktab;
         extracblk->sizcblk += extrasize;
 
-        MALLOC_INTERN( extracblk->cblktab, extracblk->sizcblk, SymbolCblk );
-        memcpy(extracblk->cblktab, tmp, sizeof(SymbolCblk)*extracblk->curcblk);
+        MALLOC_INTERN( extracblk->cblktab, extracblk->sizcblk, symbol_cblk_t );
+        memcpy(extracblk->cblktab, tmp, sizeof(symbol_cblk_t)*extracblk->curcblk);
 
         memFree_null(tmp);
     }
@@ -214,7 +214,7 @@ extraCblkAdd( ExtraCblk_t *extracblk,
  *******************************************************************************/
 void
 extraCblkMerge( const ExtraCblk_t *extracblk,
-                SymbolMatrix      *newsymb,
+                symbol_matrix_t   *newsymb,
                 Cand             **candtab )
 {
     pastix_int_t  i, j, k, l;
@@ -225,12 +225,13 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
     pastix_int_t *extranewnum = NULL;
     pastix_int_t  facing_splitted_cnt = 0;
 
-    SymbolMatrix *oldsymb;
-    Cand         *oldcand = *candtab;
-    Cand         *newcand;
+    symbol_matrix_t *oldsymb;
 
-    SymbolCblk *curcblk;
-    SymbolBlok *curblok;
+    Cand *oldcand = *candtab;
+    Cand *newcand;
+
+    symbol_cblk_t *curcblk;
+    symbol_blok_t *curblok;
 
     /* No splitted cblk: partition remains the same */
     if( extracblk->addcblk == 0 ) {
@@ -238,12 +239,12 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
     }
 
     /* Backup the old symbol */
-    MALLOC_INTERN(oldsymb, 1, SymbolMatrix);
-    memcpy( oldsymb, newsymb, sizeof(SymbolMatrix) );
+    MALLOC_INTERN(oldsymb, 1, symbol_matrix_t);
+    memcpy( oldsymb, newsymb, sizeof(symbol_matrix_t) );
 
     /* Allocate new cblktab */
     newsymb->cblknbr = oldsymb->cblknbr + extracblk->addcblk;
-    MALLOC_INTERN(newsymb->cblktab, newsymb->cblknbr+1, SymbolCblk);
+    MALLOC_INTERN(newsymb->cblktab, newsymb->cblknbr+1, symbol_cblk_t);
 
     newsymb->browtab = NULL;
 
@@ -280,12 +281,12 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
         {
             pastix_int_t fcblknum = oldsymb->bloktab[j].fcblknm;
             pastix_int_t sptfcbnb = extracblk->sptcbnb[fcblknum];
-	    pastix_int_t sptcbnbh = 0;
+            pastix_int_t sptcbnbh = 0;
 
             /* If facing cblk is splitted */
             if ( sptfcbnb > 1 )
             {
-                SymbolCblk  *newfcblk =  &(extracblk->cblktab[ extracblk->sptcblk[fcblknum] ]);
+                symbol_cblk_t  *newfcblk =  &(extracblk->cblktab[ extracblk->sptcblk[fcblknum] ]);
                 pastix_int_t frownum  = oldsymb->bloktab[j].frownum;
                 pastix_int_t lrownum  = oldsymb->bloktab[j].lrownum;
 
@@ -305,8 +306,8 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
                     frownum = newfcblk->lcolnum+1;
                 }
             }
-	    else
-	      sptcbnbh = 1;
+            else
+                sptcbnbh = 1;
 
             /*
              * The number of extra blocks is the number of times the block
@@ -332,7 +333,7 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
                     lastcblksplit++;
                     memcpy( newsymb->cblktab + newnum[ lastcblksplit ],
                             oldsymb->cblktab + lastcblksplit,
-                            nbcblk2copy * sizeof(SymbolCblk) );
+                            nbcblk2copy * sizeof(symbol_cblk_t) );
 
                     memcpy( newcand + newnum[ lastcblksplit ],
                             oldcand + lastcblksplit,
@@ -343,7 +344,7 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
                 assert( (sptcblk >= 0) && (sptcblk <= extracblk->curcblk) );
                 memcpy( newsymb->cblktab   + newcblknum,
                         extracblk->cblktab + sptcblk,
-                        sptcbnbw * sizeof(SymbolCblk) );
+                        sptcbnbw * sizeof(symbol_cblk_t) );
 
                 /* Initialize extranewnum and duplicate the cand for each new cblk */
                 for(j=0; j<sptcbnbw; j++, sptcblk++) {
@@ -370,7 +371,7 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
         lastcblksplit++;
         memcpy( newsymb->cblktab + newnum[ lastcblksplit ],
                 oldsymb->cblktab + lastcblksplit,
-                nbcblk2copy * sizeof(SymbolCblk) );
+                nbcblk2copy * sizeof(symbol_cblk_t) );
 
         memcpy( newcand + newnum[ lastcblksplit ],
                 oldcand + lastcblksplit,
@@ -380,7 +381,7 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
 
     /* Allocate new bloktab */
     newsymb->bloknbr = oldsymb->bloknbr + addblok;
-    MALLOC_INTERN(newsymb->bloktab, newsymb->bloknbr,   SymbolBlok);
+    MALLOC_INTERN(newsymb->bloktab, newsymb->bloknbr,   symbol_blok_t);
 
     /* Fill in the new symbolic matrix resulting from the splitting of the former one */
     curbloknum = 0;
@@ -389,7 +390,7 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
     curblok = newsymb->bloktab;
 
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
-    SymbolCblk *cblk = newsymb->cblktab;
+    symbol_cblk_t *cblk = newsymb->cblktab;
 #endif
     for(i=0; i<oldsymb->cblknbr; i++)
     {
@@ -431,7 +432,7 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
                 if ( sptfcbnb > 1 )
                 {
                     pastix_int_t newfcblknum = extranewnum[ sptfcblk ];
-                    SymbolCblk  *newfcblk =  &(extracblk->cblktab[ sptfcblk ]);
+                    symbol_cblk_t  *newfcblk =  &(extracblk->cblktab[ sptfcblk ]);
 
                     /* Create new blocks facing this cblk */
                     for(l=0; l<sptfcbnb; l++, newfcblk++)
@@ -477,7 +478,7 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
     assert((curblok - newsymb->bloktab) == newsymb->bloknbr);
 
     /* Free old versions and temporary buffer */
-    symbolExit(oldsymb);
+    pastixSymbolExit(oldsymb);
     memFree_null(oldsymb);
     memFree_null(newnum);
     memFree_null(extranewnum);
@@ -487,7 +488,7 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
     newsymb->cblktab[newsymb->cblknbr].lcolnum = newsymb->cblktab[newsymb->cblknbr-1].lcolnum+1;
     newsymb->cblktab[newsymb->cblknbr].bloknum = curbloknum;
 
-    symbolBuildRowtab( newsymb );
+    pastixSymbolBuildRowtab( newsymb );
 
     *candtab = newcand;
 

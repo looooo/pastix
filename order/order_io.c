@@ -40,8 +40,8 @@
  *
  *******************************************************************************/
 static inline int
-ordering_load(Order * ordeptr,
-              FILE  * stream)
+ordering_load( pastix_order_t *ordeptr,
+               FILE           *stream )
 {
     pastix_int_t  versval;
     pastix_int_t  cblknbr;
@@ -62,7 +62,7 @@ ordering_load(Order * ordeptr,
         return PASTIX_ERR_FILE;
     }
 
-    orderAlloc(ordeptr, vertnbr, cblknbr);
+    pastixOrderAlloc(ordeptr, vertnbr, cblknbr);
     ordeptr->vertnbr = vertnbr;
     ordeptr->cblknbr = cblknbr;
 
@@ -85,8 +85,8 @@ ordering_load(Order * ordeptr,
     }
 
     if (i != 1) {
-        errorPrint ("orderLoad: bad input (2)");
-        orderExit  (ordeptr);
+        errorPrint ("pastixOrderLoad: bad input (2)");
+        pastixOrderExit  (ordeptr);
         return PASTIX_ERR_FILE;
     }
 
@@ -129,8 +129,8 @@ ordering_load(Order * ordeptr,
  * @retval PASTIX_ERR_FILE if a problem occurs during the read.
  *
  *******************************************************************************/
-int orderLoad( const pastix_data_t *pastix_data,
-               Order               *ordemesh )
+int pastixOrderLoad( const pastix_data_t *pastix_data,
+                     pastix_order_t      *ordemesh )
 {
     FILE *stream   = NULL;
     char *filename = NULL;
@@ -197,8 +197,8 @@ int orderLoad( const pastix_data_t *pastix_data,
  *
  *******************************************************************************/
 static inline int
-ordering_save(const Order * const ordeptr,
-              FILE * const        stream)
+ordering_save( const pastix_order_t *ordeptr,
+               FILE                 *stream )
 {
     pastix_int_t vertnbr;
     pastix_int_t vertnum;
@@ -206,15 +206,15 @@ ordering_save(const Order * const ordeptr,
     int          o;
 
     if (ordeptr->permtab == NULL) {
-        errorPrint ("orderSave: cannot save ordering without direct permutation data");
+        errorPrint ("pastixOrderSave: cannot save ordering without direct permutation data");
         return PASTIX_ERR_BADPARAMETER;
     }
     if (ordeptr->rangtab == NULL) {
-        errorPrint ("orderSave: cannot save ordering without rangtab array");
+        errorPrint ("pastixOrderSave: cannot save ordering without rangtab array");
         return PASTIX_ERR_BADPARAMETER;
     }
     if (ordeptr->treetab == NULL) {
-        errorPrint ("orderSave: cannot save ordering without treetab array");
+        errorPrint ("pastixOrderSave: cannot save ordering without treetab array");
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -227,7 +227,7 @@ ordering_save(const Order * const ordeptr,
     if (fprintf (stream, "1\n%ld\t%ld\n",
                  (long) ordeptr->cblknbr,
                  (long) vertnbr) == EOF) {
-        errorPrint ("orderSave: bad output (1)");
+        errorPrint ("pastixOrderSave: bad output (1)");
         return PASTIX_ERR_FILE;
     }
 
@@ -256,7 +256,7 @@ ordering_save(const Order * const ordeptr,
     putc ('\n', stream);
 
     if (o != 1) {
-        errorPrint ("orderSave: bad output (2)");
+        errorPrint ("pastixOrderSave: bad output (2)");
         return PASTIX_ERR_FILE;
     }
 
@@ -291,8 +291,8 @@ ordering_save(const Order * const ordeptr,
  *
  *******************************************************************************/
 int
-orderSave( pastix_data_t      *pastix_data,
-           const Order * const ordemesh )
+pastixOrderSave( pastix_data_t        *pastix_data,
+                 const pastix_order_t *ordemesh )
 {
     FILE *stream   = NULL;
     int   rc       = PASTIX_SUCCESS;

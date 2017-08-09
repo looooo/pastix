@@ -45,7 +45,7 @@
 /**
  * @brief Predefined set of colors
  */
-static float                symbolDrawColorTab[16][3] = {
+static float symbolDrawColorTab[16][3] = {
     { 1.00, 0.00, 0.00 }, /* Red          */
     { 0.00, 1.00, 0.00 }, /* Green        */
     { 1.00, 1.00, 0.00 }, /* Yellow       */
@@ -78,8 +78,8 @@ static float                symbolDrawColorTab[16][3] = {
  *
  *******************************************************************************/
 void
-symbolDrawColor ( const pastix_int_t labl,
-                  float              color[] )
+pastixSymbolDrawColor ( const pastix_int_t labl,
+                        float              color[] )
 {
     color[0] = (float) symbolDrawColorTab[(labl - 1) % 16][0];
     color[1] = (float) symbolDrawColorTab[(labl - 1) % 16][1];
@@ -118,12 +118,12 @@ symbolDrawColor ( const pastix_int_t labl,
  *
  *******************************************************************************/
 int
-symbolDrawFunc (
-    const SymbolMatrix * const  symbptr,
-    int                         (* diagfunc) (const SymbolMatrix * const, const SymbolBlok * const, void * const, float * const),
-    int                         (* offdfunc) (const SymbolMatrix * const, const SymbolBlok * const, void * const, float * const),
-    void * const                dataptr,              /* Data structure for block coloring */
-    FILE * const                stream)
+pastixSymbolDrawFunc (
+    const symbol_matrix_t * const  symbptr,
+    int                         (* diagfunc) (const symbol_matrix_t * const, const symbol_blok_t * const, void * const, float * const),
+    int                         (* offdfunc) (const symbol_matrix_t * const, const symbol_blok_t * const, void * const, float * const),
+    void * const                   dataptr,              /* Data structure for block coloring */
+    FILE * const                   stream)
 {
     pastix_int_t cblknum;                    /* Number of current column block */
     pastix_int_t bloknum;                    /* Number of current block        */
@@ -135,9 +135,9 @@ symbolDrawFunc (
     pictsize = (double) (symbptr->nodenbr + 1);     /* Get matrix size  */
 
     fprintf (stream, "%%!PS-Adobe-2.0 EPSF-2.0\n"); /* Write header */
-    fprintf (stream, "%%%%Title: symbolmatrix (%ld,%ld,%ld)\n",
+    fprintf (stream, "%%%%Title: pastixSymbolmatrix (%ld,%ld,%ld)\n",
              (long) symbptr->cblknbr, (long) symbptr->bloknbr, (long)symbptr->nodenbr);
-    fprintf (stream, "%%%%Creator: symbolDraw (LaBRI, Universite Bordeaux I)\n");
+    fprintf (stream, "%%%%Creator: pastixSymbolDraw (LaBRI, Universite Bordeaux I)\n");
     fprintf (stream, "%%%%CreationDate: %s", ctime (&picttime));
     fprintf (stream, "%%%%BoundingBox: 0 0 %ld %ld\n",
              (long) (SYMBOL_PSPICTSIZE * SYMBOL_PSDPI),
@@ -244,8 +244,8 @@ symbolDrawFunc (
  *
  *******************************************************************************/
 int
-symbolDraw ( const SymbolMatrix * const  symbptr,
-             FILE * const                stream )
+pastixSymbolDraw ( const symbol_matrix_t * const  symbptr,
+                   FILE * const                stream )
 {
-    return (symbolDrawFunc (symbptr, NULL, NULL, NULL, stream));
+    return (pastixSymbolDrawFunc (symbptr, NULL, NULL, NULL, stream));
 }

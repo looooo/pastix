@@ -148,15 +148,15 @@
 */
 
 int
-symbolFax (SymbolMatrix * const   symbptr,
-           const pastix_int_t     vertnbr,
-           const pastix_int_t     edgenbr,
-           const pastix_int_t     baseval,
-           void * const           ngbdptr,
-           pastix_int_t           ngbfrst (void * const, const pastix_int_t),
-           pastix_int_t           ngbnext (void * const),
-           pastix_int_t           ngbdegr (void * const, const pastix_int_t),
-           const Order * const    ordeptr)
+pastixSymbolFax( symbol_matrix_t * const symbptr,
+                 const pastix_int_t      vertnbr,
+                 const pastix_int_t      edgenbr,
+                 const pastix_int_t      baseval,
+                 void * const            ngbdptr,
+                 pastix_int_t            ngbfrst (void * const, const pastix_int_t),
+                 pastix_int_t            ngbnext (void * const),
+                 pastix_int_t            ngbdegr (void * const, const pastix_int_t),
+                 const pastix_order_t * const ordeptr )
 #endif /* SYMBOL_FAX_INCLUDED */
 {
     pastix_int_t                       vertnum;  /* Vertex number of current column                   */
@@ -165,10 +165,10 @@ symbolFax (SymbolMatrix * const   symbptr,
     const pastix_int_t * restrict      peritax;  /* Based access to inverse permutation array         */
     const pastix_int_t * restrict      rangtax;  /* Based access to column block range array          */
     pastix_int_t * restrict            ctrbtax;  /* Based access to array of contribution chains      */
-    SymbolCblk * restrict              cblktax;  /* Based access to column block array                */
+    symbol_cblk_t * restrict           cblktax;  /* Based access to column block array                */
     pastix_int_t                       cblknum;  /* Based number of current column block              */
     pastix_int_t                       cblkctr;  /* Based number of current contributing column block */
-    SymbolBlok * restrict              bloktax;  /* Based access to block array                       */
+    symbol_blok_t * restrict           bloktax;  /* Based access to block array                       */
     pastix_int_t                       bloknum;  /* Based number of current first free block slot     */
     pastix_int_t                       blokmax;  /* Maximum number of blocks in array                 */
     SymbolFaxTlok * restrict           tloktab;  /* Beginning of array of temporary blocks            */
@@ -188,13 +188,13 @@ symbolFax (SymbolMatrix * const   symbptr,
 
     /* Allocate arrays for factoring   */
     {
-        pastix_int_t *ctrbtab = NULL; /* Array for contribution chaining */
-        SymbolCblk   *cblktab = NULL; /* Column block array              */
-        SymbolBlok   *bloktab = NULL; /* Block array                     */
+        pastix_int_t  *ctrbtab = NULL; /* Array for contribution chaining */
+        symbol_cblk_t *cblktab = NULL; /* Column block array              */
+        symbol_blok_t *bloktab = NULL; /* Block array                     */
 
         MALLOC_INTERN(ctrbtab, ordeptr->cblknbr,     pastix_int_t);
-        MALLOC_INTERN(cblktab, ordeptr->cblknbr + 1, SymbolCblk);
-        MALLOC_INTERN(bloktab, blokmax,              SymbolBlok);
+        MALLOC_INTERN(cblktab, ordeptr->cblknbr + 1, symbol_cblk_t);
+        MALLOC_INTERN(bloktab, blokmax,              symbol_blok_t);
 
         cblktax = cblktab - baseval;                  /* Set based accesses */
         bloktax = bloktab - baseval;
@@ -240,7 +240,7 @@ symbolFax (SymbolMatrix * const   symbptr,
                 ctrbsum += cblktax[ctrbtmp + 1].bloknum - cblktax[ctrbtmp].bloknum - 2; /* Sum contributing column blocks */
 
             tlokmax = degrsum + ctrbsum;
-            sortoft = tlokmax * sizeof (SymbolBlok);
+            sortoft = tlokmax * sizeof (symbol_blok_t);
             if ((hashsiz * (pastix_int_t)sizeof(pastix_int_t)) > sortoft)     /* Compute offset of sort area */
                 sortoft = (hashsiz * sizeof (pastix_int_t));
             tlokoft = sortoft + degrsum * sizeof (pastix_int_t); /* Compute offset of temporary block area */
@@ -248,13 +248,13 @@ symbolFax (SymbolMatrix * const   symbptr,
 
             if (((unsigned char *) (bloktax + bloknum) + tlndoft) > /* If not enough room */
                 ((unsigned char *) (bloktax + blokmax))) {
-                SymbolBlok *        bloktmp;              /* Temporary pointer for array resizing */
+                symbol_blok_t *        bloktmp;              /* Temporary pointer for array resizing */
 
                 do
                     blokmax = blokmax + (blokmax >> 2) + 4; /* Increase block array size by 25% as long as it does not fit */
                 while (((unsigned char *) (bloktax + bloknum) + tlndoft) > ((unsigned char *) (bloktax + blokmax)));
 
-                if ((bloktmp = (SymbolBlok *) memRealloc (bloktax + baseval, (blokmax * sizeof (SymbolBlok)))) == NULL) {
+                if ((bloktmp = (symbol_blok_t *) memRealloc (bloktax + baseval, (blokmax * sizeof (symbol_blok_t)))) == NULL) {
                     errorPrint ("symbolFax: out of memory (2)");
                     memFree    (bloktax + baseval);
                     memFree    (cblktax + baseval);
@@ -479,14 +479,14 @@ symbolFax (SymbolMatrix * const   symbptr,
     symbptr->cblknbr = ordeptr->cblknbr;
     symbptr->bloknbr = bloknum - baseval;
     symbptr->cblktab = cblktax + baseval;
-    symbptr->bloktab = (SymbolBlok *) memRealloc (bloktax + baseval, (bloknum - baseval) * sizeof (SymbolBlok)); /* Set array to its exact size */
+    symbptr->bloktab = (symbol_blok_t *) memRealloc (bloktax + baseval, (bloknum - baseval) * sizeof (symbol_blok_t)); /* Set array to its exact size */
     symbptr->nodenbr = vertnbr;
     symbptr->browtab = NULL;
 
 #ifdef FAX_DEBUG
-    if (symbolCheck (symbptr) != 0) {
+    if (pastixSymbolCheck (symbptr) != 0) {
         errorPrint ("symbolFax: internal error (2)");
-        symbolExit (symbptr);
+        pastixSymbolExit (symbptr);
         return     (1);
     }
 #endif /* FAX_DEBUG */

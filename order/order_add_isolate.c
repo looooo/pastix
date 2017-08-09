@@ -52,11 +52,11 @@
  *
  *******************************************************************************/
 int
-orderAddIsolate(       Order        *ordemesh,
-                       pastix_int_t  new_n,
-                 const pastix_int_t *perm )
+pastixOrderAddIsolate(       pastix_order_t *ordemesh,
+                             pastix_int_t    new_n,
+                       const pastix_int_t   *perm )
 {
-    Order ordesave;
+    pastix_order_t ordesave;
     pastix_int_t i, ip;
     pastix_int_t n;
     pastix_int_t cblknbr;
@@ -83,8 +83,8 @@ orderAddIsolate(       Order        *ordemesh,
 
     assert( n <= new_n );
 
-    memcpy( &ordesave, ordemesh, sizeof(Order) );
-    rc = orderAlloc( ordemesh, new_n, cblknbr + 1 );
+    memcpy( &ordesave, ordemesh, sizeof(pastix_order_t) );
+    rc = pastixOrderAlloc( ordemesh, new_n, cblknbr + 1 );
     if (rc != PASTIX_SUCCESS)
         return rc;
 
@@ -120,7 +120,7 @@ orderAddIsolate(       Order        *ordemesh,
     }
     ordemesh->treetab[ ordesave.cblknbr ] = -1;
 
-    orderExit( &ordesave );
+    pastixOrderExit( &ordesave );
     return PASTIX_SUCCESS;
 }
 
