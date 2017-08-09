@@ -74,7 +74,7 @@ pages:
     - mkdir -p build
     - cd build
     - cmake .. -DBUILD_DOCUMENTATION=ON
-    - make
+    - make docs
     - mv docs/out/html ../public/
   artifacts:
     paths:

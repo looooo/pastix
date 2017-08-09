@@ -51,7 +51,7 @@ if (BUILD_DOCUMENTATION)
         VERBATIM)
 
       #-- Add a custom target to run Doxygen when the project is built
-      add_custom_target( docs ALL
+      add_custom_target( docs
         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/doxygen/doxygen.stamp )
 
     endif()
