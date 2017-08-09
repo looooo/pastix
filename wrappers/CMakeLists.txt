@@ -12,4 +12,9 @@
 if (PASTIX_WITH_FORTRAN)
   add_subdirectory( fortran90 )
 endif()
-add_subdirectory( python )
+
+if (BUILD_SHARED_LIBS)
+  add_subdirectory( python )
+else()
+  message(STATUS "--- Python wrapper is disabled with static libraries")
+endif()
