@@ -287,8 +287,8 @@ eTreeBuild(const symbol_matrix_t *symbmtx)
     /* Initialize the structure fields */
     for(i=0; i<symbmtx->cblknbr; i++, enode++)
     {
-        enode->total   = 0.;
-        enode->subtree = 0.;
+        enode->total   =  0.0;
+        enode->subtree =  0.0;
         enode->sonsnbr =  0;
         enode->fathnum = -1;
         enode->fsonnum = -1;

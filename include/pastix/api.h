@@ -188,7 +188,10 @@ typedef enum pastix_io_e {
 } pastix_io_t;
 
 /**
- * @brief Schur modes
+ * @brief Factorization Schur modes
+ *
+ * Describe which part of the matrix is factorized or not
+ *
  */
 typedef enum pastix_fact_mode_e {
     PastixFactModeLocal   = 0,
@@ -196,6 +199,25 @@ typedef enum pastix_fact_mode_e {
     PastixFactModeBoth    = 2
 } pastix_fact_mode_t;
 
+/**
+ * @brief Solve Schur modes
+ *
+ * Describe which part of the solve is applied with the matrix
+ *
+ * \f[ A = \left( \begin{array}{cc}
+ *             L_{11}U_{11} & U_{12} \\
+ *             L_{21}       & S_{22} \end{array} \right) \f]
+ *
+ * For the lower part (and symmetrically for upper part):
+ *   -# Solve \f[ L_{11} * x_{11} = b_{11} \f]
+ *   -# Apply the update \f[ b_{22} = b_{22} - L_{21} * b_{11} \f]
+ *   -# Solve the lower part of \f[ S_{22} * x_{22} = b_{22} \f] if S22 has been previously factorized.
+ *
+ * PastixSolvModeLocal applies only the step 1.
+ * PastixSolvModeInterface applies steps 1 and 2.
+ * PastixSolvModeSchur applies all steps.
+ *
+ */
 typedef enum pastix_solv_mode_e {
     PastixSolvModeLocal     = 0,
     PastixSolvModeInterface = 1,

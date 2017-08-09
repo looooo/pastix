@@ -1,6 +1,6 @@
 /**
  *
- * @file schur.c
+ * @file sopalin/schur.c
  *
  * PaStiX schur interface functions
  *

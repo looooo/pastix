@@ -35,9 +35,6 @@ int z_spmConvertCSR2IJV( pastix_spm_t *spm );
 int z_spmConvertIJV2CSC( pastix_spm_t *spm );
 int z_spmConvertIJV2CSR( pastix_spm_t *spm );
 
-void z_spmConvertColMaj2RowMaj(pastix_spm_t *spm);
-void z_spmConvertRowMaj2ColMaj(pastix_spm_t *spm);
-
 pastix_complex64_t *z_spm2dense( const pastix_spm_t *spm );
 
 /**

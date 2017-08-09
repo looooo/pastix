@@ -192,6 +192,9 @@ simu_computeBlockCtrbNbr(const symbol_matrix_t *symbptr,
  *
  *******************************************************************************
  *
+ * @param[in] ctrl
+ *          The blendctrl structure with the simulation parameters.
+ *
  * @param[in] symbptr
  *          The symbol matrix structure describing the problem.
  *

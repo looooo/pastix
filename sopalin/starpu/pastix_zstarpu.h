@@ -1,6 +1,6 @@
 /**
  *
- * @file pastix_zstarpu.c
+ * @file pastix_zstarpu.h
  *
  * Pastix StarPU codelets header
  *

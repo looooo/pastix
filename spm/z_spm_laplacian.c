@@ -25,7 +25,7 @@
  * @ingroup spm_dev_driver
  *
  * @brief Generate a laplacian matrix for a 7-points stencil
- * \[ M = \alpha * D - \beta * A \]
+ * \f[ M = \alpha * D - \beta * A \f]
  *
  * Example:
  * >  3 -1 -1  0 -1  0  0  0
@@ -294,7 +294,7 @@ z_spmExtendedLaplacian2D( pastix_spm_t  *spm,
  * @ingroup spm_dev_driver
  *
  * @brief Generate an extended laplacian matrix for a 27-points stencil with
- * \[ M = \alpha * D - \beta * A \]
+ * \f[ M = \alpha * D - \beta * A \f]
  *
  *******************************************************************************
  *

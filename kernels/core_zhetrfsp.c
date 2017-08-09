@@ -130,9 +130,6 @@ core_zhetf2sp( pastix_int_t        n,
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
- * @param[in] work
- *          Temporary memory buffer.
- *
  *******************************************************************************/
 void
 core_zhetrfsp( pastix_int_t        n,
@@ -547,8 +544,8 @@ cpucblk_zhetrfsp1d_panel( SolverCblk         *cblk,
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
- * @param[in] work1
- *          Temporary memory buffer for L factors.
+ * @param[in] DLh
+ *          Temporary memory buffer to store the conjugate transpose of DLh.
  *
  * @param[in] work2
  *          Temporary memory buffer for U factors.
@@ -588,7 +585,7 @@ cpucblk_zhetrfsp1d( SolverMatrix       *solvmtx,
                                   work2 );
         }
         else {
-            cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixConjTrans,
+            cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
                              cblk, blok, fcblk,
                              L, DLh, fcblk->lcoeftab,
                              work2, &solvmtx->lowrank );

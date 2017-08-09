@@ -129,9 +129,6 @@ core_zsytf2sp( pastix_int_t        n,
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
- * @param[in] work
- *          Temporary memory buffer.
- *
  *******************************************************************************/
 void
 core_zsytrfsp( pastix_int_t        n,
@@ -545,8 +542,8 @@ cpucblk_zsytrfsp1d_panel( SolverCblk         *cblk,
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
  *
- * @param[in] work1
- *          Temporary memory buffer for L factors.
+ * @param[in] DLt
+ *          Temporary memory buffer to store the transpose of DLt.
  *
  * @param[in] work2
  *          Temporary memory buffer for U factors.

@@ -1,6 +1,6 @@
 /**
  *
- * @file pastix_zparsec.c
+ * @file pastix_zparsec.h
  *
  * Pastix PaRSEC codelets header
  *

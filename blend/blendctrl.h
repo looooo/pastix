@@ -100,10 +100,6 @@ typedef struct blendctrl_s {
     EliminTree        *etree;        /**< the elimination tree                                              */
     CostMatrix        *costmtx;      /**< the cost bounded to each cblk and blok                            */
     Cand              *candtab;      /**< processor candidate tab                                           */
-    ExtendVectorINT   *intvec;       /**< vector of pastix_int_t used by several routines.
-                                          The aim of this variable is to avoid
-                                          repeatedly memAlloc and memFree call                               */
-    ExtendVectorINT   *intvec2;      /**< Another one                                                       */
     FILE              *tracefile;    /**< File holding the simulated trace                                  */
     /**
      * @}

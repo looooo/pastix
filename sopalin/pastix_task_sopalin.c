@@ -290,9 +290,6 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
  *          On exit, the solver matrix structure stores the factorization of the
  *          given problem.
  *
- * @param[in] spm
- *          The sparse matrix descriptor that describes problem instance.
- *
  *******************************************************************************
  *
  * @retval PASTIX_SUCCESS on successful exit,

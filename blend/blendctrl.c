@@ -298,11 +298,6 @@ blendCtrlInit( pastix_data_t *pastix_data,
     ctrl->costmtx = NULL;
     ctrl->candtab = NULL;
 
-    MALLOC_INTERN(ctrl->intvec,  1, ExtendVectorINT);
-    MALLOC_INTERN(ctrl->intvec2, 1, ExtendVectorINT);
-    extendint_Init(ctrl->intvec,  10);
-    extendint_Init(ctrl->intvec2, 10);
-
 #ifdef PASTIX_DYNSCHED
     MALLOC_INTERN(ctrl->btree, 1, BubbleTree);
 #endif
@@ -327,12 +322,6 @@ blendCtrlInit( pastix_data_t *pastix_data,
 void
 blendCtrlExit(BlendCtrl *ctrl)
 {
-    extendint_Exit(ctrl->intvec);
-    memFree_null(ctrl->intvec);
-
-    extendint_Exit(ctrl->intvec2);
-    memFree_null(ctrl->intvec2);
-
     if(ctrl->clust2smp) {
         memFree_null(ctrl->clust2smp);
     }

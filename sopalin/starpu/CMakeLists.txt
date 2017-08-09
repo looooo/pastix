@@ -92,7 +92,5 @@ add_documented_files(
   pastix_starpu.h
   # Source files
   starpu.c
-  starpu_zpotrf.c
-  starpu_zgetrf.c
   starpu_sparse_matrix.c
   )
