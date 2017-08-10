@@ -779,7 +779,6 @@ add_documented_files(
   graph/graph.h
   graph/graph.c
   graph/graph_io.c
-  graph/graph_apply_perm.c
   graph/graph_isolate.c
   graph/graph_prepare.c
   graph/graph_symmetrize.c
