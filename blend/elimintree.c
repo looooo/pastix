@@ -216,52 +216,6 @@ eTreeGenDot(const EliminTree *etree, FILE *stream)
     fprintf(stream, "}\n");
 }
 
-
-/**
- *******************************************************************************
- *
- * @brief Print the compressed elimination tree in a dot file, where all nodes
- * with the same candidates are merged together.
- *
- *******************************************************************************
- *
- * @param[in] etree
- *          The pointer to the elimination tree.
- *
- *
- * @param[inout] stream
- *          The file to which write the elimination tree in the dot format.
- *
- *******************************************************************************/
-void
-eTreeGenCompressedDot(const EliminTree *etree, const Cand *candtab, FILE *stream)
-{
-    EliminTree *ctree;
-    eTreeNode *cnode;
-    pastix_int_t i;
-
-    /* Let's create a second compressed elimination tree, and the associated candtab */
-    MALLOC_INTERN(ctree, 1, EliminTree);
-    eTreeInit(ctree);
-
-    ctree->nodenbr = etree->nodenbr;
-    MALLOC_INTERN(ctree->nodetab, ctree->nodenbr, eTreeNode_t);
-    cnode = ctree->nodetab;
-
-    /* Initialize the structure fields */
-    for(i=0; i<etree->nodenbr; i++, cnode++)
-    {
-        cnode->total   = 0.;
-        cnode->subtree = 0.;
-        cnode->sonsnbr =  0;
-        cnode->fathnum = -1;
-        cnode->fsonnum = -1;
-    }
-
-    
-
-}
-
 /**
  *******************************************************************************
  *
