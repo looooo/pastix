@@ -101,7 +101,7 @@ int graphIsolate(       pastix_int_t   n,
     pastix_int_t  iter_isolate = 0;
     pastix_int_t  iter_non_isolate  = 0;
 
-    if (isolate_n > n) {
+    if ( (isolate_n > n)  || (isolate_n < 0) ) {
         errorPrintW( "Number of columns to isolate greater than the columns in the GRAPH matrix\n");
         return PASTIX_ERR_BADPARAMETER;
     }
