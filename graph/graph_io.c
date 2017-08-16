@@ -88,6 +88,7 @@ graphLoad( const pastix_data_t *pastix_data,
     if (env) {
         pastix_cleanenv( filename );
     }
+    (void)pastix_data;
 }
 
 /**

@@ -210,4 +210,6 @@ coeftab_zcblkinit( const SolverMatrix  *solvmtx,
             coeftab_zalloc_one( cblk );
         }
     }
+
+    (void)directory;
 }
