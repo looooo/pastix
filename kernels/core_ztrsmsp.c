@@ -22,9 +22,9 @@
 #include "eztrace_module/kernels_ev_codes.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-static pastix_complex64_t  zone =  1.;
-static pastix_complex64_t zzero =  0.;
-static pastix_complex64_t mzone = -1.;
+static pastix_complex64_t  zone =  1.0;
+static pastix_complex64_t zzero =  0.0;
+static pastix_complex64_t mzone = -1.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**

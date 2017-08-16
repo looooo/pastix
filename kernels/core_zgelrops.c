@@ -22,8 +22,8 @@
 #include "eztrace_module/kernels_ev_codes.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-static pastix_complex64_t zone  =  1.;
-static pastix_complex64_t zzero =  0.;
+static pastix_complex64_t zone  =  1.0;
+static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
@@ -314,7 +314,7 @@ core_zlr2ge( pastix_trans_t trans, pastix_int_t m, pastix_int_t n,
         }
         else if ( Alr->rk == 0 ) {
             ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', m, n,
-                                       0., 0., A, lda );
+                                       0.0, 0.0, A, lda );
             assert( ret == 0 );
         }
         else {
@@ -331,7 +331,7 @@ core_zlr2ge( pastix_trans_t trans, pastix_int_t m, pastix_int_t n,
         }
         else if ( Alr->rk == 0 ) {
             ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', n, m,
-                                       0., 0., A, lda );
+                                       0.0, 0.0, A, lda );
             assert( ret == 0 );
         }
         else {
@@ -432,7 +432,7 @@ core_zgradd( const pastix_lr_t *lowrank, pastix_complex64_t alpha,
 
         core_zgeadd( PastixNoTrans, M1, N1,
                      alpha, A, lda,
-                     1.,    work + M2 * offy + offx, M2 );
+                     1.0,    work + M2 * offy + offx, M2 );
 
         core_zlrfree(B);
         lowrank->core_ge2lr( tol, M2, N2, work, M2, B );
@@ -1012,7 +1012,7 @@ core_zlrmm( const pastix_lr_t *lowrank,
      */
     else {
         if ( AB.rk == -1 ) {
-            assert(beta == 1.);
+            assert(beta == 1.0);
             core_zgradd( lowrank, alpha,
                          M, N, tmp, AB.rkmax,
                          Cm, Cn, C,

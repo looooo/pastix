@@ -39,11 +39,11 @@ gpu_zgemmsp_fermi( const SolverMatrix *solvmatr,
                          cudaStream_t stream )
 {
 #if defined(PRECISION_z) || defined(PRECISION_c)
-    cuDoubleComplex mzone = make_cuDoubleComplex(-1., 0.);
-    cuDoubleComplex zone  = make_cuDoubleComplex( 1., 0.);
+    cuDoubleComplex mzone = make_cuDoubleComplex(-1.0, 0.0);
+    cuDoubleComplex zone  = make_cuDoubleComplex( 1.0, 0.0);
 #else
-    double mzone = -1.;
-    double zone  =  1.;
+    double mzone = -1.0;
+    double zone  =  1.0;
 #endif
 
     pastix_int_t lda, ldb, ldc;
@@ -152,11 +152,11 @@ gpucblk_zgemmsp(       pastix_coefside_t  sideA,
                        cudaStream_t       stream )
 {
 #if defined(PRECISION_z) || defined(PRECISION_c)
-    cuDoubleComplex mzone = make_cuDoubleComplex(-1., 0.);
-    cuDoubleComplex zone  = make_cuDoubleComplex( 1., 0.);
+    cuDoubleComplex mzone = make_cuDoubleComplex(-1.0, 0.0);
+    cuDoubleComplex zone  = make_cuDoubleComplex( 1.0, 0.0);
 #else
-    double mzone = -1.;
-    double zone  =  1.;
+    double mzone = -1.0;
+    double zone  =  1.0;
 #endif
     gemm_params_t params;
     const SolverBlok *iterblok;
@@ -329,11 +329,11 @@ gpublok_zgemmsp(       pastix_coefside_t  sideA,
                        cudaStream_t       stream )
 {
 #if defined(PRECISION_z) || defined(PRECISION_c)
-    cuDoubleComplex mzone = make_cuDoubleComplex(-1., 0.);
-    cuDoubleComplex zone  = make_cuDoubleComplex( 1., 0.);
+    cuDoubleComplex mzone = make_cuDoubleComplex(-1.0, 0.0);
+    cuDoubleComplex zone  = make_cuDoubleComplex( 1.0, 0.0);
 #else
-    double mzone = -1.;
-    double zone  =  1.;
+    double mzone = -1.0;
+    double zone  =  1.0;
 #endif
     const SolverBlok *blokA, *blokB, *blokC;
     const SolverBlok *bA, *bB, *bC;
@@ -470,9 +470,9 @@ gpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                        cudaStream_t     stream )
 {
 #if defined(PRECISION_z) || defined(PRECISION_c)
-    cuDoubleComplex zone  = make_cuDoubleComplex( 1., 0.);
+    cuDoubleComplex zone  = make_cuDoubleComplex( 1.0, 0.0);
 #else
-    double zone  =  1.;
+    double zone  =  1.0;
 #endif
     const SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, lda, ldc, offset, cblk_m;

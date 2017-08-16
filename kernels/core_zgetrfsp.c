@@ -23,8 +23,8 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define MAXSIZEOFBLOCKS 64
-static pastix_complex64_t zone  =  1.;
-static pastix_complex64_t mzone = -1.;
+static pastix_complex64_t zone  =  1.0;
+static pastix_complex64_t mzone = -1.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
@@ -83,7 +83,7 @@ core_zgetf2sp( pastix_int_t        m,
         }
 
         /* A_ik = A_ik / A_kk, i = k+1 .. n */
-        alpha = 1. / (*Akk);
+        alpha = 1.0 / (*Akk);
         cblas_zscal(m-k-1, CBLAS_SADDR( alpha ), Aik, 1 );
 
         if ( k+1 < minMN ) {

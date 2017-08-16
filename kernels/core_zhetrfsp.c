@@ -24,8 +24,8 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define MAXSIZEOFBLOCKS 64
-static pastix_complex64_t zone  =  1.;
-static pastix_complex64_t mzone = -1.;
+static pastix_complex64_t zone  =  1.0;
+static pastix_complex64_t mzone = -1.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
@@ -79,7 +79,7 @@ core_zhetf2sp( pastix_int_t        n,
             (*nbpivot)++;
         }
 
-        zalpha = 1. / (*Akk);
+        zalpha = 1.0 / (*Akk);
 
         cblas_zcopy( m, Amk, 1, Akm, lda );
         LAPACKE_zlacgv_work( m, Akm, 1 );
@@ -87,7 +87,7 @@ core_zhetf2sp( pastix_int_t        n,
         /* Scale the diagonal to compute L((k+1):n,k) */
         cblas_zscal(m, CBLAS_SADDR( zalpha ), Amk, 1 );
 
-        dalpha = -1. * creal(*Akk);
+        dalpha = -1.0 * creal(*Akk);
 
         /* Move to next Akk */
         Akk += (lda+1);
@@ -182,7 +182,7 @@ core_zhetrfsp( pastix_int_t        n,
                 LAPACKE_zlacgv_work( matrixsize, Akm + col, lda );
 
                 /* compute L(k+1+col:n,k+col) = A(k+1+col:n,k+col)D(k+col,k+col)^{-1} */
-                alpha = 1. / *(Akk + col*(lda+1));
+                alpha = 1.0 / *(Akk + col*(lda+1));
                 cblas_zscal( matrixsize, CBLAS_SADDR(alpha),
                              Amk + col*lda, 1 );
             }
@@ -311,7 +311,7 @@ int core_zhetrfsp1d_trsm( SolverCblk         *cblk,
                 for (j=0; j<N; j++)
                 {
                     pastix_complex64_t alpha;
-                    alpha = 1. / A[j + j * lda];
+                    alpha = 1.0 / A[j + j * lda];
                     cblas_zscal(M, CBLAS_SADDR(alpha), B + j * ldb, 1);
                 }
             }
@@ -332,7 +332,7 @@ int core_zhetrfsp1d_trsm( SolverCblk         *cblk,
             for (j=0; j<N; j++)
             {
                 pastix_complex64_t alpha;
-                alpha = 1. / A[j + j * lda];
+                alpha = 1.0 / A[j + j * lda];
                 cblas_zscal(M, CBLAS_SADDR(alpha), B + j * ldb, 1);
             }
         }
@@ -452,9 +452,9 @@ void core_zhetrfsp1d_gemm( const SolverCblk         *cblk,
             pastix_cblk_lock( fcblk );
             ret = core_zgemdm( PastixNoTrans, PastixConjTrans,
                                M, N, K,
-                               -1., blokA, lda,
+                               -1.0, blokA, lda,
                                     blokB, ldb,
-                                1., blokC, ldc,
+                                1.0, blokC, ldc,
                                     blokD, ldd,
                                work, ldw );
             pastix_cblk_unlock( fcblk );

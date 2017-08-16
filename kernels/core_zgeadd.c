@@ -110,7 +110,7 @@ core_zgeadd( pastix_trans_t            trans,
     switch( trans ) {
 #if defined(PRECISION_z) || defined(PRECISION_c)
     case PastixConjTrans:
-        if ( alpha == 0. ) {
+        if ( alpha == 0.0 ) {
             for (j=0; j<N; j++) {
                 for(i=0; i<M; i++, B++) {
                     *B = beta * (*B);
@@ -118,7 +118,7 @@ core_zgeadd( pastix_trans_t            trans,
                 B += LDB-M;
             }
         }
-        else if ( beta == 0. ) {
+        else if ( beta == 0.0 ) {
             for (j=0; j<N; j++, A++) {
                 for(i=0; i<M; i++, B++) {
                     *B = alpha * conj(A[LDA*i]);
@@ -138,7 +138,7 @@ core_zgeadd( pastix_trans_t            trans,
 #endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 
     case PastixTrans:
-        if ( alpha == 0. ) {
+        if ( alpha == 0.0 ) {
             for (j=0; j<N; j++) {
                 for(i=0; i<M; i++, B++) {
                     *B = beta * (*B);
@@ -146,7 +146,7 @@ core_zgeadd( pastix_trans_t            trans,
                 B += LDB-M;
             }
         }
-        else if ( beta == 0. ) {
+        else if ( beta == 0.0 ) {
             for (j=0; j<N; j++, A++) {
                 for(i=0; i<M; i++, B++) {
                     *B = alpha * A[LDA*i];
@@ -166,7 +166,7 @@ core_zgeadd( pastix_trans_t            trans,
 
     case PastixNoTrans:
     default:
-        if ( alpha == 0. ) {
+        if ( alpha == 0.0 ) {
             for (j=0; j<N; j++) {
                 for(i=0; i<M; i++, B++) {
                     *B = beta * (*B);
@@ -174,7 +174,7 @@ core_zgeadd( pastix_trans_t            trans,
                 B += LDB-M;
             }
         }
-        else if ( beta == 0. ) {
+        else if ( beta == 0.0 ) {
             for (j=0; j<N; j++) {
                 for(i=0; i<M; i++, B++, A++) {
                     *B = alpha * (*A);

@@ -23,8 +23,8 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define MAXSIZEOFBLOCKS 64
-static pastix_complex64_t zone  =  1.;
-static pastix_complex64_t mzone = -1.;
+static pastix_complex64_t zone  =  1.0;
+static pastix_complex64_t mzone = -1.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
@@ -81,7 +81,7 @@ core_zpotf2sp( pastix_int_t        n,
         }
 
         /* Hermitian matrices, so imaginary part should be 0 */
-        if ( creal(*Akk) < 0. )
+        if ( creal(*Akk) < 0.0 )
         {
             errorPrint("Negative diagonal term\n");
             assert(0);
@@ -89,7 +89,7 @@ core_zpotf2sp( pastix_int_t        n,
         }
 
         *Akk = csqrt(*Akk);
-        alpha = 1. / (*Akk);
+        alpha = 1.0 / (*Akk);
 
         /* Scale the diagonal to compute L((k+1):n,k) */
         cblas_zscal(n-k-1, CBLAS_SADDR( alpha ), Amk, 1 );
@@ -98,7 +98,7 @@ core_zpotf2sp( pastix_int_t        n,
         Akk += (lda+1);
 
         cblas_zher(CblasColMajor, CblasLower,
-                   n-k-1, -1.,
+                   n-k-1, -1.0,
                    Amk, 1,
                    Akk, lda);
 

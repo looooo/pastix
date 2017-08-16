@@ -23,9 +23,9 @@
 #include "eztrace_module/kernels_ev_codes.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-static pastix_complex64_t mzone = -1.;
-static pastix_complex64_t zone  =  1.;
-static pastix_complex64_t zzero =  0.;
+static pastix_complex64_t mzone = -1.0;
+static pastix_complex64_t zone  =  1.0;
+static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
@@ -153,7 +153,7 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
             pvt = rk + cblas_izamax(n-rk, VN1 + rk, 1);
 
             if (VN1[pvt] <= tol){
-                double residual = 0.;
+                double residual = 0.0;
                 pastix_int_t i;
                 for (i=rk; i<n; i++){
                     residual += VN1[i]*VN1[i];
@@ -269,7 +269,7 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
                             temp = temp3;
                         }
                         else{
-                            temp = 0.;
+                            temp = 0.0;
                         }
                         temp2 = temp * ( VN1[j] / VN2[j]) * ( VN1[j] / VN2[j]);
                         if (temp2 < machine_prec){
@@ -590,11 +590,11 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
 
             if ( M1 != M || N1 != N ) {
                 LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, N,
-                                     0., 0., u, M );
+                                     0.0, 0.0, u, M );
             }
             ret = core_zgeadd( PastixNoTrans, M1, N1,
                                alpha, A->u, ldau,
-                               0., u + M * offy + offx, M );
+                               0.0, u + M * offy + offx, M );
             assert(ret == 0);
 
             core_zge2lr_RRQR( tol, M, N, u, M, B );
@@ -608,11 +608,11 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
 
             if ( M1 != M ) {
                 LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, B->rk,
-                                     0., 0., u, M );
+                                     0.0, 0.0, u, M );
             }
             if ( N1 != N ) {
                 LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', B->rk, N,
-                                     0., 0., v, B->rkmax );
+                                     0.0, 0.0, v, B->rkmax );
             }
 
             ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, A->rk,
@@ -622,7 +622,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
 
             ret = core_zgeadd( transA1, A->rk, N1,
                                alpha, A->v, ldav,
-                               0., v + B->rkmax * offy, B->rkmax );
+                               0.0, v + B->rkmax * offy, B->rkmax );
             assert(ret == 0);
         }
         assert( B->rk <= B->rkmax);
@@ -681,13 +681,13 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                 /* Set diagonal */
                 tmp += offx;
                 for (i=0; i<M1; i++, tmp += M+1) {
-                    *tmp = 1.;
+                    *tmp = 1.0;
                 }
             }
             else {
                 assert( offx == 0 );
                 ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, M1,
-                                           0., 1., tmp, M );
+                                           0.0, 1.0, tmp, M );
                 assert( ret == 0 );
             }
         }
@@ -733,12 +733,12 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
         if ( M1 < N1 ) {
             if (N1 != N) {
                 ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M1, N,
-                                           0., 0., tmp, rank );
+                                           0.0, 0.0, tmp, rank );
                 assert( ret == 0 );
             }
             core_zgeadd( PastixNoTrans, M1, N1,
                          alpha, A->u, ldau,
-                         0., tmp + offy * rank, rank );
+                         0.0, tmp + offy * rank, rank );
         }
         /*
          * A is full of rank N1, so it has been integrated into u1u2
@@ -747,7 +747,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
             if (N1 != N2) {
                 /* Set to 0 */
                 ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', N1, N,
-                                           0., 0., tmp, rank );
+                                           0.0, 0.0, tmp, rank );
                 assert(ret == 0);
 
                 /* Set diagonal */
@@ -759,7 +759,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
             else {
                 assert( offy == 0 );
                 ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', N1, N,
-                                           0., alpha, tmp + offy * rank, rank );
+                                           0.0, alpha, tmp + offy * rank, rank );
                 assert( ret == 0 );
             }
         }
@@ -770,12 +770,12 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     else {
         if (N1 != N) {
             ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', A->rk, N,
-                                       0., 0., tmp, rank );
+                                       0.0, 0.0, tmp, rank );
             assert(ret == 0);
         }
         core_zgeadd( transA1, A->rk, N1,
                      alpha, A->v,              ldav,
-                        0., tmp + offy * rank, rank );
+                        0.0, tmp + offy * rank, rank );
     }
 
 
@@ -866,10 +866,10 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                     }
                     else{
                         for (j=0; j<M; j++){
-                            tmpU[j] = 0.;
+                            tmpU[j] = 0.0;
                         }
                         for (j=0; j<N; j++){
-                            tmpV[rank * j] = 0.;
+                            tmpV[rank * j] = 0.0;
                         }
                     }
                 }

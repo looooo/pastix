@@ -22,9 +22,9 @@
 #include "eztrace_module/kernels_ev_codes.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-static pastix_complex64_t mzone = -1.;
-static pastix_complex64_t zone  =  1.;
-static pastix_complex64_t zzero =  0.;
+static pastix_complex64_t mzone = -1.0;
+static pastix_complex64_t zone  =  1.0;
+static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
@@ -748,8 +748,8 @@ core_zgemmsp_2dlrsub( pastix_coefside_t  sideA,
                         blok_rownbr( bC ), cblk_colnbr( fcblk ),
                         bA->frownum - bC->frownum,
                         bB->frownum - fcblk->fcolnum,
-                        -1., lrA, lrB,
-                         1., lrC,
+                        -1.0, lrA, lrB,
+                         1.0, lrC,
                         NULL, -1,
                         fcblk );
         }
@@ -878,8 +878,8 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
                     blok_rownbr( fblok ), cblk_colnbr( fcblk ),
                     iterblok->frownum - fblok->frownum,
                     (blok->frownum - fcblk->fcolnum),
-                    -1., &lrA, &lrB,
-                     1., lrC,
+                    -1.0, &lrA, &lrB,
+                     1.0, lrC,
                     work, -1,
                     fcblk );
         /* pastix_cblk_unlock( fcblk ); */
@@ -998,8 +998,8 @@ core_zgemmsp_lr( pastix_coefside_t         sideA,
                         blok_rownbr( fblok ), cblk_colnbr( fcblk ),
                         iterblok->frownum - fblok->frownum,
                         (blok->frownum - fcblk->fcolnum),
-                        -1., lrA, lrB,
-                         1., fblok->LRblock + shift,
+                        -1.0, lrA, lrB,
+                         1.0, fblok->LRblock + shift,
                         work, -1,
                         fcblk );
         }
@@ -1009,7 +1009,7 @@ core_zgemmsp_lr( pastix_coefside_t         sideA,
             C = Cfull + fblok->coefind + iterblok->frownum - fblok->frownum;
             core_zlrmge( lowrank, PastixNoTrans, trans,
                          M, N, K,
-                         -1., lrA, lrB, 1., C, stridef,
+                         -1.0, lrA, lrB, 1.0, C, stridef,
                          work, -1,
                          fcblk );
         }

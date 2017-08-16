@@ -21,8 +21,8 @@
 #include "z_nan_check.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-static pastix_complex64_t zone  =  1.;
-static pastix_complex64_t zzero =  0.;
+static pastix_complex64_t zone  =  1.0;
+static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
@@ -334,11 +334,11 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
 
             if ( M1 != M || N1 != N ) {
                 LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, N,
-                                     0., 0., u, M );
+                                     0.0, 0.0, u, M );
             }
             ret = core_zgeadd( PastixNoTrans, M1, N1,
                                alpha, A->u, ldau,
-                               0., u + M * offy + offx, M );
+                               0.0, u + M * offy + offx, M );
             assert(ret == 0);
 
             core_zge2lr_SVD( tol, M, N, u, M, B );
@@ -352,11 +352,11 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
 
             if ( M1 != M ) {
                 LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, B->rk,
-                                     0., 0., u, M );
+                                     0.0, 0.0, u, M );
             }
             if ( N1 != N ) {
                 LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', B->rk, N,
-                                     0., 0., v, B->rkmax );
+                                     0.0, 0.0, v, B->rkmax );
             }
 
             ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, A->rk,
@@ -366,7 +366,7 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
 
             ret = core_zgeadd( transA1, A->rk, N1,
                                alpha, A->v, ldav,
-                               0., v + B->rkmax * offy, B->rkmax );
+                               0.0, v + B->rkmax * offy, B->rkmax );
             assert(ret == 0);
         }
         assert( B->rk <= B->rkmax);
@@ -442,13 +442,13 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                 /* Set diagonal */
                 tmp += offx;
                 for (i=0; i<M1; i++, tmp += M+1) {
-                    *tmp = 1.;
+                    *tmp = 1.0;
                 }
             }
             else {
                 assert( offx == 0 );
                 ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, M1,
-                                           0., 1., tmp, M );
+                                           0.0, 1.0, tmp, M );
                 assert( ret == 0 );
             }
         }
@@ -501,12 +501,12 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
         if ( M1 < N1 ) {
             if (N1 != N) {
                 ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M1, N,
-                                           0., 0., tmp, rank );
+                                           0.0, 0.0, tmp, rank );
                 assert( ret == 0 );
             }
             core_zgeadd( PastixNoTrans, M1, N1,
                          alpha, A->u, ldau,
-                         0., tmp + offy * rank, rank );
+                         0.0, tmp + offy * rank, rank );
         }
         /**
          * A is full of rank N1, so it has been integrated into u1u2
@@ -515,7 +515,7 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
             if (N1 != N2) {
                 /* Set to 0 */
                 ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', N1, N,
-                                           0., 0., tmp, rank );
+                                           0.0, 0.0, tmp, rank );
                 assert(ret == 0);
 
                 /* Set diagonal */
@@ -527,7 +527,7 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
             else {
                 assert( offy == 0 );
                 ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', N1, N,
-                                           0., alpha, tmp + offy * rank, rank );
+                                           0.0, alpha, tmp + offy * rank, rank );
                 assert( ret == 0 );
             }
         }
@@ -538,12 +538,12 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     else {
         if (N1 != N) {
             ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', A->rk, N,
-                                       0., 0., tmp, rank );
+                                       0.0, 0.0, tmp, rank );
             assert(ret == 0);
         }
         core_zgeadd( transA1, A->rk, N1,
                      alpha, A->v,              ldav,
-                        0., tmp + offy * rank, rank );
+                        0.0, tmp + offy * rank, rank );
     }
 
     /**
@@ -659,7 +659,7 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
      */
 #if defined(PASTIX_DEBUG_LR_NANCHECK)
     ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, new_rank,
-                               0., 0., B->u, ldbu );
+                               0.0, 0.0, B->u, ldbu );
     assert(ret == 0);
     ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', rank, new_rank,
                           u, rank, B->u, ldbu );
@@ -688,7 +688,7 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     assert( ret == 0 );
 
     ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', new_rank, N-rank,
-                               0., 0., tmp + ldbv * rank, ldbv );
+                               0.0, 0.0, tmp + ldbv * rank, ldbv );
     assert( ret == 0 );
 
     ret = LAPACKE_zunmlq_work(LAPACK_COL_MAJOR, 'R', 'N',
