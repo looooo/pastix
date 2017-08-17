@@ -12,6 +12,9 @@ build_pastix:
     name: pastix_build
     expire_in: 42 minutes
     untracked: true
+    paths:
+      - build
+      - pastix-build.log
   script:
     - source .gitlab-ci-env.sh
     - git submodule update --init --recursive
