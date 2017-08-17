@@ -35,7 +35,6 @@ test_pastix:
       - coverage.tar.bz2
   script:
     - source .gitlab-ci-env.sh
-    - (cd build && make install)
     - source install/bin/pastix_env.sh
     - (cd build && ctest -D ExperimentalTest)
     - find -name "*.gcda" | xargs tar cvjf coverage.tar.bz2
