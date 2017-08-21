@@ -109,7 +109,7 @@ option(PASTIX_SYMBOL_DUMP_SYMBMTX
 
 # Numerical factorization options
 option(PASTIX_NUMFACT_DUMP_SOLVER
-  "Dump the generated factorised matrix in a postscript file with information on block's compressibility" OFF)
+  "Dump the generated factorized matrix in a postscript file with information on block's compressibility" OFF)
 
 # Options to check
 option(FORGET_PARTITION
