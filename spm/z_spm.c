@@ -158,8 +158,8 @@ z_spmMergeDuplicate( pastix_spm_t *spm )
 
             colptr[1] = idx + baseval;
         }
-        assert( ((merge == 0) && (spm->nnz         == idx)) ||
-                ((merge != 0) && (spm->nnz - merge == idx)) );
+        assert( ((merge == 0) && (spm->nnz         == idx+baseval)) ||
+                ((merge != 0) && (spm->nnz - merge == idx+baseval)) );
 
         if (merge > 0) {
             spm->nnz = spm->nnz - merge;
