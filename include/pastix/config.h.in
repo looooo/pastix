@@ -64,6 +64,9 @@
 #cmakedefine FORGET_PARTITION
 #cmakedefine COMPACT_SMX
 
+/* Numerical factorization options */
+#cmakedefine PASTIX_NUMFACT_DUMP_SOLVER
+
 /* Scheduling options */
 #cmakedefine PASTIX_WITH_PARSEC
 #cmakedefine PASTIX_WITH_STARPU

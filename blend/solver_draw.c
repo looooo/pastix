@@ -39,6 +39,9 @@
  *          Level of verbosity. If verbose > 4, the number of updates is printed
  *          on each low-rank block.
  *
+ * @param[in] directory
+ *          Tempory directory for output files
+ *
  *******************************************************************************
  *
  * @retval 0 if success
@@ -48,7 +51,8 @@
 int
 solverDraw ( const SolverMatrix * const  solvptr,
              FILE * const                stream,
-             int                         verbose )
+             int                         verbose,
+             char **                     directory )
 {
     pastix_int_t cblknum;                    /* Number of current column block */
     time_t       picttime;                   /* Creation time                  */
@@ -178,9 +182,9 @@ solverDraw ( const SolverMatrix * const  solvptr,
         double color         = 0.2;
         int    factoLU = (solvptr->factotype == PastixFactLU) ? 1 : 0;
 
-        PASTIX_FOPEN( fd1, "contribblok.txt", "r" );
-        PASTIX_FOPEN( fd2, "contribcblk.txt", "r" );
-        PASTIX_FOPEN( fd3, "stats.txt", "w" );
+        fd1 = pastix_fopenw( directory, "contribblok.txt", "r" );
+        fd2 = pastix_fopenw( directory, "contribcblk.txt", "r" );
+        fd3 = pastix_fopenw( directory, "stats.txt", "w" );
 
         fprintf(fd3, "%ld\n", (long)(solvptr->bloknbr-solvptr->cblknbr));
 

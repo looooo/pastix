@@ -363,7 +363,8 @@ SolverMatrix *solverCopy   ( const SolverMatrix *solvptr,
 int           solverCheck     ( const SolverMatrix *solvmtx );
 int           solverDraw      ( const SolverMatrix *solvptr,
                                 FILE               *stream,
-                                int                 verbose );
+                                int                 verbose,
+                                char              **directory );
 void          solverPrintStats( const SolverMatrix *solvptr );
 
 /*

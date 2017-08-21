@@ -384,10 +384,12 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
 #if defined(PASTIX_NUMFACT_DUMP_SOLVER)
     {
         FILE *stream = NULL;
+
         stream = pastix_fopenw( &(pastix_data->dirtemp), "solver.eps", "w" );
         if ( stream ) {
             solverDraw( pastix_data->solvmatr,
-                        stream, iparm[IPARM_VERBOSE] );
+                        stream, iparm[IPARM_VERBOSE],
+                        &(pastix_data->dirtemp) );
             fclose(stream);
         }
     }
