@@ -85,6 +85,12 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
         pastix_int_t i;
         SA[0] = 1;
         SB[0] = 1;
+
+        if (rankA == 0)
+            SA[0] = 0.;
+        if (rankB == 0)
+            SB[0] = 0.;
+
         for (i=1; i<minMN_A; i++){
             SA[i] = SA[i-1] * alphaA;
         }
@@ -189,8 +195,14 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
     norm_diff_RRQR = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', mB, nB,
                                           C_RRQR, mB, NULL );
 
-    res_RRQR = norm_diff_RRQR / ( tolerance * (norm_dense_A + norm_dense_B) );
-    res_SVD  = norm_diff_SVD  / ( tolerance * (norm_dense_A + norm_dense_B) );
+    if ( (rankA != 0) || (rankB != 0) ){
+        res_RRQR = norm_diff_RRQR / ( tolerance * (norm_dense_A + norm_dense_B) );
+        res_SVD  = norm_diff_SVD  / ( tolerance * (norm_dense_A + norm_dense_B) );
+    }
+    else{
+        res_RRQR = norm_diff_RRQR;
+        res_SVD  = norm_diff_SVD;
+    }
 
     printf("RES SVD=%.3g RRQR=%.3g\n", res_SVD, res_RRQR);
 
@@ -217,7 +229,7 @@ int main (int argc, char **argv)
     double tolerance = 0.01;
 
     for (m=200; m<=400; m+=100){
-        for (r=10; r<=100; r+=10){
+        for (r=0; r<=m; r+=10){
             printf("   -- Test RRADD MA=NA=LDA=%ld MB=NB=LDB=%ld RA=%ld RB=%ld\n", (long)m, (long)m, (long)r, (long)(r/2));
 
             ret = z_rradd_test(0, tolerance, r, r/2,
