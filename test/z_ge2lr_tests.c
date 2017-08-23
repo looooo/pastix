@@ -83,6 +83,10 @@ z_ge2lr_test( int mode, double tolerance, pastix_int_t rank,
     if (mode == 0) {
         pastix_int_t i;
         S[0] = 1;
+
+        if (rank == 0)
+            S[0] = 0.;
+
         for (i=1; i<minMN; i++){
             S[i] = S[i-1] * alpha;
         }
@@ -133,8 +137,14 @@ z_ge2lr_test( int mode, double tolerance, pastix_int_t rank,
     norm_diff_SVD = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
                                          A_SVD, lda, NULL );
 
-    res_RRQR = norm_diff_RRQR / ( tolerance * norm_dense );
-    res_SVD  = norm_diff_SVD  / ( tolerance * norm_dense );
+    if (rank != 0){
+        res_RRQR = norm_diff_RRQR / ( tolerance * norm_dense );
+        res_SVD  = norm_diff_SVD  / ( tolerance * norm_dense );
+    }
+    else{
+        res_RRQR = norm_diff_RRQR;
+        res_SVD  = norm_diff_SVD;
+    }
 
     free(A);
     free(A_SVD);
@@ -157,7 +167,7 @@ int main (int argc, char **argv)
     double tolerance = 0.001;
 
     for (m=100; m<300; m+=100){
-        for (r=10; r<100; r+=10){
+        for (r=0; r<=m; r+=10){
             printf("   -- Test GE2LR M=N=LDA=%ld R=%ld\n", (long)m, (long)r);
 
             ret = z_ge2lr_test(0, tolerance, r, m, m, m);
