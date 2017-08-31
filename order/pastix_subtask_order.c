@@ -247,6 +247,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
 
     subgraph.gN       = graph->gN;
     subgraph.n        = zeros_n;
+    subgraph.dof      = graph->dof;
     subgraph.colptr   = zeros_colptr;
     subgraph.rows     = zeros_rows;
     subgraph.loc2glob = graph->loc2glob;
