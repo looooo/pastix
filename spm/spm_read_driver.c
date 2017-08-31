@@ -131,10 +131,12 @@ spmReadDriver( pastix_driver_t  driver,
             SCOTCH_graphData( &sgraph, NULL, &(spm->n), &(spm->colptr), NULL, NULL, NULL, NULL, &(spm->rowptr), NULL );
             fclose(file);
 
+            spm->mtxtype = PastixGeneral;
             spm->flttype = PastixPattern;
-            spm->gN   = spm->n;
-            spm->gnnz = spm->colptr[ spm->n ];
-            spm->nnz  = spm->gnnz;
+            spm->fmttype = PastixCSC;
+            spm->nnz = spm->colptr[ spm->n ] - spm->colptr[0] + 1;
+            spm->dof = 1;
+            spmUpdateComputedFields( spm );
         }
 #else
         {
