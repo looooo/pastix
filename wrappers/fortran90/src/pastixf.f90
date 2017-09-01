@@ -538,7 +538,7 @@ contains
     real(kind=c_double),        intent(inout), dimension(dparm_size), target :: dparm
     integer(kind=c_int),        intent(inout), target                        :: check
     integer(c_int),             intent(inout), target                        :: driver
-    character(kind=c_char),     intent(in),    pointer                       :: filename
+    character(kind=c_char),     intent(inout), pointer                       :: filename
 
     type(c_ptr) :: argv_aux
     type(c_ptr) :: filename_aux
