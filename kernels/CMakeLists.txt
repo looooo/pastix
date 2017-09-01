@@ -60,6 +60,8 @@ set(SOURCES
   core_zgelrops.c
   core_zgelrops_SVD.c
   core_zgelrops_RRQR.c
+  # cblk operations
+  cpucblk_zinit.c
 )
 
 precisions_rules_py(generated_sources

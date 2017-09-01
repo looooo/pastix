@@ -315,4 +315,20 @@ void core_zsytrfsp1d_gemm( const SolverCblk *cblk, const SolverBlok *blok, Solve
 /**
  * @}
  */
+
+/**
+ * @addtogroup kernel_fact_null
+ * @{
+ *     To be removed
+ */
+void cpucblk_zffbcsc( pastix_coefside_t    side,
+                      const SolverMatrix  *solvmtx,
+                      const pastix_bcsc_t *bcsc,
+                      pastix_int_t         itercblk );
+void cpucblk_zalloc ( pastix_coefside_t  side,
+                      SolverCblk        *cblk );
+
+/**
+ * @}
+ */
 #endif /* _CORE_Z_H_ */

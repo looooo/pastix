@@ -23,79 +23,7 @@
 #include "solver.h"
 #include "bcsc.h"
 #include "sopalin/coeftab_z.h"
-
-void
-coeftab_zffbcsc( const SolverMatrix  *solvmtx,
-                 const pastix_bcsc_t *bcsc,
-                 pastix_int_t         itercblk )
-{
-    const bcsc_format_t *csccblk = bcsc->cscftab + itercblk;
-    SolverCblk *solvcblk = solvmtx->cblktab + itercblk;
-    SolverBlok *solvblok;
-    SolverBlok *solvblok2 = (solvcblk+1)->fblokptr;
-    pastix_complex64_t *lcoeftab = solvcblk->lcoeftab;
-    pastix_complex64_t *ucoeftab = solvcblk->ucoeftab;
-    pastix_complex64_t *Lvalues = bcsc->Lvalues;
-    pastix_complex64_t *Uvalues = bcsc->Uvalues;
-    pastix_int_t itercoltab, iterval, coefindx;
-
-    for (itercoltab=0; itercoltab<csccblk->colnbr; itercoltab++)
-    {
-        pastix_int_t frow = csccblk->coltab[itercoltab];
-        pastix_int_t lrow = csccblk->coltab[itercoltab+1];
-        solvblok = solvcblk->fblokptr;
-
-        for (iterval=frow; iterval<lrow; iterval++)
-        {
-            pastix_int_t rownum = bcsc->rowtab[iterval];
-
-            /* If values in the lower part of the matrix */
-            if (rownum >= (solvcblk->fcolnum+itercoltab))
-            {
-                while ((solvblok < solvblok2) &&
-                       ((solvblok->lrownum < rownum) ||
-                        (solvblok->frownum > rownum)))
-                {
-                    solvblok++;
-                }
-
-                if ( solvblok < solvblok2 )
-                {
-                    coefindx  = solvblok->coefind;
-                    coefindx += rownum - solvblok->frownum;
-                    if (solvcblk->cblktype & CBLK_LAYOUT_2D) {
-                        coefindx += itercoltab * blok_rownbr( solvblok );
-                    }
-                    else {
-                        coefindx += itercoltab * solvcblk->stride;
-                    }
-
-                    lcoeftab[coefindx] = Lvalues[iterval];
-
-                    if ( (ucoeftab != NULL) &&
-                         (rownum > (solvcblk->fcolnum + itercoltab)) )
-                    {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                        if (bcsc->mtxtype == PastixHermitian)
-                            ucoeftab[coefindx] = conj(Uvalues[iterval]);
-                        else
-#endif
-                            ucoeftab[coefindx] = Uvalues[iterval];
-                    }
-                }
-                else {
-                    /* printf("ILU: csc2solv drop coeff from CSC c=%ld(%ld) l=%ld(%ld) cblk=%ld fcol=%ld lcol=%ld\n", */
-                    /*        (long)datacode->cblktab[itercblk].fcolnum+ */
-                    /*        (long)itercoltab,(long)itercoltab, */
-                    /*        (long)CSC_ROW(cscmtx,iterval),(long)iterval, */
-                    /*        (long)itercblk, */
-                    /*        (long)datacode->cblktab[itercblk].fcolnum, */
-                    /*        (long)datacode->cblktab[itercblk].lcolnum); */
-                }
-            }
-        }
-    }
-}
+#include "pastix_zcores.h"
 
 /*
  * Function: z_CoefMatrix_Allocate
@@ -120,25 +48,12 @@ coeftab_zcblkfill( const SolverMatrix  *solvmtx,
                    pastix_int_t itercblk,
                    int factoLU )
 {
-    SolverCblk *cblk     = solvmtx->cblktab + itercblk;
-    pastix_int_t coefnbr = cblk->stride * cblk_colnbr( cblk );
+    pastix_coefside_t side = factoLU ? PastixLUCoef : PastixLCoef;
+    SolverCblk       *cblk = solvmtx->cblktab + itercblk;
 
-    /* If not NULL, allocated to store the shur complement for exemple */
-    assert( cblk->lcoeftab == NULL );
-
-    MALLOC_INTERN( cblk->lcoeftab, coefnbr, pastix_complex64_t );
-    memset( cblk->lcoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
-
-    if ( factoLU ) {
-        /* Extra diagonal block for low-rank updates */
-        MALLOC_INTERN( cblk->ucoeftab, coefnbr, pastix_complex64_t );
-        memset( cblk->ucoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
-    }
-    else {
-        cblk->ucoeftab = NULL;
-    }
-
-    coeftab_zffbcsc( solvmtx, bcsc, itercblk );
+    cpucblk_zalloc( side, cblk );
+    cpucblk_zffbcsc( factoLU ? PastixLUCoef : PastixLCoef,
+                     solvmtx, bcsc, itercblk );
 }
 
 /*
