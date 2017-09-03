@@ -233,7 +233,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     }
 
     coeftabInit( pastix_data,
-                 pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU );
+                 pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU ? PastixLUCoef : PastixLCoef );
 
     mtxtype = ( pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU ) ? PastixGeneral : PastixHermitian;
 
