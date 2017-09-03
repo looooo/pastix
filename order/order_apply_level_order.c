@@ -19,6 +19,32 @@
 #include "elimintree.h"
 #include "order.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup order_dev
+ *
+ * @brief This routine build the elimination tree associated to an ordering.
+ *
+ *******************************************************************************
+ *
+ * @param[in] order
+ *          The ordering structure.
+ *
+ * @param[out] nbroots
+ *          On exit, contains the number of roots in the elimination tree
+ *          (forest if > 1)
+ *
+ * @param[inout] roots
+ *          On entry, array of size order->nodenbr.
+ *          On exit, the first nbroots elements contains the roots of
+ *          elimination trees.
+ *
+ *******************************************************************************
+ *
+ * @return the elimination tree structure associated to the ordering.
+ *
+ *******************************************************************************/
 static inline EliminTree *
 pastixOrderBuildEtree( const pastix_order_t *order,
                        pastix_int_t         *nbroots,
