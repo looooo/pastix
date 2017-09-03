@@ -54,8 +54,10 @@ coeftab_zcblkdump( const SolverCblk *cblk,
     pastix_int_t coefindx;
 
     /* We don't know how to dump the compressed block for now */
-    if ( cblk->cblktype & CBLK_COMPRESSED )
+    if ( cblk->cblktype & CBLK_COMPRESSED ) {
+        fprintf(stderr, "coeftab_zcblkdump: Can't dump a compressed cblk\n");
         return;
+    }
 
     for (itercol  = cblk->fcolnum;
          itercol <= cblk->lcolnum;

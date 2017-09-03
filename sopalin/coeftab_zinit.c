@@ -52,7 +52,7 @@ coeftab_zcblkfill( const SolverMatrix  *solvmtx,
     SolverCblk       *cblk = solvmtx->cblktab + itercblk;
 
     cpucblk_zalloc( side, cblk );
-    cpucblk_zffbcsc( factoLU ? PastixLUCoef : PastixLCoef,
+    cpucblk_zfillin( factoLU ? PastixLUCoef : PastixLCoef,
                      solvmtx, bcsc, itercblk );
 }
 
@@ -80,10 +80,18 @@ coeftab_zcblkinit( const SolverMatrix  *solvmtx,
                    int                  factoLU,
                    char               **directory )
 {
-    SolverCblk *cblk           = solvmtx->cblktab + itercblk;
-    pastix_int_t compress_when = solvmtx->lowrank.compress_when;
+    pastix_int_t      compress_when = solvmtx->lowrank.compress_when;
+    pastix_coefside_t side = factoLU ? PastixLUCoef : PastixLCoef;
+    SolverCblk       *cblk = solvmtx->cblktab + itercblk;
 
-    coeftab_zcblkfill( solvmtx, bcsc, itercblk, factoLU );
+    if ( (solvmtx->lowrank.compress_when != PastixCompressNever) &&
+         (cblk->cblktype & CBLK_LAYOUT_2D) )
+    {
+        cblk->cblktype |= CBLK_COMPRESSED;
+    }
+    cpucblk_zalloc( side, cblk );
+    cpucblk_zfillin( factoLU ? PastixLUCoef : PastixLCoef,
+                     solvmtx, bcsc, itercblk );
 
 #if defined(PASTIX_DEBUG_DUMP_COEFTAB)
     {
@@ -116,14 +124,11 @@ coeftab_zcblkinit( const SolverMatrix  *solvmtx,
      * Try to compress the cblk if needs to be compressed
      * TODO: change the criteria based on the level in the tree
      */
-    if ( cblk->cblktype & CBLK_LAYOUT_2D )
+    if ( (cblk->cblktype & CBLK_COMPRESSED)                          &&
+         (compress_when == PastixCompressWhenBegin)                  &&
+         (cblk_colnbr( cblk ) > solvmtx->lowrank.compress_min_width) )
     {
-        if ( compress_when == PastixCompressWhenBegin ){
-            coeftab_zcompress_one( cblk, solvmtx->lowrank );
-        }
-        else if ( compress_when == PastixCompressWhenEnd ){
-            coeftab_zalloc_one( cblk );
-        }
+        cpucblk_zcompress( side, cblk, solvmtx->lowrank );
     }
 
     (void)directory;
