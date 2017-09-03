@@ -64,6 +64,7 @@ set(SOURCES
   cpucblk_zinit.c
   cpucblk_zcompress.c
   cpucblk_zdiff.c
+  cpucblk_zschur.c
 )
 
 precisions_rules_py(generated_sources

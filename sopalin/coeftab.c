@@ -32,52 +32,45 @@
 #include "sopalin/starpu/pastix_starpu.h"
 #endif
 
-coeftab_fct_diff_t coeftabDiff[4] =
-{
-    coeftab_sdiff, coeftab_ddiff, coeftab_cdiff, coeftab_zdiff
-};
-
+/**
+ * @brief List of function to compute the memory gain in Low-Rank per precision.
+ */
 coeftab_fct_memory_t coeftabMemory[4] =
 {
     coeftab_smemory, coeftab_dmemory, coeftab_cmemory, coeftab_zmemory
 };
 
-coeftab_fct_uncompress_t coeftabUncompress[4] =
-{
-    coeftab_suncompress, coeftab_duncompress, coeftab_cuncompress, coeftab_zuncompress
-};
-
-coeftab_fct_compress_t coeftabCompress[4] =
-{
-    coeftab_scompress, coeftab_dcompress, coeftab_ccompress, coeftab_zcompress
-};
-
-struct coeftabinit_s {
-    const SolverMatrix  *datacode;
-    const pastix_bcsc_t *bcsc;
-    char               **dirtemp;
-    pastix_coefside_t    side;
-};
-
-/*
- * Function: z_CoefMatrix_Allocate
- *
- * Allocate matrix coefficients in coeftab and ucoeftab.
- *
- * Should be first called with me = -1 to allocated coeftab.
- * Then, should be called with me set to thread ID
- * to allocate column blocks coefficients arrays.
- *
- * Parameters
- *
- *    datacode  - solverMatrix
- *    factotype - factorization type (LU, LLT ou LDLT)
- *    me        - thread number. (-1 for first call,
- *                from main thread. >=0 to allocate column blocks
- *     assigned to each thread.)
+/**
+ * @brief Internal structure specific to the parallel call of pcoeftabInit()
  */
+struct coeftabinit_s {
+    const SolverMatrix  *datacode; /**< The sovler matrix                         */
+    const pastix_bcsc_t *bcsc;     /**< The interna block CSC                     */
+    char               **dirtemp;  /**< The pointer to the output directory       */
+    pastix_coefside_t    side;     /**< The side of the matrix beeing initialized */
+};
+
+/**
+ *******************************************************************************
+ *
+ * @brief Internal routine called by each static thread to Initialize the solver
+ * matrix structure.
+ *
+ * This routine is the routine called by each thread in the static scheduler and
+ * launched by the coeftabinit().
+ *
+ *******************************************************************************
+ *
+ * @param[inout] ctx
+ *          The internal scheduler context
+ *
+ * @param[in] args
+ *          The data structure specific to the function cpucblk_zinit()
+ *
+ *******************************************************************************/
 void
-pcoeftabInit( isched_thread_t *ctx, void *args )
+pcoeftabInit( isched_thread_t *ctx,
+              void            *args )
 {
     struct coeftabinit_s *ciargs   = (struct coeftabinit_s*)args;
     const SolverMatrix   *datacode = ciargs->datacode;
@@ -117,6 +110,26 @@ pcoeftabInit( isched_thread_t *ctx, void *args )
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Initialize the solver matrix structure
+ *
+ * This routine is a parallel routine to initialize the solver matrix structure
+ * through the internal static scheduler
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix_data structure that hold the solver matrix to initialize.
+ *
+ * @param[in] side
+ *          Describe the side(s) of the matrix that must be initiaized.
+ *          @arg PastixLCoef if lower part only
+ *          @arg PastixUCoef if upper part only
+ *          @arg PastixLUCoef if both sides.
+ *
+ *******************************************************************************/
 void
 coeftabInit( pastix_data_t    *pastix_data,
              pastix_coefside_t side )
@@ -136,6 +149,20 @@ coeftabInit( pastix_data_t    *pastix_data,
     isched_parallel_call( pastix_data->isched, pcoeftabInit, &args );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Free the solver matrix structure
+ *
+ * This routine free all daa structure refereing to the solver matrix L, aven
+ * the runtime descriptors if present.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The solver matrix structure of the problem.
+ *
+ *******************************************************************************/
 void
 coeftabExit( SolverMatrix *solvmtx )
 {

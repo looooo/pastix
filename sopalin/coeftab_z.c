@@ -415,11 +415,6 @@ coeftab_zgetschur( const SolverMatrix *solvmtx,
 
         localS = S + (cblk->fcolnum - fcolnum) * lds + (cblk->fcolnum - fcolnum);
 
-        if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            coeftab_zgetschur_one_lowrank( cblk, upper_part, localS, lds );
-        }
-        else {
-            coeftab_zgetschur_one_fullrank( cblk, upper_part, localS, lds );
-        }
+        cpucblk_zgetschur( cblk, upper_part, localS, lds );
     }
 }

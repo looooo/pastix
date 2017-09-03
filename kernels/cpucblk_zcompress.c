@@ -197,9 +197,6 @@ cpucblk_zuncompress( pastix_coefside_t side,
  * @param[in] cblk
  *          The column block to study.
  *
- * @param[in] factoLU
- *          Indicates if the U part is stored too, or not.
- *
  *******************************************************************************
  *
  * @return The difference in favor of the low-rank storage against the full rank

@@ -42,12 +42,8 @@ pastix_int_t coeftab_zmemory    ( const SolverMatrix *solvmtx );
  *    @name PastixComplex64 Schur routines
  *    @{
  */
-void coeftab_zgetschur_one_fullrank( const SolverCblk *cblk, int upper_part,
-                                     pastix_complex64_t *S, pastix_int_t lds );
-void coeftab_zgetschur_one_lowrank ( const SolverCblk *cblk, int upper_part,
-                                     pastix_complex64_t *S, pastix_int_t lds );
-void coeftab_zgetschur             ( const SolverMatrix *solvmtx,
-                                     pastix_complex64_t *S, pastix_int_t lds );
+void coeftab_zgetschur( const SolverMatrix *solvmtx,
+                        pastix_complex64_t *S, pastix_int_t lds );
 
 /**
  *    @}
