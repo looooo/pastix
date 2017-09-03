@@ -1,8 +1,9 @@
 /**
  *
- * @file coeftab_zdiff.c
+ * @file cpucblk_zdiff.c
  *
- * Precision dependent routines to differentiate two solver matrix structures when debuging.
+ * Precision dependent routines to differentiate two solver matrix structures
+ * when debuging.
  *
  * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -20,7 +21,6 @@
 #include "common.h"
 #include "solver.h"
 #include "lapacke.h"
-#include "sopalin/coeftab_z.h"
 #include "pastix_zcores.h"
 
 /**
@@ -121,54 +121,6 @@ cpucblk_zdiff( const SolverCblk *cblkA,
     /*     fprintf(stderr, "Ok on U: ||full(A)||_f=%e, ||comp(A)||_f=%e, ||comp(A)-full(A)||_0=%e, ||comp(A)-full(A)||_0 / (||full(A)||_2 * eps)=%e\n", */
     /*             normfAU, normcAU, normU, resU ); */
     /* } */
-
-    return rc;
-}
-
-/**
- *******************************************************************************
- *
- * @brief Compare two solver matrices full-rank format.
- *
- * The second solver matrix is overwritten by the difference of the two
- * matrices.  The frobenius norm of the difference of each column block is
- * computed and the functions returns 0 if the result for all the column blocks
- * of:
- *      || B_k - A_k || / ( || A_k || * eps )
- *
- * is below 10. Otherwise, an error message is printed and 1 is returned.
- *
- *******************************************************************************
- *
- * @param[in] solvA
- *          The solver matrix A.
- *
- * @param[inout] cblkB
- *          The solver matrix B.
- *          On exit, B coefficient arrays are overwritten by the result of
- *          (B-A).
- *
- *******************************************************************************
- *
- * @return 0 if the test is passed, >= 0 otherwise.
- *
- *******************************************************************************/
-int
-coeftab_zdiff( const SolverMatrix *solvA, SolverMatrix *solvB )
-{
-    SolverCblk *cblkA = solvA->cblktab;
-    SolverCblk *cblkB = solvB->cblktab;
-    pastix_int_t cblknum;
-    int rc       = 0;
-    int saved_rc = 0;
-
-    for(cblknum=0; cblknum<solvA->cblknbr; cblknum++, cblkA++, cblkB++) {
-        rc += coeftab_zdiffcblk( cblkA, cblkB );
-        if ( rc != saved_rc ){
-            fprintf(stderr, "CBLK %ld was not correctly compressed\n", (long)cblknum);
-            saved_rc = rc;
-        }
-    }
 
     return rc;
 }

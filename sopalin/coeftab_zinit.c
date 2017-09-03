@@ -25,64 +25,44 @@
 #include "sopalin/coeftab_z.h"
 #include "pastix_zcores.h"
 
-/*
- * Function: z_CoefMatrix_Allocate
+/**
+ *******************************************************************************
  *
- * Allocate matrix coefficients in coeftab and ucoeftab.
+ * @brief Fully initialize a single cblk.
  *
- * Should be first called with me = -1 to allocated coeftab.
- * Then, should be called with me set to thread ID
- * to allocate column blocks coefficients arrays.
+ * The cblk is allocated, intialized from the bcsc, and compressed if necessary.
  *
- * Parameters
+ *******************************************************************************
  *
- *    datacode  - solverMatrix
- *    factotype - factorization type (LU, LLT ou LDLT)
- *    me        - thread number. (-1 for first call,
- *                from main thread. >=0 to allocate column blocks
- *     assigned to each thread.)
- */
+ * @param[in] side
+ *          Define which side of the matrix must be initialized.
+ *          @arg PastixLCoef if lower part only
+ *          @arg PastixUCoef if upper part only
+ *          @arg PastixLUCoef if both sides.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix data structure.
+ *
+ * @param[in] bcsc
+ *          The internal block CSC structure to fill-in the matrix.
+ *
+ * @param[in] itercblk
+ *          The index of the cblk to initialize.
+ *
+ * @param[inout] directrory
+ *          The pointer to the temporary directory where to store the output
+ *          files.  Used only if PASTIX_DEBUG_DUMP_COEFTAB is defined.
+ *
+ *******************************************************************************/
 void
-coeftab_zcblkfill( const SolverMatrix  *solvmtx,
-                   const pastix_bcsc_t *bcsc,
-                   pastix_int_t itercblk,
-                   int factoLU )
+cpucblk_zinit( pastix_coefside_t    side,
+               const SolverMatrix  *solvmtx,
+               const pastix_bcsc_t *bcsc,
+               pastix_int_t         itercblk,
+               char               **directory )
 {
-    pastix_coefside_t side = factoLU ? PastixLUCoef : PastixLCoef;
-    SolverCblk       *cblk = solvmtx->cblktab + itercblk;
-
-    cpucblk_zalloc( side, cblk );
-    cpucblk_zfillin( factoLU ? PastixLUCoef : PastixLCoef,
-                     solvmtx, bcsc, itercblk );
-}
-
-/*
- * Function: z_CoefMatrix_Allocate
- *
- * Allocate matrix coefficients in coeftab and ucoeftab.
- *
- * Should be first called with me = -1 to allocated coeftab.
- * Then, should be called with me set to thread ID
- * to allocate column blocks coefficients arrays.
- *
- * Parameters
- *
- *    datacode  - solverMatrix
- *    factotype - factorization type (LU, LLT ou LDLT)
- *    me        - thread number. (-1 for first call,
- *                from main thread. >=0 to allocate column blocks
- *     assigned to each thread.)
- */
-void
-coeftab_zcblkinit( const SolverMatrix  *solvmtx,
-                   const pastix_bcsc_t *bcsc,
-                   pastix_int_t         itercblk,
-                   int                  factoLU,
-                   char               **directory )
-{
-    pastix_int_t      compress_when = solvmtx->lowrank.compress_when;
-    pastix_coefside_t side = factoLU ? PastixLUCoef : PastixLCoef;
-    SolverCblk       *cblk = solvmtx->cblktab + itercblk;
+    pastix_int_t compress_when = solvmtx->lowrank.compress_when;
+    SolverCblk  *cblk = solvmtx->cblktab + itercblk;
 
     if ( (solvmtx->lowrank.compress_when != PastixCompressNever) &&
          (cblk->cblktype & CBLK_LAYOUT_2D) )
@@ -90,28 +70,37 @@ coeftab_zcblkinit( const SolverMatrix  *solvmtx,
         cblk->cblktype |= CBLK_COMPRESSED;
     }
     cpucblk_zalloc( side, cblk );
-    cpucblk_zfillin( factoLU ? PastixLUCoef : PastixLCoef,
-                     solvmtx, bcsc, itercblk );
+    cpucblk_zfillin( side, solvmtx, bcsc, itercblk );
 
 #if defined(PASTIX_DEBUG_DUMP_COEFTAB)
+    /*
+     * Rk: This function is not in the kernel directory to avoid the double
+     * dependency with the pastix library due to pastix_fopenw()
+     */
     {
         FILE *f = NULL;
         char *filename;
         int rc;
 
-        rc = asprintf( &filename, "Lcblk%05ld_init.txt", itercblk );
-        f  = pastix_fopenw( directory, filename, "w" );
-        if ( f != NULL ) {
-            coeftab_zcblkdump( cblk, PastixLower, f );
-            fclose( f );
+        /* Lower part */
+        if ( side != PastixUCoef )
+        {
+            rc = asprintf( &filename, "Lcblk%05ld_init.txt", itercblk );
+            f  = pastix_fopenw( directory, filename, "w" );
+            if ( f != NULL ) {
+                cpucblk_zdump( cblk, PastixLower, f );
+                fclose( f );
+            }
+            free( filename );
         }
-        free( filename );
 
-        if ( cblk->ucoeftab ) {
+        /* Upper part */
+        if ( side != PastixLCoef )
+        {
             rc = asprintf( &filename, "Ucblk%05ld_init.txt", itercblk );
             f  = pastix_fopenw( directory, filename, "w" );
             if ( f != NULL ) {
-                coeftab_zcblkdump( cblk, PastixUpper, f );
+                cpucblk_zdump( cblk, PastixUpper, f );
                 fclose( f );
             }
             free( filename );

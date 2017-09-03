@@ -20,6 +20,9 @@
 #include "solver.h"
 #include "coeftab.h"
 #include "pastix_zcores.h"
+#include "pastix_ccores.h"
+#include "pastix_dcores.h"
+#include "pastix_scores.h"
 
 #if defined(PASTIX_WITH_PARSEC)
 #include "sopalin/parsec/pastix_parsec.h"
@@ -53,7 +56,7 @@ struct coeftabinit_s {
     const SolverMatrix  *datacode;
     const pastix_bcsc_t *bcsc;
     char               **dirtemp;
-    int factoLU;
+    pastix_coefside_t    side;
 };
 
 /*
@@ -80,29 +83,28 @@ pcoeftabInit( isched_thread_t *ctx, void *args )
     const SolverMatrix   *datacode = ciargs->datacode;
     const pastix_bcsc_t  *bcsc     = ciargs->bcsc;
     char                **dirtemp  = ciargs->dirtemp;
-    int                   factoLU  = ciargs->factoLU;
+    pastix_coefside_t     side     = ciargs->side;
     pastix_int_t i, itercblk;
     pastix_int_t task;
     int rank = ctx->rank;
 
-    void (*initfunc)(const SolverMatrix*,
-                     const pastix_bcsc_t*,
-                     pastix_int_t, int, char **) = NULL;
+    void (*initfunc)( pastix_coefside_t, const SolverMatrix*,
+                      const pastix_bcsc_t*, pastix_int_t, char **) = NULL;
 
     switch( bcsc->flttype ) {
     case PastixComplex32:
-        initfunc = coeftab_ccblkinit;
+        initfunc = cpucblk_cinit;
         break;
     case PastixComplex64:
-        initfunc = coeftab_zcblkinit;
+        initfunc = cpucblk_zinit;
         break;
     case PastixFloat:
-        initfunc = coeftab_scblkinit;
+        initfunc = cpucblk_sinit;
         break;
     case PastixDouble:
     case PastixPattern:
     default:
-        initfunc = coeftab_dcblkinit;
+        initfunc = cpucblk_dinit;
     }
 
     for (i=0; i < datacode->ttsknbr[rank]; i++)
@@ -111,19 +113,19 @@ pcoeftabInit( isched_thread_t *ctx, void *args )
         itercblk = datacode->tasktab[task].cblknum;
 
         /* Init as full rank */
-        initfunc( datacode, bcsc, itercblk, factoLU, dirtemp );
+        initfunc( side, datacode, bcsc, itercblk, dirtemp );
     }
 }
 
 void
-coeftabInit( pastix_data_t *pastix_data,
-             int factoLU )
+coeftabInit( pastix_data_t    *pastix_data,
+             pastix_coefside_t side )
 {
     struct coeftabinit_s args;
 
     args.datacode   = pastix_data->solvmatr;
     args.bcsc       = pastix_data->bcsc;
-    args.factoLU    = factoLU;
+    args.side       = side;
     args.dirtemp    = &(pastix_data->dirtemp);
 
 #if defined(PASTIX_DEBUG_DUMP_COEFTAB)
@@ -158,7 +160,7 @@ coeftabExit( SolverMatrix *solvmtx )
     }
 #endif
 
-    /** Free arrays of solvmtx **/
+    /* Free arrays of solvmtx */
     if(solvmtx->cblktab)
     {
         for (i = 0; i < solvmtx->cblknbr; i++)

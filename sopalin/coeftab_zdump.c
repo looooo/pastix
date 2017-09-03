@@ -20,6 +20,7 @@
 #include "common.h"
 #include "solver.h"
 #include "sopalin/coeftab_z.h"
+#include "pastix_zcores.h"
 
 /**
  *******************************************************************************
@@ -43,9 +44,9 @@
  *
  *******************************************************************************/
 void
-coeftab_zcblkdump( const SolverCblk *cblk,
-                   pastix_uplo_t     uplo,
-                   FILE             *stream )
+cpucblk_zdump( const SolverCblk *cblk,
+               pastix_uplo_t     uplo,
+               FILE             *stream )
 {
     const pastix_complex64_t *coeftab = uplo == PastixUpper ? cblk->ucoeftab : cblk->lcoeftab;
     SolverBlok  *blok;
@@ -195,9 +196,9 @@ coeftab_zdump( pastix_data_t      *pastix_data,
      */
     for (itercblk=0; itercblk<solvmtx->cblknbr; itercblk++, cblk++)
     {
-        coeftab_zcblkdump( cblk, PastixLower, stream );
+        cpucblk_zdump( cblk, PastixLower, stream );
         if ( NULL != cblk->ucoeftab )
-            coeftab_zcblkdump( cblk, PastixUpper, stream );
+            cpucblk_zdump( cblk, PastixUpper, stream );
     }
 
     fclose( stream );

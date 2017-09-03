@@ -22,9 +22,9 @@
 #include "sopalin/coeftab_d.h"
 #include "sopalin/coeftab_s.h"
 
-void coeftabInit( pastix_data_t *pastix_data,
-                  int factoLU );
-void coeftabExit( SolverMatrix *solvmtx );
+void coeftabInit( pastix_data_t     *pastix_data,
+                  pastix_coefside_t  side );
+void coeftabExit( SolverMatrix      *solvmtx );
 
 typedef pastix_int_t (*coeftab_fct_compress_t)  ( SolverMatrix * );
 typedef void         (*coeftab_fct_uncompress_t)( SolverMatrix * );

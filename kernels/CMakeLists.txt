@@ -63,6 +63,7 @@ set(SOURCES
   # cblk operations
   cpucblk_zinit.c
   cpucblk_zcompress.c
+  cpucblk_zdiff.c
 )
 
 precisions_rules_py(generated_sources
