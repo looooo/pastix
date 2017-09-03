@@ -321,13 +321,19 @@ void core_zsytrfsp1d_gemm( const SolverCblk *cblk, const SolverBlok *blok, Solve
  * @{
  *     To be removed
  */
-void cpucblk_zffbcsc( pastix_coefside_t    side,
-                      const SolverMatrix  *solvmtx,
-                      const pastix_bcsc_t *bcsc,
-                      pastix_int_t         itercblk );
-void cpucblk_zalloc ( pastix_coefside_t  side,
-                      SolverCblk        *cblk );
-
+void         cpucblk_zalloc     ( pastix_coefside_t  side,
+                                  SolverCblk        *cblk );
+void         cpucblk_zfillin    ( pastix_coefside_t    side,
+                                  const SolverMatrix  *solvmtx,
+                                  const pastix_bcsc_t *bcsc,
+                                  pastix_int_t         itercblk );
+pastix_int_t cpucblk_zcompress  ( pastix_coefside_t side,
+                                  SolverCblk       *cblk,
+                                  pastix_lr_t       lowrank );
+void         cpucblk_zuncompress( pastix_coefside_t side,
+                                  SolverCblk       *cblk );
+pastix_int_t cpucblk_zmemory    ( pastix_coefside_t side,
+                                  const SolverCblk *cblk );
 /**
  * @}
  */

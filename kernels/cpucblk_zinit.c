@@ -1,6 +1,6 @@
 /**
  *
- * @file coeftab_zinit.c
+ * @file cpucblk_zinit.c
  *
  * Precision dependent coeficient array initialization routines.
  *
@@ -16,9 +16,6 @@
  * @precisions normal z -> s d c
  *
  **/
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE 1
-#endif
 #include "common.h"
 #include "solver.h"
 #include "bcsc.h"
@@ -65,8 +62,8 @@ cpucblk_zalloc( pastix_coefside_t  side,
         if ( LRblocks == NULL ) {
             /* One allocation per cblk */
             LRblocks = malloc( 2 * (lblok - blok) * sizeof(pastix_lrblock_t) );
-
-            if (!pastix_atomic_cas_xxb( blok->LRblock, (uint64_t)NULL, (uint64_t)LRblocks, sizeof(void*) )) {
+            memset( LRblocks, 0, 2 * (lblok - blok) * sizeof(pastix_lrblock_t) );
+            if (!pastix_atomic_cas_xxb( &(blok->LRblock), (uint64_t)NULL, (uint64_t)LRblocks, sizeof(void*) )) {
                 free( LRblocks );
                 LRblocks = blok->LRblock;
             }
@@ -133,7 +130,7 @@ cpucblk_zalloc( pastix_coefside_t  side,
  *
  *******************************************************************************/
 static inline void
-cpucblk_zffbcsc_fr( pastix_coefside_t    side,
+cpucblk_zfillin_fr( pastix_coefside_t    side,
                     const SolverMatrix  *solvmtx,
                     const pastix_bcsc_t *bcsc,
                     pastix_int_t         itercblk )
@@ -201,7 +198,7 @@ cpucblk_zffbcsc_fr( pastix_coefside_t    side,
                 }
                 else {
 #if defined(PASTIX_DEBUG_COEFTAB)
-                    fprintf(stderr, "cpucblk_zffbcsc: drop coeff from CSC c=%ld(%ld) l=%ld(%ld) cblk=%ld fcol=%ld lcol=%ld\n",
+                    fprintf(stderr, "cpucblk_zfillin: drop coeff from CSC c=%ld(%ld) l=%ld(%ld) cblk=%ld fcol=%ld lcol=%ld\n",
                             (long)solvcblk->fcolnum + itercoltab, (long)itercoltab,
                             (long)rownum, (long)iterval, (long)itercblk,
                             (long)solvcblk->fcolnum, (long)solvcblk->lcolnum );
@@ -237,7 +234,7 @@ cpucblk_zffbcsc_fr( pastix_coefside_t    side,
  *
  *******************************************************************************/
 static inline void
-cpucblk_zffbcsc_lr( pastix_coefside_t    side,
+cpucblk_zfillin_lr( pastix_coefside_t    side,
                     const SolverMatrix  *solvmtx,
                     const pastix_bcsc_t *bcsc,
                     pastix_int_t         itercblk )
@@ -302,7 +299,7 @@ cpucblk_zffbcsc_lr( pastix_coefside_t    side,
                 }
                 else {
 #if defined(PASTIX_DEBUG_COEFTAB)
-                    fprintf(stderr, "cpucblk_zffbcsc: drop coeff from CSC c=%ld(%ld) l=%ld(%ld) cblk=%ld fcol=%ld lcol=%ld\n",
+                    fprintf(stderr, "cpucblk_zfillin: drop coeff from CSC c=%ld(%ld) l=%ld(%ld) cblk=%ld fcol=%ld lcol=%ld\n",
                             (long)solvcblk->fcolnum + itercoltab, (long)itercoltab,
                             (long)rownum, (long)iterval, (long)itercblk,
                             (long)solvcblk->fcolnum, (long)solvcblk->lcolnum );
@@ -338,16 +335,16 @@ cpucblk_zffbcsc_lr( pastix_coefside_t    side,
  *
  *******************************************************************************/
 void
-cpucblk_zffbcsc( pastix_coefside_t    side,
+cpucblk_zfillin( pastix_coefside_t    side,
                  const SolverMatrix  *solvmtx,
                  const pastix_bcsc_t *bcsc,
                  pastix_int_t         itercblk )
 {
     if ( (solvmtx->cblktab + itercblk)->cblktype & CBLK_COMPRESSED ) {
-        cpucblk_zffbcsc_lr( side, solvmtx, bcsc, itercblk );
+        cpucblk_zfillin_lr( side, solvmtx, bcsc, itercblk );
     }
     else {
-        cpucblk_zffbcsc_fr( side, solvmtx, bcsc, itercblk );
+        cpucblk_zfillin_fr( side, solvmtx, bcsc, itercblk );
     }
 }
 
