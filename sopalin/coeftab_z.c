@@ -1,6 +1,6 @@
 /**
  *
- * @file coeftab_zdump.c
+ * @file coeftab_z.c
  *
  * Precision dependent sequential routines to apply operation of the full matrix.
  *
@@ -22,137 +22,6 @@
 #include "lapacke.h"
 #include "sopalin/coeftab_z.h"
 #include "pastix_zcores.h"
-
-/**
- *******************************************************************************
- *
- * @brief Dump a single column block into a FILE in a human readale format.
- *
- * All non-zeroes coefficients are dumped in the format:
- *    i j val
- * with one value per row.
- *
- *******************************************************************************
- *
- * @param[in] cblk
- *          The column block to dump into the file.
- *
- * @param[in] uplo
- *          Specify if upper or lower part is printed.
- *
- * @param[inout] stream
- *          The FILE structure opened in write mode.
- *
- *******************************************************************************/
-void
-cpucblk_zdump( const SolverCblk *cblk,
-               pastix_uplo_t     uplo,
-               FILE             *stream )
-{
-    const pastix_complex64_t *coeftab = uplo == PastixUpper ? cblk->ucoeftab : cblk->lcoeftab;
-    SolverBlok  *blok;
-    pastix_int_t itercol;
-    pastix_int_t iterrow;
-    pastix_int_t coefindx;
-
-    /* We don't know how to dump the compressed block for now */
-    if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        fprintf(stderr, "coeftab_zcblkdump: Can't dump a compressed cblk\n");
-        return;
-    }
-
-    for (itercol  = cblk->fcolnum;
-         itercol <= cblk->lcolnum;
-         itercol++)
-    {
-        /* Diagonal Block */
-        blok     = cblk->fblokptr;
-        coefindx = blok->coefind;
-        if (cblk->cblktype & CBLK_LAYOUT_2D) {
-            coefindx += (itercol - cblk->fcolnum) * blok_rownbr( blok );
-        }
-        else {
-            coefindx += (itercol - cblk->fcolnum) * cblk->stride;
-        }
-
-        for (iterrow  = blok->frownum;
-             iterrow <= blok->lrownum;
-             iterrow++, coefindx++)
-        {
-            if ((cabs( coeftab[coefindx] ) > 0.) &&
-                (itercol <= iterrow))
-            {
-                if ( uplo == PastixUpper ) {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                    fprintf(stream, "%ld %ld (%13e,%13e) [U]\n",
-                            (long)itercol, (long)iterrow,
-                            creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
-#else
-                    fprintf(stream, "%ld %ld %13e [U]\n",
-                            (long)itercol, (long)iterrow,
-                            coeftab[coefindx]);
-#endif
-                }
-                else {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                    fprintf(stream, "%ld %ld (%13e,%13e) [L]\n",
-                            (long)iterrow, (long)itercol,
-                            creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
-#else
-                    fprintf(stream, "%ld %ld %13e [L]\n",
-                            (long)iterrow, (long)itercol,
-                            coeftab[coefindx]);
-#endif
-                }
-            }
-        }
-
-        /* Off diagonal blocks */
-        blok++;
-        while( blok < (cblk+1)->fblokptr )
-        {
-            coefindx  = blok->coefind;
-            if (cblk->cblktype & CBLK_LAYOUT_2D) {
-                coefindx += (itercol - cblk->fcolnum) * blok_rownbr( blok );
-            }
-            else {
-                coefindx += (itercol - cblk->fcolnum) * cblk->stride;
-            }
-
-            for (iterrow  = blok->frownum;
-                 iterrow <= blok->lrownum;
-                 iterrow++, coefindx++)
-            {
-                if (cabs( coeftab[coefindx]) > 0.)
-                {
-                    if ( uplo == PastixUpper ) {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                        fprintf(stream, "%ld %ld (%13e,%13e) [U]\n",
-                                (long)itercol, (long)iterrow,
-                                creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
-#else
-                        fprintf(stream, "%ld %ld %13e [U]\n",
-                                (long)itercol, (long)iterrow,
-                                coeftab[coefindx]);
-#endif
-                    }
-                    else {
-#if defined(PRECISION_z) || defined(PRECISION_c)
-                        fprintf(stream, "%ld %ld (%13e,%13e) [L]\n",
-                                (long)iterrow, (long)itercol,
-                                creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
-#else
-                        fprintf(stream, "%ld %ld %13e [L]\n",
-                                (long)iterrow, (long)itercol,
-                                coeftab[coefindx]);
-#endif
-                    }
-                }
-            }
-            blok++;
-        }
-    }
-}
 
 /**
  *******************************************************************************
@@ -197,9 +66,9 @@ coeftab_zdump( pastix_data_t      *pastix_data,
      */
     for (itercblk=0; itercblk<solvmtx->cblknbr; itercblk++, cblk++)
     {
-        cpucblk_zdump( cblk, PastixLower, stream );
+        cpucblk_zdump( PastixLCoef, cblk, stream );
         if ( NULL != cblk->ucoeftab )
-            cpucblk_zdump( cblk, PastixUpper, stream );
+            cpucblk_zdump( PastixUCoef, cblk, stream );
     }
 
     fclose( stream );
@@ -208,7 +77,7 @@ coeftab_zdump( pastix_data_t      *pastix_data,
 /**
  *******************************************************************************
  *
- * @brief Compare two solver matrices full-rank format.
+ * @brief Compare two solver matrices in full-rank format.
  *
  * The second solver matrix is overwritten by the difference of the two
  * matrices.  The frobenius norm of the difference of each column block is
@@ -219,6 +88,12 @@ coeftab_zdump( pastix_data_t      *pastix_data,
  * is below 10. Otherwise, an error message is printed and 1 is returned.
  *
  *******************************************************************************
+ *
+ * @param[in] side
+ *          Define which side of the cblk must be tested.
+ *          @arg PastixLCoef if lower part only
+ *          @arg PastixUCoef if upper part only
+ *          @arg PastixLUCoef if both sides.
  *
  * @param[in] solvA
  *          The solver matrix A.
@@ -234,7 +109,9 @@ coeftab_zdump( pastix_data_t      *pastix_data,
  *
  *******************************************************************************/
 int
-coeftab_zdiff( const SolverMatrix *solvA, SolverMatrix *solvB )
+coeftab_zdiff( pastix_coefside_t   side,
+               const SolverMatrix *solvA,
+               SolverMatrix       *solvB )
 {
     SolverCblk *cblkA = solvA->cblktab;
     SolverCblk *cblkB = solvB->cblktab;
@@ -243,7 +120,7 @@ coeftab_zdiff( const SolverMatrix *solvA, SolverMatrix *solvB )
     int saved_rc = 0;
 
     for(cblknum=0; cblknum<solvA->cblknbr; cblknum++, cblkA++, cblkB++) {
-        rc += cpucblk_zdiff( cblkA, cblkB );
+        rc += cpucblk_zdiff( side, cblkA, cblkB );
         if ( rc != saved_rc ){
             fprintf(stderr, "CBLK %ld was not correctly compressed\n", (long)cblknum);
             saved_rc = rc;

@@ -82,7 +82,7 @@ BODY
     else {
         /* Compression between 1D and 2D updates */
         if ( lowrank.compress_when == PastixCompressWhenDuring ) {
-            coeftab_zcompress_one( cblk, lowrank );
+            cpucblk_zcompress( PastixLCoef, cblk, lowrank );
         }
     }
 }

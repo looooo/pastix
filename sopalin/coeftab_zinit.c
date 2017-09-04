@@ -28,6 +28,139 @@
 /**
  *******************************************************************************
  *
+ * @brief Dump a single column block into a FILE in a human readale format.
+ *
+ * All non-zeroes coefficients are dumped in the format:
+ *    i j val
+ * with one value per row.
+ *
+ *******************************************************************************
+ *
+ * @param[in] side
+ *          Define which side of the cblk must be printed.
+ *          @arg PastixLCoef if lower part only
+ *          @arg PastixUCoef if upper part only
+ *
+ * @param[in] cblk
+ *          The column block to dump into the file.
+ *
+ * @param[inout] stream
+ *          The FILE structure opened in write mode.
+ *
+ *******************************************************************************/
+void
+cpucblk_zdump( pastix_coefside_t side,
+               const SolverCblk *cblk,
+               FILE             *stream )
+{
+    const pastix_complex64_t *coeftab = side == PastixUCoef ? cblk->ucoeftab : cblk->lcoeftab;
+    SolverBlok  *blok;
+    pastix_int_t itercol;
+    pastix_int_t iterrow;
+    pastix_int_t coefindx;
+
+    /* We don't know how to dump the compressed block for now */
+    if ( cblk->cblktype & CBLK_COMPRESSED ) {
+        fprintf(stderr, "coeftab_zcblkdump: Can't dump a compressed cblk\n");
+        return;
+    }
+
+    for (itercol  = cblk->fcolnum;
+         itercol <= cblk->lcolnum;
+         itercol++)
+    {
+        /* Diagonal Block */
+        blok     = cblk->fblokptr;
+        coefindx = blok->coefind;
+        if (cblk->cblktype & CBLK_LAYOUT_2D) {
+            coefindx += (itercol - cblk->fcolnum) * blok_rownbr( blok );
+        }
+        else {
+            coefindx += (itercol - cblk->fcolnum) * cblk->stride;
+        }
+
+        for (iterrow  = blok->frownum;
+             iterrow <= blok->lrownum;
+             iterrow++, coefindx++)
+        {
+            if ((cabs( coeftab[coefindx] ) > 0.) &&
+                (itercol <= iterrow))
+            {
+                if ( side == PastixUCoef ) {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                    fprintf(stream, "%ld %ld (%13e,%13e) [U]\n",
+                            (long)itercol, (long)iterrow,
+                            creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
+#else
+                    fprintf(stream, "%ld %ld %13e [U]\n",
+                            (long)itercol, (long)iterrow,
+                            coeftab[coefindx]);
+#endif
+                }
+                else {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                    fprintf(stream, "%ld %ld (%13e,%13e) [L]\n",
+                            (long)iterrow, (long)itercol,
+                            creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
+#else
+                    fprintf(stream, "%ld %ld %13e [L]\n",
+                            (long)iterrow, (long)itercol,
+                            coeftab[coefindx]);
+#endif
+                }
+            }
+        }
+
+        /* Off diagonal blocks */
+        blok++;
+        while( blok < (cblk+1)->fblokptr )
+        {
+            coefindx  = blok->coefind;
+            if (cblk->cblktype & CBLK_LAYOUT_2D) {
+                coefindx += (itercol - cblk->fcolnum) * blok_rownbr( blok );
+            }
+            else {
+                coefindx += (itercol - cblk->fcolnum) * cblk->stride;
+            }
+
+            for (iterrow  = blok->frownum;
+                 iterrow <= blok->lrownum;
+                 iterrow++, coefindx++)
+            {
+                if (cabs( coeftab[coefindx]) > 0.)
+                {
+                    if ( side == PastixUCoef ) {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                        fprintf(stream, "%ld %ld (%13e,%13e) [U]\n",
+                                (long)itercol, (long)iterrow,
+                                creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
+#else
+                        fprintf(stream, "%ld %ld %13e [U]\n",
+                                (long)itercol, (long)iterrow,
+                                coeftab[coefindx]);
+#endif
+                    }
+                    else {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                        fprintf(stream, "%ld %ld (%13e,%13e) [L]\n",
+                                (long)iterrow, (long)itercol,
+                                creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
+#else
+                        fprintf(stream, "%ld %ld %13e [L]\n",
+                                (long)iterrow, (long)itercol,
+                                coeftab[coefindx]);
+#endif
+                    }
+                }
+            }
+            blok++;
+        }
+    }
+}
+
+/**
+ *******************************************************************************
+ *
  * @brief Fully initialize a single cblk.
  *
  * The cblk is allocated, intialized from the bcsc, and compressed if necessary.
@@ -88,7 +221,7 @@ cpucblk_zinit( pastix_coefside_t    side,
             rc = asprintf( &filename, "Lcblk%05ld_init.txt", itercblk );
             f  = pastix_fopenw( directory, filename, "w" );
             if ( f != NULL ) {
-                cpucblk_zdump( cblk, PastixLower, f );
+                cpucblk_zdump( PastixLCoef, cblk, f );
                 fclose( f );
             }
             free( filename );
@@ -100,7 +233,7 @@ cpucblk_zinit( pastix_coefside_t    side,
             rc = asprintf( &filename, "Ucblk%05ld_init.txt", itercblk );
             f  = pastix_fopenw( directory, filename, "w" );
             if ( f != NULL ) {
-                cpucblk_zdump( cblk, PastixUpper, f );
+                cpucblk_zdump( PastixUCoef, cblk, f );
                 fclose( f );
             }
             free( filename );

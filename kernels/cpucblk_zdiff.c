@@ -37,6 +37,12 @@
  *
  *******************************************************************************
  *
+ * @param[in] side
+ *          Define which side of the cblk must be tested.
+ *          @arg PastixLCoef if lower part only
+ *          @arg PastixUCoef if upper part only
+ *          @arg PastixLUCoef if both sides.
+ *
  * @param[in] cblkA
  *          The column block of the A matrix.
  *
@@ -52,17 +58,15 @@
  *
  *******************************************************************************/
 int
-cpucblk_zdiff( const SolverCblk *cblkA,
+cpucblk_zdiff( pastix_coefside_t side,
+               const SolverCblk *cblkA,
                SolverCblk       *cblkB )
 {
-    pastix_complex64_t *lcoefA = cblkA->lcoeftab;
-    pastix_complex64_t *ucoefA = cblkA->ucoeftab;
-    pastix_complex64_t *lcoefB = cblkB->lcoeftab;
-    pastix_complex64_t *ucoefB = cblkB->ucoeftab;
+    pastix_complex64_t *coefA;
+    pastix_complex64_t *coefB;
     pastix_int_t        ncols  = cblk_colnbr( cblkA );
     pastix_int_t        stride = cblkA->stride;
-    double normL, normU, normfAL, normfAU, normcAL, normcAU, resL, resU, eps;
-    int factoLU = (ucoefA == NULL) ? 0 : 1;
+    double normdiff, normfull, normlowr, res, eps;
     int rc = 0;
 
     assert( ncols  == cblk_colnbr( cblkB ) );
@@ -71,56 +75,55 @@ cpucblk_zdiff( const SolverCblk *cblkA,
 
     eps = LAPACKE_dlamch_work( 'e' );
 
-    normfAL = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', stride, ncols,
-                                   lcoefA, stride, NULL );
-    normcAL = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', stride, ncols,
-                                   lcoefB, stride, NULL );
-    core_zgeadd( PastixNoTrans, stride, ncols,
-                 -1., lcoefA, stride,
-                  1., lcoefB, stride );
+    if ( side != PastixUCoef ) {
+        coefA = cblkA->lcoeftab;
+        coefB = cblkB->lcoeftab;
 
-    normL = LAPACKE_zlange( LAPACK_COL_MAJOR, 'M', stride, ncols,
-                            lcoefB, stride );
-    resL = (normfAL == 0.) ? 0. : (normL / (normfAL * eps));
+        assert( (coefA != NULL) && (coefB != NULL) );
 
-    if ( factoLU ) {
-        normfAU = LAPACKE_zlange( LAPACK_COL_MAJOR, 'f', stride, ncols,
-                                  ucoefA, stride );
-        normcAU = LAPACKE_zlange( LAPACK_COL_MAJOR, 'f', stride, ncols,
-                                  ucoefB, stride );
+        normfull = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', stride, ncols,
+                                        coefA, stride, NULL );
+        normlowr = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', stride, ncols,
+                                        coefB, stride, NULL );
         core_zgeadd( PastixNoTrans, stride, ncols,
-                     -1., ucoefA, stride,
-                      1., ucoefB, stride );
-        normU  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'M', stride, ncols,
-                                 ucoefB, stride );
-        resU = (normfAU == 0.) ? 0. : (normU / (normfAU * eps));
-    }
-    else {
-        normfAU = 0.;
-        normcAU = 0.;
-        normU   = 0.;
-        resU    = 0.;
+                     -1., coefA, stride,
+                      1., coefB, stride );
+
+        normdiff = LAPACKE_zlange( LAPACK_COL_MAJOR, 'M', stride, ncols,
+                                   coefB, stride );
+        res = (normfull == 0.) ? 0. : (normdiff / (normfull * eps));
+
+        if ( res > 10 ) {
+            fprintf(stderr, "KO on L: ||full(A)||_f=%e, ||comp(A)||_f=%e, ||comp(A)-full(A)||_0=%e, ||comp(A)-full(A)||_0 / (||full(A)||_2 * eps)=%e\n",
+                    normfull, normlowr, normdiff, res );
+            rc++;
+        }
     }
 
-    if ( resL > 10 ) {
-        fprintf(stderr, "KO on L: ||full(A)||_f=%e, ||comp(A)||_f=%e, ||comp(A)-full(A)||_0=%e, ||comp(A)-full(A)||_0 / (||full(A)||_2 * eps)=%e\n",
-                normfAL, normcAL, normL, resL );
-        rc++;
-    }
-    /* else { */
-    /*     fprintf(stderr, "Ok on L: ||full(A)||_f=%e, ||comp(A)||_f=%e, ||comp(A)-full(A)||_0=%e, ||comp(A)-full(A)||_0 / (||full(A)||_2 * eps)=%e\n", */
-    /*             normfAL, normcAL, normL, resL ); */
-    /* } */
+    if ( side != PastixLCoef ) {
+        coefA = cblkA->ucoeftab;
+        coefB = cblkB->ucoeftab;
 
-    if ( factoLU && (resU > 10) ) {
-        fprintf(stderr, "KO on U: ||full(A)||_f=%e, ||comp(A)||_f=%e, ||comp(A)-full(A)||_0=%e, ||comp(A)-full(A)||_0 / (||full(A)||_2 * eps)=%e\n",
-                normfAU, normcAU, normU, resU );
-        rc++;
+        assert( (coefA != NULL) && (coefB != NULL) );
+
+        normfull = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', stride, ncols,
+                                        coefA, stride, NULL );
+        normlowr = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', stride, ncols,
+                                        coefB, stride, NULL );
+        core_zgeadd( PastixNoTrans, stride, ncols,
+                     -1., coefA, stride,
+                      1., coefB, stride );
+
+        normdiff = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'M', stride, ncols,
+                                        coefB, stride, NULL );
+        res = (normfull == 0.) ? 0. : (normdiff / (normfull * eps));
+
+        if ( res > 10 ) {
+            fprintf(stderr, "KO on L: ||full(A)||_f=%e, ||comp(A)||_f=%e, ||comp(A)-full(A)||_0=%e, ||comp(A)-full(A)||_0 / (||full(A)||_2 * eps)=%e\n",
+                    normfull, normlowr, normdiff, res );
+            rc++;
+        }
     }
-    /* else { */
-    /*     fprintf(stderr, "Ok on U: ||full(A)||_f=%e, ||comp(A)||_f=%e, ||comp(A)-full(A)||_0=%e, ||comp(A)-full(A)||_0 / (||full(A)||_2 * eps)=%e\n", */
-    /*             normfAU, normcAU, normU, resU ); */
-    /* } */
 
     return rc;
 }

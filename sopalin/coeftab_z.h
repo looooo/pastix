@@ -53,7 +53,8 @@ void coeftab_zgetschur( const SolverMatrix *solvmtx,
 void coeftab_zdump    ( pastix_data_t      *pastix_data,
                         const SolverMatrix *solvmtx,
                         const char         *filename );
-int  coeftab_zdiff    ( const SolverMatrix *solvA,
+int  coeftab_zdiff    ( pastix_coefside_t   side,
+                        const SolverMatrix *solvA,
                         SolverMatrix       *solvB );
 
 /**
