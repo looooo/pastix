@@ -17,7 +17,7 @@ dsparse_zcsc2cblk_New(sparse_matrix_desc_t *A)
 {
     parsec_zcsc2cblk_object_t *parsec_zcsc2cblk = NULL;
 
-    parsec_zcsc2cblk = parsec_zcsc2cblk_new(A, (parsec_ddesc_t *)A );
+    parsec_zcsc2cblk = parsec_zcsc2cblk_new(A, (parsec_data_collection_t *)A );
 
     /* dsparse_add2arena_tile(((parsec_zcsc2cblk_Url_object_t*)parsec_zcsc2cblk)->arenas[PARSEC_zcsc2cblk_Url_DEFAULT_ARENA],  */
     /*                        A->mb*A->nb*sizeof(parsec_complex64_t), */

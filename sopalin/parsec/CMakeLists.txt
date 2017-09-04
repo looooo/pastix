@@ -85,6 +85,7 @@ target_link_libraries(pastix_parsec
   parsec_distribution_matrix
   ${PARSEC_EXTRA_LIBRARIES}
   ${PARSEC_LIBRARIES}
+  parsec-base
   )
 
 add_dependencies(pastix_parsec

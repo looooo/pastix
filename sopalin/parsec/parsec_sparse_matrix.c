@@ -119,7 +119,7 @@ spm_data_key_to_value( parsec_data_key_t   key,
  *
  ******************************************************************************/
 static uint32_t
-parsec_sparse_matrix_data_key( parsec_ddesc_t *mat, ... )
+parsec_sparse_matrix_data_key( parsec_data_collection_t *mat, ... )
 {
     va_list ap;
     parsec_sparse_matrix_desc_t *spmtx = (parsec_sparse_matrix_desc_t*)mat;
@@ -175,7 +175,7 @@ parsec_sparse_matrix_data_key( parsec_ddesc_t *mat, ... )
  *
  ******************************************************************************/
 static uint32_t
-parsec_sparse_matrix_rank_of( parsec_ddesc_t *mat, ... )
+parsec_sparse_matrix_rank_of( parsec_data_collection_t *mat, ... )
 {
     (void)mat;
     return 0;
@@ -200,7 +200,7 @@ parsec_sparse_matrix_rank_of( parsec_ddesc_t *mat, ... )
  *
  ******************************************************************************/
 static uint32_t
-parsec_sparse_matrix_rank_of_key( parsec_ddesc_t    *mat,
+parsec_sparse_matrix_rank_of_key( parsec_data_collection_t    *mat,
                                   parsec_data_key_t  key )
 {
     (void)mat; (void)key;
@@ -231,7 +231,7 @@ parsec_sparse_matrix_rank_of_key( parsec_ddesc_t    *mat,
  *
  ******************************************************************************/
 static int32_t
-parsec_sparse_matrix_vpid_of( parsec_ddesc_t *mat, ... )
+parsec_sparse_matrix_vpid_of( parsec_data_collection_t *mat, ... )
 {
     (void)mat;
     return 0;
@@ -256,7 +256,7 @@ parsec_sparse_matrix_vpid_of( parsec_ddesc_t *mat, ... )
  *
  ******************************************************************************/
 static int32_t
-parsec_sparse_matrix_vpid_of_key( parsec_ddesc_t    *mat,
+parsec_sparse_matrix_vpid_of_key( parsec_data_collection_t    *mat,
                                   parsec_data_key_t  key )
 {
     (void)mat; (void)key;
@@ -287,7 +287,7 @@ parsec_sparse_matrix_vpid_of_key( parsec_ddesc_t    *mat,
  *
  ******************************************************************************/
 static parsec_data_t *
-parsec_sparse_matrix_data_of( parsec_ddesc_t *mat, ... )
+parsec_sparse_matrix_data_of( parsec_data_collection_t *mat, ... )
 {
     parsec_sparse_matrix_desc_t *spmtx = (parsec_sparse_matrix_desc_t*)mat;
     SolverCblk *cblk;
@@ -338,7 +338,7 @@ parsec_sparse_matrix_data_of( parsec_ddesc_t *mat, ... )
  *
  ******************************************************************************/
 static parsec_data_t *
-parsec_sparse_matrix_data_of_key( parsec_ddesc_t    *mat,
+parsec_sparse_matrix_data_of_key( parsec_data_collection_t    *mat,
                            parsec_data_key_t  key )
 {
     parsec_sparse_matrix_desc_t *spmtx = (parsec_sparse_matrix_desc_t*)mat;
@@ -394,7 +394,7 @@ parsec_sparse_matrix_data_of_key( parsec_ddesc_t    *mat,
  *
  ******************************************************************************/
 static int
-parsec_sparse_matrix_key_to_string( parsec_ddesc_t *mat,
+parsec_sparse_matrix_key_to_string( parsec_data_collection_t *mat,
                              uint32_t key,
                              char *buffer, uint32_t buffer_size )
 {
@@ -527,7 +527,7 @@ parsec_sparse_matrix_init( SolverMatrix *solvmtx,
                            int nodes, int myrank )
 {
     parsec_sparse_matrix_desc_t *spmtx = solvmtx->parsec_desc;
-    parsec_ddesc_t *o;
+    parsec_data_collection_t *o;
     pastix_int_t   cblknbr, cblkmin2d, ld;
     parsec_data_key_t key1, key2;
     SolverCblk *cblk;
@@ -543,8 +543,8 @@ parsec_sparse_matrix_init( SolverMatrix *solvmtx,
         spmtx = (parsec_sparse_matrix_desc_t*)malloc(sizeof(parsec_sparse_matrix_desc_t));
     }
 
-    o = (parsec_ddesc_t*)spmtx;
-    parsec_ddesc_init( o, nodes, myrank );
+    o = (parsec_data_collection_t*)spmtx;
+    parsec_data_collection_init( o, nodes, myrank );
 
     o->data_key      = parsec_sparse_matrix_data_key;
 #if defined(PARSEC_PROF_TRACE)
@@ -745,7 +745,7 @@ parsec_sparse_matrix_destroy( parsec_sparse_matrix_desc_t *spmtx )
         }
     }
 
-    parsec_ddesc_destroy( (parsec_ddesc_t*)spmtx );
+    parsec_data_collection_destroy( (parsec_data_collection_t*)spmtx );
 }
 
 /**

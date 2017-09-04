@@ -31,7 +31,7 @@
 /**
  *******************************************************************************
  *
- * @brief Generate the PaRSEC handler object for the Cholesky factorization with
+ * @brief Generate the PaRSEC taskpool object for the Cholesky factorization with
  * 1D kernels.
  *
  * The function only return the object that describes the Cholesky factorization
@@ -60,7 +60,7 @@
  *******************************************************************************
  *
  * @retval NULL if incorrect parameters are given.
- * @retval The parsec handle describing the operation that can be
+ * @retval The parsec taskpool describing the operation that can be
  *         enqueued in the runtime with parsec_enqueue(). It, then, needs to be
  *         destroy with parsec_zpotrf_sp1dplus_Destruct().
  *
@@ -74,11 +74,11 @@
  * @sa parsec_spotrf_sp1dplus_New
  *
  ******************************************************************************/
-parsec_handle_t*
+parsec_taskpool_t*
 parsec_zpotrf_sp1dplus_New( parsec_sparse_matrix_desc_t *A,
                             sopalin_data_t *sopalin_data )
 {
-    parsec_zpotrf_sp1dplus_handle_t *parsec_zpotrf_sp1dplus = NULL;
+    parsec_zpotrf_sp1dplus_taskpool_t *parsec_zpotrf_sp1dplus = NULL;
 
     parsec_zpotrf_sp1dplus = parsec_zpotrf_sp1dplus_new( A, sopalin_data, NULL );
 
@@ -91,34 +91,34 @@ parsec_zpotrf_sp1dplus_New( parsec_sparse_matrix_desc_t *A,
                                   parsec_datatype_double_complex_t,
                                   /*sopalin_data->solvmtx->gemmmax*/ 1, 1, 1 );
 
-    return (parsec_handle_t*)parsec_zpotrf_sp1dplus;
+    return (parsec_taskpool_t*)parsec_zpotrf_sp1dplus;
 }
 
 /**
  *******************************************************************************
  *
- * @brief Free the data structure associated to an handle created with
+ * @brief Free the data structure associated to an taskpool created with
  * parsec_zpotrf_sp1dplus_New().
  *
  *******************************************************************************
  *
- * @param[inout] handle
- *          On entry, the handle to destroy.
- *          On exit, the handle cannot be used anymore.
+ * @param[inout] taskpool
+ *          On entry, the taskpool to destroy.
+ *          On exit, the taskpool cannot be used anymore.
  *
  ******************************************************************************/
 void
-parsec_zpotrf_sp1dplus_Destruct( parsec_handle_t *handle )
+parsec_zpotrf_sp1dplus_Destruct( parsec_taskpool_t *taskpool )
 {
-    parsec_zpotrf_sp1dplus_handle_t *parsec_zpotrf_sp1dplus = NULL;
-    parsec_zpotrf_sp1dplus = (parsec_zpotrf_sp1dplus_handle_t *)handle;
+    parsec_zpotrf_sp1dplus_taskpool_t *parsec_zpotrf_sp1dplus = NULL;
+    parsec_zpotrf_sp1dplus = (parsec_zpotrf_sp1dplus_taskpool_t *)taskpool;
 
     parsec_matrix_del2arena( parsec_zpotrf_sp1dplus->arenas[PARSEC_zpotrf_sp1dplus_DEFAULT_ARENA] );
 
     parsec_private_memory_fini( parsec_zpotrf_sp1dplus->_g_p_work );
     free( parsec_zpotrf_sp1dplus->_g_p_work );
 
-    parsec_handle_free( handle );
+    parsec_taskpool_free( taskpool );
 }
 
 /**
@@ -150,7 +150,7 @@ parsec_zpotrf_sp1dplus_Destruct( parsec_handle_t *handle )
  *******************************************************************************
  *
  * @retval NULL if incorrect parameters are given.
- * @retval The parsec handle describing the operation that can be
+ * @retval The parsec taskpool describing the operation that can be
  *         enqueued in the runtime with parsec_enqueue(). It, then, needs to be
  *         destroy with parsec_zpotrf_sp1dplus_Destruct().
  *
@@ -165,14 +165,14 @@ parsec_zpotrf_sp1dplus( parsec_context_t *parsec,
                         parsec_sparse_matrix_desc_t *A,
                         sopalin_data_t *sopalin_data )
 {
-    parsec_handle_t *parsec_zpotrf_sp1dplus = NULL;
+    parsec_taskpool_t *parsec_zpotrf_sp1dplus = NULL;
     int info = 0;
 
     parsec_zpotrf_sp1dplus = parsec_zpotrf_sp1dplus_New( A, sopalin_data );
 
     if ( parsec_zpotrf_sp1dplus != NULL )
     {
-        parsec_enqueue( parsec, (parsec_handle_t*)parsec_zpotrf_sp1dplus);
+        parsec_enqueue( parsec, (parsec_taskpool_t*)parsec_zpotrf_sp1dplus);
         parsec_context_start( parsec );
         parsec_context_wait( parsec );
         parsec_zpotrf_sp1dplus_Destruct( parsec_zpotrf_sp1dplus );
@@ -183,7 +183,7 @@ parsec_zpotrf_sp1dplus( parsec_context_t *parsec,
 /**
  *******************************************************************************
  *
- * @brief Generate the PaRSEC handler object for the Cholesky factorization with
+ * @brief Generate the PaRSEC taskpoolr object for the Cholesky factorization with
  * 1D and 2D kernels.
  *
  * The function only return the object that describes the Cholesky factorization
@@ -196,7 +196,7 @@ parsec_zpotrf_sp1dplus( parsec_context_t *parsec,
  * where L is a sparse lower triangular matrix.
  *
  * In this object, operations are panel based operations for the lower levels of
- * the elimination tree, and the higher levels are handled by 2D tasks scheme to
+ * the elimination tree, and the higher levels are taskpoold by 2D tasks scheme to
  * create more parallelism and adapt to large architectures.
  *
  * @warning The computations are not done by this call.
@@ -213,7 +213,7 @@ parsec_zpotrf_sp1dplus( parsec_context_t *parsec,
  *******************************************************************************
  *
  * @retval NULL if incorrect parameters are given.
- * @retval The parsec handle describing the operation that can be
+ * @retval The parsec taskpool describing the operation that can be
  *         enqueued in the runtime with parsec_enqueue(). It, then, needs to be
  *         destroy with parsec_zpotrf_sp2d_Destruct().
  *
@@ -227,11 +227,11 @@ parsec_zpotrf_sp1dplus( parsec_context_t *parsec,
  * @sa parsec_spotrf_sp2d_New
  *
  ******************************************************************************/
-parsec_handle_t*
+parsec_taskpool_t*
 parsec_zpotrf_sp2d_New( parsec_sparse_matrix_desc_t *A,
                         sopalin_data_t *sopalin_data )
 {
-    parsec_zpotrf_sp2d_handle_t *parsec_zpotrf_sp2d = NULL;
+    parsec_zpotrf_sp2d_taskpool_t *parsec_zpotrf_sp2d = NULL;
 
     parsec_zpotrf_sp2d = parsec_zpotrf_sp2d_new( A, sopalin_data, NULL );
 
@@ -243,34 +243,34 @@ parsec_zpotrf_sp2d_New( parsec_sparse_matrix_desc_t *A,
                                   parsec_datatype_double_complex_t,
                                   /*sopalin_data->solvmtx->gemmmax*/ 1, 1, 1 );
 
-    return (parsec_handle_t*)parsec_zpotrf_sp2d;
+    return (parsec_taskpool_t*)parsec_zpotrf_sp2d;
 }
 
 /**
  *******************************************************************************
  *
- * @brief Free the data structure associated to an handle created with
+ * @brief Free the data structure associated to an taskpool created with
  * parsec_zpotrf_sp2d_New().
  *
  *******************************************************************************
  *
- * @param[inout] handle
- *          On entry, the handle to destroy.
- *          On exit, the handle cannot be used anymore.
+ * @param[inout] taskpool
+ *          On entry, the taskpool to destroy.
+ *          On exit, the taskpool cannot be used anymore.
  *
  ******************************************************************************/
 void
-parsec_zpotrf_sp2d_Destruct( parsec_handle_t *handle )
+parsec_zpotrf_sp2d_Destruct( parsec_taskpool_t *taskpool )
 {
-    parsec_zpotrf_sp2d_handle_t *parsec_zpotrf_sp2d = NULL;
-    parsec_zpotrf_sp2d = (parsec_zpotrf_sp2d_handle_t *)handle;
+    parsec_zpotrf_sp2d_taskpool_t *parsec_zpotrf_sp2d = NULL;
+    parsec_zpotrf_sp2d = (parsec_zpotrf_sp2d_taskpool_t *)taskpool;
 
     parsec_matrix_del2arena( parsec_zpotrf_sp2d->arenas[PARSEC_zpotrf_sp2d_DEFAULT_ARENA] );
 
     parsec_private_memory_fini( parsec_zpotrf_sp2d->_g_p_work );
     free( parsec_zpotrf_sp2d->_g_p_work );
 
-    parsec_handle_free( handle );
+    parsec_taskpool_free( taskpool );
 }
 
 /**
@@ -302,7 +302,7 @@ parsec_zpotrf_sp2d_Destruct( parsec_handle_t *handle )
  *******************************************************************************
  *
  * @retval NULL if incorrect parameters are given.
- * @retval The parsec handle describing the operation that can be
+ * @retval The parsec taskpool describing the operation that can be
  *         enqueued in the runtime with parsec_enqueue(). It, then, needs to be
  *         destroy with parsec_zpotrf_sp2d_Destruct().
  *
@@ -317,14 +317,14 @@ parsec_zpotrf_sp2d( parsec_context_t *parsec,
                     parsec_sparse_matrix_desc_t *A,
                     sopalin_data_t *sopalin_data )
 {
-    parsec_handle_t *parsec_zpotrf_sp2d = NULL;
+    parsec_taskpool_t *parsec_zpotrf_sp2d = NULL;
     int info = 0;
 
     parsec_zpotrf_sp2d = parsec_zpotrf_sp2d_New( A, sopalin_data );
 
     if ( parsec_zpotrf_sp2d != NULL )
     {
-        parsec_enqueue( parsec, (parsec_handle_t*)parsec_zpotrf_sp2d );
+        parsec_enqueue( parsec, (parsec_taskpool_t*)parsec_zpotrf_sp2d );
         parsec_context_start( parsec );
         parsec_context_wait( parsec );
         parsec_zpotrf_sp2d_Destruct( parsec_zpotrf_sp2d );

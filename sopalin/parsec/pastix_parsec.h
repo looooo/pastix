@@ -21,26 +21,27 @@
 #ifndef _PASTIX_PARSEC_H_
 #define _PASTIX_PARSEC_H_
 
+#include <parsec.h>
 #include <parsec/data_distribution.h>
 
 /**
  * @brief PaRSEC descriptor stucture for the sparse matrix.
  */
 typedef struct parsec_sparse_matrix_desc_s {
-    parsec_ddesc_t  super;      /**< Every PaRSEC descriptors must inherit from parsec_desc_t                        */
-    int             typesze;    /**< Arithmetic size                                                                 */
-    int             mtxtype;    /**< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.            */
-    SolverMatrix   *solvmtx;    /**< Solver matrix structure that describes the problem and stores the original data */
-    void          **d_blocktab; /**< Pointer to GPU arrays that contains frownum,lrownum of each block for Fermi     */
+    parsec_data_collection_t  super;      /**< Every PaRSEC descriptors must inherit from parsec_desc_t                        */
+    int                       typesze;    /**< Arithmetic size                                                                 */
+    int                       mtxtype;    /**< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.            */
+    SolverMatrix             *solvmtx;    /**< Solver matrix structure that describes the problem and stores the original data */
+    void                    **d_blocktab; /**< Pointer to GPU arrays that contains frownum,lrownum of each block for Fermi     */
 } parsec_sparse_matrix_desc_t;
 
 /**
  * @brief PaRSEC descriptor for the vectors linked to a given sparse matrix.
  */
 typedef struct parsec_sparse_vector_desc_t {
-    parsec_ddesc_t   super;  /**< Every PaRSEC descriptors must inherit from parsec_desc_t                        */
-    int             typesze; /**< Arithmetic size                                                                 */
-    SolverMatrix   *solvmtx; /**< Solver matrix structure that describes the problem and stores the original data */
+    parsec_data_collection_t  super;  /**< Every PaRSEC descriptors must inherit from parsec_desc_t                        */
+    int                       typesze; /**< Arithmetic size                                                                 */
+    SolverMatrix             *solvmtx; /**< Solver matrix structure that describes the problem and stores the original data */
 } parsec_sparse_vector_desc_t;
 
 void parsec_sparse_matrix_init( SolverMatrix *solvmtx,
