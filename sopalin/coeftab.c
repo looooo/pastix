@@ -32,9 +32,6 @@
 #include "sopalin/starpu/pastix_starpu.h"
 #endif
 
-/**
- * @brief List of function to compute the memory gain in Low-Rank per precision.
- */
 coeftab_fct_memory_t coeftabMemory[4] =
 {
     coeftab_smemory, coeftab_dmemory, coeftab_cmemory, coeftab_zmemory
@@ -45,7 +42,7 @@ coeftab_fct_memory_t coeftabMemory[4] =
  */
 struct coeftabinit_s {
     const SolverMatrix  *datacode; /**< The sovler matrix                         */
-    const pastix_bcsc_t *bcsc;     /**< The interna block CSC                     */
+    const pastix_bcsc_t *bcsc;     /**< The internal block CSC                    */
     char               **dirtemp;  /**< The pointer to the output directory       */
     pastix_coefside_t    side;     /**< The side of the matrix beeing initialized */
 };
@@ -124,7 +121,7 @@ pcoeftabInit( isched_thread_t *ctx,
  *          The pastix_data structure that hold the solver matrix to initialize.
  *
  * @param[in] side
- *          Describe the side(s) of the matrix that must be initiaized.
+ *          Describe the side(s) of the matrix that must be initialized.
  *          @arg PastixLCoef if lower part only
  *          @arg PastixUCoef if upper part only
  *          @arg PastixLUCoef if both sides.
@@ -154,7 +151,7 @@ coeftabInit( pastix_data_t    *pastix_data,
  *
  * @brief Free the solver matrix structure
  *
- * This routine free all daa structure refereing to the solver matrix L, aven
+ * This routine free all data structure refereing to the solver matrix L, even
  * the runtime descriptors if present.
  *
  *******************************************************************************

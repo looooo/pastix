@@ -16,7 +16,7 @@
  * @addtogroup coeftab
  * @{
  *   This group collects all the functions that operate on the full matrix and
- *   which are not actorization/solve routines.
+ *   which are not factorization/solve routines.
  *
  **/
 #ifndef _COEFTAB_H_
@@ -36,6 +36,9 @@ void coeftabExit( SolverMatrix      *solvmtx );
  */
 typedef pastix_int_t (*coeftab_fct_memory_t)( const SolverMatrix * );
 
+/**
+ * @brief List of functions to compute the memory gain in low-rank per precision.
+ */
 coeftab_fct_memory_t coeftabMemory[4];
 
 /**

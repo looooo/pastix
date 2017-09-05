@@ -174,7 +174,7 @@
  *
  ******
  *
- * @defgroup coeftab Solver matrix coefficient sturcture
+ * @defgroup coeftab Solver matrix coefficient structure
  * @ingroup  pastix_numfact
  *
  ******
