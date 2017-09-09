@@ -539,11 +539,8 @@ set(generated_files "")
 set(SOURCES
   common/z_integer.c
   #
-  sopalin/coeftab_zcompress.c
-  sopalin/coeftab_zdiff.c
-  sopalin/coeftab_zdump.c
+  sopalin/coeftab_z.c
   sopalin/coeftab_zinit.c
-  sopalin/coeftab_zschur.c
   sopalin/sequential_zdiag.c
   sopalin/sequential_zgetrf.c
   sopalin/sequential_zhetrf.c
@@ -779,6 +776,7 @@ add_documented_files(
   include/pastix.h
   include/pastix/api.h
   common/api.c
+  common/get_options.c
   #
   graph/graph.h
   graph/graph.c
@@ -862,6 +860,8 @@ add_documented_files(
   blend/pastix_subtask_blend.c
   blend/pastix_task_analyze.c
   #
+  sopalin/coeftab.h
+  sopalin/coeftab.c
   sopalin/schur.c
   sopalin/pastix.c
   sopalin/pastix_task_sopalin.c

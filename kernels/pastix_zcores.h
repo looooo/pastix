@@ -274,6 +274,45 @@ int cpucblk_zsytrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double cr
                               pastix_complex64_t *work1, pastix_complex64_t *work2 );
 
 /**
+ *    @}
+ *    @name PastixComplex64 initialization and additionnal routines
+ *    @{
+ */
+void cpucblk_zalloc   ( pastix_coefside_t    side,
+                        SolverCblk          *cblk );
+void cpucblk_zfillin  ( pastix_coefside_t    side,
+                        const SolverMatrix  *solvmtx,
+                        const pastix_bcsc_t *bcsc,
+                        pastix_int_t         itercblk );
+void cpucblk_zinit    ( pastix_coefside_t    side,
+                        const SolverMatrix  *solvmtx,
+                        const pastix_bcsc_t *bcsc,
+                        pastix_int_t         itercblk,
+                        char               **directory );
+void cpucblk_zgetschur( const SolverCblk    *cblk,
+                        int                  upper_part,
+                        pastix_complex64_t  *S,
+                        pastix_int_t         lds );
+void cpucblk_zdump    ( pastix_coefside_t    side,
+                        const SolverCblk    *cblk,
+                        FILE                *stream );
+int  cpucblk_zdiff    ( pastix_coefside_t    side,
+                        const SolverCblk    *cblkA,
+                        SolverCblk          *cblkB );
+/**
+ *    @}
+ *    @name PastixComplex64 compression/uncompression routines
+ *    @{
+ */
+pastix_int_t cpucblk_zcompress  ( pastix_coefside_t side,
+                                  SolverCblk       *cblk,
+                                  pastix_lr_t       lowrank );
+void         cpucblk_zuncompress( pastix_coefside_t side,
+                                  SolverCblk       *cblk );
+pastix_int_t cpucblk_zmemory    ( pastix_coefside_t side,
+                                  const SolverCblk *cblk );
+
+/**
  *     @}
  * @}
  *

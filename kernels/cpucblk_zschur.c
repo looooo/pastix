@@ -1,6 +1,6 @@
 /**
  *
- * @file coeftab_zschur.c
+ * @file cpucblk_zschur.c
  *
  * Precision dependent routines to extract the Schur complement.
  *
@@ -18,7 +18,6 @@
 #include "common.h"
 #include "solver.h"
 #include "lapacke.h"
-#include "sopalin/coeftab_z.h"
 #include "pastix_zcores.h"
 
 /**
@@ -42,9 +41,9 @@
  *          The leading dimension of the S array.
  *
  *******************************************************************************/
-void
-coeftab_zgetschur_one_lowrank( const SolverCblk *cblk, int upper_part,
-                               pastix_complex64_t *S, pastix_int_t lds )
+static inline void
+cpucblk_zgetschur_lr( const SolverCblk *cblk, int upper_part,
+                      pastix_complex64_t *S, pastix_int_t lds )
 {
     SolverBlok *blok  = cblk[0].fblokptr;
     SolverBlok *lblok = cblk[1].fblokptr;
@@ -110,9 +109,9 @@ coeftab_zgetschur_one_lowrank( const SolverCblk *cblk, int upper_part,
  *          The leading dimension of the S array.
  *
  *******************************************************************************/
-void
-coeftab_zgetschur_one_fullrank( const SolverCblk *cblk, int upper_part,
-                                pastix_complex64_t *S, pastix_int_t lds )
+static inline void
+cpucblk_zgetschur_fr( const SolverCblk *cblk, int upper_part,
+                      pastix_complex64_t *S, pastix_int_t lds )
 {
     SolverBlok *blok  = cblk[0].fblokptr;
     SolverBlok *lblok = cblk[1].fblokptr;
@@ -153,56 +152,35 @@ coeftab_zgetschur_one_fullrank( const SolverCblk *cblk, int upper_part,
     (void)ret;
 }
 
-
 /**
  *******************************************************************************
  *
- * @brief Extract the Schur complement
- *
- * This routine is sequential and returns the full Schur complement
- * uncommpressed in Lapack format.
+ * @brief Extract a cblk panel of the Schur complement to a dense lapack form.
  *
  *******************************************************************************
  *
- * @param[in] solvmtx
- *          The solver matrix structure describing the problem.
+ * @param[in] cblk
+ *          The column block to extract in the Schur array
+ *
+ * @param[in] upper_part
+ *          If true, the upper part is also extracted in S.
  *
  * @param[inout] S
- *          The pointer to the allocated matrix array that will store the Schur
- *          complement.
+ *          The pointer to the top of the column of the cblk in the Schur array.
+ *          On exit, the computed coefficient are copy to this array.
  *
  * @param[in] lds
  *          The leading dimension of the S array.
  *
  *******************************************************************************/
 void
-coeftab_zgetschur( const SolverMatrix *solvmtx,
+cpucblk_zgetschur( const SolverCblk *cblk, int upper_part,
                    pastix_complex64_t *S, pastix_int_t lds )
 {
-    SolverCblk *cblk = solvmtx->cblktab + solvmtx->cblkschur;
-    pastix_complex64_t *localS;
-    pastix_int_t itercblk, fcolnum, nbcol;
-    int upper_part = (solvmtx->factotype == PastixFactLU);
-    fcolnum = cblk->fcolnum;
-
-    nbcol = solvmtx->nodenbr - fcolnum;
-    assert( nbcol <= lds );
-
-    /* Initialize the array to 0 */
-    LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', nbcol, nbcol, 0., 0., S, lds );
-
-    for (itercblk=solvmtx->cblkschur; itercblk<solvmtx->cblknbr; itercblk++, cblk++)
-    {
-        assert( cblk->cblktype & CBLK_IN_SCHUR );
-        assert( lds >= cblk->stride );
-
-        localS = S + (cblk->fcolnum - fcolnum) * lds + (cblk->fcolnum - fcolnum);
-
-        if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            coeftab_zgetschur_one_lowrank( cblk, upper_part, localS, lds );
-        }
-        else {
-            coeftab_zgetschur_one_fullrank( cblk, upper_part, localS, lds );
-        }
+    if ( cblk->cblktype & CBLK_COMPRESSED ) {
+        cpucblk_zgetschur_lr( cblk, upper_part, S, lds );
+    }
+    else {
+        cpucblk_zgetschur_fr( cblk, upper_part, S, lds );
     }
 }

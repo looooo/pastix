@@ -359,6 +359,44 @@ static struct option long_options[] =
 };
 #endif  /* defined(HAVE_GETOPT_LONG) */
 
+/**
+ *******************************************************************************
+ *
+ * @brief PaStiX helper function to read command line options in examples.
+ *
+ * This function takes the command line arguments, and read the given parameters
+ * (integers and doubles), as well as the matrix filename and the driver to read
+ * it.
+ *
+ *******************************************************************************
+ *
+ * @param[in] argc
+ *          The number of input parameters
+ *
+ * @param[in] argv
+ *          The NULL terminated list of parameters
+ *
+ * @param[inout] iparam
+ *          The integer array of parameters.
+ *          On entry, must be initialized to the default value with pastixInitParam(),
+ *          On exit, is updated with any option that matches the pastix parameters.
+ *
+ * @param[inout] dparam
+ *          The double array of parameters.
+ *          On entry, must be initialized to the default value with pastixInitParam(),
+ *          On exit, is updated with any option that matches the pastix parameters.
+ *
+ * @param[inout] check
+ *          On exit, the value is updated by the value of the -c option.
+ *
+ * @param[inout] driver
+ *          On exit, contains the driver type give as option. -1, if no driver
+ *          is specified.
+ *
+ * @param[out] filename
+ *          The allocated string of the filename given with the driver.
+ *
+ *******************************************************************************/
 void
 pastix_getOptions( int argc, char **argv,
                    pastix_int_t *iparam, double *dparam,
@@ -371,6 +409,7 @@ pastix_getOptions( int argc, char **argv,
         pastix_usage(); exit(0);
     }
 
+    *driver = -1;
     do
     {
 #if defined(HAVE_GETOPT_LONG)

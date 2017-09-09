@@ -251,17 +251,16 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
         if ( lowrank->compress_when == PastixCompressWhenEnd )
         {
             M = blok_rownbr(blok);
-            if ( ( N > lowrank->compress_min_width ) && ( M > lowrank->compress_min_height ) ){
+            if ( ( N > lowrank->compress_min_width  ) &&
+                 ( M > lowrank->compress_min_height ) )
+            {
                 pastix_lrblock_t C;
                 lowrank->core_ge2lr( lowrank->tolerance, M, N,
                                      lrC->u, M,
                                      &C );
 
                 core_zlrfree(lrC);
-                lrC->u = C.u;
-                lrC->v = C.v;
-                lrC->rk = C.rk;
-                lrC->rkmax = C.rkmax;
+                memcpy( lrC, &C, sizeof(pastix_lrblock_t) );
             }
         }
 

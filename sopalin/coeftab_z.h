@@ -28,11 +28,6 @@
  *    @name PastixComplex64 compression/uncompression routines
  *    @{
  */
-pastix_int_t coeftab_zcompress_one  ( SolverCblk *cblk, pastix_lr_t lowrank );
-void         coeftab_zalloc_one     ( SolverCblk *cblk );
-void         coeftab_zuncompress_one( SolverCblk *cblk, int factoLU );
-pastix_int_t coeftab_zmemory_one    ( const SolverCblk *cblk, int factoLU );
-
 pastix_int_t coeftab_zcompress  ( SolverMatrix *solvmtx );
 void         coeftab_zuncompress( SolverMatrix *solvmtx );
 pastix_int_t coeftab_zmemory    ( const SolverMatrix *solvmtx );
@@ -42,39 +37,24 @@ pastix_int_t coeftab_zmemory    ( const SolverMatrix *solvmtx );
  *    @name PastixComplex64 initialization routines
  *    @{
  */
-void coeftab_zffbcsc  ( const SolverMatrix  *solvmtx,
-                        const pastix_bcsc_t *bcsc,
-                        pastix_int_t         itercblk );
-void coeftab_zcblkinit( const SolverMatrix  *solvmtx,
-                        const pastix_bcsc_t *bcsc,
-                        pastix_int_t         itercblk,
-                        int                  factoLU,
-                        char               **directory );
-
 /**
  *    @}
  *    @name PastixComplex64 Schur routines
  *    @{
  */
-void coeftab_zgetschur_one_fullrank( const SolverCblk *cblk, int upper_part,
-                                     pastix_complex64_t *S, pastix_int_t lds );
-void coeftab_zgetschur_one_lowrank ( const SolverCblk *cblk, int upper_part,
-                                     pastix_complex64_t *S, pastix_int_t lds );
-void coeftab_zgetschur             ( const SolverMatrix *solvmtx,
-                                     pastix_complex64_t *S, pastix_int_t lds );
+void coeftab_zgetschur( const SolverMatrix *solvmtx,
+                        pastix_complex64_t *S, pastix_int_t lds );
 
 /**
  *    @}
  *    @name PastixComplex64 debug routines
  *    @{
  */
-void coeftab_zcblkdump( const SolverCblk   *cblk,
-                        pastix_uplo_t       uplo,
-                        FILE               *stream );
 void coeftab_zdump    ( pastix_data_t      *pastix_data,
                         const SolverMatrix *solvmtx,
                         const char         *filename );
-int  coeftab_zdiff    ( const SolverMatrix *solvA,
+int  coeftab_zdiff    ( pastix_coefside_t   side,
+                        const SolverMatrix *solvA,
                         SolverMatrix       *solvB );
 
 /**

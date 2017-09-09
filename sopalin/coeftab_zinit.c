@@ -23,172 +23,217 @@
 #include "solver.h"
 #include "bcsc.h"
 #include "sopalin/coeftab_z.h"
+#include "pastix_zcores.h"
 
+/**
+ *******************************************************************************
+ *
+ * @brief Dump a single column block into a FILE in a human readale format.
+ *
+ * All non-zeroes coefficients are dumped in the format:
+ *    i j val
+ * with one value per row.
+ *
+ *******************************************************************************
+ *
+ * @param[in] side
+ *          Define which side of the cblk must be printed.
+ *          @arg PastixLCoef if lower part only
+ *          @arg PastixUCoef if upper part only
+ *
+ * @param[in] cblk
+ *          The column block to dump into the file.
+ *
+ * @param[inout] stream
+ *          The FILE structure opened in write mode.
+ *
+ *******************************************************************************/
 void
-coeftab_zffbcsc( const SolverMatrix  *solvmtx,
-                 const pastix_bcsc_t *bcsc,
-                 pastix_int_t         itercblk )
+cpucblk_zdump( pastix_coefside_t side,
+               const SolverCblk *cblk,
+               FILE             *stream )
 {
-    const bcsc_format_t *csccblk = bcsc->cscftab + itercblk;
-    SolverCblk *solvcblk = solvmtx->cblktab + itercblk;
-    SolverBlok *solvblok;
-    SolverBlok *solvblok2 = (solvcblk+1)->fblokptr;
-    pastix_complex64_t *lcoeftab = solvcblk->lcoeftab;
-    pastix_complex64_t *ucoeftab = solvcblk->ucoeftab;
-    pastix_complex64_t *Lvalues = bcsc->Lvalues;
-    pastix_complex64_t *Uvalues = bcsc->Uvalues;
-    pastix_int_t itercoltab, iterval, coefindx;
+    const pastix_complex64_t *coeftab = side == PastixUCoef ? cblk->ucoeftab : cblk->lcoeftab;
+    SolverBlok  *blok;
+    pastix_int_t itercol;
+    pastix_int_t iterrow;
+    pastix_int_t coefindx;
 
-    for (itercoltab=0; itercoltab<csccblk->colnbr; itercoltab++)
+    /* We don't know how to dump the compressed block for now */
+    if ( cblk->cblktype & CBLK_COMPRESSED ) {
+        fprintf(stderr, "coeftab_zcblkdump: Can't dump a compressed cblk\n");
+        return;
+    }
+
+    for (itercol  = cblk->fcolnum;
+         itercol <= cblk->lcolnum;
+         itercol++)
     {
-        pastix_int_t frow = csccblk->coltab[itercoltab];
-        pastix_int_t lrow = csccblk->coltab[itercoltab+1];
-        solvblok = solvcblk->fblokptr;
+        /* Diagonal Block */
+        blok     = cblk->fblokptr;
+        coefindx = blok->coefind;
+        if (cblk->cblktype & CBLK_LAYOUT_2D) {
+            coefindx += (itercol - cblk->fcolnum) * blok_rownbr( blok );
+        }
+        else {
+            coefindx += (itercol - cblk->fcolnum) * cblk->stride;
+        }
 
-        for (iterval=frow; iterval<lrow; iterval++)
+        for (iterrow  = blok->frownum;
+             iterrow <= blok->lrownum;
+             iterrow++, coefindx++)
         {
-            pastix_int_t rownum = bcsc->rowtab[iterval];
-
-            /* If values in the lower part of the matrix */
-            if (rownum >= (solvcblk->fcolnum+itercoltab))
+            if ((cabs( coeftab[coefindx] ) > 0.) &&
+                (itercol <= iterrow))
             {
-                while ((solvblok < solvblok2) &&
-                       ((solvblok->lrownum < rownum) ||
-                        (solvblok->frownum > rownum)))
-                {
-                    solvblok++;
-                }
-
-                if ( solvblok < solvblok2 )
-                {
-                    coefindx  = solvblok->coefind;
-                    coefindx += rownum - solvblok->frownum;
-                    if (solvcblk->cblktype & CBLK_LAYOUT_2D) {
-                        coefindx += itercoltab * blok_rownbr( solvblok );
-                    }
-                    else {
-                        coefindx += itercoltab * solvcblk->stride;
-                    }
-
-                    lcoeftab[coefindx] = Lvalues[iterval];
-
-                    if ( (ucoeftab != NULL) &&
-                         (rownum > (solvcblk->fcolnum + itercoltab)) )
-                    {
+                if ( side == PastixUCoef ) {
 #if defined(PRECISION_z) || defined(PRECISION_c)
-                        if (bcsc->mtxtype == PastixHermitian)
-                            ucoeftab[coefindx] = conj(Uvalues[iterval]);
-                        else
+                    fprintf(stream, "%ld %ld (%13e,%13e) [U]\n",
+                            (long)itercol, (long)iterrow,
+                            creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
+#else
+                    fprintf(stream, "%ld %ld %13e [U]\n",
+                            (long)itercol, (long)iterrow,
+                            coeftab[coefindx]);
 #endif
-                            ucoeftab[coefindx] = Uvalues[iterval];
-                    }
                 }
                 else {
-                    /* printf("ILU: csc2solv drop coeff from CSC c=%ld(%ld) l=%ld(%ld) cblk=%ld fcol=%ld lcol=%ld\n", */
-                    /*        (long)datacode->cblktab[itercblk].fcolnum+ */
-                    /*        (long)itercoltab,(long)itercoltab, */
-                    /*        (long)CSC_ROW(cscmtx,iterval),(long)iterval, */
-                    /*        (long)itercblk, */
-                    /*        (long)datacode->cblktab[itercblk].fcolnum, */
-                    /*        (long)datacode->cblktab[itercblk].lcolnum); */
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                    fprintf(stream, "%ld %ld (%13e,%13e) [L]\n",
+                            (long)iterrow, (long)itercol,
+                            creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
+#else
+                    fprintf(stream, "%ld %ld %13e [L]\n",
+                            (long)iterrow, (long)itercol,
+                            coeftab[coefindx]);
+#endif
                 }
             }
+        }
+
+        /* Off diagonal blocks */
+        blok++;
+        while( blok < (cblk+1)->fblokptr )
+        {
+            coefindx  = blok->coefind;
+            if (cblk->cblktype & CBLK_LAYOUT_2D) {
+                coefindx += (itercol - cblk->fcolnum) * blok_rownbr( blok );
+            }
+            else {
+                coefindx += (itercol - cblk->fcolnum) * cblk->stride;
+            }
+
+            for (iterrow  = blok->frownum;
+                 iterrow <= blok->lrownum;
+                 iterrow++, coefindx++)
+            {
+                if (cabs( coeftab[coefindx]) > 0.)
+                {
+                    if ( side == PastixUCoef ) {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                        fprintf(stream, "%ld %ld (%13e,%13e) [U]\n",
+                                (long)itercol, (long)iterrow,
+                                creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
+#else
+                        fprintf(stream, "%ld %ld %13e [U]\n",
+                                (long)itercol, (long)iterrow,
+                                coeftab[coefindx]);
+#endif
+                    }
+                    else {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                        fprintf(stream, "%ld %ld (%13e,%13e) [L]\n",
+                                (long)iterrow, (long)itercol,
+                                creal(coeftab[coefindx]), cimag(coeftab[coefindx]));
+#else
+                        fprintf(stream, "%ld %ld %13e [L]\n",
+                                (long)iterrow, (long)itercol,
+                                coeftab[coefindx]);
+#endif
+                    }
+                }
+            }
+            blok++;
         }
     }
 }
 
-/*
- * Function: z_CoefMatrix_Allocate
+/**
+ *******************************************************************************
  *
- * Allocate matrix coefficients in coeftab and ucoeftab.
+ * @brief Fully initialize a single cblk.
  *
- * Should be first called with me = -1 to allocated coeftab.
- * Then, should be called with me set to thread ID
- * to allocate column blocks coefficients arrays.
+ * The cblk is allocated, intialized from the bcsc, and compressed if necessary.
  *
- * Parameters
+ *******************************************************************************
  *
- *    datacode  - solverMatrix
- *    factotype - factorization type (LU, LLT ou LDLT)
- *    me        - thread number. (-1 for first call,
- *                from main thread. >=0 to allocate column blocks
- *     assigned to each thread.)
- */
+ * @param[in] side
+ *          Define which side of the matrix must be initialized.
+ *          @arg PastixLCoef if lower part only
+ *          @arg PastixUCoef if upper part only
+ *          @arg PastixLUCoef if both sides.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix data structure.
+ *
+ * @param[in] bcsc
+ *          The internal block CSC structure to fill-in the matrix.
+ *
+ * @param[in] itercblk
+ *          The index of the cblk to initialize.
+ *
+ * @param[inout] directrory
+ *          The pointer to the temporary directory where to store the output
+ *          files.  Used only if PASTIX_DEBUG_DUMP_COEFTAB is defined.
+ *
+ *******************************************************************************/
 void
-coeftab_zcblkfill( const SolverMatrix  *solvmtx,
-                   const pastix_bcsc_t *bcsc,
-                   pastix_int_t itercblk,
-                   int factoLU )
+cpucblk_zinit( pastix_coefside_t    side,
+               const SolverMatrix  *solvmtx,
+               const pastix_bcsc_t *bcsc,
+               pastix_int_t         itercblk,
+               char               **directory )
 {
-    SolverCblk *cblk     = solvmtx->cblktab + itercblk;
-    pastix_int_t coefnbr = cblk->stride * cblk_colnbr( cblk );
-
-    /* If not NULL, allocated to store the shur complement for exemple */
-    assert( cblk->lcoeftab == NULL );
-
-    MALLOC_INTERN( cblk->lcoeftab, coefnbr, pastix_complex64_t );
-    memset( cblk->lcoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
-
-    if ( factoLU ) {
-        /* Extra diagonal block for low-rank updates */
-        MALLOC_INTERN( cblk->ucoeftab, coefnbr, pastix_complex64_t );
-        memset( cblk->ucoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
-    }
-    else {
-        cblk->ucoeftab = NULL;
-    }
-
-    coeftab_zffbcsc( solvmtx, bcsc, itercblk );
-}
-
-/*
- * Function: z_CoefMatrix_Allocate
- *
- * Allocate matrix coefficients in coeftab and ucoeftab.
- *
- * Should be first called with me = -1 to allocated coeftab.
- * Then, should be called with me set to thread ID
- * to allocate column blocks coefficients arrays.
- *
- * Parameters
- *
- *    datacode  - solverMatrix
- *    factotype - factorization type (LU, LLT ou LDLT)
- *    me        - thread number. (-1 for first call,
- *                from main thread. >=0 to allocate column blocks
- *     assigned to each thread.)
- */
-void
-coeftab_zcblkinit( const SolverMatrix  *solvmtx,
-                   const pastix_bcsc_t *bcsc,
-                   pastix_int_t         itercblk,
-                   int                  factoLU,
-                   char               **directory )
-{
-    SolverCblk *cblk           = solvmtx->cblktab + itercblk;
     pastix_int_t compress_when = solvmtx->lowrank.compress_when;
+    SolverCblk  *cblk = solvmtx->cblktab + itercblk;
 
-    coeftab_zcblkfill( solvmtx, bcsc, itercblk, factoLU );
+    if ( (solvmtx->lowrank.compress_when != PastixCompressNever) &&
+         (cblk->cblktype & CBLK_LAYOUT_2D) )
+    {
+        cblk->cblktype |= CBLK_COMPRESSED;
+    }
+    cpucblk_zalloc( side, cblk );
+    cpucblk_zfillin( side, solvmtx, bcsc, itercblk );
 
 #if defined(PASTIX_DEBUG_DUMP_COEFTAB)
+    /*
+     * Rk: This function is not in the kernel directory to avoid the double
+     * dependency with the pastix library due to pastix_fopenw()
+     */
     {
         FILE *f = NULL;
         char *filename;
         int rc;
 
-        rc = asprintf( &filename, "Lcblk%05ld_init.txt", itercblk );
-        f  = pastix_fopenw( directory, filename, "w" );
-        if ( f != NULL ) {
-            coeftab_zcblkdump( cblk, PastixLower, f );
-            fclose( f );
+        /* Lower part */
+        if ( side != PastixUCoef )
+        {
+            rc = asprintf( &filename, "Lcblk%05ld_init.txt", itercblk );
+            f  = pastix_fopenw( directory, filename, "w" );
+            if ( f != NULL ) {
+                cpucblk_zdump( PastixLCoef, cblk, f );
+                fclose( f );
+            }
+            free( filename );
         }
-        free( filename );
 
-        if ( cblk->ucoeftab ) {
+        /* Upper part */
+        if ( side != PastixLCoef )
+        {
             rc = asprintf( &filename, "Ucblk%05ld_init.txt", itercblk );
             f  = pastix_fopenw( directory, filename, "w" );
             if ( f != NULL ) {
-                coeftab_zcblkdump( cblk, PastixUpper, f );
+                cpucblk_zdump( PastixUCoef, cblk, f );
                 fclose( f );
             }
             free( filename );
@@ -201,14 +246,11 @@ coeftab_zcblkinit( const SolverMatrix  *solvmtx,
      * Try to compress the cblk if needs to be compressed
      * TODO: change the criteria based on the level in the tree
      */
-    if ( cblk->cblktype & CBLK_LAYOUT_2D )
+    if ( (cblk->cblktype & CBLK_COMPRESSED)                          &&
+         (compress_when == PastixCompressWhenBegin)                  &&
+         (cblk_colnbr( cblk ) > solvmtx->lowrank.compress_min_width) )
     {
-        if ( compress_when == PastixCompressWhenBegin ){
-            coeftab_zcompress_one( cblk, solvmtx->lowrank );
-        }
-        else if ( compress_when == PastixCompressWhenEnd ){
-            coeftab_zalloc_one( cblk );
-        }
+        cpucblk_zcompress( side, cblk, solvmtx->lowrank );
     }
 
     (void)directory;
