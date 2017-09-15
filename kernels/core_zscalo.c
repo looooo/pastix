@@ -179,6 +179,37 @@ cpucblk_zscalo( pastix_trans_t      trans,
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
             D   = cblk->fblokptr->LRblock[0].u;
             ldd = N+1;
+
+            for(; blok < lblk; blok++) {
+                M = blok_rownbr( blok );
+
+                memcpy( blok->LRblock + 1, blok->LRblock, sizeof(pastix_lrblock_t) );
+
+                if ( blok->LRblock[1].rk == -1 ) {
+                    assert( M == blok->LRblock[1].rkmax );
+
+                    blok->LRblock[1].u = LD + blok->coefind;
+
+                    L = blok->LRblock[0].u;
+                    B = blok->LRblock[1].u;
+                    ldl = M;
+                    ldb = M;
+                }
+                else {
+                    blok->LRblock[1].v = LD + blok->coefind;
+                    L = blok->LRblock[0].v;
+                    B = blok->LRblock[1].v;
+                    M = blok->LRblock[0].rkmax;
+                }
+
+                ldl = M;
+                ldb = M;
+
+                /* Compute B = LD */
+                core_zscalo( trans, M, N,
+                             L, ldl, D, ldd,
+                             B, ldb );
+            }
         }
         else if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
             L = D = cblk->lcoeftab;
