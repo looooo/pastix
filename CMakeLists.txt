@@ -772,6 +772,7 @@ generate_env_file()
 #
 #############################################################
 add_documented_files(
+  README.md
   #
   include/pastix.h
   include/pastix/api.h

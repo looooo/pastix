@@ -167,8 +167,7 @@ hamming_distance( pastix_int_t **vectors,
  *
  * @brief Reorder rows of a supernode with the nearest insertion TSP heuristic.
  *
- * See reordering paper
- * @todo Put link to the paper when published
+ * See reordering paper: http://epubs.siam.org/doi/10.1137/16M1062454. 
  *
  *******************************************************************************
  *
