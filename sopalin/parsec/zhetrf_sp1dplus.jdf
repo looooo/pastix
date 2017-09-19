@@ -33,6 +33,7 @@ datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->
 cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
 bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
 lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->solvmtx->lowrank)"]
+twoterms  [type = "int"                   hidden = on default = "(1)" ]
 
 p_work    [type = "parsec_memory_pool_t *"]
 
@@ -61,13 +62,26 @@ RW L <- ( browk0 == browk1 ) ? descA(0, k, 0) : C GEMM1D( lastbrow )
      -> A GEMM1D(firstblok .. lastblok)
      -> descA(0, k, 0)
 
+RW  WS <- twoterms ? NEW : NULL                        [type = CBLK_WS]
+       -> twoterms ? B GEMM1D(firstblok .. lastblok)   [type = CBLK_WS]
+
 ; %{ return cblknbr - k; %}
 
 BODY
 {
     SolverCblk *cblk = datacode->cblktab + k;
     if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
-        cpucblk_zhetrfsp1d_panel( cblk, L, NULL, sopalin_data->diagthreshold, &lowrank );
+        pastix_complex64_t *myDL = NULL;
+
+        if (WS != NULL) {
+            pastix_int_t N = cblk_colnbr( cblk );
+            unsigned int M = pastix_imax( sopalin_data->solvmtx->gemmmax,
+                                          sopalin_data->solvmtx->diagmax);
+
+            memset( WS, 0, M * sizeof(pastix_complex64_t) );
+            myDL = ((pastix_complex64_t*)WS) - N*N;
+        }
+        cpucblk_zhetrfsp1d_panel( cblk, L, myDL, sopalin_data->diagthreshold, &lowrank );
     }
 }
 END
@@ -140,6 +154,7 @@ m  = %{ if (brownum == -1) return 0; else {
 
 // Parameters
 READ  A  <- (brownum != -1) ? L  HETRF( lcblknm ) : NULL
+READ  B  <- (brownum != -1) & twoterms ? WS HETRF( lcblknm ) : NULL   [type = CBLK_WS]
 
 RW    C  <- (brownum == -1) ? NULL
          <- (brownum != -1) && (brownum == first) ? descA( 0, fcblknm, 0 )
@@ -189,11 +204,28 @@ BODY
         pastix_complex64_t *work = NULL;
 
         if (!(lcblk->cblktype & CBLK_IN_SCHUR)) {
-            work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
-            core_zhetrfsp1d_gemm( lcblk, blok, fcblk,
-                                  A, fcblk->lcoeftab,
-                                  work );
-            parsec_private_memory_push( p_work, (void *)work );
+            if (twoterms) {
+                pastix_int_t N = cblk_colnbr( lcblk );
+
+                if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
+                    work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
+                }
+
+                cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
+                                 lcblk, blok, fcblk,
+                                 A, ((pastix_complex64_t*)B) - N*N, C,
+                                 work, &lowrank );
+            }
+            else {
+                work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
+                core_zhetrfsp1d_gemm( lcblk, blok, fcblk,
+                                      A, fcblk->lcoeftab,
+                                      work );
+            }
+
+            if ( work  ) {
+                parsec_private_memory_push( p_work, (void *)work );
+            }
         }
     }
 }

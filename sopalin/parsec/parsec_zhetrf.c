@@ -79,6 +79,7 @@ parsec_zhetrf_sp1dplus_New( parsec_sparse_matrix_desc_t *A,
                             sopalin_data_t *sopalin_data )
 {
     parsec_zhetrf_sp1dplus_taskpool_t *parsec_zhetrf_sp1dplus = NULL;
+    unsigned int M = sopalin_data->solvmtx->gemmmax;
 
     parsec_zhetrf_sp1dplus = parsec_zhetrf_sp1dplus_new( A, sopalin_data, NULL );
 
@@ -90,6 +91,9 @@ parsec_zhetrf_sp1dplus_New( parsec_sparse_matrix_desc_t *A,
     parsec_matrix_add2arena_rect( parsec_zhetrf_sp1dplus->arenas[PARSEC_zhetrf_sp1dplus_DEFAULT_ARENA],
                                   parsec_datatype_double_complex_t, 1,
                                   /*sopalin_data->solvmtx->gemmmax*/ 1, 1 );
+
+    parsec_matrix_add2arena_rect( parsec_zhetrf_sp1dplus->arenas[PARSEC_zhetrf_sp1dplus_CBLK_WS_ARENA],
+                                  parsec_datatype_double_complex_t, M, 1, M );
 
     return (parsec_taskpool_t*)parsec_zhetrf_sp1dplus;
 }
@@ -114,6 +118,7 @@ parsec_zhetrf_sp1dplus_Destruct( parsec_taskpool_t *taskpool )
     parsec_zhetrf_sp1dplus = (parsec_zhetrf_sp1dplus_taskpool_t *)taskpool;
 
     parsec_matrix_del2arena( parsec_zhetrf_sp1dplus->arenas[PARSEC_zhetrf_sp1dplus_DEFAULT_ARENA] );
+    parsec_matrix_del2arena( parsec_zhetrf_sp1dplus->arenas[PARSEC_zhetrf_sp1dplus_CBLK_WS_ARENA] );
 
     parsec_private_memory_fini( parsec_zhetrf_sp1dplus->_g_p_work );
     free( parsec_zhetrf_sp1dplus->_g_p_work );
