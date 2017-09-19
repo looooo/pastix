@@ -97,7 +97,7 @@ parsec_zpotrf_sp1dplus_New( parsec_sparse_matrix_desc_t *A,
 /**
  *******************************************************************************
  *
- * @brief Free the data structure associated to an taskpool created with
+ * @brief Free the data structure associated to a taskpool created with
  * parsec_zpotrf_sp1dplus_New().
  *
  *******************************************************************************
@@ -249,7 +249,7 @@ parsec_zpotrf_sp2d_New( parsec_sparse_matrix_desc_t *A,
 /**
  *******************************************************************************
  *
- * @brief Free the data structure associated to an taskpool created with
+ * @brief Free the data structure associated to a taskpool created with
  * parsec_zpotrf_sp2d_New().
  *
  *******************************************************************************
