@@ -32,8 +32,7 @@
  * This function reorders the unknowns of the problem based on traveller
  * salesman problem to gather together the contibutions facing each supernodes.
  *
- * See reordering paper
- * @todo Put link to the paper when published
+ * See reordering paper: http://epubs.siam.org/doi/10.1137/16M1062454. 
  *
  * This routine is affected by the following parameters:
  *   IPARM_VERBOSE, IPARM_IO_STRATEGY, IPARM_REORDERING_SPLIT,
