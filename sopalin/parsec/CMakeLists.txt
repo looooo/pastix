@@ -44,6 +44,7 @@ add_custom_target(parsec_headers_tgt
 set(SOURCES
   parsec_zpotrf.c
   parsec_zgetrf.c
+  parsec_zhetrf.c
 )
 
 precisions_rules_py(generated_sources
@@ -61,9 +62,11 @@ add_documented_files(
 set(JDF
   zpotrf_sp1dplus.jdf
   zgetrf_sp1dplus.jdf
+  zhetrf_sp1dplus.jdf
   #
   zpotrf_sp2d.jdf
   zgetrf_sp2d.jdf
+  zhetrf_sp2d.jdf
 )
 precisions_rules_py(generated_jdf
   "${JDF}"
