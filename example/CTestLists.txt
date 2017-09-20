@@ -93,10 +93,9 @@ foreach(example ${PASTIX_TESTS} )
   foreach(scheduler ${PASTIX_SCHEDS} )
     if (NOT (scheduler EQUAL 3) ) # no low-rank with StarPU
       foreach(arithm ${PASTIX_PRECISIONS} )
-        set(factos "0;2") # No low-rank for LDLt/LDLh yet
-        #if (arithm IN_LIST _complex)
-        #  list(APPEND factos 3)
-        #endif()
+        if (arithm IN_LIST _complex)
+          list(APPEND factos 3)
+        endif()
         foreach(facto ${factos} )
           # SVD Begin
           add_test(example_svdbegin_sched${scheduler}_facto${facto}_${arithm}_${example}  ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodsvd  -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
