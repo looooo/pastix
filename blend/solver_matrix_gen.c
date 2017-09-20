@@ -665,8 +665,8 @@ solverMatrixGen( pastix_int_t           clustnum,
         SolverBlok  *solvblok = solvmtx->bloktab;
         pastix_int_t gemmmax = 0;
         pastix_int_t diagmax = 0;
-        pastix_int_t gemmarea;
-        pastix_int_t diagarea;
+        pastix_int_t blokmax = 0;
+        pastix_int_t gemmarea, diagarea, cblk_m, acc_m;
 
         /* Let's keep the block dimensions to print statistics informations */
         pastix_int_t maxg_m = 0;
@@ -678,39 +678,54 @@ solverMatrixGen( pastix_int_t           clustnum,
         {
             SolverBlok *lblok = solvcblk[1].fblokptr;
             pastix_int_t m = solvcblk->stride;
-            pastix_int_t n = solvblok->lrownum - solvblok->frownum + 1;
+            pastix_int_t n = cblk_colnbr( solvcblk );
+            pastix_int_t k = blok_rownbr( solvblok );
 
             /*
              * Compute the surface of the panel for LDLt factorization
              * This could be cut down if we know at analyse time which operation
              * will be performed.
              */
-            m -= n;
-            diagarea = (n+1) * n;
+            m -= k;
+            diagarea = (k+1) * k;
             if ( diagarea > diagmax ) {
                 diagmax = diagarea;
                 maxd_m = m;
-                maxd_n = n;
+                maxd_n = k;
             }
 
             /* Area of GEMDM updates */
             solvblok++;
+            cblk_m = -1;
             for( ; solvblok<lblok; solvblok++ ) {
-                n = solvblok->lrownum - solvblok->frownum + 1;
+                k = blok_rownbr( solvblok );
 
-                gemmarea = (m+1) * n;
+                /* GEMDM space to allocate */
+                gemmarea = (m+1) * k;
                 if ( gemmarea > gemmmax ) {
                     gemmmax = gemmarea;
                     maxg_m = m;
-                    maxg_n = n;
+                    maxg_n = k;
                 }
 
-                m -= n;
+                /* Max size for off-diagonal blocks for 2-terms version of the 2D LDL */
+                if ( solvcblk->cblktype & CBLK_TASKS_2D ) {
+                    if ( solvblok->fcblknm == cblk_m ) {
+                        acc_m += k;
+                    }
+                    else {
+                        cblk_m = solvblok->fcblknm;
+                        acc_m = k;
+                    }
+                    blokmax = pastix_imax( n * acc_m, blokmax );
+                }
+                m -= k;
             }
         }
 
         solvmtx->diagmax = diagmax;
         solvmtx->gemmmax = gemmmax;
+        solvmtx->blokmax = blokmax;
         if (ctrl->iparm[IPARM_VERBOSE]>PastixVerboseNo && 0) {
             pastix_print(clustnum, 0,
                          "Coefmax: diagonal %ld ((%ld+1) x %ld)\n"
