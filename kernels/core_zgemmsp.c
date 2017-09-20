@@ -1100,32 +1100,42 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
 {
     if ( fcblk->cblktype & CBLK_COMPRESSED ) {
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
+            start_trace_kernel( LVL1_GEMM_CBLK_LRLR, 1 );
             core_zgemmsp_lr( sideA, sideB, trans,
                              cblk, blok, fcblk,
                              work, lowrank );
+            stop_trace_kernel( 0, 1 );
         }
         else {
+            start_trace_kernel( LVL1_GEMM_CBLK_FRLR, 1 );
             core_zgemmsp_fulllr( sideA, trans,
                                  cblk, blok, fcblk,
                                  A, B, C, lowrank );
+            stop_trace_kernel( 0, 1 );
         }
     }
     else if ( fcblk->cblktype & CBLK_LAYOUT_2D ) {
         if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
+            start_trace_kernel( LVL1_GEMM_CBLK_2D2D, 1 );
             core_zgemmsp_2d2d( sideA, trans,
                                cblk, blok, fcblk,
                                A, B, C );
+            stop_trace_kernel( 0, 1 );
         }
         else {
+            start_trace_kernel( LVL1_GEMM_CBLK_1D2D, 1 );
             core_zgemmsp_1d2d( sideA, trans,
                                cblk, blok, fcblk,
                                A, B, C );
+            stop_trace_kernel( 0, 1 );
         }
     }
     else {
+        start_trace_kernel( LVL1_GEMM_CBLK_1D1D, 1 );
         core_zgemmsp_1d1d( sideA, trans,
                            cblk, blok, fcblk,
                            A, B, C, work );
+        stop_trace_kernel( 0, 1 );
     }
 }
 
@@ -1214,18 +1224,22 @@ cpublok_zgemmsp(       pastix_coefside_t   sideA,
     if ((cblk->cblktype  & CBLK_COMPRESSED) &&
         (fcblk->cblktype & CBLK_COMPRESSED))
     {
+        start_trace_kernel( LVL1_GEMM_BLOK_2DLR, 1 );
         core_zgemmsp_2dlrsub( sideA, sideB, transB,
                               blok_mk, blok_nk, blok_mn,
                               cblk, fcblk,
                               lowrank );
+        stop_trace_kernel( 0, 1 );
     }
     else if (!(cblk->cblktype  & CBLK_COMPRESSED) &&
              !(fcblk->cblktype & CBLK_COMPRESSED))
     {
+        start_trace_kernel( LVL1_GEMM_BLOK_2D2D, 1 );
         core_zgemmsp_2d2dsub( transB,
                               blok_mk, blok_nk, blok_mn,
                               cblk, fcblk,
                               A, B, C );
+        stop_trace_kernel( 0, 1 );
     }
     else {
         assert(0);

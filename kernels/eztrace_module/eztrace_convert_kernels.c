@@ -123,6 +123,24 @@ void define_kernels_properties()
     kernels_properties[POTRF]      = (kernels_t) {"potrf",      GTG_RED};
     kernels_properties[DENSE_TRSM] = (kernels_t) {"dense_trsm", GTG_SEABLUE};
     kernels_properties[DENSE_GEMM] = (kernels_t) {"dense_gemm", GTG_GREEN};
+
+    kernels_properties[LVL1_GETRF         ] = (kernels_t) {"lvl1_getrf", GTG_RED};
+    kernels_properties[LVL1_HETRF         ] = (kernels_t) {"lvl1_hetrf", GTG_RED};
+    kernels_properties[LVL1_POTRF         ] = (kernels_t) {"lvl1_potrf", GTG_RED};
+    kernels_properties[LVL1_PXTRF         ] = (kernels_t) {"lvl1_pxtrf", GTG_RED};
+    kernels_properties[LVL1_SYTRF         ] = (kernels_t) {"lvl1_sytrf", GTG_RED};
+    kernels_properties[LVL1_TRSM_CBLK_1D  ] = (kernels_t) {"lvl1_trsm_cblk_1d", GTG_BLUE};
+    kernels_properties[LVL1_TRSM_CBLK_2D  ] = (kernels_t) {"lvl1_trsm_cblk_2d", GTG_BLUE};
+    kernels_properties[LVL1_TRSM_CBLK_LR  ] = (kernels_t) {"lvl1_trsm_cblk_lr", GTG_BLUE};
+    kernels_properties[LVL1_TRSM_BLOK_2D  ] = (kernels_t) {"lvl1_trsm_blok_2d", GTG_BLUE};
+    kernels_properties[LVL1_TRSM_BLOK_LR  ] = (kernels_t) {"lvl1_trsm_blok_lr", GTG_BLUE};
+    kernels_properties[LVL1_GEMM_CBLK_1D1D] = (kernels_t) {"lvl1_gemm_cblk_1d1d", GTG_GREEN};
+    kernels_properties[LVL1_GEMM_CBLK_1D2D] = (kernels_t) {"lvl1_gemm_cblk_1d2d", GTG_GREEN};
+    kernels_properties[LVL1_GEMM_CBLK_2D2D] = (kernels_t) {"lvl1_gemm_cblk_2d2d", GTG_GREEN};
+    kernels_properties[LVL1_GEMM_CBLK_FRLR] = (kernels_t) {"lvl1_gemm_cblk_frlr", GTG_GREEN};
+    kernels_properties[LVL1_GEMM_CBLK_LRLR] = (kernels_t) {"lvl1_gemm_cblk_lrlr", GTG_GREEN};
+    kernels_properties[LVL1_GEMM_BLOK_2D2D] = (kernels_t) {"lvl1_gemm_blok_2d2d", GTG_GREEN};
+    kernels_properties[LVL1_GEMM_BLOK_2DLR] = (kernels_t) {"lvl1_gemm_blok_2dlr", GTG_GREEN};
 }
 
 /**

@@ -80,24 +80,6 @@ typedef enum kernels_ev_code_e {
 } kernels_ev_code_t;
 
 /**
- * @brief Start eztrace module
- */
-static void start_eztrace_kernels(){
-#if defined(PASTIX_WITH_EZTRACE)
-    eztrace_start ();
-#endif /* defined(PASTIX_WITH_EZTRACE) */
-}
-
-/**
- * @brief Stop eztrace module
- */
-static void stop_eztrace_kernels(){
-#if defined(PASTIX_WITH_EZTRACE)
-    eztrace_stop ();
-#endif /* defined(PASTIX_WITH_EZTRACE) */
-}
-
-/**
  *******************************************************************************
  *
  * @brief Start to trace a kernel
@@ -158,9 +140,26 @@ static void stop_trace_kernel(double flops, int level){
 
     if (level == eztrace_level)
         EZTRACE_EVENT_PACKED_1(KERNELS_CODE(STOP), flops);
-    printf("LEVEL %d EZTRACE_LEVEL %d\n", level, eztrace_level);
 #else
     (void) flops;
+#endif /* defined(PASTIX_WITH_EZTRACE) */
+}
+
+/**
+ * @brief Start eztrace module
+ */
+static void start_eztrace_kernels(){
+#if defined(PASTIX_WITH_EZTRACE)
+    eztrace_start ();
+#endif /* defined(PASTIX_WITH_EZTRACE) */
+}
+
+/**
+ * @brief Stop eztrace module
+ */
+static void stop_eztrace_kernels(){
+#if defined(PASTIX_WITH_EZTRACE)
+    eztrace_stop ();
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 }
 

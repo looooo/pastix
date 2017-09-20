@@ -342,17 +342,23 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
 {
     if (  cblk[0].fblokptr + 1 < cblk[1].fblokptr ) {
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
+            start_trace_kernel( LVL1_TRSM_CBLK_LR, 1 );
             core_ztrsmsp_lr( coef, side, uplo, trans, diag,
                              cblk, lowrank );
+            stop_trace_kernel( 0, 1 );
         }
         else {
             if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
+                start_trace_kernel( LVL1_TRSM_CBLK_2D, 1 );
                 core_ztrsmsp_2d( side, uplo, trans, diag,
                                  cblk, A, C );
+                stop_trace_kernel( 0, 1 );
             }
             else {
+                start_trace_kernel( LVL1_TRSM_CBLK_1D, 1 );
                 core_ztrsmsp_1d( side, uplo, trans, diag,
                                  cblk, A, C );
+                stop_trace_kernel( 0, 1 );
             }
         }
     }
@@ -620,12 +626,16 @@ cpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                  const pastix_lr_t        *lowrank )
 {
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
+        start_trace_kernel( LVL1_TRSM_BLOK_LR, 1 );
         core_ztrsmsp_lrsub( coef, side, uplo, trans, diag,
                             cblk, blok_m, lowrank );
+        stop_trace_kernel( 0, 1 );
     }
     else {
+        start_trace_kernel( LVL1_TRSM_BLOK_2D, 1 );
         core_ztrsmsp_2dsub( side, uplo, trans, diag,
                             cblk, blok_m, A, C );
+        stop_trace_kernel( 0, 1 );
     }
 }
 

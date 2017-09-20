@@ -286,7 +286,10 @@ cpucblk_zgetrfsp1d_panel( SolverCblk         *cblk,
                           const pastix_lr_t  *lowrank )
 {
     pastix_int_t nbpivot;
+
+    start_trace_kernel( LVL1_GETRF, 1 );
     nbpivot = cpucblk_zgetrfsp1d_getrf(cblk, L, U, criteria);
+    stop_trace_kernel( 0, 1 );
 
     /*
      * We exploit the fact that the upper triangle is stored at the top of the L
