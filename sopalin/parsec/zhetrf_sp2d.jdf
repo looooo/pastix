@@ -37,7 +37,6 @@ cblkmax1d [type = "pastix_int_t"          hidden = on default = "(datacode->cblk
 cblkmin2d [type = "pastix_int_t"          hidden = on default = "(datacode->cblkmin2d)"         ]
 blokmax1d [type = "pastix_int_t"          hidden = on default = "(((datacode->cblktab + cblkmax1d + 1)->fblokptr - datacode->bloktab) - 1)" ]
 lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->solvmtx->lowrank)"]
-twoterms  [type = "int"                   hidden = on default = "(1)" ]
 
 p_work    [type = "parsec_memory_pool_t *"]
 
@@ -68,8 +67,8 @@ RW L <- ( browk0 == browk1 ) ? descA(0, k, 0) : C GEMM1D( lastbrow )
      -> !isTwoD ? A GEMM1D(firstblok .. lastblok)
      -> descA(0, k, 0)
 
-RW  WS <- (!isTwoD) & twoterms ? NEW : NULL                        [type = CBLK_WS]
-       -> (!isTwoD) & twoterms ? B GEMM1D(firstblok .. lastblok)   [type = CBLK_WS]
+RW  WS <- (!isTwoD) ? NEW : NULL                        [type = CBLK_WS]
+       -> (!isTwoD) ? B GEMM1D(firstblok .. lastblok)   [type = CBLK_WS]
 
 CTL ctl -> isTwoD ? ctl OneToTwoD(k, 0 .. (lastblok-firstblok+1))
 
@@ -167,8 +166,8 @@ m  = %{ if (brownum == -1) return 0; else {
 :descA(0, fcblknm, 0)
 
 // Parameters
-READ  A  <- (brownum != -1) && !isTwoD             ? L  HETRF( lcblknm ) : NULL
-READ  B  <- (brownum != -1) && !isTwoD && twoterms ? WS HETRF( lcblknm ) : NULL   [type=CBLK_WS]
+READ  A  <- (brownum != -1) && !isTwoD ? L  HETRF( lcblknm ) : NULL
+READ  B  <- (brownum != -1) && !isTwoD ? WS HETRF( lcblknm ) : NULL   [type=CBLK_WS]
 
 RW    C  <- (brownum == -1) || isTwoD ? NULL
          <- (brownum != -1) && !isTwoD && (brownum == first) ? descA( 0, fcblknm, 0 )
@@ -218,24 +217,16 @@ BODY
         pastix_complex64_t *work = NULL;
 
         if (!(lcblk->cblktype & CBLK_IN_SCHUR)) {
-            if (twoterms) {
-                pastix_int_t N = cblk_colnbr( lcblk );
+            pastix_int_t N = cblk_colnbr( lcblk );
 
-                if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
-                    work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
-                }
-
-                cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
-                                 lcblk, blok, fcblk,
-                                 A, ((pastix_complex64_t*)B) - N*N, C,
-                                 work, &lowrank );
-            }
-            else {
+            if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
                 work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
-                core_zhetrfsp1d_gemm( lcblk, blok, fcblk,
-                                      A, fcblk->lcoeftab,
-                                      work );
             }
+
+            cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
+                             lcblk, blok, fcblk,
+                             A, ((pastix_complex64_t*)B) - N*N, C,
+                             work, &lowrank );
 
             if ( work  ) {
                 parsec_private_memory_push( p_work, (void *)work );
@@ -317,8 +308,9 @@ BODY
     if (isTwoD) {
         SolverCblk *cblk = datacode->cblktab + k;
         /* pastix_int_t  nbpivot = */
-        if (!(cblk->cblktype & CBLK_IN_SCHUR))
+        if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
             cpucblk_zhetrfsp1d_hetrf( cblk, A, sopalin_data->diagthreshold );
+        }
     }
 }
 END
@@ -351,11 +343,13 @@ lblokn  = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + fcblknm + 1; r
 /* C is A(k) if it's a leaf or get the cblk from the last update */
 READ  A   <-  isTwoD ? A HETRF2D( k ) : NULL
 
+RW    WS  <-  isTwoD ? NEW : NULL                                        [ type = BLOK_WS ]
+          ->  isTwoD ? B GEMM2D( fcblknm, 0 .. (lblokn-fblokn), browkb ) [ type = BLOK_WS ]
+
 RW    C   <-  isTwoD & noskip & (first == last) ? A OneToTwoD( k, m )
           <-  isTwoD & noskip & (first <  last) ? C GEMM2D( k, m, last-1 )
           <-(!isTwoD) | (!noskip) ? NULL
           ->  isTwoD & noskip ? A FWDTOGEMM2D( k, m, 1 .. m )
-          ->  isTwoD & noskip ? B GEMM2D( fcblknm, 0 .. (lblokn-fblokn), browkb )
           ->  isTwoD & noskip ? descA(0, k, noskip)
 
 ; %{ return cblknbr - k; %}
@@ -367,10 +361,13 @@ BODY [ type=CUDA device=%{ return -2; %} ]
         SolverCblk *cblk  = datacode->cblktab + k;
 
         if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
-            gpublok_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
-                             PastixConjTrans, PastixNonUnit,
+            gpublok_ztrsmsp( PastixLCoef, PastixRight, PastixUpper,
+                             PastixNoTrans, PastixNonUnit,
                              cblk, m, A, C, &lowrank,
                              parsec_body.stream );
+
+            /* TODO: implements gpublok_zscalo */
+            assert(0);
         }
     }
 }
@@ -383,9 +380,11 @@ BODY
         SolverCblk *cblk = datacode->cblktab + k;
 
         if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
-            cpublok_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
-                             PastixConjTrans, PastixNonUnit,
+            cpublok_ztrsmsp( PastixLCoef, PastixRight, PastixUpper,
+                             PastixNoTrans, PastixNonUnit,
                              cblk, m, A, C, &lowrank );
+
+            cpublok_zscalo( PastixConjTrans, cblk, m, C, A, WS );
         }
     }
 }
@@ -533,8 +532,8 @@ todo = (is2dA && is2dC && noskipC && blok_nk && blok_mk)
 :descA(0, cblk_n, noskipC)
 
 // Parameters
-READ  A  <-  is2dA & (blok_mk > 0) ? A FWDTOGEMM2D( cblk_k, blok_mk, blok_nk-fblokk ) : NULL
-READ  B  <-  is2dA & (blok_nk > 0) ? C TRSM2D( cblk_k, blok_nk-fblokk ) : NULL                       [type=BLOK_WS]
+READ  A  <-  is2dA & (blok_mk > 0) ? A  FWDTOGEMM2D( cblk_k, blok_mk, blok_nk-fblokk ) : NULL
+READ  B  <-  is2dA & (blok_nk > 0) ? WS TRSM2D(      cblk_k,          blok_nk-fblokk ) : NULL  [type=BLOK_WS]
 
 RW    C  <- (k == first) ? A OneToTwoD( cblk_n, blok_mn )
          <- (k != first) ? C GEMM2D( cblk_n, blok_mn, k-1 )
@@ -556,7 +555,7 @@ BODY [ type=CUDA device=%{ return -2; %} ]
         pastix_int_t nk = blok_nk - fblokk;
 
         if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
-            gpublok_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+            gpublok_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
                              cblk, fcblk, blok_mk, nk, blok_mn,
                              A, B, C, &lowrank,
                              parsec_body.stream );
@@ -575,7 +574,7 @@ BODY
         pastix_int_t nk = blok_nk - fblokk;
 
         if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
-            cpublok_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+            cpublok_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
                              cblk, fcblk, blok_mk, nk, blok_mn,
                              A, B, C, &lowrank );
         }

@@ -79,7 +79,7 @@ parsec_zhetrf_sp1dplus_New( parsec_sparse_matrix_desc_t *A,
                             sopalin_data_t *sopalin_data )
 {
     parsec_zhetrf_sp1dplus_taskpool_t *parsec_zhetrf_sp1dplus = NULL;
-    unsigned int M = sopalin_data->solvmtx->gemmmax;
+    unsigned int gemmmax = sopalin_data->solvmtx->gemmmax;
 
     parsec_zhetrf_sp1dplus = parsec_zhetrf_sp1dplus_new( A, sopalin_data, NULL );
 
@@ -93,7 +93,7 @@ parsec_zhetrf_sp1dplus_New( parsec_sparse_matrix_desc_t *A,
                                   /*sopalin_data->solvmtx->gemmmax*/ 1, 1 );
 
     parsec_matrix_add2arena_rect( parsec_zhetrf_sp1dplus->arenas[PARSEC_zhetrf_sp1dplus_CBLK_WS_ARENA],
-                                  parsec_datatype_double_complex_t, M, 1, M );
+                                  parsec_datatype_double_complex_t, gemmmax, 1, gemmmax );
 
     return (parsec_taskpool_t*)parsec_zhetrf_sp1dplus;
 }
@@ -236,6 +236,8 @@ parsec_zhetrf_sp2d_New( parsec_sparse_matrix_desc_t *A,
                         sopalin_data_t *sopalin_data )
 {
     parsec_zhetrf_sp2d_taskpool_t *parsec_zhetrf_sp2d = NULL;
+    unsigned int gemmmax = sopalin_data->solvmtx->gemmmax;
+    unsigned int blokmax = sopalin_data->solvmtx->blokmax;
 
     parsec_zhetrf_sp2d = parsec_zhetrf_sp2d_new( A, sopalin_data, NULL );
 
@@ -249,11 +251,11 @@ parsec_zhetrf_sp2d_New( parsec_sparse_matrix_desc_t *A,
 
     parsec_matrix_add2arena_rect( parsec_zhetrf_sp2d->arenas[PARSEC_zhetrf_sp2d_CBLK_WS_ARENA],
                                   parsec_datatype_double_complex_t,
-                                  sopalin_data->solvmtx->gemmmax, 1, 1 );
+                                  gemmmax, 1, gemmmax );
 
     parsec_matrix_add2arena_rect( parsec_zhetrf_sp2d->arenas[PARSEC_zhetrf_sp2d_BLOK_WS_ARENA],
                                   parsec_datatype_double_complex_t,
-                                  sopalin_data->solvmtx->gemmmax/*blokmax*/, 1, 1 );
+                                  blokmax, 1, blokmax );
 
     return (parsec_taskpool_t*)parsec_zhetrf_sp2d;
 }
