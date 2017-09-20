@@ -94,13 +94,13 @@ core_ztrsmsp_1d( pastix_side_t             side,
     /* first extra-diagonal bloc in column block address */
     C = C + fblok[1].coefind;
 
-    start_trace_kernel( DENSE_TRSM );
+    start_trace_kernel( DENSE_TRSM, 2 );
     cblas_ztrsm(CblasColMajor,
                 (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
                 M, N,
                 CBLAS_SADDR(zone), A, lda,
                                    C, lda);
-    stop_trace_kernel( FLOPS_ZTRSM( side, M, N ) );
+    stop_trace_kernel( FLOPS_ZTRSM( side, M, N ), 2 );
 }
 
 /**
@@ -171,13 +171,13 @@ core_ztrsmsp_2d( pastix_side_t             side,
         M   = blok_rownbr(blok);
         ldc = M;
 
-        start_trace_kernel( DENSE_TRSM );
+        start_trace_kernel( DENSE_TRSM, 2 );
         cblas_ztrsm(CblasColMajor,
                     (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
                     M, N,
                     CBLAS_SADDR(zone), A, lda,
                                        blokC, ldc);
-        stop_trace_kernel( FLOPS_ZTRSM( side, M, N ) );
+        stop_trace_kernel( FLOPS_ZTRSM( side, M, N ), 2 );
     }
 }
 
@@ -266,23 +266,23 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
 
         if ( lrC->rk != 0 ) {
             if ( lrC->rk != -1 ) {
-                start_trace_kernel( LR_TRSM );
+                start_trace_kernel( LR_TRSM, 2 );
                 cblas_ztrsm(CblasColMajor,
                             (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
                             lrC->rk, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->v, lrC->rkmax);
-                stop_trace_kernel( FLOPS_ZTRSM( side, lrC->rk, N ) );
+                stop_trace_kernel( FLOPS_ZTRSM( side, lrC->rk, N ), 2 );
             }
             else {
                 M = blok_rownbr(blok);
-                start_trace_kernel( DENSE_TRSM );
+                start_trace_kernel( DENSE_TRSM, 2 );
                 cblas_ztrsm(CblasColMajor,
                             (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
                             M, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->u, lrC->rkmax);
-                stop_trace_kernel( FLOPS_ZTRSM( side, M, N ) );
+                stop_trace_kernel( FLOPS_ZTRSM( side, M, N ), 2 );
             }
         }
     }

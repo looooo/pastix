@@ -567,13 +567,13 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
             AB->u = A->u;
             AB->v = work;
 
-            start_trace_kernel( LR_GEMM_PRODUCT );
+            start_trace_kernel( LR_GEMM_PRODUCT, 2 );
             cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
                          A->rk, N, K,
                          CBLAS_SADDR(zone),  A->v,  ldav,
                                              B->u,  ldbu,
                          CBLAS_SADDR(zzero), AB->v, AB->rkmax );
-            stop_trace_kernel( FLOPS_ZGEMM( A->rk, N, K ) );
+            stop_trace_kernel( FLOPS_ZGEMM( A->rk, N, K ), 2 );
         }
     }
     else {
@@ -592,13 +592,13 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
             AB->u = work;
             AB->v = B->u;
 
-            start_trace_kernel( LR_GEMM_PRODUCT );
+            start_trace_kernel( LR_GEMM_PRODUCT, 2 );
             cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
                          M, B->rk, K,
                          CBLAS_SADDR(zone),  A->u,  ldau,
                                              B->v,  ldbv,
                          CBLAS_SADDR(zzero), AB->u, M );
-            stop_trace_kernel( FLOPS_ZGEMM( M, B->rk, K ) );
+            stop_trace_kernel( FLOPS_ZGEMM( M, B->rk, K ), 2 );
 
             transV = transB;
         }
@@ -626,13 +626,13 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
                 AB->u = work;
                 AB->v = NULL;
 
-                start_trace_kernel( DENSE_GEMM );
+                start_trace_kernel( DENSE_GEMM, 2 );
                 cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
                              M, N, K,
                              CBLAS_SADDR(zone),  A->u, ldau,
                                                  B->u, ldbu,
                              CBLAS_SADDR(zzero), work, M );
-                stop_trace_kernel( FLOPS_ZGEMM( M, N, K ) );
+                stop_trace_kernel( FLOPS_ZGEMM( M, N, K ), 2 );
             /* } */
         }
     }
@@ -729,21 +729,21 @@ core_zlrm3( const pastix_lr_t *lowrank,
     /**
      * Let's compute A * B' = Au Av^h (Bu Bv^h)' with the smallest ws
      */
-    start_trace_kernel( LR_GEMM_PRODUCT );
+    start_trace_kernel( LR_GEMM_PRODUCT, 2 );
     cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
                  A->rk, B->rk, K,
                  CBLAS_SADDR(zone),  A->v, ldav,
                                      B->v, ldbv,
                  CBLAS_SADDR(zzero), work2, A->rk );
 
-    stop_trace_kernel( FLOPS_ZGEMM( A->rk, B->rk, K ) );
+    stop_trace_kernel( FLOPS_ZGEMM( A->rk, B->rk, K ), 2 );
 
     /**
      * Try to compress (Av^h Bv^h')
      */
     lowrank->core_ge2lr( lowrank->tolerance, A->rk, B->rk, work2, A->rk, &rArB );
 
-    start_trace_kernel( LR_GEMM_PRODUCT );
+    start_trace_kernel( LR_GEMM_PRODUCT, 2 );
 
     /**
      * The rank of AB is not smaller than min(rankA, rankB)
@@ -833,7 +833,7 @@ core_zlrm3( const pastix_lr_t *lowrank,
     /* Not used for now */
     (void)transA;
 
-    stop_trace_kernel( flops );
+    stop_trace_kernel( flops, 2 );
 
     return transV;
 }
@@ -998,13 +998,13 @@ core_zlrmm( const pastix_lr_t *lowrank,
                          beta,  Cptr, ldcu );
         }
         else {
-            start_trace_kernel( DENSE_GEMM );
+            start_trace_kernel( DENSE_GEMM, 2 );
             cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
                          M, N, AB.rk,
                          CBLAS_SADDR(alpha), AB.u, ldabu,
                                              AB.v, ldabv,
                          CBLAS_SADDR(beta),  Cptr, ldcu );
-            stop_trace_kernel( FLOPS_ZGEMM( M, N, AB.rk ) );
+            stop_trace_kernel( FLOPS_ZGEMM( M, N, AB.rk ), 2 );
         }
     }
      /**
@@ -1025,26 +1025,26 @@ core_zlrmm( const pastix_lr_t *lowrank,
                 /* Do not uncompress a null LR structure */
                 if (C->rk > 0){
                     /* Uncompress C */
-                    start_trace_kernel( UNCOMPRESS );
+                    start_trace_kernel( UNCOMPRESS, 2 );
                     cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                                  Cm, Cn, C->rk,
                                  CBLAS_SADDR(beta),  C->u, ldcu,
                                                      C->v, ldcv,
                                  CBLAS_SADDR(zzero), work, Cm );
-                    stop_trace_kernel( FLOPS_ZGEMM( Cm, Cn, C->rk ) );
+                    stop_trace_kernel( FLOPS_ZGEMM( Cm, Cn, C->rk ), 2 );
                 }
                 else{
                     memset(work, 0, Cm * Cn * sizeof(pastix_complex64_t) );
                 }
 
                 /* Add A*B */
-                start_trace_kernel( DENSE_GEMM );
+                start_trace_kernel( DENSE_GEMM, 2 );
                 cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
                              M, N, AB.rk,
                              CBLAS_SADDR(alpha), AB.u, ldabu,
                                                  AB.v, ldabv,
                              CBLAS_SADDR(zone), work + Cm * offy + offx, Cm );
-                stop_trace_kernel( FLOPS_ZGEMM( M, N, AB.rk ) );
+                stop_trace_kernel( FLOPS_ZGEMM( M, N, AB.rk ), 2 );
 
                 core_zlrfree(C);
                 lowrank->core_ge2lr( tol, Cm, Cn, work, Cm, C );

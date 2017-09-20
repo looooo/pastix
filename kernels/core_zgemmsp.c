@@ -141,13 +141,13 @@ core_zgemmsp_1d1d( pastix_coefside_t sideA, pastix_trans_t trans,
      * Compute update A * B'
      */
     wtmp = work;
-    start_trace_kernel( DENSE_GEMM );
+    start_trace_kernel( DENSE_GEMM, 2 );
     cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
                  M, N, K,
                  CBLAS_SADDR(zone),  A,    stride,
                                      B,    stride,
                  CBLAS_SADDR(zzero), wtmp, M );
-    stop_trace_kernel( FLOPS_ZGEMM( M, N, K ) );
+    stop_trace_kernel( FLOPS_ZGEMM( M, N, K ), 2 );
 
     /*
      * Add contribution to C in fcblk
@@ -314,13 +314,13 @@ core_zgemmsp_1d2d( pastix_coefside_t sideA, pastix_trans_t trans,
             + (blok->frownum - fcblk->fcolnum) * stridef;
 
         pastix_cblk_lock( fcblk );
-        start_trace_kernel( DENSE_GEMM );
+        start_trace_kernel( DENSE_GEMM, 2 );
         cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
                      M, N, K,
                      CBLAS_SADDR(mzone), blokA, stride,
                                          blokB, stride,
                      CBLAS_SADDR(zone),  blokC, stridef );
-        stop_trace_kernel( FLOPS_ZGEMM( M, N, K ) );
+        stop_trace_kernel( FLOPS_ZGEMM( M, N, K ), 2 );
         pastix_cblk_unlock( fcblk );
     }
 }
@@ -452,13 +452,13 @@ core_zgemmsp_2d2d( pastix_coefside_t sideA, pastix_trans_t trans,
             + (blok->frownum - fcblk->fcolnum) * ldc;
 
         pastix_cblk_lock( fcblk );
-        start_trace_kernel( DENSE_GEMM );
+        start_trace_kernel( DENSE_GEMM, 2 );
         cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
                      M, N, K,
                      CBLAS_SADDR(mzone), blokA, lda,
                                          blokB, ldb,
                      CBLAS_SADDR(zone),  blokC, ldc );
-        stop_trace_kernel( FLOPS_ZGEMM( M, N, K ) );
+        stop_trace_kernel( FLOPS_ZGEMM( M, N, K ), 2 );
         pastix_cblk_unlock( fcblk );
     }
 }

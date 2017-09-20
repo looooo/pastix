@@ -235,9 +235,9 @@ cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
                  1.0, L, stride );
 
     /* Factorize diagonal block */
-    start_trace_kernel( GETRF );
+    start_trace_kernel( GETRF, 2 );
     core_zgetrfsp(ncols, L, stride, &nbpivot, criteria);
-    stop_trace_kernel( FLOPS_ZGETRF( ncols, ncols ) );
+    stop_trace_kernel( FLOPS_ZGETRF( ncols, ncols ), 2 );
 
     /* Transpose Akk in ucoeftab */
     core_zgetro(ncols, ncols, L, stride, U, stride);
