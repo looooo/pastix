@@ -75,10 +75,6 @@ BODY
 
         if (WS != NULL) {
             pastix_int_t N = cblk_colnbr( cblk );
-            unsigned int M = pastix_imax( sopalin_data->solvmtx->gemmmax,
-                                          sopalin_data->solvmtx->diagmax);
-
-            memset( WS, 0, M * sizeof(pastix_complex64_t) );
             myDL = ((pastix_complex64_t*)WS) - N*N;
         }
         cpucblk_zhetrfsp1d_panel( cblk, L, myDL, sopalin_data->diagthreshold, &lowrank );
@@ -168,13 +164,13 @@ RW    C  <- (brownum == -1) ? NULL
 BODY [ type=CUDA device=%{ return -2; %} ]
 #if defined(PASTIX_WITH_CUDA)
 {
+    /* Never execute the 1D GPU kernel on diagonal blocks */
     if (brownum != -1) {
         SolverCblk *lcblk = datacode->cblktab + lcblknm;
         SolverCblk *fcblk = datacode->cblktab + fcblknm;
         SolverBlok *blok  = datacode->bloktab + bloknum;
 
         if (!(lcblk->cblktype & CBLK_IN_SCHUR)) {
-            /* Never execute the 1D GPU kernel on diagonal blocks */
 #if defined(PASTIX_CUDA_FERMI)
             gpu_zgemmsp_fermi( datacode,
                                PastixLower, PastixTrans,
