@@ -167,7 +167,7 @@ int main (int argc, char **argv)
     double tolerance = 0.001;
 
     for (m=100; m<300; m+=100){
-        for (r=0; r<=m; r+=10){
+        for (r=0; r <= (m/2); r += ( r + 1 ) ) {
             printf("   -- Test GE2LR M=N=LDA=%ld R=%ld\n", (long)m, (long)r);
 
             ret = z_ge2lr_test(0, tolerance, r, m, m, m);

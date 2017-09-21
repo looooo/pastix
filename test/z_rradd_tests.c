@@ -229,7 +229,7 @@ int main (int argc, char **argv)
     double tolerance = 0.01;
 
     for (m=200; m<=400; m+=100){
-        for (r=0; r<=m; r+=10){
+        for (r=0; r <= (m/2); r += ( r + 1 ) ) {
             printf("   -- Test RRADD MA=NA=LDA=%ld MB=NB=LDB=%ld RA=%ld RB=%ld\n", (long)m, (long)m, (long)r, (long)(r/2));
 
             ret = z_rradd_test(0, tolerance, r, r/2,
