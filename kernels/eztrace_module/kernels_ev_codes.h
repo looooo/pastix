@@ -31,8 +31,6 @@
 #define KERNELS_PREFIX       (KERNELS_EVENTS_ID << 5)
 #define KERNELS_CODE(event)  (KERNELS_PREFIX | event )
 
-static int eztrace_level = 1;
-
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 
 /**
@@ -97,6 +95,7 @@ static void start_trace_kernel(kernels_ev_code_t state, int level){
 #if defined(PASTIX_WITH_EZTRACE)
 
     /* It does not if called in start_eztrace_kernels() ... */
+    int eztrace_level;
     {
         /* Set tracing level */
         char* LEVEL = getenv ("EZTRACE_LEVEL");
@@ -130,6 +129,7 @@ static void stop_trace_kernel(double flops, int level){
 #if defined(PASTIX_WITH_EZTRACE)
 
     /* It does not if called in start_eztrace_kernels() ... */
+    int eztrace_level;
     {
         /* Set tracing level */
         char* LEVEL = getenv ("EZTRACE_LEVEL");

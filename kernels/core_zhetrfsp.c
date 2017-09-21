@@ -19,6 +19,7 @@
 #include "cblas.h"
 #include "blend/solver.h"
 #include "pastix_zcores.h"
+#include "eztrace_module/kernels_ev_codes.h"
 
 #include <lapacke.h>
 
@@ -507,7 +508,9 @@ cpucblk_zhetrfsp1d_panel( SolverCblk         *cblk,
     pastix_int_t nbpivot;
     (void)lowrank;
 
+    start_trace_kernel( LVL1_HETRF, 1 );
     nbpivot = cpucblk_zhetrfsp1d_hetrf( cblk, L, criteria );
+    stop_trace_kernel( 0, 1 );
 
     /*
      * We exploit the fact that (DL^h) is stored in the upper triangle part of L
