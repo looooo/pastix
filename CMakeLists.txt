@@ -329,6 +329,10 @@ if (PASTIX_WITH_PARSEC)
         message(FATAL_ERROR "Parsec with ${PARSEC_COMPONENT_LIST} components is required but was not found. Please provide the PaRSEC library in your environment or configure with -DPASTIX_WITH_PARSEC=OFF")
     endif()
 
+    # Add the index-array dep management option to PTGCC compilation flags.
+    include(RulesJDF)
+    set(PARSEC_PTGPP_CFLAGS "--dep-management;index-array;${PARSEC_PTGPP_CFLAGS}")
+
 endif (PASTIX_WITH_PARSEC)
 
 set( DEPS_LIBRARIES
