@@ -60,6 +60,8 @@ sonar_pastix:
     - ./.gitlab-ci-filelist.sh
     - cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingIncludeSystem -UPARSEC_PROF_DRY_BODY -UPARSEC_PROF_TRACE -UPARSEC_PROF_GRAPHER -UPARSEC_SIM -UPARSEC_DEBUG_NOISIER -DPINS_ENABLE --file-list=./filelist.txt -j 8 2> pastix-cppcheck.xml
     - rats -w 3 --xml `cat filelist.txt` > pastix-rats.xml
+    - echo -n "sonar.inclusions=" >> sonar-project.properties
+    - cat filelist.txt | xargs echo | sed 's/ /, /g' >> sonar-project.properties
     - sonar-scanner -X > sonar.log
   only:
     - master@pastix/pastix
