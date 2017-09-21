@@ -711,6 +711,10 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                 for (j = cblk[0].brownum; j < cblk[1].brownum; j++ ) {
                     blok = datacode->bloktab + datacode->browtab[j];
                     fcbk = datacode->cblktab + blok->lcblknm;
+
+                    if ( fcbk->cblktype & CBLK_IN_SCHUR ) {
+                        break;
+                    }
                     pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
                 }
                 return;
@@ -931,6 +935,15 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                  * after this test.
                  */
                 if ( (cblk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeLocal) ) {
+                    for (j = cblk[0].brownum; j < cblk[1].brownum; j++ ) {
+                        blok = datacode->bloktab + datacode->browtab[j];
+                        fcbk = datacode->cblktab + blok->lcblknm;
+
+                        if ( fcbk->cblktype & CBLK_IN_SCHUR ) {
+                            break;
+                        }
+                        pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
+                    }
                     return;
                 }
 
@@ -961,8 +974,9 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                     A   = (pastix_complex64_t*)(fcbk->lcoeftab);
                     lda = (fcbk->cblktype & CBLK_LAYOUT_2D) ? tempn : fcbk->stride;
 
-                    if ( (fcbk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeInterface) )
+                    if ( (fcbk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeInterface) ) {
                         continue;
+                    }
 
                     pastix_cblk_lock( fcbk );
                     if ( fcbk->cblktype & CBLK_COMPRESSED ) {
