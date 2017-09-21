@@ -40,10 +40,7 @@ do
 done
 
 # Remove external driver files
-for file in spm/drivers/iohb.c
-            spm/drivers/iohb.h
-            spm/drivers/mmio.c
-            spm/drivers/mmio.h
+for file in spm/drivers/iohb.c spm/drivers/iohb.h spm/drivers/mmio.c spm/drivers/mmio.h
 do
     sed -i "\:^$file.*:d" filelist.txt
 done
