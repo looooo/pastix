@@ -83,7 +83,8 @@ void pastixOrderFindSupernodes( const pastix_graph_t *graph,
                                 pastix_order_t * const ordeptr );
 
 int  pastixOrderApplyLevelOrder( pastix_order_t *ordeptr,
-                                 pastix_int_t    distribution_level );
+                                 pastix_int_t    level_2dtasks,
+                                 pastix_int_t    width_2dtasks );
 
 int  pastixOrderAddIsolate( pastix_order_t     *ordeptr,
                             pastix_int_t        new_n,
