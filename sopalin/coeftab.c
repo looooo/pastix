@@ -199,12 +199,14 @@ coeftabExit( SolverMatrix *solvmtx )
                 SolverBlok *blok  = solvmtx->cblktab[i].fblokptr;
                 SolverBlok *lblok = solvmtx->cblktab[i+1].fblokptr;
 
-                for (; blok<lblok; blok++) {
-                    core_zlrfree(blok->LRblock);
-                    if (solvmtx->factotype == PastixFactLU)
-                        core_zlrfree(blok->LRblock+1);
+                if ( blok->LRblock != NULL ) {
+                    for (; blok<lblok; blok++) {
+                        core_zlrfree(blok->LRblock);
+                        if (solvmtx->factotype == PastixFactLU)
+                            core_zlrfree(blok->LRblock+1);
+                    }
+                    free(solvmtx->cblktab[i].fblokptr->LRblock);
                 }
-                free(solvmtx->cblktab[i].fblokptr->LRblock);
             }
         }
     }
