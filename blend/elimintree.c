@@ -23,6 +23,8 @@
 #include "common.h"
 #include "symbol.h"
 #include "elimintree.h"
+#include "cost.h"
+#include "cand.h"
 
 /**
  *******************************************************************************
@@ -180,7 +182,9 @@ eTreeNodeLevel(const EliminTree *etree, pastix_int_t nodenum )
  *
  *******************************************************************************/
 void
-eTreeGenDot(const EliminTree *etree, FILE *stream)
+eTreeGenDot( const EliminTree *etree,
+             const Cand       *candtab,
+             FILE             *stream )
 {
     pastix_int_t i;
 

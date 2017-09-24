@@ -281,14 +281,18 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
     /* Dump the dot of the eTree */
     if ( verbose > PastixVerboseYes ) {
-        FILE *stream;
-        PASTIX_FOPEN(stream, "etree.dot", "w");
-        eTreeGenDot( ctrl.etree, stream );
-        fclose(stream);
+        FILE *stream = NULL;
+        stream = pastix_fopenw( &(pastix_data->dirtemp), "etree.dot", "w" );
+        if ( stream ) {
+            eTreeGenDot( ctrl.etree, ctrl.candtab, stream );
+            fclose(stream);
+        }
 
-        PASTIX_FOPEN(stream, "ctree.dot", "w");
-        candGenCompressedDot( ctrl.etree, ctrl.candtab, stream );
-        fclose(stream);
+        stream = pastix_fopenw( &(pastix_data->dirtemp), "ctree.dot", "w" );
+        if ( stream ) {
+            candGenCompressedDot( ctrl.etree, ctrl.candtab, stream );
+            fclose(stream);
+        }
     }
 
     /*
