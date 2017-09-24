@@ -284,7 +284,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         FILE *stream = NULL;
         stream = pastix_fopenw( &(pastix_data->dirtemp), "etree.dot", "w" );
         if ( stream ) {
-            eTreeGenDot( ctrl.etree, ctrl.candtab, stream );
+            eTreeGenDot( ctrl.etree, stream );
             fclose(stream);
         }
 

@@ -19,9 +19,6 @@
 #ifndef _ELIMINTREE_H_
 #define _ELIMINTREE_H_
 
-struct cand_s;
-typedef struct cand_s Cand;
-
 /**
  * @brief Node of the elimination tree.
  */
@@ -45,7 +42,7 @@ typedef struct etree_s {
 
 void          eTreeInit      (      EliminTree *);
 void          eTreeExit      (      EliminTree *);
-void          eTreeGenDot    (const EliminTree *, const Cand *, FILE *);
+void          eTreeGenDot    (const EliminTree *, FILE *);
 void          eTreePrint     (const EliminTree *, FILE *, pastix_int_t );
 pastix_int_t  eTreeLeavesNbr (const EliminTree *);
 pastix_int_t  eTreeLevel     (const EliminTree *);

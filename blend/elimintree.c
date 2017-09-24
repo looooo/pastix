@@ -23,8 +23,6 @@
 #include "common.h"
 #include "symbol.h"
 #include "elimintree.h"
-#include "cost.h"
-#include "cand.h"
 
 /**
  *******************************************************************************
@@ -183,7 +181,6 @@ eTreeNodeLevel(const EliminTree *etree, pastix_int_t nodenum )
  *******************************************************************************/
 void
 eTreeGenDot( const EliminTree *etree,
-             const Cand       *candtab,
              FILE             *stream )
 {
     pastix_int_t i;
@@ -195,26 +192,17 @@ eTreeGenDot( const EliminTree *etree,
 
     for (i=0;  i < etree->nodenbr; i++)
     {
-        if ( candtab == NULL ) {
-            fprintf(stream, "\t\"%ld\" [label=\"%ld\\n%lf ( %lf )\"]\n",
-                    (long)i, (long)i, etree->nodetab[i].subtree, etree->nodetab[i].total );
-        }
-        else {
-            if ( candtab[i].lcandnum != candtab[i].fcandnum ) {
-                fprintf(stream, "\t\"%ld\" [label=\"%ld\\n%lf ( %lf ) - [%ld - %ld]\"]\n",
-                        (long)i, (long)i, etree->nodetab[i].subtree, etree->nodetab[i].total,
-                        (long)(candtab[i].fcandnum), (long)(candtab[i].lcandnum));
-            }
-            else {
-                fprintf(stream, "\t\"%ld\" [label=\"%ld\\n%lf ( %lf ) - [%ld]\"]\n",
-                        (long)i, (long)i, etree->nodetab[i].subtree, etree->nodetab[i].total,
-                        (long)(candtab[i].fcandnum));
-            }
-        }
+        fprintf( stream, "\t\"%ld\" [label=\"%ld\\n%lf ( %lf )\"]\n",
+                 (long)i, (long)i,
+                 etree->nodetab[i].subtree,
+                 etree->nodetab[i].total );
+
         if ((etree->nodetab[i]).fathnum == -1) {
             continue;
         }
-        fprintf(stream, "\t\"%ld\"->\"%ld\"\n", (long)i, (long)((etree->nodetab[i]).fathnum));
+        fprintf( stream, "\t\"%ld\"->\"%ld\"\n",
+                 (long)i,
+                 (long)((etree->nodetab[i]).fathnum) );
     }
 
     fprintf(stream, "}\n");
