@@ -78,7 +78,8 @@ parse_iparm( const char *iparm )
 
     if(0 == strcasecmp("iparm_min_blocksize",         iparm)) { return IPARM_MIN_BLOCKSIZE; }
     if(0 == strcasecmp("iparm_max_blocksize",         iparm)) { return IPARM_MAX_BLOCKSIZE; }
-    if(0 == strcasecmp("iparm_distribution_level",    iparm)) { return IPARM_DISTRIBUTION_LEVEL; }
+    if(0 == strcasecmp("iparm_2dtasks_level",         iparm)) { return IPARM_2DTASKS_LEVEL; }
+    if(0 == strcasecmp("iparm_2dtasks_width",         iparm)) { return IPARM_2DTASKS_WIDTH; }
     if(0 == strcasecmp("iparm_abs",                   iparm)) { return IPARM_ABS; }
 
     if(0 == strcasecmp("iparm_incomplete",            iparm)) { return IPARM_INCOMPLETE; }
