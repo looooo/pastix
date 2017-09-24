@@ -385,7 +385,7 @@ parsec_zgetrf( pastix_data_t  *pastix_data,
     }
 
     /*
-     * Select 1D or 2D jdf based on distribution_level
+     * Select 1D or 2D jdf based on 2d tasks level
      */
     if ( pastix_data->iparm[IPARM_2DTASKS_LEVEL] != 0 )
     {
