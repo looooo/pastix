@@ -677,8 +677,11 @@ candBuild( pastix_int_t level_2dtasks, pastix_int_t width_2dtasks,
         lr_width = INTVALMAX;
     }
 
-#if 1
-    /* Let's set the cblk type of each node */
+#if defined(PASTIX_BLEND_DEEPEST_DISTRIB)
+    /*
+     * Find the deepest node that matches the criteria for a flag, and assign
+     * the flag to all its ancestors to the root
+     */
     if( level_2dtasks < 0 )
     {
         candSubTreeDistribDeepestWidth( eTreeRoot(etree), cblktype,
@@ -692,7 +695,11 @@ candBuild( pastix_int_t level_2dtasks, pastix_int_t width_2dtasks,
                                         candtab, etree, symbmtx );
     }
 #else
-    /* Let's set the cblk type of each node */
+    /*
+     * Propagate the flags to all the sons as long as the node matches the
+     * criteria to keep them. Stops earlier than previous case with btterfly
+     * like meshes.
+     */
     if( level_2dtasks < 0 )
     {
         candSubTreeDistribFirstWidth( eTreeRoot(etree), cblktype,

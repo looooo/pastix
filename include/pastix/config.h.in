@@ -60,6 +60,7 @@
 #cmakedefine PASTIX_SYMBOL_DUMP_SYMBMTX
 
 #cmakedefine PASTIX_BLEND_GENTRACE
+#cmakedefine PASTIX_BLEND_DEEPEST_DISTRIB
 
 #cmakedefine FORGET_PARTITION
 #cmakedefine COMPACT_SMX
