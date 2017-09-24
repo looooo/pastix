@@ -44,7 +44,7 @@
  * information is stored in the solver structure.
  *
  * This routine is affected by, or returns, the following parameters:
- *   IPARM_ABS, IPARM_CUDA_NBR, IPARM_2DTASKS_LEVEL, IPARM_2DTASKS_WIDTH,
+ *   IPARM_ABS, IPARM_CUDA_NBR, IPARM_TASKS2D_LEVEL, IPARM_TASKS2D_WIDTH,
  *   IPARM_COMPRESS_WHEN, IPARM_COMPRESS_MIN_WIDTH, IPARM_DOF_NBR,
  *   IPARM_FACTORIZATION, IPARM_FLOAT, IPARM_GPU_CRITERIUM,
  *   IPARM_GPU_MEMORY_PERCENTAGE, IPARM_GPU_NBR, IPARM_INCOMPLETE,
@@ -75,7 +75,7 @@
  *   Dispatch properties such as low-rank compression, 2D tasks from the top to
  *   the bottom of the tree. Candidate array, and elimination tree are computed,
  *   and updated, simultaneously with the costs computed previously.
- *   This step is impacted by IPARM_2DTASKS_LEVEL and IPARM_2DTASKS_WIDTH that
+ *   This step is impacted by IPARM_TASKS2D_LEVEL and IPARM_TASKS2D_WIDTH that
  *   defines the minimal width of nodes which can forward 2D tasks property to
  *   their sons.
  *   Similarly, IPARM_COMPRESS_WHEN and IPARM_COMPRESS_MIN_WIDTH defines the
@@ -237,7 +237,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         candInit( ctrl.candtab, symbmtx->cblknbr );
 
         /* Initialize costs in elimination tree and candtab array for proportionnal mapping */
-        candBuild( ctrl.level_2dtasks, ctrl.width_2dtasks,
+        candBuild( ctrl.level_tasks2d, ctrl.width_tasks2d,
                    iparm[IPARM_COMPRESS_WHEN], iparm[IPARM_COMPRESS_MIN_WIDTH],
                    ctrl.candtab,
                    ctrl.etree,

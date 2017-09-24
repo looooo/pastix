@@ -35,9 +35,9 @@ class iparm:
     reordering_stop       = reordering_split       + 1
     min_blocksize         = reordering_stop        + 1
     max_blocksize         = min_blocksize          + 1
-    2dtasks_level         = max_blocksize          + 1
-    2dtasks_width         = 2dtasks_level          + 1
-    abs                   = 2dtasks_width          + 1
+    tasks2d_level         = max_blocksize          + 1
+    tasks2d_width         = tasks2d_level          + 1
+    abs                   = tasks2d_width          + 1
     incomplete            = abs                    + 1
     level_of_fill         = incomplete             + 1
     factorization         = level_of_fill          + 1

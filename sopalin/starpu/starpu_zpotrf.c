@@ -234,7 +234,7 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
  * where L is a sparse lower triangular matrix.
  *
  * The algorithm is automatically chosen between the 1D and 2D version based on
- * the API parameter IPARM_2DTASKS_LEVEL. If IPARM_2DTASKS_LEVEL != 0
+ * the API parameter IPARM_TASKS2D_LEVEL. If IPARM_TASKS2D_LEVEL != 0
  * the 2D scheme is applied, the 1D otherwise.
  *
  *******************************************************************************
@@ -271,7 +271,7 @@ starpu_zpotrf( pastix_data_t  *pastix_data,
     /*
      * Select 1D or 2D algorithm based on 2d tasks level
      */
-    if ( pastix_data->iparm[IPARM_2DTASKS_LEVEL] != 0 )
+    if ( pastix_data->iparm[IPARM_TASKS2D_LEVEL] != 0 )
     {
         starpu_zpotrf_sp2d( sopalin_data, sdesc );
     }

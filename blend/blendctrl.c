@@ -144,7 +144,7 @@ getCommunicationCosts( const BlendCtrl *ctrl,
  * @param[inout] pastix_data
  *          The pastix_data structure of the problem instance.  Integer
  *          parameters that are used to build the Blend control
- *          structure. IPARM_ABS, IPARM_2DTASKS_LEVEL, IPARM_2DTASKS_WIDTH,
+ *          structure. IPARM_ABS, IPARM_TASKS2D_LEVEL, IPARM_TASKS2D_WIDTH,
  *          IPARM_COMPRESS_WHEN, IPARM_COMPRESS_MIN_WIDTH, IPARM_INCOMPLETE,
  *          IPARM_MAX_BLOCKSIZE, IPARM_MIN_BLOCKSIZE, IPARM_THREAD_NBR, and
  *          IPARM_VERBOSE are used in this function.
@@ -237,14 +237,14 @@ blendCtrlInit( pastix_data_t *pastix_data,
     }
 
     /* 2D options */
-    ctrl->level_2dtasks = iparm[IPARM_2DTASKS_LEVEL];
-    ctrl->width_2dtasks = iparm[IPARM_2DTASKS_WIDTH];
+    ctrl->level_tasks2d = iparm[IPARM_TASKS2D_LEVEL];
+    ctrl->width_tasks2d = iparm[IPARM_TASKS2D_WIDTH];
 
     /* OOC works only with 1D structures */
     if(ctrl->ooc)
     {
         pastix_print( procnum, 0, "Force 1D distribution because of OOC \n" );
-        ctrl->level_2dtasks = 0;
+        ctrl->level_tasks2d = 0;
     }
 
     /* Save iparm for other options */

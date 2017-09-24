@@ -136,9 +136,9 @@ pastixWelcome( const pastix_data_t *pastix )
 #else
                   "Disabled",
 #endif
-                  /* Distrib    */ ((pastix->iparm[IPARM_2DTASKS_LEVEL] == 0) ? "1D" : "2D"),
-                                   ((pastix->iparm[IPARM_2DTASKS_LEVEL] <  0) ? ((long)pastix->iparm[IPARM_2DTASKS_WIDTH]) :
-                                                                               -((long)pastix->iparm[IPARM_2DTASKS_LEVEL])),
+                  /* Distrib    */ ((pastix->iparm[IPARM_TASKS2D_LEVEL] == 0) ? "1D" : "2D"),
+                                   ((pastix->iparm[IPARM_TASKS2D_LEVEL] <  0) ? ((long)pastix->iparm[IPARM_TASKS2D_WIDTH]) :
+                                                                               -((long)pastix->iparm[IPARM_TASKS2D_LEVEL])),
                   /* Strategy   */ ((pastix->iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever) ? "No compression" :
                                     (pastix->iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin) ? "Memory Optimal" : "Just-In-Time") );
 
@@ -255,8 +255,8 @@ pastixInitParam( pastix_int_t *iparm,
     /* Analyze */
     iparm[IPARM_MIN_BLOCKSIZE]         = 160;
     iparm[IPARM_MAX_BLOCKSIZE]         = 320;
-    iparm[IPARM_2DTASKS_LEVEL]         = -1;
-    iparm[IPARM_2DTASKS_WIDTH]         = iparm[IPARM_MIN_BLOCKSIZE];
+    iparm[IPARM_TASKS2D_LEVEL]         = -1;
+    iparm[IPARM_TASKS2D_WIDTH]         = iparm[IPARM_MIN_BLOCKSIZE];
     iparm[IPARM_ABS]                   = 0;
 
     /* Incomplete */

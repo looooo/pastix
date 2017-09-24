@@ -594,7 +594,7 @@ splitSymbol( BlendCtrl       *ctrl,
             ctrl->etree = eTreeBuild(symbmtx);
 
             /* Initialize costs in elimination tree and candtab array for proportionnal mapping */
-            candBuild( ctrl->level_2dtasks, ctrl->width_2dtasks,
+            candBuild( ctrl->level_tasks2d, ctrl->width_tasks2d,
                        ctrl->iparm[IPARM_COMPRESS_WHEN], ctrl->iparm[IPARM_COMPRESS_MIN_WIDTH],
                        ctrl->candtab,
                        ctrl->etree,

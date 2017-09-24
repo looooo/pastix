@@ -55,8 +55,8 @@ void candSave           ( const Cand          *candtab,
                                 pastix_int_t   cblknbr,
                                 char         **directory );
 
-void candBuild          (       pastix_int_t           level_2dtasks,
-                                pastix_int_t           width_2dtasks,
+void candBuild          (       pastix_int_t           level_tasks2d,
+                                pastix_int_t           width_tasks2d,
                                 pastix_compress_when_t lr_when,
                                 pastix_int_t           lr_width,
                                 Cand                  *candtab,

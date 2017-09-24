@@ -411,8 +411,8 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     }
 
     pastixOrderApplyLevelOrder( ordemesh,
-                                iparm[IPARM_2DTASKS_LEVEL],
-                                iparm[IPARM_2DTASKS_WIDTH] );
+                                iparm[IPARM_TASKS2D_LEVEL],
+                                iparm[IPARM_TASKS2D_WIDTH] );
 
     /*
      * Add the isolated elements to the ordering structure

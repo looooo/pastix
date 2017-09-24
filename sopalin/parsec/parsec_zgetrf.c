@@ -343,7 +343,7 @@ parsec_zgetrf_sp2d( parsec_context_t     *parsec,
  * with the same pattern as L^t.
  *
  * The algorithm is automatically chosen between the 1D and 2D version based on
- * the API parameter IPARM_2DTASKS_LEVEL. If IPARM_2DTASKS_LEVEL != 0
+ * the API parameter IPARM_TASKS2D_LEVEL. If IPARM_TASKS2D_LEVEL != 0
  * the 2D scheme is applied, the 1D otherwise.
  *
  *******************************************************************************
@@ -387,7 +387,7 @@ parsec_zgetrf( pastix_data_t  *pastix_data,
     /*
      * Select 1D or 2D jdf based on 2d tasks level
      */
-    if ( pastix_data->iparm[IPARM_2DTASKS_LEVEL] != 0 )
+    if ( pastix_data->iparm[IPARM_TASKS2D_LEVEL] != 0 )
     {
         parsec_zgetrf_sp2d( ctx, sdesc,
                             sopalin_data );

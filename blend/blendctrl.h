@@ -60,8 +60,8 @@ typedef struct blendctrl_s {
      * @name 2D
      * @{
      */
-    pastix_int_t    level_2dtasks;   /**< Level to shift from 1D to 2D. Automaticaly computed if < 0, only 1D if 0 */
-    pastix_int_t    width_2dtasks;   /**< Minimal width to consider a cblk 2D if autolevel (level_2dtasks < 0)     */
+    pastix_int_t    level_tasks2d;   /**< Level to shift from 1D to 2D. Automaticaly computed if < 0, only 1D if 0 */
+    pastix_int_t    width_tasks2d;   /**< Minimal width to consider a cblk 2D if autolevel (level_tasks2d < 0)     */
 
     /**
      * @}

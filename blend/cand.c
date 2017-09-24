@@ -614,17 +614,17 @@ candSubTreeDistribFirstLevel( pastix_int_t           rootnum,
  *
  *******************************************************************************
  *
- * @param[in]    level_2dtasks
+ * @param[in]    level_tasks2d
  *               Defines the level in the elimination tree to switch from 1D to
  *               2D tasks in the cblk flag.
  *               If < 0, automatic level is defined based on the width of the
- *               cblk with respect to the minimal width_2dtasks width.
+ *               cblk with respect to the minimal width_tasks2d width.
  *               If 0, all cblks are tagged as 1D.
- *               If > 0, only the first level_2dtasks level of the tree are
+ *               If > 0, only the first level_tasks2d level of the tree are
  *               tagged as 2D.
  *
- * @param[in]    width_2dtasks
- *               If level_2dtasks < 0, defines the minimal width to keep the 2D
+ * @param[in]    width_tasks2d
+ *               If level_tasks2d < 0, defines the minimal width to keep the 2D
  *               flag on a goven cblk.
  *
  * @param[in]    lr_when
@@ -653,7 +653,7 @@ candSubTreeDistribFirstLevel( pastix_int_t           rootnum,
  *
  *******************************************************************************/
 void
-candBuild( pastix_int_t level_2dtasks, pastix_int_t width_2dtasks,
+candBuild( pastix_int_t level_tasks2d, pastix_int_t width_tasks2d,
            pastix_compress_when_t lr_when, pastix_int_t lr_width,
            Cand                  *candtab,
            EliminTree            *etree,
@@ -682,16 +682,16 @@ candBuild( pastix_int_t level_2dtasks, pastix_int_t width_2dtasks,
      * Find the deepest node that matches the criteria for a flag, and assign
      * the flag to all its ancestors to the root
      */
-    if( level_2dtasks < 0 )
+    if( level_tasks2d < 0 )
     {
         candSubTreeDistribDeepestWidth( eTreeRoot(etree), cblktype,
-                                        width_2dtasks, lr_width,
+                                        width_tasks2d, lr_width,
                                         candtab, etree, symbmtx );
     }
     else
     {
         candSubTreeDistribDeepestLevel( eTreeRoot(etree), cblktype,
-                                        level_2dtasks, lr_width,
+                                        level_tasks2d, lr_width,
                                         candtab, etree, symbmtx );
     }
 #else
@@ -700,16 +700,16 @@ candBuild( pastix_int_t level_2dtasks, pastix_int_t width_2dtasks,
      * criteria to keep them. Stops earlier than previous case with btterfly
      * like meshes.
      */
-    if( level_2dtasks < 0 )
+    if( level_tasks2d < 0 )
     {
         candSubTreeDistribFirstWidth( eTreeRoot(etree), cblktype,
-                                      width_2dtasks, lr_width,
+                                      width_tasks2d, lr_width,
                                       candtab, etree, symbmtx );
     }
     else
     {
         candSubTreeDistribFirstLevel( eTreeRoot(etree), cblktype,
-                                      level_2dtasks, lr_width,
+                                      level_tasks2d, lr_width,
                                       candtab, etree, symbmtx );
     }
 #endif
