@@ -225,6 +225,8 @@ cpucblk_zpotrfsp1d_potrf( SolverCblk         *cblk,
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
 
+    start_trace_kernel( LVL1_POTRF, 1 );
+
     ncols   = cblk->lcolnum - cblk->fcolnum + 1;
     stride  = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
 
@@ -241,7 +243,11 @@ cpucblk_zpotrfsp1d_potrf( SolverCblk         *cblk,
     }
 
     /* Factorize diagonal block */
+    start_trace_kernel( POTRF, 2 );
     core_zpotrfsp(ncols, L, stride, &nbpivot, criteria );
+    stop_trace_kernel( FLOPS_ZPOTRF( ncols ), 2 );
+
+    stop_trace_kernel( 0, 1 );
 
     return nbpivot;
 }
@@ -282,10 +288,7 @@ cpucblk_zpotrfsp1d_panel( SolverCblk         *cblk,
                           const pastix_lr_t  *lowrank )
 {
     pastix_int_t nbpivot;
-
-    start_trace_kernel( LVL1_POTRF, 1 );
     nbpivot = cpucblk_zpotrfsp1d_potrf(cblk, L, criteria);
-    stop_trace_kernel( 0, 1 );
 
     cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
                      PastixConjTrans, PastixNonUnit,

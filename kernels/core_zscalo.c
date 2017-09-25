@@ -19,6 +19,7 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 #include "cblas.h"
+#include "eztrace_module/kernels_ev_codes.h"
 
 /**
  ******************************************************************************
@@ -162,6 +163,7 @@ cpucblk_zscalo( pastix_trans_t      trans,
                 pastix_complex64_t *LD )
 {
     const SolverBlok *blok, *lblk;
+    start_trace_kernel( LVL1_SCALO, 1 );
 
     blok = cblk->fblokptr + 1; /* Firt off-diagonal block */
     lblk = cblk[1].fblokptr;   /* Next diagonal block     */
@@ -236,4 +238,5 @@ cpucblk_zscalo( pastix_trans_t      trans,
             core_zscalo( trans, M, N, L + blok->coefind, ldl, D, ldd, B, ldb );
         }
     }
+    stop_trace_kernel( 0, 1 );
 }

@@ -51,6 +51,8 @@ typedef enum kernels_ev_code_e {
     /* General kernels: similar in low-rank and dense */
     GETRF, /**< getrf on a dense block */
     POTRF, /**< potrf on a dense block */
+    SYTRF,
+    HETRF,
 
     /* Dense operations */
     DENSE_TRSM, /**< trsm on a dense block           */
@@ -61,6 +63,7 @@ typedef enum kernels_ev_code_e {
     LVL1_POTRF,
     LVL1_PXTRF,
     LVL1_SYTRF,
+    LVL1_SCALO,
     LVL1_TRSM_CBLK_1D,
     LVL1_TRSM_CBLK_2D,
     LVL1_TRSM_CBLK_LR,
@@ -73,6 +76,7 @@ typedef enum kernels_ev_code_e {
     LVL1_GEMM_CBLK_LRLR,
     LVL1_GEMM_BLOK_2D2D,
     LVL1_GEMM_BLOK_2DLR,
+    LVL1_GEMDM,
 
     KERNELS_NB_EVENTS,
 } kernels_ev_code_t;
