@@ -95,7 +95,7 @@ typedef enum kernels_ev_code_e {
  *          Level of tracing defined by environment variable EZTRACE_LVL
  *
  *******************************************************************************/
-static void start_trace_kernel(kernels_ev_code_t state, int level){
+static inline void start_trace_kernel(kernels_ev_code_t state, int level){
 #if defined(PASTIX_WITH_EZTRACE)
 
     /* It does not if called in start_eztrace_kernels() ... */
@@ -105,6 +105,9 @@ static void start_trace_kernel(kernels_ev_code_t state, int level){
         char* LEVEL = getenv ("EZTRACE_LEVEL");
         if (LEVEL != NULL){
             eztrace_level = atoi(LEVEL);
+        }
+        else{
+            eztrace_level = 1;
         }
     }
 
@@ -129,7 +132,7 @@ static void start_trace_kernel(kernels_ev_code_t state, int level){
  *          Level of tracing defined by environment variable EZTRACE_LVL
  *
  *******************************************************************************/
-static void stop_trace_kernel(double flops, int level){
+static inline void stop_trace_kernel(double flops, int level){
 #if defined(PASTIX_WITH_EZTRACE)
 
     /* It does not if called in start_eztrace_kernels() ... */
@@ -139,6 +142,9 @@ static void stop_trace_kernel(double flops, int level){
         char* LEVEL = getenv ("EZTRACE_LEVEL");
         if (LEVEL != NULL){
             eztrace_level = atoi(LEVEL);
+        }
+        else{
+            eztrace_level = 1;
         }
     }
 
@@ -152,7 +158,7 @@ static void stop_trace_kernel(double flops, int level){
 /**
  * @brief Start eztrace module
  */
-static void start_eztrace_kernels(){
+static inline void start_eztrace_kernels(){
 #if defined(PASTIX_WITH_EZTRACE)
     eztrace_start ();
 #endif /* defined(PASTIX_WITH_EZTRACE) */
@@ -161,7 +167,7 @@ static void start_eztrace_kernels(){
 /**
  * @brief Stop eztrace module
  */
-static void stop_eztrace_kernels(){
+static inline void stop_eztrace_kernels(){
 #if defined(PASTIX_WITH_EZTRACE)
     eztrace_stop ();
 #endif /* defined(PASTIX_WITH_EZTRACE) */
