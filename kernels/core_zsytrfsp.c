@@ -231,7 +231,7 @@ cpucblk_zsytrfsp1d_sytrf( SolverCblk         *cblk,
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
 
-    start_trace_kernel( LVL1_SYTRF, 1 );
+    start_trace_kernel( 1, LVL1_SYTRF );
 
     ncols  = cblk->lcolnum - cblk->fcolnum + 1;
     stride = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
@@ -251,11 +251,11 @@ cpucblk_zsytrfsp1d_sytrf( SolverCblk         *cblk,
      *  - diagonal holds D
      *  - uppert part holds (DL^t)
      */
-    start_trace_kernel( SYTRF, 2 );
+    start_trace_kernel( 2, SYTRF );
     core_zsytrfsp( ncols, L, stride, &nbpivot, criteria );
-    stop_trace_kernel( FLOPS_ZSYTRF( ncols ), 2 );
+    stop_trace_kernel( 2, FLOPS_ZSYTRF( ncols ) );
 
-    stop_trace_kernel( 0, 1 );
+    stop_trace_kernel( 1, 0.0 );
 
     return nbpivot;
 }
@@ -316,7 +316,7 @@ void core_zsytrfsp1d_gemm( const SolverCblk         *cblk,
 
     pastix_int_t M, N, K, lda, ldb, ldc, ldd;
 
-    start_trace_kernel( LVL1_GEMDM, 1 );
+    start_trace_kernel( 1, LVL1_GEMDM );
 
     /* Get the panel update dimensions */
     K = cblk_colnbr( cblk );
@@ -384,7 +384,7 @@ void core_zsytrfsp1d_gemm( const SolverCblk         *cblk,
         }
     }
 
-    stop_trace_kernel( 0, 1 );
+    stop_trace_kernel( 1, 0.0 );
 }
 
 /**

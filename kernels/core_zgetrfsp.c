@@ -216,7 +216,7 @@ cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
     pastix_int_t ncols, stride;
     pastix_int_t nbpivot = 0;
 
-    start_trace_kernel( LVL1_GETRF, 1 );
+    start_trace_kernel( 1, LVL1_GETRF );
 
     ncols  = cblk->lcolnum - cblk->fcolnum + 1;
     stride = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
@@ -237,14 +237,14 @@ cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
                  1.0, L, stride );
 
     /* Factorize diagonal block */
-    start_trace_kernel( GETRF, 2 );
+    start_trace_kernel( 2, GETRF );
     core_zgetrfsp(ncols, L, stride, &nbpivot, criteria);
-    stop_trace_kernel( FLOPS_ZGETRF( ncols, ncols ), 2 );
+    stop_trace_kernel( 2, FLOPS_ZGETRF( ncols, ncols ) );
 
     /* Transpose Akk in ucoeftab */
     core_zgetro(ncols, ncols, L, stride, U, stride);
 
-    stop_trace_kernel( 0, 1 );
+    stop_trace_kernel( 1, 0.0 );
 
     return nbpivot;
 }

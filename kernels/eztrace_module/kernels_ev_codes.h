@@ -91,19 +91,20 @@ typedef enum kernels_ev_code_e {
  *
  *******************************************************************************
  *
- * @param[in] state
- *          The kernel's name
- *
  * @param[in] level
  *          Level of tracing defined by environment variable EZTRACE_LVL
  *
+ * @param[in] state
+ *          The kernel's name
+ *
  *******************************************************************************/
-static inline void start_trace_kernel(kernels_ev_code_t state, int level){
+static inline void start_trace_kernel(int level, kernels_ev_code_t state){
 #if defined(PASTIX_WITH_EZTRACE)
     if (level == eztrace_level){
         EZTRACE_EVENT_PACKED_0(KERNELS_CODE(state));
     }
 #else
+    (void) level;
     (void) state;
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 }
@@ -115,19 +116,20 @@ static inline void start_trace_kernel(kernels_ev_code_t state, int level){
  *
  *******************************************************************************
  *
- * @param[in] flops
- *          The number of operations performed during the call
- *
  * @param[in] level
  *          Level of tracing defined by environment variable EZTRACE_LVL
  *
+ * @param[in] flops
+ *          The number of operations performed during the call
+ *
  *******************************************************************************/
-static inline void stop_trace_kernel(double flops, int level){
+static inline void stop_trace_kernel(int level, double flops){
 #if defined(PASTIX_WITH_EZTRACE)
     if (level == eztrace_level){
         EZTRACE_EVENT_PACKED_1(KERNELS_CODE(STOP), flops);
     }
 #else
+    (void) level;
     (void) flops;
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 }
