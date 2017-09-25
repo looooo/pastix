@@ -200,9 +200,9 @@ sum2d( const symbol_function_t *fptr,
  *******************************************************************************/
 static double
 sum2dext( const symbol_function_t *fptr,
-          const symbol_matrix_t     *symbmtx,
-                pastix_int_t      cblknum,
-                double           *blokcost )
+          const symbol_matrix_t   *symbmtx,
+                pastix_int_t       cblknum,
+                double            *blokcost )
 {
     symbol_cblk_t *cblk = symbmtx->cblktab + cblknum;
     pastix_int_t M, N, K, l;

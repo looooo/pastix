@@ -192,10 +192,11 @@ eTreeGenDot( const EliminTree *etree,
 
     for (i=0;  i < etree->nodenbr; i++)
     {
-        fprintf( stream, "\t\"%ld\" [label=\"%ld\\n%lf ( %lf )\"]\n",
-                 (long)i, (long)i,
-                 etree->nodetab[i].subtree,
-                 etree->nodetab[i].total );
+        fprintf(stream, "\t\"%ld\" [label=\"#%ld\\nSubtree cost: %e\\nNode cost: %e\\nNode CP: %e\"]\n",
+                (long)i, (long)i,
+                etree->nodetab[i].subtree,
+                etree->nodetab[i].total,
+                etree->nodetab[i].cripath );
 
         if ((etree->nodetab[i]).fathnum == -1) {
             continue;
@@ -296,6 +297,7 @@ eTreeBuild(const symbol_matrix_t *symbmtx)
     {
         enode->total   =  0.0;
         enode->subtree =  0.0;
+        enode->cripath =  0.0;
         enode->sonsnbr =  0;
         enode->fathnum = -1;
         enode->fsonnum = -1;

@@ -274,38 +274,46 @@ candSubTreeBuild( pastix_int_t           rootnum,
                   Cand                  *candtab,
                   EliminTree            *etree,
                   const symbol_matrix_t *symbmtx,
-                  const CostMatrix      *costmtx )
+                  const CostMatrix      *costmtx,
+                  double                *cripath )
 {
-    double cost;
+    double cost, mycp = 0.0;
     pastix_int_t i, son;
 
-    /* Compute cost of current node */
-#if defined(BLEND_COST_LL)
+    /* Get cost of current node */
     cost = costmtx->cblkcost[rootnum];
-#else
-    {
-        pastix_int_t bloknum;
-        cost = 0.;
-        for( bloknum = symbmtx->cblktab[ rootnum   ].bloknum;
-             bloknum < symbmtx->cblktab[ rootnum+1 ].bloknum; bloknum++)
-        {
-            cost += costmtx->blokcost[ bloknum ];
-        }
-    }
-#endif
-
     etree->nodetab[ rootnum ].total   = cost;
     etree->nodetab[ rootnum ].subtree = cost;
 
     for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
     {
+        double soncp = 0.0;
+
         son = eTreeSonI(etree, rootnum, i);
         candtab[ son ].treelevel = candtab[ rootnum ].treelevel - 1;
         candtab[ son ].costlevel = candtab[ rootnum ].costlevel - cost;
 
         etree->nodetab[ rootnum ].subtree +=
-            candSubTreeBuild( son, candtab, etree, symbmtx, costmtx );
+            candSubTreeBuild( son, candtab, etree, symbmtx, costmtx, &soncp );
+
+        mycp = (mycp > soncp) ? mycp : soncp;
     }
+
+    /* Update local critical path */
+    {
+        pastix_int_t bloknum = symbmtx->cblktab[ rootnum ].bloknum;
+
+        /* Add Facto and solve */
+        mycp += costmtx->blokcost[ bloknum ];
+
+        /* Add first GEMM */
+        bloknum++;
+        if ( bloknum < symbmtx->cblktab[ rootnum+1 ].bloknum ) {
+            mycp += costmtx->blokcost[ bloknum ];
+        }
+    }
+    etree->nodetab[ rootnum ].cripath = mycp;
+    *cripath = mycp;
 
     return etree->nodetab[ rootnum ].subtree;
 }
@@ -683,6 +691,7 @@ candBuild( pastix_int_t level_tasks2d, pastix_int_t width_tasks2d,
            const symbol_matrix_t *symbmtx,
            const CostMatrix      *costmtx )
 {
+    double cp = 0.0;
     pastix_int_t root = eTreeRoot(etree);
     pastix_int_t cblktype = CBLK_LAYOUT_2D | CBLK_TASKS_2D | CBLK_IN_SCHUR | CBLK_COMPRESSED;
 
@@ -694,7 +703,7 @@ candBuild( pastix_int_t level_tasks2d, pastix_int_t width_tasks2d,
     candtab[ root ].costlevel = -1.0;
     candtab[ root ].treelevel = -1;
 
-    candSubTreeBuild( root, candtab, etree, symbmtx, costmtx );
+    candSubTreeBuild( root, candtab, etree, symbmtx, costmtx, &cp );
 
     if ( lr_when == PastixCompressNever ) {
         lr_width = PASTIX_INT_MAX;

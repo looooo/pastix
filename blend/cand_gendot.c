@@ -83,6 +83,7 @@ compress_setSonsNbr( const EliminTree *etree,
     cnode = ctree->nodetab + (*cnodeidx);
     cnode->total   = etree->nodetab[rootnum].total;
     cnode->subtree = etree->nodetab[rootnum].subtree;
+    cnode->cripath = etree->nodetab[rootnum].cripath;
     cnode->fathnum = fathnum;
 
     ccand[ *cnodeidx ].fcandnum = fcand;
@@ -204,24 +205,29 @@ candGenDot( const EliminTree *etree,
             continue;
 
         if ( candtab == NULL ) {
-            fprintf(stream, "\t\"%ld\" [label=\"#%ld\\n%lf ( %lf )\"]\n",
-                    (long)i, (long)i, etree->nodetab[i].subtree, etree->nodetab[i].total );
+            fprintf(stream, "\t\"%ld\" [label=\"#%ld\\nSubtree cost: %e\\nNode cost: %e\\nNode CP: %e\"]\n",
+                    (long)i, (long)i,
+                    etree->nodetab[i].subtree,
+                    etree->nodetab[i].total,
+                    etree->nodetab[i].cripath );
         }
         else {
             if ( candtab[i].lcandnum != candtab[i].fcandnum ) {
-                fprintf(stream, "\t\"%ld\" [label=\"#%ld\\nCand: %ld - %ld\\nSubtree: %lf\\nNode: %lf\"]\n",
-                        (long)i, (long)i,
-                        (long)(candtab[i].fcandnum),
-                        (long)(candtab[i].lcandnum),
-                        etree->nodetab[i].subtree,
-                        etree->nodetab[i].total);
+                fprintf( stream, "\t\"%ld\" [label=\"#%ld\\nCand: %ld - %ld\\nSubtree cost: %e\\nNode cost: %e\\nNode CP: %e\"]\n",
+                         (long)i, (long)i,
+                         (long)(candtab[i].fcandnum),
+                         (long)(candtab[i].lcandnum),
+                         etree->nodetab[i].subtree,
+                         etree->nodetab[i].total,
+                         etree->nodetab[i].cripath );
             }
             else {
-                fprintf(stream, "\t\"%ld\" [label=\"#%ld\\nCand: %ld\\nSubtree: %lf\\nNode: %lf\" colorscheme=set312 style=filled fillcolor=%ld]\n",
+                fprintf(stream, "\t\"%ld\" [label=\"#%ld\\nCand: %ld\\nSubtree cost: %e\\nNode cost: %e\\nNode CP: %e\" colorscheme=set312 style=filled fillcolor=%ld]\n",
                         (long)i, (long)i,
                         (long)(candtab[i].fcandnum),
                         etree->nodetab[i].subtree,
                         etree->nodetab[i].total,
+                        etree->nodetab[i].cripath,
                         (long)((candtab[i].lcandnum % 12) + 1));
             }
         }
@@ -277,6 +283,7 @@ candGenCompressedDot(const EliminTree *etree, const Cand *candtab, FILE *stream)
     {
         cnode->total   = 0.;
         cnode->subtree = 0.;
+        cnode->cripath = 0.;
         cnode->sonsnbr =  0;
         cnode->fathnum = -1;
         cnode->fsonnum = -1;
