@@ -31,6 +31,8 @@
 #define KERNELS_PREFIX       (KERNELS_EVENTS_ID << 5)
 #define KERNELS_CODE(event)  (KERNELS_PREFIX | event )
 
+int eztrace_level;
+
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 
 /**
@@ -98,22 +100,9 @@ typedef enum kernels_ev_code_e {
  *******************************************************************************/
 static inline void start_trace_kernel(kernels_ev_code_t state, int level){
 #if defined(PASTIX_WITH_EZTRACE)
-
-    /* It does not if called in start_eztrace_kernels() ... */
-    int eztrace_level;
-    {
-        /* Set tracing level */
-        char* LEVEL = getenv ("EZTRACE_LEVEL");
-        if (LEVEL != NULL){
-            eztrace_level = atoi(LEVEL);
-        }
-        else{
-            eztrace_level = 1;
-        }
-    }
-
-    if (level == eztrace_level)
+    if (level == eztrace_level){
         EZTRACE_EVENT_PACKED_0(KERNELS_CODE(state));
+    }
 #else
     (void) state;
 #endif /* defined(PASTIX_WITH_EZTRACE) */
@@ -135,42 +124,11 @@ static inline void start_trace_kernel(kernels_ev_code_t state, int level){
  *******************************************************************************/
 static inline void stop_trace_kernel(double flops, int level){
 #if defined(PASTIX_WITH_EZTRACE)
-
-    /* It does not if called in start_eztrace_kernels() ... */
-    int eztrace_level;
-    {
-        /* Set tracing level */
-        char* LEVEL = getenv ("EZTRACE_LEVEL");
-        if (LEVEL != NULL){
-            eztrace_level = atoi(LEVEL);
-        }
-        else{
-            eztrace_level = 1;
-        }
-    }
-
-    if (level == eztrace_level)
+    if (level == eztrace_level){
         EZTRACE_EVENT_PACKED_1(KERNELS_CODE(STOP), flops);
+    }
 #else
     (void) flops;
-#endif /* defined(PASTIX_WITH_EZTRACE) */
-}
-
-/**
- * @brief Start eztrace module
- */
-static inline void start_eztrace_kernels(){
-#if defined(PASTIX_WITH_EZTRACE)
-    eztrace_start ();
-#endif /* defined(PASTIX_WITH_EZTRACE) */
-}
-
-/**
- * @brief Stop eztrace module
- */
-static inline void stop_eztrace_kernels(){
-#if defined(PASTIX_WITH_EZTRACE)
-    eztrace_stop ();
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 }
 
