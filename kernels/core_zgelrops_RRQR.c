@@ -400,10 +400,12 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
                       work, ldwork,
                       rwork,
                       tol * norm, nb, pastix_imin(m,n) - 1 );
-    if (ret == -1)
+    if (ret == -1) {
         stop_trace_kernel( FLOPS_ZGEQRF( m, n ), 2 );
-    else
+    }
+    else {
         stop_trace_kernel( FLOPS_ZGEQRF( m, ret ) + FLOPS_ZUNMQR( m, n-ret, ret, PastixLeft ), 2 );
+    }
 
     /**
      * Resize the space used by the low rank matrix

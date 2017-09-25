@@ -290,7 +290,7 @@ cpucblk_zgetrfsp1d_panel( SolverCblk         *cblk,
                           const pastix_lr_t  *lowrank )
 {
     pastix_int_t nbpivot;
-    nbpivot =  cpucblk_zgetrfsp1d_getrf(cblk, L, U, criteria);
+    nbpivot = cpucblk_zgetrfsp1d_getrf(cblk, L, U, criteria);
 
     /*
      * We exploit the fact that the upper triangle is stored at the top of the L

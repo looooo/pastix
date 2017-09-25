@@ -120,9 +120,10 @@ void define_kernels_properties()
 
     /* Dense operations */
     kernels_properties[GETRF]      = (kernels_t) {"getrf",      GTG_RED};
-    kernels_properties[POTRF]      = (kernels_t) {"potrf",      GTG_RED};
-    kernels_properties[SYTRF]      = (kernels_t) {"sytrf",      GTG_RED};
     kernels_properties[HETRF]      = (kernels_t) {"hetrf",      GTG_RED};
+    kernels_properties[POTRF]      = (kernels_t) {"potrf",      GTG_RED};
+    kernels_properties[PXTRF]      = (kernels_t) {"pxtrf",      GTG_RED};
+    kernels_properties[SYTRF]      = (kernels_t) {"sytrf",      GTG_RED};
     kernels_properties[DENSE_TRSM] = (kernels_t) {"dense_trsm", GTG_SEABLUE};
     kernels_properties[DENSE_GEMM] = (kernels_t) {"dense_gemm", GTG_GREEN};
 

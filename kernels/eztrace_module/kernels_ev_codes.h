@@ -49,10 +49,11 @@ typedef enum kernels_ev_code_e {
     UNCOMPRESS,       /**< uncompress a low-rank block into a dense block        */
 
     /* General kernels: similar in low-rank and dense */
-    GETRF, /**< getrf on a dense block */
-    POTRF, /**< potrf on a dense block */
-    SYTRF,
+    GETRF,
     HETRF,
+    POTRF,
+    PXTRF,
+    SYTRF,
 
     /* Dense operations */
     DENSE_TRSM, /**< trsm on a dense block           */
