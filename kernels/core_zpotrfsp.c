@@ -357,4 +357,3 @@ cpucblk_zpotrfsp1d( SolverMatrix       *solvmtx,
 
     return nbpivot;
 }
-
