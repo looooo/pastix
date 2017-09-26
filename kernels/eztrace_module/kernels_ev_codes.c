@@ -30,10 +30,6 @@ void start_eztrace_kernels(){
         pastix_eztrace_level = atoi(LEVEL);
         pastix_cleanenv(LEVEL);
     }
-    else{
-        pastix_eztrace_level = 1;
-    }
-
     eztrace_start ();
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 }
