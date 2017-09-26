@@ -68,8 +68,17 @@ void candUpdate         ( Cand                  *candtab,
                           const symbol_matrix_t *symbmtx,
                           const CostMatrix      *costmtx );
 
-void candGenDot(const EliminTree *etree, const Cand *candtab, FILE *stream);
-void candGenCompressedDot(const EliminTree *etree, const Cand *candtab, FILE *stream);
+
+void candGenDot          ( const EliminTree *etree,
+                           const Cand       *candtab,
+                           FILE             *stream );
+void candGenDotLevel     ( const EliminTree *etree,
+                           const Cand       *candtab,
+                           FILE             *stream,
+                           pastix_int_t      level );
+void candGenCompressedDot( const EliminTree *etree,
+                           const Cand       *candtab,
+                           FILE             *stream);
 
 #endif
 

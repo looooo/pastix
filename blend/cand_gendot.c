@@ -182,6 +182,9 @@ compress_setSonsNbr( const EliminTree *etree,
  * @param[in] etree
  *          The pointer to the elimination tree.
  *
+ * @param[in] cand
+ *          The candidate array associated to the elimination tree for
+ *          additional information. (optionnal)
  *
  * @param[inout] stream
  *          The file to which write the elimination tree in the dot format.
@@ -205,11 +208,11 @@ candGenDot( const EliminTree *etree,
             continue;
 
         if ( candtab == NULL ) {
-            fprintf(stream, "\t\"%ld\" [label=\"#%ld\\nSubtree cost: %e\\nNode cost: %e\\nNode CP: %e\"]\n",
-                    (long)i, (long)i,
-                    etree->nodetab[i].subtree,
-                    etree->nodetab[i].total,
-                    etree->nodetab[i].cripath );
+            fprintf( stream, "\t\"%ld\" [label=\"#%ld\\nSubtree cost: %e\\nNode cost: %e\\nNode CP: %e\"]\n",
+                     (long)i, (long)i,
+                     etree->nodetab[i].subtree,
+                     etree->nodetab[i].total,
+                     etree->nodetab[i].cripath );
         }
         else {
             if ( candtab[i].lcandnum != candtab[i].fcandnum ) {
@@ -235,6 +238,96 @@ candGenDot( const EliminTree *etree,
             continue;
         fprintf(stream, "\t\"%ld\"->\"%ld\"\n", (long)i, (long)((etree->nodetab[i]).fathnum));
     }
+    fprintf(stream, "}\n");
+}
+
+static inline void
+candGenDotLevelSub( const EliminTree *etree,
+                    const Cand       *candtab,
+                    FILE             *stream,
+                    pastix_int_t      nblevel,
+                    pastix_int_t      rootnum )
+{
+    pastix_int_t i, son;
+
+    assert( (etree->nodetab[rootnum]).fathnum != -2 );
+
+    /* Print current node informations */
+    if ( candtab == NULL ) {
+        fprintf( stream, "\t\"%ld\" [label=\"#%ld\\nSubtree cost: %e\\nNode cost: %e\\nNode CP: %e\"]\n",
+                 (long)rootnum, (long)rootnum,
+                 etree->nodetab[rootnum].subtree,
+                 etree->nodetab[rootnum].total,
+                 etree->nodetab[rootnum].cripath );
+    }
+    else {
+        if ( candtab[rootnum].lcandnum != candtab[rootnum].fcandnum ) {
+            fprintf( stream, "\t\"%ld\" [label=\"#%ld\\nCand: %ld - %ld\\nSubtree cost: %e\\nNode cost: %e\\nNode CP: %e\"]\n",
+                     (long)rootnum, (long)rootnum,
+                     (long)(candtab[rootnum].fcandnum),
+                     (long)(candtab[rootnum].lcandnum),
+                     etree->nodetab[rootnum].subtree,
+                     etree->nodetab[rootnum].total,
+                     etree->nodetab[rootnum].cripath );
+        }
+        else {
+            fprintf(stream, "\t\"%ld\" [label=\"#%ld\\nCand: %ld\\nSubtree cost: %e\\nNode cost: %e\\nNode CP: %e\" colorscheme=set312 style=filled fillcolor=%ld]\n",
+                    (long)rootnum, (long)rootnum,
+                    (long)(candtab[rootnum].fcandnum),
+                    etree->nodetab[rootnum].subtree,
+                    etree->nodetab[rootnum].total,
+                    etree->nodetab[rootnum].cripath,
+                    (long)((candtab[rootnum].lcandnum % 12) + 1));
+        }
+    }
+
+    if ( nblevel > 0 ) {
+        nblevel--;
+
+        for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
+        {
+            son = eTreeSonI(etree, rootnum, i);
+            candGenDotLevelSub( etree, candtab, stream, nblevel, son );
+
+            fprintf(stream, "\t\"%ld\"->\"%ld\"\n", (long)son, (long)rootnum);
+        }
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Print the first level of the elimination tree in a dot file.
+ *
+ *******************************************************************************
+ *
+ * @param[in] etree
+ *          The pointer to the elimination tree.
+ *
+ * @param[in] cand
+ *          The candidate array associated to the elimination tree for
+ *          additional information. (optionnal)
+ *
+ * @param[inout] stream
+ *          The file to which write the elimination tree in the dot format.
+ *
+ * @param[in] level
+ *          The number of levels of the elimination tree to print.
+ *
+ *******************************************************************************/
+void
+candGenDotLevel( const EliminTree *etree,
+                 const Cand       *candtab,
+                 FILE             *stream,
+                 pastix_int_t      nblevel )
+{
+    fprintf(stream,
+            "digraph G {\n"
+            "\tcolor=white\n"
+            "\trankdir=BT;\n");
+
+    candGenDotLevelSub( etree, candtab, stream,
+                        nblevel, eTreeRoot( etree ) );
 
     fprintf(stream, "}\n");
 }

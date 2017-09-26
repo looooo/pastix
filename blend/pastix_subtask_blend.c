@@ -221,8 +221,8 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         clockStart(timer_current);
 
         ctrl.costmtx = costMatrixBuild( symbmtx,
-                                         iparm[IPARM_FLOAT],
-                                         iparm[IPARM_FACTORIZATION] );
+                                        iparm[IPARM_FLOAT],
+                                        iparm[IPARM_FACTORIZATION] );
 
         clockStop(timer_current);
         if( verbose > PastixVerboseNo ) {
@@ -279,12 +279,12 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         }
     }
 
-    /* Dump the dot of the eTree */
+    /* Dump the dot of the eTree before split */
     if ( verbose > PastixVerboseYes ) {
         FILE *stream = NULL;
         stream = pastix_fopenw( &(pastix_data->dirtemp), "etree.dot", "w" );
         if ( stream ) {
-            eTreeGenDot( ctrl.etree, stream );
+            candGenDotLevel( ctrl.etree, ctrl.candtab, stream, 5);
             fclose(stream);
         }
 
@@ -314,6 +314,22 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         if( verbose > PastixVerboseNo ) {
             pastix_print( procnum, 0, OUT_BLEND_SPLITSYMB_TIME,
                           clockVal(timer_current) );
+        }
+    }
+
+    /* Dump the dot of the eTree after split */
+    if ( verbose > PastixVerboseYes ) {
+        FILE *stream = NULL;
+        stream = pastix_fopenw( &(pastix_data->dirtemp), "etree_split.dot", "w" );
+        if ( stream ) {
+            candGenDot( ctrl.etree, ctrl.candtab, stream );
+            fclose(stream);
+        }
+
+        stream = pastix_fopenw( &(pastix_data->dirtemp), "ctree_split.dot", "w" );
+        if ( stream ) {
+            candGenCompressedDot( ctrl.etree, ctrl.candtab, stream );
+            fclose(stream);
         }
     }
 
