@@ -754,6 +754,49 @@ candBuild( pastix_int_t level_tasks2d, pastix_int_t width_tasks2d,
 }
 
 /**
+ *******************************************************************************
+ *
+ * @brief Update the candtab array costs after the symbol split algorithm has
+ * been applied.
+ *
+ * This function update the costs and critical path of each node after the
+ * symbol matrix has been split to generate more parallelism.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] candtab
+ *               Pointer to the global candtab array that needs to be updated.
+ *
+ * @param[inout] etree
+ *               Pointer to the elimination tree that needs to be construct on entry.
+ *               On exit, the cost of each node, and the total cost of its
+ *               associated subtree is updated.
+ *
+ * @param[in]    symbmtx
+ *               Pointer to the symbol matrix we are working with.
+ *
+ * @param[in]    costmtx
+ *               Pointer to the cost matrix associated to the symbol matrix and
+ *               that holds the cost of each cblk and blok.
+ *
+ *******************************************************************************/
+void
+candUpdate( Cand                  *candtab,
+            EliminTree            *etree,
+            const symbol_matrix_t *symbmtx,
+            const CostMatrix      *costmtx )
+{
+    double cp = 0.0;
+    pastix_int_t root = eTreeRoot(etree);
+
+    /* Let's start with the root */
+    candtab[ root ].costlevel = -1.0;
+    candtab[ root ].treelevel = -1;
+
+    candSubTreeBuild( root, candtab, etree, symbmtx, costmtx, &cp );
+}
+
+/**
  *@}
  */
 

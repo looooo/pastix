@@ -565,8 +565,9 @@ splitSymbol( BlendCtrl       *ctrl,
     extraCblkExit(&extracblk);
 
     /* Check that the generated symbol matrix is correct */
-    if (ctrl->debug)
+    if (ctrl->debug) {
         pastixSymbolCheck(symbmtx);
+    }
 
     if ( ctrl->clustnum == 0 ) {
         if (ctrl->iparm[IPARM_VERBOSE] > PastixVerboseNo) {
@@ -584,22 +585,16 @@ splitSymbol( BlendCtrl       *ctrl,
                                          ctrl->iparm[IPARM_FLOAT],
                                          ctrl->iparm[IPARM_FACTORIZATION] );
 
-        if ( ctrl->updatecandtab )
-        {
             /* Update elimination tree */
             if (ctrl->etree != NULL) {
                 eTreeExit(ctrl->etree);
-            }
-
-            ctrl->etree = eTreeBuild(symbmtx);
-
-            /* Initialize costs in elimination tree and candtab array for proportionnal mapping */
-            candBuild( ctrl->level_tasks2d, ctrl->width_tasks2d,
-                       ctrl->iparm[IPARM_COMPRESS_WHEN], ctrl->iparm[IPARM_COMPRESS_MIN_WIDTH],
-                       ctrl->candtab,
-                       ctrl->etree,
-                       symbmtx,
-                       ctrl->costmtx );
         }
+        ctrl->etree = eTreeBuild(symbmtx);
+
+        /*
+         * Let's update cost in the candtab for the proportionnal mapping and
+         * the simulation
+         */
+        candUpdate( ctrl->candtab, ctrl->etree, symbmtx, ctrl->costmtx );
     }
 }
