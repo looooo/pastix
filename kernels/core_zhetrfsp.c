@@ -19,6 +19,7 @@
 #include "cblas.h"
 #include "blend/solver.h"
 #include "pastix_zcores.h"
+#include "eztrace_module/kernels_ev_codes.h"
 
 #include <lapacke.h>
 
@@ -232,6 +233,8 @@ cpucblk_zhetrfsp1d_hetrf( SolverCblk         *cblk,
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
 
+    start_trace_kernel( 1, LVL1_HETRF );
+
     ncols  = cblk->lcolnum - cblk->fcolnum + 1;
     stride = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
 
@@ -250,95 +253,13 @@ cpucblk_zhetrfsp1d_hetrf( SolverCblk         *cblk,
      *  - diagonal holds D
      *  - uppert part holds (DL^h)
      */
+    start_trace_kernel( 2, HETRF );
     core_zhetrfsp( ncols, L, stride, &nbpivot, criteria );
+    stop_trace_kernel( 2, FLOPS_ZHETRF( ncols ) );
+
+    stop_trace_kernel( 1, 0.0 );
 
     return nbpivot;
-}
-
-/**
- *******************************************************************************
- *
- * core_zhetrfsp1d_trsm - Apply all the trsm updates to one panel.
- *
- *******************************************************************************
- *
- * @param[in] cblk
- *          Pointer to the structure representing the panel to factorize in the
- *          cblktab array.  Next column blok must be accessible through cblk[1].
- *
- * @param[inout] L
- *          The pointer to the matrix storing the coefficients of the
- *          panel. Must be of size cblk.stride -by- cblk.width
- *
- *******************************************************************************
- *
- * @return
- *          \retval PASTIX_SUCCESS on successful exit.
- *
- *******************************************************************************/
-int core_zhetrfsp1d_trsm( SolverCblk         *cblk,
-                          pastix_complex64_t *L)
-{
-    const SolverBlok *blok, *lblk;
-
-    blok = cblk->fblokptr + 1; /* Firt off-diagonal block */
-    lblk = cblk[1].fblokptr;   /* Next diagonal block     */
-
-    /* if there are off-diagonal supernodes in the column */
-    if ( blok < lblk )
-    {
-        const pastix_complex64_t *A;
-        pastix_complex64_t *B;
-        pastix_int_t M, N, lda, ldb, j;
-
-        N = cblk_colnbr( cblk );
-        A = L;
-
-        if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
-            lda = N;
-
-            for(; blok < lblk; blok++) {
-                M   = blok_rownbr( blok );
-                B   = L + blok->coefind;
-                ldb = M;
-
-                /* Three terms version, no need to keep L and L*D */
-                cblas_ztrsm( CblasColMajor, CblasRight, CblasLower,
-                             CblasConjTrans, CblasUnit, M, N,
-                             CBLAS_SADDR(zone), A, lda,
-                                                B, ldb);
-
-                for (j=0; j<N; j++)
-                {
-                    pastix_complex64_t alpha;
-                    alpha = 1.0 / A[j + j * lda];
-                    cblas_zscal(M, CBLAS_SADDR(alpha), B + j * ldb, 1);
-                }
-            }
-
-        }
-        else {
-            lda = cblk->stride;
-            M   = cblk->stride - N;
-            B   = L + blok->coefind;
-            ldb = cblk->stride;
-
-            /* Three terms version, no need to keep L and L*D */
-            cblas_ztrsm( CblasColMajor, CblasRight, CblasLower,
-                         CblasConjTrans, CblasUnit, M, N,
-                         CBLAS_SADDR(zone), A, lda,
-                                            B, ldb);
-
-            for (j=0; j<N; j++)
-            {
-                pastix_complex64_t alpha;
-                alpha = 1.0 / A[j + j * lda];
-                cblas_zscal(M, CBLAS_SADDR(alpha), B + j * ldb, 1);
-            }
-        }
-    }
-
-    return PASTIX_SUCCESS;
 }
 
 /**
@@ -396,6 +317,8 @@ void core_zhetrfsp1d_gemm( const SolverCblk         *cblk,
     pastix_complex64_t *blokC;
 
     pastix_int_t M, N, K, lda, ldb, ldc, ldd;
+
+    start_trace_kernel( 1, LVL1_GEMDM );
 
     /* Get the panel update dimensions */
     K = cblk_colnbr( cblk );
@@ -462,6 +385,7 @@ void core_zhetrfsp1d_gemm( const SolverCblk         *cblk,
             (void)ret;
         }
     }
+    stop_trace_kernel( 1, 0.0 );
 }
 
 /**
@@ -505,8 +429,6 @@ cpucblk_zhetrfsp1d_panel( SolverCblk         *cblk,
                           const pastix_lr_t  *lowrank )
 {
     pastix_int_t nbpivot;
-    (void)lowrank;
-
     nbpivot = cpucblk_zhetrfsp1d_hetrf( cblk, L, criteria );
 
     /*

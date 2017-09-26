@@ -31,10 +31,12 @@
 #define KERNELS_PREFIX       (KERNELS_EVENTS_ID << 5)
 #define KERNELS_CODE(event)  (KERNELS_PREFIX | event )
 
+extern int pastix_eztrace_level;
+
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 
 /**
- * @brief Kerneks
+ * @brief Kernels
  */
 typedef enum kernels_ev_code_e {
     STOP,
@@ -49,12 +51,35 @@ typedef enum kernels_ev_code_e {
     UNCOMPRESS,       /**< uncompress a low-rank block into a dense block        */
 
     /* General kernels: similar in low-rank and dense */
-    GETRF, /**< getrf on a dense block */
-    POTRF, /**< potrf on a dense block */
+    GETRF,
+    HETRF,
+    POTRF,
+    PXTRF,
+    SYTRF,
 
     /* Dense operations */
     DENSE_TRSM, /**< trsm on a dense block           */
     DENSE_GEMM, /**< gemm between three dense blocks */
+
+    LVL1_GETRF,
+    LVL1_HETRF,
+    LVL1_POTRF,
+    LVL1_PXTRF,
+    LVL1_SYTRF,
+    LVL1_SCALO,
+    LVL1_TRSM_CBLK_1D,
+    LVL1_TRSM_CBLK_2D,
+    LVL1_TRSM_CBLK_LR,
+    LVL1_TRSM_BLOK_2D,
+    LVL1_TRSM_BLOK_LR,
+    LVL1_GEMM_CBLK_1D1D,
+    LVL1_GEMM_CBLK_1D2D,
+    LVL1_GEMM_CBLK_2D2D,
+    LVL1_GEMM_CBLK_FRLR,
+    LVL1_GEMM_CBLK_LRLR,
+    LVL1_GEMM_BLOK_2D2D,
+    LVL1_GEMM_BLOK_2DLR,
+    LVL1_GEMDM,
 
     KERNELS_NB_EVENTS,
 } kernels_ev_code_t;
@@ -66,14 +91,20 @@ typedef enum kernels_ev_code_e {
  *
  *******************************************************************************
  *
+ * @param[in] level
+ *          Level of tracing defined by environment variable EZTRACE_LVL
+ *
  * @param[in] state
  *          The kernel's name
  *
  *******************************************************************************/
-static inline void start_trace_kernel(kernels_ev_code_t state){
+static inline void start_trace_kernel(int level, kernels_ev_code_t state){
 #if defined(PASTIX_WITH_EZTRACE)
-    EZTRACE_EVENT_PACKED_0(KERNELS_CODE(state));
+    if (level == pastix_eztrace_level){
+        EZTRACE_EVENT_PACKED_0(KERNELS_CODE(state));
+    }
 #else
+    (void) level;
     (void) state;
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 }
@@ -85,33 +116,21 @@ static inline void start_trace_kernel(kernels_ev_code_t state){
  *
  *******************************************************************************
  *
+ * @param[in] level
+ *          Level of tracing defined by environment variable EZTRACE_LVL
+ *
  * @param[in] flops
  *          The number of operations performed during the call
  *
  *******************************************************************************/
-static inline void stop_trace_kernel(double flops){
+static inline void stop_trace_kernel(int level, double flops){
 #if defined(PASTIX_WITH_EZTRACE)
-    EZTRACE_EVENT_PACKED_1(KERNELS_CODE(STOP), flops);
+    if (level == pastix_eztrace_level){
+        EZTRACE_EVENT_PACKED_1(KERNELS_CODE(STOP), flops);
+    }
 #else
+    (void) level;
     (void) flops;
-#endif /* defined(PASTIX_WITH_EZTRACE) */
-}
-
-/**
- * @brief Start eztrace module
- */
-static inline void start_eztrace_kernels(){
-#if defined(PASTIX_WITH_EZTRACE)
-  eztrace_start ();
-#endif /* defined(PASTIX_WITH_EZTRACE) */
-}
-
-/**
- * @brief Stop eztrace module
- */
-static inline void stop_eztrace_kernels(){
-#if defined(PASTIX_WITH_EZTRACE)
-  eztrace_stop ();
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 }
 
