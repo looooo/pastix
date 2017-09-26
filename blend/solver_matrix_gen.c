@@ -484,7 +484,7 @@ solverMatrixGen( pastix_int_t           clustnum,
 
         for(p=0; p<k; p++, simuproc++)
         {
-            pastix_int_t priomin = INTVALMAX;
+            pastix_int_t priomin = PASTIX_INT_MAX;
             pastix_int_t priomax = 0;
             pastix_int_t ttsknbr = extendint_Size( simuproc->tasktab );
             pastix_int_t j, jloc;

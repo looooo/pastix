@@ -315,11 +315,11 @@ pastixSymbolPrintStats( const symbol_matrix_t *symbptr )
 
     cblknbr  = symbptr->cblknbr;
     bloknbr  = symbptr->bloknbr - cblknbr;
-    cblkmin  = 99999999999;
+    cblkmin  = PASTIX_INT_MAX;
     cblkmax  = 0;
     cblkavg1 = 0;
     cblkavg2 = 0;
-    blokmin  = 99999999999;
+    blokmin  = PASTIX_INT_MAX;
     blokmax  = 0;
     blokavg1 = 0;
     blokavg2 = 0;

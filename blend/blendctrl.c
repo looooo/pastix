@@ -246,7 +246,7 @@ blendCtrlInit( pastix_data_t *pastix_data,
     if(ctrl->ooc)
     {
         pastix_print( procnum, 0, "Force 1D distribution because of OOC \n" );
-        ctrl->ratiolimit = INTVALMAX;
+        ctrl->ratiolimit = PASTIX_INT_MAX;
     }
 
     if (iparm[IPARM_VERBOSE] > PastixVerboseYes) {

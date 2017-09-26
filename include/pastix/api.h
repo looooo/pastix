@@ -66,7 +66,7 @@ typedef enum pastix_iparm_e {
 
     /* Reordering */
     IPARM_REORDERING_SPLIT,      /**< Reordering split level                                         Default: 0                        IN    */
-    IPARM_REORDERING_STOP,       /**< Reordering stop criteria                                       Default: INT_MAX                  IN    */
+    IPARM_REORDERING_STOP,       /**< Reordering stop criteria                                       Default: PASTIX_INT_MAX           IN    */
 
     /* Analyze */
     IPARM_MIN_BLOCKSIZE,         /**< Minimum block size                                             Default: 160                      IN    */

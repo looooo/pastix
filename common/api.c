@@ -247,7 +247,7 @@ pastixInitParam( pastix_int_t *iparm,
 
     /* Reordering */
     iparm[IPARM_REORDERING_SPLIT]      = 0;
-    iparm[IPARM_REORDERING_STOP]       = INT_MAX;
+    iparm[IPARM_REORDERING_STOP]       = PASTIX_INT_MAX;
 
     /* Analyze */
     iparm[IPARM_MIN_BLOCKSIZE]         = 160;

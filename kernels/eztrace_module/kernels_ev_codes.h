@@ -84,6 +84,9 @@ typedef enum kernels_ev_code_e {
     KERNELS_NB_EVENTS,
 } kernels_ev_code_t;
 
+void start_eztrace_kernels();
+void stop_eztrace_kernels();
+
 /**
  *******************************************************************************
  *
