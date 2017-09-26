@@ -121,7 +121,7 @@ solverLoad( SolverMatrix *solvptr,
 
         {
             pastix_int_t levfval;
-            if ((versval > 0) &&
+            if ((versval == 0) &&
                 ((intLoad (stream, &levfval) != 1) ||
                  (levfval < 0))) {
                 errorPrint ("solverLoad: bad input (4)");

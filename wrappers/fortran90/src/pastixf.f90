@@ -341,12 +341,9 @@ contains
   subroutine pastixFinalize(pastix_data)
     use iso_c_binding
     implicit none
-    type(pastix_data_t), intent(inout), pointer :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
 
-    type(c_ptr) :: pastix_data_aux
-
-    call pastixFinalize_c(pastix_data_aux)
-    call c_f_pointer(pastix_data_aux, pastix_data)
+    call pastixFinalize_c(c_loc(pastix_data))
   end subroutine pastixFinalize
 
   subroutine pastix_task_analyze(pastix_data, spm, info)

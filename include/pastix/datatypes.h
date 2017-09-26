@@ -49,11 +49,11 @@ typedef unsigned int pastix_uint_t;
 #endif
 
 #if !defined(INTSIZEBITS)
-#  define INTSIZEBITS   (sizeof (pastix_int_t) << 3)
+#  define INTSIZEBITS    (sizeof (pastix_int_t) << 3)
 #endif
 
-#if !defined(INTVALMAX)
-#  define INTVALMAX     ((pastix_int_t) (((pastix_uint_t) 1 << (INTSIZEBITS - 1)) - 1))
+#if !defined(PASTIX_INT_MAX)
+#  define PASTIX_INT_MAX ((pastix_int_t) (((pastix_uint_t) 1 << (INTSIZEBITS - 1)) - 1))
 #endif
 
 /** ****************************************************************************

@@ -353,8 +353,8 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
     pastix_int_t p;
     pastix_int_t procnum = -1;
     pastix_int_t tasknum;
-    double earlytimeready = INTVALMAX;
-    double earlyproctimer = INTVALMAX;
+    double earlytimeready = PASTIX_INT_MAX;
+    double earlyproctimer = PASTIX_INT_MAX;
     double timeready;
     pastix_int_t earlytask = -1;
 
