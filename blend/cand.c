@@ -269,7 +269,7 @@ candCheck( const Cand            *candtab,
  * @return The cost of the subtree.
  *
  *******************************************************************************/
-static inline double
+double
 candSubTreeBuild( pastix_int_t           rootnum,
                   Cand                  *candtab,
                   EliminTree            *etree,
@@ -302,14 +302,20 @@ candSubTreeBuild( pastix_int_t           rootnum,
     /* Update local critical path */
     {
         pastix_int_t bloknum = symbmtx->cblktab[ rootnum ].bloknum;
+        pastix_int_t fcblknm;
 
         /* Add Facto and solve */
         mycp += costmtx->blokcost[ bloknum ];
 
         /* Add first GEMM */
         bloknum++;
-        if ( bloknum < symbmtx->cblktab[ rootnum+1 ].bloknum ) {
+        fcblknm = symbmtx->bloktab[ bloknum ].fcblknm;
+
+        while( (bloknum <  symbmtx->cblktab[ rootnum+1 ].bloknum) &&
+               (fcblknm == symbmtx->bloktab[ bloknum   ].fcblknm) )
+        {
             mycp += costmtx->blokcost[ bloknum ];
+            bloknum++;
         }
     }
     etree->nodetab[ rootnum ].cripath = mycp;
