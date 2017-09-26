@@ -31,7 +31,7 @@
 #define KERNELS_PREFIX       (KERNELS_EVENTS_ID << 5)
 #define KERNELS_CODE(event)  (KERNELS_PREFIX | event )
 
-int eztrace_level;
+extern int pastix_eztrace_level;
 
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 
@@ -100,7 +100,7 @@ typedef enum kernels_ev_code_e {
  *******************************************************************************/
 static inline void start_trace_kernel(int level, kernels_ev_code_t state){
 #if defined(PASTIX_WITH_EZTRACE)
-    if (level == eztrace_level){
+    if (level == pastix_eztrace_level){
         EZTRACE_EVENT_PACKED_0(KERNELS_CODE(state));
     }
 #else
@@ -125,7 +125,7 @@ static inline void start_trace_kernel(int level, kernels_ev_code_t state){
  *******************************************************************************/
 static inline void stop_trace_kernel(int level, double flops){
 #if defined(PASTIX_WITH_EZTRACE)
-    if (level == eztrace_level){
+    if (level == pastix_eztrace_level){
         EZTRACE_EVENT_PACKED_1(KERNELS_CODE(STOP), flops);
     }
 #else

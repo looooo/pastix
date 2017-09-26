@@ -17,7 +17,7 @@
  **/
 #include "eztrace_module/kernels_ev_codes.h"
 
-extern int eztrace_level;
+int pastix_eztrace_level = 1;
 
 /**
  * @brief Start eztrace module
@@ -27,10 +27,11 @@ void start_eztrace_kernels(){
     /* Set tracing level */
     char* LEVEL = pastix_getenv ("EZTRACE_LEVEL");
     if (LEVEL != NULL){
-        eztrace_level = atoi(LEVEL);
+        pastix_eztrace_level = atoi(LEVEL);
+        pastix_cleanenv(LEVEL);
     }
     else{
-        eztrace_level = 1;
+        pastix_eztrace_level = 1;
     }
 
     eztrace_start ();
