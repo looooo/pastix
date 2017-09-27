@@ -44,10 +44,15 @@ add_custom_target(starpu_headers_tgt
 set(SOURCES
   codelet_zgemmsp.c
   codelet_ztrsmsp.c
-  codelet_zpotrfsp.c
+  codelet_zscalo.c
   codelet_zgetrfsp.c
-  starpu_zpotrf.c
+  codelet_zhetrfsp.c
+  codelet_zpotrfsp.c
+  codelet_zsytrfsp.c
   starpu_zgetrf.c
+  starpu_zhetrf.c
+  starpu_zpotrf.c
+  starpu_zsytrf.c
 )
 
 precisions_rules_py(generated_sources
