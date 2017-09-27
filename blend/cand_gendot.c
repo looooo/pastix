@@ -447,8 +447,6 @@ candGenCompressedDot( const EliminTree *etree,
 
     cnodesnbr = compress_getNodeNbr( etree, candtab, eTreeRoot(etree)  );
 
-    fprintf(stderr, "The compressed number of nodes is %ld\n", cnodesnbr);
-
     /* Let's create a second compressed elimination tree, and the associated candtab */
     MALLOC_INTERN(ctree, 1, EliminTree);
     eTreeInit(ctree);
