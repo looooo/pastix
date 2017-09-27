@@ -453,12 +453,17 @@ apiInitMPI( pastix_data_t *pastix,
  * @param[inout] dparm
  *          The floating point array of parameters to initialize.
  *
+ * @param[in]   bindtab
+ *          Integer array of size iparm[IPARM_THREAD_NBR] that will specify the
+ *          thread binding. NULL if let to the system.
+ *
  *******************************************************************************/
 void
-pastixInit( pastix_data_t **pastix_data,
-            MPI_Comm        pastix_comm,
-            pastix_int_t   *iparm,
-            double         *dparm )
+pastixInitAffinity( pastix_data_t **pastix_data,
+                    MPI_Comm        pastix_comm,
+                    pastix_int_t   *iparm,
+                    double         *dparm,
+                    int            *bindtab )
 {
     pastix_data_t *pastix;
 
@@ -520,7 +525,7 @@ pastixInit( pastix_data_t **pastix_data,
     /*
      * Start the internal threads
      */
-    pastix->isched = ischedInit( pastix->iparm[IPARM_THREAD_NBR], NULL );
+    pastix->isched = ischedInit( pastix->iparm[IPARM_THREAD_NBR], bindtab );
     pastix->iparm[IPARM_THREAD_NBR] = pastix->isched->world_size;
 
     /*
@@ -530,7 +535,7 @@ pastixInit( pastix_data_t **pastix_data,
     if ( (pastix->parsec == NULL) &&
          (iparm[IPARM_SCHEDULER] == PastixSchedParsec) ) {
         int argc = 0;
-        pastix_parsec_init( pastix, &argc, NULL );
+        pastix_parsec_init( pastix, &argc, NULL, bindtab );
     }
 #endif /* defined(PASTIX_WITH_PARSEC) */
 
@@ -541,7 +546,7 @@ pastixInit( pastix_data_t **pastix_data,
     if ( (pastix->starpu == NULL) &&
          (iparm[IPARM_SCHEDULER] == PastixSchedStarPU) ) {
         int argc = 0;
-        pastix_starpu_init( pastix, &argc, NULL );
+        pastix_starpu_init( pastix, &argc, NULL, bindtab );
     }
 #endif /* defined(PASTIX_WITH_STARPU) */
 
@@ -573,6 +578,38 @@ pastixInit( pastix_data_t **pastix_data,
     pastix->steps = STEP_INIT;
 
     *pastix_data = pastix;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_api
+ *
+ * @brief Initialize the solver instance
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The main data structure.
+ *
+ * @param[in] pastix_comm
+ *          The MPI communicator.
+ *
+ * @param[inout] iparm
+ *          The integer array of parameters to initialize.
+ *
+ * @param[inout] dparm
+ *          The floating point array of parameters to initialize.
+ *
+ *******************************************************************************/
+void
+pastixInit( pastix_data_t **pastix_data,
+            MPI_Comm        pastix_comm,
+            pastix_int_t   *iparm,
+            double         *dparm )
+{
+    pastixInitAffinity( pastix_data, pastix_comm,
+                        iparm, dparm, bindtab );
 }
 
 /**

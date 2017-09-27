@@ -41,10 +41,15 @@
  * @param[inout] argv
  *          The list of argument given to the main program.
  *
+ * @param[in] bindtab
+ *          The binding array of size the number of threads if a specific
+ *          binding is required, NULL otherwise.
+ *
  ******************************************************************************/
 void
 pastix_starpu_init( pastix_data_t *pastix,
-                    int *argc, char **argv[] )
+                    int *argc, char **argv[],
+                    const int *bindtab )
 {
     struct starpu_conf *conf;
     pastix_int_t *iparm = pastix->iparm;
@@ -78,6 +83,16 @@ pastix_starpu_init( pastix_data_t *pastix,
 #endif
     }
 
+    if ( bindtab != NULL ) {
+        int i;
+
+        assert( iparm[IPARM_THREAD_NBR] < STARPU_NMAXWORKERS );
+        conf->use_explicit_workers_bindid = 1;
+
+        for(i=0; i < pastix_imin( iparm[IPARM_THREAD_NBR], STARPU_NMAXWORKERS ); i++) {
+            conf->workers_bindid[i] = bindtab[i];
+        }
+    }
     rc = starpu_init( conf );
 
     starpu_malloc_on_node_set_default_flags( STARPU_MAIN_RAM,

@@ -46,13 +46,19 @@
  * @param[inout] argv
  *          The list of argument given to the main program.
  *
+ * @param[in] bindtab
+ *          The binding array of size the number of threads if a specific
+ *          binding is required, NULL otherwise.
+ *
  ******************************************************************************/
 void
 pastix_parsec_init( pastix_data_t *pastix,
-                    int *argc, char **argv[] )
+                    int *argc, char ***argv,
+                    const int *bindtab )
 {
     extern char **environ;
     pastix_int_t *iparm = pastix->iparm;
+    char **parsec_argv = (argv == NULL) ? NULL : *argv;
     char *value;
     int rc;
 
@@ -72,10 +78,51 @@ pastix_parsec_init( pastix_data_t *pastix,
         if (iparm[IPARM_VERBOSE] > 3) {
             parsec_setenv_mca_param( "device_show_capabilities", "1", &environ );
         }
+
+        free(value);
+    }
+
+    if ( bindtab != NULL ) {
+        char *valtmp;
+        int i;
+
+        rc = asprintf( &value, "%d", bindtab[0] );
+        for(i=1; i<iparm[IPARM_THREAD_NBR]; i++ ) {
+            valtmp = value;
+            rc = asprintf( &value, "%s:%d", valtmp, bindtab[i] );
+            free(valtmp);
+        }
+
+        if (parsec_argv == NULL) {
+            parsec_argv = malloc( 4 * sizeof(char*) );
+            parsec_argv[0] = strdup( "./pastix" );
+            parsec_argv[1] = strdup( "--parsec_bind" );
+            parsec_argv[2] = value;
+            parsec_argv[3] = NULL;
+            *argc = 3;
+        }
+        else {
+            parsec_argv = realloc( parsec_argv, (*argc+3) * sizeof(char*) );
+            parsec_argv[*argc    ] = strdup( "--parsec_bind" );
+            parsec_argv[*argc + 1] = value;
+            parsec_argv[*argc + 2] = NULL;
+            *argc = *argc + 2;
+        }
+        argv = &parsec_argv;
     }
     pastix->parsec = parsec_init( iparm[IPARM_THREAD_NBR],
                                   argc, argv );
 
+    if ( bindtab != NULL ) {
+        assert( *argc >= 3 );
+
+        free( value );  /* parsec_argv[ argc-1 ] */
+        free( parsec_argv[*argc - 2] );
+        if ( *argc == 3 ) {
+            free( parsec_argv[*argc - 3] );
+            free( parsec_argv );
+        }
+    }
     (void)rc;
 }
 

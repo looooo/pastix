@@ -92,7 +92,8 @@ void starpu_sparse_vector_init( starpu_sparse_vector_desc_t *desc,
 void starpu_sparse_vector_destroy( starpu_sparse_vector_desc_t *desc );
 
 void pastix_starpu_init( pastix_data_t *pastix,
-                         int *argc, char **argv[] );
+                         int *argc, char **argv[],
+                         const int *bindtab );
 void pastix_starpu_finalize( pastix_data_t *pastix );
 
 #endif /* _PASTIX_STARPU_H_ */

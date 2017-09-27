@@ -390,7 +390,7 @@ parsec_zhetrf( pastix_data_t  *pastix_data,
      */
     if (pastix_data->parsec == NULL) {
         int argc = 0;
-        pastix_parsec_init( pastix_data, &argc, NULL );
+        pastix_parsec_init( pastix_data, &argc, NULL, NULL );
     }
     ctx = pastix_data->parsec;
 

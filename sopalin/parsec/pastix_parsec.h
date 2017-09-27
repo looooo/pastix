@@ -54,7 +54,8 @@ void parsec_sparse_vector_init( parsec_sparse_vector_desc_t *desc,
 void parsec_sparse_vector_destroy( parsec_sparse_vector_desc_t *desc );
 
 void pastix_parsec_init( pastix_data_t *pastix,
-                         int *argc, char **argv[] );
+                         int *argc, char **argv[],
+                         const int *bindtab );
 void pastix_parsec_finalize( pastix_data_t *pastix );
 
 #endif /* _PASTIX_PARSEC_H_ */
