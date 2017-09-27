@@ -1,8 +1,8 @@
 /**
  *
- * @file parsec_zpotrf.c
+ * @file parsec_zhetrf.c
  *
- * PaStiX zpotrf PaRSEC wrapper.
+ * PaStiX zhetrf PaRSEC wrapper.
  *
  * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -10,9 +10,9 @@
  * @version 6.0.0
  * @author Mathieu Faverge
  * @date 2013-06-24
- * @precisions normal z -> s d c
+ * @precisions normal z -> c
  *
- * @addtogroup parsec_potrf
+ * @addtogroup parsec_hetrf
  * @{
  *
  **/
@@ -24,24 +24,24 @@
 #include "common.h"
 #include "solver.h"
 #include "sopalin_data.h"
-#include "zpotrf_sp1dplus.h"
-#include "zpotrf_sp2d.h"
+#include "zhetrf_sp1dplus.h"
+#include "zhetrf_sp2d.h"
 #include "pastix_parsec.h"
 
 /**
  *******************************************************************************
  *
- * @brief Generate the PaRSEC taskpool object for the Cholesky factorization with
+ * @brief Generate the PaRSEC taskpool object for the LDL^h factorization with
  * 1D kernels.
  *
- * The function only return the object that describes the Cholesky factorization
- * of a sparse symmetric positive definite (or Hermitian positive definite in
- * the complex case) matrix A.
+ * The function only return the object that describes the LDL^h factorization
+ * of a sparse hermitian matrix A.
  * The factorization has the form
  *
- *    \f[ A = L\times L^H \f]
+ *    \f[ A = L \times D \times L^h \f]
  *
- * where L is a sparse lower triangular matrix.
+ * where L is a sparse lower triangular matrix unitary on the diagonal, and D a
+ * diagonal matrix.
  *
  * In this object, all operations are panel based operation which might result in
  * lower parallelism for large problems.
@@ -62,43 +62,47 @@
  * @retval NULL if incorrect parameters are given.
  * @retval The parsec taskpool describing the operation that can be
  *         enqueued in the runtime with parsec_enqueue(). It, then, needs to be
- *         destroy with parsec_zpotrf_sp1dplus_Destruct().
+ *         destroy with parsec_zhetrf_sp1dplus_Destruct().
  *
  *******************************************************************************
  *
- * @sa parsec_zpotrf_sp1dplus
- * @sa parsec_zpotrf_sp1dplus_Destruct
+ * @sa parsec_zhetrf_sp1dplus
+ * @sa parsec_zhetrf_sp1dplus_Destruct
  * @sa parsec_zgetrf_sp1dplus
- * @sa parsec_cpotrf_sp1dplus_New
- * @sa parsec_dpotrf_sp1dplus_New
- * @sa parsec_spotrf_sp1dplus_New
+ * @sa parsec_chetrf_sp1dplus_New
+ * @sa parsec_dhetrf_sp1dplus_New
+ * @sa parsec_shetrf_sp1dplus_New
  *
  ******************************************************************************/
 parsec_taskpool_t*
-parsec_zpotrf_sp1dplus_New( parsec_sparse_matrix_desc_t *A,
+parsec_zhetrf_sp1dplus_New( parsec_sparse_matrix_desc_t *A,
                             sopalin_data_t *sopalin_data )
 {
-    parsec_zpotrf_sp1dplus_taskpool_t *parsec_zpotrf_sp1dplus = NULL;
+    parsec_zhetrf_sp1dplus_taskpool_t *parsec_zhetrf_sp1dplus = NULL;
+    unsigned int gemmmax = sopalin_data->solvmtx->gemmmax;
 
-    parsec_zpotrf_sp1dplus = parsec_zpotrf_sp1dplus_new( A, sopalin_data, NULL );
+    parsec_zhetrf_sp1dplus = parsec_zhetrf_sp1dplus_new( A, sopalin_data, NULL );
 
-    parsec_zpotrf_sp1dplus->_g_p_work = (parsec_memory_pool_t*)malloc(sizeof(parsec_memory_pool_t));
-    parsec_private_memory_init( parsec_zpotrf_sp1dplus->_g_p_work,
+    parsec_zhetrf_sp1dplus->_g_p_work = (parsec_memory_pool_t*)malloc(sizeof(parsec_memory_pool_t));
+    parsec_private_memory_init( parsec_zhetrf_sp1dplus->_g_p_work,
                                 sopalin_data->solvmtx->gemmmax * sizeof(pastix_complex64_t) );
 
     /* This is a default initializer for now, as it is not used in distributed */
-    parsec_matrix_add2arena_rect( parsec_zpotrf_sp1dplus->arenas[PARSEC_zpotrf_sp1dplus_DEFAULT_ARENA],
-                                  parsec_datatype_double_complex_t,
-                                  /*sopalin_data->solvmtx->gemmmax*/ 1, 1, 1 );
+    parsec_matrix_add2arena_rect( parsec_zhetrf_sp1dplus->arenas[PARSEC_zhetrf_sp1dplus_DEFAULT_ARENA],
+                                  parsec_datatype_double_complex_t, 1,
+                                  /*sopalin_data->solvmtx->gemmmax*/ 1, 1 );
 
-    return (parsec_taskpool_t*)parsec_zpotrf_sp1dplus;
+    parsec_matrix_add2arena_rect( parsec_zhetrf_sp1dplus->arenas[PARSEC_zhetrf_sp1dplus_CBLK_WS_ARENA],
+                                  parsec_datatype_double_complex_t, gemmmax, 1, gemmmax );
+
+    return (parsec_taskpool_t*)parsec_zhetrf_sp1dplus;
 }
 
 /**
  *******************************************************************************
  *
  * @brief Free the data structure associated to a taskpool created with
- * parsec_zpotrf_sp1dplus_New().
+ * parsec_zhetrf_sp1dplus_New().
  *
  *******************************************************************************
  *
@@ -108,15 +112,16 @@ parsec_zpotrf_sp1dplus_New( parsec_sparse_matrix_desc_t *A,
  *
  ******************************************************************************/
 void
-parsec_zpotrf_sp1dplus_Destruct( parsec_taskpool_t *taskpool )
+parsec_zhetrf_sp1dplus_Destruct( parsec_taskpool_t *taskpool )
 {
-    parsec_zpotrf_sp1dplus_taskpool_t *parsec_zpotrf_sp1dplus = NULL;
-    parsec_zpotrf_sp1dplus = (parsec_zpotrf_sp1dplus_taskpool_t *)taskpool;
+    parsec_zhetrf_sp1dplus_taskpool_t *parsec_zhetrf_sp1dplus = NULL;
+    parsec_zhetrf_sp1dplus = (parsec_zhetrf_sp1dplus_taskpool_t *)taskpool;
 
-    parsec_matrix_del2arena( parsec_zpotrf_sp1dplus->arenas[PARSEC_zpotrf_sp1dplus_DEFAULT_ARENA] );
+    parsec_matrix_del2arena( parsec_zhetrf_sp1dplus->arenas[PARSEC_zhetrf_sp1dplus_DEFAULT_ARENA] );
+    parsec_matrix_del2arena( parsec_zhetrf_sp1dplus->arenas[PARSEC_zhetrf_sp1dplus_CBLK_WS_ARENA] );
 
-    parsec_private_memory_fini( parsec_zpotrf_sp1dplus->_g_p_work );
-    free( parsec_zpotrf_sp1dplus->_g_p_work );
+    parsec_private_memory_fini( parsec_zhetrf_sp1dplus->_g_p_work );
+    free( parsec_zhetrf_sp1dplus->_g_p_work );
 
     parsec_taskpool_free( taskpool );
 }
@@ -124,16 +129,15 @@ parsec_zpotrf_sp1dplus_Destruct( parsec_taskpool_t *taskpool )
 /**
  *******************************************************************************
  *
- * @brief Perform a sparse Cholesky factorization with 1D kernels.
+ * @brief Perform a sparse LDL^h factorization with 1D kernels.
  *
- * The function performs the Cholesky factorization of a sparse symmetric
- * positive definite (or Hermitian positive definite in the complex case) matrix
- * A.
+ * The function performs the LDL^h factorization of a sparse hermitian matrix A.
  * The factorization has the form
  *
- *    \f[ A = L\times L^H \f]
+ *    \f[ A = L \times D \times L^h \f]
  *
- * where L is a sparse lower triangular matrix.
+ * where L is a sparse lower triangular matrix unitary on the diagonal, and D a
+ * diagonal matrix.
  *
  *******************************************************************************
  *
@@ -152,30 +156,30 @@ parsec_zpotrf_sp1dplus_Destruct( parsec_taskpool_t *taskpool )
  * @retval NULL if incorrect parameters are given.
  * @retval The parsec taskpool describing the operation that can be
  *         enqueued in the runtime with parsec_enqueue(). It, then, needs to be
- *         destroy with parsec_zpotrf_sp1dplus_Destruct().
+ *         destroy with parsec_zhetrf_sp1dplus_Destruct().
  *
  *******************************************************************************
  *
- * @sa parsec_zpotrf_sp1dplus_New
- * @sa parsec_zpotrf_sp1dplus_Destruct
+ * @sa parsec_zhetrf_sp1dplus_New
+ * @sa parsec_zhetrf_sp1dplus_Destruct
  *
  ******************************************************************************/
 int
-parsec_zpotrf_sp1dplus( parsec_context_t *parsec,
+parsec_zhetrf_sp1dplus( parsec_context_t *parsec,
                         parsec_sparse_matrix_desc_t *A,
                         sopalin_data_t *sopalin_data )
 {
-    parsec_taskpool_t *parsec_zpotrf_sp1dplus = NULL;
+    parsec_taskpool_t *parsec_zhetrf_sp1dplus = NULL;
     int info = 0;
 
-    parsec_zpotrf_sp1dplus = parsec_zpotrf_sp1dplus_New( A, sopalin_data );
+    parsec_zhetrf_sp1dplus = parsec_zhetrf_sp1dplus_New( A, sopalin_data );
 
-    if ( parsec_zpotrf_sp1dplus != NULL )
+    if ( parsec_zhetrf_sp1dplus != NULL )
     {
-        parsec_enqueue( parsec, (parsec_taskpool_t*)parsec_zpotrf_sp1dplus);
+        parsec_enqueue( parsec, (parsec_taskpool_t*)parsec_zhetrf_sp1dplus);
         parsec_context_start( parsec );
         parsec_context_wait( parsec );
-        parsec_zpotrf_sp1dplus_Destruct( parsec_zpotrf_sp1dplus );
+        parsec_zhetrf_sp1dplus_Destruct( parsec_zhetrf_sp1dplus );
     }
     return info;
 }
@@ -183,20 +187,20 @@ parsec_zpotrf_sp1dplus( parsec_context_t *parsec,
 /**
  *******************************************************************************
  *
- * @brief Generate the PaRSEC taskpoolr object for the Cholesky factorization with
+ * @brief Generate the PaRSEC taskpool object for the LDL^h factorization with
  * 1D and 2D kernels.
  *
- * The function only return the object that describes the Cholesky factorization
- * of a sparse symmetric positive definite (or Hermitian positive definite in
- * the complex case) matrix A.
+ * The function only returns the object that describes the LDL^h factorization
+ * of a sparse hermitian matrix A.
  * The factorization has the form
  *
- *    \f[ A = L\times L^H \f]
+ *    \f[ A = L \times D \times L^h \f]
  *
- * where L is a sparse lower triangular matrix.
+ * where L is a sparse lower triangular matrix unitary on the diagonal, and D a
+ * diagonal matrix.
  *
  * In this object, operations are panel based operations for the lower levels of
- * the elimination tree, and the higher levels are taskpoold by 2D tasks scheme to
+ * the elimination tree, and the higher levels are taskpool by 2D tasks scheme to
  * create more parallelism and adapt to large architectures.
  *
  * @warning The computations are not done by this call.
@@ -215,42 +219,52 @@ parsec_zpotrf_sp1dplus( parsec_context_t *parsec,
  * @retval NULL if incorrect parameters are given.
  * @retval The parsec taskpool describing the operation that can be
  *         enqueued in the runtime with parsec_enqueue(). It, then, needs to be
- *         destroy with parsec_zpotrf_sp2d_Destruct().
+ *         destroy with parsec_zhetrf_sp2d_Destruct().
  *
  *******************************************************************************
  *
- * @sa parsec_zpotrf_sp2d
- * @sa parsec_zpotrf_sp2d_Destruct
+ * @sa parsec_zhetrf_sp2d
+ * @sa parsec_zhetrf_sp2d_Destruct
  * @sa parsec_zgetrf_sp2d
- * @sa parsec_cpotrf_sp2d_New
- * @sa parsec_dpotrf_sp2d_New
- * @sa parsec_spotrf_sp2d_New
+ * @sa parsec_chetrf_sp2d_New
+ * @sa parsec_dhetrf_sp2d_New
+ * @sa parsec_shetrf_sp2d_New
  *
  ******************************************************************************/
 parsec_taskpool_t*
-parsec_zpotrf_sp2d_New( parsec_sparse_matrix_desc_t *A,
+parsec_zhetrf_sp2d_New( parsec_sparse_matrix_desc_t *A,
                         sopalin_data_t *sopalin_data )
 {
-    parsec_zpotrf_sp2d_taskpool_t *parsec_zpotrf_sp2d = NULL;
+    parsec_zhetrf_sp2d_taskpool_t *parsec_zhetrf_sp2d = NULL;
+    unsigned int gemmmax = sopalin_data->solvmtx->gemmmax;
+    unsigned int blokmax = sopalin_data->solvmtx->blokmax;
 
-    parsec_zpotrf_sp2d = parsec_zpotrf_sp2d_new( A, sopalin_data, NULL );
+    parsec_zhetrf_sp2d = parsec_zhetrf_sp2d_new( A, sopalin_data, NULL );
 
-    parsec_zpotrf_sp2d->_g_p_work = (parsec_memory_pool_t*)malloc(sizeof(parsec_memory_pool_t));
-    parsec_private_memory_init( parsec_zpotrf_sp2d->_g_p_work,
+    parsec_zhetrf_sp2d->_g_p_work = (parsec_memory_pool_t*)malloc(sizeof(parsec_memory_pool_t));
+    parsec_private_memory_init( parsec_zhetrf_sp2d->_g_p_work,
                                 sopalin_data->solvmtx->gemmmax * sizeof(pastix_complex64_t) );
 
-    parsec_matrix_add2arena_rect( parsec_zpotrf_sp2d->arenas[PARSEC_zpotrf_sp2d_DEFAULT_ARENA],
+    parsec_matrix_add2arena_rect( parsec_zhetrf_sp2d->arenas[PARSEC_zhetrf_sp2d_DEFAULT_ARENA],
                                   parsec_datatype_double_complex_t,
                                   /*sopalin_data->solvmtx->gemmmax*/ 1, 1, 1 );
 
-    return (parsec_taskpool_t*)parsec_zpotrf_sp2d;
+    parsec_matrix_add2arena_rect( parsec_zhetrf_sp2d->arenas[PARSEC_zhetrf_sp2d_CBLK_WS_ARENA],
+                                  parsec_datatype_double_complex_t,
+                                  gemmmax, 1, gemmmax );
+
+    parsec_matrix_add2arena_rect( parsec_zhetrf_sp2d->arenas[PARSEC_zhetrf_sp2d_BLOK_WS_ARENA],
+                                  parsec_datatype_double_complex_t,
+                                  blokmax, 1, blokmax );
+
+    return (parsec_taskpool_t*)parsec_zhetrf_sp2d;
 }
 
 /**
  *******************************************************************************
  *
  * @brief Free the data structure associated to a taskpool created with
- * parsec_zpotrf_sp2d_New().
+ * parsec_zhetrf_sp2d_New().
  *
  *******************************************************************************
  *
@@ -260,15 +274,17 @@ parsec_zpotrf_sp2d_New( parsec_sparse_matrix_desc_t *A,
  *
  ******************************************************************************/
 void
-parsec_zpotrf_sp2d_Destruct( parsec_taskpool_t *taskpool )
+parsec_zhetrf_sp2d_Destruct( parsec_taskpool_t *taskpool )
 {
-    parsec_zpotrf_sp2d_taskpool_t *parsec_zpotrf_sp2d = NULL;
-    parsec_zpotrf_sp2d = (parsec_zpotrf_sp2d_taskpool_t *)taskpool;
+    parsec_zhetrf_sp2d_taskpool_t *parsec_zhetrf_sp2d = NULL;
+    parsec_zhetrf_sp2d = (parsec_zhetrf_sp2d_taskpool_t *)taskpool;
 
-    parsec_matrix_del2arena( parsec_zpotrf_sp2d->arenas[PARSEC_zpotrf_sp2d_DEFAULT_ARENA] );
+    parsec_matrix_del2arena( parsec_zhetrf_sp2d->arenas[PARSEC_zhetrf_sp2d_DEFAULT_ARENA] );
+    parsec_matrix_del2arena( parsec_zhetrf_sp2d->arenas[PARSEC_zhetrf_sp2d_CBLK_WS_ARENA] );
+    parsec_matrix_del2arena( parsec_zhetrf_sp2d->arenas[PARSEC_zhetrf_sp2d_BLOK_WS_ARENA] );
 
-    parsec_private_memory_fini( parsec_zpotrf_sp2d->_g_p_work );
-    free( parsec_zpotrf_sp2d->_g_p_work );
+    parsec_private_memory_fini( parsec_zhetrf_sp2d->_g_p_work );
+    free( parsec_zhetrf_sp2d->_g_p_work );
 
     parsec_taskpool_free( taskpool );
 }
@@ -276,16 +292,15 @@ parsec_zpotrf_sp2d_Destruct( parsec_taskpool_t *taskpool )
 /**
  *******************************************************************************
  *
- * @brief Perform a sparse Cholesky factorization with 1D and 2D kernels.
+ * @brief Perform a sparse LDL^h factorization with 1D and 2D kernels.
  *
- * The function performs the Cholesky factorization of a sparse symmetric
- * positive definite (or Hermitian positive definite in the complex case) matrix
- * A.
+ * The function performs the LDL^h factorization of a sparse hermitian matrix A.
  * The factorization has the form
  *
- *    \f[ A = L\times L^H \f]
+ *    \f[ A = L \times D \times L^h \f]
  *
- * where L is a sparse lower triangular matrix.
+ * where L is a sparse lower triangular matrix unitary on the diagonal, and D a
+ * diagonal matrix.
  *
  *******************************************************************************
  *
@@ -304,30 +319,30 @@ parsec_zpotrf_sp2d_Destruct( parsec_taskpool_t *taskpool )
  * @retval NULL if incorrect parameters are given.
  * @retval The parsec taskpool describing the operation that can be
  *         enqueued in the runtime with parsec_enqueue(). It, then, needs to be
- *         destroy with parsec_zpotrf_sp2d_Destruct().
+ *         destroy with parsec_zhetrf_sp2d_Destruct().
  *
  *******************************************************************************
  *
- * @sa parsec_zpotrf_sp2d_New
- * @sa parsec_zpotrf_sp2d_Destruct
+ * @sa parsec_zhetrf_sp2d_New
+ * @sa parsec_zhetrf_sp2d_Destruct
  *
  ******************************************************************************/
 int
-parsec_zpotrf_sp2d( parsec_context_t *parsec,
+parsec_zhetrf_sp2d( parsec_context_t *parsec,
                     parsec_sparse_matrix_desc_t *A,
                     sopalin_data_t *sopalin_data )
 {
-    parsec_taskpool_t *parsec_zpotrf_sp2d = NULL;
+    parsec_taskpool_t *parsec_zhetrf_sp2d = NULL;
     int info = 0;
 
-    parsec_zpotrf_sp2d = parsec_zpotrf_sp2d_New( A, sopalin_data );
+    parsec_zhetrf_sp2d = parsec_zhetrf_sp2d_New( A, sopalin_data );
 
-    if ( parsec_zpotrf_sp2d != NULL )
+    if ( parsec_zhetrf_sp2d != NULL )
     {
-        parsec_enqueue( parsec, (parsec_taskpool_t*)parsec_zpotrf_sp2d );
+        parsec_enqueue( parsec, (parsec_taskpool_t*)parsec_zhetrf_sp2d );
         parsec_context_start( parsec );
         parsec_context_wait( parsec );
-        parsec_zpotrf_sp2d_Destruct( parsec_zpotrf_sp2d );
+        parsec_zhetrf_sp2d_Destruct( parsec_zhetrf_sp2d );
     }
     return info;
 }
@@ -335,16 +350,15 @@ parsec_zpotrf_sp2d( parsec_context_t *parsec,
 /**
  *******************************************************************************
  *
- * @brief Perform a sparse Cholesky factorization using PaRSEC runtime.
+ * @brief Perform a sparse LDL^h factorization using PaRSEC runtime.
  *
- * The function performs the Cholesky factorization of a sparse symmetric
- * positive definite (or Hermitian positive definite in the complex case) matrix
- * A.
+ * The function performs the LDL^h factorization of a sparse hermitian matrix A.
  * The factorization has the form
  *
- *    \f[ A = L\times L^H \f]
+ *    \f[ A = L \times D \times L^h \f]
  *
- * where L is a sparse lower triangular matrix.
+ * where L is a sparse lower triangular matrix unitary on the diagonal, and D a
+ * diagonal matrix.
  *
  * The algorithm is automatically chosen between the 1D and 2D version based on
  * the API parameter IPARM_DISTRIBUTION_LEVEL. If IPARM_DISTRIBUTION_LEVEL >= 0
@@ -360,12 +374,12 @@ parsec_zpotrf_sp2d( parsec_context_t *parsec,
  *
  *******************************************************************************
  *
- * @sa parsec_zpotrf_sp1dplus
- * @sa parsec_zpotrf_sp2d
+ * @sa parsec_zhetrf_sp1dplus
+ * @sa parsec_zhetrf_sp2d
  *
  ******************************************************************************/
 void
-parsec_zpotrf( pastix_data_t  *pastix_data,
+parsec_zhetrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )
 {
     parsec_sparse_matrix_desc_t *sdesc = sopalin_data->solvmtx->parsec_desc;
@@ -393,11 +407,11 @@ parsec_zpotrf( pastix_data_t  *pastix_data,
      */
     if ( pastix_data->iparm[IPARM_DISTRIBUTION_LEVEL] >= 0 )
     {
-        parsec_zpotrf_sp2d( ctx, sdesc,
+        parsec_zhetrf_sp2d( ctx, sdesc,
                             sopalin_data );
     }
     else {
-        parsec_zpotrf_sp1dplus( ctx, sdesc,
+        parsec_zhetrf_sp1dplus( ctx, sdesc,
                                 sopalin_data );
     }
 

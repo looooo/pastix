@@ -24,9 +24,11 @@
 #include "pastix_zcores.h"
 
 #if defined(PASTIX_WITH_PARSEC)
-#include <parsec.h>
-#include <parsec/data.h>
-#include <parsec/data_distribution.h>
+#include "parsec/pastix_zparsec.h"
+#endif
+
+#if defined(PASTIX_WITH_STARPU)
+#include "starpu/pastix_zstarpu.h"
 #endif
 
 void
@@ -122,29 +124,10 @@ thread_zhetrf( pastix_data_t  *pastix_data,
     isched_parallel_call( pastix_data->isched, thread_pzhetrf, sopalin_data );
 }
 
-#if defined(PASTIX_WITH_PARSEC) && 0
-void
-parsec_zhetrf( pastix_data_t  *pastix_data,
-               sopalin_data_t *sopalin_data )
-{
-    parsec_context_t *ctx;
-
-    /* Start PaRSEC */
-    if (pastix_data->parsec == NULL) {
-        int argc = 0;
-        pastix_parsec_init( pastix_data, &argc, NULL );
-    }
-    ctx = pastix_data->parsec;
-
-    /* Run the facto */
-    dsparse_zhetrf_sp( ctx, sopalin_data->solvmtx->parsec_desc, sopalin_data );
-}
-#endif
-
 static void (*zhetrf_table[4])(pastix_data_t *, sopalin_data_t *) = {
     sequential_zhetrf,
     thread_zhetrf,
-#if defined(PASTIX_WITH_PARSEC) && 0
+#if defined(PASTIX_WITH_PARSEC)
     parsec_zhetrf,
 #else
     NULL,

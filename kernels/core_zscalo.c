@@ -194,8 +194,6 @@ cpucblk_zscalo( pastix_trans_t      trans,
 
                     L = blok->LRblock[0].u;
                     B = blok->LRblock[1].u;
-                    ldl = M;
-                    ldb = M;
                 }
                 else {
                     blok->LRblock[1].v = LD + blok->coefind;
@@ -239,4 +237,94 @@ cpucblk_zscalo( pastix_trans_t      trans,
         }
     }
     stop_trace_kernel( 1, 0.0 );
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Copy the lower terms of the block with scaling for the two-terms algorithm.
+ *
+ * Performs B = op(A) * D
+ *
+ *******************************************************************************
+ *
+ * @param[in] trans
+ *         @arg PastixNoTrans:   No transpose, op( L ) = L;
+ *         @arg PastixTrans:     Transpose, op( L ) = L;
+ *         @arg PastixConjTrans: Conjugate Transpose, op( L ) = conj(L).
+ *
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
+ *
+ * @param[inout] LD
+ *          The pointer to workspace of size cblk->stride - by -
+ *          cblk_colnbr(cblk) that will store L * D on exit, where L is the
+ *          lower coeftab array and D the diagonal matrix taken from the
+ *          diagonal of the diagonal block.
+ *
+ *******************************************************************************/
+void
+cpublok_zscalo( pastix_trans_t            trans,
+                SolverCblk               *cblk,
+                pastix_int_t              blok_m,
+                const pastix_complex64_t *A,
+                const pastix_complex64_t *D,
+                pastix_complex64_t       *B )
+{
+    const SolverBlok *fblok, *lblok, *blok;
+    pastix_int_t M, N, ldd, offset, cblk_m;
+    const pastix_complex64_t *lA;
+    pastix_complex64_t *lB;
+
+    N     = cblk_colnbr( cblk );
+    fblok = cblk[0].fblokptr;  /* The diagonal block */
+    lblok = cblk[1].fblokptr;  /* The diagonal block of the next cblk */
+    ldd   = blok_rownbr( fblok ) + 1;
+
+    assert( blok_rownbr(fblok) == N );
+    assert( cblk->cblktype & CBLK_LAYOUT_2D );
+
+    blok   = fblok + blok_m;
+    offset = blok->coefind;
+    cblk_m = blok->fcblknm;
+
+    if ( cblk->cblktype & CBLK_COMPRESSED ) {
+        D = cblk->fblokptr->LRblock[0].u;
+
+        for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
+
+            memcpy( blok->LRblock + 1, blok->LRblock, sizeof(pastix_lrblock_t) );
+            if ( blok->LRblock[1].rk == -1 ) {
+                assert( M == blok->LRblock[1].rkmax );
+
+                blok->LRblock[1].u = B + blok->coefind - offset;
+
+                lA = blok->LRblock[0].u;
+                lB = blok->LRblock[1].u;
+            }
+            else {
+                blok->LRblock[1].v = B + blok->coefind - offset;
+                lA = blok->LRblock[0].v;
+                lB = blok->LRblock[1].v;
+                M = blok->LRblock[0].rkmax;
+            }
+
+            /* Compute B = op(A) * D */
+            core_zscalo( trans, M, N,
+                         lA, M, D, ldd, lB, M );
+        }
+    }
+    else {
+        for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
+
+            lA  = A + blok->coefind - offset;
+            lB  = B + blok->coefind - offset;
+            M   = blok_rownbr(blok);
+
+            /* Compute B = op(A) * D */
+            core_zscalo( trans, M, N,
+                         lA, M, D, ldd, lB, M );
+        }
+    }
 }

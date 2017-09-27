@@ -383,7 +383,6 @@ void core_zsytrfsp1d_gemm( const SolverCblk         *cblk,
             (void)ret;
         }
     }
-
     stop_trace_kernel( 1, 0.0 );
 }
 

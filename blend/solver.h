@@ -235,6 +235,7 @@ struct solver_matrix_s {
 
     pastix_int_t              diagmax;              /*+ Maximum size required during diagonal block factorization (hetrf/sytrf) +*/
     pastix_int_t              gemmmax;              /*+ Maximum size required during GEMM computation                           +*/
+    pastix_int_t              blokmax;              /*+ Maximum size of 2D blocks                 +*/
     pastix_int_t              nbftmax;              /*+ Maximum block number in ftgt              +*/
     pastix_int_t              arftmax;              /*+ Maximum block area in ftgt                +*/
 

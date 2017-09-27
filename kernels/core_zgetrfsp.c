@@ -242,7 +242,7 @@ cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
     stop_trace_kernel( 2, FLOPS_ZGETRF( ncols, ncols ) );
 
     /* Transpose Akk in ucoeftab */
-    core_zgetro(ncols, ncols, L, stride, U, stride);
+    core_zgetro( ncols, ncols, L, stride, U, stride );
 
     stop_trace_kernel( 1, 0.0 );
 
