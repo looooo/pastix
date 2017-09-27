@@ -35,8 +35,8 @@ Available Features
 |-------------------------|--------|--------|--------|---------|------------|
 | POTRF (Cholesky)        | SHM/LR | SHM/LR | -      | SHM/GPU | SHM/LR/GPU |
 | PXTRF (LL^t for complex)| -      | -      | -      | -       | -          |
-| HETRF (LDL^h)           | SHM/LR | SHM/LR | -      | -       | SHM/LR/GPU |
-| SYTRF (LDL^t)           | SHM/LR | SHM/LR | -      | -       | SHM/LR/GPU |
+| HETRF (LDL^h)           | SHM/LR | SHM/LR | -      | SHM/GPU | SHM/LR/GPU |
+| SYTRF (LDL^t)           | SHM/LR | SHM/LR | -      | SHM/GPU | SHM/LR/GPU |
 | GETRF (LU)              | SHM/LR | SHM/LR | -      | SHM/GPU | SHM/LR/GPU |
 | TRSM                    | SHM/LR | SHM/LR | -      | -       | -          |
 | DIAG                    | SHM/LR | SHM/LR | -      | -       | -          |
