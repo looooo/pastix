@@ -1,20 +1,20 @@
 /**
  *
- * @file elimintree.c
+ * @file cand_gendot.c
  *
  *  PaStiX analyse routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
- * Contains basic functions to manipulate elimination tree structure.
+ * Contains functions to generate dot files of the elimination tree and the
+ * compressed elimination tree.
  *
  * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
- * @author Pascal Henon
  * @author Mathieu Faverge
- * @date 2013-06-24
+ * @date 2017-09-01
  *
  * @addtogroup blend_dev_elim
  * @{
@@ -117,10 +117,6 @@ compress_getNodeNbr( const EliminTree *etree,
  *          A temporary array of the size of the number of nodes in etree for
  *          the initial root. It is used to store the elements visited in the
  *          tree.
- *
- *******************************************************************************
- *
- * @return The number of nodes of the subtree.
  *
  *******************************************************************************/
 static inline void
@@ -392,7 +388,7 @@ candGenDotLevelSub( const EliminTree *etree,
  * @param[in] etree
  *          The pointer to the elimination tree.
  *
- * @param[in] cand
+ * @param[in] candtab
  *          The candidate array associated to the elimination tree for
  *          additional information. (optionnal)
  *
@@ -431,13 +427,18 @@ candGenDotLevel( const EliminTree *etree,
  * @param[in] etree
  *          The pointer to the elimination tree.
  *
+ * @param[in] candtab
+ *          The candidate array associated to the elimination tree for
+ *          additional information.
  *
  * @param[inout] stream
  *          The file to which write the elimination tree in the dot format.
  *
  *******************************************************************************/
 void
-candGenCompressedDot(const EliminTree *etree, const Cand *candtab, FILE *stream)
+candGenCompressedDot( const EliminTree *etree,
+                      const Cand       *candtab,
+                      FILE             *stream )
 {
     EliminTree  *ctree;
     eTreeNode_t *cnode;
