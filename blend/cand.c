@@ -106,44 +106,6 @@ candSave( const Cand    *candtab,
 /**
  *******************************************************************************
  *
- * @brief Set a single candidate recursively to a subtree
- *
- *******************************************************************************
- *
- * @param[inout] candtab
- *          On entry, the array of candidates initialized with candInit().
- *          On exit, each node belonging to the subtree has procnum as a single
- *          candidate.
- *
- * @param[in] etree
- *          The full elimination tree structure of the problem
- *
- * @param[in] rootnum
- *          The root index of the subtree to initialize
- *
- * @param[in] procnum
- *          The processor index to affect to all nodes in the subtree
- *
- *******************************************************************************/
-void
-candSetSubCandidate( Cand *candtab,
-                     const EliminTree *etree,
-                     pastix_int_t rootnum,
-                     pastix_int_t procnum )
-{
-    pastix_int_t i;
-
-    candtab[rootnum].fcandnum = procnum;
-    candtab[rootnum].lcandnum = procnum;
-
-    for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++) {
-        candSetSubCandidate( candtab, etree, eTreeSonI(etree, rootnum, i), procnum );
-    }
-}
-
-/**
- *******************************************************************************
- *
  * @brief Set the clusters candidates from the cores canditates
  *
  *******************************************************************************
@@ -264,12 +226,16 @@ candCheck( const Cand            *candtab,
  *               Pointer to the cost matrix associated to the symbol matrix and
  *               that holds the cost of each cblk and blok.
  *
+ * @param[out]   cripath
+ *               On exit, contains the length of the critical path of the
+ *               subtree.
+ *
  *******************************************************************************
  *
  * @return The cost of the subtree.
  *
  *******************************************************************************/
-double
+static inline double
 candSubTreeBuild( pastix_int_t           rootnum,
                   Cand                  *candtab,
                   EliminTree            *etree,
