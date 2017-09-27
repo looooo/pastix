@@ -435,6 +435,10 @@ candSubTreeDistribFirstWidth( pastix_int_t           rootnum,
  * @param[in]    symbmtx
  *               Pointer to the symbol matrix we are working with.
  *
+ *******************************************************************************
+ *
+ * @return the cblktype flag of the root of the subtree.
+ *
  *******************************************************************************/
 static inline pastix_int_t
 candSubTreeDistribDeepestWidth( pastix_int_t           rootnum,
@@ -487,6 +491,21 @@ candSubTreeDistribDeepestWidth( pastix_int_t           rootnum,
  *
  *******************************************************************************
  *
+ * @param[in]    rootnum
+ *               Root of the subtree.
+ *
+ * @param[in]    cblktype
+ *               List of flags that can be forwarded to rootnum and its
+ *               descendents.
+ *
+ * @param[in]    level2D
+ *               The number of levels of the tree that will be flagged as 2D
+ *               tasks.
+ *
+ * @param[in]    ratiolimitLR
+ *               Ratio that defines the minimal size to allow the flag LR for a
+ *               cblk and its ascendants.
+ *
  * @param[in]    depth
  *               Depth until which 2D tasks is enabled.
  *
@@ -498,6 +517,10 @@ candSubTreeDistribDeepestWidth( pastix_int_t           rootnum,
  *               updated. cblktype defines the optimization/properties that are
  *               defined on each cblk and which are defined by level in the
  *               tree.
+ *
+ *******************************************************************************
+ *
+ * @return the cblktype flag of the root of the subtree.
  *
  *******************************************************************************/
 static inline pastix_int_t
