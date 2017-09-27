@@ -674,7 +674,7 @@ candBuild( pastix_int_t level_tasks2d, pastix_int_t width_tasks2d,
     candSubTreeBuild( root, candtab, etree, symbmtx, costmtx );
 
     if ( lr_when == PastixCompressNever ) {
-        lr_width = INTVALMAX;
+        lr_width = PASTIX_INT_MAX;
     }
 
 #if defined(PASTIX_BLEND_DEEPEST_DISTRIB)
