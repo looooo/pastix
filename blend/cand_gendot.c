@@ -26,10 +26,33 @@
 #include "cost.h"
 #include "cand.h"
 
+/**
+ *******************************************************************************
+ *
+ * @brief Compute the number of nodes in the compressed tree. The compression is
+ * based on identical candidates for computations.
+ *
+ *******************************************************************************
+ *
+ * @param[in] etree
+ *          The pointer to the elimination tree.
+ *
+ * @param[in] candtab
+ *          The candidate array associated to the elimination tree for
+ *          additional information. (optionnal)
+ *
+ * @param[in] rootnum
+ *          The root index of the subtree to compress.
+ *
+ *******************************************************************************
+ *
+ * @return The number of nodes of the subtree.
+ *
+ *******************************************************************************/
 static inline pastix_int_t
 compress_getNodeNbr( const EliminTree *etree,
-                            const Cand       *candtab,
-                            pastix_int_t      rootnum )
+                     const Cand       *candtab,
+                     pastix_int_t      rootnum )
 {
     pastix_int_t i, merge, fcand, lcand;
     pastix_int_t sonsnbr, nbnodes;
@@ -59,6 +82,47 @@ compress_getNodeNbr( const EliminTree *etree,
     return nbnodes;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Compress a subtree. The compression is based on identical candidates
+ * for computations.
+ *
+ *******************************************************************************
+ *
+ * @param[in] etree
+ *          The pointer to the elimination tree.
+ *
+ * @param[in] candtab
+ *          The candidate array associated to the elimination tree for
+ *          additional information. (optionnal)
+ *
+ * @param[in] rootnum
+ *          The root index of the subtree to compress.
+ *
+ * @param[inout] ctree
+ *          The pointer to the compressed elimination tree.
+ *
+ * @param[inout] ccand
+ *          The pointer to the compressed candidate array associated to ctree.
+ *
+ * @param[in] fathnum
+ *          The index of the father in the compressed elimination tree.
+ *
+ * @param[inout] cnodeidx
+ *          The index of the next available spot in the compressed elimation
+ *          tree array to store the nodes.
+ *
+ * @param[inout] tmp
+ *          A temporary array of the size of the number of nodes in etree for
+ *          the initial root. It is used to store the elements visited in the
+ *          tree.
+ *
+ *******************************************************************************
+ *
+ * @return The number of nodes of the subtree.
+ *
+ *******************************************************************************/
 static inline void
 compress_setSonsNbr( const EliminTree *etree,
                      const Cand       *candtab,
@@ -182,7 +246,7 @@ compress_setSonsNbr( const EliminTree *etree,
  * @param[in] etree
  *          The pointer to the elimination tree.
  *
- * @param[in] cand
+ * @param[in] candtab
  *          The candidate array associated to the elimination tree for
  *          additional information. (optionnal)
  *
@@ -241,6 +305,30 @@ candGenDot( const EliminTree *etree,
     fprintf(stream, "}\n");
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Print one level of the elimination subtree in a dot file.
+ *
+ *******************************************************************************
+ *
+ * @param[in] etree
+ *          The pointer to the elimination tree.
+ *
+ * @param[in] candtab
+ *          The candidate array associated to the elimination tree for
+ *          additional information. (optionnal)
+ *
+ * @param[inout] stream
+ *          The file to which write the elimination tree in the dot format.
+ *
+ * @param[in] nblevel
+ *          The number of level remaining to be printed.
+ *
+ * @param[in] rootnum
+ *          The root of the subtree to print.
+ *
+ *******************************************************************************/
 static inline void
 candGenDotLevelSub( const EliminTree *etree,
                     const Cand       *candtab,
@@ -297,7 +385,7 @@ candGenDotLevelSub( const EliminTree *etree,
 /**
  *******************************************************************************
  *
- * @brief Print the first level of the elimination tree in a dot file.
+ * @brief Print the first levels of the elimination tree in a dot file.
  *
  *******************************************************************************
  *
