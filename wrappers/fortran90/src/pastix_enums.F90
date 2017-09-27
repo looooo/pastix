@@ -38,7 +38,7 @@ module pastix_enums
   integer, parameter :: iparm_tasks2d_width         = iparm_tasks2d_level         + 1
   integer, parameter :: iparm_abs                   = iparm_tasks2d_width         + 1
   integer, parameter :: iparm_allcand               = iparm_abs                   + 1
-  integer, parameter :: iparm_incomplete            = iparm_cand                  + 1
+  integer, parameter :: iparm_incomplete            = iparm_allcand               + 1
   integer, parameter :: iparm_level_of_fill         = iparm_incomplete            + 1
   integer, parameter :: iparm_factorization         = iparm_level_of_fill         + 1
   integer, parameter :: iparm_static_pivoting       = iparm_factorization         + 1
