@@ -609,7 +609,7 @@ pastixInit( pastix_data_t **pastix_data,
             double         *dparm )
 {
     pastixInitAffinity( pastix_data, pastix_comm,
-                        iparm, dparm, bindtab );
+                        iparm, dparm, NULL );
 }
 
 /**

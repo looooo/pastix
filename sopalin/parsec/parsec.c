@@ -53,7 +53,7 @@
  ******************************************************************************/
 void
 pastix_parsec_init( pastix_data_t *pastix,
-                    int *argc, char ***argv,
+                    int *argc, char **argv[],
                     const int *bindtab )
 {
     extern char **environ;
