@@ -79,7 +79,7 @@ starpu_task_blok_zscalo( pastix_trans_t    trans,
         M += blok_rownbr( blokA );
     }
 
-    starpu_vector_data_register( handler + 1, -1, NULL, M * cblk_colnbr( cblk ),
+    starpu_vector_data_register( handler + 1, -1, (uintptr_t)NULL, M * cblk_colnbr( cblk ),
                                  sopalin_data->solvmtx->starpu_desc->typesze );
 
     starpu_insert_task(
