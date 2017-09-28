@@ -437,7 +437,8 @@ apiInitMPI( pastix_data_t *pastix,
  *
  * @ingroup pastix_api
  *
- * @brief Initialize the solver instance
+ * @brief Initialize the solver instance with a bintab array to specify the
+ * thread binding.
  *
  *******************************************************************************
  *
@@ -459,11 +460,11 @@ apiInitMPI( pastix_data_t *pastix,
  *
  *******************************************************************************/
 void
-pastixInitAffinity( pastix_data_t **pastix_data,
-                    MPI_Comm        pastix_comm,
-                    pastix_int_t   *iparm,
-                    double         *dparm,
-                    int            *bindtab )
+pastixInitWithAffinity( pastix_data_t **pastix_data,
+                        MPI_Comm        pastix_comm,
+                        pastix_int_t   *iparm,
+                        double         *dparm,
+                        int            *bindtab )
 {
     pastix_data_t *pastix;
 
@@ -608,8 +609,8 @@ pastixInit( pastix_data_t **pastix_data,
             pastix_int_t   *iparm,
             double         *dparm )
 {
-    pastixInitAffinity( pastix_data, pastix_comm,
-                        iparm, dparm, NULL );
+    pastixInitWithAffinity( pastix_data, pastix_comm,
+                            iparm, dparm, NULL );
 }
 
 /**
