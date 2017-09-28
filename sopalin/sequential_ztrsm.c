@@ -42,7 +42,7 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
         cblknbr = (mode == PastixSolvModeLocal) ? datacode->cblkschur : datacode->cblknbr;
 
         cblk = datacode->cblktab + cblknbr - 1;
-        for (i=0; i<datacode->cblknbr; i++, cblk--){
+        for (i=0; i<cblknbr; i++, cblk--){
             solve_ztrsmsp( mode, side, uplo, trans, diag,
                            datacode, cblk, nrhs, b, ldb );
         }
@@ -59,7 +59,7 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
         cblknbr = (mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
 
         cblk = datacode->cblktab;
-        for (i=0; i<datacode->cblknbr; i++, cblk++){
+        for (i=0; i<cblknbr; i++, cblk++){
             solve_ztrsmsp( mode, side, uplo, trans, diag,
                            datacode, cblk, nrhs, b, ldb );
         }
