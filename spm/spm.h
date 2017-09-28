@@ -24,8 +24,8 @@
  *   matrices, as well as norms computations and converter tools.
  *
  **/
-#ifndef _SPM_H_
-#define _SPM_H_
+#ifndef _spm_h_
+#define _spm_h_
 
 #include "pastix/api.h"
 
@@ -228,4 +228,4 @@ static inline void s_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, float
 /**
  * @}
  */
-#endif /* _SPM_H_ */
+#endif /* _spm_h_ */

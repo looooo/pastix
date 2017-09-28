@@ -27,8 +27,8 @@
  *    problem data.
  *
  **/
-#ifndef BLEND_H
-#define BLEND_H
+#ifndef _blend_h_
+#define _blend_h_
 
 void propMappTree   ( Cand             *candtab,
                       const EliminTree *etree,
@@ -46,7 +46,7 @@ int  solverMatrixGen( const pastix_int_t,
                       const SimuCtrl *,
                       const BlendCtrl *);
 
-#endif /* BLEND_H */
+#endif /* _blend_h_ */
 
 /**
  * @}

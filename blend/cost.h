@@ -19,8 +19,8 @@
  *    final mapping.
  *
  **/
-#ifndef COST_H
-#define COST_H
+#ifndef _cost_h_
+#define _cost_h_
 
 /**
  * @brief Arrays of double to store the cost of each element in the matrix
@@ -37,7 +37,7 @@ CostMatrix *costMatrixBuild( const symbol_matrix_t *symbmtx,
                              pastix_coeftype_t      flttype,
                              pastix_factotype_t     factotype );
 
-#endif /* COST_H */
+#endif /* _cost_h_ */
 
 /**
  * @}

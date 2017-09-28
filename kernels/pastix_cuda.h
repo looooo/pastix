@@ -4,8 +4,8 @@
  * Copyright (c) 2016      Inria. All rights reserved.
  *
  */
-#ifndef _PASTIX_CUDA_H_
-#define _PASTIX_CUDA_H_
+#ifndef _pastix_cuda_h_
+#define _pastix_cuda_h_
 
 #ifdef __cplusplus
 extern "C" {
@@ -107,4 +107,4 @@ pastix_fermi_sgemmsp(
 #endif
 
 
-#endif /* _PASTIX_CUDA_H_ */
+#endif /* _pastix_cuda_h_ */

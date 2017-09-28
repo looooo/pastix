@@ -18,8 +18,8 @@
  *   StarPU for the numerical factorization and solve.
  *
  **/
-#ifndef _PASTIX_STARPU_H_
-#define _PASTIX_STARPU_H_
+#ifndef _pastix_starpu_h_
+#define _pastix_starpu_h_
 
 #if defined(PASTIX_WITH_MPI)
 #include <starpu_mpi.h>
@@ -96,7 +96,7 @@ void pastix_starpu_init( pastix_data_t *pastix,
                          const int *bindtab );
 void pastix_starpu_finalize( pastix_data_t *pastix );
 
-#endif /* _PASTIX_STARPU_H_ */
+#endif /* _pastix_starpu_h_ */
 
 /**
  *@}

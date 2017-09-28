@@ -15,8 +15,8 @@
  * @date 2013-06-24
  *
  **/
-#ifndef _ORDER_SCOTCH_STRATS_H_
-#define _ORDER_SCOTCH_STRATS_H_
+#ifndef _order_scotch_strats_h_
+#define _order_scotch_strats_h_
 
 //#define NEW_STRATEGY
 #if defined(NEW_STRATEGY)
@@ -150,4 +150,4 @@
 #define PTSCOTCH_STRAT_PERSO  "c{rat=0.7,cpr=n{sep=/(vert>%ld)?m{vert=100,low=h{pass=10},asc=f{bal=0.2}}|m{vert=100,low=h{pass=10},asc=f{bal=0.2}};,ole=f{cmin=%ld,cmax=%ld,frat=%f},ose=g},unc=n{sep=/(vert>%ld)?(m{vert=100,low=h{pass=10},asc=f{bal=0.2}})|m{vert=100,low=h{pass=10},asc=f{bal=0.2}};,ole=f{cmin=%ld,cmax=%ld,frat=%f},ose=g}}"
 
 
-#endif /* _ORDER_SCOTCH_STRATS_H_ */
+#endif /* _order_scotch_strats_h_ */

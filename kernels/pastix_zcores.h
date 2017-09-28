@@ -13,8 +13,8 @@
  * @precisions normal z -> c d s
  *
  */
-#ifndef _PASTIX_ZCORES_H_
-#define _PASTIX_ZCORES_H_
+#ifndef _pastix_zcores_h_
+#define _pastix_zcores_h_
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define pastix_cblk_lock( cblk_ )    pastix_atomic_lock( &((cblk_)->lock) )
@@ -356,4 +356,4 @@ void core_zsytrfsp1d_gemm( const SolverCblk *cblk, const SolverBlok *blok, Solve
 /**
  * @}
  */
-#endif /* _CORE_Z_H_ */
+#endif /* _pastix_zcores_h_ */

@@ -18,8 +18,8 @@
  *    level such as 2D layouts and 2D tasks.
  *
  **/
-#ifndef _CAND_H_
-#define _CAND_H_
+#ifndef _cand_h_
+#define _cand_h_
 
 /**
  * @brief Processor candidate group to own a column blok
@@ -73,7 +73,7 @@ void candGenCompressedDot( const EliminTree *etree,
                            const Cand       *candtab,
                            FILE             *stream );
 
-#endif
+#endif /* _cand_h_ */
 
 /**
  * @}

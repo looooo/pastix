@@ -17,8 +17,8 @@
  * @{
  *
  **/
-#ifndef PERF_H
-#define PERF_H
+#ifndef _perf_h_
+#define _perf_h_
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -138,7 +138,7 @@
 
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
-#endif /* PERF_H */
+#endif /* _perf_h_ */
 
 /**
  * @}

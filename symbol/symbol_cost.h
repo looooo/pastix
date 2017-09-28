@@ -18,8 +18,8 @@
  * @addtogroup symbol_dev_cost
  * @{
  **/
-#ifndef _SYMBOL_COST_H_
-#define _SYMBOL_COST_H_
+#ifndef _symbol_cost_h_
+#define _symbol_cost_h_
 
 /**
  * @brief Cost functions to compute statistics on the symbolic structure
@@ -46,4 +46,4 @@ extern symbol_function_t perfstable[2][4];
 /**
  * @}
  */
-#endif /* _SYMBOL_COST_H_ */
+#endif /* _symbol_cost_h_ */

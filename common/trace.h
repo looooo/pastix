@@ -10,8 +10,8 @@
     Varsion 0.0 - from 12 apr 2008
                   to   12 apr 2008
 */
-#ifndef TRACE_H
-#define TRACE_H
+#ifndef _trace_h_
+#define _trace_h_
 
 #ifdef TRACE_SOPALIN
 
@@ -162,4 +162,4 @@ extern volatile PASTIX_INT idg;
 #define trace_deltask(...) do {} while(0)
 #define trace_end_task1()  do {} while(0)
 
-#endif /* TRACE_H */
+#endif /* _trace_h_ */

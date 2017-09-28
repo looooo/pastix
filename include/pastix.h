@@ -21,8 +21,8 @@
  * @date 2011-11-11
  *
  **/
-#ifndef _PASTIX_H_
-#define _PASTIX_H_
+#ifndef _pastix_h_
+#define _pastix_h_
 
 #include "pastix/config.h"
 #include <stdio.h>
@@ -148,4 +148,4 @@ void pastix_getOptions( int argc, char **argv,
                         pastix_int_t *iparam, double *dparam,
                         int *check, pastix_driver_t *driver, char **filename );
 
-#endif /* _PASTIX_H_ */
+#endif /* _pastix_h_ */

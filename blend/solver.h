@@ -16,8 +16,8 @@
  * @date 2017-04-19
  *
  **/
-#ifndef _SOLVER_H_
-#define _SOLVER_H_
+#ifndef _solver_h_
+#define _solver_h_
 
 struct blendctrl_s;
 typedef struct blendctrl_s BlendCtrl;
@@ -378,4 +378,4 @@ SolverBackup_t *solverBackupInit   ( const SolverMatrix *solvmtx                
 int             solverBackupRestore(       SolverMatrix *solvmtx, const SolverBackup_t *b );
 void            solverBackupExit   (                                    SolverBackup_t *b );
 
-#endif /* _SOLVER_H_*/
+#endif /* _solver_h_*/

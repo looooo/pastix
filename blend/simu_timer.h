@@ -16,8 +16,8 @@
  * @{
  *
  **/
-#ifndef _SIMU_TIMER_H_
-#define _SIMU_TIMER_H_
+#ifndef _simu_timer_h_
+#define _simu_timer_h_
 
 /**
  * @brief Timer for the simulation.
@@ -101,7 +101,7 @@ timerSetMax(SimuTimer *timer, double t)
     }
 }
 
-#endif /* _SIMU_TIMER_H_ */
+#endif /* _simu_timer_h_ */
 
 /**
  *@}

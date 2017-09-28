@@ -1,5 +1,5 @@
-#ifndef _OLD_API_H_
-#define _OLD_API_H_
+#ifndef _old_api_h_
+#define _old_api_h_
 
 #define pastix_float_t void
 
@@ -119,4 +119,4 @@ enum IPARM_ACCESS_DEPRECATED {
 #define API_SYM_HER         PastixHermitian
 #define API_SYM_NO          PastixGeneral
 
-#endif /* _OLD_API_H_ */
+#endif /* _old_api_h_ */

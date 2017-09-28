@@ -1,5 +1,5 @@
-#ifndef PASTIX_CUDA_HELPER_H
-#define PASTIX_CUDA_HELPER_H
+#ifndef _pastix_cuda_helper_h_
+#define _pastix_cuda_helper_h_
 
 #ifdef PASTIX_WITH_CUDA
 #  ifdef PRECISION_z
@@ -20,4 +20,4 @@
 #  endif
 #endif /* PASTIX_WITH_CUDA */
 
-#endif /* PASTIX_CUDA_HELPER_H */
+#endif /* _pastix_cuda_helper_h_ */

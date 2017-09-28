@@ -19,8 +19,8 @@
  *   which are not factorization/solve routines.
  *
  **/
-#ifndef _COEFTAB_H_
-#define _COEFTAB_H_
+#ifndef _coeftab_h_
+#define _coeftab_h_
 
 #include "sopalin/coeftab_z.h"
 #include "sopalin/coeftab_c.h"
@@ -44,4 +44,4 @@ coeftab_fct_memory_t coeftabMemory[4];
 /**
  * @}
  */
-#endif /* _COEFTAB_H_ */
+#endif /* _coeftab_h_ */

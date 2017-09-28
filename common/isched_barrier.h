@@ -20,8 +20,8 @@
  * @date 2013-06-24
  *
  */
-#ifndef _ISCHED_BARRIER_H_
-#define _ISCHED_BARRIER_H_
+#ifndef _isched_barrier_h_
+#define _isched_barrier_h_
 
 #include <unistd.h>
 #include <pthread.h>
@@ -62,4 +62,4 @@ END_C_DECLS
 #endif
 
 
-#endif  /* _ISCHED_BARRIER_H_ */
+#endif  /* _isched_barrier_h_ */

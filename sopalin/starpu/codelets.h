@@ -25,8 +25,8 @@
  *
  **/
 
-#ifndef _CODELETS_H_
-#define _CODELETS_H_
+#ifndef _codelets_h_
+#define _codelets_h_
 
 #include "common.h"
 
@@ -72,4 +72,4 @@
 #endif
 
 
-#endif /* _CODELETS_H_ */
+#endif /* _codelets_h_ */

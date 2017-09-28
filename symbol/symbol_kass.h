@@ -16,8 +16,8 @@
  * @{
  *
  **/
-#ifndef _KASS_H_
-#define _KASS_H_
+#ifndef _symbol_kass_h_
+#define _symbol_kass_h_
 
 /**
  * @brief Kass blocked csr structure
@@ -67,4 +67,4 @@ void amalgamate(double rat_cblk, double rat_blas,
 /**
  * @}
  */
-#endif
+#endif /* _symbol_kass_h */

@@ -18,8 +18,8 @@
  *   PaRSEC for the numerical factorization and solve.
  *
  **/
-#ifndef _PASTIX_PARSEC_H_
-#define _PASTIX_PARSEC_H_
+#ifndef _pastix_parsec_h_
+#define _pastix_parsec_h_
 
 #include <parsec.h>
 #include <parsec/data_distribution.h>
@@ -58,7 +58,7 @@ void pastix_parsec_init( pastix_data_t *pastix,
                          const int *bindtab );
 void pastix_parsec_finalize( pastix_data_t *pastix );
 
-#endif /* _PASTIX_PARSEC_H_ */
+#endif /* _pastix_parsec_h_ */
 
 /**
  *@}

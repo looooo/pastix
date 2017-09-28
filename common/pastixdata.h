@@ -1,5 +1,7 @@
 /**
  *
+ *  @file pastixdata.h
+ *
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
  *  LaBRI, University of Bordeaux 1 and IPB.
  *
@@ -10,8 +12,8 @@
  * @date 2011-11-11
  *
  **/
-#ifndef PASTIX_DATA_H_
-#define PASTIX_DATA_H_
+#ifndef _pastixdata_h_
+#define _pastixdata_h_
 
 #include "isched.h"
 #include "symbol.h"
@@ -141,4 +143,4 @@ struct pastix_data_s {
     char            *dirtemp;            /*+ Unique directory name to store output files                         */
 };
 
-#endif /* PASTIX_DATA_H_ */
+#endif /* _pastixdata_h_ */

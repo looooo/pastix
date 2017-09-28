@@ -17,8 +17,8 @@
  * @precisions normal z -> c d s p
  *
  **/
-#ifndef _z_spm_H_
-#define _z_spm_H_
+#ifndef _z_spm_h_
+#define _z_spm_h_
 
 /**
  * Integer routines
@@ -68,4 +68,4 @@ void          z_spmDofExtend(pastix_spm_t *spm);
 void          z_spmScal( const pastix_complex64_t alpha, pastix_spm_t *spm );
 
 
-#endif /* _z_spm_H_ */
+#endif /* _z_spm_h_ */

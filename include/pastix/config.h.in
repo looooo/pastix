@@ -1,5 +1,20 @@
-#ifndef _PASTIX_CONFIG_H_
-#define _PASTIX_CONFIG_H_
+/**
+ *
+ * @file pastix/config.h.in
+ *
+ * PaStiX configuration parameters
+ *
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Pierre Ramet
+ * @author Mathieu Faverge
+ * @date 2017-09-28
+ *
+ **/
+#ifndef _pastix_config_h_
+#define _pastix_config_h_
 
 #define PASTIX_VERSION_MAJOR @PASTIX_VERSION_MAJOR@
 #define PASTIX_VERSION_MINOR @PASTIX_VERSION_MINOR@
@@ -152,4 +167,4 @@
 #define END_C_DECLS            /* empty */
 #endif
 
-#endif  /* _PASTIX_CONFIG_H_ */
+#endif  /* _pastix_config_h_ */

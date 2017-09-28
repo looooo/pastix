@@ -17,8 +17,8 @@
  *    Version 1.0 - from 06 jun 2002
  *                  to   06 jun 2002
  */
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _memory_h_
+#define _memory_h_
 
 /*
  * Macro: MEMORY_WRITE
@@ -134,4 +134,4 @@ static inline void *pastix_malloc_func( size_t size,
 //void *memRealloc(void *ptr, size_t size);
 #define memRealloc realloc
 
-#endif /* _MEMORY_H_ */
+#endif /* _memory_h_ */

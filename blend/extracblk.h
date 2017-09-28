@@ -18,8 +18,8 @@
  *    level such as 2D layouts and 2D tasks.
  *
  **/
-#ifndef _EXTRACBLK_H_
-#define _EXTRACBLK_H_
+#ifndef _extracblk_h_
+#define _extracblk_h_
 
 /**
  * @brief Extra symbol cblk structure
@@ -46,7 +46,7 @@ void extraCblkMerge( const ExtraCblk_t  *extracblk,
                      symbol_matrix_t    *newsymb,
                      Cand              **candtab   );
 
-#endif /* _EXTRACBLK_H_ */
+#endif /* _extracblk_h_ */
 
 /**
  *@}

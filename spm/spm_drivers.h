@@ -13,8 +13,8 @@
  * @date 2011-11-11
  *
  **/
-#ifndef _SPM_DRIVER_H_
-#define _SPM_DRIVER_H_
+#ifndef _spm_drivers_h_
+#define _spm_drivers_h_
 
 #include "spm.h"
 
@@ -33,4 +33,4 @@ int readCSCD ( const char *filename, pastix_spm_t *spm, void **rhs, MPI_Comm pas
 int genLaplacian( const char *filename, pastix_spm_t *spm );
 int genExtendedLaplacian( const char *filename, pastix_spm_t *spm );
 
-#endif /* _SPM_DRIVER_H_ */
+#endif /* _spm_drivers_h_ */

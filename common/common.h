@@ -20,8 +20,8 @@
  *    Version 1.0 - from 06 jun 2002
  *                  to   06 jun 2002
  */
-#ifndef _COMMON_H_
-#define _COMMON_H_
+#ifndef _common_h_
+#define _common_h_
 
 #include "pastix.h"
 #include <unistd.h>
@@ -201,5 +201,5 @@ static inline void set_dparm(double *dparm, pastix_dparm_t offset, double value)
 
 void api_dumparm(FILE *stream, pastix_int_t *iparm, double *dparm);
 
-#endif /* _COMMON_H_ */
+#endif /* _common_h_ */
 

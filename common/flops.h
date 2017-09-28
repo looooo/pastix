@@ -20,8 +20,8 @@
  * All the formula are reported in the LAPACK Lawn 41:
  *     http://www.netlib.org/lapack/lawns/lawn41.ps
  */
-#ifndef _FLOPS_H_
-#define _FLOPS_H_
+#ifndef _flops_h_
+#define _flops_h_
 
 /************************************************************************
  *           Generic formula coming from LAWN 41
@@ -359,4 +359,4 @@
 #define FLOPS_DGEBRD(__m, __n) (     FMULS_GEBRD((__m), (__n)) +       FADDS_GEBRD((__m), (__n)) )
 #define FLOPS_SGEBRD(__m, __n) (     FMULS_GEBRD((__m), (__n)) +       FADDS_GEBRD((__m), (__n)) )
 
-#endif /* _FLOPS_H_ */
+#endif /* _flops_h_ */
