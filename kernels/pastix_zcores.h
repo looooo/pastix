@@ -343,13 +343,12 @@ void solve_zdiag( SolverCblk         *cblk,
 /**
  * @addtogroup kernel_fact_null
  * @{
- *     To be removed
+ *    This module contains the three terms update functions for the LDL^t and
+ *    LDL^h factorizations.
  */
-int  core_zhetrfsp1d_trsm( SolverCblk *cblk, pastix_complex64_t *L );
 void core_zhetrfsp1d_gemm( const SolverCblk *cblk, const SolverBlok *blok, SolverCblk *fcblk,
                            const pastix_complex64_t *L, pastix_complex64_t *C,
                            pastix_complex64_t *work );
-int  core_zsytrfsp1d_trsm( SolverCblk *cblk, pastix_complex64_t *L );
 void core_zsytrfsp1d_gemm( const SolverCblk *cblk, const SolverBlok *blok, SolverCblk *fcblk,
                            const pastix_complex64_t *L, pastix_complex64_t *C,
                            pastix_complex64_t *work );

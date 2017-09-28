@@ -275,7 +275,7 @@ starpu_zgetrf_sp2d( sopalin_data_t              *sopalin_data,
  * with the same pattern as L^t.
  *
  * The algorithm is automatically chosen between the 1D and 2D version based on
- * the API parameter IPARM_DISTRIBUTION_LEVEL. If IPARM_DISTRIBUTION_LEVEL >= 0
+ * the API parameter IPARM_TASKS2D_LEVEL. If IPARM_TASKS2D_LEVEL != 0
  * the 2D scheme is applied, the 1D otherwise.
  *
  *******************************************************************************
@@ -310,9 +310,9 @@ starpu_zgetrf( pastix_data_t  *pastix_data,
     }
 
     /*
-     * Select 1D or 2D jdf based on distribution_level
+     * Select 1D or 2D algorithm based on 2d tasks level
      */
-    if ( pastix_data->iparm[IPARM_DISTRIBUTION_LEVEL] >= 0 )
+    if ( pastix_data->iparm[IPARM_TASKS2D_LEVEL] != 0 )
     {
         starpu_zgetrf_sp2d( sopalin_data, sdesc );
     }

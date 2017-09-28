@@ -44,10 +44,11 @@
  * information is stored in the solver structure.
  *
  * This routine is affected by, or returns, the following parameters:
- *   IPARM_ABS, IPARM_CUDA_NBR, IPARM_DISTRIBUTION_LEVEL, IPARM_DOF_NBR,
+ *   IPARM_ABS, IPARM_CUDA_NBR, IPARM_TASKS2D_LEVEL, IPARM_TASKS2D_WIDTH,
+ *   IPARM_COMPRESS_WHEN, IPARM_COMPRESS_MIN_WIDTH, IPARM_DOF_NBR,
  *   IPARM_FACTORIZATION, IPARM_FLOAT, IPARM_GPU_CRITERIUM,
  *   IPARM_GPU_MEMORY_PERCENTAGE, IPARM_GPU_NBR, IPARM_INCOMPLETE,
- *   IPARM_MAX_BLOCKSIZE, IPARM_MIN_BLOCKSIZE ,IPARM_NNZEROS,
+ *   IPARM_MAX_BLOCKSIZE, IPARM_MIN_BLOCKSIZE, IPARM_NNZEROS,
  *   IPARM_NNZEROS_BLOCK_LOCAL, IPARM_STARPU, IPARM_THREAD_NBR, IPARM_VERBOSE
  *
  *   DPARM_ANALYZE_TIME, DPARM_FACT_FLOPS, DPARM_FACT_RLFLOPS,
@@ -74,9 +75,11 @@
  *   Dispatch properties such as low-rank compression, 2D tasks from the top to
  *   the bottom of the tree. Candidate array, and elimination tree are computed,
  *   and updated, simultaneously with the costs computed previously.
- *   This step is impacted by IPARM_DISTRIBUTION_LEVEL that defines the minimal
- *   width of nodes which can forward low-rank and 3D tasks properties to their
- *   son.
+ *   This step is impacted by IPARM_TASKS2D_LEVEL and IPARM_TASKS2D_WIDTH that
+ *   defines the minimal width of nodes which can forward 2D tasks property to
+ *   their sons.
+ *   Similarly, IPARM_COMPRESS_WHEN and IPARM_COMPRESS_MIN_WIDTH defines the
+ *   minimal width of nodes which can forward low-rank property to their sons.
  *
  * #### Proportionnal Mapping
  *   This step performs the actual proportional mapping algorithm to define the
@@ -234,9 +237,8 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         candInit( ctrl.candtab, symbmtx->cblknbr );
 
         /* Initialize costs in elimination tree and candtab array for proportionnal mapping */
-        candBuild( ctrl.autolevel,
-                   ctrl.level2D,
-                   ctrl.ratiolimit,
+        candBuild( ctrl.level_tasks2d, ctrl.width_tasks2d,
+                   iparm[IPARM_COMPRESS_WHEN], iparm[IPARM_COMPRESS_MIN_WIDTH],
                    ctrl.candtab,
                    ctrl.etree,
                    symbmtx,

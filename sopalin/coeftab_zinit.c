@@ -197,11 +197,6 @@ cpucblk_zinit( pastix_coefside_t    side,
     pastix_int_t compress_when = solvmtx->lowrank.compress_when;
     SolverCblk  *cblk = solvmtx->cblktab + itercblk;
 
-    if ( (solvmtx->lowrank.compress_when != PastixCompressNever) &&
-         (cblk->cblktype & CBLK_LAYOUT_2D) )
-    {
-        cblk->cblktype |= CBLK_COMPRESSED;
-    }
     cpucblk_zalloc( side, cblk );
     cpucblk_zfillin( side, solvmtx, bcsc, itercblk );
 

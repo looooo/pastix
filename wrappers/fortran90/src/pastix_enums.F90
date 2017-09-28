@@ -34,8 +34,9 @@ module pastix_enums
   integer, parameter :: iparm_reordering_stop       = iparm_reordering_split      + 1
   integer, parameter :: iparm_min_blocksize         = iparm_reordering_stop       + 1
   integer, parameter :: iparm_max_blocksize         = iparm_min_blocksize         + 1
-  integer, parameter :: iparm_distribution_level    = iparm_max_blocksize         + 1
-  integer, parameter :: iparm_abs                   = iparm_distribution_level    + 1
+  integer, parameter :: iparm_tasks2d_level         = iparm_max_blocksize         + 1
+  integer, parameter :: iparm_tasks2d_width         = iparm_tasks2d_level         + 1
+  integer, parameter :: iparm_abs                   = iparm_tasks2d_width         + 1
   integer, parameter :: iparm_incomplete            = iparm_abs                   + 1
   integer, parameter :: iparm_level_of_fill         = iparm_incomplete            + 1
   integer, parameter :: iparm_factorization         = iparm_level_of_fill         + 1

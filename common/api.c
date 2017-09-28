@@ -129,15 +129,18 @@ pastixWelcome( const pastix_data_t *pastix )
 #else
                   "Disabled",
 #endif
-                  /* MPI nbr   */ pastix->procnbr,
-                  /* Thrd nbr  */ (int)(pastix->iparm[IPARM_THREAD_NBR]),
+                  /* MPI nbr    */ pastix->procnbr,
+                  /* Thrd nbr   */ (int)(pastix->iparm[IPARM_THREAD_NBR]),
 #if defined(PASTIX_WITH_MPI)
-                  /* MPI mode  */ ((pastix->iparm[IPARM_THREAD_COMM_MODE] == PastixThreadMultiple) ? "Multiple" : "Funneled"),
+                  /* MPI mode   */ ((pastix->iparm[IPARM_THREAD_COMM_MODE] == PastixThreadMultiple) ? "Multiple" : "Funneled"),
 #else
                   "Disabled",
 #endif
-                  /* Distrib */ ((pastix->iparm[IPARM_DISTRIBUTION_LEVEL] == -1) ? "1D" : "2D"), (long)pastix->iparm[IPARM_DISTRIBUTION_LEVEL],
-                  /* Strategy        */ ((pastix->iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever) ? "No compression" : (pastix->iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin) ? "Memory Optimal" : "Just-In-Time") );
+                  /* Distrib    */ ((pastix->iparm[IPARM_TASKS2D_LEVEL] == 0) ? "1D" : "2D"),
+                                   ((pastix->iparm[IPARM_TASKS2D_LEVEL] <  0) ? ((long)pastix->iparm[IPARM_TASKS2D_WIDTH]) :
+                                                                               -((long)pastix->iparm[IPARM_TASKS2D_LEVEL])),
+                  /* Strategy   */ ((pastix->iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever) ? "No compression" :
+                                    (pastix->iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin) ? "Memory Optimal" : "Just-In-Time") );
 
 
     if ( pastix->iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever ) {
@@ -252,7 +255,8 @@ pastixInitParam( pastix_int_t *iparm,
     /* Analyze */
     iparm[IPARM_MIN_BLOCKSIZE]         = 160;
     iparm[IPARM_MAX_BLOCKSIZE]         = 320;
-    iparm[IPARM_DISTRIBUTION_LEVEL]    = -1;
+    iparm[IPARM_TASKS2D_LEVEL]         = -1;
+    iparm[IPARM_TASKS2D_WIDTH]         = iparm[IPARM_MIN_BLOCKSIZE];
     iparm[IPARM_ABS]                   = 0;
 
     /* Incomplete */

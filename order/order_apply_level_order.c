@@ -133,9 +133,15 @@ pastixOrderBuildEtree( const pastix_order_t *order,
  * @param[in] order
  *          The ordering structure to reorder.
  *
- * @param[in] distribution_level
- *          Define the minimal size of the supernodes that are considered as 2D
- *          blocks. Set to 0, for no 2D blocks.
+ * @param[in] level_tasks2d
+ *          Define the ways 2D tasks are decided. If < 0, autolvel will be made
+ *          based on all blocks above the minimal width_tasks2d criteria. If 0,
+ *          1D tasks will be used, and if > 0, only the first level_tasks2d lvel
+ *          of the elimination tree will be considered as 2D tasks.
+ *
+ * @param[in] width_tasks2d
+ *          Define the minimal width for the supernodes that are considered as 2D
+ *          blocks if level_tasks2d < 0. Unused otherwise.
  *
  *******************************************************************************
  *
@@ -145,7 +151,8 @@ pastixOrderBuildEtree( const pastix_order_t *order,
  *******************************************************************************/
 int
 pastixOrderApplyLevelOrder( pastix_order_t *order,
-                            pastix_int_t    distribution_level )
+                            pastix_int_t    level_tasks2d,
+                            pastix_int_t    width_tasks2d )
 {
     pastix_order_t  oldorder;
     EliminTree     *etree;
@@ -204,8 +211,10 @@ pastixOrderApplyLevelOrder( pastix_order_t *order,
 
     /*
      * Build the sorted array per level
+     * If autolevel is enabled for 2D, we need to sort the 2D cblks first and
+     * then the 1D.
      */
-    if ( distribution_level >= 0 )
+    if ( level_tasks2d < 0 )
     {
         pastix_int_t  pos_2D;
         pastix_int_t  pos_non_2D;
@@ -238,7 +247,7 @@ pastixOrderApplyLevelOrder( pastix_order_t *order,
                 for(s=0; s<sonsnbr; s++) {
                     pastix_int_t son = eTreeSonI(etree, node, s);
                     size = oldorder.rangtab[ son+1 ] - oldorder.rangtab[ son ];
-                    if (size >= distribution_level){
+                    if (size >= width_tasks2d){
                         is_2D[son] = 1;
                         tot_nb_2D++;
                     }

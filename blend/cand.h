@@ -55,13 +55,14 @@ void candSave           ( const Cand          *candtab,
                                 pastix_int_t   cblknbr,
                                 char         **directory );
 
-void candBuild          (       pastix_int_t     autolevel,
-                                pastix_int_t     level2D,
-                                pastix_int_t     ratiolimit,
-                                Cand            *candtab,
-                                EliminTree      *etree,
-                          const symbol_matrix_t *symbmtx,
-                          const CostMatrix      *costmtx );
+void candBuild          (       pastix_int_t           level_tasks2d,
+                                pastix_int_t           width_tasks2d,
+                                pastix_compress_when_t lr_when,
+                                pastix_int_t           lr_width,
+                                Cand                  *candtab,
+                                EliminTree            *etree,
+                          const symbol_matrix_t       *symbmtx,
+                          const CostMatrix            *costmtx );
 
 #endif
 

@@ -242,26 +242,39 @@ cpucblk_zscalo( pastix_trans_t      trans,
 /**
  *******************************************************************************
  *
- * @brief Copy the lower terms of the block with scaling for the two-terms algorithm.
+ * @brief Copy the lower terms of the block with scaling for the two-terms
+ * algorithm.
  *
  * Performs B = op(A) * D
  *
  *******************************************************************************
  *
  * @param[in] trans
- *         @arg PastixNoTrans:   No transpose, op( L ) = L;
- *         @arg PastixTrans:     Transpose, op( L ) = L;
- *         @arg PastixConjTrans: Conjugate Transpose, op( L ) = conj(L).
+ *         @arg PastixNoTrans:   No transpose, op( A ) = A;
+ *         @arg PastixTrans:     Transpose, op( A ) = A;
+ *         @arg PastixConjTrans: Conjugate Transpose, op( A ) = conj(A).
  *
  * @param[in] cblk
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[inout] LD
- *          The pointer to workspace of size cblk->stride - by -
- *          cblk_colnbr(cblk) that will store L * D on exit, where L is the
- *          lower coeftab array and D the diagonal matrix taken from the
+ * @param[in] blok_m
+ *          Index of the off-diagonal block to be solved in the cblk. All blocks
+ *          facing the same cblk, in the current column block will be solved.
+ *
+ * @param[in] A
+ *          The pointer to the A matrix of size blok_rownbr( blok ) - by -
+ *          cblk_colnbr( cblk ) that stores L, where L is the
+ *          lower coeftab array.
+ *
+ * @param[in] D
+ *          The pointer to the diagonal matrix D size cblk_colnbr(cblk) - by -
+ *          cblk_colnbr(cblk). D is usually the diagonal matrix taken from the
  *          diagonal of the diagonal block.
+ *
+ * @param[inout] B
+ *          The pointer to the B matrix of size blok_rownbr( blok ) - by -
+ *          cblk_colnbr( cblk ) that will holds the result op(A) * D on exit.
  *
  *******************************************************************************/
 void

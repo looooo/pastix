@@ -60,11 +60,8 @@ typedef struct blendctrl_s {
      * @name 2D
      * @{
      */
-    pastix_int_t    autolevel;       /**< Level to shift 1D to 2D is automaticaly computed                  */
-    pastix_int_t    level2D;         /**< number of levels to treat with a 2D distribution                  */
-    pastix_int_t    ratiolimit;
-    pastix_int_t    blblokmin ;      /**< Minimum blocking size in 2D distribution                          */
-    pastix_int_t    blblokmax;       /**< Maximum blocking size in 2D distribution                          */
+    pastix_int_t    level_tasks2d;   /**< Level to shift from 1D to 2D. Automaticaly computed if < 0, only 1D if 0 */
+    pastix_int_t    width_tasks2d;   /**< Minimal width to consider a cblk 2D if autolevel (level_tasks2d < 0)     */
 
     /**
      * @}

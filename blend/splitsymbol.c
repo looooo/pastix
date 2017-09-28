@@ -85,16 +85,8 @@ computeNbSplit( const BlendCtrl *ctrl,
     pastix_int_t step, nseq;
 
     /* Compute minimun broadness for splitting this cblk */
-    if(candnbr > ctrl->ratiolimit)
-    {
-        blas_min_col = ctrl->blblokmin;
-        blas_max_col = ctrl->blblokmax;
-    }
-    else
-    {
-        blas_min_col = ctrl->blcolmin;
-        blas_max_col = ctrl->blcolmax;
-    }
+    blas_min_col = ctrl->blcolmin;
+    blas_max_col = ctrl->blcolmax;
 
     if(candnbr == 1)
     {
@@ -110,10 +102,6 @@ computeNbSplit( const BlendCtrl *ctrl,
     else
     {
         pastix_int_t abs = ctrl->abs;
-        if(candnbr > ctrl->ratiolimit)
-        {
-            abs *= 2; /* Increase abs for 2D */
-        }
 
         /* If option adaptative block size is set then compute the size of a column block */
         if(abs > 0)
@@ -596,7 +584,7 @@ splitSymbol( BlendCtrl       *ctrl,
                                          ctrl->iparm[IPARM_FLOAT],
                                          ctrl->iparm[IPARM_FACTORIZATION] );
 
-        if (ctrl->updatecandtab)
+        if ( ctrl->updatecandtab )
         {
             /* Update elimination tree */
             if (ctrl->etree != NULL) {
@@ -606,9 +594,8 @@ splitSymbol( BlendCtrl       *ctrl,
             ctrl->etree = eTreeBuild(symbmtx);
 
             /* Initialize costs in elimination tree and candtab array for proportionnal mapping */
-            candBuild( ctrl->autolevel,
-                       ctrl->level2D,
-                       ctrl->ratiolimit,
+            candBuild( ctrl->level_tasks2d, ctrl->width_tasks2d,
+                       ctrl->iparm[IPARM_COMPRESS_WHEN], ctrl->iparm[IPARM_COMPRESS_MIN_WIDTH],
                        ctrl->candtab,
                        ctrl->etree,
                        symbmtx,

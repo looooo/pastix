@@ -316,9 +316,11 @@ candSubTreeBuild( pastix_int_t           rootnum,
  * @brief Recursive function to compute the distribution of the nodes among the
  * different levels.
  *
- * This function defines which cblk are candidates to be stored with a 2D layout,
- * computed as 2D tasks, and/or be part of the Schur complement. The criteria to
- * remove the 2D task flags is the width of the cblk.
+ * This function defines which cblk are candidates to be stored with a 2D
+ * layout, computed as 2D tasks, compressible, and/or be part of the Schur
+ * complement. The criteria to remove the 2D task flags or the LR flag is the
+ * width of the cblk. As soon as one cblk that do not match the criterai is
+ * found, all its descendant loose the flag too.
  *
  *******************************************************************************
  *
@@ -329,9 +331,13 @@ candSubTreeBuild( pastix_int_t           rootnum,
  *               List of flags that can be forwarded to rootnum and its
  *               descendents.
  *
- * @param[in]    ratiolimit
- *               Ratio that defines the minimal size to allow the flag 2D tasks
- *               to be forwarded to the sons.
+ * @param[in]    ratiolimit2D
+ *               Ratio that defines the minimal size to allow the flag 2D to be
+ *               forwarded to the sons.
+ *
+ * @param[in]    ratiolimitLR
+ *               Ratio that defines the minimal size to allow the flag LR to be
+ *               forwarded to the sons.
  *
  * @param[inout] candtab
  *               Pointer to the global candtab array where field cblktype is
@@ -349,14 +355,16 @@ candSubTreeBuild( pastix_int_t           rootnum,
  *
  *******************************************************************************/
 static inline void
-candSubTreeDistribWithSize( pastix_int_t           rootnum,
-                            pastix_int_t           cblktype,
-                            pastix_int_t           ratiolimit,
-                            Cand                  *candtab,
-                            const EliminTree      *etree,
-                            const symbol_matrix_t *symbmtx )
+candSubTreeDistribFirstWidth( pastix_int_t           rootnum,
+                              pastix_int_t           cblktype,
+                              pastix_int_t           ratiolimit2D,
+                              pastix_int_t           ratiolimitLR,
+                              Cand                  *candtab,
+                              const EliminTree      *etree,
+                              const symbol_matrix_t *symbmtx )
 {
     pastix_int_t i, son;
+    pastix_int_t width = symbmtx->cblktab[ rootnum ].lcolnum - symbmtx->cblktab[ rootnum ].fcolnum + 1;
 
     if ( (cblktype & CBLK_IN_SCHUR) &&
          (symbmtx->cblktab[ rootnum ].lcolnum < symbmtx->schurfcol) )
@@ -364,25 +372,195 @@ candSubTreeDistribWithSize( pastix_int_t           rootnum,
         cblktype &= ~(CBLK_IN_SCHUR);
     }
 
-    if(cblktype & CBLK_TASKS_2D) {
-        pastix_int_t width = symbmtx->cblktab[ rootnum ].lcolnum - symbmtx->cblktab[ rootnum ].fcolnum + 1;
-
-        if((ratiolimit >= 0) && (width >= ratiolimit)) {
-            candtab[ rootnum ].cblktype = cblktype;
-        }
-        else {
-            candtab[ rootnum ].cblktype = cblktype & (~CBLK_TASKS_2D);
-        }
+    if( (cblktype & CBLK_TASKS_2D) && (width < ratiolimit2D) ) {
+        cblktype = cblktype & (~CBLK_TASKS_2D);
     }
-    else {
-        candtab[ rootnum ].cblktype = cblktype;
+
+    if( (cblktype & CBLK_COMPRESSED) && (width < ratiolimitLR) ) {
+        cblktype = cblktype & (~CBLK_COMPRESSED);
+    }
+
+    candtab[ rootnum ].cblktype = cblktype;
+
+    for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
+    {
+        son = eTreeSonI(etree, rootnum, i);
+        candSubTreeDistribFirstWidth( son, candtab[ rootnum ].cblktype,
+                                      ratiolimit2D, ratiolimitLR,
+                                      candtab, etree, symbmtx );
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Recursive function to compute the distribution of the nodes among the
+ * different levels.
+ *
+ * This function defines which cblk are candidates to be stored with a 2D
+ * layout, computed as 2D tasks, compressible, and/or be part of the Schur
+ * complement. The criteria to remove the 2D task flags and the LR flag is the
+ * width of the cblk.
+ * This function enables the flags to the deepest nodes that respect the
+ * condition, as well as to all their ascendants in the elimination tree.
+ *
+ *******************************************************************************
+ *
+ * @param[in]    rootnum
+ *               Root of the subtree.
+ *
+ * @param[in]    cblktype
+ *               List of flags that can be forwarded to rootnum and its
+ *               descendents.
+ *
+ * @param[in]    ratiolimit2D
+ *               Ratio that defines the minimal size to allow the flag 2D for a
+ *               cblk and its ascendants.
+ *
+ * @param[in]    ratiolimitLR
+ *               Ratio that defines the minimal size to allow the flag LR for a
+ *               cblk and its ascendants.
+ *
+ * @param[inout] candtab
+ *               Pointer to the global candtab array where field cblktype is
+ *               updated. cblktype defines the optimization/properties that are
+ *               defined on each cblk and which are defined by level in the
+ *               tree.
+ *
+ * @param[in]    etree
+ *               Pointer to the global elimination tree structure that is used
+ *               to travel through the cblk, and affect the properies with the
+ *               correct filiation property.
+ *
+ * @param[in]    symbmtx
+ *               Pointer to the symbol matrix we are working with.
+ *
+ *******************************************************************************
+ *
+ * @return the cblktype flag of the root of the subtree.
+ *
+ *******************************************************************************/
+static inline pastix_int_t
+candSubTreeDistribDeepestWidth( pastix_int_t           rootnum,
+                                pastix_int_t           cblktype,
+                                pastix_int_t           ratiolimit2D,
+                                pastix_int_t           ratiolimitLR,
+                                Cand                  *candtab,
+                                const EliminTree      *etree,
+                                const symbol_matrix_t *symbmtx )
+{
+    pastix_int_t i, son;
+    pastix_int_t sonstype = 0;
+    pastix_int_t width = symbmtx->cblktab[ rootnum ].lcolnum - symbmtx->cblktab[ rootnum ].fcolnum + 1;
+
+    if ( (cblktype & CBLK_IN_SCHUR) &&
+         (symbmtx->cblktab[ rootnum ].lcolnum < symbmtx->schurfcol) )
+    {
+        cblktype &= ~(CBLK_IN_SCHUR);
     }
 
     for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
     {
         son = eTreeSonI(etree, rootnum, i);
-        candSubTreeDistribWithSize( son, candtab[ rootnum ].cblktype, ratiolimit, candtab, etree, symbmtx);
+        sonstype |= candSubTreeDistribDeepestWidth( son, cblktype,
+                                                    ratiolimit2D, ratiolimitLR,
+                                                    candtab, etree, symbmtx );
     }
+
+    if( (cblktype & CBLK_TASKS_2D) && (width < ratiolimit2D) ) {
+        cblktype = cblktype & (~CBLK_TASKS_2D);
+    }
+
+    if( (cblktype & CBLK_COMPRESSED) && (width < ratiolimitLR) ) {
+        cblktype = cblktype & (~CBLK_COMPRESSED);
+    }
+
+    candtab[ rootnum ].cblktype = cblktype | sonstype;
+    return candtab[ rootnum ].cblktype;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Recursive function to compute the distribution of the nodes among the
+ * different levels based on depth.
+ *
+ * This function defines which cblk are candidates to be stored with a 2D layout,
+ * computed as 2D tasks, and/or be part of the Schur complement. The criteria to
+ * remove the 2D task flags is the depth on the elimination tree.
+ *
+ *******************************************************************************
+ *
+ * @param[in]    rootnum
+ *               Root of the subtree.
+ *
+ * @param[in]    cblktype
+ *               List of flags that can be forwarded to rootnum and its
+ *               descendents.
+ *
+ * @param[in]    level2D
+ *               The number of levels of the tree that will be flagged as 2D
+ *               tasks.
+ *
+ * @param[in]    ratiolimitLR
+ *               Ratio that defines the minimal size to allow the flag LR for a
+ *               cblk and its ascendants.
+ *
+ * @param[in]    depth
+ *               Depth until which 2D tasks is enabled.
+ *
+ * @param[in]    symbmtx
+ *               Pointer to the symbol matrix we are working with.
+ *
+ * @param[inout] candtab
+ *               Pointer to the global candtab array where the field cblktype is
+ *               updated. cblktype defines the optimization/properties that are
+ *               defined on each cblk and which are defined by level in the
+ *               tree.
+ *
+ *******************************************************************************
+ *
+ * @return the cblktype flag of the root of the subtree.
+ *
+ *******************************************************************************/
+static inline pastix_int_t
+candSubTreeDistribDeepestLevel( pastix_int_t           rootnum,
+                                pastix_int_t           cblktype,
+                                pastix_int_t           level2D,
+                                pastix_int_t           ratiolimitLR,
+                                Cand                  *candtab,
+                                const EliminTree      *etree,
+                                const symbol_matrix_t *symbmtx )
+{
+    pastix_int_t i, son;
+    pastix_int_t sonstype = 0;
+    pastix_int_t width = symbmtx->cblktab[ rootnum ].lcolnum - symbmtx->cblktab[ rootnum ].fcolnum + 1;
+
+    if ( (cblktype & CBLK_IN_SCHUR) &&
+         (symbmtx->cblktab[ rootnum ].lcolnum < symbmtx->schurfcol) )
+    {
+        cblktype &= ~(CBLK_IN_SCHUR);
+    }
+
+    if( (cblktype & CBLK_TASKS_2D) && (level2D <= 0) ) {
+        cblktype = cblktype & (~CBLK_TASKS_2D);
+    }
+
+    level2D--;
+    for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
+    {
+        son = eTreeSonI(etree, rootnum, i);
+        sonstype |= candSubTreeDistribDeepestLevel( son, cblktype,
+                                                    level2D, ratiolimitLR,
+                                                    candtab, etree, symbmtx );
+    }
+
+    if( (cblktype & CBLK_COMPRESSED) && (width < ratiolimitLR) ) {
+        cblktype = cblktype & (~CBLK_COMPRESSED);
+    }
+
+    candtab[ rootnum ].cblktype = cblktype | sonstype;
+    return candtab[ rootnum ].cblktype;
 }
 
 /**
@@ -411,28 +589,41 @@ candSubTreeDistribWithSize( pastix_int_t           rootnum,
  *
  *******************************************************************************/
 static inline void
-candDistribWithDepth( pastix_int_t           depth,
-                      const symbol_matrix_t *symbmtx,
-                      Cand                  *candtab )
+candSubTreeDistribFirstLevel( pastix_int_t           rootnum,
+                              pastix_int_t           cblktype,
+                              pastix_int_t           level2D,
+                              pastix_int_t           ratiolimitLR,
+                              Cand                  *candtab,
+                              const EliminTree      *etree,
+                              const symbol_matrix_t *symbmtx )
 {
-    pastix_int_t i, cblknbr, schurfcol;
+    pastix_int_t i, son;
+    pastix_int_t width = symbmtx->cblktab[ rootnum ].lcolnum - symbmtx->cblktab[ rootnum ].fcolnum + 1;
 
-    cblknbr   = symbmtx->cblknbr;
-    schurfcol = symbmtx->schurfcol;
-
-    for(i=0;i<cblknbr;i++)
+    if ( (cblktype & CBLK_IN_SCHUR) &&
+         (symbmtx->cblktab[ rootnum ].lcolnum < symbmtx->schurfcol) )
     {
-        if( candtab[i].treelevel > depth ) {
-            candtab[i].cblktype = CBLK_LAYOUT_2D | CBLK_TASKS_2D;
-        }
-        else {
-            candtab[i].cblktype = CBLK_LAYOUT_2D;
-        }
-
-        if ( symbmtx->cblktab[ i ].fcolnum >= schurfcol ) {
-            candtab[i].cblktype &= CBLK_IN_SCHUR;
-        }
+        cblktype &= ~(CBLK_IN_SCHUR);
     }
+
+    if( (cblktype & CBLK_TASKS_2D) && (level2D <= 0) ) {
+        cblktype = cblktype & (~CBLK_TASKS_2D);
+    }
+
+    if( (cblktype & CBLK_COMPRESSED) && (width < ratiolimitLR) ) {
+        cblktype = cblktype & (~CBLK_COMPRESSED);
+    }
+
+    level2D--;
+    for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
+    {
+        son = eTreeSonI(etree, rootnum, i);
+        candSubTreeDistribFirstLevel( son, cblktype,
+                                      level2D, ratiolimitLR,
+                                      candtab, etree, symbmtx );
+    }
+
+    candtab[ rootnum ].cblktype = cblktype;
 }
 
 /**
@@ -446,17 +637,27 @@ candDistribWithDepth( pastix_int_t           depth,
  *
  *******************************************************************************
  *
- * @param[in]    autolevel
- *               If autolevel is defined, the width criteria is used to defined
- *               the 2D tasks flag on the cblk.
+ * @param[in]    level_tasks2d
+ *               Defines the level in the elimination tree to switch from 1D to
+ *               2D tasks in the cblk flag.
+ *               If < 0, automatic level is defined based on the width of the
+ *               cblk with respect to the minimal width_tasks2d width.
+ *               If 0, all cblks are tagged as 1D.
+ *               If > 0, only the first level_tasks2d level of the tree are
+ *               tagged as 2D.
  *
- * @param[in]    level2D
- *               If autolevel is false, then level2d defines te number of levels
- *               handles as 2D tasks.
+ * @param[in]    width_tasks2d
+ *               If level_tasks2d < 0, defines the minimal width to keep the 2D
+ *               flag on a goven cblk.
  *
- * @param[in]    ratiolimit
- *               if autolevel is true, ratiolimit defines the minimal width of
- *               the node that will be handled as 2D tasks.
+ * @param[in]    lr_when
+ *               Define if compression technics will be used or not. If not
+ *               PastixCompressNever, then all cblkw with a larger width than
+ *               lr_width are tagged as compressible.
+ *
+ * @param[in]    lr_width
+ *               Define the minimal width to flag a cblk as compressible if
+ *               lr_when != PastixCompressNever.
  *
  * @param[inout] candtab
  *               Pointer to the global candtab array that needs to be initialized.
@@ -475,13 +676,19 @@ candDistribWithDepth( pastix_int_t           depth,
  *
  *******************************************************************************/
 void
-candBuild( pastix_int_t autolevel, pastix_int_t level2D, pastix_int_t ratiolimit,
+candBuild( pastix_int_t level_tasks2d, pastix_int_t width_tasks2d,
+           pastix_compress_when_t lr_when, pastix_int_t lr_width,
            Cand                  *candtab,
            EliminTree            *etree,
            const symbol_matrix_t *symbmtx,
            const CostMatrix      *costmtx )
 {
     pastix_int_t root = eTreeRoot(etree);
+    pastix_int_t cblktype = CBLK_LAYOUT_2D | CBLK_TASKS_2D | CBLK_IN_SCHUR | CBLK_COMPRESSED;
+
+#if defined(PASTIX_CUDA_FERMI)
+    cblktype = CBLK_IN_SCHUR | CBLK_COMPRESSED;
+#endif
 
     /* Let's start with the root */
     candtab[ root ].costlevel = -1.0;
@@ -489,22 +696,46 @@ candBuild( pastix_int_t autolevel, pastix_int_t level2D, pastix_int_t ratiolimit
 
     candSubTreeBuild( root, candtab, etree, symbmtx, costmtx );
 
-    /* Let's set the cblk type of each node */
-    if(autolevel)
+    if ( lr_when == PastixCompressNever ) {
+        lr_width = PASTIX_INT_MAX;
+    }
+
+#if defined(PASTIX_BLEND_DEEPEST_DISTRIB)
+    /*
+     * Find the deepest node that matches the criteria for a flag, and assign
+     * the flag to all its ancestors to the root
+     */
+    if( level_tasks2d < 0 )
     {
-        candSubTreeDistribWithSize( eTreeRoot(etree),
-#if defined(PASTIX_CUDA_FERMI)
-                                    CBLK_IN_SCHUR,
-#else
-                                    CBLK_LAYOUT_2D | CBLK_TASKS_2D | CBLK_IN_SCHUR,
-#endif
-                                    ratiolimit,
-                                    candtab, etree, symbmtx );
+        candSubTreeDistribDeepestWidth( eTreeRoot(etree), cblktype,
+                                        width_tasks2d, lr_width,
+                                        candtab, etree, symbmtx );
     }
     else
     {
-        candDistribWithDepth( -level2D, symbmtx, candtab );
+        candSubTreeDistribDeepestLevel( eTreeRoot(etree), cblktype,
+                                        level_tasks2d, lr_width,
+                                        candtab, etree, symbmtx );
     }
+#else
+    /*
+     * Propagate the flags to all the sons as long as the node matches the
+     * criteria to keep them. Stops earlier than previous case with btterfly
+     * like meshes.
+     */
+    if( level_tasks2d < 0 )
+    {
+        candSubTreeDistribFirstWidth( eTreeRoot(etree), cblktype,
+                                      width_tasks2d, lr_width,
+                                      candtab, etree, symbmtx );
+    }
+    else
+    {
+        candSubTreeDistribFirstLevel( eTreeRoot(etree), cblktype,
+                                      level_tasks2d, lr_width,
+                                      candtab, etree, symbmtx );
+    }
+#endif
 }
 
 /**

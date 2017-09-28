@@ -107,6 +107,10 @@ cmake_dependent_option(PASTIX_ORDERING_PTSCOTCH
 option(PASTIX_SYMBOL_DUMP_SYMBMTX
   "Dump the generated symbol matrix in a postscript file" OFF)
 
+# Analyze step options
+option(PASTIX_BLEND_DEEPEST_DISTRIB
+  "Enable the candidate distribution to go to the deepest node matching the criteria" ON)
+
 # Numerical factorization options
 option(PASTIX_NUMFACT_DUMP_SOLVER
   "Dump the generated factorized matrix in a postscript file with information on block's compressibility" OFF)
