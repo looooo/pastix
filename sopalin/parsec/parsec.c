@@ -116,7 +116,7 @@ pastix_parsec_init( pastix_data_t *pastix,
     if ( bindtab != NULL ) {
         assert( *argc >= 3 );
 
-        free( value );  /* parsec_argv[ argc-1 ] */
+        free( parsec_argv[*argc - 1] );
         free( parsec_argv[*argc - 2] );
         if ( *argc == 3 ) {
             free( parsec_argv[*argc - 3] );
