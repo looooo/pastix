@@ -19,11 +19,11 @@
 #include <assert.h>
 #include <time.h>
 #include <pastix.h>
-#include "../common/common.h"
+#include "common/common.h"
 #include <lapacke.h>
 #include <cblas.h>
-#include "../blend/solver.h"
-#include "../kernels/pastix_zcores.h"
+#include "blend/solver.h"
+#include "kernels/pastix_zcores.h"
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_ == -1) {                           \
