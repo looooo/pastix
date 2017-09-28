@@ -132,7 +132,11 @@ static void (*zsytrf_table[4])(pastix_data_t *, sopalin_data_t *) = {
 #else
     NULL,
 #endif
+#if defined(PASTIX_WITH_STARPU)
+    starpu_zsytrf
+#else
     NULL
+#endif
 };
 
 void
