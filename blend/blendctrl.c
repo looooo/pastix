@@ -221,7 +221,7 @@ blendCtrlInit( pastix_data_t *pastix_data,
     ctrl->leader           = 0;
 
     /* Proportional Mapping options */
-    ctrl->allcand     = 0;
+    ctrl->allcand     = iparm[IPARM_ALLCAND];
     ctrl->nocrossproc = 0;
     ctrl->costlevel   = 1;
 

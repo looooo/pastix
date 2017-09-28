@@ -616,6 +616,7 @@ set(PASTIX_LIB_SRCS
 
   blend/cand.c
   blend/elimintree.c
+  blend/cand_gendot.c
   blend/propmap.c
   blend/extracblk.c
   blend/splitsymbol.c

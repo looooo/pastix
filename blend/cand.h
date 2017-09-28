@@ -35,34 +35,43 @@ typedef struct cand_s {
     int8_t       cblktype;  /**< type of the distribution                            */
 } Cand;
 
-void candInit           (       Cand          *candtab,
-                                pastix_int_t   cblknbr );
-
-void candSetSubCandidate(       Cand          *candtab,
-                          const EliminTree    *etree,
-                                pastix_int_t   rootnum,
-                                pastix_int_t   procnum );
-
-int  candCheck          ( const Cand            *candtab,
-                          const symbol_matrix_t *symbmtx );
-
-void candSetClusterCand (       Cand          *candtab,
-                                pastix_int_t   cblknbr,
-                          const pastix_int_t  *core2clust,
-                                pastix_int_t   coresnbr );
-
-void candSave           ( const Cand          *candtab,
-                                pastix_int_t   cblknbr,
-                                char         **directory );
-
+void candInit (       Cand            *candtab,
+                      pastix_int_t     cblknbr );
+int  candCheck( const Cand            *candtab,
+                const symbol_matrix_t *symbmtx );
+void candSave ( const Cand            *candtab,
+                      pastix_int_t     cblknbr,
+                      char           **directory );
 void candBuild          (       pastix_int_t           level_tasks2d,
                                 pastix_int_t           width_tasks2d,
                                 pastix_compress_when_t lr_when,
                                 pastix_int_t           lr_width,
-                                Cand                  *candtab,
-                                EliminTree            *etree,
-                          const symbol_matrix_t       *symbmtx,
-                          const CostMatrix            *costmtx );
+                      Cand            *candtab,
+                      EliminTree      *etree,
+                const symbol_matrix_t *symbmtx,
+                const CostMatrix      *costmtx );
+
+
+void candUpdate         ( Cand                  *candtab,
+                          EliminTree            *etree,
+                          const symbol_matrix_t *symbmtx,
+                          const CostMatrix      *costmtx );
+
+void candSetClusterCand(       Cand          *candtab,
+                               pastix_int_t   cblknbr,
+                         const pastix_int_t  *core2clust,
+                               pastix_int_t   coresnbr );
+
+void candGenDot          ( const EliminTree *etree,
+                           const Cand       *candtab,
+                           FILE             *stream );
+void candGenDotLevel     ( const EliminTree *etree,
+                           const Cand       *candtab,
+                           FILE             *stream,
+                           pastix_int_t      level );
+void candGenCompressedDot( const EliminTree *etree,
+                           const Cand       *candtab,
+                           FILE             *stream );
 
 #endif
 

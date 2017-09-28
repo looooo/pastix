@@ -38,7 +38,8 @@ class iparm:
     tasks2d_level         = max_blocksize          + 1
     tasks2d_width         = tasks2d_level          + 1
     abs                   = tasks2d_width          + 1
-    incomplete            = abs                    + 1
+    allcand               = abs                    + 1
+    incomplete            = allcand                + 1
     level_of_fill         = incomplete             + 1
     factorization         = level_of_fill          + 1
     static_pivoting       = factorization          + 1

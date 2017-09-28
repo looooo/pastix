@@ -245,7 +245,7 @@ propMappSubtree( const propmap_t *pmptr,
         {
             cost_remain[fcand] -= cumul_cost;
             propMappSubtreeOn1P( pmptr, eTreeSonI(pmptr->etree, rootnum, i),
-                                 fcandnum+fcand, fcandnum+fcand, cluster);
+                                 fcandnum+fcand, fcandnum+fcand, cluster );
             break;
         }
 
@@ -263,7 +263,8 @@ propMappSubtree( const propmap_t *pmptr,
         lcand = fcand;
         scandnbr = 1;
         cumul_cost -= cost_remain[fcand];
-        while ((cumul_cost > (((double)scandnbr) * epsilon)) &&
+        while ((( pmptr->nocrossproc && (cumul_cost > ((double)scandnbr)*epsilon)) ||
+                (!pmptr->nocrossproc && (cumul_cost >                    epsilon))) &&
                (lcand < candnbr - 1))
         {
             lcand++; scandnbr++;

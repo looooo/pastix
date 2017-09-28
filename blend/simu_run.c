@@ -690,12 +690,12 @@ simu_computeTask( const BlendCtrl       *ctrl,
     assert( (procnum >= ctrl->candtab[cblknum].fcandnum) &&
             (procnum <= ctrl->candtab[cblknum].lcandnum) );
 
-    /* Add factorization time to the diagonal blok */
+    /* Add factorization time of the diagonal blok + cost of the TRSM operation on the cblk*/
     timerAdd(&(sproc->timer), costmtx->blokcost[fbloknum]);
 
     for(i=fbloknum+1; i<lbloknum; i++)
     {
-        /* Add trsm time of this off-diagonal block */
+        /* Add cost of the GEMM update related to this off-diagonal block */
         timerAdd(&(sproc->timer), costmtx->blokcost[i]);
 
         facingcblk = symbptr->bloktab[i].fcblknm;
@@ -951,8 +951,9 @@ simuRun( SimuCtrl              *simuctrl,
             tasknum = simuctrl->bloktab[symbptr->cblktab[i].bloknum].tasknum;
             assert(ctrl->candtab[i].treelevel < 0);
 
-            if(ctrl->costlevel)
+            if( ctrl->costlevel ) {
                 assert(ctrl->candtab[i].costlevel < 0);
+            }
 
             assert(simuctrl->tasktab[tasknum].cblknum == i);
             //assert(ctrl->candtab[i].cblktype == CBLK_1D);
@@ -977,10 +978,10 @@ simuRun( SimuCtrl              *simuctrl,
             break;
         }
 
-        task    = &(simuctrl->tasktab[i]);
-        bloknum = task->bloknum;
-        cblknum = task->cblknum;
-        clustnum= ctrl->core2clust[pr];
+        task     = &(simuctrl->tasktab[i]);
+        bloknum  = task->bloknum;
+        cblknum  = task->cblknum;
+        clustnum = ctrl->core2clust[pr];
 
         assert(cblknum < symbptr->cblknbr);
         assert(bloknum < symbptr->bloknbr);
@@ -988,8 +989,8 @@ simuRun( SimuCtrl              *simuctrl,
         /* Make sure the cblk is not already atributed to someone and give it to the selected proc */
         assert( simuctrl->ownetab[cblknum] < 0 );
         simuctrl->ownetab[cblknum] = pr;
-        for(j=symbptr->cblktab[cblknum].bloknum;
-            j<symbptr->cblktab[cblknum+1].bloknum;j++)
+        for(j = symbptr->cblktab[cblknum].bloknum;
+            j < symbptr->cblktab[cblknum+1].bloknum; j++)
         {
             simuctrl->bloktab[j].ownerclust = clustnum;
         }
@@ -1011,7 +1012,7 @@ simuRun( SimuCtrl              *simuctrl,
              * All contributions come from the same node
              * Time do not depend on the reception of a ftgt
              */
-            timerSetMax( TIMER(pr), timerVal(&(task->time)));
+            timerSetMax( TIMER(pr), timerVal(&(task->time)) );
         }
         else {
             /*
@@ -1019,7 +1020,7 @@ simuRun( SimuCtrl              *simuctrl,
              * Time depends on the reception of a ftgt
              */
             timerSetMax( TIMER(pr),
-                         timerVal(&(simuctrl->ftgttimetab[CLUST2INDEX(bloknum, clustnum)])));
+                         timerVal(&(simuctrl->ftgttimetab[CLUST2INDEX(bloknum, clustnum)])) );
         }
 
 #if defined(PASTIX_BLEND_GENTRACE)

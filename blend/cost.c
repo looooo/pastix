@@ -100,7 +100,7 @@ costMatrixBuild( const symbol_matrix_t *symbmtx,
     MALLOC_INTERN( costmtx->blokcost, symbmtx->bloknbr, double );
 
     pastixSymbolGetTimes( symbmtx, flttype, factotype,
-                    costmtx->cblkcost, costmtx->blokcost );
+                          costmtx->cblkcost, costmtx->blokcost );
 
     return costmtx;
 }

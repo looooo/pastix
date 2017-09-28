@@ -180,7 +180,8 @@ eTreeNodeLevel(const EliminTree *etree, pastix_int_t nodenum )
  *
  *******************************************************************************/
 void
-eTreeGenDot(const EliminTree *etree, FILE *stream)
+eTreeGenDot( const EliminTree *etree,
+             FILE             *stream )
 {
     pastix_int_t i;
 
@@ -191,15 +192,22 @@ eTreeGenDot(const EliminTree *etree, FILE *stream)
 
     for (i=0;  i < etree->nodenbr; i++)
     {
+        fprintf(stream, "\t\"%ld\" [label=\"#%ld\\nSubtree cost: %e\\nNode cost: %e\\nNode CP: %e\"]\n",
+                (long)i, (long)i,
+                etree->nodetab[i].subtree,
+                etree->nodetab[i].total,
+                etree->nodetab[i].cripath );
+
         if ((etree->nodetab[i]).fathnum == -1) {
             continue;
         }
-        fprintf(stream, "\t\"%ld\"->\"%ld\"\n", (long)i, (long)((etree->nodetab[i]).fathnum));
+        fprintf( stream, "\t\"%ld\"->\"%ld\"\n",
+                 (long)i,
+                 (long)((etree->nodetab[i]).fathnum) );
     }
 
     fprintf(stream, "}\n");
 }
-
 
 /**
  *******************************************************************************
@@ -289,6 +297,7 @@ eTreeBuild(const symbol_matrix_t *symbmtx)
     {
         enode->total   =  0.0;
         enode->subtree =  0.0;
+        enode->cripath =  0.0;
         enode->sonsnbr =  0;
         enode->fathnum = -1;
         enode->fsonnum = -1;

@@ -93,33 +93,6 @@ static inline void pastix_error_print( const char * const fmt, ... )
 #define CBLAS_SADDR( a_ ) (&(a_))
 #endif
 
-/********************************************************************
- * Files handling macros
- */
-/*
-  Macro: PASTIX_FOPEN
-
-  Open a file and handle errors.
-
-  Parameters:
-  FILE     - Stream (FILE*) to link to the file.
-  filename - String containing the path to the file.
-  mode     - String containing the opening mode.
-
-*/
-#define PASTIX_FOPEN( _file_, _filename_, _mode_)                       \
-    do                                                                  \
-    {                                                                   \
-        (_file_) = NULL;                                                \
-        if (NULL == ((_file_) = fopen((_filename_), (_mode_))))         \
-        {                                                               \
-            perror("pastix_fopen");                                     \
-            errorPrint("%s:%d Couldn't open file: %s with mode %s\n",   \
-                       __FILE__, __LINE__, (_filename_), (_mode_));     \
-        }                                                               \
-    }                                                                   \
-    while(0)
-
 /*
  * Get environment variable
  */

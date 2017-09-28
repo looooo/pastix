@@ -106,44 +106,6 @@ candSave( const Cand    *candtab,
 /**
  *******************************************************************************
  *
- * @brief Set a single candidate recursively to a subtree
- *
- *******************************************************************************
- *
- * @param[inout] candtab
- *          On entry, the array of candidates initialized with candInit().
- *          On exit, each node belonging to the subtree has procnum as a single
- *          candidate.
- *
- * @param[in] etree
- *          The full elimination tree structure of the problem
- *
- * @param[in] rootnum
- *          The root index of the subtree to initialize
- *
- * @param[in] procnum
- *          The processor index to affect to all nodes in the subtree
- *
- *******************************************************************************/
-void
-candSetSubCandidate( Cand *candtab,
-                     const EliminTree *etree,
-                     pastix_int_t rootnum,
-                     pastix_int_t procnum )
-{
-    pastix_int_t i;
-
-    candtab[rootnum].fcandnum = procnum;
-    candtab[rootnum].lcandnum = procnum;
-
-    for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++) {
-        candSetSubCandidate( candtab, etree, eTreeSonI(etree, rootnum, i), procnum );
-    }
-}
-
-/**
- *******************************************************************************
- *
  * @brief Set the clusters candidates from the cores canditates
  *
  *******************************************************************************
@@ -264,6 +226,10 @@ candCheck( const Cand            *candtab,
  *               Pointer to the cost matrix associated to the symbol matrix and
  *               that holds the cost of each cblk and blok.
  *
+ * @param[out]   cripath
+ *               On exit, contains the length of the critical path of the
+ *               subtree.
+ *
  *******************************************************************************
  *
  * @return The cost of the subtree.
@@ -274,38 +240,52 @@ candSubTreeBuild( pastix_int_t           rootnum,
                   Cand                  *candtab,
                   EliminTree            *etree,
                   const symbol_matrix_t *symbmtx,
-                  const CostMatrix      *costmtx )
+                  const CostMatrix      *costmtx,
+                  double                *cripath )
 {
-    double cost;
+    double cost, mycp = 0.0;
     pastix_int_t i, son;
 
-    /* Compute cost of current node */
-#if defined(BLEND_COST_LL)
+    /* Get cost of current node */
     cost = costmtx->cblkcost[rootnum];
-#else
-    {
-        pastix_int_t bloknum;
-        cost = 0.;
-        for( bloknum = symbmtx->cblktab[ rootnum   ].bloknum;
-             bloknum < symbmtx->cblktab[ rootnum+1 ].bloknum; bloknum++)
-        {
-            cost += costmtx->blokcost[ bloknum ];
-        }
-    }
-#endif
-
     etree->nodetab[ rootnum ].total   = cost;
     etree->nodetab[ rootnum ].subtree = cost;
 
     for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
     {
+        double soncp = 0.0;
+
         son = eTreeSonI(etree, rootnum, i);
         candtab[ son ].treelevel = candtab[ rootnum ].treelevel - 1;
         candtab[ son ].costlevel = candtab[ rootnum ].costlevel - cost;
 
         etree->nodetab[ rootnum ].subtree +=
-            candSubTreeBuild( son, candtab, etree, symbmtx, costmtx );
+            candSubTreeBuild( son, candtab, etree, symbmtx, costmtx, &soncp );
+
+        mycp = (mycp > soncp) ? mycp : soncp;
     }
+
+    /* Update local critical path */
+    {
+        pastix_int_t bloknum = symbmtx->cblktab[ rootnum ].bloknum;
+        pastix_int_t fcblknm;
+
+        /* Add Facto and solve */
+        mycp += costmtx->blokcost[ bloknum ];
+
+        /* Add first GEMM */
+        bloknum++;
+        fcblknm = symbmtx->bloktab[ bloknum ].fcblknm;
+
+        while( (bloknum <  symbmtx->cblktab[ rootnum+1 ].bloknum) &&
+               (fcblknm == symbmtx->bloktab[ bloknum   ].fcblknm) )
+        {
+            mycp += costmtx->blokcost[ bloknum ];
+            bloknum++;
+        }
+    }
+    etree->nodetab[ rootnum ].cripath = mycp;
+    *cripath = mycp;
 
     return etree->nodetab[ rootnum ].subtree;
 }
@@ -683,6 +663,7 @@ candBuild( pastix_int_t level_tasks2d, pastix_int_t width_tasks2d,
            const symbol_matrix_t *symbmtx,
            const CostMatrix      *costmtx )
 {
+    double cp = 0.0;
     pastix_int_t root = eTreeRoot(etree);
     pastix_int_t cblktype = CBLK_LAYOUT_2D | CBLK_TASKS_2D | CBLK_IN_SCHUR | CBLK_COMPRESSED;
 
@@ -694,7 +675,7 @@ candBuild( pastix_int_t level_tasks2d, pastix_int_t width_tasks2d,
     candtab[ root ].costlevel = -1.0;
     candtab[ root ].treelevel = -1;
 
-    candSubTreeBuild( root, candtab, etree, symbmtx, costmtx );
+    candSubTreeBuild( root, candtab, etree, symbmtx, costmtx, &cp );
 
     if ( lr_when == PastixCompressNever ) {
         lr_width = PASTIX_INT_MAX;
@@ -736,6 +717,49 @@ candBuild( pastix_int_t level_tasks2d, pastix_int_t width_tasks2d,
                                       candtab, etree, symbmtx );
     }
 #endif
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Update the candtab array costs after the symbol split algorithm has
+ * been applied.
+ *
+ * This function update the costs and critical path of each node after the
+ * symbol matrix has been split to generate more parallelism.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] candtab
+ *               Pointer to the global candtab array that needs to be updated.
+ *
+ * @param[inout] etree
+ *               Pointer to the elimination tree that needs to be construct on entry.
+ *               On exit, the cost of each node, and the total cost of its
+ *               associated subtree is updated.
+ *
+ * @param[in]    symbmtx
+ *               Pointer to the symbol matrix we are working with.
+ *
+ * @param[in]    costmtx
+ *               Pointer to the cost matrix associated to the symbol matrix and
+ *               that holds the cost of each cblk and blok.
+ *
+ *******************************************************************************/
+void
+candUpdate( Cand                  *candtab,
+            EliminTree            *etree,
+            const symbol_matrix_t *symbmtx,
+            const CostMatrix      *costmtx )
+{
+    double cp = 0.0;
+    pastix_int_t root = eTreeRoot(etree);
+
+    /* Let's start with the root */
+    candtab[ root ].costlevel = -1.0;
+    candtab[ root ].treelevel = -1;
+
+    candSubTreeBuild( root, candtab, etree, symbmtx, costmtx, &cp );
 }
 
 /**
