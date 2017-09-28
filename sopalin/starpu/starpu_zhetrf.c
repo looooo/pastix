@@ -267,7 +267,7 @@ starpu_zhetrf( pastix_data_t  *pastix_data,
      */
     if (pastix_data->starpu == NULL) {
         int argc = 0;
-        pastix_starpu_init( pastix_data, &argc, NULL );
+        pastix_starpu_init( pastix_data, &argc, NULL, NULL );
     }
 
     if ( sdesc == NULL ) {

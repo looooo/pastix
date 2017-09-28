@@ -30,6 +30,7 @@ typedef struct solve_param {
     char               *filename;
     pastix_driver_t     driver;
     int                 check;
+    int                 id;
 } solve_param_t;
 
 /**
@@ -42,23 +43,35 @@ typedef struct solve_param {
  */
 static void *solve_smp(void *arg)
 {
-    pastix_data_t       *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
-    pastix_spm_t        *spm;
-    pastix_spm_t        *spm2;
-    void                *x0 = NULL;
-    void                *x;
-    void                *b;
-    size_t              size;
-    int                 check;
-    int                 nrhs = 1;
-    solve_param_t       param = *(solve_param_t *)arg;
-    param.iparm[IPARM_THREAD_NBR] = 1;
+    pastix_data_t *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
+    pastix_spm_t  *spm;
+    pastix_spm_t  *spm2;
+    void          *x0 = NULL;
+    void          *x;
+    void          *b;
+    int           *bindtab;
+    size_t         size;
+    int            i, check;
+    int            nrhs = 1;
+    solve_param_t  param = *(solve_param_t *)arg;
+
+    if ( param.iparm[IPARM_THREAD_NBR] == -1) {
+        param.iparm[IPARM_THREAD_NBR] = 2;
+    }
     check = param.check;
+
+    /* Bindtab array */
+    bindtab = malloc( param.iparm[IPARM_THREAD_NBR] * sizeof(int) );
+    for(i=0; i<param.iparm[IPARM_THREAD_NBR]; i++ ) {
+        bindtab[i] = param.iparm[IPARM_THREAD_NBR] * param.id + i;
+    }
 
     /**
      * Startup PaStiX
      */
-    pastixInit( &pastix_data, MPI_COMM_WORLD, param.iparm, param.dparm );
+    pastixInitWithAffinity( &pastix_data, MPI_COMM_WORLD,
+                            param.iparm, param.dparm,
+                            bindtab );
 
     /**
      * Read the sparse matrix with the driver
@@ -166,6 +179,7 @@ int main (int argc, char **argv)
         memcpy(solve_param[i].iparm, iparm, sizeof(solve_param[i].iparm));
         memcpy(solve_param[i].dparm, dparm, sizeof(solve_param[i].dparm));
         solve_param[i].check    = check;
+        solve_param[i].id       = i;
         solve_param[i].driver   = driver;
         solve_param[i].filename = filename;
 
