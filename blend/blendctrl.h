@@ -19,8 +19,8 @@
  *    matrix structure per MPI process.
  *
  **/
-#ifndef _BLENDCTRL_H_
-#define _BLENDCTRL_H_
+#ifndef _blendctrl_h_
+#define _blendctrl_h_
 
 /**
  * @brief The type and structure definitions.
@@ -115,7 +115,7 @@ void getCommunicationCosts( const BlendCtrl *ctrl,
                             double *startup,
                             double *bandwidth);
 
-#endif /* _BLENDCTRL_H_ */
+#endif /* _blendctrl_h_ */
 
 /**
  * @}

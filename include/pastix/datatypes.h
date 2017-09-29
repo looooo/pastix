@@ -15,8 +15,8 @@
  *                  to   06 jun 2002
  */
 
-#ifndef _PASTIX_DATATYPES_H_
-#define _PASTIX_DATATYPES_H_
+#ifndef _pastix_datatypes_h_
+#define _pastix_datatypes_h_
 #include <inttypes.h>
 
 /** ****************************************************************************
@@ -145,4 +145,4 @@ typedef struct pastix_order_s pastix_order_t;
 struct solver_matrix_s;
 typedef struct solver_matrix_s SolverMatrix;
 
-#endif /* _PASTIX_DATATYPES_H_ */
+#endif /* _pastix_datatypes_h_ */

@@ -21,8 +21,8 @@
  *    Pierre   RAMET      - ramet@labri.fr
  *
  */
-#ifndef _TIMING_H_
-#define _TIMING_H_
+#ifndef _timing_h_
+#define _timing_h_
 
 #include <stdint.h>
 
@@ -122,4 +122,4 @@ static inline double clockGet(void)
 #define clockSyncStop(clk)  do { clk = clockGet() - (clk); } while(0)
 #endif
 
-#endif /* _TIMING_H_ */
+#endif /* _timing_h_ */

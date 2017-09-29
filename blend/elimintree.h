@@ -16,8 +16,8 @@
  * @{
  *
  **/
-#ifndef _ELIMINTREE_H_
-#define _ELIMINTREE_H_
+#ifndef _elimintree_h_
+#define _elimintree_h_
 
 /**
  * @brief Node of the elimination tree.
@@ -122,7 +122,7 @@ eTreeRoot( const EliminTree *etree )
     return etree->nodenbr - 1;
 }
 
-#endif /* _ELIMINTREE_H_ */
+#endif /* _elimintree_h_ */
 
 /**
  *@}

@@ -17,8 +17,8 @@
  * @{
  *
  **/
-#ifndef _SIMU_H_
-#define _SIMU_H_
+#ifndef _simu_h_
+#define _simu_h_
 
 #include "simu_timer.h"
 
@@ -119,7 +119,7 @@ void         simuTaskBuild   ( SimuCtrl *, const symbol_matrix_t *, const Cand *
 #define INDEX2CLUST(r,s) ((r) - simuctrl->bloktab[s].ftgtnum + simuctrl->bloktab[s].fccandnum)
 #define TIMER(pr)        (&(simuctrl->proctab[pr].timer))
 
-#endif /* _SIMU_H_ */
+#endif /* _simu_h_ */
 
 /**
  *@}

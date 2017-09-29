@@ -96,7 +96,7 @@ core_ztrsmsp_1d( pastix_side_t             side,
 
     start_trace_kernel( 2, DENSE_TRSM );
     cblas_ztrsm(CblasColMajor,
-                (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
+                (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)trans, (CBLAS_DIAG)diag,
                 M, N,
                 CBLAS_SADDR(zone), A, lda,
                                    C, lda);
@@ -173,7 +173,7 @@ core_ztrsmsp_2d( pastix_side_t             side,
 
         start_trace_kernel( 2, DENSE_TRSM );
         cblas_ztrsm(CblasColMajor,
-                    (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
+                    (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)trans, (CBLAS_DIAG)diag,
                     M, N,
                     CBLAS_SADDR(zone), A, lda,
                                        blokC, ldc);
@@ -268,7 +268,7 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
             if ( lrC->rk != -1 ) {
                 start_trace_kernel( 2, LR_TRSM );
                 cblas_ztrsm(CblasColMajor,
-                            (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
+                            (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)trans, (CBLAS_DIAG)diag,
                             lrC->rk, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->v, lrC->rkmax);
@@ -278,7 +278,7 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                 M = blok_rownbr(blok);
                 start_trace_kernel( 2, DENSE_TRSM );
                 cblas_ztrsm(CblasColMajor,
-                            (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
+                            (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)trans, (CBLAS_DIAG)diag,
                             M, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->u, lrC->rkmax);
@@ -441,7 +441,7 @@ core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
         ldc = M;
 
         cblas_ztrsm( CblasColMajor,
-                     (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
+                     (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)trans, (CBLAS_DIAG)diag,
                      M, N,
                      CBLAS_SADDR(zone), A, lda,
                                         Cptr, ldc );
@@ -549,7 +549,7 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
         if ( lrC->rk != 0 ) {
             if ( lrC->rk != -1 ) {
                 cblas_ztrsm(CblasColMajor,
-                            (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
+                            (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)trans, (CBLAS_DIAG)diag,
                             lrC->rk, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->v, lrC->rkmax);
@@ -557,7 +557,7 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
             else {
                 M = blok_rownbr(blok);
                 cblas_ztrsm(CblasColMajor,
-                            (enum CBLAS_SIDE)side, (enum CBLAS_UPLO)uplo, (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
+                            (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)trans, (CBLAS_DIAG)diag,
                             M, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->u, lrC->rkmax);
@@ -745,7 +745,7 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                     /* Solve the diagonal block */
                     cblas_ztrsm(
                         CblasColMajor, CblasLeft, CblasLower,
-                        CblasTrans, (enum CBLAS_DIAG)diag,
+                        CblasTrans, (CBLAS_DIAG)diag,
                         tempn, nrhs,
                         CBLAS_SADDR(zone), A, lda,
                                            b + cblk->lcolidx, ldb );
@@ -841,7 +841,7 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                     lrA = cblk->fblokptr->LRblock;
                     cblas_ztrsm(
                         CblasColMajor, CblasLeft, CblasLower,
-                        CblasNoTrans, (enum CBLAS_DIAG)diag,
+                        CblasNoTrans, (CBLAS_DIAG)diag,
                         tempn, nrhs, CBLAS_SADDR(zone),
                         lrA->u, tempn,
                         b + cblk->lcolidx, ldb );
@@ -900,7 +900,7 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                     /* Solve the diagonal block */
                     cblas_ztrsm(
                         CblasColMajor, CblasLeft, CblasLower,
-                        CblasNoTrans, (enum CBLAS_DIAG)diag,
+                        CblasNoTrans, (CBLAS_DIAG)diag,
                         tempn, nrhs,
                         CBLAS_SADDR(zone), A, lda,
                                            b + cblk->lcolidx, ldb );
@@ -969,7 +969,7 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                 if ( !(cblk->cblktype & CBLK_IN_SCHUR) || (mode == PastixSolvModeSchur) ) {
                     cblas_ztrsm(
                         CblasColMajor, CblasLeft, CblasLower,
-                        (enum CBLAS_TRANSPOSE)trans, (enum CBLAS_DIAG)diag,
+                        (CBLAS_TRANSPOSE)trans, (CBLAS_DIAG)diag,
                         tempn, nrhs,
                         CBLAS_SADDR(zone), A, lda,
                                            b + cblk->lcolidx, ldb );
@@ -997,7 +997,7 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                             break;
                         case -1:
                             cblas_zgemm(
-                                CblasColMajor, (enum CBLAS_TRANSPOSE)trans, CblasNoTrans,
+                                CblasColMajor, (CBLAS_TRANSPOSE)trans, CblasNoTrans,
                                 tempm, nrhs, tempn,
                                 CBLAS_SADDR(mzone), lrA->u, tempn,
                                 b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
@@ -1013,7 +1013,7 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                                 CBLAS_SADDR(zzero), tmp,  lrA->rk );
 
                             cblas_zgemm(
-                                CblasColMajor, (enum CBLAS_TRANSPOSE)trans, CblasNoTrans,
+                                CblasColMajor, (CBLAS_TRANSPOSE)trans, CblasNoTrans,
                                 tempm, nrhs, lrA->rk,
                                 CBLAS_SADDR(mzone), lrA->v, lrA->rkmax,
                                 tmp, lrA->rk,
@@ -1024,7 +1024,7 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                     }
                     else{
                         cblas_zgemm(
-                            CblasColMajor, (enum CBLAS_TRANSPOSE)trans, CblasNoTrans,
+                            CblasColMajor, (CBLAS_TRANSPOSE)trans, CblasNoTrans,
                             tempm, nrhs, tempn,
                             CBLAS_SADDR(mzone), A + blok->coefind, lda,
                             b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,

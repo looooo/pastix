@@ -16,8 +16,8 @@
  *
  **/
 
-#ifndef Z_REFINE_FUNCTIONS_H
-#define Z_REFINE_FUNCTIONS_H
+#ifndef _z_refine_functions_h_
+#define _z_refine_functions_h_
 
 #ifdef SMP_REFINE
 #  define MULTITHREAD_BEGIN
@@ -144,4 +144,4 @@ void z_grad_smp    ( pastix_data_t *pastix_data, void *x, void *b );
 void z_pivot_smp   ( pastix_data_t *pastix_data, void *x, void *b );
 void z_bicgstab_smp( pastix_data_t *pastix_data, void *x, void *b );
 
-#endif
+#endif /* _z_refine_functions_h_ */

@@ -12,8 +12,8 @@
  * as well as some macros to manage nancheck.
  *
  */
-#ifndef _Z_NAN_CHECK_H_
-#define _Z_NAN_CHECK_H_
+#ifndef _z_nan_check_h_
+#define _z_nan_check_h_
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // #endif /* DOXYGEN_SHOULD_SKIP_THIS */
@@ -54,4 +54,4 @@
 
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
-#endif /* _Z_NAN_CHECK_H_ */
+#endif /* _z_nan_check_h_ */

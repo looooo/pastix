@@ -20,6 +20,10 @@ build_pastix:
     - cmake .. -DCMAKE_INSTALL_PREFIX=${PWD}/../install -DBUILD_SHARED_LIBS=ON -DPASTIX_WITH_STARPU=ON -DPASTIX_WITH_PARSEC=ON -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_C_FLAGS="-O0 -g -fPIC --coverage -Wall -fdiagnostics-show-option -fno-inline" -DCMAKE_EXE_LINKER_FLAGS="--coverage" -DPASTIX_INT64=OFF
     - make -j2 | tee ../pastix-build.log
     - make install | tee -a ../pastix-build.log
+  only:
+    - branches
+    - master@pastix/pastix
+    - master@solverstack/pastix
 
 test_pastix:
   stage: test
@@ -35,6 +39,10 @@ test_pastix:
     - source install/bin/pastix_env.sh
     - (cd build && ctest -D ExperimentalTest)
     - find -name "*.gcda" | xargs tar cvjf coverage.tar.bz2
+  only:
+    - branches
+    - master@pastix/pastix
+    - master@solverstack/pastix
 
 sonar_pastix:
   stage: sonar

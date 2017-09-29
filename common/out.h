@@ -8,8 +8,8 @@
  *   Xavier  LACOSTE - lacoste@labri.fr
  *   Pierre  RAMET   - ramet@labri.fr
  */
-#ifndef _OUT_H_
-#define _OUT_H_
+#ifndef _out_h_
+#define _out_h_
 
 #define OUT_HEADER                                              \
     "+-------------------------------------------------+\n"     \
@@ -338,4 +338,4 @@ FILE * pastix_fopenw( char       **directory,
                       const char  *mode );
 FILE * pastix_fopen ( const char  *filename );
 
-#endif /* _OUT_H_ */
+#endif /* _out_h_ */

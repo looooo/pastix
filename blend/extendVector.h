@@ -19,8 +19,8 @@
  *    the available tasks per worker.
  *
  **/
-#ifndef _EXTENDVECTOR_H_
-#define _EXTENDVECTOR_H_
+#ifndef _extendvector_h_
+#define _extendvector_h_
 
 /**
  * @brief The extend integer array structure.
@@ -40,7 +40,7 @@ void          extendint_Clear (       ExtendVectorINT * );
 void          extendint_ToSize(       ExtendVectorINT *, pastix_int_t );
 void          extendint_incr  (       ExtendVectorINT * );
 
-#endif /* _EXTENDVECTOR_H_ */
+#endif /* _extendvector_h_ */
 
 /**
  *@}

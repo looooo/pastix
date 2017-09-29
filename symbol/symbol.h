@@ -30,8 +30,8 @@
  *   amalgamation needs to be performed to improve solver efficiency.
  *
  **/
-#ifndef _PASTIX_SYMBOL_H_
-#define _PASTIX_SYMBOL_H_
+#ifndef _symbol_h_
+#define _symbol_h_
 
 /**
  * @brief Symbol column block structure.
@@ -154,7 +154,7 @@ pastix_int_t pastixSymbolGetFacingBloknum( const symbol_matrix_t *symbptr,
  * @}
  */
 
-#endif /* _PASTIX_SYMBOL_H_ */
+#endif /* _symbol_h_ */
 
 /**
  * @}

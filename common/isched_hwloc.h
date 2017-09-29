@@ -20,8 +20,8 @@
  * @date 2013-06-24
  *
  **/
-#ifndef ISCHED_HWLOC_H
-#define ISCHED_HWLOC_H
+#ifndef _isched_hwloc_h_
+#define _isched_hwloc_h_
 
 /**
  * This file is available only if hwloc is available
@@ -145,4 +145,4 @@ int isched_hwloc_get_ht(void);
 
 END_C_DECLS
 
-#endif  /* ISCHED_HWLOC_H */
+#endif /* _isched_hwloc_h_ */

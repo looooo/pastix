@@ -12,8 +12,8 @@
  *    Version 1.0 - from 06 jun 2002
  *                  to   06 jun 2002
  */
-#ifndef _INTEGER_H_
-#define _INTEGER_H_
+#ifndef _integer_h_
+#define _integer_h_
 
 #ifndef MIN
 #  define MIN(x,y) (((x)<(y))?(x):(y))
@@ -143,4 +143,4 @@ static inline pastix_int_t pastix_iceil( pastix_int_t a, pastix_int_t b) {
 
 pastix_int_t *pastix_int_convert( pastix_int_t n, int *input );
 
-#endif /* _INTEGER_H_ */
+#endif /* _integer_h_ */

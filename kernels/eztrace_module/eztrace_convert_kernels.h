@@ -16,8 +16,8 @@
  *
  **/
 
-#ifndef __EZTRACE_CONVERT_KERNELS_H__
-#define __EZTRACE_CONVERT_KERNELS_H__
+#ifndef _eztrace_convert_kernels_h_
+#define _eztrace_convert_kernels_h_
 
 #include <stdio.h>
 #include <strings.h>
@@ -59,4 +59,4 @@ int handle_kernels_events(eztrace_event_t *ev);
 int handle_kernels_stats(eztrace_event_t *ev);
 void print_kernels_stats();
 
-#endif /* __EZTRACE_CONVERT_KERNELS_H__ */
+#endif /* _eztrace_convert_kernels_h_ */

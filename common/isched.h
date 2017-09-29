@@ -20,8 +20,8 @@
  * @date 2013-06-24
  *
  **/
-#ifndef BINDTHREAD_H
-#define BINDTHREAD_H
+#ifndef _isched_h_
+#define _isched_h_
 
 #include "isched_barrier.h"
 
@@ -103,4 +103,4 @@ int ischedFinalize(isched_t *isched);
 
 END_C_DECLS
 
-#endif /* BINDTHREAD_H */
+#endif /* _isched_h_ */

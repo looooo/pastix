@@ -11,8 +11,8 @@
  * @date 2011-11-11
  *
  **/
-#ifndef _BCSC_H
-#define _BCSC_H
+#ifndef _bcsc_h_
+#define _bcsc_h_
 
 struct bcsc_format_s {
     pastix_int_t   colnbr; /*> Number of columns in the block column.                                    */
@@ -66,4 +66,4 @@ int bcscApplyPerm( pastix_bcsc_t *bcsc,
                    pastix_int_t   ldb,
                    pastix_int_t  *perm );
 
-#endif /* CSC_H */
+#endif /* _bcsc_h_ */

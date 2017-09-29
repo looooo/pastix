@@ -140,7 +140,13 @@ int graphSymmetrize(       pastix_int_t    n,
                 pastix_int_t nbelt = ia[itercol+1] - ia[itercol];
 
                 assert( newia[itercol] >= ia[itercol] );
-                assert( newia[itercol] < newia[itercol+1] );
+                assert( newia[itercol] <= newia[itercol+1] );
+
+                if ( newia[itercol] == newia[itercol+1] ) {
+                    pastix_error_print( "graphSymmetrize: unknown %ld is fully disconnected (even from itself)\n",
+                                        (long)itercol );
+                    continue;
+                }
 
                 /* Let's copy what we already have at the end of the space reserved,
                  * we will add the new elements in front of it */

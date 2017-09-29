@@ -102,7 +102,11 @@ pastix_parsec_init( pastix_data_t *pastix,
             *argc = 3;
         }
         else {
-            parsec_argv = realloc( parsec_argv, (*argc+3) * sizeof(char*) );
+            void *new_ptr = realloc( parsec_argv, (*argc+3) * sizeof(char*) );
+            /* Silent cppcheck warning of realloc failure */
+            if ( new_ptr != NULL ) {
+                parsec_argv = new_ptr;
+            }
             parsec_argv[*argc    ] = strdup( "--parsec_bind" );
             parsec_argv[*argc + 1] = value;
             parsec_argv[*argc + 2] = NULL;
@@ -116,7 +120,7 @@ pastix_parsec_init( pastix_data_t *pastix,
     if ( bindtab != NULL ) {
         assert( *argc >= 3 );
 
-        free( value );  /* parsec_argv[ argc-1 ] */
+        free( parsec_argv[*argc - 1] );
         free( parsec_argv[*argc - 2] );
         if ( *argc == 3 ) {
             free( parsec_argv[*argc - 3] );

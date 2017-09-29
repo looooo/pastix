@@ -9,8 +9,8 @@
  * @date 2011-11-11
  *
  **/
-#ifndef _LAPLACIAN_H_
-#define _LAPLACIAN_H_
+#ifndef _laplacian_h_
+#define _laplacian_h_
 
 void z_spmLaplacian_7points( pastix_spm_t *spm, pastix_int_t dim1, pastix_int_t dim2, pastix_int_t dim3, pastix_fixdbl_t alpha, pastix_fixdbl_t beta );
 void c_spmLaplacian_7points( pastix_spm_t *spm, pastix_int_t dim1, pastix_int_t dim2, pastix_int_t dim3, pastix_fixdbl_t alpha, pastix_fixdbl_t beta );
@@ -30,4 +30,4 @@ void d_spmExtendedLaplacian3D( pastix_spm_t *spm, pastix_int_t dim1, pastix_int_
 void s_spmExtendedLaplacian3D( pastix_spm_t *spm, pastix_int_t dim1, pastix_int_t dim2, pastix_int_t dim3 );
 void p_spmExtendedLaplacian3D( pastix_spm_t *spm, pastix_int_t dim1, pastix_int_t dim2, pastix_int_t dim3 );
 
-#endif /* _LAPLACIAN_H_ */
+#endif /* _laplacian_h_ */

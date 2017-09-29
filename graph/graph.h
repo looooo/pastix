@@ -24,8 +24,8 @@
  *   new permutation.
  *
  **/
-#ifndef _GRAPH_H_
-#define _GRAPH_H_
+#ifndef _graph_h_
+#define _graph_h_
 
 /**
  * @brief Graph structure.
@@ -93,7 +93,7 @@ int  graphApplyPerm ( const pastix_graph_t *graphA,
  * @}
  */
 
-#endif /* _GRAPH_H_ */
+#endif /* _graph_h_ */
 
 /**
  * @}

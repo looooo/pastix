@@ -1,14 +1,22 @@
-/*
-  File: nompi.h
-
-  Header redefining all MPI keywords in order to allow compilation without MPI.
-
-  Authors:
-    Mathieu Faverge - faverge@labri.fr
-    Pierre Ramet    - ramet@labri.fr
-*/
-#ifndef PASTIX_NOMPI_H
-#define PASTIX_NOMPI_H
+/**
+ *
+ * @file pastix/nompi.h
+ *
+ * PaStiX header to redefine all MPI keywords in order to allow compilation
+ * without MPI.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Xavier Lacoste
+ * @author Pierre Ramet
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ **/
+#ifndef _pastix_nompi_h_
+#define _pastix_nompi_h_
 
 #define MPI_Datatype int
 #define MPI_Op       int
@@ -223,4 +231,4 @@ typedef struct MPI_Status{
 #define MPI_Comm_f2c(comm) 0;
 #define MPI_Init_thread(argc, argv,required,provided)
 
-#endif /* PASTIX_NOMPI_H */
+#endif /* _pastix_nompi_h_ */

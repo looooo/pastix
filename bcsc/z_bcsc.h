@@ -13,8 +13,8 @@
  * @precisions normal z -> c d s
  *
  **/
-#ifndef _Z_BCSC_H_
-#define _Z_BCSC_H_
+#ifndef _z_bcsc_h_
+#define _z_bcsc_h_
 
 void
 z_bcscSort( const pastix_bcsc_t *bcsc,
@@ -96,4 +96,4 @@ int z_bcscApplyPerm( pastix_int_t m,
                      pastix_int_t lda,
                      pastix_int_t *perm );
 
-#endif /* _Z_BCSC_H_ */
+#endif /* _z_bcsc_h_ */

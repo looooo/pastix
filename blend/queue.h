@@ -19,8 +19,8 @@
  *    insertion and suppression.
  *
  **/
-#ifndef QUEUE_H
-#define QUEUE_H
+#ifndef _queue_h_
+#define _queue_h_
 
 /**
  * @brief Queue item structure.
@@ -87,7 +87,7 @@ pqueuePop1(pastix_queue_t *q, double *key1){
     return pqueuePop2(q, key1, NULL);
 }
 
-#endif
+#endif /* _queue_h_ */
 
 /**
  * @}

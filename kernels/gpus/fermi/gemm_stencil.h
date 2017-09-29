@@ -6,8 +6,8 @@
        November 2011
 */
 
-#ifndef _GEMM_STENCIL_H_
-#define _GEMM_STENCIL_H_
+#ifndef _gemm_stencil_h_
+#define _gemm_stencil_h_
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Common parameters
@@ -628,4 +628,4 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 #endif
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#endif /* _GEMM_STENCIL_H_ */
+#endif /* _gemm_stencil_h_ */

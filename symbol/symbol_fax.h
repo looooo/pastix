@@ -16,8 +16,8 @@
  * @{
  *
  */
-#ifndef _SYMBOL_FAX_H_
-#define _SYMBOL_FAX_H_
+#ifndef _symbol_fax_h_
+#define _symbol_fax_h_
 /**
  * @brief Prime number for hashing vertex numbers.
  */
@@ -40,4 +40,4 @@ typedef struct symbol_faxtlok_s {
 /**
  * @}
  */
-#endif /* _SYMBOL_FAX_H_ */
+#endif /* _symbol_fax_h_ */

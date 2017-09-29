@@ -8,8 +8,8 @@
     Xavier  LACOSTE - lacoste@labri.fr
 
  */
-#ifndef _DEBUG_H_
-#define _DEBUG_H_
+#ifndef _debug_h_
+#define _debug_h_
 
 /* DEBUG FLAGS for print_debug */
 /* Scotch */
@@ -85,4 +85,4 @@
 #define print_debug(...)     do {} while(0)
 #endif
 
-#endif /* _DEBUG_H_ */
+#endif /* _debug_h_ */

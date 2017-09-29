@@ -1,5 +1,5 @@
-#ifndef SGEMM_PARAM_NN_H 
-#define SGEMM_PARAM_NN_H 
+#ifndef _sgemm_param_nn_h_
+#define _sgemm_param_nn_h_
 
 #ifdef PastixFloat_PRECISION
 //index, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, dim_vec, DIM_XA, DIM_YA, DIM_XB, DIM_YB
@@ -639,4 +639,4 @@
 
 #endif
 
-#endif
+#endif /* _sgemm_param_nn_h_ */

@@ -72,6 +72,7 @@ static void *solve_smp(void *arg)
     pastixInitWithAffinity( &pastix_data, MPI_COMM_WORLD,
                             param.iparm, param.dparm,
                             bindtab );
+    free(bindtab);
 
     /**
      * Read the sparse matrix with the driver

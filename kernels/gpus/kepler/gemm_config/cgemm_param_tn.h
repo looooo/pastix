@@ -1,5 +1,5 @@
-#ifndef CGEMM_PARAM_TN_H 
-#define CGEMM_PARAM_TN_H 
+#ifndef _cgemm_param_tn_h_
+#define _cgemm_param_tn_h_
 
 #ifdef PastixComplex32_PRECISION
 //index, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, dim_vec, DIM_XA, DIM_YA, DIM_XB, DIM_YB
@@ -794,4 +794,4 @@
 
 #endif
 
-#endif
+#endif /* _cgemm_param_tn_h_ */

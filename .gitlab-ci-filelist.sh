@@ -34,7 +34,7 @@ do
 done
 
 # Remove external header files
-for file in include/cblas.h include/lapacke.h include/lapacke_mangling.h
+for file in include/cblas.h include/lapacke.h
 do
     sed -i "\:^$file.*:d" filelist.txt
 done

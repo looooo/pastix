@@ -16,8 +16,8 @@
  *
  **/
 
-#ifndef __KERNELS_EV_CODES_H__
-#define __KERNELS_EV_CODES_H__
+#ifndef _kernels_ev_codes_h_
+#define _kernels_ev_codes_h_
 
 #include "common.h"
 #include "flops.h"
@@ -137,4 +137,4 @@ static inline void stop_trace_kernel(int level, double flops){
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 }
 
-#endif	/* __KERNELS_EV_CODES_H__ */
+#endif/* _kernels_ev_codes_h_ */

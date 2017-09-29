@@ -14,8 +14,8 @@
  * @date 2013-06-24
  *
  **/
-#ifndef _SOPALIN_DATA_H_
-#define _SOPALIN_DATA_H_
+#ifndef _sopalin_data_h_
+#define _sopalin_data_h_
 
 struct sopalin_data_s {
     SolverMatrix *solvmtx;
@@ -51,6 +51,6 @@ void sopalin_csytrf( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data );
 void sopalin_dsytrf( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data );
 void sopalin_ssytrf( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data );
 
-#endif /* _SOPALIN_DATA_H_ */
+#endif /* _sopalin_data_h_ */
 
 

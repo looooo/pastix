@@ -1,6 +1,6 @@
 /**
  *
- * @file api.h
+ * @file pastix/api.h
  *
  * PaStiX API enums parameters.
  *
@@ -17,8 +17,8 @@
  * @{
  *
  **/
-#ifndef _PASTIX_API_H_
-#define _PASTIX_API_H_
+#ifndef _pastix_api_h_
+#define _pastix_api_h_
 
 /**
  * @brief Integer parameters
@@ -468,7 +468,7 @@ typedef enum pastix_dir_e {
  * @}
  */
 
-#endif /* _PASTIX_API_H_ */
+#endif /* _pastix_api_h_ */
 
 /**
  * @}
