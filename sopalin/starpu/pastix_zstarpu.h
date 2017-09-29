@@ -25,6 +25,9 @@ void starpu_task_cblk_zhetrfsp1d_panel( sopalin_data_t *sopalin_data,
 void starpu_task_cblk_zpotrfsp1d_panel( sopalin_data_t *sopalin_data,
                                         SolverCblk     *cblk,
                                         int             prio );
+void starpu_task_cblk_zpxtrfsp1d_panel( sopalin_data_t *sopalin_data,
+                                        SolverCblk     *cblk,
+                                        int             prio );
 void starpu_task_cblk_zsytrfsp1d_panel( sopalin_data_t *sopalin_data,
                                         SolverCblk     *cblk,
                                         int             prio );
@@ -36,6 +39,9 @@ void starpu_task_blok_zhetrf( sopalin_data_t *sopalin_data,
                               SolverCblk     *cblk,
                               int             prio );
 void starpu_task_blok_zpotrf( sopalin_data_t *sopalin_data,
+                              SolverCblk     *cblk,
+                              int             prio );
+void starpu_task_blok_zpxtrf( sopalin_data_t *sopalin_data,
                               SolverCblk     *cblk,
                               int             prio );
 void starpu_task_blok_zsytrf( sopalin_data_t *sopalin_data,
@@ -78,6 +84,8 @@ void starpu_task_blok_zscalo( pastix_trans_t  trans,
                               int             prio );
 
 void starpu_zpotrf( pastix_data_t  *pastix_data,
+                    sopalin_data_t *sopalin_data );
+void starpu_zpxtrf( pastix_data_t  *pastix_data,
                     sopalin_data_t *sopalin_data );
 void starpu_zgetrf( pastix_data_t  *pastix_data,
                     sopalin_data_t *sopalin_data );
