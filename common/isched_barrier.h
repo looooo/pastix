@@ -62,4 +62,4 @@ END_C_DECLS
 #endif
 
 
-#endif  /* _isched_barrier_h_ */
+#endif /* _isched_barrier_h_ */

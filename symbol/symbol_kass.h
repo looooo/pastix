@@ -67,4 +67,4 @@ void amalgamate(double rat_cblk, double rat_blas,
 /**
  * @}
  */
-#endif /* _symbol_kass_h */
+#endif /* _symbol_kass_h_ */

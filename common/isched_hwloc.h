@@ -145,4 +145,4 @@ int isched_hwloc_get_ht(void);
 
 END_C_DECLS
 
-#endif  /* _isched_hwloc_h_ */
+#endif /* _isched_hwloc_h_ */

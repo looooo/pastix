@@ -1,5 +1,5 @@
-#ifndef _dgemm_param_tn_h_ 
-#define _dgemm_param_tn_h_ 
+#ifndef _dgemm_param_tn_h_
+#define _dgemm_param_tn_h_
 
 #ifdef PastixDouble_PRECISION
 //index, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, dim_vec, DIM_XA, DIM_YA, DIM_XB, DIM_YB
@@ -285,4 +285,4 @@
 
 #endif
 
-#endif
+#endif /* _dgemm_param_tn_h_ */

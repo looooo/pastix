@@ -1,5 +1,5 @@
-#ifndef _zgemm_param_tt_h_ 
-#define _zgemm_param_tt_h_ 
+#ifndef _zgemm_param_tt_h_
+#define _zgemm_param_tt_h_
 
 #ifdef PastixComplex64_PRECISION
 //index, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, dim_vec, DIM_XA, DIM_YA, DIM_XB, DIM_YB
@@ -61,4 +61,4 @@
 
 #endif
 
-#endif
+#endif /* _zgemm_param_tt_h_ */
