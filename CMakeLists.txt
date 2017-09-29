@@ -615,27 +615,26 @@ set(PASTIX_LIB_SRCS
   blend/pastix_subtask_blend.c
   blend/pastix_task_analyze.c
 
-  blend/cand.c
-  blend/elimintree.c
-  blend/cand_gendot.c
-  blend/propmap.c
-  blend/extracblk.c
-  blend/splitsymbol.c
   blend/blendctrl.c
-
+  blend/cand.c
+  blend/cand_gendot.c
   blend/cost.c
-  blend/simu_run.c
+  blend/elimintree.c
   blend/extendVector.c
+  blend/extracblk.c
+  blend/propmap.c
   blend/queue.c
   blend/simu.c
-  blend/solver_matrix_gen.c
-  blend/solver_copy.c
-  blend/solver_check.c
-  blend/solver_io.c
+  blend/simu_run.c
   blend/simu_task.c
   blend/solver.c
   blend/solver_backup.c
+  blend/solver_check.c
+  blend/solver_copy.c
   blend/solver_draw.c
+  blend/solver_io.c
+  blend/solver_matrix_gen.c
+  blend/splitsymbol.c
 
   common/api.c
   common/errors.c
@@ -839,6 +838,7 @@ add_documented_files(
   blend/blendctrl.c
   blend/cand.h
   blend/cand.c
+  blend/cand_gendot.c
   blend/cost.h
   blend/cost.c
   blend/elimintree.h

@@ -42,7 +42,7 @@
  *
  *******************************************************************************/
 void
-candInit( Cand *candtab,
+candInit( Cand        *candtab,
           pastix_int_t cblknbr )
 {
     pastix_int_t i;
@@ -486,17 +486,19 @@ candSubTreeDistribDeepestWidth( pastix_int_t           rootnum,
  *               Ratio that defines the minimal size to allow the flag LR for a
  *               cblk and its ascendants.
  *
- * @param[in]    depth
- *               Depth until which 2D tasks is enabled.
- *
- * @param[in]    symbmtx
- *               Pointer to the symbol matrix we are working with.
- *
  * @param[inout] candtab
- *               Pointer to the global candtab array where the field cblktype is
+ *               Pointer to the global candtab array where field cblktype is
  *               updated. cblktype defines the optimization/properties that are
  *               defined on each cblk and which are defined by level in the
  *               tree.
+ *
+ * @param[in]    etree
+ *               Pointer to the global elimination tree structure that is used
+ *               to travel through the cblk, and affect the properies with the
+ *               correct filiation property.
+ *
+ * @param[in]    symbmtx
+ *               Pointer to the symbol matrix we are working with.
  *
  *******************************************************************************
  *
@@ -555,17 +557,34 @@ candSubTreeDistribDeepestLevel( pastix_int_t           rootnum,
  *
  *******************************************************************************
  *
- * @param[in]    depth
- *               Depth until which 2D tasks is enabled.
+ * @param[in]    rootnum
+ *               Root of the subtree.
  *
- * @param[in]    symbmtx
- *               Pointer to the symbol matrix we are working with.
+ * @param[in]    cblktype
+ *               List of flags that can be forwarded to rootnum and its
+ *               descendents.
+ *
+ * @param[in]    level2D
+ *               The number of levels of the tree that will be flagged as 2D
+ *               tasks.
+ *
+ * @param[in]    ratiolimitLR
+ *               Ratio that defines the minimal size to allow the flag LR for a
+ *               cblk and its ascendants.
  *
  * @param[inout] candtab
- *               Pointer to the global candtab array where the field cblktype is
+ *               Pointer to the global candtab array where field cblktype is
  *               updated. cblktype defines the optimization/properties that are
  *               defined on each cblk and which are defined by level in the
  *               tree.
+ *
+ * @param[in]    etree
+ *               Pointer to the global elimination tree structure that is used
+ *               to travel through the cblk, and affect the properies with the
+ *               correct filiation property.
+ *
+ * @param[in]    symbmtx
+ *               Pointer to the symbol matrix we are working with.
  *
  *******************************************************************************/
 static inline void
