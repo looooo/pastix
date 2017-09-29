@@ -50,4 +50,8 @@ foreach (_file ${EXAMPLES})
 
   install(TARGETS ${_name_we}       RUNTIME DESTINATION examples )
   install(FILES   examples/${_file}         DESTINATION examples )
+
+  add_test(fortran_${_name_we} ./${_name_we})
+
 endforeach()
+

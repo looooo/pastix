@@ -149,8 +149,11 @@ program fsimple
   ! 4- Solve the problem
   call pastix_task_solve( pastix_data, nrhs, x_ptr, spm%n, info )
 
-  ! 3- Refine the solution
+  ! 5- Refine the solution
   call pastix_task_refine( pastix_data, x_ptr, nrhs, b_ptr, info )
+
+  ! 6- Destroy the C data structure
+  call pastixFinalize( pastix_data )
 
   !
   ! Check the solution
