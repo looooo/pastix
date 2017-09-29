@@ -21,6 +21,10 @@ parsec_zpotrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data );
 
 void
+parsec_zpxtrf( pastix_data_t  *pastix_data,
+               sopalin_data_t *sopalin_data );
+
+void
 parsec_zgetrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data );
 

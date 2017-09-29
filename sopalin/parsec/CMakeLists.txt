@@ -42,9 +42,10 @@ add_custom_target(parsec_headers_tgt
 
 ### Generate the pastix_parsec wrappers for all required precisions
 set(SOURCES
-  parsec_zpotrf.c
   parsec_zgetrf.c
   parsec_zhetrf.c
+  parsec_zpotrf.c
+  parsec_zpxtrf.c
   parsec_zsytrf.c
 )
 
@@ -61,14 +62,16 @@ add_documented_files(
 
 ### Generate .c files from .jdf for all required precisions
 set(JDF
-  zpotrf_sp1dplus.jdf
   zgetrf_sp1dplus.jdf
   zhetrf_sp1dplus.jdf
+  zpotrf_sp1dplus.jdf
+  zpxtrf_sp1dplus.jdf
   zsytrf_sp1dplus.jdf
   #
-  zpotrf_sp2d.jdf
   zgetrf_sp2d.jdf
   zhetrf_sp2d.jdf
+  zpotrf_sp2d.jdf
+  zpxtrf_sp2d.jdf
   zsytrf_sp2d.jdf
 )
 precisions_rules_py(generated_jdf

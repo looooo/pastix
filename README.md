@@ -34,7 +34,7 @@ Available Features
 |                         | Seq    | Static | Dyn    | StarPU  | PaRSEC     |
 |-------------------------|--------|--------|--------|---------|------------|
 | POTRF (Cholesky)        | SHM/LR | SHM/LR | -      | SHM/GPU | SHM/LR/GPU |
-| PXTRF (LL^t for complex)| -      | -      | -      | -       | -          |
+| PXTRF (LL^t for complex)| SHM/LR | SHM/LR | -      | SHM/GPU | SHM/LR/GPU |
 | HETRF (LDL^h)           | SHM/LR | SHM/LR | -      | SHM/GPU | SHM/LR/GPU |
 | SYTRF (LDL^t)           | SHM/LR | SHM/LR | -      | SHM/GPU | SHM/LR/GPU |
 | GETRF (LU)              | SHM/LR | SHM/LR | -      | SHM/GPU | SHM/LR/GPU |

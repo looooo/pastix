@@ -232,6 +232,21 @@
  * @defgroup parsec_getrf PaRSEC LU factorization
  * @ingroup  pastix_parsec
  *
+ ********
+ *
+ * @defgroup parsec_sytrf PaRSEC LDL^t factorization
+ * @ingroup  pastix_parsec
+ *
+ ********
+ *
+ * @defgroup parsec_hetrf PaRSEC LDL^h factorization
+ * @ingroup  pastix_parsec
+ *
+ ********
+ *
+ * @defgroup parsec_pxtrf PaRSEC extra LL^t factorization
+ * @ingroup  pastix_parsec
+ *
  ******
  *
  * @defgroup pastix_starpu StarPU support for the numerical factorization
@@ -245,6 +260,21 @@
  ********
  *
  * @defgroup starpu_getrf StarPU LU factorization
+ * @ingroup  pastix_starpu
+ *
+ ********
+ *
+ * @defgroup starpu_sytrf StarPU LDL^t factorization
+ * @ingroup  pastix_starpu
+ *
+ ********
+ *
+ * @defgroup starpu_hetrf StarPU LDL^h factorization
+ * @ingroup  pastix_starpu
+ *
+ ********
+ *
+ * @defgroup starpu_pxtrf StarPU extra LL^t factorization
  * @ingroup  pastix_starpu
  *
  ****

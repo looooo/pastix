@@ -383,7 +383,7 @@ pastixSymbolGetNNZ( const symbol_matrix_t *symbptr )
  *
  * @param[in] factotype
  *          The factorization algorithm to perform: PastixFactLLT,
- *          PastixFactLDLT, PastixFactLDLH or PastixFactLU.
+ *          PastixFactLDLT, PastixFactLLH, PastixFactLDLH or PastixFactLU.
  *
  * @param[out] thflops
  *          Returns the number of theoretical flops to perform.
@@ -442,7 +442,7 @@ pastixSymbolGetFlops( const symbol_matrix_t *symbmtx,
  *
  * @param[in] factotype
  *          The factorization algorithm to perform: PastixFactLLT,
- *          PastixFactLDLT, PastixFactLDLH or PastixFactLU.
+ *          PastixFactLDLT, PastixFactLLH, PastixFactLDLH or PastixFactLU.
  *
  * @param[inout] cblkcost
  *          An allocated array of size cblknbr that will holds the cost per cblk

@@ -37,11 +37,11 @@ typedef struct symbol_function_s {
 /**
  * @brief array of pointer to the flops functions per factorization and arithmetic
  */
-extern symbol_function_t flopstable[2][4];
+extern symbol_function_t flopstable[2][5];
 /**
  * @brief array of pointer to the performance functions per factorization and arithmetic
  */
-extern symbol_function_t perfstable[2][4];
+extern symbol_function_t perfstable[2][5];
 
 /**
  * @}

@@ -48,10 +48,12 @@ set(SOURCES
   codelet_zgetrfsp.c
   codelet_zhetrfsp.c
   codelet_zpotrfsp.c
+  codelet_zpxtrfsp.c
   codelet_zsytrfsp.c
   starpu_zgetrf.c
   starpu_zhetrf.c
   starpu_zpotrf.c
+  starpu_zpxtrf.c
   starpu_zsytrf.c
 )
 

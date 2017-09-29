@@ -141,10 +141,17 @@ module pastix_enums
   integer, parameter :: PastixIJV = 2
 
   ! class factotype:
-  integer, parameter :: PastixFactLLT  = 0 ! Cholesky factorization
+  integer, parameter :: PastixFactPOTRF = 0 ! Cholesky factorization
+  integer, parameter :: PastixFactSYTRF = 1 ! LDL^t factorization
+  integer, parameter :: PastixFactGETRF = 2 ! LU factorization
+  integer, parameter :: PastixFactPXTRF = 3 ! LL^t factorization for complex matrices
+  integer, parameter :: PastixFactHETRF = 4 ! LDL^h factorization for complex matrices
+
+  integer, parameter :: PastixFactLLH  = 0 ! LL^h factorization for complex matrices
   integer, parameter :: PastixFactLDLT = 1 ! LDL^t factorization
   integer, parameter :: PastixFactLU   = 2 ! LU factorization
-  integer, parameter :: PastixFactLDLH = 3 ! LDL^h factorization for complex matrices
+  integer, parameter :: PastixFactLLT  = 3 ! LL^t factorization
+  integer, parameter :: PastixFactLDLH = 4 ! LDL^h factorization for complex matrices
 
   ! class scheduler:
   integer, parameter :: PastixSchedSequential = 0 ! Sequential

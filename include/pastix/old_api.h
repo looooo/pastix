@@ -68,10 +68,10 @@ enum IPARM_ACCESS_DEPRECATED {
 #define API_TASK_CLEAN      PastixTaskClean
 
 /* _POS_ 4 */
-#define API_FACT_LLT        PastixFactLLT
-#define API_FACT_LDLT       PastixFactLDLT
-#define API_FACT_LU         PastixFactLU
-#define API_FACT_LDLH       PastixFactLDLH
+#define API_FACT_LLT        PastixFactPOTRF
+#define API_FACT_LDLT       PastixFactSYTRF
+#define API_FACT_LU         PastixFactGETRF
+#define API_FACT_LDLH       PastixFactSYTRF
 
 /* _POS_ 5 */
 #define API_VERBOSE_NOT     PastixVerboseNot

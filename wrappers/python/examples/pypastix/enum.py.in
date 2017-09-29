@@ -171,10 +171,17 @@ class fmttype:
     IJV = 2 # Coordinates
 
 class factotype:
-    LLT  = 0 # Cholesky factorization
+    POTRF = 0 # Cholesky factorization
+    SYTRF = 1 # LDL^t factorization
+    GETRF = 2 # LU factorization
+    PXTRF = 3 # LL^t factorization for complex matrices
+    HETRF = 4 # LDL^h factorization for complex matrices
+
+    LLH  = 0 # LL^h factorization for complex matrices
     LDLT = 1 # LDL^t factorization
     LU   = 2 # LU factorization
-    LDLH = 3 # LDL^h factorization for complex matrices
+    LLT  = 3 # LL^t factorization
+    LDLH = 4 # LDL^h factorization for complex matrices
 
 class scheduler:
     Sequential = 0 # Sequential

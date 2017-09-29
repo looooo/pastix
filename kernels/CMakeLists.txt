@@ -56,6 +56,7 @@ set(SOURCES
   core_zsytrfsp.c
   core_zhetrfsp.c
   core_zpotrfsp.c
+  core_zpxtrfsp.c
   core_zgetrfsp.c
   core_zgelrops.c
   core_zgelrops_SVD.c

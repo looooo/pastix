@@ -32,6 +32,20 @@
 #include "sopalin/starpu/pastix_starpu.h"
 #endif
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_api
+ *
+ * @brief Generate a unique temporary directory to store output files
+ *
+ *******************************************************************************
+ *
+ * @param[inout] dirtemp
+ *          On entry, if dirtemp is not initizalized, the unique string is
+ *          generated, otherwise nothing is done.
+ *
+ *******************************************************************************/
 void
 pastix_gendirtemp( char **dirtemp )
 {
@@ -48,6 +62,30 @@ pastix_gendirtemp( char **dirtemp )
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_api
+ *
+ * @brief Open a file in the unique directory of the pastix instance
+ *
+ *******************************************************************************
+ *
+ * @param[inout] dirtemp
+ *          The pointer to the directory string associated to the instance.
+ *          If not initizalized, initialized on exit.
+ *
+ * @param[in] filename
+ *          The filename to create in the unique directory.
+ *
+ * @param[in] mode
+ *          Opening mode of the file as described by the fopen() function.
+ *
+ *******************************************************************************
+ *
+ * @return The FILE structure of the opened file. NULL if failed.
+ *
+ *******************************************************************************/
 FILE *
 pastix_fopenw( char       **dirtemp,
                const char  *filename,
@@ -80,6 +118,23 @@ pastix_fopenw( char       **dirtemp,
     return f;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_api
+ *
+ * @brief Open a file in the current directory in read only mode.
+ *
+ *******************************************************************************
+ *
+ * @param[in] filename
+ *          The filename of the file to open.
+ *
+ *******************************************************************************
+ *
+ * @return The FILE structure of the opened file. NULL if failed.
+ *
+ *******************************************************************************/
 FILE *
 pastix_fopen( const char *filename )
 {
@@ -364,17 +419,20 @@ pastixInitParam( pastix_int_t *iparm,
  *
  *******************************************************************************
  *
- * @param[inout] pastix_data
- *          The integer array of parameters to initialize.
+ * @param[inout] pastix
+ *          The pastix datat structure to initialize.
  *
- * @param[inout] dparm
- *          The floating point array of parameters to initialize.
+ * @param[in] comm
+ *          The MPI communicator associated to the pastix data structure
+ *
+ * @param[in] autosplit
+ *          Enable automatic split when multiple processes run on the same node
  *
  *******************************************************************************/
 static inline void
 apiInitMPI( pastix_data_t *pastix,
             MPI_Comm       comm,
-            int autosplit )
+            int            autosplit )
 {
     /*
      * Setup all communicators for autosplitmode and initialize number/rank of
