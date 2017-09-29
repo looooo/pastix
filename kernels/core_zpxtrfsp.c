@@ -12,7 +12,7 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @date 2011-11-11
- * @precisions normal z -> c
+ * @precisions normal z -> z c
  *
  **/
 #include "common.h"

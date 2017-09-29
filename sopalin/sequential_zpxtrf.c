@@ -13,7 +13,7 @@
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
- * @precisions normal z -> c
+ * @precisions normal z -> z c
  *
  **/
 #include "common.h"
