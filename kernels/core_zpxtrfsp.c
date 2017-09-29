@@ -89,10 +89,10 @@ core_zpxtf2sp( pastix_int_t        n,
         /* Move to next Akk */
         Akk += (lda+1);
 
-        cblas_zsyrk(CblasColMajor, CblasLower, CblasNoTrans,
-                    n-k-1, 1,
-                    CBLAS_SADDR( mzone ), Amk, 1,
-                    CBLAS_SADDR(  zone ), Akk, lda);
+        cblas_zsyrk( CblasColMajor, CblasLower, CblasNoTrans,
+                     n-k-1, 1,
+                     CBLAS_SADDR( mzone ), Amk, lda,
+                     CBLAS_SADDR(  zone ), Akk, lda );
 
         /* Move to next Amk */
         Amk = Akk+1;
