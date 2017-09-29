@@ -553,6 +553,7 @@ set(SOURCES
   sopalin/sequential_zgetrf.c
   sopalin/sequential_zhetrf.c
   sopalin/sequential_zpotrf.c
+  sopalin/sequential_zpxtrf.c
   sopalin/sequential_zsytrf.c
   sopalin/sequential_ztrsm.c
   #

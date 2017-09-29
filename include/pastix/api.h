@@ -264,10 +264,17 @@ typedef enum pastix_fmttype_e {
  * @brief Factorization algorithms available for IPARM_FACTORIZATION parameter
  */
 typedef enum pastix_factotype_e {
-    PastixFactLLT  = 0, /**< Cholesky factorization                   */
+    PastixFactPOTRF = 0, /**< Cholesky factorization                   */
+    PastixFactSYTRF = 1, /**< LDL^t factorization                      */
+    PastixFactGETRF = 2, /**< LU factorization                         */
+    PastixFactPXTRF = 3, /**< LL^t factorization for complex matrices  */
+    PastixFactHETRF = 4, /**< LDL^h factorization for complex matrices */
+
+    PastixFactLLH  = 0, /**< LL^h factorization for complex matrices  */
     PastixFactLDLT = 1, /**< LDL^t factorization                      */
     PastixFactLU   = 2, /**< LU factorization                         */
-    PastixFactLDLH = 3  /**< LDL^h factorization for complex matrices */
+    PastixFactLLT  = 3, /**< LL^t factorization                       */
+    PastixFactLDLH = 4, /**< LDL^h factorization for complex matrices */
 } pastix_factotype_t;
 
 /**

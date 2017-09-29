@@ -237,7 +237,7 @@ cpucblk_zpxtrfsp1d_pxtrf( SolverCblk         *cblk,
     /* Factorize diagonal block */
     start_trace_kernel( 2, PXTRF );
     core_zpxtrfsp(ncols, L, stride, &nbpivot, criteria );
-    stop_trace_kernel( 2, FLOPS_ZPXTRF( ncols ) );
+    stop_trace_kernel( 2, FLOPS_ZPOTRF( ncols ) );
 
     stop_trace_kernel( 1, 0.0 );
 
