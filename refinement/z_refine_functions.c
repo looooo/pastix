@@ -354,30 +354,27 @@ void z_Pastix_Precond( pastix_data_t *pastix_data, pastix_complex64_t *s, pastix
     /*if (pastix_data->iparm[IPARM_ONLY_REFINE] == 0)*/
     {
         sopalin_data_t sopalin_data;
+        pastix_trans_t trans = PastixTrans;
         sopalin_data.solvmtx = pastix_data->solvmatr;
 
         switch ( pastix_data->iparm[IPARM_FACTORIZATION] ){
+        case PastixFactLLH:
+            trans = PastixConjTrans;
         case PastixFactLLT:
             sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
-                           PastixNoTrans,   PastixNonUnit, &sopalin_data, nrhs, bptr, n );
+                           PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, bptr, n );
             sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
-                           PastixConjTrans, PastixNonUnit, &sopalin_data, nrhs, bptr, n );
+                           trans,         PastixNonUnit, &sopalin_data, nrhs, bptr, n );
             break;
 
+        case PastixFactLDLH:
+            trans = PastixConjTrans;
         case PastixFactLDLT:
             sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
                            PastixNoTrans, PastixUnit, &sopalin_data, nrhs, bptr, n );
             sopalin_zdiag( pastix_data, &sopalin_data, nrhs, bptr, n );
             sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
-                           PastixTrans,   PastixUnit, &sopalin_data, nrhs, bptr, n );
-            break;
-
-        case PastixFactLDLH:
-            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
-                           PastixNoTrans,   PastixUnit, &sopalin_data, nrhs, bptr, n );
-            sopalin_zdiag( pastix_data, &sopalin_data, nrhs, bptr, n );
-            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
-                           PastixConjTrans, PastixUnit, &sopalin_data, nrhs, bptr, n );
+                           trans,        PastixUnit, &sopalin_data, nrhs, bptr, n );
             break;
 
         case PastixFactLU:
