@@ -66,7 +66,6 @@ static inline void pastix_error_print( const char * const fmt, ... )
     va_start(arglist, fmt);
     fprintf(stderr, fmt, arglist);
     va_end(arglist);
-    assert(0);
 }
 
 #define errorPrint pastix_error_print
