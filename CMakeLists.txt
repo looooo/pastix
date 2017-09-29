@@ -753,8 +753,8 @@ set(PASTIX_HDRS
   include/pastix/nompi.h
   graph/graph.h
   order/order.h
+  include/cblas.h
   include/lapacke.h
-  include/lapacke_mangling.h
 )
 install(FILES include/pastix.h DESTINATION include )
 install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
