@@ -227,7 +227,7 @@ core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
         }
 
         /* C = alpha * WORK * op(B) + beta * C */
-        cblas_zgemm(CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transB,
+        cblas_zgemm(CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                     M, N, K,
                     CBLAS_SADDR(alpha), w, M,
                                         B, LDB,
@@ -245,7 +245,7 @@ core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
             }
 
             /* C = alpha * op(A) * WORK' + beta * C */
-            cblas_zgemm(CblasColMajor, (enum CBLAS_TRANSPOSE)transA, CblasTrans,
+            cblas_zgemm(CblasColMajor, (CBLAS_TRANSPOSE)transA, CblasTrans,
                         M, N, K,
                         CBLAS_SADDR(alpha), A, LDA,
                         w, N,
@@ -276,7 +276,7 @@ core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
             }
 
             /* C = alpha * op(A) * WORK + beta * C */
-            cblas_zgemm(CblasColMajor, (enum CBLAS_TRANSPOSE)transA, CblasNoTrans,
+            cblas_zgemm(CblasColMajor, (CBLAS_TRANSPOSE)transA, CblasNoTrans,
                         M, N, K,
                         CBLAS_SADDR(alpha), A, LDA,
                                             w, N,

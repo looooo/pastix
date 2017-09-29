@@ -142,7 +142,7 @@ core_zgemmsp_1d1d( pastix_coefside_t sideA, pastix_trans_t trans,
      */
     wtmp = work;
     start_trace_kernel( 2, DENSE_GEMM );
-    cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
+    cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)trans,
                  M, N, K,
                  CBLAS_SADDR(zone),  A,    stride,
                                      B,    stride,
@@ -315,7 +315,7 @@ core_zgemmsp_1d2d( pastix_coefside_t sideA, pastix_trans_t trans,
 
         pastix_cblk_lock( fcblk );
         start_trace_kernel( 2, DENSE_GEMM );
-        cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
+        cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)trans,
                      M, N, K,
                      CBLAS_SADDR(mzone), blokA, stride,
                                          blokB, stride,
@@ -453,7 +453,7 @@ core_zgemmsp_2d2d( pastix_coefside_t sideA, pastix_trans_t trans,
 
         pastix_cblk_lock( fcblk );
         start_trace_kernel( 2, DENSE_GEMM );
-        cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
+        cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)trans,
                      M, N, K,
                      CBLAS_SADDR(mzone), blokA, lda,
                                          blokB, ldb,
@@ -598,7 +598,7 @@ core_zgemmsp_2d2dsub( pastix_trans_t trans,
             Bptr = B + bB->coefind - offsetB;
             ldb = N;
 
-            cblas_zgemm( CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)trans,
+            cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)trans,
                          M, N, K,
                          CBLAS_SADDR(mzone), Aptr, lda,
                          Bptr, ldb,

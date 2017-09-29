@@ -923,7 +923,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
         }
         else {
             start_trace_kernel( 2, DENSE_GEMM );
-            cblas_zgemm(CblasColMajor, CblasNoTrans, (enum CBLAS_TRANSPOSE)transA1,
+            cblas_zgemm(CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transA1,
                         M1, N1, A->rk,
                         CBLAS_SADDR(alpha), A->u, ldau,
                                             A->v, ldav,
