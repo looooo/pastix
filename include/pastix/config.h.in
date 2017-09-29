@@ -107,41 +107,14 @@
 /* Datatypes used */
 #cmakedefine PASTIX_INT64
 
-#if defined(PASTIX_INT64)
-#define FORCE_INT64
-#define INTSSIZE64
-#endif
-
-#if defined(PASTIX_INT32)
-#define FORCE_INT32
-#define INTSIZE32
-#endif
-
-#if defined(PASTIX_LONG)
-#define FORCE_LONG
-#define LONG
-#endif
-
-#if (defined PRECISION_z || defined PRECISION_d)
-#  define FORCE_DOUBLE
-#  define PREC_DOUBLE
-#endif
-#if (defined PRECISION_z || defined PRECISION_c)
-#  define FORCE_COMPLEX
-#  define TYPE_COMPLEX
-#endif
-
 #if defined(PASTIX_WITH_MPI)
 #define HAVE_MPI
-#undef  FORCE_NOMPI
 #else
 #undef  HAVE_MPI
-#define FORCE_NOMPI
 #endif
 
 #if defined(PASTIX_ORDERING_SCOTCH)
 #define HAVE_SCOTCH
-#define WITH_SCOTCH
 #endif
 
 #if defined(PASTIX_ORDERING_METIS)

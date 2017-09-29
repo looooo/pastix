@@ -145,7 +145,6 @@
 #define OUT_SOPALIN_TIME                                                \
     "    Time to factorize                     %e s (%5.2lf %cFlop/s)\n"
 
-
 #define OUT_LOWRANK_SUMMARY                                     \
     "    Compression:\n"                                        \
     "      Elements removed             %8ld / %8ld\n"          \
@@ -161,16 +160,6 @@
 #define OUT_GLOBAL_THFLOPCNT  "   Number of theoretical flop            %.5g %cflops\n"
 #define OUT_GLOBAL_RLFLOPCNT  "   Number of performed flop              %.5g %cflops\n"
 
-#define OUT_STEP_NUMFACT_LU   " Numerical Factorization (LU) :\n"
-#ifdef TYPE_COMPLEX
-#  define OUT_STEP_NUMFACT_LLT  " Numerical Factorization (LLh) :\n"
-#else
-#  define OUT_STEP_NUMFACT_LLT  " Numerical Factorization (LLt) :\n"
-#endif
-#define OUT_STEP_NUMFACT_LDLT " Numerical Factorization (LDLt) :\n"
-#define OUT_STEP_NUMFACT_LDLH " Numerical Factorization (LDLh) :\n"
-#define OUT_STEP_SOLVE        " Solve :\n"
-#define OUT_STEP_REFF         " Reffinement :\n"
 #define TIME_TO_ANALYSE       "   Time to analyze                              %.3g s\n"
 #define NNZERO_WITH_FILLIN_TH "   Number of nonzeros in factorized matrix      %ld\n"
 #define NNZERO_WITH_FILLIN    "%d : Number of nonzeros (local block structure) %ld\n"
