@@ -31,17 +31,17 @@ schurFactorize( pastix_coeftype_t  flttype,
     int info=0;
 
     assert( ipiv != NULL );
-    if ( factotype == PastixFactLU ) {
+    if ( factotype == PastixFactGETRF ) {
         *ipiv = malloc( N * sizeof(int) );
     }
 
     switch (flttype) {
     case PastixFloat:
         switch (factotype) {
-        case PastixFactLLT:
+        case PastixFactPOTRF:
             info = LAPACKE_spotrf_work( LAPACK_COL_MAJOR, 'L', N, S, lds );
             break;
-        case PastixFactLU:
+        case PastixFactGETRF:
             info = LAPACKE_sgetrf_work( LAPACK_COL_MAJOR, N, N, S, lds, *ipiv );
             break;
         default:
@@ -50,10 +50,10 @@ schurFactorize( pastix_coeftype_t  flttype,
         break;
     case PastixComplex32:
         switch (factotype) {
-        case PastixFactLLT:
+        case PastixFactPOTRF:
             info = LAPACKE_cpotrf_work( LAPACK_COL_MAJOR, 'L', N, S, lds );
             break;
-        case PastixFactLU:
+        case PastixFactGETRF:
             info = LAPACKE_cgetrf_work( LAPACK_COL_MAJOR, N, N, S, lds, *ipiv );
             break;
         default:
@@ -62,10 +62,10 @@ schurFactorize( pastix_coeftype_t  flttype,
         break;
     case PastixComplex64:
         switch (factotype) {
-        case PastixFactLLT:
+        case PastixFactPOTRF:
             info = LAPACKE_zpotrf_work( LAPACK_COL_MAJOR, 'L', N, S, lds );
             break;
-        case PastixFactLU:
+        case PastixFactGETRF:
             info = LAPACKE_zgetrf_work( LAPACK_COL_MAJOR, N, N, S, lds, *ipiv );
             break;
         default:
@@ -74,10 +74,10 @@ schurFactorize( pastix_coeftype_t  flttype,
         break;
     case PastixDouble:
         switch (factotype) {
-        case PastixFactLLT:
+        case PastixFactPOTRF:
             info = LAPACKE_dpotrf_work( LAPACK_COL_MAJOR, 'L', N, S, lds );
             break;
-        case PastixFactLU:
+        case PastixFactGETRF:
             info = LAPACKE_dgetrf_work( LAPACK_COL_MAJOR, N, N, S, lds, *ipiv );
             break;
         default:
@@ -116,10 +116,10 @@ schurSolve( pastix_coeftype_t  flttype,
         b += N - Nschur;
 
         switch (factotype) {
-        case PastixFactLLT:
+        case PastixFactPOTRF:
             info = LAPACKE_spotrs_work( LAPACK_COL_MAJOR, 'L', Nschur, NRHS, S, lds, b, ldb );
             break;
-        case PastixFactLU:
+        case PastixFactGETRF:
             info = LAPACKE_sgetrs_work( LAPACK_COL_MAJOR, 'N', Nschur, NRHS, S, lds, *ipiv, b, ldb );
             break;
         default:
@@ -133,10 +133,10 @@ schurSolve( pastix_coeftype_t  flttype,
         b += N - Nschur;
 
         switch (factotype) {
-        case PastixFactLLT:
+        case PastixFactPOTRF:
             info = LAPACKE_cpotrs_work( LAPACK_COL_MAJOR, 'L', Nschur, NRHS, S, lds, b, ldb );
             break;
-        case PastixFactLU:
+        case PastixFactGETRF:
             info = LAPACKE_cgetrs_work( LAPACK_COL_MAJOR, 'N', Nschur, NRHS, S, lds, *ipiv, b, ldb );
             break;
         default:
@@ -150,10 +150,10 @@ schurSolve( pastix_coeftype_t  flttype,
         b += N - Nschur;
 
         switch (factotype) {
-        case PastixFactLLT:
+        case PastixFactPOTRF:
             info = LAPACKE_zpotrs_work( LAPACK_COL_MAJOR, 'L', Nschur, NRHS, S, lds, b, ldb );
             break;
-        case PastixFactLU:
+        case PastixFactGETRF:
             info = LAPACKE_zgetrs_work( LAPACK_COL_MAJOR, 'N', Nschur, NRHS, S, lds, *ipiv, b, ldb );
             break;
         default:
@@ -167,10 +167,10 @@ schurSolve( pastix_coeftype_t  flttype,
         b += N - Nschur;
 
         switch (factotype) {
-        case PastixFactLLT:
+        case PastixFactPOTRF:
             info = LAPACKE_dpotrs_work( LAPACK_COL_MAJOR, 'L', Nschur, NRHS, S, lds, b, ldb );
             break;
-        case PastixFactLU:
+        case PastixFactGETRF:
             info = LAPACKE_dgetrs_work( LAPACK_COL_MAJOR, 'N', Nschur, NRHS, S, lds, *ipiv, b, ldb );
             break;
         default:
@@ -337,10 +337,10 @@ int main (int argc, char **argv)
                                PastixDirForward, spm->n, nrhs, x, ldb );
 
     /* 2- Forward solve on the non Schur complement part of the system */
-    if ( iparm[IPARM_FACTORIZATION] == PastixFactLLT ) {
+    if ( iparm[IPARM_FACTORIZATION] == PastixFactPOTRF ) {
         diag = PastixNonUnit;
     }
-    else if( iparm[IPARM_FACTORIZATION] == PastixFactLU ) {
+    else if( iparm[IPARM_FACTORIZATION] == PastixFactGETRF ) {
         diag = PastixUnit;
     }
 
@@ -353,12 +353,12 @@ int main (int argc, char **argv)
                 spm->n, nschur, nrhs, S, lds, x, ldb, &ipiv );
 
     /* 4- Backward solve on the non Schur complement part of the system */
-    if ( iparm[IPARM_FACTORIZATION] == PastixFactLLT ) {
+    if ( iparm[IPARM_FACTORIZATION] == PastixFactPOTRF ) {
         pastix_subtask_trsm( pastix_data, spm->flttype,
                              PastixLeft, PastixLower, PastixConjTrans, PastixNonUnit,
                              nrhs, x, ldb );
     }
-    else if( iparm[IPARM_FACTORIZATION] == PastixFactLU ) {
+    else if( iparm[IPARM_FACTORIZATION] == PastixFactGETRF ) {
         pastix_subtask_trsm( pastix_data, spm->flttype,
                              PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit,
                              nrhs, x, ldb );
