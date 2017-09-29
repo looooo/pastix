@@ -46,6 +46,9 @@ void sopalin_cpotrf( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data );
 void sopalin_dpotrf( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data );
 void sopalin_spotrf( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data );
 
+void sopalin_zpxtrf( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data );
+void sopalin_cpxtrf( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data );
+
 void sopalin_zsytrf( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data );
 void sopalin_csytrf( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data );
 void sopalin_dsytrf( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data );
