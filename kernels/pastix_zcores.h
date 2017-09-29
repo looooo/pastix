@@ -64,6 +64,8 @@ int  core_zscalo( pastix_trans_t trans, pastix_int_t M, pastix_int_t N,
  */
 void core_zpotrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
                     pastix_int_t *nbpivot, double criteria );
+void core_zpxtrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
+                    pastix_int_t *nbpivot, double criteria );
 void core_zgetrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
                     pastix_int_t *nbpivot, double criteria );
 void core_zhetrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
@@ -264,6 +266,16 @@ int cpucblk_zhetrfsp1d_panel( SolverCblk *cblk, pastix_complex64_t *L, pastix_co
                               const pastix_lr_t *lowrank );
 int cpucblk_zhetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double criteria,
                               pastix_complex64_t *work1, pastix_complex64_t *work2 );
+
+/**
+ *    @}
+ *    @name PastixComplex64 cblk LL^t kernels
+ *    @{
+ */
+int cpucblk_zpxtrfsp1d_pxtrf( SolverCblk *cblk, pastix_complex64_t *L, double criteria );
+int cpucblk_zpxtrfsp1d_panel( SolverCblk *cblk, pastix_complex64_t *L, double criteria,
+                              const pastix_lr_t *lowrank );
+int cpucblk_zpxtrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double criteria, pastix_complex64_t *work );
 
 /**
  *    @}
