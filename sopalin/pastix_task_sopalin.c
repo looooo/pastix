@@ -36,7 +36,7 @@
 #include "sopalin/starpu/pastix_starpu.h"
 #endif
 
-static void (*sopalinFacto[4][4])(pastix_data_t *, sopalin_data_t*) =
+static void (*sopalinFacto[5][4])(pastix_data_t *, sopalin_data_t*) =
 {
     { sopalin_spotrf, sopalin_dpotrf, sopalin_cpotrf, sopalin_zpotrf },
     { sopalin_ssytrf, sopalin_dsytrf, sopalin_csytrf, sopalin_zsytrf },
@@ -236,7 +236,21 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     coeftabInit( pastix_data,
                  pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU ? PastixLUCoef : PastixLCoef );
 
-    mtxtype = ( pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU ) ? PastixGeneral : PastixHermitian;
+    switch( pastix_data->iparm[IPARM_FACTORIZATION] ) {
+    case PastixFactLLH:
+    case PastixFactLDLH:
+        mtxtype = PastixHermitian;
+        break;
+
+    case PastixFactLLT:
+    case PastixFactLDLT:
+        mtxtype = PastixHermitian;
+        break;
+
+    case PastixFactLU:
+    default:
+        mtxtype = PastixGeneral;
+    }
 
 #if defined(PASTIX_WITH_PARSEC)
     if ( pastix_data->iparm[IPARM_SCHEDULER] == PastixSchedParsec )

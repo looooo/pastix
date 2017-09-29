@@ -314,6 +314,8 @@ pastixFactotypeStr( pastix_factotype_t ft ) {
         return "LDL^t";
     case PastixFactLU:
         return "LU";
+    case PastixFactLLH:
+       return "LL^h";
     case PastixFactLDLH:
        return "LDL^h";
      default:

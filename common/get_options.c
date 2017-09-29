@@ -244,7 +244,14 @@ parse_enums( const char *string )
     if(0 == strcasecmp("pastixfactllt",  string)) { return PastixFactLLT;  }
     if(0 == strcasecmp("pastixfactldlt", string)) { return PastixFactLDLT; }
     if(0 == strcasecmp("pastixfactlu",   string)) { return PastixFactLU;   }
+    if(0 == strcasecmp("pastixfactllh",  string)) { return PastixFactLLH;  }
     if(0 == strcasecmp("pastixfactldlh", string)) { return PastixFactLDLH; }
+
+    if(0 == strcasecmp("pastixfactpotrf", string)) { return PastixFactPOTRF; }
+    if(0 == strcasecmp("pastixfactpxtrf", string)) { return PastixFactPXTRF; }
+    if(0 == strcasecmp("pastixfactgetrf", string)) { return PastixFactGETRF; }
+    if(0 == strcasecmp("pastixfactsytrf", string)) { return PastixFactSYTRF; }
+    if(0 == strcasecmp("pastixfacthetrf", string)) { return PastixFactHETRF; }
 
     if(0 == strcasecmp("pastixgeneral",   string)) { return PastixGeneral;   }
     if(0 == strcasecmp("pastixhermitian", string)) { return PastixHermitian; }
@@ -495,7 +502,7 @@ pastix_getOptions( int argc, char **argv,
 
         case 'f': {
             int factotype = atoi( optarg );
-            if ( (factotype >= 0) && (factotype <= 3)){
+            if ( (factotype >= 0) && (factotype <= 4)){
                 iparam[IPARM_FACTORIZATION] = factotype;
             }
             else {

@@ -374,26 +374,42 @@ pastix_task_solve( pastix_data_t *pastix_data,
 
     {
         double timer;
+        pastix_trans_t trans = PastixTrans;
 
         clockStart(timer);
         switch ( pastix_data->iparm[IPARM_FACTORIZATION] ){
+        case PastixFactLLH:
+            trans = PastixConjTrans;
+
         case PastixFactLLT:
             dump_rhs( "AfterPerm", bcsc->gN, b );
 
             /* Solve L y = P b with y = L^t P x */
-            pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans,   PastixNonUnit, nrhs, b, ldb );
+            pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype,
+                                 PastixLeft, PastixLower,
+                                 PastixNoTrans, PastixNonUnit,
+                                 nrhs, b, ldb );
             dump_rhs( "AfterDown", bcsc->gN, b );
 
             /* Solve y = L^t (P x) */
-            pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixConjTrans, PastixNonUnit, nrhs, b, ldb );
+            pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype,
+                                 PastixLeft, PastixLower,
+                                 trans, PastixNonUnit,
+                                 nrhs, b, ldb );
             dump_rhs( "AfterUp", bcsc->gN, b );
             break;
+
+        case PastixFactLDLH:
+            trans = PastixConjTrans;
 
         case PastixFactLDLT:
             dump_rhs( "AfterPerm", bcsc->gN, b );
 
             /* Solve L y = P b with y = D L^t P x */
-            pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit, nrhs, b, ldb );
+            pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype,
+                                 PastixLeft, PastixLower,
+                                 PastixNoTrans, PastixUnit,
+                                 nrhs, b, ldb );
             dump_rhs( "AfterDown", bcsc->gN, b );
 
             /* Solve y = D z with z = (L^t P x) */
@@ -401,28 +417,26 @@ pastix_task_solve( pastix_data_t *pastix_data,
             dump_rhs( "AfterDiag", bcsc->gN, b );
 
             /* Solve z = L^t (P x) */
-            pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixTrans,   PastixUnit, nrhs, b, ldb );
+            pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype,
+                                 PastixLeft, PastixLower,
+                                 trans, PastixUnit,
+                                 nrhs, b, ldb );
             dump_rhs( "AfterUp", bcsc->gN, b );
-            break;
-
-        case PastixFactLDLH:
-            /* Solve L y = P b with y = D L^h P x */
-            pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans,   PastixUnit, nrhs, b, ldb );
-
-            /* Solve y = D z with z = (L^h P x) */
-            pastix_subtask_diag( pastix_data, pastix_data->bcsc->flttype, nrhs, b, ldb );
-
-            /* Solve z = L^h (P x) */
-            pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixConjTrans, PastixUnit, nrhs, b, ldb );
             break;
 
         case PastixFactLU:
         default:
             /* Solve L y = P b with y = U P x */
-            pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixLower, PastixNoTrans, PastixUnit,    nrhs, b, ldb );
+            pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype,
+                                 PastixLeft, PastixLower,
+                                 PastixNoTrans, PastixUnit,
+                                 nrhs, b, ldb );
 
             /* Solve y = U (P x) */
-            pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype, PastixLeft, PastixUpper, PastixNoTrans, PastixNonUnit, nrhs, b, ldb );
+            pastix_subtask_trsm( pastix_data, pastix_data->bcsc->flttype,
+                                 PastixLeft, PastixUpper,
+                                 PastixNoTrans, PastixNonUnit,
+                                 nrhs, b, ldb );
             break;
         }
         clockStop(timer);
