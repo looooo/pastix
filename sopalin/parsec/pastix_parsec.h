@@ -25,7 +25,10 @@
 #include <parsec/data_distribution.h>
 
 /**
- * @brief PaRSEC descriptor stucture for the sparse matrix.
+ * @name PaRSEC sparse matrix descriptor
+ * @{
+ *
+ *   @brief PaRSEC descriptor stucture for the sparse matrix.
  */
 typedef struct parsec_sparse_matrix_desc_s {
     parsec_data_collection_t  super;      /**< Every PaRSEC descriptors must inherit from parsec_desc_t                        */
@@ -35,8 +38,17 @@ typedef struct parsec_sparse_matrix_desc_s {
     void                    **d_blocktab; /**< Pointer to GPU arrays that contains frownum,lrownum of each block for Fermi     */
 } parsec_sparse_matrix_desc_t;
 
+void parsec_sparse_matrix_init( SolverMatrix *solvmtx,
+                                int typesize, int mtxtype,
+                                int nodes, int myrank );
+void parsec_sparse_matrix_destroy( parsec_sparse_matrix_desc_t *desc );
+
 /**
- * @brief PaRSEC descriptor for the vectors linked to a given sparse matrix.
+ * @}
+ * @name PaRSEC vector descriptor
+ * @{
+ *
+ *   @brief PaRSEC descriptor for the vectors linked to a given sparse matrix.
  */
 typedef struct parsec_sparse_vector_desc_t {
     parsec_data_collection_t  super;  /**< Every PaRSEC descriptors must inherit from parsec_desc_t                        */
@@ -44,15 +56,17 @@ typedef struct parsec_sparse_vector_desc_t {
     SolverMatrix             *solvmtx; /**< Solver matrix structure that describes the problem and stores the original data */
 } parsec_sparse_vector_desc_t;
 
-void parsec_sparse_matrix_init( SolverMatrix *solvmtx,
-                                int typesize, int mtxtype,
-                                int nodes, int myrank );
-void parsec_sparse_matrix_destroy( parsec_sparse_matrix_desc_t *desc );
 
 void parsec_sparse_vector_init( parsec_sparse_vector_desc_t *desc,
                                 int typesze, int nodes, int myrank );
 void parsec_sparse_vector_destroy( parsec_sparse_vector_desc_t *desc );
 
+/**
+ * @}
+ * @name PaRSEC control function
+ * @{
+ *
+ */
 void pastix_parsec_init( pastix_data_t *pastix,
                          int *argc, char **argv[],
                          const int *bindtab );
@@ -61,5 +75,6 @@ void pastix_parsec_finalize( pastix_data_t *pastix );
 #endif /* _pastix_parsec_h_ */
 
 /**
+ *@}
  *@}
  */
