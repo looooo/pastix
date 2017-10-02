@@ -18,6 +18,7 @@
 #include "common.h"
 #include "cblas.h"
 #include "blend/solver.h"
+#include "kernels/models.h"
 #include "kernels/pastix_zcores.h"
 #include "kernels/pastix_cuda.h"
 #include <cublas.h>
@@ -168,6 +169,8 @@ gpucblk_zgemmsp(       pastix_coefside_t  sideA,
     pastix_int_t N, K, max_m = 0;
     int i, shift, count, ldb;
 
+    double time = modelGetTime();
+
     assert( !(cblk->cblktype  & CBLK_COMPRESSED) );
     assert( !(fcblk->cblktype & CBLK_COMPRESSED) );
 
@@ -238,6 +241,20 @@ gpucblk_zgemmsp(       pastix_coefside_t  sideA,
             stream, params );
     }
 
+#if defined(PASTIX_GENERATE_MODEL)
+    cudaStreamSynchronize( stream );
+    {
+        pastix_int_t k = cblk_colnbr( cblk );
+        pastix_int_t n = blok_rownbr( blok );
+        pastix_int_t m = cblk->stride;
+
+        m -= (cblk->cblktype & CBLK_LAYOUT_2D) ? blok->coefind / k : blok->coefind;
+        m -= (sideA == PastixUCoef) ? blok_rownbr( blok ) : 0;
+
+        modelAddEntry( PastixKernelGpuGEMM1D,
+                       m, n, k, time );
+    }
+#endif
     (void)sideB; (void)lowrank; (void)time;
 }
 
@@ -346,6 +363,8 @@ gpublok_zgemmsp(       pastix_coefside_t  sideA,
     pastix_int_t M, N, K, lda, ldb, ldc, cblk_n, cblk_m;
     size_t offsetA, offsetB, offsetC;
 
+    double time = modelGetTime();
+
     /* Both cblk and fcblk must be stored in 2D */
     assert( cblk->cblktype  & CBLK_LAYOUT_2D );
     assert( fcblk->cblktype & CBLK_LAYOUT_2D );
@@ -406,9 +425,17 @@ gpublok_zgemmsp(       pastix_coefside_t  sideA,
         }
     }
 
+#if defined(PASTIX_GENERATE_MODEL)
+    cudaStreamSynchronize( stream );
+    modelAddEntry( PastixKernelGpuGEMM2D,
+                   blok_rownbr( cblk->fblokptr + blok_mk ),
+                   blok_rownbr( cblk->fblokptr + blok_nk ),
+                   cblk_colnbr( cblk ),
+                   time );
+#endif
+
     (void)lblokN; (void)sideA; (void)sideB; (void)lowrank; (void)time;
 }
-
 
 /**
  *******************************************************************************

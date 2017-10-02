@@ -19,6 +19,7 @@
 #include "cblas.h"
 #include "blend/solver.h"
 #include "pastix_zcores.h"
+#include "models.h"
 #include "eztrace_module/kernels_ev_codes.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -224,7 +225,9 @@ cpucblk_zpotrfsp1d_potrf( SolverCblk         *cblk,
 {
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
+    pastix_fixdbl_t time;
 
+    time = modelGetTime();
     start_trace_kernel( 1, LVL1_POTRF );
 
     ncols   = cblk->lcolnum - cblk->fcolnum + 1;
@@ -248,6 +251,7 @@ cpucblk_zpotrfsp1d_potrf( SolverCblk         *cblk,
     stop_trace_kernel( 2, FLOPS_ZPOTRF( ncols ) );
 
     stop_trace_kernel( 1, 0.0 );
+    modelAddEntry( PastixKernelCpuPOTRF, ncols, 0, 0, time );
 
     return nbpivot;
 }

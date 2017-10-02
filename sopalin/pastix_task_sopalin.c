@@ -22,6 +22,7 @@
 #include "blend/solver.h"
 #include "coeftab.h"
 #include "sopalin_data.h"
+#include "kernels/models.h"
 #include "kernels/pastix_zcores.h"
 #include "kernels/pastix_ccores.h"
 #include "kernels/pastix_dcores.h"
@@ -491,8 +492,6 @@ pastix_task_numfact( pastix_data_t *pastix_data,
     iparm   = pastix_data->iparm;
     procnum = pastix_data->inter_node_procnum;
 
-    start_eztrace_kernels();
-
     if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
         pastix_print(procnum, 0, OUT_STEP_SOPALIN,
                      pastixFactotypeStr( iparm[IPARM_FACTORIZATION] ) );
@@ -510,6 +509,9 @@ pastix_task_numfact( pastix_data_t *pastix_data,
             return rc;
     }
 
+    start_eztrace_kernels();
+    modelInit( pastix_data->solvmatr );
+
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
         rc = pastix_subtask_sopalin( pastix_data );
         if (rc != PASTIX_SUCCESS)
@@ -517,6 +519,7 @@ pastix_task_numfact( pastix_data_t *pastix_data,
     }
 
     stop_eztrace_kernels();
+    modelDumpAndExit( &(pastix_data->dirtemp) );
 
     /* Invalidate following steps, and add factorization step to the ones performed */
     pastix_data->steps &= ~( STEP_SOLVE     |

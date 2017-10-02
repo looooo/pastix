@@ -18,6 +18,7 @@
 #include "common.h"
 #include "cblas.h"
 #include "blend/solver.h"
+#include "kernels/models.h"
 #include "pastix_zcores.h"
 #include "eztrace_module/kernels_ev_codes.h"
 
@@ -829,7 +830,7 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
     pastix_int_t stride, shift;
     pastix_int_t M, N, K;
 
-   /* Update from a dense block to a low rank block */
+    /* Update from a dense block to a low rank block */
     assert(!(cblk->cblktype  & CBLK_COMPRESSED));
     assert(  fcblk->cblktype & CBLK_COMPRESSED );
     assert(  fcblk->cblktype & CBLK_LAYOUT_2D  );
@@ -1098,6 +1099,8 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
                        pastix_complex64_t *work,
                  const pastix_lr_t        *lowrank )
 {
+    pastix_fixdbl_t time = modelGetTime();
+
     if ( fcblk->cblktype & CBLK_COMPRESSED ) {
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
             start_trace_kernel( 1, LVL1_GEMM_CBLK_LRLR );
@@ -1137,6 +1140,21 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
                            A, B, C, work );
         stop_trace_kernel( 1, 0.0 );
     }
+
+#if defined(PASTIX_GENERATE_MODEL)
+    {
+        pastix_int_t k = cblk_colnbr( cblk );
+        pastix_int_t n = blok_rownbr( blok );
+        pastix_int_t m = cblk->stride;
+
+        m -= (cblk->cblktype & CBLK_LAYOUT_2D) ? blok->coefind / k : blok->coefind;
+        m -= (sideA == PastixUCoef) ? blok_rownbr( blok ) : 0;
+
+        modelAddEntry( PastixKernelCpuGEMM1D,
+                       m, n, k, time );
+    }
+#endif
+    (void)time;
 }
 
 /**
@@ -1221,6 +1239,8 @@ cpublok_zgemmsp(       pastix_coefside_t   sideA,
                        pastix_complex64_t *C,
                  const pastix_lr_t        *lowrank )
 {
+    pastix_fixdbl_t time = modelGetTime();
+
     if ((cblk->cblktype  & CBLK_COMPRESSED) &&
         (fcblk->cblktype & CBLK_COMPRESSED))
     {
@@ -1244,4 +1264,10 @@ cpublok_zgemmsp(       pastix_coefside_t   sideA,
     else {
         assert(0);
     }
+
+    modelAddEntry( PastixKernelCpuGEMM2D,
+                   blok_rownbr( cblk->fblokptr + blok_mk ),
+                   blok_rownbr( cblk->fblokptr + blok_nk ),
+                   cblk_colnbr( cblk ),
+                   time );
 }

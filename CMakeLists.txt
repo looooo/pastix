@@ -72,6 +72,10 @@ option(PASTIX_WITH_PARSEC
   "Build PaStiX with PaRSEC runtime support" OFF)
 
 # Internal options
+option(PASTIX_GENERATE_MODEL
+  "Enable performances profiling for model generation" OFF)
+
+# Internal options
 option(PASTIX_WITH_FORTRAN
   "Enable Fortran files/interface/examples to be compiled" ON)
 

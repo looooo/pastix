@@ -19,6 +19,7 @@
 #include "cblas.h"
 #include "blend/solver.h"
 #include "pastix_zcores.h"
+#include "models.h"
 #include "eztrace_module/kernels_ev_codes.h"
 
 #include <lapacke.h>
@@ -232,7 +233,9 @@ cpucblk_zhetrfsp1d_hetrf( SolverCblk         *cblk,
 {
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
+    pastix_fixdbl_t time;
 
+    time = modelGetTime();
     start_trace_kernel( 1, LVL1_HETRF );
 
     ncols  = cblk->lcolnum - cblk->fcolnum + 1;
@@ -258,6 +261,7 @@ cpucblk_zhetrfsp1d_hetrf( SolverCblk         *cblk,
     stop_trace_kernel( 2, FLOPS_ZHETRF( ncols ) );
 
     stop_trace_kernel( 1, 0.0 );
+    modelAddEntry( PastixKernelCpuHETRF, ncols, 0, 0, time );
 
     return nbpivot;
 }

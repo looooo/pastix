@@ -23,7 +23,6 @@ if(PASTIX_WITH_EZTRACE)
         eztrace_module/eztrace_convert_kernels.c
   )
 endif(PASTIX_WITH_EZTRACE)
-
 ### Generate the headers in all precisions
 set(HEADERS
   pastix_zcores.h
@@ -74,6 +73,7 @@ precisions_rules_py(generated_sources
 
 set(kernels_sources
   ${generated_sources}
+  models.c
   eztrace_module/kernels_ev_codes.c
   )
 
@@ -109,7 +109,6 @@ if(PASTIX_WITH_EZTRACE)
      litl
    )
 endif(PASTIX_WITH_EZTRACE)
-
 target_link_libraries( pastix_kernels
   ${LAPACKE_LIBRARIES}
   ${LAPACK_SEQ_LIBRARIES}
