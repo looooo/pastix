@@ -200,11 +200,14 @@ void
 solverPrintStats( const SolverMatrix *solvptr )
 {
     SolverCblk *cblk;
+    SolverBlok *blok;
     size_t memstruct, memcoef;
     pastix_int_t fcol2d, lcol2d;
     pastix_int_t itercblk, cblknbr;
-    pastix_int_t gemm2d = 0;
-    pastix_int_t gemm2dtot = 0;
+    pastix_int_t gemm2d     = 0;
+    pastix_int_t gemm2dtot  = 0;
+    pastix_int_t nbpartblok = 0;
+    pastix_int_t nbsubblok  = 0;
     double avg2d;
 
     fcol2d = (solvptr->cblktab + solvptr->cblkmin2d )->fcolnum;
@@ -220,13 +223,26 @@ solverPrintStats( const SolverMatrix *solvptr )
     {
         pastix_int_t colnbr = cblk->lcolnum - cblk->fcolnum + 1;
         pastix_int_t rownbr = cblk->stride;
-
         memcoef += colnbr * rownbr;
 
         if (cblk->cblktype & CBLK_TASKS_2D) {
             pastix_int_t contrib = cblk[1].brownum - cblk[0].brown2d;
             gemm2d += contrib;
             gemm2dtot += contrib * (cblk[1].fblokptr - cblk[0].fblokptr);
+        }
+
+        blok = cblk->fblokptr + 1;
+        while( blok < cblk[1].fblokptr ) {
+            nbsubblok = 1;
+            while( (blok < cblk[1].fblokptr-1) &&
+                   (blok[0].fcblknm == blok[1].fcblknm) &&
+                   (blok[0].lcblknm == blok[1].lcblknm) )
+            {
+                blok++;
+                nbsubblok++;
+            }
+            nbpartblok++;
+            blok++;
         }
     }
 
@@ -236,6 +252,7 @@ solverPrintStats( const SolverMatrix *solvptr )
              "    Solver Matrix statistics:\n"
              "      Number of cblk (1D|2D)            %10ld (%10ld | %10ld )\n"
              "      Number of block (1D|2D)           %10ld (%10ld | %10ld )\n"
+             "      Number of part block              %10ld (%10lf)\n"
              "      Cblk: last1D/first2d              %10ld | %10ld\n"
              "      First row handled in 2D           %10ld\n"
              "      Average 2D cblk size             %11.2lf\n"
@@ -246,6 +263,7 @@ solverPrintStats( const SolverMatrix *solvptr )
              "      Number of 2D Gemm tasks           %10ld\n",
              (long)solvptr->cblknbr, (long)(solvptr->cblknbr - solvptr->nb2dcblk), (long)solvptr->nb2dcblk,
              (long)solvptr->bloknbr, (long)(solvptr->bloknbr - solvptr->nb2dblok), (long)solvptr->nb2dblok,
+             (long)nbpartblok, (double)(solvptr->bloknbr - solvptr->cblknbr)/ (double)nbpartblok,
              (long)solvptr->cblkmax1d, (long)solvptr->cblkmin2d,
              (long)fcol2d, (double)avg2d,
              (long)(((solvptr->cblktab + solvptr->cblkmax1d + 1)->fblokptr - solvptr->bloktab) - 1),
