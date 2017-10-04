@@ -460,6 +460,10 @@ pastix( pastix_data_t **pastix_data_ptr,
     }
 
     if (iparm[IPARM_START_TASK] == PastixTaskClean) {
+        if ( pastix_data->csc != NULL ) {
+            pastix_spm_t *spm = (pastix_spm_t*)(pastix_data->csc);
+            free( spm );
+        }
         pastixFinalize( pastix_data_ptr );
         iparm[IPARM_START_TASK]++;
     }

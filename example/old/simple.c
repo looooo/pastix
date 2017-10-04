@@ -121,6 +121,7 @@ int main (int argc, char **argv)
     }
 
     spmExit( spm );
+    free( spm );
     free(b);
     free(x);
     return EXIT_SUCCESS;
