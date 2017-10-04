@@ -74,6 +74,7 @@
 /* Symbolic factorization options */
 #cmakedefine PASTIX_SYMBOL_DUMP_SYMBMTX
 
+/* Analyze options */
 #cmakedefine PASTIX_BLEND_GENTRACE
 #cmakedefine PASTIX_BLEND_DEEPEST_DISTRIB
 
