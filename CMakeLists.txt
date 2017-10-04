@@ -543,10 +543,18 @@ add_custom_target( sopalin_headers
 ##
 # Source files
 ##
-set(generated_files "")
+set(generated_common_sources "")
 set(SOURCES
   common/z_integer.c
-  #
+  )
+precisions_rules_py(generated_common_sources
+  "${SOURCES}"
+  TARGETDIR  "common"
+  PRECISIONS "p;s;d;c;z"
+  )
+
+set(generated_sopalin_sources "")
+set(SOURCES
   sopalin/coeftab_z.c
   sopalin/coeftab_zinit.c
   sopalin/sequential_zdiag.c
@@ -556,15 +564,24 @@ set(SOURCES
   sopalin/sequential_zpxtrf.c
   sopalin/sequential_zsytrf.c
   sopalin/sequential_ztrsm.c
-  #
+  )
+precisions_rules_py(generated_sopalin_sources
+  "${SOURCES}"
+  TARGETDIR  "sopalin"
+  PRECISIONS "p;s;d;c;z"
+  )
+
+set(generated_refinement_sources "")
+set(SOURCES
   refinement/z_refine_bicgstab.c
   refinement/z_refine_functions.c
   refinement/z_refine_gmres.c
   refinement/z_refine_grad.c
   refinement/z_refine_pivot.c
   )
-precisions_rules_py(generated_files
+precisions_rules_py(generated_refinement_sources
   "${SOURCES}"
+  TARGETDIR  "refinement"
   PRECISIONS "p;s;d;c;z"
   )
 
@@ -653,7 +670,9 @@ set(PASTIX_LIB_SRCS
   #
   refinement/pastix_task_refine.c
   #
-  ${generated_files}
+  ${generated_common_sources}
+  ${generated_sopalin_sources}
+  ${generated_refinement_sources}
   )
 
 set_source_files_properties(
@@ -879,6 +898,11 @@ add_documented_files(
   sopalin/pastix_task_solve.c
   #
   refinement/pastix_task_refine.c
+  #
+  #
+  ${generated_common_sources}
+  ${generated_sopalin_sources}
+  ${generated_refinement_sources}
   #
   example/analyze.c
   example/compress.c

@@ -31,24 +31,24 @@ set(refinement_headers
   )
 
 ### Generate the sources in all precisions
-set(SOURCES
-  z_refine_functions.c
-  z_refine_gmres.c
-  z_refine_grad.c
-  z_refine_pivot.c
-  z_refine_bicgstab.c
-)
+# set(SOURCES
+#   z_refine_functions.c
+#   z_refine_gmres.c
+#   z_refine_grad.c
+#   z_refine_pivot.c
+#   z_refine_bicgstab.c
+# )
 
-precisions_rules_py(generated_sources
-  "${SOURCES}"
-  PRECISIONS "p;s;d;c;z")
+# precisions_rules_py(generated_sources
+#   "${SOURCES}"
+#   PRECISIONS "p;s;d;c;z")
 
 add_custom_target(refinement_headers_tgt
   DEPENDS ${refinement_headers} ${generated_sources})
 
-set(refinement_sources
-  ${generated_sources}
-)
+# set(refinement_sources
+#   ${generated_sources}
+# )
 
 ### Add documented files to the global property
 add_documented_files(
