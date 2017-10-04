@@ -19,8 +19,7 @@
 #include "cblas.h"
 #include "blend/solver.h"
 #include "pastix_zcores.h"
-#include "models.h"
-#include "eztrace_module/kernels_ev_codes.h"
+#include "kernels_trace.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define MAXSIZEOFBLOCKS 64
@@ -227,8 +226,7 @@ cpucblk_zpotrfsp1d_potrf( SolverCblk         *cblk,
     pastix_int_t  nbpivot = 0;
     pastix_fixdbl_t time;
 
-    time = modelGetTime();
-    start_trace_kernel( 1, LVL1_POTRF );
+    time = kernel_trace_start( PastixKernelPOTRF );
 
     ncols   = cblk->lcolnum - cblk->fcolnum + 1;
     stride  = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
@@ -246,12 +244,11 @@ cpucblk_zpotrfsp1d_potrf( SolverCblk         *cblk,
     }
 
     /* Factorize diagonal block */
-    start_trace_kernel( 2, POTRF );
+    kernel_trace_start_lvl2( PastixKernelLvl2POTRF );
     core_zpotrfsp(ncols, L, stride, &nbpivot, criteria );
-    stop_trace_kernel( 2, FLOPS_ZPOTRF( ncols ) );
+    kernel_trace_stop_lvl2( FLOPS_ZPOTRF( ncols ) );
 
-    stop_trace_kernel( 1, 0.0 );
-    modelAddEntry( PastixKernelCpuPOTRF, ncols, 0, 0, time );
+    kernel_trace_stop( PastixKernelPOTRF, ncols, 0, 0, FLOPS_ZPOTRF( ncols ), time );
 
     return nbpivot;
 }

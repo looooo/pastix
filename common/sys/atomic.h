@@ -48,9 +48,9 @@
 #include <assert.h>
 
 static inline int pastix_atomic_cas_xxb( volatile void* location,
-                                        uint64_t old_value,
-                                        uint64_t new_value,
-                                        size_t type_size )
+                                         uint64_t old_value,
+                                         uint64_t new_value,
+                                         size_t type_size )
 {
     switch(type_size){
     case 4:

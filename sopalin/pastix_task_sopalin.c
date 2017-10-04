@@ -22,12 +22,11 @@
 #include "blend/solver.h"
 #include "coeftab.h"
 #include "sopalin_data.h"
-#include "kernels/models.h"
 #include "kernels/pastix_zcores.h"
 #include "kernels/pastix_ccores.h"
 #include "kernels/pastix_dcores.h"
 #include "kernels/pastix_scores.h"
-#include "kernels/eztrace_module/kernels_ev_codes.h"
+#include "kernels/kernels_trace.h"
 
 #if defined(PASTIX_WITH_PARSEC)
 #include "sopalin/parsec/pastix_parsec.h"
@@ -509,8 +508,7 @@ pastix_task_numfact( pastix_data_t *pastix_data,
             return rc;
     }
 
-    start_eztrace_kernels();
-    modelInit( pastix_data->solvmatr );
+    kernelsTraceStart( pastix_data->solvmatr );
 
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
         rc = pastix_subtask_sopalin( pastix_data );
@@ -518,8 +516,7 @@ pastix_task_numfact( pastix_data_t *pastix_data,
             return rc;
     }
 
-    stop_eztrace_kernels();
-    modelDumpAndExit( &(pastix_data->dirtemp) );
+    kernelsTraceStop( pastix_data->dirtemp );
 
     /* Invalidate following steps, and add factorization step to the ones performed */
     pastix_data->steps &= ~( STEP_SOLVE     |

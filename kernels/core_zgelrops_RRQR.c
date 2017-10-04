@@ -20,7 +20,7 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 #include "z_nan_check.h"
-#include "eztrace_module/kernels_ev_codes.h"
+#include "kernels_trace.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t mzone = -1.0;
@@ -393,7 +393,7 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
                                A, lda, Acpy, m );
     assert(ret == 0);
 
-    start_trace_kernel( 2, LR_INIT );
+    kernel_trace_start_lvl2( PastixKernelLvl2_LR_INIT );
     ret = core_zrrqr( m, n,
                       Acpy, m,
                       jpvt, tau,
@@ -401,10 +401,10 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
                       rwork,
                       tol * norm, nb, pastix_imin(m,n) - 1 );
     if (ret == -1) {
-        stop_trace_kernel( 2, FLOPS_ZGEQRF( m, n ) );
+        kernel_trace_stop_lvl2( FLOPS_ZGEQRF( m, n ) );
     }
     else {
-        stop_trace_kernel( 2, FLOPS_ZGEQRF( m, ret ) + FLOPS_ZUNMQR( m, n-ret, ret, PastixLeft ) );
+        kernel_trace_stop_lvl2( FLOPS_ZGEQRF( m, ret ) + FLOPS_ZUNMQR( m, n-ret, ret, PastixLeft ) );
     }
 
     /**
@@ -459,11 +459,11 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
                                    Acpy, m, U, m );
         assert(ret == 0);
 
-        start_trace_kernel( 2, LR_INIT_Q );
+        kernel_trace_start_lvl2( PastixKernelLvl2_LR_INIT_Q );
         ret = LAPACKE_zungqr( LAPACK_COL_MAJOR, m, Alr->rk, Alr->rk,
                               U , m, tau );
         assert(ret == 0);
-        stop_trace_kernel( 2, FLOPS_ZUNGQR( m, Alr->rk, Alr->rk ) );
+        kernel_trace_stop_lvl2( FLOPS_ZUNGQR( m, Alr->rk, Alr->rk ) );
     }
 
     memFree_null( zwork );
@@ -805,7 +805,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
             pastix_complex64_t *tmpV = v1v2 + rB;
 
             pastix_int_t flops = 0;
-            start_trace_kernel( 2, LR_GEMM_ADD_Q );
+            kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_ADD_Q );
 
             /* Form u2Tu1 */
             if (rA == N1){
@@ -877,7 +877,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                 }
                 flops += (M + N) * rank;
             }
-            stop_trace_kernel( 2, flops );
+            kernel_trace_stop_lvl2( flops );
             memFree_null(u2Tu1);
         }
     }
@@ -885,17 +885,16 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, N,
                                 v1v2, rank, NULL );
 
-    start_trace_kernel( 2, LR_GEMM_ADD_RRQR );
+    kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_ADD_RRQR );
     new_rank = core_zrrqr(rank, N,
                           v1v2, rank,
                           jpvt, tauV,
                           zwork, ldwork,
                           rwork,
                           tol * norm, nb, rank-1);
-    stop_trace_kernel( 2,
-                       (new_rank == -1) ? FLOPS_ZGEQRF( rank, N )
-                       : FLOPS_ZGEQRF( rank, new_rank ) +
-                       FLOPS_ZUNMQR( rank, N-new_rank, new_rank, PastixLeft ) );
+    kernel_trace_start_lvl2( (new_rank == -1) ? FLOPS_ZGEQRF( rank, N ) :
+                             FLOPS_ZGEQRF( rank, new_rank ) +
+                             FLOPS_ZUNMQR( rank, N-new_rank, new_rank, PastixLeft ) );
 
     /*
      * First case: The rank is too big, so we decide to uncompress the result
@@ -907,13 +906,13 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
         u = B->u;
 
         /* Uncompress B */
-        start_trace_kernel( 2, UNCOMPRESS );
+        kernel_trace_start_lvl2( PastixKernelLvl2_LR_UNCOMPRESS );
         cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
                     M, N, Bbackup.rk,
                     CBLAS_SADDR(zone),  Bbackup.u, ldbu,
                                         Bbackup.v, ldbv,
                     CBLAS_SADDR(zzero), u, M );
-        stop_trace_kernel( 2, FLOPS_ZGEMM( M, N, Bbackup.rk ) );
+        kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, Bbackup.rk ) );
 
         /* Add A into it */
         if ( A->rk == -1 ) {
@@ -922,13 +921,13 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                          zone, u + offy * M + offx, M);
         }
         else {
-            start_trace_kernel( 2, DENSE_GEMM );
+            kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
             cblas_zgemm(CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transA1,
                         M1, N1, A->rk,
                         CBLAS_SADDR(alpha), A->u, ldau,
                                             A->v, ldav,
                         CBLAS_SADDR(zone), u + offy * M + offx, M);
-            stop_trace_kernel( 2, FLOPS_ZGEMM( M1, N1, A->rk ) );
+            kernel_trace_stop_lvl2( FLOPS_ZGEMM( M1, N1, A->rk ) );
 
         }
         core_zlrfree(&Bbackup);
@@ -973,7 +972,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
 
     /* Compute Q2 factor */
     {
-        start_trace_kernel( 2, LR_GEMM_ADD_Q );
+        kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_ADD_Q );
         ret = LAPACKE_zungqr( LAPACK_COL_MAJOR, rank, new_rank, new_rank,
                               v1v2, rank, tauV );
         assert(ret == 0);
@@ -983,9 +982,8 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                     CBLAS_SADDR(zone),  u1u2, M,
                     v1v2, rank,
                     CBLAS_SADDR(zzero), B->u, ldbu);
-        stop_trace_kernel( 2,
-                           FLOPS_ZUNGQR( rank, new_rank, new_rank ) +
-                           FLOPS_ZGEMM( M, new_rank, rank ) );
+        kernel_trace_stop_lvl2( FLOPS_ZUNGQR( rank, new_rank, new_rank ) +
+                                FLOPS_ZGEMM( M, new_rank, rank ) );
 
         memcpy(B->v, work2, new_rank * N * sizeof(pastix_complex64_t));
     }
