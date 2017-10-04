@@ -45,7 +45,7 @@ sequential_zsytrf( pastix_data_t  *pastix_data,
     (void)pastix_data;
 
     MALLOC_INTERN( work1, datacode->offdmax, pastix_complex64_t );
-    MALLOC_INTERN( work2, datacode->gemmmax, pastix_complex64_t );
+    MALLOC_INTERN( work2, pastix_imax( datacode->gemmmax, datacode->blokmax), pastix_complex64_t );
 
     cblk = datacode->cblktab;
     for (i=0; i<datacode->cblknbr; i++, cblk++){
@@ -83,7 +83,7 @@ thread_pzsytrf( isched_thread_t *ctx, void *args )
     int rank = ctx->rank;
 
     MALLOC_INTERN( work1, datacode->offdmax, pastix_complex64_t );
-    MALLOC_INTERN( work2, datacode->gemmmax, pastix_complex64_t );
+    MALLOC_INTERN( work2, pastix_imax( datacode->gemmmax, datacode->blokmax), pastix_complex64_t );
 
     tasknbr = datacode->ttsknbr[rank];
     tasktab = datacode->ttsktab[rank];
