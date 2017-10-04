@@ -1,6 +1,6 @@
 /**
  *
- * @file sopalin_zhetrf.c
+ * @file sequential_zhetrf.c
  *
  *  PaStiX factorization routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,

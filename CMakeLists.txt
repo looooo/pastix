@@ -899,11 +899,6 @@ add_documented_files(
   #
   refinement/pastix_task_refine.c
   #
-  #
-  ${generated_common_sources}
-  ${generated_sopalin_sources}
-  ${generated_refinement_sources}
-  #
   example/analyze.c
   example/compress.c
   example/personal.c
@@ -912,6 +907,13 @@ add_documented_files(
   example/simple.c
   example/step-by-step.c
   )
+
+add_documented_files(
+  DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  ${generated_common_sources}
+  ${generated_sopalin_sources}
+  ${generated_refinement_sources}
+)
 
 #
 # Build documentation

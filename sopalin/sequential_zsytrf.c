@@ -1,6 +1,6 @@
 /**
  *
- * @file sopalin_zsytrf.c
+ * @file sequential_zsytrf.c
  *
  *  PaStiX factorization routines
  *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
