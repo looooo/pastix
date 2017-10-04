@@ -479,5 +479,6 @@ candGenCompressedDot( const EliminTree *etree,
     candGenDot( ctree, ccand, stream );
 
     /* Free temporary ressources */
+    memFree_null( ccand );
     eTreeExit( ctree );
 }
