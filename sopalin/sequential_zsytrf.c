@@ -102,6 +102,7 @@ thread_pzsytrf( isched_thread_t *ctx, void *args )
         /* Wait */
         do {
 #if !defined(NDEBUG)
+            /* Yield for valgrind multi-threaded debug */
             pthread_yield();
 #endif
         } while( cblk->ctrbcnt );

@@ -83,7 +83,12 @@ thread_pzpxtrf( isched_thread_t *ctx, void *args )
             continue;
 
         /* Wait */
-        do {} while( cblk->ctrbcnt );
+        do {
+#if !defined(NDEBUG)
+            /* Yield for valgrind multi-threaded debug */
+            pthread_yield();
+#endif
+        } while( cblk->ctrbcnt );
 
         /* Compute */
         cpucblk_zpxtrfsp1d( datacode, cblk, sopalin_data->diagthreshold, work );
