@@ -16,12 +16,14 @@
  * @precisions normal z -> z c
  *
  **/
+#define _GNU_SOURCE 1
 #include "common.h"
 #include "isched.h"
 #include "solver.h"
 #include "sopalin_data.h"
 #include "sopalin/coeftab_z.h"
 #include "pastix_zcores.h"
+#include <pthread.h>
 
 #if defined(PASTIX_WITH_PARSEC)
 #include "parsec/pastix_zparsec.h"
