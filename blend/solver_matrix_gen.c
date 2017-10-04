@@ -694,9 +694,16 @@ solverMatrixGen( pastix_int_t           clustnum,
                 maxd_n = k;
             }
 
+            /* Area max of off-diagonal blocks for LDL^[th] */
+            gemmarea = m * k;
+            if ( gemmarea > gemmmax ) {
+                gemmmax = gemmarea;
+            }
+
             /* Area of GEMDM updates */
             solvblok++;
             cblk_m = -1;
+            acc_m = 0;
             for( ; solvblok<lblok; solvblok++ ) {
                 k = blok_rownbr( solvblok );
 

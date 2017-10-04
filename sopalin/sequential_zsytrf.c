@@ -100,7 +100,11 @@ thread_pzsytrf( isched_thread_t *ctx, void *args )
         N = cblk_colnbr( cblk );
 
         /* Wait */
-        do {} while( cblk->ctrbcnt );
+        do {
+#if !defined(NDEBUG)
+            pthread_yield();
+#endif
+        } while( cblk->ctrbcnt );
 
         /* Compute */
         cpucblk_zsytrfsp1d( datacode, cblk, sopalin_data->diagthreshold,
