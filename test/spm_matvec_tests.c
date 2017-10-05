@@ -7,7 +7,7 @@
  * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @date 2015-01-01

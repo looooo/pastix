@@ -9,7 +9,7 @@
  * If runs one full analyze (ordering, symbolic factorization, analyze), then
  * it loops over 2 factorizations that are both used for 2 solves each.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Hastaran Matias
  * @date 2017-01-17
  *
