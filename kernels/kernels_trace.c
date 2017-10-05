@@ -2,9 +2,10 @@
  *
  * @file kernels_trace.c
  *
- *  PaStiX tarce and modelling routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * PaStiX trace and modelling routines
  *
  * @version 5.1.0
  * @author Mathieu Faverge

@@ -235,4 +235,4 @@ kernel_trace_stop( pastix_ktype_t ktype, int m, int n, int k, double flops, doub
     return;
 }
 
-#endif/* _kernels_trace_h_ */
+#endif /* _kernels_trace_h_ */
