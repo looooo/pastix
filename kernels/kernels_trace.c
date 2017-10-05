@@ -135,6 +135,8 @@ kernelsTraceStop( char *directory )
         {
             total_flops += kernels_flops[i];
         }
+
+        fprintf(stderr, "The total number of flops excuted is %lf\n", total_flops);
     }
     (void)directory;
 

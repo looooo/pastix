@@ -221,11 +221,13 @@ kernel_trace_stop( pastix_ktype_t ktype, int m, int n, int k, double flops, doub
     /* { */
     /*     double oldval, newval; */
     /*     do { */
-    /*         oldval = kernels_flops[ktype]; */
+    /*         oldval = (uint64_t)(kernels_flops[ktype]); */
     /*         newval = oldval + flops; */
-    /*     } while( !pastix_atomic_cas_64b( (uint64_t*)(kernels_flops + ktype), oldval, newval ) ); */
+    /*     } while( !pastix_atomic_cas_64b( (uint64_t*)(kernels_flops + ktype), */
+    /*                                      (uint64_t)oldval, (uint64_t)newval ) ); */
     /* } */
 
+    (void)flops;
     (void)m;
     (void)n;
     (void)k;

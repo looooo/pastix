@@ -68,35 +68,6 @@ kernels_register_thread_hook( struct thread_info_t *p_thread,
 }
 
 /**
- * @brief Start to use eztrace by loading PaStiX module
- */
-void libinit(void) __attribute__ ((constructor));
-void libinit(void)
-{
-    kernels_module.api_version   = EZTRACE_API_VERSION;
-    kernels_module.init          = eztrace_convert_kernels_init;
-    kernels_module.handle        = handle_kernels_events;
-    kernels_module.handle_stats  = handle_kernels_stats;
-    kernels_module.print_stats   = print_kernels_stats;
-    kernels_module.module_prefix = KERNELS_EVENTS_ID;
-
-    asprintf(&kernels_module.name,        "kernels"       );
-    asprintf(&kernels_module.description, "PaStiX kernels");
-
-    kernels_module.token.data = &kernels_module;
-    eztrace_convert_register_module(&kernels_module);
-}
-
-/**
- * @brief Stop to use eztrace
- */
-void libfinalize(void) __attribute__ ((destructor));
-void libfinalize(void)
-{
-    printf("unloading module \n");
-}
-
-/**
  * @brief Define events properties such as name or color
  */
 void
@@ -365,7 +336,7 @@ void print_kernels_stats()
 
                     total_flops += flops;
 
-                    printf( "Kernel %20s was called %8d times, flops=%8.3g, time=%7.2g s, perf=%7.2lf %cFlop/s\n",
+                    printf( "Kernel %-20s was called %8d times, flops=%8.3g, time=%7.2g s, perf=%7.2lf %cFlop/s\n",
                             kernels_properties[k].name, p_info->nb[k],
                             flops, time,
                             printflopsv( perf ), printflopsu( perf ) );
@@ -376,3 +347,33 @@ void print_kernels_stats()
     printf( "\n\n\tTotal number of operations: %5.2lf %cFlops\n",
             printflopsv( total_flops ), printflopsu( total_flops ) );
 }
+
+/**
+ * @brief Start to use eztrace by loading PaStiX module
+ */
+void libinit(void) __attribute__ ((constructor));
+void libinit(void)
+{
+    kernels_module.api_version   = EZTRACE_API_VERSION;
+    kernels_module.init          = eztrace_convert_kernels_init;
+    kernels_module.handle        = handle_kernels_events;
+    kernels_module.handle_stats  = handle_kernels_stats;
+    kernels_module.print_stats   = print_kernels_stats;
+    kernels_module.module_prefix = KERNELS_EVENTS_ID;
+
+    asprintf(&kernels_module.name,        "kernels"       );
+    asprintf(&kernels_module.description, "PaStiX kernels");
+
+    kernels_module.token.data = &kernels_module;
+    eztrace_convert_register_module(&kernels_module);
+}
+
+/**
+ * @brief Stop to use eztrace
+ */
+void libfinalize(void) __attribute__ ((destructor));
+void libfinalize(void)
+{
+    printf("unloading module kernels\n");
+}
+
