@@ -527,7 +527,7 @@ core_zgemmsp_2d2d( pastix_coefside_t sideA, pastix_trans_t trans,
  * @sa core_zgemmsp_1d2d
  *
  *******************************************************************************/
-static inline pastix_fixdbl_t
+static inline void
 core_zgemmsp_2d2dsub( pastix_trans_t trans,
                       pastix_int_t blok_mk,
                       pastix_int_t blok_kn,
@@ -546,9 +546,12 @@ core_zgemmsp_2d2dsub( pastix_trans_t trans,
     const pastix_complex64_t *Aptr, *Bptr;
     pastix_complex64_t *Cptr;
     pastix_int_t M, N, K, lda, ldb, ldc, cblk_n, cblk_m;
+    pastix_int_t full_m;
     size_t offsetA, offsetB, offsetC;
 
     pastix_fixdbl_t flops = 0.0;
+
+    double time = kernel_trace_start( PastixKernelGEMMBlok2d2d );
 
     /* Both cblk and fcblk must be stored in 2D */
     assert( cblk->cblktype  & CBLK_LAYOUT_2D );
@@ -579,12 +582,14 @@ core_zgemmsp_2d2dsub( pastix_trans_t trans,
     assert( blokC->fcblknm == cblk_m );
 
     K = cblk_colnbr( cblk );
+    full_m = 0;
 
     bC = blokC;
     for (bA = blokA; (bA < lblokK) && (bA->fcblknm == cblk_m); bA++) {
         M = blok_rownbr(bA);
         Aptr = A + bA->coefind - offsetA;
         lda = M;
+        full_m += M;
 
         /* Find facing C blok */
         while (!is_block_inside_fblock( bA, bC )) {
@@ -611,9 +616,12 @@ core_zgemmsp_2d2dsub( pastix_trans_t trans,
         }
     }
 
-    (void)lblokN;
+    kernel_trace_stop( PastixKernelGEMMBlok2d2d,
+                       full_m, full_m, K,
+                       flops, time );
 
-    return flops;
+    (void)lblokN;
+    return;
 }
 
 /**
@@ -699,7 +707,10 @@ core_zgemmsp_2dlrsub( pastix_coefside_t  sideA,
     const pastix_lrblock_t *lrA, *lrB;
     pastix_lrblock_t *lrC;
 
-    pastix_int_t M, N, K, cblk_n, cblk_m;
+    pastix_int_t M, N, K, cblk_n, cblk_m, full_m;
+
+    pastix_fixdbl_t flops = 0.0;
+    double time = kernel_trace_start( PastixKernelGEMMBlok2d2d );
 
     /* Both cblk and fcblk must be stored in 2D */
     assert( cblk->cblktype  & CBLK_LAYOUT_2D );
@@ -731,11 +742,13 @@ core_zgemmsp_2dlrsub( pastix_coefside_t  sideA,
     assert( blokC->fcblknm == cblk_m );
 
     K = cblk_colnbr( cblk );
+    full_m = 0;
 
     bC = blokC;
     for (bA = blokA; (bA < lblokK) && (bA->fcblknm == cblk_m); bA++) {
         M   = blok_rownbr(bA);
         lrA = bA->LRblock + sideA;
+        full_m += M;
 
         /* Find facing C blok */
         while (!is_block_inside_fblock( bA, bC )) {
@@ -760,6 +773,10 @@ core_zgemmsp_2dlrsub( pastix_coefside_t  sideA,
                         fcblk );
         }
     }
+
+    kernel_trace_stop( PastixKernelGEMMBlok2dLR,
+                       full_m, full_m, K,
+                       flops, time );
 
     (void)lblokN;
 }
@@ -1246,42 +1263,21 @@ cpublok_zgemmsp(       pastix_coefside_t   sideA,
                        pastix_complex64_t *C,
                  const pastix_lr_t        *lowrank )
 {
-    pastix_ktype_t ktype;
-    pastix_fixdbl_t time, flops = 0.0;
-
     if ((cblk->cblktype  & CBLK_COMPRESSED) &&
         (fcblk->cblktype & CBLK_COMPRESSED))
     {
-        ktype = PastixKernelGEMMBlok2dLR;
-        time  = kernel_trace_start( ktype );
-
         core_zgemmsp_2dlrsub( sideA, sideB, transB,
                               blok_mk, blok_nk, blok_mn,
                               cblk, fcblk,
                               lowrank );
-
-        kernel_trace_stop( ktype,
-                           blok_rownbr( cblk->fblokptr + blok_mk ),
-                           blok_rownbr( cblk->fblokptr + blok_nk ),
-                           cblk_colnbr( cblk ),
-                           flops, time );
     }
     else if (!(cblk->cblktype  & CBLK_COMPRESSED) &&
              !(fcblk->cblktype & CBLK_COMPRESSED))
     {
-        ktype = PastixKernelGEMMBlok2d2d;
-        time  = kernel_trace_start( ktype );
-
-        flops = core_zgemmsp_2d2dsub( transB,
-                                      blok_mk, blok_nk, blok_mn,
-                                      cblk, fcblk,
-                                      A, B, C );
-
-        kernel_trace_stop( ktype,
-                           blok_rownbr( cblk->fblokptr + blok_mk ),
-                           blok_rownbr( cblk->fblokptr + blok_nk ),
-                           cblk_colnbr( cblk ),
-                           flops, time );
+        core_zgemmsp_2d2dsub( transB,
+                              blok_mk, blok_nk, blok_mn,
+                              cblk, fcblk,
+                              A, B, C );
     }
     else {
         assert(0);

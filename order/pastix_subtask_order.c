@@ -388,7 +388,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
 
     default:
         errorPrint( "pastix_subtask_order: Ordering not available (iparm[IPARM_ORDERING]=%d)\n",
-                    iparm[IPARM_ORDERING] );
+                    (int)iparm[IPARM_ORDERING] );
         retval = PASTIX_ERR_BADPARAMETER;
         break;
     }

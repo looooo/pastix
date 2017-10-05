@@ -238,7 +238,7 @@ core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
         if ( transB == PastixNoTrans ) /* Worst case*/
         {
             /* WORK = (D * B)' */
-          for (j=0; j<K; j++, wD++) {
+            for (j=0; j<K; j++, wD++) {
                 delta = *wD;
                 cblas_zcopy(N, &B[j],     LDB,     &w[N*j], 1);
                 cblas_zscal(N, CBLAS_SADDR(delta), &w[N*j], 1);
