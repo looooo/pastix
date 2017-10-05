@@ -1,22 +1,17 @@
- /**
+/**
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @file z_bcsc_norm.c
  *
- * @version 1.0.0
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Théophile terraz
  * @date 2015-01-01
  * @precisions normal z -> c d s
  *
  **/
-/*
-  File: z_bcsc_norm.c
-
-  Functions computing norms on the BCSC.
-
-*/
-
 #include "common.h"
 #include "bcsc.h"
 #include <math.h>

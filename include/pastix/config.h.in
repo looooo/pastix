@@ -141,4 +141,4 @@
 #define END_C_DECLS            /* empty */
 #endif
 
-#endif  /* _pastix_config_h_ */
+#endif /* _pastix_config_h_ */

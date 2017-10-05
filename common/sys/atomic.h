@@ -3,9 +3,8 @@
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  */
-
-#ifndef PASTIX_ATOMIC_H_HAS_BEEN_INCLUDED
-#define PASTIX_ATOMIC_H_HAS_BEEN_INCLUDED
+#ifndef _pastix_atomic_h_
+#define _pastix_atomic_h_
 
 #include <stdint.h>
 #include <unistd.h>
@@ -161,4 +160,4 @@ static inline uint64_t pastix_atomic_add_64b( volatile uint64_t *location, uint6
     } while( !pastix_atomic_cas_64b( location, l, n ) );
     return n;
 }
-#endif  /* PASTIX_ATOMIC_H_HAS_BEEN_INCLUDED */
+#endif /* _pastix_atomic_h_ */

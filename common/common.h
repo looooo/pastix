@@ -1,25 +1,21 @@
-/*
- *  File: common.h
+/**
  *
- *  Part of a parallel direct block solver.
+ * @file common.h
  *
- *  These lines are the common data
- *  declarations for all modules.
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- *  Authors:
- *    Mathieu  Faverge    - faverge@labri.fr
- *    David    GOUDIN     - .
- *    Pascal   HENON      - henon@labri.fr
- *    Xavier   LACOSTE    - lacoste@labri.fr
- *    Francois PELLEGRINI - .
- *    Pierre   RAMET      - ramet@labri.fr
+ * @version 6.0.0
+ * @author David Goudin
+ * @author François Pellegrini
+ * @author Gregoire Pichon
+ * @author Mathieu Faverge
+ * @author Pascal Henon
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @date 2011-11-11
  *
- *  Dates:
- *    Version 0.0 - from 08 may 1998
- *                  to   08 jan 2001
- *    Version 1.0 - from 06 jun 2002
- *                  to   06 jun 2002
- */
+ **/
 #ifndef _common_h_
 #define _common_h_
 

@@ -1,6 +1,6 @@
 /**
  *
- * @file z_spm_test.c
+ * @file z_spm_tests.c
  *
  * Tests and validate the spm_convert routines.
  *

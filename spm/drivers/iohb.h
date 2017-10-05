@@ -1,5 +1,5 @@
-#ifndef IOHB_H
-#define IOHB_H
+#ifndef _iohb_h_
+#define _iohb_h_
 
 int readHB_info(const char* filename, int* M, int* N, int* nz, char** Type,
                                                       int* Nrhs);
@@ -52,4 +52,4 @@ int ParseRfmt(char* fmt, int* perline, int* width, int* prec, char* flag);
 
 void IOHBTerminate(char* message);
 
-#endif
+#endif /* _iohb_h_ */

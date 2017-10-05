@@ -15,6 +15,8 @@
  * @precisions normal z -> z c d s
  *
  **/
+#ifndef _pastix_zparsec_h_
+#define _pastix_zparsec_h_
 
 void
 parsec_zpotrf( pastix_data_t  *pastix_data,
@@ -36,4 +38,4 @@ void
 parsec_zsytrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data );
 
-
+#endif /* _pastix_zparsec_h_ */

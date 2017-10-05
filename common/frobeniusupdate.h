@@ -1,3 +1,19 @@
+/**
+ *
+ * @file frobeniusupdate.h
+ *
+ * Forumla to update frobenius norm computation in a safe manner.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Mathieu Faverge
+ * @date 2017-04-26
+ *
+ */
+#ifndef _frobeniusupdate_h_
+#define _frobeniusupdate_h_
 
 /**
  *******************************************************************************
@@ -59,3 +75,4 @@ frobenius_update( int nb, float *scale, float *sumsq, float *value )
 }
 #endif
 
+#endif /* _frobeniusupdate_h_ */
