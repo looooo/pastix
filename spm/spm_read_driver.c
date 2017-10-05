@@ -116,13 +116,13 @@ spmReadDriver( pastix_driver_t  driver,
 
             file = fopen( filename, "r" );
             if ( file == NULL ) {
-                pastix_error_print("spmReadDriver: impossible to open the file %s\n", filename );
+                pastix_print_error("spmReadDriver: impossible to open the file %s\n", filename );
                 return PASTIX_ERR_FILE;
             }
 
             /* Check integer compatibility */
             if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num)) {
-                pastix_error_print("Inconsistent integer type\n");
+                pastix_print_error("Inconsistent integer type\n");
                 fclose(file);
                 return PASTIX_ERR_INTEGER_TYPE;
             }

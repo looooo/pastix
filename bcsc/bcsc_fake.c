@@ -1,13 +1,13 @@
 /**
  * @file bcsc_fake.c
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * TODO: Use random generator from PLASMA and check that L and U are correctly
  * setup. 1. or 2. Those functions should be much simpler than this.
  *
- * @version 5.2
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste

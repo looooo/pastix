@@ -1,10 +1,13 @@
 /**
  *
- * @file spm_dof_matvec_test.c
+ * @file spm_dof_matvec_tests.c
  *
  * Tests and validate the spmMatVec routines when the spm hold constant and/or variadic dofs.
  *
- * @version 5.1.0
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @date 2015-01-01

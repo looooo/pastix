@@ -143,7 +143,7 @@ int graphSymmetrize(       pastix_int_t    n,
                 assert( newia[itercol] <= newia[itercol+1] );
 
                 if ( newia[itercol] == newia[itercol+1] ) {
-                    pastix_error_print( "graphSymmetrize: unknown %ld is fully disconnected (even from itself)\n",
+                    pastix_print_error( "graphSymmetrize: unknown %ld is fully disconnected (even from itself)\n",
                                         (long)itercol );
                     continue;
                 }

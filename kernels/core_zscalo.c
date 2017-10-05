@@ -306,6 +306,7 @@ cpublok_zscalo( pastix_trans_t            trans,
         D = cblk->fblokptr->LRblock[0].u;
 
         for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
+            M = blok_rownbr( blok );
 
             memcpy( blok->LRblock + 1, blok->LRblock, sizeof(pastix_lrblock_t) );
             if ( blok->LRblock[1].rk == -1 ) {

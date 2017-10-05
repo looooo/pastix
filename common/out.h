@@ -1,12 +1,19 @@
-/*
- * File: out.h
+/**
  *
- * Define output format string for PaStiX.
+ * @file out.h
  *
- * Authors:
- *   Mathieu Faverge - faverge@labri.fr
- *   Xavier  LACOSTE - lacoste@labri.fr
- *   Pierre  RAMET   - ramet@labri.fr
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * PaStiX memory tracking function.
+ *
+ * @version 6.0.0
+ * @author Xavier Lacoste
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Gregoire Pichon
+ * @date 2013-06-24
+ *
  */
 #ifndef _out_h_
 #define _out_h_
@@ -199,7 +206,7 @@
 #define OOC_MAX_ALLOCATED     "   [%2d]   Maximum allocated                     %.3g %s\n"
 #define OUT_ITERREFINE_GMRES    "   GMRES :\n"
 #define OUT_ITERREFINE_PIVOT    "   Simple refinement :\n"
-#define OUT_ITERREFINE_BICGSTAB  "   BICGSTAB :\n"
+#define OUT_ITERREFINE_BICGSTAB "   BICGSTAB :\n"
 #define OUT_ITERREFINE_GRAD     "   Conjuguate gradient :\n"
 #define OUT_ITERREFINE_ITER     "    - iteration %d :\n"
 #define OUT_ITERREFINE_TTS      "         time to solve                          %.3g s\n"

@@ -116,14 +116,10 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
             /* force le premier refineinement */
             lberr = 3*berr;
 
-        print_debug(DBG_REFINE_PIVOT, "REFINE : berr lberr %6g %6g\n",
-                    berr, lberr);
-
         /* Calcul de ||r|| et ||r||/||b|| */
         tmp_berr = z_bcscNormErr((void *)lur, (void *)lub, n);
 
         rberror = tmp_berr;
-        print_debug(DBG_REFINE_PIVOT, "REFINE : rberror %6g\n", rberror);
 
         if ((refinenbr < itermax)
             && (berr > epsilonrefine)
@@ -193,12 +189,10 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
     //     {
     //         MUTEX_LOCK(&(sopalin_data->mutex_comm));
     //         sopalin_data->step_comm = COMMSTEP_END;
-    //         print_debug(DBG_THCOMM, "%s:%d END\n", __FILE__, __LINE__);
     //         MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
     //         pthread_cond_broadcast(&(sopalin_data->cond_comm));
     //     }
 
     clockStop((refine_clk));
-    print_debug(DBG_SOPALIN_REFINE, "%d : refinement time %lf\n", (int)me, clockGet());
     pastix_data->dparm[DPARM_REFINE_TIME] = clockGet();
 }

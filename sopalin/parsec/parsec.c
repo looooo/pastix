@@ -2,9 +2,10 @@
  *
  * @file parsec.c
  *
- *  PaStiX PaRSEC routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @copyright 2014-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * PaStiX PaRSEC routines
  *
  * @version 6.0.0
  * @author Xavier Lacoste

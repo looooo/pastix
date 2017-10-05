@@ -1,3 +1,18 @@
+/**
+ *
+ * @file old_api.h
+ *
+ * @copyright 2013-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * file to keep compatibility with older API.
+ *
+ * @version 6.0.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @date 2017-01-17
+ *
+ */
 #ifndef _old_api_h_
 #define _old_api_h_
 

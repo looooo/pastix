@@ -1,9 +1,11 @@
 /**
+ *
  * @file laplacian.h
  *
- *  $COPYRIGHTS$
+ * @copyright 2011-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 1.0.0
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @date 2011-11-11

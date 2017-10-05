@@ -1,3 +1,19 @@
+/**
+ *
+ * @file memory.h
+ *
+ * @copyright 1998-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * PaStiX memory tracking function.
+ *
+ * @version 6.0.0
+ * @author Francois Pellegrini
+ * @author Xavier Lacoste
+ * @author Mathieu Faverge
+ * @date 2013-06-24
+ *
+ */
 /*
  *  File: memory.h
  *

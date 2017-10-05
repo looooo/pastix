@@ -1,6 +1,6 @@
 /**
  *
- * @file kernels_ev_codes.x
+ * @file kernels_ev_codes.c
  *
  * Wrappers to trace kernels with eztrace
  *

@@ -1,16 +1,18 @@
 /**
  *
- * @file spm_norm_dof_test.c
+ * @file spm_dof_norm_tests.c
  *
  * Tests and validate the spm_norm routines when the spm hold constant and/or variadic dofs.
  *
- * @version 5.1.0
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @date 2015-01-01
  *
  **/
-
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>

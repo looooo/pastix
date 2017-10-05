@@ -452,19 +452,19 @@ spmBase( pastix_spm_t *spm,
 
     /* Parameter checks */
     if ( spm == NULL ) {
-        pastix_error_print("spmBase: spm pointer is NULL");
+        pastix_print_error("spmBase: spm pointer is NULL");
         return;
     }
     if ( (spm->colptr == NULL) ||
          (spm->rowptr == NULL) )
     {
-        pastix_error_print("spmBase: spm pointer is not correctly initialized");
+        pastix_print_error("spmBase: spm pointer is not correctly initialized");
         return;
     }
     if ( (baseval != 0) &&
          (baseval != 1) )
     {
-        pastix_error_print("spmBase: baseval is incorrect, must be 0 or 1");
+        pastix_print_error("spmBase: baseval is incorrect, must be 0 or 1");
         return;
     }
 
@@ -586,7 +586,7 @@ spmConvert( int ofmttype, pastix_spm_t *spm )
 {
     if ( conversionTable[spm->fmttype][ofmttype][spm->flttype] ) {
         if ( spm->dof != 1 ) {
-            //pastix_error_print( "spmConvert: Conversion of non unique dof not yet implemented\n");
+            //pastix_print_error( "spmConvert: Conversion of non unique dof not yet implemented\n");
             return PASTIX_ERR_NOTIMPLEMENTED;
         }
         return conversionTable[spm->fmttype][ofmttype][spm->flttype]( spm );

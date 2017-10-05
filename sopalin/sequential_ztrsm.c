@@ -2,11 +2,10 @@
  *
  * @file sequential_ztrsm.c
  *
- *  PaStiX factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @copyright 2012-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Pascal Henon
  * @author Xavier Lacoste
  * @author Pierre Ramet
@@ -127,7 +126,7 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
             cblk = datacode->cblktab + t->cblknum;
 
             /* Wait */
-            do {} while( cblk->ctrbcnt );
+            do { } while( cblk->ctrbcnt );
 
             solve_ztrsmsp( mode, side, uplo, trans, diag,
                            datacode, cblk, nrhs, b, ldb );
@@ -160,7 +159,7 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
                 continue;
 
             /* Wait */
-            do {} while( cblk->ctrbcnt );
+            do { } while( cblk->ctrbcnt );
 
             solve_ztrsmsp( mode, side, uplo, trans, diag,
                            datacode, cblk, nrhs, b, ldb );

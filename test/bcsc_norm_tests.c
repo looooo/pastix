@@ -1,17 +1,19 @@
 /**
  *
- * @file bcsc_norm_test.c
+ * @file bcsc_norm_tests.c
+ *
+ * @copyright 2011-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * Tests and validate the bcsc_norm routines.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @date 2015-01-01
  *
  **/
-
-#include <stdint.h>
+ #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>

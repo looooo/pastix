@@ -216,16 +216,17 @@ starpu_zhetrf_sp2d( sopalin_data_t              *sopalin_data,
                     blokA++;
                 }
             }
+
+            for(blokA=cblk->fblokptr + 1; blokA<lblk; blokA++) {
+                if ( blokA->handler[1] ) {
+                    starpu_data_unregister_submit( blokA->handler[1] );
+                }
+            }
         }
+
         starpu_data_unpartition_submit( cblk->handler[0],
                                         cblkhandle->handlenbr,
                                         cblkhandle->handletab, STARPU_MAIN_RAM );
-
-        for(blokA=cblk->fblokptr + 1, m=0; blokA<lblk; blokA++) {
-            if ( blokA->handler[1] ) {
-                starpu_data_unregister_submit( blokA->handler[1] );
-            }
-        }
     }
     (void)desc;
 }

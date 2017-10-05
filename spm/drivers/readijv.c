@@ -1,9 +1,11 @@
 /**
+ *
  * @file readijv.c
  *
- *  $COPYRIGHTS$
+ * @copyright 2014-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 1.0.0
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -20,7 +22,7 @@
  *
  * @ingroup pastix_spm_driver
  *
- * threeFilesReadHeader - Read header from three file IJV format.
+ * @brief Read header from three file IJV format.
  *
  *******************************************************************************
  *
@@ -38,9 +40,8 @@
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the information has been read successfully
- *      \retval PASTIX_ERR_BADPARAMETER if the header has a wrong format
+ * @retval PASTIX_SUCCESS if the information has been read successfully
+ * @retval PASTIX_ERR_BADPARAMETER if the header has a wrong format
  *
  *******************************************************************************/
 int
@@ -69,7 +70,7 @@ threeFilesReadHeader(FILE         *infile,
  *
  * @ingroup pastix_spm_driver
  *
- * readIJV - Read matrix from three files IJV
+ * @brief Read matrix from three files IJV
  *
  * header file is "filename"/header
  * columns file is "filename"/ia_threeFiles
@@ -86,11 +87,9 @@ threeFilesReadHeader(FILE         *infile,
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the matrix has been read successfully
- *      \retval PASTIX_ERR_IO if a problem occurs while reading the files
- *      \retval PASTIX_ERR_BADPARAMETER if a problem occurs while opening the
- *              files
+ * @retval PASTIX_SUCCESS if the matrix has been read successfully
+ * @retval PASTIX_ERR_IO if a problem occurs while reading the files
+ * @retval PASTIX_ERR_BADPARAMETER if a problem occurs while opening the files
  *
  *******************************************************************************/
 int

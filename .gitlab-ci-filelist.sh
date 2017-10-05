@@ -1,5 +1,4 @@
 #!/bin/sh
-set -x
 
 SRCDIR_TO_ANALYZE="build bcsc blend common example graph include kernels order refinement sopalin spm symbol test"
 

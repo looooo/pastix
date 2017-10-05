@@ -233,8 +233,8 @@ struct solver_matrix_s {
     pastix_int_t              ftgtcnt;              /*+ Number of fanintargets to receive         +*/
     solver_ftgt_t * restrict  ftgttab;              /*+ Fanintarget access vector                 +*/
 
-    pastix_int_t              diagmax;              /*+ Maximum size required during diagonal block factorization (hetrf/sytrf) +*/
-    pastix_int_t              gemmmax;              /*+ Maximum size required during GEMM computation                           +*/
+    pastix_int_t              offdmax;              /*+ Maximum size of the off-diagonal blocks for hetrf/sytrf temporary buffers +*/
+    pastix_int_t              gemmmax;              /*+ Maximum size of the GEMM update for 1d GEMM computations                  +*/
     pastix_int_t              blokmax;              /*+ Maximum size of 2D blocks                 +*/
     pastix_int_t              nbftmax;              /*+ Maximum block number in ftgt              +*/
     pastix_int_t              arftmax;              /*+ Maximum block area in ftgt                +*/

@@ -664,15 +664,15 @@ solverMatrixGen( pastix_int_t           clustnum,
         SolverCblk  *solvcblk = solvmtx->cblktab;
         SolverBlok  *solvblok = solvmtx->bloktab;
         pastix_int_t gemmmax = 0;
-        pastix_int_t diagmax = 0;
+        pastix_int_t offdmax = 0;
         pastix_int_t blokmax = 0;
-        pastix_int_t gemmarea, diagarea, cblk_m, acc_m;
+        pastix_int_t gemmarea, offdarea, cblk_m, acc_m;
 
         /* Let's keep the block dimensions to print statistics informations */
         pastix_int_t maxg_m = 0;
         pastix_int_t maxg_n = 0;
-        pastix_int_t maxd_m = 0;
-        pastix_int_t maxd_n = 0;
+        pastix_int_t maxo_m = 0;
+        pastix_int_t maxo_n = 0;
 
         for(i=0;i<solvmtx->cblknbr;i++, solvcblk++)
         {
@@ -681,34 +681,45 @@ solverMatrixGen( pastix_int_t           clustnum,
             pastix_int_t n = cblk_colnbr( solvcblk );
             pastix_int_t k = blok_rownbr( solvblok );
 
+            m -= n;
+
             /*
-             * Compute the surface of the panel for LDLt factorization
-             * This could be cut down if we know at analyse time which operation
-             * will be performed.
+             * Compute the surface of the off-diagonal block in a panel for
+             * LDL^[th] factorizations
              */
-            m -= k;
-            diagarea = (k+1) * k;
-            if ( diagarea > diagmax ) {
-                diagmax = diagarea;
-                maxd_m = m;
-                maxd_n = k;
+            offdarea = m * n;
+            if ( offdarea > offdmax ) {
+                offdmax = offdarea;
+                maxo_m = m;
+                maxo_n = n;
             }
 
-            /* Area of GEMDM updates */
+            /*
+             * Compute the maximum area for 1d temporary workspace in GEMM
+             */
             solvblok++;
             cblk_m = -1;
+            acc_m  = 0;
             for( ; solvblok<lblok; solvblok++ ) {
                 k = blok_rownbr( solvblok );
 
-                /* GEMDM space to allocate */
-                gemmarea = (m+1) * k;
-                if ( gemmarea > gemmmax ) {
-                    gemmmax = gemmarea;
-                    maxg_m = m;
-                    maxg_n = k;
+                /*
+                 * Temporary workspace for GEMM
+                 * m+1 to store the diagonal in case of GEMDM
+                 */
+                if ( !(solvcblk->cblktype & CBLK_LAYOUT_2D) ) {
+                    gemmarea = (m+1) * k;
+                    if ( gemmarea > gemmmax ) {
+                        gemmmax = gemmarea;
+                        maxg_m = m;
+                        maxg_n = k;
+                    }
                 }
 
-                /* Max size for off-diagonal blocks for 2-terms version of the 2D LDL */
+                /*
+                 * Max size for off-diagonal blocks for 2-terms version of the
+                 * 2D LDL
+                 */
                 if ( solvcblk->cblktype & CBLK_TASKS_2D ) {
                     if ( solvblok->fcblknm == cblk_m ) {
                         acc_m += k;
@@ -723,14 +734,14 @@ solverMatrixGen( pastix_int_t           clustnum,
             }
         }
 
-        solvmtx->diagmax = diagmax;
+        solvmtx->offdmax = offdmax;
         solvmtx->gemmmax = gemmmax;
         solvmtx->blokmax = blokmax;
-        if (ctrl->iparm[IPARM_VERBOSE]>PastixVerboseNo && 0) {
+        if (ctrl->iparm[IPARM_VERBOSE]>PastixVerboseNo) {
             pastix_print(clustnum, 0,
-                         "Coefmax: diagonal %ld ((%ld+1) x %ld)\n"
-                         "         update   %ld (%ld x %ld)\n",
-                         (long)diagmax, (long)maxd_m, (long)maxd_n,
+                         "Coefmax: off-diagonal %6ld ((%4ld+1) x %3ld)\n"
+                         "         update       %6ld ( %4ld    x %3ld)\n",
+                         (long)offdmax, (long)maxo_m, (long)maxo_n,
                          (long)gemmmax, (long)maxg_m, (long)maxg_n );
         }
     }

@@ -1,3 +1,19 @@
+/**
+ *
+ * @file integer.c
+ *
+ * This module handles the generic integer type.
+ *
+ * @copyright 1998-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author François Pellegrini
+ * @author Mathieu Faverge
+ * @author Xavier Lacoste
+ * @date 2017-10-05
+ *
+ */
 /* Copyright 2004,2007-2009 ENSEIRB, INRIA & CNRS
  **
  ** This file is part of the Scotch software package for static mapping,
@@ -29,27 +45,6 @@
  ** The fact that you are presently reading this means that you have had
  ** knowledge of the CeCILL-C license and that you accept its terms.
  */
-/************************************************************/
-/**                                                        **/
-/**   NAME       : integer.c                               **/
-/**                                                        **/
-/**   AUTHOR     : Francois PELLEGRINI                     **/
-/**                                                        **/
-/**   FUNCTION   : This module handles the generic integer **/
-/**                type.                                   **/
-/**                                                        **/
-/**   DATES      : # Version 0.0  : from : 07 sep 1998     **/
-/**                                 to     22 sep 1998     **/
-/**                # Version 0.1  : from : 07 jan 2002     **/
-/**                                 to     17 jan 2003     **/
-/**                # Version 1.0  : from : 23 aug 2005     **/
-/**                                 to   : 19 dec 2006     **/
-/**                # Version 2.0  : from : 26 feb 2008     **/
-/**                                 to   : 26 feb 2008     **/
-/**                # Version 5.1  : from : 09 nov 2008     **/
-/**                                 to   : 21 jan 2009     **/
-/**                                                        **/
-/************************************************************/
 #include <ctype.h>
 #include <limits.h>
 #include <time.h>

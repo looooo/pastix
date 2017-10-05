@@ -395,7 +395,7 @@ candGenDotLevelSub( const EliminTree *etree,
  * @param[inout] stream
  *          The file to which write the elimination tree in the dot format.
  *
- * @param[in] level
+ * @param[in] nblevel
  *          The number of levels of the elimination tree to print.
  *
  *******************************************************************************/
@@ -479,5 +479,10 @@ candGenCompressedDot( const EliminTree *etree,
     candGenDot( ctree, ccand, stream );
 
     /* Free temporary ressources */
+    memFree_null( ccand );
     eTreeExit( ctree );
 }
+
+/**
+ * @}
+ */

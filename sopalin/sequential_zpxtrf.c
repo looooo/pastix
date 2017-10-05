@@ -1,12 +1,11 @@
 /**
  *
- * @file sopalin_zpxtrf.c
+ * @file sequential_zpxtrf.c
  *
- *  PaStiX factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @copyright 2012-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Pascal Henon
  * @author Xavier Lacoste
  * @author Pierre Ramet
@@ -83,7 +82,7 @@ thread_pzpxtrf( isched_thread_t *ctx, void *args )
             continue;
 
         /* Wait */
-        do {} while( cblk->ctrbcnt );
+        do { } while( cblk->ctrbcnt );
 
         /* Compute */
         cpucblk_zpxtrfsp1d( datacode, cblk, sopalin_data->diagthreshold, work );

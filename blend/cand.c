@@ -275,13 +275,15 @@ candSubTreeBuild( pastix_int_t           rootnum,
 
         /* Add first GEMM */
         bloknum++;
-        fcblknm = symbmtx->bloktab[ bloknum ].fcblknm;
+        if (bloknum <  symbmtx->cblktab[ rootnum+1 ].bloknum) {
+            fcblknm = symbmtx->bloktab[ bloknum ].fcblknm;
 
-        while( (bloknum <  symbmtx->cblktab[ rootnum+1 ].bloknum) &&
-               (fcblknm == symbmtx->bloktab[ bloknum   ].fcblknm) )
-        {
-            mycp += costmtx->blokcost[ bloknum ];
-            bloknum++;
+            while( (bloknum <  symbmtx->cblktab[ rootnum+1 ].bloknum) &&
+                   (fcblknm == symbmtx->bloktab[ bloknum   ].fcblknm) )
+            {
+                mycp += costmtx->blokcost[ bloknum ];
+                bloknum++;
+            }
         }
     }
     etree->nodetab[ rootnum ].cripath = mycp;

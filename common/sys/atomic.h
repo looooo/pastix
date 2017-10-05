@@ -1,11 +1,19 @@
-/*
- * Copyright (c) 2009-2012 The University of Tennessee and The University
- *                         of Tennessee Research Foundation.  All rights
- *                         reserved.
- */
-
-#ifndef PASTIX_ATOMIC_H_HAS_BEEN_INCLUDED
-#define PASTIX_ATOMIC_H_HAS_BEEN_INCLUDED
+/**
+ *
+ * @file atomic.h
+ *
+ * @copyright 2009-2012 The University of Tennessee and The University of
+ *                      Tennessee Research Foundation. All rights reserved.
+ * @copyright 2014-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Mathieu Faverge
+ * @date 2017-10-05
+ *
+ **/
+#ifndef _pastix_atomic_h_
+#define _pastix_atomic_h_
 
 #include <stdint.h>
 #include <unistd.h>
@@ -161,4 +169,4 @@ static inline uint64_t pastix_atomic_add_64b( volatile uint64_t *location, uint6
     } while( !pastix_atomic_cas_64b( location, l, n ) );
     return n;
 }
-#endif  /* PASTIX_ATOMIC_H_HAS_BEEN_INCLUDED */
+#endif /* _pastix_atomic_h_ */

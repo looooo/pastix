@@ -1,26 +1,19 @@
-/*
- * Copyright (c) 2009-2012 The University of Tennessee and The University
- *                         of Tennessee Research Foundation.  All rights
- *                         reserved.
+/**
+ *
+ * @file timing.h
+ *
+ * @copyright 2009-2012 The University of Tennessee and The University of
+ *                      Tennessee Research Foundation. All rights reserved.
+ * @copyright 2014-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
  * Timing system specifics imported from PaRSEC project.
- */
-/*
- *  File: timing.h
  *
- *  Part of a parallel direct block solver.
+ * @version 6.0.0
+ * @author Mathieu Faverge
+ * @date 2017-10-05
  *
- *  These file defines the macro to measure computational times of the
- *  different code sections.
- *
- *  Authors:
- *    Mathieu  Faverge    - faverge@labri.fr
- *    David    GOUDIN     - .
- *    Pascal   HENON      - henon@labri.fr
- *    Xavier   LACOSTE    - lacoste@labri.fr
- *    Francois PELLEGRINI - .
- *    Pierre   RAMET      - ramet@labri.fr
- *
- */
+ **/
 #ifndef _timing_h_
 #define _timing_h_
 

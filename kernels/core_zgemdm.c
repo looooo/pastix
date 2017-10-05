@@ -12,7 +12,7 @@
  * @version 6.0.0
  * @author Dulceneia Becker
  * @author Mathieu Faverge
- * @date 2011-1-18
+ * @date 2011-01-18
  * @precisions normal z -> c d s
  *
  **/

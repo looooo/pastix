@@ -1,3 +1,15 @@
+!
+! @file pastix_enums.F90
+!
+! PaStiX fortran 90 wrappers to define enums and datatypes
+!
+! @copyright 2017-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+!                      Univ. Bordeaux. All rights reserved.
+!
+! @version 6.0.0
+! @author Mathieu Faverge
+! @date 2017-01-01
+!
 module pastix_enums
   use iso_c_binding
   implicit none

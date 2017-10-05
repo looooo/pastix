@@ -137,4 +137,4 @@ static inline void stop_trace_kernel(int level, double flops){
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 }
 
-#endif/* _kernels_ev_codes_h_ */
+#endif /* _kernels_ev_codes_h_ */

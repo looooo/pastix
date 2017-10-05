@@ -98,7 +98,7 @@ coeftab_zdump( pastix_data_t      *pastix_data,
  * @param[in] solvA
  *          The solver matrix A.
  *
- * @param[inout] cblkB
+ * @param[inout] solvB
  *          The solver matrix B.
  *          On exit, B coefficient arrays are overwritten by the result of
  *          (B-A).

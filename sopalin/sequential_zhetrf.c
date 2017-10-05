@@ -1,12 +1,11 @@
 /**
  *
- * @file sopalin_zhetrf.c
+ * @file sequential_zhetrf.c
  *
- *  PaStiX factorization routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @copyright 2012-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Pascal Henon
  * @author Xavier Lacoste
  * @author Pierre Ramet
@@ -42,10 +41,8 @@ sequential_zhetrf( pastix_data_t  *pastix_data,
     pastix_int_t  N, i;
     (void)pastix_data;
 
-    MALLOC_INTERN( work1, pastix_imax(datacode->gemmmax, datacode->diagmax),
-                   pastix_complex64_t );
-    MALLOC_INTERN( work2, pastix_imax(datacode->gemmmax, datacode->arftmax),
-                   pastix_complex64_t );
+    MALLOC_INTERN( work1, datacode->offdmax, pastix_complex64_t );
+    MALLOC_INTERN( work2, pastix_imax( datacode->gemmmax, datacode->blokmax), pastix_complex64_t );
 
     cblk = datacode->cblktab;
     for (i=0; i<datacode->cblknbr; i++, cblk++){
@@ -82,9 +79,8 @@ thread_pzhetrf( isched_thread_t *ctx, void *args )
     pastix_int_t  tasknbr, *tasktab;
     int rank = ctx->rank;
 
-    MALLOC_INTERN( work1, pastix_imax(datacode->gemmmax, datacode->diagmax),
-                   pastix_complex64_t );
-    MALLOC_INTERN( work2, datacode->gemmmax, pastix_complex64_t );
+    MALLOC_INTERN( work1, datacode->offdmax, pastix_complex64_t );
+    MALLOC_INTERN( work2, pastix_imax( datacode->gemmmax, datacode->blokmax), pastix_complex64_t );
 
     tasknbr = datacode->ttsknbr[rank];
     tasktab = datacode->ttsktab[rank];
@@ -100,7 +96,7 @@ thread_pzhetrf( isched_thread_t *ctx, void *args )
         N = cblk_colnbr( cblk );
 
         /* Wait */
-        do {} while( cblk->ctrbcnt );
+        do { } while( cblk->ctrbcnt );
 
         /* Compute */
         cpucblk_zhetrfsp1d( datacode, cblk, sopalin_data->diagthreshold,

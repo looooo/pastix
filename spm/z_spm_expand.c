@@ -57,7 +57,7 @@ z_spmCSCExpand(const pastix_spm_t *spm)
     }
 
     if ( spm->layout != PastixColMajor ) {
-        pastix_error_print( "Unsupported layout\n" );
+        pastix_print_error( "Unsupported layout\n" );
         return NULL;
     }
 
@@ -242,7 +242,7 @@ z_spmCSRExpand(const pastix_spm_t *spm)
     }
 
     if ( spm->layout != PastixColMajor ) {
-        pastix_error_print( "Unsupported layout\n" );
+        pastix_print_error( "Unsupported layout\n" );
         return NULL;
     }
 

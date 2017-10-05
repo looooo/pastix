@@ -16,9 +16,7 @@
  * @precisions normal z -> s d c
  *
  **/
-#ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
-#endif
 #include "common.h"
 #include "solver.h"
 #include "bcsc.h"
@@ -182,7 +180,7 @@ cpucblk_zdump( pastix_coefside_t side,
  * @param[in] itercblk
  *          The index of the cblk to initialize.
  *
- * @param[inout] directrory
+ * @param[inout] directory
  *          The pointer to the temporary directory where to store the output
  *          files.  Used only if PASTIX_DEBUG_DUMP_COEFTAB is defined.
  *

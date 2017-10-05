@@ -1,3 +1,18 @@
+/**
+ *
+ * @file integer_sort_mtypes.c
+ *
+ * File template to generate sort functions using qsort based algorithm.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author François Pellegrini
+ * @author Xavier Lacoste
+ * @date 2011-11-11
+ *
+ */
 /* This file is part of the Scotch distribution. It does
 ** not have the stardard Scotch header with the INRIA
 ** copyright notice because it is a very slight adaptation

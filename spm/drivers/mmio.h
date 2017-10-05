@@ -6,8 +6,8 @@
 *
 */
 
-#ifndef MM_IO_H
-#define MM_IO_H
+#ifndef _mmio_h_
+#define _mmio_h_
 
 #define MM_MAX_LINE_LENGTH 1025
 #define MatrixMarketBanner "%%MatrixMarket"
@@ -126,6 +126,4 @@ int mm_read_mtx_crd_entry(FILE *f, int *Itab, int *Jtab, double *real, double *i
 int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
                 double **val_, int **I_, int **J_);
 
-
-
-#endif
+#endif /* _mmio_h_ */

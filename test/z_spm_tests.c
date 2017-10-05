@@ -1,10 +1,13 @@
 /**
  *
- * @file z_spm_test.c
+ * @file z_spm_tests.c
  *
  * Tests and validate the spm_convert routines.
  *
- * @version 5.1.0
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @date 2015-01-01
