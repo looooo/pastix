@@ -340,12 +340,13 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                        pastix_complex64_t *C,
                  const pastix_lr_t        *lowrank )
 {
-    pastix_ktype_t ktype;
-    pastix_fixdbl_t time, flops = 0.0;
-    pastix_int_t n = cblk_colnbr( cblk );
-    pastix_int_t m = cblk->stride - n;
+    if (  cblk[0].fblokptr + 1 < cblk[1].fblokptr )
+    {
+        pastix_ktype_t ktype;
+        pastix_fixdbl_t time, flops = 0.0;
+        pastix_int_t n = cblk_colnbr( cblk );
+        pastix_int_t m = cblk->stride - n;
 
-    if (  cblk[0].fblokptr + 1 < cblk[1].fblokptr ) {
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
             ktype = PastixKernelTRSMCblkLR;
             time  = kernel_trace_start( ktype );
@@ -370,8 +371,9 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
             }
             flops = FLOPS_ZTRSM( PastixRight, m, n );
         }
+
+        kernel_trace_stop( ktype, m, n, 0, flops, time );
     }
-    kernel_trace_stop( ktype, m, n, 0, flops, time );
 }
 
 /**
