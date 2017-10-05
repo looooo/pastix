@@ -2,7 +2,10 @@
  *
  * @file flops.h
  *
- *  File provided by Univ. of Tennessee,
+ * @copyright 2010-2012 The University of Tennessee and The University of
+ *                      Tennessee Research Foundation. All rights reserved.
+ * @copyright 2012-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 1.0.0
  * @author Mathieu Faverge

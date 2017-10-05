@@ -1,16 +1,16 @@
 /**
- * @file: analyze.c
+ * @file analyze.c
  *
  * @brief A simple example that performs only the analyses steps onto the given graph.
-
+ *
  * These tests doesn't require the values of the matrix.
  *
  * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
- * @author  Pierre Ramet
- * @date    2017-05-17
+ * @author Pierre Ramet
+ * @date 2017-05-17
  *
  * @ingroup pastix_examples
  * @code

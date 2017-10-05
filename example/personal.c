@@ -7,8 +7,8 @@
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
- * @author  Pierre Ramet
- * @date    2017-05-17
+ * @author Pierre Ramet
+ * @date 2017-05-17
  *
  * @ingroup pastix_examples
  * @code

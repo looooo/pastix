@@ -15,11 +15,11 @@ include(CMakeDependentOption)
 include(CheckFunctionExists)
 
 # The current version number
-set (PASTIX_VERSION_MAJOR 6)
-set (PASTIX_VERSION_MINOR 0)
-set (PASTIX_VERSION_MICRO 0)
+set(PASTIX_VERSION_MAJOR 6)
+set(PASTIX_VERSION_MINOR 0)
+set(PASTIX_VERSION_MICRO 0)
 
-set( PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VERSION_MICRO}" )
+set(PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VERSION_MICRO}")
 
 # Add extra cmake module path and initialize morse cmake modules
 # --------------------------------------------------------------
@@ -654,7 +654,6 @@ set(PASTIX_LIB_SRCS
   blend/splitsymbol.c
 
   common/api.c
-  common/errors.c
   common/integer.c
   common/isched.c
 #  common/memory.c

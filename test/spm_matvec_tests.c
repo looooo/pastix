@@ -1,8 +1,11 @@
 /**
  *
- * @file spm_matvec_test.c
+ * @file spm_matvec_tests.c
  *
  * Tests and validate the spm_matvec routines.
+ *
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 5.1.0
  * @author Mathieu Faverge
@@ -10,7 +13,6 @@
  * @date 2015-01-01
  *
  **/
-
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>

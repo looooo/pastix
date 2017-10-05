@@ -2,24 +2,18 @@
  *
  * @file isched_hwloc.c
  *
- * Copyright (c) 2008-2014 The University of Bordeaux, IPB, LaBRI, Inria -
- *                         Bordeaux-Sud-Ouest.  All rights reserved.
+ * @copyright 2008-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ * @copyright 2010-2014 The University of Tennessee and The University of
+ *                      Tennessee Research Foundation. All rights reserved.
  *
- * Copyright (c) 2010-2014 The University of Tennessee and The University
- *                         of Tennessee Research Foundation.  All rights
- *                         reserved.
+ * PaStiX thread binding routines.
  *
- *  PaStiX thread binding routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
- *
- * Contains basic functions to bind threads.
- *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
- **/
+ */
 #include "common.h"
 #include "isched_hwloc.h"
 

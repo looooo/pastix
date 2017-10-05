@@ -1,9 +1,11 @@
 /**
+ *
  * @file readhb.c
  *
- *  $COPYRIGHTS$
+ * @copyright 2014-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 1.0.0
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -16,11 +18,11 @@
 #include "drivers/iohb.h"
 
 /**
- * ******************************************************************************
+ *******************************************************************************
  *
  * @ingroup pastix_spm_driver
  *
- * readHB - Interface to the Harwell-Boeing C driver (iohb.c)
+ * @brief Interface to the Harwell-Boeing C driver (iohb.c)
  *
  *******************************************************************************
  *
@@ -32,10 +34,9 @@
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the matrix has been read successfully
- *      \retval PASTIX_ERR_IO if a problem occured in the Harwell Boeing driver
- *      \retval PASTIX_ERR_BADPARAMETER if the matrix is no in a supported format
+ * @retval PASTIX_SUCCESS if the matrix has been read successfully
+ * @retval PASTIX_ERR_IO if a problem occured in the Harwell Boeing driver
+ * @retval PASTIX_ERR_BADPARAMETER if the matrix is no in a supported format
  *
  *******************************************************************************/
 int

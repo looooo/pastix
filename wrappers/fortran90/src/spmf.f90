@@ -1,3 +1,15 @@
+!
+! @file spmf.f90
+!
+! SPM rotine fortran 90 wrappers
+!
+! @copyright 2017-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+!                      Univ. Bordeaux. All rights reserved.
+!
+! @version 6.0.0
+! @author Mathieu Faverge
+! @date 2017-01-01
+!
 module spmf
   use iso_c_binding
   use pastix_enums

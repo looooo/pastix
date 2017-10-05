@@ -1,3 +1,15 @@
+!
+! @file pastixf.f90
+!
+! PaStiX routine wrappers for Fortan 90
+!
+! @copyright 2017-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+!                      Univ. Bordeaux. All rights reserved.
+!
+! @version 6.0.0
+! @author Mathieu Faverge
+! @date 2017-01-01
+!
 module pastixf
   use iso_c_binding
   use pastix_enums

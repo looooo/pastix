@@ -1,20 +1,19 @@
-/*
- *  File: pastix/datatypes.h
+/**
  *
- *  Definitions of the datatypes used in PaStiX
+ * @file datatypes.h
  *
- *  Authors:
- *    Mathieu  Faverge    - faverge@labri.fr
- *    Xavier   LACOSTE    - lacoste@labri.fr
- *    Pierre   RAMET      - ramet@labri.fr
+ * @copyright 2013-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- *  Dates:
- *    Version 0.0 - from 08 may 1998
- *                  to   08 jan 2001
- *    Version 1.0 - from 06 jun 2002
- *                  to   06 jun 2002
+ * Definitions of the datatypes used in PaStiX
+ *
+ * @version 6.0.0
+ * @author Mathieu Faverge
+ * @author Xavier Lacoste
+ * @author Pierre Ramet
+ * @date 2017-01-17
+ *
  */
-
 #ifndef _pastix_datatypes_h_
 #define _pastix_datatypes_h_
 #include <inttypes.h>

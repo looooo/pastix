@@ -1,6 +1,6 @@
 /**
  *
- * @file eztrace_convert_kernels.h
+ * @file eztrace_convert_kernels.c
  *
  * Module to convert eztrace events
  *

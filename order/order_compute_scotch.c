@@ -110,11 +110,10 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
                       1);
     }
 #endif
-    print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphInit <\n");
+
     pastixOrderAlloc(ordemesh, n, n);
     SCOTCH_graphInit( &scotchgraph );
 
-    print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphBuild <\n");
     if (SCOTCH_graphBuild(&scotchgraph,   /* Graph to build     */
                           baseval,        /* baseval            */
                           n,              /* Number of vertices */
@@ -134,7 +133,6 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
     {
         Clock timer;
         clockStart(timer);
-        print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphCheck <\n");
         if (SCOTCH_graphCheck(&scotchgraph)) {
             errorPrint("pastix: graphCheck");
             EXIT(MOD_SOPALIN,INTERNAL_ERR);

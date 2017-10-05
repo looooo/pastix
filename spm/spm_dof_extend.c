@@ -60,7 +60,7 @@ spmDofExtend( const pastix_spm_t *spm,
         return (pastix_spm_t *)spm;
 
     if ( spm->dof != 1 ) {
-        pastix_error_print( "Cannot extend spm including dofs already\n" );
+        pastix_print_error( "Cannot extend spm including dofs already\n" );
         return (pastix_spm_t *)spm;
     }
 

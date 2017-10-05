@@ -102,10 +102,8 @@ pastixOrderComputePTScotch( pastix_data_t  *pastix_data,
     nnz    = colptr[n] - baseval;
 
     /* Build distributed graph */
-    print_debug(DBG_SCOTCH, "> SCOTCH_dgraphInit <\n");
     SCOTCH_dgraphInit(&dgraph, pastix_comm);
 
-    print_debug(DBG_ORDER_SCOTCH, "> SCOTCH_graphBuild <\n");
     if ( SCOTCH_dgraphBuild (&dgraph,
                              baseval,      /* baseval */
                              n,            /* number of local vertices */
@@ -124,13 +122,11 @@ pastixOrderComputePTScotch( pastix_data_t  *pastix_data,
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
 
-    print_debug(DBG_PASTIXORDER_SCOTCH, "> SCOTCH_dgraphCheck <\n");
     if (SCOTCH_dgraphCheck(&dgraph)) {
         errorPrint("pastix: SCOTCH_dgraphCheck");
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
 
-    print_debug(DBG_SCOTCH, "> SCOTCH_stratInit <\n");
     if (SCOTCH_stratInit(&stratdat))
     {
         errorPrint("pastix : SCOTCH_stratInit");
@@ -165,7 +161,6 @@ pastixOrderComputePTScotch( pastix_data_t  *pastix_data,
             pastix_print(procnum, 0, "PT-Scotch Strategy |%s|\n", strat);
     }
 
-    print_debug(DBG_SCOTCH, "> SCOTCH_stratDgraphOrder <\n");
     if (SCOTCH_stratDgraphOrder(&stratdat, strat))
     {
         errorPrint("pastix : SCOTCH_stratDgraphOrder");
@@ -177,24 +172,20 @@ pastixOrderComputePTScotch( pastix_data_t  *pastix_data,
 #endif
 
     clockStart(timer);
-    print_debug(DBG_SCOTCH, "> SCOTCH_dgraphOrderInit <\n");
     if (0 != SCOTCH_dgraphOrderInit(&dgraph, &ordedat))
     {
         errorPrint("pastix : SCOTCH_dgraphOrderInit");
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
 
-    print_debug(DBG_SCOTCH, "> SCOTCH_dgraphOrderCompute <\n");
     if (0 != SCOTCH_dgraphOrderCompute(&dgraph, &ordedat, &stratdat))
     {
         errorPrint("pastix : SCOTCH_dgraphOrderCompute");
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
 
-    print_debug(DBG_SCOTCH, "> SCOTCH_stratExit <\n");
     SCOTCH_stratExit(&stratdat);
 
-    /* print_debug(DBG_SCOTCH, "> SCOTCH_dgraphOrderPerm <\n"); */
     /*       if (0 != SCOTCH_dgraphOrderPerm(dgraph, ordedat, perm)) */
     /*  { */
     /*    errorPrint("pastix : SCOTCH_dgraphOrderPerm"); */

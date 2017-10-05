@@ -106,8 +106,6 @@ pastix_task_refine( pastix_data_t *pastix_data,
     pastix_order_t *ordemesh = pastix_data->ordemesh;
     double timer;
 
-    print_debug(DBG_STEP, "->pastix_task_refine\n");
-
     if (rhsnbr > 1)
     {
         errorPrintW("Refinement works only with 1 rhs, please call them one after the other.");

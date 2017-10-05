@@ -1,9 +1,11 @@
 /**
+ *
  * @file readrsa.c
  *
- *  $COPYRIGHTS$
+ * @copyright 2011-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 1.0.0
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -65,7 +67,7 @@ FC_GLOBAL(wreadmtc,WREADMTC)(int        *tmp1,
  *
  * @ingroup pastix_spm_driver
  *
- * readRSAHeader - Read the header structure of a RSA file
+ * @brief Read the header structure of a RSA file
  *
  *******************************************************************************
  *
@@ -131,7 +133,7 @@ readRSAHeader( const char *filename,
  *
  * @ingroup pastix_spm_driver
  *
- * readRSA - Read a RSA matrix file. This driver reads only real matrices, and
+ * @brief Read a RSA matrix file. This driver reads only real matrices, and
  * does not support complex matrices.
  * The matrix is returned in double, convert it to real if needed through TODO
  *
@@ -147,10 +149,9 @@ readRSAHeader( const char *filename,
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the matrix has been read successfully
- *      \retval PASTIX_ERR_IO if a problem occured in the RSA driver
- *      \retval PASTIX_ERR_BADPARAMETER if the matrix is no in a supported format
+ * @retval PASTIX_SUCCESS if the matrix has been read successfully
+ * @retval PASTIX_ERR_IO if a problem occured in the RSA driver
+ * @retval PASTIX_ERR_BADPARAMETER if the matrix is no in a supported format
  *
  *******************************************************************************/
 int

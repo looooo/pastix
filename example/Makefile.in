@@ -1,3 +1,17 @@
+##
+#
+# @file Makefile.in
+#
+# @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                      Univ. Bordeaux. All rights reserved.
+#
+# Makefile template for installed sources.
+#
+# @version 6.0.0
+# @author Mathieu Faverge
+# @date 2017-10-05
+#
+##
 PASTIX_DIR=@CMAKE_INSTALL_PREFIX@
 
 PKG_CONFIG_PATH:=${PKG_CONFIG_PATH}:@CMAKE_INSTALL_PREFIX@/lib/pkgconfig

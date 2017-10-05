@@ -151,7 +151,6 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     pastixOrderBase( ordemesh, 0 );
     graphBase( graph, 0 );
 
-    print_debug(DBG_STEP, "-> pastix_subtask_symbfact\n");
     if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
         pastix_print(procnum, 0, OUT_STEP_FAX );
 

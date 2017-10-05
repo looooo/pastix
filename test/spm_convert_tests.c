@@ -1,10 +1,13 @@
 /**
  *
- * @file spm_convert_test.c
+ * @file spm_convert_tests.c
+ *
+ * @copyright 2011-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
  * Test and validate the spmConvert routine.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @date 2015-01-01

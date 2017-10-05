@@ -1,11 +1,10 @@
 /**
  * @file laplacian.c
  *
- *  This file contains the user routine to generate 1, 2 and 3 dimensional Laplacian
- *  matrices.
- *  $COPYRIGHTS$
+ * @copyright 2011-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 1.0.0
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste

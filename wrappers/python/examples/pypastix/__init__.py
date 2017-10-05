@@ -2,6 +2,19 @@
 PyPaStiX
 ========
 
+ @file __init__.py
+
+ PaStiX python module intialization
+
+ @copyright 2017-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+                      Univ. Bordeaux. All rights reserved.
+
+ @version 6.0.0
+ @author Pierre Ramet
+ @author Mathieu Faverge
+ @author Louis Poirel
+ @date 2017-05-04
+
 """
 import ctypes
 import ctypes.util

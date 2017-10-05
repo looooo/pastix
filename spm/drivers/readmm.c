@@ -1,9 +1,11 @@
 /**
+ *
  * @file readmm.c
  *
- *  $COPYRIGHTS$
+ * @copyright 2011-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 1.0.0
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -20,7 +22,8 @@
  *
  * @ingroup pastix_spm_driver
  *
- * z_readMM - Read the data part of a complex matrix in Matrix Market file.
+ * @brief Read the data part of a complex matrix in Matrix Market file.
+ *
  * For more information about matrix market format see mmio.c/mmio.h
  *
  *******************************************************************************
@@ -34,9 +37,8 @@
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the matrix has been read successfully
- *      \retval PASTIX_ERR_IO if a problem occured in the RSA driver
+ * @retval PASTIX_SUCCESS if the matrix has been read successfully
+ * @retval PASTIX_ERR_IO if a problem occured in the RSA driver
  *
  *******************************************************************************/
 int
@@ -77,7 +79,7 @@ z_readMM( FILE *file,
  *
  * @ingroup pastix_spm_driver
  *
- * d_readMM - Read the data part of a real matrix in Matrix Market file.
+ * @brief Read the data part of a real matrix in Matrix Market file.
  * For more information about matrix market format see mmio.c/mmio.h
  *
  *******************************************************************************
@@ -91,9 +93,8 @@ z_readMM( FILE *file,
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the matrix has been read successfully
- *      \retval PASTIX_ERR_IO if a problem occured in the RSA driver
+ * @retval PASTIX_SUCCESS if the matrix has been read successfully
+ * @retval PASTIX_ERR_IO if a problem occured in the RSA driver
  *
  *******************************************************************************/
 int
@@ -134,7 +135,7 @@ d_readMM( FILE *file,
  *
  * @ingroup pastix_spm_driver
  *
- * p_readMM - Read the data part of a pattern matrix in Matrix Market file.
+ * @brief Read the data part of a pattern matrix in Matrix Market file.
  * For more information about matrix market format see mmio.c/mmio.h
  *
  *******************************************************************************
@@ -148,9 +149,8 @@ d_readMM( FILE *file,
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the matrix has been read successfully
- *      \retval PASTIX_ERR_IO if a problem occured in the RSA driver
+ * @retval PASTIX_SUCCESS if the matrix has been read successfully
+ * @retval PASTIX_ERR_IO if a problem occured in the RSA driver
  *
  *******************************************************************************/
 int
@@ -187,7 +187,7 @@ p_readMM( FILE *file,
  *
  * @ingroup pastix_spm_driver
  *
- * readMM - Read a matrix in Matrix Market fill. This corresponds to
+ * @brief Read a matrix in Matrix Market fill. This corresponds to
  * IJV format with (%d %d[ %lf[ %lf]]) format per line.
  * For more information about matrix market format see mmio.c/mmio.h
  *
@@ -201,10 +201,9 @@ p_readMM( FILE *file,
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the matrix has been read successfully
- *      \retval PASTIX_ERR_IO if a problem occured in the RSA driver
- *      \retval PASTIX_ERR_BADPARAMETER if the matrix is no in a supported format
+ * @retval PASTIX_SUCCESS if the matrix has been read successfully
+ * @retval PASTIX_ERR_IO if a problem occured in the RSA driver
+ * @retval PASTIX_ERR_BADPARAMETER if the matrix is no in a supported format
  *
  *******************************************************************************/
 int

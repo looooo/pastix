@@ -1,3 +1,14 @@
+###
+#
+#  @copyright 2013-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @version 6.0.0
+#  @author Mathias Hastaran
+#  @date 2014-06-24
+#
+###
+
 set (EXAMPLES
   simple.c
   step-by-step.c

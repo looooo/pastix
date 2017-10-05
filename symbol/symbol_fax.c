@@ -10,7 +10,7 @@
  *
  * @version 6.0.0
  * @author Francois Pellegrini
- * @date 2016-11
+ * @date 2016-11-01
  *
  *   Dates:
  *     Version 0.0 - from 22 jul 1998 to 29 sep 1998

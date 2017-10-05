@@ -1,16 +1,18 @@
-/*
- *  File: integer.h
+/**
  *
- *  Authors:
- *    Mathieu  Faverge    - faverge@labri.fr
- *    Xavier   LACOSTE    - lacoste@labri.fr
- *    Pierre   RAMET      - ramet@labri.fr
+ * @file integer.h
  *
- *  Dates:
- *    Version 0.0 - from 08 may 1998
- *                  to   08 jan 2001
- *    Version 1.0 - from 06 jun 2002
- *                  to   06 jun 2002
+ * This module handles the generic integer type.
+ *
+ * @copyright 1998-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author François Pellegrini
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
+ * @date 2017-10-05
+ *
  */
 #ifndef _integer_h_
 #define _integer_h_

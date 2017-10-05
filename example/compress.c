@@ -8,8 +8,8 @@
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
- * @author  Gregoire Pichon
- * @date    2017-06-31
+ * @author Gregoire Pichon
+ * @date 2017-06-31
  *
  * @ingroup pastix_examples
  * @code

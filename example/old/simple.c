@@ -1,16 +1,16 @@
 /**
- *  @file simple.c
+ * @file old/simple.c
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- *  This is a simple example that:
- *  reads the matrix, checks if it is correct and corrects it if needed,
- *  and then runs pastix in one call.
+ * This is a simple example that:
+ * reads the matrix, checks if it is correct and corrects it if needed,
+ * and then runs pastix in one call.
  *
  * @version 5.1.0
- * @author  Hastaran Matias
- * @date    2017-01-17
+ * @author Hastaran Matias
+ * @date 2017-01-17
  *
  **/
 #include <pastix.h>

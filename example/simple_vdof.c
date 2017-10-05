@@ -1,5 +1,5 @@
 /**
- * @file: simple_vdof.c
+ * @file simple_vdof.c
  *
  * @brief A variadic dofs example.
  *
@@ -7,8 +7,8 @@
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0
- * @author  Hastaran Matias
- * @date    2017-01-17
+ * @author Hastaran Matias
+ * @date 2017-01-17
  *
  * @ingroup pastix_examples
  * @code

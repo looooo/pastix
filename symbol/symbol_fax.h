@@ -10,7 +10,7 @@
  * @version 6.0.0
  * @author Francois Pellegrini
  * @author Mathieu Faverge
- * @date 2016-11
+ * @date 2016-11-01
  *
  * @addtogroup symbol_dev_fax
  * @{

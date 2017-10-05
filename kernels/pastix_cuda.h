@@ -1,7 +1,14 @@
 /**
  * @file pastix_cuda.h
  *
- * Copyright (c) 2016      Inria. All rights reserved.
+ * PaStiX GPU kernel header.
+ *
+ * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Mathieu Faverge
+ * @date 2016-01-01
  *
  */
 #ifndef _pastix_cuda_h_

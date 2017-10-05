@@ -11,7 +11,7 @@
  * @author Gregoire Pichon
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2015-04
+ * @date 2015-04-01
  *
  **/
 #include "common.h"

@@ -1,9 +1,11 @@
 /**
  *
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * @file get_options.c
  *
- * @version 1.0.0
+ * @copyright 2006-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste

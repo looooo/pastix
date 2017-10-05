@@ -30,21 +30,22 @@
    Engineering a sort function; Jon Bentley and M. Douglas McIlroy;
    Software - Practice and Experience; Vol. 23 (11), 1249-1265, 1993.  */
 
-
-/*
-  File: common_sort.c
-
-  File to include to create a new sort function using qsort based
-  algorithm.
-
-  Authors: François Pellegrini
-
-*/
-
-#ifndef MAX_THRESH
-
+/**
+ *
+ * @file common_sort.c
+ *
+ * File template to generate sort functions using qsort based algorithm.
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author François Pellegrini
+ * @author Xavier Lacoste
+ * @date 2011-11-11
+ *
+ */
 #define MAX_THRESH 6
-
 #define max_thresh                  (MAX_THRESH * INTSORTSIZE) /* Variable turned into constant */
 
 /* Stack node declarations used to store unfulfilled partition obligations. */

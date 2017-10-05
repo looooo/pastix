@@ -27,19 +27,19 @@
 #include <limits.h>
 #include "sys/atomic.h"
 #include "FCmangle.h"
-#include "debug.h"
 #include "memory.h"
 #include "integer.h"
 #include "timing.h"
-#include "trace.h"
 #include "pastixdata.h"
 #include "out.h"
 
 /********************************************************************
  * Errors functions
  */
-void errorProg  (const char * const);
-void errorPrintW(const char * const, ...);
+#if defined(__GNUC__)
+static inline void pastix_print_error( const char * const fmt, ...) __attribute__((format(printf,3,4)));
+static inline void pastix_print_warning( const char * const fmt, ...) __attribute__((format(printf,3,4)));
+#endif
 
 /*
   Function: errorPrint
@@ -56,7 +56,8 @@ void errorPrintW(const char * const, ...);
   Returns:
   VOID - in all cases.
 */
-static inline void pastix_error_print( const char * const fmt, ... )
+static inline void
+pastix_print_error( const char * const fmt, ... )
 {
     va_list arglist;
     va_start(arglist, fmt);
@@ -64,7 +65,17 @@ static inline void pastix_error_print( const char * const fmt, ... )
     va_end(arglist);
 }
 
-#define errorPrint pastix_error_print
+static inline void
+pastix_print_warning( const char * const fmt, ... )
+{
+    va_list arglist;
+    va_start(arglist, fmt);
+    fprintf(stderr, "WARNING: " fmt, arglist);
+    va_end(arglist);
+}
+
+#define errorPrint  pastix_print_error
+#define errorPrintW pastix_print_warning
 
 /*
   Macro: EXIT
