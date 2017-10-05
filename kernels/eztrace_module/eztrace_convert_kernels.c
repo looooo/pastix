@@ -170,6 +170,13 @@ kernels_register_thread_hook( struct thread_info_t *p_thread,
 
     if (stats == 1){
         kernels_info_t *kernels = calloc( PastixKernelsNbr, sizeof(kernels_info_t) );
+        int i;
+
+        for(i=0; i<PastixKernelsNbr; i++) {
+            kernels[i].flop[CounterMin] = 1.e99;
+            kernels[i].time[CounterMin] = 1.e99;
+            kernels[i].perf[CounterMin] = 1.e99;
+        }
         p_info->kernels = kernels;
     }
 
@@ -366,19 +373,79 @@ int handle_kernels_stats(eztrace_event_t *ev)
 }
 
 /**
+ * @brief Print one line of statistics
+ */
+void
+print_kernel_stats( const char *title,
+                   const kernels_info_t *kernel,
+                   kernels_info_t *acc )
+{
+    const double *data;
+
+    printf( "      %-23s | %8d |", title, kernel->nb );
+
+    data = kernel->flop;
+    printf( " %e %8.3g %8.3g %8.3g +-%8.3g |",
+            data[CounterSum], data[CounterMin], data[CounterMax],
+            data[CounterSum] / (double)kernel->nb,
+            sqrt( (data[CounterSum2] - (data[CounterSum] * data[CounterSum]) / (double)kernel->nb) / (double)kernel->nb ) );
+
+    data = kernel->time;
+    printf( " %e %8.3g %8.3g %8.3g +-%8.3g |",
+            data[CounterSum], data[CounterMin], data[CounterMax],
+            data[CounterSum] / (double)kernel->nb,
+            sqrt( (data[CounterSum2] - (data[CounterSum] * data[CounterSum]) / (double)kernel->nb) / (double)kernel->nb ) );
+
+    data = kernel->perf;
+    printf( " %8.3g %8.3g %8.3g +-%8.3g |\n",
+            data[CounterMin], data[CounterMax],
+            data[CounterSum] / (double)kernel->nb,
+            sqrt( (data[CounterSum2] - (data[CounterSum] * data[CounterSum]) / (double)kernel->nb) / (double)kernel->nb ) );
+
+    if ( acc != NULL ) {
+        acc->nb += kernel->nb;
+
+        acc->flop[CounterMin ]  = kernels_dmin( acc->flop[CounterMin], kernel->flop[CounterMin] );
+        acc->flop[CounterMax ]  = kernels_dmax( acc->flop[CounterMax], kernel->flop[CounterMax] );
+        acc->flop[CounterSum ] += kernel->flop[CounterSum ];
+        acc->flop[CounterSum2] += kernel->flop[CounterSum2];
+
+        acc->time[CounterMin ]  = kernels_dmin( acc->time[CounterMin], kernel->time[CounterMin] );
+        acc->time[CounterMax ]  = kernels_dmax( acc->time[CounterMax], kernel->time[CounterMax] );
+        acc->time[CounterSum ] += kernel->time[CounterSum ];
+        acc->time[CounterSum2] += kernel->time[CounterSum2];
+
+        acc->perf[CounterMin ]  = kernels_dmin( acc->perf[CounterMin], kernel->perf[CounterMin] );
+        acc->perf[CounterMax ]  = kernels_dmax( acc->perf[CounterMax], kernel->perf[CounterMax] );
+        acc->perf[CounterSum ] += kernel->perf[CounterSum ];
+        acc->perf[CounterSum2] += kernel->perf[CounterSum2];
+    }
+}
+
+/**
  * @brief Print the statistics of each kernel for each thread
  */
 void
 print_kernels_stats()
 {
-    kernels_info_t total;
-    double *data;
+    kernels_info_t total[PastixKernelsNbr];
+    kernels_info_t final;
     int i, j, k;
     int main_header   = 1;
     int thread_header = 1;
 
     define_kernels_properties();
-    memset( &total, 0, sizeof(kernels_info_t) );
+    memset( total, 0, PastixKernelsNbr * sizeof(kernels_info_t) );
+    memset( &final, 0, sizeof(kernels_info_t) );
+
+    for(i=0; i<PastixKernelsNbr; i++) {
+        total[i].flop[CounterMin] = 1.e99;
+        total[i].time[CounterMin] = 1.e99;
+        total[i].perf[CounterMin] = 1.e99;
+    }
+    final.flop[CounterMin] = 1.e99;
+    final.time[CounterMin] = 1.e99;
+    final.perf[CounterMin] = 1.e99;
 
     /* Browse the list of processes */
     for (i=0; i<NB_TRACES; i++) {
@@ -421,43 +488,8 @@ print_kernels_stats()
                         thread_header = 0;
                     }
 
-                    printf( "      %-23s | %8d |",
-                            kernels_properties[k].name, kernel->nb );
-
-                    data = kernel->flop;
-                    printf( " %e %8.3g %8.3g %8.3g +-%8.3g |",
-                            data[CounterSum], data[CounterMin], data[CounterMax],
-                            data[CounterSum] / (double)kernel->nb,
-                            sqrt( (data[CounterSum2] - (data[CounterSum] * data[CounterSum]) / (double)kernel->nb) / (double)kernel->nb ) );
-
-                    data = kernel->time;
-                    printf( " %e %8.3g %8.3g %8.3g +-%8.3g |",
-                            data[CounterSum], data[CounterMin], data[CounterMax],
-                            data[CounterSum] / (double)kernel->nb,
-                            sqrt( (data[CounterSum2] - (data[CounterSum] * data[CounterSum]) / (double)kernel->nb) / (double)kernel->nb ) );
-
-                    data = kernel->perf;
-                    printf( " %8.3g %8.3g %8.3g +-%8.3g |\n",
-                            data[CounterMin], data[CounterMax],
-                            data[CounterSum] / (double)kernel->nb,
-                            sqrt( (data[CounterSum2] - (data[CounterSum] * data[CounterSum]) / (double)kernel->nb) / (double)kernel->nb ) );
-
-                    total.nb += kernel->nb;
-
-                    total.flop[CounterMin ]  = kernels_dmin( total.flop[CounterMin], kernel->flop[CounterMin] );
-                    total.flop[CounterMax ]  = kernels_dmax( total.flop[CounterMax], kernel->flop[CounterMax] );
-                    total.flop[CounterSum ] += kernel->flop[CounterSum ];
-                    total.flop[CounterSum2] += kernel->flop[CounterSum2];
-
-                    total.time[CounterMin ]  = kernels_dmin( total.time[CounterMin], kernel->time[CounterMin] );
-                    total.time[CounterMax ]  = kernels_dmax( total.time[CounterMax], kernel->time[CounterMax] );
-                    total.time[CounterSum ] += kernel->time[CounterSum ];
-                    total.time[CounterSum2] += kernel->time[CounterSum2];
-
-                    total.perf[CounterMin ]  = kernels_dmin( total.perf[CounterMin], kernel->perf[CounterMin] );
-                    total.perf[CounterMax ]  = kernels_dmax( total.perf[CounterMax], kernel->perf[CounterMax] );
-                    total.perf[CounterSum ] += kernel->perf[CounterSum ];
-                    total.perf[CounterSum2] += kernel->perf[CounterSum2];
+                    print_kernel_stats( kernels_properties[k].name,
+                                        kernel, &(total[k]) );
                 }
             }
             if ( !thread_header ) {
@@ -466,28 +498,28 @@ print_kernels_stats()
         }
     }
 
-    if ( total.nb > 0 ) {
-        printf( "  Total  %20s |\n"
-                "      %-23s | %8d |",
-                "", "", total.nb );
+    /*
+     * Print summarry per kernel
+     */
+    thread_header = 1;
+    for (k=0; k<PastixKernelsNbr; k++)
+    {
+        if ( total[k].nb > 0 ) {
+            if ( thread_header ) {
+                printf( "  Total  %20s |\n", "" );
+                thread_header = 0;
+            }
 
-        data = total.flop;
-        printf( " %e %8.3g %8.3g %8.3g +-%8.3g |",
-                data[CounterSum], data[CounterMin], data[CounterMax],
-                data[CounterSum] / (double)total.nb,
-                sqrt( (data[CounterSum2] - (data[CounterSum] * data[CounterSum]) / (double)total.nb) / (double)total.nb ) );
+            print_kernel_stats( kernels_properties[k].name,
+                                &(total[k]), &final );
+        }
+    }
+    if ( !thread_header ) {
+        printf("\n");
+    }
 
-        data = total.time;
-        printf( " %e %8.3g %8.3g %8.3g +-%8.3g |",
-                data[CounterSum], data[CounterMin], data[CounterMax],
-                            data[CounterSum] / (double)total.nb,
-                sqrt( (data[CounterSum2] - (data[CounterSum] * data[CounterSum]) / (double)total.nb) / (double)total.nb ) );
-
-        data = total.perf;
-        printf( " %8.3g %8.3g %8.3g +-%8.3g |",
-                data[CounterMin], data[CounterMax],
-                data[CounterSum] / (double)total.nb,
-                sqrt( (data[CounterSum2] - (data[CounterSum] * data[CounterSum]) / (double)total.nb) / (double)total.nb ) );
+    if ( final.nb > 0 ) {
+        print_kernel_stats("summary", &final, NULL );
     }
 }
 
