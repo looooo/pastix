@@ -27,6 +27,9 @@
 #include <stdio.h>
 #include <parsec.h>
 #include "parsec/utils/mca_param.h"
+#if defined(PASTIX_WITH_CUDA)
+#include <cublas.h>
+#endif
 
 /**
  *******************************************************************************
@@ -64,6 +67,15 @@ pastix_parsec_init( pastix_data_t *pastix,
     int rc;
 
     if (iparm[IPARM_GPU_NBR] > 0) {
+#if defined(PASTIX_GENERATE_MODEL)
+        pastix_print( pastix->procnum, 0,
+                      "WARNING: PaStiX compiled with -DPASTIX_GENERATE_MODEL forces single GPU computations\n" );
+        iparm[IPARM_GPU_NBR] = 1;
+
+        parsec_setenv_mca_param( "device_cuda_max_streams", "3", &environ );
+        parsec_setenv_mca_param( "device_cuda_max_event_per_stream", "1", &environ );
+#endif
+
         rc = asprintf(&value, "%d", (int)(iparm[IPARM_GPU_NBR]));
         parsec_setenv_mca_param( "device_cuda_enabled", value, &environ );
 
@@ -81,6 +93,10 @@ pastix_parsec_init( pastix_data_t *pastix,
         }
 
         free(value);
+
+#if defined(PASTIX_WITH_CUDA)
+        cublasInit();
+#endif
     }
 
     if ( bindtab != NULL ) {

@@ -66,6 +66,16 @@ pastix_starpu_init( pastix_data_t *pastix,
     conf->nopencl = 0;
 
     if (conf->ncuda > 0) {
+#if defined(PASTIX_GENERATE_MODEL)
+        pastix_print( pastix->procnum, 0,
+                      "WARNING: PaStiX compiled with -DPASTIX_GENERATE_MODEL forces single GPU computations\n" );
+        iparm[IPARM_GPU_NBR] = 1;
+        conf->ncuda = 1;
+
+        pastix_setenv( "STARPU_NWORKER_PER_CUDA", "1", 1 );
+        pastix_setenv( "STARPU_CUDA_PIPELINE", "1", 1 );
+#endif
+
         conf->sched_policy_name = "dmdas";
     }
     else {

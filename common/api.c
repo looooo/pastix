@@ -581,6 +581,12 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
         iparm[IPARM_THREAD_NBR] = pastix->intra_node_procnbr;
     }
 
+#if defined(PASTIX_GENERATE_MODEL)
+    pastix_print( pastix->procnum, 0,
+                  "WARNING: PaStiX compiled with -DPASTIX_GENERATE_MODEL forces single thread computations\n" );
+    iparm[IPARM_THREAD_NBR] = 1;
+#endif
+
     /*
      * Start the internal threads
      */
