@@ -16,14 +16,12 @@
  * @precisions normal z -> s d c
  *
  **/
-#define _GNU_SOURCE 1
 #include "cblas.h"
 #include "common.h"
 #include "solver.h"
 #include "bcsc.h"
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
-#include <pthread.h>
 
 void
 sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
@@ -129,12 +127,7 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
             cblk = datacode->cblktab + t->cblknum;
 
             /* Wait */
-            do {
-#if !defined(NDEBUG)
-                /* Yield for valgrind multi-threaded debug */
-                pthread_yield();
-#endif
-            } while( cblk->ctrbcnt );
+            do { } while( cblk->ctrbcnt );
 
             solve_ztrsmsp( mode, side, uplo, trans, diag,
                            datacode, cblk, nrhs, b, ldb );
@@ -167,12 +160,7 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
                 continue;
 
             /* Wait */
-            do {
-#if !defined(NDEBUG)
-                /* Yield for valgrind multi-threaded debug */
-                pthread_yield();
-#endif
-            } while( cblk->ctrbcnt );
+            do { } while( cblk->ctrbcnt );
 
             solve_ztrsmsp( mode, side, uplo, trans, diag,
                            datacode, cblk, nrhs, b, ldb );

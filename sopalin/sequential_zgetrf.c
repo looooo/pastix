@@ -16,14 +16,12 @@
  * @precisions normal z -> s d c
  *
  **/
-#define _GNU_SOURCE 1
 #include "common.h"
 #include "isched.h"
 #include "solver.h"
 #include "sopalin_data.h"
 #include "sopalin/coeftab_z.h"
 #include "pastix_zcores.h"
-#include <pthread.h>
 
 #if defined(PASTIX_WITH_PARSEC)
 #include "parsec/pastix_zparsec.h"
@@ -85,12 +83,7 @@ thread_pzgetrf( isched_thread_t *ctx, void *args )
             continue;
 
         /* Wait */
-        do {
-#if !defined(NDEBUG)
-            /* Yield for valgrind multi-threaded debug */
-            pthread_yield();
-#endif
-        } while( cblk->ctrbcnt );
+        do { } while( cblk->ctrbcnt );
 
         /* Compute */
         cpucblk_zgetrfsp1d( datacode, cblk, sopalin_data->diagthreshold, work );
