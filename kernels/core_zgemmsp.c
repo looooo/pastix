@@ -1259,6 +1259,12 @@ cpublok_zgemmsp(       pastix_coefside_t   sideA,
                               blok_mk, blok_nk, blok_mn,
                               cblk, fcblk,
                               lowrank );
+
+        kernel_trace_stop( ktype,
+                           blok_rownbr( cblk->fblokptr + blok_mk ),
+                           blok_rownbr( cblk->fblokptr + blok_nk ),
+                           cblk_colnbr( cblk ),
+                           flops, time );
     }
     else if (!(cblk->cblktype  & CBLK_COMPRESSED) &&
              !(fcblk->cblktype & CBLK_COMPRESSED))
@@ -1270,14 +1276,14 @@ cpublok_zgemmsp(       pastix_coefside_t   sideA,
                                       blok_mk, blok_nk, blok_mn,
                                       cblk, fcblk,
                                       A, B, C );
+
+        kernel_trace_stop( ktype,
+                           blok_rownbr( cblk->fblokptr + blok_mk ),
+                           blok_rownbr( cblk->fblokptr + blok_nk ),
+                           cblk_colnbr( cblk ),
+                           flops, time );
     }
     else {
         assert(0);
     }
-
-    kernel_trace_stop( ktype,
-                       blok_rownbr( cblk->fblokptr + blok_mk ),
-                       blok_rownbr( cblk->fblokptr + blok_nk ),
-                       cblk_colnbr( cblk ),
-                       flops, time );
 }
