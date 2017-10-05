@@ -105,6 +105,11 @@ pastix_print_warning( const char *fmt, ... )
  */
 #if defined PASTIX_OS_WINDOWS
 
+static inline int
+pastix_setenv( const char *var, const char *value, int overwrite ) {
+    return !(SetEnvironmentVariable( var, value ));
+}
+
 static inline char *
 pastix_getenv( const char *var ) {
     char *str;
@@ -125,6 +130,11 @@ pastix_cleanenv( char *str ) {
 }
 
 #else /* Other OS systems */
+
+static inline int
+pastix_setenv( const char *var, const char *value, int overwrite ) {
+    return setenv( var, value, overwrite );
+}
 
 static inline char *
 pastix_getenv( const char *var ) {
