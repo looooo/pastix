@@ -314,6 +314,7 @@ cpublok_zscalo( pastix_trans_t            trans,
             M = blok_rownbr( blok );
 
             memcpy( blok->LRblock + 1, blok->LRblock, sizeof(pastix_lrblock_t) );
+
             if ( blok->LRblock[1].rk == -1 ) {
                 assert( M == blok->LRblock[1].rkmax );
 
@@ -326,7 +327,7 @@ cpublok_zscalo( pastix_trans_t            trans,
                 blok->LRblock[1].v = B + blok->coefind - offset;
                 lA = blok->LRblock[0].v;
                 lB = blok->LRblock[1].v;
-                M = blok->LRblock[0].rkmax;
+                M  = blok->LRblock[0].rkmax;
             }
 
             /* Compute B = op(A) * D */
