@@ -12,12 +12,12 @@
  * @date 2017-04-26
  *
  */
-#ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
-#endif
 #include "eztrace_convert_kernels.h"
 
-static kernels_t kernels_properties[KERNELS_NB_EVENTS];
+struct eztrace_convert_module kernels_module;
+
+static kernels_t kernels_properties[PastixKernelsNbr];
 
 /**
  *******************************************************************************
@@ -38,20 +38,21 @@ static kernels_t kernels_properties[KERNELS_NB_EVENTS];
  * @return  The structure containing the thread and statistics for each kernel
  *
  *******************************************************************************/
-static kernels_thread_info_t *kernels_register_thread_hook(struct thread_info_t *p_thread,
-                                                           int stats) {
-
+static kernels_thread_info_t *
+kernels_register_thread_hook( struct thread_info_t *p_thread,
+                              int stats )
+{
     kernels_thread_info_t *p_info = (kernels_thread_info_t*) malloc(sizeof(kernels_thread_info_t));
 
     p_info->p_thread = p_thread;
 
     if (stats == 1){
-        int    *nb       = malloc(KERNELS_NB_EVENTS * sizeof(int));
-        double *flops    = malloc(KERNELS_NB_EVENTS * sizeof(double));
-        double *run_time = malloc(KERNELS_NB_EVENTS * sizeof(double));
+        int    *nb       = malloc(PastixKernelsNbr * sizeof(int));
+        double *flops    = malloc(PastixKernelsNbr * sizeof(double));
+        double *run_time = malloc(PastixKernelsNbr * sizeof(double));
 
         int i;
-        for (i=0; i<KERNELS_NB_EVENTS; i++){
+        for (i=0; i<PastixKernelsNbr; i++){
             nb[i]        = 0;
             flops[i]     = 0;
             run_time[i]  = 0;
@@ -69,7 +70,6 @@ static kernels_thread_info_t *kernels_register_thread_hook(struct thread_info_t 
 /**
  * @brief Start to use eztrace by loading PaStiX module
  */
-struct eztrace_convert_module kernels_module;
 void libinit(void) __attribute__ ((constructor));
 void libinit(void)
 {
@@ -80,7 +80,7 @@ void libinit(void)
     kernels_module.print_stats   = print_kernels_stats;
     kernels_module.module_prefix = KERNELS_EVENTS_ID;
 
-    asprintf(&kernels_module.name, "kernels");
+    asprintf(&kernels_module.name,        "kernels"       );
     asprintf(&kernels_module.description, "PaStiX kernels");
 
     kernels_module.token.data = &kernels_module;
@@ -96,56 +96,62 @@ void libfinalize(void)
     printf("unloading module \n");
 }
 
-
 /**
  * @brief Define events properties such as name or color
  */
-void define_kernels_properties()
+void
+define_kernels_properties()
 {
+    kernels_t *kernels_lvl1, *kernels_lvl2;
     int i;
-    for (i=1; i<KERNELS_NB_EVENTS; i++){
+
+    for (i=0; i<PastixKernelsNbr; i++){
         kernels_properties[i] = (kernels_t) {"unknown", GTG_BLACK};
     }
 
-    /* Low-rank operations */
-    kernels_properties[LR_INIT]   = (kernels_t) {"lr_init",   GTG_YELLOW};
-    kernels_properties[LR_INIT_Q] = (kernels_t) {"lr_init_q", GTG_YELLOW};
-    kernels_properties[LR_TRSM]   = (kernels_t) {"lr_trsm",   GTG_SEABLUE};
+    /* Level 1 kernels */
+    kernels_lvl1 = kernels_properties + PastixKernelLvl0Nbr;
+    kernels_lvl1[PastixKernelGETRF]     = (kernels_t) {"lvl1_getrf",      GTG_RED};
+    kernels_lvl1[PastixKernelHETRF]     = (kernels_t) {"lvl1_hetrf",      GTG_RED};
+    kernels_lvl1[PastixKernelPOTRF]     = (kernels_t) {"lvl1_potrf",      GTG_RED};
+    kernels_lvl1[PastixKernelPXTRF]     = (kernels_t) {"lvl1_pxtrf",      GTG_RED};
+    kernels_lvl1[PastixKernelSYTRF]     = (kernels_t) {"lvl1_sytrf",      GTG_RED};
+    kernels_lvl1[PastixKernelSCALOCblk] = (kernels_t) {"lvl1_scalo_cblk", GTG_SEABLUE};
+    kernels_lvl1[PastixKernelSCALOBlok] = (kernels_t) {"lvl1_scalo_blok", GTG_GREEN};
 
-    kernels_properties[LR_GEMM_PRODUCT]  = (kernels_t) {"lr_gemm_product",  GTG_GREEN};
-    kernels_properties[LR_GEMM_ADD_Q]    = (kernels_t) {"lr_gemm_add_q",    GTG_ORANGE};
-    kernels_properties[LR_GEMM_ADD_RRQR] = (kernels_t) {"lr_gemm_add_rrqr", GTG_LIGHTBROWN};
+    kernels_lvl1[PastixKernelTRSMCblk1d  ] = (kernels_t) {"lvl1_trsm_cblk_1d", GTG_BLUE};
+    kernels_lvl1[PastixKernelTRSMCblk2d  ] = (kernels_t) {"lvl1_trsm_cblk_2d", GTG_BLUE};
+    kernels_lvl1[PastixKernelTRSMCblkLR  ] = (kernels_t) {"lvl1_trsm_cblk_lr", GTG_BLUE};
+    kernels_lvl1[PastixKernelTRSMBlok2d  ] = (kernels_t) {"lvl1_trsm_blok_2d", GTG_BLUE};
+    kernels_lvl1[PastixKernelTRSMBlokLR  ] = (kernels_t) {"lvl1_trsm_blok_lr", GTG_BLUE};
+    kernels_lvl1[PastixKernelGEMMCblk1d1d] = (kernels_t) {"lvl1_gemm_cblk_1d1d", GTG_GREEN};
+    kernels_lvl1[PastixKernelGEMMCblk1d2d] = (kernels_t) {"lvl1_gemm_cblk_1d2d", GTG_GREEN};
+    kernels_lvl1[PastixKernelGEMMCblk2d2d] = (kernels_t) {"lvl1_gemm_cblk_2d2d", GTG_GREEN};
+    kernels_lvl1[PastixKernelGEMMCblkFRLR] = (kernels_t) {"lvl1_gemm_cblk_frlr", GTG_GREEN};
+    kernels_lvl1[PastixKernelGEMMCblkLRLR] = (kernels_t) {"lvl1_gemm_cblk_lrlr", GTG_GREEN};
+    kernels_lvl1[PastixKernelGEMMBlok2d2d] = (kernels_t) {"lvl1_gemm_blok_2d2d", GTG_GREEN};
+    kernels_lvl1[PastixKernelGEMMBlok2dLR] = (kernels_t) {"lvl1_gemm_blok_2dlr", GTG_GREEN};
 
-    kernels_properties[UNCOMPRESS] = (kernels_t) {"lr_uncompress", GTG_PINK};
+    /* Level 2 kernels - Factorization kernels */
+    kernels_lvl2 = kernels_lvl1 + PastixKernelLvl1Nbr;
+    kernels_lvl2[PastixKernelLvl2GETRF] = (kernels_t) {"lvl2_getrf", GTG_RED};
+    kernels_lvl2[PastixKernelLvl2HETRF] = (kernels_t) {"lvl2_hetrf", GTG_RED};
+    kernels_lvl2[PastixKernelLvl2POTRF] = (kernels_t) {"lvl2_potrf", GTG_RED};
+    kernels_lvl2[PastixKernelLvl2PXTRF] = (kernels_t) {"lvl2_pxtrf", GTG_RED};
+    kernels_lvl2[PastixKernelLvl2SYTRF] = (kernels_t) {"lvl2_sytrf", GTG_RED};
 
-    /* Dense operations */
-    kernels_properties[GETRF]      = (kernels_t) {"getrf",      GTG_RED};
-    kernels_properties[HETRF]      = (kernels_t) {"hetrf",      GTG_RED};
-    kernels_properties[POTRF]      = (kernels_t) {"potrf",      GTG_RED};
-    kernels_properties[PXTRF]      = (kernels_t) {"pxtrf",      GTG_RED};
-    kernels_properties[SYTRF]      = (kernels_t) {"sytrf",      GTG_RED};
-    kernels_properties[DENSE_TRSM] = (kernels_t) {"dense_trsm", GTG_SEABLUE};
-    kernels_properties[DENSE_GEMM] = (kernels_t) {"dense_gemm", GTG_GREEN};
+    /* Level 2 kernels - Full-rank operations */
+    kernels_lvl2[PastixKernelLvl2_FR_TRSM] = (kernels_t) {"lvl2_fr_trsm", GTG_SEABLUE};
+    kernels_lvl2[PastixKernelLvl2_FR_GEMM] = (kernels_t) {"lvl2_fr_gemm", GTG_GREEN  };
 
-    kernels_properties[LVL1_GETRF         ] = (kernels_t) {"lvl1_getrf", GTG_RED};
-    kernels_properties[LVL1_HETRF         ] = (kernels_t) {"lvl1_hetrf", GTG_RED};
-    kernels_properties[LVL1_POTRF         ] = (kernels_t) {"lvl1_potrf", GTG_RED};
-    kernels_properties[LVL1_PXTRF         ] = (kernels_t) {"lvl1_pxtrf", GTG_RED};
-    kernels_properties[LVL1_SYTRF         ] = (kernels_t) {"lvl1_sytrf", GTG_RED};
-    kernels_properties[LVL1_SCALO         ] = (kernels_t) {"lvl1_scalo", GTG_PURPLE};
-    kernels_properties[LVL1_TRSM_CBLK_1D  ] = (kernels_t) {"lvl1_trsm_cblk_1d", GTG_BLUE};
-    kernels_properties[LVL1_TRSM_CBLK_2D  ] = (kernels_t) {"lvl1_trsm_cblk_2d", GTG_BLUE};
-    kernels_properties[LVL1_TRSM_CBLK_LR  ] = (kernels_t) {"lvl1_trsm_cblk_lr", GTG_BLUE};
-    kernels_properties[LVL1_TRSM_BLOK_2D  ] = (kernels_t) {"lvl1_trsm_blok_2d", GTG_BLUE};
-    kernels_properties[LVL1_TRSM_BLOK_LR  ] = (kernels_t) {"lvl1_trsm_blok_lr", GTG_BLUE};
-    kernels_properties[LVL1_GEMM_CBLK_1D1D] = (kernels_t) {"lvl1_gemm_cblk_1d1d", GTG_GREEN};
-    kernels_properties[LVL1_GEMM_CBLK_1D2D] = (kernels_t) {"lvl1_gemm_cblk_1d2d", GTG_GREEN};
-    kernels_properties[LVL1_GEMM_CBLK_2D2D] = (kernels_t) {"lvl1_gemm_cblk_2d2d", GTG_GREEN};
-    kernels_properties[LVL1_GEMM_CBLK_FRLR] = (kernels_t) {"lvl1_gemm_cblk_frlr", GTG_GREEN};
-    kernels_properties[LVL1_GEMM_CBLK_LRLR] = (kernels_t) {"lvl1_gemm_cblk_lrlr", GTG_GREEN};
-    kernels_properties[LVL1_GEMM_BLOK_2D2D] = (kernels_t) {"lvl1_gemm_blok_2d2d", GTG_GREEN};
-    kernels_properties[LVL1_GEMM_BLOK_2DLR] = (kernels_t) {"lvl1_gemm_blok_2dlr", GTG_GREEN};
-    kernels_properties[LVL1_GEMDM]          = (kernels_t) {"lvl1_gemdm", GTG_GREEN};
+    /* Level 2 kernels - Low-rank operations */
+    kernels_lvl2[PastixKernelLvl2_LR_INIT]          = (kernels_t) {"lvl2_lr_init",          GTG_YELLOW    };
+    kernels_lvl2[PastixKernelLvl2_LR_INIT_Q]        = (kernels_t) {"lvl2_lr_init_q",        GTG_YELLOW    };
+    kernels_lvl2[PastixKernelLvl2_LR_TRSM]          = (kernels_t) {"lvl2_lr_trsm",          GTG_SEABLUE   };
+    kernels_lvl2[PastixKernelLvl2_LR_GEMM_PRODUCT]  = (kernels_t) {"lvl2_lr_gemm_product",  GTG_GREEN     };
+    kernels_lvl2[PastixKernelLvl2_LR_GEMM_ADD_Q]    = (kernels_t) {"lvl2_lr_gemm_add_q",    GTG_ORANGE    };
+    kernels_lvl2[PastixKernelLvl2_LR_GEMM_ADD_RRQR] = (kernels_t) {"lvl2_lr_gemm_add_rrqr", GTG_LIGHTBROWN};
+    kernels_lvl2[PastixKernelLvl2_LR_UNCOMPRESS]    = (kernels_t) {"lvl2_lr_uncompress",    GTG_PINK      };
 }
 
 /**
@@ -160,16 +166,17 @@ void define_kernels_properties()
  * @retval 1 The events where not correcly initialized
  *
  *******************************************************************************/
-int eztrace_convert_kernels_init()
+int
+eztrace_convert_kernels_init()
 {
     if (get_mode() == EZTRACE_CONVERT) {
+        int k;
 
         define_kernels_properties();
 
-        int k;
-        for (k=1; k<KERNELS_NB_EVENTS; k++){
-            addEntityValue(kernels_properties[k].name, "ST_Thread",
-                           kernels_properties[k].name, kernels_properties[k].color);
+        for (k=0; k<PastixKernelsNbr; k++) {
+            addEntityValue( kernels_properties[k].name, "ST_Thread",
+                            kernels_properties[k].name, kernels_properties[k].color );
         }
     }
     return 0;
@@ -190,20 +197,21 @@ int eztrace_convert_kernels_init()
  *          - stats == 1, save statistics
  *
  *******************************************************************************/
-void handle_start(kernels_ev_code_t ev, int stats)
+void
+handle_start( int event_id, int stats )
 {
     DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
     DECLARE_CUR_THREAD(p_thread);
     INIT_KERNELS_THREAD_INFO(p_thread, p_info, stats);
 
-    if (stats == 1){
-
-        p_info->nb[ev]++;
-        p_info->current_ev = ev;
+    if (stats == 1)
+    {
+        p_info->nb[event_id]++;
+        p_info->current_ev = event_id;
         p_info->time_start = CURRENT;
     }
-    else{
-        pushState(CURRENT, "ST_Thread", thread_id, kernels_properties[ev].name);
+    else {
+        pushState(CURRENT, "ST_Thread", thread_id, kernels_properties[event_id+1].name);
     }
 }
 
@@ -219,7 +227,8 @@ void handle_start(kernels_ev_code_t ev, int stats)
  *          - stats == 1, save statistics
  *
  *******************************************************************************/
-void handle_stop(int stats)
+void
+handle_stop( int stats )
 {
     double size;
 
@@ -254,19 +263,24 @@ void handle_stop(int stats)
  * @retval 1 The event was correclty handled
  *
  *******************************************************************************/
-int handle_kernels_events(eztrace_event_t *ev)
+int
+handle_kernels_events(eztrace_event_t *ev)
 {
-    if(! CUR_TRACE->start)
+    int event_id;
+
+    if( !(CUR_TRACE->start) ||
+        !IS_A_KERNELS_EV(ev) )
+    {
         return 0;
+    }
 
-    switch (LITL_READ_GET_CODE(ev)) {
-
-    case KERNELS_CODE(STOP):
-        handle_stop(0);
+    event_id = KERNELS_GET_CODE( ev );
+    switch (event_id) {
+    case PastixKernelStop:
+        handle_stop( 0 );
         break;
     default:
-        if (LITL_READ_GET_CODE(ev) > KERNELS_PREFIX)
-            handle_start((kernels_ev_code_t) (LITL_READ_GET_CODE(ev) - KERNELS_PREFIX), 0);
+        handle_start( event_id-1, 0 );
         break;
     }
     return 1;
@@ -291,17 +305,21 @@ int handle_kernels_events(eztrace_event_t *ev)
  *******************************************************************************/
 int handle_kernels_stats(eztrace_event_t *ev)
 {
-    if(! CUR_TRACE->start)
+    int event_id;
+
+    if( !(CUR_TRACE->start) ||
+        !IS_A_KERNELS_EV(ev) )
+    {
         return 0;
+    }
 
-    switch (LITL_READ_GET_CODE(ev)) {
-
-    case KERNELS_CODE(STOP):
-        handle_stop(1);
+    event_id = KERNELS_GET_CODE( ev );
+    switch (event_id) {
+    case PastixKernelStop:
+        handle_stop( 1 );
         break;
     default:
-        if (LITL_READ_GET_CODE(ev) > KERNELS_PREFIX)
-            handle_start((kernels_ev_code_t) (LITL_READ_GET_CODE(ev) - KERNELS_PREFIX), 1);
+        handle_start( event_id-1, 1 );
         break;
     }
     return 1;
@@ -330,24 +348,31 @@ void print_kernels_stats()
             thread_container = p_process->children[j];
             p_thread = (struct thread_info_t*)(thread_container->container_info);
 
-            if(!p_thread)
+            if( !p_thread ) {
                 continue;
+            }
 
             INIT_KERNELS_THREAD_INFO(p_thread, p_info, 1);
             printf("\tThread %20s\n", thread_container->name);
 
-            for (k=1; k<KERNELS_NB_EVENTS; k++){
-                double perf = 1000 * p_info->flops[k] / p_info->run_time[k];
-                total_flops += p_info->flops[k];
-
+            for (k=0; k<PastixKernelsNbr; k++)
+            {
                 if (p_info->nb[k] > 0)
-                    printf("Kernel %20s was called %8d times, flops=%8.3g, time=%7.2g s, perf=%7.2lf %cFlop/s\n",
-                           kernels_properties[k].name, p_info->nb[k],
-                           p_info->flops[k], p_info->run_time[k] / 1000.,
-                           printflopsv( perf ), printflopsu( perf ) );
+                {
+                    double flops = p_info->flops[k];
+                    double time  = p_info->run_time[k] * 1.e-3;
+                    double perf  = flops / time;
+
+                    total_flops += flops;
+
+                    printf( "Kernel %20s was called %8d times, flops=%8.3g, time=%7.2g s, perf=%7.2lf %cFlop/s\n",
+                            kernels_properties[k].name, p_info->nb[k],
+                            flops, time,
+                            printflopsv( perf ), printflopsu( perf ) );
+                }
             }
         }
     }
-    printf("\n\n\tTotal number of operations: %5.2lf %cFlops\n",
-           printflopsv( total_flops ), printflopsu( total_flops ) );
+    printf( "\n\n\tTotal number of operations: %5.2lf %cFlops\n",
+            printflopsv( total_flops ), printflopsu( total_flops ) );
 }

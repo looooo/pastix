@@ -23,6 +23,7 @@ if(PASTIX_WITH_EZTRACE)
         eztrace_module/eztrace_convert_kernels.c
   )
 endif(PASTIX_WITH_EZTRACE)
+
 ### Generate the headers in all precisions
 set(HEADERS
   pastix_zcores.h
@@ -76,13 +77,6 @@ set(kernels_sources
   kernels_trace.c
   )
 
-if(PASTIX_WITH_EZTRACE)
-  set(kernels_sources
-    ${kernels_sources}
-    eztrace_module/kernels_ev_codes.c
-    )
-endif()
-
 if(PASTIX_WITH_CUDA)
    set( CUDA_SOURCES
      # GPU kernel
@@ -115,6 +109,7 @@ if(PASTIX_WITH_EZTRACE)
      litl
    )
 endif(PASTIX_WITH_EZTRACE)
+
 target_link_libraries( pastix_kernels
   ${LAPACKE_LIBRARIES}
   ${LAPACK_SEQ_LIBRARIES}
