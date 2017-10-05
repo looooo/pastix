@@ -169,7 +169,7 @@ gpucblk_zgemmsp(       pastix_coefside_t  sideA,
     pastix_int_t N, K, max_m = 0;
     int i, shift, count, ldb;
 
-    double time = kernel_trace_start( PastixKernelGEMMCblk2d2d );
+    pastix_fixdbl_t time = kernel_trace_start( PastixKernelGEMMCblk2d2d );
 
     assert( !(cblk->cblktype  & CBLK_COMPRESSED) );
     assert( !(fcblk->cblktype & CBLK_COMPRESSED) );
@@ -363,8 +363,8 @@ gpublok_zgemmsp(       pastix_coefside_t  sideA,
     pastix_int_t full_m;
     size_t offsetA, offsetB, offsetC;
 
-    double flops = 0.0;
-    double time = kernel_trace_start( PastixKernelGEMMBlok2d2d );
+    pastix_fixdbl_t flops = 0.0;
+    pastix_fixdbl_t time = kernel_trace_start( PastixKernelGEMMBlok2d2d );
 
     /* Both cblk and fcblk must be stored in 2D */
     assert( cblk->cblktype  & CBLK_LAYOUT_2D );

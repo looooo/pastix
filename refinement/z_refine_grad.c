@@ -49,8 +49,8 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
     pastix_bcsc_t     * bcsc      = pastix_data->bcsc;
     pastix_int_t        n         = bcsc->gN;
     Clock               refine_clk;
-    double              t0        = 0;
-    double              t3        = 0;
+    pastix_fixdbl_t     t0        = 0;
+    pastix_fixdbl_t     t3        = 0;
     pastix_complex64_t  tmp       = 0.0;
     pastix_complex64_t  normr;
     pastix_complex64_t  normb;

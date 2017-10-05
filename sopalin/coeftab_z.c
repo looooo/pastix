@@ -223,7 +223,7 @@ coeftab_zmemory( const SolverMatrix *solvmtx )
     pastix_int_t cblknum;
     pastix_int_t gain = 0;
     pastix_int_t original = 0;
-    double       memgain, memoriginal;
+    pastix_fixdbl_t memgain, memoriginal;
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
         original += cblk_colnbr( cblk ) * cblk->stride;

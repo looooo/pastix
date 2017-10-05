@@ -550,8 +550,7 @@ core_zgemmsp_2d2dsub( pastix_trans_t trans,
     size_t offsetA, offsetB, offsetC;
 
     pastix_fixdbl_t flops = 0.0;
-
-    double time = kernel_trace_start( PastixKernelGEMMBlok2d2d );
+    pastix_fixdbl_t time = kernel_trace_start( PastixKernelGEMMBlok2d2d );
 
     /* Both cblk and fcblk must be stored in 2D */
     assert( cblk->cblktype  & CBLK_LAYOUT_2D );
@@ -710,7 +709,7 @@ core_zgemmsp_2dlrsub( pastix_coefside_t  sideA,
     pastix_int_t M, N, K, cblk_n, cblk_m, full_m;
 
     pastix_fixdbl_t flops = 0.0;
-    double time = kernel_trace_start( PastixKernelGEMMBlok2d2d );
+    pastix_fixdbl_t time = kernel_trace_start( PastixKernelGEMMBlok2d2d );
 
     /* Both cblk and fcblk must be stored in 2D */
     assert( cblk->cblktype  & CBLK_LAYOUT_2D );
