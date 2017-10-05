@@ -45,6 +45,7 @@
  * @date 2011-11-11
  *
  */
+#ifndef MAX_THRESH
 #define MAX_THRESH 6
 #define max_thresh                  (MAX_THRESH * INTSORTSIZE) /* Variable turned into constant */
 

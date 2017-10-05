@@ -1,3 +1,19 @@
+/**
+ *
+ * @file integer.c
+ *
+ * This module handles the generic integer type.
+ *
+ * @copyright 1998-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author François Pellegrini
+ * @author Mathieu Faverge
+ * @author Xavier Lacoste
+ * @date 2017-10-05
+ *
+ */
 /* Copyright 2004,2007-2009 ENSEIRB, INRIA & CNRS
  **
  ** This file is part of the Scotch software package for static mapping,
@@ -28,22 +44,6 @@
  **
  ** The fact that you are presently reading this means that you have had
  ** knowledge of the CeCILL-C license and that you accept its terms.
- */
-/**
- *
- * @file integer.c
- *
- * This module handles the generic integer type.
- *
- * @copyright 1998-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
- *                      Univ. Bordeaux. All rights reserved.
- *
- * @version 6.0.0
- * @author François Pellegrini
- * @author Mathieu Faverge
- * @author Xavier Lacoste
- * @date 2017-10-05
- *
  */
 #include <ctype.h>
 #include <limits.h>

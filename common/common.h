@@ -37,8 +37,8 @@
  * Errors functions
  */
 #if defined(__GNUC__)
-static inline void pastix_print_error( const char * const fmt, ...) __attribute__((format(printf,3,4)));
-static inline void pastix_print_warning( const char * const fmt, ...) __attribute__((format(printf,3,4)));
+static inline void pastix_print_error  ( const char *fmt, ...) __attribute__((format(printf,1,2)));
+static inline void pastix_print_warning( const char *fmt, ...) __attribute__((format(printf,1,2)));
 #endif
 
 /*
@@ -57,7 +57,7 @@ static inline void pastix_print_warning( const char * const fmt, ...) __attribut
   VOID - in all cases.
 */
 static inline void
-pastix_print_error( const char * const fmt, ... )
+pastix_print_error( const char *fmt, ... )
 {
     va_list arglist;
     va_start(arglist, fmt);
@@ -66,11 +66,12 @@ pastix_print_error( const char * const fmt, ... )
 }
 
 static inline void
-pastix_print_warning( const char * const fmt, ... )
+pastix_print_warning( const char *fmt, ... )
 {
     va_list arglist;
     va_start(arglist, fmt);
-    fprintf(stderr, "WARNING: " fmt, arglist);
+    fprintf(stderr, "WARNING: ");
+    fprintf(stderr, fmt, arglist);
     va_end(arglist);
 }
 

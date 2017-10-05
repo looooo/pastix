@@ -1,4 +1,5 @@
 /**
+ *
  * @file laplacian.c
  *
  * @copyright 2011-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,

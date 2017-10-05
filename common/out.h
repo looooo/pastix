@@ -206,7 +206,7 @@
 #define OOC_MAX_ALLOCATED     "   [%2d]   Maximum allocated                     %.3g %s\n"
 #define OUT_ITERREFINE_GMRES    "   GMRES :\n"
 #define OUT_ITERREFINE_PIVOT    "   Simple refinement :\n"
-#define OUT_ITERREFINE_BICGSTAB  "   BICGSTAB :\n"
+#define OUT_ITERREFINE_BICGSTAB "   BICGSTAB :\n"
 #define OUT_ITERREFINE_GRAD     "   Conjuguate gradient :\n"
 #define OUT_ITERREFINE_ITER     "    - iteration %d :\n"
 #define OUT_ITERREFINE_TTS      "         time to solve                          %.3g s\n"
