@@ -114,8 +114,8 @@ extern int32_t               model_size;        /*< Allocated size of the array 
 
 #endif
 
-void   kernelsTraceStart( const SolverMatrix *solvmtx );
-double kernelsTraceStop( char *directory );
+void   kernelsTraceStart( const pastix_data_t *pastix_data );
+double kernelsTraceStop(  const pastix_data_t *pastix_data );
 
 /**
  *******************************************************************************

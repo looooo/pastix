@@ -508,7 +508,7 @@ pastix_task_numfact( pastix_data_t *pastix_data,
             return rc;
     }
 
-    kernelsTraceStart( pastix_data->solvmatr );
+    kernelsTraceStart( pastix_data );
 
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
         rc = pastix_subtask_sopalin( pastix_data );
@@ -516,7 +516,7 @@ pastix_task_numfact( pastix_data_t *pastix_data,
             return rc;
     }
 
-    kernelsTraceStop( pastix_data->dirtemp );
+    kernelsTraceStop( pastix_data );
 
     /* Invalidate following steps, and add factorization step to the ones performed */
     pastix_data->steps &= ~( STEP_SOLVE     |

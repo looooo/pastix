@@ -32,8 +32,10 @@ int32_t               model_size        = 0;     /**< Size of the model_entries 
 #endif
 
 void
-kernelsTraceStart( const SolverMatrix *solvmtx )
+kernelsTraceStart( const pastix_data_t *pastix_data )
 {
+    const SolverMatrix *solvmtx = pastix_data->solvmatr;
+
 #if defined(PASTIX_WITH_EZTRACE)
     {
         char *level = pastix_getenv("PASTIX_EZTRACE_LEVEL");
@@ -93,7 +95,7 @@ kernelsTraceStart( const SolverMatrix *solvmtx )
 }
 
 double
-kernelsTraceStop( char *directory )
+kernelsTraceStop( const pastix_data_t *pastix_data )
 {
     double total_flops = 0.0;
 
@@ -104,19 +106,50 @@ kernelsTraceStop( char *directory )
 #if defined(PASTIX_GENERATE_MODEL)
     {
         pastix_model_entry_t *entry = model_entries;
-        pastix_int_t i;
+        pastix_int_t i, gpucase;
         FILE *f;
 
-        f = fopen( "model.csv", "a" );
-        if ( f != NULL )
-        {
-            for(i=0; i <= model_entries_nbr; i++, entry++ ) {
+        f = fopen( "model.csv", "w" );
+        if ( f == NULL ) {
+            goto end_model;
+        }
+
+        gpucase = pastix_data->iparm[IPARM_GPU_NBR];
+        if ( gpucase ) {
+            fprintf(f, "# GPU Model data\n");
+        }
+        else {
+            fprintf(f, "# CPU Model data\n");
+        }
+
+        for(i=0; i <= model_entries_nbr; i++, entry++ ) {
+            switch( entry->ktype ) {
+            case PastixKernelGETRF:
+            case PastixKernelHETRF:
+            case PastixKernelPOTRF:
+            case PastixKernelPXTRF:
+            case PastixKernelSYTRF:
+            case PastixKernelSCALOCblk:
+            case PastixKernelSCALOBlok:
+            case PastixKernelTRSMCblk1d:
+            case PastixKernelTRSMCblk2d:
+            case PastixKernelTRSMCblkLR:
+            case PastixKernelTRSMBlokLR:
+            case PastixKernelGEMMCblk1d1d:
+            case PastixKernelGEMMCblkFRLR:
+            case PastixKernelGEMMCblkLRLR:
+            case PastixKernelGEMMBlok2dLR:
+                if ( gpucase ) {
+                    continue;
+                }
+
+            default:
                 fprintf( f, "%d;%d;%d;%d;%e\n",
                          entry->ktype, entry->m, entry->n, entry->k, entry->time );
             }
-
-            fclose( f );
         }
+
+        fclose( f );
 
         free( model_entries );
 
@@ -125,6 +158,7 @@ kernelsTraceStop( char *directory )
         model_entries_nbr = -1;
         model_size        = 0;
     }
+  end_model:
 #endif
 
     {
@@ -138,7 +172,7 @@ kernelsTraceStop( char *directory )
 
         fprintf(stderr, "The total number of flops excuted is %lf\n", total_flops);
     }
-    (void)directory;
 
+    (void)pastix_data;
     return total_flops;
 }
