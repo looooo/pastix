@@ -756,6 +756,7 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                 }
                 return;
             }
+
             if ( cblk->cblktype & CBLK_COMPRESSED ) {
                 A = (pastix_complex64_t*)(cblk->fblokptr->LRblock[1].u);
                 assert( cblk->fblokptr->LRblock[1].rkmax == lda );
@@ -781,9 +782,11 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                 for (j = cblk[1].brownum-1; j>=cblk[0].brownum; j-- ) {
                     blok = datacode->bloktab + datacode->browtab[j];
                     fcbk = datacode->cblktab + blok->lcblknm;
+
                     if ( (fcbk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeInterface) ) {
                         continue;
                     }
+
                     tempm = fcbk->lcolnum - fcbk->fcolnum + 1;
                     tempn = blok->lrownum - blok->frownum + 1;
                     A   = (pastix_complex64_t*)(fcbk->ucoeftab);
@@ -873,9 +876,11 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                     /* Apply the update */
                     for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
                         fcbk  = datacode->cblktab + blok->fcblknm;
+
                         if ( (fcbk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeLocal) ) {
                             return;
                         }
+
                         tempm = blok->lrownum - blok->frownum + 1;
                         lrA   = blok->LRblock;
 
@@ -930,9 +935,11 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                     /* Apply the update */
                     for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
                         fcbk  = datacode->cblktab + blok->fcblknm;
+
                         if ( (fcbk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeLocal) ) {
                             return;
                         }
+
                         tempm = blok->lrownum - blok->frownum + 1;
 
                         assert( blok->frownum >= fcbk->fcolnum );
@@ -976,8 +983,8 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                     }
                     return;
                 }
-                /* For cblk in the schur, only apply the update on the non Schur part */
 
+                /* For cblk in the schur, only apply the update on the non Schur part */
                 if ( cblk->cblktype & CBLK_COMPRESSED ) {
                     A = (pastix_complex64_t*)(cblk->fblokptr->LRblock[0].u);
                     assert( cblk->fblokptr->LRblock[0].rkmax == lda );
