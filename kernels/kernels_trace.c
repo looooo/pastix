@@ -109,6 +109,7 @@ kernelsTraceStart( const pastix_data_t *pastix_data )
 
     memset( (void*)kernels_flops, 0, PastixKernelLvl1Nbr * sizeof(double) );
 
+    (void)solvmtx;
     return;
 }
 
