@@ -264,7 +264,7 @@ kernel_trace_stop( pastix_ktype_t ktype, int m, int n, int k, double flops, doub
     /*                                      (uint64_t)oldval, (uint64_t)newval ) ); */
     /* } */
 
-    (void)ktype
+    (void)ktype;
     (void)m;
     (void)n;
     (void)k;
