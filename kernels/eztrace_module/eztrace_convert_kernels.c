@@ -104,12 +104,14 @@ define_kernels_properties()
     kernels_lvl2[PastixKernelLvl2_LR_UNCOMPRESS]    = (kernels_t) {"lvl2_lr_uncompress",    GTG_PINK      };
 }
 
-
+/**
+ * @brief Enum of the statistic values kept per data
+ */
 typedef enum counter_e {
-    CounterMin,
-    CounterMax,
-    CounterSum,
-    CounterSum2
+    CounterMin, /**< Minimal value of the counter */
+    CounterMax, /**< Maximal value of the counter */
+    CounterSum, /**< Total value of the counter   */
+    CounterSum2 /**< Sum of the square of each value to compute standard deviation */
 } counter_t;
 
 /**
@@ -134,6 +136,12 @@ typedef struct kernels_thread_info_s {
     kernels_info_t       *kernels;    /**< Table of size PastixKernelsNbr to store statistics on each kernel */
 } kernels_thread_info_t;
 
+/**
+ * @brief Macro to initialize and eventually register a thread_info data
+ * @param p_thread The current thread
+ * @param var The name of the output kernels_thread_info_t variable
+ * @param stats Boolean to specify if we are in stats or convert mode
+ */
 #define INIT_KERNELS_THREAD_INFO(p_thread, var, stats)                  \
     kernels_thread_info_t *var = (kernels_thread_info_t *)              \
         ezt_hook_list_retrieve_data(&p_thread->hooks, KERNELS_EVENTS_ID); \
@@ -187,12 +195,15 @@ kernels_register_thread_hook( struct thread_info_t *p_thread,
 /**
  *******************************************************************************
  *
- * @brief Init events metainformation such as name or color
+ * @brief Init the kernels module in case of conversion mode.
+ *
+ * Meta-information of the events such as name or color are initialized by this
+ * function.
+ * They are also added to the trace file.
  *
  *******************************************************************************
  *
  * @retval 0 The events where correcly initialized
- *
  * @retval 1 The events where not correcly initialized
  *
  *******************************************************************************/
@@ -215,12 +226,13 @@ eztrace_convert_kernels_init()
 /**
  *******************************************************************************
  *
- * @brief Handle the start of an elemental event
+ * @brief Handle associated to the beginning of an event
  *
  *******************************************************************************
  *
- * @param[in] ev
- *          The reference of the kernel for which statistics will be updated
+ * @param[in] event_id
+ *          The kernel id as one of the pastix enum for which statistics will be
+ *          updated.
  *
  * @param[in] stats
  *          - stats == 0, save event
@@ -248,7 +260,7 @@ handle_start( int event_id, int stats )
 /**
  *******************************************************************************
  *
- * @brief Handle the end of an elemental event
+ * @brief Handle associated to the end of an event
  *
  *******************************************************************************
  *
@@ -296,7 +308,7 @@ handle_stop( int stats )
 /**
  *******************************************************************************
  *
- * @brief Fonction called by eztrace_convert to handle a single event
+ * @brief Fonction called by eztrace_convert() to handle a single event
  *
  *******************************************************************************
  *
@@ -305,9 +317,8 @@ handle_stop( int stats )
  *
  *******************************************************************************
  *
- * @retval 0 The event was not correclty handled
- *
- * @retval 1 The event was correclty handled
+ * @retval 0 The event was not handled by the kernels module
+ * @retval 1 The event was correclty handled by the kernels module
  *
  *******************************************************************************/
 int
@@ -336,7 +347,7 @@ handle_kernels_events(eztrace_event_t *ev)
 /**
  *******************************************************************************
  *
- * @brief Fonction called by eztrace_stats to handle a single event
+ * @brief Fonction called by eztrace_stats() to handle a single event
  *
  *******************************************************************************
  *
@@ -345,12 +356,12 @@ handle_kernels_events(eztrace_event_t *ev)
  *
  *******************************************************************************
  *
- * @retval 0 The event was not correclty handled
- *
- * @retval 1 The event was correclty handled
+ * @retval 0 The event was not handled by the kernels module
+ * @retval 1 The event was correclty handled by the kernels module
  *
  *******************************************************************************/
-int handle_kernels_stats(eztrace_event_t *ev)
+int
+handle_kernels_stats(eztrace_event_t *ev)
 {
     int event_id;
 
@@ -373,12 +384,27 @@ int handle_kernels_stats(eztrace_event_t *ev)
 }
 
 /**
- * @brief Print one line of statistics
- */
+ *******************************************************************************
+ *
+ * @brief Print one line of statistics associated to a kernels_info_t structure.
+ *
+ *******************************************************************************
+ *
+ * @param[in] title
+ *          The title of the line
+ *
+ * @param[in] kernel
+ *          The structure for which the statistics need to be printed
+ *
+ * @param[inout] acc
+ *          The accumulator structure.
+ *          If acc != NULL, on exit acc = merge( acc, kernel )
+ *
+ *******************************************************************************/
 void
-print_kernel_stats( const char *title,
-                   const kernels_info_t *kernel,
-                   kernels_info_t *acc )
+print_kernel_stats( const char           *title,
+                    const kernels_info_t *kernel,
+                    kernels_info_t       *acc )
 {
     const double *data;
 
@@ -423,7 +449,7 @@ print_kernel_stats( const char *title,
 }
 
 /**
- * @brief Print the statistics of each kernel for each thread
+ * @brief Print the full summary statistics table
  */
 void
 print_kernels_stats()
@@ -471,11 +497,15 @@ print_kernels_stats()
             kernel = p_info->kernels;
             for (k=0; k<PastixKernelsNbr; k++, kernel++)
             {
+                /*
+                 * Print kernel statistics on the current thread
+                 */
                 if (kernel->nb > 0)
                 {
                     if ( main_header ) {
                         printf( "         %20s | Nb calls | %-50s | %-50s | %-37s |\n"
-                                "         %20s |          | %12s %8s %8s %8s %10s | %12s %8s %8s %8s %10s | %8s %8s %8s %10s |\n",
+                                "         %20s |          | %12s %8s %8s %8s %10s |"
+                                " %12s %8s %8s %8s %10s | %8s %8s %8s %10s |\n",
                                 "", "Number of flop (GFlop)", "Timing (s)", "Performance (GFlop/s)",
                                 "", "total", "min", "max", "avg", "sd",
                                     "total", "min", "max", "avg", "sd",
@@ -499,7 +529,7 @@ print_kernels_stats()
     }
 
     /*
-     * Print summarry per kernel
+     * Print summary per kernel
      */
     thread_header = 1;
     for (k=0; k<PastixKernelsNbr; k++)
@@ -518,13 +548,17 @@ print_kernels_stats()
         printf("\n");
     }
 
+    /*
+     * Print final summary
+     */
     if ( final.nb > 0 ) {
         print_kernel_stats("summary", &final, NULL );
     }
 }
 
 /**
- * @brief Start to use eztrace by loading PaStiX module
+ * @brief Kernels module initialization function called by EZTrace to load
+ * the module
  */
 void libinit(void) __attribute__ ((constructor));
 void libinit(void)
@@ -544,7 +578,8 @@ void libinit(void)
 }
 
 /**
- * @brief Stop to use eztrace
+ * @brief Kernels module finalization function called by EZTrace to unload the
+ * module
  */
 void libfinalize(void) __attribute__ ((destructor));
 void libfinalize(void)
