@@ -422,7 +422,7 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
  *          fcblk.ucoeftab otherwise.
  *
  *******************************************************************************/
-static inline pastix_fixdbl_t
+static inline void
 core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
                     pastix_trans_t trans, pastix_diag_t diag,
                           SolverCblk         *cblk,
@@ -431,9 +431,10 @@ core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
                           pastix_complex64_t *C )
 {
     const SolverBlok *fblok, *lblok, *blok;
-    pastix_int_t M, N, lda, ldc, offset, cblk_m;
+    pastix_int_t M, N, lda, ldc, offset, cblk_m, full_m;
     pastix_complex64_t *Cptr;
     pastix_fixdbl_t flops = 0.0;
+    pastix_fixdbl_t time = kernel_trace_start( PastixKernelTRSMBlok2d );
 
     N     = cblk->lcolnum - cblk->fcolnum + 1;
     fblok = cblk[0].fblokptr;  /* The diagonal block */
@@ -446,6 +447,7 @@ core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
     blok   = fblok + blok_m;
     offset = blok->coefind;
     cblk_m = blok->fcblknm;
+    full_m = 0;
 
     for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
 
@@ -460,9 +462,12 @@ core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
                                         Cptr, ldc );
 
         flops += FLOPS_ZTRSM( side, M, N );
+        full_m += M;
     }
 
-    return flops;
+    kernel_trace_stop( PastixKernelTRSMBlok2d,
+                       full_m, N, 0, flops, time );
+    return;
 }
 
 /**
@@ -520,9 +525,11 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
                     const pastix_lr_t  *lowrank )
 {
     const SolverBlok *fblok, *lblok, *blok;
-    pastix_int_t M, N, lda, cblk_m;
+    pastix_int_t M, N, lda, cblk_m, full_m, full_n;
     pastix_complex64_t *A;
     pastix_lrblock_t *lrA, *lrC;
+    pastix_fixdbl_t flops = 0.0;
+    pastix_fixdbl_t time = kernel_trace_start( PastixKernelTRSMBlokLR );
 
     N     = cblk->lcolnum - cblk->fcolnum + 1;
     fblok = cblk[0].fblokptr;  /* The diagonal block */
@@ -540,16 +547,20 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
 
     blok   = fblok + blok_m;
     cblk_m = blok->fcblknm;
+    full_m = 0;
+    full_n = 0;
 
     for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
 
+        M = blok_rownbr(blok);
         lrC = blok->LRblock + coef;
 
         /* Try to compress the block: compress_end version */
         if ( lowrank->compress_when == PastixCompressWhenEnd )
         {
-            M = blok_rownbr(blok);
-            if ( ( N > lowrank->compress_min_width ) && ( M > lowrank->compress_min_height ) ){
+            if ( ( N > lowrank->compress_min_width ) &&
+                 ( M > lowrank->compress_min_height ) )
+            {
                 pastix_lrblock_t C;
                 lowrank->core_ge2lr( lowrank->tolerance, M, N,
                                      lrC->u, M,
@@ -570,17 +581,26 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
                             lrC->rk, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->v, lrC->rkmax);
+
+                flops += FLOPS_ZTRSM( side, lrC->rk, N );
+                full_n += lrC->rk;
             }
             else {
-                M = blok_rownbr(blok);
                 cblas_ztrsm(CblasColMajor,
                             (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)trans, (CBLAS_DIAG)diag,
                             M, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->u, lrC->rkmax);
+
+                flops += FLOPS_ZTRSM( side, M, N );
+                full_n += M;
             }
         }
+        full_m += M;
     }
+
+    kernel_trace_stop( PastixKernelTRSMBlokLR,
+                       full_m, N, full_n, flops, time );
 }
 
 /**
@@ -642,28 +662,14 @@ cpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                        pastix_complex64_t *C,
                  const pastix_lr_t        *lowrank )
 {
-    pastix_ktype_t ktype;
-    pastix_fixdbl_t time, flops = 0.0;
-
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        ktype = PastixKernelTRSMBlokLR;
-        time  = kernel_trace_start( ktype );
-
         core_ztrsmsp_lrsub( coef, side, uplo, trans, diag,
                             cblk, blok_m, lowrank );
     }
     else {
-        ktype = PastixKernelTRSMBlok2d;
-        time  = kernel_trace_start( ktype );
-
-        flops = core_ztrsmsp_2dsub( side, uplo, trans, diag,
-                                    cblk, blok_m, A, C );
+        core_ztrsmsp_2dsub( side, uplo, trans, diag,
+                            cblk, blok_m, A, C );
     }
-
-    kernel_trace_stop( ktype,
-                       blok_rownbr( cblk->fblokptr + blok_m ),
-                       cblk_colnbr( cblk ),
-                       0, flops, time );
 }
 
 /**
