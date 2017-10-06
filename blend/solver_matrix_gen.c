@@ -737,7 +737,7 @@ solverMatrixGen( pastix_int_t           clustnum,
         solvmtx->offdmax = offdmax;
         solvmtx->gemmmax = gemmmax;
         solvmtx->blokmax = blokmax;
-        if (ctrl->iparm[IPARM_VERBOSE]>PastixVerboseNo) {
+        if (ctrl->iparm[IPARM_VERBOSE]>PastixVerboseNo && 0) {
             pastix_print(clustnum, 0,
                          "Coefmax: off-diagonal %6ld ((%4ld+1) x %3ld)\n"
                          "         update       %6ld ( %4ld    x %3ld)\n",
