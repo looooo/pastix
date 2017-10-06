@@ -191,6 +191,8 @@ kernelsTraceStop( const pastix_data_t *pastix_data )
   end_model:
 #endif
 
+    /* Disable as long as the counters are not correct */
+    if (0)
     {
         int i;
 
