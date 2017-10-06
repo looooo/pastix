@@ -18,8 +18,6 @@
 #ifndef _order_scotch_strats_h_
 #define _order_scotch_strats_h_
 
-//#define NEW_STRATEGY
-#if defined(NEW_STRATEGY)
 #define SCOTCH_STRAT_DIRECT                             \
     "c{rat=0.7,"                                        \
     """cpr=n{sep=/(vert>120)?m{rat=0.8,"                \
@@ -30,30 +28,7 @@
     ""                        "vert=100,"               \
     ""                        "low=h{pass=10},"         \
     ""                        "asc=f{bal=0.2}};,"       \
-    ""      "ole=f{cmin=0,cmax=100000,frat=0.0},"       \
-    ""      "ose=t},"                                   \
-    """unc=n{sep=/(vert>120)?(m{rat=0.8,"               \
-    ""                         "vert=100,"              \
-    ""                         "low=h{pass=10},"        \
-    ""                         "asc=f{bal=0.2}})|"      \
-    ""                        "m{rat=0.8,"              \
-    ""                          "vert=100,"             \
-    ""                          "low=h{pass=10},"       \
-    ""                          "asc=f{bal=0.2}};,"     \
-    ""      "ole=f{cmin=15,cmax=100000,frat=0.08},"     \
-    ""      "ose=t}}"
-#else
-#define SCOTCH_STRAT_DIRECT                             \
-    "c{rat=0.7,"                                        \
-    """cpr=n{sep=/(vert>120)?m{rat=0.8,"                \
-    ""                        "vert=100,"               \
-    ""                        "low=h{pass=10},"         \
-    ""                        "asc=f{bal=0.2}}|"        \
-    ""                      "m{rat=0.8,"                \
-    ""                        "vert=100,"               \
-    ""                        "low=h{pass=10},"         \
-    ""                        "asc=f{bal=0.2}};,"       \
-    ""      "ole=f{cmin=15,cmax=100000,frat=0.08},"     \
+    ""      "ole=f{cmin=0,cmax=100000,frat=0.08},"      \
     ""      "ose=g},"                                   \
     """unc=n{sep=/(vert>120)?(m{rat=0.8,"               \
     ""                         "vert=100,"              \
@@ -65,7 +40,6 @@
     ""                          "asc=f{bal=0.2}};,"     \
     ""      "ole=f{cmin=15,cmax=100000,frat=0.08},"     \
     ""      "ose=g}}"
-#endif
 
 #define SCOTCH_STRAT_INCOMP                             \
     "c{rat=0.7,"                                        \
@@ -85,22 +59,27 @@
     ""                         "asc=f{bal=0.2}};,"      \
     ""      "ole=f{cmin=15,cmax=100000,frat=0.08},"     \
     ""            "ose=g}}"
+
 #define SCOTCH_STRAT_PERSO                              \
     "c{rat=0.7,"                                        \
-    """cpr=n{sep=/(vert>%ld)?m{vert=100,"               \
+    """cpr=n{sep=/(vert>%ld)?m{rat=0.8,"                \
+    ""                        "vert=100,"               \
     ""                        "low=h{pass=10},"         \
     ""                        "asc=f{bal=0.2}}|"        \
-    ""                      "m{vert=100,"               \
+    ""                      "m{rat=0.8,"                \
+    ""                        "vert=100,"               \
     ""                        "low=h{pass=10},"         \
     ""                        "asc=f{bal=0.2}};,"       \
     ""      "ole=f{cmin=%ld,cmax=%ld,frat=%f},"         \
     ""      "ose=g},"                                   \
-    """unc=n{sep=/(vert>%ld)?(m{vert=100,"              \
+    """unc=n{sep=/(vert>%ld)?(m{rat=0.8,"               \
+    ""                         "vert=100,"              \
     ""                         "low=h{pass=10},"        \
     ""                         "asc=f{bal=0.2}})|"      \
-    ""                       "m{vert=100,"              \
-    ""                         "low=h{pass=10},"        \
-    ""                         "asc=f{bal=0.2}};,"      \
+    ""                        "m{rat=0.8,"              \
+    ""                          "vert=100,"             \
+    ""                          "low=h{pass=10},"       \
+    ""                          "asc=f{bal=0.2}};,"     \
     ""      "ole=f{cmin=%ld,cmax=%ld,frat=%f},"         \
     ""      "ose=g}}"
 
@@ -128,6 +107,7 @@
     ""                         "asc=f{bal=0.2}};,"      \
     ""      "ole=f{cmin=15,cmax=100000,frat=0.08},"     \
     ""      "ose=g}}"
+
 #define PTSCOTCH_STRAT_INCOMP                           \
     "c{rat=0.7,"                                        \
     """cpr=n{sep=/(vert>120)?m{vert=100,"               \
@@ -147,7 +127,24 @@
     ""      "ole=f{cmin=15,cmax=100000,frat=0.08},"     \
     ""      "ose=g}}"
 
-#define PTSCOTCH_STRAT_PERSO  "c{rat=0.7,cpr=n{sep=/(vert>%ld)?m{vert=100,low=h{pass=10},asc=f{bal=0.2}}|m{vert=100,low=h{pass=10},asc=f{bal=0.2}};,ole=f{cmin=%ld,cmax=%ld,frat=%f},ose=g},unc=n{sep=/(vert>%ld)?(m{vert=100,low=h{pass=10},asc=f{bal=0.2}})|m{vert=100,low=h{pass=10},asc=f{bal=0.2}};,ole=f{cmin=%ld,cmax=%ld,frat=%f},ose=g}}"
+#define PTSCOTCH_STRAT_PERSO                            \
+    "c{rat=0.7,"                                        \
+    """cpr=n{sep=/(vert>%ld)?m{vert=100,"               \
+    ""                        "low=h{pass=10},"         \
+    ""                        "asc=f{bal=0.2}}|"        \
+    ""                      "m{vert=100,"               \
+    ""                        "low=h{pass=10},"         \
+    ""                        "asc=f{bal=0.2}};,"       \
+    ""      "ole=f{cmin=%ld,cmax=%ld,frat=%f},"         \
+    ""      "ose=g},"                                   \
+    """unc=n{sep=/(vert>%ld)?(m{vert=100,"              \
+    ""                         "low=h{pass=10},"        \
+    ""                         "asc=f{bal=0.2}})|"      \
+    ""                       "m{vert=100,"              \
+    ""                         "low=h{pass=10},"        \
+    ""                         "asc=f{bal=0.2}};,"      \
+    ""      "ole=f{cmin=%ld,cmax=%ld,frat=%f},"         \
+    ""      "ose=g}}"
 
 
 #endif /* _order_scotch_strats_h_ */
