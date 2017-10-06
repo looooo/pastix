@@ -7,7 +7,8 @@
  *
  * PaStiX trace and modelling routines
  *
- * @version 5.1.0
+ * @version 6.0.0
+ * @author Gregoire Pichon
  * @author Mathieu Faverge
  * @date 2017-02-09
  *
@@ -20,18 +21,30 @@ volatile double kernels_flops[PastixKernelLvl1Nbr];
 
 #if defined(PASTIX_WITH_EZTRACE)
 
-int pastix_eztrace_level = 1; /**< Level of kernel tracing with EZTrace */
+int pastix_eztrace_level = 1;
 
 #endif
 
 #if defined(PASTIX_GENERATE_MODEL)
 
-pastix_model_entry_t *model_entries     = NULL;  /**< Array to all entries                 */
-volatile int32_t      model_entries_nbr = -1;    /**< Index of the last entry in the array */
-int32_t               model_size        = 0;     /**< Size of the model_entries array      */
+pastix_model_entry_t *model_entries     = NULL;
+volatile int32_t      model_entries_nbr = -1;
+int32_t               model_size        = 0;
 
 #endif
 
+/**
+ *******************************************************************************
+ *
+ * @brief Start the trace module
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix_data structure of the problem to give input information
+ *          to the different trace modes.
+ *
+ *******************************************************************************/
 void
 kernelsTraceStart( const pastix_data_t *pastix_data )
 {
@@ -43,6 +56,10 @@ kernelsTraceStart( const pastix_data_t *pastix_data )
         if (level != NULL) {
             pastix_eztrace_level = atoi(level);
             pastix_cleanenv(level);
+        }
+
+        if ( pastix_data->dirtemp != NULL ) {
+            pastix_setenv( "EZTRACE_TRACE_DIR", pastix_data->dirtemp );
         }
         eztrace_start ();
     }
@@ -95,6 +112,18 @@ kernelsTraceStart( const pastix_data_t *pastix_data )
     return;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Stop the trace module
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix_data structure of the problem to get input information
+ *          for the different trace modes, and store output statistics.
+ *
+ *******************************************************************************/
 double
 kernelsTraceStop( const pastix_data_t *pastix_data )
 {
@@ -139,7 +168,7 @@ kernelsTraceStop( const pastix_data_t *pastix_data )
             case PastixKernelGEMMCblk1d1d:
             case PastixKernelGEMMCblkFRLR:
             case PastixKernelGEMMCblkLRLR:
-            case PastixKernelGEMMBlok2dLR:
+            case PastixKernelGEMMBlokLRLR:
                 if ( gpucase ) {
                     continue;
                 }

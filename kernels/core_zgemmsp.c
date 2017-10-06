@@ -773,7 +773,7 @@ core_zgemmsp_2dlrsub( pastix_coefside_t  sideA,
         }
     }
 
-    kernel_trace_stop( PastixKernelGEMMBlok2dLR,
+    kernel_trace_stop( PastixKernelGEMMBlokLRLR,
                        full_m, full_m, K,
                        flops, time );
 
