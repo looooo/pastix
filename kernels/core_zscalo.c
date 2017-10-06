@@ -19,7 +19,7 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 #include "cblas.h"
-#include "eztrace_module/kernels_ev_codes.h"
+#include "kernels_trace.h"
 
 /**
  ******************************************************************************
@@ -163,7 +163,12 @@ cpucblk_zscalo( pastix_trans_t      trans,
                 pastix_complex64_t *LD )
 {
     const SolverBlok *blok, *lblk;
-    start_trace_kernel( 1, LVL1_SCALO );
+    pastix_int_t M, N;
+    pastix_fixdbl_t time;
+
+    time = kernel_trace_start( PastixKernelSCALOCblk );
+
+    N = cblk_colnbr( cblk );
 
     blok = cblk->fblokptr + 1; /* Firt off-diagonal block */
     lblk = cblk[1].fblokptr;   /* Next diagonal block     */
@@ -174,9 +179,7 @@ cpucblk_zscalo( pastix_trans_t      trans,
         const pastix_complex64_t *D;
         const pastix_complex64_t *L;
         pastix_complex64_t *B;
-        pastix_int_t M, N, ldl, ldd, ldb;
-
-        N = cblk_colnbr( cblk );
+        pastix_int_t ldl, ldd, ldb;
 
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
             D   = cblk->fblokptr->LRblock[0].u;
@@ -236,7 +239,9 @@ cpucblk_zscalo( pastix_trans_t      trans,
             core_zscalo( trans, M, N, L + blok->coefind, ldl, D, ldd, B, ldb );
         }
     }
-    stop_trace_kernel( 1, 0.0 );
+
+    M = cblk->stride - N;
+    kernel_trace_stop( PastixKernelSCALOCblk, M, N, 0, (pastix_fixdbl_t)(M*N), time );
 }
 
 /**
@@ -309,6 +314,7 @@ cpublok_zscalo( pastix_trans_t            trans,
             M = blok_rownbr( blok );
 
             memcpy( blok->LRblock + 1, blok->LRblock, sizeof(pastix_lrblock_t) );
+
             if ( blok->LRblock[1].rk == -1 ) {
                 assert( M == blok->LRblock[1].rkmax );
 
@@ -321,7 +327,7 @@ cpublok_zscalo( pastix_trans_t            trans,
                 blok->LRblock[1].v = B + blok->coefind - offset;
                 lA = blok->LRblock[0].v;
                 lB = blok->LRblock[1].v;
-                M = blok->LRblock[0].rkmax;
+                M  = blok->LRblock[0].rkmax;
             }
 
             /* Compute B = op(A) * D */

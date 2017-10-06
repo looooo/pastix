@@ -89,6 +89,9 @@
 #cmakedefine PASTIX_WITH_STARPU
 #cmakedefine PASTIX_WITH_STARPU_PROFILING
 
+/* Models */
+#cmakedefine PASTIX_GENERATE_MODEL
+
 #cmakedefine PASTIX_CUDA_FERMI
 
 #cmakedefine PASTIX_FUNNELED

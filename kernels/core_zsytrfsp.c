@@ -19,7 +19,7 @@
 #include "cblas.h"
 #include "blend/solver.h"
 #include "pastix_zcores.h"
-#include "eztrace_module/kernels_ev_codes.h"
+#include "kernels_trace.h"
 
 #include <lapacke.h>
 
@@ -230,8 +230,9 @@ cpucblk_zsytrfsp1d_sytrf( SolverCblk         *cblk,
 {
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivot = 0;
+    pastix_fixdbl_t time;
 
-    start_trace_kernel( 1, LVL1_SYTRF );
+    time = kernel_trace_start( PastixKernelSYTRF );
 
     ncols  = cblk->lcolnum - cblk->fcolnum + 1;
     stride = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
@@ -251,11 +252,11 @@ cpucblk_zsytrfsp1d_sytrf( SolverCblk         *cblk,
      *  - diagonal holds D
      *  - uppert part holds (DL^t)
      */
-    start_trace_kernel( 2, SYTRF );
+    kernel_trace_start_lvl2( PastixKernelLvl2SYTRF );
     core_zsytrfsp( ncols, L, stride, &nbpivot, criteria );
-    stop_trace_kernel( 2, FLOPS_ZSYTRF( ncols ) );
+    kernel_trace_stop_lvl2( FLOPS_ZSYTRF( ncols ) );
 
-    stop_trace_kernel( 1, 0.0 );
+    kernel_trace_stop( PastixKernelSYTRF, ncols, 0, 0, FLOPS_ZSYTRF( ncols ), time );
 
     return nbpivot;
 }
@@ -315,8 +316,6 @@ void core_zsytrfsp1d_gemm( const SolverCblk         *cblk,
     pastix_complex64_t *blokC;
 
     pastix_int_t M, N, K, lda, ldb, ldc, ldd;
-
-    start_trace_kernel( 1, LVL1_GEMDM );
 
     /* Get the panel update dimensions */
     K = cblk_colnbr( cblk );
@@ -383,7 +382,6 @@ void core_zsytrfsp1d_gemm( const SolverCblk         *cblk,
             (void)ret;
         }
     }
-    stop_trace_kernel( 1, 0.0 );
 }
 
 /**

@@ -63,8 +63,8 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     pastix_bcsc_t                * bcsc         = pastix_data->bcsc;
     pastix_int_t                   n            = bcsc->gN;
     Clock                          refine_clk;
-    double                         t0           = 0.0;
-    double                         t3           = 0.0;
+    pastix_fixdbl_t                t0           = 0.0;
+    pastix_fixdbl_t                t3           = 0.0;
     pastix_complex64_t          *  gmrestemp    = NULL;
     volatile pastix_int_t          gmresim      = 0;
     volatile pastix_int_t          gmresmaxits  = 0;

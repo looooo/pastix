@@ -74,7 +74,7 @@ precisions_rules_py(generated_sources
 
 set(kernels_sources
   ${generated_sources}
-  eztrace_module/kernels_ev_codes.c
+  kernels_trace.c
   )
 
 if(PASTIX_WITH_CUDA)

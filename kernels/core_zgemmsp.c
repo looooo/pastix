@@ -19,7 +19,7 @@
 #include "cblas.h"
 #include "blend/solver.h"
 #include "pastix_zcores.h"
-#include "eztrace_module/kernels_ev_codes.h"
+#include "kernels_trace.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t mzone = -1.0;
@@ -141,13 +141,13 @@ core_zgemmsp_1d1d( pastix_coefside_t sideA, pastix_trans_t trans,
      * Compute update A * B'
      */
     wtmp = work;
-    start_trace_kernel( 2, DENSE_GEMM );
+    kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
     cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)trans,
                  M, N, K,
                  CBLAS_SADDR(zone),  A,    stride,
                                      B,    stride,
                  CBLAS_SADDR(zzero), wtmp, M );
-    stop_trace_kernel( 2, FLOPS_ZGEMM( M, N, K ) );
+    kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, K ) );
 
     /*
      * Add contribution to C in fcblk
@@ -314,13 +314,13 @@ core_zgemmsp_1d2d( pastix_coefside_t sideA, pastix_trans_t trans,
             + (blok->frownum - fcblk->fcolnum) * stridef;
 
         pastix_cblk_lock( fcblk );
-        start_trace_kernel( 2, DENSE_GEMM );
+        kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
         cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)trans,
                      M, N, K,
                      CBLAS_SADDR(mzone), blokA, stride,
                                          blokB, stride,
                      CBLAS_SADDR(zone),  blokC, stridef );
-        stop_trace_kernel( 2, FLOPS_ZGEMM( M, N, K ) );
+        kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, K ) );
         pastix_cblk_unlock( fcblk );
     }
 }
@@ -452,13 +452,13 @@ core_zgemmsp_2d2d( pastix_coefside_t sideA, pastix_trans_t trans,
             + (blok->frownum - fcblk->fcolnum) * ldc;
 
         pastix_cblk_lock( fcblk );
-        start_trace_kernel( 2, DENSE_GEMM );
+        kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
         cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)trans,
                      M, N, K,
                      CBLAS_SADDR(mzone), blokA, lda,
                                          blokB, ldb,
                      CBLAS_SADDR(zone),  blokC, ldc );
-        stop_trace_kernel( 2, FLOPS_ZGEMM( M, N, K ) );
+        kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, K ) );
         pastix_cblk_unlock( fcblk );
     }
 }
@@ -546,7 +546,11 @@ core_zgemmsp_2d2dsub( pastix_trans_t trans,
     const pastix_complex64_t *Aptr, *Bptr;
     pastix_complex64_t *Cptr;
     pastix_int_t M, N, K, lda, ldb, ldc, cblk_n, cblk_m;
+    pastix_int_t full_m;
     size_t offsetA, offsetB, offsetC;
+
+    pastix_fixdbl_t flops = 0.0;
+    pastix_fixdbl_t time = kernel_trace_start( PastixKernelGEMMBlok2d2d );
 
     /* Both cblk and fcblk must be stored in 2D */
     assert( cblk->cblktype  & CBLK_LAYOUT_2D );
@@ -577,12 +581,14 @@ core_zgemmsp_2d2dsub( pastix_trans_t trans,
     assert( blokC->fcblknm == cblk_m );
 
     K = cblk_colnbr( cblk );
+    full_m = 0;
 
     bC = blokC;
     for (bA = blokA; (bA < lblokK) && (bA->fcblknm == cblk_m); bA++) {
         M = blok_rownbr(bA);
         Aptr = A + bA->coefind - offsetA;
         lda = M;
+        full_m += M;
 
         /* Find facing C blok */
         while (!is_block_inside_fblock( bA, bC )) {
@@ -604,10 +610,17 @@ core_zgemmsp_2d2dsub( pastix_trans_t trans,
                          Bptr, ldb,
                          CBLAS_SADDR(zone),  Cptr + (bA->frownum - bC->frownum)
                          + (bB->frownum - fcblk->fcolnum) * ldc , ldc );
+
+            flops += FLOPS_ZGEMM( M, N, K );
         }
     }
 
+    kernel_trace_stop( PastixKernelGEMMBlok2d2d,
+                       full_m, full_m, K,
+                       flops, time );
+
     (void)lblokN;
+    return;
 }
 
 /**
@@ -693,7 +706,10 @@ core_zgemmsp_2dlrsub( pastix_coefside_t  sideA,
     const pastix_lrblock_t *lrA, *lrB;
     pastix_lrblock_t *lrC;
 
-    pastix_int_t M, N, K, cblk_n, cblk_m;
+    pastix_int_t M, N, K, cblk_n, cblk_m, full_m;
+
+    pastix_fixdbl_t flops = 0.0;
+    pastix_fixdbl_t time = kernel_trace_start( PastixKernelGEMMBlok2d2d );
 
     /* Both cblk and fcblk must be stored in 2D */
     assert( cblk->cblktype  & CBLK_LAYOUT_2D );
@@ -725,11 +741,13 @@ core_zgemmsp_2dlrsub( pastix_coefside_t  sideA,
     assert( blokC->fcblknm == cblk_m );
 
     K = cblk_colnbr( cblk );
+    full_m = 0;
 
     bC = blokC;
     for (bA = blokA; (bA < lblokK) && (bA->fcblknm == cblk_m); bA++) {
         M   = blok_rownbr(bA);
         lrA = bA->LRblock + sideA;
+        full_m += M;
 
         /* Find facing C blok */
         while (!is_block_inside_fblock( bA, bC )) {
@@ -754,6 +772,10 @@ core_zgemmsp_2dlrsub( pastix_coefside_t  sideA,
                         fcblk );
         }
     }
+
+    kernel_trace_stop( PastixKernelGEMMBlokLRLR,
+                       full_m, full_m, K,
+                       flops, time );
 
     (void)lblokN;
 }
@@ -829,7 +851,7 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
     pastix_int_t stride, shift;
     pastix_int_t M, N, K;
 
-   /* Update from a dense block to a low rank block */
+    /* Update from a dense block to a low rank block */
     assert(!(cblk->cblktype  & CBLK_COMPRESSED));
     assert(  fcblk->cblktype & CBLK_COMPRESSED );
     assert(  fcblk->cblktype & CBLK_LAYOUT_2D  );
@@ -1098,45 +1120,64 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
                        pastix_complex64_t *work,
                  const pastix_lr_t        *lowrank )
 {
+    pastix_ktype_t ktype;
+    pastix_fixdbl_t time, flops = 0.0;
+    pastix_int_t m = cblk->stride ;
+    pastix_int_t n = blok_rownbr( blok );
+    pastix_int_t k = cblk_colnbr( cblk );
+
+    m -= (cblk->cblktype & CBLK_LAYOUT_2D) ? blok->coefind / k : blok->coefind;
+    m -= (sideA == PastixUCoef) ? blok_rownbr( blok ) : 0;
+
     if ( fcblk->cblktype & CBLK_COMPRESSED ) {
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            start_trace_kernel( 1, LVL1_GEMM_CBLK_LRLR );
+            ktype = PastixKernelGEMMCblkLRLR;
+            time  = kernel_trace_start( ktype );
+
             core_zgemmsp_lr( sideA, sideB, trans,
                              cblk, blok, fcblk,
                              work, lowrank );
-            stop_trace_kernel( 1, 0.0 );
         }
         else {
-            start_trace_kernel( 1, LVL1_GEMM_CBLK_FRLR );
+            ktype = PastixKernelGEMMCblkFRLR;
+            time  = kernel_trace_start( ktype );
+
             core_zgemmsp_fulllr( sideA, trans,
                                  cblk, blok, fcblk,
                                  A, B, C, lowrank );
-            stop_trace_kernel( 1, 0.0 );
         }
     }
     else if ( fcblk->cblktype & CBLK_LAYOUT_2D ) {
         if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
-            start_trace_kernel( 1, LVL1_GEMM_CBLK_2D2D );
+            ktype = PastixKernelGEMMCblk2d2d;
+            time  = kernel_trace_start( ktype );
+
             core_zgemmsp_2d2d( sideA, trans,
                                cblk, blok, fcblk,
                                A, B, C );
-            stop_trace_kernel( 1, 0.0 );
         }
         else {
-            start_trace_kernel( 1, LVL1_GEMM_CBLK_1D2D );
+            ktype = PastixKernelGEMMCblk1d2d;
+            time  = kernel_trace_start( ktype );
+
             core_zgemmsp_1d2d( sideA, trans,
                                cblk, blok, fcblk,
                                A, B, C );
-            stop_trace_kernel( 1, 0.0 );
         }
+        flops = FLOPS_ZGEMM( m, n, k );
     }
     else {
-        start_trace_kernel( 1, LVL1_GEMM_CBLK_1D1D );
+        ktype = PastixKernelGEMMCblk1d1d;
+        time  = kernel_trace_start( ktype );
+
         core_zgemmsp_1d1d( sideA, trans,
                            cblk, blok, fcblk,
                            A, B, C, work );
-        stop_trace_kernel( 1, 0.0 );
+
+        flops = FLOPS_ZGEMM( m, n, k );
     }
+
+    kernel_trace_stop( ktype, m, n, k, flops, time );
 }
 
 /**
@@ -1224,22 +1265,18 @@ cpublok_zgemmsp(       pastix_coefside_t   sideA,
     if ((cblk->cblktype  & CBLK_COMPRESSED) &&
         (fcblk->cblktype & CBLK_COMPRESSED))
     {
-        start_trace_kernel( 1, LVL1_GEMM_BLOK_2DLR );
         core_zgemmsp_2dlrsub( sideA, sideB, transB,
                               blok_mk, blok_nk, blok_mn,
                               cblk, fcblk,
                               lowrank );
-        stop_trace_kernel( 1, 0.0 );
     }
     else if (!(cblk->cblktype  & CBLK_COMPRESSED) &&
              !(fcblk->cblktype & CBLK_COMPRESSED))
     {
-        start_trace_kernel( 1, LVL1_GEMM_BLOK_2D2D );
         core_zgemmsp_2d2dsub( transB,
                               blok_mk, blok_nk, blok_mn,
                               cblk, fcblk,
                               A, B, C );
-        stop_trace_kernel( 1, 0.0 );
     }
     else {
         assert(0);

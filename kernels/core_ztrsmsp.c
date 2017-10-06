@@ -19,7 +19,7 @@
 #include "cblas.h"
 #include "blend/solver.h"
 #include "pastix_zcores.h"
-#include "eztrace_module/kernels_ev_codes.h"
+#include "kernels_trace.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t  zone =  1.0;
@@ -94,13 +94,13 @@ core_ztrsmsp_1d( pastix_side_t             side,
     /* first extra-diagonal bloc in column block address */
     C = C + fblok[1].coefind;
 
-    start_trace_kernel( 2, DENSE_TRSM );
+    kernel_trace_start_lvl2( PastixKernelLvl2_FR_TRSM );
     cblas_ztrsm(CblasColMajor,
                 (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)trans, (CBLAS_DIAG)diag,
                 M, N,
                 CBLAS_SADDR(zone), A, lda,
                                    C, lda);
-    stop_trace_kernel( 2, FLOPS_ZTRSM( side, M, N ) );
+    kernel_trace_stop_lvl2( FLOPS_ZTRSM( side, M, N ) );
 }
 
 /**
@@ -171,13 +171,13 @@ core_ztrsmsp_2d( pastix_side_t             side,
         M   = blok_rownbr(blok);
         ldc = M;
 
-        start_trace_kernel( 2, DENSE_TRSM );
+        kernel_trace_start_lvl2( PastixKernelLvl2_FR_TRSM );
         cblas_ztrsm(CblasColMajor,
                     (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)trans, (CBLAS_DIAG)diag,
                     M, N,
                     CBLAS_SADDR(zone), A, lda,
                                        blokC, ldc);
-        stop_trace_kernel( 2, FLOPS_ZTRSM( side, M, N ) );
+        kernel_trace_stop_lvl2( FLOPS_ZTRSM( side, M, N ) );
     }
 }
 
@@ -266,23 +266,23 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
 
         if ( lrC->rk != 0 ) {
             if ( lrC->rk != -1 ) {
-                start_trace_kernel( 2, LR_TRSM );
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_TRSM );
                 cblas_ztrsm(CblasColMajor,
                             (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)trans, (CBLAS_DIAG)diag,
                             lrC->rk, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->v, lrC->rkmax);
-                stop_trace_kernel( 2, FLOPS_ZTRSM( side, lrC->rk, N ) );
+                kernel_trace_stop_lvl2( FLOPS_ZTRSM( side, lrC->rk, N ) );
             }
             else {
                 M = blok_rownbr(blok);
-                start_trace_kernel( 2, DENSE_TRSM );
+                kernel_trace_start_lvl2( PastixKernelLvl2_FR_TRSM );
                 cblas_ztrsm(CblasColMajor,
                             (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)trans, (CBLAS_DIAG)diag,
                             M, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->u, lrC->rkmax);
-                stop_trace_kernel( 2, FLOPS_ZTRSM( side, M, N ) );
+                kernel_trace_stop_lvl2( FLOPS_ZTRSM( side, M, N ) );
             }
         }
     }
@@ -340,27 +340,39 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                        pastix_complex64_t *C,
                  const pastix_lr_t        *lowrank )
 {
-    if (  cblk[0].fblokptr + 1 < cblk[1].fblokptr ) {
+    if (  cblk[0].fblokptr + 1 < cblk[1].fblokptr )
+    {
+        pastix_ktype_t ktype;
+        pastix_fixdbl_t time, flops = 0.0;
+        pastix_int_t n = cblk_colnbr( cblk );
+        pastix_int_t m = cblk->stride - n;
+
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            start_trace_kernel( 1, LVL1_TRSM_CBLK_LR );
+            ktype = PastixKernelTRSMCblkLR;
+            time  = kernel_trace_start( ktype );
+
             core_ztrsmsp_lr( coef, side, uplo, trans, diag,
                              cblk, lowrank );
-            stop_trace_kernel( 1, 0.0 );
         }
         else {
             if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
-                start_trace_kernel( 1, LVL1_TRSM_CBLK_2D );
+                ktype = PastixKernelTRSMCblk2d;
+                time  = kernel_trace_start( ktype );
+
                 core_ztrsmsp_2d( side, uplo, trans, diag,
                                  cblk, A, C );
-                stop_trace_kernel( 1, 0.0 );
             }
             else {
-                start_trace_kernel( 1, LVL1_TRSM_CBLK_1D );
+                ktype = PastixKernelTRSMCblk1d;
+                time  = kernel_trace_start( ktype );
+
                 core_ztrsmsp_1d( side, uplo, trans, diag,
                                  cblk, A, C );
-                stop_trace_kernel( 1, 0.0 );
             }
+            flops = FLOPS_ZTRSM( PastixRight, m, n );
         }
+
+        kernel_trace_stop( ktype, m, n, 0, flops, time );
     }
 }
 
@@ -410,7 +422,7 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
  *          fcblk.ucoeftab otherwise.
  *
  *******************************************************************************/
-static inline void
+static inline pastix_fixdbl_t
 core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
                     pastix_trans_t trans, pastix_diag_t diag,
                           SolverCblk         *cblk,
@@ -421,6 +433,7 @@ core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
     const SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, lda, ldc, offset, cblk_m;
     pastix_complex64_t *Cptr;
+    pastix_fixdbl_t flops = 0.0;
 
     N     = cblk->lcolnum - cblk->fcolnum + 1;
     fblok = cblk[0].fblokptr;  /* The diagonal block */
@@ -445,7 +458,11 @@ core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
                      M, N,
                      CBLAS_SADDR(zone), A, lda,
                                         Cptr, ldc );
+
+        flops += FLOPS_ZTRSM( side, M, N );
     }
+
+    return flops;
 }
 
 /**
@@ -625,18 +642,28 @@ cpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                        pastix_complex64_t *C,
                  const pastix_lr_t        *lowrank )
 {
+    pastix_ktype_t ktype;
+    pastix_fixdbl_t time, flops = 0.0;
+
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        start_trace_kernel( 1, LVL1_TRSM_BLOK_LR );
+        ktype = PastixKernelTRSMBlokLR;
+        time  = kernel_trace_start( ktype );
+
         core_ztrsmsp_lrsub( coef, side, uplo, trans, diag,
                             cblk, blok_m, lowrank );
-        stop_trace_kernel( 1, 0.0 );
     }
     else {
-        start_trace_kernel( 1, LVL1_TRSM_BLOK_2D );
-        core_ztrsmsp_2dsub( side, uplo, trans, diag,
-                            cblk, blok_m, A, C );
-        stop_trace_kernel( 1, 0.0 );
+        ktype = PastixKernelTRSMBlok2d;
+        time  = kernel_trace_start( ktype );
+
+        flops = core_ztrsmsp_2dsub( side, uplo, trans, diag,
+                                    cblk, blok_m, A, C );
     }
+
+    kernel_trace_stop( ktype,
+                       blok_rownbr( cblk->fblokptr + blok_m ),
+                       cblk_colnbr( cblk ),
+                       0, flops, time );
 }
 
 /**

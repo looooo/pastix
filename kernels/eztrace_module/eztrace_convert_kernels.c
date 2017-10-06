@@ -9,15 +9,145 @@
  *
  * @version 6.0.0
  * @author Gregoire Pichon
+ * @author Mathieu Faverge
  * @date 2017-04-26
  *
  */
-#ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
-#endif
-#include "eztrace_convert_kernels.h"
+#include <stdio.h>
+#include <strings.h>
+#include <GTG.h>
+#include "eztrace_convert.h"
+#include "kernels_trace.h"
 
-static kernels_t kernels_properties[KERNELS_NB_EVENTS];
+static inline double kernels_dmin( double a, double b) {
+    return ( a < b ) ? a : b;
+}
+
+static inline double kernels_dmax( double a, double b) {
+    return ( a > b ) ? a : b;
+}
+
+/**
+ * @brief EZTrace kernels module structure
+ */
+struct eztrace_convert_module kernels_module;
+
+/**
+ * @brief Kernels basic information structure for traces
+ */
+typedef struct kernels_s {
+    char        *name;   /**< Name of the kernel in the traces          */
+    gtg_color_t  color;  /**< Default color of the kernel in the traces */
+} kernels_t;
+
+/**
+ * @brief Table of kernels default names and colors
+ */
+static kernels_t kernels_properties[PastixKernelsNbr];
+
+/**
+ * @brief Initialize the kernels_properties table
+ */
+void
+define_kernels_properties()
+{
+    kernels_t *kernels_lvl1, *kernels_lvl2;
+    int i;
+
+    for (i=0; i<PastixKernelsNbr; i++){
+        kernels_properties[i] = (kernels_t) {"unknown", GTG_BLACK};
+    }
+
+    /* Level 1 kernels */
+    kernels_lvl1 = kernels_properties + PastixKernelLvl0Nbr;
+    kernels_lvl1[PastixKernelGETRF]     = (kernels_t) {"lvl1_getrf",      GTG_RED};
+    kernels_lvl1[PastixKernelHETRF]     = (kernels_t) {"lvl1_hetrf",      GTG_RED};
+    kernels_lvl1[PastixKernelPOTRF]     = (kernels_t) {"lvl1_potrf",      GTG_RED};
+    kernels_lvl1[PastixKernelPXTRF]     = (kernels_t) {"lvl1_pxtrf",      GTG_RED};
+    kernels_lvl1[PastixKernelSYTRF]     = (kernels_t) {"lvl1_sytrf",      GTG_RED};
+    kernels_lvl1[PastixKernelSCALOCblk] = (kernels_t) {"lvl1_scalo_cblk", GTG_SEABLUE};
+    kernels_lvl1[PastixKernelSCALOBlok] = (kernels_t) {"lvl1_scalo_blok", GTG_GREEN};
+
+    kernels_lvl1[PastixKernelTRSMCblk1d  ] = (kernels_t) {"lvl1_trsm_cblk_1d", GTG_BLUE};
+    kernels_lvl1[PastixKernelTRSMCblk2d  ] = (kernels_t) {"lvl1_trsm_cblk_2d", GTG_BLUE};
+    kernels_lvl1[PastixKernelTRSMCblkLR  ] = (kernels_t) {"lvl1_trsm_cblk_lr", GTG_BLUE};
+    kernels_lvl1[PastixKernelTRSMBlok2d  ] = (kernels_t) {"lvl1_trsm_blok_2d", GTG_BLUE};
+    kernels_lvl1[PastixKernelTRSMBlokLR  ] = (kernels_t) {"lvl1_trsm_blok_lr", GTG_BLUE};
+    kernels_lvl1[PastixKernelGEMMCblk1d1d] = (kernels_t) {"lvl1_gemm_cblk_1d1d", GTG_GREEN};
+    kernels_lvl1[PastixKernelGEMMCblk1d2d] = (kernels_t) {"lvl1_gemm_cblk_1d2d", GTG_GREEN};
+    kernels_lvl1[PastixKernelGEMMCblk2d2d] = (kernels_t) {"lvl1_gemm_cblk_2d2d", GTG_GREEN};
+    kernels_lvl1[PastixKernelGEMMCblkFRLR] = (kernels_t) {"lvl1_gemm_cblk_frlr", GTG_GREEN};
+    kernels_lvl1[PastixKernelGEMMCblkLRLR] = (kernels_t) {"lvl1_gemm_cblk_lrlr", GTG_GREEN};
+    kernels_lvl1[PastixKernelGEMMBlok2d2d] = (kernels_t) {"lvl1_gemm_blok_2d2d", GTG_GREEN};
+    kernels_lvl1[PastixKernelGEMMBlokLRLR] = (kernels_t) {"lvl1_gemm_blok_lrlr", GTG_GREEN};
+
+    /* Level 2 kernels - Factorization kernels */
+    kernels_lvl2 = kernels_lvl1 + PastixKernelLvl1Nbr;
+    kernels_lvl2[PastixKernelLvl2GETRF] = (kernels_t) {"lvl2_getrf", GTG_RED};
+    kernels_lvl2[PastixKernelLvl2HETRF] = (kernels_t) {"lvl2_hetrf", GTG_RED};
+    kernels_lvl2[PastixKernelLvl2POTRF] = (kernels_t) {"lvl2_potrf", GTG_RED};
+    kernels_lvl2[PastixKernelLvl2PXTRF] = (kernels_t) {"lvl2_pxtrf", GTG_RED};
+    kernels_lvl2[PastixKernelLvl2SYTRF] = (kernels_t) {"lvl2_sytrf", GTG_RED};
+
+    /* Level 2 kernels - Full-rank operations */
+    kernels_lvl2[PastixKernelLvl2_FR_TRSM] = (kernels_t) {"lvl2_fr_trsm", GTG_SEABLUE};
+    kernels_lvl2[PastixKernelLvl2_FR_GEMM] = (kernels_t) {"lvl2_fr_gemm", GTG_GREEN  };
+
+    /* Level 2 kernels - Low-rank operations */
+    kernels_lvl2[PastixKernelLvl2_LR_INIT]          = (kernels_t) {"lvl2_lr_init",          GTG_YELLOW    };
+    kernels_lvl2[PastixKernelLvl2_LR_INIT_Q]        = (kernels_t) {"lvl2_lr_init_q",        GTG_YELLOW    };
+    kernels_lvl2[PastixKernelLvl2_LR_TRSM]          = (kernels_t) {"lvl2_lr_trsm",          GTG_SEABLUE   };
+    kernels_lvl2[PastixKernelLvl2_LR_GEMM_PRODUCT]  = (kernels_t) {"lvl2_lr_gemm_product",  GTG_GREEN     };
+    kernels_lvl2[PastixKernelLvl2_LR_GEMM_ADD_Q]    = (kernels_t) {"lvl2_lr_gemm_add_q",    GTG_ORANGE    };
+    kernels_lvl2[PastixKernelLvl2_LR_GEMM_ADD_RRQR] = (kernels_t) {"lvl2_lr_gemm_add_rrqr", GTG_LIGHTBROWN};
+    kernels_lvl2[PastixKernelLvl2_LR_UNCOMPRESS]    = (kernels_t) {"lvl2_lr_uncompress",    GTG_PINK      };
+}
+
+/**
+ * @brief Enum of the statistic values kept per data
+ */
+typedef enum counter_e {
+    CounterMin, /**< Minimal value of the counter */
+    CounterMax, /**< Maximal value of the counter */
+    CounterSum, /**< Total value of the counter   */
+    CounterSum2 /**< Sum of the square of each value to compute standard deviation */
+} counter_t;
+
+/**
+ * @brief Information structure associated to one kernel on one thread to
+ * compute statistics.
+ */
+typedef struct kernels_info_s {
+    int    nb;      /**< Number of calls to the kernel       */
+    double flop[4]; /**< Flops counters for statistics       */
+    double time[4]; /**< Timing counters for statistics      */
+    double perf[4]; /**< Performance counters for statistics */
+} kernels_info_t;
+
+/**
+ * @brief Information structure associated to each thread to store temporary
+ * information between two events while computing statistics.
+ */
+typedef struct kernels_thread_info_s {
+    struct thread_info_t *p_thread;   /**< Common EZTrace thread information                                 */
+    float                 time_start; /**< Sarting time of the last non PastixKernelStop event               */
+    int                   current_ev; /**< Id of the last non PastixKernelStop event                         */
+    kernels_info_t       *kernels;    /**< Table of size PastixKernelsNbr to store statistics on each kernel */
+} kernels_thread_info_t;
+
+/**
+ * @brief Macro to initialize and eventually register a thread_info data
+ * @param p_thread The current thread
+ * @param var The name of the output kernels_thread_info_t variable
+ * @param stats Boolean to specify if we are in stats or convert mode
+ */
+#define INIT_KERNELS_THREAD_INFO(p_thread, var, stats)                  \
+    kernels_thread_info_t *var = (kernels_thread_info_t *)              \
+        ezt_hook_list_retrieve_data(&p_thread->hooks, KERNELS_EVENTS_ID); \
+    if(!(var)) {                                                        \
+        var = kernels_register_thread_hook(p_thread, stats);            \
+    }
 
 /**
  *******************************************************************************
@@ -38,28 +168,24 @@ static kernels_t kernels_properties[KERNELS_NB_EVENTS];
  * @return  The structure containing the thread and statistics for each kernel
  *
  *******************************************************************************/
-static kernels_thread_info_t *kernels_register_thread_hook(struct thread_info_t *p_thread,
-                                                           int stats) {
-
+static kernels_thread_info_t *
+kernels_register_thread_hook( struct thread_info_t *p_thread,
+                              int stats )
+{
     kernels_thread_info_t *p_info = (kernels_thread_info_t*) malloc(sizeof(kernels_thread_info_t));
 
     p_info->p_thread = p_thread;
 
     if (stats == 1){
-        int    *nb       = malloc(KERNELS_NB_EVENTS * sizeof(int));
-        double *flops    = malloc(KERNELS_NB_EVENTS * sizeof(double));
-        double *run_time = malloc(KERNELS_NB_EVENTS * sizeof(double));
-
+        kernels_info_t *kernels = calloc( PastixKernelsNbr, sizeof(kernels_info_t) );
         int i;
-        for (i=0; i<KERNELS_NB_EVENTS; i++){
-            nb[i]        = 0;
-            flops[i]     = 0;
-            run_time[i]  = 0;
-        }
 
-        p_info->nb       = nb;
-        p_info->flops    = flops;
-        p_info->run_time = run_time;
+        for(i=0; i<PastixKernelsNbr; i++) {
+            kernels[i].flop[CounterMin] = 1.e99;
+            kernels[i].time[CounterMin] = 1.e99;
+            kernels[i].perf[CounterMin] = 1.e99;
+        }
+        p_info->kernels = kernels;
     }
 
     ezt_hook_list_add(&p_info->p_thread->hooks, p_info, KERNELS_EVENTS_ID);
@@ -67,9 +193,373 @@ static kernels_thread_info_t *kernels_register_thread_hook(struct thread_info_t 
 }
 
 /**
- * @brief Start to use eztrace by loading PaStiX module
+ *******************************************************************************
+ *
+ * @brief Init the kernels module in case of conversion mode.
+ *
+ * Meta-information of the events such as name or color are initialized by this
+ * function.
+ * They are also added to the trace file.
+ *
+ *******************************************************************************
+ *
+ * @retval 0 The events where correcly initialized
+ * @retval 1 The events where not correcly initialized
+ *
+ *******************************************************************************/
+int
+eztrace_convert_kernels_init()
+{
+    if (get_mode() == EZTRACE_CONVERT) {
+        int k;
+
+        define_kernels_properties();
+
+        for (k=0; k<PastixKernelsNbr; k++) {
+            addEntityValue( kernels_properties[k].name, "ST_Thread",
+                            kernels_properties[k].name, kernels_properties[k].color );
+        }
+    }
+    return 0;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Handle associated to the beginning of an event
+ *
+ *******************************************************************************
+ *
+ * @param[in] event_id
+ *          The kernel id as one of the pastix enum for which statistics will be
+ *          updated.
+ *
+ * @param[in] stats
+ *          - stats == 0, save event
+ *          - stats == 1, save statistics
+ *
+ *******************************************************************************/
+static inline void
+handle_start( int event_id, int stats )
+{
+    DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
+    DECLARE_CUR_THREAD(p_thread);
+    INIT_KERNELS_THREAD_INFO(p_thread, p_info, stats);
+
+    if (stats == 1)
+    {
+        p_info->kernels[event_id].nb ++;
+        p_info->current_ev = event_id;
+        p_info->time_start = CURRENT;
+    }
+    else {
+        pushState(CURRENT, "ST_Thread", thread_id, kernels_properties[event_id+1].name);
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Handle associated to the end of an event
+ *
+ *******************************************************************************
+ *
+ * @param[in] stats
+ *          - stats == 0, save event
+ *          - stats == 1, save statistics
+ *
+ *******************************************************************************/
+static inline void
+handle_stop( int stats )
+{
+    DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
+    DECLARE_CUR_THREAD(p_thread);
+    INIT_KERNELS_THREAD_INFO(p_thread, p_info, stats);
+
+    if (stats == 1)
+    {
+        kernels_info_t *kernel = p_info->kernels + p_info->current_ev;
+        double flop, time, perf;
+
+        GET_PARAM_PACKED_1(CUR_EV, flop);
+        flop = flop * 1.e-9;
+        kernel->flop[CounterMin ]  = kernels_dmin( kernel->flop[CounterMin], flop );
+        kernel->flop[CounterMax ]  = kernels_dmax( kernel->flop[CounterMax], flop );
+        kernel->flop[CounterSum ] += flop;
+        kernel->flop[CounterSum2] += flop * flop;
+
+        time = CURRENT - p_info->time_start;
+        kernel->time[CounterMin ]  = kernels_dmin( kernel->time[CounterMin], time );
+        kernel->time[CounterMax ]  = kernels_dmax( kernel->time[CounterMax], time );
+        kernel->time[CounterSum ] += time;
+        kernel->time[CounterSum2] += time * time;
+
+        perf = flop / (time * 1.e-3);
+        kernel->perf[CounterMin ]  = kernels_dmin( kernel->perf[CounterMin], perf );
+        kernel->perf[CounterMax ]  = kernels_dmax( kernel->perf[CounterMax], perf );
+        kernel->perf[CounterSum ] += perf;
+        kernel->perf[CounterSum2] += perf * perf;
+    }
+    else{
+        popState(CURRENT, "ST_Thread", thread_id);
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Fonction called by eztrace_convert() to handle a single event
+ *
+ *******************************************************************************
+ *
+ * @param[in] ev
+ *          The event to be handled
+ *
+ *******************************************************************************
+ *
+ * @retval 0 The event was not handled by the kernels module
+ * @retval 1 The event was correclty handled by the kernels module
+ *
+ *******************************************************************************/
+int
+handle_kernels_events(eztrace_event_t *ev)
+{
+    int event_id;
+
+    if( !(CUR_TRACE->start) ||
+        !IS_A_KERNELS_EV(ev) )
+    {
+        return 0;
+    }
+
+    event_id = KERNELS_GET_CODE( ev );
+    switch (event_id) {
+    case PastixKernelStop:
+        handle_stop( 0 );
+        break;
+    default:
+        handle_start( event_id-1, 0 );
+        break;
+    }
+    return 1;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Fonction called by eztrace_stats() to handle a single event
+ *
+ *******************************************************************************
+ *
+ * @param[in] ev
+ *          The event to be handled
+ *
+ *******************************************************************************
+ *
+ * @retval 0 The event was not handled by the kernels module
+ * @retval 1 The event was correclty handled by the kernels module
+ *
+ *******************************************************************************/
+int
+handle_kernels_stats(eztrace_event_t *ev)
+{
+    int event_id;
+
+    if( !(CUR_TRACE->start) ||
+        !IS_A_KERNELS_EV(ev) )
+    {
+        return 0;
+    }
+
+    event_id = KERNELS_GET_CODE( ev );
+    switch (event_id) {
+    case PastixKernelStop:
+        handle_stop( 1 );
+        break;
+    default:
+        handle_start( event_id-1, 1 );
+        break;
+    }
+    return 1;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Print one line of statistics associated to a kernels_info_t structure.
+ *
+ *******************************************************************************
+ *
+ * @param[in] title
+ *          The title of the line
+ *
+ * @param[in] kernel
+ *          The structure for which the statistics need to be printed
+ *
+ * @param[inout] acc
+ *          The accumulator structure.
+ *          If acc != NULL, on exit acc = merge( acc, kernel )
+ *
+ *******************************************************************************/
+void
+print_kernel_stats( const char           *title,
+                    const kernels_info_t *kernel,
+                    kernels_info_t       *acc )
+{
+    const double *data;
+
+    printf( "      %-23s | %8d |", title, kernel->nb );
+
+    data = kernel->flop;
+    printf( " %e %8.3g %8.3g %8.3g +-%8.3g |",
+            data[CounterSum], data[CounterMin], data[CounterMax],
+            data[CounterSum] / (double)kernel->nb,
+            sqrt( (data[CounterSum2] - (data[CounterSum] * data[CounterSum]) / (double)kernel->nb) / (double)kernel->nb ) );
+
+    data = kernel->time;
+    printf( " %e %8.3g %8.3g %8.3g +-%8.3g |",
+            data[CounterSum], data[CounterMin], data[CounterMax],
+            data[CounterSum] / (double)kernel->nb,
+            sqrt( (data[CounterSum2] - (data[CounterSum] * data[CounterSum]) / (double)kernel->nb) / (double)kernel->nb ) );
+
+    data = kernel->perf;
+    printf( " %8.3g %8.3g %8.3g +-%8.3g |\n",
+            data[CounterMin], data[CounterMax],
+            data[CounterSum] / (double)kernel->nb,
+            sqrt( (data[CounterSum2] - (data[CounterSum] * data[CounterSum]) / (double)kernel->nb) / (double)kernel->nb ) );
+
+    if ( acc != NULL ) {
+        acc->nb += kernel->nb;
+
+        acc->flop[CounterMin ]  = kernels_dmin( acc->flop[CounterMin], kernel->flop[CounterMin] );
+        acc->flop[CounterMax ]  = kernels_dmax( acc->flop[CounterMax], kernel->flop[CounterMax] );
+        acc->flop[CounterSum ] += kernel->flop[CounterSum ];
+        acc->flop[CounterSum2] += kernel->flop[CounterSum2];
+
+        acc->time[CounterMin ]  = kernels_dmin( acc->time[CounterMin], kernel->time[CounterMin] );
+        acc->time[CounterMax ]  = kernels_dmax( acc->time[CounterMax], kernel->time[CounterMax] );
+        acc->time[CounterSum ] += kernel->time[CounterSum ];
+        acc->time[CounterSum2] += kernel->time[CounterSum2];
+
+        acc->perf[CounterMin ]  = kernels_dmin( acc->perf[CounterMin], kernel->perf[CounterMin] );
+        acc->perf[CounterMax ]  = kernels_dmax( acc->perf[CounterMax], kernel->perf[CounterMax] );
+        acc->perf[CounterSum ] += kernel->perf[CounterSum ];
+        acc->perf[CounterSum2] += kernel->perf[CounterSum2];
+    }
+}
+
+/**
+ * @brief Print the full summary statistics table
  */
-struct eztrace_convert_module kernels_module;
+void
+print_kernels_stats()
+{
+    kernels_info_t total[PastixKernelsNbr];
+    kernels_info_t final;
+    int i, j, k;
+    int main_header   = 1;
+    int thread_header = 1;
+
+    define_kernels_properties();
+    memset( total, 0, PastixKernelsNbr * sizeof(kernels_info_t) );
+    memset( &final, 0, sizeof(kernels_info_t) );
+
+    for(i=0; i<PastixKernelsNbr; i++) {
+        total[i].flop[CounterMin] = 1.e99;
+        total[i].time[CounterMin] = 1.e99;
+        total[i].perf[CounterMin] = 1.e99;
+    }
+    final.flop[CounterMin] = 1.e99;
+    final.time[CounterMin] = 1.e99;
+    final.perf[CounterMin] = 1.e99;
+
+    /* Browse the list of processes */
+    for (i=0; i<NB_TRACES; i++) {
+        struct eztrace_container_t *p_process = GET_PROCESS_CONTAINER(i);
+
+        /* For each process, browse the list of threads */
+        for(j=0; j<(int)(p_process->nb_children); j++) {
+
+            struct eztrace_container_t *thread_container;
+            struct thread_info_t       *p_thread;
+            kernels_info_t *kernel;
+
+            thread_container = p_process->children[j];
+            p_thread = (struct thread_info_t*)(thread_container->container_info);
+
+            if( !p_thread ) {
+                continue;
+            }
+
+            INIT_KERNELS_THREAD_INFO(p_thread, p_info, 1);
+
+            thread_header = 1;
+            kernel = p_info->kernels;
+            for (k=0; k<PastixKernelsNbr; k++, kernel++)
+            {
+                /*
+                 * Print kernel statistics on the current thread
+                 */
+                if (kernel->nb > 0)
+                {
+                    if ( main_header ) {
+                        printf( "         %20s | Nb calls | %-50s | %-50s | %-37s |\n"
+                                "         %20s |          | %12s %8s %8s %8s %10s |"
+                                " %12s %8s %8s %8s %10s | %8s %8s %8s %10s |\n",
+                                "", "Number of flop (GFlop)", "Timing (s)", "Performance (GFlop/s)",
+                                "", "total", "min", "max", "avg", "sd",
+                                    "total", "min", "max", "avg", "sd",
+                                             "min", "max", "avg", "sd" );
+                        main_header = 0;
+                    }
+
+                    if ( thread_header ) {
+                        printf( "  Thread %20s |\n", thread_container->name );
+                        thread_header = 0;
+                    }
+
+                    print_kernel_stats( kernels_properties[k].name,
+                                        kernel, &(total[k]) );
+                }
+            }
+            if ( !thread_header ) {
+                printf("\n");
+            }
+        }
+    }
+
+    /*
+     * Print summary per kernel
+     */
+    thread_header = 1;
+    for (k=0; k<PastixKernelsNbr; k++)
+    {
+        if ( total[k].nb > 0 ) {
+            if ( thread_header ) {
+                printf( "  Total  %20s |\n", "" );
+                thread_header = 0;
+            }
+
+            print_kernel_stats( kernels_properties[k].name,
+                                &(total[k]), &final );
+        }
+    }
+    if ( !thread_header ) {
+        printf("\n");
+    }
+
+    /*
+     * Print final summary
+     */
+    if ( final.nb > 0 ) {
+        print_kernel_stats("summary", &final, NULL );
+    }
+}
+
+/**
+ * @brief Kernels module initialization function called by EZTrace to load
+ * the module
+ */
 void libinit(void) __attribute__ ((constructor));
 void libinit(void)
 {
@@ -80,7 +570,7 @@ void libinit(void)
     kernels_module.print_stats   = print_kernels_stats;
     kernels_module.module_prefix = KERNELS_EVENTS_ID;
 
-    asprintf(&kernels_module.name, "kernels");
+    asprintf(&kernels_module.name,        "kernels"       );
     asprintf(&kernels_module.description, "PaStiX kernels");
 
     kernels_module.token.data = &kernels_module;
@@ -88,266 +578,12 @@ void libinit(void)
 }
 
 /**
- * @brief Stop to use eztrace
+ * @brief Kernels module finalization function called by EZTrace to unload the
+ * module
  */
 void libfinalize(void) __attribute__ ((destructor));
 void libfinalize(void)
 {
-    printf("unloading module \n");
+    printf("unloading module kernels\n");
 }
 
-
-/**
- * @brief Define events properties such as name or color
- */
-void define_kernels_properties()
-{
-    int i;
-    for (i=1; i<KERNELS_NB_EVENTS; i++){
-        kernels_properties[i] = (kernels_t) {"unknown", GTG_BLACK};
-    }
-
-    /* Low-rank operations */
-    kernels_properties[LR_INIT]   = (kernels_t) {"lr_init",   GTG_YELLOW};
-    kernels_properties[LR_INIT_Q] = (kernels_t) {"lr_init_q", GTG_YELLOW};
-    kernels_properties[LR_TRSM]   = (kernels_t) {"lr_trsm",   GTG_SEABLUE};
-
-    kernels_properties[LR_GEMM_PRODUCT]  = (kernels_t) {"lr_gemm_product",  GTG_GREEN};
-    kernels_properties[LR_GEMM_ADD_Q]    = (kernels_t) {"lr_gemm_add_q",    GTG_ORANGE};
-    kernels_properties[LR_GEMM_ADD_RRQR] = (kernels_t) {"lr_gemm_add_rrqr", GTG_LIGHTBROWN};
-
-    kernels_properties[UNCOMPRESS] = (kernels_t) {"lr_uncompress", GTG_PINK};
-
-    /* Dense operations */
-    kernels_properties[GETRF]      = (kernels_t) {"getrf",      GTG_RED};
-    kernels_properties[HETRF]      = (kernels_t) {"hetrf",      GTG_RED};
-    kernels_properties[POTRF]      = (kernels_t) {"potrf",      GTG_RED};
-    kernels_properties[PXTRF]      = (kernels_t) {"pxtrf",      GTG_RED};
-    kernels_properties[SYTRF]      = (kernels_t) {"sytrf",      GTG_RED};
-    kernels_properties[DENSE_TRSM] = (kernels_t) {"dense_trsm", GTG_SEABLUE};
-    kernels_properties[DENSE_GEMM] = (kernels_t) {"dense_gemm", GTG_GREEN};
-
-    kernels_properties[LVL1_GETRF         ] = (kernels_t) {"lvl1_getrf", GTG_RED};
-    kernels_properties[LVL1_HETRF         ] = (kernels_t) {"lvl1_hetrf", GTG_RED};
-    kernels_properties[LVL1_POTRF         ] = (kernels_t) {"lvl1_potrf", GTG_RED};
-    kernels_properties[LVL1_PXTRF         ] = (kernels_t) {"lvl1_pxtrf", GTG_RED};
-    kernels_properties[LVL1_SYTRF         ] = (kernels_t) {"lvl1_sytrf", GTG_RED};
-    kernels_properties[LVL1_SCALO         ] = (kernels_t) {"lvl1_scalo", GTG_PURPLE};
-    kernels_properties[LVL1_TRSM_CBLK_1D  ] = (kernels_t) {"lvl1_trsm_cblk_1d", GTG_BLUE};
-    kernels_properties[LVL1_TRSM_CBLK_2D  ] = (kernels_t) {"lvl1_trsm_cblk_2d", GTG_BLUE};
-    kernels_properties[LVL1_TRSM_CBLK_LR  ] = (kernels_t) {"lvl1_trsm_cblk_lr", GTG_BLUE};
-    kernels_properties[LVL1_TRSM_BLOK_2D  ] = (kernels_t) {"lvl1_trsm_blok_2d", GTG_BLUE};
-    kernels_properties[LVL1_TRSM_BLOK_LR  ] = (kernels_t) {"lvl1_trsm_blok_lr", GTG_BLUE};
-    kernels_properties[LVL1_GEMM_CBLK_1D1D] = (kernels_t) {"lvl1_gemm_cblk_1d1d", GTG_GREEN};
-    kernels_properties[LVL1_GEMM_CBLK_1D2D] = (kernels_t) {"lvl1_gemm_cblk_1d2d", GTG_GREEN};
-    kernels_properties[LVL1_GEMM_CBLK_2D2D] = (kernels_t) {"lvl1_gemm_cblk_2d2d", GTG_GREEN};
-    kernels_properties[LVL1_GEMM_CBLK_FRLR] = (kernels_t) {"lvl1_gemm_cblk_frlr", GTG_GREEN};
-    kernels_properties[LVL1_GEMM_CBLK_LRLR] = (kernels_t) {"lvl1_gemm_cblk_lrlr", GTG_GREEN};
-    kernels_properties[LVL1_GEMM_BLOK_2D2D] = (kernels_t) {"lvl1_gemm_blok_2d2d", GTG_GREEN};
-    kernels_properties[LVL1_GEMM_BLOK_2DLR] = (kernels_t) {"lvl1_gemm_blok_2dlr", GTG_GREEN};
-    kernels_properties[LVL1_GEMDM]          = (kernels_t) {"lvl1_gemdm", GTG_GREEN};
-}
-
-/**
- *******************************************************************************
- *
- * @brief Init events metainformation such as name or color
- *
- *******************************************************************************
- *
- * @retval 0 The events where correcly initialized
- *
- * @retval 1 The events where not correcly initialized
- *
- *******************************************************************************/
-int eztrace_convert_kernels_init()
-{
-    if (get_mode() == EZTRACE_CONVERT) {
-
-        define_kernels_properties();
-
-        int k;
-        for (k=1; k<KERNELS_NB_EVENTS; k++){
-            addEntityValue(kernels_properties[k].name, "ST_Thread",
-                           kernels_properties[k].name, kernels_properties[k].color);
-        }
-    }
-    return 0;
-}
-
-/**
- *******************************************************************************
- *
- * @brief Handle the start of an elemental event
- *
- *******************************************************************************
- *
- * @param[in] ev
- *          The reference of the kernel for which statistics will be updated
- *
- * @param[in] stats
- *          - stats == 0, save event
- *          - stats == 1, save statistics
- *
- *******************************************************************************/
-void handle_start(kernels_ev_code_t ev, int stats)
-{
-    DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
-    DECLARE_CUR_THREAD(p_thread);
-    INIT_KERNELS_THREAD_INFO(p_thread, p_info, stats);
-
-    if (stats == 1){
-
-        p_info->nb[ev]++;
-        p_info->current_ev = ev;
-        p_info->time_start = CURRENT;
-    }
-    else{
-        pushState(CURRENT, "ST_Thread", thread_id, kernels_properties[ev].name);
-    }
-}
-
-/**
- *******************************************************************************
- *
- * @brief Handle the end of an elemental event
- *
- *******************************************************************************
- *
- * @param[in] stats
- *          - stats == 0, save event
- *          - stats == 1, save statistics
- *
- *******************************************************************************/
-void handle_stop(int stats)
-{
-    double size;
-
-    DECLARE_THREAD_ID_STR(thread_id, CUR_INDEX, CUR_THREAD_ID);
-    DECLARE_CUR_THREAD(p_thread);
-    INIT_KERNELS_THREAD_INFO(p_thread, p_info, stats);
-
-    if (stats == 1){
-        GET_PARAM_PACKED_1(CUR_EV, size);
-        p_info->run_time[p_info->current_ev] += (CURRENT - p_info->time_start);
-        p_info->flops[p_info->current_ev]    += size;
-    }
-    else{
-        popState(CURRENT, "ST_Thread", thread_id);
-    }
-}
-
-/**
- *******************************************************************************
- *
- * @brief Fonction called by eztrace_convert to handle a single event
- *
- *******************************************************************************
- *
- * @param[in] ev
- *          The event to be handled
- *
- *******************************************************************************
- *
- * @retval 0 The event was not correclty handled
- *
- * @retval 1 The event was correclty handled
- *
- *******************************************************************************/
-int handle_kernels_events(eztrace_event_t *ev)
-{
-    if(! CUR_TRACE->start)
-        return 0;
-
-    switch (LITL_READ_GET_CODE(ev)) {
-
-    case KERNELS_CODE(STOP):
-        handle_stop(0);
-        break;
-    default:
-        if (LITL_READ_GET_CODE(ev) > KERNELS_PREFIX)
-            handle_start((kernels_ev_code_t) (LITL_READ_GET_CODE(ev) - KERNELS_PREFIX), 0);
-        break;
-    }
-    return 1;
-}
-
-/**
- *******************************************************************************
- *
- * @brief Fonction called by eztrace_stats to handle a single event
- *
- *******************************************************************************
- *
- * @param[in] ev
- *          The event to be handled
- *
- *******************************************************************************
- *
- * @retval 0 The event was not correclty handled
- *
- * @retval 1 The event was correclty handled
- *
- *******************************************************************************/
-int handle_kernels_stats(eztrace_event_t *ev)
-{
-    if(! CUR_TRACE->start)
-        return 0;
-
-    switch (LITL_READ_GET_CODE(ev)) {
-
-    case KERNELS_CODE(STOP):
-        handle_stop(1);
-        break;
-    default:
-        if (LITL_READ_GET_CODE(ev) > KERNELS_PREFIX)
-            handle_start((kernels_ev_code_t) (LITL_READ_GET_CODE(ev) - KERNELS_PREFIX), 1);
-        break;
-    }
-    return 1;
-}
-
-/**
- * @brief Print the statistics of each kernel for each thread
- */
-void print_kernels_stats()
-{
-    int64_t i, j, k;
-    double total_flops = 0;
-
-    define_kernels_properties();
-
-    /* Browse the list of processes */
-    for (i = 0; i < NB_TRACES; i++) {
-        struct eztrace_container_t *p_process = GET_PROCESS_CONTAINER(i);
-
-        /* For each process, browse the list of threads */
-        for(j=0; j<(int64_t)(p_process->nb_children); j++) {
-
-            struct eztrace_container_t *thread_container;
-            struct thread_info_t       *p_thread;
-
-            thread_container = p_process->children[j];
-            p_thread = (struct thread_info_t*)(thread_container->container_info);
-
-            if(!p_thread)
-                continue;
-
-            INIT_KERNELS_THREAD_INFO(p_thread, p_info, 1);
-            printf("\tThread %20s\n", thread_container->name);
-
-            for (k=1; k<KERNELS_NB_EVENTS; k++){
-                double perf = 1000 * p_info->flops[k] / p_info->run_time[k];
-                total_flops += p_info->flops[k];
-
-                if (p_info->nb[k] > 0)
-                    printf("Kernel %20s was called %8d times, flops=%8.3g, time=%7.2g s, perf=%7.2lf %cFlop/s\n",
-                           kernels_properties[k].name, p_info->nb[k],
-                           p_info->flops[k], p_info->run_time[k] / 1000.,
-                           printflopsv( perf ), printflopsu( perf ) );
-            }
-        }
-    }
-    printf("\n\n\tTotal number of operations: %5.2lf %cFlops\n",
-           printflopsv( total_flops ), printflopsu( total_flops ) );
-}

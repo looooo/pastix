@@ -19,122 +19,101 @@
 #ifndef _kernels_ev_codes_h_
 #define _kernels_ev_codes_h_
 
-#include "common.h"
-#include "flops.h"
-
-#if defined(PASTIX_WITH_EZTRACE)
 #include "eztrace.h"
 #include "eztrace_sampling.h"
 #include "ev_codes.h"
 
 #define KERNELS_EVENTS_ID    USER_MODULE_ID(0x51)
-#define KERNELS_PREFIX       (KERNELS_EVENTS_ID << 5)
-#define KERNELS_CODE(event)  (KERNELS_PREFIX | event )
+#define KERNELS_PREFIX       GENERATE_USER_MODULE_PREFIX( KERNELS_EVENTS_ID )
+
+#define PREFIX_MASK  (((1 << NB_BITS_PREFIX) -1) << NB_BITS_EVENTS)
+#define EVENTS_MASK  (~PREFIX_MASK)
+
+#define IS_A_KERNELS_EV(ev)  ((LITL_READ_GET_CODE(ev) & PREFIX_MASK) == KERNELS_PREFIX)
+#define KERNELS_GET_CODE(ev)  (LITL_READ_GET_CODE(ev) & EVENTS_MASK)
+
+#define KERNELS_CODE(event) ( KERNELS_PREFIX | (event) )
+
+#define KERNELS_LVL0_CODE(event) ( KERNELS_CODE( event + 1) )
+#define KERNELS_LVL1_CODE(event) ( KERNELS_CODE( event + PastixKernelLvl0Nbr + 1) )
+#define KERNELS_LVL2_CODE(event) ( KERNELS_CODE( event + PastixKernelLvl1Nbr + PastixKernelLvl0Nbr + 1 ) )
 
 extern int pastix_eztrace_level;
 
-#endif /* defined(PASTIX_WITH_EZTRACE) */
-
-/**
- * @brief Kernels
- */
-typedef enum kernels_ev_code_e {
-    STOP,
-
-    /* Low-rank operations */
-    LR_INIT,          /**< try to compress a dense block (RRQR)                  */
-    LR_INIT_Q,        /**< form Q when compression succeeded                     */
-    LR_TRSM,          /**< trsm on a low-rank block                              */
-    LR_GEMM_PRODUCT,  /**< formation of a product of low-rank blocks             */
-    LR_GEMM_ADD_Q,    /**< getrf/unmqr during recompression                      */
-    LR_GEMM_ADD_RRQR, /**< compression of concatenated matrices in recompression */
-    UNCOMPRESS,       /**< uncompress a low-rank block into a dense block        */
-
-    /* General kernels: similar in low-rank and dense */
-    GETRF,
-    HETRF,
-    POTRF,
-    PXTRF,
-    SYTRF,
-
-    /* Dense operations */
-    DENSE_TRSM, /**< trsm on a dense block           */
-    DENSE_GEMM, /**< gemm between three dense blocks */
-
-    LVL1_GETRF,
-    LVL1_HETRF,
-    LVL1_POTRF,
-    LVL1_PXTRF,
-    LVL1_SYTRF,
-    LVL1_SCALO,
-    LVL1_TRSM_CBLK_1D,
-    LVL1_TRSM_CBLK_2D,
-    LVL1_TRSM_CBLK_LR,
-    LVL1_TRSM_BLOK_2D,
-    LVL1_TRSM_BLOK_LR,
-    LVL1_GEMM_CBLK_1D1D,
-    LVL1_GEMM_CBLK_1D2D,
-    LVL1_GEMM_CBLK_2D2D,
-    LVL1_GEMM_CBLK_FRLR,
-    LVL1_GEMM_CBLK_LRLR,
-    LVL1_GEMM_BLOK_2D2D,
-    LVL1_GEMM_BLOK_2DLR,
-    LVL1_GEMDM,
-
-    KERNELS_NB_EVENTS,
-} kernels_ev_code_t;
-
-void start_eztrace_kernels();
-void stop_eztrace_kernels();
-
 /**
  *******************************************************************************
  *
- * @brief Start to trace a kernel
+ * @brief Start to trace a kernel of level 0
  *
  *******************************************************************************
  *
- * @param[in] level
- *          Level of tracing defined by environment variable EZTRACE_LVL
- *
- * @param[in] state
- *          The kernel's name
+ * @param[in] ktype
+ *          The kernel's type to trace
  *
  *******************************************************************************/
-static inline void start_trace_kernel(int level, kernels_ev_code_t state){
-#if defined(PASTIX_WITH_EZTRACE)
-    if (level == pastix_eztrace_level){
-        EZTRACE_EVENT_PACKED_0(KERNELS_CODE(state));
+static inline void
+kernel_trace_start_lvl0( pastix_ktype0_t ktype )
+{
+    if (pastix_eztrace_level == 0){
+        EZTRACE_EVENT_PACKED_0(KERNELS_LVL0_CODE(ktype));
     }
-#else
-    (void) level;
-    (void) state;
-#endif /* defined(PASTIX_WITH_EZTRACE) */
 }
 
 /**
  *******************************************************************************
  *
- * @brief Stop to trace a kernel
+ * @brief Stop to trace a kernel of level 0
  *
  *******************************************************************************
- *
- * @param[in] level
- *          Level of tracing defined by environment variable EZTRACE_LVL
  *
  * @param[in] flops
  *          The number of operations performed during the call
  *
  *******************************************************************************/
-static inline void stop_trace_kernel(int level, double flops){
-#if defined(PASTIX_WITH_EZTRACE)
-    if (level == pastix_eztrace_level){
-        EZTRACE_EVENT_PACKED_1(KERNELS_CODE(STOP), flops);
+static inline void
+kernel_trace_stop_lvl0( double flops )
+{
+    if (pastix_eztrace_level == 0){
+        EZTRACE_EVENT_PACKED_1(KERNELS_CODE(PastixKernelStop), flops);
     }
-#else
-    (void) level;
-    (void) flops;
-#endif /* defined(PASTIX_WITH_EZTRACE) */
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Start to trace a kernel of level 2
+ *
+ *******************************************************************************
+ *
+ * @param[in] ktype
+ *          The kernel's type to trace
+ *
+ *******************************************************************************/
+static inline void
+kernel_trace_start_lvl2( pastix_ktype2_t ktype )
+{
+    if (pastix_eztrace_level == 2){
+        EZTRACE_EVENT_PACKED_0(KERNELS_LVL2_CODE(ktype));
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Stop to trace a kernel of level 2
+ *
+ *******************************************************************************
+ *
+ * @param[in] flops
+ *          The number of operations performed during the call
+ *
+ *******************************************************************************/
+static inline void
+kernel_trace_stop_lvl2( double flops )
+{
+    if (pastix_eztrace_level == 2){
+        EZTRACE_EVENT_PACKED_1(KERNELS_CODE(PastixKernelStop), flops);
+    }
 }
 
 #endif /* _kernels_ev_codes_h_ */

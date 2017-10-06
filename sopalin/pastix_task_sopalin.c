@@ -26,7 +26,7 @@
 #include "kernels/pastix_ccores.h"
 #include "kernels/pastix_dcores.h"
 #include "kernels/pastix_scores.h"
-#include "kernels/eztrace_module/kernels_ev_codes.h"
+#include "kernels/kernels_trace.h"
 
 #if defined(PASTIX_WITH_PARSEC)
 #include "sopalin/parsec/pastix_parsec.h"
@@ -491,8 +491,6 @@ pastix_task_numfact( pastix_data_t *pastix_data,
     iparm   = pastix_data->iparm;
     procnum = pastix_data->inter_node_procnum;
 
-    start_eztrace_kernels();
-
     if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
         pastix_print(procnum, 0, OUT_STEP_SOPALIN,
                      pastixFactotypeStr( iparm[IPARM_FACTORIZATION] ) );
@@ -510,13 +508,15 @@ pastix_task_numfact( pastix_data_t *pastix_data,
             return rc;
     }
 
+    kernelsTraceStart( pastix_data );
+
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
         rc = pastix_subtask_sopalin( pastix_data );
         if (rc != PASTIX_SUCCESS)
             return rc;
     }
 
-    stop_eztrace_kernels();
+    kernelsTraceStop( pastix_data );
 
     /* Invalidate following steps, and add factorization step to the ones performed */
     pastix_data->steps &= ~( STEP_SOLVE     |

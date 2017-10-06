@@ -248,7 +248,7 @@ core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
             cblas_zgemm(CblasColMajor, (CBLAS_TRANSPOSE)transA, CblasTrans,
                         M, N, K,
                         CBLAS_SADDR(alpha), A, LDA,
-                        w, N,
+                                            w, N,
                         CBLAS_SADDR(beta),  C, LDC);
         }
         else
@@ -257,7 +257,7 @@ core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
             if ( transB == PastixConjTrans )
             {
                 /* WORK = D * B' */
-              for (j=0; j<K; j++, wD++) {
+                for (j=0; j<K; j++, wD++) {
                     delta = *wD;
                     cblas_zcopy(N, &B[LDB*j], 1,       &w[N*j], 1);
                     LAPACKE_zlacgv_work(N,             &w[N*j], 1);

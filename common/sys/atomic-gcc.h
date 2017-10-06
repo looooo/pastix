@@ -32,8 +32,8 @@ static inline int pastix_atomic_cas_32b( volatile uint32_t* location,
 
 #if defined(HAVE_ATOMIC_GCC_64_BUILTINS)
 static inline int pastix_atomic_cas_64b( volatile uint64_t* location,
-                                        uint64_t old_value,
-                                        uint64_t new_value )
+                                         uint64_t old_value,
+                                         uint64_t new_value )
 {
     return (__sync_bool_compare_and_swap(location, old_value, new_value) ? 1 : 0);
 }
