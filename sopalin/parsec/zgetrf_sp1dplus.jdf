@@ -21,6 +21,7 @@ extern "C" %{
 #include "solver.h"
 #include "pastix_zcores.h"
 #include "sopalin_data.h"
+#include "pastix_parsec_gpu.h"
 
 %}
 
@@ -156,7 +157,7 @@ RW    C  <- (brownum == -1) ? NULL
 
 ; %{ return cblknbr - ((fcblknm + lcblknm) / 2 ) + last - brownum; %}
 
-BODY [ type=CUDA device=%{ return -2; %} ]
+BODY [ type=CUDA devicefct=pastix_parsec_selectgpu_fct ]
 #if defined(PASTIX_WITH_CUDA)
 {
     /* Never execute the GPU kernel on diagonal blocks */

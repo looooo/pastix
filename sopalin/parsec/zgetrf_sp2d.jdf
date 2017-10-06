@@ -22,6 +22,7 @@ extern "C" %{
 #include "coeftab_z.h"
 #include "pastix_zcores.h"
 #include "sopalin_data.h"
+#include "pastix_parsec_gpu.h"
 
 %}
 
@@ -174,7 +175,7 @@ RW    C  <- (brownum == -1) || isTwoD ? NULL
 
 ; %{ return cblknbr - ((fcblknm + lcblknm) / 2 ) + last - brownum; %}
 
-BODY [ type=CUDA device=%{ return -2; %} ]
+BODY [ type=CUDA devicefct=pastix_parsec_selectgpu_fct ]
 #if defined(PASTIX_WITH_CUDA)
 {
     /* Never execute the 1D GPU kernel on diagonal blocks, and 2D cblks */
@@ -387,7 +388,7 @@ RW    C   <-  isTwoD & noskip & (first == last) ? A OneToTwoD( k, m, s )
 
 ; %{ return cblknbr - k; %}
 
-BODY [ type=CUDA device=%{ return -2; %} ]
+BODY [ type=CUDA devicefct=pastix_parsec_selectgpu_fct ]
 #if defined(PASTIX_WITH_CUDA)
 {
     if( isTwoD && noskip ) {
@@ -590,7 +591,7 @@ RW    C  <- (k == first) ? A OneToTwoD( cblk_n, blok_mn, s )
 
 ; %{ return cblknbr - ( ((k-first) * (cblk_n - cblk_k)) / (last-first+1) ) - cblk_n; %}
 
-BODY [ type=CUDA device=%{ return -2; %} ]
+BODY [ type=CUDA devicefct=pastix_parsec_selectgpu_fct ]
 #if defined(PASTIX_WITH_CUDA)
 {
     /* is2dA && is2dC && noskipC && blok_nk && blok_mk */
