@@ -789,7 +789,6 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                     A   = (pastix_complex64_t*)(fcbk->ucoeftab);
                     lda = (fcbk->cblktype & CBLK_LAYOUT_2D) ? tempn : fcbk->stride;
 
-
                     pastix_cblk_lock( fcbk );
                     if ( fcbk->cblktype & CBLK_COMPRESSED ) {
                         lrA = blok->LRblock + 1;
