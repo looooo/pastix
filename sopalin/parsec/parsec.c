@@ -73,7 +73,7 @@ pastix_parsec_init( pastix_data_t *pastix,
         iparm[IPARM_GPU_NBR] = 1;
 
         parsec_setenv_mca_param( "device_cuda_max_streams", "3", &environ );
-        parsec_setenv_mca_param( "device_cuda_max_event_per_stream", "1", &environ );
+        parsec_setenv_mca_param( "device_cuda_max_events_per_stream", "1", &environ );
 #endif
 
         rc = asprintf(&value, "%d", (int)(iparm[IPARM_GPU_NBR]));
