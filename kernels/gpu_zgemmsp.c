@@ -505,8 +505,10 @@ gpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
     double zone  =  1.0;
 #endif
     const SolverBlok *fblok, *lblok, *blok;
-    pastix_int_t M, N, lda, ldc, offset, cblk_m;
+    pastix_int_t M, N, lda, ldc, offset, cblk_m, full_m;
     cuDoubleComplex *Cptr;
+    pastix_fixdbl_t flops = 0.0;
+    pastix_fixdbl_t time = kernel_trace_start( PastixKernelTRSMBlok2d );
 
     assert( !(cblk->cblktype & CBLK_COMPRESSED));
 
@@ -527,6 +529,7 @@ gpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
     blok   = fblok + blok_m;
     offset = blok->coefind;
     cblk_m = blok->fcblknm;
+    full_m = 0;
 
     cublasSetKernelStream( stream );
     for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
@@ -542,9 +545,17 @@ gpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                      M, N, zone,
                      A, lda,
                      Cptr, ldc );
+        full_m += M;
+        flops += FLOPS_ZTRSM( side, M, N );
     }
 
     /* } */
+
+#if defined(PASTIX_GENERATE_MODEL)
+    cudaStreamSynchronize( stream );
+#endif
+    kernel_trace_stop( PastixKernelTRSMBlok2d,
+                       full_m, N, 0, flops, time );
 
     (void)lowrank; (void)coef;
 }
