@@ -506,9 +506,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                 }
                 if (verbose > PastixVerboseYes)
                 {
-#ifdef PASTIX_WITH_MPI
                     MPI_Comm pastix_comm = pastix_data->inter_node_comm;
-#endif
                     pastix_int_t sizeL = solvmtx->coefnbr;
                     pastix_int_t sizeG = 0;
 
