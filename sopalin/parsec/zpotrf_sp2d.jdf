@@ -31,6 +31,7 @@ extern "C" %{
 descA        [type = "parsec_sparse_matrix_desc_t *" ]
 sopalin_data [type = "sopalin_data_t *" ]
 
+forced_pushout [type = "int" hidden = on default = "(0)" ]
 datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
 cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
 bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
@@ -168,7 +169,7 @@ RW    C  <- (brownum == -1) || isTwoD ? NULL
 
 ; %{ return cblknbr - ((fcblknm + lcblknm) / 2 ) + last - brownum; %}
 
-BODY [ type=CUDA devicefct=pastix_parsec_selectgpu_fct ]
+BODY [ type=CUDA pushout=forced_pushout devicefct=pastix_parsec_selectgpu_fct ]
 #if defined(PASTIX_WITH_CUDA)
 {
     /* Never execute the 1D GPU kernel on diagonal blocks, and 2D cblks */
@@ -339,7 +340,7 @@ RW    C   <-  isTwoD & noskip & (first == last) ? A OneToTwoD( k, m )
 
 ; %{ return cblknbr - k; %}
 
-BODY [ type=CUDA devicefct=pastix_parsec_selectgpu_fct ]
+BODY [ type=CUDA pushout=forced_pushout devicefct=pastix_parsec_selectgpu_fct ]
 #if defined(PASTIX_WITH_CUDA)
 {
     if( isTwoD && noskip ) {
@@ -524,7 +525,7 @@ RW    C  <- (k == first) ? A OneToTwoD( cblk_n, blok_mn )
 
 ; %{ return cblknbr - ( ((k-first) * (cblk_n - cblk_k)) / (last-first+1) ) - cblk_n; %}
 
-BODY [ type=CUDA devicefct=pastix_parsec_selectgpu_fct ]
+BODY [ type=CUDA pushout=forced_pushout devicefct=pastix_parsec_selectgpu_fct ]
 #if defined(PASTIX_WITH_CUDA)
 {
     /* is2dA && is2dC && noskipC && blok_nk && blok_mk */

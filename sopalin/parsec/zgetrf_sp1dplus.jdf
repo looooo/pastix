@@ -30,6 +30,7 @@ extern "C" %{
 descA        [type = "parsec_sparse_matrix_desc_t *" ]
 sopalin_data [type = "sopalin_data_t *" ]
 
+forced_pushout [type = "int" hidden = on default = "(0)" ]
 datacode  [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
 cblknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
 bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->bloknbr - 2)"       ]
@@ -157,7 +158,7 @@ RW    C  <- (brownum == -1) ? NULL
 
 ; %{ return cblknbr - ((fcblknm + lcblknm) / 2 ) + last - brownum; %}
 
-BODY [ type=CUDA devicefct=pastix_parsec_selectgpu_fct ]
+BODY [ type=CUDA pushout=forced_pushout devicefct=pastix_parsec_selectgpu_fct ]
 #if defined(PASTIX_WITH_CUDA)
 {
     /* Never execute the GPU kernel on diagonal blocks */

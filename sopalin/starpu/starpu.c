@@ -74,7 +74,6 @@ pastix_starpu_init( pastix_data_t *pastix,
                       "    - restore the automatic detection of the number of threads\n" );
 
         conf->ncpus = -1;
-        thrdnbr = -1;
 
         pastix_setenv( "STARPU_NWORKER_PER_CUDA", "1", 1 );
         pastix_setenv( "STARPU_CUDA_PIPELINE", "1", 1 );
