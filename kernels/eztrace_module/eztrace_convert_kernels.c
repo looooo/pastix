@@ -563,6 +563,8 @@ print_kernels_stats()
 void libinit(void) __attribute__ ((constructor));
 void libinit(void)
 {
+    int rc;
+
     kernels_module.api_version   = EZTRACE_API_VERSION;
     kernels_module.init          = eztrace_convert_kernels_init;
     kernels_module.handle        = handle_kernels_events;
@@ -570,11 +572,13 @@ void libinit(void)
     kernels_module.print_stats   = print_kernels_stats;
     kernels_module.module_prefix = KERNELS_EVENTS_ID;
 
-    asprintf(&kernels_module.name,        "kernels"       );
-    asprintf(&kernels_module.description, "PaStiX kernels");
+    rc = asprintf(&kernels_module.name,        "kernels"       );
+    rc = asprintf(&kernels_module.description, "PaStiX kernels");
 
     kernels_module.token.data = &kernels_module;
     eztrace_convert_register_module(&kernels_module);
+
+    (void)rc;
 }
 
 /**
