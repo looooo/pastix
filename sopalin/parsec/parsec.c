@@ -64,14 +64,19 @@ pastix_parsec_init( pastix_data_t *pastix,
     pastix_int_t *iparm = pastix->iparm;
     char **parsec_argv = (argv == NULL) ? NULL : *argv;
     char *value;
-    int rc;
+    int rc, thrdnbr;
+
+    thrdnbr = iparm[IPARM_THREAD_NBR];
 
     if (iparm[IPARM_GPU_NBR] > 0) {
 #if defined(PASTIX_GENERATE_MODEL)
         pastix_print( pastix->procnum, 0,
-                      "WARNING: PaStiX compiled with -DPASTIX_GENERATE_MODEL forces single GPU computations\n" );
-        iparm[IPARM_GPU_NBR] = 1;
+                      "WARNING: PaStiX compiled with -DPASTIX_GENERATE_MODEL forces:\n"
+                      "    - a single event per stream\n"
+                      "    - a single stream per GPU\n"
+                      "    - restore the automatic detection of the number of threads\n" );
 
+        thrdnbr = -1;
         parsec_setenv_mca_param( "device_cuda_max_streams", "3", &environ );
         parsec_setenv_mca_param( "device_cuda_max_events_per_stream", "1", &environ );
 #endif
@@ -131,8 +136,7 @@ pastix_parsec_init( pastix_data_t *pastix,
         }
         argv = &parsec_argv;
     }
-    pastix->parsec = parsec_init( iparm[IPARM_THREAD_NBR],
-                                  argc, argv );
+    pastix->parsec = parsec_init( thrdnbr, argc, argv );
 
     if ( bindtab != NULL ) {
         assert( *argc >= 3 );
