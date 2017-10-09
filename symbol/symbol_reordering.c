@@ -167,7 +167,7 @@ hamming_distance( pastix_int_t **vectors,
  *
  * @brief Reorder rows of a supernode with the nearest insertion TSP heuristic.
  *
- * See reordering paper: http://epubs.siam.org/doi/10.1137/16M1062454. 
+ * See reordering paper: http://epubs.siam.org/doi/10.1137/16M1062454.
  *
  *******************************************************************************
  *
@@ -454,7 +454,7 @@ symbol_reorder_cblk( const symbol_matrix_t *symbptr,
                      pastix_int_t       *depthweight,
                      pastix_int_t        depthmax,
                      pastix_int_t        split_level,
-                     int                 stop_criteria )
+                     pastix_int_t        stop_criteria )
 {
     symbol_blok_t *blok;
     pastix_int_t **up_vectors, *up_vectors_size;
@@ -634,7 +634,7 @@ void
 pastixSymbolReordering( const symbol_matrix_t *symbptr,
                         pastix_order_t     *order,
                         pastix_int_t        split_level,
-                        int                 stop_criteria )
+                        pastix_int_t        stop_criteria )
 {
     symbol_cblk_t  *cblk;
     pastix_int_t itercblk;
