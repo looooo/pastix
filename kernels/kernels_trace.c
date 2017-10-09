@@ -59,7 +59,7 @@ kernelsTraceStart( const pastix_data_t *pastix_data )
         }
 
         if ( pastix_data->dirtemp != NULL ) {
-            pastix_setenv( "EZTRACE_TRACE_DIR", pastix_data->dirtemp );
+            pastix_setenv( "EZTRACE_TRACE_DIR", pastix_data->dirtemp, 1 );
         }
         eztrace_start ();
     }
