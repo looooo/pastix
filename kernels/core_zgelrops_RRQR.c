@@ -892,7 +892,7 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                           zwork, ldwork,
                           rwork,
                           tol * norm, nb, rank-1);
-    kernel_trace_start_lvl2( (new_rank == -1) ? FLOPS_ZGEQRF( rank, N ) :
+    kernel_trace_stop_lvl2( (new_rank == -1) ? FLOPS_ZGEQRF( rank, N ) :
                              FLOPS_ZGEQRF( rank, new_rank ) +
                              FLOPS_ZUNMQR( rank, N-new_rank, new_rank, PastixLeft ) );
 
