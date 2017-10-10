@@ -28,11 +28,13 @@
  *
  * These blocks are chained in a single linked list
  * for block merge with blocks of left columns.
+ *
+ * WARNING: This structure must be of size lower or
+ * equal to the size of the structure symbol_blok_t.
  */
 typedef struct symbol_faxtlok_s {
   pastix_int_t frownum; /**< First row index            */
   pastix_int_t lrownum; /**< Last row index (inclusive) */
-  pastix_int_t lcblknm; /**< Local column block         */
   pastix_int_t fcblknm; /**< Facing column block        */
   pastix_int_t nextnum; /**< Index of next block        */
 } SymbolFaxTlok;

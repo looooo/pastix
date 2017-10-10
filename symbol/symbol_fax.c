@@ -347,7 +347,6 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
 
             tloktab->frownum = cblktax[cblknum].fcolnum; /* Build diagonal chained block */
             tloktab->lrownum = cblktax[cblknum].lcolnum;
-            tloktab->lcblknm = cblknum;
             tloktab->fcblknm = cblknum;
             tloktab->nextnum = 1;
             tloknum = 1;
@@ -374,14 +373,12 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
                        (sorttab[sortnum] - 1 == sorttab[sortnum - 1]) &&
                        (sorttab[sortnum] < rangtax[cblkctr + 1])) ;
                 tloktab[tloknum].lrownum = sorttab[sortnum - 1]; /* Set end of block */
-                tloktab[tloknum].lcblknm = cblknum;
                 tloktab[tloknum].fcblknm = cblkctr;
                 tloktab[tloknum].nextnum = tloknum + 1;   /* Chain block */
                 tloknum = tloknum + 1;
             }
             tloktab[tloknum].frownum =                  /* Build trailing block */
                 tloktab[tloknum].lrownum = vertnbr + baseval;
-            tloktab[tloknum].lcblknm = ordeptr->cblknbr + baseval;
             tloktab[tloknum].fcblknm = ordeptr->cblknbr + baseval;
             tloktab[tloknum].nextnum = 0;               /* Set end of chain (never chain to diagonal block) */
 
@@ -422,10 +419,9 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
                             tloktab[tloklst].nextnum = tlokfre;   /* Chain new block                */
                         tloktab[tlokfre].frownum = bloktax[blokctr].frownum; /* Copy block data */
                         tloktab[tlokfre].lrownum = bloktax[blokctr].lrownum;
-                        tloktab[tlokfre].lcblknm = cblknum;
                         tloktab[tlokfre].fcblknm = bloktax[blokctr].fcblknm;
                         tlokfre                  = tloktab[tlokfre].nextnum;
-                        tloktab[tloktmp].nextnum = tloknum;   /* Complete chainimg                    */
+                        tloktab[tloktmp].nextnum = tloknum;   /* Complete chaining                    */
                         tloknum                  = tloktab[tloklst].nextnum; /* Resume from new block */
                         continue;                             /* Process next block                   */
                     }
@@ -459,7 +455,7 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
                  tloknum = tloktab[tloknum].nextnum, bloknum ++) { /* Copy block data to block array */
                 bloktax[bloknum].frownum = tloktab[tloknum].frownum;
                 bloktax[bloknum].lrownum = tloktab[tloknum].lrownum;
-                bloktax[bloknum].lcblknm = tloktab[tloknum].lcblknm;
+                bloktax[bloknum].lcblknm = cblknum;
                 bloktax[bloknum].fcblknm = tloktab[tloknum].fcblknm;
             }
         }
