@@ -233,9 +233,6 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
         coeftabExit( pastix_data->solvmatr );
     }
 
-    if ( lr->compress_when == PastixCompressWhenBegin ) {
-        kernelsTraceStart( pastix_data );
-    }
     coeftabInit( pastix_data,
                  pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU ? PastixLUCoef : PastixLCoef );
 
