@@ -19,6 +19,9 @@
 #ifndef _pastix_parsec_gpu_h_
 #define _pastix_parsec_gpu_h_
 
+#include <parsec.h>
+#include <parsec/devices/device.h>
+
 static inline int
 pastix_parsec_selectgpu_fct( const void *arg,
                              double      weight )
@@ -26,7 +29,11 @@ pastix_parsec_selectgpu_fct( const void *arg,
     (void)arg;
     (void)weight;
 #if defined(PASTIX_GENERATE_MODEL)
-    return 0;
+    {
+        static int dev_id = -1;
+
+        return (dev_id++) % (parsec_devices_enabled()-2);
+    }
 #else
     return -2;
 #endif
