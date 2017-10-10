@@ -14,6 +14,7 @@
  *
  **/
 #include "common.h"
+#include "bcsc.h"
 #include "solver.h"
 #include "kernels_trace.h"
 
@@ -146,6 +147,10 @@ kernelsTraceStop( const pastix_data_t *pastix_data )
 
 #if defined(PASTIX_GENERATE_MODEL)
     {
+        char *prec_names[4] = {
+            "s - single real", "d - double real",
+            "c - single complex", "z - double complex"
+        };
         pastix_model_entry_t *entry = model_entries;
         pastix_int_t i, gpucase;
         FILE *f;
@@ -162,6 +167,9 @@ kernelsTraceStop( const pastix_data_t *pastix_data )
         else {
             fprintf(f, "# CPU Model data\n");
         }
+
+        fprintf( f, "# Precision: %s\n", prec_names[ pastix_data->bcsc->flttype - 2 ] );
+        fprintf( f, "Kernel;M;N;K;Time\n" );
 
         for(i=0; i <= model_entries_nbr; i++, entry++ ) {
             switch( entry->ktype ) {
