@@ -13,11 +13,10 @@
  * @date 2017-04-26
  *
  */
-#define _GNU_SOURCE 1
+#include <eztrace_convert.h>
 #include <stdio.h>
 #include <strings.h>
 #include <GTG.h>
-#include "eztrace_convert.h"
 #include "kernels_trace.h"
 
 static inline double kernels_dmin( double a, double b) {
