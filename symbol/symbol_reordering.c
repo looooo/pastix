@@ -632,9 +632,9 @@ symbol_reorder_cblk( const symbol_matrix_t *symbptr,
  *******************************************************************************/
 void
 pastixSymbolReordering( const symbol_matrix_t *symbptr,
-                        pastix_order_t     *order,
-                        pastix_int_t        split_level,
-                        pastix_int_t        stop_criteria )
+                        pastix_order_t        *order,
+                        pastix_int_t           split_level,
+                        pastix_int_t           stop_criteria )
 {
     symbol_cblk_t  *cblk;
     pastix_int_t itercblk;
