@@ -29,11 +29,12 @@ pastix_parsec_selectgpu_fct( const void *arg,
     (void)arg;
     (void)weight;
 #if defined(PASTIX_GENERATE_MODEL)
-    {
-        static int dev_id = -1;
+    /* { */
+    /*     static int dev_id = -1; */
 
-        return (dev_id++) % (parsec_devices_enabled()-2);
-    }
+    /*     return (dev_id++) % (parsec_devices_enabled()-2); */
+    /* } */
+    return 0;
 #else
     return -2;
 #endif
