@@ -207,17 +207,17 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
     for (cblknum = baseval; cblknum < baseval + ordeptr->cblknbr; cblknum ++) { /* For all column blocks */
         pastix_int_t                 colnum;                   /* Number of current column [based]                  */
         pastix_int_t                 colmax;                   /* Maximum column index for current column block     */
+        pastix_int_t                 degrsum;
+        pastix_int_t                 tlokmax;
 
         /* Compute offsets and check for array size */
         {
-            pastix_int_t                 degrsum;
             pastix_int_t                 hashsiz;
             pastix_int_t                 hashmax;
             pastix_int_t                 ctrbtmp;
             pastix_int_t                 sortoft;                /* Offset of sort array                   */
             pastix_int_t                 tlokoft;                /* Offset of temporary block array        */
             pastix_int_t                 tlndoft;                /* Offset of end of temporary block array */
-            pastix_int_t                 tlokmax;
 
             colnum = rangtax[cblknum];
             colmax = rangtax[cblknum + 1];              /* Get maximum column value */
@@ -228,31 +228,37 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
             cblktax[cblknum].brownum = -1;
 
             degrsum = 0;
-            for ( ; colnum < colmax; colnum ++) /* For all columns                                  */
+            for ( ; colnum < colmax; colnum ++) { /* For all columns                                  */
                 degrsum += SYMBOL_FAX_VERTEX_DEGREE (ngbdptr, peritax[colnum]); /* Add column degrees */
+            }
 
-            for (hashmax = 256; hashmax < degrsum; hashmax *= 2) ; /* Get upper bound on hash table size */
-            hashsiz = hashmax << 2;                     /* Fill hash table at 1/4 of capacity            */
+            for (hashmax = 256; hashmax < degrsum; hashmax *= 2); /* Get upper bound on hash table size */
+            hashsiz = hashmax << 2;                               /* Fill hash table at 1/4 of capacity */
             hashmsk = hashsiz - 1;
 
             for (ctrbsum = 0, ctrbtmp = ctrbtax[cblknum]; /* Follow chain of contributing column blocks */
                  ctrbtmp != ~0; ctrbtmp = ctrbtax[ctrbtmp])
+            {
                 ctrbsum += cblktax[ctrbtmp + 1].bloknum - cblktax[ctrbtmp].bloknum - 2; /* Sum contributing column blocks */
+            }
 
             tlokmax = degrsum + ctrbsum;
             sortoft = tlokmax * sizeof (symbol_blok_t);
-            if ((hashsiz * (pastix_int_t)sizeof(pastix_int_t)) > sortoft)     /* Compute offset of sort area */
+            if ((hashsiz * (pastix_int_t)sizeof(pastix_int_t)) > sortoft) {  /* Compute offset of sort area */
                 sortoft = (hashsiz * sizeof (pastix_int_t));
+            }
             tlokoft = sortoft + degrsum * sizeof (pastix_int_t); /* Compute offset of temporary block area */
             tlndoft = tlokoft + tlokmax * sizeof (SymbolFaxTlok); /* Compute end of area          */
 
-            if (((unsigned char *) (bloktax + bloknum) + tlndoft) > /* If not enough room */
-                ((unsigned char *) (bloktax + blokmax))) {
+            if (((char *) (bloktax + bloknum) + tlndoft) > /* If not enough room */
+                ((char *) (bloktax + blokmax)))
+            {
                 symbol_blok_t *        bloktmp;              /* Temporary pointer for array resizing */
 
-                do
+                do {
                     blokmax = blokmax + (blokmax >> 2) + 4; /* Increase block array size by 25% as long as it does not fit */
-                while (((unsigned char *) (bloktax + bloknum) + tlndoft) > ((unsigned char *) (bloktax + blokmax)));
+                }
+                while (((char *) (bloktax + bloknum) + tlndoft) > ((char *) (bloktax + blokmax)));
 
                 if ((bloktmp = (symbol_blok_t *) memRealloc (bloktax + baseval, (blokmax * sizeof (symbol_blok_t)))) == NULL) {
                     errorPrint ("symbolFax: out of memory (2)");
@@ -264,9 +270,9 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
                 bloktax = bloktmp - baseval;
             }
 
-            hashtab = (pastix_int_t *)                    (bloktax + bloknum);
-            sorttab = (pastix_int_t *)  ((unsigned char *) hashtab + sortoft);
-            tloktab = (SymbolFaxTlok *) ((unsigned char *) hashtab + tlokoft);
+            hashtab = (pastix_int_t *)           (bloktax + bloknum);
+            sorttab = (pastix_int_t *)  ((char *) hashtab + sortoft);
+            tloktab = (SymbolFaxTlok *) ((char *) hashtab + tlokoft);
 
             memset (hashtab, ~0, hashsiz * sizeof (pastix_int_t)); /* Initialize hash table */
         }
@@ -280,16 +286,19 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
             {
                 colend = permtax[vertend];                /* Get end column number      */
 
-                if (colend < colmax)                      /* If end vertex number in left columns */
+                if (colend < colmax) {                      /* If end vertex number in left columns */
                     continue;                               /* Skip to next neighbor                */
+                }
 
                 for (hashnum = (colend * SYMBOL_FAX_HASHPRIME) & hashmsk; ; /* Search end column in hash table */
-                     hashnum = (hashnum + 1) & hashmsk) {
+                     hashnum = (hashnum + 1) & hashmsk)
+                {
                     pastix_int_t *               hashptr;
 
                     hashptr = hashtab + hashnum;            /* Point to hash slot           */
-                    if (*hashptr == colend)                 /* If end column in hash table  */
+                    if (*hashptr == colend) {               /* If end column in hash table  */
                         break;                              /* Skip to next end column      */
+                    }
                     if (*hashptr == ~0) {                   /* If slot is empty             */
                         *hashptr = colend;                  /* Set column in hash table     */
                         sorttab[sortnbr ++] = colend;       /* Add end column to sort array */
@@ -297,9 +306,9 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
                     }
                 }
             }
-            SYMBOL_FAX_ITERATOR_END;                                           /* End of loop on neighbors */
+            SYMBOL_FAX_ITERATOR_END;                     /* End of loop on neighbors */
         }                                             /* End of loop on columns   */
-
+        assert( sortnbr <= degrsum );
         intSort1asc1 (sorttab, sortnbr);              /* Sort neighbor array */
 
         cblkctr = cblknum;
@@ -321,12 +330,15 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
 
                     for (cblkctr ++,                        /* Find new column block by dichotomy */
                              cblktmx = ordeptr->cblknbr + baseval;
-                         cblktmx - cblkctr > 1; ) {
+                         cblktmx - cblkctr > 1; )
+                    {
                         cblktmm = (cblktmx + cblkctr) >> 1;
-                        if (rangtax[cblktmm] <= colend)
+                        if (rangtax[cblktmm] <= colend) {
                             cblkctr = cblktmm;
-                        else
+                        }
+                        else {
                             cblktmx = cblktmm;
+                        }
                     }
                 }
 
@@ -350,6 +362,7 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
             tloktab->fcblknm = cblknum;
             tloktab->nextnum = 1;
             tloknum = 1;
+            assert( tloknum < tlokmax );
 
             for (sortnum = 0; sortnum < sortnbr; ) {    /* For all entries in sorted array */
 
@@ -360,12 +373,15 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
 
                     for (cblkctr ++,                        /* Find new column block by dichotomy */
                              cblktmx = ordeptr->cblknbr + baseval;
-                         cblktmx - cblkctr > 1; ) {
+                         cblktmx - cblkctr > 1; )
+                    {
                         cblktmm = (cblktmx + cblkctr) >> 1;
-                        if (rangtax[cblktmm] <= colend)
+                        if (rangtax[cblktmm] <= colend) {
                             cblkctr = cblktmm;
-                        else
+                        }
+                        else {
                             cblktmx = cblktmm;
+                        }
                     }
                 }
                 tloktab[tloknum].frownum = colend;        /* Set beginning of new block */
@@ -376,6 +392,7 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
                 tloktab[tloknum].fcblknm = cblkctr;
                 tloktab[tloknum].nextnum = tloknum + 1;   /* Chain block */
                 tloknum = tloknum + 1;
+                assert( tloknum < tlokmax );
             }
             tloktab[tloknum].frownum =                  /* Build trailing block */
                 tloktab[tloknum].lrownum = vertnbr + baseval;
@@ -384,7 +401,10 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
 
             tlokfre = ++ tloknum;                       /* Build free chain for possible contributing blocks */
             for ( ; tloknum < tlokfre + ctrbsum; tloknum = tloknum + 1)
+            {
                 tloktab[tloknum].nextnum = tloknum + 1;
+                assert( tloknum < tlokmax );
+            }
             tloktab[tloknum].nextnum = ~0;              /* Set end of free chain */
 
             for (cblkctr = ctrbtax[cblknum]; cblkctr != ~0; cblkctr = ctrbtax[cblkctr]) { /* Follow chain */
@@ -428,10 +448,13 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
 
                     if ((bloktax[blokctr].lrownum >= tloktab[tloknum].frownum - 1) && /* Update chained block lower bound */
                         (bloktax[blokctr].frownum <  tloktab[tloknum].frownum))
+                    {
                         tloktab[tloknum].frownum = bloktax[blokctr].frownum;
+                    }
 
                     if ((bloktax[blokctr].frownum <= tloktab[tloknum].lrownum + 1) && /* Update chained block upper bound */
-                        (bloktax[blokctr].lrownum >  tloktab[tloknum].lrownum)) {
+                        (bloktax[blokctr].lrownum >  tloktab[tloknum].lrownum))
+                    {
                         pastix_int_t                 tloktmp;
 
                         tloktab[tloknum].lrownum = bloktax[blokctr].lrownum;
@@ -439,9 +462,11 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
                         for (tloktmp = tloktab[tloknum].nextnum; /* Aggregate following chained blocks */
                              (tloktab[tloktmp].fcblknm == tloktab[tloknum].fcblknm) &&
                                  (tloktab[tloktmp].frownum <= tloktab[tloknum].lrownum + 1);
-                             tloktmp = tloktab[tloknum].nextnum) {
-                            if (tloktab[tloktmp].lrownum > tloktab[tloknum].lrownum) /* Merge aggregated block */
+                             tloktmp = tloktab[tloknum].nextnum )
+                        {
+                            if (tloktab[tloktmp].lrownum > tloktab[tloknum].lrownum) { /* Merge aggregated block */
                                 tloktab[tloknum].lrownum = tloktab[tloktmp].lrownum;
+                            }
                             tloktab[tloknum].nextnum = tloktab[tloktmp].nextnum; /* Unlink aggregated block */
                             tloktab[tloktmp].nextnum = tlokfre;
                             tlokfre                  = tloktmp;
