@@ -20,7 +20,7 @@
 
 volatile double kernels_flops[PastixKernelLvl1Nbr];
 
-int kernels_trace_started = 0;
+volatile uint32_t kernels_trace_started = 0;
 
 #if defined(PASTIX_WITH_EZTRACE)
 
@@ -52,8 +52,10 @@ void
 kernelsTraceStart( const pastix_data_t *pastix_data )
 {
     const SolverMatrix *solvmtx = pastix_data->solvmatr;
+    uint32_t nbstart;
 
-    if ( kernels_trace_started == 1 ) {
+    nbstart = pastix_atomic_inc_32b( &(kernels_trace_started) );
+    if ( nbstart > 1 ) {
         return;
     }
 
@@ -138,8 +140,13 @@ double
 kernelsTraceStop( const pastix_data_t *pastix_data )
 {
     double total_flops = 0.0;
+    uint32_t nbstart;
 
-    assert( kernels_trace_started == 1 );
+    assert( kernels_trace_started > 0 );
+    nbstart = pastix_atomic_dec_32b( &(kernels_trace_started) );
+    if ( nbstart > 0 ) {
+        return total_flops;
+    }
 
 #if defined(PASTIX_WITH_EZTRACE)
     eztrace_stop ();
@@ -223,8 +230,6 @@ kernelsTraceStop( const pastix_data_t *pastix_data )
 
         fprintf(stderr, "The total number of flops excuted is %lf\n", total_flops);
     }
-
-    kernels_trace_started = 0;
 
     (void)pastix_data;
     return total_flops;
