@@ -737,13 +737,15 @@ solverMatrixGen( pastix_int_t           clustnum,
         solvmtx->offdmax = offdmax;
         solvmtx->gemmmax = gemmmax;
         solvmtx->blokmax = blokmax;
-        if (ctrl->iparm[IPARM_VERBOSE]>PastixVerboseNo && 0) {
+#if defined(PASTIX_DEBUG_BLEND)
+        if (ctrl->iparm[IPARM_VERBOSE]>PastixVerboseNo) {
             pastix_print(clustnum, 0,
                          "Coefmax: off-diagonal %6ld ((%4ld+1) x %3ld)\n"
                          "         update       %6ld ( %4ld    x %3ld)\n",
                          (long)offdmax, (long)maxo_m, (long)maxo_n,
                          (long)gemmmax, (long)maxg_m, (long)maxg_n );
         }
+#endif
     }
 
     memFree_null(cblklocalnum);
