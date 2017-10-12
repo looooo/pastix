@@ -22,6 +22,10 @@
 #include <parsec.h>
 #include <parsec/devices/device.h>
 
+/**
+ *
+ * TODO: Let's not forget to add some documentation in the final version
+ */
 static inline int
 pastix_parsec_selectgpu_fct( const void *arg,
                              double      weight )
