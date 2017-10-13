@@ -16,6 +16,7 @@
  */
 #ifndef _pastix_datatypes_h_
 #define _pastix_datatypes_h_
+
 #include <inttypes.h>
 
 /** ****************************************************************************
@@ -26,34 +27,31 @@
 typedef int64_t  pastix_int_t;
 typedef uint64_t pastix_uint_t;
 #define PASTIX_MPI_INT MPI_INTEGER8
+#define PASTIX_INT_MAX INT64_MAX
 
 #elif defined(PASTIX_INT32)
 
 typedef int32_t  pastix_int_t;
 typedef uint32_t pastix_uint_t;
 #define PASTIX_MPI_INT MPI_INTEGER4
+#define PASTIX_INT_MAX INT32_MAX
 
 #elif defined(PASTIX_LONG)
 
 typedef long          pastix_int_t;
 typedef unsigned long pastix_uint_t;
 #define PASTIX_MPI_INT MPI_LONG
+#define PASTIX_INT_MAX LONG_MAX
 
 #else
 
 typedef int          pastix_int_t;
 typedef unsigned int pastix_uint_t;
 #define PASTIX_MPI_INT MPI_INT
+#define PASTIX_INT_MAX INT_MAX
 
 #endif
 
-#if !defined(INTSIZEBITS)
-#  define INTSIZEBITS    (sizeof (pastix_int_t) << 3)
-#endif
-
-#if !defined(PASTIX_INT_MAX)
-#  define PASTIX_INT_MAX ((pastix_int_t) (((pastix_uint_t) 1 << (INTSIZEBITS - 1)) - 1))
-#endif
 
 /** ****************************************************************************
  * Double that are not converted through precision generator functions

@@ -121,7 +121,7 @@ void         pastixSymbolGetTimes  ( const symbol_matrix_t *symbmtx,
  * @name Symbol reordering subroutines
  * @{
  */
-void pastixSymbolReordering( const symbol_matrix_t *, pastix_order_t *, pastix_int_t, int );
+void pastixSymbolReordering( const symbol_matrix_t *, pastix_order_t *, pastix_int_t, pastix_int_t );
 void pastixSymbolReorderingPrintComplexity( const symbol_matrix_t *symbptr );
 
 /**

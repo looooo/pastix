@@ -119,13 +119,15 @@ target_link_libraries( pastix_kernels
 )
 
 if(PASTIX_WITH_CUDA)
-    if(PASTIX_CUDA_FERMI)
-      target_link_libraries( pastix_kernels
-                             pastix_cucores_sm20 )
-    else()
-      target_link_libraries( pastix_kernels
-                             pastix_cucores_sm35 )
-    endif()
+    # if(PASTIX_CUDA_FERMI)
+    #   target_link_libraries( pastix_kernels
+    #                          pastix_cucores_sm20 )
+    # else()
+    #   target_link_libraries( pastix_kernels
+    #                          pastix_cucores_sm35 )
+    # endif()
+    target_link_libraries( pastix_kernels
+      pastix_kernels_cuda )
 endif()
 
 ### Install library

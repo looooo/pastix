@@ -58,21 +58,27 @@ set(CUDA_NVCC_FLAGS_53 -arch sm_53 -DCUDA_SM_VERSION=53)
 
 set(CUDA_SM_TARGETS 20 30 32 35 CACHE STRING "Specify GPU architectures to build binaries for, BIN(PTX) format is supported")
 
-set(CUDA_NVCC_FLAGS_BACKUP ${CUDA_NVCC_FLAGS})
+# set(CUDA_NVCC_FLAGS_BACKUP ${CUDA_NVCC_FLAGS})
+# foreach( _smtarget ${CUDA_SM_TARGETS} )
+#   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS_${_smtarget}} ${CUDA_NVCC_FLAGS_BACKUP})
 
-foreach( _smtarget ${CUDA_SM_TARGETS} )
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS_${_smtarget}} ${CUDA_NVCC_FLAGS_BACKUP})
+#   cuda_add_library(pastix_cucores_sm${_smtarget}
+#     ${cuda_generated_files})
+#   cuda_add_cublas_to_target( pastix_cucores_sm${_smtarget} )
+#   install(TARGETS pastix_cucores_sm${_smtarget}
+#     LIBRARY DESTINATION lib
+#     ARCHIVE DESTINATION lib )
+#   # if( NOT CMAKE_BUILD_SHARED_LIBS )
+#   #   target_link_libraries( pastix_cucores pastix_cucores_sm${_smtarget} )
+#   # endif()
+# endforeach()
+# set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS_BACKUP})
 
-  cuda_add_library(pastix_cucores_sm${_smtarget}
-    ${cuda_generated_files})
-  cuda_add_cublas_to_target( pastix_cucores_sm${_smtarget} )
-  install(TARGETS pastix_cucores_sm${_smtarget}
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib )
-  # if( NOT CMAKE_BUILD_SHARED_LIBS )
-  #   target_link_libraries( pastix_cucores pastix_cucores_sm${_smtarget} )
-  # endif()
-endforeach()
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS_BACKUP})
+cuda_add_library(pastix_kernels_cuda
+  ${cuda_generated_files})
+cuda_add_cublas_to_target( pastix_kernels_cuda )
+install(TARGETS pastix_kernels_cuda
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib )
 
 cuda_build_clean_target()

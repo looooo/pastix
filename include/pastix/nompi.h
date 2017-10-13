@@ -63,6 +63,10 @@
 #define MPI_INTEGER8          35
 #define MPI_CHARACTER         1
 
+#define MPI_SUCCESS           0
+#define MPI_ERR_COUNT         -1
+#define MPI_ERR_TYPE          -2
+
 #define MPI_COMM_WORLD        0
 #define MPI_COMM_SELF         1
 #define MPI_ANY_SOURCE        2
@@ -82,9 +86,9 @@
 typedef void (MPI_User_function) ( void *, void *, int *, MPI_Datatype * );
 
 typedef struct MPI_Status{
-  int MPI_SOURCE;
-  int MPI_TAG;
-  int MPI_ERROR;
+    int MPI_SOURCE;
+    int MPI_TAG;
+    int MPI_ERROR;
 } MPI_Status;
 
 #define MPI_Get_processor_name(__name, __len) { (void)(__name); *(__len) = 0; }
@@ -122,111 +126,107 @@ typedef struct MPI_Status{
 #define MPI_Comm_size(comm, size) *(size)=1;
 #define MPI_Comm_rank(comm, rank) *(rank)=0;
 
-#define MPI_Gather(sendbuf, sendcount, sendtype, recvbuf,               \
-                   recvcount, recvtype, root, comm)                     \
-    do {                                                                \
-        if( sendbuf != recvbuf ) {                                      \
-            switch (sendtype) {                                         \
-            case MPI_INT:                                               \
-                memcpy(recvbuf,sendbuf,sendcount*sizeof(int));          \
-                break;                                                  \
-            case MPI_LONG:                                              \
-                memcpy(recvbuf,sendbuf,sendcount*sizeof(long));         \
-                break;                                                  \
-            case MPI_INTEGER4:                                          \
-                memcpy(recvbuf,sendbuf,sendcount*sizeof(int32_t));      \
-                break;                                                  \
-            case MPI_INTEGER8:                                          \
-                memcpy(recvbuf,sendbuf,sendcount*sizeof(int64_t));      \
-                break;                                                  \
-            case MPI_FLOAT:                                             \
-                memcpy(recvbuf,sendbuf,sendcount*sizeof(float));        \
-                break;                                                  \
-            case MPI_DOUBLE:                                            \
-                memcpy(recvbuf,sendbuf,sendcount*sizeof(double));       \
-                break;                                                  \
-            case MPI_COMPLEX:                                           \
-                memcpy(recvbuf,sendbuf,sendcount*2*sizeof(float));      \
-                break;                                                  \
-            case MPI_DOUBLE_COMPLEX:                                    \
-                memcpy(recvbuf,sendbuf,sendcount*2*sizeof(double));     \
-                break;                                                  \
-            default:                                                    \
-                fprintf(stderr,"error in #define MPI_Gather\n");        \
-            }                                                           \
-        }                                                               \
-    } while(0)
 
-#define MPI_Alltoall(sendbuf, sendcount, sendtype, recvbuf, recvcount,  \
-                     recvtype, comm)                                    \
-  MPI_Allreduce(sendbuf, recvbuf, sendcount, sendtype, 1, comm)
-
-#define MPI_Allreduce(sendbuf, recvbuf, count, datatype, op, comm)  \
-    if ( sendbuf != recvbuf ) {                                     \
-        switch (datatype) {                                         \
-        case MPI_INT:                                               \
-            memcpy(recvbuf,sendbuf,count*sizeof(int));              \
-            break;                                                  \
-        case MPI_LONG:                                              \
-            memcpy(recvbuf,sendbuf,count*sizeof(long));             \
-            break;                                                  \
-        case MPI_INTEGER4:                                          \
-            memcpy(recvbuf,sendbuf,count*sizeof(int32_t));          \
-            break;                                                  \
-        case MPI_INTEGER8:                                          \
-            memcpy(recvbuf,sendbuf,count*sizeof(int64_t));          \
-            break;                                                  \
-        case MPI_FLOAT:                                             \
-            memcpy(recvbuf,sendbuf,count*sizeof(float));            \
-            break;                                                  \
-        case MPI_DOUBLE:                                            \
-            memcpy(recvbuf,sendbuf,count*sizeof(double));           \
-            break;                                                  \
-        case MPI_COMPLEX:                                           \
-            memcpy(recvbuf,sendbuf,count*2*sizeof(float));          \
-            break;                                                  \
-        case MPI_DOUBLE_COMPLEX:                                    \
-            memcpy(recvbuf,sendbuf,count*2*sizeof(double));         \
-            break;                                                  \
-        default:                                                    \
-            fprintf(stderr,"error in #define MPI_Allreduce\n");     \
-        }                                                           \
+static inline int
+pastix_nompi_copy( void *dst, const void *src, int count, MPI_Datatype datatype )
+{
+    if ( count < 0 ) {
+        return MPI_ERR_COUNT;
     }
 
-#define MPI_Reduce(sendbuf, recvbuf, count, datatype, op, root, comm)   \
-    if ( sendbuf != recvbuf ) {                                         \
-        switch (datatype) {                                             \
-        case MPI_INT:                                                   \
-            memcpy(recvbuf,sendbuf,count*sizeof(int));                  \
-            break;                                                      \
-        case MPI_LONG:                                                  \
-            memcpy(recvbuf,sendbuf,count*sizeof(long));                 \
-            break;                                                      \
-        case MPI_FLOAT:                                                 \
-            memcpy(recvbuf,sendbuf,count*sizeof(float));                \
-            break;                                                      \
-        case MPI_INTEGER4:                                              \
-            memcpy(recvbuf,sendbuf,count*sizeof(int32_t));              \
-            break;                                                      \
-        case MPI_INTEGER8:                                              \
-            memcpy(recvbuf,sendbuf,count*sizeof(int64_t));              \
-            break;                                                      \
-        case MPI_DOUBLE:                                                \
-            memcpy(recvbuf,sendbuf,count*sizeof(double));               \
-            break;                                                      \
-        case MPI_COMPLEX:                                               \
-            memcpy(recvbuf,sendbuf,count*2*sizeof(float));              \
-            break;                                                      \
-        case MPI_DOUBLE_COMPLEX:                                        \
-            memcpy(recvbuf,sendbuf,count*2*sizeof(double));             \
-            break;                                                      \
-        default:                                                        \
-            fprintf(stderr,"error in #define MPI_Reduce\n");            \
-        }                                                               \
+    if(  src != dst ) {
+        switch (datatype) {
+        case MPI_INT:
+            memcpy(dst, src, count * sizeof(int));
+            break;
+        case MPI_LONG:
+            memcpy(dst, src, count * sizeof(long));
+            break;
+        case MPI_INTEGER4:
+            memcpy(dst, src, count * sizeof(int32_t));
+            break;
+        case MPI_INTEGER8:
+            memcpy(dst, src, count * sizeof(int64_t));
+            break;
+        case MPI_FLOAT:
+            memcpy(dst, src, count * sizeof(float));
+            break;
+        case MPI_DOUBLE:
+            memcpy(dst, src, count * sizeof(double));
+            break;
+        case MPI_COMPLEX:
+            memcpy(dst, src, count * 2 * sizeof(float));
+            break;
+        case MPI_DOUBLE_COMPLEX:
+            memcpy(dst, src, count * 2 * sizeof(double));
+            break;
+        default:
+            fprintf(stderr,"pastix_nompi_copy: Unknown MPI datatype\n");
+            return MPI_ERR_TYPE;
+        }
     }
+    return MPI_SUCCESS;
+}
 
+static inline int
+MPI_Gather( const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+            void *recvbuf, int recvcount, MPI_Datatype recvtype,
+            int root, MPI_Comm comm )
+{
+    assert( sendcount == recvcount );
+    assert( sendtype == recvtype );
 
-#define MPI_Bcast(buffer, count, datatype, root, comm)
+    (void)recvcount;
+    (void)recvtype;
+    (void)root;
+    (void)comm;
+    return pastix_nompi_copy( recvbuf, sendbuf, sendcount, sendtype );
+}
+
+static inline int
+MPI_Allreduce( const void *sendbuf, void *recvbuf, int count,
+               MPI_Datatype datatype, MPI_Op op, MPI_Comm comm )
+{
+    (void)op;
+    (void)comm;
+    return pastix_nompi_copy( recvbuf, sendbuf, count, datatype );
+}
+
+static inline int
+MPI_Alltoall( const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+              void *recvbuf, int recvcount, MPI_Datatype recvtype,
+              MPI_Comm comm )
+{
+    assert( sendcount == recvcount );
+    assert( sendtype == recvtype );
+
+    (void)recvcount;
+    (void)recvtype;
+    (void)comm;
+    return pastix_nompi_copy( recvbuf, sendbuf, sendcount, sendtype );
+}
+
+static inline int
+MPI_Reduce( const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype,
+            MPI_Op op, int root, MPI_Comm comm )
+{
+    (void)op;
+    (void)root;
+    (void)comm;
+    return pastix_nompi_copy( recvbuf, sendbuf, count, datatype );
+}
+
+static inline int
+MPI_Bcast( void *buffer, int count, MPI_Datatype datatype, int root,
+           MPI_Comm comm )
+{
+    (void)buffer;
+    (void)count;
+    (void)datatype;
+    (void)root;
+    (void)comm;
+    return MPI_SUCCESS;
+}
 
 #define MPI_Comm_f2c(comm) 0;
 #define MPI_Init_thread(argc, argv,required,provided)

@@ -80,14 +80,15 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
 
     /* Start the step */
     if (iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
-        pastix_print(procnum, 0, OUT_STEP_REORDER,
-                     (long)iparm[IPARM_REORDERING_SPLIT],
-                     (long)iparm[IPARM_REORDERING_STOP]);
+        pastix_print( procnum, 0, OUT_STEP_REORDER,
+                      (long)iparm[IPARM_REORDERING_SPLIT],
+                      (long)iparm[IPARM_REORDERING_STOP] );
     }
 
     /* Print the reordering complexity */
-    if (iparm[IPARM_VERBOSE] > PastixVerboseYes)
+    if (iparm[IPARM_VERBOSE] > PastixVerboseYes) {
         pastixSymbolReorderingPrintComplexity( pastix_data->symbmtx );
+    }
 
     clockStart(timer);
 
@@ -95,8 +96,8 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
      * Reorder the rows of each supernode in order to compact coupling blocks
      */
     pastixSymbolReordering( pastix_data->symbmtx, ordemesh,
-                      iparm[IPARM_REORDERING_SPLIT],
-                      iparm[IPARM_REORDERING_STOP] );
+                            iparm[IPARM_REORDERING_SPLIT],
+                            iparm[IPARM_REORDERING_STOP] );
 
     /* Backup the new ordering */
     if ( iparm[IPARM_IO_STRATEGY] & PastixIOSave )

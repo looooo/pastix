@@ -14,10 +14,13 @@
  *
  **/
 #include "common.h"
+#include "bcsc.h"
 #include "solver.h"
 #include "kernels_trace.h"
 
 volatile double kernels_flops[PastixKernelLvl1Nbr];
+
+volatile uint32_t kernels_trace_started = 0;
 
 #if defined(PASTIX_WITH_EZTRACE)
 
@@ -49,6 +52,12 @@ void
 kernelsTraceStart( const pastix_data_t *pastix_data )
 {
     const SolverMatrix *solvmtx = pastix_data->solvmatr;
+    uint32_t nbstart;
+
+    nbstart = pastix_atomic_inc_32b( &(kernels_trace_started) );
+    if ( nbstart > 1 ) {
+        return;
+    }
 
 #if defined(PASTIX_WITH_EZTRACE)
     {
@@ -59,7 +68,7 @@ kernelsTraceStart( const pastix_data_t *pastix_data )
         }
 
         if ( pastix_data->dirtemp != NULL ) {
-            pastix_setenv( "EZTRACE_TRACE_DIR", pastix_data->dirtemp );
+            pastix_setenv( "EZTRACE_TRACE_DIR", pastix_data->dirtemp, 1 );
         }
         eztrace_start ();
     }
@@ -109,6 +118,9 @@ kernelsTraceStart( const pastix_data_t *pastix_data )
 
     memset( (void*)kernels_flops, 0, PastixKernelLvl1Nbr * sizeof(double) );
 
+    kernels_trace_started = 1;
+
+    (void)solvmtx;
     return;
 }
 
@@ -128,6 +140,13 @@ double
 kernelsTraceStop( const pastix_data_t *pastix_data )
 {
     double total_flops = 0.0;
+    uint32_t nbstart;
+
+    assert( kernels_trace_started > 0 );
+    nbstart = pastix_atomic_dec_32b( &(kernels_trace_started) );
+    if ( nbstart > 0 ) {
+        return total_flops;
+    }
 
 #if defined(PASTIX_WITH_EZTRACE)
     eztrace_stop ();
@@ -135,6 +154,10 @@ kernelsTraceStop( const pastix_data_t *pastix_data )
 
 #if defined(PASTIX_GENERATE_MODEL)
     {
+        char *prec_names[4] = {
+            "s - single real", "d - double real",
+            "c - single complex", "z - double complex"
+        };
         pastix_model_entry_t *entry = model_entries;
         pastix_int_t i, gpucase;
         FILE *f;
@@ -151,6 +174,9 @@ kernelsTraceStop( const pastix_data_t *pastix_data )
         else {
             fprintf(f, "# CPU Model data\n");
         }
+
+        fprintf( f, "# Precision: %s\n", prec_names[ pastix_data->bcsc->flttype - 2 ] );
+        fprintf( f, "Kernel;M;N;K;Time\n" );
 
         for(i=0; i <= model_entries_nbr; i++, entry++ ) {
             switch( entry->ktype ) {

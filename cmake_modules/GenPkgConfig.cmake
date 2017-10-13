@@ -99,6 +99,14 @@ macro(generate_pkgconfig_file)
         list(APPEND PASTIX_PKGCONFIG_REQUIRED parsec)
     endif()
 
+    if(PASTIX_WITH_CUDA)
+      list(APPEND PASTIX_PKGCONFIG_LIBS pastix_kernels_cuda)
+    endif()
+
+    if(PASTIX_WITH_EZTRACE)
+      list(APPEND PASTIX_PKGCONFIG_REQUIRED eztrace litl)
+    endif()
+
     list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE
       ${LAPACKE_LIBRARIES}
       ${LAPACK_LIBRARIES}

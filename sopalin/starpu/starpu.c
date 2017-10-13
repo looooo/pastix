@@ -68,12 +68,15 @@ pastix_starpu_init( pastix_data_t *pastix,
     if (conf->ncuda > 0) {
 #if defined(PASTIX_GENERATE_MODEL)
         pastix_print( pastix->procnum, 0,
-                      "WARNING: PaStiX compiled with -DPASTIX_GENERATE_MODEL forces single GPU computations\n" );
-        iparm[IPARM_GPU_NBR] = 1;
-        conf->ncuda = 1;
+                      "WARNING: PaStiX compiled with -DPASTIX_GENERATE_MODEL forces:\n"
+                      "    - a single event per stream\n"
+                      "    - a single stream per GPU\n"
+                      "    - restore the automatic detection of the number of threads\n" );
+
+        conf->ncpus = -1;
 
         pastix_setenv( "STARPU_NWORKER_PER_CUDA", "1", 1 );
-        pastix_setenv( "STARPU_CUDA_PIPELINE", "1", 1 );
+        pastix_setenv( "STARPU_CUDA_PIPELINE", "0", 1 );
 #endif
 
         conf->sched_policy_name = "dmdas";

@@ -13,11 +13,10 @@
  * @date 2017-04-26
  *
  */
-#define _GNU_SOURCE 1
+#include <eztrace_convert.h>
 #include <stdio.h>
 #include <strings.h>
 #include <GTG.h>
-#include "eztrace_convert.h"
 #include "kernels_trace.h"
 
 static inline double kernels_dmin( double a, double b) {
@@ -131,7 +130,7 @@ typedef struct kernels_info_s {
  */
 typedef struct kernels_thread_info_s {
     struct thread_info_t *p_thread;   /**< Common EZTrace thread information                                 */
-    float                 time_start; /**< Sarting time of the last non PastixKernelStop event               */
+    double                time_start; /**< Starting time of the last non PastixKernelStop event              */
     int                   current_ev; /**< Id of the last non PastixKernelStop event                         */
     kernels_info_t       *kernels;    /**< Table of size PastixKernelsNbr to store statistics on each kernel */
 } kernels_thread_info_t;
@@ -185,7 +184,8 @@ kernels_register_thread_hook( struct thread_info_t *p_thread,
             kernels[i].time[CounterMin] = 1.e99;
             kernels[i].perf[CounterMin] = 1.e99;
         }
-        p_info->kernels = kernels;
+        p_info->kernels    = kernels;
+        p_info->current_ev = -1;
     }
 
     ezt_hook_list_add(&p_info->p_thread->hooks, p_info, KERNELS_EVENTS_ID);
@@ -246,14 +246,18 @@ handle_start( int event_id, int stats )
     DECLARE_CUR_THREAD(p_thread);
     INIT_KERNELS_THREAD_INFO(p_thread, p_info, stats);
 
+    assert( event_id < PastixKernelsNbr );
+
     if (stats == 1)
     {
+        assert( p_info->current_ev == -1 );
+
         p_info->kernels[event_id].nb ++;
         p_info->current_ev = event_id;
         p_info->time_start = CURRENT;
     }
     else {
-        pushState(CURRENT, "ST_Thread", thread_id, kernels_properties[event_id+1].name);
+        pushState(CURRENT, "ST_Thread", thread_id, kernels_properties[event_id].name);
     }
 }
 
@@ -281,6 +285,9 @@ handle_stop( int stats )
         kernels_info_t *kernel = p_info->kernels + p_info->current_ev;
         double flop, time, perf;
 
+        assert( p_info->current_ev >= 0 );
+        p_info->current_ev = -1;
+
         GET_PARAM_PACKED_1(CUR_EV, flop);
         flop = flop * 1.e-9;
         kernel->flop[CounterMin ]  = kernels_dmin( kernel->flop[CounterMin], flop );
@@ -289,6 +296,7 @@ handle_stop( int stats )
         kernel->flop[CounterSum2] += flop * flop;
 
         time = CURRENT - p_info->time_start;
+        assert( time >= 0.0 );
         kernel->time[CounterMin ]  = kernels_dmin( kernel->time[CounterMin], time );
         kernel->time[CounterMax ]  = kernels_dmax( kernel->time[CounterMax], time );
         kernel->time[CounterSum ] += time;
@@ -563,6 +571,8 @@ print_kernels_stats()
 void libinit(void) __attribute__ ((constructor));
 void libinit(void)
 {
+    int rc;
+
     kernels_module.api_version   = EZTRACE_API_VERSION;
     kernels_module.init          = eztrace_convert_kernels_init;
     kernels_module.handle        = handle_kernels_events;
@@ -570,11 +580,13 @@ void libinit(void)
     kernels_module.print_stats   = print_kernels_stats;
     kernels_module.module_prefix = KERNELS_EVENTS_ID;
 
-    asprintf(&kernels_module.name,        "kernels"       );
-    asprintf(&kernels_module.description, "PaStiX kernels");
+    rc = asprintf(&kernels_module.name,        "kernels"       );
+    rc = asprintf(&kernels_module.description, "PaStiX kernels");
 
     kernels_module.token.data = &kernels_module;
     eztrace_convert_register_module(&kernels_module);
+
+    (void)rc;
 }
 
 /**

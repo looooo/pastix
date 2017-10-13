@@ -90,6 +90,9 @@ parsec_zgetrf_sp1dplus_New( parsec_sparse_matrix_desc_t *A,
                                   parsec_datatype_double_complex_t,
                                   /*sopalin_data->solvmtx->gemmmax*/ 1, 1, 1 );
 
+#if defined(PASTIX_GENERATE_MODEL)
+    parsec_zgetrf_sp1dplus->_g_forced_pushout = 1;
+#endif
     return (parsec_taskpool_t*)parsec_zgetrf_sp1dplus;
 }
 
@@ -241,6 +244,9 @@ parsec_zgetrf_sp2d_New( parsec_sparse_matrix_desc_t *A,
                                   parsec_datatype_double_complex_t,
                                   /*sopalin_data->solvmtx->gemmmax*/ 1, 1, 1 );
 
+#if defined(PASTIX_GENERATE_MODEL)
+    parsec_zgetrf_sp2d->_g_forced_pushout = 1;
+#endif
     return (parsec_taskpool_t*)parsec_zgetrf_sp2d;
 }
 

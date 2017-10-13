@@ -381,9 +381,11 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
         factofct = sopalinFacto[ pastix_data->iparm[IPARM_FACTORIZATION] ][bcsc->flttype-2];
         assert(factofct);
 
+        kernelsTraceStart( pastix_data );
         clockStart(timer);
         factofct( pastix_data, &sopalin_data );
         clockStop(timer);
+        kernelsTraceStop( pastix_data );
 
         flops = pastix_data->dparm[DPARM_FACT_THFLOPS] / clockVal(timer);
         pastix_data->dparm[DPARM_FACT_FLOPS] = flops;
@@ -508,15 +510,11 @@ pastix_task_numfact( pastix_data_t *pastix_data,
             return rc;
     }
 
-    kernelsTraceStart( pastix_data );
-
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
         rc = pastix_subtask_sopalin( pastix_data );
         if (rc != PASTIX_SUCCESS)
             return rc;
     }
-
-    kernelsTraceStop( pastix_data );
 
     /* Invalidate following steps, and add factorization step to the ones performed */
     pastix_data->steps &= ~( STEP_SOLVE     |
