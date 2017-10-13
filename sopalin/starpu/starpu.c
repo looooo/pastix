@@ -76,7 +76,7 @@ pastix_starpu_init( pastix_data_t *pastix,
         conf->ncpus = -1;
 
         pastix_setenv( "STARPU_NWORKER_PER_CUDA", "1", 1 );
-        pastix_setenv( "STARPU_CUDA_PIPELINE", "1", 1 );
+        pastix_setenv( "STARPU_CUDA_PIPELINE", "0", 1 );
 #endif
 
         conf->sched_policy_name = "dmdas";
