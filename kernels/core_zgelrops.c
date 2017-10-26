@@ -1346,8 +1346,8 @@ core_zlrconcatenate_u( pastix_complex64_t alpha,
     ldau = (A->rk == -1) ? A->rkmax : M1;
     ldbu = M2;
 
-    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M2, B->rk,
-                         B->u, ldbu, u1u2, M2 );
+    ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M2, B->rk,
+                               B->u, ldbu, u1u2, M2 );
     assert(ret == 0);
 
     tmp = u1u2 + B->rk * M2;
@@ -1510,7 +1510,7 @@ core_zlrconcatenate_v( pastix_trans_t transA1, pastix_complex64_t alpha,
         }
         core_zgeadd( transA1, A->rk, N1,
                      alpha, A->v,              ldav,
-                        0.0, tmp + offy * rank, rank );
+                       0.0, tmp + offy * rank, rank );
     }
     (void) ret;
     (void) alpha;

@@ -78,6 +78,98 @@ core_zlr_check_orthogonality( pastix_int_t        M,
     return info_ortho;
 }
 
+static inline pastix_fixdbl_t
+core_zlrorthu_fullqr( pastix_int_t M,  pastix_int_t N,
+                      pastix_int_t r1, pastix_int_t r2,
+                      pastix_int_t offx, pastix_int_t offy,
+                      pastix_complex64_t *u1u2, pastix_int_t ldu,
+                      pastix_complex64_t *v1v2, pastix_int_t ldv )
+{
+    pastix_int_t rank = r1 + r2;
+    pastix_int_t minMN = pastix_imin( M, rank );
+    pastix_int_t ldwork = M * 32 + minMN;
+    pastix_int_t ret;
+    pastix_complex64_t *W = malloc( ldwork * sizeof(pastix_complex64_t) );
+    pastix_complex64_t *tau, *work;
+    pastix_fixdbl_t flops = 0.;
+
+    tau = W;
+    work = W + minMN;
+    ldwork -= minMN;
+
+    /* Compute u1u2 = Q * R */
+    ret = LAPACKE_zgeqrf_work( LAPACK_COL_MAJOR, M, rank,
+                               u1u2, ldu, tau, work, ldwork );
+    assert( ret == 0 );
+    flops += FLOPS_ZGEQRF( M, rank );
+
+    /* Compute v1v2' = R * v1v2 */
+    cblas_ztrmm( CblasColMajor,
+                 CblasLeft, CblasUpper,
+                 CblasNoTrans, CblasNonUnit,
+                 rank, N, CBLAS_SADDR(zone),
+                 u1u2, ldu, v1v2, ldv);
+    flops += FLOPS_ZTRMM( PastixLeft, rank, N );
+
+    /* Generate the Q */
+    ret = LAPACKE_zungqr_work( LAPACK_COL_MAJOR, M, rank, rank,
+                               u1u2, ldu, tau, work, ldwork );
+    assert( ret == 0 );
+    flops += FLOPS_ZUNGQR( M, rank, rank );
+
+    (void)ret;
+    (void)offx;
+    (void)offy;
+
+    return flops;
+}
+
+static inline pastix_fixdbl_t
+core_zlrorthu_cgs( pastix_int_t M,  pastix_int_t N,
+                   pastix_int_t r1, pastix_int_t r2,
+                   pastix_int_t offx, pastix_int_t offy,
+                   pastix_complex64_t *u1u2, pastix_int_t ldu,
+                   pastix_complex64_t *v1v2, pastix_int_t ldv )
+{
+    pastix_int_t rank = r1 + r2;
+    pastix_int_t minMN = pastix_imin( M, rank );
+    pastix_int_t ldwork = M * 32 + minMN;
+    pastix_int_t ret;
+    pastix_complex64_t *W = malloc( ldwork * sizeof(pastix_complex64_t) );
+    pastix_complex64_t *tau, *work;
+    pastix_fixdbl_t flops = 0.;
+
+    tau = W;
+    work = W + minMN;
+    ldwork -= minMN;
+
+    /* Compute u1u2 = Q * R */
+    ret = LAPACKE_zgeqrf_work( LAPACK_COL_MAJOR, M, rank,
+                               u1u2, ldu, tau, work, ldwork );
+    assert( ret == 0 );
+    flops += FLOPS_ZGEQRF( M, rank );
+
+    /* Compute v1v2' = R * v1v2 */
+    cblas_ztrmm( CblasColMajor,
+                 CblasLeft, CblasUpper,
+                 CblasNoTrans, CblasNonUnit,
+                 rank, N, CBLAS_SADDR(zone),
+                 u1u2, ldu, v1v2, ldv);
+    flops += FLOPS_ZTRMM( PastixLeft, rank, N );
+
+    /* Generate the Q */
+    ret = LAPACKE_zungqr_work( LAPACK_COL_MAJOR, M, rank, rank,
+                               u1u2, ldu, tau, work, ldwork );
+    assert( ret == 0 );
+    flops += FLOPS_ZUNGQR( M, rank, rank );
+
+    (void)ret;
+    (void)offx;
+    (void)offy;
+
+    return flops;
+}
+
 /**
  *******************************************************************************
  *
@@ -587,7 +679,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
                   pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
                   pastix_int_t offx, pastix_int_t offy)
 {
-    pastix_int_t rank, M, N, minV;
+    pastix_int_t rankA, rank, M, N, minV;
     pastix_int_t i, ret, new_rank;
     pastix_int_t ldau, ldav, ldbu, ldbv;
     pastix_complex64_t *u1u2, *v1v2, *u;
@@ -603,8 +695,8 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
     pastix_complex64_t *zwork;
     double             *rwork;
 
-    rank = (A->rk == -1) ? pastix_imin(M1, N1) : A->rk;
-    rank += B->rk;
+    rankA = (A->rk == -1) ? pastix_imin(M1, N1) : A->rk;
+    rank  = rankA + B->rk;
     M = pastix_imax(M2, M1);
     N = pastix_imax(N2, N1);
 
@@ -699,106 +791,106 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
                                N2, B,
                            offy, v1v2 );
 
-
     /*
      * Perform RRQR factorization on v1v2 = (Q2 R2)
      */
-
     /*
      * Orthogonalize [u2, u1]
      * [u2, u1] = [u2, u1 - u2(u2Tu1)] * (I u2Tu1)
      *                                   (0   I  )
      */
-    {
-        pastix_int_t rA = A->rk;
-        pastix_int_t rB = B->rk;
-        if (A->rk == -1 && M1 >= N1)
-            rA = N1;
-        if (A->rk == -1 && M1 < N1)
-            rA = M1;
 
-        /* We do not care is A was integrated into v1v2 */
-        if (rA != 0){
-            pastix_complex64_t *u2Tu1 = malloc(rA * rB * sizeof(pastix_complex64_t));
-            pastix_complex64_t *tmpU = u1u2 + offx;
-            pastix_complex64_t *tmpV = v1v2 + rB;
+    /* We do not care is A was integrated into v1v2 */
+    if (rankA != 0) {
+        pastix_fixdbl_t flops;
 
-            pastix_int_t flops = 0;
-            kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_ADD_Q );
+        kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_ADD_Q );
 
-            /* Form u2Tu1 */
-            if (rA == N1){
-                cblas_zgemm(CblasColMajor, CblasTrans, CblasNoTrans,
-                            rB, rA, N1,
-                            CBLAS_SADDR(zone), tmpU, ldbu,
-                            A->u, ldau,
-                            CBLAS_SADDR(zzero), u2Tu1, rB );
-                flops += FLOPS_ZGEMM( rB, rA, N1 );
-            }
-            else if (rA == M1){
-                pastix_int_t i, j;
-                for (i=0; i<rA; i++){
-                    for (j=0; j<rB; j++){
-                        u2Tu1[rB * i + j] = tmpU[ldbu * j + i];
-                    }
-                }
-            }
-            else {
-                cblas_zgemm(CblasColMajor, CblasTrans, CblasNoTrans,
-                            rB, rA, rA,
-                            CBLAS_SADDR(zone), tmpU, ldbu,
-                            A->u, ldau,
-                            CBLAS_SADDR(zzero), u2Tu1, rB );
-                flops += FLOPS_ZGEMM( rB, rA, N1 );
-            }
+        flops = core_zlrorthu_fullqr( M, N, rankA, B->rk, offx, offy,
+                                      u1u2, M, v1v2, rank );
 
-            /* Orthogonalize u1u2 */
-            tmpU = u1u2 + B->rk * M;
-            cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
-                        M, rA, rB,
-                        CBLAS_SADDR(mzone), u1u2, M,
-                        u2Tu1, rB,
-                        CBLAS_SADDR(zone), tmpU, M );
-            flops += FLOPS_ZGEMM( M, rA, rB );
+        kernel_trace_stop_lvl2( flops );
+        (void)flops;
 
-            /* Update v1v2 */
-            cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
-                        rB, N, rA,
-                        CBLAS_SADDR(zone), u2Tu1, rB,
-                        tmpV, rank,
-                        CBLAS_SADDR(zone), v1v2, rank );
-            flops += FLOPS_ZGEMM( rB, N, rA );
+        /* pastix_complex64_t *u2Tu1 = malloc(rA * rB * sizeof(pastix_complex64_t)); */
+        /* pastix_complex64_t *tmpU = u1u2 + offx; */
+        /* pastix_complex64_t *tmpV = v1v2 + rB; */
 
-            /* Orthonormalize u1u2 */
-            {
-                pastix_int_t i, j;
-                for (i=0; i<rank; i++){
-                    pastix_complex64_t *tmpU = u1u2 + M * i;
-                    pastix_complex64_t *tmpV = v1v2 + i;
-                    double norm = cblas_dznrm2(M, tmpU, 1);
+        /* pastix_int_t flops = 0; */
+        /* kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_ADD_Q ); */
 
-                    if (norm > LAPACKE_dlamch('e')){
-                        for (j=0; j<M; j++){
-                            tmpU[j] /= (norm);
-                        }
-                        for (j=0; j<N; j++){
-                            tmpV[rank * j] *= norm;
-                        }
-                    }
-                    else{
-                        for (j=0; j<M; j++){
-                            tmpU[j] = 0.0;
-                        }
-                        for (j=0; j<N; j++){
-                            tmpV[rank * j] = 0.0;
-                        }
-                    }
-                }
-                flops += (M + N) * rank;
-            }
-            kernel_trace_stop_lvl2( flops );
-            memFree_null(u2Tu1);
-        }
+        /* /\* Form u2Tu1 *\/ */
+        /* if (rA == N1){ */
+        /*     cblas_zgemm(CblasColMajor, CblasTrans, CblasNoTrans, */
+        /*                 rB, rA, N1, */
+        /*                 CBLAS_SADDR(zone), tmpU, ldbu, */
+        /*                 A->u, ldau, */
+        /*                 CBLAS_SADDR(zzero), u2Tu1, rB ); */
+        /*     flops += FLOPS_ZGEMM( rB, rA, N1 ); */
+        /* } */
+        /* else if (rA == M1){ */
+        /*     pastix_int_t i, j; */
+        /*     for (i=0; i<rA; i++){ */
+        /*         for (j=0; j<rB; j++){ */
+        /*             u2Tu1[rB * i + j] = tmpU[ldbu * j + i]; */
+        /*         } */
+        /*     } */
+        /* } */
+        /* else { */
+        /*     cblas_zgemm(CblasColMajor, CblasTrans, CblasNoTrans, */
+        /*                 rB, rA, rA, */
+        /*                 CBLAS_SADDR(zone), tmpU, ldbu, */
+        /*                 A->u, ldau, */
+        /*                 CBLAS_SADDR(zzero), u2Tu1, rB ); */
+        /*     flops += FLOPS_ZGEMM( rB, rA, N1 ); */
+        /* } */
+
+        /* /\* Orthogonalize u1u2 *\/ */
+        /* tmpU = u1u2 + B->rk * M; */
+        /* cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, */
+        /*             M, rA, rB, */
+        /*             CBLAS_SADDR(mzone), u1u2, M, */
+        /*             u2Tu1, rB, */
+        /*             CBLAS_SADDR(zone), tmpU, M ); */
+        /* flops += FLOPS_ZGEMM( M, rA, rB ); */
+
+        /* /\* Update v1v2 *\/ */
+        /* cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, */
+        /*             rB, N, rA, */
+        /*             CBLAS_SADDR(zone), u2Tu1, rB, */
+        /*             tmpV, rank, */
+        /*             CBLAS_SADDR(zone), v1v2, rank ); */
+        /* flops += FLOPS_ZGEMM( rB, N, rA ); */
+
+        /* /\* Orthonormalize u1u2 *\/ */
+        /* { */
+        /*     pastix_int_t i, j; */
+        /*     for (i=0; i<rank; i++){ */
+        /*         pastix_complex64_t *tmpU = u1u2 + M * i; */
+        /*         pastix_complex64_t *tmpV = v1v2 + i; */
+        /*         double norm = cblas_dznrm2(M, tmpU, 1); */
+
+        /*         if (norm > LAPACKE_dlamch('e')){ */
+        /*             for (j=0; j<M; j++){ */
+        /*                 tmpU[j] /= (norm); */
+        /*             } */
+        /*             for (j=0; j<N; j++){ */
+        /*                 tmpV[rank * j] *= norm; */
+        /*             } */
+        /*         } */
+        /*         else{ */
+        /*             for (j=0; j<M; j++){ */
+        /*                 tmpU[j] = 0.0; */
+        /*             } */
+        /*             for (j=0; j<N; j++){ */
+        /*                 tmpV[rank * j] = 0.0; */
+        /*             } */
+        /*         } */
+        /*     } */
+        /*     flops += (M + N) * rank; */
+        /* } */
+        /* kernel_trace_stop_lvl2( flops ); */
+        /* memFree_null(u2Tu1); */
     }
 
     norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, N,
