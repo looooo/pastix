@@ -964,21 +964,19 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
 
     ldbv = B->rkmax;
 
-    pastix_complex64_t *work, *work2;
-    work = malloc(N * new_rank * sizeof(pastix_complex64_t));
-    work2 = malloc(N * new_rank * sizeof(pastix_complex64_t));
+    /* B->v = P v1v2 */
+    {
+        pastix_complex64_t *tmpV;
+        pastix_int_t lm;
 
-    memset(work, 0, N * new_rank * sizeof(pastix_complex64_t));
-
-    ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'U', new_rank, N,
-                               v1v2, rank,
-                               work, new_rank );
-    assert(ret == 0);
-
-    for (i=0; i<N; i++){
-        memcpy(work2 + jpvt[i] * new_rank,
-               work  + i * new_rank,
-               new_rank * sizeof(pastix_complex64_t));
+        memset(B->v, 0, N * ldbv * sizeof(pastix_complex64_t));
+        tmpV = B->v;
+        for (i=0; i<N; i++){
+            lm = pastix_imin( new_rank, i+1 );
+            memcpy(tmpV + jpvt[i] * ldbv,
+                   v1v2 + i       * rank,
+                   lm * sizeof(pastix_complex64_t));
+        }
     }
 
     /* Compute Q2 factor */
@@ -995,8 +993,6 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
                     CBLAS_SADDR(zzero), B->u, ldbu);
         kernel_trace_stop_lvl2( FLOPS_ZUNGQR( rank, new_rank, new_rank ) +
                                 FLOPS_ZGEMM( M, new_rank, rank ) );
-
-        memcpy(B->v, work2, new_rank * N * sizeof(pastix_complex64_t));
     }
 
 #if defined(PASTIX_DEBUG_LR)
@@ -1010,8 +1006,6 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
 
     memFree_null(zbuf);
     memFree_null(jpvt);
-    memFree_null(work);
-    memFree_null(work2);
 
     (void)ret;
     return new_rank;
