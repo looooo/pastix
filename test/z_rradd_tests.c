@@ -50,6 +50,7 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
     pastix_complex64_t *C_RRQR, *C_SVD;
     pastix_lrblock_t    LR_A_SVD, LR_B_SVD;
     pastix_lrblock_t    LR_A_RRQR, LR_B_RRQR;
+    pastix_lr_t lr_RRQR, lr_SVD;
 
     double norm_dense_A, norm_dense_B;
     double norm_diff_SVD, norm_diff_RRQR;
@@ -64,7 +65,24 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
 
     pastix_complex64_t *work;
     double *SA, *SB;
-    double alphaA, alphaB;
+    double alphaA, alphaB, mone;
+    mone = -1.0;
+
+    lr_RRQR.compress_when       = 0;
+    lr_RRQR.compress_method     = 0;
+    lr_RRQR.compress_min_width  = 0;
+    lr_RRQR.compress_min_height = 0;
+    lr_RRQR.tolerance           = tolerance;
+    lr_RRQR.core_ge2lr = core_zge2lr_RRQR_interface;
+    lr_RRQR.core_rradd = core_zrradd_RRQR_interface;
+
+    lr_SVD.compress_when       = 0;
+    lr_SVD.compress_method     = 0;
+    lr_SVD.compress_min_width  = 0;
+    lr_SVD.compress_min_height = 0;
+    lr_SVD.tolerance           = tolerance;
+    lr_SVD.core_ge2lr = core_zge2lr_SVD_interface;
+    lr_SVD.core_rradd = core_zrradd_SVD_interface;
 
     A      = malloc(mA * nA * sizeof(pastix_complex64_t));
     B      = malloc(mB * nB * sizeof(pastix_complex64_t));
@@ -122,25 +140,15 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
                                         B, mB, NULL );
 
 
-    core_zge2lr_SVD( tolerance,
-                      mA, nA,
-                      A, mA,
-                      &LR_A_SVD );
+    lr_SVD.core_ge2lr( tolerance, mA, nA,
+                       A, mA, &LR_A_SVD );
+    lr_SVD.core_ge2lr( tolerance, mB, nB,
+                       B, mB, &LR_B_SVD );
 
-    core_zge2lr_SVD( tolerance,
-                      mB, nB,
-                      B, mB,
-                      &LR_B_SVD );
-
-    core_zge2lr_RRQR( tolerance,
-                      mA, nA,
-                      A, mA,
-                      &LR_A_RRQR );
-
-    core_zge2lr_RRQR( tolerance,
-                      mB, nB,
-                      B, mB,
-                      &LR_B_RRQR );
+    lr_RRQR.core_ge2lr( tolerance, mA, nA,
+                       A, mA, &LR_A_RRQR );
+    lr_RRQR.core_ge2lr( tolerance, mB, nB,
+                       B, mB, &LR_B_RRQR );
 
     printf(" The rank of A is: RRQR %d SVD %d\n", LR_A_RRQR.rk, LR_A_SVD.rk);
     printf(" The rank of B is: RRQR %d SVD %d\n", LR_B_RRQR.rk, LR_B_SVD.rk);
@@ -157,15 +165,15 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
     }
 
     /* Add A and B in their LR format */
-    core_zrradd_SVD( tolerance, PastixNoTrans, -1.0,
-                     mA, nA, &LR_A_SVD,
-                     mB, nB, &LR_B_SVD,
-                     offx, offy );
+    lr_SVD.core_rradd( &lr_SVD, PastixNoTrans, &mone,
+                       mA, nA, &LR_A_SVD,
+                       mB, nB, &LR_B_SVD,
+                       offx, offy );
 
-    core_zrradd_RRQR( tolerance, PastixNoTrans, -1.0,
-                      mA, nA, &LR_A_RRQR,
-                      mB, nB, &LR_B_RRQR,
-                      offx, offy );
+    lr_RRQR.core_rradd( &lr_RRQR, PastixNoTrans, &mone,
+                        mA, nA, &LR_A_RRQR,
+                        mB, nB, &LR_B_RRQR,
+                        offx, offy );
 
     printf(" The rank of A+B is: RRQR %d SVD %d\n", LR_B_RRQR.rk, LR_B_SVD.rk);
 

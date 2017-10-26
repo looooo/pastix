@@ -448,7 +448,7 @@ core_zgradd( const pastix_lr_t *lowrank, pastix_complex64_t alpha,
         lrA.rkmax = lda;
         lrA.u = (void*)A;
         lrA.v = NULL;
-        rank = lowrank->core_rradd( tol, PastixNoTrans, &alpha,
+        rank = lowrank->core_rradd( lowrank, PastixNoTrans, &alpha,
                                     M1, N1, &lrA,
                                     M2, N2, B,
                                     offx, offy );
@@ -1052,7 +1052,7 @@ core_zlrmm( const pastix_lr_t *lowrank,
             }
             else {
                 /* Need to handle correctly this case */
-                lowrank->core_rradd( tol, transV, &alpha,
+                lowrank->core_rradd( lowrank, transV, &alpha,
                                      M, N, &AB,
                                      Cm, Cn, C,
                                      offx, offy );
@@ -1164,4 +1164,133 @@ core_zlrmge( const pastix_lr_t *lowrank,
                 alpha, A, B, beta, &lrC,
                 work, ldwork,
                 fcblk );
+}
+
+
+/**
+ *******************************************************************************
+ *
+ * @brief Compute A * B + C with A, and B low-rank matrices, and C full rank
+ *
+ *******************************************************************************
+ *
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
+ *
+ * @param[in] transA
+ *         @arg PastixNoTrans: No transpose, op( A ) = A;
+ *         @arg PastixTrans:   Transpose, op( A ) = A';
+ *
+ * @param[in] transB
+ *         @arg PastixNoTrans: No transpose, op( B ) = B;
+ *         @arg PastixTrans:   Transpose, op( B ) = B';
+ *
+ * @param[in] M
+ *          The number of rows of the matrix A.
+ *
+ * @param[in] N
+ *          The number of columns of the matrix B.
+ *
+ * @param[in] K
+ *          The number of columns of the matrix A and the number of rows of the
+ *          matrix B.
+ *
+ * @param[in] alpha
+ *          The multiplier parameter: C = beta * C + alpha * AB
+ *
+ * @param[in] A
+ *          The low-rank representation of the matrix A.
+ *
+ * @param[in] B
+ *          The low-rank representation of the matrix B.
+ *
+ * @param[in] beta
+ *          The addition parameter: C = beta * C + alpha * AB
+ *
+ * @param[inout] C
+ *          The matrix C (full).
+ *
+ * @param[in] ldc
+ *          The leading dimension of the matrix C.
+ *
+ * @param[in] work
+ *          The workspace used to store temporary data
+ *
+ * @param[in] ldwork
+ *          The leading dimension of work
+ *
+ * @param[in] fcblk
+ *          The facing supernode
+ *
+ *******************************************************************************/
+void
+core_zlrcpy( const pastix_lr_t *lowrank,
+             pastix_trans_t transA, pastix_complex64_t alpha,
+             pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+             pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+             pastix_int_t offx, pastix_int_t offy,
+             pastix_complex64_t *work, pastix_int_t ldwork )
+{
+    pastix_complex64_t *u, *v;
+    pastix_int_t ldau, ldav;
+    int ret;
+
+    assert( B->rk == 0 );
+    assert( (M1 + offx) <= M2 );
+    assert( (N1 + offy) <= N2 );
+
+    ldau = (A->rk == -1) ? A->rkmax : M1;
+    ldav = (transA == PastixNoTrans) ? A->rkmax : N1;
+
+    if ( A->rk == -1 ) {
+        /*
+         * TODO: This case can be improved by compressing A, and then
+         * copying it into B, however the criteria to keep A compressed or
+         * not must be based on B dimension, and not on A ones
+         */
+        if ( ldwork < M2 *N2 ) {
+            MALLOC_INTERN( work, M2 * N2, pastix_complex64_t );
+            ldwork = -1;
+        }
+
+        if ( M1 != M2 || N1 != N2 ) {
+            LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M2, N2,
+                                 0.0, 0.0, work, M2 );
+        }
+        ret = core_zgeadd( PastixNoTrans, M1, N1,
+                           alpha, A->u, ldau,
+                           0.0, work + M2 * offy + offx, M2 );
+        assert(ret == 0);
+
+        lowrank->core_ge2lr( lowrank->tolerance, M2, N2, work, M2, B );
+
+        if (ldwork == -1) {
+            memFree_null(work);
+        }
+    }
+    else {
+        core_zlralloc( M2, N2, A->rkmax, B );
+        u = B->u;
+        v = B->v;
+        B->rk = A->rk;
+
+        if ( M1 != M2 ) {
+            LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M2, B->rk,
+                                 0.0, 0.0, u, M2 );
+        }
+        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, A->rk,
+                                   A->u, ldau,
+                                   u + offx, M2 );
+        assert(ret == 0);
+
+        if ( N1 != N2 ) {
+            LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', B->rk, N2,
+                                 0.0, 0.0, v, B->rkmax );
+        }
+        ret = core_zgeadd( transA, A->rk, N1,
+                           alpha, A->v, ldav,
+                           0.0, v + B->rkmax * offy, B->rkmax );
+        assert(ret == 0);
+    }
+    assert( B->rk <= B->rkmax);
 }

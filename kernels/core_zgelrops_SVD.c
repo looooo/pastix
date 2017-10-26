@@ -271,7 +271,7 @@ core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
  *
  *******************************************************************************/
 int
-core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
+core_zrradd_SVD( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_complex64_t alpha,
                  pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                  pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
                  pastix_int_t offx, pastix_int_t offy)
@@ -285,6 +285,7 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     double *s;
     double norm, relative_tolerance;
     size_t wzsize, wdsize;
+    double tol = lowrank->tolerance;
 
     rank = (A->rk == -1) ? pastix_imin(M1, N1) : A->rk;
     rank += B->rk;
@@ -319,58 +320,16 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     ldbu = M;
     ldbv = B->rkmax;
 
-    /**
+    /*
      * Let's handle case where B is a null matrix
      *   B = alpha A
      */
     if (B->rk == 0) {
-        if ( A->rk == -1 ) {
-            /**
-             * TODO: This case can be improved by compressing A, and then
-             * copying it into B, however the criteria to keep A compressed or
-             * not must be based on B dimension, and not on A ones
-             */
-            MALLOC_INTERN( u, M * N, pastix_complex64_t );
-
-            if ( M1 != M || N1 != N ) {
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, N,
-                                     0.0, 0.0, u, M );
-            }
-            ret = core_zgeadd( PastixNoTrans, M1, N1,
-                               alpha, A->u, ldau,
-                               0.0, u + M * offy + offx, M );
-            assert(ret == 0);
-
-            core_zge2lr_SVD( tol, M, N, u, M, B );
-            memFree_null(u);
-        }
-        else {
-            core_zlralloc( M, N, A->rkmax, B );
-            u = B->u;
-            v = B->v;
-            B->rk = A->rk;
-
-            if ( M1 != M ) {
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, B->rk,
-                                     0.0, 0.0, u, M );
-            }
-            if ( N1 != N ) {
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', B->rk, N,
-                                     0.0, 0.0, v, B->rkmax );
-            }
-
-            ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, A->rk,
-                                       A->u, ldau,
-                                       u + offx, M );
-            assert(ret == 0);
-
-            ret = core_zgeadd( transA1, A->rk, N1,
-                               alpha, A->v, ldav,
-                               0.0, v + B->rkmax * offy, B->rkmax );
-            assert(ret == 0);
-        }
-        assert( B->rk <= B->rkmax);
-        return 0;
+        core_zlrcpy( lowrank, transA1, alpha,
+                     M1, N1, A, M2, N2, B,
+                     offx, offy,
+                     NULL, -1 );
+        return B->rk;
     }
 
     /**
@@ -786,13 +745,13 @@ core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
  *
  *******************************************************************************/
 int
-core_zrradd_SVD_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, const void *alphaptr,
+core_zrradd_SVD_interface( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
                            pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                            pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
                            pastix_int_t offx, pastix_int_t offy)
 {
     const pastix_complex64_t *alpha = (const pastix_complex64_t *) alphaptr;
-    return core_zrradd_SVD( tol, transA1, *alpha,
+    return core_zrradd_SVD( lowrank, transA1, *alpha,
                             M1, N1, A,
                             M2, N2, B,
                             offx, offy );
