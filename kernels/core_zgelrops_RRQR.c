@@ -28,6 +28,56 @@ static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+static inline int
+core_zlr_check_orthogonality( pastix_int_t        M,
+                              pastix_int_t        N,
+                              pastix_complex64_t *A,
+                              pastix_int_t        lda )
+{
+    pastix_complex64_t *Id;
+    double alpha, beta;
+    double normQ;
+    pastix_int_t info_ortho;
+    pastix_int_t minMN = pastix_imin(M, N);
+    double eps = LAPACKE_dlamch_work('e');
+    double *work = (double *)malloc(minMN*sizeof(double));
+
+    alpha = 1.0;
+    beta  = -1.0;
+
+    /* Build the idendity matrix */
+    Id = malloc( minMN * minMN * sizeof(pastix_complex64_t) );
+    LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', minMN, minMN,
+                         0., 1., Id, minMN );
+
+    if (M > N) {
+        /* Perform Id - Q'Q */
+        cblas_zherk(CblasColMajor, CblasUpper, CblasConjTrans, N, M, alpha, A, lda, beta, Id, minMN);
+    }
+    else {
+        /* Perform Id - QQ' */
+        cblas_zherk(CblasColMajor, CblasUpper, CblasNoTrans,   M, N, alpha, A, lda, beta, Id, minMN);
+    }
+
+    normQ = LAPACKE_zlanhe_work( LAPACK_COL_MAJOR, 'I', 'U', minMN, Id, minMN, work );
+    res = normQ / (minMN * eps);
+
+    fprintf(stderr, "Check Orthogonality: || I - Q*Q' || = %e, ||Id-Q'*Q||_oo / (N*eps) = %e :",
+            normQ, res );
+
+    if ( isnan(res) || isinf(res) || (res > 60.0) ) {
+        fprintf(stderr, "FAILED\n");
+        info_ortho = 1;
+    }
+    else {
+        fprintf(stderr, "SUCCESS\n");
+        info_ortho = 0;
+    }
+
+    free(work); free(Id);
+    return info_ortho;
+}
+
 /**
  *******************************************************************************
  *
@@ -466,6 +516,14 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
         kernel_trace_stop_lvl2( FLOPS_ZUNGQR( m, Alr->rk, Alr->rk ) );
     }
 
+#if defined(PASTIX_DEBUG_LR)
+    if ( Alr->rk > 0 ) {
+        int rc = core_zlr_check_orthogonality( m, Alr->rk, Alr->u, m );
+        if (rc == 1) {
+            fprintf(stderr, "Failed to compress a matrix and generate an othrogonal u\n" );
+        }
+    }
+#endif
     memFree_null( zwork );
     memFree_null( jpvt );
 }
@@ -987,6 +1045,15 @@ core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
 
         memcpy(B->v, work2, new_rank * N * sizeof(pastix_complex64_t));
     }
+
+#if defined(PASTIX_DEBUG_LR)
+    if ( B->rk > 0 ) {
+        int rc = core_zlr_check_orthogonality( M, B->rk, B->u, M );
+        if (rc == 1) {
+            fprintf(stderr, "Failed to keep u orthogonal in rradd\n" );
+        }
+    }
+#endif
 
     memFree_null(zbuf);
     memFree_null(jpvt);
