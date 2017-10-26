@@ -1170,7 +1170,7 @@ core_zlrmge( const pastix_lr_t *lowrank,
 /**
  *******************************************************************************
  *
- * @brief Compute A * B + C with A, and B low-rank matrices, and C full rank
+ * @brief Copy a small low-rank structure into a large one
  *
  *******************************************************************************
  *
@@ -1293,4 +1293,225 @@ core_zlrcpy( const pastix_lr_t *lowrank,
         assert(ret == 0);
     }
     assert( B->rk <= B->rkmax);
+    (void) ret;
+}
+
+
+/**
+ *******************************************************************************
+ *
+ * @brief Concatenate left parts of two low-rank matrices
+ *
+ *******************************************************************************
+ *
+ * @param[in] alpha
+ *          alpha * A is add to B
+ *
+ * @param[in] M1
+ *          The number of rows of the matrix A.
+ *
+ * @param[in] N1
+ *          The number of columns of the matrix A.
+ *
+ * @param[in] A
+ *          The low-rank representation of the matrix A.
+ *
+ * @param[in] M2
+ *          The number of rows of the matrix B.
+ *
+ * @param[in] B
+ *          The low-rank representation of the matrix B.
+ *
+ * @param[in] offx
+ *          The horizontal offset of A with respect to B.
+ *
+ * @param[inout] u1u2
+ *          The workspace where matrices are concatenated
+ *
+ *******************************************************************************/
+void
+core_zlrconcatenate_u( pastix_complex64_t alpha,
+                       pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                       pastix_int_t M2,                        pastix_lrblock_t *B,
+                       pastix_int_t offx,
+                       pastix_complex64_t *u1u2 )
+{
+    pastix_complex64_t *tmp;
+    pastix_int_t i, ret, rank;
+    pastix_int_t ldau, ldbu;
+
+    rank = (A->rk == -1) ? pastix_imin(M1, N1) : A->rk;
+    rank += B->rk;
+
+    ldau = (A->rk == -1) ? A->rkmax : M1;
+    ldbu = M2;
+
+    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M2, B->rk,
+                         B->u, ldbu, u1u2, M2 );
+    assert(ret == 0);
+
+    tmp = u1u2 + B->rk * M2;
+    if ( A->rk == -1 ) {
+        /*
+         * A is full of rank M1, so A will be integrated into v1v2
+         */
+        if ( M1 < N1 ) {
+            if ( M1 != M2 ) {
+                /* Set to 0 */
+                memset(tmp, 0, M2 * M1 * sizeof(pastix_complex64_t));
+
+                /* Set diagonal */
+                tmp += offx;
+                for (i=0; i<M1; i++, tmp += M2+1) {
+                    *tmp = 1.0;
+                }
+            }
+            else {
+                assert( offx == 0 );
+                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M2, M1,
+                                           0.0, 1.0, tmp, M2 );
+                assert( ret == 0 );
+            }
+        }
+        else {
+            /*
+             * A is full of rank N1, so A is integrated into u1u2
+             */
+            if ( M1 != M2 ) {
+                memset(tmp, 0, M2 * N1 * sizeof(pastix_complex64_t));
+            }
+            ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, N1,
+                                       A->u, ldau, tmp + offx, M2 );
+            assert(ret == 0);
+        }
+    }
+    /*
+     * A is low rank of rank A->rk
+     */
+    else {
+        if ( M1 != M2 ) {
+            memset(tmp, 0, M2 * A->rk * sizeof(pastix_complex64_t));
+        }
+        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, A->rk,
+                                   A->u, ldau, tmp + offx, M2 );
+        assert(ret == 0);
+    }
+    (void) ret;
+    (void) alpha;
+}
+
+
+/**
+ *******************************************************************************
+ *
+ * @brief Concatenate right parts of two low-rank matrices
+ *
+ *******************************************************************************
+ *
+ * @param[in] transA1
+ *         @arg PastixNoTrans:  No transpose, op( A ) = A;
+ *         @arg PastixTrans:  Transpose, op( A ) = A';
+ *
+ * @param[in] alpha
+ *          alpha * A is add to B
+ *
+ * @param[in] M1
+ *          The number of rows of the matrix A.
+ *
+ * @param[in] N1
+ *          The number of columns of the matrix A.
+ *
+ * @param[in] A
+ *          The low-rank representation of the matrix A.
+ *
+ * @param[in] N2
+ *          The number of columns of the matrix B.
+ *
+ * @param[in] B
+ *          The low-rank representation of the matrix B.
+ *
+ * @param[in] offy
+ *          The vertical offset of A with respect to B.
+ *
+ * @param[inout] v1v2
+ *          The workspace where matrices are concatenated
+ *
+ *******************************************************************************/
+void
+core_zlrconcatenate_v( pastix_trans_t transA1, pastix_complex64_t alpha,
+                       pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                                        pastix_int_t N2,       pastix_lrblock_t *B,
+                       pastix_int_t offy,
+                       pastix_complex64_t *v1v2 )
+{
+    pastix_complex64_t *tmp;
+    pastix_int_t i, ret, rank;
+    pastix_int_t ldau, ldav, ldbv;
+
+    rank = (A->rk == -1) ? pastix_imin(M1, N1) : A->rk;
+    rank += B->rk;
+
+    ldau = (A->rk == -1) ? A->rkmax : M1;
+    ldav = (transA1 == PastixNoTrans) ? A->rkmax : N1;
+    ldbv = B->rkmax;
+
+    ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', B->rk, N2,
+                               B->v, ldbv, v1v2, rank );
+    assert(ret == 0);
+
+    tmp = v1v2 + B->rk;
+    if ( A->rk == -1 ) {
+        assert( transA1 == PastixNoTrans );
+        /*
+         * A is full of rank M1, so it is integrated into v1v2
+         */
+        if ( M1 < N1 ) {
+            if (N1 != N2) {
+                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M1, N2,
+                                           0.0, 0.0, tmp, rank );
+                assert( ret == 0 );
+            }
+            core_zgeadd( PastixNoTrans, M1, N1,
+                         alpha, A->u, ldau,
+                         0.0, tmp + offy * rank, rank );
+        }
+        /*
+         * A is full of rank N1, so it has been integrated into u1u2
+         */
+        else {
+            if (N1 != N2) {
+                /* Set to 0 */
+                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', N1, N2,
+                                           0.0, 0.0, tmp, rank );
+                assert(ret == 0);
+
+                /* Set diagonal */
+                tmp += offy * rank;
+                for (i=0; i<N1; i++, tmp += rank+1) {
+                    *tmp = alpha;
+                }
+            }
+            else {
+                assert( offy == 0 );
+                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', N1, N2,
+                                           0.0, alpha, tmp + offy * rank, rank );
+                assert( ret == 0 );
+            }
+        }
+    }
+    /*
+     * A is low rank of rank A->rk
+     */
+    else {
+        if (N1 != N2) {
+            ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', A->rk, N2,
+                                       0.0, 0.0, tmp, rank );
+            assert(ret == 0);
+        }
+        core_zgeadd( transA1, A->rk, N1,
+                     alpha, A->v,              ldav,
+                        0.0, tmp + offy * rank, rank );
+    }
+    (void) ret;
+    (void) alpha;
 }

@@ -541,8 +541,8 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
  *
  *******************************************************************************
  *
- * @param[in] tol
- *          The absolute tolerance criteria
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
  *
  * @param[in] transA1
  *         @arg PastixNoTrans:  No transpose, op( A ) = A;
@@ -591,7 +591,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
     pastix_int_t i, ret, new_rank;
     pastix_int_t ldau, ldav, ldbu, ldbv;
     pastix_complex64_t *u1u2, *v1v2, *u;
-    pastix_complex64_t *tmp, *zbuf, *tauV;
+    pastix_complex64_t *zbuf, *tauV;
     size_t wzsize;
     double norm;
     double tol = lowrank->tolerance;
@@ -684,118 +684,20 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
      *  [ u2  u1 ]
      *  [ u2  0  ]
      */
-    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M, B->rk,
-                         B->u, ldbu, u1u2, M );
-
-    tmp = u1u2 + B->rk * M;
-    if ( A->rk == -1 ) {
-        /*
-         * A is full of rank M1, so A will be integrated into v1v2
-         */
-        if ( M1 < N1 ) {
-            if (M1 != M2) {
-                /* Set to 0 */
-                memset(tmp, 0, M * M1 * sizeof(pastix_complex64_t));
-
-                /* Set diagonal */
-                tmp += offx;
-                for (i=0; i<M1; i++, tmp += M+1) {
-                    *tmp = 1.0;
-                }
-            }
-            else {
-                assert( offx == 0 );
-                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, M1,
-                                           0.0, 1.0, tmp, M );
-                assert( ret == 0 );
-            }
-        }
-        else {
-            /*
-             * A is full of rank N1, so A is integrated into u1u2
-             */
-            if (M1 != M) {
-                memset(tmp, 0, M * N1 * sizeof(pastix_complex64_t));
-            }
-            ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, N1,
-                                       A->u, ldau, tmp + offx, M );
-            assert(ret == 0);
-        }
-    }
-    /*
-     * A is low rank of rank A->rk
-     */
-    else {
-        if (M1 != M) {
-            memset(tmp, 0, M * A->rk * sizeof(pastix_complex64_t));
-        }
-        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, A->rk,
-                                   A->u, ldau, tmp + offx, M );
-        assert(ret == 0);
-    }
+    core_zlrconcatenate_u( alpha,
+                           M1, N1, A,
+                           M2,     B,
+                           offx, u1u2 );
 
     /*
      * Concatenate V2 and V1 in v1v2
      *  [ v2^h v2^h v2^h ]
      *  [ 0    v1^h 0    ]
      */
-    ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', B->rk, N,
-                               B->v, ldbv, v1v2, rank );
-    assert(ret == 0);
-
-    tmp = v1v2 + B->rk;
-    if ( A->rk == -1 ) {
-        assert( transA1 == PastixNoTrans );
-        /*
-         * A is full of rank M1, so it is integrated into v1v2
-         */
-        if ( M1 < N1 ) {
-            if (N1 != N) {
-                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M1, N,
-                                           0.0, 0.0, tmp, rank );
-                assert( ret == 0 );
-            }
-            core_zgeadd( PastixNoTrans, M1, N1,
-                         alpha, A->u, ldau,
-                         0.0, tmp + offy * rank, rank );
-        }
-        /*
-         * A is full of rank N1, so it has been integrated into u1u2
-         */
-        else {
-            if (N1 != N2) {
-                /* Set to 0 */
-                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', N1, N,
-                                           0.0, 0.0, tmp, rank );
-                assert(ret == 0);
-
-                /* Set diagonal */
-                tmp += offy * rank;
-                for (i=0; i<N1; i++, tmp += rank+1) {
-                    *tmp = alpha;
-                }
-            }
-            else {
-                assert( offy == 0 );
-                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', N1, N,
-                                           0.0, alpha, tmp + offy * rank, rank );
-                assert( ret == 0 );
-            }
-        }
-    }
-    /*
-     * A is low rank of rank A->rk
-     */
-    else {
-        if (N1 != N) {
-            ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', A->rk, N,
-                                       0.0, 0.0, tmp, rank );
-            assert(ret == 0);
-        }
-        core_zgeadd( transA1, A->rk, N1,
-                     alpha, A->v,              ldav,
-                        0.0, tmp + offy * rank, rank );
-    }
+    core_zlrconcatenate_v( transA1, alpha,
+                           M1, N1, A,
+                               N2, B,
+                           offy, v1v2 );
 
 
     /*
