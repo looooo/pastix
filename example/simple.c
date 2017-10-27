@@ -75,6 +75,9 @@ int main (int argc, char **argv)
      */
     pastix_task_analyze( pastix_data, spm );
 
+    double alpha = spmNorm( PastixFrobeniusNorm, spm );
+    spmScalMatrix( 1./alpha, spm );
+
     /**
      * Perform the numerical factorization
      */

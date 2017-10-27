@@ -562,18 +562,47 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
              *   ABv = Av^h B'
              */
             assert( (A->rk * N) <= ldwork );
-            AB->rk = A->rk;
-            AB->rkmax = A->rk;
-            AB->u = A->u;
-            AB->v = work;
 
-            kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
-            cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
-                         A->rk, N, K,
-                         CBLAS_SADDR(zone),  A->v,  ldav,
-                                             B->u,  ldbu,
-                         CBLAS_SADDR(zzero), AB->v, AB->rkmax );
-            kernel_trace_stop_lvl2( FLOPS_ZGEMM( A->rk, N, K ) );
+            if ( A->rk < N ){
+                AB->rk    = A->rk;
+                AB->rkmax = A->rk;
+                AB->u     = A->u;
+                AB->v     = work;
+
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
+                             A->rk, N, K,
+                             CBLAS_SADDR(zone),  A->v,  ldav,
+                                                 B->u,  ldbu,
+                             CBLAS_SADDR(zzero), AB->v, AB->rkmax );
+                kernel_trace_stop_lvl2( FLOPS_ZGEMM( A->rk, N, K ) );
+            }
+            else{
+                pastix_complex64_t *tmp = malloc(A->rk * N * sizeof(pastix_complex64_t));
+
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
+                             A->rk, N, K,
+                             CBLAS_SADDR(zone),  A->v,  ldav,
+                                                 B->u,  ldbu,
+                             CBLAS_SADDR(zzero), tmp,   A->rk );
+                kernel_trace_stop_lvl2( FLOPS_ZGEMM( A->rk, N, K ) );
+
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
+                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                             M, N, A->rk,
+                             CBLAS_SADDR(zone),  A->u, M,
+                                                 tmp,  A->rk,
+                             CBLAS_SADDR(zzero), work, M );
+                kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, A->rk ) );
+
+                AB->rk    = -1;
+                AB->rkmax = M;
+                AB->u     = work;
+                AB->v     = NULL;
+
+                free(tmp);
+            }
         }
     }
     else {
@@ -587,20 +616,48 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
              *   ABv = Bu'
              */
             assert( (B->rk * M) <= ldwork );
-            AB->rk = B->rk;
-            AB->rkmax = B->rk;
-            AB->u = work;
-            AB->v = B->u;
+            if ( B->rk < M ){
+                AB->rk    = B->rk;
+                AB->rkmax = B->rk;
+                AB->u     = work;
+                AB->v     = B->u;
 
-            kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
-            cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
-                         M, B->rk, K,
-                         CBLAS_SADDR(zone),  A->u,  ldau,
-                                             B->v,  ldbv,
-                         CBLAS_SADDR(zzero), AB->u, M );
-            kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, B->rk, K ) );
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
+                             M, B->rk, K,
+                             CBLAS_SADDR(zone),  A->u,  ldau,
+                                                 B->v,  ldbv,
+                             CBLAS_SADDR(zzero), AB->u, M );
+                kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, B->rk, K ) );
 
-            transV = transB;
+                transV = transB;
+            }
+            else{
+                pastix_complex64_t *tmp = malloc(B->rk * M * sizeof(pastix_complex64_t));
+
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
+                             M, B->rk, K,
+                             CBLAS_SADDR(zone),  A->u,  ldau,
+                                                 B->v,  ldbv,
+                             CBLAS_SADDR(zzero), tmp,   M );
+                kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, B->rk, K ) );
+
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
+                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasTrans,
+                             M, N, B->rk,
+                             CBLAS_SADDR(zone),  tmp,  M,
+                                                 B->u, N,
+                             CBLAS_SADDR(zzero), work, M );
+                kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, B->rk ) );
+
+                AB->rk    = -1;
+                AB->rkmax = M,
+                AB->u     = work;
+                AB->v     = NULL;
+
+                free(tmp);
+            }
         }
         /**
          * A and B are both full rank
@@ -612,14 +669,14 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
              * TODO: return low rank matrix:
              *             AB.u = A, AB.v = B' when K is small
              */
-            /* if ( 2*K < pastix_imin( M, N ) ) { */
-            /*     AB->rk = K; */
-            /*     AB->rkmax = B->rkmax; */
-            /*     AB->u = A->u; */
-            /*     AB->v = B->u; */
-            /*     transV = transB; */
-            /* } */
-            /* else { */
+            if ( 2*K < pastix_imin( M, N ) ) {
+                AB->rk = K;
+                AB->rkmax = B->rkmax;
+                AB->u = A->u;
+                AB->v = B->u;
+                transV = transB;
+            }
+            else {
                 assert( (M * N) <= ldwork );
                 AB->rk = -1;
                 AB->rkmax = M;
@@ -633,7 +690,7 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
                                                  B->u, ldbu,
                              CBLAS_SADDR(zzero), work, M );
                 kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, K ) );
-            /* } */
+            }
         }
     }
     assert( AB->rk <= AB->rkmax);
@@ -941,12 +998,12 @@ core_zlrmm( const pastix_lr_t *lowrank,
             /*                         B->rk * ( M + A->rk ) ); */
         }
         else {
-            required = A->rk * N;
+            required = M * N;   /* todo: enhance */
         }
     }
     else {
         if ( B->rk != -1 ) {
-            required = B->rk * M;
+            required = N * M;   /* todo: enhance */
         }
         else {
             required = M * N;
