@@ -966,17 +966,17 @@ core_zlrmm( const pastix_lr_t *lowrank,
         /* For instance, AB.rk != -1 */
         transV = core_zlrm3( lowrank, transA, transB, M, N, K,
                              A, B, &AB );
-
-        if (AB.rk == 0){
-            if ( allocated ) {
-                free(tmp);
-            }
-            return;
-        }
     }
     else{
         transV = core_zlrm2( transA, transB, M, N, K,
                              A, B, &AB, tmp, required );
+    }
+
+    if (AB.rk == 0){
+        if ( allocated ) {
+            free(tmp);
+        }
+        return;
     }
 
     pastix_cblk_lock( fcblk );
