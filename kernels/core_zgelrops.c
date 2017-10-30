@@ -1831,7 +1831,7 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
                 kernel_trace_stop_lvl2( FLOPS_ZGEMM( Cm, Cn, C->rk ) );
 
                 /* Add A*B */
-                if ( rAB == -1 ) {
+                if ( AB.rk == -1 ) {
                     kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
                     core_zgeadd( PastixNoTrans, M, N,
                                  alpha, AB.u, M,
