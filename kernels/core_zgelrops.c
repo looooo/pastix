@@ -1944,7 +1944,10 @@ core_zlrmm( const pastix_lr_t *lowrank,
 
 #if defined(PASTIX_DEBUG_LR)
     if ( (C->rk > 0) && (lowrank->compress_method == PastixCompressMethodRRQR) ) {
-        core_zlr_check_orthogonality( M, C->rk, C->u, M );
+        int rc = core_zlr_check_orthogonality( Cm, C->rk, (pastix_complex64_t*)C->u, Cm );
+        if (rc == 1) {
+            fprintf(stderr, "Failed to have u orthogonal in exit of lrmm\n" );
+        }
     }
 #endif
 }

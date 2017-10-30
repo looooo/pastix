@@ -67,7 +67,7 @@ core_zlr_check_orthogonality( pastix_int_t        M,
     alpha = 1.0;
     beta  = -1.0;
 
-    /* Build the idendity matrix */
+    /* Build the identity matrix */
     Id = malloc( minMN * minMN * sizeof(pastix_complex64_t) );
     LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', minMN, minMN,
                          0., 1., Id, minMN );
@@ -87,7 +87,9 @@ core_zlr_check_orthogonality( pastix_int_t        M,
     /* fprintf(stderr, "Check Orthogonality: || I - Q*Q' || = %e, ||Id-Q'*Q||_oo / (N*eps) = %e : ", */
     /*         normQ, res ); */
     if ( isnan(res) || isinf(res) || (res > 60.0) ) {
-        assert( 0 );
+        fprintf(stderr, "Check Orthogonality: || I - Q*Q' || = %e, ||Id-Q'*Q||_oo / (N*eps) = %e : \n",
+                normQ, res );
+        //assert( 0 );
         /* fprintf(stderr, "FAILED\n"); */
         info_ortho = 1;
     }
@@ -935,6 +937,15 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
     pastix_int_t       *jpvt;
     pastix_complex64_t *zwork;
     double             *rwork;
+
+#if defined(PASTIX_DEBUG_LR)
+    if ( B->rk > 0 ) {
+        int rc = core_zlr_check_orthogonality( M2, B->rk, B->u, M2 );
+        if (rc == 1) {
+            fprintf(stderr, "Failed to have u orthogonal in entry of rradd\n" );
+        }
+    }
+#endif
 
     rankA = (A->rk == -1) ? pastix_imin(M1, N1) : A->rk;
     rank  = rankA + B->rk;
