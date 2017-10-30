@@ -1544,14 +1544,14 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
 
     /*
      * The goal of the first is to create a low rank matrix AB with the smallest
-     * rank possibe for the cheapest cost.
+     * rank possible for the cheapest cost.
      */
     if ( A->rk == -1 ) {
         if ( B->rk == -1 ) {
             /*
              * Everything is full rank
              */
-            if ( K <= pastix_imin( M, N ) ) {
+            if ( K < pastix_imin( M, N ) ) {
                 /*
                  * Let's build a low-rank matrix of rank K
                  */
@@ -1859,7 +1859,7 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
              * We consider the A matrix as Id * A or A *Id
              */
             else {
-                lowrank->core_rradd( lowrank, PastixNoTrans, &alpha,
+                lowrank->core_rradd( lowrank, transV, &alpha,
                                      M,  N,  &AB,
                                      Cm, Cn, C,
                                      offx, offy );
