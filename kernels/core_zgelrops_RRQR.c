@@ -28,7 +28,29 @@ static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
-static inline int
+void
+core_zdbg_printsvd( pastix_int_t        M,
+                    pastix_int_t        N,
+                    pastix_complex64_t *A,
+                    pastix_int_t        lda )
+{
+    pastix_int_t i;
+    pastix_int_t minMN = pastix_imin( M, N );
+    double *s = malloc( minMN * sizeof(double) );
+    double *superb = malloc( minMN * sizeof(double) );
+
+    LAPACKE_zgesvd(LAPACK_COL_MAJOR, 'N', 'N', M, N, A, lda, s, NULL, 1, NULL, 1, superb );
+
+    for(i=0; i<minMN; i++)
+    {
+        fprintf( stderr, "%e ", s[i] );
+    }
+    fprintf(stderr, "\n");
+    free(s);
+    free(superb);
+}
+
+int
 core_zlr_check_orthogonality( pastix_int_t        M,
                               pastix_int_t        N,
                               pastix_complex64_t *A,
@@ -62,15 +84,15 @@ core_zlr_check_orthogonality( pastix_int_t        M,
     normQ = LAPACKE_zlanhe_work( LAPACK_COL_MAJOR, 'I', 'U', minMN, Id, minMN, work );
     res = normQ / (minMN * eps);
 
-    fprintf(stderr, "Check Orthogonality: || I - Q*Q' || = %e, ||Id-Q'*Q||_oo / (N*eps) = %e : ",
-            normQ, res );
-    if ( isnan(res) || isinf(res) || (res > 1000.0) ) {
-        //assert( 0 );
-        fprintf(stderr, "FAILED\n");
+    /* fprintf(stderr, "Check Orthogonality: || I - Q*Q' || = %e, ||Id-Q'*Q||_oo / (N*eps) = %e : ", */
+    /*         normQ, res ); */
+    if ( isnan(res) || isinf(res) || (res > 60.0) ) {
+        assert( 0 );
+        /* fprintf(stderr, "FAILED\n"); */
         info_ortho = 1;
     }
     else {
-        fprintf(stderr, "SUCCESS\n");
+        /* fprintf(stderr, "SUCCESS\n"); */
         info_ortho = 0;
     }
 
@@ -827,14 +849,14 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
         kernel_trace_stop_lvl2( FLOPS_ZUNGQR( m, Alr->rk, Alr->rk ) );
     }
 
-#if defined(PASTIX_DEBUG_LR)
-    if ( Alr->rk > 0 ) {
-        int rc = core_zlr_check_orthogonality( m, Alr->rk, Alr->u, m );
-        if (rc == 1) {
-            fprintf(stderr, "Failed to compress a matrix and generate an othrogonal u\n" );
-        }
-    }
-#endif
+/* #if defined(PASTIX_DEBUG_LR) */
+/*     if ( Alr->rk > 0 ) { */
+/*         int rc = core_zlr_check_orthogonality( m, Alr->rk, Alr->u, m ); */
+/*         if (rc == 1) { */
+/*             fprintf(stderr, "Failed to compress a matrix and generate an othrogonal u\n" ); */
+/*         } */
+/*     } */
+/* #endif */
     memFree_null( zwork );
     memFree_null( jpvt );
 }
@@ -1025,11 +1047,11 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
 
         kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_ADD_Q );
 
-        /* flops = core_zlrorthu_fullqr( M, N, B->rk, rankA, offx, offy, */
-        /*                               u1u2, M, v1v2, rank ); */
+        flops = core_zlrorthu_fullqr( M, N, B->rk, rankA, offx, offy,
+                                      u1u2, M, v1v2, rank );
 
-        flops = core_zlrorthu_partialqr( M, N, B->rk, rankA, offx, offy,
-                                         u1u2, M, v1v2, rank );
+        /* flops = core_zlrorthu_partialqr( M, N, B->rk, rankA, offx, offy, */
+        /*                                  u1u2, M, v1v2, rank ); */
 
         /* flops = core_zlrorthu_cgs( M, N, B->rk, rankA, offx, offy, */
         /*                            u1u2, M, v1v2, rank ); */
@@ -1223,7 +1245,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
         cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
                     M, new_rank, rank,
                     CBLAS_SADDR(zone),  u1u2, M,
-                    v1v2, rank,
+                                        v1v2, rank,
                     CBLAS_SADDR(zzero), B->u, ldbu);
         kernel_trace_stop_lvl2( FLOPS_ZUNGQR( rank, new_rank, new_rank ) +
                                 FLOPS_ZGEMM( M, new_rank, rank ) );
