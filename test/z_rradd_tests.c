@@ -65,8 +65,8 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
 
     pastix_complex64_t *work;
     double *SA, *SB;
-    double alphaA, alphaB, mone;
-    mone = -1.0;
+    double alphaA, alphaB;
+    pastix_complex64_t mone = -1.0;
 
     lr_RRQR.compress_when       = 0;
     lr_RRQR.compress_method     = 0;
@@ -201,8 +201,8 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
                  -1., B, mB,
                  1., C_RRQR, mB );
 
-    norm_diff_SVD = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', mB, nB,
-                                         C_SVD, mB, NULL );
+    norm_diff_SVD  = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', mB, nB,
+                                          C_SVD, mB, NULL );
     norm_diff_RRQR = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', mB, nB,
                                           C_RRQR, mB, NULL );
 
