@@ -96,8 +96,7 @@ void core_zlrcpy  ( const pastix_lr_t *lowrank,
                     pastix_trans_t transA, pastix_complex64_t alpha,
                     pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                     pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                    pastix_int_t offx, pastix_int_t offy,
-                    pastix_complex64_t *work, pastix_int_t ldwork );
+                    pastix_int_t offx, pastix_int_t offy );
 void core_zlrconcatenate_u( pastix_complex64_t alpha,
                             pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                             pastix_int_t M2,                        pastix_lrblock_t *B,
@@ -108,6 +107,10 @@ void core_zlrconcatenate_v( pastix_trans_t transA1, pastix_complex64_t alpha,
                                              pastix_int_t N2,       pastix_lrblock_t *B,
                             pastix_int_t offy,
                             pastix_complex64_t *v1v2 );
+pastix_fixdbl_t core_zlrorthu( pastix_trans_t transV, pastix_int_t M,  pastix_int_t N, pastix_int_t K,
+                               pastix_complex64_t *U, pastix_int_t ldu,
+                               pastix_complex64_t *V, pastix_int_t ldv );
+
 int  core_zgradd  ( const pastix_lr_t *lowrank, pastix_complex64_t alpha,
                     pastix_int_t M1, pastix_int_t N1, const pastix_complex64_t *A, pastix_int_t lda,
                     pastix_int_t M2, pastix_int_t N2, pastix_lrblock_t *B,

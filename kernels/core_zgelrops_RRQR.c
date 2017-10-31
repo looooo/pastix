@@ -102,46 +102,17 @@ core_zlr_check_orthogonality( pastix_int_t        M,
     return info_ortho;
 }
 
-static inline pastix_fixdbl_t
+pastix_fixdbl_t
 core_zlrorthu_fullqr( pastix_int_t M,  pastix_int_t N,
                       pastix_int_t r1, pastix_int_t r2,
                       pastix_int_t offx, pastix_int_t offy,
                       pastix_complex64_t *u1u2, pastix_int_t ldu,
                       pastix_complex64_t *v1v2, pastix_int_t ldv )
 {
-    pastix_int_t rank = r1 + r2;
-    pastix_int_t minMN = pastix_imin( M, rank );
-    pastix_int_t ldwork = M * 32 + minMN;
-    pastix_int_t ret;
-    pastix_complex64_t *W = malloc( ldwork * sizeof(pastix_complex64_t) );
-    pastix_complex64_t *tau, *work;
     pastix_fixdbl_t flops = 0.;
 
-    tau = W;
-    work = W + minMN;
-    ldwork -= minMN;
+    flops = core_zlrorthu( PastixNoTrans, M, N, r1+r2, u1u2, ldu, v1v2, ldv );
 
-    /* Compute u1u2 = Q * R */
-    ret = LAPACKE_zgeqrf_work( LAPACK_COL_MAJOR, M, rank,
-                               u1u2, ldu, tau, work, ldwork );
-    assert( ret == 0 );
-    flops += FLOPS_ZGEQRF( M, rank );
-
-    /* Compute v1v2' = R * v1v2 */
-    cblas_ztrmm( CblasColMajor,
-                 CblasLeft, CblasUpper,
-                 CblasNoTrans, CblasNonUnit,
-                 rank, N, CBLAS_SADDR(zone),
-                 u1u2, ldu, v1v2, ldv);
-    flops += FLOPS_ZTRMM( PastixLeft, rank, N );
-
-    /* Generate the Q */
-    ret = LAPACKE_zungqr_work( LAPACK_COL_MAJOR, M, rank, rank,
-                               u1u2, ldu, tau, work, ldwork );
-    assert( ret == 0 );
-    flops += FLOPS_ZUNGQR( M, rank, rank );
-
-    (void)ret;
     (void)offx;
     (void)offy;
 
@@ -947,7 +918,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
     if ( B->rk > 0 ) {
         int rc = core_zlr_check_orthogonality( M2, B->rk, B->u, M2 );
         if (rc == 1) {
-            fprintf(stderr, "Failed to have u orthogonal in entry of rradd\n" );
+            fprintf(stderr, "Failed to have B->u orthogonal in entry of rradd\n" );
         }
     }
 #endif
@@ -976,7 +947,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
     /*
      * A is rank null, nothing to do
      */
-    if (A->rk == 0) {
+    if ( A->rk == 0 ) {
         return rank;
     }
 
@@ -989,11 +960,10 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
      * Let's handle case where B is a null matrix
      *   B = alpha A
      */
-    if (B->rk == 0) {
+    if ( B->rk == 0 ) {
         core_zlrcpy( lowrank, transA1, alpha,
                      M1, N1, A, M2, N2, B,
-                     offx, offy,
-                     NULL, -1 );
+                     offx, offy );
         return B->rk;
     }
 

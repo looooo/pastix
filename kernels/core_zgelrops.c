@@ -26,6 +26,64 @@ static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+pastix_fixdbl_t
+core_zlrorthu( pastix_trans_t transV, pastix_int_t M,  pastix_int_t N, pastix_int_t K,
+               pastix_complex64_t *U, pastix_int_t ldu,
+               pastix_complex64_t *V, pastix_int_t ldv )
+{
+    pastix_int_t minMK = pastix_imin( M, K );
+    pastix_int_t lwork = M * 32 + minMK;
+    pastix_int_t ret;
+    pastix_complex64_t *W = malloc( lwork * sizeof(pastix_complex64_t) );
+    pastix_complex64_t *tau, *work;
+    pastix_fixdbl_t flops = 0.;
+
+    tau  = W;
+    work = W + minMK;
+    lwork -= minMK;
+
+    /* Compute u1u2 = Q * R */
+    ret = LAPACKE_zgeqrf_work( LAPACK_COL_MAJOR, M, K,
+                               U, ldu, tau, work, lwork );
+    assert( ret == 0 );
+    flops += FLOPS_ZGEQRF( M, K );
+
+    if ( transV == PastixNoTrans ) {
+        /* Compute v1v2' = R * v1v2' */
+        cblas_ztrmm( CblasColMajor,
+                     CblasLeft, CblasUpper,
+                     CblasNoTrans, CblasNonUnit,
+                     K, N, CBLAS_SADDR(zone),
+                     U, ldu, V, ldv );
+    }
+    else {
+        /* Compute v1v2 = v1v2 * R' */
+        cblas_ztrmm( CblasColMajor,
+                     CblasRight, CblasUpper,
+                     CblasTrans, CblasNonUnit,
+                     N, K, CBLAS_SADDR(zone),
+                     U, ldu, V, ldv );
+    }
+    flops += FLOPS_ZTRMM( PastixLeft, K, N );
+
+    /* Generate the Q */
+    ret = LAPACKE_zungqr_work( LAPACK_COL_MAJOR, M, K, K,
+                               U, ldu, tau, work, lwork );
+    assert( ret == 0 );
+    flops += FLOPS_ZUNGQR( M, K, K );
+
+    free(W);
+
+    (void)ret;
+    return flops;
+}
+
+static inline pastix_int_t
+core_zlr_rklimit( pastix_int_t M, pastix_int_t N ) {
+    return pastix_imin( M, N ) / PASTIX_LR_MINRATIO;
+}
+
+
 /**
  *******************************************************************************
  *
@@ -151,7 +209,7 @@ core_zlrfree( pastix_lrblock_t *A )
  *
  * @param[in] rklimit
  *          The maximum rank to store the matrix in low-rank format. If
- *          -1, set to min(M, N) / PASTIX_LR_MINRATIO.
+ *          -1, set to core_zlr_rklimit(M, N)
  *
  *******************************************************************************
  *
@@ -165,7 +223,7 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
              pastix_int_t rklimit )
 {
     /* If no limit on the rank is given, let's take min(M, N) */
-    rklimit = (rklimit == -1) ? pastix_imin( M, N ) / PASTIX_LR_MINRATIO : rklimit;
+    rklimit = (rklimit == -1) ? core_zlr_rklimit( M, N ) : rklimit;
 
     /* If no extra memory allocated, let's fix rkmax to rk */
     newrkmax = (newrkmax == -1) ? newrk : newrkmax;
@@ -404,7 +462,7 @@ core_zgradd( const pastix_lr_t *lowrank, pastix_complex64_t alpha,
              pastix_int_t M2, pastix_int_t N2, pastix_lrblock_t *B,
              pastix_int_t offx, pastix_int_t offy)
 {
-    pastix_int_t rmax = pastix_imin( M2, N2 );
+    pastix_int_t rmax = core_zlr_rklimit( M2, N2 );
     pastix_int_t rank, ldub;
     double tol = lowrank->tolerance;
 
@@ -422,7 +480,7 @@ core_zgradd( const pastix_lr_t *lowrank, pastix_complex64_t alpha,
 
     ldub = M2;
 
-    /**
+    /*
      * The rank is too big, we need to uncompress/compress B
      */
     if ( ((B->rk + M1) > rmax) &&
@@ -446,7 +504,7 @@ core_zgradd( const pastix_lr_t *lowrank, pastix_complex64_t alpha,
         rank = B->rk;
         free(work);
     }
-    /**
+    /*
      * We consider the A matrix as Id * A or A *Id
      */
     else {
@@ -754,13 +812,17 @@ core_zlrm2( pastix_trans_t transA, pastix_trans_t transB,
  * @return The way the product AB is stored: AB or op(AB).
  *
  *******************************************************************************/
+#define PASTIX_LRM3_ORTHOU (1 << 0)
+#define PASTIX_LRM3_ALLOCU (1 << 1)
+#define PASTIX_LRM3_ALLOCV (1 << 2)
+
 pastix_trans_t
 core_zlrm3( const pastix_lr_t *lowrank,
             pastix_trans_t transA, pastix_trans_t transB,
             pastix_int_t M, pastix_int_t N, pastix_int_t K,
             const pastix_lrblock_t *A,
             const pastix_lrblock_t *B,
-            pastix_lrblock_t *AB )
+            pastix_lrblock_t *AB, int *infomask )
 {
     pastix_int_t ldau, ldav, ldbu, ldbv;
     int transV = PastixNoTrans;
@@ -773,6 +835,7 @@ core_zlrm3( const pastix_lr_t *lowrank,
     assert(transA == PastixNoTrans);
     assert(transB != PastixNoTrans);
 
+    *infomask = 0;
     ldau = (A->rk == -1) ? A->rkmax : M;
     ldav = A->rkmax;
     ldbu = (B->rk == -1) ? B->rkmax : N;
@@ -802,7 +865,7 @@ core_zlrm3( const pastix_lr_t *lowrank,
      * The rank of AB is not smaller than min(rankA, rankB)
      */
     if (rArB.rk == -1){
-        if ( A->rk < B->rk ) {
+        if ( A->rk <= B->rk ) {
             /*
              *    ABu = Au
              *    ABv = (Av^h Bv^h') * Bu'
@@ -814,6 +877,8 @@ core_zlrm3( const pastix_lr_t *lowrank,
             AB->rkmax = A->rk;
             AB->u = A->u;
             AB->v = work;
+            *infomask |= PASTIX_LRM3_ORTHOU;
+            *infomask |= PASTIX_LRM3_ALLOCV;
 
             cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                          A->rk, N, B->rk,
@@ -834,6 +899,7 @@ core_zlrm3( const pastix_lr_t *lowrank,
             AB->rkmax = B->rk;
             AB->u = work;
             AB->v = B->u;
+            *infomask |= PASTIX_LRM3_ALLOCU;
 
             cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                          M, B->rk, A->rk,
@@ -852,17 +918,20 @@ core_zlrm3( const pastix_lr_t *lowrank,
         AB->rkmax = 0;
         AB->u = NULL;
         AB->v = NULL;
+        *infomask |= PASTIX_LRM3_ORTHOU;
     }
     /**
      * The rank of AB is smaller than min(rankA, rankB)
      */
-    else{
+    else {
         pastix_complex64_t *work = malloc( (M + N) * rArB.rk * sizeof(pastix_complex64_t));
 
         AB->rk    = rArB.rk;
         AB->rkmax = rArB.rk;
         AB->u = work;
         AB->v = work + M * rArB.rk;
+        *infomask |= PASTIX_LRM3_ALLOCU;
+        *infomask |= PASTIX_LRM3_ORTHOU;
 
         cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                      M, rArB.rk, A->rk,
@@ -970,17 +1039,16 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
 {
     pastix_lrblock_t AB;
     pastix_int_t ldau, ldav, ldbu, ldbv;
-    pastix_trans_t transV;
+    pastix_trans_t transV = PastixNoTrans;
     int allocated = 0;
-    int lrm3_u = 0;
-    int lrm3_v = 0;
+    int infomask = 0;
     double tol = lowrank->tolerance;
+    int orthou = -1;
 
     assert(transA == PastixNoTrans);
     assert(transB != PastixNoTrans);
     assert( A->rk <= A->rkmax && A->rk != 0 );
     assert( B->rk <= B->rkmax && B->rk != 0 );
-    assert( C->rk <= C->rkmax && C->rk >  0 );
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldav = ( A->rk == -1 ) ? -1 : A->rkmax;
@@ -996,7 +1064,9 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
             /*
              * Everything is full rank
              */
-            if ( K <= pastix_imin( M, N ) ) {
+            if ( ( K < pastix_imin( M, N )        ) &&
+                 ( K < core_zlr_rklimit( Cm, Cn ) ) )
+            {
                 /*
                  * Let's build a low-rank matrix of rank K
                  */
@@ -1005,6 +1075,8 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                 AB.u = A->u;
                 AB.v = B->u;
                 transV = transB;
+
+                orthou = 0;
             }
             else {
                 /*
@@ -1027,13 +1099,17 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                                                  B->u, ldbu,
                              CBLAS_SADDR(zzero), AB.u, M );
                 kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, K ) );
+
+                orthou = 0;
             }
         }
         else {
             /*
              *  A(M-by-K) * B( N-by-rb x rb-by-K )^t
              */
-            if ( M < B->rk ) {
+            if ( ( M < B->rk ) ||
+                 ( B->rk > core_zlr_rklimit( Cm, Cn ) ) )
+            {
                 /*
                  * We are in a similar case to the _Cfr function, and we
                  * choose the optimal number of flops.
@@ -1118,6 +1194,8 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                              CBLAS_SADDR(zzero), AB.u, M );
                 kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, B->rk, K ) );
             }
+
+            orthou = 0;
         }
     }
     else {
@@ -1125,7 +1203,9 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
             /*
              *  A( M-by-ra x ra-by-K ) * B(N-by-K)^t
              */
-            if ( N < A->rk ) {
+            if ( ( N < A->rk ) ||
+                 ( A->rk > core_zlr_rklimit( Cm, Cn ) ) )
+            {
                 /*
                  * We are in a similar case to the _Cfr function, and we
                  * choose the optimal number of flops.
@@ -1185,6 +1265,8 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                                  CBLAS_SADDR(zzero), AB.u, M );
                     kernel_trace_stop_lvl2( flops2 );
                 }
+
+                orthou = 0;
             }
             else {
                 /*
@@ -1207,51 +1289,33 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                                                  B->u, ldbu,
                              CBLAS_SADDR(zzero), AB.v, AB.rkmax );
                 kernel_trace_stop_lvl2( FLOPS_ZGEMM( A->rk, N, K ) );
+
+                orthou = 1;
             }
         }
         else {
-            transV = core_zlrm3( lowrank, transA, transB, M, N, K, A, B, &AB );
+            transV = core_zlrm3( lowrank, transA, transB, M, N, K, A, B, &AB, &infomask );
             assert( AB.rk != -1 );
             assert( AB.rkmax != -1 );
 
-            if ( (AB.rk == A->rk) || (AB.rk == B->rk) ) {
-                if ( A->rk < B->rk ) {
-                    lrm3_v = 1;
-                }
-                else{
-                    lrm3_u = 1;
-                }
-            }
-            else if ( AB.rk != 0 ) {
-                lrm3_u = 1;
-            }
+            orthou = infomask & PASTIX_LRM3_ORTHOU;
         }
     }
 
-    pastix_cblk_lock( fcblk );
+    assert( orthou != -1 );
+
     if ( AB.rk != 0 ) {
-        pastix_int_t rmax = pastix_imin( Cm, Cn );
-        pastix_int_t rAB = ( AB.rk == -1 ) ? pastix_imin( M, N ) : AB.rk;
         pastix_int_t ldabu = M;
         pastix_int_t ldabv = (transV == PastixNoTrans) ? AB.rkmax : N;
 
-        /*
-         * The rank is too big, we need to uncompress/compress C
-         */
-        if ( (C->rk + rAB) > rmax )
-        {
-            pastix_complex64_t *Cfr = malloc( Cm * Cn * sizeof(pastix_complex64_t) );
+        pastix_cblk_lock( fcblk );
 
-            kernel_trace_start_lvl2( PastixKernelLvl2_LR_UNCOMPRESS );
-            cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
-                         Cm, Cn, C->rk,
-                         CBLAS_SADDR(zone),  C->u, Cm,
-                                             C->v, C->rkmax,
-                         CBLAS_SADDR(zzero), Cfr,  Cm );
-            kernel_trace_stop_lvl2( FLOPS_ZGEMM( Cm, Cn, C->rk ) );
+        /* C->rk has changed in parallel */
+        if ( C->rk == -1 ) {
+            pastix_complex64_t *Cfr = C->u;
 
             /* Add A*B */
-            if ( rAB == -1 ) {
+            if ( AB.rk == -1 ) {
                 kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
                 core_zgeadd( PastixNoTrans, M, N,
                              alpha, AB.u, M,
@@ -1263,35 +1327,110 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                 cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
                              M, N, AB.rk,
                              CBLAS_SADDR(alpha), AB.u, ldabu,
-                                                 AB.v, ldabv,
+                             AB.v, ldabv,
                              CBLAS_SADDR(beta),  Cfr + Cm * offy + offx, Cm );
                 kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, AB.rk ) );
             }
-
-            core_zlrfree(C);
-
-            /* Try to recompress */
-            lowrank->core_ge2lr( tol, -1, Cm, Cn, Cfr, Cm, C );
-
-            free(Cfr);
         }
-        /*
-         * We consider the A matrix as Id * A or A *Id
-         */
+        else if ( C->rk > 0 ) {
+            pastix_int_t rmax = core_zlr_rklimit( Cm, Cn );
+            pastix_int_t rAB = ( AB.rk == -1 ) ? pastix_imin( M, N ) : AB.rk;
+
+            /*
+             * The rank is too big, we need to uncompress/compress C
+             */
+            if ( (C->rk + rAB) > rmax )
+            {
+                pastix_complex64_t *Cfr = malloc( Cm * Cn * sizeof(pastix_complex64_t) );
+
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_UNCOMPRESS );
+                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                             Cm, Cn, C->rk,
+                             CBLAS_SADDR(zone),  C->u, Cm,
+                                                 C->v, C->rkmax,
+                             CBLAS_SADDR(zzero), Cfr,  Cm );
+                kernel_trace_stop_lvl2( FLOPS_ZGEMM( Cm, Cn, C->rk ) );
+
+                /* Add A*B */
+                if ( rAB == -1 ) {
+                    kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
+                    core_zgeadd( PastixNoTrans, M, N,
+                                 alpha, AB.u, M,
+                                 beta,  Cfr + Cm * offy + offx, Cm );
+                    kernel_trace_stop_lvl2( 2. * M * N );
+                }
+                else {
+                    kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
+                    cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
+                                 M, N, AB.rk,
+                                 CBLAS_SADDR(alpha), AB.u, ldabu,
+                                 AB.v, ldabv,
+                                 CBLAS_SADDR(beta),  Cfr + Cm * offy + offx, Cm );
+                    kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, AB.rk ) );
+                }
+
+                core_zlrfree(C);
+
+                /* Try to recompress */
+                lowrank->core_ge2lr( tol, -1, Cm, Cn, Cfr, Cm, C );
+
+                free(Cfr);
+            }
+            else {
+                lowrank->core_rradd( lowrank, transV, &alpha,
+                                     M,  N,  &AB,
+                                     Cm, Cn, C,
+                                     offx, offy );
+            }
+        }
         else {
-            lowrank->core_rradd( lowrank, PastixNoTrans, &alpha,
-                                 M,  N,  &AB,
-                                 Cm, Cn, C,
-                                 offx, offy );
+            /* C is still null rank */
+            pastix_int_t rklimit = core_zlr_rklimit( Cm, Cn );
+
+            if ( AB.rk > rklimit ) {
+                pastix_complex64_t *work = malloc( Cm * Cn * sizeof(pastix_complex64_t) );
+
+                if ( (M != Cm) || (N != Cn) ) {
+                    memset( work, 0, Cm * Cn * sizeof(pastix_complex64_t) );
+                }
+                core_zlr2ge( PastixNoTrans, M, N, &AB, work + Cm * offy + offx, Cm );
+
+                lowrank->core_ge2lr( lowrank->tolerance, -1, Cm, Cn, work, Cm, C );
+
+                free(work);
+            }
+            else {
+                if ( !orthou ) {
+                    if ( AB.rk == -1 ) {
+                        pastix_lrblock_t backup;
+
+                        lowrank->core_ge2lr( lowrank->tolerance, rklimit,
+                                             M, N, AB.u, ldabu, &backup );
+
+                        core_zlrcpy( lowrank, transV, alpha,
+                                     M, N, &backup, Cm, Cn, C,
+                                     offx, offy );
+
+                        core_zlrfree( &backup );
+                    }
+                    else {
+                        core_zlrorthu( transV, M, N, AB.rk, AB.u, ldabu, AB.v, ldabv );
+
+                        core_zlrcpy( lowrank, transV, alpha,
+                                     M, N, &AB, Cm, Cn, C,
+                                     offx, offy );
+                    }
+                }
+            }
         }
+        pastix_cblk_unlock( fcblk );
     }
-    pastix_cblk_unlock( fcblk );
 
     /* Free memory from zlrm3 */
-    if ( lrm3_u ) {
+    if ( infomask & PASTIX_LRM3_ALLOCU ) {
         free(AB.u);
     }
-    if ( lrm3_v ) {
+    if ( infomask & PASTIX_LRM3_ALLOCV ) {
         free(AB.v);
     }
 
@@ -1475,8 +1614,9 @@ core_zlrmm_Cfr( const pastix_lr_t *lowrank,
         else {
             pastix_lrblock_t AB;
             pastix_trans_t trans;
+            int infomask = 0;
 
-            trans = core_zlrm3( lowrank, transA, transB, M, N, K, A, B, &AB );
+            trans = core_zlrm3( lowrank, transA, transB, M, N, K, A, B, &AB, &infomask );
             assert( AB.rk != -1 );
             assert( AB.rkmax != -1 );
 
@@ -1493,19 +1633,14 @@ core_zlrmm_Cfr( const pastix_lr_t *lowrank,
                              CBLAS_SADDR(beta),  Cptr, ldcu );
                 kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, AB.rk ) );
                 pastix_cblk_unlock( fcblk );
+            }
 
-                /* Free memory from zlrm3 */
-                if (AB.rk == A->rk || AB.rk == B->rk) {
-                    if ( A->rk < B->rk ) {
-                        free(AB.v);
-                    }
-                    else{
-                        free(AB.u);
-                    }
-                }
-                else {
-                    free(AB.u);
-                }
+            /* Free memory from zlrm3 */
+            if ( infomask & PASTIX_LRM3_ALLOCU ) {
+                free(AB.u);
+            }
+            if ( infomask & PASTIX_LRM3_ALLOCV ) {
+                free(AB.v);
             }
         }
     }
@@ -1533,15 +1668,13 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
     pastix_int_t ldau, ldav, ldbu, ldbv;
     pastix_trans_t transV = PastixNoTrans;
     int allocated = 0;
-    int lrm3_u = 0;
-    int lrm3_v = 0;
+    int infomask = 0;
     double tol = lowrank->tolerance;
 
     assert(transA == PastixNoTrans);
     assert(transB != PastixNoTrans);
     assert( A->rk <= A->rkmax && A->rk != 0 );
     assert( B->rk <= B->rkmax && B->rk != 0 );
-    assert( C->rk <= C->rkmax && C->rk >  0 );
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldav = ( A->rk == -1 ) ? -1 : A->rkmax;
@@ -1771,52 +1904,41 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
             }
         }
         else {
-            transV = core_zlrm3( lowrank, transA, transB, M, N, K, A, B, &AB );
+            transV = core_zlrm3( lowrank, transA, transB, M, N, K, A, B, &AB, &infomask );
             assert( AB.rk != -1 );
             assert( AB.rkmax != -1 );
-
-            if ( (AB.rk == A->rk) || (AB.rk == B->rk) ) {
-                if ( A->rk < B->rk ) {
-                    lrm3_v = 1;
-                }
-                else{
-                    lrm3_u = 1;
-                }
-            }
-            else if ( AB.rk != 0 ) {
-                lrm3_u = 1;
-            }
         }
     }
 
-    pastix_cblk_lock( fcblk );
-    /* C->rk has changed in parallel */
-    if ( C->rk == -1 ) {
-        pastix_complex64_t *Cfr = C->u;
-        pastix_int_t ldabu = M;
-        pastix_int_t ldabv = (transV == PastixNoTrans) ? AB.rkmax : N;
+    if ( AB.rk != 0 ) {
+        pastix_cblk_lock( fcblk );
 
-        /* Add A*B */
-        if ( AB.rk == -1 ) {
-            kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
-            core_zgeadd( PastixNoTrans, M, N,
-                         alpha, AB.u, M,
-                         beta,  Cfr + Cm * offy + offx, Cm );
-            kernel_trace_stop_lvl2( 2. * M * N );
+        /* C->rk has changed in parallel */
+        if ( C->rk == -1 ) {
+            pastix_complex64_t *Cfr = C->u;
+            pastix_int_t ldabu = M;
+            pastix_int_t ldabv = (transV == PastixNoTrans) ? AB.rkmax : N;
+
+            /* Add A*B */
+            if ( AB.rk == -1 ) {
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
+                core_zgeadd( PastixNoTrans, M, N,
+                             alpha, AB.u, M,
+                             beta,  Cfr + Cm * offy + offx, Cm );
+                kernel_trace_stop_lvl2( 2. * M * N );
+            }
+            else {
+                kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
+                cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
+                             M, N, AB.rk,
+                             CBLAS_SADDR(alpha), AB.u, ldabu,
+                             AB.v, ldabv,
+                             CBLAS_SADDR(beta),  Cfr + Cm * offy + offx, Cm );
+                kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, AB.rk ) );
+            }
         }
         else {
-            kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
-            cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
-                         M, N, AB.rk,
-                         CBLAS_SADDR(alpha), AB.u, ldabu,
-                         AB.v, ldabv,
-                         CBLAS_SADDR(beta),  Cfr + Cm * offy + offx, Cm );
-            kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, AB.rk ) );
-        }
-    }
-    else {
-        if ( AB.rk != 0 ) {
-            pastix_int_t rmax = pastix_imin( Cm, Cn );
+            pastix_int_t rmax = core_zlr_rklimit( Cm, Cn );
             pastix_int_t rAB = ( AB.rk == -1 ) ? pastix_imin( M, N ) : AB.rk;
             pastix_int_t ldabu = M;
             pastix_int_t ldabv = (transV == PastixNoTrans) ? AB.rkmax : N;
@@ -1832,7 +1954,7 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
                 cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                              Cm, Cn, C->rk,
                              CBLAS_SADDR(zone),  C->u, Cm,
-                             C->v, C->rkmax,
+                                                 C->v, C->rkmax,
                              CBLAS_SADDR(zzero), Cfr,  Cm );
                 kernel_trace_stop_lvl2( FLOPS_ZGEMM( Cm, Cn, C->rk ) );
 
@@ -1861,9 +1983,6 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
 
                 free(Cfr);
             }
-            /*
-             * We consider the A matrix as Id * A or A *Id
-             */
             else {
                 lowrank->core_rradd( lowrank, transV, &alpha,
                                      M,  N,  &AB,
@@ -1871,14 +1990,14 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
                                      offx, offy );
             }
         }
+        pastix_cblk_unlock( fcblk );
     }
-    pastix_cblk_unlock( fcblk );
 
     /* Free memory from zlrm3 */
-    if ( lrm3_u ) {
+    if ( infomask & PASTIX_LRM3_ALLOCU ) {
         free(AB.u);
     }
-    if ( lrm3_v ) {
+    if ( infomask & PASTIX_LRM3_ALLOCV ) {
         free(AB.v);
     }
 
@@ -1921,17 +2040,17 @@ core_zlrmm( const pastix_lr_t *lowrank,
         pastix_cblk_lock( fcblk );
         if ( C->rk == 0 ) {
             core_zlrsze( 0, Cm, Cn, C, 1, 1, -1 );
-            memset( C->u, 0, Cm * sizeof( pastix_complex64_t ));
-            memset( C->v, 0, Cn * sizeof( pastix_complex64_t ));
-            ((pastix_complex64_t*)C->u)[0] = 1.;
+            memset(C->u, 0, Cm * sizeof(pastix_complex64_t) );
+            memset(C->v, 0, Cn * sizeof(pastix_complex64_t) );
+            ((pastix_complex64_t*)(C->u))[0] = 1.;
         }
         pastix_cblk_unlock( fcblk );
 
         core_zlrmm_Clr( lowrank, transA, transB,
-                          M, N, K, Cm, Cn, offx, offy,
-                          alpha, A, B,
-                          beta, C,
-                          work, ldwork, fcblk );
+                        M, N, K, Cm, Cn, offx, offy,
+                        alpha, A, B,
+                        beta, C,
+                        work, ldwork, fcblk );
     }
     else if ( C->rk == -1 ) {
         core_zlrmm_Cfr( lowrank, transA, transB,
@@ -1949,12 +2068,14 @@ core_zlrmm( const pastix_lr_t *lowrank,
     }
 
 #if defined(PASTIX_DEBUG_LR)
+    pastix_cblk_lock( fcblk );
     if ( (C->rk > 0) && (lowrank->compress_method == PastixCompressMethodRRQR) ) {
         int rc = core_zlr_check_orthogonality( Cm, C->rk, (pastix_complex64_t*)C->u, Cm );
         if (rc == 1) {
             fprintf(stderr, "Failed to have u orthogonal in exit of lrmm\n" );
         }
     }
+    pastix_cblk_unlock( fcblk );
 #endif
 }
 
@@ -2049,13 +2170,10 @@ core_zlrmge( const pastix_lr_t *lowrank,
  * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
- * @param[in] transA
- *         @arg PastixNoTrans: No transpose, op( A ) = A;
- *         @arg PastixTrans:   Transpose, op( A ) = A';
- *
- * @param[in] transB
- *         @arg PastixNoTrans: No transpose, op( B ) = B;
- *         @arg PastixTrans:   Transpose, op( B ) = B';
+ * @param[in] transAv
+ *         @arg PastixNoTrans:   (A.v)' is stored transposed as usual
+ *         @arg PastixTrans:      A.v is stored
+ *         @arg PastixConjTrans:  A.v is stored
  *
  * @param[in] M
  *          The number of rows of the matrix A.
@@ -2097,55 +2215,40 @@ core_zlrmge( const pastix_lr_t *lowrank,
  *******************************************************************************/
 void
 core_zlrcpy( const pastix_lr_t *lowrank,
-             pastix_trans_t transA, pastix_complex64_t alpha,
+             pastix_trans_t transAv, pastix_complex64_t alpha,
              pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
              pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-             pastix_int_t offx, pastix_int_t offy,
-             pastix_complex64_t *work, pastix_int_t ldwork )
+             pastix_int_t offx, pastix_int_t offy )
 {
     pastix_complex64_t *u, *v;
     pastix_int_t ldau, ldav;
     int ret;
 
+    assert( A->rk <= core_zlr_rklimit( M2, N2 ) );
     assert( B->rk == 0 );
     assert( (M1 + offx) <= M2 );
     assert( (N1 + offy) <= N2 );
 
     ldau = (A->rk == -1) ? A->rkmax : M1;
-    ldav = (transA == PastixNoTrans) ? A->rkmax : N1;
+    ldav = (transAv == PastixNoTrans) ? A->rkmax : N1;
+
+    core_zlrsze( 0, M2, N2, B, A->rk, -1, -1 );
+    u = B->u;
+    v = B->v;
+
+    B->rk = A->rk;
 
     if ( A->rk == -1 ) {
-        /*
-         * TODO: This case can be improved by compressing A, and then
-         * copying it into B, however the criteria to keep A compressed or
-         * not must be based on B dimension, and not on A ones
-         */
-        if ( ldwork < M2 *N2 ) {
-            MALLOC_INTERN( work, M2 * N2, pastix_complex64_t );
-            ldwork = -1;
-        }
-
-        if ( M1 != M2 || N1 != N2 ) {
+        if ( (M1 != M2) || (N1 != N2) ) {
             LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M2, N2,
-                                 0.0, 0.0, work, M2 );
+                                 0.0, 0.0, u, M2 );
         }
         ret = core_zgeadd( PastixNoTrans, M1, N1,
                            alpha, A->u, ldau,
-                           0.0, work + M2 * offy + offx, M2 );
+                           0.0, u + M2 * offy + offx, M2 );
         assert(ret == 0);
-
-        lowrank->core_ge2lr( lowrank->tolerance, -1, M2, N2, work, M2, B );
-
-        if (ldwork == -1) {
-            memFree_null(work);
-        }
     }
     else {
-        core_zlralloc( M2, N2, A->rkmax, B );
-        u = B->u;
-        v = B->v;
-        B->rk = A->rk;
-
         if ( M1 != M2 ) {
             LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M2, B->rk,
                                  0.0, 0.0, u, M2 );
@@ -2159,12 +2262,13 @@ core_zlrcpy( const pastix_lr_t *lowrank,
             LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', B->rk, N2,
                                  0.0, 0.0, v, B->rkmax );
         }
-        ret = core_zgeadd( transA, A->rk, N1,
+        ret = core_zgeadd( transAv, A->rk, N1,
                            alpha, A->v, ldav,
                            0.0, v + B->rkmax * offy, B->rkmax );
         assert(ret == 0);
     }
 
+#if 0
     {
         pastix_complex64_t *work = malloc( M2 * N2 * sizeof(pastix_complex64_t) );
 
@@ -2174,8 +2278,9 @@ core_zlrcpy( const pastix_lr_t *lowrank,
 
         free(work);
     }
+#endif
 
-    assert( B->rk <= B->rkmax);
+    (void) lowrank;
     (void) ret;
 }
 

@@ -332,8 +332,7 @@ core_zrradd_SVD( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_comp
     if (B->rk == 0) {
         core_zlrcpy( lowrank, transA1, alpha,
                      M1, N1, A, M2, N2, B,
-                     offx, offy,
-                     NULL, -1 );
+                     offx, offy );
         return B->rk;
     }
 
