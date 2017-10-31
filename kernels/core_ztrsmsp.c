@@ -255,9 +255,8 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                  ( M > lowrank->compress_min_height ) )
             {
                 pastix_lrblock_t C;
-                lowrank->core_ge2lr( lowrank->tolerance, M, N,
-                                     lrC->u, M,
-                                     &C );
+                lowrank->core_ge2lr( lowrank->tolerance, -1,
+                                     M, N, lrC->u, M, &C );
 
                 core_zlrfree(lrC);
                 memcpy( lrC, &C, sizeof(pastix_lrblock_t) );
@@ -562,9 +561,8 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
                  ( M > lowrank->compress_min_height ) )
             {
                 pastix_lrblock_t C;
-                lowrank->core_ge2lr( lowrank->tolerance, M, N,
-                                     lrC->u, M,
-                                     &C );
+                lowrank->core_ge2lr( lowrank->tolerance, -1,
+                                     M, N, lrC->u, M, &C );
 
                 core_zlrfree(lrC);
                 lrC->u = C.u;

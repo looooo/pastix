@@ -140,14 +140,14 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
                                         B, mB, NULL );
 
 
-    lr_SVD.core_ge2lr( tolerance, mA, nA,
+    lr_SVD.core_ge2lr( tolerance, -1, mA, nA,
                        A, mA, &LR_A_SVD );
-    lr_SVD.core_ge2lr( tolerance, mB, nB,
+    lr_SVD.core_ge2lr( tolerance, -1, mB, nB,
                        B, mB, &LR_B_SVD );
 
-    lr_RRQR.core_ge2lr( tolerance, mA, nA,
+    lr_RRQR.core_ge2lr( tolerance, -1, mA, nA,
                        A, mA, &LR_A_RRQR );
-    lr_RRQR.core_ge2lr( tolerance, mB, nB,
+    lr_RRQR.core_ge2lr( tolerance, -1, mB, nB,
                        B, mB, &LR_B_RRQR );
 
     printf(" The rank of A is: RRQR %d SVD %d\n", LR_A_RRQR.rk, LR_A_SVD.rk);

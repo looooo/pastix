@@ -89,7 +89,7 @@ typedef struct pastix_lr_s pastix_lr_t;
 /**
  * @brief Type of the functions to compress a dense block into a low-rank form.
  */
-typedef void (*fct_ge2lr_t)( pastix_fixdbl_t, pastix_int_t, pastix_int_t,
+typedef void (*fct_ge2lr_t)( pastix_fixdbl_t, pastix_int_t, pastix_int_t, pastix_int_t,
                              const void *, pastix_int_t, void * );
 
 /**
@@ -147,6 +147,8 @@ typedef struct solver_ftgt_s {
 
 #define GPUID_UNDEFINED -2 /**< GPU still undefined       */
 #define GPUID_NONE      -1 /**< Block not computed on GPU */
+
+#define PASTIX_LR_MINRATIO 4
 
 /**
  * @brief Solver block structure.

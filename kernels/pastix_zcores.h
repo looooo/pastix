@@ -88,7 +88,7 @@ void core_zsytrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
  */
 void core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax, pastix_lrblock_t *A );
 void core_zlrfree ( pastix_lrblock_t *A );
-int  core_zlrsze  ( int copy, pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, int newrk, int newrkmax );
+int  core_zlrsze  ( int copy, pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, int newrk, int newrkmax, pastix_int_t rklimit );
 int  core_zlr2ge  ( pastix_trans_t trans, pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *Alr, pastix_complex64_t *A, pastix_int_t lda );
 
 
@@ -136,14 +136,15 @@ void core_zlrmge  ( const pastix_lr_t *lowrank, pastix_trans_t transA, pastix_tr
  *    @name PastixComplex64 SVD low-rank kernels
  *    @{
  */
-void core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
+void core_zge2lr_SVD( double tol, pastix_int_t rklimit, pastix_int_t m, pastix_int_t n,
                       const pastix_complex64_t *A, pastix_int_t lda, pastix_lrblock_t *Alr );
 int  core_zrradd_SVD( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_complex64_t alpha,
                       pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                       pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
                       pastix_int_t offx, pastix_int_t offy );
 
-void core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
+void core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t rklimit,
+                                pastix_int_t m, pastix_int_t n,
                                 const void *Aptr, pastix_int_t lda, void *Alr );
 int  core_zrradd_SVD_interface( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
                                 pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
@@ -162,7 +163,7 @@ int  core_zrradd_SVD_interface( const pastix_lr_t *lowrank, pastix_trans_t trans
  *    @name PastixComplex64 RRQR low-rank kernels
  *    @{
  */
-void core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
+void core_zge2lr_RRQR( double tol, pastix_int_t rklimit, pastix_int_t m, pastix_int_t n,
                        const pastix_complex64_t *A, pastix_int_t lda, pastix_lrblock_t *Alr );
 int  core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_complex64_t alpha,
                        pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
@@ -170,7 +171,8 @@ int  core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pasti
                        pastix_int_t offx, pastix_int_t offy );
 
 
-void core_zge2lr_RRQR_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
+void core_zge2lr_RRQR_interface( pastix_fixdbl_t tol, pastix_int_t rklimit,
+                                 pastix_int_t m, pastix_int_t n,
                                  const void *Aptr, pastix_int_t lda, void *Alr );
 
 int  core_zrradd_RRQR_interface( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,

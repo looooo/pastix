@@ -80,7 +80,7 @@ cpucblk_zcompress( pastix_coefside_t side,
 
                 assert( lrA->rk == -1 );
                 A = lrA->u;
-                lowrank.core_ge2lr( lowrank.tolerance, nrows, ncols,
+                lowrank.core_ge2lr( lowrank.tolerance, -1, nrows, ncols,
                                     A, nrows, lrA );
                 free( A );
 
@@ -95,7 +95,7 @@ cpucblk_zcompress( pastix_coefside_t side,
 
                 assert( lrA->rk == -1 );
                 A = lrA->u;
-                lowrank.core_ge2lr( lowrank.tolerance, nrows, ncols,
+                lowrank.core_ge2lr( lowrank.tolerance, -1, nrows, ncols,
                                     A, nrows, lrA );
                 free( A );
 

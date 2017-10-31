@@ -716,6 +716,10 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
  *          The tolerance used as a criterai to eliminate information from the
  *          full rank matrix
  *
+ * @param[in] rklimit
+ *          The maximum rank to store the matrix in low-rank format. If
+ *          -1, set to min(m, n) / PASTIX_LR_MINRATIO.
+ *
  * @param[in] m
  *          Number of rows of the matrix A, and of the low rank matrix Alr.
  *
@@ -734,7 +738,8 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
  *
  *******************************************************************************/
 void
-core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
+core_zge2lr_RRQR( double tol, pastix_int_t rklimit,
+                  pastix_int_t m, pastix_int_t n,
                   const pastix_complex64_t *A, pastix_int_t lda,
                   pastix_lrblock_t *Alr )
 {
@@ -795,7 +800,7 @@ core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
     /**
      * Resize the space used by the low rank matrix
      */
-    core_zlrsze( 0, m, n, Alr, ret, -1 );
+    core_zlrsze( 0, m, n, Alr, ret, -1, rklimit );
 
     /**
      * It was not interesting to compress, so we store the dense version in Alr
@@ -1168,7 +1173,9 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
     /*
      * First case: The rank is too big, so we decide to uncompress the result
      */
-    if ( new_rank*2 > pastix_imin( M, N ) || new_rank == -1) {
+    if ( (new_rank > (pastix_imin( M, N ) / PASTIX_LR_MINRATIO)) ||
+         (new_rank == -1) )
+    {
         pastix_lrblock_t Bbackup = *B;
 
         core_zlralloc( M, N, -1, B );
@@ -1224,7 +1231,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
      * We need to reallocate the buffer to store the new compressed version of B
      * because it wasn't big enough
      */
-    ret = core_zlrsze( 0, M, N, B, new_rank, -1 );
+    ret = core_zlrsze( 0, M, N, B, new_rank, -1, -1 );
     assert( ret != -1 );
     assert( B->rkmax >= new_rank );
     assert( B->rkmax >= B->rk    );
@@ -1289,6 +1296,10 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
  *          The tolerance used as a criterai to eliminate information from the
  *          full rank matrix
  *
+ * @param[in] rklimit
+ *          The maximum rank to store the matrix in low-rank format. If
+ *          -1, set to min(M, N) / PASTIX_LR_MINRATIO.
+ *
  * @param[in] m
  *          Number of rows of the matrix A, and of the low rank matrix Alr.
  *
@@ -1307,12 +1318,13 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
  *
  *******************************************************************************/
 void
-core_zge2lr_RRQR_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
+core_zge2lr_RRQR_interface( pastix_fixdbl_t tol, pastix_int_t rklimit,
+                            pastix_int_t m, pastix_int_t n,
                             const void *Aptr, pastix_int_t lda,
                             void *Alr )
 {
     const pastix_complex64_t *A = (const pastix_complex64_t *) Aptr;
-    core_zge2lr_RRQR( tol, m, n, A, lda, Alr );
+    core_zge2lr_RRQR( tol, rklimit, m, n, A, lda, Alr );
 }
 
 /**
