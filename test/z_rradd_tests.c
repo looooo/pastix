@@ -68,6 +68,8 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
     double alphaA, alphaB;
     pastix_complex64_t mone = -1.0;
 
+    int rc = 0;
+
     lr_RRQR.compress_when       = 0;
     lr_RRQR.compress_method     = 0;
     lr_RRQR.compress_min_width  = 0;
@@ -225,9 +227,13 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
     free(SB);
     free(work);
 
-    if ((res_RRQR < 10) && (res_SVD < 10))
-        return 0;
-    return 1;
+    if ( res_RRQR > 10 ) {
+        rc += 1;
+    }
+    if ( res_SVD > 10 ) {
+        rc += 2;
+    }
+    return rc;
 }
 
 int main (int argc, char **argv)
