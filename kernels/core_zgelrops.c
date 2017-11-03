@@ -22,6 +22,7 @@
 #include "kernels_trace.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+static pastix_complex64_t mzone = -1.0;
 static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
@@ -42,14 +43,16 @@ core_zlrorthu( pastix_trans_t transV, pastix_int_t M,  pastix_int_t N, pastix_in
     work = W + minMK;
     lwork -= minMK;
 
-    /* Compute u1u2 = Q * R */
+    assert( M >= K );
+
+    /* Compute U = Q * R */
     ret = LAPACKE_zgeqrf_work( LAPACK_COL_MAJOR, M, K,
                                U, ldu, tau, work, lwork );
     assert( ret == 0 );
     flops += FLOPS_ZGEQRF( M, K );
 
     if ( transV == PastixNoTrans ) {
-        /* Compute v1v2' = R * v1v2' */
+        /* Compute V' = R * V' */
         cblas_ztrmm( CblasColMajor,
                      CblasLeft, CblasUpper,
                      CblasNoTrans, CblasNonUnit,
@@ -57,7 +60,7 @@ core_zlrorthu( pastix_trans_t transV, pastix_int_t M,  pastix_int_t N, pastix_in
                      U, ldu, V, ldv );
     }
     else {
-        /* Compute v1v2 = v1v2 * R' */
+        /* Compute V = V * R' */
         cblas_ztrmm( CblasColMajor,
                      CblasRight, CblasUpper,
                      CblasTrans, CblasNonUnit,
@@ -1327,7 +1330,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                 cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
                              M, N, AB.rk,
                              CBLAS_SADDR(alpha), AB.u, ldabu,
-                             AB.v, ldabv,
+                                                 AB.v, ldabv,
                              CBLAS_SADDR(beta),  Cfr + Cm * offy + offx, Cm );
                 kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, AB.rk ) );
             }
@@ -1393,7 +1396,13 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                 if ( (M != Cm) || (N != Cn) ) {
                     memset( work, 0, Cm * Cn * sizeof(pastix_complex64_t) );
                 }
-                core_zlr2ge( PastixNoTrans, M, N, &AB, work + Cm * offy + offx, Cm );
+                kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
+                cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
+                             M, N, AB.rk,
+                             CBLAS_SADDR(alpha), AB.u, ldabu,
+                                                 AB.v, ldabv,
+                             CBLAS_SADDR(beta),  work + Cm * offy + offx, Cm );
+                kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, AB.rk ) );
 
                 lowrank->core_ge2lr( lowrank->tolerance, -1, Cm, Cn, work, Cm, C );
 
@@ -1401,25 +1410,97 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
             }
             else {
                 if ( !orthou ) {
+#if 0
                     if ( AB.rk == -1 ) {
                         pastix_lrblock_t backup;
 
                         lowrank->core_ge2lr( lowrank->tolerance, rklimit,
                                              M, N, AB.u, ldabu, &backup );
 
-                        core_zlrcpy( lowrank, transV, alpha,
+                        core_zlrcpy( lowrank, PastixNoTrans, alpha,
                                      M, N, &backup, Cm, Cn, C,
                                      offx, offy );
 
                         core_zlrfree( &backup );
                     }
                     else {
-                        core_zlrorthu( transV, M, N, AB.rk, AB.u, ldabu, AB.v, ldabv );
+                        pastix_complex64_t *ABfr = malloc( M * N * sizeof(pastix_complex64_t) );
+                        double norm, eps, normu, normv;
+
+                        cblas_zgemm( CblasColMajor, CblasNoTrans, transV, M, N, AB.rk,
+                                     CBLAS_SADDR(zone), AB.u, ldabu,
+                                                        AB.v, ldabv,
+                                     CBLAS_SADDR(zzero), ABfr, M );
+
+                        normu = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'F', M, AB.rk, AB.u, ldabu, NULL );
+                        normv = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'F', AB.rk, N, AB.v, ldabv, NULL );
+                        norm  = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'F', M, N, ABfr, M, NULL );
+
+                        fprintf(stderr, "AB.u= %e, AB.v= %e AB=%e (M= %3ld, N= %3ld, rk= %3d, infomask=%d)\n",
+                                normu, normv, norm, M, N, AB.rk, infomask );
+
+                        /* /\* TODO: Check why this fails *\/ */
+                        /* if ( transV != PastixNoTrans ) { */
+                        /*     fprintf(stderr, "Je suis la !!! \n"); */
+                        /* } */
+                        /* else { */
+                        /*     fprintf(stderr, "Je suis ici !!! \n"); */
+                        /* } */
+                        //core_zlrorthu( transV, M, N, AB.rk, AB.u, ldabu, AB.v, ldabv );
+
+                        cblas_zgemm( CblasColMajor, CblasNoTrans, transV, M, N, AB.rk,
+                                     CBLAS_SADDR(mzone), AB.u, ldabu,
+                                                         AB.v, ldabv,
+                                     CBLAS_SADDR(zone),  ABfr, M );
+
+                        normu = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'F', M, AB.rk, AB.u, ldabu, NULL );
+                        normv = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'F', AB.rk, N, AB.v, ldabv, NULL );
+                        norm  = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'M', M, N, ABfr, M, NULL );
+                        eps = LAPACKE_dlamch_work( 'e' );
+
+                        fprintf(stderr, "AB.u= %e, AB.v= %e, norm= %e\n", normu, normv, norm );
+                        if ( (norm / (eps * AB.rk)) > 10. ) {
+                            fprintf(stderr, "norm=%e\n", norm );
+                            assert( 0 );
+                        }
+                        free(ABfr);
 
                         core_zlrcpy( lowrank, transV, alpha,
                                      M, N, &AB, Cm, Cn, C,
                                      offx, offy );
                     }
+#else
+                    {
+                        pastix_complex64_t *ABfr;
+                        pastix_lrblock_t backup;
+
+                        if ( AB.rk > 0 ) {
+                            ABfr = malloc( M * N * sizeof(pastix_complex64_t) );
+
+                            cblas_zgemm( CblasColMajor, CblasNoTrans, transV, M, N, AB.rk,
+                                         CBLAS_SADDR(zone), AB.u, ldabu,
+                                         AB.v, ldabv,
+                                         CBLAS_SADDR(zzero), ABfr, M );
+                        }
+                        else {
+                            ABfr = AB.u;
+                        }
+
+                        lowrank->core_ge2lr( lowrank->tolerance, rklimit,
+                                             M, N, ABfr, M, &backup );
+
+                        core_zlrcpy( lowrank, PastixNoTrans, alpha,
+                                     M, N, &backup, Cm, Cn, C,
+                                     offx, offy );
+
+                        core_zlrfree( &backup );
+                    }
+#endif
+                }
+                else {
+                    core_zlrcpy( lowrank, transV, alpha,
+                                 M, N, &AB, Cm, Cn, C,
+                                 offx, offy );
                 }
             }
         }
@@ -2037,20 +2118,20 @@ core_zlrmm( const pastix_lr_t *lowrank,
     }
 
     if ( C->rk == 0 ) {
-        pastix_cblk_lock( fcblk );
-        if ( C->rk == 0 ) {
-            core_zlrsze( 0, Cm, Cn, C, 1, 1, -1 );
-            memset(C->u, 0, Cm * sizeof(pastix_complex64_t) );
-            memset(C->v, 0, Cn * sizeof(pastix_complex64_t) );
-            ((pastix_complex64_t*)(C->u))[0] = 1.;
-        }
-        pastix_cblk_unlock( fcblk );
+        /* pastix_cblk_lock( fcblk ); */
+        /* if ( C->rk == 0 ) { */
+        /*     core_zlrsze( 0, Cm, Cn, C, 1, 1, -1 ); */
+        /*     memset(C->u, 0, Cm * sizeof(pastix_complex64_t) ); */
+        /*     memset(C->v, 0, Cn * sizeof(pastix_complex64_t) ); */
+        /*     ((pastix_complex64_t*)(C->u))[0] = 1.; */
+        /* } */
+        /* pastix_cblk_unlock( fcblk ); */
 
-        core_zlrmm_Clr( lowrank, transA, transB,
-                        M, N, K, Cm, Cn, offx, offy,
-                        alpha, A, B,
-                        beta, C,
-                        work, ldwork, fcblk );
+        core_zlrmm_Cnull( lowrank, transA, transB,
+                          M, N, K, Cm, Cn, offx, offy,
+                          alpha, A, B,
+                          beta, C,
+                          work, ldwork, fcblk );
     }
     else if ( C->rk == -1 ) {
         core_zlrmm_Cfr( lowrank, transA, transB,
