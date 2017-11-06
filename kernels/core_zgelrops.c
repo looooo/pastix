@@ -1135,13 +1135,13 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                      *  (A * Bv) * Bu^t
                      */
                     kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
-                    cblas_zgemm( CblasColMajor, transA, transB,
+                    cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
                                  M, B->rk, K,
                                  CBLAS_SADDR(zone),  A->u, ldau,
                                                      B->v, ldbv,
                                  CBLAS_SADDR(zzero), work, M );
 
-                    cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                    cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                                  M, N, B->rk,
                                  CBLAS_SADDR(zone),  work, M,
                                                      B->u, ldbu,
@@ -1165,7 +1165,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                                                      B->v, ldbv,
                                  CBLAS_SADDR(zzero), work, K );
 
-                    cblas_zgemm( CblasColMajor, transA, transB,
+                    cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
                                  M, N, K,
                                  CBLAS_SADDR(zone),  A->u, ldau,
                                                      work, K,
@@ -1190,7 +1190,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                 AB.u = work;
 
                 kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
-                cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                              M, B->rk, K,
                              CBLAS_SADDR(zone),  A->u, ldau,
                                                  B->v, ldbv,
@@ -1231,7 +1231,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                      *  Au * (Av^t * B^t)
                      */
                     kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
-                    cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                    cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                                  A->rk, N, K,
                                  CBLAS_SADDR(zone),  A->v, ldav,
                                                      B->u, ldbu,
@@ -1261,7 +1261,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                                                      A->v, ldav,
                                  CBLAS_SADDR(zzero), work, M );
 
-                    cblas_zgemm( CblasColMajor, transA, transB,
+                    cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
                                  M, N, K,
                                  CBLAS_SADDR(zone),  work, M,
                                                      B->u, ldbu,
@@ -1286,7 +1286,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                 AB.v = work;
 
                 kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
-                cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                              A->rk, N, K,
                              CBLAS_SADDR(zone),  A->v, ldav,
                                                  B->u, ldbu,
@@ -1327,7 +1327,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
             }
             else {
                 kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
-                cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transV,
                              M, N, AB.rk,
                              CBLAS_SADDR(alpha), AB.u, ldabu,
                                                  AB.v, ldabv,
@@ -1364,7 +1364,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                 }
                 else {
                     kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
-                    cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
+                    cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transV,
                                  M, N, AB.rk,
                                  CBLAS_SADDR(alpha), AB.u, ldabu,
                                  AB.v, ldabv,
@@ -1397,7 +1397,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                     memset( work, 0, Cm * Cn * sizeof(pastix_complex64_t) );
                 }
                 kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
-                cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transV,
                              M, N, AB.rk,
                              CBLAS_SADDR(alpha), AB.u, ldabu,
                                                  AB.v, ldabv,
@@ -1427,7 +1427,8 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                         pastix_complex64_t *ABfr = malloc( M * N * sizeof(pastix_complex64_t) );
                         double norm, eps, normu, normv;
 
-                        cblas_zgemm( CblasColMajor, CblasNoTrans, transV, M, N, AB.rk,
+                        cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transV,
+                                     M, N, AB.rk,
                                      CBLAS_SADDR(zone), AB.u, ldabu,
                                                         AB.v, ldabv,
                                      CBLAS_SADDR(zzero), ABfr, M );
@@ -1448,7 +1449,8 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                         /* } */
                         //core_zlrorthu( transV, M, N, AB.rk, AB.u, ldabu, AB.v, ldabv );
 
-                        cblas_zgemm( CblasColMajor, CblasNoTrans, transV, M, N, AB.rk,
+                        cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transV,
+                                     M, N, AB.rk,
                                      CBLAS_SADDR(mzone), AB.u, ldabu,
                                                          AB.v, ldabv,
                                      CBLAS_SADDR(zone),  ABfr, M );
@@ -1477,7 +1479,8 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                         if ( AB.rk > 0 ) {
                             ABfr = malloc( M * N * sizeof(pastix_complex64_t) );
 
-                            cblas_zgemm( CblasColMajor, CblasNoTrans, transV, M, N, AB.rk,
+                            cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transV,
+                                         M, N, AB.rk,
                                          CBLAS_SADDR(zone), AB.u, ldabu,
                                          AB.v, ldabv,
                                          CBLAS_SADDR(zzero), ABfr, M );
@@ -1561,7 +1564,7 @@ core_zlrmm_Cfr( const pastix_lr_t *lowrank,
             pastix_cblk_lock( fcblk );
             assert( C->rk == -1 ); /* Check that C has not changed due to parallelism */
             kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
-            cblas_zgemm( CblasColMajor, transA, transB,
+            cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
                          M, N, K,
                          CBLAS_SADDR(alpha), A->u, ldau,
                                              B->u, ldbu,
@@ -1586,7 +1589,7 @@ core_zlrmm_Cfr( const pastix_lr_t *lowrank,
                 /*
                  *  (A * Bv) * Bu^t
                  */
-                cblas_zgemm( CblasColMajor, transA, transB,
+                cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
                              M, B->rk, K,
                              CBLAS_SADDR(zone),  A->u, ldau,
                                                  B->v, ldbv,
@@ -1594,7 +1597,7 @@ core_zlrmm_Cfr( const pastix_lr_t *lowrank,
 
                 pastix_cblk_lock( fcblk );
                 assert( C->rk == -1 ); /* Check that C has not changed due to parallelism */
-                cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                              M, N, B->rk,
                              CBLAS_SADDR(alpha), work, M,
                                                  B->u, ldbu,
@@ -1619,7 +1622,7 @@ core_zlrmm_Cfr( const pastix_lr_t *lowrank,
 
                 pastix_cblk_lock( fcblk );
                 assert( C->rk == -1 ); /* Check that C has not changed due to parallelism */
-                cblas_zgemm( CblasColMajor, transA, transB,
+                cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
                              M, N, K,
                              CBLAS_SADDR(alpha), A->u, ldau,
                                                  work, K,
@@ -1648,7 +1651,7 @@ core_zlrmm_Cfr( const pastix_lr_t *lowrank,
                 /*
                  *  Au * (Av^t * B^t)
                  */
-                cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                              A->rk, N, K,
                              CBLAS_SADDR(zone),  A->v, ldav,
                                                  B->u, ldbu,
@@ -1682,7 +1685,7 @@ core_zlrmm_Cfr( const pastix_lr_t *lowrank,
 
                 pastix_cblk_lock( fcblk );
                 assert( C->rk == -1 ); /* Check that C has not changed due to parallelism */
-                cblas_zgemm( CblasColMajor, transA, transB,
+                cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
                              M, N, K,
                              CBLAS_SADDR(alpha), work, M,
                                                  B->u, ldbu,
@@ -1707,7 +1710,7 @@ core_zlrmm_Cfr( const pastix_lr_t *lowrank,
                 pastix_cblk_lock( fcblk );
                 assert( C->rk == -1 ); /* Check that C has not changed due to parallelism */
                 kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
-                cblas_zgemm( CblasColMajor, CblasNoTrans, trans,
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)trans,
                              M, N, AB.rk,
                              CBLAS_SADDR(alpha), AB.u, M,
                                                  AB.v, ldabv,
@@ -1831,13 +1834,13 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
                      *  (A * Bv) * Bu^t
                      */
                     kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
-                    cblas_zgemm( CblasColMajor, transA, transB,
+                    cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
                                  M, B->rk, K,
                                  CBLAS_SADDR(zone),  A->u, ldau,
                                                      B->v, ldbv,
                                  CBLAS_SADDR(zzero), work, M );
 
-                    cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                    cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                                  M, N, B->rk,
                                  CBLAS_SADDR(zone),  work, M,
                                                      B->u, ldbu,
@@ -1861,7 +1864,7 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
                                                      B->v, ldbv,
                                  CBLAS_SADDR(zzero), work, K );
 
-                    cblas_zgemm( CblasColMajor, transA, transB,
+                    cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
                                  M, N, K,
                                  CBLAS_SADDR(zone),  A->u, ldau,
                                                      work, K,
@@ -1886,7 +1889,7 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
                 AB.u = work;
 
                 kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
-                cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                              M, B->rk, K,
                              CBLAS_SADDR(zone),  A->u, ldau,
                                                  B->v, ldbv,
@@ -1923,7 +1926,7 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
                      *  Au * (Av^t * B^t)
                      */
                     kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
-                    cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                    cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                                  A->rk, N, K,
                                  CBLAS_SADDR(zone),  A->v, ldav,
                                                      B->u, ldbu,
@@ -1953,7 +1956,7 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
                                                      A->v, ldav,
                                  CBLAS_SADDR(zzero), work, M );
 
-                    cblas_zgemm( CblasColMajor, transA, transB,
+                    cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
                                  M, N, K,
                                  CBLAS_SADDR(zone),  work, M,
                                                      B->u, ldbu,
@@ -1976,7 +1979,7 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
                 AB.v = work;
 
                 kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
-                cblas_zgemm( CblasColMajor, CblasNoTrans, transB,
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                              A->rk, N, K,
                              CBLAS_SADDR(zone),  A->v, ldav,
                                                  B->u, ldbu,
@@ -2010,7 +2013,7 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
             }
             else {
                 kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
-                cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
+                cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transV,
                              M, N, AB.rk,
                              CBLAS_SADDR(alpha), AB.u, ldabu,
                              AB.v, ldabv,
@@ -2049,7 +2052,7 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
                 }
                 else {
                     kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
-                    cblas_zgemm( CblasColMajor, CblasNoTrans, transV,
+                    cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transV,
                                  M, N, AB.rk,
                                  CBLAS_SADDR(alpha), AB.u, ldabu,
                                  AB.v, ldabv,
