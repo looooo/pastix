@@ -312,7 +312,8 @@ core_zlrorthu_partialqr( pastix_int_t M,  pastix_int_t N,
 }
 
 static inline pastix_fixdbl_t
-core_zlrorthu_cgs( pastix_int_t M,  pastix_int_t N,
+core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
+                   pastix_int_t M2,  pastix_int_t N2,
                    pastix_int_t r1, pastix_int_t *r2ptr,
                    pastix_int_t offx, pastix_int_t offy,
                    pastix_complex64_t *u1u2, pastix_int_t ldu,
@@ -328,34 +329,36 @@ core_zlrorthu_cgs( pastix_int_t M,  pastix_int_t N,
     pastix_int_t i, rank = r1 + r2;
     pastix_int_t ldwork = rank;
     double eps, norm;
+    double norm_before, alpha;
 
-    W = malloc(ldwork * sizeof(pastix_complex64_t));
-    eps = LAPACKE_dlamch( 'e' );
+    W     = malloc(ldwork * sizeof(pastix_complex64_t));
+    eps   = LAPACKE_dlamch( 'e' );
+    alpha = 1. / sqrt(2);
 
     /* Classical Gram-Schmidt */
     for (i=r1; i<rank; i++, u2 += ldu, v2++) {
 
-        norm = cblas_dznrm2( M, u2, 1 );
-        if ( norm > M * eps ) {
-            cblas_zdscal( M, 1. / norm, u2, 1   );
-            cblas_zdscal( N, norm,      v2, ldv );
+        norm = cblas_dznrm2( M1, u2, 1 );
+        if ( norm > M1 * eps ) {
+            cblas_zdscal( M1, 1. / norm, u2, 1   );
+            cblas_zdscal( N1, norm,      v2, ldv );
         }
         else {
             rank--; r2--;
             if ( i < rank ) {
-                cblas_zswap( M, u2, 1, u1u2 + rank * ldu, 1 );
-                memset( u1u2 + rank * ldu, 0,  M * sizeof(pastix_complex64_t) );
+                cblas_zswap( M1, u2, 1, u1u2 + rank * ldu, 1 );
+                memset( u1u2 + rank * ldu, 0,  M1 * sizeof(pastix_complex64_t) );
 
-                cblas_zswap( N, v2, ldv, v1v2 + rank,     ldv );
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N,
+                cblas_zswap( N1, v2, ldv, v1v2 + rank,     ldv );
+                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N1,
                                      0., 0., v1v2 + rank, ldv );
                 i--;
                 u2-= ldu;
                 v2--;
             }
             else {
-                memset( u2, 0,  M * sizeof(pastix_complex64_t) );
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N,
+                memset( u2, 0,  M1 * sizeof(pastix_complex64_t) );
+                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N1,
                                      0., 0., v2, ldv );
             }
             continue;
@@ -363,69 +366,75 @@ core_zlrorthu_cgs( pastix_int_t M,  pastix_int_t N,
 
         /* Compute W = u1^t u2 */
         cblas_zgemv( CblasColMajor, CblasTrans,
-                     M, i,
-                     CBLAS_SADDR(zone),  u1, ldu,
-                                         u2, 1,
-                     CBLAS_SADDR(zzero), W,  1 );
+                     M2, i,
+                     CBLAS_SADDR(zone),  u1+offx, ldu,
+                                         u2+offx, 1,
+                     CBLAS_SADDR(zzero), W,       1 );
 
         /* Compute u2 = u2 - u1 ( u1^t u2 ) = u2 - u1 * W */
         cblas_zgemv( CblasColMajor, CblasNoTrans,
-                     M, i,
+                     M1, i,
                      CBLAS_SADDR(mzone), u1, ldu,
                                          W,  1,
                      CBLAS_SADDR(zone),  u2, 1 );
 
         /* Update v1 = v1 + ( u1^t u2 ) v2 = v1 + W * v2 */
         cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
-                     i, N, 1,
+                     i, N1, 1,
                      CBLAS_SADDR(zone), W,  i,
                                         v2, ldv,
                      CBLAS_SADDR(zone), v1, ldv );
+
+        norm_before = cblas_dznrm2( i, W,  1 );
+        norm        = cblas_dznrm2( M1, u2, 1 );
 
 #if !defined(PASTIX_LR_CGS1)
-        /* Compute W = u1^t u2 */
-        cblas_zgemv( CblasColMajor, CblasTrans,
-                     M, i,
-                     CBLAS_SADDR(zone),  u1, ldu,
-                                         u2, 1,
-                     CBLAS_SADDR(zzero), W,  1 );
+        if ( norm <= (alpha * norm_before) ){
+            /* Compute W = u1^t u2 */
+            cblas_zgemv( CblasColMajor, CblasTrans,
+                         M1, i,
+                         CBLAS_SADDR(zone),  u1, ldu,
+                         u2, 1,
+                         CBLAS_SADDR(zzero), W,  1 );
 
-        /* Compute u2 = u2 - u1 ( u1^t u2 ) = u2 - u1 * W */
-        cblas_zgemv( CblasColMajor, CblasNoTrans,
-                     M, i,
-                     CBLAS_SADDR(mzone), u1, ldu,
-                                         W,  1,
-                     CBLAS_SADDR(zone),  u2, 1 );
+            /* Compute u2 = u2 - u1 ( u1^t u2 ) = u2 - u1 * W */
+            cblas_zgemv( CblasColMajor, CblasNoTrans,
+                         M1, i,
+                         CBLAS_SADDR(mzone), u1, ldu,
+                         W,  1,
+                         CBLAS_SADDR(zone),  u2, 1 );
 
-        /* Update v1 = v1 + ( u1^t u2 ) v2 = v1 + W * v2 */
-        cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
-                     i, N, 1,
-                     CBLAS_SADDR(zone), W,  i,
-                                        v2, ldv,
-                     CBLAS_SADDR(zone), v1, ldv );
+            /* Update v1 = v1 + ( u1^t u2 ) v2 = v1 + W * v2 */
+            cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                         i, N1, 1,
+                         CBLAS_SADDR(zone), W,  i,
+                         v2, ldv,
+                         CBLAS_SADDR(zone), v1, ldv );
+
+            norm = cblas_dznrm2( M1, u2, 1 );
+        }
 #endif
 
-        norm = cblas_dznrm2( M, u2, 1 );
-        if ( norm > M * eps ) {
-            cblas_zdscal( M, 1. / norm, u2, 1   );
-            cblas_zdscal( N, norm,      v2, ldv );
+        if ( norm > M1 * eps ) {
+            cblas_zdscal( M1, 1. / norm, u2, 1   );
+            cblas_zdscal( N1, norm,      v2, ldv );
         }
         else {
             rank--; r2--;
             if ( i < rank ) {
-                cblas_zswap( M, u2, 1, u1u2 + rank * ldu, 1 );
-                memset( u1u2 + rank * ldu, 0,  M * sizeof(pastix_complex64_t) );
+                cblas_zswap( M1, u2, 1, u1u2 + rank * ldu, 1 );
+                memset( u1u2 + rank * ldu, 0,  M1 * sizeof(pastix_complex64_t) );
 
-                cblas_zswap( N, v2, ldv, v1v2 + rank,     ldv );
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N,
+                cblas_zswap( N1, v2, ldv, v1v2 + rank,     ldv );
+                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N1,
                                      0., 0., v1v2 + rank, ldv );
                 i--;
                 u2-= ldu;
                 v2--;
             }
             else {
-                memset( u2, 0,  M * sizeof(pastix_complex64_t) );
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N,
+                memset( u2, 0,  M1 * sizeof(pastix_complex64_t) );
+                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N1,
                                      0., 0., v2, ldv );
             }
         }
@@ -435,7 +444,7 @@ core_zlrorthu_cgs( pastix_int_t M,  pastix_int_t N,
 #if defined(PASTIX_DEBUG_LR)
     {
         u2 = u1u2 + r1 * ldu;
-        if ( core_zlr_check_orthogonality_AB( M, r1, r2, u1, ldu, u2, ldu ) != 0 ) {
+        if ( core_zlr_check_orthogonality_AB( M1, r1, r2, u1, ldu, u2, ldu ) != 0 ) {
             fprintf(stderr, "cgs: Final u2 not orthogonal to u1\n" );
         }
     }
@@ -443,8 +452,8 @@ core_zlrorthu_cgs( pastix_int_t M,  pastix_int_t N,
 
     *r2ptr = r2;
 
-    (void)offx;
     (void)offy;
+    (void)N2;
     return flops;
 }
 
@@ -1108,7 +1117,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
         flops = core_zlrorthu_partialqr( M, N, B->rk, &rankA, offx, offy,
                                          u1u2, ldu, v1v2, ldv );
 #elif defined(LRORTHOU_CGS)
-        flops = core_zlrorthu_cgs( M, N, B->rk, &rankA, offx, offy,
+        flops = core_zlrorthu_cgs( M2, N2, M1, N1, B->rk, &rankA, offx, offy,
                                    u1u2, ldu, v1v2, ldv );
 #endif
         kernel_trace_stop_lvl2( flops );
