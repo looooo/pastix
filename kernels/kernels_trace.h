@@ -87,6 +87,22 @@ typedef enum pastix_ktype2_e {
     PastixKernelLvl2PXTRF,             /**< Complex LL^t diagonal block kernel */
     PastixKernelLvl2SYTRF,             /**< LDLt diagonal block kernel         */
 
+
+    PastixKernelLvl2_FRFR2FR,
+    PastixKernelLvl2_FRLR2FR,
+    PastixKernelLvl2_LRFR2FR,
+    PastixKernelLvl2_LRLR2FR,
+
+    PastixKernelLvl2_FRFR2LR,
+    PastixKernelLvl2_FRLR2LR,
+    PastixKernelLvl2_LRFR2LR,
+    PastixKernelLvl2_LRLR2LR,
+
+    PastixKernelLvl2_FRFR2null,
+    PastixKernelLvl2_FRLR2null,
+    PastixKernelLvl2_LRFR2null,
+    PastixKernelLvl2_LRLR2null,
+
     /* Dense operations */
     PastixKernelLvl2_FR_TRSM,          /**< Full-rank TRSM */
     PastixKernelLvl2_FR_GEMM,          /**< Full rank GEMM */

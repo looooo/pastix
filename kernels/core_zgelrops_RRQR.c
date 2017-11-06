@@ -1095,9 +1095,6 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
                            offy, v1v2 );
 
     /*
-     * Perform RRQR factorization on v1v2 = (Q2 R2)
-     */
-    /*
      * Orthogonalize [u2, u1]
      * [u2, u1] = [u2, u1 - u2(u2Tu1)] * (I u2Tu1)
      *                                   (0   I  )
@@ -1143,6 +1140,10 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
     norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, N,
                                 v1v2, ldv, NULL );
 
+    /*
+     * Perform RRQR factorization on (I u2Tu1) v1v2 = (Q2 R2)
+     *                               (0   I  )
+     */
     kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_ADD_RRQR );
     new_rank = core_zrrqr(rank, N,
                           v1v2, ldv,

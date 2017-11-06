@@ -22,6 +22,10 @@
 #define pastix_cblk_unlock( cblk_ )  pastix_atomic_unlock( &((cblk_)->lock) )
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+#define PASTIX_LRM3_ORTHOU (1 << 0)
+#define PASTIX_LRM3_ALLOCU (1 << 1)
+#define PASTIX_LRM3_ALLOCV (1 << 2)
+
 /**
  * @addtogroup kernel_blas_lapack
  * @{

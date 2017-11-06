@@ -59,8 +59,9 @@ set(SOURCES
   core_zpxtrfsp.c
   core_zgetrfsp.c
   core_zgelrops.c
-  core_zgelrops_SVD.c
   core_zgelrops_RRQR.c
+  core_zgelrops_SVD.c
+  core_zgelrops_update.c
   # cblk operations
   cpucblk_zinit.c
   cpucblk_zcompress.c
