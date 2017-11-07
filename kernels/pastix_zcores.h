@@ -164,6 +164,16 @@ pastix_fixdbl_t core_zlrlr2fr( const pastix_lr_t *lowrank,
                                pastix_complex64_t beta,        pastix_lrblock_t *C,
                                pastix_complex64_t *work, pastix_int_t lwork,
                                SolverCblk *fcblk );
+void core_zlrmm_Cfr( const pastix_lr_t *lowrank,
+                     pastix_trans_t transA, pastix_trans_t transB,
+                     pastix_int_t M, pastix_int_t N, pastix_int_t K,
+                     pastix_int_t Cm, pastix_int_t Cn,
+                     pastix_int_t offx, pastix_int_t offy,
+                     pastix_complex64_t alpha, const pastix_lrblock_t *A,
+                                               const pastix_lrblock_t *B,
+                     pastix_complex64_t beta,        pastix_lrblock_t *C,
+                     pastix_complex64_t *work, pastix_int_t lwork,
+                     SolverCblk *fcblk );
 
 pastix_fixdbl_t core_zfrfr2lr( const pastix_lr_t *lowrank,
                                pastix_trans_t transA, pastix_trans_t transB,
@@ -197,6 +207,16 @@ pastix_fixdbl_t core_zlrlr2lr( const pastix_lr_t *lowrank,
                                pastix_lrblock_t *AB,
                                pastix_complex64_t *work, pastix_int_t lwork,
                                int *infomask );
+void core_zlrmm_Clr( const pastix_lr_t *lowrank,
+                     pastix_trans_t transA, pastix_trans_t transB,
+                     pastix_int_t M, pastix_int_t N, pastix_int_t K,
+                     pastix_int_t Cm, pastix_int_t Cn,
+                     pastix_int_t offx, pastix_int_t offy,
+                     pastix_complex64_t alpha, const pastix_lrblock_t *A,
+                                               const pastix_lrblock_t *B,
+                     pastix_complex64_t beta,        pastix_lrblock_t *C,
+                     pastix_complex64_t *work, pastix_int_t lwork,
+                     SolverCblk *fcblk );
 
 pastix_fixdbl_t core_zfrfr2null( const pastix_lr_t *lowrank,
                                  pastix_trans_t transA, pastix_trans_t transB,
@@ -234,6 +254,16 @@ pastix_fixdbl_t core_zlrlr2null( const pastix_lr_t *lowrank,
                                  pastix_lrblock_t *AB,
                                  pastix_complex64_t *work, pastix_int_t lwork,
                                  int *infomask );
+void core_zlrmm_Cnull( const pastix_lr_t *lowrank,
+                       pastix_trans_t transA, pastix_trans_t transB,
+                       pastix_int_t M, pastix_int_t N, pastix_int_t K,
+                       pastix_int_t Cm, pastix_int_t Cn,
+                       pastix_int_t offx, pastix_int_t offy,
+                       pastix_complex64_t alpha, const pastix_lrblock_t *A,
+                                                 const pastix_lrblock_t *B,
+                       pastix_complex64_t beta,        pastix_lrblock_t *C,
+                       pastix_complex64_t *work, pastix_int_t lwork,
+                       SolverCblk *fcblk );
 
 /**
  *     @}
