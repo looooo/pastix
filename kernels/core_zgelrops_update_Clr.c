@@ -575,6 +575,7 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
         pastix_cblk_lock( fcblk );
 
         /* C->rk has changed in parallel */
+        /* Todo: find a suitable name to trace this kind of kernel.. */
         if ( C->rk == -1 ) {
             pastix_complex64_t *Cfr = C->u;
             pastix_int_t ldabu = M;
@@ -582,14 +583,14 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
 
             /* Add A*B */
             if ( AB.rk == -1 ) {
-                kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_updateCfr );
                 core_zgeadd( PastixNoTrans, M, N,
                              alpha, AB.u, M,
                              beta,  Cfr + Cm * offy + offx, Cm );
                 kernel_trace_stop_lvl2( 2. * M * N );
             }
             else {
-                kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_updateCfr );
                 cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transV,
                              M, N, AB.rk,
                              CBLAS_SADDR(alpha), AB.u, ldabu,
@@ -610,38 +611,39 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
             if ( (C->rk + rAB) > rmax )
             {
                 pastix_complex64_t *Cfr = malloc( Cm * Cn * sizeof(pastix_complex64_t) );
+                pastix_fixdbl_t     flops;
 
-                kernel_trace_start_lvl2( PastixKernelLvl2_LR_UNCOMPRESS );
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_uncompress );
                 cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                              Cm, Cn, C->rk,
                              CBLAS_SADDR(zone),  C->u, Cm,
                                                  C->v, C->rkmax,
                              CBLAS_SADDR(zzero), Cfr,  Cm );
-                kernel_trace_stop_lvl2( FLOPS_ZGEMM( Cm, Cn, C->rk ) );
+                flops = FLOPS_ZGEMM( Cm, Cn, C->rk );
 
                 /* Add A*B */
                 if ( AB.rk == -1 ) {
-                    kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_PRODUCT );
                     core_zgeadd( PastixNoTrans, M, N,
                                  alpha, AB.u, M,
                                  beta,  Cfr + Cm * offy + offx, Cm );
-                    kernel_trace_stop_lvl2( 2. * M * N );
+                    flops += (2. * M * N);
                 }
                 else {
-                    kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
                     cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transV,
                                  M, N, AB.rk,
                                  CBLAS_SADDR(alpha), AB.u, ldabu,
-                                 AB.v, ldabv,
+                                                     AB.v, ldabv,
                                  CBLAS_SADDR(beta),  Cfr + Cm * offy + offx, Cm );
-                    kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, AB.rk ) );
+                    flops += FLOPS_ZGEMM( M, N, AB.rk );
                 }
+                kernel_trace_stop_lvl2( flops );
 
                 core_zlrfree(C);
 
                 /* Try to recompress */
-                /* TODO: add flops */
-                lowrank->core_ge2lr( tol, -1, Cm, Cn, Cfr, Cm, C );
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_recompress );
+                flops = lowrank->core_ge2lr( tol, -1, Cm, Cn, Cfr, Cm, C );
+                kernel_trace_stop_lvl2( flops );
 
                 free(Cfr);
             }

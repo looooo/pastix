@@ -87,7 +87,6 @@ typedef enum pastix_ktype2_e {
     PastixKernelLvl2PXTRF,             /**< Complex LL^t diagonal block kernel */
     PastixKernelLvl2SYTRF,             /**< LDLt diagonal block kernel         */
 
-
     PastixKernelLvl2_FRFR2FR,
     PastixKernelLvl2_FRLR2FR,
     PastixKernelLvl2_LRFR2FR,
@@ -103,18 +102,21 @@ typedef enum pastix_ktype2_e {
     PastixKernelLvl2_LRFR2null,
     PastixKernelLvl2_LRLR2null,
 
-    /* Dense operations */
-    PastixKernelLvl2_FR_TRSM,          /**< Full-rank TRSM */
-    PastixKernelLvl2_FR_GEMM,          /**< Full rank GEMM */
+    /* Compression kernels */
+    PastixKernelLvl2_LR_compress,
+    PastixKernelLvl2_LR_recompress,
+    PastixKernelLvl2_LR_orthogonalize,
+    PastixKernelLvl2_LR_recompression,
+    PastixKernelLvl2_LR_computeNewQ,
+    PastixKernelLvl2_LR_uncompress,
+    PastixKernelLvl2_LR_updateCfr,
 
-    /* Low-rank operations */
-    PastixKernelLvl2_LR_INIT,          /**< Attempt to compress a dense block (RRQR)              */
-    PastixKernelLvl2_LR_INIT_Q,        /**< Form Q when compression succeeded                     */
-    PastixKernelLvl2_LR_TRSM,          /**< Trsm on a low-rank block                              */
-    PastixKernelLvl2_LR_GEMM_PRODUCT,  /**< Formation of a product of low-rank blocks (A*B)       */
-    PastixKernelLvl2_LR_GEMM_ADD_Q,    /**< Recompression (getrf/unmqr)                           */
-    PastixKernelLvl2_LR_GEMM_ADD_RRQR, /**< Compression of concatenated matrices in recompression */
-    PastixKernelLvl2_LR_UNCOMPRESS,    /**< Uncompress a low-rank block into a dense block        */
+    /* Solve operations */
+    PastixKernelLvl2_FR_TRSM,
+    PastixKernelLvl2_LR_TRSM,
+
+    /* Dense operation */
+    PastixKernelLvl2_FR_GEMM,
 
     PastixKernelLvl2Nbr
 } pastix_ktype2_t;

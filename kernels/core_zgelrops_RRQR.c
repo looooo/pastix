@@ -1104,7 +1104,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
     if (rankA != 0) {
         pastix_fixdbl_t flops;
 
-        kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_ADD_Q );
+        kernel_trace_start_lvl2( PastixKernelLvl2_LR_orthogonalize );
 
 #define LRORTHOU_CGS
 #if defined(LRORTHOU_FULLQR)
@@ -1144,7 +1144,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
      * Perform RRQR factorization on (I u2Tu1) v1v2 = (Q2 R2)
      *                               (0   I  )
      */
-    kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_ADD_RRQR );
+    kernel_trace_start_lvl2( PastixKernelLvl2_LR_recompression );
     new_rank = core_zrrqr(rank, N,
                           v1v2, ldv,
                           jpvt, tauV,
@@ -1167,7 +1167,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
         u = B->u;
 
         /* Uncompress B */
-        kernel_trace_start_lvl2( PastixKernelLvl2_LR_UNCOMPRESS );
+        kernel_trace_start_lvl2( PastixKernelLvl2_LR_uncompress );
         cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
                     M, N, Bbackup.rk,
                     CBLAS_SADDR(zone),  Bbackup.u, ldbu,
@@ -1231,7 +1231,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
 
     /* Compute Q2 factor */
     {
-        kernel_trace_start_lvl2( PastixKernelLvl2_LR_GEMM_ADD_Q );
+        kernel_trace_start_lvl2( PastixKernelLvl2_LR_computeNewQ );
         ret = LAPACKE_zungqr( LAPACK_COL_MAJOR, rank, new_rank, new_rank,
                               v1v2, ldv, tauV );
         assert(ret == 0);
@@ -1260,7 +1260,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
  *******************************************************************************
  *
  * @param[in] tol
- *          The tolerance used as a criterai to eliminate information from the
+ *          The tolerance used as a criteria to eliminate information from the
  *          full rank matrix
  *
  * @param[in] rklimit

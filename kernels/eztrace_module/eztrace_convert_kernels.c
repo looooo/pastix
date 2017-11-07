@@ -89,18 +89,37 @@ define_kernels_properties()
     kernels_lvl2[PastixKernelLvl2PXTRF] = (kernels_t) {"lvl2_pxtrf", GTG_RED};
     kernels_lvl2[PastixKernelLvl2SYTRF] = (kernels_t) {"lvl2_sytrf", GTG_RED};
 
-    /* Level 2 kernels - Full-rank operations */
-    kernels_lvl2[PastixKernelLvl2_FR_TRSM] = (kernels_t) {"lvl2_fr_trsm", GTG_SEABLUE};
-    kernels_lvl2[PastixKernelLvl2_FR_GEMM] = (kernels_t) {"lvl2_fr_gemm", GTG_GREEN  };
+    /* Level 2 kernels - Update operations */
+    kernels_lvl2[PastixKernelLvl2_FRFR2FR] = (kernels_t) {"lvl2_frfr2fr", GTG_GREEN};
+    kernels_lvl2[PastixKernelLvl2_FRLR2FR] = (kernels_t) {"lvl2_frlr2fr", GTG_GREEN};
+    kernels_lvl2[PastixKernelLvl2_LRFR2FR] = (kernels_t) {"lvl2_lrfr2fr", GTG_GREEN};
+    kernels_lvl2[PastixKernelLvl2_LRLR2FR] = (kernels_t) {"lvl2_lrlr2fr", GTG_GREEN};
 
-    /* Level 2 kernels - Low-rank operations */
-    kernels_lvl2[PastixKernelLvl2_LR_INIT]          = (kernels_t) {"lvl2_lr_init",          GTG_YELLOW    };
-    kernels_lvl2[PastixKernelLvl2_LR_INIT_Q]        = (kernels_t) {"lvl2_lr_init_q",        GTG_YELLOW    };
-    kernels_lvl2[PastixKernelLvl2_LR_TRSM]          = (kernels_t) {"lvl2_lr_trsm",          GTG_SEABLUE   };
-    kernels_lvl2[PastixKernelLvl2_LR_GEMM_PRODUCT]  = (kernels_t) {"lvl2_lr_gemm_product",  GTG_GREEN     };
-    kernels_lvl2[PastixKernelLvl2_LR_GEMM_ADD_Q]    = (kernels_t) {"lvl2_lr_gemm_add_q",    GTG_ORANGE    };
-    kernels_lvl2[PastixKernelLvl2_LR_GEMM_ADD_RRQR] = (kernels_t) {"lvl2_lr_gemm_add_rrqr", GTG_LIGHTBROWN};
-    kernels_lvl2[PastixKernelLvl2_LR_UNCOMPRESS]    = (kernels_t) {"lvl2_lr_uncompress",    GTG_PINK      };
+    kernels_lvl2[PastixKernelLvl2_FRFR2LR] = (kernels_t) {"lvl2_frfr2lr", GTG_GREEN};
+    kernels_lvl2[PastixKernelLvl2_FRLR2LR] = (kernels_t) {"lvl2_frlr2lr", GTG_GREEN};
+    kernels_lvl2[PastixKernelLvl2_LRFR2LR] = (kernels_t) {"lvl2_lrfr2lr", GTG_GREEN};
+    kernels_lvl2[PastixKernelLvl2_LRLR2LR] = (kernels_t) {"lvl2_lrlr2lr", GTG_GREEN};
+
+    kernels_lvl2[PastixKernelLvl2_FRFR2null] = (kernels_t) {"lvl2_frfr2null", GTG_GREEN};
+    kernels_lvl2[PastixKernelLvl2_FRLR2null] = (kernels_t) {"lvl2_frlr2null", GTG_GREEN};
+    kernels_lvl2[PastixKernelLvl2_LRFR2null] = (kernels_t) {"lvl2_lrfr2null", GTG_GREEN};
+    kernels_lvl2[PastixKernelLvl2_LRLR2null] = (kernels_t) {"lvl2_lrlr2null", GTG_GREEN};
+
+    /* Level 2 kernels - Compression kernels */
+    kernels_lvl2[PastixKernelLvl2_LR_compress]      = (kernels_t) {"lvl2_compress",      GTG_PURPLE};
+    kernels_lvl2[PastixKernelLvl2_LR_orthogonalize] = (kernels_t) {"lvl2_orthogonalize", GTG_PURPLE};
+    kernels_lvl2[PastixKernelLvl2_LR_recompression] = (kernels_t) {"lvl2_recompression", GTG_PURPLE};
+    kernels_lvl2[PastixKernelLvl2_LR_computeNewQ]   = (kernels_t) {"lvl2_computeNewQ",   GTG_PURPLE};
+    kernels_lvl2[PastixKernelLvl2_LR_uncompress]    = (kernels_t) {"lvl2_lr_uncompress", GTG_PURPLE};
+    kernels_lvl2[PastixKernelLvl2_LR_recompress]    = (kernels_t) {"lvl2_lr_recompress", GTG_PURPLE};
+    kernels_lvl2[PastixKernelLvl2_LR_updateCfr]     = (kernels_t) {"lvl2_lr_updateCfr",  GTG_PURPLE};
+
+    /* Level 2 kernels - Solve operations */
+    kernels_lvl2[PastixKernelLvl2_FR_TRSM] = (kernels_t) {"lvl2_fr_trsm", GTG_SEABLUE};
+    kernels_lvl2[PastixKernelLvl2_LR_TRSM] = (kernels_t) {"lvl2_lr_trsm", GTG_SEABLUE   };
+
+    /* Level 2 kernels - Dense operations */
+    kernels_lvl2[PastixKernelLvl2_FR_GEMM] = (kernels_t) {"lvl2_fr_gemm", GTG_GREEN  };
 }
 
 /**
