@@ -21,7 +21,7 @@
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 #include "z_nan_check.h"
-#include "kernels_trace.h"
+#include "flops.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t mzone = -1.0;
@@ -29,7 +29,7 @@ static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
-void
+pastix_fixdbl_t
 core_zfrfr2fr( const pastix_lr_t *lowrank,
                pastix_trans_t transA, pastix_trans_t transB,
                pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -43,6 +43,7 @@ core_zfrfr2fr( const pastix_lr_t *lowrank,
 {
     pastix_int_t ldau, ldbu, ldcu;
     pastix_complex64_t *Cptr;
+    pastix_fixdbl_t flops;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldbu = (transB == PastixNoTrans) ? K : N;
@@ -57,13 +58,12 @@ core_zfrfr2fr( const pastix_lr_t *lowrank,
     /*
      * Everything is full rank we apply directly a GEMM
      */
-    kernel_trace_start_lvl2( PastixKernelLvl2_FRFR2FR );
     cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
                  M, N, K,
                  CBLAS_SADDR(alpha), A->u, ldau,
                  B->u, ldbu,
                  CBLAS_SADDR(beta),  Cptr, ldcu );
-    kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, K ) );
+    flops = FLOPS_ZGEMM( M, N, K );
 
     pastix_cblk_unlock( fcblk );
 
@@ -71,9 +71,10 @@ core_zfrfr2fr( const pastix_lr_t *lowrank,
     (void)Cn;
     (void)work;
     (void)lwork;
+    return flops;
 }
 
-void
+pastix_fixdbl_t
 core_zfrlr2fr( const pastix_lr_t *lowrank,
                pastix_trans_t transA, pastix_trans_t transB,
                pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -92,6 +93,8 @@ core_zfrlr2fr( const pastix_lr_t *lowrank,
     pastix_fixdbl_t flops1 = FLOPS_ZGEMM( M, B->rk, K ) + FLOPS_ZGEMM( M, N, B->rk );
     pastix_fixdbl_t flops2 = FLOPS_ZGEMM( K, N, B->rk ) + FLOPS_ZGEMM( M, N, K     );
 
+    pastix_fixdbl_t flops;
+
     ldau = (transA == PastixNoTrans) ? M : K;
     ldbu = (transB == PastixNoTrans) ? K : N;
     ldbv = ( B->rk == -1 ) ? -1 : B->rkmax;
@@ -103,7 +106,6 @@ core_zfrlr2fr( const pastix_lr_t *lowrank,
     /*
      *  A(M-by-K) * B( N-by-rb x rb-by-K )^t
      */
-    kernel_trace_start_lvl2( PastixKernelLvl2_FRLR2FR );
     if ( flops1 <= flops2 ) {
         if ( lwork < M * B->rk ) {
             work = malloc( M * B->rk * sizeof(pastix_complex64_t) );
@@ -126,7 +128,7 @@ core_zfrlr2fr( const pastix_lr_t *lowrank,
                      CBLAS_SADDR(alpha), work, M,
                                          B->u, ldbu,
                      CBLAS_SADDR(beta),  Cptr, ldcu );
-        kernel_trace_stop_lvl2( flops1 );
+        flops = flops1;
         pastix_cblk_unlock( fcblk );
     }
     else {
@@ -152,7 +154,7 @@ core_zfrlr2fr( const pastix_lr_t *lowrank,
                                          work, K,
                      CBLAS_SADDR(beta),  Cptr, ldcu );
 
-        kernel_trace_stop_lvl2( flops2 );
+        flops = flops2;
         pastix_cblk_unlock( fcblk );
     }
 
@@ -162,9 +164,10 @@ core_zfrlr2fr( const pastix_lr_t *lowrank,
 
     (void)lowrank;
     (void)Cn;
+    return flops;
 }
 
-void
+pastix_fixdbl_t
 core_zlrfr2fr( const pastix_lr_t *lowrank,
                pastix_trans_t transA, pastix_trans_t transB,
                pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -183,6 +186,8 @@ core_zlrfr2fr( const pastix_lr_t *lowrank,
     pastix_fixdbl_t flops1 = FLOPS_ZGEMM( A->rk, N, K ) + FLOPS_ZGEMM( M, N, A->rk );
     pastix_fixdbl_t flops2 = FLOPS_ZGEMM( M, K, A->rk ) + FLOPS_ZGEMM( M, N, K     );
 
+    pastix_fixdbl_t flops;
+
     ldau = (transA == PastixNoTrans) ? M : K;
     ldav = ( A->rk == -1 ) ? -1 : A->rkmax;
     ldbu = (transB == PastixNoTrans) ? K : N;
@@ -194,7 +199,6 @@ core_zlrfr2fr( const pastix_lr_t *lowrank,
     /*
      *  A( M-by-ra x ra-by-K ) * B(N-by-K)^t
      */
-    kernel_trace_start_lvl2( PastixKernelLvl2_LRFR2FR );
     if ( flops1 <= flops2 ) {
         if ( lwork < A->rk * N ) {
             work = malloc( A->rk * N * sizeof(pastix_complex64_t) );
@@ -218,7 +222,7 @@ core_zlrfr2fr( const pastix_lr_t *lowrank,
                                          work, A->rk,
                      CBLAS_SADDR(beta),  Cptr, ldcu );
 
-        kernel_trace_stop_lvl2( flops1 );
+        flops = flops1;
         pastix_cblk_unlock( fcblk );
     }
     else {
@@ -244,7 +248,7 @@ core_zlrfr2fr( const pastix_lr_t *lowrank,
                                          B->u, ldbu,
                      CBLAS_SADDR(beta),  Cptr, ldcu );
 
-        kernel_trace_stop_lvl2( flops2 );
+        flops = flops2;
         pastix_cblk_unlock( fcblk );
     }
 
@@ -254,9 +258,10 @@ core_zlrfr2fr( const pastix_lr_t *lowrank,
 
     (void)lowrank;
     (void)Cn;
+    return flops;
 }
 
-void
+pastix_fixdbl_t
 core_zlrlr2fr( const pastix_lr_t *lowrank,
                pastix_trans_t transA, pastix_trans_t transB,
                pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -273,12 +278,13 @@ core_zlrlr2fr( const pastix_lr_t *lowrank,
     pastix_lrblock_t    AB;
     pastix_trans_t      trans = PastixNoTrans;
     int                 infomask = 0;
+    pastix_fixdbl_t     flops;
 
     ldcu = Cm;
     Cptr = C->u;
     Cptr += ldcu * offy + offx;
 
-    core_zlrlr2lr( lowrank, transA, transB, M, N, K, A, B, &AB, NULL, -1, &infomask );
+    flops = core_zlrlr2lr( lowrank, transA, transB, M, N, K, A, B, &AB, NULL, -1, &infomask );
     assert( AB.rk != -1 );
     assert( AB.rkmax != -1 );
 
@@ -291,13 +297,13 @@ core_zlrlr2fr( const pastix_lr_t *lowrank,
 
         pastix_cblk_lock( fcblk );
         assert( C->rk == -1 ); /* Check that C has not changed due to parallelism */
-        kernel_trace_start_lvl2( PastixKernelLvl2_LRLR2FR );
+
         cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)trans,
                      M, N, AB.rk,
                      CBLAS_SADDR(alpha), AB.u, M,
                                          AB.v, ldabv,
                      CBLAS_SADDR(beta),  Cptr, ldcu );
-        kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, AB.rk ) );
+        flops = FLOPS_ZGEMM( M, N, AB.rk );
         pastix_cblk_unlock( fcblk );
     }
 
@@ -313,9 +319,10 @@ core_zlrlr2fr( const pastix_lr_t *lowrank,
     (void)Cn;
     (void)work;
     (void)lwork;
+    return flops;
 }
 
-void
+pastix_fixdbl_t
 core_zfrfr2lr( const pastix_lr_t *lowrank,
                pastix_trans_t transA, pastix_trans_t transB,
                pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -326,6 +333,7 @@ core_zfrfr2lr( const pastix_lr_t *lowrank,
                int *infomask )
 {
     pastix_int_t ldau, ldbu;
+    pastix_fixdbl_t flops = 0;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldbu = (transB == PastixNoTrans) ? K : N;
@@ -357,19 +365,19 @@ core_zfrfr2lr( const pastix_lr_t *lowrank,
         AB->u = work;
         AB->v = NULL;
 
-        kernel_trace_start_lvl2( PastixKernelLvl2_FRFR2LR );
         cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                      M, N, K,
                      CBLAS_SADDR(zone),  A->u,  ldau,
                                          B->u,  ldbu,
                      CBLAS_SADDR(zzero), AB->u, M );
-        kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, K ) );
+        flops = FLOPS_ZGEMM( M, N, K );
     }
 
     (void)lowrank;
+    return flops;
 }
 
-void
+pastix_fixdbl_t
 core_zfrlr2lr( const pastix_lr_t *lowrank,
                pastix_trans_t transA, pastix_trans_t transB,
                pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -380,6 +388,7 @@ core_zfrlr2lr( const pastix_lr_t *lowrank,
                int *infomask )
 {
     pastix_int_t ldau, ldbu, ldbv;
+    pastix_fixdbl_t flops;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldbu = (transB == PastixNoTrans) ? K : N;
@@ -414,7 +423,6 @@ core_zfrlr2lr( const pastix_lr_t *lowrank,
             /*
              *  (A * Bv) * Bu^t
              */
-            kernel_trace_start_lvl2( PastixKernelLvl2_FRLR2LR );
             cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
                          M, B->rk, K,
                          CBLAS_SADDR(zone),  A->u, ldau,
@@ -426,7 +434,8 @@ core_zfrlr2lr( const pastix_lr_t *lowrank,
                          CBLAS_SADDR(zone),  tmp,   M,
                                              B->u,  ldbu,
                          CBLAS_SADDR(zzero), AB->u, M );
-            kernel_trace_stop_lvl2( flops1 );
+
+            flops = flops1;
         }
         else {
             if ( lwork < ( K * N + M * N ) ) {
@@ -441,7 +450,6 @@ core_zfrlr2lr( const pastix_lr_t *lowrank,
             /*
              *  A * (Bu * Bv^t)^t
              */
-            kernel_trace_start_lvl2( PastixKernelLvl2_FRLR2LR );
             cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                          K, N, B->rk,
                          CBLAS_SADDR(zone),  B->u, ldbu,
@@ -454,7 +462,7 @@ core_zfrlr2lr( const pastix_lr_t *lowrank,
                                              tmp,   K,
                          CBLAS_SADDR(zzero), AB->u, M );
 
-            kernel_trace_stop_lvl2( flops2 );
+            flops = flops2;
         }
     }
     else {
@@ -472,20 +480,19 @@ core_zfrlr2lr( const pastix_lr_t *lowrank,
         }
         AB->u = work;
 
-        kernel_trace_start_lvl2( PastixKernelLvl2_FRLR2LR );
         cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                      M, B->rk, K,
                      CBLAS_SADDR(zone),  A->u,  ldau,
                                          B->v,  ldbv,
                      CBLAS_SADDR(zzero), AB->u, M );
-        kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, B->rk, K ) );
+        flops = FLOPS_ZGEMM( M, B->rk, K );
     }
 
     (void)lowrank;
+    return flops;
 }
 
-
-void
+pastix_fixdbl_t
 core_zlrfr2lr( const pastix_lr_t *lowrank,
                pastix_trans_t transA, pastix_trans_t transB,
                pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -496,6 +503,7 @@ core_zlrfr2lr( const pastix_lr_t *lowrank,
                int *infomask )
 {
     pastix_int_t ldau, ldav, ldbu;
+    pastix_fixdbl_t flops;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldav = ( A->rk == -1 ) ? -1 : A->rkmax;
@@ -530,7 +538,6 @@ core_zlrfr2lr( const pastix_lr_t *lowrank,
             /*
              *  Au * (Av^t * B^t)
              */
-            kernel_trace_start_lvl2( PastixKernelLvl2_LRFR2LR );
             cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                          A->rk, N, K,
                          CBLAS_SADDR(zone),  A->v, ldav,
@@ -542,7 +549,8 @@ core_zlrfr2lr( const pastix_lr_t *lowrank,
                          CBLAS_SADDR(zone),  A->u,  ldau,
                                              tmp,   A->rk,
                          CBLAS_SADDR(zzero), AB->u, M );
-            kernel_trace_stop_lvl2( flops1 );
+
+            flops = flops1;
         }
         else {
             if ( lwork < (M * K + M * N) ) {
@@ -557,7 +565,6 @@ core_zlrfr2lr( const pastix_lr_t *lowrank,
             /*
              *  (Au * Av^t) * B^t
              */
-            kernel_trace_start_lvl2( PastixKernelLvl2_LRFR2LR );
             cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                          M, K, A->rk,
                          CBLAS_SADDR(zone),  A->u, ldau,
@@ -569,7 +576,8 @@ core_zlrfr2lr( const pastix_lr_t *lowrank,
                          CBLAS_SADDR(zone),  tmp,   M,
                                              B->u,  ldbu,
                          CBLAS_SADDR(zzero), AB->u, M );
-            kernel_trace_stop_lvl2( flops2 );
+
+            flops = flops2;
         }
     }
     else {
@@ -586,16 +594,17 @@ core_zlrfr2lr( const pastix_lr_t *lowrank,
         }
         AB->v = work;
 
-        kernel_trace_start_lvl2( PastixKernelLvl2_LRFR2LR );
         cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                      A->rk, N, K,
                      CBLAS_SADDR(zone),  A->v,  ldav,
                                          B->u,  ldbu,
                      CBLAS_SADDR(zzero), AB->v, AB->rkmax );
-        kernel_trace_stop_lvl2( FLOPS_ZGEMM( A->rk, N, K ) );
+
+        flops = FLOPS_ZGEMM( A->rk, N, K );
     }
 
     (void)lowrank;
+    return flops;
 }
 
 /**
@@ -643,7 +652,7 @@ core_zlrfr2lr( const pastix_lr_t *lowrank,
  * @return The way the product AB is stored: AB or op(AB).
  *
  *******************************************************************************/
-void
+pastix_fixdbl_t
 core_zlrlr2lr( const pastix_lr_t *lowrank,
                pastix_trans_t transA, pastix_trans_t transB,
                pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -674,20 +683,19 @@ core_zlrlr2lr( const pastix_lr_t *lowrank,
     /*
      * Let's compute A * B' = Au Av^h (Bu Bv^h)' with the smallest ws
      */
-    kernel_trace_start_lvl2( PastixKernelLvl2_LRLR2LR );
     cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                  A->rk, B->rk, K,
                  CBLAS_SADDR(zone),  A->v,  ldav,
                                      B->v,  ldbv,
                  CBLAS_SADDR(zzero), work2, A->rk );
-    kernel_trace_stop_lvl2( FLOPS_ZGEMM( A->rk, B->rk, K ) );
+    flops = FLOPS_ZGEMM( A->rk, B->rk, K );
 
     /*
      * Try to compress (Av^h Bv^h')
      */
-    lowrank->core_ge2lr( lowrank->tolerance, -1, A->rk, B->rk, work2, A->rk, &rArB );
 
-    kernel_trace_start_lvl2( PastixKernelLvl2_LRLR2LR );
+    /* TODO: flops +=  */
+    lowrank->core_ge2lr( lowrank->tolerance, -1, A->rk, B->rk, work2, A->rk, &rArB );
 
     /*
      * The rank of AB is not smaller than min(rankA, rankB)
@@ -713,7 +721,7 @@ core_zlrlr2lr( const pastix_lr_t *lowrank,
                          CBLAS_SADDR(zone),  work2, A->rk,
                                              B->u,  ldbu,
                          CBLAS_SADDR(zzero), AB->v, AB->rkmax );
-            flops = FLOPS_ZGEMM( A->rk, N, B->rk );
+            flops += FLOPS_ZGEMM( A->rk, N, B->rk );
         }
         else {
             /*
@@ -734,7 +742,7 @@ core_zlrlr2lr( const pastix_lr_t *lowrank,
                          CBLAS_SADDR(zone),  A->u,   ldau,
                                              work2,  A->rk,
                          CBLAS_SADDR(zzero), AB->u,  M );
-            flops = FLOPS_ZGEMM( M, B->rk, A->rk );
+            flops += FLOPS_ZGEMM( M, B->rk, A->rk );
 
             *infomask |= PASTIX_LRM3_TRANSB;
         }
@@ -771,7 +779,7 @@ core_zlrlr2lr( const pastix_lr_t *lowrank,
                                          B->u,   ldbu,
                      CBLAS_SADDR(zzero), AB->v,  rArB.rk );
 
-        flops = FLOPS_ZGEMM( M, rArB.rk, A->rk ) + FLOPS_ZGEMM( rArB.rk, N, B->rk );
+        flops += FLOPS_ZGEMM( M, rArB.rk, A->rk ) + FLOPS_ZGEMM( rArB.rk, N, B->rk );
 
         /* free(work); */
     }
@@ -779,14 +787,14 @@ core_zlrlr2lr( const pastix_lr_t *lowrank,
     free(work2);
 
     /* Not used for now */
-    kernel_trace_stop_lvl2( flops );
 
     (void)transA;
     (void)work;
     (void)lwork;
+    return flops;
 }
 
-void
+pastix_fixdbl_t
 core_zfrfr2null( const pastix_lr_t *lowrank,
                  pastix_trans_t transA, pastix_trans_t transB,
                  pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -798,6 +806,8 @@ core_zfrfr2null( const pastix_lr_t *lowrank,
                  int *infomask )
 {
     pastix_int_t ldau, ldbu;
+    pastix_fixdbl_t flops = 0;
+
     ldau = (transA == PastixNoTrans) ? M : K;
     ldbu = (transB == PastixNoTrans) ? K : N;
 
@@ -830,19 +840,19 @@ core_zfrfr2null( const pastix_lr_t *lowrank,
         AB->u = work;
         AB->v = NULL;
 
-        kernel_trace_start_lvl2( PastixKernelLvl2_FRFR2null );
         cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                      M, N, K,
                      CBLAS_SADDR(zone),  A->u,  ldau,
                                          B->u,  ldbu,
                      CBLAS_SADDR(zzero), AB->u, M );
-        kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, K ) );
+        flops = FLOPS_ZGEMM( M, N, K );
     }
 
     (void)lowrank;
+    return flops;
 }
 
-void
+pastix_fixdbl_t
 core_zfrlr2null( const pastix_lr_t *lowrank,
                  pastix_trans_t transA, pastix_trans_t transB,
                  pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -854,6 +864,8 @@ core_zfrlr2null( const pastix_lr_t *lowrank,
                  int *infomask )
 {
     pastix_int_t ldau, ldbu, ldbv;
+    pastix_fixdbl_t flops;
+
     ldau = (transA == PastixNoTrans) ? M : K;
     ldbu = (transB == PastixNoTrans) ? K : N;
     ldbv = ( B->rk == -1 ) ? -1 : B->rkmax;
@@ -889,7 +901,6 @@ core_zfrlr2null( const pastix_lr_t *lowrank,
             /*
              *  (A * Bv) * Bu^t
              */
-            kernel_trace_start_lvl2( PastixKernelLvl2_FRLR2null );
             cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
                          M, B->rk, K,
                          CBLAS_SADDR(zone),  A->u, ldau,
@@ -901,7 +912,8 @@ core_zfrlr2null( const pastix_lr_t *lowrank,
                          CBLAS_SADDR(zone),  tmp,  M,
                                              B->u, ldbu,
                          CBLAS_SADDR(zzero), AB->u, M );
-            kernel_trace_stop_lvl2( flops1 );
+
+            flops = flops1;
         }
         else {
             if ( lwork < ( K * N + M * N ) ) {
@@ -916,7 +928,6 @@ core_zfrlr2null( const pastix_lr_t *lowrank,
             /*
              *  A * (Bu * Bv^t)^t
              */
-            kernel_trace_start_lvl2( PastixKernelLvl2_FRLR2null );
             cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                          K, N, B->rk,
                          CBLAS_SADDR(zone),  B->u, ldbu,
@@ -929,7 +940,7 @@ core_zfrlr2null( const pastix_lr_t *lowrank,
                                              tmp,  K,
                          CBLAS_SADDR(zzero), AB->u, M );
 
-            kernel_trace_stop_lvl2( flops2 );
+            flops = flops2;
         }
     }
     else {
@@ -947,19 +958,20 @@ core_zfrlr2null( const pastix_lr_t *lowrank,
         }
         AB->u = work;
 
-        kernel_trace_start_lvl2( PastixKernelLvl2_FRLR2null );
         cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                      M, B->rk, K,
                      CBLAS_SADDR(zone),  A->u,  ldau,
                                          B->v,  ldbv,
                      CBLAS_SADDR(zzero), AB->u, M );
-        kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, B->rk, K ) );
+
+        flops = FLOPS_ZGEMM( M, B->rk, K );
     }
 
     (void)lowrank;
+    return flops;
 }
 
-void
+pastix_fixdbl_t
 core_zlrfr2null( const pastix_lr_t *lowrank,
                  pastix_trans_t transA, pastix_trans_t transB,
                  pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -971,6 +983,7 @@ core_zlrfr2null( const pastix_lr_t *lowrank,
                  int *infomask )
 {
     pastix_int_t ldau, ldav, ldbu;
+    pastix_fixdbl_t flops;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldav = ( A->rk == -1 ) ? -1 : A->rkmax;
@@ -1007,7 +1020,6 @@ core_zlrfr2null( const pastix_lr_t *lowrank,
             /*
              *  Au * (Av^t * B^t)
              */
-            kernel_trace_start_lvl2( PastixKernelLvl2_LRFR2null );
             cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                          A->rk, N, K,
                          CBLAS_SADDR(zone),  A->v, ldav,
@@ -1019,7 +1031,8 @@ core_zlrfr2null( const pastix_lr_t *lowrank,
                          CBLAS_SADDR(zone),  A->u, ldau,
                                              tmp,  A->rk,
                          CBLAS_SADDR(zzero), AB->u, M );
-            kernel_trace_stop_lvl2( flops1 );
+
+            flops = flops1;
         }
         else {
             if ( lwork < (M * K + M * N) ) {
@@ -1034,7 +1047,6 @@ core_zlrfr2null( const pastix_lr_t *lowrank,
             /*
              *  (Au * Av^t) * B^t
              */
-            kernel_trace_start_lvl2( PastixKernelLvl2_LRFR2null );
             cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                          M, K, A->rk,
                          CBLAS_SADDR(zone),  A->u, ldau,
@@ -1046,7 +1058,8 @@ core_zlrfr2null( const pastix_lr_t *lowrank,
                          CBLAS_SADDR(zone),  tmp,  M,
                                              B->u, ldbu,
                          CBLAS_SADDR(zzero), AB->u, M );
-            kernel_trace_stop_lvl2( flops2 );
+
+            flops = flops2;
         }
     }
     else {
@@ -1063,21 +1076,21 @@ core_zlrfr2null( const pastix_lr_t *lowrank,
         }
         AB->v = work;
 
-        kernel_trace_start_lvl2( PastixKernelLvl2_LRFR2null );
         cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
                      A->rk, N, K,
                      CBLAS_SADDR(zone),  A->v,  ldav,
                                          B->u,  ldbu,
                      CBLAS_SADDR(zzero), AB->v, AB->rkmax );
-        kernel_trace_stop_lvl2( FLOPS_ZGEMM( A->rk, N, K ) );
+        flops = FLOPS_ZGEMM( A->rk, N, K );
 
         *infomask |= PASTIX_LRM3_ORTHOU;
     }
 
     (void)lowrank;
+    return flops;
 }
 
-void
+pastix_fixdbl_t
 core_zlrlr2null( const pastix_lr_t *lowrank,
                  pastix_trans_t transA, pastix_trans_t transB,
                  pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -1088,7 +1101,11 @@ core_zlrlr2null( const pastix_lr_t *lowrank,
                  pastix_complex64_t *work, pastix_int_t lwork,
                  int *infomask )
 {
+    pastix_fixdbl_t flops;
+
+    flops = core_zlrlr2lr( lowrank, transA, transB, M, N, K, A, B, AB, work, lwork, infomask );
+
     (void)Cm;
     (void)Cn;
-    core_zlrlr2lr( lowrank, transA, transB, M, N, K, A, B, AB, work, lwork, infomask );
+    return flops;
 }
