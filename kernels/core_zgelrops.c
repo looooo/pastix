@@ -508,37 +508,41 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
      */
     if ( A->rk == -1 ) {
         if ( B->rk == -1 ) {
-            transV = core_zfrfr2null( lowrank, transA, transB,
-                                      M, N, K,
-                                      Cm, Cn,
-                                      A, B, &AB,
-                                      work, lwork, &infomask );
+            core_zfrfr2null( lowrank, transA, transB,
+                             M, N, K,
+                             Cm, Cn,
+                             A, B, &AB,
+                             work, lwork, &infomask );
         }
         else {
-            transV = core_zfrlr2null( lowrank, transA, transB,
-                                      M, N, K,
-                                      Cm, Cn,
-                                      A, B, &AB,
-                                      work, lwork, &infomask );
+            core_zfrlr2null( lowrank, transA, transB,
+                             M, N, K,
+                             Cm, Cn,
+                             A, B, &AB,
+                             work, lwork, &infomask );
         }
     }
     else {
         if ( B->rk == -1 ) {
-            transV = core_zlrfr2null( lowrank, transA, transB,
-                                      M, N, K,
-                                      Cm, Cn,
-                                      A, B, &AB,
-                                      work, lwork, &infomask );
+            core_zlrfr2null( lowrank, transA, transB,
+                             M, N, K,
+                             Cm, Cn,
+                             A, B, &AB,
+                             work, lwork, &infomask );
         }
         else {
-            transV = core_zlrlr2null( lowrank, transA, transB,
-                                      M, N, K,
-                                      Cm, Cn,
-                                      A, B, &AB,
-                                      NULL, -1, &infomask );
+            core_zlrlr2null( lowrank, transA, transB,
+                             M, N, K,
+                             Cm, Cn,
+                             A, B, &AB,
+                             NULL, -1, &infomask );
             assert( AB.rk != -1 );
             assert( AB.rkmax != -1 );
         }
+    }
+
+    if ( infomask & PASTIX_LRM3_TRANSB ) {
+        transV = transB;
     }
 
     orthou = infomask & PASTIX_LRM3_ORTHOU;
@@ -856,14 +860,14 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
 
     if ( A->rk == -1 ) {
         if ( B->rk == -1 ) {
-            transV = core_zfrfr2lr( lowrank, transA, transB,
-                                    M, N, K,
-                                    A, B, &AB,
-                                    work, lwork,
-                                    &infomask );
+            core_zfrfr2lr( lowrank, transA, transB,
+                           M, N, K,
+                           A, B, &AB,
+                           work, lwork,
+                           &infomask );
         }
         else {
-            transV = core_zfrlr2lr( lowrank, transA, transB,
+            core_zfrlr2lr( lowrank, transA, transB,
                                     M, N, K,
                                     A, B, &AB,
                                     work, lwork,
@@ -872,21 +876,25 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
     }
     else {
         if ( B->rk == -1 ) {
-            transV = core_zlrfr2lr( lowrank, transA, transB,
-                                    M, N, K,
-                                    A, B, &AB,
-                                    work, lwork,
-                                    &infomask );
+            core_zlrfr2lr( lowrank, transA, transB,
+                           M, N, K,
+                           A, B, &AB,
+                           work, lwork,
+                           &infomask );
         }
         else {
-            transV = core_zlrlr2lr( lowrank, transA, transB,
-                                    M, N, K,
-                                    A, B, &AB,
-                                    NULL, -1,
-                                    &infomask );
+            core_zlrlr2lr( lowrank, transA, transB,
+                           M, N, K,
+                           A, B, &AB,
+                           NULL, -1,
+                           &infomask );
             assert( AB.rk != -1 );
             assert( AB.rkmax != -1 );
         }
+    }
+
+    if ( infomask & PASTIX_LRM3_TRANSB ) {
+        transV = transB;
     }
 
     if ( AB.rk != 0 ) {

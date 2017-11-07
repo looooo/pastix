@@ -271,16 +271,20 @@ core_zlrlr2fr( const pastix_lr_t *lowrank,
     pastix_complex64_t *Cptr;
     pastix_int_t        ldcu;
     pastix_lrblock_t    AB;
-    pastix_trans_t      trans;
+    pastix_trans_t      trans = PastixNoTrans;
     int                 infomask = 0;
 
     ldcu = Cm;
     Cptr = C->u;
     Cptr += ldcu * offy + offx;
 
-    trans = core_zlrlr2lr( lowrank, transA, transB, M, N, K, A, B, &AB, NULL, -1, &infomask );
+    core_zlrlr2lr( lowrank, transA, transB, M, N, K, A, B, &AB, NULL, -1, &infomask );
     assert( AB.rk != -1 );
     assert( AB.rkmax != -1 );
+
+    if ( infomask & PASTIX_LRM3_TRANSB ) {
+        trans = transB;
+    }
 
     if ( AB.rk > 0 ) {
         pastix_int_t ldabv = (trans == PastixNoTrans) ? AB.rkmax : N;
@@ -311,7 +315,7 @@ core_zlrlr2fr( const pastix_lr_t *lowrank,
     (void)lwork;
 }
 
-pastix_trans_t
+void
 core_zfrfr2lr( const pastix_lr_t *lowrank,
                pastix_trans_t transA, pastix_trans_t transB,
                pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -322,7 +326,6 @@ core_zfrfr2lr( const pastix_lr_t *lowrank,
                int *infomask )
 {
     pastix_int_t ldau, ldbu;
-    pastix_trans_t transV = PastixNoTrans;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldbu = (transB == PastixNoTrans) ? K : N;
@@ -338,7 +341,7 @@ core_zfrfr2lr( const pastix_lr_t *lowrank,
         AB->rkmax = K;
         AB->u = A->u;
         AB->v = B->u;
-        transV = transB;
+        *infomask |= PASTIX_LRM3_TRANSB;
     }
     else {
         /*
@@ -364,10 +367,9 @@ core_zfrfr2lr( const pastix_lr_t *lowrank,
     }
 
     (void)lowrank;
-    return transV;
 }
 
-pastix_trans_t
+void
 core_zfrlr2lr( const pastix_lr_t *lowrank,
                pastix_trans_t transA, pastix_trans_t transB,
                pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -378,7 +380,6 @@ core_zfrlr2lr( const pastix_lr_t *lowrank,
                int *infomask )
 {
     pastix_int_t ldau, ldbu, ldbv;
-    pastix_trans_t transV = PastixNoTrans;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldbu = (transB == PastixNoTrans) ? K : N;
@@ -463,7 +464,7 @@ core_zfrlr2lr( const pastix_lr_t *lowrank,
         AB->rk    = B->rk;
         AB->rkmax = B->rkmax;
         AB->v     = B->u;
-        transV   = transB;
+        *infomask |= PASTIX_LRM3_TRANSB;
 
         if ( lwork < ( M * B->rk ) ) {
             work = malloc( M * B->rk * sizeof(pastix_complex64_t) );
@@ -481,11 +482,10 @@ core_zfrlr2lr( const pastix_lr_t *lowrank,
     }
 
     (void)lowrank;
-    return transV;
 }
 
 
-pastix_trans_t
+void
 core_zlrfr2lr( const pastix_lr_t *lowrank,
                pastix_trans_t transA, pastix_trans_t transB,
                pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -496,7 +496,6 @@ core_zlrfr2lr( const pastix_lr_t *lowrank,
                int *infomask )
 {
     pastix_int_t ldau, ldav, ldbu;
-    pastix_trans_t transV = PastixNoTrans;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldav = ( A->rk == -1 ) ? -1 : A->rkmax;
@@ -597,7 +596,6 @@ core_zlrfr2lr( const pastix_lr_t *lowrank,
     }
 
     (void)lowrank;
-    return transV;
 }
 
 /**
@@ -645,7 +643,7 @@ core_zlrfr2lr( const pastix_lr_t *lowrank,
  * @return The way the product AB is stored: AB or op(AB).
  *
  *******************************************************************************/
-pastix_trans_t
+void
 core_zlrlr2lr( const pastix_lr_t *lowrank,
                pastix_trans_t transA, pastix_trans_t transB,
                pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -656,7 +654,6 @@ core_zlrlr2lr( const pastix_lr_t *lowrank,
                int *infomask )
 {
     pastix_int_t ldau, ldav, ldbu, ldbv;
-    int transV = PastixNoTrans;
     pastix_complex64_t *work2;
     pastix_lrblock_t rArB;
     pastix_int_t flops = 0;
@@ -739,9 +736,7 @@ core_zlrlr2lr( const pastix_lr_t *lowrank,
                          CBLAS_SADDR(zzero), AB->u,  M );
             flops = FLOPS_ZGEMM( M, B->rk, A->rk );
 
-            transV = transB;
-
-            /* free(work); */
+            *infomask |= PASTIX_LRM3_TRANSB;
         }
     }
     else if (rArB.rk == 0){
@@ -789,10 +784,9 @@ core_zlrlr2lr( const pastix_lr_t *lowrank,
     (void)transA;
     (void)work;
     (void)lwork;
-    return transV;
 }
 
-pastix_trans_t
+void
 core_zfrfr2null( const pastix_lr_t *lowrank,
                  pastix_trans_t transA, pastix_trans_t transB,
                  pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -804,8 +798,6 @@ core_zfrfr2null( const pastix_lr_t *lowrank,
                  int *infomask )
 {
     pastix_int_t ldau, ldbu;
-    pastix_trans_t transV = PastixNoTrans;
-
     ldau = (transA == PastixNoTrans) ? M : K;
     ldbu = (transB == PastixNoTrans) ? K : N;
 
@@ -822,7 +814,7 @@ core_zfrfr2null( const pastix_lr_t *lowrank,
         AB->rkmax = K;
         AB->u     = A->u;
         AB->v     = B->u;
-        transV    = transB;
+        *infomask |= PASTIX_LRM3_TRANSB;
     }
     else {
         /*
@@ -848,10 +840,9 @@ core_zfrfr2null( const pastix_lr_t *lowrank,
     }
 
     (void)lowrank;
-    return transV;
 }
 
-pastix_trans_t
+void
 core_zfrlr2null( const pastix_lr_t *lowrank,
                  pastix_trans_t transA, pastix_trans_t transB,
                  pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -863,8 +854,6 @@ core_zfrlr2null( const pastix_lr_t *lowrank,
                  int *infomask )
 {
     pastix_int_t ldau, ldbu, ldbv;
-    pastix_trans_t transV = PastixNoTrans;
-
     ldau = (transA == PastixNoTrans) ? M : K;
     ldbu = (transB == PastixNoTrans) ? K : N;
     ldbv = ( B->rk == -1 ) ? -1 : B->rkmax;
@@ -950,7 +939,7 @@ core_zfrlr2null( const pastix_lr_t *lowrank,
         AB->rk    = B->rk;
         AB->rkmax = B->rkmax;
         AB->v     = B->u;
-        transV    = transB;
+        *infomask |= PASTIX_LRM3_TRANSB;
 
         if ( lwork < ( M * B->rk ) ) {
             work = malloc( M * B->rk * sizeof(pastix_complex64_t) );
@@ -968,10 +957,9 @@ core_zfrlr2null( const pastix_lr_t *lowrank,
     }
 
     (void)lowrank;
-    return transV;
 }
 
-pastix_trans_t
+void
 core_zlrfr2null( const pastix_lr_t *lowrank,
                  pastix_trans_t transA, pastix_trans_t transB,
                  pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -983,7 +971,6 @@ core_zlrfr2null( const pastix_lr_t *lowrank,
                  int *infomask )
 {
     pastix_int_t ldau, ldav, ldbu;
-    pastix_trans_t transV = PastixNoTrans;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldav = ( A->rk == -1 ) ? -1 : A->rkmax;
@@ -1088,10 +1075,9 @@ core_zlrfr2null( const pastix_lr_t *lowrank,
     }
 
     (void)lowrank;
-    return transV;
 }
 
-pastix_trans_t
+void
 core_zlrlr2null( const pastix_lr_t *lowrank,
                  pastix_trans_t transA, pastix_trans_t transB,
                  pastix_int_t M, pastix_int_t N, pastix_int_t K,
@@ -1104,5 +1090,5 @@ core_zlrlr2null( const pastix_lr_t *lowrank,
 {
     (void)Cm;
     (void)Cn;
-    return core_zlrlr2lr( lowrank, transA, transB, M, N, K, A, B, AB, work, lwork, infomask );
+    core_zlrlr2lr( lowrank, transA, transB, M, N, K, A, B, AB, work, lwork, infomask );
 }
