@@ -373,6 +373,8 @@ static struct option long_options[] =
 /**
  *******************************************************************************
  *
+ * @ingroup pastix_examples
+ *
  * @brief PaStiX helper function to read command line options in examples.
  *
  * This function takes the command line arguments, and read the given parameters
@@ -409,9 +411,9 @@ static struct option long_options[] =
  *
  *******************************************************************************/
 void
-pastix_getOptions( int argc, char **argv,
-                   pastix_int_t *iparam, double *dparam,
-                   int *check, pastix_driver_t *driver, char **filename )
+pastixGetOptions( int argc, char **argv,
+                  pastix_int_t *iparam, double *dparam,
+                  int *check, pastix_driver_t *driver, char **filename )
 {
     int c;
     (void)dparam;
@@ -437,7 +439,7 @@ pastix_getOptions( int argc, char **argv,
             *driver = PastixDriverRSA;
             *filename = strdup( optarg );
 #else
-            fprintf(stderr, "pastix_getOptions: Please compile with PASTIX_WITH_FORTRAN option to enable RSA driver or use HB driver instead\n");
+            fprintf(stderr, "pastixGetOptions: Please compile with PASTIX_WITH_FORTRAN option to enable RSA driver or use HB driver instead\n");
             goto unknown_option;
 #endif
             break;

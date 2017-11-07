@@ -50,9 +50,9 @@ int main (int argc, char **argv)
     int ret = PASTIX_SUCCESS;
     int err = 0;
 
-    pastix_getOptions( argc, argv,
-                       NULL, NULL,
-                       NULL, &driver, &filename );
+    pastixGetOptions( argc, argv,
+                      NULL, NULL,
+                      NULL, &driver, &filename );
 
     spmReadDriver( driver, filename, &spm, MPI_COMM_WORLD );
     free(filename);
