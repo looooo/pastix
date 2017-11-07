@@ -40,9 +40,9 @@ int main (int argc, char **argv)
     /**
      * Get options from command line
      */
-    pastix_getOptions( argc, argv,
-                       iparm, dparm,
-                       &check, &driver, &filename );
+    pastixGetOptions( argc, argv,
+                      iparm, dparm,
+                      &check, &driver, &filename );
 
     /**
      * Read the sparse matrix with the driver

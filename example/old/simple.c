@@ -43,9 +43,9 @@ int main (int argc, char **argv)
     /*
      * Update options from command line, and get the matrix filename
      */
-    pastix_getOptions( argc, argv,
-                       iparm, dparm,
-                       &check, &driver, &filename );
+    pastixGetOptions( argc, argv,
+                      iparm, dparm,
+                      &check, &driver, &filename );
 
     /*
      * Read Matrice

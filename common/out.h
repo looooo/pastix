@@ -31,6 +31,7 @@
     "    StarPU:                               %8s\n"           \
     "  Number of MPI processes:                %8d\n"           \
     "  Number of threads per process:          %8d\n"           \
+    "  Number of GPUs:                         %8d\n"           \
     "  MPI communication support:              %8s\n"           \
     "  Distribution level:               %8s(%4ld)\n"           \
     "  Low rank parameters:\n"                                  \

@@ -283,8 +283,8 @@ module pastixf
   end interface
 
   interface
-     subroutine pastix_getOptions_c(argc, argv, iparam, dparam, check, driver, filename) &
-          bind(c, name='pastix_getOptions')
+     subroutine pastixGetOptions_c(argc, argv, iparam, dparam, check, driver, filename) &
+          bind(c, name='pastixGetOptions')
        use iso_c_binding
        implicit none
        integer(kind=c_int), value :: argc
@@ -294,7 +294,7 @@ module pastixf
        type(c_ptr), value :: check
        type(c_ptr), value :: driver
        type(c_ptr) :: filename
-     end subroutine pastix_getOptions_c
+     end subroutine pastixGetOptions_c
   end interface
 
 contains
@@ -538,7 +538,7 @@ contains
     info = pastix_getSchur_c(c_loc(pastix_data), S, lds)
   end subroutine pastix_getSchur
 
-  subroutine pastix_getOptions(argc, argv, iparm, dparm, check, driver, filename)
+  subroutine pastixGetOptions(argc, argv, iparm, dparm, check, driver, filename)
     use iso_c_binding
     implicit none
     integer(kind=c_int),        intent(in)                                   :: argc
@@ -552,9 +552,9 @@ contains
     type(c_ptr) :: argv_aux
     type(c_ptr) :: filename_aux
 
-    call pastix_getOptions_c(argc, argv_aux, c_loc(iparm), c_loc(dparm), c_loc(check), c_loc(driver), filename_aux)
+    call pastixGetOptions_c(argc, argv_aux, c_loc(iparm), c_loc(dparm), c_loc(check), c_loc(driver), filename_aux)
     call c_f_pointer(argv_aux, argv)
     call c_f_pointer(filename_aux, filename)
-  end subroutine pastix_getOptions
+  end subroutine pastixGetOptions
 
 end module pastixf
