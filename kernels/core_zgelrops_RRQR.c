@@ -781,7 +781,7 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
  *          representation of A
  *
  *******************************************************************************/
-void
+pastix_fixdbl_t
 core_zge2lr_RRQR( double tol, pastix_int_t rklimit,
                   pastix_int_t m, pastix_int_t n,
                   const pastix_complex64_t *A, pastix_int_t lda,
@@ -795,6 +795,7 @@ core_zge2lr_RRQR( double tol, pastix_int_t rklimit,
     pastix_int_t       *jpvt;
     pastix_int_t        zsize, rsize;
     pastix_complex64_t *zwork;
+    pastix_fixdbl_t     flops;
 
     double norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
                                        A, lda, NULL );
@@ -827,7 +828,6 @@ core_zge2lr_RRQR( double tol, pastix_int_t rklimit,
                                A, lda, Acpy, m );
     assert(ret == 0);
 
-    kernel_trace_start_lvl2( PastixKernelLvl2_LR_INIT );
     ret = core_zrrqr( m, n,
                       Acpy, m,
                       jpvt, tau,
@@ -835,10 +835,10 @@ core_zge2lr_RRQR( double tol, pastix_int_t rklimit,
                       rwork,
                       tol * norm, nb, pastix_imin(m,n) - 1 );
     if (ret == -1) {
-        kernel_trace_stop_lvl2( FLOPS_ZGEQRF( m, n ) );
+        flops = FLOPS_ZGEQRF( m, n );
     }
     else {
-        kernel_trace_stop_lvl2( FLOPS_ZGEQRF( m, ret ) + FLOPS_ZUNMQR( m, n-ret, ret, PastixLeft ) );
+        flops = FLOPS_ZGEQRF( m, ret ) + FLOPS_ZUNMQR( m, n-ret, ret, PastixLeft );
     }
 
     /**
@@ -893,11 +893,10 @@ core_zge2lr_RRQR( double tol, pastix_int_t rklimit,
                                    Acpy, m, U, m );
         assert(ret == 0);
 
-        kernel_trace_start_lvl2( PastixKernelLvl2_LR_INIT_Q );
         ret = LAPACKE_zungqr( LAPACK_COL_MAJOR, m, Alr->rk, Alr->rk,
                               U , m, tau );
         assert(ret == 0);
-        kernel_trace_stop_lvl2( FLOPS_ZUNGQR( m, Alr->rk, Alr->rk ) );
+        flops += FLOPS_ZUNGQR( m, Alr->rk, Alr->rk );
     }
 
 #if defined(PASTIX_DEBUG_LR)
@@ -910,6 +909,7 @@ core_zge2lr_RRQR( double tol, pastix_int_t rklimit,
 #endif
     memFree_null( zwork );
     memFree_null( jpvt );
+    return flops;
 }
 
 /**
@@ -1284,14 +1284,14 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
  *          representation of A
  *
  *******************************************************************************/
-void
+pastix_fixdbl_t
 core_zge2lr_RRQR_interface( pastix_fixdbl_t tol, pastix_int_t rklimit,
                             pastix_int_t m, pastix_int_t n,
                             const void *Aptr, pastix_int_t lda,
                             void *Alr )
 {
     const pastix_complex64_t *A = (const pastix_complex64_t *) Aptr;
-    core_zge2lr_RRQR( tol, rklimit, m, n, A, lda, Alr );
+    return core_zge2lr_RRQR( tol, rklimit, m, n, A, lda, Alr );
 }
 
 /**

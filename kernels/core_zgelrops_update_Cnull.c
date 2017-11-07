@@ -517,6 +517,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                              CBLAS_SADDR(beta),  work + Cm * offy + offx, Cm );
                 kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, AB.rk ) );
 
+                /* TODO: add flops */
                 lowrank->core_ge2lr( lowrank->tolerance, -1, Cm, Cn, work, Cm, C );
 
                 free(work);
@@ -527,6 +528,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                     if ( AB.rk == -1 ) {
                         pastix_lrblock_t backup;
 
+                        /* TODO: add flops */
                         lowrank->core_ge2lr( lowrank->tolerance, rklimit,
                                              M, N, AB.u, ldabu, &backup );
 
@@ -602,6 +604,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                             ABfr = AB.u;
                         }
 
+                        /* TODO: add flops */
                         lowrank->core_ge2lr( lowrank->tolerance, rklimit,
                                              M, N, ABfr, M, &backup );
 

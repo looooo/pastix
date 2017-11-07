@@ -401,8 +401,7 @@ core_zlrlr2lr( const pastix_lr_t *lowrank,
      * Try to compress (Av^h Bv^h')
      */
 
-    /* TODO: flops +=  */
-    lowrank->core_ge2lr( lowrank->tolerance, -1, A->rk, B->rk, work2, A->rk, &rArB );
+    flops += lowrank->core_ge2lr( lowrank->tolerance, -1, A->rk, B->rk, work2, A->rk, &rArB );
 
     /*
      * The rank of AB is not smaller than min(rankA, rankB)
@@ -641,6 +640,7 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
                 core_zlrfree(C);
 
                 /* Try to recompress */
+                /* TODO: add flops */
                 lowrank->core_ge2lr( tol, -1, Cm, Cn, Cfr, Cm, C );
 
                 free(Cfr);

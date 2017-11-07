@@ -187,13 +187,14 @@ core_zge2lrx( double tol, pastix_int_t m, pastix_int_t n,
  *          representation of A
  *
  *******************************************************************************/
-void
+pastix_fixdbl_t
 core_zge2lr_SVD( double tol, pastix_int_t rklimit,
                  pastix_int_t m, pastix_int_t n,
                  const pastix_complex64_t *A, pastix_int_t lda,
                  pastix_lrblock_t *Alr )
 {
     int ret;
+    pastix_fixdbl_t flops = 0;
     /*
      * Allocate a temorary Low rank matrix
      */
@@ -202,6 +203,8 @@ core_zge2lr_SVD( double tol, pastix_int_t rklimit,
     /*
      * Compress the dense matrix with the temporary space just allocated
      */
+
+    /* TODO: add flops */
     ret = core_zge2lrx( tol, m, n, A, lda, Alr );
 
     if ( ret < 0 ) {
@@ -221,6 +224,7 @@ core_zge2lr_SVD( double tol, pastix_int_t rklimit,
                                    A, lda, Alr->u, Alr->rkmax );
         assert(ret == 0);
     }
+    return flops;
 }
 
 /**
@@ -599,14 +603,14 @@ core_zrradd_SVD( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_comp
  *          representation of A
  *
  *******************************************************************************/
-void
+pastix_fixdbl_t
 core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t rklimit,
                            pastix_int_t m, pastix_int_t n,
                            const void *Aptr, pastix_int_t lda,
                            void *Alr )
 {
     const pastix_complex64_t *A = (const pastix_complex64_t *) Aptr;
-    core_zge2lr_SVD( tol, rklimit, m, n, A, lda, Alr );
+    return core_zge2lr_SVD( tol, rklimit, m, n, A, lda, Alr );
 }
 
 /**
