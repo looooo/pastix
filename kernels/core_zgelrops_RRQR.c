@@ -370,6 +370,7 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
                      CBLAS_SADDR(zone),  u1+offx, ldu,
                                          u2+offx, 1,
                      CBLAS_SADDR(zzero), W,       1 );
+        flops += FLOPS_ZGEMM( M2, i, 1 );
 
         /* Compute u2 = u2 - u1 ( u1^t u2 ) = u2 - u1 * W */
         cblas_zgemv( CblasColMajor, CblasNoTrans,
@@ -377,6 +378,7 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
                      CBLAS_SADDR(mzone), u1, ldu,
                                          W,  1,
                      CBLAS_SADDR(zone),  u2, 1 );
+        flops += FLOPS_ZGEMM( M1, i, 1 );
 
         /* Update v1 = v1 + ( u1^t u2 ) v2 = v1 + W * v2 */
         cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
@@ -384,6 +386,7 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
                      CBLAS_SADDR(zone), W,  i,
                                         v2, ldv,
                      CBLAS_SADDR(zone), v1, ldv );
+        flops += FLOPS_ZGEMM( i, N1, 1 );
 
         norm_before = cblas_dznrm2( i, W,  1 );
         norm        = cblas_dznrm2( M1, u2, 1 );
@@ -396,6 +399,7 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
                          CBLAS_SADDR(zone),  u1, ldu,
                          u2, 1,
                          CBLAS_SADDR(zzero), W,  1 );
+            flops += FLOPS_ZGEMM( M1, i, 1 );
 
             /* Compute u2 = u2 - u1 ( u1^t u2 ) = u2 - u1 * W */
             cblas_zgemv( CblasColMajor, CblasNoTrans,
@@ -403,6 +407,7 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
                          CBLAS_SADDR(mzone), u1, ldu,
                          W,  1,
                          CBLAS_SADDR(zone),  u2, 1 );
+            flops += FLOPS_ZGEMM( M1, i, 1 );
 
             /* Update v1 = v1 + ( u1^t u2 ) v2 = v1 + W * v2 */
             cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
@@ -410,6 +415,7 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
                          CBLAS_SADDR(zone), W,  i,
                          v2, ldv,
                          CBLAS_SADDR(zone), v1, ldv );
+            flops += FLOPS_ZGEMM( i, N1, 1 );
 
             norm = cblas_dznrm2( M1, u2, 1 );
         }
@@ -1104,7 +1110,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
     if (rankA != 0) {
         pastix_fixdbl_t flops;
 
-        kernel_trace_start_lvl2( PastixKernelLvl2_LR_orthogonalize );
+        kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_rradd_orthogonalize );
 
 #define LRORTHOU_CGS
 #if defined(LRORTHOU_FULLQR)
@@ -1144,7 +1150,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
      * Perform RRQR factorization on (I u2Tu1) v1v2 = (Q2 R2)
      *                               (0   I  )
      */
-    kernel_trace_start_lvl2( PastixKernelLvl2_LR_recompression );
+    kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_rradd_recompression );
     new_rank = core_zrrqr(rank, N,
                           v1v2, ldv,
                           jpvt, tauV,
@@ -1167,7 +1173,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
         u = B->u;
 
         /* Uncompress B */
-        kernel_trace_start_lvl2( PastixKernelLvl2_LR_uncompress );
+        kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_uncompress );
         cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
                     M, N, Bbackup.rk,
                     CBLAS_SADDR(zone),  Bbackup.u, ldbu,
@@ -1231,7 +1237,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
 
     /* Compute Q2 factor */
     {
-        kernel_trace_start_lvl2( PastixKernelLvl2_LR_computeNewQ );
+        kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_rradd_computeNewU );
         ret = LAPACKE_zungqr( LAPACK_COL_MAJOR, rank, new_rank, new_rank,
                               v1v2, ldv, tauV );
         assert(ret == 0);

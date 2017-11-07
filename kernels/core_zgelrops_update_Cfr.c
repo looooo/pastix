@@ -344,7 +344,7 @@ core_zlrmm_Cfr( const pastix_lr_t *lowrank,
 
     if ( A->rk == -1 ) {
         if ( B->rk == -1 ) {
-            kernel_trace_start_lvl2( PastixKernelLvl2_FRFR2FR );
+            kernel_trace_start_lvl2( PastixKernelLvl2_LR_FRFR2FR );
             flops = core_zfrfr2fr( NULL, transA, transB,
                                    M, N, K,
                                    Cm, Cn, offx, offy,
@@ -354,7 +354,7 @@ core_zlrmm_Cfr( const pastix_lr_t *lowrank,
             kernel_trace_stop_lvl2( flops );
         }
         else {
-            kernel_trace_start_lvl2( PastixKernelLvl2_FRLR2FR );
+            kernel_trace_start_lvl2( PastixKernelLvl2_LR_FRLR2FR );
             flops = core_zfrlr2fr( NULL, transA, transB,
                                    M, N, K,
                                    Cm, Cn, offx, offy,
@@ -366,7 +366,7 @@ core_zlrmm_Cfr( const pastix_lr_t *lowrank,
     }
     else {
         if ( B->rk == -1 ) {
-            kernel_trace_start_lvl2( PastixKernelLvl2_LRFR2FR );
+            kernel_trace_start_lvl2( PastixKernelLvl2_LR_LRFR2FR );
             flops = core_zlrfr2fr( NULL, transA, transB,
                                    M, N, K,
                                    Cm, Cn, offx, offy,
@@ -376,7 +376,7 @@ core_zlrmm_Cfr( const pastix_lr_t *lowrank,
             kernel_trace_stop_lvl2( flops );
         }
         else {
-            kernel_trace_start_lvl2( PastixKernelLvl2_LRLR2FR );
+            kernel_trace_start_lvl2( PastixKernelLvl2_LR_LRLR2FR );
             flops = core_zlrlr2fr( lowrank, transA, transB,
                                    M, N, K,
                                    Cm, Cn, offx, offy,

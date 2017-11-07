@@ -87,36 +87,36 @@ typedef enum pastix_ktype2_e {
     PastixKernelLvl2PXTRF,             /**< Complex LL^t diagonal block kernel */
     PastixKernelLvl2SYTRF,             /**< LDLt diagonal block kernel         */
 
-    PastixKernelLvl2_FRFR2FR,
-    PastixKernelLvl2_FRLR2FR,
-    PastixKernelLvl2_LRFR2FR,
-    PastixKernelLvl2_LRLR2FR,
-
-    PastixKernelLvl2_FRFR2LR,
-    PastixKernelLvl2_FRLR2LR,
-    PastixKernelLvl2_LRFR2LR,
-    PastixKernelLvl2_LRLR2LR,
-
-    PastixKernelLvl2_FRFR2null,
-    PastixKernelLvl2_FRLR2null,
-    PastixKernelLvl2_LRFR2null,
-    PastixKernelLvl2_LRLR2null,
-
-    /* Compression kernels */
-    PastixKernelLvl2_LR_compress,
-    PastixKernelLvl2_LR_recompress,
-    PastixKernelLvl2_LR_orthogonalize,
-    PastixKernelLvl2_LR_recompression,
-    PastixKernelLvl2_LR_computeNewQ,
-    PastixKernelLvl2_LR_uncompress,
-    PastixKernelLvl2_LR_updateCfr,
-
     /* Solve operations */
     PastixKernelLvl2_FR_TRSM,
     PastixKernelLvl2_LR_TRSM,
 
-    /* Dense operation */
+    /* Update operations */
     PastixKernelLvl2_FR_GEMM,
+
+    /* Formation (and application) of A * B */
+    PastixKernelLvl2_LR_FRFR2FR,
+    PastixKernelLvl2_LR_FRLR2FR,
+    PastixKernelLvl2_LR_LRFR2FR,
+    PastixKernelLvl2_LR_LRLR2FR,
+    PastixKernelLvl2_LR_FRFR2LR,
+    PastixKernelLvl2_LR_FRLR2LR,
+    PastixKernelLvl2_LR_LRFR2LR,
+    PastixKernelLvl2_LR_LRLR2LR,
+    PastixKernelLvl2_LR_FRFR2null,
+    PastixKernelLvl2_LR_FRLR2null,
+    PastixKernelLvl2_LR_LRFR2null,
+    PastixKernelLvl2_LR_LRLR2null,
+
+    /* Compression kernels */
+    PastixKernelLvl2_LR_init_compress,
+    PastixKernelLvl2_LR_add2C_uncompress,
+    PastixKernelLvl2_LR_add2C_recompress,
+    PastixKernelLvl2_LR_add2C_updateCfr,
+    PastixKernelLvl2_LR_add2C_orthou,
+    PastixKernelLvl2_LR_add2C_rradd_orthogonalize, /**<< CGS, partialQR or fullQR */
+    PastixKernelLvl2_LR_add2C_rradd_recompression,
+    PastixKernelLvl2_LR_add2C_rradd_computeNewU,
 
     PastixKernelLvl2Nbr
 } pastix_ktype2_t;
