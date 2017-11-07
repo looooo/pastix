@@ -1014,28 +1014,15 @@ core_zgemmsp_lr( pastix_coefside_t         sideA,
         M = blok_rownbr( iterblok );
 
         /* pastix_cblk_lock( fcblk ); */
-        if ( fcblk->cblktype & CBLK_COMPRESSED ) {
-            core_zlrmm( lowrank, PastixNoTrans, trans,
-                        M, N, K,
-                        blok_rownbr( fblok ), cblk_colnbr( fcblk ),
-                        iterblok->frownum - fblok->frownum,
-                        (blok->frownum - fcblk->fcolnum),
-                        -1.0, lrA, lrB,
-                         1.0, fblok->LRblock + shift,
-                        work, -1,
-                        fcblk );
-        }
-        else {
-            /* Should not arrive here */
-            assert(0);
-            C = Cfull + fblok->coefind + iterblok->frownum - fblok->frownum;
-            core_zlrmge( lowrank, PastixNoTrans, trans,
-                         M, N, K,
-                         -1.0, lrA, lrB, 1.0, C, stridef,
-                         work, -1,
-                         fcblk );
-        }
-        /* pastix_cblk_unlock( fcblk ); */
+        core_zlrmm( lowrank, PastixNoTrans, trans,
+                    M, N, K,
+                    blok_rownbr( fblok ), cblk_colnbr( fcblk ),
+                    iterblok->frownum - fblok->frownum,
+                    (blok->frownum - fcblk->fcolnum),
+                    -1.0, lrA, lrB,
+                    1.0, fblok->LRblock + shift,
+                    work, -1,
+                    fcblk );
     }
 }
 
