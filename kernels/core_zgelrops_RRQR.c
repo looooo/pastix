@@ -311,7 +311,8 @@ core_zlrorthu_partialqr( pastix_int_t M,  pastix_int_t N,
     return flops;
 }
 
-static inline pastix_fixdbl_t
+/* static inline  */
+pastix_fixdbl_t
 core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
                    pastix_int_t M2,  pastix_int_t N2,
                    pastix_int_t r1, pastix_int_t *r2ptr,
@@ -325,11 +326,14 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
     pastix_complex64_t *v1 = v1v2;
     pastix_complex64_t *v2 = v1v2 + r1;
     pastix_complex64_t *W;
-    pastix_fixdbl_t flops = 0.;
+    pastix_fixdbl_t flops = 0.0;
     pastix_int_t i, rank = r1 + r2;
     pastix_int_t ldwork = rank;
     double eps, norm;
     double norm_before, alpha;
+
+    assert( M1 >= (M2 + offx) );
+    assert( N1 >= (N2 + offy) );
 
     W     = malloc(ldwork * sizeof(pastix_complex64_t));
     eps   = LAPACKE_dlamch( 'e' );
@@ -338,34 +342,41 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
     /* Classical Gram-Schmidt */
     for (i=r1; i<rank; i++, u2 += ldu, v2++) {
 
-        norm = cblas_dznrm2( M1, u2, 1 );
-        if ( norm > M1 * eps ) {
-            cblas_zdscal( M1, 1. / norm, u2, 1   );
-            cblas_zdscal( N1, norm,      v2, ldv );
+        norm = cblas_dznrm2( M2, u2 + offx, 1 );
+        if ( norm > ( M2 * eps ) ) {
+            cblas_zdscal( M2, 1. / norm, u2 + offx,       1   );
+            cblas_zdscal( N2, norm,      v2 + offy * ldv, ldv );
         }
         else {
             rank--; r2--;
             if ( i < rank ) {
-                cblas_zswap( M1, u2, 1, u1u2 + rank * ldu, 1 );
+                cblas_zswap( M2, u2 + offx, 1, u1u2 + rank * ldu + offx, 1 );
+#if !defined(NDEBUG)
                 memset( u1u2 + rank * ldu, 0,  M1 * sizeof(pastix_complex64_t) );
+#endif
 
-                cblas_zswap( N1, v2, ldv, v1v2 + rank,     ldv );
+                cblas_zswap( N2, v2 + offy * ldv, ldv, v1v2 + offy * ldv + rank, ldv );
+
+#if !defined(NDEBUG)
                 LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N1,
                                      0., 0., v1v2 + rank, ldv );
+#endif
                 i--;
                 u2-= ldu;
                 v2--;
             }
+#if !defined(NDEBUG)
             else {
                 memset( u2, 0,  M1 * sizeof(pastix_complex64_t) );
                 LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N1,
                                      0., 0., v2, ldv );
             }
+#endif
             continue;
         }
 
         /* Compute W = u1^t u2 */
-        cblas_zgemv( CblasColMajor, CblasTrans,
+        cblas_zgemv( CblasColMajor, CblasConjTrans,
                      M2, i,
                      CBLAS_SADDR(zone),  u1+offx, ldu,
                                          u2+offx, 1,
@@ -394,10 +405,10 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
 #if !defined(PASTIX_LR_CGS1)
         if ( norm <= (alpha * norm_before) ){
             /* Compute W = u1^t u2 */
-            cblas_zgemv( CblasColMajor, CblasTrans,
+            cblas_zgemv( CblasColMajor, CblasConjTrans,
                          M1, i,
                          CBLAS_SADDR(zone),  u1, ldu,
-                         u2, 1,
+                                             u2, 1,
                          CBLAS_SADDR(zzero), W,  1 );
             flops += FLOPS_ZGEMM( M1, i, 1 );
 
@@ -405,7 +416,7 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
             cblas_zgemv( CblasColMajor, CblasNoTrans,
                          M1, i,
                          CBLAS_SADDR(mzone), u1, ldu,
-                         W,  1,
+                                             W,  1,
                          CBLAS_SADDR(zone),  u2, 1 );
             flops += FLOPS_ZGEMM( M1, i, 1 );
 
@@ -413,7 +424,7 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
             cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                          i, N1, 1,
                          CBLAS_SADDR(zone), W,  i,
-                         v2, ldv,
+                                            v2, ldv,
                          CBLAS_SADDR(zone), v1, ldv );
             flops += FLOPS_ZGEMM( i, N1, 1 );
 

@@ -41,7 +41,7 @@ core_zfrfr2null( const pastix_lr_t *lowrank,
                  int *infomask )
 {
     pastix_int_t ldau, ldbu;
-    pastix_fixdbl_t flops = 0;
+    pastix_fixdbl_t flops = 0.0;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldbu = (transB == PastixNoTrans) ? K : N;
@@ -419,6 +419,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
     orthou = infomask & PASTIX_LRM3_ORTHOU;
     assert( orthou != -1 );
 
+    flops = 0.0;
     if ( AB.rk != 0 ) {
         pastix_int_t ldabu = M;
         pastix_int_t ldabv = (transV == PastixNoTrans) ? AB.rkmax : N;
@@ -458,7 +459,6 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
             if ( (C->rk + rAB) > rmax )
             {
                 pastix_complex64_t *Cfr = malloc( Cm * Cn * sizeof(pastix_complex64_t) );
-                pastix_fixdbl_t     flops;
 
                 kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_uncompress );
                 cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
@@ -507,7 +507,6 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
 
             if ( AB.rk > rklimit ) {
                 pastix_complex64_t *work = malloc( Cm * Cn * sizeof(pastix_complex64_t) );
-                pastix_fixdbl_t     flops;
 
                 if ( (M != Cm) || (N != Cn) ) {
                     memset( work, 0, Cm * Cn * sizeof(pastix_complex64_t) );
@@ -530,7 +529,6 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                 if ( !orthou ) {
                     pastix_complex64_t *ABfr;
                     pastix_lrblock_t    backup;
-                    pastix_fixdbl_t     flops = 0;
 
                     kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_orthou );
 
@@ -542,7 +540,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                                      CBLAS_SADDR(zone),  AB.u, ldabu,
                                                          AB.v, ldabv,
                                      CBLAS_SADDR(zzero), ABfr, M );
-                        flops += FLOPS_ZGEMM( M, N, AB.rk );
+                        flops = FLOPS_ZGEMM( M, N, AB.rk );
                     }
                     else {
                         ABfr = AB.u;

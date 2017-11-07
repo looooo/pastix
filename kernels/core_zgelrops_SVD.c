@@ -194,7 +194,7 @@ core_zge2lr_SVD( double tol, pastix_int_t rklimit,
                  pastix_lrblock_t *Alr )
 {
     int ret;
-    pastix_fixdbl_t flops = 0;
+    pastix_fixdbl_t flops = 0.0;
     /*
      * Allocate a temorary Low rank matrix
      */

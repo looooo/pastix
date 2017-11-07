@@ -24,7 +24,6 @@
 #include "kernels_trace.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-static pastix_complex64_t mzone = -1.0;
 static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
@@ -40,7 +39,7 @@ core_zfrfr2lr( const pastix_lr_t *lowrank,
                int *infomask )
 {
     pastix_int_t ldau, ldbu;
-    pastix_fixdbl_t flops = 0;
+    pastix_fixdbl_t flops = 0.0;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldbu = (transB == PastixNoTrans) ? K : N;
@@ -372,7 +371,7 @@ core_zlrlr2lr( const pastix_lr_t *lowrank,
     pastix_int_t ldau, ldav, ldbu, ldbv;
     pastix_complex64_t *work2;
     pastix_lrblock_t rArB;
-    pastix_int_t flops = 0;
+    pastix_fixdbl_t flops = 0.0;
 
     assert( A->rk <= A->rkmax && A->rk > 0 );
     assert( B->rk <= B->rkmax && B->rk > 0 );
@@ -611,7 +610,6 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
             if ( (C->rk + rAB) > rmax )
             {
                 pastix_complex64_t *Cfr = malloc( Cm * Cn * sizeof(pastix_complex64_t) );
-                pastix_fixdbl_t     flops;
 
                 kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_uncompress );
                 cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
