@@ -210,12 +210,12 @@ int main (int argc, char **argv)
     int            *ipiv = NULL;
     pastix_diag_t   diag = PastixNonUnit;
 
-    /*
+    /**
      * Initialize parameters to default values
      */
     pastixInitParam( iparm, dparm );
 
-    /*
+    /**
      * Get options from command line
      */
     pastixGetOptions( argc, argv,
@@ -230,7 +230,7 @@ int main (int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    /*
+    /**
      * Read the sparse matrix with the driver
      */
     spm = malloc( sizeof( pastix_spm_t ) );
@@ -246,19 +246,19 @@ int main (int argc, char **argv)
         spm = spm2;
     }
 
-    /*
+    /**
      * Generate a Fake values array if needed for the numerical part
      */
     if ( spm->flttype == PastixPattern ) {
         spmGenFakeValues( spm );
     }
 
-    /*
+    /**
      * Startup PaStiX
      */
     pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
-    /*
+    /**
      * Initialize the schur list with the first third of the unknowns
      */
     {
@@ -280,17 +280,17 @@ int main (int argc, char **argv)
         iparm[IPARM_SCHUR_SOLV_MODE] = PastixSolvModeInterface;
     }
 
-    /*
+    /**
      * Perform ordering, symbolic factorization, and analyze steps
      */
     pastix_task_analyze( pastix_data, spm );
 
-    /*
+    /**
      * Perform the numerical factorization
      */
     pastix_task_numfact( pastix_data, spm );
 
-    /*
+    /**
      * Get the Schur complement back
      */
     lds = nschur;
@@ -299,13 +299,13 @@ int main (int argc, char **argv)
     pastix_getSchur( pastix_data, S, lds );
 
 
-    /*
+    /**
      * Factorize the Schur complement
      */
     schurFactorize( spm->flttype, iparm[IPARM_FACTORIZATION],
                     nschur, S, lds, &ipiv );
 
-    /*
+    /**
      * Generates the b and x vector such that A * x = b
      * Compute the norms of the initial vectors if checking purpose.
      */
@@ -329,7 +329,7 @@ int main (int argc, char **argv)
         memcpy( b, x, size );
     }
 
-    /*
+    /**
      * Solve the linear system Ax = (P^tLUP)x = b
      */
     /* 1- Apply P to b */

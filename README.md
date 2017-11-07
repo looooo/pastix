@@ -62,13 +62,13 @@ PaStiX can be built using [CMake](https://cmake.org/). This
 installation requires to have some library dependencies already
 installed on the system:
    * BLAS (MKL, GotoBlas, refblas, ...) and CBLAS (sequential version required)
-   * LAPACK and LAPACKE (required, with TMG enabled for testing)
-   * SCOTCH or PTSCOTCH (optional)
-   * METIS or PARMETIS (optional)
-   * HWLOC (optional)
+   * LAPACK and LAPACKE (sequential version required, with TMG enabled for testing)
+   * HWLOC (highly recommended)
+   * SCOTCH (optional)
+   * METIS (optional)
    * STARPU runtime support (optional)
    * PARSEC runtime support (optional)
-   * CUDA to enable GPU functionality with runtime support (optional)
+   * CUDA/CuBLAS to enable GPU functionality with runtime support (optional)
    * EZTRACE to enable tracing support (optional)
    * Python and Fortran compiler for wrappers and examples (optional)
 

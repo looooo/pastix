@@ -186,7 +186,7 @@ pastixWelcome( const pastix_data_t *pastix )
 #endif
                   /* MPI nbr    */ pastix->procnbr,
                   /* Thrd nbr   */ (int)(pastix->iparm[IPARM_THREAD_NBR]),
-                  /* GPU ndr    */ (int)(pastix->iparm[IPARM_GPU_NBR]),
+                  /* GPU nbr    */ (int)(pastix->iparm[IPARM_GPU_NBR]),
 #if defined(PASTIX_WITH_MPI)
                   /* MPI mode   */ ((pastix->iparm[IPARM_THREAD_COMM_MODE] == PastixThreadMultiple) ? "Multiple" : "Funneled"),
 #else
