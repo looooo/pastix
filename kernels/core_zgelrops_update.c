@@ -792,3 +792,317 @@ core_zlrlr2lr( const pastix_lr_t *lowrank,
     return transV;
 }
 
+pastix_trans_t
+core_zfrfr2null( const pastix_lr_t *lowrank,
+                 pastix_trans_t transA, pastix_trans_t transB,
+                 pastix_int_t M, pastix_int_t N, pastix_int_t K,
+                 pastix_int_t Cm, pastix_int_t Cn,
+                 const pastix_lrblock_t *A,
+                 const pastix_lrblock_t *B,
+                 pastix_lrblock_t *AB,
+                 pastix_complex64_t *work, pastix_int_t lwork,
+                 int *infomask )
+{
+    pastix_int_t ldau, ldbu;
+    pastix_trans_t transV = PastixNoTrans;
+
+    ldau = (transA == PastixNoTrans) ? M : K;
+    ldbu = (transB == PastixNoTrans) ? K : N;
+
+    /*
+     * Everything is full rank
+     */
+    if ( ( K < pastix_imin( M, N )        ) &&
+         ( K < core_zlr_rklimit( Cm, Cn ) ) )
+    {
+        /*
+         * Let's build a low-rank matrix of rank K
+         */
+        AB->rk    = K;
+        AB->rkmax = K;
+        AB->u     = A->u;
+        AB->v     = B->u;
+        transV    = transB;
+    }
+    else {
+        /*
+         * Let's compute the product to form a full-rank matrix of rank
+         * pastix_imin( M, N )
+         */
+        AB->rk = -1;
+        AB->rkmax = M;
+        if ( lwork < M * N ) {
+            work = malloc( M * N * sizeof(pastix_complex64_t) );
+            *infomask |= PASTIX_LRM3_ALLOCU;
+        }
+        AB->u = work;
+        AB->v = NULL;
+
+        kernel_trace_start_lvl2( PastixKernelLvl2_FRFR2null );
+        cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
+                     M, N, K,
+                     CBLAS_SADDR(zone),  A->u,  ldau,
+                                         B->u,  ldbu,
+                     CBLAS_SADDR(zzero), AB->u, M );
+        kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, N, K ) );
+    }
+
+    (void)lowrank;
+    return transV;
+}
+
+pastix_trans_t
+core_zfrlr2null( const pastix_lr_t *lowrank,
+                 pastix_trans_t transA, pastix_trans_t transB,
+                 pastix_int_t M, pastix_int_t N, pastix_int_t K,
+                 pastix_int_t Cm, pastix_int_t Cn,
+                 const pastix_lrblock_t *A,
+                 const pastix_lrblock_t *B,
+                 pastix_lrblock_t *AB,
+                 pastix_complex64_t *work, pastix_int_t lwork,
+                 int *infomask )
+{
+    pastix_int_t ldau, ldbu, ldbv;
+    pastix_trans_t transV = PastixNoTrans;
+
+    ldau = (transA == PastixNoTrans) ? M : K;
+    ldbu = (transB == PastixNoTrans) ? K : N;
+    ldbv = ( B->rk == -1 ) ? -1 : B->rkmax;
+
+    /*
+     *  A(M-by-K) * B( N-by-rb x rb-by-K )^t
+     */
+    if ( ( M < B->rk ) ||
+         ( B->rk > core_zlr_rklimit( Cm, Cn ) ) )
+    {
+        /*
+         * We are in a similar case to the _Cfr function, and we
+         * choose the optimal number of flops.
+         */
+        pastix_fixdbl_t flops1 = FLOPS_ZGEMM( M, B->rk, K ) + FLOPS_ZGEMM( M, N, B->rk );
+        pastix_fixdbl_t flops2 = FLOPS_ZGEMM( K, N, B->rk ) + FLOPS_ZGEMM( M, N, K     );
+        pastix_complex64_t *tmp;
+
+        AB->rk    = -1;
+        AB->rkmax = M;
+        AB->v     = NULL;
+
+        if ( flops1 <= flops2 ) {
+            if ( lwork < ( M * B->rk + M * N ) ) {
+                work = malloc( (M * B->rk + M * N ) * sizeof(pastix_complex64_t) );
+                *infomask |= PASTIX_LRM3_ALLOCU;
+            }
+
+            /* AB->u will be destroyed later */
+            AB->u = work;
+            tmp   = work + M * N;
+
+            /*
+             *  (A * Bv) * Bu^t
+             */
+            kernel_trace_start_lvl2( PastixKernelLvl2_FRLR2null );
+            cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
+                         M, B->rk, K,
+                         CBLAS_SADDR(zone),  A->u, ldau,
+                                             B->v, ldbv,
+                         CBLAS_SADDR(zzero), tmp,  M );
+
+            cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
+                         M, N, B->rk,
+                         CBLAS_SADDR(zone),  tmp,  M,
+                                             B->u, ldbu,
+                         CBLAS_SADDR(zzero), AB->u, M );
+            kernel_trace_stop_lvl2( flops1 );
+        }
+        else {
+            if ( lwork < ( K * N + M * N ) ) {
+                work = malloc( (K * N + M * N) * sizeof(pastix_complex64_t) );
+                *infomask |= PASTIX_LRM3_ALLOCU;
+            }
+
+            /* AB->u will be destroyed later */
+            AB->u = work;
+            tmp   = work + M * N;
+
+            /*
+             *  A * (Bu * Bv^t)^t
+             */
+            kernel_trace_start_lvl2( PastixKernelLvl2_FRLR2null );
+            cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                         K, N, B->rk,
+                         CBLAS_SADDR(zone),  B->u, ldbu,
+                                             B->v, ldbv,
+                         CBLAS_SADDR(zzero), tmp,  K );
+
+            cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
+                         M, N, K,
+                         CBLAS_SADDR(zone),  A->u, ldau,
+                                             tmp,  K,
+                         CBLAS_SADDR(zzero), AB->u, M );
+
+            kernel_trace_stop_lvl2( flops2 );
+        }
+    }
+    else {
+        /*
+         * B->rk is the smallest rank
+         */
+        AB->rk    = B->rk;
+        AB->rkmax = B->rkmax;
+        AB->v     = B->u;
+        transV    = transB;
+
+        if ( lwork < ( M * B->rk ) ) {
+            work = malloc( M * B->rk * sizeof(pastix_complex64_t) );
+            *infomask |= PASTIX_LRM3_ALLOCU;
+        }
+        AB->u = work;
+
+        kernel_trace_start_lvl2( PastixKernelLvl2_FRLR2null );
+        cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
+                     M, B->rk, K,
+                     CBLAS_SADDR(zone),  A->u,  ldau,
+                                         B->v,  ldbv,
+                     CBLAS_SADDR(zzero), AB->u, M );
+        kernel_trace_stop_lvl2( FLOPS_ZGEMM( M, B->rk, K ) );
+    }
+
+    (void)lowrank;
+    return transV;
+}
+
+pastix_trans_t
+core_zlrfr2null( const pastix_lr_t *lowrank,
+                 pastix_trans_t transA, pastix_trans_t transB,
+                 pastix_int_t M, pastix_int_t N, pastix_int_t K,
+                 pastix_int_t Cm, pastix_int_t Cn,
+                 const pastix_lrblock_t *A,
+                 const pastix_lrblock_t *B,
+                 pastix_lrblock_t *AB,
+                 pastix_complex64_t *work, pastix_int_t lwork,
+                 int *infomask )
+{
+    pastix_int_t ldau, ldav, ldbu;
+    pastix_trans_t transV = PastixNoTrans;
+
+    ldau = (transA == PastixNoTrans) ? M : K;
+    ldav = ( A->rk == -1 ) ? -1 : A->rkmax;
+    ldbu = (transB == PastixNoTrans) ? K : N;
+
+    /*
+     *  A( M-by-ra x ra-by-K ) * B(N-by-K)^t
+     */
+    if ( ( N < A->rk ) ||
+         ( A->rk > core_zlr_rklimit( Cm, Cn ) ) )
+    {
+        /*
+         * We are in a similar case to the _Cfr function, and we
+         * choose the optimal number of flops.
+         */
+        pastix_fixdbl_t flops1 = FLOPS_ZGEMM( A->rk, N, K ) + FLOPS_ZGEMM( M, N, A->rk );
+        pastix_fixdbl_t flops2 = FLOPS_ZGEMM( M, K, A->rk ) + FLOPS_ZGEMM( M, N, K     );
+        pastix_complex64_t *tmp;
+
+        AB->rk    = -1;
+        AB->rkmax = M;
+        AB->v     = NULL;
+
+        if ( flops1 <= flops2 ) {
+            if ( lwork < (A->rk * N + M * N) ) {
+                work = malloc( (A->rk * N + M * N) * sizeof(pastix_complex64_t) );
+                *infomask |= PASTIX_LRM3_ALLOCU;
+            }
+
+            /* AB->u will be destroyed later */
+            AB->u = work;
+            tmp   = work + M * N;
+
+            /*
+             *  Au * (Av^t * B^t)
+             */
+            kernel_trace_start_lvl2( PastixKernelLvl2_LRFR2null );
+            cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
+                         A->rk, N, K,
+                         CBLAS_SADDR(zone),  A->v, ldav,
+                                             B->u, ldbu,
+                         CBLAS_SADDR(zzero), tmp,  A->rk );
+
+            cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                         M, N, A->rk,
+                         CBLAS_SADDR(zone),  A->u, ldau,
+                                             tmp,  A->rk,
+                         CBLAS_SADDR(zzero), AB->u, M );
+            kernel_trace_stop_lvl2( flops1 );
+        }
+        else {
+            if ( lwork < (M * K + M * N) ) {
+                work = malloc( (M * K + M * N) * sizeof(pastix_complex64_t) );
+                *infomask |= PASTIX_LRM3_ALLOCU;
+            }
+
+            /* AB->u will be destroyed later */
+            AB->u = work;
+            tmp   = work + M * N;
+
+            /*
+             *  (Au * Av^t) * B^t
+             */
+            kernel_trace_start_lvl2( PastixKernelLvl2_LRFR2null );
+            cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                         M, K, A->rk,
+                         CBLAS_SADDR(zone),  A->u, ldau,
+                                             A->v, ldav,
+                         CBLAS_SADDR(zzero), tmp,  M );
+
+            cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
+                         M, N, K,
+                         CBLAS_SADDR(zone),  tmp,  M,
+                                             B->u, ldbu,
+                         CBLAS_SADDR(zzero), AB->u, M );
+            kernel_trace_stop_lvl2( flops2 );
+        }
+    }
+    else {
+        /*
+         * A->rk is the smallest rank
+         */
+        AB->rk    = A->rk;
+        AB->rkmax = A->rk;
+        AB->u     = A->u;
+
+        if ( lwork < ( A->rk * N ) ) {
+            work = malloc( A->rk * N * sizeof(pastix_complex64_t) );
+            *infomask |= PASTIX_LRM3_ALLOCV;
+        }
+        AB->v = work;
+
+        kernel_trace_start_lvl2( PastixKernelLvl2_LRFR2null );
+        cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
+                     A->rk, N, K,
+                     CBLAS_SADDR(zone),  A->v,  ldav,
+                                         B->u,  ldbu,
+                     CBLAS_SADDR(zzero), AB->v, AB->rkmax );
+        kernel_trace_stop_lvl2( FLOPS_ZGEMM( A->rk, N, K ) );
+
+        *infomask |= PASTIX_LRM3_ORTHOU;
+    }
+
+    (void)lowrank;
+    return transV;
+}
+
+pastix_trans_t
+core_zlrlr2null( const pastix_lr_t *lowrank,
+                 pastix_trans_t transA, pastix_trans_t transB,
+                 pastix_int_t M, pastix_int_t N, pastix_int_t K,
+                 pastix_int_t Cm, pastix_int_t Cn,
+                 const pastix_lrblock_t *A,
+                 const pastix_lrblock_t *B,
+                 pastix_lrblock_t *AB,
+                 pastix_complex64_t *work, pastix_int_t lwork,
+                 int *infomask )
+{
+    (void)Cm;
+    (void)Cn;
+    return core_zlrlr2lr( lowrank, transA, transB, M, N, K, A, B, AB, work, lwork, infomask );
+}

@@ -96,6 +96,7 @@ int  core_zlrsze  ( int copy, pastix_int_t M, pastix_int_t N, pastix_lrblock_t *
 int  core_zlr2ge  ( pastix_trans_t trans, pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *Alr, pastix_complex64_t *A, pastix_int_t lda );
 
 
+pastix_int_t core_zlr_rklimit( pastix_int_t M, pastix_int_t N );
 void core_zlrcpy  ( const pastix_lr_t *lowrank,
                     pastix_trans_t transA, pastix_complex64_t alpha,
                     pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
@@ -195,6 +196,43 @@ pastix_trans_t core_zlrlr2lr( const pastix_lr_t *lowrank,
                               pastix_lrblock_t *AB,
                               pastix_complex64_t *work, pastix_int_t lwork,
                               int *infomask );
+
+pastix_trans_t core_zfrfr2null( const pastix_lr_t *lowrank,
+                                pastix_trans_t transA, pastix_trans_t transB,
+                                pastix_int_t M, pastix_int_t N, pastix_int_t K,
+                                pastix_int_t Cm, pastix_int_t Cn,
+                                const pastix_lrblock_t *A,
+                                const pastix_lrblock_t *B,
+                                pastix_lrblock_t *AB,
+                                pastix_complex64_t *work, pastix_int_t lwork,
+                                int *infomask );
+pastix_trans_t core_zfrlr2null( const pastix_lr_t *lowrank,
+                                pastix_trans_t transA, pastix_trans_t transB,
+                                pastix_int_t M, pastix_int_t N, pastix_int_t K,
+                                pastix_int_t Cm, pastix_int_t Cn,
+                                const pastix_lrblock_t *A,
+                                const pastix_lrblock_t *B,
+                                pastix_lrblock_t *AB,
+                                pastix_complex64_t *work, pastix_int_t lwork,
+                                int *infomask );
+pastix_trans_t core_zlrfr2null( const pastix_lr_t *lowrank,
+                                pastix_trans_t transA, pastix_trans_t transB,
+                                pastix_int_t M, pastix_int_t N, pastix_int_t K,
+                                pastix_int_t Cm, pastix_int_t Cn,
+                                const pastix_lrblock_t *A,
+                                const pastix_lrblock_t *B,
+                                pastix_lrblock_t *AB,
+                                pastix_complex64_t *work, pastix_int_t lwork,
+                                int *infomask );
+pastix_trans_t core_zlrlr2null( const pastix_lr_t *lowrank,
+                                pastix_trans_t transA, pastix_trans_t transB,
+                                pastix_int_t M, pastix_int_t N, pastix_int_t K,
+                                pastix_int_t Cm, pastix_int_t Cn,
+                                const pastix_lrblock_t *A,
+                                const pastix_lrblock_t *B,
+                                pastix_lrblock_t *AB,
+                                pastix_complex64_t *work, pastix_int_t lwork,
+                                int *infomask );
 
 /**
  *     @}

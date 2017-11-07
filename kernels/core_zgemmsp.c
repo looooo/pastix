@@ -970,7 +970,7 @@ core_zgemmsp_lr( pastix_coefside_t         sideA,
     const SolverBlok *fblok;
     const SolverBlok *lblok;
 
-    pastix_complex64_t *C, *Cfull;
+    pastix_complex64_t *Cfull;
     pastix_int_t M, N, K, stridef, shift;
     pastix_lrblock_t *lrA, *lrB;
 
