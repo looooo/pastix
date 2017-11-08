@@ -469,7 +469,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                 flops = FLOPS_ZGEMM( Cm, Cn, C->rk );
 
                 /* Add A*B */
-                if ( rAB == -1 ) {
+                if ( AB.rk == -1 ) {
                     core_zgeadd( PastixNoTrans, M, N,
                                  alpha, AB.u, M,
                                  beta,  Cfr + Cm * offy + offx, Cm );
