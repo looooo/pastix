@@ -22,11 +22,20 @@
 
 #include "kernels/kernels_trace.h"
 
+/**
+ * @brief Model structure to store the coefficients table and its name
+ */
 typedef struct pastix_model_s {
-    char *name;
-    double coefficients[4][PastixKernelLvl1Nbr][8];
+    char  *name;                                     /**< Name of the computational unit considered by the model */
+    double coefficients[4][PastixKernelLvl1Nbr][8];  /**< Coefficients table of the model                        */
 } pastix_model_t;
 
+/**
+ * @brief Return the time in ms of factorization kernels using a single size parameter.
+ * @param[in] coefs The coefficients array to use in the formula
+ * @param[in] N The size parameter
+ * @return The estimated time in ms.
+ */
 static inline double
 modelsGetCost1Param( const double *coefs, pastix_int_t N )
 {
@@ -34,6 +43,13 @@ modelsGetCost1Param( const double *coefs, pastix_int_t N )
     return ((coefs[3] * N + coefs[2]) * N + coefs[1]) * N + coefs[0];
 }
 
+/**
+ * @brief Return the time in ms of TRSM kernels using two size parameters.
+ * @param[in] coefs The coefficients array to use in the formula
+ * @param[in] M The first size parameter (number of rows)
+ * @param[in] N The second size parameter (number of columns, size of the triangular matrix)
+ * @return The estimated time in ms.
+ */
 static inline double
 modelsGetCost2Param( const double *coefs, pastix_int_t M, pastix_int_t N )
 {
@@ -41,6 +57,14 @@ modelsGetCost2Param( const double *coefs, pastix_int_t M, pastix_int_t N )
     return ((coefs[5] * (double)M + coefs[3]) * (double)N + coefs[4] * (double)M + coefs[1]) * (double)N + coefs[2] * (double)M + coefs[0];
 }
 
+/**
+ * @brief Return the time in ms of GEMM kernels using three size parameters.
+ * @param[in] coefs The coefficients array to use in the formula
+ * @param[in] M The number of rows in the C matrix
+ * @param[in] N The number of columns in the C matrix
+ * @param[in] K The third dimension of the matrix product
+ * @return The estimated time in ms.
+ */
 static inline double
 modelsGetCost3Param( const double *coefs, pastix_int_t M, pastix_int_t N, pastix_int_t K )
 {

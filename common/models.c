@@ -15,6 +15,28 @@
 #include "common.h"
 #include "models.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_internal
+ *
+ * @brief Convert a kernel string name found in a model file to its kernel Id
+ *
+ *******************************************************************************
+ *
+ * @param[in] kernelstr
+ *            The kernel string name
+ *
+ * @param[out] nbcoef
+ *            The number of coefficient that this kernel will use. Set to 0 on
+ *            failure.
+ *
+ *******************************************************************************
+ *
+ * @retval The kernel Id on success
+ * @retval -1 on failure
+ *
+ *******************************************************************************/
 int
 modelsGetKernelId( const char *kernelstr,
                    int        *nbcoef )
@@ -35,6 +57,19 @@ modelsGetKernelId( const char *kernelstr,
     return -1;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_internal
+ *
+ * @brief Create a new model data structure and initialize the values to their
+ * default.
+ *
+ *******************************************************************************
+ *
+ * @return The pointer to the allocated and initialized data structure.
+ *
+ *******************************************************************************/
 pastix_model_t *
 modelsNew()
 {
@@ -52,6 +87,19 @@ modelsNew()
     return model;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_internal
+ *
+ * @brief Free a model data structure.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] model
+ *          The model structure to free.
+ *
+ *******************************************************************************/
 void
 modelsFree( pastix_model_t *model )
 {
@@ -61,6 +109,35 @@ modelsFree( pastix_model_t *model )
     free(model->name);
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_internal
+ *
+ * @brief Propagate a given model to all other similare cases to be sure
+ * everything is initialized.
+ *
+ * The given model coefficients defined by the couple (arithm, kernelid) is
+ * first extended to all the kernels of the same family in the same arithmetic,
+ * and it is then propagated to the other arithmetic by applying a computation
+ * ratio on the coefficients.
+ *     - Single real costs 1
+ *     - Double real costs 2
+ *     - Single complex costs 3
+ *     - Double complex costs 4
+ *
+ *******************************************************************************
+ *
+ * @param[inout] model
+ *          The pointer to the allocated model to complete.
+ *
+ * @param[in] arithm
+ *          The arithmetic of the initial coefficients to replicate.
+ *
+ * @param[in] kernelid
+ *          The kernel Id of the initial coefficients to replicate.
+ *
+ *******************************************************************************/
 void
 modelsPropagate( pastix_model_t *model,
                  int arithm, pastix_ktype_t kernelid )
@@ -153,6 +230,27 @@ modelsPropagate( pastix_model_t *model,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_internal
+ *
+ * @brief Initialize the given model with the file given in parameters.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] model
+ *          The pointer to the allocated model to initialize.
+ *
+ * @param[in] modelfilename
+ *          The name of the file in which the coefficient values are stored.
+ *
+ *******************************************************************************
+ *
+ * @return 0 on success.
+ * @return -1 on failure.
+ *
+ *******************************************************************************/
 int
 modelsRead( pastix_model_t *model,
             const char *modelfilename )
@@ -269,6 +367,23 @@ modelsRead( pastix_model_t *model,
     return 0;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_internal
+ *
+ * @brief Initialize the CPU model with default values.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] model
+ *          The pointer to the allocated model to initialize.
+ *
+ *******************************************************************************
+ *
+ * @return 0 on success.
+ *
+ *******************************************************************************/
 int
 modelsInitDefaultCPU( pastix_model_t *model )
 {
@@ -319,6 +434,23 @@ modelsInitDefaultCPU( pastix_model_t *model )
     return 0;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_internal
+ *
+ * @brief Initialize the GPU model with default values.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] model
+ *          The pointer to the allocated model to initialize.
+ *
+ *******************************************************************************
+ *
+ * @return 0 on success.
+ *
+ *******************************************************************************/
 int
 modelsInitDefaultGPU( pastix_model_t *model )
 {
@@ -369,8 +501,26 @@ modelsInitDefaultGPU( pastix_model_t *model )
     return 0;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_api
+ *
+ * @brief Load the performance models that will be used by the solver
+ *
+ * This function initializes the model coefficients with the values stored in
+ * the files defined by the environment variables PASTIX_MODELS_CPU and
+ * PASTIX_MODELS_GPU. If they are not defined, models are initialized with the
+ * embedded default models.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix_data structure in which to store the CPU and GPU models.
+ *
+ *******************************************************************************/
 void
-modelsLoad( pastix_data_t *pastix_data )
+pastixModelsLoad( pastix_data_t *pastix_data )
 {
     char *filename = NULL;
     int rc = 0;
