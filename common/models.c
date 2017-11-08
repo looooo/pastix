@@ -495,10 +495,12 @@ pastixModelsNew()
 void
 pastixModelsFree( pastix_model_t *model )
 {
-    if ( model->name != NULL ) {
-        free(model->name);
+    if ( model != NULL ) {
+        if ( model->name != NULL ) {
+            free(model->name);
+        }
+        free(model);
     }
-    free(model->name);
 }
 
 /**
