@@ -247,9 +247,8 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
             if ((hashsiz * (pastix_int_t)sizeof(pastix_int_t)) > sortoft) {  /* Compute offset of sort area */
                 sortoft = (hashsiz * sizeof (pastix_int_t));
             }
-            tlokmax ++; /* TODO: Make sure this line fix the issue #39 with MaPHyS */
-            tlokoft = sortoft + degrsum * sizeof (pastix_int_t); /* Compute offset of temporary block area */
-            tlndoft = tlokoft + tlokmax * sizeof (SymbolFaxTlok); /* Compute end of area          */
+            tlokoft = sortoft +  degrsum    * sizeof (pastix_int_t); /* Compute offset of temporary block area */
+            tlndoft = tlokoft + (tlokmax+1) * sizeof (SymbolFaxTlok); /* Compute end of area          */
 
             if (((char *) (bloktax + bloknum) + tlndoft) > /* If not enough room */
                 ((char *) (bloktax + blokmax)))
@@ -401,10 +400,9 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
             tloktab[tloknum].nextnum = 0;               /* Set end of chain (never chain to diagonal block) */
 
             tlokfre = ++ tloknum;                       /* Build free chain for possible contributing blocks */
-            for ( ; tloknum < tlokfre + ctrbsum; tloknum = tloknum + 1)
+            for ( ; tloknum < tlokmax; tloknum = tloknum + 1)
             {
                 tloktab[tloknum].nextnum = tloknum + 1;
-                assert( tloknum < tlokmax );
             }
             tloktab[tloknum].nextnum = ~0;              /* Set end of free chain */
 
