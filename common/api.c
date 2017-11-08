@@ -628,7 +628,12 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     pastix->bcsc       = NULL;
     pastix->solvmatr   = NULL;
 
+    pastix->cpu_models = NULL;
+    pastix->gpu_models = NULL;
+
     pastix->dirtemp    = NULL;
+
+    modelsLoad( pastix );
 
     /* DIRTY Initialization for Scotch */
     srand(1);
@@ -637,8 +642,9 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     /* On Mac set VECLIB_MAXIMUM_THREADS if not setted */
     setenv("VECLIB_MAXIMUM_THREADS", "1", 0);
 
-    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
+    if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
         pastixWelcome( pastix );
+    }
 
     /* Initialization step done, overwrite anything done before */
     pastix->steps = STEP_INIT;

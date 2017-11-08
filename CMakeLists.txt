@@ -645,6 +645,7 @@ set(PASTIX_LIB_SRCS
   blend/extracblk.c
   blend/propmap.c
   blend/queue.c
+  blend/models.c
   blend/simu.c
   blend/simu_run.c
   blend/simu_task.c
