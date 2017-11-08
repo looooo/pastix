@@ -25,6 +25,7 @@
 #include "isched.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "models.h"
 #if defined(PASTIX_WITH_PARSEC)
 #include "sopalin/parsec/pastix_parsec.h"
 #endif
@@ -633,7 +634,7 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
 
     pastix->dirtemp    = NULL;
 
-    modelsLoad( pastix );
+    pastixModelsLoad( pastix );
 
     /* DIRTY Initialization for Scotch */
     srand(1);
