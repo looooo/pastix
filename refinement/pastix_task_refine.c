@@ -43,19 +43,19 @@ static void (*sopalinRefine[4][4])(pastix_data_t *pastix_data, void *x, void *b)
         c_gmres_smp,
         z_gmres_smp
     },
-    //  PastixRefineSR
-    {
-        s_pivot_smp,
-        d_pivot_smp,
-        c_pivot_smp,
-        z_pivot_smp
-    },
     //  PastixRefineCG
     {
         s_grad_smp,
         d_grad_smp,
         c_grad_smp,
         z_grad_smp
+    },
+    //  PastixRefineSR
+    {
+        s_pivot_smp,
+        d_pivot_smp,
+        c_pivot_smp,
+        z_pivot_smp
     },
     //  PastixRefineBiCGSTAB
     {
