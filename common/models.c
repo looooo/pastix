@@ -62,58 +62,6 @@ modelsGetKernelId( const char *kernelstr,
  *
  * @ingroup pastix_internal
  *
- * @brief Create a new model data structure and initialize the values to their
- * default.
- *
- *******************************************************************************
- *
- * @return The pointer to the allocated and initialized data structure.
- *
- *******************************************************************************/
-pastix_model_t *
-modelsNew()
-{
-    pastix_model_t *model = malloc(sizeof(pastix_model_t));
-
-    int a, k;
-
-    memset( model, 0, sizeof( pastix_model_t ) );
-
-    for(a=0; a<4; a++) {
-        for(k=0; k<PastixKernelLvl1Nbr; k++) {
-            model->coefficients[a][k][0] = 0xdeadbeef;
-        }
-    }
-    return model;
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_internal
- *
- * @brief Free a model data structure.
- *
- *******************************************************************************
- *
- * @param[inout] model
- *          The model structure to free.
- *
- *******************************************************************************/
-void
-modelsFree( pastix_model_t *model )
-{
-    if ( model->name != NULL ) {
-        free(model->name);
-    }
-    free(model->name);
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_internal
- *
  * @brief Propagate a given model to all other similare cases to be sure
  * everything is initialized.
  *
@@ -506,6 +454,58 @@ modelsInitDefaultGPU( pastix_model_t *model )
  *
  * @ingroup pastix_api
  *
+ * @brief Create a new model data structure and initialize the values to their
+ * default.
+ *
+ *******************************************************************************
+ *
+ * @return The pointer to the allocated and initialized data structure.
+ *
+ *******************************************************************************/
+pastix_model_t *
+pastixModelsNew()
+{
+    pastix_model_t *model = malloc(sizeof(pastix_model_t));
+
+    int a, k;
+
+    memset( model, 0, sizeof( pastix_model_t ) );
+
+    for(a=0; a<4; a++) {
+        for(k=0; k<PastixKernelLvl1Nbr; k++) {
+            model->coefficients[a][k][0] = 0xdeadbeef;
+        }
+    }
+    return model;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_api
+ *
+ * @brief Free a model data structure.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] model
+ *          The model structure to free.
+ *
+ *******************************************************************************/
+void
+pastixModelsFree( pastix_model_t *model )
+{
+    if ( model->name != NULL ) {
+        free(model->name);
+    }
+    free(model->name);
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_api
+ *
  * @brief Load the performance models that will be used by the solver
  *
  * This function initializes the model coefficients with the values stored in
@@ -528,7 +528,7 @@ pastixModelsLoad( pastix_data_t *pastix_data )
     /*
      * Get the model filename for the CPUs
      */
-    pastix_data->cpu_models = modelsNew();
+    pastix_data->cpu_models = pastixModelsNew();
     filename = pastix_getenv( "PASTIX_MODELS_CPU" );
 
     if ( filename == NULL ) {
@@ -540,13 +540,14 @@ pastixModelsLoad( pastix_data_t *pastix_data )
         pastix_cleanenv( filename );
     }
     if ( rc == -1 ) {
-        modelsFree( pastix_data->cpu_models );
+        pastixModelsFree( pastix_data->cpu_models );
+        pastix_data->cpu_models = NULL;
     }
 
     /*
      * Get the model filename for the GPUs
      */
-    pastix_data->gpu_models = modelsNew();
+    pastix_data->gpu_models = pastixModelsNew();
     filename = pastix_getenv( "PASTIX_MODELS_GPU" );
 
     if ( filename == NULL ) {
@@ -558,6 +559,7 @@ pastixModelsLoad( pastix_data_t *pastix_data )
         pastix_cleanenv( filename );
     }
     if ( rc == -1 ) {
-        modelsFree( pastix_data->gpu_models );
+        pastixModelsFree( pastix_data->gpu_models );
+        pastix_data->gpu_models = NULL;
     }
 }

@@ -757,6 +757,15 @@ pastixFinalize( pastix_data_t **pastix_data )
     }
 #endif
 
+    if ( pastix->cpu_models != NULL ) {
+        pastixModelsFree( pastix->cpu_models );
+        pastix->cpu_models = NULL;
+    }
+    if ( pastix->gpu_models != NULL ) {
+        pastixModelsFree( pastix->gpu_models );
+        pastix->gpu_models = NULL;
+    }
+
     if ( pastix->dirtemp != NULL ) {
         free( pastix->dirtemp );
     }
