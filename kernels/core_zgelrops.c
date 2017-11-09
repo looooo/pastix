@@ -22,7 +22,6 @@
 #include "kernels_trace.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-static pastix_complex64_t mzone = -1.0;
 static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
@@ -429,8 +428,10 @@ core_zlrmm( const pastix_lr_t *lowrank,
                                       const pastix_lrblock_t *B,
             pastix_complex64_t beta,        pastix_lrblock_t *C,
             pastix_complex64_t *work, pastix_int_t ldwork,
-            SolverCblk *fcblk )
+            pastix_atomic_lock_t *lock )
 {
+    core_zlrmm_t params;
+
     assert(transA == PastixNoTrans);
     assert(transB != PastixNoTrans);
     assert( A->rk <= A->rkmax);
@@ -441,6 +442,31 @@ core_zlrmm( const pastix_lr_t *lowrank,
     if ( A->rk == 0 || B->rk == 0 ) {
         return;
     }
+
+    params.lowrank = lowrank;
+    params.transA  = transA;
+    params.transB  = transB;
+    params.M       = M;
+    params.N       = N;
+    params.K       = K;
+    params.Cm      = Cm;
+    params.Cn      = Cn;
+    params.offx    = offx;
+    params.offy    = offy;
+    params.alpha   = alpha;
+    params.A       = A;
+    params.B       = B;
+    params.beta    = beta;
+    params.C       = C;
+    if ( ldwork == -1 ) {
+        params.work  = malloc( M * N * sizeof(pastix_complex64_t) );
+        params.lwork = M * N;
+    }
+    else {
+        params.work  = work;
+        params.lwork = ldwork;
+    }
+    params.lock    = lock;
 
     if ( C->rk == 0 ) {
         /* pastix_cblk_lock( fcblk ); */
@@ -456,33 +482,33 @@ core_zlrmm( const pastix_lr_t *lowrank,
                           M, N, K, Cm, Cn, offx, offy,
                           alpha, A, B,
                           beta, C,
-                          work, ldwork, fcblk );
+                          work, ldwork, lock );
     }
     else if ( C->rk == -1 ) {
-        core_zlrmm_Cfr( lowrank, transA, transB,
-                        M, N, K, Cm, Cn, offx, offy,
-                        alpha, A, B,
-                        beta, C,
-                        work, ldwork, fcblk );
+        core_zlrmm_Cfr( &params );
     }
     else {
         core_zlrmm_Clr( lowrank, transA, transB,
                         M, N, K, Cm, Cn, offx, offy,
                         alpha, A, B,
                         beta, C,
-                        work, ldwork, fcblk );
+                        work, ldwork, lock );
     }
 
 #if defined(PASTIX_DEBUG_LR)
-    pastix_cblk_lock( fcblk );
+    pastix_atomic_lock( lock );
     if ( (C->rk > 0) && (lowrank->compress_method == PastixCompressMethodRRQR) ) {
         int rc = core_zlr_check_orthogonality( Cm, C->rk, (pastix_complex64_t*)C->u, Cm );
         if (rc == 1) {
             fprintf(stderr, "Failed to have u orthogonal in exit of lrmm\n" );
         }
     }
-    pastix_cblk_unlock( fcblk );
+    pastix_atomic_unlock( lock );
 #endif
+
+    if ( ldwork == -1 ) {
+        free(params.work);
+    }
 }
 
 /**

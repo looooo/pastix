@@ -24,7 +24,6 @@
 #include "kernels_trace.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-static pastix_complex64_t mzone = -1.0;
 static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
@@ -355,7 +354,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                                             const pastix_lrblock_t *B,
                   pastix_complex64_t beta,        pastix_lrblock_t *C,
                   pastix_complex64_t *work, pastix_int_t lwork,
-                  SolverCblk *fcblk )
+                  pastix_atomic_lock_t *lock )
 {
     pastix_lrblock_t AB;
     pastix_trans_t transV = PastixNoTrans;
@@ -424,7 +423,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
         pastix_int_t ldabu = M;
         pastix_int_t ldabv = (transV == PastixNoTrans) ? AB.rkmax : N;
 
-        pastix_cblk_lock( fcblk );
+        pastix_atomic_lock( lock );
 
         /* C->rk has changed in parallel */
         /* Todo: find a suitable name to trace this kind of kernel.. */
@@ -563,7 +562,7 @@ core_zlrmm_Cnull( const pastix_lr_t *lowrank,
                 }
             }
         }
-        pastix_cblk_unlock( fcblk );
+        pastix_atomic_unlock( lock );
     }
 
     /* Free memory from zlrm3 */

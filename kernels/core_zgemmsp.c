@@ -769,7 +769,7 @@ core_zgemmsp_2dlrsub( pastix_coefside_t  sideA,
                         -1.0, lrA, lrB,
                          1.0, lrC,
                         NULL, -1,
-                        fcblk );
+                        &(fcblk->lock) );
         }
     }
 
@@ -903,7 +903,7 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
                     -1.0, &lrA, &lrB,
                      1.0, lrC,
                     work, -1,
-                    fcblk );
+                    &(fcblk->lock) );
         /* pastix_cblk_unlock( fcblk ); */
     }
 }
@@ -1022,7 +1022,7 @@ core_zgemmsp_lr( pastix_coefside_t         sideA,
                     -1.0, lrA, lrB,
                     1.0, fblok->LRblock + shift,
                     work, -1,
-                    fcblk );
+                    &(fcblk->lock) );
     }
 }
 

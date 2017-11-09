@@ -509,7 +509,7 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
                                           const pastix_lrblock_t *B,
                 pastix_complex64_t beta,        pastix_lrblock_t *C,
                 pastix_complex64_t *work, pastix_int_t lwork,
-                SolverCblk *fcblk )
+                pastix_atomic_lock_t *lock )
 {
     pastix_lrblock_t AB;
     pastix_trans_t transV = PastixNoTrans;
@@ -571,7 +571,7 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
     }
 
     if ( AB.rk != 0 ) {
-        pastix_cblk_lock( fcblk );
+        pastix_atomic_lock( lock );
 
         /* C->rk has changed in parallel */
         /* Todo: find a suitable name to trace this kind of kernel.. */
@@ -652,7 +652,7 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
                                      offx, offy );
             }
         }
-        pastix_cblk_unlock( fcblk );
+        pastix_atomic_unlock( lock );
     }
 
     /* Free memory from zlrm3 */
