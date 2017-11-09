@@ -746,6 +746,10 @@ solverMatrixGen( pastix_int_t           clustnum,
                          (long)gemmmax, (long)maxg_m, (long)maxg_n );
         }
 #endif
+        (void)maxo_m;
+        (void)maxo_n;
+        (void)maxg_m;
+        (void)maxg_n;
     }
 
     memFree_null(cblklocalnum);

@@ -156,6 +156,8 @@ spmUpdateComputedFields( pastix_spm_t *spm )
             colptr = spm->rowptr;
             rowptr = spm->colptr;
 
+            pastix_attr_fallthrough;
+
         case PastixCSC:
             for(j=0; j<spm->n; j++, colptr++) {
                 dofj = dofptr[j+1] - dofptr[j];

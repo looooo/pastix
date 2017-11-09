@@ -53,6 +53,8 @@ z_spmDofExtend(pastix_spm_t *spm)
         colptr = spm->rowptr;
         rowptr = spm->colptr;
 
+        pastix_attr_fallthrough;
+
     case PastixCSC:
         /**
          * Loop on col

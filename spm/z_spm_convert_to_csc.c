@@ -172,6 +172,7 @@ z_spmConvertCSR2CSC( pastix_spm_t *spm )
             }
         }
     }
+    pastix_attr_fallthrough;
 #endif
     case PastixSymmetric:
     {

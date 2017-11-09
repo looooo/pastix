@@ -127,6 +127,24 @@ foreach( ITEM ${TMP_LIST})
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ITEM}")
 endforeach()
 
+# Check for attribute fallthrough
+# -------------------------------
+check_c_source_compiles("
+#include <stdarg.h>
+int main(void) {
+  int a = 2;
+  switch( a ){
+  case 0:
+     __attribute__((fallthrough));
+  default:
+      ;
+  }
+  return 0;
+}
+"
+  HAVE_FALLTHROUGH
+  )
+
 # Check for Thread library
 # ------------------------
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
