@@ -221,8 +221,8 @@ static inline void s_spmPrintElt( FILE *f, pastix_int_t i, pastix_int_t j, float
  *
  * @remark: uses a macro to avoid accessing A that would generate segfault.
  */
-#define p_spmPrintElt( f, i, j, A ) {                   \
-        fprintf( f, "%ld %ld\n", (long)i, (long)j );    \
+#define p_spmPrintElt( f, i, j, A ) {                           \
+        fprintf( f, "%ld %ld\n", (long)(i), (long)(j) );        \
     }
 
 /**

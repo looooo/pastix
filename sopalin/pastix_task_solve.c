@@ -381,6 +381,8 @@ pastix_task_solve( pastix_data_t *pastix_data,
         case PastixFactLLH:
             trans = PastixConjTrans;
 
+            pastix_attr_fallthrough;
+
         case PastixFactLLT:
             dump_rhs( "AfterPerm", bcsc->gN, b );
 
@@ -401,6 +403,8 @@ pastix_task_solve( pastix_data_t *pastix_data,
 
         case PastixFactLDLH:
             trans = PastixConjTrans;
+
+            pastix_attr_fallthrough;
 
         case PastixFactLDLT:
             dump_rhs( "AfterPerm", bcsc->gN, b );

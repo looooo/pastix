@@ -360,6 +360,8 @@ void z_Pastix_Precond( pastix_data_t *pastix_data, pastix_complex64_t *s, pastix
         switch ( pastix_data->iparm[IPARM_FACTORIZATION] ){
         case PastixFactLLH:
             trans = PastixConjTrans;
+            pastix_attr_fallthrough;
+
         case PastixFactLLT:
             sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
                            PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, bptr, n );
@@ -369,6 +371,8 @@ void z_Pastix_Precond( pastix_data_t *pastix_data, pastix_complex64_t *s, pastix
 
         case PastixFactLDLH:
             trans = PastixConjTrans;
+            pastix_attr_fallthrough;
+
         case PastixFactLDLT:
             sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
                            PastixNoTrans, PastixUnit, &sopalin_data, nrhs, bptr, n );

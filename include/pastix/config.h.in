@@ -52,6 +52,7 @@
 #cmakedefine HAVE_LIMITS_H
 #cmakedefine HAVE_STRING_H
 #cmakedefine HAVE_COMPLEX_H
+#cmakedefine HAVE_FALLTHROUGH
 
 /* Architecture */
 #cmakedefine PASTIX_ARCH_X86
@@ -127,6 +128,12 @@
 
 #if defined(PASTIX_ORDERING_PTSCOTCH)
 #define HAVE_PTSCOTCH
+#endif
+
+#if defined(HAVE_FALLTHROUGH)
+#define pastix_attr_fallthrough __attribute__((fallthrough))
+#else
+#define pastix_attr_fallthrough do {} while(0)
 #endif
 
 /*

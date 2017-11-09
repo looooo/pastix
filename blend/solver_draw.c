@@ -115,12 +115,6 @@ solverDraw ( const SolverMatrix * const  solvptr,
 
         for (; blok<lblok; blok++)
         {
-            float colbval[3]; /* Color of off-diagonal block */
-            coloval[0] = colbval[0]; /* Save new color data */
-            coloval[1] = colbval[1];
-            coloval[2] = colbval[2];
-
-
             if ( !(cblk->cblktype & CBLK_COMPRESSED) ) {
                 fprintf (stream, "%.2g %.2g %.2g r \n",
                          0.5, 0.5, 0.5);

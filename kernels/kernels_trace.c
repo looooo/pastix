@@ -180,25 +180,26 @@ kernelsTraceStop( const pastix_data_t *pastix_data )
 
         for(i=0; i <= model_entries_nbr; i++, entry++ ) {
             switch( entry->ktype ) {
-            case PastixKernelGETRF:
-            case PastixKernelHETRF:
-            case PastixKernelPOTRF:
-            case PastixKernelPXTRF:
-            case PastixKernelSYTRF:
-            case PastixKernelSCALOCblk:
-            case PastixKernelSCALOBlok:
-            case PastixKernelTRSMCblk1d:
-            case PastixKernelTRSMCblk2d:
-            case PastixKernelTRSMCblkLR:
-            case PastixKernelTRSMBlokLR:
-            case PastixKernelGEMMCblk1d1d:
-            case PastixKernelGEMMCblkFRLR:
-            case PastixKernelGEMMCblkLRLR:
+            case PastixKernelGETRF:        pastix_attr_fallthrough;
+            case PastixKernelHETRF:        pastix_attr_fallthrough;
+            case PastixKernelPOTRF:        pastix_attr_fallthrough;
+            case PastixKernelPXTRF:        pastix_attr_fallthrough;
+            case PastixKernelSYTRF:        pastix_attr_fallthrough;
+            case PastixKernelSCALOCblk:    pastix_attr_fallthrough;
+            case PastixKernelSCALOBlok:    pastix_attr_fallthrough;
+            case PastixKernelTRSMCblk1d:   pastix_attr_fallthrough;
+            case PastixKernelTRSMCblk2d:   pastix_attr_fallthrough;
+            case PastixKernelTRSMCblkLR:   pastix_attr_fallthrough;
+            case PastixKernelTRSMBlokLR:   pastix_attr_fallthrough;
+            case PastixKernelGEMMCblk1d1d: pastix_attr_fallthrough;
+            case PastixKernelGEMMCblkFRLR: pastix_attr_fallthrough;
+            case PastixKernelGEMMCblkLRLR: pastix_attr_fallthrough;
             case PastixKernelGEMMBlokLRLR:
                 if ( gpucase ) {
                     continue;
                 }
 
+                pastix_attr_fallthrough;
             default:
                 fprintf( f, "%d;%d;%d;%d;%e\n",
                          entry->ktype, entry->m, entry->n, entry->k, entry->time );

@@ -59,6 +59,8 @@ spm_compute_degrees( const pastix_spm_t *spm,
         colptr = spm->rowptr;
         rowptr = spm->colptr;
 
+        pastix_attr_fallthrough;
+
     case PastixCSC:
         for(j=0; j<spm->n; j++, colptr++) {
             for(k=colptr[0]; k<colptr[1]; k++, rowptr++) {
@@ -141,6 +143,8 @@ spm_add_diag( pastix_spm_t *spm,
         oldcol = spm->rowptr;
         oldrow = spm->colptr;
         spm->colptr = newrow;
+
+        pastix_attr_fallthrough;
 
     case PastixCSC:
         newcol = oldcol;
@@ -251,6 +255,8 @@ spm_generate_fake_values( pastix_spm_t *spm,
         /* Swap pointers to call CSC */
         colptr = spm->rowptr;
         rowptr = spm->colptr;
+
+        pastix_attr_fallthrough;
 
     case PastixCSC:
         for(j=0; j<spm->n; j++, colptr++) {
