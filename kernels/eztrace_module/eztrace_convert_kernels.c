@@ -617,6 +617,7 @@ print_kernels_stats()
      */
     if ( final.nb > 0 ) {
         print_kernel_stats("Summary", &final, NULL );
+        printf("\n");
         printf( "      %-23s | %8s | %8s | %8s |\n",
                 "", "Calls", "Flops", "Time" );
         for (k=0; k<PastixKernelsNbr; k++)
