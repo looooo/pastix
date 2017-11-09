@@ -135,10 +135,12 @@ typedef enum counter_e {
  * compute statistics.
  */
 typedef struct kernels_info_s {
-    int    nb;      /**< Number of calls to the kernel       */
-    double flop[4]; /**< Flops counters for statistics       */
-    double time[4]; /**< Timing counters for statistics      */
-    double perf[4]; /**< Performance counters for statistics */
+    int    nb;          /**< Number of calls to the kernel       */
+    int    uselessnb;   /**< Number of useless compression calls */
+    double uselesstime; /**< Number of useless compression calls */
+    double flop[4];     /**< Flops counters for statistics       */
+    double time[4];     /**< Timing counters for statistics      */
+    double perf[4];     /**< Performance counters for statistics */
 } kernels_info_t;
 
 /**
@@ -299,13 +301,30 @@ handle_stop( int stats )
 
     if (stats == 1)
     {
-        kernels_info_t *kernel = p_info->kernels + p_info->current_ev;
+        int eventid = p_info->current_ev;
+        int shift = PastixKernelLvl0Nbr + PastixKernelLvl1Nbr;
+        kernels_info_t *kernel = p_info->kernels + eventid;
         double flop, time, perf;
 
-        assert( p_info->current_ev >= 0 );
+        assert( eventid >= 0 );
         p_info->current_ev = -1;
 
-        GET_PARAM_PACKED_1(CUR_EV, flop);
+        eventid -= shift;
+        if ( (eventid == PastixKernelLvl2_LR_init_compress)    ||
+             (eventid == PastixKernelLvl2_LR_add2C_recompress) ||
+             (eventid == PastixKernelLvl2_LR_add2C_rradd_recompression) )
+        {
+            int rank;
+            GET_PARAM_PACKED_2(CUR_EV, flop, rank);
+            if ( rank == -1 ) {
+                kernel->uselessnb ++;
+                kernel->uselesstime += CURRENT - p_info->time_start;
+            }
+        }
+        else
+        {
+            GET_PARAM_PACKED_1(CUR_EV, flop);
+        }
         flop = flop * 1.e-9;
         kernel->flop[CounterMin ]  = kernels_dmin( kernel->flop[CounterMin], flop );
         kernel->flop[CounterMax ]  = kernels_dmax( kernel->flop[CounterMax], flop );
@@ -455,6 +474,8 @@ print_kernel_stats( const char           *title,
 
     if ( acc != NULL ) {
         acc->nb += kernel->nb;
+        acc->uselessnb   += kernel->uselessnb;
+        acc->uselesstime += kernel->uselesstime;
 
         acc->flop[CounterMin ]  = kernels_dmin( acc->flop[CounterMin], kernel->flop[CounterMin] );
         acc->flop[CounterMax ]  = kernels_dmax( acc->flop[CounterMax], kernel->flop[CounterMax] );
@@ -531,7 +552,7 @@ print_kernels_stats()
                         printf( "         %20s | Nb calls | %-50s | %-50s | %-37s |\n"
                                 "         %20s |          | %12s %8s %8s %8s %10s |"
                                 " %12s %8s %8s %8s %10s | %8s %8s %8s %10s |\n",
-                                "", "Number of flop (GFlop)", "Timing (s)", "Performance (GFlop/s)",
+                                "", "Number of flop (GFlop)", "Timing (ms)", "Performance (GFlop/s)",
                                 "", "total", "min", "max", "avg", "sd",
                                     "total", "min", "max", "avg", "sd",
                                              "min", "max", "avg", "sd" );
@@ -573,11 +594,41 @@ print_kernels_stats()
         printf("\n");
     }
 
+    thread_header = 1;
+    for (k=0; k<PastixKernelsNbr; k++)
+    {
+        if ( total[k].uselessnb > 0 ) {
+            if ( thread_header ) {
+                printf( "  %-27s |\n", "Useless calls" );
+                thread_header = 0;
+            }
+
+            printf( "      %-23s | %8d | %e (%8.3g %%) |\n",
+                    kernels_properties[k].name, total[k].uselessnb,
+                    total[k].uselesstime, (total[k].uselesstime / final.time[CounterSum]) * 100. );
+        }
+    }
+    if ( !thread_header ) {
+        printf("\n");
+    }
+
     /*
      * Print final summary
      */
     if ( final.nb > 0 ) {
-        print_kernel_stats("summary", &final, NULL );
+        print_kernel_stats("Summary", &final, NULL );
+        printf( "      %-23s | %8s | %8s | %8s |\n",
+                "", "Calls", "Flops", "Time" );
+        for (k=0; k<PastixKernelsNbr; k++)
+        {
+            if ( total[k].nb > 0 ) {
+                printf( "      %-23s | %6.2g %% | %6.2g %% | %6.2g %% |\n",
+                        kernels_properties[k].name,
+                        ((double)total[k].nb / (double)final.nb) * 100.,
+                        (total[k].flop[CounterSum] / final.flop[CounterSum]) * 100.,
+                        (total[k].time[CounterSum] / final.time[CounterSum]) * 100. );
+            }
+        }
     }
 }
 

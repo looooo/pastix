@@ -641,7 +641,7 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
                 /* Try to recompress */
                 kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_recompress );
                 flops = lowrank->core_ge2lr( tol, -1, Cm, Cn, Cfr, Cm, C );
-                kernel_trace_stop_lvl2( flops );
+                kernel_trace_stop_lvl2_extra( flops, C->rk );
 
                 free(Cfr);
             }

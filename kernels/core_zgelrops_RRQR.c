@@ -1122,7 +1122,6 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
         pastix_fixdbl_t flops;
 
         kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_rradd_orthogonalize );
-
 #define LRORTHOU_CGS
 #if defined(LRORTHOU_FULLQR)
         flops = core_zlrorthu_fullqr( M, N, B->rk, &rankA, offx, offy,
@@ -1168,9 +1167,9 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
                           zwork, ldwork,
                           rwork,
                           tol * norm, nb, rank-1);
-    kernel_trace_stop_lvl2( (new_rank == -1) ? FLOPS_ZGEQRF( rank, N ) :
-                             FLOPS_ZGEQRF( rank, new_rank ) +
-                             FLOPS_ZUNMQR( rank, N-new_rank, new_rank, PastixLeft ) );
+    kernel_trace_stop_lvl2_extra( (new_rank == -1) ? FLOPS_ZGEQRF( rank, N ) :
+                                  FLOPS_ZGEQRF( rank, new_rank ) +
+                                  FLOPS_ZUNMQR( rank, N-new_rank, new_rank, PastixLeft ), new_rank );
 
     /*
      * First case: The rank is too big, so we decide to uncompress the result
