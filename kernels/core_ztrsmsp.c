@@ -261,7 +261,7 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                 kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
                 flops = lowrank->core_ge2lr( lowrank->tolerance, -1,
                                              M, N, lrC->u, M, &C );
-                kernel_trace_stop_lvl2_extra( flops, C.rk );
+                kernel_trace_stop_lvl2_rank( flops, C.rk );
 
                 core_zlrfree(lrC);
                 memcpy( lrC, &C, sizeof(pastix_lrblock_t) );
@@ -571,7 +571,7 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
                 kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
                 flops = lowrank->core_ge2lr( lowrank->tolerance, -1,
                                              M, N, lrC->u, M, &C );
-                kernel_trace_stop_lvl2_extra( flops, C.rk );
+                kernel_trace_stop_lvl2_rank( flops, C.rk );
 
                 core_zlrfree(lrC);
                 lrC->u = C.u;

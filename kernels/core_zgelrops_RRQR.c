@@ -1167,7 +1167,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
                           zwork, ldwork,
                           rwork,
                           tol * norm, nb, rank-1);
-    kernel_trace_stop_lvl2_extra( (new_rank == -1) ? FLOPS_ZGEQRF( rank, N ) :
+    kernel_trace_stop_lvl2_rank( (new_rank == -1) ? FLOPS_ZGEQRF( rank, N ) :
                                   FLOPS_ZGEQRF( rank, new_rank ) +
                                   FLOPS_ZUNMQR( rank, N-new_rank, new_rank, PastixLeft ), new_rank );
 
