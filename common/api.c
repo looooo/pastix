@@ -440,9 +440,10 @@ apiInitMPI( pastix_data_t *pastix,
      * Setup all communicators for autosplitmode and initialize number/rank of
      * processes.
      */
-    pastix->pastix_comm = comm;
-    MPI_Comm_size(comm, &(pastix->procnbr));
-    MPI_Comm_rank(comm, &(pastix->procnum));
+    pastix->pastix_comm = MPI_COMM_SELF; /* MPI is not available yet */
+    MPI_Comm_size(pastix->pastix_comm, &(pastix->procnbr));
+    MPI_Comm_rank(pastix->pastix_comm, &(pastix->procnum));
+    assert(pastix->procnbr==1); /* MPI is not available yet */
 
 #if defined(PASTIX_WITH_MPI)
     if ( autosplit )
@@ -470,12 +471,12 @@ apiInitMPI( pastix_data_t *pastix,
         }
 
         /* Create intra-node communicator */
-        MPI_Comm_split(comm, color, key, &(pastix->intra_node_comm));
+        MPI_Comm_split(pastix->pastix_comm, color, key, &(pastix->intra_node_comm));
         MPI_Comm_size(pastix->intra_node_comm, &(pastix->intra_node_procnbr));
         MPI_Comm_rank(pastix->intra_node_comm, &(pastix->intra_node_procnum));
 
         /* Create inter-node communicator */
-        MPI_Comm_split(comm, pastix->intra_node_procnum, key, &(pastix->inter_node_comm));
+        MPI_Comm_split(pastix->pastix_comm, pastix->intra_node_procnum, key, &(pastix->inter_node_comm));
         MPI_Comm_size(pastix->inter_node_comm, &(pastix->inter_node_procnbr));
         MPI_Comm_rank(pastix->inter_node_comm, &(pastix->inter_node_procnum));
     }
@@ -485,11 +486,12 @@ apiInitMPI( pastix_data_t *pastix,
         pastix->intra_node_comm    = MPI_COMM_SELF;
         pastix->intra_node_procnbr = 1;
         pastix->intra_node_procnum = 0;
-        pastix->inter_node_comm    = comm;
+        pastix->inter_node_comm    = pastix->pastix_comm;
         pastix->inter_node_procnbr = pastix->procnbr;
         pastix->inter_node_procnum = pastix->procnum;
     }
     (void)autosplit;
+    (void)comm;
 }
 
 /**
