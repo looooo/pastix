@@ -660,6 +660,7 @@ set(PASTIX_LIB_SRCS
   common/api.c
   common/integer.c
   common/isched.c
+  common/models.c
 #  common/memory.c
   common/get_options.c
 #  common/trace.c
@@ -809,6 +810,7 @@ add_documented_files(
   include/pastix/api.h
   common/api.c
   common/get_options.c
+  common/models.c
   #
   graph/graph.h
   graph/graph.c

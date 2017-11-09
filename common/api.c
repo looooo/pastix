@@ -25,6 +25,7 @@
 #include "isched.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "models.h"
 #if defined(PASTIX_WITH_PARSEC)
 #include "sopalin/parsec/pastix_parsec.h"
 #endif
@@ -628,7 +629,12 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     pastix->bcsc       = NULL;
     pastix->solvmatr   = NULL;
 
+    pastix->cpu_models = NULL;
+    pastix->gpu_models = NULL;
+
     pastix->dirtemp    = NULL;
+
+    pastixModelsLoad( pastix );
 
     /* DIRTY Initialization for Scotch */
     srand(1);
@@ -637,8 +643,9 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     /* On Mac set VECLIB_MAXIMUM_THREADS if not setted */
     setenv("VECLIB_MAXIMUM_THREADS", "1", 0);
 
-    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
+    if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
         pastixWelcome( pastix );
+    }
 
     /* Initialization step done, overwrite anything done before */
     pastix->steps = STEP_INIT;
@@ -750,6 +757,15 @@ pastixFinalize( pastix_data_t **pastix_data )
         MPI_Finalize();
     }
 #endif
+
+    if ( pastix->cpu_models != NULL ) {
+        pastixModelsFree( pastix->cpu_models );
+        pastix->cpu_models = NULL;
+    }
+    if ( pastix->gpu_models != NULL ) {
+        pastixModelsFree( pastix->gpu_models );
+        pastix->gpu_models = NULL;
+    }
 
     if ( pastix->dirtemp != NULL ) {
         free( pastix->dirtemp );
