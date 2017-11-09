@@ -59,12 +59,10 @@ core_zfrfr2lr( core_zlrmm_t     *params,
          * Let's compute the product to form a full-rank matrix of rank
          * pastix_imin( M, N )
          */
+        work = core_zlrmm_resize_ws( params, M * N );
+
         AB->rk = -1;
         AB->rkmax = M;
-        if ( lwork < M * N ) {
-            work = malloc( M * N * sizeof(pastix_complex64_t) );
-            *infomask |= PASTIX_LRM3_ALLOCU;
-        }
         AB->u = work;
         AB->v = NULL;
 
@@ -111,10 +109,7 @@ core_zfrlr2lr( core_zlrmm_t     *params,
         AB->v     = NULL;
 
         if ( flops1 <= flops2 ) {
-            if ( lwork < ( M * B->rk + M * N ) ) {
-                work = malloc( (M * B->rk + M * N ) * sizeof(pastix_complex64_t) );
-                *infomask |= PASTIX_LRM3_ALLOCU;
-            }
+            work = core_zlrmm_resize_ws( params, M * B->rk + M * N );
 
             /* AB->u will be destroyed later */
             AB->u = work;
@@ -138,10 +133,7 @@ core_zfrlr2lr( core_zlrmm_t     *params,
             flops = flops1;
         }
         else {
-            if ( lwork < ( K * N + M * N ) ) {
-                work = malloc( (K * N + M * N) * sizeof(pastix_complex64_t) );
-                *infomask |= PASTIX_LRM3_ALLOCU;
-            }
+            work = core_zlrmm_resize_ws( params, K * N + M * N );
 
             /* AB->u will be destroyed later */
             AB->u = work;
@@ -174,10 +166,7 @@ core_zfrlr2lr( core_zlrmm_t     *params,
         AB->v     = B->u;
         *infomask |= PASTIX_LRM3_TRANSB;
 
-        if ( lwork < ( M * B->rk ) ) {
-            work = malloc( M * B->rk * sizeof(pastix_complex64_t) );
-            *infomask |= PASTIX_LRM3_ALLOCU;
-        }
+        work = core_zlrmm_resize_ws( params, M * B->rk );
         AB->u = work;
 
         cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
@@ -223,10 +212,7 @@ core_zlrfr2lr( core_zlrmm_t     *params,
         AB->v     = NULL;
 
         if ( flops1 <= flops2 ) {
-            if ( lwork < (A->rk * N + M * N) ) {
-                work = malloc( (A->rk * N + M * N) * sizeof(pastix_complex64_t) );
-                *infomask |= PASTIX_LRM3_ALLOCU;
-            }
+            work = core_zlrmm_resize_ws( params, A->rk * N + M * N );
 
             /* AB->u will be destroyed later */
             AB->u = work;
@@ -250,10 +236,7 @@ core_zlrfr2lr( core_zlrmm_t     *params,
             flops = flops1;
         }
         else {
-            if ( lwork < (M * K + M * N) ) {
-                work = malloc( (M * K + M * N) * sizeof(pastix_complex64_t) );
-                *infomask |= PASTIX_LRM3_ALLOCU;
-            }
+            work = core_zlrmm_resize_ws( params, M * K + M * N );
 
             /* AB->u will be destroyed later */
             AB->u = work;
@@ -285,10 +268,7 @@ core_zlrfr2lr( core_zlrmm_t     *params,
         AB->rkmax = A->rk;
         AB->u     = A->u;
 
-        if ( lwork < ( A->rk * N ) ) {
-            work = malloc( A->rk * N * sizeof(pastix_complex64_t) );
-            *infomask |= PASTIX_LRM3_ALLOCV;
-        }
+        work = core_zlrmm_resize_ws( params, A->rk * N );
         AB->v = work;
 
         cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transB,
@@ -301,6 +281,7 @@ core_zlrfr2lr( core_zlrmm_t     *params,
     }
 
     PASTE_CORE_ZLRMM_VOID;
+    (void)infomask;
     return flops;
 }
 

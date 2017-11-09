@@ -112,6 +112,21 @@ typedef struct core_zlrmm_s {
     (void)lwork;                                \
     (void)lock
 
+static inline pastix_complex64_t *
+core_zlrmm_resize_ws( core_zlrmm_t *params,
+                      ssize_t newsize )
+{
+    if ( params->lwork < newsize ) {
+        if ( params->lwork == -1 ) {
+            params->work  = malloc( newsize * sizeof(pastix_complex64_t) );
+        }
+        else {
+            params->work  = realloc( params->work, newsize * sizeof(pastix_complex64_t) );
+            params->lwork = newsize;
+        }
+    }
+    return params->work;
+}
 
 //void core_zlrmm( core_zlrmm_t *params );
 pastix_fixdbl_t

@@ -67,7 +67,6 @@ core_zfrlr2fr( core_zlrmm_t *params )
     pastix_fixdbl_t flops1 = FLOPS_ZGEMM( M, B->rk, K ) + FLOPS_ZGEMM( M, N, B->rk );
     pastix_fixdbl_t flops2 = FLOPS_ZGEMM( K, N, B->rk ) + FLOPS_ZGEMM( M, N, K     );
     pastix_fixdbl_t flops;
-    ssize_t wsize;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldbu = (transB == PastixNoTrans) ? K : N;
@@ -81,11 +80,7 @@ core_zfrlr2fr( core_zlrmm_t *params )
      *  A(M-by-K) * B( N-by-rb x rb-by-K )^t
      */
     if ( flops1 <= flops2 ) {
-        wsize = M * B->rk;
-        if ( lwork < wsize ) {
-            params->work  = work  = realloc( work, wsize * sizeof(pastix_complex64_t) );
-            params->lwork = lwork = wsize;
-        }
+        work = core_zlrmm_resize_ws( params, M * B->rk );
 
         /*
          *  (A * Bv) * Bu^t
@@ -107,11 +102,7 @@ core_zfrlr2fr( core_zlrmm_t *params )
         pastix_atomic_unlock( lock );
     }
     else {
-        wsize = K * N;
-        if ( lwork < wsize ) {
-            params->work  = work  = realloc( work, wsize * sizeof(pastix_complex64_t) );
-            params->lwork = lwork = wsize;
-        }
+        work = core_zlrmm_resize_ws( params, K * N );
 
         /*
          *  A * (Bu * Bv^t)^t
@@ -147,7 +138,6 @@ core_zlrfr2fr( core_zlrmm_t *params )
     pastix_fixdbl_t flops1 = FLOPS_ZGEMM( A->rk, N, K ) + FLOPS_ZGEMM( M, N, A->rk );
     pastix_fixdbl_t flops2 = FLOPS_ZGEMM( M, K, A->rk ) + FLOPS_ZGEMM( M, N, K     );
     pastix_fixdbl_t flops;
-    ssize_t wsize;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldav = ( A->rk == -1 ) ? -1 : A->rkmax;
@@ -161,11 +151,7 @@ core_zlrfr2fr( core_zlrmm_t *params )
      *  A( M-by-ra x ra-by-K ) * B(N-by-K)^t
      */
     if ( flops1 <= flops2 ) {
-        wsize = A->rk * N;
-        if ( lwork < wsize ) {
-            params->work  = work  = realloc( work, wsize * sizeof(pastix_complex64_t) );
-            params->lwork = lwork = wsize;
-        }
+        work = core_zlrmm_resize_ws( params, A->rk * N );
 
         /*
          *  Au * (Av^t * B^t)
@@ -188,11 +174,7 @@ core_zlrfr2fr( core_zlrmm_t *params )
         pastix_atomic_unlock( lock );
     }
     else {
-        wsize = M * K;
-        if ( lwork < wsize ) {
-            params->work  = work  = realloc( work, wsize * sizeof(pastix_complex64_t) );
-            params->lwork = lwork = wsize;
-        }
+        work = core_zlrmm_resize_ws( params, M * K );
 
         /*
          *  (Au * Av^t) * B^t
