@@ -69,6 +69,7 @@ typedef struct core_zlrmm_s {
     pastix_lrblock_t       *C;
     pastix_complex64_t     *work;
     pastix_int_t            lwork;
+    pastix_int_t            lwused;
     pastix_atomic_lock_t   *lock;
 } core_zlrmm_t;
 
@@ -113,19 +114,19 @@ typedef struct core_zlrmm_s {
     (void)lock
 
 static inline pastix_complex64_t *
-core_zlrmm_resize_ws( core_zlrmm_t *params,
-                      ssize_t newsize )
+core_zlrmm_getws( core_zlrmm_t *params,
+                  ssize_t newsize )
 {
-    if ( params->lwork < newsize ) {
-        if ( params->lwork == -1 ) {
-            params->work  = malloc( newsize * sizeof(pastix_complex64_t) );
-        }
-        else {
-            params->work  = realloc( params->work, newsize * sizeof(pastix_complex64_t) );
-            params->lwork = newsize;
-        }
+    pastix_complex64_t *work = NULL;
+    if ( (params->lwused == 0) && (params->lwork < newsize) ) {
+        params->work  = realloc( params->work, newsize * sizeof(pastix_complex64_t) );
+        params->lwork = newsize;
     }
-    return params->work;
+    if ( params->lwused + newsize <= params->lwork ) {
+        work = params->work + params->lwused;
+        params->lwused += newsize;
+    }
+    return work;
 }
 
 //void core_zlrmm( core_zlrmm_t *params );

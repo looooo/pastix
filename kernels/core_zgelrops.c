@@ -458,14 +458,9 @@ core_zlrmm( const pastix_lr_t *lowrank,
     params.B       = B;
     params.beta    = beta;
     params.C       = C;
-    if ( ldwork == -1 ) {
-        params.work  = malloc( M * N * sizeof(pastix_complex64_t) );
-        params.lwork = M * N;
-    }
-    else {
-        params.work  = work;
-        params.lwork = ldwork;
-    }
+    params.work    = work;
+    params.lwork   = ldwork;
+    params.lwused  = 0;
     params.lock    = lock;
 
     if ( C->rk == 0 ) {
@@ -497,10 +492,6 @@ core_zlrmm( const pastix_lr_t *lowrank,
     }
     pastix_atomic_unlock( lock );
 #endif
-
-    if ( ldwork == -1 ) {
-        free(params.work);
-    }
 }
 
 /**

@@ -67,6 +67,7 @@ core_zfrlr2fr( core_zlrmm_t *params )
     pastix_fixdbl_t flops1 = FLOPS_ZGEMM( M, B->rk, K ) + FLOPS_ZGEMM( M, N, B->rk );
     pastix_fixdbl_t flops2 = FLOPS_ZGEMM( K, N, B->rk ) + FLOPS_ZGEMM( M, N, K     );
     pastix_fixdbl_t flops;
+    int allocated = 0;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldbu = (transB == PastixNoTrans) ? K : N;
@@ -80,7 +81,10 @@ core_zfrlr2fr( core_zlrmm_t *params )
      *  A(M-by-K) * B( N-by-rb x rb-by-K )^t
      */
     if ( flops1 <= flops2 ) {
-        work = core_zlrmm_resize_ws( params, M * B->rk );
+        if ( (work = core_zlrmm_getws( params, M * B->rk )) == NULL ) {
+            work = malloc( M * B->rk * sizeof(pastix_complex64_t) );
+            allocated = 1;
+        }
 
         /*
          *  (A * Bv) * Bu^t
@@ -102,7 +106,10 @@ core_zfrlr2fr( core_zlrmm_t *params )
         pastix_atomic_unlock( lock );
     }
     else {
-        work = core_zlrmm_resize_ws( params, K * N );
+        if ( (work = core_zlrmm_getws( params, K * N )) == NULL ) {
+            work = malloc( K * N * sizeof(pastix_complex64_t) );
+            allocated = 1;
+        }
 
         /*
          *  A * (Bu * Bv^t)^t
@@ -125,6 +132,9 @@ core_zfrlr2fr( core_zlrmm_t *params )
         pastix_atomic_unlock( lock );
     }
 
+    if ( allocated ) {
+        free( work );
+    }
     PASTE_CORE_ZLRMM_VOID;
     return flops;
 }
@@ -138,6 +148,7 @@ core_zlrfr2fr( core_zlrmm_t *params )
     pastix_fixdbl_t flops1 = FLOPS_ZGEMM( A->rk, N, K ) + FLOPS_ZGEMM( M, N, A->rk );
     pastix_fixdbl_t flops2 = FLOPS_ZGEMM( M, K, A->rk ) + FLOPS_ZGEMM( M, N, K     );
     pastix_fixdbl_t flops;
+    int allocated = 0;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldav = ( A->rk == -1 ) ? -1 : A->rkmax;
@@ -151,7 +162,10 @@ core_zlrfr2fr( core_zlrmm_t *params )
      *  A( M-by-ra x ra-by-K ) * B(N-by-K)^t
      */
     if ( flops1 <= flops2 ) {
-        work = core_zlrmm_resize_ws( params, A->rk * N );
+        if ( (work = core_zlrmm_getws( params, A->rk * N )) == NULL ) {
+            work = malloc( A->rk * N * sizeof(pastix_complex64_t) );
+            allocated = 1;
+        }
 
         /*
          *  Au * (Av^t * B^t)
@@ -174,7 +188,10 @@ core_zlrfr2fr( core_zlrmm_t *params )
         pastix_atomic_unlock( lock );
     }
     else {
-        work = core_zlrmm_resize_ws( params, M * K );
+        if ( (work = core_zlrmm_getws( params, M * K )) == NULL ) {
+            work = malloc( M * K * sizeof(pastix_complex64_t) );
+            allocated = 1;
+        }
 
         /*
          *  (Au * Av^t) * B^t
@@ -197,6 +214,9 @@ core_zlrfr2fr( core_zlrmm_t *params )
         pastix_atomic_unlock( lock );
     }
 
+    if ( allocated ) {
+        free( work );
+    }
     PASTE_CORE_ZLRMM_VOID;
     return flops;
 }
