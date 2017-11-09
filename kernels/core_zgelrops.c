@@ -478,21 +478,13 @@ core_zlrmm( const pastix_lr_t *lowrank,
         /* } */
         /* pastix_cblk_unlock( fcblk ); */
 
-        core_zlrmm_Cnull( lowrank, transA, transB,
-                          M, N, K, Cm, Cn, offx, offy,
-                          alpha, A, B,
-                          beta, C,
-                          work, ldwork, lock );
+        core_zlrmm_Cnull( &params );
     }
     else if ( C->rk == -1 ) {
         core_zlrmm_Cfr( &params );
     }
     else {
-        core_zlrmm_Clr( lowrank, transA, transB,
-                        M, N, K, Cm, Cn, offx, offy,
-                        alpha, A, B,
-                        beta, C,
-                        work, ldwork, lock );
+        core_zlrmm_Clr( &params );
     }
 
 #if defined(PASTIX_DEBUG_LR)

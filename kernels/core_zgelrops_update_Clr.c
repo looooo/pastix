@@ -29,15 +29,12 @@ static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 pastix_fixdbl_t
-core_zfrfr2lr( const pastix_lr_t *lowrank,
-               pastix_trans_t transA, pastix_trans_t transB,
-               pastix_int_t M, pastix_int_t N, pastix_int_t K,
-               const pastix_lrblock_t *A,
-               const pastix_lrblock_t *B,
+core_zfrfr2lr( core_zlrmm_t     *params,
                pastix_lrblock_t *AB,
-               pastix_complex64_t *work, pastix_int_t lwork,
-               int *infomask )
+               int              *infomask,
+               pastix_int_t      Kmax )
 {
+    PASTE_CORE_ZLRMM_PARAMS( params );
     pastix_int_t ldau, ldbu;
     pastix_fixdbl_t flops = 0.0;
 
@@ -47,7 +44,7 @@ core_zfrfr2lr( const pastix_lr_t *lowrank,
     /*
      * Everything is full rank
      */
-    if ( K < pastix_imin( M, N ) ) {
+    if ( K < Kmax ) {
         /*
          * Let's build a low-rank matrix of rank K
          */
@@ -79,20 +76,17 @@ core_zfrfr2lr( const pastix_lr_t *lowrank,
         flops = FLOPS_ZGEMM( M, N, K );
     }
 
-    (void)lowrank;
+    PASTE_CORE_ZLRMM_VOID;
     return flops;
 }
 
 pastix_fixdbl_t
-core_zfrlr2lr( const pastix_lr_t *lowrank,
-               pastix_trans_t transA, pastix_trans_t transB,
-               pastix_int_t M, pastix_int_t N, pastix_int_t K,
-               const pastix_lrblock_t *A,
-               const pastix_lrblock_t *B,
+core_zfrlr2lr( core_zlrmm_t     *params,
                pastix_lrblock_t *AB,
-               pastix_complex64_t *work, pastix_int_t lwork,
-               int *infomask )
+               int              *infomask,
+               pastix_int_t      Brkmin )
 {
+    PASTE_CORE_ZLRMM_PARAMS( params );
     pastix_int_t ldau, ldbu, ldbv;
     pastix_fixdbl_t flops;
 
@@ -103,7 +97,7 @@ core_zfrlr2lr( const pastix_lr_t *lowrank,
     /*
      *  A(M-by-K) * B( N-by-rb x rb-by-K )^t
      */
-    if ( M < B->rk ) {
+    if ( B->rk > Brkmin ) {
         /*
          * We are in a similar case to the _Cfr function, and we
          * choose the optimal number of flops.
@@ -194,20 +188,17 @@ core_zfrlr2lr( const pastix_lr_t *lowrank,
         flops = FLOPS_ZGEMM( M, B->rk, K );
     }
 
-    (void)lowrank;
+    PASTE_CORE_ZLRMM_VOID;
     return flops;
 }
 
 pastix_fixdbl_t
-core_zlrfr2lr( const pastix_lr_t *lowrank,
-               pastix_trans_t transA, pastix_trans_t transB,
-               pastix_int_t M, pastix_int_t N, pastix_int_t K,
-               const pastix_lrblock_t *A,
-               const pastix_lrblock_t *B,
+core_zlrfr2lr( core_zlrmm_t     *params,
                pastix_lrblock_t *AB,
-               pastix_complex64_t *work, pastix_int_t lwork,
-               int *infomask )
+               int              *infomask,
+               pastix_int_t      Arkmin )
 {
+    PASTE_CORE_ZLRMM_PARAMS( params );
     pastix_int_t ldau, ldav, ldbu;
     pastix_fixdbl_t flops;
 
@@ -218,7 +209,7 @@ core_zlrfr2lr( const pastix_lr_t *lowrank,
     /*
      *  A( M-by-ra x ra-by-K ) * B(N-by-K)^t
      */
-    if ( N < A->rk ) {
+    if ( A->rk > Arkmin ) {
         /*
          * We are in a similar case to the _Cfr function, and we
          * choose the optimal number of flops.
@@ -309,7 +300,7 @@ core_zlrfr2lr( const pastix_lr_t *lowrank,
         flops = FLOPS_ZGEMM( A->rk, N, K );
     }
 
-    (void)lowrank;
+    PASTE_CORE_ZLRMM_VOID;
     return flops;
 }
 
@@ -359,15 +350,11 @@ core_zlrfr2lr( const pastix_lr_t *lowrank,
  *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zlrlr2lr( const pastix_lr_t *lowrank,
-               pastix_trans_t transA, pastix_trans_t transB,
-               pastix_int_t M, pastix_int_t N, pastix_int_t K,
-               const pastix_lrblock_t *A,
-               const pastix_lrblock_t *B,
+core_zlrlr2lr( core_zlrmm_t     *params,
                pastix_lrblock_t *AB,
-               pastix_complex64_t *work, pastix_int_t lwork,
-               int *infomask )
+               int              *infomask )
 {
+    PASTE_CORE_ZLRMM_PARAMS( params );
     pastix_int_t ldau, ldav, ldbu, ldbv;
     pastix_complex64_t *work2;
     pastix_lrblock_t rArB;
@@ -491,26 +478,14 @@ core_zlrlr2lr( const pastix_lr_t *lowrank,
     core_zlrfree(&rArB);
     free(work2);
 
-    /* Not used for now */
-
-    (void)transA;
-    (void)work;
-    (void)lwork;
+    PASTE_CORE_ZLRMM_VOID;
     return flops;
 }
 
 void
-core_zlrmm_Clr( const pastix_lr_t *lowrank,
-                pastix_trans_t transA, pastix_trans_t transB,
-                pastix_int_t M, pastix_int_t N, pastix_int_t K,
-                pastix_int_t Cm, pastix_int_t Cn,
-                pastix_int_t offx, pastix_int_t offy,
-                pastix_complex64_t alpha, const pastix_lrblock_t *A,
-                                          const pastix_lrblock_t *B,
-                pastix_complex64_t beta,        pastix_lrblock_t *C,
-                pastix_complex64_t *work, pastix_int_t lwork,
-                pastix_atomic_lock_t *lock )
+core_zlrmm_Clr( core_zlrmm_t *params )
 {
+    PASTE_CORE_ZLRMM_PARAMS( params );
     pastix_lrblock_t AB;
     pastix_trans_t transV = PastixNoTrans;
     int infomask = 0;
@@ -525,40 +500,25 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
     if ( A->rk == -1 ) {
         if ( B->rk == -1 ) {
             kernel_trace_start_lvl2( PastixKernelLvl2_LR_FRFR2LR );
-            flops = core_zfrfr2lr( lowrank, transA, transB,
-                                   M, N, K,
-                                   A, B, &AB,
-                                   work, lwork,
-                                   &infomask );
+            flops = core_zfrfr2lr( params, &AB, &infomask,
+                                   pastix_imin( M, N ) );
             kernel_trace_stop_lvl2( flops );
         }
         else {
             kernel_trace_start_lvl2( PastixKernelLvl2_LR_FRLR2LR );
-            flops = core_zfrlr2lr( lowrank, transA, transB,
-                                   M, N, K,
-                                   A, B, &AB,
-                                   work, lwork,
-                                   &infomask );
+            flops = core_zfrlr2lr( params, &AB, &infomask, M );
             kernel_trace_stop_lvl2( flops );
         }
     }
     else {
         if ( B->rk == -1 ) {
             kernel_trace_start_lvl2( PastixKernelLvl2_LR_LRFR2LR );
-            flops = core_zlrfr2lr( lowrank, transA, transB,
-                                   M, N, K,
-                                   A, B, &AB,
-                                   work, lwork,
-                                   &infomask );
+            flops = core_zlrfr2lr( params, &AB, &infomask, N );
             kernel_trace_stop_lvl2( flops );
         }
         else {
             kernel_trace_start_lvl2( PastixKernelLvl2_LR_LRLR2LR );
-            flops = core_zlrlr2lr( lowrank, transA, transB,
-                                   M, N, K,
-                                   A, B, &AB,
-                                   NULL, -1,
-                                   &infomask );
+            flops = core_zlrlr2lr( params, &AB, &infomask );
             kernel_trace_stop_lvl2( flops );
 
             assert( AB.rk != -1 );
@@ -664,4 +624,5 @@ core_zlrmm_Clr( const pastix_lr_t *lowrank,
     }
 
     assert( C->rk <= C->rkmax);
+    PASTE_CORE_ZLRMM_VOID;
 }

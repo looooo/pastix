@@ -234,7 +234,7 @@ core_zlrlr2fr( core_zlrmm_t *params )
     Cptr = C->u;
     Cptr += ldcu * offy + offx;
 
-    flops = core_zlrlr2lr( lowrank, transA, transB, M, N, K, A, B, &AB, NULL, -1, &infomask );
+    flops = core_zlrlr2lr( params, &AB, &infomask );
     assert( AB.rk != -1 );
     assert( AB.rkmax != -1 );
 
