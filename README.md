@@ -74,7 +74,7 @@ installed on the system:
 
 For instance, on debian-like systems, dependencies can be installed with the following command:
 
-      sudo apt-get install cmake gcc gfortran libhwloc-dev libscotch-dev libopenblas-dev liblapacke-dev python3-numpy
+      sudo apt-get install cmake gcc gfortran libhwloc-dev libscotch-dev libopenblas-dev liblapacke-dev python-numpy
 
 The main options to configure the PaStiX configuration build are:
    * Classic cmake options:
