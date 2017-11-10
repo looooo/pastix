@@ -103,9 +103,9 @@ add_dependencies(pastix_parsec
 )
 
 ### Generate the lib
-if (MPI_FOUND)
+if (MPI_C_FOUND)
   set_target_properties(pastix_parsec PROPERTIES COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-endif (MPI_FOUND)
+endif (MPI_C_FOUND)
 
 install(TARGETS pastix_parsec
   ARCHIVE DESTINATION lib
