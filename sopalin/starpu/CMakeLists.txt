@@ -85,9 +85,9 @@ add_dependencies(pastix_starpu
 )
 
 ### Generate the lib
-if (MPI_FOUND)
+if (MPI_C_FOUND)
   set_target_properties(pastix_starpu PROPERTIES COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-endif (MPI_FOUND)
+endif (MPI_C_FOUND)
 
 install(TARGETS pastix_starpu
   ARCHIVE DESTINATION lib
