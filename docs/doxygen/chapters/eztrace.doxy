@@ -4,7 +4,7 @@
  *                      Univ. Bordeaux. All rights reserved.
  */
 
-/*! \page Using Eztrace in PaStiX
+/*! \page Eztrace Using Eztrace in PaStiX
 
 To be able to compile PaStiX with Eztrace, the install directory has
 to be included in the user environment with:
@@ -27,3 +27,5 @@ Finally eztrace commands to generate trace and statistics are:
 eztrace_install_dir/bin/eztrace_stats -o output trace
 eztrace_install_dir/bin/eztrace_convert -o output trace
 \endverbatim
+
+*/

@@ -805,6 +805,7 @@ generate_env_file()
 #############################################################
 add_documented_files(
   README.md
+  docs/doxygen/chapters/eztrace.doxy
   #
   include/pastix.h
   include/pastix/api.h
