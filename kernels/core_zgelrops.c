@@ -80,12 +80,6 @@ core_zlrorthu( pastix_trans_t transV, pastix_int_t M,  pastix_int_t N, pastix_in
     return flops;
 }
 
-pastix_int_t
-core_zlr_rklimit( pastix_int_t M, pastix_int_t N ) {
-    return pastix_imin( M, N ) / PASTIX_LR_MINRATIO;
-}
-
-
 /**
  *******************************************************************************
  *
@@ -211,7 +205,7 @@ core_zlrfree( pastix_lrblock_t *A )
  *
  * @param[in] rklimit
  *          The maximum rank to store the matrix in low-rank format. If
- *          -1, set to core_zlr_rklimit(M, N)
+ *          -1, set to core_get_rklimit(M, N)
  *
  *******************************************************************************
  *
@@ -225,7 +219,7 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
              pastix_int_t rklimit )
 {
     /* If no limit on the rank is given, let's take min(M, N) */
-    rklimit = (rklimit == -1) ? core_zlr_rklimit( M, N ) : rklimit;
+    rklimit = (rklimit == -1) ? core_get_rklimit( M, N ) : rklimit;
 
     /* If no extra memory allocated, let's fix rkmax to rk */
     newrkmax = (newrkmax == -1) ? newrk : newrkmax;
@@ -558,7 +552,7 @@ core_zlrcpy( const pastix_lr_t *lowrank,
     pastix_int_t ldau, ldav;
     int ret;
 
-    assert( A->rk <= core_zlr_rklimit( M2, N2 ) );
+    assert( A->rk <= core_get_rklimit( M2, N2 ) );
     assert( B->rk == 0 );
     assert( (M1 + offx) <= M2 );
     assert( (N1 + offy) <= N2 );

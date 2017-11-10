@@ -49,13 +49,13 @@ core_zlrmm_Cnull( core_zlrmm_t     *params )
             kernel_trace_start_lvl2( PastixKernelLvl2_LR_FRFR2null );
             flops = core_zfrfr2lr( params, &AB, &infomask,
                                    pastix_imin( pastix_imin( M, N ),
-                                                core_zlr_rklimit( Cm, Cn )) );
+                                                core_get_rklimit( Cm, Cn )) );
             kernel_trace_stop_lvl2( flops );
         }
         else {
             kernel_trace_start_lvl2( PastixKernelLvl2_LR_FRLR2null );
             flops = core_zfrlr2lr( params, &AB, &infomask,
-                                   pastix_imin( M, core_zlr_rklimit( Cm, Cn ) ) );
+                                   pastix_imin( M, core_get_rklimit( Cm, Cn ) ) );
             kernel_trace_stop_lvl2( flops );
         }
     }
@@ -63,7 +63,7 @@ core_zlrmm_Cnull( core_zlrmm_t     *params )
         if ( B->rk == -1 ) {
             kernel_trace_start_lvl2( PastixKernelLvl2_LR_LRFR2null );
             flops = core_zlrfr2lr( params, &AB, &infomask,
-                                   pastix_imin( N, core_zlr_rklimit( Cm, Cn ) ) );
+                                   pastix_imin( N, core_get_rklimit( Cm, Cn ) ) );
             kernel_trace_stop_lvl2( flops );
         }
         else {
@@ -113,7 +113,7 @@ core_zlrmm_Cnull( core_zlrmm_t     *params )
             }
         }
         else if ( C->rk > 0 ) {
-            pastix_int_t rmax = core_zlr_rklimit( Cm, Cn );
+            pastix_int_t rmax = core_get_rklimit( Cm, Cn );
             pastix_int_t rAB = ( AB.rk == -1 ) ? pastix_imin( M, N ) : AB.rk;
 
             /*
@@ -166,7 +166,7 @@ core_zlrmm_Cnull( core_zlrmm_t     *params )
         }
         else {
             /* C is still null rank */
-            pastix_int_t rklimit = core_zlr_rklimit( Cm, Cn );
+            pastix_int_t rklimit = core_get_rklimit( Cm, Cn );
 
             if ( AB.rk > rklimit ) {
                 pastix_complex64_t *work = malloc( Cm * Cn * sizeof(pastix_complex64_t) );

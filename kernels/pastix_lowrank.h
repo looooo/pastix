@@ -24,6 +24,11 @@
 
 #define PASTIX_LR_MINRATIO 4
 
+static inline pastix_int_t
+core_get_rklimit( pastix_int_t M, pastix_int_t N ) {
+    return pastix_imin( M, N ) / PASTIX_LR_MINRATIO;
+}
+
 struct pastix_lr_s;
 typedef struct pastix_lr_s pastix_lr_t;
 

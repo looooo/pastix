@@ -567,7 +567,7 @@ core_zlrmm_Clr( core_zlrmm_t *params )
             }
         }
         else {
-            pastix_int_t rmax = core_zlr_rklimit( Cm, Cn );
+            pastix_int_t rmax = core_get_rklimit( Cm, Cn );
             pastix_int_t rAB = ( AB.rk == -1 ) ? pastix_imin( M, N ) : AB.rk;
             pastix_int_t ldabu = M;
             pastix_int_t ldabv = (transV == PastixNoTrans) ? AB.rkmax : N;

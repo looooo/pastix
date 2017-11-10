@@ -34,7 +34,6 @@ void core_zlrfree ( pastix_lrblock_t *A );
 int  core_zlrsze  ( int copy, pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, int newrk, int newrkmax, pastix_int_t rklimit );
 int  core_zlr2ge  ( pastix_trans_t trans, pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *Alr, pastix_complex64_t *A, pastix_int_t lda );
 
-pastix_int_t core_zlr_rklimit( pastix_int_t M, pastix_int_t N );
 void core_zlrcpy  ( const pastix_lr_t *lowrank,
                     pastix_trans_t transA, pastix_complex64_t alpha,
                     pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
