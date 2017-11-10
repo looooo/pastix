@@ -60,8 +60,8 @@ set(SOURCES
   core_zpxtrfsp.c
   core_zgetrfsp.c
   # Low-rank kernels
+  core_zlrdbg.c
   core_zgelrops.c
-  core_zgelrops_dbg.c
   core_zgelrops_rrqr.c
   core_zgelrops_svd.c
   core_zgelrops_update_Cfr.c

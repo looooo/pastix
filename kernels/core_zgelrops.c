@@ -408,7 +408,7 @@ core_zlr2ge( pastix_trans_t trans, pastix_int_t m, pastix_int_t n,
 }
 
 extern int
-core_zlr_check_orthogonality( pastix_int_t        M,
+core_zlrdbg_check_orthogonality( pastix_int_t        M,
                               pastix_int_t        N,
                               pastix_complex64_t *A,
                               pastix_int_t        lda );
@@ -479,7 +479,7 @@ core_zlrmm( const pastix_lr_t *lowrank,
 #if defined(PASTIX_DEBUG_LR)
     pastix_atomic_lock( lock );
     if ( (C->rk > 0) && (lowrank->compress_method == PastixCompressMethodRRQR) ) {
-        int rc = core_zlr_check_orthogonality( Cm, C->rk, (pastix_complex64_t*)C->u, Cm );
+        int rc = core_zlrdbg_check_orthogonality( Cm, C->rk, (pastix_complex64_t*)C->u, Cm );
         if (rc == 1) {
             fprintf(stderr, "Failed to have u orthogonal in exit of lrmm\n" );
         }

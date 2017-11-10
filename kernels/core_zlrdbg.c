@@ -1,6 +1,6 @@
 /**
  *
- * @file core_zgelrops_dbg.c
+ * @file core_zlrdbg.c
  *
  * PaStiX low-rank kernel debug routines that may be call within gdb.
  *

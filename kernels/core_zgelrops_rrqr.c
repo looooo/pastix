@@ -28,126 +28,6 @@ static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
-/* void */
-/* core_zdbg_printsvd( pastix_int_t        M, */
-/*                     pastix_int_t        N, */
-/*                     pastix_complex64_t *A, */
-/*                     pastix_int_t        lda ) */
-/* { */
-/*     pastix_int_t i; */
-/*     pastix_int_t minMN = pastix_imin( M, N ); */
-/*     double *s = malloc( minMN * sizeof(double) ); */
-/*     double *superb = malloc( minMN * sizeof(double) ); */
-
-/*     LAPACKE_zgesvd(LAPACK_COL_MAJOR, 'N', 'N', M, N, A, lda, s, NULL, 1, NULL, 1, superb ); */
-
-/*     for(i=0; i<minMN; i++) */
-/*     { */
-/*         fprintf( stderr, "%e ", s[i] ); */
-/*     } */
-/*     fprintf(stderr, "\n"); */
-/*     free(s); */
-/*     free(superb); */
-/* } */
-
-int
-core_zlr_check_orthogonality( pastix_int_t        M,
-                              pastix_int_t        N,
-                              const pastix_complex64_t *A,
-                              pastix_int_t        lda )
-{
-    pastix_complex64_t *Id;
-    double alpha, beta;
-    double normQ, res;
-    pastix_int_t info_ortho;
-    pastix_int_t minMN = pastix_imin(M, N);
-    pastix_int_t maxMN = pastix_imax(M, N);
-    double eps = LAPACKE_dlamch_work('e');
-
-    alpha = 1.0;
-    beta  = -1.0;
-
-    /* Build the identity matrix */
-    Id = malloc( minMN * minMN * sizeof(pastix_complex64_t) );
-    LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', minMN, minMN,
-                         0., 1., Id, minMN );
-
-    if (M > N) {
-        /* Perform Id - Q'Q */
-        cblas_zherk(CblasColMajor, CblasUpper, CblasConjTrans, N, M, alpha, A, lda, beta, Id, minMN);
-    }
-    else {
-        /* Perform Id - QQ' */
-        cblas_zherk(CblasColMajor, CblasUpper, CblasNoTrans,   M, N, alpha, A, lda, beta, Id, minMN);
-    }
-
-    normQ = LAPACKE_zlanhe_work( LAPACK_COL_MAJOR, 'M', 'U', minMN, Id, minMN, NULL );
-    res = normQ / (maxMN * eps);
-
-    /* fprintf(stderr, "Check Orthogonality: || I - Q*Q' || = %e, ||Id-Q'*Q||_max / (N*eps) = %e : ", */
-    /*         normQ, res ); */
-    if ( isnan(res) || isinf(res) || (res > 60.0) ) {
-        fprintf(stderr, "Check Orthogonality: || I - Q*Q' || = %e, ||Id-Q'*Q||_oo / (N*eps) = %e : \n",
-                normQ, res );
-        //assert( 0 );
-        /* fprintf(stderr, "FAILED\n"); */
-        info_ortho = 1;
-    }
-    else {
-        /* fprintf(stderr, "SUCCESS\n"); */
-        info_ortho = 0;
-    }
-
-    free(Id);
-    return info_ortho;
-}
-
-int
-core_zlr_check_orthogonality_AB( pastix_int_t        M,
-                                 pastix_int_t        NA,
-                                 pastix_int_t        NB,
-                                 const pastix_complex64_t *A,
-                                 pastix_int_t        lda,
-                                 const pastix_complex64_t *B,
-                                 pastix_int_t        ldb )
-{
-    pastix_complex64_t *Zero;
-    double norm, res;
-    pastix_int_t info_ortho;
-    double eps = LAPACKE_dlamch_work('e');
-
-    /* Build the identity matrix */
-    Zero = malloc( NA * NB * sizeof(pastix_complex64_t) );
-    LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', NA, NB,
-                         0., 0., Zero, NA );
-
-    cblas_zgemm(CblasColMajor, CblasConjTrans, CblasNoTrans,
-                NA, NB, M,
-                CBLAS_SADDR(zone),  A, lda,
-                                    B, ldb,
-                CBLAS_SADDR(zzero), Zero, NA);
-
-    norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'M', NA, NB, Zero, NA, NULL );
-    res = norm / (M * eps);
-
-    /* fprintf(stderr, "Check Orthogonality: || I - Q*Q' || = %e, ||Id-Q'*Q||_oo / (N*eps) = %e : ", */
-    /*         normQ, res ); */
-    if ( isnan(res) || isinf(res) || (res > 60.0) ) {
-        fprintf(stderr, "Check Orthogonality: || A' B || = %e, || A' B ||_oo / (M*eps) = %e : \n",
-                norm, res );
-        //assert( 0 );
-        /* fprintf(stderr, "FAILED\n"); */
-        info_ortho = 1;
-    }
-    else {
-        /* fprintf(stderr, "SUCCESS\n"); */
-        info_ortho = 0;
-    }
-
-    free(Zero);
-    return info_ortho;
-}
-
 pastix_fixdbl_t
 core_zlrorthu_fullqr( pastix_int_t M,  pastix_int_t N,
                       pastix_int_t r1, pastix_int_t *r2,
@@ -273,7 +153,7 @@ core_zlrorthu_partialqr( pastix_int_t M,  pastix_int_t N,
 #endif
 
 #if defined(PASTIX_DEBUG_LR)
-    if ( core_zlr_check_orthogonality_AB( M, r1, r2, u1, ldu, u2, ldu ) != 0 ) {
+    if ( core_zlrdbg_check_orthogonality_AB( M, r1, r2, u1, ldu, u2, ldu ) != 0 ) {
         fprintf(stderr, "partialQR: u2 not correctly projected with u1\n" );
     }
 #endif
@@ -299,7 +179,7 @@ core_zlrorthu_partialqr( pastix_int_t M,  pastix_int_t N,
     flops += FLOPS_ZUNGQR( M, r2, r2 );
 
 #if defined(PASTIX_DEBUG_LR)
-    if ( core_zlr_check_orthogonality_AB( M, r1, r2, u1, ldu, u2, ldu ) != 0 ) {
+    if ( core_zlrdbg_check_orthogonality_AB( M, r1, r2, u1, ldu, u2, ldu ) != 0 ) {
         fprintf(stderr, "partialQR: Final u2 not orthogonal to u1\n" );
     }
 #endif
@@ -461,7 +341,7 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
 #if defined(PASTIX_DEBUG_LR)
     {
         u2 = u1u2 + r1 * ldu;
-        if ( core_zlr_check_orthogonality_AB( M1, r1, r2, u1, ldu, u2, ldu ) != 0 ) {
+        if ( core_zlrdbg_check_orthogonality_AB( M1, r1, r2, u1, ldu, u2, ldu ) != 0 ) {
             fprintf(stderr, "cgs: Final u2 not orthogonal to u1\n" );
         }
     }
@@ -918,7 +798,7 @@ core_zge2lr_RRQR( double tol, pastix_int_t rklimit,
 
 #if defined(PASTIX_DEBUG_LR)
     if ( Alr->rk > 0 ) {
-        int rc = core_zlr_check_orthogonality( m, Alr->rk, Alr->u, m );
+        int rc = core_zlrdbg_check_orthogonality( m, Alr->rk, Alr->u, m );
         if (rc == 1) {
             fprintf(stderr, "Failed to compress a matrix and generate an othrogonal u\n" );
         }
@@ -1006,7 +886,7 @@ core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_com
 
 #if defined(PASTIX_DEBUG_LR)
     if ( B->rk > 0 ) {
-        int rc = core_zlr_check_orthogonality( M2, B->rk, B->u, M2 );
+        int rc = core_zlrdbg_check_orthogonality( M2, B->rk, B->u, M2 );
         if (rc == 1) {
             fprintf(stderr, "Failed to have B->u orthogonal in entry of rradd\n" );
         }
