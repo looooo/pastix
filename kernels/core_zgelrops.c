@@ -407,11 +407,6 @@ core_zlr2ge( pastix_trans_t trans, pastix_int_t m, pastix_int_t n,
     return ret;
 }
 
-extern int
-core_zlrdbg_check_orthogonality( pastix_int_t        M,
-                              pastix_int_t        N,
-                              pastix_complex64_t *A,
-                              pastix_int_t        lda );
 void
 core_zlrmm( const pastix_lr_t *lowrank,
             pastix_trans_t transA, pastix_trans_t transB,

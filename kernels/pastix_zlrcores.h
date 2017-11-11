@@ -128,7 +128,6 @@ core_zlrmm_getws( core_zlrmm_t *params,
     return work;
 }
 
-//void core_zlrmm( core_zlrmm_t *params );
 pastix_fixdbl_t
 core_zfrfr2lr( core_zlrmm_t     *params,
                pastix_lrblock_t *AB,
@@ -152,8 +151,22 @@ core_zlrlr2lr( core_zlrmm_t     *params,
                pastix_lrblock_t *AB,
                int              *infomask );
 
-void core_zlrmm_Cfr( core_zlrmm_t *params );
-void core_zlrmm_Clr( core_zlrmm_t *params );
+pastix_fixdbl_t
+core_zlr2fr( core_zlrmm_t           *params,
+             const pastix_lrblock_t *AB,
+             pastix_trans_t          transV );
+pastix_fixdbl_t
+core_zlr2lr( core_zlrmm_t           *params,
+             const pastix_lrblock_t *AB,
+             pastix_trans_t          transV );
+pastix_fixdbl_t
+core_zlr2null( core_zlrmm_t           *params,
+               const pastix_lrblock_t *AB,
+               pastix_trans_t          transV,
+               int                     infomask );
+
+void core_zlrmm_Cfr  ( core_zlrmm_t *params );
+void core_zlrmm_Clr  ( core_zlrmm_t *params );
 void core_zlrmm_Cnull( core_zlrmm_t *params );
 
 void core_zlrmm( const pastix_lr_t *lowrank,
@@ -226,6 +239,31 @@ int  core_zrradd_RRQR_interface( const pastix_lr_t *lowrank, pastix_trans_t tran
                                  pastix_int_t offx, pastix_int_t offy );
 /**
  *     @}
+ * @}
+ *
+ * @addtogroup kernel_lr_debug
+ * @{
+ *    This is the debug routines for the low rank kernels.
+ *
+ *    @name PastixComplex64 low-rank debug functions
+ *    @{
+ */
+void core_zlrdbg_printsvd( pastix_int_t              M,
+                           pastix_int_t              N,
+                           const pastix_complex64_t *A,
+                           pastix_int_t              lda );
+
+int core_zlrdbg_check_orthogonality( pastix_int_t              M,
+                                     pastix_int_t              N,
+                                     const pastix_complex64_t *A,
+                                     pastix_int_t              lda );
+
+int core_zlrdbg_check_orthogonality_AB( pastix_int_t M, pastix_int_t NA, pastix_int_t NB,
+                                        const pastix_complex64_t *A, pastix_int_t lda,
+                                        const pastix_complex64_t *B, pastix_int_t ldb );
+
+/**
+ *    @}
  * @}
  *
  */
