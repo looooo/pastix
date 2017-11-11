@@ -2,7 +2,7 @@
  *
  * @file core_zlr2xx.c
  *
- * PaStiX low-rank kernel routines
+ * PaStiX low-rank kernel routines that perform the addition of AB into C.
  *
  * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.

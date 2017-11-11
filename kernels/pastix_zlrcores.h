@@ -128,42 +128,32 @@ core_zlrmm_getws( core_zlrmm_t *params,
     return work;
 }
 
-pastix_fixdbl_t
-core_zfrfr2lr( core_zlrmm_t     *params,
-               pastix_lrblock_t *AB,
-               int              *infomask,
-               pastix_int_t      Kmax );
+pastix_fixdbl_t core_zfrfr2lr( core_zlrmm_t     *params,
+                               pastix_lrblock_t *AB,
+                               int              *infomask,
+                               pastix_int_t      Kmax );
+pastix_fixdbl_t core_zfrlr2lr( core_zlrmm_t     *params,
+                               pastix_lrblock_t *AB,
+                               int              *infomask,
+                               pastix_int_t      Brkmin );
+pastix_fixdbl_t core_zlrfr2lr( core_zlrmm_t     *params,
+                               pastix_lrblock_t *AB,
+                               int              *infomask,
+                               pastix_int_t      Arkmin );
+pastix_fixdbl_t core_zlrlr2lr( core_zlrmm_t     *params,
+                               pastix_lrblock_t *AB,
+                               int              *infomask );
 
-pastix_fixdbl_t
-core_zfrlr2lr( core_zlrmm_t     *params,
-               pastix_lrblock_t *AB,
-               int              *infomask,
-               pastix_int_t      Brkmin );
-
-pastix_fixdbl_t
-core_zlrfr2lr( core_zlrmm_t     *params,
-               pastix_lrblock_t *AB,
-               int              *infomask,
-               pastix_int_t      Arkmin );
-
-pastix_fixdbl_t
-core_zlrlr2lr( core_zlrmm_t     *params,
-               pastix_lrblock_t *AB,
-               int              *infomask );
-
-pastix_fixdbl_t
-core_zlr2fr( core_zlrmm_t           *params,
-             const pastix_lrblock_t *AB,
-             pastix_trans_t          transV );
-pastix_fixdbl_t
-core_zlr2lr( core_zlrmm_t           *params,
-             const pastix_lrblock_t *AB,
-             pastix_trans_t          transV );
-pastix_fixdbl_t
-core_zlr2null( core_zlrmm_t           *params,
-               const pastix_lrblock_t *AB,
-               pastix_trans_t          transV,
-               int                     infomask );
+pastix_fixdbl_t core_zlr2fr  ( core_zlrmm_t           *params,
+                               const pastix_lrblock_t *AB,
+                               pastix_trans_t          transV );
+pastix_fixdbl_t core_zlr2lr  ( core_zlrmm_t           *params,
+                               const pastix_lrblock_t *AB,
+                               pastix_trans_t          transV );
+pastix_fixdbl_t core_zlr2null( core_zlrmm_t           *params,
+                               const pastix_lrblock_t *AB,
+                               pastix_trans_t          transV,
+                               int                     infomask );
 
 void core_zlrmm_Cfr  ( core_zlrmm_t *params );
 void core_zlrmm_Clr  ( core_zlrmm_t *params );

@@ -18,9 +18,7 @@
 #include "common.h"
 #include <cblas.h>
 #include <lapacke.h>
-#include "blend/solver.h"
-#include "pastix_zcores.h"
-#include "z_nan_check.h"
+#include "pastix_zlrcores.h"
 #include "kernels_trace.h"
 
 void
