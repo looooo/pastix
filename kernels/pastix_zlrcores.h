@@ -19,6 +19,8 @@
 
 #include "pastix_lowrank.h"
 
+extern volatile int32_t nbmalloc;
+
 /**
  *
  * @addtogroup kernel_lr
@@ -117,12 +119,15 @@ core_zlrmm_getws( core_zlrmm_t *params,
                   ssize_t newsize )
 {
     pastix_complex64_t *work = NULL;
-    if ( (params->lwused == -1) && (params->lwork < newsize) ) {
+    if ( (params->lwork < newsize) &&
+         (params->lwused == -1) )
+    {
         params->work  = realloc( params->work, newsize * sizeof(pastix_complex64_t) );
         params->lwork = newsize;
         params->lwused = 0;
     }
-    if ( params->lwused + newsize <= params->lwork ) {
+    if ( (params->lwused + newsize) <= params->lwork )
+    {
         work = params->work + params->lwused;
         params->lwused += newsize;
     }

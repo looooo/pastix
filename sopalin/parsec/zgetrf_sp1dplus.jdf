@@ -214,25 +214,27 @@ BODY
         SolverCblk *fcblk = datacode->cblktab + fcblknm;
         SolverBlok *blok  = datacode->bloktab + bloknum;
         pastix_complex64_t *work = NULL;
+        pastix_int_t lwork = -1;
 
         if (!(lcblk->cblktype & CBLK_IN_SCHUR)) {
             /* Update */
             if ( blok+s < lcblk[1].fblokptr ) {
                 if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
-                    work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
+                    work  = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
+                    lwork = sopalin_data->solvmtx->gemmmax;
                 }
 
                 if (s == 0) {
                     cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
                                      lcblk, blok, fcblk,
                                      Al, Au, C,
-                                     work, &lowrank );
+                                     work, lwork, &lowrank );
                 }
                 else {
                     cpucblk_zgemmsp( PastixUCoef, PastixLCoef, PastixTrans,
                                      lcblk, blok, fcblk,
                                      Au, Al, C,
-                                     work, &lowrank );
+                                     work, lwork, &lowrank );
                 }
 
                 if ( work  ) {

@@ -38,11 +38,13 @@ sequential_zhetrf( pastix_data_t  *pastix_data,
     SolverCblk         *cblk;
     double              threshold = sopalin_data->diagthreshold;
     pastix_complex64_t *work1, *work2;
-    pastix_int_t  N, i;
+    pastix_int_t  N, i, lwork1, lwork2;
     (void)pastix_data;
 
-    MALLOC_INTERN( work1, datacode->offdmax, pastix_complex64_t );
-    MALLOC_INTERN( work2, pastix_imax( datacode->gemmmax, datacode->blokmax), pastix_complex64_t );
+    lwork1 = datacode->offdmax;
+    lwork2 = pastix_imax( datacode->gemmmax, datacode->blokmax);
+    MALLOC_INTERN( work1, lwork1, pastix_complex64_t );
+    MALLOC_INTERN( work2, lwork2, pastix_complex64_t );
 
     cblk = datacode->cblktab;
     for (i=0; i<datacode->cblknbr; i++, cblk++){
@@ -60,7 +62,7 @@ sequential_zhetrf( pastix_data_t  *pastix_data,
                              * TRSM and GEMM kernels, we must shift the DLh workspace
                              * by the diagonal block size
                              */
-                            work1 - (N*N), work2 );
+                            work1 - (N*N), work2, lwork2 );
     }
 
     memFree_null( work1 );
@@ -75,12 +77,14 @@ thread_pzhetrf( isched_thread_t *ctx, void *args )
     SolverCblk         *cblk;
     Task               *t;
     pastix_complex64_t *work1, *work2;
-    pastix_int_t  N, i, ii;
+    pastix_int_t  N, i, ii, lwork1, lwork2;
     pastix_int_t  tasknbr, *tasktab;
     int rank = ctx->rank;
 
-    MALLOC_INTERN( work1, datacode->offdmax, pastix_complex64_t );
-    MALLOC_INTERN( work2, pastix_imax( datacode->gemmmax, datacode->blokmax), pastix_complex64_t );
+    lwork1 = datacode->offdmax;
+    lwork2 = pastix_imax( datacode->gemmmax, datacode->blokmax);
+    MALLOC_INTERN( work1, lwork1, pastix_complex64_t );
+    MALLOC_INTERN( work2, lwork2, pastix_complex64_t );
 
     tasknbr = datacode->ttsknbr[rank];
     tasktab = datacode->ttsktab[rank];
@@ -106,7 +110,7 @@ thread_pzhetrf( isched_thread_t *ctx, void *args )
                              * TRSM and GEMM kernels, we must shift the DLh workspace
                              * by the diagonal block size
                              */
-                            work1 - (N*N), work2 );
+                            work1 - (N*N), work2, lwork2 );
     }
 
     memFree_null( work1 );

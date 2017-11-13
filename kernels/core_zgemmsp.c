@@ -1148,6 +1148,7 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
                  const pastix_complex64_t *B,
                        pastix_complex64_t *C,
                        pastix_complex64_t *work,
+                       pastix_int_t        lwork,
                  const pastix_lr_t        *lowrank )
 {
     pastix_ktype_t ktype;
@@ -1155,7 +1156,6 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
     pastix_int_t m = cblk->stride ;
     pastix_int_t n = blok_rownbr( blok );
     pastix_int_t k = cblk_colnbr( cblk );
-    pastix_int_t lwork = -1;
 
     m -= (cblk->cblktype & CBLK_LAYOUT_2D) ? blok->coefind / k : blok->coefind;
     m -= (sideA == PastixUCoef) ? blok_rownbr( blok ) : 0;
@@ -1167,7 +1167,7 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
 
             core_zgemmsp_lr( sideA, sideB, trans,
                              cblk, blok, fcblk,
-                             NULL, lwork, lowrank );
+                             work, lwork, lowrank );
         }
         else {
             ktype = PastixKernelGEMMCblkFRLR;
@@ -1175,7 +1175,7 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
 
             core_zgemmsp_fulllr( sideA, trans,
                                  cblk, blok, fcblk,
-                                 A, B, NULL, lwork,
+                                 A, B, work, lwork,
                                  lowrank );
         }
     }

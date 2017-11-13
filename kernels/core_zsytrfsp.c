@@ -479,7 +479,8 @@ cpucblk_zsytrfsp1d( SolverMatrix       *solvmtx,
                     SolverCblk         *cblk,
                     double              criteria,
                     pastix_complex64_t *DLt,
-                    pastix_complex64_t *work2 )
+                    pastix_complex64_t *work2,
+                    pastix_int_t        lwork )
 {
     pastix_complex64_t *L = cblk->lcoeftab;
     SolverCblk  *fcblk;
@@ -506,7 +507,7 @@ cpucblk_zsytrfsp1d( SolverMatrix       *solvmtx,
             cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
                              cblk, blok, fcblk,
                              L, DLt, fcblk->lcoeftab,
-                             work2, &solvmtx->lowrank );
+                             work2, lwork, &solvmtx->lowrank );
         }
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
     }

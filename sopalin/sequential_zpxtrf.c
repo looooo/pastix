@@ -50,7 +50,8 @@ sequential_zpxtrf( pastix_data_t  *pastix_data,
             break;
 
         /* Compute */
-        cpucblk_zpxtrfsp1d( datacode, cblk, threshold, work );
+        cpucblk_zpxtrfsp1d( datacode, cblk, threshold,
+                            work, datacode->gemmmax );
     }
 
     memFree_null( work );
@@ -85,7 +86,8 @@ thread_pzpxtrf( isched_thread_t *ctx, void *args )
         do { } while( cblk->ctrbcnt );
 
         /* Compute */
-        cpucblk_zpxtrfsp1d( datacode, cblk, sopalin_data->diagthreshold, work );
+        cpucblk_zpxtrfsp1d( datacode, cblk, sopalin_data->diagthreshold,
+                            work, datacode->gemmmax );
     }
 
     memFree_null( work );
