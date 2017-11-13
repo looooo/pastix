@@ -19,14 +19,14 @@
 #include "pastix_zlrcores.h"
 #include "kernels_trace.h"
 
-void
+pastix_fixdbl_t
 core_zlrmm_Cnull( core_zlrmm_t *params )
 {
     PASTE_CORE_ZLRMM_PARAMS( params );
     pastix_lrblock_t AB;
     pastix_trans_t transV = PastixNoTrans;
     int infomask = 0;
-    pastix_fixdbl_t flops;
+    pastix_fixdbl_t flops = 0.0;
 
     assert(transA == PastixNoTrans);
     assert(transB != PastixNoTrans);
@@ -106,4 +106,6 @@ core_zlrmm_Cnull( core_zlrmm_t *params )
 
     assert( C->rk <= C->rkmax);
     PASTE_CORE_ZLRMM_VOID;
+
+    return flops;
 }

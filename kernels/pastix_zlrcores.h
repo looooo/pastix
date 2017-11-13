@@ -117,9 +117,10 @@ core_zlrmm_getws( core_zlrmm_t *params,
                   ssize_t newsize )
 {
     pastix_complex64_t *work = NULL;
-    if ( (params->lwused == 0) && (params->lwork < newsize) ) {
+    if ( (params->lwused == -1) && (params->lwork < newsize) ) {
         params->work  = realloc( params->work, newsize * sizeof(pastix_complex64_t) );
         params->lwork = newsize;
+        params->lwused = 0;
     }
     if ( params->lwused + newsize <= params->lwork ) {
         work = params->work + params->lwused;
@@ -155,20 +156,10 @@ pastix_fixdbl_t core_zlr2null( core_zlrmm_t           *params,
                                pastix_trans_t          transV,
                                int                     infomask );
 
-void core_zlrmm_Cfr  ( core_zlrmm_t *params );
-void core_zlrmm_Clr  ( core_zlrmm_t *params );
-void core_zlrmm_Cnull( core_zlrmm_t *params );
-
-void core_zlrmm( const pastix_lr_t *lowrank,
-                 pastix_trans_t transA, pastix_trans_t transB,
-                 pastix_int_t M, pastix_int_t N, pastix_int_t K,
-                 pastix_int_t Cm, pastix_int_t Cn,
-                 pastix_int_t offx, pastix_int_t offy,
-                 pastix_complex64_t alpha, const pastix_lrblock_t *A,
-                 const pastix_lrblock_t *B,
-                 pastix_complex64_t beta,        pastix_lrblock_t *C,
-                 pastix_complex64_t *work, pastix_int_t ldwork,
-                 pastix_atomic_lock_t *lock );
+pastix_fixdbl_t core_zlrmm_Cfr  ( core_zlrmm_t *params );
+pastix_fixdbl_t core_zlrmm_Clr  ( core_zlrmm_t *params );
+pastix_fixdbl_t core_zlrmm_Cnull( core_zlrmm_t *params );
+pastix_fixdbl_t core_zlrmm      ( core_zlrmm_t *params );
 
 /**
  *     @}

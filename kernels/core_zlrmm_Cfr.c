@@ -271,12 +271,12 @@ core_zlrlr2fr( core_zlrmm_t *params )
     return flops;
 }
 
-void
+pastix_fixdbl_t
 core_zlrmm_Cfr( core_zlrmm_t *params )
 {
     const pastix_lrblock_t *A = params->A;
     const pastix_lrblock_t *B = params->B;
-    pastix_fixdbl_t flops;
+    pastix_fixdbl_t flops = 0.0;
 
     assert( params->transA == PastixNoTrans );
     assert( params->transB != PastixNoTrans );
@@ -310,4 +310,6 @@ core_zlrmm_Cfr( core_zlrmm_t *params )
     }
 
     assert( params->C->rk == -1 );
+
+    return flops;
 }

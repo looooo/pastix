@@ -407,50 +407,22 @@ core_zlr2ge( pastix_trans_t trans, pastix_int_t m, pastix_int_t n,
     return ret;
 }
 
-void
-core_zlrmm( const pastix_lr_t *lowrank,
-            pastix_trans_t transA, pastix_trans_t transB,
-            pastix_int_t M, pastix_int_t N, pastix_int_t K,
-            pastix_int_t Cm, pastix_int_t Cn,
-            pastix_int_t offx, pastix_int_t offy,
-            pastix_complex64_t alpha, const pastix_lrblock_t *A,
-                                      const pastix_lrblock_t *B,
-            pastix_complex64_t beta,        pastix_lrblock_t *C,
-            pastix_complex64_t *work, pastix_int_t ldwork,
-            pastix_atomic_lock_t *lock )
+pastix_fixdbl_t
+core_zlrmm( core_zlrmm_t *params )
 {
-    core_zlrmm_t params;
+    PASTE_CORE_ZLRMM_PARAMS( params );
+    pastix_fixdbl_t flops;
 
-    assert(transA == PastixNoTrans);
-    assert(transB != PastixNoTrans);
+    assert( transA == PastixNoTrans );
+    assert( transB != PastixNoTrans );
     assert( A->rk <= A->rkmax);
     assert( B->rk <= B->rkmax);
     assert( C->rk <= C->rkmax);
 
     /* Quick return if multiplication by 0 */
     if ( A->rk == 0 || B->rk == 0 ) {
-        return;
+        return 0.0;
     }
-
-    params.lowrank = lowrank;
-    params.transA  = transA;
-    params.transB  = transB;
-    params.M       = M;
-    params.N       = N;
-    params.K       = K;
-    params.Cm      = Cm;
-    params.Cn      = Cn;
-    params.offx    = offx;
-    params.offy    = offy;
-    params.alpha   = alpha;
-    params.A       = A;
-    params.B       = B;
-    params.beta    = beta;
-    params.C       = C;
-    params.work    = work;
-    params.lwork   = ldwork;
-    params.lwused  = 0;
-    params.lock    = lock;
 
     if ( C->rk == 0 ) {
         /* pastix_cblk_lock( fcblk ); */
@@ -462,13 +434,13 @@ core_zlrmm( const pastix_lr_t *lowrank,
         /* } */
         /* pastix_cblk_unlock( fcblk ); */
 
-        core_zlrmm_Cnull( &params );
+        flops = core_zlrmm_Cnull( params );
     }
     else if ( C->rk == -1 ) {
-        core_zlrmm_Cfr( &params );
+        flops = core_zlrmm_Cfr( params );
     }
     else {
-        core_zlrmm_Clr( &params );
+        flops = core_zlrmm_Clr( params );
     }
 
 #if defined(PASTIX_DEBUG_LR)
@@ -481,6 +453,9 @@ core_zlrmm( const pastix_lr_t *lowrank,
     }
     pastix_atomic_unlock( lock );
 #endif
+
+    PASTE_CORE_ZLRMM_VOID;
+    return flops;
 }
 
 /**
