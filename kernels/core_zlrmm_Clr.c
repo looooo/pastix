@@ -1,6 +1,6 @@
 /**
  *
- * @file core_zgelrops_update_Cnull.c
+ * @file core_zlrmm_Clr.c
  *
  * PaStiX low-rank kernel routines
  *
@@ -16,13 +16,11 @@
  *
  **/
 #include "common.h"
-#include <cblas.h>
-#include <lapacke.h>
 #include "pastix_zlrcores.h"
 #include "kernels_trace.h"
 
 void
-core_zlrmm_Cnull( core_zlrmm_t *params )
+core_zlrmm_Clr( core_zlrmm_t *params )
 {
     PASTE_CORE_ZLRMM_PARAMS( params );
     pastix_lrblock_t AB;
@@ -37,30 +35,28 @@ core_zlrmm_Cnull( core_zlrmm_t *params )
 
     if ( A->rk == -1 ) {
         if ( B->rk == -1 ) {
-            kernel_trace_start_lvl2( PastixKernelLvl2_LR_FRFR2null );
+            kernel_trace_start_lvl2( PastixKernelLvl2_LR_FRFR2LR );
             flops = core_zfrfr2lr( params, &AB, &infomask,
-                                   pastix_imin( pastix_imin( M, N ),
-                                                core_get_rklimit( Cm, Cn ) ) );
+                                   pastix_imin( M, N ) );
             kernel_trace_stop_lvl2( flops );
         }
         else {
-            kernel_trace_start_lvl2( PastixKernelLvl2_LR_FRLR2null );
-            flops = core_zfrlr2lr( params, &AB, &infomask,
-                                   pastix_imin( M, core_get_rklimit( Cm, Cn ) ) );
+            kernel_trace_start_lvl2( PastixKernelLvl2_LR_FRLR2LR );
+            flops = core_zfrlr2lr( params, &AB, &infomask, M );
             kernel_trace_stop_lvl2( flops );
         }
     }
     else {
         if ( B->rk == -1 ) {
-            kernel_trace_start_lvl2( PastixKernelLvl2_LR_LRFR2null );
-            flops = core_zlrfr2lr( params, &AB, &infomask,
-                                   pastix_imin( N, core_get_rklimit( Cm, Cn ) ) );
+            kernel_trace_start_lvl2( PastixKernelLvl2_LR_LRFR2LR );
+            flops = core_zlrfr2lr( params, &AB, &infomask, N );
             kernel_trace_stop_lvl2( flops );
         }
         else {
-            kernel_trace_start_lvl2( PastixKernelLvl2_LR_LRLR2null );
+            kernel_trace_start_lvl2( PastixKernelLvl2_LR_LRLR2LR );
             flops = core_zlrlr2lr( params, &AB, &infomask );
             kernel_trace_stop_lvl2( flops );
+
             assert( AB.rk != -1 );
             assert( AB.rkmax != -1 );
         }

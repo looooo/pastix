@@ -63,12 +63,12 @@ set(SOURCES
   core_zlrdbg.c
   core_zlr2xx.c
   core_zxx2lr.c
-  core_zgelrops.c
+  core_zlrmm_Cfr.c
+  core_zlrmm_Clr.c
+  core_zlrmm_Cnull.c
   core_zgelrops_rrqr.c
   core_zgelrops_svd.c
-  core_zgelrops_update_Cfr.c
-  core_zgelrops_update_Clr.c
-  core_zgelrops_update_Cnull.c
+  core_zgelrops.c
   # cblk operations
   cpucblk_zinit.c
   cpucblk_zcompress.c

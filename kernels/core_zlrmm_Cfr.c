@@ -1,6 +1,6 @@
 /**
  *
- * @file core_zgelrops_update_Cfr.c
+ * @file core_zlrmm_Cfr.c
  *
  * PaStiX low-rank kernel routines
  *
@@ -311,4 +311,3 @@ core_zlrmm_Cfr( core_zlrmm_t *params )
 
     assert( params->C->rk == -1 );
 }
-
