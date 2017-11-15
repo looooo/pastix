@@ -20,12 +20,29 @@
 #include <cblas.h>
 #include "pastix_zlrcores.h"
 #include "kernels_trace.h"
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform the full-rank operation C = alpha * op(A) * op(B) + beta C
+ *
+ *******************************************************************************
+ *
+ * @param[inout] params
+ *          The LRMM structure that stores all the parameters used in the LRMM
+ *          functions family (@sa core_zlrmm_t).
+ *          On exit, the C matrix contains the product AB aligned with its own
+ *          dimensions.
+ *
+ *******************************************************************************
+ *
+ * @return The number of flops required to perform the operation.
+ *
+ *******************************************************************************/
 pastix_fixdbl_t
 core_zfrfr2fr( core_zlrmm_t *params )
 {
@@ -59,6 +76,25 @@ core_zfrfr2fr( core_zlrmm_t *params )
     return flops;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform the operation C = alpha * op(A) * op(B) + beta C, with A and C
+ * full-rank and B low-rank.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] params
+ *          The LRMM structure that stores all the parameters used in the LRMM
+ *          functions family (@sa core_zlrmm_t).
+ *          On exit, the C matrix contains the product AB aligned with its own
+ *          dimensions.
+ *
+ *******************************************************************************
+ *
+ * @return The number of flops required to perform the operation.
+ *
+ *******************************************************************************/
 pastix_fixdbl_t
 core_zfrlr2fr( core_zlrmm_t *params )
 {
@@ -140,6 +176,25 @@ core_zfrlr2fr( core_zlrmm_t *params )
     return flops;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform the operation C = alpha * op(A) * op(B) + beta C, with B and C
+ * full-rank and A low-rank.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] params
+ *          The LRMM structure that stores all the parameters used in the LRMM
+ *          functions family (@sa core_zlrmm_t).
+ *          On exit, the C matrix contains the product AB aligned with its own
+ *          dimensions.
+ *
+ *******************************************************************************
+ *
+ * @return The number of flops required to perform the operation.
+ *
+ *******************************************************************************/
 pastix_fixdbl_t
 core_zlrfr2fr( core_zlrmm_t *params )
 {
@@ -222,6 +277,25 @@ core_zlrfr2fr( core_zlrmm_t *params )
     return flops;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform the operation C = alpha * op(A) * op(B) + beta C, with A and B
+ * low-rank and C full-rank.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] params
+ *          The LRMM structure that stores all the parameters used in the LRMM
+ *          functions family (@sa core_zlrmm_t).
+ *          On exit, the C matrix contains the product AB aligned with its own
+ *          dimensions.
+ *
+ *******************************************************************************
+ *
+ * @return The number of flops required to perform the operation.
+ *
+ *******************************************************************************/
 pastix_fixdbl_t
 core_zlrlr2fr( core_zlrmm_t *params )
 {

@@ -27,6 +27,34 @@ static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform the addition of the low-rank matrix AB and the full-rank
+ * matrix C.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] params
+ *          The LRMM structure that stores all the parameters used in the LRMM
+ *          functions family (@sa core_zlrmm_t).
+ *          On exit, the C matrix is udpated with the addition of AB.
+ *
+ * @param[in] AB
+ *          The low-rank structure of the AB matrix to apply to C.
+ *
+ * @param[in] transV
+ *          Specify if AB->v is stored normally or transposed.
+ *          If PastixNoTrans, AB->v is stored normally for low-rank format.
+ *          If PastixTrans, AB->v is stored transposed.
+ *          If PastixConjTrans, AB->v is stored transposed, and conj() must be
+ *          applied to the matrix.
+ *
+ *******************************************************************************
+ *
+ * @return The number of flops required to perform the operation.
+ *
+ *******************************************************************************/
 pastix_fixdbl_t
 core_zlr2fr( core_zlrmm_t           *params,
              const pastix_lrblock_t *AB,
@@ -63,6 +91,34 @@ core_zlr2fr( core_zlrmm_t           *params,
     return flops;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform the addition of the low-rank matrix AB and the low-rank
+ * matrix C.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] params
+ *          The LRMM structure that stores all the parameters used in the LRMM
+ *          functions family (@sa core_zlrmm_t).
+ *          On exit, the C matrix is udpated with the addition of AB.
+ *
+ * @param[in] AB
+ *          The low-rank structure of the AB matrix to apply to C.
+ *
+ * @param[in] transV
+ *          Specify if AB->v is stored normally or transposed.
+ *          If PastixNoTrans, AB->v is stored normally for low-rank format.
+ *          If PastixTrans, AB->v is stored transposed.
+ *          If PastixConjTrans, AB->v is stored transposed, and conj() must be
+ *          applied to the matrix.
+ *
+ *******************************************************************************
+ *
+ * @return The number of flops required to perform the operation.
+ *
+ *******************************************************************************/
 pastix_fixdbl_t
 core_zlr2lr( core_zlrmm_t           *params,
              const pastix_lrblock_t *AB,
@@ -140,6 +196,39 @@ core_zlr2lr( core_zlrmm_t           *params,
     return total_flops;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform the addition of the low-rank matrix AB into the null matrix C.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] params
+ *          The LRMM structure that stores all the parameters used in the LRMM
+ *          functions family (@sa core_zlrmm_t).
+ *          On exit, the C matrix contains the product AB aligned with its own
+ *          dimensions.
+ *
+ * @param[in] AB
+ *          The low-rank structure of the AB matrix to apply to C.
+ *
+ * @param[in] transV
+ *          Specify if AB->v is stored normally or transposed.
+ *          If PastixNoTrans, AB->v is stored normally for low-rank format.
+ *          If PastixTrans, AB->v is stored transposed.
+ *          If PastixConjTrans, AB->v is stored transposed, and conj() must be
+ *          applied to the matrix.
+ *
+ * @param[in] infomask
+ *          Mask of informations returned by the core_zxx2lr() functions.
+ *          If CORE_LRMM_ORTHOU is set, then AB.u is orthogonal, otherwise an
+ *          orthogonalization step is added before adding it to C.
+ *
+ *******************************************************************************
+ *
+ * @return The number of flops required to perform the operation.
+ *
+ *******************************************************************************/
 pastix_fixdbl_t
 core_zlr2null(core_zlrmm_t           *params,
               const pastix_lrblock_t *AB,

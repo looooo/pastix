@@ -18,8 +18,9 @@
 #include "common.h"
 #include "solver.h"
 #include <lapacke.h>
-#include "pastix_zcores.h"
 #include "kernels_trace.h"
+#include "pastix_zcores.h"
+#include "pastix_zlrcores.h"
 
 /**
  *******************************************************************************

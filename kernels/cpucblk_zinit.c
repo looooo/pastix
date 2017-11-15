@@ -20,6 +20,7 @@
 #include "solver.h"
 #include "bcsc.h"
 #include "pastix_zcores.h"
+#include "pastix_zlrcores.h"
 
 /**
  *******************************************************************************

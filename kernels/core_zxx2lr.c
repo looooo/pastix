@@ -27,6 +27,40 @@ static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform the operation AB = op(A) * op(B), with A and B full-rank and AB
+ * low-rank.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] params
+ *          The LRMM structure that stores all the parameters used in the LRMM
+ *          functions family (@sa core_zlrmm_t).
+ *          On exit, the C matrix contains the product AB aligned with its own
+ *          dimensions.
+ *
+ * @param[inout] AB
+ *          The low-rank structure of the AB matrix in which to store the AB product.
+ *
+ * @param[inout] infomask
+ *          The mask of informations returned by the core_zxx2lr() functions.
+ *          If AB.u is orthogonal on exit, then PASTIX_LRM3_ORTHOU is set.
+ *          If AB.u is allocated, then PASTIX_LRM3_ALLOCU is set.
+ *          If AB.v is allocated, then PASTIX_LRM3_ALLOCV is set.
+ *          If AB.v is inistialized as one of the given pointer and op(B) is not
+ *          applyed, then PASTIX_LRM3_TRANSB is set.
+ *
+ * @param[in] Kmax
+ *          The maximum K value for which the AB product is contructed as AB.u =
+ *          A, and AB.v = B
+ *
+ *******************************************************************************
+ *
+ * @return The number of flops required to perform the operation.
+ *
+ *******************************************************************************/
 pastix_fixdbl_t
 core_zfrfr2lr( core_zlrmm_t     *params,
                pastix_lrblock_t *AB,
@@ -79,6 +113,39 @@ core_zfrfr2lr( core_zlrmm_t     *params,
     return flops;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform the operation AB = op(A) * op(B), with A full-rank and B and AB
+ * low-rank.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] params
+ *          The LRMM structure that stores all the parameters used in the LRMM
+ *          functions family (@sa core_zlrmm_t).
+ *          On exit, the C matrix contains the product AB aligned with its own
+ *          dimensions.
+ *
+ * @param[inout] AB
+ *          The low-rank structure of the AB matrix in which to store the AB product.
+ *
+ * @param[inout] infomask
+ *          The mask of informations returned by the core_zxx2lr() functions.
+ *          If AB.u is orthogonal on exit, then PASTIX_LRM3_ORTHOU is set.
+ *          If AB.u is allocated, then PASTIX_LRM3_ALLOCU is set.
+ *          If AB.v is allocated, then PASTIX_LRM3_ALLOCV is set.
+ *          If AB.v is inistialized as one of the given pointer and op(B) is not
+ *          applyed, then PASTIX_LRM3_TRANSB is set.
+ *
+ * @param[in] Brkmin
+ *          Threshold for which B->rk is considered as the final rank of AB
+ *
+ *******************************************************************************
+ *
+ * @return The number of flops required to perform the operation.
+ *
+ *******************************************************************************/
 pastix_fixdbl_t
 core_zfrlr2lr( core_zlrmm_t     *params,
                pastix_lrblock_t *AB,
@@ -191,6 +258,39 @@ core_zfrlr2lr( core_zlrmm_t     *params,
     return flops;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Perform the operation AB = op(A) * op(B), with B full-rank and A and AB
+ * low-rank.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] params
+ *          The LRMM structure that stores all the parameters used in the LRMM
+ *          functions family (@sa core_zlrmm_t).
+ *          On exit, the C matrix contains the product AB aligned with its own
+ *          dimensions.
+ *
+ * @param[inout] AB
+ *          The low-rank structure of the AB matrix in which to store the AB product.
+ *
+ * @param[inout] infomask
+ *          The mask of informations returned by the core_zxx2lr() functions.
+ *          If AB.u is orthogonal on exit, then PASTIX_LRM3_ORTHOU is set.
+ *          If AB.u is allocated, then PASTIX_LRM3_ALLOCU is set.
+ *          If AB.v is allocated, then PASTIX_LRM3_ALLOCV is set.
+ *          If AB.v is inistialized as one of the given pointer and op(B) is not
+ *          applyed, then PASTIX_LRM3_TRANSB is set.
+ *
+ * @param[in] Arkmin
+ *          Threshold for which A->rk is considered as the final rank of AB
+ *
+ *******************************************************************************
+ *
+ * @return The number of flops required to perform the operation.
+ *
+ *******************************************************************************/
 pastix_fixdbl_t
 core_zlrfr2lr( core_zlrmm_t     *params,
                pastix_lrblock_t *AB,
@@ -308,46 +408,30 @@ core_zlrfr2lr( core_zlrmm_t     *params,
 /**
  *******************************************************************************
  *
- * @ingroup kernel_lr_null
- *
- * @brief Compute the product of two low-rank matrices (rank != -1) and returns
- * the result in AB
+ * @brief Perform the operation AB = op(A) * op(B), with A, B, and AB low-rank.
  *
  *******************************************************************************
  *
- * @param[in] lowrank
- *          The structure with low-rank parameters.
+ * @param[inout] params
+ *          The LRMM structure that stores all the parameters used in the LRMM
+ *          functions family (@sa core_zlrmm_t).
+ *          On exit, the C matrix contains the product AB aligned with its own
+ *          dimensions.
  *
- * @param[in] transA
- *         @arg PastixNoTrans: No transpose, op( A ) = A;
- *         @arg PastixTrans:   Transpose, op( A ) = A';
+ * @param[inout] AB
+ *          The low-rank structure of the AB matrix in which to store the AB product.
  *
- * @param[in] transB
- *         @arg PastixNoTrans: No transpose, op( B ) = B;
- *         @arg PastixTrans:   Transpose, op( B ) = B';
- *
- * @param[in] M
- *          The number of rows of the matrix A.
- *
- * @param[in] N
- *          The number of columns of the matrix B.
- *
- * @param[in] K
- *          The number of columns of the matrix A and the number of rows of the
- *          matrix B.
- *
- * @param[in] A
- *          The low-rank representation of the matrix A.
- *
- * @param[in] B
- *          The low-rank representation of the matrix B.
- *
- * @param[out] AB
- *          The low-rank representation of the matrix op(A)op(B).
+ * @param[inout] infomask
+ *          The mask of informations returned by the core_zxx2lr() functions.
+ *          If AB.u is orthogonal on exit, then PASTIX_LRM3_ORTHOU is set.
+ *          If AB.u is allocated, then PASTIX_LRM3_ALLOCU is set.
+ *          If AB.v is allocated, then PASTIX_LRM3_ALLOCV is set.
+ *          If AB.v is inistialized as one of the given pointer and op(B) is not
+ *          applyed, then PASTIX_LRM3_TRANSB is set.
  *
  *******************************************************************************
  *
- * @return The way the product AB is stored: AB or op(AB).
+ * @return The number of flops required to perform the operation.
  *
  *******************************************************************************/
 pastix_fixdbl_t
