@@ -1,6 +1,6 @@
 /**
  *
- * @file core_zgelrops_SVD.c
+ * @file core_zgelrops_svd.c
  *
  * PaStiX low-rank kernel routines using SVD based on Lapack ZGESVD.
  *

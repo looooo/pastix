@@ -1,6 +1,6 @@
 /**
  *
- * @file core_zgelrops_RRQR.c
+ * @file core_zgelrops_rrqr.c
  *
  * PaStiX low-rank kernel routines using Rank-revealing QR based on Lapack GEQP3.
  *
