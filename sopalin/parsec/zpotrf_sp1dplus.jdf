@@ -37,6 +37,7 @@ bloknbr   [type = "pastix_int_t"          hidden = on default = "(datacode->blok
 lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->solvmtx->lowrank)"]
 
 p_work    [type = "parsec_memory_pool_t *"]
+lwork     [type = "pastix_int_t"]
 
 /**************************************************
  *                   POTRF                        *
@@ -188,12 +189,10 @@ BODY
         SolverCblk *fcblk = datacode->cblktab + fcblknm;
         SolverBlok *blok  = datacode->bloktab + bloknum;
         pastix_complex64_t *work = NULL;
-        pastix_int_t lwork = -1;
 
         if (!(lcblk->cblktype & CBLK_IN_SCHUR)) {
             if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
                 work  = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
-                lwork = sopalin_data->solvmtx->gemmmax;
             }
 
             cpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,

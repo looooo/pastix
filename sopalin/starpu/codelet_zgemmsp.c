@@ -80,7 +80,7 @@ static void cl_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
 
     A = (const cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[0]);
     B = (const cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[1]);
-    C = (cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[2]);
+    C = (cuDoubleComplex *)      STARPU_MATRIX_GET_PTR(descr[2]);
 
     starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data);
 
