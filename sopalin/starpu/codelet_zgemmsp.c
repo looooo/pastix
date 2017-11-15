@@ -60,7 +60,7 @@ static void cl_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
 
     cpucblk_zgemmsp( sideA, sideB, trans,
                      cblk, blok, fcblk,
-                     A, B, C, NULL,
+                     A, B, C, NULL, -1,
                      &(sopalin_data->solvmtx->lowrank) );
 }
 
