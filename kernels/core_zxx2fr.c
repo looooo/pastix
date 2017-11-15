@@ -63,7 +63,7 @@ core_zfrfr2fr( core_zlrmm_t *params )
     /*
      * Everything is full rank we apply directly a GEMM
      */
-    cblas_zgemm( CblasColMajor, transA, transB,
+    cblas_zgemm( CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB,
                  M, N, K,
                  CBLAS_SADDR(alpha), A->u, ldau,
                                      B->u, ldbu,

@@ -304,6 +304,7 @@ core_zlr2null(core_zlrmm_t           *params,
             }
             else {
                 ABfr = AB->u;
+                flops = 0.0;
             }
 
             flops += lowrank->core_ge2lr( lowrank->tolerance, rklimit,
