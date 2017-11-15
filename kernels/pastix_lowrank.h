@@ -17,13 +17,34 @@
 #ifndef _pastix_lowrank_h_
 #define _pastix_lowrank_h_
 
+/**
+ * @brief Macro to specify if the U part of a low-rank matrix is orthogonal or not (Used in LRMM functions).
+ */
 #define PASTIX_LRM3_ORTHOU (1 << 0)
+/**
+ * @brief Macro to specify if the U part of a low-rank matrix has been allocated and need to be freed or not (Used in LRMM functions).
+ */
 #define PASTIX_LRM3_ALLOCU (1 << 1)
+/**
+ * @brief Macro to specify if the V part of a low-rank matrix has been allocated and need to be freed or not (Used in LRMM functions).
+ */
 #define PASTIX_LRM3_ALLOCV (1 << 2)
+/**
+ * @brief Macro to specify if the the operator on B, still needs to be applied to the V part of the low-rank matrix or not (Used in LRMM functions).
+ */
 #define PASTIX_LRM3_TRANSB (1 << 3)
 
+/**
+ * @brief Define the minmal ratio for which we accept to compress a matrix into a low-rank form or not (@sa core_get_rklimit()).
+ */
 #define PASTIX_LR_MINRATIO 4
 
+/**
+ * @brief Compute the maximal rank accepted for a given matrix size
+ * @param[in] M The number of rows of the matrix
+ * @param[in] N The number of columns of the matrix
+ * @return The maximal rank accepeted for this matrix size.
+ */
 static inline pastix_int_t
 core_get_rklimit( pastix_int_t M, pastix_int_t N ) {
     return pastix_imin( M, N ) / PASTIX_LR_MINRATIO;
@@ -33,7 +54,7 @@ struct pastix_lr_s;
 typedef struct pastix_lr_s pastix_lr_t;
 
 /**
- * @brief The block low-rank structure to hold the information
+ * @brief The block low-rank structure to hold a matrix in low-rank form
  */
 typedef struct pastix_lrblock_s {
     int   rk;    /**< Rank of the low-rank matrix: -1 is dense, otherwise rank-rk matrix           */
