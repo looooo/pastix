@@ -210,7 +210,7 @@ BODY
 
         if (!(lcblk->cblktype & CBLK_IN_SCHUR)) {
             if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
-                work  = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
+                work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
             }
 
             cpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,

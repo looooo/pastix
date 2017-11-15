@@ -237,7 +237,7 @@ BODY
         if (!(lcblk->cblktype & CBLK_IN_SCHUR)) {
             if ( blok+s < lcblk[1].fblokptr ) {
                 if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
-                    work  = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
+                    work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
                 }
 
                 if (s == 0) {
