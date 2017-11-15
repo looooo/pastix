@@ -26,60 +26,6 @@ static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
-pastix_fixdbl_t
-core_zlrorthu( pastix_trans_t transV, pastix_int_t M,  pastix_int_t N, pastix_int_t K,
-               pastix_complex64_t *U, pastix_int_t ldu,
-               pastix_complex64_t *V, pastix_int_t ldv )
-{
-    pastix_int_t minMK = pastix_imin( M, K );
-    pastix_int_t lwork = M * 32 + minMK;
-    pastix_int_t ret;
-    pastix_complex64_t *W = malloc( lwork * sizeof(pastix_complex64_t) );
-    pastix_complex64_t *tau, *work;
-    pastix_fixdbl_t flops = 0.;
-
-    tau  = W;
-    work = W + minMK;
-    lwork -= minMK;
-
-    assert( M >= K );
-
-    /* Compute U = Q * R */
-    ret = LAPACKE_zgeqrf_work( LAPACK_COL_MAJOR, M, K,
-                               U, ldu, tau, work, lwork );
-    assert( ret == 0 );
-    flops += FLOPS_ZGEQRF( M, K );
-
-    if ( transV == PastixNoTrans ) {
-        /* Compute V' = R * V' */
-        cblas_ztrmm( CblasColMajor,
-                     CblasLeft, CblasUpper,
-                     CblasNoTrans, CblasNonUnit,
-                     K, N, CBLAS_SADDR(zone),
-                     U, ldu, V, ldv );
-    }
-    else {
-        /* Compute V = V * R' */
-        cblas_ztrmm( CblasColMajor,
-                     CblasRight, CblasUpper,
-                     CblasTrans, CblasNonUnit,
-                     N, K, CBLAS_SADDR(zone),
-                     U, ldu, V, ldv );
-    }
-    flops += FLOPS_ZTRMM( PastixLeft, K, N );
-
-    /* Generate the Q */
-    ret = LAPACKE_zungqr_work( LAPACK_COL_MAJOR, M, K, K,
-                               U, ldu, tau, work, lwork );
-    assert( ret == 0 );
-    flops += FLOPS_ZUNGQR( M, K, K );
-
-    free(W);
-
-    (void)ret;
-    return flops;
-}
-
 /**
  *******************************************************************************
  *
