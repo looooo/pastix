@@ -206,7 +206,7 @@ BODY
             if (twoterms) {
                 pastix_int_t N = cblk_colnbr( lcblk );
 
-                if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
+                if ( lwork > 0 ) {
                     work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
                 }
 

@@ -754,7 +754,6 @@ core_zgemmsp_2dlrsub( pastix_coefside_t  sideA,
     params.beta    = 1.0;
     params.work    = NULL;
     params.lwork   = -1;
-    params.lwused  = -1;
     params.lock    = &(fcblk->lock);
 
     bC = blokC;
@@ -902,7 +901,6 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
     params.beta    = 1.0;
     params.work    = work;
     params.lwork   = lwork;
-    params.lwused  = 0;
     params.lock    = &(fcblk->lock);
     params.B       = &lrB;
 
@@ -1042,7 +1040,6 @@ core_zgemmsp_lr( pastix_coefside_t         sideA,
     params.beta    = 1.0;
     params.work    = work;
     params.lwork   = lwork;
-    params.lwused  = 0;
     params.lock    = &(fcblk->lock);
     params.B       = lrB;
 

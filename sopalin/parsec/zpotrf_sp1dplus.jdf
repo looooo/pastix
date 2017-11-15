@@ -191,7 +191,7 @@ BODY
         pastix_complex64_t *work = NULL;
 
         if (!(lcblk->cblktype & CBLK_IN_SCHUR)) {
-            if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
+            if ( lwork > 0 ) {
                 work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
             }
 

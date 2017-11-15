@@ -341,6 +341,9 @@ core_zlrmm( core_zlrmm_t *params )
 
     params->lwused = 0;
 
+    assert( ((work != NULL) && (lwork >  0)) ||
+            ((work == NULL) && (lwork <= 0)) );
+
     if ( C->rk == 0 ) {
 #if 0
         /* Debug case with NULL matrix replaced by the unit vector times 0 */
