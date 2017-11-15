@@ -736,10 +736,6 @@ target_link_libraries(pastix
   pastix_kernels
 )
 
-target_link_libraries(pastix
-  ${DEPS_LIBRARIES}
-)
-
 if(PASTIX_WITH_PARSEC)
   target_link_libraries(pastix
     pastix_parsec
