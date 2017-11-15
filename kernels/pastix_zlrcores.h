@@ -67,24 +67,30 @@ pastix_fixdbl_t core_zlrorthu( pastix_trans_t transV, pastix_int_t M,  pastix_in
  *    @{
  */
 
+/**
+ * @brief Structure to store all the parameters of the core_zlrmm family functions
+ */
 typedef struct core_zlrmm_s {
-    const pastix_lr_t      *lowrank;
-    pastix_trans_t          transA;
-    pastix_trans_t          transB;
-    pastix_int_t            M, N, K;
-    pastix_int_t            Cm, Cn;
-    pastix_int_t            offx, offy;
-    pastix_complex64_t      alpha;
-    const pastix_lrblock_t *A;
-    const pastix_lrblock_t *B;
-    pastix_complex64_t      beta;
-    pastix_lrblock_t       *C;
-    pastix_complex64_t     *work;
-    pastix_int_t            lwork;
-    pastix_int_t            lwused;
-    pastix_atomic_lock_t   *lock;
+    const pastix_lr_t      *lowrank;     /**< The lowrank structure */
+    pastix_trans_t          transA;      /**< Specify op(A) and is equal to PastixNoTrans, PastixTrans, or PastixConjTrans */
+    pastix_trans_t          transB;      /**< Specify op(B) and is equal to PastixNoTrans, PastixTrans, or PastixConjTrans */
+    pastix_int_t            M, N, K;     /**< Dimensions of the matrix-matrix product as in GEMM (These are the dimensions of the AB product) */
+    pastix_int_t            Cm, Cn;      /**< Dimensions of the C matrix that receives the AB contribution */
+    pastix_int_t            offx, offy;  /**< Offsets of the AB product in the C matrix */
+    pastix_complex64_t      alpha;       /**< The alpha factor */
+    const pastix_lrblock_t *A;           /**< The A matrix described in a low-rank structure */
+    const pastix_lrblock_t *B;           /**< The B matrix described in a low-rank structure */
+    pastix_complex64_t      beta;        /**< The beta factor */
+    pastix_lrblock_t       *C;           /**< The C matrix described in a low-rank structure */
+    pastix_complex64_t     *work;        /**< The pointer to an available workspace */
+    pastix_int_t            lwork;       /**< The size of the given workspace       */
+    pastix_int_t            lwused;      /**< The size of the workspcae that is already used */
+    pastix_atomic_lock_t   *lock;        /**< The lock to protect the concurrent accesses on the C matrix */
 } core_zlrmm_t;
 
+/**
+ * @brief Initialize all the parameters of the core_zlrmm family functions to ease the access
+ */
 #define PASTE_CORE_ZLRMM_PARAMS(_a_)                   \
     const pastix_lr_t      *lowrank = (_a_)->lowrank;  \
     pastix_trans_t          transA  = (_a_)->transA;   \
@@ -105,6 +111,9 @@ typedef struct core_zlrmm_s {
     pastix_int_t            lwork   = (_a_)->lwork;    \
     pastix_atomic_lock_t   *lock    = (_a_)->lock;
 
+/**
+ * @brief Void all the parameters of the core_zlrmm family functions to silent warnings
+ */
 #define PASTE_CORE_ZLRMM_VOID                   \
     (void)lowrank;                              \
     (void)transA;                               \
@@ -125,6 +134,12 @@ typedef struct core_zlrmm_s {
     (void)lwork;                                \
     (void)lock
 
+/**
+ * @brief Function to get a workspace pointer if space is available in the one provided
+ * @param[inout] params  The parameters structure for core_zlrmm family functions
+ * @param[in]    newsize The required workspace size in number of elements
+ * @return The pointer to the workspace if enough space available, NULL otherwise.
+ */
 static inline pastix_complex64_t *
 core_zlrmm_getws( core_zlrmm_t *params,
                   ssize_t newsize )
@@ -145,11 +160,20 @@ core_zlrmm_getws( core_zlrmm_t *params,
     return work;
 }
 
+/**
+ *      @name update_fr Functions to perform the update on a full-rank matrix
+ *      @{
+ */
 pastix_fixdbl_t core_zfrfr2fr( core_zlrmm_t *params );
 pastix_fixdbl_t core_zfrlr2fr( core_zlrmm_t *params );
 pastix_fixdbl_t core_zlrfr2fr( core_zlrmm_t *params );
 pastix_fixdbl_t core_zlrlr2fr( core_zlrmm_t *params );
 
+/**
+ *      @}
+ *      @name update_lr Functions to prepare the AB product for an update on a low-rank matrix
+ *      @{
+ */
 pastix_fixdbl_t core_zfrfr2lr( core_zlrmm_t     *params,
                                pastix_lrblock_t *AB,
                                int              *infomask,
@@ -166,6 +190,11 @@ pastix_fixdbl_t core_zlrlr2lr( core_zlrmm_t     *params,
                                pastix_lrblock_t *AB,
                                int              *infomask );
 
+/**
+ *      @}
+ *      @name add_lr Functions to add the AB contribution in a low-rank format to any C matrix
+ *      @{
+ */
 pastix_fixdbl_t core_zlr2fr  ( core_zlrmm_t           *params,
                                const pastix_lrblock_t *AB,
                                pastix_trans_t          transV );
@@ -176,6 +205,10 @@ pastix_fixdbl_t core_zlr2null( core_zlrmm_t           *params,
                                const pastix_lrblock_t *AB,
                                pastix_trans_t          transV,
                                int                     infomask );
+
+/**
+ *       @}
+ */
 
 pastix_fixdbl_t core_zlrmm( core_zlrmm_t *params );
 
