@@ -339,6 +339,8 @@ core_zlrmm( core_zlrmm_t *params )
         return 0.0;
     }
 
+    params->lwused = 0;
+
     if ( C->rk == 0 ) {
 #if 0
         /* Debug case with NULL matrix replaced by the unit vector times 0 */
