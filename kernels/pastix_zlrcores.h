@@ -134,6 +134,11 @@ core_zlrmm_getws( core_zlrmm_t *params,
     return work;
 }
 
+pastix_fixdbl_t core_zfrfr2fr( core_zlrmm_t *params );
+pastix_fixdbl_t core_zfrlr2fr( core_zlrmm_t *params );
+pastix_fixdbl_t core_zlrfr2fr( core_zlrmm_t *params );
+pastix_fixdbl_t core_zlrlr2fr( core_zlrmm_t *params );
+
 pastix_fixdbl_t core_zfrfr2lr( core_zlrmm_t     *params,
                                pastix_lrblock_t *AB,
                                int              *infomask,
@@ -161,10 +166,7 @@ pastix_fixdbl_t core_zlr2null( core_zlrmm_t           *params,
                                pastix_trans_t          transV,
                                int                     infomask );
 
-pastix_fixdbl_t core_zlrmm_Cfr  ( core_zlrmm_t *params );
-pastix_fixdbl_t core_zlrmm_Clr  ( core_zlrmm_t *params );
-pastix_fixdbl_t core_zlrmm_Cnull( core_zlrmm_t *params );
-pastix_fixdbl_t core_zlrmm      ( core_zlrmm_t *params );
+pastix_fixdbl_t core_zlrmm( core_zlrmm_t *params );
 
 /**
  *     @}

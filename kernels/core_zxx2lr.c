@@ -3,7 +3,7 @@
  * @file core_zxx2lr.c
  *
  * PaStiX low-rank kernel routines that form the product of two matrices A and B
- * into a low-rank form
+ * into a low-rank form for an update on a null or low-rank matrix.
  *
  * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -18,11 +18,9 @@
  **/
 #include "common.h"
 #include <cblas.h>
-#include <lapacke.h>
+#include "flops.h"
 #include "blend/solver.h"
-#include "pastix_zcores.h"
-#include "z_nan_check.h"
-#include "kernels_trace.h"
+#include "pastix_zlrcores.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t zone  =  1.0;

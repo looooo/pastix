@@ -407,57 +407,6 @@ core_zlr2ge( pastix_trans_t trans, pastix_int_t m, pastix_int_t n,
     return ret;
 }
 
-pastix_fixdbl_t
-core_zlrmm( core_zlrmm_t *params )
-{
-    PASTE_CORE_ZLRMM_PARAMS( params );
-    pastix_fixdbl_t flops;
-
-    assert( transA == PastixNoTrans );
-    assert( transB != PastixNoTrans );
-    assert( A->rk <= A->rkmax);
-    assert( B->rk <= B->rkmax);
-    assert( C->rk <= C->rkmax);
-
-    /* Quick return if multiplication by 0 */
-    if ( A->rk == 0 || B->rk == 0 ) {
-        return 0.0;
-    }
-
-    if ( C->rk == 0 ) {
-        /* pastix_cblk_lock( fcblk ); */
-        /* if ( C->rk == 0 ) { */
-        /*     core_zlrsze( 0, Cm, Cn, C, 1, 1, -1 ); */
-        /*     memset(C->u, 0, Cm * sizeof(pastix_complex64_t) ); */
-        /*     memset(C->v, 0, Cn * sizeof(pastix_complex64_t) ); */
-        /*     ((pastix_complex64_t*)(C->u))[0] = 1.; */
-        /* } */
-        /* pastix_cblk_unlock( fcblk ); */
-
-        flops = core_zlrmm_Cnull( params );
-    }
-    else if ( C->rk == -1 ) {
-        flops = core_zlrmm_Cfr( params );
-    }
-    else {
-        flops = core_zlrmm_Clr( params );
-    }
-
-#if defined(PASTIX_DEBUG_LR)
-    pastix_atomic_lock( lock );
-    if ( (C->rk > 0) && (lowrank->compress_method == PastixCompressMethodRRQR) ) {
-        int rc = core_zlrdbg_check_orthogonality( Cm, C->rk, (pastix_complex64_t*)C->u, Cm );
-        if (rc == 1) {
-            fprintf(stderr, "Failed to have u orthogonal in exit of lrmm\n" );
-        }
-    }
-    pastix_atomic_unlock( lock );
-#endif
-
-    PASTE_CORE_ZLRMM_VOID;
-    return flops;
-}
-
 /**
  *******************************************************************************
  *

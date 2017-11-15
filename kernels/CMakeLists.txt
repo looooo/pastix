@@ -63,9 +63,8 @@ set(SOURCES
   core_zlrdbg.c
   core_zlr2xx.c
   core_zxx2lr.c
-  core_zlrmm_Cfr.c
-  core_zlrmm_Clr.c
-  core_zlrmm_Cnull.c
+  core_zxx2fr.c
+  core_zlrmm.c
   core_zgelrops_rrqr.c
   core_zgelrops_svd.c
   core_zgelrops.c

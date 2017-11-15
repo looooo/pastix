@@ -1,8 +1,9 @@
 /**
  *
- * @file core_zlrmm_Cfr.c
+ * @file core_zxx2fr.c
  *
- * PaStiX low-rank kernel routines
+ * PaStiX low-rank kernel routines that form the product of two matrices A and B
+ * into a low-rank form for an update on a full rank matrix.
  *
  * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -25,7 +26,7 @@ static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t zzero =  0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
-static inline pastix_fixdbl_t
+pastix_fixdbl_t
 core_zfrfr2fr( core_zlrmm_t *params )
 {
     pastix_int_t ldau, ldbu, ldcu;
@@ -58,7 +59,7 @@ core_zfrfr2fr( core_zlrmm_t *params )
     return flops;
 }
 
-static inline pastix_fixdbl_t
+pastix_fixdbl_t
 core_zfrlr2fr( core_zlrmm_t *params )
 {
     PASTE_CORE_ZLRMM_PARAMS( params );
@@ -139,7 +140,7 @@ core_zfrlr2fr( core_zlrmm_t *params )
     return flops;
 }
 
-static inline pastix_fixdbl_t
+pastix_fixdbl_t
 core_zlrfr2fr( core_zlrmm_t *params )
 {
     PASTE_CORE_ZLRMM_PARAMS( params );
@@ -221,7 +222,7 @@ core_zlrfr2fr( core_zlrmm_t *params )
     return flops;
 }
 
-static inline pastix_fixdbl_t
+pastix_fixdbl_t
 core_zlrlr2fr( core_zlrmm_t *params )
 {
     PASTE_CORE_ZLRMM_PARAMS( params );
@@ -268,48 +269,5 @@ core_zlrlr2fr( core_zlrmm_t *params )
     }
 
     PASTE_CORE_ZLRMM_VOID;
-    return flops;
-}
-
-pastix_fixdbl_t
-core_zlrmm_Cfr( core_zlrmm_t *params )
-{
-    const pastix_lrblock_t *A = params->A;
-    const pastix_lrblock_t *B = params->B;
-    pastix_fixdbl_t flops = 0.0;
-
-    assert( params->transA == PastixNoTrans );
-    assert( params->transB != PastixNoTrans );
-    assert( A->rk <= A->rkmax && A->rk != 0 );
-    assert( B->rk <= B->rkmax && B->rk != 0 );
-    assert( params->C->rk == -1 );
-
-    if ( A->rk == -1 ) {
-        if ( B->rk == -1 ) {
-            kernel_trace_start_lvl2( PastixKernelLvl2_LR_FRFR2FR );
-            flops = core_zfrfr2fr( params );
-            kernel_trace_stop_lvl2( flops );
-        }
-        else {
-            kernel_trace_start_lvl2( PastixKernelLvl2_LR_FRLR2FR );
-            flops = core_zfrlr2fr( params );
-            kernel_trace_stop_lvl2( flops );
-        }
-    }
-    else {
-        if ( B->rk == -1 ) {
-            kernel_trace_start_lvl2( PastixKernelLvl2_LR_LRFR2FR );
-            flops = core_zlrfr2fr( params );
-            kernel_trace_stop_lvl2( flops );
-        }
-        else {
-            kernel_trace_start_lvl2( PastixKernelLvl2_LR_LRLR2FR );
-            flops = core_zlrlr2fr( params );
-            kernel_trace_stop_lvl2( flops );
-        }
-    }
-
-    assert( params->C->rk == -1 );
-
     return flops;
 }
