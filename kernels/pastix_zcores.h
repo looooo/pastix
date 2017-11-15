@@ -288,6 +288,4 @@ void core_zsytrfsp1d_gemm( const SolverCblk *cblk, const SolverBlok *blok, Solve
  * @}
  */
 
-#include "pastix_zlrcores.h"
-
 #endif /* _pastix_zcores_h_ */

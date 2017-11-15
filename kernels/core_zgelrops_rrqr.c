@@ -17,10 +17,12 @@
 #include "common.h"
 #include <cblas.h>
 #include <lapacke.h>
+#include "flops.h"
+#include "kernels_trace.h"
 #include "blend/solver.h"
 #include "pastix_zcores.h"
+#include "pastix_zlrcores.h"
 #include "z_nan_check.h"
-#include "kernels_trace.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t mzone = -1.0;

@@ -17,8 +17,8 @@
  *
  **/
 #include "common.h"
-#include "pastix_zlrcores.h"
 #include "kernels_trace.h"
+#include "pastix_zlrcores.h"
 
 /**
  *******************************************************************************

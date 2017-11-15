@@ -18,8 +18,9 @@
 #include "common.h"
 #include "cblas.h"
 #include "blend/solver.h"
-#include "pastix_zcores.h"
 #include "kernels_trace.h"
+#include "pastix_zcores.h"
+#include "pastix_zlrcores.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t  zone =  1.0;

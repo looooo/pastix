@@ -17,10 +17,10 @@
 #include <cblas.h>
 #include <lapacke.h>
 #include "flops.h"
+#include "kernels_trace.h"
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 #include "pastix_zlrcores.h"
-#include "kernels_trace.h"
 #include "z_nan_check.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS

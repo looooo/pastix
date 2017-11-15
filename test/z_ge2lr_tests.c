@@ -27,6 +27,7 @@
 #include <cblas.h>
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"
+#include "kernels/pastix_zlrcores.h"
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_ == -1) {                           \

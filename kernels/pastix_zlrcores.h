@@ -55,6 +55,17 @@ pastix_fixdbl_t core_zlrorthu( pastix_trans_t transV, pastix_int_t M,  pastix_in
                                pastix_complex64_t *U, pastix_int_t ldu,
                                pastix_complex64_t *V, pastix_int_t ldv );
 
+/**
+ *     @}
+ * @}
+ *
+ * @addtogroup kernel_lr_lrmm
+ * @{
+ *    This are the kernels to compute the low-rank updates
+ *
+ *    @name PastixComplex64 LRMM low-rank kernels
+ *    @{
+ */
 
 typedef struct core_zlrmm_s {
     const pastix_lr_t      *lowrank;
@@ -225,14 +236,14 @@ void core_zlrdbg_printsvd( pastix_int_t              M,
                            const pastix_complex64_t *A,
                            pastix_int_t              lda );
 
-int core_zlrdbg_check_orthogonality( pastix_int_t              M,
-                                     pastix_int_t              N,
-                                     const pastix_complex64_t *A,
-                                     pastix_int_t              lda );
+int  core_zlrdbg_check_orthogonality( pastix_int_t              M,
+                                      pastix_int_t              N,
+                                      const pastix_complex64_t *A,
+                                      pastix_int_t              lda );
 
-int core_zlrdbg_check_orthogonality_AB( pastix_int_t M, pastix_int_t NA, pastix_int_t NB,
-                                        const pastix_complex64_t *A, pastix_int_t lda,
-                                        const pastix_complex64_t *B, pastix_int_t ldb );
+int  core_zlrdbg_check_orthogonality_AB( pastix_int_t M, pastix_int_t NA, pastix_int_t NB,
+                                         const pastix_complex64_t *A, pastix_int_t lda,
+                                         const pastix_complex64_t *B, pastix_int_t ldb );
 
 /**
  *    @}
