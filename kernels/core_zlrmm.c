@@ -341,6 +341,10 @@ core_zlrmm( core_zlrmm_t *params )
 
     params->lwused = 0;
 
+    /* TODO: this is a temporary fix */
+    if ( lwork == 0 ) {
+        params->work = work = NULL;
+    }
     assert( ((work != NULL) && (lwork >  0)) ||
             ((work == NULL) && (lwork <= 0)) );
 
