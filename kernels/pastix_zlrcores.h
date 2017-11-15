@@ -150,16 +150,16 @@ core_zlrmm_getws( core_zlrmm_t *params,
         work = params->work + params->lwused;
         params->lwused += newsize;
     }
-    else
-    {
-        if ( (params->work == NULL) || (params->lwused == 0) )
-        {
-            params->work = realloc( params->work, newsize * sizeof(pastix_complex64_t) );
-        }
-        params->lwork  = newsize;
-        params->lwused = newsize;
-    }
-
+    /* else */
+    /* { */
+    /*     if ( (params->work == NULL) || (params->lwused == 0) ) */
+    /*     { */
+    /*         params->work = realloc( params->work, newsize * sizeof(pastix_complex64_t) ); */
+    /*         params->lwork  = newsize; */
+    /*         params->lwused = newsize; */
+    /*         work = params->work; */
+    /*     } */
+    /* } */
     return work;
 }
 
