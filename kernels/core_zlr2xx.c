@@ -130,15 +130,14 @@ core_zlr2lr( core_zlrmm_t           *params,
      * The rank is not too large, we perform a low-rank update
      */
     else {
-        // TODO: Need to get the number of flops
-        lowrank->core_rradd( lowrank, transV, &alpha,
-                             M,  N,  AB,
-                             Cm, Cn, C,
-                             offx, offy );
+        total_flops += lowrank->core_rradd( lowrank, transV, &alpha,
+                                            M,  N,  AB,
+                                            Cm, Cn, C,
+                                            offx, offy );
     }
 
     PASTE_CORE_ZLRMM_VOID;
-    return flops;
+    return total_flops;
 }
 
 pastix_fixdbl_t
@@ -244,5 +243,5 @@ core_zlr2null(core_zlrmm_t           *params,
     }
 
     PASTE_CORE_ZLRMM_VOID;
-    return flops;
+    return total_flops;
 }
