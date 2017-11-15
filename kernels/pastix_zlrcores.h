@@ -180,21 +180,13 @@ pastix_fixdbl_t core_zlrmm( core_zlrmm_t *params );
  *    @name PastixComplex64 SVD low-rank kernels
  *    @{
  */
-pastix_fixdbl_t core_zge2lr_SVD( double tol, pastix_int_t rklimit, pastix_int_t m, pastix_int_t n,
-                                 const pastix_complex64_t *A, pastix_int_t lda,
-                                 pastix_lrblock_t *Alr );
-int  core_zrradd_SVD( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_complex64_t alpha,
-                      pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                      pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                      pastix_int_t offx, pastix_int_t offy );
 
-pastix_fixdbl_t core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t rklimit,
-                                           pastix_int_t m, pastix_int_t n,
-                                           const void *Aptr, pastix_int_t lda, void *Alr );
-int  core_zrradd_SVD_interface( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
-                                pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                                pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                                pastix_int_t offx, pastix_int_t offy );
+pastix_fixdbl_t core_zge2lr_svd( pastix_fixdbl_t tol, pastix_int_t rklimit, pastix_int_t m, pastix_int_t n,
+                                 const void *Avoid, pastix_int_t lda, pastix_lrblock_t *Alr );
+pastix_fixdbl_t core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
+                                 pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                                 pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                                 pastix_int_t offx, pastix_int_t offy);
 
 /**
  *     @}
@@ -208,23 +200,14 @@ int  core_zrradd_SVD_interface( const pastix_lr_t *lowrank, pastix_trans_t trans
  *    @name PastixComplex64 RRQR low-rank kernels
  *    @{
  */
-pastix_fixdbl_t core_zge2lr_RRQR( double tol, pastix_int_t rklimit, pastix_int_t m, pastix_int_t n,
-                                  const pastix_complex64_t *A, pastix_int_t lda,
-                                  pastix_lrblock_t *Alr );
-int  core_zrradd_RRQR( const pastix_lr_t *lowrank, pastix_trans_t transA1, pastix_complex64_t alpha,
-                       pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                       pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                       pastix_int_t offx, pastix_int_t offy );
 
+pastix_fixdbl_t core_zge2lr_rrqr( pastix_fixdbl_t tol, pastix_int_t rklimit, pastix_int_t m, pastix_int_t n,
+                                  const void *Avoid, pastix_int_t lda, pastix_lrblock_t *Alr );
+pastix_fixdbl_t core_zrradd_rrqr( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
+                                  pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                                  pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                                  pastix_int_t offx, pastix_int_t offy);
 
-pastix_fixdbl_t core_zge2lr_RRQR_interface( pastix_fixdbl_t tol, pastix_int_t rklimit,
-                                            pastix_int_t m, pastix_int_t n,
-                                            const void *Aptr, pastix_int_t lda, void *Alr );
-
-int  core_zrradd_RRQR_interface( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
-                                 pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                                 pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                                 pastix_int_t offx, pastix_int_t offy );
 /**
  *     @}
  * @}
@@ -236,6 +219,7 @@ int  core_zrradd_RRQR_interface( const pastix_lr_t *lowrank, pastix_trans_t tran
  *    @name PastixComplex64 low-rank debug functions
  *    @{
  */
+
 void core_zlrdbg_printsvd( pastix_int_t              M,
                            pastix_int_t              N,
                            const pastix_complex64_t *A,

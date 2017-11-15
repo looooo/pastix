@@ -46,15 +46,15 @@ typedef struct pastix_lrblock_s {
  * @brief Type of the functions to compress a dense block into a low-rank form.
  */
 typedef pastix_fixdbl_t (*fct_ge2lr_t)( pastix_fixdbl_t, pastix_int_t, pastix_int_t, pastix_int_t,
-                                        const void *, pastix_int_t, void * );
+                                        const void *, pastix_int_t, pastix_lrblock_t * );
 
 /**
  * @brief Type of the functions to add two low-rank blocks together.
  */
-typedef int  (*fct_rradd_t)( const pastix_lr_t *, pastix_trans_t, const void *,
-                             pastix_int_t, pastix_int_t, const pastix_lrblock_t *,
-                             pastix_int_t, pastix_int_t,       pastix_lrblock_t *,
-                             pastix_int_t, pastix_int_t );
+typedef pastix_fixdbl_t (*fct_rradd_t)( const pastix_lr_t *, pastix_trans_t, const void *,
+                                        pastix_int_t, pastix_int_t, const pastix_lrblock_t *,
+                                        pastix_int_t, pastix_int_t,       pastix_lrblock_t *,
+                                        pastix_int_t, pastix_int_t );
 
 /**
  * @brief Structure to define the type of function to use for the low-rank

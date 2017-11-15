@@ -106,12 +106,12 @@ z_ge2lr_test( int mode, double tolerance, pastix_int_t rank,
                                       A, lda, NULL );
 
     /* Compress and then uncompress  */
-    core_zge2lr_RRQR( tolerance, -1,
+    core_zge2lr_rrqr( tolerance, -1,
                       m, n,
                       A, lda,
                       &LR_RRQR );
 
-    core_zge2lr_SVD( tolerance, -1,
+    core_zge2lr_svd( tolerance, -1,
                       m, n,
                       A, lda,
                       &LR_SVD );

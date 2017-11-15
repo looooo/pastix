@@ -2,7 +2,7 @@
  *
  * @file z_rradd_tests.c
  *
- * Tests and validate the Xrradd routine.
+ * Tests and validate the core_zrradd() routine.
  *
  * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -27,6 +27,7 @@
 #include <cblas.h>
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"
+#include "kernels/pastix_zlrcores.h"
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_ == -1) {                           \
@@ -74,17 +75,17 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
     lr_RRQR.compress_method     = 0;
     lr_RRQR.compress_min_width  = 0;
     lr_RRQR.compress_min_height = 0;
-    lr_RRQR.tolerance           = tolerance;
-    lr_RRQR.core_ge2lr = core_zge2lr_RRQR_interface;
-    lr_RRQR.core_rradd = core_zrradd_RRQR_interface;
+    lr_RRQR.tolerance  = tolerance;
+    lr_RRQR.core_ge2lr = core_zge2lr_rrqr;
+    lr_RRQR.core_rradd = core_zrradd_rrqr;
 
     lr_SVD.compress_when       = 0;
     lr_SVD.compress_method     = 0;
     lr_SVD.compress_min_width  = 0;
     lr_SVD.compress_min_height = 0;
-    lr_SVD.tolerance           = tolerance;
-    lr_SVD.core_ge2lr = core_zge2lr_SVD_interface;
-    lr_SVD.core_rradd = core_zrradd_SVD_interface;
+    lr_SVD.tolerance  = tolerance;
+    lr_SVD.core_ge2lr = core_zge2lr_svd;
+    lr_SVD.core_rradd = core_zrradd_svd;
 
     A      = malloc(mA * nA * sizeof(pastix_complex64_t));
     B      = malloc(mB * nB * sizeof(pastix_complex64_t));

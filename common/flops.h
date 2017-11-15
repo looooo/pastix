@@ -294,6 +294,11 @@
 #define FLOPS_DORMQR(__m, __n, __k, __side) (     FMULS_ORMQR((__m), (__n), (__k), (__side)) +       FADDS_ORMQR((__m), (__n), (__k), (__side)) )
 #define FLOPS_SORMQR(__m, __n, __k, __side) (     FMULS_ORMQR((__m), (__n), (__k), (__side)) +       FADDS_ORMQR((__m), (__n), (__k), (__side)) )
 
+#define FLOPS_ZUNMLQ FLOPS_ZUNMQR
+#define FLOPS_CUNMLQ FLOPS_CUNMQR
+#define FLOPS_DORMLQ FLOPS_DORMQR
+#define FLOPS_SORMLQ FLOPS_SORMQR
+
 #define FLOPS_ZUNGQR(__m, __n, __k) (6. * FMULS_UNGQR((__m), (__n), (__k)) + 2.0 * FADDS_UNGQR((__m), (__n), (__k)) )
 #define FLOPS_CUNGQR(__m, __n, __k) (6. * FMULS_UNGQR((__m), (__n), (__k)) + 2.0 * FADDS_UNGQR((__m), (__n), (__k)) )
 #define FLOPS_DUNGQR(__m, __n, __k) (     FMULS_UNGQR((__m), (__n), (__k)) +       FADDS_UNGQR((__m), (__n), (__k)) )
