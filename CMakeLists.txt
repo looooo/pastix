@@ -148,10 +148,13 @@ option(PASTIX_DEBUG_LR_NANCHECK
 # Look for dependencies #
 #########################
 
-include(FortranCInterface)
-FortranCInterface_HEADER(common/FCmangle.h
-  MACRO_NAMESPACE "FC_"
-  SYMBOL_NAMESPACE "FC_")
+if (PASTIX_WITH_FORTRAN)
+  include(FortranCInterface)
+  FortranCInterface_HEADER(common/FCmangle.h
+    MACRO_NAMESPACE "FC_"
+    SYMBOL_NAMESPACE "FC_")
+  link_directories( ${CMAKE_Fortran_IMPLICIT_LINK_DIRECTORIES} )
+endif()
 
 # PaStiX depends on CBLAS
 #----------------------------

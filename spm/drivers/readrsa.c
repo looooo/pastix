@@ -14,6 +14,7 @@
  **/
 #include "common.h"
 #include "spm_drivers.h"
+#include "FCmangle.h"
 
 /**
  * Function: FORTRAN_CALL(wreadmtc)

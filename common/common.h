@@ -26,7 +26,6 @@
 #include <inttypes.h>
 #include <limits.h>
 #include "sys/atomic.h"
-#include "FCmangle.h"
 #include "memory.h"
 #include "integer.h"
 #include "timing.h"
