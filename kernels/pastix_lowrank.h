@@ -18,6 +18,13 @@
 #define _pastix_lowrank_h_
 
 /**
+ *
+ * @addtogroup kernel_lr_null
+ * @{
+ *    This module contains all the internal functions for low-rank kernels
+ */
+
+/**
  * @brief Macro to specify if the U part of a low-rank matrix is orthogonal or not (Used in LRMM functions).
  */
 #define PASTIX_LRM3_ORTHOU (1 << 0)
@@ -79,7 +86,7 @@ typedef pastix_fixdbl_t (*fct_rradd_t)( const pastix_lr_t *, pastix_trans_t, con
 
 /**
  * @brief Structure to define the type of function to use for the low-rank
- *        kernels and their parmaeters.
+ *        kernels and their parameters.
  */
 typedef struct pastix_lr_s {
     pastix_int_t compress_when;       /**< When to compress in the full solver              */

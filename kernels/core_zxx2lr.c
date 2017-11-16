@@ -37,19 +37,20 @@ static pastix_complex64_t zzero =  0.0;
  *
  * @param[inout] params
  *          The LRMM structure that stores all the parameters used in the LRMM
- *          functions family (@sa core_zlrmm_t).
+ *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
+ *          @sa core_zlrmm_t.
  *
  * @param[inout] AB
  *          The low-rank structure of the AB matrix in which to store the AB product.
  *
  * @param[inout] infomask
  *          The mask of informations returned by the core_zxx2lr() functions.
- *          If AB.u is orthogonal on exit, then PASTIX_LRM3_ORTHOU is set.
- *          If AB.u is allocated, then PASTIX_LRM3_ALLOCU is set.
- *          If AB.v is allocated, then PASTIX_LRM3_ALLOCV is set.
- *          If AB.v is inistialized as one of the given pointer and op(B) is not
+ *          - If AB.u is orthogonal on exit, then PASTIX_LRM3_ORTHOU is set.
+ *          - If AB.u is allocated, then PASTIX_LRM3_ALLOCU is set.
+ *          - If AB.v is allocated, then PASTIX_LRM3_ALLOCV is set.
+ *          - If AB.v is inistialized as one of the given pointer and op(B) is not
  *          applyed, then PASTIX_LRM3_TRANSB is set.
  *
  * @param[in] Kmax
@@ -123,19 +124,20 @@ core_zfrfr2lr( core_zlrmm_t     *params,
  *
  * @param[inout] params
  *          The LRMM structure that stores all the parameters used in the LRMM
- *          functions family (@sa core_zlrmm_t).
+ *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
+ *          @sa core_zlrmm_t.
  *
  * @param[inout] AB
  *          The low-rank structure of the AB matrix in which to store the AB product.
  *
  * @param[inout] infomask
  *          The mask of informations returned by the core_zxx2lr() functions.
- *          If AB.u is orthogonal on exit, then PASTIX_LRM3_ORTHOU is set.
- *          If AB.u is allocated, then PASTIX_LRM3_ALLOCU is set.
- *          If AB.v is allocated, then PASTIX_LRM3_ALLOCV is set.
- *          If AB.v is inistialized as one of the given pointer and op(B) is not
+ *          - If AB.u is orthogonal on exit, then PASTIX_LRM3_ORTHOU is set.
+ *          - If AB.u is allocated, then PASTIX_LRM3_ALLOCU is set.
+ *          - If AB.v is allocated, then PASTIX_LRM3_ALLOCV is set.
+ *          - If AB.v is inistialized as one of the given pointer and op(B) is not
  *          applyed, then PASTIX_LRM3_TRANSB is set.
  *
  * @param[in] Brkmin
@@ -268,19 +270,20 @@ core_zfrlr2lr( core_zlrmm_t     *params,
  *
  * @param[inout] params
  *          The LRMM structure that stores all the parameters used in the LRMM
- *          functions family (@sa core_zlrmm_t).
+ *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
+ *          @sa core_zlrmm_t.
  *
  * @param[inout] AB
  *          The low-rank structure of the AB matrix in which to store the AB product.
  *
  * @param[inout] infomask
  *          The mask of informations returned by the core_zxx2lr() functions.
- *          If AB.u is orthogonal on exit, then PASTIX_LRM3_ORTHOU is set.
- *          If AB.u is allocated, then PASTIX_LRM3_ALLOCU is set.
- *          If AB.v is allocated, then PASTIX_LRM3_ALLOCV is set.
- *          If AB.v is inistialized as one of the given pointer and op(B) is not
+ *          - If AB.u is orthogonal on exit, then PASTIX_LRM3_ORTHOU is set.
+ *          - If AB.u is allocated, then PASTIX_LRM3_ALLOCU is set.
+ *          - If AB.v is allocated, then PASTIX_LRM3_ALLOCV is set.
+ *          - If AB.v is inistialized as one of the given pointer and op(B) is not
  *          applyed, then PASTIX_LRM3_TRANSB is set.
  *
  * @param[in] Arkmin
@@ -414,19 +417,20 @@ core_zlrfr2lr( core_zlrmm_t     *params,
  *
  * @param[inout] params
  *          The LRMM structure that stores all the parameters used in the LRMM
- *          functions family (@sa core_zlrmm_t).
+ *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
+ *          @sa core_zlrmm_t.
  *
  * @param[inout] AB
  *          The low-rank structure of the AB matrix in which to store the AB product.
  *
  * @param[inout] infomask
  *          The mask of informations returned by the core_zxx2lr() functions.
- *          If AB.u is orthogonal on exit, then PASTIX_LRM3_ORTHOU is set.
- *          If AB.u is allocated, then PASTIX_LRM3_ALLOCU is set.
- *          If AB.v is allocated, then PASTIX_LRM3_ALLOCV is set.
- *          If AB.v is inistialized as one of the given pointer and op(B) is not
+ *          - If AB.u is orthogonal on exit, then PASTIX_LRM3_ORTHOU is set.
+ *          - If AB.u is allocated, then PASTIX_LRM3_ALLOCU is set.
+ *          - If AB.v is allocated, then PASTIX_LRM3_ALLOCV is set.
+ *          - If AB.v is inistialized as one of the given pointer and op(B) is not
  *          applyed, then PASTIX_LRM3_TRANSB is set.
  *
  *******************************************************************************

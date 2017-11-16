@@ -368,42 +368,32 @@ core_zlr2ge( pastix_trans_t trans, pastix_int_t m, pastix_int_t n,
  *         @arg PastixTrans:      A.v is stored
  *         @arg PastixConjTrans:  A.v is stored
  *
- * @param[in] M
+ * @param[in] alpha
+ *          The multiplier parameter: B = B + alpha * A
+ *
+ * @param[in] M1
  *          The number of rows of the matrix A.
  *
- * @param[in] N
- *          The number of columns of the matrix B.
- *
- * @param[in] K
- *          The number of columns of the matrix A and the number of rows of the
- *          matrix B.
- *
- * @param[in] alpha
- *          The multiplier parameter: C = beta * C + alpha * AB
+ * @param[in] N1
+ *          The number of columns of the matrix A.
  *
  * @param[in] A
  *          The low-rank representation of the matrix A.
  *
- * @param[in] B
+ * @param[in] M2
+ *          The number of rows of the matrix B.
+ *
+ * @param[in] N2
+ *          The number of columns of the matrix B.
+ *
+ * @param[in,out] B
  *          The low-rank representation of the matrix B.
  *
- * @param[in] beta
- *          The addition parameter: C = beta * C + alpha * AB
+ * @param[in] offx
+ *          The horizontal offset of A with respect to B.
  *
- * @param[inout] C
- *          The matrix C (full).
- *
- * @param[in] ldc
- *          The leading dimension of the matrix C.
- *
- * @param[in] work
- *          The workspace used to store temporary data
- *
- * @param[in] ldwork
- *          The leading dimension of work
- *
- * @param[in] fcblk
- *          The facing supernode
+ * @param[in] offy
+ *          The vertical offset of A with respect to B.
  *
  *******************************************************************************/
 void

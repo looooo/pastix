@@ -37,17 +37,18 @@ static pastix_complex64_t zzero =  0.0;
  *
  * @param[inout] params
  *          The LRMM structure that stores all the parameters used in the LRMM
- *          functions family (@sa core_zlrmm_t).
+ *          functions family.
  *          On exit, the C matrix is udpated with the addition of AB.
+ *          @sa core_zlrmm_t.
  *
  * @param[in] AB
  *          The low-rank structure of the AB matrix to apply to C.
  *
  * @param[in] transV
  *          Specify if AB->v is stored normally or transposed.
- *          If PastixNoTrans, AB->v is stored normally for low-rank format.
- *          If PastixTrans, AB->v is stored transposed.
- *          If PastixConjTrans, AB->v is stored transposed, and conj() must be
+ *          - If PastixNoTrans, AB->v is stored normally for low-rank format.
+ *          - If PastixTrans, AB->v is stored transposed.
+ *          - If PastixConjTrans, AB->v is stored transposed, and conj() must be
  *          applied to the matrix.
  *
  *******************************************************************************
@@ -101,17 +102,18 @@ core_zlr2fr( core_zlrmm_t           *params,
  *
  * @param[inout] params
  *          The LRMM structure that stores all the parameters used in the LRMM
- *          functions family (@sa core_zlrmm_t).
+ *          functions family.
  *          On exit, the C matrix is udpated with the addition of AB.
+ *          @sa core_zlrmm_t.
  *
  * @param[in] AB
  *          The low-rank structure of the AB matrix to apply to C.
  *
  * @param[in] transV
  *          Specify if AB->v is stored normally or transposed.
- *          If PastixNoTrans, AB->v is stored normally for low-rank format.
- *          If PastixTrans, AB->v is stored transposed.
- *          If PastixConjTrans, AB->v is stored transposed, and conj() must be
+ *          - If PastixNoTrans, AB->v is stored normally for low-rank format.
+ *          - If PastixTrans, AB->v is stored transposed.
+ *          - If PastixConjTrans, AB->v is stored transposed, and conj() must be
  *          applied to the matrix.
  *
  *******************************************************************************
@@ -205,18 +207,19 @@ core_zlr2lr( core_zlrmm_t           *params,
  *
  * @param[inout] params
  *          The LRMM structure that stores all the parameters used in the LRMM
- *          functions family (@sa core_zlrmm_t).
+ *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
+ *          @sa core_zlrmm_t.
  *
  * @param[in] AB
  *          The low-rank structure of the AB matrix to apply to C.
  *
  * @param[in] transV
  *          Specify if AB->v is stored normally or transposed.
- *          If PastixNoTrans, AB->v is stored normally for low-rank format.
- *          If PastixTrans, AB->v is stored transposed.
- *          If PastixConjTrans, AB->v is stored transposed, and conj() must be
+ *          - If PastixNoTrans, AB->v is stored normally for low-rank format.
+ *          - If PastixTrans, AB->v is stored transposed.
+ *          - If PastixConjTrans, AB->v is stored transposed, and conj() must be
  *          applied to the matrix.
  *
  * @param[in] infomask

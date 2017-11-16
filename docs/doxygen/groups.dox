@@ -194,17 +194,27 @@
  *
  **********
  *
- * @defgroup kernel_lr_null Internal functions for low-rank kernels
+ * @defgroup kernel_lr_null Internal functions for low-rank debug kernels
  * @ingroup  kernel_lr
  *
  **********
  *
- * @defgroup kernel_lr_rrqr Rank-Revealing QR Low-rank kernels
+ * @defgroup kernel_lr_debug Low-rank debug kernels
  * @ingroup  kernel_lr
  *
  **********
  *
- * @defgroup kernel_lr_svd SVD Low-rank kernels
+ * @defgroup kernel_lr_lrmm Low-rank update kernels
+ * @ingroup  kernel_lr
+ *
+  **********
+ *
+ * @defgroup kernel_lr_rrqr Low-rank Rank-Revealing QR kernels
+ * @ingroup  kernel_lr
+ *
+  **********
+ *
+ * @defgroup kernel_lr_svd Low-rank SVD kernels
  * @ingroup  kernel_lr
  *
  ********

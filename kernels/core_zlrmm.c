@@ -33,7 +33,8 @@
  *
  * @param[inout] params
  *          The LRMM structure that stores all the parameters used in the LRMM
- *          functions family (@sa core_zlrmm_t).
+ *          functions family.
+ *          @sa core_zlrmm_t.
  *
  *******************************************************************************
  *
@@ -96,7 +97,8 @@ core_zlrmm_Cfr( core_zlrmm_t *params )
  *
  * @param[inout] params
  *          The LRMM structure that stores all the parameters used in the LRMM
- *          functions family (@sa core_zlrmm_t).
+ *          functions family.
+ *          @sa core_zlrmm_t.
  *
  *******************************************************************************
  *
@@ -207,7 +209,8 @@ core_zlrmm_Cnull( core_zlrmm_t *params )
  *
  * @param[inout] params
  *          The LRMM structure that stores all the parameters used in the LRMM
- *          functions family (@sa core_zlrmm_t).
+ *          functions family.
+ *          @sa core_zlrmm_t.
  *
  *******************************************************************************
  *
@@ -315,7 +318,8 @@ core_zlrmm_Clr( core_zlrmm_t *params )
  *
  * @param[inout] params
  *          The LRMM structure that stores all the parameters used in the LRMM
- *          functions family (@sa core_zlrmm_t).
+ *          functions family.
+ *          @sa core_zlrmm_t.
  *
  *******************************************************************************
  *

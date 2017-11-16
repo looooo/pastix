@@ -34,9 +34,10 @@ static pastix_complex64_t zzero =  0.0;
  *
  * @param[inout] params
  *          The LRMM structure that stores all the parameters used in the LRMM
- *          functions family (@sa core_zlrmm_t).
+ *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
+ *          @sa core_zlrmm_t.
  *
  *******************************************************************************
  *
@@ -86,9 +87,10 @@ core_zfrfr2fr( core_zlrmm_t *params )
  *
  * @param[inout] params
  *          The LRMM structure that stores all the parameters used in the LRMM
- *          functions family (@sa core_zlrmm_t).
+ *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
+ *          @sa core_zlrmm_t.
  *
  *******************************************************************************
  *
@@ -186,9 +188,10 @@ core_zfrlr2fr( core_zlrmm_t *params )
  *
  * @param[inout] params
  *          The LRMM structure that stores all the parameters used in the LRMM
- *          functions family (@sa core_zlrmm_t).
+ *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
+ *          @sa core_zlrmm_t.
  *
  *******************************************************************************
  *
@@ -287,9 +290,10 @@ core_zlrfr2fr( core_zlrmm_t *params )
  *
  * @param[inout] params
  *          The LRMM structure that stores all the parameters used in the LRMM
- *          functions family (@sa core_zlrmm_t).
+ *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
+ *          @sa core_zlrmm_t.
  *
  *******************************************************************************
  *
