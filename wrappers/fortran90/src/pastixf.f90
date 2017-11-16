@@ -72,6 +72,19 @@ module pastixf
   end interface
 
   interface
+     subroutine pastixInitWithAffinity_c(pastix_data, pastix_comm, iparm, dparm, bindtab) &
+          bind(c, name='pastixInitWithAffinity')
+       use iso_c_binding
+       implicit none
+       type(c_ptr) :: pastix_data
+       integer(kind=c_int), value :: pastix_comm
+       type(c_ptr), value :: iparm
+       type(c_ptr), value :: dparm
+       type(c_ptr), value :: bindtab
+     end subroutine pastixInitWithAffinity_c
+  end interface
+
+  interface
      subroutine pastixFinalize_c(pastix_data) &
           bind(c, name='pastixFinalize')
        use iso_c_binding
@@ -349,6 +362,21 @@ contains
     call pastixInit_c(pastix_data_aux, pastix_comm, c_loc(iparm), c_loc(dparm))
     call c_f_pointer(pastix_data_aux, pastix_data)
   end subroutine pastixInit
+
+  subroutine pastixInitWithAffinity(pastix_data, pastix_comm, iparm, dparm, bindtab)
+    use iso_c_binding
+    implicit none
+    type(pastix_data_t),        intent(inout), pointer                       :: pastix_data
+    integer(kind=c_int),        intent(in)                                   :: pastix_comm
+    integer(kind=pastix_int_t), intent(inout), dimension(iparm_size), target :: iparm
+    real(kind=c_double),        intent(inout), dimension(dparm_size), target :: dparm
+    integer(kind=c_int),        intent(in),    dimension(:), target          :: bindtab
+
+    type(c_ptr) :: pastix_data_aux
+
+    call pastixInitWithAffinity_c(pastix_data_aux, pastix_comm, c_loc(iparm), c_loc(dparm), c_loc(bindtab))
+    call c_f_pointer(pastix_data_aux, pastix_data)
+  end subroutine pastixInitWithAffinity
 
   subroutine pastixFinalize(pastix_data)
     use iso_c_binding
