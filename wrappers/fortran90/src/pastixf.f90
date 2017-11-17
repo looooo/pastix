@@ -22,10 +22,69 @@ module pastixf
   end type pastix_data_t
 
   type, bind(c) :: pastix_order_t
-     type(c_ptr) :: ptr
+    integer(kind=pastix_int_t) :: baseval
+    integer(kind=pastix_int_t) :: vertnbr
+    integer(kind=pastix_int_t) :: cblknbr
+    type(c_ptr)                :: permtab
+    type(c_ptr)                :: peritab
+    type(c_ptr)                :: rangtab
+    type(c_ptr)                :: treetab
   end type pastix_order_t
 
-  ! Interfaces of the C functions.
+  ! Interfaces of the C functions of the Order module.
+  interface
+     function pastixOrderInit_c( order, baseval, vertnbr, cblknbr, permtab, peritab, rangtab, treetab ) &
+          bind(c, name='pastixOrderInit')
+       use iso_c_binding
+       import pastix_int_t
+       implicit none
+       integer(kind=c_int) :: pastixOrderInit_c
+       type(c_ptr),                value :: order
+       integer(kind=pastix_int_t), value :: baseval
+       integer(kind=pastix_int_t), value :: vertnbr
+       integer(kind=pastix_int_t), value :: cblknbr
+       type(c_ptr),                value :: permtab
+       type(c_ptr),                value :: peritab
+       type(c_ptr),                value :: rangtab
+       type(c_ptr),                value :: treetab
+     end function pastixOrderInit_c
+  end interface
+
+  interface
+     function pastixOrderAlloc_c( order, vertnbr, cblknbr ) &
+          bind(c, name='pastixOrderAlloc')
+       use iso_c_binding
+       import pastix_int_t
+       implicit none
+       integer(kind=c_int) :: pastixOrderAlloc_c
+       type(c_ptr),                value :: order
+       integer(kind=pastix_int_t), value :: vertnbr
+       integer(kind=pastix_int_t), value :: cblknbr
+     end function pastixOrderAlloc_c
+  end interface
+
+  interface
+     subroutine pastixOrderExit_c( order ) &
+          bind(c, name='pastixOrderExit')
+       use iso_c_binding
+       import pastix_int_t
+       implicit none
+       type(c_ptr), value :: order
+     end subroutine pastixOrderExit_c
+  end interface
+
+  interface
+     function pastixOrderGet_c( pastix_data ) &
+          bind(c, name='pastixOrderGet')
+       use iso_c_binding
+       import pastix_int_t
+       implicit none
+       type(c_ptr)        :: pastixOrderGet_c
+       type(c_ptr), value :: pastix_data
+     end function pastixOrderGet_c
+  end interface
+
+  ! Interfaces of the C functions of the PaStiX module.
   interface
      function pastix_c(pastix_data, pastix_comm, n, colptr, row, avals, perm, invp, &
           b, nrhs, iparm, dparm) &
@@ -69,6 +128,19 @@ module pastixf
        type(c_ptr), value :: iparm
        type(c_ptr), value :: dparm
      end subroutine pastixInit_c
+  end interface
+
+  interface
+     subroutine pastixInitWithAffinity_c(pastix_data, pastix_comm, iparm, dparm, bindtab) &
+          bind(c, name='pastixInitWithAffinity')
+       use iso_c_binding
+       implicit none
+       type(c_ptr) :: pastix_data
+       integer(kind=c_int), value :: pastix_comm
+       type(c_ptr), value :: iparm
+       type(c_ptr), value :: dparm
+       type(c_ptr), value :: bindtab
+     end subroutine pastixInitWithAffinity_c
   end interface
 
   interface
@@ -184,24 +256,22 @@ module pastixf
   end interface
 
   interface
-     function pastix_subtask_bcsc2ctab_c(pastix_data, spm) &
+     function pastix_subtask_bcsc2ctab_c(pastix_data) &
           bind(c, name='pastix_subtask_bcsc2ctab')
        use iso_c_binding
        implicit none
        integer(kind=c_int) :: pastix_subtask_bcsc2ctab_c
        type(c_ptr), value :: pastix_data
-       type(c_ptr), value :: spm
      end function pastix_subtask_bcsc2ctab_c
   end interface
 
   interface
-     function pastix_subtask_sopalin_c(pastix_data, spm) &
+     function pastix_subtask_sopalin_c(pastix_data) &
           bind(c, name='pastix_subtask_sopalin')
        use iso_c_binding
        implicit none
        integer(kind=c_int) :: pastix_subtask_sopalin_c
        type(c_ptr), value :: pastix_data
-       type(c_ptr), value :: spm
      end function pastix_subtask_sopalin_c
   end interface
 
@@ -299,7 +369,58 @@ module pastixf
 
 contains
 
-  ! Wrappers of the C functions.
+
+  ! Wrappers of the C functions of the order module.
+  subroutine pastixOrderInit( order, baseval, vertnbr, cblknbr, permtab, peritab, rangtab, treetab, info )
+    use iso_c_binding
+    implicit none
+    type(pastix_order_t),       intent(in), pointer               :: order
+    integer(kind=pastix_int_t), intent(in)                        :: baseval
+    integer(kind=pastix_int_t), intent(in)                        :: vertnbr
+    integer(kind=pastix_int_t), intent(in)                        :: cblknbr
+    integer(kind=pastix_int_t), dimension(:), intent(in), pointer :: permtab
+    integer(kind=pastix_int_t), dimension(:), intent(in), pointer :: peritab
+    integer(kind=pastix_int_t), dimension(:), intent(in), pointer :: rangtab
+    integer(kind=pastix_int_t), dimension(:), intent(in), pointer :: treetab
+    integer(kind=c_int),        intent(out)                       :: info
+
+    info = pastixOrderInit_c( c_loc(order), baseval, vertnbr, cblknbr, c_loc(permtab), c_loc(peritab), &
+         c_loc(rangtab), c_loc(treetab) )
+  end subroutine pastixOrderInit
+
+  subroutine pastixOrderAlloc( order, vertnbr, cblknbr, info )
+    use iso_c_binding
+    implicit none
+    type(pastix_order_t),       intent(in), pointer :: order
+    integer(kind=pastix_int_t), intent(in)          :: vertnbr
+    integer(kind=pastix_int_t), intent(in)          :: cblknbr
+    integer(kind=c_int),        intent(out)         :: info
+
+    info = pastixOrderAlloc_c( c_loc(order), vertnbr, cblknbr )
+  end subroutine pastixOrderAlloc
+
+  subroutine pastixOrderExit( order )
+    use iso_c_binding
+    implicit none
+    type(pastix_order_t), intent(in), pointer :: order
+
+    call pastixOrderExit_c( c_loc(order) )
+
+  end subroutine pastixOrderExit
+
+  subroutine pastixOrderGet( pastix_data, order )
+    use iso_c_binding
+    implicit none
+    type(pastix_order_t), intent(inout), pointer :: order
+    type(pastix_data_t),  intent(in),    pointer :: pastix_data
+    type(c_ptr) :: order_aux
+
+    order_aux = pastixOrderGet_c( c_loc(pastix_data) )
+    call c_f_pointer( order_aux, order )
+
+  end subroutine pastixOrderGet
+
+  ! Wrappers of the C functions of the PaStiX module.
   subroutine pastix(pastix_data, pastix_comm, n, colptr, row, avals, perm, invp, &
        b, nrhs, iparm, dparm, info)
     use iso_c_binding
@@ -349,6 +470,21 @@ contains
     call pastixInit_c(pastix_data_aux, pastix_comm, c_loc(iparm), c_loc(dparm))
     call c_f_pointer(pastix_data_aux, pastix_data)
   end subroutine pastixInit
+
+  subroutine pastixInitWithAffinity(pastix_data, pastix_comm, iparm, dparm, bindtab)
+    use iso_c_binding
+    implicit none
+    type(pastix_data_t),        intent(inout), pointer                       :: pastix_data
+    integer(kind=c_int),        intent(in)                                   :: pastix_comm
+    integer(kind=pastix_int_t), intent(inout), dimension(iparm_size), target :: iparm
+    real(kind=c_double),        intent(inout), dimension(dparm_size), target :: dparm
+    integer(kind=c_int),        intent(in),    dimension(:), target          :: bindtab
+
+    type(c_ptr) :: pastix_data_aux
+
+    call pastixInitWithAffinity_c(pastix_data_aux, pastix_comm, c_loc(iparm), c_loc(dparm), c_loc(bindtab))
+    call c_f_pointer(pastix_data_aux, pastix_data)
+  end subroutine pastixInitWithAffinity
 
   subroutine pastixFinalize(pastix_data)
     use iso_c_binding
@@ -405,10 +541,10 @@ contains
   subroutine pastix_subtask_order(pastix_data, spm, myorder, info)
     use iso_c_binding
     implicit none
-    type(pastix_data_t),  intent(inout), target :: pastix_data
-    type(pastix_spm_t),   intent(in),    target :: spm
-    type(pastix_order_t), intent(inout), target :: myorder
-    integer(kind=c_int),  intent(out)           :: info
+    type(pastix_data_t),  intent(inout), pointer :: pastix_data
+    type(pastix_spm_t),   intent(in),    pointer :: spm
+    type(pastix_order_t), intent(in),    pointer :: myorder
+    integer(kind=c_int),  intent(out)            :: info
 
     info = pastix_subtask_order_c(c_loc(pastix_data), c_loc(spm), c_loc(myorder))
   end subroutine pastix_subtask_order
@@ -416,7 +552,7 @@ contains
   subroutine pastix_subtask_symbfact(pastix_data, info)
     use iso_c_binding
     implicit none
-    type(pastix_data_t), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), pointer :: pastix_data
     integer(kind=c_int), intent(out)           :: info
 
     info = pastix_subtask_symbfact_c(c_loc(pastix_data))
@@ -425,7 +561,7 @@ contains
   subroutine pastix_subtask_reordering(pastix_data, info)
     use iso_c_binding
     implicit none
-    type(pastix_data_t), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), pointer :: pastix_data
     integer(kind=c_int), intent(out)           :: info
 
     info = pastix_subtask_reordering_c(c_loc(pastix_data))
@@ -434,7 +570,7 @@ contains
   subroutine pastix_subtask_blend(pastix_data, info)
     use iso_c_binding
     implicit none
-    type(pastix_data_t), intent(inout), target :: pastix_data
+    type(pastix_data_t), intent(inout), pointer :: pastix_data
     integer(kind=c_int), intent(out)           :: info
 
     info = pastix_subtask_blend_c(c_loc(pastix_data))
@@ -443,31 +579,29 @@ contains
   subroutine pastix_subtask_spm2bcsc(pastix_data, spm, info)
     use iso_c_binding
     implicit none
-    type(pastix_data_t), intent(inout), target :: pastix_data
-    type(pastix_spm_t),  intent(inout), target :: spm
-    integer(kind=c_int), intent(out)           :: info
+    type(pastix_data_t), intent(in),    pointer :: pastix_data
+    type(pastix_spm_t),  intent(inout), target  :: spm
+    integer(kind=c_int), intent(out)            :: info
 
     info = pastix_subtask_spm2bcsc_c(c_loc(pastix_data), c_loc(spm))
   end subroutine pastix_subtask_spm2bcsc
 
-  subroutine pastix_subtask_bcsc2ctab(pastix_data, spm, info)
+  subroutine pastix_subtask_bcsc2ctab(pastix_data, info)
     use iso_c_binding
     implicit none
-    type(pastix_data_t), intent(inout), target :: pastix_data
-    type(pastix_spm_t),  intent(inout), target :: spm
-    integer(kind=c_int), intent(out)           :: info
+    type(pastix_data_t), intent(in), pointer :: pastix_data
+    integer(kind=c_int), intent(out)         :: info
 
-    info = pastix_subtask_bcsc2ctab_c(c_loc(pastix_data), c_loc(spm))
+    info = pastix_subtask_bcsc2ctab_c(c_loc(pastix_data))
   end subroutine pastix_subtask_bcsc2ctab
 
-  subroutine pastix_subtask_sopalin(pastix_data, spm, info)
+  subroutine pastix_subtask_sopalin(pastix_data, info)
     use iso_c_binding
     implicit none
-    type(pastix_data_t), intent(inout), target :: pastix_data
-    type(pastix_spm_t),  intent(inout), target :: spm
-    integer(kind=c_int), intent(out)           :: info
+    type(pastix_data_t), intent(in), pointer :: pastix_data
+    integer(kind=c_int), intent(out)         :: info
 
-    info = pastix_subtask_sopalin_c(c_loc(pastix_data), c_loc(spm))
+    info = pastix_subtask_sopalin_c(c_loc(pastix_data))
   end subroutine pastix_subtask_sopalin
 
   subroutine pastix_subtask_applyorder(pastix_data, flttype, dir, m, n, b, ldb, info)

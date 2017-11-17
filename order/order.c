@@ -289,6 +289,11 @@ pastixOrderBase( pastix_order_t * const ordeptr,
  *
  * @brief This routine copy a given ordering in a new one.
  *
+ * This function copies an order structure into another one. If all subpointers
+ * are NULL, then they are all allocated and conatins the original ordesrc
+ * values on exit. If one or more array pointers are not NULL, then, only those
+ * are copied to the ordedst structure.
+ *
  *******************************************************************************
  *
  * @param[inout] ordedst
@@ -321,18 +326,67 @@ pastixOrderCopy( pastix_order_t       * const ordedst,
     ordedst->baseval = ordesrc->baseval;
     ordedst->vertnbr = ordesrc->vertnbr;
     ordedst->cblknbr = ordesrc->cblknbr;
-    if (ordedst->permtab == NULL )
-        MALLOC_INTERN(ordedst->permtab, ordesrc->vertnbr, pastix_int_t);
-    memcpy(ordedst->permtab, ordesrc->permtab, ordesrc->vertnbr*sizeof(pastix_int_t));
-    if (ordedst->peritab == NULL )
-        MALLOC_INTERN(ordedst->peritab, ordesrc->vertnbr, pastix_int_t);
-    memcpy(ordedst->peritab, ordesrc->peritab, ordesrc->vertnbr*sizeof(pastix_int_t));
-    if (ordedst->rangtab == NULL )
-        MALLOC_INTERN(ordedst->rangtab, ordesrc->cblknbr+1, pastix_int_t);
-    memcpy(ordedst->rangtab, ordesrc->rangtab, (ordesrc->cblknbr+1)*sizeof(pastix_int_t));
-    if (ordedst->treetab == NULL )
-        MALLOC_INTERN(ordedst->treetab, ordesrc->cblknbr, pastix_int_t);
-    memcpy(ordedst->treetab, ordesrc->treetab, ordesrc->cblknbr*sizeof(pastix_int_t));
+
+    if ( (ordedst->permtab == NULL) &&
+         (ordedst->peritab == NULL) &&
+         (ordedst->rangtab == NULL) &&
+         (ordedst->treetab == NULL) )
+    {
+        pastixOrderAlloc( ordedst, ordedst->vertnbr, ordedst->cblknbr );
+    }
+
+    if ( (ordesrc->permtab != NULL) && (ordedst->permtab != NULL) )
+    {
+        memcpy( ordedst->permtab, ordesrc->permtab, ordesrc->vertnbr * sizeof(pastix_int_t) );
+    }
+
+    if ( (ordesrc->peritab != NULL) && (ordedst->peritab != NULL) )
+    {
+        memcpy( ordedst->peritab, ordesrc->peritab, ordesrc->vertnbr * sizeof(pastix_int_t) );
+    }
+
+    if ( (ordesrc->rangtab != NULL) && (ordedst->rangtab != NULL) )
+    {
+        memcpy( ordedst->rangtab, ordesrc->rangtab, (ordesrc->cblknbr+1) * sizeof(pastix_int_t) );
+    }
+
+    if ( (ordesrc->treetab != NULL) && (ordedst->treetab != NULL) )
+    {
+        memcpy( ordedst->treetab, ordesrc->treetab, ordesrc->cblknbr * sizeof(pastix_int_t) );
+    }
 
     return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_order
+ *
+ * @brief This routine returns the pointer to the internal order structure to
+ * access permutation information.
+ *
+ * @warning The data returned by the routines must not be freed or modified by
+ * the user, and are valid as long as no operation on the ordering is performed
+ * (pastix_subtask_order(), pastix_subtask_reordering(), or pastixFinalize()).
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix_data structure of the problem
+ *
+ *******************************************************************************
+ *
+ * @return The pointer to the internal ordering structure with permutation
+ *         information, or NULL if pastix_data is invalid.
+ *
+ *******************************************************************************/
+const pastix_order_t *
+pastixOrderGet( const pastix_data_t * const pastix_data )
+{
+    /* Parameter checks */
+    if ( pastix_data == NULL ) {
+        return NULL;
+    }
+    return pastix_data->ordemesh;
 }
