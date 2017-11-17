@@ -308,7 +308,7 @@ core_zlrlr2fr( core_zlrmm_t *params )
     pastix_int_t        ldcu;
     pastix_lrblock_t    AB;
     pastix_trans_t      trans = PastixNoTrans;
-<    int                 infomask = 0;
+    int                 infomask = 0;
     pastix_fixdbl_t     flops;
 
     ldcu = Cm;
