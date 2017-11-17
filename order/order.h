@@ -48,9 +48,10 @@ typedef struct pastix_order_s {
  * @name Order basic subroutines
  * @{
  */
-int  pastixOrderInit (      pastix_order_t * const ordeptr, pastix_int_t baseval, pastix_int_t cblknbr, pastix_int_t vertnbr,
+int  pastixOrderInit (      pastix_order_t * const ordeptr,
+                            pastix_int_t baseval, pastix_int_t vertnbr, pastix_int_t cblknbr,
                             pastix_int_t *perm, pastix_int_t *peri, pastix_int_t *rang, pastix_int_t *tree );
-int  pastixOrderAlloc(      pastix_order_t * const ordeptr, pastix_int_t cblknbr, pastix_int_t vertnbr);
+int  pastixOrderAlloc(      pastix_order_t * const ordeptr, pastix_int_t vertnbr, pastix_int_t cblknbr);
 void pastixOrderExit (      pastix_order_t * const ordeptr);
 void pastixOrderBase (      pastix_order_t * const ordeptr, pastix_int_t baseval);
 int  pastixOrderCheck(const pastix_order_t * const ordeptr);
