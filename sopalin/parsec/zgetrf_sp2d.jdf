@@ -650,7 +650,7 @@ END
 extern "C" %{
 
 #if defined(PARSEC_GPU_WITH_CUDA)
-#if defined(PASTIX_WITH_CUDA)
+#if defined(PASTIX_WITH_CUDA) && 0
 
 int
 zgetrf_sp2d_zgemm1d_selectgpu_fct( const __parsec_zgetrf_sp2d_GEMM1D_task_t *this_task,
