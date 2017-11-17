@@ -39,6 +39,9 @@ lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->
 p_work    [type = "parsec_memory_pool_t *"]
 lwork     [type = "pastix_int_t"]
 
+cpu_coefs [ type = "pastix_fixdbl_t *" hidden = on default = "&((*(sopalin_data->cpu_coefs))[PastixKernelGEMMCblk2d2d][0])" ]
+gpu_coefs [ type = "pastix_fixdbl_t *" hidden = on default = "&((*(sopalin_data->cpu_coefs))[PastixKernelGEMMCblk2d2d][0])" ]
+
 /**************************************************
  *                   GETRF                        *
  * panel factorization: do trf of diagonal and    *
@@ -61,11 +64,11 @@ lastblok  = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->fblokp
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
 RW L <- ( browk0 == browk1 ) ? descA(0, k, 0) : C GEMM1D( 0, lastbrow )
-     -> Al GEMM1D(0 .. 1, firstblok .. lastblok)
+     -> A GEMM1D(0 .. 1, firstblok .. lastblok)
      -> descA(0, k, 0)
 
 RW U <- ( browk0 == browk1 ) ? descA(1, k, 0) : C GEMM1D( 1, lastbrow )
-     -> Au GEMM1D(0 .. 1, firstblok .. lastblok)
+     -> B GEMM1D(0 .. 1, firstblok .. lastblok)
      -> descA(1, k, 0)
 
 ; %{ return cblknbr - k; %}
@@ -146,8 +149,8 @@ m  = %{ if (brownum == -1) return 0; else {
 :descA(s, fcblknm, 0)
 
 // Parameters
-READ  Al <- (brownum != -1) ? L GETRF( lcblknm ) : NULL
-READ  Au <- (brownum != -1) ? U GETRF( lcblknm ) : NULL
+READ  A  <- (brownum != -1) ? L GETRF( lcblknm ) : NULL
+READ  B  <- (brownum != -1) ? U GETRF( lcblknm ) : NULL
 
 RW    C  <- (brownum == -1) ? NULL
          <- (brownum != -1) && (brownum == first) ? descA( s, fcblknm, 0 )
@@ -159,9 +162,9 @@ RW    C  <- (brownum == -1) ? NULL
 
 ; %{ return cblknbr - ((fcblknm + lcblknm) / 2 ) + last - brownum; %}
 
-BODY [ type=CUDA pushout=forced_pushout devicefct=pastix_parsec_selectgpu_fct
-       /* device=%{ if (brownum == -1) return (datacode->cblktab + fcblknm)->gpuid; */
-       /*           else { return parsec_zgemm1d_selectgpu( datacode, bloknum, last - first + 1 ); } %} ] */
+BODY [ type=CUDA pushout=forced_pushout
+       devicefct="pastix_parsec_selectgpu_gemm1d_3p_fct( this_task, ratio, modelsGetCost3Param( cpu_coefs, m, n, k ), modelsGetCost3Param( gpu_coefs, m, n, k ), brownum )"
+       /* device=%{ if (brownum == -1) return (datacode->cblktab + fcblknm)->gpuid; else { return parsec_zgemm1d_selectgpu( datacode, bloknum, last - first + 1 ); } %} */
        /* devicefct=zgetrf_sp1dplus_zgemm1d_selectgpu_fct */
 ]
 #if defined(PASTIX_WITH_CUDA)
@@ -180,12 +183,12 @@ BODY [ type=CUDA pushout=forced_pushout devicefct=pastix_parsec_selectgpu_fct
                                        PastixLower, PastixTrans,
                                        descA->d_blocktab[parsec_body.index],
                                        lcblk, blok, fcblk,
-                                       Al, Au, C,
+                                       A, B, C,
                                        parsec_body.stream );
 #else
                     gpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
                                      lcblk, blok, fcblk,
-                                     Al, Au, C,
+                                     A, B, C,
                                      &lowrank, parsec_body.stream );
 #endif /* defined(PASTIX_CUDA_FERMI) */
                 }
@@ -195,12 +198,12 @@ BODY [ type=CUDA pushout=forced_pushout devicefct=pastix_parsec_selectgpu_fct
                                        PastixUpper, PastixTrans,
                                        descA->d_blocktab[parsec_body.index],
                                        lcblk, blok, fcblk,
-                                       Au, Al, C,
+                                       B, A, C,
                                        parsec_body.stream );
 #else
                     gpucblk_zgemmsp( PastixUCoef, PastixLCoef, PastixTrans,
                                      lcblk, blok, fcblk,
-                                     Au, Al, C,
+                                     B, A, C,
                                      &lowrank, parsec_body.stream );
 #endif /* defined(PASTIX_CUDA_FERMI) */
                 }
@@ -230,13 +233,13 @@ BODY
                 if (s == 0) {
                     cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
                                      lcblk, blok, fcblk,
-                                     Al, Au, C,
+                                     A, B, C,
                                      work, lwork, &lowrank );
                 }
                 else {
                     cpucblk_zgemmsp( PastixUCoef, PastixLCoef, PastixTrans,
                                      lcblk, blok, fcblk,
-                                     Au, Al, C,
+                                     B, A, C,
                                      work, lwork, &lowrank );
                 }
 
@@ -251,7 +254,7 @@ END
 
 extern "C" %{
 #if defined(PARSEC_GPU_WITH_CUDA)
-#if defined(PASTIX_WITH_CUDA)
+#if defined(PASTIX_WITH_CUDA) && 0
 int
 zgetrf_sp1dplus_zgemm1d_selectgpu_fct( const __parsec_zgetrf_sp1dplus_GEMM1D_task_t *this_task,
                                        double weight )
