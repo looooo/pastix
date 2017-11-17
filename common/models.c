@@ -150,6 +150,9 @@ modelsPropagate( pastix_model_t *model,
         kend   = PastixKernelGEMMBlok2d2d;
     }
 
+    /*
+     * Propagate to other kernels of the same arithmetic
+     */
     for( k=kstart; k<=kend; k++) {
         if ( (k == (int)kernelid) || (model->coefficients[arithm][k][0] != 0xdeadbeef) ) {
             continue;
@@ -165,6 +168,9 @@ modelsPropagate( pastix_model_t *model,
         model->coefficients[arithm][k][7] = coefs0[7];
     }
 
+    /*
+     * Propagate to other arithmetics
+     */
     for( a=0; a<4; a++) {
         if (a == arithm) {
             continue;

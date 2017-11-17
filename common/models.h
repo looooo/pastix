@@ -31,10 +31,10 @@ typedef struct pastix_model_s {
 } pastix_model_t;
 
 /**
- * @brief Return the time in ms of factorization kernels using a single size parameter.
+ * @brief Return the time in s of factorization kernels using a single size parameter.
  * @param[in] coefs The coefficients array to use in the formula
  * @param[in] N The size parameter
- * @return The estimated time in ms.
+ * @return The estimated time in s.
  */
 static inline double
 modelsGetCost1Param( const double *coefs, pastix_int_t N )
@@ -44,11 +44,11 @@ modelsGetCost1Param( const double *coefs, pastix_int_t N )
 }
 
 /**
- * @brief Return the time in ms of TRSM kernels using two size parameters.
+ * @brief Return the time in s of TRSM kernels using two size parameters.
  * @param[in] coefs The coefficients array to use in the formula
  * @param[in] M The first size parameter (number of rows)
  * @param[in] N The second size parameter (number of columns, size of the triangular matrix)
- * @return The estimated time in ms.
+ * @return The estimated time in s.
  */
 static inline double
 modelsGetCost2Param( const double *coefs, pastix_int_t M, pastix_int_t N )
@@ -58,12 +58,12 @@ modelsGetCost2Param( const double *coefs, pastix_int_t M, pastix_int_t N )
 }
 
 /**
- * @brief Return the time in ms of GEMM kernels using three size parameters.
+ * @brief Return the time in s of GEMM kernels using three size parameters.
  * @param[in] coefs The coefficients array to use in the formula
  * @param[in] M The number of rows in the C matrix
  * @param[in] N The number of columns in the C matrix
  * @param[in] K The third dimension of the matrix product
- * @return The estimated time in ms.
+ * @return The estimated time in s.
  */
 static inline double
 modelsGetCost3Param( const double *coefs, pastix_int_t M, pastix_int_t N, pastix_int_t K )
