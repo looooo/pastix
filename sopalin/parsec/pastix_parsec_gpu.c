@@ -12,19 +12,20 @@
 #include "flops.h"
 #include "blend/solver.h"
 #include "sopalin/parsec/pastix_parsec.h"
+#include "sopalin/parsec/pastix_parsec_gpu.h"
 
-#if defined(PASTIX_WITH_CUDA)
 #include <parsec.h>
 #include <parsec/sys/atomic.h>
 #include <parsec/devices/device.h>
 #include <parsec/devices/cuda/dev_cuda.h>
-#endif
+#include <parsec/data_internal.h>
 
-volatile int parsec_nbtasks_on_gpu[32] = {0};
-volatile uint64_t pastix_nbflops_on_device[32] = {0};
+#define PARSEC_MAX_DEVICES 32
+volatile int      parsec_nbtasks_on_gpu[PARSEC_MAX_DEVICES] = { 0 };
+volatile uint64_t pastix_nbflops_on_dev[PARSEC_MAX_DEVICES] = { 0 };
 
 /* Bandwith of PCI express 16x in Go/s */
-double bandwidth = 15.754;
+double bandwidth = 1. / 15.754e9;
 
 double coefgemm2[][8] = {
     /* CPU Westmere Intel Xeon X5650 1D */
@@ -54,3 +55,99 @@ double coefgemm[][8] =
 /*     {0.04553508,      6.82230469,     3.56445373,     5.52053895,     0.,             0.,             0.,             0.}, */
 /*     {7.97038909e-03,  1.18865771e+00, 8.45696103e-02, 6.19818874e-01, 5.20019440e+01, 2.90174451e+02, 2.06183314e+02, 2.10656286e+04}, */
 /* }; */
+
+/**
+ *
+ * TODO: Let's not forget to add some documentation in the final version
+ */
+int
+pastix_parsec_selectgpu_gemm1d_3p_fct( void    *arg,
+                                       double   ratio,
+                                       double   cpu_cost,
+                                       double   gpu_cost,
+                                       pastix_int_t brownum )
+{
+    typedef struct local_parsec_data_s {
+        parsec_data_pair_t _f_C;
+        parsec_data_pair_t _f_A;
+        parsec_data_pair_t _f_B;
+        parsec_data_pair_t unused[MAX_LOCAL_COUNT-3];
+    } local_parsec_data_t;
+
+    typedef struct local_parsec_task_s {
+        PARSEC_MINIMAL_EXECUTION_CONTEXT
+#if defined(PARSEC_PROF_TRACE)
+        parsec_profile_data_collection_info_t prof_info;
+#endif /* defined(PARSEC_PROF_TRACE) */
+        assignment_t               locals[MAX_LOCAL_COUNT];
+#if defined(PINS_ENABLE)
+        int                        creator_core;
+        int                        victim_core;
+#endif /* defined(PINS_ENABLE) */
+#if defined(PARSEC_SIM)
+        int                        sim_exec_date;
+#endif
+        local_parsec_data_t         data;
+    } local_parsec_task_t;
+
+    local_parsec_task_t *this_task = (local_parsec_task_t*)arg;
+    pastix_int_t dev_index, gpuid = -2;
+
+    if (brownum == -1) {
+      return -2;
+    }
+
+    dev_index = this_task->data._f_C.data_in->original->owner_device;
+    if (dev_index > 1) {
+        gpuid = dev_index - 2;
+    }
+
+    /**
+     * If not already on the GPU, find the best one
+     */
+    if ( gpuid == -2 ) {
+        double mintime;
+        int dev, nbdevices;
+        double cost;
+        parsec_data_t *data;
+
+        mintime  = cpu_cost;
+        mintime  = mintime  > 0. ? mintime  : 0.;
+        gpu_cost = gpu_cost > 0. ? gpu_cost : 0.;
+
+        nbdevices = parsec_devices_enabled();
+        for( dev = 2; dev < nbdevices; dev++ ) {
+            cost = ( 1 + parsec_nbtasks_on_gpu[dev-2] ) * gpu_cost;
+
+            /* Compute the transfer cost of A */
+            data = this_task->data._f_A.data_in->original;
+            if ( (ratio < 5) && (data->device_copies[dev] != NULL) ) {
+                cost += bandwidth * data->nb_elts;
+            }
+
+            /* Compute the transfer cost of B */
+            data = this_task->data._f_B.data_in->original;
+            if ( (ratio < 5) && (data->device_copies[dev] != NULL) ) {
+                cost += bandwidth * data->nb_elts;
+            }
+
+            /* Compute the transfer cost of B */
+            data = this_task->data._f_C.data_in->original;
+            if ( data->device_copies[dev] != NULL ) {
+                cost += bandwidth * data->nb_elts;
+            }
+
+	    if ( cost < mintime )
+            {
+		gpuid = dev-2;
+		mintime = cost;
+            }
+        }
+    }
+
+    if ( gpuid >= 0 ) {
+        pastix_atomic_inc_32b( &parsec_nbtasks_on_gpu[gpuid] );
+    }
+
+    return gpuid;
+}
