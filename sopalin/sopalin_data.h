@@ -16,9 +16,13 @@
 #ifndef _sopalin_data_h_
 #define _sopalin_data_h_
 
+#include "models.h"
+
 struct sopalin_data_s {
     SolverMatrix *solvmtx;
     double        diagthreshold; /* Threshold for static pivoting on diagonal value */
+    double      (*cpu_coefs)[PastixKernelLvl1Nbr][8];
+    double      (*gpu_coefs)[PastixKernelLvl1Nbr][8];
 };
 typedef struct sopalin_data_s sopalin_data_t;
 

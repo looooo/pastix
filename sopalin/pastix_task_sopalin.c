@@ -372,6 +372,9 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
         else {
             sopalin_data.diagthreshold = pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] * pastix_data->dparm[DPARM_A_NORM];
         }
+
+        sopalin_data.cpu_coefs = &(pastix_data->cpu_models->coefficients[bcsc->flttype-2]);
+        sopalin_data.gpu_coefs = &(pastix_data->gpu_models->coefficients[bcsc->flttype-2]);
     }
 
     sbackup = solverBackupInit( pastix_data->solvmatr );
