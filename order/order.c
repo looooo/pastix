@@ -332,7 +332,7 @@ pastixOrderCopy( pastix_order_t       * const ordedst,
          (ordedst->rangtab == NULL) &&
          (ordedst->treetab == NULL) )
     {
-        pastixOrderAlloc( ordedst, vertnbr, cblknbr );
+        pastixOrderAlloc( ordedst, ordedst->vertnbr, ordedst->cblknbr );
     }
 
     if ( (ordesrc->permtab != NULL) && (ordedst->permtab != NULL) )
@@ -356,4 +356,37 @@ pastixOrderCopy( pastix_order_t       * const ordedst,
     }
 
     return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_order
+ *
+ * @brief This routine returns the pointer to the internal order structure to
+ * access permutation information.
+ *
+ * @warning The data returned by the routines must not be freed or modified by
+ * the user, and are valid as long as no operation on the ordering is performed
+ * (pastix_subtask_order(), pastix_subtask_reordering(), or pastixFinalize()).
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix_data structure of the problem
+ *
+ *******************************************************************************
+ *
+ * @return The pointer to the internal ordering structure with permutation
+ *         information, or NULL if pastix_data is invalid.
+ *
+ *******************************************************************************/
+const pastix_order_t *
+pastixOrderGet( const pastix_data_t * const pastix_data )
+{
+    /* Parameter checks */
+    if ( pastix_data == NULL ) {
+        return NULL;
+    }
+    return pastix_data->ordemesh;
 }

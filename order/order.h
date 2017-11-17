@@ -56,6 +56,8 @@ void pastixOrderBase (      pastix_order_t * const ordeptr, pastix_int_t baseval
 int  pastixOrderCheck(const pastix_order_t * const ordeptr);
 int  pastixOrderCopy (      pastix_order_t * const ordedst, const pastix_order_t * const ordesrc);
 
+const pastix_order_t *pastixOrderGet( const pastix_data_t * const pastix_data );
+
 /**
  * @}
  * @name Order IO subroutines
