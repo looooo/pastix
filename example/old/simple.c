@@ -77,6 +77,12 @@ int main (int argc, char **argv)
     iparm[IPARM_MTX_TYPE] = spm->mtxtype;
     iparm[IPARM_DOF_NBR]  = spm->dof;
 
+    /**
+     * Normalize A matrix (optional, but recommended for low-rank functionality)
+     */
+    double normA = spmNorm( PastixFrobeniusNorm, spm );
+    spmScalMatrix( 1./normA, spm );
+
     /*
      * Generates the b and x vector such that A * x = b
      * Compute the norms of the initial vectors if checking purpose.
@@ -95,6 +101,9 @@ int main (int argc, char **argv)
     }
     else {
         spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
+
+        /* Apply also normalization to b vector */
+        spmScalVector( 1./normA, spm, b );
 
         /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
         memcpy( b, x, size );
