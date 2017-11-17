@@ -40,7 +40,7 @@ static pastix_complex64_t zzero =  0.0;
  *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
- *          @sa core_zlrmm_t.
+ *          @sa core_zlrmm_t
  *
  * @param[inout] AB
  *          The low-rank structure of the AB matrix in which to store the AB product.
@@ -127,7 +127,7 @@ core_zfrfr2lr( core_zlrmm_t     *params,
  *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
- *          @sa core_zlrmm_t.
+ *          @sa core_zlrmm_t
  *
  * @param[inout] AB
  *          The low-rank structure of the AB matrix in which to store the AB product.
@@ -273,7 +273,7 @@ core_zfrlr2lr( core_zlrmm_t     *params,
  *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
- *          @sa core_zlrmm_t.
+ *          @sa core_zlrmm_t
  *
  * @param[inout] AB
  *          The low-rank structure of the AB matrix in which to store the AB product.
@@ -420,7 +420,7 @@ core_zlrfr2lr( core_zlrmm_t     *params,
  *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
- *          @sa core_zlrmm_t.
+ *          @sa core_zlrmm_t
  *
  * @param[inout] AB
  *          The low-rank structure of the AB matrix in which to store the AB product.

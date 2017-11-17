@@ -42,7 +42,8 @@
 #define PASTIX_LRM3_TRANSB (1 << 3)
 
 /**
- * @brief Define the minmal ratio for which we accept to compress a matrix into a low-rank form or not (@sa core_get_rklimit()).
+ * @brief Define the minmal ratio for which we accept to compress a matrix into a low-rank form or not.
+ * @sa core_get_rklimit()
  */
 #define PASTIX_LR_MINRATIO 4
 

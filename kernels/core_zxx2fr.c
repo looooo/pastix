@@ -37,7 +37,7 @@ static pastix_complex64_t zzero =  0.0;
  *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
- *          @sa core_zlrmm_t.
+ *          @sa core_zlrmm_t
  *
  *******************************************************************************
  *
@@ -90,7 +90,7 @@ core_zfrfr2fr( core_zlrmm_t *params )
  *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
- *          @sa core_zlrmm_t.
+ *          @sa core_zlrmm_t
  *
  *******************************************************************************
  *
@@ -191,7 +191,7 @@ core_zfrlr2fr( core_zlrmm_t *params )
  *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
- *          @sa core_zlrmm_t.
+ *          @sa core_zlrmm_t
  *
  *******************************************************************************
  *
@@ -293,7 +293,7 @@ core_zlrfr2fr( core_zlrmm_t *params )
  *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
- *          @sa core_zlrmm_t.
+ *          @sa core_zlrmm_t
  *
  *******************************************************************************
  *
@@ -308,7 +308,7 @@ core_zlrlr2fr( core_zlrmm_t *params )
     pastix_int_t        ldcu;
     pastix_lrblock_t    AB;
     pastix_trans_t      trans = PastixNoTrans;
-    int                 infomask = 0;
+<    int                 infomask = 0;
     pastix_fixdbl_t     flops;
 
     ldcu = Cm;

@@ -39,7 +39,7 @@ static pastix_complex64_t zzero =  0.0;
  *          The LRMM structure that stores all the parameters used in the LRMM
  *          functions family.
  *          On exit, the C matrix is udpated with the addition of AB.
- *          @sa core_zlrmm_t.
+ *          @sa core_zlrmm_t
  *
  * @param[in] AB
  *          The low-rank structure of the AB matrix to apply to C.
@@ -104,7 +104,7 @@ core_zlr2fr( core_zlrmm_t           *params,
  *          The LRMM structure that stores all the parameters used in the LRMM
  *          functions family.
  *          On exit, the C matrix is udpated with the addition of AB.
- *          @sa core_zlrmm_t.
+ *          @sa core_zlrmm_t
  *
  * @param[in] AB
  *          The low-rank structure of the AB matrix to apply to C.
@@ -210,7 +210,7 @@ core_zlr2lr( core_zlrmm_t           *params,
  *          functions family.
  *          On exit, the C matrix contains the product AB aligned with its own
  *          dimensions.
- *          @sa core_zlrmm_t.
+ *          @sa core_zlrmm_t
  *
  * @param[in] AB
  *          The low-rank structure of the AB matrix to apply to C.

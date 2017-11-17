@@ -41,6 +41,7 @@ void core_zlrcpy  ( const pastix_lr_t *lowrank,
                     pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                     pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
                     pastix_int_t offx, pastix_int_t offy );
+
 void core_zlrconcatenate_u( pastix_complex64_t alpha,
                             pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                             pastix_int_t M2,                        pastix_lrblock_t *B,
@@ -51,10 +52,6 @@ void core_zlrconcatenate_v( pastix_trans_t transA1, pastix_complex64_t alpha,
                                              pastix_int_t N2,       pastix_lrblock_t *B,
                             pastix_int_t offy,
                             pastix_complex64_t *v1v2 );
-pastix_fixdbl_t core_zlrorthu( pastix_trans_t transV, pastix_int_t M,  pastix_int_t N, pastix_int_t K,
-                               pastix_complex64_t *U, pastix_int_t ldu,
-                               pastix_complex64_t *V, pastix_int_t ldv );
-
 /**
  *     @}
  * @}
@@ -71,21 +68,25 @@ pastix_fixdbl_t core_zlrorthu( pastix_trans_t transV, pastix_int_t M,  pastix_in
  * @brief Structure to store all the parameters of the core_zlrmm family functions
  */
 typedef struct core_zlrmm_s {
-    const pastix_lr_t      *lowrank;     /**< The lowrank structure                                        */
+    const pastix_lr_t      *lowrank;     /**< The lowrank structure                                                 */
     pastix_trans_t          transA;      /**< Specify op(A) and is equal to PastixNoTrans, PastixTrans, or PastixConjTrans */
     pastix_trans_t          transB;      /**< Specify op(B) and is equal to PastixNoTrans, PastixTrans, or PastixConjTrans */
-    pastix_int_t            M, N, K;     /**< Dimensions of the matrix-matrix product as in GEMM (These are the dimensions of the AB product) */
-    pastix_int_t            Cm, Cn;      /**< Dimensions of the C matrix that receives the AB contribution */
-    pastix_int_t            offx, offy;  /**< Offsets of the AB product in the C matrix                    */
-    pastix_complex64_t      alpha;       /**< The alpha factor                                             */
-    const pastix_lrblock_t *A;           /**< The A matrix described in a low-rank structure               */
-    const pastix_lrblock_t *B;           /**< The B matrix described in a low-rank structure               */
-    pastix_complex64_t      beta;        /**< The beta factor                                              */
-    pastix_lrblock_t       *C;           /**< The C matrix described in a low-rank structure               */
-    pastix_complex64_t     *work;        /**< The pointer to an available workspace                        */
-    pastix_int_t            lwork;       /**< The size of the given workspace                              */
-    pastix_int_t            lwused;      /**< The size of the workspace that is already used               */
-    pastix_atomic_lock_t   *lock;        /**< The lock to protect the concurrent accesses on the C matrix  */
+    pastix_int_t            M;           /**< Number of rows     of the A matrix                                    */
+    pastix_int_t            N;           /**< Number of columns  of the B matrix                                    */
+    pastix_int_t            K;           /**< Number of columns  of the A matrix (= number of rows of the B matrix) */
+    pastix_int_t            Cm;          /**< Number of rows     of the C matrix that receives the AB contribution  */
+    pastix_int_t            Cn;          /**< Number of columns  of the C matrix that receives the AB contribution  */
+    pastix_int_t            offx;        /**< Horizontal offsets of the AB product in the C matrix                  */
+    pastix_int_t            offy;        /**< Vertical   offsets of the AB product in the C matrix                  */
+    pastix_complex64_t      alpha;       /**< The alpha factor                                                      */
+    const pastix_lrblock_t *A;           /**< The A matrix described in a low-rank structure                        */
+    const pastix_lrblock_t *B;           /**< The B matrix described in a low-rank structure                        */
+    pastix_complex64_t      beta;        /**< The beta factor                                                       */
+    pastix_lrblock_t       *C;           /**< The C matrix described in a low-rank structure                        */
+    pastix_complex64_t     *work;        /**< The pointer to an available workspace                                 */
+    pastix_int_t            lwork;       /**< The size of the given workspace                                       */
+    pastix_int_t            lwused;      /**< The size of the workspace that is already used                        */
+    pastix_atomic_lock_t   *lock;        /**< The lock to protect the concurrent accesses on the C matrix           */
 } core_zlrmm_t;
 
 /**
