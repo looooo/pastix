@@ -41,6 +41,7 @@ install(TARGETS pastixf
 set (EXAMPLES
   fsimple.f90
   flaplacian.f90
+  fstep-by-step.f90
   )
 
 foreach (_file ${EXAMPLES})
