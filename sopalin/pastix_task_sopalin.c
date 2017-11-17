@@ -77,8 +77,9 @@ static fct_rradd_t recompressMethod[2][4] =
  *          On exit, the internal block CSC is filled with entries from
  *          the spm matrix.
  *
- * @param[in] spm
+ * @param[inout] spm
  *          The sparse matrix descriptor that describes problem instance.
+ *          On exit, if IPARM_FREE_CSCUSER is set, the spm is freed.
  *
  *******************************************************************************
  *

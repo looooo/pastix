@@ -580,7 +580,7 @@ contains
     use iso_c_binding
     implicit none
     type(pastix_data_t), intent(in),    pointer :: pastix_data
-    type(pastix_spm_t),  intent(in),    pointer :: spm
+    type(pastix_spm_t),  intent(inout), target  :: spm
     integer(kind=c_int), intent(out)            :: info
 
     info = pastix_subtask_spm2bcsc_c(c_loc(pastix_data), c_loc(spm))
