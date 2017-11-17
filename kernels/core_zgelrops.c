@@ -161,7 +161,8 @@ core_zlrfree( pastix_lrblock_t *A )
 int
 core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
              pastix_lrblock_t *A,
-             int newrk, int newrkmax,
+             pastix_int_t newrk,
+             pastix_int_t newrkmax,
              pastix_int_t rklimit )
 {
     /* If no limit on the rank is given, let's take min(M, N) */

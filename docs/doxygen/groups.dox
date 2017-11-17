@@ -194,7 +194,7 @@
  *
  **********
  *
- * @defgroup kernel_lr_null Internal functions for low-rank debug kernels
+ * @defgroup kernel_lr_null Internal functions for low-rank kernels
  * @ingroup  kernel_lr
  *
  **********

@@ -33,7 +33,7 @@ extern volatile int32_t nbmalloc;
  */
 void core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax, pastix_lrblock_t *A );
 void core_zlrfree ( pastix_lrblock_t *A );
-int  core_zlrsze  ( int copy, pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, int newrk, int newrkmax, pastix_int_t rklimit );
+int  core_zlrsze  ( int copy, pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, pastix_int_t newrk, pastix_int_t newrkmax, pastix_int_t rklimit );
 int  core_zlr2ge  ( pastix_trans_t trans, pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *Alr, pastix_complex64_t *A, pastix_int_t lda );
 
 void core_zlrcpy  ( const pastix_lr_t *lowrank,
