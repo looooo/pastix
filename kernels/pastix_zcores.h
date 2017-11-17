@@ -78,91 +78,6 @@ void core_zsytrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
  *     @}
  * @}
  *
- * @addtogroup kernel_lr
- * @{
- *    This module contains all the low-rank kernels working on pastix_lr_t
- *    matrix representations.
- *
- *    @name PastixComplex64 low-rank kernels
- *    @{
- */
-void core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax, pastix_lrblock_t *A );
-void core_zlrfree ( pastix_lrblock_t *A );
-int  core_zlrsze  ( int copy, pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, int newrk, int newrkmax );
-int  core_zlr2ge  ( pastix_trans_t trans, pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *Alr, pastix_complex64_t *A, pastix_int_t lda );
-int  core_zgradd  ( const pastix_lr_t *lowrank, pastix_complex64_t alpha,
-                    pastix_int_t M1, pastix_int_t N1, const pastix_complex64_t *A, pastix_int_t lda,
-                    pastix_int_t M2, pastix_int_t N2, pastix_lrblock_t *B,
-                    pastix_int_t offx, pastix_int_t offy );
-void core_zlrmm   ( const pastix_lr_t *lowrank, pastix_trans_t transA, pastix_trans_t transB,
-                    pastix_int_t M, pastix_int_t N, pastix_int_t K, pastix_int_t Cm, pastix_int_t Cn,
-                    pastix_int_t offx, pastix_int_t offy,
-                    pastix_complex64_t alpha, const pastix_lrblock_t *A, const pastix_lrblock_t *B,
-                    pastix_complex64_t beta,  pastix_lrblock_t *C,
-                    pastix_complex64_t *work, pastix_int_t ldwork, SolverCblk *fcblk );
-void core_zlrmge  ( const pastix_lr_t *lowrank, pastix_trans_t transA, pastix_trans_t transB,
-                    pastix_int_t M, pastix_int_t N, pastix_int_t K,
-                    pastix_complex64_t alpha, const pastix_lrblock_t *A, const pastix_lrblock_t *B,
-                    pastix_complex64_t beta,  pastix_complex64_t *C, int ldc,
-                    pastix_complex64_t *work, pastix_int_t ldwork, SolverCblk *fcblk );
-
-/**
- *     @}
- * @}
- *
- * @addtogroup kernel_lr_svd
- * @{
- *    This is the SVD implementation of the low-rank kernels based on the LAPACK
- *    GESVD function.
- *
- *    @name PastixComplex64 SVD low-rank kernels
- *    @{
- */
-void core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
-                      const pastix_complex64_t *A, pastix_int_t lda, pastix_lrblock_t *Alr );
-int  core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
-                      pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                      pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                      pastix_int_t offx, pastix_int_t offy );
-
-void core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
-                                const void *Aptr, pastix_int_t lda, void *Alr );
-int  core_zrradd_SVD_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, const void *alphaptr,
-                                pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                                pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                                pastix_int_t offx, pastix_int_t offy );
-
-/**
- *     @}
- * @}
- *
- * @addtogroup kernel_lr_rrqr
- * @{
- *    This is the rank-revealing QR implementation of the low-rank kernels based
- *    on the modified LAPACK GEQP3 function.
- *
- *    @name PastixComplex64 RRQR low-rank kernels
- *    @{
- */
-void core_zge2lr_RRQR( double tol, pastix_int_t m, pastix_int_t n,
-                       const pastix_complex64_t *A, pastix_int_t lda, pastix_lrblock_t *Alr );
-int  core_zrradd_RRQR( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
-                       pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                       pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                       pastix_int_t offx, pastix_int_t offy );
-
-
-void core_zge2lr_RRQR_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
-                                 const void *Aptr, pastix_int_t lda, void *Alr );
-
-int  core_zrradd_RRQR_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, const void *alphaptr,
-                                 pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                                 pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                                 pastix_int_t offx, pastix_int_t offy );
-/**
- *     @}
- * @}
- *
  * @addtogroup kernel_fact
  * @{
  *    This module contains all the kernel working at the solver matrix structure
@@ -179,7 +94,7 @@ int  cpucblk_zgeaddsp1d( const SolverCblk *cblk1, SolverCblk *cblk2,
 void cpucblk_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_trans_t trans,
                       const SolverCblk *cblk, const SolverBlok *blok, SolverCblk *fcblk,
                       const pastix_complex64_t *A, const pastix_complex64_t *B, pastix_complex64_t *C,
-                      pastix_complex64_t *work, const pastix_lr_t *lowrank );
+                      pastix_complex64_t *work, pastix_int_t lwork, const pastix_lr_t *lowrank );
 void cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                       pastix_trans_t trans, pastix_diag_t diag, SolverCblk *cblk,
                       const pastix_complex64_t *A, pastix_complex64_t *C, const pastix_lr_t *lowrank );
@@ -245,7 +160,8 @@ void gpu_zgemmsp_fermi( const SolverMatrix *solvmatr,
 int cpucblk_zgetrfsp1d_getrf( SolverCblk *cblk, pastix_complex64_t *L, pastix_complex64_t *U, double criteria );
 int cpucblk_zgetrfsp1d_panel( SolverCblk *cblk, pastix_complex64_t *L, pastix_complex64_t *U, double criteria,
                               const pastix_lr_t *lowrank );
-int cpucblk_zgetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double criteria, pastix_complex64_t *work );
+int cpucblk_zgetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double criteria,
+                              pastix_complex64_t *work, pastix_int_t lwork );
 
 /**
  *    @}
@@ -255,7 +171,8 @@ int cpucblk_zgetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double cr
 int cpucblk_zpotrfsp1d_potrf( SolverCblk *cblk, pastix_complex64_t *L, double criteria );
 int cpucblk_zpotrfsp1d_panel( SolverCblk *cblk, pastix_complex64_t *L, double criteria,
                               const pastix_lr_t *lowrank );
-int cpucblk_zpotrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double criteria, pastix_complex64_t *work );
+int cpucblk_zpotrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double criteria,
+                              pastix_complex64_t *work, pastix_int_t lwork );
 
 /**
  *    @}
@@ -266,7 +183,7 @@ int cpucblk_zhetrfsp1d_hetrf( SolverCblk *cblk, pastix_complex64_t *L, double cr
 int cpucblk_zhetrfsp1d_panel( SolverCblk *cblk, pastix_complex64_t *L, pastix_complex64_t *DLh, double criteria,
                               const pastix_lr_t *lowrank );
 int cpucblk_zhetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double criteria,
-                              pastix_complex64_t *work1, pastix_complex64_t *work2 );
+                              pastix_complex64_t *work1, pastix_complex64_t *work2, pastix_int_t lwork );
 
 /**
  *    @}
@@ -276,7 +193,8 @@ int cpucblk_zhetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double cr
 int cpucblk_zpxtrfsp1d_pxtrf( SolverCblk *cblk, pastix_complex64_t *L, double criteria );
 int cpucblk_zpxtrfsp1d_panel( SolverCblk *cblk, pastix_complex64_t *L, double criteria,
                               const pastix_lr_t *lowrank );
-int cpucblk_zpxtrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double criteria, pastix_complex64_t *work );
+int cpucblk_zpxtrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double criteria,
+                              pastix_complex64_t *work, pastix_int_t lwork );
 
 /**
  *    @}
@@ -287,7 +205,7 @@ int cpucblk_zsytrfsp1d_sytrf( SolverCblk *cblk, pastix_complex64_t *L, double cr
 int cpucblk_zsytrfsp1d_panel( SolverCblk *cblk, pastix_complex64_t *L, pastix_complex64_t *DLt, double criteria,
                               const pastix_lr_t *lowrank );
 int cpucblk_zsytrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk, double criteria,
-                              pastix_complex64_t *work1, pastix_complex64_t *work2 );
+                              pastix_complex64_t *work1, pastix_complex64_t *work2, pastix_int_t lwork );
 
 /**
  *    @}
@@ -369,4 +287,5 @@ void core_zsytrfsp1d_gemm( const SolverCblk *cblk, const SolverBlok *blok, Solve
 /**
  * @}
  */
+
 #endif /* _pastix_zcores_h_ */

@@ -18,8 +18,9 @@
 #include "common.h"
 #include "cblas.h"
 #include "blend/solver.h"
-#include "pastix_zcores.h"
 #include "kernels_trace.h"
+#include "pastix_zcores.h"
+#include "pastix_zlrcores.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t  zone =  1.0;
@@ -250,14 +251,18 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
         /* Try to compress the block: compress_end version */
         if ( lowrank->compress_when == PastixCompressWhenEnd )
         {
+
             M = blok_rownbr(blok);
             if ( ( N > lowrank->compress_min_width  ) &&
                  ( M > lowrank->compress_min_height ) )
             {
                 pastix_lrblock_t C;
-                lowrank->core_ge2lr( lowrank->tolerance, M, N,
-                                     lrC->u, M,
-                                     &C );
+                pastix_fixdbl_t  flops;
+
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
+                flops = lowrank->core_ge2lr( lowrank->tolerance, -1,
+                                             M, N, lrC->u, M, &C );
+                kernel_trace_stop_lvl2_rank( flops, C.rk );
 
                 core_zlrfree(lrC);
                 memcpy( lrC, &C, sizeof(pastix_lrblock_t) );
@@ -561,10 +566,13 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
             if ( ( N > lowrank->compress_min_width ) &&
                  ( M > lowrank->compress_min_height ) )
             {
+                pastix_fixdbl_t  flops;
                 pastix_lrblock_t C;
-                lowrank->core_ge2lr( lowrank->tolerance, M, N,
-                                     lrC->u, M,
-                                     &C );
+
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
+                flops = lowrank->core_ge2lr( lowrank->tolerance, -1,
+                                             M, N, lrC->u, M, &C );
+                kernel_trace_stop_lvl2_rank( flops, C.rk );
 
                 core_zlrfree(lrC);
                 lrC->u = C.u;

@@ -18,7 +18,9 @@
 #include "common.h"
 #include "solver.h"
 #include <lapacke.h>
+#include "kernels_trace.h"
 #include "pastix_zcores.h"
+#include "pastix_zlrcores.h"
 
 /**
  *******************************************************************************
@@ -61,6 +63,7 @@ cpucblk_zcompress( pastix_coefside_t side,
     pastix_int_t        gain;
     pastix_int_t        gainL = 0;
     pastix_int_t        gainU = 0;
+    pastix_fixdbl_t     flops;
 
     assert( cblk->cblktype & CBLK_LAYOUT_2D  );
     assert( cblk->cblktype & CBLK_COMPRESSED );
@@ -80,8 +83,12 @@ cpucblk_zcompress( pastix_coefside_t side,
 
                 assert( lrA->rk == -1 );
                 A = lrA->u;
-                lowrank.core_ge2lr( lowrank.tolerance, nrows, ncols,
-                                    A, nrows, lrA );
+
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
+                flops = lowrank.core_ge2lr( lowrank.tolerance, -1, nrows, ncols,
+                                            A, nrows, lrA );
+                kernel_trace_stop_lvl2_rank( flops, lrA->rk );
+
                 free( A );
 
                 if  ( lrA->rk != -1 ) {
@@ -95,8 +102,12 @@ cpucblk_zcompress( pastix_coefside_t side,
 
                 assert( lrA->rk == -1 );
                 A = lrA->u;
-                lowrank.core_ge2lr( lowrank.tolerance, nrows, ncols,
-                                    A, nrows, lrA );
+
+                kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
+                flops = lowrank.core_ge2lr( lowrank.tolerance, -1, nrows, ncols,
+                                            A, nrows, lrA );
+                kernel_trace_stop_lvl2_rank( flops, lrA->rk );
+
                 free( A );
 
                 if  ( lrA->rk != -1 ) {

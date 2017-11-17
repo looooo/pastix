@@ -41,6 +41,7 @@ blokmax1d [type = "pastix_int_t"          hidden = on default = "(((datacode->cb
 lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->solvmtx->lowrank)"]
 
 p_work    [type = "parsec_memory_pool_t *"]
+lwork     [type = "pastix_int_t"]
 
 /**************************************************
  *                   PXTRF                        *
@@ -208,14 +209,14 @@ BODY
         pastix_complex64_t *work = NULL;
 
         if (!(lcblk->cblktype & CBLK_IN_SCHUR)) {
-            if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
+            if ( lwork > 0 ) {
                 work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
             }
 
             cpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixTrans,
                              lcblk, blok, fcblk,
                              A, A, C,
-                             work, &lowrank );
+                             work, lwork, &lowrank );
 
             if ( work  ) {
                 parsec_private_memory_push( p_work, (void *)work );

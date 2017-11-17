@@ -38,10 +38,14 @@ sequential_zpxtrf( pastix_data_t  *pastix_data,
     SolverCblk         *cblk;
     double              threshold = sopalin_data->diagthreshold;
     pastix_complex64_t *work;
-    pastix_int_t  i;
+    pastix_int_t  i, lwork;
     (void)pastix_data;
 
-    MALLOC_INTERN( work, datacode->gemmmax, pastix_complex64_t );
+    lwork = datacode->gemmmax;
+    if ( datacode->lowrank.compress_when == PastixCompressWhenBegin ) {
+        lwork = pastix_imax( lwork, 2 * datacode->blokmax );
+    }
+    MALLOC_INTERN( work, lwork, pastix_complex64_t );
 
     cblk = datacode->cblktab;
     for (i=0; i<datacode->cblknbr; i++, cblk++){
@@ -50,7 +54,8 @@ sequential_zpxtrf( pastix_data_t  *pastix_data,
             break;
 
         /* Compute */
-        cpucblk_zpxtrfsp1d( datacode, cblk, threshold, work );
+        cpucblk_zpxtrfsp1d( datacode, cblk, threshold,
+                            work, lwork );
     }
 
     memFree_null( work );
@@ -64,11 +69,15 @@ thread_pzpxtrf( isched_thread_t *ctx, void *args )
     SolverCblk         *cblk;
     Task               *t;
     pastix_complex64_t *work;
-    pastix_int_t  i, ii;
+    pastix_int_t  i, ii, lwork;
     pastix_int_t  tasknbr, *tasktab;
     int rank = ctx->rank;
 
-    MALLOC_INTERN( work, datacode->gemmmax, pastix_complex64_t );
+    lwork = datacode->gemmmax;
+    if ( datacode->lowrank.compress_when == PastixCompressWhenBegin ) {
+        lwork = pastix_imax( lwork, 2 * datacode->blokmax );
+    }
+    MALLOC_INTERN( work, lwork, pastix_complex64_t );
 
     tasknbr = datacode->ttsknbr[rank];
     tasktab = datacode->ttsktab[rank];
@@ -85,7 +94,8 @@ thread_pzpxtrf( isched_thread_t *ctx, void *args )
         do { } while( cblk->ctrbcnt );
 
         /* Compute */
-        cpucblk_zpxtrfsp1d( datacode, cblk, sopalin_data->diagthreshold, work );
+        cpucblk_zpxtrfsp1d( datacode, cblk, sopalin_data->diagthreshold,
+                            work, lwork );
     }
 
     memFree_null( work );

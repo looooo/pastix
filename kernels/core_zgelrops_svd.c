@@ -1,6 +1,6 @@
 /**
  *
- * @file core_zgelrops_SVD.c
+ * @file core_zgelrops_svd.c
  *
  * PaStiX low-rank kernel routines using SVD based on Lapack ZGESVD.
  *
@@ -16,8 +16,11 @@
 #include "common.h"
 #include <cblas.h>
 #include <lapacke.h>
+#include "flops.h"
+#include "kernels_trace.h"
 #include "blend/solver.h"
 #include "pastix_zcores.h"
+#include "pastix_zlrcores.h"
 #include "z_nan_check.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -60,9 +63,9 @@ static pastix_complex64_t zzero =  0.0;
  *
  *******************************************************************************/
 static inline int
-core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
-             const pastix_complex64_t *A, pastix_int_t lda,
-             pastix_lrblock_t *Alr )
+core_zge2lrx( double tol, pastix_int_t m, pastix_int_t n,
+              const pastix_complex64_t *A, pastix_int_t lda,
+              pastix_lrblock_t *Alr )
 {
     pastix_complex64_t *u, *v, *zwork, *Acpy, ws;
     double             *rwork, *s;
@@ -97,7 +100,7 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
                                 A, lda, NULL );
     relative_tolerance = tol * norm;
 
-    /**
+    /*
      * Query the workspace needed for the gesvd
      */
 #if defined(PASTIX_DEBUG_LR_NANCHECK)
@@ -123,7 +126,7 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
     Acpy = zwork + lwork;
     s    = rwork;
 
-    /**
+    /*
      * Backup the original matrix before to overwrite it with the SVD
      */
     ret = LAPACKE_zlacpy_work(LAPACK_COL_MAJOR, 'A', m, n,
@@ -166,6 +169,10 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
  *          The tolerance used as a criteria to eliminate information from the
  *          full rank matrix
  *
+ * @param[in] rklimit
+ *          The maximum rank to store the matrix in low-rank format. If
+ *          -1, set to min(M, N) / PASTIX_LR_MINRATIO.
+ *
  * @param[in] m
  *          Number of rows of the matrix A, and of the low rank matrix Alr.
  *
@@ -183,32 +190,37 @@ core_zge2lrx(double tol, pastix_int_t m, pastix_int_t n,
  *          representation of A
  *
  *******************************************************************************/
-void
-core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
-                 const pastix_complex64_t *A, pastix_int_t lda,
+pastix_fixdbl_t
+core_zge2lr_svd( pastix_fixdbl_t tol, pastix_int_t rklimit,
+                 pastix_int_t m, pastix_int_t n,
+                 const void *Avoid, pastix_int_t lda,
                  pastix_lrblock_t *Alr )
 {
+    const pastix_complex64_t *A = (const pastix_complex64_t*)Avoid;
+    pastix_fixdbl_t flops = 0.0;
     int ret;
-    /**
+    /*
      * Allocate a temorary Low rank matrix
      */
     core_zlralloc( m, n, pastix_imin( m, n ), Alr );
 
-    /**
+    /*
      * Compress the dense matrix with the temporary space just allocated
      */
+
+    /* TODO: add flops */
     ret = core_zge2lrx( tol, m, n, A, lda, Alr );
 
     if ( ret < 0 ) {
         core_zlrfree( Alr );
     }
 
-    /**
+    /*
      * Resize the space used by the low rank matrix
      */
-    ret = core_zlrsze( 1, m, n, Alr, ret, -1 );
+    ret = core_zlrsze( 1, m, n, Alr, ret, -1, rklimit );
 
-    /**
+    /*
      * It was not interesting to compress, so we store the dense version in Alr
      */
     if (ret == -1) {
@@ -216,6 +228,7 @@ core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
                                    A, lda, Alr->u, Alr->rkmax );
         assert(ret == 0);
     }
+    return flops;
 }
 
 /**
@@ -231,8 +244,8 @@ core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
  *
  *******************************************************************************
  *
- * @param[in] tol
- *          The absolute tolerance criteria
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
  *
  * @param[in] transA1
  *         @arg PastixNoTrans: No transpose, op( A ) = A;
@@ -270,8 +283,8 @@ core_zge2lr_SVD( double tol, pastix_int_t m, pastix_int_t n,
  * @return  The new rank of u2 v2^T or -1 if ranks are too large for recompression
  *
  *******************************************************************************/
-int
-core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
+pastix_fixdbl_t
+core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
                  pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                  pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
                  pastix_int_t offx, pastix_int_t offy)
@@ -282,9 +295,12 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     pastix_complex64_t *u1u2, *v1v2, *R, *u, *v;
     pastix_complex64_t *tmp, *zbuf, *tauU, *tauV;
     pastix_complex64_t  querysize;
+    pastix_complex64_t  alpha = *((pastix_complex64_t*)alphaptr);
     double *s;
     double norm, relative_tolerance;
     size_t wzsize, wdsize;
+    double tol = lowrank->tolerance;
+    pastix_fixdbl_t flops, total_flops = 0.0;
 
     rank = (A->rk == -1) ? pastix_imin(M1, N1) : A->rk;
     rank += B->rk;
@@ -304,14 +320,14 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     {
         errorPrint("Dimensions are not correct");
         assert(0 /* Incorrect dimensions */);
-        return -1;
+        return total_flops;
     }
 
-    /**
+    /*
      * A is rank null, nothing to do
      */
     if (A->rk == 0) {
-        return rank;
+        return total_flops;
     }
 
     ldau = (A->rk == -1) ? A->rkmax : M1;
@@ -319,68 +335,25 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     ldbu = M;
     ldbv = B->rkmax;
 
-    /**
+    /*
      * Let's handle case where B is a null matrix
      *   B = alpha A
      */
     if (B->rk == 0) {
-        if ( A->rk == -1 ) {
-            /**
-             * TODO: This case can be improved by compressing A, and then
-             * copying it into B, however the criteria to keep A compressed or
-             * not must be based on B dimension, and not on A ones
-             */
-            MALLOC_INTERN( u, M * N, pastix_complex64_t );
-
-            if ( M1 != M || N1 != N ) {
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, N,
-                                     0.0, 0.0, u, M );
-            }
-            ret = core_zgeadd( PastixNoTrans, M1, N1,
-                               alpha, A->u, ldau,
-                               0.0, u + M * offy + offx, M );
-            assert(ret == 0);
-
-            core_zge2lr_SVD( tol, M, N, u, M, B );
-            memFree_null(u);
-        }
-        else {
-            core_zlralloc( M, N, A->rkmax, B );
-            u = B->u;
-            v = B->v;
-            B->rk = A->rk;
-
-            if ( M1 != M ) {
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, B->rk,
-                                     0.0, 0.0, u, M );
-            }
-            if ( N1 != N ) {
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', B->rk, N,
-                                     0.0, 0.0, v, B->rkmax );
-            }
-
-            ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, A->rk,
-                                       A->u, ldau,
-                                       u + offx, M );
-            assert(ret == 0);
-
-            ret = core_zgeadd( transA1, A->rk, N1,
-                               alpha, A->v, ldav,
-                               0.0, v + B->rkmax * offy, B->rkmax );
-            assert(ret == 0);
-        }
-        assert( B->rk <= B->rkmax);
-        return 0;
+        core_zlrcpy( lowrank, transA1, alpha,
+                     M1, N1, A, M2, N2, B,
+                     offx, offy );
+        return total_flops;
     }
 
-    /**
+    /*
      * The rank is too big, let's try to compress
      */
     if ( rank > pastix_imin( M, N ) ) {
         assert(0);
     }
 
-    /**
+    /*
      * Let's compute the size of the workspace
      */
     /* u1u2 and v1v2 */
@@ -420,139 +393,44 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     tauV = v1v2 + N * rank;
     R    = tauV + minV;
 
-    /**
+    /*
      * Concatenate U2 and U1 in u1u2
      *  [ u2  0  ]
      *  [ u2  u1 ]
      *  [ u2  0  ]
      */
-    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M, B->rk,
-                         B->u, ldbu, u1u2, M );
+    core_zlrconcatenate_u( alpha,
+                           M1, N1, A,
+                           M2,     B,
+                           offx, u1u2 );
 
-    tmp = u1u2 + B->rk * M;
-    if ( A->rk == -1 ) {
-        /**
-         * A is full of rank M1, so A will be integrated into v1v2
-         */
-        if ( M1 < N1 ) {
-            if (M1 != M2) {
-                /* Set to 0 */
-                memset(tmp, 0, M * M1 * sizeof(pastix_complex64_t));
-
-                /* Set diagonal */
-                tmp += offx;
-                for (i=0; i<M1; i++, tmp += M+1) {
-                    *tmp = 1.0;
-                }
-            }
-            else {
-                assert( offx == 0 );
-                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, M1,
-                                           0.0, 1.0, tmp, M );
-                assert( ret == 0 );
-            }
-        }
-        else {
-            /**
-             * A is full of rank N1, so A is integrated into u1u2
-             */
-            if (M1 != M) {
-                memset(tmp, 0, M * N1 * sizeof(pastix_complex64_t));
-            }
-            ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, N1,
-                                       A->u, ldau, tmp + offx, M );
-            assert(ret == 0);
-        }
-    }
-    /**
-     * A is low rank of rank A->rk
-     */
-    else {
-        if (M1 != M) {
-            memset(tmp, 0, M * A->rk * sizeof(pastix_complex64_t));
-        }
-        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, A->rk,
-                                   A->u, ldau, tmp + offx, M );
-        assert(ret == 0);
-    }
-
-    /**
+    /*
      * Perform QR factorization on u1u2 = (Q1 R1)
      */
     ret = LAPACKE_zgeqrf_work( LAPACK_COL_MAJOR, M, rank,
                                u1u2, M, tauU, zbuf, lwork );
     assert( ret == 0 );
+    total_flops += FLOPS_ZGEQRF( M, rank );
 
-    /**
+    /*
      * Concatenate V2 and V1 in v1v2
      *  [ v2^h v2^h v2^h ]
      *  [ 0    v1^h 0    ]
      */
-    ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', B->rk, N,
-                               B->v, ldbv, v1v2, rank );
-    assert(ret == 0);
+    core_zlrconcatenate_v( transA1, alpha,
+                           M1, N1, A,
+                               N2, B,
+                           offy, v1v2 );
 
-    tmp = v1v2 + B->rk;
-    if ( A->rk == -1 ) {
-        assert( transA1 == PastixNoTrans );
-        /**
-         * A is full of rank M1, so it is integrated into v1v2
-         */
-        if ( M1 < N1 ) {
-            if (N1 != N) {
-                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M1, N,
-                                           0.0, 0.0, tmp, rank );
-                assert( ret == 0 );
-            }
-            core_zgeadd( PastixNoTrans, M1, N1,
-                         alpha, A->u, ldau,
-                         0.0, tmp + offy * rank, rank );
-        }
-        /**
-         * A is full of rank N1, so it has been integrated into u1u2
-         */
-        else {
-            if (N1 != N2) {
-                /* Set to 0 */
-                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', N1, N,
-                                           0.0, 0.0, tmp, rank );
-                assert(ret == 0);
-
-                /* Set diagonal */
-                tmp += offy * rank;
-                for (i=0; i<N1; i++, tmp += rank+1) {
-                    *tmp = alpha;
-                }
-            }
-            else {
-                assert( offy == 0 );
-                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', N1, N,
-                                           0.0, alpha, tmp + offy * rank, rank );
-                assert( ret == 0 );
-            }
-        }
-    }
-    /**
-     * A is low rank of rank A->rk
-     */
-    else {
-        if (N1 != N) {
-            ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', A->rk, N,
-                                       0.0, 0.0, tmp, rank );
-            assert(ret == 0);
-        }
-        core_zgeadd( transA1, A->rk, N1,
-                     alpha, A->v,              ldav,
-                        0.0, tmp + offy * rank, rank );
-    }
-
-    /**
+    /*
      * Perform LQ factorization on v1v2 = (L2 Q2)
      */
     ret = LAPACKE_zgelqf_work( LAPACK_COL_MAJOR, rank, N,
                                v1v2, rank, tauV, zbuf, lwork );
     assert(ret == 0);
-    /**
+    total_flops += FLOPS_ZGELQF( rank, N );
+
+    /*
      * Compute R = alpha R1 L2
      */
     u = R + rank * rank;
@@ -569,14 +447,19 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                 CblasNoTrans, CblasNonUnit,
                 rank, rank, CBLAS_SADDR(zone),
                 v1v2, rank, R, rank);
+    total_flops += FLOPS_ZTRMM( PastixRight, rank, rank );
 
     norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, rank,
                                R, rank, NULL );
     relative_tolerance = tol * norm;
 
-    /**
+    /*
      * Compute svd(R) = u sigma v^t
      */
+    /* Missing the flops of the u and v generation */
+    flops = FLOPS_ZGEQRF( rank, rank ) + FLOPS_ZGELQF( rank, (rank-1) );
+
+    kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_rradd_recompression );
     ret = MYLAPACKE_zgesvd_work( CblasColMajor, 'S', 'S',
                                  rank, rank, R, rank,
                                  s, u, rank, v, rank,
@@ -587,7 +470,7 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
         EXIT(MOD_SOPALIN, INTERNAL_ERR);
     }
 
-    /**
+    /*
      * Let's compute the new rank of the result
      */
     tmp = v;
@@ -602,58 +485,71 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
         }
     }
     new_rank = i;
+    kernel_trace_stop_lvl2_rank( flops, new_rank );
+    total_flops += flops;
 
-    /**
+    /*
      * First case: The rank is too big, so we decide to uncompress the result
      */
-    if ( new_rank*2 > pastix_imin( M, N ) ) {
+    if ( new_rank > (pastix_imin( M, N ) / PASTIX_LR_MINRATIO) ) {
         pastix_lrblock_t Bbackup = *B;
 
         core_zlralloc( M, N, -1, B );
         u = B->u;
 
         /* Uncompress B */
+        flops = FLOPS_ZGEMM( M, N, Bbackup.rk );
+        kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_uncompress );
         cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
                     M, N, Bbackup.rk,
                     CBLAS_SADDR(zone),  Bbackup.u, ldbu,
                                         Bbackup.v, ldbv,
                     CBLAS_SADDR(zzero), u, M );
+        kernel_trace_stop_lvl2( flops );
+        total_flops += flops;
 
         /* Add A into it */
         if ( A->rk == -1 ) {
+            flops = 2 * M1 * N1;
+            kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
             core_zgeadd( transA1, M1, N1,
                          alpha, A->u, ldau,
                          zone, u + offy * M + offx, M);
+            kernel_trace_stop_lvl2( flops );
         }
         else {
+            flops = FLOPS_ZGEMM( M1, N1, A->rk );
+            kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
             cblas_zgemm(CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)transA1,
                         M1, N1, A->rk,
                         CBLAS_SADDR(alpha), A->u, ldau,
                                             A->v, ldav,
                         CBLAS_SADDR(zone), u + offy * M + offx, M);
+            kernel_trace_stop_lvl2( flops );
         }
+        total_flops += flops;
         core_zlrfree(&Bbackup);
         memFree_null(zbuf);
-        return 0;
+        return total_flops;
     }
     else if ( new_rank == 0 ) {
         core_zlrfree(B);
         memFree_null(zbuf);
-        return 0;
+        return total_flops;
     }
 
-    /**
+    /*
      * We need to reallocate the buffer to store the new compressed version of B
      * because it wasn't big enough
      */
-    ret = core_zlrsze( 0, M, N, B, new_rank, -1 );
+    ret = core_zlrsze( 0, M, N, B, new_rank, -1, -1 );
     assert( ret != -1 );
     assert( B->rkmax >= new_rank );
     assert( B->rkmax >= B->rk    );
 
     ldbv = B->rkmax;
 
-    /**
+    /*
      * Let's now compute the final U = Q1 ([u] sigma)
      *                                     [0]
      */
@@ -672,6 +568,9 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
     }
 #endif
 
+    flops = FLOPS_ZUNMQR( M, new_rank, minU, PastixLeft )
+        +   FLOPS_ZUNMLQ( new_rank, N, minV, PastixRight );
+    kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_rradd_computeNewU );
     ret = LAPACKE_zunmqr_work(LAPACK_COL_MAJOR, 'L', 'N',
                               M, new_rank, minU,
                               u1u2, M, tauU,
@@ -679,7 +578,7 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                               zbuf, lwork);
     assert( ret == 0 );
 
-    /**
+    /*
      * And the final V^T = [v^t 0 ] Q2
      */
     tmp = B->v;
@@ -697,103 +596,9 @@ core_zrradd_SVD( double tol, pastix_trans_t transA1, pastix_complex64_t alpha,
                               B->v, ldbv,
                               zbuf, lwork);
     assert( ret == 0 );
+    kernel_trace_stop_lvl2( flops );
+    total_flops += flops;
 
     memFree_null(zbuf);
-    return new_rank;
-}
-
-/**
- *******************************************************************************
- *
- * @brief Arithmetic free interface to core_zge2lr_SVD
- *
- *******************************************************************************
- *
- * @param[in] tol
- *          The tolerance used as a criteria to eliminate information from the
- *          full rank matrix
- *
- * @param[in] m
- *          Number of rows of the matrix A, and of the low rank matrix Alr.
- *
- * @param[in] n
- *          Number of columns of the matrix A, and of the low rank matrix Alr.
- *
- * @param[in] Aptr
- *          The matrix of dimension lda-by-n that need to be compressed
- *
- * @param[in] lda
- *          The leading dimension of the matrix A. lda >= max(1, m)
- *
- * @param[out] Alr
- *          The low rank matrix structure that will store the low rank
- *          representation of A
- *
- *******************************************************************************/
-void
-core_zge2lr_SVD_interface( pastix_fixdbl_t tol, pastix_int_t m, pastix_int_t n,
-                           const void *Aptr, pastix_int_t lda,
-                           void *Alr )
-{
-    const pastix_complex64_t *A = (const pastix_complex64_t *) Aptr;
-    core_zge2lr_SVD( tol, m, n, A, lda, Alr );
-}
-
-/**
- *******************************************************************************
- *
- * @brief Arithmetic free interface to core_zrradd_SVD
- *
- *******************************************************************************
- *
- * @param[in] tol
- *          The absolute tolerance criteria
- *
- * @param[in] transA1
- *         @arg PastixNoTrans: No transpose, op( A ) = A;
- *         @arg PastixTrans:   Transpose, op( A ) = A';
- *
- * @param[in] alphaptr
- *          alpha * A is add to B
- *
- * @param[in] M1
- *          The number of rows of the matrix A.
- *
- * @param[in] N1
- *          The number of columns of the matrix A.
- *
- * @param[in] A
- *          The low-rank representation of the matrix A.
- *
- * @param[in] M2
- *          The number of rows of the matrix B.
- *
- * @param[in] N2
- *          The number of columns of the matrix B.
- *
- * @param[in] B
- *          The low-rank representation of the matrix B.
- *
- * @param[in] offx
- *          The horizontal offset of A with respect to B.
- *
- * @param[in] offy
- *          The vertical offset of A with respect to B.
- *
- *******************************************************************************
- *
- * @return  The new rank of u2 v2^T or -1 if ranks are too large for recompression
- *
- *******************************************************************************/
-int
-core_zrradd_SVD_interface( pastix_fixdbl_t tol, pastix_trans_t transA1, const void *alphaptr,
-                           pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                           pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                           pastix_int_t offx, pastix_int_t offy)
-{
-    const pastix_complex64_t *alpha = (const pastix_complex64_t *) alphaptr;
-    return core_zrradd_SVD( tol, transA1, *alpha,
-                            M1, N1, A,
-                            M2, N2, B,
-                            offx, offy );
+    return total_flops;
 }

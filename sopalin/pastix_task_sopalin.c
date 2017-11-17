@@ -22,10 +22,11 @@
 #include "blend/solver.h"
 #include "coeftab.h"
 #include "sopalin_data.h"
-#include "kernels/pastix_zcores.h"
-#include "kernels/pastix_ccores.h"
-#include "kernels/pastix_dcores.h"
-#include "kernels/pastix_scores.h"
+#include "kernels/pastix_lowrank.h"
+#include "kernels/pastix_zlrcores.h"
+#include "kernels/pastix_clrcores.h"
+#include "kernels/pastix_dlrcores.h"
+#include "kernels/pastix_slrcores.h"
 #include "kernels/kernels_trace.h"
 
 #if defined(PASTIX_WITH_PARSEC)
@@ -47,14 +48,14 @@ static void (*sopalinFacto[5][4])(pastix_data_t *, sopalin_data_t*) =
 
 static fct_ge2lr_t compressMethod[2][4] =
 {
-    { core_sge2lr_SVD_interface , core_dge2lr_SVD_interface , core_cge2lr_SVD_interface , core_zge2lr_SVD_interface  },
-    { core_sge2lr_RRQR_interface, core_dge2lr_RRQR_interface, core_cge2lr_RRQR_interface, core_zge2lr_RRQR_interface }
+    { core_sge2lr_svd,  core_dge2lr_svd,  core_cge2lr_svd,  core_zge2lr_svd  },
+    { core_sge2lr_rrqr, core_dge2lr_rrqr, core_cge2lr_rrqr, core_zge2lr_rrqr }
 };
 
 static fct_rradd_t recompressMethod[2][4] =
 {
-    { core_srradd_SVD_interface , core_drradd_SVD_interface , core_crradd_SVD_interface , core_zrradd_SVD_interface  },
-    { core_srradd_RRQR_interface, core_drradd_RRQR_interface, core_crradd_RRQR_interface, core_zrradd_RRQR_interface }
+    { core_srradd_svd,  core_drradd_svd,  core_crradd_svd,  core_zrradd_svd  },
+    { core_srradd_rrqr, core_drradd_rrqr, core_crradd_rrqr, core_zrradd_rrqr }
 };
 
 /**

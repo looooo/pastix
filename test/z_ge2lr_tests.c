@@ -27,6 +27,7 @@
 #include <cblas.h>
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"
+#include "kernels/pastix_zlrcores.h"
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_ == -1) {                           \
@@ -106,12 +107,12 @@ z_ge2lr_test( int mode, double tolerance, pastix_int_t rank,
                                       A, lda, NULL );
 
     /* Compress and then uncompress  */
-    core_zge2lr_RRQR( tolerance,
+    core_zge2lr_rrqr( tolerance, -1,
                       m, n,
                       A, lda,
                       &LR_RRQR );
 
-    core_zge2lr_SVD( tolerance,
+    core_zge2lr_svd( tolerance, -1,
                       m, n,
                       A, lda,
                       &LR_SVD );

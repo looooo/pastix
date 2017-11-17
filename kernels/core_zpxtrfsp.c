@@ -323,7 +323,8 @@ int
 cpucblk_zpxtrfsp1d( SolverMatrix       *solvmtx,
                     SolverCblk         *cblk,
                     double              criteria,
-                    pastix_complex64_t *work )
+                    pastix_complex64_t *work,
+                    pastix_int_t        lwork )
 {
     pastix_complex64_t *L = cblk->lcoeftab;
     SolverCblk  *fcblk;
@@ -343,7 +344,7 @@ cpucblk_zpxtrfsp1d( SolverMatrix       *solvmtx,
         cpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixTrans,
                          cblk, blok, fcblk,
                          L, L, fcblk->lcoeftab,
-                         work, &solvmtx->lowrank );
+                         work, lwork, &solvmtx->lowrank );
 
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
    }

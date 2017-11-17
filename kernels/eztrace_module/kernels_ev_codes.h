@@ -116,4 +116,12 @@ kernel_trace_stop_lvl2( double flops )
     }
 }
 
+static inline void
+kernel_trace_stop_lvl2_rank( double flops, int rank )
+{
+    if (pastix_eztrace_level == 2){
+        EZTRACE_EVENT_PACKED_2(KERNELS_CODE(PastixKernelStop), flops, rank);
+    }
+}
+
 #endif /* _kernels_ev_codes_h_ */

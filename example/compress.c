@@ -30,7 +30,6 @@ int main (int argc, char **argv)
     size_t          size;
     int             check = 1;
     int             nrhs = 1;
-    double          normA;
 
     /**
      * Initialize parameters to default values
@@ -77,12 +76,6 @@ int main (int argc, char **argv)
     dparm[DPARM_COMPRESS_TOLERANCE]  = 1e-8;
 
     /**
-     * Scal the matrix to avoid unexpected rouding errors
-     */
-    normA = spmNorm( PastixFrobeniusNorm, spm );
-    spmScalMatrix( 1./normA, spm );
-
-    /**
      * Startup PaStiX
      */
     pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
@@ -91,6 +84,12 @@ int main (int argc, char **argv)
      * Perform ordering, symbolic factorization, and analyze steps
      */
     pastix_task_analyze( pastix_data, spm );
+
+    /**
+     * Normalize A matrix (optional, but recommended for low-rank functionality)
+     */
+    double normA = spmNorm( PastixFrobeniusNorm, spm );
+    spmScalMatrix( 1./normA, spm );
 
     /**
      * Perform the numerical factorization
@@ -116,6 +115,9 @@ int main (int argc, char **argv)
     else {
         spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
+        /* Apply also normalization to b vector */
+        spmScalVector( 1./normA, spm, b );
+
         /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
         memcpy( b, x, size );
     }
@@ -132,11 +134,6 @@ int main (int argc, char **argv)
 
         if (x0) free(x0);
     }
-
-    /**
-     * Unscal the solution
-     */
-    spmScalVector( normA, spm, x );
 
     spmExit( spm );
     free( spm );

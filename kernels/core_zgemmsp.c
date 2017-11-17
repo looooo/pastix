@@ -18,8 +18,9 @@
 #include "common.h"
 #include "cblas.h"
 #include "blend/solver.h"
-#include "pastix_zcores.h"
 #include "kernels_trace.h"
+#include "pastix_zcores.h"
+#include "pastix_zlrcores.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t mzone = -1.0;
@@ -705,8 +706,9 @@ core_zgemmsp_2dlrsub( pastix_coefside_t  sideA,
 
     const pastix_lrblock_t *lrA, *lrB;
     pastix_lrblock_t *lrC;
+    core_zlrmm_t params;
 
-    pastix_int_t M, N, K, cblk_n, cblk_m, full_m;
+    pastix_int_t M, K, cblk_n, cblk_m, full_m;
 
     pastix_fixdbl_t flops = 0.0;
     pastix_fixdbl_t time = kernel_trace_start( PastixKernelGEMMBlok2d2d );
@@ -719,7 +721,7 @@ core_zgemmsp_2dlrsub( pastix_coefside_t  sideA,
     assert( cblk->cblktype  & CBLK_COMPRESSED );
     assert( fcblk->cblktype & CBLK_COMPRESSED );
 
-    /**
+    /*
      * Blocs on column K
      */
     fblokK = cblk[0].fblokptr;
@@ -731,7 +733,7 @@ core_zgemmsp_2dlrsub( pastix_coefside_t  sideA,
     blokA = fblokK + blok_mk;
     cblk_m = blokA->fcblknm;
 
-    /**
+    /*
      * Blocs on column N
      */
     fblokN = fcblk[0].fblokptr;
@@ -740,14 +742,26 @@ core_zgemmsp_2dlrsub( pastix_coefside_t  sideA,
     blokC = fblokN + blok_mn;
     assert( blokC->fcblknm == cblk_m );
 
-    K = cblk_colnbr( cblk );
     full_m = 0;
+    K = cblk_colnbr( cblk );
+
+    params.lowrank = lowrank;
+    params.transA  = PastixNoTrans;
+    params.transB  = transB;
+    params.K       = K;
+    params.Cn      = cblk_colnbr( fcblk );
+    params.alpha   = -1.0;
+    params.beta    = 1.0;
+    params.work    = NULL;
+    params.lwork   = -1;
+    params.lock    = &(fcblk->lock);
 
     bC = blokC;
     for (bA = blokA; (bA < lblokK) && (bA->fcblknm == cblk_m); bA++) {
         M   = blok_rownbr(bA);
+        params.M  = M;
+        full_m   += M;
         lrA = bA->LRblock + sideA;
-        full_m += M;
 
         /* Find facing C blok */
         while (!is_block_inside_fblock( bA, bC )) {
@@ -757,19 +771,19 @@ core_zgemmsp_2dlrsub( pastix_coefside_t  sideA,
 
         lrC  = bC->LRblock + sideA;
 
-        for (bB = blokB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++) {
-            N    = blok_rownbr( bB );
-            lrB  = bB->LRblock + sideB;
+        params.A = lrA;
+        params.C = lrC;
+        params.Cm = blok_rownbr( bC );
 
-            core_zlrmm( lowrank, PastixNoTrans, transB,
-                        M, N, K,
-                        blok_rownbr( bC ), cblk_colnbr( fcblk ),
-                        bA->frownum - bC->frownum,
-                        bB->frownum - fcblk->fcolnum,
-                        -1.0, lrA, lrB,
-                         1.0, lrC,
-                        NULL, -1,
-                        fcblk );
+        for (bB = blokB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++) {
+            lrB = bB->LRblock + sideB;
+
+            params.N    = blok_rownbr( bB );
+            params.offx = bA->frownum - bC->frownum;
+            params.offy = bB->frownum - fcblk->fcolnum;
+            params.B    = lrB;
+
+            core_zlrmm( &params );
         }
     }
 
@@ -841,15 +855,17 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
                      const pastix_complex64_t *A,
                      const pastix_complex64_t *B,
                            pastix_complex64_t *work,
+                           pastix_int_t        lwork,
                      const pastix_lr_t        *lowrank )
 {
     const SolverBlok *iterblok;
     const SolverBlok *fblok;
     const SolverBlok *lblok;
     pastix_lrblock_t lrA, lrB, *lrC;
+    core_zlrmm_t params;
 
     pastix_int_t stride, shift;
-    pastix_int_t M, N, K;
+    pastix_int_t M, N;
 
     /* Update from a dense block to a low rank block */
     assert(!(cblk->cblktype  & CBLK_COMPRESSED));
@@ -859,8 +875,7 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
     shift  = (sideA == PastixUCoef) ? 1 : 0;
     stride = cblk->stride;
 
-    K = cblk_colnbr( cblk );
-    N = blok_rownbr( blok );
+     N = blok_rownbr( blok );
 
     /* Get the B block and its dimensions */
     lrB.rk = -1;
@@ -875,6 +890,19 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
      */
     fblok = fcblk->fblokptr;
     lblok = cblk[1].fblokptr;
+
+    params.lowrank = lowrank;
+    params.transA  = PastixNoTrans;
+    params.transB  = trans;
+    params.N       = blok_rownbr( blok );
+    params.K       = cblk_colnbr( cblk );
+    params.Cn      = cblk_colnbr( fcblk );
+    params.alpha   = -1.0;
+    params.beta    = 1.0;
+    params.work    = work;
+    params.lwork   = lwork;
+    params.lock    = &(fcblk->lock);
+    params.B       = &lrB;
 
     for (iterblok=blok+shift; iterblok<lblok; iterblok++) {
 
@@ -894,16 +922,16 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
 
         lrC = fblok->LRblock + shift;
 
+        params.M  = M;
+        params.A  = &lrA;
+        params.C  = lrC;
+        params.Cm = blok_rownbr( fblok );
+
+        params.offx = iterblok->frownum - fblok->frownum;
+        params.offy = blok->frownum - fcblk->fcolnum;
+
         /* pastix_cblk_lock( fcblk ); */
-        core_zlrmm( lowrank, PastixNoTrans, trans,
-                    M, N, K,
-                    blok_rownbr( fblok ), cblk_colnbr( fcblk ),
-                    iterblok->frownum - fblok->frownum,
-                    (blok->frownum - fcblk->fcolnum),
-                    -1.0, &lrA, &lrB,
-                     1.0, lrC,
-                    work, -1,
-                    fcblk );
+        core_zlrmm( &params );
         /* pastix_cblk_unlock( fcblk ); */
     }
 }
@@ -964,15 +992,17 @@ core_zgemmsp_lr( pastix_coefside_t         sideA,
                  const SolverBlok         *blok,
                        SolverCblk         *fcblk,
                        pastix_complex64_t *work,
+                       pastix_int_t        lwork,
                  const pastix_lr_t        *lowrank )
 {
     const SolverBlok *iterblok;
     const SolverBlok *fblok;
     const SolverBlok *lblok;
 
-    pastix_complex64_t *C, *Cfull;
-    pastix_int_t M, N, K, stridef, shift;
-    pastix_lrblock_t *lrA, *lrB;
+    pastix_complex64_t *Cfull;
+    pastix_int_t N, K, stridef, shift;
+    pastix_lrblock_t *lrB;
+    core_zlrmm_t params;
 
     /* Update from a low-rank cblk to a low-rank cblk */
     assert( cblk->cblktype  & CBLK_COMPRESSED );
@@ -992,13 +1022,26 @@ core_zgemmsp_lr( pastix_coefside_t         sideA,
     K = cblk_colnbr( cblk );
     N = blok_rownbr( blok );
 
-    /**
+    /*
      * Add contribution to C in fcblk:
      *    Get the first facing block of the distant panel, and the last block of
      *    the current cblk
      */
     fblok = fcblk->fblokptr;
     lblok = cblk[1].fblokptr;
+
+    params.lowrank = lowrank;
+    params.transA  = PastixNoTrans;
+    params.transB  = trans;
+    params.N       = N;
+    params.K       = K;
+    params.Cn      = cblk_colnbr( fcblk );
+    params.alpha   = -1.0;
+    params.beta    = 1.0;
+    params.work    = work;
+    params.lwork   = lwork;
+    params.lock    = &(fcblk->lock);
+    params.B       = lrB;
 
     /* for all following blocks in block column */
     for (iterblok=blok+shift; iterblok<lblok; iterblok++) {
@@ -1010,31 +1053,16 @@ core_zgemmsp_lr( pastix_coefside_t         sideA,
             assert( fblok < fcblk[1].fblokptr );
         }
 
-        lrA = iterblok->LRblock + shift;
-        M = blok_rownbr( iterblok );
+        params.M  = blok_rownbr( iterblok );
+        params.A  = iterblok->LRblock + shift;
+        params.C  = fblok->LRblock + shift;
+        params.Cm = blok_rownbr( fblok );
+
+        params.offx = iterblok->frownum - fblok->frownum;
+        params.offy = blok->frownum - fcblk->fcolnum;
 
         /* pastix_cblk_lock( fcblk ); */
-        if ( fcblk->cblktype & CBLK_COMPRESSED ) {
-            core_zlrmm( lowrank, PastixNoTrans, trans,
-                        M, N, K,
-                        blok_rownbr( fblok ), cblk_colnbr( fcblk ),
-                        iterblok->frownum - fblok->frownum,
-                        (blok->frownum - fcblk->fcolnum),
-                        -1.0, lrA, lrB,
-                         1.0, fblok->LRblock + shift,
-                        work, -1,
-                        fcblk );
-        }
-        else {
-            /* Should not arrive here */
-            assert(0);
-            C = Cfull + fblok->coefind + iterblok->frownum - fblok->frownum;
-            core_zlrmge( lowrank, PastixNoTrans, trans,
-                         M, N, K,
-                         -1.0, lrA, lrB, 1.0, C, stridef,
-                         work, -1,
-                         fcblk );
-        }
+        core_zlrmm( &params );
         /* pastix_cblk_unlock( fcblk ); */
     }
 }
@@ -1118,6 +1146,7 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
                  const pastix_complex64_t *B,
                        pastix_complex64_t *C,
                        pastix_complex64_t *work,
+                       pastix_int_t        lwork,
                  const pastix_lr_t        *lowrank )
 {
     pastix_ktype_t ktype;
@@ -1136,7 +1165,7 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
 
             core_zgemmsp_lr( sideA, sideB, trans,
                              cblk, blok, fcblk,
-                             work, lowrank );
+                             work, lwork, lowrank );
         }
         else {
             ktype = PastixKernelGEMMCblkFRLR;
@@ -1144,7 +1173,8 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
 
             core_zgemmsp_fulllr( sideA, trans,
                                  cblk, blok, fcblk,
-                                 A, B, C, lowrank );
+                                 A, B, work, lwork,
+                                 lowrank );
         }
     }
     else if ( fcblk->cblktype & CBLK_LAYOUT_2D ) {

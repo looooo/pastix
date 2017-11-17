@@ -2,7 +2,7 @@
  *
  * @file z_rradd_tests.c
  *
- * Tests and validate the Xrradd routine.
+ * Tests and validate the core_zrradd() routine.
  *
  * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -27,6 +27,7 @@
 #include <cblas.h>
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"
+#include "kernels/pastix_zlrcores.h"
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_ == -1) {                           \
@@ -50,6 +51,7 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
     pastix_complex64_t *C_RRQR, *C_SVD;
     pastix_lrblock_t    LR_A_SVD, LR_B_SVD;
     pastix_lrblock_t    LR_A_RRQR, LR_B_RRQR;
+    pastix_lr_t lr_RRQR, lr_SVD;
 
     double norm_dense_A, norm_dense_B;
     double norm_diff_SVD, norm_diff_RRQR;
@@ -65,6 +67,25 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
     pastix_complex64_t *work;
     double *SA, *SB;
     double alphaA, alphaB;
+    pastix_complex64_t mone = -1.0;
+
+    int rc = 0;
+
+    lr_RRQR.compress_when       = 0;
+    lr_RRQR.compress_method     = 0;
+    lr_RRQR.compress_min_width  = 0;
+    lr_RRQR.compress_min_height = 0;
+    lr_RRQR.tolerance  = tolerance;
+    lr_RRQR.core_ge2lr = core_zge2lr_rrqr;
+    lr_RRQR.core_rradd = core_zrradd_rrqr;
+
+    lr_SVD.compress_when       = 0;
+    lr_SVD.compress_method     = 0;
+    lr_SVD.compress_min_width  = 0;
+    lr_SVD.compress_min_height = 0;
+    lr_SVD.tolerance  = tolerance;
+    lr_SVD.core_ge2lr = core_zge2lr_svd;
+    lr_SVD.core_rradd = core_zrradd_svd;
 
     A      = malloc(mA * nA * sizeof(pastix_complex64_t));
     B      = malloc(mB * nB * sizeof(pastix_complex64_t));
@@ -122,25 +143,15 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
                                         B, mB, NULL );
 
 
-    core_zge2lr_SVD( tolerance,
-                      mA, nA,
-                      A, mA,
-                      &LR_A_SVD );
+    lr_SVD.core_ge2lr( tolerance, -1, mA, nA,
+                       A, mA, &LR_A_SVD );
+    lr_SVD.core_ge2lr( tolerance, -1, mB, nB,
+                       B, mB, &LR_B_SVD );
 
-    core_zge2lr_SVD( tolerance,
-                      mB, nB,
-                      B, mB,
-                      &LR_B_SVD );
-
-    core_zge2lr_RRQR( tolerance,
-                      mA, nA,
-                      A, mA,
-                      &LR_A_RRQR );
-
-    core_zge2lr_RRQR( tolerance,
-                      mB, nB,
-                      B, mB,
-                      &LR_B_RRQR );
+    lr_RRQR.core_ge2lr( tolerance, -1, mA, nA,
+                       A, mA, &LR_A_RRQR );
+    lr_RRQR.core_ge2lr( tolerance, -1, mB, nB,
+                       B, mB, &LR_B_RRQR );
 
     printf(" The rank of A is: RRQR %d SVD %d\n", LR_A_RRQR.rk, LR_A_SVD.rk);
     printf(" The rank of B is: RRQR %d SVD %d\n", LR_B_RRQR.rk, LR_B_SVD.rk);
@@ -157,15 +168,15 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
     }
 
     /* Add A and B in their LR format */
-    core_zrradd_SVD( tolerance, PastixNoTrans, -1.0,
-                     mA, nA, &LR_A_SVD,
-                     mB, nB, &LR_B_SVD,
-                     offx, offy );
+    lr_SVD.core_rradd( &lr_SVD, PastixNoTrans, &mone,
+                       mA, nA, &LR_A_SVD,
+                       mB, nB, &LR_B_SVD,
+                       offx, offy );
 
-    core_zrradd_RRQR( tolerance, PastixNoTrans, -1.0,
-                      mA, nA, &LR_A_RRQR,
-                      mB, nB, &LR_B_RRQR,
-                      offx, offy );
+    lr_RRQR.core_rradd( &lr_RRQR, PastixNoTrans, &mone,
+                        mA, nA, &LR_A_RRQR,
+                        mB, nB, &LR_B_RRQR,
+                        offx, offy );
 
     printf(" The rank of A+B is: RRQR %d SVD %d\n", LR_B_RRQR.rk, LR_B_SVD.rk);
 
@@ -193,8 +204,8 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
                  -1., B, mB,
                  1., C_RRQR, mB );
 
-    norm_diff_SVD = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', mB, nB,
-                                         C_SVD, mB, NULL );
+    norm_diff_SVD  = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', mB, nB,
+                                          C_SVD, mB, NULL );
     norm_diff_RRQR = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', mB, nB,
                                           C_RRQR, mB, NULL );
 
@@ -217,9 +228,13 @@ z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB
     free(SB);
     free(work);
 
-    if ((res_RRQR < 10) && (res_SVD < 10))
-        return 0;
-    return 1;
+    if ( res_RRQR > 10 ) {
+        rc += 1;
+    }
+    if ( res_SVD > 10 ) {
+        rc += 2;
+    }
+    return rc;
 }
 
 int main (int argc, char **argv)

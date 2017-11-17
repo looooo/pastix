@@ -76,6 +76,12 @@ int main (int argc, char **argv)
      */
     pastix_task_analyze( pastix_data, spm );
 
+    /**
+     * Normalize A matrix (optional, but recommended for low-rank functionality)
+     */
+    double normA = spmNorm( PastixFrobeniusNorm, spm );
+    spmScalMatrix( 1./normA, spm );
+
     for(i=0; i<nbruns; i++) {
         /**
          * Perform the numerical factorization
@@ -101,6 +107,9 @@ int main (int argc, char **argv)
     }
     else {
         spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
+
+        /* Apply also normalization to b vector */
+        spmScalVector( 1./normA, spm, b );
 
         /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
         memcpy( b, x, size );

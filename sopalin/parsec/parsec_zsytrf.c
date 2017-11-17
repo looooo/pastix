@@ -82,12 +82,18 @@ parsec_zsytrf_sp1dplus_New( parsec_sparse_matrix_desc_t *A,
     unsigned int gemmmax = sopalin_data->solvmtx->gemmmax;
     unsigned int offdmax = sopalin_data->solvmtx->offdmax;
     unsigned int blokmax = sopalin_data->solvmtx->blokmax;
+    pastix_int_t lwork;
 
-    parsec_zsytrf_sp1dplus = parsec_zsytrf_sp1dplus_new( A, sopalin_data, NULL );
+    lwork = pastix_imax( gemmmax, blokmax );
+    if ( sopalin_data->solvmtx->lowrank.compress_when == PastixCompressWhenBegin ) {
+        lwork = pastix_imax( lwork, 2 * blokmax );
+    }
+
+    parsec_zsytrf_sp1dplus = parsec_zsytrf_sp1dplus_new( A, sopalin_data, NULL, lwork );
 
     parsec_zsytrf_sp1dplus->_g_p_work = (parsec_memory_pool_t*)malloc(sizeof(parsec_memory_pool_t));
     parsec_private_memory_init( parsec_zsytrf_sp1dplus->_g_p_work,
-                                pastix_imax( gemmmax, blokmax ) * sizeof(pastix_complex64_t) );
+                                lwork * sizeof(pastix_complex64_t) );
 
     /* This is a default initializer for now, as it is not used in distributed */
     parsec_matrix_add2arena_rect( parsec_zsytrf_sp1dplus->arenas[PARSEC_zsytrf_sp1dplus_DEFAULT_ARENA],
@@ -244,12 +250,18 @@ parsec_zsytrf_sp2d_New( parsec_sparse_matrix_desc_t *A,
     unsigned int gemmmax = sopalin_data->solvmtx->gemmmax;
     unsigned int offdmax = sopalin_data->solvmtx->offdmax;
     unsigned int blokmax = sopalin_data->solvmtx->blokmax;
+    pastix_int_t lwork;
 
-    parsec_zsytrf_sp2d = parsec_zsytrf_sp2d_new( A, sopalin_data, NULL );
+    lwork = pastix_imax( gemmmax, blokmax );
+    if ( sopalin_data->solvmtx->lowrank.compress_when == PastixCompressWhenBegin ) {
+        lwork = pastix_imax( lwork, 2 * blokmax );
+    }
+
+    parsec_zsytrf_sp2d = parsec_zsytrf_sp2d_new( A, sopalin_data, NULL, lwork );
 
     parsec_zsytrf_sp2d->_g_p_work = (parsec_memory_pool_t*)malloc(sizeof(parsec_memory_pool_t));
     parsec_private_memory_init( parsec_zsytrf_sp2d->_g_p_work,
-                                pastix_imax( gemmmax, blokmax ) * sizeof(pastix_complex64_t) );
+                                lwork * sizeof(pastix_complex64_t) );
 
     parsec_matrix_add2arena_rect( parsec_zsytrf_sp2d->arenas[PARSEC_zsytrf_sp2d_DEFAULT_ARENA],
                                   parsec_datatype_double_complex_t,

@@ -19,6 +19,7 @@
 #include "solver.h"
 #include "lapacke.h"
 #include "pastix_zcores.h"
+#include "pastix_zlrcores.h"
 
 /**
  *******************************************************************************

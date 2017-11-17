@@ -25,6 +25,7 @@ foreach (_file ${EXAMPLES})
   get_filename_component(_name_we ${_file} NAME_WE)
   add_executable(${_name_we} ${_file})
   target_link_libraries(${_name_we} pastix)
+  target_link_libraries(${_name_we} ${BLAS_SEQ_LIBRARIES})
 
   install(TARGETS ${_name_we} RUNTIME DESTINATION examples )
   install(FILES   ${_file}            DESTINATION examples )

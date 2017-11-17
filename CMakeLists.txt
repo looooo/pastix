@@ -809,6 +809,7 @@ generate_env_file()
 add_documented_files(
   README.md
   docs/doxygen/chapters/eztrace.doxy
+  kernels/pastix_lowrank.h
   #
   include/pastix.h
   include/pastix/api.h

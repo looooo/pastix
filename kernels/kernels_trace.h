@@ -87,18 +87,36 @@ typedef enum pastix_ktype2_e {
     PastixKernelLvl2PXTRF,             /**< Complex LL^t diagonal block kernel */
     PastixKernelLvl2SYTRF,             /**< LDLt diagonal block kernel         */
 
-    /* Dense operations */
-    PastixKernelLvl2_FR_TRSM,          /**< Full-rank TRSM */
-    PastixKernelLvl2_FR_GEMM,          /**< Full rank GEMM */
+    /* Solve operations */
+    PastixKernelLvl2_FR_TRSM,
+    PastixKernelLvl2_LR_TRSM,
 
-    /* Low-rank operations */
-    PastixKernelLvl2_LR_INIT,          /**< Attempt to compress a dense block (RRQR)              */
-    PastixKernelLvl2_LR_INIT_Q,        /**< Form Q when compression succeeded                     */
-    PastixKernelLvl2_LR_TRSM,          /**< Trsm on a low-rank block                              */
-    PastixKernelLvl2_LR_GEMM_PRODUCT,  /**< Formation of a product of low-rank blocks (A*B)       */
-    PastixKernelLvl2_LR_GEMM_ADD_Q,    /**< Recompression (getrf/unmqr)                           */
-    PastixKernelLvl2_LR_GEMM_ADD_RRQR, /**< Compression of concatenated matrices in recompression */
-    PastixKernelLvl2_LR_UNCOMPRESS,    /**< Uncompress a low-rank block into a dense block        */
+    /* Update operations */
+    PastixKernelLvl2_FR_GEMM,
+
+    /* Formation (and application) of A * B */
+    PastixKernelLvl2_LR_FRFR2FR,
+    PastixKernelLvl2_LR_FRLR2FR,
+    PastixKernelLvl2_LR_LRFR2FR,
+    PastixKernelLvl2_LR_LRLR2FR,
+    PastixKernelLvl2_LR_FRFR2LR,
+    PastixKernelLvl2_LR_FRLR2LR,
+    PastixKernelLvl2_LR_LRFR2LR,
+    PastixKernelLvl2_LR_LRLR2LR,
+    PastixKernelLvl2_LR_FRFR2null,
+    PastixKernelLvl2_LR_FRLR2null,
+    PastixKernelLvl2_LR_LRFR2null,
+    PastixKernelLvl2_LR_LRLR2null,
+
+    /* Compression kernels */
+    PastixKernelLvl2_LR_init_compress,
+    PastixKernelLvl2_LR_add2C_uncompress,
+    PastixKernelLvl2_LR_add2C_recompress,
+    PastixKernelLvl2_LR_add2C_updateCfr,
+    PastixKernelLvl2_LR_add2C_orthou,
+    PastixKernelLvl2_LR_add2C_rradd_orthogonalize, /**<< CGS, partialQR or fullQR */
+    PastixKernelLvl2_LR_add2C_rradd_recompression,
+    PastixKernelLvl2_LR_add2C_rradd_computeNewU,
 
     PastixKernelLvl2Nbr
 } pastix_ktype2_t;
@@ -124,10 +142,11 @@ extern int pastix_eztrace_level;
 
 #else
 
-static inline void kernel_trace_start_lvl0( pastix_ktype0_t ktype ) { (void)ktype; };
-static inline void kernel_trace_stop_lvl0 ( double flops ) { (void)flops; };
-static inline void kernel_trace_start_lvl2( pastix_ktype2_t ktype ) { (void)ktype; };
-static inline void kernel_trace_stop_lvl2 ( double flops ) { (void)flops; };
+static inline void kernel_trace_start_lvl0     ( pastix_ktype0_t ktype )  { (void)ktype; };
+static inline void kernel_trace_stop_lvl0      ( double flops )           { (void)flops; };
+static inline void kernel_trace_start_lvl2     ( pastix_ktype2_t ktype )  { (void)ktype; (void)index; };
+static inline void kernel_trace_stop_lvl2      ( double flops )           { (void)flops; };
+static inline void kernel_trace_stop_lvl2_rank ( double flops, int rank ) { (void)flops; (void)rank; };
 
 #endif
 

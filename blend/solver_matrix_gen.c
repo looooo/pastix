@@ -720,7 +720,7 @@ solverMatrixGen( pastix_int_t           clustnum,
                  * Max size for off-diagonal blocks for 2-terms version of the
                  * 2D LDL
                  */
-                if ( solvcblk->cblktype & CBLK_TASKS_2D ) {
+                if ( solvcblk->cblktype & (CBLK_TASKS_2D | CBLK_COMPRESSED) ) {
                     if ( solvblok->fcblknm == cblk_m ) {
                         acc_m += k;
                     }

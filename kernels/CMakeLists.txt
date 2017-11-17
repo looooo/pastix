@@ -27,6 +27,7 @@ endif(PASTIX_WITH_EZTRACE)
 ### Generate the headers in all precisions
 set(HEADERS
   pastix_zcores.h
+  pastix_zlrcores.h
   z_nan_check.h
 )
 
@@ -58,9 +59,15 @@ set(SOURCES
   core_zpotrfsp.c
   core_zpxtrfsp.c
   core_zgetrfsp.c
+  # Low-rank kernels
+  core_zlrdbg.c
+  core_zlr2xx.c
+  core_zxx2lr.c
+  core_zxx2fr.c
+  core_zlrmm.c
+  core_zgelrops_rrqr.c
+  core_zgelrops_svd.c
   core_zgelrops.c
-  core_zgelrops_SVD.c
-  core_zgelrops_RRQR.c
   # cblk operations
   cpucblk_zinit.c
   cpucblk_zcompress.c

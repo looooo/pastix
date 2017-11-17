@@ -38,6 +38,7 @@ lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->
 twoterms  [type = "int"                   hidden = on default = "(1)" ]
 
 p_work    [type = "parsec_memory_pool_t *"]
+lwork     [type = "pastix_int_t"]
 
 /**************************************************
  *                   SYTRF                        *
@@ -205,14 +206,14 @@ BODY
             if (twoterms) {
                 pastix_int_t N = cblk_colnbr( lcblk );
 
-                if ( !(lcblk->cblktype & CBLK_LAYOUT_2D) ) {
+                if ( lwork > 0 ) {
                     work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
                 }
 
                 cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
                                  lcblk, blok, fcblk,
                                  A, ((pastix_complex64_t*)B) - N*N, C,
-                                 work, &lowrank );
+                                 work, lwork, &lowrank );
             }
             else {
                 work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );

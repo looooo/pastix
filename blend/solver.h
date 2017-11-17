@@ -25,6 +25,8 @@ typedef struct blendctrl_s BlendCtrl;
 struct simuctrl_s;
 typedef struct simuctrl_s SimuCtrl;
 
+#include "pastix_lowrank.h"
+
 /**
  * @name Cblk properties
  * @{
@@ -72,44 +74,6 @@ typedef struct task_s {
     pastix_int_t          threadid;/**< Index of the bubble which contains the task               */
 #endif
 } Task;
-
-/**
- * @brief The block low-rank structure to hold the information
- */
-typedef struct pastix_lrblock_s {
-    int   rk;    /**< Rank of the low-rank matrix: -1 is dense, otherwise rank-rk matrix           */
-    int   rkmax; /**< Leading dimension of the matrix u                                            */
-    void *u;     /**< Contains the dense matrix if rk=-1, or the u factor from u vT representation */
-    void *v;     /**< Not referenced if rk=-1, otherwise, the v factor                             */
-} pastix_lrblock_t;
-
-/**
- * @brief Type of the functions to compress a dense block into a low-rank form.
- */
-typedef void (*fct_ge2lr_t)( pastix_fixdbl_t, pastix_int_t, pastix_int_t,
-                             const void *, pastix_int_t, void * );
-
-/**
- * @brief Type of the functions to add two low-rank blocks together.
- */
-typedef int  (*fct_rradd_t)( pastix_fixdbl_t, pastix_trans_t, const void *,
-                             pastix_int_t, pastix_int_t, const pastix_lrblock_t *,
-                             pastix_int_t, pastix_int_t,       pastix_lrblock_t *,
-                             pastix_int_t, pastix_int_t );
-
-/**
- * @brief Structure to define the type of function to use for the low-rank
- *        kernels and their parmaeters.
- */
-typedef struct pastix_lr_s {
-    pastix_int_t compress_when;       /**< When to compress in the full solver              */
-    pastix_int_t compress_method;     /**< Compression method                               */
-    pastix_int_t compress_min_width;  /**< Minimum width to compress a supernode            */
-    pastix_int_t compress_min_height; /**< Minimum height to compress an off-diagonal block */
-    double       tolerance;           /**< Absolute compression tolerance                   */
-    fct_rradd_t  core_rradd;          /**< Recompression function                           */
-    fct_ge2lr_t  core_ge2lr;          /**< Compression function                             */
-} pastix_lr_t;
 
 /**
  * @brief Fan-in target information fields

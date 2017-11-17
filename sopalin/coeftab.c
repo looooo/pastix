@@ -23,6 +23,7 @@
 #include "pastix_ccores.h"
 #include "pastix_dcores.h"
 #include "pastix_scores.h"
+#include "pastix_zlrcores.h"
 
 #if defined(PASTIX_WITH_PARSEC)
 #include "sopalin/parsec/pastix_parsec.h"
