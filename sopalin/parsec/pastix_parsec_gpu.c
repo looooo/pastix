@@ -121,19 +121,19 @@ pastix_parsec_selectgpu_gemm1d_3p_fct( void    *arg,
 
             /* Compute the transfer cost of A */
             data = this_task->data._f_A.data_in->original;
-            if ( (ratio < 5) && (data->device_copies[dev] != NULL) ) {
+            if ( (ratio < 5) && (data->device_copies[dev] == NULL) ) {
                 cost += bandwidth * data->nb_elts;
             }
 
             /* Compute the transfer cost of B */
             data = this_task->data._f_B.data_in->original;
-            if ( (ratio < 5) && (data->device_copies[dev] != NULL) ) {
+            if ( (ratio < 5) && (data->device_copies[dev] == NULL) ) {
                 cost += bandwidth * data->nb_elts;
             }
 
             /* Compute the transfer cost of B */
             data = this_task->data._f_C.data_in->original;
-            if ( data->device_copies[dev] != NULL ) {
+            if ( data->device_copies[dev] == NULL ) {
                 cost += bandwidth * data->nb_elts;
             }
 

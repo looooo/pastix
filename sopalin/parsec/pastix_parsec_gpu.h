@@ -22,8 +22,6 @@
 #include <parsec.h>
 #include <parsec/devices/device.h>
 
-extern volatile int32_t *parsec_nbtasks_on_gpu;
-
 /**
  *
  * TODO: Let's not forget to add some documentation in the final version

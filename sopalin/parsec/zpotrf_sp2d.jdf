@@ -642,11 +642,11 @@ zpotrf_sp2d_zgemm1d_selectgpu_fct( const __parsec_zpotrf_sp2d_GEMM1D_task_t *thi
                 cost += ldc * cblk_colnbr( fcblk ) * transfer_cost;
             }
 
-	        if ( cost < mintime )
-	        {
-		        gpuid = dev;
-		        mintime = cost;
-	        }
+            if ( cost < mintime )
+            {
+                gpuid = dev;
+                mintime = cost;
+            }
         }
     }
 
