@@ -24,6 +24,18 @@
 #include "pastix_zcores.h"
 #include "pastix_starpu.h"
 #include "codelets.h"
+#include "pastix_starpu_model.h"
+
+/**
+ * StarPU models
+ */
+
+static struct starpu_perfmodel starpu_blok_ztrsmsp_model_mlr =
+{
+  .type = STARPU_PER_ARCH,
+  .symbol = "blok_ztrsmsp",
+  .arch_cost_function = blok_trsmsp_cost,
+};
 
 /**
  * Cblk version
@@ -48,9 +60,9 @@
 /*     const pastix_complex64_t *B; */
 /*     pastix_complex64_t *C; */
 
-/*     A = (const pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[0]); */
-/*     B = (const pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]); */
-/*     C = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[2]); */
+/*     A = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]); */
+/*     B = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]); */
+/*     C = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[2]); */
 
 /*     /\* Check layout due to workspace *\/ */
 /*     starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data); */
@@ -78,9 +90,9 @@
 /*     const cuDoubleComplex *B; */
 /*     cuDoubleComplex *C; */
 
-/*     A = (const cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[0]); */
-/*     B = (const cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[1]); */
-/*     C = (cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[2]); */
+/*     A = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[0]); */
+/*     B = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[1]); */
+/*     C = (cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[2]); */
 
 /*     /\* Check layout due to workspace *\/ */
 /*     assert( cblk->cblktype & CBLK_LAYOUT_2D ); */
@@ -130,11 +142,6 @@
 /**
  * Block version
  */
-static struct starpu_perfmodel starpu_blok_ztrsmsp_model =
-{
-    .type = STARPU_HISTORY_BASED,
-    .symbol = "blok_ztrsmsp",
-};
 
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void cl_blok_ztrsmsp_cpu(void *descr[], void *cl_arg)
@@ -151,8 +158,8 @@ static void cl_blok_ztrsmsp_cpu(void *descr[], void *cl_arg)
     const pastix_complex64_t *A;
     pastix_complex64_t *C;
 
-    A = (const pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[0]);
-    C = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
+    A = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
+    C = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
 
     starpu_codelet_unpack_args(cl_arg, &coef, &side, &uplo, &trans, &diag,
                                &cblk, &blok_m, &sopalin_data);
@@ -179,8 +186,8 @@ static void cl_blok_ztrsmsp_gpu(void *descr[], void *cl_arg)
     const cuDoubleComplex *A;
     cuDoubleComplex *C;
 
-    A = (const cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[0]);
-    C = (cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[1]);
+    A = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[0]);
+    C = (cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
 
     starpu_codelet_unpack_args(cl_arg, &coef, &side, &uplo, &trans, &diag,
                                &cblk, &blok_m, &sopalin_data);
@@ -195,7 +202,7 @@ static void cl_blok_ztrsmsp_gpu(void *descr[], void *cl_arg)
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_GPU( blok_ztrsmsp, 2, STARPU_CUDA_ASYNC )
+CODELETS_GPU_MODEL( blok_ztrsmsp, 2, STARPU_CUDA_ASYNC, starpu_blok_ztrsmsp_model_mlr )
 
 void
 starpu_task_blok_ztrsmsp( pastix_coefside_t coef,

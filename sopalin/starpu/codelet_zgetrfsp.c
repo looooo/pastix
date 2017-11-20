@@ -24,15 +24,29 @@
 #include "pastix_zcores.h"
 #include "pastix_starpu.h"
 #include "codelets.h"
+#include "pastix_starpu_model.h"
+
+/**
+ * StarPU models
+ */
+
+static struct starpu_perfmodel starpu_cblk_zgetrfsp1d_panel_model =
+{
+  .type = STARPU_PER_ARCH,
+  .arch_cost_function = cblk_getrfsp1d_cost,
+  .symbol = "cblk_zgetrfsp1d_panel",
+};
+
+static struct starpu_perfmodel starpu_blok_zgetrfsp1d_panel_model =
+{
+  .type = STARPU_PER_ARCH,
+  .arch_cost_function = blok_getrfsp1d_cost,
+  .symbol = "blok_zgetrfsp1d_panel",
+};
 
 /**
  * Cblk version
  */
-static struct starpu_perfmodel starpu_cblk_zgetrfsp1d_panel_model =
-{
-    .type = STARPU_HISTORY_BASED,
-    .symbol = "cblk_zgetrfsp",
-};
 
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void cl_cblk_zgetrfsp1d_panel_cpu(void *descr[], void *cl_arg)
@@ -43,8 +57,8 @@ static void cl_cblk_zgetrfsp1d_panel_cpu(void *descr[], void *cl_arg)
     pastix_complex64_t *U;
     int nbpivot;
 
-    L = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[0]);
-    U = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
+    L = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
+    U = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
 
     starpu_codelet_unpack_args(cl_arg, &cblk, &sopalin_data);
 
@@ -55,7 +69,7 @@ static void cl_cblk_zgetrfsp1d_panel_cpu(void *descr[], void *cl_arg)
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_CPU( cblk_zgetrfsp1d_panel, 2 )
+CODELETS_CPU_MODEL( cblk_zgetrfsp1d_panel, 2,starpu_cblk_zgetrfsp1d_panel_model)
 
 void
 starpu_task_cblk_zgetrfsp1d_panel( sopalin_data_t *sopalin_data,
@@ -78,11 +92,6 @@ starpu_task_cblk_zgetrfsp1d_panel( sopalin_data_t *sopalin_data,
 /**
  * Blok version
  */
-static struct starpu_perfmodel starpu_blok_zgetrfsp_model =
-{
-    .type = STARPU_HISTORY_BASED,
-    .symbol = "blok_zgetrfsp",
-};
 
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void cl_blok_zgetrfsp_cpu(void *descr[], void *cl_arg)
@@ -92,8 +101,8 @@ static void cl_blok_zgetrfsp_cpu(void *descr[], void *cl_arg)
     pastix_complex64_t *L, *U;
     int nbpivot;
 
-    L = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[0]);
-    U = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
+    L = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
+    U = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
 
     starpu_codelet_unpack_args(cl_arg, &cblk, &sopalin_data);
 
@@ -105,7 +114,7 @@ static void cl_blok_zgetrfsp_cpu(void *descr[], void *cl_arg)
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_CPU( blok_zgetrfsp, 2 )
+CODELETS_CPU_MODEL( blok_zgetrfsp, 2, starpu_blok_zgetrfsp1d_panel_model )
 
 void
 starpu_task_blok_zgetrf( sopalin_data_t *sopalin_data,
