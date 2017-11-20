@@ -155,16 +155,21 @@ RW    C  <- (brownum == -1) ? NULL
 
 ; %{ return cblknbr - ((fcblknm + lcblknm) / 2 ) + last - brownum; %}
 
-BODY [ type=CUDA pushout=forced_pushout devicefct=pastix_parsec_selectgpu_fct ]
+BODY [ type=CUDA
+       pushout=forced_pushout
+       device="((brownum == -1) ? -2 : -1)"
+       weight="(last-brownum+1)"
+       cpu_cost="modelsGetCost3Param( cpu_coefs, m, n, k )"
+       gpu_cost="modelsGetCost3Param( gpu_coefs, m, n, k )" ]
 #if defined(PASTIX_WITH_CUDA)
 {
+    /* Never execute the GPU kernel on diagonal blocks */
     if (brownum != -1) {
         SolverCblk *lcblk = datacode->cblktab + lcblknm;
         SolverCblk *fcblk = datacode->cblktab + fcblknm;
         SolverBlok *blok  = datacode->bloktab + bloknum;
 
         if (!(lcblk->cblktype & CBLK_IN_SCHUR)) {
-            /* Never execute the 1D GPU kernel on diagonal blocks */
 #if defined(PASTIX_CUDA_FERMI)
             gpu_zgemmsp_fermi( datacode,
                                PastixLower, PastixTrans,

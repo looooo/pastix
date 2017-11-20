@@ -76,8 +76,9 @@ RW U <- ( browk0 == browk1 ) ? descA(1, k, 0) : C GEMM1D( 1, lastbrow )
 BODY
 {
     SolverCblk *cblk = datacode->cblktab + k;
-    if (!(cblk->cblktype & CBLK_IN_SCHUR))
+    if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
         cpucblk_zgetrfsp1d_panel(cblk, L, U, sopalin_data->diagthreshold, &lowrank );
+    }
 }
 END
 
