@@ -116,6 +116,7 @@ void cpublok_zscalo ( pastix_trans_t trans,
 
 #if defined(PASTIX_WITH_CUDA)
 #include <cuda.h>
+#include <cuda_runtime_api.h>
 #include <cuComplex.h>
 
 /**
