@@ -47,11 +47,25 @@ modelsGetKernelId( const char *kernelstr,
     if(0 == strcasecmp("pxtrf",  kernelstr)) { *nbcoef = 4; return PastixKernelPXTRF; }
     if(0 == strcasecmp("sytrf",  kernelstr)) { *nbcoef = 4; return PastixKernelSYTRF; }
 
-    if(0 == strcasecmp("trsm1d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblk2d; }
-    if(0 == strcasecmp("trsm2d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMBlok2d; }
+    if(0 == strcasecmp("trsm1d", kernelstr)) { *nbcoef = 8; return PastixKernelTRSMCblk2d; }
+    if(0 == strcasecmp("trsm2d", kernelstr)) { *nbcoef = 8; return PastixKernelTRSMBlok2d; }
+
+    if(0 == strcasecmp("trsmcblk1d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblk1d; }
+    if(0 == strcasecmp("trsmcblk2d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblk2d; }
+    if(0 == strcasecmp("trsmcblklr", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblkLR; }
+    if(0 == strcasecmp("trsmblok2d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMBlok2d; }
+    if(0 == strcasecmp("trsmbloklr", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMBlokLR; }
 
     if(0 == strcasecmp("gemm1d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk2d2d; }
     if(0 == strcasecmp("gemm2d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMBlok2d2d; }
+
+    if(0 == strcasecmp("gemmcblk1d1d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk1d1d; }
+    if(0 == strcasecmp("gemmcblk1d2d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk1d2d; }
+    if(0 == strcasecmp("gemmcblk2d2d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk2d2d; }
+    if(0 == strcasecmp("gemmcblkfrlr", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblkFRLR; }
+    if(0 == strcasecmp("gemmcblklrlr", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblkLRLR; }
+    if(0 == strcasecmp("gemmblok2d2d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMBlok2d2d; }
+    if(0 == strcasecmp("gemmbloklrlr", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMBlokLRLR; }
 
     *nbcoef = 0;
     return -1;
@@ -205,7 +219,7 @@ modelsRead( pastix_model_t *model,
 {
     FILE *f = pastix_fopen( modelfilename );
     char *str, *strcoef;
-    char kernelstr[7];
+    char kernelstr[13];
     int  rc, arithm, nbcoef;
     size_t strsize = 256;
     pastix_ktype_t kernelid;
@@ -244,7 +258,7 @@ modelsRead( pastix_model_t *model,
         }
 
         /* Read the arithmetic, and the kernel name */
-        if ( sscanf( str, "%d;%6[a-z0-9];", &arithm, kernelstr ) != 2 ) {
+        if ( sscanf( str, "%d;%12[a-z0-9];", &arithm, kernelstr ) != 2 ) {
             fprintf(stderr, "modelRead: %s - Error reading line (%s)\n", model->name, str );
             continue;
         }
