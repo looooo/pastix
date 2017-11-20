@@ -227,27 +227,16 @@ modelsRead( pastix_model_t *model,
     while( str[0] == '#' );
 
     /* Read the model name */
-    rc = getline( &str, &strsize, f );
     if ( rc == -1 ) {
         perror( "modelsRead(getline model name)" );
         return -1;
     }
     model->name = strdup( str );
 
-    /* Read the model name */
-    rc = getline( &str, &strsize, f );
-    if ( rc == -1 ) {
-        perror( "modelsRead(getline model name)" );
-        return -1;
-    }
-    model->name = strdup( str );
+    fprintf(stderr, "Model - %s\n", model->name );
 
     /* Read the model values */
-    while( (rc = getline( &str, &strsize, f )) != 0 ) {
-        if ( rc == -1 ) {
-            perror( "modelsRead(getline values)" );
-            return -1;
-        }
+    while( getline( &str, &strsize, f ) != -1 ) {
 
         /* Skip commented lines */
         if ( str[0] == '#' ) {
@@ -255,19 +244,22 @@ modelsRead( pastix_model_t *model,
         }
 
         /* Read the arithmetic, and the kernel name */
-        if ( sscanf( str, "%d;%6s;", &arithm, kernelstr ) != 2 ) {
-            fprintf(stderr, "modelRead: Error reading line (%s)\n", str );
+        if ( sscanf( str, "%d;%6[a-z0-9];", &arithm, kernelstr ) != 2 ) {
+            fprintf(stderr, "modelRead: %s - Error reading line (%s)\n", model->name, str );
             continue;
         }
+        fprintf(stderr, "Arithm=%d, kernel=%s\n", arithm, kernelstr );
 
         if ( (arithm < 0) || (arithm > 3) ) {
-            fprintf(stderr, "modelRead: Incorrect arithmetic in line (%s)\n", str );
+            fprintf(stderr, "modelRead: %s - Incorrect arithmetic %d in line:\n\t%s\n",
+                    model->name, arithm, str );
             continue;
         }
 
         kernelid = modelsGetKernelId( kernelstr, &nbcoef );
         if ( (int)kernelid == -1 ) {
-            fprintf(stderr, "modelRead: Incorrect kernel type in line (%s)\n", str );
+            fprintf(stderr, "modelRead: %s - Incorrect kernel type %s in line:\n\t%s\n",
+                    model->name, kernelstr, str );
             continue;
         }
 
@@ -280,7 +272,7 @@ modelsRead( pastix_model_t *model,
             if ( sscanf( strcoef, "%le;%le;%le;%le",
                          coefs, coefs+1, coefs+2, coefs+3 ) != 4 )
             {
-                fprintf(stderr, "modelRead: Pb reading the 4 coefficients in line (%s)\n", str );
+                fprintf(stderr, "modelRead: %s - Pb reading the 4 coefficients in line:\n\t%s\n", model->name, str );
                 continue;
             }
             break;
@@ -289,7 +281,7 @@ modelsRead( pastix_model_t *model,
                          coefs,   coefs+1, coefs+2,
                          coefs+3, coefs+4, coefs+5 ) != 6 )
             {
-                fprintf(stderr, "modelRead: Pb reading the 6 coefficients in line (%s)\n", str );
+                fprintf(stderr, "modelRead: %s - Pb reading the 6 coefficients in line:\n\t%s\n", model->name, str );
                 continue;
             }
             break;
@@ -298,7 +290,7 @@ modelsRead( pastix_model_t *model,
                          coefs,   coefs+1, coefs+2, coefs+3,
                          coefs+4, coefs+5, coefs+6, coefs+7 ) != 8 )
             {
-                fprintf(stderr, "modelRead: Pb reading the 8 coefficients in line (%s)\n", str );
+                fprintf(stderr, "modelRead: %s - Pb reading the 8 coefficients in line:\n\t%s\n", model->name, str );
                 continue;
             }
             break;
@@ -308,6 +300,8 @@ modelsRead( pastix_model_t *model,
 
         modelsPropagate( model, arithm, kernelid );
     }
+
+    fprintf(stderr, "Enf od model - %s", model->name );
 
     fclose(f);
     free(str);
@@ -348,7 +342,7 @@ modelsInitDefaultCPU( pastix_model_t *model )
 
     /* POTRF */
     ktype = PastixKernelPOTRF;
-    coefs = model->coefficients[a][ktype];
+    coefs = &(model->coefficients[a][ktype][0]);
     coefs[0] =  4.071507e-07;
     coefs[1] = -1.469893e-07;
     coefs[2] =  1.707006e-08;
@@ -357,7 +351,7 @@ modelsInitDefaultCPU( pastix_model_t *model )
 
     /* TRSM1D */
     ktype = PastixKernelTRSMCblk2d;
-    coefs = model->coefficients[a][ktype];
+    coefs = &(model->coefficients[a][ktype][0]);
     coefs[0] = 3.255168e-06;
     coefs[1] = 3.976198e-08;
     coefs[2] = 0.;
@@ -368,7 +362,7 @@ modelsInitDefaultCPU( pastix_model_t *model )
 
     /* GEMM1D */
     ktype = PastixKernelGEMMCblk2d2d;
-    coefs = model->coefficients[a][ktype];
+    coefs = &(model->coefficients[a][ktype][0]);
     coefs[0] =  1.216278e-06;
     coefs[1] =  0.;
     coefs[2] = -2.704179e-10;
@@ -377,6 +371,16 @@ modelsInitDefaultCPU( pastix_model_t *model )
     coefs[5] =  1.328900e-09;
     coefs[6] =  0.;
     coefs[7] =  2.429169e-10;
+
+    coefs[7] = 0.04553508;
+    coefs[6] = 5.52053895;
+    coefs[5] = 3.56445373;
+    coefs[4] = 6.82230469;
+    coefs[3] = 0.;
+    coefs[2] = 0.;
+    coefs[1] = 0.;
+    coefs[0] = 0.;
+
     modelsPropagate( model, a, ktype );
 
     return 0;
@@ -415,7 +419,7 @@ modelsInitDefaultGPU( pastix_model_t *model )
 
     /* POTRF */
     ktype = PastixKernelPOTRF;
-    coefs = model->coefficients[a][ktype];
+    coefs = &(model->coefficients[a][ktype][0]);
     coefs[0] =  4.071507e-07;
     coefs[1] = -1.469893e-07;
     coefs[2] =  1.707006e-08;
@@ -424,7 +428,7 @@ modelsInitDefaultGPU( pastix_model_t *model )
 
     /* TRSM1D */
     ktype = PastixKernelTRSMCblk2d;
-    coefs = model->coefficients[a][ktype];
+    coefs = &(model->coefficients[a][ktype][0]);
     coefs[0] = 3.255168e-06;
     coefs[1] = 3.976198e-08;
     coefs[2] = 0.;
@@ -435,15 +439,25 @@ modelsInitDefaultGPU( pastix_model_t *model )
 
     /* GEMM1D */
     ktype = PastixKernelGEMMCblk2d2d;
-    coefs = model->coefficients[a][ktype];
-    coefs[0] =  1.216278e-06;
-    coefs[1] =  0.;
-    coefs[2] = -2.704179e-10;
-    coefs[3] =  1.148989e-07;
-    coefs[4] =  2.724804e-10;
-    coefs[5] =  1.328900e-09;
-    coefs[6] =  0.;
-    coefs[7] =  2.429169e-10;
+    coefs = &(model->coefficients[a][ktype][0]);
+    coefs[0] = .5 *  1.216278e-06;
+    coefs[1] = .5 *  0.;
+    coefs[2] = .5 * -2.704179e-10;
+    coefs[3] = .5 *  1.148989e-07;
+    coefs[4] = .5 *  2.724804e-10;
+    coefs[5] = .5 *  1.328900e-09;
+    coefs[6] = .5 *  0.;
+    coefs[7] = .5 *  2.429169e-10;
+
+    coefs[7] = 7.970389e-03;
+    coefs[6] = 1.188658e+00;
+    coefs[5] = 8.456961e-02;
+    coefs[4] = 6.198189e-01;
+    coefs[3] = 2.061833e+02;
+    coefs[2] = 5.200194e+01;
+    coefs[1] = 2.901745e+02;
+    coefs[0] = 2.106563e+04;
+
     modelsPropagate( model, a, ktype );
 
     return 0;
