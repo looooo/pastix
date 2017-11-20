@@ -403,6 +403,20 @@ modelsInitDefaultCPU( pastix_model_t *model )
     coefs[7] = 2. / 24.e9;
     modelsPropagate( model, a, ktype );
 
+    /* GEMM2D */
+    ktype = PastixKernelGEMMBlok2d2d;
+    coefs = &(model->coefficients[a][ktype][0]);
+    coefs[0] = 0.0;
+    coefs[1] = 0.0;
+    coefs[2] = 0.0;
+    coefs[3] = 0.0;
+    coefs[4] = 0.0;
+    coefs[5] = 0.0;
+    coefs[6] = 0.0;
+    coefs[7] = 1.0 / 32.e9;
+
+    modelsPropagate( model, a, ktype );
+
     return 0;
 }
 
@@ -472,6 +486,20 @@ modelsInitDefaultGPU( pastix_model_t *model )
     coefs[5] = 0.0;
     coefs[6] = 0.0;
     coefs[7] = 2. /  1.2e12;
+    modelsPropagate( model, a, ktype );
+
+    /* GEMM2D */
+    ktype = PastixKernelGEMMBlok2d2d;
+    coefs = &(model->coefficients[a][ktype][0]);
+    coefs[0] = 0.0;
+    coefs[1] = 0.0;
+    coefs[2] = 0.0;
+    coefs[3] = 0.0;
+    coefs[4] = 0.0;
+    coefs[5] = 0.0;
+    coefs[6] = 0.0;
+    coefs[7] = 1.0 / 1.2e12;
+
     modelsPropagate( model, a, ktype );
 
     return 0;
