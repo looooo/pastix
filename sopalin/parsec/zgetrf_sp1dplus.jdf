@@ -40,7 +40,7 @@ p_work    [type = "parsec_memory_pool_t *"]
 lwork     [type = "pastix_int_t"]
 
 cpu_coefs [ type = "pastix_fixdbl_t *" hidden = on default = "&((*(sopalin_data->cpu_coefs))[PastixKernelGEMMCblk2d2d][0])" ]
-gpu_coefs [ type = "pastix_fixdbl_t *" hidden = on default = "&((*(sopalin_data->cpu_coefs))[PastixKernelGEMMCblk2d2d][0])" ]
+gpu_coefs [ type = "pastix_fixdbl_t *" hidden = on default = "&((*(sopalin_data->gpu_coefs))[PastixKernelGEMMCblk2d2d][0])" ]
 
 /**************************************************
  *                   GETRF                        *

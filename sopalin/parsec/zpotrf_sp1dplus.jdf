@@ -39,6 +39,9 @@ lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->
 p_work    [type = "parsec_memory_pool_t *"]
 lwork     [type = "pastix_int_t"]
 
+cpu_coefs [ type = "pastix_fixdbl_t *" hidden = on default = "&((*(sopalin_data->cpu_coefs))[PastixKernelGEMMCblk2d2d][0])" ]
+gpu_coefs [ type = "pastix_fixdbl_t *" hidden = on default = "&((*(sopalin_data->gpu_coefs))[PastixKernelGEMMCblk2d2d][0])" ]
+
 /**************************************************
  *                   POTRF                        *
  * panel factorization: do trf of diagonal and    *
@@ -154,7 +157,12 @@ RW    C  <- (brownum == -1) ? NULL
 
 ; %{ return cblknbr - ((fcblknm + lcblknm) / 2 ) + last - brownum; %}
 
-BODY [ type=CUDA pushout=forced_pushout devicefct=pastix_parsec_selectgpu_fct ]
+BODY [ type=CUDA
+       pushout=forced_pushout
+       device="((brownum == -1) ? -2 : -1)"
+       weight="(last-brownum+1)"
+       cpu_cost="modelsGetCost3Param( cpu_coefs, m, n, k )"
+       gpu_cost="modelsGetCost3Param( gpu_coefs, m, n, k )" ]
 #if defined(PASTIX_WITH_CUDA)
 {
     if (brownum != -1) {
