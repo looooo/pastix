@@ -47,8 +47,8 @@ modelsGetKernelId( const char *kernelstr,
     if(0 == strcasecmp("pxtrf",  kernelstr)) { *nbcoef = 4; return PastixKernelPXTRF; }
     if(0 == strcasecmp("sytrf",  kernelstr)) { *nbcoef = 4; return PastixKernelSYTRF; }
 
-    if(0 == strcasecmp("trsm1d", kernelstr)) { *nbcoef = 8; return PastixKernelTRSMCblk2d; }
-    if(0 == strcasecmp("trsm2d", kernelstr)) { *nbcoef = 8; return PastixKernelTRSMBlok2d; }
+    if(0 == strcasecmp("trsm1d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblk2d; }
+    if(0 == strcasecmp("trsm2d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMBlok2d; }
 
     if(0 == strcasecmp("trsmcblk1d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblk1d; }
     if(0 == strcasecmp("trsmcblk2d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblk2d; }
