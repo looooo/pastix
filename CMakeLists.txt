@@ -173,9 +173,9 @@ endif()
 ### Store dependencies not handled with pkg-config
 set( DEPS_LIBRARIES
   ${LAPACKE_LIBRARIES}
-  ${LAPACK_LIBRARIES}
+  ${LAPACK_SEQ_LIBRARIES}
   ${CBLAS_LIBRARIES}
-  ${BLAS_LIBRARIES}
+  ${BLAS_SEQ_LIBRARIES}
   )
 
 # PaStiX depends on HwLoc
@@ -730,10 +730,15 @@ add_dependencies(pastix
   refinement_headers_tgt
   sopalin_headers
 )
+
 target_link_libraries(pastix
   pastix_spm
   pastix_bcsc
   pastix_kernels
+  ${LAPACKE_LIBRARIES}
+  ${LAPACK_SEQ_LIBRARIES}
+  ${CBLAS_LIBRARIES}
+  ${BLAS_SEQ_LIBRARIES}
 )
 
 if(PASTIX_WITH_PARSEC)

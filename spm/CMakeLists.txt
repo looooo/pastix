@@ -89,8 +89,9 @@ add_library(pastix_spm
 
 target_link_libraries(pastix_spm
   ${LAPACKE_LIBRARIES}
-  ${LAPACK_LIBRARIES}
+  ${LAPACK_SEQ_LIBRARIES}
   ${CBLAS_LIBRARIES}
+  ${BLAS_SEQ_LIBRARIES}
   )
 
 add_dependencies(pastix_spm
