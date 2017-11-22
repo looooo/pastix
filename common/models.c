@@ -47,23 +47,23 @@ modelsGetKernelId( const char *kernelstr,
     if(0 == strcasecmp("pxtrf",  kernelstr)) { *nbcoef = 4; return PastixKernelPXTRF; }
     if(0 == strcasecmp("sytrf",  kernelstr)) { *nbcoef = 4; return PastixKernelSYTRF; }
 
-    if(0 == strcasecmp("trsm1d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblk2d; }
-    if(0 == strcasecmp("trsm2d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMBlok2d; }
-
+    if(0 == strcasecmp("trsm1d",     kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblk2d; }
     if(0 == strcasecmp("trsmcblk1d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblk1d; }
     if(0 == strcasecmp("trsmcblk2d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblk2d; }
     if(0 == strcasecmp("trsmcblklr", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblkLR; }
+
+    if(0 == strcasecmp("trsm2d",     kernelstr)) { *nbcoef = 6; return PastixKernelTRSMBlok2d; }
     if(0 == strcasecmp("trsmblok2d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMBlok2d; }
     if(0 == strcasecmp("trsmbloklr", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMBlokLR; }
 
-    if(0 == strcasecmp("gemm1d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk2d2d; }
-    if(0 == strcasecmp("gemm2d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMBlok2d2d; }
-
+    if(0 == strcasecmp("gemm1d",       kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk2d2d; }
     if(0 == strcasecmp("gemmcblk1d1d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk1d1d; }
     if(0 == strcasecmp("gemmcblk1d2d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk1d2d; }
     if(0 == strcasecmp("gemmcblk2d2d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk2d2d; }
     if(0 == strcasecmp("gemmcblkfrlr", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblkFRLR; }
     if(0 == strcasecmp("gemmcblklrlr", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblkLRLR; }
+
+    if(0 == strcasecmp("gemm2d",       kernelstr)) { *nbcoef = 8; return PastixKernelGEMMBlok2d2d; }
     if(0 == strcasecmp("gemmblok2d2d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMBlok2d2d; }
     if(0 == strcasecmp("gemmbloklrlr", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMBlokLRLR; }
 
@@ -386,15 +386,6 @@ modelsInitDefaultCPU( pastix_model_t *model )
     coefs[6] =  0.;
     coefs[7] =  2.429169e-10;
 
-    coefs[7] = 0.04553508;
-    coefs[6] = 5.52053895;
-    coefs[5] = 3.56445373;
-    coefs[4] = 6.82230469;
-    coefs[3] = 0.;
-    coefs[2] = 0.;
-    coefs[1] = 0.;
-    coefs[0] = 0.;
-
     modelsPropagate( model, a, ktype );
 
     return 0;
@@ -429,7 +420,7 @@ modelsInitDefaultGPU( pastix_model_t *model )
     /*
      * All coefficiensts given are for double real arithmetic
      */
-    model->name = strdup("AMD1680 MKL");
+    model->name = strdup("AMD Opteron 6180 MKL");
 
     /* POTRF */
     ktype = PastixKernelPOTRF;
@@ -454,23 +445,14 @@ modelsInitDefaultGPU( pastix_model_t *model )
     /* GEMM1D */
     ktype = PastixKernelGEMMCblk2d2d;
     coefs = &(model->coefficients[a][ktype][0]);
-    coefs[0] = .5 *  1.216278e-06;
-    coefs[1] = .5 *  0.;
-    coefs[2] = .5 * -2.704179e-10;
-    coefs[3] = .5 *  1.148989e-07;
-    coefs[4] = .5 *  2.724804e-10;
-    coefs[5] = .5 *  1.328900e-09;
-    coefs[6] = .5 *  0.;
-    coefs[7] = .5 *  2.429169e-10;
-
-    coefs[7] = 7.970389e-03;
-    coefs[6] = 1.188658e+00;
-    coefs[5] = 8.456961e-02;
-    coefs[4] = 6.198189e-01;
-    coefs[3] = 2.061833e+02;
-    coefs[2] = 5.200194e+01;
-    coefs[1] = 2.901745e+02;
-    coefs[0] = 2.106563e+04;
+    coefs[0] =  1.216278e-06;
+    coefs[1] =  0.;
+    coefs[2] = -2.704179e-10;
+    coefs[3] =  1.148989e-07;
+    coefs[4] =  2.724804e-10;
+    coefs[5] =  1.328900e-09;
+    coefs[6] =  0.;
+    coefs[7] =  2.429169e-10;
 
     modelsPropagate( model, a, ktype );
 
