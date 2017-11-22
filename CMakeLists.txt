@@ -342,7 +342,7 @@ if (PASTIX_WITH_PARSEC)
 
     # Add the index-array dep management option to PTGCC compilation flags.
     include(RulesJDF)
-    set(PARSEC_PTGPP_CFLAGS "--dep-management;index-array;${PARSEC_PTGPP_CFLAGS}")
+    #set(PARSEC_PTGPP_CFLAGS "--dep-management;index-array;${PARSEC_PTGPP_CFLAGS}")
 
 endif (PASTIX_WITH_PARSEC)
 
