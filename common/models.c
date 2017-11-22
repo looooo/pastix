@@ -352,7 +352,7 @@ modelsInitDefaultCPU( pastix_model_t *model )
     /*
      * All coefficiensts given are for double real arithmetic
      */
-    model->name = strdup("AMD1680 MKL");
+    model->name = strdup("AMD Opteron 6180 - Intel MKL");
 
     /* POTRF */
     ktype = PastixKernelPOTRF;
@@ -385,7 +385,19 @@ modelsInitDefaultCPU( pastix_model_t *model )
     coefs[5] =  1.328900e-09;
     coefs[6] =  0.;
     coefs[7] =  2.429169e-10;
+    modelsPropagate( model, a, ktype );
 
+    /* GEMM2D */
+    ktype = PastixKernelGEMMBlok2d2d;
+    coefs = &(model->coefficients[a][ktype][0]);
+    coefs[0] = 0.0;
+    coefs[1] = 0.0;
+    coefs[2] = 0.0;
+    coefs[3] = 0.0;
+    coefs[4] = 0.0;
+    coefs[5] = 0.0;
+    coefs[6] = 0.0;
+    coefs[7] = 2. / 24.e9;
     modelsPropagate( model, a, ktype );
 
     return 0;
@@ -420,26 +432,17 @@ modelsInitDefaultGPU( pastix_model_t *model )
     /*
      * All coefficiensts given are for double real arithmetic
      */
-    model->name = strdup("AMD Opteron 6180 MKL");
+    model->name = strdup("Nvidia K40 GK1108L - CUDA 8.0");
 
-    /* POTRF */
-    ktype = PastixKernelPOTRF;
+    /* TRSM2D */
+    ktype = PastixKernelTRSMBlok2d;
     coefs = &(model->coefficients[a][ktype][0]);
-    coefs[0] =  4.071507e-07;
-    coefs[1] = -1.469893e-07;
-    coefs[2] =  1.707006e-08;
-    coefs[3] =  2.439599e-11;
-    modelsPropagate( model, a, ktype );
-
-    /* TRSM1D */
-    ktype = PastixKernelTRSMCblk2d;
-    coefs = &(model->coefficients[a][ktype][0]);
-    coefs[0] = 3.255168e-06;
-    coefs[1] = 3.976198e-08;
-    coefs[2] = 0.;
-    coefs[3] = 0.;
-    coefs[4] = 0.;
-    coefs[5] = 2.626177e-10;
+    coefs[0] = -3.16663635648446e-05;
+    coefs[1] =  2.63809317549331e-06;
+    coefs[2] =  5.86447245256688e-07;
+    coefs[3] = -1.57859559108480e-09;
+    coefs[4] = -4.74303242824929e-09;
+    coefs[5] =  5.36284121953867e-12;
     modelsPropagate( model, a, ktype );
 
     /* GEMM1D */
@@ -453,7 +456,19 @@ modelsInitDefaultGPU( pastix_model_t *model )
     coefs[5] =  1.328900e-09;
     coefs[6] =  0.;
     coefs[7] =  2.429169e-10;
+    modelsPropagate( model, a, ktype );
 
+    /* GEMM2D */
+    ktype = PastixKernelGEMMBlok2d2d;
+    coefs = &(model->coefficients[a][ktype][0]);
+    coefs[0] = 0.0;
+    coefs[1] = 0.0;
+    coefs[2] = 0.0;
+    coefs[3] = 0.0;
+    coefs[4] = 0.0;
+    coefs[5] = 0.0;
+    coefs[6] = 0.0;
+    coefs[7] = 2. /  1.2e12;
     modelsPropagate( model, a, ktype );
 
     return 0;
