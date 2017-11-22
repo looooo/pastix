@@ -21,7 +21,6 @@ extern "C" %{
 #include "solver.h"
 #include "pastix_zcores.h"
 #include "sopalin_data.h"
-#include "pastix_parsec_gpu.h"
 
 %}
 
