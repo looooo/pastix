@@ -247,8 +247,6 @@ modelsRead( pastix_model_t *model,
     }
     model->name = strdup( str );
 
-    fprintf(stderr, "Model - %s\n", model->name );
-
     /* Read the model values */
     while( getline( &str, &strsize, f ) != -1 ) {
 
@@ -262,7 +260,6 @@ modelsRead( pastix_model_t *model,
             fprintf(stderr, "modelRead: %s - Error reading line (%s)\n", model->name, str );
             continue;
         }
-        fprintf(stderr, "Arithm=%d, kernel=%s\n", arithm, kernelstr );
 
         if ( (arithm < 0) || (arithm > 3) ) {
             fprintf(stderr, "modelRead: %s - Incorrect arithmetic %d in line:\n\t%s\n",
@@ -314,8 +311,6 @@ modelsRead( pastix_model_t *model,
 
         modelsPropagate( model, arithm, kernelid );
     }
-
-    fprintf(stderr, "Enf od model - %s", model->name );
 
     fclose(f);
     free(str);
