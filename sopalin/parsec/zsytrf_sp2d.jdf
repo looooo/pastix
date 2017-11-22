@@ -368,8 +368,7 @@ RW    C   <-  isTwoD & noskip & (first == last) ? A OneToTwoD( k, m )
 ; %{ return cblknbr - k; %}
 
 BODY [ type=CUDA
-       pushout=forced_pushout
-       devicefct=pastix_parsec_selectgpu_fct ]
+       pushout=forced_pushout ]
 #if defined(PASTIX_WITH_CUDA)
 {
     if( isTwoD && noskip ) {

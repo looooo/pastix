@@ -168,11 +168,7 @@ BODY [ type=CUDA
        device="((brownum == -1) ? -2 : -1)"
        weight="(last-brownum+1)"
        cpu_cost="modelsGetCost3Param( cpu_coefs, m, n, k )"
-       gpu_cost="modelsGetCost3Param( gpu_coefs, m, n, k )"
-       /* devicefct="pastix_parsec_selectgpu_gemm1d_3p_fct( this_task, ratio, modelsGetCost3Param( cpu_coefs, m, n, k ), modelsGetCost3Param( gpu_coefs, m, n, k ), brownum )" */
-       /* device=%{ if (brownum == -1) return (datacode->cblktab + fcblknm)->gpuid; else { return parsec_zgemm1d_selectgpu( datacode, bloknum, last - first + 1 ); } %} */
-       /* devicefct=zgetrf_sp1dplus_zgemm1d_selectgpu_fct */
-]
+       gpu_cost="modelsGetCost3Param( gpu_coefs, m, n, k )" ]
 #if defined(PASTIX_WITH_CUDA)
 {
     /* Never execute the GPU kernel on diagonal blocks */
