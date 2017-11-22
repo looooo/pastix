@@ -367,26 +367,26 @@ RW    C   <-  isTwoD & noskip & (first == last) ? A OneToTwoD( k, m )
 
 ; %{ return cblknbr - k; %}
 
-BODY [ type=CUDA
-       pushout=forced_pushout ]
-#if defined(PASTIX_WITH_CUDA)
-{
-    if( isTwoD && noskip ) {
-        SolverCblk *cblk  = datacode->cblktab + k;
+/* BODY [ type=CUDA */
+/*        pushout=forced_pushout ] */
+/* #if defined(PASTIX_WITH_CUDA) */
+/* { */
+/*     if( isTwoD && noskip ) { */
+/*         SolverCblk *cblk  = datacode->cblktab + k; */
 
-        if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
-            gpublok_ztrsmsp( PastixLCoef, PastixRight, PastixUpper,
-                             PastixNoTrans, PastixNonUnit,
-                             cblk, m, A, C, &lowrank,
-                             parsec_body.stream );
+/*         if (!(cblk->cblktype & CBLK_IN_SCHUR)) { */
+/*             gpublok_ztrsmsp( PastixLCoef, PastixRight, PastixUpper, */
+/*                              PastixNoTrans, PastixNonUnit, */
+/*                              cblk, m, A, C, &lowrank, */
+/*                              parsec_body.stream ); */
 
-            /* TODO: implements gpublok_zscalo */
-            assert(0);
-        }
-    }
-}
-#endif
-END
+/*             /\* TODO: implements gpublok_zscalo *\/ */
+/*             assert(0); */
+/*         } */
+/*     } */
+/* } */
+/* #endif */
+/* END */
 
 BODY
 {
