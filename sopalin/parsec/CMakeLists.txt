@@ -26,8 +26,7 @@ set(EXTRA_SOURCES
 
 if(PASTIX_WITH_CUDA)
   set( EXTRA_SOURCES
-    ${EXTRA_SOURCES}
-    pastix_parsec_gpu.c )
+    ${EXTRA_SOURCES} )
 endif()
 
 ### Generate the headers in all precisions
