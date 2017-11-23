@@ -18,6 +18,14 @@
 #include "solver.h"
 #include "kernels_trace.h"
 
+/**
+ * @brief Compute the maximal rank accepted for a given matrix size. The pointer is set according to the low-rank strategy used.
+ * @param[in] M The number of rows of the matrix
+ * @param[in] N The number of columns of the matrix
+ * @return The maximal rank accepted for this matrix size.
+ */
+pastix_int_t (*core_get_rklimit)( pastix_int_t, pastix_int_t );
+
 volatile double kernels_flops[PastixKernelLvl1Nbr];
 
 volatile uint32_t kernels_trace_started = 0;

@@ -223,6 +223,13 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     lr->core_ge2lr = compressMethod[   pastix_data->iparm[IPARM_COMPRESS_METHOD] ][bcsc->flttype-2];
     lr->core_rradd = recompressMethod[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][bcsc->flttype-2];
 
+    if ( pastix_data->iparm[IPARM_COMPRESS_METHOD] == PastixCompressWhenBegin ) {
+        core_get_rklimit = &core_get_rklimit_begin;
+    }
+    else {
+        core_get_rklimit = &core_get_rklimit_end;
+    }
+
     pastix_data->solvmatr->factotype = pastix_data->iparm[IPARM_FACTORIZATION];
 
     /*
