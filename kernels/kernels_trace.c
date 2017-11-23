@@ -24,7 +24,7 @@
  * @param[in] N The number of columns of the matrix
  * @return The maximal rank accepted for this matrix size.
  */
-pastix_int_t (*core_get_rklimit)( pastix_int_t, pastix_int_t );
+pastix_int_t (*core_get_rklimit)( pastix_int_t, pastix_int_t ) = core_get_rklimit_end;
 
 volatile double kernels_flops[PastixKernelLvl1Nbr];
 

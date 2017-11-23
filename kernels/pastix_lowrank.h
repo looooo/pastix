@@ -66,11 +66,10 @@ core_get_rklimit_end( pastix_int_t M, pastix_int_t N ) {
  */
 static inline pastix_int_t
 core_get_rklimit_begin( pastix_int_t M, pastix_int_t N ) {
-    return ( PASTIX_LR_MINRATIO * pastix_imin( M, N ) ) / 4;
     return ( PASTIX_LR_MINRATIO * M * N ) / ( M + N );
 }
 
-pastix_int_t (*core_get_rklimit)( pastix_int_t, pastix_int_t );
+extern pastix_int_t (*core_get_rklimit)( pastix_int_t, pastix_int_t );
 
 struct pastix_lr_s;
 typedef struct pastix_lr_s pastix_lr_t;
