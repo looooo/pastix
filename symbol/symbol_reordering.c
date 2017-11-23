@@ -703,11 +703,11 @@ pastixSymbolReorderingPrintComplexity( const symbol_matrix_t *symbptr )
     symbol_cblk_t  *cblk;
     pastix_int_t itercblk, iterblok;
     pastix_int_t cblknbr;
-    pastix_int_t nbflops;
+    pastix_int_t nbiops, schur_nbiops = 0;
 
     cblk    = symbptr->cblktab;
     cblknbr = symbptr->cblknbr;
-    nbflops = 0;
+    nbiops = 0;
 
     /*
      * nbcblk is the number of non zeroes intersection between indivudal rows
@@ -727,13 +727,13 @@ pastixSymbolReorderingPrintComplexity( const symbol_matrix_t *symbptr )
             nbcblk += blok->lrownum - blok->frownum + 1;
         }
         width = cblk->lcolnum - cblk->fcolnum + 1;
-        nbflops += nbcblk * (width-1);
+        nbiops += nbcblk * (width-1);
 
         if ( itercblk == (cblknbr-1) ) {
-            pastix_int_t localflops = nbcblk * (width-1);
-            fprintf(stdout, " Number of operations in reordering for last supernode: %ld (%lf)\n",
-                    (long)localflops, (double)localflops / (double)(nbflops) * 100. );
+            schur_nbiops = nbcblk * (width-1);
         }
     }
-    fprintf(stdout, " Number of operations in reordering: %ld\n", (long)nbflops );
+    fprintf( stdout, OUT_REORDERING_OPS,
+             (long)schur_nbiops, (double)schur_nbiops / (double)(nbiops) * 100.,
+             (long)nbiops );
 }
