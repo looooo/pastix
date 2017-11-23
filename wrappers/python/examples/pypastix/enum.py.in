@@ -264,9 +264,9 @@ class trans:
     ConjTrans = 113
 
 class mtxtype:
-    General   = PastixNoTrans
-    Symmetric = PastixTrans
-    Hermitian = PastixConjTrans
+    General   = trans.NoTrans
+    Symmetric = trans.Trans
+    Hermitian = trans.ConjTrans
 
 class uplo:
     Upper      = 121
