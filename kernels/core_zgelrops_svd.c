@@ -491,7 +491,7 @@ core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void 
     /*
      * First case: The rank is too big, so we decide to uncompress the result
      */
-    if ( new_rank > (pastix_imin( M, N ) / PASTIX_LR_MINRATIO) ) {
+    if ( new_rank > core_get_rklimit( M, N ) ) {
         pastix_lrblock_t Bbackup = *B;
 
         core_zlralloc( M, N, -1, B );

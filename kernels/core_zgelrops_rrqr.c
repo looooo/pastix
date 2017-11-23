@@ -937,12 +937,13 @@ core_zge2lr_rrqr( pastix_fixdbl_t tol, pastix_int_t rklimit,
                                A, lda, Acpy, m );
     assert(ret == 0);
 
+    rklimit = (rklimit == -1) ? core_get_rklimit( m, n ) : rklimit;
     ret = core_zrrqr( m, n,
                       Acpy, m,
                       jpvt, tau,
                       work, ldwork,
                       rwork,
-                      tol * norm, nb, pastix_imin(m,n) - 1 );
+                      tol * norm, nb, pastix_imin( rklimit + 1, pastix_imin(m,n) - 1 ));
     if (ret == -1) {
         flops = FLOPS_ZGEQRF( m, n );
     }
@@ -1081,7 +1082,7 @@ core_zrradd_rrqr( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void
                   pastix_int_t offx, pastix_int_t offy)
 {
     pastix_int_t rankA, rank, M, N, minV;
-    pastix_int_t i, ret, new_rank;
+    pastix_int_t i, ret, new_rank, rklimit;
     pastix_int_t ldau, ldav, ldbu, ldbv, ldu, ldv;
     pastix_complex64_t *u1u2, *v1v2, *u;
     pastix_complex64_t *zbuf, *tauV;
@@ -1254,13 +1255,15 @@ core_zrradd_rrqr( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void
      * Perform RRQR factorization on (I u2Tu1) v1v2 = (Q2 R2)
      *                               (0   I  )
      */
+    rklimit = core_get_rklimit( M, N );
+
     kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_rradd_recompression );
     new_rank = core_zrrqr(rank, N,
                           v1v2, ldv,
                           jpvt, tauV,
                           zwork, ldwork,
                           rwork,
-                          tol * norm, nb, rank-1);
+                          tol * norm, nb, pastix_imin(rklimit, rank - 1));
     flops = (new_rank == -1) ? FLOPS_ZGEQRF( rank, N )
         :                     (FLOPS_ZGEQRF( rank, new_rank ) +
                                FLOPS_ZUNMQR( rank, N-new_rank, new_rank, PastixLeft ));
@@ -1270,7 +1273,7 @@ core_zrradd_rrqr( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void
     /*
      * First case: The rank is too big, so we decide to uncompress the result
      */
-    if ( (new_rank > (pastix_imin( M, N ) / PASTIX_LR_MINRATIO)) ||
+    if ( (new_rank > rklimit) ||
          (new_rank == -1) )
     {
         pastix_lrblock_t Bbackup = *B;
