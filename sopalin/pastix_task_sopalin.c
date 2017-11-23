@@ -392,30 +392,18 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
         clockStop(timer);
         kernelsTraceStop( pastix_data );
 
+        flops = pastix_data->dparm[DPARM_FACT_THFLOPS] / clockVal(timer);
+        pastix_data->dparm[DPARM_FACT_FLOPS] = flops;
+        if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
+            pastix_print( 0, 0, OUT_SOPALIN_TIME,
+                          clockVal(timer),
+                          printflopsv( flops ), printflopsu( flops ) );
+        }
+
 #if defined(PASTIX_WITH_PARSEC) && defined(PASTIX_DEBUG_PARSEC)
         {
-            extern volatile uint64_t pastix_nbflops_on_device[32];
-            int64_t total = 0.;
             int i;
-
-            for (i=0; i<32; i++) {
-                total += pastix_nbflops_on_device[i];
-            }
-            fprintf(stderr, "Total = %5.2f%%\n",
-                    ((double)total / (pastix_data->dparm[DPARM_FACT_FLOPS])) * 100. );
-
-            pastix_nbflops_on_device[0] = pastix_data->dparm[DPARM_FACT_FLOPS] - total;
-            total = pastix_data->dparm[DPARM_FACT_FLOPS];
-
-            for (i=0; i<32; i++) {
-                if ( pastix_nbflops_on_device[i] != 0 ) {
-                    fprintf(stderr, "Device %d => %5.2f%%\n",
-                            i, ((double)pastix_nbflops_on_device[i] / (double)total) * 100. );
-                }
-                pastix_nbflops_on_device[i] = 0.;
-            }
-
-            fprintf(stderr, "-- Status on load counters\n" );
+            fprintf(stderr, "-- Check status of PaRSEC nbtasks counters\n" );
             for (i=0; i<32; i++) {
                 if ( parsec_nbtasks_on_gpu[i] != 0 ) {
                     fprintf(stderr, "Device %d => %d\n",
@@ -425,14 +413,6 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
             }
         }
 #endif /* defined(PASTIX_WITH_PARSEC) && defined(PASTIX_DEBUG_PARSEC) */
-
-        flops = pastix_data->dparm[DPARM_FACT_THFLOPS] / clockVal(timer);
-        pastix_data->dparm[DPARM_FACT_FLOPS] = flops;
-        if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
-            pastix_print( 0, 0, OUT_SOPALIN_TIME,
-                          clockVal(timer),
-                          printflopsv( flops ), printflopsu( flops ) );
-        }
     }
     solverBackupRestore( pastix_data->solvmatr, sbackup );
     solverBackupExit( sbackup );
