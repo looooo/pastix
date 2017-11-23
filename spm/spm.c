@@ -263,7 +263,7 @@ spmUpdateComputedFields( pastix_spm_t *spm )
  *
  *******************************************************************************/
 pastix_spm_t *
-spmNew( pastix_symmetry_t  mtxtype,
+spmNew( pastix_mtxtype_t   mtxtype,
         pastix_coeftype_t  flttype,
         pastix_fmttype_t   fmttype,
         pastix_int_t       n,

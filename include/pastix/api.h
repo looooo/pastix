@@ -410,14 +410,14 @@ typedef enum pastix_trans_e {
 } pastix_trans_t;
 
 /**
- * @brief Matrix symmetry property.
+ * @brief Matrix symmetry type property.
  * @remark Must match transposition.
  */
-typedef enum pastix_symmetry_e {
+typedef enum pastix_mtxtype_e {
     PastixGeneral   = PastixNoTrans,    /**< The matrix is general   */
     PastixSymmetric = PastixTrans,      /**< The matrix is symmetric */
     PastixHermitian = PastixConjTrans   /**< The matrix is hermitian */
-} pastix_symmetry_t;
+} pastix_mtxtype_t;
 
 /**
  * @brief Upper/Lower part

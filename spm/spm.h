@@ -42,7 +42,7 @@
  *
  */
 typedef struct pastix_spm_s {
-    pastix_symmetry_t mtxtype; /**< Matrix structure: PastixGeneral, PastixSymmetric
+    pastix_mtxtype_t  mtxtype; /**< Matrix structure: PastixGeneral, PastixSymmetric
                                     or PastixHermitian.                                            */
     pastix_coeftype_t flttype; /**< avals datatype: PastixPattern, PastixFloat, PastixDouble,
                                     PastixComplex32 or PastixComplex64                             */
@@ -75,7 +75,7 @@ typedef struct pastix_spm_s {
  * @name SPM basic subroutines
  * @{
  */
-pastix_spm_t *spmNew(  pastix_symmetry_t  mtxtype,
+pastix_spm_t *spmNew(  pastix_mtxtype_t   mtxtype,
                        pastix_coeftype_t  flttype,
                        pastix_fmttype_t   fmttype,
                        pastix_int_t       n,
