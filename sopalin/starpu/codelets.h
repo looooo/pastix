@@ -71,6 +71,10 @@
 #undef CODELETS_GPU
 #define CODELETS_GPU(_name_, _nbuffers_, _cuda_flags_)       \
     CODELETS_CPU( _name_, _nbuffers_ )
+
+#undef CODELETS_GPU_MODEL
+#define CODELETS_GPU_MODEL(_name_, _nbuffers_, _cuda_flags_, _perfmodel_)   \
+    CODELET_CPU_MODEL(_name_, _nbuffers_, _perfmodel_)
 #endif
 
 
