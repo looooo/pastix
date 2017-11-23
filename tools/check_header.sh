@@ -174,5 +174,4 @@ do
     fi
 
     check_header $f
-    check_header_define $f
 done
