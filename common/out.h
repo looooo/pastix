@@ -34,6 +34,7 @@
     "  Number of GPUs:                         %8d\n"           \
     "  MPI communication support:              %8s\n"           \
     "  Distribution level:               %8s(%4ld)\n"           \
+    "  Blocking size (min/max):             %4ld / %4ld\n"      \
     "  Computational models\n"                                  \
     "    CPU: %41s\n"                                           \
     "    GPU: %41s\n"                                           \
