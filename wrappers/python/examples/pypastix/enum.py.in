@@ -21,132 +21,130 @@ pastix_int = ctypes.@PASTIX_PYTHON_INTEGER@
 
 class iparm:
     verbose               = 0
-    io_strategy           = verbose                + 1
-    nnzeros               = io_strategy            + 1
-    nnzeros_block_local   = nnzeros                + 1
-    allocated_terms       = nnzeros_block_local    + 1
-    produce_stats         = allocated_terms        + 1
-    mc64                  = produce_stats          + 1
-    ordering              = mc64                   + 1
-    ordering_default      = ordering               + 1
-    scotch_switch_level   = ordering_default       + 1
-    scotch_cmin           = scotch_switch_level    + 1
-    scotch_cmax           = scotch_cmin            + 1
-    scotch_frat           = scotch_cmax            + 1
-    metis_ctype           = scotch_frat            + 1
-    metis_rtype           = metis_ctype            + 1
-    metis_no2hop          = metis_rtype            + 1
-    metis_nseps           = metis_no2hop           + 1
-    metis_niter           = metis_nseps            + 1
-    metis_ufactor         = metis_niter            + 1
-    metis_compress        = metis_ufactor          + 1
-    metis_ccorder         = metis_compress         + 1
-    metis_pfactor         = metis_ccorder          + 1
-    metis_seed            = metis_pfactor          + 1
-    metis_dbglvl          = metis_seed             + 1
-    sf_kass               = metis_dbglvl           + 1
-    amalgamation_lvlblas  = sf_kass                + 1
-    amalgamation_lvlcblk  = amalgamation_lvlblas   + 1
-    reordering_split      = amalgamation_lvlcblk   + 1
-    reordering_stop       = reordering_split       + 1
-    min_blocksize         = reordering_stop        + 1
-    max_blocksize         = min_blocksize          + 1
-    tasks2d_level         = max_blocksize          + 1
-    tasks2d_width         = tasks2d_level          + 1
-    abs                   = tasks2d_width          + 1
-    allcand               = abs                    + 1
-    incomplete            = allcand                + 1
-    level_of_fill         = incomplete             + 1
-    factorization         = level_of_fill          + 1
-    static_pivoting       = factorization          + 1
-    inertia               = static_pivoting        + 1
-    free_cscuser          = inertia                + 1
-    schur_fact_mode       = free_cscuser           + 1
-    schur_solv_mode       = schur_fact_mode        + 1
-    refinement            = schur_solv_mode        + 1
-    nbiter                = refinement             + 1
-    itermax               = nbiter                 + 1
-    gmres_im              = itermax                + 1
-    scheduler             = gmres_im               + 1
-    thread_nbr            = scheduler              + 1
-    autosplit_comm        = thread_nbr             + 1
-    gpu_nbr               = autosplit_comm         + 1
-    gpu_memory_percentage = gpu_nbr                + 1
-    gpu_memory_block_size = gpu_memory_percentage  + 1
-    compress_min_width    = gpu_memory_block_size  + 1
-    compress_min_height   = compress_min_width     + 1
-    compress_when         = compress_min_height    + 1
-    compress_method       = compress_when          + 1
-    thread_comm_mode      = compress_method        + 1
-    modify_parameter      = thread_comm_mode       + 1
-    start_task            = modify_parameter       + 1
-    end_task              = start_task             + 1
-    baseval               = end_task               + 1
-    float_type            = baseval                + 1
-    mtx_type              = float_type             + 1
-    dof_nbr               = mtx_type               + 1
-    size                  = dof_nbr                + 1
+    io_strategy           = 1
+    nnzeros               = 2
+    nnzeros_block_local   = 3
+    allocated_terms       = 4
+    produce_stats         = 5
+    mc64                  = 6
+    ordering              = 7
+    ordering_default      = 8
+    scotch_switch_level   = 9
+    scotch_cmin           = 10
+    scotch_cmax           = 11
+    scotch_frat           = 12
+    metis_ctype           = 13
+    metis_rtype           = 14
+    metis_no2hop          = 15
+    metis_nseps           = 16
+    metis_niter           = 17
+    metis_ufactor         = 18
+    metis_compress        = 19
+    metis_ccorder         = 20
+    metis_pfactor         = 21
+    metis_seed            = 22
+    metis_dbglvl          = 23
+    sf_kass               = 24
+    amalgamation_lvlblas  = 25
+    amalgamation_lvlcblk  = 26
+    reordering_split      = 27
+    reordering_stop       = 28
+    min_blocksize         = 29
+    max_blocksize         = 30
+    tasks2d_level         = 31
+    tasks2d_width         = 32
+    abs                   = 33
+    allcand               = 34
+    incomplete            = 35
+    level_of_fill         = 36
+    factorization         = 37
+    static_pivoting       = 38
+    inertia               = 39
+    free_cscuser          = 40
+    schur_fact_mode       = 41
+    schur_solv_mode       = 42
+    refinement            = 43
+    nbiter                = 44
+    itermax               = 45
+    gmres_im              = 46
+    scheduler             = 47
+    thread_nbr            = 48
+    autosplit_comm        = 49
+    gpu_nbr               = 50
+    gpu_memory_percentage = 51
+    gpu_memory_block_size = 52
+    compress_min_width    = 53
+    compress_min_height   = 54
+    compress_when         = 55
+    compress_method       = 56
+    thread_comm_mode      = 57
+    modify_parameter      = 58
+    start_task            = 59
+    end_task              = 60
+    float                 = 61
+    mtx_type              = 62
+    dof_nbr               = 63
+    size                  = 64
 
 class dparm:
     fill_in            = 0
-    epsilon_refinement = fill_in            + 1
-    relative_error     = epsilon_refinement + 1
-    epsilon_magn_ctrl  = relative_error     + 1
-    analyze_time       = epsilon_magn_ctrl  + 1
-    pred_fact_time     = analyze_time       + 1
-    fact_time          = pred_fact_time     + 1
-    solv_time          = fact_time          + 1
-    fact_flops         = solv_time          + 1
-    fact_thflops       = fact_flops         + 1
-    fact_rlflops       = fact_thflops       + 1
-    solv_flops         = fact_rlflops       + 1
-    solv_thflops       = solv_flops         + 1
-    solv_rlflops       = solv_thflops       + 1
-    refine_time        = solv_rlflops       + 1
-    a_norm             = refine_time        + 1
-    compress_tolerance = a_norm             + 1
-    size               = compress_tolerance + 1
+    epsilon_refinement = 1
+    relative_error     = 2
+    epsilon_magn_ctrl  = 3
+    analyze_time       = 4
+    pred_fact_time     = 5
+    fact_time          = 6
+    solv_time          = 7
+    fact_flops         = 8
+    fact_thflops       = 9
+    fact_rlflops       = 10
+    solv_flops         = 11
+    solv_thflops       = 12
+    solv_rlflops       = 13
+    refine_time        = 14
+    a_norm             = 15
+    compress_tolerance = 16
+    size               = 17
 
 class task:
-    Init       = 0 # Startup the library
-    Ordering   = 1 # Ordering
-    Symbfact   = 2 # Symbolic factorization
-    Analyze    = 3 # Tasks mapping and scheduling
-    Numfact    = 4 # Numerical factorization
-    Solve      = 5 # Numerical solve
-    Refine     = 6 # Numerical refinement
-    Clean      = 7 # Clean
-
+    Init     = 0
+    Ordering = 1
+    Symbfact = 2
+    Analyze  = 3
+    Numfact  = 4
+    Solve    = 5
+    Refine   = 6
+    Clean    = 7
 
 class verbose:
-    Not        = 0 # Nothing
-    No         = 1 # Default
-    Yes        = 2 # Extended
+    Not = 0
+    No  = 1
+    Yes = 2
 
 class io:
-    No         = 0
-    Load       = 1
-    Save       = 2
-    LoadGraph  = 4
-    SaveGraph  = 8
-    LoadCSC    = 16
-    SaveCSC    = 32
+    No        = 0
+    Load      = 1
+    Save      = 2
+    LoadGraph = 4
+    SaveGraph = 8
+    LoadCSC   = 16
+    SaveCSC   = 32
 
-class factmode:
-    Local      = 0
-    Schur      = 1
-    Both       = 2
+class fact_mode:
+    Local = 0
+    Schur = 1
+    Both  = 2
 
-class solvmode:
+class solv_mode:
     Local     = 0
     Interface = 1
     Schur     = 2
 
 class refine:
-    GMRES     = 0 # GMRES
-    CG        = 1 # CG
-    SR        = 2 # SR
-    BiCGSTAB  = 3 # BiCGstab
+    GMRES    = 0
+    CG       = 1
+    SR       = 2
+    BiCGSTAB = 3
 
 class coeftype:
     Pattern   = 0 # Pattern only, no values are stored
@@ -182,55 +180,54 @@ class coeftype:
             return -1
 
 class fmttype:
-    CSC = 0 # Compressed sparse column
-    CSR = 1 # Compressed sparse row
-    IJV = 2 # Coordinates
+    CSC = 0
+    CSR = 1
+    IJV = 2
 
 class factotype:
-    POTRF = 0 # Cholesky factorization
-    SYTRF = 1 # LDL^t factorization
-    GETRF = 2 # LU factorization
-    PXTRF = 3 # LL^t factorization for complex matrices
-    HETRF = 4 # LDL^h factorization for complex matrices
-
-    LLH  = 0 # LL^h factorization for complex matrices
-    LDLT = 1 # LDL^t factorization
-    LU   = 2 # LU factorization
-    LLT  = 3 # LL^t factorization
-    LDLH = 4 # LDL^h factorization for complex matrices
+    POTRF = 0
+    SYTRF = 1
+    GETRF = 2
+    PXTRF = 3
+    HETRF = 4
+    LLH   = 0
+    LDLT  = 1
+    LU    = 2
+    LLT   = 3
+    LDLH  = 4
 
 class scheduler:
-    Sequential = 0 # Sequential
-    Static     = 1 # Shared memory with static scheduler
-    Parsec     = 2 # PaRSEC scheduler
-    Starpu     = 3 # StarPU scheduler
-    Dynamic    = 4 # Shared memory with dynamic scheduler
+    Sequential = 0
+    Static     = 1
+    Parsec     = 2
+    StarPU     = 3
+    Dynamic    = 4
 
 class order:
-    Scotch   = 0 # Use Scotch ordering
-    Metis    = 1 # Use Metis ordering
-    Personal = 2 # Apply user's permutation
-    Load     = 3 # Load ordering from file
-    PtScotch = 4 # Use Pt-Scotch ordering
-    ParMetis = 5 # Use ParMetis ordering
+    Scotch   = 0
+    Metis    = 1
+    Personal = 2
+    Load     = 3
+    PtScotch = 4
+    ParMetis = 5
 
 class threadmode:
-    Multiple = 1 # All threads communicate
-    Funneled = 2 # One thread perform all the MPI Calls
+    Multiple = 1
+    Funneled = 2
 
 class error:
-    SUCCESS        = 0, # No error
-    UNKNOWN        = 1, # Unknown error
-    ALLOC          = 2, # Allocation error
-    NOTIMPLEMENTED = 3, # Not implemented feature
-    OUTOFMEMORY    = 4, # Not enough memory
-    THREAD         = 5, # Error with threads
-    INTERNAL       = 6, # Internal error
-    BADPARAMETER   = 7, # Bad parameters given
-    FILE           = 8, # Error in In/Out operations
-    INTEGER_TYPE   = 9, # Error with integer types
-    IO             = 10,# Error with input/output
-    MPI            = 11 # Error with MPI calls
+    SUCCESS        = 0
+    UNKNOWN        = 1
+    ALLOC          = 2
+    NOTIMPLEMENTED = 3
+    OUTOFMEMORY    = 4
+    THREAD         = 5
+    INTERNAL       = 6
+    BADPARAMETER   = 7
+    FILE           = 8
+    INTEGER_TYPE   = 9
+    IO             = 10
+    MPI            = 11
 
 class compress_when:
     Never  = 0
@@ -243,59 +240,59 @@ class compress_method:
     RRQR = 1
 
 class driver:
-    RSA        = 0 # RSA Fortran driver
-    HB         = 1 # Harwell Boeing driver
-    IJV        = 2 # IJV Coordinate driver
-    MM         = 3 # Matrix Market C driver
-    Laplacian  = 4 # 3, 5, or 7 points Laplacian stencil generator
-    XLaplacian = 5 # 15-points Laplacian stencil generator
-    Graph      = 6 # Scotch Graph driver
+    RSA        = 0
+    HB         = 1
+    IJV        = 2
+    MM         = 3
+    Laplacian  = 4
+    XLaplacian = 5
+    Graph      = 6
 
 class rhstype:
-    One =  0
-    I   =  1
+    One  = 0
+    I    = 1
     RndX = 2
     RndB = 3
 
 class layout:
-    RowMajor  = 101 # Storage in row major order
-    ColMajor  = 102 # Storage in column major order
+    RowMajor = 101
+    ColMajor = 102
 
 class trans:
-    NoTrans   = 111 # Use A
-    Trans     = 112 # Use A^t
-    ConjTrans = 113 # Use conj(A^t)
+    NoTrans   = 111
+    Trans     = 112
+    ConjTrans = 113
 
 class mtxtype:
-    General   = trans.NoTrans    # The matrix is general
-    Symmetric = trans.Trans      # The matrix is symmetric
-    Hermitian = trans.ConjTrans  # The matrix is hermitian
+    General   = PastixNoTrans
+    Symmetric = PastixTrans
+    Hermitian = PastixConjTrans
 
 class uplo:
-    Upper      = 121 # Use lower triangle of A
-    Lower      = 122 # Use upper triangle of A
-    UpperLower = 123 # Use the full A
+    Upper      = 121
+    Lower      = 122
+    UpperLower = 123
 
 class coefside:
-    LCoef  = 0 # Coefficients of the lower triangular L are used
-    UCoef  = 1 # Coefficients of the upper triangular U are used
-    LUCoef = 2 # Coefficients of the upper/lower triangular U/L are used
+    LCoef  = 0
+    UCoef  = 1
+    LUCoef = 2
 
 class diag:
-    NonUnit = 131 # Diagonal is non unitary
-    Unit    = 132 # Diagonal is unitary
+    NonUnit = 131
+    Unit    = 132
 
 class side:
-    Left  = 141 # Apply operator on the left
-    Right = 142 # Apply operator on the right
+    Left  = 141
+    Right = 142
 
 class normtype:
-    One       = 171 # One norm:       max_j( sum_i( |a_{ij}| ) )
-    Frobenius = 174 # Frobenius norm: sqrt( sum_{i,j} (a_{ij}^2) )
-    Inf       = 175 # Inifinite norm: max_i( sum_j( |a_{ij}| ) )
-    Max       = 177 # Inifinite norm: max_{i,j}( | a_{ij} | )
+    One       = 171
+    Frobenius = 174
+    Inf       = 175
+    Max       = 177
 
-class direction:
-    Forward  = 391 # Forward direction
-    Backward = 392 # Backward direction
+class dir:
+    Forward  = 391
+    Backward = 392
 
