@@ -55,6 +55,7 @@ double cblk_gemmsp_cost( struct starpu_task *task, struct starpu_perfmodel_arch 
   {
     cost = modelsGetCost3Param(&sopalin_data->gpu_coefs[PastixKernelGEMMCblk2d2d], M, N, K);
   }
+  else { assert(0); }
 
   (void)nimpl;
 
@@ -103,10 +104,13 @@ double blok_gemmsp_cost( struct starpu_task *task, struct starpu_perfmodel_arch 
 
   double cost = 0.;
 
-  if (arch->devices->type == STARPU_CPU_WORKER)
+  if (arch->devices->type == STARPU_CPU_WORKER){
     cost =  modelsGetCost3Param(&sopalin_data->cpu_coefs[PastixKernelGEMMBlok2d2d],M,N,K);  
-  else if(arch->devices->type == STARPU_CUDA_WORKER)
+  }
+  else if(arch->devices->type == STARPU_CUDA_WORKER){
     cost = modelsGetCost3Param(&sopalin_data->gpu_coefs[PastixKernelGEMMBlok2d2d],M,N,K);
+  }
+  else { assert(0); }
 
   (void)nimpl;
 
@@ -123,10 +127,13 @@ double cblk_getrfsp1d_cost( struct starpu_task *task, struct starpu_perfmodel_ar
 
   double cost = 0.;
 
-  if (arch->devices->type == STARPU_CPU_WORKER)
-    cost =  modelsGetCost1Param(&sopalin_data->cpu_coefs[PastixKernelGETRF],cblk_colnbr(cblk));  
-  else if(arch->devices->type == STARPU_CUDA_WORKER)
+  if (arch->devices->type == STARPU_CPU_WORKER){
+    cost =  modelsGetCost1Param(&sopalin_data->cpu_coefs[PastixKernelGETRF],cblk_colnbr(cblk));
+  }
+  else if(arch->devices->type == STARPU_CUDA_WORKER){
     cost = modelsGetCost1Param(&sopalin_data->gpu_coefs[PastixKernelGETRF],cblk_colnbr(cblk));
+  }
+  else { assert(0);}
 
   (void)nimpl;
 
@@ -143,10 +150,13 @@ double blok_getrfsp1d_cost( struct starpu_task *task, struct starpu_perfmodel_ar
 
   double cost = 0.;
 
-  if (arch->devices->type == STARPU_CPU_WORKER)
-    cost =  modelsGetCost1Param(&sopalin_data->cpu_coefs[PastixKernelGETRF],cblk_colnbr(cblk));  
-  else if(arch->devices->type == STARPU_CUDA_WORKER)
+  if (arch->devices->type == STARPU_CPU_WORKER){
+    cost =  modelsGetCost1Param(&sopalin_data->cpu_coefs[PastixKernelGETRF],cblk_colnbr(cblk));
+  }
+  else if(arch->devices->type == STARPU_CUDA_WORKER){
     cost = modelsGetCost1Param(&sopalin_data->gpu_coefs[PastixKernelGETRF],cblk_colnbr(cblk));
+  }
+  else { assert(0);}
 
   (void)nimpl;
 
@@ -163,10 +173,13 @@ double cblk_potrfsp1d_cost( struct starpu_task *task, struct starpu_perfmodel_ar
 
   double cost = 0.;
 
-  if (arch->devices->type == STARPU_CPU_WORKER)
+  if (arch->devices->type == STARPU_CPU_WORKER){
     cost =  modelsGetCost1Param(&sopalin_data->cpu_coefs[PastixKernelPOTRF],cblk_colnbr(cblk));  
-  else if(arch->devices->type == STARPU_CUDA_WORKER)
+  }
+  else if(arch->devices->type == STARPU_CUDA_WORKER){
     cost = modelsGetCost1Param(&sopalin_data->gpu_coefs[PastixKernelPOTRF],cblk_colnbr(cblk));
+  }
+  else { assert(0);}
 
   (void)nimpl;
 
@@ -183,10 +196,13 @@ double blok_potrfsp1d_cost( struct starpu_task *task, struct starpu_perfmodel_ar
 
   double cost = 0.;
 
-  if (arch->devices->type == STARPU_CPU_WORKER)
+  if (arch->devices->type == STARPU_CPU_WORKER){
     cost =  modelsGetCost1Param(&sopalin_data->cpu_coefs[PastixKernelPOTRF],cblk_colnbr(cblk));  
-  else if(arch->devices->type == STARPU_CUDA_WORKER)
+  }
+  else if(arch->devices->type == STARPU_CUDA_WORKER){
     cost = modelsGetCost1Param(&sopalin_data->gpu_coefs[PastixKernelPOTRF],cblk_colnbr(cblk));
+  }
+  else { assert(0);}
 
   (void)nimpl;
 
@@ -224,10 +240,13 @@ double blok_trsmsp_cost( struct starpu_task *task, struct starpu_perfmodel_arch 
   }
   double cost = 0.;
 
-  if (arch->devices->type == STARPU_CPU_WORKER)
+  if (arch->devices->type == STARPU_CPU_WORKER){
     cost =  modelsGetCost2Param(&sopalin_data->cpu_coefs[PastixKernelTRSMBlok2d],M,cblk_colnbr(cblk));  
-  else if(arch->devices->type == STARPU_CUDA_WORKER)
+  }
+  else if(arch->devices->type == STARPU_CUDA_WORKER){
     cost = modelsGetCost2Param(&sopalin_data->gpu_coefs[PastixKernelTRSMBlok2d],M,cblk_colnbr(cblk));
+  }
+  else { assert(0);}
 
   (void)nimpl;
 
