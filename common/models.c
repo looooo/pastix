@@ -47,23 +47,19 @@ modelsGetKernelId( const char *kernelstr,
     if(0 == strcasecmp("pxtrf",  kernelstr)) { *nbcoef = 4; return PastixKernelPXTRF; }
     if(0 == strcasecmp("sytrf",  kernelstr)) { *nbcoef = 4; return PastixKernelSYTRF; }
 
-    if(0 == strcasecmp("trsm1d",     kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblk2d; }
     if(0 == strcasecmp("trsmcblk1d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblk1d; }
     if(0 == strcasecmp("trsmcblk2d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblk2d; }
     if(0 == strcasecmp("trsmcblklr", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblkLR; }
 
-    if(0 == strcasecmp("trsm2d",     kernelstr)) { *nbcoef = 6; return PastixKernelTRSMBlok2d; }
     if(0 == strcasecmp("trsmblok2d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMBlok2d; }
     if(0 == strcasecmp("trsmbloklr", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMBlokLR; }
 
-    if(0 == strcasecmp("gemm1d",       kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk2d2d; }
     if(0 == strcasecmp("gemmcblk1d1d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk1d1d; }
     if(0 == strcasecmp("gemmcblk1d2d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk1d2d; }
     if(0 == strcasecmp("gemmcblk2d2d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk2d2d; }
     if(0 == strcasecmp("gemmcblkfrlr", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblkFRLR; }
     if(0 == strcasecmp("gemmcblklrlr", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblkLRLR; }
 
-    if(0 == strcasecmp("gemm2d",       kernelstr)) { *nbcoef = 8; return PastixKernelGEMMBlok2d2d; }
     if(0 == strcasecmp("gemmblok2d2d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMBlok2d2d; }
     if(0 == strcasecmp("gemmbloklrlr", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMBlokLRLR; }
 
@@ -358,7 +354,7 @@ modelsInitDefaultCPU( pastix_model_t *model )
     coefs[3] =  2.439599e-11;
     modelsPropagate( model, a, ktype );
 
-    /* TRSM1D */
+    /* TRSM Cblk */
     ktype = PastixKernelTRSMCblk2d;
     coefs = &(model->coefficients[a][ktype][0]);
     coefs[0] = 3.255168e-06;
@@ -369,7 +365,13 @@ modelsInitDefaultCPU( pastix_model_t *model )
     coefs[5] = 2.626177e-10;
     modelsPropagate( model, a, ktype );
 
-    /* GEMM1D */
+    /* TRSM Blok */
+    /*
+     * We don't have a TRSM blok model for this old architecture, so we use the
+     * TRSM Cblk
+     */
+
+    /* GEMM Cblk */
     ktype = PastixKernelGEMMCblk2d2d;
     coefs = &(model->coefficients[a][ktype][0]);
     coefs[0] =  1.216278e-06;
@@ -382,7 +384,7 @@ modelsInitDefaultCPU( pastix_model_t *model )
     coefs[7] =  2.429169e-10;
     modelsPropagate( model, a, ktype );
 
-    /* GEMM2D */
+    /* GEMM Blok */
     ktype = PastixKernelGEMMBlok2d2d;
     coefs = &(model->coefficients[a][ktype][0]);
     coefs[0] = 0.0;
@@ -429,7 +431,7 @@ modelsInitDefaultGPU( pastix_model_t *model )
      */
     model->name = strdup("Nvidia K40 GK1108L - CUDA 8.0");
 
-    /* TRSM2D */
+    /* TRSM Blok */
     ktype = PastixKernelTRSMBlok2d;
     coefs = &(model->coefficients[a][ktype][0]);
     coefs[0] = -3.16663635648446e-05;
@@ -440,7 +442,7 @@ modelsInitDefaultGPU( pastix_model_t *model )
     coefs[5] =  5.36284121953867e-12;
     modelsPropagate( model, a, ktype );
 
-    /* GEMM1D */
+    /* GEMM Cblk */
     ktype = PastixKernelGEMMCblk2d2d;
     coefs = &(model->coefficients[a][ktype][0]);
     coefs[0] =  1.216278e-06;
@@ -453,7 +455,7 @@ modelsInitDefaultGPU( pastix_model_t *model )
     coefs[7] =  2.429169e-10;
     modelsPropagate( model, a, ktype );
 
-    /* GEMM2D */
+    /* GEMM Blok */
     ktype = PastixKernelGEMMBlok2d2d;
     coefs = &(model->coefficients[a][ktype][0]);
     coefs[0] = 0.0;
