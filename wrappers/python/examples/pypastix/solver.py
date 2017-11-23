@@ -61,7 +61,7 @@ class solver(object):
 
         self.factotype = factotype.LLT
         self.iparm[iparm.factorization] = self.factotype
-        self.iparm[iparm.schur_solv_mode] = solvmode.Interface
+        self.iparm[iparm.schur_solv_mode] = solv_mode.Interface
         self.A    = A
         self.spmA = spm(A)
 
@@ -88,7 +88,7 @@ class solver(object):
         """
         x = b.copy()
         # 1- Apply P to b
-        subtask_applyorder( self.pastix_data, direction.Forward, x )
+        subtask_applyorder( self.pastix_data, dir.Forward, x )
 
         # 2- Forward solve on the non Schur complement part of the system
         if self.factotype == factotype.LU:
@@ -125,7 +125,7 @@ class solver(object):
                           diag.NonUnit, x )
 
         #  5- Apply P^t to x
-        subtask_applyorder( self.pastix_data, direction.Backward, x )
+        subtask_applyorder( self.pastix_data, dir.Backward, x )
 
         if check:
             self.spmA.checkAxb(x0, b, x)
