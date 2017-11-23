@@ -34,6 +34,7 @@
     "  Number of GPUs:                         %8d\n"           \
     "  MPI communication support:              %8s\n"           \
     "  Distribution level:               %8s(%4ld)\n"           \
+    "  Blocking size (min/max):             %4ld / %4ld\n"      \
     "  Computational models\n"                                  \
     "    CPU: %41s\n"                                           \
     "    GPU: %41s\n"                                           \
@@ -66,7 +67,7 @@
 
 #define OUT_STEP_FAX                                            \
     "+-------------------------------------------------+\n"     \
-    "  Symbolic Factorization :\n"
+    "  Symbolic factorization step:\n"
 #define OUT_FAX_METHOD                          \
     "    Symbol factorization using: %s\n"
 #define OUT_FAX_SUMMARY                                                 \
@@ -82,6 +83,9 @@
     "    Stoping criteria                      %8ld\n"
 #define OUT_REORDERING_TIME                             \
     "    Time for reordering                   %e s\n"
+#define OUT_REORDERING_OPS                                              \
+    "    Iops for the last supernode           %8ld ( %5.2lf%% )\n"     \
+    "    Iops for the reordering               %8ld\n"
 
 #define OUT_STEP_BLEND                                          \
     "+-------------------------------------------------+\n"     \
