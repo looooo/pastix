@@ -42,8 +42,8 @@ static void cl_cblk_zhetrfsp1d_panel_cpu(void *descr[], void *cl_arg)
     pastix_complex64_t *L, *DL;
     int nbpivot;
 
-    L  = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[0]);
-    DL = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
+    L  = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
+    DL = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
 
     starpu_codelet_unpack_args(cl_arg, &cblk, &sopalin_data);
 
@@ -106,7 +106,7 @@ static void cl_blok_zhetrfsp_cpu(void *descr[], void *cl_arg)
     pastix_complex64_t *L;
     int nbpivot;
 
-    L = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[0]);
+    L = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
 
     starpu_codelet_unpack_args(cl_arg, &cblk, &sopalin_data);
 

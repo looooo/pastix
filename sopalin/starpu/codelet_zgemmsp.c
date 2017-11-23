@@ -96,15 +96,9 @@ static void cl_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
     const cuDoubleComplex *B;
     cuDoubleComplex *C;
 
-<<<<<<< HEAD
-    A = (const cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[0]);
-    B = (const cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[1]);
-    C = (cuDoubleComplex *)      STARPU_MATRIX_GET_PTR(descr[2]);
-=======
     A = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[0]);
     B = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
     C = (cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[2]);
->>>>>>> update StarPU codelets with new model functions
 
     starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data);
 
