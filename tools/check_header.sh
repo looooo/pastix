@@ -12,17 +12,6 @@
 # headers of source files.
 #
 #!/bin/sh
-
-#
-# Check that each header file contains
-#
-# #ifndef _filename_
-# #define _filename_
-# ...
-# #endif /* _filename_ */
-#
-files=`git ls-files | grep '\.h' | grep -v "common/sys/atomic-" | grep -v cblas.h | grep -v lapacke.h`
-
 header=1
 
 print_header()
@@ -112,6 +101,37 @@ check_header_date()
     fi
 }
 
+check_header_define()
+{
+    filename=$1
+    basename=`basename $filename`
+
+    basename=`basename $basename .h`
+
+    if [[ $file =~ \.h$ ]]
+    then
+        echo $filename "is a header file"
+    else
+        echo $filename "is not"
+    fi
+
+#     filename=`basename $f .h | sed 's/\.h\.in//' | awk '{print tolower($0)}'`
+#     macro="_${filename}_h_"
+#     err=0
+# 
+#     toto=`grep "#ifndef .*$macro" $f`
+#     ret=$?
+#     err=$((err + ret))
+# 
+#     toto=`grep "#define .*$macro" $f`
+#     ret=$?
+#     err=$((err + ret))
+# 
+#     toto=`grep "#endif /\* .*$macro \*/" $f`
+#     ret=$?
+#     err=$((err + ret))
+}
+
 #
 # Check that the given source file contains
 #
@@ -130,7 +150,31 @@ check_header()
     check_header_date $1
 }
 
+#
+# Check headers
+#
+files=`git ls-files | grep -v "^\." | grep -v ".*\.md" | grep -v LICENSE | grep -v ".*\.cmake" | grep -v "common/sys/atomic-" | grep -v docs/doxygen | grep -v CTest | grep -v cblas.h | grep -v lapacke.h | grep -v kernels/gpus/kepler  | grep -v kernels/gpus/fermi | grep -v test/matrix`
 
+for f in $files
+do
+    if [ -d $f ]
+    then
+        continue;
+    fi
+
+    check_header $f
+done
+
+
+#
+# Check that each header file contains
+#
+# #ifndef _filename_
+# #define _filename_
+# ...
+# #endif /* _filename_ */
+#
+files=`git ls-files | grep '\.h' | grep -v "common/sys/atomic-" | grep -v cblas.h | grep -v lapacke.h`
 
 for f in $files
 do
@@ -164,17 +208,3 @@ do
 done
 
 
-#
-# Check headers
-#
-files=`git ls-files | grep -v "^\." | grep -v ".*\.md" | grep -v LICENSE | grep -v ".*\.cmake" | grep -v "common/sys/atomic-" | grep -v docs/doxygen | grep -v CTest | grep -v cblas.h | grep -v lapacke.h | grep -v kernels/gpus/kepler  | grep -v kernels/gpus/fermi | grep -v test/matrix`
-
-for f in $files
-do
-    if [ -d $f ]
-    then
-        continue;
-    fi
-
-    check_header $f
-done
