@@ -399,6 +399,20 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
                           clockVal(timer),
                           printflopsv( flops ), printflopsu( flops ) );
         }
+
+#if defined(PASTIX_WITH_PARSEC) && defined(PASTIX_DEBUG_PARSEC)
+        {
+            int i;
+            fprintf(stderr, "-- Check status of PaRSEC nbtasks counters\n" );
+            for (i=0; i<32; i++) {
+                if ( parsec_nbtasks_on_gpu[i] != 0 ) {
+                    fprintf(stderr, "Device %d => %d\n",
+                            i, parsec_nbtasks_on_gpu[i] );
+                }
+                parsec_nbtasks_on_gpu[i] = 0;
+            }
+        }
+#endif /* defined(PASTIX_WITH_PARSEC) && defined(PASTIX_DEBUG_PARSEC) */
     }
     solverBackupRestore( pastix_data->solvmatr, sbackup );
     solverBackupExit( sbackup );

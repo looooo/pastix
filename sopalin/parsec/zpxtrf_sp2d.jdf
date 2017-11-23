@@ -22,7 +22,6 @@ extern "C" %{
 #include "coeftab_z.h"
 #include "pastix_zcores.h"
 #include "sopalin_data.h"
-#include "pastix_parsec_gpu.h"
 
 %}
 
@@ -42,6 +41,11 @@ lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->
 
 p_work    [type = "parsec_memory_pool_t *"]
 lwork     [type = "pastix_int_t"]
+
+cpu1d_coefs [ type = "pastix_fixdbl_t *" hidden = on default = "&((*(sopalin_data->cpu_coefs))[PastixKernelGEMMCblk2d2d][0])" ]
+gpu1d_coefs [ type = "pastix_fixdbl_t *" hidden = on default = "&((*(sopalin_data->gpu_coefs))[PastixKernelGEMMCblk2d2d][0])" ]
+cpu2d_coefs [ type = "pastix_fixdbl_t *" hidden = on default = "&((*(sopalin_data->cpu_coefs))[PastixKernelGEMMBlok2d2d][0])" ]
+gpu2d_coefs [ type = "pastix_fixdbl_t *" hidden = on default = "&((*(sopalin_data->gpu_coefs))[PastixKernelGEMMBlok2d2d][0])" ]
 
 /**************************************************
  *                   PXTRF                        *
@@ -79,8 +83,9 @@ BODY
     SolverCblk *cblk = datacode->cblktab + k;
 
     if (!isTwoD) {
-        if (!(cblk->cblktype & CBLK_IN_SCHUR))
+        if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
             cpucblk_zpxtrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, &lowrank );
+        }
     }
     else {
         /* Compression between 1D and 2D updates */
@@ -170,7 +175,12 @@ RW    C  <- (brownum == -1) || isTwoD ? NULL
 
 ; %{ return cblknbr - ((fcblknm + lcblknm) / 2 ) + last - brownum; %}
 
-BODY [ type=CUDA pushout=forced_pushout devicefct=pastix_parsec_selectgpu_fct ]
+BODY [ type=CUDA
+       pushout=forced_pushout
+       device="(((brownum == -1)|| isTwoD) ? -2 : -1)"
+       weight="(last-brownum+1)"
+       cpu_cost="modelsGetCost3Param( cpu1d_coefs, m, n, k )"
+       gpu_cost="modelsGetCost3Param( gpu1d_coefs, m, n, k )" ]
 #if defined(PASTIX_WITH_CUDA)
 {
     /* Never execute the 1D GPU kernel on diagonal blocks, and 2D cblks */
@@ -298,8 +308,9 @@ BODY
     if (isTwoD) {
         SolverCblk *cblk = datacode->cblktab + k;
         /* pastix_int_t  nbpivot = */
-        if (!(cblk->cblktype & CBLK_IN_SCHUR))
+        if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
             cpucblk_zpxtrfsp1d_pxtrf( cblk, A, sopalin_data->diagthreshold );
+        }
     }
 }
 END
@@ -341,7 +352,8 @@ RW    C   <-  isTwoD & noskip & (first == last) ? A OneToTwoD( k, m )
 
 ; %{ return cblknbr - k; %}
 
-BODY [ type=CUDA pushout=forced_pushout devicefct=pastix_parsec_selectgpu_fct ]
+BODY [ type=CUDA
+       pushout=forced_pushout ]
 #if defined(PASTIX_WITH_CUDA)
 {
     if( isTwoD && noskip ) {
@@ -510,6 +522,10 @@ blok_mk = %{
 
 todo = (is2dA && is2dC && noskipC && blok_nk && blok_mk)
 
+dimm = %{ if (!todo) return 0; else return blok_rownbr(datacode->bloktab + fblokk + blok_mk);  %}
+dimn = %{ if (!todo) return 0; else return blok_rownbr(datacode->bloktab + blok_nk); %}
+dimk = %{ if (!todo) return 0; else return cblk_colnbr(datacode->cblktab + cblk_k);  %}
+
 // Parallel partitioning
 :descA(0, cblk_n, noskipC)
 
@@ -526,7 +542,12 @@ RW    C  <- (k == first) ? A OneToTwoD( cblk_n, blok_mn )
 
 ; %{ return cblknbr - ( ((k-first) * (cblk_n - cblk_k)) / (last-first+1) ) - cblk_n; %}
 
-BODY [ type=CUDA pushout=forced_pushout devicefct=pastix_parsec_selectgpu_fct ]
+BODY [ type=CUDA
+       pushout=forced_pushout
+       device="((!todo) ? -2 : -1)"
+       weight="(last-k+1)"
+       cpu_cost="modelsGetCost3Param( cpu2d_coefs, dimm, dimn, dimk )"
+       gpu_cost="modelsGetCost3Param( gpu2d_coefs, dimm, dimn, dimk )" ]
 #if defined(PASTIX_WITH_CUDA)
 {
     /* is2dA && is2dC && noskipC && blok_nk && blok_mk */

@@ -15,7 +15,6 @@
  * @precisions normal z -> s d c
  *
  **/
-#include "cblas.h"
 #include "common.h"
 #include "solver.h"
 #include "sopalin_data.h"

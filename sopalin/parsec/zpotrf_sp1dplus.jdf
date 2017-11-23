@@ -21,7 +21,6 @@ extern "C" %{
 #include "solver.h"
 #include "pastix_zcores.h"
 #include "sopalin_data.h"
-#include "pastix_parsec_gpu.h"
 
 %}
 
@@ -38,6 +37,9 @@ lowrank   [type = "pastix_lr_t"           hidden = on default = "(sopalin_data->
 
 p_work    [type = "parsec_memory_pool_t *"]
 lwork     [type = "pastix_int_t"]
+
+cpu_coefs [ type = "pastix_fixdbl_t *" hidden = on default = "&((*(sopalin_data->cpu_coefs))[PastixKernelGEMMCblk2d2d][0])" ]
+gpu_coefs [ type = "pastix_fixdbl_t *" hidden = on default = "&((*(sopalin_data->gpu_coefs))[PastixKernelGEMMCblk2d2d][0])" ]
 
 /**************************************************
  *                   POTRF                        *
@@ -69,8 +71,9 @@ RW L <- ( browk0 == browk1 ) ? descA(0, k, 0) : C GEMM1D( lastbrow )
 BODY
 {
     SolverCblk *cblk = datacode->cblktab + k;
-    if (!(cblk->cblktype & CBLK_IN_SCHUR))
+    if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
         cpucblk_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, &lowrank );
+    }
 }
 END
 
@@ -152,16 +155,21 @@ RW    C  <- (brownum == -1) ? NULL
 
 ; %{ return cblknbr - ((fcblknm + lcblknm) / 2 ) + last - brownum; %}
 
-BODY [ type=CUDA pushout=forced_pushout devicefct=pastix_parsec_selectgpu_fct ]
+BODY [ type=CUDA
+       pushout=forced_pushout
+       device="((brownum == -1) ? -2 : -1)"
+       weight="(last-brownum+1)"
+       cpu_cost="modelsGetCost3Param( cpu_coefs, m, n, k )"
+       gpu_cost="modelsGetCost3Param( gpu_coefs, m, n, k )" ]
 #if defined(PASTIX_WITH_CUDA)
 {
+    /* Never execute the GPU kernel on diagonal blocks */
     if (brownum != -1) {
         SolverCblk *lcblk = datacode->cblktab + lcblknm;
         SolverCblk *fcblk = datacode->cblktab + fcblknm;
         SolverBlok *blok  = datacode->bloktab + bloknum;
 
         if (!(lcblk->cblktype & CBLK_IN_SCHUR)) {
-            /* Never execute the 1D GPU kernel on diagonal blocks */
 #if defined(PASTIX_CUDA_FERMI)
             gpu_zgemmsp_fermi( datacode,
                                PastixLower, PastixConjTrans,

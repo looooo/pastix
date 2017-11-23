@@ -161,7 +161,7 @@ typedef struct pastix_model_entry_s {
     int m;                /**< The first diemension of the kernel */
     int n;                /**< The second dimension of the kernel if present, 0 otherwise */
     int k;                /**< The third dimension of the kernel, 0 otherwise             */
-    double time;          /**< The time spent in the kernel                               */
+    double time;          /**< The time spent in the kernel (s)                           */
 } pastix_model_entry_t;
 
 extern pastix_model_entry_t *model_entries;     /**< Array to all entries                 */

@@ -175,7 +175,7 @@ kernelsTraceStop( const pastix_data_t *pastix_data )
             fprintf(f, "# CPU Model data\n");
         }
 
-        fprintf( f, "# Precision: %s\n", prec_names[ pastix_data->bcsc->flttype - 2 ] );
+        fprintf( f, "# Precision: %d - %s\n", pastix_data->bcsc->flttype - 2, prec_names[ pastix_data->bcsc->flttype - 2 ] );
         fprintf( f, "Kernel;M;N;K;Time\n" );
 
         for(i=0; i <= model_entries_nbr; i++, entry++ ) {
