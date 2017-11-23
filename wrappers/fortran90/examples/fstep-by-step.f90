@@ -45,6 +45,9 @@ program fsimple
      spm = spm2
   end if
 
+  ! Use spm2 as pointer to spm
+  spm2 => spm
+
   call spmPrintInfo( spm, c_null_ptr )
 
   !   2- The right hand side

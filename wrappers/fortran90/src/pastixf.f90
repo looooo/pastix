@@ -374,15 +374,15 @@ contains
   subroutine pastixOrderInit( order, baseval, vertnbr, cblknbr, permtab, peritab, rangtab, treetab, info )
     use iso_c_binding
     implicit none
-    type(pastix_order_t),       intent(in), pointer               :: order
-    integer(kind=pastix_int_t), intent(in)                        :: baseval
-    integer(kind=pastix_int_t), intent(in)                        :: vertnbr
-    integer(kind=pastix_int_t), intent(in)                        :: cblknbr
-    integer(kind=pastix_int_t), dimension(:), intent(in), pointer :: permtab
-    integer(kind=pastix_int_t), dimension(:), intent(in), pointer :: peritab
-    integer(kind=pastix_int_t), dimension(:), intent(in), pointer :: rangtab
-    integer(kind=pastix_int_t), dimension(:), intent(in), pointer :: treetab
-    integer(kind=c_int),        intent(out)                       :: info
+    type(pastix_order_t),       intent(in), target               :: order
+    integer(kind=pastix_int_t), intent(in)                       :: baseval
+    integer(kind=pastix_int_t), intent(in)                       :: vertnbr
+    integer(kind=pastix_int_t), intent(in)                       :: cblknbr
+    integer(kind=pastix_int_t), dimension(:), intent(in), target :: permtab
+    integer(kind=pastix_int_t), dimension(:), intent(in), target :: peritab
+    integer(kind=pastix_int_t), dimension(:), intent(in), target :: rangtab
+    integer(kind=pastix_int_t), dimension(:), intent(in), target :: treetab
+    integer(kind=c_int),        intent(out)                      :: info
 
     info = pastixOrderInit_c( c_loc(order), baseval, vertnbr, cblknbr, c_loc(permtab), c_loc(peritab), &
          c_loc(rangtab), c_loc(treetab) )
@@ -391,10 +391,10 @@ contains
   subroutine pastixOrderAlloc( order, vertnbr, cblknbr, info )
     use iso_c_binding
     implicit none
-    type(pastix_order_t),       intent(in), pointer :: order
-    integer(kind=pastix_int_t), intent(in)          :: vertnbr
-    integer(kind=pastix_int_t), intent(in)          :: cblknbr
-    integer(kind=c_int),        intent(out)         :: info
+    type(pastix_order_t),       intent(in), target :: order
+    integer(kind=pastix_int_t), intent(in)         :: vertnbr
+    integer(kind=pastix_int_t), intent(in)         :: cblknbr
+    integer(kind=c_int),        intent(out)        :: info
 
     info = pastixOrderAlloc_c( c_loc(order), vertnbr, cblknbr )
   end subroutine pastixOrderAlloc
@@ -402,7 +402,7 @@ contains
   subroutine pastixOrderExit( order )
     use iso_c_binding
     implicit none
-    type(pastix_order_t), intent(in), pointer :: order
+    type(pastix_order_t), intent(in), target :: order
 
     call pastixOrderExit_c( c_loc(order) )
 
@@ -412,7 +412,7 @@ contains
     use iso_c_binding
     implicit none
     type(pastix_order_t), intent(inout), pointer :: order
-    type(pastix_data_t),  intent(in),    pointer :: pastix_data
+    type(pastix_data_t),  intent(in),    target  :: pastix_data
     type(c_ptr) :: order_aux
 
     order_aux = pastixOrderGet_c( c_loc(pastix_data) )
@@ -541,8 +541,8 @@ contains
   subroutine pastix_subtask_order(pastix_data, spm, myorder, info)
     use iso_c_binding
     implicit none
-    type(pastix_data_t),  intent(inout), pointer :: pastix_data
-    type(pastix_spm_t),   intent(in),    pointer :: spm
+    type(pastix_data_t),  intent(inout), target  :: pastix_data
+    type(pastix_spm_t),   intent(in),    target  :: spm
     type(pastix_order_t), intent(in),    pointer :: myorder
     integer(kind=c_int),  intent(out)            :: info
 
@@ -552,7 +552,7 @@ contains
   subroutine pastix_subtask_symbfact(pastix_data, info)
     use iso_c_binding
     implicit none
-    type(pastix_data_t), intent(inout), pointer :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     integer(kind=c_int), intent(out)           :: info
 
     info = pastix_subtask_symbfact_c(c_loc(pastix_data))
@@ -561,7 +561,7 @@ contains
   subroutine pastix_subtask_reordering(pastix_data, info)
     use iso_c_binding
     implicit none
-    type(pastix_data_t), intent(inout), pointer :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     integer(kind=c_int), intent(out)           :: info
 
     info = pastix_subtask_reordering_c(c_loc(pastix_data))
@@ -570,7 +570,7 @@ contains
   subroutine pastix_subtask_blend(pastix_data, info)
     use iso_c_binding
     implicit none
-    type(pastix_data_t), intent(inout), pointer :: pastix_data
+    type(pastix_data_t), intent(inout), target :: pastix_data
     integer(kind=c_int), intent(out)           :: info
 
     info = pastix_subtask_blend_c(c_loc(pastix_data))
@@ -579,9 +579,9 @@ contains
   subroutine pastix_subtask_spm2bcsc(pastix_data, spm, info)
     use iso_c_binding
     implicit none
-    type(pastix_data_t), intent(in),    pointer :: pastix_data
-    type(pastix_spm_t),  intent(inout), target  :: spm
-    integer(kind=c_int), intent(out)            :: info
+    type(pastix_data_t), intent(in),    target :: pastix_data
+    type(pastix_spm_t),  intent(inout), target :: spm
+    integer(kind=c_int), intent(out)           :: info
 
     info = pastix_subtask_spm2bcsc_c(c_loc(pastix_data), c_loc(spm))
   end subroutine pastix_subtask_spm2bcsc
@@ -589,8 +589,8 @@ contains
   subroutine pastix_subtask_bcsc2ctab(pastix_data, info)
     use iso_c_binding
     implicit none
-    type(pastix_data_t), intent(in), pointer :: pastix_data
-    integer(kind=c_int), intent(out)         :: info
+    type(pastix_data_t), intent(in), target :: pastix_data
+    integer(kind=c_int), intent(out)        :: info
 
     info = pastix_subtask_bcsc2ctab_c(c_loc(pastix_data))
   end subroutine pastix_subtask_bcsc2ctab
@@ -598,8 +598,8 @@ contains
   subroutine pastix_subtask_sopalin(pastix_data, info)
     use iso_c_binding
     implicit none
-    type(pastix_data_t), intent(in), pointer :: pastix_data
-    integer(kind=c_int), intent(out)         :: info
+    type(pastix_data_t), intent(in), target :: pastix_data
+    integer(kind=c_int), intent(out)        :: info
 
     info = pastix_subtask_sopalin_c(c_loc(pastix_data))
   end subroutine pastix_subtask_sopalin
