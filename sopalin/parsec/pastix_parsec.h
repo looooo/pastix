@@ -72,9 +72,11 @@ void pastix_parsec_init( pastix_data_t *pastix,
                          const int *bindtab );
 void pastix_parsec_finalize( pastix_data_t *pastix );
 
+/**
+ * @}
+ */
 #endif /* _pastix_parsec_h_ */
 
 /**
- *@}
  *@}
  */

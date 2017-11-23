@@ -106,30 +106,40 @@ check_header_define()
     filename=$1
     basename=`basename $filename`
 
-    basename=`basename $basename .h`
+    case $basename in
+        *.h)
+            n=`basename $basename .h | awk '{print tolower($0)}'`
 
-    if [[ $file =~ \.h$ ]]
-    then
-        echo $filename "is a header file"
-    else
-        echo $filename "is not"
-    fi
+            macro="_${n}_h_"
+            err=0
 
-#     filename=`basename $f .h | sed 's/\.h\.in//' | awk '{print tolower($0)}'`
-#     macro="_${filename}_h_"
-#     err=0
-# 
-#     toto=`grep "#ifndef .*$macro" $f`
-#     ret=$?
-#     err=$((err + ret))
-# 
-#     toto=`grep "#define .*$macro" $f`
-#     ret=$?
-#     err=$((err + ret))
-# 
-#     toto=`grep "#endif /\* .*$macro \*/" $f`
-#     ret=$?
-#     err=$((err + ret))
+            toto=`grep "#ifndef .*$macro" $filename`
+            ret=$?
+            err=$((err + ret))
+
+            if [ $ret -eq 0 ]
+            then
+                macro=`grep "#ifndef" $filename | sed 's/#ifndef //'`
+            fi
+            toto=`grep "#define $macro" $filename`
+            ret=$?
+            err=$((err + ret))
+
+            toto=`grep "#endif /\* $macro \*/" $filename`
+            ret=$?
+            err=$((err + ret))
+
+            if [ $err -ne 0 ]
+            then
+                print_header $filename
+                grep "#ifndef" $filename
+                grep "#define" $filename
+                grep "#endif"  $filename
+            fi
+            ;;
+        *)
+    esac
+
 }
 
 #
@@ -148,6 +158,7 @@ check_header()
     check_header_version $1
     check_header_author $1
     check_header_date $1
+    check_header_define $1
 }
 
 #
@@ -163,48 +174,5 @@ do
     fi
 
     check_header $f
+    check_header_define $f
 done
-
-
-#
-# Check that each header file contains
-#
-# #ifndef _filename_
-# #define _filename_
-# ...
-# #endif /* _filename_ */
-#
-files=`git ls-files | grep '\.h' | grep -v "common/sys/atomic-" | grep -v cblas.h | grep -v lapacke.h`
-
-for f in $files
-do
-    filename=`basename $f .h | sed 's/\.h\.in//' | awk '{print tolower($0)}'`
-    macro="_${filename}_h_"
-    err=0
-
-    toto=`grep "#ifndef .*$macro" $f`
-    ret=$?
-    err=$((err + ret))
-
-    toto=`grep "#define .*$macro" $f`
-    ret=$?
-    err=$((err + ret))
-
-    toto=`grep "#endif /\* .*$macro \*/" $f`
-    ret=$?
-    err=$((err + ret))
-
-    case $err in
-    0)
-        #echo $f "OK"
-        ;;
-    *)
-        echo "-------- $f / $filename ------------"
-        grep "#ifndef" $f
-        grep "#define" $f
-        grep "#endif"  $f
-        ;;
-    esac
-done
-
-
