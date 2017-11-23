@@ -678,19 +678,13 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
         /* column being factorized among jb */
         k = 0;
 
-        if (jb == 0)
-            return -1;
-
         while(k < jb && lsticc == 0){
 
             rk = offset+k;
 
             /* Rank is too large for compression */
-            if (rk == maxrank){
-                return rk;
-            }
             if (rk > maxrank){
-                return -1;
+                return rk;
             }
 
             pvt = rk + cblas_izamax(n-rk, VN1 + rk, 1);
@@ -727,8 +721,8 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
                 }
 #endif
 
-                /* assert( (offset+1) < n ); */
-                /* assert( (rk < n) && (rk < m) ); */
+                assert( (offset+1) < n );
+                assert( (rk < n) && (rk < m) );
                 cblas_zgemv(CblasColMajor, CblasNoTrans, m-rk, k, CBLAS_SADDR(mzone),
                             A + (offset) * lda + rk, lda,
                             f + k, ldf,
@@ -949,7 +943,7 @@ core_zge2lr_rrqr( pastix_fixdbl_t tol, pastix_int_t rklimit,
                       jpvt, tau,
                       work, ldwork,
                       rwork,
-                      tol * norm, nb, pastix_imin( rklimit, pastix_imin(m, n) ));
+                      tol * norm, nb, pastix_imin( rklimit, pastix_imin(m, n)-1 ));
     if (ret == -1) {
         flops = FLOPS_ZGEQRF( m, n );
     }
@@ -1269,7 +1263,7 @@ core_zrradd_rrqr( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void
                            jpvt, tauV,
                            zwork, ldwork,
                            rwork,
-                           tol * norm, nb, pastix_imin(rklimit, rank) );
+                           tol * norm, nb, pastix_imin(rklimit, rank-1) );
     flops = (new_rank == -1) ? FLOPS_ZGEQRF( rank, N )
         :                     (FLOPS_ZGEQRF( rank, new_rank ) +
                                FLOPS_ZUNMQR( rank, N-new_rank, new_rank, PastixLeft ));
