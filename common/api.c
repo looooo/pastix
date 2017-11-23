@@ -196,6 +196,8 @@ pastixWelcome( const pastix_data_t *pastix )
                   /* Distrib    */ ((pastix->iparm[IPARM_TASKS2D_LEVEL] == 0) ? "1D" : "2D"),
                                    ((pastix->iparm[IPARM_TASKS2D_LEVEL] <  0) ? ((long)pastix->iparm[IPARM_TASKS2D_WIDTH]) :
                                                                                -((long)pastix->iparm[IPARM_TASKS2D_LEVEL])),
+                  /* Model CPU  */ pastix->cpu_models->name,
+                  /* Model GPU  */ pastix->gpu_models->name,
                   /* Strategy   */ ((pastix->iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever) ? "No compression" :
                                     (pastix->iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin) ? "Memory Optimal" : "Just-In-Time") );
 

@@ -47,11 +47,21 @@ modelsGetKernelId( const char *kernelstr,
     if(0 == strcasecmp("pxtrf",  kernelstr)) { *nbcoef = 4; return PastixKernelPXTRF; }
     if(0 == strcasecmp("sytrf",  kernelstr)) { *nbcoef = 4; return PastixKernelSYTRF; }
 
-    if(0 == strcasecmp("trsm1d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblk2d; }
-    if(0 == strcasecmp("trsm2d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMBlok2d; }
+    if(0 == strcasecmp("trsmcblk1d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblk1d; }
+    if(0 == strcasecmp("trsmcblk2d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblk2d; }
+    if(0 == strcasecmp("trsmcblklr", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMCblkLR; }
 
-    if(0 == strcasecmp("gemm1d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk2d2d; }
-    if(0 == strcasecmp("gemm2d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMBlok2d2d; }
+    if(0 == strcasecmp("trsmblok2d", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMBlok2d; }
+    if(0 == strcasecmp("trsmbloklr", kernelstr)) { *nbcoef = 6; return PastixKernelTRSMBlokLR; }
+
+    if(0 == strcasecmp("gemmcblk1d1d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk1d1d; }
+    if(0 == strcasecmp("gemmcblk1d2d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk1d2d; }
+    if(0 == strcasecmp("gemmcblk2d2d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblk2d2d; }
+    if(0 == strcasecmp("gemmcblkfrlr", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblkFRLR; }
+    if(0 == strcasecmp("gemmcblklrlr", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMCblkLRLR; }
+
+    if(0 == strcasecmp("gemmblok2d2d", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMBlok2d2d; }
+    if(0 == strcasecmp("gemmbloklrlr", kernelstr)) { *nbcoef = 8; return PastixKernelGEMMBlokLRLR; }
 
     *nbcoef = 0;
     return -1;
@@ -205,7 +215,7 @@ modelsRead( pastix_model_t *model,
 {
     FILE *f = pastix_fopen( modelfilename );
     char *str, *strcoef;
-    char kernelstr[7];
+    char kernelstr[13];
     int  rc, arithm, nbcoef;
     size_t strsize = 256;
     pastix_ktype_t kernelid;
@@ -227,15 +237,6 @@ modelsRead( pastix_model_t *model,
     while( str[0] == '#' );
 
     /* Read the model name */
-    rc = getline( &str, &strsize, f );
-    if ( rc == -1 ) {
-        perror( "modelsRead(getline model name)" );
-        return -1;
-    }
-    model->name = strdup( str );
-
-    /* Read the model name */
-    rc = getline( &str, &strsize, f );
     if ( rc == -1 ) {
         perror( "modelsRead(getline model name)" );
         return -1;
@@ -243,11 +244,7 @@ modelsRead( pastix_model_t *model,
     model->name = strdup( str );
 
     /* Read the model values */
-    while( (rc = getline( &str, &strsize, f )) != 0 ) {
-        if ( rc == -1 ) {
-            perror( "modelsRead(getline values)" );
-            return -1;
-        }
+    while( getline( &str, &strsize, f ) != -1 ) {
 
         /* Skip commented lines */
         if ( str[0] == '#' ) {
@@ -255,19 +252,21 @@ modelsRead( pastix_model_t *model,
         }
 
         /* Read the arithmetic, and the kernel name */
-        if ( sscanf( str, "%d;%6s;", &arithm, kernelstr ) != 2 ) {
-            fprintf(stderr, "modelRead: Error reading line (%s)\n", str );
+        if ( sscanf( str, "%d;%12[a-z0-9];", &arithm, kernelstr ) != 2 ) {
+            fprintf(stderr, "modelRead: %s - Error reading line (%s)\n", model->name, str );
             continue;
         }
 
         if ( (arithm < 0) || (arithm > 3) ) {
-            fprintf(stderr, "modelRead: Incorrect arithmetic in line (%s)\n", str );
+            fprintf(stderr, "modelRead: %s - Incorrect arithmetic %d in line:\n\t%s\n",
+                    model->name, arithm, str );
             continue;
         }
 
         kernelid = modelsGetKernelId( kernelstr, &nbcoef );
         if ( (int)kernelid == -1 ) {
-            fprintf(stderr, "modelRead: Incorrect kernel type in line (%s)\n", str );
+            fprintf(stderr, "modelRead: %s - Incorrect kernel type %s in line:\n\t%s\n",
+                    model->name, kernelstr, str );
             continue;
         }
 
@@ -280,7 +279,7 @@ modelsRead( pastix_model_t *model,
             if ( sscanf( strcoef, "%le;%le;%le;%le",
                          coefs, coefs+1, coefs+2, coefs+3 ) != 4 )
             {
-                fprintf(stderr, "modelRead: Pb reading the 4 coefficients in line (%s)\n", str );
+                fprintf(stderr, "modelRead: %s - Pb reading the 4 coefficients in line:\n\t%s\n", model->name, str );
                 continue;
             }
             break;
@@ -289,7 +288,7 @@ modelsRead( pastix_model_t *model,
                          coefs,   coefs+1, coefs+2,
                          coefs+3, coefs+4, coefs+5 ) != 6 )
             {
-                fprintf(stderr, "modelRead: Pb reading the 6 coefficients in line (%s)\n", str );
+                fprintf(stderr, "modelRead: %s - Pb reading the 6 coefficients in line:\n\t%s\n", model->name, str );
                 continue;
             }
             break;
@@ -298,7 +297,7 @@ modelsRead( pastix_model_t *model,
                          coefs,   coefs+1, coefs+2, coefs+3,
                          coefs+4, coefs+5, coefs+6, coefs+7 ) != 8 )
             {
-                fprintf(stderr, "modelRead: Pb reading the 8 coefficients in line (%s)\n", str );
+                fprintf(stderr, "modelRead: %s - Pb reading the 8 coefficients in line:\n\t%s\n", model->name, str );
                 continue;
             }
             break;
@@ -344,20 +343,20 @@ modelsInitDefaultCPU( pastix_model_t *model )
     /*
      * All coefficiensts given are for double real arithmetic
      */
-    model->name = strdup("AMD1680 MKL");
+    model->name = strdup("AMD Opteron 6180 - Intel MKL");
 
     /* POTRF */
     ktype = PastixKernelPOTRF;
-    coefs = model->coefficients[a][ktype];
+    coefs = &(model->coefficients[a][ktype][0]);
     coefs[0] =  4.071507e-07;
     coefs[1] = -1.469893e-07;
     coefs[2] =  1.707006e-08;
     coefs[3] =  2.439599e-11;
     modelsPropagate( model, a, ktype );
 
-    /* TRSM1D */
+    /* TRSM Cblk */
     ktype = PastixKernelTRSMCblk2d;
-    coefs = model->coefficients[a][ktype];
+    coefs = &(model->coefficients[a][ktype][0]);
     coefs[0] = 3.255168e-06;
     coefs[1] = 3.976198e-08;
     coefs[2] = 0.;
@@ -366,9 +365,15 @@ modelsInitDefaultCPU( pastix_model_t *model )
     coefs[5] = 2.626177e-10;
     modelsPropagate( model, a, ktype );
 
-    /* GEMM1D */
+    /* TRSM Blok */
+    /*
+     * We don't have a TRSM blok model for this old architecture, so we use the
+     * TRSM Cblk
+     */
+
+    /* GEMM Cblk */
     ktype = PastixKernelGEMMCblk2d2d;
-    coefs = model->coefficients[a][ktype];
+    coefs = &(model->coefficients[a][ktype][0]);
     coefs[0] =  1.216278e-06;
     coefs[1] =  0.;
     coefs[2] = -2.704179e-10;
@@ -377,6 +382,19 @@ modelsInitDefaultCPU( pastix_model_t *model )
     coefs[5] =  1.328900e-09;
     coefs[6] =  0.;
     coefs[7] =  2.429169e-10;
+    modelsPropagate( model, a, ktype );
+
+    /* GEMM Blok */
+    ktype = PastixKernelGEMMBlok2d2d;
+    coefs = &(model->coefficients[a][ktype][0]);
+    coefs[0] = 0.0;
+    coefs[1] = 0.0;
+    coefs[2] = 0.0;
+    coefs[3] = 0.0;
+    coefs[4] = 0.0;
+    coefs[5] = 0.0;
+    coefs[6] = 0.0;
+    coefs[7] = 2. / 24.e9;
     modelsPropagate( model, a, ktype );
 
     return 0;
@@ -411,31 +429,22 @@ modelsInitDefaultGPU( pastix_model_t *model )
     /*
      * All coefficiensts given are for double real arithmetic
      */
-    model->name = strdup("AMD1680 MKL");
+    model->name = strdup("Nvidia K40 GK1108L - CUDA 8.0");
 
-    /* POTRF */
-    ktype = PastixKernelPOTRF;
-    coefs = model->coefficients[a][ktype];
-    coefs[0] =  4.071507e-07;
-    coefs[1] = -1.469893e-07;
-    coefs[2] =  1.707006e-08;
-    coefs[3] =  2.439599e-11;
+    /* TRSM Blok */
+    ktype = PastixKernelTRSMBlok2d;
+    coefs = &(model->coefficients[a][ktype][0]);
+    coefs[0] = -3.16663635648446e-05;
+    coefs[1] =  2.63809317549331e-06;
+    coefs[2] =  5.86447245256688e-07;
+    coefs[3] = -1.57859559108480e-09;
+    coefs[4] = -4.74303242824929e-09;
+    coefs[5] =  5.36284121953867e-12;
     modelsPropagate( model, a, ktype );
 
-    /* TRSM1D */
-    ktype = PastixKernelTRSMCblk2d;
-    coefs = model->coefficients[a][ktype];
-    coefs[0] = 3.255168e-06;
-    coefs[1] = 3.976198e-08;
-    coefs[2] = 0.;
-    coefs[3] = 0.;
-    coefs[4] = 0.;
-    coefs[5] = 2.626177e-10;
-    modelsPropagate( model, a, ktype );
-
-    /* GEMM1D */
+    /* GEMM Cblk */
     ktype = PastixKernelGEMMCblk2d2d;
-    coefs = model->coefficients[a][ktype];
+    coefs = &(model->coefficients[a][ktype][0]);
     coefs[0] =  1.216278e-06;
     coefs[1] =  0.;
     coefs[2] = -2.704179e-10;
@@ -444,6 +453,19 @@ modelsInitDefaultGPU( pastix_model_t *model )
     coefs[5] =  1.328900e-09;
     coefs[6] =  0.;
     coefs[7] =  2.429169e-10;
+    modelsPropagate( model, a, ktype );
+
+    /* GEMM Blok */
+    ktype = PastixKernelGEMMBlok2d2d;
+    coefs = &(model->coefficients[a][ktype][0]);
+    coefs[0] = 0.0;
+    coefs[1] = 0.0;
+    coefs[2] = 0.0;
+    coefs[3] = 0.0;
+    coefs[4] = 0.0;
+    coefs[5] = 0.0;
+    coefs[6] = 0.0;
+    coefs[7] = 2. /  1.2e12;
     modelsPropagate( model, a, ktype );
 
     return 0;
