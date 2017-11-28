@@ -56,7 +56,7 @@ pastix_data = pastix.init( iparm, dparm )
 factotype = pastix.factotype.LLT
 iparm[pastix.iparm.factorization] = factotype
 iparm[pastix.iparm.scheduler] = pastix.scheduler.Sequential
-iparm[pastix.iparm.schur_solv_mode] = pastix.solvmode.Interface
+iparm[pastix.iparm.schur_solv_mode] = pastix.solv_mode.Interface
 
 # Initialize the Schur list as the first third of the elements
 nschur = min( int(n / 3), 5000 )
@@ -74,7 +74,7 @@ S = np.array( np.zeros( (nschur, nschur) ), order='F', dtype=spmA.dtype )
 pastix.getSchur( pastix_data, S )
 
 # 1- Apply P to b
-pastix.subtask_applyorder( pastix_data, pastix.direction.Forward, x )
+pastix.subtask_applyorder( pastix_data, pastix.dir.Forward, x )
 
 if factotype == pastix.factotype.LU:
     # 2- Forward solve on the non Schur complement part of the system
@@ -97,7 +97,7 @@ else:
     pastix.subtask_trsm( pastix_data, pastix.side.Left, pastix.uplo.Lower, pastix.trans.ConjTrans, pastix.diag.NonUnit, x )
 
 # 5- Apply P^t to x
-pastix.subtask_applyorder( pastix_data, pastix.direction.Backward, x )
+pastix.subtask_applyorder( pastix_data, pastix.dir.Backward, x )
 
 # Check solution
 spmA.checkAxb( x0, b, x )

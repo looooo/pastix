@@ -3,267 +3,326 @@
 !
 ! PaStiX fortran 90 wrappers to define enums and datatypes
 !
-! @copyright 2017-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+! @copyright 2017      Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !                      Univ. Bordeaux. All rights reserved.
 !
 ! @version 6.0.0
 ! @author Mathieu Faverge
 ! @date 2017-01-01
 !
+! This file was automatically generated.
+!
 module pastix_enums
   use iso_c_binding
   implicit none
 
-  ! iparm enum
-  integer, parameter :: iparm_verbose               = 1
-  integer, parameter :: iparm_io_strategy           = iparm_verbose               + 1
-  integer, parameter :: iparm_nnzeros               = iparm_io_strategy           + 1
-  integer, parameter :: iparm_nnzeros_block_local   = iparm_nnzeros               + 1
-  integer, parameter :: iparm_allocated_terms       = iparm_nnzeros_block_local   + 1
-  integer, parameter :: iparm_produce_stats         = iparm_allocated_terms       + 1
-  integer, parameter :: iparm_mc64                  = iparm_produce_stats         + 1
-  integer, parameter :: iparm_ordering              = iparm_mc64                  + 1
-  integer, parameter :: iparm_ordering_default      = iparm_ordering              + 1
-  integer, parameter :: iparm_scotch_switch_level   = iparm_ordering_default      + 1
-  integer, parameter :: iparm_scotch_cmin           = iparm_scotch_switch_level   + 1
-  integer, parameter :: iparm_scotch_cmax           = iparm_scotch_cmin           + 1
-  integer, parameter :: iparm_scotch_frat           = iparm_scotch_cmax           + 1
-  integer, parameter :: iparm_metis_ctype           = iparm_scotch_frat           + 1
-  integer, parameter :: iparm_metis_rtype           = iparm_metis_ctype           + 1
-  integer, parameter :: iparm_metis_no2hop          = iparm_metis_rtype           + 1
-  integer, parameter :: iparm_metis_nseps           = iparm_metis_no2hop          + 1
-  integer, parameter :: iparm_metis_niter           = iparm_metis_nseps           + 1
-  integer, parameter :: iparm_metis_ufactor         = iparm_metis_niter           + 1
-  integer, parameter :: iparm_metis_compress        = iparm_metis_ufactor         + 1
-  integer, parameter :: iparm_metis_ccorder         = iparm_metis_compress        + 1
-  integer, parameter :: iparm_metis_pfactor         = iparm_metis_ccorder         + 1
-  integer, parameter :: iparm_metis_seed            = iparm_metis_pfactor         + 1
-  integer, parameter :: iparm_metis_dbglvl          = iparm_metis_seed            + 1
-  integer, parameter :: iparm_sf_kass               = iparm_metis_dbglvl          + 1
-  integer, parameter :: iparm_amalgamation_lvlblas  = iparm_sf_kass               + 1
-  integer, parameter :: iparm_amalgamation_lvlcblk  = iparm_amalgamation_lvlblas  + 1
-  integer, parameter :: iparm_reordering_split      = iparm_amalgamation_lvlcblk  + 1
-  integer, parameter :: iparm_reordering_stop       = iparm_reordering_split      + 1
-  integer, parameter :: iparm_min_blocksize         = iparm_reordering_stop       + 1
-  integer, parameter :: iparm_max_blocksize         = iparm_min_blocksize         + 1
-  integer, parameter :: iparm_tasks2d_level         = iparm_max_blocksize         + 1
-  integer, parameter :: iparm_tasks2d_width         = iparm_tasks2d_level         + 1
-  integer, parameter :: iparm_abs                   = iparm_tasks2d_width         + 1
-  integer, parameter :: iparm_allcand               = iparm_abs                   + 1
-  integer, parameter :: iparm_incomplete            = iparm_allcand               + 1
-  integer, parameter :: iparm_level_of_fill         = iparm_incomplete            + 1
-  integer, parameter :: iparm_factorization         = iparm_level_of_fill         + 1
-  integer, parameter :: iparm_static_pivoting       = iparm_factorization         + 1
-  integer, parameter :: iparm_inertia               = iparm_static_pivoting       + 1
-  integer, parameter :: iparm_free_cscuser          = iparm_inertia               + 1
-  integer, parameter :: iparm_schur_fact_mode       = iparm_free_cscuser          + 1
-  integer, parameter :: iparm_schur_solv_mode       = iparm_schur_fact_mode       + 1
-  integer, parameter :: iparm_refinement            = iparm_schur_solv_mode       + 1
-  integer, parameter :: iparm_nbiter                = iparm_refinement            + 1
-  integer, parameter :: iparm_itermax               = iparm_nbiter                + 1
-  integer, parameter :: iparm_gmres_im              = iparm_itermax               + 1
-  integer, parameter :: iparm_scheduler             = iparm_gmres_im              + 1
-  integer, parameter :: iparm_thread_nbr            = iparm_scheduler             + 1
-  integer, parameter :: iparm_autosplit_comm        = iparm_thread_nbr            + 1
-  integer, parameter :: iparm_gpu_nbr               = iparm_autosplit_comm        + 1
-  integer, parameter :: iparm_gpu_memory_percentage = iparm_gpu_nbr               + 1
-  integer, parameter :: iparm_gpu_memory_block_size = iparm_gpu_memory_percentage + 1
-  integer, parameter :: iparm_compress_min_width    = iparm_gpu_memory_block_size + 1
-  integer, parameter :: iparm_compress_min_height   = iparm_compress_min_width    + 1
-  integer, parameter :: iparm_compress_when         = iparm_compress_min_height   + 1
-  integer, parameter :: iparm_compress_method       = iparm_compress_when         + 1
-  integer, parameter :: iparm_thread_comm_mode      = iparm_compress_method       + 1
-  integer, parameter :: iparm_modify_parameter      = iparm_thread_comm_mode      + 1
-  integer, parameter :: iparm_start_task            = iparm_modify_parameter      + 1
-  integer, parameter :: iparm_end_task              = iparm_start_task            + 1
-  integer, parameter :: iparm_float_type            = iparm_end_task              + 1
-  integer, parameter :: iparm_mtx_type              = iparm_float_type            + 1
-  integer, parameter :: iparm_dof_nbr               = iparm_mtx_type              + 1
-  integer, parameter :: iparm_size                  = iparm_dof_nbr               + 1
+  ! C enums converted to constants.
+  ! enum iparm
+  enum, bind(C)
+     enumerator :: IPARM_VERBOSE               = 1
+     enumerator :: IPARM_IO_STRATEGY           = 2
+     enumerator :: IPARM_NNZEROS               = 3
+     enumerator :: IPARM_NNZEROS_BLOCK_LOCAL   = 4
+     enumerator :: IPARM_ALLOCATED_TERMS       = 5
+     enumerator :: IPARM_PRODUCE_STATS         = 6
+     enumerator :: IPARM_MC64                  = 7
+     enumerator :: IPARM_ORDERING              = 8
+     enumerator :: IPARM_ORDERING_DEFAULT      = 9
+     enumerator :: IPARM_SCOTCH_SWITCH_LEVEL   = 10
+     enumerator :: IPARM_SCOTCH_CMIN           = 11
+     enumerator :: IPARM_SCOTCH_CMAX           = 12
+     enumerator :: IPARM_SCOTCH_FRAT           = 13
+     enumerator :: IPARM_METIS_CTYPE           = 14
+     enumerator :: IPARM_METIS_RTYPE           = 15
+     enumerator :: IPARM_METIS_NO2HOP          = 16
+     enumerator :: IPARM_METIS_NSEPS           = 17
+     enumerator :: IPARM_METIS_NITER           = 18
+     enumerator :: IPARM_METIS_UFACTOR         = 19
+     enumerator :: IPARM_METIS_COMPRESS        = 20
+     enumerator :: IPARM_METIS_CCORDER         = 21
+     enumerator :: IPARM_METIS_PFACTOR         = 22
+     enumerator :: IPARM_METIS_SEED            = 23
+     enumerator :: IPARM_METIS_DBGLVL          = 24
+     enumerator :: IPARM_SF_KASS               = 25
+     enumerator :: IPARM_AMALGAMATION_LVLBLAS  = 26
+     enumerator :: IPARM_AMALGAMATION_LVLCBLK  = 27
+     enumerator :: IPARM_REORDERING_SPLIT      = 28
+     enumerator :: IPARM_REORDERING_STOP       = 29
+     enumerator :: IPARM_MIN_BLOCKSIZE         = 30
+     enumerator :: IPARM_MAX_BLOCKSIZE         = 31
+     enumerator :: IPARM_TASKS2D_LEVEL         = 32
+     enumerator :: IPARM_TASKS2D_WIDTH         = 33
+     enumerator :: IPARM_ABS                   = 34
+     enumerator :: IPARM_ALLCAND               = 35
+     enumerator :: IPARM_INCOMPLETE            = 36
+     enumerator :: IPARM_LEVEL_OF_FILL         = 37
+     enumerator :: IPARM_FACTORIZATION         = 38
+     enumerator :: IPARM_STATIC_PIVOTING       = 39
+     enumerator :: IPARM_INERTIA               = 40
+     enumerator :: IPARM_FREE_CSCUSER          = 41
+     enumerator :: IPARM_SCHUR_FACT_MODE       = 42
+     enumerator :: IPARM_SCHUR_SOLV_MODE       = 43
+     enumerator :: IPARM_REFINEMENT            = 44
+     enumerator :: IPARM_NBITER                = 45
+     enumerator :: IPARM_ITERMAX               = 46
+     enumerator :: IPARM_GMRES_IM              = 47
+     enumerator :: IPARM_SCHEDULER             = 48
+     enumerator :: IPARM_THREAD_NBR            = 49
+     enumerator :: IPARM_AUTOSPLIT_COMM        = 50
+     enumerator :: IPARM_GPU_NBR               = 51
+     enumerator :: IPARM_GPU_MEMORY_PERCENTAGE = 52
+     enumerator :: IPARM_GPU_MEMORY_BLOCK_SIZE = 53
+     enumerator :: IPARM_COMPRESS_MIN_WIDTH    = 54
+     enumerator :: IPARM_COMPRESS_MIN_HEIGHT   = 55
+     enumerator :: IPARM_COMPRESS_WHEN         = 56
+     enumerator :: IPARM_COMPRESS_METHOD       = 57
+     enumerator :: IPARM_THREAD_COMM_MODE      = 58
+     enumerator :: IPARM_MODIFY_PARAMETER      = 59
+     enumerator :: IPARM_START_TASK            = 60
+     enumerator :: IPARM_END_TASK              = 61
+     enumerator :: IPARM_FLOAT                 = 62
+     enumerator :: IPARM_MTX_TYPE              = 63
+     enumerator :: IPARM_DOF_NBR               = 64
+     enumerator :: IPARM_SIZE                  = 64
+  end enum
 
-  ! dparm enum
-  integer, parameter :: dparm_fill_in            = 1
-  integer, parameter :: dparm_epsilon_refinement = dparm_fill_in            + 1
-  integer, parameter :: dparm_relative_error     = dparm_epsilon_refinement + 1
-  integer, parameter :: dparm_epsilon_magn_ctrl  = dparm_relative_error     + 1
-  integer, parameter :: dparm_analyze_time       = dparm_epsilon_magn_ctrl  + 1
-  integer, parameter :: dparm_pred_fact_time     = dparm_analyze_time       + 1
-  integer, parameter :: dparm_fact_time          = dparm_pred_fact_time     + 1
-  integer, parameter :: dparm_solv_time          = dparm_fact_time          + 1
-  integer, parameter :: dparm_fact_flops         = dparm_solv_time          + 1
-  integer, parameter :: dparm_fact_thflops       = dparm_fact_flops         + 1
-  integer, parameter :: dparm_fact_rlflops       = dparm_fact_thflops       + 1
-  integer, parameter :: dparm_solv_flops         = dparm_fact_rlflops       + 1
-  integer, parameter :: dparm_solv_thflops       = dparm_solv_flops         + 1
-  integer, parameter :: dparm_solv_rlflops       = dparm_solv_thflops       + 1
-  integer, parameter :: dparm_refine_time        = dparm_solv_rlflops       + 1
-  integer, parameter :: dparm_a_norm             = dparm_refine_time        + 1
-  integer, parameter :: dparm_compress_tolerance = dparm_a_norm             + 1
-  integer, parameter :: dparm_size               = dparm_compress_tolerance + 1
+  ! enum dparm
+  enum, bind(C)
+     enumerator :: DPARM_FILL_IN            = 1
+     enumerator :: DPARM_EPSILON_REFINEMENT = 2
+     enumerator :: DPARM_RELATIVE_ERROR     = 3
+     enumerator :: DPARM_EPSILON_MAGN_CTRL  = 4
+     enumerator :: DPARM_ANALYZE_TIME       = 5
+     enumerator :: DPARM_PRED_FACT_TIME     = 6
+     enumerator :: DPARM_FACT_TIME          = 7
+     enumerator :: DPARM_SOLV_TIME          = 8
+     enumerator :: DPARM_FACT_FLOPS         = 9
+     enumerator :: DPARM_FACT_THFLOPS       = 10
+     enumerator :: DPARM_FACT_RLFLOPS       = 11
+     enumerator :: DPARM_SOLV_FLOPS         = 12
+     enumerator :: DPARM_SOLV_THFLOPS       = 13
+     enumerator :: DPARM_SOLV_RLFLOPS       = 14
+     enumerator :: DPARM_REFINE_TIME        = 15
+     enumerator :: DPARM_A_NORM             = 16
+     enumerator :: DPARM_COMPRESS_TOLERANCE = 17
+     enumerator :: DPARM_SIZE               = 17
+  end enum
 
-  integer, parameter :: PastixTaskInit       = 0
-  integer, parameter :: PastixTaskOrdering   = 1
-  integer, parameter :: PastixTaskSymbfact   = 2
-  integer, parameter :: PastixTaskAnalyze    = 3
-  integer, parameter :: PastixTaskNumfact    = 4
-  integer, parameter :: PastixTaskSolve      = 5
-  integer, parameter :: PastixTaskRefine     = 6
-  integer, parameter :: PastixTaskClean      = 7
+  ! enum task
+  enum, bind(C)
+     enumerator :: PastixTaskInit     = 0
+     enumerator :: PastixTaskOrdering = 1
+     enumerator :: PastixTaskSymbfact = 2
+     enumerator :: PastixTaskAnalyze  = 3
+     enumerator :: PastixTaskNumfact  = 4
+     enumerator :: PastixTaskSolve    = 5
+     enumerator :: PastixTaskRefine   = 6
+     enumerator :: PastixTaskClean    = 7
+  end enum
 
-  ! class verbose:
-  integer, parameter :: PastixVerboseNot   = 0
-  integer, parameter :: PastixVerboseNo    = 1
-  integer, parameter :: PastixVerboseYes   = 2
+  ! enum verbose
+  enum, bind(C)
+     enumerator :: PastixVerboseNot = 0
+     enumerator :: PastixVerboseNo  = 1
+     enumerator :: PastixVerboseYes = 2
+  end enum
 
-  ! class io:
-  integer, parameter :: PastixIONo         = 0
-  integer, parameter :: PastixIOLoad       = 1
-  integer, parameter :: PastixIOSave       = 2
-  integer, parameter :: PastixIOLoadGraph  = 4
-  integer, parameter :: PastixIOSaveGraph  = 8
-  integer, parameter :: PastixIOLoadCSC    = 16
-  integer, parameter :: PastixIOSaveCSC    = 32
+  ! enum io
+  enum, bind(C)
+     enumerator :: PastixIONo        = 0
+     enumerator :: PastixIOLoad      = 1
+     enumerator :: PastixIOSave      = 2
+     enumerator :: PastixIOLoadGraph = 4
+     enumerator :: PastixIOSaveGraph = 8
+     enumerator :: PastixIOLoadCSC   = 16
+     enumerator :: PastixIOSaveCSC   = 32
+  end enum
 
-  ! class factmode:
-  integer, parameter :: PastixFactModeLocal = 0
-  integer, parameter :: PastixFactModeSchur = 1
-  integer, parameter :: PastixFactModeBoth  = 2
+  ! enum fact_mode
+  enum, bind(C)
+     enumerator :: PastixFactModeLocal = 0
+     enumerator :: PastixFactModeSchur = 1
+     enumerator :: PastixFactModeBoth  = 2
+  end enum
 
-  ! class solvmode:
-  integer, parameter :: PastixSolvModeLocal     = 0
-  integer, parameter :: PastixSolvModeInterface = 1
-  integer, parameter :: PastixSolvModeSchur     = 2
+  ! enum solv_mode
+  enum, bind(C)
+     enumerator :: PastixSolvModeLocal     = 0
+     enumerator :: PastixSolvModeInterface = 1
+     enumerator :: PastixSolvModeSchur     = 2
+  end enum
 
-  ! class refine:
-  integer, parameter :: PastixRefineGMRES    = 0
-  integer, parameter :: PastixRefineCG       = 1
-  integer, parameter :: PastixRefineSR       = 2
-  integer, parameter :: PastixRefineBiCGSTAB = 3
+  ! enum refine
+  enum, bind(C)
+     enumerator :: PastixRefineGMRES    = 0
+     enumerator :: PastixRefineCG       = 1
+     enumerator :: PastixRefineSR       = 2
+     enumerator :: PastixRefineBiCGSTAB = 3
+  end enum
 
-  ! class coeftype:
-  integer, parameter :: PastixPattern   = 0
-  integer, parameter :: PastixFloat     = 2
-  integer, parameter :: PastixDouble    = 3
-  integer, parameter :: PastixComplex32 = 4
-  integer, parameter :: PastixComplex64 = 5
+  ! enum coeftype
+  enum, bind(C)
+     enumerator :: PastixPattern   = 0
+     enumerator :: PastixFloat     = 2
+     enumerator :: PastixDouble    = 3
+     enumerator :: PastixComplex32 = 4
+     enumerator :: PastixComplex64 = 5
+  end enum
 
-  ! class fmttype:
-  integer, parameter :: PastixCSC = 0
-  integer, parameter :: PastixCSR = 1
-  integer, parameter :: PastixIJV = 2
+  ! enum fmttype
+  enum, bind(C)
+     enumerator :: PastixCSC = 0
+     enumerator :: PastixCSR = 1
+     enumerator :: PastixIJV = 2
+  end enum
 
-  ! class factotype:
-  integer, parameter :: PastixFactPOTRF = 0 ! Cholesky factorization
-  integer, parameter :: PastixFactSYTRF = 1 ! LDL^t factorization
-  integer, parameter :: PastixFactGETRF = 2 ! LU factorization
-  integer, parameter :: PastixFactPXTRF = 3 ! LL^t factorization for complex matrices
-  integer, parameter :: PastixFactHETRF = 4 ! LDL^h factorization for complex matrices
+  ! enum factotype
+  enum, bind(C)
+     enumerator :: PastixFactPOTRF = 0
+     enumerator :: PastixFactSYTRF = 1
+     enumerator :: PastixFactGETRF = 2
+     enumerator :: PastixFactPXTRF = 3
+     enumerator :: PastixFactHETRF = 4
+     enumerator :: PastixFactLLH   = 0
+     enumerator :: PastixFactLDLT  = 1
+     enumerator :: PastixFactLU    = 2
+     enumerator :: PastixFactLLT   = 3
+     enumerator :: PastixFactLDLH  = 4
+  end enum
 
-  integer, parameter :: PastixFactLLH  = 0 ! LL^h factorization for complex matrices
-  integer, parameter :: PastixFactLDLT = 1 ! LDL^t factorization
-  integer, parameter :: PastixFactLU   = 2 ! LU factorization
-  integer, parameter :: PastixFactLLT  = 3 ! LL^t factorization
-  integer, parameter :: PastixFactLDLH = 4 ! LDL^h factorization for complex matrices
+  ! enum scheduler
+  enum, bind(C)
+     enumerator :: PastixSchedSequential = 0
+     enumerator :: PastixSchedStatic     = 1
+     enumerator :: PastixSchedParsec     = 2
+     enumerator :: PastixSchedStarPU     = 3
+     enumerator :: PastixSchedDynamic    = 4
+  end enum
 
-  ! class scheduler:
-  integer, parameter :: PastixSchedSequential = 0 ! Sequential
-  integer, parameter :: PastixSchedStatic     = 1 ! Shared memory with static scheduler
-  integer, parameter :: PastixSchedParsec     = 2 ! PaRSEC scheduler
-  integer, parameter :: PastixSchedStarpu     = 3 ! StarPU scheduler
-  integer, parameter :: PastixSchedDynamic    = 4 ! Shared memory with dynamic scheduler
+  ! enum order
+  enum, bind(C)
+     enumerator :: PastixOrderScotch   = 0
+     enumerator :: PastixOrderMetis    = 1
+     enumerator :: PastixOrderPersonal = 2
+     enumerator :: PastixOrderLoad     = 3
+     enumerator :: PastixOrderPtScotch = 4
+     enumerator :: PastixOrderParMetis = 5
+  end enum
 
-  ! class order:
-  integer, parameter :: PastixOrderScotch   = 0 ! Use Scotch ordering
-  integer, parameter :: PastixOrderMetis    = 1 ! Use Metis ordering
-  integer, parameter :: PastixOrderPersonal = 2 ! Apply user's permutation
-  integer, parameter :: PastixOrderLoad     = 3 ! Load ordering from file
-  integer, parameter :: PastixOrderPtScotch = 4 ! Use Pt-Scotch ordering
-  integer, parameter :: PastixOrderParMetis = 5 ! Use ParMetis ordering
+  ! enum threadmode
+  enum, bind(C)
+     enumerator :: PastixThreadMultiple = 1
+     enumerator :: PastixThreadFunneled = 2
+  end enum
 
-  ! class threadmode:
-  integer, parameter :: PastixThreadMultiple = 1 ! All threads communicate
-  integer, parameter :: PastixThreadFunneled = 2 ! One thread perform all the MPI Calls
+  ! enum pastixrror
+  enum, bind(C)
+     enumerator :: PASTIX_SUCCESS            = 0
+     enumerator :: PASTIX_ERR_UNKNOWN        = 1
+     enumerator :: PASTIX_ERR_ALLOC          = 2
+     enumerator :: PASTIX_ERR_NOTIMPLEMENTED = 3
+     enumerator :: PASTIX_ERR_OUTOFMEMORY    = 4
+     enumerator :: PASTIX_ERR_THREAD         = 5
+     enumerator :: PASTIX_ERR_INTERNAL       = 6
+     enumerator :: PASTIX_ERR_BADPARAMETER   = 7
+     enumerator :: PASTIX_ERR_FILE           = 8
+     enumerator :: PASTIX_ERR_INTEGER_TYPE   = 9
+     enumerator :: PASTIX_ERR_IO             = 10
+     enumerator :: PASTIX_ERR_MPI            = 11
+  end enum
 
-  ! class error:
-  integer, parameter :: PASTIX_SUCCESS            = 0  ! No error
-  integer, parameter :: PASTIX_ERR_UNKNOWN        = 1  ! Unknown error
-  integer, parameter :: PASTIX_ERR_ALLOC          = 2  ! Allocation error
-  integer, parameter :: PASTIX_ERR_NOTIMPLEMENTED = 3  ! Not implemented feature
-  integer, parameter :: PASTIX_ERR_OUTOFMEMORY    = 4  ! Not enough memory
-  integer, parameter :: PASTIX_ERR_THREAD         = 5  ! Error with threads
-  integer, parameter :: PASTIX_ERR_INTERNAL       = 6  ! Internal error
-  integer, parameter :: PASTIX_ERR_BADPARAMETER   = 7  ! Bad parameters given
-  integer, parameter :: PASTIX_ERR_FILE           = 8  ! Error in In/Out operations
-  integer, parameter :: PASTIX_ERR_INTEGER_TYPE   = 9  ! Error with integer types
-  integer, parameter :: PASTIX_ERR_IO             = 10 ! Error with input/output
-  integer, parameter :: PASTIX_ERR_MPI            = 11 ! Error with MPI calls
+  ! enum compress_when
+  enum, bind(C)
+     enumerator :: PastixCompressNever      = 0
+     enumerator :: PastixCompressWhenBegin  = 1
+     enumerator :: PastixCompressWhenEnd    = 2
+     enumerator :: PastixCompressWhenDuring = 3
+  end enum
 
-  ! class compress_when:
-  integer, parameter :: PastixCompressNever  = 0
-  integer, parameter :: PastixCompressBegin  = 1
-  integer, parameter :: PastixCompressEnd    = 2
-  integer, parameter :: PastixCompressDuring = 3
+  ! enum compress_method
+  enum, bind(C)
+     enumerator :: PastixCompressMethodSVD  = 0
+     enumerator :: PastixCompressMethodRRQR = 1
+  end enum
 
-  ! class compress_method:
-  integer, parameter :: PastixCompressMethodSVD  = 0
-  integer, parameter :: PastixCompressMethodRRQR = 1
+  ! enum driver
+  enum, bind(C)
+     enumerator :: PastixDriverRSA        = 0
+     enumerator :: PastixDriverHB         = 1
+     enumerator :: PastixDriverIJV        = 2
+     enumerator :: PastixDriverMM         = 3
+     enumerator :: PastixDriverLaplacian  = 4
+     enumerator :: PastixDriverXLaplacian = 5
+     enumerator :: PastixDriverGraph      = 6
+  end enum
 
-  ! class driver:
-  integer, parameter :: PastixDriverRSA        = 0 ! RSA Fortran driver
-  integer, parameter :: PastixDriverHB         = 1 ! Harwell Boeing driver
-  integer, parameter :: PastixDriverIJV        = 2 ! IJV Coordinate driver
-  integer, parameter :: PastixDriverMM         = 3 ! Matrix Market C driver
-  integer, parameter :: PastixDriverLaplacian  = 4 ! 3, 5, or 7 points Laplacian stencil generator
-  integer, parameter :: PastixDriverXLaplacian = 5 ! 15-points Laplacian stencil generator
-  integer, parameter :: PastixDriverGraph      = 6 ! Scotch Graph driver
+  ! enum rhstype
+  enum, bind(C)
+     enumerator :: PastixRhsOne  = 0
+     enumerator :: PastixRhsI    = 1
+     enumerator :: PastixRhsRndX = 2
+     enumerator :: PastixRhsRndB = 3
+  end enum
 
-  ! class rhstype:
-  integer, parameter :: PastixRhsOne  = 0
-  integer, parameter :: PastixRhsI    = 1
-  integer, parameter :: PastixRhsRndX = 2
-  integer, parameter :: PastixRhsRndB = 3
+  ! enum layout
+  enum, bind(C)
+     enumerator :: PastixRowMajor = 101
+     enumerator :: PastixColMajor = 102
+  end enum
 
-  ! class layout:
-  integer, parameter :: PastixRowMajor  = 101 ! Storage in row major order
-  integer, parameter :: PastixColMajor  = 102 ! Storage in column major order
+  ! enum trans
+  enum, bind(C)
+     enumerator :: PastixNoTrans   = 111
+     enumerator :: PastixTrans     = 112
+     enumerator :: PastixConjTrans = 113
+  end enum
 
-  ! class trans:
-  integer, parameter :: PastixNoTrans   = 111 ! Use A
-  integer, parameter :: PastixTrans     = 112 ! Use A^t
-  integer, parameter :: PastixConjTrans = 113 ! Use conj(A^t)
+  ! enum symmetry
+  enum, bind(C)
+     enumerator :: PastixGeneral   = PastixNoTrans
+     enumerator :: PastixSymmetric = PastixTrans
+     enumerator :: PastixHermitian = PastixConjTrans
+  end enum
 
-  ! class mtxtype:
-  integer, parameter :: PastixGeneral   = PastixNoTrans    ! The matrix is general
-  integer, parameter :: PastixSymmetric = PastixTrans      ! The matrix is symmetric
-  integer, parameter :: PastixHermitian = PastixConjTrans  ! The matrix is hermitian
+  ! enum uplo
+  enum, bind(C)
+     enumerator :: PastixUpper      = 121
+     enumerator :: PastixLower      = 122
+     enumerator :: PastixUpperLower = 123
+  end enum
 
-  ! class uplo:
-  integer, parameter :: PastixUpper      = 121 ! Use lower triangle of A
-  integer, parameter :: PastixLower      = 122 ! Use upper triangle of A
-  integer, parameter :: PastixUpperLower = 123 ! Use the full A
+  ! enum coefside
+  enum, bind(C)
+     enumerator :: PastixLCoef  = 0
+     enumerator :: PastixUCoef  = 1
+     enumerator :: PastixLUCoef = 2
+  end enum
 
-  ! class coefside:
-  integer, parameter :: PastixLCoef  = 0 ! Coefficients of the lower triangular L are used
-  integer, parameter :: PastixUCoef  = 1 ! Coefficients of the upper triangular U are used
-  integer, parameter :: PastixLUCoef = 2 ! Coefficients of the upper/lower triangular U/L are used
+  ! enum diag
+  enum, bind(C)
+     enumerator :: PastixNonUnit = 131
+     enumerator :: PastixUnit    = 132
+  end enum
 
-  ! class diag:
-  integer, parameter :: PastixNonUnit = 131 ! Diagonal is non unitary
-  integer, parameter :: PastixUnit    = 132 ! Diagonal is unitary
+  ! enum side
+  enum, bind(C)
+     enumerator :: PastixLeft  = 141
+     enumerator :: PastixRight = 142
+  end enum
 
-  ! class side:
-  integer, parameter :: PastixLeft  = 141 ! Apply operator on the left
-  integer, parameter :: PastixRight = 142 ! Apply operator on the right
+  ! enum normtype
+  enum, bind(C)
+     enumerator :: PastixOneNorm       = 171
+     enumerator :: PastixFrobeniusNorm = 174
+     enumerator :: PastixInfNorm       = 175
+     enumerator :: PastixMaxNorm       = 177
+  end enum
 
-  ! class normtype:
-  integer, parameter :: PastixOne       = 171 ! One norm:       max_j( sum_i( |a_{ij}| ) )
-  integer, parameter :: PastixFrobenius = 174 ! Frobenius norm: sqrt( sum_{i,j} (a_{ij}^2) )
-  integer, parameter :: PastixInf       = 175 ! Inifinite norm: max_i( sum_j( |a_{ij}| ) )
-  integer, parameter :: PastixMax       = 177 ! Inifinite norm: max_{i,j}( | a_{ij} | )
-
-  ! class direction:
-  integer, parameter :: PastixForward  = 391 ! Forward direction
-  integer, parameter :: PastixBackward = 392 ! Backward direction
+  ! enum dir
+  enum, bind(C)
+     enumerator :: PastixDirForward  = 391
+     enumerator :: PastixDirBackward = 392
+  end enum
 
   ! C structs converted to derived types.
   integer, parameter :: pastix_int_t = PASTIX_INT_KIND
