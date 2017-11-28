@@ -83,7 +83,7 @@ module pastix_enums
      enumerator :: IPARM_FLOAT                 = 62
      enumerator :: IPARM_MTX_TYPE              = 63
      enumerator :: IPARM_DOF_NBR               = 64
-     enumerator :: IPARM_SIZE                  = 65
+     enumerator :: IPARM_SIZE                  = 64
   end enum
 
   ! enum dparm
@@ -105,7 +105,7 @@ module pastix_enums
      enumerator :: DPARM_REFINE_TIME        = 15
      enumerator :: DPARM_A_NORM             = 16
      enumerator :: DPARM_COMPRESS_TOLERANCE = 17
-     enumerator :: DPARM_SIZE               = 18
+     enumerator :: DPARM_SIZE               = 17
   end enum
 
   ! enum task
