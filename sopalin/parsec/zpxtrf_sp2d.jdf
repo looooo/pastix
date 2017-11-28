@@ -177,7 +177,17 @@ RW    C  <- (brownum == -1) || isTwoD ? NULL
 
 BODY [ type=CUDA
        pushout=forced_pushout
-       device="(((brownum == -1)|| isTwoD) ? -2 : -1)"
+       device=%{ SolverCblk *lcblk = datacode->cblktab + lcblknm;
+                 SolverCblk *fcblk = datacode->cblktab + fcblknm;
+                 if ( (brownum == -1) || isTwoD ||
+                      (lcblk->cblktype & (CBLK_COMPRESSED | CBLK_IN_SCHUR)) ||
+                      (fcblk->cblktype & CBLK_COMPRESSED) )
+                 {
+                     return -2;
+                 } else {
+                     return -1;
+                 }
+                 %}
        weight="(last-brownum+1)"
        cpu_cost="modelsGetCost3Param( cpu1d_coefs, m, n, k )"
        gpu_cost="modelsGetCost3Param( gpu1d_coefs, m, n, k )" ]
@@ -188,6 +198,9 @@ BODY [ type=CUDA
         SolverCblk *lcblk = datacode->cblktab + lcblknm;
         SolverCblk *fcblk = datacode->cblktab + fcblknm;
         SolverBlok *blok  = datacode->bloktab + bloknum;
+
+        assert( !(lcblk->cblktype & CBLK_COMPRESSED) &&
+                !(fcblk->cblktype & CBLK_COMPRESSED) );
 
         if (!(lcblk->cblktype & CBLK_IN_SCHUR)) {
 #if defined(PASTIX_CUDA_FERMI)
@@ -353,11 +366,22 @@ RW    C   <-  isTwoD & noskip & (first == last) ? A OneToTwoD( k, m )
 ; %{ return cblknbr - k; %}
 
 BODY [ type=CUDA
+       device=%{ SolverCblk *lcblk = datacode->cblktab + k;
+                 if( !isTwoD || !noskip ||
+                     (lcblk->cblktype & (CBLK_COMPRESSED|CBLK_IN_SCHUR)) )
+                 {
+                     return -2;
+                 } else {
+                     return -1;
+                 }
+                 %}
        pushout=forced_pushout ]
 #if defined(PASTIX_WITH_CUDA)
 {
     if( isTwoD && noskip ) {
         SolverCblk *cblk  = datacode->cblktab + k;
+
+        assert( !(cblk->cblktype & CBLK_COMPRESSED ) );
 
         if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
             gpublok_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
@@ -544,7 +568,17 @@ RW    C  <- (k == first) ? A OneToTwoD( cblk_n, blok_mn )
 
 BODY [ type=CUDA
        pushout=forced_pushout
-       device="((!todo) ? -2 : -1)"
+       device=%{ SolverCblk *lcblk = datacode->cblktab + cblk_k;
+                 SolverCblk *fcblk = datacode->cblktab + cblk_n;
+                 if ( (!todo) ||
+                      (lcblk->cblktype & (CBLK_COMPRESSED|CBLK_IN_SCHUR)) ||
+                      (fcblk->cblktype & CBLK_COMPRESSED) )
+                 {
+                     return -2;
+                 } else {
+                     return -1;
+                 }
+                 %}
        weight="(last-k+1)"
        cpu_cost="modelsGetCost3Param( cpu2d_coefs, dimm, dimn, dimk )"
        gpu_cost="modelsGetCost3Param( gpu2d_coefs, dimm, dimn, dimk )" ]
@@ -556,6 +590,9 @@ BODY [ type=CUDA
         SolverCblk *cblk  = datacode->cblktab + cblk_k;
         SolverCblk *fcblk = datacode->cblktab + cblk_n;
         pastix_int_t nk = blok_nk - fblokk;
+
+        assert( !(cblk->cblktype  & CBLK_COMPRESSED ) &&
+                !(fcblk->cblktype & CBLK_COMPRESSED ) );
 
         if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
             gpublok_zgemmsp( PastixLCoef, PastixLCoef, PastixTrans,
