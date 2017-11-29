@@ -110,9 +110,14 @@ starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
                           sopalin_data_t   *sopalin_data,
                           int               prio )
 {
-    struct starpu_codelet *codelet;
-    codelet = (cblk->cblktype & CBLK_COMPRESSED) ? &cl_cblk_zgemmsp_cpu
-        :                                          &cl_cblk_zgemmsp_gpu;
+    struct starpu_codelet *codelet = &cl_cblk_zgemmsp_cpu;
+
+#if defined(PASTIX_WITH_CUDA)
+    if ( !(cblk->cblktype  & CBLK_COMPRESSED) &&
+         !(fcblk->cblktype & CBLK_COMPRESSED) ) {
+        codelet = &cl_cblk_zgemmsp_gpu;
+    }
+#endif
 
     starpu_insert_task(
         pastix_codelet(codelet),
@@ -229,9 +234,14 @@ starpu_task_blok_zgemmsp( pastix_coefside_t sideA,
     pastix_int_t blok_mk = blokA - cblk->fblokptr;
     pastix_int_t blok_nk = blokB - cblk->fblokptr;
 
-    struct starpu_codelet *codelet;
-    codelet = (cblk->cblktype & CBLK_COMPRESSED) ? &cl_blok_zgemmsp_cpu
-        :                                          &cl_blok_zgemmsp_gpu;
+    struct starpu_codelet *codelet = &cl_blok_zgemmsp_cpu;
+
+#if defined(PASTIX_WITH_CUDA)
+    if ( !(cblk->cblktype  & CBLK_COMPRESSED) &&
+         !(fcblk->cblktype & CBLK_COMPRESSED) ) {
+        codelet = &cl_blok_zgemmsp_gpu;
+    }
+#endif
 
     assert( blok_nk <= blok_mk );
 

@@ -110,9 +110,13 @@ starpu_task_blok_ztrsmsp( pastix_coefside_t coef,
                           int               prio )
 {
     pastix_int_t blok_m = blok - cblk->fblokptr;
-    struct starpu_codelet *codelet;
-    codelet = (cblk->cblktype & CBLK_COMPRESSED) ? &cl_blok_ztrsmsp_cpu
-        :                                          &cl_blok_ztrsmsp_gpu;
+    struct starpu_codelet *codelet = &cl_blok_ztrsmsp_cpu;
+
+#if defined(PASTIX_WITH_CUDA)
+    if ( !(cblk->cblktype & CBLK_COMPRESSED) ) {
+        codelet = &cl_blok_ztrsmsp_gpu;
+    }
+#endif
 
     starpu_insert_task(
         pastix_codelet(codelet),

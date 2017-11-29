@@ -54,8 +54,7 @@
 
 #if !defined(PASTIX_WITH_CUDA)
 #undef CODELETS_GPU
-#define CODELETS_GPU(_name_, _nbuffers_, _cuda_flags_)       \
-    CODELETS_CPU( _name_, _nbuffers_ )
+#define CODELETS_GPU(_name_, _nbuffers_, _cuda_flags_) 
 #endif
 
 #endif /* _codelets_h_ */
