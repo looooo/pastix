@@ -23,7 +23,7 @@ precisions_rules_py(generated_libfiles
    "${LIB_SOURCES}"
    PRECISIONS "p;s;d;c;z")
 
- add_library(spm_test
+add_library(spm_test
    ${generated_libfiles}
    p_spm_tests.c
    )
@@ -98,9 +98,35 @@ endforeach()
 find_package(TMG)
 
 if(TMG_FOUND)
+  ## Generate the test library files for all required precisions
+  set(LIB_SOURCES
+    z_lowrank_tests.c
+    )
+
+  ## reset variables
+  set(generated_libfiles "")
+
+  precisions_rules_py(generated_libfiles
+    "${LIB_SOURCES}"
+    PRECISIONS "p;s;d;c;z")
+
+  add_library(lowrank_test
+    ${generated_libfiles}
+    )
+
+  target_link_libraries( lowrank_test
+    pastix_kernels
+    ${LAPACKE_LIBRARIES}
+    ${TMG_LIBRARIES}
+    ${LAPACK_SEQ_LIBRARIES}
+    ${BLAS_SEQ_LIBRARIES}
+    ${EXTRA_LIBS}
+    m)
+
   set(TESTS_SOURCES
     z_ge2lr_tests.c
     z_rradd_tests.c
+    z_lrmm_tests.c
     )
 
   ## reset variables
@@ -116,27 +142,15 @@ if(TMG_FOUND)
     target_link_libraries(${_name_we}
       pastix_kernels
       pastix
+      lowrank_test
       ${LAPACKE_LIBRARIES}
       ${TMG_LIBRARIES}
       ${LAPACK_SEQ_LIBRARIES}
       ${BLAS_SEQ_LIBRARIES}
       ${EXTRA_LIBS}
       m)
-  endforeach()
 
-  set( GE2LR_TESTS
-    s_ge2lr_tests d_ge2lr_tests c_ge2lr_tests z_ge2lr_tests )
-  set( RRADD_TESTS
-    s_rradd_tests d_rradd_tests c_rradd_tests z_rradd_tests )
-
-  # GE2LR
-  foreach(example ${GE2LR_TESTS} )
-    add_test(test_${example} ./${example})
-  endforeach()
-
-  # RRADD
-  foreach(example ${RRADD_TESTS} )
-    add_test(test_${example} ./${example})
+    add_test(test_${_name_we} ./${_name_we})
   endforeach()
 
 endif()

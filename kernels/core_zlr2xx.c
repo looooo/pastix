@@ -246,6 +246,8 @@ core_zlr2null(core_zlrmm_t           *params,
     pastix_fixdbl_t flops;
     int allocated = 0;
 
+    assert( C->rk == 0 );
+
     if ( AB->rk > rklimit ) {
         pastix_complex64_t *Cfr, *Coff;
         if ( (Cfr = core_zlrmm_getws( params, Cm * Cn )) == NULL ) {

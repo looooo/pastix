@@ -625,14 +625,11 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
             pastix_int_t *jpvt, pastix_complex64_t *tau,
             pastix_complex64_t *work, pastix_int_t ldwork,
             double *rwork,
-            double tol, pastix_int_t nb, pastix_int_t maxrank)
+            double tol, pastix_int_t nb, pastix_int_t maxrank )
 {
-    pastix_int_t minMN = pastix_imin(m, n);
-    pastix_int_t ldf   = ldwork;
-
+    pastix_int_t minMN, ldf;
     pastix_int_t j, k, jb, itemp, lsticc, pvt;
-    double temp, temp2;
-    double machine_prec = sqrt(LAPACKE_dlamch('e'));
+    double temp, temp2, machine_prec;
     pastix_complex64_t akk;
 
     pastix_complex64_t *auxv, *f;
@@ -646,23 +643,37 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
     /* Rank */
     pastix_int_t rk = 0;
 
-    if (m < 0)
+#if !defined(NDEBUG)
+    if (m < 0) {
         return -1;
-    if (n < 0)
+    }
+    if (n < 0) {
         return -2;
-    if (lda < pastix_imax(1, m))
+    }
+    if (lda < pastix_imax(1, m)) {
         return -4;
-    if( ldwork < n)
+    }
+    if( ldwork < n) {
         return -8;
+    }
+#endif
+
+    minMN = pastix_imin(m, n);
+    if ((minMN == 0) || (tol <= 0.0)) {
+        return 0;
+    }
 
     VN1 = rwork;
     VN2 = rwork + n;
 
     auxv = work;
     f    = work + ldwork;
+    ldf  = ldwork;
 
-    /* Initialize partial column norms. The first N elements of work */
-    /* store the exact column norms. */
+    /*
+     * Initialize partial column norms. The first N elements of work store the
+     * exact column norms.
+     */
     /* TODO: call PLASMA/internal kernel */
     for (j=0; j<n; j++){
         VN1[j]  = cblas_dznrm2(m, A + j*lda, 1);
@@ -670,7 +681,11 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
         jpvt[j] = j;
     }
 
-    while(rk <= maxrank) {
+    offset = 0;
+    machine_prec = sqrt(LAPACKE_dlamch_work('e'));
+    rk = 0;
+
+    while ( rk < minMN ) {
         /* jb equivalent to kb in LAPACK xLAQPS: number of columns actually factorized */
         jb     = pastix_imin(nb, minMN-offset+1);
         lsticc = 0;
@@ -678,32 +693,39 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
         /* column being factorized among jb */
         k = 0;
 
-        while(k < jb && lsticc == 0){
+        while(k < jb) {
 
             rk = offset+k;
+            assert( rk < n );
 
-            /* Rank is too large for compression */
-            if (rk > maxrank){
+            /*
+             * Rank is too large for compression
+             */
+            if (rk > maxrank) {
+                return -1;
+            }
+            if (rk == minMN) {
                 return rk;
             }
 
-            pvt = rk + cblas_izamax(n-rk, VN1 + rk, 1);
+            pvt = rk + cblas_idamax(n-rk, VN1 + rk, 1);
 
-            if (VN1[pvt] <= tol){
-                double residual = 0.0;
-                pastix_int_t i;
-                for (i=rk; i<n; i++){
-                    residual += VN1[i]*VN1[i];
-                }
-                if (sqrt(residual) <= tol)
+            if (VN1[pvt] < tol) {
+                double residual = cblas_dnrm2( n-rk, VN1 + rk, 1 );
+                if (residual < tol) {
                     return rk;
+                }
             }
 
-            /* Pivot is not within the current column: we swap */
+            /*
+             * Pivot is not within the current column: we swap
+             */
             if (pvt != rk){
-                assert( (pvt < n) && (rk < n) );
-                cblas_zswap(m, A + pvt * lda, 1, A + rk * lda, 1);
-                cblas_zswap(k, f + (pvt-offset), ldf, f + k, ldf);
+                assert( pvt < n );
+                cblas_zswap( m, A + pvt * lda, 1,
+                                A + rk  * lda, 1 );
+                cblas_zswap( k, f + (pvt-offset), ldf,
+                                f + k,            ldf );
 
                 itemp     = jpvt[pvt];
                 jpvt[pvt] = jpvt[rk];
@@ -712,21 +734,22 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
                 VN2[pvt]  = VN2[rk];
             }
 
-            /* Apply previous Householder reflectors to column K */
-            /* A(RK:M,RK) := A(RK:M,RK) - A(RK:M,OFFSET+1:RK-1)*F(K,1:K-1)**H */
-            if (k > 0){
+            /*
+             * Apply previous Householder reflectors to column K
+             * A(RK:M,RK) := A(RK:M,RK) - A(RK:M,OFFSET+1:RK-1)*F(K,1:K-1)**H
+             */
+            if (k > 0) {
 #if defined(PRECISION_c) || defined(PRECISION_z)
                 for (j=0; j<k; j++){
                     f[j * ldf + k] = conj(f[j * ldf + k]);
                 }
 #endif
 
-                assert( (offset+1) < n );
                 assert( (rk < n) && (rk < m) );
-                cblas_zgemv(CblasColMajor, CblasNoTrans, m-rk, k, CBLAS_SADDR(mzone),
-                            A + (offset) * lda + rk, lda,
-                            f + k, ldf,
-                            CBLAS_SADDR(zone), A + rk * lda + rk, 1);
+                cblas_zgemv( CblasColMajor, CblasNoTrans, m-rk, k,
+                             CBLAS_SADDR(mzone), A + offset * lda + rk, lda,
+                                                 f +                k,  ldf,
+                             CBLAS_SADDR(zone),  A + rk     * lda + rk, 1 );
 
 #if defined(PRECISION_c) || defined(PRECISION_z)
                 for (j=0; j<k; j++){
@@ -735,126 +758,138 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
 #endif
             }
 
-            /* Generate elementary reflector H(k). */
-            if (rk < (m-1)){
+            /*
+             * Generate elementary reflector H(k).
+             */
+            if ((rk+1) < m) {
                 LAPACKE_zlarfg(m-rk, A + rk * lda + rk, A + rk * lda + (rk+1), 1, tau + rk);
             }
             else{
-                LAPACKE_zlarfg(1, A + rk * lda + rk, A + rk * lda + rk, 1, tau + rk);
+                LAPACKE_zlarfg(1,    A + rk * lda + rk, A + rk * lda + rk,     1, tau + rk);
             }
 
             akk = A[rk * lda + rk];
             A[rk * lda + rk] = zone;
 
-            /* Compute Kth column of F: */
-            /* F(K+1:N,K) := tau(K)*A(RK:M,K+1:N)**H*A(RK:M,K). */
-            if (rk < (n-1)){
+            /*
+             * Compute Kth column of F:
+             * F(K+1:N,K) := tau(K)*A(RK:M,K+1:N)**H*A(RK:M,K).
+             */
+            if ((rk+1) < n) {
                 pastix_complex64_t alpha = tau[rk];
-                cblas_zgemv(CblasColMajor, CblasConjTrans, m-rk, n-rk-1, CBLAS_SADDR(alpha),
-                            A + (rk+1) * lda + rk, lda,
-                            A + rk * lda + rk, 1,
-                            CBLAS_SADDR(zzero), f + k * ldf + k + 1, 1);
+                cblas_zgemv( CblasColMajor, CblasConjTrans, m-rk, n-rk-1,
+                             CBLAS_SADDR(alpha), A + (rk+1) * lda + rk,    lda,
+                                                 A +  rk    * lda + rk,    1,
+                             CBLAS_SADDR(zzero), f +  k     * ldf + k + 1, 1 );
             }
 
-            /* Padding F(1:K,K) with zeros. */
-            for (j=0; j<k; j++){
-                f[k * ldf + j] = zzero;
-            }
+            /*
+             * Padding F(1:K,K) with zeros.
+             */
+            memset( f + k * ldf, 0, k * sizeof( pastix_complex64_t ) );
 
-            /* Incremental updating of F: */
-            /* F(1:N,K) := F(1:N-OFFSET,K) - tau(RK)*F(1:N,1:K-1)*A(RK:M,OFFSET+1:RK-1)**H*A(RK:M,RK). */
-            if (k > 0){
+            /*
+             * Incremental updating of F:
+             * F(1:N,K) := F(1:N-OFFSET,K) - tau(RK)*F(1:N,1:K-1)*A(RK:M,OFFSET+1:RK-1)**H*A(RK:M,RK).
+             */
+            if (k > 0) {
                 pastix_complex64_t alpha = -tau[rk];
-                cblas_zgemv(CblasColMajor, CblasConjTrans, m-rk, k, CBLAS_SADDR(alpha),
-                            A + (offset) * lda + rk, lda,
-                            A + rk * lda + rk, 1,
-                            CBLAS_SADDR(zzero), auxv, 1);
+                cblas_zgemv( CblasColMajor, CblasConjTrans, m-rk, k,
+                             CBLAS_SADDR(alpha), A + offset * lda + rk, lda,
+                                                 A + rk     * lda + rk, 1,
+                             CBLAS_SADDR(zzero), auxv,                  1 );
 
-                cblas_zgemv(CblasColMajor, CblasNoTrans, n-offset, k, CBLAS_SADDR(zone),
-                            f, ldf,
-                            auxv, 1,
-                            CBLAS_SADDR(zone), f + k * ldf, 1);
+                cblas_zgemv( CblasColMajor, CblasNoTrans, n-offset, k,
+                             CBLAS_SADDR(zone), f,           ldf,
+                                                auxv,        1,
+                             CBLAS_SADDR(zone), f + k * ldf, 1);
             }
 
-            /* Update the current row of A: */
-            /* A(RK,RK+1:N) := A(RK,RK+1:N) - A(RK,OFFSET+1:RK)*F(K+1:N,1:K)**H. */
-            if (rk < (n-1)){
-
+            /*
+             * Update the current row of A:
+             * A(RK,RK+1:N) := A(RK,RK+1:N) - A(RK,OFFSET+1:RK)*F(K+1:N,1:K)**H.
+             */
+            if ((rk+1) < n) {
 #if defined(PRECISION_c) || defined(PRECISION_z)
-                cblas_zgemm(CblasColMajor, CblasNoTrans, CblasConjTrans,
-                            1, n-rk-1, k+1,
-                            CBLAS_SADDR(mzone), A + (offset) * lda + rk, lda,
-                            f + (k+1), ldf,
-                            CBLAS_SADDR(zone), A + (rk+1) * lda + rk, lda);
+                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasConjTrans,
+                             1, n-rk-1, k+1,
+                             CBLAS_SADDR(mzone), A + (offset) * lda + rk,    lda,
+                                                 f +                  (k+1), ldf,
+                             CBLAS_SADDR(zone),  A + (rk + 1) * lda + rk,    lda );
 #else
-                cblas_zgemv(CblasColMajor, CblasNoTrans, n-rk-1, k+1, CBLAS_SADDR(mzone),
-                            f + (k+1), ldf,
-                            A + (offset) * lda + rk, lda,
-                            CBLAS_SADDR(zone), A + (rk+1) * lda + rk, lda);
+                cblas_zgemv( CblasColMajor, CblasNoTrans, n-rk-1, k+1,
+                             CBLAS_SADDR(mzone), f +                  (k+1), ldf,
+                                                 A + (offset) * lda + rk,    lda,
+                             CBLAS_SADDR(zone),  A + (rk + 1) * lda + rk,    lda );
 #endif
             }
 
-            /* Update partial column norms. */
-            if (rk < (minMN-1)){
-                for (j=rk+1; j<n; j++){
-                    if (VN1[j] != 0.0){
-                        /* NOTE: The following 4 lines follow from the analysis in */
-                        /* Lapack Working Note 176. */
+            /*
+             * Update partial column norms.
+             */
+            if ((rk+1) < minMN) {
+                for (j=rk+1; j<n; j++) {
+                    if (VN1[j] != 0.0) {
+                        /*
+                         * NOTE: The following 4 lines follow from the analysis in
+                         * Lapack Working Note 176.
+                         */
                         temp  = cabs( A[j * lda + rk] ) / VN1[j];
-                        double temp3 = (1.0 + temp) * (1.0 - temp);
-                        if (temp3 > 0.0){
-                            temp = temp3;
-                        }
-                        else{
-                            temp = 0.0;
-                        }
-                        temp2 = temp * ( VN1[j] / VN2[j]) * ( VN1[j] / VN2[j]);
+                        temp2 = (1.0 + temp) * (1.0 - temp);
+                        temp  = (temp2 > 0.0) ? temp2 : 0.0;
+
+                        temp2 = temp * ((VN1[j] / VN2[j]) * ( VN1[j] / VN2[j]));
                         if (temp2 < machine_prec){
-                            VN2[j] = lsticc;
+                            VN2[j] = (double)lsticc;
                             lsticc = j;
                         }
                         else{
                             VN1[j] = VN1[j] * sqrt(temp);
                         }
-
                     }
                 }
             }
 
             A[rk * lda + rk] = akk;
-
             k++;
+
+            if (lsticc != 0) break;
         }
 
-        /* Apply the block reflector to the rest of the matrix: */
-        /* A(RK+1:M,RK+1:N) := A(RK+1:M,RK+1:N) - */
-        /* A(RK+1:M,OFFSET+1:RK)*F(K+1:N-OFFSET,1:K)**H. */
-        if (rk < (minMN-1)){
-            cblas_zgemm(CblasColMajor, CblasNoTrans, CblasConjTrans,
-                        m-rk-1, n-rk-1, k,
-                        CBLAS_SADDR(mzone), A + (offset) * lda + rk + 1, lda,
-                        f + k, ldf,
-                        CBLAS_SADDR(zone), A + (rk+1) * lda + rk + 1, lda);
+        /*
+         * Apply the block reflector to the rest of the matrix:
+         * A(RK+1:M,RK+1:N) := A(RK+1:M,RK+1:N) -
+         * A(RK+1:M,OFFSET+1:RK)*F(K+1:N-OFFSET,1:K)**H.
+         */
+        if ((rk+1) < minMN) {
+            cblas_zgemm( CblasColMajor, CblasNoTrans, CblasConjTrans,
+                         m-rk-1, n-rk-1, k,
+                         CBLAS_SADDR(mzone), A + (offset) * lda + rk + 1, lda,
+                                             f +                  k,      ldf,
+                         CBLAS_SADDR(zone),  A + (rk+1)   * lda + rk + 1, lda );
         }
 
         /* Recomputation of difficult columns. */
-        while (lsticc > 0){
-            itemp = (pastix_int_t) (VN2[lsticc]);
+        while (lsticc > 0) {
             assert(lsticc < n);
-            VN1[lsticc] = cblas_dznrm2(m-rk-1, A + (lsticc) * lda + rk + 1, 1);
+            itemp = (pastix_int_t) (VN2[lsticc]);
 
-            /* NOTE: The computation of VN1( LSTICC ) relies on the fact that  */
-            /* SNRM2 does not fail on vectors with norm below the value of */
-            /* SQRT(DLAMCH('S'))  */
+            VN1[lsticc] = cblas_dznrm2(m-rk-1, A + lsticc * lda + rk+1, 1 );
+
+            /*
+             * NOTE: The computation of VN1( LSTICC ) relies on the fact that
+             * SNRM2 does not fail on vectors with norm below the value of
+             * SQRT(DLAMCH('S'))
+             */
             VN2[lsticc] = VN1[lsticc];
             lsticc = itemp;
         }
 
-        lsticc = 0;
-        offset = rk+1;
+        rk++;
+        offset = rk;
     }
 
-    return rk+1;
+    return rk;
 }
 
 /**
@@ -937,12 +972,14 @@ core_zge2lr_rrqr( pastix_fixdbl_t tol, pastix_int_t rklimit,
                                A, lda, Acpy, m );
     assert(ret == 0);
 
+    rklimit = (rklimit == -1) ? core_get_rklimit( m, n ) : rklimit;
+    rklimit = pastix_imin( rklimit, pastix_imin(m, n) );
     ret = core_zrrqr( m, n,
                       Acpy, m,
                       jpvt, tau,
                       work, ldwork,
                       rwork,
-                      tol * norm, nb, pastix_imin(m,n) - 1 );
+                      tol * norm, nb, rklimit );
     if (ret == -1) {
         flops = FLOPS_ZGEQRF( m, n );
     }
@@ -1081,7 +1118,7 @@ core_zrradd_rrqr( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void
                   pastix_int_t offx, pastix_int_t offy)
 {
     pastix_int_t rankA, rank, M, N, minV;
-    pastix_int_t i, ret, new_rank;
+    pastix_int_t i, ret, new_rank, rklimit;
     pastix_int_t ldau, ldav, ldbu, ldbv, ldu, ldv;
     pastix_complex64_t *u1u2, *v1v2, *u;
     pastix_complex64_t *zbuf, *tauV;
@@ -1254,13 +1291,15 @@ core_zrradd_rrqr( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void
      * Perform RRQR factorization on (I u2Tu1) v1v2 = (Q2 R2)
      *                               (0   I  )
      */
+    rklimit = core_get_rklimit( M, N );
+
     kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_rradd_recompression );
-    new_rank = core_zrrqr(rank, N,
-                          v1v2, ldv,
-                          jpvt, tauV,
-                          zwork, ldwork,
-                          rwork,
-                          tol * norm, nb, rank-1);
+    new_rank = core_zrrqr( rank, N,
+                           v1v2, ldv,
+                           jpvt, tauV,
+                           zwork, ldwork,
+                           rwork,
+                           tol * norm, nb, pastix_imin(rklimit, rank) );
     flops = (new_rank == -1) ? FLOPS_ZGEQRF( rank, N )
         :                     (FLOPS_ZGEQRF( rank, new_rank ) +
                                FLOPS_ZUNMQR( rank, N-new_rank, new_rank, PastixLeft ));
@@ -1270,7 +1309,7 @@ core_zrradd_rrqr( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void
     /*
      * First case: The rank is too big, so we decide to uncompress the result
      */
-    if ( (new_rank > (pastix_imin( M, N ) / PASTIX_LR_MINRATIO)) ||
+    if ( (new_rank > rklimit) ||
          (new_rank == -1) )
     {
         pastix_lrblock_t Bbackup = *B;

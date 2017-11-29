@@ -45,18 +45,31 @@
  * @brief Define the minmal ratio for which we accept to compress a matrix into a low-rank form or not.
  * @sa core_get_rklimit()
  */
-#define PASTIX_LR_MINRATIO 4
+#define PASTIX_LR_MINRATIO 1
 
 /**
- * @brief Compute the maximal rank accepted for a given matrix size
+ * @brief Compute the maximal rank accepted for a given matrix size for Just-In-Time strategy
  * @param[in] M The number of rows of the matrix
  * @param[in] N The number of columns of the matrix
- * @return The maximal rank accepeted for this matrix size.
+ * @return The maximal rank accepted for this matrix size.
  */
 static inline pastix_int_t
-core_get_rklimit( pastix_int_t M, pastix_int_t N ) {
-    return pastix_imin( M, N ) / PASTIX_LR_MINRATIO;
+core_get_rklimit_end( pastix_int_t M, pastix_int_t N ) {
+    return ( PASTIX_LR_MINRATIO * pastix_imin( M, N ) ) / 4;
 }
+
+/**
+ * @brief Compute the maximal rank accepted for a given matrix size for Minimal-Memory strategy
+ * @param[in] M The number of rows of the matrix
+ * @param[in] N The number of columns of the matrix
+ * @return The maximal rank accepted for this matrix size.
+ */
+static inline pastix_int_t
+core_get_rklimit_begin( pastix_int_t M, pastix_int_t N ) {
+    return ( PASTIX_LR_MINRATIO * M * N ) / ( M + N );
+}
+
+extern pastix_int_t (*core_get_rklimit)( pastix_int_t, pastix_int_t );
 
 struct pastix_lr_s;
 typedef struct pastix_lr_s pastix_lr_t;
