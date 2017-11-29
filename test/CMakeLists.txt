@@ -23,7 +23,7 @@ precisions_rules_py(generated_libfiles
    "${LIB_SOURCES}"
    PRECISIONS "p;s;d;c;z")
 
- add_library(spm_test
+add_library(spm_test
    ${generated_libfiles}
    p_spm_tests.c
    )
@@ -98,6 +98,31 @@ endforeach()
 find_package(TMG)
 
 if(TMG_FOUND)
+  ## Generate the test library files for all required precisions
+  set(LIB_SOURCES
+    z_lowrank_tests.c
+    )
+
+  ## reset variables
+  set(generated_libfiles "")
+
+  precisions_rules_py(generated_libfiles
+    "${LIB_SOURCES}"
+    PRECISIONS "p;s;d;c;z")
+
+  add_library(lowrank_test
+    ${generated_libfiles}
+    )
+
+  target_link_libraries( lowrank_test
+    pastix_kernels
+    ${LAPACKE_LIBRARIES}
+    ${TMG_LIBRARIES}
+    ${LAPACK_SEQ_LIBRARIES}
+    ${BLAS_SEQ_LIBRARIES}
+    ${EXTRA_LIBS}
+    m)
+
   set(TESTS_SOURCES
     z_ge2lr_tests.c
     z_rradd_tests.c
@@ -116,6 +141,7 @@ if(TMG_FOUND)
     target_link_libraries(${_name_we}
       pastix_kernels
       pastix
+      lowrank_test
       ${LAPACKE_LIBRARIES}
       ${TMG_LIBRARIES}
       ${LAPACK_SEQ_LIBRARIES}

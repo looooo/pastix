@@ -42,198 +42,78 @@
     }
 
 int
+z_lowrank_genmat( int mode, double tolerance, pastix_int_t rank,
+                  pastix_int_t m, pastix_int_t n, pastix_int_t lda,
+                  pastix_complex64_t **Aptr,
+                  pastix_lrblock_t    *lrA_svd,
+                  pastix_lrblock_t    *lrA_rrqr,
+                  double              *normA );
+
+int
+z_lowrank_rradd( pastix_int_t mA, pastix_int_t nA,
+                 pastix_int_t offx, pastix_int_t offy,
+                 const pastix_complex64_t *A, const pastix_lrblock_t *lrA, double normA,
+                 pastix_int_t mB, pastix_int_t nB,
+                 const pastix_complex64_t *B, const pastix_lrblock_t *lrB, double normB,
+                 pastix_lr_t *lowrank );
+
+int
 z_rradd_test( int mode, double tolerance, pastix_int_t rankA, pastix_int_t rankB,
               pastix_int_t mA, pastix_int_t nA,
               pastix_int_t mB, pastix_int_t nB,
               pastix_int_t offx, pastix_int_t offy )
 {
-    pastix_complex64_t *A, *B, *B_tmp;
-    pastix_complex64_t *C_RRQR, *C_SVD;
-    pastix_lrblock_t    LR_A_SVD, LR_B_SVD;
-    pastix_lrblock_t    LR_A_RRQR, LR_B_RRQR;
-    pastix_lr_t lr_RRQR, lr_SVD;
+    pastix_complex64_t *A, *B;
+    pastix_lrblock_t    lrA_svd, lrB_svd;
+    pastix_lrblock_t    lrA_rrqr, lrB_rrqr;
+    pastix_lr_t         lr_RRQR, lr_SVD;
+    double              norm_dense_A, norm_dense_B;
+    int                 rc = 0;
 
-    double norm_dense_A, norm_dense_B;
-    double norm_diff_SVD, norm_diff_RRQR;
-    double res_SVD, res_RRQR;
+    /*
+     * Generate matrices of rankA and rankB and thei compress SVD/RRQR versions
+     */
+    z_lowrank_genmat( mode, tolerance, rankA, mA, nA, mA,
+                      &A, &lrA_svd, &lrA_rrqr, &norm_dense_A );
+    z_lowrank_genmat( mode, tolerance, rankB, mB, nB, mB,
+                      &B, &lrB_svd, &lrB_rrqr, &norm_dense_B );
 
-    pastix_int_t minMN_A = pastix_imin(mA, nA);
-    pastix_int_t minMN_B = pastix_imin(mB, nB);
+    printf( " The rank of A   is: RRQR %d SVD %d rkmax %d\n",
+            lrA_rrqr.rk, lrA_svd.rk, (int)core_get_rklimit( mA, nA ) );
+    printf( " The rank of B   is: RRQR %d SVD %d rkmax %d\n",
+            lrB_rrqr.rk, lrB_svd.rk, (int)core_get_rklimit( mB, nB ) );
 
-    double rcond = (double) minMN_A;
-    double dmax  = 1.0;
-    int ISEED[4] = {0,0,0,1};   /* initial seed for zlarnv() */
 
-    pastix_complex64_t *work;
-    double *SA, *SB;
-    double alphaA, alphaB;
-    pastix_complex64_t mone = -1.0;
+    {
+        lr_RRQR.compress_when       = PastixCompressWhenEnd;
+        lr_RRQR.compress_method     = PastixCompressMethodRRQR;
+        lr_RRQR.compress_min_width  = 0;
+        lr_RRQR.compress_min_height = 0;
+        lr_RRQR.tolerance  = tolerance;
+        lr_RRQR.core_ge2lr = core_zge2lr_rrqr;
+        lr_RRQR.core_rradd = core_zrradd_rrqr;
 
-    int rc = 0;
-
-    lr_RRQR.compress_when       = 0;
-    lr_RRQR.compress_method     = 0;
-    lr_RRQR.compress_min_width  = 0;
-    lr_RRQR.compress_min_height = 0;
-    lr_RRQR.tolerance  = tolerance;
-    lr_RRQR.core_ge2lr = core_zge2lr_rrqr;
-    lr_RRQR.core_rradd = core_zrradd_rrqr;
-
-    lr_SVD.compress_when       = 0;
-    lr_SVD.compress_method     = 0;
-    lr_SVD.compress_min_width  = 0;
-    lr_SVD.compress_min_height = 0;
-    lr_SVD.tolerance  = tolerance;
-    lr_SVD.core_ge2lr = core_zge2lr_svd;
-    lr_SVD.core_rradd = core_zrradd_svd;
-
-    A      = malloc(mA * nA * sizeof(pastix_complex64_t));
-    B      = malloc(mB * nB * sizeof(pastix_complex64_t));
-    C_RRQR = malloc(mA * nA * sizeof(pastix_complex64_t));
-    C_SVD  = malloc(mA * nA * sizeof(pastix_complex64_t));
-    SA     = malloc(minMN_A * sizeof(double));
-    SB     = malloc(minMN_B * sizeof(double));
-    work   = malloc(3 * pastix_imax(pastix_imax(mA, nA), pastix_imax(mB, nB)) * sizeof(pastix_complex64_t));
-
-    if ( (!A) || (!B) || (!C_SVD) || (!C_RRQR) || (!SA) || (!SB) || (!work) ) {
-        printf("Out of Memory \n ");
-        free(A); free(B); free(C_RRQR); free(C_SVD); free(SA); free(SB); free(work);
-        return -2;
+        printf(" RRQR: ");
+        rc += z_lowrank_rradd( mA, nA, offx, offy, A, &lrA_rrqr, norm_dense_A,
+                               mB, nB,             B, &lrB_rrqr, norm_dense_B,
+                               &lr_RRQR );
     }
 
-    /* Chose alpha such that alpha^rank = tolerance */
-    alphaA = exp(log(tolerance) / rankA);
-    alphaB = exp(log(tolerance) / rankB);
+    {
+        lr_SVD.compress_when       = PastixCompressWhenEnd;
+        lr_SVD.compress_method     = PastixCompressMethodSVD;
+        lr_SVD.compress_min_width  = 0;
+        lr_SVD.compress_min_height = 0;
+        lr_SVD.tolerance  = tolerance;
+        lr_SVD.core_ge2lr = core_zge2lr_svd;
+        lr_SVD.core_rradd = core_zrradd_svd;
 
-    if (mode == 0){
-        pastix_int_t i;
-        SA[0] = 1;
-        SB[0] = 1;
-
-        if (rankA == 0)
-            SA[0] = 0.;
-        if (rankB == 0)
-            SB[0] = 0.;
-
-        for (i=1; i<minMN_A; i++){
-            SA[i] = SA[i-1] * alphaA;
-        }
-        for (i=1; i<minMN_B; i++){
-            SB[i] = SB[i-1] * alphaB;
-        }
+        printf(" SVD:  ");
+        rc += z_lowrank_rradd( mA, nA, offx, offy, A, &lrA_svd, norm_dense_A,
+                               mB, nB,             B, &lrB_svd, norm_dense_B,
+                               &lr_SVD );
     }
 
-    /* Initialize A and B */
-    LAPACKE_zlatms_work( LAPACK_COL_MAJOR, mA, nA,
-                         'U', ISEED,
-                         'N', SA, mode, rcond,
-                         dmax, mA, nA,
-                         'N', A, mA, work );
-
-    LAPACKE_zlatms_work( LAPACK_COL_MAJOR, mB, nB,
-                         'U', ISEED,
-                         'N', SB, mode, rcond,
-                         dmax, mB, nB,
-                         'N', B, mB, work );
-
-    norm_dense_A = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', mA, nA,
-                                        A, mA, NULL );
-
-    norm_dense_B = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', mB, nB,
-                                        B, mB, NULL );
-
-
-    lr_SVD.core_ge2lr( tolerance, -1, mA, nA,
-                       A, mA, &LR_A_SVD );
-    lr_SVD.core_ge2lr( tolerance, -1, mB, nB,
-                       B, mB, &LR_B_SVD );
-
-    lr_RRQR.core_ge2lr( tolerance, -1, mA, nA,
-                       A, mA, &LR_A_RRQR );
-    lr_RRQR.core_ge2lr( tolerance, -1, mB, nB,
-                       B, mB, &LR_B_RRQR );
-
-    printf(" The rank of A is: RRQR %d SVD %d\n", LR_A_RRQR.rk, LR_A_SVD.rk);
-    printf(" The rank of B is: RRQR %d SVD %d\n", LR_B_RRQR.rk, LR_B_SVD.rk);
-
-    if (LR_A_RRQR.rk == -1 || LR_B_RRQR.rk == -1 || (LR_A_RRQR.rk + LR_B_RRQR.rk) > pastix_imin(mA, nA)){
-        printf("Operation non supported\n");
-        free(A); free(B); free(C_RRQR); free(C_SVD); free(SA); free(SB); free(work);
-        return 0;
-    }
-    if (LR_A_SVD.rk == -1 || LR_B_SVD.rk == -1 || (LR_A_SVD.rk + LR_B_SVD.rk) > pastix_imin(mA, nA)){
-        printf("Operation non supported\n");
-        free(A); free(B); free(C_RRQR); free(C_SVD); free(SA); free(SB); free(work);
-        return 0;
-    }
-
-    /* Add A and B in their LR format */
-    lr_SVD.core_rradd( &lr_SVD, PastixNoTrans, &mone,
-                       mA, nA, &LR_A_SVD,
-                       mB, nB, &LR_B_SVD,
-                       offx, offy );
-
-    lr_RRQR.core_rradd( &lr_RRQR, PastixNoTrans, &mone,
-                        mA, nA, &LR_A_RRQR,
-                        mB, nB, &LR_B_RRQR,
-                        offx, offy );
-
-    printf(" The rank of A+B is: RRQR %d SVD %d\n", LR_B_RRQR.rk, LR_B_SVD.rk);
-
-    /* Build uncompressed LR+LR matrix */
-    core_zlr2ge( PastixNoTrans, mB, nB,
-                 &LR_B_SVD,
-                 C_SVD, mB );
-
-    core_zlr2ge( PastixNoTrans, mB, nB,
-                 &LR_B_RRQR,
-                 C_RRQR, mB );
-
-    /* Compute A+B in dense */
-    B_tmp = B + offx + mB * offy;
-    core_zgeadd( PastixNoTrans, mA, nA,
-                 -1.0, A, mA,
-                 1.0, B_tmp, mB );
-
-    /* Compute norm of dense and LR matrices */
-    core_zgeadd( PastixNoTrans, mB, nB,
-                 -1., B, mB,
-                  1., C_SVD, mB );
-
-    core_zgeadd( PastixNoTrans, mB, nB,
-                 -1., B, mB,
-                 1., C_RRQR, mB );
-
-    norm_diff_SVD  = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', mB, nB,
-                                          C_SVD, mB, NULL );
-    norm_diff_RRQR = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', mB, nB,
-                                          C_RRQR, mB, NULL );
-
-    if ( (rankA != 0) || (rankB != 0) ){
-        res_RRQR = norm_diff_RRQR / ( tolerance * (norm_dense_A + norm_dense_B) );
-        res_SVD  = norm_diff_SVD  / ( tolerance * (norm_dense_A + norm_dense_B) );
-    }
-    else{
-        res_RRQR = norm_diff_RRQR;
-        res_SVD  = norm_diff_SVD;
-    }
-
-    printf("RES SVD=%.3g RRQR=%.3g\n", res_SVD, res_RRQR);
-
-    free(A);
-    free(B);
-    free(C_SVD);
-    free(C_RRQR);
-    free(SA);
-    free(SB);
-    free(work);
-
-    if ( res_RRQR > 10 ) {
-        rc += 1;
-    }
-    if ( res_SVD > 10 ) {
-        rc += 2;
-    }
     return rc;
 }
 
@@ -243,14 +123,16 @@ int main (int argc, char **argv)
     (void) argv;
     int err = 0;
     int ret;
-    pastix_int_t m, r;
-    double tolerance = 0.01;
+    pastix_int_t m, r, rmax;
+    double tolerance = 1e-8;
 
     for (m=200; m<=400; m+=100){
-        for (r=0; r <= (m/2); r += ( r + 1 ) ) {
-            printf("   -- Test RRADD MA=NA=LDA=%ld MB=NB=LDB=%ld RA=%ld RB=%ld\n", (long)m, (long)m, (long)r, (long)(r/2));
+        rmax = core_get_rklimit( m, m );
+        for (r=0; (r + (r/2)) < rmax; r += ( r + 1 ) ) {
+            printf("   -- Test RRADD MA=NA=LDA=%ld MB=NB=LDB=%ld RA=%ld RB=%ld\n",
+                   (long)m, (long)m, (long)r/2, (long)r);
 
-            ret = z_rradd_test(0, tolerance, r, r/2,
+            ret = z_rradd_test(0, tolerance, r/2, r,
                                m, m,
                                m, m,
                                0, 0);

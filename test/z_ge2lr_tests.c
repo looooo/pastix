@@ -11,7 +11,7 @@
  * @author Gregoire Pichon
  * @date 2016-11-24
  *
- * @precisions normal z -> c d s
+ * @precisions normal z -> z c d s
  *
  **/
 #include <stdint.h>
@@ -42,107 +42,66 @@
     }
 
 int
+z_lowrank_genmat( int mode, double tolerance, pastix_int_t rank,
+                  pastix_int_t m, pastix_int_t n, pastix_int_t lda,
+                  pastix_complex64_t **Aptr,
+                  pastix_lrblock_t    *lrA_svd,
+                  pastix_lrblock_t    *lrA_rrqr,
+                  double              *normA );
+
+int
 z_ge2lr_test( int mode, double tolerance, pastix_int_t rank,
               pastix_int_t m, pastix_int_t n, pastix_int_t lda )
 {
 
-    pastix_complex64_t *A, *A_RRQR, *A_SVD;
-    pastix_lrblock_t    LR_RRQR, LR_SVD;
+    pastix_complex64_t *A, *A2;
+    pastix_lrblock_t    lrA_rrqr, lrA_svd;
 
     double norm_dense;
     double norm_diff_RRQR, norm_diff_SVD;
     double res_SVD, res_RRQR;
 
-    pastix_int_t minMN    = pastix_imin(m, n);
     pastix_int_t rankmax  = core_get_rklimit(m, n);
-    double       rcond    = (double) minMN;
-    double       dmax     = 1.0;
-    int          ISEED[4] = {0,0,0,1};   /* initial seed for zlarnv() */
     int          rc = 0;
-    pastix_complex64_t *work;
-    double *S;
-
-    double alpha;
-
-    if (lda < m || lda < n){
-        printf("Invalid lda parameter\n");
-        return -3;
-    }
-
-    A      = malloc(n * lda * sizeof(pastix_complex64_t));
-    A_RRQR = malloc(n * lda * sizeof(pastix_complex64_t));
-    A_SVD  = malloc(n * lda * sizeof(pastix_complex64_t));
-
-    S    = malloc(minMN * sizeof(double));
-    work = malloc(3 * pastix_imax(m, n)* sizeof(pastix_complex64_t));
-
-    if ((!A)||(!A_SVD)||(!A_RRQR)||(!S)||(!work)){
-        printf("Out of Memory \n ");
-        free(A); free(A_RRQR); free(A_SVD); free(S); free(work);
-        return -2;
-    }
 
     /*
-     * Choose alpha such that alpha^rank = tolerance
+     * Generate a matrix of rank and its compress SVD/RRQR versions
      */
-    alpha = exp(log(tolerance) / rank);
+    z_lowrank_genmat( mode, tolerance, rank, m, n, lda,
+                      &A, &lrA_svd, &lrA_rrqr, &norm_dense );
 
-    if (mode == 0) {
-        pastix_int_t i;
-        S[0] = 1;
+    printf(" The rank of A is: RRQR %d SVD %d rkmax %d\n", lrA_rrqr.rk, lrA_svd.rk, (int)rankmax);
 
-        if (rank == 0) {
-            S[0] = 0.;
-        }
-        for (i=1; i<minMN; i++){
-            S[i] = S[i-1] * alpha;
-        }
+    /*
+     * Check || A - c(A) || < tol * || A ||
+     */
+    A2 = malloc(n * lda * sizeof(pastix_complex64_t));
+
+    /* SVD */
+    {
+        core_zlr2ge( PastixNoTrans, m, n,
+                     &lrA_svd, A2, lda );
+
+        core_zgeadd( PastixNoTrans, m, n,
+                     -1., A,  lda,
+                      1., A2, lda );
+
+        norm_diff_SVD = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
+                                             A2, lda, NULL );
     }
 
-    /* Initialize A */
-    LAPACKE_zlatms_work( LAPACK_COL_MAJOR, m, n,
-                         'U', ISEED,
-                         'N', S, mode, rcond,
-                         dmax, m, n,
-                         'N', A, lda, work );
+    /* RRQR */
+    {
+        core_zlr2ge( PastixNoTrans, m, n,
+                     &lrA_svd, A2, lda );
 
-    norm_dense = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
-                                      A, lda, NULL );
+        core_zgeadd( PastixNoTrans, m, n,
+                     -1., A,  lda,
+                      1., A2, lda );
 
-    /* Compress and then uncompress  */
-    core_zge2lr_rrqr( tolerance, -1,
-                      m, n,
-                      A, lda,
-                      &LR_RRQR );
-
-    core_zge2lr_svd( tolerance, -1,
-                      m, n,
-                      A, lda,
-                      &LR_SVD );
-
-    core_zlr2ge( PastixNoTrans, m, n,
-                 &LR_RRQR,
-                 A_RRQR, lda );
-
-    core_zlr2ge( PastixNoTrans, m, n,
-                 &LR_SVD,
-                 A_SVD, lda );
-
-    printf(" The rank of A is: RRQR %d SVD %d rkmax %d\n", LR_RRQR.rk, LR_SVD.rk, (int)rankmax);
-
-    core_zgeadd( PastixNoTrans, m, n,
-                 -1., A,      lda,
-                  1., A_RRQR, lda );
-
-    core_zgeadd( PastixNoTrans, m, n,
-                 -1., A,     lda,
-                  1., A_SVD, lda );
-
-    norm_diff_RRQR = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
-                                          A_RRQR, lda, NULL );
-
-    norm_diff_SVD = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
-                                         A_SVD, lda, NULL );
+        norm_diff_RRQR = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
+                                              A2, lda, NULL );
+    }
 
     if (rank != 0){
         res_RRQR = norm_diff_RRQR / ( tolerance * norm_dense );
@@ -154,10 +113,7 @@ z_ge2lr_test( int mode, double tolerance, pastix_int_t rank,
     }
 
     free(A);
-    free(A_SVD);
-    free(A_RRQR);
-    free(S);
-    free(work);
+    free(A2);
 
     /*
      * Check the validity of the results
@@ -171,21 +127,21 @@ z_ge2lr_test( int mode, double tolerance, pastix_int_t rank,
     }
 
     /* Check that SVD rank is equal to the desired rank */
-    if ( ((rank >  rankmax) && (LR_SVD.rk != -1  )) ||
-         ((rank <= rankmax) && ((LR_SVD.rk < (rank-2)) || (LR_SVD.rk > (rank+2)))) )
+    if ( ((rank >  rankmax) && (lrA_svd.rk != -1  )) ||
+         ((rank <= rankmax) && ((lrA_svd.rk < (rank-2)) || (lrA_svd.rk > (rank+2)))) )
     {
         rc += 4;
     }
 
     /* Check that RRQR rank is larger or equal to SVD rank */
-    if (LR_SVD.rk == -1) {
-        if (LR_RRQR.rk != -1) {
+    if (lrA_svd.rk == -1) {
+        if (lrA_rrqr.rk != -1) {
             rc += 8;
         }
     }
     else {
-        if ( (LR_RRQR.rk != -1) &&
-             ((LR_RRQR.rk < LR_SVD.rk) || (LR_RRQR.rk > (LR_SVD.rk + 1.25 * rank ))) )
+        if ( (lrA_rrqr.rk != -1) &&
+             ((lrA_rrqr.rk < lrA_svd.rk) || (lrA_rrqr.rk > (lrA_svd.rk + 1.25 * rank ))) )
         {
             rc += 16;
         }
