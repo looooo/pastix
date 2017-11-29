@@ -409,7 +409,6 @@ core_zlrcpy( const pastix_lr_t *lowrank,
     int ret;
 
     assert( A->rk <= core_get_rklimit( M2, N2 ) );
-    assert( B->rk == 0 );
     assert( (M1 + offx) <= M2 );
     assert( (N1 + offy) <= N2 );
 
