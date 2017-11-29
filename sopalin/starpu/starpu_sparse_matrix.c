@@ -44,8 +44,9 @@ starpu_pastix_filter_list( void *father_interface,
     {
         size_t current_pos = length_tab[id] * elemsize;
 
-        if (vector_father->ptr)
+        if (vector_father->ptr) {
             vector_child->ptr = vector_father->ptr + current_pos;
+        }
         vector_child->offset = vector_father->offset + current_pos;
         vector_child->dev_handle = vector_father->dev_handle;
     }
@@ -125,12 +126,26 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
         nbrow = cblk->stride;
         nbcol = cblk_colnbr( cblk );
 
-        starpu_vector_data_register( handler, STARPU_MAIN_RAM,
-                                     (uintptr_t)(cblk->lcoeftab), nbrow * nbcol, spmtx->typesze );
+        if ( cblk->cblktype & CBLK_COMPRESSED ) {
+            pastix_lrblock_t *LRblocks = cblk->fblokptr->LRblock;
+            pastix_int_t nbbloks = cblk[1].fblokptr - cblk[0].fblokptr;
 
-        if ( mtxtype == PastixGeneral ) {
-            starpu_vector_data_register( handler + 1, STARPU_MAIN_RAM,
-                                         (uintptr_t)(cblk->ucoeftab), nbrow * nbcol, spmtx->typesze );
+            starpu_vector_data_register( handler, STARPU_MAIN_RAM,
+                                         (uintptr_t)(LRblocks), nbbloks * 2, sizeof(pastix_lrblock_t) );
+
+            if ( mtxtype == PastixGeneral ) {
+                starpu_vector_data_register( handler, STARPU_MAIN_RAM,
+                                             (uintptr_t)(LRblocks + 1), nbbloks * 2, sizeof(pastix_lrblock_t) );
+            }
+        }
+        else {
+            starpu_vector_data_register( handler, STARPU_MAIN_RAM,
+                                         (uintptr_t)(cblk->lcoeftab), nbrow * nbcol, spmtx->typesze );
+
+            if ( mtxtype == PastixGeneral ) {
+                starpu_vector_data_register( handler + 1, STARPU_MAIN_RAM,
+                                             (uintptr_t)(cblk->ucoeftab), nbrow * nbcol, spmtx->typesze );
+            }
         }
     }
 
@@ -157,12 +172,26 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
             nbrow = cblk->stride;
             nbcol = cblk_colnbr( cblk );
 
-            starpu_vector_data_register( handler, STARPU_MAIN_RAM,
-                                         (uintptr_t)(cblk->lcoeftab), nbrow * nbcol, spmtx->typesze );
+            if ( cblk->cblktype & CBLK_COMPRESSED ) {
+                pastix_lrblock_t *LRblocks = cblk->fblokptr->LRblock;
+                pastix_int_t nbbloks = cblk[1].fblokptr - cblk[0].fblokptr;
 
-            if ( mtxtype == PastixGeneral ) {
-                starpu_vector_data_register( handler + 1, STARPU_MAIN_RAM,
-                                             (uintptr_t)(cblk->ucoeftab), nbrow * nbcol, spmtx->typesze );
+                starpu_vector_data_register( handler, STARPU_MAIN_RAM,
+                                             (uintptr_t)LRblocks, nbbloks * 2, sizeof(pastix_lrblock_t) );
+
+                if ( mtxtype == PastixGeneral ) {
+                    starpu_vector_data_register( handler, STARPU_MAIN_RAM,
+                                                 (uintptr_t)(LRblocks + 1), nbbloks * 2, sizeof(pastix_lrblock_t) );
+                }
+            }
+            else {
+                starpu_vector_data_register( handler, STARPU_MAIN_RAM,
+                                             (uintptr_t)(cblk->lcoeftab), nbrow * nbcol, spmtx->typesze );
+
+                if ( mtxtype == PastixGeneral ) {
+                    starpu_vector_data_register( handler + 1, STARPU_MAIN_RAM,
+                                                 (uintptr_t)(cblk->ucoeftab), nbrow * nbcol, spmtx->typesze );
+                }
             }
 
             if ( !(cblk->cblktype & CBLK_TASKS_2D) )
@@ -180,38 +209,67 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
             nchildren  = 0;
             sizetab[0] = 0;
 
-            /*
-             * Diagonal block
-             */
-            size = blok_rownbr( blok ) * cblk_colnbr( cblk );
-            sizetab[nchildren+1] = sizetab[nchildren] + size;
-            nchildren++;
+            if ( cblk->cblktype & CBLK_COMPRESSED ) {
+                /*
+                 * Diagonal block
+                 */
+                sizetab[nchildren+1] = 2;
+                nchildren++;
 
-            /*
-             * Off-diagonal blocks
-             */
-            blok++;
-            for( ; blok < lblok; blok++ )
-            {
-                nbrow = blok_rownbr( blok );
-
-                while( (blok+1 < lblok) &&
-                       (blok[0].fcblknm == blok[1].fcblknm) &&
-                       (blok[0].lcblknm == blok[1].lcblknm) )
+                /*
+                 * Off-diagonal blocks
+                 */
+                blok++;
+                for( ; blok < lblok; blok++ )
                 {
-                    blok++;
-                    nbrow += blok_rownbr( blok );
-                }
-                size = nbrow * cblk_colnbr( cblk );
+                    nbrow = 1;
 
+                    while( (blok+1 < lblok) &&
+                           (blok[0].fcblknm == blok[1].fcblknm) &&
+                           (blok[0].lcblknm == blok[1].lcblknm) )
+                    {
+                        blok++;
+                        nbrow ++;
+                    }
+                    size = nbrow * 2;
+
+                    sizetab[nchildren+1] = sizetab[nchildren] + size;
+                    nchildren++;
+                }
+            }
+            else {
+                /*
+                 * Diagonal block
+                 */
+                size = blok_rownbr( blok ) * cblk_colnbr( cblk );
                 sizetab[nchildren+1] = sizetab[nchildren] + size;
                 nchildren++;
-            }
 
+                /*
+                 * Off-diagonal blocks
+                 */
+                blok++;
+                for( ; blok < lblok; blok++ )
+                {
+                    nbrow = blok_rownbr( blok );
+
+                    while( (blok+1 < lblok) &&
+                           (blok[0].fcblknm == blok[1].fcblknm) &&
+                           (blok[0].lcblknm == blok[1].lcblknm) )
+                    {
+                        blok++;
+                        nbrow += blok_rownbr( blok );
+                    }
+                    size = nbrow * cblk_colnbr( cblk );
+
+                    sizetab[nchildren+1] = sizetab[nchildren] + size;
+                    nchildren++;
+                }
+            }
             filter.nchildren = nchildren;
             filter.filter_arg_ptr = sizetab;
 
-            cblkhandle->handlenbr  = nchildren;
+            cblkhandle->handlenbr = nchildren;
             if ( mtxtype == PastixGeneral ) {
                 cblkhandle->handletab = (starpu_data_handle_t*)malloc( 2 * nchildren * sizeof(starpu_data_handle_t) );
 
