@@ -37,7 +37,7 @@ static struct starpu_perfmodel starpu_blok_ztrsmsp_model =
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
-static void cl_blok_ztrsmsp_cpu(void *descr[], void *cl_arg)
+static void fct_blok_ztrsmsp_cpu(void *descr[], void *cl_arg)
 {
     pastix_coefside_t coef;
     pastix_side_t     side;
@@ -65,7 +65,7 @@ static void cl_blok_ztrsmsp_cpu(void *descr[], void *cl_arg)
 }
 
 #if defined(PASTIX_WITH_CUDA)
-static void cl_blok_ztrsmsp_gpu(void *descr[], void *cl_arg)
+static void fct_blok_ztrsmsp_gpu(void *descr[], void *cl_arg)
 {
     pastix_coefside_t coef;
     pastix_side_t     side;
@@ -95,6 +95,7 @@ static void cl_blok_ztrsmsp_gpu(void *descr[], void *cl_arg)
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
+CODELETS_CPU( blok_ztrsmsp, 2 )
 CODELETS_GPU( blok_ztrsmsp, 2, STARPU_CUDA_ASYNC )
 
 void
@@ -111,7 +112,7 @@ starpu_task_blok_ztrsmsp( pastix_coefside_t coef,
     pastix_int_t blok_m = blok - cblk->fblokptr;
 
     starpu_insert_task(
-        pastix_codelet(&cl_blok_ztrsmsp),
+        pastix_codelet(&cl_blok_ztrsmsp_gpu),
         STARPU_VALUE, &coef,         sizeof(pastix_coefside_t),
         STARPU_VALUE, &side,         sizeof(pastix_side_t),
         STARPU_VALUE, &uplo,         sizeof(pastix_uplo_t),

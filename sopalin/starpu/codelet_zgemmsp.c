@@ -37,7 +37,7 @@ static struct starpu_perfmodel starpu_cblk_zgemmsp_model =
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
-static void cl_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
+static void fct_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
 {
     pastix_coefside_t sideA;
     pastix_coefside_t sideB;
@@ -68,7 +68,7 @@ static void cl_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
 }
 
 #if defined(PASTIX_WITH_CUDA)
-static void cl_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
+static void fct_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
 {
     pastix_coefside_t sideA;
     pastix_coefside_t sideB;
@@ -97,6 +97,7 @@ static void cl_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
+CODELETS_CPU( cblk_zgemmsp, 3 )
 CODELETS_GPU( cblk_zgemmsp, 3, STARPU_CUDA_ASYNC )
 
 void
@@ -110,7 +111,7 @@ starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
                           int               prio )
 {
     starpu_insert_task(
-        pastix_codelet(&cl_cblk_zgemmsp),
+        pastix_codelet(&cl_cblk_zgemmsp_gpu),
         STARPU_VALUE, &sideA,        sizeof(pastix_coefside_t),
         STARPU_VALUE, &sideB,        sizeof(pastix_coefside_t),
         STARPU_VALUE, &trans,        sizeof(pastix_trans_t),
@@ -139,7 +140,7 @@ static struct starpu_perfmodel starpu_blok_zgemmsp_model =
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
-static void cl_blok_zgemmsp_cpu(void *descr[], void *cl_arg)
+static void fct_blok_zgemmsp_cpu(void *descr[], void *cl_arg)
 {
     pastix_coefside_t sideA;
     pastix_coefside_t sideB;
@@ -170,7 +171,7 @@ static void cl_blok_zgemmsp_cpu(void *descr[], void *cl_arg)
 }
 
 #if defined(PASTIX_WITH_CUDA)
-static void cl_blok_zgemmsp_gpu(void *descr[], void *cl_arg)
+static void fct_blok_zgemmsp_gpu(void *descr[], void *cl_arg)
 {
     pastix_coefside_t sideA;
     pastix_coefside_t sideB;
@@ -203,6 +204,7 @@ static void cl_blok_zgemmsp_gpu(void *descr[], void *cl_arg)
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
+CODELETS_CPU( blok_zgemmsp, 3 )
 CODELETS_GPU( blok_zgemmsp, 3, STARPU_CUDA_ASYNC )
 
 void
@@ -255,7 +257,7 @@ starpu_task_blok_zgemmsp( pastix_coefside_t sideA,
     assert( (blok_mn == 0) || (blokC[-1].fcblknm != blokC[0].fcblknm) );
 
     starpu_insert_task(
-        pastix_codelet(&cl_blok_zgemmsp),
+        pastix_codelet(&cl_blok_zgemmsp_gpu),
         STARPU_VALUE, &sideA,        sizeof(pastix_coefside_t),
         STARPU_VALUE, &sideB,        sizeof(pastix_coefside_t),
         STARPU_VALUE, &trans,        sizeof(pastix_trans_t),

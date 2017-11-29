@@ -35,7 +35,7 @@ static struct starpu_perfmodel starpu_blok_zscalo_model =
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
-static void cl_blok_zscalo_cpu(void *descr[], void *cl_arg)
+static void fct_blok_zscalo_cpu(void *descr[], void *cl_arg)
 {
     pastix_trans_t  trans;
     SolverCblk     *cblk;
@@ -83,7 +83,7 @@ starpu_task_blok_zscalo( pastix_trans_t    trans,
                                  sopalin_data->solvmtx->starpu_desc->typesze );
 
     starpu_insert_task(
-        pastix_codelet(&cl_blok_zscalo),
+        pastix_codelet(&cl_blok_zscalo_cpu),
         STARPU_VALUE, &trans,  sizeof(pastix_trans_t),
         STARPU_VALUE, &cblk,   sizeof(SolverCblk*),
         STARPU_VALUE, &blok_m, sizeof(pastix_int_t),

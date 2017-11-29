@@ -37,7 +37,7 @@ static struct starpu_perfmodel starpu_cblk_zsytrfsp1d_panel_model =
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
-static void cl_cblk_zsytrfsp1d_panel_cpu(void *descr[], void *cl_arg)
+static void fct_cblk_zsytrfsp1d_panel_cpu(void *descr[], void *cl_arg)
 {
     sopalin_data_t *sopalin_data;
     SolverCblk *cblk;
@@ -79,7 +79,7 @@ starpu_task_cblk_zsytrfsp1d_panel( sopalin_data_t *sopalin_data,
     }
 
     starpu_insert_task(
-        pastix_codelet(&cl_cblk_zsytrfsp1d_panel),
+        pastix_codelet(&cl_cblk_zsytrfsp1d_panel_cpu),
         STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
         STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
         STARPU_RW,     cblk->handler[0],
@@ -102,7 +102,7 @@ static struct starpu_perfmodel starpu_blok_zsytrfsp_model =
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
-static void cl_blok_zsytrfsp_cpu(void *descr[], void *cl_arg)
+static void fct_blok_zsytrfsp_cpu(void *descr[], void *cl_arg)
 {
     sopalin_data_t *sopalin_data;
     SolverCblk *cblk;
@@ -129,7 +129,7 @@ starpu_task_blok_zsytrf( sopalin_data_t *sopalin_data,
                          int             prio )
 {
     starpu_insert_task(
-        pastix_codelet(&cl_blok_zsytrfsp),
+        pastix_codelet(&cl_blok_zsytrfsp_cpu),
         STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
         STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
         STARPU_RW,     cblk->fblokptr->handler[0],
