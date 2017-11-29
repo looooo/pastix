@@ -848,9 +848,9 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
             }
 
             A[rk * lda + rk] = akk;
-            if (lsticc != 0) break;
-
             k++;
+
+            if (lsticc != 0) break;
         }
 
         /*
@@ -860,9 +860,9 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
          */
         if ((rk+1) < minMN) {
             cblas_zgemm( CblasColMajor, CblasNoTrans, CblasConjTrans,
-                         m-rk-1, n-rk-1, k+1,
+                         m-rk-1, n-rk-1, k,
                          CBLAS_SADDR(mzone), A + (offset) * lda + rk + 1, lda,
-                                             f +                  k  + 1, ldf,
+                                             f +                  k,      ldf,
                          CBLAS_SADDR(zone),  A + (rk+1)   * lda + rk + 1, lda );
         }
 
@@ -975,7 +975,7 @@ core_zge2lr_rrqr( pastix_fixdbl_t tol, pastix_int_t rklimit,
                       jpvt, tau,
                       work, ldwork,
                       rwork,
-                      tol * norm, nb, pastix_imin( rklimit, pastix_imin(m, n)-1 ));
+                      tol * norm, nb, pastix_imin( rklimit, pastix_imin(m, n) ));
     if (ret == -1) {
         flops = FLOPS_ZGEQRF( m, n );
     }
@@ -1295,7 +1295,7 @@ core_zrradd_rrqr( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void
                            jpvt, tauV,
                            zwork, ldwork,
                            rwork,
-                           tol * norm, nb, pastix_imin(rklimit, rank-1) );
+                           tol * norm, nb, pastix_imin(rklimit, rank) );
     flops = (new_rank == -1) ? FLOPS_ZGEQRF( rank, N )
         :                     (FLOPS_ZGEQRF( rank, new_rank ) +
                                FLOPS_ZUNMQR( rank, N-new_rank, new_rank, PastixLeft ));
