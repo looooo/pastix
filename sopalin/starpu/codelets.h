@@ -74,7 +74,7 @@
 
 #undef CODELETS_GPU_MODEL
 #define CODELETS_GPU_MODEL(_name_, _nbuffers_, _cuda_flags_, _perfmodel_)   \
-    CODELET_CPU_MODEL(_name_, _nbuffers_, _perfmodel_)
+    CODELETS_CPU_MODEL(_name_, _nbuffers_, _perfmodel_)
 #endif
 
 
