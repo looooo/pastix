@@ -90,31 +90,33 @@ int main (int argc, char **argv)
     lr_SVD.core_ge2lr = core_zge2lr_svd;
     lr_SVD.core_rradd = core_zrradd_svd;
 
-    for (m=200; m<=400; m+=100){
+    for (m=100; m<=400; m = 2*m) {
         rmax = core_get_rklimit( m, m );
         for (r=0; (r + (r/2)) < rmax; r += ( r + 1 ) ) {
+            pastix_int_t mB = m;
+            pastix_int_t mA = m / 2;
             pastix_int_t rankA = r/2;
             pastix_int_t rankB = r;
-            pastix_int_t offx = 0;
-            pastix_int_t offy = 0;
+            pastix_int_t offx = m / 4;
+            pastix_int_t offy = m / 8;
 
             printf( "  -- Test RRADD MA=NA=LDA=%ld MB=NB=LDB=%ld RA=%ld RB=%ld rkmax=%ld\n",
-                    (long)m, (long)m, (long)rankA, (long)rankB,
-                    (long)core_get_rklimit( m, m ) );
+                    (long)mA, (long)mB, (long)rankA, (long)rankB,
+                    (long)core_get_rklimit( mB, mB ) );
 
             /*
              * Generate matrices of rankA and rankB and thei compress SVD/RRQR versions
              */
-            z_lowrank_genmat( mode, tolerance, rankA, m, m, m,
+            z_lowrank_genmat( mode, tolerance, rankA, mA, mA, mA,
                               &A, &lrA_svd, &lrA_rrqr, &norm_dense_A );
-            z_lowrank_genmat( mode, tolerance, rankB, m, m, m,
+            z_lowrank_genmat( mode, tolerance, rankB, mB, mB, mB,
                               &B, &lrB_svd, &lrB_rrqr, &norm_dense_B );
 
             ret = 0;
             {
                 printf("     RRQR: A %2d B %2d ", lrA_rrqr.rk, lrB_rrqr.rk );
-                rc = z_lowrank_rradd( m, m, offx, offy, A, &lrA_rrqr, norm_dense_A,
-                                      m, m,             B, &lrB_rrqr, norm_dense_B,
+                rc = z_lowrank_rradd( mA, mA, offx, offy, A, &lrA_rrqr, norm_dense_A,
+                                      mB, mB,             B, &lrB_rrqr, norm_dense_B,
                                       &lr_RRQR );
                 assert( rc >= 0 );
                 ret += rc;
@@ -124,9 +126,9 @@ int main (int argc, char **argv)
 
             {
                 printf("     SVD:  A %2d B %2d ", lrA_svd.rk, lrB_svd.rk );
-                rc += z_lowrank_rradd( m, m, offx, offy, A, &lrA_svd, norm_dense_A,
-                                       m, m,             B, &lrB_svd, norm_dense_B,
-                                       &lr_SVD );
+                rc = z_lowrank_rradd( mA, mA, offx, offy, A, &lrA_svd, norm_dense_A,
+                                      mB, mB,             B, &lrB_svd, norm_dense_B,
+                                      &lr_SVD );
                 assert( rc >= 0 );
                 ret += rc;
             }

@@ -132,6 +132,7 @@ z_lowrank_rradd( pastix_int_t mA, pastix_int_t nA,
     pastix_complex64_t mone = -1.0;
     double norm_diff, res;
     pastix_int_t rkABmax;
+    pastix_int_t rankmax  = core_get_rklimit(mB, nB);
     int          rc = 0;
     pastix_lrblock_t lrAB;
 
@@ -193,7 +194,7 @@ z_lowrank_rradd( pastix_int_t mA, pastix_int_t nA,
     free(Bfr);
     free(Blr);
 
-    printf("A+B %d RES %e ", lrAB.rk, res);
+    printf("A+B %2d RES %e ", lrAB.rk, res);
 
     /*
      * Check the validity of the results
@@ -204,7 +205,7 @@ z_lowrank_rradd( pastix_int_t mA, pastix_int_t nA,
     }
 
     /* Check that final matrix is not full rank, we should have exited before */
-    if ( lrAB.rk == -1 ) {
+    if ( (lrAB.rk == -1) && (rkABmax <= rankmax) ) {
         rc += 2;
     }
 
@@ -214,7 +215,7 @@ z_lowrank_rradd( pastix_int_t mA, pastix_int_t nA,
     }
 
     /* Check that final rank is larger than the minimal rank (rA, rB, abs(rA-rb)) */
-    if ( lrAB.rk < pastix_imin( pastix_imin( lrA->rk, lrB->rk ), abs(lrA->rk - lrB->rk) ) )
+    if ( (lrAB.rk != -1) && (lrAB.rk < pastix_imin( pastix_imin( lrA->rk, lrB->rk ), abs(lrA->rk - lrB->rk) )) )
     {
         rc += 8;
     }
