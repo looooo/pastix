@@ -54,10 +54,11 @@ z_ge2lr_test( int mode, double tolerance, pastix_int_t rank,
     double res_SVD, res_RRQR;
 
     pastix_int_t minMN    = pastix_imin(m, n);
+    pastix_int_t rankmax  = core_get_rklimit(m, n);
     double       rcond    = (double) minMN;
     double       dmax     = 1.0;
     int          ISEED[4] = {0,0,0,1};   /* initial seed for zlarnv() */
-
+    int          rc = 0;
     pastix_complex64_t *work;
     double *S;
 
@@ -81,16 +82,18 @@ z_ge2lr_test( int mode, double tolerance, pastix_int_t rank,
         return -2;
     }
 
-    /* Chose alpha such that alpha^rank = tolerance */
+    /*
+     * Choose alpha such that alpha^rank = tolerance
+     */
     alpha = exp(log(tolerance) / rank);
 
     if (mode == 0) {
         pastix_int_t i;
         S[0] = 1;
 
-        if (rank == 0)
+        if (rank == 0) {
             S[0] = 0.;
-
+        }
         for (i=1; i<minMN; i++){
             S[i] = S[i-1] * alpha;
         }
@@ -125,14 +128,14 @@ z_ge2lr_test( int mode, double tolerance, pastix_int_t rank,
                  &LR_SVD,
                  A_SVD, lda );
 
-    printf(" The rank of A is: RRQR %d SVD %d\n", LR_RRQR.rk, LR_SVD.rk);
+    printf(" The rank of A is: RRQR %d SVD %d rkmax %d\n", LR_RRQR.rk, LR_SVD.rk, (int)rankmax);
 
     core_zgeadd( PastixNoTrans, m, n,
-                 -1., A, lda,
+                 -1., A,      lda,
                   1., A_RRQR, lda );
 
     core_zgeadd( PastixNoTrans, m, n,
-                 -1., A, lda,
+                 -1., A,     lda,
                   1., A_SVD, lda );
 
     norm_diff_RRQR = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
@@ -156,9 +159,38 @@ z_ge2lr_test( int mode, double tolerance, pastix_int_t rank,
     free(S);
     free(work);
 
-    if ((res_RRQR < 10) && (res_SVD < 10) && (LR_RRQR.rk >= LR_SVD.rk || LR_RRQR.rk == -1))
-        return 0;
-    return 1;
+    /*
+     * Check the validity of the results
+     */
+    /* Check the correctness of the compression */
+    if (res_RRQR > 10.0) {
+        rc += 1;
+    }
+    if (res_SVD > 10.0) {
+        rc += 2;
+    }
+
+    /* Check that SVD rank is equal to the desired rank */
+    if ( ((rank >  rankmax) && (LR_SVD.rk != -1  )) ||
+         ((rank <= rankmax) && ((LR_SVD.rk < (rank-2)) || (LR_SVD.rk > (rank+2)))) )
+    {
+        rc += 4;
+    }
+
+    /* Check that RRQR rank is larger or equal to SVD rank */
+    if (LR_SVD.rk == -1) {
+        if (LR_RRQR.rk != -1) {
+            rc += 8;
+        }
+    }
+    else {
+        if ( (LR_RRQR.rk != -1) &&
+             ((LR_RRQR.rk < LR_SVD.rk) || (LR_RRQR.rk > (LR_SVD.rk + 1.25 * rank ))) )
+        {
+            rc += 16;
+        }
+    }
+    return rc;
 }
 
 int main (int argc, char **argv)
@@ -168,7 +200,7 @@ int main (int argc, char **argv)
     int err = 0;
     int ret;
     pastix_int_t m, r;
-    double tolerance = 0.001;
+    double tolerance = 1.e-3;
 
     for (m=100; m<300; m+=100){
         for (r=0; r <= (m/2); r += ( r + 1 ) ) {
