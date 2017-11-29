@@ -146,6 +146,9 @@ z_ge2lr_test( int mode, double tolerance, pastix_int_t rank,
             rc += 16;
         }
     }
+
+    core_zlrfree( &lrA_rrqr );
+    core_zlrfree( &lrA_svd );
     return rc;
 }
 
