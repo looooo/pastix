@@ -134,7 +134,7 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
                                          (uintptr_t)(LRblocks), nbbloks * 2, sizeof(pastix_lrblock_t) );
 
             if ( mtxtype == PastixGeneral ) {
-                starpu_vector_data_register( handler, STARPU_MAIN_RAM,
+                starpu_vector_data_register( handler + 1, STARPU_MAIN_RAM,
                                              (uintptr_t)(LRblocks + 1), nbbloks * 2, sizeof(pastix_lrblock_t) );
             }
         }
@@ -180,7 +180,7 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
                                              (uintptr_t)LRblocks, nbbloks * 2, sizeof(pastix_lrblock_t) );
 
                 if ( mtxtype == PastixGeneral ) {
-                    starpu_vector_data_register( handler, STARPU_MAIN_RAM,
+                    starpu_vector_data_register( handler + 1, STARPU_MAIN_RAM,
                                                  (uintptr_t)(LRblocks + 1), nbbloks * 2, sizeof(pastix_lrblock_t) );
                 }
             }
