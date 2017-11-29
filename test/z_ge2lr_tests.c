@@ -65,7 +65,7 @@ z_ge2lr_test( int mode, double tolerance, pastix_int_t rank,
     int          rc = 0;
 
     /*
-     * Generate a matrix of rank and its compress SVD/RRQR versions
+     * Generate a matrix of rank rank and its compressed SVD/RRQR versions
      */
     z_lowrank_genmat( mode, tolerance, rank, m, n, lda,
                       &A, &lrA_svd, &lrA_rrqr, &norm_dense );
@@ -115,9 +115,6 @@ z_ge2lr_test( int mode, double tolerance, pastix_int_t rank,
     free(A);
     free(A2);
 
-    /*
-     * Check the validity of the results
-     */
     /* Check the correctness of the compression */
     if (res_RRQR > 10.0) {
         rc += 1;

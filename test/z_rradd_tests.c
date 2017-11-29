@@ -98,7 +98,7 @@ int main (int argc, char **argv)
                     (long)core_get_rklimit( mB, mB ) );
 
             /*
-             * Generate matrices of rankA and rankB and thei compress SVD/RRQR versions
+             * Generate matrices of rankA and rankB and their compressed SVD/RRQR versions
              */
             z_lowrank_genmat( mode, tolerance, rankA, mA, mA, mA,
                               &A, &lrA_svd, &lrA_rrqr, &norm_dense_A );

@@ -123,7 +123,7 @@ z_lowrank_genmat( int mode, double tolerance, pastix_int_t rank,
     *normA = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
                                   A, lda, NULL );
 
-    /* Adjust the tolerance base on the generated matrix norm */
+    /* Adjust the tolerance based on the generated matrix norm */
     if ( *normA > 0. ) {
         tolerance /= *normA;
     }
@@ -219,9 +219,6 @@ z_lowrank_rradd( pastix_int_t mA, pastix_int_t nA,
 
     printf("A+B %2d RES %e ", lrAB.rk, res);
 
-    /*
-     * Check the validity of the results
-     */
     /* Check the correctness of the result */
     if ( res > 10.0 ) {
         rc += 1;
@@ -322,9 +319,6 @@ z_lowrank_lrmm( pastix_int_t m, pastix_int_t n, pastix_int_t k,
 
     printf("Cfinal %2d RES %e ", lrC->rk, res);
 
-    /*
-     * Check the validity of the results
-     */
     /* Check the correctness of the result */
     if ( res > 10.0 ) {
         rc += 1;

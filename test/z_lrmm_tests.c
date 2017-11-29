@@ -137,7 +137,7 @@ int main (int argc, char **argv)
                                  CBLAS_SADDR( zone ),  C + Cm * offy + offx, Cm );
 
                     /*
-                     * Generate matrices of rankA and rankB and thei compress SVD/RRQR versions
+                     * Generate matrices of rankA and rankB and their compressed SVD/RRQR versions
                      */
                     ret = 0;
                     if (compress_type & 1)
