@@ -659,7 +659,7 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
 #endif
 
     minMN = pastix_imin(m, n);
-    if (minMN == 0) {
+    if ((minMN == 0) || (tol <= 0.0)) {
         return 0;
     }
 
@@ -701,15 +701,15 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
             /*
              * Rank is too large for compression
              */
-            if (rk >= maxrank){
-                return rk;
+            if (rk > maxrank){
+                return -1;
             }
 
             pvt = rk + cblas_idamax(n-rk, VN1 + rk, 1);
 
             if (VN1[pvt] < tol) {
                 double residual = cblas_dnrm2( n-rk, VN1 + rk, 1 );
-                if (sqrt(residual) < tol) {
+                if (residual < tol) {
                     return rk;
                 }
             }
