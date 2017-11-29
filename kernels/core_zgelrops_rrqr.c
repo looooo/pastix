@@ -973,12 +973,13 @@ core_zge2lr_rrqr( pastix_fixdbl_t tol, pastix_int_t rklimit,
     assert(ret == 0);
 
     rklimit = (rklimit == -1) ? core_get_rklimit( m, n ) : rklimit;
+    rklimit = pastix_imin( rklimit, pastix_imin(m, n) );
     ret = core_zrrqr( m, n,
                       Acpy, m,
                       jpvt, tau,
                       work, ldwork,
                       rwork,
-                      tol * norm, nb, pastix_imin( rklimit, pastix_imin(m, n) ));
+                      tol * norm, nb, rklimit );
     if (ret == -1) {
         flops = FLOPS_ZGEQRF( m, n );
     }
