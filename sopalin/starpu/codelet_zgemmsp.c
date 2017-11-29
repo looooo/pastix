@@ -18,39 +18,23 @@
  * @{
  *
  **/
-
 #include "common.h"
 #include "solver.h"
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 #include "pastix_starpu.h"
 #include "codelets.h"
-#include <starpu.h>
 #include "pastix_starpu_model.h"
-
-
-/**
- * StarPU models
- */
-
-static struct starpu_perfmodel starpu_cblk_zgemmsp_model =
-{
-  .type = STARPU_PER_ARCH,
-  .symbol = "cblk_zgemmsp",
-  .arch_cost_function = cblk_gemmsp_cost,
-};
-
-static struct starpu_perfmodel starpu_blok_zgemmsp_model =
-{
-  .type = STARPU_PER_ARCH,
-  .symbol = "blok_zgemmsp",
-  .arch_cost_function = blok_gemmsp_cost,
-};
 
 /**
  * Cblk version
  */
-
+static struct starpu_perfmodel starpu_cblk_zgemmsp_model =
+{
+    .type = STARPU_PER_ARCH,
+    .symbol = "cblk_zgemmsp",
+    .arch_cost_function = cblk_gemmsp_cost,
+};
 
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void cl_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
@@ -111,7 +95,7 @@ static void cl_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_GPU_MODEL( cblk_zgemmsp, 3, STARPU_CUDA_ASYNC, starpu_cblk_zgemmsp_model)
+CODELETS_GPU( cblk_zgemmsp, 3, STARPU_CUDA_ASYNC )
 
 void
 starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
@@ -145,6 +129,12 @@ starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
 /**
  * Blok version
  */
+static struct starpu_perfmodel starpu_blok_zgemmsp_model =
+{
+    .type = STARPU_PER_ARCH,
+    .symbol = "blok_zgemmsp",
+    .arch_cost_function = blok_gemmsp_cost,
+};
 
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void cl_blok_zgemmsp_cpu(void *descr[], void *cl_arg)
@@ -164,8 +154,8 @@ static void cl_blok_zgemmsp_cpu(void *descr[], void *cl_arg)
     B = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
     C = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-    starpu_codelet_unpack_args(cl_arg, &sopalin_data, &sideA, &sideB, &trans, &cblk, &fcblk,
-                               &blok_mk, &blok_nk, &blok_mn);
+    starpu_codelet_unpack_args( cl_arg, &sopalin_data, &sideA, &sideB, &trans, &cblk, &fcblk,
+                                &blok_mk, &blok_nk, &blok_mn );
 
     assert( cblk->cblktype  & CBLK_TASKS_2D );
     assert( fcblk->cblktype & CBLK_TASKS_2D );
@@ -195,8 +185,8 @@ static void cl_blok_zgemmsp_gpu(void *descr[], void *cl_arg)
     B = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
     C = (cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-    starpu_codelet_unpack_args(cl_arg, &sopalin_data, &sideA, &sideB, &trans, &cblk, &fcblk,
-                               &blok_mk, &blok_nk, &blok_mn);
+    starpu_codelet_unpack_args( cl_arg, &sopalin_data, &sideA, &sideB, &trans, &cblk, &fcblk,
+                                &blok_mk, &blok_nk, &blok_mn );
 
     assert( cblk->cblktype  & CBLK_TASKS_2D );
     assert( fcblk->cblktype & CBLK_TASKS_2D );
@@ -211,7 +201,7 @@ static void cl_blok_zgemmsp_gpu(void *descr[], void *cl_arg)
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_GPU_MODEL( blok_zgemmsp, 3, STARPU_CUDA_ASYNC, starpu_blok_zgemmsp_model)
+CODELETS_GPU( blok_zgemmsp, 3, STARPU_CUDA_ASYNC )
 
 void
 starpu_task_blok_zgemmsp( pastix_coefside_t sideA,

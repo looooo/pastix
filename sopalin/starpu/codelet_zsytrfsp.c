@@ -31,7 +31,7 @@
 static struct starpu_perfmodel starpu_cblk_zsytrfsp1d_panel_model =
 {
     .type = STARPU_HISTORY_BASED,
-    .symbol = "cblk_zsytrfsp",
+    .symbol = "cblk_zsytrfsp1d_panel",
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)

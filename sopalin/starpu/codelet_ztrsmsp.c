@@ -27,121 +27,14 @@
 #include "pastix_starpu_model.h"
 
 /**
- * StarPU models
- */
-
-static struct starpu_perfmodel starpu_blok_ztrsmsp_model_mlr =
-{
-  .type = STARPU_PER_ARCH,
-  .symbol = "blok_ztrsmsp",
-  .arch_cost_function = blok_trsmsp_cost,
-};
-
-/**
- * Cblk version
- */
-/* static struct starpu_perfmodel starpu_cblk_ztrsmsp_model = */
-/* { */
-/* 	.type = STARPU_HISTORY_BASED, */
-/* 	.symbol = "cblk_ztrsmsp", */
-/* }; */
-
-/* #if !defined(PASTIX_STARPU_SIMULATION) */
-/* static void cl_cblk_ztrsmsp_cpu(void *descr[], void *cl_arg) */
-/* { */
-/*     pastix_coefside_t sideA; */
-/*     pastix_coefside_t sideB; */
-/*     pastix_trans_t    trans; */
-/*     SolverCblk       *cblk; */
-/*     SolverBlok       *blok; */
-/*     SolverCblk       *fcblk; */
-/*     sopalin_data_t   *sopalin_data; */
-/*     const pastix_complex64_t *A; */
-/*     const pastix_complex64_t *B; */
-/*     pastix_complex64_t *C; */
-
-/*     A = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]); */
-/*     B = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]); */
-/*     C = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[2]); */
-
-/*     /\* Check layout due to workspace *\/ */
-/*     starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data); */
-
-/*     assert( cblk->cblktype  & CBLK_LAYOUT_2D ); */
-/*     assert( fcblk->cblktype & CBLK_LAYOUT_2D ); */
-
-/*     cpucblk_ztrsmsp( sideA, sideB, trans, */
-/*                      cblk, blok, fcblk, */
-/*                      A, B, C, NULL, */
-/*                      &(sopalin_data->solvmtx->lowrank) ); */
-/* } */
-
-/* #if defined(PASTIX_WITH_CUDA) */
-/* static void cl_cblk_ztrsmsp_gpu(void *descr[], void *cl_arg) */
-/* { */
-/*     pastix_coefside_t sideA; */
-/*     pastix_coefside_t sideB; */
-/*     pastix_trans_t    trans; */
-/*     SolverCblk       *cblk; */
-/*     SolverBlok       *blok; */
-/*     SolverCblk       *fcblk; */
-/*     sopalin_data_t   *sopalin_data; */
-/*     const cuDoubleComplex *A; */
-/*     const cuDoubleComplex *B; */
-/*     cuDoubleComplex *C; */
-
-/*     A = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[0]); */
-/*     B = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[1]); */
-/*     C = (cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[2]); */
-
-/*     /\* Check layout due to workspace *\/ */
-/*     assert( cblk->cblktype & CBLK_LAYOUT_2D ); */
-/*     assert( fcblk->cblktype & CBLK_LAYOUT_2D ); */
-
-/*     starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data); */
-
-/*     gpucblk_ztrsmsp( sideA, sideB, trans, */
-/*                      cblk, blok, fcblk, */
-/*                      A, B, C, */
-/*                      &(sopalin_data->solvmtx->lowrank), */
-/*                      starpu_cuda_get_local_stream() ); */
-/* } */
-/* #endif /\* defined(PASTIX_WITH_CUDA) *\/ */
-/* #endif /\* !defined(PASTIX_STARPU_SIMULATION) *\/ */
-
-/* CODELETS_GPU( cblk_ztrsmsp, 3, STARPU_CUDA_ASYNC ) */
-
-/* void */
-/* starpu_task_cblk_ztrsmsp( pastix_coefside_t sideA, */
-/*                           pastix_coefside_t sideB, */
-/*                           pastix_trans_t    trans, */
-/*                           const SolverCblk *cblk, */
-/*                           const SolverBlok *blok, */
-/*                           SolverCblk       *fcblk, */
-/*                           sopalin_data_t   *sopalin_data ) */
-/* { */
-/*     starpu_insert_task( */
-/*         pastix_codelet(&cl_cblk_ztrsmsp), */
-/*         STARPU_VALUE, &sideA,             sizeof(pastix_coefside_t), */
-/*         STARPU_VALUE, &sideB,             sizeof(pastix_coefside_t), */
-/*         STARPU_VALUE, &trans,             sizeof(pastix_trans_t), */
-/*         STARPU_VALUE, &cblk,              sizeof(SolverCblk*), */
-/*         STARPU_VALUE, &blok,              sizeof(SolverBlok*), */
-/*         STARPU_VALUE, &fcblk,             sizeof(SolverCblk*), */
-/*         STARPU_R,      cblk->handler[sideA], */
-/*         STARPU_R,      cblk->handler[sideB], */
-/*         STARPU_RW,     fcblk->handler[sideA], */
-/*         STARPU_VALUE, &sopalin_data,     sizeof(sopalin_data_t*), */
-/* #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME) */
-/*         STARPU_NAME, "cblk_ztrsmsp", */
-/* #endif */
-/*         0); */
-/* } */
-
-
-/**
  * Block version
  */
+static struct starpu_perfmodel starpu_blok_ztrsmsp_model =
+{
+    .type = STARPU_PER_ARCH,
+    .symbol = "blok_ztrsmsp",
+    .arch_cost_function = blok_trsmsp_cost,
+};
 
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void cl_blok_ztrsmsp_cpu(void *descr[], void *cl_arg)
@@ -202,7 +95,7 @@ static void cl_blok_ztrsmsp_gpu(void *descr[], void *cl_arg)
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_GPU_MODEL( blok_ztrsmsp, 2, STARPU_CUDA_ASYNC, starpu_blok_ztrsmsp_model_mlr )
+CODELETS_GPU( blok_ztrsmsp, 2, STARPU_CUDA_ASYNC )
 
 void
 starpu_task_blok_ztrsmsp( pastix_coefside_t coef,

@@ -18,37 +18,21 @@
  * @{
  *
  **/
-
 #include "common.h"
 #include "solver.h"
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 #include "pastix_starpu.h"
 #include "codelets.h"
-#include "pastix_starpu_model.h"
- 
-/**
- * StarPU models
- */
-
-static struct starpu_perfmodel starpu_cblk_zpotrfsp1d_panel_model =
-{
-  .type = STARPU_PER_ARCH,
-  .symbol = "cblk_zpotrfsp1d_panel",
-  .arch_cost_function = cblk_potrfsp1d_cost,
-};
-
-static struct starpu_perfmodel starpu_blok_zpotrfsp1d_panel_model =
-{
-  .type = STARPU_PER_ARCH,
-  .symbol = "blok_zpotrfsp1d_panel",
-  .arch_cost_function = blok_potrfsp1d_cost,
-};
-
 
 /**
  * Cblk version
  */
+static struct starpu_perfmodel starpu_cblk_zpotrfsp1d_panel_model =
+{
+    .type = STARPU_HISTORY_BASED,
+    .symbol = "cblk_zpotrfsp1d_panel",
+};
 
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void cl_cblk_zpotrfsp1d_panel_cpu(void *descr[], void *cl_arg)
@@ -71,7 +55,7 @@ static void cl_cblk_zpotrfsp1d_panel_cpu(void *descr[], void *cl_arg)
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_CPU_MODEL( cblk_zpotrfsp1d_panel, 1 ,starpu_cblk_zpotrfsp1d_panel_model)
+CODELETS_CPU( cblk_zpotrfsp1d_panel, 1 )
 
 void
 starpu_task_cblk_zpotrfsp1d_panel( sopalin_data_t *sopalin_data,
@@ -93,6 +77,11 @@ starpu_task_cblk_zpotrfsp1d_panel( sopalin_data_t *sopalin_data,
 /**
  * Blok version
  */
+static struct starpu_perfmodel starpu_blok_zpotrfsp_model =
+{
+    .type = STARPU_HISTORY_BASED,
+    .symbol = "blok_zpotrfsp",
+};
 
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void cl_blok_zpotrfsp_cpu(void *descr[], void *cl_arg)
@@ -114,7 +103,7 @@ static void cl_blok_zpotrfsp_cpu(void *descr[], void *cl_arg)
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_CPU_MODEL( blok_zpotrfsp, 1, starpu_blok_zpotrfsp1d_panel_model )
+CODELETS_CPU( blok_zpotrfsp, 1 )
 
 void
 starpu_task_blok_zpotrf( sopalin_data_t *sopalin_data,
