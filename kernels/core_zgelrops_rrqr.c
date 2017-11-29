@@ -696,7 +696,6 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
         while(k < jb) {
 
             rk = offset+k;
-            assert( rk < n );
 
             /*
              * Rank is too large for compression
