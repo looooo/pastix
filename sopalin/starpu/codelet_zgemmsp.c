@@ -110,8 +110,12 @@ starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
                           sopalin_data_t   *sopalin_data,
                           int               prio )
 {
+    struct starpu_codelet *codelet;
+    codelet = (cblk->cblktype & CBLK_COMPRESSED) ? &cl_cblk_zgemmsp_cpu
+        :                                          &cl_cblk_zgemmsp_gpu;
+
     starpu_insert_task(
-        pastix_codelet(&cl_cblk_zgemmsp_gpu),
+        pastix_codelet(codelet),
         STARPU_VALUE, &sideA,        sizeof(pastix_coefside_t),
         STARPU_VALUE, &sideB,        sizeof(pastix_coefside_t),
         STARPU_VALUE, &trans,        sizeof(pastix_trans_t),
@@ -219,12 +223,15 @@ starpu_task_blok_zgemmsp( pastix_coefside_t sideA,
                           int               prio )
 {
     SolverBlok *blokC = fcblk->fblokptr;
-
     pastix_int_t frownum;
     pastix_int_t lrownum;
     pastix_int_t blok_mn = 0, j = 0;
     pastix_int_t blok_mk = blokA - cblk->fblokptr;
     pastix_int_t blok_nk = blokB - cblk->fblokptr;
+
+    struct starpu_codelet *codelet;
+    codelet = (cblk->cblktype & CBLK_COMPRESSED) ? &cl_blok_zgemmsp_cpu
+        :                                          &cl_blok_zgemmsp_gpu;
 
     assert( blok_nk <= blok_mk );
 
@@ -257,7 +264,7 @@ starpu_task_blok_zgemmsp( pastix_coefside_t sideA,
     assert( (blok_mn == 0) || (blokC[-1].fcblknm != blokC[0].fcblknm) );
 
     starpu_insert_task(
-        pastix_codelet(&cl_blok_zgemmsp_gpu),
+        pastix_codelet(codelet),
         STARPU_VALUE, &sideA,        sizeof(pastix_coefside_t),
         STARPU_VALUE, &sideB,        sizeof(pastix_coefside_t),
         STARPU_VALUE, &trans,        sizeof(pastix_trans_t),
