@@ -54,8 +54,8 @@ static void cl_blok_ztrsmsp_cpu(void *descr[], void *cl_arg)
     A = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
     C = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-    starpu_codelet_unpack_args(cl_arg, &coef, &side, &uplo, &trans, &diag,
-                               &cblk, &blok_m, &sopalin_data);
+    starpu_codelet_unpack_args( cl_arg, &coef, &side, &uplo, &trans, &diag,
+                                &cblk, &blok_m, &sopalin_data );
 
     assert( cblk->cblktype & CBLK_TASKS_2D );
 
@@ -82,8 +82,8 @@ static void cl_blok_ztrsmsp_gpu(void *descr[], void *cl_arg)
     A = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[0]);
     C = (cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-    starpu_codelet_unpack_args(cl_arg, &coef, &side, &uplo, &trans, &diag,
-                               &cblk, &blok_m, &sopalin_data);
+    starpu_codelet_unpack_args( cl_arg, &coef, &side, &uplo, &trans, &diag,
+                                &cblk, &blok_m, &sopalin_data );
 
     assert( cblk->cblktype & CBLK_TASKS_2D );
 
@@ -112,16 +112,16 @@ starpu_task_blok_ztrsmsp( pastix_coefside_t coef,
 
     starpu_insert_task(
         pastix_codelet(&cl_blok_ztrsmsp),
-        STARPU_VALUE, &coef,             sizeof(pastix_coefside_t),
-        STARPU_VALUE, &side,             sizeof(pastix_side_t),
-        STARPU_VALUE, &uplo,             sizeof(pastix_uplo_t),
-        STARPU_VALUE, &trans,            sizeof(pastix_trans_t),
-        STARPU_VALUE, &diag,             sizeof(pastix_diag_t),
-        STARPU_VALUE, &cblk,             sizeof(SolverCblk*),
-        STARPU_VALUE, &blok_m,           sizeof(pastix_int_t),
+        STARPU_VALUE, &coef,         sizeof(pastix_coefside_t),
+        STARPU_VALUE, &side,         sizeof(pastix_side_t),
+        STARPU_VALUE, &uplo,         sizeof(pastix_uplo_t),
+        STARPU_VALUE, &trans,        sizeof(pastix_trans_t),
+        STARPU_VALUE, &diag,         sizeof(pastix_diag_t),
+        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
+        STARPU_VALUE, &blok_m,       sizeof(pastix_int_t),
+        STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
         STARPU_R,      cblk->fblokptr->handler[coef],
         STARPU_RW,     blok->handler[coef],
-        STARPU_VALUE, &sopalin_data,     sizeof(sopalin_data_t*),
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "blok_ztrsmsp",
 #endif

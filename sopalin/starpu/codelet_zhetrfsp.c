@@ -10,7 +10,7 @@
  * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2013-06-24
+ * @date 2017-06-24
  *
  * @precisions normal z -> z c
  *
@@ -45,7 +45,7 @@ static void cl_cblk_zhetrfsp1d_panel_cpu(void *descr[], void *cl_arg)
     L  = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
     DL = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-    starpu_codelet_unpack_args(cl_arg, &cblk, &sopalin_data);
+    starpu_codelet_unpack_args( cl_arg, &cblk, &sopalin_data );
 
     assert( !(cblk->cblktype & CBLK_TASKS_2D) );
 
@@ -108,7 +108,7 @@ static void cl_blok_zhetrfsp_cpu(void *descr[], void *cl_arg)
 
     L = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-    starpu_codelet_unpack_args(cl_arg, &cblk, &sopalin_data);
+    starpu_codelet_unpack_args( cl_arg, &cblk, &sopalin_data );
 
     assert(cblk->cblktype & CBLK_TASKS_2D);
 
@@ -127,8 +127,8 @@ starpu_task_blok_zhetrf( sopalin_data_t *sopalin_data,
 {
     starpu_insert_task(
         pastix_codelet(&cl_blok_zhetrfsp),
-        STARPU_VALUE, &cblk,             sizeof(SolverCblk*),
-        STARPU_VALUE, &sopalin_data,     sizeof(sopalin_data_t*),
+        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
+        STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
         STARPU_RW,     cblk->fblokptr->handler[0],
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "blok_zhetrfsp",

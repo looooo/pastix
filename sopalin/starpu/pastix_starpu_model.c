@@ -84,9 +84,8 @@ blok_gemmsp_cost( struct starpu_task           *task,
     SolverBlok *blokA, *blokB, *lblk;
     double *coefs, cost = 0.;
 
-    starpu_codelet_unpack_args( task->cl_arg, &sopalin_data,
-                                &sideA, &sideB, &trans, &cblk, &fcblk,
-                                &blok_mk, &blok_nk, &blok_mn );
+    starpu_codelet_unpack_args( task->cl_arg, &sideA, &sideB, &trans, &cblk, &fcblk,
+                                &blok_mk, &blok_nk, &blok_mn, &sopalin_data );
 
     M = 0;
     N = 0;

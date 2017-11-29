@@ -2,7 +2,7 @@
  *
  * @file codelet_zpxtrfsp.c
  *
- * StarPU codelets for Cholesky functions
+ * StarPU codelets for complex LL^t functions
  *
  * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -10,7 +10,7 @@
  * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2013-06-24
+ * @date 2017-06-24
  *
  * @precisions normal z -> z c
  *
@@ -42,9 +42,9 @@ static void cl_cblk_zpxtrfsp1d_panel_cpu(void *descr[], void *cl_arg)
     pastix_complex64_t *L;
     int nbpivot;
 
-    L = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[0]);
+    L = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-    starpu_codelet_unpack_args(cl_arg, &cblk, &sopalin_data);
+    starpu_codelet_unpack_args( cl_arg, &cblk, &sopalin_data );
 
     assert( !(cblk->cblktype & CBLK_TASKS_2D) );
 
@@ -64,8 +64,8 @@ starpu_task_cblk_zpxtrfsp1d_panel( sopalin_data_t *sopalin_data,
 {
     starpu_insert_task(
         pastix_codelet(&cl_cblk_zpxtrfsp1d_panel),
-        STARPU_VALUE, &cblk,             sizeof(SolverCblk*),
-        STARPU_VALUE, &sopalin_data,     sizeof(sopalin_data_t*),
+        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
+        STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
         STARPU_RW,     cblk->handler[0],
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "cblk_zpxtrfsp1d_panel",
@@ -91,9 +91,9 @@ static void cl_blok_zpxtrfsp_cpu(void *descr[], void *cl_arg)
     pastix_complex64_t *L;
     int nbpivot;
 
-    L = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[0]);
+    L = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-    starpu_codelet_unpack_args(cl_arg, &cblk, &sopalin_data);
+    starpu_codelet_unpack_args( cl_arg, &cblk, &sopalin_data );
 
     assert(cblk->cblktype & CBLK_TASKS_2D);
 
@@ -112,8 +112,8 @@ starpu_task_blok_zpxtrf( sopalin_data_t *sopalin_data,
 {
     starpu_insert_task(
         pastix_codelet(&cl_blok_zpxtrfsp),
-        STARPU_VALUE, &cblk,             sizeof(SolverCblk*),
-        STARPU_VALUE, &sopalin_data,     sizeof(sopalin_data_t*),
+        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
+        STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
         STARPU_RW,     cblk->fblokptr->handler[0],
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "blok_zpxtrfsp",

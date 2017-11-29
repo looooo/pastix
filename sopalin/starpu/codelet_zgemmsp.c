@@ -54,7 +54,8 @@ static void cl_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
     B = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
     C = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-    starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data);
+    starpu_codelet_unpack_args( cl_arg, &sideA, &sideB, &trans,
+                                &cblk, &blok, &fcblk, &sopalin_data );
 
     /* Check layout due to NULL workspace for now */
     assert(  cblk->cblktype & CBLK_LAYOUT_2D );
@@ -84,7 +85,8 @@ static void cl_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
     B = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
     C = (cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-    starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data);
+    starpu_codelet_unpack_args( cl_arg, &sideA, &sideB, &trans,
+                                &cblk, &blok, &fcblk, &sopalin_data );
 
     gpucblk_zgemmsp( sideA, sideB, trans,
                      cblk, blok, fcblk,
@@ -109,13 +111,13 @@ starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
 {
     starpu_insert_task(
         pastix_codelet(&cl_cblk_zgemmsp),
-        STARPU_VALUE, &sideA,             sizeof(pastix_coefside_t),
-        STARPU_VALUE, &sideB,             sizeof(pastix_coefside_t),
-        STARPU_VALUE, &trans,             sizeof(pastix_trans_t),
-        STARPU_VALUE, &cblk,              sizeof(SolverCblk*),
-        STARPU_VALUE, &blok,              sizeof(SolverBlok*),
-        STARPU_VALUE, &fcblk,             sizeof(SolverCblk*),
-        STARPU_VALUE, &sopalin_data,     sizeof(sopalin_data_t*),
+        STARPU_VALUE, &sideA,        sizeof(pastix_coefside_t),
+        STARPU_VALUE, &sideB,        sizeof(pastix_coefside_t),
+        STARPU_VALUE, &trans,        sizeof(pastix_trans_t),
+        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
+        STARPU_VALUE, &blok,         sizeof(SolverBlok*),
+        STARPU_VALUE, &fcblk,        sizeof(SolverCblk*),
+        STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
         STARPU_R,      cblk->handler[sideA],
         STARPU_R,      cblk->handler[sideB],
         STARPU_RW,     fcblk->handler[sideA],
@@ -154,8 +156,8 @@ static void cl_blok_zgemmsp_cpu(void *descr[], void *cl_arg)
     B = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
     C = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-    starpu_codelet_unpack_args( cl_arg, &sopalin_data, &sideA, &sideB, &trans, &cblk, &fcblk,
-                                &blok_mk, &blok_nk, &blok_mn );
+    starpu_codelet_unpack_args( cl_arg, &sideA, &sideB, &trans, &cblk, &fcblk,
+                                &blok_mk, &blok_nk, &blok_mn, &sopalin_data );
 
     assert( cblk->cblktype  & CBLK_TASKS_2D );
     assert( fcblk->cblktype & CBLK_TASKS_2D );
@@ -185,8 +187,8 @@ static void cl_blok_zgemmsp_gpu(void *descr[], void *cl_arg)
     B = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
     C = (cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-    starpu_codelet_unpack_args( cl_arg, &sopalin_data, &sideA, &sideB, &trans, &cblk, &fcblk,
-                                &blok_mk, &blok_nk, &blok_mn );
+    starpu_codelet_unpack_args( cl_arg, &sideA, &sideB, &trans, &cblk, &fcblk,
+                                &blok_mk, &blok_nk, &blok_mn, &sopalin_data );
 
     assert( cblk->cblktype  & CBLK_TASKS_2D );
     assert( fcblk->cblktype & CBLK_TASKS_2D );
@@ -254,15 +256,15 @@ starpu_task_blok_zgemmsp( pastix_coefside_t sideA,
 
     starpu_insert_task(
         pastix_codelet(&cl_blok_zgemmsp),
-        STARPU_VALUE, &sopalin_data,      sizeof(sopalin_data_t*),
-        STARPU_VALUE, &sideA,             sizeof(pastix_coefside_t),
-        STARPU_VALUE, &sideB,             sizeof(pastix_coefside_t),
-        STARPU_VALUE, &trans,             sizeof(pastix_trans_t),
-        STARPU_VALUE, &cblk,              sizeof(SolverCblk*),
-        STARPU_VALUE, &fcblk,             sizeof(SolverCblk*),
-        STARPU_VALUE, &blok_mk,           sizeof(pastix_int_t),
-        STARPU_VALUE, &blok_nk,           sizeof(pastix_int_t),
-        STARPU_VALUE, &blok_mn,           sizeof(pastix_int_t),
+        STARPU_VALUE, &sideA,        sizeof(pastix_coefside_t),
+        STARPU_VALUE, &sideB,        sizeof(pastix_coefside_t),
+        STARPU_VALUE, &trans,        sizeof(pastix_trans_t),
+        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
+        STARPU_VALUE, &fcblk,        sizeof(SolverCblk*),
+        STARPU_VALUE, &blok_mk,      sizeof(pastix_int_t),
+        STARPU_VALUE, &blok_nk,      sizeof(pastix_int_t),
+        STARPU_VALUE, &blok_mn,      sizeof(pastix_int_t),
+        STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
         STARPU_R,      blokA->handler[sideA],
         STARPU_R,      blokB->handler[sideB],
         STARPU_RW,     blokC->handler[sideA],
