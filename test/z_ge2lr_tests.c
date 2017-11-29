@@ -156,7 +156,8 @@ int main (int argc, char **argv)
     int err = 0;
     int ret;
     pastix_int_t m, r;
-    double tolerance = 1.e-3;
+    double eps = LAPACKE_dlamch_work('e');
+    double tolerance = sqrt(eps);
 
     for (m=100; m<300; m+=100){
         for (r=0; r <= (m/2); r += ( r + 1 ) ) {

@@ -132,18 +132,16 @@ z_lowrank_rradd( pastix_int_t mA, pastix_int_t nA,
     pastix_complex64_t mone = -1.0;
     double norm_diff, res;
     pastix_int_t rkABmax;
-    pastix_int_t rankmax  = core_get_rklimit(mB, nB);
     int          rc = 0;
     pastix_lrblock_t lrAB;
 
     rkABmax = lrA->rk + lrB->rk;
 
     if ( (lrA->rk == -1) ||
-         (lrB->rk == -1) ||
-         (rkABmax > rankmax) )
+         (lrB->rk == -1) )
     {
         printf("Operation not supported\n");
-        return -1;
+        return 0;
     }
 
     /* Init lrAB */
@@ -173,9 +171,9 @@ z_lowrank_rradd( pastix_int_t mA, pastix_int_t nA,
                  -1.0, A,                      mA,
                   1.0, Bfr + offx + mB * offy, mB );
 
-    /* Uncompresse the low-rank sum */
+    /* Uncompress the low-rank sum */
     core_zlr2ge( PastixNoTrans, mB, nB,
-                 lrB, Blr, mB );
+                 &lrAB, Blr, mB );
 
     /* Compute the diff */
     core_zgeadd( PastixNoTrans, mB, nB,

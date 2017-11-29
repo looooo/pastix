@@ -701,8 +701,11 @@ core_zrrqr( pastix_int_t m, pastix_int_t n,
             /*
              * Rank is too large for compression
              */
-            if (rk > maxrank){
+            if (rk > maxrank) {
                 return -1;
+            }
+            if (rk == minMN) {
+                return rk;
             }
 
             pvt = rk + cblas_idamax(n-rk, VN1 + rk, 1);
