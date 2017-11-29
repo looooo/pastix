@@ -57,38 +57,31 @@ z_lowrank_rradd( pastix_int_t mA, pastix_int_t nA,
                  const pastix_complex64_t *B, const pastix_lrblock_t *lrB, double normB,
                  pastix_lr_t *lowrank );
 
+extern pastix_lr_t z_lr_svd;
+extern pastix_lr_t z_lr_rrqr;
+
 int main (int argc, char **argv)
 {
     (void) argc;
     (void) argv;
     int err = 0;
     int ret, rc, mode = 0;
-    pastix_int_t m, r, rmax;
+    pastix_int_t m, r, rmax, compress_type;
     double       eps = LAPACKE_dlamch_work('e');
     double       tolerance = sqrt(eps);
-    pastix_lr_t  lr_RRQR, lr_SVD;
     pastix_complex64_t *A, *B;
     pastix_lrblock_t    lrA_svd, lrB_svd;
     pastix_lrblock_t    lrA_rrqr, lrB_rrqr;
     double              norm_dense_A, norm_dense_B;
 
-    /* Initialize the RRQR structure */
-    lr_RRQR.compress_when       = PastixCompressWhenEnd;
-    lr_RRQR.compress_method     = PastixCompressMethodRRQR;
-    lr_RRQR.compress_min_width  = 0;
-    lr_RRQR.compress_min_height = 0;
-    lr_RRQR.tolerance  = tolerance;
-    lr_RRQR.core_ge2lr = core_zge2lr_rrqr;
-    lr_RRQR.core_rradd = core_zrradd_rrqr;
+    compress_type = 3;
+    if ( argc > 1 ) {
+        compress_type = atoi( argv[1] );
+    }
 
-    /* Initialize the SVD structure */
-    lr_SVD.compress_when       = PastixCompressWhenEnd;
-    lr_SVD.compress_method     = PastixCompressMethodSVD;
-    lr_SVD.compress_min_width  = 0;
-    lr_SVD.compress_min_height = 0;
-    lr_SVD.tolerance  = tolerance;
-    lr_SVD.core_ge2lr = core_zge2lr_svd;
-    lr_SVD.core_rradd = core_zrradd_svd;
+    /* Initialize tolerance of low-rank structure */
+    z_lr_rrqr.tolerance = tolerance;
+    z_lr_svd.tolerance  = tolerance;
 
     for (m=100; m<=400; m = 2*m) {
         rmax = core_get_rklimit( m, m );
@@ -113,22 +106,24 @@ int main (int argc, char **argv)
                               &B, &lrB_svd, &lrB_rrqr, &norm_dense_B );
 
             ret = 0;
+            if (compress_type & 1)
             {
                 printf("     RRQR: A %2d B %2d ", lrA_rrqr.rk, lrB_rrqr.rk );
                 rc = z_lowrank_rradd( mA, mA, offx, offy, A, &lrA_rrqr, norm_dense_A,
                                       mB, mB,             B, &lrB_rrqr, norm_dense_B,
-                                      &lr_RRQR );
+                                      &z_lr_rrqr );
                 assert( rc >= 0 );
                 ret += rc;
             }
             core_zlrfree( &lrA_rrqr );
             core_zlrfree( &lrB_rrqr );
 
+            if (compress_type & 2)
             {
                 printf("     SVD:  A %2d B %2d ", lrA_svd.rk, lrB_svd.rk );
                 rc = z_lowrank_rradd( mA, mA, offx, offy, A, &lrA_svd, norm_dense_A,
                                       mB, mB,             B, &lrB_svd, norm_dense_B,
-                                      &lr_SVD );
+                                      &z_lr_svd );
                 assert( rc >= 0 );
                 ret += rc;
             }

@@ -126,6 +126,7 @@ if(TMG_FOUND)
   set(TESTS_SOURCES
     z_ge2lr_tests.c
     z_rradd_tests.c
+    z_lrmm_tests.c
     )
 
   ## reset variables
@@ -148,21 +149,8 @@ if(TMG_FOUND)
       ${BLAS_SEQ_LIBRARIES}
       ${EXTRA_LIBS}
       m)
-  endforeach()
 
-  set( GE2LR_TESTS
-    s_ge2lr_tests d_ge2lr_tests c_ge2lr_tests z_ge2lr_tests )
-  set( RRADD_TESTS
-    s_rradd_tests d_rradd_tests c_rradd_tests z_rradd_tests )
-
-  # GE2LR
-  foreach(example ${GE2LR_TESTS} )
-    add_test(test_${example} ./${example})
-  endforeach()
-
-  # RRADD
-  foreach(example ${RRADD_TESTS} )
-    add_test(test_${example} ./${example})
+    add_test(test_${_name_we} ./${_name_we})
   endforeach()
 
 endif()
