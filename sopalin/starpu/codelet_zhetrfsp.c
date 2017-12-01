@@ -10,7 +10,7 @@
  * @version 6.0.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2013-06-24
+ * @date 2017-06-24
  *
  * @precisions normal z -> z c
  *
@@ -24,14 +24,16 @@
 #include "pastix_zcores.h"
 #include "pastix_starpu.h"
 #include "codelets.h"
+#include "pastix_starpu_model.h"
 
 /**
  * Cblk version
  */
 static struct starpu_perfmodel starpu_cblk_zhetrfsp1d_panel_model =
 {
-    .type = STARPU_HISTORY_BASED,
-    .symbol = "cblk_zhetrfsp",
+    .type = STARPU_PER_ARCH,
+    .symbol = "cblk_zhetrf",
+    .arch_cost_function = cblk_hetrf_cost,
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
@@ -42,10 +44,10 @@ static void cl_cblk_zhetrfsp1d_panel_cpu(void *descr[], void *cl_arg)
     pastix_complex64_t *L, *DL;
     int nbpivot;
 
-    L  = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[0]);
-    DL = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
+    L  = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
+    DL = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-    starpu_codelet_unpack_args(cl_arg, &cblk, &sopalin_data);
+    starpu_codelet_unpack_args( cl_arg, &cblk, &sopalin_data );
 
     assert( !(cblk->cblktype & CBLK_TASKS_2D) );
 
@@ -94,8 +96,9 @@ starpu_task_cblk_zhetrfsp1d_panel( sopalin_data_t *sopalin_data,
  */
 static struct starpu_perfmodel starpu_blok_zhetrfsp_model =
 {
-    .type = STARPU_HISTORY_BASED,
+    .type = STARPU_PER_ARCH,
     .symbol = "blok_zhetrfsp",
+    .arch_cost_function = blok_hetrf_cost,
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
@@ -106,9 +109,9 @@ static void cl_blok_zhetrfsp_cpu(void *descr[], void *cl_arg)
     pastix_complex64_t *L;
     int nbpivot;
 
-    L = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[0]);
+    L = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-    starpu_codelet_unpack_args(cl_arg, &cblk, &sopalin_data);
+    starpu_codelet_unpack_args( cl_arg, &cblk, &sopalin_data );
 
     assert(cblk->cblktype & CBLK_TASKS_2D);
 
@@ -127,8 +130,8 @@ starpu_task_blok_zhetrf( sopalin_data_t *sopalin_data,
 {
     starpu_insert_task(
         pastix_codelet(&cl_blok_zhetrfsp),
-        STARPU_VALUE, &cblk,             sizeof(SolverCblk*),
-        STARPU_VALUE, &sopalin_data,     sizeof(sopalin_data_t*),
+        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
+        STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
         STARPU_RW,     cblk->fblokptr->handler[0],
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "blok_zhetrfsp",

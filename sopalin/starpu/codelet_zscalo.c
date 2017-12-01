@@ -45,9 +45,9 @@ static void cl_blok_zscalo_cpu(void *descr[], void *cl_arg)
     const pastix_complex64_t *D;
     pastix_complex64_t *B;
 
-    A = (const pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[0]);
-    D = (const pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
-    B = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[2]);
+    A = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
+    D = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
+    B = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[2]);
 
     starpu_codelet_unpack_args( cl_arg, &trans, &cblk, &blok_m );
 

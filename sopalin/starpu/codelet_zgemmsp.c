@@ -24,14 +24,16 @@
 #include "pastix_zcores.h"
 #include "pastix_starpu.h"
 #include "codelets.h"
+#include "pastix_starpu_model.h"
 
 /**
  * Cblk version
  */
 static struct starpu_perfmodel starpu_cblk_zgemmsp_model =
 {
-    .type = STARPU_HISTORY_BASED,
+    .type = STARPU_PER_ARCH,
     .symbol = "cblk_zgemmsp",
+    .arch_cost_function = cblk_gemmsp_cost,
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
@@ -48,11 +50,12 @@ static void cl_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
     const pastix_complex64_t *B;
     pastix_complex64_t *C;
 
-    A = (const pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[0]);
-    B = (const pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
-    C = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[2]);
+    A = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
+    B = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
+    C = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-    starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data);
+    starpu_codelet_unpack_args( cl_arg, &sideA, &sideB, &trans,
+                                &cblk, &blok, &fcblk, &sopalin_data );
 
     /* Check layout due to NULL workspace for now */
     assert(  cblk->cblktype & CBLK_LAYOUT_2D );
@@ -78,11 +81,12 @@ static void cl_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
     const cuDoubleComplex *B;
     cuDoubleComplex *C;
 
-    A = (const cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[0]);
-    B = (const cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[1]);
-    C = (cuDoubleComplex *)      STARPU_MATRIX_GET_PTR(descr[2]);
+    A = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[0]);
+    B = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
+    C = (cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-    starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &blok, &fcblk, &sopalin_data);
+    starpu_codelet_unpack_args( cl_arg, &sideA, &sideB, &trans,
+                                &cblk, &blok, &fcblk, &sopalin_data );
 
     gpucblk_zgemmsp( sideA, sideB, trans,
                      cblk, blok, fcblk,
@@ -107,16 +111,16 @@ starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
 {
     starpu_insert_task(
         pastix_codelet(&cl_cblk_zgemmsp),
-        STARPU_VALUE, &sideA,             sizeof(pastix_coefside_t),
-        STARPU_VALUE, &sideB,             sizeof(pastix_coefside_t),
-        STARPU_VALUE, &trans,             sizeof(pastix_trans_t),
-        STARPU_VALUE, &cblk,              sizeof(SolverCblk*),
-        STARPU_VALUE, &blok,              sizeof(SolverBlok*),
-        STARPU_VALUE, &fcblk,             sizeof(SolverCblk*),
+        STARPU_VALUE, &sideA,        sizeof(pastix_coefside_t),
+        STARPU_VALUE, &sideB,        sizeof(pastix_coefside_t),
+        STARPU_VALUE, &trans,        sizeof(pastix_trans_t),
+        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
+        STARPU_VALUE, &blok,         sizeof(SolverBlok*),
+        STARPU_VALUE, &fcblk,        sizeof(SolverCblk*),
+        STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
         STARPU_R,      cblk->handler[sideA],
         STARPU_R,      cblk->handler[sideB],
         STARPU_RW,     fcblk->handler[sideA],
-        STARPU_VALUE, &sopalin_data,     sizeof(sopalin_data_t*),
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "cblk_zgemmsp",
 #endif
@@ -129,8 +133,9 @@ starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
  */
 static struct starpu_perfmodel starpu_blok_zgemmsp_model =
 {
-    .type = STARPU_HISTORY_BASED,
+    .type = STARPU_PER_ARCH,
     .symbol = "blok_zgemmsp",
+    .arch_cost_function = blok_gemmsp_cost,
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
@@ -147,12 +152,12 @@ static void cl_blok_zgemmsp_cpu(void *descr[], void *cl_arg)
     const pastix_complex64_t *B;
     pastix_complex64_t *C;
 
-    A = (const pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[0]);
-    B = (const pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
-    C = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[2]);
+    A = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
+    B = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
+    C = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-    starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &fcblk,
-                               &blok_mk, &blok_nk, &blok_mn, &sopalin_data);
+    starpu_codelet_unpack_args( cl_arg, &sideA, &sideB, &trans, &cblk, &fcblk,
+                                &blok_mk, &blok_nk, &blok_mn, &sopalin_data );
 
     assert( cblk->cblktype  & CBLK_TASKS_2D );
     assert( fcblk->cblktype & CBLK_TASKS_2D );
@@ -178,12 +183,12 @@ static void cl_blok_zgemmsp_gpu(void *descr[], void *cl_arg)
     const cuDoubleComplex *B;
     cuDoubleComplex *C;
 
-    A = (const cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[0]);
-    B = (const cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[1]);
-    C = (cuDoubleComplex *)STARPU_MATRIX_GET_PTR(descr[2]);
+    A = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[0]);
+    B = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
+    C = (cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-    starpu_codelet_unpack_args(cl_arg, &sideA, &sideB, &trans, &cblk, &fcblk,
-                               &blok_mk, &blok_nk, &blok_mn, &sopalin_data);
+    starpu_codelet_unpack_args( cl_arg, &sideA, &sideB, &trans, &cblk, &fcblk,
+                                &blok_mk, &blok_nk, &blok_mn, &sopalin_data );
 
     assert( cblk->cblktype  & CBLK_TASKS_2D );
     assert( fcblk->cblktype & CBLK_TASKS_2D );
@@ -251,18 +256,18 @@ starpu_task_blok_zgemmsp( pastix_coefside_t sideA,
 
     starpu_insert_task(
         pastix_codelet(&cl_blok_zgemmsp),
-        STARPU_VALUE, &sideA,             sizeof(pastix_coefside_t),
-        STARPU_VALUE, &sideB,             sizeof(pastix_coefside_t),
-        STARPU_VALUE, &trans,             sizeof(pastix_trans_t),
-        STARPU_VALUE, &cblk,              sizeof(SolverCblk*),
-        STARPU_VALUE, &fcblk,             sizeof(SolverCblk*),
-        STARPU_VALUE, &blok_mk,           sizeof(pastix_int_t),
-        STARPU_VALUE, &blok_nk,           sizeof(pastix_int_t),
-        STARPU_VALUE, &blok_mn,           sizeof(pastix_int_t),
+        STARPU_VALUE, &sideA,        sizeof(pastix_coefside_t),
+        STARPU_VALUE, &sideB,        sizeof(pastix_coefside_t),
+        STARPU_VALUE, &trans,        sizeof(pastix_trans_t),
+        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
+        STARPU_VALUE, &fcblk,        sizeof(SolverCblk*),
+        STARPU_VALUE, &blok_mk,      sizeof(pastix_int_t),
+        STARPU_VALUE, &blok_nk,      sizeof(pastix_int_t),
+        STARPU_VALUE, &blok_mn,      sizeof(pastix_int_t),
+        STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
         STARPU_R,      blokA->handler[sideA],
         STARPU_R,      blokB->handler[sideB],
         STARPU_RW,     blokC->handler[sideA],
-        STARPU_VALUE, &sopalin_data,     sizeof(sopalin_data_t*),
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "blok_zgemmsp",
 #endif

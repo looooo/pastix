@@ -23,15 +23,15 @@
 #define CODELET_CUDA_FLAGS(flags)
 #endif
 
-#define CODELETS_ALL( _name_, _nbuffers_, _cpu_func_name_, _cuda_func_name_, _original_location_, _cuda_flags_ ) \
+#define CODELETS_ALL( _name_, _nbuffers_, _cpu_func_name_, _cuda_func_name_, _original_location_, _cuda_flags_) \
     struct starpu_codelet cl_##_name_ = {                               \
         .where     = (_original_location_),                             \
         .cpu_funcs[0] = (_cpu_func_name_),                              \
         CODELET_CUDA_FLAGS(_cuda_flags_)                                \
         .cuda_funcs[0] = (_cuda_func_name_),                            \
         .nbuffers  = (_nbuffers_),                                      \
-        .model     = &starpu_##_name_##_model,                          \
-        .name      = #_name_                                            \
+        .name      = #_name_ ,                                          \
+        .model     = &(starpu_##_name_##_model)                          \
     };
 
 #if defined(PASTIX_STARPU_SIMULATION)
@@ -57,6 +57,5 @@
 #define CODELETS_GPU(_name_, _nbuffers_, _cuda_flags_)       \
     CODELETS_CPU( _name_, _nbuffers_ )
 #endif
-
 
 #endif /* _codelets_h_ */

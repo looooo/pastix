@@ -22,6 +22,7 @@ set(generated_headers "")
 set(EXTRA_SOURCES
   starpu.c
   starpu_sparse_matrix.c
+  pastix_starpu_model.c
 )
 
 ### Generate the headers in all precisions
