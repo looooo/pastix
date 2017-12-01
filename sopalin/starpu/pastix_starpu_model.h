@@ -18,13 +18,19 @@
 #ifndef _pastix_starpu_model_h_
 #define _pastix_starpu_model_h_
 
-double cblk_gemmsp_cost( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
-double blok_gemmsp_cost( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
+double blok_getrf_cost ( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
+double blok_hetrf_cost ( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
+double blok_potrf_cost ( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
+double blok_pxtrf_cost ( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
+double blok_sytrf_cost ( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
 double blok_trsmsp_cost( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
+double blok_gemmsp_cost( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
 
-double cblk_getrf_cost( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
-double blok_getrf_cost( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
-double cblk_potrf_cost( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
-double blok_potrf_cost( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
+double cblk_getrf_cost ( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
+double cblk_hetrf_cost ( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
+double cblk_potrf_cost ( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
+double cblk_pxtrf_cost ( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
+double cblk_sytrf_cost ( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
+double cblk_gemmsp_cost( struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl );
 
 #endif /* _pastix_starpu_model_h_ */

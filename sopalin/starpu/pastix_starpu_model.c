@@ -322,3 +322,216 @@ blok_potrf_cost( struct starpu_task           *task,
 
     return cost;
 }
+
+double
+cblk_pxtrf_cost( struct starpu_task           *task,
+                 struct starpu_perfmodel_arch *arch,
+                 unsigned                      nimpl )
+{
+    sopalin_data_t *sopalin_data;
+    SolverCblk     *cblk;
+    pastix_int_t    M, N;
+    double *coefs, cost = 0.;
+
+    starpu_codelet_unpack_args( task->cl_arg, &cblk, &sopalin_data );
+
+    N = cblk_colnbr( cblk );
+    M = cblk->stride - N;
+
+    if (arch->devices->type == STARPU_CPU_WORKER) {
+        coefs = &((*(sopalin_data->cpu_coefs))[PastixKernelPXTRF][0]);
+        cost = modelsGetCost1Param( coefs, N );
+
+        coefs = &((*(sopalin_data->cpu_coefs))[PastixKernelTRSMCblk2d][0]);
+        cost += modelsGetCost2Param( coefs, M, N );
+    }
+    else if(arch->devices->type == STARPU_CUDA_WORKER) {
+        coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelPXTRF][0]);
+        cost = modelsGetCost1Param( coefs, N );
+
+        coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelTRSMCblk2d][0]);
+        cost += modelsGetCost2Param( coefs, M, N );
+    }
+    else {
+        assert(0);
+    }
+
+    (void)nimpl;
+
+    /* return cost in us */
+    return cost * 1.e6;
+}
+
+double
+blok_pxtrf_cost( struct starpu_task           *task,
+                 struct starpu_perfmodel_arch *arch,
+                 unsigned                      nimpl )
+{
+    sopalin_data_t *sopalin_data;
+    SolverCblk     *cblk;
+    pastix_int_t    N;
+    double *coefs, cost = 0.;
+
+    starpu_codelet_unpack_args( task->cl_arg, &cblk, &sopalin_data );
+
+    N = cblk_colnbr( cblk );
+
+    if (arch->devices->type == STARPU_CPU_WORKER) {
+        coefs = &((*(sopalin_data->cpu_coefs))[PastixKernelPXTRF][0]);
+    }
+    else if(arch->devices->type == STARPU_CUDA_WORKER) {
+        coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelPXTRF][0]);
+    }
+    else {
+        assert(0);
+    }
+
+    (void)nimpl;
+
+    /* Compute cost in us */
+    cost = modelsGetCost1Param( coefs, N ) * 1e6;
+
+    return cost;
+}
+
+double
+cblk_hetrf_cost( struct starpu_task           *task,
+                 struct starpu_perfmodel_arch *arch,
+                 unsigned                      nimpl )
+{
+    sopalin_data_t *sopalin_data;
+    SolverCblk     *cblk;
+    pastix_int_t    M, N;
+    double *coefs, cost = 0.;
+
+    starpu_codelet_unpack_args( task->cl_arg, &cblk, &sopalin_data );
+
+    N = cblk_colnbr( cblk );
+    M = cblk->stride - N;
+
+    if (arch->devices->type == STARPU_CPU_WORKER) {
+        coefs = &((*(sopalin_data->cpu_coefs))[PastixKernelHETRF][0]);
+        cost = modelsGetCost1Param( coefs, N );
+
+        coefs = &((*(sopalin_data->cpu_coefs))[PastixKernelTRSMCblk2d][0]);
+        cost += modelsGetCost2Param( coefs, M, N );
+    }
+    else if(arch->devices->type == STARPU_CUDA_WORKER) {
+        coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelHETRF][0]);
+        cost = modelsGetCost1Param( coefs, N );
+
+        coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelTRSMCblk2d][0]);
+        cost += modelsGetCost2Param( coefs, M, N );
+    }
+    else {
+        assert(0);
+    }
+
+    (void)nimpl;
+
+    /* return cost in us */
+    return cost * 1.e6;
+}
+
+double
+blok_hetrf_cost( struct starpu_task           *task,
+                 struct starpu_perfmodel_arch *arch,
+                 unsigned                      nimpl )
+{
+    sopalin_data_t *sopalin_data;
+    SolverCblk     *cblk;
+    pastix_int_t    N;
+    double *coefs, cost = 0.;
+
+    starpu_codelet_unpack_args( task->cl_arg, &cblk, &sopalin_data );
+
+    N = cblk_colnbr( cblk );
+
+    if (arch->devices->type == STARPU_CPU_WORKER) {
+        coefs = &((*(sopalin_data->cpu_coefs))[PastixKernelHETRF][0]);
+    }
+    else if(arch->devices->type == STARPU_CUDA_WORKER) {
+        coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelHETRF][0]);
+    }
+    else {
+        assert(0);
+    }
+
+    (void)nimpl;
+
+    /* Compute cost in us */
+    cost = modelsGetCost1Param( coefs, N ) * 1e6;
+
+    return cost;
+}
+
+double
+cblk_sytrf_cost( struct starpu_task           *task,
+                 struct starpu_perfmodel_arch *arch,
+                 unsigned                      nimpl )
+{
+    sopalin_data_t *sopalin_data;
+    SolverCblk     *cblk;
+    pastix_int_t    M, N;
+    double *coefs, cost = 0.;
+
+    starpu_codelet_unpack_args( task->cl_arg, &cblk, &sopalin_data );
+
+    N = cblk_colnbr( cblk );
+    M = cblk->stride - N;
+
+    if (arch->devices->type == STARPU_CPU_WORKER) {
+        coefs = &((*(sopalin_data->cpu_coefs))[PastixKernelSYTRF][0]);
+        cost = modelsGetCost1Param( coefs, N );
+
+        coefs = &((*(sopalin_data->cpu_coefs))[PastixKernelTRSMCblk2d][0]);
+        cost += modelsGetCost2Param( coefs, M, N );
+    }
+    else if(arch->devices->type == STARPU_CUDA_WORKER) {
+        coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelSYTRF][0]);
+        cost = modelsGetCost1Param( coefs, N );
+
+        coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelTRSMCblk2d][0]);
+        cost += modelsGetCost2Param( coefs, M, N );
+    }
+    else {
+        assert(0);
+    }
+
+    (void)nimpl;
+
+    /* return cost in us */
+    return cost * 1.e6;
+}
+
+double
+blok_sytrf_cost( struct starpu_task           *task,
+                 struct starpu_perfmodel_arch *arch,
+                 unsigned                      nimpl )
+{
+    sopalin_data_t *sopalin_data;
+    SolverCblk     *cblk;
+    pastix_int_t    N;
+    double *coefs, cost = 0.;
+
+    starpu_codelet_unpack_args( task->cl_arg, &cblk, &sopalin_data );
+
+    N = cblk_colnbr( cblk );
+
+    if (arch->devices->type == STARPU_CPU_WORKER) {
+        coefs = &((*(sopalin_data->cpu_coefs))[PastixKernelSYTRF][0]);
+    }
+    else if(arch->devices->type == STARPU_CUDA_WORKER) {
+        coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelSYTRF][0]);
+    }
+    else {
+        assert(0);
+    }
+
+    (void)nimpl;
+
+    /* Compute cost in us */
+    cost = modelsGetCost1Param( coefs, N ) * 1e6;
+
+    return cost;
+}

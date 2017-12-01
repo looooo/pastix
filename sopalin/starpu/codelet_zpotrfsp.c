@@ -24,14 +24,16 @@
 #include "pastix_zcores.h"
 #include "pastix_starpu.h"
 #include "codelets.h"
+#include "pastix_starpu_model.h"
 
 /**
  * Cblk version
  */
 static struct starpu_perfmodel starpu_cblk_zpotrfsp1d_panel_model =
 {
-    .type = STARPU_HISTORY_BASED,
+    .type = STARPU_PER_ARCH,
     .symbol = "cblk_zpotrfsp1d_panel",
+    .arch_cost_function = cblk_potrf_cost,
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
@@ -79,8 +81,9 @@ starpu_task_cblk_zpotrfsp1d_panel( sopalin_data_t *sopalin_data,
  */
 static struct starpu_perfmodel starpu_blok_zpotrfsp_model =
 {
-    .type = STARPU_HISTORY_BASED,
+    .type = STARPU_PER_ARCH,
     .symbol = "blok_zpotrfsp",
+    .arch_cost_function = blok_potrf_cost,
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
