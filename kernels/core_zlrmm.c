@@ -155,7 +155,6 @@ core_zlrmm_Cnull( core_zlrmm_t *params )
         transV = transB;
     }
 
-    flops = 0.0;
     if ( AB.rk != 0 ) {
         pastix_atomic_lock( lock );
         switch ( C->rk ) {
@@ -264,7 +263,6 @@ core_zlrmm_Clr( core_zlrmm_t *params )
         transV = transB;
     }
 
-    flops = 0.0;
     if ( AB.rk != 0 ) {
         pastix_atomic_lock( lock );
         switch ( C->rk ) {
