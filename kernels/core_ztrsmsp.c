@@ -236,6 +236,7 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
     pastix_complex64_t *A;
 
     pastix_fixdbl_t flops = 0.0;
+    pastix_fixdbl_t flops_c;
 
     N     = cblk->lcolnum - cblk->fcolnum + 1;
     fblok = cblk[0].fblokptr;  /* The diagonal block */
@@ -263,7 +264,6 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                  ( M > lowrank->compress_min_height ) )
             {
                 pastix_lrblock_t C;
-                pastix_fixdbl_t  flops_c;
 
                 kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
                 flops_c = lowrank->core_ge2lr( lowrank->tolerance, -1,
@@ -284,8 +284,9 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                             lrC->rk, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->v, lrC->rkmax);
-                kernel_trace_stop_lvl2( FLOPS_ZTRSM( side, lrC->rk, N ) );
-                flops += FLOPS_ZTRSM( side, lrC->rk, N );
+                flops_c = FLOPS_ZTRSM( side, lrC->rk, N );
+                kernel_trace_stop_lvl2( flops_c );
+                flops += flops_c;
             }
             else {
                 M = blok_rownbr(blok);
@@ -295,8 +296,9 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                             M, N,
                             CBLAS_SADDR(zone), A, lda,
                             lrC->u, lrC->rkmax);
-                kernel_trace_stop_lvl2( FLOPS_ZTRSM( side, M, N ) );
-                flops += FLOPS_ZTRSM( side, M, N );
+                flops_c = FLOPS_ZTRSM( side, M, N );
+                kernel_trace_stop_lvl2( flops_c );
+                flops += flops_c;
             }
         }
     }

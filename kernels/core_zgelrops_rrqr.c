@@ -246,6 +246,7 @@ core_zlrorthu_partialqr( pastix_int_t M,  pastix_int_t N,
     *r2ptr = r2;
 
     if ( r2 == 0 ) {
+        free( W );
         return 0.;
     }
 
@@ -324,6 +325,8 @@ core_zlrorthu_partialqr( pastix_int_t M,  pastix_int_t N,
         fprintf(stderr, "partialQR: Final u2 not orthogonal to u1\n" );
     }
 #endif
+
+    free( W );
 
     (void)ret;
     (void)offx;
