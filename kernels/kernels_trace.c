@@ -229,7 +229,7 @@ kernelsTraceStop( const pastix_data_t *pastix_data )
   end_model:
 #endif
 
-    fprintf(stderr, "The total number of flops executed is %5.2lf %cFlops\n", printflopsv( overall_flops ), printflopsu( overall_flops ));
+    /* Update the real number of Flops performed */
     pastix_data->dparm[DPARM_FACT_THFLOPS] = overall_flops;
 
     (void)pastix_data;

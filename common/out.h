@@ -160,6 +160,9 @@
 #define OUT_SOPALIN_TIME                                                \
     "    Time to factorize                     %e s (%5.2lf %cFlop/s)\n"
 
+#define OUT_LOWRANK_FLOPS                                     \
+    "    Real number of operations:              %5.2lf %cFlops\n"
+
 #define OUT_LOWRANK_SUMMARY                                     \
     "    Compression:\n"                                        \
     "      Elements removed             %8ld / %8ld\n"          \
