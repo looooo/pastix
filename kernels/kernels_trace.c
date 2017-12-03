@@ -229,20 +229,6 @@ kernelsTraceStop( const pastix_data_t *pastix_data )
   end_model:
 #endif
 
-    /* Disable as long as the counters are not correct */
-    if (0)
-    {
-        int i;
-
-        /* Compute the total number of flops */
-        for( i=0; i<PastixKernelLvl1Nbr; i++ )
-        {
-            total_flops += kernels_flops[i];
-        }
-
-        fprintf(stderr, "The total number of flops executed is %lf\n", total_flops);
-    }
-
     fprintf(stderr, "The total number of flops executed is %5.2lf %cFlops\n", printflopsv( overall_flops ), printflopsu( overall_flops ));
     pastix_data->dparm[DPARM_FACT_THFLOPS] = overall_flops;
 
