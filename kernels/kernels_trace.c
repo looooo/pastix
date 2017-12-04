@@ -48,6 +48,7 @@ pastix_atomic_lock_t lock_flops = PASTIX_ATOMIC_UNLOCKED;
 double overall_flops = 0.0;
 
 double pastix_lr_minratio = 1.0;
+pastix_int_t pastix_lr_ortho = 0;
 
 /**
  *******************************************************************************

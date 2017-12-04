@@ -220,6 +220,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     lr->tolerance           = sqrt( pastix_data->dparm[DPARM_COMPRESS_TOLERANCE] );
 
     pastix_lr_minratio      = pastix_data->dparm[DPARM_COMPRESS_MIN_RATIO];
+    pastix_lr_ortho         = pastix_data->iparm[IPARM_COMPRESS_ORTHO];
 
     bcsc = pastix_data->bcsc;
     lr->core_ge2lr = compressMethod[   pastix_data->iparm[IPARM_COMPRESS_METHOD] ][bcsc->flttype-2];

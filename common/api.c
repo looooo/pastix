@@ -209,7 +209,8 @@ pastixWelcome( const pastix_data_t *pastix )
                       /* Compress method */ ((pastix->iparm[IPARM_COMPRESS_METHOD] == PastixCompressMethodSVD) ? "SVD" : "RRQR"),
                       /* Compress width  */ (long)pastix->iparm[IPARM_COMPRESS_MIN_WIDTH],
                       /* Compress height */ (long)pastix->iparm[IPARM_COMPRESS_MIN_HEIGHT],
-                      /* Min ratio       */ (double)pastix->dparm[DPARM_COMPRESS_MIN_RATIO] );
+                      /* Min ratio       */ (double)pastix->dparm[DPARM_COMPRESS_MIN_RATIO],
+                      /* Ortho    method */ ((pastix->iparm[IPARM_COMPRESS_ORTHO] == PastixCompressOrthoCGS) ? "CGS" : (pastix->iparm[IPARM_COMPRESS_ORTHO] == PastixCompressOrthoQR) ? "QR" : "partialQR") );
     }
 }
 
@@ -356,6 +357,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_COMPRESS_MIN_HEIGHT]   = 20;
     iparm[IPARM_COMPRESS_WHEN]         = PastixCompressNever;
     iparm[IPARM_COMPRESS_METHOD]       = PastixCompressMethodRRQR;
+    iparm[IPARM_COMPRESS_ORTHO]        = PastixCompressOrthoCGS;
 
     /* MPI modes */
 #if defined(PASTIX_WITH_MPI)

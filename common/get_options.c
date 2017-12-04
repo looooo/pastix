@@ -110,6 +110,7 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_compress_min_height",   iparm)) { return IPARM_COMPRESS_MIN_HEIGHT; }
     if(0 == strcasecmp("iparm_compress_when",         iparm)) { return IPARM_COMPRESS_WHEN; }
     if(0 == strcasecmp("iparm_compress_method",       iparm)) { return IPARM_COMPRESS_METHOD; }
+    if(0 == strcasecmp("iparm_compress_ortho",        iparm)) { return IPARM_COMPRESS_ORTHO; }
 
     if(0 == strcasecmp("iparm_modify_parameter",      iparm)) { return IPARM_MODIFY_PARAMETER; }
     if(0 == strcasecmp("iparm_start_task",            iparm)) { return IPARM_START_TASK; }

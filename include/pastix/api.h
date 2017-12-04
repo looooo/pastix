@@ -111,6 +111,7 @@ typedef enum pastix_iparm_e {
     IPARM_COMPRESS_MIN_HEIGHT,   /**< Minimum height to compress an off-diagonal block               Default: 20                       IN    */
     IPARM_COMPRESS_WHEN,         /**< When to compress a supernode                                   Default: PastixCompressNever      IN    */
     IPARM_COMPRESS_METHOD,       /**< Compression method (SVD/RRQR)                                  Default: PastixCompressMethodRRQR IN    */
+    IPARM_COMPRESS_ORTHO,        /**< Orthogonalization method                                       Default: PastixCompressOrthoCGS   IN    */
 
     /* MPI modes */
     IPARM_THREAD_COMM_MODE,      /**< Threaded communication mode                                    Default: PastixThreadMultiple     IN    */
@@ -346,6 +347,15 @@ typedef enum pastix_compress_method_e {
     PastixCompressMethodSVD,
     PastixCompressMethodRRQR
 } pastix_compress_method_t;
+
+/**
+ * @brief Orthogonalization method available for IPARM_COMPRESS_ORTHO parameter
+ */
+typedef enum pastix_compress_ortho_e {
+    PastixCompressOrthoCGS,
+    PastixCompressOrthoQR,
+    PastixCompressOrthoPartialQR,
+} pastix_compress_ortho_t;
 
 /**
  * @brief The list of matrix driver readers and generators

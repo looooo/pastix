@@ -23,6 +23,7 @@
 #include "pastix_zcores.h"
 #include "pastix_zlrcores.h"
 #include "z_nan_check.h"
+#include "pastix_lowrank.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t mzone = -1.0;
@@ -1254,17 +1255,19 @@ core_zrradd_rrqr( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void
     if (rankA != 0) {
 
         kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_rradd_orthogonalize );
-#define LRORTHOU_CGS
-#if defined(LRORTHOU_FULLQR)
-        flops = core_zlrorthu_fullqr( M, N, B->rk + rankA,
-                                      u1u2, ldu, v1v2, ldv );
-#elif defined(LRORTHOU_PARTIALQR)
-        flops = core_zlrorthu_partialqr( M, N, B->rk, &rankA, offx, offy,
-                                         u1u2, ldu, v1v2, ldv );
-#elif defined(LRORTHOU_CGS)
-        flops = core_zlrorthu_cgs( M2, N2, M1, N1, B->rk, &rankA, offx, offy,
-                                   u1u2, ldu, v1v2, ldv );
-#endif
+
+        if ( pastix_lr_ortho == PastixCompressOrthoQR ){
+            flops = core_zlrorthu_fullqr( M, N, B->rk + rankA,
+                                          u1u2, ldu, v1v2, ldv );
+        }
+        else if ( pastix_lr_ortho == PastixCompressOrthoPartialQR ){
+            flops = core_zlrorthu_partialqr( M, N, B->rk, &rankA, offx, offy,
+                                             u1u2, ldu, v1v2, ldv );
+        }
+        else{
+            flops = core_zlrorthu_cgs( M2, N2, M1, N1, B->rk, &rankA, offx, offy,
+                                       u1u2, ldu, v1v2, ldv );
+        }
         kernel_trace_stop_lvl2( flops );
 
         total_flops += flops;

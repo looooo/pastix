@@ -48,6 +48,11 @@
 extern double pastix_lr_minratio;
 
 /**
+ * @brief Define the orthogonalization method.
+ */
+extern pastix_int_t pastix_lr_ortho;
+
+/**
  * @brief Compute the maximal rank accepted for a given matrix size for Just-In-Time strategy
  * @param[in] M The number of rows of the matrix
  * @param[in] N The number of columns of the matrix
