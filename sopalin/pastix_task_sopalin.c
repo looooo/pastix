@@ -404,7 +404,9 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
         if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
             pastix_print( 0, 0, OUT_SOPALIN_TIME,
                           clockVal(timer),
-                          printflopsv( flops ), printflopsu( flops ) );
+                          printflopsv( flops ), printflopsu( flops ),
+                          printflopsv( pastix_data->dparm[DPARM_FACT_THFLOPS] ),
+                          printflopsu( pastix_data->dparm[DPARM_FACT_THFLOPS] ) );
         }
 
 #if defined(PASTIX_WITH_PARSEC) && defined(PASTIX_DEBUG_PARSEC)

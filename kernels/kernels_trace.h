@@ -131,6 +131,16 @@ typedef enum pastix_ktype2_e {
  */
 extern volatile double kernels_flops[PastixKernelLvl1Nbr];
 
+/**
+ * @brief Lock to accumulate flops
+ */
+extern pastix_atomic_lock_t lock_flops;
+
+/**
+ * @brief Overall number of flops
+ */
+extern double overall_flops;
+
 #if defined(PASTIX_WITH_EZTRACE)
 
 #include "eztrace_module/kernels_ev_codes.h"
@@ -209,6 +219,8 @@ kernel_trace_start( pastix_ktype_t ktype )
 
 #endif
 
+    overall_flops = 0.0;
+
     (void)ktype;
     return time;
 }
@@ -274,14 +286,9 @@ kernel_trace_stop( pastix_ktype_t ktype, int m, int n, int k, double flops, doub
 
 #endif
 
-    /* { */
-    /*     double oldval, newval; */
-    /*     do { */
-    /*         oldval = (uint64_t)(kernels_flops[ktype]); */
-    /*         newval = oldval + flops; */
-    /*     } while( !pastix_atomic_cas_64b( (uint64_t*)(kernels_flops + ktype), */
-    /*                                      (uint64_t)oldval, (uint64_t)newval ) ); */
-    /* } */
+    pastix_atomic_lock( &lock_flops );
+    overall_flops += flops;
+    pastix_atomic_unlock( &lock_flops );
 
     (void)ktype;
     (void)m;

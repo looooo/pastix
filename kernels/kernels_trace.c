@@ -44,6 +44,9 @@ int32_t               model_size        = 0;
 
 #endif
 
+pastix_atomic_lock_t lock_flops = PASTIX_ATOMIC_UNLOCKED;
+double overall_flops = 0.0;
+
 /**
  *******************************************************************************
  *
@@ -226,19 +229,8 @@ kernelsTraceStop( const pastix_data_t *pastix_data )
   end_model:
 #endif
 
-    /* Disable as long as the counters are not correct */
-    if (0)
-    {
-        int i;
-
-        /* Compute the total number of flops */
-        for( i=0; i<PastixKernelLvl1Nbr; i++ )
-        {
-            total_flops += kernels_flops[i];
-        }
-
-        fprintf(stderr, "The total number of flops excuted is %lf\n", total_flops);
-    }
+    /* Update the real number of Flops performed */
+    pastix_data->dparm[DPARM_FACT_THFLOPS] = overall_flops;
 
     (void)pastix_data;
     return total_flops;
