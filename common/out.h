@@ -158,9 +158,7 @@
     "    Time to initialize coeftab            %e s\n"
 
 #define OUT_SOPALIN_TIME                                                \
-    "    Time to factorize                     %e s (%5.2lf %cFlop/s)\n"
-
-#define OUT_LOWRANK_FLOPS                                     \
+    "    Time to factorize                     %e s (%5.2lf %cFlop/s)\n" \
     "    Real number of operations:              %5.2lf %cFlops\n"
 
 #define OUT_LOWRANK_SUMMARY                                     \

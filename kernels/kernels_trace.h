@@ -219,6 +219,8 @@ kernel_trace_start( pastix_ktype_t ktype )
 
 #endif
 
+    overall_flops = 0.0;
+
     (void)ktype;
     return time;
 }
