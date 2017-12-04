@@ -140,7 +140,7 @@
 #define OUT_BLEND_SUMMARY                                               \
     "    Number of non-zeroes in blocked L     %8ld\n"                  \
     "    Fill-in                               %8lf\n"                  \
-    "    Number of operations in full-rank: %-5s  %5.2lf %cFlops\n"      \
+    "    Number of operations in full-rank: %-5s     %5.2lf %cFlops\n"  \
     "    Prediction:\n"                                                 \
     "      Model                       %20s\n"                          \
     "      Time to factorize                   %e s\n"                  \
@@ -159,7 +159,7 @@
 
 #define OUT_SOPALIN_TIME                                                \
     "    Time to factorize                     %e s (%5.2lf %cFlop/s)\n" \
-    "    Number of operations:                    %5.2lf %cFlops\n"
+    "    Number of operations:                       %5.2lf %cFlops\n"
 
 #define OUT_LOWRANK_SUMMARY                                     \
     "    Compression:\n"                                        \
