@@ -105,7 +105,8 @@ module pastix_enums
      enumerator :: DPARM_REFINE_TIME        = 15
      enumerator :: DPARM_A_NORM             = 16
      enumerator :: DPARM_COMPRESS_TOLERANCE = 17
-     enumerator :: DPARM_SIZE               = 17
+     enumerator :: DPARM_COMPRESS_MIN_RATIO = 18
+     enumerator :: DPARM_SIZE               = 18
   end enum
 
   ! enum task

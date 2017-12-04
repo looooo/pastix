@@ -104,7 +104,8 @@ class dparm:
     refine_time        = 14
     a_norm             = 15
     compress_tolerance = 16
-    size               = 17
+    compress_min_ratio = 17
+    size               = 18
 
 class task:
     Init     = 0

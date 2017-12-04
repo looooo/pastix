@@ -47,6 +47,8 @@ int32_t               model_size        = 0;
 pastix_atomic_lock_t lock_flops = PASTIX_ATOMIC_UNLOCKED;
 double overall_flops = 0.0;
 
+double pastix_lr_minratio = 1.0;
+
 /**
  *******************************************************************************
  *

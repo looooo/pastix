@@ -42,10 +42,10 @@
 #define PASTIX_LRM3_TRANSB (1 << 3)
 
 /**
- * @brief Define the minmal ratio for which we accept to compress a matrix into a low-rank form or not.
+ * @brief Define the minimal ratio for which we accept to compress a matrix into a low-rank form or not.
  * @sa core_get_rklimit()
  */
-#define PASTIX_LR_MINRATIO 1
+extern double pastix_lr_minratio;
 
 /**
  * @brief Compute the maximal rank accepted for a given matrix size for Just-In-Time strategy
@@ -55,7 +55,7 @@
  */
 static inline pastix_int_t
 core_get_rklimit_end( pastix_int_t M, pastix_int_t N ) {
-    return ( PASTIX_LR_MINRATIO * pastix_imin( M, N ) ) / 4;
+    return ( pastix_lr_minratio * pastix_imin( M, N ) ) / 4;
 }
 
 /**
@@ -66,7 +66,7 @@ core_get_rklimit_end( pastix_int_t M, pastix_int_t N ) {
  */
 static inline pastix_int_t
 core_get_rklimit_begin( pastix_int_t M, pastix_int_t N ) {
-    return ( PASTIX_LR_MINRATIO * M * N ) / ( M + N );
+    return ( pastix_lr_minratio * M * N ) / ( M + N );
 }
 
 extern pastix_int_t (*core_get_rklimit)( pastix_int_t, pastix_int_t );

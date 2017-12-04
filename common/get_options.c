@@ -147,6 +147,7 @@ parse_dparm( const char *dparm )
     if(0 == strcasecmp("dparm_epsilon_refinement", dparm)) { return DPARM_EPSILON_REFINEMENT; }
     if(0 == strcasecmp("dparm_epsilon_magn_ctrl",  dparm)) { return DPARM_EPSILON_MAGN_CTRL;  }
     if(0 == strcasecmp("dparm_compress_tolerance", dparm)) { return DPARM_COMPRESS_TOLERANCE; }
+    if(0 == strcasecmp("dparm_compress_min_ratio", dparm)) { return DPARM_COMPRESS_MIN_RATIO; }
     return -1;
 }
 

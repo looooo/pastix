@@ -147,6 +147,7 @@ typedef enum pastix_dparm_e {
     DPARM_REFINE_TIME,           /**< Time for Refinement step (wallclock)              Default: -                OUT */
     DPARM_A_NORM,                /**< ||A||_f norm                                      Default: -                OUT */
     DPARM_COMPRESS_TOLERANCE,    /**< Tolerance for low-rank kernels                    Default: 0.01             IN  */
+    DPARM_COMPRESS_MIN_RATIO,    /**< Min ratio for rank w.r.t. strict rank             Default: 1.0              IN  */
     DPARM_SIZE
 } pastix_dparm_t;
 
