@@ -367,21 +367,27 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
 
     /* Prepare the sopalin_data structure */
     {
+        double threshold;
+
         sopalin_data.solvmtx = pastix_data->solvmatr;
 
         /* TODO: might change the behavior: if the user wants a ratio of the norm, it could compute it himself */
         if ( pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] < 0. ) {
-            sopalin_data.diagthreshold = - pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ];
+            threshold = - pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ];
         }
         else if ( pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] == 0. ) {
-            if ( (bcsc->flttype == PastixFloat) || (bcsc->flttype == PastixComplex32) )
-                sopalin_data.diagthreshold = 1e-7  * pastix_data->dparm[DPARM_A_NORM];
-            else
-                sopalin_data.diagthreshold = 1e-15 * pastix_data->dparm[DPARM_A_NORM];
+            if ( (bcsc->flttype == PastixFloat) || (bcsc->flttype == PastixComplex32) ) {
+                threshold = 1e-7  * pastix_data->dparm[DPARM_A_NORM];
+            }
+            else {
+                threshold = 1e-15 * pastix_data->dparm[DPARM_A_NORM];
+            }
         }
         else {
-            sopalin_data.diagthreshold = pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] * pastix_data->dparm[DPARM_A_NORM];
+            threshold = pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] * pastix_data->dparm[DPARM_A_NORM];
         }
+
+        sopalin_data.solvmtx->diagthreshold = threshold;
 
         sopalin_data.cpu_coefs = &(pastix_data->cpu_models->coefficients[bcsc->flttype-2]);
         sopalin_data.gpu_coefs = &(pastix_data->gpu_models->coefficients[bcsc->flttype-2]);

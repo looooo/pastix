@@ -40,18 +40,17 @@ static struct starpu_perfmodel starpu_cblk_zpotrfsp1d_panel_model =
 static void fct_cblk_zpotrfsp1d_panel_cpu(void *descr[], void *cl_arg)
 {
     sopalin_data_t *sopalin_data;
-    SolverCblk *cblk;
+    SolverMatrix   *solvmtx;
+    SolverCblk     *cblk;
     pastix_complex64_t *L;
     int nbpivot;
 
     L = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-    starpu_codelet_unpack_args( cl_arg, &cblk, &sopalin_data );
+    starpu_codelet_unpack_args( cl_arg, &sopalin_data, &cblk );
 
-    assert( !(cblk->cblktype & CBLK_TASKS_2D) );
-
-    nbpivot = cpucblk_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold,
-                                        &(sopalin_data->solvmtx->lowrank) );
+    solvmtx = sopalin_data->solvmtx;
+    nbpivot = cpucblk_zpotrfsp1d_panel( solvmtx, cblk, L );
 
     (void)nbpivot;
 }
@@ -66,8 +65,8 @@ starpu_task_cblk_zpotrfsp1d_panel( sopalin_data_t *sopalin_data,
 {
     starpu_insert_task(
         pastix_codelet(&cl_cblk_zpotrfsp1d_panel_cpu),
-        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
         STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
+        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
         STARPU_RW,     cblk->handler[0],
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "cblk_zpotrfsp1d_panel",
@@ -90,17 +89,19 @@ static struct starpu_perfmodel starpu_blok_zpotrfsp_model =
 static void fct_blok_zpotrfsp_cpu(void *descr[], void *cl_arg)
 {
     sopalin_data_t *sopalin_data;
-    SolverCblk *cblk;
+    SolverMatrix   *solvmtx;
+    SolverCblk     *cblk;
     pastix_complex64_t *L;
     int nbpivot;
 
     L = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-    starpu_codelet_unpack_args( cl_arg, &cblk, &sopalin_data );
+    starpu_codelet_unpack_args( cl_arg, &sopalin_data, &cblk );
 
     assert(cblk->cblktype & CBLK_TASKS_2D);
 
-    nbpivot = cpucblk_zpotrfsp1d_potrf( cblk, L, sopalin_data->diagthreshold );
+    solvmtx = sopalin_data->solvmtx;
+    nbpivot = cpucblk_zpotrfsp1d_potrf( solvmtx, cblk, L );
 
     (void)nbpivot;
 }
@@ -115,8 +116,8 @@ starpu_task_blok_zpotrf( sopalin_data_t *sopalin_data,
 {
     starpu_insert_task(
         pastix_codelet(&cl_blok_zpotrfsp_cpu),
-        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
         STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
+        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
         STARPU_RW,     cblk->fblokptr->handler[0],
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "blok_zpotrfsp",

@@ -82,7 +82,7 @@ BODY
             pastix_int_t N = cblk_colnbr( cblk );
             myDL = ((pastix_complex64_t*)WS) - N*N;
         }
-        cpucblk_zsytrfsp1d_panel( cblk, L, myDL, sopalin_data->diagthreshold, &lowrank );
+        cpucblk_zsytrfsp1d_panel( datacode, cblk, L, myDL );
     }
 }
 END

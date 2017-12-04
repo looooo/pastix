@@ -184,6 +184,9 @@ core_zgetrfsp( pastix_int_t        n,
  *
  *******************************************************************************
  *
+ * @param[in] solvmtx
+ *          Solver Matrix structure of the problem
+ *
  * @param[in] cblk
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
@@ -196,11 +199,6 @@ core_zgetrfsp( pastix_int_t        n,
  *          The pointer to the upper matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in] criteria
- *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the nu,ber of
- *          pivots is incremented.
- *
  *******************************************************************************
  *
  * @return The number of static pivoting performed during the diagonal block
@@ -208,14 +206,15 @@ core_zgetrfsp( pastix_int_t        n,
  *
  *******************************************************************************/
 int
-cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
+cpucblk_zgetrfsp1d_getrf( SolverMatrix       *solvmtx,
+                          SolverCblk         *cblk,
                           pastix_complex64_t *L,
-                          pastix_complex64_t *U,
-                          double              criteria )
+                          pastix_complex64_t *U )
 {
     pastix_int_t ncols, stride;
     pastix_int_t nbpivot = 0;
     pastix_fixdbl_t time;
+    double criteria = solvmtx->diagthreshold;
 
     time = kernel_trace_start( PastixKernelGETRF );
 
@@ -257,6 +256,9 @@ cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
  *
  *******************************************************************************
  *
+ * @param[in] solvmtx
+ *          Solver Matrix structure of the problem
+ *
  * @param[in] cblk
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
@@ -269,14 +271,6 @@ cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
  *          The pointer to the upper matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in] criteria
- *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the nu,ber of
- *          pivots is incremented.
- *
- * @param[in] lowrank
- *          The structure with low-rank parameters.
- *
  *******************************************************************************
  *
  * @return The number of static pivoting performed during the diagonal block
@@ -284,14 +278,13 @@ cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
  *
  *******************************************************************************/
 int
-cpucblk_zgetrfsp1d_panel( SolverCblk         *cblk,
+cpucblk_zgetrfsp1d_panel( SolverMatrix       *solvmtx,
+                          SolverCblk         *cblk,
                           pastix_complex64_t *L,
-                          pastix_complex64_t *U,
-                          double              criteria,
-                          const pastix_lr_t  *lowrank )
+                          pastix_complex64_t *U )
 {
     pastix_int_t nbpivot;
-    nbpivot = cpucblk_zgetrfsp1d_getrf(cblk, L, U, criteria);
+    nbpivot = cpucblk_zgetrfsp1d_getrf( solvmtx, cblk, L, U );
 
     /*
      * We exploit the fact that the upper triangle is stored at the top of the L
@@ -300,10 +293,10 @@ cpucblk_zgetrfsp1d_panel( SolverCblk         *cblk,
      */
     cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixUpper,
                      PastixNoTrans, PastixNonUnit,
-                     cblk, L, L, lowrank );
+                     cblk, L, L, &(solvmtx->lowrank) );
     cpucblk_ztrsmsp( PastixUCoef, PastixRight, PastixUpper,
                      PastixNoTrans, PastixUnit,
-                     cblk, U, U, lowrank );
+                     cblk, U, U, &(solvmtx->lowrank) );
     return nbpivot;
 }
 
@@ -316,19 +309,17 @@ cpucblk_zgetrfsp1d_panel( SolverCblk         *cblk,
  *******************************************************************************
  *
  * @param[in] solvmtx
- *          PaStiX structure to store numerical data and flags
+ *          Solver Matrix structure of the problem
  *
  * @param[in] cblk
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[in] criteria
- *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the number of
- *          pivots is incremented.
- *
  * @param[in] work
  *          Temporary memory buffer.
+ *
+ * @param[in] lwork
+ *          Temporary workspace dimension.
  *
  *******************************************************************************
  *
@@ -339,7 +330,6 @@ cpucblk_zgetrfsp1d_panel( SolverCblk         *cblk,
 int
 cpucblk_zgetrfsp1d( SolverMatrix       *solvmtx,
                     SolverCblk         *cblk,
-                    double              criteria,
                     pastix_complex64_t *work,
                     pastix_int_t        lwork )
 {
@@ -349,7 +339,7 @@ cpucblk_zgetrfsp1d( SolverMatrix       *solvmtx,
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivot;
 
-    nbpivot = cpucblk_zgetrfsp1d_panel(cblk, L, U, criteria, &solvmtx->lowrank);
+    nbpivot = cpucblk_zgetrfsp1d_panel( solvmtx, cblk, L, U );
 
     blok = cblk->fblokptr + 1; /* this diagonal block */
     lblk = cblk[1].fblokptr;   /* the next diagonal block */
@@ -363,14 +353,14 @@ cpucblk_zgetrfsp1d( SolverMatrix       *solvmtx,
         cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
                          cblk, blok, fcblk,
                          L, U, fcblk->lcoeftab,
-                         work, lwork, &solvmtx->lowrank );
+                         work, lwork, &(solvmtx->lowrank) );
 
         /* Update on U */
         if ( blok+1 < lblk ) {
             cpucblk_zgemmsp( PastixUCoef, PastixLCoef, PastixTrans,
                              cblk, blok, fcblk,
                              U, L, fcblk->ucoeftab,
-                             work, lwork, &solvmtx->lowrank );
+                             work, lwork, &(solvmtx->lowrank) );
         }
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
     }

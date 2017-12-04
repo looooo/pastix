@@ -40,19 +40,19 @@ static struct starpu_perfmodel starpu_cblk_zsytrfsp1d_panel_model =
 static void fct_cblk_zsytrfsp1d_panel_cpu(void *descr[], void *cl_arg)
 {
     sopalin_data_t *sopalin_data;
-    SolverCblk *cblk;
-    pastix_complex64_t *L, *DL;
+    SolverMatrix   *solvmtx;
+    SolverCblk     *cblk;
+    pastix_complex64_t *L;
+    pastix_complex64_t *DL;
     int nbpivot;
 
     L  = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
     DL = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-    starpu_codelet_unpack_args( cl_arg, &cblk, &sopalin_data );
+    starpu_codelet_unpack_args( cl_arg, &sopalin_data, &cblk );
 
-    assert( !(cblk->cblktype & CBLK_TASKS_2D) );
-
-    nbpivot = cpucblk_zsytrfsp1d_panel( cblk, L, DL, sopalin_data->diagthreshold,
-                                        &(sopalin_data->solvmtx->lowrank) );
+    solvmtx = sopalin_data->solvmtx;
+    nbpivot = cpucblk_zsytrfsp1d_panel( solvmtx, cblk, L, DL );
 
     (void)nbpivot;
 }
@@ -80,8 +80,8 @@ starpu_task_cblk_zsytrfsp1d_panel( sopalin_data_t *sopalin_data,
 
     starpu_insert_task(
         pastix_codelet(&cl_cblk_zsytrfsp1d_panel_cpu),
-        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
         STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
+        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
         STARPU_RW,     cblk->handler[0],
         STARPU_W,      cblk->handler[1],
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
@@ -105,17 +105,19 @@ static struct starpu_perfmodel starpu_blok_zsytrfsp_model =
 static void fct_blok_zsytrfsp_cpu(void *descr[], void *cl_arg)
 {
     sopalin_data_t *sopalin_data;
-    SolverCblk *cblk;
+    SolverMatrix   *solvmtx;
+    SolverCblk     *cblk;
     pastix_complex64_t *L;
     int nbpivot;
 
     L = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-    starpu_codelet_unpack_args( cl_arg, &cblk, &sopalin_data );
+    starpu_codelet_unpack_args( cl_arg, &sopalin_data, &cblk );
 
     assert(cblk->cblktype & CBLK_TASKS_2D);
 
-    nbpivot = cpucblk_zsytrfsp1d_sytrf( cblk, L, sopalin_data->diagthreshold );
+    solvmtx = sopalin_data->solvmtx;
+    nbpivot = cpucblk_zsytrfsp1d_sytrf( solvmtx, cblk, L );
 
     (void)nbpivot;
 }
@@ -130,8 +132,8 @@ starpu_task_blok_zsytrf( sopalin_data_t *sopalin_data,
 {
     starpu_insert_task(
         pastix_codelet(&cl_blok_zsytrfsp_cpu),
-        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
         STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
+        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
         STARPU_RW,     cblk->fblokptr->handler[0],
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "blok_zsytrfsp",
