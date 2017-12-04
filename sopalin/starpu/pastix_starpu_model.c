@@ -191,7 +191,7 @@ cblk_getrf_cost( struct starpu_task           *task,
     pastix_int_t    M, N;
     double *coefs, cost = 0.;
 
-    starpu_codelet_unpack_args( task->cl_arg, &cblk, &sopalin_data );
+    starpu_codelet_unpack_args( task->cl_arg, &sopalin_data, &cblk );
 
     N = cblk_colnbr( cblk );
     M = cblk->stride - N;
@@ -230,7 +230,7 @@ blok_getrf_cost( struct starpu_task           *task,
     pastix_int_t    N;
     double *coefs, cost = 0.;
 
-    starpu_codelet_unpack_args( task->cl_arg, &cblk, &sopalin_data );
+    starpu_codelet_unpack_args( task->cl_arg, &sopalin_data, &cblk );
 
     N = cblk_colnbr( cblk );
 
@@ -262,7 +262,7 @@ cblk_potrf_cost( struct starpu_task           *task,
     pastix_int_t    M, N;
     double *coefs, cost = 0.;
 
-    starpu_codelet_unpack_args( task->cl_arg, &cblk, &sopalin_data );
+    starpu_codelet_unpack_args( task->cl_arg, &sopalin_data, &cblk );
 
     N = cblk_colnbr( cblk );
     M = cblk->stride - N;
@@ -301,7 +301,7 @@ blok_potrf_cost( struct starpu_task           *task,
     pastix_int_t    N;
     double *coefs, cost = 0.;
 
-    starpu_codelet_unpack_args( task->cl_arg, &cblk, &sopalin_data );
+    starpu_codelet_unpack_args( task->cl_arg, &sopalin_data, &cblk );
 
     N = cblk_colnbr( cblk );
 
@@ -333,7 +333,7 @@ cblk_pxtrf_cost( struct starpu_task           *task,
     pastix_int_t    M, N;
     double *coefs, cost = 0.;
 
-    starpu_codelet_unpack_args( task->cl_arg, &cblk, &sopalin_data );
+    starpu_codelet_unpack_args( task->cl_arg, &sopalin_data, &cblk );
 
     N = cblk_colnbr( cblk );
     M = cblk->stride - N;
@@ -372,7 +372,7 @@ blok_pxtrf_cost( struct starpu_task           *task,
     pastix_int_t    N;
     double *coefs, cost = 0.;
 
-    starpu_codelet_unpack_args( task->cl_arg, &cblk, &sopalin_data );
+    starpu_codelet_unpack_args( task->cl_arg, &sopalin_data, &cblk );
 
     N = cblk_colnbr( cblk );
 
@@ -404,7 +404,7 @@ cblk_hetrf_cost( struct starpu_task           *task,
     pastix_int_t    M, N;
     double *coefs, cost = 0.;
 
-    starpu_codelet_unpack_args( task->cl_arg, &cblk, &sopalin_data );
+    starpu_codelet_unpack_args( task->cl_arg, &sopalin_data, &cblk );
 
     N = cblk_colnbr( cblk );
     M = cblk->stride - N;
@@ -443,7 +443,7 @@ blok_hetrf_cost( struct starpu_task           *task,
     pastix_int_t    N;
     double *coefs, cost = 0.;
 
-    starpu_codelet_unpack_args( task->cl_arg, &cblk, &sopalin_data );
+    starpu_codelet_unpack_args( task->cl_arg, &sopalin_data, &cblk );
 
     N = cblk_colnbr( cblk );
 
@@ -475,7 +475,7 @@ cblk_sytrf_cost( struct starpu_task           *task,
     pastix_int_t    M, N;
     double *coefs, cost = 0.;
 
-    starpu_codelet_unpack_args( task->cl_arg, &cblk, &sopalin_data );
+    starpu_codelet_unpack_args( task->cl_arg, &sopalin_data, &cblk );
 
     N = cblk_colnbr( cblk );
     M = cblk->stride - N;
@@ -514,7 +514,7 @@ blok_sytrf_cost( struct starpu_task           *task,
     pastix_int_t    N;
     double *coefs, cost = 0.;
 
-    starpu_codelet_unpack_args( task->cl_arg, &cblk, &sopalin_data );
+    starpu_codelet_unpack_args( task->cl_arg, &sopalin_data, &cblk );
 
     N = cblk_colnbr( cblk );
 
