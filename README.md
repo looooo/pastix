@@ -31,22 +31,20 @@ Future releases will be available on this gitlab project.
 Available Features
 ------------------
 
-|                         | Seq    | Static | Dyn    | StarPU  | PaRSEC     |
-|-------------------------|--------|--------|--------|---------|------------|
-| POTRF (Cholesky)        | SHM/LR | SHM/LR | -      | SHM/GPU | SHM/LR/GPU |
-| PXTRF (LL^t for complex)| SHM/LR | SHM/LR | -      | SHM/GPU | SHM/LR/GPU |
-| HETRF (LDL^h)           | SHM/LR | SHM/LR | -      | SHM/GPU | SHM/LR/GPU |
-| SYTRF (LDL^t)           | SHM/LR | SHM/LR | -      | SHM/GPU | SHM/LR/GPU |
-| GETRF (LU)              | SHM/LR | SHM/LR | -      | SHM/GPU | SHM/LR/GPU |
-| TRSM                    | SHM/LR | SHM/LR | -      | -       | -          |
-| DIAG                    | SHM/LR | SHM/LR | -      | -       | -          |
+|                         | Seq    | Static | Dyn    | StarPU     | PaRSEC     |
+|-------------------------|--------|--------|--------|------------|------------|
+| POTRF (Cholesky)        | SHM/LR | SHM/LR | -      | SHM/LR/GPU | SHM/LR/GPU |
+| PXTRF (LL^t for complex)| SHM/LR | SHM/LR | -      | SHM/LR/GPU | SHM/LR/GPU |
+| HETRF (LDL^h)           | SHM/LR | SHM/LR | -      | SHM/LR/GPU | SHM/LR/GPU |
+| SYTRF (LDL^t)           | SHM/LR | SHM/LR | -      | SHM/LR/GPU | SHM/LR/GPU |
+| GETRF (LU)              | SHM/LR | SHM/LR | -      | SHM/LR/GPU | SHM/LR/GPU |
+| TRSM                    | SHM/LR | SHM/LR | -      | -          | -          |
+| DIAG                    | SHM/LR | SHM/LR | -      | -          | -          |
 
  * SHM means Shared Memory using POSIX theads for multicores architectures
  * LR means (block) Low-Rank compression technique to reduce the memory footprint and/or the time-to-solution
-   * *WARNING* GPU kernels are not available when compression techniques are enabled
+   * *WARNING* GPU kernels are not available on compressed supernodes
  * MPI is not available yet and will come with 6.1.0
- * StarPU support is available only when low-rank compression is disabled.
- * GPUs kernels are in the code but not exploited yet, we are targeting for a simpler scheduling that would allow everyone to get correct performance out of the box in final 6.0.0
 
 Documentation
 -------------
