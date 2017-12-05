@@ -196,7 +196,8 @@ pastixWelcome( const pastix_data_t *pastix )
                   /* Distrib    */ ((pastix->iparm[IPARM_TASKS2D_LEVEL] == 0) ? "1D" : "2D"),
                                    ((pastix->iparm[IPARM_TASKS2D_LEVEL] <  0) ? ((long)pastix->iparm[IPARM_TASKS2D_WIDTH]) :
                                                                                -((long)pastix->iparm[IPARM_TASKS2D_LEVEL])),
-                  /* Block size */ pastix->iparm[IPARM_MIN_BLOCKSIZE], pastix->iparm[IPARM_MAX_BLOCKSIZE],
+                  /* Block size */ (long)pastix->iparm[IPARM_MIN_BLOCKSIZE],
+                                   (long)pastix->iparm[IPARM_MAX_BLOCKSIZE],
                   /* Model CPU  */ pastix->cpu_models->name,
                   /* Model GPU  */ pastix->gpu_models->name,
                   /* Strategy   */ ((pastix->iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever) ? "No compression" :
@@ -208,7 +209,9 @@ pastixWelcome( const pastix_data_t *pastix )
                       /* Tolerance       */ (double)pastix->dparm[DPARM_COMPRESS_TOLERANCE],
                       /* Compress method */ ((pastix->iparm[IPARM_COMPRESS_METHOD] == PastixCompressMethodSVD) ? "SVD" : "RRQR"),
                       /* Compress width  */ (long)pastix->iparm[IPARM_COMPRESS_MIN_WIDTH],
-                      /* Compress height */ (long)pastix->iparm[IPARM_COMPRESS_MIN_HEIGHT] );
+                      /* Compress height */ (long)pastix->iparm[IPARM_COMPRESS_MIN_HEIGHT],
+                      /* Min ratio       */ (double)pastix->dparm[DPARM_COMPRESS_MIN_RATIO],
+                      /* Ortho    method */ ((pastix->iparm[IPARM_COMPRESS_ORTHO] == PastixCompressOrthoCGS) ? "CGS" : (pastix->iparm[IPARM_COMPRESS_ORTHO] == PastixCompressOrthoQR) ? "QR" : "partialQR") );
     }
 }
 
@@ -355,6 +358,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_COMPRESS_MIN_HEIGHT]   = 20;
     iparm[IPARM_COMPRESS_WHEN]         = PastixCompressNever;
     iparm[IPARM_COMPRESS_METHOD]       = PastixCompressMethodRRQR;
+    iparm[IPARM_COMPRESS_ORTHO]        = PastixCompressOrthoCGS;
 
     /* MPI modes */
 #if defined(PASTIX_WITH_MPI)
@@ -411,6 +415,7 @@ pastixInitParam( pastix_int_t *iparm,
     dparm[DPARM_REFINE_TIME]        =  0.;
     dparm[DPARM_A_NORM]             = -1.;
     dparm[DPARM_COMPRESS_TOLERANCE] = 0.01;
+    dparm[DPARM_COMPRESS_MIN_RATIO] =  1.;
 }
 
 /**

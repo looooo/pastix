@@ -110,6 +110,7 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_compress_min_height",   iparm)) { return IPARM_COMPRESS_MIN_HEIGHT; }
     if(0 == strcasecmp("iparm_compress_when",         iparm)) { return IPARM_COMPRESS_WHEN; }
     if(0 == strcasecmp("iparm_compress_method",       iparm)) { return IPARM_COMPRESS_METHOD; }
+    if(0 == strcasecmp("iparm_compress_ortho",        iparm)) { return IPARM_COMPRESS_ORTHO; }
 
     if(0 == strcasecmp("iparm_modify_parameter",      iparm)) { return IPARM_MODIFY_PARAMETER; }
     if(0 == strcasecmp("iparm_start_task",            iparm)) { return IPARM_START_TASK; }
@@ -147,6 +148,7 @@ parse_dparm( const char *dparm )
     if(0 == strcasecmp("dparm_epsilon_refinement", dparm)) { return DPARM_EPSILON_REFINEMENT; }
     if(0 == strcasecmp("dparm_epsilon_magn_ctrl",  dparm)) { return DPARM_EPSILON_MAGN_CTRL;  }
     if(0 == strcasecmp("dparm_compress_tolerance", dparm)) { return DPARM_COMPRESS_TOLERANCE; }
+    if(0 == strcasecmp("dparm_compress_min_ratio", dparm)) { return DPARM_COMPRESS_MIN_RATIO; }
     return -1;
 }
 

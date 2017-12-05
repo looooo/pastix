@@ -47,6 +47,9 @@ int32_t               model_size        = 0;
 pastix_atomic_lock_t lock_flops = PASTIX_ATOMIC_UNLOCKED;
 double overall_flops = 0.0;
 
+double pastix_lr_minratio = 1.0;
+pastix_int_t pastix_lr_ortho = 0;
+
 /**
  *******************************************************************************
  *
@@ -129,6 +132,7 @@ kernelsTraceStart( const pastix_data_t *pastix_data )
 
     memset( (void*)kernels_flops, 0, PastixKernelLvl1Nbr * sizeof(double) );
 
+    overall_flops = 0.0;
     kernels_trace_started = 1;
 
     (void)solvmtx;

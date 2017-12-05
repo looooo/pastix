@@ -45,7 +45,9 @@
     "    Tolerance                             %8.0e\n"         \
     "    Compress method                       %8s\n"           \
     "    Compress minimal width                %8ld\n"          \
-    "    Compress minimal height               %8ld\n"
+    "    Compress minimal height               %8ld\n"          \
+    "    Compress min ratio                    %8f\n"           \
+    "    Orthogonalization method              %8s\n"
 
 #define OUT_STEP_ORDER                                          \
     "+-------------------------------------------------+\n"     \
