@@ -76,14 +76,15 @@ module pastix_enums
      enumerator :: IPARM_COMPRESS_MIN_HEIGHT   = 55
      enumerator :: IPARM_COMPRESS_WHEN         = 56
      enumerator :: IPARM_COMPRESS_METHOD       = 57
-     enumerator :: IPARM_THREAD_COMM_MODE      = 58
-     enumerator :: IPARM_MODIFY_PARAMETER      = 59
-     enumerator :: IPARM_START_TASK            = 60
-     enumerator :: IPARM_END_TASK              = 61
-     enumerator :: IPARM_FLOAT                 = 62
-     enumerator :: IPARM_MTX_TYPE              = 63
-     enumerator :: IPARM_DOF_NBR               = 64
-     enumerator :: IPARM_SIZE                  = 64
+     enumerator :: IPARM_COMPRESS_ORTHO        = 58
+     enumerator :: IPARM_THREAD_COMM_MODE      = 59
+     enumerator :: IPARM_MODIFY_PARAMETER      = 60
+     enumerator :: IPARM_START_TASK            = 61
+     enumerator :: IPARM_END_TASK              = 62
+     enumerator :: IPARM_FLOAT                 = 63
+     enumerator :: IPARM_MTX_TYPE              = 64
+     enumerator :: IPARM_DOF_NBR               = 65
+     enumerator :: IPARM_SIZE                  = 65
   end enum
 
   ! enum dparm
@@ -216,7 +217,7 @@ module pastix_enums
      enumerator :: PastixThreadFunneled = 2
   end enum
 
-  ! enum pastixrror
+  ! enum error
   enum, bind(C)
      enumerator :: PASTIX_SUCCESS            = 0
      enumerator :: PASTIX_ERR_UNKNOWN        = 1
@@ -244,6 +245,13 @@ module pastix_enums
   enum, bind(C)
      enumerator :: PastixCompressMethodSVD  = 0
      enumerator :: PastixCompressMethodRRQR = 1
+  end enum
+
+  ! enum compress_ortho
+  enum, bind(C)
+     enumerator :: PastixCompressOrthoCGS       = 0
+     enumerator :: PastixCompressOrthoQR        = 1
+     enumerator :: PastixCompressOrthoPartialQR = 2
   end enum
 
   ! enum driver
@@ -278,7 +286,7 @@ module pastix_enums
      enumerator :: PastixConjTrans = 113
   end enum
 
-  ! enum symmetry
+  ! enum mtxtype
   enum, bind(C)
      enumerator :: PastixGeneral   = PastixNoTrans
      enumerator :: PastixSymmetric = PastixTrans

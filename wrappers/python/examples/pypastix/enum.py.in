@@ -77,14 +77,15 @@ class iparm:
     compress_min_height   = 54
     compress_when         = 55
     compress_method       = 56
-    thread_comm_mode      = 57
-    modify_parameter      = 58
-    start_task            = 59
-    end_task              = 60
-    float                 = 61
-    mtx_type              = 62
-    dof_nbr               = 63
-    size                  = 64
+    compress_ortho        = 57
+    thread_comm_mode      = 58
+    modify_parameter      = 59
+    start_task            = 60
+    end_task              = 61
+    float                 = 62
+    mtx_type              = 63
+    dof_nbr               = 64
+    size                  = 65
 
 class dparm:
     fill_in            = 0
@@ -239,6 +240,11 @@ class compress_when:
 class compress_method:
     SVD  = 0
     RRQR = 1
+
+class compress_ortho:
+    OrthoCGS       = 0
+    OrthoQR        = 1
+    OrthoPartialQR = 2
 
 class driver:
     RSA        = 0
