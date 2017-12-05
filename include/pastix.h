@@ -136,12 +136,12 @@ int pastix_subtask_diag( pastix_data_t    *pastix_data,
 /*
  * Schur complement manipulation routines.
  */
-void pastix_setSchurUnknownList( pastix_data_t       *pastix_data,
-                                 pastix_int_t         n,
-                                 const pastix_int_t  *list );
-int  pastix_getSchur           ( const pastix_data_t *pastix_data,
-                                 void                *S,
-                                 pastix_int_t         lds );
+void pastixSetSchurUnknownList( pastix_data_t       *pastix_data,
+                                pastix_int_t         n,
+                                const pastix_int_t  *list );
+int  pastixGetSchur           ( const pastix_data_t *pastix_data,
+                                void                *S,
+                                pastix_int_t         lds );
 
 /*
  * Function to provide access to the diagonal

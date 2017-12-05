@@ -127,12 +127,12 @@ def setSchurUnknownList( pastix_data, schur_list ):
     n = schur_list.shape[0]
     schur_list = np.array(schur_list, dtype=pastix_int)
 
-    libpastix.pastix_setSchurUnknownList.argtypes = [c_void_p, pastix_int, POINTER(pastix_int)]
-    libpastix.pastix_setSchurUnknownList( pastix_data, n,
-                                          schur_list.ctypes.data_as(POINTER(pastix_int)) )
+    libpastix.pastixSetSchurUnknownList.argtypes = [c_void_p, pastix_int, POINTER(pastix_int)]
+    libpastix.pastixSetSchurUnknownList( pastix_data, n,
+                                         schur_list.ctypes.data_as(POINTER(pastix_int)) )
 
 def getSchur( pastix_data, S ):
-    libpastix.pastix_getSchur.argtypes = [c_void_p, c_void_p, pastix_int ]
-    libpastix.pastix_getSchur( pastix_data,
-                               S.ctypes.data_as(c_void_p),
-                               S.shape[0] )
+    libpastix.pastixGetSchur.argtypes = [c_void_p, c_void_p, pastix_int ]
+    libpastix.pastixGetSchur( pastix_data,
+                              S.ctypes.data_as(c_void_p),
+                              S.shape[0] )

@@ -47,9 +47,9 @@
  *
  *******************************************************************************/
 void
-pastix_setSchurUnknownList( pastix_data_t      *pastix_data,
-                            pastix_int_t        n,
-                            const pastix_int_t *list)
+pastixSetSchurUnknownList( pastix_data_t      *pastix_data,
+                           pastix_int_t        n,
+                           const pastix_int_t *list)
 {
     if ( n > 0 ) {
         pastix_data->schur_n    = n;
@@ -87,9 +87,9 @@ pastix_setSchurUnknownList( pastix_data_t      *pastix_data,
  *
  *******************************************************************************/
 int
-pastix_getSchur( const pastix_data_t *pastix_data,
-                 void                *S,
-                 pastix_int_t         lds )
+pastixGetSchur( const pastix_data_t *pastix_data,
+                void                *S,
+                pastix_int_t         lds )
 {
     pastix_int_t *iparm;
 

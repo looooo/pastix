@@ -274,7 +274,7 @@ int main (int argc, char **argv)
             for (i=0; i<nschur; i++) {
                 list[i] = i+baseval;
             }
-            pastix_setSchurUnknownList( pastix_data, nschur, list );
+            pastixSetSchurUnknownList( pastix_data, nschur, list );
             free( list );
         }
         iparm[IPARM_SCHUR_SOLV_MODE] = PastixSolvModeInterface;
@@ -303,7 +303,7 @@ int main (int argc, char **argv)
     lds = nschur;
     S = malloc( pastix_size_of( spm->flttype ) * nschur * lds );
 
-    pastix_getSchur( pastix_data, S, lds );
+    pastixGetSchur( pastix_data, S, lds );
 
 
     /**

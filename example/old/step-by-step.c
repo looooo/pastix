@@ -150,7 +150,6 @@ int main (int argc, char **argv)
         fprintf(stdout, "\t> Factorisation number %ld <\n", (long)(i+1));
         iparm[IPARM_START_TASK] = API_TASK_NUMFACT;
         iparm[IPARM_END_TASK]   = API_TASK_NUMFACT;
-        iparm[IPARM_INERTIA]    = API_YES;
         pastix(&pastix_data, MPI_COMM_WORLD, spm->n, spm->colptr, spm->rowptr, spm->values,
                NULL, NULL, NULL, nrhs, iparm, dparm );
 
