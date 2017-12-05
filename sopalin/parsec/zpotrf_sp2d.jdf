@@ -84,7 +84,7 @@ BODY
 
     if (!isTwoD) {
         if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
-            cpucblk_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, &lowrank );
+            cpucblk_zpotrfsp1d_panel( datacode, cblk, L );
         }
     }
     else {
@@ -322,7 +322,7 @@ BODY
         SolverCblk *cblk = datacode->cblktab + k;
         /* pastix_int_t  nbpivot = */
         if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
-            cpucblk_zpotrfsp1d_potrf( cblk, A, sopalin_data->diagthreshold );
+            cpucblk_zpotrfsp1d_potrf( datacode, cblk, A );
         }
     }
 }

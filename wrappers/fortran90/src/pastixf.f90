@@ -328,28 +328,28 @@ module pastixf
   end interface
 
   interface
-     subroutine pastix_setSchurUnknownList_c(pastix_data, n, list) &
-          bind(c, name='pastix_setSchurUnknownList')
+     subroutine pastixSetSchurUnknownList_c(pastix_data, n, list) &
+          bind(c, name='pastixSetSchurUnknownList')
        use iso_c_binding
        import pastix_int_t
        implicit none
        type(c_ptr), value :: pastix_data
        integer(kind=pastix_int_t), value :: n
        type(c_ptr), value :: list
-     end subroutine pastix_setSchurUnknownList_c
+     end subroutine pastixSetSchurUnknownList_c
   end interface
 
   interface
-     function pastix_getSchur_c(pastix_data, S, lds) &
-          bind(c, name='pastix_getSchur')
+     function pastixGetSchur_c(pastix_data, S, lds) &
+          bind(c, name='pastixGetSchur')
        use iso_c_binding
        import pastix_int_t
        implicit none
-       integer(kind=c_int) :: pastix_getSchur_c
+       integer(kind=c_int) :: pastixGetSchur_c
        type(c_ptr), value :: pastix_data
        type(c_ptr), value :: S
        integer(kind=pastix_int_t), value :: lds
-     end function pastix_getSchur_c
+     end function pastixGetSchur_c
   end interface
 
   interface
@@ -651,17 +651,17 @@ contains
     info = pastix_subtask_diag_c(c_loc(pastix_data), flttype, nrhs, b, ldb)
   end subroutine pastix_subtask_diag
 
-  subroutine pastix_setSchurUnknownList(pastix_data, n, list)
+  subroutine pastixSetSchurUnknownList(pastix_data, n, list)
     use iso_c_binding
     implicit none
     type(pastix_data_t),        intent(inout), target :: pastix_data
     integer(kind=pastix_int_t), intent(in)            :: n
     integer(kind=pastix_int_t), intent(in),    target :: list
 
-    call pastix_setSchurUnknownList_c(c_loc(pastix_data), n, c_loc(list))
-  end subroutine pastix_setSchurUnknownList
+    call pastixSetSchurUnknownList_c(c_loc(pastix_data), n, c_loc(list))
+  end subroutine pastixSetSchurUnknownList
 
-  subroutine pastix_getSchur(pastix_data, S, lds, info)
+  subroutine pastixGetSchur(pastix_data, S, lds, info)
     use iso_c_binding
     implicit none
     type(pastix_data_t),        intent(in),    target :: pastix_data
@@ -669,8 +669,8 @@ contains
     integer(kind=pastix_int_t), intent(in)            :: lds
     integer(kind=c_int),        intent(out)           :: info
 
-    info = pastix_getSchur_c(c_loc(pastix_data), S, lds)
-  end subroutine pastix_getSchur
+    info = pastixGetSchur_c(c_loc(pastix_data), S, lds)
+  end subroutine pastixGetSchur
 
   subroutine pastixGetOptions(argc, argv, iparm, dparm, check, driver, filename)
     use iso_c_binding

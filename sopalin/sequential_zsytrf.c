@@ -36,10 +36,9 @@ sequential_zsytrf( pastix_data_t  *pastix_data,
 {
     SolverMatrix       *datacode = pastix_data->solvmatr;
     SolverCblk         *cblk;
-    double              threshold = sopalin_data->diagthreshold;
     pastix_complex64_t *work1, *work2;
     pastix_int_t  N, i, lwork1, lwork2;
-    (void)pastix_data;
+    (void)sopalin_data;
 
     lwork1 = datacode->offdmax;
     lwork2 = pastix_imax( datacode->gemmmax, datacode->blokmax );
@@ -58,7 +57,7 @@ sequential_zsytrf( pastix_data_t  *pastix_data,
         N = cblk_colnbr( cblk );
 
         /* Compute */
-        cpucblk_zsytrfsp1d( datacode, cblk, threshold,
+        cpucblk_zsytrfsp1d( datacode, cblk,
                             /*
                              * Workspace size has been computed without the
                              * diagonal block, thus in order to work with generic
@@ -109,7 +108,7 @@ thread_pzsytrf( isched_thread_t *ctx, void *args )
         do { } while( cblk->ctrbcnt );
 
         /* Compute */
-        cpucblk_zsytrfsp1d( datacode, cblk, sopalin_data->diagthreshold,
+        cpucblk_zsytrfsp1d( datacode, cblk,
                             /*
                              * Workspace size has been computed without the
                              * diagonal block, thus in order to work with generic

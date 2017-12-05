@@ -50,7 +50,7 @@ static pastix_complex64_t mzone = -1.0;
  * @param[in] lda
  *          The leading dimension of the matrix A.
  *
- * @param[inout] nbpivot
+ * @param[inout] nbpivots
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
@@ -65,7 +65,7 @@ core_zgetf2sp( pastix_int_t        m,
                pastix_int_t        n,
                pastix_complex64_t *A,
                pastix_int_t        lda,
-               pastix_int_t       *nbpivot,
+               pastix_int_t       *nbpivots,
                double              criteria )
 {
     pastix_int_t k, minMN;
@@ -79,7 +79,7 @@ core_zgetf2sp( pastix_int_t        m,
 
         if ( cabs(*Akk) < criteria ) {
             (*Akk) = (pastix_complex64_t)criteria;
-            (*nbpivot)++;
+            (*nbpivots)++;
         }
 
         /* A_ik = A_ik / A_kk, i = k+1 .. n */
@@ -118,7 +118,7 @@ core_zgetf2sp( pastix_int_t        m,
  * @param[in] lda
  *          The leading dimension of the matrix A.
  *
- * @param[inout] nbpivot
+ * @param[inout] nbpivots
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
@@ -132,7 +132,7 @@ void
 core_zgetrfsp( pastix_int_t        n,
                pastix_complex64_t *A,
                pastix_int_t        lda,
-               pastix_int_t       *nbpivot,
+               pastix_int_t       *nbpivots,
                double              criteria )
 {
     pastix_int_t k, blocknbr, blocksize, matrixsize, tempm;
@@ -151,7 +151,7 @@ core_zgetrfsp( pastix_int_t        n,
         Aij = Ukj + blocksize;
 
         /* Factorize the diagonal block Akk*/
-        core_zgetf2sp( tempm, blocksize, Akk, lda, nbpivot, criteria );
+        core_zgetf2sp( tempm, blocksize, Akk, lda, nbpivots, criteria );
 
         matrixsize = tempm - blocksize;
         if ( matrixsize > 0 ) {
@@ -184,6 +184,9 @@ core_zgetrfsp( pastix_int_t        n,
  *
  *******************************************************************************
  *
+ * @param[in] solvmtx
+ *          Solver Matrix structure of the problem
+ *
  * @param[in] cblk
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
@@ -196,11 +199,6 @@ core_zgetrfsp( pastix_int_t        n,
  *          The pointer to the upper matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in] criteria
- *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the nu,ber of
- *          pivots is incremented.
- *
  *******************************************************************************
  *
  * @return The number of static pivoting performed during the diagonal block
@@ -208,14 +206,15 @@ core_zgetrfsp( pastix_int_t        n,
  *
  *******************************************************************************/
 int
-cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
+cpucblk_zgetrfsp1d_getrf( SolverMatrix       *solvmtx,
+                          SolverCblk         *cblk,
                           pastix_complex64_t *L,
-                          pastix_complex64_t *U,
-                          double              criteria )
+                          pastix_complex64_t *U )
 {
     pastix_int_t ncols, stride;
-    pastix_int_t nbpivot = 0;
-    pastix_fixdbl_t time;
+    pastix_int_t nbpivots = 0;
+    pastix_fixdbl_t time, flops;
+    double criteria = solvmtx->diagthreshold;
 
     time = kernel_trace_start( PastixKernelGETRF );
 
@@ -238,16 +237,20 @@ cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
                  1.0, L, stride );
 
     /* Factorize diagonal block */
+    flops = FLOPS_ZGETRF( ncols, ncols );
     kernel_trace_start_lvl2( PastixKernelLvl2GETRF );
-    core_zgetrfsp(ncols, L, stride, &nbpivot, criteria);
-    kernel_trace_stop_lvl2( FLOPS_ZGETRF( ncols, ncols ) );
+    core_zgetrfsp(ncols, L, stride, &nbpivots, criteria);
+    kernel_trace_stop_lvl2( flops );
 
     /* Transpose Akk in ucoeftab */
     core_zgetro( ncols, ncols, L, stride, U, stride );
 
-    kernel_trace_stop( PastixKernelGETRF, ncols, 0, 0, FLOPS_ZGETRF( ncols, ncols ), time );
+    kernel_trace_stop( PastixKernelGETRF, ncols, 0, 0, flops, time );
 
-    return nbpivot;
+    if ( nbpivots ) {
+        pastix_atomic_add_32b( &(solvmtx->nbpivots), nbpivots );
+    }
+    return nbpivots;
 }
 
 /**
@@ -256,6 +259,9 @@ cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
  * @brief Compute the LU factorization of one panel.
  *
  *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          Solver Matrix structure of the problem
  *
  * @param[in] cblk
  *          Pointer to the structure representing the panel to factorize in the
@@ -269,14 +275,6 @@ cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
  *          The pointer to the upper matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in] criteria
- *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the nu,ber of
- *          pivots is incremented.
- *
- * @param[in] lowrank
- *          The structure with low-rank parameters.
- *
  *******************************************************************************
  *
  * @return The number of static pivoting performed during the diagonal block
@@ -284,14 +282,13 @@ cpucblk_zgetrfsp1d_getrf( SolverCblk         *cblk,
  *
  *******************************************************************************/
 int
-cpucblk_zgetrfsp1d_panel( SolverCblk         *cblk,
+cpucblk_zgetrfsp1d_panel( SolverMatrix       *solvmtx,
+                          SolverCblk         *cblk,
                           pastix_complex64_t *L,
-                          pastix_complex64_t *U,
-                          double              criteria,
-                          const pastix_lr_t  *lowrank )
+                          pastix_complex64_t *U )
 {
-    pastix_int_t nbpivot;
-    nbpivot = cpucblk_zgetrfsp1d_getrf(cblk, L, U, criteria);
+    pastix_int_t nbpivots;
+    nbpivots = cpucblk_zgetrfsp1d_getrf( solvmtx, cblk, L, U );
 
     /*
      * We exploit the fact that the upper triangle is stored at the top of the L
@@ -300,11 +297,11 @@ cpucblk_zgetrfsp1d_panel( SolverCblk         *cblk,
      */
     cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixUpper,
                      PastixNoTrans, PastixNonUnit,
-                     cblk, L, L, lowrank );
+                     cblk, L, L, &(solvmtx->lowrank) );
     cpucblk_ztrsmsp( PastixUCoef, PastixRight, PastixUpper,
                      PastixNoTrans, PastixUnit,
-                     cblk, U, U, lowrank );
-    return nbpivot;
+                     cblk, U, U, &(solvmtx->lowrank) );
+    return nbpivots;
 }
 
 /**
@@ -316,19 +313,17 @@ cpucblk_zgetrfsp1d_panel( SolverCblk         *cblk,
  *******************************************************************************
  *
  * @param[in] solvmtx
- *          PaStiX structure to store numerical data and flags
+ *          Solver Matrix structure of the problem
  *
  * @param[in] cblk
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[in] criteria
- *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the number of
- *          pivots is incremented.
- *
  * @param[in] work
  *          Temporary memory buffer.
+ *
+ * @param[in] lwork
+ *          Temporary workspace dimension.
  *
  *******************************************************************************
  *
@@ -339,7 +334,6 @@ cpucblk_zgetrfsp1d_panel( SolverCblk         *cblk,
 int
 cpucblk_zgetrfsp1d( SolverMatrix       *solvmtx,
                     SolverCblk         *cblk,
-                    double              criteria,
                     pastix_complex64_t *work,
                     pastix_int_t        lwork )
 {
@@ -347,9 +341,9 @@ cpucblk_zgetrfsp1d( SolverMatrix       *solvmtx,
     pastix_complex64_t *U = cblk->ucoeftab;
     SolverCblk  *fcblk;
     SolverBlok  *blok, *lblk;
-    pastix_int_t nbpivot;
+    pastix_int_t nbpivots;
 
-    nbpivot = cpucblk_zgetrfsp1d_panel(cblk, L, U, criteria, &solvmtx->lowrank);
+    nbpivots = cpucblk_zgetrfsp1d_panel( solvmtx, cblk, L, U );
 
     blok = cblk->fblokptr + 1; /* this diagonal block */
     lblk = cblk[1].fblokptr;   /* the next diagonal block */
@@ -363,17 +357,17 @@ cpucblk_zgetrfsp1d( SolverMatrix       *solvmtx,
         cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
                          cblk, blok, fcblk,
                          L, U, fcblk->lcoeftab,
-                         work, lwork, &solvmtx->lowrank );
+                         work, lwork, &(solvmtx->lowrank) );
 
         /* Update on U */
         if ( blok+1 < lblk ) {
             cpucblk_zgemmsp( PastixUCoef, PastixLCoef, PastixTrans,
                              cblk, blok, fcblk,
                              U, L, fcblk->ucoeftab,
-                             work, lwork, &solvmtx->lowrank );
+                             work, lwork, &(solvmtx->lowrank) );
         }
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
     }
 
-    return nbpivot;
+    return nbpivots;
 }

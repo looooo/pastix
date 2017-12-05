@@ -49,7 +49,7 @@ static pastix_complex64_t mzone = -1.0;
  * @param[in] lda
  *          The leading dimension of the matrix A.
  *
- * @param[inout] nbpivot
+ * @param[inout] nbpivots
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
@@ -63,7 +63,7 @@ static void
 core_zhetf2sp( pastix_int_t        n,
                pastix_complex64_t *A,
                pastix_int_t        lda,
-               pastix_int_t       *nbpivot,
+               pastix_int_t       *nbpivots,
                double              criteria )
 {
     pastix_int_t k, m;
@@ -77,7 +77,7 @@ core_zhetf2sp( pastix_int_t        n,
     for (k=0; k<n; k++, m--){
         if ( cabs(*Akk) < criteria ) {
             (*Akk) = (pastix_complex64_t)criteria;
-            (*nbpivot)++;
+            (*nbpivots)++;
         }
 
         zalpha = 1.0 / (*Akk);
@@ -122,7 +122,7 @@ core_zhetf2sp( pastix_int_t        n,
  * @param[in] lda
  *          The leading dimension of the matrix A.
  *
- * @param[inout] nbpivot
+ * @param[inout] nbpivots
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
@@ -136,7 +136,7 @@ void
 core_zhetrfsp( pastix_int_t        n,
                pastix_complex64_t *A,
                pastix_int_t        lda,
-               pastix_int_t       *nbpivot,
+               pastix_int_t       *nbpivots,
                double              criteria )
 {
     pastix_int_t k, blocknbr, blocksize, matrixsize, col;
@@ -155,7 +155,7 @@ core_zhetrfsp( pastix_int_t        n,
         Amm = Amk + blocksize * lda;         /* Lk+1,k+1 */
 
         /* Factorize the diagonal block Akk*/
-        core_zhetf2sp(blocksize, Akk, lda, nbpivot, criteria);
+        core_zhetf2sp(blocksize, Akk, lda, nbpivots, criteria);
 
         if ((k*MAXSIZEOFBLOCKS+blocksize) < n) {
 
@@ -206,6 +206,9 @@ core_zhetrfsp( pastix_int_t        n,
  *
  *******************************************************************************
  *
+ * @param[in] solvmtx
+ *          Solver Matrix structure of the problem
+ *
  * @param[in] cblk
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
@@ -214,11 +217,6 @@ core_zhetrfsp( pastix_int_t        n,
  *          The pointer to the matrix storing the coefficients of the
  *          panel. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in] criteria
- *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the nu,ber of
- *          pivots is incremented.
- *
  *******************************************************************************
  *
  * @return The number of static pivoting performed during the diagonal block
@@ -226,13 +224,14 @@ core_zhetrfsp( pastix_int_t        n,
  *
  *******************************************************************************/
 int
-cpucblk_zhetrfsp1d_hetrf( SolverCblk         *cblk,
-                          pastix_complex64_t *L,
-                          double              criteria )
+cpucblk_zhetrfsp1d_hetrf( SolverMatrix       *solvmtx,
+                          SolverCblk         *cblk,
+                          pastix_complex64_t *L )
 {
     pastix_int_t  ncols, stride;
-    pastix_int_t  nbpivot = 0;
-    pastix_fixdbl_t time;
+    pastix_int_t  nbpivots = 0;
+    pastix_fixdbl_t time, flops;
+    double criteria = solvmtx->diagthreshold;
 
     time = kernel_trace_start( PastixKernelHETRF );
 
@@ -254,13 +253,17 @@ cpucblk_zhetrfsp1d_hetrf( SolverCblk         *cblk,
      *  - diagonal holds D
      *  - uppert part holds (DL^h)
      */
+    flops = FLOPS_ZHETRF( ncols );
     kernel_trace_start_lvl2( PastixKernelLvl2HETRF );
-    core_zhetrfsp( ncols, L, stride, &nbpivot, criteria );
-    kernel_trace_stop_lvl2( FLOPS_ZHETRF( ncols ) );
+    core_zhetrfsp( ncols, L, stride, &nbpivots, criteria );
+    kernel_trace_stop_lvl2( flops );
 
-    kernel_trace_stop( PastixKernelHETRF, ncols, 0, 0, FLOPS_ZSYTRF( ncols ), time );
+    kernel_trace_stop( PastixKernelHETRF, ncols, 0, 0, flops, time );
 
-    return nbpivot;
+    if ( nbpivots ) {
+        pastix_atomic_add_32b( &(solvmtx->nbpivots), nbpivots );
+    }
+    return nbpivots;
 }
 
 /**
@@ -393,6 +396,9 @@ void core_zhetrfsp1d_gemm( const SolverCblk         *cblk,
  *
  *******************************************************************************
  *
+ * @param[in] solvmtx
+ *          Solver Matrix structure of the problem
+ *
  * @param[in] cblk
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
@@ -405,14 +411,6 @@ void core_zhetrfsp1d_gemm( const SolverCblk         *cblk,
  *          The pointer to the upper matrix storing the coefficients the
  *          temporary DL^h product. Must be of size cblk.stride -by- cblk.width
  *
- * @param[in] criteria
- *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the nu,ber of
- *          pivots is incremented.
- *
- * @param[in] lowrank
- *          The structure with low-rank parameters.
- *
  *******************************************************************************
  *
  * @return The number of static pivoting during factorization of the diagonal
@@ -420,27 +418,26 @@ void core_zhetrfsp1d_gemm( const SolverCblk         *cblk,
  *
  *******************************************************************************/
 int
-cpucblk_zhetrfsp1d_panel( SolverCblk         *cblk,
+cpucblk_zhetrfsp1d_panel( SolverMatrix       *solvmtx,
+                          SolverCblk         *cblk,
                           pastix_complex64_t *L,
-                          pastix_complex64_t *DLh,
-                          double              criteria,
-                          const pastix_lr_t  *lowrank )
+                          pastix_complex64_t *DLh )
 {
-    pastix_int_t nbpivot;
-    nbpivot = cpucblk_zhetrfsp1d_hetrf( cblk, L, criteria );
+    pastix_int_t nbpivots;
+    nbpivots = cpucblk_zhetrfsp1d_hetrf( solvmtx, cblk, L );
 
     /*
      * We exploit the fact that (DL^h) is stored in the upper triangle part of L
      */
     cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixUpper,
                      PastixNoTrans, PastixNonUnit,
-                     cblk, L, L, lowrank );
+                     cblk, L, L, &(solvmtx->lowrank) );
 
     if ( DLh != NULL ) {
         /* Copy L into the temporary buffer and multiply by D */
         cpucblk_zscalo( PastixConjTrans, cblk, DLh );
     }
-    return nbpivot;
+    return nbpivots;
 }
 
 
@@ -453,22 +450,20 @@ cpucblk_zhetrfsp1d_panel( SolverCblk         *cblk,
  *******************************************************************************
  *
  * @param[in] solvmtx
- *          PaStiX structure to store numerical data and flags
+ *          Solver Matrix structure of the problem
  *
  * @param[in] cblk
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[in] criteria
- *          Threshold use for static pivoting. If diagonal value is under this
- *          threshold, its value is replaced by the threshold and the nu,ber of
- *          pivots is incremented.
- *
  * @param[in] DLh
  *          Temporary memory buffer to store the conjugate transpose of DLh.
  *
- * @param[in] work2
- *          Temporary memory buffer for U factors.
+ * @param[in] work
+ *          Temporary memory buffer.
+ *
+ * @param[in] lwork
+ *          Temporary workspace dimension.
  *
  *******************************************************************************
  *
@@ -479,18 +474,17 @@ cpucblk_zhetrfsp1d_panel( SolverCblk         *cblk,
 int
 cpucblk_zhetrfsp1d( SolverMatrix       *solvmtx,
                     SolverCblk         *cblk,
-                    double              criteria,
                     pastix_complex64_t *DLh,
-                    pastix_complex64_t *work2,
+                    pastix_complex64_t *work,
                     pastix_int_t        lwork )
 {
     pastix_complex64_t *L = cblk->lcoeftab;
     SolverCblk  *fcblk;
     SolverBlok  *blok, *lblk;
-    pastix_int_t nbpivot;
+    pastix_int_t nbpivots;
 
     /* if there are off-diagonal supernodes in the column */
-    nbpivot = cpucblk_zhetrfsp1d_panel(cblk, L, DLh, criteria, &solvmtx->lowrank );
+    nbpivots = cpucblk_zhetrfsp1d_panel( solvmtx, cblk, L, DLh );
 
     blok = cblk->fblokptr+1;   /* this diagonal block */
     lblk = cblk[1].fblokptr;   /* the next diagonal block */
@@ -503,16 +497,16 @@ cpucblk_zhetrfsp1d( SolverMatrix       *solvmtx,
         if (DLh == NULL) {
             core_zhetrfsp1d_gemm( cblk, blok, fcblk,
                                   L, fcblk->lcoeftab,
-                                  work2 );
+                                  work );
         }
         else {
             cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
                              cblk, blok, fcblk,
                              L, DLh, fcblk->lcoeftab,
-                             work2, lwork, &solvmtx->lowrank );
+                             work, lwork, &(solvmtx->lowrank) );
         }
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
     }
 
-    return nbpivot;
+    return nbpivots;
 }

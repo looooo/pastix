@@ -93,7 +93,7 @@ BODY
                 pastix_int_t N = cblk_colnbr( cblk );
                 myDL = ((pastix_complex64_t*)WS) - N*N;
             }
-            cpucblk_zsytrfsp1d_panel( cblk, L, myDL, sopalin_data->diagthreshold, &lowrank );
+            cpucblk_zsytrfsp1d_panel( datacode, cblk, L, myDL );
         }
     }
     else {
@@ -334,7 +334,7 @@ BODY
         SolverCblk *cblk = datacode->cblktab + k;
         /* pastix_int_t  nbpivot = */
         if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
-            cpucblk_zsytrfsp1d_sytrf( cblk, A, sopalin_data->diagthreshold );
+            cpucblk_zsytrfsp1d_sytrf( datacode, cblk, A );
         }
     }
 }

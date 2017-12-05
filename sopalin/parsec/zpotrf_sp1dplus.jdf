@@ -72,7 +72,7 @@ BODY
 {
     SolverCblk *cblk = datacode->cblktab + k;
     if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
-        cpucblk_zpotrfsp1d_panel( cblk, L, sopalin_data->diagthreshold, &lowrank );
+        cpucblk_zpotrfsp1d_panel( datacode, cblk, L );
     }
 }
 END

@@ -36,10 +36,9 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
 {
     SolverMatrix       *datacode = pastix_data->solvmatr;
     SolverCblk         *cblk;
-    double              threshold = sopalin_data->diagthreshold;
     pastix_complex64_t *work;
     pastix_int_t  i, lwork;
-    (void)pastix_data;
+    (void)sopalin_data;
 
     lwork = datacode->gemmmax;
     if ( datacode->lowrank.compress_when == PastixCompressWhenBegin ) {
@@ -54,7 +53,7 @@ sequential_zgetrf( pastix_data_t  *pastix_data,
             break;
 
         /* Compute */
-        cpucblk_zgetrfsp1d( datacode, cblk, threshold,
+        cpucblk_zgetrfsp1d( datacode, cblk,
                             work, lwork );
     }
 
@@ -94,7 +93,7 @@ thread_pzgetrf( isched_thread_t *ctx, void *args )
         do { } while( cblk->ctrbcnt );
 
         /* Compute */
-        cpucblk_zgetrfsp1d( datacode, cblk, sopalin_data->diagthreshold,
+        cpucblk_zgetrfsp1d( datacode, cblk,
                             work, lwork );
     }
 

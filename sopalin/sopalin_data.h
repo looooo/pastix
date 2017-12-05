@@ -20,7 +20,6 @@
 
 struct sopalin_data_s {
     SolverMatrix *solvmtx;
-    double        diagthreshold; /* Threshold for static pivoting on diagonal value */
     double      (*cpu_coefs)[PastixKernelLvl1Nbr][8];
     double      (*gpu_coefs)[PastixKernelLvl1Nbr][8];
 };

@@ -247,7 +247,6 @@ coeftab_zmemory( const SolverMatrix *solvmtx )
     return gain;
 }
 
-
 /**
  *******************************************************************************
  *
@@ -293,5 +292,60 @@ coeftab_zgetschur( const SolverMatrix *solvmtx,
         localS = S + (cblk->fcolnum - fcolnum) * lds + (cblk->fcolnum - fcolnum);
 
         cpucblk_zgetschur( cblk, upper_part, localS, lds );
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Extract the diagonal
+ *
+ * This routine is sequential and returns the full diagonal in the vector D,
+ * such that:
+ *     D[incD*i]= A(i, i)
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure describing the problem.
+ *
+ * @param[inout] D
+ *          The pointer to the allocated vector array that will store the diagonal.
+ *          D must be of size solvmtx->coefnbr * incD.
+ *
+ * @param[in] incD
+ *          The increment bewteen two elements of D. incD > 0.
+ *
+ *******************************************************************************/
+void
+coeftab_zgetdiag( const SolverMatrix *solvmtx,
+                  pastix_complex64_t *D, pastix_int_t incD )
+{
+    SolverCblk *cblk = solvmtx->cblktab;
+    pastix_complex64_t *A;
+    pastix_int_t lda, itercblk, nbcol, i;
+
+    for (itercblk=0; itercblk<solvmtx->cblknbr; itercblk++, cblk++)
+    {
+        nbcol = cblk_colnbr( cblk );
+        if ( cblk->cblktype & CBLK_COMPRESSED ) {
+            assert( cblk->fblokptr->LRblock[0].rk == -1 );
+            A   = cblk->fblokptr->LRblock[0].u;
+            lda = cblk_colnbr( cblk ) + 1;
+        }
+        else {
+            A = cblk->lcoeftab;
+
+            if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
+                lda = cblk_colnbr( cblk ) + 1;
+            }
+            else {
+                lda = cblk->stride + 1;
+            }
+        }
+
+        for (i=0; i<nbcol; i++, D += incD, A += lda ) {
+            *D = *A;
+        }
     }
 }
