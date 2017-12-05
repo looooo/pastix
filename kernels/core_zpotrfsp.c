@@ -47,7 +47,7 @@ static pastix_complex64_t mzone = -1.0;
  * @param[in] lda
  *          The leading dimension of the matrix A.
  *
- * @param[inout] nbpivot
+ * @param[inout] nbpivots
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
@@ -66,7 +66,7 @@ static inline void
 core_zpotf2sp( pastix_int_t        n,
                pastix_complex64_t *A,
                pastix_int_t        lda,
-               pastix_int_t       *nbpivot,
+               pastix_int_t       *nbpivots,
                double              criteria )
 {
     pastix_int_t k;
@@ -77,7 +77,7 @@ core_zpotf2sp( pastix_int_t        n,
     for (k=0; k<n; k++){
         if ( cabs(*Akk) < criteria ) {
             (*Akk) = (pastix_complex64_t)criteria;
-            (*nbpivot)++;
+            (*nbpivots)++;
         }
 
         /* Hermitian matrices, so imaginary part should be 0 */
@@ -125,7 +125,7 @@ core_zpotf2sp( pastix_int_t        n,
  * @param[in] lda
  *          The leading dimension of the matrix A.
  *
- * @param[inout] nbpivot
+ * @param[inout] nbpivots
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
@@ -144,7 +144,7 @@ void
 core_zpotrfsp( pastix_int_t        n,
                pastix_complex64_t *A,
                pastix_int_t        lda,
-               pastix_int_t       *nbpivot,
+               pastix_int_t       *nbpivots,
                double              criteria )
 {
     pastix_int_t k, blocknbr, blocksize, matrixsize;
@@ -159,7 +159,7 @@ core_zpotrfsp( pastix_int_t        n,
         tmp  = A+(k*MAXSIZEOFBLOCKS)*(lda+1);      /* Lk,k     */
 
         /* Factorize the diagonal block Akk*/
-        core_zpotf2sp(blocksize, tmp, lda, nbpivot, criteria);
+        core_zpotf2sp(blocksize, tmp, lda, nbpivots, criteria);
 
         if ((k*MAXSIZEOFBLOCKS+blocksize) < n) {
 
@@ -221,8 +221,8 @@ cpucblk_zpotrfsp1d_potrf( SolverMatrix       *solvmtx,
                           pastix_complex64_t *L )
 {
     pastix_int_t  ncols, stride;
-    pastix_int_t  nbpivot = 0;
-    pastix_fixdbl_t time;
+    pastix_int_t  nbpivots = 0;
+    pastix_fixdbl_t time, flops;
     double criteria = solvmtx->diagthreshold;
 
     time = kernel_trace_start( PastixKernelPOTRF );
@@ -243,13 +243,17 @@ cpucblk_zpotrfsp1d_potrf( SolverMatrix       *solvmtx,
     }
 
     /* Factorize diagonal block */
+    flops = FLOPS_ZPOTRF( ncols );
     kernel_trace_start_lvl2( PastixKernelLvl2POTRF );
-    core_zpotrfsp(ncols, L, stride, &nbpivot, criteria );
-    kernel_trace_stop_lvl2( FLOPS_ZPOTRF( ncols ) );
+    core_zpotrfsp(ncols, L, stride, &nbpivots, criteria );
+    kernel_trace_stop_lvl2( flops );
 
-    kernel_trace_stop( PastixKernelPOTRF, ncols, 0, 0, FLOPS_ZPOTRF( ncols ), time );
+    kernel_trace_stop( PastixKernelPOTRF, ncols, 0, 0, flops, time );
 
-    return nbpivot;
+    if ( nbpivots ) {
+        pastix_atomic_add_32b( &(solvmtx->nbpivots), nbpivots );
+    }
+    return nbpivots;
 }
 
 /**
@@ -281,13 +285,13 @@ cpucblk_zpotrfsp1d_panel( SolverMatrix       *solvmtx,
                           SolverCblk         *cblk,
                           pastix_complex64_t *L )
 {
-    pastix_int_t nbpivot;
-    nbpivot = cpucblk_zpotrfsp1d_potrf( solvmtx, cblk, L );
+    pastix_int_t nbpivots;
+    nbpivots = cpucblk_zpotrfsp1d_potrf( solvmtx, cblk, L );
 
     cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
                      PastixConjTrans, PastixNonUnit,
                      cblk, L, L, &(solvmtx->lowrank) );
-    return nbpivot;
+    return nbpivots;
 }
 
 
@@ -327,9 +331,9 @@ cpucblk_zpotrfsp1d( SolverMatrix       *solvmtx,
     pastix_complex64_t *L = cblk->lcoeftab;
     SolverCblk  *fcblk;
     SolverBlok  *blok, *lblk;
-    pastix_int_t nbpivot;
+    pastix_int_t nbpivots;
 
-    nbpivot = cpucblk_zpotrfsp1d_panel( solvmtx, cblk, L );
+    nbpivots = cpucblk_zpotrfsp1d_panel( solvmtx, cblk, L );
 
     blok = cblk->fblokptr + 1; /* First off-diagonal block */
     lblk = cblk[1].fblokptr;   /* Next diagonal block      */
@@ -347,5 +351,5 @@ cpucblk_zpotrfsp1d( SolverMatrix       *solvmtx,
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
    }
 
-    return nbpivot;
+    return nbpivots;
 }

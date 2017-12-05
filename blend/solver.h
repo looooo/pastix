@@ -186,6 +186,7 @@ struct solver_matrix_s {
     pastix_lr_t             lowrank;       /**< Low-rank parameters                       */
     pastix_factotype_t      factotype;     /**< General or symmetric factorization?       */
     double                  diagthreshold; /**< Diagonal threshold for pivoting           */
+    volatile int32_t        nbpivots;      /**< Number of pivots during the factorization */
 
 #if defined(PASTIX_WITH_PARSEC)
     parsec_sparse_matrix_desc_t *parsec_desc;

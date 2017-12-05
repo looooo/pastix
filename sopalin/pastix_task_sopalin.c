@@ -388,6 +388,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
         }
 
         sopalin_data.solvmtx->diagthreshold = threshold;
+        sopalin_data.solvmtx->nbpivots      = 0;
 
         sopalin_data.cpu_coefs = &(pastix_data->cpu_models->coefficients[bcsc->flttype-2]);
         sopalin_data.gpu_coefs = &(pastix_data->gpu_models->coefficients[bcsc->flttype-2]);
