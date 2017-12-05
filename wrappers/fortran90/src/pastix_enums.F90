@@ -1,3 +1,4 @@
+
 !
 ! @file pastix_enums.F90
 !
@@ -10,13 +11,14 @@
 ! @author Mathieu Faverge
 ! @date 2017-01-01
 !
-! This file was automatically generated.
+! This file has been automatically generated with gen_wrappers.py
 !
 module pastix_enums
   use iso_c_binding
   implicit none
 
-  ! C enums converted to constants.
+
+
   ! enum iparm
   enum, bind(C)
      enumerator :: IPARM_VERBOSE               = 1
@@ -332,7 +334,7 @@ module pastix_enums
      enumerator :: PastixDirBackward = 392
   end enum
 
-  ! C structs converted to derived types.
+
   integer, parameter :: pastix_int_t = PASTIX_INT_KIND
 
 contains
