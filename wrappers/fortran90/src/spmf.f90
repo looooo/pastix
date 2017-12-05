@@ -421,8 +421,7 @@ contains
     type(pastix_spm_t),         intent(out),   pointer :: spmo
 
     call c_f_pointer(spmNew_c(mtxtype, flttype, fmttype, n, nnz, c_loc(colptr), &
-         c_loc(rowptr), c_loc(values), c_loc(loc2glob), dof, layout, &
-         c_loc(dofs)), spmo)
+         c_loc(rowptr), values, c_loc(loc2glob), dof, layout, c_loc(dofs)), spmo)
   end subroutine spmNew
 
   subroutine spmInit(spm)
@@ -523,8 +522,7 @@ contains
     type(c_ptr),         intent(inout), target :: y
     integer(kind=c_int), intent(out)           :: info
 
-    info = spmMatVec_c(trans, c_loc(alpha), c_loc(spm), c_loc(x), c_loc(beta), &
-         c_loc(y))
+    info = spmMatVec_c(trans, alpha, c_loc(spm), x, beta, y)
   end subroutine spmMatVec
 
   subroutine spmScalMatrix(alpha, spm)
@@ -543,7 +541,7 @@ contains
     type(pastix_spm_t),  intent(inout), target :: spm
     type(c_ptr),         intent(inout), target :: x
 
-    call spmScalVector_c(alpha, c_loc(spm), c_loc(x))
+    call spmScalVector_c(alpha, c_loc(spm), x)
   end subroutine spmScalVector
 
   subroutine spmSort(spm, info)
@@ -594,7 +592,7 @@ contains
     integer(kind=pastix_int_t), intent(in)            :: ldb
     integer(kind=c_int),        intent(out)           :: info
 
-    info = spmGenRHS_c(type, nrhs, c_loc(spm), c_loc(x), ldx, c_loc(b), ldb)
+    info = spmGenRHS_c(type, nrhs, c_loc(spm), x, ldx, b, ldb)
   end subroutine spmGenRHS
 
   subroutine spmCheckAxb(nrhs, spm, x0, ldx0, b, ldb, x, ldx, info)
@@ -610,8 +608,7 @@ contains
     integer(kind=pastix_int_t), intent(in)            :: ldx
     integer(kind=c_int),        intent(out)           :: info
 
-    info = spmCheckAxb_c(nrhs, c_loc(spm), c_loc(x0), ldx0, c_loc(b), ldb, &
-         c_loc(x), ldx)
+    info = spmCheckAxb_c(nrhs, c_loc(spm), x0, ldx0, b, ldb, x, ldx)
   end subroutine spmCheckAxb
 
   subroutine spmIntConvert(n, input, value)

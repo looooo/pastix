@@ -322,6 +322,8 @@ end module ''' + modname
 
             # Signature line (do not make the argument list too long)
             if not isfile:
+                line = iso_c_wrapper_type(function[j], args_list, args_size)
+
                 l = len(arg_name)
                 if ((signature_line_length + l) > 77):
                     signature_line_length = s+itab+iindent
@@ -336,7 +338,7 @@ end module ''' + modname
                 aux_name = arg_name + "_aux"
                 call_param = aux_name
                 double_pointers.append(arg_name)
-            elif (arg_pointer == "*"):
+            elif (arg_pointer == "*") and (not "type(c_ptr), " in args_list[len(args_list)-1]):
                 call_param = "c_loc(" + arg_name + ")"
             else:
                 call_param = arg_name
@@ -349,8 +351,6 @@ end module ''' + modname
             call_line += call_param
             call_line_length += l
 
-            if not isfile:
-                iso_c_wrapper_type(function[j], args_list, args_size)
 
         # initialize a string with the fortran interface
         f_wrapper = signature_line
