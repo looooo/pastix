@@ -420,7 +420,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
                           printflopsv( flops ), printflopsu( flops ),
                           printflopsv( pastix_data->dparm[DPARM_FACT_THFLOPS] ),
                           printflopsu( pastix_data->dparm[DPARM_FACT_THFLOPS] ),
-                          pastix_data->iparm[IPARM_STATIC_PIVOTING] );
+                          (long)pastix_data->iparm[IPARM_STATIC_PIVOTING] );
         }
 
 #if defined(PASTIX_WITH_PARSEC) && defined(PASTIX_DEBUG_PARSEC)
