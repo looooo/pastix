@@ -1,6 +1,6 @@
 /**
  *
- * @file starpu_model.h
+ * @file pastix_starpu_model.h
  *
  * Pastix StarPU model function
  *
