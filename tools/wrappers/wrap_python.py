@@ -32,8 +32,9 @@ This file has been automatically generated with gen_wrappers.py
 """
 import numpy as np
 import ctypes
-
-''' + f['header'] + "\n"
+'''
+        if f['header'] != "":
+            header += "\n" + f['header']
         return header;
 
     @staticmethod

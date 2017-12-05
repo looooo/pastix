@@ -27,62 +27,11 @@ parser.add_argument('args', nargs='*', action='store', help='Files to process')
 opts = parser.parse_args()
 
 # ------------------------------------------------------------
-# set indentation in the f90 file
-tab = "    "
-indent = "  "
-
 # module name
 module_name = "pastix_enums"
 
-# translation_table of types
-types_dict = {
-    "int":               ("integer(kind=c_int)"),
-    "pastix_coeftype_t": ("integer(c_int)"),
-    "pastix_dir_t":      ("integer(c_int)"),
-    "pastix_trans_t":    ("integer(c_int)"),
-    "pastix_uplo_t":     ("integer(c_int)"),
-    "pastix_diag_t":     ("integer(c_int)"),
-    "pastix_side_t":     ("integer(c_int)"),
-    "pastix_driver_t":   ("integer(c_int)"),
-    "pastix_fmttype_t":  ("integer(c_int)"),
-    "pastix_layout_t":   ("integer(c_int)"),
-    "pastix_normtype_t": ("integer(c_int)"),
-    "pastix_rhstype_t":  ("integer(c_int)"),
-    "pastix_symmetry_t": ("integer(c_int)"),
-    "pastix_data_t":     ("type(pastix_data_t)"),
-    "pastix_spm_t":      ("type(pastix_spm_t)"),
-    "pastix_int_t":      ("integer(kind=pastix_int_t)"),
-    "pastix_order_t":    ("type(pastix_order_t)"),
-    "size_t":            ("integer(kind=c_size_t)"),
-    "char":              ("character(kind=c_char)"),
-    "double":            ("real(kind=c_double)"),
-    "float":             ("real(kind=c_float)"),
-    "pastix_complex64_t":("complex(kind=c_double_complex)"),
-    "pastix_complex32_t":("complex(kind=c_float_complex)"),
-    "void":              ("type(c_ptr)"),
-    "MPI_Comm":          ("integer(kind=c_int)"),
-    "FILE":              ("type(c_ptr)"),
-}
-
-# translation_table with names of auxiliary variables
-return_variables_dict = {
-    "double":            ("value"),
-    "float":             ("value"),
-    "pastix_int_t":      ("value"),
-    "pastix_spm_t":      ("spmo"),
-}
-
-# name arrays which will be translated to assumed-size arrays, e.g. pA(*)
-arrays_names_2D = ["pA", "pB", "pC", "pAB", "pQ", "pX", "pAs"]
-arrays_names_1D = ["ipiv", "values", "work"]
-
 # exclude inline functions from the interface
-exclude_list = ["inline"]
-
-# ------------------------------------------------------------
-
-# global list used to determine derived types
-derived_types = []
+exclude_list = ["inline", "spmIntSort"]
 
 def polish_file(whole_file):
     """Preprocessing and cleaning of the header file.
@@ -174,7 +123,13 @@ def preprocess_list(initial_list):
 def parse_triple(string):
     """Parse string of
        type (*)name
-       into triple of [type, pointer, name]"""
+       into triple of [type, pointer, name, const]"""
+
+    if "const" in string:
+        const=1
+        string = re.sub(r"const", "", string)
+    else:
+        const=0
 
     parts = string.split()
     if (len(parts) < 2 or len(parts) > 3):
@@ -206,7 +161,7 @@ def parse_triple(string):
 
     name_part = name_part.strip()
 
-    return [type_part, pointer_part, name_part]
+    return [type_part, pointer_part, name_part, const]
 
 
 def parse_enums(preprocessed_list):
@@ -293,7 +248,7 @@ def parse_structs(preprocessed_list):
                     params.append(parse_triple(arg))
 
             struct_list.append(params)
-            derived_types.append(name_string)
+            wrappers.derived_types.append(name_string)
 
     # reorder the list so that only defined types are exported
     goAgain = True
@@ -304,7 +259,7 @@ def parse_structs(preprocessed_list):
             for j in range(1,len(struct)-1):
                 type_name = struct_list[istruct][j][0]
 
-                if (type_name in derived_types):
+                if (type_name in wrappers.derived_types):
 
                     # try to find the name in the registered types
                     definedEarlier = False
@@ -380,7 +335,6 @@ def parse_prototypes(preprocessed_list):
         # append arguments
         for arg in fun_args_list:
             if (not (arg == "" or arg == " ")):
-                arg = arg.replace("const", "")
                 argument_list.append(parse_triple(arg))
 
         # add it only if there is no duplicity with previous one
@@ -394,72 +348,6 @@ def parse_prototypes(preprocessed_list):
             function_list.append(argument_list)
 
     return function_list
-
-
-def iso_c_interface_type(arg, return_value):
-    """Generate a declaration for a variable in the interface."""
-
-    if (arg[1] == "*" or arg[1] == "**"):
-        is_pointer = True
-    else:
-        is_pointer = False
-
-    if (is_pointer):
-        f_type = "type(c_ptr)"
-    else:
-        f_type = types_dict[arg[0]]
-
-    if (not return_value and arg[1] != "**"):
-        f_pointer = ", value"
-    else:
-        f_pointer = ""
-
-    f_name = arg[2]
-
-    f_line = f_type + f_pointer + " :: " + f_name
-
-    return f_line
-
-
-def iso_c_wrapper_type(arg):
-    """Generate a declaration for a variable in the Fortran wrapper."""
-
-    if (arg[1] == "*" or arg[1] == "**"):
-        is_pointer = True
-    else:
-        is_pointer = False
-
-    if (is_pointer and arg[0].strip() == "void"):
-        f_type = "type(c_ptr)"
-    else:
-        f_type = types_dict[arg[0]]
-
-    if (is_pointer):
-        f_intent = ", intent(inout)"
-    else:
-        f_intent = ", intent(in)"
-
-    if (is_pointer):
-        if (arg[1] == "*"):
-           f_target = ", target"
-        else:
-           f_target = ", pointer"
-    else:
-        f_target = ""
-
-    f_name    = arg[2]
-
-    # detect array argument
-    if   (is_pointer and f_name in arrays_names_2D):
-        f_array = "(*)"
-    elif (is_pointer and f_name in arrays_names_1D):
-        f_array = "(*)"
-    else:
-        f_array = ""
-
-    f_line = f_type + f_intent + f_target + " :: " + f_name + f_array
-
-    return f_line
 
 def write_module(f, generator, module_name, enum_list, struct_list, function_list):
     """Generate a single Fortran module. Its structure will be:
@@ -491,9 +379,8 @@ def write_module(f, generator, module_name, enum_list, struct_list, function_lis
             f_interface = generator.function(function)
             modulefile.write(f_interface + "\n")
 
-        modulefile.write(indent + "contains\n\n")
-
-        modulefile.write(indent + "! Wrappers of the C functions.\n")
+        modulefile.write("  " + "contains\n\n")
+        modulefile.write("  " + "! Wrappers of the C functions.\n")
 
         for function in function_list:
             f_wrapper = generator.wrapper(function)
@@ -549,15 +436,34 @@ contains
 
 pastix_enums = {
     'filename' : [ "include/pastix/api.h" ],
-    'python'   : { 'filename' : "wrappers/python/examples/pypastix/enum.py.in",
-                   'header'   : "pastix_int = ctypes.@PASTIX_PYTHON_INTEGER@",
-                   'footer'   : "",
-                   'enums'    : { 'coeftype' : enums_python_coeftype }
+    'python'   : { 'filename'    : "wrappers/python/examples/pypastix/enum.py.in",
+                   'description' : "PaStiX python wrapper to define enums and datatypes",
+                   'header'      : "pastix_int = ctypes.@PASTIX_PYTHON_INTEGER@",
+                   'footer'      : "",
+                   'enums'       : { 'coeftype' : enums_python_coeftype }
     },
-    'fortran'  : { 'filename' : "wrappers/fortran90/src/pastix_enums.F90",
-                   'header'   : "",
-                   'footer'   : enums_fortran_footer,
-                   'enums'    : {} },
+    'fortran'  : { 'filename'    : "wrappers/fortran90/src/pastix_enums.F90",
+                   'description' : "PaStiX fortran 90 wrapper to define enums and datatypes",
+                   'header'      : "",
+                   'footer'      : enums_fortran_footer,
+                   'enums'       : {}
+    },
+}
+
+pastix_spm = {
+    'filename' : [ "spm/spm.h" ],
+    'python'   : { 'filename'    : "wrappers/python/examples/pypastix/spm.py",
+                   'description' : "SPM python wrapper",
+                   'header'      : "",
+                   'footer'      : "",
+                   'enums'       : {}
+    },
+    'fortran'  : { 'filename'    : "wrappers/fortran90/src/spmf.f90",
+                   'description' : "SPM Fortran 90 wrapper",
+                   'header'      : "  use pastix_enums\n",
+                   'footer'      : "",
+                   'enums'       : {}
+    },
 }
 
 def main():
@@ -566,45 +472,47 @@ def main():
     preprocessed_list = []
 
     # source header files
-    for filename in pastix_enums['filename']:
+    for f in [ pastix_spm ]:
+        preprocessed_list = []
+        for filename in f['filename']:
 
-        # source a header file
-        c_header_file = open(filename, 'r').read()
+            # source a header file
+            c_header_file = open(filename, 'r').read()
 
-        # clean the string (remove comments, macros, etc.)
-        clean_file = polish_file(c_header_file)
+            # clean the string (remove comments, macros, etc.)
+            clean_file = polish_file(c_header_file)
 
-        # convert the string to a list of strings
-        initial_list = clean_file.split("\n")
+            # convert the string to a list of strings
+            initial_list = clean_file.split("\n")
 
-        # process the list so that each enum, struct or function
-        # are just one item
-        nice_list = preprocess_list(initial_list)
+            # process the list so that each enum, struct or function
+            # are just one item
+            nice_list = preprocess_list(initial_list)
 
-        # compose all files into one big list
-        preprocessed_list += nice_list
+            # compose all files into one big list
+            preprocessed_list += nice_list
 
-    # register all enums
-    enum_list = parse_enums(preprocessed_list)
+            # register all enums
+            enum_list = parse_enums(preprocessed_list)
 
-    # register all structs
-    struct_list = parse_structs(preprocessed_list)
+            # register all structs
+            struct_list = parse_structs(preprocessed_list)
 
-    # register all individual functions and their signatures
-    function_list = parse_prototypes(preprocessed_list)
+            # register all individual functions and their signatures
+            function_list = parse_prototypes(preprocessed_list)
 
-    # export the module
-    modulefilename = write_module( pastix_enums['fortran'],
-                                   wrappers.wrap_fortran,
-                                   module_name,
-                                   enum_list, struct_list, function_list)
-    print "Exported file: " + modulefilename
+        # export the module
+        modulefilename = write_module( f['fortran'],
+                                       wrappers.wrap_fortran,
+                                       module_name,
+                                       enum_list, struct_list, function_list)
+        print "Exported file: " + modulefilename
 
-    modulefilename = write_module( pastix_enums['python'],
-                                   wrappers.wrap_python,
-                                   module_name,
-                                   enum_list, struct_list, function_list)
-    print "Exported file: " + modulefilename
+#        modulefilename = write_module( f['python'],
+#                                       wrappers.wrap_python,
+#                                       module_name,
+#                                       enum_list, struct_list, function_list)
+#        print "Exported file: " + modulefilename
 
 # execute the program
 main()
