@@ -276,13 +276,21 @@ end module ''' + modname
            functions in C will be turned to subroutines by appending
            the return value as the last argument."""
 
+        return_type = function[0][0]
+        return_pointer = function[0][1]
+        return_var = ""
+
         # is it a function or a subroutine
-        if (function[0][0] == "void"):
+        if (return_type == "void"):
             is_function = False
-            call = "info = "
+            f_return = "call "
         else:
             is_function = True
-            call = "call "
+            if (return_type == "int"):
+                return_var = "info"
+            else:
+                return_var = return_variables_dict[return_type]
+            f_return = return_var + " = "
 
         c_symbol = function[0][2]
         f_symbol = c_symbol + "_c"
@@ -292,7 +300,7 @@ end module ''' + modname
         signature_line = s*" " + "subroutine " + c_symbol + "("
         call_line      = ""
         signature_line_length = len(signature_line)
-        call_line_length      = s + itab + len(call + f_symbol + "(" )
+        call_line_length      = s + itab + len(f_return + f_symbol + "(" )
         double_pointers = []
         args_list = []
         args_size = [ 0, 0, 0 ]
@@ -353,10 +361,6 @@ end module ''' + modname
 
             return_type = function[0][0]
             return_pointer = function[0][1]
-            if (return_type == "int"):
-                return_var = "info"
-            else:
-                return_var = return_variables_dict[return_type]
 
             l = len(return_var)
             if ((signature_line_length + l) > 78):
@@ -372,45 +376,47 @@ end module ''' + modname
         f_wrapper += s*" " + "use iso_c_binding\n"
         f_wrapper += s*" " + "implicit none\n"
 
+        # add the return info value of the function
+        if (is_function):
+            f_type = types_dict[return_type] + ", "
+            f_intent = "intent(out)"
+            if (function[0][1] == "*"):
+                f_intent += ", "
+                f_target = "pointer"
+            else:
+                f_target = ""
+
+            args_size[0] = max(args_size[0], len(f_type))
+            args_size[1] = max(args_size[1], len(f_intent))
+            args_size[2] = max(args_size[2], len(f_target))
+            args_list.append( (f_type, f_intent, f_target, return_var, "" ) )
+
+        # loop over potential double pointers and generate auxiliary variables for them
+        for double_pointer in double_pointers:
+            aux_name = double_pointer + "_aux"
+
+            args_size[0] = max(args_size[0], len("type(c_ptr)"))
+            args_list.append( ("type(c_ptr)", "", "", aux_name, "" ) )
+
         # loop over the arguments to describe them
         fmt = s*" " + "%-" + str(args_size[0]) + "s%-" + str(args_size[1]) + "s%-" + str(args_size[2]) + "s :: %s%s\n"
         for j in range(0,len(args_list)):
             f_wrapper += format( fmt % args_list[j] )
 
-        # add the return info value of the function
-        if (is_function):
-            if (function[0][1] == "*"):
-                f_target = ", pointer"
-            else:
-                f_target = ""
-
-            f_wrapper += indent + indent + types_dict[return_type] + ", intent(out)" + f_target + " :: " + return_var + "\n"
-
         f_wrapper += "\n"
-
-        # loop over potential double pointers and generate auxiliary variables for them
-        for double_pointer in double_pointers:
-            aux_name = double_pointer + "_aux"
-            f_wrapper += indent + indent + "type(c_ptr) :: " + aux_name + "\n"
-            f_wrapper += "\n"
-
-        if (is_function):
-            f_return = return_var
-            f_return += " = "
-        else:
-            f_return = "call "
 
         # generate the call to the C function
         if (is_function and return_pointer == "*"):
-            f_wrapper += indent + indent + "call c_f_pointer(" + f_symbol + "(" + call_line + "), " + return_var + ")\n"
+            f_wrapper += s*" " + "call c_f_pointer(" + f_symbol + "(" + call_line + "), " + return_var + ")\n"
         else:
-            f_wrapper += indent + indent + f_return + f_symbol + "(" + call_line + ")\n"
+            f_wrapper += s*" " + f_return + f_symbol + "(" + call_line + ")\n"
 
         # loop over potential double pointers and translate them to Fortran pointers
         for double_pointer in double_pointers:
             aux_name = double_pointer + "_aux"
-            f_wrapper += indent + indent + "call c_f_pointer(" + aux_name + ", " + double_pointer + ")\n"
+            f_wrapper += s*" " + "call c_f_pointer(" + aux_name + ", " + double_pointer + ")\n"
 
-        f_wrapper += indent + "end subroutine " + c_symbol + "\n"
+        s -= itab
+        f_wrapper += s*" " + "end subroutine " + c_symbol + "\n"
 
         return f_wrapper

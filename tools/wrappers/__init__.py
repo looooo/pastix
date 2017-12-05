@@ -58,7 +58,7 @@ derived_types = ['pastix_int_t']
 
 # name arrays which will be translated to assumed-size arrays, e.g. pA(*)
 arrays_names_2D = ["pA", "pB", "pC", "pAB", "pQ", "pX", "pAs"]
-arrays_names_1D = ["ipiv", "values", "work"]
+arrays_names_1D = ["colptr", "rowptr", "values", "loc2glob", "dofs"]
 
 __all__ = [ 'types_dict', 'return_variables_dict', 'derived_types', 'arrays_names_1D', 'arrays_names_2D' ]
 

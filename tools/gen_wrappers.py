@@ -379,7 +379,7 @@ def write_module(f, generator, module_name, enum_list, struct_list, function_lis
             f_interface = generator.function(function)
             modulefile.write(f_interface + "\n")
 
-        modulefile.write("  " + "contains\n\n")
+        modulefile.write("contains\n\n")
         modulefile.write("  " + "! Wrappers of the C functions.\n")
 
         for function in function_list:
