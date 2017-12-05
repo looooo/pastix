@@ -83,7 +83,6 @@ typedef enum pastix_iparm_e {
     /* Factorization */
     IPARM_FACTORIZATION,         /**< Factorization mode                                             Default: PastixFactLU             IN    */
     IPARM_STATIC_PIVOTING,       /**< Static pivoting                                                Default: -                        OUT   */
-    IPARM_INERTIA,               /**< Return the inertia (symmetric matrix without pivoting)         Default: -                        OUT   */
     IPARM_FREE_CSCUSER,          /**< Free user CSC                                                  Default: 0                        IN    */
     IPARM_SCHUR_FACT_MODE,       /**< Specify if the Schur is factorized (@see pastix_fact_mode_t)   Default: PastixFactModeLocal      IN    */
 

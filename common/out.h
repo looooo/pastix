@@ -235,8 +235,6 @@
 #define MAX_MEM_AF_CL         "   Max memory used after clean                  %.3g %s\n"
 #define MEM_USED_AF_CL        "   Memory used after clean                      %.3g %s\n"
 #define OUT_STATIC_PIVOTING   "   Static pivoting                              %ld\n"
-#define OUT_INERTIA           "   Inertia                                      %ld\n"
-#define OUT_INERTIA_PIVOT     "   Inertia (NB: with pivoting)                  %ld\n"
 #define OUT_ESP_NBTASKS       "   Number of tasks added by esp                 %ld\n"
 #define OUT_TIME_FACT         "   Time to factorize                            %.3g s  (%.3g %s)\n"
 #define OUT_FLOPS_FACT        "   FLOPS during factorization                   %.5g %s\n"
