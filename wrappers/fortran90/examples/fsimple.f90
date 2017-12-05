@@ -39,7 +39,7 @@ program fsimple
      spm = spm2
   end if
 
-  call spmPrintInfo( spm, c_null_ptr )
+  call spmPrintInfo( spm )
 
   !   2- The right hand side
   nrhs = 1
