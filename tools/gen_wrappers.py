@@ -1,0 +1,610 @@
+#!/usr/bin/env python
+import os
+import re
+import argparse
+import wrappers
+
+description = '''\
+Generates Fortran 2003 interface from PaStiX header files.'''
+
+help = '''\
+----------------------------------------------------------------------
+Example uses:
+
+  fortran_gen.py file.h
+
+----------------------------------------------------------------------
+'''
+
+# ------------------------------------------------------------
+# command line options
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=description,
+    epilog=help )
+parser.add_argument('--prefix',        action='store', help='Prefix for variables in Makefile', default='./')
+parser.add_argument('args', nargs='*', action='store', help='Files to process')
+opts = parser.parse_args()
+
+# ------------------------------------------------------------
+# set indentation in the f90 file
+tab = "    "
+indent = "  "
+
+# module name
+module_name = "pastix_enums"
+
+# translation_table of types
+types_dict = {
+    "int":               ("integer(kind=c_int)"),
+    "pastix_coeftype_t": ("integer(c_int)"),
+    "pastix_dir_t":      ("integer(c_int)"),
+    "pastix_trans_t":    ("integer(c_int)"),
+    "pastix_uplo_t":     ("integer(c_int)"),
+    "pastix_diag_t":     ("integer(c_int)"),
+    "pastix_side_t":     ("integer(c_int)"),
+    "pastix_driver_t":   ("integer(c_int)"),
+    "pastix_fmttype_t":  ("integer(c_int)"),
+    "pastix_layout_t":   ("integer(c_int)"),
+    "pastix_normtype_t": ("integer(c_int)"),
+    "pastix_rhstype_t":  ("integer(c_int)"),
+    "pastix_symmetry_t": ("integer(c_int)"),
+    "pastix_data_t":     ("type(pastix_data_t)"),
+    "pastix_spm_t":      ("type(pastix_spm_t)"),
+    "pastix_int_t":      ("integer(kind=pastix_int_t)"),
+    "pastix_order_t":    ("type(pastix_order_t)"),
+    "size_t":            ("integer(kind=c_size_t)"),
+    "char":              ("character(kind=c_char)"),
+    "double":            ("real(kind=c_double)"),
+    "float":             ("real(kind=c_float)"),
+    "pastix_complex64_t":("complex(kind=c_double_complex)"),
+    "pastix_complex32_t":("complex(kind=c_float_complex)"),
+    "void":              ("type(c_ptr)"),
+    "MPI_Comm":          ("integer(kind=c_int)"),
+    "FILE":              ("type(c_ptr)"),
+}
+
+# translation_table with names of auxiliary variables
+return_variables_dict = {
+    "double":            ("value"),
+    "float":             ("value"),
+    "pastix_int_t":      ("value"),
+    "pastix_spm_t":      ("spmo"),
+}
+
+# name arrays which will be translated to assumed-size arrays, e.g. pA(*)
+arrays_names_2D = ["pA", "pB", "pC", "pAB", "pQ", "pX", "pAs"]
+arrays_names_1D = ["ipiv", "values", "work"]
+
+# exclude inline functions from the interface
+exclude_list = ["inline"]
+
+# ------------------------------------------------------------
+
+# global list used to determine derived types
+derived_types = []
+
+def polish_file(whole_file):
+    """Preprocessing and cleaning of the header file.
+       Do not change the order of the regular expressions !
+       Works with a long string."""
+
+    clean_file = whole_file
+
+    # borrowed from cfwrapper.py
+    # Remove C comments:
+    clean_file = re.sub(r"(?s)/\*.*?\*/", "", clean_file)
+    clean_file = re.sub(r"//.*", "", clean_file)
+    # Remove C directives (multilines then monoline):
+    clean_file = re.sub(r"(?m)^#(.*[\\][\n])+.*?$", "", clean_file)
+    clean_file = re.sub("(?m)^#.*$", "", clean_file)
+    clean_file = re.sub("(?m)#.*", "", clean_file)
+    # Remove TABs and overnumerous spaces:
+    clean_file = clean_file.replace("\t", " ")
+    clean_file = re.sub("[ ]{2,}", " ", clean_file)
+    # Remove extern C statement:
+    clean_file = re.sub("(?m)^(extern).*$", "", clean_file)
+    # Remove empty lines:
+    clean_file = re.sub(r"(?m)^\n$", "", clean_file)
+    # Merge structs
+    clean_file = re.sub(r"(?m)$", "", clean_file)
+
+    # Merge string into single line
+    clean_file = re.sub(r"\n", "", clean_file)
+
+    # Split the line based on ";" and "}"
+    clean_file = re.sub(r";", "\n", clean_file)
+    clean_file = re.sub(r"}", "}\n", clean_file)
+
+    return clean_file
+
+def preprocess_list(initial_list):
+    """Preprocessing and cleaning of the header file.
+       Works with a list of strings.
+       Produces a new list in which each function, enum or struct
+       corresponds to a single item."""
+
+    # merge braces
+    list1 = []
+    merged_line = ""
+    nopen = 0
+    inStruct = False
+    for line in initial_list:
+
+        if (line.find("struct") > -1):
+            inStruct = True
+
+        if (inStruct):
+            split_character = ","
+        else:
+            split_character = ""
+
+        nopen += line.count("{") - line.count("}")
+        merged_line += line + split_character
+
+        if (nopen <= 0):
+            list1.append(merged_line)
+            merged_line = ""
+            isOpen   = False
+            inStruct = False
+            nopen = 0
+
+    # merge structs
+    list2 = []
+    merged_line = ""
+    for line in list1:
+
+        merged_line += line
+
+        if (line.find("struct") == -1):
+            list2.append(merged_line)
+            merged_line = ""
+
+    # clean orphan braces
+    list3 = []
+    for line in list2:
+
+        if (line.strip() != "}"):
+            list3.append(line)
+
+    #print '\n\n'.join(list3)
+
+    return list3
+
+def parse_triple(string):
+    """Parse string of
+       type (*)name
+       into triple of [type, pointer, name]"""
+
+    parts = string.split()
+    if (len(parts) < 2 or len(parts) > 3):
+        print("Error: Cannot detect type for ", string)
+
+    type_part = str.strip(parts[0])
+
+    if (len(parts) == 2):
+        name_with_pointer = str.strip(parts[1])
+        if (name_with_pointer.find("**") > -1):
+            pointer_part = "**"
+            name_part = name_with_pointer.replace("**", "")
+        elif (name_with_pointer.find("*") > -1):
+            pointer_part = "*"
+            name_part    = name_with_pointer.replace("*", "")
+        else:
+            pointer_part = ""
+            name_part    = name_with_pointer
+
+    elif (len(parts) == 3):
+        if (str.strip(parts[1]) == "**"):
+            pointer_part = "**"
+            name_part    = str.strip(parts[2])
+        elif (str.strip(parts[1]) == "*"):
+            pointer_part = "*"
+            name_part    = str.strip(parts[2])
+        else:
+            print("Error: Too many parts for ", string)
+
+    name_part = name_part.strip()
+
+    return [type_part, pointer_part, name_part]
+
+
+def parse_enums(preprocessed_list):
+    """Each enum will be parsed into a list of its arguments."""
+
+    enum_list = []
+    for proto in preprocessed_list:
+
+        # extract the part of the function from the prototype
+        fun_parts = proto.split("{")
+
+        split_fun = fun_parts[0].strip().split()
+        print "---------------"
+        print proto
+        print fun_parts[0]
+        print split_fun
+        if len(split_fun) == 0:
+            continue
+
+        if ((split_fun[0] == "enum") or
+            (split_fun[0] == "typedef" and split_fun[1] == "enum")):
+
+
+            if split_fun[0] == "enum":
+                enumname = split_fun[1]
+            else:
+                enumname = split_fun[2]
+            enumname = re.sub(r"_e$", "", enumname)
+            enumname = re.sub(r"^pastix_", "", enumname)
+
+            args_string = fun_parts[1];
+            args_string = re.sub(r"}", "", args_string)
+            print(args_string);
+            args_list = args_string.split(",")
+            params = [];
+            for args in args_list:
+                args = args.strip();
+                if (args != ""):
+                    values = args.split("=")
+
+                    name = values[0].strip()
+                    if (len(values) > 1):
+                        value = values[1].strip()
+                    else:
+                        if (len(params) > 0):
+                            value = params[len(params)-1][1] + 1
+                        else:
+                            value = 0
+
+                    params.append([name, value])
+
+            enum_list.append([enumname, params])
+
+    return enum_list
+
+
+def parse_structs(preprocessed_list):
+    """Each struct will be parsed into a list of its arguments."""
+
+    struct_list = []
+    for proto in preprocessed_list:
+
+        # extract the part of the function from the prototype
+        fun_parts = proto.split("{")
+
+        if (fun_parts[0].find("struct") > -1):
+            args_string = fun_parts[1]
+            parts = args_string.split("}")
+            args_string = parts[0].strip()
+            args_string = re.sub(r"volatile", "", args_string)
+            if (len(parts) > 1):
+                name_string = parts[1]
+                name_string = re.sub(r"(?m),", "", name_string)
+                name_string = name_string.strip()
+            else:
+                print("Error: Cannot detect name for ", proto)
+                name_string = "name_not_recognized"
+
+            args_list = args_string.split(",")
+            params = [];
+            params.append(["struct","",name_string])
+            for arg in args_list:
+                if (not (arg == "" or arg == " ")):
+                    params.append(parse_triple(arg))
+
+            struct_list.append(params)
+            derived_types.append(name_string)
+
+    # reorder the list so that only defined types are exported
+    goAgain = True
+    while (goAgain):
+        goAgain = False
+        for istruct in range(0,len(struct_list)-1):
+            struct = struct_list[istruct]
+            for j in range(1,len(struct)-1):
+                type_name = struct_list[istruct][j][0]
+
+                if (type_name in derived_types):
+
+                    # try to find the name in the registered types
+                    definedEarlier = False
+                    for jstruct in range(0,istruct):
+                        struct2 = struct_list[jstruct]
+                        that_name = struct2[0][2]
+                        if (that_name == type_name):
+                            definedEarlier = True
+
+                    # if not found, try to find it behind
+                    if (not definedEarlier):
+                        definedLater = False
+                        for jstruct in range(istruct+1,len(struct_list)-1):
+                            struct2 = struct_list[jstruct]
+                            that_name = struct2[0][2]
+                            if (that_name == type_name):
+                                index = jstruct
+                                definedLater = True
+
+                        # swap the entries
+                        if (definedLater):
+                            print("Swapping " + struct_list[istruct][0][2] + " and " + struct_list[index][0][2])
+                            tmp = struct_list[index]
+                            struct_list[index] = struct_list[istruct]
+                            struct_list[istruct] = tmp
+                            goAgain = True
+                        else:
+                            print("Error: Cannot find a derived type " + type_name + " in imported structs.")
+
+    return struct_list
+
+
+def parse_prototypes(preprocessed_list):
+    """Each prototype will be parsed into a list of its arguments."""
+
+    function_list = []
+    for proto in preprocessed_list:
+
+        if (proto.find("(") == -1):
+            continue
+
+        # extract the part of the function from the prototype
+        fun_parts = proto.split("(")
+        fun_def  = str.strip(fun_parts[0])
+
+        exclude_this_function = False
+        for exclude in exclude_list:
+            if (fun_def.find(exclude) != -1):
+                exclude_this_function = True
+
+        if (exclude_this_function):
+            continue
+
+        # clean keywords
+        fun_def = fun_def.replace("static", "")
+
+        # extract arguments from the prototype and make a list from them
+        if (len(fun_parts) > 1):
+            fun_args = fun_parts[1]
+        else:
+            fun_args = ""
+
+        fun_args = fun_args.split(")")[0]
+        fun_args = fun_args.replace(";", "")
+        fun_args = re.sub(r"volatile", "", fun_args)
+        fun_args = fun_args.replace("\n", "")
+        fun_args_list = fun_args.split(",")
+
+        # generate argument list
+        argument_list = []
+        # function itself on the first position
+        argument_list.append(parse_triple(fun_def))
+        # append arguments
+        for arg in fun_args_list:
+            if (not (arg == "" or arg == " ")):
+                arg = arg.replace("const", "")
+                argument_list.append(parse_triple(arg))
+
+        # add it only if there is no duplicity with previous one
+        is_function_already_present = False
+        fun_name = argument_list[0][2]
+        for fun in function_list:
+            if (fun_name == fun[0][2]):
+                is_function_already_present = True
+
+        if (not is_function_already_present):
+            function_list.append(argument_list)
+
+    return function_list
+
+
+def iso_c_interface_type(arg, return_value):
+    """Generate a declaration for a variable in the interface."""
+
+    if (arg[1] == "*" or arg[1] == "**"):
+        is_pointer = True
+    else:
+        is_pointer = False
+
+    if (is_pointer):
+        f_type = "type(c_ptr)"
+    else:
+        f_type = types_dict[arg[0]]
+
+    if (not return_value and arg[1] != "**"):
+        f_pointer = ", value"
+    else:
+        f_pointer = ""
+
+    f_name = arg[2]
+
+    f_line = f_type + f_pointer + " :: " + f_name
+
+    return f_line
+
+
+def iso_c_wrapper_type(arg):
+    """Generate a declaration for a variable in the Fortran wrapper."""
+
+    if (arg[1] == "*" or arg[1] == "**"):
+        is_pointer = True
+    else:
+        is_pointer = False
+
+    if (is_pointer and arg[0].strip() == "void"):
+        f_type = "type(c_ptr)"
+    else:
+        f_type = types_dict[arg[0]]
+
+    if (is_pointer):
+        f_intent = ", intent(inout)"
+    else:
+        f_intent = ", intent(in)"
+
+    if (is_pointer):
+        if (arg[1] == "*"):
+           f_target = ", target"
+        else:
+           f_target = ", pointer"
+    else:
+        f_target = ""
+
+    f_name    = arg[2]
+
+    # detect array argument
+    if   (is_pointer and f_name in arrays_names_2D):
+        f_array = "(*)"
+    elif (is_pointer and f_name in arrays_names_1D):
+        f_array = "(*)"
+    else:
+        f_array = ""
+
+    f_line = f_type + f_intent + f_target + " :: " + f_name + f_array
+
+    return f_line
+
+def write_module(f, generator, module_name, enum_list, struct_list, function_list):
+    """Generate a single Fortran module. Its structure will be:
+       enums converted to constants
+       structs converted to derived types
+       interfaces of all C functions
+       Fortran wrappers of the C functions"""
+
+    modulefile = open( f['filename'], "w" )
+
+    f_interface = generator.header( f )
+    modulefile.write(f_interface + "\n")
+
+    # enums
+    if (len(enum_list) > 0):
+        for enum in enum_list:
+            f_interface = generator.enum( f, enum )
+            modulefile.write(f_interface + "\n")
+
+    # derived types
+    if (len(struct_list) > 0):
+        for struct in struct_list:
+            f_interface = generator.struct(struct)
+            modulefile.write(f_interface + "\n")
+
+    # functions
+    if (len(function_list) > 0):
+        for function in function_list:
+            f_interface = generator.function(function)
+            modulefile.write(f_interface + "\n")
+
+        modulefile.write(indent + "contains\n\n")
+
+        modulefile.write(indent + "! Wrappers of the C functions.\n")
+
+        for function in function_list:
+            f_wrapper = generator.wrapper(function)
+            modulefile.write(f_wrapper + "\n")
+
+    footer=generator.footer( f )
+    modulefile.write(footer + "\n")
+
+    modulefile.close()
+
+    return f['filename']
+
+
+enums_python_coeftype='''
+    @staticmethod
+    def getptype ( dtype ):
+        np_dict = {
+            np.dtype('float32')    : coeftype.Float,
+            np.dtype('float64')    : coeftype.Double,
+            np.dtype('complex64')  : coeftype.Complex32,
+            np.dtype('complex128') : coeftype.Complex64,
+        }
+        if dtype in np_dict:
+            return np_dict[dtype]
+        else:
+            return -1
+
+    @staticmethod
+    def getnptype ( flttype ):
+        np_dict = {
+            coeftype.Float     : np.dtype('float32'),
+            coeftype.Double    : np.dtype('float64'),
+            coeftype.Complex32 : np.dtype('complex64'),
+            coeftype.Complex64 : np.dtype('complex128')
+        }
+        if flttype in np_dict:
+            return np_dict[flttype]
+        else:
+            return -1
+'''
+
+enums_fortran_footer='''
+  integer, parameter :: pastix_int_t = PASTIX_INT_KIND
+
+contains
+
+  function pastix_getintsize()
+    integer :: pastix_getintsize
+    pastix_getintsize = PASTIX_INT_KIND
+    return
+  end function pastix_getintsize
+'''
+
+pastix_enums = {
+    'filename' : [ "include/pastix/api.h" ],
+    'python'   : { 'filename' : "wrappers/python/examples/pypastix/enum.py.in",
+                   'header'   : "pastix_int = ctypes.@PASTIX_PYTHON_INTEGER@",
+                   'footer'   : "",
+                   'enums'    : { 'coeftype' : enums_python_coeftype }
+    },
+    'fortran'  : { 'filename' : "wrappers/fortran90/src/pastix_enums.F90",
+                   'header'   : "",
+                   'footer'   : enums_fortran_footer,
+                   'enums'    : {} },
+}
+
+def main():
+
+    # common cleaned header files
+    preprocessed_list = []
+
+    # source header files
+    for filename in pastix_enums['filename']:
+
+        # source a header file
+        c_header_file = open(filename, 'r').read()
+
+        # clean the string (remove comments, macros, etc.)
+        clean_file = polish_file(c_header_file)
+
+        # convert the string to a list of strings
+        initial_list = clean_file.split("\n")
+
+        # process the list so that each enum, struct or function
+        # are just one item
+        nice_list = preprocess_list(initial_list)
+
+        # compose all files into one big list
+        preprocessed_list += nice_list
+
+    # register all enums
+    enum_list = parse_enums(preprocessed_list)
+
+    # register all structs
+    struct_list = parse_structs(preprocessed_list)
+
+    # register all individual functions and their signatures
+    function_list = parse_prototypes(preprocessed_list)
+
+    # export the module
+    modulefilename = write_module( pastix_enums['fortran'],
+                                   wrappers.wrap_fortran,
+                                   module_name,
+                                   enum_list, struct_list, function_list)
+    print "Exported file: " + modulefilename
+
+    modulefilename = write_module( pastix_enums['python'],
+                                   wrappers.wrap_python,
+                                   module_name,
+                                   enum_list, struct_list, function_list)
+    print "Exported file: " + modulefilename
+
+# execute the program
+main()
