@@ -671,6 +671,7 @@ set(PASTIX_LIB_SRCS
   #
   sopalin/coeftab.c
   sopalin/schur.c
+  sopalin/diag.c
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
   sopalin/pastix.c

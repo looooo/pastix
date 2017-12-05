@@ -39,11 +39,14 @@ pastix_int_t coeftab_zmemory    ( const SolverMatrix *solvmtx );
  */
 /**
  *    @}
- *    @name PastixComplex64 Schur routines
+ *    @name PastixComplex64 Extraction routines
  *    @{
  */
 void coeftab_zgetschur( const SolverMatrix *solvmtx,
                         pastix_complex64_t *S, pastix_int_t lds );
+
+void coeftab_zgetdiag( const SolverMatrix *solvmtx,
+                       pastix_complex64_t *D, pastix_int_t incD );
 
 /**
  *    @}

@@ -144,6 +144,13 @@ int  pastix_getSchur           ( const pastix_data_t *pastix_data,
                                  pastix_int_t         lds );
 
 /*
+ * Function to provide access to the diagonal
+ */
+int  pastixGetDiag( const pastix_data_t *pastix_data,
+                    void                *D,
+                    pastix_int_t         incD );
+
+/*
  * Function to provide a common way to read binary options in examples/testings
  */
 void pastixGetOptions( int argc, char **argv,

@@ -113,7 +113,7 @@ pastix_getSchur( const pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    iparm   = pastix_data->iparm;
+    iparm = pastix_data->iparm;
     switch(iparm[IPARM_FLOAT])
     {
     case PastixPattern:
