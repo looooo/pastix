@@ -11,6 +11,36 @@ indent = "   "
 itab=2
 iindent=3
 
+# translation_table of types
+types_dict = {
+    "int":               ("integer(kind=c_int)"),
+    "pastix_coeftype_t": ("integer(c_int)"),
+    "pastix_dir_t":      ("integer(c_int)"),
+    "pastix_trans_t":    ("integer(c_int)"),
+    "pastix_uplo_t":     ("integer(c_int)"),
+    "pastix_diag_t":     ("integer(c_int)"),
+    "pastix_side_t":     ("integer(c_int)"),
+    "pastix_driver_t":   ("integer(c_int)"),
+    "pastix_fmttype_t":  ("integer(c_int)"),
+    "pastix_layout_t":   ("integer(c_int)"),
+    "pastix_normtype_t": ("integer(c_int)"),
+    "pastix_rhstype_t":  ("integer(c_int)"),
+    "pastix_mtxtype_t":  ("integer(c_int)"),
+    "pastix_data_t":     ("type(pastix_data_t)"),
+    "pastix_spm_t":      ("type(pastix_spm_t)"),
+    "pastix_int_t":      ("integer(kind=pastix_int_t)"),
+    "pastix_order_t":    ("type(pastix_order_t)"),
+    "size_t":            ("integer(kind=c_size_t)"),
+    "char":              ("character(kind=c_char)"),
+    "double":            ("real(kind=c_double)"),
+    "float":             ("real(kind=c_float)"),
+    "pastix_complex64_t":("complex(kind=c_double_complex)"),
+    "pastix_complex32_t":("complex(kind=c_float_complex)"),
+    "void":              ("type(c_ptr)"),
+    "MPI_Comm":          ("integer(kind=c_int)"),
+    "FILE":              ("type(c_ptr)"),
+}
+
 def iso_c_interface_type(arg, return_value, list):
     """Generate a declaration for a variable in the interface."""
 
