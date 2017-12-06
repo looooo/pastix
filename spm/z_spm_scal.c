@@ -36,7 +36,7 @@
  *
  *******************************************************************************/
 void
-z_spmScal( const pastix_complex64_t alpha, pastix_spm_t *spm )
+z_spmScal( const double alpha, pastix_spm_t *spm )
 {
     pastix_int_t        nnz, i;
     pastix_complex64_t *values;

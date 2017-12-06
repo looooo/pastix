@@ -1397,17 +1397,17 @@ spmCheckAxb( pastix_int_t nrhs,
  *
  *******************************************************************************/
 void
-spmScalMatrix(const pastix_complex64_t alpha, pastix_spm_t* spm)
+spmScalMatrix(const double alpha, pastix_spm_t* spm)
 {
     switch(spm->flttype)
     {
     case PastixPattern:
         break;
     case PastixFloat:
-        s_spmScal(alpha, spm);
+        s_spmScal((float)alpha, spm);
         break;
     case PastixComplex32:
-        c_spmScal(alpha, spm);
+        c_spmScal((float)alpha, spm);
         break;
     case PastixComplex64:
         z_spmScal(alpha, spm);
@@ -1445,10 +1445,10 @@ spmScalVector(const double alpha, pastix_spm_t* spm, void *x)
     case PastixPattern:
         break;
     case PastixFloat:
-        cblas_sscal(spm->n, alpha, x, 1);
+        cblas_sscal(spm->n, (float)alpha, x, 1);
         break;
     case PastixComplex32:
-        cblas_csscal(spm->n, alpha, x, 1);
+        cblas_csscal(spm->n, (float)alpha, x, 1);
         break;
     case PastixComplex64:
         cblas_zdscal(spm->n, alpha, x, 1);

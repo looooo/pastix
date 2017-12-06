@@ -105,7 +105,7 @@ void          spmGenFakeValues( pastix_spm_t *spm );
  */
 double        spmNorm( pastix_normtype_t ntype, const pastix_spm_t *spm );
 int           spmMatVec( pastix_trans_t trans, const void *alpha, const pastix_spm_t *spm, const void *x, const void *beta, void *y );
-void          spmScalMatrix( const pastix_complex64_t alpha, pastix_spm_t *spm );
+void          spmScalMatrix( const double alpha, pastix_spm_t *spm );
 void          spmScalVector( const double alpha, pastix_spm_t *spm, void *x );
 
 /**
