@@ -257,6 +257,7 @@ core_zlrorthu_partialqr( pastix_int_t M,  pastix_int_t N,
                  CBLAS_SADDR(zone),  u1, ldu,
                                      u2, ldu,
                  CBLAS_SADDR(zzero), W,  r1 );
+    flops += FLOPS_ZGEMM( r1, r2, M );
 
     /* Compute u2 = u2 - u1 ( u1^t u2 ) = u2 - u1 * W */
     cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
@@ -264,6 +265,7 @@ core_zlrorthu_partialqr( pastix_int_t M,  pastix_int_t N,
                  CBLAS_SADDR(mzone), u1, ldu,
                                      W,  r1,
                  CBLAS_SADDR(zone),  u2, ldu );
+    flops += FLOPS_ZGEMM( M, r2, r1 );
 
     /* Update v1 = v1 + ( u1^t u2 ) v2 = v1 + W * v2 */
     cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
@@ -271,6 +273,7 @@ core_zlrorthu_partialqr( pastix_int_t M,  pastix_int_t N,
                  CBLAS_SADDR(zone), W,  r1,
                                     v2, ldv,
                  CBLAS_SADDR(zone), v1, ldv );
+    flops += FLOPS_ZGEMM( r1, N, r2 );
 
 #if !defined(PASTIX_LR_CGS1)
     /* Compute W = u1^t u2 */
@@ -279,6 +282,7 @@ core_zlrorthu_partialqr( pastix_int_t M,  pastix_int_t N,
                  CBLAS_SADDR(zone),  u1, ldu,
                                      u2, ldu,
                  CBLAS_SADDR(zzero), W,  r1 );
+    flops += FLOPS_ZGEMM( r1, r2, M );
 
     /* Compute u2 = u2 - u1 ( u1^t u2 ) = u2 - u1 * W */
     cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
@@ -286,6 +290,7 @@ core_zlrorthu_partialqr( pastix_int_t M,  pastix_int_t N,
                  CBLAS_SADDR(mzone), u1, ldu,
                                      W,  r1,
                  CBLAS_SADDR(zone),  u2, ldu );
+    flops += FLOPS_ZGEMM( M, r2, r1 );
 
     /* Update v1 = v1 + ( u1^t u2 ) v2 = v1 + W * v2 */
     cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
@@ -293,6 +298,7 @@ core_zlrorthu_partialqr( pastix_int_t M,  pastix_int_t N,
                  CBLAS_SADDR(zone), W,  r1,
                                     v2, ldv,
                  CBLAS_SADDR(zone), v1, ldv );
+    flops += FLOPS_ZGEMM( r1, N, r2 );
 #endif
 
 #if defined(PASTIX_DEBUG_LR)
