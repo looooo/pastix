@@ -38,8 +38,8 @@ module pastixf
           invp, rang, tree) &
           bind(c, name='pastixOrderInit')
        use iso_c_binding
-       import pastix_order_t
        import pastix_int_t
+       import pastix_order_t
        implicit none
        integer(kind=c_int)               :: pastixOrderInit_c
        type(c_ptr),                value :: ordeptr
@@ -57,8 +57,8 @@ module pastixf
      function pastixOrderAlloc_c(ordeptr, vertnbr, cblknbr) &
           bind(c, name='pastixOrderAlloc')
        use iso_c_binding
-       import pastix_order_t
        import pastix_int_t
+       import pastix_order_t
        implicit none
        integer(kind=c_int)               :: pastixOrderAlloc_c
        type(c_ptr),                value :: ordeptr
@@ -81,8 +81,8 @@ module pastixf
      subroutine pastixOrderBase_c(ordeptr, baseval) &
           bind(c, name='pastixOrderBase')
        use iso_c_binding
-       import pastix_order_t
        import pastix_int_t
+       import pastix_order_t
        implicit none
        type(c_ptr),                value :: ordeptr
        integer(kind=pastix_int_t), value :: baseval
@@ -116,8 +116,8 @@ module pastixf
      function pastixOrderGet_c(pastix_data) &
           bind(c, name='pastixOrderGet')
        use iso_c_binding
-       import pastix_data_t
        import pastix_order_t
+       import pastix_data_t
        implicit none
        type(c_ptr)        :: pastixOrderGet_c
        type(c_ptr), value :: pastix_data
@@ -128,8 +128,8 @@ module pastixf
      function pastixOrderLoad_c(pastix_data, ordeptr) &
           bind(c, name='pastixOrderLoad')
        use iso_c_binding
-       import pastix_data_t
        import pastix_order_t
+       import pastix_data_t
        implicit none
        integer(kind=c_int)   :: pastixOrderLoad_c
        type(c_ptr),    value :: pastix_data
@@ -141,8 +141,8 @@ module pastixf
      function pastixOrderSave_c(pastix_data, ordeptr) &
           bind(c, name='pastixOrderSave')
        use iso_c_binding
-       import pastix_data_t
        import pastix_order_t
+       import pastix_data_t
        implicit none
        integer(kind=c_int)   :: pastixOrderSave_c
        type(c_ptr),    value :: pastix_data
@@ -155,8 +155,8 @@ module pastixf
           perm, invp, b, nrhs, iparm, dparm) &
           bind(c, name='pastix')
        use iso_c_binding
-       import pastix_data_t
        import pastix_int_t
+       import pastix_data_t
        implicit none
        integer(kind=c_int)               :: pastix_c
        type(c_ptr)                       :: pastix_data
@@ -189,8 +189,8 @@ module pastixf
      subroutine pastixInit_c(pastix_data, pastix_comm, iparm, dparm) &
           bind(c, name='pastixInit')
        use iso_c_binding
-       import pastix_data_t
        import pastix_int_t
+       import pastix_data_t
        implicit none
        type(c_ptr)                :: pastix_data
        integer(kind=c_int), value :: pastix_comm
@@ -204,8 +204,8 @@ module pastixf
           dparm, bindtab) &
           bind(c, name='pastixInitWithAffinity')
        use iso_c_binding
-       import pastix_data_t
        import pastix_int_t
+       import pastix_data_t
        implicit none
        type(c_ptr)                :: pastix_data
        integer(kind=c_int), value :: pastix_comm
@@ -255,8 +255,8 @@ module pastixf
      function pastix_task_solve_c(pastix_data, nrhs, b, ldb) &
           bind(c, name='pastix_task_solve')
        use iso_c_binding
-       import pastix_data_t
        import pastix_int_t
+       import pastix_data_t
        implicit none
        integer(kind=c_int)               :: pastix_task_solve_c
        type(c_ptr),                value :: pastix_data
@@ -270,8 +270,8 @@ module pastixf
      function pastix_task_refine_c(pastix_data, x, nrhs, b) &
           bind(c, name='pastix_task_refine')
        use iso_c_binding
-       import pastix_data_t
        import pastix_int_t
+       import pastix_data_t
        implicit none
        integer(kind=c_int)               :: pastix_task_refine_c
        type(c_ptr),                value :: pastix_data
@@ -285,9 +285,9 @@ module pastixf
      function pastix_subtask_order_c(pastix_data, spm, myorder) &
           bind(c, name='pastix_subtask_order')
        use iso_c_binding
+       import pastix_order_t
        import pastix_data_t
        import pastix_spm_t
-       import pastix_order_t
        implicit none
        integer(kind=c_int)   :: pastix_subtask_order_c
        type(c_ptr),    value :: pastix_data
@@ -369,8 +369,8 @@ module pastixf
           b, ldb) &
           bind(c, name='pastix_subtask_applyorder')
        use iso_c_binding
-       import pastix_data_t
        import pastix_int_t
+       import pastix_data_t
        implicit none
        integer(kind=c_int)               :: pastix_subtask_applyorder_c
        type(c_ptr),                value :: pastix_data
@@ -388,8 +388,8 @@ module pastixf
           diag, nrhs, b, ldb) &
           bind(c, name='pastix_subtask_trsm')
        use iso_c_binding
-       import pastix_data_t
        import pastix_int_t
+       import pastix_data_t
        implicit none
        integer(kind=c_int)               :: pastix_subtask_trsm_c
        type(c_ptr),                value :: pastix_data
@@ -408,8 +408,8 @@ module pastixf
      function pastix_subtask_diag_c(pastix_data, flttype, nrhs, b, ldb) &
           bind(c, name='pastix_subtask_diag')
        use iso_c_binding
-       import pastix_data_t
        import pastix_int_t
+       import pastix_data_t
        implicit none
        integer(kind=c_int)               :: pastix_subtask_diag_c
        type(c_ptr),                value :: pastix_data
@@ -424,8 +424,8 @@ module pastixf
      subroutine pastixSetSchurUnknownList_c(pastix_data, n, list) &
           bind(c, name='pastixSetSchurUnknownList')
        use iso_c_binding
-       import pastix_data_t
        import pastix_int_t
+       import pastix_data_t
        implicit none
        type(c_ptr),                value :: pastix_data
        integer(kind=pastix_int_t), value :: n
@@ -437,8 +437,8 @@ module pastixf
      function pastixGetSchur_c(pastix_data, S, lds) &
           bind(c, name='pastixGetSchur')
        use iso_c_binding
-       import pastix_data_t
        import pastix_int_t
+       import pastix_data_t
        implicit none
        integer(kind=c_int)               :: pastixGetSchur_c
        type(c_ptr),                value :: pastix_data
@@ -451,8 +451,8 @@ module pastixf
      function pastixGetDiag_c(pastix_data, D, incD) &
           bind(c, name='pastixGetDiag')
        use iso_c_binding
-       import pastix_data_t
        import pastix_int_t
+       import pastix_data_t
        implicit none
        integer(kind=c_int)               :: pastixGetDiag_c
        type(c_ptr),                value :: pastix_data

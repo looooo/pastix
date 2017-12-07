@@ -28,12 +28,12 @@ class spm():
         Initialize the SPM wrapper by loading the libraries
         """
         self.spm_c = pypastix_spm_t( mtxtype,
-                                                  coeftype.Double,
-                                                  fmttype.CSC,
-                                                  0, 0, 0, 0, 0, 0, 0, 0,
-                                                  1, None,
-                                                  layout.ColMajor,
-                                                  None, None, None, None )
+                                     coeftype.Double,
+                                     fmttype.CSC,
+                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                     1, None,
+                                     layout.ColMajor,
+                                     None, None, None, None )
         self.id_ptr = pointer( self.spm_c )
         if A is not None:
             self.fromsps( A, mtxtype )
@@ -45,6 +45,9 @@ class spm():
         Initialize the SPM wrapper by loading the libraries
         """
 
+        if not sps.isspmatrix(A):
+            raise TypeError( "A must be of type scipy.sparse matrix" )
+
         # Assume A is already in Scipy sparse format
         self.dtype = A.dtype
         flttype = coeftype.getptype( A.dtype )
@@ -55,17 +58,22 @@ class spm():
         A.sort_indices()
 
         # Pointer variables
-        self.py_colptr    = np.array( A.indptr[:], dtype=pastix_int )
-        self.py_rowptr    = np.array( A.indices[:], dtype=pastix_int )
-        self.py_values    = np.array( A.data[:] )
+        py_colptr = np.array( A.indptr[:],  dtype=pastix_int )
+        py_rowptr = np.array( A.indices[:], dtype=pastix_int )
+        py_values = np.array( A.data[:] )
 
-        self.spm_c.mtxtype= mtxtype
-        self.spm_c.flttype= flttype
-        self.spm_c.n      = A.shape[0]
-        self.spm_c.nnz    = A.getnnz()
-        self.spm_c.colptr = self.py_colptr.ctypes.data_as(POINTER(pastix_int))
-        self.spm_c.rowptr = self.py_rowptr.ctypes.data_as(POINTER(pastix_int))
-        self.spm_c.values = self.py_values.ctypes.data_as(c_void_p)
+        self.spm_c.mtxtype  = mtxtype
+        self.spm_c.flttype  = flttype
+        self.spm_c.fmttype  = fmttype.CSC
+        self.spm_c.n        = A.shape[0]
+        self.spm_c.nnz      = A.getnnz()
+        self.spm_c.dof      = 1
+        self.spm_c.dofs     = None
+        self.spm_c.layout   = layout.ColMajor
+        self.spm_c.colptr   = py_colptr.ctypes.data_as(POINTER(pastix_int))
+        self.spm_c.rowptr   = py_rowptr.ctypes.data_as(POINTER(pastix_int))
+        self.spm_c.loc2glob = None
+        self.spm_c.values   = py_values.ctypes.data_as(c_void_p)
 
         self.id_ptr = pointer( self.spm_c )
 
@@ -76,7 +84,6 @@ class spm():
         """
         Return a Scipy sparse matrix
         """
-
         n      = int( self.spm_c.n )
         nnz    = int( self.spm_c.nnz )
         cflt   = coeftype.getctype( self.spm_c.flttype )
@@ -95,10 +102,13 @@ class spm():
         """
         Initialize the SPM wrapper by loading the libraries
         """
+        if filename == "":
+            raise ValueError("filename must be prodived")
+
         pyspm_spmReadDriver( driver, filename.encode('utf-8'), self.id_ptr, c_int(0) )
 
-        # Assume A is already in Scipy sparse format
         self.dtype = coeftype.getnptype( self.spm_c.flttype )
+        self.checkAndCorrect()
 
     def base( self, baseval ):
         pyspm_spmBase( self.id_ptr, baseval )
@@ -116,7 +126,13 @@ class spm():
         pyspm_spmPrint( self.id_ptr )
 
     def checkAndCorrect( self ):
-        return pyspm_spmCheckAndCorrect( self.id_ptr )
+        spm1 = self.id_ptr
+        spm2 = pyspm_spmCheckAndCorrect( self.id_ptr )
+        if (( spm1.contents.fmttype == spm2.contents.fmttype ) and
+            ( spm1.contents.nnzexp  == spm2.contents.nnzexp  ) ):
+            return
+        self.spm_c = cast( spm2, POINTER(pypastix_spm_t) ).contents
+        self.id_ptr = pointer( self.spm_c )
 
     def __checkVector( self, n, nrhs, x ):
         if x.dtype != self.dtype:
