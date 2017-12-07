@@ -1,4 +1,20 @@
 #!/usr/bin/env python
+"""
+Wrapper Fortran 90
+==================
+
+ @file wrappers/wrap_fortran.py
+
+ PaStiX generator for the Fortran 90 wrapper
+
+ @copyright 2017-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+                      Univ. Bordeaux. All rights reserved.
+
+ @version 6.0.0
+ @author Mathieu Faverge
+ @date 2017-05-04
+
+"""
 import os
 import re
 import argparse

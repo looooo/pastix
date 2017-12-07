@@ -1,4 +1,20 @@
 #!/usr/bin/env python
+"""
+Wrapper Python
+==============
+
+ @file wrappers/wrap_python.py
+
+ PaStiX generator for the python wrapper
+
+ @copyright 2017-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+                      Univ. Bordeaux. All rights reserved.
+
+ @version 6.0.0
+ @author Mathieu Faverge
+ @date 2017-05-04
+
+"""
 import os
 import re
 import argparse

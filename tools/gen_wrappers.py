@@ -1,17 +1,33 @@
 #!/usr/bin/env python
+"""
+ @file gen_wrappers.py
+
+ PaStiX Python and Fortran 90 wrapper generator
+
+ @copyright 2016-2017 University of Tennessee, US, University of
+                      Manchester, UK. All rights reserved.
+ @copyright 2017      Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+                      Univ. Bordeaux. All rights reserved.
+
+ @version 6.0.0
+ @author Pierre Ramet
+ @author Mathieu Faverge
+ @date 2017-05-04
+
+"""
 import os
 import re
 import argparse
 import wrappers
 
 description = '''\
-Generates Fortran 2003 interface from PaStiX header files.'''
+Generates Fortran 90 and Python wrappers from the spm and pastix header files.'''
 
 help = '''\
 ----------------------------------------------------------------------
 Example uses:
 
-  fortran_gen.py file.h
+   $PASTIX_SRC_DIR/gen_wrappers.py
 
 ----------------------------------------------------------------------
 '''

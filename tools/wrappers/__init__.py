@@ -2,7 +2,7 @@
 Wrappers
 ========
 
- @file __init__.py
+ @file wrappers/__init__.py
 
  PaStiX wrapper generators module intialization
 
