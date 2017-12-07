@@ -40,30 +40,6 @@ module spmf
   end type pastix_spm_t
 
   interface
-     function spmNew_c(mtxtype, flttype, fmttype, n, nnz, colptr, rowptr, &
-          values, loc2glob, dof, layout, dofs) &
-          bind(c, name='spmNew')
-       use iso_c_binding
-       import pastix_int_t
-       import pastix_spm_t
-       implicit none
-       type(c_ptr)                       :: spmNew_c
-       integer(c_int),             value :: mtxtype
-       integer(c_int),             value :: flttype
-       integer(c_int),             value :: fmttype
-       integer(kind=pastix_int_t), value :: n
-       integer(kind=pastix_int_t), value :: nnz
-       type(c_ptr),                value :: colptr
-       type(c_ptr),                value :: rowptr
-       type(c_ptr),                value :: values
-       type(c_ptr),                value :: loc2glob
-       integer(kind=pastix_int_t), value :: dof
-       integer(c_int),             value :: layout
-       type(c_ptr),                value :: dofs
-     end function spmNew_c
-  end interface
-
-  interface
      subroutine spmInit_c(spm) &
           bind(c, name='spmInit')
        use iso_c_binding
@@ -81,16 +57,6 @@ module spmf
        implicit none
        type(c_ptr), value :: spm
      end subroutine spmExit_c
-  end interface
-
-  interface
-     subroutine spmFree_c(spm) &
-          bind(c, name='spmFree')
-       use iso_c_binding
-       import pastix_spm_t
-       implicit none
-       type(c_ptr), value :: spm
-     end subroutine spmFree_c
   end interface
 
   interface
@@ -193,8 +159,8 @@ module spmf
        use iso_c_binding
        import pastix_spm_t
        implicit none
-       complex(kind=c_double_complex), value :: alpha
-       type(c_ptr),                    value :: spm
+       real(kind=c_double), value :: alpha
+       type(c_ptr),         value :: spm
      end subroutine spmScalMatrix_c
   end interface
 
@@ -402,28 +368,6 @@ module spmf
 contains
 
   ! Wrappers of the C functions.
-  subroutine spmNew(mtxtype, flttype, fmttype, n, nnz, colptr, rowptr, values, &
-       loc2glob, dof, layout, dofs, spmo)
-    use iso_c_binding
-    implicit none
-    integer(c_int),             intent(in)             :: mtxtype
-    integer(c_int),             intent(in)             :: flttype
-    integer(c_int),             intent(in)             :: fmttype
-    integer(kind=pastix_int_t), intent(in)             :: n
-    integer(kind=pastix_int_t), intent(in)             :: nnz
-    integer(kind=pastix_int_t), intent(inout), target  :: colptr(*)
-    integer(kind=pastix_int_t), intent(inout), target  :: rowptr(*)
-    type(c_ptr),                intent(inout), target  :: values(*)
-    integer(kind=pastix_int_t), intent(inout), target  :: loc2glob(*)
-    integer(kind=pastix_int_t), intent(in)             :: dof
-    integer(c_int),             intent(in)             :: layout
-    integer(kind=pastix_int_t), intent(inout), target  :: dofs(*)
-    type(pastix_spm_t),         intent(out),   pointer :: spmo
-
-    call c_f_pointer(spmNew_c(mtxtype, flttype, fmttype, n, nnz, c_loc(colptr), &
-         c_loc(rowptr), values, c_loc(loc2glob), dof, layout, c_loc(dofs)), spmo)
-  end subroutine spmNew
-
   subroutine spmInit(spm)
     use iso_c_binding
     implicit none
@@ -439,14 +383,6 @@ contains
 
     call spmExit_c(c_loc(spm))
   end subroutine spmExit
-
-  subroutine spmFree(spm)
-    use iso_c_binding
-    implicit none
-    type(pastix_spm_t), intent(inout), target :: spm
-
-    call spmFree_c(c_loc(spm))
-  end subroutine spmFree
 
   subroutine spmCopy(spm, spmo)
     use iso_c_binding
@@ -528,8 +464,8 @@ contains
   subroutine spmScalMatrix(alpha, spm)
     use iso_c_binding
     implicit none
-    complex(kind=c_double_complex), intent(in)            :: alpha
-    type(pastix_spm_t),             intent(inout), target :: spm
+    real(kind=c_double), intent(in)            :: alpha
+    type(pastix_spm_t),  intent(inout), target :: spm
 
     call spmScalMatrix_c(alpha, c_loc(spm))
   end subroutine spmScalMatrix

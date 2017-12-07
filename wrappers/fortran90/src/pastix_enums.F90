@@ -2,7 +2,7 @@
 !
 ! @file pastix_enums.F90
 !
-! PaStiX fortran 90 wrappers to define enums and datatypes
+! PaStiX fortran 90 wrapper to define enums and datatypes
 !
 ! @copyright 2017      Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !                      Univ. Bordeaux. All rights reserved.
@@ -16,8 +16,6 @@
 module pastix_enums
   use iso_c_binding
   implicit none
-
-
 
   ! enum iparm
   enum, bind(C)
@@ -207,9 +205,8 @@ module pastix_enums
      enumerator :: PastixOrderScotch   = 0
      enumerator :: PastixOrderMetis    = 1
      enumerator :: PastixOrderPersonal = 2
-     enumerator :: PastixOrderLoad     = 3
-     enumerator :: PastixOrderPtScotch = 4
-     enumerator :: PastixOrderParMetis = 5
+     enumerator :: PastixOrderPtScotch = 3
+     enumerator :: PastixOrderParMetis = 4
   end enum
 
   ! enum threadmode

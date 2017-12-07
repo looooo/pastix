@@ -209,9 +209,8 @@ class order:
     Scotch   = 0
     Metis    = 1
     Personal = 2
-    Load     = 3
-    PtScotch = 4
-    ParMetis = 5
+    PtScotch = 3
+    ParMetis = 4
 
 class threadmode:
     Multiple = 1

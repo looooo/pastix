@@ -490,7 +490,6 @@ from .__spm__ import pypastix_spm_t
   type, bind(c) :: pastix_data_t
      type(c_ptr) :: ptr
   end type pastix_data_t
-
 ''',
                    'footer'      : "",
                    'enums'       : {}
