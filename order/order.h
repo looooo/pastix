@@ -50,7 +50,10 @@ typedef struct pastix_order_s {
  */
 int  pastixOrderInit (      pastix_order_t * const ordeptr,
                             pastix_int_t baseval, pastix_int_t vertnbr, pastix_int_t cblknbr,
-                            pastix_int_t *perm, pastix_int_t *peri, pastix_int_t *rang, pastix_int_t *tree );
+                            pastix_int_t * const perm,
+                            pastix_int_t * const invp,
+                            pastix_int_t * const rang,
+                            pastix_int_t * const tree );
 int  pastixOrderAlloc(      pastix_order_t * const ordeptr, pastix_int_t vertnbr, pastix_int_t cblknbr);
 void pastixOrderExit (      pastix_order_t * const ordeptr);
 void pastixOrderBase (      pastix_order_t * const ordeptr, pastix_int_t baseval);
