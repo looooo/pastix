@@ -241,7 +241,6 @@ parse_enums( const char *string )
     if(0 == strcasecmp("pastixorderscotch",   string)) { return PastixOrderScotch;   }
     if(0 == strcasecmp("pastixordermetis",    string)) { return PastixOrderMetis;    }
     if(0 == strcasecmp("pastixorderpersonal", string)) { return PastixOrderPersonal; }
-    if(0 == strcasecmp("pastixorderload",     string)) { return PastixOrderLoad;     }
     if(0 == strcasecmp("pastixorderptscotch", string)) { return PastixOrderPtScotch; }
     if(0 == strcasecmp("pastixorderparmetis", string)) { return PastixOrderParMetis; }
 

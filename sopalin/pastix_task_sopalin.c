@@ -454,7 +454,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
     }
 #endif
 
-    if ( (pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo) &&
+    if ( (pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot) &&
          (pastix_data->iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever) )
     {
         /* Compute the memory gain */
