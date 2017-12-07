@@ -38,9 +38,11 @@ set( EXAMPLE_LIBS
   ${LAPACK_SEQ_LIBRARIES}
   ${BLAS_SEQ_LIBRARIES}
   )
-list(REMOVE_DUPLICATES EXAMPLE_LIBS)
-convert_libstyle_to_pkgconfig( EXAMPLE_LIBS )
-string(REPLACE ";" " " EXAMPLE_LIBS "${EXAMPLE_LIBS}")
+if ( EXAMPLE_LIBS )
+  list(REMOVE_DUPLICATES EXAMPLE_LIBS)
+  convert_libstyle_to_pkgconfig( EXAMPLE_LIBS )
+  string(REPLACE ";" " " EXAMPLE_LIBS "${EXAMPLE_LIBS}")
+endif()
 
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/Makefile.in"
