@@ -38,6 +38,7 @@ include(RulesPrecisions)
 
 ### System parameter detection
 include(CheckSystem)
+set(CMAKE_MACOSX_RPATH TRUE)
 
 ### Misc options
 option(BUILD_SHARED_LIBS
