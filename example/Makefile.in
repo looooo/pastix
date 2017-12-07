@@ -16,6 +16,7 @@ PASTIX_DIR=@CMAKE_INSTALL_PREFIX@
 
 PKG_CONFIG_PATH:=${PKG_CONFIG_PATH}:@CMAKE_INSTALL_PREFIX@/lib/pkgconfig
 
+# Lapacke library used to compiled PaStiX. Might be changed with user's library
 EXTRALIBS= @EXAMPLE_LIBS@
 
 CFLAGS=`PKG_CONFIG_PATH=${PKG_CONFIG_PATH} pkg-config --cflags pastix` -Wall -O2

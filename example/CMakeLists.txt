@@ -8,6 +8,7 @@
 #  @date 2013-06-24
 #
 ###
+include(GenPkgConfig)
 
 add_subdirectory(old)
 set (EXAMPLES
@@ -33,10 +34,14 @@ endforeach()
 
 ### Install a makefile for user compilation test
 set( EXAMPLE_LIBS
-  ${DEPS_LIBRARIES}
+  ${LAPACKE_LIBRARIES}
+  ${LAPACK_SEQ_LIBRARIES}
+  ${BLAS_SEQ_LIBRARIES}
   )
 list(REMOVE_DUPLICATES EXAMPLE_LIBS)
+convert_libstyle_to_pkgconfig( EXAMPLE_LIBS )
 string(REPLACE ";" " " EXAMPLE_LIBS "${EXAMPLE_LIBS}")
+
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/Makefile.in"
   "${CMAKE_CURRENT_BINARY_DIR}/make/Makefile" @ONLY)

@@ -18,6 +18,25 @@
 
 ###
 #
+# convert_incstyle_to_pkgconfig():
+# convert a libraries list to follow the pkg-config style used in
+# CLEAN_LIB_LIST
+#
+###
+macro(convert_incstyle_to_pkgconfig _inclist)
+  set(${_inclist}_CPY "${${_inclist}}")
+  set(${_inclist} "")
+  foreach(_dep ${${_inclist}_CPY})
+    if (${_dep} MATCHES "^-D")
+      list(APPEND ${_inclist} ${_dep})
+    else()
+      list(APPEND ${_inclist} "-I${_dep}")
+    endif()
+  endforeach()
+endmacro(convert_incstyle_to_pkgconfig)
+
+###
+#
 # convert_libstyle_to_pkgconfig():
 # convert a libraries list to follow the pkg-config style used in
 # CLEAN_LIB_LIST
@@ -51,12 +70,15 @@ endmacro(convert_libstyle_to_pkgconfig)
 #
 ###
 macro(clean_lib_list _package)
+    list(REMOVE_DUPLICATES ${_package}_PKGCONFIG_INCS)
     list(REMOVE_DUPLICATES ${_package}_PKGCONFIG_LIBS)
     list(REMOVE_DUPLICATES ${_package}_PKGCONFIG_LIBS_PRIVATE)
     list(REMOVE_DUPLICATES ${_package}_PKGCONFIG_REQUIRED)
     list(REMOVE_DUPLICATES ${_package}_PKGCONFIG_REQUIRED_PRIVATE)
+    convert_incstyle_to_pkgconfig(${_package}_PKGCONFIG_INCS)
     convert_libstyle_to_pkgconfig(${_package}_PKGCONFIG_LIBS)
     convert_libstyle_to_pkgconfig(${_package}_PKGCONFIG_LIBS_PRIVATE)
+    string(REPLACE ";" " " ${_package}_PKGCONFIG_INCS "${${_package}_PKGCONFIG_INCS}")
     string(REPLACE ";" " " ${_package}_PKGCONFIG_LIBS "${${_package}_PKGCONFIG_LIBS}")
     string(REPLACE ";" " " ${_package}_PKGCONFIG_LIBS_PRIVATE "${${_package}_PKGCONFIG_LIBS_PRIVATE}")
     string(REPLACE ";" " " ${_package}_PKGCONFIG_REQUIRED "${${_package}_PKGCONFIG_REQUIRED}")
@@ -90,7 +112,7 @@ macro(generate_pkgconfig_file)
       if ( PASTIX_WITH_MPI )
         list(APPEND PASTIX_PKGCONFIG_REQUIRED libstarpumpi)
       else()
-        list(APPEND PASTIX_PKGCONFIG_REQUIRED libstarpu)
+        list(APPEND PASTIX_PKGCONFIG_REQUIRED starpu-${PASTIX_STARPU_VERSION})
       endif()
     endif()
 
@@ -107,6 +129,9 @@ macro(generate_pkgconfig_file)
       list(APPEND PASTIX_PKGCONFIG_REQUIRED eztrace litl)
     endif()
 
+    list(APPEND PASTIX_PKGCONFIG_INCS
+      ${LAPACKE_INCLUDE_DIRS}
+      )
     list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE
       ${LAPACKE_LIBRARIES}
       ${LAPACK_SEQ_LIBRARIES}
