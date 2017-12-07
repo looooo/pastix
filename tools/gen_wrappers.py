@@ -192,10 +192,6 @@ def parse_enums(preprocessed_list):
         fun_parts = proto.split("{")
 
         split_fun = fun_parts[0].strip().split()
-        print "---------------"
-        print proto
-        print fun_parts[0]
-        print split_fun
         if len(split_fun) == 0:
             continue
 
@@ -212,7 +208,6 @@ def parse_enums(preprocessed_list):
 
             args_string = fun_parts[1];
             args_string = re.sub(r"}", "", args_string)
-            print(args_string);
             args_list = args_string.split(",")
             params = [];
             for args in args_list:
@@ -551,12 +546,12 @@ def main():
         modulefilename = write_module( f['fortran'], True,
                                        wrappers.wrap_fortran,
                                        enum_list, struct_list, function_list)
-        print "Exported file: " + modulefilename
+        print( "Exported file: " + modulefilename )
 
         modulefilename = write_module( f['python'], False,
                                        wrappers.wrap_python,
                                        enum_list, struct_list, function_list)
-        print "Exported file: " + modulefilename
+        print( "Exported file: " + modulefilename )
 
 # execute the program
 main()

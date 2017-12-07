@@ -281,7 +281,7 @@ import numpy as np
             libname = "libspm"
             prefix  = "pyspm_"
         else:
-            print "ERROR: function name without pastix nor spm"
+            print("ERROR: function name without pastix nor spm")
             return
 
         # loop over the arguments to compose the different call lines
