@@ -21,15 +21,17 @@ return_variables_dict = {
     "float":             ("value"),
     "pastix_int_t":      ("value"),
     "pastix_spm_t":      ("spmo"),
+    "pastix_order_t":    ("order"),
 }
 
 # global list used to determine derived types
-derived_types = ['pastix_int_t', 'pastix_data_t', 'pastix_order_t']
+derived_types = [ 'pastix_int_t', 'pastix_data_t', 'pastix_order_t']
 
 # name arrays which will be translated to assumed-size arrays, e.g. pA(*)
 arrays_names_2D = ["pA", "pB", "pC", "pAB", "pQ", "pX", "pAs"]
 arrays_names_1D = ["colptr", "rowptr", "loc2glob", "dofs", "row",
-                   "iparm", "dparm", "bindtab", "perm", "invp" ]
+                   "iparm", "dparm", "bindtab", "perm", "invp", "schur_list",
+                   "rang", "tree" ]
 
 __all__ = [ 'return_variables_dict', 'derived_types', 'arrays_names_1D', 'arrays_names_2D' ]
 

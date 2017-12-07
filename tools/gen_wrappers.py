@@ -31,7 +31,9 @@ opts = parser.parse_args()
 module_name = "pastix_enums"
 
 # exclude inline functions from the interface
-exclude_list = ["inline", "spmIntSort"]
+exclude_list = [ "inline", "spmIntSort", "pastixOrderCompute",
+                 "pastixOrderApplyLevelOrder", "pastixOrderAddIsolate",
+                 "pastixOrderFindSupernodes" ]
 
 def polish_file(whole_file):
     """Preprocessing and cleaning of the header file.
@@ -349,7 +351,7 @@ def parse_prototypes(preprocessed_list):
 
     return function_list
 
-def write_module(f, generator, module_name, enum_list, struct_list, function_list):
+def write_module(f, wrapper, generator, enum_list, struct_list, function_list):
     """Generate a single Fortran module. Its structure will be:
        enums converted to constants
        structs converted to derived types
@@ -379,12 +381,13 @@ def write_module(f, generator, module_name, enum_list, struct_list, function_lis
             f_interface = generator.function(function)
             modulefile.write(f_interface + "\n")
 
-        modulefile.write("contains\n\n")
-        modulefile.write("  " + "! Wrappers of the C functions.\n")
+        if wrapper:
+            modulefile.write("contains\n\n")
+            modulefile.write("  " + "! Wrappers of the C functions.\n")
 
-        for function in function_list:
-            f_wrapper = generator.wrapper(function)
-            modulefile.write(f_wrapper + "\n")
+            for function in function_list:
+                f_wrapper = generator.wrapper(function)
+                modulefile.write(f_wrapper + "\n")
 
     footer=generator.footer( f )
     modulefile.write(footer + "\n")
@@ -438,13 +441,13 @@ pastix_enums = {
     'filename' : [ "include/pastix/api.h" ],
     'python'   : { 'filename'    : "wrappers/python/examples/pypastix/enum.py.in",
                    'description' : "PaStiX python wrapper to define enums and datatypes",
-                   'header'      : "pastix_int = ctypes.@PASTIX_PYTHON_INTEGER@",
+                   'header'      : "pastix_int = @PASTIX_PYTHON_INTEGER@",
                    'footer'      : "",
                    'enums'       : { 'coeftype' : enums_python_coeftype }
     },
     'fortran'  : { 'filename'    : "wrappers/fortran90/src/pastix_enums.F90",
                    'description' : "PaStiX fortran 90 wrapper to define enums and datatypes",
-                   'header'      : "",
+                   'header'      : "  implicit none\n",
                    'footer'      : enums_fortran_footer,
                    'enums'       : {}
     },
@@ -452,15 +455,43 @@ pastix_enums = {
 
 pastix_spm = {
     'filename' : [ "spm/spm.h" ],
-    'python'   : { 'filename'    : "wrappers/python/examples/pypastix/spm.py",
+    'python'   : { 'filename'    : "wrappers/python/examples/pypastix/__spm__.py",
                    'description' : "SPM python wrapper",
-                   'header'      : "",
+                   'header'      : "from . import libspm\nfrom .enum import pastix_int\n",
                    'footer'      : "",
                    'enums'       : {}
     },
     'fortran'  : { 'filename'    : "wrappers/fortran90/src/spmf.f90",
                    'description' : "SPM Fortran 90 wrapper",
-                   'header'      : "  use pastix_enums\n",
+                   'header'      : "  use pastix_enums\n  implicit none\n",
+                   'footer'      : "",
+                   'enums'       : {}
+    },
+}
+
+pastix = {
+    'filename' : [ "order/order.h", "include/pastix.h" ],
+    'python'   : { 'filename'    : "wrappers/python/examples/pypastix/__pastix__.py",
+                   'description' : "PaStiX python wrapper",
+                   'header'      : '''
+from . import libpastix
+from .enum import pastix_int
+from .__spm__ import pypastix_spm_t
+''',
+                   'footer'      : "",
+                   'enums'       : {}
+    },
+    'fortran'  : { 'filename'    : "wrappers/fortran90/src/pastixf.f90",
+                   'description' : "PaStiX Fortran 90 wrapper",
+                   'header'      : '''  use pastix_enums
+  use spmf
+  implicit none
+
+  type, bind(c) :: pastix_data_t
+     type(c_ptr) :: ptr
+  end type pastix_data_t
+
+''',
                    'footer'      : "",
                    'enums'       : {}
     },
@@ -472,7 +503,7 @@ def main():
     preprocessed_list = []
 
     # source header files
-    for f in [ pastix_spm ]:
+    for f in [ pastix_enums, pastix_spm, pastix ]:
         preprocessed_list = []
         for filename in f['filename']:
 
@@ -502,17 +533,15 @@ def main():
             function_list = parse_prototypes(preprocessed_list)
 
         # export the module
-        modulefilename = write_module( f['fortran'],
+        modulefilename = write_module( f['fortran'], True,
                                        wrappers.wrap_fortran,
-                                       module_name,
                                        enum_list, struct_list, function_list)
         print "Exported file: " + modulefilename
 
-#        modulefilename = write_module( f['python'],
-#                                       wrappers.wrap_python,
-#                                       module_name,
-#                                       enum_list, struct_list, function_list)
-#        print "Exported file: " + modulefilename
+        modulefilename = write_module( f['python'], False,
+                                       wrappers.wrap_python,
+                                       enum_list, struct_list, function_list)
+        print "Exported file: " + modulefilename
 
 # execute the program
 main()

@@ -2,21 +2,122 @@
 import os
 import re
 import argparse
+from . import *
 
 indent="    "
+iindent=4
+
+# translation_table of types
+types_dict = {
+    "int":               ("c_int"),
+    "pastix_coeftype_t": ("c_int"),
+    "pastix_dir_t":      ("c_int"),
+    "pastix_trans_t":    ("c_int"),
+    "pastix_uplo_t":     ("c_int"),
+    "pastix_diag_t":     ("c_int"),
+    "pastix_side_t":     ("c_int"),
+    "pastix_driver_t":   ("c_int"),
+    "pastix_fmttype_t":  ("c_int"),
+    "pastix_layout_t":   ("c_int"),
+    "pastix_normtype_t": ("c_int"),
+    "pastix_rhstype_t":  ("c_int"),
+    "pastix_mtxtype_t":  ("c_int"),
+    "pastix_int_t":      ("pastix_int"),
+    "pastix_data_t":     ("c_void"),
+    "pastix_spm_t":      ("pypastix_spm_t"),
+    "pastix_order_t":    ("c_void"),
+    "size_t":            ("c_size_t"),
+    "char":              ("c_char"),
+    "double":            ("c_double"),
+    "float":             ("c_float"),
+    "void":              ("c_void"),
+    "MPI_Comm":          ("c_int"),
+    "FILE":              ("c_void"),
+}
+
+def iso_c_interface_type(arg, return_value, args_list, args_size):
+    """Generate a declaration for a variable in the interface."""
+
+    if (arg[1] == "*" or arg[1] == "**"):
+        is_pointer = True
+    else:
+        is_pointer = False
+
+    f_type = types_dict[arg[0]]
+    if is_pointer:
+        if f_type == "c_void":
+            f_type = "c_void_p"
+        elif f_type == "c_char":
+            f_type = "c_char_p"
+        elif f_type == "c_int":
+            f_type = "c_int_p"
+        else:
+            f_type = "POINTER("+f_type+")"
+
+    if (not return_value and arg[1] != "**"):
+        f_pointer = "value"
+    else:
+        f_pointer = ""
+
+    f_name = format("\"%s\", " % arg[2] )
+
+    args_size[0] = max(args_size[0], len(f_name))
+    args_size[1] = max(args_size[1], len(f_type))
+    args_list.append( [ f_name, f_type ] );
+
+def iso_c_wrapper_type(arg, args_list, args_size):
+    """Generate a declaration for a variable in the Fortran wrapper."""
+
+    if (arg[1] == "*" or arg[1] == "**"):
+        is_pointer = True
+    else:
+        is_pointer = False
+
+    isfile = (arg[0] == "FILE")
+    f_type = types_dict[arg[0]]
+
+    if is_pointer:
+        if f_type == "c_void":
+            f_type = "c_void_p"
+        elif f_type == "c_char":
+            f_type = "c_char_p"
+        elif f_type == "c_int":
+            f_type = "c_int_p"
+        else:
+            f_type = "POINTER("+f_type+")"
+
+    f_name = arg[2]
+    f_call = f_name
+
+    if isfile:
+        f_name = ""
+        f_call = "None"
+
+    # detect array argument
+    if (is_pointer and f_name in arrays_names_2D):
+        f_call = f_name + ".ctypes.data_as( " + f_type + " )"
+    elif (is_pointer and f_name in arrays_names_1D):
+        f_call = f_name + ".ctypes.data_as( " + f_type + " )"
+
+    if arg[1] == "**":
+        f_call = "pointer( " + f_call + " )"
+
+    args_size[0] = max(args_size[0], len(f_name))
+    args_size[1] = max(args_size[1], len(f_type))
+    args_size[2] = max(args_size[2], len(f_call))
+    args_list.append( [f_name, f_type, f_call ] )
 
 class wrap_python:
 
     @staticmethod
     def header( f ):
-        modname = os.path.basename( f['filename'] )
-        modname = re.sub(r"\.in", "", modname)
-        header = '''
-"""
+        filename = os.path.basename( f['filename'] )
+        filename = re.sub(r"\.in", "", filename)
+        header = '''"""
 
- @file '''+modname+'''
+ @file ''' + filename + '''
 
- PaStiX python definition of enums and datatypes
+ ''' + f['description'] + '''
 
  @copyright 2017-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
@@ -30,8 +131,8 @@ class wrap_python:
 This file has been automatically generated with gen_wrappers.py
 
 """
+from ctypes import *
 import numpy as np
-import ctypes
 '''
         if f['header'] != "":
             header += "\n" + f['header']
@@ -112,92 +213,170 @@ import ctypes
            Translate it into a derived type."""
 
         # initialize a string with the fortran interface
-        f_interface = ""
+        py_interface = ""
 
+        s = 0
         name = struct[0][2]
-        f_interface += indent + "type, bind(c) :: " + name + "\n"
+        name = re.sub(r"pastix_", "", name)
+        py_interface +=  "class pypastix_" + name + "(Structure):\n"
+
+        s = iindent
+        py_interface +=  s*" " + "_fields_ = ["
+        headline = (s+len("_fields_ = ["))*" "
+
+        slist = []
+        ssize = [ 0, 0 ]
+
         # loop over the arguments of the enum
         for j in range(1,len(struct)):
-            f_interface += indent + indent + iso_c_interface_type(struct[j], True)
-            f_interface += "\n"
+            iso_c_interface_type(struct[j], True, slist, ssize)
 
-        f_interface += indent + "end type " + name + "\n"
+        s += iindent
+        fmt = "(%-"+ str(ssize[0]) + "s %-"+ str(ssize[1]) +"s)"
 
-        return f_interface
+        for j in range(0,len(slist)):
+            if (j > 0):
+                py_interface += ",\n" + headline
+
+            py_interface += format( fmt % (slist[j][0], slist[j][1]) )
+
+        py_interface += " ]\n"
+
+        return py_interface
 
     @staticmethod
     def function(function):
         """Generate an interface for a function."""
 
+        return_type    = function[0][0]
+        return_pointer = function[0][1]
+
         # is it a function or a subroutine
-        if (function[0][0] == "void"):
+        if (return_type == "void"):
             is_function = False
         else:
             is_function = True
 
         c_symbol = function[0][2]
-        f_symbol = c_symbol + "_c"
-
-        used_derived_types = set([])
-        for arg in function:
-            type_name = arg[0]
-            if (type_name in derived_types):
-                used_derived_types.add(type_name)
-
-        # initialize a string with the fortran interface
-        f_interface = ""
-        f_interface += indent + "interface\n"
-
-        if (is_function):
-            f_interface += indent + indent + "function "
+        if "pastix" in c_symbol:
+            libname = "libpastix"
+            prefix  = "pypastix_"
+        elif "spm" in c_symbol:
+            libname = "libspm"
+            prefix  = "pyspm_"
         else:
-            f_interface += indent + indent + "subroutine "
+            print "ERROR: function name without pastix nor spm"
+            return
 
-        f_interface += f_symbol + "("
+        # loop over the arguments to compose the different call lines
+        func_line = "def " + prefix + c_symbol + "("
+        func_line_length = len(func_line)
+        func_line_indent = len(func_line)
 
-        if (is_function):
-            initial_indent = len(indent + indent + "function " + f_symbol + "(") * " "
+        args_line = iindent*" " + libname + "." + c_symbol + ".argtypes = ["
+        args_line_length = len(args_line)
+        args_line_indent = len(args_line)
+
+        if is_function:
+            call_line = iindent*" " + "return " + libname + "." + c_symbol + "("
+
+            py_type = types_dict[return_type]
+            if return_pointer == "*":
+                if py_type == "c_void":
+                    py_type = "c_void_p"
+                else:
+                    py_type = "POINTER("+py_type+")"
+            elif  return_pointer == "**":
+                py_type = "c_void_p"
+
+            retv_line = iindent*" " + libname + "." + c_symbol + ".restype = " + py_type
         else:
-            initial_indent = len(indent + indent + "subroutine " + f_symbol + "(") * " "
+            call_line = iindent*" " + libname + "." + c_symbol + "("
+            retv_line = ""
+        call_line_length = len(call_line)
+        call_line_indent = len(call_line)
+
+        args_list = []
+        args_size = [ 0, 0, 0 ]
 
         # loop over the arguments to compose the first line
         for j in range(1,len(function)):
-            if (j != 1):
-                f_interface += ", "
-            if (j%9 == 0):
-                f_interface += "&\n" + initial_indent
+            iso_c_wrapper_type(function[j], args_list, args_size)
 
-            f_interface += function[j][2]
+        for j in range(0, len(args_list)):
+            # pointers
+            arg_name = args_list[j][0]
+            arg_type = args_list[j][1]
+            arg_call = args_list[j][2]
 
-        f_interface += ") &\n"
-        f_interface += indent + indent + "  " + "bind(c, name='" + c_symbol +"')\n"
+            isfile = (len(arg_name) == 0)
 
-        # add common header
-        f_interface += indent + 2*indent + "use iso_c_binding\n"
-        # import derived types
-        for derived_type in used_derived_types:
-            f_interface += indent + 2*indent + "import " + derived_type +"\n"
-        f_interface += indent + 2*indent + "implicit none\n"
+            if j > 0:
+                if not isfile:
+                    func_line += ","
+                    func_line_length += 2
+                args_line += ","
+                args_line_length += 2
+                call_line += ","
+                call_line_length += 2
+
+            # func_line
+            l = len(arg_name)
+            if not isfile:
+                if ((func_line_length + l) > 78):
+                    func_line_length = func_line_indent
+                    func_line += "\n" + func_line_indent*" "
+                func_line += " " + arg_name
+                func_line_length += l
+
+            # args_line
+            l = len(arg_type)
+            if ((args_line_length + l) > 78):
+                args_line_length = args_line_indent
+                args_line += "\n" + args_line_indent*" "
+            args_line += " " + arg_type
+            args_line_length += l
+
+            # call_line
+            l = len(arg_call)
+            if ((call_line_length + l) > 78):
+                call_line_length = call_line_indent
+                call_line += "\n" + call_line_indent*" "
+            call_line += " " + arg_call
+            call_line_length += l
+
+        py_interface  = func_line + " ):\n"
+        py_interface += args_line + " ]\n"
+        if len(retv_line) > 0:
+            py_interface += retv_line + "\n"
+        py_interface += call_line + " )\n"
+
+        # # add common header
+        # py_interface += indent + 2*indent + "use iso_c_binding\n"
+        # # import derived types
+        # for derived_type in used_derived_types:
+        #     py_interface += indent + 2*indent + "import " + derived_type +"\n"
+        # py_interface += indent + 2*indent + "implicit none\n"
 
 
-        # add the return value of the function
-        if (is_function):
-            f_interface +=  indent + 2*indent + iso_c_interface_type(function[0], True) + "_c"
-            f_interface += "\n"
+        # # add the return value of the function
+        # if (is_function):
+        #     py_interface +=  indent + 2*indent + iso_c_interface_type(function[0], True) + "_c"
+        #     py_interface += "\n"
 
-        # loop over the arguments to describe them
-        for j in range(1,len(function)):
-            f_interface += indent + 2*indent + iso_c_interface_type(function[j], False)
-            f_interface += "\n"
+        # # loop over the arguments to describe them
+        # for j in range(1,len(function)):
+        #     py_interface += indent + 2*indent + iso_c_interface_type(function[j], False)
+        #     py_interface += "\n"
 
-        if (is_function):
-            f_interface += indent + indent + "end function\n"
-        else:
-            f_interface += indent + indent + "end subroutine\n"
+        # if (is_function):
+        #     py_interface += indent + indent + "end function\n"
+        # else:
+        #     py_interface += indent + indent + "end subroutine\n"
 
-        f_interface += indent + "end interface\n"
+        # py_interface += indent + "end interface\n"
 
-        return f_interface
+        return py_interface
 
     @staticmethod
     def wrapper(function):

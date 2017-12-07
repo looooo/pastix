@@ -94,11 +94,16 @@ def iso_c_wrapper_type(arg, args_list, args_size):
 
     f_name = arg[2]
 
+    # Force case of myorder
+    if f_name == "myorder":
+        f_intent = "intent(in), "
+        f_target = "pointer"
+
     # detect array argument
     if   (is_pointer and f_name in arrays_names_2D):
-        f_array = "(*)"
+        f_array = "(:,:)"
     elif (is_pointer and f_name in arrays_names_1D):
-        f_array = "(*)"
+        f_array = "(:)"
     else:
         f_array = ""
 
@@ -137,8 +142,6 @@ module ''' + modname + '''
 
         if f['header'] != "":
             header += f['header']
-
-        header += "  implicit none\n"
 
         return header
 
@@ -230,7 +233,7 @@ end module ''' + modname
             symbol="function"
 
         c_symbol = function[0][2]
-        f_symbol = c_symbol + "_c"
+        f_symbol = function[0][2] + "_c"
 
         used_derived_types = set([])
         for arg in function:
@@ -422,11 +425,13 @@ end module ''' + modname
             args_list.append( (f_type, f_intent, f_target, return_var, "" ) )
 
         # loop over potential double pointers and generate auxiliary variables for them
+        init_line = ""
         for double_pointer in double_pointers:
             aux_name = double_pointer + "_aux"
 
             args_size[0] = max(args_size[0], len("type(c_ptr)"))
-            args_list.append( ("type(c_ptr)", "", "", aux_name, "" ) )
+            args_list.append( ("type(c_ptr)", "", "", aux_name, "") )
+            init_line += s*" " + aux_name + " = c_loc(" + double_pointer + ")\n"
 
         # loop over the arguments to describe them
         fmt = s*" " + "%-" + str(args_size[0]) + "s%-" + str(args_size[1]) + "s%-" + str(args_size[2]) + "s :: %s%s\n"
@@ -434,6 +439,9 @@ end module ''' + modname
             f_wrapper += format( fmt % args_list[j] )
 
         f_wrapper += "\n"
+        f_wrapper += init_line
+        if init_line != "":
+            f_wrapper += "\n"
 
         # generate the call to the C function
         if (is_function and return_pointer == "*"):
