@@ -148,10 +148,10 @@ pastixOrderInit( pastix_order_t * const ordeptr,
                  pastix_int_t           baseval,
                  pastix_int_t           vertnbr,
                  pastix_int_t           cblknbr,
-                 pastix_int_t          *permtab,
-                 pastix_int_t          *peritab,
-                 pastix_int_t          *rangtab,
-                 pastix_int_t          *treetab )
+                 pastix_int_t   * const permtab,
+                 pastix_int_t   * const peritab,
+                 pastix_int_t   * const rangtab,
+                 pastix_int_t   * const treetab )
 {
     /* Parameter checks */
     if ( ordeptr == NULL ) {

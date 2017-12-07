@@ -75,21 +75,8 @@ typedef struct pastix_spm_s {
  * @name SPM basic subroutines
  * @{
  */
-pastix_spm_t *spmNew(  pastix_mtxtype_t   mtxtype,
-                       pastix_coeftype_t  flttype,
-                       pastix_fmttype_t   fmttype,
-                       pastix_int_t       n,
-                       pastix_int_t       nnz,
-                       pastix_int_t      *colptr,
-                       pastix_int_t      *rowptr,
-                       void              *values,
-                       pastix_int_t      *loc2glob,
-                       pastix_int_t       dof,
-                       pastix_layout_t    layout,
-                       pastix_int_t      *dofs );
-void          spmInit( pastix_spm_t      *spm );
-void          spmExit( pastix_spm_t      *spm );
-void          spmFree( pastix_spm_t      *spm );
+void          spmInit( pastix_spm_t *spm );
+void          spmExit( pastix_spm_t *spm );
 
 pastix_spm_t *spmCopy( const pastix_spm_t *spm );
 void          spmBase( pastix_spm_t *spm, int baseval );
@@ -105,7 +92,7 @@ void          spmGenFakeValues( pastix_spm_t *spm );
  */
 double        spmNorm( pastix_normtype_t ntype, const pastix_spm_t *spm );
 int           spmMatVec( pastix_trans_t trans, const void *alpha, const pastix_spm_t *spm, const void *x, const void *beta, void *y );
-void          spmScalMatrix( const pastix_complex64_t alpha, pastix_spm_t *spm );
+void          spmScalMatrix( const double alpha, pastix_spm_t *spm );
 void          spmScalVector( const double alpha, pastix_spm_t *spm, void *x );
 
 /**

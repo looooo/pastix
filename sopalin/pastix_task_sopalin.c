@@ -267,6 +267,11 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
 #if defined(PASTIX_WITH_PARSEC)
     if ( pastix_data->iparm[IPARM_SCHEDULER] == PastixSchedParsec )
     {
+        /* Start PaRSEC if not already started */
+        if (pastix_data->parsec == NULL) {
+            int argc = 0;
+            pastix_parsec_init( pastix_data, &argc, NULL, NULL );
+        }
         /* Create the matrix descriptor */
         parsec_sparse_matrix_init( pastix_data->solvmatr,
                                    pastix_size_of( bcsc->flttype ), mtxtype,
@@ -454,7 +459,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
     }
 #endif
 
-    if ( (pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo) &&
+    if ( (pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot) &&
          (pastix_data->iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever) )
     {
         /* Compute the memory gain */

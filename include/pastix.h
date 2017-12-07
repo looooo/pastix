@@ -41,7 +41,6 @@
 #include "pastix/api.h"
 #include "pastix/datatypes.h"
 
-
 /*
  * Main function for compatibility with former versions
  */
@@ -71,7 +70,7 @@ void pastixInitWithAffinity( pastix_data_t **pastix_data,
                              MPI_Comm        pastix_comm,
                              pastix_int_t   *iparm,
                              double         *dparm,
-                             int            *bindtab );
+                             const int      *bindtab );
 void pastixFinalize ( pastix_data_t **pastix_data );
 
 /*
@@ -154,7 +153,7 @@ int  pastixGetDiag( const pastix_data_t *pastix_data,
  * Function to provide a common way to read binary options in examples/testings
  */
 void pastixGetOptions( int argc, char **argv,
-                        pastix_int_t *iparam, double *dparam,
+                        pastix_int_t *iparm, double *dparm,
                         int *check, pastix_driver_t *driver, char **filename );
 
 #endif /* _pastix_h_ */

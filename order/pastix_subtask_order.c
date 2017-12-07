@@ -54,10 +54,12 @@
  *          On exit, the field ordemesh is initialize with the result of the
  *          ordering.
  *          - IPARM_ORDERING will determine which ordering tool is used.
- *          - IPARM_IO_STRATEGY will enable the results to be written on files
- *          if set to PastixIOSave, or the results to be directly loaded from
- *          file if set to PastixIOLoad without going through an ordering
- *          library.
+ *          - IPARM_IO_STRATEGY:
+ *             - If set to PastixIOSave, the results will be written on files on
+ *               exit.
+ *             - If set to PastixIOLoad and IPARM_ORDERING is set to personal,
+ *               then the ordering is loaded from files and no ordering is
+ *               called.
  *          - If the function pastix_setSchurUnknownList() function has been
  *          previously called to set the list of vertices to isolate in the
  *          schur complement, those vertices are isolated at the end of the
@@ -141,12 +143,10 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     if (pastix_data->schur_n > 0)
     {
         /*
-         * If ordering is set to PastixOrderPersonal or PastixOrderLoad, we
-         * consider that the schur complement is already isolated at the end of
-         * permutation array
+         * If ordering is set to PastixOrderPersonal, we consider that the schur
+         * complement is already isolated at the end of permutation array.
          */
-        if ((iparm[IPARM_ORDERING] == PastixOrderPersonal) ||
-            (iparm[IPARM_ORDERING] == PastixOrderLoad)) {
+        if ( iparm[IPARM_ORDERING] == PastixOrderPersonal ) {
             do_schur = 0;
         }
     } else {
@@ -155,12 +155,10 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     if (pastix_data->zeros_n > 0)
     {
         /*
-         * If ordering is set to PastixOrderPersonal or PastixOrderLoad, we
-         * consider that the zeros on diagonal are already isolated at the end of
-         * permutation array
+         * If ordering is set to PastixOrderPersonal, we consider that the zeros
+         * on diagonal are already isolated at the end of permutation array.
          */
-        if ((iparm[IPARM_ORDERING] == PastixOrderPersonal) ||
-            (iparm[IPARM_ORDERING] == PastixOrderLoad) ) {
+        if ( iparm[IPARM_ORDERING] == PastixOrderPersonal ) {
             do_zeros = 0;
         }
     } else {
@@ -302,6 +300,14 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
          * Personal Ordering
          */
     case PastixOrderPersonal:
+        /* Load from file */
+        if ( iparm[IPARM_IO_STRATEGY] & PastixIOLoad ) {
+            if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
+                pastix_print(procnum, 0, OUT_ORDER_METHOD, "Load" );
+            retval = pastixOrderLoad( pastix_data, ordemesh );
+        }
+        /* Take input ordering */
+        else
         {
             pastix_int_t i, n;
 
@@ -375,15 +381,6 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
                 }
             }
         }
-        break;
-
-        /*
-         * Load ordering
-         */
-    case PastixOrderLoad:
-        if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
-            pastix_print(procnum, 0, OUT_ORDER_METHOD, "Load" );
-        retval = pastixOrderLoad( pastix_data, ordemesh );
         break;
 
     default:

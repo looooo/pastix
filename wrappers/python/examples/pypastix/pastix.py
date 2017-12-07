@@ -14,30 +14,23 @@
 """
 from ctypes import *
 import numpy as np
-from . import libpastix
 from .enum import *
 from .spm import spm
+from .__pastix__ import *
 
 def initParam():
     iparm_ = np.zeros( iparm.size, dtype=pastix_int)
     dparm_ = np.zeros( dparm.size, dtype='float64' )
-    libpastix.pastixInitParam.argtypes = [POINTER(pastix_int), POINTER(c_double)]
-    libpastix.pastixInitParam( iparm_.ctypes.data_as(POINTER(pastix_int)),
-                               dparm_.ctypes.data_as(POINTER(c_double)) )
+    pypastix_pastixInitParam( iparm_, dparm_ )
     return iparm_, dparm_
 
 def init( iparm, dparm ):
     pastix_data = c_void_p();
-    libpastix.pastixInit.argtypes = [POINTER(c_void_p), c_int, POINTER(pastix_int), POINTER(c_double)]
-    libpastix.pastixInit( pointer( pastix_data ), c_int(0),
-                          iparm.ctypes.data_as(POINTER(pastix_int)),
-                          dparm.ctypes.data_as(POINTER(c_double)) )
-
+    pypastix_pastixInit( pastix_data, c_int(0), iparm, dparm )
     return pastix_data
 
 def finalize( pastix_data, iparm, dparm ):
-    libpastix.pastixFinalize.argtypes = [POINTER(c_void_p)]
-    libpastix.pastixFinalize( pointer( pastix_data ) )
+    pypastix_pastixFinalize( pastix_data )
 
 def __getnrhs(nrhs, x):
     if nrhs == -1:
@@ -51,12 +44,10 @@ def __getnrhs(nrhs, x):
 # Pastix Tasks
 #
 def task_analyze( pastix_data, spm ):
-    libpastix.pastix_task_analyze.argtypes = [c_void_p, POINTER(spm.c_spm)]
-    libpastix.pastix_task_analyze( pastix_data, spm.id_ptr )
+    pypastix_pastix_task_analyze( pastix_data, spm.id_ptr )
 
 def task_numfact( pastix_data, spm ):
-    libpastix.pastix_task_numfact.argtypes = [c_void_p, POINTER(spm.c_spm)]
-    libpastix.pastix_task_numfact( pastix_data, spm.id_ptr )
+    pypastix_pastix_task_numfact( pastix_data, spm.id_ptr )
 
 def task_solve( pastix_data, x, nrhs=-1 ):
 
@@ -65,8 +56,7 @@ def task_solve( pastix_data, x, nrhs=-1 ):
 
     x = np.asarray(x, spm.dtype)
 
-    libpastix.pastix_task_solve.argtypes = [c_void_p, pastix_int, c_void_p, pastix_int]
-    libpastix.pastix_task_solve( pastix_data, nrhs, x.ctypes.data_as(c_void_p), n )
+    pypastix_pastix_task_solve( pastix_data, nrhs, x.ctypes.data_as(c_void_p), n )
 
 def task_refine( pastix_data, b, x, nrhs=-1 ):
 
@@ -77,8 +67,7 @@ def task_refine( pastix_data, b, x, nrhs=-1 ):
     if b.dtype != x.dtype:
         raise TypeError( "b and x must use the same arithmetic" )
 
-    libpastix.pastix_task_refine.argtypes = [c_void_p, c_void_p, pastix_int, c_void_p]
-    libpastix.pastix_task_refine( pastix_data,
+    pypastix_pastix_task_refine( pastix_data,
                                   x.ctypes.data_as(c_void_p), nrhs,
                                   b.ctypes.data_as(c_void_p) )
 
@@ -95,8 +84,7 @@ def subtask_applyorder( pastix_data, direction, b ):
         n = b.shape[1]
     ldb = m
 
-    libpastix.pastix_subtask_applyorder.argtypes = [c_void_p, c_int, c_int, pastix_int, pastix_int, c_void_p, pastix_int]
-    libpastix.pastix_subtask_applyorder( pastix_data, flttype, direction, m, n,
+    pypastix_pastix_subtask_applyorder( pastix_data, flttype, direction, m, n,
                                          b.ctypes.data_as(c_void_p), ldb )
 
 def subtask_trsm( pastix_data, side, uplo, trans, diag, b, nrhs=-1 ):
@@ -106,9 +94,8 @@ def subtask_trsm( pastix_data, side, uplo, trans, diag, b, nrhs=-1 ):
     nrhs = __getnrhs( nrhs, b )
     ldb  = n
 
-    libpastix.pastix_subtask_trsm.argtypes = [c_void_p, c_int, c_int, c_int, c_int, c_int, pastix_int, c_void_p, pastix_int]
-    libpastix.pastix_subtask_trsm( pastix_data, flttype, side, uplo, trans, diag, nrhs,
-                                   b.ctypes.data_as(c_void_p), ldb )
+    pypastix_pastix_subtask_trsm( pastix_data, flttype, side, uplo, trans, diag, nrhs,
+                                  b.ctypes.data_as(c_void_p), ldb )
 
 def subtask_diag( pastix_data, b ):
     flttype = coeftype.getptype( b.dtype )
@@ -116,9 +103,8 @@ def subtask_diag( pastix_data, b ):
     ldb  = b.shape[0]
     nrhs = __getnrhs( nrhs, b )
 
-    libpastix.pastix_subtask_diag.argtypes = [c_void_p, c_int, pastix_int, c_void_p, pastix_int]
-    libpastix.pastix_subtask_diag( pastix_data, flttype, nrhs,
-                                   b.ctypes.data_as(c_void_p), ldb )
+    pypastix_pastix_subtask_diag( pastix_data, flttype, nrhs,
+                                  b.ctypes.data_as(c_void_p), ldb )
 
 #
 # Schur complement manipulation routines.
@@ -126,13 +112,10 @@ def subtask_diag( pastix_data, b ):
 def setSchurUnknownList( pastix_data, schur_list ):
     n = schur_list.shape[0]
     schur_list = np.array(schur_list, dtype=pastix_int)
-
-    libpastix.pastixSetSchurUnknownList.argtypes = [c_void_p, pastix_int, POINTER(pastix_int)]
-    libpastix.pastixSetSchurUnknownList( pastix_data, n,
-                                         schur_list.ctypes.data_as(POINTER(pastix_int)) )
+    pypastix_pastixSetSchurUnknownList( pastix_data, n,
+                                        schur_list.ctypes.data_as(POINTER(pastix_int)) )
 
 def getSchur( pastix_data, S ):
-    libpastix.pastixGetSchur.argtypes = [c_void_p, c_void_p, pastix_int ]
-    libpastix.pastixGetSchur( pastix_data,
-                              S.ctypes.data_as(c_void_p),
-                              S.shape[0] )
+    pypastix_pastixGetSchur( pastix_data,
+                             S.ctypes.data_as(c_void_p),
+                             S.shape[0] )

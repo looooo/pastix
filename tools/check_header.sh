@@ -168,6 +168,7 @@ files=`git ls-files | grep -v "^\." | grep -v ".*\.md" | grep -v LICENSE | grep 
 
 for f in $files
 do
+    #echo $f
     if [ -d $f ]
     then
         continue;

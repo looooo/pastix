@@ -2,7 +2,7 @@
 
  @file enum.py
 
- PaStiX python definition of enums and datatypes
+ PaStiX python wrapper to define enums and datatypes
 
  @copyright 2017-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
@@ -13,12 +13,13 @@
  @author Louis Poirel
  @date 2017-05-04
 
+This file has been automatically generated with gen_wrappers.py
+
 """
+from ctypes import *
 import numpy as np
-import ctypes
 
-pastix_int = ctypes.@PASTIX_PYTHON_INTEGER@
-
+pastix_int = @PASTIX_PYTHON_INTEGER@
 class iparm:
     verbose               = 0
     io_strategy           = 1
@@ -148,11 +149,11 @@ class refine:
     BiCGSTAB = 3
 
 class coeftype:
-    Pattern   = 0 # Pattern only, no values are stored
-    Float     = 2 # Single precision real
-    Double    = 3 # Double precision real
-    Complex32 = 4 # Single precision complex
-    Complex64 = 5 # Double precision complex
+    Pattern   = 0
+    Float     = 2
+    Double    = 3
+    Complex32 = 4
+    Complex64 = 5
 
     @staticmethod
     def getptype ( dtype ):
@@ -208,9 +209,8 @@ class order:
     Scotch   = 0
     Metis    = 1
     Personal = 2
-    Load     = 3
-    PtScotch = 4
-    ParMetis = 5
+    PtScotch = 3
+    ParMetis = 4
 
 class threadmode:
     Multiple = 1
@@ -301,4 +301,5 @@ class normtype:
 class dir:
     Forward  = 391
     Backward = 392
+
 

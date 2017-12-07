@@ -293,12 +293,11 @@ typedef enum pastix_scheduler_e {
  * @brief Ordering strategy
  */
 enum pastix_order_e {
-    PastixOrderScotch,   /**< Use Scotch ordering       */
-    PastixOrderMetis,    /**< Use Metis ordering        */
-    PastixOrderPersonal, /**< Apply user's permutation  */
-    PastixOrderLoad,     /**< Load ordering from file   */
-    PastixOrderPtScotch, /**< Use Pt-Scotch ordering    */
-    PastixOrderParMetis  /**< Use ParMetis ordering     */
+    PastixOrderScotch,   /**< Use Scotch ordering                         */
+    PastixOrderMetis,    /**< Use Metis ordering                          */
+    PastixOrderPersonal, /**< Apply user's permutation, or load from file */
+    PastixOrderPtScotch, /**< Use Pt-Scotch ordering                      */
+    PastixOrderParMetis  /**< Use ParMetis ordering                       */
 };
 
 #if defined(PASTIX_WITH_MPI)

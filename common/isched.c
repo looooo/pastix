@@ -216,7 +216,7 @@ isched_parallel_section(isched_thread_t *ctx)
  * @retval PASTIX_SUCCESS successful exit
  *
  ******************************************************************************/
-isched_t *ischedInit(int cores, int *coresbind)
+isched_t *ischedInit(int cores, const int *coresbind)
 {
     __isched_init_t *initdata;
     isched_t *isched;

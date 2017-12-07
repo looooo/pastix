@@ -1,22 +1,23 @@
+
 !
 ! @file spmf.f90
 !
-! SPM rotine fortran 90 wrappers
+! SPM Fortran 90 wrapper
 !
-! @copyright 2017-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+! @copyright 2017      Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !                      Univ. Bordeaux. All rights reserved.
 !
 ! @version 6.0.0
 ! @author Mathieu Faverge
 ! @date 2017-01-01
 !
+! This file has been automatically generated with gen_wrappers.py
+!
 module spmf
   use iso_c_binding
   use pastix_enums
-
   implicit none
 
-  ! C structs converted to derived types.
   type, bind(c) :: pastix_spm_t
      integer(c_int)             :: mtxtype
      integer(c_int)             :: flttype
@@ -38,31 +39,6 @@ module spmf
      type(c_ptr)                :: values
   end type pastix_spm_t
 
-  ! Interfaces of the C functions.
-  ! interface
-  !    function spmNew_c(mtxtype, flttype, fmttype, n, nnz, colptr, rowptr, values, &
-  !         loc2glob, dof, layout, dofs) &
-  !         bind(c, name='spmNew')
-  !      use iso_c_binding
-  !      import pastix_spm_t
-  !      import pastix_int_t
-  !      implicit none
-  !      type(c_ptr)                       :: spmNew_c
-  !      integer(c_int),             value :: mtxtype
-  !      integer(c_int),             value :: flttype
-  !      integer(c_int),             value :: fmttype
-  !      integer(kind=pastix_int_t), value :: n
-  !      integer(kind=pastix_int_t), value :: nnz
-  !      type(c_ptr),                value :: colptr
-  !      type(c_ptr),                value :: rowptr
-  !      type(c_ptr),                value :: values
-  !      type(c_ptr),                value :: loc2glob
-  !      integer(kind=pastix_int_t), value :: dof
-  !      integer(c_int),             value :: layout
-  !      type(c_ptr),                value :: dofs
-  !    end function spmNew_c
-  ! end interface
-
   interface
      subroutine spmInit_c(spm) &
           bind(c, name='spmInit')
@@ -83,23 +59,13 @@ module spmf
      end subroutine spmExit_c
   end interface
 
-  ! interface
-  !    subroutine spmFree_c(spm) &
-  !         bind(c, name='spmFree')
-  !      use iso_c_binding
-  !      import pastix_spm_t
-  !      implicit none
-  !      type(c_ptr), value :: spm
-  !    end subroutine spmFree_c
-  ! end interface
-
   interface
      function spmCopy_c(spm) &
           bind(c, name='spmCopy')
        use iso_c_binding
        import pastix_spm_t
        implicit none
-       type(c_ptr) :: spmCopy_c
+       type(c_ptr)        :: spmCopy_c
        type(c_ptr), value :: spm
      end function spmCopy_c
   end interface
@@ -110,7 +76,7 @@ module spmf
        use iso_c_binding
        import pastix_spm_t
        implicit none
-       type(c_ptr), value :: spm
+       type(c_ptr),         value :: spm
        integer(kind=c_int), value :: baseval
      end subroutine spmBase_c
   end interface
@@ -122,8 +88,8 @@ module spmf
        import pastix_spm_t
        import pastix_int_t
        implicit none
-       integer(kind=pastix_int_t) :: spmFindBase_c
-       type(c_ptr), value :: spm
+       integer(kind=pastix_int_t)   :: spmFindBase_c
+       type(c_ptr),           value :: spm
      end function spmFindBase_c
   end interface
 
@@ -133,9 +99,9 @@ module spmf
        use iso_c_binding
        import pastix_spm_t
        implicit none
-       integer(kind=c_int) :: spmConvert_c
+       integer(kind=c_int)        :: spmConvert_c
        integer(kind=c_int), value :: ofmttype
-       type(c_ptr), value :: ospm
+       type(c_ptr),         value :: ospm
      end function spmConvert_c
   end interface
 
@@ -165,9 +131,9 @@ module spmf
        use iso_c_binding
        import pastix_spm_t
        implicit none
-       real(kind=c_double) :: spmNorm_c
+       real(kind=c_double)   :: spmNorm_c
        integer(c_int), value :: ntype
-       type(c_ptr), value :: spm
+       type(c_ptr),    value :: spm
      end function spmNorm_c
   end interface
 
@@ -177,38 +143,38 @@ module spmf
        use iso_c_binding
        import pastix_spm_t
        implicit none
-       integer(kind=c_int) :: spmMatVec_c
+       integer(kind=c_int)   :: spmMatVec_c
        integer(c_int), value :: trans
-       type(c_ptr), value :: alpha
-       type(c_ptr), value :: spm
-       type(c_ptr), value :: x
-       type(c_ptr), value :: beta
-       type(c_ptr), value :: y
+       type(c_ptr),    value :: alpha
+       type(c_ptr),    value :: spm
+       type(c_ptr),    value :: x
+       type(c_ptr),    value :: beta
+       type(c_ptr),    value :: y
      end function spmMatVec_c
   end interface
 
-  ! interface
-  !    subroutine spmScalMatrix_c(alpha, spm) &
-  !         bind(c, name='spmScalMatrix')
-  !      use iso_c_binding
-  !      import pastix_spm_t
-  !      implicit none
-  !      complex(kind=c_double_complex), value :: alpha
-  !      type(c_ptr), value :: spm
-  !    end subroutine spmScalMatrix_c
-  ! end interface
+  interface
+     subroutine spmScalMatrix_c(alpha, spm) &
+          bind(c, name='spmScalMatrix')
+       use iso_c_binding
+       import pastix_spm_t
+       implicit none
+       real(kind=c_double), value :: alpha
+       type(c_ptr),         value :: spm
+     end subroutine spmScalMatrix_c
+  end interface
 
-  ! interface
-  !    subroutine spmScalVector_c(alpha, spm, x) &
-  !         bind(c, name='spmScalVector')
-  !      use iso_c_binding
-  !      import pastix_spm_t
-  !      implicit none
-  !      real(kind=c_double), value :: alpha
-  !      type(c_ptr), value :: spm
-  !      type(c_ptr), value :: x
-  !    end subroutine spmScalVector_c
-  ! end interface
+  interface
+     subroutine spmScalVector_c(alpha, spm, x) &
+          bind(c, name='spmScalVector')
+       use iso_c_binding
+       import pastix_spm_t
+       implicit none
+       real(kind=c_double), value :: alpha
+       type(c_ptr),         value :: spm
+       type(c_ptr),         value :: x
+     end subroutine spmScalVector_c
+  end interface
 
   interface
      function spmSort_c(spm) &
@@ -216,8 +182,8 @@ module spmf
        use iso_c_binding
        import pastix_spm_t
        implicit none
-       integer(kind=c_int) :: spmSort_c
-       type(c_ptr), value :: spm
+       integer(kind=c_int)   :: spmSort_c
+       type(c_ptr),    value :: spm
      end function spmSort_c
   end interface
 
@@ -228,8 +194,8 @@ module spmf
        import pastix_spm_t
        import pastix_int_t
        implicit none
-       integer(kind=pastix_int_t) :: spmMergeDuplicate_c
-       type(c_ptr), value :: spm
+       integer(kind=pastix_int_t)   :: spmMergeDuplicate_c
+       type(c_ptr),           value :: spm
      end function spmMergeDuplicate_c
   end interface
 
@@ -240,8 +206,8 @@ module spmf
        import pastix_spm_t
        import pastix_int_t
        implicit none
-       integer(kind=pastix_int_t) :: spmSymmetrize_c
-       type(c_ptr), value :: spm
+       integer(kind=pastix_int_t)   :: spmSymmetrize_c
+       type(c_ptr),           value :: spm
      end function spmSymmetrize_c
   end interface
 
@@ -251,7 +217,7 @@ module spmf
        use iso_c_binding
        import pastix_spm_t
        implicit none
-       type(c_ptr) :: spmCheckAndCorrect_c
+       type(c_ptr)        :: spmCheckAndCorrect_c
        type(c_ptr), value :: spm
      end function spmCheckAndCorrect_c
   end interface
@@ -281,14 +247,14 @@ module spmf
        import pastix_spm_t
        import pastix_int_t
        implicit none
-       integer(kind=c_int) :: spmCheckAxb_c
+       integer(kind=c_int)               :: spmCheckAxb_c
        integer(kind=pastix_int_t), value :: nrhs
-       type(c_ptr), value :: spm
-       type(c_ptr), value :: x0
+       type(c_ptr),                value :: spm
+       type(c_ptr),                value :: x0
        integer(kind=pastix_int_t), value :: ldx0
-       type(c_ptr), value :: b
+       type(c_ptr),                value :: b
        integer(kind=pastix_int_t), value :: ldb
-       type(c_ptr), value :: x
+       type(c_ptr),                value :: x
        integer(kind=pastix_int_t), value :: ldx
      end function spmCheckAxb_c
   end interface
@@ -299,9 +265,9 @@ module spmf
        use iso_c_binding
        import pastix_int_t
        implicit none
-       type(c_ptr) :: spmIntConvert_c
+       type(c_ptr)                       :: spmIntConvert_c
        integer(kind=pastix_int_t), value :: n
-       type(c_ptr), value :: input
+       type(c_ptr),                value :: input
      end function spmIntConvert_c
   end interface
 
@@ -311,9 +277,9 @@ module spmf
        use iso_c_binding
        import pastix_spm_t
        implicit none
-       integer(kind=c_int) :: spmLoad_c
-       type(c_ptr), value :: spm
-       type(c_ptr), value :: infile
+       integer(kind=c_int)   :: spmLoad_c
+       type(c_ptr),    value :: spm
+       type(c_ptr),    value :: infile
      end function spmLoad_c
   end interface
 
@@ -323,9 +289,9 @@ module spmf
        use iso_c_binding
        import pastix_spm_t
        implicit none
-       integer(kind=c_int) :: spmSave_c
-       type(c_ptr), value :: spm
-       type(c_ptr), value :: outfile
+       integer(kind=c_int)   :: spmSave_c
+       type(c_ptr),    value :: spm
+       type(c_ptr),    value :: outfile
      end function spmSave_c
   end interface
 
@@ -335,10 +301,10 @@ module spmf
        use iso_c_binding
        import pastix_spm_t
        implicit none
-       integer(kind=c_int) :: spmReadDriver_c
-       integer(c_int), value :: driver
-       type(c_ptr), value :: filename
-       type(c_ptr), value :: spm
+       integer(kind=c_int)        :: spmReadDriver_c
+       integer(c_int),      value :: driver
+       type(c_ptr),         value :: filename
+       type(c_ptr),         value :: spm
        integer(kind=c_int), value :: pastix_comm
      end function spmReadDriver_c
   end interface
@@ -381,7 +347,7 @@ module spmf
        use iso_c_binding
        import pastix_spm_t
        implicit none
-       type(c_ptr) :: spmExpand_c
+       type(c_ptr)        :: spmExpand_c
        type(c_ptr), value :: spm
      end function spmExpand_c
   end interface
@@ -392,8 +358,8 @@ module spmf
        use iso_c_binding
        import pastix_spm_t
        implicit none
-       type(c_ptr) :: spmDofExtend_c
-       type(c_ptr), value :: spm
+       type(c_ptr)                :: spmDofExtend_c
+       type(c_ptr),         value :: spm
        integer(kind=c_int), value :: type
        integer(kind=c_int), value :: dof
      end function spmDofExtend_c
@@ -402,43 +368,6 @@ module spmf
 contains
 
   ! Wrappers of the C functions.
-  ! subroutine spmNew(mtxtype, flttype, fmttype, n, nnz, colptr, rowptr, values, &
-  !      loc2glob, dof, layout, dofs, spmo)
-  !   use iso_c_binding
-  !   implicit none
-  !   integer(c_int),             intent(in)           :: mtxtype
-  !   integer(c_int),             intent(in)           :: flttype
-  !   integer(c_int),             intent(in)           :: fmttype
-  !   integer(kind=pastix_int_t), intent(in)           :: n
-  !   integer(kind=pastix_int_t), intent(in)           :: nnz
-  !   integer(kind=pastix_int_t), intent(in),  target  :: colptr(*)
-  !   integer(kind=pastix_int_t), intent(in),  target  :: rowptr(*)
-  !   type(c_ptr),                intent(in)           :: values
-  !   integer(kind=pastix_int_t), intent(in),  target  :: loc2glob(:)
-  !   integer(kind=pastix_int_t), intent(in)           :: dof
-  !   integer(c_int),             intent(in)           :: layout
-  !   integer(kind=pastix_int_t), intent(in),  target  :: dofs(:)
-  !   type(pastix_spm_t),         intent(out), pointer :: spmo
-
-  !   type(c_ptr) :: loc2glob_ptr
-  !   type(c_ptr) :: dofs_ptr
-
-  !   if (size(loc2glob) .eq. 0) then
-  !      loc2glob_ptr = c_null_ptr
-  !   else
-  !      loc2glob_ptr = c_loc(loc2glob)
-  !   end if
-
-  !   if (size(dofs) .eq. 0) then
-  !      dofs_ptr = c_null_ptr
-  !   else
-  !      dofs_ptr = c_loc(dofs)
-  !   end if
-
-  !   call c_f_pointer(spmNew_c(mtxtype, flttype, fmttype, n, nnz, c_loc(colptr), c_loc(rowptr), values, &
-  !        loc2glob_ptr, dof, layout, dofs_ptr), spmo)
-  ! end subroutine spmNew
-
   subroutine spmInit(spm)
     use iso_c_binding
     implicit none
@@ -455,19 +384,11 @@ contains
     call spmExit_c(c_loc(spm))
   end subroutine spmExit
 
-  ! subroutine spmFree(spm)
-  !   use iso_c_binding
-  !   implicit none
-  !   type(pastix_spm_t), intent(inout), target :: spm
-
-  !   call spmFree_c(c_loc(spm))
-  ! end subroutine spmFree
-
   subroutine spmCopy(spm, spmo)
     use iso_c_binding
     implicit none
-    type(pastix_spm_t), intent(inout), target  :: spm
-    type(pastix_spm_t), intent(out),   pointer :: spmo
+    type(pastix_spm_t), intent(in),  target  :: spm
+    type(pastix_spm_t), intent(out), pointer :: spmo
 
     call c_f_pointer(spmCopy_c(c_loc(spm)), spmo)
   end subroutine spmCopy
@@ -537,27 +458,27 @@ contains
     type(c_ptr),         intent(inout), target :: y
     integer(kind=c_int), intent(out)           :: info
 
-    info = spmMatVec_c(trans, c_loc(alpha), c_loc(spm), c_loc(x), c_loc(beta), c_loc(y))
+    info = spmMatVec_c(trans, alpha, c_loc(spm), x, beta, y)
   end subroutine spmMatVec
 
-  ! subroutine spmScalMatrix(alpha, spm)
-  !   use iso_c_binding
-  !   implicit none
-  !   complex(kind=c_double_complex), intent(in)            :: alpha
-  !   type(pastix_spm_t),             intent(inout), target :: spm
+  subroutine spmScalMatrix(alpha, spm)
+    use iso_c_binding
+    implicit none
+    real(kind=c_double), intent(in)            :: alpha
+    type(pastix_spm_t),  intent(inout), target :: spm
 
-  !   call spmScalMatrix_c(alpha, c_loc(spm))
-  ! end subroutine spmScalMatrix
+    call spmScalMatrix_c(alpha, c_loc(spm))
+  end subroutine spmScalMatrix
 
-  ! subroutine spmScalVector(alpha, spm, x)
-  !   use iso_c_binding
-  !   implicit none
-  !   real(kind=c_double), intent(in)            :: alpha
-  !   type(pastix_spm_t),  intent(inout), target :: spm
-  !   type(c_ptr),         intent(inout), target :: x
+  subroutine spmScalVector(alpha, spm, x)
+    use iso_c_binding
+    implicit none
+    real(kind=c_double), intent(in)            :: alpha
+    type(pastix_spm_t),  intent(inout), target :: spm
+    type(c_ptr),         intent(inout), target :: x
 
-  !   call spmScalVector_c(alpha, c_loc(spm), c_loc(x))
-  ! end subroutine spmScalVector
+    call spmScalVector_c(alpha, c_loc(spm), x)
+  end subroutine spmScalVector
 
   subroutine spmSort(spm, info)
     use iso_c_binding
@@ -598,14 +519,14 @@ contains
   subroutine spmGenRHS(type, nrhs, spm, x, ldx, b, ldb, info)
     use iso_c_binding
     implicit none
-    integer(c_int),             intent(in)         :: type
-    integer(kind=pastix_int_t), intent(in)         :: nrhs
-    type(pastix_spm_t),         intent(in), target :: spm
-    type(c_ptr),                intent(in)         :: x
-    integer(kind=pastix_int_t), intent(in)         :: ldx
-    type(c_ptr),                intent(in)         :: b
-    integer(kind=pastix_int_t), intent(in)         :: ldb
-    integer(kind=c_int),        intent(out)        :: info
+    integer(c_int),             intent(in)            :: type
+    integer(kind=pastix_int_t), intent(in)            :: nrhs
+    type(pastix_spm_t),         intent(in),    target :: spm
+    type(c_ptr),                intent(inout), target :: x
+    integer(kind=pastix_int_t), intent(in)            :: ldx
+    type(c_ptr),                intent(inout), target :: b
+    integer(kind=pastix_int_t), intent(in)            :: ldb
+    integer(kind=c_int),        intent(out)           :: info
 
     info = spmGenRHS_c(type, nrhs, c_loc(spm), x, ldx, b, ldb)
   end subroutine spmGenRHS
@@ -613,15 +534,15 @@ contains
   subroutine spmCheckAxb(nrhs, spm, x0, ldx0, b, ldb, x, ldx, info)
     use iso_c_binding
     implicit none
-    integer(kind=pastix_int_t), intent(in)         :: nrhs
-    type(pastix_spm_t),         intent(in), target :: spm
-    type(c_ptr),                intent(in)         :: x0
-    integer(kind=pastix_int_t), intent(in)         :: ldx0
-    type(c_ptr),                intent(in)         :: b
-    integer(kind=pastix_int_t), intent(in)         :: ldb
-    type(c_ptr),                intent(in)         :: x
-    integer(kind=pastix_int_t), intent(in)         :: ldx
-    integer(kind=c_int),        intent(out)        :: info
+    integer(kind=pastix_int_t), intent(in)            :: nrhs
+    type(pastix_spm_t),         intent(in),    target :: spm
+    type(c_ptr),                intent(inout), target :: x0
+    integer(kind=pastix_int_t), intent(in)            :: ldx0
+    type(c_ptr),                intent(inout), target :: b
+    integer(kind=pastix_int_t), intent(in)            :: ldb
+    type(c_ptr),                intent(in),    target :: x
+    integer(kind=pastix_int_t), intent(in)            :: ldx
+    integer(kind=c_int),        intent(out)           :: info
 
     info = spmCheckAxb_c(nrhs, c_loc(spm), x0, ldx0, b, ldb, x, ldx)
   end subroutine spmCheckAxb
@@ -636,24 +557,22 @@ contains
     call c_f_pointer(spmIntConvert_c(n, c_loc(input)), value)
   end subroutine spmIntConvert
 
-  subroutine spmLoad(spm, infile, info)
+  subroutine spmLoad(spm, info)
     use iso_c_binding
     implicit none
     type(pastix_spm_t),  intent(inout), target :: spm
-    type(c_ptr),         intent(in)            :: infile
     integer(kind=c_int), intent(out)           :: info
 
-    info = spmLoad_c(c_loc(spm), infile)
+    info = spmLoad_c(c_loc(spm), c_null_ptr)
   end subroutine spmLoad
 
-  subroutine spmSave(spm, outfile, info)
+  subroutine spmSave(spm, info)
     use iso_c_binding
     implicit none
     type(pastix_spm_t),  intent(in), target :: spm
-    type(c_ptr),         intent(in)         :: outfile
     integer(kind=c_int), intent(out)        :: info
 
-    info = spmSave_c(c_loc(spm), outfile)
+    info = spmSave_c(c_loc(spm), c_null_ptr)
   end subroutine spmSave
 
   subroutine spmReadDriver(driver, filename, spm, pastix_comm, info)
@@ -676,22 +595,20 @@ contains
     call spm2Dense_c(c_loc(spm))
   end subroutine spm2Dense
 
-  subroutine spmPrint(spm, f)
+  subroutine spmPrint(spm)
     use iso_c_binding
     implicit none
     type(pastix_spm_t), intent(in), target :: spm
-    type(c_ptr),        intent(in)         :: f
 
-    call spmPrint_c(c_loc(spm), f)
+    call spmPrint_c(c_loc(spm), c_null_ptr)
   end subroutine spmPrint
 
-  subroutine spmPrintInfo(spm, f)
+  subroutine spmPrintInfo(spm)
     use iso_c_binding
     implicit none
     type(pastix_spm_t), intent(in), target :: spm
-    type(c_ptr),        intent(in)         :: f
 
-    call spmPrintInfo_c(c_loc(spm), f)
+    call spmPrintInfo_c(c_loc(spm), c_null_ptr)
   end subroutine spmPrintInfo
 
   subroutine spmExpand(spm, spmo)
@@ -713,5 +630,6 @@ contains
 
     call c_f_pointer(spmDofExtend_c(c_loc(spm), type, dof), spmo)
   end subroutine spmDofExtend
+
 
 end module spmf
