@@ -1,9 +1,8 @@
-
 """
 
  @file enum.py
 
- PaStiX python definition of enums and datatypes
+ PaStiX python wrapper to define enums and datatypes
 
  @copyright 2017-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
@@ -17,11 +16,10 @@
 This file has been automatically generated with gen_wrappers.py
 
 """
+from ctypes import *
 import numpy as np
-import ctypes
 
-pastix_int = ctypes.@PASTIX_PYTHON_INTEGER@
-
+pastix_int = @PASTIX_PYTHON_INTEGER@
 class iparm:
     verbose               = 0
     io_strategy           = 1
