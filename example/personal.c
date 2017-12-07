@@ -16,7 +16,7 @@
  */
 #include <pastix.h>
 #include <spm.h>
-#include <order.h>
+#include <pastix/order.h>
 
 int main (int argc, char **argv)
 {

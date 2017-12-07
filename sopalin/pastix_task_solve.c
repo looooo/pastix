@@ -17,7 +17,7 @@
  **/
 #include "common.h"
 #include "bcsc.h"
-#include "order.h"
+#include "pastix/order.h"
 #include "solver.h"
 #include "sopalin_data.h"
 

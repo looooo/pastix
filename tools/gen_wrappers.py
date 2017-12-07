@@ -481,7 +481,7 @@ pastix_spm = {
 }
 
 pastix = {
-    'filename' : [ "order/order.h", "include/pastix.h" ],
+    'filename' : [ "include/pastix/order.h", "include/pastix.h" ],
     'python'   : { 'filename'    : "wrappers/python/examples/pypastix/__pastix__.py",
                    'description' : "PaStiX python wrapper",
                    'header'      : '''

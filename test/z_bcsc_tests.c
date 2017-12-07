@@ -29,7 +29,7 @@
 #include <z_spm.h>
 #include <z_bcsc.h>
 #include <bcsc.h>
-#include <order.h>
+#include <pastix/order.h>
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"
 

@@ -17,7 +17,8 @@
  **/
 #include "common.h"
 #include "spm.h"
-#include "order.h"
+#include "graph.h"
+#include "pastix/order.h"
 #include "perf.h"
 #include "elimintree.h"
 #include "cost.h"

@@ -21,7 +21,8 @@
  **/
 #include "common.h"
 #include "spm.h"
-#include "order.h"
+#include "graph.h"
+#include "pastix/order.h"
 #include "symbol.h"
 #if defined(PASTIX_DISTRIBUTED)
 #include "csc_utils.h"

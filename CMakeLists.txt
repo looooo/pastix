@@ -783,12 +783,14 @@ set(PASTIX_HDRS
   include/pastix/old_api.h
   include/pastix/datatypes.h
   include/pastix/nompi.h
+  include/pastix/order.h
   graph/graph.h
-  order/order.h
   include/cblas.h
   include/lapacke.h
 )
-install(FILES include/pastix.h DESTINATION include )
+install(FILES
+  include/pastix.h
+  DESTINATION include )
 install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
 
 ## Executable and tests

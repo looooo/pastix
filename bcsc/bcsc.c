@@ -13,7 +13,7 @@
  *
  **/
 #include "common.h"
-#include "order.h"
+#include "pastix/order.h"
 #include "spm.h"
 #include "solver.h"
 #include "bcsc.h"
