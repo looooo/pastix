@@ -158,13 +158,13 @@ endif()
 
 # PaStiX depends on CBLAS
 #----------------------------
-find_package(CBLAS COMPONENTS BLASEXT) # Should be REQUIRED for BLAS sequential only
+find_package(CBLAS) # Should be REQUIRED for BLAS sequential only
 if(CBLAS_FOUND)
     message(STATUS "cblas: ${CBLAS_INCLUDE_DIRS}")
     include_directories(${CBLAS_INCLUDE_DIRS})
 endif()
 
-find_package(LAPACKE COMPONENTS LAPACKEXT) # Should be also REQUIRED
+find_package(LAPACKE) # Should be also REQUIRED
 if(LAPACKE_FOUND)
   message(STATUS "lapacke: ${LAPACKE_INCLUDE_DIRS}")
   include_directories(${LAPACKE_INCLUDE_DIRS})
