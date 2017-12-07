@@ -33,11 +33,7 @@ foreach (_file ${EXAMPLES})
 endforeach()
 
 ### Install a makefile for user compilation test
-set( EXAMPLE_LIBS
-  ${LAPACKE_LIBRARIES}
-  ${LAPACK_SEQ_LIBRARIES}
-  ${BLAS_SEQ_LIBRARIES}
-  )
+set( EXAMPLE_LIBS ${DEPS_LIBRARIES} )
 if ( EXAMPLE_LIBS )
   list(REMOVE_DUPLICATES EXAMPLE_LIBS)
   convert_libstyle_to_pkgconfig( EXAMPLE_LIBS )

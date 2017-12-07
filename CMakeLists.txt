@@ -172,9 +172,9 @@ endif()
 
 ### Store dependencies not handled with pkg-config
 set( DEPS_LIBRARIES
+  ${CBLAS_LIBRARIES}
   ${LAPACKE_LIBRARIES}
   ${LAPACK_SEQ_LIBRARIES}
-  ${CBLAS_LIBRARIES}
   ${BLAS_SEQ_LIBRARIES}
   )
 
@@ -305,11 +305,6 @@ if (PASTIX_WITH_STARPU)
 
 endif (PASTIX_WITH_STARPU)
 
-set( DEPS_LIBRARIES
-  ${DEPS_LIBRARIES}
-  ${STARPU_LIBRARIES}
-  )
-
 # PaStiX might depend on Parsec
 #------------------------------
 if (PASTIX_WITH_PARSEC)
@@ -346,11 +341,6 @@ if (PASTIX_WITH_PARSEC)
 
 endif (PASTIX_WITH_PARSEC)
 
-set( DEPS_LIBRARIES
-  ${DEPS_LIBRARIES}
-  ${PARSEC_LIBRARIES}
-  )
-
 ### Add trace generation
 if(PASTIX_WITH_EZTRACE)
   if (NOT EZTRACE_FOUND)
@@ -360,7 +350,6 @@ if(PASTIX_WITH_EZTRACE)
   include_directories(${EZTRACE_INCLUDE_DIRS})
   link_directories(${EZTRACE_LIBRARY_DIRS})
 endif(PASTIX_WITH_EZTRACE)
-
 
 # PaStiX might depend on Scotch/PT-Scotch
 #----------------------------------------
@@ -741,6 +730,16 @@ target_link_libraries(pastix
   ${CBLAS_LIBRARIES}
   ${BLAS_SEQ_LIBRARIES}
 )
+
+if(PASTIX_ORDERING_PTSCOTCH)
+  target_link_libraries(pastix ${PTSCOTCH_LIBRARIES} )
+endif()
+if(PASTIX_ORDERING_SCOTCH)
+  target_link_libraries(pastix ${SCOTCH_LIBRARIES} )
+endif()
+if(PASTIX_ORDERING_METIS)
+  target_link_libraries(pastix ${METIS_LIBRARIES} )
+endif()
 
 if(PASTIX_WITH_PARSEC)
   target_link_libraries(pastix
