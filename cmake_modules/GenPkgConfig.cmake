@@ -140,7 +140,6 @@ macro(generate_pkgconfig_file)
     endif()
 
     list(APPEND PASTIX_PKGCONFIG_INCS
-      ${LAPACKE_INCLUDE_DIRS}
       )
     list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE
       ${LAPACKE_LIBRARIES}
