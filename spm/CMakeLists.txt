@@ -101,9 +101,9 @@ add_dependencies(pastix_spm
 ### Generate the lib
 if (MPI_C_FOUND)
   set_target_properties(pastix_spm PROPERTIES COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-target_link_libraries(pastix_spm
-  ${MPI_C_LIBRARIES}
-  )
+  target_link_libraries(pastix_spm
+    ${MPI_C_LIBRARIES}
+    )
 endif (MPI_C_FOUND)
 
 install(TARGETS pastix_spm

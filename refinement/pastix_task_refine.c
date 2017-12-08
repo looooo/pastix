@@ -22,7 +22,7 @@
 #include "c_refine_functions.h"
 #include "d_refine_functions.h"
 #include "s_refine_functions.h"
-#include "order.h"
+#include "pastix/order.h"
 
 /**
  *******************************************************************************

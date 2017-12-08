@@ -85,8 +85,8 @@ module spmf
      function spmFindBase_c(spm) &
           bind(c, name='spmFindBase')
        use iso_c_binding
-       import pastix_spm_t
        import pastix_int_t
+       import pastix_spm_t
        implicit none
        integer(kind=pastix_int_t)   :: spmFindBase_c
        type(c_ptr),           value :: spm
@@ -191,8 +191,8 @@ module spmf
      function spmMergeDuplicate_c(spm) &
           bind(c, name='spmMergeDuplicate')
        use iso_c_binding
-       import pastix_spm_t
        import pastix_int_t
+       import pastix_spm_t
        implicit none
        integer(kind=pastix_int_t)   :: spmMergeDuplicate_c
        type(c_ptr),           value :: spm
@@ -203,8 +203,8 @@ module spmf
      function spmSymmetrize_c(spm) &
           bind(c, name='spmSymmetrize')
        use iso_c_binding
-       import pastix_spm_t
        import pastix_int_t
+       import pastix_spm_t
        implicit none
        integer(kind=pastix_int_t)   :: spmSymmetrize_c
        type(c_ptr),           value :: spm
@@ -226,8 +226,8 @@ module spmf
      function spmGenRHS_c(type, nrhs, spm, x, ldx, b, ldb) &
           bind(c, name='spmGenRHS')
        use iso_c_binding
-       import pastix_spm_t
        import pastix_int_t
+       import pastix_spm_t
        implicit none
        integer(kind=c_int)               :: spmGenRHS_c
        integer(c_int),             value :: type
@@ -244,8 +244,8 @@ module spmf
      function spmCheckAxb_c(nrhs, spm, x0, ldx0, b, ldb, x, ldx) &
           bind(c, name='spmCheckAxb')
        use iso_c_binding
-       import pastix_spm_t
        import pastix_int_t
+       import pastix_spm_t
        implicit none
        integer(kind=c_int)               :: spmCheckAxb_c
        integer(kind=pastix_int_t), value :: nrhs

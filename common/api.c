@@ -19,7 +19,8 @@
 #if defined(HAVE_METIS)
 #include <metis.h>
 #endif
-#include "order.h"
+#include "graph.h"
+#include "pastix/order.h"
 #include "solver.h"
 #include "bcsc.h"
 #include "isched.h"

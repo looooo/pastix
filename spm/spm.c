@@ -668,8 +668,6 @@ spmSymmetrize( pastix_spm_t *spm )
  *
  * @param[inout] spm
  *          The pointer to the sparse matrix structure to check, and correct.
- *          On exit, the subarrays related to each column might have been sorted
- *          by ascending order.
  *
  *******************************************************************************
  *
@@ -718,6 +716,8 @@ spmCheckAndCorrect( pastix_spm_t *spm )
     else {
         //spmToLower( newspm );
     }
+
+    spmUpdateComputedFields( newspm );
 
     /*
      * Check if we return the new one, or the original one because no changes

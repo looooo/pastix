@@ -39,6 +39,19 @@ include(RulesPrecisions)
 ### System parameter detection
 include(CheckSystem)
 
+# Set the RPATH config
+# --------------------
+
+# use, i.e. don't skip the full RPATH for the build tree
+set(CMAKE_SKIP_BUILD_RPATH  FALSE)
+
+# when building, don't use the install RPATH already
+# (but later on when installing)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+
+# the RPATH to be used when installing
+list(APPEND CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
 ### Misc options
 option(BUILD_SHARED_LIBS
   "Build shared libraries" OFF)
@@ -158,13 +171,13 @@ endif()
 
 # PaStiX depends on CBLAS
 #----------------------------
-find_package(CBLAS COMPONENTS BLASEXT) # Should be REQUIRED for BLAS sequential only
+find_package(CBLAS) # Should be REQUIRED for BLAS sequential only
 if(CBLAS_FOUND)
     message(STATUS "cblas: ${CBLAS_INCLUDE_DIRS}")
     include_directories(${CBLAS_INCLUDE_DIRS})
 endif()
 
-find_package(LAPACKE COMPONENTS LAPACKEXT) # Should be also REQUIRED
+find_package(LAPACKE) # Should be also REQUIRED
 if(LAPACKE_FOUND)
   message(STATUS "lapacke: ${LAPACKE_INCLUDE_DIRS}")
   include_directories(${LAPACKE_INCLUDE_DIRS})
@@ -172,10 +185,17 @@ endif()
 
 ### Store dependencies not handled with pkg-config
 set( DEPS_LIBRARIES
+  ${CBLAS_LIBRARIES}
   ${LAPACKE_LIBRARIES}
   ${LAPACK_SEQ_LIBRARIES}
-  ${CBLAS_LIBRARIES}
   ${BLAS_SEQ_LIBRARIES}
+  )
+
+list(APPEND CMAKE_INSTALL_RPATH
+  ${LAPACKE_LIBRARY_DIRS}
+  ${LAPACK_LIBRARY_DIRS}
+  ${CBLAS_LIBRARY_DIRS}
+  ${BLAS_LIBRARY_DIRS}
   )
 
 # PaStiX depends on HwLoc
@@ -186,6 +206,9 @@ if( HWLOC_FOUND )
   link_directories( ${HWLOC_LIBRARY_DIRS} )
   link_libraries( ${HWLOC_LIBRARIES} )
   include_directories( ${HWLOC_INCLUDE_DIRS} )
+  list(APPEND CMAKE_INSTALL_RPATH
+    ${HWLOC_LIBRARY_DIRS}
+    )
 endif (HWLOC_FOUND)
 
 # PaStiX might depend on MPI
@@ -206,7 +229,6 @@ if (PASTIX_WITH_MPI)
     check_function_exists(MPI_Type_create_resized HAVE_MPI_20)
     set(CMAKE_REQUIRED_INCLUDES  "${saved_include}")
     set(CMAKE_REQUIRED_LIBRARIES "${saved_libs}")
-
   else (MPI_C_FOUND)
     message(FATAL_ERROR "MPI is required but was not found. Please provide an MPI compiler in your environment or configure with -DPASTIX_WITH_MPI=OFF")
   endif (MPI_C_FOUND)
@@ -239,7 +261,6 @@ if( PASTIX_WITH_CUDA )
         set(CMAKE_REQUIRED_LIBRARIES "${saved_libs}")
 
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DCUDA_SM_VERSION=20")
-
     else(CUDA_FOUND)
         message(FATAL_ERROR "CUDA is required but was not found. Please provide a CUDA library in your environment or configure with -DPASTIX_WITH_CUDA=OFF")
     endif (CUDA_FOUND)
@@ -299,16 +320,15 @@ if (PASTIX_WITH_STARPU)
       endif()
     endif()
 
+    list(APPEND CMAKE_INSTALL_RPATH
+      ${STARPU_LIBRARY_DIRS}
+      )
+
   else(STARPU_FOUND)
     message(FATAL_ERROR "StarPU with ${STARPU_COMPONENT_LIST} components is required but was not found. Please provide the StarPU library in your environment or configure with -DPASTIX_WITH_STARPU=OFF")
   endif()
 
 endif (PASTIX_WITH_STARPU)
-
-set( DEPS_LIBRARIES
-  ${DEPS_LIBRARIES}
-  ${STARPU_LIBRARIES}
-  )
 
 # PaStiX might depend on Parsec
 #------------------------------
@@ -336,6 +356,10 @@ if (PASTIX_WITH_PARSEC)
       include_directories(${PARSEC_INCLUDE_DIRS_DEP})
       link_directories(${PARSEC_LIBRARY_DIRS_DEP})
 
+      list(APPEND CMAKE_INSTALL_RPATH
+        ${PARSEC_LIBRARY_DIRS}
+        )
+
     else(PARSEC_FOUND)
         message(FATAL_ERROR "Parsec with ${PARSEC_COMPONENT_LIST} components is required but was not found. Please provide the PaRSEC library in your environment or configure with -DPASTIX_WITH_PARSEC=OFF")
     endif()
@@ -345,11 +369,6 @@ if (PASTIX_WITH_PARSEC)
     set(PARSEC_PTGPP_CFLAGS "--dep-management;index-array;${PARSEC_PTGPP_CFLAGS}")
 
 endif (PASTIX_WITH_PARSEC)
-
-set( DEPS_LIBRARIES
-  ${DEPS_LIBRARIES}
-  ${PARSEC_LIBRARIES}
-  )
 
 ### Add trace generation
 if(PASTIX_WITH_EZTRACE)
@@ -361,7 +380,6 @@ if(PASTIX_WITH_EZTRACE)
   link_directories(${EZTRACE_LIBRARY_DIRS})
 endif(PASTIX_WITH_EZTRACE)
 
-
 # PaStiX might depend on Scotch/PT-Scotch
 #----------------------------------------
 if (PASTIX_ORDERING_PTSCOTCH)
@@ -371,6 +389,9 @@ if (PASTIX_ORDERING_PTSCOTCH)
     link_directories( ${PTSCOTCH_LIBRARY_DIRS} )
     link_libraries( ${PTSCOTCH_LIBRARIES} )
     list(INSERT EXTRA_LIBS 1 ${PTSCOTCH_LIBRARIES} )
+    list(APPEND CMAKE_INSTALL_RPATH
+      ${PTSCOTCH_LIBRARY_DIRS}
+      )
   else (PTSCOTCH_FOUND)
     message(FATAL_ERROR "PTSCOTCH is required if PASTIX_ORDERING_PTSCOCTH is on but was not found. Please provide an PtScotch library in your environment or configure with -DPASTIX_ORDERING_PTSCOTCH=OFF")
   endif (PTSCOTCH_FOUND)
@@ -392,6 +413,10 @@ if (PASTIX_ORDERING_SCOTCH)
     link_directories( ${SCOTCH_LIBRARY_DIRS} )
     link_libraries( ${SCOTCH_LIBRARIES} )
     list(APPEND EXTRA_LIBS ${SCOTCH_LIBRARIES} )
+
+    list(APPEND CMAKE_INSTALL_RPATH
+      ${SCOTCH_LIBRARY_DIRS}
+      )
   else()
     message(FATAL_ERROR "Scotch is required but was not found. Please provide a Scotch library in your environment or configure with -DPASTIX_ORDERING_SCOTCH=OFF")
   endif()
@@ -419,6 +444,9 @@ if (PASTIX_ORDERING_METIS)
     include_directories( ${METIS_INCLUDE_DIRS} )
     link_directories( ${METIS_LIBRARY_DIRS} )
     link_libraries( ${METIS_LIBRARIES} )
+    list(APPEND CMAKE_INSTALL_RPATH
+      ${METIS_LIBRARY_DIRS}
+      )
   else()
     message(FATAL_ERROR "Metis is required but was not found. Please provide a Metis library in your environment or configure with -DPASTIX_ORDERING_METIS=OFF")
   endif()
@@ -742,6 +770,16 @@ target_link_libraries(pastix
   ${BLAS_SEQ_LIBRARIES}
 )
 
+if(PASTIX_ORDERING_PTSCOTCH)
+  target_link_libraries(pastix ${PTSCOTCH_LIBRARIES} )
+endif()
+if(PASTIX_ORDERING_SCOTCH)
+  target_link_libraries(pastix ${SCOTCH_LIBRARIES} )
+endif()
+if(PASTIX_ORDERING_METIS)
+  target_link_libraries(pastix ${METIS_LIBRARIES} )
+endif()
+
 if(PASTIX_WITH_PARSEC)
   target_link_libraries(pastix
     pastix_parsec
@@ -783,12 +821,14 @@ set(PASTIX_HDRS
   include/pastix/old_api.h
   include/pastix/datatypes.h
   include/pastix/nompi.h
+  include/pastix/order.h
   graph/graph.h
-  order/order.h
   include/cblas.h
   include/lapacke.h
 )
-install(FILES include/pastix.h DESTINATION include )
+install(FILES
+  include/pastix.h
+  DESTINATION include )
 install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
 
 ## Executable and tests

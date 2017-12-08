@@ -16,7 +16,7 @@
  **/
 #include "common.h"
 #include "graph.h"
-#include "order.h"
+#include "pastix/order.h"
 #include <metis.h>
 
 /**

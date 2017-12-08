@@ -14,7 +14,8 @@
  *
  **/
 #include "common.h"
-#include "order.h"
+#include "graph.h"
+#include "pastix/order.h"
 
 /**
  *******************************************************************************

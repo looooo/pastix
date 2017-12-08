@@ -15,7 +15,7 @@
  **/
 #include "common.h"
 #include "graph.h"
-#include "order.h"
+#include "pastix/order.h"
 #include "symbol.h"
 #include "symbol_kass.h"
 

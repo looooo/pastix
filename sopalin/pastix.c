@@ -17,7 +17,7 @@
  **/
 #include "common.h"
 #include "spm.h"
-#include "order.h"
+#include "pastix/order.h"
 
 /**
  *******************************************************************************

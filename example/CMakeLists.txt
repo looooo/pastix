@@ -8,6 +8,7 @@
 #  @date 2013-06-24
 #
 ###
+include(GenPkgConfig)
 
 add_subdirectory(old)
 set (EXAMPLES
@@ -32,11 +33,13 @@ foreach (_file ${EXAMPLES})
 endforeach()
 
 ### Install a makefile for user compilation test
-set( EXAMPLE_LIBS
-  ${DEPS_LIBRARIES}
-  )
-list(REMOVE_DUPLICATES EXAMPLE_LIBS)
-string(REPLACE ";" " " EXAMPLE_LIBS "${EXAMPLE_LIBS}")
+set( EXAMPLE_LIBS ${DEPS_LIBRARIES} )
+if ( EXAMPLE_LIBS )
+  list(REMOVE_DUPLICATES EXAMPLE_LIBS)
+  convert_libstyle_to_pkgconfig( EXAMPLE_LIBS )
+  string(REPLACE ";" " " EXAMPLE_LIBS "${EXAMPLE_LIBS}")
+endif()
+
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/Makefile.in"
   "${CMAKE_CURRENT_BINARY_DIR}/make/Makefile" @ONLY)

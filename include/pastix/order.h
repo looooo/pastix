@@ -26,7 +26,7 @@
 #ifndef _pastix_order_h_
 #define _pastix_order_h_
 
-#include "graph.h"
+#include "pastix/datatypes.h"
 
 /**
  * @brief Order structure.

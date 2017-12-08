@@ -22,7 +22,7 @@
 #include "common.h"
 #include "spm.h"
 #include "graph.h"
-#include "order.h"
+#include "pastix/order.h"
 
 /**
  *******************************************************************************
