@@ -870,7 +870,7 @@ add_documented_files(
   graph/graph_prepare.c
   graph/graph_symmetrize.c
   #
-  order/order.h
+  include/pastix/order.h
   #order/order_scotch_strats.h TODO: include in developer version
   order/order.c
   order/order_add_isolate.c
