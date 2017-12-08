@@ -141,6 +141,8 @@ option(COMPACT_SMX
 # Options to increase verbosity while debuging
 option(PASTIX_DEBUG_GRAPH
   "Debug the graph data structure" OFF)
+option(PASTIX_DEBUG_ORDERING
+  "Debug the ordering step" OFF)
 option(PASTIX_DEBUG_SYMBOL
   "Debug the symbol matrix factorization" OFF)
 option(PASTIX_DEBUG_BLEND

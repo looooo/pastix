@@ -101,6 +101,7 @@
 
 /* Debug */
 #cmakedefine PASTIX_DEBUG_GRAPH
+#cmakedefine PASTIX_DEBUG_ORDERING
 #cmakedefine PASTIX_DEBUG_SYMBOL
 #cmakedefine PASTIX_DEBUG_BLEND
 #cmakedefine PASTIX_DEBUG_DUMP_COEFTAB
