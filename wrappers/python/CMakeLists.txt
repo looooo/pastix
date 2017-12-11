@@ -23,6 +23,8 @@ configure_file(
 # Install python package
 install(FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/__init__.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/__spm__.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/__pastix__.py
   ${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/spm.py
   ${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/pastix.py
   ${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/enum.py
