@@ -26,9 +26,13 @@ set(PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VER
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
 include(AddSourceFiles)
 
-set( MORSE_CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules/morse_cmake/modules )
-list(APPEND CMAKE_MODULE_PATH ${MORSE_CMAKE_MODULE_PATH})
-include(MorseInit)
+if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake_modules/morse_cmake/modules)
+  set( MORSE_CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules/morse_cmake/modules )
+  list(APPEND CMAKE_MODULE_PATH ${MORSE_CMAKE_MODULE_PATH})
+  include(MorseInit)
+else()
+  message(FATAL_ERROR "Submodule cmake_morse not initialized - run `git submodule update --init`")
+endif()
 
 # Define precision supported by MAGMA_MORSE
 # -----------------------------------------
