@@ -82,7 +82,7 @@ pages:
     - source .gitlab-ci-env.sh
     - mkdir -p build
     - cd build
-    - cmake .. -DBUILD_DOCUMENTATION=ON
+    - cmake .. -DBUILD_DOCUMENTATION=ON -DPASTIX_WITH_STARPU=ON -DPASTIX_WITH_PARSEC=ON -DPASTIX_INT64=OFF
     - make docs
     - mv docs/out/html ../public/
   artifacts:
