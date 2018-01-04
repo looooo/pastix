@@ -28,67 +28,19 @@ order_grid2D_classic( pastix_int_t *peritab,
                       pastix_int_t ldax,
                       pastix_int_t lday )
 {
-    pastix_int_t dir, i;
+    pastix_int_t i, j;
     pastix_int_t nx = xn-x0;
     pastix_int_t ny = yn-y0;
 
-    /* The subgraph is small enough */
-    if (nx*ny < 50){
-        pastix_int_t j;
-        pastix_int_t current = 0;
-        for (i=0; i<nx; i++){
-            for (j=0; j<ny; j++){
-                pastix_int_t index = (x0 + i) * ldax + (y0 + j) * lday;
-                peritab[index] = max_number[0] - current;
-                current++;
-            }
-        }
-        max_number[0] -= current;
-        return;
-    }
-
-    /* In which direction do we cut? 0 for x, 1 for y */
-    dir = 0;
-    if (ny > nx)
-        dir = 1;
-
-    /* If we cut in direction x */
-    if (dir == 0){
-        pastix_int_t current = 0;
-        for (i=0; i<ny; i++){
-            pastix_int_t index = (x0 + nx/2) * ldax + (y0+i) * lday;
+    pastix_int_t current = 0;
+    for (i=0; i<nx; i++){
+        for (j=0; j<ny; j++){
+            pastix_int_t index = (x0 + i) * ldax + (y0 + j) * lday;
             peritab[index] = max_number[0] - current;
             current++;
         }
-        max_number[0] -= current;
-
-        order_grid2D_classic(peritab,
-                             x0, x0 + nx/2, y0, yn, max_number,
-                             ldax, lday);
-
-        order_grid2D_classic(peritab,
-                             x0+nx/2+1, xn, y0, yn, max_number,
-                             ldax, lday);
     }
-
-    /* If we cut in direction y */
-    else if (dir == 1){
-        pastix_int_t current = 0;
-        for (i=0; i<nx; i++){
-            pastix_int_t index = (x0 + i)*ldax + lday * (y0+ny/2);
-            peritab[index] = max_number[0] - current;
-            current++;
-        }
-        max_number[0] -= current;
-
-        order_grid2D_classic(peritab,
-                             x0, xn, y0, y0+ny/2, max_number,
-                             ldax, lday);
-
-        order_grid2D_classic(peritab,
-                             x0, xn, y0+ny/2+1, yn, max_number,
-                             ldax, lday);
-    }
+    max_number[0] -= current;
 }
 
 void
@@ -122,7 +74,7 @@ order_grid3D_classic( pastix_int_t *rangtab,
         for (i=x0; i<xn; i++){
             for (j=y0; j<yn; j++){
                 for (k=z0; k<zn; k++){
-                    pastix_int_t index = i + lday * j + ldaz*ldaz * k;
+                    pastix_int_t index = i + ldax * j + ldax*lday * k;
                     peritab[index] = max_number[0] - current;
                     current++;
                 }
@@ -156,7 +108,7 @@ order_grid3D_classic( pastix_int_t *rangtab,
         order_grid2D_classic(peritab_separator,
                              y0, yn, z0, zn,
                              max_number,
-                             lday, ldaz*ldaz);
+                             ldax, ldax * lday);
 
         /* Order nested dissection subparts */
         order_grid3D_classic(rangtab, peritab, cblknbr,
@@ -180,11 +132,11 @@ order_grid3D_classic( pastix_int_t *rangtab,
         current_rangtab[0]++;
 
         /* Order separator */
-        pastix_int_t *peritab_separator = peritab + lday * (y0 + ny / 2);
+        pastix_int_t *peritab_separator = peritab + ldax * (y0 + ny / 2);
         order_grid2D_classic(peritab_separator,
                              x0, xn, z0, zn,
                              max_number,
-                             1, ldaz*ldaz);
+                             1, ldax * lday);
 
         /* Order nested dissection subparts */
         order_grid3D_classic(rangtab, peritab, cblknbr,
@@ -208,11 +160,11 @@ order_grid3D_classic( pastix_int_t *rangtab,
         current_rangtab[0]++;
 
         /* Order separator */
-        pastix_int_t *peritab_separator = peritab + ldaz * ldaz * (z0 + nz/2);
+        pastix_int_t *peritab_separator = peritab + ldax * lday * (z0 + nz/2);
         order_grid2D_classic(peritab_separator,
                              x0, xn, y0, yn,
                              max_number,
-                             1, lday);
+                             1, ldax);
 
         /* Order nested dissection subparts */
         order_grid3D_classic(rangtab, peritab, cblknbr,
