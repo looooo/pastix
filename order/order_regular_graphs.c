@@ -18,6 +18,40 @@
 #include "graph.h"
 #include "pastix/order.h"
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_ordering
+ *
+ * order_grid2D_classic - Orders a separator without any property
+ *
+ *******************************************************************************
+ *
+ * @param[out] peritab
+ *          The inverse permutation array
+ *
+ * @param[in] x0
+ *          The number of the first vertex in the first direction
+ *
+ * @param[in] xn
+ *          The number of the second vertex in the first direction
+ *
+ * @param[in] y0
+ *          The number of the first vertex in the second direction
+ *
+ * @param[in] yn
+ *          The number of the second vertex in the second direction
+ *
+ * @param[in,out] max_number
+ *          The larger number to be attributed
+ *
+ * @param[in] ldax
+ *          The leading dimension in the first direction
+ *
+ * @param[in] lday
+ *          The leading dimension in the second direction
+ *
+ *******************************************************************************/
 void
 order_grid2D_classic( pastix_int_t *peritab,
                       pastix_int_t x0,
@@ -32,17 +66,74 @@ order_grid2D_classic( pastix_int_t *peritab,
     pastix_int_t nx = xn-x0;
     pastix_int_t ny = yn-y0;
 
-    pastix_int_t current = 0;
     for (i=0; i<nx; i++){
         for (j=0; j<ny; j++){
             pastix_int_t index = (x0 + i) * ldax + (y0 + j) * lday;
-            peritab[index] = max_number[0] - current;
-            current++;
+            peritab[index] = max_number[0]--;
         }
     }
-    max_number[0] -= current;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_ordering
+ *
+ * order_grid3D_classic - Order a 3D Laplacian with quasi optimal ordering:
+ * the current separator is  selected as a plan in the smaller direction.
+ *
+ *******************************************************************************
+ *
+ * @param[out] rangtab
+ *          The rangtab array that describes the supernodes in the graph.
+ *
+ * @param[out] peritab
+ *          The inverse permutation array
+ *
+ * @param[out] cblknbr
+ *          The number of supernodes. The internal rangtab and treetab arrays
+ *          are of size cblknbr+1
+ *
+ * @param[in] x0
+ *          The number of the first vertex in the first direction
+ *
+ * @param[in] xn
+ *          The number of the second vertex in the first direction
+ *
+ * @param[in] y0
+ *          The number of the first vertex in the second direction
+ *
+ * @param[in] yn
+ *          The number of the second vertex in the second direction
+ *
+ * @param[in] z0
+ *          The number of the first vertex in the third direction
+ *
+ * @param[in] zn
+ *          The number of the second vertex in the third direction
+ *
+ * @param[in,out] max_number
+ *          The larger number to be attributed
+ *
+ * @param[out] current_rangtab
+ *          The index of the current supernode in rangtab
+ *
+ * @param[out] treetab
+ *          The treetab array that describes the elimination tree
+ *
+ * @param[in] current_treetab
+ *          The index of the current supernode in treetab
+ *
+ * @param[in] ldax
+ *          The leading dimension in the first direction
+ *
+ * @param[in] lday
+ *          The leading dimension in the second direction
+ *
+ * @param[in] ldaz
+ *          The leading dimension in the third direction
+ *
+ *******************************************************************************/
 void
 order_grid3D_classic( pastix_int_t *rangtab,
                       pastix_int_t *peritab,
@@ -61,13 +152,14 @@ order_grid3D_classic( pastix_int_t *rangtab,
                       pastix_int_t lday,
                       pastix_int_t ldaz )
 {
-    pastix_int_t dir, i, j;
-    pastix_int_t nx = xn-x0;
-    pastix_int_t ny = yn-y0;
-    pastix_int_t nz = zn-z0;
+    pastix_int_t  dir, i, j;
+    pastix_int_t  nx = xn-x0;
+    pastix_int_t  ny = yn-y0;
+    pastix_int_t  nz = zn-z0;
+    pastix_int_t *peritab_separator;
 
     /* The subgraph is small enough */
-    if (nx*ny*nz < 50){
+    if (nx*ny*nz < 15){
         pastix_int_t k;
         pastix_int_t current = 0;
         cblknbr[0] ++;
@@ -104,13 +196,13 @@ order_grid3D_classic( pastix_int_t *rangtab,
         current_rangtab[0]++;
 
         /* Order separator */
-        pastix_int_t *peritab_separator = peritab + x0 + nx/2;
+        peritab_separator = peritab + x0 + nx/2;
         order_grid2D_classic(peritab_separator,
                              y0, yn, z0, zn,
                              max_number,
                              ldax, ldax * lday);
 
-        /* Order nested dissection subparts */
+        /* Order subparts with nested dissection */
         order_grid3D_classic(rangtab, peritab, cblknbr,
                              x0, x0 + nx/2, y0, yn, z0, zn, max_number,
                              current_rangtab,
@@ -132,13 +224,13 @@ order_grid3D_classic( pastix_int_t *rangtab,
         current_rangtab[0]++;
 
         /* Order separator */
-        pastix_int_t *peritab_separator = peritab + ldax * (y0 + ny / 2);
+        peritab_separator = peritab + ldax * (y0 + ny / 2);
         order_grid2D_classic(peritab_separator,
                              x0, xn, z0, zn,
                              max_number,
                              1, ldax * lday);
 
-        /* Order nested dissection subparts */
+        /* Order subparts with nested dissection */
         order_grid3D_classic(rangtab, peritab, cblknbr,
                              x0, xn, y0, y0+ny/2, z0, zn, max_number,
                              current_rangtab,
@@ -160,13 +252,13 @@ order_grid3D_classic( pastix_int_t *rangtab,
         current_rangtab[0]++;
 
         /* Order separator */
-        pastix_int_t *peritab_separator = peritab + ldax * lday * (z0 + nz/2);
+        peritab_separator = peritab + ldax * lday * (z0 + nz/2);
         order_grid2D_classic(peritab_separator,
                              x0, xn, y0, yn,
                              max_number,
                              1, ldax);
 
-        /* Order nested dissection subparts */
+        /* Order subparts with nested dissection */
         order_grid3D_classic(rangtab, peritab, cblknbr,
                              x0, xn, y0, yn, z0, z0+nz/2, max_number,
                              current_rangtab,
