@@ -76,8 +76,8 @@
  *
  * @param[inout] myorder
  *          On entry, the permutation provide by the user if IPARM_ORDERING
- *          parameter set to PatixOrderPersonal. Not read otherwise.
- *          On exit, if the stucture attributs != NULL and IPARM_ORDERING parameter
+ *          parameter set to PastixOrderPersonal. Not read otherwise.
+ *          On exit, if the structure attributs != NULL and IPARM_ORDERING parameter
  *          is not set to PastixOrderPersonal, contains the permutation generated.
  *          Otherwise, it is not referenced.
  *
