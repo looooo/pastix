@@ -645,8 +645,8 @@ set(PASTIX_LIB_SRCS
   order/order_apply_level_order.c
   order/order_check.c
   order/order_find_supernodes.c
+  order/order_grids.c
   order/order_io.c
-  order/order_regular_graphs.c
   order/pastix_subtask_order.c
   #
   symbol/symbol.c

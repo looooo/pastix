@@ -1,5 +1,5 @@
 /**
- * @file optimal_ordering.c
+ * @file ordering_grid.c
  *
  * @brief Partition by hand a regular Laplacian
  *
@@ -17,6 +17,7 @@
 #include <pastix.h>
 #include <spm.h>
 #include <pastix/order.h>
+#include "drivers/laplacian.h"
 
 int main (int argc, char **argv)
 {
@@ -32,6 +33,7 @@ int main (int argc, char **argv)
     int             nrhs = 1;
     pastix_order_t *ord;
     pastix_int_t    dim1, dim2, dim3;
+    double          alpha, beta;
 
     /**
      * Initialize parameters to default values
@@ -77,7 +79,7 @@ int main (int argc, char **argv)
      * Build optimal ordering (for laplacians only)
      */
     if ( driver != PastixDriverLaplacian ){
-        fprintf(stderr, "Optimal ordering can be used throught PastixDriverLaplacian driver only\n");
+        fprintf(stderr, "Grid ordering can be used throught PastixDriverLaplacian driver only\n");
         return EXIT_FAILURE;
         exit(1);
     }
@@ -85,48 +87,10 @@ int main (int argc, char **argv)
     /**
      * Parse Laplacian dimensions
      */
-    {
-        char flt;
-        char *tmpf = strndup( filename, 256 );
-        double val1, val2;
-        long tmp1, tmp2, tmp3;
-
-        if ( sscanf( filename, "%c:%254s", &flt, tmpf ) == 2 ) {
-            filename += 2;
-        }
-        dim1 = dim2 = dim3 = 1;
-
-        if ( sscanf( filename, "%ld:%ld:%ld:%lf:%lf", &tmp1, &tmp2, &tmp3, &val1, &val2 ) == 5 ) {
-            dim1 = (pastix_int_t)tmp1;
-            dim2 = (pastix_int_t)tmp2;
-            dim3 = (pastix_int_t)tmp3;
-            spm->gN = (dim1)*(dim2)*(dim3);
-        }
-        else if ( sscanf( filename, "%ld:%ld:%ld:%lf", &tmp1, &tmp2, &tmp3, &val1 ) == 4 ) {
-            dim1 = (pastix_int_t)tmp1;
-            dim2 = (pastix_int_t)tmp2;
-            dim3 = (pastix_int_t)tmp3;
-            spm->gN = (dim1)*(dim2)*(dim3);
-        }
-        else if ( sscanf( filename, "%ld:%ld:%ld", &tmp1, &tmp2, &tmp3 ) == 3 ) {
-            dim1 = (pastix_int_t)tmp1;
-            dim2 = (pastix_int_t)tmp2;
-            dim3 = (pastix_int_t)tmp3;
-            spm->gN = (dim1)*(dim2)*(dim3);
-        }
-        else if ( sscanf( filename, "%ld:%ld", &tmp1, &tmp2 ) == 2 ) {
-            dim1 = (pastix_int_t)tmp1;
-            dim2 = (pastix_int_t)tmp2;
-            spm->gN = (dim1)*(dim2);
-        }
-        else if ( sscanf( filename, "%ld", &tmp1 ) == 1 ) {
-            dim1 = (pastix_int_t)tmp1;
-            spm->gN = dim1;
-        }
-    }
+    laplacian_parse_info( filename, spm, &dim1, &dim2, &dim3, &alpha, &beta );
 
     ord = malloc(sizeof(pastix_order_t));
-    orderComputeOptimal( &ord, dim1, dim2, dim3 );
+    pastixOrderGrid( &ord, dim1, dim2, dim3 );
     free(filename);
 
     /**
@@ -198,6 +162,8 @@ int main (int argc, char **argv)
     free(x);
     if (x0) free(x0);
 
+    (void) alpha;
+    (void) beta;
     return EXIT_SUCCESS;
 }
 

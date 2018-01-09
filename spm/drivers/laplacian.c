@@ -97,7 +97,7 @@ laplacian_usage(void)
  * @retval PASTIX_ERR_BADPARAMETER if the configuration string is incorrect
  *
  *******************************************************************************/
-static inline int
+int
 laplacian_parse_info( const char   *filename,
                       pastix_spm_t *spm,
                       pastix_int_t *dim1,

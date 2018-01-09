@@ -1,14 +1,13 @@
 /**
  *
- * @file order_regular_graphs.c
+ * @file order_grids.c
  *
- *  PaStiX order routines
- *  PaStiX is a software package provided by Inria Bordeaux - Sud-Ouest,
- *  LaBRI, University of Bordeaux 1 and IPB.
+ * PaStiX order grids routines
  *
- * Contains the routine to compute ordering on regular grids/cubes
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 5.1.0
+ * @version 6.0.0
  * @author Gregoire Pichon
  * @date 2016-05-19
  *
@@ -31,16 +30,16 @@
  *          The inverse permutation array
  *
  * @param[in] x0
- *          The number of the first vertex in the first direction
+ *          The index of the first vertex in the first direction
  *
  * @param[in] xn
- *          The number of the second vertex in the first direction
+ *          The index of the second vertex in the first direction
  *
  * @param[in] y0
- *          The number of the first vertex in the second direction
+ *          The index of the first vertex in the second direction
  *
  * @param[in] yn
- *          The number of the second vertex in the second direction
+ *          The index of the second vertex in the second direction
  *
  * @param[in,out] max_number
  *          The larger number to be attributed
@@ -95,22 +94,22 @@ order_grid2D_classic( pastix_int_t *peritab,
  *          are of size cblknbr+1
  *
  * @param[in] x0
- *          The number of the first vertex in the first direction
+ *          The index of the first vertex in the first direction
  *
  * @param[in] xn
- *          The number of the second vertex in the first direction
+ *          The index of the second vertex in the first direction
  *
  * @param[in] y0
- *          The number of the first vertex in the second direction
+ *          The index of the first vertex in the second direction
  *
  * @param[in] yn
- *          The number of the second vertex in the second direction
+ *          The index of the second vertex in the second direction
  *
  * @param[in] z0
- *          The number of the first vertex in the third direction
+ *          The index of the first vertex in the third direction
  *
  * @param[in] zn
- *          The number of the second vertex in the third direction
+ *          The index of the second vertex in the third direction
  *
  * @param[in,out] max_number
  *          The larger number to be attributed
@@ -302,10 +301,10 @@ order_grid3D_classic( pastix_int_t *rangtab,
  *
  *******************************************************************************/
 int
-orderComputeOptimal( pastix_order_t **myorder,
-                     pastix_int_t     nx,
-                     pastix_int_t     ny,
-                     pastix_int_t     nz )
+pastixOrderGrid( pastix_order_t **myorder,
+                 pastix_int_t     nx,
+                 pastix_int_t     ny,
+                 pastix_int_t     nz )
 {
     pastix_order_t *ordemesh = *myorder;
     pastix_int_t n = nx * ny * nz;
