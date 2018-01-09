@@ -110,6 +110,12 @@ class spm():
         self.dtype = coeftype.getnptype( self.spm_c.flttype )
         self.checkAndCorrect()
 
+    def scale( self, alpha ):
+        return pyspm_spmScalMatrix( float(alpha), self.id_ptr )
+
+    def norm( self, ntype=normtype.Frobenius ):
+        return pyspm_spmNorm( ntype, self.id_ptr )
+
     def base( self, baseval ):
         pyspm_spmBase( self.id_ptr, baseval )
 

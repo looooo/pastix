@@ -23,6 +23,7 @@ program fsimple
   type(pastix_spm_t),         pointer                    :: spm2
   integer(kind=pastix_int_t), target                     :: iparm(iparm_size)
   real(kind=c_double),        target                     :: dparm(dparm_size)
+  real(kind=c_double)                                    :: normA
   integer(c_int)                                         :: info
   integer(kind=pastix_int_t)                             :: nrhs
   real(kind=c_double), dimension(:), allocatable, target :: x0, x, b
@@ -40,6 +41,10 @@ program fsimple
   end if
 
   call spmPrintInfo( spm )
+
+  ! Scale A for better stability with low-rank computations
+  call spmNorm( PastixFrobeniusNorm, spm, normA )
+  call spmScalMatrix( 1. / normA, spm )
 
   !   2- The right hand side
   nrhs = 1
