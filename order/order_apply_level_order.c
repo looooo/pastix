@@ -273,8 +273,9 @@ pastixOrderApplyLevelOrder( pastix_order_t *order,
 
             for(s=0; s<sonsnbr; s++) {
                 pastix_int_t son = eTreeSonI(etree, node, s);
-                if (is_2D[son] == 1)
+                if (is_2D[son] == 1) {
                     sons2D++;
+                }
             }
 
             /*
