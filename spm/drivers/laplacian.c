@@ -70,11 +70,8 @@ laplacian_usage(void)
  *          Configuration string of the Laplacian. See laplacian_usage() for
  *          more information.
  *
- * @param[inout] spm
- *          At start, an allocated spm structure that will store the Lapalcian
- *          matrix.
- *          At exit, the fields of the spm are initialized and especially the
- *          type, symmetry and number of unknows are setup.
+ * @param[out] flttype
+ *          The floating type of the elements in the matrix.
  *
  * @param[out] dim1
  *          The first dimension of the laplacian
@@ -98,20 +95,16 @@ laplacian_usage(void)
  *
  *******************************************************************************/
 int
-laplacian_parse_info( const char   *filename,
-                      pastix_spm_t *spm,
-                      pastix_int_t *dim1,
-                      pastix_int_t *dim2,
-                      pastix_int_t *dim3,
-                      double       *alpha,
-                      double       *beta )
+laplacian_parse_info( const char        *filename,
+                      pastix_coeftype_t *flttype,
+                      pastix_int_t      *dim1,
+                      pastix_int_t      *dim2,
+                      pastix_int_t      *dim3,
+                      double            *alpha,
+                      double            *beta )
 {
     double val1, val2;
     long tmp1, tmp2, tmp3;
-    spm->colptr   = NULL;
-    spm->rowptr   = NULL;
-    spm->values   = NULL;
-    spm->loc2glob = NULL;
 
     *alpha = 1.;
     *beta = 1.;
@@ -126,27 +119,27 @@ laplacian_parse_info( const char   *filename,
             switch( flt ){
             case 'Z':
             case 'z':
-                spm->flttype = PastixComplex64;
+                *flttype = PastixComplex64;
                 break;
 
             case 'C':
             case 'c':
-                spm->flttype = PastixComplex32;
+                *flttype = PastixComplex32;
                 break;
 
             case 'D':
             case 'd':
-                spm->flttype = PastixDouble;
+                *flttype = PastixDouble;
                 break;
 
             case 'S':
             case 's':
-                spm->flttype = PastixFloat;
+                *flttype = PastixFloat;
                 break;
 
             case 'P':
             case 'p':
-                spm->flttype = PastixPattern;
+                *flttype = PastixPattern;
                 break;
 
             case '1':
@@ -158,7 +151,7 @@ laplacian_parse_info( const char   *filename,
             case '7':
             case '8':
             case '9':
-                spm->flttype = PastixDouble;
+                *flttype = PastixDouble;
                 /*
                  * The first dimension is only one character long so we come
                  * back to the beginning of the string
@@ -172,7 +165,7 @@ laplacian_parse_info( const char   *filename,
             }
         }
         else {
-            spm->flttype = PastixDouble;
+            *flttype = PastixDouble;
         }
 
         free(tmpf);
@@ -187,29 +180,24 @@ laplacian_parse_info( const char   *filename,
         *dim3 = (pastix_int_t)tmp3;
         *alpha = val1;
         *beta  = val2;
-        spm->gN = (*dim1)*(*dim2)*(*dim3);
     }
     else if ( sscanf( filename, "%ld:%ld:%ld:%lf", &tmp1, &tmp2, &tmp3, &val1 ) == 4 ) {
         *dim1 = (pastix_int_t)tmp1;
         *dim2 = (pastix_int_t)tmp2;
         *dim3 = (pastix_int_t)tmp3;
         *alpha = val1;
-        spm->gN = (*dim1)*(*dim2)*(*dim3);
     }
     else if ( sscanf( filename, "%ld:%ld:%ld", &tmp1, &tmp2, &tmp3 ) == 3 ) {
         *dim1 = (pastix_int_t)tmp1;
         *dim2 = (pastix_int_t)tmp2;
         *dim3 = (pastix_int_t)tmp3;
-        spm->gN = (*dim1)*(*dim2)*(*dim3);
     }
     else if ( sscanf( filename, "%ld:%ld", &tmp1, &tmp2 ) == 2 ) {
         *dim1 = (pastix_int_t)tmp1;
         *dim2 = (pastix_int_t)tmp2;
-        spm->gN = (*dim1)*(*dim2);
     }
     else if ( sscanf( filename, "%ld", &tmp1 ) == 1 ) {
         *dim1 = (pastix_int_t)tmp1;
-        spm->gN = *dim1;
     }
     else {
         laplacian_usage();
@@ -217,12 +205,11 @@ laplacian_parse_info( const char   *filename,
     }
 
     /* One of the dimension was set to 0 */
-    if ( spm->gN == 0 ) {
+    if ( (*dim1 == 0) || (*dim2 == 0) || (*dim3 == 0) ) {
         laplacian_usage();
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    spm->n = spm->gN;
     return PASTIX_SUCCESS;
 }
 
@@ -292,14 +279,18 @@ int
 genLaplacian( const char    *filename,
               pastix_spm_t  *spm )
 {
+    pastix_coeftype_t flttype;
     pastix_int_t dim1, dim2, dim3;
     double alpha = 1.;
     double beta = 1.;
     int rc;
 
-    rc = laplacian_parse_info(filename, spm, &dim1, &dim2, &dim3, &alpha, &beta );
+    rc = laplacian_parse_info(filename, &flttype, &dim1, &dim2, &dim3, &alpha, &beta );
     if (rc != PASTIX_SUCCESS)
         return rc;
+
+    spm->flttype = flttype;
+    spm->n = spm->gN = dim1 * dim2 * dim3;
 
     laplacian_7points[spm->flttype](spm, dim1, dim2, dim3, alpha, beta);
 
@@ -342,14 +333,18 @@ int
 genExtendedLaplacian( const char    *filename,
                       pastix_spm_t  *spm )
 {
+    pastix_coeftype_t flttype;
     pastix_int_t dim1, dim2, dim3;
     double alpha = 1.;
     double beta = 1.;
     int rc;
 
-    rc = laplacian_parse_info(filename, spm, &dim1, &dim2, &dim3, &alpha, &beta);
+    rc = laplacian_parse_info(filename, &flttype, &dim1, &dim2, &dim3, &alpha, &beta);
     if (rc != PASTIX_SUCCESS)
         return rc;
+
+    spm->flttype = flttype;
+    spm->n = spm->gN = dim1 * dim2 * dim3;
 
     if( dim3 > 0 ) {
         extended_laplacian_table3D[spm->flttype](spm, dim1, dim2, dim3);

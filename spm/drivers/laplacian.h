@@ -32,12 +32,12 @@ void d_spmExtendedLaplacian3D( pastix_spm_t *spm, pastix_int_t dim1, pastix_int_
 void s_spmExtendedLaplacian3D( pastix_spm_t *spm, pastix_int_t dim1, pastix_int_t dim2, pastix_int_t dim3 );
 void p_spmExtendedLaplacian3D( pastix_spm_t *spm, pastix_int_t dim1, pastix_int_t dim2, pastix_int_t dim3 );
 
-int laplacian_parse_info( const char   *filename,
-                          pastix_spm_t *spm,
-                          pastix_int_t *dim1,
-                          pastix_int_t *dim2,
-                          pastix_int_t *dim3,
-                          double       *alpha,
-                          double       *beta );
+int laplacian_parse_info( const char        *filename,
+                          pastix_coeftype_t *flttype,
+                          pastix_int_t      *dim1,
+                          pastix_int_t      *dim2,
+                          pastix_int_t      *dim3,
+                          double            *alpha,
+                          double            *beta );
 
 #endif /* _laplacian_h_ */

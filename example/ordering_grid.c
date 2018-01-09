@@ -21,19 +21,20 @@
 
 int main (int argc, char **argv)
 {
-    pastix_data_t  *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
-    pastix_int_t    iparm[IPARM_SIZE];  /*< Integer in/out parameters for pastix                */
-    double          dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
-    pastix_driver_t driver;
-    char           *filename;
-    pastix_spm_t   *spm, *spm2;
-    void           *x, *b, *x0 = NULL;
-    size_t          size;
-    int             check = 1;
-    int             nrhs = 1;
-    pastix_order_t *ord;
-    pastix_int_t    dim1, dim2, dim3;
-    double          alpha, beta;
+    pastix_data_t    *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
+    pastix_int_t      iparm[IPARM_SIZE];  /*< Integer in/out parameters for pastix                */
+    double            dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
+    pastix_driver_t   driver;
+    char             *filename;
+    pastix_spm_t     *spm, *spm2;
+    void             *x, *b, *x0 = NULL;
+    size_t            size;
+    int               check = 1;
+    int               nrhs = 1;
+    pastix_order_t   *ord;
+    pastix_int_t      dim1, dim2, dim3;
+    pastix_coeftype_t flttype;
+    double            alpha, beta;
 
     /**
      * Initialize parameters to default values
@@ -87,7 +88,7 @@ int main (int argc, char **argv)
     /**
      * Parse Laplacian dimensions
      */
-    laplacian_parse_info( filename, spm, &dim1, &dim2, &dim3, &alpha, &beta );
+    laplacian_parse_info( filename, &flttype, &dim1, &dim2, &dim3, &alpha, &beta );
 
     ord = malloc(sizeof(pastix_order_t));
     pastixOrderGrid( &ord, dim1, dim2, dim3 );
@@ -162,6 +163,7 @@ int main (int argc, char **argv)
     free(x);
     if (x0) free(x0);
 
+    (void) flttype;
     (void) alpha;
     (void) beta;
     return EXIT_SUCCESS;
