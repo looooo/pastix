@@ -290,7 +290,7 @@ genLaplacian( const char    *filename,
         return rc;
 
     spm->flttype = flttype;
-    spm->n = spm->gN = dim1 * dim2 * dim3;
+    spm->n = dim1 * dim2 * dim3;
 
     laplacian_7points[spm->flttype](spm, dim1, dim2, dim3, alpha, beta);
 
@@ -344,7 +344,7 @@ genExtendedLaplacian( const char    *filename,
         return rc;
 
     spm->flttype = flttype;
-    spm->n = spm->gN = dim1 * dim2 * dim3;
+    spm->n = dim1 * dim2 * dim3;
 
     if( dim3 > 0 ) {
         extended_laplacian_table3D[spm->flttype](spm, dim1, dim2, dim3);
