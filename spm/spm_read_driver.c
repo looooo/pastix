@@ -163,14 +163,20 @@ spmReadDriver( pastix_driver_t  driver,
         {
             spm->colptr = (pastix_int_t *) malloc((spm->gN+1) * sizeof(pastix_int_t));
             spm->rowptr = (pastix_int_t *) malloc(nnz * sizeof(pastix_int_t));
-            spm->values = (void *)         malloc(nnz * pastix_size_of( spm->flttype ));
             spm->loc2glob = NULL;
             spm->loc2glob = NULL;
         }
 
         MPI_Bcast( spm->colptr, spm->gN+1, PASTIX_MPI_INT, 0, comm );
         MPI_Bcast( spm->rowptr, nnz,       PASTIX_MPI_INT, 0, comm );
-        MPI_Bcast( spm->values, nnz * pastix_size_of( spm->flttype ), MPI_CHAR, 0, comm );
+
+        if ( spm->flttype != PastixPattern ) {
+            size_t eltsize = pastix_size_of( spm->flttype );
+            if ( mpirank != 0 ) {
+                spm->values = (void *) malloc(nnz * eltsize);
+            }
+            MPI_Bcast( spm->values, nnz * eltsize, MPI_CHAR, 0, comm );
+        }
     }
 
     spmUpdateComputedFields( spm );
