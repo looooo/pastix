@@ -359,13 +359,15 @@ starpu_sparse_matrix_getoncpu( starpu_sparse_matrix_desc_t *spmtx )
     for(i=0; i<spmtx->solvmtx->cblknbr; i++, cblk++)
     {
         assert( cblk->handler[0] );
-        starpu_data_acquire( cblk->handler[0], STARPU_R );
-        starpu_data_release( cblk->handler[0] );
+        starpu_data_acquire_cb( cblk->handler[0], STARPU_R,
+                                (void (*)(void*))&starpu_data_release,
+                                cblk->handler[0] );
 
         if ( spmtx->mtxtype == PastixGeneral ) {
             assert( cblk->handler[1] );
-            starpu_data_acquire( cblk->handler[1], STARPU_R );
-            starpu_data_release( cblk->handler[1] );
+            starpu_data_acquire_cb( cblk->handler[1], STARPU_R,
+                                    (void (*)(void*))&starpu_data_release,
+                                    cblk->handler[1] );
         }
     }
 }
