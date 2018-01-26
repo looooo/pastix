@@ -26,6 +26,10 @@ spmA = pastix.spm( None, driver=pastix.driver.Laplacian, filename="10:10:10:2.:1
 #spmA = pastix.spm( None, driver=driver.RSA, filename="$PASTIX_DIR/test/matrix/oilpan.rsa" )
 spmA.printInfo()
 
+# Scale A for low-rank: A / ||A||_f
+norm = spmA.norm()
+spmA.scale( 1. / norm )
+
 # Generate b and x0 vector such that A * x0 = b
 x0, b = spmA.genRHS( pastix.rhstype.RndX )
 
