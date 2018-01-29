@@ -44,7 +44,7 @@
 typedef struct pastix_spm_s {
     pastix_mtxtype_t  mtxtype; /**< Matrix structure: PastixGeneral, PastixSymmetric
                                     or PastixHermitian.                                            */
-    pastix_coeftype_t flttype; /**< avails datatype: PastixPattern, PastixFloat, PastixDouble,
+    pastix_coeftype_t flttype; /**< values datatype: PastixPattern, PastixFloat, PastixDouble,
                                     PastixComplex32 or PastixComplex64                             */
     pastix_fmttype_t  fmttype; /**< Matrix storage format: PastixCSC, PastixCSR, PastixIJV         */
 

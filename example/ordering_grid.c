@@ -80,9 +80,8 @@ int main (int argc, char **argv)
      * Build optimal ordering (for laplacians only)
      */
     if ( driver != PastixDriverLaplacian ){
-        fprintf(stderr, "Grid ordering can be used throught PastixDriverLaplacian driver only\n");
+        fprintf(stderr, "Grid ordering can be used with PastixDriverLaplacian driver only\n");
         return EXIT_FAILURE;
-        exit(1);
     }
 
     /**
