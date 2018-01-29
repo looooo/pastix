@@ -60,7 +60,7 @@ pastix_print_error( const char *fmt, ... )
 {
     va_list arglist;
     va_start(arglist, fmt);
-    fprintf(stderr, fmt, arglist);
+    vfprintf(stderr, fmt, arglist);
     va_end(arglist);
 }
 
@@ -70,7 +70,7 @@ pastix_print_warning( const char *fmt, ... )
     va_list arglist;
     va_start(arglist, fmt);
     fprintf(stderr, "WARNING: ");
-    fprintf(stderr, fmt, arglist);
+    vfprintf(stderr, fmt, arglist);
     va_end(arglist);
 }
 

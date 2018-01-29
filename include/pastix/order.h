@@ -80,6 +80,9 @@ int  pastixOrderComputePTScotch( pastix_data_t *pastix_data, pastix_graph_t *gra
 int  pastixOrderComputeMetis(    pastix_data_t *pastix_data, pastix_graph_t *graph );
 int  pastixOrderComputeParMetis( pastix_data_t *pastix_data, pastix_graph_t *graph );
 
+int  pastixOrderGrid( pastix_order_t **myorder, pastix_int_t nx,
+                      pastix_int_t ny, pastix_int_t nz );
+
 /**
  * @}
  * @name Order manipulation subroutines

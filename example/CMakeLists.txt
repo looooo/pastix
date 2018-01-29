@@ -15,6 +15,7 @@ set (EXAMPLES
   analyze.c
   bench_facto.c
   compress.c
+  ordering_grid.c
   personal.c
   reentrant.c
   schur.c

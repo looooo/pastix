@@ -77,11 +77,10 @@ z_spmLaplacian_7points( pastix_spm_t   *spm,
     spm->mtxtype  = PastixHermitian;
     spm->flttype  = PastixComplex64;
     spm->fmttype  = PastixCSC;
-    spm->gnnz     = nnz;
     spm->nnz      = nnz;
     spm->dof      = 1;
 
-    assert( spm->gN == dim1*dim2*dim3 );
+    assert( spm->n == dim1*dim2*dim3 );
 
     /* Allocating */
     spm->colptr = malloc((spm->n+1)*sizeof(pastix_int_t));
@@ -161,7 +160,7 @@ z_spmLaplacian_7points( pastix_spm_t   *spm,
         }
     }
 
-    assert( (spm->colptr[ spm->gN ] - spm->colptr[0]) == nnz );
+    assert( (spm->colptr[ spm->n ] - spm->colptr[0]) == nnz );
     (void)alpha; (void)beta;
 }
 
@@ -199,11 +198,10 @@ z_spmExtendedLaplacian2D( pastix_spm_t  *spm,
     spm->mtxtype  = PastixSymmetric;
     spm->flttype  = PastixComplex64;
     spm->fmttype  = PastixCSC;
-    spm->gnnz     = nnz;
     spm->nnz      = nnz;
     spm->dof      = 1;
 
-    assert( spm->gN == dim1*dim2 );
+    assert( spm->n == dim1*dim2 );
 
     /* Allocating */
     spm->colptr = malloc((spm->n+1)*sizeof(pastix_int_t));
@@ -285,7 +283,7 @@ z_spmExtendedLaplacian2D( pastix_spm_t  *spm,
         }
     }
 
-    assert( (spm->colptr[ spm->gN ] - spm->colptr[0]) == nnz );
+    assert( (spm->colptr[ spm->n ] - spm->colptr[0]) == nnz );
 }
 
 /**
@@ -330,11 +328,10 @@ z_spmExtendedLaplacian3D( pastix_spm_t   *spm,
     spm->mtxtype  = PastixSymmetric;
     spm->flttype  = PastixComplex64;
     spm->fmttype  = PastixCSC;
-    spm->gnnz     = nnz;
     spm->nnz      = nnz;
     spm->dof      = 1;
 
-    assert( spm->gN == dim1*dim2*dim3 );
+    assert( spm->n == dim1*dim2*dim3 );
 
     /* Allocating */
     spm->colptr = malloc((spm->n+1)*sizeof(pastix_int_t));
@@ -515,5 +512,5 @@ z_spmExtendedLaplacian3D( pastix_spm_t   *spm,
         }
     }
 
-    assert( (spm->colptr[ spm->gN ] - spm->colptr[0]) == nnz );
+    assert( (spm->colptr[ spm->n ] - spm->colptr[0]) == nnz );
 }
