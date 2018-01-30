@@ -354,6 +354,9 @@ pastixOrderGrid( pastix_order_t **myorder,
         rangtab[i+1] = saved_rangtab[ordemesh->cblknbr - i - 1]+1;
         treetab[i]   = saved_treetab[ordemesh->cblknbr - i - 1];
     }
+    free(saved_rangtab);
+    free(saved_treetab);
+
     for (i=0; i<ordemesh->cblknbr-1; i++){
         pastix_int_t j;
         for (j=i+1; j<ordemesh->cblknbr; j++){
