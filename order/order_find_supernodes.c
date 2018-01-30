@@ -399,11 +399,15 @@ pastixOrderFindSupernodes( const pastix_graph_t *graph,
         S[perm[i]]++;
 
     k = 0;
-    for(i=0;i<n;i++)
-        if(S[i] != 1)
+    for(i=0;i<n;i++) {
+        if(S[i] != 1) {
             k++;
-    if(k>0)
+        }
+    }
+
+    if(k>0) {
         errorPrint("perm array is not valid, number of error =  %ld", (long)k);
+    }
     assert(k==0);
 #endif
 
@@ -438,8 +442,9 @@ pastixOrderFindSupernodes( const pastix_graph_t *graph,
             if(pi > j)
             {
                 k = prev_rownz[pi];
-                if(k < j - T[pj]+1 )
+                if(k < j - T[pj]+1 ) {
                     isleaf[j] = 1;
+                }
 
                 prev_rownz[pi] = j;
             }
@@ -452,21 +457,26 @@ pastixOrderFindSupernodes( const pastix_graph_t *graph,
      * The snodetab/rangtab is computed in the workspace T.
      */
     bzero(S, sizeof(pastix_int_t)*n);
-    for(i=0;i<n;i++)
-        if(father[i] != i)
+    for(i=0;i<n;i++) {
+        if(father[i] != i) {
             S[father[i]]++;
+        }
+    }
 
-    for(i=0;i<n;i++)
-        if(S[i] != 1)
+    for(i=0;i<n;i++) {
+        if(S[i] != 1) {
             isleaf[perm[i]] = 1;
+        }
+    }
 
     snodenbr = 0;
-    for(i=0;i<n;i++)
+    for(i=0;i<n;i++) {
         if(isleaf[i] == 1)
         {
             T[snodenbr] = i;
             snodenbr++;
         }
+    }
     T[snodenbr] = n;
 
     memFree(isleaf);
@@ -474,15 +484,18 @@ pastixOrderFindSupernodes( const pastix_graph_t *graph,
     /*
      * If the treetab is required, we compute it before to free the local data.
      */
+    assert( snodenbr > 0 );
     MALLOC_INTERN( ordeptr->treetab, snodenbr, pastix_int_t );
     treetab = ordeptr->treetab;
     {
         pastix_int_t dad;
 
         /* Node to supernode conversion vector */
-        for(i=0;i<snodenbr;i++)
-            for(j=T[i];j<T[i+1];j++)
+        for(i=0;i<snodenbr;i++) {
+            for(j=T[i];j<T[i+1];j++) {
                 S[j] = i;
+            }
+        }
 
         /* Fill the treetab info */
         for(i=0;i<snodenbr;i++)
@@ -491,8 +504,9 @@ pastixOrderFindSupernodes( const pastix_graph_t *graph,
             for(j=T[i];j<T[i+1];j++)
             {
                 dad = S[perm[father[invp[j]]]];
-                if( dad < k && dad > i)
+                if( dad < k && dad > i) {
                     k = dad;
+                }
             }
             treetab[i] = k;
             if(k == snodenbr)

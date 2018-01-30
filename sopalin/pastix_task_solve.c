@@ -365,7 +365,7 @@ pastix_task_solve( pastix_data_t *pastix_data,
     }
 
     iparm   = pastix_data->iparm;
-    procnum = pastix_data->inter_node_procnum;
+    /* procnum = pastix_data->inter_node_procnum; */
     bcsc    = pastix_data->bcsc;
 
     /* Compute P * b */

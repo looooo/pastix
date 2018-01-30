@@ -248,7 +248,7 @@ ordering_save( const pastix_order_t *ordeptr,
     putc ('\n', stream);
 
     /* Save treetab */
-    for (cblknum = 0, o = 1; (o == 1) && (cblknum < ordeptr->cblknbr - 1); cblknum ++) {
+    for (cblknum = 0; (o == 1) && (cblknum < ordeptr->cblknbr - 1); cblknum ++) {
         o = intSave (stream, ordeptr->treetab[cblknum]);
         putc (((cblknum & 7) == 7) ? '\n' : '\t', stream);
     }

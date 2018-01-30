@@ -251,6 +251,9 @@ pastix( pastix_data_t **pastix_data_ptr,
         if ( (perm != NULL) || (invp != NULL) ) {
             o = malloc( sizeof(pastix_order_t) );
             ret = pastixOrderAlloc( o, 0, 0 );
+            if (PASTIX_SUCCESS != ret) {
+                return ret;
+            }
 
             if ( perm != NULL ) {
                 MALLOC_INTERN(o->permtab, n, pastix_int_t);
