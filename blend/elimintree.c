@@ -346,7 +346,9 @@ eTreeBuild(const symbol_matrix_t *symbmtx)
     /* No need to go to the root */
     for(i=0; i<symbmtx->cblknbr-1; i++)
     {
-        etree->sonstab[ (eTreeFather(etree, i)->fsonnum)++] = i;
+        pastix_int_t node = ((eTreeFather(etree, i)->fsonnum)++);
+        assert( (node >= 0) && (node < totalsonsnbr) );
+        etree->sonstab[ node ] = i;
     }
 
     /* Restore fsonnum fields */
