@@ -80,6 +80,7 @@ pages:
     - build_pastix
   script:
     - source .gitlab-ci-env.sh
+    - git submodule update --init --recursive
     - mkdir -p build
     - cd build
     - cmake .. -DBUILD_DOCUMENTATION=ON -DPASTIX_WITH_STARPU=ON -DPASTIX_WITH_PARSEC=ON -DPASTIX_INT64=OFF
