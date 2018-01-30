@@ -365,10 +365,10 @@ pastixOrderGrid( pastix_order_t **myorder,
     }
     treetab[ordemesh->cblknbr-1] = -1;
 
-    rangtab =
+    ordemesh->rangtab =
         (pastix_int_t *) memRealloc (rangtab,
                                      (ordemesh->cblknbr + 1)*sizeof (pastix_int_t));
-    treetab =
+    ordemesh->treetab =
         (pastix_int_t *) memRealloc (treetab,
                                      (ordemesh->cblknbr)*sizeof (pastix_int_t));
 
