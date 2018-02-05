@@ -21,7 +21,6 @@ class solver(object):
 
     def __init__(self, A=None, **kwargs):
         self.iparm, self.dparm = initParam()
-
         self.verbose = kwargs.setdefault("verbose", verbose.No)
         if not self.verbose: # 0 or False
             self.iparm[iparm.verbose] = verbose.Not
@@ -29,7 +28,6 @@ class solver(object):
             self.iparm[iparm.verbose] = verbose.Yes
         else: # 1 or True or anything else, default value
             self.iparm[iparm.verbose] = verbose.No
-
         self.mtxtype = kwargs.setdefault("mtxtype", mtxtype.General)
 
         # Set default factotype based on Matrix properties
@@ -41,6 +39,13 @@ class solver(object):
             self.factotype = factotype.LU
 
         self.factotype = kwargs.setdefault("factotype", self.factotype)
+
+        # Threads
+        self.threads = kwargs.setdefault("threads", "auto")
+        if self.threads=="auto":
+            self.iparm[iparm.thread_nbr] = -1
+        else:
+            self.iparm[iparm.thread_nbr] = self.threads
 
         self.iparm[iparm.factorization] = self.factotype
         self.pastix_data = init( self.iparm, self.dparm )
