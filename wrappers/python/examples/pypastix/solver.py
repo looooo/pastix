@@ -97,7 +97,7 @@ class solver(object):
 
         schur_list = np.asarray(schur_list, pastix_int)
         self.schur_list = schur_list + self.spmA.findBase()
-        setSchurUnknownList(self.pastix_data, schur_list)
+        setSchurUnknownList(self.pastix_data, self.schur_list)
 
         task_analyze(self.pastix_data, self.spmA)
         task_numfact(self.pastix_data, self.spmA)
