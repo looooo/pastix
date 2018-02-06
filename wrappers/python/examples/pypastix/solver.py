@@ -22,7 +22,7 @@ class solver(object):
     def __init__(self, A=None, **kwargs):
         self.iparm, self.dparm = initParam()
 
-        self.verbose = kwargs.setdefault("verbose", 1)
+        self.verbose = kwargs.setdefault("verbose", verbose.No)
         if not self.verbose: # 0 or False
             self.iparm[iparm.verbose] = verbose.Not
         elif self.verbose==2:
@@ -30,17 +30,19 @@ class solver(object):
         else: # 1 or True or anything else, default value
             self.iparm[iparm.verbose] = verbose.No
 
-        self.sym = kwargs.setdefault("symmetry", 0)
-        if not self.sym: # 0 or False, general
-            self.factotype = factotype.LU
-        elif self.sym==2: # Symmetric positive definite
-            self.factotype = factotype.LLT
-        else: # 1 or True, symmetric
-            self.factotype = factotype.LDLT # Not implemented
-            print("LDLT not supported yet in Pastix, fall back to LU")
-            self.factotype = factotype.LU
-        self.iparm[iparm.factorization] = self.factotype
+        self.mtxtype = kwargs.setdefault("mtxtype", mtxtype.General)
 
+        # Set default factotype based on Matrix properties
+        if self.mtxtype in (mtxtype.SymPosDef, mtxtype.HerPosDef):
+            self.factotype = factotype.LLT
+        elif self.mtxtype in (mtxtype.Symmetric, mtxtype.Hermitian):
+            self.factotype = factotype.LDLT
+        else:
+            self.factotype = factotype.LU
+
+        self.factotype = kwargs.setdefault("factotype", self.factotype)
+
+        self.iparm[iparm.factorization] = self.factotype
         self.pastix_data = init( self.iparm, self.dparm )
         if A is not None:
             self.setup(A)
@@ -69,18 +71,14 @@ class solver(object):
         return x
 
     def schur(self, A, schur_list, full_matrix=True):
-        """Setup the solver object to work in Schur complement mode
-        
+        """
+        Setup the solver object to work in Schur complement mode
+
         full_matrix: boolean, default True. If full_matrix is False
         and a symmetric factorization is used, only the lower part of
         the Schur matrix is stored in self.S
         """
-        Setup the solver object to work in Schur complement mode
-        """
 
-        self.factotype = factotype.LLT
-        self.iparm[iparm.factorization] = self.factotype
-        self.iparm[iparm.schur_solv_mode] = solv_mode.Interface
         self.A    = A
         self.spmA = spm(A)
         if self.verbose:
@@ -99,13 +97,15 @@ class solver(object):
         if full_matrix and (self.factotype != factotype.LU):
             self.S += la.tril(self.S, -1).T
 
-    def schur_forward(self, b):
+    def schur_forward(self, b, solv_mode=solv_mode.interface):
         """
         Solves the forward step of the Schur problem:
                A x = b with A = L S L^h
 
         This step solves  L f = b with f = S L^h x
         """
+        self.iparm[iparm.schur_solv_mode] = solv_mode
+
         x = b.copy()
         # 1- Apply P to b
         subtask_applyorder( self.pastix_data, dir.Forward, x )
@@ -124,13 +124,15 @@ class solver(object):
         nschur = len(self.schur_list)
         return x[-nschur:]
 
-    def schur_backward(self, y, b, refine=True, x0=None, check=False):
+    def schur_backward(self, y, b, solv_mode=solv_mode.interface, refine=True, x0=None, check=False):
         """
         Solves the backward step of the Schur problem:
                A x = b with A = L S L^h
 
         This step solves L^h x = y with y the solution of L S y = b
         """
+        self.iparm[iparm.schur_solv_mode] = solv_mode
+
         nschur = len(self.schur_list)
         x = self.x
         x[-nschur:] = y
