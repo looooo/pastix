@@ -21,6 +21,8 @@ class solver(object):
 
     def __init__(self, A=None, **kwargs):
         self.iparm, self.dparm = initParam()
+
+        # Verbose level
         self.verbose = kwargs.setdefault("verbose", verbose.No)
         if not self.verbose: # 0 or False
             self.iparm[iparm.verbose] = verbose.Not
@@ -38,16 +40,16 @@ class solver(object):
         else:
             self.factotype = factotype.LU
 
+        # Factorization type
         self.factotype = kwargs.setdefault("factotype", self.factotype)
+        self.iparm[iparm.factorization] = self.factotype
 
         # Threads
-        self.threads = kwargs.setdefault("threads", "auto")
-        if self.threads=="auto":
-            self.iparm[iparm.thread_nbr] = -1
-        else:
-            self.iparm[iparm.thread_nbr] = self.threads
+        self.thread_nbr = kwargs.setdefault("thread_nbr", "auto")
+        if self.thread_nbr == "auto":
+            self.thread_nbr = -1;
+        self.iparm[iparm.thread_nbr] = self.threads
 
-        self.iparm[iparm.factorization] = self.factotype
         self.pastix_data = init( self.iparm, self.dparm )
         if A is not None:
             self.setup(A)
