@@ -33,9 +33,13 @@ class solver(object):
 
         # Set default factotype based on Matrix properties
         self.mtxtype = kwargs.setdefault("mtxtype", mtxtype.General)
-        if self.mtxtype in (mtxtype.SymPosDef, mtxtype.HerPosDef):
+        if self.mtxtype == mtxtype.HerPosDef:
+            self.factotype = factotype.LLH
+        elif self.mtxtype == mtxtype.SymPosDef:
             self.factotype = factotype.LLT
-        elif self.mtxtype in (mtxtype.Symmetric, mtxtype.Hermitian):
+        elif self.mtxtype == mtxtype.Hermitian:
+            self.factotype = factotype.LDLH
+        elif self.mtxtype == mtxtype.Symmetric:
             self.factotype = factotype.LDLT
         else:
             self.factotype = factotype.LU
@@ -118,14 +122,14 @@ class solver(object):
         subtask_applyorder( self.pastix_data, dir.Forward, x )
 
         # 2- Forward solve on the non Schur complement part of the system
-        if self.factotype == factotype.LU:
-            subtask_trsm( self.pastix_data, side.Left,
-                          uplo.Lower, trans.NoTrans,
-                          diag.Unit, x )
-        else:
+        if self.factotype in (factotype.LLT, factotype.LLH):
             subtask_trsm( self.pastix_data, side.Left,
                           uplo.Lower, trans.NoTrans,
                           diag.NonUnit, x )
+        else:
+            subtask_trsm( self.pastix_data, side.Left,
+                          uplo.Lower, trans.NoTrans,
+                          diag.Unit, x )
 
         self.x = x
         nschur = len(self.schur_list)
@@ -144,13 +148,25 @@ class solver(object):
         x = self.x
         x[-nschur:] = y
         # 4- Backward solve on the non Schur complement part of the system
-        if self.factotype == factotype.LU:
-            subtask_trsm( self.pastix_data, side.Left,
-                          uplo.Upper, trans.NoTrans,
-                          diag.NonUnit, x )
-        else:
+        if self.factotype == factotype.LDLH:
             subtask_trsm( self.pastix_data, side.Left,
                           uplo.Lower, trans.ConjTrans,
+                          diag.Unit, x )
+        elif self.factotype == factotype.LDLT:
+            subtask_trsm( self.pastix_data, side.Left,
+                          uplo.Lower, trans.Trans,
+                          diag.Unit, x )
+        elif self.factotype == factotype.LLH:
+            subtask_trsm( self.pastix_data, side.Left,
+                          uplo.Lower, trans.ConjTrans,
+                          diag.NonUnit, x )
+        elif self.factotype == factotype.LLT:
+            subtask_trsm( self.pastix_data, side.Left,
+                          uplo.Lower, trans.Trans,
+                          diag.NonUnit, x )
+        else: # LU
+            subtask_trsm( self.pastix_data, side.Left,
+                          uplo.Upper, trans.NoTrans,
                           diag.NonUnit, x )
 
         #  5- Apply P^t to x
