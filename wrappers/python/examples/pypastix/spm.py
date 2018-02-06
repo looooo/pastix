@@ -23,11 +23,16 @@ class spm():
 
     dtype = None
 
-    def __init__( self, A=None, mtxtype=mtxtype.General, driver=None, filename="" ):
+    def __init__( self, A=None, mtxtype_=mtxtype.General, driver=None, filename="" ):
         """
         Initialize the SPM wrapper by loading the libraries
         """
-        self.spm_c = pypastix_spm_t( mtxtype,
+        if mtxtype_ == mtxtype.SymPosDef:
+            mtxtype_ = mtxtype.Symmetric
+        if mtxtype_ == mtxtype.HerPosDef:
+            mtxtype_ = mtxtype.Hermitian
+
+        self.spm_c = pypastix_spm_t( mtxtype_,
                                      coeftype.Double,
                                      fmttype.CSC,
                                      0, 0, 0, 0, 0, 0, 0, 0,
@@ -36,11 +41,11 @@ class spm():
                                      None, None, None, None )
         self.id_ptr = pointer( self.spm_c )
         if A is not None:
-            self.fromsps( A, mtxtype )
+            self.fromsps( A, mtxtype_ )
         elif driver is not None:
             self.fromdriver( driver, filename )
 
-    def fromsps( self, A, mtxtype=mtxtype.General ):
+    def fromsps( self, A, mtxtype_=mtxtype.General ):
         """
         Initialize the SPM wrapper by loading the libraries
         """
@@ -62,7 +67,12 @@ class spm():
         py_rowptr = np.array( A.indices[:], dtype=pastix_int )
         py_values = np.array( A.data[:] )
 
-        self.spm_c.mtxtype  = mtxtype
+        if mtxtype_ == mtxtype.SymPosDef:
+            mtxtype_ = mtxtype.Symmetric
+        if mtxtype_ == mtxtype.HerPosDef:
+            mtxtype_ = mtxtype.Hermitian
+
+        self.spm_c.mtxtype  = mtxtype_
         self.spm_c.flttype  = flttype
         self.spm_c.fmttype  = fmttype.CSC
         self.spm_c.n        = A.shape[0]

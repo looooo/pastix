@@ -30,9 +30,9 @@ class solver(object):
             self.iparm[iparm.verbose] = verbose.Yes
         else: # 1 or True or anything else, default value
             self.iparm[iparm.verbose] = verbose.No
-        self.mtxtype = kwargs.setdefault("mtxtype", mtxtype.General)
 
         # Set default factotype based on Matrix properties
+        self.mtxtype = kwargs.setdefault("mtxtype", mtxtype.General)
         if self.mtxtype in (mtxtype.SymPosDef, mtxtype.HerPosDef):
             self.factotype = factotype.LLT
         elif self.mtxtype in (mtxtype.Symmetric, mtxtype.Hermitian):
