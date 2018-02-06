@@ -48,7 +48,7 @@ class solver(object):
         self.thread_nbr = kwargs.setdefault("thread_nbr", "auto")
         if self.thread_nbr == "auto":
             self.thread_nbr = -1;
-        self.iparm[iparm.thread_nbr] = self.threads
+        self.iparm[iparm.thread_nbr] = self.thread_nbr
 
         self.pastix_data = init( self.iparm, self.dparm )
         if A is not None:
@@ -104,7 +104,7 @@ class solver(object):
         if full_matrix and (self.factotype != factotype.LU):
             self.S += la.tril(self.S, -1).T
 
-    def schur_forward(self, b, solv_mode=solv_mode.interface):
+    def schur_forward(self, b, solv_mode=solv_mode.Interface):
         """
         Solves the forward step of the Schur problem:
                A x = b with A = L S L^h
@@ -131,7 +131,7 @@ class solver(object):
         nschur = len(self.schur_list)
         return x[-nschur:]
 
-    def schur_backward(self, y, b, solv_mode=solv_mode.interface, refine=True, x0=None, check=False):
+    def schur_backward(self, y, b, solv_mode=solv_mode.Interface, refine=True, x0=None, check=False):
         """
         Solves the backward step of the Schur problem:
                A x = b with A = L S L^h
