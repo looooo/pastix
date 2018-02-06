@@ -291,6 +291,8 @@ class mtxtype:
     General   = trans.NoTrans
     Symmetric = trans.Trans
     Hermitian = trans.ConjTrans
+    SymPosDef = trans.ConjTrans + 1
+    HerPosDef = trans.ConjTrans + 2
 
 class uplo:
     Upper      = 121
