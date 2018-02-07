@@ -97,7 +97,7 @@ def subtask_trsm( pastix_data, side, uplo, trans, diag, b, nrhs=-1 ):
     pypastix_pastix_subtask_trsm( pastix_data, flttype, side, uplo, trans, diag, nrhs,
                                   b.ctypes.data_as(c_void_p), ldb )
 
-def subtask_diag( pastix_data, b ):
+def subtask_diag( pastix_data, b, nrhs=-1 ):
     flttype = coeftype.getptype( b.dtype )
 
     ldb  = b.shape[0]

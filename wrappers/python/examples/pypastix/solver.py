@@ -118,6 +118,7 @@ class solver(object):
         self.iparm[iparm.schur_solv_mode] = solv_mode
 
         x = b.copy()
+
         # 1- Apply P to b
         subtask_applyorder( self.pastix_data, dir.Forward, x )
 
@@ -130,6 +131,10 @@ class solver(object):
             subtask_trsm( self.pastix_data, side.Left,
                           uplo.Lower, trans.NoTrans,
                           diag.Unit, x )
+
+        # 3- Apply the diagonal step if LDL factorization applied
+        if self.factotype in (factotype.LDLT, factotype.LDLH):
+            subtask_diag( self.pastix_data, x )
 
         self.x = x
         nschur = len(self.schur_list)
