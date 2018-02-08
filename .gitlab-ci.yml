@@ -33,12 +33,13 @@ test_pastix:
     name: pastix_test
     expire_in: 42 minutes
     paths:
-      - coverage.tar.bz2
+      - pastix.lcov
   script:
     - source .gitlab-ci-env.sh
     - source install/bin/pastix_env.sh
     - (cd build && ctest -D ExperimentalTest)
-    - find -name "*.gcda" | xargs tar cjf coverage.tar.bz2
+    - lcov --directory build --capture --output-file pastix.lcov
+    - gcovr -r $PWD
   only:
     - branches
     - master@pastix/pastix
@@ -61,17 +62,9 @@ sonar_pastix:
       - sonar.log
   script:
     - source .gitlab-ci-env.sh
-    - tar xjf coverage.tar.bz2
-    - lcov --directory build --capture --output-file pastix.lcov
-    - genhtml -o coverage pastix.lcov
-    - lcov_cobertura.py pastix.lcov --output pastix-coverage.xml
-    - ./.gitlab-ci-filelist.sh
-    - cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingIncludeSystem -UPARSEC_PROF_DRY_BODY -UPARSEC_PROF_TRACE -UPARSEC_PROF_GRAPHER -UPARSEC_SIM -UPARSEC_DEBUG_NOISIER -DPINS_ENABLE --file-list=./filelist.txt 2> pastix-cppcheck.xml
-    - rats -w 3 --xml `cat filelist.txt` > pastix-rats.xml
-    - echo -n "sonar.inclusions=" >> sonar-project.properties
-    - cat filelist.txt | xargs echo | sed 's/ /, /g' >> sonar-project.properties
-    - sonar-scanner -X > sonar.log
+    - ./tools/analysis.sh
   only:
+    - master@solverstack/pastix
     - master@pastix/pastix
 
 pages:
@@ -90,5 +83,6 @@ pages:
     paths:
       - public
   only:
+    - master@solverstack/pastix
     - master@pastix/pastix
 
