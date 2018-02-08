@@ -14,6 +14,7 @@ rm -f filelist.txt
 git ls-files | grep "\.[ch]"   >  filelist.txt
 git ls-files | grep "\.py"     >> filelist.txt
 find $BUILDDIR -name '*\.[ch]' >> filelist.txt
+echo "wrappers/python/examples/pypastix/enum.py" >> filelist.txt
 
 # Remove files in kernel/gpus that are C++ and not our own files.
 sed -i "/kernels\/gpus\/.*/d" filelist.txt
