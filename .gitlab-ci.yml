@@ -63,9 +63,6 @@ sonar_pastix:
   script:
     - source .gitlab-ci-env.sh
     - ./tools/analysis.sh
-  only:
-    - master@solverstack/pastix
-    - master@pastix/pastix
 
 pages:
   stage: doc
