@@ -14,7 +14,7 @@ if [ $# -gt 0 ]
 then
     BUILDDIR=$1
 fi
-BUILDDIR=${BUILDDIR-=build}
+BUILDDIR=${BUILDDIR:-build}
 
 ./.gitlab-ci-filelist.sh $BUILDDIR
 
