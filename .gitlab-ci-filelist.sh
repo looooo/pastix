@@ -24,7 +24,7 @@ do
 done
 
 # Remove installed files
-sed -i '/build\/install.*/d' filelist.txt
+sed -i '/^install.*/d' filelist.txt
 
 # Remove original files used for precision generation
 for file in `git grep "@precisions" | awk -F ":" '{ print $1 }'`
