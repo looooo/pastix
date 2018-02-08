@@ -50,6 +50,7 @@ sonar.projectVersion=master
 
 sonar.language=c
 sonar.sources=$BUILDDIR, bcsc, blend, common, example, graph, include, kernels, order, refinement, sopalin, spm, symbol, test
+sonar.inclusions=`cat filelist.txt | xargs echo | sed 's/ /, /g'`
 sonar.sourceEncoding=UTF-8
 sonar.c.errorRecoveryEnabled=true
 sonar.c.compiler.charset=UTF-8
@@ -60,10 +61,6 @@ sonar.c.coverage.reportPath=pastix-coverage.xml
 sonar.c.cppcheck.reportPath=pastix-cppcheck.xml
 sonar.c.rats.reportPath=pastix-rats.xml
 EOF
-
-# Add the list of files to include in the sonarqube analysis
-echo -n "sonar.inclusions=" >> sonar-project.properties
-cat filelist.txt | xargs echo | sed 's/ /, /g' >> sonar-project.properties
 
 # run sonar analysis + publish on sonarqube-dev
 sonar-scanner -X > sonar.log
