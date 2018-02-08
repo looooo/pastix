@@ -26,7 +26,7 @@ export UNDEFINITIONS="-UWIN32 -UWIN64 -U_MSC_EXTENSIONS -U_MSC_VER -U__SUNPRO_C 
 export UNDEFINITIONS="$UNDEFINITIONS -UPARSEC_PROF_DRY_BODY -UPARSEC_PROF_TRACE -UPARSEC_PROF_GRAPHER -UPARSEC_SIM -UPARSEC_DEBUG_NOISIER -DPINS_ENABLE"
 
 # run cppcheck analysis
-cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingIncludeSystem ${UNDEFINITIONS} --file-list=./filelist.txt 2> pastix-cppcheck.xml
+cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingInclude ${UNDEFINITIONS} --file-list=./filelist.txt 2> pastix-cppcheck.xml
 
 # run rats analysis
 rats -w 3 --xml  `cat filelist.txt` > chameleon_rats.xml
