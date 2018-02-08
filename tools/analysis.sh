@@ -44,7 +44,7 @@ sonar.links.scm=https://gitlab.inria.fr/solverstack/pastix.git
 sonar.links.ci=https://gitlab.inria.fr/solverstack/pastix/pipelines
 sonar.links.issue=https://gitlab.inria.fr/solverstack/pastix/issues
 
-sonar.projectKey=$SONARQUBE_KEY
+sonar.projectKey=$SONARQUBE_PROJECTKEY
 sonar.projectDescription=Parallel Sparse direct Solver
 sonar.projectVersion=master
 
