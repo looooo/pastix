@@ -1,19 +1,26 @@
 #!/bin/sh
 
-SRCDIR_TO_ANALYZE="build bcsc blend common example graph include kernels order refinement sopalin spm symbol test"
+if [ $# -gt 0 ]
+then
+    BUILDDIR=$1
+fi
+BUILDDIR=${BUILDDIR-=build}
+
+SRCDIR_TO_ANALYZE="$BUILDDIR bcsc blend common example graph include kernels order refinement sopalin spm symbol test"
 
 echo $PWD
 rm -f filelist.txt
-for dir in ${SRCDIR_TO_ANALYZE}
-do
-    find $dir -name '*\.[ch]' >> filelist.txt
-done
+
+git ls-files | grep "\.[ch]"   >  filelist.txt
+git ls-files | grep "\.py"     >> filelist.txt
+find $BUILDDIR -name '*\.[ch]' >> filelist.txt
+echo "wrappers/python/examples/pypastix/enum.py" >> filelist.txt
 
 # Remove files in kernel/gpus that are C++ and not our own files.
 sed -i "/kernels\/gpus\/.*/d" filelist.txt
 
 # Remove all CMakeFiles generated file
-sed -i '/CMakeFiles/d' filelist.txt
+#sed -i '/CMakeFiles/d' filelist.txt
 
 # Remove files compiled from jdf files
 for jdf in `find -name "*\.jdf"`
