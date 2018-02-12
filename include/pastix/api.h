@@ -366,6 +366,7 @@ typedef enum pastix_driver_e {
     PastixDriverLaplacian,  /**< 3, 5, or 7 points Laplacian stencil generator   */
     PastixDriverXLaplacian, /**< 15-points Laplacian stencil generator           */
     PastixDriverGraph,      /**< Scotch Graph driver                             */
+    PastixDriverSPM,        /**< SPM matrix driver                               */
     /* PastixDriverDMM,        /\**< Distributed Matrix Market driver                *\/ */
     /* PastixDriverCSCD,       /\**< CSC distributed driver                          *\/ */
     /* PastixDriverPetscS,     /\**< Petsc Symmetric driver                          *\/ */

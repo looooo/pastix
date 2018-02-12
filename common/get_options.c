@@ -309,6 +309,7 @@ pastix_usage(void)
             " -1 --hb           : Harwell Boeing C driver\n"
             " -2 --ijv          : IJV coordinate C driver\n"
             " -3 --mm           : Matrix Market C driver\n"
+            " -4 --spm          : SPM Matrix driver\n"
             " -9 --lap          : Generate a Laplacian (5-points stencil)\n"
             " -x --xlap         : Generate an extended Laplacian (9-points stencil)\n"
             " -G --graph        : SCOTCH Graph file\n"
@@ -339,7 +340,7 @@ pastix_usage(void)
 /**
  * @brief Define the options and their requirement used by PaStiX
  */
-#define GETOPT_STRING "0:1:2:3:9:x:G:t:g:s:o:f:c:i:d:v::h"
+#define GETOPT_STRING "0:1:2:3:4:9:x:G:t:g:s:o:f:c:i:d:v::h"
 
 #if defined(HAVE_GETOPT_LONG)
 /**
@@ -351,6 +352,7 @@ static struct option long_options[] =
     {"hb",          required_argument,  0, '1'},
     {"ijv",         required_argument,  0, '2'},
     {"mm",          required_argument,  0, '3'},
+    {"spm",         required_argument,  0, '4'},
     {"lap",         required_argument,  0, '9'},
     {"xlap",        required_argument,  0, 'x'},
     {"graph",       required_argument,  0, 'G'},
@@ -457,6 +459,11 @@ pastixGetOptions( int argc, char **argv,
 
         case '3':
             *driver = PastixDriverMM;
+            *filename = strdup( optarg );
+            break;
+
+        case '4':
+            *driver = PastixDriverSPM;
             *filename = strdup( optarg );
             break;
 
