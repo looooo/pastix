@@ -271,6 +271,7 @@ class driver:
     Laplacian  = 4
     XLaplacian = 5
     Graph      = 6
+    SPM        = 7
 
 class rhstype:
     One  = 0

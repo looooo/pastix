@@ -261,6 +261,7 @@ module pastix_enums
      enumerator :: PastixDriverLaplacian  = 4
      enumerator :: PastixDriverXLaplacian = 5
      enumerator :: PastixDriverGraph      = 6
+     enumerator :: PastixDriverSPM        = 7
   end enum
 
   ! enum rhstype
