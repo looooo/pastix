@@ -208,14 +208,18 @@ pastixOrderExit( pastix_order_t * const ordeptr )
         return;
     }
 
-    if (ordeptr->permtab != NULL)
+    if (ordeptr->permtab != NULL) {
         memFree_null (ordeptr->permtab);
-    if (ordeptr->peritab != NULL)
+    }
+    if (ordeptr->peritab != NULL) {
         memFree_null (ordeptr->peritab);
-    if (ordeptr->rangtab != NULL)
+    }
+    if (ordeptr->rangtab != NULL) {
         memFree_null (ordeptr->rangtab);
-    if (ordeptr->treetab != NULL)
+    }
+    if (ordeptr->treetab != NULL) {
         memFree_null (ordeptr->treetab);
+    }
 
     memset(ordeptr, 0, sizeof(pastix_order_t) );
 }
@@ -262,21 +266,25 @@ pastixOrderBase( pastix_order_t * const ordeptr,
 	return;
 
     if (ordeptr->permtab != NULL) {
-	for (vertnum = 0; vertnum < ordeptr->vertnbr; vertnum ++)
+	for (vertnum = 0; vertnum < ordeptr->vertnbr; vertnum ++) {
 	    ordeptr->permtab[vertnum] += baseadj;
+        }
     }
     if (ordeptr->peritab != NULL) {
-	for (vertnum = 0; vertnum < ordeptr->vertnbr; vertnum ++)
+	for (vertnum = 0; vertnum < ordeptr->vertnbr; vertnum ++) {
 	    ordeptr->peritab[vertnum] += baseadj;
+        }
     }
 
     if (ordeptr->rangtab != NULL) {
-        for (cblknum = 0; cblknum <= ordeptr->cblknbr; cblknum ++)
+        for (cblknum = 0; cblknum <= ordeptr->cblknbr; cblknum ++) {
             ordeptr->rangtab[cblknum] += baseadj;
+        }
     }
     if (ordeptr->treetab != NULL) {
-        for (cblknum = 0; cblknum < ordeptr->cblknbr; cblknum ++)
+        for (cblknum = 0; cblknum < ordeptr->cblknbr; cblknum ++) {
             ordeptr->treetab[cblknum] += baseadj;
+        }
     }
 
     ordeptr->baseval = baseval;
