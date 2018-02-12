@@ -31,91 +31,73 @@
  * @param[in] order
  *          The ordering structure.
  *
- * @param[out] nbroots
- *          On exit, contains the number of roots in the elimination tree
- *          (forest if > 1)
- *
- * @param[inout] roots
- *          On entry, array of size order->nodenbr.
- *          On exit, the first nbroots elements contains the roots of
- *          elimination trees.
- *
  *******************************************************************************
  *
  * @return the elimination tree structure associated to the ordering.
  *
  *******************************************************************************/
 static inline EliminTree *
-pastixOrderBuildEtree( const pastix_order_t *order,
-                       pastix_int_t         *nbroots,
-                       pastix_int_t         *roots )
+pastixOrderBuildEtree( const pastix_order_t *order )
 {
     EliminTree *etree = NULL;
     eTreeNode_t *enode;
     pastix_int_t i, fathnum;
-    pastix_int_t totalsonsnbr = 0;
     pastix_int_t sonstabcur;
 
     MALLOC_INTERN(etree, 1, EliminTree);
     eTreeInit(etree);
 
     etree->nodenbr = order->cblknbr;
-    MALLOC_INTERN(etree->nodetab, etree->nodenbr, eTreeNode_t);
-    memset( etree->nodetab, 0, etree->nodenbr * sizeof(eTreeNode_t) );
-    enode = etree->nodetab;
+    MALLOC_INTERN( enode, etree->nodenbr + 1, eTreeNode_t);
+    memset( enode, 0, (etree->nodenbr + 1 ) * sizeof(eTreeNode_t) );
+
+    /* Shift etree->nodetab, to store the fake root before the array */
+    enode->fathnum = -1;
+    enode++;
+    etree->nodetab = enode;
 
     /* Initialize the structure fields */
-    *nbroots = 0;
     for(i=0; i<order->cblknbr; i++, enode++)
     {
         fathnum = order->treetab[i];
+
         enode->fathnum = fathnum;
         enode->fsonnum = -1;
-        if (fathnum != -1) {
-            assert(fathnum < order->cblknbr );
-            etree->nodetab[ fathnum ].sonsnbr ++;
-            totalsonsnbr++;
-        }
-        else {
-            roots[ *nbroots ] = i;
-            (*nbroots)++;
-        }
+
+        assert(fathnum < (order->cblknbr+1) );
+        etree->nodetab[ fathnum ].sonsnbr ++;
     }
 
-    /* Check that we have at least one root */
-    assert(totalsonsnbr == order->cblknbr-(*nbroots));
-
-    if( totalsonsnbr > 0 ) {
-        MALLOC_INTERN(etree->sonstab, totalsonsnbr, pastix_int_t);
-    }
+    MALLOC_INTERN(etree->sonstab, etree->nodenbr, pastix_int_t);
 
     /* Set the index of the first sons */
     sonstabcur = 0;
-    for(i=0; i<order->cblknbr; i++)
+    enode = etree->nodetab - 1;
+    for(i=-1; i<order->cblknbr; i++, enode++)
     {
-        etree->nodetab[i].fsonnum = sonstabcur;
-        sonstabcur += etree->nodetab[i].sonsnbr;
+        enode->fsonnum = sonstabcur;
+        sonstabcur += enode->sonsnbr;
     }
-    assert(sonstabcur == totalsonsnbr);
+    assert(sonstabcur == etree->nodenbr);
 
     /* Fill the sonstab */
     /* No need to go to the root */
     for(i=0; i<order->cblknbr; i++)
     {
         fathnum = etree->nodetab[i].fathnum;
-        if ( fathnum == -1 )
-            continue;
+        assert( fathnum < order->cblknbr );
         etree->sonstab[ etree->nodetab[ fathnum ].fsonnum++ ] = i;
     }
 
     /* Restore fsonnum fields */
     sonstabcur = 0;
-    for(i=0; i<order->cblknbr; i++)
+    enode = etree->nodetab - 1;
+    for(i=-1; i<order->cblknbr; i++, enode++)
     {
-        etree->nodetab[i].fsonnum = sonstabcur;
-        sonstabcur += etree->nodetab[i].sonsnbr;
+        enode->fsonnum = sonstabcur;
+        sonstabcur += enode->sonsnbr;
     }
-    assert(sonstabcur == totalsonsnbr);
+    assert(sonstabcur == etree->nodenbr);
 
     return etree;
 }
@@ -157,7 +139,7 @@ pastixOrderApplyLevelOrder( pastix_order_t *order,
     pastix_order_t  oldorder;
     EliminTree     *etree;
     pastix_int_t    baseval;                  /* Node base value            */
-    pastix_int_t    i, s, nbroots, node, sonsnbr;
+    pastix_int_t    i, s, node, sonsnbr;
     pastix_int_t    nfcol, ofcol, size;
 
     /* Parameter checks */
@@ -202,12 +184,9 @@ pastixOrderApplyLevelOrder( pastix_order_t *order,
                       oldorder.cblknbr );
 
     /*
-     * Build the elimination tree from top to bottom, and store the roots in the
-     * permtab array
+     * Build the elimination tree from top to bottom
      */
-    etree = pastixOrderBuildEtree( &oldorder,
-                                   &nbroots,
-                                   order->permtab );
+    etree = pastixOrderBuildEtree( &oldorder );
 
     /*
      * Build the sorted array per level
@@ -216,67 +195,108 @@ pastixOrderApplyLevelOrder( pastix_order_t *order,
      */
     if ( level_tasks2d < 0 )
     {
-        pastix_int_t  pos_2D;
-        pastix_int_t  pos_non_2D;
-        pastix_int_t  sons2D;
+        pastix_int_t  pos_1D, pos_2D;
         pastix_int_t  tot_nb_2D = 0;
-
+        pastix_int_t  fathnum;
         pastix_int_t *sorted = order->permtab;
-        pastix_int_t *is_2D;
-        MALLOC_INTERN(is_2D, order->cblknbr, pastix_int_t);
-        memset(is_2D, 0, order->cblknbr * sizeof(pastix_int_t));
+        int8_t *is_2D;
 
-        for(i=0; i<nbroots; i++) {
-            is_2D[order->cblknbr-1-i] = 1;
-        }
+        MALLOC_INTERN(is_2D, order->cblknbr, int8_t);
+        memset(is_2D, 0, order->cblknbr * sizeof(int8_t));
 
-        /* First pass to choose which nodes are 2D from the top to bottom */
-        for(node=order->cblknbr-1; node>-1; node--) {
-
-            /* Skip all nodes already set to 0 */
-            while(is_2D[node] == 0 && node > 0){
-                node--;
+#if defined(PASTIX_BLEND_DEEPEST_DISTRIB)
+        for(node=0; node<order->cblknbr; node++ ){
+            size = oldorder.rangtab[ node+1 ] - oldorder.rangtab[ node ];
+            if (is_2D[node] == 1) {
+                continue;
             }
 
-            sonsnbr = etree->nodetab[node].sonsnbr;
-            /*
-             * If sonsnbr != 2, it is not a nested dissection node, and we
-             * should not reorder them
-             */
-            if (sonsnbr == 2) {
-                for(s=0; s<sonsnbr; s++) {
-                    pastix_int_t son = eTreeSonI(etree, node, s);
-                    size = oldorder.rangtab[ son+1 ] - oldorder.rangtab[ son ];
-                    if (size >= width_tasks2d){
-                        is_2D[son] = 1;
+            fathnum = etree->nodetab[node].fathnum;
+
+            /* Mark as 2D only if the father is a real supernode, otherwise we don't reorder */
+            if ( size >= width_tasks2d )
+            {
+                /* Force all brothers to be considered as 2D */
+                sonsnbr = etree->nodetab[fathnum].sonsnbr;
+                for(i=0; i<sonsnbr; i++) {
+                    s = eTreeSonI(etree, fathnum, i);
+                    if (is_2D[s] == 0) {
+                        is_2D[s] = 1;
                         tot_nb_2D++;
                     }
-                    else
-                        is_2D[son] = 0;
+                }
+
+                /* Force parent and thus uncles to be 2D too */
+                while( (fathnum != -1) && (is_2D[fathnum] == 0) ) {
+                    fathnum = etree->nodetab[fathnum].fathnum;
+
+                    sonsnbr = etree->nodetab[fathnum].sonsnbr;
+                    for(i=0; i<sonsnbr; i++) {
+                        s = eTreeSonI(etree, fathnum, i);
+                        if (is_2D[s] == 0) {
+                            is_2D[s] = 1;
+                            tot_nb_2D++;
+                        }
+                    }
                 }
             }
         }
 
-        pos_2D     = nbroots;
-        pos_non_2D = tot_nb_2D+nbroots;
+#else /* defined(PASTIX_BLEND_DEEPEST_DISTRIB) */
+
+        /* First pass to choose which nodes are 2D from the top to bottom */
+        for(node=order->cblknbr-1; node>-1; node--) {
+
+            fathnum = etree->nodetab[node].fathnum;
+            size = oldorder.rangtab[ node+1 ] - oldorder.rangtab[ node ];
+
+            /* Mark as 2D only if the father is a real supernode, otherwise we don't reorder */
+            if ( (size >= width_tasks2d) &&
+                 ((fathnum == -1) ||
+                  ((is_2D[fathnum] == 1) && (etree->nodetab[fathnum].sonsnbr == 2))) )
+            {
+                is_2D[node] = 1;
+                tot_nb_2D++;
+            }
+        }
+#endif
+
+        /* Lets start by inserting the roots */
+        pos_2D = 0;
+        pos_1D = tot_nb_2D;
+
+        sonsnbr = etree->nodetab[-1].sonsnbr;
+        assert( etree->nodetab[-1].fsonnum == 0 );
+        for (i=0; i<sonsnbr; i++) {
+            node = etree->sonstab[i];
+            if ( is_2D[node] ) {
+                sorted[pos_2D] = node;
+                pos_2D++;
+            }
+            else {
+                sorted[pos_1D] = node;
+                pos_1D++;
+            }
+        }
 
         /* Second pass to sort nodes: firstly by type (1D/2D) and then by levels */
         for(i=0; i<order->cblknbr; i++) {
-            pastix_int_t current_2D     = 0;
-            pastix_int_t current_non_2D = 0;
+            pastix_int_t current_1D = 0;
+            pastix_int_t current_2D = 0;
+            pastix_int_t sons1D, sons2D;
 
             node    = sorted[i];
             sonsnbr = etree->nodetab[node].sonsnbr;
             sons2D  = 0;
 
-            size = oldorder.rangtab[ node+1 ] - oldorder.rangtab[ node ];
-
+            /* Count the number of 2D sons */
             for(s=0; s<sonsnbr; s++) {
                 pastix_int_t son = eTreeSonI(etree, node, s);
-                if (is_2D[son] == 1) {
+                if (is_2D[son]) {
                     sons2D++;
                 }
             }
+            sons1D = sonsnbr - sons2D;
 
             /*
              * We put the sons in reverse order to keep the original order
@@ -285,25 +305,29 @@ pastixOrderApplyLevelOrder( pastix_order_t *order,
              */
             for(s=0; s<sonsnbr; s++) {
                 pastix_int_t son = eTreeSonI(etree, node, s);
-                if (is_2D[son] == 1){
+                if (is_2D[son]) {
                     sorted[pos_2D + sons2D - current_2D - 1] = son;
                     current_2D++;
                 }
                 else{
-                    sorted[pos_non_2D + sonsnbr-sons2D - current_non_2D - 1] = son;
-                    current_non_2D++;
+                    sorted[pos_1D + sons1D - current_1D - 1] = son;
+                    current_1D++;
                 }
                 etree->nodetab[ son ].fathnum = order->cblknbr - i - 1;
             }
-            pos_2D     += sons2D;
-            pos_non_2D += sonsnbr-sons2D;
+            pos_2D += sons2D;
+            pos_1D += sons1D;
         }
         memFree_null(is_2D);
     }
     else
     {
-        pastix_int_t  pos = nbroots;
+        pastix_int_t  pos;
         pastix_int_t *sorted = order->permtab;
+
+        /* Start with the roots */
+        pos = etree->nodetab[-1].sonsnbr;
+        memcpy( sorted, etree->sonstab, pos * sizeof(pastix_int_t) );
 
         for(i=0; i<order->cblknbr; i++) {
             node = sorted[i];
@@ -345,6 +369,9 @@ pastixOrderApplyLevelOrder( pastix_order_t *order,
     }
 
     pastixOrderExit( &oldorder );
+
+    /* Restore the right pointer */
+    etree->nodetab = etree->nodetab - 1;
     eTreeExit( etree );
 
     return PASTIX_SUCCESS;
