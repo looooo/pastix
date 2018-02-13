@@ -59,8 +59,9 @@ starpu_zpxtrf_sp1dplus( sopalin_data_t              *sopalin_data,
     cblk = solvmtx->cblktab;
     for (k=0; k<solvmtx->cblknbr; k++, cblk++){
 
-        if ( cblk->cblktype & CBLK_IN_SCHUR )
+        if ( cblk->cblktype & CBLK_IN_SCHUR ) {
             break;
+        }
 
         starpu_task_cblk_zpxtrfsp1d_panel( sopalin_data, cblk,
                                            cblknbr - k );
@@ -120,11 +121,18 @@ starpu_zpxtrf_sp2d( sopalin_data_t              *sopalin_data,
     cblk = solvmtx->cblktab;
     for (k=0; k<=solvmtx->cblkmax1d; k++, cblk++){
 
-        if ( cblk->cblktype & CBLK_IN_SCHUR )
+        if ( cblk->cblktype & CBLK_IN_SCHUR ) {
             break;
+        }
 
-        if ( cblk->cblktype & CBLK_TASKS_2D )
+        if ( cblk->cblktype & CBLK_TASKS_2D ) {
+            assert( k >= solvmtx->cblkmin2d );
+            cblkhandle = desc->cblktab_handle + (k - solvmtx->cblkmin2d);
+            starpu_data_partition_submit( cblk->handler[0],
+                                          cblkhandle->handlenbr,
+                                          cblkhandle->handletab );
             continue;
+        }
 
         starpu_task_cblk_zpxtrfsp1d_panel( sopalin_data, cblk,
                                            cblknbr - k );
@@ -145,12 +153,14 @@ starpu_zpxtrf_sp2d( sopalin_data_t              *sopalin_data,
     }
 
     /* Let's submit the partitionning */
-    cblk       = solvmtx->cblktab + solvmtx->cblkmin2d;
-    cblkhandle = desc->cblktab_handle;
-    for (k=solvmtx->cblkmin2d; k<solvmtx->cblknbr; k++, cblk++, cblkhandle++) {
+    k = solvmtx->cblkmax1d + 1;
+    cblk       = solvmtx->cblktab + k;
+    cblkhandle = desc->cblktab_handle + (k - solvmtx->cblkmin2d);
+    for (; k<solvmtx->cblknbr; k++, cblk++, cblkhandle++) {
 
-        if ( !(cblk->cblktype & CBLK_TASKS_2D) )
+        if ( !(cblk->cblktype & CBLK_TASKS_2D) ) {
             continue;
+        }
 
         starpu_data_partition_submit( cblk->handler[0],
                                       cblkhandle->handlenbr,
@@ -162,8 +172,9 @@ starpu_zpxtrf_sp2d( sopalin_data_t              *sopalin_data,
     cblkhandle = desc->cblktab_handle;
     for (k=solvmtx->cblkmin2d; k<solvmtx->cblknbr; k++, cblk++, cblkhandle++){
 
-        if ( !(cblk->cblktype & CBLK_TASKS_2D) )
+        if ( !(cblk->cblktype & CBLK_TASKS_2D) ) {
             continue; /* skip 1D cblk */
+        }
 
         if (cblk->cblktype & CBLK_IN_SCHUR)
         {
