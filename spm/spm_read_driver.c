@@ -43,6 +43,7 @@
  *          - PastixDriverLaplacian
  *          - PastixDriverXLaplacian
  *          - PastixDriverGraph
+ *          - PastixDriverSPM
  *
  * @param[in] filename
  *          The name of the file that stores the matrix (see driver).
@@ -107,6 +108,23 @@ spmReadDriver( pastix_driver_t  driver,
         case PastixDriverXLaplacian:
             genExtendedLaplacian( filename, spm );
             break;
+
+        case PastixDriverSPM:
+        {
+            FILE *file = fopen( filename, "r" );
+            if ( file == NULL ) {
+                pastix_print_error("spmReadDriver: impossible to open the file %s\n", filename );
+                return PASTIX_ERR_FILE;
+            }
+
+            if ( spmLoad( spm, file ) != PASTIX_SUCCESS ) {
+                pastix_print_error("spmReadDriver: error while reading the file %s\n", filename );
+                return PASTIX_ERR_FILE;
+            }
+
+            fclose( file );
+        }
+        break;
 
         case PastixDriverGraph:
 #if defined(HAVE_SCOTCH)
