@@ -235,7 +235,7 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
  *
  * @ingroup pastix_solve
  *
- * @brief Apply a diagonal operation on the right-and-side vectors. 
+ * @brief Apply a diagonal operation on the right-and-side vectors.
  *
  * This routine is affected by the following parameters:
  *   IPARM_VERBOSE, IPARM_FACTORIZATION.
@@ -342,15 +342,8 @@ int
 pastix_task_solve( pastix_data_t *pastix_data,
                    pastix_int_t nrhs, void *b, pastix_int_t ldb )
 {
-/* #ifdef PASTIX_WITH_MPI */
-/*     MPI_Comm       pastix_comm = pastix_data->inter_node_comm; */
-/* #endif */
-    pastix_int_t   procnum;
     pastix_int_t  *iparm;
     pastix_bcsc_t *bcsc;
-/*     double        *dparm    = pastix_data->dparm; */
-/*     SolverMatrix  *solvmatr = pastix_data->solvmatr; */
-    (void)procnum;
 
     /*
      * Check parameters
@@ -364,9 +357,8 @@ pastix_task_solve( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    iparm   = pastix_data->iparm;
-    procnum = pastix_data->inter_node_procnum;
-    bcsc    = pastix_data->bcsc;
+    iparm = pastix_data->iparm;
+    bcsc  = pastix_data->bcsc;
 
     /* Compute P * b */
     pastix_subtask_applyorder( pastix_data, bcsc->flttype,

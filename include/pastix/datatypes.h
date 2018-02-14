@@ -114,7 +114,7 @@ pastix_size_of(pastix_coeftype_t type)
     default:
         fprintf(stderr, "pastix_size_of: invalid type parameter\n");
         assert(0);
-        return 0;
+        return sizeof(double);
     }
 }
 

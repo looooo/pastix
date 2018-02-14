@@ -488,9 +488,9 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
     memFree_null(extranewnum);
 
     /* Virtual cblk to avoid side effect in the loops on cblk bloks */
-    newsymb->cblktab[newsymb->cblknbr].fcolnum = newsymb->cblktab[newsymb->cblknbr-1].lcolnum+1;
-    newsymb->cblktab[newsymb->cblknbr].lcolnum = newsymb->cblktab[newsymb->cblknbr-1].lcolnum+1;
-    newsymb->cblktab[newsymb->cblknbr].bloknum = curbloknum;
+    curcblk[0].fcolnum = curcblk[-1].lcolnum + 1;
+    curcblk[0].lcolnum = curcblk[-1].lcolnum + 1;
+    curcblk[0].bloknum = curbloknum;
 
     pastixSymbolBuildRowtab( newsymb );
 

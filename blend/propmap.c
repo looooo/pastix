@@ -217,7 +217,6 @@ propMappSubtree( const propmap_t *pmptr,
 
     /* Proportionnal mapping of the subtree on remaining candidates           */
     /* The first stage deals only with nodes that require multiple candidates */
-    lcand = fcand;
     while (pqueueSize(queue_tree) > 0)
     {
         i = pqueuePop2( queue_tree, &cumul_cost, NULL );
