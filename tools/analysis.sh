@@ -29,7 +29,7 @@ export UNDEFINITIONS="$UNDEFINITIONS -UPARSEC_PROF_DRY_BODY -UPARSEC_PROF_TRACE 
 cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingInclude ${UNDEFINITIONS} --file-list=./filelist.txt 2> pastix-cppcheck.xml
 
 # run rats analysis
-rats -w 3 --xml  `cat filelist.txt` > chameleon_rats.xml
+rats -w 3 --xml  `cat filelist.txt` > pastix-rats.xml
 
 # Set the default for the project key
 SONARQUBE_PROJECTKEY=${SONARQUBE_PROJECTKEY:-hiepacs:pastix:gitlab:dev}
