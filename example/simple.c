@@ -106,7 +106,7 @@ int main (int argc, char **argv)
         spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
         /* Apply also normalization to b vector */
-        spmScalVector( 1./normA, spm, b );
+        spmScalRHS( spm->flttype, 1./normA, spm->n, nrhs, b, spm->n );
 
         /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
         memcpy( b, x, size );
