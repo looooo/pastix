@@ -53,6 +53,7 @@ int isched_hwloc_destroy(void)
     return 0;
 }
 
+#if 0
 int isched_hwloc_export_topology(int *buflen, char **xmlbuffer)
 {
     if( first_init == 0 ) {
@@ -73,6 +74,7 @@ void isched_hwloc_free_xml_buffer(char *xmlbuffer)
         hwloc_free_xmlbuffer(topology, xmlbuffer);
     }
 }
+#endif
 
 int isched_hwloc_distance( int id1, int id2 )
 {
@@ -158,7 +160,7 @@ unsigned int isched_hwloc_nb_cores( int level, int master_id )
     return 0;
 }
 
-
+#if 0
 size_t isched_hwloc_cache_size( unsigned int level, int master_id )
 {
 #if defined(HAVE_HWLOC_OBJ_PU) || 1
@@ -182,6 +184,7 @@ size_t isched_hwloc_cache_size( unsigned int level, int master_id )
     }
     return 0;
 }
+#endif
 
 int isched_hwloc_nb_real_cores(void)
 {
