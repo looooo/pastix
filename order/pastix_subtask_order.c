@@ -250,7 +250,6 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     subgraph.rows     = zeros_rows;
     subgraph.loc2glob = graph->loc2glob;
 
-
     /* Select the ordering method chosen by the user */
     switch (iparm[IPARM_ORDERING]) {
         /*
@@ -501,11 +500,13 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     pastix_data->csc = spm;
 
     /* Invalidate following steps, and add order step to the ones performed */
-    pastix_data->steps &= ~( STEP_SYMBFACT |
-                             STEP_ANALYSE  |
-                             STEP_NUMFACT  |
-                             STEP_SOLVE    |
-                             STEP_REFINE   );
+    pastix_data->steps &= ~( STEP_SYMBFACT  |
+                             STEP_ANALYSE   |
+                             STEP_CSC2BCSC  |
+                             STEP_BCSC2CTAB |
+                             STEP_NUMFACT   |
+                             STEP_SOLVE     |
+                             STEP_REFINE    );
     pastix_data->steps |= STEP_ORDERING;
 
     return PASTIX_SUCCESS;

@@ -540,9 +540,11 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     }
 
     /* Invalidate following steps, and add analyze step to the ones performed */
-    pastix_data->steps &= ~( STEP_NUMFACT |
-                             STEP_SOLVE   |
-                             STEP_REFINE  );
+    pastix_data->steps &= ~( STEP_CSC2BCSC  |
+                             STEP_BCSC2CTAB |
+                             STEP_NUMFACT   |
+                             STEP_SOLVE     |
+                             STEP_REFINE    );
     pastix_data->steps |= STEP_ANALYSE;
 
     return PASTIX_SUCCESS;
