@@ -42,11 +42,6 @@ int main (int argc, char **argv)
                       NULL, &driver, &filename );
 
     /**
-     * Startup PaStiX
-     */
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
-
-    /**
      * Read the sparse matrix with the driver
      */
     spm = malloc( sizeof( pastix_spm_t ) );
@@ -61,6 +56,11 @@ int main (int argc, char **argv)
         free(spm);
         spm = spm2;
     }
+
+    /**
+     * Startup PaStiX
+     */
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Perform ordering, symbolic factorization, and analyze steps

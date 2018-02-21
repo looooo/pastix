@@ -46,12 +46,9 @@ static void *solve_smp(void *arg)
     pastix_data_t *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
     pastix_spm_t  *spm;
     pastix_spm_t  *spm2;
-    void          *x0 = NULL;
-    void          *x;
-    void          *b;
-    int           *bindtab;
+    void          *x, *b, *x0 = NULL;
     size_t         size;
-    int            i, check;
+    int            check;
     int            nrhs = 1;
     solve_param_t  param = *(solve_param_t *)arg;
 
@@ -59,20 +56,6 @@ static void *solve_smp(void *arg)
         param.iparm[IPARM_THREAD_NBR] = 2;
     }
     check = param.check;
-
-    /* Bindtab array */
-    bindtab = malloc( param.iparm[IPARM_THREAD_NBR] * sizeof(int) );
-    for(i=0; i<param.iparm[IPARM_THREAD_NBR]; i++ ) {
-        bindtab[i] = param.iparm[IPARM_THREAD_NBR] * param.id + i;
-    }
-
-    /**
-     * Startup PaStiX
-     */
-    pastixInitWithAffinity( &pastix_data, MPI_COMM_WORLD,
-                            param.iparm, param.dparm,
-                            bindtab );
-    free(bindtab);
 
     /**
      * Read the sparse matrix with the driver
@@ -94,6 +77,23 @@ static void *solve_smp(void *arg)
      */
     if ( spm->flttype == PastixPattern ) {
         spmGenFakeValues( spm );
+    }
+
+    /**
+     * Startup PaStiX
+     */
+    {
+        int *bindtab = malloc( param.iparm[IPARM_THREAD_NBR] * sizeof(int) );
+        int i;
+
+        for(i=0; i<param.iparm[IPARM_THREAD_NBR]; i++ ) {
+            bindtab[i] = param.iparm[IPARM_THREAD_NBR] * param.id + i;
+        }
+
+        pastixInitWithAffinity( &pastix_data, MPI_COMM_WORLD,
+                                param.iparm, param.dparm,
+                                bindtab );
+        free(bindtab);
     }
 
     /**
@@ -119,6 +119,7 @@ static void *solve_smp(void *arg)
     size = pastix_size_of( spm->flttype ) * spm->n * nrhs;
     x = malloc( size );
     b = malloc( size );
+
     if ( check )
     {
         if ( check > 1 ) {
@@ -130,26 +131,29 @@ static void *solve_smp(void *arg)
     else {
         spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
-        /* Apply also normalization to b vector */
-        spmScalVector( 1./normA, spm, b );
+        /* Apply also normalization to b vectors */
+        spmScalRHS( spm->flttype, 1./normA, spm->n, nrhs, b, spm->n );
 
-        /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
+        /* Save b for refinement */
         memcpy( b, x, size );
     }
 
     /**
-     * Solve the linear system
+     * Solve the linear system (and perform the optional refinement)
      */
     pastix_task_solve( pastix_data, nrhs, x, spm->n );
     pastix_task_refine( pastix_data, spm->n, nrhs, b, spm->n, x, spm->n );
+
     if ( check )
     {
         spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+
         if (x0) free(x0);
     }
+
     spmExit( spm );
-    free(x);
-    free(b);
+    free( x );
+    free( b );
     free( spm );
     pastixFinalize( &pastix_data );
 

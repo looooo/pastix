@@ -25,10 +25,10 @@ int main (int argc, char **argv)
     pastix_driver_t driver;
     char           *filename;
     pastix_spm_t   *spm, *spm2;
-    void           *x, *b,*x0 = NULL;
+    void           *x, *b, *x0 = NULL;
     size_t          size;
     int             check = 1;
-    int             nrhs = 1;
+    int             nrhs  = 1;
     int             i, nbruns = 3;
 
     /**
@@ -42,11 +42,6 @@ int main (int argc, char **argv)
     pastixGetOptions( argc, argv,
                       iparm, dparm,
                       &check, &driver, &filename );
-
-    /**
-     * Startup PaStiX
-     */
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Read the sparse matrix with the driver
@@ -70,6 +65,11 @@ int main (int argc, char **argv)
     if ( spm->flttype == PastixPattern ) {
         spmGenFakeValues( spm );
     }
+
+    /**
+     * Startup PaStiX
+     */
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Perform ordering, symbolic factorization, and analyze steps
@@ -108,23 +108,23 @@ int main (int argc, char **argv)
     else {
         spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
-        /* Apply also normalization to b vector */
-        spmScalVector( 1./normA, spm, b );
+        /* Apply also normalization to b vectors */
+        spmScalRHS( spm->flttype, 1./normA, spm->n, nrhs, b, spm->n );
 
-        /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
+        /* Save b for refinement */
         memcpy( b, x, size );
     }
 
     /**
-     * Solve the linear system
+     * Solve the linear system (and perform the optional refinement)
      */
     pastix_task_solve( pastix_data, nrhs, x, spm->n );
-
     pastix_task_refine( pastix_data, spm->n, nrhs, b, spm->n, x, spm->n );
 
     if ( check )
     {
         spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+
         if (x0) free(x0);
     }
 

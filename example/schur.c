@@ -205,7 +205,7 @@ int main (int argc, char **argv)
     void           *x, *b, *S, *x0 = NULL;
     size_t          size;
     int             check = 1;
-    int             nrhs = 1;
+    int             nrhs  = 1;
     pastix_int_t    nschur, lds, ldb;
     int            *ipiv = NULL;
     pastix_diag_t   diag = PastixNonUnit;
@@ -285,7 +285,6 @@ int main (int argc, char **argv)
      */
     pastix_task_analyze( pastix_data, spm );
 
-
     /**
      * Normalize A matrix (optional, but recommended for low-rank functionality)
      */
@@ -332,11 +331,8 @@ int main (int argc, char **argv)
     else {
         spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
-        /* Apply also normalization to b vector */
-        spmScalVector( 1./normA, spm, b );
-
-        /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
-        memcpy( b, x, size );
+        /* Apply also normalization to b vectors */
+        spmScalRHS( spm->flttype, 1./normA, spm->n, nrhs, b, spm->n );
     }
 
     /**
@@ -381,14 +377,15 @@ int main (int argc, char **argv)
     if ( check )
     {
         spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+
         if (x0) free(x0);
     }
 
     spmExit( spm );
     free( spm );
-    free(S);
-    free(x);
-    free(b);
+    free( S );
+    free( x );
+    free( b );
     pastixFinalize( &pastix_data );
 
     return EXIT_SUCCESS;

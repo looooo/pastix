@@ -30,7 +30,7 @@ int main (int argc, char **argv)
     void           *x, *b, *x0 = NULL;
     size_t          size;
     int             check = 1;
-    int             nrhs = 1;
+    int             nrhs  = 1;
     int             nfact = 2;
     int             nsolv = 2;
     long            i,j;
@@ -46,11 +46,6 @@ int main (int argc, char **argv)
     pastixGetOptions( argc, argv,
                       iparm, dparm,
                       &check, &driver, &filename );
-
-    /**
-     * Startup PaStiX
-     */
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Read the sparse matrix with the driver
@@ -74,6 +69,11 @@ int main (int argc, char **argv)
     if ( spm->flttype == PastixPattern ) {
         spmGenFakeValues( spm );
     }
+
+    /**
+     * Startup PaStiX
+     */
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Perform ordering, symbolic factorization, and analyze steps
@@ -119,10 +119,10 @@ int main (int argc, char **argv)
             else {
                 spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
-                /* Apply also normalization to b vector */
-                spmScalVector( 1./normA, spm, b );
+                /* Apply also normalization to b vectors */
+                spmScalRHS( spm->flttype, 1./normA, spm->n, nrhs, b, spm->n );
 
-                /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
+                /* Save b for refinement */
                 memcpy( b, x, size );
             }
 
@@ -138,13 +138,12 @@ int main (int argc, char **argv)
         }
     }
 
-    pastixFinalize( &pastix_data );
-
     spmExit( spm );
-    free(spm);
-    free(b);
-    free(x);
+    free( spm );
+    free( b );
+    free( x );
     if (x0) free(x0);
+    pastixFinalize( &pastix_data );
 
     return EXIT_SUCCESS;
 }

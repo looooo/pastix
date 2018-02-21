@@ -105,15 +105,15 @@ int main (int argc, char **argv)
     else {
         spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
-        /* Apply also normalization to b vector */
+        /* Apply also normalization to b vectors */
         spmScalRHS( spm->flttype, 1./normA, spm->n, nrhs, b, spm->n );
 
-        /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
+        /* Save b for refinement */
         memcpy( b, x, size );
     }
 
     /**
-     * Solve the linear system
+     * Solve the linear system (and perform the optional refinement)
      */
     pastix_task_solve( pastix_data, nrhs, x, spm->n );
     pastix_task_refine( pastix_data, spm->n, nrhs, b, spm->n, x, spm->n );
@@ -124,9 +124,11 @@ int main (int argc, char **argv)
 
         if (x0) free(x0);
     }
+
     spmExit( spm );
     free( spm );
-    free(b); free(x);
+    free( x );
+    free( b );
     pastixFinalize( &pastix_data );
 
     return EXIT_SUCCESS;
