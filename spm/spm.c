@@ -1345,14 +1345,19 @@ spmScalVector(double alpha, pastix_spm_t* spm, void *x)
 /**
  *******************************************************************************
  *
- * @brief Scale a dense matrix corresponding to a set of RHS (wrapper to LAPACKE_xlascl)
+ * @brief Scale a dense matrix corresponding to a set of RHS (wrapper to
+ * LAPACKE_xlascl)
  *
  * A = alpha * A
  *
  *******************************************************************************
  *
  * @param[in] flt
- *          Datatype.
+ *          Datatype of the matrix that must be:
+ *          @arg PastixFloat
+ *          @arg PastixDouble
+ *          @arg PastixComplex32
+ *          @arg PastixComplex64
  *
  * @param[in] m
  *          Number of rows of the matrix A.
@@ -1361,18 +1366,22 @@ spmScalVector(double alpha, pastix_spm_t* spm, void *x)
  *          Number of columns of the matrix A.
  *
  * @param[in] alpha
- *           The scaling parameter.
+ *          The scaling parameter.
  *
  * @param[inout] A
- *          The matrix of RHS to scal.
+ *          The dense matrix to scale of size lda-by-n
  *
  * @param[in] lda
- *          Defines the leading dimension of A when multiple right hand sides
- *          are available. lda >= m.
+ *          Defines the leading dimension of A. lda >= m.
  *
  *******************************************************************************/
 void
-spmScalRHS(pastix_coeftype_t flt, double alpha, pastix_int_t m, pastix_int_t n, void *A, pastix_int_t lda)
+spmScalRHS( pastix_coeftype_t flt,
+            double            alpha,
+            pastix_int_t      m,
+            pastix_int_t      n,
+            void             *A,
+            pastix_int_t      lda )
 {
     switch(flt)
     {

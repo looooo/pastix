@@ -117,7 +117,7 @@ z_bcscBerr( void         *r1,
  *
  *******************************************************************************
  *
- * @param[in,out] x
+ * @param[inout] x
  *          The vector x.
  *
  * @param[in] alpha
@@ -185,7 +185,7 @@ z_bcscScal( void               *x,
  * @param[in] x
  *          The vector x.
  *
- * @param[in,out] y
+ * @param[inout] y
  *          The vector y.
  *
  *******************************************************************************

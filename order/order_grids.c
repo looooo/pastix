@@ -41,7 +41,7 @@
  * @param[in] yn
  *          The index of the second vertex in the second direction
  *
- * @param[in,out] max_number
+ * @param[inout] max_number
  *          The larger number to be attributed
  *
  * @param[in] ldax
@@ -111,7 +111,7 @@ order_grid2D_classic( pastix_int_t *peritab,
  * @param[in] zn
  *          The index of the second vertex in the third direction
  *
- * @param[in,out] max_number
+ * @param[inout] max_number
  *          The larger number to be attributed
  *
  * @param[out] current_rangtab

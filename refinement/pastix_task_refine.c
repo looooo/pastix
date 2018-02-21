@@ -89,7 +89,7 @@ static void (*sopalinRefine[4][4])(pastix_data_t *pastix_data, void *x, void *b)
  *          The number of right hand side members, and the number of columns of
  *          b and x.
  *
- * @param[in,out] b
+ * @param[inout] b
  *          The right hand side matrix of size ldb-by-nrhs.
  *          B is noted as inout, as permutation might be performed on the
  *          matrix. On exit, the matrix is restored as it was on entry.
@@ -97,7 +97,7 @@ static void (*sopalinRefine[4][4])(pastix_data_t *pastix_data, void *x, void *b)
  * @param[in] ldb
  *          The leading dimension of the matrix b. ldb >= n.
  *
- * @param[in,out] x
+ * @param[inout] x
  *          The matrix x of size ldx-by-nrhs.
  *          On entry, the initial guess x0 for the refinement step, that may be
  *          the solution returned by the solve step or any other intial guess.
