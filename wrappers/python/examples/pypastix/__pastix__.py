@@ -146,11 +146,12 @@ def pypastix_pastix_task_solve( pastix_data, nrhs, b, ldb ):
     libpastix.pastix_task_solve.restype = c_int
     return libpastix.pastix_task_solve( pastix_data, nrhs, b, ldb )
 
-def pypastix_pastix_task_refine( pastix_data, x, nrhs, b ):
-    libpastix.pastix_task_refine.argtypes = [ c_void_p, c_void_p, pastix_int,
-                                              c_void_p ]
+def pypastix_pastix_task_refine( pastix_data, n, nrhs, b, ldb, x, ldx ):
+    libpastix.pastix_task_refine.argtypes = [ c_void_p, pastix_int, pastix_int,
+                                              c_void_p, pastix_int, c_void_p,
+                                              pastix_int ]
     libpastix.pastix_task_refine.restype = c_int
-    return libpastix.pastix_task_refine( pastix_data, x, nrhs, b )
+    return libpastix.pastix_task_refine( pastix_data, n, nrhs, b, ldb, x, ldx )
 
 def pypastix_pastix_subtask_order( pastix_data, spm, myorder ):
     libpastix.pastix_subtask_order.argtypes = [ c_void_p,

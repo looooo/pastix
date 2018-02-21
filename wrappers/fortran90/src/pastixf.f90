@@ -267,7 +267,7 @@ module pastixf
   end interface
 
   interface
-     function pastix_task_refine_c(pastix_data, x, nrhs, b) &
+     function pastix_task_refine_c(pastix_data, n, nrhs, b, ldb, x, ldx) &
           bind(c, name='pastix_task_refine')
        use iso_c_binding
        import pastix_int_t
@@ -275,9 +275,12 @@ module pastixf
        implicit none
        integer(kind=c_int)               :: pastix_task_refine_c
        type(c_ptr),                value :: pastix_data
-       type(c_ptr),                value :: x
+       integer(kind=pastix_int_t), value :: n
        integer(kind=pastix_int_t), value :: nrhs
        type(c_ptr),                value :: b
+       integer(kind=pastix_int_t), value :: ldb
+       type(c_ptr),                value :: x
+       integer(kind=pastix_int_t), value :: ldx
      end function pastix_task_refine_c
   end interface
 
@@ -689,16 +692,19 @@ contains
     info = pastix_task_solve_c(c_loc(pastix_data), nrhs, b, ldb)
   end subroutine pastix_task_solve
 
-  subroutine pastix_task_refine(pastix_data, x, nrhs, b, info)
+  subroutine pastix_task_refine(pastix_data, n, nrhs, b, ldb, x, ldx, info)
     use iso_c_binding
     implicit none
     type(pastix_data_t),        intent(inout), target :: pastix_data
-    type(c_ptr),                intent(inout), target :: x
+    integer(kind=pastix_int_t), intent(in)            :: n
     integer(kind=pastix_int_t), intent(in)            :: nrhs
     type(c_ptr),                intent(inout), target :: b
+    integer(kind=pastix_int_t), intent(in)            :: ldb
+    type(c_ptr),                intent(inout), target :: x
+    integer(kind=pastix_int_t), intent(in)            :: ldx
     integer(kind=c_int),        intent(out)           :: info
 
-    info = pastix_task_refine_c(c_loc(pastix_data), x, nrhs, b)
+    info = pastix_task_refine_c(c_loc(pastix_data), n, nrhs, b, ldb, x, ldx)
   end subroutine pastix_task_refine
 
   subroutine pastix_subtask_order(pastix_data, spm, myorder, info)

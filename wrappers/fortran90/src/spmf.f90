@@ -154,6 +154,26 @@ module spmf
   end interface
 
   interface
+     function spmMatMat_c(trans, n, alpha, A, B, ldb, beta, C, ldc) &
+          bind(c, name='spmMatMat')
+       use iso_c_binding
+       import pastix_int_t
+       import pastix_spm_t
+       implicit none
+       integer(kind=c_int)               :: spmMatMat_c
+       integer(c_int),             value :: trans
+       integer(kind=pastix_int_t), value :: n
+       type(c_ptr),                value :: alpha
+       type(c_ptr),                value :: A
+       type(c_ptr),                value :: B
+       integer(kind=pastix_int_t), value :: ldb
+       type(c_ptr),                value :: beta
+       type(c_ptr),                value :: C
+       integer(kind=pastix_int_t), value :: ldc
+     end function spmMatMat_c
+  end interface
+
+  interface
      subroutine spmScalMatrix_c(alpha, spm) &
           bind(c, name='spmScalMatrix')
        use iso_c_binding
@@ -174,6 +194,21 @@ module spmf
        type(c_ptr),         value :: spm
        type(c_ptr),         value :: x
      end subroutine spmScalVector_c
+  end interface
+
+  interface
+     subroutine spmScalRHS_c(flt, alpha, m, n, A, lda) &
+          bind(c, name='spmScalRHS')
+       use iso_c_binding
+       import pastix_int_t
+       implicit none
+       integer(c_int),             value :: flt
+       real(kind=c_double),        value :: alpha
+       integer(kind=pastix_int_t), value :: m
+       integer(kind=pastix_int_t), value :: n
+       type(c_ptr),                value :: A
+       integer(kind=pastix_int_t), value :: lda
+     end subroutine spmScalRHS_c
   end interface
 
   interface
@@ -461,6 +496,23 @@ contains
     info = spmMatVec_c(trans, alpha, c_loc(spm), x, beta, y)
   end subroutine spmMatVec
 
+  subroutine spmMatMat(trans, n, alpha, A, B, ldb, beta, C, ldc, info)
+    use iso_c_binding
+    implicit none
+    integer(c_int),             intent(in)            :: trans
+    integer(kind=pastix_int_t), intent(in)            :: n
+    type(c_ptr),                intent(in),    target :: alpha
+    type(pastix_spm_t),         intent(in),    target :: A
+    type(c_ptr),                intent(in),    target :: B
+    integer(kind=pastix_int_t), intent(in)            :: ldb
+    type(c_ptr),                intent(in),    target :: beta
+    type(c_ptr),                intent(inout), target :: C
+    integer(kind=pastix_int_t), intent(in)            :: ldc
+    integer(kind=c_int),        intent(out)           :: info
+
+    info = spmMatMat_c(trans, n, alpha, c_loc(A), B, ldb, beta, C, ldc)
+  end subroutine spmMatMat
+
   subroutine spmScalMatrix(alpha, spm)
     use iso_c_binding
     implicit none
@@ -479,6 +531,19 @@ contains
 
     call spmScalVector_c(alpha, c_loc(spm), x)
   end subroutine spmScalVector
+
+  subroutine spmScalRHS(flt, alpha, m, n, A, lda)
+    use iso_c_binding
+    implicit none
+    integer(c_int),             intent(in)            :: flt
+    real(kind=c_double),        intent(in)            :: alpha
+    integer(kind=pastix_int_t), intent(in)            :: m
+    integer(kind=pastix_int_t), intent(in)            :: n
+    type(c_ptr),                intent(inout), target :: A
+    integer(kind=pastix_int_t), intent(in)            :: lda
+
+    call spmScalRHS_c(flt, alpha, m, n, A, lda)
+  end subroutine spmScalRHS
 
   subroutine spmSort(spm, info)
     use iso_c_binding
