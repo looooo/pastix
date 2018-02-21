@@ -81,14 +81,30 @@ static void (*sopalinRefine[4][4])(pastix_data_t *pastix_data, void *x, void *b)
  * @param[in] pastix_data
  *          The PaStiX data structure that describes the solver instance.
  *
- * @param[in] x
- *          The solution vector.
+ * @param[in] n
+ *          The size of system to solve, and the number of rows of both
+ *          matrices b and x.
  *
- * @param[in,out] rhsnbr
- *          The number of right hand side members.
+ * @param[in] nrhs
+ *          The number of right hand side members, and the number of columns of
+ *          b and x.
  *
- * @param[in] b
- *          The right hand side member.
+ * @param[in,out] b
+ *          The right hand side matrix of size ldb-by-nrhs.
+ *          B is noted as inout, as permutation might be performed on the
+ *          matrix. On exit, the matrix is restored as it was on entry.
+ *
+ * @param[in] ldb
+ *          The leading dimension of the matrix b. ldb >= n.
+ *
+ * @param[in,out] x
+ *          The matrix x of size ldx-by-nrhs.
+ *          On entry, the initial guess x0 for the refinement step, that may be
+ *          the solution returned by the solve step or any other intial guess.
+ *          On exit, contains the final solution after the iterative refinement.
+ *
+ * @param[in] ldx
+ *          The leading dimension of the matrix x. ldx >= n.
  *
  *******************************************************************************
  *
@@ -98,18 +114,17 @@ static void (*sopalinRefine[4][4])(pastix_data_t *pastix_data, void *x, void *b)
  *******************************************************************************/
 int
 pastix_task_refine( pastix_data_t *pastix_data,
-                    void          *x,
-                    pastix_int_t   rhsnbr,
-                    void          *b )
+                    pastix_int_t n, pastix_int_t nrhs,
+                    void *b, pastix_int_t ldb,
+                    void *x, pastix_int_t ldx )
 {
     pastix_int_t   *iparm    = pastix_data->iparm;
     pastix_order_t *ordemesh = pastix_data->ordemesh;
     double timer;
 
-    if (rhsnbr > 1)
+    if (nrhs > 1)
     {
-        errorPrintW("Refinement works only with 1 rhs, please call them one after the other.");
-        rhsnbr = 1;
+        errorPrintW("Refinement works only with 1 rhs, We will iterate on each RHS one by one");
     }
 
     if ( (pastix_data->schur_n > 0) && (iparm[IPARM_SCHUR_SOLV_MODE] != PastixSolvModeLocal))
@@ -121,50 +136,51 @@ pastix_task_refine( pastix_data_t *pastix_data,
     /* Prepare the refinment threshold, if not set by the user */
     if ( pastix_data->dparm[DPARM_EPSILON_REFINEMENT] < 0. ) {
         if ( (pastix_data->bcsc->flttype == PastixFloat) ||
-             (pastix_data->bcsc->flttype == PastixComplex32) )
+             (pastix_data->bcsc->flttype == PastixComplex32) ) {
             pastix_data->dparm[DPARM_EPSILON_REFINEMENT] = 1e-6;
-        else
+        }
+        else {
             pastix_data->dparm[DPARM_EPSILON_REFINEMENT] = 1e-12;
+        }
     }
 
     if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
-                                         1,
-                                         b,
-                                         pastix_data->bcsc->gN,
+                                         nrhs, b, ldb,
                                          ordemesh->permtab ))
     {
         return PASTIX_ERR_BADPARAMETER;
     }
 
     if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
-                                         1,
-                                         x,
-                                         pastix_data->bcsc->gN,
+                                         nrhs, x, ldx,
                                          ordemesh->permtab ))
     {
         return PASTIX_ERR_BADPARAMETER;
     }
 
     clockStart(timer);
-    sopalinRefine[iparm[IPARM_REFINEMENT]][pastix_data->bcsc->flttype -2](pastix_data, x, b);
+    {
+        void (*refinefct)(pastix_data_t *, void *, void *) = sopalinRefine[iparm[IPARM_REFINEMENT]][pastix_data->bcsc->flttype -2];
+        int i;
+        for(i=0; i<nrhs; i++) {
+            refinefct( pastix_data, x + i * ldx , b + i * ldb );
+        }
+    }
     clockStop(timer);
+
     if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
         pastix_print( 0, 0, OUT_TIME_REFINE, clockVal(timer) );
     }
 
     if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
-                                         1,
-                                         b,
-                                         pastix_data->bcsc->gN,
+                                         nrhs, b, ldb,
                                          ordemesh->peritab ))
     {
         return PASTIX_ERR_BADPARAMETER;
     }
 
     if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
-                                         1,
-                                         x,
-                                         pastix_data->bcsc->gN,
+                                         nrhs, x, ldx,
                                          ordemesh->peritab ))
     {
         return PASTIX_ERR_BADPARAMETER;
