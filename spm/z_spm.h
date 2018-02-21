@@ -38,9 +38,10 @@ int z_spmConvertIJV2CSR( pastix_spm_t *spm );
 pastix_complex64_t *z_spm2dense( const pastix_spm_t *spm );
 
 /**
- * Matrix-Vector product routines
+ * Matrix-Vector and matrix-matrix product routines
  */
 int z_spmCSCMatVec(const pastix_trans_t trans, const void *alpha, const pastix_spm_t *spm, const void *x, const void *beta, void *y);
+int z_spmCSCMatMat(const pastix_trans_t trans, pastix_int_t n, const void *alpha, const pastix_spm_t *A, const void *B, pastix_int_t ldb, const void *beta, void *Cptr, pastix_int_t ldc );
 
 /**
  * Norm computation routines
