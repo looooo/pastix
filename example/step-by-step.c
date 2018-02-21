@@ -30,7 +30,7 @@ int main (int argc, char **argv)
     void           *x, *b, *x0 = NULL;
     size_t          size;
     int             check = 1;
-    int             nrhs  = 1;
+    int             nrhs  = 20;
     int             nfact = 2;
     int             nsolv = 2;
     long            i,j;
