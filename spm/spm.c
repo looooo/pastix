@@ -1109,17 +1109,17 @@ spmMatMat(       pastix_trans_t trans,
     }
     switch (A->flttype) {
     case PastixFloat:
-        rc = s_spmCSCMat( trans, alpha, espm, B, beta, C);
+        rc = s_spmCSCMatMat( trans, n, alpha, espm, B, ldb, beta, C, ldc );
         break;
     case PastixComplex32:
-        rc = c_spmCSCMat( trans, alpha, espm, B, beta, C);
+        rc = c_spmCSCMatMat( trans, n, alpha, espm, B, ldb, beta, C, ldc );
         break;
     case PastixComplex64:
-        rc = z_spmCSCMat( trans, alpha, espm, B, beta, C);
+        rc = z_spmCSCMatMat( trans, n, alpha, espm, B, ldb, beta, C, ldc );
         break;
     case PastixDouble:
     default:
-        rc = d_spmCSCMat( trans, alpha, espm, B, beta, C);
+        rc = d_spmCSCMatMat( trans, n, alpha, espm, B, ldb, beta, C, ldc );
         break;
     }
 
