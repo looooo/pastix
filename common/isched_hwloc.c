@@ -73,7 +73,9 @@ int isched_hwloc_bind_on_core_index(int cpu_index)
     /* Get the core of index cpu_index */
     core = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, cpu_index);
     if (!core) {
-        fprintf(stderr, "isched_hwloc_bind_on_core_index: unable to get the core of index %i (nb physical cores = %i )\n", cpu_index, isched_hwloc_nb_real_cores());
+        fprintf(stderr,
+                "isched_hwloc_bind_on_core_index: unable to get the core of index %i (nb physical cores = %i )\n",
+                cpu_index, isched_hwloc_world_size());
         return -1;
     }
 
