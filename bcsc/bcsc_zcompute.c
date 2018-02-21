@@ -452,41 +452,40 @@ int z_bcscApplyPerm( pastix_int_t m,
                      pastix_int_t lda,
                      pastix_int_t *perm )
 {
-    pastix_int_t i, j, k;
-    (void)lda;
+    pastix_complex64_t tmp;
+    pastix_int_t i, j, k, jj;
 
-    if ( n == 1 ) {
-        pastix_complex64_t tmp;
-        for(k=0; k<m; k++) {
-            i = k;
-            j = perm[i];
+    for(k=0; k<m; k++) {
+        i = k;
+        j = perm[i];
 
-            /* Cycle already seen */
-            if ( j < 0 ) {
-                continue;
+        /* Cycle already seen */
+        if ( j < 0 ) {
+            continue;
+        }
+
+        /* Mark the i^th element as being seen */
+        perm[i] = -j-1;
+
+        while( j != k ) {
+
+            for(jj=0; jj<n; jj++) {
+                tmp             = A[j + jj * lda];
+                A[j + jj * lda] = A[k + jj * lda];
+                A[k + jj * lda] = tmp;
             }
 
-            /* Mark the i^th element as being seen */
+            i = j;
+            j = perm[i];
             perm[i] = -j-1;
 
-            while( j != k ) {
-
-                tmp = A[j];
-                A[j] = A[k];
-                A[k] = tmp;
-
-                i = j;
-                j = perm[i];
-                perm[i] = -j-1;
-
-                assert( (j != i) && (j >= 0) );
-            }
+            assert( (j != i) && (j >= 0) );
         }
+    }
 
-        for(k=0; k<m; k++) {
-            assert(perm[k] < 0);
-            perm[k] = - perm[k] - 1;
-        }
+    for(k=0; k<m; k++) {
+        assert(perm[k] < 0);
+        perm[k] = - perm[k] - 1;
     }
 
     return PASTIX_SUCCESS;
