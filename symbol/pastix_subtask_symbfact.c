@@ -411,10 +411,12 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     }
 
     /* Invalidate following steps, and add order step to the ones performed */
-    pastix_data->steps &= ~( STEP_ANALYSE |
-                             STEP_NUMFACT |
-                             STEP_SOLVE   |
-                             STEP_REFINE  );
+    pastix_data->steps &= ~( STEP_ANALYSE   |
+                             STEP_CSC2BCSC  |
+                             STEP_BCSC2CTAB |
+                             STEP_NUMFACT   |
+                             STEP_SOLVE     |
+                             STEP_REFINE    );
     pastix_data->steps |= STEP_SYMBFACT;
 
     return PASTIX_SUCCESS;

@@ -63,9 +63,9 @@ class spm():
         A.sort_indices()
 
         # Pointer variables
-        py_colptr = np.array( A.indptr[:],  dtype=pastix_int )
-        py_rowptr = np.array( A.indices[:], dtype=pastix_int )
-        py_values = np.array( A.data[:] )
+        self.py_colptr = np.array( A.indptr[:],  dtype=pastix_int )
+        self.py_rowptr = np.array( A.indices[:], dtype=pastix_int )
+        self.py_values = np.array( A.data[:] )
 
         if mtxtype_ == mtxtype.SymPosDef:
             mtxtype_ = mtxtype.Symmetric
@@ -80,10 +80,10 @@ class spm():
         self.spm_c.dof      = 1
         self.spm_c.dofs     = None
         self.spm_c.layout   = layout.ColMajor
-        self.spm_c.colptr   = py_colptr.ctypes.data_as(POINTER(pastix_int))
-        self.spm_c.rowptr   = py_rowptr.ctypes.data_as(POINTER(pastix_int))
+        self.spm_c.colptr   = self.py_colptr.ctypes.data_as(POINTER(pastix_int))
+        self.spm_c.rowptr   = self.py_rowptr.ctypes.data_as(POINTER(pastix_int))
         self.spm_c.loc2glob = None
-        self.spm_c.values   = py_values.ctypes.data_as(c_void_p)
+        self.spm_c.values   = self.py_values.ctypes.data_as(c_void_p)
 
         self.id_ptr = pointer( self.spm_c )
 
@@ -96,11 +96,11 @@ class spm():
         """
         n      = int( self.spm_c.n )
         nnz    = int( self.spm_c.nnz )
-        cflt   = coeftype.getctype( self.spm_c.flttype )
+        cflt   = coeftype.getctype(  self.spm_c.flttype )
         nflt   = coeftype.getnptype( self.spm_c.flttype )
-        colptr = np.frombuffer( (pastix_int * (n+1)).from_address( cast(self.spm_c.colptr, c_void_p).value ), pastix_int ).copy()
-        rowptr = np.frombuffer( (pastix_int *  nnz ).from_address( cast(self.spm_c.rowptr, c_void_p).value ), pastix_int ).copy()
-        values = np.frombuffer( (cflt       *  nnz ).from_address( self.spm_c.values ), nflt ).copy()
+        colptr = self.py_colptr.copy()
+        rowptr = self.py_rowptr.copy()
+        values = self.py_values.copy()
 
         baseval = colptr[0]
         colptr = colptr - baseval
@@ -149,6 +149,10 @@ class spm():
             return
         self.spm_c = cast( spm2, POINTER(pypastix_spm_t) ).contents
         self.id_ptr = pointer( self.spm_c )
+
+        self.py_colptr = np.frombuffer( (pastix_int * (n+1)).from_address( cast(self.spm_c.colptr, c_void_p).value ), pastix_int ).copy()
+        self.py_rowptr = np.frombuffer( (pastix_int *  nnz ).from_address( cast(self.spm_c.rowptr, c_void_p).value ), pastix_int ).copy()
+        self.py_values = np.frombuffer( (cflt       *  nnz ).from_address( self.spm_c.values ), nflt ).copy()
 
     def __checkVector( self, n, nrhs, x ):
         if x.dtype != self.dtype:
