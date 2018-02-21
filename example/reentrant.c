@@ -116,7 +116,7 @@ static void *solve_smp(void *arg)
      * Generates the b and x vector such that A * x = b
      * Compute the norms of the initial vectors if checking purpose.
      */
-    size = pastix_size_of( spm->flttype ) * spm->n;
+    size = pastix_size_of( spm->flttype ) * spm->n * nrhs;
     x = malloc( size );
     b = malloc( size );
     if ( check )

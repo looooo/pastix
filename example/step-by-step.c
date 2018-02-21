@@ -83,7 +83,7 @@ int main (int argc, char **argv)
     pastix_subtask_reordering( pastix_data );
     pastix_subtask_blend( pastix_data );
 
-    size = pastix_size_of( spm->flttype ) * spm->n;
+    size = pastix_size_of( spm->flttype ) * spm->n * nrhs;
     x = malloc( size );
     b = malloc( size );
     if ( check > 1 ) {

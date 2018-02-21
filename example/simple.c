@@ -28,7 +28,7 @@ int main (int argc, char **argv)
     void           *x, *b, *x0 = NULL;
     size_t          size;
     int             check = 1;
-    int             nrhs = 1;
+    int             nrhs  = 1;
 
     /**
      * Initialize parameters to default values
@@ -90,7 +90,7 @@ int main (int argc, char **argv)
      * Generates the b and x vector such that A * x = b
      * Compute the norms of the initial vectors if checking purpose.
      */
-    size = pastix_size_of( spm->flttype ) * spm->n;
+    size = pastix_size_of( spm->flttype ) * spm->n * nrhs;
     x = malloc( size );
     b = malloc( size );
 
