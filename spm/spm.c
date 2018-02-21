@@ -1038,6 +1038,101 @@ spmMatVec(       pastix_trans_t trans,
 /**
  *******************************************************************************
  *
+ * @brief Compute a matrix-matrix product.
+ *
+ *    y = alpha * op(A) * B + beta * C
+ *
+ * where op(A) is one of:
+ *
+ *    op( A ) = A  or op( A ) = A' or op( A ) = conjg( A' )
+ *
+ *  alpha and beta are scalars, and x and y are vectors.
+ *
+ *******************************************************************************
+ *
+ * @param[in] trans
+ *          Specifies whether the matrix spm is transposed, not transposed or conjugate transposed:
+ *          - PastixTrans
+ *          - PastixNoTrans
+ *          - PastixConjTrans
+ *
+ * @param[in] n
+ *          The number of columns of the matrices B and C.
+ *
+ * @param[in] alpha
+ *          alpha specifies the scalar alpha.
+ *
+ * @param[in] A
+ *          The square sparse matrix A
+ *
+ * @param[in] B
+ *          The matrix B of size ldb-by-n
+ *
+ * @param[in] ldb
+ *          The leading dimension of the matrix B. ldb >= A->n
+ *
+ * @param[in] beta
+ *          beta specifies the scalar beta.
+ *
+ * @param[inout] C
+ *          The matrix C of size ldc-by-n
+ *
+ * @param[in] ldc
+ *          The leading dimension of the matrix C. ldc >= A->n
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS if the y vector has been computed successfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+spmMatMat(       pastix_trans_t trans,
+                 pastix_int_t   n,
+           const void          *alpha,
+           const pastix_spm_t  *A,
+           const void          *B,
+                 pastix_int_t   ldb,
+           const void          *beta,
+                 void          *C,
+                 pastix_int_t   ldc )
+{
+    pastix_spm_t *espm = (pastix_spm_t*)A;
+    int rc = PASTIX_SUCCESS;
+
+    if ( A->fmttype != PastixCSC ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    if ( A->dof != 1 ) {
+        espm = spmExpand( A );
+    }
+    switch (A->flttype) {
+    case PastixFloat:
+        rc = s_spmCSCMat( trans, alpha, espm, B, beta, C);
+        break;
+    case PastixComplex32:
+        rc = c_spmCSCMat( trans, alpha, espm, B, beta, C);
+        break;
+    case PastixComplex64:
+        rc = z_spmCSCMat( trans, alpha, espm, B, beta, C);
+        break;
+    case PastixDouble:
+    default:
+        rc = d_spmCSCMat( trans, alpha, espm, B, beta, C);
+        break;
+    }
+
+    if ( A != espm ) {
+        spmExit( espm );
+        free(espm);
+    }
+    return rc;
+}
+
+/**
+ *******************************************************************************
+ *
  * @brief Generate right hand side vectors associated to a given matrix.
  *
  * The vectors can be initialized randomly or to get a specific solution.
