@@ -209,23 +209,29 @@ z_spmGenRHS( pastix_rhstype_t type, int nrhs,
     }
 
     /* Other format not supported for now */
-    if( spm->fmttype != PastixCSC )
+    if( spm->fmttype != PastixCSC ) {
         return PASTIX_ERR_BADPARAMETER;
+    }
 
-    if( spm->gN <= 0 )
+    if( spm->gN <= 0 ) {
         return PASTIX_ERR_BADPARAMETER;
+    }
 
-    if( nrhs <= 0 )
+    if( nrhs <= 0 ) {
         return PASTIX_ERR_BADPARAMETER;
+    }
 
-    if( (nrhs > 1) && (ldx < spm->n) )
+    if( (nrhs > 1) && (ldx < spm->n) ) {
         return PASTIX_ERR_BADPARAMETER;
+    }
 
-    if( (nrhs > 1) && (ldb < spm->n) )
+    if( (nrhs > 1) && (ldb < spm->n) ) {
         return PASTIX_ERR_BADPARAMETER;
+    }
 
-    if( spm->dof != 1 )
+    if( spm->dof != 1 ) {
         return PASTIX_ERR_BADPARAMETER;
+    }
 
     if (nrhs == 1) {
         ldb = spm->n;
@@ -292,7 +298,8 @@ z_spmGenRHS( pastix_rhstype_t type, int nrhs,
                           spm->gN, 0, 0, 24356 );
         }
 
-        rc = z_spmCSCMatVec( PastixNoTrans, &zone, spm, xptr, &zzero, bptr );
+        /* Compute B */
+        rc = z_spmCSCMatMat( PastixNoTrans, nrhs, &zone, spm, xptr, ldx, &zzero, bptr, ldb );
 
         if ( x == NULL ) {
             memFree_null(xptr);
@@ -360,6 +367,7 @@ z_spmCheckAxb( int nrhs,
     double normA, normB, normX, normX0, normR;
     double backward, forward, eps;
     int failure = 0;
+    int i;
 
     assert( spm->nexp == spm->n );
     assert( spm->dof == 1 );
@@ -369,26 +377,43 @@ z_spmCheckAxb( int nrhs,
     /**
      * Compute the starting norms
      */
-    normA = spmNorm( PastixFrobeniusNorm, spm );
-    normX = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, x, ldx );
-    normB = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, b, ldb );
+    normA = spmNorm( PastixOneNorm, spm );
 
-    printf( "   || A ||_oo                                   %e\n"
-            "   || b ||_oo                                   %e\n"
-            "   || x ||_oo                                   %e\n",
+    normB = 0.;
+    normX = 0.;
+    for( i=0; i<nrhs; i++ ) {
+        double norm;
+
+        norm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, 1, b + i * ldb, ldb );
+        normB = (norm > normB ) ? norm : normB;
+        norm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, 1, b + i * ldb, ldb );
+        normX = (norm > normB ) ? norm : normB;
+    }
+    printf( "   || A ||_1                                               %e\n"
+            "   max(|| b_i ||_oo)                                       %e\n"
+            "   max(|| x_i ||_oo)                                       %e\n",
             normA, normB, normX );
 
     /**
-     * Compute r = A * x - b
+     * Compute r = b - A * x
      */
-    spmMatVec( PastixNoTrans, &mzone, spm, x, &zone, b );
-    normR = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, b, ldb );
+    spmMatMat( PastixNoTrans, nrhs, &mzone, spm, x, ldx, &zone, b, ldb );
 
-    backward = normR / ( normA * normX + normB );
-    failure = isnan(normX) || isinf(normX) || isnan(backward) || isinf(backward) || ((backward / eps) > 1.e3);
+    normR = 0.;
+    backward = 0.;
+    for( i=0; i<nrhs; i++ ) {
+        double nx = cblas_dzasum( spm->n, x + i * ldx, 1 );
+        double nb = cblas_dzasum( spm->n, b + i * ldb, 1 );
+        double r  =  ((nb / normA) / nx) / eps;
 
-    printf( "   ||b-Ax||_oo                                  %e\n"
-            "   ||b-Ax||_oo / (||A||_oo ||x||_oo + ||b||_oo) %e (%s)\n",
+        normR = (nb > normR) ? nb : normR;
+        backward = (r > backward) ? r : backward;
+    }
+
+    failure = isnan(normR) || isinf(normR) || isnan(backward) || isinf(backward) || (backward > 1.e3);
+
+    printf( "   max(|| b_i - A x_i ||_1)                                %e\n"
+            "   max(|| b_i - A x_i ||_1) / (||A||_1 * ||x_i||_oo * eps) %e (%s)\n",
             normR, backward,
             failure ? "FAILED" : "SUCCESS" );
 
@@ -397,8 +422,7 @@ z_spmCheckAxb( int nrhs,
      */
     if ( x0 != NULL ) {
         const pastix_complex64_t *zx  = (const pastix_complex64_t *)x;
-        pastix_complex64_t *zx0 = (pastix_complex64_t *)x0;;
-        pastix_int_t i;
+        pastix_complex64_t       *zx0 = (pastix_complex64_t *)x0;
 
         normX0 = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, x0, ldx0 );
 
