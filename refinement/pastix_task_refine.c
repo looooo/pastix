@@ -124,7 +124,7 @@ pastix_task_refine( pastix_data_t *pastix_data,
 
     if (nrhs > 1)
     {
-        errorPrintW("Refinement works only with 1 rhs, We will iterate on each RHS one by one");
+        errorPrintW("Refinement works only with 1 rhs, We will iterate on each RHS one by one\n");
     }
 
     if ( (pastix_data->schur_n > 0) && (iparm[IPARM_SCHUR_SOLV_MODE] != PastixSolvModeLocal))
@@ -161,9 +161,16 @@ pastix_task_refine( pastix_data_t *pastix_data,
     clockStart(timer);
     {
         void (*refinefct)(pastix_data_t *, void *, void *) = sopalinRefine[iparm[IPARM_REFINEMENT]][pastix_data->bcsc->flttype -2];
+        char *xptr = (char *)x;
+        char *bptr = (char *)b;
+        size_t shiftx, shiftb;
         int i;
-        for(i=0; i<nrhs; i++) {
-            refinefct( pastix_data, x + i * ldx , b + i * ldb );
+
+        shiftx = ldx * pastix_size_of( pastix_data->bcsc->flttype );
+        shiftb = ldb * pastix_size_of( pastix_data->bcsc->flttype );
+
+        for(i=0; i<nrhs; i++, xptr += shiftx, bptr += shiftb ) {
+            refinefct( pastix_data, xptr, bptr );
         }
     }
     clockStop(timer);
@@ -186,5 +193,6 @@ pastix_task_refine( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
+    (void)n;
     return PASTIX_SUCCESS;
 }
