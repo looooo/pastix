@@ -364,6 +364,9 @@ z_spmCheckAxb( int nrhs,
                      void *b,  int ldb,
                const void *x,  int ldx )
 {
+    const pastix_complex64_t *zx  = (const pastix_complex64_t *)x;
+    pastix_complex64_t       *zx0 = (pastix_complex64_t *)x0;
+    pastix_complex64_t       *zb  = (pastix_complex64_t *)b;
     double normA, normB, normX, normX0, normR;
     double backward, forward, eps;
     int failure = 0;
@@ -384,10 +387,10 @@ z_spmCheckAxb( int nrhs,
     for( i=0; i<nrhs; i++ ) {
         double norm;
 
-        norm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, 1, b + i * ldb, ldb );
+        norm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, 1, zb + i * ldb, ldb );
         normB = (norm > normB ) ? norm : normB;
-        norm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, 1, b + i * ldb, ldb );
-        normX = (norm > normB ) ? norm : normB;
+        norm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, 1, zx + i * ldx, ldx );
+        normX = (norm > normX ) ? norm : normX;
     }
     printf( "   || A ||_1                                               %e\n"
             "   max(|| b_i ||_oo)                                       %e\n"
@@ -399,21 +402,33 @@ z_spmCheckAxb( int nrhs,
      */
     spmMatMat( PastixNoTrans, nrhs, &mzone, spm, x, ldx, &zone, b, ldb );
 
-    normR = 0.;
+    normR    = 0.;
     backward = 0.;
-    for( i=0; i<nrhs; i++ ) {
-        double nx = cblas_dzasum( spm->n, x + i * ldx, 1 );
-        double nb = cblas_dzasum( spm->n, b + i * ldb, 1 );
-        double r  =  ((nb / normA) / nx) / eps;
+    failure  = 0;
 
-        normR = (nb > normR) ? nb : normR;
-        backward = (r > backward) ? r : backward;
+    for( i=0; i<nrhs; i++ ) {
+        double nx   = cblas_dzasum( spm->n, zx + i * ldx, 1 );
+        double nr   = cblas_dzasum( spm->n, zb + i * ldb, 1 );
+        double back =  ((nr / normA) / nx) / eps;
+        int fail = 0;
+
+        normR    = (nr   > normR   ) ? nr   : normR;
+        backward = (back > backward) ? back : backward;
+
+        fail = isnan(nr) || isinf(nr) || isnan(back) || isinf(back) || (back > 1.e3);
+        if ( fail ) {
+            printf( "   || b_%d - A x_%d ||_1                                 %e\n"
+                    "   || b_%d - A x_%d ||_1 / (||A||_1 * ||x_%d||_oo * eps) %e (%s)\n",
+                    i, i, nr,
+                    i, i, i, back,
+                    failure ? "FAILED" : "SUCCESS" );
+        }
+
+        failure = failure || fail;
     }
 
-    failure = isnan(normR) || isinf(normR) || isnan(backward) || isinf(backward) || (backward > 1.e3);
-
     printf( "   max(|| b_i - A x_i ||_1)                                %e\n"
-            "   max(|| b_i - A x_i ||_1) / (||A||_1 * ||x_i||_oo * eps) %e (%s)\n",
+            "   max(|| b_i - A x_i ||_1 / (||A||_1 * ||x_i||_oo * eps)) %e (%s)\n",
             normR, backward,
             failure ? "FAILED" : "SUCCESS" );
 
@@ -421,26 +436,44 @@ z_spmCheckAxb( int nrhs,
      * Compute r = x0 - x
      */
     if ( x0 != NULL ) {
-        const pastix_complex64_t *zx  = (const pastix_complex64_t *)x;
-        pastix_complex64_t       *zx0 = (pastix_complex64_t *)x0;
+        double forw, nr, nx;
+        int fail;
 
-        normX0 = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, x0, ldx0 );
+        forward = 0.;
+        normR   = 0.;
+        normX0  = 0.;
+        failure = 0;
 
-        for( i=0; i<nrhs; i++) {
-            cblas_zaxpy(
-                spm->n, CBLAS_SADDR(mzone),
-                zx  + ldx  * i, 1,
-                zx0 + ldx0 * i, 1);
+        for( i=0; i<nrhs; i++, zx += ldx, zx0 += ldx0 ) {
+
+            nx = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, 1, zx0, ldx0 );
+
+            cblas_zaxpy( spm->n, CBLAS_SADDR(mzone),
+                         zx, 1, zx0, 1);
+
+            nr = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, 1, zx0, ldx0 );
+
+            forw = (nr / nx) / eps;
+
+            normX0  = ( nx   > normX0  ) ? nx   : normX0;
+            normR   = ( nr   > normR   ) ? nr   : normR;
+            forward = ( forw > forward ) ? forw : forward;
+
+            fail = isnan(nx) || isinf(nx) || isnan(forw) || isinf(forw) || (forw > 1.e3);
+            if ( fail ) {
+                printf( "   || x0_%d ||_oo                                 %e\n"
+                        "   || x0_%d - x_%d ||_oo / (||x0_%d||_oo * eps)   %e (%s)\n",
+                        i, nr,
+                        i, i, i, forw,
+                        failure ? "FAILED" : "SUCCESS" );
+            }
+
+            failure = failure || fail;
         }
 
-        normR = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, nrhs, x0, ldx0 );
-
-        forward = normR / normX0;
-        failure = isnan(normX) || isinf(normX) || isnan(forward) || isinf(forward) || ((forward / eps) > 1.e3);
-
-        printf( "   ||x_0||_oo                                   %e\n"
-                "   ||x_0-x||_oo                                 %e\n"
-                "   ||x_0-x||_oo / ||x_0||_oo                    %e (%s)\n",
+        printf( "   max(|| x0_i ||_oo)                                      %e\n"
+                "   max(|| x0_i - x_i ||_oo)                                %e\n"
+                "   max(|| x0_i - x_i ||_oo / || x0_i ||_oo)                %e (%s)\n",
                 normX0, normR, forward,
                 failure ? "FAILED" : "SUCCESS" );
     }
