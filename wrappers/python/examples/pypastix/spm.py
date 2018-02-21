@@ -205,8 +205,8 @@ class spm():
         #     raise EnvironmentError( "SPM Instance badly instanciated" )
 
         n = self.spm_c.n
-        b = np.zeros(n, self.dtype)
-        x = np.zeros(n, self.dtype)
+        b = np.zeros((n, nrhs), self.dtype)
+        x = np.zeros((n, nrhs), self.dtype)
 
         ldb = b.shape[0]
         ldx = x.shape[0]
