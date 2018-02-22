@@ -29,9 +29,8 @@
  *
  * @ingroup pastix_dev_refine
  *
- * @brief Select the refinement function to call depending on the matrix type and the
- * precision
- *
+ * @brief Select the refinement function to call depending on the matrix type
+ * and the precision
  *
  *******************************************************************************/
 static void (*sopalinRefine[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
@@ -100,7 +99,7 @@ static void (*sopalinRefine[4][4])(pastix_data_t *pastix_data, void *x, void *b)
  * @param[inout] x
  *          The matrix x of size ldx-by-nrhs.
  *          On entry, the initial guess x0 for the refinement step, that may be
- *          the solution returned by the solve step or any other intial guess.
+ *          the solution returned by the solve step or any other initial guess.
  *          On exit, contains the final solution after the iterative refinement.
  *
  * @param[in] ldx
@@ -133,7 +132,7 @@ pastix_task_refine( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    /* Prepare the refinment threshold, if not set by the user */
+    /* Prepare the refinement threshold, if not set by the user */
     if ( pastix_data->dparm[DPARM_EPSILON_REFINEMENT] < 0. ) {
         if ( (pastix_data->bcsc->flttype == PastixFloat) ||
              (pastix_data->bcsc->flttype == PastixComplex32) ) {
