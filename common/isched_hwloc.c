@@ -21,7 +21,6 @@
 
 static hwloc_topology_t topology;
 static int first_init = 0;
-static int ht = 1;
 static volatile pastix_atomic_lock_t topo_lock = PASTIX_ATOMIC_UNLOCKED;
 
 #if defined(HAVE_HWLOC_PARENT_MEMBER)
