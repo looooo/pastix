@@ -1328,7 +1328,7 @@ spmScalMatrix(double alpha, pastix_spm_t* spm)
  *          The vector to scal of size ( 1 + (n-1) * abs(incx) ), and of type
  *          defined by flt.
  *
- * @param[in] inc
+ * @param[in] incx
  *          Storage spacing between elements of x.
  *
  *******************************************************************************/
@@ -1337,9 +1337,9 @@ spmScalVector( pastix_coeftype_t flt,
                double            alpha,
                pastix_int_t      n,
                void             *x,
-               pastix_int_t      inc )
+               pastix_int_t      incx )
 {
-    switch(spm->flttype)
+    switch( flt )
     {
     case PastixPattern:
         break;
