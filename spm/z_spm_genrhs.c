@@ -321,6 +321,10 @@ z_spmGenRHS( pastix_rhstype_t type, int nrhs,
  *
  *******************************************************************************
  *
+ * @param[in] eps
+ *          The epsilon threshold used for the refinement step. -1. to use the
+ *          machine precision.
+ *
  * @param[in] nrhs
  *          Defines the number of right hand side that must be generated.
  *
@@ -358,7 +362,7 @@ z_spmGenRHS( pastix_rhstype_t type, int nrhs,
  *
  *******************************************************************************/
 int
-z_spmCheckAxb( int nrhs,
+z_spmCheckAxb( pastix_fixdbl_t eps, int nrhs,
                const pastix_spm_t  *spm,
                      void *x0, int ldx0,
                      void *b,  int ldb,
@@ -368,14 +372,16 @@ z_spmCheckAxb( int nrhs,
     pastix_complex64_t       *zx0 = (pastix_complex64_t *)x0;
     pastix_complex64_t       *zb  = (pastix_complex64_t *)b;
     double normA, normB, normX, normX0, normR;
-    double backward, forward, eps;
+    double backward, forward;
     int failure = 0;
     int i;
 
     assert( spm->nexp == spm->n );
     assert( spm->dof == 1 );
 
-    eps = LAPACKE_dlamch('e');
+    if ( eps == -1. ) {
+        eps = LAPACKE_dlamch('e');
+    }
 
     /**
      * Compute the starting norms
@@ -415,7 +421,7 @@ z_spmCheckAxb( int nrhs,
         normR    = (nr   > normR   ) ? nr   : normR;
         backward = (back > backward) ? back : backward;
 
-        fail = isnan(nr) || isinf(nr) || isnan(back) || isinf(back) || (back > 1.e3);
+        fail = isnan(nr) || isinf(nr) || isnan(back) || isinf(back) || (back > 1.e2);
         if ( fail ) {
             printf( "   || b_%d - A x_%d ||_1                                 %e\n"
                     "   || b_%d - A x_%d ||_1 / (||A||_1 * ||x_%d||_oo * eps) %e (%s)\n",
@@ -459,7 +465,7 @@ z_spmCheckAxb( int nrhs,
             normR   = ( nr   > normR   ) ? nr   : normR;
             forward = ( forw > forward ) ? forw : forward;
 
-            fail = isnan(nx) || isinf(nx) || isnan(forw) || isinf(forw) || (forw > 1.e3);
+            fail = isnan(nx) || isinf(nx) || isnan(forw) || isinf(forw) || (forw > 1.e2);
             if ( fail ) {
                 printf( "   || x0_%d ||_oo                                 %e\n"
                         "   || x0_%d - x_%d ||_oo / (||x0_%d||_oo * eps)   %e (%s)\n",

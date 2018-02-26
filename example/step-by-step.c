@@ -134,7 +134,7 @@ int main (int argc, char **argv)
             pastix_task_refine( pastix_data, spm->n, nrhs, b, spm->n, x, spm->n );
 
             if ( check ) {
-                rc |= spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+                rc |= spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
             }
         }
     }

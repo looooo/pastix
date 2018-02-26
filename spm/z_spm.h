@@ -56,7 +56,7 @@ pastix_int_t z_spmMergeDuplicate( pastix_spm_t *spm );
 pastix_int_t z_spmSymmetrize( pastix_spm_t *spm );
 
 int z_spmGenRHS(pastix_rhstype_t type, int nrhs, const pastix_spm_t *spm, void *x, int ldx, void *b, int ldb );
-int z_spmCheckAxb( int nrhs, const pastix_spm_t *spm, void *x0, int ldx0, void *b, int ldb, const void *x, int ldx );
+int z_spmCheckAxb( pastix_fixdbl_t eps, int nrhs, const pastix_spm_t *spm, void *x0, int ldx0, void *b, int ldb, const void *x, int ldx );
 
 /**
  * Output routines

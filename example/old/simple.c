@@ -127,7 +127,7 @@ int main (int argc, char **argv)
      */
     if ( check )
     {
-        ret = spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+        ret = spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
         if ( x0 ) {
             free( x0 );
         }

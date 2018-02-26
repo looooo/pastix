@@ -115,7 +115,7 @@ pastix_spm_t *spmCheckAndCorrect( pastix_spm_t *spm );
  * @{
  */
 int           spmGenRHS( pastix_rhstype_t type, pastix_int_t nrhs, const pastix_spm_t *spm, void *x, pastix_int_t ldx, void *b, pastix_int_t ldb );
-int           spmCheckAxb( pastix_int_t nrhs, const pastix_spm_t *spm, void *x0, pastix_int_t ldx0, void *b, pastix_int_t ldb, const void *x, pastix_int_t ldx );
+int           spmCheckAxb( double eps, pastix_int_t nrhs, const pastix_spm_t *spm, void *x0, pastix_int_t ldx0, void *b, pastix_int_t ldb, const void *x, pastix_int_t ldx );
 
 /**
  * @}

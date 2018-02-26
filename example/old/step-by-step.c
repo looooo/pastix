@@ -204,7 +204,7 @@ int main (int argc, char **argv)
                    spm->n, spm->colptr, spm->rowptr, spm->values,
                    NULL, NULL, b, nrhs, iparm, dparm );
             if (check) {
-                rc = spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+                rc = spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
             }
         }
     }

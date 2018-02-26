@@ -377,7 +377,7 @@ int main (int argc, char **argv)
 
     if ( check )
     {
-        rc = spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+        rc = spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
 
         if ( x0 ) {
             free( x0 );

@@ -1205,6 +1205,10 @@ spmGenRHS( pastix_rhstype_t type, pastix_int_t nrhs,
  *
  *******************************************************************************
  *
+ * @param[in] eps
+ *          The epsilon threshold used for the refinement step. -1. to use the
+ *          machine precision.
+ *
  * @param[in] nrhs
  *          Defines the number of right hand side that must be generated.
  *
@@ -1243,14 +1247,14 @@ spmGenRHS( pastix_rhstype_t type, pastix_int_t nrhs,
  *
  *******************************************************************************/
 int
-spmCheckAxb( pastix_int_t nrhs,
+spmCheckAxb( double eps, pastix_int_t nrhs,
              const pastix_spm_t  *spm,
                    void *x0, pastix_int_t ldx0,
                    void *b,  pastix_int_t ldb,
              const void *x,  pastix_int_t ldx )
 {
-    static int (*ptrfunc[4])(int, const pastix_spm_t *,
-                             void *, int, void *, int, const void *, int) =
+    static int (*ptrfunc[4])( double, int, const pastix_spm_t *,
+                              void *, int, void *, int, const void *, int ) =
         {
             s_spmCheckAxb, d_spmCheckAxb, c_spmCheckAxb, z_spmCheckAxb
         };
@@ -1260,7 +1264,7 @@ spmCheckAxb( pastix_int_t nrhs,
         return PASTIX_ERR_BADPARAMETER;
     }
     else {
-        return ptrfunc[id](nrhs, spm, x0, ldx0, b, ldb, x, ldx );
+        return ptrfunc[id]( eps, nrhs, spm, x0, ldx0, b, ldb, x, ldx );
     }
 }
 

@@ -148,7 +148,7 @@ static void *solve_smp(void *arg)
 
     if ( check )
     {
-        param.rc = spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+        param.rc = spmCheckAxb( param.dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
 
         if ( x0 ) {
             free( x0 );
