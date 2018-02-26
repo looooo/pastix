@@ -436,7 +436,7 @@ pastix( pastix_data_t **pastix_data_ptr,
             }
         }
         pastix_task_refine( pastix_data, spm->n, nrhs,
-                            refineX0, spm->n, refineB, spm->n );
+                            refineB, spm->n, refineX0, spm->n );
         iparm[IPARM_START_TASK]++;
 
         /*
