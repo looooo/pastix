@@ -31,7 +31,7 @@ norm = spmA.norm()
 spmA.scale( 1. / norm )
 
 # Generate b and x0 vector such that A * x0 = b
-nrhs = 10
+nrhs = 1
 x0, b = spmA.genRHS( pastix.rhstype.RndX, nrhs )
 
 # Initialize parameters to default values
