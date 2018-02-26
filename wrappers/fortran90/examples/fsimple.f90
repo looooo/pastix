@@ -84,7 +84,7 @@ program fsimple
   !
   ! Check the solution
   !
-  call spmCheckAxb( nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, x_ptr, spm%n, info )
+  call spmCheckAxb( dparm(DPARM_EPSILON_REFINEMENT), nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, x_ptr, spm%n, info )
 
   call spmExit( spm )
   deallocate(x0)

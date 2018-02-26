@@ -263,13 +263,14 @@ module spmf
   end interface
 
   interface
-     function spmCheckAxb_c(nrhs, spm, x0, ldx0, b, ldb, x, ldx) &
+     function spmCheckAxb_c(eps, nrhs, spm, x0, ldx0, b, ldb, x, ldx) &
           bind(c, name='spmCheckAxb')
        use iso_c_binding
        import pastix_int_t
        import pastix_spm_t
        implicit none
        integer(kind=c_int)               :: spmCheckAxb_c
+       real(kind=c_double),        value :: eps
        integer(kind=pastix_int_t), value :: nrhs
        type(c_ptr),                value :: spm
        type(c_ptr),                value :: x0
@@ -572,9 +573,10 @@ contains
     info = spmGenRHS_c(type, nrhs, c_loc(spm), x, ldx, b, ldb)
   end subroutine spmGenRHS
 
-  subroutine spmCheckAxb(nrhs, spm, x0, ldx0, b, ldb, x, ldx, info)
+  subroutine spmCheckAxb(eps, nrhs, spm, x0, ldx0, b, ldb, x, ldx, info)
     use iso_c_binding
     implicit none
+    real(kind=c_double),        intent(in)            :: eps
     integer(kind=pastix_int_t), intent(in)            :: nrhs
     type(pastix_spm_t),         intent(in),    target :: spm
     type(c_ptr),                intent(inout), target :: x0
@@ -585,7 +587,7 @@ contains
     integer(kind=pastix_int_t), intent(in)            :: ldx
     integer(kind=c_int),        intent(out)           :: info
 
-    info = spmCheckAxb_c(nrhs, c_loc(spm), x0, ldx0, b, ldb, x, ldx)
+    info = spmCheckAxb_c(eps, nrhs, c_loc(spm), x0, ldx0, b, ldb, x, ldx)
   end subroutine spmCheckAxb
 
   subroutine spmIntConvert(n, input, value)

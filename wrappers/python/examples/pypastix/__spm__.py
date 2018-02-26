@@ -130,12 +130,13 @@ def pyspm_spmGenRHS( type, nrhs, spm, x, ldx, b, ldb ):
     libspm.spmGenRHS.restype = c_int
     return libspm.spmGenRHS( type, nrhs, spm, x, ldx, b, ldb )
 
-def pyspm_spmCheckAxb( nrhs, spm, x0, ldx0, b, ldb, x, ldx ):
-    libspm.spmCheckAxb.argtypes = [ pastix_int, POINTER(pypastix_spm_t),
-                                    c_void_p, pastix_int, c_void_p, pastix_int,
-                                    c_void_p, pastix_int ]
+def pyspm_spmCheckAxb( eps, nrhs, spm, x0, ldx0, b, ldb, x, ldx ):
+    libspm.spmCheckAxb.argtypes = [ c_double, pastix_int,
+                                    POINTER(pypastix_spm_t), c_void_p,
+                                    pastix_int, c_void_p, pastix_int, c_void_p,
+                                    pastix_int ]
     libspm.spmCheckAxb.restype = c_int
-    return libspm.spmCheckAxb( nrhs, spm, x0, ldx0, b, ldb, x, ldx )
+    return libspm.spmCheckAxb( eps, nrhs, spm, x0, ldx0, b, ldb, x, ldx )
 
 def pyspm_spmIntConvert( n, input ):
     libspm.spmIntConvert.argtypes = [ pastix_int, c_int_p ]

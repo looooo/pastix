@@ -195,7 +195,7 @@ class spm():
         ldb  = b.shape[0]
         ldx  = x.shape[0]
 
-        pyspm_spmCheckAxb( nrhs, self.id_ptr,
+        pyspm_spmCheckAxb( -1., nrhs, self.id_ptr,
                            x0ptr, ldx0,
                            b.ctypes.data_as(c_void_p), ldb,
                            x.ctypes.data_as(c_void_p), ldx )
