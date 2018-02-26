@@ -183,7 +183,7 @@ schurSolve( pastix_coeftype_t  flttype,
     }
 
     if (*ipiv != NULL) {
-        free(*ipiv);
+        free( *ipiv );
         *ipiv = NULL;
     }
 
@@ -236,14 +236,14 @@ int main (int argc, char **argv)
      */
     spm = malloc( sizeof( pastix_spm_t ) );
     spmReadDriver( driver, filename, spm, MPI_COMM_WORLD );
-    free(filename);
+    free( filename );
 
     spmPrintInfo( spm, stdout );
 
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {
         spmExit( spm );
-        free(spm);
+        free( spm );
         spm = spm2;
     }
 
@@ -379,7 +379,9 @@ int main (int argc, char **argv)
     {
         rc = spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
 
-        if (x0) free(x0);
+        if ( x0 ) {
+            free( x0 );
+        }
     }
 
     spmExit( spm );

@@ -65,7 +65,7 @@ int main (int argc, char **argv)
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {
         spmExit( spm );
-        free(spm);
+        free( spm );
         spm = spm2;
     }
 
@@ -92,7 +92,7 @@ int main (int argc, char **argv)
         (void) alpha;
         (void) beta;
     }
-    free(filename);
+    free( filename );
 
     /**
      * Startup PaStiX
@@ -155,7 +155,9 @@ int main (int argc, char **argv)
     {
         rc = spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
 
-        if (x0) free(x0);
+        if ( x0 ) {
+            free( x0 );
+        }
     }
 
     pastixOrderExit( ord );

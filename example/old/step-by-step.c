@@ -59,7 +59,7 @@ int main (int argc, char **argv)
      */
     spm = malloc( sizeof( pastix_spm_t ) );
     spmReadDriver( driver, filename, spm, MPI_COMM_WORLD );
-    free(filename);
+    free( filename );
 
     spmPrintInfo( spm, stdout );
 
@@ -69,7 +69,7 @@ int main (int argc, char **argv)
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {
         spmExit( spm );
-        free(spm);
+        free( spm );
         spm = spm2;
     }
 
@@ -221,9 +221,11 @@ int main (int argc, char **argv)
            NULL, NULL, x, nrhs, iparm, dparm );
 
     spmExit( spm );
-    free(spm);
-    free(b);
-    free(x);
-    if (x0) free(x0);
+    free( spm );
+    free( b );
+    free( x );
+    if ( x0 ) {
+        free( x0 );
+    }
     return rc;
 }

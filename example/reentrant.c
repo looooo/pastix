@@ -70,7 +70,7 @@ static void *solve_smp(void *arg)
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {
         spmExit( spm );
-        free(spm);
+        free( spm );
         spm = spm2;
     }
 
@@ -95,7 +95,7 @@ static void *solve_smp(void *arg)
         pastixInitWithAffinity( &pastix_data, MPI_COMM_WORLD,
                                 param.iparm, param.dparm,
                                 bindtab );
-        free(bindtab);
+        free( bindtab );
     }
 
     /**
@@ -150,7 +150,9 @@ static void *solve_smp(void *arg)
     {
         param.rc = spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
 
-        if (x0) free(x0);
+        if ( x0 ) {
+            free( x0 );
+        }
     }
 
     spmExit( spm );
@@ -215,9 +217,9 @@ int main (int argc, char **argv)
         rc += solve_param[i].rc;
     }
 
-    free(filename);
-    free(threads);
-    free(solve_param);
+    free( filename );
+    free( threads );
+    free( solve_param );
     return rc;
 }
 
