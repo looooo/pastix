@@ -139,7 +139,7 @@ int main (int argc, char **argv)
         spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
         /* Apply also normalization to b vectors */
-        spmScalRHS( spm->flttype, 1./normA, spm->n, nrhs, b, spm->n );
+        spmScalVector( spm->flttype, 1./normA, n, b, 1 );
 
         /* Save b for refinement */
         memcpy( b, x, size );

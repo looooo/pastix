@@ -97,8 +97,7 @@ int           spmMatMat( pastix_trans_t trans, pastix_int_t n,
                                             const void *B, pastix_int_t ldb,
                          const void *beta,        void *C, pastix_int_t ldc );
 void          spmScalMatrix( double alpha, pastix_spm_t *spm );
-void          spmScalVector( double alpha, pastix_spm_t *spm, void *x );
-void          spmScalRHS( pastix_coeftype_t flt, double alpha, pastix_int_t m, pastix_int_t n, void *A, pastix_int_t lda );
+void          spmScalVector( pastix_coeftype_t flt, double alpha, pastix_int_t n, void *x, pastix_int_t incx );
 
 /**
  * @}
