@@ -38,6 +38,7 @@ int main (int argc, char **argv)
     void            *x0          = NULL;
     size_t           size;
     int              check       = 1;
+    int              rc          = 0;
 
     /*
      * Initialize parameters to default values
@@ -170,7 +171,7 @@ int main (int argc, char **argv)
                 spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
                 /* Apply also normalization to b vector */
-                spmScalVector( 1./normA, spm, b );
+                spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );
 
                 /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
                 memcpy( b, x, size );
@@ -203,7 +204,7 @@ int main (int argc, char **argv)
                    spm->n, spm->colptr, spm->rowptr, spm->values,
                    NULL, NULL, b, nrhs, iparm, dparm );
             if (check) {
-                spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+                rc = spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
             }
         }
     }
@@ -224,5 +225,5 @@ int main (int argc, char **argv)
     free(b);
     free(x);
     if (x0) free(x0);
-    return EXIT_SUCCESS;
+    return rc;
 }

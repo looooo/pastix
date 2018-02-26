@@ -103,7 +103,7 @@ int main (int argc, char **argv)
         spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
         /* Apply also normalization to b vector */
-        spmScalVector( 1./normA, spm, b );
+        spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );
 
         /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
         memcpy( b, x, size );
@@ -117,15 +117,17 @@ int main (int argc, char **argv)
     ret = pastix( &pastix_data, MPI_COMM_WORLD,
                   spm->n, spm->colptr, spm->rowptr, spm->values,
                   NULL, NULL, x, nrhs, iparm, dparm );
-    if (ret != PASTIX_SUCCESS)
+
+    if (ret != PASTIX_SUCCESS) {
         return ret;
+    }
 
     /*
      * Check the solution
      */
     if ( check )
     {
-        spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+        ret = spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
         if (x0) free(x0);
     }
 
@@ -133,5 +135,5 @@ int main (int argc, char **argv)
     free( spm );
     free(b);
     free(x);
-    return EXIT_SUCCESS;
+    return ret;
 }
