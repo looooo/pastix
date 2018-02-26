@@ -30,7 +30,8 @@ int main (int argc, char **argv)
     void           *x, *b, *x0 = NULL;
     size_t          size;
     int             check = 1;
-    int             nrhs  = 20;
+    int             nrhs  = 10;
+    int             rc    = 0;
     int             nfact = 2;
     int             nsolv = 2;
     long            i,j;
@@ -83,18 +84,18 @@ int main (int argc, char **argv)
     pastix_subtask_reordering( pastix_data );
     pastix_subtask_blend( pastix_data );
 
+    /**
+     * Normalize A matrix (optional, but recommended for low-rank functionality)
+     */
+    double normA = spmNorm( PastixFrobeniusNorm, spm );
+    spmScalMatrix( 1./normA, spm );
+
     size = pastix_size_of( spm->flttype ) * spm->n * nrhs;
     x = malloc( size );
     b = malloc( size );
     if ( check > 1 ) {
         x0 = malloc( size );
     }
-
-    /**
-     * Normalize A matrix (optional, but recommended for low-rank functionality)
-     */
-    double normA = spmNorm( PastixFrobeniusNorm, spm );
-    spmScalMatrix( 1./normA, spm );
 
     /* Do nfact factorization */
     for (i = 0; i < nfact; i++)
@@ -133,7 +134,7 @@ int main (int argc, char **argv)
             pastix_task_refine( pastix_data, spm->n, nrhs, b, spm->n, x, spm->n );
 
             if ( check ) {
-                spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+                rc |= spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
             }
         }
     }
@@ -145,7 +146,7 @@ int main (int argc, char **argv)
     if (x0) free(x0);
     pastixFinalize( &pastix_data );
 
-    return EXIT_SUCCESS;
+    return rc;
 }
 
 /**

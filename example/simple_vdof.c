@@ -29,6 +29,7 @@ int main (int argc, char **argv)
     size_t          size;
     int             check = 1;
     int             nrhs  = 1;
+    int             rc    = 1;
 
     /**
      * Initialize parameters to default values
@@ -123,7 +124,7 @@ int main (int argc, char **argv)
 
     if ( check )
     {
-        spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+        rc = spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
 
         if (x0) free(x0);
     }
@@ -134,7 +135,7 @@ int main (int argc, char **argv)
     free( b );
     pastixFinalize( &pastix_data );
 
-    return EXIT_SUCCESS;
+    return rc;
 }
 
 /**

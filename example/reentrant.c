@@ -31,6 +31,7 @@ typedef struct solve_param {
     pastix_driver_t     driver;
     int                 check;
     int                 id;
+    int                 rc;
 } solve_param_t;
 
 /**
@@ -56,6 +57,7 @@ static void *solve_smp(void *arg)
         param.iparm[IPARM_THREAD_NBR] = 2;
     }
     check = param.check;
+    param.rc = 0;
 
     /**
      * Read the sparse matrix with the driver
@@ -146,7 +148,7 @@ static void *solve_smp(void *arg)
 
     if ( check )
     {
-        spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+        param.rc = spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
 
         if (x0) free(x0);
     }
@@ -157,7 +159,7 @@ static void *solve_smp(void *arg)
     free( spm );
     pastixFinalize( &pastix_data );
 
-    return EXIT_SUCCESS;
+    return NULL;
 }
 
 int main (int argc, char **argv)
@@ -170,6 +172,7 @@ int main (int argc, char **argv)
     solve_param_t      *solve_param;
     pthread_t          *threads;
     int                 i, check = 1;
+    int                 rc = 0;
 
     /**
      * Initialize parameters to default values
@@ -207,13 +210,15 @@ int main (int argc, char **argv)
     /**
      *     Wait for the end of thread
      */
-    for (i = 0; i < nbcallingthreads; i++)
+    for (i = 0; i < nbcallingthreads; i++) {
         pthread_join(threads[i],(void**)NULL);
+        rc += solve_param[i].rc;
+    }
 
     free(filename);
     free(threads);
     free(solve_param);
-    return EXIT_SUCCESS;
+    return rc;
 }
 
 /**

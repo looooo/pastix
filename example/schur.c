@@ -23,12 +23,12 @@
 void
 schurFactorize( pastix_coeftype_t  flttype,
                 pastix_factotype_t factotype,
-                pastix_int_t N,
-                void *S,
-                pastix_int_t lds,
-                int **ipiv )
+                pastix_int_t       N,
+                void              *S,
+                pastix_int_t       lds,
+                int              **ipiv )
 {
-    int info=0;
+    int info = 0;
 
     assert( ipiv != NULL );
     if ( factotype == PastixFactGETRF ) {
@@ -96,16 +96,16 @@ schurFactorize( pastix_coeftype_t  flttype,
 void
 schurSolve( pastix_coeftype_t  flttype,
             pastix_factotype_t factotype,
-            pastix_int_t N,
-            pastix_int_t Nschur,
-            pastix_int_t NRHS,
-            void *S,
-            pastix_int_t lds,
-            void *bptr,
-            pastix_int_t ldb,
-            int **ipiv )
+            pastix_int_t       N,
+            pastix_int_t       Nschur,
+            pastix_int_t       NRHS,
+            void              *S,
+            pastix_int_t       lds,
+            void              *bptr,
+            pastix_int_t       ldb,
+            int              **ipiv )
 {
-    int info=0;
+    int info = 0;
 
     assert(ipiv != NULL);
 
@@ -206,6 +206,7 @@ int main (int argc, char **argv)
     size_t          size;
     int             check = 1;
     int             nrhs  = 1;
+    int             rc    = 0;
     pastix_int_t    nschur, lds, ldb;
     int            *ipiv = NULL;
     pastix_diag_t   diag = PastixNonUnit;
@@ -376,7 +377,7 @@ int main (int argc, char **argv)
 
     if ( check )
     {
-        spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+        rc = spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
 
         if (x0) free(x0);
     }
@@ -388,7 +389,7 @@ int main (int argc, char **argv)
     free( b );
     pastixFinalize( &pastix_data );
 
-    return EXIT_SUCCESS;
+    return rc;
 }
 
 /**
