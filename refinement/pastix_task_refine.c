@@ -136,10 +136,10 @@ pastix_task_refine( pastix_data_t *pastix_data,
     if ( pastix_data->dparm[DPARM_EPSILON_REFINEMENT] < 0. ) {
         if ( (pastix_data->bcsc->flttype == PastixFloat) ||
              (pastix_data->bcsc->flttype == PastixComplex32) ) {
-            pastix_data->dparm[DPARM_EPSILON_REFINEMENT] = 1e-6;
+            pastix_data->dparm[DPARM_EPSILON_REFINEMENT] = 1e-7;
         }
         else {
-            pastix_data->dparm[DPARM_EPSILON_REFINEMENT] = 1e-12;
+            pastix_data->dparm[DPARM_EPSILON_REFINEMENT] = 1e-14;
         }
     }
 
