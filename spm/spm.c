@@ -1237,8 +1237,9 @@ spmGenRHS( pastix_rhstype_t type, pastix_int_t nrhs,
  *
  *******************************************************************************
  *
- * @retval PASTIX_SUCCESS if the b vector has been computed successfully,
- * @retval PASTIX_ERR_BADPARAMETER otherwise.
+ * @retval PASTIX_SUCCESS if the tests are succesfull
+ * @retval PASTIX_ERR_BADPARAMETER if the input matrix is incorrect
+ * @retval 1, if one of the test failed
  *
  *******************************************************************************/
 int

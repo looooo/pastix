@@ -353,8 +353,8 @@ z_spmGenRHS( pastix_rhstype_t type, int nrhs,
  *
  *******************************************************************************
  *
- * @retval PASTIX_SUCCESS if the b vector has been computed succesfully,
- * @retval PASTIX_ERR_BADPARAMETER otherwise.
+ * @retval PASTIX_SUCCESS if the tests are succesfull
+ * @retval 1, if one of the test failed
  *
  *******************************************************************************/
 int
@@ -421,7 +421,7 @@ z_spmCheckAxb( int nrhs,
                     "   || b_%d - A x_%d ||_1 / (||A||_1 * ||x_%d||_oo * eps) %e (%s)\n",
                     i, i, nr,
                     i, i, i, back,
-                    failure ? "FAILED" : "SUCCESS" );
+                    fail ? "FAILED" : "SUCCESS" );
         }
 
         failure = failure || fail;
@@ -465,7 +465,7 @@ z_spmCheckAxb( int nrhs,
                         "   || x0_%d - x_%d ||_oo / (||x0_%d||_oo * eps)   %e (%s)\n",
                         i, nr,
                         i, i, i, forw,
-                        failure ? "FAILED" : "SUCCESS" );
+                        fail ? "FAILED" : "SUCCESS" );
             }
 
             failure = failure || fail;
@@ -478,5 +478,5 @@ z_spmCheckAxb( int nrhs,
                 failure ? "FAILED" : "SUCCESS" );
     }
 
-    return PASTIX_SUCCESS;
+    return - failure;
 }
