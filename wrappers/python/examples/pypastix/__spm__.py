@@ -99,15 +99,10 @@ def pyspm_spmScalMatrix( alpha, spm ):
     libspm.spmScalMatrix.argtypes = [ c_double, POINTER(pypastix_spm_t) ]
     libspm.spmScalMatrix( alpha, spm )
 
-def pyspm_spmScalVector( alpha, spm, x ):
-    libspm.spmScalVector.argtypes = [ c_double, POINTER(pypastix_spm_t),
-                                      c_void_p ]
-    libspm.spmScalVector( alpha, spm, x )
-
-def pyspm_spmScalRHS( flt, alpha, m, n, A, lda ):
-    libspm.spmScalRHS.argtypes = [ c_int, c_double, pastix_int, pastix_int,
-                                   c_void_p, pastix_int ]
-    libspm.spmScalRHS( flt, alpha, m, n, A, lda )
+def pyspm_spmScalVector( flt, alpha, n, x, incx ):
+    libspm.spmScalVector.argtypes = [ c_int, c_double, pastix_int, c_void_p,
+                                      pastix_int ]
+    libspm.spmScalVector( flt, alpha, n, x, incx )
 
 def pyspm_spmSort( spm ):
     libspm.spmSort.argtypes = [ POINTER(pypastix_spm_t) ]

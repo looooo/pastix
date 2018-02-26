@@ -185,30 +185,17 @@ module spmf
   end interface
 
   interface
-     subroutine spmScalVector_c(alpha, spm, x) &
+     subroutine spmScalVector_c(flt, alpha, n, x, incx) &
           bind(c, name='spmScalVector')
-       use iso_c_binding
-       import pastix_spm_t
-       implicit none
-       real(kind=c_double), value :: alpha
-       type(c_ptr),         value :: spm
-       type(c_ptr),         value :: x
-     end subroutine spmScalVector_c
-  end interface
-
-  interface
-     subroutine spmScalRHS_c(flt, alpha, m, n, A, lda) &
-          bind(c, name='spmScalRHS')
        use iso_c_binding
        import pastix_int_t
        implicit none
        integer(c_int),             value :: flt
        real(kind=c_double),        value :: alpha
-       integer(kind=pastix_int_t), value :: m
        integer(kind=pastix_int_t), value :: n
-       type(c_ptr),                value :: A
-       integer(kind=pastix_int_t), value :: lda
-     end subroutine spmScalRHS_c
+       type(c_ptr),                value :: x
+       integer(kind=pastix_int_t), value :: incx
+     end subroutine spmScalVector_c
   end interface
 
   interface
@@ -522,28 +509,17 @@ contains
     call spmScalMatrix_c(alpha, c_loc(spm))
   end subroutine spmScalMatrix
 
-  subroutine spmScalVector(alpha, spm, x)
-    use iso_c_binding
-    implicit none
-    real(kind=c_double), intent(in)            :: alpha
-    type(pastix_spm_t),  intent(inout), target :: spm
-    type(c_ptr),         intent(inout), target :: x
-
-    call spmScalVector_c(alpha, c_loc(spm), x)
-  end subroutine spmScalVector
-
-  subroutine spmScalRHS(flt, alpha, m, n, A, lda)
+  subroutine spmScalVector(flt, alpha, n, x, incx)
     use iso_c_binding
     implicit none
     integer(c_int),             intent(in)            :: flt
     real(kind=c_double),        intent(in)            :: alpha
-    integer(kind=pastix_int_t), intent(in)            :: m
     integer(kind=pastix_int_t), intent(in)            :: n
-    type(c_ptr),                intent(inout), target :: A
-    integer(kind=pastix_int_t), intent(in)            :: lda
+    type(c_ptr),                intent(inout), target :: x
+    integer(kind=pastix_int_t), intent(in)            :: incx
 
-    call spmScalRHS_c(flt, alpha, m, n, A, lda)
-  end subroutine spmScalRHS
+    call spmScalVector_c(flt, alpha, n, x, incx)
+  end subroutine spmScalVector
 
   subroutine spmSort(spm, info)
     use iso_c_binding
