@@ -26,6 +26,7 @@
 #include "p_spm.h"
 
 #include <cblas.h>
+#include <lapacke.h>
 
 #if !defined(DOXYGEN_SHOULD_SKIP_THIS)
 
@@ -1037,6 +1038,101 @@ spmMatVec(       pastix_trans_t trans,
 /**
  *******************************************************************************
  *
+ * @brief Compute a matrix-matrix product.
+ *
+ *    y = alpha * op(A) * B + beta * C
+ *
+ * where op(A) is one of:
+ *
+ *    op( A ) = A  or op( A ) = A' or op( A ) = conjg( A' )
+ *
+ *  alpha and beta are scalars, and x and y are vectors.
+ *
+ *******************************************************************************
+ *
+ * @param[in] trans
+ *          Specifies whether the matrix spm is transposed, not transposed or conjugate transposed:
+ *          - PastixTrans
+ *          - PastixNoTrans
+ *          - PastixConjTrans
+ *
+ * @param[in] n
+ *          The number of columns of the matrices B and C.
+ *
+ * @param[in] alpha
+ *          alpha specifies the scalar alpha.
+ *
+ * @param[in] A
+ *          The square sparse matrix A
+ *
+ * @param[in] B
+ *          The matrix B of size ldb-by-n
+ *
+ * @param[in] ldb
+ *          The leading dimension of the matrix B. ldb >= A->n
+ *
+ * @param[in] beta
+ *          beta specifies the scalar beta.
+ *
+ * @param[inout] C
+ *          The matrix C of size ldc-by-n
+ *
+ * @param[in] ldc
+ *          The leading dimension of the matrix C. ldc >= A->n
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS if the y vector has been computed successfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+spmMatMat(       pastix_trans_t trans,
+                 pastix_int_t   n,
+           const void          *alpha,
+           const pastix_spm_t  *A,
+           const void          *B,
+                 pastix_int_t   ldb,
+           const void          *beta,
+                 void          *C,
+                 pastix_int_t   ldc )
+{
+    pastix_spm_t *espm = (pastix_spm_t*)A;
+    int rc = PASTIX_SUCCESS;
+
+    if ( A->fmttype != PastixCSC ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    if ( A->dof != 1 ) {
+        espm = spmExpand( A );
+    }
+    switch (A->flttype) {
+    case PastixFloat:
+        rc = s_spmCSCMatMat( trans, n, alpha, espm, B, ldb, beta, C, ldc );
+        break;
+    case PastixComplex32:
+        rc = c_spmCSCMatMat( trans, n, alpha, espm, B, ldb, beta, C, ldc );
+        break;
+    case PastixComplex64:
+        rc = z_spmCSCMatMat( trans, n, alpha, espm, B, ldb, beta, C, ldc );
+        break;
+    case PastixDouble:
+    default:
+        rc = d_spmCSCMatMat( trans, n, alpha, espm, B, ldb, beta, C, ldc );
+        break;
+    }
+
+    if ( A != espm ) {
+        spmExit( espm );
+        free(espm);
+    }
+    return rc;
+}
+
+/**
+ *******************************************************************************
+ *
  * @brief Generate right hand side vectors associated to a given matrix.
  *
  * The vectors can be initialized randomly or to get a specific solution.
@@ -1109,6 +1205,10 @@ spmGenRHS( pastix_rhstype_t type, pastix_int_t nrhs,
  *
  *******************************************************************************
  *
+ * @param[in] eps
+ *          The epsilon threshold used for the refinement step. -1. to use the
+ *          machine precision.
+ *
  * @param[in] nrhs
  *          Defines the number of right hand side that must be generated.
  *
@@ -1141,19 +1241,20 @@ spmGenRHS( pastix_rhstype_t type, pastix_int_t nrhs,
  *
  *******************************************************************************
  *
- * @retval PASTIX_SUCCESS if the b vector has been computed successfully,
- * @retval PASTIX_ERR_BADPARAMETER otherwise.
+ * @retval PASTIX_SUCCESS if the tests are succesfull
+ * @retval PASTIX_ERR_BADPARAMETER if the input matrix is incorrect
+ * @retval 1, if one of the test failed
  *
  *******************************************************************************/
 int
-spmCheckAxb( pastix_int_t nrhs,
+spmCheckAxb( double eps, pastix_int_t nrhs,
              const pastix_spm_t  *spm,
                    void *x0, pastix_int_t ldx0,
                    void *b,  pastix_int_t ldb,
              const void *x,  pastix_int_t ldx )
 {
-    static int (*ptrfunc[4])(int, const pastix_spm_t *,
-                             void *, int, void *, int, const void *, int) =
+    static int (*ptrfunc[4])( double, int, const pastix_spm_t *,
+                              void *, int, void *, int, const void *, int ) =
         {
             s_spmCheckAxb, d_spmCheckAxb, c_spmCheckAxb, z_spmCheckAxb
         };
@@ -1163,7 +1264,7 @@ spmCheckAxb( pastix_int_t nrhs,
         return PASTIX_ERR_BADPARAMETER;
     }
     else {
-        return ptrfunc[id](nrhs, spm, x0, ldx0, b, ldb, x, ldx );
+        return ptrfunc[id]( eps, nrhs, spm, x0, ldx0, b, ldb, x, ldx );
     }
 }
 
@@ -1184,7 +1285,7 @@ spmCheckAxb( pastix_int_t nrhs,
  *
  *******************************************************************************/
 void
-spmScalMatrix(const double alpha, pastix_spm_t* spm)
+spmScalMatrix(double alpha, pastix_spm_t* spm)
 {
     switch(spm->flttype)
     {
@@ -1214,35 +1315,50 @@ spmScalMatrix(const double alpha, pastix_spm_t* spm)
  *
  *******************************************************************************
  *
+ * @param[in] flt
+ *          Datatype of the elements in the vector that must be:
+ *          @arg PastixFloat
+ *          @arg PastixDouble
+ *          @arg PastixComplex32
+ *          @arg PastixComplex64
+ *
+ * @param[in] n
+ *          Number of elements in the input vectors
+ *
  * @param[in] alpha
  *           The scaling parameter.
  *
- * @param[in] spm
- *          The spm structure to know the type of the vector.
- *
  * @param[inout] x
- *          The vector to scal.
+ *          The vector to scal of size ( 1 + (n-1) * abs(incx) ), and of type
+ *          defined by flt.
+ *
+ * @param[in] incx
+ *          Storage spacing between elements of x.
  *
  *******************************************************************************/
 void
-spmScalVector(const double alpha, pastix_spm_t* spm, void *x)
+spmScalVector( pastix_coeftype_t flt,
+               double            alpha,
+               pastix_int_t      n,
+               void             *x,
+               pastix_int_t      incx )
 {
-    switch(spm->flttype)
+    switch( flt )
     {
     case PastixPattern:
         break;
     case PastixFloat:
-        cblas_sscal(spm->n, (float)alpha, x, 1);
+        cblas_sscal( n, (float)alpha, x, incx );
         break;
     case PastixComplex32:
-        cblas_csscal(spm->n, (float)alpha, x, 1);
+        cblas_csscal( n, (float)alpha, x, incx );
         break;
     case PastixComplex64:
-        cblas_zdscal(spm->n, alpha, x, 1);
+        cblas_zdscal( n, alpha, x, incx );
         break;
     case PastixDouble:
     default:
-        cblas_dscal(spm->n, alpha, x, 1);
+        cblas_dscal( n, alpha, x, incx );
     }
 }
 

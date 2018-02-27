@@ -29,7 +29,7 @@ if (PASTIX_WITH_STARPU)
 endif (PASTIX_WITH_STARPU)
 
 set( _complex   c z )
-set( _factodiag 1 4 )
+set( _factodiag 1 3 4 )
 
 ### All drivers with Laplacian and default parameters
 foreach(example ${PASTIX_DRIVERS} )

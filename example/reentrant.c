@@ -31,6 +31,7 @@ typedef struct solve_param {
     pastix_driver_t     driver;
     int                 check;
     int                 id;
+    int                 rc;
 } solve_param_t;
 
 /**
@@ -46,12 +47,9 @@ static void *solve_smp(void *arg)
     pastix_data_t *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
     pastix_spm_t  *spm;
     pastix_spm_t  *spm2;
-    void          *x0 = NULL;
-    void          *x;
-    void          *b;
-    int           *bindtab;
+    void          *x, *b, *x0 = NULL;
     size_t         size;
-    int            i, check;
+    int            check;
     int            nrhs = 1;
     solve_param_t  param = *(solve_param_t *)arg;
 
@@ -59,20 +57,7 @@ static void *solve_smp(void *arg)
         param.iparm[IPARM_THREAD_NBR] = 2;
     }
     check = param.check;
-
-    /* Bindtab array */
-    bindtab = malloc( param.iparm[IPARM_THREAD_NBR] * sizeof(int) );
-    for(i=0; i<param.iparm[IPARM_THREAD_NBR]; i++ ) {
-        bindtab[i] = param.iparm[IPARM_THREAD_NBR] * param.id + i;
-    }
-
-    /**
-     * Startup PaStiX
-     */
-    pastixInitWithAffinity( &pastix_data, MPI_COMM_WORLD,
-                            param.iparm, param.dparm,
-                            bindtab );
-    free(bindtab);
+    param.rc = 0;
 
     /**
      * Read the sparse matrix with the driver
@@ -85,7 +70,7 @@ static void *solve_smp(void *arg)
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {
         spmExit( spm );
-        free(spm);
+        free( spm );
         spm = spm2;
     }
 
@@ -94,6 +79,23 @@ static void *solve_smp(void *arg)
      */
     if ( spm->flttype == PastixPattern ) {
         spmGenFakeValues( spm );
+    }
+
+    /**
+     * Startup PaStiX
+     */
+    {
+        int *bindtab = malloc( param.iparm[IPARM_THREAD_NBR] * sizeof(int) );
+        int i;
+
+        for(i=0; i<param.iparm[IPARM_THREAD_NBR]; i++ ) {
+            bindtab[i] = param.iparm[IPARM_THREAD_NBR] * param.id + i;
+        }
+
+        pastixInitWithAffinity( &pastix_data, MPI_COMM_WORLD,
+                                param.iparm, param.dparm,
+                                bindtab );
+        free( bindtab );
     }
 
     /**
@@ -116,9 +118,10 @@ static void *solve_smp(void *arg)
      * Generates the b and x vector such that A * x = b
      * Compute the norms of the initial vectors if checking purpose.
      */
-    size = pastix_size_of( spm->flttype ) * spm->n;
+    size = pastix_size_of( spm->flttype ) * spm->n * nrhs;
     x = malloc( size );
     b = malloc( size );
+
     if ( check )
     {
         if ( check > 1 ) {
@@ -130,30 +133,35 @@ static void *solve_smp(void *arg)
     else {
         spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
-        /* Apply also normalization to b vector */
-        spmScalVector( 1./normA, spm, b );
+        /* Apply also normalization to b vectors */
+        spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );
 
-        /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
+        /* Save b for refinement */
         memcpy( b, x, size );
     }
 
     /**
-     * Solve the linear system
+     * Solve the linear system (and perform the optional refinement)
      */
     pastix_task_solve( pastix_data, nrhs, x, spm->n );
-    pastix_task_refine( pastix_data, x, nrhs, b );
+    pastix_task_refine( pastix_data, spm->n, nrhs, b, spm->n, x, spm->n );
+
     if ( check )
     {
-        spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
-        if (x0) free(x0);
+        param.rc = spmCheckAxb( param.dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+
+        if ( x0 ) {
+            free( x0 );
+        }
     }
+
     spmExit( spm );
-    free(x);
-    free(b);
+    free( x );
+    free( b );
     free( spm );
     pastixFinalize( &pastix_data );
 
-    return EXIT_SUCCESS;
+    return NULL;
 }
 
 int main (int argc, char **argv)
@@ -166,6 +174,7 @@ int main (int argc, char **argv)
     solve_param_t      *solve_param;
     pthread_t          *threads;
     int                 i, check = 1;
+    int                 rc = 0;
 
     /**
      * Initialize parameters to default values
@@ -203,13 +212,15 @@ int main (int argc, char **argv)
     /**
      *     Wait for the end of thread
      */
-    for (i = 0; i < nbcallingthreads; i++)
+    for (i = 0; i < nbcallingthreads; i++) {
         pthread_join(threads[i],(void**)NULL);
+        rc += solve_param[i].rc;
+    }
 
-    free(filename);
-    free(threads);
-    free(solve_param);
-    return EXIT_SUCCESS;
+    free( filename );
+    free( threads );
+    free( solve_param );
+    return rc;
 }
 
 /**

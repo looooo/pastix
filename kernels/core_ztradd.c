@@ -62,7 +62,7 @@
  * @param[in] beta
  *          Scalar factor of B.
  *
- * @param[in,out] B
+ * @param[inout] B
  *          Matrix of size LDB-by-N.
  *          On exit, B = alpha * op(A) + beta * B
  *

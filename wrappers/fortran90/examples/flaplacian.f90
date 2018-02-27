@@ -17,19 +17,19 @@ program fsimple
   use pastixf
   implicit none
 
-  integer(kind=pastix_int_t),     dimension(:), allocatable, target :: rowptr
-  integer(kind=pastix_int_t),     dimension(:), allocatable, target :: colptr
-  complex(kind=c_double_complex), dimension(:), allocatable, target :: values
-  complex(kind=c_double_complex), dimension(:), allocatable, target :: x0, x, b
-  type(c_ptr)                                                       :: x0_ptr, x_ptr, b_ptr
-  type(pastix_data_t),        pointer                               :: pastix_data
-  type(pastix_spm_t),         target                                :: spm
-  type(pastix_spm_t),         pointer                               :: spm2
-  integer(kind=pastix_int_t), target                                :: iparm(iparm_size)
-  real(kind=c_double),        target                                :: dparm(dparm_size)
-  integer(kind=pastix_int_t)                                        :: dim1, dim2, dim3, n, nnz
-  integer(kind=pastix_int_t)                                        :: i, j, k, l, nrhs
-  integer(c_int)                                                    :: info
+  integer(kind=pastix_int_t),     dimension(:), allocatable, target   :: rowptr
+  integer(kind=pastix_int_t),     dimension(:), allocatable, target   :: colptr
+  complex(kind=c_double_complex), dimension(:), allocatable, target   :: values
+  complex(kind=c_double_complex), dimension(:,:), allocatable, target :: x0, x, b
+  type(c_ptr)                                                         :: x0_ptr, x_ptr, b_ptr
+  type(pastix_data_t),        pointer                                 :: pastix_data
+  type(pastix_spm_t),         target                                  :: spm
+  type(pastix_spm_t),         pointer                                 :: spm2
+  integer(kind=pastix_int_t), target                                  :: iparm(iparm_size)
+  real(kind=c_double),        target                                  :: dparm(dparm_size)
+  integer(kind=pastix_int_t)                                          :: dim1, dim2, dim3, n, nnz
+  integer(kind=pastix_int_t)                                          :: i, j, k, l, nrhs
+  integer(c_int)                                                      :: info
 
   !
   ! Generate a 10x10x10 complex Laplacian
@@ -133,10 +133,10 @@ program fsimple
   call spmPrintInfo( spm )
 
   !   2- The right hand side
-  nrhs = 1
-  allocate(x0(spm%n))
-  allocate(x(spm%n))
-  allocate(b(spm%n))
+  nrhs = 10
+  allocate(x0(spm%n, nrhs))
+  allocate(x( spm%n, nrhs))
+  allocate(b( spm%n, nrhs))
   x0_ptr = c_loc(x0)
   x_ptr  = c_loc(x)
   b_ptr  = c_loc(b)
@@ -162,7 +162,7 @@ program fsimple
   call pastix_task_solve( pastix_data, nrhs, x_ptr, spm%n, info )
 
   ! 5- Refine the solution
-  call pastix_task_refine( pastix_data, x_ptr, nrhs, b_ptr, info )
+  call pastix_task_refine( pastix_data, spm%n, nrhs, b_ptr, spm%n, x_ptr, spm%n, info )
 
   ! 6- Destroy the C data structure
   call pastixFinalize( pastix_data )
@@ -170,7 +170,7 @@ program fsimple
   !
   ! Check the solution
   !
-  call spmCheckAxb( nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, x_ptr, spm%n, info )
+  call spmCheckAxb( dparm(DPARM_EPSILON_REFINEMENT), nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, x_ptr, spm%n, info )
 
   call spmExit( spm )
   deallocate(x0)

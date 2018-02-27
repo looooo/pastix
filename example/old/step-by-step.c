@@ -38,6 +38,7 @@ int main (int argc, char **argv)
     void            *x0          = NULL;
     size_t           size;
     int              check       = 1;
+    int              rc          = 0;
 
     /*
      * Initialize parameters to default values
@@ -58,7 +59,7 @@ int main (int argc, char **argv)
      */
     spm = malloc( sizeof( pastix_spm_t ) );
     spmReadDriver( driver, filename, spm, MPI_COMM_WORLD );
-    free(filename);
+    free( filename );
 
     spmPrintInfo( spm, stdout );
 
@@ -68,7 +69,7 @@ int main (int argc, char **argv)
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {
         spmExit( spm );
-        free(spm);
+        free( spm );
         spm = spm2;
     }
 
@@ -170,7 +171,7 @@ int main (int argc, char **argv)
                 spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
                 /* Apply also normalization to b vector */
-                spmScalVector( 1./normA, spm, b );
+                spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );
 
                 /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
                 memcpy( b, x, size );
@@ -203,7 +204,7 @@ int main (int argc, char **argv)
                    spm->n, spm->colptr, spm->rowptr, spm->values,
                    NULL, NULL, b, nrhs, iparm, dparm );
             if (check) {
-                spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+                rc = spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
             }
         }
     }
@@ -220,9 +221,11 @@ int main (int argc, char **argv)
            NULL, NULL, x, nrhs, iparm, dparm );
 
     spmExit( spm );
-    free(spm);
-    free(b);
-    free(x);
-    if (x0) free(x0);
-    return EXIT_SUCCESS;
+    free( spm );
+    free( b );
+    free( x );
+    if ( x0 ) {
+        free( x0 );
+    }
+    return rc;
 }

@@ -119,7 +119,7 @@
             On entry,  BETA  specifies the scalar  beta.  When  BETA  is
             supplied as zero then dC need not be set on input.
 
-    @param[in,out]
+    @param[inout]
     dC      COMPLEX_16 array of DIMENSION ( LDC, n ).
             Before entry, the leading  m by n  part of the array  dC must
             contain the matrix  dC,  except when  beta  is zero, in which

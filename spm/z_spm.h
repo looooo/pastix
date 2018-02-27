@@ -38,9 +38,10 @@ int z_spmConvertIJV2CSR( pastix_spm_t *spm );
 pastix_complex64_t *z_spm2dense( const pastix_spm_t *spm );
 
 /**
- * Matrix-Vector product routines
+ * Matrix-Vector and matrix-matrix product routines
  */
 int z_spmCSCMatVec(const pastix_trans_t trans, const void *alpha, const pastix_spm_t *spm, const void *x, const void *beta, void *y);
+int z_spmCSCMatMat(const pastix_trans_t trans, pastix_int_t n, const void *alpha, const pastix_spm_t *A, const void *B, pastix_int_t ldb, const void *beta, void *Cptr, pastix_int_t ldc );
 
 /**
  * Norm computation routines
@@ -55,7 +56,7 @@ pastix_int_t z_spmMergeDuplicate( pastix_spm_t *spm );
 pastix_int_t z_spmSymmetrize( pastix_spm_t *spm );
 
 int z_spmGenRHS(pastix_rhstype_t type, int nrhs, const pastix_spm_t *spm, void *x, int ldx, void *b, int ldb );
-int z_spmCheckAxb( int nrhs, const pastix_spm_t *spm, void *x0, int ldx0, void *b, int ldb, const void *x, int ldx );
+int z_spmCheckAxb( pastix_fixdbl_t eps, int nrhs, const pastix_spm_t *spm, void *x0, int ldx0, void *b, int ldb, const void *x, int ldx );
 
 /**
  * Output routines

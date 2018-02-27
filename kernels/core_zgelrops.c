@@ -387,7 +387,7 @@ core_zlr2ge( pastix_trans_t trans, pastix_int_t m, pastix_int_t n,
  * @param[in] N2
  *          The number of columns of the matrix B.
  *
- * @param[in,out] B
+ * @param[inout] B
  *          The low-rank representation of the matrix B.
  *
  * @param[in] offx

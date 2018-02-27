@@ -23,12 +23,12 @@
 void
 schurFactorize( pastix_coeftype_t  flttype,
                 pastix_factotype_t factotype,
-                pastix_int_t N,
-                void *S,
-                pastix_int_t lds,
-                int **ipiv )
+                pastix_int_t       N,
+                void              *S,
+                pastix_int_t       lds,
+                int              **ipiv )
 {
-    int info=0;
+    int info = 0;
 
     assert( ipiv != NULL );
     if ( factotype == PastixFactGETRF ) {
@@ -96,16 +96,16 @@ schurFactorize( pastix_coeftype_t  flttype,
 void
 schurSolve( pastix_coeftype_t  flttype,
             pastix_factotype_t factotype,
-            pastix_int_t N,
-            pastix_int_t Nschur,
-            pastix_int_t NRHS,
-            void *S,
-            pastix_int_t lds,
-            void *bptr,
-            pastix_int_t ldb,
-            int **ipiv )
+            pastix_int_t       N,
+            pastix_int_t       Nschur,
+            pastix_int_t       NRHS,
+            void              *S,
+            pastix_int_t       lds,
+            void              *bptr,
+            pastix_int_t       ldb,
+            int              **ipiv )
 {
-    int info=0;
+    int info = 0;
 
     assert(ipiv != NULL);
 
@@ -183,7 +183,7 @@ schurSolve( pastix_coeftype_t  flttype,
     }
 
     if (*ipiv != NULL) {
-        free(*ipiv);
+        free( *ipiv );
         *ipiv = NULL;
     }
 
@@ -205,7 +205,8 @@ int main (int argc, char **argv)
     void           *x, *b, *S, *x0 = NULL;
     size_t          size;
     int             check = 1;
-    int             nrhs = 1;
+    int             nrhs  = 1;
+    int             rc    = 0;
     pastix_int_t    nschur, lds, ldb;
     int            *ipiv = NULL;
     pastix_diag_t   diag = PastixNonUnit;
@@ -235,14 +236,14 @@ int main (int argc, char **argv)
      */
     spm = malloc( sizeof( pastix_spm_t ) );
     spmReadDriver( driver, filename, spm, MPI_COMM_WORLD );
-    free(filename);
+    free( filename );
 
     spmPrintInfo( spm, stdout );
 
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {
         spmExit( spm );
-        free(spm);
+        free( spm );
         spm = spm2;
     }
 
@@ -285,7 +286,6 @@ int main (int argc, char **argv)
      */
     pastix_task_analyze( pastix_data, spm );
 
-
     /**
      * Normalize A matrix (optional, but recommended for low-rank functionality)
      */
@@ -316,7 +316,7 @@ int main (int argc, char **argv)
      * Generates the b and x vector such that A * x = b
      * Compute the norms of the initial vectors if checking purpose.
      */
-    size = pastix_size_of( spm->flttype ) * spm->n;
+    size = pastix_size_of( spm->flttype ) * spm->n * nrhs;
     x = malloc( size );
     b = malloc( size );
     ldb = spm->n;
@@ -332,11 +332,8 @@ int main (int argc, char **argv)
     else {
         spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
-        /* Apply also normalization to b vector */
-        spmScalVector( 1./normA, spm, b );
-
-        /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
-        memcpy( b, x, size );
+        /* Apply also normalization to b vectors */
+        spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );
     }
 
     /**
@@ -380,18 +377,21 @@ int main (int argc, char **argv)
 
     if ( check )
     {
-        spmCheckAxb( nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
-        if (x0) free(x0);
+        rc = spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+
+        if ( x0 ) {
+            free( x0 );
+        }
     }
 
     spmExit( spm );
     free( spm );
-    free(S);
-    free(x);
-    free(b);
+    free( S );
+    free( x );
+    free( b );
     pastixFinalize( &pastix_data );
 
-    return EXIT_SUCCESS;
+    return rc;
 }
 
 /**

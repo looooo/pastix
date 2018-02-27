@@ -28,11 +28,11 @@
  *
  *******************************************************************************
  *
- * @param[in,out] scale
+ * @param[inout] scale
  *           On entry, the former scale
  *           On exit, the update scale to take into account the value
  *
- * @param[in,out] sumsq
+ * @param[inout] sumsq
  *           On entry, the former sumsq
  *           On exit, the update sumsq to take into account the value
  *

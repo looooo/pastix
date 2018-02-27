@@ -65,7 +65,6 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     Clock                          refine_clk;
     pastix_fixdbl_t                t0           = 0.0;
     pastix_fixdbl_t                t3           = 0.0;
-    pastix_complex64_t          *  gmrestemp    = NULL;
     volatile pastix_int_t          gmresim      = 0;
     volatile pastix_int_t          gmresmaxits  = 0;
     pastix_complex64_t          *  gmresb       = NULL;
@@ -95,7 +94,6 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     gmresmaxits = solveur.Itermax(pastix_data);
     gmreseps    = solveur.Eps(pastix_data);
 
-    gmrestemp = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
     gmresb    = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
     gmresc    = (pastix_complex64_t *)solveur.Malloc(gmresim * sizeof(pastix_complex64_t));
     gmress    = (pastix_complex64_t *)solveur.Malloc(gmresim * sizeof(pastix_complex64_t));
@@ -265,7 +263,6 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 
     solveur.End(pastix_data, gmresdata->gmresro/gmresnormb, gmresiters, t3, x, gmresx);
 
-    solveur.Free((void*) gmrestemp);
     solveur.Free((void*) gmresb);
     solveur.Free((void*) gmresc);
     solveur.Free((void*) gmress);

@@ -55,7 +55,7 @@
  * @param[in] beta
  *          beta specifies the scalar beta
  *
- * @param[in,out] y
+ * @param[inout] y
  *          The vector y.
  *
  *******************************************************************************

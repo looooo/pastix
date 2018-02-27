@@ -335,7 +335,7 @@ bcscExit( pastix_bcsc_t *bcsc )
  * @param[in] beta
  *          beta specifies the scalar beta
  *
- * @param[in,out] y
+ * @param[inout] y
  *          The vector y.
  *
  *******************************************************************************
@@ -367,57 +367,32 @@ bcscMatVec(       int            trans,
 }
 
 int
-bcscApplyPerm( pastix_bcsc_t *bcsc,
-               pastix_int_t   n,
-               void          *b,
-               pastix_int_t   ldb,
-               pastix_int_t  *perm )
+bcscApplyPerm( const pastix_bcsc_t *bcsc,
+               pastix_int_t         n,
+               void                *b,
+               pastix_int_t         ldb,
+               pastix_int_t        *perm )
 {
+    pastix_int_t m = bcsc->gN;
+    int rc = PASTIX_SUCCESS;
+
     switch( bcsc->flttype ) {
     case PastixComplex64:
-        if( PASTIX_SUCCESS != z_bcscApplyPerm( bcsc->gN,
-                                               n,
-                                               b,
-                                               ldb,
-                                               perm ))
-        {
-            return PASTIX_ERR_BADPARAMETER;
-        }
+        rc = z_bcscApplyPerm( m, n, b, ldb, perm );
         break;
 
     case PastixComplex32:
-        if( PASTIX_SUCCESS != c_bcscApplyPerm( bcsc->gN,
-                                               n,
-                                               b,
-                                               ldb,
-                                               perm ))
-        {
-            return PASTIX_ERR_BADPARAMETER;
-        }
+        rc = c_bcscApplyPerm( m, n, b, ldb, perm );
         break;
 
     case PastixFloat:
-        if( PASTIX_SUCCESS != s_bcscApplyPerm( bcsc->gN,
-                                               n,
-                                               b,
-                                               ldb,
-                                               perm ))
-        {
-            return PASTIX_ERR_BADPARAMETER;
-        }
+        rc = s_bcscApplyPerm( m, n, b, ldb, perm );
         break;
 
     case PastixDouble:
     default:
-        if( PASTIX_SUCCESS != d_bcscApplyPerm( bcsc->gN,
-                                               n,
-                                               b,
-                                               ldb,
-                                               perm ))
-        {
-            return PASTIX_ERR_BADPARAMETER;
-        }
+        rc = d_bcscApplyPerm( m, n, b, ldb, perm );
     }
-    return PASTIX_SUCCESS;
+    return rc;
 }
 

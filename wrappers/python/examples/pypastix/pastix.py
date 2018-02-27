@@ -60,16 +60,19 @@ def task_solve( pastix_data, x, nrhs=-1 ):
 
 def task_refine( pastix_data, b, x, nrhs=-1 ):
 
+    n    = x.shape[0]
     nrhs = __getnrhs( nrhs, x )
-    b = np.asarray( b, spm.dtype )
-    x = np.asarray( x, spm.dtype )
+    b    = np.asarray( b, spm.dtype )
+    ldb  = b.shape[0]
+    x    = np.asarray( x, spm.dtype )
+    ldx  = x.shape[0]
 
     if b.dtype != x.dtype:
         raise TypeError( "b and x must use the same arithmetic" )
 
-    pypastix_pastix_task_refine( pastix_data,
-                                  x.ctypes.data_as(c_void_p), nrhs,
-                                  b.ctypes.data_as(c_void_p) )
+    pypastix_pastix_task_refine( pastix_data, n, nrhs,
+                                 b.ctypes.data_as(c_void_p), ldb,
+                                 x.ctypes.data_as(c_void_p), ldx )
 
 #
 # Numerical solve subtasks

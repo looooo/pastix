@@ -92,8 +92,12 @@ void          spmGenFakeValues( pastix_spm_t *spm );
  */
 double        spmNorm( pastix_normtype_t ntype, const pastix_spm_t *spm );
 int           spmMatVec( pastix_trans_t trans, const void *alpha, const pastix_spm_t *spm, const void *x, const void *beta, void *y );
-void          spmScalMatrix( const double alpha, pastix_spm_t *spm );
-void          spmScalVector( const double alpha, pastix_spm_t *spm, void *x );
+int           spmMatMat( pastix_trans_t trans, pastix_int_t n,
+                         const void *alpha, const pastix_spm_t *A,
+                                            const void *B, pastix_int_t ldb,
+                         const void *beta,        void *C, pastix_int_t ldc );
+void          spmScalMatrix( double alpha, pastix_spm_t *spm );
+void          spmScalVector( pastix_coeftype_t flt, double alpha, pastix_int_t n, void *x, pastix_int_t incx );
 
 /**
  * @}
@@ -111,7 +115,7 @@ pastix_spm_t *spmCheckAndCorrect( pastix_spm_t *spm );
  * @{
  */
 int           spmGenRHS( pastix_rhstype_t type, pastix_int_t nrhs, const pastix_spm_t *spm, void *x, pastix_int_t ldx, void *b, pastix_int_t ldb );
-int           spmCheckAxb( pastix_int_t nrhs, const pastix_spm_t *spm, void *x0, pastix_int_t ldx0, void *b, pastix_int_t ldb, const void *x, pastix_int_t ldx );
+int           spmCheckAxb( double eps, pastix_int_t nrhs, const pastix_spm_t *spm, void *x0, pastix_int_t ldx0, void *b, pastix_int_t ldb, const void *x, pastix_int_t ldx );
 
 /**
  * @}

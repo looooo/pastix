@@ -88,14 +88,21 @@ def pyspm_spmMatVec( trans, alpha, spm, x, beta, y ):
     libspm.spmMatVec.restype = c_int
     return libspm.spmMatVec( trans, alpha, spm, x, beta, y )
 
+def pyspm_spmMatMat( trans, n, alpha, A, B, ldb, beta, C, ldc ):
+    libspm.spmMatMat.argtypes = [ c_int, pastix_int, c_void_p,
+                                  POINTER(pypastix_spm_t), c_void_p, pastix_int,
+                                  c_void_p, c_void_p, pastix_int ]
+    libspm.spmMatMat.restype = c_int
+    return libspm.spmMatMat( trans, n, alpha, A, B, ldb, beta, C, ldc )
+
 def pyspm_spmScalMatrix( alpha, spm ):
     libspm.spmScalMatrix.argtypes = [ c_double, POINTER(pypastix_spm_t) ]
     libspm.spmScalMatrix( alpha, spm )
 
-def pyspm_spmScalVector( alpha, spm, x ):
-    libspm.spmScalVector.argtypes = [ c_double, POINTER(pypastix_spm_t),
-                                      c_void_p ]
-    libspm.spmScalVector( alpha, spm, x )
+def pyspm_spmScalVector( flt, alpha, n, x, incx ):
+    libspm.spmScalVector.argtypes = [ c_int, c_double, pastix_int, c_void_p,
+                                      pastix_int ]
+    libspm.spmScalVector( flt, alpha, n, x, incx )
 
 def pyspm_spmSort( spm ):
     libspm.spmSort.argtypes = [ POINTER(pypastix_spm_t) ]
@@ -123,12 +130,13 @@ def pyspm_spmGenRHS( type, nrhs, spm, x, ldx, b, ldb ):
     libspm.spmGenRHS.restype = c_int
     return libspm.spmGenRHS( type, nrhs, spm, x, ldx, b, ldb )
 
-def pyspm_spmCheckAxb( nrhs, spm, x0, ldx0, b, ldb, x, ldx ):
-    libspm.spmCheckAxb.argtypes = [ pastix_int, POINTER(pypastix_spm_t),
-                                    c_void_p, pastix_int, c_void_p, pastix_int,
-                                    c_void_p, pastix_int ]
+def pyspm_spmCheckAxb( eps, nrhs, spm, x0, ldx0, b, ldb, x, ldx ):
+    libspm.spmCheckAxb.argtypes = [ c_double, pastix_int,
+                                    POINTER(pypastix_spm_t), c_void_p,
+                                    pastix_int, c_void_p, pastix_int, c_void_p,
+                                    pastix_int ]
     libspm.spmCheckAxb.restype = c_int
-    return libspm.spmCheckAxb( nrhs, spm, x0, ldx0, b, ldb, x, ldx )
+    return libspm.spmCheckAxb( eps, nrhs, spm, x0, ldx0, b, ldb, x, ldx )
 
 def pyspm_spmIntConvert( n, input ):
     libspm.spmIntConvert.argtypes = [ pastix_int, c_int_p ]
