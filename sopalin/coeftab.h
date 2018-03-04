@@ -31,6 +31,8 @@ void coeftabInit( pastix_data_t     *pastix_data,
                   pastix_coefside_t  side );
 void coeftabExit( SolverMatrix      *solvmtx );
 
+pastix_int_t coeftabCompress( pastix_data_t *pastix_data );
+
 /**
  * @brief Type of the memory gain functions
  */

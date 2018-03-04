@@ -81,15 +81,17 @@ cpucblk_zcompress( pastix_coefside_t side,
             if ( side != PastixUCoef ) {
                 lrA = blok->LRblock;
 
-                assert( lrA->rk == -1 );
-                A = lrA->u;
+                /* Try to compress */
+                if ( lrA->rk == -1 ) {
+                    A = lrA->u;
 
-                kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
-                flops = lowrank.core_ge2lr( lowrank.tolerance, -1, nrows, ncols,
-                                            A, nrows, lrA );
-                kernel_trace_stop_lvl2_rank( flops, lrA->rk );
+                    kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
+                    flops = lowrank.core_ge2lr( lowrank.tolerance, -1, nrows, ncols,
+                                                A, nrows, lrA );
+                    kernel_trace_stop_lvl2_rank( flops, lrA->rk );
 
-                free( A );
+                    free( A );
+                }
 
                 if  ( lrA->rk != -1 ) {
                     gainL += gain - ((nrows+ncols) * lrA->rk);
@@ -100,15 +102,16 @@ cpucblk_zcompress( pastix_coefside_t side,
             if ( side != PastixLCoef ) {
                 lrA = blok->LRblock + 1;
 
-                assert( lrA->rk == -1 );
-                A = lrA->u;
+                if( lrA->rk == -1 ) {
+                    A = lrA->u;
 
-                kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
-                flops = lowrank.core_ge2lr( lowrank.tolerance, -1, nrows, ncols,
-                                            A, nrows, lrA );
-                kernel_trace_stop_lvl2_rank( flops, lrA->rk );
+                    kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
+                    flops = lowrank.core_ge2lr( lowrank.tolerance, -1, nrows, ncols,
+                                                A, nrows, lrA );
+                    kernel_trace_stop_lvl2_rank( flops, lrA->rk );
 
-                free( A );
+                    free( A );
+                }
 
                 if  ( lrA->rk != -1 ) {
                     gainU += gain - ((nrows+ncols) * lrA->rk);
