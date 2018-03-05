@@ -13,6 +13,7 @@ include(GenPkgConfig)
 add_subdirectory(old)
 
 set (INTERNAL_EXAMPLES
+  dump_rank.c
   ordering_grid.c
   )
 
@@ -32,7 +33,6 @@ set (EXAMPLES
   schur.c
   simple.c
   step-by-step.c
-  dump_rank.c
   )
 
 foreach (_file ${EXAMPLES})
