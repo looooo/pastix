@@ -369,7 +369,7 @@ pastix_task_solve( pastix_data_t *pastix_data,
         pastix_trans_t trans = PastixTrans;
 
         clockStart(timer);
-        switch ( pastix_data->iparm[IPARM_FACTORIZATION] ){
+        switch ( iparm[IPARM_FACTORIZATION] ){
         case PastixFactLLH:
             trans = PastixConjTrans;
 
@@ -437,8 +437,10 @@ pastix_task_solve( pastix_data_t *pastix_data,
         }
         clockStop(timer);
 
+        pastix_data->dparm[DPARM_SOLV_TIME] = clockVal(timer);
         if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
-            pastix_print( 0, 0, OUT_TIME_SOLV, clockVal(timer) );
+            pastix_print( 0, 0, OUT_TIME_SOLV,
+                          pastix_data->dparm[DPARM_SOLV_TIME] );
         }
     }
 

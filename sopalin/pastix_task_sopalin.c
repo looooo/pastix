@@ -414,8 +414,10 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
         clockStop(timer);
         kernelsTraceStop( pastix_data );
 
-        flops = pastix_data->dparm[DPARM_FACT_THFLOPS] / clockVal(timer);
-        pastix_data->dparm[DPARM_FACT_FLOPS] = flops;
+        /* Output time and flops */
+        pastix_data->dparm[DPARM_FACT_TIME] = clockVal(timer);
+        flops = pastix_data->dparm[DPARM_FACT_THFLOPS] / pastix_data->dparm[DPARM_FACT_TIME];
+        pastix_data->dparm[DPARM_FACT_FLOPS] = ((flops / 1024.) / 1024.) / 1024.;
 
         pastix_data->iparm[IPARM_STATIC_PIVOTING] = sopalin_data.solvmtx->nbpivots;
 

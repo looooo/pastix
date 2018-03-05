@@ -174,8 +174,10 @@ pastix_task_refine( pastix_data_t *pastix_data,
     }
     clockStop(timer);
 
+    pastix_data->dparm[DPARM_REFINE_TIME] = clockVal(timer);
     if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
-        pastix_print( 0, 0, OUT_TIME_REFINE, clockVal(timer) );
+        pastix_print( 0, 0, OUT_TIME_REFINE,
+                      pastix_data->dparm[DPARM_REFINE_TIME] );
     }
 
     if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
