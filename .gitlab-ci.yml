@@ -39,7 +39,7 @@ test_pastix:
     - source .gitlab-ci-env.sh
     - source install/bin/pastix_env.sh
     - (cd build &&
-       eval "ctest --no-compress-output -V
+       eval "ctest
              $TESTS_RESTRICTION
              -D ExperimentalTest
              -D ExperimentalCoverage
