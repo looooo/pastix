@@ -11,11 +11,22 @@
 include(GenPkgConfig)
 
 add_subdirectory(old)
+
+set (INTERNAL_EXAMPLES
+  ordering_grid.c
+  )
+
+foreach (_file ${EXAMPLES})
+  get_filename_component(_name_we ${_file} NAME_WE)
+  add_executable(${_name_we} ${_file})
+  target_link_libraries(${_name_we} pastix)
+  target_link_libraries(${_name_we} ${BLAS_SEQ_LIBRARIES})
+endforeach()
+
 set (EXAMPLES
   analyze.c
   bench_facto.c
   compress.c
-  ordering_grid.c
   personal.c
   reentrant.c
   schur.c
