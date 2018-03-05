@@ -212,3 +212,122 @@ coeftabExit( SolverMatrix *solvmtx )
         }
     }
 }
+
+/**
+ * @brief Internal structure specific to the parallel call of pcoeftabComp()
+ */
+struct coeftabcomp_s {
+    SolverMatrix        *solvmtx; /**< The sovler matrix               */
+    pastix_coeftype_t    flttype; /**< The arithmetic type             */
+    pastix_atomic_lock_t lock;    /**< Lock to protect the gain update */
+    pastix_int_t         gain;    /**< The memory gain on output       */
+};
+
+/**
+ *******************************************************************************
+ *
+ * @brief Internal routine called by each static thread to Initialize the solver
+ * matrix structure.
+ *
+ * This routine is the routine called by each thread in the static scheduler and
+ * launched by the coeftabCompress().
+ *
+ *******************************************************************************
+ *
+ * @param[inout] ctx
+ *          The internal scheduler context
+ *
+ * @param[in] args
+ *          The data structure specific to the function cpucblk_zcompress()
+ *
+ *******************************************************************************/
+static void
+pcoeftabComp( isched_thread_t *ctx,
+              void            *args )
+{
+    struct coeftabcomp_s *ccargs   = (struct coeftabcomp_s*)args;
+    SolverMatrix         *solvmtx  = ccargs->solvmtx;
+    pastix_coeftype_t     flttype  = ccargs->flttype;
+    pastix_atomic_lock_t *lock     = &(ccargs->lock);
+    pastix_int_t         *fullgain = &(ccargs->gain);
+    SolverCblk           *cblk;
+    pastix_coefside_t side = (solvmtx->factotype == PastixFactLU) ? PastixLUCoef : PastixLCoef;
+    pastix_int_t i, itercblk;
+    pastix_int_t task, gain = 0;
+    int rank = ctx->rank;
+
+    pastix_int_t (*compfunc)( pastix_coefside_t, SolverCblk*, pastix_lr_t ) = NULL;
+
+    switch( flttype ) {
+    case PastixComplex32:
+        compfunc = cpucblk_ccompress;
+        break;
+    case PastixComplex64:
+        compfunc = cpucblk_zcompress;
+        break;
+    case PastixFloat:
+        compfunc = cpucblk_scompress;
+        break;
+    case PastixDouble:
+    case PastixPattern:
+    default:
+        compfunc = cpucblk_dcompress;
+    }
+
+    for (i=0; i < solvmtx->ttsknbr[rank]; i++)
+    {
+        task     = solvmtx->ttsktab[rank][i];
+        itercblk = solvmtx->tasktab[task].cblknum;
+        cblk     = solvmtx->cblktab + itercblk;
+
+        if ( cblk->cblktype & CBLK_COMPRESSED ) {
+            gain += compfunc( side, cblk, solvmtx->lowrank );
+        }
+    }
+
+    pastix_atomic_lock( lock );
+    *fullgain += gain;
+    pastix_atomic_unlock( lock );
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Compress the factorized matrix structure if not already done.
+ *
+ * This routine compress all column blocks that are marked for compression, and
+ * return the amount of memory saved by the compression.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix_data structure that holds the problem
+ *
+ *******************************************************************************
+ *
+ * @return The memory gain resulting from the compression to low-rank format in
+ *         number of elements.
+ *
+ *******************************************************************************/
+pastix_int_t
+coeftabCompress( pastix_data_t *pastix_data )
+{
+    struct coeftabcomp_s args;
+    pastix_lr_t  *lr;
+
+    args.solvmtx   = pastix_data->solvmatr;
+    args.flttype   = pastix_data->bcsc->flttype;
+    args.lock      = PASTIX_ATOMIC_UNLOCKED;
+    args.gain      = 0;
+
+    /* Set the lowrank properties */
+    lr = &(pastix_data->solvmatr->lowrank);
+    lr->compress_method     = pastix_data->iparm[IPARM_COMPRESS_METHOD];
+    lr->compress_min_width  = pastix_data->iparm[IPARM_COMPRESS_MIN_WIDTH];
+    lr->compress_min_height = pastix_data->iparm[IPARM_COMPRESS_MIN_HEIGHT];
+    lr->tolerance           = sqrt( pastix_data->dparm[DPARM_COMPRESS_TOLERANCE] );
+
+    isched_parallel_call( pastix_data->isched, pcoeftabComp, (void*)(&args) );
+
+    return args.gain;
+}
