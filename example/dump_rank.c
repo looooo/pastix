@@ -135,11 +135,7 @@ int main (int argc, char **argv)
     /**
      * Perform ordering, symbolic factorization, and analyze steps
      */
-    pastix_subtask_order( pastix_data, spm, NULL );
-    pastix_subtask_symbfact( pastix_data );
-    pastix_subtask_reordering( pastix_data );
-    pastix_subtask_blend( pastix_data );
-    //pastix_task_analyze( pastix_data, spm );
+    pastix_task_analyze( pastix_data, spm );
 
     /**
      * Normalize A matrix (optional, but recommended for low-rank functionality)
@@ -149,9 +145,16 @@ int main (int argc, char **argv)
 
     /**
      * Perform the numerical factorization
+     * To be sure we perform the numerical factorization in Full-rank, and keep
+     * the compressed flag for the compression afterward, we change the iparm
+     * between the bcsc2tab and sopalin task.
      */
-    iparm[IPARM_COMPRESS_WHEN] = PastixCompressWhenEnd;
-    pastix_task_numfact( pastix_data, spm );
+    //pastix_task_numfact( pastix_data, spm );
+    pastix_subtask_spm2bcsc( pastix_data, spm );
+    pastix_subtask_bcsc2ctab( pastix_data );
+
+    iparm[IPARM_COMPRESS_WHEN] = PastixCompressNever;
+    pastix_subtask_sopalin( pastix_data );
 
     {
         pastix_int_t total;
