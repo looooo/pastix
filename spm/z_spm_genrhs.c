@@ -423,8 +423,8 @@ z_spmCheckAxb( pastix_fixdbl_t eps, int nrhs,
 
         fail = isnan(nr) || isinf(nr) || isnan(back) || isinf(back) || (back > 1.e2);
         if ( fail ) {
-            printf( "   || b_%d - A x_%d ||_1                                 %e\n"
-                    "   || b_%d - A x_%d ||_1 / (||A||_1 * ||x_%d||_oo * eps) %e (%s)\n",
+            printf( "   || b_%d - A x_%d ||_1                                     %e\n"
+                    "   || b_%d - A x_%d ||_1 / (||A||_1 * ||x_%d||_oo * eps)      %e (%s)\n",
                     i, i, nr,
                     i, i, i, back,
                     fail ? "FAILED" : "SUCCESS" );
@@ -467,8 +467,8 @@ z_spmCheckAxb( pastix_fixdbl_t eps, int nrhs,
 
             fail = isnan(nx) || isinf(nx) || isnan(forw) || isinf(forw) || (forw > 1.e2);
             if ( fail ) {
-                printf( "   || x0_%d ||_oo                                 %e\n"
-                        "   || x0_%d - x_%d ||_oo / (||x0_%d||_oo * eps)   %e (%s)\n",
+                printf( "   || x0_%d ||_oo                                           %e\n"
+                        "   || x0_%d - x_%d ||_oo / (||x0_%d||_oo * eps)               %e (%s)\n",
                         i, nr,
                         i, i, i, forw,
                         fail ? "FAILED" : "SUCCESS" );
