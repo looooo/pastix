@@ -34,6 +34,7 @@ test_pastix:
     expire_in: 42 minutes
     paths:
       - pastix.lcov
+      - pastix-gcov.log
   script:
     - source .gitlab-ci-env.sh
     - source install/bin/pastix_env.sh
@@ -45,7 +46,7 @@ test_pastix:
              -D ExperimentalSubmit
              | tee -a ../pastix-build.log")
     - lcov --directory build --capture --output-file pastix.lcov
-    - gcovr -r $PWD
+    - gcovr -r $PWD | tee pastix-gcov.log
   only:
     - branches
     - master@pastix/pastix
