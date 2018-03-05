@@ -119,16 +119,25 @@ macro(generate_pkgconfig_file)
 
     if(PASTIX_WITH_STARPU)
       list(APPEND PASTIX_PKGCONFIG_LIBS pastix_starpu)
-      if ( PASTIX_WITH_MPI )
-        list(APPEND PASTIX_PKGCONFIG_REQUIRED libstarpumpi)
+      if ( STARPU_FOUND_WITH_PKGCONFIG )
+        if ( PASTIX_WITH_MPI )
+          list(APPEND PASTIX_PKGCONFIG_REQUIRED starpumpi-${PASTIX_STARPU_VERSION})
+        else()
+          list(APPEND PASTIX_PKGCONFIG_REQUIRED starpu-${PASTIX_STARPU_VERSION})
+        endif()
       else()
-        list(APPEND PASTIX_PKGCONFIG_REQUIRED starpu-${PASTIX_STARPU_VERSION})
+        list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE ${STARPU_LIBRARIES})
       endif()
     endif()
 
+    # PaRSEC
     if(PASTIX_WITH_PARSEC)
-        list(APPEND PASTIX_PKGCONFIG_LIBS pastix_parsec)
+      list(APPEND PASTIX_PKGCONFIG_LIBS pastix_parsec)
+      if ( PARSEC_FOUND_WITH_PKGCONFIG )
         list(APPEND PASTIX_PKGCONFIG_REQUIRED parsec)
+      else()
+        list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE ${PARSEC_LIBRARIES})
+      endif()
     endif()
 
     if(PASTIX_WITH_CUDA)
@@ -150,7 +159,13 @@ macro(generate_pkgconfig_file)
     list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE
       ${EXTRA_LIBRARIES}
       )
-    list(APPEND PASTIX_PKGCONFIG_REQUIRED hwloc)
+
+    # HwLoc
+    if ( HWLOC_FOUND_WITH_PKGCONFIG )
+      list(APPEND PASTIX_PKGCONFIG_REQUIRED hwloc)
+    else()
+      list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE ${HWLOC_LIBRARIES})
+    endif()
 
     # Define required package
     # -----------------------
