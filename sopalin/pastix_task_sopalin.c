@@ -514,13 +514,8 @@ int
 pastix_task_numfact( pastix_data_t *pastix_data,
                      pastix_spm_t  *spm )
 {
-    /* #ifdef PASTIX_WITH_MPI */
-    /*     MPI_Comm       pastix_comm = pastix_data->inter_node_comm; */
-    /* #endif */
-    pastix_int_t  procnum;
     pastix_int_t *iparm;
-    /*     double        *dparm    = pastix_data->dparm; */
-    /*     SolverMatrix  *solvmatr = pastix_data->solvmatr; */
+    pastix_int_t  procnum;
     int rc;
 
     /*
@@ -543,32 +538,30 @@ pastix_task_numfact( pastix_data_t *pastix_data,
     procnum = pastix_data->inter_node_procnum;
 
     if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
-        pastix_print(procnum, 0, OUT_STEP_SOPALIN,
-                     pastixFactotypeStr( iparm[IPARM_FACTORIZATION] ) );
+        pastix_print( procnum, 0, OUT_STEP_SOPALIN,
+                      pastixFactotypeStr( iparm[IPARM_FACTORIZATION] ) );
     }
 
     if ( !(pastix_data->steps & STEP_CSC2BCSC) ) {
         rc = pastix_subtask_spm2bcsc( pastix_data, spm );
-        if (rc != PASTIX_SUCCESS)
+        if (rc != PASTIX_SUCCESS) {
             return rc;
+        }
     }
 
     if ( !(pastix_data->steps & STEP_BCSC2CTAB) ) {
         rc = pastix_subtask_bcsc2ctab( pastix_data );
-        if (rc != PASTIX_SUCCESS)
+        if (rc != PASTIX_SUCCESS) {
             return rc;
+        }
     }
 
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
         rc = pastix_subtask_sopalin( pastix_data );
-        if (rc != PASTIX_SUCCESS)
+        if (rc != PASTIX_SUCCESS) {
             return rc;
+        }
     }
-
-    /* Invalidate following steps, and add factorization step to the ones performed */
-    pastix_data->steps &= ~( STEP_SOLVE     |
-                             STEP_REFINE );
-    pastix_data->steps |= STEP_NUMFACT;
 
     return EXIT_SUCCESS;
 }
