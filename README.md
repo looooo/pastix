@@ -1,7 +1,7 @@
 PaStiX: A sparse direct solver
 ==============================
 
-[![pipeline status](https://gitlab.inria.fr/pastix/pastix/badges/master/pipeline.svg)](https://gitlab.inria.fr/solverstack/pastix/pipelines) [![coverage report](https://gitlab.inria.fr/pastix/pastix/badges/master/coverage.svg)](https://sonarqube.bordeaux.inria.fr/dashboard?id=hiepacs%3Apastix%3Agitlab%3Amaster)
+[![pipeline status](https://gitlab.inria.fr/solverstack/pastix/badges/master/pipeline.svg)](https://gitlab.inria.fr/solverstack/pastix/pipelines) [![coverage report](https://gitlab.inria.fr/solverstack/pastix/badges/master/coverage.svg)](https://sonarqube.bordeaux.inria.fr/dashboard?id=hiepacs%3Apastix%3Agitlab%3Amaster)
 
 PaStiX (Parallel Sparse matriX package) is a scientific library that provides a
 high performance parallel solver for very large sparse linear systems based on
