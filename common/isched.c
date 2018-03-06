@@ -236,7 +236,6 @@ isched_t *ischedInit(int cores, const int *coresbind)
     isched->pfunc = NULL;
     isched->pargs = NULL;
 
-
     /* Init number of cores and topology */
     isched_topo_init();
 

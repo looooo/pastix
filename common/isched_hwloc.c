@@ -35,8 +35,8 @@ int isched_hwloc_init(void)
     if ( first_init == 0 ) {
         hwloc_topology_init(&topology);
         hwloc_topology_load(topology);
-        first_init++;
     }
+    first_init++;
     pastix_atomic_unlock( &topo_lock );
     return 0;
 }
