@@ -39,7 +39,7 @@ SONARQUBE_PROJECTKEY=${SONARQUBE_PROJECTKEY:-hiepacs:pastix:gitlab:dev}
 
 # create the sonarqube config file
 cat > sonar-project.properties << EOF
-sonar.host.url=https://sonarqube.bordeaux.inria.fr/
+sonar.host.url=https://sonarqube.bordeaux.inria.fr/sonarqube
 sonar.login=$SONARQUBE_LOGIN
 
 sonar.links.homepage=https://gitlab.inria.fr/solverstack/pastix
