@@ -135,6 +135,8 @@ option(PASTIX_BLEND_DEEPEST_DISTRIB
 # Numerical factorization options
 option(PASTIX_NUMFACT_DUMP_SOLVER
   "Dump the generated factorized matrix in a postscript file with information on block's compressibility" OFF)
+option(PASTIX_SUPERNODE_STATS
+  "Enable statistics per original supernodes" OFF)
 
 # Options to check
 option(FORGET_PARTITION
