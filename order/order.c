@@ -69,6 +69,10 @@ pastixOrderAlloc( pastix_order_t * const ordeptr,
 
     ordeptr->vertnbr = vertnbr;
     ordeptr->cblknbr = cblknbr;
+#if defined(PASTIX_SUPERNODE_STATS)
+    ordeptr->sndenbr = cblknbr;
+    ordeptr->sndetab = NULL;
+#endif
 
     if (vertnbr != 0) {
         MALLOC_INTERN(ordeptr->permtab, vertnbr, pastix_int_t);
@@ -169,6 +173,10 @@ pastixOrderInit( pastix_order_t * const ordeptr,
     ordeptr->baseval = baseval;
     ordeptr->vertnbr = vertnbr;
     ordeptr->cblknbr = cblknbr;
+#if defined(PASTIX_SUPERNODE_STATS)
+    ordeptr->sndenbr = cblknbr;
+    ordeptr->sndetab = NULL;
+#endif
 
     if ( permtab ) {
         ordeptr->permtab = permtab;
@@ -178,6 +186,10 @@ pastixOrderInit( pastix_order_t * const ordeptr,
     }
     if ( rangtab ) {
         ordeptr->rangtab = rangtab;
+#if defined(PASTIX_SUPERNODE_STATS)
+        ordeptr->sndetab = malloc( (ordeptr->sndenbr+1) * sizeof(pastix_int_t) );
+        memcpy( ordeptr->sndetab, ordeptr->rangtab, (ordeptr->sndenbr+1) * sizeof(pastix_int_t) );
+#endif
     }
     if ( treetab ) {
         ordeptr->treetab = treetab;
@@ -220,7 +232,11 @@ pastixOrderExit( pastix_order_t * const ordeptr )
     if (ordeptr->treetab != NULL) {
         memFree_null (ordeptr->treetab);
     }
-
+#if defined(PASTIX_SUPERNODE_STATS)
+    if (ordeptr->sndetab != NULL) {
+        memFree_null (ordeptr->sndetab);
+    }
+#endif
     memset(ordeptr, 0, sizeof(pastix_order_t) );
 }
 
@@ -286,6 +302,14 @@ pastixOrderBase( pastix_order_t * const ordeptr,
             ordeptr->treetab[cblknum] += baseadj;
         }
     }
+#if defined(PASTIX_SUPERNODE_STATS)
+    if (ordeptr->sndetab != NULL) {
+        pastix_int_t sndenum;
+        for (sndenum = 0; sndenum <= ordeptr->sndenbr; sndenum ++) {
+            ordeptr->sndetab[sndenum] += baseadj;
+        }
+    }
+#endif
 
     ordeptr->baseval = baseval;
 }
@@ -334,7 +358,9 @@ pastixOrderCopy( pastix_order_t       * const ordedst,
     ordedst->baseval = ordesrc->baseval;
     ordedst->vertnbr = ordesrc->vertnbr;
     ordedst->cblknbr = ordesrc->cblknbr;
-
+#if defined(PASTIX_SUPERNODE_STATS)
+    ordedst->sndenbr = ordesrc->sndenbr;
+#endif
     if ( (ordedst->permtab == NULL) &&
          (ordedst->peritab == NULL) &&
          (ordedst->rangtab == NULL) &&
@@ -363,6 +389,12 @@ pastixOrderCopy( pastix_order_t       * const ordedst,
         memcpy( ordedst->treetab, ordesrc->treetab, ordesrc->cblknbr * sizeof(pastix_int_t) );
     }
 
+#if defined(PASTIX_SUPERNODE_STATS)
+    if ( (ordesrc->sndetab != NULL) && (ordedst->sndetab != NULL) )
+    {
+        memcpy( ordedst->sndetab, ordesrc->sndetab, (ordesrc->sndenbr+1) * sizeof(pastix_int_t) );
+    }
+#endif
     return PASTIX_SUCCESS;
 }
 
