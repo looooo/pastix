@@ -36,7 +36,7 @@ pastix_int_t coeftabCompress( pastix_data_t *pastix_data );
 /**
  * @brief Type of the memory gain functions
  */
-typedef pastix_int_t (*coeftab_fct_memory_t)( const SolverMatrix * );
+typedef void (*coeftab_fct_memory_t)( const SolverMatrix * );
 
 /**
  * @brief List of functions to compute the memory gain in low-rank per precision.

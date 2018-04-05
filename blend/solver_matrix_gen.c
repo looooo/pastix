@@ -306,6 +306,8 @@ solverMatrixGen( pastix_int_t           clustnum,
                             (sndetab[1] >  solvcblk->lcolnum) );
                     solvcblk->sndeidx = sndetab - ordeptr->sndetab;
                 }
+#else
+                solvcblk->sndeidx = i;
 #endif
                 solvcblk->handler[0] = NULL;
                 solvcblk->handler[1] = NULL;

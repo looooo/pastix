@@ -142,9 +142,7 @@ typedef struct solver_cblk_s  {
     pastix_int_t         brownum;    /**< First block in row facing the diagonal block in browtab, 0-based */
     pastix_int_t         brown2d;    /**< First 2D-block in row facing the diagonal block in browtab, 0-based */
     pastix_int_t         gcblknum;   /**< Global column block index               */
-#if defined(PASTIX_SUPERNODE_STATS)
     pastix_int_t         sndeidx;    /**< Index of the original supernode the cblk belongs to */
-#endif
     void                *lcoeftab;   /**< Coefficients access vector              */
     void                *ucoeftab;   /**< Coefficients access vector              */
     void                *handler[2]; /**< Runtime data handler                    */
