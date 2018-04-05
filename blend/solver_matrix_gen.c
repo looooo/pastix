@@ -23,6 +23,7 @@
 #include <sys/stat.h>
 
 #include "common.h"
+#include "pastix/order.h"
 #include "cost.h"
 #include "symbol.h"
 #include "queue.h"
@@ -77,6 +78,7 @@ int
 solverMatrixGen( pastix_int_t           clustnum,
                  SolverMatrix          *solvmtx,
                  const symbol_matrix_t *symbmtx,
+                 const pastix_order_t  *ordeptr,
                  const SimuCtrl        *simuctrl,
                  const BlendCtrl       *ctrl )
 {
@@ -97,6 +99,7 @@ solverMatrixGen( pastix_int_t           clustnum,
     pastix_int_t *ftgtlocalnum = NULL;
     pastix_int_t  flaglocal    = 0;
     pastix_int_t  dof = symbmtx->dof;
+    (void)ordeptr;
 
     solverInit(solvmtx);
 
@@ -186,6 +189,9 @@ solverMatrixGen( pastix_int_t           clustnum,
         symbol_blok_t *symbblok = symbmtx->bloktab;
         SimuBlok      *simublok = simuctrl->bloktab;
         Cand          *candcblk = ctrl->candtab;
+#if defined(PASTIX_SUPERNODE_STATS)
+        pastix_int_t  *sndetab = ordeptr->sndetab;
+#endif
         pastix_int_t   blokamax = 0; /* Maximum area of a block in the global matrix */
         pastix_int_t   nbcblk2d = 0;
         pastix_int_t   nbblok2d = 0;
@@ -290,6 +296,17 @@ solverMatrixGen( pastix_int_t           clustnum,
                 solvcblk->lcoeftab = NULL;
                 solvcblk->ucoeftab = NULL;
                 solvcblk->gcblknum = i;
+#if defined(PASTIX_SUPERNODE_STATS)
+                {
+                    while ( sndetab[1] <= solvcblk->lcolnum ) {
+                        sndetab++;
+                        assert( (sndetab - ordeptr->sndetab) < ordeptr->sndenbr );
+                    }
+                    assert( (sndetab[0] <= solvcblk->fcolnum) &&
+                            (sndetab[1] >  solvcblk->lcolnum) );
+                    solvcblk->sndeidx = sndetab - ordeptr->sndetab;
+                }
+#endif
                 solvcblk->handler[0] = NULL;
                 solvcblk->handler[1] = NULL;
 

@@ -433,7 +433,8 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         }
         clockStart(timer_current);
 
-        solverMatrixGen(ctrl.clustnum, solvmtx, symbmtx, simuctrl, &ctrl);
+        solverMatrixGen( ctrl.clustnum, solvmtx, symbmtx,
+                         pastix_data->ordemesh, simuctrl, &ctrl );
 
         clockStop(timer_current);
         if( verbose > PastixVerboseNo ) {
