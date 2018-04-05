@@ -17,7 +17,7 @@ set (INTERNAL_EXAMPLES
   ordering_grid.c
   )
 
-foreach (_file ${EXAMPLES})
+foreach (_file ${INTERNAL_EXAMPLES})
   get_filename_component(_name_we ${_file} NAME_WE)
   add_executable(${_name_we} ${_file})
   target_link_libraries(${_name_we} pastix)

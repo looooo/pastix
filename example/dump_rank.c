@@ -30,19 +30,33 @@ pastixSymbolRank( const SolverMatrix    * const solvmtr,
     const SolverCblk *cblkptr;
     const SolverBlok *bloktnd;
     const SolverBlok *blokptr;
-    int o;
+    int o, version = -1;
 
-    o = (fprintf (stream, "-1\n%ld\t%ld\t%ld\t%ld\n", /* Write file header */
+#if defined(PASTIX_SUPERNODE_STATS)
+    version = 2;
+#endif
+
+    o = (fprintf (stream, "%d\n%ld\t%ld\t%ld\t%ld\n", /* Write file header */
+                  version,
                   (long) solvmtr->cblknbr,
                   (long) solvmtr->bloknbr,
                   (long) solvmtr->nodenbr,
                   (long) solvmtr->baseval) == EOF);
     for (cblkptr = solvmtr->cblktab, cblktnd = cblkptr + solvmtr->cblknbr;
          (cblkptr < cblktnd) && (o == 0); cblkptr ++) {
-        o = (fprintf (stream, "%ld\t%ld\t%ld\n",
-                      (long) cblkptr->fcolnum,
-                      (long) cblkptr->lcolnum,
-                      (long) (cblkptr->fblokptr - solvmtr->bloktab)) == EOF);
+        if (version == 2) {
+            o = (fprintf (stream, "%ld\t%ld\t%ld\t%ld\n",
+                          (long) cblkptr->sndeidx,
+                          (long) cblkptr->fcolnum,
+                          (long) cblkptr->lcolnum,
+                          (long) (cblkptr->fblokptr - solvmtr->bloktab)) == EOF);
+        }
+        else {
+            o = (fprintf (stream, "%ld\t%ld\t%ld\n",
+                          (long) cblkptr->fcolnum,
+                          (long) cblkptr->lcolnum,
+                          (long) (cblkptr->fblokptr - solvmtr->bloktab)) == EOF);
+        }
     }
     for (blokptr = solvmtr->bloktab, bloktnd = blokptr + solvmtr->bloknbr;
          (blokptr < bloktnd) && (o == 0); blokptr ++)
