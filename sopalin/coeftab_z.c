@@ -209,11 +209,6 @@ coeftab_zuncompress( SolverMatrix *solvmtx )
  * @param[in] solvmtx
  *          The solver matrix of the problem.
  *
- *******************************************************************************
- *
- * @return The difference in favor of the low-rank storage against the full rank
- *         storage.
- *
  *******************************************************************************/
 void
 coeftab_zmemory( const SolverMatrix *solvmtx )

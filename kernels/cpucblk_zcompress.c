@@ -208,13 +208,14 @@ cpucblk_zuncompress( pastix_coefside_t side,
  *          @arg PastixUCoef if upper part only
  *          @arg PastixLUCoef if both sides.
  *
+ * @param[in] solvmtx
+ *          The pointer to the solver structure.
+ *
  * @param[in] cblk
  *          The column block to study.
  *
- *******************************************************************************
- *
- * @return The difference in favor of the low-rank storage against the full rank
- *         storage.
+ * @param[in] gain
+ *          The structure that counts gain on each type of block.
  *
  *******************************************************************************/
 void

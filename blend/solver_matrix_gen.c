@@ -58,6 +58,9 @@
  * @param[in] symbmtx
  *          The global symbol matrix structure.
  *
+ * @param[in] ordeptr
+ *          The ordering structure.
+ *
  * @param[in] simuctrl
  *          The information resulting from the simulation that will provide the
  *          data mapping, and the order of the task execution for the static
