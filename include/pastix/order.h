@@ -43,7 +43,7 @@ typedef struct pastix_order_s {
     pastix_int_t *rangtab;   /**< Supernode array [based,+1]          */
     pastix_int_t *treetab;   /**< Partitioning tree [based]           */
 #if defined(PASTIX_SUPERNODE_STATS)
-    pastix_int_t  sndenbr;
+    pastix_int_t  sndenbr;   /**< The number of original supernodes   */
     pastix_int_t *sndetab;   /**< Original supernode array [based,+1] */
 #endif
 } pastix_order_t;
