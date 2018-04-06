@@ -209,42 +209,83 @@ coeftab_zuncompress( SolverMatrix *solvmtx )
  * @param[in] solvmtx
  *          The solver matrix of the problem.
  *
- *******************************************************************************
- *
- * @return The difference in favor of the low-rank storage against the full rank
- *         storage.
- *
  *******************************************************************************/
-pastix_int_t
+void
 coeftab_zmemory( const SolverMatrix *solvmtx )
 {
     pastix_coefside_t side = (solvmtx->factotype == PastixFactLU) ? PastixLUCoef : PastixLCoef;
     SolverCblk  *cblk = solvmtx->cblktab;
-    pastix_int_t cblknum;
-    pastix_int_t gain = 0;
-    pastix_int_t original = 0;
-    pastix_fixdbl_t memgain, memoriginal;
+    SolverBlok  *blok;
+    pastix_int_t i, cblknum, in_height, off_height;
+    pastix_int_t gain[4] = { 0, 0, 0, 0 };
+    pastix_int_t orig[4] = { 0, 0, 0, 0 };
+    pastix_fixdbl_t memgain[4];
+    pastix_fixdbl_t memorig[4];
+    pastix_fixdbl_t totgain, totorig;
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
-        original += cblk_colnbr( cblk ) * cblk->stride;
+
+        in_height = 0;
+        blok = cblk->fblokptr;
+        while( (blok < cblk[1].fblokptr) &&
+               ((solvmtx->cblktab + blok->fcblknm)->sndeidx == cblk->sndeidx) )
+        {
+            in_height += blok_rownbr( blok );
+            blok++;
+        }
+        off_height = cblk->stride - in_height;
+
+        if ( !(cblk->cblktype & CBLK_COMPRESSED) ) {
+            orig[FR_InDiag]  += cblk_colnbr( cblk ) * in_height;
+            orig[FR_OffDiag] += cblk_colnbr( cblk ) * off_height;
+        }
+        else {
+            orig[LR_InDiag]  += cblk_colnbr( cblk ) * in_height;
+            orig[LR_OffDiag] += cblk_colnbr( cblk ) * off_height;
+        }
+
         if (cblk->cblktype & CBLK_COMPRESSED) {
-            gain += cpucblk_zmemory( side, cblk );
+            cpucblk_zmemory( side, solvmtx, cblk, gain );
         }
     }
 
     if ( side == PastixLUCoef ) {
-        original *= 2;
+        orig[FR_InDiag]  *= 2;
+        orig[FR_OffDiag] *= 2;
+        orig[LR_InDiag]  *= 2;
+        orig[LR_OffDiag] *= 2;
     }
 
-    memgain     = gain     * pastix_size_of( PastixComplex64 );
-    memoriginal = original * pastix_size_of( PastixComplex64 );
-    pastix_print(0, 0,
-                 OUT_LOWRANK_SUMMARY,
-                 (long)gain, (long)original,
-                 MEMORY_WRITE(memgain),     MEMORY_UNIT_WRITE(memgain),
-                 MEMORY_WRITE(memoriginal), MEMORY_UNIT_WRITE(memoriginal));
+    totgain = 0.;
+    totorig = 0.;
+    for (i=0; i<4; i++) {
+        memgain[i] = (orig[i] - gain[i]) * pastix_size_of( PastixComplex64 );
+        memorig[i] =  orig[i]            * pastix_size_of( PastixComplex64 );
+        totgain += memgain[i];
+        totorig += memorig[i];
+    }
 
-    return gain;
+    pastix_print( 0, 0,
+                  "    Compression:\n"
+                  "      ------------------------------------------------\n"
+                  "      Full-rank cblk\n"
+                  "        Inside supernodes                     %8.3g %co\n"
+                  "        Outside supernodes                    %8.3g %co\n"
+                  "      Low-rank cblk\n"
+                  "        Inside supernodes       %8.3g %co / %8.3g %co\n"
+                  "        Outside supernodes      %8.3g %co / %8.3g %co\n"
+                  "      ------------------------------------------------\n"
+                  "      Total                     %8.3g %co / %8.3g %co\n",
+                  printflopsv(memorig[FR_InDiag] ), printflopsu(memorig[FR_InDiag] ),
+                  printflopsv(memorig[FR_OffDiag]), printflopsu(memorig[FR_OffDiag]),
+                  printflopsv(memgain[LR_InDiag] ), printflopsu(memgain[LR_InDiag] ),
+                  printflopsv(memorig[LR_InDiag] ), printflopsu(memorig[LR_InDiag] ),
+                  printflopsv(memgain[LR_OffDiag]), printflopsu(memgain[LR_OffDiag]),
+                  printflopsv(memorig[LR_OffDiag]), printflopsu(memorig[LR_OffDiag]),
+                  printflopsv(totgain), printflopsu(totgain),
+                  printflopsv(totorig), printflopsu(totorig) );
+
+    return;
 }
 
 /**

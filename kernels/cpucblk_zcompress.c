@@ -208,45 +208,55 @@ cpucblk_zuncompress( pastix_coefside_t side,
  *          @arg PastixUCoef if upper part only
  *          @arg PastixLUCoef if both sides.
  *
+ * @param[in] solvmtx
+ *          The pointer to the solver structure.
+ *
  * @param[in] cblk
  *          The column block to study.
  *
- *******************************************************************************
- *
- * @return The difference in favor of the low-rank storage against the full rank
- *         storage.
+ * @param[in] gain
+ *          The structure that counts gain on each type of block.
  *
  *******************************************************************************/
-pastix_int_t
-cpucblk_zmemory( pastix_coefside_t side,
-                 const SolverCblk *cblk )
+void
+cpucblk_zmemory( pastix_coefside_t   side,
+                 const SolverMatrix *solvmtx,
+                 const SolverCblk   *cblk,
+                 pastix_int_t       *gain )
 {
     SolverBlok *blok  = cblk[0].fblokptr + 1;
     SolverBlok *lblok = cblk[1].fblokptr;
 
     pastix_int_t ncols = cblk_colnbr( cblk );
     pastix_int_t size;
-    pastix_int_t gainL = 0;
-    pastix_int_t gainU = 0;
+    pastix_int_t gainblok;
 
     for (; blok<lblok; blok++)
     {
         pastix_int_t nrows = blok_rownbr( blok );
         size = nrows * ncols;
+        gainblok = 0;
 
         /* Lower part */
         if ( (side != PastixUCoef) &&
              (blok->LRblock[0].rk >= 0) )
         {
-            gainL += (size - ((nrows+ncols) * blok->LRblock[0].rkmax));
+            gainblok += (size - ((nrows+ncols) * blok->LRblock[0].rkmax));
         }
 
         if ( (side != PastixLCoef) &&
              (blok->LRblock[1].rk >= 0) )
         {
-            gainU += (size - ((nrows+ncols) * blok->LRblock[1].rkmax));
+            gainblok += (size - ((nrows+ncols) * blok->LRblock[1].rkmax));
+        }
+
+        if ( (solvmtx->cblktab + blok->fcblknm)->sndeidx == cblk->sndeidx ) {
+            gain[LR_InDiag] += gainblok;
+        }
+        else {
+            gain[LR_OffDiag] += gainblok;
         }
     }
 
-    return gainL + gainU;
+    return;
 }

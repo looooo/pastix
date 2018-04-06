@@ -117,6 +117,17 @@ typedef struct pastix_lr_s {
     fct_ge2lr_t  core_ge2lr;          /**< Compression function                             */
 } pastix_lr_t;
 
+
+/**
+ * @brief Enum to define the type of block.
+ */
+typedef enum memory_stats_e {
+    FR_InDiag  = 0, /**< Full-rank block, inside a diagonal block from non-split partition*/
+    FR_OffDiag = 1, /**< Full-rank block, outside a diagonal block from non-split partition*/
+    LR_InDiag  = 2, /**< Low-rank block, inside a diagonal block from non-split partition*/
+    LR_OffDiag = 3  /**< Low-rank block, outside a diagonal block from non-split partition*/
+} memory_stats_t;
+
 /**
  * @}
  */

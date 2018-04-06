@@ -142,6 +142,7 @@ typedef struct solver_cblk_s  {
     pastix_int_t         brownum;    /**< First block in row facing the diagonal block in browtab, 0-based */
     pastix_int_t         brown2d;    /**< First 2D-block in row facing the diagonal block in browtab, 0-based */
     pastix_int_t         gcblknum;   /**< Global column block index               */
+    pastix_int_t         sndeidx;    /**< Index of the original supernode the cblk belongs to */
     void                *lcoeftab;   /**< Coefficients access vector              */
     void                *ucoeftab;   /**< Coefficients access vector              */
     void                *handler[2]; /**< Runtime data handler                    */
@@ -315,6 +316,7 @@ void solverExit( SolverMatrix *solvmtx );
 int  solverMatrixGen( pastix_int_t           clustnum,
                       SolverMatrix          *solvmtx,
                       const symbol_matrix_t *symbmtx,
+                      const pastix_order_t  *ordeptr,
                       const SimuCtrl        *simuctl,
                       const BlendCtrl       *ctrl );
 

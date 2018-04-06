@@ -40,12 +40,6 @@ void splitSymbol    ( BlendCtrl    *ctrl,
 void simuRun        ( SimuCtrl *,
                       const BlendCtrl *,
                       const symbol_matrix_t * );
-int  solverMatrixGen( const pastix_int_t,
-                            SolverMatrix *,
-                      const symbol_matrix_t *,
-                      const SimuCtrl *,
-                      const BlendCtrl *);
-
 #endif /* _blend_h_ */
 
 /**

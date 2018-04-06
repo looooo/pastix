@@ -245,8 +245,10 @@ pastix_int_t cpucblk_zcompress  ( pastix_coefside_t side,
                                   pastix_lr_t       lowrank );
 void         cpucblk_zuncompress( pastix_coefside_t side,
                                   SolverCblk       *cblk );
-pastix_int_t cpucblk_zmemory    ( pastix_coefside_t side,
-                                  const SolverCblk *cblk );
+void         cpucblk_zmemory    ( pastix_coefside_t   side,
+                                  const SolverMatrix *solvmtx,
+                                  const SolverCblk   *cblk,
+                                  pastix_int_t       *gain );
 
 /**
  *     @}

@@ -238,8 +238,9 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         zeros_rows   = schur_rows;
     }
 
-    if (iparm[IPARM_VERBOSE] > PastixVerboseYes)
+    if (iparm[IPARM_VERBOSE] > PastixVerboseYes) {
         pastix_print(procnum, 0, "%s", OUT_ORDER_INIT);
+    }
 
     clockStart(timer);
 
@@ -256,8 +257,9 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
          * Scotch Ordering
          */
     case PastixOrderScotch:
-        if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
+        if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "Scotch" );
+        }
 #if defined(HAVE_SCOTCH)
         retval = pastixOrderComputeScotch( pastix_data, &subgraph );
 #else
@@ -270,8 +272,9 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
          * PT-Scotch Ordering
          */
     case PastixOrderPtScotch:
-        if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
+        if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "PT-Scotch" );
+        }
 #if defined(HAVE_PTSCOTCH)
         retval = pastixOrderComputePTScotch( pastix_data, &subgraph );
 #else
@@ -284,8 +287,9 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
          *  METIS ordering
          */
     case PastixOrderMetis:
-        if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
+        if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "Metis" );
+        }
 #if defined(HAVE_METIS)
         retval = pastixOrderComputeMetis( pastix_data, &subgraph );
         assert( ordemesh->rangtab == NULL );
@@ -301,8 +305,9 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     case PastixOrderPersonal:
         /* Load from file */
         if ( iparm[IPARM_IO_STRATEGY] & PastixIOLoad ) {
-            if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
+            if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
                 pastix_print(procnum, 0, OUT_ORDER_METHOD, "Load" );
+            }
             retval = pastixOrderLoad( pastix_data, ordemesh );
         }
         /* Take input ordering */
@@ -325,34 +330,40 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
 
             if ( (myorder == NULL) || (myorder->permtab == NULL) ) {
                 if ( (myorder == NULL) || (myorder->peritab == NULL) ) {
-                    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
+                    if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
                         pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (identity)" );
+                    }
                     for(i=0; i<n; i++) {
                         ordemesh->permtab[i] = i;
                         ordemesh->peritab[i] = i;
                     }
                 }
                 else {
-                    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
+                    if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
                         pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (from myorder->peritab)" );
+                    }
                     /* generate permtab from myorder->peritab */
-                    for(i=0;i<n;i++)
+                    for(i=0;i<n;i++) {
                         ordemesh->permtab[myorder->peritab[i]] = i;
+                    }
                     memcpy(ordemesh->peritab, myorder->peritab, n*sizeof(pastix_int_t));
                 }
             }
             else {
                 if (myorder->peritab == NULL) {
-                    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
+                    if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
                         pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (from myorder->permtab)" );
+                    }
                     /* generate peritab from myorder->permtab */
-                    for(i=0;i<n;i++)
+                    for(i=0;i<n;i++) {
                         ordemesh->peritab[myorder->permtab[i]] = i;
+                    }
                     memcpy(ordemesh->permtab, myorder->permtab, n*sizeof(pastix_int_t));
                 }
                 else {
-                    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
+                    if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
                         pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (myorder->permtab/peritab)" );
+                    }
                     memcpy(ordemesh->permtab, myorder->permtab, n*sizeof(pastix_int_t));
                     memcpy(ordemesh->peritab, myorder->peritab, n*sizeof(pastix_int_t));
                 }
@@ -389,8 +400,9 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         break;
     }
 
-    if (retval != PASTIX_SUCCESS )
+    if (retval != PASTIX_SUCCESS ) {
         return retval;
+    }
 
     /* Rebase the ordering to 0 (for orderFindSupernodes) */
     pastixOrderBase( ordemesh, 0 );
@@ -434,15 +446,26 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         if ( schur_perm   != NULL          ) { memFree_null( schur_perm   ); }
     }
 
+    /*
+     * Backup of the original supernodes
+     */
+#if defined(PASTIX_SUPERNODE_STATS)
+    ordemesh->sndenbr = ordemesh->cblknbr;
+    ordemesh->sndetab = malloc( (ordemesh->sndenbr+1) * sizeof(pastix_int_t) );
+    memcpy( ordemesh->sndetab, ordemesh->rangtab, (ordemesh->sndenbr+1) * sizeof(pastix_int_t) );
+#endif
+
     /* Reduce the error code */
     MPI_Allreduce(&retval, &retval_rcv, 1, MPI_INT, MPI_MAX,
                   pastix_data->pastix_comm);
-    if (retval_rcv != PASTIX_SUCCESS)
+    if (retval_rcv != PASTIX_SUCCESS) {
         return retval_rcv;
+    }
 
     clockStop(timer);
-    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
+    if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
         pastix_print(procnum, 0, OUT_ORDER_TIME, clockVal(timer));
+    }
 
     /* Save i/o strategy */
     if ( iparm[IPARM_IO_STRATEGY] & PastixIOSave ) {
@@ -450,8 +473,9 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             retval = pastixOrderSave( pastix_data, ordemesh );
         }
         /* TODO: synchro of retval */
-        if (retval != PASTIX_SUCCESS)
+        if (retval != PASTIX_SUCCESS) {
             return retval;
+        }
     }
 
     /*
@@ -463,8 +487,9 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             if (myorder != NULL)
             {
                 retval = pastixOrderCopy( myorder, ordemesh );
-                if (retval != PASTIX_SUCCESS )
+                if (retval != PASTIX_SUCCESS ) {
                     return retval;
+                }
             }
         }
         else {
