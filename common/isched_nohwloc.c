@@ -76,6 +76,7 @@ int isched_nohwloc_init() {
         GetSystemInfo(&sysinfo);
         sys_corenbr = sysinfo.dwNumberOfProcessors;
 #endif
+        topo_initialized = 1;
     }
     pthread_mutex_unlock(&mutextopo);
 
@@ -88,30 +89,35 @@ int isched_nohwloc_destroy(){
 
 int isched_nohwloc_world_size()
 {
-    if ( !topo_initialized )
+    if ( !topo_initialized ) {
         isched_nohwloc_init();
+    }
     return sys_corenbr;
 }
 
 int isched_nohwloc_bind_on_core_index(int cpu)
 {
-    if( -1 == cpu )  /* Don't try binding if not required */
+    if( -1 == cpu ) { /* Don't try binding if not required */
         return -1;
+    }
 
-    if ( !topo_initialized )
+    if ( !topo_initialized ) {
         isched_nohwloc_init();
+    }
 
 #if defined(PASTIX_HAVE_SCHED_SETAFFINITY)
     {
+        int rc;
         cpu_set_t mask;
         CPU_ZERO(&mask);
         CPU_SET(cpu, &mask);
 
 #if defined(PASTIX_HAVE_OLD_SCHED_SETAFFINITY)
-        if(sched_setaffinity(0,&mask) < 0)
+        rc = sched_setaffinity(0,&mask);
 #else /* PASTIX_HAVE_OLD_SCHED_SETAFFINITY */
-        if(sched_setaffinity(0,sizeof(mask),&mask) < 0)
+        rc = sched_setaffinity(0,sizeof(mask),&mask);
 #endif /* PASTIX_HAVE_OLD_SCHED_SETAFFINITY */
+        if ( rc < 0 )
         {
             return -1;
         }
@@ -147,13 +153,14 @@ int isched_nohwloc_bind_on_core_index(int cpu)
 
 int isched_nohwloc_unbind()
 {
-    if ( !topo_initialized )
+    if ( !topo_initialized ) {
         isched_nohwloc_init();
+    }
 
 #if !defined(PASTIX_AFFINITY_DISABLE)
 #if defined(PASTIX_OS_LINUX) || defined(PASTIX_OS_FREEBSD)
     {
-        int i;
+        int i, rc;
 #if defined(PASTIX_OS_LINUX)
         cpu_set_t set;
 #elif defined(PASTIX_OS_FREEBSD)
@@ -161,22 +168,24 @@ int isched_nohwloc_unbind()
 #endif
         CPU_ZERO( &set );
 
-        for(i=0; i<sys_corenbr; i++)
+        for(i=0; i<sys_corenbr; i++) {
             CPU_SET( i, &set );
+        }
 
 #if defined(HAVE_OLD_SCHED_SETAFFINITY)
-        if( sched_setaffinity( 0, &set ) < 0 )
+        rc= sched_setaffinity( 0, &set );
 #else /* HAVE_OLD_SCHED_SETAFFINITY */
 #if defined(PASTIX_OS_LINUX)
-        if( sched_setaffinity( 0, sizeof(set), &set) < 0 )
+        rc = sched_setaffinity( 0, sizeof(set), &set);
 #elif defined(PASTIX_OS_FREEBSD)
-        if( cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_PID, 0, sizeof(set), &set) < 0 )
+        rc = cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_PID, 0, sizeof(set), &set);
 #endif
 #endif /* HAVE_OLD_SCHED_SETAFFINITY */
-            {
-                pastix_warning("pastix_unsetaffinity", "Could not unbind thread");
-                return -1;
-            }
+        if ( rc < 0 )
+        {
+            pastix_warning("pastix_unsetaffinity", "Could not unbind thread");
+            return -1;
+        }
 
         return 0;
     }
@@ -204,8 +213,9 @@ int isched_nohwloc_unbind()
         int i;
         DWORD mask = 0;
 
-        for(i=0; i<sys_corenbr; i++)
+        for(i=0; i<sys_corenbr; i++) {
             mask |= 1 << i;
+        }
 
         if( SetThreadAffinityMask(GetCurrentThread(), mask) == 0) {
             pastix_warning("pastix_unsetaffinity", "Could not unbind thread");
