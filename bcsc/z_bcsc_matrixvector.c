@@ -92,7 +92,7 @@ z_bcscGemv(pastix_trans_t      trans,
             (*yptr) *= beta;
         }
     }
-    else if( beta == (pastix_complex64_t)0.0 )
+    else
     {
         memset(yptr, 0, n * sizeof(pastix_complex64_t));
     }
