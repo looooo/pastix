@@ -108,7 +108,10 @@ pastix_fopenw( char       **dirtemp,
         return NULL;
     }
 
-    if (NULL == (f = fopen(fullname, mode)))
+    f = fopen(fullname, mode);
+    free( fullname );
+
+    if (NULL == f)
     {
         perror("pastix_fopenw");
         errorPrint( "pastix_fopenw: Couldn't open file: %s with mode %s\n",
@@ -116,7 +119,6 @@ pastix_fopenw( char       **dirtemp,
         return NULL;
     }
 
-    free( fullname );
     return f;
 }
 
@@ -140,9 +142,9 @@ pastix_fopenw( char       **dirtemp,
 FILE *
 pastix_fopen( const char *filename )
 {
-    FILE *f = NULL;
+    FILE *f = fopen(filename, "r");
 
-    if (NULL == (f = fopen(filename, "r")))
+    if (NULL == f)
     {
         perror("pastix_fopen");
         errorPrint( "pastix_fopen: Couldn't open file: %s with mode r\n",
