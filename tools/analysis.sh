@@ -29,7 +29,7 @@ export UNDEFINITIONS="$UNDEFINITIONS -UPARSEC_PROF_DRY_BODY -UPARSEC_PROF_TRACE 
 cat ./pastix-gcov.log
 
 # run cppcheck analysis
-cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingInclude ${UNDEFINITIONS} --file-list=./filelist.txt 2> pastix-cppcheck.xml
+cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingInclude ${UNDEFINITIONS} --file-list=./filelist.txt --project=build/compile_commands.json 2> pastix-cppcheck.xml
 
 # run rats analysis
 rats -w 3 --xml  `cat filelist.txt` > pastix-rats.xml
