@@ -50,3 +50,6 @@ for file in spm/drivers/iohb.c spm/drivers/iohb.h spm/drivers/mmio.c spm/drivers
 do
     sed -i "\:^$file.*:d" filelist.txt
 done
+
+sed '/\.h$/d' filelist.txt > filelist-c.txt
+

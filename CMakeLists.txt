@@ -37,7 +37,7 @@ endif()
 # Define precision supported by MAGMA_MORSE
 # -----------------------------------------
 set( RP_PASTIX_DICTIONNARY ${MORSE_CMAKE_MODULE_PATH}/precision_generator/subs.py )
-set( RP_PASTIX_PRECISIONS  "s;d;c;z" )
+set( RP_PASTIX_PRECISIONS  "p;s;d;c;z" )
 include(RulesPrecisions)
 
 ### System parameter detection

@@ -19,23 +19,6 @@
 #ifndef _z_refine_functions_h_
 #define _z_refine_functions_h_
 
-#ifdef SMP_REFINE
-#  define MULTITHREAD_BEGIN
-#  define MULTITHREAD_END(sync)
-#else /* SMP_REFINE */
-#  define MULTITHREAD_BEGIN if (me == 0) {
-#  define MULTITHREAD_END(sync) } if (sync) {SYNCHRO_THREAD;}
-#endif /* SMP_REFINE */
-
-#define SYNCHRO(arg)                                                    \
-  do {                                                                  \
-    Sopalin_Data_t * sopalin_data;                                      \
-    sopalin_data = (Sopalin_Data_t*)((sopthread_data_t *)arg)->data;    \
-    SolverMatrix     *datacode     = sopalin_data->datacode;            \
-    SYNCHRO_THREAD;                                                     \
-  } while(0)
-
-
 void *
 z_Pastix_Malloc( size_t size );
 
