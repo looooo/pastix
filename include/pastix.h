@@ -32,7 +32,7 @@
 #include <assert.h>
 #include <math.h>
 
-#if defined(HAVE_MPI)
+#if defined(PASTIX_WITH_MPI)
 #include <mpi.h>
 #else
 #include "pastix/nompi.h"

@@ -224,7 +224,6 @@ endif (HWLOC_FOUND)
 if (PASTIX_WITH_MPI)
   # Force the detection of the C library
   find_package(MPI)
-  set(HAVE_MPI ${MPI_C_FOUND})
   if (MPI_C_FOUND)
     list(APPEND EXTRA_LIBS ${MPI_C_LIBRARIES} )
     include_directories( ${MPI_C_INCLUDE_PATH} )
@@ -295,8 +294,6 @@ if (PASTIX_WITH_STARPU)
 
   find_package(STARPU ${PASTIX_STARPU_VERSION} REQUIRED
     COMPONENTS ${STARPU_COMPONENT_LIST})
-
-  set(HAVE_STARPU ${STARPU_FOUND})
 
   # Add definition and include_dir if found
   if(STARPU_FOUND)
@@ -722,19 +719,19 @@ set_source_files_properties(
   PROPERTIES DEPENDS sopalin_headers
   )
 
-if(PASTIX_ORDERING_SCOTCH) # AND HAVE_SCOTCH)
+if(PASTIX_ORDERING_SCOTCH)
   set(PASTIX_LIB_SRCS
     ${PASTIX_LIB_SRCS}
     order/order_compute_scotch.c
     )
 endif()
-if(PASTIX_ORDERING_PTSCOTCH) # AND HAVE_PTSCOTCH)
+if(PASTIX_ORDERING_PTSCOTCH)
   set(PASTIX_LIB_SRCS
     ${PASTIX_LIB_SRCS}
     order/order_compute_ptscotch.c
     )
 endif()
-if(PASTIX_ORDERING_METIS) # AND HAVE_METIS)
+if(PASTIX_ORDERING_METIS)
   list(APPEND PASTIX_LIB_SRCS
     order/order_compute_metis.c
     )

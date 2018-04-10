@@ -16,7 +16,7 @@
  **/
 #define _GNU_SOURCE 1
 #include "common.h"
-#if defined(HAVE_METIS)
+#if defined(PASTIX_ORDERING_METIS)
 #include <metis.h>
 #endif
 #include "graph.h"
@@ -291,7 +291,7 @@ pastixInitParam( pastix_int_t *iparm,
 
     /* Metis */
     {
-#if defined(HAVE_METIS)
+#if defined(PASTIX_ORDERING_METIS)
         iparm[IPARM_METIS_CTYPE   ] = METIS_CTYPE_SHEM;
         iparm[IPARM_METIS_RTYPE   ] = METIS_RTYPE_SEP1SIDED;
 #else

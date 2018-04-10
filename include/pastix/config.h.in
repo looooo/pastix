@@ -114,24 +114,6 @@
 /* Datatypes used */
 #cmakedefine PASTIX_INT64
 
-#if defined(PASTIX_WITH_MPI)
-#define HAVE_MPI
-#else
-#undef  HAVE_MPI
-#endif
-
-#if defined(PASTIX_ORDERING_SCOTCH)
-#define HAVE_SCOTCH
-#endif
-
-#if defined(PASTIX_ORDERING_METIS)
-#define HAVE_METIS
-#endif
-
-#if defined(PASTIX_ORDERING_PTSCOTCH)
-#define HAVE_PTSCOTCH
-#endif
-
 #if defined(HAVE_FALLTHROUGH)
 #define pastix_attr_fallthrough __attribute__((fallthrough))
 #else
