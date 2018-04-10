@@ -86,7 +86,7 @@ pastix_print_warning( const char *fmt, ... )
     module - Module where the error occurs.
     error  - Value to set IPARM_ERROR_NUMBER to.
 */
-#ifdef EXIT_ON_SIGSEGV
+#if defined(PASTIX_DEBUG_EXIT_ON_SIGSEGV)
 #define EXIT(module,error) { *(int *)0 = error; }
 #else
 #define EXIT(module,error) { abort(); }

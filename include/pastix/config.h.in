@@ -110,6 +110,7 @@
 #cmakedefine PASTIX_DEBUG_PARSEC
 #cmakedefine PASTIX_DEBUG_LR
 #cmakedefine PASTIX_DEBUG_LR_NANCHECK
+#cmakedefine PASTIX_DEBUG_EXIT_ON_SIGSEGV
 
 /* Datatypes used */
 #cmakedefine PASTIX_INT64
