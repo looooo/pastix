@@ -701,10 +701,7 @@ set(PASTIX_LIB_SRCS
   common/integer.c
   common/isched.c
   common/models.c
-#  common/memory.c
   common/get_options.c
-#  common/trace.c
-#
   #
   sopalin/coeftab.c
   sopalin/schur.c
