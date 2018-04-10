@@ -520,7 +520,7 @@ simu_computeTaskReceiveTime( const BlendCtrl       *ctrl,
             }
         }
 
-#ifdef DEBUG_BLEND
+#if defined(PASTIX_DEBUG_BLEND)
         if(!(simuctrl->ftgttab[i].costsend >= 0.0)) {
             errorPrint("ftgt %ld costsend %f", (long)i, simuctrl->ftgttab[i].costsend);
         }
@@ -1049,7 +1049,7 @@ simuRun( SimuCtrl              *simuctrl,
                         simuctrl->ftgttab[j].ftgt.infotab[FTGT_PROCDST] = pr;
                         simuctrl->ftgttab[j].ftgt.infotab[FTGT_BLOKDST] = b;
                         simuctrl->ftgttab[j].ftgt.infotab[FTGT_TASKDST] = simuctrl->bloktab[bloknum].tasknum;
-#if defined PASTIX_WITH_STARPU_DIST)
+#if defined(PASTIX_WITH_STARPU_DIST)
                         simuctrl->ftgttab[j].ftgt.infotab[FTGT_GCBKDST] = simuctrl->tasktab[simuctrl->bloktab[bloknum].tasknum].cblknum;
 #endif
                         extendint_Add(&(simuctrl->clustab[INDEX2CLUST(j,b)].ftgtsend[clustnum]), j);

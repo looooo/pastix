@@ -69,9 +69,8 @@ simuTaskBuild( SimuCtrl              *simuctrl,
     simuctrl->tasknbr = tasknbr;
 
     MALLOC_INTERN(simuctrl->tasktab, tasknbr, SimuTask);
-#ifdef DEBUG_BLEND
-    ASSERT(simuctrl->tasktab != NULL,MOD_BLEND);
-#endif
+    assert( simuctrl->tasktab );
+
     task = simuctrl->tasktab;
     tasknbr = 0;
     for(i=0;i<symbptr->cblknbr;i++)
