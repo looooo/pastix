@@ -253,7 +253,7 @@ core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
         }
         else
         {
-#ifdef COMPLEX
+#if defined(PRECISION_z) || defined(PRECISION_c)
             if ( transB == PastixConjTrans )
             {
                 /* WORK = D * B' */
