@@ -20,7 +20,7 @@ echo "wrappers/python/examples/pypastix/enum.py" >> filelist.txt
 sed -i "/kernels\/gpus\/.*/d" filelist.txt
 
 # Remove all CMakeFiles generated file
-#sed -i '/CMakeFiles/d' filelist.txt
+sed -i '/CMakeFiles/d' filelist.txt
 
 # Remove files compiled from jdf files
 for jdf in `find -name "*\.jdf"`
