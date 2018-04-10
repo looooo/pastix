@@ -32,51 +32,6 @@
 #include "pastixdata.h"
 #include "out.h"
 
-/********************************************************************
- * Errors functions
- */
-#if defined(__GNUC__)
-static inline void pastix_print_error  ( const char *fmt, ...) __attribute__((format(printf,1,2)));
-static inline void pastix_print_warning( const char *fmt, ...) __attribute__((format(printf,1,2)));
-#endif
-
-/*
-  Function: errorPrint
-
-  This routine prints an error message with
-  a variable number of arguments, as printf ()
-  does, and exits.
-
-  Parameters:
-  errstr - Format for the error to string.
-  ...    - arguments depending on the format.
-  printf-like variable argument list.
-
-  Returns:
-  VOID - in all cases.
-*/
-static inline void
-pastix_print_error( const char *fmt, ... )
-{
-    va_list arglist;
-    va_start(arglist, fmt);
-    vfprintf(stderr, fmt, arglist);
-    va_end(arglist);
-}
-
-static inline void
-pastix_print_warning( const char *fmt, ... )
-{
-    va_list arglist;
-    va_start(arglist, fmt);
-    fprintf(stderr, "WARNING: ");
-    vfprintf(stderr, fmt, arglist);
-    va_end(arglist);
-}
-
-#define errorPrint  pastix_print_error
-#define errorPrintW pastix_print_warning
-
 /*
   Macro: EXIT
 
@@ -102,7 +57,7 @@ pastix_print_warning( const char *fmt, ... )
 /*
  * Get environment variable
  */
-#if defined PASTIX_OS_WINDOWS
+#if defined(PASTIX_OS_WINDOWS)
 
 static inline int
 pastix_setenv( const char *var, const char *value, int overwrite ) {
@@ -160,21 +115,6 @@ pastix_env_is_set_to(char * str, char * value) {
 static inline int
 pastix_env_is_on(char * str) {
     return pastix_env_is_set_to(str, "1");
-}
-
-static inline
-int pastix_starpu_with_fanin() {
-    return pastix_env_is_on("PASTIX_STARPU_FANIN");
-}
-
-static inline
-int pastix_starpu_with_nested_task() {
-    return pastix_env_is_on("PASTIX_STARPU_NESTED_TASK");
-}
-
-static inline
-int pastix_starpu_with_separate_trsm() {
-    return pastix_env_is_on("PASTIX_STARPU_SEPARATE_TRSM");
 }
 
 static inline

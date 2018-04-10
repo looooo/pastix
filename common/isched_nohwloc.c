@@ -37,7 +37,7 @@ extern kern_return_t thread_policy_set( thread_t               thread,
                                         thread_policy_flavor_t flavor,
                                         thread_policy_t        policy_info,
                                         mach_msg_type_number_t count);
-#endif  /* define(ARCH_COMPAQ) */
+#endif  /* define(PASTIX_ARCH_COMPAQ) */
 
 
 static pthread_mutex_t  mutextopo = PTHREAD_MUTEX_INITIALIZER;

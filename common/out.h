@@ -250,6 +250,8 @@
  */
 #if defined(__GNUC__)
 static inline void pastix_print( int mpirank, int thrdrank, const char *fmt, ...) __attribute__((format(printf,3,4)));
+static inline void pastix_print_error  ( const char *fmt, ...) __attribute__((format(printf,1,2)));
+static inline void pastix_print_warning( const char *fmt, ...) __attribute__((format(printf,1,2)));
 #endif
 
 static inline void
@@ -264,6 +266,28 @@ pastix_print( int mpirank, int thrdrank, const char *fmt, ...)
         va_end(ap);
     }
 }
+
+static inline void
+pastix_print_error( const char *fmt, ... )
+{
+    va_list arglist;
+    va_start(arglist, fmt);
+    vfprintf(stderr, fmt, arglist);
+    va_end(arglist);
+}
+
+static inline void
+pastix_print_warning( const char *fmt, ... )
+{
+    va_list arglist;
+    va_start(arglist, fmt);
+    fprintf(stderr, "WARNING: ");
+    vfprintf(stderr, fmt, arglist);
+    va_end(arglist);
+}
+
+#define errorPrint  pastix_print_error
+#define errorPrintW pastix_print_warning
 
 static inline double
 pastix_print_value( double flops )
