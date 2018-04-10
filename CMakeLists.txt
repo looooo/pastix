@@ -83,8 +83,6 @@ option(PASTIX_WITH_EZTRACE
 ### Runtime engines
 option(PASTIX_WITH_STARPU
     "Build PaStiX with StarPU runtime support" OFF)
-option(PASTIX_WITH_STARPU_PROFILING
-  "Build PaStiX with StarPU runtime support profiling" OFF)
 option(PASTIX_WITH_PARSEC
   "Build PaStiX with PaRSEC runtime support" OFF)
 
