@@ -380,11 +380,12 @@ pastixSymbolPrintStats( const symbol_matrix_t *symbptr )
             "      Blok height max                   %10ld\n"
             "      Blok height avg                  %11.2lf\n"
             "      Blok height stdev                %11.2lf\n"
-            "      Memory space                     %11.2lf %s\n",
+            "      Memory space                     %11.2lf %co\n",
             (long)cblknbr, (long)bloknbr,
             (long)cblkmin, (long)cblkmax, cblkavg1, cblkavg2,
             (long)blokmin, (long)blokmax, blokavg1, blokavg2,
-            MEMORY_WRITE( mem ), MEMORY_UNIT_WRITE( mem ) );
+            pastix_print_value( mem ),
+            pastix_print_unit( mem ) );
 }
 
 /**

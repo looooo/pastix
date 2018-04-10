@@ -29,7 +29,7 @@
 #  include "common/sys/atomic-xlc.h"
 #elif defined(MAC_OS_X)
 #  include "common/sys/atomic-macosx.h"
-#elif defined(ARCH_PPC)
+#elif defined(PASTIX_ARCH_PPC)
 #  if defined(__bgp__)
 #    include "common/sys/atomic-ppc-bgp.h"
 #  else
@@ -37,9 +37,9 @@
 #  endif
 #elif defined(HAVE_ATOMIC_GCC_32_BUILTINS)
 #  include "common/sys/atomic-gcc.h"
-#elif defined(ARCH_X86)
+#elif defined(PASTIX_ARCH_X86)
 #  include "common/sys/atomic-x86_32.h"
-#elif defined(ARCH_X86_64)
+#elif defined(PASTIX_ARCH_X86_64)
 #  include "common/sys/atomic-x86_64.h"
 #else
 #  error "No safe atomics available"

@@ -496,7 +496,8 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                           (long)iparm[IPARM_NNZEROS],
                           (double)dparm[DPARM_FILL_IN],
                           pastixFactotypeStr( iparm[IPARM_FACTORIZATION] ),
-                          printflopsv( dparm[DPARM_FACT_THFLOPS] ), printflopsu( dparm[DPARM_FACT_THFLOPS] ),
+                          pastix_print_value( dparm[DPARM_FACT_THFLOPS] ),
+                          pastix_print_unit( dparm[DPARM_FACT_THFLOPS] ),
                           PERF_MODEL, dparm[DPARM_PRED_FACT_TIME],
                           dparm[DPARM_ANALYZE_TIME] );
 
@@ -521,8 +522,9 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                             sizeG *= 2;
                         }
 
-                        fprintf(stdout, OUT_COEFSIZE, (double)MEMORY_WRITE(sizeG),
-                                MEMORY_UNIT_WRITE(sizeG));
+                        fprintf( stdout, OUT_COEFSIZE,
+                                 pastix_print_value(sizeG),
+                                 pastix_print_unit(sizeG) );
                     }
                 }
             }

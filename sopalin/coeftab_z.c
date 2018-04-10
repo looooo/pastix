@@ -265,7 +265,7 @@ coeftab_zmemory( const SolverMatrix *solvmtx )
         totorig += memorig[i];
     }
 
-    pastix_print( 0, 0,
+    pastix_print(0, 0,
                   "    Compression:\n"
                   "      ------------------------------------------------\n"
                   "      Full-rank cblk\n"
@@ -276,14 +276,14 @@ coeftab_zmemory( const SolverMatrix *solvmtx )
                   "        Outside supernodes      %8.3g %co / %8.3g %co\n"
                   "      ------------------------------------------------\n"
                   "      Total                     %8.3g %co / %8.3g %co\n",
-                  printflopsv(memorig[FR_InDiag] ), printflopsu(memorig[FR_InDiag] ),
-                  printflopsv(memorig[FR_OffDiag]), printflopsu(memorig[FR_OffDiag]),
-                  printflopsv(memgain[LR_InDiag] ), printflopsu(memgain[LR_InDiag] ),
-                  printflopsv(memorig[LR_InDiag] ), printflopsu(memorig[LR_InDiag] ),
-                  printflopsv(memgain[LR_OffDiag]), printflopsu(memgain[LR_OffDiag]),
-                  printflopsv(memorig[LR_OffDiag]), printflopsu(memorig[LR_OffDiag]),
-                  printflopsv(totgain), printflopsu(totgain),
-                  printflopsv(totorig), printflopsu(totorig) );
+                  pastix_print_value(memorig[FR_InDiag] ), pastix_print_unit(memorig[FR_InDiag] ),
+                  pastix_print_value(memorig[FR_OffDiag]), pastix_print_unit(memorig[FR_OffDiag]),
+                  pastix_print_value(memgain[LR_InDiag] ), pastix_print_unit(memgain[LR_InDiag] ),
+                  pastix_print_value(memorig[LR_InDiag] ), pastix_print_unit(memorig[LR_InDiag] ),
+                  pastix_print_value(memgain[LR_OffDiag]), pastix_print_unit(memgain[LR_OffDiag]),
+                  pastix_print_value(memorig[LR_OffDiag]), pastix_print_unit(memorig[LR_OffDiag]),
+                  pastix_print_value(totgain),             pastix_print_unit(totgain),
+                  pastix_print_value(totorig),             pastix_print_unit(totorig) );
 
     return;
 }

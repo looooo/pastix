@@ -364,7 +364,7 @@ solverPrintStats( const SolverMatrix *solvptr )
              "              last                    | %12ld | %12ld | %12ld |\n"
              "      Average width                   | %12.2lf | %12.2lf | %12.2lf |\n"
              "      Average height                  | %12.2lf | %12.2lf | %12.2lf |\n"
-             "      Structure memory space           %11.2lf %s\n"
+             "      Structure memory space           %11.2lf %co\n"
              "      Number of coeficients stored      %10ld\n",
              /* Header */
              "All", "1d", "2d",
@@ -395,7 +395,8 @@ solverPrintStats( const SolverMatrix *solvptr )
              (double)(height[1]) / (double)(nbblok[1]),
              (double)(height[2]) / (double)(nbblok[2]),
              /* Memory space */
-             MEMORY_WRITE( memstruct ), MEMORY_UNIT_WRITE( memstruct ),
+             pastix_print_value( memstruct ),
+             pastix_print_unit( memstruct ),
              /* Memory coefficient */
              (long)memcoef );
 

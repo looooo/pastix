@@ -167,7 +167,7 @@
 #define OUT_LOWRANK_SUMMARY                                     \
     "    Compression:\n"                                        \
     "      Elements removed             %8ld / %8ld\n"          \
-    "      Memory saved              %.3g %s / %.3g %s\n"
+    "      Memory saved              %.3g %co / %.3g %co\n"
 
 #define OUT_STARPU_TP         " StarPU : Thread policy : %s\n"
 #define OUT_STARPU_STP        " StarPU : No thread policy, setting thread policy to : %s\n"
@@ -187,7 +187,7 @@
 #define NUMBER_OP_LU          "   Number of operations (LU)                    %g\n"
 #define NUMBER_OP_LLT         "   Number of operations (LLt)                   %g\n"
 #define TIME_FACT_PRED        "   Prediction Time to factorize (%s) %.3g s\n"
-#define OUT_COEFSIZE          "   Maximum coeftab size (cefficients)           %.3g %s\n"
+#define OUT_COEFSIZE          "   Maximum coeftab size (cefficients)           %.3g %co\n"
 #define OUT_REDIS_CSC         "   Redistributing user CSC into PaStiX distribution\n"
 #define OUT_REDIS_RHS         "   Redistributing user RHS into PaStiX distribution\n"
 #define OUT_REDIS_SOL         "   Redistributing solution into Users' distribution\n"
@@ -265,38 +265,8 @@ pastix_print( int mpirank, int thrdrank, const char *fmt, ...)
     }
 }
 
-#define MEMORY_WRITE(mem) ( ((mem) < 1<<10) ?                           \
-                            ( (double)(mem) ) :                         \
-                            ( ( (mem) < 1<<20 ) ?                       \
-                              ( (double)(mem)/(double)(1<<10) ) :       \
-                              ( ((mem) < 1<<30 ) ?                      \
-                                ( (double)(mem)/(double)(1<<20) ) :     \
-                                ( (double)(mem)/(double)(1<<30) ))))
-#define MEMORY_UNIT_WRITE(mem) (((mem) < 1<<10) ?                       \
-                                "o" :                                   \
-                                ( ( (mem) < 1<<20 ) ?                   \
-                                  "Ko" :                                \
-                                  ( ( (mem) < 1<<30 ) ?                 \
-                                    "Mo" :                              \
-                                    "Go" )))
-
-#define PRINT_FLOPS(flops) ( ((flops) < 1<<10) ?                        \
-                             ( (double)(flops) ) :                      \
-                             ( ( (flops) < 1<<20 ) ?                    \
-                               ( (double)(flops)/(double)(1<<10) ) :    \
-                               ( ((flops) < 1<<30 ) ?                   \
-                                 ( (double)(flops)/(double)(1<<20) ) :  \
-                                 ( (double)(flops)/(double)(1<<30) ))))
-#define PRINT_FLOPS_UNIT(flops) ( ((flops) < 1<<10) ?                   \
-                                  ( "Flop/s" ) :                        \
-                                  ( ( (flops) < 1<<20 ) ?               \
-                                    ( "KFlop/s" ) :                     \
-                                    ( ((flops) < 1<<30 ) ?              \
-                                      ( "MFlop/s" ) :                   \
-                                      ( "GFlop/s" ))))
-
 static inline double
-printflopsv( double flops )
+pastix_print_value( double flops )
 {
     static double ratio = (double)(1<<10);
     int unit = 0;
@@ -309,7 +279,7 @@ printflopsv( double flops )
 }
 
 static inline char
-printflopsu( double flops )
+pastix_print_unit( double flops )
 {
     static char units[9] = { ' ', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
     static double ratio = (double)(1<<10);
