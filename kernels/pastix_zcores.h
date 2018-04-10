@@ -114,45 +114,6 @@ void cpublok_zscalo ( pastix_trans_t trans,
                       SolverCblk *cblk, pastix_int_t blok_m,
                       const pastix_complex64_t *A, const pastix_complex64_t *D, pastix_complex64_t *B );
 
-#if defined(PASTIX_WITH_CUDA)
-#include <cuda.h>
-#include <cuda_runtime_api.h>
-#include <cuComplex.h>
-
-/**
- *    @}
- *    @name PastixComplex64 cblk-BLAS GPU kernels
- *    @{
- */
-void gpucblk_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_trans_t trans,
-                      const SolverCblk *cblk, const SolverBlok *blok, SolverCblk *fcblk,
-                      const cuDoubleComplex *A, const cuDoubleComplex *B, cuDoubleComplex *C,
-                      const pastix_lr_t *lowrank, cudaStream_t stream );
-
-void gpublok_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_trans_t trans,
-                      const SolverCblk *cblk, SolverCblk *fcblk,
-                      pastix_int_t blok_mk, pastix_int_t blok_nk, pastix_int_t blok_mn,
-                      const cuDoubleComplex *A, const cuDoubleComplex *B, cuDoubleComplex *C,
-                      const pastix_lr_t *lowrank, cudaStream_t stream );
-
-void gpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
-                      pastix_trans_t trans, pastix_diag_t diag,
-                      SolverCblk *cblk, pastix_int_t blok_m,
-                      const cuDoubleComplex *A, cuDoubleComplex *C,
-                      const pastix_lr_t *lowrank, cudaStream_t stream );
-
-void gpu_zgemmsp_fermi( const SolverMatrix *solvmatr,
-                        pastix_uplo_t uplo, pastix_trans_t trans,
-                        int *blocktab,
-                        const SolverCblk      *cblk,
-                        const SolverBlok      *blok,
-                        SolverCblk      *fcblk,
-                        const cuDoubleComplex *A,
-                        const cuDoubleComplex *B,
-                        cuDoubleComplex *C,
-                        cudaStream_t stream );
-#endif
-
 /**
  *    @}
  *    @name PastixComplex64 cblk LU kernels

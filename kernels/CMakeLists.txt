@@ -27,6 +27,7 @@ endif(PASTIX_WITH_EZTRACE)
 ### Generate the headers in all precisions
 set(HEADERS
   pastix_zcores.h
+  pastix_zcuda.h
   pastix_zlrcores.h
   z_nan_check.h
 )

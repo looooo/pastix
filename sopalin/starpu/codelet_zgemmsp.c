@@ -22,6 +22,9 @@
 #include "solver.h"
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
+#if defined(PASTIX_WITH_CUDA)
+#include "pastix_zcuda.h"
+#endif
 #include "pastix_starpu.h"
 #include "codelets.h"
 #include "pastix_starpu_model.h"
