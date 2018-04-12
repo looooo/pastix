@@ -117,9 +117,10 @@ pastix_task_refine( pastix_data_t *pastix_data,
                     void *b, pastix_int_t ldb,
                     void *x, pastix_int_t ldx )
 {
-    pastix_int_t   *iparm    = pastix_data->iparm;
-    pastix_order_t *ordemesh = pastix_data->ordemesh;
+    pastix_int_t   *iparm = pastix_data->iparm;
+    pastix_bcsc_t  *bcsc  = pastix_data->bcsc;
     double timer;
+    int rc;
 
     if (nrhs > 1)
     {
@@ -134,8 +135,8 @@ pastix_task_refine( pastix_data_t *pastix_data,
 
     /* Prepare the refinement threshold, if not set by the user */
     if ( pastix_data->dparm[DPARM_EPSILON_REFINEMENT] < 0. ) {
-        if ( (pastix_data->bcsc->flttype == PastixFloat) ||
-             (pastix_data->bcsc->flttype == PastixComplex32) ) {
+        if ( (bcsc->flttype == PastixFloat) ||
+             (bcsc->flttype == PastixComplex32) ) {
             pastix_data->dparm[DPARM_EPSILON_REFINEMENT] = 1e-6;
         }
         else {
@@ -143,18 +144,18 @@ pastix_task_refine( pastix_data_t *pastix_data,
         }
     }
 
-    if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
-                                         nrhs, b, ldb,
-                                         ordemesh->permtab ))
-    {
-        return PASTIX_ERR_BADPARAMETER;
+    /* Compute P * b */
+    rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
+                                    PastixDirForward, bcsc->gN, nrhs, b, ldb );
+    if( rc != PASTIX_SUCCESS ) {
+        return rc;
     }
 
-    if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
-                                         nrhs, x, ldx,
-                                         ordemesh->permtab ))
-    {
-        return PASTIX_ERR_BADPARAMETER;
+    /* Compute P * x */
+    rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
+                                    PastixDirForward, bcsc->gN, nrhs, x, ldx );
+    if( rc != PASTIX_SUCCESS ) {
+        return rc;
     }
 
     clockStart(timer);
@@ -180,18 +181,18 @@ pastix_task_refine( pastix_data_t *pastix_data,
                       pastix_data->dparm[DPARM_REFINE_TIME] );
     }
 
-    if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
-                                         nrhs, b, ldb,
-                                         ordemesh->peritab ))
-    {
-        return PASTIX_ERR_BADPARAMETER;
+    /* Compute P * b */
+    rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
+                                    PastixDirBackward, bcsc->gN, nrhs, b, ldb );
+    if( rc != PASTIX_SUCCESS ) {
+        return rc;
     }
 
-    if( PASTIX_SUCCESS != bcscApplyPerm( pastix_data->bcsc,
-                                         nrhs, x, ldx,
-                                         ordemesh->peritab ))
-    {
-        return PASTIX_ERR_BADPARAMETER;
+    /* Compute P * x */
+    rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
+                                    PastixDirBackward, bcsc->gN, nrhs, x, ldx );
+    if( rc != PASTIX_SUCCESS ) {
+        return rc;
     }
 
     (void)n;
