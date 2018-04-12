@@ -482,16 +482,16 @@ void z_Pastix_Ax( pastix_bcsc_t *bcsc, pastix_complex64_t *x, pastix_complex64_t
  *          The result b-Ax
  *
  *******************************************************************************/
-void z_Pastix_bMAx( pastix_bcsc_t *bcsc, pastix_complex64_t *b,
-                    pastix_complex64_t *x, pastix_complex64_t *r )
+void z_Pastix_bMAx( pastix_bcsc_t            *bcsc,
+                    const pastix_complex64_t *b,
+                    const pastix_complex64_t *x,
+                    pastix_complex64_t       *r )
 {
-    pastix_int_t alpha = -1.0;
-    pastix_int_t beta = 1.0;
-    void* xptr = (void*)x;
-    void* yptr = (void*)r;
+    pastix_complex64_t alpha = -1.0;
+    pastix_complex64_t beta = 1.0;
 
-    memcpy(r, b, bcsc->gN * sizeof( pastix_complex64_t ));
-    z_bcscGemv(PastixNoTrans, alpha, bcsc, xptr, beta, yptr );
+    memcpy( r, b, bcsc->gN * sizeof( pastix_complex64_t ) );
+    z_bcscGemv( PastixNoTrans, alpha, bcsc, x, beta, r );
 }
 
 /**
@@ -519,11 +519,8 @@ void z_Pastix_bMAx( pastix_bcsc_t *bcsc, pastix_complex64_t *b,
 void z_Pastix_BYPX( pastix_int_t n, pastix_complex64_t *beta,
                     pastix_complex64_t *y, pastix_complex64_t *x )
 {
-    void *yptr = (void*)y;
-    void *xptr = (void*)x;
-
-    z_bcscScal( xptr, *beta, n, 1);
-    z_bcscAxpy( n, 1., 1., yptr, xptr );
+    z_bcscScal( x, *beta, n, 1);
+    z_bcscAxpy( n, 1, 1., y, x );
 }
 
 
@@ -532,34 +529,30 @@ void z_Pastix_BYPX( pastix_int_t n, pastix_complex64_t *beta,
  *
  * @ingroup pastix_dev_refine
  *
- * @brief Perform y = alpha * coeff x + y
+ * @brief Perform y = alpha * x + y
  *
  *******************************************************************************
  *
  * @param[in] n
  *          The number of elements of vectors x and y
  *
- * @param[in] coeff
- *          The first scaling parameter
- *
  * @param[in] alpha
- *          The second scaling parameter
+ *          The scalar to scale x
  *
  * @param[in] x
  *          The vector to be scaled
  *
- * @param[in] y
+ * @param[in,out] y
  *          The resulting solution
  *
  *******************************************************************************/
-void z_Pastix_AXPY( pastix_int_t n,
-                    pastix_complex64_t  alpha,
-                    const pastix_complex64_t *x,
-                    pastix_complex64_t *y )
+static inline void
+z_Pastix_axpy( pastix_int_t              n,
+               pastix_complex64_t        alpha,
+               const pastix_complex64_t *x,
+               pastix_complex64_t       *y )
 {
-    void *yptr = (void*)y;
-    void *xptr = (void*)x;
-    z_bcscAxpy( n, 1, alpha, yptr, xptr );
+    z_bcscAxpy( n, 1, alpha, x, y );
 }
 
 
@@ -624,7 +617,10 @@ void z_Pastix_Solveur( struct z_solver *solveur )
     solveur->Scal    = &z_Pastix_Scal;
     solveur->Dotc    = &z_Pastix_Dotc;
     solveur->Ax      = &z_Pastix_Ax;
-    solveur->AXPY    = &z_Pastix_AXPY;
     solveur->bMAx    = &z_Pastix_bMAx;
     solveur->BYPX    = &z_Pastix_BYPX;
+    solveur->AXPY    = &z_Pastix_axpy;
+
+
+    solveur->axpy    = &z_Pastix_axpy;
 }

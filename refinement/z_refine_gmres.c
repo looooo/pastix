@@ -67,7 +67,6 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     pastix_fixdbl_t                t3           = 0.0;
     volatile pastix_int_t          gmresim      = 0;
     volatile pastix_int_t          gmresmaxits  = 0;
-    pastix_complex64_t          *  gmresb       = NULL;
     pastix_complex64_t          ** gmresvv      = NULL;
     pastix_complex64_t          ** gmreshh      = NULL;
     pastix_complex64_t          *  gmcos        = NULL;
@@ -102,7 +101,6 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     gmresmaxits = solveur.Itermax(pastix_data);
     gmreseps    = solveur.Eps(pastix_data);
 
-    gmresb    = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
     gmcos     = (pastix_complex64_t *)solveur.Malloc(gmresim * sizeof(pastix_complex64_t));
     gmsin     = (pastix_complex64_t *)solveur.Malloc(gmresim * sizeof(pastix_complex64_t));
     gmresrs   = (pastix_complex64_t *)solveur.Malloc((gmresim+1) * sizeof(pastix_complex64_t));
@@ -121,8 +119,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     gmresdata->gmresro = 0.0;
     gmresdata->gmresout_flag = 1;
 
-    solveur.B( b, gmresb, n );
-    gmresnormb = solveur.Norm( n, gmresb );
+    gmresnormb = solveur.Norm( n, b );
 
     solveur.X( pastix_data, x, gmresx );
 
@@ -139,7 +136,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     while (gmresdata->gmresout_flag)
     {
         /* Compute r0 = b - A * x */
-        solveur.bMAx( bcsc, gmresb, gmresx, gmresvv[0] );
+        solveur.bMAx( bcsc, b, gmresx, gmresvv[0] );
 
         /* Compute beta = ||r0||_f */
         gmresdata->gmresro = solveur.Norm( n, gmresvv[0] );
@@ -187,7 +184,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
                 gmresalpha = -1. * gmreshh[i][j];
 
                 /* Compute w = w - h_{i,j} v_{i} */
-                solveur.AXPY( n, gmresalpha, gmreswk1, gmresvv[j] );
+                solveur.AXPY( n, gmresalpha, gmresvv[j], gmreswk1 );
             }
 
             /* Compute || w ||_f */
@@ -276,7 +273,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
         for (j=0; j<=i;j++)
         {
             gmrest = gmresrs[j];
-            solveur.AXPY(n, gmrest, gmresx, gmresw[j]);
+            solveur.AXPY( n, gmrest, gmresw[j], gmresx );
         }
 
         if ((gmresdata->gmresro/gmresnormb<= gmreseps) || (gmresiters >= gmresmaxits))
@@ -290,7 +287,6 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 
     solveur.End(pastix_data, gmresdata->gmresro / gmresnormb, gmresiters, t3, x, gmresx);
 
-    solveur.Free((void*) gmresb);
     solveur.Free((void*) gmcos);
     solveur.Free((void*) gmsin);
     solveur.Free((void*) gmresrs);

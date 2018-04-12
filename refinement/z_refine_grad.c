@@ -107,10 +107,10 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
         alpha = beta / alpha;
 
         /* x = x + alpha * p */
-        solveur.AXPY(n, alpha, gradx, gradp);
+        solveur.AXPY(n, alpha, gradp, gradx);
 
         /* r = r - alpha * A * p */
-        solveur.AXPY(n, -alpha, gradr, grad2);
+        solveur.AXPY(n, -alpha, grad2, gradr);
 
         /* z = M-1 * r */
         solveur.B( gradr, gradz, n );

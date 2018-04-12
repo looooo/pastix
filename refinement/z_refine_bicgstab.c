@@ -132,7 +132,7 @@ void z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
 
         /* s = r - alpha * v */
         memcpy(grads, gradr, n * sizeof( pastix_complex64_t ));
-        solveur.AXPY(n, -alpha, grads, gradv);
+        solveur.AXPY(n, -alpha, gradv, grads);
 
         /* z = M-1s */
         solveur.B( grads, gradz, n );
@@ -160,14 +160,14 @@ void z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
 
         /* x = x + alpha * y + w * z */
         /* x = x + alpha * y */
-        solveur.AXPY(n, alpha, gradx, grady);
+        solveur.AXPY(n, alpha, grady, gradx);
 
         /* x = x + w * z */
-        solveur.AXPY(n, w, gradx, gradz);
+        solveur.AXPY(n, w, gradz, gradx);
 
         /* r = s - w * t*/
         memcpy(gradr, grads, n * sizeof( pastix_complex64_t ));
-        solveur.AXPY(n, -w, gradr, gradt);
+        solveur.AXPY(n, -w, gradt, gradr);
 
         /* beta = (r', r2) / (r, r2) * (alpha / w) */
         /* v1 = (r', r2) */
@@ -187,7 +187,7 @@ void z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
 
         /* p = r + beta * (p - w * v) */
         /* p = p - w * v */
-        solveur.AXPY(n, -w, gradp, gradv);
+        solveur.AXPY(n, -w, gradv, gradp);
 
         /* p = r + beta * p */
         solveur.BYPX(n, &beta, gradr, gradp);
