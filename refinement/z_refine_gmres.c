@@ -68,7 +68,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     volatile pastix_int_t          gmresim      = 0;
     volatile pastix_int_t          gmresmaxits  = 0;
     pastix_complex64_t          ** gmresvv      = NULL;
-    pastix_complex64_t            *gmHi, *gmHi1, *gmH = NULL;
+    pastix_complex64_t            *gmHi, *gmH   = NULL;
     pastix_complex64_t          *  gmcos        = NULL;
     pastix_complex64_t          *  gmsin        = NULL;
     pastix_complex64_t          *  gmresrs      = NULL;
@@ -153,7 +153,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
         gmresrs[0] = (pastix_complex64_t)gmresdata->gmresro;
         gmresdata->gmresin_flag = 1;
         i = -1;
-        gmHi1 = gmH;
+        gmHi = gmH - (gmresim+1);
 
         while( gmresdata->gmresin_flag )
         {
@@ -163,8 +163,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
             i++;
 
             /* Set H pointer to the begfinning of columns i and i+1 */
-            gmHi  = gmHi1;
-            gmHi1 = gmHi + (gmresim+1);
+            gmHi = gmHi + (gmresim+1);
 
             gmreswk1 = gmresvv[i+1];
             gmreswk2 = gmresw[i];
