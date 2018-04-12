@@ -57,8 +57,8 @@ z_bcscNormErr( void         *r,
 {
     double norm1, norm2;
 
-    norm1 = z_vectFrobeniusNorm( r, n );
-    norm2 = z_vectFrobeniusNorm( b, n );
+    norm1 = z_vectFrobeniusNorm( n, r );
+    norm2 = z_vectFrobeniusNorm( n, b );
 
     return norm1 / norm2;
 }
@@ -418,13 +418,12 @@ z_bcscDotu( pastix_int_t         n,
  *
  *******************************************************************************
  *
- * @return
- *      \retval the Frobenius norm of x.
+ * @retval the Frobenius norm of x.
  *
  *******************************************************************************/
 double
-z_vectFrobeniusNorm( void        *x,
-                     pastix_int_t n )
+z_vectFrobeniusNorm( pastix_int_t n,
+                     const pastix_complex64_t *x )
 {
     double scale = 0.;
     double sum = 1.;
@@ -434,10 +433,10 @@ z_vectFrobeniusNorm( void        *x,
 
     for( i=0; i < n; i++, valptr++ )
     {
-        frobenius_update( 1, &scale, &sum, valptr);
+        frobenius_update( 1, &scale, &sum, valptr );
 #if defined(PRECISION_z) || defined(PRECISION_c)
         valptr++;
-        frobenius_update( 1, &scale, &sum, valptr);
+        frobenius_update( 1, &scale, &sum, valptr );
 #endif
     }
 

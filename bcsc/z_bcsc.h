@@ -88,7 +88,7 @@ pastix_complex64_t z_bcscDotu( pastix_int_t  n,
                                void         *x,
                                void         *y );
 
-double z_vectFrobeniusNorm( void *, pastix_int_t );
+double z_vectFrobeniusNorm( pastix_int_t, const pastix_complex64_t * );
 
 int z_bcscApplyPerm( pastix_int_t m,
                      pastix_int_t n,
