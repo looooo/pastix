@@ -51,9 +51,9 @@
  *
  *******************************************************************************/
 double
-z_bcscNormErr( void         *r,
-               void         *b,
-               pastix_int_t  n )
+z_bcscNormErr( pastix_complex64_t *r,
+               pastix_complex64_t *b,
+               pastix_int_t        n )
 {
     double norm1, norm2;
 
@@ -88,9 +88,9 @@ z_bcscNormErr( void         *r,
  *
  *******************************************************************************/
 double
-z_bcscBerr( void         *r1,
-            void         *r2,
-            pastix_int_t  n )
+z_bcscBerr( pastix_complex64_t *r1,
+            pastix_complex64_t *r2,
+            pastix_int_t        n )
 {
     pastix_complex64_t *r1ptr = (pastix_complex64_t*)r1;
     pastix_complex64_t *r2ptr = (pastix_complex64_t*)r2;
@@ -137,7 +137,7 @@ z_bcscBerr( void         *r1,
  *
  *******************************************************************************/
 int
-z_bcscScal( void               *x,
+z_bcscScal( pastix_complex64_t *x,
             pastix_complex64_t  alpha,
             pastix_int_t        n,
             pastix_int_t        smxnbr )
@@ -145,8 +145,9 @@ z_bcscScal( void               *x,
     pastix_complex64_t *xptr = (pastix_complex64_t*)x;
     pastix_int_t i;
 
-    if(x==NULL)
+    if( x == NULL ) {
         return PASTIX_ERR_BADPARAMETER;
+    }
 
     if( alpha == (pastix_complex64_t)0.0 )
     {
@@ -196,22 +197,21 @@ z_bcscScal( void               *x,
  *
  *******************************************************************************/
 int
-z_bcscAxpy(pastix_int_t        n,
-           pastix_int_t        smxnbr,
-           pastix_complex64_t  alpha,
-           void               *x,
-           void               *y)
+z_bcscAxpy( pastix_int_t              n,
+            pastix_int_t              smxnbr,
+            pastix_complex64_t        alpha,
+            const pastix_complex64_t *x,
+            pastix_complex64_t       *y)
 {
-    pastix_complex64_t *xptr = (pastix_complex64_t*)x;
-    pastix_complex64_t *yptr = (pastix_complex64_t*)y;
+    const pastix_complex64_t *xptr = x;
+    pastix_complex64_t       *yptr = y;
     pastix_int_t i;
 
-    if(y==NULL || x== NULL)
-    {
+    if( (y == NULL) || (x == NULL) ) {
         return PASTIX_ERR_BADPARAMETER;
     }
-    if( alpha == (pastix_complex64_t)0.0 )
-    {
+
+    if( alpha == (pastix_complex64_t)0.0 ) {
         return PASTIX_SUCCESS;
     }
 
@@ -250,9 +250,9 @@ z_bcscAxpy(pastix_int_t        n,
 void
 z_bcscAxpb( pastix_trans_t       trans,
             const pastix_bcsc_t *bcsc,
-            void                *x,
-            void                *b,
-            void                *r )
+            pastix_complex64_t  *x,
+            pastix_complex64_t  *b,
+            pastix_complex64_t  *r )
 {
     pastix_complex64_t *Lvalptr = NULL;
     pastix_complex64_t *xptr    = (pastix_complex64_t*)x;
@@ -341,9 +341,9 @@ z_bcscAxpb( pastix_trans_t       trans,
  *
  *******************************************************************************/
 pastix_complex64_t
-z_bcscDotc( pastix_int_t         n,
-            void                *x,
-            void                *y )
+z_bcscDotc( pastix_int_t              n,
+            const pastix_complex64_t *x,
+            const pastix_complex64_t *y )
 {
     int i;
     pastix_complex64_t *xptr = (pastix_complex64_t*)x;
@@ -384,13 +384,13 @@ z_bcscDotc( pastix_int_t         n,
  *
  *******************************************************************************/
 pastix_complex64_t
-z_bcscDotu( pastix_int_t         n,
-            void                *x,
-            void                *y )
+z_bcscDotu( pastix_int_t               n,
+             const pastix_complex64_t *x,
+             const pastix_complex64_t *y )
 {
     int i;
-    pastix_complex64_t *xptr = (pastix_complex64_t*)x;
-    pastix_complex64_t *yptr = (pastix_complex64_t*)y;
+    const pastix_complex64_t *xptr = x;
+    const pastix_complex64_t *yptr = y;
     pastix_complex64_t r = 0.0;
 
     for (i=0; i<n; i++, xptr++, yptr++)
@@ -422,7 +422,7 @@ z_bcscDotu( pastix_int_t         n,
  *
  *******************************************************************************/
 double
-z_vectFrobeniusNorm( pastix_int_t n,
+z_vectFrobeniusNorm( pastix_int_t              n,
                      const pastix_complex64_t *x )
 {
     double scale = 0.;
@@ -445,11 +445,11 @@ z_vectFrobeniusNorm( pastix_int_t n,
     return norm;
 }
 
-int z_bcscApplyPerm( pastix_int_t m,
-                     pastix_int_t n,
+int z_bcscApplyPerm( pastix_int_t        m,
+                     pastix_int_t        n,
                      pastix_complex64_t *A,
-                     pastix_int_t lda,
-                     pastix_int_t *perm )
+                     pastix_int_t        lda,
+                     pastix_int_t       *perm )
 {
     pastix_complex64_t tmp;
     pastix_int_t i, j, k, jj;
