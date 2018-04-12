@@ -17,6 +17,7 @@
  *
  **/
 #include "common.h"
+#include "cblas.h"
 #include "bcsc.h"
 #include "z_bcsc.h"
 #include "sopalin_data.h"
@@ -326,27 +327,26 @@ double z_Pastix_Norm2( pastix_int_t n, const pastix_complex64_t *x )
  *
  * @ingroup pastix_dev_refine
  *
- * @brief Apply a preconditionner
+ * @brief Solve A x = b
  *
  *******************************************************************************
  *
  * @param[in] pastix_data
  *          The PaStiX data structure that describes the solver instance.
  *
- * @param[in] s
- *          The vector on which preconditionner is to be applied
- *
- * @param[out] d
- *          On exit, the d vector contains s preconditionned
+ * @param[in,out] d
+ *          On entry, the right hand side
+ *          On exit, the solution of tha problem A x = b
  *
  *******************************************************************************/
-void z_Pastix_Precond( pastix_data_t *pastix_data, pastix_complex64_t *d )
+void z_Pastix_trsv( pastix_data_t *pastix_data, pastix_complex64_t *b )
 {
     pastix_int_t n = pastix_data->bcsc->gN;
-    pastix_subtask_solve( pastix_data, 1, d, n );
+    pastix_subtask_solve( pastix_data, 1, b, n );
 }
 
-/** *******************************************************************************
+/**
+ *******************************************************************************
  *
  * @ingroup pastix_dev_refine
  *
@@ -364,9 +364,9 @@ void z_Pastix_Precond( pastix_data_t *pastix_data, pastix_complex64_t *d )
  *          The vector to be scaled
  *
  *******************************************************************************/
-void z_Pastix_Scal( pastix_int_t n, pastix_complex64_t alpha, pastix_complex64_t *x )
+void z_Pastix_scal( pastix_int_t n, pastix_complex64_t alpha, pastix_complex64_t *x )
 {
-    z_bcscScal( x, alpha, n, 1);
+    cblas_zscal( n, CBLAS_SADDR(alpha), x, 1 );
 }
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -499,6 +499,42 @@ void z_Pastix_bMAx( pastix_bcsc_t            *bcsc,
  *
  * @ingroup pastix_dev_refine
  *
+ * @brief Perform y = alpha A x + y
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix_data structure that holds the A matrix.
+ *
+ * @param[in] alpha
+ *          The scalar alpha.
+ *
+ * @param[in] x
+ *          The vector x
+ *
+ * @param[in] beta
+ *          The scalar beta.
+ *
+ * @param[in,out] y
+ *          On entry, the vector y
+ *          On exit, alpha A x + y
+ *
+ *******************************************************************************/
+void z_Pastix_spmv( pastix_data_t            *pastix_data,
+                    pastix_complex64_t        alpha,
+                    const pastix_complex64_t *x,
+                    pastix_complex64_t        beta,
+                    pastix_complex64_t       *y )
+{
+    pastix_bcsc_t *bcsc = pastix_data->bcsc;
+    z_bcscGemv( PastixNoTrans, alpha, bcsc, x, beta, y );
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
+ *
  * @brief Perform x = beta x + y
  *
  *******************************************************************************
@@ -523,6 +559,32 @@ void z_Pastix_BYPX( pastix_int_t n, pastix_complex64_t *beta,
     z_bcscAxpy( n, 1, 1., y, x );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
+ *
+ * @brief Coy a vector y = x
+ *
+ *******************************************************************************
+ *
+ * @param[in] n
+ *          The number of elements of vectors x and y
+ *
+ * @param[in] x
+ *          The vector to be scaled
+ *
+ * @param[in,out] y
+ *          The resulting solution
+ *
+ *******************************************************************************/
+static inline void
+z_Pastix_copy( pastix_int_t              n,
+               const pastix_complex64_t *x,
+               pastix_complex64_t       *y )
+{
+    memcpy( y, x, n * sizeof(pastix_complex64_t) );
+}
 
 /**
  *******************************************************************************
@@ -554,7 +616,6 @@ z_Pastix_axpy( pastix_int_t              n,
 {
     z_bcscAxpy( n, 1, alpha, x, y );
 }
-
 
 /**
  *******************************************************************************
@@ -613,14 +674,17 @@ void z_Pastix_Solveur( struct z_solver *solveur )
 
     /* Basic operations */
     solveur->Norm    = &z_Pastix_Norm2;
-    solveur->Precond = &z_Pastix_Precond;
-    solveur->Scal    = &z_Pastix_Scal;
+    solveur->Precond = &z_Pastix_trsv;
+    solveur->Scal    = &z_Pastix_scal;
     solveur->Dotc    = &z_Pastix_Dotc;
     solveur->Ax      = &z_Pastix_Ax;
     solveur->bMAx    = &z_Pastix_bMAx;
     solveur->BYPX    = &z_Pastix_BYPX;
     solveur->AXPY    = &z_Pastix_axpy;
 
-
+    solveur->scal    = &z_Pastix_scal;
+    solveur->copy    = &z_Pastix_copy;
     solveur->axpy    = &z_Pastix_axpy;
+    solveur->spmv    = &z_Pastix_spmv;
+    solveur->trsv    = &z_Pastix_trsv;
 }
