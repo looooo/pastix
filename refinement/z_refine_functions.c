@@ -137,8 +137,9 @@ void z_Pastix_End( pastix_data_t *pastix_data, pastix_complex64_t err,
     (void)nb_iters;
     (void)tf;
 
-    for (i=0; i<n; i++)
+    for (i=0; i<n; i++) {
         xptr[i] = gmresx[i];
+    }
 }
 
 /**
@@ -168,13 +169,15 @@ void z_Pastix_X( pastix_data_t *pastix_data, void *x, pastix_complex64_t *gmresx
 
     if (1 /*pastix_data->iparm[IPARM_ONLY_REFINE] == 0*/)
     {
-        for (i=0; i<n; i++, xptr++)
+        for (i=0; i<n; i++, xptr++) {
             gmresx[i]= *xptr;
+        }
     }
     else
     {
-        for (i=0; i<n; i++, xptr++)
-            gmresx[i]=0.0;
+        for (i=0; i<n; i++, xptr++) {
+            gmresx[i] = 0.0;
+        }
     }
 }
 
@@ -219,15 +222,9 @@ pastix_int_t z_Pastix_n( pastix_data_t *pastix_data )
  *          The number of elements of both b and refineb
  *
  *******************************************************************************/
-void z_Pastix_B( void *b, pastix_complex64_t *refineb, pastix_int_t n )
+void z_Pastix_B( const pastix_complex64_t *b, pastix_complex64_t *refineb, pastix_int_t n )
 {
-    pastix_complex64_t *bptr = (pastix_complex64_t *)b;
-    pastix_int_t i;
-
-    for (i=0; i<n; i++, bptr++)
-    {
-        refineb[i]= *bptr;
-    }
+    memcpy( refineb, b, n * sizeof(pastix_complex64_t) );
 }
 
 /**
@@ -317,11 +314,10 @@ pastix_int_t z_Pastix_Krylov_Space( pastix_data_t *pastix_data )
  * @return The frobenius norm of the vector
  *
  *******************************************************************************/
-pastix_complex64_t z_Pastix_Norm2( pastix_complex64_t *x, pastix_int_t n )
+double z_Pastix_Norm2( pastix_int_t n, const pastix_complex64_t *x )
 {
     double normx;
-    void *xptr = (void*)x;
-    normx = z_vectFrobeniusNorm(xptr, n);
+    normx = z_vectFrobeniusNorm( n, x );
     return normx;
 }
 
@@ -344,56 +340,13 @@ pastix_complex64_t z_Pastix_Norm2( pastix_complex64_t *x, pastix_int_t n )
  *          On exit, the d vector contains s preconditionned
  *
  *******************************************************************************/
-void z_Pastix_Precond( pastix_data_t *pastix_data, pastix_complex64_t *s, pastix_complex64_t *d )
+void z_Pastix_Precond( pastix_data_t *pastix_data, pastix_complex64_t *d )
 {
     pastix_int_t n = pastix_data->bcsc->gN;
-    pastix_int_t nrhs = 1;
-    void* bptr = (void*)d;
-
-    memcpy(d, s, n * sizeof( pastix_complex64_t ));
-    /*if (pastix_data->iparm[IPARM_ONLY_REFINE] == 0)*/
-    {
-        sopalin_data_t sopalin_data;
-        pastix_trans_t trans = PastixTrans;
-        sopalin_data.solvmtx = pastix_data->solvmatr;
-
-        switch ( pastix_data->iparm[IPARM_FACTORIZATION] ){
-        case PastixFactLLH:
-            trans = PastixConjTrans;
-            pastix_attr_fallthrough;
-
-        case PastixFactLLT:
-            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
-                           PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, bptr, n );
-            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
-                           trans,         PastixNonUnit, &sopalin_data, nrhs, bptr, n );
-            break;
-
-        case PastixFactLDLH:
-            trans = PastixConjTrans;
-            pastix_attr_fallthrough;
-
-        case PastixFactLDLT:
-            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
-                           PastixNoTrans, PastixUnit, &sopalin_data, nrhs, bptr, n );
-            sopalin_zdiag( pastix_data, &sopalin_data, nrhs, bptr, n );
-            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
-                           trans,        PastixUnit, &sopalin_data, nrhs, bptr, n );
-            break;
-
-        case PastixFactLU:
-        default:
-            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
-                           PastixNoTrans, PastixUnit,    &sopalin_data, nrhs, bptr, n );
-            sopalin_ztrsm( pastix_data, PastixLeft, PastixUpper,
-                           PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, bptr, n );
-            break;
-        }
-    }
+    pastix_subtask_solve( pastix_data, 1, d, n );
 }
 
-/**
- *******************************************************************************
+/** *******************************************************************************
  *
  * @ingroup pastix_dev_refine
  *
@@ -599,13 +552,14 @@ void z_Pastix_BYPX( pastix_int_t n, pastix_complex64_t *beta,
  *          The resulting solution
  *
  *******************************************************************************/
-void z_Pastix_AXPY( pastix_int_t n, double coeff,
-                    pastix_complex64_t *alpha, pastix_complex64_t *x,
+void z_Pastix_AXPY( pastix_int_t n,
+                    pastix_complex64_t  alpha,
+                    const pastix_complex64_t *x,
                     pastix_complex64_t *y )
 {
     void *yptr = (void*)y;
     void *xptr = (void*)x;
-    z_bcscAxpy( n, 1, coeff*(*alpha), yptr, xptr );
+    z_bcscAxpy( n, 1, alpha, yptr, xptr );
 }
 
 
@@ -650,8 +604,8 @@ pastix_int_t z_Pastix_me( void *arg )
 void z_Pastix_Solveur( struct z_solver *solveur )
 {
     /* Allocations */
-    solveur->Malloc      = &z_Pastix_Malloc;
-    solveur->Free        = &z_Pastix_Free;
+    solveur->Malloc  = &z_Pastix_Malloc;
+    solveur->Free    = &z_Pastix_Free;
 
     /* Interface functions */
     solveur->Verbose = &z_Pastix_Verbose;
