@@ -137,7 +137,10 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
             t1 = clockGet();
 
             //           z_up_down_smp(arg);
-            solveur.Precond(pastix_data, b, x);
+            solveur.B( b, x, n );
+            if ( solveur.Precond != NULL ) {
+                solveur.Precond( pastix_data, x );
+            }
 
             clockStop((refine_clk));
             t2 = clockGet();

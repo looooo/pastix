@@ -52,8 +52,7 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
     pastix_fixdbl_t     t0        = 0;
     pastix_fixdbl_t     t3        = 0;
     pastix_complex64_t  tmp       = 0.0;
-    pastix_complex64_t  normr;
-    pastix_complex64_t  normb;
+    pastix_complex64_t  normr, normb, alpha, beta;
     pastix_complex64_t  epsilon   = solveur.Eps(pastix_data);
     pastix_int_t        itermax   = solveur.Itermax(pastix_data);
     pastix_int_t        nb_iter   = 0;
@@ -63,8 +62,6 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
     pastix_complex64_t *gradp = NULL;
     pastix_complex64_t *gradz = NULL;
     pastix_complex64_t *grad2 = NULL;
-    pastix_complex64_t *alpha = NULL;
-    pastix_complex64_t *beta  = NULL;
     pastix_complex64_t *gradx = NULL;
 
     /* Initialize vectors */
@@ -73,8 +70,6 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
     gradp = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
     gradz = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
     grad2 = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    alpha = (pastix_complex64_t *)solveur.Malloc(    sizeof(pastix_complex64_t));
-    beta  = (pastix_complex64_t *)solveur.Malloc(    sizeof(pastix_complex64_t));
     gradx = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
 
     clockInit(refine_clk);clockStart(refine_clk);
@@ -84,12 +79,15 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
 
     /* r=b-ax */
     solveur.bMAx(bcsc, gradb, gradx, gradr);
-    normb = solveur.Norm(gradb, n);
-    normr = solveur.Norm(gradr, n);
+    normb = solveur.Norm( n, gradb );
+    normr = solveur.Norm( n, gradr );
     tmp = normr / normb;
 
     /* z = M-1 r */
-    solveur.Precond(pastix_data, gradr, gradz);
+    solveur.B( gradr, gradz, n );
+    if ( solveur.Precond != NULL ) {
+        solveur.Precond( pastix_data, gradz );
+    }
 
     memcpy(gradp, gradz, n * sizeof( pastix_complex64_t ));
 
@@ -103,35 +101,39 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
         solveur.Ax(bcsc, gradp, grad2);
 
         /* alpha = <r, z> / <Ap, p> */
-        solveur.Dotc(n, gradr, gradz, beta);
-        solveur.Dotc(n, grad2, gradp, alpha);
+        solveur.Dotc(n, gradr, gradz, &beta);
+        solveur.Dotc(n, grad2, gradp, &alpha);
         // solveur.Div(arg, beta, alpha, alpha, 1);
-        alpha[0] = beta[0] / alpha[0];
+        alpha = beta / alpha;
 
         /* x = x + alpha * p */
-        solveur.AXPY(n, 1, alpha, gradx, gradp);
+        solveur.AXPY(n, alpha, gradx, gradp);
 
         /* r = r - alpha * A * p */
-        solveur.AXPY(n, -1, alpha, gradr, grad2);
+        solveur.AXPY(n, -alpha, gradr, grad2);
 
         /* z = M-1 * r */
-        solveur.Precond(pastix_data, gradr, gradz);
+        solveur.B( gradr, gradz, n );
+        if ( solveur.Precond != NULL ) {
+            solveur.Precond( pastix_data, gradz );
+        }
 
         /* beta = <r', z> / <r, z> */
-        solveur.Dotc(n, gradr, gradz, alpha);
+        solveur.Dotc(n, gradr, gradz, &alpha);
         // solveur.Div(arg, alpha, beta, beta, 1);
-        beta[0] = alpha[0] / beta[0];
+        beta = alpha / beta;
 
         /* p = z + beta * p */
-        solveur.BYPX(n, beta, gradz, gradp);
+        solveur.BYPX(n, &beta, gradz, gradp);
 
-        normr = solveur.Norm(gradr, n);
+        normr = solveur.Norm( n, gradr );
         tmp = normr / normb;
 
         clockStop((refine_clk));
         t3 = clockGet();
-        if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot )
+        if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
             solveur.Verbose(t0, t3, tmp, nb_iter);
+        }
         t0 = t3;
     }
 
@@ -142,7 +144,5 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
     solveur.Free((void*) gradp);
     solveur.Free((void*) gradz);
     solveur.Free((void*) grad2);
-    solveur.Free((void*) alpha);
-    solveur.Free((void*) beta);
     solveur.Free((void*) gradx);
 }
