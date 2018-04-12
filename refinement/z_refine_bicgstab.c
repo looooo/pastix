@@ -122,9 +122,9 @@ void z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
 
         /* alpha = (r, r2) / (v, r2) */
         /* alpha = (v, r2) */
-        solveur.Dotc(n, gradv, gradr2, &alpha);
+        alpha = solveur.dot( n, gradv, gradr2 );
         /* beta = (r, r2) */
-        solveur.Dotc(n, gradr, gradr2, &beta);
+        beta  = solveur.dot( n, gradr, gradr2 );
 
         /* alpha = beta / alpha : alpha = (r, r2) / (v, r2) */
         // solveur.Div(arg, beta, alpha, alpha, 0);
@@ -152,8 +152,8 @@ void z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
 
         /* v1 = (M-1t, M-1s) */
         /* v2 = (M-1t, M-1t) */
-        solveur.Dotc(n, gradz, grad2, &v1);
-        solveur.Dotc(n, grad2, grad2, &v2);
+        v1 = solveur.dot( n, gradz, grad2 );
+        v2 = solveur.dot( n, grad2, grad2 );
 
         // solveur.Div(arg, v1, v2, w, 1);
         w = v1 / v2;
@@ -171,7 +171,7 @@ void z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
 
         /* beta = (r', r2) / (r, r2) * (alpha / w) */
         /* v1 = (r', r2) */
-        solveur.Dotc(n, gradr, gradr2, &v1);
+        v1 = solveur.dot( n, gradr, gradr2 );
 
         /* v2 = alpha / w */
         // solveur.Div(arg, alpha, w, v2, 0);

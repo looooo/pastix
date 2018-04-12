@@ -392,10 +392,12 @@ void z_Pastix_scal( pastix_int_t n, pastix_complex64_t alpha, pastix_complex64_t
  *          The result of the scalar product
  *
  *******************************************************************************/
-void z_Pastix_Dotc( pastix_int_t n, pastix_complex64_t *x,
-                    pastix_complex64_t *y, pastix_complex64_t *r )
+pastix_complex64_t
+z_Pastix_Dotu( pastix_int_t n,
+               const pastix_complex64_t *x,
+               const pastix_complex64_t *y )
 {
-    *r = z_bcscDotc(n, x, y);
+    return z_bcscDotu( n, x, y );
 }
 #endif
 
@@ -425,10 +427,12 @@ void z_Pastix_Dotc( pastix_int_t n, pastix_complex64_t *x,
  * @return The allocated vector
  *
  *******************************************************************************/
-void z_Pastix_Dotu( pastix_int_t n, pastix_complex64_t *x,
-                    pastix_complex64_t *y, pastix_complex64_t *r )
+pastix_complex64_t
+z_Pastix_Dotc( pastix_int_t n,
+               const pastix_complex64_t *x,
+               const pastix_complex64_t *y )
 {
-    *r = z_bcscDotu(n, x, y);
+    return z_bcscDotc( n, x, y );
 }
 
 /**
@@ -676,15 +680,17 @@ void z_Pastix_Solveur( struct z_solver *solveur )
     solveur->Norm    = &z_Pastix_Norm2;
     solveur->Precond = &z_Pastix_trsv;
     solveur->Scal    = &z_Pastix_scal;
-    solveur->Dotc    = &z_Pastix_Dotc;
     solveur->Ax      = &z_Pastix_Ax;
     solveur->bMAx    = &z_Pastix_bMAx;
     solveur->BYPX    = &z_Pastix_BYPX;
     solveur->AXPY    = &z_Pastix_axpy;
 
+    solveur->output_oneiter = &z_Pastix_Verbose;
+    solveur->dot     = &z_Pastix_Dotc;
     solveur->scal    = &z_Pastix_scal;
     solveur->copy    = &z_Pastix_copy;
     solveur->axpy    = &z_Pastix_axpy;
     solveur->spmv    = &z_Pastix_spmv;
     solveur->trsv    = &z_Pastix_trsv;
+    solveur->norm    = &z_Pastix_Norm2;
 }

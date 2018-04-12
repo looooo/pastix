@@ -101,8 +101,8 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
         solveur.Ax(bcsc, gradp, grad2);
 
         /* alpha = <r, z> / <Ap, p> */
-        solveur.Dotc(n, gradr, gradz, &beta);
-        solveur.Dotc(n, grad2, gradp, &alpha);
+        beta  = solveur.dot( n, gradr, gradz );
+        alpha = solveur.dot( n, grad2, gradp );
         // solveur.Div(arg, beta, alpha, alpha, 1);
         alpha = beta / alpha;
 
@@ -119,7 +119,7 @@ void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
         }
 
         /* beta = <r', z> / <r, z> */
-        solveur.Dotc(n, gradr, gradz, &alpha);
+        alpha = solveur.dot( n, gradr, gradz );
         // solveur.Div(arg, alpha, beta, beta, 1);
         beta = alpha / beta;
 
