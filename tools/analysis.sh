@@ -32,7 +32,7 @@ export UNDEFINITIONS="$UNDEFINITIONS -UNAPA_SOPALIN -UPASTIX_WITH_STARPU_DIST"
 cat ./pastix-gcov.log
 
 # run cppcheck analysis
-cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingInclude ${UNDEFINITIONS} --filelist=./filelist-c.txt 2> pastix-cppcheck.xml
+cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingInclude ${UNDEFINITIONS} --file-list=./filelist-c.txt 2> pastix-cppcheck.xml
 
 # run rats analysis
 rats -w 3 --xml  `cat filelist.txt` > pastix-rats.xml
