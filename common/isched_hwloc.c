@@ -123,7 +123,7 @@ int isched_hwloc_unbind()
 {
 #if defined(HAVE_HWLOC_BITMAP)
     hwloc_obj_t      obj;      /* Hwloc object    */
-    isched_hwloc_init();
+    assert( first_init > 0 );
 
     /* Get last one.  */
     obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_MACHINE, 0);
