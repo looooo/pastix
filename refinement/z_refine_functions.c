@@ -341,7 +341,9 @@ double z_Pastix_Norm2( pastix_int_t n, const pastix_complex64_t *x )
 void z_Pastix_spsv( pastix_data_t *pastix_data, pastix_complex64_t *b )
 {
     pastix_int_t n = pastix_data->bcsc->gN;
+    pastix_data->iparm[IPARM_VERBOSE]--;
     pastix_subtask_solve( pastix_data, 1, b, n );
+    pastix_data->iparm[IPARM_VERBOSE]++;
 }
 
 /**
