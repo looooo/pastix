@@ -108,7 +108,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     else {
         gmW = (pastix_complex64_t *)solver.malloc(n       * sizeof(pastix_complex64_t));
     }
-    memset( gmH, 0, im * im1 * sizeof(pastix_complex64_t*) );
+    memset( gmH, 0, im * im1 * sizeof(pastix_complex64_t) );
 
 #if defined(PASTIX_DEBUG_GMRES)
     dbg_x = (pastix_complex64_t *)solver.malloc(n   * sizeof(pastix_complex64_t));
