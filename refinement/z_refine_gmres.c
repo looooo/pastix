@@ -56,14 +56,14 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     pastix_fixdbl_t     t0, t3;
     double              eps, resid, resid_b;
     double              norm, normb, normx;
-    pastix_int_t        n, im, im1, maxits;
+    pastix_int_t        n, im, im1, itermax;
     pastix_int_t        i, j,  ldw, iters;
     int                 outflag, inflag;
     int                 savemem = 0;
     int                 precond = 1;
 
     memset( &solver, 0, sizeof(struct z_solver) );
-    z_Pastix_Solveur(&solver);
+    z_Pastix_Solver(&solver);
 
     /* if ( pastix_data->bcsc->mtxtype == PastixHermitian ) { */
     /*     /\* Check if we need dotu for non hermitian matrices (CEA patch) *\/ */
@@ -71,12 +71,12 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     /* } */
 
     /* Get the parameters */
-    n      = solver.N( pastix_data );
-    im     = solver.Krylov_Space( pastix_data );
-    im1    = im + 1;
-    maxits = solver.Itermax( pastix_data );
-    eps    = solver.Eps( pastix_data );
-    ldw    = n;
+    n       = solver.getN( pastix_data );
+    im      = solver.getRestart( pastix_data );
+    im1     = im + 1;
+    itermax = solver.getImax( pastix_data );
+    eps     = solver.getEps( pastix_data );
+    ldw     = n;
 
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
         precond = 0;
@@ -86,9 +86,9 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
         ldw = 0;
     }
 
-    gmcos = (pastix_complex64_t *)solver.Malloc(im  * sizeof(pastix_complex64_t));
-    gmsin = (pastix_complex64_t *)solver.Malloc(im  * sizeof(pastix_complex64_t));
-    gmG   = (pastix_complex64_t *)solver.Malloc(im1 * sizeof(pastix_complex64_t));
+    gmcos = (pastix_complex64_t *)solver.malloc(im  * sizeof(pastix_complex64_t));
+    gmsin = (pastix_complex64_t *)solver.malloc(im  * sizeof(pastix_complex64_t));
+    gmG   = (pastix_complex64_t *)solver.malloc(im1 * sizeof(pastix_complex64_t));
 
     /**
      * H stores the h_{i,j} elements ot the upper hessenberg matrix H (See Alg. 9.5 p 270)
@@ -100,20 +100,20 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
      * stores only temporarily one vector for the Ax product (ldw is set to 0 to
      * reuse the same vector at each iteration)
      */
-    gmH = (pastix_complex64_t *)solver.Malloc(im * im1 * sizeof(pastix_complex64_t));
-    gmV = (pastix_complex64_t *)solver.Malloc(n  * im1 * sizeof(pastix_complex64_t));
+    gmH = (pastix_complex64_t *)solver.malloc(im * im1 * sizeof(pastix_complex64_t));
+    gmV = (pastix_complex64_t *)solver.malloc(n  * im1 * sizeof(pastix_complex64_t));
     if (precond && (!savemem) ) {
-        gmW = (pastix_complex64_t *)solver.Malloc(n * im  * sizeof(pastix_complex64_t));
+        gmW = (pastix_complex64_t *)solver.malloc(n * im  * sizeof(pastix_complex64_t));
     }
     else {
-        gmW = (pastix_complex64_t *)solver.Malloc(n       * sizeof(pastix_complex64_t));
+        gmW = (pastix_complex64_t *)solver.malloc(n       * sizeof(pastix_complex64_t));
     }
     memset( gmH, 0, im * im1 * sizeof(pastix_complex64_t*) );
 
 #if defined(PASTIX_DEBUG_GMRES)
-    dbg_x = (pastix_complex64_t *)solver.Malloc(n   * sizeof(pastix_complex64_t));
-    dbg_r = (pastix_complex64_t *)solver.Malloc(n   * sizeof(pastix_complex64_t));
-    dbg_G = (pastix_complex64_t *)solver.Malloc(im1 * sizeof(pastix_complex64_t));
+    dbg_x = (pastix_complex64_t *)solver.malloc(n   * sizeof(pastix_complex64_t));
+    dbg_r = (pastix_complex64_t *)solver.malloc(n   * sizeof(pastix_complex64_t));
+    dbg_G = (pastix_complex64_t *)solver.malloc(im1 * sizeof(pastix_complex64_t));
     solver.copy( n, x, dbg_x );
 #endif
 
@@ -250,7 +250,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
             iters++;
             if ( (i+1 >= im) ||
                  (resid_b <= eps) ||
-                 (iters >= maxits) )
+                 (iters >= itermax) )
             {
                 inflag = 0;
             }
@@ -316,7 +316,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
             solver.gemv( n, i+1, 1.0, gmWi, n, gmG, 1.0, x );
         }
 
-        if ((resid_b <= eps) || (iters >= maxits))
+        if ((resid_b <= eps) || (iters >= itermax))
         {
             outflag = 0;
         }
@@ -325,17 +325,17 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     clockStop( refine_clk );
     t3 = clockGet();
 
-    solver.End( pastix_data, resid_b, iters, t3, x, x );
+    solver.output_final( pastix_data, resid_b, iters, t3, x, x );
 
-    solver.Free(gmcos);
-    solver.Free(gmsin);
-    solver.Free(gmG);
-    solver.Free(gmH);
-    solver.Free(gmV);
-    solver.Free(gmW);
+    solver.free(gmcos);
+    solver.free(gmsin);
+    solver.free(gmG);
+    solver.free(gmH);
+    solver.free(gmV);
+    solver.free(gmW);
 #if defined(PASTIX_DEBUG_GMRES)
-    solver.Free(dbg_x);
-    solver.Free(dbg_r);
-    solver.Free(dbg_G);
+    solver.free(dbg_x);
+    solver.free(dbg_r);
+    solver.free(dbg_G);
 #endif
 }

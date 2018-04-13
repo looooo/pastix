@@ -26,34 +26,18 @@ z_Pastix_Dotc( pastix_int_t n,
 
 struct z_solver
 {
-    pastix_complex64_t* (* Synchro)(void *, void *, int);
-    void* (* Malloc)(size_t);
-    void  (* Free)(void*);
+    pastix_int_t    (* getN   )   (pastix_data_t *);
+    pastix_fixdbl_t (* getEps )   (pastix_data_t *);
+    pastix_int_t    (* getImax)   (pastix_data_t *);
+    pastix_int_t    (* getRestart)(pastix_data_t *);
 
-    void  (* Verbose)(double, double, double, pastix_int_t);
-    void  (* End)(pastix_data_t *, pastix_complex64_t, pastix_int_t,
-                 double, void*, pastix_complex64_t*);
-
-    void (* X)(pastix_data_t *, void *, pastix_complex64_t *);
-    pastix_int_t (* N)(pastix_data_t *);
-    void (* B)(const pastix_complex64_t *, pastix_complex64_t *, pastix_int_t);
-    pastix_complex64_t (* Eps)(pastix_data_t *);
-    pastix_int_t (* Itermax)(pastix_data_t *);
-    pastix_int_t (* Krylov_Space)(pastix_data_t *);
-    pastix_int_t (* me)(void *);
-
-    double (* Norm)(pastix_int_t, const pastix_complex64_t *);
-    void (* Precond)(pastix_data_t *, pastix_complex64_t *);
-
-    void (* Scal)(pastix_int_t, pastix_complex64_t, pastix_complex64_t *);
-    void (* Ax)(pastix_bcsc_t *, pastix_complex64_t *, pastix_complex64_t *);
-
-    void (* bMAx)(pastix_bcsc_t *, const pastix_complex64_t *, const pastix_complex64_t *, pastix_complex64_t *);
-    void (* BYPX)(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
-    void (* AXPY)(pastix_int_t, pastix_complex64_t,  const pastix_complex64_t *, pastix_complex64_t *);
-
+    void* (*malloc)(size_t);
+    void  (*free)(void*);
 
     void   (*output_oneiter)(double, double, double, pastix_int_t);
+    void   (*output_final)( pastix_data_t *, pastix_complex64_t, pastix_int_t,
+                            double, void*, pastix_complex64_t*);
+
     void   (*scal)( pastix_int_t, pastix_complex64_t, pastix_complex64_t * );
     pastix_complex64_t (*dot) ( pastix_int_t, const pastix_complex64_t *, const pastix_complex64_t * );
     void   (*copy)( pastix_int_t, const pastix_complex64_t *, pastix_complex64_t * );
@@ -66,8 +50,7 @@ struct z_solver
                     const pastix_complex64_t *, pastix_complex64_t, pastix_complex64_t *);
 };
 
-void z_Pastix_Solveur(struct z_solver *);
-
+void z_Pastix_Solver(struct z_solver *);
 
 void z_gmres_smp   ( pastix_data_t *pastix_data, void *x, void *b );
 void z_grad_smp    ( pastix_data_t *pastix_data, void *x, void *b );

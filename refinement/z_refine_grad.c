@@ -41,108 +41,110 @@
  *******************************************************************************/
 void z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
 {
-    struct z_solver solveur;
-    memset( &solveur, 0, sizeof(struct z_solver) );
-
-    z_Pastix_Solveur(&solveur);
-
-    pastix_bcsc_t     * bcsc      = pastix_data->bcsc;
-    pastix_int_t        n         = bcsc->gN;
+    struct z_solver     solver;
+    pastix_int_t        n;
     Clock               refine_clk;
     pastix_fixdbl_t     t0        = 0;
     pastix_fixdbl_t     t3        = 0;
-    pastix_complex64_t  tmp       = 0.0;
-    pastix_complex64_t  normr, normb, alpha, beta;
-    pastix_complex64_t  epsilon   = solveur.Eps(pastix_data);
-    pastix_int_t        itermax   = solveur.Itermax(pastix_data);
-    pastix_int_t        nb_iter   = 0;
+    int                 itermax;
+    int                 nb_iter   = 0;
+    int                 precond   = 1;
+    pastix_complex64_t *gradr;
+    pastix_complex64_t *gradp;
+    pastix_complex64_t *gradz;
+    pastix_complex64_t *grad2;
+    double normb, normx, normr, alpha, beta;
+    double resid_b, eps;
 
-    pastix_complex64_t *gradb = NULL;
-    pastix_complex64_t *gradr = NULL;
-    pastix_complex64_t *gradp = NULL;
-    pastix_complex64_t *gradz = NULL;
-    pastix_complex64_t *grad2 = NULL;
-    pastix_complex64_t *gradx = NULL;
+    memset( &solver, 0, sizeof(struct z_solver) );
+    z_Pastix_Solver(&solver);
 
-    /* Initialize vectors */
-    gradb = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    gradr = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    gradp = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    gradz = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    grad2 = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    gradx = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-
-    clockInit(refine_clk);clockStart(refine_clk);
-
-    solveur.B(b, gradb, n);
-    solveur.X(pastix_data, x, gradx);
-
-    /* r=b-ax */
-    solveur.bMAx(bcsc, gradb, gradx, gradr);
-    normb = solveur.Norm( n, gradb );
-    normr = solveur.Norm( n, gradr );
-    tmp = normr / normb;
-
-    /* z = M-1 r */
-    solveur.B( gradr, gradz, n );
-    if ( solveur.Precond != NULL ) {
-        solveur.Precond( pastix_data, gradz );
+    if ( !(pastix_data->steps & STEP_NUMFACT) ) {
+        precond = 0;
     }
 
-    memcpy(gradp, gradz, n * sizeof( pastix_complex64_t ));
+    n       = solver.getN(    pastix_data );
+    itermax = solver.getImax( pastix_data );
+    eps     = solver.getEps(  pastix_data );
 
-    while (((double)tmp > (double)epsilon) && (nb_iter < itermax))
+    /* Initialize vectors */
+    gradr = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+    gradp = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+    gradz = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+    grad2 = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+
+    clockInit(refine_clk);
+    clockStart(refine_clk);
+
+    normb = solver.norm( n, b );
+    normx = solver.norm( n, x );
+
+    /* Compute r0 = b - A * x */
+    solver.copy( n, b, gradr );
+    if ( normx > 0. ) {
+        solver.spmv( pastix_data, -1., x, 1., gradr );
+    }
+    normr = solver.norm( n, gradr );
+    resid_b = normr / normb;
+
+    /* z = M^{-1} r */
+    solver.copy( n, gradr, gradz );
+    if ( precond ) {
+        solver.spsv( pastix_data, gradz );
+    }
+
+    /* p = z */
+    solver.copy( n, gradz, gradp );
+
+    while ((resid_b > eps) && (nb_iter < itermax))
     {
         clockStop((refine_clk));
         t0 = clockGet();
         nb_iter++;
 
         /* grad2 = A * p */
-        solveur.Ax(bcsc, gradp, grad2);
+        solver.spmv( pastix_data, 1.0, gradp, 0., grad2 );
 
         /* alpha = <r, z> / <Ap, p> */
-        beta  = solveur.dot( n, gradr, gradz );
-        alpha = solveur.dot( n, grad2, gradp );
-        // solveur.Div(arg, beta, alpha, alpha, 1);
+        beta  = solver.dot( n, gradr, gradz );
+        alpha = solver.dot( n, grad2, gradp );
         alpha = beta / alpha;
 
         /* x = x + alpha * p */
-        solveur.AXPY(n, alpha, gradp, gradx);
+        solver.axpy( n, alpha, gradp, x );
 
         /* r = r - alpha * A * p */
-        solveur.AXPY(n, -alpha, grad2, gradr);
+        solver.axpy( n, -alpha, grad2, gradr );
 
         /* z = M-1 * r */
-        solveur.B( gradr, gradz, n );
-        if ( solveur.Precond != NULL ) {
-            solveur.Precond( pastix_data, gradz );
+        solver.copy( n, gradr, gradz );
+        if ( precond ) {
+            solver.spsv( pastix_data, gradz );
         }
 
         /* beta = <r', z> / <r, z> */
-        alpha = solveur.dot( n, gradr, gradz );
-        // solveur.Div(arg, alpha, beta, beta, 1);
-        beta = alpha / beta;
+        alpha = solver.dot( n, gradr, gradz );
+        beta  = alpha / beta;
 
         /* p = z + beta * p */
-        solveur.BYPX(n, &beta, gradz, gradp);
+        solver.scal( n, beta, gradp );
+        solver.axpy( n, 1., gradz, gradp );
 
-        normr = solveur.Norm( n, gradr );
-        tmp = normr / normb;
+        normr = solver.norm( n, gradr );
+        resid_b = normr / normb;
 
         clockStop((refine_clk));
         t3 = clockGet();
         if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
-            solveur.Verbose(t0, t3, tmp, nb_iter);
+            solver.output_oneiter( t0, t3, resid_b, nb_iter );
         }
         t0 = t3;
     }
 
-    solveur.End(pastix_data, tmp, nb_iter, t3, x, gradx);
+    solver.output_final(pastix_data, resid_b, nb_iter, t3, x, x);
 
-    solveur.Free((void*) gradb);
-    solveur.Free((void*) gradr);
-    solveur.Free((void*) gradp);
-    solveur.Free((void*) gradz);
-    solveur.Free((void*) grad2);
-    solveur.Free((void*) gradx);
+    solver.free((void*) gradr);
+    solver.free((void*) gradp);
+    solver.free((void*) gradz);
+    solver.free((void*) grad2);
 }

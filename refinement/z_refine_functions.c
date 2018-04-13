@@ -40,7 +40,7 @@
  * @return The allocated vector
  *
  *******************************************************************************/
-void *z_Pastix_Malloc( size_t size )
+void *z_Pastix_malloc( size_t size )
 {
     void *x = NULL;
     MALLOC_INTERN(x, size, char);
@@ -61,7 +61,7 @@ void *z_Pastix_Malloc( size_t size )
  *          The vector to be free
  *
  *******************************************************************************/
-void z_Pastix_Free( void *x )
+void z_Pastix_free( void *x )
 {
     memFree_null(x);
 }
@@ -245,7 +245,7 @@ void z_Pastix_B( const pastix_complex64_t *b, pastix_complex64_t *refineb, pasti
  * @return The precision required by the user
  *
  *******************************************************************************/
-pastix_complex64_t z_Pastix_Eps( pastix_data_t *pastix_data )
+pastix_fixdbl_t z_Pastix_Eps( pastix_data_t *pastix_data )
 {
     return pastix_data->dparm[DPARM_EPSILON_REFINEMENT];
 }
@@ -314,7 +314,7 @@ pastix_int_t z_Pastix_Krylov_Space( pastix_data_t *pastix_data )
  * @return The frobenius norm of the vector
  *
  *******************************************************************************/
-double z_Pastix_Norm2( pastix_int_t n, const pastix_complex64_t *x )
+double z_Pastix_norm( pastix_int_t n, const pastix_complex64_t *x )
 {
     double normx;
     normx = z_vectFrobeniusNorm( n, x );
@@ -443,7 +443,7 @@ void z_Pastix_scal( pastix_int_t n, pastix_complex64_t alpha, pastix_complex64_t
  *
  *******************************************************************************/
 pastix_complex64_t
-z_Pastix_Dotu( pastix_int_t n,
+z_Pastix_dotu( pastix_int_t n,
                const pastix_complex64_t *x,
                const pastix_complex64_t *y )
 {
@@ -478,7 +478,7 @@ z_Pastix_Dotu( pastix_int_t n,
  *
  *******************************************************************************/
 pastix_complex64_t
-z_Pastix_Dotc( pastix_int_t n,
+z_Pastix_dotc( pastix_int_t n,
                const pastix_complex64_t *x,
                const pastix_complex64_t *y )
 {
@@ -705,43 +705,33 @@ pastix_int_t z_Pastix_me( void *arg )
  *
  *******************************************************************************
  *
- * @param[out] solveur
+ * @param[out] solver
  *          The structure to be filled
  *
  *******************************************************************************/
-void z_Pastix_Solveur( struct z_solver *solveur )
+void z_Pastix_Solver( struct z_solver *solver )
 {
-    /* Allocations */
-    solveur->Malloc  = &z_Pastix_Malloc;
-    solveur->Free    = &z_Pastix_Free;
-
     /* Interface functions */
-    solveur->Verbose = &z_Pastix_Verbose;
-    solveur->End     = &z_Pastix_End;
-    solveur->X       = &z_Pastix_X;
-    solveur->N       = &z_Pastix_n;
-    solveur->B       = &z_Pastix_B;
-    solveur->Eps     = &z_Pastix_Eps;
-    solveur->Itermax = &z_Pastix_Itermax;
-    solveur->me      = &z_Pastix_me;
-    solveur->Krylov_Space = &z_Pastix_Krylov_Space;
+    solver->getN       = &z_Pastix_n;
+    solver->getEps     = &z_Pastix_Eps;
+    solver->getImax    = &z_Pastix_Itermax;
+    solver->getRestart = &z_Pastix_Krylov_Space;
+
+    /* Allocations */
+    solver->malloc  = &z_Pastix_malloc;
+    solver->free    = &z_Pastix_free;
+
+    /* Output */
+    solver->output_oneiter = &z_Pastix_Verbose;
+    solver->output_final   = &z_Pastix_End;
 
     /* Basic operations */
-    solveur->Norm    = &z_Pastix_Norm2;
-    solveur->Precond = &z_Pastix_spsv;
-    solveur->Scal    = &z_Pastix_scal;
-    solveur->Ax      = &z_Pastix_Ax;
-    solveur->bMAx    = &z_Pastix_bMAx;
-    solveur->BYPX    = &z_Pastix_BYPX;
-    solveur->AXPY    = &z_Pastix_axpy;
-
-    solveur->output_oneiter = &z_Pastix_Verbose;
-    solveur->dot     = &z_Pastix_Dotc;
-    solveur->scal    = &z_Pastix_scal;
-    solveur->copy    = &z_Pastix_copy;
-    solveur->axpy    = &z_Pastix_axpy;
-    solveur->spmv    = &z_Pastix_spmv;
-    solveur->spsv    = &z_Pastix_spsv;
-    solveur->norm    = &z_Pastix_Norm2;
-    solveur->gemv    = &z_Pastix_gemv;
+    solver->dot     = &z_Pastix_dotc;
+    solver->scal    = &z_Pastix_scal;
+    solver->copy    = &z_Pastix_copy;
+    solver->axpy    = &z_Pastix_axpy;
+    solver->spmv    = &z_Pastix_spmv;
+    solver->spsv    = &z_Pastix_spsv;
+    solver->norm    = &z_Pastix_norm;
+    solver->gemv    = &z_Pastix_gemv;
 }
