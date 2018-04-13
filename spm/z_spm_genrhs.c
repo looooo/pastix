@@ -371,7 +371,8 @@ z_spmCheckAxb( pastix_fixdbl_t eps, int nrhs,
     const pastix_complex64_t *zx  = (const pastix_complex64_t *)x;
     pastix_complex64_t       *zx0 = (pastix_complex64_t *)x0;
     pastix_complex64_t       *zb  = (pastix_complex64_t *)b;
-    double normA, normB, normX, normX0, normR;
+    double *nb2 = malloc( nrhs * sizeof(double) );
+    double normA, normB, normX, normX0, normR, normR2;
     double backward, forward;
     int failure = 0;
     int i;
@@ -397,6 +398,8 @@ z_spmCheckAxb( pastix_fixdbl_t eps, int nrhs,
         normB = (norm > normB ) ? norm : normB;
         norm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->n, 1, zx + i * ldx, ldx );
         normX = (norm > normX ) ? norm : normX;
+
+        nb2[i] = cblas_dznrm2( spm->n, zb + i * ldb, 1 );
     }
     printf( "   || A ||_1                                               %e\n"
             "   max(|| b_i ||_oo)                                       %e\n"
@@ -409,22 +412,27 @@ z_spmCheckAxb( pastix_fixdbl_t eps, int nrhs,
     spmMatMat( PastixNoTrans, nrhs, &mzone, spm, x, ldx, &zone, b, ldb );
 
     normR    = 0.;
+    normR2   = 0.;
     backward = 0.;
     failure  = 0;
 
     for( i=0; i<nrhs; i++ ) {
         double nx   = cblas_dzasum( spm->n, zx + i * ldx, 1 );
         double nr   = cblas_dzasum( spm->n, zb + i * ldb, 1 );
+        double nr2  = cblas_dznrm2( spm->n, zb + i * ldb, 1 ) / nb2[i];
         double back =  ((nr / normA) / nx) / eps;
         int fail = 0;
 
         normR    = (nr   > normR   ) ? nr   : normR;
+        normR2   = (nr2  > normR2  ) ? nr2  : normR2;
         backward = (back > backward) ? back : backward;
 
         fail = isnan(nr) || isinf(nr) || isnan(back) || isinf(back) || (back > 1.e2);
         if ( fail ) {
-            printf( "   || b_%d - A x_%d ||_1                                     %e\n"
+            printf( "   || b_%d - A x_%d ||_2 / || b_%d ||_2                       %e\n"
+                    "   || b_%d - A x_%d ||_1                                     %e\n"
                     "   || b_%d - A x_%d ||_1 / (||A||_1 * ||x_%d||_oo * eps)      %e (%s)\n",
+                    i, i, i, nr2,
                     i, i, nr,
                     i, i, i, back,
                     fail ? "FAILED" : "SUCCESS" );
@@ -433,10 +441,13 @@ z_spmCheckAxb( pastix_fixdbl_t eps, int nrhs,
         failure = failure || fail;
     }
 
-    printf( "   max(|| b_i - A x_i ||_1)                                %e\n"
+    printf( "   max(|| b_i - A x_i ||_2 / || b_i ||_2)                  %e\n"
+            "   max(|| b_i - A x_i ||_1)                                %e\n"
             "   max(|| b_i - A x_i ||_1 / (||A||_1 * ||x_i||_oo * eps)) %e (%s)\n",
-            normR, backward,
+            normR2, normR, backward,
             failure ? "FAILED" : "SUCCESS" );
+
+    free(nb2);
 
     /**
      * Compute r = x0 - x
