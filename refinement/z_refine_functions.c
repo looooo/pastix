@@ -272,7 +272,6 @@ pastix_int_t z_Pastix_Itermax( pastix_data_t *pastix_data )
     return pastix_data->iparm[IPARM_ITERMAX];
 }
 
-
 /**
  *******************************************************************************
  *
@@ -327,14 +326,14 @@ double z_Pastix_Norm2( pastix_int_t n, const pastix_complex64_t *x )
  *
  * @ingroup pastix_dev_refine
  *
- * @brief Solve A x = b
+ * @brief Solve A x = b with A the sparse matrix
  *
  *******************************************************************************
  *
  * @param[in] pastix_data
  *          The PaStiX data structure that describes the solver instance.
  *
- * @param[in,out] d
+ * @param[inout] d
  *          On entry, the right hand side
  *          On exit, the solution of tha problem A x = b
  *
@@ -343,6 +342,49 @@ void z_Pastix_spsv( pastix_data_t *pastix_data, pastix_complex64_t *b )
 {
     pastix_int_t n = pastix_data->bcsc->gN;
     pastix_subtask_solve( pastix_data, 1, b, n );
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
+ *
+ * @brief Compute y = A x + y
+ *
+ *******************************************************************************
+ *
+ * @param[in] m
+ *          The number of rows of the matrix A, and the size of y.
+ *
+ * @param[in] n
+ *          The number of columns of the matrix A, and the size of x.
+ *
+ * @param[in] A
+ *          The dense matrix A of size lda-by-n.
+ *
+ * @param[in] lda
+ *          The leading dimension of the matrix A. lda >= max(1,m)
+ *
+ * @param[in] x
+ *          The vector x of size n.
+ *
+ * @param[inout] y
+ *          On entry, the initial vector y of size m.
+ *          On exit, the updated vector.
+ *
+ *******************************************************************************/
+void z_Pastix_gemv( pastix_int_t m,
+                    pastix_int_t n,
+                    const pastix_complex64_t *A,
+                    pastix_int_t lda,
+                    const pastix_complex64_t *x,
+                    pastix_complex64_t *y )
+{
+    static pastix_complex64_t zone = 1.0;
+
+    cblas_zgemv( CblasColMajor, CblasNoTrans, m, n,
+                 CBLAS_SADDR(zone), A, lda, x, 1,
+                 CBLAS_SADDR(zone), y, 1 );
 }
 
 /**
@@ -519,7 +561,7 @@ void z_Pastix_bMAx( pastix_bcsc_t            *bcsc,
  * @param[in] beta
  *          The scalar beta.
  *
- * @param[in,out] y
+ * @param[inout] y
  *          On entry, the vector y
  *          On exit, alpha A x + y
  *
@@ -578,7 +620,7 @@ void z_Pastix_BYPX( pastix_int_t n, pastix_complex64_t *beta,
  * @param[in] x
  *          The vector to be scaled
  *
- * @param[in,out] y
+ * @param[inout] y
  *          The resulting solution
  *
  *******************************************************************************/
@@ -608,7 +650,7 @@ z_Pastix_copy( pastix_int_t              n,
  * @param[in] x
  *          The vector to be scaled
  *
- * @param[in,out] y
+ * @param[inout] y
  *          The resulting solution
  *
  *******************************************************************************/
@@ -693,4 +735,5 @@ void z_Pastix_Solveur( struct z_solver *solveur )
     solveur->spmv    = &z_Pastix_spmv;
     solveur->spsv    = &z_Pastix_spsv;
     solveur->norm    = &z_Pastix_Norm2;
+    solveur->gemv    = &z_Pastix_gemv;
 }

@@ -185,7 +185,7 @@ if(CBLAS_FOUND)
     include_directories(${CBLAS_INCLUDE_DIRS})
 endif()
 
-find_package(LAPACKE) # Should be also REQUIRED
+find_package(LAPACKE COMPONENTS TMG)
 if(LAPACKE_FOUND)
   message(STATUS "lapacke: ${LAPACKE_INCLUDE_DIRS}")
   include_directories(${LAPACKE_INCLUDE_DIRS})

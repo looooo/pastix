@@ -1059,17 +1059,17 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                         default:
                             MALLOC_INTERN( tmp, lrA->rk * nrhs, pastix_complex64_t);
                             cblas_zgemm(
-                                CblasColMajor, CblasTrans, CblasNoTrans,
+                                CblasColMajor, (CBLAS_TRANSPOSE)trans, CblasNoTrans,
                                 lrA->rk, nrhs, tempn,
                                 CBLAS_SADDR(zone),  lrA->u, tempn,
-                                b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
+                                                    b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
                                 CBLAS_SADDR(zzero), tmp,  lrA->rk );
 
                             cblas_zgemm(
                                 CblasColMajor, (CBLAS_TRANSPOSE)trans, CblasNoTrans,
                                 tempm, nrhs, lrA->rk,
                                 CBLAS_SADDR(mzone), lrA->v, lrA->rkmax,
-                                tmp, lrA->rk,
+                                                    tmp, lrA->rk,
                                 CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
                             memFree_null(tmp);
                             break;
@@ -1080,7 +1080,7 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                             CblasColMajor, (CBLAS_TRANSPOSE)trans, CblasNoTrans,
                             tempm, nrhs, tempn,
                             CBLAS_SADDR(mzone), A + blok->coefind, lda,
-                            b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
+                                                b + cblk->lcolidx + blok->frownum - cblk->fcolnum, ldb,
                             CBLAS_SADDR(zone),  b + fcbk->lcolidx, ldb );
                     }
                     pastix_cblk_unlock( fcbk );

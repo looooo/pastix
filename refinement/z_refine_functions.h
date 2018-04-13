@@ -52,6 +52,7 @@ struct z_solver
     void (* BYPX)(pastix_int_t, pastix_complex64_t *, pastix_complex64_t *, pastix_complex64_t *);
     void (* AXPY)(pastix_int_t, pastix_complex64_t,  const pastix_complex64_t *, pastix_complex64_t *);
 
+
     void   (*output_oneiter)(double, double, double, pastix_int_t);
     void   (*scal)( pastix_int_t, pastix_complex64_t, pastix_complex64_t * );
     pastix_complex64_t (*dot) ( pastix_int_t, const pastix_complex64_t *, const pastix_complex64_t * );
@@ -60,8 +61,9 @@ struct z_solver
     void   (*spmv)( pastix_data_t *, pastix_complex64_t, const pastix_complex64_t *, pastix_complex64_t, pastix_complex64_t * );
     void   (*spsv)( pastix_data_t *, pastix_complex64_t * );
     double (*norm)( pastix_int_t, const pastix_complex64_t * );
-    void   (*trsv)( pastix_data_t *, pastix_complex64_t * );
-    void   (*gemv)( pastix_data_t *, pastix_complex64_t * );
+    void   (*gemv)( pastix_int_t, pastix_int_t,
+                    const pastix_complex64_t *, pastix_int_t,
+                    const pastix_complex64_t *, pastix_complex64_t *);
 };
 
 void z_Pastix_Solveur(struct z_solver *);
