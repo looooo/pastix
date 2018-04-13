@@ -71,7 +71,6 @@ sonar_pastix:
     - source .gitlab-ci-env.sh
     - ./tools/analysis.sh
   only:
-    - branches
     - master@solverstack/pastix
     - master@pastix/pastix
 
