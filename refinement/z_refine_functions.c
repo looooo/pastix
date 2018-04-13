@@ -339,7 +339,7 @@ double z_Pastix_Norm2( pastix_int_t n, const pastix_complex64_t *x )
  *          On exit, the solution of tha problem A x = b
  *
  *******************************************************************************/
-void z_Pastix_trsv( pastix_data_t *pastix_data, pastix_complex64_t *b )
+void z_Pastix_spsv( pastix_data_t *pastix_data, pastix_complex64_t *b )
 {
     pastix_int_t n = pastix_data->bcsc->gN;
     pastix_subtask_solve( pastix_data, 1, b, n );
@@ -678,7 +678,7 @@ void z_Pastix_Solveur( struct z_solver *solveur )
 
     /* Basic operations */
     solveur->Norm    = &z_Pastix_Norm2;
-    solveur->Precond = &z_Pastix_trsv;
+    solveur->Precond = &z_Pastix_spsv;
     solveur->Scal    = &z_Pastix_scal;
     solveur->Ax      = &z_Pastix_Ax;
     solveur->bMAx    = &z_Pastix_bMAx;
@@ -691,6 +691,6 @@ void z_Pastix_Solveur( struct z_solver *solveur )
     solveur->copy    = &z_Pastix_copy;
     solveur->axpy    = &z_Pastix_axpy;
     solveur->spmv    = &z_Pastix_spmv;
-    solveur->trsv    = &z_Pastix_trsv;
+    solveur->spsv    = &z_Pastix_spsv;
     solveur->norm    = &z_Pastix_Norm2;
 }

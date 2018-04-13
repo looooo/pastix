@@ -65,25 +65,22 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     Clock                          refine_clk;
     pastix_fixdbl_t                t0           = 0.0;
     pastix_fixdbl_t                t3           = 0.0;
-    volatile pastix_int_t          gmresim      = 0;
-    volatile pastix_int_t          gmresmaxits  = 0;
-    pastix_complex64_t          ** gmresvv      = NULL;
+    pastix_int_t                   im, im1      = 0;
+    volatile pastix_int_t          maxits  = 0;
     pastix_complex64_t            *gmHi, *gmH   = NULL;
+    pastix_complex64_t            *gmVi, *gmV   = NULL;
+    pastix_complex64_t            *gmWi, *gmW   = NULL;
     pastix_complex64_t          *  gmcos        = NULL;
     pastix_complex64_t          *  gmsin        = NULL;
     pastix_complex64_t          *  gmresrs      = NULL;
-    pastix_complex64_t          ** gmresw       = NULL;
-    pastix_complex64_t             gmresalpha;
-    pastix_complex64_t             gmrest;
     volatile pastix_int_t          gmresiters   = 0;
-    pastix_complex64_t          *  gmreswk1;
-    pastix_complex64_t          *  gmreswk2     = NULL;
     volatile pastix_int_t          i            = 0;
-    pastix_int_t                   j, ii, k;
-    pastix_complex64_t             beta;
+    pastix_int_t                   j, ii, k, ldw;
+    pastix_complex64_t             tmp;
     gmres_t                     *  gmresdata;
     double eps, norm, normb, normx, resid;
-    int precond = 0;
+    int precond = 1;
+    ldw = n;
 
     if ( bcsc->mtxtype == PastixHermitian ) {
         /* Check if we need dotu for non hermitian matrices (CEA patch) */
@@ -91,53 +88,68 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     }
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
         precond = 0;
+        ldw = 0;
     }
+
+    precond = 0;
+    ldw = 0;
 
     /* Get the parameters */
-    gmresim     = solveur.Krylov_Space(pastix_data);
-    gmresmaxits = solveur.Itermax(pastix_data);
-    eps         = solveur.Eps(pastix_data);
+    im     = solveur.Krylov_Space(pastix_data);
+    im1    = im + 1;
+    maxits = solveur.Itermax(pastix_data);
+    eps    = solveur.Eps(pastix_data);
 
-    gmcos     = (pastix_complex64_t *)solveur.Malloc(gmresim * sizeof(pastix_complex64_t));
-    gmsin     = (pastix_complex64_t *)solveur.Malloc(gmresim * sizeof(pastix_complex64_t));
-    gmresrs   = (pastix_complex64_t *)solveur.Malloc((gmresim+1) * sizeof(pastix_complex64_t));
+    gmcos     = (pastix_complex64_t *)solveur.Malloc(im  * sizeof(pastix_complex64_t));
+    gmsin     = (pastix_complex64_t *)solveur.Malloc(im  * sizeof(pastix_complex64_t));
+    gmresrs   = (pastix_complex64_t *)solveur.Malloc(im1 * sizeof(pastix_complex64_t));
     gmresdata = (gmres_t *)solveur.Malloc(1 * sizeof(gmres_t));
-    gmresvv   = (pastix_complex64_t **)solveur.Malloc((gmresim+1) * sizeof(pastix_complex64_t*));
-    gmH       = (pastix_complex64_t *)solveur.Malloc(gmresim * (gmresim+1) * sizeof(pastix_complex64_t));
-    memset( gmH, 0, gmresim * (gmresim+1) * sizeof(pastix_complex64_t*) );
-    gmresw    = (pastix_complex64_t **)solveur.Malloc(gmresim * sizeof(pastix_complex64_t*));
-    for (i=0; i<gmresim; i++)
-    {
-        gmresvv[i] = (pastix_complex64_t *)solveur.Malloc(n           * sizeof(pastix_complex64_t));
-        gmresw[i]  = (pastix_complex64_t *)solveur.Malloc(n           * sizeof(pastix_complex64_t));
+    /**
+     * H stores the h_{i,j} elements ot the upper hessenberg matrix H (See Alg. 9.5 p 270)
+     * V stores the v_{i} vectors
+     * W stores the M^{-1} v_{i} vectors to avoid the application of the
+     *          preconditioner on the output result (See line 11 of Alg 9.5)
+     */
+    gmH = (pastix_complex64_t *)solveur.Malloc(im * im1 * sizeof(pastix_complex64_t));
+    gmV = (pastix_complex64_t *)solveur.Malloc(n  * im1 * sizeof(pastix_complex64_t));
+    if (precond) {
+        gmW = (pastix_complex64_t *)solveur.Malloc(n  * im  * sizeof(pastix_complex64_t));
     }
-    gmresvv[gmresim] = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
+    else {
+        gmW = (pastix_complex64_t *)solveur.Malloc(n        * sizeof(pastix_complex64_t));
+    }
+    memset( gmH, 0, im * im1 * sizeof(pastix_complex64_t*) );
+
     gmresdata->gmresro = 0.0;
     gmresdata->gmresout_flag = 1;
 
     normb = solveur.norm( n, b );
     normx = solveur.norm( n, x );
 
-    gmresalpha = -1.0;
     gmresiters = 0;
 
-    clockInit(refine_clk);clockStart(refine_clk);
+    clockInit(refine_clk);
+    clockStart(refine_clk);
 
     /**
      * Algorithm from Iterative Methods for Sparse Linear systems, Y. Saad, Second Ed. p267-273
      *
-     * The version implemented is the Right preconditionned algorithm.
+     * The version implemented is the Right preconditioned algorithm.
      */
     while (gmresdata->gmresout_flag)
     {
+        /* Initialize v_{0} and w_{0} */
+        gmVi = gmV;
+        gmWi = gmW;
+
         /* Compute r0 = b - A * x */
-        solveur.copy( n, b, gmresvv[0] );
+        solveur.copy( n, b, gmVi );
         if ( normx > 0. ) {
-            solveur.spmv( pastix_data, -1., x, 1., gmresvv[0] );
+            solveur.spmv( pastix_data, -1., x, 1., gmVi );
         }
 
         /* Compute beta = ||r0||_f */
-        gmresdata->gmresro = solveur.norm( n, gmresvv[0] );
+        gmresdata->gmresro = solveur.norm( n, gmVi );
 
         /* If residual is small enough, exit */
         if ( gmresdata->gmresro <= eps )
@@ -147,13 +159,14 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
         }
 
         /* Compute v0 = r0 / beta */
-        gmrest = (pastix_complex64_t)( 1.0 / gmresdata->gmresro );
-        solveur.scal( n, gmrest, gmresvv[0] );
+        tmp = (pastix_complex64_t)( 1.0 / gmresdata->gmresro );
+        solveur.scal( n, tmp, gmVi );
 
         gmresrs[0] = (pastix_complex64_t)gmresdata->gmresro;
         gmresdata->gmresin_flag = 1;
         i = -1;
-        gmHi = gmH - (gmresim+1);
+        gmHi = gmH - im1;
+        gmWi = gmW - ldw;
 
         while( gmresdata->gmresin_flag )
         {
@@ -162,58 +175,53 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 
             i++;
 
-            /* Set H pointer to the begfinning of columns i and i+1 */
-            gmHi = gmHi + (gmresim+1);
+            /* Set H and W pointers to the beginning of columns i */
+            gmHi = gmHi + im1;
+            gmWi = gmWi + ldw;
 
-            gmreswk1 = gmresvv[i+1];
-            gmreswk2 = gmresw[i];
+            /* Backup v_{i} into w_{i} for the end */
+            solveur.copy( n, gmVi, gmWi );
 
-            /* Compute w2 = M^{-1} v_{i} */
-            solveur.copy( n, gmresvv[i], gmreswk2 );
+            /* Compute w_{i} = M^{-1} v_{i} */
             if ( precond ) {
-                solveur.trsv( pastix_data, gmreswk2 );
+                solveur.spsv( pastix_data, gmWi );
             }
 
-            /* w = A (M^{-1} v_{i}) = A w2 */
-            solveur.spmv( pastix_data, 1.0, gmreswk2, 0., gmreswk1 );
+            /* v_{i+1} = A (M^{-1} v_{i}) = A w_{i} */
+            gmVi += n;
+            solveur.spmv( pastix_data, 1.0, gmWi, 0., gmVi );
 
             /* Classical Gram-Schmidt */
             for (j=0; j<=i; j++)
             {
-                /* Compute h_{i,j} = < w, v_{i} > */
-                beta = solveur.dot( n, gmreswk1, gmresvv[j] );
+                /* Compute h_{j,i} = < v_{i+1}, v_{j} > */
+                gmHi[j] = solveur.dot( n, gmVi, gmV + j * n );
 
-                gmHi[j] = (pastix_complex64_t)beta;
-                gmresalpha = -1. * gmHi[j];
-
-                /* Compute w = w - h_{i,j} v_{i} */
-                solveur.axpy( n, gmresalpha, gmresvv[j], gmreswk1 );
+                /* Compute v_{i+1} = v_{i+1} - h_{j,i} v_{j} */
+                solveur.axpy( n, -1. * gmHi[j],  gmV + j * n, gmVi );
             }
 
-            /* Compute || w ||_f */
-            norm = solveur.norm( n, gmreswk1 );
+            /* Compute || v_{i+1} ||_f */
+            norm = solveur.norm( n, gmVi );
             gmHi[i+1] = norm;
 
-            /* Compute V_{i+1} = w / h_{i,i+1} iff h_{i,i+1} is not too small */
+            /* Compute V_{i+1} = v_{i+1} / h_{i+1,i} iff h_{i+1,i} is not too small */
             if ( norm > 1e-50 )
             {
-                gmrest = (pastix_complex64_t)(1.0 / norm);
-                solveur.scal( n, gmrest, gmreswk1 );
+                tmp = (pastix_complex64_t)(1.0 / norm);
+                solveur.scal( n, tmp, gmVi );
             }
 
             /* Apply the previous Givens rotation to the new column (should call LAPACKE_zrot_work())*/
-            if (i != 0)
+            for (j=0; j<i;j++)
             {
-                for (j=0; j<i;j++)
-                {
-                    /*
-                     * h_{j,  i} = cos_j * h_{j,  i} +      sin_{j}  * h_{j+1, i}
-                     * h_{j+1,i} = cos_j * h_{j+1,i} - conj(sin_{j}) * h_{j,   i}
-                     */
-                    gmrest = gmHi[j];
-                    gmHi[j]   = gmcos[j] * gmrest    +      gmsin[j]  * gmHi[j+1];
-                    gmHi[j+1] = gmcos[j] * gmHi[j+1] - conj(gmsin[j]) * gmrest;
-                }
+                /*
+                 * h_{j,  i} = cos_j * h_{j,  i} +      sin_{j}  * h_{j+1, i}
+                 * h_{j+1,i} = cos_j * h_{j+1,i} - conj(sin_{j}) * h_{j,   i}
+                 */
+                tmp = gmHi[j];
+                gmHi[j]   = gmcos[j] * tmp       +      gmsin[j]  * gmHi[j+1];
+                gmHi[j+1] = gmcos[j] * gmHi[j+1] - conj(gmsin[j]) * tmp;
             }
 
             /*
@@ -223,14 +231,16 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
              * cos = h_{i,i}   / t
              * sin = h_{i+1,i} / t
              */
-            gmrest = csqrt( gmHi[i]   * gmHi[i] +
-                            gmHi[i+1] * gmHi[i+1] );
+            {
+                tmp = csqrt( gmHi[i]   * gmHi[i] +
+                             gmHi[i+1] * gmHi[i+1] );
 
-            if ( cabs(gmrest) <= eps ) {
-                gmrest = (pastix_complex64_t)eps;
+                if ( cabs(tmp) <= eps ) {
+                    tmp = (pastix_complex64_t)eps;
+                }
+                gmcos[i] = gmHi[i]   / tmp;
+                gmsin[i] = gmHi[i+1] / tmp;
             }
-            gmcos[i] = gmHi[i]   / gmrest;
-            gmsin[i] = gmHi[i+1] / gmrest;
 
             /* Update the residuals (See p. 168, eq 6.35) */
             gmresrs[i+1] = -gmsin[i] * gmresrs[i];
@@ -244,9 +254,9 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 
             resid = gmresdata->gmresro / normb;
             gmresiters++;
-            if ( (i+1 >= gmresim) ||
+            if ( (i+1 >= im) ||
                  (resid <= eps) ||
-                 (gmresiters >= gmresmaxits) )
+                 (gmresiters >= maxits) )
             {
                 gmresdata->gmresin_flag = 0;
             }
@@ -258,52 +268,53 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
             }
         }
 
+        /* Compute y_m = H_m^{-1} g_m (See p. 169) */
         gmresrs[i] = gmresrs[i] / gmHi[i];
         for (ii=0; ii<i; ii++)
         {
             k = i-ii-1;
-            gmrest = gmresrs[k];
+            tmp = gmresrs[k];
             for (j=k+1; j<=i; j++)
             {
-                gmrest = gmrest - gmH[j * (gmresim+1) + k] * gmresrs[j];
+                tmp = tmp - gmH[j * im1 + k] * gmresrs[j];
             }
-            gmresrs[k] = gmrest / gmH[k * (gmresim+1) + k];
+            gmresrs[k] = tmp / gmH[k * im1 + k];
         }
 
         /**
          * TODO: - Replace by Gemv, and add last Precond for right precond
          *       - Add the left preconditionning variant
+         * Compute x_m = x_0 + M^{-1} V_m y_m
+         *             = x_0 +        W_m y_m
          */
         for (j=0; j<=i;j++)
         {
-            gmrest = gmresrs[j];
-            solveur.axpy( n, gmrest, gmresw[j], x );
+            if (precond) {
+                gmWi = gmW;
+            }
+            else {
+                gmWi = gmV;
+            }
+            /* X + */
+            solveur.axpy( n, gmresrs[j], gmWi + j * n, x );
         }
 
-        if ((resid <= eps) || (gmresiters >= gmresmaxits))
+        if ((resid <= eps) || (gmresiters >= maxits))
         {
             gmresdata->gmresout_flag = 0;
         }
     }
 
-    clockStop((refine_clk));
+    clockStop( refine_clk );
     t3 = clockGet();
 
     solveur.End( pastix_data, resid, gmresiters, t3, x, x );
 
-    solveur.Free((void*) gmcos);
-    solveur.Free((void*) gmsin);
-    solveur.Free((void*) gmresrs);
-    solveur.Free((void*) gmresdata);
-
-    for (i=0; i<gmresim; i++)
-    {
-        solveur.Free(gmresvv[i]);
-        solveur.Free(gmresw[i]);
-    }
-
-    solveur.Free(gmresvv[gmresim]);
-
-    solveur.Free(gmresvv);
-    solveur.Free(gmresw);
+    solveur.Free(gmcos);
+    solveur.Free(gmsin);
+    solveur.Free(gmresrs);
+    solveur.Free(gmresdata);
+    solveur.Free(gmH);
+    solveur.Free(gmV);
+    solveur.Free(gmW);
 }
