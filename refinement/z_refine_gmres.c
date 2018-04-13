@@ -49,6 +49,9 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     pastix_complex64_t *gmWi, *gmW;
     pastix_complex64_t *gmcos, *gmsin;
     pastix_complex64_t *gmG;
+#if defined(PASTIX_DEBUG_GMRES)
+    pastix_complex64_t *dbg_x, *dbg_r, *dbg_G;
+#endif
     pastix_complex64_t  tmp;
     pastix_fixdbl_t     t0, t3;
     double              eps, resid, resid_b;
@@ -77,11 +80,11 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
         precond = 0;
-        ldw = 0;
     }
 
-    precond = 0;
-    ldw = 0;
+    if ((!precond) || savemem ) {
+        ldw = 0;
+    }
 
     gmcos = (pastix_complex64_t *)solver.Malloc(im  * sizeof(pastix_complex64_t));
     gmsin = (pastix_complex64_t *)solver.Malloc(im  * sizeof(pastix_complex64_t));
@@ -99,7 +102,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
      */
     gmH = (pastix_complex64_t *)solver.Malloc(im * im1 * sizeof(pastix_complex64_t));
     gmV = (pastix_complex64_t *)solver.Malloc(n  * im1 * sizeof(pastix_complex64_t));
-    if (precond && !savemem ) {
+    if (precond && (!savemem) ) {
         gmW = (pastix_complex64_t *)solver.Malloc(n * im  * sizeof(pastix_complex64_t));
     }
     else {
@@ -107,7 +110,12 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     }
     memset( gmH, 0, im * im1 * sizeof(pastix_complex64_t*) );
 
-    outflag = 1;
+#if defined(PASTIX_DEBUG_GMRES)
+    dbg_x = (pastix_complex64_t *)solver.Malloc(n   * sizeof(pastix_complex64_t));
+    dbg_r = (pastix_complex64_t *)solver.Malloc(n   * sizeof(pastix_complex64_t));
+    dbg_G = (pastix_complex64_t *)solver.Malloc(im1 * sizeof(pastix_complex64_t));
+    solver.copy( n, x, dbg_x );
+#endif
 
     normb = solver.norm( n, b );
     normx = solver.norm( n, x );
@@ -120,12 +128,12 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
      *
      * The version implemented is the Right preconditioned algorithm.
      */
+    outflag = 1;
     iters = 0;
     while (outflag)
     {
         /* Initialize v_{0} and w_{0} */
         gmVi = gmV;
-        gmWi = gmW;
 
         /* Compute r0 = b - A * x */
         solver.copy( n, b, gmVi );
@@ -133,17 +141,18 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
             solver.spmv( pastix_data, -1., x, 1., gmVi );
         }
 
-        /* Compute beta = ||r0||_f */
+        /* Compute resid = ||r0||_f */
         resid = solver.norm( n, gmVi );
+        resid_b = resid / normb;
 
         /* If residual is small enough, exit */
-        if ( resid <= eps )
+        if ( resid_b <= eps )
         {
             outflag = 0;
             break;
         }
 
-        /* Compute v0 = r0 / beta */
+        /* Compute v0 = r0 / resid */
         tmp = (pastix_complex64_t)( 1.0 / resid );
         solver.scal( n, tmp, gmVi );
 
@@ -250,6 +259,29 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
             t3 = clockGet();
             if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
                 solver.output_oneiter( t0, t3, resid_b, iters );
+
+#if defined(PASTIX_DEBUG_GMRES)
+                {
+                    double normr2;
+
+                    /* Compute y_m = H_m^{-1} g_m (See p. 169) */
+                    memcpy( dbg_G, gmG, im1 * sizeof(pastix_complex64_t) );
+                    cblas_ztrsv( CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit,
+                                 i+1, gmH, im1, dbg_G, 1 );
+
+                    solver.copy( n, b, dbg_r );
+                    solver.copy( n, x, dbg_x );
+
+                    /* Accumulate the current v_m */
+                    solver.gemv( n, i+1, 1.0, (precond ? gmW : gmV), n, dbg_G, 1.0, dbg_x );
+
+                    /* Compute b - Ax */
+                    solver.spmv( pastix_data, -1., dbg_x, 1., dbg_r );
+
+                    normr2 = solver.norm( n, dbg_r );
+                    fprintf(stdout, OUT_ITERREFINE_ERR, normr2 / normb );
+                }
+#endif
             }
         }
 
@@ -265,11 +297,13 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
             /**
              * Since we saved memory, we do not have (M^{-1} V_m) stored,
              * thus we compute:
-             *       = V_m y_m
-             *       = M^{-1} (V_m y_m)
+             *     w = V_m y_m
+             *     w = M^{-1} (V_m y_m)
              *     x = x0 + (M^{-1} (V_m y_m))
              */
-            assert(0);
+            solver.gemv( n, i+1, 1.0, gmV, n, gmG, 0., gmW );
+            solver.spsv( pastix_data, gmW );
+            solver.axpy( n, 1.,  gmW, x );
         }
         else {
             /**
@@ -279,7 +313,7 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
              *     x = x0 + V_m y_m, if not precond
              */
             gmWi = precond ? gmW : gmV;
-            solver.gemv( n, i+1, gmWi, n, gmG, x );
+            solver.gemv( n, i+1, 1.0, gmWi, n, gmG, 1.0, x );
         }
 
         if ((resid_b <= eps) || (iters >= maxits))
@@ -299,4 +333,9 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     solver.Free(gmH);
     solver.Free(gmV);
     solver.Free(gmW);
+#if defined(PASTIX_DEBUG_GMRES)
+    solver.Free(dbg_x);
+    solver.Free(dbg_r);
+    solver.Free(dbg_G);
+#endif
 }

@@ -62,8 +62,8 @@ struct z_solver
     void   (*spsv)( pastix_data_t *, pastix_complex64_t * );
     double (*norm)( pastix_int_t, const pastix_complex64_t * );
     void   (*gemv)( pastix_int_t, pastix_int_t,
-                    const pastix_complex64_t *, pastix_int_t,
-                    const pastix_complex64_t *, pastix_complex64_t *);
+                    pastix_complex64_t, const pastix_complex64_t *, pastix_int_t,
+                    const pastix_complex64_t *, pastix_complex64_t, pastix_complex64_t *);
 };
 
 void z_Pastix_Solveur(struct z_solver *);

@@ -349,7 +349,7 @@ void z_Pastix_spsv( pastix_data_t *pastix_data, pastix_complex64_t *b )
  *
  * @ingroup pastix_dev_refine
  *
- * @brief Compute y = A x + y
+ * @brief Compute y = \alpha A x + \beta y
  *
  *******************************************************************************
  *
@@ -358,6 +358,9 @@ void z_Pastix_spsv( pastix_data_t *pastix_data, pastix_complex64_t *b )
  *
  * @param[in] n
  *          The number of columns of the matrix A, and the size of x.
+ *
+ * @param[in] alpha
+ *          The scalar alpha.
  *
  * @param[in] A
  *          The dense matrix A of size lda-by-n.
@@ -368,6 +371,9 @@ void z_Pastix_spsv( pastix_data_t *pastix_data, pastix_complex64_t *b )
  * @param[in] x
  *          The vector x of size n.
  *
+ * @param[in] beta
+ *          The scalar beta.
+ *
  * @param[inout] y
  *          On entry, the initial vector y of size m.
  *          On exit, the updated vector.
@@ -375,16 +381,16 @@ void z_Pastix_spsv( pastix_data_t *pastix_data, pastix_complex64_t *b )
  *******************************************************************************/
 void z_Pastix_gemv( pastix_int_t m,
                     pastix_int_t n,
+                    pastix_complex64_t alpha,
                     const pastix_complex64_t *A,
                     pastix_int_t lda,
                     const pastix_complex64_t *x,
+                    pastix_complex64_t  beta,
                     pastix_complex64_t *y )
 {
-    static pastix_complex64_t zone = 1.0;
-
     cblas_zgemv( CblasColMajor, CblasNoTrans, m, n,
-                 CBLAS_SADDR(zone), A, lda, x, 1,
-                 CBLAS_SADDR(zone), y, 1 );
+                 CBLAS_SADDR(alpha), A, lda, x, 1,
+                 CBLAS_SADDR(beta), y, 1 );
 }
 
 /**

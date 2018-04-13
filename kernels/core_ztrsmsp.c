@@ -1058,6 +1058,10 @@ solve_ztrsmsp( pastix_solv_mode_t  mode,
                             break;
                         default:
                             MALLOC_INTERN( tmp, lrA->rk * nrhs, pastix_complex64_t);
+                            /*
+                             * TODO : check if trans (if conj is already
+                             * applied) or [conj]trans based on case as for v.
+                             */
                             cblas_zgemm(
                                 CblasColMajor, (CBLAS_TRANSPOSE)trans, CblasNoTrans,
                                 lrA->rk, nrhs, tempn,
