@@ -17,17 +17,10 @@
 #include "common.h"
 #include "isched.h"
 
-#if defined(PASTIX_ARCH_COMPAQ)
-#  include <sys/types.h>
-#  include <sys/resource.h>
-#  include <sys/processor.h>
-#  include <sys/sysinfo.h>
-#  include <machine/hal_sysinfo.h>
-#  define X_INCLUDE_CXML
-#elif defined(PASTIX_HAVE_SCHED_SETAFFINITY)
+#if defined(PASTIX_HAVE_SCHED_SETAFFINITY)
 #  include <linux/unistd.h>
 #  include <sched.h>
-#elif defined(PASTIX_OS_MACOS)
+#if defined(PASTIX_OS_MACOS)
 #  include <mach/mach_init.h>
 #  include <mach/thread_policy.h>
 /**
@@ -37,7 +30,7 @@ extern kern_return_t thread_policy_set( thread_t               thread,
                                         thread_policy_flavor_t flavor,
                                         thread_policy_t        policy_info,
                                         mach_msg_type_number_t count);
-#endif  /* define(PASTIX_ARCH_COMPAQ) */
+#endif
 
 
 static pthread_mutex_t  mutextopo = PTHREAD_MUTEX_INITIALIZER;
@@ -126,10 +119,6 @@ int isched_nohwloc_bind_on_core_index(int cpu)
     {
         tid_t self_ktid = thread_self();
         bindprocessor(BINDTHREAD, self_ktid, cpu*2);
-    }
-#elif defined(PASTIX_ARCH_COMPAQ)
-    {
-        bind_to_cpu_id(getpid(), cpu, 0);
     }
 #elif defined(PASTIX_OS_MACOS)
     {
