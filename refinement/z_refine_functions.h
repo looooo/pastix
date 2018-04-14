@@ -19,11 +19,6 @@
 #ifndef _z_refine_functions_h_
 #define _z_refine_functions_h_
 
-pastix_complex64_t
-z_Pastix_Dotc( pastix_int_t n,
-               const pastix_complex64_t *x,
-               const pastix_complex64_t *y );
-
 struct z_solver
 {
     pastix_int_t    (* getN   )   (pastix_data_t *);
