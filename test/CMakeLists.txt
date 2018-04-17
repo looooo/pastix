@@ -32,8 +32,8 @@ target_link_libraries( spm_test
   pastix_kernels
   pastix_bcsc
   pastix_spm
-  ${LAPACKE_LIBRARIES}
-  ${LAPACK_SEQ_LIBRARIES} )
+  ${LAPACKE_LIBRARIES_DEP}
+  )
 
 ## Generate all test executables
 set (TESTS
@@ -116,10 +116,8 @@ if(TMG_FOUND)
 
   target_link_libraries( lowrank_test
     pastix_kernels
-    ${LAPACKE_LIBRARIES}
-    ${TMG_LIBRARIES}
-    ${LAPACK_SEQ_LIBRARIES}
-    ${BLAS_SEQ_LIBRARIES}
+    ${LAPACKE_LIBRARIES_DEP}
+    ${TMG_LIBRARIES_DEP}
     ${EXTRA_LIBS}
     m)
 
@@ -143,10 +141,8 @@ if(TMG_FOUND)
       pastix_kernels
       pastix
       lowrank_test
-      ${LAPACKE_LIBRARIES}
-      ${TMG_LIBRARIES}
-      ${LAPACK_SEQ_LIBRARIES}
-      ${BLAS_SEQ_LIBRARIES}
+      ${LAPACKE_LIBRARIES_DEP}
+      ${TMG_LIBRARIES_DEP}
       ${EXTRA_LIBS}
       m)
 

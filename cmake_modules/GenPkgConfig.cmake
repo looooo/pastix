@@ -126,7 +126,7 @@ macro(generate_pkgconfig_file)
           list(APPEND PASTIX_PKGCONFIG_REQUIRED starpu-${PASTIX_STARPU_VERSION})
         endif()
       else()
-        list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE ${STARPU_LIBRARIES})
+        list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE ${STARPU_LIBRARIES_DEP})
       endif()
     endif()
 
@@ -136,7 +136,7 @@ macro(generate_pkgconfig_file)
       if ( PARSEC_FOUND_WITH_PKGCONFIG )
         list(APPEND PASTIX_PKGCONFIG_REQUIRED parsec)
       else()
-        list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE ${PARSEC_LIBRARIES})
+        list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE ${PARSEC_LIBRARIES_DEP})
       endif()
     endif()
 
@@ -151,10 +151,8 @@ macro(generate_pkgconfig_file)
     list(APPEND PASTIX_PKGCONFIG_INCS
       )
     list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE
-      ${LAPACKE_LIBRARIES}
-      ${LAPACK_SEQ_LIBRARIES}
-      ${CBLAS_LIBRARIES}
-      ${BLAS_SEQ_LIBRARIES}
+      ${LAPACKE_LIBRARIES_DEP}
+      ${CBLAS_LIBRARIES_DEP}
       )
     list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE
       ${EXTRA_LIBRARIES}
