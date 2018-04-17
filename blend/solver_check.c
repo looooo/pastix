@@ -80,11 +80,14 @@ solverCheck(const SolverMatrix *solvmtx)
             {
                 for(k=j;k<solvmtx->cblktab[cblknum+1].fblokptr-solvmtx->bloktab;k++)
                 {
-                    if(solvmtx->indtab[indnum] > solvmtx->ftgtnbr) /** No ftgt **/
-                    {
-                        indnum++;
-                        continue;
-                    }
+                    /*
+                     * Test for ILU(k) to restore when we will do it
+                     */
+                    /* if(solvmtx->indtab[indnum] > solvmtx->ftgtnbr) /\** No ftgt **\/ */
+                    /* { */
+                    /*     indnum++; */
+                    /*     continue; */
+                    /* } */
                     if(solvmtx->indtab[indnum] < 0)
                     {
                         tasknum = -solvmtx->indtab[indnum];
