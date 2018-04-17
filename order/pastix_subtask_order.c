@@ -5,9 +5,9 @@
  * PaStiX ordering task.
  * Contains wrappers to build a good ordering for sparse direct solvers.
  * Affected by the compilation time options:
- *    - HAVE_SCOTCH: Enable Scotch graph partitioning library.
- *    - HAVE_PTSCOTCH: Enable PT-Scotch graph partitioning library.
- *    - HAVE_METIS: Enable Metis graph partitioning library.
+ *    - PASTIX_ORDERING_SCOTCH: Enable Scotch graph partitioning library.
+ *    - PASTIX_ORDERING_PTSCOTCH: Enable PT-Scotch graph partitioning library.
+ *    - PASTIX_ORDERING_METIS: Enable Metis graph partitioning library.
  *
  * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -260,7 +260,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "Scotch" );
         }
-#if defined(HAVE_SCOTCH)
+#if defined(PASTIX_ORDERING_SCOTCH)
         retval = pastixOrderComputeScotch( pastix_data, &subgraph );
 #else
         errorPrint("pastix_subtask_order: Ordering with Scotch requires to enable -DPASTIX_ORDERING_SCOTCH option");
@@ -275,7 +275,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "PT-Scotch" );
         }
-#if defined(HAVE_PTSCOTCH)
+#if defined(PASTIX_ORDERING_PTSCOTCH)
         retval = pastixOrderComputePTScotch( pastix_data, &subgraph );
 #else
         errorPrint("pastix_subtask_order: Ordering with PT-Scotch requires to enable -DPASTIX_ORDERING_PTSCOTCH option");
@@ -290,11 +290,11 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "Metis" );
         }
-#if defined(HAVE_METIS)
+#if defined(PASTIX_ORDERING_METIS)
         retval = pastixOrderComputeMetis( pastix_data, &subgraph );
         assert( ordemesh->rangtab == NULL );
 #else
-        errorPrint("pastix_subtask_order: Ordering with Metis requires -DHAVE_METIS flag at compile time");
+        errorPrint("pastix_subtask_order: Ordering with Metis requires -DPASTIX_ORDERING_METIS flag at compile time");
         retval = PASTIX_ERR_BADPARAMETER;
 #endif
         break;

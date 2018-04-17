@@ -23,13 +23,16 @@ lcov_cobertura.py pastix.lcov --output pastix-coverage.xml
 
 # Undefine this because not relevant in our configuration
 export UNDEFINITIONS="-UWIN32 -UWIN64 -U_MSC_EXTENSIONS -U_MSC_VER -U__SUNPRO_C -U__SUNPRO_CC -U__sun -Usun -U__cplusplus"
-export UNDEFINITIONS="$UNDEFINITIONS -UPARSEC_PROF_DRY_BODY -UPARSEC_PROF_TRACE -UPARSEC_PROF_GRAPHER -UPARSEC_SIM -UPARSEC_DEBUG_NOISIER -DPINS_ENABLE"
+export UNDEFINITIONS="$UNDEFINITIONS -UPARSEC_PROF_DRY_BODY -UPARSEC_PROF_DRY_RUN -UPARSEC_PROF_TRACE -UPARSEC_PROF_GRAPHER -UPARSEC_SIM -DPINS_ENABLE -UBUILD_PARSEC"
+export UNDEFINITIONS="$UNDEFINITIONS -UPARSEC_DEBUG_NOISIER -UPARSEC_DEBUG_PARANOID -UPARSEC_DEBUG_HISTORY -UPARSEC_C_PARSEC_HAVE_VISIBILITY"
+export UNDEFINITIONS="$UNDEFINITIONS -UBUILDING_STRAPU"
+export UNDEFINITIONS="$UNDEFINITIONS -UNAPA_SOPALIN -UPASTIX_WITH_STARPU_DIST"
 
 # to get it displayed and captured by gitlab to expose the badge on the main page
 cat ./pastix-gcov.log
 
 # run cppcheck analysis
-cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingInclude ${UNDEFINITIONS} --file-list=./filelist.txt 2> pastix-cppcheck.xml
+cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingInclude ${UNDEFINITIONS} --file-list=./filelist-c.txt 2> pastix-cppcheck.xml
 
 # run rats analysis
 rats -w 3 --xml  `cat filelist.txt` > pastix-rats.xml

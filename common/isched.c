@@ -22,13 +22,6 @@
 
 #if defined(HAVE_HWLOC)
 #include "isched_hwloc.h"
-#elif defined(ARCH_COMPAQ)
-#  include <sys/types.h>
-#  include <sys/resource.h>
-#  include <sys/processor.h>
-#  include <sys/sysinfo.h>
-#  include <machine/hal_sysinfo.h>
-#  define X_INCLUDE_CXML
 #elif defined(HAVE_SCHED_SETAFFINITY)
 #  include <linux/unistd.h>
 #  include <sched.h>

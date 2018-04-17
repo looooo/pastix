@@ -19,7 +19,7 @@
 #include "cblas.h"
 #include "blend/solver.h"
 #include "kernels_trace.h"
-#include "pastix_zcores.h"
+#include "pastix_zcuda.h"
 #include "pastix_cuda.h"
 #include <cublas.h>
 

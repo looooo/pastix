@@ -14,13 +14,20 @@ rm -f filelist.txt
 git ls-files | grep "\.[ch]"   >  filelist.txt
 git ls-files | grep "\.py"     >> filelist.txt
 find $BUILDDIR -name '*\.[ch]' >> filelist.txt
+echo "build/include/pastix/config.h" >> filelist.txt
 echo "wrappers/python/examples/pypastix/enum.py" >> filelist.txt
 
 # Remove files in kernel/gpus that are C++ and not our own files.
 sed -i "/kernels\/gpus\/.*/d" filelist.txt
 
 # Remove all CMakeFiles generated file
-#sed -i '/CMakeFiles/d' filelist.txt
+sed -i '/CMakeFiles/d' filelist.txt
+
+# Remove all CMakeFiles generated file
+sed -i '/.cmake/d' filelist.txt
+
+# Remove all .in file
+sed -i '/.in$/d' filelist.txt
 
 # Remove files compiled from jdf files
 for jdf in `find -name "*\.jdf"`
@@ -50,3 +57,6 @@ for file in spm/drivers/iohb.c spm/drivers/iohb.h spm/drivers/mmio.c spm/drivers
 do
     sed -i "\:^$file.*:d" filelist.txt
 done
+
+grep '/\.c$/d' filelist.txt > filelist-c.txt
+

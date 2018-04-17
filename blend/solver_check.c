@@ -27,8 +27,6 @@
 #include "blendctrl.h"
 #include "simu.h"
 
-/*#define DEBUG_PRIO*/
-
 /**
  *******************************************************************************
  *
@@ -82,13 +80,14 @@ solverCheck(const SolverMatrix *solvmtx)
             {
                 for(k=j;k<solvmtx->cblktab[cblknum+1].fblokptr-solvmtx->bloktab;k++)
                 {
-                    /*#ifdef NAPA*/
-                    if(solvmtx->indtab[indnum] > solvmtx->ftgtnbr) /** No ftgt **/
-                    {
-                        indnum++;
-                        continue;
-                    }
-                    /*#endif*/
+                    /*
+                     * Test for ILU(k) to restore when we will do it
+                     */
+                    /* if(solvmtx->indtab[indnum] > solvmtx->ftgtnbr) /\** No ftgt **\/ */
+                    /* { */
+                    /*     indnum++; */
+                    /*     continue; */
+                    /* } */
                     if(solvmtx->indtab[indnum] < 0)
                     {
                         tasknum = -solvmtx->indtab[indnum];
@@ -137,17 +136,15 @@ solverCheck(const SolverMatrix *solvmtx)
 
                         solvmtx->ftgttab[ftgtnum].infotab[FTGT_CTRBCNT]--;
 
-#ifdef DEBUG_PRIO
+#if defined(PASTIX_DEBUG_BLEND)
                         if( solvmtx->ftgttab[ftgtnum].infotab[FTGT_CTRBCNT] == 0) {
                             if(solvmtx->ftgttab[ftgtnum].infotab[FTGT_PRIONUM] != solvmtx->tasktab[i].prionum) {
-                                fprintf(stdout, "Task1D %ld FTGT %ld  taskprio %ld ftgtprio %ld \n", (long)i, (long)ftgtnum, (long)solvmtx->tasktab[i].prionum, (long)solvmtx->ftgttab[ftgtnum].infotab[FTGT_PRIONUM]);
+                                fprintf( stdout, "Task1D %ld FTGT %ld  taskprio %ld ftgtprio %ld \n",
+                                         (long)i, (long)ftgtnum, (long)solvmtx->tasktab[i].prionum,
+                                         (long)solvmtx->ftgttab[ftgtnum].infotab[FTGT_PRIONUM] );
                             }
                         }
 #endif
-                        /*fprintf(stdout ," [ %ld %ld ] [%ld %ld ] \n", (long)solvmtx->ftgttab[ftgtnum].infotab[FTGT_FCOLNUM],
-                         (long)solvmtx->ftgttab[ftgtnum].infotab[FTGT_LCOLNUM],
-                         (long)solvmtx->ftgttab[ftgtnum].infotab[FTGT_FROWNUM],
-                         (long)solvmtx->ftgttab[ftgtnum].infotab[FTGT_LROWNUM]);*/
                     }
                     indnum++;
                 }
@@ -184,7 +181,7 @@ solverCheck(const SolverMatrix *solvmtx)
 
     assert(total == solvmtx->tasknbr);
 
-#ifdef DEBUG_BLEND
+#if defined(PASTIX_DEBUG_BLEND)
     {
         pastix_int_t * flag;
         MALLOC_INTERN(flag, solvmtx->tasknbr, pastix_int_t);
@@ -193,8 +190,9 @@ solverCheck(const SolverMatrix *solvmtx)
         for(i=0;i<solvmtx->bublnbr;i++) {
             for(j=0;j<solvmtx->ttsknbr[i];j++)
             {
-                if(flag[solvmtx->ttsktab[i][j]] != 0)
+                if(flag[solvmtx->ttsktab[i][j]] != 0) {
                     fprintf(stderr, "flag %ld thread %ld task %ld already on another thread \n", (long)flag[solvmtx->ttsktab[i][j]], (long)i, (long)solvmtx->ttsktab[i][j]);
+                }
                 flag[solvmtx->ttsktab[i][j]]++;
             }
         }
@@ -206,7 +204,7 @@ solverCheck(const SolverMatrix *solvmtx)
     }
 #endif
 
-#ifdef PASTIX_DYNSCHED
+#if defined(PASTIX_DYNSCHED)
     {
         int k, bubnbr = solvmtx->bublnbr;
 

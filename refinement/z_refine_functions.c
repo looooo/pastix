@@ -17,6 +17,7 @@
  *
  **/
 #include "common.h"
+#include "cblas.h"
 #include "bcsc.h"
 #include "z_bcsc.h"
 #include "sopalin_data.h"
@@ -39,7 +40,7 @@
  * @return The allocated vector
  *
  *******************************************************************************/
-void *z_Pastix_Malloc( size_t size )
+void *z_Pastix_malloc( size_t size )
 {
     void *x = NULL;
     MALLOC_INTERN(x, size, char);
@@ -60,7 +61,7 @@ void *z_Pastix_Malloc( size_t size )
  *          The vector to be free
  *
  *******************************************************************************/
-void z_Pastix_Free( void *x )
+void z_Pastix_free( void *x )
 {
     memFree_null(x);
 }
@@ -137,8 +138,9 @@ void z_Pastix_End( pastix_data_t *pastix_data, pastix_complex64_t err,
     (void)nb_iters;
     (void)tf;
 
-    for (i=0; i<n; i++)
+    for (i=0; i<n; i++) {
         xptr[i] = gmresx[i];
+    }
 }
 
 /**
@@ -168,13 +170,15 @@ void z_Pastix_X( pastix_data_t *pastix_data, void *x, pastix_complex64_t *gmresx
 
     if (1 /*pastix_data->iparm[IPARM_ONLY_REFINE] == 0*/)
     {
-        for (i=0; i<n; i++, xptr++)
+        for (i=0; i<n; i++, xptr++) {
             gmresx[i]= *xptr;
+        }
     }
     else
     {
-        for (i=0; i<n; i++, xptr++)
-            gmresx[i]=0.0;
+        for (i=0; i<n; i++, xptr++) {
+            gmresx[i] = 0.0;
+        }
     }
 }
 
@@ -219,15 +223,9 @@ pastix_int_t z_Pastix_n( pastix_data_t *pastix_data )
  *          The number of elements of both b and refineb
  *
  *******************************************************************************/
-void z_Pastix_B( void *b, pastix_complex64_t *refineb, pastix_int_t n )
+void z_Pastix_B( const pastix_complex64_t *b, pastix_complex64_t *refineb, pastix_int_t n )
 {
-    pastix_complex64_t *bptr = (pastix_complex64_t *)b;
-    pastix_int_t i;
-
-    for (i=0; i<n; i++, bptr++)
-    {
-        refineb[i]= *bptr;
-    }
+    memcpy( refineb, b, n * sizeof(pastix_complex64_t) );
 }
 
 /**
@@ -247,7 +245,7 @@ void z_Pastix_B( void *b, pastix_complex64_t *refineb, pastix_int_t n )
  * @return The precision required by the user
  *
  *******************************************************************************/
-pastix_complex64_t z_Pastix_Eps( pastix_data_t *pastix_data )
+pastix_fixdbl_t z_Pastix_Eps( pastix_data_t *pastix_data )
 {
     return pastix_data->dparm[DPARM_EPSILON_REFINEMENT];
 }
@@ -273,7 +271,6 @@ pastix_int_t z_Pastix_Itermax( pastix_data_t *pastix_data )
 {
     return pastix_data->iparm[IPARM_ITERMAX];
 }
-
 
 /**
  *******************************************************************************
@@ -317,11 +314,10 @@ pastix_int_t z_Pastix_Krylov_Space( pastix_data_t *pastix_data )
  * @return The frobenius norm of the vector
  *
  *******************************************************************************/
-pastix_complex64_t z_Pastix_Norm2( pastix_complex64_t *x, pastix_int_t n )
+double z_Pastix_norm( pastix_int_t n, const pastix_complex64_t *x )
 {
     double normx;
-    void *xptr = (void*)x;
-    normx = z_vectFrobeniusNorm(xptr, n);
+    normx = z_vectFrobeniusNorm( n, x );
     return normx;
 }
 
@@ -330,66 +326,73 @@ pastix_complex64_t z_Pastix_Norm2( pastix_complex64_t *x, pastix_int_t n )
  *
  * @ingroup pastix_dev_refine
  *
- * @brief Apply a preconditionner
+ * @brief Solve A x = b with A the sparse matrix
  *
  *******************************************************************************
  *
  * @param[in] pastix_data
  *          The PaStiX data structure that describes the solver instance.
  *
- * @param[in] s
- *          The vector on which preconditionner is to be applied
- *
- * @param[out] d
- *          On exit, the d vector contains s preconditionned
+ * @param[inout] d
+ *          On entry, the right hand side
+ *          On exit, the solution of tha problem A x = b
  *
  *******************************************************************************/
-void z_Pastix_Precond( pastix_data_t *pastix_data, pastix_complex64_t *s, pastix_complex64_t *d )
+void z_Pastix_spsv( pastix_data_t *pastix_data, pastix_complex64_t *b )
 {
     pastix_int_t n = pastix_data->bcsc->gN;
-    pastix_int_t nrhs = 1;
-    void* bptr = (void*)d;
+    pastix_data->iparm[IPARM_VERBOSE]--;
+    pastix_subtask_solve( pastix_data, 1, b, n );
+    pastix_data->iparm[IPARM_VERBOSE]++;
+}
 
-    memcpy(d, s, n * sizeof( pastix_complex64_t ));
-    /*if (pastix_data->iparm[IPARM_ONLY_REFINE] == 0)*/
-    {
-        sopalin_data_t sopalin_data;
-        pastix_trans_t trans = PastixTrans;
-        sopalin_data.solvmtx = pastix_data->solvmatr;
-
-        switch ( pastix_data->iparm[IPARM_FACTORIZATION] ){
-        case PastixFactLLH:
-            trans = PastixConjTrans;
-            pastix_attr_fallthrough;
-
-        case PastixFactLLT:
-            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
-                           PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, bptr, n );
-            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
-                           trans,         PastixNonUnit, &sopalin_data, nrhs, bptr, n );
-            break;
-
-        case PastixFactLDLH:
-            trans = PastixConjTrans;
-            pastix_attr_fallthrough;
-
-        case PastixFactLDLT:
-            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
-                           PastixNoTrans, PastixUnit, &sopalin_data, nrhs, bptr, n );
-            sopalin_zdiag( pastix_data, &sopalin_data, nrhs, bptr, n );
-            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
-                           trans,        PastixUnit, &sopalin_data, nrhs, bptr, n );
-            break;
-
-        case PastixFactLU:
-        default:
-            sopalin_ztrsm( pastix_data, PastixLeft, PastixLower,
-                           PastixNoTrans, PastixUnit,    &sopalin_data, nrhs, bptr, n );
-            sopalin_ztrsm( pastix_data, PastixLeft, PastixUpper,
-                           PastixNoTrans, PastixNonUnit, &sopalin_data, nrhs, bptr, n );
-            break;
-        }
-    }
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
+ *
+ * @brief Compute y = \alpha A x + \beta y
+ *
+ *******************************************************************************
+ *
+ * @param[in] m
+ *          The number of rows of the matrix A, and the size of y.
+ *
+ * @param[in] n
+ *          The number of columns of the matrix A, and the size of x.
+ *
+ * @param[in] alpha
+ *          The scalar alpha.
+ *
+ * @param[in] A
+ *          The dense matrix A of size lda-by-n.
+ *
+ * @param[in] lda
+ *          The leading dimension of the matrix A. lda >= max(1,m)
+ *
+ * @param[in] x
+ *          The vector x of size n.
+ *
+ * @param[in] beta
+ *          The scalar beta.
+ *
+ * @param[inout] y
+ *          On entry, the initial vector y of size m.
+ *          On exit, the updated vector.
+ *
+ *******************************************************************************/
+void z_Pastix_gemv( pastix_int_t m,
+                    pastix_int_t n,
+                    pastix_complex64_t alpha,
+                    const pastix_complex64_t *A,
+                    pastix_int_t lda,
+                    const pastix_complex64_t *x,
+                    pastix_complex64_t  beta,
+                    pastix_complex64_t *y )
+{
+    cblas_zgemv( CblasColMajor, CblasNoTrans, m, n,
+                 CBLAS_SADDR(alpha), A, lda, x, 1,
+                 CBLAS_SADDR(beta), y, 1 );
 }
 
 /**
@@ -411,9 +414,9 @@ void z_Pastix_Precond( pastix_data_t *pastix_data, pastix_complex64_t *s, pastix
  *          The vector to be scaled
  *
  *******************************************************************************/
-void z_Pastix_Scal( pastix_int_t n, pastix_complex64_t alpha, pastix_complex64_t *x )
+void z_Pastix_scal( pastix_int_t n, pastix_complex64_t alpha, pastix_complex64_t *x )
 {
-    z_bcscScal( x, alpha, n, 1);
+    cblas_zscal( n, CBLAS_SADDR(alpha), x, 1 );
 }
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -439,10 +442,12 @@ void z_Pastix_Scal( pastix_int_t n, pastix_complex64_t alpha, pastix_complex64_t
  *          The result of the scalar product
  *
  *******************************************************************************/
-void z_Pastix_Dotc( pastix_int_t n, pastix_complex64_t *x,
-                    pastix_complex64_t *y, pastix_complex64_t *r )
+pastix_complex64_t
+z_Pastix_dotu( pastix_int_t n,
+               const pastix_complex64_t *x,
+               const pastix_complex64_t *y )
 {
-    *r = z_bcscDotc(n, x, y);
+    return z_bcscDotu( n, x, y );
 }
 #endif
 
@@ -472,10 +477,12 @@ void z_Pastix_Dotc( pastix_int_t n, pastix_complex64_t *x,
  * @return The allocated vector
  *
  *******************************************************************************/
-void z_Pastix_Dotu( pastix_int_t n, pastix_complex64_t *x,
-                    pastix_complex64_t *y, pastix_complex64_t *r )
+pastix_complex64_t
+z_Pastix_dotc( pastix_int_t n,
+               const pastix_complex64_t *x,
+               const pastix_complex64_t *y )
 {
-    *r = z_bcscDotu(n, x, y);
+    return z_bcscDotc( n, x, y );
 }
 
 /**
@@ -529,16 +536,52 @@ void z_Pastix_Ax( pastix_bcsc_t *bcsc, pastix_complex64_t *x, pastix_complex64_t
  *          The result b-Ax
  *
  *******************************************************************************/
-void z_Pastix_bMAx( pastix_bcsc_t *bcsc, pastix_complex64_t *b,
-                    pastix_complex64_t *x, pastix_complex64_t *r )
+void z_Pastix_bMAx( pastix_bcsc_t            *bcsc,
+                    const pastix_complex64_t *b,
+                    const pastix_complex64_t *x,
+                    pastix_complex64_t       *r )
 {
-    pastix_int_t alpha = -1.0;
-    pastix_int_t beta = 1.0;
-    void* xptr = (void*)x;
-    void* yptr = (void*)r;
+    pastix_complex64_t alpha = -1.0;
+    pastix_complex64_t beta = 1.0;
 
-    memcpy(r, b, bcsc->gN * sizeof( pastix_complex64_t ));
-    z_bcscGemv(PastixNoTrans, alpha, bcsc, xptr, beta, yptr );
+    memcpy( r, b, bcsc->gN * sizeof( pastix_complex64_t ) );
+    z_bcscGemv( PastixNoTrans, alpha, bcsc, x, beta, r );
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
+ *
+ * @brief Perform y = alpha A x + y
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix_data structure that holds the A matrix.
+ *
+ * @param[in] alpha
+ *          The scalar alpha.
+ *
+ * @param[in] x
+ *          The vector x
+ *
+ * @param[in] beta
+ *          The scalar beta.
+ *
+ * @param[inout] y
+ *          On entry, the vector y
+ *          On exit, alpha A x + y
+ *
+ *******************************************************************************/
+void z_Pastix_spmv( pastix_data_t            *pastix_data,
+                    pastix_complex64_t        alpha,
+                    const pastix_complex64_t *x,
+                    pastix_complex64_t        beta,
+                    pastix_complex64_t       *y )
+{
+    pastix_bcsc_t *bcsc = pastix_data->bcsc;
+    z_bcscGemv( PastixNoTrans, alpha, bcsc, x, beta, y );
 }
 
 /**
@@ -566,48 +609,67 @@ void z_Pastix_bMAx( pastix_bcsc_t *bcsc, pastix_complex64_t *b,
 void z_Pastix_BYPX( pastix_int_t n, pastix_complex64_t *beta,
                     pastix_complex64_t *y, pastix_complex64_t *x )
 {
-    void *yptr = (void*)y;
-    void *xptr = (void*)x;
-
-    z_bcscScal( xptr, *beta, n, 1);
-    z_bcscAxpy( n, 1., 1., yptr, xptr );
+    z_bcscScal( x, *beta, n, 1);
+    z_bcscAxpy( n, 1, 1., y, x );
 }
-
 
 /**
  *******************************************************************************
  *
  * @ingroup pastix_dev_refine
  *
- * @brief Perform y = alpha * coeff x + y
+ * @brief Coy a vector y = x
  *
  *******************************************************************************
  *
  * @param[in] n
  *          The number of elements of vectors x and y
  *
- * @param[in] coeff
- *          The first scaling parameter
+ * @param[in] x
+ *          The vector to be scaled
+ *
+ * @param[inout] y
+ *          The resulting solution
+ *
+ *******************************************************************************/
+static inline void
+z_Pastix_copy( pastix_int_t              n,
+               const pastix_complex64_t *x,
+               pastix_complex64_t       *y )
+{
+    memcpy( y, x, n * sizeof(pastix_complex64_t) );
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_dev_refine
+ *
+ * @brief Perform y = alpha * x + y
+ *
+ *******************************************************************************
+ *
+ * @param[in] n
+ *          The number of elements of vectors x and y
  *
  * @param[in] alpha
- *          The second scaling parameter
+ *          The scalar to scale x
  *
  * @param[in] x
  *          The vector to be scaled
  *
- * @param[in] y
+ * @param[inout] y
  *          The resulting solution
  *
  *******************************************************************************/
-void z_Pastix_AXPY( pastix_int_t n, double coeff,
-                    pastix_complex64_t *alpha, pastix_complex64_t *x,
-                    pastix_complex64_t *y )
+static inline void
+z_Pastix_axpy( pastix_int_t              n,
+               pastix_complex64_t        alpha,
+               const pastix_complex64_t *x,
+               pastix_complex64_t       *y )
 {
-    void *yptr = (void*)y;
-    void *xptr = (void*)x;
-    z_bcscAxpy( n, 1, coeff*(*alpha), yptr, xptr );
+    z_bcscAxpy( n, 1, alpha, x, y );
 }
-
 
 /**
  *******************************************************************************
@@ -643,34 +705,33 @@ pastix_int_t z_Pastix_me( void *arg )
  *
  *******************************************************************************
  *
- * @param[out] solveur
+ * @param[out] solver
  *          The structure to be filled
  *
  *******************************************************************************/
-void z_Pastix_Solveur( struct z_solver *solveur )
+void z_Pastix_Solver( struct z_solver *solver )
 {
-    /* Allocations */
-    solveur->Malloc      = &z_Pastix_Malloc;
-    solveur->Free        = &z_Pastix_Free;
-
     /* Interface functions */
-    solveur->Verbose = &z_Pastix_Verbose;
-    solveur->End     = &z_Pastix_End;
-    solveur->X       = &z_Pastix_X;
-    solveur->N       = &z_Pastix_n;
-    solveur->B       = &z_Pastix_B;
-    solveur->Eps     = &z_Pastix_Eps;
-    solveur->Itermax = &z_Pastix_Itermax;
-    solveur->me      = &z_Pastix_me;
-    solveur->Krylov_Space = &z_Pastix_Krylov_Space;
+    solver->getN       = &z_Pastix_n;
+    solver->getEps     = &z_Pastix_Eps;
+    solver->getImax    = &z_Pastix_Itermax;
+    solver->getRestart = &z_Pastix_Krylov_Space;
+
+    /* Allocations */
+    solver->malloc  = &z_Pastix_malloc;
+    solver->free    = &z_Pastix_free;
+
+    /* Output */
+    solver->output_oneiter = &z_Pastix_Verbose;
+    solver->output_final   = &z_Pastix_End;
 
     /* Basic operations */
-    solveur->Norm    = &z_Pastix_Norm2;
-    solveur->Precond = &z_Pastix_Precond;
-    solveur->Scal    = &z_Pastix_Scal;
-    solveur->Dotc    = &z_Pastix_Dotc;
-    solveur->Ax      = &z_Pastix_Ax;
-    solveur->AXPY    = &z_Pastix_AXPY;
-    solveur->bMAx    = &z_Pastix_bMAx;
-    solveur->BYPX    = &z_Pastix_BYPX;
+    solver->dot     = &z_Pastix_dotc;
+    solver->scal    = &z_Pastix_scal;
+    solver->copy    = &z_Pastix_copy;
+    solver->axpy    = &z_Pastix_axpy;
+    solver->spmv    = &z_Pastix_spmv;
+    solver->spsv    = &z_Pastix_spsv;
+    solver->norm    = &z_Pastix_norm;
+    solver->gemv    = &z_Pastix_gemv;
 }

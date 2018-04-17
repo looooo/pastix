@@ -32,7 +32,7 @@
 #include <assert.h>
 #include <math.h>
 
-#if defined(HAVE_MPI)
+#if defined(PASTIX_WITH_MPI)
 #include <mpi.h>
 #else
 #include "pastix/nompi.h"
@@ -131,6 +131,10 @@ int pastix_subtask_diag( pastix_data_t    *pastix_data,
                          pastix_int_t      nrhs,
                          void             *b,
                          pastix_int_t      ldb );
+int pastix_subtask_solve( pastix_data_t *pastix_data,
+                          pastix_int_t   nrhs,
+                          void          *b,
+                          pastix_int_t   ldb );
 
 /*
  * Schur complement manipulation routines.

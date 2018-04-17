@@ -58,10 +58,6 @@ solver_copy( const SolverMatrix *solvin,
     /* Copy tasktab */
     MALLOC_INTERN(solvout->tasktab, solvout->tasknbr, Task);
     memcpy(solvout->tasktab, solvin->tasktab, solvout->tasknbr*sizeof(Task));
-#ifdef DEBUG_BLEND
-    for(i=0;i<solvout->tasknbr;i++)
-        ASSERT((solvout->tasktab[i].btagptr == NULL), MOD_BLEND);
-#endif
 
     /* Copy cblktab and bloktab */
     MALLOC_INTERN(solvout->cblktab, solvout->cblknbr+1, SolverCblk);

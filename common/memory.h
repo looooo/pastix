@@ -37,32 +37,6 @@
 #define _memory_h_
 
 /*
- * Macro: MEMORY_WRITE
- *
- * Adapt the integer given in parameter to the suitable multiple of
- * 2**10 for output.
- */
-#define MEMORY_WRITE(mem) ( ((mem) < 1<<10) ?                           \
-                            ( (double)(mem) ) :                         \
-                            ( ( (mem) < 1<<20 ) ?                       \
-                              ( (double)(mem)/(double)(1<<10) ) :       \
-                              ( ((mem) < 1<<30 ) ?                      \
-                                ( (double)(mem)/(double)(1<<20) ) :     \
-                                ( (double)(mem)/(double)(1<<30) ))))
-/*
- * Macro: MEMORY_UNIT_WRITE
- *
- * Return the unit adapted to the amount of memory represented by mem.
- */
-#define MEMORY_UNIT_WRITE(mem) (((mem) < 1<<10) ?                       \
-                                "o" :                                   \
-                                ( ( (mem) < 1<<20 ) ?                   \
-                                  "Ko" :                                \
-                                  ( ( (mem) < 1<<30 ) ?                 \
-                                    "Mo" :                              \
-                                    "Go" )))
-
-/*
  * Function: pastix_protected_malloc
  *
  * PowerPC architectures don't support malloc(0). This function
@@ -81,8 +55,8 @@ static inline void *pastix_malloc_func( size_t size,
     }
 }
 
-#if defined(ARCH_PPC)
-#  define memAlloc(size) pastix_protected_malloc(size, __FILE__, __LINE__)
+#if defined(PASTIX_ARCH_PPC)
+#  define memAlloc(size) pastix_malloc_func(size, __FILE__, __LINE__)
 #else
 #  define memAlloc(size) malloc(size)
 #endif
@@ -145,9 +119,6 @@ static inline void *pastix_malloc_func( size_t size,
       }                                           \
   } while (0)
 
-//void *memAlloc(size_t size);
-//void  memFree(void *ptr);
-//void *memRealloc(void *ptr, size_t size);
 #define memRealloc realloc
 
 #endif /* _memory_h_ */

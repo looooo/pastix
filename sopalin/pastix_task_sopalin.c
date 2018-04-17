@@ -424,9 +424,10 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
         if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
             pastix_print( 0, 0, OUT_SOPALIN_TIME,
                           clockVal(timer),
-                          printflopsv( flops ), printflopsu( flops ),
-                          printflopsv( pastix_data->dparm[DPARM_FACT_THFLOPS] ),
-                          printflopsu( pastix_data->dparm[DPARM_FACT_THFLOPS] ),
+                          pastix_print_value( flops ),
+                          pastix_print_unit(  flops ),
+                          pastix_print_value( pastix_data->dparm[DPARM_FACT_THFLOPS] ),
+                          pastix_print_unit(  pastix_data->dparm[DPARM_FACT_THFLOPS] ),
                           (long)pastix_data->iparm[IPARM_STATIC_PIVOTING] );
         }
 

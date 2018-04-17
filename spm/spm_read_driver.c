@@ -17,7 +17,7 @@
 #include "common.h"
 #include "spm.h"
 #include "spm_drivers.h"
-#if defined(HAVE_SCOTCH)
+#if defined(PASTIX_ORDERING_SCOTCH)
 #include <scotch.h>
 #endif
 
@@ -127,7 +127,7 @@ spmReadDriver( pastix_driver_t  driver,
         break;
 
         case PastixDriverGraph:
-#if defined(HAVE_SCOTCH)
+#if defined(PASTIX_ORDERING_SCOTCH)
         {
             SCOTCH_Graph sgraph;
             FILE *file;

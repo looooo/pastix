@@ -41,184 +41,163 @@
  *******************************************************************************/
 void z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
 {
-    struct z_solver solveur;
-    memset( &solveur, 0, sizeof(struct z_solver) );
+    struct z_solver     solver;
+    pastix_int_t        n;
+    Clock               refine_clk;
+    pastix_fixdbl_t     t0      = 0;
+    pastix_fixdbl_t     t3      = 0;
+    int                 itermax;
+    int                 nb_iter = 0;
+    int                 precond = 1;
+    pastix_complex64_t *gradr; /* Current solution */
+    pastix_complex64_t *gradr2;
+    pastix_complex64_t *gradp;
+    pastix_complex64_t *grady;
+    pastix_complex64_t *gradv;
+    pastix_complex64_t *grads;
+    pastix_complex64_t *gradz;
+    pastix_complex64_t *gradt;
+    pastix_complex64_t *grad2;
+    pastix_complex64_t *grad3;
+    pastix_complex64_t  v1, v2, w;
+    double normb, normx, normr, alpha, beta;
+    double resid_b, eps;
 
-    z_Pastix_Solveur(&solveur);
+    memset( &solver, 0, sizeof(struct z_solver) );
+    z_Pastix_Solver(&solver);
 
-    pastix_bcsc_t      * bcsc    = pastix_data->bcsc;
-    pastix_int_t         n       = bcsc->gN;
-    Clock                refine_clk;
-    pastix_fixdbl_t      t0      = 0;
-    pastix_fixdbl_t      t3      = 0;
-    pastix_complex64_t   normb   = 0.0;
-    pastix_complex64_t   normr   = 0.0;
-    int                  nb_iter = 0;
-    pastix_complex64_t   epsilon = solveur.Eps(pastix_data);
-    pastix_int_t         itermax = solveur.Itermax(pastix_data);
-    pastix_complex64_t   tmp     = 0.0;
+    if ( !(pastix_data->steps & STEP_NUMFACT) ) {
+        precond = 0;
+    }
 
-    pastix_complex64_t * gradb  = NULL; /* RHS b */
-    pastix_complex64_t * gradr  = NULL; /* Current solution */
-    pastix_complex64_t * gradr2 = NULL;
-    pastix_complex64_t * gradp  = NULL;
-    pastix_complex64_t * grady  = NULL;
-    pastix_complex64_t * gradv  = NULL;
-    pastix_complex64_t * grads  = NULL;
-    pastix_complex64_t * gradz  = NULL;
-    pastix_complex64_t * gradt  = NULL;
-    pastix_complex64_t * grad2  = NULL;
-    pastix_complex64_t * grad3  = NULL;
+    n       = solver.getN(    pastix_data );
+    itermax = solver.getImax( pastix_data );
+    eps     = solver.getEps(  pastix_data );
 
-    /* alpha and beta are only used by thread 0 */
-    pastix_complex64_t * alpha = NULL;
-    pastix_complex64_t * beta  = NULL;
-    pastix_complex64_t * v1    = NULL;
-    pastix_complex64_t * v2    = NULL;
-    pastix_complex64_t * w     = NULL;
-    pastix_complex64_t * gradx = NULL;
-
-    gradb  = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    gradr  = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    gradr2 = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    gradp  = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    grady  = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    gradv  = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    grads  = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    gradz  = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    gradt  = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    grad2  = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    grad3  = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
-    alpha  = (pastix_complex64_t *)solveur.Malloc(    sizeof(pastix_complex64_t));
-    beta   = (pastix_complex64_t *)solveur.Malloc(    sizeof(pastix_complex64_t));
-    v1     = (pastix_complex64_t *)solveur.Malloc(    sizeof(pastix_complex64_t));
-    v2     = (pastix_complex64_t *)solveur.Malloc(    sizeof(pastix_complex64_t));
-    w      = (pastix_complex64_t *)solveur.Malloc(    sizeof(pastix_complex64_t));
-    gradx  = (pastix_complex64_t *)solveur.Malloc(n * sizeof(pastix_complex64_t));
+    gradr  = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+    gradr2 = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+    gradp  = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+    grady  = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+    gradv  = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+    grads  = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+    gradz  = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+    gradt  = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+    grad2  = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+    grad3  = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
 
     clockInit(refine_clk);clockStart(refine_clk);
 
-    solveur.B(b, gradb, n);
-    solveur.X(pastix_data, x, gradx);
+    normb = solver.norm( n, b );
+    normx = solver.norm( n, x );
 
     /* r = b - Ax */
-    solveur.bMAx(bcsc, gradb, gradx, gradr);
-    normb = solveur.Norm(gradb, n);
-    normr = solveur.Norm(gradr, n);
+    solver.copy( n, b, gradr );
+    if ( normx > 0. ) {
+        solver.spmv( pastix_data, -1., x, 1., gradr );
+    }
+    normr = solver.norm( n, gradr );
 
     /* r2 = r */
-    memcpy(gradr2, gradr, n * sizeof( pastix_complex64_t ));
+    solver.copy( n, gradr, gradr2 );
     /* p = r */
-    memcpy(gradp, gradr, n * sizeof( pastix_complex64_t ));
+    solver.copy( n, gradr, gradp );
 
-    /* tmp = ||r|| / ||b|| */
-    tmp = normr / normb;
+    /* resid_b = ||r|| / ||b|| */
+    resid_b = normr / normb;
 
-    while (((double)tmp > (double)epsilon) && (nb_iter < itermax))
+    while ((resid_b > eps) && (nb_iter < itermax))
     {
         clockStop((refine_clk));
         t0 = clockGet();
         nb_iter++;
 
         /* y = M-1 * p */
-        solveur.Precond(pastix_data, gradp, grady);
+        solver.copy( n, gradp, grady );
+        if ( precond ) {
+            solver.spsv( pastix_data, grady );
+        }
 
         /* v = Ay */
-        solveur.Ax(bcsc, grady, gradv);
+        solver.spmv( pastix_data, 1.0, grady, 0., gradv );
 
         /* alpha = (r, r2) / (v, r2) */
-        /* alpha = (v, r2) */
-        solveur.Dotc(n, gradv, gradr2, alpha);
-        /* beta = (r, r2) */
-        solveur.Dotc(n, gradr, gradr2, beta);
-
-        /* alpha = beta / alpha : alpha = (r, r2) / (v, r2) */
-        // solveur.Div(arg, beta, alpha, alpha, 0);
-        alpha[0] = beta[0] / alpha[0];
+        alpha = solver.dot( n, gradv, gradr2 );
+        beta  = solver.dot( n, gradr, gradr2 );
+        alpha = beta / alpha;
 
         /* s = r - alpha * v */
-        memcpy(grads, gradr, n * sizeof( pastix_complex64_t ));
-        solveur.AXPY(n, -1, alpha, grads, gradv);
+        solver.copy( n, gradr, grads );
+        solver.axpy( n, -alpha, gradv, grads );
 
-        /* z = M-1s */
-        solveur.Precond(pastix_data, grads, gradz);
+        /* z = M^{-1} s */
+        solver.copy( n, grads, gradz );
+        if ( precond ) {
+            solver.spsv( pastix_data, gradz );
+        }
 
         /* t = Az */
-        solveur.Ax(bcsc, gradz, gradt);
+        solver.spmv( pastix_data, 1.0, gradz, 0., gradt );
 
         /* w = (M-1t, M-1s) / (M-1t, M-1t) */
         /* grad2 = M-1t */
-        solveur.Precond(pastix_data, gradt, grad2);
+        solver.copy( n, gradt, grad2 );
+        if ( precond ) {
+            solver.spsv( pastix_data, grad2 );
+        }
 
         /* v1 = (M-1t, M-1s) */
         /* v2 = (M-1t, M-1t) */
-        solveur.Dotc(n, gradz, grad2, v1);
-        solveur.Dotc(n, grad2, grad2, v2);
-
-        // solveur.Div(arg, v1, v2, w, 1);
-        w[0] = v1[0] / v2[0];
+        v1 = solver.dot( n, grad2, gradz );
+        v2 = solver.dot( n, grad2, grad2 );
+        w = v1 / v2;
 
         /* x = x + alpha * y + w * z */
         /* x = x + alpha * y */
-        solveur.AXPY(n, 1, alpha, gradx, grady);
+        solver.axpy( n, alpha, grady, x );
 
         /* x = x + w * z */
-        solveur.AXPY(n, 1, w, gradx, gradz);
+        solver.axpy( n, w, gradz, x );
 
         /* r = s - w * t*/
-        memcpy(gradr, grads, n * sizeof( pastix_complex64_t ));
-        solveur.AXPY(n, -1, w, gradr, gradt);
+        solver.copy( n, grads, gradr );
+        solver.axpy( n, -w, gradt, gradr );
 
         /* beta = (r', r2) / (r, r2) * (alpha / w) */
         /* v1 = (r', r2) */
-        solveur.Dotc(n, gradr, gradr2, v1);
+        v1 = solver.dot( n, gradr, gradr2 );
+        v2 = alpha / w;
 
-        /* v2 = alpha / w */
-        // solveur.Div(arg, alpha, w, v2, 0);
-        v2[0] = alpha[0] / w[0];
-
-        /* beta = v1 / beta */
-        // solveur.Div(arg, v1, beta, beta, 0);
-        beta[0] = v1[0] / beta[0];
-
-        /* beta = beta * v2 */
-        // solveur.Mult(arg, beta, v2, beta, 1);
-        beta[0] = beta[0] * v2[0];
+        beta = v1 / beta;
+        beta = beta * v2;
 
         /* p = r + beta * (p - w * v) */
         /* p = p - w * v */
-        solveur.AXPY(n, -1, w, gradp, gradv);
+        solver.axpy( n, -w, gradv, gradp );
 
         /* p = r + beta * p */
-        solveur.BYPX(n, beta, gradr, gradp);
+        solver.scal( n, beta, gradp );
+        solver.axpy( n, 1., gradr, gradp );
 
-        normr = solveur.Norm(gradr, n);
+        normr = solver.norm( n, gradr );
+        resid_b = normr / normb;
 
         clockStop((refine_clk));
         t3 = clockGet();
-
-        tmp = normr / normb;
-        if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot )
-            solveur.Verbose(t0, t3, tmp, nb_iter);
+        if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+            solver.output_oneiter( t0, t3, resid_b, nb_iter );
+        }
     }
 
-    solveur.End(pastix_data, tmp, nb_iter, t3, x, gradx);
+    solver.output_final(pastix_data, resid_b, nb_iter, t3, x, x);
 
-    solveur.Free((void*) gradb);
-    solveur.Free((void*) gradr);
-    solveur.Free((void*) gradr2);
-    solveur.Free((void*) gradp);
-    solveur.Free((void*) grady);
-    solveur.Free((void*) gradv);
-    solveur.Free((void*) grads);
-    solveur.Free((void*) gradz);
-    solveur.Free((void*) gradt);
-    solveur.Free((void*) grad2);
-    solveur.Free((void*) grad3);
-    solveur.Free((void*) alpha);
-    solveur.Free((void*) beta);
-    solveur.Free((void*) v1);
-    solveur.Free((void*) v2);
-    solveur.Free((void*) w);
-    solveur.Free((void*) gradx);
+    solver.free((void*) gradr);
+    solver.free((void*) gradr2);
+    solver.free((void*) gradp);
+    solver.free((void*) grady);
+    solver.free((void*) gradv);
+    solver.free((void*) grads);
+    solver.free((void*) gradz);
+    solver.free((void*) gradt);
+    solver.free((void*) grad2);
+    solver.free((void*) grad3);
 }

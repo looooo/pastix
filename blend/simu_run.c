@@ -520,7 +520,7 @@ simu_computeTaskReceiveTime( const BlendCtrl       *ctrl,
             }
         }
 
-#ifdef DEBUG_BLEND
+#if defined(PASTIX_DEBUG_BLEND)
         if(!(simuctrl->ftgttab[i].costsend >= 0.0)) {
             errorPrint("ftgt %ld costsend %f", (long)i, simuctrl->ftgttab[i].costsend);
         }
@@ -1049,7 +1049,7 @@ simuRun( SimuCtrl              *simuctrl,
                         simuctrl->ftgttab[j].ftgt.infotab[FTGT_PROCDST] = pr;
                         simuctrl->ftgttab[j].ftgt.infotab[FTGT_BLOKDST] = b;
                         simuctrl->ftgttab[j].ftgt.infotab[FTGT_TASKDST] = simuctrl->bloktab[bloknum].tasknum;
-#if (defined OOC_FTGT || defined PASTIX_WITH_STARPU)
+#if defined(PASTIX_WITH_STARPU_DIST)
                         simuctrl->ftgttab[j].ftgt.infotab[FTGT_GCBKDST] = simuctrl->tasktab[simuctrl->bloktab[bloknum].tasknum].cblknum;
 #endif
                         extendint_Add(&(simuctrl->clustab[INDEX2CLUST(j,b)].ftgtsend[clustnum]), j);
@@ -1106,23 +1106,13 @@ simuRun( SimuCtrl              *simuctrl,
     }
 #endif
 
-#ifdef DEBUG_BLEND
+#if defined(PASTIX_DEBUG_BLEND)
     for(i=0;i<simuctrl->cblknbr;i++) {
-        if(simuctrl->ownetab[i] < 0) { /* Check valid for 1D distribution only */
-            fprintf(stderr, "CBLK %ld has no processor \n", (long)i);
-        }
+        /* Check valid for 1D distribution only */
+        assert( simuctrl->ownetab[i] >= 0 );
     }
     for(i=0;i<symbptr->bloknbr;i++) {
-        if(!(simuctrl->bloktab[i].ownerclust>=0))
-        {
-            fprintf(stderr, "BLOCK %ld has no processor \n", (long)i);
-            fprintf(stdout, "ownerclust [ %ld ] = %ld\n", (long)i,
-                    (long)simuctrl->bloktab[i].ownerclust);
-            EXIT(MOD_BLEND,INTERNAL_ERR);
-        }
-    }
-    for(i=0;i<symbptr->bloknbr;i++) {
-        assert(simuctrl->bloktab[i].ownerclust>=0);
+        assert( simuctrl->bloktab[i].ownerclust >= 0 );
     }
 #endif
 }

@@ -22,7 +22,7 @@
 typedef double Clock;
 
 /** TIMING SYSTEM-SPECIFICS **/
-#if defined(HAVE_MPI)
+#if defined(PASTIX_WITH_MPI)
 #define clockGet() MPI_Wtime()
 #else
 #if defined(HAVE_CLOCK_GETTIME)
@@ -95,7 +95,7 @@ static inline double clockGet(void)
 }
 
 #endif
-#endif /* defined(HAVE_MPI) */
+#endif /* defined(PASTIX_WITH_MPI) */
 
 #define clockInit(clk)  do { clk = clockGet(); } while(0)
 #define clockVal(clk)   (clk)
@@ -103,7 +103,7 @@ static inline double clockGet(void)
 #define clockStart(clk) do { clk = clockGet(); } while(0)
 #define clockStop(clk)  do { clk = clockGet() - (clk); } while(0)
 
-#if defined(HAVE_MPI)
+#if defined(PASTIX_WITH_MPI)
 #define clockSyncStart(clk, comm) do {          \
         MPI_Barrier(comm);                      \
         clk = clockGet(); } while(0)

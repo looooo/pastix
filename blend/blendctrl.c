@@ -216,9 +216,8 @@ blendCtrlInit( pastix_data_t *pastix_data,
     ctrl->debug     = 0;
 #endif
     ctrl->timer     = 1;
-    ctrl->ooc       = 0;
     ctrl->ricar     = iparm[IPARM_INCOMPLETE];
-    ctrl->leader           = 0;
+    ctrl->leader    = 0;
 
     /* Proportional Mapping options */
     ctrl->allcand     = iparm[IPARM_ALLCAND];
@@ -240,13 +239,6 @@ blendCtrlInit( pastix_data_t *pastix_data,
     ctrl->level_tasks2d = iparm[IPARM_TASKS2D_LEVEL];
     ctrl->width_tasks2d = iparm[IPARM_TASKS2D_WIDTH];
 
-    /* OOC works only with 1D structures */
-    if(ctrl->ooc)
-    {
-        pastix_print( procnum, 0, "Force 1D distribution because of OOC \n" );
-        ctrl->level_tasks2d = 0;
-    }
-
     /* Save iparm for other options */
     ctrl->iparm = iparm;
     ctrl->dparm = dparm;
@@ -255,7 +247,6 @@ blendCtrlInit( pastix_data_t *pastix_data,
     /*
      * Initialize architecture description
      */
-
     /* Id and number of MPI processes */
     ctrl->clustnum = procnum;
     ctrl->clustnbr = procnbr;

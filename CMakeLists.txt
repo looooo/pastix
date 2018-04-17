@@ -37,7 +37,7 @@ endif()
 # Define precision supported by MAGMA_MORSE
 # -----------------------------------------
 set( RP_PASTIX_DICTIONNARY ${MORSE_CMAKE_MODULE_PATH}/precision_generator/subs.py )
-set( RP_PASTIX_PRECISIONS  "s;d;c;z" )
+set( RP_PASTIX_PRECISIONS  "p;s;d;c;z" )
 include(RulesPrecisions)
 
 ### System parameter detection
@@ -83,8 +83,6 @@ option(PASTIX_WITH_EZTRACE
 ### Runtime engines
 option(PASTIX_WITH_STARPU
     "Build PaStiX with StarPU runtime support" OFF)
-option(PASTIX_WITH_STARPU_PROFILING
-  "Build PaStiX with StarPU runtime support profiling" OFF)
 option(PASTIX_WITH_PARSEC
   "Build PaStiX with PaRSEC runtime support" OFF)
 
@@ -164,6 +162,10 @@ option(PASTIX_DEBUG_LR
   "Debug the lowrank kernels (Valgrind)" OFF)
 option(PASTIX_DEBUG_LR_NANCHECK
   "Debug the lowrank kernels (nancheck)" OFF)
+option(PASTIX_DEBUG_GMRES
+  "Debug the gmres refinment by enabling the computation of the true resiudal at each iteration" OFF)
+option(PASTIX_DEBUG_EXIT_ON_SIGSEGV
+  "Generate a segfault on exit calls to trakc in gdb" OFF)
 
 ###############################################################################
 # Look for dependencies #
@@ -224,7 +226,6 @@ endif (HWLOC_FOUND)
 if (PASTIX_WITH_MPI)
   # Force the detection of the C library
   find_package(MPI)
-  set(HAVE_MPI ${MPI_C_FOUND})
   if (MPI_C_FOUND)
     list(APPEND EXTRA_LIBS ${MPI_C_LIBRARIES} )
     include_directories( ${MPI_C_INCLUDE_PATH} )
@@ -295,8 +296,6 @@ if (PASTIX_WITH_STARPU)
 
   find_package(STARPU ${PASTIX_STARPU_VERSION} REQUIRED
     COMPONENTS ${STARPU_COMPONENT_LIST})
-
-  set(HAVE_STARPU ${STARPU_FOUND})
 
   # Add definition and include_dir if found
   if(STARPU_FOUND)
@@ -701,10 +700,7 @@ set(PASTIX_LIB_SRCS
   common/integer.c
   common/isched.c
   common/models.c
-#  common/memory.c
   common/get_options.c
-#  common/trace.c
-#
   #
   sopalin/coeftab.c
   sopalin/schur.c
@@ -725,19 +721,19 @@ set_source_files_properties(
   PROPERTIES DEPENDS sopalin_headers
   )
 
-if(PASTIX_ORDERING_SCOTCH) # AND HAVE_SCOTCH)
+if(PASTIX_ORDERING_SCOTCH)
   set(PASTIX_LIB_SRCS
     ${PASTIX_LIB_SRCS}
     order/order_compute_scotch.c
     )
 endif()
-if(PASTIX_ORDERING_PTSCOTCH) # AND HAVE_PTSCOTCH)
+if(PASTIX_ORDERING_PTSCOTCH)
   set(PASTIX_LIB_SRCS
     ${PASTIX_LIB_SRCS}
     order/order_compute_ptscotch.c
     )
 endif()
-if(PASTIX_ORDERING_METIS) # AND HAVE_METIS)
+if(PASTIX_ORDERING_METIS)
   list(APPEND PASTIX_LIB_SRCS
     order/order_compute_metis.c
     )
