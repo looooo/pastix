@@ -343,22 +343,13 @@ if (PASTIX_WITH_PARSEC)
 
     find_package(PARSEC REQUIRED
       COMPONENTS ${PARSEC_COMPONENT_LIST})
-    include(FindPkgConfig)
-    find_package(PkgConfig QUIET)
-    if(PKG_CONFIG_EXECUTABLE)
-      pkg_search_module(PARSEC parsec)
-    endif()
 
     # Add definition and include_dir if found
     if(PARSEC_FOUND)
       include_directories(${PARSEC_INCLUDE_DIRS_DEP})
       link_directories(${PARSEC_LIBRARY_DIRS_DEP})
-
-      list(APPEND CMAKE_INSTALL_RPATH
-        ${PARSEC_LIBRARY_DIRS_DEP}
-        )
-
-    else(PARSEC_FOUND)
+      list(APPEND CMAKE_INSTALL_RPATH ${PARSEC_LIBRARY_DIRS_DEP})
+    else()
         message(FATAL_ERROR "Parsec with ${PARSEC_COMPONENT_LIST} components is required but was not found. Please provide the PaRSEC library in your environment or configure with -DPASTIX_WITH_PARSEC=OFF")
     endif()
 
