@@ -195,17 +195,13 @@ endif()
 
 ### Store dependencies not handled with pkg-config
 set( DEPS_LIBRARIES
-  ${CBLAS_LIBRARIES}
-  ${LAPACKE_LIBRARIES}
-  ${LAPACK_SEQ_LIBRARIES}
-  ${BLAS_SEQ_LIBRARIES}
+  ${CBLAS_LIBRARIES_DEP}
+  ${LAPACKE_LIBRARIES_DEP}
   )
 
 list(APPEND CMAKE_INSTALL_RPATH
-  ${LAPACKE_LIBRARY_DIRS}
-  ${LAPACK_LIBRARY_DIRS}
-  ${CBLAS_LIBRARY_DIRS}
-  ${BLAS_LIBRARY_DIRS}
+  ${LAPACKE_LIBRARY_DIRS_DEP}
+  ${CBLAS_LIBRARY_DIRS_DEP}
   )
 
 # PaStiX depends on HwLoc
@@ -301,15 +297,10 @@ if (PASTIX_WITH_STARPU)
   if(STARPU_FOUND)
     include_directories(${STARPU_INCLUDE_DIRS_DEP})
     link_directories(${STARPU_LIBRARY_DIRS_DEP})
-
-    set(CMAKE_REQUIRED_INCLUDES "${STARPU_INCLUDE_DIRS}")
-    foreach(libdir ${STARPU_LIBRARY_DIRS})
-      list(APPEND CMAKE_REQUIRED_FLAGS "-L${libdir}")
-    endforeach()
-    string(REPLACE ";" " " CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
+    set(CMAKE_REQUIRED_INCLUDES "${STARPU_INCLUDE_DIRS_DEP}")
     if(PASTIX_USE_FXT)
       # check if fxt profiling is accessible in starpu and activate it in magmamorse
-      set(CMAKE_REQUIRED_LIBRARIES "${STARPU_SHM_LIBRARIES}")
+      set(CMAKE_REQUIRED_LIBRARIES "${STARPU_LIBRARIES_DEP}")
       unset(STARPU_FXT_START_PROFILING_FOUND CACHE)
       check_function_exists(starpu_fxt_start_profiling STARPU_FXT_START_PROFILING_FOUND)
       if ( STARPU_FXT_START_PROFILING_FOUND )
@@ -317,9 +308,9 @@ if (PASTIX_WITH_STARPU)
         add_definitions(-DHAVE_STARPU_FXT_PROFILING)
       endif()
     endif()
-    if (STARPU_MPI_LIBRARIES)
+    if (PASTIX_WITH_MPI)
       # Check if a specific function exist
-      set(CMAKE_REQUIRED_LIBRARIES "${STARPU_MPI_LIBRARIES}")
+      set(CMAKE_REQUIRED_LIBRARIES "${STARPU_LIBRARIES_DEP}")
       unset(STARPU_MPI_DATA_REGISTER_FOUND CACHE)
       check_function_exists(starpu_mpi_data_register STARPU_MPI_DATA_REGISTER_FOUND)
       if ( STARPU_MPI_DATA_REGISTER_FOUND )
@@ -328,7 +319,7 @@ if (PASTIX_WITH_STARPU)
     endif()
 
     list(APPEND CMAKE_INSTALL_RPATH
-      ${STARPU_LIBRARY_DIRS}
+      ${STARPU_LIBRARY_DIRS_DEP}
       )
 
   else(STARPU_FOUND)
@@ -352,22 +343,13 @@ if (PASTIX_WITH_PARSEC)
 
     find_package(PARSEC REQUIRED
       COMPONENTS ${PARSEC_COMPONENT_LIST})
-    include(FindPkgConfig)
-    find_package(PkgConfig QUIET)
-    if(PKG_CONFIG_EXECUTABLE)
-      pkg_search_module(PARSEC parsec)
-    endif()
 
     # Add definition and include_dir if found
     if(PARSEC_FOUND)
       include_directories(${PARSEC_INCLUDE_DIRS_DEP})
       link_directories(${PARSEC_LIBRARY_DIRS_DEP})
-
-      list(APPEND CMAKE_INSTALL_RPATH
-        ${PARSEC_LIBRARY_DIRS}
-        )
-
-    else(PARSEC_FOUND)
+      list(APPEND CMAKE_INSTALL_RPATH ${PARSEC_LIBRARY_DIRS_DEP})
+    else()
         message(FATAL_ERROR "Parsec with ${PARSEC_COMPONENT_LIST} components is required but was not found. Please provide the PaRSEC library in your environment or configure with -DPASTIX_WITH_PARSEC=OFF")
     endif()
 
@@ -392,12 +374,12 @@ endif(PASTIX_WITH_EZTRACE)
 if (PASTIX_ORDERING_PTSCOTCH)
   find_package(PTSCOTCH)
   if (PTSCOTCH_FOUND)
-    include_directories( ${PTSCOTCH_INCLUDE_DIRS} )
-    link_directories( ${PTSCOTCH_LIBRARY_DIRS} )
-    link_libraries( ${PTSCOTCH_LIBRARIES} )
-    list(INSERT EXTRA_LIBS 1 ${PTSCOTCH_LIBRARIES} )
+    include_directories( ${PTSCOTCH_INCLUDE_DIRS_DEP} )
+    link_directories( ${PTSCOTCH_LIBRARY_DIRS_DEP} )
+    link_libraries( ${PTSCOTCH_LIBRARIES_DEP} )
+    list(INSERT EXTRA_LIBS 1 ${PTSCOTCH_LIBRARIES_DEP} )
     list(APPEND CMAKE_INSTALL_RPATH
-      ${PTSCOTCH_LIBRARY_DIRS}
+      ${PTSCOTCH_LIBRARY_DIRS_DEP}
       )
   else (PTSCOTCH_FOUND)
     message(FATAL_ERROR "PTSCOTCH is required if PASTIX_ORDERING_PTSCOCTH is on but was not found. Please provide an PtScotch library in your environment or configure with -DPASTIX_ORDERING_PTSCOTCH=OFF")
@@ -439,7 +421,7 @@ endif()
 
 set( DEPS_LIBRARIES
   ${DEPS_LIBRARIES}
-  ${PTSCOTCH_LIBRARIES}
+  ${PTSCOTCH_LIBRARIES_DEP}
   ${SCOTCH_LIBRARIES}
   )
 
@@ -769,14 +751,12 @@ target_link_libraries(pastix
   pastix_spm
   pastix_bcsc
   pastix_kernels
-  ${LAPACKE_LIBRARIES}
-  ${LAPACK_SEQ_LIBRARIES}
-  ${CBLAS_LIBRARIES}
-  ${BLAS_SEQ_LIBRARIES}
+  ${LAPACKE_LIBRARIES_DEP}
+  ${CBLAS_LIBRARIES_DEP}
 )
 
 if(PASTIX_ORDERING_PTSCOTCH)
-  target_link_libraries(pastix ${PTSCOTCH_LIBRARIES} )
+  target_link_libraries(pastix ${PTSCOTCH_LIBRARIES_DEP} )
 endif()
 if(PASTIX_ORDERING_SCOTCH)
   target_link_libraries(pastix ${SCOTCH_LIBRARIES} )

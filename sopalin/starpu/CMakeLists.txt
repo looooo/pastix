@@ -76,8 +76,7 @@ add_library(pastix_starpu
 
 target_link_libraries(pastix_starpu
   pastix_kernels
-  ${STARPU_LIBRARIES}
-  ${STARPU_EXTRA_LIBRARIES}
+  ${STARPU_LIBRARIES_DEP}
   )
 
 add_dependencies(pastix_starpu
