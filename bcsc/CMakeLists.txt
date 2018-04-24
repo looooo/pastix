@@ -57,7 +57,7 @@ add_dependencies( pastix_bcsc
   bcsc_headers_tgt )
 
 target_link_libraries( pastix_bcsc
-  pastix_spm )
+  pastix )
 
 install(TARGETS pastix_bcsc
   RUNTIME DESTINATION bin

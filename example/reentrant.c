@@ -63,7 +63,7 @@ static void *solve_smp(void *arg)
      * Read the sparse matrix with the driver
      */
     spm = malloc( sizeof( pastix_spm_t ) );
-    spmReadDriver( param.driver, param.filename, spm, MPI_COMM_WORLD );
+    spmReadDriver( param.driver, param.filename, spm );
 
     spmPrintInfo( spm, stdout );
 

@@ -17,7 +17,6 @@
 #include <pastix.h>
 #include <spm.h>
 #include <pastix/order.h>
-#include "drivers/laplacian.h"
 
 int main (int argc, char **argv)
 {
@@ -58,7 +57,7 @@ int main (int argc, char **argv)
      * Read the sparse matrix with the driver
      */
     spm = malloc( sizeof( pastix_spm_t ) );
-    spmReadDriver( driver, filename, spm, MPI_COMM_WORLD );
+    spmReadDriver( driver, filename, spm );
 
     spmPrintInfo( spm, stdout );
 
@@ -84,7 +83,7 @@ int main (int argc, char **argv)
         pastix_coeftype_t flttype;
         double            alpha, beta;
 
-        laplacian_parse_info( filename, &flttype, &dim1, &dim2, &dim3, &alpha, &beta );
+        spmParseLaplacianInfo( filename, &flttype, &dim1, &dim2, &dim3, &alpha, &beta );
         ord = malloc(sizeof(pastix_order_t));
         pastixOrderGrid( &ord, dim1, dim2, dim3 );
 

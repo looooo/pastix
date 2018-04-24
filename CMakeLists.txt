@@ -484,6 +484,12 @@ set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
 ##
 #
 
+# Compile the spm library
+add_subdirectory(spm)
+set( SPM_LIBRARY spm )
+include_directories("spm/include")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/spm/src")
+
 # Disable restrict (temporary)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Drestrict=")
 
@@ -515,8 +521,6 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/common")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kernels")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/kernels")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/spm")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/spm")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bcsc")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/bcsc")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/refinement")
@@ -527,8 +531,6 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blend")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
-
-add_subdirectory(spm)
 
 # Sub modules
 set(modules bcsc kernels refinement) #csc kernels sopalin common)
@@ -732,13 +734,7 @@ add_library(pastix
   ${PASTIX_LIB_SRCS}
   )
 
-# GenRHS requires geadd
-add_dependencies(pastix_spm
-  kernels_headers_tgt
-)
-
 add_dependencies(pastix
-  spm_headers_tgt
   kernels_headers_tgt
   bcsc_headers_tgt
   refinement_headers_tgt
@@ -746,7 +742,7 @@ add_dependencies(pastix
 )
 
 target_link_libraries(pastix
-  pastix_spm
+  ${SPM_LIBRARY}
   pastix_bcsc
   pastix_kernels
   ${LAPACKE_LIBRARIES_DEP}
