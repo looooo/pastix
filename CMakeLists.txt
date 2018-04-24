@@ -179,8 +179,8 @@ if (PASTIX_WITH_FORTRAN)
   link_directories( ${CMAKE_Fortran_IMPLICIT_LINK_DIRECTORIES} )
 endif()
 
-# PaStiX depends on CBLAS
-#----------------------------
+# PaStiX depends on LAPACKE and CBLAS
+#------------------------------------
 find_package(CBLAS) # Should be REQUIRED for BLAS sequential only
 if(CBLAS_FOUND)
     message(STATUS "cblas: ${CBLAS_INCLUDE_DIRS}")
