@@ -78,7 +78,7 @@ int main (int argc, char **argv)
         spm = spm2;
     }
 
-    if ( spm->flttype == PastixPattern ) {
+    if ( spm->flttype == SpmPattern ) {
         spmGenFakeValues( spm );
     }
 
@@ -93,28 +93,28 @@ int main (int argc, char **argv)
     bcscInit( spm,
               pastix_data->ordemesh,
               pastix_data->solvmatr,
-              spm->mtxtype == PastixGeneral, &bcsc );
+              spm->mtxtype == SpmGeneral, &bcsc );
 
     printf(" -- BCSC Norms Test --\n");
     printf(" Datatype: %s\n", fltnames[spm->flttype] );
     spmBase( spm, 0 );
 
-    printf("   Matrix type : %s\n", mtxnames[spm->mtxtype - PastixGeneral] );
+    printf("   Matrix type : %s\n", mtxnames[spm->mtxtype - SpmGeneral] );
 
     switch( spm->flttype ){
-    case PastixComplex64:
+    case SpmComplex64:
         ret = z_bcsc_norm_check( spm, &bcsc );
         break;
 
-    case PastixComplex32:
+    case SpmComplex32:
         ret = c_bcsc_norm_check( spm, &bcsc );
         break;
 
-    case PastixFloat:
+    case SpmFloat:
         ret = s_bcsc_norm_check( spm, &bcsc );
         break;
 
-    case PastixDouble:
+    case SpmDouble:
     default:
         ret = d_bcsc_norm_check( spm, &bcsc );
     }

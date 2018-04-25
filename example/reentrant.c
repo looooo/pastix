@@ -77,7 +77,7 @@ static void *solve_smp(void *arg)
     /**
      * Generate a Fake values array if needed for the numerical part
      */
-    if ( spm->flttype == PastixPattern ) {
+    if ( spm->flttype == SpmPattern ) {
         spmGenFakeValues( spm );
     }
 

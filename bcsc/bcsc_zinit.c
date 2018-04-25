@@ -334,11 +334,11 @@ z_bcscInitCentralized( const pastix_spm_t   *spm,
      * Initialize the blocked structure of the matrix A
      */
     z_bcscInitA( spm, ord, solvmtx, col2cblk, bcsc );
-    if ( spm->mtxtype == PastixSymmetric ) {
+    if ( spm->mtxtype == SpmSymmetric ) {
         z_bcscInitLt( spm, ord, solvmtx, col2cblk, bcsc );
     }
 #if defined(PRECISION_z) || defined(PRECISION_c)
-    else if ( spm->mtxtype == PastixHermitian ) {
+    else if ( spm->mtxtype == SpmHermitian ) {
         z_bcscInitLh( spm, ord, solvmtx, col2cblk, bcsc );
     }
 #endif /* defined(PRECISION_z) || defined(PRECISION_c) */
@@ -349,7 +349,7 @@ z_bcscInitCentralized( const pastix_spm_t   *spm,
     /* Sort the csc */
     z_bcscSort( bcsc, bcsc->rowtab, bcsc->Lvalues );
 
-    if ( spm->mtxtype == PastixGeneral ) {
+    if ( spm->mtxtype == SpmGeneral ) {
 	/* A^t is not required if only refinment is performed */
         if (initAt) {
             pastix_int_t *trowtab, i;
@@ -371,7 +371,7 @@ z_bcscInitCentralized( const pastix_spm_t   *spm,
         }
     }
     else {
-        /* In case of PastixHermitian, conj is applied when used to save memory space */
+        /* In case of SpmHermitian, conj is applied when used to save memory space */
         bcsc->Uvalues = bcsc->Lvalues;
     }
 }

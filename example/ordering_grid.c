@@ -71,7 +71,7 @@ int main (int argc, char **argv)
     /**
      * Generate a Fake values array if needed for the numerical part
      */
-    if ( spm->flttype == PastixPattern ) {
+    if ( spm->flttype == SpmPattern ) {
         spmGenFakeValues( spm );
     }
 
@@ -79,9 +79,9 @@ int main (int argc, char **argv)
      * Parse Laplacian dimensions and generate associate manual ordering
      */
     {
-        pastix_int_t      dim1, dim2, dim3;
-        pastix_coeftype_t flttype;
-        double            alpha, beta;
+        pastix_int_t   dim1, dim2, dim3;
+        spm_coeftype_t flttype;
+        double         alpha, beta;
 
         spmParseLaplacianInfo( filename, &flttype, &dim1, &dim2, &dim3, &alpha, &beta );
         ord = malloc(sizeof(pastix_order_t));

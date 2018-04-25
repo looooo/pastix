@@ -250,7 +250,7 @@ int main (int argc, char **argv)
     /**
      * Generate a Fake values array if needed for the numerical part
      */
-    if ( spm->flttype == PastixPattern ) {
+    if ( spm->flttype == SpmPattern ) {
         spmGenFakeValues( spm );
     }
 

@@ -81,7 +81,7 @@ int main (int argc, char **argv)
     }
     spmBase( spm, 0 );
 
-    if ( spm->flttype == PastixPattern ) {
+    if ( spm->flttype == SpmPattern ) {
         spmGenFakeValues( spm );
     }
 
@@ -97,40 +97,40 @@ int main (int argc, char **argv)
     bcscInit( spm,
               pastix_data->ordemesh,
               pastix_data->solvmatr,
-              spm->mtxtype == PastixGeneral,
+              spm->mtxtype == SpmGeneral,
               pastix_data->bcsc );
 
     printf(" -- BCSC MatVec Test --\n");
     for( t=PastixNoTrans; t<=PastixConjTrans; t++ )
     {
         if ( (t == PastixConjTrans) &&
-             ((spm->flttype != PastixComplex64) && (spm->flttype != PastixComplex32)) )
+             ((spm->flttype != SpmComplex64) && (spm->flttype != SpmComplex32)) )
         {
             continue;
         }
-        if ( (spm->mtxtype != PastixGeneral) && (t != PastixNoTrans) )
+        if ( (spm->mtxtype != SpmGeneral) && (t != PastixNoTrans) )
         {
             continue;
         }
         printf("   Case %s - %s - %s:\n",
                fltnames[spm->flttype],
-               mtxnames[spm->mtxtype - PastixGeneral],
+               mtxnames[spm->mtxtype - SpmGeneral],
                transnames[t - PastixNoTrans] );
 
         switch( spm->flttype ){
-        case PastixComplex64:
+        case SpmComplex64:
             ret = z_bcsc_matvec_check( t, spm, pastix_data );
             break;
 
-        case PastixComplex32:
+        case SpmComplex32:
             ret = c_bcsc_matvec_check( t, spm, pastix_data );
             break;
 
-        case PastixFloat:
+        case SpmFloat:
             ret = s_bcsc_matvec_check( t, spm, pastix_data );
             break;
 
-        case PastixDouble:
+        case SpmDouble:
         default:
             ret = d_bcsc_matvec_check( t, spm, pastix_data );
         }
