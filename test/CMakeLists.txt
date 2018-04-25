@@ -29,7 +29,7 @@ add_library(bcsc_test
 target_link_libraries( bcsc_test
   pastix_kernels
   pastix_bcsc
-  spm
+  ${SPM_LIBRARY}
   ${LAPACKE_LIBRARIES_DEP}
   )
 
