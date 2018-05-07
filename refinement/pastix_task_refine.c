@@ -171,8 +171,8 @@ pastix_task_refine( pastix_data_t *pastix_data,
 
         for(i=0; i<nrhs; i++, xptr += shiftx, bptr += shiftb ) {
             pastix_int_t it;
-            it=refinefct( pastix_data, xptr, bptr );
-            pastix_data->iparm[IPARM_NBITER]=pastix_imax(it,pastix_data->iparm[IPARM_NBITER]);
+            it = refinefct( pastix_data, xptr, bptr );
+            pastix_data->iparm[IPARM_NBITER] = pastix_imax( it, pastix_data->iparm[IPARM_NBITER] );
         }
     }
     clockStop(timer);
