@@ -47,9 +47,9 @@ struct z_solver
 
 void z_Pastix_Solver(struct z_solver *);
 
-void z_gmres_smp   ( pastix_data_t *pastix_data, void *x, void *b );
-void z_grad_smp    ( pastix_data_t *pastix_data, void *x, void *b );
-void z_pivot_smp   ( pastix_data_t *pastix_data, void *x, void *b );
-void z_bicgstab_smp( pastix_data_t *pastix_data, void *x, void *b );
+pastix_int_t z_gmres_smp   ( pastix_data_t *pastix_data, void *x, void *b );
+pastix_int_t  z_grad_smp    ( pastix_data_t *pastix_data, void *x, void *b );
+pastix_int_t  z_pivot_smp   ( pastix_data_t *pastix_data, void *x, void *b );
+pastix_int_t  z_bicgstab_smp( pastix_data_t *pastix_data, void *x, void *b );
 
 #endif /* _z_refine_functions_h_ */

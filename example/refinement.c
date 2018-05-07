@@ -127,6 +127,9 @@ int main (int argc, char **argv)
     if ( check ) {
       rc |= spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
     }
+    if (iparm[IPARM_NBITER]>=iparm[IPARM_ITERMAX]) {
+      rc |= 1;
+    }
 
     spmExit( spm );
     free( spm );
