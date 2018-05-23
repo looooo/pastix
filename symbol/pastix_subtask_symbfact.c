@@ -331,14 +331,6 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     /* Rebase to 0 */
     pastixSymbolBase( pastix_data->symbmtx, 0 );
 
-    /* Rustine to be sure we have a tree
-     * TODO: check difference with kassSymbolPatch */
-#define RUSTINE
-#ifdef RUSTINE
-    pastixSymbolRustine( pastix_data->symbmtx,
-                   pastix_data->symbmtx );
-#endif
-
     /* Build the browtabs and Realign data structure */
     pastixSymbolBuildRowtab( pastix_data->symbmtx );
     pastixSymbolRealloc( pastix_data->symbmtx );
