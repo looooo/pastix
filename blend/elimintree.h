@@ -41,10 +41,11 @@ typedef struct etree_s {
     pastix_int_t * sonstab; /**< Sons index of nodes               */
 } EliminTree;
 
-void          eTreeInit      (      EliminTree *);
+EliminTree   *eTreeInit      (      pastix_int_t);
 void          eTreeExit      (      EliminTree *);
 void          eTreeGenDot    (const EliminTree *, FILE *);
 void          eTreePrint     (const EliminTree *, FILE *, pastix_int_t );
+void          eTreeSetSons   (      EliminTree *);
 pastix_int_t  eTreeLeavesNbr (const EliminTree *);
 pastix_int_t  eTreeLevel     (const EliminTree *);
 pastix_int_t  eTreeNodeLevel (const EliminTree *, pastix_int_t );
@@ -119,7 +120,8 @@ eTreeSonI( const EliminTree *etree, pastix_int_t node, pastix_int_t i )
 static inline pastix_int_t
 eTreeRoot( const EliminTree *etree )
 {
-    return etree->nodenbr - 1;
+    (void)etree;
+    return -1;
 }
 
 #endif /* _elimintree_h_ */

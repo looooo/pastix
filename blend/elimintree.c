@@ -35,14 +35,37 @@
  *          The pointer to the allocated structure to initialize.
  *
  *******************************************************************************/
-void
-eTreeInit(EliminTree *etree)
+EliminTree *
+eTreeInit( pastix_int_t nodenbr )
 {
+    EliminTree  *etree;
+    eTreeNode_t *enode;
+    pastix_int_t i;
+
+    MALLOC_INTERN(etree, 1, EliminTree);
+
     etree->baseval = 0;
-    etree->nodenbr = 0;
-    etree->nodetab = NULL;
-    etree->sonstab = NULL;
-    return;
+    etree->nodenbr = nodenbr;
+
+    MALLOC_INTERN( etree->nodetab, nodenbr + 1, eTreeNode_t);
+    MALLOC_INTERN( etree->sonstab, nodenbr,     pastix_int_t);
+    memset( etree->sonstab, 0, nodenbr * sizeof(pastix_int_t) );
+
+    /* Initialize the structure fields */
+    enode = etree->nodetab;
+    for(i=-1; i<nodenbr; i++, enode++)
+    {
+        enode->total   =  0.0;
+        enode->subtree =  0.0;
+        enode->cripath =  0.0;
+        enode->sonsnbr =  0;
+        enode->fathnum = -1;
+        enode->fsonnum = -1;
+    }
+
+    /* Shift the nodetab to get the root at -1 position */
+    etree->nodetab++;
+    return etree;
 }
 
 /**
@@ -59,9 +82,76 @@ eTreeInit(EliminTree *etree)
 void
 eTreeExit(EliminTree *etree)
 {
-    memFree_null(etree->nodetab);
-    memFree_null(etree->sonstab);
-    memFree_null(etree);
+    if (etree != NULL) {
+        if (etree->nodetab != NULL) {
+            etree->nodetab--;
+            memFree_null(etree->nodetab);
+        }
+        memFree_null(etree->sonstab);
+        memFree_null(etree);
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Set the fsonnum fields base on the initialized sonsnbr.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] etree
+ *          The pointer to the elimination tree for which the fsonnum fields
+ *          must be initialized.
+ *
+ *******************************************************************************/
+static inline void
+etree_SetSonsIndex(EliminTree *etree)
+{
+    eTreeNode_t *enode;
+    pastix_int_t i;
+
+    /* Set the index of the first sons */
+    enode = etree->nodetab - 1;
+    enode->fsonnum = 0;
+    for(i=0; i<etree->nodenbr; i++, enode++)
+    {
+        enode[1].fsonnum = enode[0].fsonnum + enode[0].sonsnbr;
+    }
+    assert((enode[0].fsonnum + enode[0].sonsnbr) == etree->nodenbr);
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Set the fsonnum fields base on the initialized sonsnbr.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] etree
+ *          The pointer to the elimination tree for which the fsonnum fields
+ *          must be initialized.
+ *
+ *******************************************************************************/
+void
+eTreeSetSons(EliminTree *etree)
+{
+    pastix_int_t i;
+
+    /* Set the index of the first sons */
+    etree_SetSonsIndex( etree );
+
+    /* Fill the sonstab */
+    for(i=0; i<etree->nodenbr; i++)
+    {
+        eTreeNode_t *efather = eTreeFather(etree, i);
+        pastix_int_t node = efather->fsonnum;
+        efather->fsonnum++;
+        assert( (node >= 0) && (node < etree->nodenbr) );
+        etree->sonstab[ node ] = i;
+    }
+
+    /* Restore fsonnum fields */
+    etree_SetSonsIndex( etree );
 }
 
 /**
@@ -119,7 +209,7 @@ eTreeLevel(const EliminTree *etree)
     for(i=0;i<etree->nodenbr;i++)
     {
         nodelevel = eTreeNodeLevel(etree, i);
-        if(nodelevel>maxlevel) {
+        if(nodelevel > maxlevel) {
             maxlevel = nodelevel;
         }
     }
@@ -151,9 +241,10 @@ eTreeNodeLevel(const EliminTree *etree, pastix_int_t nodenum )
 {
     pastix_int_t level;
 
-    level = 1;
+    level = 0;
+    /* If fake root no levels */
     if(nodenum == eTreeRoot(etree)) {
-        return level;
+        return 0;
     }
     level++;
     while(etree->nodetab[nodenum].fathnum != eTreeRoot(etree))
@@ -279,86 +370,41 @@ eTreePrint(const EliminTree *etree, FILE *stream, pastix_int_t rootnum )
 EliminTree *
 eTreeBuild(const symbol_matrix_t *symbmtx)
 {
-    eTreeNode_t *enode;
+    eTreeNode_t *enode, *eroot;
     EliminTree *etree = NULL;
     pastix_int_t i;
     pastix_int_t totalsonsnbr;
-    pastix_int_t sonstabcur;
 
-    MALLOC_INTERN(etree, 1, EliminTree);
-    eTreeInit(etree);
+    etree = eTreeInit( symbmtx->cblknbr );
+    eroot = &(etree->nodetab[eTreeRoot(etree)]);
 
-    etree->nodenbr = symbmtx->cblknbr;
-    MALLOC_INTERN(etree->nodetab, etree->nodenbr, eTreeNode_t);
-    enode = etree->nodetab;
-
-    /* Initialize the structure fields */
-    for(i=0; i<symbmtx->cblknbr; i++, enode++)
-    {
-        enode->total   =  0.0;
-        enode->subtree =  0.0;
-        enode->cripath =  0.0;
-        enode->sonsnbr =  0;
-        enode->fathnum = -1;
-        enode->fsonnum = -1;
-    }
-
+    /* Compute the fathers and the number of sons */
     totalsonsnbr = 0;
-    for(i=0; i<symbmtx->cblknbr; i++)
+    enode = etree->nodetab;
+    for(i=0; i<symbmtx->cblknbr; i++, enode++)
     {
         /* If the cblk has at least one extra diagonal block,          */
         /* the father of the node is the facing block of the first odb */
         if( (symbmtx->cblktab[i+1].bloknum - symbmtx->cblktab[i].bloknum) > 1 )
         {
-            etree->nodetab[i].fathnum = symbmtx->bloktab[ symbmtx->cblktab[i].bloknum+1 ].fcblknm;
-            (eTreeFather( etree, i )->sonsnbr)++;
+            pastix_int_t fathnum = symbmtx->bloktab[ symbmtx->cblktab[i].bloknum+1 ].fcblknm;
+            enode->fathnum = fathnum;
+            etree->nodetab[fathnum].sonsnbr++;
             totalsonsnbr++;
         }
-#if defined(PASTIX_DEBUG_BLEND)
-        else
-        {
-            if(i != (symbmtx->cblknbr-1)) {
-                fprintf(stderr, "Cblk %ld has no extradiagonal %ld %ld !! \n", (long)i,
-                        (long)symbmtx->cblktab[i].bloknum, (long)symbmtx->cblktab[i+1].bloknum);
-                assert( 0 );
-            }
+        /* Otherwise this is a root, and we attach it to -1 */
+        else {
+            etree->nodetab[i].fathnum = -1;
+            eroot->sonsnbr++;
+            totalsonsnbr++;
         }
-#endif
     }
 
     /* Check that we have only one root */
-    assert(totalsonsnbr == (symbmtx->cblknbr-1));
+    assert(totalsonsnbr == symbmtx->cblknbr);
 
-    if( totalsonsnbr > 0 ) {
-        MALLOC_INTERN(etree->sonstab, totalsonsnbr, pastix_int_t);
-    }
-
-    /* Set the index of the first sons */
-    sonstabcur = 0;
-    for(i=0; i<symbmtx->cblknbr; i++)
-    {
-        etree->nodetab[i].fsonnum = sonstabcur;
-        sonstabcur += etree->nodetab[i].sonsnbr;
-    }
-    assert(sonstabcur == totalsonsnbr);
-
-    /* Fill the sonstab */
-    /* No need to go to the root */
-    for(i=0; i<symbmtx->cblknbr-1; i++)
-    {
-        pastix_int_t node = (eTreeFather(etree, i)->fsonnum)++;
-        assert( (node >= 0) && (node < totalsonsnbr) );
-        etree->sonstab[ node ] = i;
-    }
-
-    /* Restore fsonnum fields */
-    sonstabcur = 0;
-    for(i=0; i<symbmtx->cblknbr; i++)
-    {
-        etree->nodetab[i].fsonnum = sonstabcur;
-        sonstabcur += etree->nodetab[i].sonsnbr;
-    }
-    assert(sonstabcur == totalsonsnbr);
+    /* Set the sons */
+    eTreeSetSons( etree );
 
     return etree;
 }
