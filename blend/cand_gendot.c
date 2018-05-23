@@ -39,7 +39,7 @@
  *
  * @param[in] candtab
  *          The candidate array associated to the elimination tree for
- *          additional information. (optionnal)
+ *          additional information.
  *
  * @param[in] rootnum
  *          The root index of the subtree to compress.
@@ -183,7 +183,6 @@ compress_setSonsNbr( const EliminTree *etree,
             /* Grandsons become sons */
             for (i=0; i<gdsonsnbr; i++) {
                 tmp[i] = tmp[sonsnbr+i];
-
             }
             sonsnbr = gdsonsnbr;
             cnode->total += total;
@@ -262,7 +261,7 @@ candGenDot( const EliminTree *etree,
             "\tcolor=white\n"
             "\trankdir=BT;\n");
 
-    for (i=0;  i < etree->nodenbr; i++)
+    for (i=0; i < etree->nodenbr; i++)
     {
         if ((etree->nodetab[i]).fathnum == -2)
             continue;
@@ -441,33 +440,15 @@ candGenCompressedDot( const EliminTree *etree,
                       FILE             *stream )
 {
     EliminTree  *ctree;
-    eTreeNode_t *cnode;
     Cand        *ccand;
-    pastix_int_t i, cnodesnbr, cnodeidx, *tmp;
+    pastix_int_t cnodesnbr, cnodeidx, *tmp;
 
     cnodesnbr = compress_getNodeNbr( etree, candtab, eTreeRoot(etree)  );
 
     /* Let's create a second compressed elimination tree, and the associated candtab */
-    MALLOC_INTERN(ctree, 1, EliminTree);
-    eTreeInit(ctree);
+    ctree = eTreeInit( cnodesnbr );
 
-    MALLOC_INTERN(ccand, cnodesnbr, Cand);
-    candInit(ccand, cnodesnbr);
-
-    ctree->nodenbr = cnodesnbr;
-    MALLOC_INTERN(ctree->nodetab, cnodesnbr, eTreeNode_t);
-    cnode = ctree->nodetab;
-
-    /* Initialize the structure fields */
-    for(i=0; i<cnodesnbr; i++, cnode++)
-    {
-        cnode->total   = 0.;
-        cnode->subtree = 0.;
-        cnode->cripath = 0.;
-        cnode->sonsnbr =  0;
-        cnode->fathnum = -1;
-        cnode->fsonnum = -1;
-    }
+    ccand = candInit( cnodesnbr );
 
     MALLOC_INTERN(tmp, etree->nodenbr, pastix_int_t);
     cnodeidx = -1;
@@ -479,7 +460,7 @@ candGenCompressedDot( const EliminTree *etree,
     candGenDot( ctree, ccand, stream );
 
     /* Free temporary ressources */
-    memFree_null( ccand );
+    candExit( ccand );
     eTreeExit( ctree );
 }
 
