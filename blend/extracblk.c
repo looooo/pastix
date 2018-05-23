@@ -249,7 +249,10 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
     newsymb->browtab = NULL;
 
     /* Allocate new candtab */
-    MALLOC_INTERN(newcand, newsymb->cblknbr, Cand);
+    newcand = candInit( newsymb->cblknbr );
+
+    /* Copy the root cand */
+    newcand[-1] = oldcand[-1];
 
     /*
      * We use the sptcbnb array to get the new numbering of the former cblk
@@ -379,7 +382,7 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
                 oldcand + lastcblksplit,
                 nbcblk2copy * sizeof(Cand) );
     }
-    memFree_null(oldcand);
+    candExit(oldcand);
 
     /* Allocate new bloktab */
     newsymb->bloknbr = oldsymb->bloknbr + addblok;
