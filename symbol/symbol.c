@@ -96,8 +96,8 @@ pastixSymbolRealloc( symbol_matrix_t *symbptr )
     symbptr->cblktab = cblktab;
 
     /* Move block array */
-    MALLOC_INTERN( bloktab, symbptr->bloknbr+1, symbol_blok_t );
-    memcpy(bloktab, symbptr->bloktab, (symbptr->bloknbr + 1) * sizeof (symbol_blok_t));
+    MALLOC_INTERN( bloktab, symbptr->bloknbr, symbol_blok_t );
+    memcpy(bloktab, symbptr->bloktab, (symbptr->bloknbr) * sizeof (symbol_blok_t));
     memFree(symbptr->bloktab);
     symbptr->bloktab = bloktab;
 }
