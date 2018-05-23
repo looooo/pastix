@@ -35,21 +35,21 @@ typedef struct cand_s {
     int8_t       cblktype;  /**< type of the distribution                            */
 } Cand;
 
-void candInit (       Cand            *candtab,
-                      pastix_int_t     cblknbr );
-int  candCheck( const Cand            *candtab,
-                const symbol_matrix_t *symbmtx );
-void candSave ( const Cand            *candtab,
-                      pastix_int_t     cblknbr,
-                      char           **directory );
-void candBuild( pastix_int_t           level_tasks2d,
-                pastix_int_t           width_tasks2d,
-                pastix_compress_when_t lr_when,
-                pastix_int_t           lr_width,
-                Cand                  *candtab,
-                EliminTree            *etree,
-                const symbol_matrix_t *symbmtx,
-                const CostMatrix      *costmtx );
+Cand *candInit (       pastix_int_t     cblknbr );
+void  candExit (       Cand            *candtab );
+int   candCheck( const Cand            *candtab,
+                 const symbol_matrix_t *symbmtx );
+void  candSave ( const Cand            *candtab,
+                       pastix_int_t     cblknbr,
+                       char           **directory );
+void  candBuild( pastix_int_t           level_tasks2d,
+                 pastix_int_t           width_tasks2d,
+                 pastix_compress_when_t lr_when,
+                 pastix_int_t           lr_width,
+                 Cand                  *candtab,
+                 EliminTree            *etree,
+                 const symbol_matrix_t *symbmtx,
+                 const CostMatrix      *costmtx );
 
 
 void candUpdate         ( Cand                  *candtab,

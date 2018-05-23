@@ -34,29 +34,54 @@
  *
  *******************************************************************************
  *
- * @param[inout] candtab
- *          The array of size cblknbr of Cand structure to initialize.
- *
  * @param[in] cblknbr
  *          The size of the candtab array.
  *
+ *******************************************************************************
+ *
+ * @return The array of size cblknbr+1 of Cand structure initialized.
+ *
+ *******************************************************************************/
+Cand *
+candInit( pastix_int_t cblknbr )
+{
+    Cand *candtab, *cand;
+    pastix_int_t i;
+
+    MALLOC_INTERN( candtab, cblknbr+1, Cand );
+    cand = candtab;
+
+    for(i=-1;i<cblknbr;i++, cand++)
+    {
+        cand->costlevel = 0.0;
+        cand->treelevel = 0;
+        cand->fcandnum  = -1;
+        cand->lcandnum  = -1;
+        cand->fccandnum = -1;
+        cand->lccandnum = -1;
+        cand->cluster   = -1;
+        cand->cblktype  = CBLK_LAYOUT_2D | CBLK_TASKS_2D;
+    }
+
+    return candtab+1;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Exit and free the candtab structure given
+ *
+ *******************************************************************************
+ *
+ * @param[inout] candtab
+ *          The candtab array to free.
+ *
  *******************************************************************************/
 void
-candInit( Cand        *candtab,
-          pastix_int_t cblknbr )
+candExit( Cand *candtab )
 {
-    pastix_int_t i;
-    for(i=0;i<cblknbr;i++)
-    {
-        candtab[i].costlevel = 0.0;
-        candtab[i].treelevel = 0;
-        candtab[i].fcandnum  = -1;
-        candtab[i].lcandnum  = -1;
-        candtab[i].fccandnum = -1;
-        candtab[i].lccandnum = -1;
-        candtab[i].cluster   = -1;
-        candtab[i].cblktype  = CBLK_LAYOUT_2D | CBLK_TASKS_2D;
-    }
+    candtab--;
+    memFree_null( candtab );
 }
 
 /**
@@ -88,7 +113,7 @@ candSave( const Cand    *candtab,
     f = pastix_fopenw( directory, "candtab.txt", "w" );
 
     fprintf(f, "%ld\n", (long)cblknbr );
-    for(i=0;i<cblknbr;i++)
+    for(i=-1;i<cblknbr;i++)
     {
         fprintf(f, "%lf %ld %ld %ld %ld %ld %ld %ld\n",
                 (double)candtab[i].costlevel,
@@ -135,6 +160,11 @@ candSetClusterCand(       Cand         *candtab,
 {
     pastix_int_t i;
     (void)coresnbr;
+
+    assert( candtab[-1].fcandnum == 0 );
+    assert( candtab[-1].lcandnum == coresnbr-1 );
+    candtab[-1].fccandnum = core2clust[ candtab[-1].fcandnum ];
+    candtab[-1].lccandnum = core2clust[ candtab[-1].lcandnum ];
 
     for(i=0; i<cblknbr; i++) {
         assert( candtab[i].fcandnum >= 0 );
@@ -247,7 +277,12 @@ candSubTreeBuild( pastix_int_t           rootnum,
     pastix_int_t i, son;
 
     /* Get cost of current node */
-    cost = costmtx->cblkcost[rootnum];
+    if ( rootnum == -1 ) {
+        cost = 0.;
+    }
+    else {
+        cost = costmtx->cblkcost[rootnum];
+    }
     etree->nodetab[ rootnum ].total   = cost;
     etree->nodetab[ rootnum ].subtree = cost;
 
@@ -266,6 +301,7 @@ candSubTreeBuild( pastix_int_t           rootnum,
     }
 
     /* Update local critical path */
+    if (rootnum >= 0)
     {
         pastix_int_t bloknum = symbmtx->cblktab[ rootnum ].bloknum;
         pastix_int_t fcblknm;
@@ -685,7 +721,7 @@ candBuild( pastix_int_t level_tasks2d, pastix_int_t width_tasks2d,
            const CostMatrix      *costmtx )
 {
     double cp = 0.0;
-    pastix_int_t root = eTreeRoot(etree);
+    pastix_int_t i, son, root = eTreeRoot(etree);
     pastix_int_t cblktype = CBLK_LAYOUT_2D | CBLK_TASKS_2D | CBLK_IN_SCHUR | CBLK_COMPRESSED;
 
 #if defined(PASTIX_CUDA_FERMI)
@@ -702,42 +738,46 @@ candBuild( pastix_int_t level_tasks2d, pastix_int_t width_tasks2d,
         lr_width = PASTIX_INT_MAX;
     }
 
+    for(i=0; i<etree->nodetab[root].sonsnbr; i++)
+    {
+        son = eTreeSonI(etree, root, i);
 #if defined(PASTIX_BLEND_DEEPEST_DISTRIB)
-    /*
-     * Find the deepest node that matches the criteria for a flag, and assign
-     * the flag to all its ancestors to the root
-     */
-    if( level_tasks2d < 0 )
-    {
-        candSubTreeDistribDeepestWidth( eTreeRoot(etree), cblktype,
-                                        width_tasks2d, lr_width,
-                                        candtab, etree, symbmtx );
-    }
-    else
-    {
-        candSubTreeDistribDeepestLevel( eTreeRoot(etree), cblktype,
-                                        level_tasks2d, lr_width,
-                                        candtab, etree, symbmtx );
-    }
+        /*
+         * Find the deepest node that matches the criteria for a flag, and assign
+         * the flag to all its ancestors to the root
+         */
+        if( level_tasks2d < 0 )
+        {
+            candSubTreeDistribDeepestWidth( son, cblktype,
+                                            width_tasks2d, lr_width,
+                                            candtab, etree, symbmtx );
+        }
+        else
+        {
+            candSubTreeDistribDeepestLevel( son, cblktype,
+                                            level_tasks2d, lr_width,
+                                            candtab, etree, symbmtx );
+        }
 #else
-    /*
-     * Propagate the flags to all the sons as long as the node matches the
-     * criteria to keep them. Stops earlier than previous case with btterfly
-     * like meshes.
-     */
-    if( level_tasks2d < 0 )
-    {
-        candSubTreeDistribFirstWidth( eTreeRoot(etree), cblktype,
-                                      width_tasks2d, lr_width,
-                                      candtab, etree, symbmtx );
-    }
-    else
-    {
-        candSubTreeDistribFirstLevel( eTreeRoot(etree), cblktype,
-                                      level_tasks2d, lr_width,
-                                      candtab, etree, symbmtx );
-    }
+        /*
+         * Propagate the flags to all the sons as long as the node matches the
+         * criteria to keep them. Stops earlier than previous case with btterfly
+         * like meshes.
+         */
+        if( level_tasks2d < 0 )
+        {
+            candSubTreeDistribFirstWidth( son, cblktype,
+                                          width_tasks2d, lr_width,
+                                          candtab, etree, symbmtx );
+        }
+        else
+        {
+            candSubTreeDistribFirstLevel( son, cblktype,
+                                          level_tasks2d, lr_width,
+                                          candtab, etree, symbmtx );
+        }
 #endif
+    }
 }
 
 /**
@@ -777,8 +817,8 @@ candUpdate( Cand                  *candtab,
     pastix_int_t root = eTreeRoot(etree);
 
     /* Let's start with the root */
-    candtab[ root ].costlevel = -1.0;
-    candtab[ root ].treelevel = -1;
+    candtab[ root ].costlevel = 0.;
+    candtab[ root ].treelevel = 0;
 
     candSubTreeBuild( root, candtab, etree, symbmtx, costmtx, &cp );
 }
