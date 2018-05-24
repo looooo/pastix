@@ -42,62 +42,22 @@ pastixOrderBuildEtree( const pastix_order_t *order )
     EliminTree *etree = NULL;
     eTreeNode_t *enode;
     pastix_int_t i, fathnum;
-    pastix_int_t sonstabcur;
 
-    MALLOC_INTERN(etree, 1, EliminTree);
-    eTreeInit(etree);
+    etree = eTreeInit( order->cblknbr );
 
-    etree->nodenbr = order->cblknbr;
-    MALLOC_INTERN( enode, etree->nodenbr + 1, eTreeNode_t);
-    memset( enode, 0, (etree->nodenbr + 1 ) * sizeof(eTreeNode_t) );
-
-    /* Shift etree->nodetab, to store the fake root before the array */
-    enode->fathnum = -1;
-    enode++;
-    etree->nodetab = enode;
-
-    /* Initialize the structure fields */
+    /* Compute the fathers and the number of sons */
+    enode = etree->nodetab;
     for(i=0; i<order->cblknbr; i++, enode++)
     {
         fathnum = order->treetab[i];
-
         enode->fathnum = fathnum;
-        enode->fsonnum = -1;
 
         assert(fathnum < (order->cblknbr+1) );
         etree->nodetab[ fathnum ].sonsnbr ++;
     }
 
-    MALLOC_INTERN(etree->sonstab, etree->nodenbr, pastix_int_t);
-
     /* Set the index of the first sons */
-    sonstabcur = 0;
-    enode = etree->nodetab - 1;
-    for(i=-1; i<order->cblknbr; i++, enode++)
-    {
-        enode->fsonnum = sonstabcur;
-        sonstabcur += enode->sonsnbr;
-    }
-    assert(sonstabcur == etree->nodenbr);
-
-    /* Fill the sonstab */
-    /* No need to go to the root */
-    for(i=0; i<order->cblknbr; i++)
-    {
-        fathnum = etree->nodetab[i].fathnum;
-        assert( fathnum < order->cblknbr );
-        etree->sonstab[ etree->nodetab[ fathnum ].fsonnum++ ] = i;
-    }
-
-    /* Restore fsonnum fields */
-    sonstabcur = 0;
-    enode = etree->nodetab - 1;
-    for(i=-1; i<order->cblknbr; i++, enode++)
-    {
-        enode->fsonnum = sonstabcur;
-        sonstabcur += enode->sonsnbr;
-    }
-    assert(sonstabcur == etree->nodenbr);
+    eTreeSetSons( etree );
 
     return etree;
 }
@@ -370,8 +330,6 @@ pastixOrderApplyLevelOrder( pastix_order_t *order,
 
     pastixOrderExit( &oldorder );
 
-    /* Restore the right pointer */
-    etree->nodetab = etree->nodetab - 1;
     eTreeExit( etree );
 
     return PASTIX_SUCCESS;

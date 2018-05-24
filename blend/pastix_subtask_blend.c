@@ -234,8 +234,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
     /* Build the candtab array to store candidate information on each cblk */
     {
-        MALLOC_INTERN(ctrl.candtab, symbmtx->cblknbr, Cand);
-        candInit( ctrl.candtab, symbmtx->cblknbr );
+        ctrl.candtab = candInit( symbmtx->cblknbr );
 
         /* Initialize costs in elimination tree and candtab array for proportionnal mapping */
         candBuild( ctrl.level_tasks2d, ctrl.width_tasks2d,

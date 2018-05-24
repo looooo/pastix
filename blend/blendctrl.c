@@ -310,6 +310,7 @@ blendCtrlExit(BlendCtrl *ctrl)
         memFree_null(ctrl->core2clust);
     }
     if(ctrl->candtab) {
-        memFree_null(ctrl->candtab);
+        candExit( ctrl->candtab );
+        ctrl->candtab = NULL;
     }
 }
