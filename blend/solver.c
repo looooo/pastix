@@ -353,15 +353,15 @@ solverPrintStats( const SolverMatrix *solvptr )
     fprintf( stdout,
              "    Solver Matrix statistics:         | %-12s | %-12s | %-12s |\n"
              "    --------------------------------------------------------------------------------\n"
-             "      Number of cblk                  | %12ld | %12ld | %12ld |\n"
-             "      Number of block                 | %12ld | %12ld | %12ld |\n"
-             "      Number of block (diag part.)    | %12ld | %12ld | %12ld |\n"
-             "      Cblk:   first                   | %12ld | %12ld | %12ld |\n"
-             "              last                    | %12ld | %12ld | %12ld |\n"
-             "      Block:  first                   | %12ld | %12ld | %12ld |\n"
-             "              last                    | %12ld | %12ld | %12ld |\n"
-             "      rownum: first                   | %12ld | %12ld | %12ld |\n"
-             "              last                    | %12ld | %12ld | %12ld |\n"
+             "      Number of cblk                  | %12" PRIi64 " | %12" PRIi64 " | %12" PRIi64 " |\n"
+             "      Number of block                 | %12" PRIi64 " | %12" PRIi64 " | %12" PRIi64 " |\n"
+             "      Number of block (diag part.)    | %12" PRIi64 " | %12" PRIi64 " | %12" PRIi64 " |\n"
+             "      Cblk:   first                   | %12" PRIi64 " | %12" PRIi64 " | %12" PRIi64 " |\n"
+             "              last                    | %12" PRIi64 " | %12" PRIi64 " | %12" PRIi64 " |\n"
+             "      Block:  first                   | %12" PRIi64 " | %12" PRIi64 " | %12" PRIi64 " |\n"
+             "              last                    | %12" PRIi64 " | %12" PRIi64 " | %12" PRIi64 " |\n"
+             "      rownum: first                   | %12" PRIi64 " | %12" PRIi64 " | %12" PRIi64 " |\n"
+             "              last                    | %12" PRIi64 " | %12" PRIi64 " | %12" PRIi64 " |\n"
              "      Average width                   | %12.2lf | %12.2lf | %12.2lf |\n"
              "      Average height                  | %12.2lf | %12.2lf | %12.2lf |\n"
              "      Structure memory space           %11.2lf %co\n"
@@ -378,8 +378,8 @@ solverPrintStats( const SolverMatrix *solvptr )
               */
              nbpartblok[0], nbpartblok[1], nbpartblok[2],
              /* Cblk */
-             (long)0,         (long)0,                        (long)(solvptr->cblkmin2d),
-             (long)(cblknbr), (long)(solvptr->cblkmax1d + 1), (long)(cblknbr),
+             (int64_t)0,         (int64_t)0,                        (int64_t)(solvptr->cblkmin2d),
+             (int64_t)(cblknbr), (int64_t)(solvptr->cblkmax1d + 1), (int64_t)(cblknbr),
              /* Blok */
              fblok[0], fblok[1], fblok[2],
              lblok[0], lblok[1], lblok[2],
