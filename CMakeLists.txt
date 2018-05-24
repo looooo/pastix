@@ -648,8 +648,6 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_kass_direct.c
   symbol/symbol_kass_level.c
   symbol/symbol_reordering.c
-  #symbol/symbol_rustine.c
-  #symbol/symbol_tree.c
   symbol/pastix_subtask_reordering.c
   symbol/pastix_subtask_symbfact.c
 
