@@ -25,7 +25,7 @@ int main (int argc, char **argv)
     double          dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
     spm_driver_t    driver;
     char           *filename;
-    pastix_spm_t   *spm, *spm2;
+    spmatrix_t     *spm, *spm2;
     void           *x, *b, *x0 = NULL;
     size_t          size;
     int             check = 1;
@@ -49,7 +49,7 @@ int main (int argc, char **argv)
     /**
      * Read the sparse matrix with the driver
      */
-    spm = malloc( sizeof( pastix_spm_t ) );
+    spm = malloc( sizeof( spmatrix_t ) );
     spmReadDriver( driver, filename, spm );
     free( filename );
 

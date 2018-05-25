@@ -37,7 +37,7 @@
  *  Check the accuracy of the solution
  */
 int
-z_bcsc_matvec_check( int trans, const pastix_spm_t *spm, const pastix_data_t *pastix_data )
+z_bcsc_matvec_check( int trans, const spmatrix_t   *spm, const pastix_data_t *pastix_data )
 {
     unsigned long long int seed = 35469;
     pastix_complex64_t *x, *y0, *ys, *yd;
@@ -119,7 +119,7 @@ z_bcsc_matvec_check( int trans, const pastix_spm_t *spm, const pastix_data_t *pa
  *  Check the accuracy of the solution
  */
 int
-z_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc )
+z_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc )
 {
     double norms, normd;
     double eps, result;

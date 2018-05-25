@@ -91,7 +91,7 @@ static fct_rradd_t recompressMethod[2][4] =
  *******************************************************************************/
 int
 pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
-                         pastix_spm_t  *spm )
+                         spmatrix_t    *spm )
 {
     double time;
 
@@ -513,7 +513,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
  *******************************************************************************/
 int
 pastix_task_numfact( pastix_data_t *pastix_data,
-                     pastix_spm_t  *spm )
+                     spmatrix_t    *spm )
 {
     pastix_int_t *iparm;
     pastix_int_t  procnum;

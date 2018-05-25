@@ -26,10 +26,10 @@
 #include <bcsc.h>
 #include "sopalin_data.h"
 
-int z_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc );
-int c_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc );
-int d_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc );
-int s_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc );
+int z_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc );
+int c_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc );
+int d_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc );
+int s_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc );
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_) {                                 \
@@ -49,7 +49,7 @@ int main (int argc, char **argv)
     pastix_int_t    iparm[IPARM_SIZE];  /* integer parameters for pastix                    */
     double          dparm[DPARM_SIZE];  /* floating parameters for pastix                   */
     spm_driver_t    driver;             /* Matrix driver(s) requested by user               */
-    pastix_spm_t   *spm, *spm2;
+    spmatrix_t     *spm, *spm2;
     pastix_bcsc_t   bcsc;
     char *filename;                     /* Filename(s) given by user                        */
     int ret = PASTIX_SUCCESS;
@@ -68,7 +68,7 @@ int main (int argc, char **argv)
                       NULL, NULL,
                       NULL, &driver, &filename );
 
-    spm = malloc( sizeof( pastix_spm_t ) );
+    spm = malloc( sizeof( spmatrix_t ) );
     spmReadDriver( driver, filename, spm );
     free(filename);
     spm2 = spmCheckAndCorrect( spm );

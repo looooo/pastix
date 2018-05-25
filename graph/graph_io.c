@@ -44,7 +44,7 @@ void
 graphLoad( const pastix_data_t *pastix_data,
            pastix_graph_t      *graph )
 {
-    pastix_spm_t spm;
+    spmatrix_t spm;
     FILE *stream = NULL;
     char *filename = NULL;
     int env = 1;
@@ -117,7 +117,7 @@ void
 graphSave( pastix_data_t        *pastix_data,
            const pastix_graph_t *graph )
 {
-    pastix_spm_t spm;
+    spmatrix_t spm;
     FILE *stream   = NULL;
     int   env      = 1;
     char *filename = NULL;

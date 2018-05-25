@@ -47,7 +47,7 @@ struct pastix_graph_s {
  * @{
  */
 int  graphPrepare(       pastix_data_t   *pastix_data,
-                   const pastix_spm_t    *spm,
+                   const spmatrix_t      *spm,
                          pastix_graph_t  **graph );
 void graphBase   (       pastix_graph_t  *graph, int baseval );
 void graphExit   (       pastix_graph_t  *graph );

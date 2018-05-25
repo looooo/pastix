@@ -32,8 +32,8 @@ int main (int argc, char **argv)
     int             nfact       = 2;
     int             nsolv       = 2;
     int             nrhs        = 1;
-    pastix_spm_t   *spm;
-    pastix_spm_t   *spm2;
+    spmatrix_t     *spm;
+    spmatrix_t     *spm2;
     void           *x           = NULL;
     void           *x0          = NULL;
     size_t          size;
@@ -57,7 +57,7 @@ int main (int argc, char **argv)
     /*
      * Read Matrice
      */
-    spm = malloc( sizeof( pastix_spm_t ) );
+    spm = malloc( sizeof( spmatrix_t ) );
     spmReadDriver( driver, filename, spm );
     free( filename );
 

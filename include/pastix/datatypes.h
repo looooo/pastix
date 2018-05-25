@@ -125,6 +125,8 @@ pastix_size_of(pastix_coeftype_t type)
 /* Sparse matrix */
 struct spmatrix_s;
 typedef struct spmatrix_s spmatrix_t;
+
+/* To make it compatible with version with spm inside pastix */
 typedef spmatrix_t pastix_spm_t;
 
 /* Main structure of the pastix solver associated to a given problem */

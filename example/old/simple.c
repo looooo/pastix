@@ -25,7 +25,7 @@ int main (int argc, char **argv)
     double          dparm[DPARM_SIZE]; /* floating parameters for pastix                            */
     char           *filename;  /* Filename(s) given by user                                 */
     int             nrhs        = 1;
-    pastix_spm_t   *spm, *spm2;
+    spmatrix_t     *spm, *spm2;
     spm_driver_t    driver;
     void           *x, *x0 = NULL;
     size_t          size;
@@ -50,7 +50,7 @@ int main (int argc, char **argv)
     /*
      * Read Matrice
      */
-    spm = malloc( sizeof( pastix_spm_t ) );
+    spm = malloc( sizeof( spmatrix_t ) );
     spmReadDriver( driver, filename, spm );
     free( filename );
 

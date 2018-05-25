@@ -45,8 +45,8 @@ typedef struct solve_param {
 static void *solve_smp(void *arg)
 {
     pastix_data_t *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
-    pastix_spm_t  *spm;
-    pastix_spm_t  *spm2;
+    spmatrix_t    *spm;
+    spmatrix_t    *spm2;
     void          *x, *b, *x0 = NULL;
     size_t         size;
     int            check;
@@ -62,7 +62,7 @@ static void *solve_smp(void *arg)
     /**
      * Read the sparse matrix with the driver
      */
-    spm = malloc( sizeof( pastix_spm_t ) );
+    spm = malloc( sizeof( spmatrix_t ) );
     spmReadDriver( param.driver, param.filename, spm );
 
     spmPrintInfo( spm, stdout );
