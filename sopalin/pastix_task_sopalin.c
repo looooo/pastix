@@ -115,7 +115,7 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
      * Compute the norm of A, to scale the epsilon parameter for pivoting
      */
     {
-        pastix_data->dparm[ DPARM_A_NORM ] = spmNorm( PastixFrobeniusNorm, spm );
+        pastix_data->dparm[ DPARM_A_NORM ] = spmNorm( SpmFrobeniusNorm, spm );
         if (pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
             pastix_print( 0, 0,
                           "    ||A||_2  =                            %e\n",

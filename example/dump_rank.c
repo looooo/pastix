@@ -154,7 +154,7 @@ int main (int argc, char **argv)
     /**
      * Normalize A matrix (optional, but recommended for low-rank functionality)
      */
-    double normA = spmNorm( PastixFrobeniusNorm, spm );
+    double normA = spmNorm( SpmFrobeniusNorm, spm );
     spmScalMatrix( 1./normA, spm );
 
     /**

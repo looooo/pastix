@@ -84,7 +84,7 @@ z_bcsc_matvec_check( int trans, const pastix_spm_t *spm, const pastix_data_t *pa
     z_bcscApplyPerm( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
     z_bcscApplyPerm( pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
 
-    Anorm  = spmNorm( PastixInfNorm, spm );
+    Anorm  = spmNorm( SpmInfNorm, spm );
     Xnorm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,  x, spm->gN );
     Y0norm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1, y0, spm->gN );
     Ysnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1, ys, spm->gN );
@@ -131,7 +131,7 @@ z_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc )
      * Test Norm Max
      */
     printf(" -- Test norm Max :");
-    norms = spmNorm( PastixMaxNorm, spm );
+    norms = spmNorm( SpmMaxNorm, spm );
     normd = z_bcscNorm( PastixMaxNorm, bcsc );
     result = fabs(norms - normd) / (norms * eps);
 
@@ -149,7 +149,7 @@ z_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc )
      * Test Norm Inf
      */
     printf(" -- Test norm Inf :");
-    norms = spmNorm( PastixInfNorm, spm );
+    norms = spmNorm( SpmInfNorm, spm );
     normd = z_bcscNorm( PastixInfNorm, bcsc );
     result = fabs(norms - normd) / (norms * eps);
     result = result * ((double)(spm->gN)) / ((double)(spm->gnnz));
@@ -168,7 +168,7 @@ z_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc )
      * Test Norm One
      */
     printf(" -- Test norm One :");
-    norms = spmNorm( PastixOneNorm, spm );
+    norms = spmNorm( SpmOneNorm, spm );
     normd = z_bcscNorm( PastixOneNorm, bcsc );
     result = fabs(norms - normd) / (norms * eps);
     result = result * ((double)(spm->gN)) / ((double)(spm->gnnz));
@@ -187,7 +187,7 @@ z_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc )
      * Test Norm Frobenius
      */
     printf(" -- Test norm Frb :");
-    norms = spmNorm( PastixFrobeniusNorm, spm );
+    norms = spmNorm( SpmFrobeniusNorm, spm );
     normd = z_bcscNorm( PastixFrobeniusNorm, bcsc );
     result = fabs(norms - normd) / (norms * eps);
     result = result / ((double)spm->gnnz);
