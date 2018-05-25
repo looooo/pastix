@@ -244,12 +244,13 @@ typedef enum pastix_refine_e {
  * @remark The values start at 2 for compatibility purpose with PLASMA and
  * DPLASMA libraries, and they match the ones used in spm.
  */
-#define pastix_coeftype_t spm_coeftype_t
-#define PastixPattern   SpmPattern
-#define PastixFloat     SpmFloat
-#define PastixDouble    SpmDouble
-#define PastixComplex32 SpmComplex32
-#define PastixComplex64 SpmComplex64
+typedef enum pastix_coeftype_e {
+    PastixPattern   = 0, /**< Pattern only, no values are stored */
+    PastixFloat     = 2, /**< Single precision real              */
+    PastixDouble    = 3, /**< Double precision real              */
+    PastixComplex32 = 4, /**< Single precision complex           */
+    PastixComplex64 = 5  /**< Double precision complex           */
+} pastix_coeftype_t;
 
 /**
  * @brief Factorization algorithms available for IPARM_FACTORIZATION parameter
