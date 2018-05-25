@@ -20,18 +20,18 @@
 
 int main (int argc, char **argv)
 {
-    pastix_data_t    *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
-    pastix_int_t      iparm[IPARM_SIZE];  /*< Integer in/out parameters for pastix                */
-    double            dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
-    pastix_driver_t   driver;
-    char             *filename;
-    pastix_spm_t     *spm, *spm2;
-    void             *x, *b, *x0 = NULL;
-    size_t            size;
-    int               check = 1;
-    int               nrhs  = 1;
-    int               rc    = 0;
-    pastix_order_t   *ord;
+    pastix_data_t  *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
+    pastix_int_t    iparm[IPARM_SIZE];  /*< Integer in/out parameters for pastix                */
+    double          dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
+    spm_driver_t    driver;
+    char           *filename;
+    pastix_spm_t   *spm, *spm2;
+    void           *x, *b, *x0 = NULL;
+    size_t          size;
+    int             check = 1;
+    int             nrhs  = 1;
+    int             rc    = 0;
+    pastix_order_t *ord;
 
     /**
      * Initialize parameters to default values
@@ -48,8 +48,8 @@ int main (int argc, char **argv)
     /**
      * Build optimal ordering (for laplacians only)
      */
-    if ( driver != PastixDriverLaplacian ){
-        fprintf(stderr, "Grid ordering can be used with PastixDriverLaplacian driver only\n");
+    if ( driver != SpmDriverLaplacian ){
+        fprintf(stderr, "Grid ordering can be used with SpmDriverLaplacian driver only\n");
         return EXIT_FAILURE;
     }
 

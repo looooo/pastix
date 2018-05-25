@@ -25,6 +25,7 @@
 #define _pastix_h_
 
 #include "pastix/config.h"
+#include <spm.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -158,6 +159,6 @@ int  pastixGetDiag( const pastix_data_t *pastix_data,
  */
 void pastixGetOptions( int argc, char **argv,
                         pastix_int_t *iparm, double *dparm,
-                        int *check, pastix_driver_t *driver, char **filename );
+                        int *check, spm_driver_t *driver, char **filename );
 
 #endif /* _pastix_h_ */

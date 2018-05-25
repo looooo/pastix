@@ -199,7 +199,7 @@ int main (int argc, char **argv)
     pastix_data_t  *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
     pastix_int_t    iparm[IPARM_SIZE];  /*< Integer in/out parameters for pastix                */
     double          dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
-    pastix_driver_t driver;
+    spm_driver_t    driver;
     char           *filename;
     pastix_spm_t   *spm, *spm2;
     void           *x, *b, *S, *x0 = NULL;

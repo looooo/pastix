@@ -19,18 +19,18 @@
 
 int main (int argc, char **argv)
 {
-    pastix_data_t   *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
-    pastix_float_t  *b           = NULL; /* right hand side                                           */
-    pastix_int_t     iparm[IPARM_SIZE]; /* integer parameters for pastix                             */
-    double           dparm[DPARM_SIZE]; /* floating parameters for pastix                            */
-    char            *filename;  /* Filename(s) given by user                                 */
-    int              nrhs        = 1;
-    pastix_spm_t    *spm, *spm2;
-    pastix_driver_t  driver;
-    void            *x, *x0 = NULL;
-    size_t           size;
-    int              check = 1;
-    int              ret   = PASTIX_SUCCESS;
+    pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
+    pastix_float_t *b           = NULL; /* right hand side                                           */
+    pastix_int_t    iparm[IPARM_SIZE]; /* integer parameters for pastix                             */
+    double          dparm[DPARM_SIZE]; /* floating parameters for pastix                            */
+    char           *filename;  /* Filename(s) given by user                                 */
+    int             nrhs        = 1;
+    pastix_spm_t   *spm, *spm2;
+    spm_driver_t    driver;
+    void           *x, *x0 = NULL;
+    size_t          size;
+    int             check = 1;
+    int             ret   = PASTIX_SUCCESS;
 
     /*
      * Initialize parameters to default values

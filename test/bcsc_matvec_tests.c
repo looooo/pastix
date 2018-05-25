@@ -50,7 +50,7 @@ int main (int argc, char **argv)
     pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix  */
     pastix_int_t    iparm[IPARM_SIZE];  /* integer parameters for pastix                    */
     double          dparm[DPARM_SIZE];  /* floating parameters for pastix                   */
-    pastix_driver_t driver;             /* Matrix driver(s) requested by user               */
+    spm_driver_t    driver;             /* Matrix driver(s) requested by user               */
     pastix_spm_t   *spm, *spm2;
     char *filename;                     /* Filename(s) given by user                        */
     int t;

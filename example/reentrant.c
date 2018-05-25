@@ -25,13 +25,13 @@
  *  to each thread.
  */
 typedef struct solve_param {
-    pastix_int_t        iparm[IPARM_SIZE];
-    double              dparm[DPARM_SIZE];
-    char               *filename;
-    pastix_driver_t     driver;
-    int                 check;
-    int                 id;
-    int                 rc;
+    pastix_int_t  iparm[IPARM_SIZE];
+    double        dparm[DPARM_SIZE];
+    char         *filename;
+    spm_driver_t  driver;
+    int           check;
+    int           id;
+    int           rc;
 } solve_param_t;
 
 /**
@@ -166,15 +166,15 @@ static void *solve_smp(void *arg)
 
 int main (int argc, char **argv)
 {
-    pastix_int_t        iparm[IPARM_SIZE];      /*< Integer in/out parameters for pastix                */
-    double              dparm[DPARM_SIZE];      /*< Floating in/out parameters for pastix               */
-    pastix_driver_t     driver;                 /*< Matrix driver(s) requested by user                  */
-    char               *filename;               /*< Filename(s) given by user                           */
-    int                 nbcallingthreads = 2;
-    solve_param_t      *solve_param;
-    pthread_t          *threads;
-    int                 i, check = 1;
-    int                 rc = 0;
+    pastix_int_t   iparm[IPARM_SIZE];      /*< Integer in/out parameters for pastix                */
+    double         dparm[DPARM_SIZE];      /*< Floating in/out parameters for pastix               */
+    spm_driver_t   driver;                 /*< Matrix driver(s) requested by user                  */
+    char          *filename;               /*< Filename(s) given by user                           */
+    int            nbcallingthreads = 2;
+    solve_param_t *solve_param;
+    pthread_t     *threads;
+    int            i, check = 1;
+    int            rc = 0;
 
     /**
      * Initialize parameters to default values

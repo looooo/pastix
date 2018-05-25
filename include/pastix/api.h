@@ -356,29 +356,17 @@ typedef enum pastix_compress_ortho_e {
 } pastix_compress_ortho_t;
 
 /**
- * @brief The list of matrix driver readers and generators
+ * @brief The list of matrix driver readers and generators from Spm
  */
-typedef enum pastix_driver_e {
-    PastixDriverRSA,        /**< RSA Fortran driver                              */
-    PastixDriverHB,         /**< Harwell Boeing driver                           */
-    PastixDriverIJV,        /**< IJV Coordinate driver                           */
-    PastixDriverMM,         /**< Matrix Market C driver                          */
-    PastixDriverLaplacian,  /**< 3, 5, or 7 points Laplacian stencil generator   */
-    PastixDriverXLaplacian, /**< 15-points Laplacian stencil generator           */
-    PastixDriverGraph,      /**< Scotch Graph driver                             */
-    PastixDriverSPM,        /**< SPM matrix driver                               */
-    /* PastixDriverDMM,        /\**< Distributed Matrix Market driver                *\/ */
-    /* PastixDriverCSCD,       /\**< CSC distributed driver                          *\/ */
-    /* PastixDriverPetscS,     /\**< Petsc Symmetric driver                          *\/ */
-    /* PastixDriverPetscU,     /\**< Pestc Unssymmetric driver                       *\/ */
-    /* PastixDriverPetscH,     /\**< Pestc Hermitian driver                          *\/ */
-    /* PastixDriverCCC,        /\**< Not supported yet *\/ */
-    /* PastixDriverRCC,        /\**< Not supported yet *\/ */
-    /* PastixDriverOlaf,       /\**< Not supported yet *\/ */
-    /* PastixDriverPeer,       /\**< Not supported yet *\/ */
-    /* PastixDriverBRGM,       /\**< Not supported yet *\/ */
-    /* PastixDriverBRGMD,      /\**< Not supported yet *\/ */
-} pastix_driver_t;
+#define pastix_driver_t spm_driver_t
+#define PastixDriverRSA        SpmDriverRSA
+#define PastixDriverHB         SpmDriverHB
+#define PastixDriverIJV        SpmDriverIJV
+#define PastixDriverMM         SpmDriverMM
+#define PastixDriverLaplacian  SpmDriverLaplacian
+#define PastixDriverXLaplacian SpmDriverXLaplacian
+#define PastixDriverGraph      SpmDriverGraph
+#define PastixDriverSPM        SpmDriverSPM
 
 /**
  * @brief How to generate RHS

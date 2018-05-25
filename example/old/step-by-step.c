@@ -21,24 +21,24 @@
 int main (int argc, char **argv)
 {
 
-    pastix_data_t   *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
-    pastix_float_t  *b           = NULL; /* right hand side                                           */
-    pastix_int_t     iparm[IPARM_SIZE]; /* integer parameters for pastix                             */
-    double           dparm[DPARM_SIZE]; /* floating parameters for pastix                            */
-    pastix_driver_t  driver;    /* Matrix driver(s) requested by user                        */
-    char            *filename;  /* Filename(s) given by user                                 */
-    long             i;
-    int              j;
-    int              nfact       = 2;
-    int              nsolv       = 2;
-    int              nrhs        = 1;
-    pastix_spm_t    *spm;
-    pastix_spm_t    *spm2;
-    void            *x           = NULL;
-    void            *x0          = NULL;
-    size_t           size;
-    int              check       = 1;
-    int              rc          = 0;
+    pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
+    pastix_float_t *b           = NULL; /* right hand side                                           */
+    pastix_int_t    iparm[IPARM_SIZE]; /* integer parameters for pastix                             */
+    double          dparm[DPARM_SIZE]; /* floating parameters for pastix                            */
+    spm_driver_t    driver;    /* Matrix driver(s) requested by user                        */
+    char           *filename;  /* Filename(s) given by user                                 */
+    long            i;
+    int             j;
+    int             nfact       = 2;
+    int             nsolv       = 2;
+    int             nrhs        = 1;
+    pastix_spm_t   *spm;
+    pastix_spm_t   *spm2;
+    void           *x           = NULL;
+    void           *x0          = NULL;
+    size_t          size;
+    int             check       = 1;
+    int             rc          = 0;
 
     /*
      * Initialize parameters to default values

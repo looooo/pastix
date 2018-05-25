@@ -416,7 +416,7 @@ static struct option long_options[] =
 void
 pastixGetOptions( int argc, char **argv,
                   pastix_int_t *iparam, double *dparam,
-                  int *check, pastix_driver_t *driver, char **filename )
+                  int *check, spm_driver_t *driver, char **filename )
 {
     int c;
     (void)dparam;
@@ -439,7 +439,7 @@ pastixGetOptions( int argc, char **argv,
         {
         case '0':
 #if defined(PASTIX_WITH_FORTRAN)
-            *driver = PastixDriverRSA;
+            *driver = SpmDriverRSA;
             *filename = strdup( optarg );
 #else
             fprintf(stderr, "pastixGetOptions: Please compile with PASTIX_WITH_FORTRAN option to enable RSA driver or use HB driver instead\n");
@@ -448,37 +448,37 @@ pastixGetOptions( int argc, char **argv,
             break;
 
         case '1':
-            *driver = PastixDriverHB;
+            *driver = SpmDriverHB;
             *filename = strdup( optarg );
             break;
 
         case '2':
-            *driver = PastixDriverIJV;
+            *driver = SpmDriverIJV;
             *filename = strdup( optarg );
             break;
 
         case '3':
-            *driver = PastixDriverMM;
+            *driver = SpmDriverMM;
             *filename = strdup( optarg );
             break;
 
         case '4':
-            *driver = PastixDriverSPM;
+            *driver = SpmDriverSPM;
             *filename = strdup( optarg );
             break;
 
         case '9':
-            *driver = PastixDriverLaplacian;
+            *driver = SpmDriverLaplacian;
             *filename = strdup( optarg );
             break;
 
         case 'x':
-            *driver = PastixDriverXLaplacian;
+            *driver = SpmDriverXLaplacian;
             *filename = strdup( optarg );
             break;
 
         case 'G':
-            *driver = PastixDriverGraph;
+            *driver = SpmDriverGraph;
             *filename = strdup( optarg );
             break;
 
