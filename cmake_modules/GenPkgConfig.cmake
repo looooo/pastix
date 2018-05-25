@@ -104,14 +104,14 @@ macro(generate_pkgconfig_file)
 
     # The link flags specific to this package and any required libraries
     # that don't support PkgConfig
-    set(PASTIX_PKGCONFIG_LIBS pastix pastix_bcsc pastix_spm pastix_kernels)
+    set(PASTIX_PKGCONFIG_LIBS pastix pastix_kernels)
 
     # The link flags for private libraries required by this package but not
     # exposed to applications
     set(PASTIX_PKGCONFIG_LIBS_PRIVATE "")
 
     # A list of packages required by this package
-    set(PASTIX_PKGCONFIG_REQUIRED "")
+    set(PASTIX_PKGCONFIG_REQUIRED spm)
 
     # A list of private packages required by this package but not exposed to
     # applications

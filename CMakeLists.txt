@@ -533,7 +533,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 
 # Sub modules
-set(modules bcsc kernels refinement) #csc kernels sopalin common)
+set(modules kernels refinement) #csc kernels sopalin common)
 foreach (module ${modules})
    add_subdirectory(${module})
 endforeach()
@@ -551,6 +551,22 @@ endif()
 include(RulesPrecisions)
 
 ##
+# Headers from bcsc directory
+##
+set(generated_headers "")
+set(HEADERS
+  bcsc/z_bcsc.h
+)
+
+precisions_rules_py(generated_headers
+  "${HEADERS}"
+  TARGETDIR  "bcsc"
+  PRECISIONS "p;s;d;c;z")
+
+add_custom_target(bcsc_headers_tgt
+  DEPENDS ${generated_headers} )
+
+##
 # Headers from sopalin directory
 ##
 set(generated_headers "")
@@ -566,8 +582,11 @@ precisions_rules_py(generated_headers
 add_custom_target( sopalin_headers
   DEPENDS ${generated_headers} )
 
-##
+###############
 # Source files
+
+##
+# Source files from common directory
 ##
 set(generated_common_sources "")
 set(SOURCES
@@ -579,6 +598,25 @@ precisions_rules_py(generated_common_sources
   PRECISIONS "p;s;d;c;z"
   )
 
+##
+# Source files from bcsc directory
+##
+set(generated_bcsc_sources "")
+set(SOURCES
+  bcsc/bcsc_zinit.c          # Not finished
+  bcsc/bcsc_zcompute.c       # Not finished
+  bcsc/z_bcsc_norm.c         # Not finished
+  bcsc/z_bcsc_matrixvector.c # Not finished
+  )
+precisions_rules_py(generated_bcsc_sources
+  "${SOURCES}"
+  TARGETDIR  "bcsc"
+  PRECISIONS "p;s;d;c;z"
+  )
+
+##
+# Source files from sopalin directory
+##
 set(generated_sopalin_sources "")
 set(SOURCES
   sopalin/coeftab_z.c
@@ -597,6 +635,9 @@ precisions_rules_py(generated_sopalin_sources
   PRECISIONS "p;s;d;c;z"
   )
 
+##
+# Source files from refinement directory
+##
 set(generated_refinement_sources "")
 set(SOURCES
   refinement/z_refine_bicgstab.c
@@ -684,6 +725,8 @@ set(PASTIX_LIB_SRCS
   common/models.c
   common/get_options.c
   #
+  bcsc/bcsc.c
+  #
   sopalin/coeftab.c
   sopalin/schur.c
   sopalin/diag.c
@@ -694,6 +737,7 @@ set(PASTIX_LIB_SRCS
   refinement/pastix_task_refine.c
   #
   ${generated_common_sources}
+  ${generated_bcsc_sources}
   ${generated_sopalin_sources}
   ${generated_refinement_sources}
   )
@@ -743,7 +787,6 @@ add_dependencies(pastix
 
 target_link_libraries(pastix
   ${SPM_LIBRARY}
-  pastix_bcsc
   pastix_kernels
   ${LAPACKE_LIBRARIES_DEP}
   ${CBLAS_LIBRARIES_DEP}
