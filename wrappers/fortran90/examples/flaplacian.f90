@@ -17,14 +17,14 @@ program fsimple
   use pastixf
   implicit none
 
-  integer(kind=pastix_int_t),     dimension(:), allocatable, target   :: rowptr
-  integer(kind=pastix_int_t),     dimension(:), allocatable, target   :: colptr
-  complex(kind=c_double_complex), dimension(:), allocatable, target   :: values
+  integer(kind=spm_int_t),        dimension(:),   allocatable, target :: rowptr
+  integer(kind=spm_int_t),        dimension(:),   allocatable, target :: colptr
+  complex(kind=c_double_complex), dimension(:),   allocatable, target :: values
   complex(kind=c_double_complex), dimension(:,:), allocatable, target :: x0, x, b
   type(c_ptr)                                                         :: x0_ptr, x_ptr, b_ptr
   type(pastix_data_t),        pointer                                 :: pastix_data
-  type(pastix_spm_t),         target                                  :: spm
-  type(pastix_spm_t),         pointer                                 :: spm2
+  type(spmatrix_t),           target                                  :: spm
+  type(spmatrix_t),           pointer                                 :: spm2
   integer(kind=pastix_int_t), target                                  :: iparm(iparm_size)
   real(kind=c_double),        target                                  :: dparm(dparm_size)
   integer(kind=pastix_int_t)                                          :: dim1, dim2, dim3, n, nnz
@@ -104,9 +104,9 @@ program fsimple
   ! Create the spm out of the internal data
   !
   call spmInit( spm )
-  spm%mtxtype = PastixHermitian
-  spm%flttype = PastixComplex64
-  spm%fmttype = PastixIJV
+  spm%mtxtype = SpmHermitian
+  spm%flttype = SpmComplex64
+  spm%fmttype = SpmIJV
   spm%n       = n
   spm%nnz     = nnz
   spm%dof     = 1
@@ -141,7 +141,7 @@ program fsimple
   x_ptr  = c_loc(x)
   b_ptr  = c_loc(b)
 
-  call spmGenRHS( PastixRhsRndX, nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, info )
+  call spmGenRHS( SpmRhsRndX, nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, info )
   x = b
 
   !

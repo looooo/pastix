@@ -20,8 +20,8 @@ program fsimple
 
   type(pastix_data_t),        pointer                      :: pastix_data
   type(pastix_order_t),       pointer                      :: order
-  type(pastix_spm_t),         target                       :: spm
-  type(pastix_spm_t),         pointer                      :: spm2
+  type(spmatrix_t),         target                       :: spm
+  type(spmatrix_t),         pointer                      :: spm2
   integer(kind=pastix_int_t), target                       :: iparm(iparm_size)
   real(kind=c_double),        target                       :: dparm(dparm_size)
   integer(c_int)                                           :: info
@@ -37,7 +37,7 @@ program fsimple
   !
   ! Initialize the problem
   !   1- The matrix
-  call spmReadDriver( PastixDriverLaplacian, "d:10:10:10:2.", spm, 0, info )
+  call spmReadDriver( SpmDriverLaplacian, "d:10:10:10:2.", spm, info )
 
   call spmCheckAndCorrect( spm, spm2 )
   if (.not. c_associated(c_loc(spm), c_loc(spm2))) then
@@ -83,7 +83,7 @@ program fsimple
      ! Perform nsolv solve steps
      do j=0,nsolv
 
-        call spmGenRHS( PastixRhsRndX, nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, info )
+        call spmGenRHS( SpmRhsRndX, nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, info )
         x = b
 
         ! 4- Solve the problem

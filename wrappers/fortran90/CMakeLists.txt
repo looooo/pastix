@@ -16,7 +16,6 @@ install(DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/ DESTINATION include)
 
 add_library( pastixf
   src/pastix_enums.F90
-  src/spmf.f90
   src/pastixf.f90 )
 
 if ( PASTIX_INT64 )
@@ -47,7 +46,7 @@ set (EXAMPLES
 foreach (_file ${EXAMPLES})
   get_filename_component(_name_we ${_file} NAME_WE)
   add_executable(${_name_we} examples/${_file})
-  target_link_libraries(${_name_we} pastixf)
+  target_link_libraries(${_name_we} pastixf spmf)
 
   install(TARGETS ${_name_we}       RUNTIME DESTINATION examples )
   install(FILES   examples/${_file}         DESTINATION examples )

@@ -161,22 +161,6 @@ module pastix_enums
      enumerator :: PastixRefineBiCGSTAB = 3
   end enum
 
-  ! enum coeftype
-  enum, bind(C)
-     enumerator :: PastixPattern   = 0
-     enumerator :: PastixFloat     = 2
-     enumerator :: PastixDouble    = 3
-     enumerator :: PastixComplex32 = 4
-     enumerator :: PastixComplex64 = 5
-  end enum
-
-  ! enum fmttype
-  enum, bind(C)
-     enumerator :: PastixCSC = 0
-     enumerator :: PastixCSR = 1
-     enumerator :: PastixIJV = 2
-  end enum
-
   ! enum factotype
   enum, bind(C)
      enumerator :: PastixFactPOTRF = 0
@@ -250,26 +234,6 @@ module pastix_enums
      enumerator :: PastixCompressOrthoCGS       = 0
      enumerator :: PastixCompressOrthoQR        = 1
      enumerator :: PastixCompressOrthoPartialQR = 2
-  end enum
-
-  ! enum driver
-  enum, bind(C)
-     enumerator :: PastixDriverRSA        = 0
-     enumerator :: PastixDriverHB         = 1
-     enumerator :: PastixDriverIJV        = 2
-     enumerator :: PastixDriverMM         = 3
-     enumerator :: PastixDriverLaplacian  = 4
-     enumerator :: PastixDriverXLaplacian = 5
-     enumerator :: PastixDriverGraph      = 6
-     enumerator :: PastixDriverSPM        = 7
-  end enum
-
-  ! enum rhstype
-  enum, bind(C)
-     enumerator :: PastixRhsOne  = 0
-     enumerator :: PastixRhsI    = 1
-     enumerator :: PastixRhsRndX = 2
-     enumerator :: PastixRhsRndB = 3
   end enum
 
   ! enum layout
