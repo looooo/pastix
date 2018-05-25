@@ -52,6 +52,12 @@ z_bcsc_matvec_check( int trans, const pastix_spm_t *spm, const pastix_data_t *pa
     core_zplrnt( 1, 1, &alpha, 1, 1, start, 0, seed ); start++;
     core_zplrnt( 1, 1, &beta,  1, 1, start, 0, seed ); start++;
 
+    /* Make sure alpha/beta are doubles */
+#if defined(PRECISION_c) || defined(PRECISION_z)
+    alpha = creal( alpha );
+    beta  = creal( beta  );
+#endif
+
     x = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
     core_zplrnt( spm->gN, 1, x, spm->gN, 1, start, 0, seed ); start += spm->gN;
 
@@ -67,7 +73,7 @@ z_bcsc_matvec_check( int trans, const pastix_spm_t *spm, const pastix_data_t *pa
     memcpy( yd, y0, spm->gN * sizeof(pastix_complex64_t) );
 
     /* Compute the spm matrix-vector product */
-    spmMatVec( trans, &alpha, spm, x, &beta, ys );
+    spmMatVec( trans, alpha, spm, x, beta, ys );
 
     /* Compute the bcsc matrix-vector product */
     z_bcscApplyPerm( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
