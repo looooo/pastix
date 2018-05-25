@@ -487,11 +487,12 @@ pastix_enums = {
 
 pastix = {
     'filename' : [ "include/pastix/order.h", "include/pastix.h" ],
-    'python'   : { 'filename'    : "wrappers/python/examples/pastix/__pastix__.py",
+    'python'   : { 'filename'    : "wrappers/python/examples/pypastix/__pastix__.py",
                    'description' : "PaStiX python wrapper",
                    'header'      : '''
 from . import libpastix
 from .enum import __pastix_int__
+from spm import pyspm_spmatrix_t
 import spm
 ''',
                    'footer'      : "",
@@ -499,8 +500,8 @@ import spm
     },
     'fortran'  : { 'filename'    : "wrappers/fortran90/src/pastixf.f90",
                    'description' : "PaStiX Fortran 90 wrapper",
-                   'header'      : '''  use pastix_enums
-  use spmf
+                   'header'      : '''  use spmf
+  use pastix_enums
   implicit none
 
   type, bind(c) :: pastix_data_t
