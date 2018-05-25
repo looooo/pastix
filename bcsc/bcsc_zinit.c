@@ -27,7 +27,7 @@
  * factorization.
  */
 static inline void
-z_bcscInitA( const pastix_spm_t   *spm,
+z_bcscInitA( const spmatrix_t     *spm,
              const pastix_order_t *ord,
              const SolverMatrix   *solvmtx,
              const pastix_int_t   *col2cblk,
@@ -89,7 +89,7 @@ z_bcscInitA( const pastix_spm_t   *spm,
 }
 
 static inline void
-z_bcscInitLt( const pastix_spm_t   *spm,
+z_bcscInitLt( const spmatrix_t     *spm,
               const pastix_order_t *ord,
               const SolverMatrix   *solvmtx,
               const pastix_int_t   *col2cblk,
@@ -156,7 +156,7 @@ z_bcscInitLt( const pastix_spm_t   *spm,
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
 static inline void
-z_bcscInitLh( const pastix_spm_t   *spm,
+z_bcscInitLh( const spmatrix_t     *spm,
               const pastix_order_t *ord,
               const SolverMatrix   *solvmtx,
               const pastix_int_t   *col2cblk,
@@ -223,7 +223,7 @@ z_bcscInitLh( const pastix_spm_t   *spm,
 #endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 
 void
-z_bcscInitAt( const pastix_spm_t   *spm,
+z_bcscInitAt( const spmatrix_t     *spm,
               const pastix_order_t *ord,
               const SolverMatrix   *solvmtx,
               const pastix_int_t   *col2cblk,
@@ -318,7 +318,7 @@ z_bcscSort( const pastix_bcsc_t *bcsc,
 }
 
 void
-z_bcscInitCentralized( const pastix_spm_t   *spm,
+z_bcscInitCentralized( const spmatrix_t     *spm,
                        const pastix_order_t *ord,
                        const SolverMatrix   *solvmtx,
                        const pastix_int_t   *col2cblk,

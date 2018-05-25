@@ -101,7 +101,7 @@ bcsc_restore_coltab( pastix_bcsc_t *bcsc )
 }
 
 pastix_int_t
-bcsc_init_centralized_coltab( const pastix_spm_t   *spm,
+bcsc_init_centralized_coltab( const spmatrix_t     *spm,
                               const pastix_order_t *ord,
                               const SolverMatrix   *solvmtx,
                                     pastix_bcsc_t  *bcsc )
@@ -174,7 +174,7 @@ bcsc_init_centralized_coltab( const pastix_spm_t   *spm,
 }
 
 void
-bcscInitCentralized( const pastix_spm_t   *spm,
+bcscInitCentralized( const spmatrix_t     *spm,
                      const pastix_order_t *ord,
                      const SolverMatrix   *solvmtx,
                            pastix_int_t    initAt,
@@ -243,7 +243,7 @@ bcscInitCentralized( const pastix_spm_t   *spm,
 }
 
 double
-bcscInit( const pastix_spm_t   *spm,
+bcscInit( const spmatrix_t     *spm,
           const pastix_order_t *ord,
           const SolverMatrix   *solvmtx,
                 pastix_int_t    initAt,
