@@ -75,7 +75,7 @@ graphLoad( const pastix_data_t *pastix_data,
         spmLoad( &spm, stream );
         fclose(stream);
 
-        spmConvert( PastixCSC, &spm );
+        spmConvert( SpmCSC, &spm );
         graph->gN       = spm.gN;
         graph->n        = spm.n;
         graph->dof      = spm.dof;

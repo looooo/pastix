@@ -242,24 +242,14 @@ typedef enum pastix_refine_e {
  *
  * This describes the different arithmetics that can be stored in a sparse matrix.
  * @remark The values start at 2 for compatibility purpose with PLASMA and
- * DPLASMA libraries.
+ * DPLASMA libraries, and they match the ones used in spm.
  */
-typedef enum pastix_coeftype_e {
-    PastixPattern   = 0, /**< Pattern only, no values are stored */
-    PastixFloat     = 2, /**< Single precision real              */
-    PastixDouble    = 3, /**< Double precision real              */
-    PastixComplex32 = 4, /**< Single precision complex           */
-    PastixComplex64 = 5  /**< Double precision complex           */
-} pastix_coeftype_t;
-
-/**
- * @brief Sparse matrix format
- */
-typedef enum pastix_fmttype_e {
-    PastixCSC, /**< Compressed sparse column */
-    PastixCSR, /**< Compressed sparse row    */
-    PastixIJV  /**< Coordinates              */
-} pastix_fmttype_t;
+#define pastix_coeftype_t spm_coeftype_t
+#define PastixPattern   SpmPattern
+#define PastixFloat     SpmFloat
+#define PastixDouble    SpmDouble
+#define PastixComplex32 SpmComplex32
+#define PastixComplex64 SpmComplex64
 
 /**
  * @brief Factorization algorithms available for IPARM_FACTORIZATION parameter
@@ -354,29 +344,6 @@ typedef enum pastix_compress_ortho_e {
     PastixCompressOrthoQR,
     PastixCompressOrthoPartialQR,
 } pastix_compress_ortho_t;
-
-/**
- * @brief The list of matrix driver readers and generators from Spm
- */
-#define pastix_driver_t spm_driver_t
-#define PastixDriverRSA        SpmDriverRSA
-#define PastixDriverHB         SpmDriverHB
-#define PastixDriverIJV        SpmDriverIJV
-#define PastixDriverMM         SpmDriverMM
-#define PastixDriverLaplacian  SpmDriverLaplacian
-#define PastixDriverXLaplacian SpmDriverXLaplacian
-#define PastixDriverGraph      SpmDriverGraph
-#define PastixDriverSPM        SpmDriverSPM
-
-/**
- * @brief How to generate RHS
- */
-typedef enum pastix_rhstype_e {
-    PastixRhsOne,
-    PastixRhsI,
-    PastixRhsRndX,
-    PastixRhsRndB
-} pastix_rhstype_t;
 
 /**
  *

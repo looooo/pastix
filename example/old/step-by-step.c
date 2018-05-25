@@ -164,11 +164,11 @@ int main (int argc, char **argv)
              */
             if ( check )
             {
-                spmGenRHS( PastixRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
+                spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
                 memcpy( x, b, size );
             }
             else {
-                spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
+                spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
                 /* Apply also normalization to b vector */
                 spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );

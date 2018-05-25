@@ -103,11 +103,11 @@ int main (int argc, char **argv)
         if ( check > 1 ) {
             x0 = malloc( size );
         }
-        spmGenRHS( PastixRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
+        spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
         memcpy( x, b, size );
     }
     else {
-        spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
+        spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
         /* Apply also normalization to b vectors */
         spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );

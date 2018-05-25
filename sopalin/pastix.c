@@ -212,7 +212,7 @@ pastix( pastix_data_t **pastix_data_ptr,
 
             spm->mtxtype = iparm[IPARM_MTX_TYPE];
             spm->flttype = iparm[IPARM_FLOAT];
-            spm->fmttype = PastixCSC;
+            spm->fmttype = SpmCSC;
 
             spm->n    = n;
             spm->nnz  = colptr[n] - colptr[0];

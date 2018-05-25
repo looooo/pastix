@@ -103,10 +103,10 @@ enum IPARM_ACCESS_DEPRECATED {
 #define API_IO_SAVE_CSC     PastixIOSaveCSC
 
 /* _POS_ 7 */
-#define API_RHS_B           PastixRhsRndB
-#define API_RHS_1           PastixRhsOne
-#define API_RHS_I           PastixRhsI
-#define API_RHS_0           PastixRhsRndX
+#define API_RHS_B           SpmRhsRndB
+#define API_RHS_1           SpmRhsOne
+#define API_RHS_I           SpmRhsI
+#define API_RHS_0           SpmRhsRndX
 
 /* _POS_ 8 */
 #define API_RAFF_GMRES      PastixGMRES
@@ -133,5 +133,18 @@ enum IPARM_ACCESS_DEPRECATED {
 #define API_SYM_YES         PastixSymmetric
 #define API_SYM_HER         PastixHermitian
 #define API_SYM_NO          PastixGeneral
+
+/**
+ * @brief The list of matrix driver readers and generators from Spm
+ */
+#define pastix_driver_t spm_driver_t
+#define PastixDriverRSA        SpmDriverRSA
+#define PastixDriverHB         SpmDriverHB
+#define PastixDriverIJV        SpmDriverIJV
+#define PastixDriverMM         SpmDriverMM
+#define PastixDriverLaplacian  SpmDriverLaplacian
+#define PastixDriverXLaplacian SpmDriverXLaplacian
+#define PastixDriverGraph      SpmDriverGraph
+#define PastixDriverSPM        SpmDriverSPM
 
 #endif /* _old_api_h_ */
