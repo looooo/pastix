@@ -14,6 +14,7 @@
  @date 2017-05-04
 
 """
+import spm
 import pypastix as pastix
 import scipy.sparse as sps
 import numpy as np
@@ -22,8 +23,8 @@ import numpy as np
 tmp = np.eye(2).dot(np.ones(2))
 
 # Load a sparse matrix from RSA driver
-spmA = pastix.spm( None, driver=pastix.driver.Laplacian, filename="10:10:10:2.:1." )
-#spmA = pastix.spm( None, driver=driver.RSA, filename="$PASTIX_DIR/test/matrix/oilpan.rsa" )
+spmA = spm.spmatrix( None, driver=spm.driver.Laplacian, filename="10:10:10:2.:1." )
+#spmA = spm.spmatrix( None, driver=spm.driver.RSA, filename="$PASTIX_DIR/test/matrix/oilpan.rsa" )
 spmA.printInfo()
 
 # Scale A for low-rank: A / ||A||_f
@@ -32,7 +33,7 @@ spmA.scale( 1. / norm )
 
 # Generate b and x0 vector such that A * x0 = b
 nrhs = 1
-x0, b = spmA.genRHS( pastix.rhstype.RndX, nrhs )
+x0, b = spmA.genRHS( spm.rhstype.RndX, nrhs )
 
 # Initialize parameters to default values
 iparm, dparm = pastix.initParam()
@@ -51,10 +52,10 @@ pastix.task_numfact( pastix_data, spmA )
 
 # Perform solve
 x = b.copy()
-pastix.task_solve( pastix_data, x )
+pastix.task_solve( pastix_data, spmA, x )
 
 # Refine the solution
-pastix.task_refine( pastix_data, b, x )
+pastix.task_refine( pastix_data, spmA, b, x )
 
 # Check solution
 spmA.checkAxb( x0, b, x )

@@ -15,6 +15,7 @@
 
 """
 import pypastix as pastix
+import spm
 import scipy.sparse as sps
 import scipy.linalg as la
 import numpy as np
@@ -29,15 +30,15 @@ if True:
     x0 = np.arange(n).reshape(n,1)
     # Construct b as b = A * x_0
     b = A.dot(x0)
-    spmA = pastix.spm( A )
+    spmA = spm.spmatrix( A )
 
 else:
     # Load a sparse matrix from RSA driver
-    spmA = pastix.spm( None, driver=pastix.driver.Laplacian, filename="10:10:10:2.:1." )
+    spmA = spm.spmatrix( None, driver=spm.driver.Laplacian, filename="10:10:10:2.:1." )
     n = spmA.spm_c.gN
 
     # Generate b and x0 vector such that A * x0 = b
-    x0, b = spmA.genRHS( pastix.rhstype.RndX )
+    x0, b = spmA.genRHS( spm.rhstype.RndX )
 
 x = b.copy()
 
@@ -54,12 +55,12 @@ iparm, dparm = pastix.initParam()
 pastix_data = pastix.init( iparm, dparm )
 
 factotype = pastix.factotype.LLT
-iparm[pastix.iparm.factorization] = factotype
-iparm[pastix.iparm.scheduler] = pastix.scheduler.Sequential
+iparm[pastix.iparm.factorization]   = factotype
+iparm[pastix.iparm.scheduler]       = pastix.scheduler.Sequential
 iparm[pastix.iparm.schur_solv_mode] = pastix.solv_mode.Interface
 
 # Initialize the Schur list as the first third of the elements
-nschur = min( int(n / 3), 5000 )
+nschur = min( int(n / 3.), 5000 )
 schurlist = np.arange(nschur) + spmA.findBase()
 pastix.setSchurUnknownList ( pastix_data, schurlist )
 
@@ -72,6 +73,10 @@ pastix.task_numfact( pastix_data, spmA )
 # Get the Schur complement
 S = np.array( np.zeros( (nschur, nschur) ), order='F', dtype=spmA.dtype )
 pastix.getSchur( pastix_data, S )
+
+# Store both sides for linalg
+if factotype != pastix.factotype.LU:
+    S += la.tril(S, -1).T
 
 # 1- Apply P to b
 pastix.subtask_applyorder( pastix_data, pastix.dir.Forward, x )
@@ -100,6 +105,8 @@ else:
 pastix.subtask_applyorder( pastix_data, pastix.dir.Backward, x )
 
 # Check solution
-spmA.checkAxb( x0, b, x )
+rc = spmA.checkAxb( x0, b, x )
 
 pastix.finalize( pastix_data, iparm, dparm )
+
+exit(rc)

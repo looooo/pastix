@@ -161,6 +161,15 @@ module pastix_enums
      enumerator :: PastixRefineBiCGSTAB = 3
   end enum
 
+  ! enum coeftype
+  enum, bind(C)
+     enumerator :: PastixPattern   = 0
+     enumerator :: PastixFloat     = 2
+     enumerator :: PastixDouble    = 3
+     enumerator :: PastixComplex32 = 4
+     enumerator :: PastixComplex64 = 5
+  end enum
+
   ! enum factotype
   enum, bind(C)
      enumerator :: PastixFactPOTRF = 0

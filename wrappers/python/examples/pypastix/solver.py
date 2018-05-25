@@ -15,6 +15,7 @@
 """
 from .pastix import *
 from .enum import *
+import spm
 import scipy.linalg as la
 
 class solver(object):
@@ -63,22 +64,20 @@ class solver(object):
         Setup the solver object for the classic case w/o Schur complement
         """
         self.A = A
-        self.spmA = spm(A)
+        self.spmA = spm.spmatrix(A)
         if self.verbose:
             self.spmA.printInfo()
         task_analyze(self.pastix_data, self.spmA)
         task_numfact(self.pastix_data, self.spmA)
 
-    def solve(self, b, refine=True, x0=None, check=False):
+    def solve(self, b, refine=True):
         """
         Solve and refine the full problem Ax = b with refinement when no Schur Complement is involved
         """
         x = b.copy()
-        task_solve(self.pastix_data, x)
+        task_solve(self.pastix_data, self.spmA, x)
         if refine:
-            task_refine(self.pastix_data, b, x)
-        if check:
-            self.spmA.checkAxb(x0, b, x)
+            task_refine(self.pastix_data, self.spmA, b, x)
         return x
 
     def schur(self, A, schur_list, full_matrix=True):
@@ -91,11 +90,10 @@ class solver(object):
         """
 
         self.A    = A
-        self.spmA = spm(A)
+        self.spmA = spm.spmatrix(A)
         if self.verbose:
             self.spmA.printInfo()
 
-        schur_list = np.asarray(schur_list, pastix_int)
         self.schur_list = schur_list + self.spmA.findBase()
         setSchurUnknownList(self.pastix_data, self.schur_list)
 
@@ -140,7 +138,7 @@ class solver(object):
         nschur = len(self.schur_list)
         return x[-nschur:]
 
-    def schur_backward(self, y, b, solv_mode=solv_mode.Interface, refine=True, x0=None, check=False):
+    def schur_backward(self, y, b, solv_mode=solv_mode.Interface, refine=True):
         """
         Solves the backward step of the Schur problem:
                A x = b with A = L S L^h
@@ -177,9 +175,10 @@ class solver(object):
         #  5- Apply P^t to x
         subtask_applyorder( self.pastix_data, dir.Backward, x )
 
-        if check:
-            self.spmA.checkAxb(x0, b, x)
         return x
+
+    def check( self, x, b, x0=None ):
+        return self.spmA.checkAxb(x0, b, x)
 
     def finalize(self):
         finalize(self.pastix_data, self.iparm, self.dparm)

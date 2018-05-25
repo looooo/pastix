@@ -15,8 +15,8 @@
 !
 module pastixf
   use iso_c_binding
-  use pastix_enums
   use spmf
+  use pastix_enums
   implicit none
 
   type, bind(c) :: pastix_data_t

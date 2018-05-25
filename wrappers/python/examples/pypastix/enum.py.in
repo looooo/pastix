@@ -19,7 +19,9 @@ This file has been automatically generated with gen_wrappers.py
 from ctypes import *
 import numpy as np
 
-pastix_int = @PASTIX_PYTHON_INTEGER@
+# Start with __ to prevent broadcast to file importing enum
+__pastix_int__ = @PASTIX_PYTHON_INTEGER@
+
 class iparm:
     verbose               = 0
     io_strategy           = 1
@@ -199,11 +201,6 @@ class coeftype:
         else:
             return -1
 
-class fmttype:
-    CSC = 0
-    CSR = 1
-    IJV = 2
-
 class factotype:
     POTRF = 0
     SYTRF = 1
@@ -262,22 +259,6 @@ class compress_ortho:
     OrthoCGS       = 0
     OrthoQR        = 1
     OrthoPartialQR = 2
-
-class driver:
-    RSA        = 0
-    HB         = 1
-    IJV        = 2
-    MM         = 3
-    Laplacian  = 4
-    XLaplacian = 5
-    Graph      = 6
-    SPM        = 7
-
-class rhstype:
-    One  = 0
-    I    = 1
-    RndX = 2
-    RndB = 3
 
 class layout:
     RowMajor = 101

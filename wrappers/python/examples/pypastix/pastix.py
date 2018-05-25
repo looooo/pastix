@@ -14,12 +14,13 @@
 """
 from ctypes import *
 import numpy as np
-from .enum import *
-from .spm import spm
+import spm
+from .enum       import *
+from .enum       import __pastix_int__
 from .__pastix__ import *
 
 def initParam():
-    iparm_ = np.zeros( iparm.size, dtype=pastix_int)
+    iparm_ = np.zeros( iparm.size, dtype=__pastix_int__)
     dparm_ = np.zeros( dparm.size, dtype='float64' )
     pypastix_pastixInitParam( iparm_, dparm_ )
     return iparm_, dparm_
@@ -49,7 +50,7 @@ def task_analyze( pastix_data, spm ):
 def task_numfact( pastix_data, spm ):
     pypastix_pastix_task_numfact( pastix_data, spm.id_ptr )
 
-def task_solve( pastix_data, x, nrhs=-1 ):
+def task_solve( pastix_data, spm, x, nrhs=-1 ):
 
     n    = x.shape[0]
     nrhs = __getnrhs( nrhs, x )
@@ -58,7 +59,7 @@ def task_solve( pastix_data, x, nrhs=-1 ):
 
     pypastix_pastix_task_solve( pastix_data, nrhs, x.ctypes.data_as(c_void_p), n )
 
-def task_refine( pastix_data, b, x, nrhs=-1 ):
+def task_refine( pastix_data, spm, b, x, nrhs=-1 ):
 
     n    = x.shape[0]
     nrhs = __getnrhs( nrhs, x )
@@ -114,9 +115,9 @@ def subtask_diag( pastix_data, b, nrhs=-1 ):
 #
 def setSchurUnknownList( pastix_data, schur_list ):
     n = schur_list.shape[0]
-    schur_list = np.array(schur_list, dtype=pastix_int)
+    schur_list = np.array(schur_list, dtype=__pastix_int__)
     pypastix_pastixSetSchurUnknownList( pastix_data, n,
-                                        schur_list.ctypes.data_as(POINTER(pastix_int)) )
+                                        schur_list.ctypes.data_as(POINTER(__pastix_int__)) )
 
 def getSchur( pastix_data, S ):
     pypastix_pastixGetSchur( pastix_data,
