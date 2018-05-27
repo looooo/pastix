@@ -79,7 +79,7 @@ def task_refine( pastix_data, spm, b, x, nrhs=-1 ):
 # Numerical solve subtasks
 #
 def subtask_applyorder( pastix_data, direction, b ):
-    flttype = coeftype.getptype( b.dtype )
+    flttype = spm.coeftype.getptype( b.dtype )
 
     m = b.shape[0]
     if b.ndim == 1:
@@ -92,7 +92,7 @@ def subtask_applyorder( pastix_data, direction, b ):
                                          b.ctypes.data_as(c_void_p), ldb )
 
 def subtask_trsm( pastix_data, side, uplo, trans, diag, b, nrhs=-1 ):
-    flttype = coeftype.getptype( b.dtype )
+    flttype = spm.coeftype.getptype( b.dtype )
 
     n    = b.shape[0]
     nrhs = __getnrhs( nrhs, b )
@@ -102,7 +102,7 @@ def subtask_trsm( pastix_data, side, uplo, trans, diag, b, nrhs=-1 ):
                                   b.ctypes.data_as(c_void_p), ldb )
 
 def subtask_diag( pastix_data, b, nrhs=-1 ):
-    flttype = coeftype.getptype( b.dtype )
+    flttype = spm.coeftype.getptype( b.dtype )
 
     ldb  = b.shape[0]
     nrhs = __getnrhs( nrhs, b )

@@ -150,57 +150,6 @@ class refine:
     SR       = 2
     BiCGSTAB = 3
 
-class coeftype:
-    Pattern   = 0
-    Float     = 2
-    Double    = 3
-    Complex32 = 4
-    Complex64 = 5
-
-    @staticmethod
-    def getptype ( dtype ):
-        np_dict = {
-            np.dtype('float32')    : coeftype.Float,
-            np.dtype('float64')    : coeftype.Double,
-            np.dtype('complex64')  : coeftype.Complex32,
-            np.dtype('complex128') : coeftype.Complex64,
-        }
-        if dtype in np_dict:
-            return np_dict[dtype]
-        else:
-            return -1
-
-    @staticmethod
-    def getctype ( flttype ):
-        class c_float_complex(Structure):
-            _fields_ = [("r",c_float),("i", c_float)]
-        class c_double_complex(Structure):
-            _fields_ = [("r",c_double),("i", c_double)]
-
-        np_dict = {
-            coeftype.Float     : c_float,
-            coeftype.Double    : c_double,
-            coeftype.Complex32 : c_float_complex,
-            coeftype.Complex64 : c_double_complex
-        }
-        if flttype in np_dict:
-            return np_dict[flttype]
-        else:
-            return -1
-
-    @staticmethod
-    def getnptype ( flttype ):
-        np_dict = {
-            coeftype.Float     : np.dtype('float32'),
-            coeftype.Double    : np.dtype('float64'),
-            coeftype.Complex32 : np.dtype('complex64'),
-            coeftype.Complex64 : np.dtype('complex128')
-        }
-        if flttype in np_dict:
-            return np_dict[flttype]
-        else:
-            return -1
-
 class factotype:
     POTRF = 0
     SYTRF = 1
