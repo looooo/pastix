@@ -926,7 +926,6 @@ add_documented_files(
   symbol/symbol_kass_direct.c
   symbol/symbol_kass_level.c
   symbol/symbol_reordering.c
-  symbol/symbol_rustine.c
   symbol/pastix_subtask_reordering.c
   symbol/pastix_subtask_symbfact.c
   #
