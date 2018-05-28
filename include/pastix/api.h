@@ -242,24 +242,14 @@ typedef enum pastix_refine_e {
  *
  * This describes the different arithmetics that can be stored in a sparse matrix.
  * @remark The values start at 2 for compatibility purpose with PLASMA and
- * DPLASMA libraries.
+ * DPLASMA libraries, and they match the ones used in spm.
  */
-typedef enum pastix_coeftype_e {
-    PastixPattern   = 0, /**< Pattern only, no values are stored */
-    PastixFloat     = 2, /**< Single precision real              */
-    PastixDouble    = 3, /**< Double precision real              */
-    PastixComplex32 = 4, /**< Single precision complex           */
-    PastixComplex64 = 5  /**< Double precision complex           */
-} pastix_coeftype_t;
-
-/**
- * @brief Sparse matrix format
- */
-typedef enum pastix_fmttype_e {
-    PastixCSC, /**< Compressed sparse column */
-    PastixCSR, /**< Compressed sparse row    */
-    PastixIJV  /**< Coordinates              */
-} pastix_fmttype_t;
+#define pastix_coeftype_t spm_coeftype_t
+#define PastixPattern   SpmPattern
+#define PastixFloat     SpmFloat
+#define PastixDouble    SpmDouble
+#define PastixComplex32 SpmComplex32
+#define PastixComplex64 SpmComplex64
 
 /**
  * @brief Factorization algorithms available for IPARM_FACTORIZATION parameter
@@ -354,41 +344,6 @@ typedef enum pastix_compress_ortho_e {
     PastixCompressOrthoQR,
     PastixCompressOrthoPartialQR,
 } pastix_compress_ortho_t;
-
-/**
- * @brief The list of matrix driver readers and generators
- */
-typedef enum pastix_driver_e {
-    PastixDriverRSA,        /**< RSA Fortran driver                              */
-    PastixDriverHB,         /**< Harwell Boeing driver                           */
-    PastixDriverIJV,        /**< IJV Coordinate driver                           */
-    PastixDriverMM,         /**< Matrix Market C driver                          */
-    PastixDriverLaplacian,  /**< 3, 5, or 7 points Laplacian stencil generator   */
-    PastixDriverXLaplacian, /**< 15-points Laplacian stencil generator           */
-    PastixDriverGraph,      /**< Scotch Graph driver                             */
-    PastixDriverSPM,        /**< SPM matrix driver                               */
-    /* PastixDriverDMM,        /\**< Distributed Matrix Market driver                *\/ */
-    /* PastixDriverCSCD,       /\**< CSC distributed driver                          *\/ */
-    /* PastixDriverPetscS,     /\**< Petsc Symmetric driver                          *\/ */
-    /* PastixDriverPetscU,     /\**< Pestc Unssymmetric driver                       *\/ */
-    /* PastixDriverPetscH,     /\**< Pestc Hermitian driver                          *\/ */
-    /* PastixDriverCCC,        /\**< Not supported yet *\/ */
-    /* PastixDriverRCC,        /\**< Not supported yet *\/ */
-    /* PastixDriverOlaf,       /\**< Not supported yet *\/ */
-    /* PastixDriverPeer,       /\**< Not supported yet *\/ */
-    /* PastixDriverBRGM,       /\**< Not supported yet *\/ */
-    /* PastixDriverBRGMD,      /\**< Not supported yet *\/ */
-} pastix_driver_t;
-
-/**
- * @brief How to generate RHS
- */
-typedef enum pastix_rhstype_e {
-    PastixRhsOne,
-    PastixRhsI,
-    PastixRhsRndX,
-    PastixRhsRndB
-} pastix_rhstype_t;
 
 /**
  *

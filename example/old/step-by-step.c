@@ -21,24 +21,24 @@
 int main (int argc, char **argv)
 {
 
-    pastix_data_t   *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
-    pastix_float_t  *b           = NULL; /* right hand side                                           */
-    pastix_int_t     iparm[IPARM_SIZE]; /* integer parameters for pastix                             */
-    double           dparm[DPARM_SIZE]; /* floating parameters for pastix                            */
-    pastix_driver_t  driver;    /* Matrix driver(s) requested by user                        */
-    char            *filename;  /* Filename(s) given by user                                 */
-    long             i;
-    int              j;
-    int              nfact       = 2;
-    int              nsolv       = 2;
-    int              nrhs        = 1;
-    pastix_spm_t    *spm;
-    pastix_spm_t    *spm2;
-    void            *x           = NULL;
-    void            *x0          = NULL;
-    size_t           size;
-    int              check       = 1;
-    int              rc          = 0;
+    pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
+    pastix_float_t *b           = NULL; /* right hand side                                           */
+    pastix_int_t    iparm[IPARM_SIZE]; /* integer parameters for pastix                             */
+    double          dparm[DPARM_SIZE]; /* floating parameters for pastix                            */
+    spm_driver_t    driver;    /* Matrix driver(s) requested by user                        */
+    char           *filename;  /* Filename(s) given by user                                 */
+    long            i;
+    int             j;
+    int             nfact       = 2;
+    int             nsolv       = 2;
+    int             nrhs        = 1;
+    spmatrix_t     *spm;
+    spmatrix_t     *spm2;
+    void           *x           = NULL;
+    void           *x0          = NULL;
+    size_t          size;
+    int             check       = 1;
+    int             rc          = 0;
 
     /*
      * Initialize parameters to default values
@@ -57,8 +57,8 @@ int main (int argc, char **argv)
     /*
      * Read Matrice
      */
-    spm = malloc( sizeof( pastix_spm_t ) );
-    spmReadDriver( driver, filename, spm, MPI_COMM_WORLD );
+    spm = malloc( sizeof( spmatrix_t ) );
+    spmReadDriver( driver, filename, spm );
     free( filename );
 
     spmPrintInfo( spm, stdout );
@@ -76,7 +76,7 @@ int main (int argc, char **argv)
     /*
      * Generate a Fake values array if needed for the numerical part
      */
-    if ( spm->flttype == PastixPattern ) {
+    if ( spm->flttype == SpmPattern ) {
         spmGenFakeValues( spm );
     }
 
@@ -137,7 +137,7 @@ int main (int argc, char **argv)
     /**
      * Normalize A matrix (optional, but recommended for low-rank functionality)
      */
-    double normA = spmNorm( PastixFrobeniusNorm, spm );
+    double normA = spmNorm( SpmFrobeniusNorm, spm );
     spmScalMatrix( 1./normA, spm );
 
     /* Do nfact factorization */
@@ -164,11 +164,11 @@ int main (int argc, char **argv)
              */
             if ( check )
             {
-                spmGenRHS( PastixRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
+                spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
                 memcpy( x, b, size );
             }
             else {
-                spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
+                spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
                 /* Apply also normalization to b vector */
                 spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );

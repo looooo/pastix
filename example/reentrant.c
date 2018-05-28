@@ -25,13 +25,13 @@
  *  to each thread.
  */
 typedef struct solve_param {
-    pastix_int_t        iparm[IPARM_SIZE];
-    double              dparm[DPARM_SIZE];
-    char               *filename;
-    pastix_driver_t     driver;
-    int                 check;
-    int                 id;
-    int                 rc;
+    pastix_int_t  iparm[IPARM_SIZE];
+    double        dparm[DPARM_SIZE];
+    char         *filename;
+    spm_driver_t  driver;
+    int           check;
+    int           id;
+    int           rc;
 } solve_param_t;
 
 /**
@@ -45,8 +45,8 @@ typedef struct solve_param {
 static void *solve_smp(void *arg)
 {
     pastix_data_t *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
-    pastix_spm_t  *spm;
-    pastix_spm_t  *spm2;
+    spmatrix_t    *spm;
+    spmatrix_t    *spm2;
     void          *x, *b, *x0 = NULL;
     size_t         size;
     int            check;
@@ -62,8 +62,8 @@ static void *solve_smp(void *arg)
     /**
      * Read the sparse matrix with the driver
      */
-    spm = malloc( sizeof( pastix_spm_t ) );
-    spmReadDriver( param.driver, param.filename, spm, MPI_COMM_WORLD );
+    spm = malloc( sizeof( spmatrix_t ) );
+    spmReadDriver( param.driver, param.filename, spm );
 
     spmPrintInfo( spm, stdout );
 
@@ -77,7 +77,7 @@ static void *solve_smp(void *arg)
     /**
      * Generate a Fake values array if needed for the numerical part
      */
-    if ( spm->flttype == PastixPattern ) {
+    if ( spm->flttype == SpmPattern ) {
         spmGenFakeValues( spm );
     }
 
@@ -106,7 +106,7 @@ static void *solve_smp(void *arg)
     /**
      * Normalize A matrix (optional, but recommended for low-rank functionality)
      */
-    double normA = spmNorm( PastixFrobeniusNorm, spm );
+    double normA = spmNorm( SpmFrobeniusNorm, spm );
     spmScalMatrix( 1./normA, spm );
 
     /**
@@ -127,11 +127,11 @@ static void *solve_smp(void *arg)
         if ( check > 1 ) {
             x0 = malloc( size );
         }
-        spmGenRHS( PastixRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
+        spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
         memcpy( x, b, size );
     }
     else {
-        spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
+        spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
         /* Apply also normalization to b vectors */
         spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );
@@ -166,15 +166,15 @@ static void *solve_smp(void *arg)
 
 int main (int argc, char **argv)
 {
-    pastix_int_t        iparm[IPARM_SIZE];      /*< Integer in/out parameters for pastix                */
-    double              dparm[DPARM_SIZE];      /*< Floating in/out parameters for pastix               */
-    pastix_driver_t     driver;                 /*< Matrix driver(s) requested by user                  */
-    char               *filename;               /*< Filename(s) given by user                           */
-    int                 nbcallingthreads = 2;
-    solve_param_t      *solve_param;
-    pthread_t          *threads;
-    int                 i, check = 1;
-    int                 rc = 0;
+    pastix_int_t   iparm[IPARM_SIZE];      /*< Integer in/out parameters for pastix                */
+    double         dparm[DPARM_SIZE];      /*< Floating in/out parameters for pastix               */
+    spm_driver_t   driver;                 /*< Matrix driver(s) requested by user                  */
+    char          *filename;               /*< Filename(s) given by user                           */
+    int            nbcallingthreads = 2;
+    solve_param_t *solve_param;
+    pthread_t     *threads;
+    int            i, check = 1;
+    int            rc = 0;
 
     /**
      * Initialize parameters to default values

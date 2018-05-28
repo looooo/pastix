@@ -18,7 +18,6 @@
 #include "pastix/order.h"
 #include "spm.h"
 #include "solver.h"
-#include "spm/z_spm.h"
 #include "bcsc.h"
 #include "z_bcsc.h"
 
@@ -28,7 +27,7 @@
  * factorization.
  */
 static inline void
-z_bcscInitA( const pastix_spm_t   *spm,
+z_bcscInitA( const spmatrix_t     *spm,
              const pastix_order_t *ord,
              const SolverMatrix   *solvmtx,
              const pastix_int_t   *col2cblk,
@@ -90,7 +89,7 @@ z_bcscInitA( const pastix_spm_t   *spm,
 }
 
 static inline void
-z_bcscInitLt( const pastix_spm_t   *spm,
+z_bcscInitLt( const spmatrix_t     *spm,
               const pastix_order_t *ord,
               const SolverMatrix   *solvmtx,
               const pastix_int_t   *col2cblk,
@@ -157,7 +156,7 @@ z_bcscInitLt( const pastix_spm_t   *spm,
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
 static inline void
-z_bcscInitLh( const pastix_spm_t   *spm,
+z_bcscInitLh( const spmatrix_t     *spm,
               const pastix_order_t *ord,
               const SolverMatrix   *solvmtx,
               const pastix_int_t   *col2cblk,
@@ -224,7 +223,7 @@ z_bcscInitLh( const pastix_spm_t   *spm,
 #endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 
 void
-z_bcscInitAt( const pastix_spm_t   *spm,
+z_bcscInitAt( const spmatrix_t     *spm,
               const pastix_order_t *ord,
               const SolverMatrix   *solvmtx,
               const pastix_int_t   *col2cblk,
@@ -313,13 +312,13 @@ z_bcscSort( const pastix_bcsc_t *bcsc,
                 assert( rowtab[ blockcol->coltab[itercol] + i ] != -1);
             }
 
-            z_spmIntSortAsc( sortptr, size );
+            z_qsortIntFloatAsc( sortptr, size );
         }
     }
 }
 
 void
-z_bcscInitCentralized( const pastix_spm_t   *spm,
+z_bcscInitCentralized( const spmatrix_t     *spm,
                        const pastix_order_t *ord,
                        const SolverMatrix   *solvmtx,
                        const pastix_int_t   *col2cblk,
@@ -335,11 +334,11 @@ z_bcscInitCentralized( const pastix_spm_t   *spm,
      * Initialize the blocked structure of the matrix A
      */
     z_bcscInitA( spm, ord, solvmtx, col2cblk, bcsc );
-    if ( spm->mtxtype == PastixSymmetric ) {
+    if ( spm->mtxtype == SpmSymmetric ) {
         z_bcscInitLt( spm, ord, solvmtx, col2cblk, bcsc );
     }
 #if defined(PRECISION_z) || defined(PRECISION_c)
-    else if ( spm->mtxtype == PastixHermitian ) {
+    else if ( spm->mtxtype == SpmHermitian ) {
         z_bcscInitLh( spm, ord, solvmtx, col2cblk, bcsc );
     }
 #endif /* defined(PRECISION_z) || defined(PRECISION_c) */
@@ -350,7 +349,7 @@ z_bcscInitCentralized( const pastix_spm_t   *spm,
     /* Sort the csc */
     z_bcscSort( bcsc, bcsc->rowtab, bcsc->Lvalues );
 
-    if ( spm->mtxtype == PastixGeneral ) {
+    if ( spm->mtxtype == SpmGeneral ) {
 	/* A^t is not required if only refinment is performed */
         if (initAt) {
             pastix_int_t *trowtab, i;
@@ -372,7 +371,7 @@ z_bcscInitCentralized( const pastix_spm_t   *spm,
         }
     }
     else {
-        /* In case of PastixHermitian, conj is applied when used to save memory space */
+        /* In case of SpmHermitian, conj is applied when used to save memory space */
         bcsc->Uvalues = bcsc->Lvalues;
     }
 }

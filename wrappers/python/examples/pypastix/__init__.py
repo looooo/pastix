@@ -18,6 +18,7 @@ PyPaStiX
 """
 import ctypes
 import ctypes.util
+import spm
 
 # Load the PASTIX library
 libpastix_name = ctypes.util.find_library('pastix')
@@ -32,23 +33,8 @@ except:
                            "The path to libpastix.so should be in "
                            "$LD_LIBRARY_PATH or $DYLD_LIBRARY_PATH on MacOS");
 
-# Load the SPM library
-libspm_name = ctypes.util.find_library('pastix_spm')
-if libspm_name == None:
-    raise EnvironmentError("Could not find shared library: pastix_spm."
-                           "The path to libpastix_spm.so should be in "
-                           "$LIBRARY_PATH")
-
-try:
-    libspm = ctypes.cdll.LoadLibrary(libspm_name)
-except:
-    raise EnvironmentError("Could not load shared library: pastix_spm."
-                           "The path to libpastix_spm.so should be in "
-                           "$LD_LIBRARY_PATH or $DYLD_LIBRARY_PATH on MacOS");
-
-__all__ = [ 'libpastix', 'libspm' ]
+__all__ = [ 'libpastix' ]
 
 from .enum   import *
-from .spm    import *
 from .pastix import *
 from .solver import *

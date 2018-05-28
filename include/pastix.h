@@ -25,6 +25,7 @@
 #define _pastix_h_
 
 #include "pastix/config.h"
+#include <spm.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -77,9 +78,9 @@ void pastixFinalize ( pastix_data_t **pastix_data );
  * Main steps of the solver
  */
 int pastix_task_analyze( pastix_data_t      *pastix_data,
-                         pastix_spm_t       *spm );
+                         spmatrix_t         *spm );
 int pastix_task_numfact( pastix_data_t      *pastix_data,
-                         pastix_spm_t       *spm );
+                         spmatrix_t         *spm );
 int pastix_task_solve  ( pastix_data_t      *pastix_data,
                          pastix_int_t        nrhs,
                          void               *b,
@@ -93,7 +94,7 @@ int pastix_task_refine( pastix_data_t *pastix_data,
  * Analyze subtasks
  */
 int pastix_subtask_order     ( pastix_data_t      *pastix_data,
-                               const pastix_spm_t *spm,
+                               const spmatrix_t   *spm,
                                pastix_order_t     *myorder );
 int pastix_subtask_symbfact  ( pastix_data_t      *pastix_data );
 int pastix_subtask_reordering( pastix_data_t      *pastix_data );
@@ -103,7 +104,7 @@ int pastix_subtask_blend     ( pastix_data_t      *pastix_data );
  * Numerical factorization subtasks
  */
 int pastix_subtask_spm2bcsc  ( pastix_data_t      *pastix_data,
-                               pastix_spm_t       *spm );
+                               spmatrix_t         *spm );
 int pastix_subtask_bcsc2ctab ( pastix_data_t      *pastix_data );
 int pastix_subtask_sopalin   ( pastix_data_t      *pastix_data );
 
@@ -158,6 +159,6 @@ int  pastixGetDiag( const pastix_data_t *pastix_data,
  */
 void pastixGetOptions( int argc, char **argv,
                         pastix_int_t *iparm, double *dparm,
-                        int *check, pastix_driver_t *driver, char **filename );
+                        int *check, spm_driver_t *driver, char **filename );
 
 #endif /* _pastix_h_ */

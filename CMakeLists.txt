@@ -179,8 +179,8 @@ if (PASTIX_WITH_FORTRAN)
   link_directories( ${CMAKE_Fortran_IMPLICIT_LINK_DIRECTORIES} )
 endif()
 
-# PaStiX depends on CBLAS
-#----------------------------
+# PaStiX depends on LAPACKE and CBLAS
+#------------------------------------
 find_package(CBLAS) # Should be REQUIRED for BLAS sequential only
 if(CBLAS_FOUND)
     message(STATUS "cblas: ${CBLAS_INCLUDE_DIRS}")
@@ -484,6 +484,12 @@ set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
 ##
 #
 
+# Compile the spm library
+add_subdirectory(spm)
+set( SPM_LIBRARY spm )
+include_directories("spm/include")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/spm/src")
+
 # Disable restrict (temporary)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Drestrict=")
 
@@ -515,8 +521,6 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/common")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kernels")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/kernels")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/spm")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/spm")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bcsc")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/bcsc")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/refinement")
@@ -528,10 +532,8 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 
-add_subdirectory(spm)
-
 # Sub modules
-set(modules bcsc kernels refinement) #csc kernels sopalin common)
+set(modules kernels refinement) #csc kernels sopalin common)
 foreach (module ${modules})
    add_subdirectory(${module})
 endforeach()
@@ -549,6 +551,22 @@ endif()
 include(RulesPrecisions)
 
 ##
+# Headers from bcsc directory
+##
+set(generated_headers "")
+set(HEADERS
+  bcsc/z_bcsc.h
+)
+
+precisions_rules_py(generated_headers
+  "${HEADERS}"
+  TARGETDIR  "bcsc"
+  PRECISIONS "p;s;d;c;z")
+
+add_custom_target(bcsc_headers_tgt
+  DEPENDS ${generated_headers} )
+
+##
 # Headers from sopalin directory
 ##
 set(generated_headers "")
@@ -564,8 +582,11 @@ precisions_rules_py(generated_headers
 add_custom_target( sopalin_headers
   DEPENDS ${generated_headers} )
 
-##
+###############
 # Source files
+
+##
+# Source files from common directory
 ##
 set(generated_common_sources "")
 set(SOURCES
@@ -577,6 +598,25 @@ precisions_rules_py(generated_common_sources
   PRECISIONS "p;s;d;c;z"
   )
 
+##
+# Source files from bcsc directory
+##
+set(generated_bcsc_sources "")
+set(SOURCES
+  bcsc/bcsc_zinit.c          # Not finished
+  bcsc/bcsc_zcompute.c       # Not finished
+  bcsc/z_bcsc_norm.c         # Not finished
+  bcsc/z_bcsc_matrixvector.c # Not finished
+  )
+precisions_rules_py(generated_bcsc_sources
+  "${SOURCES}"
+  TARGETDIR  "bcsc"
+  PRECISIONS "p;s;d;c;z"
+  )
+
+##
+# Source files from sopalin directory
+##
 set(generated_sopalin_sources "")
 set(SOURCES
   sopalin/coeftab_z.c
@@ -595,6 +635,9 @@ precisions_rules_py(generated_sopalin_sources
   PRECISIONS "p;s;d;c;z"
   )
 
+##
+# Source files from refinement directory
+##
 set(generated_refinement_sources "")
 set(SOURCES
   refinement/z_refine_bicgstab.c
@@ -682,6 +725,8 @@ set(PASTIX_LIB_SRCS
   common/models.c
   common/get_options.c
   #
+  bcsc/bcsc.c
+  #
   sopalin/coeftab.c
   sopalin/schur.c
   sopalin/diag.c
@@ -692,6 +737,7 @@ set(PASTIX_LIB_SRCS
   refinement/pastix_task_refine.c
   #
   ${generated_common_sources}
+  ${generated_bcsc_sources}
   ${generated_sopalin_sources}
   ${generated_refinement_sources}
   )
@@ -732,13 +778,7 @@ add_library(pastix
   ${PASTIX_LIB_SRCS}
   )
 
-# GenRHS requires geadd
-add_dependencies(pastix_spm
-  kernels_headers_tgt
-)
-
 add_dependencies(pastix
-  spm_headers_tgt
   kernels_headers_tgt
   bcsc_headers_tgt
   refinement_headers_tgt
@@ -746,8 +786,7 @@ add_dependencies(pastix
 )
 
 target_link_libraries(pastix
-  pastix_spm
-  pastix_bcsc
+  ${SPM_LIBRARY}
   pastix_kernels
   ${LAPACKE_LIBRARIES_DEP}
   ${CBLAS_LIBRARIES_DEP}
@@ -887,7 +926,6 @@ add_documented_files(
   symbol/symbol_kass_direct.c
   symbol/symbol_kass_level.c
   symbol/symbol_reordering.c
-  symbol/symbol_rustine.c
   symbol/pastix_subtask_reordering.c
   symbol/pastix_subtask_symbfact.c
   #

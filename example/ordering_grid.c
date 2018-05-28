@@ -17,22 +17,21 @@
 #include <pastix.h>
 #include <spm.h>
 #include <pastix/order.h>
-#include "drivers/laplacian.h"
 
 int main (int argc, char **argv)
 {
-    pastix_data_t    *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
-    pastix_int_t      iparm[IPARM_SIZE];  /*< Integer in/out parameters for pastix                */
-    double            dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
-    pastix_driver_t   driver;
-    char             *filename;
-    pastix_spm_t     *spm, *spm2;
-    void             *x, *b, *x0 = NULL;
-    size_t            size;
-    int               check = 1;
-    int               nrhs  = 1;
-    int               rc    = 0;
-    pastix_order_t   *ord;
+    pastix_data_t  *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
+    pastix_int_t    iparm[IPARM_SIZE];  /*< Integer in/out parameters for pastix                */
+    double          dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
+    spm_driver_t    driver;
+    char           *filename;
+    spmatrix_t     *spm, *spm2;
+    void           *x, *b, *x0 = NULL;
+    size_t          size;
+    int             check = 1;
+    int             nrhs  = 1;
+    int             rc    = 0;
+    pastix_order_t *ord;
 
     /**
      * Initialize parameters to default values
@@ -49,16 +48,16 @@ int main (int argc, char **argv)
     /**
      * Build optimal ordering (for laplacians only)
      */
-    if ( driver != PastixDriverLaplacian ){
-        fprintf(stderr, "Grid ordering can be used with PastixDriverLaplacian driver only\n");
+    if ( driver != SpmDriverLaplacian ){
+        fprintf(stderr, "Grid ordering can be used with SpmDriverLaplacian driver only\n");
         return EXIT_FAILURE;
     }
 
     /**
      * Read the sparse matrix with the driver
      */
-    spm = malloc( sizeof( pastix_spm_t ) );
-    spmReadDriver( driver, filename, spm, MPI_COMM_WORLD );
+    spm = malloc( sizeof( spmatrix_t ) );
+    spmReadDriver( driver, filename, spm );
 
     spmPrintInfo( spm, stdout );
 
@@ -72,7 +71,7 @@ int main (int argc, char **argv)
     /**
      * Generate a Fake values array if needed for the numerical part
      */
-    if ( spm->flttype == PastixPattern ) {
+    if ( spm->flttype == SpmPattern ) {
         spmGenFakeValues( spm );
     }
 
@@ -80,11 +79,11 @@ int main (int argc, char **argv)
      * Parse Laplacian dimensions and generate associate manual ordering
      */
     {
-        pastix_int_t      dim1, dim2, dim3;
-        pastix_coeftype_t flttype;
-        double            alpha, beta;
+        pastix_int_t   dim1, dim2, dim3;
+        spm_coeftype_t flttype;
+        double         alpha, beta;
 
-        laplacian_parse_info( filename, &flttype, &dim1, &dim2, &dim3, &alpha, &beta );
+        spmParseLaplacianInfo( filename, &flttype, &dim1, &dim2, &dim3, &alpha, &beta );
         ord = malloc(sizeof(pastix_order_t));
         pastixOrderGrid( &ord, dim1, dim2, dim3 );
 
@@ -111,7 +110,7 @@ int main (int argc, char **argv)
     /**
      * Normalize A matrix (optional, but recommended for low-rank functionality)
      */
-    double normA = spmNorm( PastixFrobeniusNorm, spm );
+    double normA = spmNorm( SpmFrobeniusNorm, spm );
     spmScalMatrix( 1./normA, spm );
 
     /**
@@ -132,11 +131,11 @@ int main (int argc, char **argv)
         if ( check > 1 ) {
             x0 = malloc( size );
         }
-        spmGenRHS( PastixRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
+        spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
         memcpy( x, b, size );
     }
     else {
-        spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
+        spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
         /* Apply also normalization to b vectors */
         spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );

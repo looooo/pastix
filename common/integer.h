@@ -35,20 +35,20 @@ void         intSort2asc1(void * const, const pastix_int_t);
 void         intSort2asc2(void * const, const pastix_int_t);
 
 /*
-  Function: qsortIntFloatAsc
+ Function: qsortIntFloatAsc
 
-  Sort 2 arrays simultaneously, the first array is an
-  array of pastix_int_t and used as key for sorting.
-  The second array is an array of PASTIX_FLOAT.
+ Sort 2 arrays simultaneously, the first array is an
+ array of pastix_int_t and used as key for sorting.
+ The second array is an array of PASTIX_FLOAT.
 
-  Parameters:
-  pbase       - Array of pointers to the first element of each array to sort.
-  total_elems - Number of element in each array.
+ Parameters:
+ pbase       - Array of pointers to the first element of each array to sort.
+ total_elems - Number of element in each array.
 
-  Returns:
-  Nothing
+ Returns:
+ Nothing
 
-*/
+ */
 void s_qsortIntFloatAsc(void ** const pbase,
                         const pastix_int_t     total_elems);
 void d_qsortIntFloatAsc(void ** const pbase,
@@ -59,76 +59,76 @@ void z_qsortIntFloatAsc(void ** const pbase,
                         const pastix_int_t     total_elems);
 
 /*
-  Function: qsort2IntFloatAsc
+ Function: qsort2IntFloatAsc
 
-  Sort 3 arrays simultaneously, the first array is an
-  array of pastix_int_t and used as primary key for sorting.
-  The second array is an other array of pastix_int_t used
-  as secondary key.
-  The third array is an array of PASTIX_FLOAT.
+ Sort 3 arrays simultaneously, the first array is an
+ array of pastix_int_t and used as primary key for sorting.
+ The second array is an other array of pastix_int_t used
+ as secondary key.
+ The third array is an array of PASTIX_FLOAT.
 
-  Parameters:
-  pbase       - Array of pointers to the first element of each array to sort.
-  total_elems - Number of element in each array.
+ Parameters:
+ pbase       - Array of pointers to the first element of each array to sort.
+ total_elems - Number of element in each array.
 
-  Returns:
-  Nothing
+ Returns:
+ Nothing
 
-*/
+ */
 void s_qsort2IntFloatAsc(void ** const pbase,
-                       const pastix_int_t     total_elems);
+                         const pastix_int_t     total_elems);
 void d_qsort2IntFloatAsc(void ** const pbase,
-                       const pastix_int_t     total_elems);
+                         const pastix_int_t     total_elems);
 void c_qsort2IntFloatAsc(void ** const pbase,
-                       const pastix_int_t     total_elems);
+                         const pastix_int_t     total_elems);
 void z_qsort2IntFloatAsc(void ** const pbase,
-                       const pastix_int_t     total_elems);
+                         const pastix_int_t     total_elems);
 
 
 /*
-  Function: qsort2IntAsc
+ Function: qsort2IntAsc
 
-  Sort 2 arrays simultaneously, the first array is an
-  array of pastix_int_t and used as primary key for sorting.
-  The second array is an other array of pastix_int_t used
-  as secondary key.
+ Sort 2 arrays simultaneously, the first array is an
+ array of pastix_int_t and used as primary key for sorting.
+ The second array is an other array of pastix_int_t used
+ as secondary key.
 
-  Parameters:
-  pbase       - Array of pointers to the first element of each array to sort.
-  total_elems - Number of element in each array.
+ Parameters:
+ pbase       - Array of pointers to the first element of each array to sort.
+ total_elems - Number of element in each array.
 
-  Returns:
-  Nothing
+ Returns:
+ Nothing
 
-*/
+ */
 void qsort2IntAsc(void ** const pbase,
                   const pastix_int_t     total_elems);
 
 /*
-  Function: qsort2SmallIntAsc
+ Function: qsort2SmallIntAsc
 
-  Sort 2 arrays simultaneously, the first array is an
-  array of integers (int) and used as primary key for sorting.
-  The second array is an other array of int used
-  as secondary key.
+ Sort 2 arrays simultaneously, the first array is an
+ array of integers (int) and used as primary key for sorting.
+ The second array is an other array of int used
+ as secondary key.
 
-  Parameters:
-  pbase       - Array of pointers to the first element of each array to sort.
-  total_elems - Number of element in each array.
+ Parameters:
+ pbase       - Array of pointers to the first element of each array to sort.
+ total_elems - Number of element in each array.
 
-  Returns:
-  Nothing
+ Returns:
+ Nothing
 
-*/
+ */
 void qsort2SmallIntAsc(void ** const pbase,
                        const pastix_int_t     total_elems);
 
 
 pastix_int_t
 pastix_intset_union(       pastix_int_t  n1,
-                     const pastix_int_t *set1,
+                           const pastix_int_t *set1,
                            pastix_int_t  n2,
-                     const pastix_int_t *set2,
+                           const pastix_int_t *set2,
                            pastix_int_t *set );
 
 static inline pastix_int_t pastix_imin( pastix_int_t a, pastix_int_t b) {

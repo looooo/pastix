@@ -93,7 +93,7 @@
  *******************************************************************************/
 int
 pastix_subtask_order(       pastix_data_t  *pastix_data,
-                      const pastix_spm_t   *spm,
+                      const spmatrix_t     *spm,
                             pastix_order_t *myorder )
 {
     pastix_int_t    n;

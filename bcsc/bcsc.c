@@ -101,7 +101,7 @@ bcsc_restore_coltab( pastix_bcsc_t *bcsc )
 }
 
 pastix_int_t
-bcsc_init_centralized_coltab( const pastix_spm_t   *spm,
+bcsc_init_centralized_coltab( const spmatrix_t     *spm,
                               const pastix_order_t *ord,
                               const SolverMatrix   *solvmtx,
                                     pastix_bcsc_t  *bcsc )
@@ -111,7 +111,7 @@ bcsc_init_centralized_coltab( const pastix_spm_t   *spm,
     pastix_int_t *colptr = spm->colptr;
     pastix_int_t *rowptr = spm->rowptr;
     int dof = spm->dof;
-    int sym = (spm->mtxtype == PastixSymmetric) || (spm->mtxtype == PastixHermitian);
+    int sym = (spm->mtxtype == SpmSymmetric) || (spm->mtxtype == SpmHermitian);
 
     bcsc->mtxtype = spm->mtxtype;
     baseval = spm->colptr[0];
@@ -174,7 +174,7 @@ bcsc_init_centralized_coltab( const pastix_spm_t   *spm,
 }
 
 void
-bcscInitCentralized( const pastix_spm_t   *spm,
+bcscInitCentralized( const spmatrix_t     *spm,
                      const pastix_order_t *ord,
                      const SolverMatrix   *solvmtx,
                            pastix_int_t    initAt,
@@ -222,19 +222,19 @@ bcscInitCentralized( const pastix_spm_t   *spm,
      * factorization.
      */
     switch( spm->flttype ) {
-    case PastixFloat:
+    case SpmFloat:
         s_bcscInitCentralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
-    case PastixDouble:
+    case SpmDouble:
         d_bcscInitCentralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
-    case PastixComplex32:
+    case SpmComplex32:
         c_bcscInitCentralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
-    case PastixComplex64:
+    case SpmComplex64:
         z_bcscInitCentralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
-    case PastixPattern:
+    case SpmPattern:
     default:
         fprintf(stderr, "bcscInitCentralized: Error unknown floating type for input spm\n");
     }
@@ -243,7 +243,7 @@ bcscInitCentralized( const pastix_spm_t   *spm,
 }
 
 double
-bcscInit( const pastix_spm_t   *spm,
+bcscInit( const spmatrix_t     *spm,
           const pastix_order_t *ord,
           const SolverMatrix   *solvmtx,
                 pastix_int_t    initAt,

@@ -147,7 +147,7 @@ graphSort( pastix_graph_t *graph )
  *******************************************************************************/
 int
 graphPrepare(      pastix_data_t   *pastix_data,
-             const pastix_spm_t    *spm,
+             const spmatrix_t      *spm,
                    pastix_graph_t **graph )
 {
     pastix_graph_t *tmpgraph  = NULL;
@@ -182,8 +182,8 @@ graphPrepare(      pastix_data_t   *pastix_data,
              * TODO: change test for requirement from the user to correct his
              * mistakes
              */
-            if ( (spm->mtxtype == PastixSymmetric) ||
-                 (spm->mtxtype == PastixHermitian) )
+            if ( (spm->mtxtype == SpmSymmetric) ||
+                 (spm->mtxtype == SpmHermitian) )
             {
                 if (iparm[IPARM_VERBOSE] > PastixVerboseNo)
                     pastix_print(procnum, 0, "%s", OUT_ORDER_SYMGRAPH);
@@ -228,8 +228,8 @@ graphPrepare(      pastix_data_t   *pastix_data,
             assert( colptr[0] == 1 );
 
             MPI_Allreduce(&n, &gN, 1, PASTIX_MPI_INT, MPI_SUM, pastix_comm);
-            if ( (spm->mtxtype == PastixSymmetric) ||
-                 (spm->mtxtype == PastixHermitian) )
+            if ( (spm->mtxtype == SpmSymmetric) ||
+                 (spm->mtxtype == SpmHermitian) )
             {
                 cscd_symgraph_int(n, colptr, rows, NULL,
                                   &(tmpgraph->n),

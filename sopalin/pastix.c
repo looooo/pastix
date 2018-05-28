@@ -113,7 +113,7 @@ pastix( pastix_data_t **pastix_data_ptr,
         double         *dparm )
 {
     pastix_data_t *pastix_data;
-    pastix_spm_t *spm = NULL;
+    spmatrix_t   *spm = NULL;
     int ret;
     size_t size;
 
@@ -207,12 +207,12 @@ pastix( pastix_data_t **pastix_data_ptr,
                 return PASTIX_ERR_BADPARAMETER;
             }
 
-            spm = malloc(sizeof( pastix_spm_t ));
+            spm = malloc(sizeof( spmatrix_t ));
             spmInit( spm );
 
             spm->mtxtype = iparm[IPARM_MTX_TYPE];
             spm->flttype = iparm[IPARM_FLOAT];
-            spm->fmttype = PastixCSC;
+            spm->fmttype = SpmCSC;
 
             spm->n    = n;
             spm->nnz  = colptr[n] - colptr[0];
@@ -227,7 +227,8 @@ pastix( pastix_data_t **pastix_data_ptr,
             pastix_data->csc = spm;
         }
         else {
-            spm = (pastix_spm_t*)(pastix_data->csc);
+            /* Cast to overwrite the const */
+            spm = (spmatrix_t*)(pastix_data->csc);
         }
 
         /*
@@ -238,7 +239,8 @@ pastix( pastix_data_t **pastix_data_ptr,
         }
     }
     else {
-        spm = (pastix_spm_t*)(pastix_data->csc);
+        /* Cast to overwrite the const */
+        spm = (spmatrix_t*)(pastix_data->csc);
     }
 
     /*
@@ -465,7 +467,7 @@ pastix( pastix_data_t **pastix_data_ptr,
 
     if (iparm[IPARM_START_TASK] == PastixTaskClean) {
         if ( pastix_data->csc != NULL ) {
-            pastix_spm_t *spm = (pastix_spm_t*)(pastix_data->csc);
+            spmatrix_t *spm = (spmatrix_t*)(pastix_data->csc);
             free( spm );
         }
         pastixFinalize( pastix_data_ptr );

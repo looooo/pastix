@@ -19,18 +19,18 @@
 
 int main (int argc, char **argv)
 {
-    pastix_data_t   *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
-    pastix_float_t  *b           = NULL; /* right hand side                                           */
-    pastix_int_t     iparm[IPARM_SIZE]; /* integer parameters for pastix                             */
-    double           dparm[DPARM_SIZE]; /* floating parameters for pastix                            */
-    char            *filename;  /* Filename(s) given by user                                 */
-    int              nrhs        = 1;
-    pastix_spm_t    *spm, *spm2;
-    pastix_driver_t  driver;
-    void            *x, *x0 = NULL;
-    size_t           size;
-    int              check = 1;
-    int              ret   = PASTIX_SUCCESS;
+    pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
+    pastix_float_t *b           = NULL; /* right hand side                                           */
+    pastix_int_t    iparm[IPARM_SIZE]; /* integer parameters for pastix                             */
+    double          dparm[DPARM_SIZE]; /* floating parameters for pastix                            */
+    char           *filename;  /* Filename(s) given by user                                 */
+    int             nrhs        = 1;
+    spmatrix_t     *spm, *spm2;
+    spm_driver_t    driver;
+    void           *x, *x0 = NULL;
+    size_t          size;
+    int             check = 1;
+    int             ret   = PASTIX_SUCCESS;
 
     /*
      * Initialize parameters to default values
@@ -50,8 +50,8 @@ int main (int argc, char **argv)
     /*
      * Read Matrice
      */
-    spm = malloc( sizeof( pastix_spm_t ) );
-    spmReadDriver( driver, filename, spm, MPI_COMM_WORLD );
+    spm = malloc( sizeof( spmatrix_t ) );
+    spmReadDriver( driver, filename, spm );
     free( filename );
 
     spmPrintInfo( spm, stdout );
@@ -69,7 +69,7 @@ int main (int argc, char **argv)
     /*
      * Generate a Fake values array if needed for the numerical part
      */
-    if ( spm->flttype == PastixPattern ) {
+    if ( spm->flttype == SpmPattern ) {
         spmGenFakeValues( spm );
     }
 
@@ -80,7 +80,7 @@ int main (int argc, char **argv)
     /**
      * Normalize A matrix (optional, but recommended for low-rank functionality)
      */
-    double normA = spmNorm( PastixFrobeniusNorm, spm );
+    double normA = spmNorm( SpmFrobeniusNorm, spm );
     spmScalMatrix( 1./normA, spm );
 
     /*
@@ -96,11 +96,11 @@ int main (int argc, char **argv)
         if ( check > 1 ) {
             x0 = malloc( size );
         }
-        spmGenRHS( PastixRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
+        spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
         memcpy( x, b, size );
     }
     else {
-        spmGenRHS( PastixRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
+        spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
         /* Apply also normalization to b vector */
         spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );

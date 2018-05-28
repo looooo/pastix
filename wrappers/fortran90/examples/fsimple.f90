@@ -19,8 +19,8 @@ program fsimple
   implicit none
 
   type(pastix_data_t),        pointer                      :: pastix_data
-  type(pastix_spm_t),         target                       :: spm
-  type(pastix_spm_t),         pointer                      :: spm2
+  type(spmatrix_t),           target                       :: spm
+  type(spmatrix_t),           pointer                      :: spm2
   integer(kind=pastix_int_t), target                       :: iparm(iparm_size)
   real(kind=c_double),        target                       :: dparm(dparm_size)
   real(kind=c_double)                                      :: normA
@@ -32,7 +32,7 @@ program fsimple
   !
   ! Initialize the problem
   !   1- The matrix
-  call spmReadDriver( PastixDriverLaplacian, "d:10:10:10:2.", spm, 0, info )
+  call spmReadDriver( SpmDriverLaplacian, "d:10:10:10:2.", spm, info )
 
   call spmCheckAndCorrect( spm, spm2 )
   if (.not. c_associated(c_loc(spm), c_loc(spm2))) then
@@ -43,7 +43,7 @@ program fsimple
   call spmPrintInfo( spm )
 
   ! Scale A for better stability with low-rank computations
-  call spmNorm( PastixFrobeniusNorm, spm, normA )
+  call spmNorm( SpmFrobeniusNorm, spm, normA )
   call spmScalMatrix( 1. / normA, spm )
 
   !   2- The right hand side
@@ -55,7 +55,7 @@ program fsimple
   x_ptr  = c_loc(x)
   b_ptr  = c_loc(b)
 
-  call spmGenRHS( PastixRhsRndX, nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, info )
+  call spmGenRHS( SpmRhsRndX, nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, info )
   x = b
 
   !

@@ -45,4 +45,11 @@ solver.schur(A, schurlist)
 S = solver.S
 f = solver.schur_forward(b)
 y = la.solve(S, f, sym_pos=True, lower=True)
-x = solver.schur_backward(y, b, x0=x0, check=True)
+x = solver.schur_backward(y, b)
+
+# Check the solution
+rc = solver.check( x, b, x0=x0 )
+
+solver.finalize()
+
+exit(rc)

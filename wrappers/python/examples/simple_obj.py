@@ -32,5 +32,11 @@ tmp = np.eye(2).dot(np.ones(2))
 solver = pastix.solver(A, verbose=True)
 
 # Solve
-x = solver.solve(b, x0=x0, check=True)
+x = solver.solve( b )
+
+# Check the solution
+rc = solver.check( x, b, x0=x0 )
+
 solver.finalize()
+
+exit(rc)

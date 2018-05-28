@@ -37,7 +37,7 @@
  *  Check the accuracy of the solution
  */
 int
-z_bcsc_matvec_check( int trans, const pastix_spm_t *spm, const pastix_data_t *pastix_data )
+z_bcsc_matvec_check( int trans, const spmatrix_t   *spm, const pastix_data_t *pastix_data )
 {
     unsigned long long int seed = 35469;
     pastix_complex64_t *x, *y0, *ys, *yd;
@@ -51,6 +51,12 @@ z_bcsc_matvec_check( int trans, const pastix_spm_t *spm, const pastix_data_t *pa
 
     core_zplrnt( 1, 1, &alpha, 1, 1, start, 0, seed ); start++;
     core_zplrnt( 1, 1, &beta,  1, 1, start, 0, seed ); start++;
+
+    /* Make sure alpha/beta are doubles */
+#if defined(PRECISION_c) || defined(PRECISION_z)
+    alpha = creal( alpha );
+    beta  = creal( beta  );
+#endif
 
     x = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
     core_zplrnt( spm->gN, 1, x, spm->gN, 1, start, 0, seed ); start += spm->gN;
@@ -67,7 +73,7 @@ z_bcsc_matvec_check( int trans, const pastix_spm_t *spm, const pastix_data_t *pa
     memcpy( yd, y0, spm->gN * sizeof(pastix_complex64_t) );
 
     /* Compute the spm matrix-vector product */
-    spmMatVec( trans, &alpha, spm, x, &beta, ys );
+    spmMatVec( trans, alpha, spm, x, beta, ys );
 
     /* Compute the bcsc matrix-vector product */
     z_bcscApplyPerm( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
@@ -78,7 +84,7 @@ z_bcsc_matvec_check( int trans, const pastix_spm_t *spm, const pastix_data_t *pa
     z_bcscApplyPerm( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
     z_bcscApplyPerm( pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
 
-    Anorm  = spmNorm( PastixInfNorm, spm );
+    Anorm  = spmNorm( SpmInfNorm, spm );
     Xnorm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,  x, spm->gN );
     Y0norm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1, y0, spm->gN );
     Ysnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1, ys, spm->gN );
@@ -113,7 +119,7 @@ z_bcsc_matvec_check( int trans, const pastix_spm_t *spm, const pastix_data_t *pa
  *  Check the accuracy of the solution
  */
 int
-z_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc )
+z_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc )
 {
     double norms, normd;
     double eps, result;
@@ -125,7 +131,7 @@ z_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc )
      * Test Norm Max
      */
     printf(" -- Test norm Max :");
-    norms = spmNorm( PastixMaxNorm, spm );
+    norms = spmNorm( SpmMaxNorm, spm );
     normd = z_bcscNorm( PastixMaxNorm, bcsc );
     result = fabs(norms - normd) / (norms * eps);
 
@@ -143,7 +149,7 @@ z_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc )
      * Test Norm Inf
      */
     printf(" -- Test norm Inf :");
-    norms = spmNorm( PastixInfNorm, spm );
+    norms = spmNorm( SpmInfNorm, spm );
     normd = z_bcscNorm( PastixInfNorm, bcsc );
     result = fabs(norms - normd) / (norms * eps);
     result = result * ((double)(spm->gN)) / ((double)(spm->gnnz));
@@ -162,7 +168,7 @@ z_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc )
      * Test Norm One
      */
     printf(" -- Test norm One :");
-    norms = spmNorm( PastixOneNorm, spm );
+    norms = spmNorm( SpmOneNorm, spm );
     normd = z_bcscNorm( PastixOneNorm, bcsc );
     result = fabs(norms - normd) / (norms * eps);
     result = result * ((double)(spm->gN)) / ((double)(spm->gnnz));
@@ -181,7 +187,7 @@ z_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc )
      * Test Norm Frobenius
      */
     printf(" -- Test norm Frb :");
-    norms = spmNorm( PastixFrobeniusNorm, spm );
+    norms = spmNorm( SpmFrobeniusNorm, spm );
     normd = z_bcscNorm( PastixFrobeniusNorm, bcsc );
     result = fabs(norms - normd) / (norms * eps);
     result = result / ((double)spm->gnnz);

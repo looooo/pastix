@@ -2,11 +2,12 @@
 """
  @file gen_wrappers.py
 
- PaStiX Python and Fortran 90 wrapper generator
+ Python and Fortran 90 wrapper generator for some of the solverstack
+ libraries, inspired from the PLASMA-OMP fortran generator.
 
  @copyright 2016-2017 University of Tennessee, US, University of
                       Manchester, UK. All rights reserved.
- @copyright 2017      Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.0.0
@@ -47,9 +48,9 @@ opts = parser.parse_args()
 module_name = "pastix_enums"
 
 # exclude inline functions from the interface
-exclude_list = [ "inline", "spmIntSort", "pastixOrderCompute",
-                 "pastixOrderApplyLevelOrder", "pastixOrderAddIsolate",
-                 "pastixOrderFindSupernodes" ]
+exclude_list = [ "inline", "spmIntSort", "spmIntMSort",
+                 "pastixOrderCompute", "pastixOrderApplyLevelOrder",
+                 "pastixOrderAddIsolate", "pastixOrderFindSupernodes" ]
 
 def polish_file(whole_file):
     """Preprocessing and cleaning of the header file.
@@ -205,6 +206,7 @@ def parse_enums(preprocessed_list):
                 enumname = split_fun[2]
             enumname = re.sub(r"_e$", "", enumname)
             enumname = re.sub(r"^pastix_", "", enumname)
+            enumname = re.sub(r"^spm_", "", enumname)
 
             args_string = fun_parts[1];
             args_string = re.sub(r"}", "", args_string)
@@ -470,31 +472,16 @@ pastix_enums = {
     'filename' : [ "include/pastix/api.h" ],
     'python'   : { 'filename'    : "wrappers/python/examples/pypastix/enum.py.in",
                    'description' : "PaStiX python wrapper to define enums and datatypes",
-                   'header'      : "pastix_int = @PASTIX_PYTHON_INTEGER@",
+                   'header'      : "# Start with __ to prevent broadcast to file importing enum\n__pastix_int__ = @PASTIX_PYTHON_INTEGER@\n",
                    'footer'      : "",
-                   'enums'       : { 'coeftype' : enums_python_coeftype }
+                   'enums'       : { 'coeftype' : enums_python_coeftype,
+                                     'mtxtype'  : "    SymPosDef = trans.ConjTrans + 1\n    HerPosDef = trans.ConjTrans + 2\n" }
     },
     'fortran'  : { 'filename'    : "wrappers/fortran90/src/pastix_enums.F90",
                    'description' : "PaStiX fortran 90 wrapper to define enums and datatypes",
                    'header'      : "  implicit none\n",
                    'footer'      : enums_fortran_footer,
-                   'enums'       : {}
-    },
-}
-
-pastix_spm = {
-    'filename' : [ "spm/spm.h" ],
-    'python'   : { 'filename'    : "wrappers/python/examples/pypastix/__spm__.py",
-                   'description' : "SPM python wrapper",
-                   'header'      : "from . import libspm\nfrom .enum import pastix_int\n",
-                   'footer'      : "",
-                   'enums'       : {}
-    },
-    'fortran'  : { 'filename'    : "wrappers/fortran90/src/spmf.f90",
-                   'description' : "SPM Fortran 90 wrapper",
-                   'header'      : "  use pastix_enums\n  implicit none\n",
-                   'footer'      : "",
-                   'enums'       : {}
+                   'enums'       : { 'mtxtype'  : "    enumerator :: PastixSymPosDef = PastixConjTrans + 1\n    enumerator :: PastixHerPosDef    = PastixConjTrans + 2\n" }
     },
 }
 
@@ -504,16 +491,17 @@ pastix = {
                    'description' : "PaStiX python wrapper",
                    'header'      : '''
 from . import libpastix
-from .enum import pastix_int
-from .__spm__ import pypastix_spm_t
+from .enum import __pastix_int__
+from spm import pyspm_spmatrix_t
+import spm
 ''',
                    'footer'      : "",
                    'enums'       : {}
     },
     'fortran'  : { 'filename'    : "wrappers/fortran90/src/pastixf.f90",
                    'description' : "PaStiX Fortran 90 wrapper",
-                   'header'      : '''  use pastix_enums
-  use spmf
+                   'header'      : '''  use spmf
+  use pastix_enums
   implicit none
 
   type, bind(c) :: pastix_data_t
@@ -531,7 +519,7 @@ def main():
     preprocessed_list = []
 
     # source header files
-    for f in [ pastix_enums, pastix_spm, pastix ]:
+    for f in [ pastix_enums, pastix ]:
         preprocessed_list = []
         for filename in f['filename']:
 

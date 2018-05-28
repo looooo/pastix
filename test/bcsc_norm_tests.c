@@ -26,10 +26,10 @@
 #include <bcsc.h>
 #include "sopalin_data.h"
 
-int z_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc );
-int c_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc );
-int d_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc );
-int s_bcsc_norm_check( const pastix_spm_t *spm, const pastix_bcsc_t *bcsc );
+int z_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc );
+int c_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc );
+int d_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc );
+int s_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc );
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_) {                                 \
@@ -48,8 +48,8 @@ int main (int argc, char **argv)
     pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix  */
     pastix_int_t    iparm[IPARM_SIZE];  /* integer parameters for pastix                    */
     double          dparm[DPARM_SIZE];  /* floating parameters for pastix                   */
-    pastix_driver_t driver;             /* Matrix driver(s) requested by user               */
-    pastix_spm_t   *spm, *spm2;
+    spm_driver_t    driver;             /* Matrix driver(s) requested by user               */
+    spmatrix_t     *spm, *spm2;
     pastix_bcsc_t   bcsc;
     char *filename;                     /* Filename(s) given by user                        */
     int ret = PASTIX_SUCCESS;
@@ -68,8 +68,8 @@ int main (int argc, char **argv)
                       NULL, NULL,
                       NULL, &driver, &filename );
 
-    spm = malloc( sizeof( pastix_spm_t ) );
-    spmReadDriver( driver, filename, spm, MPI_COMM_WORLD );
+    spm = malloc( sizeof( spmatrix_t ) );
+    spmReadDriver( driver, filename, spm );
     free(filename);
     spm2 = spmCheckAndCorrect( spm );
     if ( spm2 != spm ) {
@@ -78,7 +78,7 @@ int main (int argc, char **argv)
         spm = spm2;
     }
 
-    if ( spm->flttype == PastixPattern ) {
+    if ( spm->flttype == SpmPattern ) {
         spmGenFakeValues( spm );
     }
 
@@ -93,28 +93,28 @@ int main (int argc, char **argv)
     bcscInit( spm,
               pastix_data->ordemesh,
               pastix_data->solvmatr,
-              spm->mtxtype == PastixGeneral, &bcsc );
+              spm->mtxtype == SpmGeneral, &bcsc );
 
     printf(" -- BCSC Norms Test --\n");
     printf(" Datatype: %s\n", fltnames[spm->flttype] );
     spmBase( spm, 0 );
 
-    printf("   Matrix type : %s\n", mtxnames[spm->mtxtype - PastixGeneral] );
+    printf("   Matrix type : %s\n", mtxnames[spm->mtxtype - SpmGeneral] );
 
     switch( spm->flttype ){
-    case PastixComplex64:
+    case SpmComplex64:
         ret = z_bcsc_norm_check( spm, &bcsc );
         break;
 
-    case PastixComplex32:
+    case SpmComplex32:
         ret = c_bcsc_norm_check( spm, &bcsc );
         break;
 
-    case PastixFloat:
+    case SpmFloat:
         ret = s_bcsc_norm_check( spm, &bcsc );
         break;
 
-    case PastixDouble:
+    case SpmDouble:
     default:
         ret = d_bcsc_norm_check( spm, &bcsc );
     }

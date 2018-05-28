@@ -4,3 +4,9 @@
 	fetchRecurseSubmodules = true
 	ignored = untracked
 	update = checkout
+[submodule "spm"]
+	path = spm
+	url = https://gitlab.inria.fr/solverstack/spm.git
+	fetchRecurseSubmodules = true
+	ignored = untracked
+	update = checkout

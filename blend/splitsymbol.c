@@ -97,7 +97,8 @@ computeNbSplit( const BlendCtrl *ctrl,
             return 1;
         }
 
-        nseq = pastix_iceil( width, blas_max_col );
+        //nseq = pastix_iceil( width, blas_max_col );
+        nseq = width / blas_min_col;
     }
     else
     {
@@ -106,17 +107,20 @@ computeNbSplit( const BlendCtrl *ctrl,
         /* If option adaptative block size is set then compute the size of a column block */
         if(abs > 0)
         {
-            step = pastix_iceil( width, (abs * candnbr) );
+            //step = pastix_iceil( width, (abs * candnbr) );
+            step = width / (abs * candnbr);
 
             step = pastix_imax(step, blas_min_col);
             step = pastix_imin(step, blas_max_col);
 
             /* Ceil */
-            nseq = pastix_iceil( width, step );
+            //nseq = pastix_iceil( width, step );
+            nseq = width / step;
         }
         else
         {
-            nseq = pastix_iceil( width, blas_max_col );
+            //nseq = pastix_iceil( width, blas_max_col );
+            nseq = width / blas_min_col;
         }
     }
 

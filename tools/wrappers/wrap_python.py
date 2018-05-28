@@ -26,6 +26,20 @@ iindent=4
 # translation_table of types
 types_dict = {
     "int":               ("c_int"),
+    "spm_coeftype_t": ("c_int"),
+    "spm_dir_t":      ("c_int"),
+    "spm_trans_t":    ("c_int"),
+    "spm_uplo_t":     ("c_int"),
+    "spm_diag_t":     ("c_int"),
+    "spm_side_t":     ("c_int"),
+    "spm_driver_t":   ("c_int"),
+    "spm_fmttype_t":  ("c_int"),
+    "spm_layout_t":   ("c_int"),
+    "spm_normtype_t": ("c_int"),
+    "spm_rhstype_t":  ("c_int"),
+    "spm_mtxtype_t":  ("c_int"),
+    "spm_int_t":      ("__spm_int__"),
+    "spmatrix_t":     ("pyspm_spmatrix_t"),
     "pastix_coeftype_t": ("c_int"),
     "pastix_dir_t":      ("c_int"),
     "pastix_trans_t":    ("c_int"),
@@ -38,9 +52,8 @@ types_dict = {
     "pastix_normtype_t": ("c_int"),
     "pastix_rhstype_t":  ("c_int"),
     "pastix_mtxtype_t":  ("c_int"),
-    "pastix_int_t":      ("pastix_int"),
+    "pastix_int_t":      ("__pastix_int__"),
     "pastix_data_t":     ("c_void"),
-    "pastix_spm_t":      ("pypastix_spm_t"),
     "pastix_order_t":    ("c_void"),
     "size_t":            ("c_size_t"),
     "char":              ("c_char"),
@@ -182,9 +195,11 @@ import numpy as np
 
             # Remove Pastix from everything
             param[0] = re.sub(r"Pastix", "", param[0])
+            param[0] = re.sub(r"Spm", "", param[0])
 
             if ename == "error":
                 param[0] = re.sub(r"PASTIX_", "", param[0])
+                param[0] = re.sub(r"SPM_", "", param[0])
                 param[0] = re.sub(r"ERR_", "", param[0])
             elif ename == "fact_mode" or ename == "factotype" or ename == "solv_mode":
                 param[0] = re.sub(r"Fact", "", param[0])
@@ -204,6 +219,7 @@ import numpy as np
                 param[0] = param[0]
             elif ename == "mtxtype":
                 param[1] = re.sub(r"Pastix", "trans.", param[1])
+                param[1] = re.sub(r"Spm", "trans.", param[1])
             elif ename == "normtype":
                 param[0] = re.sub(r"Norm", "", param[0])
             else:

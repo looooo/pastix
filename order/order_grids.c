@@ -328,7 +328,8 @@ pastixOrderGrid( pastix_order_t **myorder,
             i = 2*i+1;
         }
         if (i != nx){
-            errorPrintW("The given graph size is not correct for optimal manual ordering on 2D regular grid or 3D regular cube. Closer valid sizes are %ld %ld\n", i, 2*i+1);
+            errorPrintW("The given graph size is not correct for optimal manual ordering on 2D regular grid or 3D regular cube. Closer valid sizes are %ld %ld\n",
+                        (long)i, (long)(2*i+1));
         }
     }
 

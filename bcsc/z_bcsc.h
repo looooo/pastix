@@ -20,7 +20,7 @@ void z_bcscSort( const pastix_bcsc_t *bcsc,
                  pastix_int_t        *rowtab,
                  pastix_complex64_t  *valtab );
 
-void z_bcscInitCentralized( const pastix_spm_t   *spm,
+void z_bcscInitCentralized( const spmatrix_t     *spm,
                             const pastix_order_t *ord,
                             const SolverMatrix   *solvmtx,
                             const pastix_int_t   *col2cblk,

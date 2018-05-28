@@ -88,9 +88,9 @@ int main (int argc, char **argv)
     pastix_data_t  *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
     pastix_int_t    iparm[IPARM_SIZE];  /*< Integer in/out parameters for pastix                */
     double          dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
-    pastix_driver_t driver;
+    spm_driver_t    driver;
     char           *filename;
-    pastix_spm_t   *spm, *spm2;
+    spmatrix_t     *spm, *spm2;
     int             check = 1;
     int             rc    = 0;
 
@@ -121,8 +121,8 @@ int main (int argc, char **argv)
     /**
      * Read the sparse matrix with the driver
      */
-    spm = malloc( sizeof( pastix_spm_t ) );
-    spmReadDriver( driver, filename, spm, MPI_COMM_WORLD );
+    spm = malloc( sizeof( spmatrix_t ) );
+    spmReadDriver( driver, filename, spm );
     free( filename );
 
     spmPrintInfo( spm, stdout );
@@ -137,7 +137,7 @@ int main (int argc, char **argv)
     /**
      * Generate a Fake values array if needed for the numerical part
      */
-    if ( spm->flttype == PastixPattern ) {
+    if ( spm->flttype == SpmPattern ) {
         spmGenFakeValues( spm );
     }
 
@@ -154,7 +154,7 @@ int main (int argc, char **argv)
     /**
      * Normalize A matrix (optional, but recommended for low-rank functionality)
      */
-    double normA = spmNorm( PastixFrobeniusNorm, spm );
+    double normA = spmNorm( SpmFrobeniusNorm, spm );
     spmScalMatrix( 1./normA, spm );
 
     /**

@@ -30,7 +30,7 @@ static double beta  = 1.;
  * factorization.
  */
 static inline void
-bcscInitFakeA( const pastix_spm_t   *spm,
+bcscInitFakeA( const spmatrix_t     *spm,
                const pastix_order_t *ord,
                const SolverMatrix   *solvmtx,
                const pastix_int_t   *col2cblk,
@@ -104,7 +104,7 @@ bcscInitFakeA( const pastix_spm_t   *spm,
 }
 
 void
-bcscInitFakeLt( const pastix_spm_t   *spm,
+bcscInitFakeLt( const spmatrix_t     *spm,
                 const pastix_order_t *ord,
                 const SolverMatrix   *solvmtx,
                 const pastix_int_t   *col2cblk,
@@ -175,7 +175,7 @@ bcscInitFakeLt( const pastix_spm_t   *spm,
 }
 
 void
-bcscInitFakeAt( const pastix_spm_t   *spm,
+bcscInitFakeAt( const spmatrix_t     *spm,
                 const pastix_order_t *ord,
                 const SolverMatrix   *solvmtx,
                 const pastix_int_t   *col2cblk,
@@ -248,7 +248,7 @@ bcscInitFakeAt( const pastix_spm_t   *spm,
 }
 
 void
-bcscInitCentralizedFake( const pastix_spm_t   *spm,
+bcscInitCentralizedFake( const spmatrix_t     *spm,
                          const pastix_order_t *ord,
                          const SolverMatrix   *solvmtx,
                          const pastix_int_t   *col2cblk,
