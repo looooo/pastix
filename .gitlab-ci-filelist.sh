@@ -6,7 +6,7 @@ then
 fi
 BUILDDIR=${BUILDDIR-=build}
 
-SRCDIR_TO_ANALYZE="$BUILDDIR bcsc blend common example graph include kernels order refinement sopalin spm symbol test"
+SRCDIR_TO_ANALYZE="$BUILDDIR bcsc blend common example graph include kernels order refinement sopalin symbol test"
 
 echo $PWD
 rm -f filelist.txt
@@ -23,11 +23,14 @@ sed -i "/kernels\/gpus\/.*/d" filelist.txt
 # Remove all CMakeFiles generated file
 sed -i '/CMakeFiles/d' filelist.txt
 
-# Remove all CMakeFiles generated file
+# Remove all .cmake files
 sed -i '/.cmake/d' filelist.txt
 
-# Remove all .in file
+# Remove all .in files
 sed -i '/.in$/d' filelist.txt
+
+# Remove all clang files
+sed -i '/^\.clang/d' filelist.txt
 
 # Remove files compiled from jdf files
 for jdf in `find -name "*\.jdf"`
@@ -52,10 +55,10 @@ do
     sed -i "\:^$file.*:d" filelist.txt
 done
 
-# Remove external driver files
-for file in spm/drivers/iohb.c spm/drivers/iohb.h spm/drivers/mmio.c spm/drivers/mmio.h
+# Remove submodules
+for file in spm cmake_modules/morse_cmake
 do
-    sed -i "\:^$file.*:d" filelist.txt
+    sed -i "\:^$file:d" filelist.txt
 done
 
 grep '/\.c$/d' filelist.txt > filelist-c.txt

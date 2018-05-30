@@ -55,8 +55,8 @@ sonar.projectDescription=Parallel Sparse direct Solver
 sonar.projectVersion=master
 
 sonar.language=c
-sonar.sources=$BUILDDIR, bcsc, blend, common, example, graph, include, kernels, order, refinement, sopalin, spm, symbol, test
-sonar.inclusions=`cat filelist.txt | xargs echo | sed 's/ /, /g'`
+sonar.sources=$BUILDDIR, bcsc, blend, common, example, graph, include, kernels, order, refinement, sopalin, symbol, test
+sonar.inclusions=`cat filelist.txt | grep -v spm | xargs echo | sed 's/ /, /g'`
 sonar.sourceEncoding=UTF-8
 sonar.c.errorRecoveryEnabled=true
 sonar.c.compiler.charset=UTF-8
@@ -66,6 +66,7 @@ sonar.c.compiler.reportPath=pastix-build.log
 sonar.c.coverage.reportPath=pastix-coverage.xml
 sonar.c.cppcheck.reportPath=pastix-cppcheck.xml
 sonar.c.rats.reportPath=pastix-rats.xml
+sonar.c.jsonCompilationDatabase=build/compile_commands.json
 EOF
 
 # run sonar analysis + publish on sonarqube-dev
