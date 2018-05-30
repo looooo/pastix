@@ -69,7 +69,6 @@ core_zge2lrx( double tol, pastix_int_t m, pastix_int_t n,
 {
     pastix_complex64_t *u, *v, *zwork, *Acpy, ws;
     double             *rwork, *s;
-    /* double              tolabs, tolrel; */
     pastix_int_t        i, ret, ldu, ldv;
     pastix_int_t        minMN = pastix_imin( m, n );
     pastix_int_t        lwork = -1;

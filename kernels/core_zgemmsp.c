@@ -1129,9 +1129,7 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
         params.offx = iterblok->frownum - fblok->frownum;
         params.offy = blok->frownum - fcblk->fcolnum;
 
-        /* pastix_cblk_lock( fcblk ); */
         flops += core_zlrmm( &params );
-        /* pastix_cblk_unlock( fcblk ); */
     }
     return flops;
 }
@@ -1267,9 +1265,7 @@ core_zgemmsp_lr( pastix_coefside_t         sideA,
         params.offx = iterblok->frownum - fblok->frownum;
         params.offy = blok->frownum - fcblk->fcolnum;
 
-        /* pastix_cblk_lock( fcblk ); */
         flops += core_zlrmm( &params );
-        /* pastix_cblk_unlock( fcblk ); */
     }
     return flops;
 }

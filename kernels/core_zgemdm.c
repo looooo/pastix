@@ -154,49 +154,41 @@ core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
 
     /* Check input arguments */
     if ((transA < PastixNoTrans) || (transA > PastixConjTrans)) {
-        //coreblas_error(1, "Illegal value of transA");
         return -1;
     }
     if ((transB < PastixNoTrans) || (transB > PastixConjTrans)) {
-        //coreblas_error(2, "Illegal value of transB");
         return -2;
     }
     if (M < 0) {
-        //coreblas_error(3, "Illegal value of M");
         return -3;
     }
     if (N < 0) {
-        //coreblas_error(4, "Illegal value of N");
         return -4;
     }
     if (K < 0) {
-        //coreblas_error(5, "Illegal value of K");
         return -5;
     }
     if ((LDA < pastix_imax(1,Am)) && (Am > 0)) {
-        //coreblas_error(8, "Illegal value of LDA");
         return -8;
     }
     if ((LDB < pastix_imax(1,Bm)) && (Bm > 0)) {
-        //coreblas_error(10, "Illegal value of LDB");
         return -10;
     }
     if ((LDC < pastix_imax(1,M)) && (M > 0)) {
-        //coreblas_error(13, "Illegal value of LDC");
         return -13;
     }
     if ( incD < 0 ) {
-        //coreblas_error(15, "Illegal value of incD");
         return -15;
     }
     if ( ( ( transA == PastixNoTrans ) && ( LWORK < (M+1)*K) ) ||
          ( ( transA != PastixNoTrans ) && ( LWORK < (N+1)*K) ) ){
         errorPrint("CORE_gemdm: Illegal value of LWORK\n");
-        if (transA == PastixNoTrans )
+        if (transA == PastixNoTrans ) {
             errorPrint("LWORK %d < (M=%d+1)*K=%d ", LWORK, M, K);
-        if (transA == PastixNoTrans )
+        }
+        if (transA == PastixNoTrans ) {
             errorPrint("LWORK %d < (N=%d+1)*K=%d ", LWORK, N, K);
-        //coreblas_error(17, "Illegal value of LWORK");
+        }
         return -17;
     }
 
