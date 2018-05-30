@@ -38,9 +38,12 @@
  *
  * @param[in] b
  *          The right hand side member (only one).
+ *******************************************************************************
+ *
+ * @return Number of iterations
  *
  *******************************************************************************/
-void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
+pastix_int_t z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 {
     struct z_solver     solver;
     Clock               refine_clk;
@@ -338,4 +341,6 @@ void z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     solver.free(dbg_r);
     solver.free(dbg_G);
 #endif
+
+    return iters;
 }

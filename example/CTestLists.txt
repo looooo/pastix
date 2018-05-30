@@ -17,6 +17,8 @@ set( PASTIX_DRIVERS
   analyze simple step-by-step schur personal reentrant old/old_simple old/old_step-by-step )
 set( PASTIX_TESTS
   simple )
+set( PASTIX_REFINE
+  refinement )
 set( PASTIX_FACTO
      0 1 2) # LLh, LDLt, LU
 set( PASTIX_SCHEDS
@@ -62,9 +64,23 @@ endforeach()
 
 ### Refinement
 foreach(example ${PASTIX_TESTS} )
-  add_test(example_cg_${example}       ./${example} --hb ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1 -i iparm_refinement pastixrefinegmres)
+  add_test(example_cg_${example}       ./${example} --hb ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1 -i iparm_refinement pastixrefinecg)
   add_test(example_gmres_${example}    ./${example} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinegmres)
   add_test(example_bicgstab_${example} ./${example} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinebicgstab)
+endforeach()
+
+### Refinement with Laplacian and default parameters
+foreach(example ${PASTIX_REFINE} )
+  foreach(arithm ${PASTIX_PRECISIONS} )
+    if (arithm IN_LIST _complex)
+      add_test(example_cg_her_${arithm}_${example} ./${example} -x ${arithm}:10:10:10:2 -i iparm_refinement pastixrefinecg)
+      add_test(example_gmres_her_${arithm}_${example} ./${example} -x ${arithm}:10:10:10:2 -i iparm_refinement pastixrefinegmres)
+      add_test(example_bicgstab_her_${arithm}_${example} ./${example} -x ${arithm}:10:10:10:2 -i iparm_refinement pastixrefinebicgstab)
+    endif()
+    add_test(example_cg_sym_${arithm}_${example} ./${example} -9 ${arithm}:10:10:10:2 -i iparm_refinement pastixrefinecg)
+    add_test(example_gmres_sym_${arithm}_${example} ./${example} -9 ${arithm}:10:10:10:2 -i iparm_refinement pastixrefinegmres)
+    add_test(example_bicgstab_sym_${arithm}_${example} ./${example} -9 ${arithm}:10:10:10:2 -i iparm_refinement pastixrefinebicgstab)
+  endforeach()
 endforeach()
 
 ### Scheduling

@@ -33,6 +33,7 @@ set (EXAMPLES
   schur.c
   simple.c
   step-by-step.c
+  refinement.c
   )
 
 foreach (_file ${EXAMPLES})

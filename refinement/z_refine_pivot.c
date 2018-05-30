@@ -38,14 +38,18 @@
  * @param[in] b
  *          The right hand side member (only one).
  *
+ *******************************************************************************
+ *
+ * @return Number of iterations
+ *
  *******************************************************************************/
-void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
+pastix_int_t z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
 {
     struct z_solver     solver;
     pastix_int_t        n;
     Clock               refine_clk;
     int                 itermax;
-    int                 iter      = 0;
+    pastix_int_t        iter      = 0;
     int                 precond   = 1;
     pastix_complex64_t *lur;
     pastix_complex64_t *lur2;
@@ -185,4 +189,6 @@ void z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
 
     clockStop((refine_clk));
     pastix_data->dparm[DPARM_REFINE_TIME] = clockGet();
+
+    return iter;
 }

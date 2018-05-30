@@ -38,8 +38,12 @@
  * @param[in] b
  *          The right hand side member (only one).
  *
+ *******************************************************************************
+ *
+ * @return Number of iterations
+ *
  *******************************************************************************/
-void z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
+pastix_int_t z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
 {
     struct z_solver     solver;
     pastix_int_t        n;
@@ -200,4 +204,6 @@ void z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
     solver.free((void*) gradt);
     solver.free((void*) grad2);
     solver.free((void*) grad3);
+
+    return nb_iter;
 }

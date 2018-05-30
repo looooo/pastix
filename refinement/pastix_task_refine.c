@@ -33,7 +33,7 @@
  * and the precision
  *
  *******************************************************************************/
-static void (*sopalinRefine[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
+static pastix_int_t (*sopalinRefine[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
 {
     //  PastixRefineGMRES
     {
@@ -160,7 +160,7 @@ pastix_task_refine( pastix_data_t *pastix_data,
 
     clockStart(timer);
     {
-        void (*refinefct)(pastix_data_t *, void *, void *) = sopalinRefine[iparm[IPARM_REFINEMENT]][pastix_data->bcsc->flttype -2];
+        pastix_int_t (*refinefct)(pastix_data_t *, void *, void *) = sopalinRefine[iparm[IPARM_REFINEMENT]][pastix_data->bcsc->flttype -2];
         char *xptr = (char *)x;
         char *bptr = (char *)b;
         size_t shiftx, shiftb;
@@ -170,7 +170,9 @@ pastix_task_refine( pastix_data_t *pastix_data,
         shiftb = ldb * pastix_size_of( pastix_data->bcsc->flttype );
 
         for(i=0; i<nrhs; i++, xptr += shiftx, bptr += shiftb ) {
-            refinefct( pastix_data, xptr, bptr );
+            pastix_int_t it;
+            it = refinefct( pastix_data, xptr, bptr );
+            pastix_data->iparm[IPARM_NBITER] = pastix_imax( it, pastix_data->iparm[IPARM_NBITER] );
         }
     }
     clockStop(timer);

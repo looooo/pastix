@@ -14,8 +14,6 @@ class Pastix6 < Formula
   depends_on "gcc"   => :build    # GNU Fortran is now provided as part of GCC
   depends_on "cmake" => :build
 
-  conflicts_with "pastix", :because => "conflicts with default links"
-
   def install
     args = ["-DCMAKE_INSTALL_PREFIX=#{prefix}",
             "-DBUILD_SHARED_LIBS=ON",
@@ -37,7 +35,7 @@ class Pastix6 < Formula
     pkgshare.install "example" # Contains all test programs.
   end
 
-  def caveats; <<-EOS.undent
+  def caveats; <<~EOS
     Set the PYTHONPATH environment variable:
       export PYTHONPATH=#{prefix}/lib/python:$PYTHONPATH
     Try python example with:
