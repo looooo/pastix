@@ -25,7 +25,7 @@
  *
  * @ingroup pastix_refine
  *
- * z_grad_smp - Refine the solution using static pivoting method.
+ * z_pivot_smp - Refine the solution using static pivoting method.
  *
  *******************************************************************************
  *
@@ -91,30 +91,19 @@ pastix_int_t z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
         solver.copy( n, b, lur );
         solver.spmv( pastix_data, -1., x, 1., lur );
 
-        //       z_CscbMAx(sopalin_data, me, lur, b, sopalin_data->sopar->cscmtx,
-        //               &(datacode->updovct), datacode, pastix_comm,
-        //               sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
-
-
-        /* r'=|A||x|+|b| */
+        /* r' = |A||x| + |b| */
         z_bcscAxpb(PastixNoTrans, bcsc, x, b, lur2);
-        //       z_CscAxPb( sopalin_data, me, lur2, b, sopalin_data->sopar->cscmtx,
-        //                &(datacode->updovct), datacode, pastix_comm,
-        //                sopar->iparm[IPARM_TRANSPOSE_SOLVE]);
-
-
 
         /* tmp_berr =  max_i(|lur_i|/|lur2_i|)*/
-        tmp_berr = z_bcscBerr( lur, lur2, n);
-        //       z_CscBerr(sopalin_data, me, lur, lur2, UPDOWN_SM2XSZE,
-        //               1, &tmp_berr , pastix_comm);
+        tmp_berr = z_bcscBerr( lur, lur2, n );
 
         berr = tmp_berr;
-        if (lberr == 0)
-            /* force le premier refineinement */
+        if (lberr == 0.) {
+            /* Force te first error */
             lberr = 3*berr;
+        }
 
-        /* Calcul de ||r|| et ||r||/||b|| */
+        /* Compute ||r|| and ||r||/||b|| */
         tmp_berr = z_bcscNormErr((void *)lur, (void *)b, n);
 
         if ((refinenbr < itermax)

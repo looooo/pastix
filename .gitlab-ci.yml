@@ -45,8 +45,9 @@ test_pastix:
              -D ExperimentalCoverage
              -D ExperimentalSubmit
              | tee -a ../pastix-build.log")
-    - lcov --directory build --capture --output-file pastix.lcov
-    - gcovr -r $PWD | tee pastix-gcov.log
+    - lcov --capture --directory build -q --output-file pastix.lcov
+    - gcovr -r $PWD -e ".*spm/.*" -e CMakeFiles | tee pastix-gcov.log
+    - lcov --remove pastix.lcov '*spm/*' -q --output-file /tmp/pastix.lcov && mv /tmp/pastix.lcov .
   only:
     - branches
     - master@pastix/pastix
