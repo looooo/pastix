@@ -109,7 +109,7 @@ int pastix_subtask_bcsc2ctab ( pastix_data_t      *pastix_data );
 int pastix_subtask_sopalin   ( pastix_data_t      *pastix_data );
 
 /*
- * Numerical solve subtasks
+ * Numerical solve and refinement subtasks
  */
 int pastix_subtask_applyorder( pastix_data_t    *pastix_data,
                                pastix_coeftype_t flttype,
@@ -136,7 +136,10 @@ int pastix_subtask_solve( pastix_data_t *pastix_data,
                           pastix_int_t   nrhs,
                           void          *b,
                           pastix_int_t   ldb );
-
+int pastix_subtask_refine( pastix_data_t *pastix_data,
+                           pastix_int_t n, pastix_int_t nrhs,
+                           void *b, pastix_int_t ldb,
+                           void *x, pastix_int_t ldx );
 /*
  * Schur complement manipulation routines.
  */
