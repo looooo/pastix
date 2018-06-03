@@ -34,8 +34,8 @@ else()
   message(FATAL_ERROR "Submodule cmake_morse not initialized - run `git submodule update --init`")
 endif()
 
-# Define precision supported by MAGMA_MORSE
-# -----------------------------------------
+# Define precision supported by PaStiX
+# ------------------------------------
 set( RP_PASTIX_DICTIONNARY ${MORSE_CMAKE_MODULE_PATH}/precision_generator/subs.py )
 set( RP_PASTIX_PRECISIONS  "p;s;d;c;z" )
 include(RulesPrecisions)

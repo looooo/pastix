@@ -6,8 +6,6 @@ then
 fi
 BUILDDIR=${BUILDDIR-=build}
 
-SRCDIR_TO_ANALYZE="$BUILDDIR bcsc blend common example graph include kernels order refinement sopalin symbol test"
-
 echo $PWD
 rm -f filelist.txt
 
