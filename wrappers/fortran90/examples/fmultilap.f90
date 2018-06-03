@@ -83,7 +83,7 @@ program flaplacian
   integer                       , dimension(:), allocatable         :: ila_thrsz
   integer(kind=pastix_int_t)                                        :: nrhs
   integer                                                           :: th, im, ir, i, j, k
-  integer(c_int)                                                    :: info
+  integer(c_int)                                                    :: info, ginfo = 0
   !
   integer, parameter :: MULTILAP_ANALYZE_TIME = 1
   integer, parameter :: MULTILAP_FACT_TIME    = 2
@@ -468,6 +468,8 @@ program flaplacian
                       & c_null_ptr, rhs%n, &
                       & b_ptr,      rhs%n, &
                       & x_ptr,      rhs%n, info )
+
+                 ginfo = ginfo + info
               end do
            end do
 
@@ -535,6 +537,8 @@ program flaplacian
   write(6,*) ' Time for solution      ', dla_final_stats(MULTILAP_SOLV_TIME)
   write(6,*) '!====================================================================!'
 
+  call exit(ginfo)
+
 contains
 
   !
@@ -591,7 +595,7 @@ contains
     read( 5, * ) params%nb_outit
 
     if( params%nb_outit .lt. 1 ) then
-       write( 6, fmt = 9999 )'nb_outit', params%nb_outit, 1
+       write( 6, fmt = 9999 ) 'nb_outit', params%nb_outit, 1
        call exit(1)
     end if
 
@@ -599,7 +603,7 @@ contains
     read( 5, * ) params%nb_mat
 
     if( params%nb_mat .lt. params%nb_fact_omp ) then
-       write( 6, fmt = 9999 )'nb_mat', params%nb_mat, params%nb_fact_omp
+       write( 6, fmt = 9999 ) 'nb_mat', params%nb_mat, params%nb_fact_omp
        call exit(1)
     endif
 
