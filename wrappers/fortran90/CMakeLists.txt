@@ -78,8 +78,16 @@ if (OpenMP_Fortran_FOUND)
 endif()
 
 # Add specific test
-add_test( fortran_${_name_we}_seq "./${_name_we} < ${CMAKE_CURRENT_SOURCE_DIR}/examples/test_seq.in" )
-add_test( fortran_${_name_we}_mt  "./${_name_we} < ${CMAKE_CURRENT_SOURCE_DIR}/examples/test_mt.in"  )
+include(FindUnixCommands)
+
+set( _seq "${CMAKE_CURRENT_SOURCE_DIR}/examples/test_seq.in")
+set( _mt  "${CMAKE_CURRENT_SOURCE_DIR}/examples/test_mt.in" )
+set( _exe "${CMAKE_CURRENT_BINARY_DIR}/fmultilap"           )
+
+if (BASH)
+  add_test( NAME fortran_${_name_we}_seq COMMAND ${BASH} -c "${_exe} < ${_seq}" )
+  add_test( NAME fortran_${_name_we}_mt  COMMAND ${BASH} -c "${_exe} < ${_mt}"  )
+endif()
 
 #
 # End of fmultilap
