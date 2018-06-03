@@ -3,20 +3,38 @@
 !
 ! Fortran 90 multiple rhs example.
 !
-! This example tries to solve the multi-rhs problem in three different manners:
-!    1) The matrix is duplicated and solve as many times as the number
-!        of RHS, both by the same subset of threads.
-!    2) The matrix is duplicated per thread, solved in sequential
-!       by each thread, and each thread solves a subset of RHS.
-!    3) A single matrix is solved with all the available threads and
-!       is used to solve all the RHS.
+! This example tries to solve a problem with multiple matrices and
+! rhs. It is possible to use multiple pastix instances to solve the
+! problems in parallel, and it is possible to force multiple
+! sequential solves in parallel with OpenMP instead of mumti-threaded
+! pastix solves.
 !
-! @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+! To launch the testing: ./fmultilap < test_config.in
+! with test_config.in of the following format:
+!
+! ---------------------------------------------------------------
+! A single comment line to describe the file
+! 1                      Enable/disable the verbose mode
+! 0                      Enable/disable the check and correct
+! 0                      Enable/disable the multi-threaded solves
+! 5                      Total number of threads
+! 1                      Number of PaStiX instances
+! 2                      Number of outermost iterations
+! 2                      Number of distinct matrices per iteration
+! 10                     Number of righ-hand-side per matrix
+! 2                      Number of solve step per problem
+! 10                     First dimension of each laplacian matrix
+! 10                     Second dimension of each laplacian matrix
+! 10                     Third dimension of each laplacian matrix
+! ---------------------------------------------------------------
+!
+! @copyright 2015-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !                      Univ. Bordeaux. All rights reserved.
 !
 ! @version 6.0.0
+! @author Andrea Piacentini
 ! @author Mathieu Faverge
-! @date 2017-01-01
+! @date 2018-06-03
 !
 program flaplacian
   use iso_c_binding
