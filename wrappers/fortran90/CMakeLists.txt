@@ -55,3 +55,40 @@ foreach (_file ${EXAMPLES})
 
 endforeach()
 
+#
+# Add the fmultilap example using OpenMP
+#
+set( _file fmultilap.f90 )
+
+get_filename_component(_name_we ${_file} NAME_WE)
+add_executable(${_name_we} examples/${_file})
+target_link_libraries(${_name_we} pastixf spmf)
+
+install(TARGETS ${_name_we}       RUNTIME DESTINATION examples )
+install(FILES   examples/${_file}         DESTINATION examples )
+
+# Add OpenMP if available
+find_package(OpenMP)
+if (OpenMP_Fortran_FOUND)
+  set_target_properties( fmultilap
+    PROPERTIES
+    COMPILE_FLAGS ${OpenMP_Fortran_FLAGS} )
+  target_link_libraries( fmultilap
+    ${OpenMP_Fortran_LIBRARIES})
+endif()
+
+# Add specific test
+include(FindUnixCommands)
+
+set( _seq "${CMAKE_CURRENT_SOURCE_DIR}/examples/test_seq.in")
+set( _mt  "${CMAKE_CURRENT_SOURCE_DIR}/examples/test_mt.in" )
+set( _exe "${CMAKE_CURRENT_BINARY_DIR}/fmultilap"           )
+
+if (BASH)
+  add_test( NAME fortran_${_name_we}_seq COMMAND ${BASH} -c "${_exe} < ${_seq}" )
+  add_test( NAME fortran_${_name_we}_mt  COMMAND ${BASH} -c "${_exe} < ${_mt}"  )
+endif()
+
+#
+# End of fmultilap
+#

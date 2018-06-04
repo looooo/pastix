@@ -237,6 +237,15 @@ def pypastix_pastix_subtask_solve( pastix_data, nrhs, b, ldb ):
     libpastix.pastix_subtask_solve.restype = c_int
     return libpastix.pastix_subtask_solve( pastix_data, nrhs, b, ldb )
 
+def pypastix_pastix_subtask_refine( pastix_data, n, nrhs, b, ldb, x, ldx ):
+    libpastix.pastix_subtask_refine.argtypes = [ c_void_p, __pastix_int__,
+                                                 __pastix_int__, c_void_p,
+                                                 __pastix_int__, c_void_p,
+                                                 __pastix_int__ ]
+    libpastix.pastix_subtask_refine.restype = c_int
+    return libpastix.pastix_subtask_refine( pastix_data, n, nrhs, b, ldb, x,
+                                            ldx )
+
 def pypastix_pastixSetSchurUnknownList( pastix_data, n, list ):
     libpastix.pastixSetSchurUnknownList.argtypes = [ c_void_p, __pastix_int__,
                                                      POINTER(__pastix_int__) ]

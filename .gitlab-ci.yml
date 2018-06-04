@@ -13,8 +13,8 @@ build_pastix:
     expire_in: 42 minutes
     untracked: true
   script:
-    - source .gitlab-ci-env.sh
     - git submodule update --init --recursive
+    - source .gitlab-ci-env.sh
     - mkdir build
     - cd build
     - cmake .. -DCMAKE_INSTALL_PREFIX=${PWD}/../install -DBUILD_SHARED_LIBS=ON -DPASTIX_WITH_STARPU=ON -DPASTIX_WITH_PARSEC=ON -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_C_FLAGS="-O0 -g -fPIC --coverage -Wall -fdiagnostics-show-option -fno-inline" -DCMAKE_EXE_LINKER_FLAGS="--coverage" -DPASTIX_INT64=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
@@ -36,6 +36,7 @@ test_pastix:
       - pastix.lcov
       - pastix-gcov.log
   script:
+    - git submodule update --init --recursive
     - source .gitlab-ci-env.sh
     - source install/bin/pastix_env.sh
     - (cd build &&
