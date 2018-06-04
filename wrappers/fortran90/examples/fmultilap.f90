@@ -41,67 +41,63 @@ program flaplacian
   use pastix_enums
   use spmf
   use pastixf
-  !$ use omp_lib
+
   implicit none
 
   type multilap_param
-     logical :: checkmat    ! Enable/disable the check and correct on the spm matrix
-     logical :: multirhs    ! Enable/disable multi-rhs solves
-     logical :: output      ! Enable output information
-     integer :: dim1        ! First dimension of the Laplacian matrix
-     integer :: dim2        ! Second dimension of the Laplacian matrix
-     integer :: dim3        ! Third dimension of the Laplacian matrix
-     integer :: n           ! Size of the matrix
-     integer :: nnz         ! Number of non zeroes in the matrix
-     integer :: nb_outit    ! Number of outer iteration
-     integer :: nb_mat      ! Number of matrices to factorize per iteration
-     integer :: nb_rhs      ! Number of right hand side per matrix
-     integer :: nb_solve    ! Number of solve steps per RHS
-     integer :: nb_sys      ! Number of systems
-     integer :: nb_thrd     ! Number of thread available
-     integer :: nb_fact_omp ! Number of PaStiX instances for the factorization
-     integer :: nb_fact_thd ! Number of threads per PaStiX instances for the factorization
-     integer :: nb_solv_omp ! Number of PaStiX instances for the solve
-     integer :: nb_solv_thd ! Number of threads per PaStiX instances for the solve
+     logical                    :: checkmat    ! Enable/disable the check and correct on the spm matrix
+     logical                    :: multirhs    ! Enable/disable multi-rhs solves
+     logical                    :: output      ! Enable output information
+     integer                    :: dim1        ! First dimension of the Laplacian matrix
+     integer                    :: dim2        ! Second dimension of the Laplacian matrix
+     integer                    :: dim3        ! Third dimension of the Laplacian matrix
+     integer(kind=pastix_int_t) :: n           ! Size of the matrix
+     integer                    :: nnz         ! Number of non zeroes in the matrix
+     integer                    :: nb_outit    ! Number of outer iteration
+     integer                    :: nb_mat      ! Number of matrices to factorize per iteration
+     integer                    :: nb_rhs      ! Number of right hand side per matrix
+     integer                    :: nb_solve    ! Number of solve steps per RHS
+     integer                    :: nb_sys      ! Number of systems (each couple composed of 1 matrix with 1 subset of rhs)
+     integer                    :: nb_thrd     ! Number of thread available
+     integer                    :: nb_fact_omp ! Number of PaStiX instances for the factorization
+     integer                    :: nb_fact_thd ! Number of threads per PaStiX instances for the factorization
+     integer                    :: nb_solv_omp ! Number of PaStiX instances for the solve
+     integer                    :: nb_solv_thd ! Number of threads per PaStiX instances for the solve
   end type multilap_param
 
-  type rhs_arr
-     integer(kind=pastix_int_t)                            :: idmat
-     integer(kind=pastix_int_t)                            :: nrhs
-     integer(kind=pastix_int_t)                            :: n
-     integer(kind=pastix_int_t)                            :: size
-     integer(kind=pastix_int_t)                            :: ori
-     complex(kind=c_double_complex), dimension(:), pointer :: b0
-     complex(kind=c_double_complex), dimension(:), pointer :: b
-     complex(kind=c_double_complex), dimension(:), pointer :: x
-  end type rhs_arr
+  type rhs_subset
+     integer(kind=pastix_int_t)                            :: idmat ! Index of the associated matrix
+     integer(kind=pastix_int_t)                            :: nrhs  ! Number of RHS in the subset
+     complex(kind=c_double_complex), dimension(:), pointer :: b0    ! Array of the initial b, to restart at each iteration
+     complex(kind=c_double_complex), dimension(:), pointer :: b     ! Array of the b vector
+     complex(kind=c_double_complex), dimension(:), pointer :: x     ! Array of the x vector
+  end type rhs_subset
 
   type sys_lin
-     integer                                               :: nsys, pid
-     type(pastix_data_t),                          pointer :: pastix_data
-     integer(kind=pastix_int_t),     dimension(iparm_size) :: iparm
-     real(kind=c_double),            dimension(dparm_size) :: dparm
-     integer(kind=c_int),            dimension(:), pointer :: bindtab
-     type(spmatrix_t),                             pointer :: spm
-     type(spmatrix_t),                             pointer :: spm2
-     integer(kind=pastix_int_t),     dimension(:), pointer :: rowptr
-     integer(kind=pastix_int_t),     dimension(:), pointer :: colptr
-     complex(kind=c_double_complex), dimension(:), pointer :: values
-     type(rhs_arr),                  dimension(:), pointer :: rhs
+     integer                                               :: pid         ! Index of the pastix instance factorizing the matrix
+     integer                                               :: nsys        ! Number of subsystems used to solve the rhs
+     type(pastix_data_t),                          pointer :: pastix_data ! The pastix_data associated to the matrix
+     integer(kind=pastix_int_t),     dimension(iparm_size) :: iparm       ! iparm array associated to the matrix
+     real(kind=c_double),            dimension(dparm_size) :: dparm       ! dparm array associated to the matrix
+     type(spmatrix_t),                             pointer :: spm         ! Pointer to the spm matrix
+     integer(kind=pastix_int_t),     dimension(:), pointer :: rowptr      ! User matrix
+     integer(kind=pastix_int_t),     dimension(:), pointer :: colptr      ! User matrix
+     complex(kind=c_double_complex), dimension(:), pointer :: values      ! User matrix
+     type(rhs_subset),               dimension(:), pointer :: rhs         ! Array of rhs subsets
   end type sys_lin
 
-  type(sys_lin), dimension(:), allocatable, target  :: sla_lap
-  type(sys_lin),                            pointer :: matrix
-  type(rhs_arr),                            pointer :: rhs
-
-  type(c_ptr)                                                       :: b0_ptr, x_ptr, b_ptr
-  integer(kind=pastix_int_t),     dimension(iparm_size)             :: iparm
-  real(kind=c_double),            dimension(dparm_size)             :: dparm
-  integer                       , dimension(:), allocatable         :: ila_thrmn, ila_thrmx
-  integer                       , dimension(:), allocatable         :: ila_thrsz
-  integer(kind=pastix_int_t)                                        :: nrhs
-  integer                                                           :: th, im, ir, i, j, k
-  integer(c_int)                                                    :: info, ginfo = 0
+  type(multilap_param)                              :: params    ! Parameters of the example
+  type(sys_lin), dimension(:), allocatable, target  :: sys_array ! Array of all the linear systems to solve
+  integer(kind=pastix_int_t), dimension(iparm_size) :: iparm     ! Global iparm array used to initialize the systems
+  real(kind=c_double), dimension(dparm_size)        :: dparm     ! Global dparm array used to initialize the systems
+  type(sys_lin), pointer                            :: matrix
+  type(rhs_subset), pointer                         :: rhs
+  type(c_ptr)                                       :: b0_ptr, x_ptr, b_ptr
+  integer, dimension(:), allocatable                :: ila_thrmn, ila_thrmx, ila_thrsz
+  integer(kind=c_int), dimension(:), pointer        :: bindtab
+  integer                                           :: th, im, ir, i, j, k
+  integer(kind=pastix_int_t)                        :: size
+  integer(c_int)                                    :: info, ginfo = 0
   !
   integer, parameter :: MULTILAP_ANALYZE_TIME = 1
   integer, parameter :: MULTILAP_FACT_TIME    = 2
@@ -109,10 +105,9 @@ program flaplacian
   integer, parameter :: MULTILAP_SOLV_TIME    = 4
   integer, parameter :: MULTILAP_MAX_STAT     = MULTILAP_SOLV_TIME
   !
-  real(kind=c_double),  allocatable, dimension(:,:) :: dla_thread_stats
-  real(kind=c_double),  dimension(MULTILAP_MAX_STAT)  :: dla_final_stats = 0.0
+  real(kind=c_double),  allocatable, dimension(:,:)  :: dla_thread_stats
+  real(kind=c_double),  dimension(MULTILAP_MAX_STAT) :: dla_final_stats = 0.0
 
-  type(multilap_param) :: params
   !
   ! Get the problem confirguration
   !
@@ -133,10 +128,10 @@ program flaplacian
   iparm(IPARM_FACTORIZATION) = PastixFactLLT
 
   ! Initialize the matrices structures
-  allocate(sla_lap(params%nb_mat))
+  allocate(sys_array(params%nb_mat))
   do im = 1, params%nb_mat
      !
-     matrix => sla_lap(im)
+     matrix => sys_array(im)
      !
      matrix%iparm(:) = iparm(:)
      matrix%dparm(:) = dparm(:)
@@ -152,17 +147,16 @@ program flaplacian
         allocate(matrix%rhs( matrix%nsys ))
 
         rhs => matrix%rhs(1)
-        rhs%nrhs  = params%nb_rhs
-        rhs%n     = params%n
-        rhs%size  = rhs%nrhs * rhs%n
-        rhs%ori   = 0
+        rhs%nrhs = params%nb_rhs
+
+        size = rhs%nrhs * params%n
 
         if ( params%output ) then
            ! Allocate a backup of b that will be destroyed by the check
-           allocate(rhs%b0(rhs%size))
+           allocate(rhs%b0(size))
         end if
-        allocate(rhs%b( rhs%size))
-        allocate(rhs%x( rhs%size))
+        allocate(rhs%b(size))
+        allocate(rhs%x(size))
 
      else
         !
@@ -179,17 +173,15 @@ program flaplacian
            rhs => matrix%rhs(th)
 
            rhs%nrhs = ila_thrsz(th)
-           rhs%n    = params%n
-           rhs%size = rhs%nrhs * rhs%n
-           rhs%ori  = (ila_thrmn(th)-1) * rhs%n
+           size = rhs%nrhs * params%n
 
            if ( rhs%nrhs .gt. 0 ) then
               if ( params%output ) then
                  ! Allocate a backup of b that will be destroyed by the check
-                 allocate(rhs%b0(rhs%size))
+                 allocate(rhs%b0(size))
               end if
-              allocate(rhs%b( rhs%size))
-              allocate(rhs%x( rhs%size))
+              allocate(rhs%b(size))
+              allocate(rhs%x(size))
            end if
         end do
      end if
@@ -201,10 +193,12 @@ program flaplacian
      write(6,*) '        Matrix      NRHS      Start         End'
 
      do im = 1, params%nb_mat
-        matrix => sla_lap(im)
+        matrix => sys_array(im)
+        k = 1
         do j = 1, matrix%nsys
            rhs => matrix%rhs(j)
-           write(6,*) im, rhs%nrhs, rhs%ori + 1, rhs%ori + rhs%size
+           write(6,*) im, rhs%nrhs, k, k + rhs%nrhs - 1
+           k = k + rhs%nrhs
         end do
      end do
   end if
@@ -230,35 +224,35 @@ program flaplacian
 
      !
      !$OMP PARALLEL NUM_THREADS(params%nb_fact_omp) DEFAULT(NONE) &
-     !$OMP SHARED(params, sla_lap, k)                 &
+     !$OMP SHARED(params, sys_array, k)                 &
      !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx)    &
      !$OMP SHARED(dla_thread_stats, iparm, dparm)     &
      !$OMP PRIVATE(th, im, ir, i, j )                 &
      !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr, b0_ptr) &
-     !$OMP PRIVATE(info)
+     !$OMP PRIVATE(info, bindtab)
 
      !$OMP DO SCHEDULE(STATIC,1)
      fact_loop: do th = 1, params%nb_fact_omp
+        !
+        ! Give each matrix a subset of cores
+        !
+        allocate( bindtab( iparm(IPARM_THREAD_NBR) ) )
+        do i = 1, iparm(IPARM_THREAD_NBR)
+           bindtab( i ) = (th-1) * iparm(IPARM_THREAD_NBR) + (i - 1)
+        end do
+
         do im = ila_thrmn(th), ila_thrmx(th)
 
-           matrix => sla_lap(im)
+           matrix => sys_array(im)
 
            matrix%pid = th
-           !
-           ! Give each matrix a subset of cores
-           !
-           allocate( matrix%bindtab( iparm(IPARM_THREAD_NBR) ) )
-           do i = 1, iparm(IPARM_THREAD_NBR)
-              matrix%bindtab( i ) = (th-1) * iparm(IPARM_THREAD_NBR) + (i - 1)
-           end do
 
            ! 0- Generate the SPM matrix
            call multilap_genOneMatrix( params, matrix, k, im )
 
            ! 1- Initialize the parameters and the solver
            call pastixInitWithAffinity( matrix%pastix_data, 0, &
-                & matrix%iparm, matrix%dparm, &
-                & matrix%bindtab )
+                & matrix%iparm, matrix%dparm, bindtab )
 
            ! 2- Analyze the problem
            call pastix_task_analyze( matrix%pastix_data, matrix%spm, info )
@@ -274,6 +268,8 @@ program flaplacian
                 & dla_thread_stats(th,MULTILAP_FACT_FLOPS) + (matrix%dparm(DPARM_FACT_FLOPS)/(1024.0**3))
 
         end do
+
+        deallocate(bindtab)
      end do fact_loop
      !$OMP END DO
      !$OMP END PARALLEL
@@ -283,7 +279,7 @@ program flaplacian
         write(6,*) '! Results per matrix'
         write(6,*) '!'
         do im = 1, params%nb_mat
-           matrix => sla_lap(im)
+           matrix => sys_array(im)
 
            write(6,*) ' Matrix ', im, ' done by instance ', matrix%pid
            write(6,*) ' Time for analysis      ', matrix%dparm(DPARM_ANALYZE_TIME)
@@ -339,7 +335,7 @@ program flaplacian
 
         ! Apply the forward permutation on b and x
         do im = 1, params%nb_mat
-           matrix => sla_lap(im)
+           matrix => sys_array(im)
            do j = 1, matrix%nsys
               rhs => matrix%rhs(j)
 
@@ -347,10 +343,20 @@ program flaplacian
                  cycle
               endif
 
+              b_ptr = c_loc(rhs%b)
               if (i==1) then
-                 b0_ptr = c_loc(rhs%b0)
                  call spmGenRHS( SpmRhsRndX, rhs%nrhs, matrix%spm, &
-                      & c_null_ptr, rhs%n, b0_ptr, rhs%n, info )
+                      & c_null_ptr, params%n, b_ptr, params%n, info )
+
+                 if ( params%output ) then
+                    ! Backup initial b that will be overwritten by check
+                    rhs%b0(:) = rhs%b(:)
+                 end if
+              else
+                 if ( params%output ) then
+                    ! Restore the initial b overwritten by check
+                    rhs%b(:) = rhs%b0(:)
+                 end if
               end if
 
               ! Set the sequential scheduler to enable multiple solves in parallel with the same matrix
@@ -358,12 +364,9 @@ program flaplacian
                  matrix%iparm(IPARM_SCHEDULER) = PastixSchedSequential
               end if
 
-              rhs%b(:) = rhs%b0(:)
-              b_ptr = c_loc(rhs%b)
-
               ! Cannot be called in parallel with the same matrix for now
               call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirForward, &
-                   &                          rhs%n, rhs%nrhs, b_ptr, rhs%n, info )
+                   &                          params%n, rhs%nrhs, b_ptr, params%n, info )
 
               rhs%x(:) = rhs%b(:)
 
@@ -372,7 +375,7 @@ program flaplacian
 
         !
         !$OMP PARALLEL NUM_THREADS(params%nb_solv_omp) DEFAULT(NONE) &
-        !$OMP SHARED(params, sla_lap, k, i)              &
+        !$OMP SHARED(params, sys_array, k, i)              &
         !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx)    &
         !$OMP SHARED(dla_thread_stats, iparm, dparm)     &
         !$OMP PRIVATE(th, im, ir, j )                    &
@@ -390,7 +393,7 @@ program flaplacian
                  im = ((j-1) / params%nb_fact_thd) + 1
                  ir = mod( j-1, params%nb_fact_thd ) + 1
               end if
-              matrix => sla_lap(im)
+              matrix => sys_array(im)
               rhs    => matrix%rhs( ir )
 
               if ( .not. (rhs%nrhs .gt. 0)) then
@@ -426,7 +429,7 @@ program flaplacian
 
         ! Apply the backward permutation on b and x
         do im = 1, params%nb_mat
-           matrix => sla_lap(im)
+           matrix => sys_array(im)
            do j = 1, matrix%nsys
               rhs => matrix%rhs(j)
 
@@ -439,10 +442,10 @@ program flaplacian
 
               ! Cannot be called in parallel with the same matrix for now
               call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
-                   &                          rhs%n, rhs%nrhs, b_ptr, rhs%n, info )
+                   &                          params%n, rhs%nrhs, b_ptr, params%n, info )
 
               call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
-                   &                          rhs%n, rhs%nrhs, x_ptr, rhs%n, info )
+                   &                          params%n, rhs%nrhs, x_ptr, params%n, info )
 
               ! Restore the initial scheduler
               if ( .not. params%multirhs ) then
@@ -463,7 +466,7 @@ program flaplacian
                     im = ((j-1) / params%nb_fact_thd) + 1
                     ir = mod( j-1, params%nb_fact_thd ) + 1
                  end if
-                 matrix => sla_lap(im)
+                 matrix => sys_array(im)
                  rhs    => matrix%rhs( ir )
 
                  if ( .not. (rhs%nrhs .gt. 0)) then
@@ -483,9 +486,9 @@ program flaplacian
 
                  call spmCheckAxb( matrix%dparm(DPARM_EPSILON_REFINEMENT), rhs%nrhs, &
                       & matrix%spm,    &
-                      & c_null_ptr, rhs%n, &
-                      & b_ptr,      rhs%n, &
-                      & x_ptr,      rhs%n, info )
+                      & c_null_ptr, params%n, &
+                      & b_ptr,      params%n, &
+                      & x_ptr,      params%n, info )
 
                  ginfo = ginfo + info
               end do
@@ -513,14 +516,14 @@ program flaplacian
      ! Free memory
      do im=1, params%nb_mat
         ! 6- Destroy the C data structure
-        call spmExit( sla_lap(im)%spm )
+        call spmExit( sys_array(im)%spm )
      end do
   end do main_loop
 
   ! Destroy the matrices structures
   do im = 1, params%nb_mat
      !
-     matrix => sla_lap(im)
+     matrix => sys_array(im)
 
      call pastixFinalize( matrix%pastix_data )
 
@@ -538,10 +541,9 @@ program flaplacian
      end do
      deallocate( matrix%rhs )
      deallocate( matrix%spm )
-     deallocate( matrix%bindtab )
   end do
 
-  deallocate(sla_lap)
+  deallocate(sys_array)
   if (allocated(ila_thrsz)) deallocate(ila_thrsz)
   if (allocated(ila_thrmn)) deallocate(ila_thrmn)
   if (allocated(ila_thrmx)) deallocate(ila_thrmx)
@@ -714,6 +716,7 @@ contains
     integer,                    intent(in)            :: ib, ib_out
     integer(kind=pastix_int_t)                        :: dim1, dim2, dim3, n, nnz
     integer                                           :: i, j, k, l
+    type(spmatrix_t), pointer                         :: spm2
 
     !
     ! Laplacian dimensions
@@ -798,8 +801,8 @@ contains
     call spmUpdateComputedFields( matrix%spm )
 
     if (params%checkmat) then
-       call spmCheckAndCorrect( matrix%spm, matrix%spm2 )
-       if (.not. c_associated(c_loc(matrix%spm), c_loc(matrix%spm2))) then
+       call spmCheckAndCorrect( matrix%spm, spm2 )
+       if (.not. c_associated(c_loc(matrix%spm), c_loc(spm2))) then
           deallocate(matrix%rowptr)
           deallocate(matrix%colptr)
           deallocate(matrix%values)
@@ -809,7 +812,7 @@ contains
           matrix%spm%values = c_null_ptr
 
           call spmExit( matrix%spm )
-          matrix%spm => matrix%spm2
+          matrix%spm => spm2
        end if
     else
        call spmConvert(SpmCSC, matrix%spm, info)

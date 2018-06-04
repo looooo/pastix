@@ -1,6 +1,6 @@
 Data file to test sequential solves in parallel with a single instance of PaStiX for the factorization
-1                      Enable/disable the verbose mode
-0                      Enable/disable the check and correct call on the spm matrices
+1                      Enable/disable the verbose mode (also check results)
+0                      Enable/disable the check and correct call on the entry spm matrices
 0                      Enable/disable the multi-threaded solves
 5                      Total number of threads
 1                      Number of PaStiX instances (= Number of OpenMP threads for factorization >= 1 and <= nb_thrd)
