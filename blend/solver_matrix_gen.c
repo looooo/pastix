@@ -315,8 +315,6 @@ solverMatrixGen( pastix_int_t           clustnum,
                 solvcblk->handler[0] = NULL;
                 solvcblk->handler[1] = NULL;
 
-                solvcblk->procdiag = solvmtx->clustnum;
-
                 /*
                  * Copy browtab information
                  * In case of 2D tasks, we reorder the browtab to first store
@@ -409,8 +407,6 @@ solverMatrixGen( pastix_int_t           clustnum,
             solvcblk->ucoeftab = NULL;
             solvcblk->handler[0] = NULL;
             solvcblk->handler[1] = NULL;
-
-            solvcblk->procdiag = -1;
         }
 
         solvmtx->nodenbr = nodenbr;
