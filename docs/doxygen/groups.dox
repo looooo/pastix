@@ -1,47 +1,47 @@
 /**
  *
- * @defgroup pastix_spm SPM: SParse Matrix package
+ * @defgroup spm SPM: SParse Matrix package
  * @brief    Functions to easily manipulate SPM data structure
  *
  ****
  *
- * @defgroup pastix_spm_dev SPM internal function documentation
- * @ingroup  pastix_spm
+ * @defgroup spm_dev SPM internal function documentation
+ * @ingroup  spm
  *
  ******
  *
  * @defgroup spm_dev_driver Drivers and generators
- * @ingroup  pastix_spm_dev
+ * @ingroup  spm_dev
  *
  * @defgroup spm_dev_convert Format conversion
- * @ingroup  pastix_spm_dev
+ * @ingroup  spm_dev
  *
  * @defgroup spm_dev_io I/O functions
- * @ingroup  pastix_spm_dev
+ * @ingroup  spm_dev
  *
  * @defgroup spm_dev_integer Integer array manipulation
- * @ingroup  pastix_spm_dev
+ * @ingroup  spm_dev
  *
  * @defgroup spm_dev_matvec Matrix-vector product
- * @ingroup  pastix_spm_dev
+ * @ingroup  spm_dev
  *
  * @defgroup spm_dev_dof Multi-dof extension
- * @ingroup  pastix_spm_dev
+ * @ingroup  spm_dev
  *
  * @defgroup spm_dev_norm Norms
- * @ingroup  pastix_spm_dev
+ * @ingroup  spm_dev
  *
  * @defgroup spm_dev_print Printing structure
- * @ingroup  pastix_spm_dev
+ * @ingroup  spm_dev
  *
  * @defgroup spm_dev_scal Scaling
- * @ingroup  pastix_spm_dev
+ * @ingroup  spm_dev
  *
  * @defgroup spm_dev_check Structure checking
- * @ingroup  pastix_spm_dev
+ * @ingroup  spm_dev
  *
  * @defgroup spm_dev_rhs Solver checking
- * @ingroup  pastix_spm_dev
+ * @ingroup  spm_dev
  *
  **
  *
