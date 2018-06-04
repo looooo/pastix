@@ -188,16 +188,16 @@ program flaplacian
   end do
 
   if (params%output) then
-     write(6,*) '!--------------------------------------------------------------------!'
-     write(6,*) '        Size of x = ', params%n
-     write(6,*) '        Matrix      NRHS      Start         End'
+     write( 6, * )        '!--------------------------------------------------------------------!'
+     write( 6, * )        '     Size of x = ', params%n
+     write( 6, fmt=8888 ) 'Matrix', 'NRHS', 'Start', 'End'
 
      do im = 1, params%nb_mat
         matrix => sys_array(im)
         k = 1
         do j = 1, matrix%nsys
            rhs => matrix%rhs(j)
-           write(6,*) im, rhs%nrhs, k, k + rhs%nrhs - 1
+           write( 6, fmt=8889 ) im, rhs%nrhs, k, k + rhs%nrhs - 1
            k = k + rhs%nrhs
         end do
      end do
@@ -207,6 +207,7 @@ program flaplacian
   !
   ! Initialization loop to create the PaStiX instances
   !
+  call split_parall( params%nb_mat, params%nb_fact_omp )
 
   !
   !$OMP PARALLEL NUM_THREADS(params%nb_fact_omp) DEFAULT(NONE) &
@@ -553,6 +554,7 @@ program flaplacian
      do im=1, params%nb_mat
         ! 6- Destroy the C data structure
         call spmExit( sys_array(im)%spm )
+        deallocate( sys_array(im)%spm )
      end do
   end do main_loop
 
@@ -576,7 +578,6 @@ program flaplacian
         end if
      end do
      deallocate( matrix%rhs )
-     deallocate( matrix%spm )
   end do
 
   deallocate(sys_array)
@@ -594,6 +595,9 @@ program flaplacian
   write(6,*) '!====================================================================!'
 
   call exit(ginfo)
+
+8888 format( '  ', A6, ' ', A6, ' ', A6, ' ', A6 )
+8889 format( '  ', I6, ' ', I6, ' ', I6, ' ', I6 )
 
 contains
 
@@ -848,6 +852,7 @@ contains
           matrix%spm%values = c_null_ptr
 
           call spmExit( matrix%spm )
+          deallocate( matrix%spm )
           matrix%spm => spm2
        end if
     else

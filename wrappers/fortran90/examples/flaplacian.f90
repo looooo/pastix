@@ -128,7 +128,8 @@ program fsimple
      spm%values = c_null_ptr
 
      call spmExit( spm )
-     spm = spm2
+     deallocate( spm )
+     spm => spm2
   end if
 
   call spmPrintInfo( spm )
@@ -174,6 +175,7 @@ program fsimple
   call spmCheckAxb( dparm(DPARM_EPSILON_REFINEMENT), nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, x_ptr, spm%n, info )
 
   call spmExit( spm )
+  deallocate( spm )
   deallocate(x0)
   deallocate(x)
   deallocate(b)
