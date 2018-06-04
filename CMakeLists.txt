@@ -980,6 +980,7 @@ add_documented_files(
   example/compress.c
   example/personal.c
   example/reentrant.c
+  example/refinement.c
   example/schur.c
   example/simple.c
   example/step-by-step.c
