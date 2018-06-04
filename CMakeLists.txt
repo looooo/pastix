@@ -693,6 +693,7 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_reordering.c
   symbol/pastix_subtask_reordering.c
   symbol/pastix_subtask_symbfact.c
+  symbol/symbol_reorder.c
 
   # Files that still require some changes
   blend/pastix_subtask_blend.c

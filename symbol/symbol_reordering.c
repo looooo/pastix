@@ -410,7 +410,7 @@ symbol_reorder_tsp( pastix_int_t size, pastix_order_t *order, pastix_int_t sn_id
  * @brief Reorder a supernode
  *
  * This function computes the set of contributing supernodes for each row, and
- * then call a TSP heuristic to minimize the Hamilonian Path.
+ * then call a TSP heuristic to minimize the Hamiltonian Path.
  *
  *******************************************************************************
  *
@@ -446,7 +446,7 @@ symbol_reorder_tsp( pastix_int_t size, pastix_order_t *order, pastix_int_t sn_id
  *          The stop criteria to disregard rows that are far away.
  *
  *******************************************************************************/
-static inline void
+void
 symbol_reorder_cblk( const symbol_matrix_t *symbptr,
                      const symbol_cblk_t   *cblk,
                      pastix_order_t     *order,
@@ -611,37 +611,29 @@ symbol_reorder_cblk( const symbol_matrix_t *symbptr,
  *
  *******************************************************************************
  *
- * @param[in] symbptr
- *          The pointer to the symbolic structure.
- *
- * @param[in, out] order
- *         The ordering providing by Scotch. This ordering will be
- *          updated with the new rows permutation for each supernode that is not
- *          a leaf in the elimination tree.
- *
- * @param[in] split_level
- *          Parameter to activate the split level heuristic,
+ * @param[in] pastix_data
+ *          The pastix_data structure that describes the solver instance.  On
+ *          exit, the field symbmtx is updated with the new symbol matrix, and
+ *          the field ordemesh is updated with the new ordering. The split_level
+ *          field activates the split level heuristic,
  *          dividing distances computations into two stages: for upper and for
  *          lower contruibuting supernodes. If a resulting distance for upper
  *          supernodes is large enough, the computation is stopped, as long as
  *          it will be large taking into account lower contributing supernodes.
- *
- * @param[in] stop_criteria
- *          The stop criteria to disregard rows that are far away.
+ *          The stop_criteria field disregards rows that are far away.
  *
  *******************************************************************************/
 void
-pastixSymbolReordering( const symbol_matrix_t *symbptr,
-                        pastix_order_t        *order,
-                        pastix_int_t           split_level,
-                        pastix_int_t           stop_criteria )
+pastixSymbolReordering( pastix_data_t       *pastix_data )
 {
-    symbol_cblk_t  *cblk;
-    pastix_int_t itercblk;
+    symbol_matrix_t* symbptr = pastix_data->symbmtx;
+    // symbol_cblk_t  *cblk;
+    // pastix_int_t itercblk;
     pastix_int_t cblknbr = symbptr->cblknbr;
 
     pastix_int_t i, maxdepth;
     pastix_int_t *levels, *depthweight;
+    pastix_order_t* order = pastix_data->ordemesh;
 
     /* Create the level array to compute the depth of each cblk and the maximum depth */
     {
@@ -658,20 +650,11 @@ pastixSymbolReordering( const symbol_matrix_t *symbptr,
      * Solves the Traveler Salesman Problem on each cblk to minimize the number
      * of off-diagonal blocks per row
      */
-    cblk = symbptr->cblktab;
+    // cblk = symbptr->cblktab;
     MALLOC_INTERN( depthweight, maxdepth, pastix_int_t );
-    for (itercblk=0; itercblk<cblknbr; itercblk++, cblk++) {
 
-        if (cblk->fcolnum >= symbptr->schurfcol )
-            continue;
-
-        memset( depthweight, 0, maxdepth * sizeof(pastix_int_t) );
-
-        symbol_reorder_cblk( symbptr, cblk, order,
-                             levels,
-                             depthweight, maxdepth,
-                             split_level, stop_criteria );
-    }
+    /* args : depthweight, maxdepth, levels */
+    symbol_reorder( pastix_data, maxdepth, levels, depthweight );
 
     /* Update the permutation */
     for (i=0; i<symbptr->nodenbr; i++) {
