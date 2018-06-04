@@ -20,7 +20,7 @@ program fsimple
 
   type(pastix_data_t),        pointer                      :: pastix_data
   type(pastix_order_t),       pointer                      :: order
-  type(spmatrix_t),           target                       :: spm
+  type(spmatrix_t),           pointer                      :: spm
   type(spmatrix_t),           pointer                      :: spm2
   integer(kind=pastix_int_t), target                       :: iparm(iparm_size)
   real(kind=c_double),        target                       :: dparm(dparm_size)
@@ -37,12 +37,14 @@ program fsimple
   !
   ! Initialize the problem
   !   1- The matrix
+  allocate( spm )
   call spmReadDriver( SpmDriverLaplacian, "d:10:10:10:2.", spm, info )
 
   call spmCheckAndCorrect( spm, spm2 )
   if (.not. c_associated(c_loc(spm), c_loc(spm2))) then
      call spmExit( spm )
-     spm = spm2
+     deallocate( spm )
+     spm => spm2
   end if
 
   call spmPrintInfo( spm )
@@ -102,6 +104,7 @@ program fsimple
   call pastixFinalize( pastix_data )
 
   call spmExit( spm )
+  deallocate( spm )
   deallocate(x0)
   deallocate(x)
   deallocate(b)

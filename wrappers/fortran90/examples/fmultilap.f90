@@ -188,20 +188,61 @@ program flaplacian
   end do
 
   if (params%output) then
-     write(6,*) '!--------------------------------------------------------------------!'
-     write(6,*) '        Size of x = ', params%n
-     write(6,*) '        Matrix      NRHS      Start         End'
+     write( 6, * )        '!--------------------------------------------------------------------!'
+     write( 6, * )        '     Size of x = ', params%n
+     write( 6, fmt=8888 ) 'Matrix', 'NRHS', 'Start', 'End'
 
      do im = 1, params%nb_mat
         matrix => sys_array(im)
         k = 1
         do j = 1, matrix%nsys
            rhs => matrix%rhs(j)
-           write(6,*) im, rhs%nrhs, k, k + rhs%nrhs - 1
+           write( 6, fmt=8889 ) im, rhs%nrhs, k, k + rhs%nrhs - 1
            k = k + rhs%nrhs
         end do
      end do
   end if
+
+
+  !
+  ! Initialization loop to create the PaStiX instances
+  !
+  call split_parall( params%nb_mat, params%nb_fact_omp )
+
+  !
+  !$OMP PARALLEL NUM_THREADS(params%nb_fact_omp) DEFAULT(NONE) &
+  !$OMP SHARED(params, sys_array, k)                 &
+  !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx)    &
+  !$OMP SHARED(dla_thread_stats, iparm, dparm)     &
+  !$OMP PRIVATE(th, im, ir, i, j )                 &
+  !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr, b0_ptr) &
+  !$OMP PRIVATE(info, bindtab)
+
+  !$OMP DO SCHEDULE(STATIC,1)
+  init_loop: do th = 1, params%nb_fact_omp
+     !
+     ! Give each matrix a subset of cores
+     !
+     allocate( bindtab( iparm(IPARM_THREAD_NBR) ) )
+     do i = 1, iparm(IPARM_THREAD_NBR)
+        bindtab( i ) = (th-1) * iparm(IPARM_THREAD_NBR) + (i - 1)
+     end do
+
+     do im = ila_thrmn(th), ila_thrmx(th)
+
+        matrix => sys_array(im)
+        matrix%pid = th
+
+        ! 1- Initialize the parameters and the solver
+        call pastixInitWithAffinity( matrix%pastix_data, 0, &
+             & matrix%iparm, matrix%dparm, bindtab )
+
+     end do
+
+     deallocate(bindtab)
+  end do init_loop
+  !$OMP END DO
+  !$OMP END PARALLEL
 
   !
   ! Outmost iteration
@@ -249,10 +290,6 @@ program flaplacian
 
            ! 0- Generate the SPM matrix
            call multilap_genOneMatrix( params, matrix, k, im )
-
-           ! 1- Initialize the parameters and the solver
-           call pastixInitWithAffinity( matrix%pastix_data, 0, &
-                & matrix%iparm, matrix%dparm, bindtab )
 
            ! 2- Analyze the problem
            call pastix_task_analyze( matrix%pastix_data, matrix%spm, info )
@@ -517,6 +554,7 @@ program flaplacian
      do im=1, params%nb_mat
         ! 6- Destroy the C data structure
         call spmExit( sys_array(im)%spm )
+        deallocate( sys_array(im)%spm )
      end do
   end do main_loop
 
@@ -540,7 +578,6 @@ program flaplacian
         end if
      end do
      deallocate( matrix%rhs )
-     deallocate( matrix%spm )
   end do
 
   deallocate(sys_array)
@@ -558,6 +595,9 @@ program flaplacian
   write(6,*) '!====================================================================!'
 
   call exit(ginfo)
+
+8888 format( '  ', A6, ' ', A6, ' ', A6, ' ', A6 )
+8889 format( '  ', I6, ' ', I6, ' ', I6, ' ', I6 )
 
 contains
 
@@ -812,6 +852,7 @@ contains
           matrix%spm%values = c_null_ptr
 
           call spmExit( matrix%spm )
+          deallocate( matrix%spm )
           matrix%spm => spm2
        end if
     else
