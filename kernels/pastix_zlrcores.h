@@ -19,8 +19,6 @@
 
 #include "pastix_lowrank.h"
 
-extern volatile int32_t nbmalloc;
-
 /**
  *
  * @addtogroup kernel_lr

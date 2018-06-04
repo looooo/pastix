@@ -146,7 +146,6 @@ typedef struct solver_cblk_s  {
     void                *lcoeftab;   /**< Coefficients access vector              */
     void                *ucoeftab;   /**< Coefficients access vector              */
     void                *handler[2]; /**< Runtime data handler                    */
-    pastix_int_t         procdiag;   /**< Cluster owner of diagonal block (@todo: check if really required) */
 } SolverCblk;
 
 struct parsec_sparse_matrix_desc_s;
