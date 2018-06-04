@@ -23,7 +23,7 @@ program fsimple
   complex(kind=c_double_complex), dimension(:,:), allocatable, target :: x0, x, b
   type(c_ptr)                                                         :: x0_ptr, x_ptr, b_ptr
   type(pastix_data_t),        pointer                                 :: pastix_data
-  type(spmatrix_t),           target                                  :: spm
+  type(spmatrix_t),           pointer                                 :: spm
   type(spmatrix_t),           pointer                                 :: spm2
   integer(kind=pastix_int_t), target                                  :: iparm(iparm_size)
   real(kind=c_double),        target                                  :: dparm(dparm_size)
@@ -103,6 +103,7 @@ program fsimple
   !
   ! Create the spm out of the internal data
   !
+  allocate( spm )
   call spmInit( spm )
   spm%mtxtype = SpmHermitian
   spm%flttype = SpmComplex64
