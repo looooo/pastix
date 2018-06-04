@@ -310,7 +310,7 @@ pastix_subtask_diag( pastix_data_t *pastix_data, pastix_coeftype_t flttype,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_users
+ * @ingroup pastix_solve
  *
  * @brief Solve the given problem without applying the permutation.
  *
