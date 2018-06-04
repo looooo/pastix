@@ -203,6 +203,46 @@ program flaplacian
      end do
   end if
 
+
+  !
+  ! Initialization loop to create the PaStiX instances
+  !
+
+  !
+  !$OMP PARALLEL NUM_THREADS(params%nb_fact_omp) DEFAULT(NONE) &
+  !$OMP SHARED(params, sys_array, k)                 &
+  !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx)    &
+  !$OMP SHARED(dla_thread_stats, iparm, dparm)     &
+  !$OMP PRIVATE(th, im, ir, i, j )                 &
+  !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr, b0_ptr) &
+  !$OMP PRIVATE(info, bindtab)
+
+  !$OMP DO SCHEDULE(STATIC,1)
+  init_loop: do th = 1, params%nb_fact_omp
+     !
+     ! Give each matrix a subset of cores
+     !
+     allocate( bindtab( iparm(IPARM_THREAD_NBR) ) )
+     do i = 1, iparm(IPARM_THREAD_NBR)
+        bindtab( i ) = (th-1) * iparm(IPARM_THREAD_NBR) + (i - 1)
+     end do
+
+     do im = ila_thrmn(th), ila_thrmx(th)
+
+        matrix => sys_array(im)
+        matrix%pid = th
+
+        ! 1- Initialize the parameters and the solver
+        call pastixInitWithAffinity( matrix%pastix_data, 0, &
+             & matrix%iparm, matrix%dparm, bindtab )
+
+     end do
+
+     deallocate(bindtab)
+  end do init_loop
+  !$OMP END DO
+  !$OMP END PARALLEL
+
   !
   ! Outmost iteration
   !
@@ -249,10 +289,6 @@ program flaplacian
 
            ! 0- Generate the SPM matrix
            call multilap_genOneMatrix( params, matrix, k, im )
-
-           ! 1- Initialize the parameters and the solver
-           call pastixInitWithAffinity( matrix%pastix_data, 0, &
-                & matrix%iparm, matrix%dparm, bindtab )
 
            ! 2- Analyze the problem
            call pastix_task_analyze( matrix%pastix_data, matrix%spm, info )
