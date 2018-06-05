@@ -294,7 +294,7 @@ z_bcscSort( const pastix_bcsc_t *bcsc,
             pastix_int_t        *rowtab,
             pastix_complex64_t  *valtab )
 {
-    bcsc_format_t *blockcol;
+    bcsc_cblk_t *blockcol;
     pastix_int_t itercblk, itercol, size;
     void *sortptr[2];
 

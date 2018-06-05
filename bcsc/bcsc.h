@@ -15,26 +15,27 @@
 #ifndef _bcsc_h_
 #define _bcsc_h_
 
-struct bcsc_format_s {
-    pastix_int_t   colnbr; /*> Number of columns in the block column.                                    */
-    pastix_int_t * coltab; /*> Array of indexes of the start of each column in the row and value arrays. */
-};
-
-typedef struct bcsc_format_s bcsc_format_t;
+/**
+ * @brief Compressed colptr format for the bcsc
+ */
+typedef struct bcsc_cblk_s {
+    pastix_int_t  colnbr; /**< Number of columns in the block column.                                    */
+    pastix_int_t *coltab; /**< Array of indexes of the start of each column in the row and value arrays. */
+} bcsc_cblk_t;
 
 /**
- * Internal column block distributed CSC matrix.
+ * @brief Internal column block distributed CSC matrix.
  */
 struct pastix_bcsc_s {
-    int            gN;      /*> Global number of vertices                                                      */
-    int            n;       /*> Local number of vertices                                                       */
-    int            mtxtype; /*> Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.           */
-    int            flttype; /*> valtab datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
-    pastix_int_t   cscfnbr; /*> Number of fronts/column blocks.                                                */
-    bcsc_format_t *cscftab; /*> Array of Block column structures of size cscfnbr. (<pastix_bcscFormat_t>)      */
-    pastix_int_t  *rowtab;  /*> Array of rows in the matrix.                                                   */
-    void          *Lvalues; /*> Array of values of the matrix A                                                */
-    void          *Uvalues; /*> Array of values of the matrix A^t                                              */
+    int           gN;      /**< Global number of vertices                                                      */
+    int           n;       /**< Local number of vertices                                                       */
+    int           mtxtype; /**< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.           */
+    int           flttype; /**< valtab datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
+    pastix_int_t  cscfnbr; /**< Number of fronts/column blocks.                                                */
+    bcsc_cblk_t  *cscftab; /**< Array of Block column structures of size cscfnbr. (<pastix_bcscFormat_t>)      */
+    pastix_int_t *rowtab;  /**< Array of rows in the matrix.                                                   */
+    void         *Lvalues; /**< Array of values of the matrix A                                                */
+    void         *Uvalues; /**< Array of values of the matrix A^t                                              */
 };
 
 pastix_int_t
