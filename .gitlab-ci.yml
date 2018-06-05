@@ -47,8 +47,8 @@ test_pastix:
              -D ExperimentalSubmit
              | tee -a ../pastix-build.log")
     - lcov --capture --directory build -q --output-file pastix.lcov
-    - gcovr -r $PWD -e ".*spm/.*" -e CMakeFiles | tee pastix-gcov.log
-    - lcov --remove pastix.lcov '*spm/*' -q --output-file /tmp/pastix.lcov && mv /tmp/pastix.lcov .
+    - lcov --remove pastix.lcov '*spm/*' '*parsec/*trf_sp*' -q --output-file /tmp/pastix.lcov && mv /tmp/pastix.lcov .
+    - lcov --summary pastix.lcov | tee -a pastix-gcov.log
   only:
     - branches
     - master@pastix/pastix
