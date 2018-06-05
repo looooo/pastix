@@ -46,8 +46,7 @@
  *
  *******************************************************************************
  *
- * @return
- *      \retval the quotient.
+ * @retval the quotient.
  *
  *******************************************************************************/
 double
@@ -83,8 +82,7 @@ z_bcscNormErr( pastix_complex64_t *r,
  *
  *******************************************************************************
  *
- * @return
- *      \retval the error.
+ * @retval the error.
  *
  *******************************************************************************/
 double
@@ -131,9 +129,8 @@ z_bcscBerr( pastix_complex64_t *r1,
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the x vector has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ * @retval PASTIX_SUCCESS if the x vector has been computed succesfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
 int
@@ -191,9 +188,8 @@ z_bcscScal( pastix_complex64_t *x,
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ * @retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
 int
@@ -336,8 +332,7 @@ z_bcscAxpb( pastix_trans_t       trans,
  *
  *******************************************************************************
  *
- * @return
- *      \retval the scalar product of x and conj(y).
+ * @retval the scalar product of x and conj(y).
  *
  *******************************************************************************/
 pastix_complex64_t
@@ -379,8 +374,7 @@ z_bcscDotc( pastix_int_t              n,
  *
  *******************************************************************************
  *
- * @return
- *      \retval the scalar product of x and y.
+ * @retval the scalar product of x and y.
  *
  *******************************************************************************/
 pastix_complex64_t

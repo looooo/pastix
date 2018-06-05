@@ -340,9 +340,8 @@ bcscExit( pastix_bcsc_t *bcsc )
  *
  *******************************************************************************
  *
- * @return
- *      \retval PASTIX_SUCCESS if the y vector has been computed succesfully,
- *      \retval PASTIX_ERR_BADPARAMETER otherwise.
+ * @retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
  *
  *******************************************************************************/
 int

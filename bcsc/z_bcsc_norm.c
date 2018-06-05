@@ -23,7 +23,7 @@
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscMaxNorm - compute the max norm of a bcsc matrix.
+ * @brief Compute the max norm of a bcsc matrix.
  *
  *******************************************************************************
  *
@@ -32,8 +32,7 @@
  *
  *******************************************************************************
  *
- * @return
- *      \retval The norm of the matrix.
+ * @retval The norm of the matrix.
  *
  *******************************************************************************/
 double
@@ -78,8 +77,7 @@ z_bcscMaxNorm( const pastix_bcsc_t *bcsc )
  *
  *******************************************************************************
  *
- * @return
- *      \retval The norm of the matrix.
+ * @retval The norm of the matrix.
  *
  *******************************************************************************/
 double
@@ -156,8 +154,7 @@ z_bcscInfNorm( const pastix_bcsc_t *bcsc )
  *
  *******************************************************************************
  *
- * @return
- *      \retval The norm of the matrix.
+ * @retval The norm of the matrix.
  *
  *******************************************************************************/
 double
@@ -199,12 +196,11 @@ z_bcscOneNorm( const pastix_bcsc_t *bcsc )
  *
  *******************************************************************************
  *
- * @return
  *          The norm of the matrix
  *
  *******************************************************************************/
 double
-z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc)
+z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc )
 {
     double scale = 0.;
     double sum = 1.;
@@ -252,8 +248,7 @@ z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc)
  *
  *******************************************************************************
  *
- * @return
- *      \retval The norm of the matrix.
+ * @retval The norm of the matrix.
  *
  *******************************************************************************/
 double
@@ -285,7 +280,7 @@ z_bcscNorm( pastix_normtype_t ntype,
         break;
 
     default:
-        fprintf(stderr, "z_spmNorm: invalid norm type\n");
+        fprintf(stderr, "z_bcscNorm: invalid norm type\n");
         return -1.;
     }
 
