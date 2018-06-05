@@ -626,14 +626,12 @@ symbol_reorder_cblk( const symbol_matrix_t *symbptr,
 void
 pastixSymbolReordering( pastix_data_t       *pastix_data )
 {
-    symbol_matrix_t* symbptr = pastix_data->symbmtx;
-    // symbol_cblk_t  *cblk;
-    // pastix_int_t itercblk;
+    symbol_matrix_t *symbptr = pastix_data->symbmtx;
     pastix_int_t cblknbr = symbptr->cblknbr;
 
     pastix_int_t i, maxdepth;
     pastix_int_t *levels, *depthweight;
-    pastix_order_t* order = pastix_data->ordemesh;
+    pastix_order_t *order = pastix_data->ordemesh;
 
     /* Create the level array to compute the depth of each cblk and the maximum depth */
     {
@@ -650,10 +648,11 @@ pastixSymbolReordering( pastix_data_t       *pastix_data )
      * Solves the Traveler Salesman Problem on each cblk to minimize the number
      * of off-diagonal blocks per row
      */
-    // cblk = symbptr->cblktab;
     MALLOC_INTERN( depthweight, maxdepth, pastix_int_t );
 
-    /* args : depthweight, maxdepth, levels */
+    /**
+     * Compute the reordering using either sequantial or parallel method
+     */
     symbol_reorder( pastix_data, maxdepth, levels, depthweight );
 
     /* Update the permutation */

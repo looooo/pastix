@@ -40,14 +40,12 @@ sequential_reorder( pastix_data_t         *pastix_data,
     symbol_cblk_t   *cblk;
     pastix_int_t  cblknbr;
     pastix_int_t *iparm = pastix_data->iparm;
-    // pastix_solv_mode_t mode = iparm[IPARM_SCHUR_SOLV_MODE];
     pastix_order_t *order = pastix_data->ordemesh;
+    pastix_int_t itercblk;
 
     cblk = symbptr->cblktab;
-    // cblknbr = (mode == PastixSolvModeSchur) ? symbptr->cblknbr : symbptr->cblkschur;
     cblknbr = symbptr->cblknbr;
     
-    pastix_int_t itercblk;
     for (itercblk=0; itercblk<cblknbr; itercblk++, cblk++) {
 
         if (cblk->fcolnum >= symbptr->schurfcol )
@@ -69,7 +67,10 @@ sequential_reorder( pastix_data_t         *pastix_data,
 /* Arguments */
 struct args_reorder_t
 {
-
+    pastix_data_t         *pastix_data;
+    pastix_int_t           maxdepth;
+    pastix_int_t          *levels;
+    pastix_int_t          *depthweight;
 };
 
 /* Fonction appelée par chaque thread */
@@ -114,7 +115,7 @@ thread_reorder( pastix_data_t         *pastix_data,
                 pastix_int_t          *levels,
                 pastix_int_t          *depthweight )
 {
-    // struct args_reorder_t args_reorder = { XXXX };
+    struct args_reorder_t args_reorder = { pastix_data, maxdepth, levels, depthweight };
     // isched_parallel_call( pastix_data->isched, thread_preorder, &args_reorder );
 }
 
