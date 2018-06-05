@@ -66,7 +66,7 @@ z_bcscMaxNorm( const pastix_bcsc_t *bcsc )
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscInfNorm - compute the infinity norm of a bcsc matrix.
+ * @brief Compute the infinity norm of a bcsc matrix.
  * The infinity norm is equal to the maximum value of the sum of the
  * absolute values of the elements of each rows.
  *
@@ -143,7 +143,7 @@ z_bcscInfNorm( const pastix_bcsc_t *bcsc )
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscOneNorm - compute the norm 1 of a bcsc matrix.
+ * @brief Compute the norm 1 of a bcsc matrix.
  * Norm 1 is equal to the maximum value of the sum of the
  * absolute values of the elements of each columns.
  *
@@ -187,7 +187,7 @@ z_bcscOneNorm( const pastix_bcsc_t *bcsc )
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscFrobeniusNorm - compute the frobenius norm of a bcsc matrix.
+ * @brief Compute the frobenius norm of a bcsc matrix.
  *
  *******************************************************************************
  *
@@ -233,7 +233,7 @@ z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc )
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscNorm - Compute the norm of an bcsc matrix
+ * @brief Compute the norm of an bcsc matrix
  *
  *******************************************************************************
  *

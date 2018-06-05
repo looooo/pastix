@@ -304,7 +304,7 @@ bcscExit( pastix_bcsc_t *bcsc )
  *
  * @ingroup pastix_bcsc
  *
- * bcscMatVec - Compute the matrix-vector product
+ * @brief Compute the matrix-vector product
  *         y = alpha * op(A) * x + beta * y,
  * where A is given in the bcsc format, x and y are two vectors of size n, and
  * alpha and beta are two scalars.

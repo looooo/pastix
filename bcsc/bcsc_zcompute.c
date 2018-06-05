@@ -28,7 +28,7 @@
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscNormErr - Computes the norm 2 of r and the norm 2 of b
+ * @brief Computes the norm 2 of r and the norm 2 of b
  *                 and return the quotient of these two values:
  *
  *                         || r ||_2 / ||b||_2
@@ -67,7 +67,7 @@ z_bcscNormErr( pastix_complex64_t *r,
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscBerr - Compute the operation $$ berr= max_{i}(\\frac{|r1_{i}|}{|r2_{i}|}) $$.
+ * @brief Compute the operation $$ berr= max_{i}(\\frac{|r1_{i}|}{|r2_{i}|}) $$.
  *
  *******************************************************************************
  *
@@ -111,7 +111,7 @@ z_bcscBerr( pastix_complex64_t *r1,
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscScal - Multiply a vector by a scalaire x <- alpha*x.
+ * @brief Multiply a vector by a scalaire x <- alpha*x.
  *
  *******************************************************************************
  *
@@ -166,7 +166,7 @@ z_bcscScal( pastix_complex64_t *x,
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscAxpy - Compute y <- alpha * x + y.
+ * @brief Compute y <- alpha * x + y.
  * TODO: Look at zgeadd
  *
  *******************************************************************************
@@ -226,7 +226,7 @@ z_bcscAxpy( pastix_int_t              n,
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscAxpb - compute r = |A||x| + |b|
+ * @brief Compute r = |A||x| + |b|
  * TODO: Check that we needs it and if yes, rename it
  *
  *******************************************************************************
@@ -317,7 +317,7 @@ z_bcscAxpb( pastix_trans_t       trans,
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscDotc - compute the scalar product x.conj(y).
+ * @brief Compute the scalar product x.conj(y).
  *
  *******************************************************************************
  *
@@ -359,7 +359,7 @@ z_bcscDotc( pastix_int_t              n,
  *
  * @ingroup pastix_bcsc
  *
- * z_bcscDotu - compute the scalar product x.y.
+ * @brief Compute the scalar product x.y.
  *
  *******************************************************************************
  *
@@ -400,7 +400,7 @@ z_bcscDotu( pastix_int_t               n,
  *
  * @ingroup pastix_bcsc
  *
- * z_vectFrobeniusNorm - compute the Frobenius norm of a vector.
+ * @brief Compute the Frobenius norm of a vector.
  *
  *******************************************************************************
  *
