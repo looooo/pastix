@@ -12,7 +12,7 @@ This solver also provides some low-rank compression methods to reduce the memory
 ## Get PaStiX
 
 To use last development state of PaStiX, please clone the master
-branch. Note that PaStiX contains a `git submodule` **morse_cmake**.
+branch. Note that PaStiX contains a `git submodule` for **spm** and **morse_cmake**.
 To get sources please use these commands:
 
     # if git version >= 1.9
