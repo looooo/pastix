@@ -555,7 +555,7 @@ include(RulesPrecisions)
 ##
 set(generated_headers "")
 set(HEADERS
-  bcsc/z_bcsc.h
+  bcsc/bcsc_z.h
 )
 
 precisions_rules_py(generated_headers
@@ -603,10 +603,10 @@ precisions_rules_py(generated_common_sources
 ##
 set(generated_bcsc_sources "")
 set(SOURCES
-  bcsc/bcsc_zinit.c          # Not finished
-  bcsc/bcsc_zcompute.c       # Not finished
-  bcsc/z_bcsc_norm.c         # Not finished
-  bcsc/z_bcsc_matrixvector.c # Not finished
+  bcsc/bcsc_zinit.c
+  bcsc/bvec_zcompute.c
+  bcsc/bcsc_znorm.c
+  bcsc/bcsc_zspmv.c
   )
 precisions_rules_py(generated_bcsc_sources
   "${SOURCES}"
