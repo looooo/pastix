@@ -134,7 +134,7 @@ thread_preorder_zigzag_stategy( isched_thread_t *ctx, void *args )
     ExtendVectorINT    *tasktab;
     pastix_int_t        tasknbr;
     pastix_int_t       *depthweight;
-    const pastix_int_t *levels = arg->levels;   
+    const pastix_int_t *levels = arg->levels;
     pastix_int_t        rank = (pastix_int_t)ctx->rank;
 
     /**
@@ -147,11 +147,9 @@ thread_preorder_zigzag_stategy( isched_thread_t *ctx, void *args )
     tasknbr = extendint_Size( tasktab );
 
     for ( ii=0; ii<tasknbr; ii++ ) {
-        
         cblk = symbptr->cblktab + extendint_Read(tasktab, ii);
 
         memset( depthweight, 0, maxdepth * sizeof(pastix_int_t) );
-        
         symbol_reorder_cblk( symbptr, cblk, order,
                              levels,
                              depthweight, maxdepth,
@@ -164,7 +162,7 @@ thread_preorder_zigzag_stategy( isched_thread_t *ctx, void *args )
     memFree_null( depthweight );
 }
 
-/* Fonction appelée par chaque thread */
+/* Function called by each thread  */
 static inline void
 thread_preorder( isched_thread_t *ctx, void *args )
 {
@@ -182,7 +180,7 @@ cost( symbol_cblk_t *cblk )
     return n*n * ((double)(cblk[1].bloknum - cblk[0].bloknum) / 2.0 + 1.0);
 }
 
-static inline void 
+static inline void
 order_tasks( isched_t              *ctx,
              struct args_reorder_t *args )
 {
@@ -229,7 +227,7 @@ order_tasks( isched_t              *ctx,
     pqueueExit( &procs );
 }
 
-/* Fonction Multi-thread (prototype doit etre le meme que la version seq) */
+/* Multi-thread function (prototype must be the same that sequential version) */
 static inline void
 thread_reorder( pastix_data_t *pastix_data,
                 pastix_int_t   maxdepth,
