@@ -28,38 +28,232 @@
  *
  * @ingroup pastix_bcsc
  *
- * @brief Computes the norm 2 of r and the norm 2 of b
- *                 and return the quotient of these two values:
- *
- *                         || r ||_2 / || b ||_2
+ * @brief Compute the Frobenius norm of a vector.
  *
  *******************************************************************************
  *
- * @param[in] r
- *          The vector r.
+ * @param[in] n
+ *          The size of the vector x.
  *
- * @param[in] b
- *          The vector b.
+ * @param[in] x
+ *          The vector x of size n.
+ *
+ *******************************************************************************
+ *
+ * @retval the Frobenius norm of x.
+ *
+ *******************************************************************************/
+double
+bcsc_znrm2( pastix_int_t              n,
+            const pastix_complex64_t *x )
+{
+    double scale = 0.;
+    double sum = 1.;
+    double norm;
+    double *valptr = (double*)x;
+    pastix_int_t i;
+
+    for( i=0; i < n; i++, valptr++ )
+    {
+        frobenius_update( 1, &scale, &sum, valptr );
+#if defined(PRECISION_z) || defined(PRECISION_c)
+        valptr++;
+        frobenius_update( 1, &scale, &sum, valptr );
+#endif
+    }
+
+    norm = scale*sqrt(sum);
+
+    return norm;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * @brief Scale a vector by the scalar alpha.
+ *
+ *******************************************************************************
+ *
+ * @param[in] n
+ *          The size of the vector x.
+ *
+ * @param[in] alpha
+ *          The scalar to sclae the vector x.
+ *
+ * @param[inout] x
+ *          The vector x to scale.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS if the x vector has been computed succesfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+bcsc_zscal( pastix_int_t        n,
+            pastix_complex64_t  alpha,
+            pastix_complex64_t *x )
+{
+    pastix_complex64_t *xptr = x;
+    pastix_int_t i;
+
+    if( x == NULL ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    if( alpha == (pastix_complex64_t)0.0 )
+    {
+        memset( x, 0., n * sizeof(pastix_complex64_t) );
+        return PASTIX_SUCCESS;
+    }
+
+    for( i=0; i<n; i++, xptr++ )
+    {
+        *xptr *= alpha;
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * @brief Compute y <- alpha * x + y.
+ *
+ *******************************************************************************
+ *
+ * @param[in] n
+ *          The size of the vectors.
+ *
+ * @param[in] alpha
+ *          A scalar.
+ *
+ * @param[in] x
+ *          The vector x.
+ *
+ * @param[inout] y
+ *          The vector y.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS if the y vector has been computed succesfully,
+ * @retval PASTIX_ERR_BADPARAMETER otherwise.
+ *
+ *******************************************************************************/
+int
+bcsc_zaxpy( pastix_int_t              n,
+            pastix_complex64_t        alpha,
+            const pastix_complex64_t *x,
+            pastix_complex64_t       *y)
+{
+    const pastix_complex64_t *xptr = x;
+    pastix_complex64_t       *yptr = y;
+    pastix_int_t i;
+
+    if( (y == NULL) || (x == NULL) ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    if( alpha == (pastix_complex64_t)0.0 ) {
+        return PASTIX_SUCCESS;
+    }
+
+    for(i = 0; i < n; i++)
+    {
+        *yptr = *yptr + alpha * (*xptr);
+        yptr++;
+        xptr++;
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+#if defined(PRECISION_z) || defined(PRECISION_c)
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * @brief Compute the scalar product x.conj(y).
+ *
+ *******************************************************************************
+ *
+ * @param[in] n
+ *          The size of the vectors.
+ *
+ * @param[in] x
+ *          The vector x.
+ *
+ * @param[in] y
+ *          The vector y.
+ *
+ *******************************************************************************
+ *
+ * @retval the scalar product of x and conj(y).
+ *
+ *******************************************************************************/
+pastix_complex64_t
+bcsc_zdotc( pastix_int_t              n,
+            const pastix_complex64_t *x,
+            const pastix_complex64_t *y )
+{
+    int i;
+    pastix_complex64_t *xptr = (pastix_complex64_t*)x;
+    pastix_complex64_t *yptr = (pastix_complex64_t*)y;
+    pastix_complex64_t r = 0.0;
+
+    for (i=0; i<n; i++, xptr++, yptr++)
+    {
+        r = r + *xptr * conj(*yptr);
+    }
+
+    return r;
+}
+#endif
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * @brief Compute the scalar product x.y.
+ *
+ *******************************************************************************
+ *
+ * @param[in] x
+ *          The vector x.
+ *
+ * @param[in] y
+ *          The vector y.
  *
  * @param[in] n
  *          The size of the vectors.
  *
  *******************************************************************************
  *
- * @retval the quotient.
+ * @retval the scalar product of x and y.
  *
  *******************************************************************************/
-double
-z_bcscNormErr( pastix_complex64_t *r,
-               pastix_complex64_t *b,
-               pastix_int_t        n )
+pastix_complex64_t
+bcsc_zdotu( pastix_int_t              n,
+            const pastix_complex64_t *x,
+            const pastix_complex64_t *y )
 {
-    double norm1, norm2;
+    int i;
+    const pastix_complex64_t *xptr = x;
+    const pastix_complex64_t *yptr = y;
+    pastix_complex64_t r = 0.0;
 
-    norm1 = z_vectFrobeniusNorm( n, r );
-    norm2 = z_vectFrobeniusNorm( n, b );
+    for (i=0; i<n; i++, xptr++, yptr++)
+    {
+        r = r + *xptr * (*yptr);
+    }
 
-    return norm1 / norm2;
+    return r;
 }
 
 /**
@@ -104,121 +298,6 @@ z_bcscBerr( pastix_complex64_t *r1,
     }
 
     return berr;
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_bcsc
- *
- * @brief Multiply a vector by a scalaire x <- alpha*x.
- *
- *******************************************************************************
- *
- * @param[inout] x
- *          The vector x.
- *
- * @param[in] alpha
- *          The scalar alpha.
- *
- * @param[in] n
- *          The size of the vectors.
- *
- * @param[in] smxnbr
- *          The number of vectors (multi-right-hand-side method).
- *
- *******************************************************************************
- *
- * @retval PASTIX_SUCCESS if the x vector has been computed succesfully,
- * @retval PASTIX_ERR_BADPARAMETER otherwise.
- *
- *******************************************************************************/
-int
-z_bcscScal( pastix_complex64_t *x,
-            pastix_complex64_t  alpha,
-            pastix_int_t        n,
-            pastix_int_t        smxnbr )
-{
-    pastix_complex64_t *xptr = (pastix_complex64_t*)x;
-    pastix_int_t i;
-
-    if( x == NULL ) {
-        return PASTIX_ERR_BADPARAMETER;
-    }
-
-    if( alpha == (pastix_complex64_t)0.0 )
-    {
-        memset(xptr,0.0,smxnbr*n*sizeof(pastix_complex64_t));
-        return PASTIX_SUCCESS;
-    }
-
-    for( i = 0; i < n*smxnbr; i++)
-    {
-        *xptr *=alpha;
-        xptr ++;
-    }
-
-    return PASTIX_SUCCESS;
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_bcsc
- *
- * @brief Compute y <- alpha * x + y.
- * TODO: Look at zgeadd
- *
- *******************************************************************************
- *
- * @param[in] n
- *          The size of the vectors.
- *
- * @param[in] smxnbr
- *          The number of vectors (multi-right-hand-side method).
- *
- * @param[in] alpha
- *          A scalar.
- *
- * @param[in] x
- *          The vector x.
- *
- * @param[inout] y
- *          The vector y.
- *
- *******************************************************************************
- *
- * @retval PASTIX_SUCCESS if the y vector has been computed succesfully,
- * @retval PASTIX_ERR_BADPARAMETER otherwise.
- *
- *******************************************************************************/
-int
-z_bcscAxpy( pastix_int_t              n,
-            pastix_int_t              smxnbr,
-            pastix_complex64_t        alpha,
-            const pastix_complex64_t *x,
-            pastix_complex64_t       *y)
-{
-    const pastix_complex64_t *xptr = x;
-    pastix_complex64_t       *yptr = y;
-    pastix_int_t i;
-
-    if( (y == NULL) || (x == NULL) ) {
-        return PASTIX_ERR_BADPARAMETER;
-    }
-
-    if( alpha == (pastix_complex64_t)0.0 ) {
-        return PASTIX_SUCCESS;
-    }
-
-    for(i = 0; i < n*smxnbr; i++)
-    {
-        *yptr = *yptr + alpha * (*xptr);
-        yptr++;
-        xptr++;
-    }
-
-    return PASTIX_SUCCESS;
 }
 
 /**
@@ -309,134 +388,6 @@ z_bcscAxpb( pastix_trans_t       trans,
 
     for( i=0; i<n; i++, rptr++, bptr++)
         *rptr += cabs( *bptr );
-}
-
-#if defined(PRECISION_z) || defined(PRECISION_c)
-/**
- *******************************************************************************
- *
- * @ingroup pastix_bcsc
- *
- * @brief Compute the scalar product x.conj(y).
- *
- *******************************************************************************
- *
- * @param[in] x
- *          The vector x.
- *
- * @param[in] y
- *          The vector y.
- *
- * @param[in] n
- *          The size of the vectors.
- *
- *******************************************************************************
- *
- * @retval the scalar product of x and conj(y).
- *
- *******************************************************************************/
-pastix_complex64_t
-z_bcscDotc( pastix_int_t              n,
-            const pastix_complex64_t *x,
-            const pastix_complex64_t *y )
-{
-    int i;
-    pastix_complex64_t *xptr = (pastix_complex64_t*)x;
-    pastix_complex64_t *yptr = (pastix_complex64_t*)y;
-    pastix_complex64_t r = 0.0;
-
-    for (i=0; i<n; i++, xptr++, yptr++)
-    {
-        r = r + *xptr * conj(*yptr);
-    }
-
-    return r;
-}
-#endif
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_bcsc
- *
- * @brief Compute the scalar product x.y.
- *
- *******************************************************************************
- *
- * @param[in] x
- *          The vector x.
- *
- * @param[in] y
- *          The vector y.
- *
- * @param[in] n
- *          The size of the vectors.
- *
- *******************************************************************************
- *
- * @retval the scalar product of x and y.
- *
- *******************************************************************************/
-pastix_complex64_t
-z_bcscDotu( pastix_int_t               n,
-             const pastix_complex64_t *x,
-             const pastix_complex64_t *y )
-{
-    int i;
-    const pastix_complex64_t *xptr = x;
-    const pastix_complex64_t *yptr = y;
-    pastix_complex64_t r = 0.0;
-
-    for (i=0; i<n; i++, xptr++, yptr++)
-    {
-        r = r + *xptr * (*yptr);
-    }
-
-    return r;
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_bcsc
- *
- * @brief Compute the Frobenius norm of a vector.
- *
- *******************************************************************************
- *
- * @param[in] x
- *          The vector x.
- *
- * @param[in] n
- *          The size of the vector x.
- *
- *******************************************************************************
- *
- * @retval the Frobenius norm of x.
- *
- *******************************************************************************/
-double
-z_vectFrobeniusNorm( pastix_int_t              n,
-                     const pastix_complex64_t *x )
-{
-    double scale = 0.;
-    double sum = 1.;
-    double norm;
-    double *valptr = (double*)x;
-    pastix_int_t i;
-
-    for( i=0; i < n; i++, valptr++ )
-    {
-        frobenius_update( 1, &scale, &sum, valptr );
-#if defined(PRECISION_z) || defined(PRECISION_c)
-        valptr++;
-        frobenius_update( 1, &scale, &sum, valptr );
-#endif
-    }
-
-    norm = scale*sqrt(sum);
-
-    return norm;
 }
 
 int z_bcscApplyPerm( pastix_int_t        m,

@@ -90,10 +90,10 @@ bcsc_zinit_A( const spmatrix_t     *spm,
 
 static inline void
 bcsc_zinit_Lt( const spmatrix_t     *spm,
-              const pastix_order_t *ord,
-              const SolverMatrix   *solvmtx,
-              const pastix_int_t   *col2cblk,
-                    pastix_bcsc_t  *bcsc )
+               const pastix_order_t *ord,
+               const SolverMatrix   *solvmtx,
+               const pastix_int_t   *col2cblk,
+                     pastix_bcsc_t  *bcsc )
 {
     pastix_complex64_t *values  = (pastix_complex64_t*)(spm->values);
     pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
@@ -319,11 +319,11 @@ z_bcscSort( const pastix_bcsc_t *bcsc,
 
 void
 bcsc_zinit_centralized( const spmatrix_t     *spm,
-                       const pastix_order_t *ord,
-                       const SolverMatrix   *solvmtx,
-                       const pastix_int_t   *col2cblk,
-                             int             initAt,
-                             pastix_bcsc_t  *bcsc )
+                        const pastix_order_t *ord,
+                        const SolverMatrix   *solvmtx,
+                        const pastix_int_t   *col2cblk,
+                              int             initAt,
+                              pastix_bcsc_t  *bcsc )
 {
     pastix_int_t valuesize;
 
@@ -350,7 +350,7 @@ bcsc_zinit_centralized( const spmatrix_t     *spm,
     z_bcscSort( bcsc, bcsc->rowtab, bcsc->Lvalues );
 
     if ( spm->mtxtype == SpmGeneral ) {
-	/* A^t is not required if only refinment is performed */
+	/* A^t is not required if only refinement is performed */
         if (initAt) {
             pastix_int_t *trowtab, i;
             MALLOC_INTERN( bcsc->Uvalues, valuesize * pastix_size_of( bcsc->flttype ), char );
