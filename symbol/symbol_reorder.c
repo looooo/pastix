@@ -19,20 +19,10 @@
 #include "blend/queue.h"
 #include "blend/extendVector.h"
 
-void
-symbol_reorder_cblk( const symbol_matrix_t *symbptr,
-                     const symbol_cblk_t   *cblk,
-                     pastix_order_t     *order,
-                     const pastix_int_t *levels,
-                     pastix_int_t       *depthweight,
-                     pastix_int_t        depthmax,
-                     pastix_int_t        split_level,
-                     pastix_int_t        stop_criteria );
-
 /**
- * Version sequentielle
+ * @brief Sequential version for reordering
  */
-void
+static inline void
 sequential_reorder( pastix_data_t         *pastix_data,
                     pastix_int_t           maxdepth,
                     pastix_int_t          *levels )
@@ -48,7 +38,7 @@ sequential_reorder( pastix_data_t         *pastix_data,
     cblk = symbptr->cblktab;
     cblknbr = symbptr->cblknbr;
 
-    /**
+    /*
      * Solves the Traveler Salesman Problem on each cblk to minimize the number
      * of off-diagonal blocks per row
      */
@@ -56,7 +46,7 @@ sequential_reorder( pastix_data_t         *pastix_data,
     
     for (itercblk=0; itercblk<cblknbr; itercblk++, cblk++) {
 
-        if (cblk->fcolnum >= symbptr->schurfcol )
+        if ( cblk->fcolnum >= symbptr->schurfcol )
             continue;
 
         memset( depthweight, 0, maxdepth * sizeof(pastix_int_t) );
@@ -71,10 +61,6 @@ sequential_reorder( pastix_data_t         *pastix_data,
     memFree_null( depthweight );
 }
 
-/**
- * Version parallel
- */
-/* Arguments */
 struct args_reorder_t
 {
     pastix_data_t         *pastix_data;
@@ -83,7 +69,11 @@ struct args_reorder_t
     ExtendVectorINT       *tasktab;
 };
 
-static void
+/**
+ * @brief Parallel basic version for reordering
+ */
+/* Arguments */
+static inline void
 thread_preorder_basic_stategy( isched_thread_t *ctx, void *args )
 {
     struct args_reorder_t *arg = (struct args_reorder_t*)args;
@@ -115,9 +105,6 @@ thread_preorder_basic_stategy( isched_thread_t *ctx, void *args )
     cblk = symbptr->cblktab + rank;
     for (ii=0; ii<tasknbr; ii++, cblk += size) {
 
-        if (cblk->fcolnum >= symbptr->schurfcol )
-            continue;
-
         memset( depthweight, 0, maxdepth * sizeof(pastix_int_t) );
         
         symbol_reorder_cblk( symbptr, cblk, order,
@@ -130,7 +117,10 @@ thread_preorder_basic_stategy( isched_thread_t *ctx, void *args )
     memFree_null( depthweight );
 }
 
-static void
+/**
+ * @brief Parallel improved version for reordering
+ */
+static inline void
 thread_preorder_zigzag_stategy( isched_thread_t *ctx, void *args )
 {
     struct args_reorder_t *arg = (struct args_reorder_t*)args;
@@ -157,10 +147,8 @@ thread_preorder_zigzag_stategy( isched_thread_t *ctx, void *args )
     tasknbr = extendint_Size( tasktab );
 
     for ( ii=0; ii<tasknbr; ii++ ) {
+        
         cblk = symbptr->cblktab + extendint_Read(tasktab, ii);
-
-        if (cblk->fcolnum >= symbptr->schurfcol )
-            continue;
 
         memset( depthweight, 0, maxdepth * sizeof(pastix_int_t) );
         
@@ -177,10 +165,14 @@ thread_preorder_zigzag_stategy( isched_thread_t *ctx, void *args )
 }
 
 /* Fonction appelée par chaque thread */
-void
+static inline void
 thread_preorder( isched_thread_t *ctx, void *args )
 {
+#ifdef BASIC_REORDERING_STRATEGY
+    thread_preorder_basic_stategy ( ctx, args );
+#else
     thread_preorder_zigzag_stategy( ctx, args );
+#endif
 }
 
 static inline double
@@ -208,11 +200,15 @@ order_tasks( isched_t              *ctx,
     pqueueInit( &cblks, cblknbr );
     pqueueInit( &procs, size );
 
-    /**
+    /*
      * Sort the cblks decreasing
      */
     cblk = symbmtx->cblktab;
     for ( itercblk=0; itercblk < cblknbr; itercblk++, cblk++ ) {
+
+        if ( cblk->fcolnum >= symbmtx->schurfcol )
+            continue;
+
         pqueuePush1( &cblks, itercblk, -cost(cblk) );
     }
 
@@ -223,7 +219,7 @@ order_tasks( isched_t              *ctx,
     while ( pqueueSize( &cblks ) > 0 ) {
         cblk_id = pqueuePop1( &cblks, &cblk_cost );
         proc_id = pqueuePop1( &procs, &proc_cost );
-        proc_cost += -cblk_cost; // Negatif because of reverse sort
+        proc_cost += -cblk_cost; // Negative because of reverse sort
         pqueuePush1 ( &procs, proc_id, proc_cost );
 
         extendint_Add( args->tasktab + proc_id, cblk_id );
@@ -234,7 +230,7 @@ order_tasks( isched_t              *ctx,
 }
 
 /* Fonction Multi-thread (prototype doit etre le meme que la version seq) */
-void
+static inline void
 thread_reorder( pastix_data_t *pastix_data,
                 pastix_int_t   maxdepth,
                 pastix_int_t  *levels )
