@@ -44,7 +44,7 @@
  *
  *******************************************************************************/
 double
-bcsc_znrm2( pastix_int_t              n,
+bvec_znrm2( pastix_int_t              n,
             const pastix_complex64_t *x )
 {
     double scale = 0.;
@@ -92,7 +92,7 @@ bcsc_znrm2( pastix_int_t              n,
  *
  *******************************************************************************/
 int
-bcsc_zscal( pastix_int_t        n,
+bvec_zscal( pastix_int_t        n,
             pastix_complex64_t  alpha,
             pastix_complex64_t *x )
 {
@@ -145,7 +145,7 @@ bcsc_zscal( pastix_int_t        n,
  *
  *******************************************************************************/
 int
-bcsc_zaxpy( pastix_int_t              n,
+bvec_zaxpy( pastix_int_t              n,
             pastix_complex64_t        alpha,
             const pastix_complex64_t *x,
             pastix_complex64_t       *y)
@@ -197,7 +197,7 @@ bcsc_zaxpy( pastix_int_t              n,
  *
  *******************************************************************************/
 pastix_complex64_t
-bcsc_zdotc( pastix_int_t              n,
+bvec_zdotc( pastix_int_t              n,
             const pastix_complex64_t *x,
             const pastix_complex64_t *y )
 {
@@ -239,7 +239,7 @@ bcsc_zdotc( pastix_int_t              n,
  *
  *******************************************************************************/
 pastix_complex64_t
-bcsc_zdotu( pastix_int_t              n,
+bvec_zdotu( pastix_int_t              n,
             const pastix_complex64_t *x,
             const pastix_complex64_t *y )
 {
@@ -256,145 +256,12 @@ bcsc_zdotu( pastix_int_t              n,
     return r;
 }
 
-/**
- *******************************************************************************
- *
- * @ingroup pastix_bcsc
- *
- * @brief Compute the operation $$ berr= max_{i}(\\frac{|r1_{i}|}{|r2_{i}|}) $$.
- *
- *******************************************************************************
- *
- * @param[in] r1
- *          The vector r1.
- *
- * @param[in] r2
- *          The vector r2.
- *
- * @param[in] n
- *          The size of the vectors.
- *
- *******************************************************************************
- *
- * @retval the error.
- *
- *******************************************************************************/
-double
-z_bcscBerr( pastix_complex64_t *r1,
-            pastix_complex64_t *r2,
-            pastix_int_t        n )
-{
-    pastix_complex64_t *r1ptr = (pastix_complex64_t*)r1;
-    pastix_complex64_t *r2ptr = (pastix_complex64_t*)r2;
-    double berr = 0.;
-    pastix_int_t i;
-
-    for( i = 0; i < n; i++)
-    {
-        double module1 = cabs(r1ptr[i]);
-        double module2 = cabs(r2ptr[i]);
-        if( (module2 > 0.) && ((module1 / module2) > berr) )
-            berr = module1 / module2;
-    }
-
-    return berr;
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_bcsc
- *
- * @brief Compute r = |A||x| + |b|
- * TODO: Check that we needs it and if yes, rename it
- *
- *******************************************************************************
- *
- * @param[in] A
- *          The Pastix bcsc.
- *
- * @param[in] x
- *          The vector x.
- *
- * @param[in] b
- *          The vector b.
- *
- * @param[out] r
- *          The result.
- *******************************************************************************/
-void
-z_bcscAxpb( pastix_trans_t       trans,
-            const pastix_bcsc_t *bcsc,
-            pastix_complex64_t  *x,
-            pastix_complex64_t  *b,
-            pastix_complex64_t  *r )
-{
-    pastix_complex64_t *Lvalptr = NULL;
-    pastix_complex64_t *xptr    = (pastix_complex64_t*)x;
-    pastix_complex64_t *bptr    = (pastix_complex64_t*)b;
-    pastix_complex64_t *rptr    = (pastix_complex64_t*)r;
-    pastix_int_t        bloc, col, i, j, n;
-
-    Lvalptr = (pastix_complex64_t*)bcsc->Lvalues;
-    n = bcsc->n;
-
-    switch (trans) {
-#if defined(PRECISION_c) || defined(PRECISION_z)
-    case PastixConjTrans:
-        col = 0;
-        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
-        {
-            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
-            {
-                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
-                {
-                    rptr[col] += cabs( conj( Lvalptr[i] ) ) * cabs( xptr[bcsc->rowtab[i]] );
-                }
-                col += 1;
-            }
-        }
-    break;
-#endif
-    case PastixTrans:
-        col = 0;
-        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
-        {
-            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
-            {
-                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
-                {
-                    rptr[col] += cabs( Lvalptr[i] ) * cabs( xptr[bcsc->rowtab[i]] );
-                }
-                col += 1;
-            }
-        }
-    break;
-
-    case PastixNoTrans:
-    default:
-        col = 0;
-        for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
-        {
-            for( j=0; j < bcsc->cscftab[bloc].colnbr; j++ )
-            {
-                for( i = bcsc->cscftab[bloc].coltab[j]; i < bcsc->cscftab[bloc].coltab[j+1]; i++ )
-                {
-                    rptr[bcsc->rowtab[i]] += cabs( Lvalptr[i] ) * cabs( xptr[col] );
-                }
-                col += 1;
-            }
-        }
-    }
-
-    for( i=0; i<n; i++, rptr++, bptr++)
-        *rptr += cabs( *bptr );
-}
-
-int z_bcscApplyPerm( pastix_int_t        m,
-                     pastix_int_t        n,
-                     pastix_complex64_t *A,
-                     pastix_int_t        lda,
-                     pastix_int_t       *perm )
+int
+bvec_zswap( pastix_int_t        m,
+            pastix_int_t        n,
+            pastix_complex64_t *A,
+            pastix_int_t        lda,
+            pastix_int_t       *perm )
 {
     pastix_complex64_t tmp;
     pastix_int_t i, j, k, jj;

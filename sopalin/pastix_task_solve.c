@@ -113,20 +113,20 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
     /* See also xlapmr and xlapmt */
     switch( flttype ) {
     case PastixComplex64:
-        z_bcscApplyPerm( m, n, b, ldb, perm );
+        bvec_zswap( m, n, b, ldb, perm );
         break;
 
     case PastixComplex32:
-        c_bcscApplyPerm( m, n, b, ldb, perm );
+        bvec_cswap( m, n, b, ldb, perm );
         break;
 
     case PastixFloat:
-        s_bcscApplyPerm( m, n, b, ldb, perm );
+        bvec_sswap( m, n, b, ldb, perm );
         break;
 
     case PastixDouble:
     default:
-        d_bcscApplyPerm( m, n, b, ldb, perm );
+        bvec_dswap( m, n, b, ldb, perm );
     }
 
     return PASTIX_SUCCESS;

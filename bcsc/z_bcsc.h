@@ -24,26 +24,29 @@ void bcsc_zinit_centralized( const spmatrix_t     *spm,
                                    pastix_bcsc_t  *bcsc );
 
 
-double bcsc_znrm2( pastix_int_t              n,
+double bvec_znrm2( pastix_int_t              n,
                    const pastix_complex64_t *x );
-int    bcsc_zscal( pastix_int_t        n,
+int    bvec_zscal( pastix_int_t        n,
                    pastix_complex64_t  alpha,
                    pastix_complex64_t *x );
-int    bcsc_zaxpy( pastix_int_t              n,
+int    bvec_zaxpy( pastix_int_t              n,
                    pastix_complex64_t        alpha,
                    const pastix_complex64_t *x,
                    pastix_complex64_t       *y );
 #if defined(PRECISION_z) || defined(PRECISION_c)
-pastix_complex64_t bcsc_zdotc( pastix_int_t              n,
+pastix_complex64_t bvec_zdotc( pastix_int_t              n,
                                const pastix_complex64_t *x,
                                const pastix_complex64_t *y );
 #endif
-pastix_complex64_t bcsc_zdotu( pastix_int_t              n,
+pastix_complex64_t bvec_zdotu( pastix_int_t              n,
                                const pastix_complex64_t *x,
                                const pastix_complex64_t *y );
 
-
-
+int bvec_zswap( pastix_int_t m,
+                pastix_int_t n,
+                pastix_complex64_t *A,
+                pastix_int_t lda,
+                pastix_int_t *perm );
 
 void z_bcscSort( const pastix_bcsc_t *bcsc,
                  pastix_int_t        *rowtab,
@@ -68,11 +71,5 @@ void z_bcscAxpb( pastix_trans_t       trans,
                  pastix_complex64_t  *x,
                  pastix_complex64_t  *b,
                  pastix_complex64_t  *r );
-
-int z_bcscApplyPerm( pastix_int_t m,
-                     pastix_int_t n,
-                     pastix_complex64_t *A,
-                     pastix_int_t lda,
-                     pastix_int_t *perm );
 
 #endif /* _z_bcsc_h_ */
