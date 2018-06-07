@@ -21,10 +21,10 @@
 #include "solver.h"
 #include "sopalin_data.h"
 
-#include "z_bcsc.h"
-#include "c_bcsc.h"
-#include "d_bcsc.h"
-#include "s_bcsc.h"
+#include "bcsc_z.h"
+#include "bcsc_c.h"
+#include "bcsc_d.h"
+#include "bcsc_s.h"
 
 #if defined(PASTIX_DEBUG_SOLVE)
 static inline void dump_rhs( char *name, int n, double *b )
