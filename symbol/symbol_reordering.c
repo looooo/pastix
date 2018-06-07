@@ -636,7 +636,7 @@ pastixSymbolReordering( pastix_data_t       *pastix_data )
 
     clockStart(timer);
 
-    /* Create the level array to compute the depth of each cblk and the maximum depth */
+    /* Create the levels array to compute the depth of each cblk and the maximum depth */
     {
         maxdepth = 0;
         levels   = calloc( cblknbr, sizeof(pastix_int_t) );
@@ -648,7 +648,7 @@ pastixSymbolReordering( pastix_data_t       *pastix_data )
     }
 
     /**
-     * Compute the reordering using either sequantial or parallel method
+     * Compute the reordering using either sequential or parallel method
      */
     symbol_reorder( pastix_data, maxdepth, levels );
 
