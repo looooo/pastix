@@ -1,6 +1,6 @@
 /**
  *
- * @file z_bcsc_norm.c
+ * @file bcsc_znorm.c
  *
  * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -16,7 +16,6 @@
 #include "bcsc.h"
 #include <math.h>
 #include "frobeniusupdate.h"
-
 
 /**
  *******************************************************************************
@@ -36,7 +35,7 @@
  *
  *******************************************************************************/
 double
-z_bcscMaxNorm( const pastix_bcsc_t *bcsc )
+bcsc_znorm_max( const pastix_bcsc_t *bcsc )
 {
     double temp;
     double norm = 0.;
@@ -81,7 +80,7 @@ z_bcscMaxNorm( const pastix_bcsc_t *bcsc )
  *
  *******************************************************************************/
 double
-z_bcscInfNorm( const pastix_bcsc_t *bcsc )
+bcsc_znorm_inf( const pastix_bcsc_t *bcsc )
 {
     double norm = 0.;
     pastix_complex64_t *valptr;
@@ -158,7 +157,7 @@ z_bcscInfNorm( const pastix_bcsc_t *bcsc )
  *
  *******************************************************************************/
 double
-z_bcscOneNorm( const pastix_bcsc_t *bcsc )
+bcsc_znorm_one( const pastix_bcsc_t *bcsc )
 {
     pastix_complex64_t *valptr = (pastix_complex64_t*)bcsc->Lvalues;
     double sum, norm = 0.;
@@ -200,7 +199,7 @@ z_bcscOneNorm( const pastix_bcsc_t *bcsc )
  *
  *******************************************************************************/
 double
-z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc )
+bcsc_znorm_frobenius( const pastix_bcsc_t *bcsc )
 {
     double scale = 0.;
     double sum = 1.;
@@ -237,7 +236,7 @@ z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc )
  *
  *******************************************************************************
  *
- * @param[in] type
+ * @param[in] ntype
  *          = PastixMaxNorm: Max norm
  *          = PastixOneNorm: One norm
  *          = PastixInfNorm: Infinity norm
@@ -252,7 +251,7 @@ z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc )
  *
  *******************************************************************************/
 double
-z_bcscNorm( pastix_normtype_t ntype,
+bcsc_znorm( pastix_normtype_t    ntype,
             const pastix_bcsc_t *bcsc )
 {
     double norm = 0.;
@@ -264,23 +263,23 @@ z_bcscNorm( pastix_normtype_t ntype,
 
     switch( ntype ) {
     case PastixMaxNorm:
-        norm = z_bcscMaxNorm( bcsc );
+        norm = bcsc_znorm_max( bcsc );
         break;
 
     case PastixInfNorm:
-        norm = z_bcscInfNorm( bcsc );
+        norm = bcsc_znorm_inf( bcsc );
         break;
 
     case PastixOneNorm:
-        norm = z_bcscOneNorm( bcsc );
+        norm = bcsc_znorm_one( bcsc );
         break;
 
     case PastixFrobeniusNorm:
-        norm = z_bcscFrobeniusNorm( bcsc );
+        norm = bcsc_znorm_frobenius( bcsc );
         break;
 
     default:
-        fprintf(stderr, "z_bcscNorm: invalid norm type\n");
+        fprintf(stderr, "bcsc_znorm: invalid norm type\n");
         return -1.;
     }
 

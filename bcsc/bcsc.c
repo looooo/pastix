@@ -18,10 +18,10 @@
 #include "solver.h"
 #include "bcsc.h"
 
-#include "z_bcsc.h"
-#include "c_bcsc.h"
-#include "d_bcsc.h"
-#include "s_bcsc.h"
+#include "bcsc_z.h"
+#include "bcsc_c.h"
+#include "bcsc_d.h"
+#include "bcsc_s.h"
 
 /**
  *******************************************************************************

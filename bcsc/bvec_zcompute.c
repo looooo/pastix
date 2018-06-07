@@ -1,6 +1,6 @@
 /**
  *
- * @file bcsc_zcompute.c
+ * @file bvec_zcompute.c
  *
  *  Functions computing operations on the BCSC.
  *
@@ -20,7 +20,7 @@
 #include <math.h>
 #include "lapacke.h"
 #include "bcsc.h"
-#include "z_bcsc.h"
+#include "bcsc_z.h"
 #include "frobeniusupdate.h"
 
 /**
@@ -256,6 +256,39 @@ bvec_zdotu( pastix_int_t              n,
     return r;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_bcsc
+ *
+ * @brief Apply the permutation to a matrix A.
+ *
+ *******************************************************************************
+ *
+ * @param[in] m
+ *          The number of rows in the matrix A, and the number of elements in
+ *          perm.
+ *
+ * @param[in] n
+ *          The number of columns in the matrix A.
+ *
+ * @param[inout] A
+ *          A matrix of size lda-by-n.
+ *          On exit, rowas are permuted and A contains P A.
+ *
+ * @param[in] lda
+ *          The leading dimension of A.
+ *
+ * @param[inout] perm
+ *          The permutation array.
+ *          The array is inout as the permutation are marked as done during the
+ *          computation and restored at the end.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
 int
 bvec_zswap( pastix_int_t        m,
             pastix_int_t        n,
