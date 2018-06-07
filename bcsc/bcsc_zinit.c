@@ -27,11 +27,11 @@
  * factorization.
  */
 static inline void
-z_bcscInitA( const spmatrix_t     *spm,
-             const pastix_order_t *ord,
-             const SolverMatrix   *solvmtx,
-             const pastix_int_t   *col2cblk,
-                   pastix_bcsc_t  *bcsc )
+bcsc_zinit_A( const spmatrix_t     *spm,
+              const pastix_order_t *ord,
+              const SolverMatrix   *solvmtx,
+              const pastix_int_t   *col2cblk,
+                    pastix_bcsc_t  *bcsc )
 {
     pastix_complex64_t *values  = (pastix_complex64_t*)(spm->values);
     pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
@@ -89,7 +89,7 @@ z_bcscInitA( const spmatrix_t     *spm,
 }
 
 static inline void
-z_bcscInitLt( const spmatrix_t     *spm,
+bcsc_zinit_Lt( const spmatrix_t     *spm,
               const pastix_order_t *ord,
               const SolverMatrix   *solvmtx,
               const pastix_int_t   *col2cblk,
@@ -156,7 +156,7 @@ z_bcscInitLt( const spmatrix_t     *spm,
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
 static inline void
-z_bcscInitLh( const spmatrix_t     *spm,
+bcsc_zinit_Lh( const spmatrix_t     *spm,
               const pastix_order_t *ord,
               const SolverMatrix   *solvmtx,
               const pastix_int_t   *col2cblk,
@@ -223,7 +223,7 @@ z_bcscInitLh( const spmatrix_t     *spm,
 #endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 
 void
-z_bcscInitAt( const spmatrix_t     *spm,
+bcsc_zinit_At( const spmatrix_t     *spm,
               const pastix_order_t *ord,
               const SolverMatrix   *solvmtx,
               const pastix_int_t   *col2cblk,
@@ -318,7 +318,7 @@ z_bcscSort( const pastix_bcsc_t *bcsc,
 }
 
 void
-z_bcscInitCentralized( const spmatrix_t     *spm,
+bcsc_zinit_centralized( const spmatrix_t     *spm,
                        const pastix_order_t *ord,
                        const SolverMatrix   *solvmtx,
                        const pastix_int_t   *col2cblk,
@@ -333,13 +333,13 @@ z_bcscInitCentralized( const spmatrix_t     *spm,
     /**
      * Initialize the blocked structure of the matrix A
      */
-    z_bcscInitA( spm, ord, solvmtx, col2cblk, bcsc );
+    bcsc_zinit_A( spm, ord, solvmtx, col2cblk, bcsc );
     if ( spm->mtxtype == SpmSymmetric ) {
-        z_bcscInitLt( spm, ord, solvmtx, col2cblk, bcsc );
+        bcsc_zinit_Lt( spm, ord, solvmtx, col2cblk, bcsc );
     }
 #if defined(PRECISION_z) || defined(PRECISION_c)
     else if ( spm->mtxtype == SpmHermitian ) {
-        z_bcscInitLh( spm, ord, solvmtx, col2cblk, bcsc );
+        bcsc_zinit_Lh( spm, ord, solvmtx, col2cblk, bcsc );
     }
 #endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 
@@ -360,7 +360,7 @@ z_bcscInitCentralized( const spmatrix_t     *spm,
                 trowtab[i] = -1;
             }
 
-            z_bcscInitAt( spm, ord, solvmtx, col2cblk, trowtab, bcsc );
+            bcsc_zinit_At( spm, ord, solvmtx, col2cblk, trowtab, bcsc );
 
             /* Restore the correct coltab arrays */
             bcsc_restore_coltab( bcsc );

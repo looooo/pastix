@@ -31,7 +31,7 @@
  * @brief Computes the norm 2 of r and the norm 2 of b
  *                 and return the quotient of these two values:
  *
- *                         || r ||_2 / ||b||_2
+ *                         || r ||_2 / || b ||_2
  *
  *******************************************************************************
  *

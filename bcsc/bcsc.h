@@ -53,19 +53,6 @@ double bcscInit( const spmatrix_t     *spm,
                  pastix_int_t          initAt,
                  pastix_bcsc_t        *bcsc );
 
-void bcscExit( pastix_bcsc_t *bcsc );
-
-int bcscMatVec(      int            trans,
-               const void          *alpha,
-               const pastix_bcsc_t *bcsc,
-               const void          *x,
-               const void          *beta,
-                     void          *y );
-
-int bcscApplyPerm( const pastix_bcsc_t *bcsc,
-                   pastix_int_t         n,
-                   void                *b,
-                   pastix_int_t         ldb,
-                   pastix_int_t        *perm );
+void   bcscExit( pastix_bcsc_t *bcsc );
 
 #endif /* _bcsc_h_ */

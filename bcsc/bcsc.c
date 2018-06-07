@@ -23,6 +23,32 @@
 #include "d_bcsc.h"
 #include "s_bcsc.h"
 
+/**
+ *******************************************************************************
+ *
+ * @brief Initialize the coltab of a block csc matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure that describe the data distribution.
+ *
+ * @param[in] newcoltab
+ *          Array of size spm->gN+1. This array is global coltab with -1 for non
+ *          local indices.
+ *
+ * @param[in] dof
+ *          The degree of freedom of each unknown.
+ *
+ * @param[inout] bcsc
+ *          On entry, the pointer to an allocated bcsc.
+ *          On exit, the bcsc stores the ininitialized coltab split per block.
+ *
+ *******************************************************************************
+ *
+ * @return The number of non zero unknowns in the matrix.
+ *
+ *******************************************************************************/
 static inline pastix_int_t
 bcsc_init_coltab( const SolverMatrix  *solvmtx,
                   const pastix_int_t  *newcoltab,
@@ -53,13 +79,6 @@ bcsc_init_coltab( const SolverMatrix  *solvmtx,
         {
             nodeidx = ( fcolnum + (iter-iter%dof) ) / dof;
 
-            /* if (g2l != NULL && */
-            /*     iter != CSC_COLNBR(thecsc,index) && */
-            /*     !COL_IS_LOCAL(g2l[ord->peritab[nodeidx]])) */
-            /* { */
-            /*     errorPrint("Columns in internal CSCD must be in given CSCD"); */
-            /* } */
-
             colsize = (newcoltab[nodeidx+1] - newcoltab[nodeidx]) * dof;
             blockcol->coltab[iter+1] = blockcol->coltab[iter] + colsize;
         }
@@ -80,6 +99,22 @@ bcsc_init_coltab( const SolverMatrix  *solvmtx,
     return idxcol;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Restore the coltab array
+ *
+ * Function to restore the coltab array when it has been modified to initialize
+ * the row and values arrays.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] bcsc
+ *          On entry, the bcsc to restore.
+ *          On exit, the coltab array of the bcsc is restored to the correct
+ *          indices.
+ *
+ *******************************************************************************/
 void
 bcsc_restore_coltab( pastix_bcsc_t *bcsc )
 {
@@ -100,6 +135,33 @@ bcsc_restore_coltab( pastix_bcsc_t *bcsc )
     return;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Initialize the coltab of a centralized block csc matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering that needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure that describe the data distribution.
+ *
+ * @param[inout] bcsc
+ *          On entry, the pointer to an allocated bcsc.
+ *          On exit, the bcsc stores the input spm with the permutation applied
+ *          and grouped accordingly to the distribution described in solvmtx.
+ *
+ *******************************************************************************
+ *
+ * @return The number of non zero unknowns in the matrix.
+ *
+ *******************************************************************************/
 pastix_int_t
 bcsc_init_centralized_coltab( const spmatrix_t     *spm,
                               const pastix_order_t *ord,
@@ -116,7 +178,7 @@ bcsc_init_centralized_coltab( const spmatrix_t     *spm,
     bcsc->mtxtype = spm->mtxtype;
     baseval = spm->colptr[0];
 
-    /**
+    /*
      * Allocate and initialize globcol that contains the number of elements in
      * each column of the input matrix
      * Globcol is equivalent to the classic colptr for the internal blocked
@@ -173,12 +235,38 @@ bcsc_init_centralized_coltab( const spmatrix_t     *spm,
     return valuesize;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Initialize a centralized block csc when no MPI processes are involved.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering that needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure that describe the data distribution.
+ *
+ * @param[in] initAt
+ *          A flag to enable/disable the initialization of A'
+ *
+ * @param[inout] bcsc
+ *          On entry, the pointer to an allocated bcsc.
+ *          On exit, the bcsc stores the input spm with the permutation applied
+ *          and grouped accordingly to the distribution described in solvmtx.
+ *
+ *******************************************************************************/
 void
-bcscInitCentralized( const spmatrix_t     *spm,
-                     const pastix_order_t *ord,
-                     const SolverMatrix   *solvmtx,
-                           pastix_int_t    initAt,
-                           pastix_bcsc_t  *bcsc )
+bcsc_init_centralized( const spmatrix_t     *spm,
+                       const pastix_order_t *ord,
+                       const SolverMatrix   *solvmtx,
+                             pastix_int_t    initAt,
+                             pastix_bcsc_t  *bcsc )
 {
     pastix_int_t  itercol, itercblk;
     pastix_int_t  cblknbr  = solvmtx->cblknbr;
@@ -192,7 +280,7 @@ bcscInitCentralized( const spmatrix_t     *spm,
 
     assert( spm->loc2glob == NULL );
 
-    /**
+    /*
      * Initialize the col2cblk array. col2cblk[i] contains the cblk index of the
      * i-th column. col2cblk[i] = -1 if not local.
      */
@@ -216,27 +304,27 @@ bcscInitCentralized( const spmatrix_t     *spm,
         }
     }
 
-    /**
+    /*
      * Fill in the lower triangular part of the blocked csc with values and
      * rows. The upper triangular part is done later if required through LU
      * factorization.
      */
     switch( spm->flttype ) {
     case SpmFloat:
-        s_bcscInitCentralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
+        bcsc_sinit_centralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case SpmDouble:
-        d_bcscInitCentralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
+        bcsc_dinit_centralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case SpmComplex32:
-        c_bcscInitCentralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
+        bcsc_cinit_centralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case SpmComplex64:
-        z_bcscInitCentralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
+        bcsc_zinit_centralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case SpmPattern:
     default:
-        fprintf(stderr, "bcscInitCentralized: Error unknown floating type for input spm\n");
+        fprintf(stderr, "bcsc_init_centralized: Error unknown floating type for input spm\n");
     }
 
     memFree_null(col2cblk);
@@ -289,7 +377,7 @@ bcscInit( const spmatrix_t     *spm,
     clockStart(time);
 
     if ( spm->loc2glob == NULL ) {
-        bcscInitCentralized( spm, ord, solvmtx, initAt, bcsc );
+        bcsc_init_centralized( spm, ord, solvmtx, initAt, bcsc );
     }
     else {
         fprintf(stderr, "bcscInit: Distributed SPM not yet supported");

@@ -20,27 +20,15 @@ void z_bcscSort( const pastix_bcsc_t *bcsc,
                  pastix_int_t        *rowtab,
                  pastix_complex64_t  *valtab );
 
-void z_bcscInitCentralized( const spmatrix_t     *spm,
-                            const pastix_order_t *ord,
-                            const SolverMatrix   *solvmtx,
-                            const pastix_int_t   *col2cblk,
-                                  int             initAt,
-                                  pastix_bcsc_t  *bcsc );
+void bcsc_zinit_centralized( const spmatrix_t     *spm,
+                             const pastix_order_t *ord,
+                             const SolverMatrix   *solvmtx,
+                             const pastix_int_t   *col2cblk,
+                                   int             initAt,
+                                   pastix_bcsc_t  *bcsc );
 
 int z_bcscGemv(      pastix_trans_t      trans,
                      pastix_complex64_t  alpha,
-               const pastix_bcsc_t      *bcsc,
-               const pastix_complex64_t *x,
-                     pastix_complex64_t  beta,
-                     pastix_complex64_t *y );
-
-int z_bcscSymv(      pastix_complex64_t  alpha,
-               const pastix_bcsc_t      *bcsc,
-               const pastix_complex64_t *x,
-                     pastix_complex64_t  beta,
-                     pastix_complex64_t *y );
-
-int z_bcscHemv(      pastix_complex64_t  alpha,
                const pastix_bcsc_t      *bcsc,
                const pastix_complex64_t *x,
                      pastix_complex64_t  beta,
