@@ -61,6 +61,7 @@ pastix_int_t z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
     double               lberr          = 0.0;
     int                  flag           = 1;
     pastix_int_t         refinenbr     = 0.0;
+    double               normb, normr;
 
     memset( &solver, 0, sizeof(struct z_solver) );
     z_Pastix_Solver(&solver);
@@ -81,6 +82,8 @@ pastix_int_t z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
     lur2 = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
 
     clockInit(refine_clk);clockStart(refine_clk);
+
+    normb = solver.norm( n, b );
 
     while(flag)
     {
@@ -103,8 +106,9 @@ pastix_int_t z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
             lberr = 3*berr;
         }
 
-        /* Compute ||r|| and ||r||/||b|| */
-        tmp_berr = z_bcscNormErr((void *)lur, (void *)b, n);
+        /* Compute ||r|| / ||b|| */
+        normr = solver.norm( n, lur );
+        tmp_berr = normr / normb;
 
         if ((refinenbr < itermax)
             && (berr > eps)
@@ -129,7 +133,7 @@ pastix_int_t z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
             clockStop(refine_clk);
 
             /* updo_vect <= updo_vect (ie PRECOND(B-AX_i)) + lur2 (ie X_i) */
-            z_bcscAxpy( n, 1, 1.0, (void*)lur2, x );
+            solver.axpy( n, 1.0, (void*)lur2, x );
 
             /* lastberr = berr */
             lberr = berr;

@@ -317,7 +317,7 @@ pastix_int_t z_Pastix_Krylov_Space( pastix_data_t *pastix_data )
 double z_Pastix_norm( pastix_int_t n, const pastix_complex64_t *x )
 {
     double normx;
-    normx = z_vectFrobeniusNorm( n, x );
+    normx = bcsc_znrm2( n, x );
     return normx;
 }
 
@@ -416,7 +416,7 @@ void z_Pastix_gemv( pastix_int_t m,
  *******************************************************************************/
 void z_Pastix_scal( pastix_int_t n, pastix_complex64_t alpha, pastix_complex64_t *x )
 {
-    cblas_zscal( n, CBLAS_SADDR(alpha), x, 1 );
+    bcsc_zscal( n, alpha, x );
 }
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -447,7 +447,7 @@ z_Pastix_dotu( pastix_int_t n,
                const pastix_complex64_t *x,
                const pastix_complex64_t *y )
 {
-    return z_bcscDotu( n, x, y );
+    return bcsc_zdotu( n, x, y );
 }
 #endif
 
@@ -482,7 +482,7 @@ z_Pastix_dotc( pastix_int_t n,
                const pastix_complex64_t *x,
                const pastix_complex64_t *y )
 {
-    return z_bcscDotc( n, x, y );
+    return bcsc_zdotc( n, x, y );
 }
 
 /**
@@ -609,8 +609,14 @@ void z_Pastix_spmv( pastix_data_t            *pastix_data,
 void z_Pastix_BYPX( pastix_int_t n, pastix_complex64_t *beta,
                     pastix_complex64_t *y, pastix_complex64_t *x )
 {
-    z_bcscScal( x, *beta, n, 1);
-    z_bcscAxpy( n, 1, 1., y, x );
+    int rc;
+    rc = bcsc_zscal( n, *beta, x );
+    assert( rc == PASTIX_SUCCESS );
+
+    rc = bcsc_zaxpy( n, 1., y, x );
+    assert( rc == PASTIX_SUCCESS );
+
+    (void)rc;
 }
 
 /**
@@ -668,7 +674,7 @@ z_Pastix_axpy( pastix_int_t              n,
                const pastix_complex64_t *x,
                pastix_complex64_t       *y )
 {
-    z_bcscAxpy( n, 1, alpha, x, y );
+    bcsc_zaxpy( n, alpha, x, y );
 }
 
 /**
@@ -726,12 +732,12 @@ void z_Pastix_Solver( struct z_solver *solver )
     solver->output_final   = &z_Pastix_End;
 
     /* Basic operations */
-    solver->dot     = &z_Pastix_dotc;
-    solver->scal    = &z_Pastix_scal;
-    solver->copy    = &z_Pastix_copy;
-    solver->axpy    = &z_Pastix_axpy;
-    solver->spmv    = &z_Pastix_spmv;
-    solver->spsv    = &z_Pastix_spsv;
-    solver->norm    = &z_Pastix_norm;
-    solver->gemv    = &z_Pastix_gemv;
+    solver->dot  = &z_Pastix_dotc;
+    solver->scal = &z_Pastix_scal;
+    solver->copy = &z_Pastix_copy;
+    solver->axpy = &z_Pastix_axpy;
+    solver->spmv = &z_Pastix_spmv;
+    solver->spsv = &z_Pastix_spsv;
+    solver->norm = &z_Pastix_norm;
+    solver->gemv = &z_Pastix_gemv;
 }
