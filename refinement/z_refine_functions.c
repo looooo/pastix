@@ -137,10 +137,6 @@ void z_Pastix_End( pastix_data_t *pastix_data, pastix_complex64_t err,
     (void)err;
     (void)nb_iters;
     (void)tf;
-
-    for (i=0; i<n; i++) {
-        xptr[i] = gmresx[i];
-    }
 }
 
 /**

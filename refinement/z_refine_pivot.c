@@ -43,31 +43,26 @@
  * @return Number of iterations
  *
  *******************************************************************************/
-pastix_int_t z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
+pastix_int_t
+z_pivot_smp( pastix_data_t *pastix_data,
+             void *x,
+             void *b )
 {
     struct z_solver     solver;
-    pastix_int_t        n;
-    Clock               refine_clk;
-    int                 itermax;
-    pastix_int_t        iter      = 0;
-    int                 precond   = 1;
-    pastix_complex64_t *lur;
-    pastix_complex64_t *lur2;
-    double eps;
-
-    pastix_bcsc_t       *bcsc = pastix_data->bcsc;
-    double               tmp_berr       = 0.0;
-    double               berr           = 0.0;
-    double               lberr          = 0.0;
-    int                  flag           = 1;
-    pastix_int_t         refinenbr     = 0.0;
-    double               normb, normr;
+    Clock               t0, t3, refine_clk;
+    pastix_int_t        n, itermax;
+    pastix_complex64_t *r, *dx;
+    double              eps, normb, normr;
+    double              berr, last_berr;
+    pastix_int_t        iter = 0;
+    int                 flag = 1;
 
     memset( &solver, 0, sizeof(struct z_solver) );
     z_Pastix_Solver(&solver);
 
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
-        precond = 0;
+        fprintf(stderr, "pastix_task_refine: Simple refinement cannot be applied without preconditionner\n" );
+        return -1;
     }
 
     n       = solver.getN(    pastix_data );
@@ -78,110 +73,70 @@ pastix_int_t z_pivot_smp (pastix_data_t *pastix_data, void *x, void *b)
     {
         fprintf(stdout, OUT_ITERREFINE_PIVOT);
     }
-    lur  = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
-    lur2 = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+    r  = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+    dx = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
 
-    clockInit(refine_clk);clockStart(refine_clk);
+    clockInit(refine_clk);
+    clockStart(refine_clk);
 
     normb = solver.norm( n, b );
 
+    t0 = clockGet();
     while(flag)
     {
-        iter++;
-        clockStop((refine_clk));
-
         /* Compute r = b - A * x */
-        solver.copy( n, b, lur );
-        solver.spmv( pastix_data, -1., x, 1., lur );
+        solver.copy( n, b, r );
+        solver.spmv( pastix_data, -1., x, 1., r );
 
-        /* r' = |A||x| + |b| */
-        z_bcscAxpb(PastixNoTrans, bcsc, x, b, lur2);
+        /*
+         * berr should be equal to the componentwise backward error in the literature:
+         *     max( r_i / ( |A| |x| + |b| )_i )
+         * For simplicity, we replace it by ||r||_f / ||b||_f which may not be
+         * as good as the previous one.
+         */
+        normr = solver.norm( n, r );
+        berr = normr / normb;
 
-        /* tmp_berr =  max_i(|lur_i|/|lur2_i|)*/
-        tmp_berr = z_bcscBerr( lur, lur2, n );
-
-        berr = tmp_berr;
-        if (lberr == 0.) {
-            /* Force te first error */
-            lberr = 3*berr;
+        /* Force te first error */
+        if ( iter == 0 ) {
+            last_berr = 3 * berr;
+        }
+        else {
+            t3 = clockGet();
+            if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+                solver.output_oneiter( t0, t3, berr, iter );
+            }
+            t0 = clockGet();
         }
 
-        /* Compute ||r|| / ||b|| */
-        normr = solver.norm( n, lur );
-        tmp_berr = normr / normb;
-
-        if ((refinenbr < itermax)
-            && (berr > eps)
-            && (berr <= (lberr/2)))
+        if ( (iter < itermax) &&
+             (berr > eps) &&
+             (berr <= (last_berr / 2.)) )
         {
+            t3 = clockGet();
 
-            /* LU dx = r */
-            /* lur2 <= updo_vect (ie X_i)
-             * updo_vect <= lur (ie B-AX_i)
-             */
-            memcpy(lur2, x, n * sizeof( pastix_complex64_t ));
-            memcpy(x, lur, n * sizeof( pastix_complex64_t ));
+            /* Solve A dx = r */
+            solver.copy( n, r, dx );
+            solver.spsv( pastix_data, dx );
 
-            clockStop((refine_clk));
+            /* Accumulate the solution: x = x + dx */
+            solver.axpy( n, 1.0, dx, x );
 
-            //           z_up_down_smp(arg);
-            solver.copy( n, b, x );
-            if ( precond ) {
-                solver.spsv( pastix_data, x );
-            }
-
-            clockStop(refine_clk);
-
-            /* updo_vect <= updo_vect (ie PRECOND(B-AX_i)) + lur2 (ie X_i) */
-            solver.axpy( n, 1.0, (void*)lur2, x );
-
-            /* lastberr = berr */
-            lberr = berr;
-            refinenbr++;
+            last_berr = berr;
         }
         else
         {
             flag = 0;
         }
 
-        clockStop(refine_clk);
-
-        //       if (sopar->iparm[IPARM_VERBOSE] > PastixVerboseNot)
-        //         {
-        //           double sst, rst = 0.0;
-        //           double stt, rtt;
-        //           double err, berr = sopalin_data->berr;
-        //
-        //           stt = t3 - t0;
-        //           sst = t2-t1;
-        //           MyMPI_Reduce(&sst, &rst, 1, MPI_DOUBLE, MPI_MAX, 0, pastix_comm);
-        //
-        //           MyMPI_Reduce(&berr, &err, 1, MPI_DOUBLE, MPI_MAX, 0, pastix_comm);
-        //           MyMPI_Reduce(&stt,  &rtt, 1, MPI_DOUBLE, MPI_MAX, 0, pastix_comm);
-        //           if (SOLV_PROCNUM == 0)
-        //             {
-        //               fprintf(stdout, OUT_ITERREFINE_ITER, (int)sopalin_data->refinenbr);
-        //               fprintf(stdout, OUT_ITERREFINE_TTS, rst);
-        //               fprintf(stdout, OUT_ITERREFINE_TTT, rtt);
-        //               fprintf(stdout, OUT_ITERREFINE_ERR, err);
-        //             }
-        //         }
+        iter++;
     }
+    clockStop(refine_clk);
 
-    memFree_null(lur);
-    memFree_null(lur2);
-    itermax = refinenbr;
+    solver.output_final( pastix_data, berr, iter, refine_clk, x, x );
 
-    //   if (sopar->iparm[IPARM_END_TASK] >= PastixTaskRefine)
-    //     {
-    //         MUTEX_LOCK(&(sopalin_data->mutex_comm));
-    //         sopalin_data->step_comm = COMMSTEP_END;
-    //         MUTEX_UNLOCK(&(sopalin_data->mutex_comm));
-    //         pthread_cond_broadcast(&(sopalin_data->cond_comm));
-    //     }
-
-    clockStop((refine_clk));
-    pastix_data->dparm[DPARM_REFINE_TIME] = clockGet();
+    solver.free( r );
+    solver.free( dx );
 
     return iter;
 }
