@@ -27,7 +27,7 @@
 #include <bcsc.h>
 #include "lapacke.h"
 #include <z_spm.h>
-#include <z_bcsc.h>
+#include <bcsc_z.h>
 #include <bcsc.h>
 #include <pastix/order.h>
 #include "blend/solver.h"
@@ -79,7 +79,7 @@ z_bcsc_matvec_check( int trans, const spmatrix_t   *spm, const pastix_data_t *pa
     bvec_zswap( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
     bvec_zswap( pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
 
-    z_bcscGemv( trans, alpha, pastix_data->bcsc, x, beta, yd );
+    bcsc_zspmv( trans, alpha, pastix_data->bcsc, x, beta, yd );
 
     bvec_zswap( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
     bvec_zswap( pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
@@ -132,7 +132,7 @@ z_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc )
      */
     printf(" -- Test norm Max :");
     norms = spmNorm( SpmMaxNorm, spm );
-    normd = z_bcscNorm( PastixMaxNorm, bcsc );
+    normd = bcsc_znorm( PastixMaxNorm, bcsc );
     result = fabs(norms - normd) / (norms * eps);
 
     if ( (result >= 0.) && (result < 1.) ) {
@@ -150,7 +150,7 @@ z_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc )
      */
     printf(" -- Test norm Inf :");
     norms = spmNorm( SpmInfNorm, spm );
-    normd = z_bcscNorm( PastixInfNorm, bcsc );
+    normd = bcsc_znorm( PastixInfNorm, bcsc );
     result = fabs(norms - normd) / (norms * eps);
     result = result * ((double)(spm->gN)) / ((double)(spm->gnnz));
 
@@ -169,7 +169,7 @@ z_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc )
      */
     printf(" -- Test norm One :");
     norms = spmNorm( SpmOneNorm, spm );
-    normd = z_bcscNorm( PastixOneNorm, bcsc );
+    normd = bcsc_znorm( PastixOneNorm, bcsc );
     result = fabs(norms - normd) / (norms * eps);
     result = result * ((double)(spm->gN)) / ((double)(spm->gnnz));
 
@@ -188,7 +188,7 @@ z_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc )
      */
     printf(" -- Test norm Frb :");
     norms = spmNorm( SpmFrobeniusNorm, spm );
-    normd = z_bcscNorm( PastixFrobeniusNorm, bcsc );
+    normd = bcsc_znorm( PastixFrobeniusNorm, bcsc );
     result = fabs(norms - normd) / (norms * eps);
     result = result / ((double)spm->gnnz);
 

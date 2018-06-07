@@ -19,7 +19,7 @@
 #include "common.h"
 #include "cblas.h"
 #include "bcsc.h"
-#include "z_bcsc.h"
+#include "bcsc_z.h"
 #include "sopalin_data.h"
 #include "z_refine_functions.h"
 
@@ -448,7 +448,7 @@ void z_Pastix_spmv( pastix_data_t            *pastix_data,
                     pastix_complex64_t       *y )
 {
     pastix_bcsc_t *bcsc = pastix_data->bcsc;
-    z_bcscGemv( PastixNoTrans, alpha, bcsc, x, beta, y );
+    bcsc_zspmv( PastixNoTrans, alpha, bcsc, x, beta, y );
 }
 
 /**

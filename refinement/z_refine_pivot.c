@@ -16,8 +16,6 @@
  *
  **/
 #include "common.h"
-#include "bcsc.h"
-#include "z_bcsc.h"
 #include "z_refine_functions.h"
 
 /**
