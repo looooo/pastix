@@ -41,7 +41,7 @@
  *          The solver matrix structure that describe the data distribution.
  *
  * @param[in] col2cblk
- *          Array of matching column with cblk indices.
+ *          Array of matching column with cblk indexes.
  *
  * @param[inout] bcsc
  *          On entry, the pointer to an allocated bcsc.
@@ -64,7 +64,7 @@ bcsc_zinit_A( const spmatrix_t     *spm,
     baseval = spm->colptr[0];
 
     /**
-     * Initialize the value of the matrix A in the blocked csc format. This
+     * Initialize the values of the matrix A in the blocked csc format. This
      * applies the permutation to the values array.
      */
     for (itercol=0; itercol<spm->gN; itercol++)
@@ -115,7 +115,7 @@ bcsc_zinit_A( const spmatrix_t     *spm,
  *
  * @ingroup pastix_bcsc
  *
- * @brief Initialize the value in the block csc (upper part) for a symmetric
+ * @brief Initialize the values in the block csc (upper part) for a symmetric
  * matrix since only one side has been initialized by bcsc_zinit_A()
  *
  *******************************************************************************
@@ -131,7 +131,7 @@ bcsc_zinit_A( const spmatrix_t     *spm,
  *          The solver matrix structure that describe the data distribution.
  *
  * @param[in] col2cblk
- *          Array of matching column with cblk indices.
+ *          Array of matching column with cblk indexes.
  *
  * @param[inout] bcsc
  *          On entry, the pointer to an allocated bcsc.
@@ -154,7 +154,7 @@ bcsc_zinit_Lt( const spmatrix_t     *spm,
     baseval = spm->colptr[0];
 
     /**
-     * Initialize the value of the matrix A^t in the blocked csc format. This
+     * Initialize the values of the matrix A^t in the blocked csc format. This
      * applies the permutation to the values array.
      */
     for (itercol=0; itercol<spm->gN; itercol++)
@@ -209,7 +209,7 @@ bcsc_zinit_Lt( const spmatrix_t     *spm,
  *
  * @ingroup pastix_bcsc
  *
- * @brief Initialize the value in the block csc (upper part) for an hermitian
+ * @brief Initialize the values in the block csc (upper part) for an hermitian
  * matrix since only one side has been initialized by bcsc_zinit_A()
  *
  *******************************************************************************
@@ -225,7 +225,7 @@ bcsc_zinit_Lt( const spmatrix_t     *spm,
  *          The solver matrix structure that describe the data distribution.
  *
  * @param[in] col2cblk
- *          Array of matching column with cblk indices.
+ *          Array of matching column with cblk indexes.
  *
  * @param[inout] bcsc
  *          On entry, the pointer to an allocated bcsc.
@@ -249,7 +249,7 @@ bcsc_zinit_Lh( const spmatrix_t     *spm,
     baseval = spm->colptr[0];
 
     /**
-     * Initialize the value of the matrix A^t in the blocked csc format. This
+     * Initialize the values of the matrix A^t in the blocked csc format. This
      * applies the permutation to the values array.
      */
     for (itercol=0; itercol<spm->gN; itercol++)
@@ -321,7 +321,7 @@ bcsc_zinit_Lh( const spmatrix_t     *spm,
  *          The solver matrix structure that describe the data distribution.
  *
  * @param[in] col2cblk
- *          Array of matching column with cblk indices.
+ *          Array of matching column with cblk indexes.
  *
  * @param[out] trowtab
  *          The row tab associated to the transposition of A.
@@ -348,7 +348,7 @@ bcsc_zinit_At( const spmatrix_t     *spm,
     baseval = spm->colptr[0];
 
     /**
-     * Initialize the value of the matrix A^t in the blocked csc format. This
+     * Initialize the values of the matrix A^t in the blocked csc format. This
      * applies the permutation to the values array.
      */
     for (itercol=0; itercol<spm->gN; itercol++)
@@ -466,7 +466,7 @@ bcsc_zsort( const pastix_bcsc_t *bcsc,
  *          The solver matrix structure that describe the data distribution.
  *
  * @param[in] col2cblk
- *          Array of matching column with cblk indices.
+ *          Array of matching column with cblk indexes.
  *
  * @param[in] initAt
  *          A flag to enable/disable the initialization of A'

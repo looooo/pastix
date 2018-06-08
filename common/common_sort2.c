@@ -194,13 +194,13 @@ const pastix_int_t                   total_elems)          /*+ Number of entries
             hi = right_ptr;
           else if ((right_ptr - lo) > (hi - left_ptr))
             {
-              /* Push larger left partition indices. */
+              /* Push larger left partition indexes. */
               PUSH_2 (lo, right_ptr);
               lo = left_ptr;
             }
           else
             {
-              /* Push larger right partition indices. */
+              /* Push larger right partition indexes. */
               PUSH_2 (left_ptr, hi);
               hi = right_ptr;
             }

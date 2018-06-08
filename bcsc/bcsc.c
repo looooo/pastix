@@ -35,7 +35,7 @@
  *
  * @param[in] newcoltab
  *          Array of size spm->gN+1. This array is global coltab with -1 for non
- *          local indices.
+ *          local indexes.
  *
  * @param[in] dof
  *          The degree of freedom of each unknown.
@@ -112,7 +112,7 @@ bcsc_init_coltab( const SolverMatrix  *solvmtx,
  * @param[inout] bcsc
  *          On entry, the bcsc to restore.
  *          On exit, the coltab array of the bcsc is restored to the correct
- *          indices.
+ *          indexes.
  *
  *******************************************************************************/
 void

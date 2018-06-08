@@ -263,7 +263,7 @@ solverDraw ( const SolverMatrix * const  solvptr,
         fclose(fd3);
     }
 
-    fprintf (stream, "pop pop\n");        /* Purge last column block indices */
+    fprintf (stream, "pop pop\n");        /* Purge last column block indexes */
     o = fprintf (stream, "showpage\n");   /* Restore context                 */
 
 
