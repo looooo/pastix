@@ -19,7 +19,7 @@
 #include "common.h"
 #include "cblas.h"
 #include "bcsc.h"
-#include "z_bcsc.h"
+#include "bcsc_z.h"
 #include "sopalin_data.h"
 #include "z_refine_functions.h"
 
@@ -65,7 +65,6 @@ void z_Pastix_free( void *x )
 {
     memFree_null(x);
 }
-
 
 /**
  *******************************************************************************
@@ -131,55 +130,12 @@ void z_Pastix_End( pastix_data_t *pastix_data, pastix_complex64_t err,
                    pastix_int_t nb_iters, double tf,
                    void *x, pastix_complex64_t *gmresx )
 {
-    pastix_complex64_t *xptr = (pastix_complex64_t *)x;
-    pastix_int_t        n    = pastix_data->bcsc->gN;
-    pastix_int_t i;
+    (void)pastix_data;
     (void)err;
     (void)nb_iters;
     (void)tf;
-
-    for (i=0; i<n; i++) {
-        xptr[i] = gmresx[i];
-    }
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_dev_refine
- *
- * @brief Initiate first solution depending on the use of a preconditioner
- *
- *******************************************************************************
- *
- * @param[in] pastix_data
- *          The PaStiX data structure that describes the solver instance.
- *
- * @param[in] x
- *          The original solution provided by the user
- *
- * @param[inout] gmresx
- *          The starting point of iterative methods
- *
- *******************************************************************************/
-void z_Pastix_X( pastix_data_t *pastix_data, void *x, pastix_complex64_t *gmresx )
-{
-    pastix_int_t        i;
-    pastix_int_t        n = pastix_data->bcsc->gN;
-    pastix_complex64_t *xptr = (pastix_complex64_t *)x;
-
-    if (1 /*pastix_data->iparm[IPARM_ONLY_REFINE] == 0*/)
-    {
-        for (i=0; i<n; i++, xptr++) {
-            gmresx[i]= *xptr;
-        }
-    }
-    else
-    {
-        for (i=0; i<n; i++, xptr++) {
-            gmresx[i] = 0.0;
-        }
-    }
+    (void)x;
+    (void)gmresx;
 }
 
 /**
@@ -202,30 +158,6 @@ void z_Pastix_X( pastix_data_t *pastix_data, void *x, pastix_complex64_t *gmresx
 pastix_int_t z_Pastix_n( pastix_data_t *pastix_data )
 {
     return pastix_data->bcsc->gN;
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_dev_refine
- *
- * @brief Initiate the B vector used in iterative methods
- *
- *******************************************************************************
- *
- * @param[in] b
- *          The vector given by the user
- *
- * @param[out] refineb
- *          The vector used in iterative methods
- *
- * @param[in] n
- *          The number of elements of both b and refineb
- *
- *******************************************************************************/
-void z_Pastix_B( const pastix_complex64_t *b, pastix_complex64_t *refineb, pastix_int_t n )
-{
-    memcpy( refineb, b, n * sizeof(pastix_complex64_t) );
 }
 
 /**
@@ -316,9 +248,7 @@ pastix_int_t z_Pastix_Krylov_Space( pastix_data_t *pastix_data )
  *******************************************************************************/
 double z_Pastix_norm( pastix_int_t n, const pastix_complex64_t *x )
 {
-    double normx;
-    normx = z_vectFrobeniusNorm( n, x );
-    return normx;
+    return bvec_znrm2( n, x );
 }
 
 /**
@@ -351,7 +281,7 @@ void z_Pastix_spsv( pastix_data_t *pastix_data, pastix_complex64_t *b )
  *
  * @ingroup pastix_dev_refine
  *
- * @brief Compute y = \alpha A x + \beta y
+ * @brief Compute \f[ y = \alpha A x + \beta y \f]
  *
  *******************************************************************************
  *
@@ -416,7 +346,7 @@ void z_Pastix_gemv( pastix_int_t m,
  *******************************************************************************/
 void z_Pastix_scal( pastix_int_t n, pastix_complex64_t alpha, pastix_complex64_t *x )
 {
-    cblas_zscal( n, CBLAS_SADDR(alpha), x, 1 );
+    bvec_zscal( n, alpha, x );
 }
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -447,7 +377,7 @@ z_Pastix_dotu( pastix_int_t n,
                const pastix_complex64_t *x,
                const pastix_complex64_t *y )
 {
-    return z_bcscDotu( n, x, y );
+    return bvec_zdotu( n, x, y );
 }
 #endif
 
@@ -482,70 +412,7 @@ z_Pastix_dotc( pastix_int_t n,
                const pastix_complex64_t *x,
                const pastix_complex64_t *y )
 {
-    return z_bcscDotc( n, x, y );
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_dev_refine
- *
- * @brief Perform r = Ax
- *
- *******************************************************************************
- *
- * @param[in] bcsc
- *          The Pastix bcsc
- *
- * @param[in] x
- *          The vector that multiplies the matrix A
- *
- * @param[in] r
- *          The result of the matrix-vector product
- *
- *******************************************************************************/
-void z_Pastix_Ax( pastix_bcsc_t *bcsc, pastix_complex64_t *x, pastix_complex64_t *r )
-{
-    pastix_int_t alpha = 1.0;
-    pastix_int_t beta = 0.0;
-    void* xptr = (void*)x;
-    void* yptr = (void*)r;
-
-    z_bcscGemv(PastixNoTrans, alpha, bcsc, xptr, beta, yptr );
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_dev_refine
- *
- * @brief Perform r = b - Ax
- *
- *******************************************************************************
- *
- * @param[in] bcsc
- *          The Pastix bcsc
- *
- * @param[in] b
- *          The vector to be copied in r
- *
- * @param[in] x
- *          The vector that multiplies A
- *
- * @param[in] r
- *          The result b-Ax
- *
- *******************************************************************************/
-void z_Pastix_bMAx( pastix_bcsc_t            *bcsc,
-                    const pastix_complex64_t *b,
-                    const pastix_complex64_t *x,
-                    pastix_complex64_t       *r )
-{
-    pastix_complex64_t alpha = -1.0;
-    pastix_complex64_t beta = 1.0;
-
-    memcpy( r, b, bcsc->gN * sizeof( pastix_complex64_t ) );
-    z_bcscGemv( PastixNoTrans, alpha, bcsc, x, beta, r );
+    return bvec_zdotc( n, x, y );
 }
 
 /**
@@ -581,36 +448,7 @@ void z_Pastix_spmv( pastix_data_t            *pastix_data,
                     pastix_complex64_t       *y )
 {
     pastix_bcsc_t *bcsc = pastix_data->bcsc;
-    z_bcscGemv( PastixNoTrans, alpha, bcsc, x, beta, y );
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_dev_refine
- *
- * @brief Perform x = beta x + y
- *
- *******************************************************************************
- *
- * @param[in] n
- *          The number of elements of x and y
- *
- * @param[in] beta
- *          The scaling parameter of x
- *
- * @param[in] y
- *          The vector added to beta x
- *
- * @param[inout] x
- *          The resulting vector
- *
- *******************************************************************************/
-void z_Pastix_BYPX( pastix_int_t n, pastix_complex64_t *beta,
-                    pastix_complex64_t *y, pastix_complex64_t *x )
-{
-    z_bcscScal( x, *beta, n, 1);
-    z_bcscAxpy( n, 1, 1., y, x );
+    bcsc_zspmv( PastixNoTrans, alpha, bcsc, x, beta, y );
 }
 
 /**
@@ -668,7 +506,7 @@ z_Pastix_axpy( pastix_int_t              n,
                const pastix_complex64_t *x,
                pastix_complex64_t       *y )
 {
-    z_bcscAxpy( n, 1, alpha, x, y );
+    bvec_zaxpy( n, alpha, x, y );
 }
 
 /**
@@ -726,12 +564,12 @@ void z_Pastix_Solver( struct z_solver *solver )
     solver->output_final   = &z_Pastix_End;
 
     /* Basic operations */
-    solver->dot     = &z_Pastix_dotc;
-    solver->scal    = &z_Pastix_scal;
-    solver->copy    = &z_Pastix_copy;
-    solver->axpy    = &z_Pastix_axpy;
-    solver->spmv    = &z_Pastix_spmv;
-    solver->spsv    = &z_Pastix_spsv;
-    solver->norm    = &z_Pastix_norm;
-    solver->gemv    = &z_Pastix_gemv;
+    solver->dot  = &z_Pastix_dotc;
+    solver->scal = &z_Pastix_scal;
+    solver->copy = &z_Pastix_copy;
+    solver->axpy = &z_Pastix_axpy;
+    solver->spmv = &z_Pastix_spmv;
+    solver->spsv = &z_Pastix_spsv;
+    solver->norm = &z_Pastix_norm;
+    solver->gemv = &z_Pastix_gemv;
 }

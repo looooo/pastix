@@ -1,6 +1,6 @@
 /**
  *
- * @file z_bcsc_matrixvector.c
+ * @file bcsc_zspmv.c
  *
  * Functions computing matrix-vector products for the BCSC
  *
@@ -21,8 +21,6 @@
 
 /**
  *******************************************************************************
- *
- * @ingroup pastix_bcsc
  *
  * @brief Compute the matrix-vector product  y = alpha * op(A) * x + beta * y
  *
@@ -65,12 +63,12 @@
  *
  *******************************************************************************/
 int
-z_bcscGemv(pastix_trans_t      trans,
-           pastix_complex64_t  alpha,
-           pastix_bcsc_t      *bcsc,
-           void               *x,
-           pastix_complex64_t  beta,
-           void               *y )
+bcsc_zspmv( pastix_trans_t            trans,
+            pastix_complex64_t        alpha,
+            const pastix_bcsc_t      *bcsc,
+            const pastix_complex64_t *x,
+            pastix_complex64_t        beta,
+            pastix_complex64_t       *y )
 {
     pastix_complex64_t *valptr = NULL;
     pastix_complex64_t *yptr, *xptr;

@@ -121,7 +121,7 @@ solverMatrixGen( pastix_int_t           clustnum,
     memcpy(solvmtx->proc2clust, ctrl->core2clust, sizeof(pastix_int_t)*solvmtx->procnbr);
 
     /*
-     * Compute local indices to compress the symbol information into solver
+     * Compute local indexes to compress the symbol information into solver
      */
     {
         pastix_int_t *localindex;
@@ -559,7 +559,7 @@ solverMatrixGen( pastix_int_t           clustnum,
 
             MALLOC_INTERN(solvmtx->ftgttab, solvmtx->ftgtnbr, solver_ftgt_t);
 
-            /* Allocate array to store local indices */
+            /* Allocate array to store local indexes */
             ftgtnbr = simuctrl->bloktab[symbmtx->bloknbr].ftgtnum;
             MALLOC_INTERN(ftgtlocalnum, ftgtnbr, pastix_int_t);
             memset(ftgtlocalnum, -1, ftgtnbr * sizeof(pastix_int_t));

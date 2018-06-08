@@ -208,7 +208,7 @@ pastixSymbolDrawFunc (
             }
         }
     }
-    fprintf (stream, "pop pop\n");                  /* Purge last column block indices */
+    fprintf (stream, "pop pop\n");                  /* Purge last column block indexes */
     o = fprintf (stream, "grestore\nshowpage\n");   /* Restore context                 */
 
     return ((o != EOF) ? 0 : 1);

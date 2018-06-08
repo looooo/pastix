@@ -402,9 +402,9 @@ solverPrintStats( const SolverMatrix *solvptr )
 
     fprintf( stdout,
              "      Number of GEMM tasks:           | %-12s | %-12s | %-12s | %-12s |\n"
-             "        - All blocks                  | %12ld | %12ld | %12ld | %12ld |\n"
-             "        - PaRSEC                      | %12ld | %12ld | %12ld | %12ld |\n"
-             "        - StarPU                      | %12ld | %12ld | %12ld | %12ld |\n",
+             "        - All blocks                  | %12" PRIi64 " | %12" PRIi64 " | %12" PRIi64 " | %12" PRIi64 " |\n"
+             "        - PaRSEC                      | %12" PRIi64 " | %12" PRIi64 " | %12" PRIi64 " | %12" PRIi64 " |\n"
+             "        - StarPU                      | %12" PRIi64 " | %12" PRIi64 " | %12" PRIi64 " | %12" PRIi64 " |\n",
              "Dense", "Full2d", "Hybrid", "Full1d",
              gemm_dense, gemm_nopart_full2, gemm_nopart_hybrid, gemm_full1,
              gemm_dense, gemm_parsec_full2, gemm_parsec_hybrid, gemm_full1,

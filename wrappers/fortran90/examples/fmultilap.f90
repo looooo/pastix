@@ -1,5 +1,5 @@
 !
-! @file flaplacian.f90
+! @file fmultilap.f90
 !
 ! Fortran 90 multiple rhs example.
 !
@@ -36,7 +36,7 @@
 ! @author Mathieu Faverge
 ! @date 2018-06-03
 !
-program flaplacian
+program fmultilap
   use iso_c_binding
   use pastix_enums
   use spmf
@@ -886,6 +886,6 @@ contains
 
   end subroutine split_parall
 
-end program flaplacian
+end program fmultilap
 
 

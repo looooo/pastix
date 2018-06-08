@@ -1,5 +1,5 @@
 /**
- * @file compress.c
+ * @file dump_rank.c
  *
  * @brief A compression example that factorizes the matrix with the Just-In-Time
  * strategy and Rank-Revealing kernels.

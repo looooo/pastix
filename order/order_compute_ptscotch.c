@@ -22,11 +22,6 @@
 #endif
 #include "order_scotch_strats.h"
 
-/* TODO: take care of this */
-void global2localperm(pastix_int_t  lN,
-                      pastix_int_t *lperm,
-                      pastix_int_t *gperm,
-                      pastix_int_t *loc2glob);
 /**
  *******************************************************************************
  *

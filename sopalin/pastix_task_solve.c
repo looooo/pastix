@@ -21,13 +21,14 @@
 #include "solver.h"
 #include "sopalin_data.h"
 
-#include "z_bcsc.h"
-#include "c_bcsc.h"
-#include "d_bcsc.h"
-#include "s_bcsc.h"
+#include "bcsc_z.h"
+#include "bcsc_c.h"
+#include "bcsc_d.h"
+#include "bcsc_s.h"
 
 #if defined(PASTIX_DEBUG_SOLVE)
-static inline void dump_rhs( char *name, int n, double *b )
+static inline void
+dump_rhs( char *name, int n, double *b )
 {
     int i;
     fprintf(stderr,"%s :", name );
@@ -39,7 +40,13 @@ static inline void dump_rhs( char *name, int n, double *b )
     fprintf(stderr,"\n");
 }
 #else
-#define dump_rhs(...) do {} while(0)
+static inline void
+dump_rhs( char *name, int n, double *b )
+{
+    (void)name;
+    (void)n;
+    (void)b;
+}
 #endif
 
 /**
@@ -113,20 +120,20 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
     /* See also xlapmr and xlapmt */
     switch( flttype ) {
     case PastixComplex64:
-        z_bcscApplyPerm( m, n, b, ldb, perm );
+        bvec_zswap( m, n, b, ldb, perm );
         break;
 
     case PastixComplex32:
-        c_bcscApplyPerm( m, n, b, ldb, perm );
+        bvec_cswap( m, n, b, ldb, perm );
         break;
 
     case PastixFloat:
-        s_bcscApplyPerm( m, n, b, ldb, perm );
+        bvec_sswap( m, n, b, ldb, perm );
         break;
 
     case PastixDouble:
     default:
-        d_bcscApplyPerm( m, n, b, ldb, perm );
+        bvec_dswap( m, n, b, ldb, perm );
     }
 
     return PASTIX_SUCCESS;

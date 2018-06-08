@@ -174,6 +174,16 @@
  *
  ******
  *
+ * @defgroup bcsc Sparse matrix blocked CSC structure
+ * @ingroup  pastix_numfact
+ *
+ ******
+ *
+ * @defgroup bcsc_internal Internal functions to the sparse matrix blocked CSC module
+ * @ingroup  bcsc
+ *
+ ******
+ *
  * @defgroup coeftab Solver matrix coefficient structure
  * @ingroup  pastix_numfact
  *

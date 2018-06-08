@@ -553,34 +553,34 @@ include(RulesPrecisions)
 ##
 # Headers from bcsc directory
 ##
-set(generated_headers "")
+set(generated_bcsc_headers "")
 set(HEADERS
-  bcsc/z_bcsc.h
+  bcsc/bcsc_z.h
 )
 
-precisions_rules_py(generated_headers
+precisions_rules_py(generated_bcsc_headers
   "${HEADERS}"
   TARGETDIR  "bcsc"
   PRECISIONS "p;s;d;c;z")
 
 add_custom_target(bcsc_headers_tgt
-  DEPENDS ${generated_headers} )
+  DEPENDS ${generated_bcsc_headers} )
 
 ##
 # Headers from sopalin directory
 ##
-set(generated_headers "")
+set(generated_sopalin_headers "")
 set(HEADERS
   sopalin/coeftab_z.h
 )
 
-precisions_rules_py(generated_headers
+precisions_rules_py(generated_sopalin_headers
   "${HEADERS}"
   TARGETDIR  "sopalin"
   PRECISIONS "p;s;d;c;z")
 
 add_custom_target( sopalin_headers
-  DEPENDS ${generated_headers} )
+  DEPENDS ${generated_sopalin_headers} )
 
 ###############
 # Source files
@@ -603,10 +603,10 @@ precisions_rules_py(generated_common_sources
 ##
 set(generated_bcsc_sources "")
 set(SOURCES
-  bcsc/bcsc_zinit.c          # Not finished
-  bcsc/bcsc_zcompute.c       # Not finished
-  bcsc/z_bcsc_norm.c         # Not finished
-  bcsc/z_bcsc_matrixvector.c # Not finished
+  bcsc/bcsc_zinit.c
+  bcsc/bvec_zcompute.c
+  bcsc/bcsc_znorm.c
+  bcsc/bcsc_zspmv.c
   )
 precisions_rules_py(generated_bcsc_sources
   "${SOURCES}"
@@ -967,6 +967,9 @@ add_documented_files(
   blend/pastix_subtask_blend.c
   blend/pastix_task_analyze.c
   #
+  bcsc/bcsc.h
+  bcsc/bcsc.c
+  #
   sopalin/coeftab.h
   sopalin/coeftab.c
   sopalin/schur.c
@@ -989,6 +992,9 @@ add_documented_files(
 add_documented_files(
   DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   ${generated_common_sources}
+  ${generated_bcsc_headers}
+  ${generated_bcsc_sources}
+  ${generated_sopalin_headers}
   ${generated_sopalin_sources}
   ${generated_refinement_sources}
 )

@@ -59,7 +59,7 @@
 #define OUT_ORDER_NODIAG                        \
     "      Removing diagonal elements\n"
 #define OUT_ORDER_SORT                          \
-    "      Sort row indices in each column\n"
+    "      Sort row indexes in each column\n"
 #define OUT_ORDER_INIT                          \
     "    Compute ordering\n"
 #define OUT_ORDER_METHOD                        \

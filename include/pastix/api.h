@@ -243,6 +243,10 @@ typedef enum pastix_refine_e {
  * This describes the different arithmetics that can be stored in a sparse matrix.
  * @remark The values start at 2 for compatibility purpose with PLASMA and
  * DPLASMA libraries, and they match the ones used in spm.
+ *
+ * @sa spm_coeftype_t
+ *
+ * @{
  */
 #define pastix_coeftype_t spm_coeftype_t
 #define PastixPattern   SpmPattern
@@ -250,6 +254,9 @@ typedef enum pastix_refine_e {
 #define PastixDouble    SpmDouble
 #define PastixComplex32 SpmComplex32
 #define PastixComplex64 SpmComplex64
+/**
+ * @}
+ */
 
 /**
  * @brief Factorization algorithms available for IPARM_FACTORIZATION parameter

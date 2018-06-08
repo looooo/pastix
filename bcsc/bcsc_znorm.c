@@ -1,6 +1,6 @@
 /**
  *
- * @file z_bcsc_norm.c
+ * @file bcsc_znorm.c
  *
  * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -17,13 +17,12 @@
 #include <math.h>
 #include "frobeniusupdate.h"
 
-
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc_internal
  *
- * z_bcscMaxNorm - compute the max norm of a bcsc matrix.
+ * @brief Compute the max norm of a bcsc matrix.
  *
  *******************************************************************************
  *
@@ -32,12 +31,11 @@
  *
  *******************************************************************************
  *
- * @return
- *      \retval The norm of the matrix.
+ * @retval The norm of the matrix.
  *
  *******************************************************************************/
 double
-z_bcscMaxNorm( const pastix_bcsc_t *bcsc )
+bcsc_znorm_max( const pastix_bcsc_t *bcsc )
 {
     double temp;
     double norm = 0.;
@@ -65,9 +63,9 @@ z_bcscMaxNorm( const pastix_bcsc_t *bcsc )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc_internal
  *
- * z_bcscInfNorm - compute the infinity norm of a bcsc matrix.
+ * @brief Compute the infinity norm of a bcsc matrix.
  * The infinity norm is equal to the maximum value of the sum of the
  * absolute values of the elements of each rows.
  *
@@ -78,12 +76,11 @@ z_bcscMaxNorm( const pastix_bcsc_t *bcsc )
  *
  *******************************************************************************
  *
- * @return
- *      \retval The norm of the matrix.
+ * @retval The norm of the matrix.
  *
  *******************************************************************************/
 double
-z_bcscInfNorm( const pastix_bcsc_t *bcsc )
+bcsc_znorm_inf( const pastix_bcsc_t *bcsc )
 {
     double norm = 0.;
     pastix_complex64_t *valptr;
@@ -143,9 +140,9 @@ z_bcscInfNorm( const pastix_bcsc_t *bcsc )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc_internal
  *
- * z_bcscOneNorm - compute the norm 1 of a bcsc matrix.
+ * @brief Compute the norm 1 of a bcsc matrix.
  * Norm 1 is equal to the maximum value of the sum of the
  * absolute values of the elements of each columns.
  *
@@ -156,12 +153,11 @@ z_bcscInfNorm( const pastix_bcsc_t *bcsc )
  *
  *******************************************************************************
  *
- * @return
- *      \retval The norm of the matrix.
+ * @retval The norm of the matrix.
  *
  *******************************************************************************/
 double
-z_bcscOneNorm( const pastix_bcsc_t *bcsc )
+bcsc_znorm_one( const pastix_bcsc_t *bcsc )
 {
     pastix_complex64_t *valptr = (pastix_complex64_t*)bcsc->Lvalues;
     double sum, norm = 0.;
@@ -188,9 +184,9 @@ z_bcscOneNorm( const pastix_bcsc_t *bcsc )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc_internal
  *
- * z_bcscFrobeniusNorm - compute the frobenius norm of a bcsc matrix.
+ * @brief Compute the frobenius norm of a bcsc matrix.
  *
  *******************************************************************************
  *
@@ -199,12 +195,11 @@ z_bcscOneNorm( const pastix_bcsc_t *bcsc )
  *
  *******************************************************************************
  *
- * @return
  *          The norm of the matrix
  *
  *******************************************************************************/
 double
-z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc)
+bcsc_znorm_frobenius( const pastix_bcsc_t *bcsc )
 {
     double scale = 0.;
     double sum = 1.;
@@ -235,13 +230,11 @@ z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc)
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
- *
- * z_bcscNorm - Compute the norm of an bcsc matrix
+ * @brief Compute the norm of an bcsc matrix
  *
  *******************************************************************************
  *
- * @param[in] type
+ * @param[in] ntype
  *          = PastixMaxNorm: Max norm
  *          = PastixOneNorm: One norm
  *          = PastixInfNorm: Infinity norm
@@ -252,12 +245,11 @@ z_bcscFrobeniusNorm( const pastix_bcsc_t *bcsc)
  *
  *******************************************************************************
  *
- * @return
- *      \retval The norm of the matrix.
+ * @retval The norm of the matrix.
  *
  *******************************************************************************/
 double
-z_bcscNorm( pastix_normtype_t ntype,
+bcsc_znorm( pastix_normtype_t    ntype,
             const pastix_bcsc_t *bcsc )
 {
     double norm = 0.;
@@ -269,23 +261,23 @@ z_bcscNorm( pastix_normtype_t ntype,
 
     switch( ntype ) {
     case PastixMaxNorm:
-        norm = z_bcscMaxNorm( bcsc );
+        norm = bcsc_znorm_max( bcsc );
         break;
 
     case PastixInfNorm:
-        norm = z_bcscInfNorm( bcsc );
+        norm = bcsc_znorm_inf( bcsc );
         break;
 
     case PastixOneNorm:
-        norm = z_bcscOneNorm( bcsc );
+        norm = bcsc_znorm_one( bcsc );
         break;
 
     case PastixFrobeniusNorm:
-        norm = z_bcscFrobeniusNorm( bcsc );
+        norm = bcsc_znorm_frobenius( bcsc );
         break;
 
     default:
-        fprintf(stderr, "z_spmNorm: invalid norm type\n");
+        fprintf(stderr, "bcsc_znorm: invalid norm type\n");
         return -1.;
     }
 

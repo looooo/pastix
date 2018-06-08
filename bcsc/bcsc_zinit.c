@@ -19,19 +19,41 @@
 #include "spm.h"
 #include "solver.h"
 #include "bcsc.h"
-#include "z_bcsc.h"
+#include "bcsc_z.h"
 
 /**
- * Fill in the lower triangular part of the blocked csc with values and
- * rows. The upper triangular part is done later if required through LU
- * factorization.
- */
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Initialize the values in the block csc stored in the given spm.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering that needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure that describe the data distribution.
+ *
+ * @param[in] col2cblk
+ *          Array of matching column with cblk indexes.
+ *
+ * @param[inout] bcsc
+ *          On entry, the pointer to an allocated bcsc.
+ *          On exit, the bcsc values field is updated.
+ *
+ *******************************************************************************/
 static inline void
-z_bcscInitA( const spmatrix_t     *spm,
-             const pastix_order_t *ord,
-             const SolverMatrix   *solvmtx,
-             const pastix_int_t   *col2cblk,
-                   pastix_bcsc_t  *bcsc )
+bcsc_zinit_A( const spmatrix_t     *spm,
+              const pastix_order_t *ord,
+              const SolverMatrix   *solvmtx,
+              const pastix_int_t   *col2cblk,
+                    pastix_bcsc_t  *bcsc )
 {
     pastix_complex64_t *values  = (pastix_complex64_t*)(spm->values);
     pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
@@ -42,7 +64,7 @@ z_bcscInitA( const spmatrix_t     *spm,
     baseval = spm->colptr[0];
 
     /**
-     * Initialize the value of the matrix A in the blocked csc format. This
+     * Initialize the values of the matrix A in the blocked csc format. This
      * applies the permutation to the values array.
      */
     for (itercol=0; itercol<spm->gN; itercol++)
@@ -88,12 +110,40 @@ z_bcscInitA( const spmatrix_t     *spm,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Initialize the values in the block csc (upper part) for a symmetric
+ * matrix since only one side has been initialized by bcsc_zinit_A()
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering that needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure that describe the data distribution.
+ *
+ * @param[in] col2cblk
+ *          Array of matching column with cblk indexes.
+ *
+ * @param[inout] bcsc
+ *          On entry, the pointer to an allocated bcsc.
+ *          On exit, the bcsc values field is updated.
+ *
+ *******************************************************************************/
 static inline void
-z_bcscInitLt( const spmatrix_t     *spm,
-              const pastix_order_t *ord,
-              const SolverMatrix   *solvmtx,
-              const pastix_int_t   *col2cblk,
-                    pastix_bcsc_t  *bcsc )
+bcsc_zinit_Lt( const spmatrix_t     *spm,
+               const pastix_order_t *ord,
+               const SolverMatrix   *solvmtx,
+               const pastix_int_t   *col2cblk,
+                     pastix_bcsc_t  *bcsc )
 {
     pastix_complex64_t *values  = (pastix_complex64_t*)(spm->values);
     pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
@@ -104,7 +154,7 @@ z_bcscInitLt( const spmatrix_t     *spm,
     baseval = spm->colptr[0];
 
     /**
-     * Initialize the value of the matrix A^t in the blocked csc format. This
+     * Initialize the values of the matrix A^t in the blocked csc format. This
      * applies the permutation to the values array.
      */
     for (itercol=0; itercol<spm->gN; itercol++)
@@ -154,13 +204,41 @@ z_bcscInitLt( const spmatrix_t     *spm,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Initialize the values in the block csc (upper part) for an hermitian
+ * matrix since only one side has been initialized by bcsc_zinit_A()
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering that needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure that describe the data distribution.
+ *
+ * @param[in] col2cblk
+ *          Array of matching column with cblk indexes.
+ *
+ * @param[inout] bcsc
+ *          On entry, the pointer to an allocated bcsc.
+ *          On exit, the bcsc values field is updated.
+ *
+ *******************************************************************************/
 #if defined(PRECISION_z) || defined(PRECISION_c)
 static inline void
-z_bcscInitLh( const spmatrix_t     *spm,
-              const pastix_order_t *ord,
-              const SolverMatrix   *solvmtx,
-              const pastix_int_t   *col2cblk,
-                    pastix_bcsc_t  *bcsc )
+bcsc_zinit_Lh( const spmatrix_t     *spm,
+               const pastix_order_t *ord,
+               const SolverMatrix   *solvmtx,
+               const pastix_int_t   *col2cblk,
+                     pastix_bcsc_t  *bcsc )
 {
     pastix_complex64_t *values  = (pastix_complex64_t*)(spm->values);
     pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
@@ -171,7 +249,7 @@ z_bcscInitLh( const spmatrix_t     *spm,
     baseval = spm->colptr[0];
 
     /**
-     * Initialize the value of the matrix A^t in the blocked csc format. This
+     * Initialize the values of the matrix A^t in the blocked csc format. This
      * applies the permutation to the values array.
      */
     for (itercol=0; itercol<spm->gN; itercol++)
@@ -222,13 +300,42 @@ z_bcscInitLh( const spmatrix_t     *spm,
 }
 #endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 
+/**
+ *******************************************************************************
+ *
+ * @brief Initialize a value array with the transpose of A that will be used to
+ * initialize the coeftab arrays.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering that needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure that describe the data distribution.
+ *
+ * @param[in] col2cblk
+ *          Array of matching column with cblk indexes.
+ *
+ * @param[out] trowtab
+ *          The row tab associated to the transposition of A.
+ *
+ * @param[inout] bcsc
+ *          On entry, the pointer to an allocated bcsc.
+ *          On exit, the bcsc Uvalues field is updated.
+ *
+ *******************************************************************************/
 void
-z_bcscInitAt( const spmatrix_t     *spm,
-              const pastix_order_t *ord,
-              const SolverMatrix   *solvmtx,
-              const pastix_int_t   *col2cblk,
-                    pastix_int_t   *trowtab,
-                    pastix_bcsc_t  *bcsc )
+bcsc_zinit_At( const spmatrix_t     *spm,
+               const pastix_order_t *ord,
+               const SolverMatrix   *solvmtx,
+               const pastix_int_t   *col2cblk,
+                     pastix_int_t   *trowtab,
+                     pastix_bcsc_t  *bcsc )
 {
     pastix_complex64_t *values  = (pastix_complex64_t*)(spm->values);
     pastix_complex64_t *Uvalues = (pastix_complex64_t*)(bcsc->Uvalues);
@@ -239,7 +346,7 @@ z_bcscInitAt( const spmatrix_t     *spm,
     baseval = spm->colptr[0];
 
     /**
-     * Initialize the value of the matrix A^t in the blocked csc format. This
+     * Initialize the values of the matrix A^t in the blocked csc format. This
      * applies the permutation to the values array.
      */
     for (itercol=0; itercol<spm->gN; itercol++)
@@ -289,12 +396,30 @@ z_bcscInitAt( const spmatrix_t     *spm,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Sort the block csc subarray associated to each column block
+ *
+ *******************************************************************************
+ *
+ * @param[in] bcsc
+ *          On entry, the pointer to an allocated bcsc.
+ *
+ * @param[in] rowtab
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] valtab
+ *          The ordering that needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ *******************************************************************************/
 void
-z_bcscSort( const pastix_bcsc_t *bcsc,
+bcsc_zsort( const pastix_bcsc_t *bcsc,
             pastix_int_t        *rowtab,
             pastix_complex64_t  *valtab )
 {
-    bcsc_format_t *blockcol;
+    bcsc_cblk_t *blockcol;
     pastix_int_t itercblk, itercol, size;
     void *sortptr[2];
 
@@ -317,13 +442,42 @@ z_bcscSort( const pastix_bcsc_t *bcsc,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Initialize a centralize pastix_complex64_t block csc.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering that needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure that describe the data distribution.
+ *
+ * @param[in] col2cblk
+ *          Array of matching column with cblk indexes.
+ *
+ * @param[in] initAt
+ *          A flag to enable/disable the initialization of A'
+ *
+ * @param[inout] bcsc
+ *          On entry, the pointer to an allocated bcsc.
+ *          On exit, the bcsc stores the input spm with the permutation applied
+ *          and grouped accordingly to the distribution described in solvmtx.
+ *
+ *******************************************************************************/
 void
-z_bcscInitCentralized( const spmatrix_t     *spm,
-                       const pastix_order_t *ord,
-                       const SolverMatrix   *solvmtx,
-                       const pastix_int_t   *col2cblk,
-                             int             initAt,
-                             pastix_bcsc_t  *bcsc )
+bcsc_zinit_centralized( const spmatrix_t     *spm,
+                        const pastix_order_t *ord,
+                        const SolverMatrix   *solvmtx,
+                        const pastix_int_t   *col2cblk,
+                              int             initAt,
+                              pastix_bcsc_t  *bcsc )
 {
     pastix_int_t valuesize;
 
@@ -333,13 +487,13 @@ z_bcscInitCentralized( const spmatrix_t     *spm,
     /**
      * Initialize the blocked structure of the matrix A
      */
-    z_bcscInitA( spm, ord, solvmtx, col2cblk, bcsc );
+    bcsc_zinit_A( spm, ord, solvmtx, col2cblk, bcsc );
     if ( spm->mtxtype == SpmSymmetric ) {
-        z_bcscInitLt( spm, ord, solvmtx, col2cblk, bcsc );
+        bcsc_zinit_Lt( spm, ord, solvmtx, col2cblk, bcsc );
     }
 #if defined(PRECISION_z) || defined(PRECISION_c)
     else if ( spm->mtxtype == SpmHermitian ) {
-        z_bcscInitLh( spm, ord, solvmtx, col2cblk, bcsc );
+        bcsc_zinit_Lh( spm, ord, solvmtx, col2cblk, bcsc );
     }
 #endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 
@@ -347,10 +501,10 @@ z_bcscInitCentralized( const spmatrix_t     *spm,
     bcsc_restore_coltab( bcsc );
 
     /* Sort the csc */
-    z_bcscSort( bcsc, bcsc->rowtab, bcsc->Lvalues );
+    bcsc_zsort( bcsc, bcsc->rowtab, bcsc->Lvalues );
 
     if ( spm->mtxtype == SpmGeneral ) {
-	/* A^t is not required if only refinment is performed */
+	/* A^t is not required if only refinement is performed */
         if (initAt) {
             pastix_int_t *trowtab, i;
             MALLOC_INTERN( bcsc->Uvalues, valuesize * pastix_size_of( bcsc->flttype ), char );
@@ -360,13 +514,13 @@ z_bcscInitCentralized( const spmatrix_t     *spm,
                 trowtab[i] = -1;
             }
 
-            z_bcscInitAt( spm, ord, solvmtx, col2cblk, trowtab, bcsc );
+            bcsc_zinit_At( spm, ord, solvmtx, col2cblk, trowtab, bcsc );
 
             /* Restore the correct coltab arrays */
             bcsc_restore_coltab( bcsc );
 
 	    /* Sort the transposed csc */
-	    z_bcscSort( bcsc, trowtab, bcsc->Uvalues );
+	    bcsc_zsort( bcsc, trowtab, bcsc->Uvalues );
 	    memFree( trowtab );
         }
     }
