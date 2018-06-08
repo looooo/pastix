@@ -80,6 +80,10 @@ pages:
   stage: doc
   dependencies:
     - build_pastix
+  artifacts:
+    name: pastix_pages
+    expire_in: 42 minutes
+    untracked: false
   script:
     - source .gitlab-ci-env.sh
     - git submodule update --init --recursive
