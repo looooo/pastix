@@ -4,7 +4,7 @@ stages:
   - build
   - test
   - sonar
-  - doc
+  - deploy
 
 build_pastix:
   stage: build
