@@ -92,9 +92,6 @@ pages:
     - cmake .. -DBUILD_DOCUMENTATION=ON -DPASTIX_WITH_STARPU=ON -DPASTIX_WITH_PARSEC=ON -DPASTIX_INT64=OFF
     - make docs
     - mv docs/out/html ../public/
-  artifacts:
-    paths:
-      - public
   only:
     - master@solverstack/pastix
     - master@pastix/pastix
