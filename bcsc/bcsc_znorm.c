@@ -20,7 +20,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Compute the max norm of a bcsc matrix.
  *
@@ -63,7 +63,7 @@ bcsc_znorm_max( const pastix_bcsc_t *bcsc )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Compute the infinity norm of a bcsc matrix.
  * The infinity norm is equal to the maximum value of the sum of the
@@ -140,7 +140,7 @@ bcsc_znorm_inf( const pastix_bcsc_t *bcsc )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Compute the norm 1 of a bcsc matrix.
  * Norm 1 is equal to the maximum value of the sum of the
@@ -184,7 +184,7 @@ bcsc_znorm_one( const pastix_bcsc_t *bcsc )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Compute the frobenius norm of a bcsc matrix.
  *
@@ -230,7 +230,7 @@ bcsc_znorm_frobenius( const pastix_bcsc_t *bcsc )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Compute the norm of an bcsc matrix
  *

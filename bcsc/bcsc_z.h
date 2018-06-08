@@ -16,6 +16,13 @@
 #ifndef _bcsc_z_h_
 #define _bcsc_z_h_
 
+/**
+ * @addtogroup bcsc_internal
+ * @{
+ *
+ *    @name PastixComplex64 initialization functions
+ *    @{
+ */
 void bcsc_zinit_centralized( const spmatrix_t     *spm,
                              const pastix_order_t *ord,
                              const SolverMatrix   *solvmtx,
@@ -23,7 +30,20 @@ void bcsc_zinit_centralized( const spmatrix_t     *spm,
                                    int             initAt,
                                    pastix_bcsc_t  *bcsc );
 
+void   bcsc_zsort( const pastix_bcsc_t *bcsc,
+                 pastix_int_t        *rowtab,
+                 pastix_complex64_t  *valtab );
 
+/**
+ *   @}
+ * @}
+ *
+ * @addtogroup bcsc
+ * @{
+ *
+ *    @name PastixComplex64 vector(s) operations
+ *    @{
+ */
 double bvec_znrm2( pastix_int_t              n,
                    const pastix_complex64_t *x );
 int    bvec_zscal( pastix_int_t        n,
@@ -48,18 +68,23 @@ int bvec_zswap( pastix_int_t m,
                 pastix_int_t lda,
                 pastix_int_t *perm );
 
-void bcsc_zsort( const pastix_bcsc_t *bcsc,
-                 pastix_int_t        *rowtab,
-                 pastix_complex64_t  *valtab );
-
+/**
+ *    @}
+ *
+ *    @name PastixComplex64 matrix operations
+ *    @{
+ */
 double bcsc_znorm( pastix_normtype_t    ntype,
                    const pastix_bcsc_t *bcsc );
 
-int bcsc_zspmv(      pastix_trans_t      trans,
-                     pastix_complex64_t  alpha,
-               const pastix_bcsc_t      *bcsc,
-               const pastix_complex64_t *x,
-                     pastix_complex64_t  beta,
-                     pastix_complex64_t *y );
-
+int    bcsc_zspmv(       pastix_trans_t      trans,
+                         pastix_complex64_t  alpha,
+                   const pastix_bcsc_t      *bcsc,
+                   const pastix_complex64_t *x,
+                         pastix_complex64_t  beta,
+                         pastix_complex64_t *y );
+/**
+ *    @}
+ * @}
+ */
 #endif /* _bcsc_z_h_ */

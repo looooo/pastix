@@ -26,7 +26,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Compute the Frobenius norm of a vector.
  *
@@ -70,7 +70,7 @@ bvec_znrm2( pastix_int_t              n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Scale a vector by the scalar alpha.
  *
@@ -120,7 +120,7 @@ bvec_zscal( pastix_int_t        n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Compute y <- alpha * x + y.
  *
@@ -176,7 +176,7 @@ bvec_zaxpy( pastix_int_t              n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Compute the scalar product x.conj(y).
  *
@@ -218,7 +218,7 @@ bvec_zdotc( pastix_int_t              n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Compute the scalar product x.y.
  *
@@ -259,7 +259,7 @@ bvec_zdotu( pastix_int_t              n,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Apply the permutation to a matrix A.
  *

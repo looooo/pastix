@@ -22,7 +22,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Compute the matrix-vector product  y = alpha * op(A) * x + beta * y
  *

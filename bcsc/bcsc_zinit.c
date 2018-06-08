@@ -24,7 +24,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Initialize the values in the block csc stored in the given spm.
  *
@@ -113,7 +113,7 @@ bcsc_zinit_A( const spmatrix_t     *spm,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Initialize the values in the block csc (upper part) for a symmetric
  * matrix since only one side has been initialized by bcsc_zinit_A()
@@ -207,7 +207,7 @@ bcsc_zinit_Lt( const spmatrix_t     *spm,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Initialize the values in the block csc (upper part) for an hermitian
  * matrix since only one side has been initialized by bcsc_zinit_A()
@@ -303,7 +303,7 @@ bcsc_zinit_Lh( const spmatrix_t     *spm,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Initialize a value array with the transpose of A that will be used to
  * initialize the coeftab arrays.
@@ -401,7 +401,7 @@ bcsc_zinit_At( const spmatrix_t     *spm,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Sort the block csc subarray associated to each column block
  *
@@ -449,7 +449,7 @@ bcsc_zsort( const pastix_bcsc_t *bcsc,
 /**
  *******************************************************************************
  *
- * @ingroup pastix_bcsc
+ * @ingroup bcsc
  *
  * @brief Initialize a centralize pastix_complex64_t block csc.
  *

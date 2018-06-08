@@ -11,6 +11,13 @@
  * @author Xavier Lacoste
  * @date 2011-11-11
  *
+ * @addtogroup bcsc
+ * @{
+ *   @brief Describe all the internals routines to manipulate the internal block csc.
+ *
+ *   These functions provide a set of subroutines to manipulate the permuted
+ *   sparse matrix stored in block of columns following the partition.
+ *
  **/
 #ifndef _bcsc_h_
 #define _bcsc_h_
@@ -38,6 +45,20 @@ struct pastix_bcsc_s {
     void         *Uvalues; /**< Array of values of the matrix A^t                                              */
 };
 
+double bcscInit( const spmatrix_t     *spm,
+                 const pastix_order_t *ord,
+                 const SolverMatrix   *solvmtx,
+                 pastix_int_t          initAt,
+                 pastix_bcsc_t        *bcsc );
+
+void   bcscExit( pastix_bcsc_t *bcsc );
+
+/**
+ * @}
+ *
+ * @addtogroup bcsc_internal
+ * @{
+ */
 pastix_int_t
 bcsc_init_centralized_coltab( const spmatrix_t     *spm,
                               const pastix_order_t *ord,
@@ -47,12 +68,7 @@ bcsc_init_centralized_coltab( const spmatrix_t     *spm,
 void
 bcsc_restore_coltab( pastix_bcsc_t *bcsc );
 
-double bcscInit( const spmatrix_t     *spm,
-                 const pastix_order_t *ord,
-                 const SolverMatrix   *solvmtx,
-                 pastix_int_t          initAt,
-                 pastix_bcsc_t        *bcsc );
-
-void   bcscExit( pastix_bcsc_t *bcsc );
-
+/**
+ * @}
+ */
 #endif /* _bcsc_h_ */
