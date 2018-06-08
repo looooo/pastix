@@ -77,13 +77,12 @@ sonar_pastix:
     - master@pastix/pastix
 
 pages:
-  stage: doc
+  stage: deploy
   dependencies:
     - build_pastix
   artifacts:
-    name: pastix_pages
-    expire_in: 42 minutes
-    untracked: false
+    paths:
+    - public
   script:
     - source .gitlab-ci-env.sh
     - git submodule update --init --recursive
