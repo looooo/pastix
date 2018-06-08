@@ -174,12 +174,12 @@
  *
  ******
  *
- * @defgroup bcsc Sparse Matrix Blocked CSC structure
+ * @defgroup bcsc Sparse matrix blocked CSC structure
  * @ingroup  pastix_numfact
  *
  ******
  *
- * @defgroup bcsc_internal Internal function to the Sparse Matrix Blocked CSC module
+ * @defgroup bcsc_internal Internal functions to the sparse matrix blocked CSC module
  * @ingroup  bcsc
  *
  ******

@@ -281,7 +281,7 @@ void z_Pastix_spsv( pastix_data_t *pastix_data, pastix_complex64_t *b )
  *
  * @ingroup pastix_dev_refine
  *
- * @brief Compute y = \alpha A x + \beta y
+ * @brief Compute \f[ y = \alpha A x + \beta y \f]
  *
  *******************************************************************************
  *
