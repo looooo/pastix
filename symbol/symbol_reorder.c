@@ -61,6 +61,7 @@ sequential_reorder( pastix_data_t         *pastix_data,
     memFree_null( depthweight );
 }
 
+/* Arguments */
 struct args_reorder_t
 {
     pastix_data_t         *pastix_data;
@@ -72,7 +73,6 @@ struct args_reorder_t
 /**
  * @brief Parallel basic version for reordering
  */
-/* Arguments */
 static inline void
 thread_preorder_basic_stategy( isched_thread_t *ctx, void *args )
 {
@@ -96,7 +96,7 @@ thread_preorder_basic_stategy( isched_thread_t *ctx, void *args )
         tasknbr ++;
     }
 
-    /**
+    /*
      * Solves the Traveler Salesman Problem on each cblk to minimize the number
      * of off-diagonal blocks per row
      */
@@ -137,7 +137,7 @@ thread_preorder_zigzag_stategy( isched_thread_t *ctx, void *args )
     const pastix_int_t *levels = arg->levels;
     pastix_int_t        rank = (pastix_int_t)ctx->rank;
 
-    /**
+    /*
      * Solves the Traveler Salesman Problem on each cblk to minimize the number
      * of off-diagonal blocks per row
      */
