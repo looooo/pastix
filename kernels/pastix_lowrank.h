@@ -11,7 +11,6 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @date 2017-10-05
- * @precisions normal z -> c d s
  *
  */
 #ifndef _pastix_lowrank_h_

@@ -27,7 +27,8 @@
 #include "bcsc_s.h"
 
 #if defined(PASTIX_DEBUG_SOLVE)
-static inline void dump_rhs( char *name, int n, double *b )
+static inline void
+dump_rhs( char *name, int n, double *b )
 {
     int i;
     fprintf(stderr,"%s :", name );
@@ -39,7 +40,13 @@ static inline void dump_rhs( char *name, int n, double *b )
     fprintf(stderr,"\n");
 }
 #else
-#define dump_rhs(...) do {} while(0)
+static inline void
+dump_rhs( char *name, int n, double *b )
+{
+    (void)name;
+    (void)n;
+    (void)b;
+}
 #endif
 
 /**
