@@ -1,3 +1,21 @@
+/**
+ *
+ * @file symbol_reorder.h
+ *
+ * PaStiX symbol structure routines
+ *
+ * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.0.0
+ * @author Vincent Bridonneau
+ * @date 2018-06-08
+ *
+ * @addtogroup pastix_symbol
+ * @{
+ *   @brief Functions to reorder the cblks of a matrix
+ *
+ **/
 #ifndef _symbol_reorder_h_
 #define _symbol_reorder_h_
 
