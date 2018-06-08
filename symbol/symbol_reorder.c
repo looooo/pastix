@@ -15,6 +15,7 @@
 #include "common.h"
 #include "solver.h"
 #include "symbol.h"
+#include "symbol_reorder.h"
 #include "pastix/order.h"
 #include "blend/queue.h"
 #include "blend/extendVector.h"
@@ -262,6 +263,35 @@ static void (*reorder_table[4])(pastix_data_t *, pastix_int_t , pastix_int_t *) 
     NULL
 };
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup symbol_dev_reordering
+ *
+ * @brief Reorder all node
+ *
+ * This function computes the set each cblks, and then call a TSP heuristic
+ * to minimize the Hamiltonian Path.
+ *
+ *******************************************************************************
+ *
+ * @param[int, out] pastix_data
+ *          The pastix_data providing the scheduler, the symbolic structure,
+ *          and the ordering providing by Scotch that will be updated with
+ *          the new rows permutation for each supernode. It will also gives
+ *          a srop criteria the reordering of each supernode. The split_level
+ *          field activates the split level heuristic, dividing distances
+ *          computations into two stages: for upper and for lower
+ *          contruibuting supernodes.
+ *
+ * @param[out] levels
+ *          The pointer to the levels structure, giving the level of
+ *          each supernode in the elimination tree. To be computed inside.
+ *
+ * @param[in] maxdepth
+ *          The maximum depth in the elimination tree.
+ *
+ *******************************************************************************/
 void
 symbol_reorder( pastix_data_t *pastix_data,
                 pastix_int_t   maxdepth,
