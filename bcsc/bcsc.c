@@ -26,6 +26,8 @@
 /**
  *******************************************************************************
  *
+ * @ingroup bcsc_internal
+ *
  * @brief Initialize the coltab of a block csc matrix.
  *
  *******************************************************************************
@@ -101,6 +103,8 @@ bcsc_init_coltab( const SolverMatrix  *solvmtx,
 
 /**
  *******************************************************************************
+ *
+ * @ingroup bcsc_internal
  *
  * @brief Restore the coltab array
  *

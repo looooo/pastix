@@ -22,8 +22,6 @@
 /**
  *******************************************************************************
  *
- * @ingroup bcsc
- *
  * @brief Compute the matrix-vector product  y = alpha * op(A) * x + beta * y
  *
  * Where A is given in the bcsc format, x and y are two vectors of size n, and

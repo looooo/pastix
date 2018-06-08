@@ -30,7 +30,7 @@ void bcsc_zinit_centralized( const spmatrix_t     *spm,
                                    int             initAt,
                                    pastix_bcsc_t  *bcsc );
 
-void   bcsc_zsort( const pastix_bcsc_t *bcsc,
+void bcsc_zsort( const pastix_bcsc_t *bcsc,
                  pastix_int_t        *rowtab,
                  pastix_complex64_t  *valtab );
 
