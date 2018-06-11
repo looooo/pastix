@@ -24,7 +24,7 @@ To get sources please use these commands:
       git submodule init
       git submodule update
 
-Last releases of PaStiX are hosted on the
+Previous releases of PaStiX are hosted on the
 [gforge.inria.fr](https://gforge.inria.fr/frs/?group_id=186) for now.
 Future releases will be available on this gitlab project.
 
@@ -49,7 +49,7 @@ Future releases will be available on this gitlab project.
 
 The latest Doxygen documentation is available [here](http://solverstack.gitlabpages.inria.fr/pastix).
 
-The [main steps](http://pastix.gforge.inria.fr/doxygen/html/group__pastix__users.html) and [parameters](http://pastix.gforge.inria.fr/doxygen/html/group__pastix__api.html) of the solver are described. Some [examples](http://pastix.gforge.inria.fr/doxygen/html/group__pastix__examples.html) are also provided.
+The [main steps](http://solverstack.gitlabpages.inria.fr/pastix/group__pastix__users.html) and [parameters](http://solverstack.gitlabpages.inria.fr/pastix/group__pastix__api.html) of the solver are described. Some [examples](http://solverstack.gitlabpages.inria.fr/pastix/group__pastix__examples.html) are also provided.
 
 ## Installation
 
