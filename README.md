@@ -47,7 +47,7 @@ Future releases will be available on this gitlab project.
 
 ## Documentation
 
-A temporary link to the Doxygen [documentation](http://pastix.gforge.inria.fr/doxygen/html/index.html). (we are waiting for availability of pages functionality in gitlab...)
+The latest Doxygen documentation is available [here](http://solverstack.gitlabpages.inria.fr/pastix).
 
 The [main steps](http://pastix.gforge.inria.fr/doxygen/html/group__pastix__users.html) and [parameters](http://pastix.gforge.inria.fr/doxygen/html/group__pastix__api.html) of the solver are described. Some [examples](http://pastix.gforge.inria.fr/doxygen/html/group__pastix__examples.html) are also provided.
 
