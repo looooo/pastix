@@ -431,7 +431,7 @@ cpucblk_zsytrfsp1d_panel( SolverMatrix       *solvmtx,
                      PastixNoTrans, PastixNonUnit,
                      cblk, L, L, &(solvmtx->lowrank) );
 
-    if ( DLt != NULL ) {
+    if ( (DLt != NULL) && (cblk->cblktype & CBLK_LAYOUT_2D) ) {
         /* Copy L into the temporary buffer and multiply by D */
         cpucblk_zscalo( PastixNoTrans, cblk, DLt );
     }
@@ -481,15 +481,19 @@ cpucblk_zsytrfsp1d( SolverMatrix       *solvmtx,
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivots;
 
+    if ( !(cblk->cblktype & CBLK_LAYOUT_2D) ) {
+        DLt = NULL;
+    }
+
     /* if there are off-diagonal supernodes in the column */
     nbpivots = cpucblk_zsytrfsp1d_panel( solvmtx, cblk, L, DLt );
 
-    blok = cblk->fblokptr+1;   /* this diagonal block */
-    lblk = cblk[1].fblokptr;   /* the next diagonal block */
+    blok = cblk->fblokptr+1; /* this diagonal block */
+    lblk = cblk[1].fblokptr; /* the next diagonal block */
 
     for( ; blok < lblk; blok++ )
     {
-        fcblk = (solvmtx->cblktab + blok->fcblknm);
+        fcblk = solvmtx->cblktab + blok->fcblknm;
 
         /* Update on L */
         if (DLt == NULL) {
