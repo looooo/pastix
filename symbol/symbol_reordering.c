@@ -625,7 +625,7 @@ symbol_reorder_cblk( const symbol_matrix_t *symbptr,
  *
  *******************************************************************************/
 void
-pastixSymbolReordering( pastix_data_t       *pastix_data )
+pastixSymbolReordering( pastix_data_t *pastix_data )
 {
     Clock timer;
     symbol_matrix_t *symbptr = pastix_data->symbmtx;
