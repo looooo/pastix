@@ -76,10 +76,14 @@ RW  WS <- twoterms ? NEW : NULL                        [type = CBLK_WS]
 BODY
 {
     SolverCblk *cblk = datacode->cblktab + k;
+
+    /* Do not handle the 1D layout case with runtimes due to gemm update */
+    assert( cblk->cblktype & CBLK_LAYOUT_2D );
+
     if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
         pastix_complex64_t *myDL = NULL;
 
-        if (WS != NULL) {
+        if ( WS != NULL ) {
             pastix_int_t N = cblk_colnbr( cblk );
             myDL = ((pastix_complex64_t*)WS) - N*N;
         }
