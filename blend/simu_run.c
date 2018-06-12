@@ -280,6 +280,8 @@ simu_putInAllReadyQueues( const BlendCtrl *ctrl,
     pastix_int_t bloknum = task->bloknum;
     pastix_int_t treelevel = cblkcand->treelevel;
 
+    assert( tasknum != -1 );
+
     /* Get the ready date of the task on the processor passed in parameter */
     if( cblkcand->fccandnum == cblkcand->lccandnum )
     {

@@ -61,7 +61,7 @@ simuTaskBuild( SimuCtrl              *simuctrl,
     /* Count number of task */
     for(i=0;i<symbptr->cblknbr;i++)
     {
-        if ( candtab[i].cblktype & (~CBLK_IN_SCHUR) ) {
+        if ( !(candtab[i].cblktype & CBLK_IN_SCHUR) ) {
             tasknbr++;
         }
     }
@@ -75,7 +75,7 @@ simuTaskBuild( SimuCtrl              *simuctrl,
     tasknbr = 0;
     for(i=0;i<symbptr->cblknbr;i++)
     {
-        if ( candtab[i].cblktype & (~CBLK_IN_SCHUR) ) {
+        if ( !(candtab[i].cblktype & CBLK_IN_SCHUR) ) {
             task->prionum  = -1;
             task->cblknum  = i;
             task->bloknum  = symbptr->cblktab[i].bloknum;
