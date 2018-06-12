@@ -62,13 +62,20 @@ sequential_reorder( pastix_data_t         *pastix_data,
     memFree_null( depthweight );
 }
 
-/* Arguments */
+/**
+ *
+ * @brief The argument for reorder parallel functions data structure
+ *
+ * This structure provides parallel functions for reordering arguments
+ * to computes the same thing sequential functions do but in parallel.
+ *
+ */
 struct args_reorder_t
 {
-    pastix_data_t         *pastix_data;
-    pastix_int_t           maxdepth;
-    const pastix_int_t    *levels;
-    ExtendVectorINT       *tasktab;
+    pastix_data_t      *pastix_data;
+    pastix_int_t        maxdepth;
+    const pastix_int_t *levels;
+    ExtendVectorINT    *tasktab;
 };
 
 /**
@@ -88,7 +95,7 @@ thread_preorder_basic_stategy( isched_thread_t *ctx, void *args )
     pastix_int_t       *depthweight;
     const pastix_int_t *levels = arg->levels;
     pastix_int_t        rank = (pastix_int_t)ctx->rank;
-    pastix_int_t        size = (pastix_int_t)ctx->global_ctx->world_size; // Number of thread
+    pastix_int_t        size = (pastix_int_t)ctx->global_ctx->world_size;
 
     cblknbr = symbptr->cblknbr;
     tasknbr = cblknbr / size;
@@ -120,6 +127,11 @@ thread_preorder_basic_stategy( isched_thread_t *ctx, void *args )
 
 /**
  * @brief Parallel improved version for reordering
+ *
+ *  This algorithm reorder cblks after ordering 
+ *  them according to their size. Priority queue are used
+ *  to sort cblks increasingly and process decreasingly.
+ *  
  */
 static inline void
 thread_preorder_zigzag_stategy( isched_thread_t *ctx, void *args )
@@ -158,12 +170,14 @@ thread_preorder_zigzag_stategy( isched_thread_t *ctx, void *args )
                              iparm[IPARM_REORDERING_STOP] );
     }
 
-
-
     memFree_null( depthweight );
 }
 
-/* Function called by each thread  */
+/**
+ * @brief Function called by each thread.
+ *
+ *  This function call a function to reorder cblks.
+ */
 static inline void
 thread_preorder( isched_thread_t *ctx, void *args )
 {
@@ -174,6 +188,13 @@ thread_preorder( isched_thread_t *ctx, void *args )
 #endif
 }
 
+/**
+ *  @brief Computes the cost of a cblk
+ *
+ *  This function computes the value of a cblk using the 
+ *  formula : cost = a.(cblk->lcolcum - cblk->fcolnum + 1)^2
+ *  where a = (cblk[1].bloknum - cblk[0].bloknum) / 2 + 1
+ */
 static inline double
 cost( symbol_cblk_t *cblk )
 {
@@ -181,6 +202,14 @@ cost( symbol_cblk_t *cblk )
     return n*n * ((double)(cblk[1].bloknum - cblk[0].bloknum) / 2.0 + 1.0);
 }
 
+/**
+ *  @brief Order cblks for each process
+ *
+ *  This function sorts cblks increasing their cost
+ *  and process decreasingly their load using priority queue.
+ *  After that every process has a load nearly equal, except
+ *  the first one wich has a greater load than others.
+ */
 static inline void
 order_tasks( isched_t              *ctx,
              struct args_reorder_t *args )
@@ -228,7 +257,13 @@ order_tasks( isched_t              *ctx,
     pqueueExit( &procs );
 }
 
-/* Multi-thread function (prototype must be the same that sequential version) */
+/**
+ * @brief Prepare arguments for parallel subroutines and order cblks.
+ *
+ *  This function creates array for each process that countains cblks
+ *  the process has to reorder. These cblks are provided by order_tasks
+ *  functions. Afterwards, cblks are reordered by reordering functions.
+ */
 static inline void
 thread_reorder( pastix_data_t *pastix_data,
                 pastix_int_t   maxdepth,
