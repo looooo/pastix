@@ -11,7 +11,7 @@
  * @author Vincent Bridonneau
  * @date 2018-06-08
  *
- * @addtogroup pastix_symbol
+ * @addtogroup symbol_dev_reordering
  * @{
  *   @brief Functions to reorder the cblks of a matrix
  *
@@ -24,3 +24,7 @@ void symbol_reorder_cblk( const symbol_matrix_t *symbptr, const symbol_cblk_t *c
 void symbol_reorder( pastix_data_t *pastix_data, pastix_int_t maxdepth, pastix_int_t *levels );
 
 #endif /* _symbol_reorder_h_ */
+
+/**
+ * @}
+ */
