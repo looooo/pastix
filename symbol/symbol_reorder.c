@@ -21,8 +21,33 @@
 #include "blend/extendVector.h"
 
 /**
+ *******************************************************************************
+ *
+ * @ingroup symbol_dev_reordering
+ *
  * @brief Sequential version for reordering
- */
+ *
+ *  This algorithm reorders cblks. (Sequential version).
+ *
+ *******************************************************************************
+ *
+ * @param[int, out] pastix_data
+ *          The pastix_data providing the scheduler, the symbolic structure,
+ *          and the ordering providing by Scotch that will be updated with
+ *          the new rows permutation for each supernode. It will also gives
+ *          a srop criteria the reordering of each supernode. The split_level
+ *          field activates the split level heuristic, dividing distances
+ *          computations into two stages: for upper and for lower
+ *          contruibuting supernodes.
+ *
+ * @param[out] levels
+ *          The pointer to the levels structure, giving the level of
+ *          each supernode in the elimination tree. To be computed inside.
+ *
+ * @param[in] maxdepth
+ *          The maximum depth in the elimination tree.
+ *
+ *******************************************************************************/
 static inline void
 sequential_reorder( pastix_data_t         *pastix_data,
                     pastix_int_t           maxdepth,
@@ -79,8 +104,25 @@ struct args_reorder_t
 };
 
 /**
+ *******************************************************************************
+ *
+ * @ingroup symbol_dev_reordering
+ *
  * @brief Parallel basic version for reordering
- */
+ *
+ *  This algorithm reorders cblks. Tasks are cut such as every thread
+ *  has the same number of task. (Parallel version)
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctx
+ *          The context of the current thread. This provides information
+ *          about total number of thread used and the rank of the current thread.
+ *
+ * @param[int, out] args
+ *          The argument for reordering functions.
+ *
+ *******************************************************************************/
 static inline void
 thread_preorder_basic_stategy( isched_thread_t *ctx, void *args )
 {
@@ -126,13 +168,27 @@ thread_preorder_basic_stategy( isched_thread_t *ctx, void *args )
 }
 
 /**
+ *******************************************************************************
+ *
+ * @ingroup symbol_dev_reordering
+ *
  * @brief Parallel improved version for reordering
  *
- *  This algorithm reorder cblks after ordering 
+ *  This algorithm reorders cblks after ordering 
  *  them according to their size. Priority queue are used
- *  to sort cblks increasingly and process decreasingly.
- *  
- */
+ *  to sort cblks increasing their cost and process decreasing
+ *  their load. (Parallel version)
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctx
+ *          The context of the current thread. This provides information
+ *          about total number of thread used and the rank of the current thread.
+ *
+ * @param[int, out] args
+ *          The argument for reordering functions.
+ *
+ *******************************************************************************/
 static inline void
 thread_preorder_zigzag_stategy( isched_thread_t *ctx, void *args )
 {
@@ -174,10 +230,25 @@ thread_preorder_zigzag_stategy( isched_thread_t *ctx, void *args )
 }
 
 /**
+ *******************************************************************************
+ *
+ * @ingroup symbol_dev_reordering
+ *
  * @brief Function called by each thread.
  *
- *  This function call a function to reorder cblks.
- */
+ *  This function select and call a strategy to reorder cblks.
+ *  (Parallel version)
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctx
+ *          The context of the current thread. This provides information
+ *          about total number of thread used and the rank of the current thread.
+ *
+ * @param[int, out] args
+ *          The argument for reordering functions.
+ *
+ *******************************************************************************/
 static inline void
 thread_preorder( isched_thread_t *ctx, void *args )
 {
@@ -189,12 +260,24 @@ thread_preorder( isched_thread_t *ctx, void *args )
 }
 
 /**
- *  @brief Computes the cost of a cblk
+ *******************************************************************************
+ *
+ * @ingroup symbol_dev_reordering
+ *
+ * @brief Computes the cost of a cblk
  *
  *  This function computes the value of a cblk using the 
  *  formula : cost = a.(cblk->lcolcum - cblk->fcolnum + 1)^2
  *  where a = (cblk[1].bloknum - cblk[0].bloknum) / 2 + 1
- */
+ *  It represents the load (number of calcul) a process
+ *  needs to reorder the cblk.
+ *
+ *******************************************************************************
+ *
+ * @param[in] cblk
+ *          The cblk we want to compute the cost.
+ *
+ *******************************************************************************/
 static inline double
 cost( symbol_cblk_t *cblk )
 {
@@ -203,13 +286,27 @@ cost( symbol_cblk_t *cblk )
 }
 
 /**
- *  @brief Order cblks for each process
+ *******************************************************************************
+ *
+ * @ingroup symbol_dev_reordering
+ *
+ * @brief Order cblks for each process
  *
  *  This function sorts cblks increasing their cost
  *  and process decreasingly their load using priority queue.
  *  After that every process has a load nearly equal, except
  *  the first one wich has a greater load than others.
- */
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctx
+ *          The context of the current thread. This provides information
+ *          about total number of thread used and the rank of the current thread.
+ *
+ * @param[int, out] args
+ *          The argument for reordering functions.
+ *
+ *******************************************************************************/
 static inline void
 order_tasks( isched_t              *ctx,
              struct args_reorder_t *args )
@@ -257,13 +354,37 @@ order_tasks( isched_t              *ctx,
     pqueueExit( &procs );
 }
 
+
 /**
+ *******************************************************************************
+ *
+ * @ingroup symbol_dev_reordering
+ *
  * @brief Prepare arguments for parallel subroutines and order cblks.
  *
  *  This function creates array for each process that countains cblks
  *  the process has to reorder. These cblks are provided by order_tasks
  *  functions. Afterwards, cblks are reordered by reordering functions.
- */
+ *
+ *******************************************************************************
+ *
+ * @param[int, out] pastix_data
+ *          The pastix_data providing the scheduler, the symbolic structure,
+ *          and the ordering providing by Scotch that will be updated with
+ *          the new rows permutation for each supernode. It will also gives
+ *          a srop criteria the reordering of each supernode. The split_level
+ *          field activates the split level heuristic, dividing distances
+ *          computations into two stages: for upper and for lower
+ *          contruibuting supernodes.
+ *
+ * @param[out] levels
+ *          The pointer to the levels structure, giving the level of
+ *          each supernode in the elimination tree. To be computed inside.
+ *
+ * @param[in] maxdepth
+ *          The maximum depth in the elimination tree.
+ *
+ *******************************************************************************/
 static inline void
 thread_reorder( pastix_data_t *pastix_data,
                 pastix_int_t   maxdepth,
