@@ -78,7 +78,12 @@ core_zgetf2sp( pastix_int_t        m,
         Aik = Akk + 1;
 
         if ( cabs(*Akk) < criteria ) {
-            (*Akk) = (pastix_complex64_t)criteria;
+            if ( creal(*Akk) < 0. ) {
+                *Akk = (pastix_complex64_t)(-criteria);
+            }
+            else {
+                *Akk = (pastix_complex64_t)criteria;
+            }
             (*nbpivots)++;
         }
 

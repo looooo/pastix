@@ -76,7 +76,12 @@ core_zhetf2sp( pastix_int_t        n,
     m = n-1;
     for (k=0; k<n; k++, m--){
         if ( cabs(*Akk) < criteria ) {
-            (*Akk) = (pastix_complex64_t)criteria;
+            if ( creal(*Akk) < 0. ) {
+                *Akk = (pastix_complex64_t)(-criteria);
+            }
+            else {
+                *Akk = (pastix_complex64_t)criteria;
+            }
             (*nbpivots)++;
         }
 
