@@ -138,7 +138,7 @@ core_zgetrfsp( pastix_int_t        n,
     pastix_int_t k, blocknbr, blocksize, matrixsize, tempm;
     pastix_complex64_t *Akk, *Lik, *Ukj, *Aij;
 
-    blocknbr = (pastix_int_t) ceil( (double)n/(double)MAXSIZEOFBLOCKS );
+    blocknbr = pastix_iceil( n, MAXSIZEOFBLOCKS );
 
     Akk = A; /* Lk,k     */
 

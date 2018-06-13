@@ -143,7 +143,7 @@ core_zsytrfsp( pastix_int_t        n,
     pastix_complex64_t alpha;
 
     /* diagonal supernode is divided into MAXSIZEOFBLOCK-by-MAXSIZEOFBLOCKS blocks */
-    blocknbr = (pastix_int_t) ceil( (double)n/(double)MAXSIZEOFBLOCKS );
+    blocknbr = pastix_iceil( n, MAXSIZEOFBLOCKS );
 
     for (k=0; k<blocknbr; k++) {
 
