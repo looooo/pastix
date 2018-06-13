@@ -352,7 +352,7 @@ coeftab_zgetschur( const SolverMatrix *solvmtx,
  *
  * @param[inout] D
  *          The pointer to the allocated vector array that will store the diagonal.
- *          D must be of size solvmtx->coefnbr * incD.
+ *          D must be of size solvmtx->nodenbr * incD.
  *
  * @param[in] incD
  *          The increment bewteen two elements of D. incD > 0.
