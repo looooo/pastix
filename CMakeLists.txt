@@ -433,6 +433,8 @@ if (PASTIX_ORDERING_METIS)
     include_directories( ${METIS_INCLUDE_DIRS} )
     link_directories( ${METIS_LIBRARY_DIRS} )
     link_libraries( ${METIS_LIBRARIES} )
+    list(APPEND EXTRA_LIBS ${METIS_LIBRARIES} )
+
     list(APPEND CMAKE_INSTALL_RPATH
       ${METIS_LIBRARY_DIRS}
       )
