@@ -729,8 +729,8 @@ candBuild( pastix_int_t level_tasks2d, pastix_int_t width_tasks2d,
 #endif
 
     /* Let's start with the root */
-    candtab[ root ].costlevel = -1.0;
-    candtab[ root ].treelevel = -1;
+    candtab[ root ].costlevel = 0.;
+    candtab[ root ].treelevel = 0;
 
     candSubTreeBuild( root, candtab, etree, symbmtx, costmtx, &cp );
 

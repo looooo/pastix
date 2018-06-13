@@ -954,7 +954,7 @@ simuRun( SimuCtrl              *simuctrl,
             assert(ctrl->candtab[i].treelevel < 0);
 
             if( ctrl->costlevel ) {
-                assert(ctrl->candtab[i].costlevel < 0);
+                assert(ctrl->candtab[i].costlevel <= 0);
             }
 
             assert(simuctrl->tasktab[tasknum].cblknum == i);
