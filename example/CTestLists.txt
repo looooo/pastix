@@ -48,18 +48,26 @@ foreach(example ${PASTIX_DRIVERS} )
   endforeach()
 endforeach()
 
+set( PASTIX_ORDER
+  pastixorderscotch )
+if (PASTIX_ORDERING_METIS)
+  list( APPEND PASTIX_ORDER pastixordermetis )
+endif (PASTIX_ORDERING_METIS)
+
 ### Driver
 foreach(example ${PASTIX_TESTS} )
-  # RSA
-  if (PASTIX_WITH_FORTRAN)
-    add_test(example_rsa_${example} ./${example} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1)
-  endif()
-  # Matrix Market
-  add_test(example_mm_${example}  ./${example} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx  -f 1)
-  # Harwell Boeing
-  add_test(example_hb_${example}  ./${example} --hb  ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua   -f 2)
-  # Matrix Market - Hermitian
-  add_test(example_mm2_${example} ./${example} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx -f 2)
+  foreach(order ${PASTIX_ORDER} )
+    # RSA
+    if (PASTIX_WITH_FORTRAN)
+      add_test(example_rsa_${example}_${order} ./${example} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1 -i iparm_ordering ${order})
+    endif()
+    # Matrix Market
+    add_test(example_mm_${example}_${order}  ./${example} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx  -f 1 -i iparm_ordering ${order})
+    # Harwell Boeing
+    add_test(example_hb_${example}_${order}  ./${example} --hb  ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua   -f 2 -i iparm_ordering ${order})
+    # Matrix Market - Hermitian
+    add_test(example_mm2_${example}_${order} ./${example} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx -f 2 -i iparm_ordering ${order})
+  endforeach()
 endforeach()
 
 ### Refinement
