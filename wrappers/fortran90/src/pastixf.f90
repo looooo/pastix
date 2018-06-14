@@ -631,12 +631,12 @@ contains
   subroutine pastixOrderGrid(myorder, nx, ny, nz, info)
     use iso_c_binding
     implicit none
-    type(pastix_order_t),       intent(in), pointer :: myorder
-    integer(kind=pastix_int_t), intent(in)          :: nx
-    integer(kind=pastix_int_t), intent(in)          :: ny
-    integer(kind=pastix_int_t), intent(in)          :: nz
-    integer(kind=c_int),        intent(out)         :: info
-    type(c_ptr)                                     :: myorder_aux
+    type(pastix_order_t),       intent(inout), pointer :: myorder
+    integer(kind=pastix_int_t), intent(in)             :: nx
+    integer(kind=pastix_int_t), intent(in)             :: ny
+    integer(kind=pastix_int_t), intent(in)             :: nz
+    integer(kind=c_int),        intent(out)            :: info
+    type(c_ptr)                                        :: myorder_aux
 
     myorder_aux = c_loc(myorder)
 
