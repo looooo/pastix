@@ -59,6 +59,9 @@ starpu_zhetrf_sp1dplus( sopalin_data_t              *sopalin_data,
     cblk = solvmtx->cblktab;
     for (k=0; k<solvmtx->cblknbr; k++, cblk++){
 
+        /* Do not handle the 1D layout case with runtimes due to gemm update */
+        assert( cblk->cblktype & CBLK_LAYOUT_2D );
+
         if ( cblk->cblktype & CBLK_IN_SCHUR ) {
             break;
         }
@@ -124,6 +127,9 @@ starpu_zhetrf_sp2d( sopalin_data_t              *sopalin_data,
     /* Let's submit all 1D tasks first */
     cblk = solvmtx->cblktab;
     for (k=0; k<=solvmtx->cblkmax1d; k++, cblk++){
+
+        /* Do not handle the 1D layout case with runtimes due to gemm update */
+        assert( cblk->cblktype & CBLK_LAYOUT_2D );
 
         if ( cblk->cblktype & CBLK_IN_SCHUR ) {
             break;

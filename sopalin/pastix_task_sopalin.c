@@ -16,6 +16,7 @@
  *
  **/
 #include "common.h"
+#include <lapacke.h>
 #include "isched.h"
 #include "spm.h"
 #include "bcsc.h"
@@ -381,12 +382,21 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
             threshold = - pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ];
         }
         else if ( pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] == 0. ) {
+            /*
+             * Use the rule presented in "Making Sparse Gaussian Elimination
+             * Scalable by Static Pivoting", S. X. Li, J. Demmel
+             *
+             * sqrt(eps) * ||A||_1 is a small half precision pertrbation
+             * intriduced in the pb when the pivot is too small
+             */
+            double eps;
             if ( (bcsc->flttype == PastixFloat) || (bcsc->flttype == PastixComplex32) ) {
-                threshold = 1e-7  * pastix_data->dparm[DPARM_A_NORM];
+                eps = LAPACKE_slamch_work( 'e' );
             }
             else {
-                threshold = 1e-15 * pastix_data->dparm[DPARM_A_NORM];
+                eps = LAPACKE_dlamch_work( 'e' );
             }
+            threshold =  sqrt(eps) * pastix_data->dparm[DPARM_A_NORM];
         }
         else {
             threshold = pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] * pastix_data->dparm[DPARM_A_NORM];

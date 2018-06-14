@@ -78,7 +78,12 @@ core_zgetf2sp( pastix_int_t        m,
         Aik = Akk + 1;
 
         if ( cabs(*Akk) < criteria ) {
-            (*Akk) = (pastix_complex64_t)criteria;
+            if ( creal(*Akk) < 0. ) {
+                *Akk = (pastix_complex64_t)(-criteria);
+            }
+            else {
+                *Akk = (pastix_complex64_t)criteria;
+            }
             (*nbpivots)++;
         }
 
@@ -138,7 +143,7 @@ core_zgetrfsp( pastix_int_t        n,
     pastix_int_t k, blocknbr, blocksize, matrixsize, tempm;
     pastix_complex64_t *Akk, *Lik, *Ukj, *Aij;
 
-    blocknbr = (pastix_int_t) ceil( (double)n/(double)MAXSIZEOFBLOCKS );
+    blocknbr = pastix_iceil( n, MAXSIZEOFBLOCKS );
 
     Akk = A; /* Lk,k     */
 

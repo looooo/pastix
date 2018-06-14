@@ -44,56 +44,42 @@
  * @param[in] symbptr
  *          The pointer to the symbol matrix structure studied.
  *
- * @param[in] candtab
- *          The pointer to the candidate information associated to the symbol
- *          structure and that will guide the simulation.
- *
  *******************************************************************************/
 void
 simuTaskBuild( SimuCtrl              *simuctrl,
-               const symbol_matrix_t *symbptr,
-               const Cand            *candtab )
+               const symbol_matrix_t *symbptr )
 {
     pastix_int_t i, j;
     pastix_int_t tasknbr = 0;
     SimuTask *task = NULL;
 
-    /* Count number of task */
-    for(i=0;i<symbptr->cblknbr;i++)
-    {
-        if ( candtab[i].cblktype & (~CBLK_IN_SCHUR) ) {
-            tasknbr++;
-        }
-    }
+    /* One task per cblk */
+    simuctrl->tasknbr = symbptr->cblknbr;
 
-    simuctrl->tasknbr = tasknbr;
-
-    MALLOC_INTERN(simuctrl->tasktab, tasknbr, SimuTask);
+    MALLOC_INTERN( simuctrl->tasktab, simuctrl->tasknbr, SimuTask );
     assert( simuctrl->tasktab );
 
     task = simuctrl->tasktab;
     tasknbr = 0;
     for(i=0;i<symbptr->cblknbr;i++)
     {
-        if ( candtab[i].cblktype & (~CBLK_IN_SCHUR) ) {
-            task->prionum  = -1;
-            task->cblknum  = i;
-            task->bloknum  = symbptr->cblktab[i].bloknum;
-            task->bloknum2 = -1;
-            task->ctrbcnt  = 0;
-            task->ftgtcnt  = 0;
-            task->facebloknum = -1;
-            task->cost     = -1;
-            timerSet(&(task->time), 0.0);
-            task->mesglen  = 0.0;
-            task->tasknext = -1;
-            for(j = symbptr->cblktab[i].bloknum;
-                j < symbptr->cblktab[i+1].bloknum; j++ )
-            {
-                simuctrl->bloktab[j].tasknum = tasknbr;
-            }
-            tasknbr++;
-            task++;
+        task->prionum  = -1;
+        task->cblknum  = i;
+        task->bloknum  = symbptr->cblktab[i].bloknum;
+        task->bloknum2 = -1;
+        task->ctrbcnt  = 0;
+        task->ftgtcnt  = 0;
+        task->facebloknum = -1;
+        task->cost     = -1;
+        timerSet(&(task->time), 0.0);
+        task->mesglen  = 0.0;
+        task->tasknext = -1;
+        for(j = symbptr->cblktab[i].bloknum;
+            j < symbptr->cblktab[i+1].bloknum; j++ )
+        {
+            simuctrl->bloktab[j].tasknum = tasknbr;
         }
+        tasknbr++;
+        task++;
     }
 }

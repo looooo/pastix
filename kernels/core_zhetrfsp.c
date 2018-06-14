@@ -76,7 +76,12 @@ core_zhetf2sp( pastix_int_t        n,
     m = n-1;
     for (k=0; k<n; k++, m--){
         if ( cabs(*Akk) < criteria ) {
-            (*Akk) = (pastix_complex64_t)criteria;
+            if ( creal(*Akk) < 0. ) {
+                *Akk = (pastix_complex64_t)(-criteria);
+            }
+            else {
+                *Akk = (pastix_complex64_t)criteria;
+            }
             (*nbpivots)++;
         }
 
@@ -144,7 +149,7 @@ core_zhetrfsp( pastix_int_t        n,
     pastix_complex64_t alpha;
 
     /* diagonal supernode is divided into MAXSIZEOFBLOCK-by-MAXSIZEOFBLOCKS blocks */
-    blocknbr = (pastix_int_t) ceil( (double)n/(double)MAXSIZEOFBLOCKS );
+    blocknbr = pastix_iceil( n, MAXSIZEOFBLOCKS );
 
     for (k=0; k<blocknbr; k++) {
 
@@ -433,7 +438,7 @@ cpucblk_zhetrfsp1d_panel( SolverMatrix       *solvmtx,
                      PastixNoTrans, PastixNonUnit,
                      cblk, L, L, &(solvmtx->lowrank) );
 
-    if ( DLh != NULL ) {
+    if ( (DLh != NULL) && (cblk->cblktype & CBLK_LAYOUT_2D) ) {
         /* Copy L into the temporary buffer and multiply by D */
         cpucblk_zscalo( PastixConjTrans, cblk, DLh );
     }
@@ -483,15 +488,19 @@ cpucblk_zhetrfsp1d( SolverMatrix       *solvmtx,
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivots;
 
+    if ( !(cblk->cblktype & CBLK_LAYOUT_2D) ) {
+        DLh = NULL;
+    }
+
     /* if there are off-diagonal supernodes in the column */
     nbpivots = cpucblk_zhetrfsp1d_panel( solvmtx, cblk, L, DLh );
 
-    blok = cblk->fblokptr+1;   /* this diagonal block */
-    lblk = cblk[1].fblokptr;   /* the next diagonal block */
+    blok = cblk->fblokptr+1; /* this diagonal block */
+    lblk = cblk[1].fblokptr; /* the next diagonal block */
 
     for( ; blok < lblk; blok++ )
     {
-        fcblk = (solvmtx->cblktab + blok->fcblknm);
+        fcblk = solvmtx->cblktab + blok->fcblknm;
 
         /* Update on L */
         if (DLh == NULL) {

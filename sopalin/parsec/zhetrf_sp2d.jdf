@@ -87,6 +87,10 @@ BODY
     SolverCblk *cblk = datacode->cblktab + k;
 
     if (!isTwoD) {
+
+        /* Do not handle the 1D layout case with runtimes due to gemm update */
+        assert( cblk->cblktype & CBLK_LAYOUT_2D );
+
         if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
             pastix_complex64_t *myDL = NULL;
 

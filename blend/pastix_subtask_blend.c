@@ -376,7 +376,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                   ctrl.total_nbcores );
 
         /* Create task array */
-        simuTaskBuild(simuctrl, symbmtx, ctrl.candtab);
+        simuTaskBuild( simuctrl, symbmtx );
         clockStop(timer_current);
 
         if( verbose > PastixVerboseNo ) {

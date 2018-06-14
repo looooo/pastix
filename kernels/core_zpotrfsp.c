@@ -151,7 +151,7 @@ core_zpotrfsp( pastix_int_t        n,
     pastix_complex64_t *tmp,*tmp1,*tmp2;
 
     /* diagonal supernode is divided into MAXSIZEOFBLOCK-by-MAXSIZEOFBLOCKS blocks */
-    blocknbr = (n + MAXSIZEOFBLOCKS - 1) / MAXSIZEOFBLOCKS;
+    blocknbr = pastix_iceil( n, MAXSIZEOFBLOCKS );
 
     for (k=0; k<blocknbr; k++) {
 
