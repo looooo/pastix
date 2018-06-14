@@ -17,9 +17,7 @@
 #include "common.h"
 #include "graph.h"
 #include "pastix/order.h"
-#if defined(PASTIX_ORDERING_METIS)
 #include <metis.h>
-#endif
 
 /**
  *******************************************************************************
