@@ -377,7 +377,7 @@ if (PASTIX_ORDERING_PTSCOTCH)
     include_directories( ${PTSCOTCH_INCLUDE_DIRS_DEP} )
     link_directories( ${PTSCOTCH_LIBRARY_DIRS_DEP} )
     link_libraries( ${PTSCOTCH_LIBRARIES_DEP} )
-    list(INSERT EXTRA_LIBS 1 ${PTSCOTCH_LIBRARIES_DEP} )
+    
     list(APPEND CMAKE_INSTALL_RPATH
       ${PTSCOTCH_LIBRARY_DIRS_DEP}
       )
@@ -401,7 +401,6 @@ if (PASTIX_ORDERING_SCOTCH)
     include_directories( ${SCOTCH_INCLUDE_DIRS} )
     link_directories( ${SCOTCH_LIBRARY_DIRS} )
     link_libraries( ${SCOTCH_LIBRARIES} )
-    list(APPEND EXTRA_LIBS ${SCOTCH_LIBRARIES} )
 
     list(APPEND CMAKE_INSTALL_RPATH
       ${SCOTCH_LIBRARY_DIRS}
@@ -433,7 +432,6 @@ if (PASTIX_ORDERING_METIS)
     include_directories( ${METIS_INCLUDE_DIRS} )
     link_directories( ${METIS_LIBRARY_DIRS} )
     link_libraries( ${METIS_LIBRARIES} )
-    list(APPEND EXTRA_LIBS ${METIS_LIBRARIES} )
 
     list(APPEND CMAKE_INSTALL_RPATH
       ${METIS_LIBRARY_DIRS}
