@@ -59,7 +59,7 @@ foreach(example ${PASTIX_TESTS} )
   foreach(order ${PASTIX_ORDER} )
     # RSA
     if (PASTIX_WITH_FORTRAN)
-      add_test(example_rsa_${example}_${order} ./${example} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1 -i iparm_ordering ${order})
+      add_test(example_rsa_${example}_${order} ./${example} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1 -i iparm_ordering ${order} -d dparm_epsilon_magn_ctrl 1e-14)
     endif()
     # Matrix Market
     add_test(example_mm_${example}_${order}  ./${example} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx  -f 1 -i iparm_ordering ${order})
@@ -72,9 +72,9 @@ endforeach()
 
 ### Refinement
 foreach(example ${PASTIX_TESTS} )
-  add_test(example_cg_${example}       ./${example} --hb ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1 -i iparm_refinement pastixrefinecg)
-  add_test(example_gmres_${example}    ./${example} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinegmres)
-  add_test(example_bicgstab_${example} ./${example} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinebicgstab)
+  add_test(example_refine_cg_${example}       ./${example} --hb ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1 -i iparm_refinement pastixrefinecg -d dparm_epsilon_magn_ctrl 1e-14)
+  add_test(example_refine_gmres_${example}    ./${example} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinegmres)
+  add_test(example_refine_bicgstab_${example} ./${example} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinebicgstab)
 endforeach()
 
 ### Refinement with Laplacian and default parameters
