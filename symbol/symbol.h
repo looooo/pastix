@@ -116,12 +116,13 @@ void         pastixSymbolGetTimes  ( const symbol_matrix_t *symbmtx,
                                      pastix_factotype_t factotype,
                                      double *cblkcost, double *blokcost );
 
+
 /**
  * @}
  * @name Symbol reordering subroutines
  * @{
  */
-void pastixSymbolReordering( const symbol_matrix_t *, pastix_order_t *, pastix_int_t, pastix_int_t );
+void pastixSymbolReordering( pastix_data_t* );
 void pastixSymbolReorderingPrintComplexity( const symbol_matrix_t *symbptr );
 
 /**

@@ -96,9 +96,7 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
     /**
      * Reorder the rows of each supernode in order to compact coupling blocks
      */
-    pastixSymbolReordering( pastix_data->symbmtx, ordemesh,
-                            iparm[IPARM_REORDERING_SPLIT],
-                            iparm[IPARM_REORDERING_STOP] );
+    pastixSymbolReordering( pastix_data );
 
     /* Backup the new ordering */
     if ( iparm[IPARM_IO_STRATEGY] & PastixIOSave )
