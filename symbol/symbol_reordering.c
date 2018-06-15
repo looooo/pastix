@@ -627,15 +627,12 @@ symbol_reorder_cblk( const symbol_matrix_t *symbptr,
 void
 pastixSymbolReordering( pastix_data_t *pastix_data )
 {
-    Clock timer;
     symbol_matrix_t *symbptr = pastix_data->symbmtx;
     pastix_int_t cblknbr = symbptr->cblknbr;
 
     pastix_int_t i, maxdepth;
     pastix_int_t *levels;
     pastix_order_t *order = pastix_data->ordemesh;
-
-    clockStart(timer);
 
     /* Create the levels array to compute the depth of each cblk and the maximum depth */
     {
@@ -658,12 +655,6 @@ pastixSymbolReordering( pastix_data_t *pastix_data )
         order->permtab[ order->peritab[i] ] = i;
     }
     memFree_null( levels );
-
-    clockStop(timer);
-    if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
-        pastix_print(pastix_data->procnum, 0, "    Time for symbol reordering            %e s\n",
-                     (double)clockVal(timer));
-    }
 }
 
 /**

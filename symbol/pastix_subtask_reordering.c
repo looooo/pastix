@@ -97,6 +97,12 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
      * Reorder the rows of each supernode in order to compact coupling blocks
      */
     pastixSymbolReordering( pastix_data );
+    
+    /* Time for symbol reordering */
+    if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+        pastix_print(procnum, 0, "    Time for symbol reordering            %e s\n",
+                     (double)clockVal(timer));
+    }
 
     /* Backup the new ordering */
     if ( iparm[IPARM_IO_STRATEGY] & PastixIOSave )
