@@ -16,13 +16,15 @@ PASTIX_DIR=@CMAKE_INSTALL_PREFIX@
 
 PKG_CONFIG_PATH:=${PKG_CONFIG_PATH}:@CMAKE_INSTALL_PREFIX@/lib/pkgconfig
 
-# Lapacke library used to compiled PaStiX. Might be changed with user's library
+# Extra libs are usually useless in general case. We add them here as
+# we need Lapacke for the shur testing, and pthread for the reentrant
+# one.
 EXTRALIBS= @EXAMPLE_LIBS@
 
 CFLAGS=`PKG_CONFIG_PATH=${PKG_CONFIG_PATH} pkg-config --cflags pastix` -Wall -O2 -I${PASTIX_DIR}/include/pastix
 LDFLAGS=`PKG_CONFIG_PATH=${PKG_CONFIG_PATH} pkg-config --libs pastix` ${EXTRALIBS}
 
-FFLAGS=`PKG_CONFIG_PATH=${PKG_CONFIG_PATH} pkg-config --cflags pastixf` -Wall -O2 -I${PASTIX_DIR}/include
+FFLAGS=`PKG_CONFIG_PATH=${PKG_CONFIG_PATH} pkg-config --cflags pastixf` -Wall -O2
 LDFFLAGS=`PKG_CONFIG_PATH=${PKG_CONFIG_PATH} pkg-config --libs pastixf` ${EXTRALIBS}
 
 EXAMPLES=       analyze	        \
@@ -30,13 +32,15 @@ EXAMPLES=       analyze	        \
 		compress        \
 		personal	\
 		reentrant       \
+		refinement      \
 		schur	        \
 		simple	        \
 		step-by-step
 
 EXAMPLES_F90=   flaplacian      \
 		fsimple	        \
-		fstep-by-step
+		fstep-by-step   \
+		fmultilap
 
 default: $(EXAMPLES) $(EXAMPLES_F90)
 
