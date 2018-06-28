@@ -19,5 +19,5 @@ Version: @PASTIX_VERSION_MAJOR@.@PASTIX_VERSION_MINOR@.@PASTIX_VERSION_MICRO@
 Cflags: -I${includedir} -I${includedir}/pastix
 Libs: -L${libdir} -lpastixf @PASTIX_PKGCONFIG_LIBS@
 Libs.private: @PASTIX_PKGCONFIG_LIBS_PRIVATE@
-Requires: pastix @PASTIX_PKGCONFIG_REQUIRED@
-Requires.private: @PASTIX_PKGCONFIG_REQUIRED_PRIVATE@
+Requires: pastix spmf @PASTIX_PKGCONFIG_REQUIRED@
+Requires.private: spmf @PASTIX_PKGCONFIG_REQUIRED_PRIVATE@
