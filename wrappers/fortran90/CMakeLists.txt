@@ -21,11 +21,11 @@ add_library( pastixf
 if ( PASTIX_INT64 )
   set_source_files_properties(
     src/pastix_enums.F90
-    PROPERTIES COMPILE_DEFINITIONS "PASTIX_INT_KIND=8")
+    PROPERTIES COMPILE_DEFINITIONS "PASTIX_INT_KIND=c_int64_t")
 else()
   set_source_files_properties(
     src/pastix_enums.F90
-    PROPERTIES COMPILE_DEFINITIONS "PASTIX_INT_KIND=4")
+    PROPERTIES COMPILE_DEFINITIONS "PASTIX_INT_KIND=c_int32_t")
 endif()
 
 target_link_libraries( pastixf pastix )

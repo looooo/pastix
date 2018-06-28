@@ -74,8 +74,8 @@ program fmultilap
   end type rhs_subset
 
   type sys_lin
-     integer                                               :: pid         ! Index of the pastix instance factorizing the matrix
-     integer                                               :: nsys        ! Number of subsystems used to solve the rhs
+     integer(kind=pastix_int_t)                            :: pid         ! Index of the pastix instance factorizing the matrix
+     integer(kind=pastix_int_t)                            :: nsys        ! Number of subsystems used to solve the rhs
      type(pastix_data_t),                          pointer :: pastix_data ! The pastix_data associated to the matrix
      integer(kind=pastix_int_t),     dimension(iparm_size) :: iparm       ! iparm array associated to the matrix
      real(kind=c_double),            dimension(dparm_size) :: dparm       ! dparm array associated to the matrix
@@ -95,7 +95,7 @@ program fmultilap
   type(c_ptr)                                       :: b0_ptr, x_ptr, b_ptr
   integer, dimension(:), allocatable                :: ila_thrmn, ila_thrmx, ila_thrsz
   integer(kind=c_int), dimension(:), pointer        :: bindtab
-  integer                                           :: th, im, ir, i, j, k
+  integer(kind=pastix_int_t)                        :: th, im, ir, i, j, k
   integer(kind=pastix_int_t)                        :: size
   integer(c_int)                                    :: info, ginfo = 0
   !
@@ -225,7 +225,7 @@ program fmultilap
      !
      allocate( bindtab( iparm(IPARM_THREAD_NBR) ) )
      do i = 1, iparm(IPARM_THREAD_NBR)
-        bindtab( i ) = (th-1) * iparm(IPARM_THREAD_NBR) + (i - 1)
+        bindtab( i ) = int((th-1) * iparm(IPARM_THREAD_NBR) + (i - 1), c_int)
      end do
 
      do im = ila_thrmn(th), ila_thrmx(th)
@@ -277,11 +277,6 @@ program fmultilap
         !
         ! Give each matrix a subset of cores
         !
-        allocate( bindtab( iparm(IPARM_THREAD_NBR) ) )
-        do i = 1, iparm(IPARM_THREAD_NBR)
-           bindtab( i ) = (th-1) * iparm(IPARM_THREAD_NBR) + (i - 1)
-        end do
-
         do im = ila_thrmn(th), ila_thrmx(th)
 
            matrix => sys_array(im)
@@ -306,7 +301,6 @@ program fmultilap
 
         end do
 
-        deallocate(bindtab)
      end do fact_loop
      !$OMP END DO
      !$OMP END PARALLEL
@@ -609,7 +603,6 @@ contains
   subroutine multilap_init( params )
     type(multilap_param), intent(out), target :: params
     integer                                   :: val, dim1, dim2, dim3
-    integer                                   :: nbthrd_per_instance
 
     ! Read a dummy line.
     read( 5, * )
@@ -740,7 +733,6 @@ contains
        write(6,*) ' The multirhs mode is disabled'
     endif
 
-9997 format( A6, ' (', I6, ') is not a multiple of ', A6, ' (', I6 , ')' )
 9998 format( ' Invalid input value: ', A8, '=', I6, '; must be <=', I6 )
 9999 format( ' Invalid input value: ', A8, '=', I6, '; must be >=', I6 )
 
@@ -753,9 +745,9 @@ contains
   subroutine multilap_genOneMatrix( params, matrix, ib_out, ib )
     type(multilap_param),       intent(in),    target :: params
     type(sys_lin),              intent(inout), target :: matrix
-    integer,                    intent(in)            :: ib, ib_out
-    integer(kind=pastix_int_t)                        :: dim1, dim2, dim3, n, nnz
-    integer                                           :: i, j, k, l
+    integer(kind=pastix_int_t), intent(in)            :: ib, ib_out
+    integer(kind=pastix_int_t)                        :: dim1, dim2, dim3
+    integer(kind=pastix_int_t)                        :: i, j, k, l
     type(spmatrix_t), pointer                         :: spm2
 
     !
@@ -776,25 +768,25 @@ contains
           do k=1,dim3
              matrix%rowptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
              matrix%colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-             matrix%values(l) = 6.
+             matrix%values(l) = (6., 6.)
 
              if (i == 1) then
-                matrix%values(l) = matrix%values(l) - 1.
+                matrix%values(l) = matrix%values(l) - (1., 1.)
              end if
              if (i == dim1) then
-                matrix%values(l) = matrix%values(l) - 1.
+                matrix%values(l) = matrix%values(l) - (1., 1.)
              end if
              if (j == 1) then
-                matrix%values(l) = matrix%values(l) - 1.
+                matrix%values(l) = matrix%values(l) - (1., 1.)
              end if
              if (j == dim2) then
-                matrix%values(l) = matrix%values(l) - 1.
+                matrix%values(l) = matrix%values(l) - (1., 1.)
              end if
              if (k == 1) then
-                matrix%values(l) = matrix%values(l) - 1.
+                matrix%values(l) = matrix%values(l) - (1., 1.)
              end if
              if (k == dim3) then
-                matrix%values(l) = matrix%values(l) - 1.
+                matrix%values(l) = matrix%values(l) - (1., 1.)
              end if
 
              matrix%values(l) = matrix%values(l) * 8.
@@ -803,19 +795,19 @@ contains
              if (i < dim1) then
                 matrix%rowptr(l) =  i    + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
                 matrix%colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-                matrix%values(l) = - 1. - 1. * i
+                matrix%values(l) = -(1., 1.)
                 l = l + 1
              end if
              if (j < dim2) then
                 matrix%rowptr(l) = (i-1) + dim1 *  j    + dim1 * dim2 * (k-1) + 1
                 matrix%colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-                matrix%values(l) = - 1. - 1. * i
+                matrix%values(l) = -(1., 1.)
                 l = l + 1
              end if
              if (k < dim3) then
                 matrix%rowptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 *  k    + 1
                 matrix%colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-                matrix%values(l) = -1. - 1. * i
+                matrix%values(l) = -(1., 1.)
                 l = l + 1
              end if
           end do

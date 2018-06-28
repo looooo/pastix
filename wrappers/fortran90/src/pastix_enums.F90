@@ -296,14 +296,13 @@ module pastix_enums
      enumerator :: PastixDirBackward = 392
   end enum
 
-
   integer, parameter :: pastix_int_t = PASTIX_INT_KIND
 
 contains
 
   function pastix_getintsize()
     integer :: pastix_getintsize
-    pastix_getintsize = PASTIX_INT_KIND
+    pastix_getintsize = kind(PASTIX_INT_KIND)
     return
   end function pastix_getintsize
 

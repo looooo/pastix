@@ -50,25 +50,25 @@ program fsimple
         do k=1,dim3
            rowptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
            colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-           values(l) = 6.
+           values(l) = (6., 6.)
 
            if (i == 1) then
-              values(l) = values(l) - 1.
+              values(l) = values(l) - (1., 1.)
            end if
            if (i == dim1) then
-              values(l) = values(l) - 1.
+              values(l) = values(l) - (1., 1.)
            end if
            if (j == 1) then
-              values(l) = values(l) - 1.
+              values(l) = values(l) - (1., 1.)
            end if
            if (j == dim2) then
-              values(l) = values(l) - 1.
+              values(l) = values(l) - (1., 1.)
            end if
            if (k == 1) then
-              values(l) = values(l) - 1.
+              values(l) = values(l) - (1., 1.)
            end if
            if (k == dim3) then
-              values(l) = values(l) - 1.
+              values(l) = values(l) - (1., 1.)
            end if
 
            values(l) = values(l) * 8.
@@ -77,19 +77,19 @@ program fsimple
            if (i < dim1) then
               rowptr(l) =  i    + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
               colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-              values(l) = - 1. - 1. * I
+              values(l) = (- 1.,  - 1.)
               l = l + 1
            end if
            if (j < dim2) then
               rowptr(l) = (i-1) + dim1 *  j    + dim1 * dim2 * (k-1) + 1
               colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-              values(l) = - 1. - 1. * I
+              values(l) = (- 1., - 1.)
               l = l + 1
            end if
            if (k < dim3) then
               rowptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 *  k    + 1
               colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-              values(l) = -1. - 1. * I
+              values(l) = (-1., - 1. )
               l = l + 1
            end if
         end do
