@@ -768,25 +768,25 @@ contains
           do k=1,dim3
              matrix%rowptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
              matrix%colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-             matrix%values(l) = (6., 6.)
+             matrix%values(l) = (6., 0.)
 
              if (i == 1) then
-                matrix%values(l) = matrix%values(l) - (1., 1.)
+                matrix%values(l) = matrix%values(l) - (1., 0.)
              end if
              if (i == dim1) then
-                matrix%values(l) = matrix%values(l) - (1., 1.)
+                matrix%values(l) = matrix%values(l) - (1., 0.)
              end if
              if (j == 1) then
-                matrix%values(l) = matrix%values(l) - (1., 1.)
+                matrix%values(l) = matrix%values(l) - (1., 0.)
              end if
              if (j == dim2) then
-                matrix%values(l) = matrix%values(l) - (1., 1.)
+                matrix%values(l) = matrix%values(l) - (1., 0.)
              end if
              if (k == 1) then
-                matrix%values(l) = matrix%values(l) - (1., 1.)
+                matrix%values(l) = matrix%values(l) - (1., 0.)
              end if
              if (k == dim3) then
-                matrix%values(l) = matrix%values(l) - (1., 1.)
+                matrix%values(l) = matrix%values(l) - (1., 0.)
              end if
 
              matrix%values(l) = matrix%values(l) * 8.
@@ -795,19 +795,19 @@ contains
              if (i < dim1) then
                 matrix%rowptr(l) =  i    + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
                 matrix%colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-                matrix%values(l) = -(1., 1.)
+                matrix%values(l) = -(1., 0.)
                 l = l + 1
              end if
              if (j < dim2) then
                 matrix%rowptr(l) = (i-1) + dim1 *  j    + dim1 * dim2 * (k-1) + 1
                 matrix%colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-                matrix%values(l) = -(1., 1.)
+                matrix%values(l) = -(1., 0.)
                 l = l + 1
              end if
              if (k < dim3) then
                 matrix%rowptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 *  k    + 1
                 matrix%colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-                matrix%values(l) = -(1., 1.)
+                matrix%values(l) = -(1., 0.)
                 l = l + 1
              end if
           end do
