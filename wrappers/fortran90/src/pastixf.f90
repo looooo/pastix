@@ -776,10 +776,10 @@ contains
   subroutine pastix_subtask_order(pastix_data, spm, myorder, info)
     use iso_c_binding
     implicit none
-    type(pastix_data_t),  intent(inout), target  :: pastix_data
-    type(spmatrix_t),     intent(in),    target  :: spm
-    type(pastix_order_t), intent(in),    pointer :: myorder
-    integer(kind=c_int),  intent(out)            :: info
+    type(pastix_data_t),  intent(inout), target :: pastix_data
+    type(spmatrix_t),     intent(in),    target :: spm
+    type(pastix_order_t), intent(inout), target :: myorder
+    integer(kind=c_int),  intent(out)           :: info
 
     info = pastix_subtask_order_c(c_loc(pastix_data), c_loc(spm), &
          c_loc(myorder))
