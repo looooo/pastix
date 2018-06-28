@@ -364,46 +364,6 @@ program fmultilap
         write(6,*) '!--------------------------------------------------------------------!'
         write(6,*) ' Solve iteration nr. ', i
 
-        ! Apply the forward permutation on b and x
-        do im = 1, params%nb_mat
-           matrix => sys_array(im)
-           do j = 1, matrix%nsys
-              rhs => matrix%rhs(j)
-
-              if ( .not. (rhs%nrhs .gt. 0)) then
-                 cycle
-              endif
-
-              b_ptr = c_loc(rhs%b)
-              if (i==1) then
-                 call spmGenRHS( SpmRhsRndX, rhs%nrhs, matrix%spm, &
-                      & c_null_ptr, params%n, b_ptr, params%n, info )
-
-                 if ( params%output ) then
-                    ! Backup initial b that will be overwritten by check
-                    rhs%b0(:) = rhs%b(:)
-                 end if
-              else
-                 if ( params%output ) then
-                    ! Restore the initial b overwritten by check
-                    rhs%b(:) = rhs%b0(:)
-                 end if
-              end if
-
-              ! Set the sequential scheduler to enable multiple solves in parallel with the same matrix
-              if ( .not. params%multirhs ) then
-                 matrix%iparm(IPARM_SCHEDULER) = PastixSchedSequential
-              end if
-
-              ! Cannot be called in parallel with the same matrix for now
-              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirForward, &
-                   &                          params%n, rhs%nrhs, b_ptr, params%n, info )
-
-              rhs%x(:) = rhs%b(:)
-
-           end do
-        end do
-
         !
         !$OMP PARALLEL NUM_THREADS(params%nb_solv_omp) DEFAULT(NONE) &
         !$OMP SHARED(params, sys_array, k, i)         &
@@ -435,6 +395,34 @@ program fmultilap
               x_ptr = c_loc(rhs%x)
               b_ptr = c_loc(rhs%b)
 
+              if (i==1) then
+                 call spmGenRHS( SpmRhsRndX, rhs%nrhs, matrix%spm, &
+                      & c_null_ptr, params%n, b_ptr, params%n, info )
+
+                 if ( params%output ) then
+                    ! Backup initial b that will be overwritten by check
+                    rhs%b0(:) = rhs%b(:)
+                 end if
+              else
+                 if ( params%output ) then
+                    ! Restore the initial b overwritten by check
+                    rhs%b(:) = rhs%b0(:)
+                 end if
+              end if
+
+              ! Set the sequential scheduler to enable multiple solves in parallel with the same matrix
+              if ( .not. params%multirhs ) then
+                 matrix%iparm(IPARM_SCHEDULER) = PastixSchedSequential
+              end if
+
+              ! 3- Permute the b pointer
+              !$OMP CRITICAL
+              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirForward, &
+                   &                          params%n, rhs%nrhs, b_ptr, params%n, info )
+              !$OMP END CRITICAL
+
+              rhs%x(:) = rhs%b(:)
+
               ! 4- Solve the problem
               call pastix_subtask_solve( matrix%pastix_data, rhs%nrhs, &
                    & x_ptr, matrix%spm%n, info )
@@ -449,42 +437,27 @@ program fmultilap
                    & b_ptr, matrix%spm%n,            &
                    & x_ptr, matrix%spm%n, info )
 
-              if ( .not. params%multirhs ) then
-                 matrix%iparm(IPARM_SCHEDULER) = PastixSchedSequential
-              end if
+              ! 6- Apply the backward permutation on b and x
+              !$OMP CRITICAL
+              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
+                   &                          params%n, rhs%nrhs, b_ptr, params%n, info )
+
+              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
+                   &                          params%n, rhs%nrhs, x_ptr, params%n, info )
+              !$OMP END CRITICAL
 
            end do solve_loop2
         end do solve_loop
         !$OMP END DO
         !$OMP END PARALLEL
 
-        ! Apply the backward permutation on b and x
-        do im = 1, params%nb_mat
-           matrix => sys_array(im)
-           do j = 1, matrix%nsys
-              rhs => matrix%rhs(j)
-
-              if ( .not. (rhs%nrhs .gt. 0)) then
-                 cycle
-              endif
-
-              x_ptr = c_loc(rhs%x)
-              b_ptr = c_loc(rhs%b)
-
-              ! Cannot be called in parallel with the same matrix for now
-              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
-                   &                          params%n, rhs%nrhs, b_ptr, params%n, info )
-
-              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
-                   &                          params%n, rhs%nrhs, x_ptr, params%n, info )
-
-              ! Restore the initial scheduler
-              if ( .not. params%multirhs ) then
-                 matrix%iparm(IPARM_SCHEDULER) = iparm(IPARM_SCHEDULER)
-              end if
-
+        ! Restore the initial scheduler
+        if ( .not. params%multirhs ) then
+           do im = 1, params%nb_mat
+              matrix => sys_array(im)
+              matrix%iparm(IPARM_SCHEDULER) = iparm(IPARM_SCHEDULER)
            end do
-        end do
+        end if
 
         if (params%output) then
            do th = 1, params%nb_solv_omp
