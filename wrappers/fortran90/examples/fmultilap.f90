@@ -92,7 +92,7 @@ program fmultilap
   real(kind=c_double), dimension(dparm_size)        :: dparm     ! Global dparm array used to initialize the systems
   type(sys_lin), pointer                            :: matrix
   type(rhs_subset), pointer                         :: rhs
-  type(c_ptr)                                       :: b0_ptr, x_ptr, b_ptr
+  type(c_ptr)                                       :: x_ptr, b_ptr
   integer, dimension(:), allocatable                :: ila_thrmn, ila_thrmx, ila_thrsz
   integer(kind=c_int), dimension(:), pointer        :: bindtab
   integer(kind=pastix_int_t)                        :: th, im, ir, i, j, k
@@ -211,11 +211,11 @@ program fmultilap
 
   !
   !$OMP PARALLEL NUM_THREADS(params%nb_fact_omp) DEFAULT(NONE) &
-  !$OMP SHARED(params, sys_array, k)                 &
-  !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx)    &
-  !$OMP SHARED(dla_thread_stats, iparm, dparm)     &
-  !$OMP PRIVATE(th, im, ir, i, j )                 &
-  !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr, b0_ptr) &
+  !$OMP SHARED(params, sys_array, k)            &
+  !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx) &
+  !$OMP SHARED(dla_thread_stats, iparm, dparm)  &
+  !$OMP PRIVATE(th, im, ir, i, j )              &
+  !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr)      &
   !$OMP PRIVATE(info, bindtab)
 
   !$OMP DO SCHEDULE(STATIC,1)
@@ -265,11 +265,11 @@ program fmultilap
 
      !
      !$OMP PARALLEL NUM_THREADS(params%nb_fact_omp) DEFAULT(NONE) &
-     !$OMP SHARED(params, sys_array, k)                 &
-     !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx)    &
-     !$OMP SHARED(dla_thread_stats, iparm, dparm)     &
-     !$OMP PRIVATE(th, im, ir, i, j )                 &
-     !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr, b0_ptr) &
+     !$OMP SHARED(params, sys_array, k)            &
+     !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx) &
+     !$OMP SHARED(dla_thread_stats, iparm, dparm)  &
+     !$OMP PRIVATE(th, im, ir, i, j )              &
+     !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr)      &
      !$OMP PRIVATE(info, bindtab)
 
      !$OMP DO SCHEDULE(STATIC,1)
@@ -406,11 +406,11 @@ program fmultilap
 
         !
         !$OMP PARALLEL NUM_THREADS(params%nb_solv_omp) DEFAULT(NONE) &
-        !$OMP SHARED(params, sys_array, k, i)              &
-        !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx)    &
-        !$OMP SHARED(dla_thread_stats, iparm, dparm)     &
-        !$OMP PRIVATE(th, im, ir, j )                    &
-        !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr, b0_ptr) &
+        !$OMP SHARED(params, sys_array, k, i)         &
+        !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx) &
+        !$OMP SHARED(dla_thread_stats, iparm, dparm)  &
+        !$OMP PRIVATE(th, im, ir, j )                 &
+        !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr)      &
         !$OMP PRIVATE(info)
 
         !$OMP DO SCHEDULE(STATIC,1)
