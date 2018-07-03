@@ -33,7 +33,7 @@ int main (int argc, char **argv)
     int             nsolv       = 2;
     int             nrhs        = 1;
     spmatrix_t     *spm;
-    spmatrix_t     *spm2;
+    spmatrix_t      spm2;
     void           *x           = NULL;
     void           *x0          = NULL;
     size_t          size;
@@ -66,11 +66,10 @@ int main (int argc, char **argv)
     /*
      * Check Matrix format
      */
-    spm2 = spmCheckAndCorrect( spm );
-    if ( spm2 != spm ) {
+    rc = spmCheckAndCorrect( spm, &spm2 );
+    if ( rc != 0 ) {
         spmExit( spm );
-        free( spm );
-        spm = spm2;
+        *spm = spm2;
     }
 
     /*

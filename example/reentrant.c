@@ -46,10 +46,11 @@ static void *solve_smp(void *arg)
 {
     pastix_data_t *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
     spmatrix_t    *spm;
-    spmatrix_t    *spm2;
+    spmatrix_t     spm2;
     void          *x, *b, *x0 = NULL;
     size_t         size;
     int            check;
+    int            rc;
     int            nrhs = 1;
     solve_param_t  param = *(solve_param_t *)arg;
 
@@ -67,11 +68,10 @@ static void *solve_smp(void *arg)
 
     spmPrintInfo( spm, stdout );
 
-    spm2 = spmCheckAndCorrect( spm );
-    if ( spm2 != spm ) {
+    rc = spmCheckAndCorrect( spm, &spm2 );
+    if ( rc != 0 ) {
         spmExit( spm );
-        free( spm );
-        spm = spm2;
+        *spm = spm2;
     }
 
     /**

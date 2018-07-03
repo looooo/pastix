@@ -25,7 +25,7 @@ int main (int argc, char **argv)
     double          dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
     spm_driver_t    driver;
     char           *filename;
-    spmatrix_t     *spm, *spm2;
+    spmatrix_t     *spm, spm2;
     void           *x, *b, *x0 = NULL;
     size_t          size;
     int             check = 1;
@@ -53,11 +53,10 @@ int main (int argc, char **argv)
 
     spmPrintInfo( spm, stdout );
 
-    spm2 = spmCheckAndCorrect( spm );
-    if ( spm2 != spm ) {
+    rc = spmCheckAndCorrect( spm, &spm2 );
+    if ( rc != 0 ) {
         spmExit( spm );
-        free( spm );
-        spm = spm2;
+        *spm = spm2;
     }
 
     /**
