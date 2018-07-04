@@ -12,8 +12,7 @@
  * @author Theophile Terraz
  * @date 2015-01-01
  *
- * @precisions normal z -> c d s82
-
+ * @precisions normal z -> c d s
  *
  **/
 #include <stdint.h>
