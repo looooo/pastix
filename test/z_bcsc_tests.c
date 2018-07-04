@@ -12,7 +12,8 @@
  * @author Theophile Terraz
  * @date 2015-01-01
  *
- * @precisions normal z -> c d s
+ * @precisions normal z -> c d s82
+
  *
  **/
 #include <stdint.h>
@@ -79,7 +80,7 @@ z_bcsc_matvec_check( spm_trans_t trans, const spmatrix_t   *spm, const pastix_da
     bvec_zswap( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
     bvec_zswap( pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
 
-    bcsc_zspmv( trans, alpha, pastix_data->bcsc, x, beta, yd );
+    bcsc_zspmv( (pastix_trans_t)trans, alpha, pastix_data->bcsc, x, beta, yd );
 
     bvec_zswap( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
     bvec_zswap( pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
