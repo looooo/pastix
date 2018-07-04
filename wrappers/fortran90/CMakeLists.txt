@@ -66,6 +66,8 @@ target_link_libraries(${_name_we} pastixf spmf)
 
 install(TARGETS ${_name_we}       RUNTIME DESTINATION examples )
 install(FILES   examples/${_file}         DESTINATION examples )
+install(FILES   examples/test_seq.in      DESTINATION examples )
+install(FILES   examples/test_mt.in       DESTINATION examples )
 
 # Add OpenMP if available
 find_package(OpenMP)
