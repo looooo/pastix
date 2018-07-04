@@ -37,7 +37,7 @@
  *  Check the accuracy of the solution
  */
 int
-z_bcsc_matvec_check( int trans, const spmatrix_t   *spm, const pastix_data_t *pastix_data )
+z_bcsc_matvec_check( spm_trans_t trans, const spmatrix_t   *spm, const pastix_data_t *pastix_data )
 {
     unsigned long long int seed = 35469;
     pastix_complex64_t *x, *y0, *ys, *yd;
@@ -90,9 +90,9 @@ z_bcsc_matvec_check( int trans, const spmatrix_t   *spm, const pastix_data_t *pa
     Ysnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1, ys, spm->gN );
     Ydnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1, yd, spm->gN );
 
-    core_zgeadd(PastixNoTrans, spm->gN, 1,
-                -1., ys, spm->gN,
-                 1., yd, spm->gN );
+    core_zgeadd( PastixNoTrans, spm->gN, 1,
+                 -1., ys, spm->gN,
+                  1., yd, spm->gN );
     Rnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'M', spm->gN, 1, yd, spm->gN );
 
     if ( 1 ) {
