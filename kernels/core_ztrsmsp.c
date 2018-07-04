@@ -359,7 +359,7 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
 {
     if (  cblk[0].fblokptr + 1 < cblk[1].fblokptr )
     {
-        pastix_ktype_t ktype = -1;
+        pastix_ktype_t ktype = PastixKernelLvl1Nbr;
         pastix_fixdbl_t time, flops = 0.0;
         pastix_int_t n = cblk_colnbr( cblk );
         pastix_int_t m = cblk->stride - n;
