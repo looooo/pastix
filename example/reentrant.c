@@ -58,7 +58,6 @@ static void *solve_smp(void *arg)
         param.iparm[IPARM_THREAD_NBR] = 2;
     }
     check = param.check;
-    param.rc = 0;
 
     /**
      * Read the sparse matrix with the driver
@@ -148,7 +147,8 @@ static void *solve_smp(void *arg)
 
     if ( check )
     {
-        param.rc = spmCheckAxb( param.dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+        param.rc = spmCheckAxb( param.dparm[DPARM_EPSILON_REFINEMENT], nrhs,
+                                spm, x0, spm->n, b, spm->n, x, spm->n );
 
         if ( x0 ) {
             free( x0 );
@@ -202,6 +202,7 @@ int main (int argc, char **argv)
         solve_param[i].id       = i;
         solve_param[i].driver   = driver;
         solve_param[i].filename = filename;
+        solve_param[i].rc       = 0;
 
         /**
          *   Launch instance of solver
