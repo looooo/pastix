@@ -40,12 +40,13 @@ program fsimple
   allocate( spm )
   call spmReadDriver( SpmDriverLaplacian, "d:10:10:10:2.", spm, info )
 
-  call spmCheckAndCorrect( spm, spm2 )
-  if (.not. c_associated(c_loc(spm), c_loc(spm2))) then
+  allocate( spm2 )
+  call spmCheckAndCorrect( spm, spm2, info )
+  if ( info .ne. 0 ) then
      call spmExit( spm )
-     deallocate( spm )
-     spm => spm2
+     spm = spm2
   end if
+  deallocate( spm2 )
 
   call spmPrintInfo( spm )
 

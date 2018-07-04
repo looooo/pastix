@@ -519,9 +519,10 @@ program fmultilap
 
      ! Free memory
      do im=1, params%nb_mat
+        matrix => sys_array(im)
         ! 6- Destroy the C data structure
-        call spmExit( sys_array(im)%spm )
-        deallocate( sys_array(im)%spm )
+        call spmExit( matrix%spm )
+        deallocate( matrix%spm )
      end do
   end do main_loop
 
@@ -726,14 +727,28 @@ contains
     !
     ! Laplacian dimensions
     !
-    dim1   = params%dim1
-    dim2   = params%dim2
-    dim3   = params%dim3
+    dim1 = params%dim1
+    dim2 = params%dim2
+    dim3 = params%dim3
 
-    allocate(matrix%spm)
-    allocate(matrix%rowptr(params%nnz))
-    allocate(matrix%colptr(params%nnz))
-    allocate(matrix%values(params%nnz))
+    !
+    ! Create the spm out of the internal data
+    !
+    allocate( matrix%spm )
+    call spmInit( matrix%spm )
+    matrix%spm%mtxtype = SpmHermitian
+    matrix%spm%flttype = SpmComplex64
+    matrix%spm%fmttype = SpmIJV
+    matrix%spm%n       = params%n
+    matrix%spm%nnz     = params%nnz
+    matrix%spm%dof     = 1
+
+    call spmUpdateComputedFields( matrix%spm )
+    call spmAlloc( matrix%spm )
+
+    call c_f_pointer( matrix%spm%rowptr, matrix%rowptr, [params%nnz] )
+    call c_f_pointer( matrix%spm%colptr, matrix%colptr, [params%nnz] )
+    call c_f_pointer( matrix%spm%values, matrix%values, [params%nnz] )
 
     l = 1
     do i=1,dim1
@@ -789,39 +804,16 @@ contains
 
     matrix%values(:) = matrix%values(:)*(dble(ib) * dble(ib_out) / 4.0)
 
-    !
-    ! Create the spm out of the internal data
-    !
-    call spmInit( matrix%spm )
-    matrix%spm%mtxtype = SpmHermitian
-    matrix%spm%flttype = SpmComplex64
-    matrix%spm%fmttype = SpmIJV
-    matrix%spm%n       = params%n
-    matrix%spm%nnz     = params%nnz
-    matrix%spm%dof     = 1
-    matrix%spm%rowptr  = c_loc(matrix%rowptr)
-    matrix%spm%colptr  = c_loc(matrix%colptr)
-    matrix%spm%values  = c_loc(matrix%values)
-
-    call spmUpdateComputedFields( matrix%spm )
-
     if (params%checkmat) then
-       call spmCheckAndCorrect( matrix%spm, spm2 )
-       if (.not. c_associated(c_loc(matrix%spm), c_loc(spm2))) then
-          deallocate(matrix%rowptr)
-          deallocate(matrix%colptr)
-          deallocate(matrix%values)
-
-          matrix%spm%rowptr = c_null_ptr
-          matrix%spm%colptr = c_null_ptr
-          matrix%spm%values = c_null_ptr
-
+       allocate( spm2 )
+       call spmCheckAndCorrect( matrix%spm, spm2, info )
+       if ( info .ne. 0 ) then
           call spmExit( matrix%spm )
-          deallocate( matrix%spm )
-          matrix%spm => spm2
+          matrix%spm = spm2
        end if
+       deallocate( spm2 )
     else
-       call spmConvert(SpmCSC, matrix%spm, info)
+       call spmConvert( SpmCSC, matrix%spm, info )
     endif
   end subroutine multilap_genOneMatrix
 
