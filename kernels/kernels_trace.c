@@ -26,9 +26,9 @@
  */
 pastix_int_t (*core_get_rklimit)( pastix_int_t, pastix_int_t ) = core_get_rklimit_end;
 
-volatile double kernels_flops[PastixKernelLvl1Nbr];
+volatile double  kernels_flops[PastixKernelLvl1Nbr];
 
-volatile uint32_t kernels_trace_started = 0;
+volatile int32_t kernels_trace_started = 0;
 
 #if defined(PASTIX_WITH_EZTRACE)
 
@@ -66,10 +66,12 @@ void
 kernelsTraceStart( const pastix_data_t *pastix_data )
 {
     const SolverMatrix *solvmtx = pastix_data->solvmatr;
-    uint32_t nbstart;
+    int32_t nbstart;
 
+    pastix_atomic_lock( &lock_flops );
     nbstart = pastix_atomic_inc_32b( &(kernels_trace_started) );
     if ( nbstart > 1 ) {
+        pastix_atomic_unlock( &lock_flops );
         return;
     }
 
@@ -136,6 +138,7 @@ kernelsTraceStart( const pastix_data_t *pastix_data )
     kernels_trace_started = 1;
 
     (void)solvmtx;
+    pastix_atomic_unlock( &lock_flops );
     return;
 }
 
@@ -155,7 +158,7 @@ double
 kernelsTraceStop( const pastix_data_t *pastix_data )
 {
     double total_flops = 0.0;
-    uint32_t nbstart;
+    int32_t nbstart;
 
     assert( kernels_trace_started > 0 );
     nbstart = pastix_atomic_dec_32b( &(kernels_trace_started) );
