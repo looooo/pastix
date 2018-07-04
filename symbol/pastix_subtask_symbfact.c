@@ -87,7 +87,7 @@
  *          - IPARM_IO_STRATEGY will enable to load/store the result to files.
  *          If set to PastixIOSave, the symbmtx and the generated ordemesh is
  *          dump to file.
- *          If set to APÏ_IO_LOAD, the symbmtx (only) is loaded from the files.
+ *          If set to PastixIOLoad, the symbmtx (only) is loaded from the files.
  *
   *******************************************************************************
  *
