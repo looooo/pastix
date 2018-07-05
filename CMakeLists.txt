@@ -648,8 +648,6 @@ precisions_rules_py(generated_refinement_sources
 
 #
 # Build the pastix library
-# Create the define for Pastix sources that will be updated in each
-# subdirectory
 #
 set(PASTIX_LIB_SRCS
   # Files that are fully converted
