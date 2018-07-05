@@ -10,16 +10,16 @@
 ! @author Mathieu Faverge
 ! @date 2017-01-01
 !
-program fsimple
+program flaplacian
   use iso_c_binding
   use pastix_enums
   use spmf
   use pastixf
   implicit none
 
-  integer(kind=spm_int_t),        dimension(:),   allocatable, target :: rowptr
-  integer(kind=spm_int_t),        dimension(:),   allocatable, target :: colptr
-  complex(kind=c_double_complex), dimension(:),   allocatable, target :: values
+  integer(kind=spm_int_t),        dimension(:),   pointer             :: rowptr
+  integer(kind=spm_int_t),        dimension(:),   pointer             :: colptr
+  complex(kind=c_double_complex), dimension(:),   pointer             :: values
   complex(kind=c_double_complex), dimension(:,:), allocatable, target :: x0, x, b
   type(c_ptr)                                                         :: x0_ptr, x_ptr, b_ptr
   type(pastix_data_t),        pointer                                 :: pastix_data
@@ -40,9 +40,24 @@ program fsimple
   n    = dim1 * dim2 * dim3
   nnz  = (2*(dim1)-1) * dim2 * dim3 + (dim2-1)*dim1*dim3 + dim2*dim1*(dim3-1)
 
-  allocate(rowptr(nnz))
-  allocate(colptr(nnz))
-  allocate(values(nnz))
+  !
+  ! Create the spm out of the internal data
+  !
+  allocate( spm )
+  call spmInit( spm )
+  spm%mtxtype = SpmSymmetric
+  spm%flttype = SpmComplex64
+  spm%fmttype = SpmIJV
+  spm%n       = n
+  spm%nnz     = nnz
+  spm%dof     = 1
+
+  call spmUpdateComputedFields( spm )
+  call spmAlloc( spm )
+
+  call c_f_pointer( spm%rowptr, rowptr, [nnz] )
+  call c_f_pointer( spm%colptr, colptr, [nnz] )
+  call c_f_pointer( spm%values, values, [nnz] )
 
   l = 1
   do i=1,dim1
@@ -50,25 +65,25 @@ program fsimple
         do k=1,dim3
            rowptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
            colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-           values(l) = 6.
+           values(l) = (6., 0.)
 
            if (i == 1) then
-              values(l) = values(l) - 1.
+              values(l) = values(l) - (1., 0.)
            end if
            if (i == dim1) then
-              values(l) = values(l) - 1.
+              values(l) = values(l) - (1., 0.)
            end if
            if (j == 1) then
-              values(l) = values(l) - 1.
+              values(l) = values(l) - (1., 0.)
            end if
            if (j == dim2) then
-              values(l) = values(l) - 1.
+              values(l) = values(l) - (1., 0.)
            end if
            if (k == 1) then
-              values(l) = values(l) - 1.
+              values(l) = values(l) - (1., 0.)
            end if
            if (k == dim3) then
-              values(l) = values(l) - 1.
+              values(l) = values(l) - (1., 0.)
            end if
 
            values(l) = values(l) * 8.
@@ -77,19 +92,19 @@ program fsimple
            if (i < dim1) then
               rowptr(l) =  i    + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
               colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-              values(l) = - 1. - 1. * I
+              values(l) = (- 1.,  - 1.)
               l = l + 1
            end if
            if (j < dim2) then
               rowptr(l) = (i-1) + dim1 *  j    + dim1 * dim2 * (k-1) + 1
               colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-              values(l) = - 1. - 1. * I
+              values(l) = (- 1., - 1.)
               l = l + 1
            end if
            if (k < dim3) then
               rowptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 *  k    + 1
               colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-              values(l) = -1. - 1. * I
+              values(l) = (-1., - 1. )
               l = l + 1
            end if
         end do
@@ -100,37 +115,13 @@ program fsimple
      write(6,*) 'l ', l, " nnz ", nnz
   end if
 
-  !
-  ! Create the spm out of the internal data
-  !
-  allocate( spm )
-  call spmInit( spm )
-  spm%mtxtype = SpmHermitian
-  spm%flttype = SpmComplex64
-  spm%fmttype = SpmIJV
-  spm%n       = n
-  spm%nnz     = nnz
-  spm%dof     = 1
-  spm%rowptr  = c_loc(rowptr)
-  spm%colptr  = c_loc(colptr)
-  spm%values  = c_loc(values)
-
-  call spmUpdateComputedFields( spm )
-
-  call spmCheckAndCorrect( spm, spm2 )
-  if (.not. c_associated(c_loc(spm), c_loc(spm2))) then
-     deallocate(rowptr)
-     deallocate(colptr)
-     deallocate(values)
-
-     spm%rowptr = c_null_ptr
-     spm%colptr = c_null_ptr
-     spm%values = c_null_ptr
-
+  allocate( spm2 )
+  call spmCheckAndCorrect( spm, spm2, info )
+  if ( info .ne. 0 ) then
      call spmExit( spm )
-     deallocate( spm )
-     spm => spm2
+     spm = spm2
   end if
+  deallocate( spm2 )
 
   call spmPrintInfo( spm )
 
@@ -175,9 +166,9 @@ program fsimple
   call spmCheckAxb( dparm(DPARM_EPSILON_REFINEMENT), nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, x_ptr, spm%n, info )
 
   call spmExit( spm )
-  deallocate( spm )
+  deallocate(spm)
   deallocate(x0)
   deallocate(x)
   deallocate(b)
 
-end program fsimple
+end program flaplacian

@@ -49,8 +49,7 @@ endforeach()
 ### Install a makefile for user compilation test
 set( EXAMPLE_LIBS ${DEPS_LIBRARIES} )
 if ( EXAMPLE_LIBS )
-  list(REMOVE_DUPLICATES EXAMPLE_LIBS)
-  convert_libstyle_to_pkgconfig( EXAMPLE_LIBS )
+  gpc_convert_libstyle_to_pkgconfig( EXAMPLE_LIBS )
   string(REPLACE ";" " " EXAMPLE_LIBS "${EXAMPLE_LIBS}")
 endif()
 

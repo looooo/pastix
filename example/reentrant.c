@@ -46,10 +46,11 @@ static void *solve_smp(void *arg)
 {
     pastix_data_t *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
     spmatrix_t    *spm;
-    spmatrix_t    *spm2;
+    spmatrix_t     spm2;
     void          *x, *b, *x0 = NULL;
     size_t         size;
     int            check;
+    int            rc;
     int            nrhs = 1;
     solve_param_t  param = *(solve_param_t *)arg;
 
@@ -57,7 +58,6 @@ static void *solve_smp(void *arg)
         param.iparm[IPARM_THREAD_NBR] = 2;
     }
     check = param.check;
-    param.rc = 0;
 
     /**
      * Read the sparse matrix with the driver
@@ -67,11 +67,10 @@ static void *solve_smp(void *arg)
 
     spmPrintInfo( spm, stdout );
 
-    spm2 = spmCheckAndCorrect( spm );
-    if ( spm2 != spm ) {
+    rc = spmCheckAndCorrect( spm, &spm2 );
+    if ( rc != 0 ) {
         spmExit( spm );
-        free( spm );
-        spm = spm2;
+        *spm = spm2;
     }
 
     /**
@@ -148,7 +147,8 @@ static void *solve_smp(void *arg)
 
     if ( check )
     {
-        param.rc = spmCheckAxb( param.dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+        param.rc = spmCheckAxb( param.dparm[DPARM_EPSILON_REFINEMENT], nrhs,
+                                spm, x0, spm->n, b, spm->n, x, spm->n );
 
         if ( x0 ) {
             free( x0 );
@@ -202,6 +202,7 @@ int main (int argc, char **argv)
         solve_param[i].id       = i;
         solve_param[i].driver   = driver;
         solve_param[i].filename = filename;
+        solve_param[i].rc       = 0;
 
         /**
          *   Launch instance of solver

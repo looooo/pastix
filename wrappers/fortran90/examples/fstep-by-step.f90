@@ -19,7 +19,7 @@ program fsimple
   implicit none
 
   type(pastix_data_t),        pointer                      :: pastix_data
-  type(pastix_order_t),       pointer                      :: order
+  type(pastix_order_t),       pointer                      :: order => null()
   type(spmatrix_t),           pointer                      :: spm
   type(spmatrix_t),           pointer                      :: spm2
   integer(kind=pastix_int_t), target                       :: iparm(iparm_size)
@@ -40,12 +40,13 @@ program fsimple
   allocate( spm )
   call spmReadDriver( SpmDriverLaplacian, "d:10:10:10:2.", spm, info )
 
-  call spmCheckAndCorrect( spm, spm2 )
-  if (.not. c_associated(c_loc(spm), c_loc(spm2))) then
+  allocate( spm2 )
+  call spmCheckAndCorrect( spm, spm2, info )
+  if ( info .ne. 0 ) then
      call spmExit( spm )
-     deallocate( spm )
-     spm => spm2
+     spm = spm2
   end if
+  deallocate( spm2 )
 
   call spmPrintInfo( spm )
 
@@ -63,7 +64,7 @@ program fsimple
   call pastixInit( pastix_data, 0, iparm, dparm )
 
   ! 2- Perform ordering, symbolic factorization, and analyze steps
-  call pastix_subtask_order( pastix_data, spm, null(), info )
+  call pastix_subtask_order( pastix_data, spm, order, info )
   call pastix_subtask_symbfact( pastix_data, info )
   call pastix_subtask_reordering( pastix_data, info )
   call pastix_subtask_blend( pastix_data, info )

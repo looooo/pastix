@@ -74,8 +74,8 @@ program fmultilap
   end type rhs_subset
 
   type sys_lin
-     integer                                               :: pid         ! Index of the pastix instance factorizing the matrix
-     integer                                               :: nsys        ! Number of subsystems used to solve the rhs
+     integer(kind=pastix_int_t)                            :: pid         ! Index of the pastix instance factorizing the matrix
+     integer(kind=pastix_int_t)                            :: nsys        ! Number of subsystems used to solve the rhs
      type(pastix_data_t),                          pointer :: pastix_data ! The pastix_data associated to the matrix
      integer(kind=pastix_int_t),     dimension(iparm_size) :: iparm       ! iparm array associated to the matrix
      real(kind=c_double),            dimension(dparm_size) :: dparm       ! dparm array associated to the matrix
@@ -92,10 +92,10 @@ program fmultilap
   real(kind=c_double), dimension(dparm_size)        :: dparm     ! Global dparm array used to initialize the systems
   type(sys_lin), pointer                            :: matrix
   type(rhs_subset), pointer                         :: rhs
-  type(c_ptr)                                       :: b0_ptr, x_ptr, b_ptr
+  type(c_ptr)                                       :: x_ptr, b_ptr
   integer, dimension(:), allocatable                :: ila_thrmn, ila_thrmx, ila_thrsz
   integer(kind=c_int), dimension(:), pointer        :: bindtab
-  integer                                           :: th, im, ir, i, j, k
+  integer(kind=pastix_int_t)                        :: th, im, ir, i, j, k
   integer(kind=pastix_int_t)                        :: size
   integer(c_int)                                    :: info, ginfo = 0
   !
@@ -211,11 +211,11 @@ program fmultilap
 
   !
   !$OMP PARALLEL NUM_THREADS(params%nb_fact_omp) DEFAULT(NONE) &
-  !$OMP SHARED(params, sys_array, k)                 &
-  !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx)    &
-  !$OMP SHARED(dla_thread_stats, iparm, dparm)     &
-  !$OMP PRIVATE(th, im, ir, i, j )                 &
-  !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr, b0_ptr) &
+  !$OMP SHARED(params, sys_array, k)            &
+  !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx) &
+  !$OMP SHARED(dla_thread_stats, iparm, dparm)  &
+  !$OMP PRIVATE(th, im, ir, i, j )              &
+  !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr)      &
   !$OMP PRIVATE(info, bindtab)
 
   !$OMP DO SCHEDULE(STATIC,1)
@@ -225,7 +225,7 @@ program fmultilap
      !
      allocate( bindtab( iparm(IPARM_THREAD_NBR) ) )
      do i = 1, iparm(IPARM_THREAD_NBR)
-        bindtab( i ) = (th-1) * iparm(IPARM_THREAD_NBR) + (i - 1)
+        bindtab( i ) = int((th-1) * iparm(IPARM_THREAD_NBR) + (i - 1), c_int)
      end do
 
      do im = ila_thrmn(th), ila_thrmx(th)
@@ -265,11 +265,11 @@ program fmultilap
 
      !
      !$OMP PARALLEL NUM_THREADS(params%nb_fact_omp) DEFAULT(NONE) &
-     !$OMP SHARED(params, sys_array, k)                 &
-     !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx)    &
-     !$OMP SHARED(dla_thread_stats, iparm, dparm)     &
-     !$OMP PRIVATE(th, im, ir, i, j )                 &
-     !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr, b0_ptr) &
+     !$OMP SHARED(params, sys_array, k)            &
+     !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx) &
+     !$OMP SHARED(dla_thread_stats, iparm, dparm)  &
+     !$OMP PRIVATE(th, im, ir, i, j )              &
+     !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr)      &
      !$OMP PRIVATE(info, bindtab)
 
      !$OMP DO SCHEDULE(STATIC,1)
@@ -277,11 +277,6 @@ program fmultilap
         !
         ! Give each matrix a subset of cores
         !
-        allocate( bindtab( iparm(IPARM_THREAD_NBR) ) )
-        do i = 1, iparm(IPARM_THREAD_NBR)
-           bindtab( i ) = (th-1) * iparm(IPARM_THREAD_NBR) + (i - 1)
-        end do
-
         do im = ila_thrmn(th), ila_thrmx(th)
 
            matrix => sys_array(im)
@@ -306,7 +301,6 @@ program fmultilap
 
         end do
 
-        deallocate(bindtab)
      end do fact_loop
      !$OMP END DO
      !$OMP END PARALLEL
@@ -370,53 +364,13 @@ program fmultilap
         write(6,*) '!--------------------------------------------------------------------!'
         write(6,*) ' Solve iteration nr. ', i
 
-        ! Apply the forward permutation on b and x
-        do im = 1, params%nb_mat
-           matrix => sys_array(im)
-           do j = 1, matrix%nsys
-              rhs => matrix%rhs(j)
-
-              if ( .not. (rhs%nrhs .gt. 0)) then
-                 cycle
-              endif
-
-              b_ptr = c_loc(rhs%b)
-              if (i==1) then
-                 call spmGenRHS( SpmRhsRndX, rhs%nrhs, matrix%spm, &
-                      & c_null_ptr, params%n, b_ptr, params%n, info )
-
-                 if ( params%output ) then
-                    ! Backup initial b that will be overwritten by check
-                    rhs%b0(:) = rhs%b(:)
-                 end if
-              else
-                 if ( params%output ) then
-                    ! Restore the initial b overwritten by check
-                    rhs%b(:) = rhs%b0(:)
-                 end if
-              end if
-
-              ! Set the sequential scheduler to enable multiple solves in parallel with the same matrix
-              if ( .not. params%multirhs ) then
-                 matrix%iparm(IPARM_SCHEDULER) = PastixSchedSequential
-              end if
-
-              ! Cannot be called in parallel with the same matrix for now
-              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirForward, &
-                   &                          params%n, rhs%nrhs, b_ptr, params%n, info )
-
-              rhs%x(:) = rhs%b(:)
-
-           end do
-        end do
-
         !
         !$OMP PARALLEL NUM_THREADS(params%nb_solv_omp) DEFAULT(NONE) &
-        !$OMP SHARED(params, sys_array, k, i)              &
-        !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx)    &
-        !$OMP SHARED(dla_thread_stats, iparm, dparm)     &
-        !$OMP PRIVATE(th, im, ir, j )                    &
-        !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr, b0_ptr) &
+        !$OMP SHARED(params, sys_array, k, i)         &
+        !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx) &
+        !$OMP SHARED(dla_thread_stats, iparm, dparm)  &
+        !$OMP PRIVATE(th, im, ir, j )                 &
+        !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr)      &
         !$OMP PRIVATE(info)
 
         !$OMP DO SCHEDULE(STATIC,1)
@@ -441,6 +395,34 @@ program fmultilap
               x_ptr = c_loc(rhs%x)
               b_ptr = c_loc(rhs%b)
 
+              if (i==1) then
+                 call spmGenRHS( SpmRhsRndX, rhs%nrhs, matrix%spm, &
+                      & c_null_ptr, params%n, b_ptr, params%n, info )
+
+                 if ( params%output ) then
+                    ! Backup initial b that will be overwritten by check
+                    rhs%b0(:) = rhs%b(:)
+                 end if
+              else
+                 if ( params%output ) then
+                    ! Restore the initial b overwritten by check
+                    rhs%b(:) = rhs%b0(:)
+                 end if
+              end if
+
+              ! Set the sequential scheduler to enable multiple solves in parallel with the same matrix
+              if ( .not. params%multirhs ) then
+                 matrix%iparm(IPARM_SCHEDULER) = PastixSchedSequential
+              end if
+
+              ! 3- Permute the b pointer
+              !$OMP CRITICAL
+              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirForward, &
+                   &                          params%n, rhs%nrhs, b_ptr, params%n, info )
+              !$OMP END CRITICAL
+
+              rhs%x(:) = rhs%b(:)
+
               ! 4- Solve the problem
               call pastix_subtask_solve( matrix%pastix_data, rhs%nrhs, &
                    & x_ptr, matrix%spm%n, info )
@@ -455,42 +437,27 @@ program fmultilap
                    & b_ptr, matrix%spm%n,            &
                    & x_ptr, matrix%spm%n, info )
 
-              if ( .not. params%multirhs ) then
-                 matrix%iparm(IPARM_SCHEDULER) = PastixSchedSequential
-              end if
+              ! 6- Apply the backward permutation on b and x
+              !$OMP CRITICAL
+              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
+                   &                          params%n, rhs%nrhs, b_ptr, params%n, info )
+
+              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
+                   &                          params%n, rhs%nrhs, x_ptr, params%n, info )
+              !$OMP END CRITICAL
 
            end do solve_loop2
         end do solve_loop
         !$OMP END DO
         !$OMP END PARALLEL
 
-        ! Apply the backward permutation on b and x
-        do im = 1, params%nb_mat
-           matrix => sys_array(im)
-           do j = 1, matrix%nsys
-              rhs => matrix%rhs(j)
-
-              if ( .not. (rhs%nrhs .gt. 0)) then
-                 cycle
-              endif
-
-              x_ptr = c_loc(rhs%x)
-              b_ptr = c_loc(rhs%b)
-
-              ! Cannot be called in parallel with the same matrix for now
-              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
-                   &                          params%n, rhs%nrhs, b_ptr, params%n, info )
-
-              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
-                   &                          params%n, rhs%nrhs, x_ptr, params%n, info )
-
-              ! Restore the initial scheduler
-              if ( .not. params%multirhs ) then
-                 matrix%iparm(IPARM_SCHEDULER) = iparm(IPARM_SCHEDULER)
-              end if
-
+        ! Restore the initial scheduler
+        if ( .not. params%multirhs ) then
+           do im = 1, params%nb_mat
+              matrix => sys_array(im)
+              matrix%iparm(IPARM_SCHEDULER) = iparm(IPARM_SCHEDULER)
            end do
-        end do
+        end if
 
         if (params%output) then
            do th = 1, params%nb_solv_omp
@@ -552,9 +519,10 @@ program fmultilap
 
      ! Free memory
      do im=1, params%nb_mat
+        matrix => sys_array(im)
         ! 6- Destroy the C data structure
-        call spmExit( sys_array(im)%spm )
-        deallocate( sys_array(im)%spm )
+        call spmExit( matrix%spm )
+        deallocate( matrix%spm )
      end do
   end do main_loop
 
@@ -609,7 +577,6 @@ contains
   subroutine multilap_init( params )
     type(multilap_param), intent(out), target :: params
     integer                                   :: val, dim1, dim2, dim3
-    integer                                   :: nbthrd_per_instance
 
     ! Read a dummy line.
     read( 5, * )
@@ -740,7 +707,6 @@ contains
        write(6,*) ' The multirhs mode is disabled'
     endif
 
-9997 format( A6, ' (', I6, ') is not a multiple of ', A6, ' (', I6 , ')' )
 9998 format( ' Invalid input value: ', A8, '=', I6, '; must be <=', I6 )
 9999 format( ' Invalid input value: ', A8, '=', I6, '; must be >=', I6 )
 
@@ -753,22 +719,36 @@ contains
   subroutine multilap_genOneMatrix( params, matrix, ib_out, ib )
     type(multilap_param),       intent(in),    target :: params
     type(sys_lin),              intent(inout), target :: matrix
-    integer,                    intent(in)            :: ib, ib_out
-    integer(kind=pastix_int_t)                        :: dim1, dim2, dim3, n, nnz
-    integer                                           :: i, j, k, l
+    integer(kind=pastix_int_t), intent(in)            :: ib, ib_out
+    integer(kind=pastix_int_t)                        :: dim1, dim2, dim3
+    integer(kind=pastix_int_t)                        :: i, j, k, l
     type(spmatrix_t), pointer                         :: spm2
 
     !
     ! Laplacian dimensions
     !
-    dim1   = params%dim1
-    dim2   = params%dim2
-    dim3   = params%dim3
+    dim1 = params%dim1
+    dim2 = params%dim2
+    dim3 = params%dim3
 
-    allocate(matrix%spm)
-    allocate(matrix%rowptr(params%nnz))
-    allocate(matrix%colptr(params%nnz))
-    allocate(matrix%values(params%nnz))
+    !
+    ! Create the spm out of the internal data
+    !
+    allocate( matrix%spm )
+    call spmInit( matrix%spm )
+    matrix%spm%mtxtype = SpmHermitian
+    matrix%spm%flttype = SpmComplex64
+    matrix%spm%fmttype = SpmIJV
+    matrix%spm%n       = params%n
+    matrix%spm%nnz     = params%nnz
+    matrix%spm%dof     = 1
+
+    call spmUpdateComputedFields( matrix%spm )
+    call spmAlloc( matrix%spm )
+
+    call c_f_pointer( matrix%spm%rowptr, matrix%rowptr, [params%nnz] )
+    call c_f_pointer( matrix%spm%colptr, matrix%colptr, [params%nnz] )
+    call c_f_pointer( matrix%spm%values, matrix%values, [params%nnz] )
 
     l = 1
     do i=1,dim1
@@ -776,25 +756,25 @@ contains
           do k=1,dim3
              matrix%rowptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
              matrix%colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-             matrix%values(l) = 6.
+             matrix%values(l) = (6., 0.)
 
              if (i == 1) then
-                matrix%values(l) = matrix%values(l) - 1.
+                matrix%values(l) = matrix%values(l) - (1., 0.)
              end if
              if (i == dim1) then
-                matrix%values(l) = matrix%values(l) - 1.
+                matrix%values(l) = matrix%values(l) - (1., 0.)
              end if
              if (j == 1) then
-                matrix%values(l) = matrix%values(l) - 1.
+                matrix%values(l) = matrix%values(l) - (1., 0.)
              end if
              if (j == dim2) then
-                matrix%values(l) = matrix%values(l) - 1.
+                matrix%values(l) = matrix%values(l) - (1., 0.)
              end if
              if (k == 1) then
-                matrix%values(l) = matrix%values(l) - 1.
+                matrix%values(l) = matrix%values(l) - (1., 0.)
              end if
              if (k == dim3) then
-                matrix%values(l) = matrix%values(l) - 1.
+                matrix%values(l) = matrix%values(l) - (1., 0.)
              end if
 
              matrix%values(l) = matrix%values(l) * 8.
@@ -803,19 +783,19 @@ contains
              if (i < dim1) then
                 matrix%rowptr(l) =  i    + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
                 matrix%colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-                matrix%values(l) = - 1. - 1. * i
+                matrix%values(l) = -(1., 0.)
                 l = l + 1
              end if
              if (j < dim2) then
                 matrix%rowptr(l) = (i-1) + dim1 *  j    + dim1 * dim2 * (k-1) + 1
                 matrix%colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-                matrix%values(l) = - 1. - 1. * i
+                matrix%values(l) = -(1., 0.)
                 l = l + 1
              end if
              if (k < dim3) then
                 matrix%rowptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 *  k    + 1
                 matrix%colptr(l) = (i-1) + dim1 * (j-1) + dim1 * dim2 * (k-1) + 1
-                matrix%values(l) = -1. - 1. * i
+                matrix%values(l) = -(1., 0.)
                 l = l + 1
              end if
           end do
@@ -824,39 +804,16 @@ contains
 
     matrix%values(:) = matrix%values(:)*(dble(ib) * dble(ib_out) / 4.0)
 
-    !
-    ! Create the spm out of the internal data
-    !
-    call spmInit( matrix%spm )
-    matrix%spm%mtxtype = SpmHermitian
-    matrix%spm%flttype = SpmComplex64
-    matrix%spm%fmttype = SpmIJV
-    matrix%spm%n       = params%n
-    matrix%spm%nnz     = params%nnz
-    matrix%spm%dof     = 1
-    matrix%spm%rowptr  = c_loc(matrix%rowptr)
-    matrix%spm%colptr  = c_loc(matrix%colptr)
-    matrix%spm%values  = c_loc(matrix%values)
-
-    call spmUpdateComputedFields( matrix%spm )
-
     if (params%checkmat) then
-       call spmCheckAndCorrect( matrix%spm, spm2 )
-       if (.not. c_associated(c_loc(matrix%spm), c_loc(spm2))) then
-          deallocate(matrix%rowptr)
-          deallocate(matrix%colptr)
-          deallocate(matrix%values)
-
-          matrix%spm%rowptr = c_null_ptr
-          matrix%spm%colptr = c_null_ptr
-          matrix%spm%values = c_null_ptr
-
+       allocate( spm2 )
+       call spmCheckAndCorrect( matrix%spm, spm2, info )
+       if ( info .ne. 0 ) then
           call spmExit( matrix%spm )
-          deallocate( matrix%spm )
-          matrix%spm => spm2
+          matrix%spm = spm2
        end if
+       deallocate( spm2 )
     else
-       call spmConvert(SpmCSC, matrix%spm, info)
+       call spmConvert( SpmCSC, matrix%spm, info )
     endif
   end subroutine multilap_genOneMatrix
 

@@ -49,7 +49,7 @@ int main (int argc, char **argv)
     pastix_int_t    iparm[IPARM_SIZE];  /* integer parameters for pastix                    */
     double          dparm[DPARM_SIZE];  /* floating parameters for pastix                   */
     spm_driver_t    driver;             /* Matrix driver(s) requested by user               */
-    spmatrix_t     *spm, *spm2;
+    spmatrix_t     *spm, spm2;
     pastix_bcsc_t   bcsc;
     char *filename;                     /* Filename(s) given by user                        */
     int ret = PASTIX_SUCCESS;
@@ -71,11 +71,11 @@ int main (int argc, char **argv)
     spm = malloc( sizeof( spmatrix_t ) );
     spmReadDriver( driver, filename, spm );
     free(filename);
-    spm2 = spmCheckAndCorrect( spm );
-    if ( spm2 != spm ) {
+
+    ret = spmCheckAndCorrect( spm, &spm2 );
+    if ( ret != 0 ) {
         spmExit( spm );
-        free(spm);
-        spm = spm2;
+        *spm = spm2;
     }
 
     if ( spm->flttype == SpmPattern ) {

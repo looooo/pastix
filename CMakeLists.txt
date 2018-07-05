@@ -1,11 +1,11 @@
 ###
 #
-#  @copyright 2013-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2013-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @version 6.0.0
 #  @author Mathieu Faverge
-#  @date 2013-06-24
+#  @date 2018-06-21
 #
 ###
 cmake_minimum_required (VERSION 2.8)
@@ -507,12 +507,6 @@ configure_file (
   "${PROJECT_INCLUDE_DIR}/pastix/config.h")
 install(FILES "${PROJECT_INCLUDE_DIR}/pastix/config.h" DESTINATION include/pastix)
 
-# # pkg-config file
-# configure_file (
-#   "${CMAKE_CURRENT_SOURCE_DIR}/include/pastix.pc.in"
-#   "${CMAKE_BINARY_DIR}/lib/pkgconfig/pastix.pc")
-# install(FILES "${CMAKE_BINARY_DIR}/lib/pkgconfig/pastix.pc" DESTINATION lib/pkgconfig)
-
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -654,8 +648,6 @@ precisions_rules_py(generated_refinement_sources
 
 #
 # Build the pastix library
-# Create the define for Pastix sources that will be updated in each
-# subdirectory
 #
 set(PASTIX_LIB_SRCS
   # Files that are fully converted
@@ -867,8 +859,64 @@ add_subdirectory(wrappers)
 
 ### Build pkg-config and environment file
 include(GenPkgConfig)
-generate_pkgconfig_file()
-generate_env_file()
+
+set(PASTIX_PKGCONFIG_LIBS pastix pastix_kernels)
+
+# StarPU
+if(PASTIX_WITH_STARPU)
+  list(APPEND PASTIX_PKGCONFIG_LIBS pastix_starpu)
+  if ( STARPU_FOUND_WITH_PKGCONFIG )
+    if ( PASTIX_WITH_MPI )
+      list(APPEND PASTIX_PKGCONFIG_REQUIRED starpumpi-${PASTIX_STARPU_VERSION})
+    else()
+      list(APPEND PASTIX_PKGCONFIG_REQUIRED starpu-${PASTIX_STARPU_VERSION})
+    endif()
+  else()
+    list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE ${STARPU_LIBRARIES_DEP})
+  endif()
+endif()
+
+# PaRSEC
+if(PASTIX_WITH_PARSEC)
+  list(APPEND PASTIX_PKGCONFIG_LIBS pastix_parsec)
+  if ( PARSEC_FOUND_WITH_PKGCONFIG )
+    list(APPEND PASTIX_PKGCONFIG_REQUIRED parsec)
+  else()
+    list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE ${PARSEC_LIBRARIES_DEP})
+  endif()
+endif()
+
+if(PASTIX_WITH_CUDA)
+  list(APPEND PASTIX_PKGCONFIG_LIBS pastix_kernels_cuda)
+endif()
+
+if(PASTIX_WITH_EZTRACE)
+  list(APPEND PASTIX_PKGCONFIG_REQUIRED eztrace litl)
+endif()
+
+list(APPEND PASTIX_PKGCONFIG_INCS
+  )
+list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE
+  ${LAPACKE_LIBRARIES_DEP}
+  ${CBLAS_LIBRARIES_DEP}
+  )
+list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE
+  ${EXTRA_LIBRARIES}
+  )
+
+# HwLoc
+if ( HWLOC_FOUND_WITH_PKGCONFIG )
+  list(APPEND PASTIX_PKGCONFIG_REQUIRED hwloc)
+else()
+  list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE ${HWLOC_LIBRARIES})
+endif()
+
+generate_pkgconfig_files(
+  "${CMAKE_CURRENT_SOURCE_DIR}/pastix.pc.in"
+  "${CMAKE_CURRENT_SOURCE_DIR}/pastixf.pc.in"
+  PROJECTNAME PASTIX )
+
+generate_env_file( PROJECTNAME PASTIX )
 
 #############################################################
 #
