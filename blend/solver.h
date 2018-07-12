@@ -154,6 +154,9 @@ typedef struct parsec_sparse_matrix_desc_s parsec_sparse_matrix_desc_t;
 struct starpu_sparse_matrix_desc_s;
 typedef struct starpu_sparse_matrix_desc_s starpu_sparse_matrix_desc_t;
 
+struct starpu_dense_matrix_desc_s;
+typedef struct starpu_dense_matrix_desc_s starpu_dense_matrix_desc_t;
+
 /**
  * @brief Solver column block structure.
  *
@@ -193,6 +196,7 @@ struct solver_matrix_s {
 #endif
 #if defined(PASTIX_WITH_STARPU)
     starpu_sparse_matrix_desc_t *starpu_desc;
+    starpu_dense_matrix_desc_t  *starpu_desc_rhs;
 #endif
 
     pastix_int_t              ftgtnbr;              /*+ Number of fanintargets                    +*/
