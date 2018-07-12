@@ -22,6 +22,7 @@ set(generated_headers "")
 set(EXTRA_SOURCES
   starpu.c
   starpu_sparse_matrix.c
+  starpu_dense_matrix.c
   pastix_starpu_model.c
 )
 
@@ -100,4 +101,5 @@ add_documented_files(
   # Source files
   starpu.c
   starpu_sparse_matrix.c
+  starpu_dense_matrix.c
   )
