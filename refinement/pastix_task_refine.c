@@ -114,8 +114,8 @@ static pastix_int_t (*sopalinRefine[4][4])(pastix_data_t *pastix_data, void *x, 
 int
 pastix_subtask_refine( pastix_data_t *pastix_data,
                        pastix_int_t n, pastix_int_t nrhs,
-                       void *b, pastix_int_t ldb,
-                       void *x, pastix_int_t ldx )
+                       const void *b, pastix_int_t ldb,
+                             void *x, pastix_int_t ldx )
 {
     pastix_int_t   *iparm = pastix_data->iparm;
     pastix_bcsc_t  *bcsc  = pastix_data->bcsc;
