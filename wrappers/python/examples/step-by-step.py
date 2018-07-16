@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
- @file simple.py
+ @file step-by-step.py
 
- PaStiX simple python example
+ PaStiX step by step python example
 
  @copyright 2017      Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.

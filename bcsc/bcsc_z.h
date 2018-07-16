@@ -29,11 +29,6 @@ void bcsc_zinit_centralized( const spmatrix_t     *spm,
                              const pastix_int_t   *col2cblk,
                                    int             initAt,
                                    pastix_bcsc_t  *bcsc );
-
-void bcsc_zsort( const pastix_bcsc_t *bcsc,
-                 pastix_int_t        *rowtab,
-                 pastix_complex64_t  *valtab );
-
 /**
  *   @}
  * @}
@@ -44,29 +39,86 @@ void bcsc_zsort( const pastix_bcsc_t *bcsc,
  *    @name PastixComplex64 vector(s) operations
  *    @{
  */
-double bvec_znrm2( pastix_int_t              n,
-                   const pastix_complex64_t *x );
-int    bvec_zscal( pastix_int_t        n,
-                   pastix_complex64_t  alpha,
-                   pastix_complex64_t *x );
-int    bvec_zaxpy( pastix_int_t              n,
-                   pastix_complex64_t        alpha,
-                   const pastix_complex64_t *x,
-                   pastix_complex64_t       *y );
-#if defined(PRECISION_z) || defined(PRECISION_c)
-pastix_complex64_t bvec_zdotc( pastix_int_t              n,
-                               const pastix_complex64_t *x,
-                               const pastix_complex64_t *y );
-#endif
-pastix_complex64_t bvec_zdotu( pastix_int_t              n,
-                               const pastix_complex64_t *x,
-                               const pastix_complex64_t *y );
+void bvec_zaxpy_seq( pastix_data_t            *pastix_data,
+                     pastix_int_t              n,
+                     pastix_complex64_t        alpha,
+                     const pastix_complex64_t *x,
+                     pastix_complex64_t       *y );
+void bvec_zaxpy_smp( pastix_data_t            *pastix_data,
+                     pastix_int_t              n,
+                     pastix_complex64_t        alpha,
+                     const pastix_complex64_t *x,
+                     pastix_complex64_t       *y );
 
-int bvec_zswap( pastix_int_t m,
-                pastix_int_t n,
+void bvec_zcopy_seq( pastix_data_t            *pastix_data,
+                     pastix_int_t              n,
+                     const pastix_complex64_t *x,
+                     pastix_complex64_t       *y );
+void bvec_zcopy_smp( pastix_data_t            *pastix_data,
+                     pastix_int_t              n,
+                     const pastix_complex64_t *x,
+                     pastix_complex64_t       *y );
+
+#if defined(PRECISION_z) || defined(PRECISION_c)
+pastix_complex64_t bvec_zdotc_seq( pastix_data_t            *pastix_data,
+                                   pastix_int_t              n,
+                                   const pastix_complex64_t *x,
+                                   const pastix_complex64_t *y );
+pastix_complex64_t bvec_zdotc_smp( pastix_data_t            *pastix_data,
+                                   pastix_int_t              n,
+                                   const pastix_complex64_t *x,
+                                   const pastix_complex64_t *y );
+#endif
+
+pastix_complex64_t bvec_zdotu_seq( pastix_data_t            *pastix_data,
+                                   pastix_int_t              n,
+                                   const pastix_complex64_t *x,
+                                   const pastix_complex64_t *y );
+pastix_complex64_t bvec_zdotu_smp( pastix_data_t            *pastix_data,
+                                   pastix_int_t              n,
+                                   const pastix_complex64_t *x,
+                                   const pastix_complex64_t *y );
+
+void bvec_zgemv_seq( pastix_data_t            *pastix_data,
+                     pastix_int_t              m,
+                     pastix_int_t              n,
+                     pastix_complex64_t        alpha,
+                     const pastix_complex64_t *A,
+                     pastix_int_t              lda,
+                     const pastix_complex64_t *x,
+                     pastix_complex64_t        beta,
+                     pastix_complex64_t       *y );
+void bvec_zgemv_smp( pastix_data_t            *pastix_data,
+                     pastix_int_t              m,
+                     pastix_int_t              n,
+                     pastix_complex64_t        alpha,
+                     const pastix_complex64_t *A,
+                     pastix_int_t              lda,
+                     const pastix_complex64_t *x,
+                     pastix_complex64_t        beta,
+                     pastix_complex64_t       *y );
+
+double bvec_znrm2_seq( pastix_data_t            *pastix_data,
+                       pastix_int_t              n,
+                       const pastix_complex64_t *x );
+double bvec_znrm2_smp( pastix_data_t            *pastix_data,
+                       pastix_int_t              n,
+                       const pastix_complex64_t *x );
+
+void bvec_zscal_seq( pastix_data_t      *pastix_data,
+                     pastix_int_t        n,
+                     pastix_complex64_t  alpha,
+                     pastix_complex64_t *x );
+void bvec_zscal_smp( pastix_data_t      *pastix_data,
+                     pastix_int_t        n,
+                     pastix_complex64_t  alpha,
+                     pastix_complex64_t *x );
+
+int bvec_zswap( pastix_int_t        m,
+                pastix_int_t        n,
                 pastix_complex64_t *A,
-                pastix_int_t lda,
-                pastix_int_t *perm );
+                pastix_int_t        lda,
+                pastix_int_t       *perm );
 
 /**
  *    @}
@@ -77,12 +129,29 @@ int bvec_zswap( pastix_int_t m,
 double bcsc_znorm( pastix_normtype_t    ntype,
                    const pastix_bcsc_t *bcsc );
 
-int    bcsc_zspmv(       pastix_trans_t      trans,
-                         pastix_complex64_t  alpha,
-                   const pastix_bcsc_t      *bcsc,
-                   const pastix_complex64_t *x,
-                         pastix_complex64_t  beta,
-                         pastix_complex64_t *y );
+void bcsc_zspsv( pastix_data_t      *pastix_data,
+                 pastix_complex64_t *b );
+
+void bcsc_zspmv( const pastix_data_t      *pastix_data,
+                 pastix_trans_t            trans,
+                 pastix_complex64_t        alpha,
+                 const pastix_complex64_t *x,
+                 pastix_complex64_t        beta,
+                 pastix_complex64_t       *y );
+
+void bcsc_zspmv_seq( const pastix_data_t      *pastix_data,
+                     pastix_trans_t            trans,
+                     pastix_complex64_t        alpha,
+                     const pastix_complex64_t *x,
+                     pastix_complex64_t        beta,
+                     pastix_complex64_t       *y );
+void bcsc_zspmv_smp( const pastix_data_t      *pastix_data,
+                     pastix_trans_t            trans,
+                     pastix_complex64_t        alpha,
+                     const pastix_complex64_t *x,
+                     pastix_complex64_t        beta,
+                     pastix_complex64_t       *y );
+
 /**
  *    @}
  * @}

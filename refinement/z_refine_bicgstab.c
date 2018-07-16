@@ -68,15 +68,15 @@ pastix_int_t z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
     double resid_b, eps;
 
     memset( &solver, 0, sizeof(struct z_solver) );
-    z_Pastix_Solver(&solver);
+    z_refine_init( &solver, pastix_data );
 
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
         precond = 0;
     }
 
-    n       = solver.getN(    pastix_data );
-    itermax = solver.getImax( pastix_data );
-    eps     = solver.getEps(  pastix_data );
+    n       = pastix_data->bcsc->n;
+    itermax = pastix_data->iparm[IPARM_ITERMAX];
+    eps     = pastix_data->dparm[DPARM_EPSILON_REFINEMENT];
 
     gradr  = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
     gradr2 = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
@@ -91,20 +91,20 @@ pastix_int_t z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
 
     clockInit(refine_clk);clockStart(refine_clk);
 
-    normb = solver.norm( n, b );
-    normx = solver.norm( n, x );
+    normb = solver.norm( pastix_data, n, b );
+    normx = solver.norm( pastix_data, n, x );
 
     /* r = b - Ax */
-    solver.copy( n, b, gradr );
+    solver.copy( pastix_data, n, b, gradr );
     if ( normx > 0. ) {
-        solver.spmv( pastix_data, -1., x, 1., gradr );
+        solver.spmv( pastix_data, PastixNoTrans, -1., x, 1., gradr );
     }
-    normr = solver.norm( n, gradr );
+    normr = solver.norm( pastix_data, n, gradr );
 
     /* r2 = r */
-    solver.copy( n, gradr, gradr2 );
+    solver.copy( pastix_data, n, gradr, gradr2 );
     /* p = r */
-    solver.copy( n, gradr, gradp );
+    solver.copy( pastix_data, n, gradr, gradp );
 
     /* resid_b = ||r|| / ||b|| */
     resid_b = normr / normb;
@@ -116,59 +116,59 @@ pastix_int_t z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
         nb_iter++;
 
         /* y = M-1 * p */
-        solver.copy( n, gradp, grady );
+        solver.copy( pastix_data, n, gradp, grady );
         if ( precond ) {
             solver.spsv( pastix_data, grady );
         }
 
         /* v = Ay */
-        solver.spmv( pastix_data, 1.0, grady, 0., gradv );
+        solver.spmv( pastix_data, PastixNoTrans, 1.0, grady, 0., gradv );
 
         /* alpha = (r, r2) / (v, r2) */
-        alpha = solver.dot( n, gradv, gradr2 );
-        beta  = solver.dot( n, gradr, gradr2 );
+        alpha = solver.dot( pastix_data, n, gradv, gradr2 );
+        beta  = solver.dot( pastix_data, n, gradr, gradr2 );
         alpha = beta / alpha;
 
         /* s = r - alpha * v */
-        solver.copy( n, gradr, grads );
-        solver.axpy( n, -alpha, gradv, grads );
+        solver.copy( pastix_data, n, gradr, grads );
+        solver.axpy( pastix_data, n, -alpha, gradv, grads );
 
         /* z = M^{-1} s */
-        solver.copy( n, grads, gradz );
+        solver.copy( pastix_data, n, grads, gradz );
         if ( precond ) {
             solver.spsv( pastix_data, gradz );
         }
 
         /* t = Az */
-        solver.spmv( pastix_data, 1.0, gradz, 0., gradt );
+        solver.spmv( pastix_data, PastixNoTrans, 1.0, gradz, 0., gradt );
 
         /* w = (M-1t, M-1s) / (M-1t, M-1t) */
         /* grad2 = M-1t */
-        solver.copy( n, gradt, grad2 );
+        solver.copy( pastix_data, n, gradt, grad2 );
         if ( precond ) {
             solver.spsv( pastix_data, grad2 );
         }
 
         /* v1 = (M-1t, M-1s) */
         /* v2 = (M-1t, M-1t) */
-        v1 = solver.dot( n, grad2, gradz );
-        v2 = solver.dot( n, grad2, grad2 );
+        v1 = solver.dot( pastix_data, n, grad2, gradz );
+        v2 = solver.dot( pastix_data, n, grad2, grad2 );
         w = v1 / v2;
 
         /* x = x + alpha * y + w * z */
         /* x = x + alpha * y */
-        solver.axpy( n, alpha, grady, x );
+        solver.axpy( pastix_data, n, alpha, grady, x );
 
         /* x = x + w * z */
-        solver.axpy( n, w, gradz, x );
+        solver.axpy( pastix_data, n, w, gradz, x );
 
         /* r = s - w * t*/
-        solver.copy( n, grads, gradr );
-        solver.axpy( n, -w, gradt, gradr );
+        solver.copy( pastix_data, n, grads, gradr );
+        solver.axpy( pastix_data, n, -w, gradt, gradr );
 
         /* beta = (r', r2) / (r, r2) * (alpha / w) */
         /* v1 = (r', r2) */
-        v1 = solver.dot( n, gradr, gradr2 );
+        v1 = solver.dot( pastix_data, n, gradr, gradr2 );
         v2 = alpha / w;
 
         beta = v1 / beta;
@@ -176,13 +176,13 @@ pastix_int_t z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
 
         /* p = r + beta * (p - w * v) */
         /* p = p - w * v */
-        solver.axpy( n, -w, gradv, gradp );
+        solver.axpy( pastix_data, n, -w, gradv, gradp );
 
         /* p = r + beta * p */
-        solver.scal( n, beta, gradp );
-        solver.axpy( n, 1., gradr, gradp );
+        solver.scal( pastix_data, n, beta, gradp );
+        solver.axpy( pastix_data, n, 1., gradr, gradp );
 
-        normr = solver.norm( n, gradr );
+        normr = solver.norm( pastix_data, n, gradr );
         resid_b = normr / normb;
 
         clockStop((refine_clk));

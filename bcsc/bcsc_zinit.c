@@ -399,6 +399,8 @@ bcsc_zinit_At( const spmatrix_t     *spm,
 /**
  *******************************************************************************
  *
+ * @ingroup bcsc_internal
+ *
  * @brief Sort the block csc subarray associated to each column block
  *
  *******************************************************************************
@@ -414,7 +416,7 @@ bcsc_zinit_At( const spmatrix_t     *spm,
  *          block csc.
  *
  *******************************************************************************/
-void
+static inline void
 bcsc_zsort( const pastix_bcsc_t *bcsc,
             pastix_int_t        *rowtab,
             pastix_complex64_t  *valtab )

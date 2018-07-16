@@ -598,9 +598,9 @@ precisions_rules_py(generated_common_sources
 set(generated_bcsc_sources "")
 set(SOURCES
   bcsc/bcsc_zinit.c
-  bcsc/bvec_zcompute.c
   bcsc/bcsc_znorm.c
   bcsc/bcsc_zspmv.c
+  bcsc/bvec_zcompute.c
   )
 precisions_rules_py(generated_bcsc_sources
   "${SOURCES}"
@@ -719,6 +719,7 @@ set(PASTIX_LIB_SRCS
   common/get_options.c
   #
   bcsc/bcsc.c
+  bcsc/bvec.c
   #
   sopalin/coeftab.c
   sopalin/schur.c
@@ -1017,8 +1018,10 @@ add_documented_files(
   blend/pastix_subtask_blend.c
   blend/pastix_task_analyze.c
   #
-  bcsc/bcsc.h
   bcsc/bcsc.c
+  bcsc/bcsc.h
+  bcsc/bvec.c
+  bcsc/bvec.h
   #
   sopalin/coeftab.h
   sopalin/coeftab.c

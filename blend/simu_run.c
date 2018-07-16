@@ -13,9 +13,6 @@
  * @author Mathieu Faverge
  * @date 2013-06-24
  *
- * @addtogroup blend_dev_simu
- * @{
- *
  **/
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
@@ -43,6 +40,12 @@
 #if defined(PASTIX_BLEND_GENTRACE)
 #include <GTG.h>
 #endif
+
+/**
+ * @addtogroup blend_dev_simu
+ * @{
+ *
+ */
 
 /**
  *******************************************************************************
