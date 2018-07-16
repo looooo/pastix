@@ -4,12 +4,12 @@
  *
  * PaStiX performance models routines
  *
- * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.0
+ * @version 6.0.1
  * @author Mathieu Faverge
- * @date 2017-11-09
+ * @date 2018-07-16
  *
  **/
 #include "common.h"

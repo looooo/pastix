@@ -36,13 +36,13 @@
  *
  * File template to generate sort functions using qsort based algorithm.
  *
- * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.0
+ * @version 6.0.1
  * @author François Pellegrini
  * @author Xavier Lacoste
- * @date 2011-11-11
+ * @date 2018-07-16
  *
  */
 #ifndef MAX_THRESH

@@ -4,12 +4,12 @@
  *
  * Tests and validate the Xge2lr routine.
  *
- * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.0
+ * @version 6.0.1
  * @author Gregoire Pichon
- * @date 2016-11-24
+ * @date 2018-07-16
  *
  * @precisions normal z -> z c d s
  *

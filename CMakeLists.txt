@@ -3,9 +3,9 @@
 #  @copyright 2013-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.0.0
+#  @version 6.0.1
 #  @author Mathieu Faverge
-#  @date 2018-06-21
+#  @date 2018-07-16
 #
 ###
 cmake_minimum_required (VERSION 2.8)
@@ -17,7 +17,7 @@ include(CheckFunctionExists)
 # The current version number
 set(PASTIX_VERSION_MAJOR 6)
 set(PASTIX_VERSION_MINOR 0)
-set(PASTIX_VERSION_MICRO 0)
+set(PASTIX_VERSION_MICRO 1)
 
 set(PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VERSION_MICRO}")
 
