@@ -338,6 +338,7 @@ pastixInitParam( pastix_int_t *iparm,
 
     /* Solve */
     iparm[IPARM_SCHUR_SOLV_MODE]       = PastixSolvModeLocal;
+    iparm[IPARM_APPLYPERM_WS]          = 1;
 
     /* Refinement */
     iparm[IPARM_REFINEMENT]            = PastixRefineGMRES;

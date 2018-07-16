@@ -88,6 +88,7 @@ typedef enum pastix_iparm_e {
 
     /* Solve */
     IPARM_SCHUR_SOLV_MODE,       /**< Specify the solve parts to apply (@see pastix_solv_mode_t)     Default: PastixSolvModeLocal      IN    */
+    IPARM_APPLYPERM_WS,          /**< Enable/disable extra workspace for a thread-safe swap          Default: 1                        IN    */
 
     /* Refinement */
     IPARM_REFINEMENT,            /**< Refinement mode                                                Default: PastixRefineGMRES        IN    */

@@ -733,9 +733,14 @@ bvec_zdotu_smp( pastix_data_t            *pastix_data,
  *
  * @ingroup bcsc
  *
- * @brief Apply the permutation to a matrix A.
+ * @brief Apply a row permutation to a matrix A (LAPACK xlatmr)
  *
  *******************************************************************************
+ *
+ * @param[in] thread_safe
+ *          Boolean to switch between the thread-safe implementation that
+ *          exploits an additional workspace, or the non thread-safe version
+ *          that has no memory overhead.
  *
  * @param[in] m
  *          The number of rows in the matrix A, and the number of elements in
@@ -752,9 +757,11 @@ bvec_zdotu_smp( pastix_data_t            *pastix_data,
  *          The leading dimension of A.
  *
  * @param[inout] perm
- *          The permutation array.
- *          The array is inout as the permutation are marked as done during the
- *          computation and restored at the end.
+ *          The permutation array. Must be 0 based.
+ *          If thread_safe is true, then perm array is used only as input, and a
+ *          temporary array is allocated to follow the cycles. If thread_safe is
+ *          false, then perm array is modified during the swap and restored at
+ *          the end of the call.
  *
  *******************************************************************************
  *
@@ -762,48 +769,96 @@ bvec_zdotu_smp( pastix_data_t            *pastix_data,
  *
  *******************************************************************************/
 int
-bvec_zswap( pastix_int_t        m,
-            pastix_int_t        n,
-            pastix_complex64_t *A,
-            pastix_int_t        lda,
-            pastix_int_t       *perm )
+bvec_zlapmr( int thread_safe,
+             pastix_dir_t        dir,
+             pastix_int_t        m,
+             pastix_int_t        n,
+             pastix_complex64_t *A,
+             pastix_int_t        lda,
+             pastix_int_t       *perm )
 {
     pastix_complex64_t tmp;
     pastix_int_t i, j, k, jj;
+    pastix_int_t *perm_cpy;
 
-    for(k=0; k<m; k++) {
-        i = k;
-        j = perm[i];
+    if ( thread_safe ) {
+        perm_cpy = malloc( m * sizeof(pastix_int_t) );
+        memcpy( perm_cpy, perm, m * sizeof(pastix_int_t) );
+    }
+    else {
+        perm_cpy = perm;
+    }
 
-        /* Cycle already seen */
-        if ( j < 0 ) {
-            continue;
-        }
+    if ( dir == PastixDirBackward ) {
+        for(k=0; k<m; k++) {
+            i = k;
+            j = perm_cpy[i];
 
-        /* Mark the i^th element as being seen */
-        perm[i] = -j-1;
-
-        while( j != k ) {
-
-            for(jj=0; jj<n; jj++) {
-                tmp             = A[j + jj * lda];
-                A[j + jj * lda] = A[k + jj * lda];
-                A[k + jj * lda] = tmp;
+            /* Cycle already seen */
+            if ( j < 0 ) {
+                continue;
             }
 
-            i = j;
-            j = perm[i];
-            perm[i] = -j-1;
+            /* Mark the i^th element as being seen */
+            perm_cpy[i] = -j-1;
 
-            assert( (j != i) && (j >= 0) );
+            while( j != k ) {
+
+                for(jj=0; jj<n; jj++) {
+                    tmp             = A[j + jj * lda];
+                    A[j + jj * lda] = A[k + jj * lda];
+                    A[k + jj * lda] = tmp;
+                }
+
+                i = j;
+                j = perm_cpy[i];
+                perm_cpy[i] = -j-1;
+
+                assert( (j != i) && (j >= 0) );
+            }
+        }
+    }
+    else {
+        for(k=0; k<m; k++) {
+            i = k;
+            j = perm_cpy[i];
+            perm_cpy[i] = -j-1;
+
+            /* Cycle already seen */
+            if ( j < 0 ) {
+                continue;
+            }
+
+            i = perm_cpy[j];
+
+            /* Mark the i^th element as being seen */
+            while( i >= 0 ) {
+
+                for(jj=0; jj<n; jj++) {
+                    tmp             = A[j + jj * lda];
+                    A[j + jj * lda] = A[i + jj * lda];
+                    A[i + jj * lda] = tmp;
+                }
+
+                perm_cpy[j] = -i-1;
+                j = i;
+                i = perm_cpy[j];
+
+                assert( j != i );
+            }
         }
     }
 
-    for(k=0; k<m; k++) {
-        assert(perm[k] < 0);
-        perm[k] = - perm[k] - 1;
+    if ( thread_safe ) {
+        free( perm_cpy );
     }
-
+    else {
+        /* Restore perm array */
+        for(k=0; k<m; k++) {
+            assert(perm[k] < 0);
+            perm[k] = - perm[k] - 1;
+        }
+    }
     return PASTIX_SUCCESS;
 }
 

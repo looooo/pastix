@@ -907,7 +907,7 @@ contains
     type(pastix_data_t),        intent(inout), target :: pastix_data
     integer(kind=pastix_int_t), intent(in)            :: n
     integer(kind=pastix_int_t), intent(in)            :: nrhs
-    type(c_ptr),                intent(inout), target :: b
+    type(c_ptr),                intent(in),    target :: b
     integer(kind=pastix_int_t), intent(in)            :: ldb
     type(c_ptr),                intent(inout), target :: x
     integer(kind=pastix_int_t), intent(in)            :: ldx

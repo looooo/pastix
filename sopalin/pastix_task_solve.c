@@ -57,7 +57,7 @@ dump_rhs( char *name, int n, double *b )
  * @brief Apply a permutation on the right-and-side vector before the solve step.
  *
  * This routine is affected by the following parameters:
- *   IPARM_VERBOSE, IPARM_FACTORIZATION.
+ *   IPARM_VERBOSE, IPARM_FACTORIZATION, IPARM_APPLYPERM_WS.
  *
  *******************************************************************************
  *
@@ -94,6 +94,7 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
                            pastix_int_t m, pastix_int_t n, void *b, pastix_int_t ldb )
 {
     pastix_int_t *perm;
+    int ts;
 
     /*
      * Check parameters
@@ -112,28 +113,31 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
     }
 
     /* Make sure ordering is 0 based */
-    pastixOrderBase( pastix_data->ordemesh, 0 );
+    if ( pastix_data->ordemesh->baseval != 0 ) {
+        errorPrint("pastix_subtask_applyorder: ordermesh must be 0-based");
+        return PASTIX_ERR_BADPARAMETER;
+    }
 
-    perm = (dir == PastixDirForward) ? pastix_data->ordemesh->permtab : pastix_data->ordemesh->peritab;
+    ts   = pastix_data->iparm[IPARM_APPLYPERM_WS];
+    perm = pastix_data->ordemesh->peritab;
 
-    /* TODO: change name of the ordeing methof since bcsc has nothing to do with this */
     /* See also xlapmr and xlapmt */
     switch( flttype ) {
     case PastixComplex64:
-        bvec_zswap( m, n, b, ldb, perm );
+        bvec_zlapmr( ts, dir, m, n, b, ldb, perm );
         break;
 
     case PastixComplex32:
-        bvec_cswap( m, n, b, ldb, perm );
+        bvec_clapmr( ts, dir, m, n, b, ldb, perm );
         break;
 
     case PastixFloat:
-        bvec_sswap( m, n, b, ldb, perm );
+        bvec_slapmr( ts, dir, m, n, b, ldb, perm );
         break;
 
     case PastixDouble:
     default:
-        bvec_dswap( m, n, b, ldb, perm );
+        bvec_dlapmr( ts, dir, m, n, b, ldb, perm );
     }
 
     return PASTIX_SUCCESS;

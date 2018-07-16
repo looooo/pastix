@@ -416,10 +416,8 @@ program fmultilap
               end if
 
               ! 3- Permute the b pointer
-              !$OMP CRITICAL
               call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirForward, &
                    &                          params%n, rhs%nrhs, b_ptr, params%n, info )
-              !$OMP END CRITICAL
 
               rhs%x(:) = rhs%b(:)
 
@@ -438,13 +436,11 @@ program fmultilap
                    & x_ptr, matrix%spm%n, info )
 
               ! 6- Apply the backward permutation on b and x
-              !$OMP CRITICAL
               call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
                    &                          params%n, rhs%nrhs, b_ptr, params%n, info )
 
               call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
                    &                          params%n, rhs%nrhs, x_ptr, params%n, info )
-              !$OMP END CRITICAL
 
            end do solve_loop2
         end do solve_loop
