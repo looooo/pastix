@@ -61,15 +61,15 @@ pastix_int_t z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
     double resid_b, eps;
 
     memset( &solver, 0, sizeof(struct z_solver) );
-    z_Pastix_Solver(&solver);
+    z_refine_init( &solver, pastix_data );
 
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
         precond = 0;
     }
 
-    n       = solver.getN(    pastix_data );
-    itermax = solver.getImax( pastix_data );
-    eps     = solver.getEps(  pastix_data );
+    n       = pastix_data->bcsc->n;
+    itermax = pastix_data->iparm[IPARM_ITERMAX];
+    eps     = pastix_data->dparm[DPARM_EPSILON_REFINEMENT];
 
     /* Initialize vectors */
     gradr = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
@@ -80,25 +80,25 @@ pastix_int_t z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
     clockInit(refine_clk);
     clockStart(refine_clk);
 
-    normb = solver.norm( n, b );
-    normx = solver.norm( n, x );
+    normb = solver.norm( pastix_data, n, b );
+    normx = solver.norm( pastix_data, n, x );
 
     /* Compute r0 = b - A * x */
-    solver.copy( n, b, gradr );
+    solver.copy( pastix_data, n, b, gradr );
     if ( normx > 0. ) {
-        solver.spmv( pastix_data, -1., x, 1., gradr );
+        solver.spmv( pastix_data, PastixNoTrans, -1., x, 1., gradr );
     }
-    normr = solver.norm( n, gradr );
+    normr = solver.norm( pastix_data, n, gradr );
     resid_b = normr / normb;
 
     /* z = M^{-1} r */
-    solver.copy( n, gradr, gradz );
+    solver.copy( pastix_data, n, gradr, gradz );
     if ( precond ) {
         solver.spsv( pastix_data, gradz );
     }
 
     /* p = z */
-    solver.copy( n, gradz, gradp );
+    solver.copy( pastix_data, n, gradz, gradp );
 
     while ((resid_b > eps) && (nb_iter < itermax))
     {
@@ -107,34 +107,34 @@ pastix_int_t z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
         nb_iter++;
 
         /* grad2 = A * p */
-        solver.spmv( pastix_data, 1.0, gradp, 0., grad2 );
+        solver.spmv( pastix_data, PastixNoTrans, 1.0, gradp, 0., grad2 );
 
         /* alpha = <r, z> / <Ap, p> */
-        beta  = solver.dot( n, gradr, gradz );
-        alpha = solver.dot( n, grad2, gradp );
+        beta  = solver.dot( pastix_data, n, gradr, gradz );
+        alpha = solver.dot( pastix_data, n, grad2, gradp );
         alpha = beta / alpha;
 
         /* x = x + alpha * p */
-        solver.axpy( n, alpha, gradp, x );
+        solver.axpy( pastix_data, n, alpha, gradp, x );
 
         /* r = r - alpha * A * p */
-        solver.axpy( n, -alpha, grad2, gradr );
+        solver.axpy( pastix_data, n, -alpha, grad2, gradr );
 
         /* z = M-1 * r */
-        solver.copy( n, gradr, gradz );
+        solver.copy( pastix_data, n, gradr, gradz );
         if ( precond ) {
             solver.spsv( pastix_data, gradz );
         }
 
         /* beta = <r', z> / <r, z> */
-        alpha = solver.dot( n, gradr, gradz );
+        alpha = solver.dot( pastix_data, n, gradr, gradz );
         beta  = alpha / beta;
 
         /* p = z + beta * p */
-        solver.scal( n, beta, gradp );
-        solver.axpy( n, 1., gradz, gradp );
+        solver.scal( pastix_data, n, beta, gradp );
+        solver.axpy( pastix_data, n, 1., gradz, gradp );
 
-        normr = solver.norm( n, gradr );
+        normr = solver.norm( pastix_data, n, gradr );
         resid_b = normr / normb;
 
         clockStop((refine_clk));

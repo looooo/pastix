@@ -33,11 +33,10 @@
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"
 
-/*------------------------------------------------------------------------
- *  Check the accuracy of the solution
- */
 int
-z_bcsc_matvec_check( spm_trans_t trans, const spmatrix_t   *spm, const pastix_data_t *pastix_data )
+z_bcsc_spmv_check( spm_trans_t          trans,
+                   const spmatrix_t    *spm,
+                   const pastix_data_t *pastix_data )
 {
     unsigned long long int seed = 35469;
     pastix_complex64_t *x, *y0, *ys, *yd;
@@ -79,7 +78,7 @@ z_bcsc_matvec_check( spm_trans_t trans, const spmatrix_t   *spm, const pastix_da
     bvec_zswap( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
     bvec_zswap( pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
 
-    bcsc_zspmv( (pastix_trans_t)trans, alpha, pastix_data->bcsc, x, beta, yd );
+    bcsc_zspmv( pastix_data, (pastix_trans_t)trans, alpha, x, beta, yd );
 
     bvec_zswap( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
     bvec_zswap( pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
@@ -115,9 +114,6 @@ z_bcsc_matvec_check( spm_trans_t trans, const spmatrix_t   *spm, const pastix_da
     return info_solution;
 }
 
-/*------------------------------------------------------------------------
- *  Check the accuracy of the solution
- */
 int
 z_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc )
 {

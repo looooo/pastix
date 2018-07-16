@@ -56,16 +56,16 @@ z_pivot_smp( pastix_data_t *pastix_data,
     int                 flag = 1;
 
     memset( &solver, 0, sizeof(struct z_solver) );
-    z_Pastix_Solver(&solver);
+    z_refine_init( &solver, pastix_data );
 
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
         fprintf(stderr, "pastix_task_refine: Simple refinement cannot be applied without preconditionner\n" );
         return -1;
     }
 
-    n       = solver.getN(    pastix_data );
-    itermax = solver.getImax( pastix_data );
-    eps     = solver.getEps(  pastix_data );
+    n       = pastix_data->bcsc->n;
+    itermax = pastix_data->iparm[IPARM_ITERMAX];
+    eps     = pastix_data->dparm[DPARM_EPSILON_REFINEMENT];
 
     if (pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot)
     {
@@ -77,14 +77,14 @@ z_pivot_smp( pastix_data_t *pastix_data,
     clockInit(refine_clk);
     clockStart(refine_clk);
 
-    normb = solver.norm( n, b );
+    normb = solver.norm( pastix_data, n, b );
 
     t0 = clockGet();
     while(flag)
     {
         /* Compute r = b - A * x */
-        solver.copy( n, b, r );
-        solver.spmv( pastix_data, -1., x, 1., r );
+        solver.copy( pastix_data, n, b, r );
+        solver.spmv( pastix_data, PastixNoTrans, -1., x, 1., r );
 
         /*
          * berr should be equal to the componentwise backward error in the literature:
@@ -92,7 +92,7 @@ z_pivot_smp( pastix_data_t *pastix_data,
          * For simplicity, we replace it by ||r||_f / ||b||_f which may not be
          * as good as the previous one.
          */
-        normr = solver.norm( n, r );
+        normr = solver.norm( pastix_data, n, r );
         berr = normr / normb;
 
         /* Force te first error */
@@ -114,11 +114,11 @@ z_pivot_smp( pastix_data_t *pastix_data,
             t3 = clockGet();
 
             /* Solve A dx = r */
-            solver.copy( n, r, dx );
+            solver.copy( pastix_data, n, r, dx );
             solver.spsv( pastix_data, dx );
 
             /* Accumulate the solution: x = x + dx */
-            solver.axpy( n, 1.0, dx, x );
+            solver.axpy( pastix_data, n, 1.0, dx, x );
 
             last_berr = berr;
         }

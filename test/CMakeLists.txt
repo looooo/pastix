@@ -36,7 +36,7 @@ target_link_libraries( bcsc_test
 ## Generate all test executables
 set (TESTS
   bcsc_norm_tests.c
-  bcsc_matvec_tests.c
+  bcsc_spmv_tests.c
   )
 
 foreach (_file ${TESTS})
@@ -47,7 +47,7 @@ endforeach()
 
 ## CTest execution
 set( BCSC_TESTS
-  bcsc_norm_tests bcsc_matvec_tests )
+  bcsc_norm_tests bcsc_spmv_tests )
 
 # Laplacian
 foreach(example ${BCSC_TESTS} )
@@ -89,6 +89,7 @@ if(TMG_FOUND)
   ## Generate the test library files for all required precisions
   set(LIB_SOURCES
     z_lowrank_tests.c
+    z_bvec_tests.c
     )
 
   ## reset variables
@@ -98,11 +99,12 @@ if(TMG_FOUND)
     "${LIB_SOURCES}"
     PRECISIONS "p;s;d;c;z")
 
-  add_library(lowrank_test
+  add_library(pastix_tests
     ${generated_libfiles}
     )
 
-  target_link_libraries( lowrank_test
+  target_link_libraries( pastix_tests
+    pastix
     pastix_kernels
     ${LAPACKE_LIBRARIES_DEP}
     ${TMG_LIBRARIES_DEP}
@@ -116,25 +118,31 @@ if(TMG_FOUND)
     )
 
   ## reset variables
-  set(generated_exfiles "")
+  set(generated_exfiles)
 
   precisions_rules_py(generated_exfiles
     "${TESTS_SOURCES}"
     PRECISIONS "p;s;d;c;z")
 
-  foreach (_file ${generated_exfiles})
+  set( testings
+    ${generated_exfiles}
+    bcsc_spmv_time.c
+    bvec_gemv_tests.c
+    bvec_tests.c )
+
+  foreach (_file ${testings})
     get_filename_component(_name_we ${_file} NAME_WE)
     add_executable(${_name_we} ${_file})
     target_link_libraries(${_name_we}
+      pastix_tests
       pastix_kernels
       pastix
-      lowrank_test
       ${LAPACKE_LIBRARIES_DEP}
       ${TMG_LIBRARIES_DEP}
       ${EXTRA_LIBS}
       m)
 
-    add_test(test_${_name_we} ./${_name_we})
+    add_test(test_${_name_we} ./${_name_we} -9 1000:10:1 )
   endforeach()
 
 endif()

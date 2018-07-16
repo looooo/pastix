@@ -1,11 +1,11 @@
 /**
  *
- * @file bcsc_matvec_tests.c
+ * @file bcsc_spmv_tests.c
  *
  * @copyright 2011-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * Tests and validate the bcsc_matvec routines.
+ * Tests and validate the bcsc_spmv routines.
  *
  * @version 6.0.0
  * @author Mathieu Faverge
@@ -27,10 +27,10 @@
 #include <bcsc.h>
 #include "sopalin_data.h"
 
-int z_bcsc_matvec_check( int trans, const spmatrix_t   *spm, const pastix_data_t *pastix_data );
-int c_bcsc_matvec_check( int trans, const spmatrix_t   *spm, const pastix_data_t *pastix_data );
-int d_bcsc_matvec_check( int trans, const spmatrix_t   *spm, const pastix_data_t *pastix_data );
-int s_bcsc_matvec_check( int trans, const spmatrix_t   *spm, const pastix_data_t *pastix_data );
+int z_bcsc_spmv_check( spm_trans_t trans, const spmatrix_t *spm, const pastix_data_t *pastix_data );
+int c_bcsc_spmv_check( spm_trans_t trans, const spmatrix_t *spm, const pastix_data_t *pastix_data );
+int d_bcsc_spmv_check( spm_trans_t trans, const spmatrix_t *spm, const pastix_data_t *pastix_data );
+int s_bcsc_spmv_check( spm_trans_t trans, const spmatrix_t *spm, const pastix_data_t *pastix_data );
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_) {                                 \
@@ -120,20 +120,20 @@ int main (int argc, char **argv)
 
         switch( spm->flttype ){
         case SpmComplex64:
-            ret = z_bcsc_matvec_check( t, spm, pastix_data );
+            ret = z_bcsc_spmv_check( t, spm, pastix_data );
             break;
 
         case SpmComplex32:
-            ret = c_bcsc_matvec_check( t, spm, pastix_data );
+            ret = c_bcsc_spmv_check( t, spm, pastix_data );
             break;
 
         case SpmFloat:
-            ret = s_bcsc_matvec_check( t, spm, pastix_data );
+            ret = s_bcsc_spmv_check( t, spm, pastix_data );
             break;
 
         case SpmDouble:
         default:
-            ret = d_bcsc_matvec_check( t, spm, pastix_data );
+            ret = d_bcsc_spmv_check( t, spm, pastix_data );
         }
         PRINT_RES(ret);
     }
