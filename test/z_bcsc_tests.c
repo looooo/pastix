@@ -75,13 +75,13 @@ z_bcsc_spmv_check( spm_trans_t          trans,
     spmMatVec( trans, alpha, spm, x, beta, ys );
 
     /* Compute the bcsc matrix-vector product */
-    bvec_zswap( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
-    bvec_zswap( pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
+    bvec_zlapmr( 1, PastixDirBackward, pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
+    bvec_zlapmr( 1, PastixDirBackward, pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
 
     bcsc_zspmv( pastix_data, (pastix_trans_t)trans, alpha, x, beta, yd );
 
-    bvec_zswap( pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
-    bvec_zswap( pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
+    bvec_zlapmr( 1, PastixDirBackward, pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
+    bvec_zlapmr( 1, PastixDirBackward, pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
 
     Anorm  = spmNorm( SpmInfNorm, spm );
     Xnorm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,  x, spm->gN );

@@ -114,11 +114,13 @@ void bvec_zscal_smp( pastix_data_t      *pastix_data,
                      pastix_complex64_t  alpha,
                      pastix_complex64_t *x );
 
-int bvec_zswap( pastix_int_t        m,
-                pastix_int_t        n,
-                pastix_complex64_t *A,
-                pastix_int_t        lda,
-                pastix_int_t       *perm );
+int bvec_zlapmr( int thread_safe,
+                 pastix_dir_t        dir,
+                 pastix_int_t        m,
+                 pastix_int_t        n,
+                 pastix_complex64_t *A,
+                 pastix_int_t        lda,
+                 pastix_int_t       *perm );
 
 /**
  *    @}
