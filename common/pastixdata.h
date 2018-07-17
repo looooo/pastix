@@ -46,6 +46,7 @@ typedef struct pastix_model_s pastix_model_t;
  *
  * This structure holds all informations related to the library and problem
  * instance. It stores information from one step to another.
+ * @warning This structure should not be modified directly by the user.
  *
  */
 struct pastix_data_s {
@@ -66,8 +67,8 @@ struct pastix_data_s {
     int              inter_node_procnum; /**< Local MPI rank in inter node communicator                           */
 
     isched_t        *isched;             /**< Internal scheduler structure that is always available               */
-    void            *parsec;             /**< PaRSEC Context if available                                         */
-    void            *starpu;             /**< StarPU configuration if available                                   */
+    void            *parsec;             /**< PaRSEC context if available                                         */
+    void            *starpu;             /**< StarPU context if available                                         */
 
     const spmatrix_t *csc;               /**< Pointer to the user csc structure used as input                     */
 

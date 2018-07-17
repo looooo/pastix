@@ -934,6 +934,7 @@ add_documented_files(
   common/api.c
   common/get_options.c
   common/models.c
+  common/pastixdata.h
   #
   graph/graph.h
   graph/graph.c
