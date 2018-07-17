@@ -6,12 +6,12 @@
  * a parallel direct block solver. This is the block symbolic factorization
  * routine for graphs.
  *
- * @copyright 2004-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.0
+ * @version 6.0.1
  * @author Francois Pellegrini
- * @date 2013-06-24
+ * @date 2018-07-16
  *
  *
  *  Dates:

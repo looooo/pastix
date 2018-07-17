@@ -4,14 +4,14 @@
  *
  * @copyright 2009-2012 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
- * @copyright 2014-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2014-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * Timing system specifics imported from PaRSEC project.
  *
- * @version 6.0.0
+ * @version 6.0.1
  * @author Mathieu Faverge
- * @date 2017-10-05
+ * @date 2018-07-16
  *
  **/
 #ifndef _timing_h_

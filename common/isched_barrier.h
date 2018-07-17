@@ -2,16 +2,16 @@
  *
  * @file isched_barrier.h
  *
- * @copyright 2014-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2014-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  * @copyright 2009-2010 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
  *
  * PaStiX internal scheduler barrier routines.
  *
- * @version 6.0.0
+ * @version 6.0.1
  * @author Mathieu Faverge
- * @date 2013-06-24
+ * @date 2018-07-16
  *
  */
 #ifndef _isched_barrier_h_

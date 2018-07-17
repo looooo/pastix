@@ -4,14 +4,14 @@
  *
  * This module handles the generic integer type.
  *
- * @copyright 1998-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 1998-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.0
+ * @version 6.0.1
  * @author François Pellegrini
  * @author Pierre Ramet
  * @author Xavier Lacoste
- * @date 2017-10-05
+ * @date 2018-07-16
  *
  */
 #ifndef _integer_h_

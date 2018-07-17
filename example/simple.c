@@ -3,12 +3,12 @@
  *
  * @brief A simple example that reads the matrix and then runs pastix in one call.
  *
- * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.0
+ * @version 6.0.1
  * @author Hastaran Matias
- * @date 2017-01-17
+ * @date 2018-07-16
  *
  * @ingroup pastix_examples
  * @code

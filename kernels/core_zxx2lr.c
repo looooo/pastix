@@ -5,14 +5,14 @@
  * PaStiX low-rank kernel routines that form the product of two matrices A and B
  * into a low-rank form for an update on a null or low-rank matrix.
  *
- * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.0
+ * @version 6.0.1
  * @author Mathieu Faverge
  * @author Gregoire Pichon
  * @author Pierre Ramet
- * @date 2017-11-06
+ * @date 2018-07-16
  * @precisions normal z -> c d s
  *
  **/

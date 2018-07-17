@@ -7,12 +7,12 @@ Wrapper Python
 
  PaStiX generator for the python wrapper
 
- @copyright 2017-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.0.0
+ @version 6.0.1
  @author Mathieu Faverge
- @date 2017-05-04
+ @date 2018-07-16
 
 """
 import os
@@ -148,14 +148,14 @@ class wrap_python:
 
  ''' + f['description'] + '''
 
- @copyright 2017-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.0.0
+ @version 6.0.1
  @author Pierre Ramet
  @author Mathieu Faverge
  @author Louis Poirel
- @date 2017-05-04
+ @date 2018-07-16
 
 This file has been automatically generated with gen_wrappers.py
 

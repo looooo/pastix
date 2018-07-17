@@ -4,13 +4,13 @@
  *
  * Precision dependent routines to extract the Schur complement.
  *
- * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.0
+ * @version 6.0.1
  * @author Gregoire Pichon
  * @author Mathieu Faverge
- * @date 2017-04-28
+ * @date 2018-07-16
  *
  * @precisions normal z -> s d c
  *

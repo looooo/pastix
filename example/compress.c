@@ -4,12 +4,12 @@
  * @brief A compression example that factorizes the matrix with the Just-In-Time
  * strategy and Rank-Revealing kernels.
  *
- * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.0
+ * @version 6.0.1
  * @author Gregoire Pichon
- * @date 2017-06-31
+ * @date 2018-07-16
  *
  * @ingroup pastix_examples
  * @code

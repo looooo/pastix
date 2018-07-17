@@ -2,13 +2,13 @@
  *
  * @file codelets.h
  *
- * @copyright 2017-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2017-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.0
+ * @version 6.0.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2017-06-01
+ * @date 2018-07-16
  *
  **/
 
