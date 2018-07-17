@@ -90,10 +90,6 @@ add_library(pastix_parsec
 target_link_libraries(pastix_parsec
   pastix_kernels
   ${PARSEC_LIBRARIES_DEP}
-  parsec_distribution
-  parsec_distribution_matrix
-  ${PARSEC_LIBRARIES_DEP}
-  parsec-base
   )
 
 add_dependencies(pastix_parsec
