@@ -132,7 +132,7 @@ Feel free to use the following publications to reference PaStiX:
 * Reordering strategy for blocking optimization in PaStiX:
   * Grégoire Pichon, Mathieu Faverge, Pierre Ramet, Jean Roman. Reordering Strategy for Blocking Optimization in Sparse Linear Solvers. SIAM Journal on Matrix Analysis and Applications, Society for Industrial and Applied Mathematics, 2017, SIAM Journal on Matrix Analysis and Applications, 38 (1), pp.226 - 248. [INRIA HAL](https://hal.inria.fr/hal-01485507v2)
 * On the use of low rank approximations in PaStiX:
-  * Grégoire Pichon, Eric Darve, Mathieu Faverge, Pierre Ramet, Jean Roman. Sparse Supernodal Solver Using Block Low-Rank Compression. 18th IEEE International Workshop on Parallel and Distributed Scientific and Engineering Computing (PDSEC 2017), Jun 2017, Orlando, United States. [INRIA HAL](https://hal.inria.fr/hal-01502215)
+  * Grégoire Pichon, Eric Darve, Mathieu Faverge, Pierre Ramet, Jean Roman. Sparse supernodal solver using block low-rank compression: Design, performance and analysis. International Journal of Computational Science and Engineering, Inderscience, 2018, 27, pp.255 - 270. [10.1016/J.JOCS.2018.06.007](http://dx.doi.org/10.1016/J.JOCS.2018.06.007) [Inria HAL](https://hal.inria.fr/hal-01824275)
 
 ## Licence
 

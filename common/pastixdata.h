@@ -38,43 +38,17 @@ typedef struct pastix_bcsc_s pastix_bcsc_t;
 struct pastix_model_s;
 typedef struct pastix_model_s pastix_model_t;
 
-/* /\* */
-/*   struct: SopalinParam_ */
-
-/*   Parameters for factorisation, updown and refinement. */
-/*  *\/ */
-/* typedef struct SopalinParam_ { */
-/*     pastix_bcsc_t  *bcsc;          /\*+ Compress Sparse Column matrix                      *\/ */
-/*     double          epsilonrefine;     /\*+ epsilon to stop refinement                     *\/ */
-/*     double          rberror;         /\*+ ||r||/||b||                                      *\/ */
-/*     double          espilondiag;     /\*+ epsilon critere for diag control                 *\/ */
-/*     void *b;               /\*+ b vector (RHS and solution)                                *\/ */
-/*     void *transcsc;        /\*+ transpose csc                                              *\/ */
-/*     pastix_int_t    itermax;         /\*+ max number of iteration                          *\/ */
-/*     pastix_int_t    diagchange;      /\*+ number of change of diag                         *\/ */
-/*     pastix_int_t    gmresim;         /\*+ Krylov subspace size for GMRES                   *\/ */
-/*     pastix_int_t    fakefact;        /\*+ Flag indicating if we want fake factorisation    *\/ */
-/*     pastix_int_t    usenocsc;        /\*+ Flag indicating if we want to use the intern CSC *\/ */
-/*     int             factotype;       /\*+ Type of factorization                            *\/ */
-/*     int             symmetric;       /\*+ Symmetric                                        *\/ */
-/*     MPI_Comm        pastix_comm;     /\*+ MPI communicator                                 *\/ */
-/*     int             type_comm;       /\*+ Communication mode                               *\/ */
-/*     int             nbthrdcomm;      /\*+ Communication's thread number                    *\/ */
-/*     pastix_int_t   *iparm;           /\*+ In/Out integer parameters                        *\/ */
-/*     double         *dparm;           /\*+ In/Out float parameters                          *\/ */
-/*     int            *bindtab;         /\*+ Define where to bin threads                      *\/ */
-/*     int             stopthrd;        /\*+ Boolean for communication thread controlling     *\/ */
-/*     int             schur;           /\*+ If 1 won't compute last diag                     *\/ */
-/*     pastix_int_t    n;               /\*+ size of the matrix                               *\/ */
-/*     pastix_int_t    gN; */
-/* } SopalinParam; */
-
-/*
- struct: pastix_data_t
-
- Structure used to store datas for a step by step execution.
+/**
+ *
+ * @ingroup pastix_users
+ *
+ * @brief Main PaStiX data structure
+ *
+ * This structure holds all informations related to the library and problem
+ * instance. It stores information from one step to another.
+ * @warning This structure should not be modified directly by the user.
+ *
  */
-
 struct pastix_data_s {
     pastix_int_t    *iparm;              /**< Store integer parameters (input/output)                             */
     double          *dparm;              /**< Store floating parameters (input/output)                            */
@@ -93,8 +67,8 @@ struct pastix_data_s {
     int              inter_node_procnum; /**< Local MPI rank in inter node communicator                           */
 
     isched_t        *isched;             /**< Internal scheduler structure that is always available               */
-    void            *parsec;             /**< PaRSEC Context if available                                         */
-    void            *starpu;             /**< StarPU configuration if available                                   */
+    void            *parsec;             /**< PaRSEC context if available                                         */
+    void            *starpu;             /**< StarPU context if available                                         */
 
     const spmatrix_t *csc;               /**< Pointer to the user csc structure used as input                     */
 
@@ -123,7 +97,6 @@ struct pastix_data_s {
     /**
      * Former fields that are no longer used for now
      */
-    /* SopalinParam     sopar;              /\* Sopalin parameters                                                  *\/ */
 #ifdef PASTIX_DISTRIBUTED
 #if defined(PASTIX_ORDERING_SCOTCH)
     pastix_int_t    *PTS_permtab;
