@@ -68,6 +68,11 @@ pastix_parsec_init( pastix_data_t *pastix,
 
     thrdnbr = iparm[IPARM_THREAD_NBR];
 
+    /* Force no GPUs if CUDA has not been enabled in PaStiX */
+#if !defined(PASTIX_WITH_CUDA)
+    iparm[IPARM_GPU_NBR] = 0;
+#endif
+
     if (iparm[IPARM_GPU_NBR] >= 0) {
 #if defined(PASTIX_GENERATE_MODEL)
         pastix_print( pastix->procnum, 0,
