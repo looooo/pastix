@@ -23,8 +23,8 @@
 #include "pastix_zlrcores.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-static pastix_complex64_t  zone =  1.0;
 static pastix_complex64_t zzero =  0.0;
+static pastix_complex64_t  zone =  1.0;
 static pastix_complex64_t mzone = -1.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
@@ -92,7 +92,8 @@ solve_blok_ztrsm( pastix_coefside_t   coefside,
     }
 
     cblas_ztrsm(
-        CblasColMajor, side, uplo, trans, diag,
+        CblasColMajor, (CBLAS_SIDE)side, (CBLAS_UPLO)uplo,
+        (CBLAS_TRANSPOSE)trans, (CBLAS_DIAG)diag,
         n, nrhs,
         CBLAS_SADDR(zone), A, lda,
                            b, ldb );
