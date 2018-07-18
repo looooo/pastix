@@ -68,7 +68,7 @@ pastix_parsec_init( pastix_data_t *pastix,
 
     thrdnbr = iparm[IPARM_THREAD_NBR];
 
-    if (iparm[IPARM_GPU_NBR] > 0) {
+    if (iparm[IPARM_GPU_NBR] >= 0) {
 #if defined(PASTIX_GENERATE_MODEL)
         pastix_print( pastix->procnum, 0,
                       "WARNING: PaStiX compiled with -DPASTIX_GENERATE_MODEL forces:\n"
@@ -90,11 +90,13 @@ pastix_parsec_init( pastix_data_t *pastix,
         rc = asprintf(&value, "%d", (int)(iparm[IPARM_GPU_MEMORY_PERCENTAGE]));
         parsec_setenv_mca_param( "device_cuda_memory_use", value, &environ );
 
-        if (iparm[IPARM_VERBOSE] > 2) {
-            parsec_setenv_mca_param( "device_show_statistics", "1", &environ );
-        }
-        if (iparm[IPARM_VERBOSE] > 3) {
-            parsec_setenv_mca_param( "device_show_capabilities", "1", &environ );
+        if (iparm[IPARM_GPU_NBR] > 0) {
+            if (iparm[IPARM_VERBOSE] > 2) {
+                parsec_setenv_mca_param( "device_show_statistics", "1", &environ );
+            }
+            if (iparm[IPARM_VERBOSE] > 3) {
+                parsec_setenv_mca_param( "device_show_capabilities", "1", &environ );
+            }
         }
 
         free(value);
