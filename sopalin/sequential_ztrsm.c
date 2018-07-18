@@ -41,8 +41,8 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
 
         cblk = datacode->cblktab + cblknbr - 1;
         for (i=0; i<cblknbr; i++, cblk--){
-            solve_ztrsmsp( mode, side, uplo, trans, diag,
-                           datacode, cblk, nrhs, b, ldb );
+            solve_cblk_ztrsmsp_backward( mode, side, uplo, trans, diag,
+                                         datacode, cblk, nrhs, b, ldb );
         }
     }
     /* Forward like */
@@ -58,8 +58,8 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
 
         cblk = datacode->cblktab;
         for (i=0; i<cblknbr; i++, cblk++){
-            solve_ztrsmsp( mode, side, uplo, trans, diag,
-                           datacode, cblk, nrhs, b, ldb );
+            solve_cblk_ztrsmsp_forward( mode, side, uplo, trans, diag,
+                                        datacode, cblk, nrhs, b, ldb );
         }
     }
 }
@@ -127,8 +127,8 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
             /* Wait */
             do { } while( cblk->ctrbcnt );
 
-            solve_ztrsmsp( mode, side, uplo, trans, diag,
-                           datacode, cblk, nrhs, b, ldb );
+            solve_cblk_ztrsmsp_backward( mode, side, uplo, trans, diag,
+                                         datacode, cblk, nrhs, b, ldb );
         }
     }
     /* Forward like */
@@ -160,8 +160,8 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
             /* Wait */
             do { } while( cblk->ctrbcnt );
 
-            solve_ztrsmsp( mode, side, uplo, trans, diag,
-                           datacode, cblk, nrhs, b, ldb );
+            solve_cblk_ztrsmsp_forward( mode, side, uplo, trans, diag,
+                                        datacode, cblk, nrhs, b, ldb );
         }
     }
 }

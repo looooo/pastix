@@ -221,16 +221,20 @@ void         cpucblk_zmemory    ( pastix_coefside_t   side,
  *    for the solve step.
  */
 
-void solve_ztrsmsp( pastix_solv_mode_t mode, pastix_side_t side, pastix_uplo_t uplo,
-                    pastix_trans_t trans, pastix_diag_t diag,
-                    SolverMatrix *datacode, SolverCblk *cblk,
-                    int nrhs, pastix_complex64_t *b, int ldb );
+void solve_cblk_ztrsmsp_forward( pastix_solv_mode_t mode, pastix_side_t side, pastix_uplo_t uplo,
+                                 pastix_trans_t trans, pastix_diag_t diag,
+                                 const SolverMatrix *datacode, const SolverCblk *cblk,
+                                 int nrhs, pastix_complex64_t *b, int ldb );
+void solve_cblk_ztrsmsp_backward( pastix_solv_mode_t mode, pastix_side_t side, pastix_uplo_t uplo,
+                                  pastix_trans_t trans, pastix_diag_t diag,
+                                  const SolverMatrix *datacode, const SolverCblk *cblk,
+                                  int nrhs, pastix_complex64_t *b, int ldb );
 
-void solve_zdiag( SolverCblk         *cblk,
-                  int                 nrhs,
-                  pastix_complex64_t *b,
-                  int                 ldb,
-                  pastix_complex64_t *work );
+void solve_cblk_zdiag( const SolverCblk   *cblk,
+                       int                 nrhs,
+                       pastix_complex64_t *b,
+                       int                 ldb,
+                       pastix_complex64_t *work );
 /**
  * @}
  */

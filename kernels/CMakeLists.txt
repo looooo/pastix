@@ -74,6 +74,8 @@ set(SOURCES
   cpucblk_zcompress.c
   cpucblk_zdiff.c
   cpucblk_zschur.c
+  # Solve operation
+  solve_ztrsmsp.c
 )
 
 precisions_rules_py(generated_sources
