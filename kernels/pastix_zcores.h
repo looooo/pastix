@@ -221,6 +221,14 @@ void         cpucblk_zmemory    ( pastix_coefside_t   side,
  *    for the solve step.
  */
 
+void solve_blok_ztrsm( pastix_coefside_t coefside, pastix_side_t side, pastix_uplo_t uplo,
+                       pastix_trans_t trans, pastix_diag_t diag, const SolverCblk *cblk,
+                       int nrhs, pastix_complex64_t *b, int ldb );
+void solve_blok_zgemm( pastix_coefside_t coefside, pastix_side_t side, pastix_trans_t trans,
+                       pastix_int_t nrhs, const SolverCblk *cblk, const SolverBlok *blok,
+                       SolverCblk *fcbk, const pastix_complex64_t *B, pastix_int_t ldb,
+                       pastix_complex64_t *C, pastix_int_t ldc );
+
 void solve_cblk_ztrsmsp_forward( pastix_solv_mode_t mode, pastix_side_t side, pastix_uplo_t uplo,
                                  pastix_trans_t trans, pastix_diag_t diag,
                                  const SolverMatrix *datacode, const SolverCblk *cblk,
