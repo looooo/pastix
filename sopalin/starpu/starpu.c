@@ -60,6 +60,11 @@ pastix_starpu_init( pastix_data_t *pastix,
     pastix->starpu = malloc(sizeof(struct starpu_conf));
     starpu_conf_init( pastix->starpu );
 
+    /* Force no GPUs if CUDA has not been enabled in PaStiX */
+#if !defined(PASTIX_WITH_CUDA)
+    iparm[IPARM_GPU_NBR] = 0;
+#endif
+
     conf = pastix->starpu;
     conf->ncpus = iparm[IPARM_THREAD_NBR];
     conf->ncuda = iparm[IPARM_GPU_NBR];
