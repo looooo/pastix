@@ -34,9 +34,9 @@ pastix_data = pastix.init( iparm, dparm )
 iparm[pastix.iparm.factorization] = pastix.factotype.LU
 
 for nspb in range(1,3):
-    # Load a sparse matrix from RSA driver
+    # Load a sparse matrix from HB driver
     spmA = spm.spmatrix( None, driver=spm.driver.Laplacian, filename=("%d:%d:%d:4.:1."%(nspb*5, nspb*5, nspb*5)) )
-    #spmA = spm.spmatrix( None, driver=driver.RSA, filename="$PASTIX_DIR/test/matrix/oilpan.rsa" )
+    #spmA = spm.spmatrix( None, driver=driver.HB, filename="$PASTIX_DIR/test/matrix/orsirr.rua" )
     spmA.printInfo()
 
     # Scale A for low-rank: A / ||A||_f
