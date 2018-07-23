@@ -136,4 +136,4 @@ Feel free to use the following publications to reference PaStiX:
 
 ## Licence
 
-<https://gitlab.inria.fr/solverstack/pastix/blob/master/LICENCE.txt>
+<https://gitlab.inria.fr/solverstack/pastix/blob/master/LICENCE>
