@@ -439,14 +439,8 @@ pastixGetOptions( int argc, char **argv,
         switch(c)
         {
         case '0':
-#if defined(PASTIX_WITH_FORTRAN)
-            *driver = SpmDriverRSA;
-            *filename = strdup( optarg );
-#else
-            fprintf(stderr, "pastixGetOptions: Please compile with PASTIX_WITH_FORTRAN option to enable RSA driver or use HB driver instead\n");
-            goto unknown_option;
-#endif
-            break;
+            fprintf(stderr, "RSA driver is no longer supported and is replaced by the HB driver\n");
+            pastix_attr_fallthrough;
 
         case '1':
             *driver = SpmDriverHB;

@@ -22,9 +22,9 @@ import numpy as np
 # Hack to make sure that the mkl is loaded
 tmp = np.eye(2).dot(np.ones(2))
 
-# Load a sparse matrix from RSA driver
+# Load a sparse matrix from HB driver
 spmA = spm.spmatrix( None, driver=spm.driver.Laplacian, filename="10:10:10:2.:1." )
-#spmA = spm.spmatrix( None, driver=spm.driver.RSA, filename="$PASTIX_DIR/test/matrix/oilpan.rsa" )
+#spmA = spm.spmatrix( None, driver=spm.driver.HB, filename="$PASTIX_DIR/test/matrix/orsirr.rua" )
 spmA.printInfo()
 
 # Scale A for low-rank: A / ||A||_f

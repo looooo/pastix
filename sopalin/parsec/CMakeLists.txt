@@ -87,10 +87,21 @@ add_library(pastix_parsec
   ${generated_sources}
   ${EXTRA_SOURCES})
 
-target_link_libraries(pastix_parsec
-  pastix_kernels
-  ${PARSEC_LIBRARIES_DEP}
-  )
+if ( ${PARSEC_parsec_distribution_LIBRARY} )
+  target_link_libraries(pastix_parsec
+    pastix_kernels
+    ${PARSEC_LIBRARIES_DEP}
+    parsec_distribution
+    parsec_distribution_matrix
+    ${PARSEC_LIBRARIES_DEP}
+    parsec-base
+    )
+else()
+  target_link_libraries(pastix_parsec
+    pastix_kernels
+    ${PARSEC_LIBRARIES_DEP}
+    )
+endif()
 
 add_dependencies(pastix_parsec
   sopalin_headers
