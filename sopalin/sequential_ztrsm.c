@@ -21,6 +21,10 @@
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 
+#if defined(PASTIX_WITH_STARPU)
+#include "starpu/pastix_zstarpu.h"
+#endif
+
 void
 sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
                   sopalin_data_t *sopalin_data,
@@ -184,7 +188,11 @@ static void (*ztrsm_table[4])(pastix_data_t *, int, int, int, int, sopalin_data_
 #else
     NULL,
 #endif
+#if defined(PASTIX_WITH_STARPU)
+    starpu_ztrsm
+#else
     NULL
+#endif
 };
 
 void

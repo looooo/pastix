@@ -372,6 +372,11 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
         tA = trans;
         cs = PastixLCoef;
     }
+    else {
+        /* This correspond to case treated in backward trsm */
+        assert(0);
+        return;
+    }
 
     if ( (cblk->cblktype & CBLK_IN_SCHUR) && (mode != PastixSolvModeSchur) )
         return;
@@ -393,7 +398,7 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
             return;
         }
 
-        solve_blok_zgemm( cs, side, tA, nrhs,
+        solve_blok_zgemm( cs, PastixLeft, tA, nrhs,
                           cblk, blok, fcbk,
                           b + cblk->lcolidx, ldb,
                           b + fcbk->lcolidx, ldb );
@@ -494,6 +499,11 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
 
         /* Right is not handled yet */
         assert( 0 );
+    }
+    else {
+        /* This correspond to case treated in forward trsm */
+        assert(0);
+        return;
     }
 
     /*

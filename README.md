@@ -37,8 +37,8 @@ Future releases will be available on this gitlab project.
 | HETRF (LDL^h)           | SHM/LR | SHM/LR | -      | SHM/LR/GPU | SHM/LR/GPU |
 | SYTRF (LDL^t)           | SHM/LR | SHM/LR | -      | SHM/LR/GPU | SHM/LR/GPU |
 | GETRF (LU)              | SHM/LR | SHM/LR | -      | SHM/LR/GPU | SHM/LR/GPU |
-| TRSM                    | SHM/LR | SHM/LR | -      | -          | -          |
-| DIAG                    | SHM/LR | SHM/LR | -      | -          | -          |
+| TRSM                    | SHM/LR | SHM/LR | -      | SHM/LR     | -          |
+| DIAG                    | SHM/LR | SHM/LR | -      | SHM/LR     | -          |
 
 * SHM means Shared Memory using POSIX theads for multicores architectures
 * LR means (block) Low-Rank compression technique to reduce the memory footprint and/or the time-to-solution
