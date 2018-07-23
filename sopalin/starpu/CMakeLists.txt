@@ -52,11 +52,16 @@ set(SOURCES
   codelet_zpotrfsp.c
   codelet_zpxtrfsp.c
   codelet_zsytrfsp.c
+  codelet_solve_zdiag.c
+  codelet_solve_ztrsm.c
+  codelet_solve_zgemm.c
+  starpu_zdiag.c
   starpu_zgetrf.c
   starpu_zhetrf.c
   starpu_zpotrf.c
   starpu_zpxtrf.c
   starpu_zsytrf.c
+  starpu_ztrsm.c
 )
 
 precisions_rules_py(generated_sources

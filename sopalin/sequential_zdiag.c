@@ -20,6 +20,10 @@
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 
+#if defined(PASTIX_WITH_STARPU)
+#include "starpu/pastix_zstarpu.h"
+#endif
+
 void
 sequential_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
                   int nrhs, pastix_complex64_t *b, int ldb )
@@ -97,7 +101,11 @@ static void (*zdiag_table[4])(pastix_data_t *, sopalin_data_t *,
 #else
     NULL,
 #endif
+#if defined(PASTIX_WITH_STARPU)
+    starpu_zdiag
+#else
     NULL
+#endif
 };
 
 void

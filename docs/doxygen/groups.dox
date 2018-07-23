@@ -297,6 +297,16 @@
  * @defgroup starpu_pxtrf StarPU extra LL^t factorization
  * @ingroup  pastix_starpu
  *
+ ********
+ *
+ * @defgroup starpu_trsm_solve StarPU TRSM solve
+ * @ingroup  pastix_starpu
+ *
+ ********
+ *
+ * @defgroup starpu_diag_solve StarPU DIAG solve
+ * @ingroup  pastix_starpu
+ *
  ****
  *
  * @defgroup pastix_solve Solve step

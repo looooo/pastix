@@ -131,7 +131,7 @@ starpu_dense_matrix_getoncpu( starpu_dense_matrix_desc_t *spmtx )
         assert( handler );
         starpu_data_acquire_cb( *handler, STARPU_R,
                                 (void (*)(void*))&starpu_data_release,
-                                handler );
+                                *handler );
     }
 }
 
