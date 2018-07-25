@@ -148,10 +148,6 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
             EXIT(MOD_SOPALIN,INTERNAL_ERR);
         }
 
-    if ( dofs != NULL ) {
-        memFree_null( dofs );
-    }
-
 #if defined(PASTIX_DEBUG_ORDERING)
     {
         Clock timer;
@@ -228,6 +224,12 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
         memFree_null(rows);
     }
 #endif
+
+    /* Free the degree of liberty's array used by scotch */
+    if ( dofs != NULL ) {
+        memFree_null( dofs );
+    }
+
 
     if (ret != 0) {           /* If something failed in Scotch */
         pastixOrderExit (ordemesh);    /* Free ordering arrays          */
