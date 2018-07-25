@@ -118,8 +118,12 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
 
     if ( iparm[IPARM_FLOAT] == SpmPattern ) {
         MALLOC_INTERN( dofs, n, pastix_int_t );
-        if ( graph->dof > 1 ) {
-            memset( dofs, graph->dof, n*sizeof(pastix_int_t) );
+        if ( graph->dof >= 1 ) {
+            pastix_int_t i;
+
+            for (i = 0; i < n; ++i) {
+                dofs[i] = graph->dof;
+            }
         }
         else {
             pastix_int_t  i;
