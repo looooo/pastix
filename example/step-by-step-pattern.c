@@ -19,7 +19,8 @@
 #include <pastix.h>
 #include <spm.h>
 #include "pastix/order.h"
-#include "common/pastixdata.h"
+#include "common/common.h"
+#include "blend/solver.h"
 
 int main (int argc, char **argv)
 {
