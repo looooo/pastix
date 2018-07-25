@@ -33,6 +33,7 @@ set (EXAMPLES
   schur.c
   simple.c
   step-by-step.c
+  step-by-step-pattern.c
   refinement.c
   )
 
