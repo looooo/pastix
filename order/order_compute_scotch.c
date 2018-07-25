@@ -23,6 +23,7 @@
 #include <scotch.h>
 #endif /* defined(PASTIX_ORDERING_PTSCOTCH) */
 #include "order_scotch_strats.h"
+#include <string.h>
 
 /**
  *******************************************************************************
@@ -70,7 +71,8 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
     pastix_int_t   *iparm = pastix_data->iparm;
     pastix_int_t    procnum;
     pastix_int_t    n, nnz, baseval;
-    int ret;
+    pastix_int_t   *dofs = NULL;
+    int             ret;
 
     procnum = pastix_data->procnum;
 
@@ -114,12 +116,29 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
     pastixOrderAlloc(ordemesh, n, n);
     SCOTCH_graphInit( &scotchgraph );
 
+    if ( iparm[IPARM_FLOAT] == SpmPattern ) {
+        MALLOC_INTERN( dofs, n, pastix_int_t );
+        if ( graph->dof > 1 ) {
+            memset( dofs, graph->dof, n*sizeof(pastix_int_t) );
+        }
+        else {
+            pastix_int_t  i;
+            pastix_int_t *dofptr, *iter_dof;
+
+            dofptr   = dofs;
+            iter_dof = graph->dofs;
+            for (i = 0; i < n; ++i, ++dofptr, ++iter_dof) {
+                *dofptr = iter_dof[1] - iter_dof[0];
+            }
+        }
+    }
+
     if (SCOTCH_graphBuild(&scotchgraph,   /* Graph to build     */
                           baseval,        /* baseval            */
                           n,              /* Number of vertices */
                           colptr,         /* Vertex array       */
                           NULL,
-                          NULL,           /* Array of vertex weights (DOFs) */
+                          dofs,           /* Array of vertex weights (DOFs) */
                           NULL,
                           nnz,            /* Number of arcs     */
                           rows,           /* Edge array         */
@@ -128,6 +147,10 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
             errorPrint("pastix : graphBuildGraph");
             EXIT(MOD_SOPALIN,INTERNAL_ERR);
         }
+
+    if ( dofs != NULL ) {
+        memFree_null( dofs );
+    }
 
 #if defined(PASTIX_DEBUG_ORDERING)
     {
