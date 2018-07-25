@@ -330,7 +330,8 @@ graphPrepare(      pastix_data_t   *pastix_data,
     }
 
     // TODO: take it from the spm or from a parameter
-    tmpgraph->dof = 1;
+    tmpgraph->dof  = spm->dof;
+    tmpgraph->dofs = spm->dofs;
     *graph = tmpgraph;
     return PASTIX_SUCCESS;
 }
