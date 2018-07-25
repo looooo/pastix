@@ -104,78 +104,81 @@ int main (int argc, char **argv)
     if ( spm->flttype == SpmPattern ) {
         spmGenFakeValues( spm );
     }
-    spm->flttype = flttype;
 
     pastix_subtask_blend( pastix_data );
 
-    printf("After Blend\n");
-    /**
-     * Normalize A matrix (optional, but recommended for low-rank functionality)
-     */
-    double normA = spmNorm( SpmFrobeniusNorm, spm );
-    spmScalMatrix( 1./normA, spm );
-
-    size = pastix_size_of( spm->flttype ) * spm->n * nrhs;
-    x = malloc( size );
-    b = malloc( size );
-    if ( check > 1 ) {
-        x0 = malloc( size );
+    if (solverCheck(pastix_data->solvmatr) == 0) {
+        printf("Correct!!\n");
     }
 
-    /* Do nfact factorization */
-    for (i = 0; i < nfact; i++)
-    {
-        /**
-         * Perform the numerical factorization
-         */
-        pastix_subtask_spm2bcsc( pastix_data, spm );
-        printf("After spm2bcsc\n");
-        pastix_subtask_bcsc2ctab( pastix_data );
-        printf("After bcsc2ctab\n");
-        pastix_subtask_sopalin( pastix_data );
-        printf("After sopalin\n");
-        for (j = 0; j < nsolv; j++)
-        {
-            /**
-             * Generates the b and x vector such that A * x = b
-             * Compute the norms of the initial vectors if checking purpose.
-             */
-            if ( check )
-            {
-                spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
-                memcpy( x, b, size );
-            }
-            else {
-                spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
+    /* printf("After Blend\n"); */
+    /* /\** */
+    /*  * Normalize A matrix (optional, but recommended for low-rank functionality) */
+    /*  *\/ */
+    /* double normA = spmNorm( SpmFrobeniusNorm, spm ); */
+    /* spmScalMatrix( 1./normA, spm ); */
 
-                /* Apply also normalization to b vectors */
-                spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );
+    /* size = pastix_size_of( spm->flttype ) * spm->n * nrhs; */
+    /* x = malloc( size ); */
+    /* b = malloc( size ); */
+    /* if ( check > 1 ) { */
+    /*     x0 = malloc( size ); */
+    /* } */
 
-                /* Save b for refinement */
-                memcpy( b, x, size );
-            }
+    /* /\* Do nfact factorization */
+    /* for (i = 0; i < nfact; i++) */
+    /* { */
+    /*     /\** */
+    /*      * Perform the numerical factorization */
+    /*      *\/ */
+    /*     pastix_subtask_spm2bcsc( pastix_data, spm ); */
+    /*     printf("After spm2bcsc\n"); */
+    /*     pastix_subtask_bcsc2ctab( pastix_data ); */
+    /*     printf("After bcsc2ctab\n"); */
+    /*     pastix_subtask_sopalin( pastix_data ); */
+    /*     printf("After sopalin\n"); */
+    /*     for (j = 0; j < nsolv; j++) */
+    /*     { */
+    /*         /\** */
+    /*          * Generates the b and x vector such that A * x = b */
+    /*          * Compute the norms of the initial vectors if checking purpose. */
+    /*          *\/ */
+    /*         if ( check ) */
+    /*         { */
+    /*             spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->n, b, spm->n ); */
+    /*             memcpy( x, b, size ); */
+    /*         } */
+    /*         else { */
+    /*             spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n ); */
 
-            /**
-             * Solve the linear system
-             */
-            pastix_task_solve( pastix_data, nrhs, x, spm->n );
-            printf("After solve\n");
-            pastix_task_refine( pastix_data, spm->n, nrhs, b, spm->n, x, spm->n );
-            printf("After refine\n");
+    /*             /\* Apply also normalization to b vectors *\/ */
+    /*             spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 ); */
 
-            if ( check ) {
-                rc |= spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
-            }
-        }
-    }
+    /*             /\* Save b for refinement *\/ */
+    /*             memcpy( b, x, size ); */
+    /*         } */
+
+    /*         /\** */
+    /*          * Solve the linear system */
+    /*          *\/ */
+    /*         pastix_task_solve( pastix_data, nrhs, x, spm->n ); */
+    /*         printf("After solve\n"); */
+    /*         pastix_task_refine( pastix_data, spm->n, nrhs, b, spm->n, x, spm->n ); */
+    /*         printf("After refine\n"); */
+
+    /*         if ( check ) { */
+    /*             rc |= spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n ); */
+    /*         } */
+    /*     } */
+    /* } */
 
     spmExit( spm );
     free( spm );
-    free( b );
-    free( x );
-    if ( x0 ) {
-        free( x0 );
-    }
+    /* free( b ); */
+    /* free( x ); */
+    /* if ( x0 ) { */
+    /*     free( x0 ); */
+    /* } */
     pastixFinalize( &pastix_data );
 
     return rc;
