@@ -38,6 +38,7 @@ typedef struct pastix_order_s {
     pastix_int_t  baseval;   /**< base value used for numbering       */
     pastix_int_t  vertnbr;   /**< Number of vertices                  */
     pastix_int_t  cblknbr;   /**< Number of column blocks             */
+    pastix_int_t  prevdof;   /**< Previous number of freedom          */
     pastix_int_t *permtab;   /**< Permutation array [based]           */
     pastix_int_t *peritab;   /**< Inverse permutation array [based]   */
     pastix_int_t *rangtab;   /**< Supernode array [based,+1]          */
@@ -52,17 +53,19 @@ typedef struct pastix_order_s {
  * @name Order basic subroutines
  * @{
  */
-int  pastixOrderInit (      pastix_order_t * const ordeptr,
-                            pastix_int_t baseval, pastix_int_t vertnbr, pastix_int_t cblknbr,
-                            pastix_int_t * const perm,
-                            pastix_int_t * const invp,
-                            pastix_int_t * const rang,
-                            pastix_int_t * const tree );
-int  pastixOrderAlloc(      pastix_order_t * const ordeptr, pastix_int_t vertnbr, pastix_int_t cblknbr);
-void pastixOrderExit (      pastix_order_t * const ordeptr);
-void pastixOrderBase (      pastix_order_t * const ordeptr, pastix_int_t baseval);
-int  pastixOrderCheck(const pastix_order_t * const ordeptr);
-int  pastixOrderCopy (      pastix_order_t * const ordedst, const pastix_order_t * const ordesrc);
+int  pastixOrderInit  (      pastix_order_t * const ordeptr,
+                             pastix_int_t baseval, pastix_int_t vertnbr, pastix_int_t cblknbr,
+                             pastix_int_t * const perm,
+                             pastix_int_t * const invp,
+                             pastix_int_t * const rang,
+                             pastix_int_t * const tree );
+int  pastixOrderAlloc (      pastix_order_t * const ordeptr, pastix_int_t vertnbr, pastix_int_t cblknbr);
+void pastixOrderExit  (      pastix_order_t * const ordeptr);
+void pastixOrderBase  (      pastix_order_t * const ordeptr, pastix_int_t baseval);
+int  pastixOrderCheck (const pastix_order_t * const ordeptr);
+void pastixOrderExpand(      pastix_order_t * const ordeptr,
+                             spmatrix_t     * const spm);
+int  pastixOrderCopy  (      pastix_order_t * const ordedst, const pastix_order_t * const ordesrc);
 
 const pastix_order_t *pastixOrderGet( const pastix_data_t * const pastix_data );
 

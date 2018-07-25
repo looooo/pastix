@@ -15,6 +15,7 @@
  **/
 #include "common.h"
 #include "pastix/order.h"
+#include <string.h>
 
 /**
  *******************************************************************************
@@ -312,6 +313,58 @@ pastixOrderBase( pastix_order_t * const ordeptr,
 #endif
 
     ordeptr->baseval = baseval;
+}
+
+void pastixOrderExpand( pastix_order_t * const ordeptr,
+                        spmatrix_t     * const spm )
+{
+    pastix_int_t *peritab;
+    pastix_int_t  i, j, n, vertnbr;
+    pastix_int_t  begin, end;
+    pastix_int_t *iter_peri;
+
+    n       = spm->nexp;
+    vertnbr = ordeptr->vertnbr;
+    MALLOC_INTERN( peritab, vertnbr, pastix_int_t );
+
+    memcpy( peritab, ordeptr->peritab, vertnbr * sizeof(pastix_int_t) );
+
+    ordeptr->peritab = (pastix_int_t*)memRealloc( ordeptr->peritab, n * sizeof(pastix_int_t) );
+    ordeptr->permtab = (pastix_int_t*)memRealloc( ordeptr->permtab, n * sizeof(pastix_int_t) );
+
+    iter_peri = ordeptr->peritab;
+    /*
+     * Initialise permutation tab and its inverse with dofs
+     * and previous inverse permutation tab
+     */
+    for (i = 0; i < vertnbr; ++i)
+    {
+        if ( spm->dof < 0 ) {
+            begin = spm->dofs[ peritab[i] ];
+            end   = spm->dofs[ peritab[i] + 1 ];
+        }
+        else {
+            begin = peritab[i] * spm->dof;
+            end   = begin + spm->dof;
+        }
+        for (j = begin; j < end; ++j, ++iter_peri)
+        {
+            *iter_peri = j;
+            ordeptr->permtab[ *iter_peri ] = iter_peri - ordeptr->peritab;// + ordeptr->baseval; /* perm[peri[i]] = i*/
+        }
+    }
+    ordeptr->vertnbr = n;
+
+    for (i = 0; i <= ordeptr->cblknbr; ++i)
+    {
+        if (spm->dof > 0) {
+            ordeptr->rangtab[i] = spm->dof * (ordeptr->rangtab[i]) ;
+        }
+        else {
+        }
+    }
+
+    memFree_null( peritab );
 }
 
 /**
