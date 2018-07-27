@@ -322,6 +322,11 @@ void pastixOrderExpand( pastix_order_t * const ordeptr,
     pastix_int_t  i, j, n, vertnbr;
     pastix_int_t  begin, end;
     pastix_int_t *iter_peri;
+    pastix_int_t *rangtab;
+    pastix_int_t *dofs;
+    pastix_int_t  sum, tmp;
+
+    spmBase( spm, 0 );
 
     n       = spm->nexp;
     vertnbr = ordeptr->vertnbr;
@@ -337,9 +342,10 @@ void pastixOrderExpand( pastix_order_t * const ordeptr,
      * Initialise permutation tab and its inverse with dofs
      * and previous inverse permutation tab
      */
+    sum = 0;
     for (i = 0; i < vertnbr; ++i)
     {
-        if ( spm->dof < 0 ) {
+        if ( spm->dof <= 0 ) {
             begin = spm->dofs[ peritab[i] ];
             end   = spm->dofs[ peritab[i] + 1 ];
         }
@@ -347,20 +353,34 @@ void pastixOrderExpand( pastix_order_t * const ordeptr,
             begin = peritab[i] * spm->dof;
             end   = begin + spm->dof;
         }
+        sum += end - begin;
         for (j = begin; j < end; ++j, ++iter_peri)
         {
             *iter_peri = j;
-            ordeptr->permtab[ *iter_peri ] = iter_peri - ordeptr->peritab;// + ordeptr->baseval; /* perm[peri[i]] = i*/
+            ordeptr->permtab[ j ] = iter_peri - ordeptr->peritab;/* perm[peri[i]] = i*/
         }
     }
     ordeptr->vertnbr = n;
 
-    for (i = 0; i <= ordeptr->cblknbr; ++i)
+    rangtab = ordeptr->rangtab;
+    dofs    = spm->dofs;
+    tmp     = 0;
+
+    for (i = 1; i <= ordeptr->cblknbr; ++i)
     {
         if (spm->dof > 0) {
-            ordeptr->rangtab[i] = spm->dof * (ordeptr->rangtab[i]) ;
+            rangtab[i] *= spm->dof ;
         }
         else {
+            begin = tmp;
+            end   = rangtab[i]; /* Not yet updated */
+            sum   = 0;
+            for (j = begin; j < end; ++j)
+            {
+                sum += dofs[peritab[j] + 1] - dofs[peritab[j]];
+            }
+            tmp = rangtab[i];
+            rangtab[i] = rangtab[i-1] + sum;
         }
     }
 
