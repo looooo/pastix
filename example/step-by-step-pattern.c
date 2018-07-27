@@ -21,6 +21,7 @@
 #include "pastix/order.h"
 #include "common/common.h"
 #include "blend/solver.h"
+#include "common/pastixdata.h"
 
 int main (int argc, char **argv)
 {
@@ -105,12 +106,9 @@ int main (int argc, char **argv)
     if ( spm->flttype == SpmPattern ) {
         spmGenFakeValues( spm );
     }
+    pastixSymbolExtend( pastix_data->symbmtx );
 
     pastix_subtask_blend( pastix_data );
-
-    if (solverCheck(pastix_data->solvmatr) == 0) {
-        printf("Correct!!\n");
-    }
 
     /* printf("After Blend\n"); */
     /* /\** */
