@@ -315,6 +315,22 @@ pastixOrderBase( pastix_order_t * const ordeptr,
     ordeptr->baseval = baseval;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_order
+ *
+ * @brief This routine expand the permutation arrays and the rangtab.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] ordeptr
+ *          The ordering to expand.
+ *
+ * @param[in] spm
+ *          The sparse matrix structure providing dof information.
+ *
+ *******************************************************************************/
 void pastixOrderExpand( pastix_order_t * const ordeptr,
                         spmatrix_t     * const spm )
 {
@@ -365,15 +381,19 @@ void pastixOrderExpand( pastix_order_t * const ordeptr,
     rangtab = ordeptr->rangtab;
     dofs    = spm->dofs;
     tmp     = 0;
-
+    /*
+     * Use previous value of rangtab to compute new ones
+     * Use formula :
+     * rexp[i] = rexp[i - 1] + sum( r[i], r[i+1] - 1, dofs[peri[j]+1] - dofs[peri[j]] )
+     */
     for (i = 1; i <= ordeptr->cblknbr; ++i)
     {
         if (spm->dof > 0) {
             rangtab[i] *= spm->dof ;
         }
         else {
-            begin = tmp;
-            end   = rangtab[i]; /* Not yet updated */
+            begin = tmp;        /* r[i - 1] : Updated on last step  */
+            end   = rangtab[i]; /* r[i] :     Not yet updated */
             sum   = 0;
             for (j = begin; j < end; ++j)
             {
