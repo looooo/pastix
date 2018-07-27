@@ -71,9 +71,11 @@ typedef struct symbol_matrix_s {
     pastix_int_t   baseval;  /**< Base value for numbering                */
     pastix_int_t   dof;      /**< Degrees of freedom per node
                                  (constant if > 0, unconstant if 0 (not implemented)) */
+    pastix_int_t  *dofs;     /**< Array of the first column of each element in the
+                                  expanded matrix [+baseval]              */
     pastix_int_t   cblknbr;  /**< Number of column blocks                 */
     pastix_int_t   bloknbr;  /**< Number of blocks                        */
-    pastix_int_t   nodenbr;  /**< Number of node in the compressed symbol */
+    pastix_int_t   nodenbr;  /**< Number of node (Should be gN)           */
     pastix_int_t   schurfcol;/**< First column of the schur complement    */
     symbol_cblk_t *cblktab;  /**< Array of column blocks [+1,based]       */
     symbol_blok_t *bloktab;  /**< Array of blocks in CSC format [based]   */
@@ -90,6 +92,7 @@ void pastixSymbolBase   (       symbol_matrix_t *symbptr,
                           const pastix_int_t     baseval );
 void pastixSymbolRealloc(       symbol_matrix_t *symbptr );
 int  pastixSymbolCheck  ( const symbol_matrix_t *symbptr );
+void pastixSymbolExtend (       symbol_matrix_t *symbptr );
 
 /**
  * @}

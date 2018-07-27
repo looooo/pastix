@@ -228,7 +228,8 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
         }
 
         pastixSymbolInit(pastix_data->symbmtx);
-        pastix_data->symbmtx->dof = graph->dof;
+        pastix_data->symbmtx->dof  = graph->dof;
+        pastix_data->symbmtx->dofs = graph->dofs;
 
         /*
          * The amalgamate supernodes partition has been found with (PT-)Scotch,
