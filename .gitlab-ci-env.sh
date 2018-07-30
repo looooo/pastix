@@ -1,5 +1,3 @@
-source /etc/profile.d/spack.sh
-
 #StarPU
 export LD_LIBRARY_PATH=$STARPU_DIR/lib:$LD_LIBRARY_PATH
 export PKG_CONFIG_PATH=$STARPU_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
