@@ -49,6 +49,7 @@ __find_cblk_schurfcol( symbol_cblk_t   *schurcblk,
     assert ( symbptr->schurfcol == symbptr->nodenbr );
 
     return 0;
+    (void)schurcblk; /* Otehrwise, warning because "set but not used" */
 }
 
 static inline void
@@ -163,6 +164,12 @@ __extend_dof_not_cte(       symbol_matrix_t *symbptr,
     peritab = ordeptr->peritab;
     rangtab = ordeptr->rangtab;
 
+    /*
+     * Get the cblk corresponding to schurfcol
+     * return value is schurfcol == symbptr->nodenbr
+     * if it's the case, then schurcblk is NULL.
+     */
+    schurcblk  = NULL;
     is_schur_n = __find_cblk_schurfcol( schurcblk, symbptr );
 
     /*
