@@ -92,7 +92,8 @@ void pastixSymbolBase   (       symbol_matrix_t *symbptr,
                           const pastix_int_t     baseval );
 void pastixSymbolRealloc(       symbol_matrix_t *symbptr );
 int  pastixSymbolCheck  ( const symbol_matrix_t *symbptr );
-void pastixSymbolExtend (       symbol_matrix_t *symbptr );
+void pastixSymbolExtend (       symbol_matrix_t *symbptr,
+                          const pastix_order_t  *ordeptr );
 
 /**
  * @}
