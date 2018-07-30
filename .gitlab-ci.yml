@@ -14,6 +14,7 @@ build_pastix:
     untracked: true
   script:
     - git submodule update --init --recursive
+    - source /etc/profile.d/spack.sh
     - source .gitlab-ci-env.sh
     - mkdir build
     - cd build
@@ -37,6 +38,7 @@ test_pastix:
       - pastix-gcov.log
   script:
     - git submodule update --init --recursive
+    - source /etc/profile.d/spack.sh
     - source .gitlab-ci-env.sh
     - source install/bin/pastix_env.sh
     - (cd build &&
@@ -70,6 +72,7 @@ sonar_pastix:
       - pastix-rats.xml
       - sonar.log
   script:
+    - source /etc/profile.d/spack.sh
     - source .gitlab-ci-env.sh
     - ./tools/analysis.sh
   only:
@@ -84,6 +87,7 @@ pages:
     paths:
     - public
   script:
+    - source /etc/profile.d/spack.sh
     - source .gitlab-ci-env.sh
     - git submodule update --init --recursive
     - mkdir -p build
