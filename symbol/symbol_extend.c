@@ -181,7 +181,9 @@ __extend_dof_not_cte(       symbol_matrix_t *symbptr,
                                 cblk, cblktab_cpy, dofs, peritab );
     }
 
-    symbptr->schurfcol = schurcblk->fcolnum;
+    if (schurcblk != NULL) {
+        symbptr->schurfcol = schurcblk->fcolnum;
+    }
     symbptr->nodenbr   = cblk[symbptr->cblknbr].lcolnum;
 
     memFree_null( cblktab_cpy );
