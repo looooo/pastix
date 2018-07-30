@@ -34,7 +34,7 @@ int main (int argc, char **argv)
     void           *x, *b, *x0 = NULL;
     size_t          size;
     int             check = 1;
-    int             variadic = 0; /* 0 => Constant DoFs, 1 => variadic DoFs */
+    int             variadic = 1; /* 0 => Constant DoFs, 1 => variadic DoFs */
     int             dofmax   = 4; /* Maximal DoF per unknown */
     int             nrhs  = 10;
     int             rc    = 0;
@@ -95,18 +95,18 @@ int main (int argc, char **argv)
     pastix_subtask_symbfact( pastix_data );
     pastix_subtask_reordering( pastix_data );
 
-    /**
-     * Generate a Fake values array if needed for the numerical part
-     */
     order = pastix_data->ordemesh;
+    pastixSymbolExtend( pastix_data->symbmtx, order );
     pastixOrderExpand( order, spm );
     spm = spmExpand( spm );
     pastixOrderCheck( order ); putchar('\n');
 
+    /**
+     * Generate a Fake values array if needed for the numerical part
+     */
     if ( spm->flttype == SpmPattern ) {
         spmGenFakeValues( spm );
     }
-    pastixSymbolExtend( pastix_data->symbmtx );
 
     pastix_subtask_blend( pastix_data );
 
