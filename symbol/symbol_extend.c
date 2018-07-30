@@ -20,23 +20,35 @@
 #include "blend/queue.h"
 #include "blend/extendVector.h"
 
-/* Find the column blok corresponding to the schur complement */
-static inline symbol_cblk_t*
-__find_cblk_schurfcol( symbol_matrix_t *symbptr )
+/*
+ * Find the column blok corresponding to the schur complement
+ * return 1 if schurfcol == nodenbr, 0 otherwise
+ */
+static inline int
+__find_cblk_schurfcol( symbol_cblk_t   *schurcblk,
+                       symbol_matrix_t *symbptr )
 {
     pastix_int_t   cblkid, cblknbr;
     symbol_cblk_t *cblk;
+
+    if (symbptr->schurfcol == symbptr->nodenbr) {
+        return 1;
+    }
 
     cblk    = symbptr->cblktab;
     cblknbr = symbptr->cblknbr;
     for (cblkid = 0; cblkid <= cblknbr; ++cblkid)
     {
         if (cblk[cblkid].fcolnum == symbptr->schurfcol) {
-            return cblk + cblkid;
+            schurcblk = cblk + cblkid;
+            return 0;
         }
     }
 
-    return NULL;
+    schurcblk = NULL;
+    assert ( symbptr->schurfcol == symbptr->nodenbr );
+
+    return 0;
 }
 
 static inline void
@@ -143,6 +155,7 @@ __extend_dof_not_cte(       symbol_matrix_t *symbptr,
     symbol_cblk_t *cblk, *schurcblk, *cblktab_cpy;
     symbol_blok_t *blok;
     pastix_int_t  *rangtab, *peritab, *dofs;
+    pastix_int_t   is_schur_n;
 
     dofs    = symbptr->dofs;
     cblknbr = symbptr->cblknbr;
@@ -150,7 +163,7 @@ __extend_dof_not_cte(       symbol_matrix_t *symbptr,
     peritab = ordeptr->peritab;
     rangtab = ordeptr->rangtab;
 
-    schurcblk = __find_cblk_schurfcol( symbptr );
+    is_schur_n = __find_cblk_schurfcol( schurcblk, symbptr );
 
     /*
      * Make a copy of cblkatb to have both updated values (to compute (f/l)rows)
@@ -181,10 +194,13 @@ __extend_dof_not_cte(       symbol_matrix_t *symbptr,
                                 cblk, cblktab_cpy, dofs, peritab );
     }
 
-    if (schurcblk != NULL) {
+    symbptr->nodenbr = cblk[symbptr->cblknbr].lcolnum;
+    if ( is_schur_n ) {
+        symbptr->schurfcol = symbptr->nodenbr;
+    }
+    else {
         symbptr->schurfcol = schurcblk->fcolnum;
     }
-    symbptr->nodenbr   = cblk[symbptr->cblknbr].lcolnum;
 
     memFree_null( cblktab_cpy );
 }
