@@ -222,6 +222,7 @@ endif (HWLOC_FOUND)
 if (PASTIX_WITH_MPI)
   # Force the detection of the C library
   find_package(MPI)
+  string(REPLACE ";" " " MPI_C_COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
   if (MPI_C_FOUND)
     list(APPEND EXTRA_LIBS ${MPI_C_LIBRARIES} )
     include_directories( ${MPI_C_INCLUDE_PATH} )
