@@ -1,8 +1,8 @@
 class Pastix6 < Formula
   desc "Parallel solver for sparse linear systems based on direct methods"
   homepage "https://gitlab.inria.fr/solverstack/pastix"
-  url "https://gforge.inria.fr/frs/download.php/file/37244/pastix-6.0.0.tar.gz"
-  sha256 "1dc37475964d7baa0df30c5909bfdf459dd0db66b866f9d9f566ab6fd7e12d7f"
+  url "https://gforge.inria.fr/frs/download.php/file/37632/pastix-6.0.1.tar.gz"
+  sha256 "276fff4e95ef0bad1402a7ad40d558722c509e3cc0193fbe509887c639227a30"
   head "https://gitlab.inria.fr/solverstack/pastix.git"
 
   bottle :disable, "needs to be rebuilt"
