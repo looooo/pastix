@@ -106,8 +106,8 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
         }
     }
 
-    pastixSymbolExit(pastix_data->symbmtx);
-    memFree_null(pastix_data->symbmtx);
+    pastixSymbolExit( pastix_data->symbmtx );
+    memFree_null( pastix_data->symbmtx );
     pastix_data->symbmtx = NULL;
 
     /* Re-build the symbolic structure */

@@ -16,200 +16,166 @@
 #include "solver.h"
 #include "symbol.h"
 #include "symbol_reorder.h"
-#include "pastix/order.h"
 #include "blend/queue.h"
 #include "blend/extendVector.h"
 
-/*
- * Find the column blok corresponding to the schur complement
- * return 1 if schurfcol == nodenbr, 0 otherwise
- */
-static inline int
-__find_cblk_schurfcol( symbol_cblk_t   *schurcblk,
-                       symbol_matrix_t *symbptr )
+/**
+ *******************************************************************************
+ *
+ * @ingroup symbol_dev
+ *
+ * @brief Compute the index of the first cblk belonging to the Schur complement
+ *
+ *******************************************************************************
+ *
+ * @param[inout] symbptr
+ *          The symbol structure pointer in which to find the schur.
+ *
+ *******************************************************************************
+ *
+ * @return The index of the first cblk belonging to the Schur complement.
+ *
+ *******************************************************************************/
+static inline pastix_int_t
+symbol_expand_find_schurcblk( const symbol_matrix_t *symbptr )
 {
-    pastix_int_t   cblkid, cblknbr;
-    symbol_cblk_t *cblk;
+    const symbol_cblk_t *cblk;
 
-    if (symbptr->schurfcol == symbptr->nodenbr) {
-        return 1;
-    }
+    cblk = symbptr->cblktab + symbptr->cblknbr;
 
-    cblk    = symbptr->cblktab;
-    cblknbr = symbptr->cblknbr;
-    for (cblkid = 0; cblkid <= cblknbr; ++cblkid)
+    for (; cblk >= symbptr->cblktab; cblk--)
     {
-        if (cblk[cblkid].fcolnum == symbptr->schurfcol) {
-            schurcblk = cblk + cblkid;
-            return 0;
+        if ( cblk->fcolnum == symbptr->schurfcol ) {
+            return cblk - symbptr->cblktab;
         }
-    }
 
-    schurcblk = NULL;
-    assert ( symbptr->schurfcol == symbptr->nodenbr );
+        assert( cblk->fcolnum > symbptr->schurfcol );
+    }
 
     return 0;
-    (void)schurcblk; /* Otehrwise, warning because "set but not used" */
 }
 
-static inline void
-__update_lcolnum( symbol_cblk_t *cblk,
-                  pastix_int_t  *dofs,
-                  pastix_int_t  *rangtab,
-                  pastix_int_t  *peritab,
-                  pastix_int_t   cblknum )
+static inline pastix_int_t
+symbol_expand_compute_permdof( const symbol_matrix_t *symbptr )
 {
-    pastix_int_t sum, i, begin, end;
+    const symbol_cblk_t *cblk;
 
-    begin = rangtab[cblknum];
-    end   = rangtab[cblknum + 1];
-    sum   = 0;
-    for (i = begin; i < end; ++i)
+    cblk = symbptr->cblktab + symbptr->cblknbr;
+
+    for (; cblk >= symbptr->cblktab; cblk--)
     {
-        sum += dofs[peritab[i] + 1] - dofs[peritab[i]];
+        if ( cblk->fcolnum == symbptr->schurfcol ) {
+            return cblk - symbptr->cblktab;
+        }
+
+        assert( cblk->fcolnum > symbptr->schurfcol );
     }
 
-    cblk->lcolnum = sum + cblk->fcolnum;
+    return 0;
 }
 
-/* Should be call after update cblks */
+/**
+ *******************************************************************************
+ *
+ * @ingroup symbol_dev
+ *
+ * @brief Expand the symbol matrix structure when the dof are variadic
+ *
+ *******************************************************************************
+ *
+ * @param[inout] symbptr
+ *          The symbol structure to expand. On entry, the information is based
+ *          on the compressed graph. On exit, the information are expanded to
+ *          the size of the expanded matrix.
+ *
+ *******************************************************************************/
 static inline void
-__update_bloks_in_cblk( symbol_blok_t *blok,     /* First blok in a cblk */
-                        symbol_cblk_t *cblktabu, /* Updated */
-                        symbol_cblk_t *cblktabp, /* Not updated */
-                        pastix_int_t  *dofs,
-                        pastix_int_t  *peritab )
+symbol_expand_var( symbol_matrix_t *symbptr )
 {
-    pastix_int_t   begin, end, sum, i;
-    pastix_int_t   cblknum;
-    symbol_cblk_t *fcblku, *fcblkp;
-    pastix_int_t   rg_init, rg_end, j;
+    pastix_int_t   i, baseval, cblknbr, bloknbr;
+    symbol_cblk_t *cblk;
+    symbol_blok_t *blok;
+    const pastix_int_t *dofs;
+    pastix_int_t   schuridx;
 
-    cblknum = blok->lcblknm;
-    begin   = cblktabp[cblknum].bloknum;
-    end     = cblktabp[cblknum + 1].bloknum;
+    dofs    = symbptr->dofs;
+    baseval = symbptr->baseval;
+    cblknbr = symbptr->cblknbr;
+    bloknbr = symbptr->bloknbr;
 
-    for (i = begin; i < end; ++i, ++blok)
-    {
-        fcblku  = cblktabu + blok->fcblknm; /* Updated */
-        fcblkp  = cblktabp + blok->fcblknm; /* Not updated */
-        rg_init = fcblkp->fcolnum;
-        rg_end  = blok->frownum;
-        sum     = 0;
+    /*
+     * Get the cblk index corresponding to schurfcol
+     */
+    schuridx = symbol_expand_find_schurcblk( symbptr );
 
-        /* First : compute the frownum */
-        for (j = rg_init; j < rg_end; ++j)
-        {
-            sum += dofs[peritab[j] + 1] - dofs[peritab[j]];
-        }
-        blok->frownum = fcblku->fcolnum + sum;
-        rg_end = blok->lrownum;
-
-        /* Then : compute the lrownum */
-        for (; j <= rg_end; ++j)
-        {
-            sum += dofs[peritab[j] + 1] - dofs[peritab[j]];
-        }
-        blok->lrownum = fcblku->fcolnum + sum;
+    /*
+     * Update cblks
+     */
+    cblk = symbptr->cblktab;
+    for (i=0; i<=cblknbr; i++, cblk++) {
+        cblk->fcolnum = dofs[ cblk->fcolnum - baseval ];
+        cblk->lcolnum = dofs[ cblk->lcolnum - baseval ];
     }
+
+    /*
+     * Update bloks
+     */
+    blok = symbptr->bloktab;
+    for (i=0; i<bloknbr; i++, blok++) {
+        blok->frownum = dofs[ blok->frownum - baseval ];
+        blok->lrownum = dofs[ blok->lrownum - baseval ];
+    }
+
+    symbptr->nodenbr   = symbptr->cblktab[cblknbr ].lcolnum - baseval;
+    symbptr->schurfcol = symbptr->cblktab[schuridx].fcolnum;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup symbol_dev
+ *
+ * @brief Expand the symbol matrix structure when the dof are constant
+ *
+ *******************************************************************************
+ *
+ * @param[inout] symbptr
+ *          The symbol structure to expand. On entry, the information is based
+ *          on the compressed graph. On exit, the information are expanded to
+ *          the size of the expanded matrix.
+ *
+ *******************************************************************************/
 static inline void
-__extend_dof_cte(       symbol_matrix_t *symbptr,
-                  const pastix_order_t  *ordeptr )
+symbol_expand_fix( symbol_matrix_t *symbptr )
 {
     pastix_int_t   col, cblknbr, bloknbr, row, dof;
     symbol_cblk_t *cblk;
     symbol_blok_t *blok;
 
-    dof     = symbptr->dof;
+    dof = symbptr->dof;
+
+    /* Update cblks first */
     cblk    = symbptr->cblktab;
     cblknbr = symbptr->cblknbr;
 
-    /* Update cblks first */
-    for (col = 0; col <= cblknbr; ++col)
+    for (col = 0; col <= cblknbr; col++, cblk++)
     {
-        cblk[col].fcolnum *= dof;
-        cblk[col].lcolnum *= dof;
+        cblk->fcolnum *= dof;
+        cblk->lcolnum *= dof;
     }
 
+    /* Update block row and column indexes */
     bloknbr = symbptr->bloknbr;
     blok    = symbptr->bloktab;
-    /* Update block row and column indexes */
-    for (row = 0; row < bloknbr; ++row)
+
+    for (row = 0; row < bloknbr; row++, blok++)
     {
-        blok[row].frownum *= dof;
-        blok[row].lrownum *= dof;
+        blok->frownum *= dof;
+        blok->lrownum *= dof;
     }
 
     symbptr->nodenbr   *= dof;
     symbptr->schurfcol *= dof;
-
-    (void)ordeptr;
-}
-
-static inline void
-__extend_dof_not_cte(       symbol_matrix_t *symbptr,
-                      const pastix_order_t  *ordeptr )
-{
-    pastix_int_t   col, cblknbr;
-    symbol_cblk_t *cblk, *schurcblk, *cblktab_cpy;
-    symbol_blok_t *blok;
-    pastix_int_t  *rangtab, *peritab, *dofs;
-    pastix_int_t   is_schur_n;
-
-    dofs    = symbptr->dofs;
-    cblknbr = symbptr->cblknbr;
-    cblk    = symbptr->cblktab;
-    peritab = ordeptr->peritab;
-    rangtab = ordeptr->rangtab;
-
-    /*
-     * Get the cblk corresponding to schurfcol
-     * return value is schurfcol == symbptr->nodenbr
-     * if it's the case, then schurcblk is NULL.
-     */
-    schurcblk  = NULL;
-    is_schur_n = __find_cblk_schurfcol( schurcblk, symbptr );
-
-    /*
-     * Make a copy of cblkatb to have both updated values (to compute (f/l)rows)
-     * And previous ones (to have start indexes for bloks)
-     */
-    MALLOC_INTERN( cblktab_cpy, cblknbr + 1, symbol_cblk_t );
-    memcpy ( cblktab_cpy, cblk, (cblknbr + 1) * sizeof(symbol_cblk_t) );
-
-    /* Update cblks first */
-    cblk[0].fcolnum = 0;
-    __update_lcolnum( cblk, dofs, rangtab, peritab, 0 );
-
-    for (col = 1; col < cblknbr; ++col)
-    {
-        cblk[col].fcolnum = cblk[col - 1].lcolnum + 1;
-        __update_lcolnum( cblk + col, dofs, rangtab, peritab, col );
-    }
-
-    /* Update last column blok */
-    cblk[col].fcolnum  = cblk[col - 1].lcolnum + 1;
-    cblk[col].lcolnum  = cblk[col].fcolnum;
-
-    blok    = symbptr->bloktab;
-    /* Udpate bloks according to cblks */
-    for (col = 0; col < cblknbr; ++col)
-    {
-        __update_bloks_in_cblk( blok + cblk[col].bloknum,
-                                cblk, cblktab_cpy, dofs, peritab );
-    }
-
-    symbptr->nodenbr = cblk[symbptr->cblknbr].lcolnum;
-    if ( is_schur_n ) {
-        symbptr->schurfcol = symbptr->nodenbr;
-    }
-    else {
-        symbptr->schurfcol = schurcblk->fcolnum;
-    }
-
-    memFree_null( cblktab_cpy );
 }
 
 /**
@@ -217,34 +183,32 @@ __extend_dof_not_cte(       symbol_matrix_t *symbptr,
  *
  * @ingroup pastix_symbol
  *
- * @brief Extend the symbol matrix structure (compressed -> extented)
+ * @brief Expand the symbol matrix structure based on the dof information
+ * (compressed -> extented)
  *
  *******************************************************************************
  *
  * @param[inout] symbptr
- *          The symbol structure to initialize.                                             *
- * @param[in] ordeptr
- *          The ordering structure providing rangtab for supernode
- *          and the permutation tab. This parameter must be given before
- *          its expension.
+ *          The symbol structure to expand. On entry, the information is based
+ *          on the compressed graph. On exit, the information are expanded to
+ *          the size of the expanded matrix.
  *
  *******************************************************************************/
 void
-pastixSymbolExtend(       symbol_matrix_t *symbptr,
-                    const pastix_order_t  *ordeptr )
+pastixSymbolExpand( symbol_matrix_t *symbptr )
 {
     if ( symbptr == NULL ) {
-        printf( "Warning : pastixSymbolExtend : symbmatrix is not initialised\n" );
+        pastix_print_error( "pastixSymbolExpand: The symbol matrix is not initialised\n" );
         return;
     }
 
     pastixSymbolBase( symbptr, 0 );
 
-    if ( symbptr->dof >= 1 ) {
-        __extend_dof_cte( symbptr, ordeptr );
+    if ( symbptr->dof > 1 ) {
+        symbol_expand_fix( symbptr );
     }
-    else {
-        __extend_dof_not_cte( symbptr, ordeptr );
+    else if ( symbptr->dof < 1 ) {
+        symbol_expand_var( symbptr );
     }
 
     symbptr->dof = 1;

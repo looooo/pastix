@@ -65,4 +65,13 @@ pastixSymbolBase ( symbol_matrix_t * const symbptr,
         blok->lcblknm += baseadj;
         blok->fcblknm += baseadj;
     }
+
+    if ( symbptr->dof < 1 ) {
+        pastix_int_t  i;
+        pastix_int_t *dofs = symbptr->dofs;
+
+        for (i = 0; i <= symbptr->nodenbr; i ++, dofs++) {
+            *dofs += baseadj;
+        }
+    }
 }
