@@ -320,91 +320,83 @@ pastixOrderBase( pastix_order_t * const ordeptr,
  *
  * @ingroup pastix_order
  *
- * @brief This routine expand the permutation arrays and the rangtab.
+ * @brief This routine expand the permutation arrays and the rangtab when the
+ * spm is using multiple dof per unknown.
  *
  *******************************************************************************
  *
  * @param[inout] ordeptr
- *          The ordering to expand.
+ *          The ordering to expand. On entry, the order of the compressed
+ *          unknown. On exit, the ordering is 0-based and contains the
+ *          permutation for the expanded matrix.
  *
- * @param[in] spm
- *          The sparse matrix structure providing dof information.
+ * @param[inout] spm
+ *          The sparse matrix structure providing dof information. On exit, the
+ *          spm is rebased to 0, if it is not the case on entry.
  *
  *******************************************************************************/
 void pastixOrderExpand( pastix_order_t * const ordeptr,
                         spmatrix_t     * const spm )
 {
     pastix_int_t *peritab;
-    pastix_int_t  i, j, n, vertnbr;
+    pastix_int_t  c, i, j, n;
     pastix_int_t  begin, end;
-    pastix_int_t *iter_peri;
+    pastix_int_t *newperi;
     pastix_int_t *rangtab;
-    pastix_int_t *dofs;
+    const pastix_int_t *dofs;
     pastix_int_t  sum, tmp;
 
     spmBase( spm, 0 );
+    pastixOrderBase( ordeptr, 0 );
 
-    n       = spm->nexp;
-    vertnbr = ordeptr->vertnbr;
-    MALLOC_INTERN( peritab, vertnbr, pastix_int_t );
+    n = spm->nexp;
 
-    memcpy( peritab, ordeptr->peritab, vertnbr * sizeof(pastix_int_t) );
-
-    ordeptr->peritab = (pastix_int_t*)memRealloc( ordeptr->peritab, n * sizeof(pastix_int_t) );
-    ordeptr->permtab = (pastix_int_t*)memRealloc( ordeptr->permtab, n * sizeof(pastix_int_t) );
-
-    iter_peri = ordeptr->peritab;
     /*
-     * Initialise permutation tab and its inverse with dofs
-     * and previous inverse permutation tab
+     * Initialize inverse permutation and rangtab
      */
-    sum = 0;
-    for (i = 0; i < vertnbr; ++i)
+    peritab = ordeptr->peritab;
+    rangtab = ordeptr->rangtab;
+
+    MALLOC_INTERN( ordeptr->peritab, n, pastix_int_t );
+    newperi = ordeptr->peritab;
+
+    dofs = spm->dofs;
+
+    i = 0;
+    for (c=0; c<ordeptr->cblknbr; c++, rangtab++)
     {
-        if ( spm->dof <= 0 ) {
-            begin = spm->dofs[ peritab[i] ];
-            end   = spm->dofs[ peritab[i] + 1 ];
-        }
-        else {
-            begin = peritab[i] * spm->dof;
-            end   = begin + spm->dof;
-        }
-        sum += end - begin;
-        for (j = begin; j < end; ++j, ++iter_peri)
+        sum = 0;
+        for (; i<rangtab[1]; ++i)
         {
-            *iter_peri = j;
-            ordeptr->permtab[ j ] = iter_peri - ordeptr->peritab;/* perm[peri[i]] = i*/
+            if ( spm->dof <= 0 ) {
+                begin = dofs[ peritab[i] ];
+                end   = dofs[ peritab[i] + 1 ];
+            }
+            else {
+                begin = peritab[i] * spm->dof;
+                end   = begin + spm->dof;
+            }
+
+            sum += (end - begin);
+
+            for ( j=begin; j<end; ++j, ++newperi ) {
+                *newperi = j;
+            }
         }
+        rangtab[1] = rangtab[0] + sum;
     }
     ordeptr->vertnbr = n;
-
-    rangtab = ordeptr->rangtab;
-    dofs    = spm->dofs;
-    tmp     = 0;
-    /*
-     * Use previous value of rangtab to compute new ones
-     * Use formula :
-     * rexp[i] = rexp[i - 1] + sum( r[i], r[i+1] - 1, dofs[peri[j]+1] - dofs[peri[j]] )
-     */
-    for (i = 1; i <= ordeptr->cblknbr; ++i)
-    {
-        if (spm->dof > 0) {
-            rangtab[i] *= spm->dof ;
-        }
-        else {
-            begin = tmp;        /* r[i - 1] : Updated on last step  */
-            end   = rangtab[i]; /* r[i] :     Not yet updated */
-            sum   = 0;
-            for (j = begin; j < end; ++j)
-            {
-                sum += dofs[peritab[j] + 1] - dofs[peritab[j]];
-            }
-            tmp = rangtab[i];
-            rangtab[i] = rangtab[i-1] + sum;
-        }
-    }
-
     memFree_null( peritab );
+
+    /*
+     * Update permtab
+     */
+    memFree_null( ordeptr->permtab );
+    MALLOC_INTERN( ordeptr->permtab, n, pastix_int_t );
+    for( i=0; i<n; i++ ) {
+        j = ordeptr->peritab[i];
+        ordeptr->permtab[j] = i;
+    }
 }
 
 /**
