@@ -116,9 +116,12 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
     pastixOrderAlloc(ordemesh, n, n);
     SCOTCH_graphInit( &scotchgraph );
 
-    if ( iparm[IPARM_FLOAT] == SpmPattern ) {
+    /*
+     * Generate the vertex load array if dof != 1
+     */
+    if ( graph->dof != 1 ) {
         MALLOC_INTERN( dofs, n, pastix_int_t );
-        if ( graph->dof >= 1 ) {
+        if ( graph->dof > 1 ) {
             pastix_int_t i;
 
             for (i = 0; i < n; ++i) {
@@ -229,11 +232,10 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
     }
 #endif
 
-    /* Free the degree of liberty's array used by scotch */
+    /* Free the vertex load array */
     if ( dofs != NULL ) {
         memFree_null( dofs );
     }
-
 
     if (ret != 0) {           /* If something failed in Scotch */
         pastixOrderExit (ordemesh);    /* Free ordering arrays          */
