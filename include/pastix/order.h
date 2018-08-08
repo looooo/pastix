@@ -38,7 +38,6 @@ typedef struct pastix_order_s {
     pastix_int_t  baseval;   /**< base value used for numbering       */
     pastix_int_t  vertnbr;   /**< Number of vertices                  */
     pastix_int_t  cblknbr;   /**< Number of column blocks             */
-    pastix_int_t  prevdof;   /**< Previous number of freedom          */
     pastix_int_t *permtab;   /**< Permutation array [based]           */
     pastix_int_t *peritab;   /**< Inverse permutation array [based]   */
     pastix_int_t *rangtab;   /**< Supernode array [based,+1]          */
