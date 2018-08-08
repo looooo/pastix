@@ -96,7 +96,7 @@ int main (int argc, char **argv)
     pastix_subtask_reordering( pastix_data );
 
     order = pastix_data->ordemesh;
-    pastixSymbolExtend( pastix_data->symbmtx, order );
+    pastixSymbolExpand( pastix_data->symbmtx );
     pastixOrderExpand( order, spm );
     spm = spmExpand( spm );
     pastixOrderCheck( order ); putchar('\n');
