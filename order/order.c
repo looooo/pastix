@@ -15,7 +15,6 @@
  **/
 #include "common.h"
 #include "pastix/order.h"
-#include <string.h>
 
 /**
  *******************************************************************************
@@ -340,11 +339,10 @@ void pastixOrderExpand( pastix_order_t * const ordeptr,
 {
     pastix_int_t *peritab;
     pastix_int_t  c, i, j, n;
-    pastix_int_t  begin, end;
+    pastix_int_t  begin, end, sum;
     pastix_int_t *newperi;
     pastix_int_t *rangtab;
     const pastix_int_t *dofs;
-    pastix_int_t  sum, tmp;
 
     spmBase( spm, 0 );
     pastixOrderBase( ordeptr, 0 );
