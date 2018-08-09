@@ -1,6 +1,6 @@
 /**
  *
- * @file symbol_reorder.c
+ * @file symbol_expand.c
  *
  * @copyright 2012-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -13,11 +13,8 @@
  *
  **/
 #include "common.h"
-#include "solver.h"
 #include "symbol.h"
 #include "symbol_reorder.h"
-#include "blend/queue.h"
-#include "blend/extendVector.h"
 
 /**
  *******************************************************************************
@@ -38,25 +35,6 @@
  *******************************************************************************/
 static inline pastix_int_t
 symbol_expand_find_schurcblk( const symbol_matrix_t *symbptr )
-{
-    const symbol_cblk_t *cblk;
-
-    cblk = symbptr->cblktab + symbptr->cblknbr;
-
-    for (; cblk >= symbptr->cblktab; cblk--)
-    {
-        if ( cblk->fcolnum == symbptr->schurfcol ) {
-            return cblk - symbptr->cblktab;
-        }
-
-        assert( cblk->fcolnum > symbptr->schurfcol );
-    }
-
-    return 0;
-}
-
-static inline pastix_int_t
-symbol_expand_compute_permdof( const symbol_matrix_t *symbptr )
 {
     const symbol_cblk_t *cblk;
 
