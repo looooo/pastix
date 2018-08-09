@@ -15,8 +15,6 @@
  * @author Pierre Ramet
  * @date 2018-07-16
  *
- * @addtogroup pastix_symbol
- * @{
  **/
 #include "common.h"
 #include "graph.h"
@@ -26,59 +24,7 @@
 /**
  *******************************************************************************
  *
- * @brief Initialize the symbol structure.
- *
- *******************************************************************************
- *
- * @param[inout] symbptr
- *          The symbol structure to initialize.
- *
- *******************************************************************************/
-void
-pastixSymbolInit ( symbol_matrix_t *symbptr )
-{
-    memset (symbptr, 0, sizeof (symbol_matrix_t));
-    symbptr->dof = 1;
-    symbptr->schurfcol = -1;
-    return;
-}
-
-/**
- *******************************************************************************
- *
- * @brief Free the content of symbolic matrix.
- *
- * All the arrays from the structure are freed and the structure is memset to 0
- * at exit, but the symbol itself is not freed. It will require a new call to
- * symbolInit if the memory space area needs to be reused for a new symbol
- * matrix.
- *
- *******************************************************************************
- *
- * @param[inout] symbptr
- *          The pointer to the structure to free.
- *
- *******************************************************************************/
-void
-pastixSymbolExit( symbol_matrix_t *symbptr )
-{
-    if (symbptr->dofs != NULL) {
-        memFree_null( symbptr->dofs );
-    }
-    if (symbptr->cblktab != NULL) {
-        memFree_null( symbptr->cblktab );
-    }
-    if (symbptr->bloktab != NULL) {
-        memFree_null( symbptr->bloktab );
-    }
-    if (symbptr->browtab != NULL) {
-        memFree_null( symbptr->browtab );
-    }
-    memset (symbptr, 0, sizeof (symbol_matrix_t));
-}
-
-/**
- *******************************************************************************
+ * @ingroup symbol_dev
  *
  * @brief Add a dof array to the symbol matrix if any.
  *
@@ -99,8 +45,8 @@ pastixSymbolExit( symbol_matrix_t *symbptr )
  *          The symbol structure to which dof array must be added.
  *
  *******************************************************************************/
-void
-pastixSymbolAddDofs( const pastix_graph_t *graph,
+static inline void
+symbol_init_adddofs( const pastix_graph_t *graph,
                      const pastix_order_t *order,
                      symbol_matrix_t      *symbptr )
 {
@@ -128,6 +74,80 @@ pastixSymbolAddDofs( const pastix_graph_t *graph,
     }
 
     return;
+}
+
+/**
+ * @addtogroup pastix_symbol
+ * @{
+ *
+ *******************************************************************************
+ *
+ * @brief Initialize the symbol structure.
+ *
+ * Initialized the permuted dof array if graph and order are provided. The
+ * symbol is considered as dof = 1 otherwise.
+ *
+ *******************************************************************************
+ *
+ * @param[in] graph
+ *          The original graph of the matrix
+ *
+ * @param[in] order
+ *          The ordering structure describing the permutation of the unknowns in
+ *          the compressed form.
+ *
+ * @param[inout] symbptr
+ *          The symbol structure to initialize.
+ *
+ *******************************************************************************/
+void
+pastixSymbolInit ( const pastix_graph_t *graph,
+                   const pastix_order_t *order,
+                        symbol_matrix_t *symbptr )
+{
+    memset (symbptr, 0, sizeof (symbol_matrix_t));
+    symbptr->dof = 1;
+    symbptr->schurfcol = -1;
+
+    if ( (graph != NULL) && (order != NULL) ) {
+        symbol_init_adddofs( graph, order, symbptr );
+    }
+
+    return;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Free the content of symbolic matrix.
+ *
+ * All the arrays from the structure are freed and the structure is memset to 0
+ * at exit, but the symbol itself is not freed. It will require a new call to
+ * pastixSymbolInit() if the memory space area needs to be reused for a new
+ * symbol matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] symbptr
+ *          The pointer to the structure to free.
+ *
+ *******************************************************************************/
+void
+pastixSymbolExit( symbol_matrix_t *symbptr )
+{
+    if (symbptr->dofs != NULL) {
+        memFree_null( symbptr->dofs );
+    }
+    if (symbptr->cblktab != NULL) {
+        memFree_null( symbptr->cblktab );
+    }
+    if (symbptr->bloktab != NULL) {
+        memFree_null( symbptr->bloktab );
+    }
+    if (symbptr->browtab != NULL) {
+        memFree_null( symbptr->browtab );
+    }
+    pastixSymbolInit( NULL, NULL, symbptr );
 }
 
 /**

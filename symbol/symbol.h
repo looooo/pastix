@@ -69,8 +69,6 @@ typedef struct symbol_blok_s {
  */
 typedef struct symbol_matrix_s {
     pastix_int_t   baseval;  /**< Base value for numbering                   */
-    pastix_int_t   dof;      /**< Degrees of freedom per node (constant
-                                  if > 0, unconstant if 0 (not implemented)) */
     pastix_int_t   cblknbr;  /**< Number of column blocks                    */
     pastix_int_t   bloknbr;  /**< Number of blocks                           */
     pastix_int_t   nodenbr;  /**< Number of nodes (Equal to gN in spm)       */
@@ -78,6 +76,8 @@ typedef struct symbol_matrix_s {
     symbol_cblk_t *cblktab;  /**< Array of column blocks [+1,based]          */
     symbol_blok_t *bloktab;  /**< Array of blocks in CSC format [based]      */
     pastix_int_t  *browtab;  /**< Array of blocks in CSR format [based]      */
+    pastix_int_t   dof;      /**< Degrees of freedom per node (constant
+                                  if > 0, variadic if < 1                    */
     pastix_int_t  *dofs;     /**< Array of the first column of each element
                                   in the expanded matrix [+1,based]          */
 } symbol_matrix_t;
@@ -86,15 +86,14 @@ typedef struct symbol_matrix_s {
  * @name Symbol basic subroutines
  * @{
  */
-void pastixSymbolInit   (       symbol_matrix_t *symbptr );
+void pastixSymbolInit   ( const pastix_graph_t  *graph,
+                          const pastix_order_t  *order,
+                                symbol_matrix_t *symbptr );
 void pastixSymbolExit   (       symbol_matrix_t *symbptr );
 void pastixSymbolBase   (       symbol_matrix_t *symbptr,
                           const pastix_int_t     baseval );
 void pastixSymbolRealloc(       symbol_matrix_t *symbptr );
 int  pastixSymbolCheck  ( const symbol_matrix_t *symbptr );
-void pastixSymbolAddDofs( const pastix_graph_t  *graph,
-                          const pastix_order_t  *order,
-                                symbol_matrix_t *symbptr );
 void pastixSymbolExpand (       symbol_matrix_t *symbptr );
 
 /**

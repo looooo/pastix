@@ -162,7 +162,7 @@ symbol_expand_fix( symbol_matrix_t *symbptr )
  * @ingroup pastix_symbol
  *
  * @brief Expand the symbol matrix structure based on the dof information
- * (compressed -> extented)
+ * (compressed -> expanded)
  *
  *******************************************************************************
  *

@@ -75,7 +75,6 @@ pastixSymbolLoad ( symbol_matrix_t * const symbptr,
         ((symbptr->bloktab = (symbol_blok_t *) memAlloc ( bloknbr      * sizeof (symbol_blok_t))) == NULL)) {
         errorPrint ("symbolLoad: out of memory");
         pastixSymbolExit (symbptr);
-        pastixSymbolInit (symbptr);
         return     (1);
     }
     symbptr->baseval = baseval;
@@ -90,7 +89,6 @@ pastixSymbolLoad ( symbol_matrix_t * const symbptr,
             (symbptr->cblktab[cblknum].fcolnum > symbptr->cblktab[cblknum].lcolnum)) {
             errorPrint ("symbolLoad: bad input (2)");
             pastixSymbolExit (symbptr);
-            pastixSymbolInit (symbptr);
             return     (1);
         }
     }
@@ -105,7 +103,6 @@ pastixSymbolLoad ( symbol_matrix_t * const symbptr,
             (symbptr->bloktab[bloknum].frownum > symbptr->bloktab[bloknum].lrownum)) {
             errorPrint ("symbolLoad: bad input (3)");
             pastixSymbolExit (symbptr);
-            pastixSymbolInit (symbptr);
             return     (1);
         }
 
@@ -116,7 +113,6 @@ pastixSymbolLoad ( symbol_matrix_t * const symbptr,
             if ((versval > 0) && (intLoad (stream, &tmp) != 1)) {
                 errorPrint ("symbolLoad: bad input (4)");
                 pastixSymbolExit (symbptr);
-                pastixSymbolInit (symbptr);
                 return     (1);
             }
         }
