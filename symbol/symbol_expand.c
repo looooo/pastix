@@ -90,18 +90,20 @@ symbol_expand_var( symbol_matrix_t *symbptr )
      * Update cblks
      */
     cblk = symbptr->cblktab;
-    for (i=0; i<=cblknbr; i++, cblk++) {
-        cblk->fcolnum = dofs[ cblk->fcolnum - baseval ];
-        cblk->lcolnum = dofs[ cblk->lcolnum - baseval ];
+    for (i=0; i<cblknbr; i++, cblk++) {
+        cblk->fcolnum = dofs[ cblk->fcolnum     - baseval ];
+        cblk->lcolnum = dofs[ cblk->lcolnum + 1 - baseval ] - 1;
     }
+    cblk->fcolnum = cblk[-1].lcolnum + 1;
+    cblk->lcolnum = cblk[-1].lcolnum + 1;
 
     /*
      * Update bloks
      */
     blok = symbptr->bloktab;
     for (i=0; i<bloknbr; i++, blok++) {
-        blok->frownum = dofs[ blok->frownum - baseval ];
-        blok->lrownum = dofs[ blok->lrownum - baseval ];
+        blok->frownum = dofs[ blok->frownum     - baseval ];
+        blok->lrownum = dofs[ blok->lrownum + 1 - baseval ] - 1;
     }
 
     symbptr->nodenbr   = symbptr->cblktab[cblknbr ].lcolnum - baseval;
@@ -190,4 +192,7 @@ pastixSymbolExpand( symbol_matrix_t *symbptr )
     }
 
     symbptr->dof = 1;
+    memFree_null( symbptr->dofs );
+
+    pastixSymbolCheck( symbptr );
 }

@@ -67,10 +67,13 @@ symbol_init_adddofs( const pastix_graph_t *graph,
 
         for(ip=0; ip<n; ip++, dofs++) {
             i = order->peritab[ip] - ordebase;
+
+            assert( i < n );
             d = graph->dofs[i+1] - graph->dofs[i];
 
             dofs[1] = dofs[0] + d;
         }
+        assert( (symbptr->dofs[n] - symbbase) == (graph->dofs[n] - graph->dofs[0]) );
     }
 
     return;
