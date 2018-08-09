@@ -176,7 +176,7 @@ void
 pastixSymbolExpand( symbol_matrix_t *symbptr )
 {
     if ( symbptr == NULL ) {
-        pastix_print_error( "pastixSymbolExpand: The symbol matrix is not initialised\n" );
+        pastix_print_error( "pastixSymbolExpand: The symbol matrix is not initialized\n" );
         return;
     }
 

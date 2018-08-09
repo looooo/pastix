@@ -68,18 +68,18 @@ typedef struct symbol_blok_s {
  *
  */
 typedef struct symbol_matrix_s {
-    pastix_int_t   baseval;  /**< Base value for numbering                */
-    pastix_int_t   dof;      /**< Degrees of freedom per node
-                                 (constant if > 0, unconstant if 0 (not implemented)) */
-    pastix_int_t  *dofs;     /**< Array of the first column of each element in the
-                                  expanded matrix [+1,based]              */
-    pastix_int_t   cblknbr;  /**< Number of column blocks                 */
-    pastix_int_t   bloknbr;  /**< Number of blocks                        */
-    pastix_int_t   nodenbr;  /**< Number of nodes (Should be gN)          */
-    pastix_int_t   schurfcol;/**< First column of the schur complement    */
-    symbol_cblk_t *cblktab;  /**< Array of column blocks [+1,based]       */
-    symbol_blok_t *bloktab;  /**< Array of blocks in CSC format [based]   */
-    pastix_int_t  *browtab;  /**< Array of blocks in CSR format [based]   */
+    pastix_int_t   baseval;  /**< Base value for numbering                   */
+    pastix_int_t   dof;      /**< Degrees of freedom per node (constant
+                                  if > 0, unconstant if 0 (not implemented)) */
+    pastix_int_t   cblknbr;  /**< Number of column blocks                    */
+    pastix_int_t   bloknbr;  /**< Number of blocks                           */
+    pastix_int_t   nodenbr;  /**< Number of nodes (Equal to gN in spm)       */
+    pastix_int_t   schurfcol;/**< First column of the schur complement       */
+    symbol_cblk_t *cblktab;  /**< Array of column blocks [+1,based]          */
+    symbol_blok_t *bloktab;  /**< Array of blocks in CSC format [based]      */
+    pastix_int_t  *browtab;  /**< Array of blocks in CSR format [based]      */
+    pastix_int_t  *dofs;     /**< Array of the first column of each element
+                                  in the expanded matrix [+1,based]          */
 } symbol_matrix_t;
 
 /**

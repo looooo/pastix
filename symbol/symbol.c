@@ -80,12 +80,23 @@ pastixSymbolExit( symbol_matrix_t *symbptr )
 /**
  *******************************************************************************
  *
- * @brief Initialize the symbol structure.
+ * @brief Add a dof array to the symbol matrix if any.
+ *
+ * If the dof parameter is variadic, then a permuted version of the initial dof
+ * array is constructed to match the symbol matrix that is working the permuted
+ * matrix A.
  *
  *******************************************************************************
  *
+ * @param[in] graph
+ *          The original graph of the matrix
+ *
+ * @param[in] order
+ *          The ordering structure describing the permutation of the unknowns in
+ *          the compressed form.
+ *
  * @param[inout] symbptr
- *          The symbol structure to initialize.
+ *          The symbol structure to which dof array must be added.
  *
  *******************************************************************************/
 void

@@ -23,7 +23,6 @@
 #include <scotch.h>
 #endif /* defined(PASTIX_ORDERING_PTSCOTCH) */
 #include "order_scotch_strats.h"
-#include <string.h>
 
 /**
  *******************************************************************************
