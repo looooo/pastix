@@ -138,11 +138,13 @@ symbol_expand_fix( symbol_matrix_t *symbptr )
     cblk    = symbptr->cblktab;
     cblknbr = symbptr->cblknbr;
 
-    for (col = 0; col <= cblknbr; col++, cblk++)
+    for (col = 0; col < cblknbr; col++, cblk++)
     {
-        cblk->fcolnum *= dof;
-        cblk->lcolnum *= dof;
+        cblk->fcolnum =  cblk->fcolnum    * dof;
+        cblk->lcolnum = (cblk->lcolnum+1) * dof - 1;
     }
+    cblk->fcolnum = cblk[-1].lcolnum + 1;
+    cblk->lcolnum = cblk[-1].lcolnum + 1;
 
     /* Update block row and column indexes */
     bloknbr = symbptr->bloknbr;
@@ -150,8 +152,8 @@ symbol_expand_fix( symbol_matrix_t *symbptr )
 
     for (row = 0; row < bloknbr; row++, blok++)
     {
-        blok->frownum *= dof;
-        blok->lrownum *= dof;
+        blok->frownum =  blok->frownum    * dof;
+        blok->lrownum = (blok->lrownum+1) * dof - 1;
     }
 
     symbptr->nodenbr   *= dof;

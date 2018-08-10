@@ -521,7 +521,7 @@ pastixGetOptions( int argc, char **argv,
 
         case 'c': {
             int checkvalue = atoi( optarg );
-            if ( (checkvalue >= 0) && (checkvalue < 3) ) {
+            if ( (checkvalue >= 0) && (checkvalue < 6) ) {
                 if ( check != NULL ) {
                     *check = checkvalue;
                 }

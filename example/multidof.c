@@ -1,14 +1,22 @@
 /**
- * @file step-by-step.c
+ * @file multidof.c
  *
- * @brief A simple example that reads the matrix and then runs pastix in one call.
+ * @brief A simple example that checks the multiple dof implementation.
+ *
+ * This test takes any matrix as input, arbitrarily expand the matrix by adding
+ * multiple degrees of freedom to each unknow. A constant number (4) if check <
+ * 3, and a variadic number (\in [1,4]) if check >= 3. To do this test, the
+ * values of the matrix are dropped, and random values are generated afterwards
+ * because some spm functions are not implemented yet with the support for
+ * multiple degrees of freedom.
  *
  * @copyright 2015-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.1
- * @author Hastaran Matias
- * @date 2018-07-16
+ * @author Bridonneau Vincent
+ * @author Faverge Mathieu
+ * @date 2018-08-10
  *
  * @ingroup pastix_examples
  * @code
@@ -32,7 +40,7 @@ int main (int argc, char **argv)
     void           *x, *b, *x0 = NULL;
     size_t          size;
     int             check = 1;
-    int             variadic = 1; /* 0 => Constant DoFs, 1 => variadic DoFs */
+    int             variadic = 0; /* 0 => Constant DoFs, 1 => variadic DoFs */
     int             dofmax   = 4; /* Maximal DoF per unknown */
     int             nrhs  = 10;
     int             rc    = 0;
@@ -48,6 +56,14 @@ int main (int argc, char **argv)
     pastixGetOptions( argc, argv,
                       iparm, dparm,
                       &check, &driver, &filename );
+
+    /**
+     * Let's hack this test to use different dofs:
+     *    if check < 3, then we check constant dof,
+     *    otherwise, we check variadic dof
+     */
+    variadic = check / 3;
+    check    = check % 3;
 
     /**
      * Read the sparse matrix with the driver
