@@ -105,6 +105,7 @@ solverMatrixGen( pastix_int_t           clustnum,
     (void)ordeptr;
 
     assert( dof == 1 );
+    assert( symbmtx->baseval == 0 );
 
     solverInit(solvmtx);
 
@@ -220,12 +221,12 @@ solverMatrixGen( pastix_int_t           clustnum,
             pastix_int_t tasks2D  = candcblk->cblktype & CBLK_TASKS_2D;
 
             if ( symbmtx->dof < 0 ) {
-                fcolnum = symbmtx->dofs[ symbcblk->fcolnum ] - symbmtx->baseval;
-                lcolnum = symbmtx->dofs[ symbcblk->lcolnum ] - symbmtx->baseval;
+                fcolnum = symbmtx->dofs[ symbcblk->fcolnum    ];
+                lcolnum = symbmtx->dofs[ symbcblk->lcolnum + 1] - 1;
             }
             else {
-                fcolnum = symbmtx->dof * symbcblk->fcolnum;
-                lcolnum = symbmtx->dof * symbcblk->lcolnum;
+                fcolnum = symbmtx->dof *  symbcblk->fcolnum;
+                lcolnum = symbmtx->dof * (symbcblk->lcolnum+1) - 1;
             }
             nbcols = lcolnum - fcolnum + 1;
             flaglocal = 0;
@@ -234,12 +235,12 @@ solverMatrixGen( pastix_int_t           clustnum,
                 pastix_int_t frownum, lrownum, nbrows;
 
                 if ( symbmtx->dof < 0 ) {
-                    frownum = symbmtx->dofs[ symbblok->frownum ] - symbmtx->baseval;
-                    lrownum = symbmtx->dofs[ symbblok->lrownum ] - symbmtx->baseval;
+                    frownum = symbmtx->dofs[ symbblok->frownum     ];
+                    lrownum = symbmtx->dofs[ symbblok->lrownum + 1 ] - 1;
                 }
                 else {
-                    frownum = symbmtx->dof * symbblok->frownum;
-                    lrownum = symbmtx->dof * symbblok->lrownum;
+                    frownum = symbmtx->dof *  symbblok->frownum;
+                    lrownum = symbmtx->dof * (symbblok->lrownum+1) - 1;
                 }
                 nbrows = lrownum - frownum + 1;
                 blokamax = pastix_imax( blokamax, nbrows * nbcols );
