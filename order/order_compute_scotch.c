@@ -70,7 +70,8 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
     pastix_int_t   *iparm = pastix_data->iparm;
     pastix_int_t    procnum;
     pastix_int_t    n, nnz, baseval;
-    int ret;
+    pastix_int_t   *dofs = NULL;
+    int             ret;
 
     procnum = pastix_data->procnum;
 
@@ -114,12 +115,36 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
     pastixOrderAlloc(ordemesh, n, n);
     SCOTCH_graphInit( &scotchgraph );
 
+    /*
+     * Generate the vertex load array if dof != 1
+     */
+    if ( graph->dof != 1 ) {
+        MALLOC_INTERN( dofs, n, pastix_int_t );
+        if ( graph->dof > 1 ) {
+            pastix_int_t i;
+
+            for (i = 0; i < n; ++i) {
+                dofs[i] = graph->dof;
+            }
+        }
+        else {
+            pastix_int_t  i;
+            pastix_int_t *dofptr, *iter_dof;
+
+            dofptr   = dofs;
+            iter_dof = graph->dofs;
+            for (i = 0; i < n; ++i, ++dofptr, ++iter_dof) {
+                *dofptr = iter_dof[1] - iter_dof[0];
+            }
+        }
+    }
+
     if (SCOTCH_graphBuild(&scotchgraph,   /* Graph to build     */
                           baseval,        /* baseval            */
                           n,              /* Number of vertices */
                           colptr,         /* Vertex array       */
                           NULL,
-                          NULL,           /* Array of vertex weights (DOFs) */
+                          dofs,           /* Array of vertex weights (DOFs) */
                           NULL,
                           nnz,            /* Number of arcs     */
                           rows,           /* Edge array         */
@@ -205,6 +230,11 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
         memFree_null(rows);
     }
 #endif
+
+    /* Free the vertex load array */
+    if ( dofs != NULL ) {
+        memFree_null( dofs );
+    }
 
     if (ret != 0) {           /* If something failed in Scotch */
         pastixOrderExit (ordemesh);    /* Free ordering arrays          */

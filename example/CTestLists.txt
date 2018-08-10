@@ -14,7 +14,7 @@ cmake_policy(SET CMP0054 NEW)
 ### CTest execution
 set( PASTIX_DRIVERS
    # reentrant fails with Scotch parser !
-  analyze simple step-by-step schur personal reentrant old/old_simple old/old_step-by-step )
+  analyze simple step-by-step schur personal reentrant multidof old/old_simple old/old_step-by-step )
 set( PASTIX_TESTS
   simple )
 set( PASTIX_REFINE
@@ -42,7 +42,14 @@ foreach(example ${PASTIX_DRIVERS} )
     endif()
     foreach(facto ${factos} )
       if ( NOT((facto IN_LIST _factodiag) AND (example STREQUAL "schur")) )
-        add_test(example_drv_facto${facto}_${arithm}_${example} ./${example} -9 ${arithm}:10:10:10:2 -f ${facto})
+        if (example STREQUAL "multidof")
+          if ( arithm EQUAL d )
+            add_test(example_drv_facto${facto}_${arithm}_${example}_fix ./${example} -9 ${arithm}:10:10:10:2 -f ${facto} -c 2)
+            add_test(example_drv_facto${facto}_${arithm}_${example}_var ./${example} -9 ${arithm}:10:10:10:2 -f ${facto} -c 5)
+          endif()
+        else()
+          add_test(example_drv_facto${facto}_${arithm}_${example} ./${example} -9 ${arithm}:10:10:10:2 -f ${facto} -c 2 )
+        endif()
       endif()
     endforeach()
   endforeach()

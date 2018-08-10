@@ -15,28 +15,107 @@
  * @author Pierre Ramet
  * @date 2018-07-16
  *
- * @addtogroup pastix_symbol
- * @{
  **/
 #include "common.h"
+#include "graph.h"
+#include "pastix/order.h"
 #include "symbol.h"
 
 /**
  *******************************************************************************
  *
- * @brief Initialize the symbol structure.
+ * @ingroup symbol_dev
+ *
+ * @brief Add a dof array to the symbol matrix if any.
+ *
+ * If the dof parameter is variadic, then a permuted version of the initial dof
+ * array is constructed to match the symbol matrix that is working the permuted
+ * matrix A.
  *
  *******************************************************************************
+ *
+ * @param[in] graph
+ *          The original graph of the matrix
+ *
+ * @param[in] order
+ *          The ordering structure describing the permutation of the unknowns in
+ *          the compressed form.
+ *
+ * @param[inout] symbptr
+ *          The symbol structure to which dof array must be added.
+ *
+ *******************************************************************************/
+static inline void
+symbol_init_adddofs( const pastix_graph_t *graph,
+                     const pastix_order_t *order,
+                     symbol_matrix_t      *symbptr )
+{
+    symbptr->dof  = graph->dof;
+    symbptr->dofs = NULL;
+
+    if ( symbptr->dof < 1 ) {
+        pastix_int_t symbbase = symbptr->baseval;
+        pastix_int_t ordebase = order->baseval;
+        pastix_int_t i, ip, n, d, *dofs;
+
+        n = graph->gN;
+
+        MALLOC_INTERN( symbptr->dofs, n+1, pastix_int_t );
+
+        dofs = symbptr->dofs;
+        dofs[0] = symbbase;
+
+        for(ip=0; ip<n; ip++, dofs++) {
+            i = order->peritab[ip] - ordebase;
+
+            assert( i < n );
+            d = graph->dofs[i+1] - graph->dofs[i];
+
+            dofs[1] = dofs[0] + d;
+        }
+        assert( (symbptr->dofs[n] - symbbase) == (graph->dofs[n] - graph->dofs[0]) );
+    }
+
+    return;
+}
+
+/**
+ * @addtogroup pastix_symbol
+ * @{
+ *
+ *******************************************************************************
+ *
+ * @brief Initialize the symbol structure.
+ *
+ * Initialized the permuted dof array if graph and order are provided. The
+ * symbol is considered as dof = 1 otherwise.
+ *
+ *******************************************************************************
+ *
+ * @param[in] graph
+ *          The original graph of the matrix
+ *
+ * @param[in] order
+ *          The ordering structure describing the permutation of the unknowns in
+ *          the compressed form.
  *
  * @param[inout] symbptr
  *          The symbol structure to initialize.
  *
  *******************************************************************************/
 void
-pastixSymbolInit ( symbol_matrix_t *symbptr )
+pastixSymbolInit ( const pastix_graph_t *graph,
+                   const pastix_order_t *order,
+                        symbol_matrix_t *symbptr )
 {
     memset (symbptr, 0, sizeof (symbol_matrix_t));
+    symbptr->dof = 1;
     symbptr->schurfcol = -1;
+
+    if ( (graph != NULL) && (order != NULL) ) {
+        symbol_init_adddofs( graph, order, symbptr );
+    }
+
     return;
 }
 
@@ -47,8 +126,8 @@ pastixSymbolInit ( symbol_matrix_t *symbptr )
  *
  * All the arrays from the structure are freed and the structure is memset to 0
  * at exit, but the symbol itself is not freed. It will require a new call to
- * symbolInit if the memory space area needs to be reused for a new symbol
- * matrix.
+ * pastixSymbolInit() if the memory space area needs to be reused for a new
+ * symbol matrix.
  *
  *******************************************************************************
  *
@@ -59,13 +138,19 @@ pastixSymbolInit ( symbol_matrix_t *symbptr )
 void
 pastixSymbolExit( symbol_matrix_t *symbptr )
 {
-    if (symbptr->cblktab != NULL)
-        memFree_null (symbptr->cblktab);
-    if (symbptr->bloktab != NULL)
-        memFree_null (symbptr->bloktab);
-    if (symbptr->browtab != NULL)
-        memFree_null (symbptr->browtab);
-    memset (symbptr, 0, sizeof (symbol_matrix_t));
+    if (symbptr->dofs != NULL) {
+        memFree_null( symbptr->dofs );
+    }
+    if (symbptr->cblktab != NULL) {
+        memFree_null( symbptr->cblktab );
+    }
+    if (symbptr->bloktab != NULL) {
+        memFree_null( symbptr->bloktab );
+    }
+    if (symbptr->browtab != NULL) {
+        memFree_null( symbptr->browtab );
+    }
+    pastixSymbolInit( NULL, NULL, symbptr );
 }
 
 /**

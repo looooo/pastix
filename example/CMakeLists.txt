@@ -28,12 +28,13 @@ set (EXAMPLES
   analyze.c
   bench_facto.c
   compress.c
+  multidof.c
   personal.c
   reentrant.c
+  refinement.c
   schur.c
   simple.c
   step-by-step.c
-  refinement.c
   )
 
 foreach (_file ${EXAMPLES})

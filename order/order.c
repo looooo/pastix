@@ -319,6 +319,89 @@ pastixOrderBase( pastix_order_t * const ordeptr,
  *
  * @ingroup pastix_order
  *
+ * @brief This routine expand the permutation arrays and the rangtab when the
+ * spm is using multiple dof per unknown.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] ordeptr
+ *          The ordering to expand. On entry, the order of the compressed
+ *          unknown. On exit, the ordering is 0-based and contains the
+ *          permutation for the expanded matrix.
+ *
+ * @param[inout] spm
+ *          The sparse matrix structure providing dof information. On exit, the
+ *          spm is rebased to 0, if it is not the case on entry.
+ *
+ *******************************************************************************/
+void pastixOrderExpand( pastix_order_t * const ordeptr,
+                        spmatrix_t     * const spm )
+{
+    pastix_int_t *peritab;
+    pastix_int_t  c, i, j, n;
+    pastix_int_t  begin, end, sum;
+    pastix_int_t *newperi;
+    pastix_int_t *rangtab;
+    const pastix_int_t *dofs;
+
+    spmBase( spm, 0 );
+    pastixOrderBase( ordeptr, 0 );
+
+    n = spm->nexp;
+
+    /*
+     * Initialize inverse permutation and rangtab
+     */
+    peritab = ordeptr->peritab;
+    rangtab = ordeptr->rangtab;
+
+    MALLOC_INTERN( ordeptr->peritab, n, pastix_int_t );
+    newperi = ordeptr->peritab;
+
+    dofs = spm->dofs;
+
+    i = 0;
+    for (c=0; c<ordeptr->cblknbr; c++, rangtab++)
+    {
+        sum = 0;
+        for (; i<rangtab[1]; ++i)
+        {
+            if ( spm->dof <= 0 ) {
+                begin = dofs[ peritab[i] ];
+                end   = dofs[ peritab[i] + 1 ];
+            }
+            else {
+                begin = peritab[i] * spm->dof;
+                end   = begin + spm->dof;
+            }
+
+            sum += (end - begin);
+
+            for ( j=begin; j<end; ++j, ++newperi ) {
+                *newperi = j;
+            }
+        }
+        rangtab[1] = rangtab[0] + sum;
+    }
+    ordeptr->vertnbr = n;
+    memFree_null( peritab );
+
+    /*
+     * Update permtab
+     */
+    memFree_null( ordeptr->permtab );
+    MALLOC_INTERN( ordeptr->permtab, n, pastix_int_t );
+    for( i=0; i<n; i++ ) {
+        j = ordeptr->peritab[i];
+        ordeptr->permtab[j] = i;
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_order
+ *
  * @brief This routine copy a given ordering in a new one.
  *
  * This function copies an order structure into another one. If all subpointers

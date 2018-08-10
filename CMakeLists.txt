@@ -676,6 +676,7 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_cost_flops.c
   symbol/symbol_cost_perfs.c
   symbol/symbol_draw.c
+  symbol/symbol_expand.c
   symbol/symbol_fax_graph.c
   symbol/symbol_io.c
   symbol/symbol_kass.c
@@ -969,6 +970,7 @@ add_documented_files(
   symbol/symbol_cost_flops.c
   symbol/symbol_cost_perfs.c
   symbol/symbol_draw.c
+  symbol/symbol_expand.c
   #symbol/symbol_fax.c Not documented: template file
   symbol/symbol_fax_graph.c
   symbol/symbol_io.c

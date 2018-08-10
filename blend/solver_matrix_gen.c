@@ -104,6 +104,9 @@ solverMatrixGen( pastix_int_t           clustnum,
     pastix_int_t  dof = symbmtx->dof;
     (void)ordeptr;
 
+    assert( dof == 1 );
+    assert( symbmtx->baseval == 0 );
+
     solverInit(solvmtx);
 
 #ifdef PASTIX_DYNSCHED
@@ -213,16 +216,33 @@ solverMatrixGen( pastix_int_t           clustnum,
             pastix_int_t fbloknum = symbcblk[0].bloknum;
             pastix_int_t lbloknum = symbcblk[1].bloknum;
             pastix_int_t stride   = 0;
-            pastix_int_t nbcols   = (symbcblk->lcolnum - symbcblk->fcolnum + 1) * dof;
-            pastix_int_t nbrows;
+            pastix_int_t fcolnum, lcolnum, nbcols;
             pastix_int_t layout2D = candcblk->cblktype & CBLK_LAYOUT_2D;
             pastix_int_t tasks2D  = candcblk->cblktype & CBLK_TASKS_2D;
 
+            if ( symbmtx->dof < 0 ) {
+                fcolnum = symbmtx->dofs[ symbcblk->fcolnum    ];
+                lcolnum = symbmtx->dofs[ symbcblk->lcolnum + 1] - 1;
+            }
+            else {
+                fcolnum = symbmtx->dof *  symbcblk->fcolnum;
+                lcolnum = symbmtx->dof * (symbcblk->lcolnum+1) - 1;
+            }
+            nbcols = lcolnum - fcolnum + 1;
             flaglocal = 0;
 
             for( j=fbloknum; j<lbloknum; j++, symbblok++, simublok++ ) {
-                nbrows = (symbblok->lrownum - symbblok->frownum + 1) * dof;
+                pastix_int_t frownum, lrownum, nbrows;
 
+                if ( symbmtx->dof < 0 ) {
+                    frownum = symbmtx->dofs[ symbblok->frownum     ];
+                    lrownum = symbmtx->dofs[ symbblok->lrownum + 1 ] - 1;
+                }
+                else {
+                    frownum = symbmtx->dof *  symbblok->frownum;
+                    lrownum = symbmtx->dof * (symbblok->lrownum+1) - 1;
+                }
+                nbrows = lrownum - frownum + 1;
                 blokamax = pastix_imax( blokamax, nbrows * nbcols );
 
                 if(simublok->ownerclust == clustnum)
@@ -234,8 +254,8 @@ solverMatrixGen( pastix_int_t           clustnum,
                     solvblok->handler[1] = NULL;
                     solvblok->fcblknm = cblklocalnum[symbblok->fcblknm];
                     solvblok->lcblknm = cblklocalnum[symbblok->lcblknm];
-                    solvblok->frownum = symbblok->frownum * dof;
-                    solvblok->lrownum = solvblok->frownum + nbrows - 1;
+                    solvblok->frownum = frownum;
+                    solvblok->lrownum = lrownum;
                     solvblok->coefind = layout2D ? stride * nbcols : stride;
                     solvblok->browind = -1;
                     solvblok->gpuid   = GPUID_UNDEFINED;
@@ -290,8 +310,8 @@ solverMatrixGen( pastix_int_t           clustnum,
                 solvcblk->ctrbcnt  = -1;
                 solvcblk->cblktype = candcblk->cblktype;
                 solvcblk->gpuid    = GPUID_UNDEFINED;
-                solvcblk->fcolnum  = symbcblk->fcolnum * dof;
-                solvcblk->lcolnum  = solvcblk->fcolnum + nbcols - 1;
+                solvcblk->fcolnum  = fcolnum;
+                solvcblk->lcolnum  = lcolnum;
                 solvcblk->fblokptr = fblokptr;
                 solvcblk->stride   = stride;
                 solvcblk->lcolidx  = nodenbr;
@@ -299,6 +319,9 @@ solverMatrixGen( pastix_int_t           clustnum,
                 solvcblk->lcoeftab = NULL;
                 solvcblk->ucoeftab = NULL;
                 solvcblk->gcblknum = i;
+
+                assert( nodenbr == fcolnum );
+
 #if defined(PASTIX_SUPERNODE_STATS)
                 {
                     while ( sndetab[1] <= solvcblk->lcolnum ) {
