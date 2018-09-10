@@ -20,7 +20,7 @@
 #if defined(PASTIX_HAVE_SCHED_SETAFFINITY)
 #  include <linux/unistd.h>
 #  include <sched.h>
-#if defined(PASTIX_OS_MACOS)
+#elif defined(PASTIX_OS_MACOS)
 #  include <mach/mach_init.h>
 #  include <mach/thread_policy.h>
 /**
