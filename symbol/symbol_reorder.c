@@ -69,7 +69,7 @@ sequential_reorder( pastix_data_t         *pastix_data,
      * of off-diagonal blocks per row
      */
     MALLOC_INTERN( depthweight, maxdepth, pastix_int_t );
-    
+
     for (itercblk=0; itercblk<cblknbr; itercblk++, cblk++) {
 
         if ( cblk->fcolnum >= symbptr->schurfcol )
@@ -156,7 +156,7 @@ thread_preorder_basic_stategy( isched_thread_t *ctx, void *args )
     for (ii=0; ii<tasknbr; ii++, cblk += size) {
 
         memset( depthweight, 0, maxdepth * sizeof(pastix_int_t) );
-        
+
         symbol_reorder_cblk( symbptr, cblk, order,
                              levels,
                              depthweight, maxdepth,
@@ -174,7 +174,7 @@ thread_preorder_basic_stategy( isched_thread_t *ctx, void *args )
  *
  * @brief Parallel improved version for reordering
  *
- *  This algorithm reorders cblks after ordering 
+ *  This algorithm reorders cblks after ordering
  *  them according to their size. Priority queue are used
  *  to sort cblks increasing their cost and process decreasing
  *  their load. (Parallel version)
@@ -266,7 +266,7 @@ thread_preorder( isched_thread_t *ctx, void *args )
  *
  * @brief Computes the cost of a cblk
  *
- *  This function computes the value of a cblk using the 
+ *  This function computes the value of a cblk using the
  *  formula : cost = a.(cblk->lcolcum - cblk->fcolnum + 1)^2
  *  where a = (cblk[1].bloknum - cblk[0].bloknum) / 2 + 1
  *  It represents the load (number of calcul) a process

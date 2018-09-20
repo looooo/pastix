@@ -113,6 +113,7 @@ starpu_zdiag( pastix_data_t      *pastix_data,
                               sizeof(pastix_complex64_t), 1, 0 );
     ddesc = sopalin_data->solvmtx->starpu_desc_rhs;
 
+    starpu_resume();
     starpu_zdiag_sp1dplus( pastix_data, sopalin_data );
 
     starpu_sparse_matrix_getoncpu( sdesc );
@@ -121,6 +122,7 @@ starpu_zdiag( pastix_data_t      *pastix_data,
 #if defined(PASTIX_WITH_MPI)
     starpu_mpi_barrier(MPI_COMM_WORLD);
 #endif
+    starpu_pause();
 
     return;
 }
