@@ -134,6 +134,9 @@ pastix_starpu_init( pastix_data_t *pastix,
     starpu_cublas_init();
 #endif
 
+    /* Suspend threads until we need them */
+    starpu_pause();
+
     assert( pastix->starpu != NULL );
 
     (void)argc; (void)argv;
@@ -157,6 +160,8 @@ void
 pastix_starpu_finalize( pastix_data_t *pastix )
 {
     if (pastix->starpu != NULL) {
+        starpu_resume();
+
 #if defined(PASTIX_WITH_MPI)
         starpu_mpi_shutdown();
 #endif

@@ -324,6 +324,7 @@ starpu_zgetrf( pastix_data_t  *pastix_data,
         sdesc = sopalin_data->solvmtx->starpu_desc;
     }
 
+    starpu_resume();
     /*
      * Select 1D or 2D algorithm based on 2d tasks level
      */
@@ -341,7 +342,7 @@ starpu_zgetrf( pastix_data_t  *pastix_data,
 #if defined(PASTIX_WITH_MPI)
     starpu_mpi_barrier(MPI_COMM_WORLD);
 #endif
-
+    starpu_pause();
     return;
 }
 
