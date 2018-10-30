@@ -141,8 +141,9 @@ void *
 isched_thread_destroy(isched_thread_t *ctx)
 {
     /* thread 0 is not bound */
-    if ( ctx->rank != 0 )
+    if ( ctx->rank != 0 ) {
         isched_topo_unbind();
+    }
     memFree_null( ctx );
 
     return NULL;
@@ -260,15 +261,6 @@ isched_t *ischedInit(int cores, const int *coresbind)
 
     /* Initialize default thread attributes */
     if ( isched->world_size > 1 ) {
-        pthread_attr_t thread_attr;
-
-        /* Set attributes */
-        pthread_attr_init( &thread_attr );
-/*         pthread_attr_setscope(&thread_attr, PTHREAD_SCOPE_SYSTEM); */
-/* #ifdef __linux */
-/*         status = pthread_setconcurrency(isched->world_size); */
-/* #endif /\* __linux *\/ */
-
         /*  Launch threads */
         MALLOC_INTERN(isched->tids, isched->world_size, pthread_t);
 
@@ -279,13 +271,10 @@ isched_t *ischedInit(int cores, const int *coresbind)
 
             pthread_create(
                 &isched->tids[core],
-                &thread_attr,
+                NULL,
                 isched_thread_init,
                 (void*)(initdata + core));
         }
-
-        /* Destroy thread attributes */
-        pthread_attr_destroy(&thread_attr);
     }
     else {
         isched->tids = NULL;
@@ -315,8 +304,7 @@ isched_t *ischedInit(int cores, const int *coresbind)
  *
  *******************************************************************************
  *
- * @return
- *          \retval PASTIX_SUCCESS successful exit
+ * @retval PASTIX_SUCCESS successful exit
  *
  ******************************************************************************/
 int ischedFinalize(isched_t *isched)
