@@ -489,7 +489,7 @@ set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
 add_subdirectory(spm)
 set( SPM_LIBRARY spm )
 include_directories("spm/include")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/spm/src")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/spm/include")
 
 # Disable restrict (temporary)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Drestrict=")
