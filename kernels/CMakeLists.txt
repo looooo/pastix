@@ -66,7 +66,10 @@ set(SOURCES
   core_zxx2lr.c
   core_zxx2fr.c
   core_zlrmm.c
-  core_zgelrops_rrqr.c
+  core_zpqrcp.c
+  core_zrqrcp.c
+  core_ztqrcp.c
+  core_zlrothu.c
   core_zgelrops_svd.c
   core_zgelrops.c
   # cblk operations
@@ -84,6 +87,7 @@ precisions_rules_py(generated_sources
 
 set(kernels_sources
   ${generated_sources}
+  lowrank.c
   kernels_trace.c
   )
 

@@ -26,10 +26,10 @@
 #include <bcsc.h>
 #include "sopalin_data.h"
 
-int z_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc );
-int c_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc );
-int d_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc );
-int s_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc );
+#include "z_tests.h"
+#include "c_tests.h"
+#include "d_tests.h"
+#include "s_tests.h"
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_) {                                 \

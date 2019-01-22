@@ -28,21 +28,13 @@
 #include <getopt.h>
 #endif  /* defined(HAVE_GETOPT_H) */
 
+#include "z_tests.h"
+#include "c_tests.h"
+#include "d_tests.h"
+#include "s_tests.h"
+
 char* fltnames[] = { "Pattern", "", "Float", "Double", "Complex32", "Complex64" };
 char* schednames[] = { "Sequential", "Static" };
-
-int
-z_bvec_check( pastix_data_t *pastix_data,
-                        int m );
-int
-c_bvec_check( pastix_data_t *pastix_data,
-                        int m );
-int
-d_bvec_check( pastix_data_t *pastix_data,
-                        int m );
-int
-s_bvec_check( pastix_data_t *pastix_data,
-                        int m );
 
 int main ( int argc, char **argv )
 {

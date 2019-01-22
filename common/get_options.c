@@ -277,8 +277,13 @@ parse_enums( const char *string )
     if(0 == strcasecmp("pastixcompresswhenend",    string)) { return PastixCompressWhenEnd;    }
     if(0 == strcasecmp("pastixcompresswhenduring", string)) { return PastixCompressWhenDuring; }
 
-    if(0 == strcasecmp("pastixcompressmethodsvd",  string)) { return PastixCompressMethodSVD;  }
-    if(0 == strcasecmp("pastixcompressmethodrrqr", string)) { return PastixCompressMethodRRQR; }
+    if(0 == strcasecmp("pastixcompressmethodsvd",   string)) { return PastixCompressMethodSVD;   }
+    if(0 == strcasecmp("pastixcompressmethodpqrcp", string)) { return PastixCompressMethodPQRCP; }
+    if(0 == strcasecmp("pastixcompressmethodrqrcp", string)) { return PastixCompressMethodRQRCP; }
+    if(0 == strcasecmp("pastixcompressmethodtqrcp", string)) { return PastixCompressMethodTQRCP; }
+
+    /* For retro-compatibility */
+    if(0 == strcasecmp("pastixcompressmethodrrqr",  string)) { return PastixCompressMethodPQRCP;  }
 
     /* If the value is directly given without string */
     {

@@ -1,6 +1,6 @@
 /**
  *
- * @file solve_zkernels.c
+ * @file solve_ztrsmsp.c
  *
  * PaStiX solve kernels routines
  *

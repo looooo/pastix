@@ -33,6 +33,11 @@
 #include "kernels/pastix_zcores.h"
 #include "refinement/z_refine_functions.h"
 
+#include "z_tests.h"
+#include "c_tests.h"
+#include "d_tests.h"
+#include "s_tests.h"
+
 #define PRINT_RES(_ret_)                        \
     if(_ret_) {                                 \
         printf("FAILED(%d)\n", _ret_);          \
@@ -44,23 +49,6 @@
 
 char* fltnames[] = { "Pattern", "", "Float", "Double", "Complex32", "Complex64" };
 char* schednames[] = { "Sequential", "Static" };
-
-int
-z_bvec_gemv_check( int check, int m, int n,
-                         pastix_int_t    *iparm,
-                         pastix_fixdbl_t *dparm );
-int
-c_bvec_gemv_check( int check, int m, int n,
-                         pastix_int_t    *iparm,
-                         pastix_fixdbl_t *dparm );
-int
-d_bvec_gemv_check( int check, int m, int n,
-                         pastix_int_t    *iparm,
-                         pastix_fixdbl_t *dparm );
-int
-s_bvec_gemv_check( int check, int m, int n,
-                         pastix_int_t    *iparm,
-                         pastix_fixdbl_t *dparm );
 
 int main ( int argc, char **argv )
 {

@@ -488,7 +488,7 @@ bvec_zdotc_seq( pastix_data_t            *pastix_data,
 
     for (i=0; i<n; i++, xptr++, yptr++)
     {
-        r = r + *xptr * conj(*yptr);
+        r += (*xptr) * conj(*yptr);
     }
 
     return r;
@@ -520,7 +520,7 @@ pthread_bvec_zdotc( isched_thread_t *ctx,
     const pastix_complex64_t *xptr = arg->x;
     const pastix_complex64_t *yptr = arg->y;
     pastix_int_t begin, end, rank, size;
-    double r = 0.0;
+    pastix_complex64_t r = 0.0;
 
     rank = (pastix_int_t)ctx->rank;
     size = (pastix_int_t)ctx->global_ctx->world_size;
@@ -537,7 +537,7 @@ pthread_bvec_zdotc( isched_thread_t *ctx,
 
     for ( i = begin; i < end; i++, xptr++, yptr++ )
     {
-        r = r + *xptr * conj(*yptr);
+        r += (*xptr) * conj(*yptr);
     }
 
     pastix_atomic_lock( &(arg->lock) );
@@ -626,7 +626,7 @@ bvec_zdotu_seq( pastix_data_t            *pastix_data,
 
     for (i=0; i<n; i++, xptr++, yptr++)
     {
-        r = r + *xptr * (*yptr);
+        r += (*xptr) * (*yptr);
     }
 
     return r;
@@ -678,7 +678,7 @@ pthread_bvec_zdotu( isched_thread_t *ctx,
 
     for (i=begin; i<end; i++, xptr++, yptr++)
     {
-        r = r + *xptr * (*yptr);
+        r += (*xptr) * (*yptr);
     }
 
     pastix_atomic_lock( &(arg->lock) );

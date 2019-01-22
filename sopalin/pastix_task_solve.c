@@ -27,25 +27,42 @@
 #include "bcsc_s.h"
 
 #if defined(PASTIX_DEBUG_SOLVE)
+#include <z_spm.h>
+#include <c_spm.h>
+#include <d_spm.h>
+#include <s_spm.h>
+
 static inline void
-dump_rhs( char *name, int n, double *b )
+dump_rhs( char *name, spm_coeftype_t flttype, int n, const void *b )
 {
-    int i;
-    fprintf(stderr,"%s :", name );
-    for (i=0; i<n; i++) {
-        if (i%10 == 0)
-            fprintf(stderr, "\n");
-        fprintf(stderr,"%e ", b[i]);
+    FILE *f = fopen( name, "w" );
+
+    switch( flttype ) {
+    case SpmComplex64:
+        z_spmDensePrint( f, n, 1, b, n );
+        break;
+    case SpmComplex32:
+        c_spmDensePrint( f, n, 1, b, n );
+        break;
+    case SpmDouble:
+        d_spmDensePrint( f, n, 1, b, n );
+        break;
+    case SpmFloat:
+        s_spmDensePrint( f, n, 1, b, n );
+        break;
+    case SpmPattern:
+        ;
     }
-    fprintf(stderr,"\n");
+    fclose(f);
 }
 #else
 static inline void
-dump_rhs( char *name, int n, double *b )
+dump_rhs( char *name, spm_coeftype_t flttype, int n, double *b )
 {
     (void)name;
     (void)n;
     (void)b;
+    (void)flttype;
 }
 #endif
 
@@ -386,21 +403,21 @@ pastix_subtask_solve( pastix_data_t *pastix_data,
             pastix_attr_fallthrough;
 
         case PastixFactLLT:
-            dump_rhs( "AfterPerm", bcsc->gN, b );
+            dump_rhs( "LLTAfterPerm.rhs", bcsc->flttype, bcsc->gN, b );
 
             /* Solve L y = P b with y = L^t P x */
             pastix_subtask_trsm( pastix_data, bcsc->flttype,
                                  PastixLeft, PastixLower,
                                  PastixNoTrans, PastixNonUnit,
                                  nrhs, b, ldb );
-            dump_rhs( "AfterDown", bcsc->gN, b );
+            dump_rhs( "LLTAfterDown.rhs", bcsc->flttype, bcsc->gN, b );
 
             /* Solve y = L^t (P x) */
             pastix_subtask_trsm( pastix_data, bcsc->flttype,
                                  PastixLeft, PastixLower,
                                  trans, PastixNonUnit,
                                  nrhs, b, ldb );
-            dump_rhs( "AfterUp", bcsc->gN, b );
+            dump_rhs( "LLTAfterUp.rhs", bcsc->flttype, bcsc->gN, b );
             break;
 
         case PastixFactLDLH:
@@ -409,25 +426,25 @@ pastix_subtask_solve( pastix_data_t *pastix_data,
             pastix_attr_fallthrough;
 
         case PastixFactLDLT:
-            dump_rhs( "AfterPerm", bcsc->gN, b );
+            dump_rhs( "LDLTAfterPerm", bcsc->flttype, bcsc->gN, b );
 
             /* Solve L y = P b with y = D L^t P x */
             pastix_subtask_trsm( pastix_data, bcsc->flttype,
                                  PastixLeft, PastixLower,
                                  PastixNoTrans, PastixUnit,
                                  nrhs, b, ldb );
-            dump_rhs( "AfterDown", bcsc->gN, b );
+            dump_rhs( "LDLTAfterDown", bcsc->flttype, bcsc->gN, b );
 
             /* Solve y = D z with z = (L^t P x) */
             pastix_subtask_diag( pastix_data, bcsc->flttype, nrhs, b, ldb );
-            dump_rhs( "AfterDiag", bcsc->gN, b );
+            dump_rhs( "LDLTAfterDiag", bcsc->flttype, bcsc->gN, b );
 
             /* Solve z = L^t (P x) */
             pastix_subtask_trsm( pastix_data, bcsc->flttype,
                                  PastixLeft, PastixLower,
                                  trans, PastixUnit,
                                  nrhs, b, ldb );
-            dump_rhs( "AfterUp", bcsc->gN, b );
+            dump_rhs( "LDLTAfterUp", bcsc->flttype, bcsc->gN, b );
             break;
 
         case PastixFactLU:
@@ -447,7 +464,7 @@ pastix_subtask_solve( pastix_data_t *pastix_data,
         }
         clockStop(timer);
 
-        dump_rhs( "Final", bcsc->gN, b );
+        dump_rhs( "Final", bcsc->flttype, bcsc->gN, b );
 
         pastix_data->dparm[DPARM_SOLV_TIME] = clockVal(timer);
         if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {

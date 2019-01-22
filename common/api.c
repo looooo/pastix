@@ -210,7 +210,7 @@ pastixWelcome( const pastix_data_t *pastix )
     if ( pastix->iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever ) {
         pastix_print( pastix->procnum, 0, OUT_HEADER_LR,
                       /* Tolerance       */ (double)pastix->dparm[DPARM_COMPRESS_TOLERANCE],
-                      /* Compress method */ ((pastix->iparm[IPARM_COMPRESS_METHOD] == PastixCompressMethodSVD) ? "SVD" : "RRQR"),
+                      /* Compress method */ compmeth_shnames[pastix->iparm[IPARM_COMPRESS_METHOD]],
                       /* Compress width  */ (long)pastix->iparm[IPARM_COMPRESS_MIN_WIDTH],
                       /* Compress height */ (long)pastix->iparm[IPARM_COMPRESS_MIN_HEIGHT],
                       /* Min ratio       */ (double)pastix->dparm[DPARM_COMPRESS_MIN_RATIO],
@@ -360,7 +360,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_COMPRESS_MIN_WIDTH]    = 120;
     iparm[IPARM_COMPRESS_MIN_HEIGHT]   = 20;
     iparm[IPARM_COMPRESS_WHEN]         = PastixCompressNever;
-    iparm[IPARM_COMPRESS_METHOD]       = PastixCompressMethodRRQR;
+    iparm[IPARM_COMPRESS_METHOD]       = PastixCompressMethodPQRCP;
     iparm[IPARM_COMPRESS_ORTHO]        = PastixCompressOrthoCGS;
 
     /* MPI modes */

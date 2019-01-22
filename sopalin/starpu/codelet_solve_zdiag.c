@@ -1,10 +1,10 @@
 /**
  *
- * @file codelet_solve_zdiagsp.c
+ * @file codelet_solve_zdiag.c
  *
  * StarPU codelets for diag functions.
  *
- * @copyright 2016-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.0

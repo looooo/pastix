@@ -235,24 +235,61 @@ pastix_fixdbl_t core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t tran
                                  pastix_int_t offx, pastix_int_t offy);
 
 /**
- *     @}
+ *    @}
  * @}
  *
  * @addtogroup kernel_lr_rrqr
  * @{
- *    This is the rank-revealing QR implementation of the low-rank kernels based
- *    on the modified LAPACK GEQP3 function.
+ *    These are the rank-revealing QR implementations to generate the low-rank
+ *    representations of a full rank matrix.
  *
- *    @name PastixComplex64 RRQR low-rank kernels
+ *    @name PastixComplex64 main template to convert a full rank matrix to low-rank
  *    @{
  */
 
-pastix_fixdbl_t core_zge2lr_rrqr( pastix_fixdbl_t tol, pastix_int_t rklimit, pastix_int_t m, pastix_int_t n,
-                                  const void *Avoid, pastix_int_t lda, pastix_lrblock_t *Alr );
-pastix_fixdbl_t core_zrradd_rrqr( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
-                                  pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                                  pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                                  pastix_int_t offx, pastix_int_t offy);
+typedef int (*const core_zrrqr_t)( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
+                                   pastix_int_t m, pastix_int_t n,
+                                   pastix_complex64_t *A, pastix_int_t lda,
+                                   pastix_int_t *jpvt, pastix_complex64_t *tau,
+                                   pastix_complex64_t *work, pastix_int_t lwork,  double *rwork );
+
+pastix_fixdbl_t core_zge2lr_qr( core_zrrqr_t rrqrfct, pastix_fixdbl_t tol, pastix_int_t rklimit,
+                                pastix_int_t m, pastix_int_t n,
+                                const void *Avoid, pastix_int_t lda,
+                                pastix_lrblock_t *Alr );
+pastix_fixdbl_t core_zrradd_qr( core_zrrqr_t rrqrfct,
+                                const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
+                                pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                                pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                                pastix_int_t offx, pastix_int_t offy );
+
+/**
+ *    @}
+ *
+ *    @name PastixComplex64 Rank Revealing QR kernels for low-rank
+ *    @{
+ */
+
+pastix_fixdbl_t core_zge2lr_pqrcp( pastix_fixdbl_t tol, pastix_int_t rklimit, pastix_int_t m, pastix_int_t n,
+                                   const void *Avoid, pastix_int_t lda, pastix_lrblock_t *Alr );
+pastix_fixdbl_t core_zrradd_pqrcp( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
+                                   pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                                   pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                                   pastix_int_t offx, pastix_int_t offy );
+
+pastix_fixdbl_t core_zge2lr_rqrcp( pastix_fixdbl_t tol, pastix_int_t rklimit, pastix_int_t m, pastix_int_t n,
+                                   const void *Avoid, pastix_int_t lda, pastix_lrblock_t *Alr );
+pastix_fixdbl_t core_zrradd_rqrcp( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
+                                   pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                                   pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                                   pastix_int_t offx, pastix_int_t offy );
+
+pastix_fixdbl_t core_zge2lr_tqrcp( pastix_fixdbl_t tol, pastix_int_t rklimit, pastix_int_t m, pastix_int_t n,
+                                   const void *Avoid, pastix_int_t lda, pastix_lrblock_t *Alr );
+pastix_fixdbl_t core_zrradd_tqrcp( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
+                                   pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
+                                   pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
+                                   pastix_int_t offx, pastix_int_t offy );
 
 /**
  *     @}

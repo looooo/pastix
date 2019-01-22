@@ -23,6 +23,11 @@ set( PASTIX_FACTO
      0 1 2) # LLh, LDLt, LU
 set( PASTIX_SCHEDS
      0 1) # sequential, static
+   set( PASTIX_COMPRESS_METHOD
+     svd
+     pqrcp )
+#     rqrcp
+#     tqrcp )
 if (PASTIX_WITH_PARSEC)
   list( APPEND PASTIX_SCHEDS 2 ) # parsec
 endif (PASTIX_WITH_PARSEC)
@@ -127,14 +132,12 @@ foreach(example ${PASTIX_TESTS} )
         list(APPEND factos 3 4)
       endif()
       foreach(facto ${factos} )
-        # SVD Begin
-        add_test(example_svdbegin_sched${scheduler}_facto${facto}_${arithm}_${example}  ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodsvd  -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
-        # SVD End
-        add_test(example_svdend_sched${scheduler}_facto${facto}_${arithm}_${example}    ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodsvd  -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
-        # RRQR Begin
-        add_test(example_rrqrbegin_sched${scheduler}_facto${facto}_${arithm}_${example} ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethodrrqr -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
-        # RRQR End
-        add_test(example_rrqrend_sched${scheduler}_facto${facto}_${arithm}_${example}   ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethodrrqr -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
+        foreach(method ${PASTIX_COMPRESS_METHOD} )
+          # Begin
+          add_test(example_${method}begin_sched${scheduler}_facto${facto}_${arithm}_${example}  ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethod${method} -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
+          # End
+          add_test(example_${method}end_sched${scheduler}_facto${facto}_${arithm}_${example}    ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethod${method} -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
+        endforeach()
       endforeach()
     endforeach()
   endforeach()
