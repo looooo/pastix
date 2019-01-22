@@ -106,7 +106,7 @@ int main (int argc, char **argv)
      * unset it before factorization
      */
     iparm[IPARM_COMPRESS_WHEN]       = PastixCompressWhenEnd;
-    iparm[IPARM_COMPRESS_METHOD]     = PastixCompressMethodRRQR;
+    iparm[IPARM_COMPRESS_METHOD]     = PastixCompressMethodPQRCP;
     iparm[IPARM_COMPRESS_MIN_WIDTH]  = 128;
     iparm[IPARM_COMPRESS_MIN_HEIGHT] = 25;
     dparm[DPARM_COMPRESS_TOLERANCE]  = LAPACKE_dlamch_work( 'e' );

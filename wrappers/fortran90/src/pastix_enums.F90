@@ -226,8 +226,11 @@ module pastix_enums
 
   ! enum compress_method
   enum, bind(C)
-     enumerator :: PastixCompressMethodSVD  = 0
-     enumerator :: PastixCompressMethodRRQR = 1
+     enumerator :: PastixCompressMethodSVD   = 0
+     enumerator :: PastixCompressMethodPQRCP = 1
+     enumerator :: PastixCompressMethodRQRCP = 2
+     enumerator :: PastixCompressMethodTQRCP = 3
+     enumerator :: PastixCompressMethodNbr   = 4
   end enum
 
   ! enum compress_ortho

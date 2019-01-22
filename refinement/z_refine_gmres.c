@@ -70,7 +70,7 @@ pastix_int_t z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 
     /* if ( pastix_data->bcsc->mtxtype == PastixHermitian ) { */
     /*     /\* Check if we need dotu for non hermitian matrices (CEA patch) *\/ */
-    /*     solver.dot = &z_Pastix_Dotc; */
+    /*     solver.dot = &bvev_zdotc_seq; */
     /* } */
 
     /* Get the parameters */

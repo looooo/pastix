@@ -48,7 +48,7 @@ static pastix_complex64_t zzero =  0.0;
  *          Number of columns of the matrix A, and of the low rank matrix Alr.
  *
  * @param[in] A
- *          The matrix of dimension lda-by-n that need to be compressed
+ *          The matrix of dimension lda-by-n that needs to be compressed
  *
  * @param[in] lda
  *          The leading dimension of the matrix A. lda >= max(1, m)
@@ -179,7 +179,7 @@ core_zge2lrx( double tol, pastix_int_t m, pastix_int_t n,
  *          Number of columns of the matrix A, and of the low rank matrix Alr.
  *
  * @param[in] A
- *          The matrix of dimension lda-by-n that need to be compressed
+ *          The matrix of dimension lda-by-n that needs to be compressed
  *
  * @param[in] lda
  *          The leading dimension of the matrix A. lda >= max(1, m)

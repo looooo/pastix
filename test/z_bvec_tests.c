@@ -33,6 +33,7 @@
 #if defined(HAVE_GETOPT_H)
 #include <getopt.h>
 #endif  /* defined(HAVE_GETOPT_H) */
+#include "z_tests.h"
 
 struct z_argument_init_s
 {

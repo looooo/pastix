@@ -375,7 +375,7 @@ core_zlrmm( core_zlrmm_t *params )
 
 #if defined(PASTIX_DEBUG_LR)
     pastix_atomic_lock( lock );
-    if ( (C->rk > 0) && (lowrank->compress_method == PastixCompressMethodRRQR) ) {
+    if ( (C->rk > 0) && (lowrank->compress_method != PastixCompressMethodSVD) ) {
         int rc = core_zlrdbg_check_orthogonality( Cm, C->rk, (pastix_complex64_t*)C->u, Cm );
         if (rc == 1) {
             fprintf(stderr, "Failed to have u orthogonal in exit of lrmm\n" );

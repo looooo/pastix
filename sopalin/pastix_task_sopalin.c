@@ -47,18 +47,6 @@ static void (*sopalinFacto[5][4])(pastix_data_t *, sopalin_data_t*) =
     { sopalin_ssytrf, sopalin_dsytrf, sopalin_chetrf, sopalin_zhetrf }
 };
 
-static fct_ge2lr_t compressMethod[2][4] =
-{
-    { core_sge2lr_svd,  core_dge2lr_svd,  core_cge2lr_svd,  core_zge2lr_svd  },
-    { core_sge2lr_rrqr, core_dge2lr_rrqr, core_cge2lr_rrqr, core_zge2lr_rrqr }
-};
-
-static fct_rradd_t recompressMethod[2][4] =
-{
-    { core_srradd_svd,  core_drradd_svd,  core_crradd_svd,  core_zrradd_svd  },
-    { core_srradd_rrqr, core_drradd_rrqr, core_crradd_rrqr, core_zrradd_rrqr }
-};
-
 /**
  *******************************************************************************
  *
@@ -224,8 +212,8 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     pastix_lr_ortho         = pastix_data->iparm[IPARM_COMPRESS_ORTHO];
 
     bcsc = pastix_data->bcsc;
-    lr->core_ge2lr = compressMethod[   pastix_data->iparm[IPARM_COMPRESS_METHOD] ][bcsc->flttype-2];
-    lr->core_rradd = recompressMethod[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][bcsc->flttype-2];
+    lr->core_ge2lr = ge2lrMethods[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][bcsc->flttype-2];
+    lr->core_rradd = rraddMethods[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][bcsc->flttype-2];
 
     if ( pastix_data->iparm[IPARM_COMPRESS_METHOD] == PastixCompressWhenBegin ) {
         core_get_rklimit = core_get_rklimit_begin;

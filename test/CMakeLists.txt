@@ -10,6 +10,24 @@
 ###
 include(RulesPrecisions)
 
+### Generate the headers in all precisions
+set(HEADERS
+  z_tests.h
+)
+
+precisions_rules_py(generated_headers
+  "${HEADERS}"
+  PRECISIONS "s;d;c;z")
+
+set(tests_headers
+  ${generated_headers}
+  )
+
+add_custom_target(tests_headers_tgt
+  DEPENDS ${tests_headers} )
+
+include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
+
 ## Generate the test library files for all required precisions
 set(LIB_SOURCES
   z_bcsc_tests.c
@@ -25,6 +43,10 @@ precisions_rules_py(generated_libfiles
 add_library(bcsc_test
    ${generated_libfiles}
    )
+
+add_dependencies( bcsc_test
+  tests_headers_tgt
+  )
 
 target_link_libraries( bcsc_test
   pastix
@@ -99,6 +121,10 @@ if(TMG_FOUND)
 
   add_library(pastix_tests
     ${generated_libfiles}
+    )
+
+  add_dependencies( pastix_tests
+    tests_headers_tgt
     )
 
   target_link_libraries( pastix_tests

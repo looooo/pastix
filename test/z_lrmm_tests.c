@@ -28,6 +28,7 @@
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"
 #include "kernels/pastix_zlrcores.h"
+#include "z_tests.h"
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_ == -1) {                           \
@@ -41,53 +42,25 @@
         printf("SUCCESS\n");                    \
     }
 
-int
-z_lowrank_genmat( int mode, double tolerance, pastix_int_t rank,
-                  pastix_int_t m, pastix_int_t n, pastix_int_t lda,
-                  pastix_complex64_t **Aptr,
-                  pastix_lrblock_t    *lrA_svd,
-                  pastix_lrblock_t    *lrA_rrqr,
-                  double              *normA );
-
-int
-z_lowrank_lrmm( pastix_int_t m, pastix_int_t n, pastix_int_t k,
-                const pastix_lrblock_t *lrA, double normA,
-                const pastix_lrblock_t *lrB, double normB,
-                pastix_int_t Cm, pastix_int_t Cn, pastix_int_t offx, pastix_int_t offy,
-                const pastix_complex64_t *C, pastix_lrblock_t *lrC, double normC,
-                pastix_lr_t *lowrank );
-
-extern pastix_lr_t z_lr_svd;
-extern pastix_lr_t z_lr_rrqr;
-
-int main (int argc, char **argv)
+int main( int argc, char **argv )
 {
-    (void) argc;
-    (void) argv;
+    fct_ge2lr_t core_ge2lr = ge2lrMethods[PastixCompressMethodPQRCP][PastixComplex64-2];
     int err = 0;
-    int ret, rc, mode = 0;
+    int ret = 0;
+    int mode = 0;
     pastix_int_t m, n, k, Cm, Cn, offx, offy;
-    pastix_int_t compress_type;
+    pastix_int_t lda, ldb, ldc;
     double       eps = LAPACKE_dlamch_work('e');
     double       tolerance = sqrt(eps);
     pastix_complex64_t *A, *B, *C;
-    pastix_lrblock_t    lrA_svd, lrA_rrqr;
-    pastix_lrblock_t    lrB_svd, lrB_rrqr;
-    pastix_lrblock_t    lrC_svd, lrC_rrqr;
-    double              norm_dense_A, norm_dense_B, norm_dense_C;
-    int ranks[3], rA, rB, rC, s, i, j, l;
+    double              normA, normB, normC;
+    int ranks[3], rA, rB, rC, r, s, i, j, l, meth;
+    pastix_lrblock_t lrA, lrB, lrC;
 
     pastix_complex64_t mzone = -1.0;
     pastix_complex64_t zone  = 1.0;
 
-    compress_type = 3;
-    if ( argc > 1 ) {
-        compress_type = atoi( argv[1] );
-    }
-
-    /* Initialize tolerance of low-rank structure */
-    z_lr_rrqr.tolerance = tolerance;
-    z_lr_svd.tolerance  = tolerance;
+    core_get_rklimit = core_get_rklimit_max;
 
     for (s=100; s<=200; s = 2*s) {
         ranks[0] = s + 1;
@@ -107,78 +80,89 @@ int main (int argc, char **argv)
         /* Matrix A */
         for (i=0; i<3; i++) {
             rA = pastix_imin( m, k ) / ranks[i];
+            lda = m;
 
-            z_lowrank_genmat( mode, tolerance, rA, m, k, m,
-                              &A, &lrA_svd, &lrA_rrqr, &norm_dense_A );
+            A = malloc( lda * k * sizeof( pastix_complex64_t ) );
+            z_lowrank_genmat( mode, tolerance, rA,
+                              m, k, A, lda, &normA );
+            core_ge2lr( tolerance, pastix_imin( m, k ),
+                        m, k, A, lda, &lrA );
+            core_zlr2ge( PastixNoTrans, m, k,
+                         &lrA, A, lda );
 
             /* Matrix B */
             for (j=0; j<3; j++) {
                 rB = pastix_imin( n, k ) / ranks[j];
+                ldb = n;
 
-                z_lowrank_genmat( mode, tolerance, rB, n, k, n,
-                                  &B, &lrB_svd, &lrB_rrqr, &norm_dense_B );
+                B = malloc( ldb * k * sizeof( pastix_complex64_t ) );
+                z_lowrank_genmat( mode, tolerance, rB,
+                                  n, k, B, ldb, &normB );
+                core_ge2lr( tolerance, pastix_imin( n, k ),
+                            n, k, B, ldb, &lrB );
+                core_zlr2ge( PastixNoTrans, n, k,
+                             &lrB, B, ldb );
 
                 /* Matrix C */
                 for (l=0; l<3; l++) {
                     rC = pastix_imin( Cm, Cn ) / ranks[l];
+                    ldc = Cm;
 
-                    z_lowrank_genmat( mode, tolerance, rC, Cm, Cn, Cm,
-                                      &C, &lrC_svd, &lrC_rrqr, &norm_dense_C );
-
+                    C = malloc( ldc * Cn * sizeof( pastix_complex64_t ) );
+                    z_lowrank_genmat( mode, tolerance, rC,
+                                      Cm, Cn, C, ldc, &normC );
+                    core_ge2lr( tolerance, pastix_imin( Cm, Cn ),
+                                Cm, Cn, C, ldc, &lrC );
+                    core_zlr2ge( PastixNoTrans, Cm, Cn,
+                                 &lrC, C, ldc );
 
                     printf( "  -- Test LRMM Cm=%ld, Cn=%ld, m=%ld, n=%ld, k=%ld, rA=%ld, rB=%ld, rC=%ld\n",
-                            (long)Cm, (long)Cn, (long)m, (long)n, (long)k, (long)rA, (long)rB, (long)rC );
+                            (long)Cm, (long)Cn, (long)m, (long)n, (long)k, (long)lrA.rk, (long)lrB.rk, (long)lrC.rk );
 
                     /* Compute the full rank GEMM */
                     cblas_zgemm( CblasColMajor, CblasNoTrans, CblasConjTrans,
                                  m, n, k,
-                                 CBLAS_SADDR( mzone ), A, m,
-                                                       B, n,
-                                 CBLAS_SADDR( zone ),  C + Cm * offy + offx, Cm );
+                                 CBLAS_SADDR( mzone ), A, lda,
+                                                       B, ldb,
+                                 CBLAS_SADDR( zone ),  C + ldc * offy + offx, ldc );
 
-                    /*
-                     * Generate matrices of rankA and rankB and their compressed SVD/RRQR versions
-                     */
+                    normC = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', Cm, Cn,
+                                                 C, ldc, NULL );
+
+                    fprintf( stdout, "%7s %4s %12s %12s %12s %12s\n",
+                             "Method", "Rank", "Time", "||C||_f", "||c(C)-C||_f",
+                             "||c(C)-C||_f/(||C||_f * eps)" );
+
                     ret = 0;
-                    if (compress_type & 1)
-                    {
-                        printf("     RRQR: A %2d B %2d C %2d ", lrA_rrqr.rk, lrB_rrqr.rk, lrC_rrqr.rk );
-                        rc = z_lowrank_lrmm( m, n, k,
-                                             &lrA_rrqr, norm_dense_A,
-                                             &lrB_rrqr, norm_dense_B,
-                                             Cm, Cn, offx, offy,
-                                             C, &lrC_rrqr, norm_dense_C,
-                                             &z_lr_rrqr );
-                        assert( rc >= 0 );
-                        ret += rc;
-                    }
-                    core_zlrfree( &lrC_rrqr );
 
-                    if (compress_type & 2)
+                    /* Let's test all methods we have */
+                    for(meth=0; meth<PastixCompressMethodNbr; meth++)
                     {
-                        printf("     SVD:  A %2d B %2d C %2d ", lrA_svd.rk, lrB_svd.rk, lrC_svd.rk );
-                        rc = z_lowrank_lrmm( m, n, k,
-                                             &lrA_svd, norm_dense_A,
-                                             &lrB_svd, norm_dense_B,
-                                             Cm, Cn, offx, offy,
-                                             C, &lrC_svd, norm_dense_C,
-                                             &z_lr_svd );
-                        assert( rc >= 0 );
-                        ret += rc;
+                        z_lowrank.compress_method = meth;
+                        z_lowrank.core_ge2lr = ge2lrMethods[meth][PastixComplex64-2];
+                        z_lowrank.core_rradd = rraddMethods[meth][PastixComplex64-2];
+
+                        r = z_lowrank_check_lrmm( meth, tolerance,
+                                                  offx, offy,
+                                                  m, n, k, &lrA, &lrB,
+                                                  Cm, Cn, &lrC,
+                                                  C, ldc, normC,
+                                                  &z_lowrank );
+
+                        ret += r * (1 << meth);
                     }
-                    core_zlrfree( &lrC_svd );
+
+                    core_zlrfree( &lrC );
                     free( C );
 
-                    PRINT_RES(ret);
+                    PRINT_RES( ret );
                 }
 
+                core_zlrfree( &lrB );
                 free( B );
-                core_zlrfree( &lrB_rrqr );
-                core_zlrfree( &lrB_svd );
             }
+            core_zlrfree( &lrA );
             free( A );
-            core_zlrfree( &lrA_rrqr );
-            core_zlrfree( &lrA_svd );
         }
     }
 
@@ -191,4 +175,7 @@ int main (int argc, char **argv)
         printf(" -- %d tests FAILED --\n", err);
         return EXIT_FAILURE;
     }
+
+    (void) argc;
+    (void) argv;
 }

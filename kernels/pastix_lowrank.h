@@ -24,6 +24,16 @@
  */
 
 /**
+ * @brief List of short names for the compression kernels
+ */
+extern const char *compmeth_shnames[PastixCompressMethodNbr];
+
+/**
+ * @brief List of long names for the compression kernels
+ */
+extern const char *compmeth_lgnames[PastixCompressMethodNbr];
+
+/**
  * @brief Macro to specify if the U part of a low-rank matrix is orthogonal or not (Used in LRMM functions).
  */
 #define PASTIX_LRM3_ORTHOU (1 << 0)
@@ -50,6 +60,17 @@ extern double pastix_lr_minratio;
  * @brief Define the orthogonalization method.
  */
 extern pastix_int_t pastix_lr_ortho;
+
+/**
+ * @brief Compute the maximal rank accepted for a given matrix size for testings
+ * @param[in] M The number of rows of the matrix
+ * @param[in] N The number of columns of the matrix
+ * @return The maximal rank accepted for this matrix size.
+ */
+static inline pastix_int_t
+core_get_rklimit_max( pastix_int_t M, pastix_int_t N ) {
+    return pastix_imin( M, N );
+}
 
 /**
  * @brief Compute the maximal rank accepted for a given matrix size for Just-In-Time strategy
@@ -95,12 +116,22 @@ typedef pastix_fixdbl_t (*fct_ge2lr_t)( pastix_fixdbl_t, pastix_int_t, pastix_in
                                         const void *, pastix_int_t, pastix_lrblock_t * );
 
 /**
+ * @brief Array of pointers to the multiple arithmetic and algorithmic variants of ge2lr
+ */
+extern const fct_ge2lr_t ge2lrMethods[PastixCompressMethodNbr][4];
+
+/**
  * @brief Type of the functions to add two low-rank blocks together.
  */
 typedef pastix_fixdbl_t (*fct_rradd_t)( const pastix_lr_t *, pastix_trans_t, const void *,
                                         pastix_int_t, pastix_int_t, const pastix_lrblock_t *,
                                         pastix_int_t, pastix_int_t,       pastix_lrblock_t *,
                                         pastix_int_t, pastix_int_t );
+
+/**
+ * @brief Array of pointers to the multiple arithmetic and algorithmic variants of rradd
+ */
+extern const fct_rradd_t rraddMethods[PastixCompressMethodNbr][4];
 
 /**
  * @brief Structure to define the type of function to use for the low-rank
@@ -115,7 +146,6 @@ typedef struct pastix_lr_s {
     fct_rradd_t  core_rradd;          /**< Recompression function                           */
     fct_ge2lr_t  core_ge2lr;          /**< Compression function                             */
 } pastix_lr_t;
-
 
 /**
  * @brief Enum to define the type of block.

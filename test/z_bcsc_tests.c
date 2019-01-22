@@ -32,6 +32,7 @@
 #include <pastix/order.h>
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"
+#include "z_tests.h"
 
 int
 z_bcsc_spmv_check( spm_trans_t          trans,

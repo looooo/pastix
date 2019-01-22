@@ -27,10 +27,10 @@
 #include <bcsc.h>
 #include "sopalin_data.h"
 
-int z_bcsc_spmv_check( spm_trans_t trans, const spmatrix_t *spm, const pastix_data_t *pastix_data );
-int c_bcsc_spmv_check( spm_trans_t trans, const spmatrix_t *spm, const pastix_data_t *pastix_data );
-int d_bcsc_spmv_check( spm_trans_t trans, const spmatrix_t *spm, const pastix_data_t *pastix_data );
-int s_bcsc_spmv_check( spm_trans_t trans, const spmatrix_t *spm, const pastix_data_t *pastix_data );
+#include "z_tests.h"
+#include "c_tests.h"
+#include "d_tests.h"
+#include "s_tests.h"
 
 #define PRINT_RES(_ret_)                        \
     if(_ret_) {                                 \

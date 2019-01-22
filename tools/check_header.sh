@@ -50,7 +50,7 @@ check_header_copyright()
     basename=`basename $filename`
 
     #toto=`grep -E " @copyright [0-9]{4}-20[0-9]{2} Bordeaux INP" $filename`
-    toto=`grep -E " @copyright [0-9]{4}-2018 Bordeaux INP" $filename`
+    toto=`grep -E " @copyright [0-9]{4}-201[89] Bordeaux INP" $filename`
     # if [ $? -ne 0 ]
     # then
     #     toto=`grep -E " @copyright 20[0-9]{2}      Bordeaux INP" $filename`

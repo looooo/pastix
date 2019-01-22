@@ -24,108 +24,107 @@
  * @brief Integer parameters
  */
 typedef enum pastix_iparm_e {
-    IPARM_VERBOSE,               /**< Verbose mode (@see pastix_verbose_t)                           Default: PastixVerboseNo          IN    */
-    IPARM_IO_STRATEGY,           /**< IO strategy  (@see pastix_io_t)                                Default: PastixIONo               IN    */
+    IPARM_VERBOSE,               /**< Verbose mode (@see pastix_verbose_t)                           Default: PastixVerboseNo           IN  */
+    IPARM_IO_STRATEGY,           /**< IO strategy  (@see pastix_io_t)                                Default: PastixIONo                IN  */
 
     /* Stats */
-    IPARM_NNZEROS,               /**< Number of nonzero entries in the factorized matrix             Default: -                        OUT   */
-    IPARM_NNZEROS_BLOCK_LOCAL,   /**< Number of nonzero entries in the local block factorized matrix Default: -                        OUT   */
-    IPARM_ALLOCATED_TERMS,       /**< Maximum memory allocated for matrix terms                      Default: -                        OUT   */
-    IPARM_PRODUCE_STATS,         /**< Compute some statistiques (such as precision error)            Default: 0                        IN    */
+    IPARM_NNZEROS,               /**< Number of nonzero entries in the factorized matrix             Default: -                         OUT */
+    IPARM_NNZEROS_BLOCK_LOCAL,   /**< Number of nonzero entries in the local block factorized matrix Default: -                         OUT */
+    IPARM_ALLOCATED_TERMS,       /**< Maximum memory allocated for matrix terms                      Default: -                         OUT */
+    IPARM_PRODUCE_STATS,         /**< Compute some statistiques (such as precision error)            Default: 0                         IN  */
 
     /* Scaling */
-    IPARM_MC64,                  /**< MC64 operation                                                 Default: 0                        IN    */
+    IPARM_MC64,                  /**< MC64 operation                                                 Default: 0                         IN  */
 
     /* Ordering */
-    IPARM_ORDERING,              /**< Choose ordering                                                Default: PastixOrderScotch        IN    */
-    IPARM_ORDERING_DEFAULT,      /**< Use default ordering parameters with Scotch or Metis           Default: 1                        IN    */
+    IPARM_ORDERING,              /**< Choose ordering                                                Default: PastixOrderScotch         IN  */
+    IPARM_ORDERING_DEFAULT,      /**< Use default ordering parameters with Scotch or Metis           Default: 1                         IN  */
 
     /* Subset for Scotch */
-    IPARM_SCOTCH_SWITCH_LEVEL,   /**< Ordering switch level    (see Scotch Manual)                   Default: 120                      IN    */
-    IPARM_SCOTCH_CMIN,           /**< Ordering cmin parameter  (see Scotch Manual)                   Default: 0                        IN    */
-    IPARM_SCOTCH_CMAX,           /**< Ordering cmax parameter  (see Scotch Manual)                   Default: 100000                   IN    */
-    IPARM_SCOTCH_FRAT,           /**< Ordering frat parameter  (see Scotch Manual)                   Default: 8                        IN    */
+    IPARM_SCOTCH_SWITCH_LEVEL,   /**< Ordering switch level    (see Scotch Manual)                   Default: 120                       IN  */
+    IPARM_SCOTCH_CMIN,           /**< Ordering cmin parameter  (see Scotch Manual)                   Default: 0                         IN  */
+    IPARM_SCOTCH_CMAX,           /**< Ordering cmax parameter  (see Scotch Manual)                   Default: 100000                    IN  */
+    IPARM_SCOTCH_FRAT,           /**< Ordering frat parameter  (see Scotch Manual)                   Default: 8                         IN  */
 
     /* Subset for Metis */
-    IPARM_METIS_CTYPE,           /**< Metis parameters (see Metis Manual)                            Default: METIS_CTYPE_SHEM         IN    */
-    IPARM_METIS_RTYPE,           /**< Metis parameters (see Metis Manual)                            Default: METIS_RTYPE_SEP1SIDED    IN    */
-    IPARM_METIS_NO2HOP,          /**< Metis parameters (see Metis Manual)                            Default: 0                        IN    */
-    IPARM_METIS_NSEPS,           /**< Metis parameters (see Metis Manual)                            Default: 1                        IN    */
-    IPARM_METIS_NITER,           /**< Metis parameters (see Metis Manual)                            Default: 10                       IN    */
-    IPARM_METIS_UFACTOR,         /**< Metis parameters (see Metis Manual)                            Default: 200                      IN    */
-    IPARM_METIS_COMPRESS,        /**< Metis parameters (see Metis Manual)                            Default: 1                        IN    */
-    IPARM_METIS_CCORDER,         /**< Metis parameters (see Metis Manual)                            Default: 0                        IN    */
-    IPARM_METIS_PFACTOR,         /**< Metis parameters (see Metis Manual)                            Default: 0                        IN    */
-    IPARM_METIS_SEED,            /**< Metis parameters (see Metis Manual)                            Default: 3452                     IN    */
-    IPARM_METIS_DBGLVL,          /**< Metis parameters (see Metis Manual)                            Default: 0                        IN    */
+    IPARM_METIS_CTYPE,           /**< Metis parameters (see Metis Manual)                            Default: METIS_CTYPE_SHEM          IN  */
+    IPARM_METIS_RTYPE,           /**< Metis parameters (see Metis Manual)                            Default: METIS_RTYPE_SEP1SIDED     IN  */
+    IPARM_METIS_NO2HOP,          /**< Metis parameters (see Metis Manual)                            Default: 0                         IN  */
+    IPARM_METIS_NSEPS,           /**< Metis parameters (see Metis Manual)                            Default: 1                         IN  */
+    IPARM_METIS_NITER,           /**< Metis parameters (see Metis Manual)                            Default: 10                        IN  */
+    IPARM_METIS_UFACTOR,         /**< Metis parameters (see Metis Manual)                            Default: 200                       IN  */
+    IPARM_METIS_COMPRESS,        /**< Metis parameters (see Metis Manual)                            Default: 1                         IN  */
+    IPARM_METIS_CCORDER,         /**< Metis parameters (see Metis Manual)                            Default: 0                         IN  */
+    IPARM_METIS_PFACTOR,         /**< Metis parameters (see Metis Manual)                            Default: 0                         IN  */
+    IPARM_METIS_SEED,            /**< Metis parameters (see Metis Manual)                            Default: 3452                      IN  */
+    IPARM_METIS_DBGLVL,          /**< Metis parameters (see Metis Manual)                            Default: 0                         IN  */
 
     /* Symbolic Factorization */
-    IPARM_SF_KASS,               /**< Force KASS instead of Fax to perform symbolic factorization    Default: 0                        IN    */
-    IPARM_AMALGAMATION_LVLBLAS,  /**< Amalgamation level                                             Default: 5                        IN    */
-    IPARM_AMALGAMATION_LVLCBLK,  /**< Amalgamation level                                             Default: 5                        IN    */
+    IPARM_SF_KASS,               /**< Force KASS instead of Fax to perform symbolic factorization    Default: 0                         IN  */
+    IPARM_AMALGAMATION_LVLBLAS,  /**< Amalgamation level                                             Default: 5                         IN  */
+    IPARM_AMALGAMATION_LVLCBLK,  /**< Amalgamation level                                             Default: 5                         IN  */
 
     /* Reordering */
-    IPARM_REORDERING_SPLIT,      /**< Reordering split level                                         Default: 0                        IN    */
-    IPARM_REORDERING_STOP,       /**< Reordering stop criteria                                       Default: PASTIX_INT_MAX           IN    */
+    IPARM_REORDERING_SPLIT,      /**< Reordering split level                                         Default: 0                         IN  */
+    IPARM_REORDERING_STOP,       /**< Reordering stop criteria                                       Default: PASTIX_INT_MAX            IN  */
 
     /* Analyze */
-    IPARM_MIN_BLOCKSIZE,         /**< Minimum block size                                             Default: 160                      IN    */
-    IPARM_MAX_BLOCKSIZE,         /**< Maximum block size                                             Default: 320                      IN    */
-    IPARM_TASKS2D_LEVEL,         /**< 2D Distribution level (-1 for autolevel, 0 for 1D)             Default: -1                       IN    */
-    IPARM_TASKS2D_WIDTH,         /**< Minimal width for 2D tasks with autolevel                      Default: IPARM_MIN_BLOCKSIZE      IN    */
-    IPARM_ABS,                   /**< ABS level (Automatic Blocksize Splitting)                      Default: 0                        IN    */
-    IPARM_ALLCAND,               /**< Allow all threads to be candidate in the proportional mapping  Default: 0                        IN    */
+    IPARM_MIN_BLOCKSIZE,         /**< Minimum block size                                             Default: 160                       IN  */
+    IPARM_MAX_BLOCKSIZE,         /**< Maximum block size                                             Default: 320                       IN  */
+    IPARM_TASKS2D_LEVEL,         /**< 2D Distribution level (-1 for autolevel, 0 for 1D)             Default: -1                        IN  */
+    IPARM_TASKS2D_WIDTH,         /**< Minimal width for 2D tasks with autolevel                      Default: IPARM_MIN_BLOCKSIZE       IN  */
+    IPARM_ABS,                   /**< ABS level (Automatic Blocksize Splitting)                      Default: 0                         IN  */
+    IPARM_ALLCAND,               /**< Allow all threads to be candidate in the proportional mapping  Default: 0                         IN  */
 
     /* Incomplete */
-    IPARM_INCOMPLETE,            /**< Incomplete factorization                                       Default: 0                        IN    */
-    IPARM_LEVEL_OF_FILL,         /**< Level of fill for incomplete factorization                     Default: 0                        IN    */
+    IPARM_INCOMPLETE,            /**< Incomplete factorization                                       Default: 0                         IN  */
+    IPARM_LEVEL_OF_FILL,         /**< Level of fill for incomplete factorization                     Default: 0                         IN  */
 
     /* Factorization */
-    IPARM_FACTORIZATION,         /**< Factorization mode                                             Default: PastixFactLU             IN    */
-    IPARM_STATIC_PIVOTING,       /**< Static pivoting                                                Default: -                        OUT   */
-    IPARM_FREE_CSCUSER,          /**< Free user CSC                                                  Default: 0                        IN    */
-    IPARM_SCHUR_FACT_MODE,       /**< Specify if the Schur is factorized (@see pastix_fact_mode_t)   Default: PastixFactModeLocal      IN    */
+    IPARM_FACTORIZATION,         /**< Factorization mode                                             Default: PastixFactLU              IN  */
+    IPARM_STATIC_PIVOTING,       /**< Static pivoting                                                Default: -                         OUT */
+    IPARM_FREE_CSCUSER,          /**< Free user CSC                                                  Default: 0                         IN  */
+    IPARM_SCHUR_FACT_MODE,       /**< Specify if the Schur is factorized (@see pastix_fact_mode_t)   Default: PastixFactModeLocal       IN  */
 
     /* Solve */
-    IPARM_SCHUR_SOLV_MODE,       /**< Specify the solve parts to apply (@see pastix_solv_mode_t)     Default: PastixSolvModeLocal      IN    */
-    IPARM_APPLYPERM_WS,          /**< Enable/disable extra workspace for a thread-safe swap          Default: 1                        IN    */
+    IPARM_SCHUR_SOLV_MODE,       /**< Specify the solve parts to apply (@see pastix_solv_mode_t)     Default: PastixSolvModeLocal       IN  */
+    IPARM_APPLYPERM_WS,          /**< Enable/disable extra workspace for a thread-safe swap          Default: 1                         IN  */
 
     /* Refinement */
-    IPARM_REFINEMENT,            /**< Refinement mode                                                Default: PastixRefineGMRES        IN    */
-    IPARM_NBITER,                /**< Number of iterations performed in refinement                   Default: -                        OUT   */
-    IPARM_ITERMAX,               /**< Maximum iteration number for refinement                        Default: 250                      IN    */
-    IPARM_GMRES_IM,              /**< GMRES restart parameter                                        Default: 25                       IN    */
+    IPARM_REFINEMENT,            /**< Refinement mode                                                Default: PastixRefineGMRES         IN  */
+    IPARM_NBITER,                /**< Number of iterations performed in refinement                   Default: -                         OUT */
+    IPARM_ITERMAX,               /**< Maximum iteration number for refinement                        Default: 250                       IN  */
+    IPARM_GMRES_IM,              /**< GMRES restart parameter                                        Default: 25                        IN  */
 
     /* Context */
-    IPARM_SCHEDULER,             /**< Scheduler mode                                                 Default: PastixSchedStatic        IN    */
-    IPARM_THREAD_NBR,            /**< Number of threads per process (-1 for auto detect)             Default: -1                       IN    */
-    IPARM_AUTOSPLIT_COMM,        /**< Automaticaly split communicator to have one MPI task by node   Default: 0                        IN    */
+    IPARM_SCHEDULER,             /**< Scheduler mode                                                 Default: PastixSchedStatic         IN  */
+    IPARM_THREAD_NBR,            /**< Number of threads per process (-1 for auto detect)             Default: -1                        IN  */
+    IPARM_AUTOSPLIT_COMM,        /**< Automaticaly split communicator to have one MPI task by node   Default: 0                         IN  */
 
     /* GPU */
-    IPARM_GPU_NBR,               /**< Number of GPU devices                                          Default: 0                        IN    */
-    IPARM_GPU_MEMORY_PERCENTAGE, /**< Maximum percentage of the GPU memory used by the solver        Default: 95                       IN    */
-    IPARM_GPU_MEMORY_BLOCK_SIZE, /**< Size of GPU memory pages (for PaRSEC runtime)                  Default: 32 * 1024                IN    */
+    IPARM_GPU_NBR,               /**< Number of GPU devices                                          Default: 0                         IN  */
+    IPARM_GPU_MEMORY_PERCENTAGE, /**< Maximum percentage of the GPU memory used by the solver        Default: 95                        IN  */
+    IPARM_GPU_MEMORY_BLOCK_SIZE, /**< Size of GPU memory pages (for PaRSEC runtime)                  Default: 32 * 1024                 IN  */
 
     /* Compression */
-    IPARM_COMPRESS_MIN_WIDTH,    /**< Minimum width to compress a supernode                          Default: 120                      IN    */
-    IPARM_COMPRESS_MIN_HEIGHT,   /**< Minimum height to compress an off-diagonal block               Default: 20                       IN    */
-    IPARM_COMPRESS_WHEN,         /**< When to compress a supernode                                   Default: PastixCompressNever      IN    */
-    IPARM_COMPRESS_METHOD,       /**< Compression method (SVD/RRQR)                                  Default: PastixCompressMethodRRQR IN    */
-    IPARM_COMPRESS_ORTHO,        /**< Orthogonalization method                                       Default: PastixCompressOrthoCGS   IN    */
+    IPARM_COMPRESS_MIN_WIDTH,    /**< Minimum width to compress a supernode                          Default: 120                       IN  */
+    IPARM_COMPRESS_MIN_HEIGHT,   /**< Minimum height to compress an off-diagonal block               Default: 20                        IN  */
+    IPARM_COMPRESS_WHEN,         /**< When to compress a supernode                                   Default: PastixCompressNever       IN  */
+    IPARM_COMPRESS_METHOD,       /**< Compression method (See pastix_compress_method_t)              Default: PastixCompressMethodPQRCP IN  */
+    IPARM_COMPRESS_ORTHO,        /**< Orthogonalization method                                       Default: PastixCompressOrthoCGS    IN  */
 
     /* MPI modes */
-    IPARM_THREAD_COMM_MODE,      /**< Threaded communication mode                                    Default: PastixThreadMultiple     IN    */
+    IPARM_THREAD_COMM_MODE,      /**< Threaded communication mode                                    Default: PastixThreadMultiple      IN  */
 
     /* Subset for old interface */
-    IPARM_MODIFY_PARAMETER,      /**< Indicate if parameters have been set by user                   Default: 1                        IN    */
-    IPARM_START_TASK,            /**< Indicate the first step to execute                             Default: PastixTaskOrdering       IN    */
-    IPARM_END_TASK,              /**< Indicate the last step to execute                              Default: PastixTaskClean          IN    */
-    IPARM_FLOAT,                 /**< Indicate the arithmetics                                       Default: PastixDouble             IN    */
-    IPARM_MTX_TYPE,              /**< Indicate matrix format                                         Default: -1                       IN    */
-    IPARM_DOF_NBR,               /**< Degree of freedom per node                                     Default: 1                        IN    */
+    IPARM_MODIFY_PARAMETER,      /**< Indicate if parameters have been set by user                   Default: 1                         IN  */
+    IPARM_START_TASK,            /**< Indicate the first step to execute                             Default: PastixTaskOrdering        IN  */
+    IPARM_END_TASK,              /**< Indicate the last step to execute                              Default: PastixTaskClean           IN  */
+    IPARM_FLOAT,                 /**< Indicate the arithmetics                                       Default: PastixDouble              IN  */
+    IPARM_MTX_TYPE,              /**< Indicate matrix format                                         Default: -1                        IN  */
+    IPARM_DOF_NBR,               /**< Degree of freedom per node                                     Default: 1                         IN  */
     IPARM_SIZE
 } pastix_iparm_t;
-
 
 /**
  * @brief Float parameters
@@ -341,7 +340,10 @@ typedef enum pastix_compress_when_e {
  */
 typedef enum pastix_compress_method_e {
     PastixCompressMethodSVD,
-    PastixCompressMethodRRQR
+    PastixCompressMethodPQRCP,
+    PastixCompressMethodRQRCP,
+    PastixCompressMethodTQRCP,
+    PastixCompressMethodNbr
 } pastix_compress_method_t;
 
 /**

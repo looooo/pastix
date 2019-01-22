@@ -202,8 +202,11 @@ class compress_when:
     During = 3
 
 class compress_method:
-    SVD  = 0
-    RRQR = 1
+    SVD   = 0
+    PQRCP = 1
+    RQRCP = 2
+    TQRCP = 3
+    Nbr   = 4
 
 class compress_ortho:
     OrthoCGS       = 0
