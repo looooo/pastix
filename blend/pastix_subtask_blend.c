@@ -45,7 +45,7 @@
  * information is stored in the solver structure.
  *
  * This routine is affected by, or returns, the following parameters:
- *   IPARM_ABS, IPARM_CUDA_NBR, IPARM_TASKS2D_LEVEL, IPARM_TASKS2D_WIDTH,
+ *   IPARM_CUDA_NBR, IPARM_TASKS2D_LEVEL, IPARM_TASKS2D_WIDTH,
  *   IPARM_COMPRESS_WHEN, IPARM_COMPRESS_MIN_WIDTH, IPARM_DOF_NBR,
  *   IPARM_FACTORIZATION, IPARM_FLOAT, IPARM_GPU_CRITERIUM,
  *   IPARM_GPU_MEMORY_PERCENTAGE, IPARM_GPU_NBR, IPARM_INCOMPLETE,
@@ -198,6 +198,30 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         pastixSymbolCheck(symbmtx);
     }
 
+#if !defined(PASTIX_BLEND_PROPMAP_2STEPS)
+    /*
+     * Split the existing symbol matrix according to the number of candidates
+     * and cblk types.
+     * It takes the original symbol and candtab, and return the new symbol and
+     * candtab. If the symbmtx is modified, the costmtx is updated, as well as
+     * the tree.
+     */
+    {
+        if( verbose > PastixVerboseYes ) {
+            pastix_print( procnum, 0, OUT_BLEND_SPLITSYMB );
+        }
+        clockStart(timer_current);
+
+        splitSymbol(&ctrl, symbmtx);
+
+        clockStop(timer_current);
+        if( verbose > PastixVerboseNo ) {
+            pastix_print( procnum, 0, OUT_BLEND_SPLITSYMB_TIME,
+                          clockVal(timer_current) );
+        }
+    }
+#endif
+
     /* Build the elimination tree from the symbolic partition */
     {
         if( verbose > PastixVerboseYes) {
@@ -279,6 +303,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         }
     }
 
+#if defined(PASTIX_BLEND_PROPMAP_2STEPS)
     /* Dump the dot of the eTree before split */
     if ( verbose > PastixVerboseYes ) {
         FILE *stream = NULL;
@@ -308,7 +333,9 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         }
         clockStart(timer_current);
 
+        ctrl.up_after_split = 1;
         splitSymbol(&ctrl, symbmtx);
+        ctrl.up_after_split = 0;
 
         clockStop(timer_current);
         if( verbose > PastixVerboseNo ) {
@@ -332,6 +359,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
             fclose(stream);
         }
     }
+#endif
 
     if(ctrl.count_ops && (ctrl.leader == procnum)) {
         pastixSymbolGetFlops( symbmtx,

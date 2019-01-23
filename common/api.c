@@ -323,7 +323,6 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_MAX_BLOCKSIZE]         = 320;
     iparm[IPARM_TASKS2D_LEVEL]         = -1;
     iparm[IPARM_TASKS2D_WIDTH]         = iparm[IPARM_MIN_BLOCKSIZE];
-    iparm[IPARM_ABS]                   = 0;
     iparm[IPARM_ALLCAND]               = 0;
 
     /* Incomplete */

@@ -40,6 +40,7 @@ typedef struct simu_proc_s {
     pastix_queue_t  *readytask;  /**< Heap of tasks ready to be executed                                */
     pastix_queue_t  *futuretask; /**< Heap of tasks ready to be executed in a near future (after timer) */
     ExtendVectorINT *tasktab;    /**< Vector to store tasks affected to the candidate                   */
+    char            *procalias;  /**< Paje trace alias to the processor if PASTIX_BLEND_GENTRACE is eenabled */
 } SimuProc;
 
 /**

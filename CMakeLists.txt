@@ -129,6 +129,8 @@ option(PASTIX_SYMBOL_DUMP_SYMBMTX
 # Analyze step options
 option(PASTIX_BLEND_DEEPEST_DISTRIB
   "Enable the candidate distribution to go to the deepest node matching the criteria" ON)
+option(PASTIX_BLEND_PROPMAP_2STEPS
+  "Enable the two stages proportionnal mapping" OFF)
 
 # Numerical factorization options
 option(PASTIX_NUMFACT_DUMP_SOLVER
