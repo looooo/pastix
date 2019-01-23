@@ -73,7 +73,6 @@ typedef enum pastix_iparm_e {
     IPARM_MAX_BLOCKSIZE,         /**< Maximum block size                                             Default: 320                       IN  */
     IPARM_TASKS2D_LEVEL,         /**< 2D Distribution level (-1 for autolevel, 0 for 1D)             Default: -1                        IN  */
     IPARM_TASKS2D_WIDTH,         /**< Minimal width for 2D tasks with autolevel                      Default: IPARM_MIN_BLOCKSIZE       IN  */
-    IPARM_ABS,                   /**< ABS level (Automatic Blocksize Splitting)                      Default: 0                         IN  */
     IPARM_ALLCAND,               /**< Allow all threads to be candidate in the proportional mapping  Default: 0                         IN  */
 
     /* Incomplete */

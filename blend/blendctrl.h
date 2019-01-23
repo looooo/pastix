@@ -52,8 +52,7 @@ typedef struct blendctrl_s {
     pastix_int_t    abs;             /**< Adaptative block size:
                                             - 0, all block are cut to blcolmin
                                             - >0, try to make (ncand*abs) cblk                              */
-    pastix_int_t    updatecandtab;   /**< Update the candtab array after splitting, otherwise each new cblk
-                                          has the same properties as the original one                       */
+    pastix_int_t    up_after_split;  /**< Update the costmtx and candtab arrays after splitting the symbol  */
 
     /**
      * @}

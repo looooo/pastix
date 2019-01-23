@@ -144,7 +144,7 @@ getCommunicationCosts( const BlendCtrl *ctrl,
  * @param[inout] pastix_data
  *          The pastix_data structure of the problem instance.  Integer
  *          parameters that are used to build the Blend control
- *          structure. IPARM_ABS, IPARM_TASKS2D_LEVEL, IPARM_TASKS2D_WIDTH,
+ *          structure. IPARM_TASKS2D_LEVEL, IPARM_TASKS2D_WIDTH,
  *          IPARM_COMPRESS_WHEN, IPARM_COMPRESS_MIN_WIDTH, IPARM_INCOMPLETE,
  *          IPARM_MAX_BLOCKSIZE, IPARM_MIN_BLOCKSIZE, IPARM_THREAD_NBR, and
  *          IPARM_VERBOSE are used in this function.
@@ -227,8 +227,7 @@ blendCtrlInit( pastix_data_t *pastix_data,
     /* Spliting options */
     ctrl->blcolmin = iparm[IPARM_MIN_BLOCKSIZE];
     ctrl->blcolmax = iparm[IPARM_MAX_BLOCKSIZE];
-    ctrl->abs      = iparm[IPARM_ABS];
-    ctrl->updatecandtab = 0; /* TODO: Set to 1 to match former version of PaStiX, move back to 0 */
+    ctrl->up_after_split = 0;
     if(ctrl->blcolmin > ctrl->blcolmax)
     {
         errorPrint("Parameter error : blocksize max < blocksize min (cf. iparm.txt).");

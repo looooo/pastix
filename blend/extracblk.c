@@ -227,8 +227,12 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
 
     symbol_matrix_t *oldsymb;
 
+#if defined(PASTIX_BLEND_PROPMAP_2STEPS)
     Cand *oldcand = *candtab;
     Cand *newcand;
+#else
+    (void)candtab;
+#endif
 
     symbol_cblk_t *curcblk;
     symbol_blok_t *curblok;
@@ -248,11 +252,13 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
 
     newsymb->browtab = NULL;
 
+#if defined(PASTIX_BLEND_PROPMAP_2STEPS)
     /* Allocate new candtab */
     newcand = candInit( newsymb->cblknbr );
 
     /* Copy the root cand */
     newcand[-1] = oldcand[-1];
+#endif
 
     /*
      * We use the sptcbnb array to get the new numbering of the former cblk
@@ -340,9 +346,11 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
                             oldsymb->cblktab + lastcblksplit,
                             nbcblk2copy * sizeof(symbol_cblk_t) );
 
+#if defined(PASTIX_BLEND_PROPMAP_2STEPS)
                     memcpy( newcand + newnum[ lastcblksplit ],
                             oldcand + lastcblksplit,
                             nbcblk2copy * sizeof(Cand) );
+#endif
                 }
 
                 /* Copy the new cblk from extracblk */
@@ -358,8 +366,10 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
                     assert( (extranewnum[sptcblk] >= 0) &&
                             (extranewnum[sptcblk] <  newsymb->cblknbr) );
 
+#if defined(PASTIX_BLEND_PROPMAP_2STEPS)
                     memcpy( newcand + extranewnum[ sptcblk ],
                             oldcand + i, sizeof(Cand) );
+#endif
                 }
 
                 lastcblksplit = i;
@@ -378,11 +388,17 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
                 oldsymb->cblktab + lastcblksplit,
                 nbcblk2copy * sizeof(symbol_cblk_t) );
 
+#if defined(PASTIX_BLEND_PROPMAP_2STEPS)
         memcpy( newcand + newnum[ lastcblksplit ],
                 oldcand + lastcblksplit,
                 nbcblk2copy * sizeof(Cand) );
+#endif
     }
+
+#if defined(PASTIX_BLEND_PROPMAP_2STEPS)
     candExit(oldcand);
+    *candtab = newcand;
+#endif
 
     /* Allocate new bloktab */
     newsymb->bloknbr = oldsymb->bloknbr + addblok;
@@ -496,8 +512,6 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
     curcblk[0].bloknum = curbloknum;
 
     pastixSymbolBuildRowtab( newsymb );
-
-    *candtab = newcand;
 
     return;
 }

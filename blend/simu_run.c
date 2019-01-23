@@ -39,6 +39,23 @@
 
 #if defined(PASTIX_BLEND_GENTRACE)
 #include <GTG.h>
+
+static inline trace_return_t
+blendAddVar(varPrec time, const char*  type,
+            const char*  cont, varPrec val) {
+    return addVar( time, type, cont, val );
+}
+static inline trace_return_t
+blendSubVar(varPrec time, const char*  type,
+            const char*  cont, varPrec val) {
+    return subVar( time, type, cont, val );
+}
+
+#else
+
+#define blendAddVar( time, type, cont, val ) do {} while(0)
+#define blendSubVar( time, type, cont, val ) do {} while(0)
+
 #endif
 
 /**
@@ -285,6 +302,8 @@ simu_putInAllReadyQueues( const BlendCtrl *ctrl,
 
     assert( tasknum != -1 );
 
+    blendAddVar( timerVal( &(task->time) ), "VR_AP", "Appli", 1 );
+
     /* Get the ready date of the task on the processor passed in parameter */
     if( cblkcand->fccandnum == cblkcand->lccandnum )
     {
@@ -294,12 +313,13 @@ simu_putInAllReadyQueues( const BlendCtrl *ctrl,
         for(procnum =  cblkcand->fcandnum;
             procnum <= cblkcand->lcandnum; procnum++, sproc++)
         {
-            if(ready_date > timerVal(TIMER(procnum))) {
+            if( ready_date > timerVal( &(sproc->timer) ) ) {
                 pqueuePush2( sproc->futuretask, tasknum, ready_date, treelevel);
             }
             else {
                 pqueuePush2( sproc->readytask, tasknum, treelevel, bloknum);
             }
+            blendAddVar( ready_date, "VR_TS", sproc->procalias, 1 );
         }
     }
     else
@@ -311,12 +331,13 @@ simu_putInAllReadyQueues( const BlendCtrl *ctrl,
         {
             ready_date = timerVal( simuctrl->ftgttimetab + CLUST2INDEX(bloknum, ctrl->core2clust[procnum]) );
 
-            if(ready_date > timerVal(TIMER(procnum))) {
+            if(ready_date > timerVal( &(sproc->timer) )) {
                 pqueuePush2( sproc->futuretask, tasknum, ready_date, treelevel);
             }
             else {
                 pqueuePush2( sproc->readytask, tasknum, treelevel, bloknum);
             }
+            blendAddVar( ready_date, "VR_TS", sproc->procalias, 1 );
         }
     }
 }
@@ -366,18 +387,19 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
     /* Find the earlier task in the processor heaps */
     for(p=0;p<ctrl->total_nbcores;p++)
     {
+        SimuProc *sproc = &(simuctrl->proctab[p]);
         tasknum = -1;
         /*
          * First we search the earlier task in the set of task whose ready date
          * is < proc timer
          */
-        while(pqueueSize(simuctrl->proctab[p].readytask)>0)
+        while( pqueueSize(sproc->readytask) > 0 )
         {
-            tasknum = pqueueRead(simuctrl->proctab[p].readytask);
+            tasknum = pqueueRead( sproc->readytask );
             if( simuctrl->bloktab[simuctrl->tasktab[tasknum].bloknum].ownerclust >= 0 )
             {
                 /* This task have to be remove from the heap (already mapped) */
-                pqueuePop(simuctrl->proctab[p].readytask);
+                pqueuePop( sproc->readytask );
                 tasknum = -1;
             }
             else
@@ -406,8 +428,12 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
 
         if(tasknum != -1)
         {
+            const SimuTask *task = simuctrl->tasktab + tasknum;
             timeready = MAX(timerVal(TIMER(p)),
-                            timerVal(&(simuctrl->ftgttimetab[CLUST2INDEX(simuctrl->tasktab[tasknum].bloknum, ctrl->core2clust[p])])));
+                            timerVal(&(simuctrl->ftgttimetab[CLUST2INDEX(simuctrl->tasktab[tasknum].bloknum,
+                                                                         ctrl->core2clust[p])])));
+
+            timeready = MAX( timeready, timerVal( &(task->time) ) );
 
             /*
              * We prevent to distribute on the same processor set when all time
@@ -429,17 +455,35 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
             }
         }
     }
+
+#if defined(PASTIX_BLEND_GENTRACE)
+    if ( earlytask != -1 ) {
+        const SimuTask *task     = simuctrl->tasktab + earlytask;
+        const Cand     *cblkcand = ctrl->candtab + task->cblknum;
+        SimuProc       *sproc    = &(simuctrl->proctab[cblkcand->fcandnum]);
+
+        for(p =  cblkcand->fcandnum;
+            p <= cblkcand->lcandnum; p++, sproc++)
+        {
+            blendSubVar( earlytimeready, "VR_TS", sproc->procalias, 1 );
+        }
+
+        blendSubVar( earlytimeready, "VR_AP", "Appli", 1 );
+    }
+#endif
+
+#if !defined(NDEBUG)
     if(procnum != -1)
     {
-        if(pqueueSize(simuctrl->proctab[procnum].readytask)>0)
-        {
+        if( pqueueSize(simuctrl->proctab[procnum].readytask) > 0 ) {
             assert(earlytask == pqueuePop(simuctrl->proctab[procnum].readytask));
         }
-        else
-        {
+        else {
             assert(earlytask == pqueuePop(simuctrl->proctab[procnum].futuretask));
         }
     }
+#endif
+
     *procnumptr = procnum;
     return earlytask;
 }
@@ -802,6 +846,7 @@ simu_pushToReadyHeap( const BlendCtrl *ctrl,
                       pastix_int_t     procnum )
 {
     SimuProc    *sproc;
+    SimuTimer   *timer;
     pastix_int_t tasknum;
     pastix_int_t cblknum;
     pastix_int_t clustnum;
@@ -816,9 +861,9 @@ simu_pushToReadyHeap( const BlendCtrl *ctrl,
     while( pqueueSize(sproc->futuretask) > 0 )
     {
         tasknum = pqueueRead(sproc->futuretask);
+        timer = &(simuctrl->ftgttimetab[CLUST2INDEX(simuctrl->tasktab[tasknum].bloknum, clustnum )]);
 
-        if(! timerComp( &(sproc->timer),
-                        &(simuctrl->ftgttimetab[CLUST2INDEX(simuctrl->tasktab[tasknum].bloknum, clustnum )])) )
+        if(! timerComp( &(sproc->timer), timer ) )
         {
             tasknum = pqueuePop(sproc->futuretask);
             cblknum = simuctrl->tasktab[tasknum].cblknum;
@@ -900,6 +945,8 @@ simuRun( SimuCtrl              *simuctrl,
         addContType ("CT_P",     "CT_Appli", "Process"     );
         addContType ("CT_T",     "CT_P",     "Thread"      );
         addStateType("ST_TS",    "CT_T",     "Thread State");
+        addVarType  ("VR_TS", "Ready tasks per thread",  "CT_T" );
+        addVarType  ("VR_AP", "Ready tasks", "CT_Appli" );
 
         addLinkType ("LT_TL", "Split Event Link", "CT_P", "CT_T", "CT_T");
 
@@ -910,7 +957,11 @@ simuRun( SimuCtrl              *simuctrl,
         addEntityValue ("Wait", "ST_TS", "Waiting",   GTG_LIGHTGREY);
         addEntityValue ("Comp", "ST_TS", "Computing", GTG_RED);
 
+        setVar( 0.0, "VR_AP", "Appli", 0 );
+
         /* Add each process and thread */
+        SimuProc *sproc = simuctrl->proctab;
+
         procnames = (char**) malloc ( ctrl->total_nbthrds * sizeof(char*) );
         pr = 0;
         for (i=0; i<ctrl->clustnbr; i++) {
@@ -921,20 +972,23 @@ simuRun( SimuCtrl              *simuctrl,
             rc = asprintf( &clustalias, "P%d", (int)i); assert(rc!=-1);
             addContainer (0.00000, clustalias, "CT_P", "Appli", clustname, "");
 
-            for (j=0; j<ctrl->local_nbthrds; j++, pr++) {
+            for (j=0; j<ctrl->local_nbthrds; j++, pr++, sproc++) {
                 char *procname;
                 char *procalias;
 
                 rc = asprintf( &procname, "Thread %02d", (int)pr); assert(rc!=-1);
                 rc = asprintf( &procalias, "T%d", (int)pr); assert(rc!=-1);
                 addContainer (0.00000, procalias, "CT_T", clustname, procname, "");
+                setVar( 0.0, "VR_TS", procalias, pqueueSize( sproc->readytask ) );
 
+                sproc->procalias = procalias;
                 procnames[pr] = procalias;
                 free(procname);
             }
 
             free(clustname); free(clustalias);
         }
+        (void)rc;
     }
 #endif /* defined(PASTIX_BLEND_GENTRACE) */
 
