@@ -663,6 +663,7 @@ set(PASTIX_LIB_SRCS
   #
   order/order.c
   order/order_add_isolate.c
+  order/order_amalgamate.c
   order/order_apply_level_order.c
   order/order_check.c
   order/order_find_supernodes.c
@@ -670,8 +671,11 @@ set(PASTIX_LIB_SRCS
   order/order_io.c
   order/pastix_subtask_order.c
   #
+  symbol/fax_csr.c
+  symbol/fax_csr_amalgamate.c
+  symbol/fax_csr_direct.c
+  symbol/fax_csr_iluk.c
   symbol/symbol.c
-  symbol/symbol_amalgamate.c
   symbol/symbol_base.c
   symbol/symbol_check.c
   symbol/symbol_cost.c
@@ -679,13 +683,9 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_cost_perfs.c
   symbol/symbol_draw.c
   symbol/symbol_expand.c
-  symbol/symbol_fax_graph.c
+  symbol/symbol_fax_direct.c
+  symbol/symbol_fax_iluk.c
   symbol/symbol_io.c
-  symbol/symbol_kass.c
-  symbol/symbol_kass_build.c
-  symbol/symbol_kass_csr.c
-  symbol/symbol_kass_direct.c
-  symbol/symbol_kass_level.c
   symbol/symbol_reorder.c
   symbol/symbol_reordering.c
   symbol/pastix_subtask_reordering.c
@@ -951,21 +951,26 @@ add_documented_files(
   #order/order_scotch_strats.h TODO: include in developer version
   order/order.c
   order/order_add_isolate.c
+  order/order_amalgamate.c
   order/order_apply_level_order.c
   order/order_check.c
   order/order_find_supernodes.c
+  order/order_grids.c
   order/order_io.c
   order/order_compute_metis.c
   order/order_compute_ptscotch.c
   order/order_compute_scotch.c
   order/pastix_subtask_order.c
   #
+  symbol/fax_csr.h
   symbol/symbol.h
   symbol/symbol_cost.h  #TODO: include in developer version
   symbol/symbol_fax.h   #TODO: include in developer version
-  symbol/symbol_kass.h  #TODO: include in developer version
+  symbol/fax_csr.c
+  symbol/fax_csr_amalgamate.c
+  symbol/fax_csr_direct.c
+  symbol/fax_csr_iluk.c
   symbol/symbol.c
-  symbol/symbol_amalgamate.c
   symbol/symbol_base.c
   symbol/symbol_check.c
   symbol/symbol_cost.c
@@ -974,15 +979,11 @@ add_documented_files(
   symbol/symbol_draw.c
   symbol/symbol_expand.c
   #symbol/symbol_fax.c Not documented: template file
-  symbol/symbol_fax_graph.c
+  symbol/symbol_fax_direct.c
+  symbol/symbol_fax_iluk.c
   symbol/symbol_io.c
-  symbol/symbol_kass.c
-  symbol/symbol_kass_build.c
-  symbol/symbol_kass_csr.c
-  symbol/symbol_kass_direct.c
-  symbol/symbol_kass_level.c
-  symbol/symbol_reordering.c
   symbol/symbol_reorder.c
+  symbol/symbol_reordering.c
   symbol/pastix_subtask_reordering.c
   symbol/pastix_subtask_symbfact.c
   #

@@ -18,6 +18,7 @@
  */
 #ifndef _symbol_fax_h_
 #define _symbol_fax_h_
+
 /**
  * @brief Prime number for hashing vertex numbers.
  */

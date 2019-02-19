@@ -71,7 +71,6 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_metis_seed",            iparm)) { return IPARM_METIS_SEED; }
     if(0 == strcasecmp("iparm_metis_dbglvl",          iparm)) { return IPARM_METIS_DBGLVL; }
 
-    if(0 == strcasecmp("iparm_sf_kass",               iparm)) { return IPARM_SF_KASS; }
     if(0 == strcasecmp("iparm_amalgamation_lvlcblk",  iparm)) { return IPARM_AMALGAMATION_LVLCBLK; }
     if(0 == strcasecmp("iparm_amalgamation_lvlblas",  iparm)) { return IPARM_AMALGAMATION_LVLBLAS; }
 

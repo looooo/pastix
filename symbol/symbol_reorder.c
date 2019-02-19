@@ -31,7 +31,7 @@
  *
  *******************************************************************************
  *
- * @param[int, out] pastix_data
+ * @param[inout] pastix_data
  *          The pastix_data providing the scheduler, the symbolic structure,
  *          and the ordering providing by Scotch that will be updated with
  *          the new rows permutation for each supernode. It will also gives
@@ -119,7 +119,7 @@ struct args_reorder_t
  *          The context of the current thread. This provides information
  *          about total number of thread used and the rank of the current thread.
  *
- * @param[int, out] args
+ * @param[inout] args
  *          The argument for reordering functions.
  *
  *******************************************************************************/
@@ -185,7 +185,7 @@ thread_preorder_basic_stategy( isched_thread_t *ctx, void *args )
  *          The context of the current thread. This provides information
  *          about total number of thread used and the rank of the current thread.
  *
- * @param[int, out] args
+ * @param[inout] args
  *          The argument for reordering functions.
  *
  *******************************************************************************/
@@ -245,7 +245,7 @@ thread_preorder_zigzag_stategy( isched_thread_t *ctx, void *args )
  *          The context of the current thread. This provides information
  *          about total number of thread used and the rank of the current thread.
  *
- * @param[int, out] args
+ * @param[inout] args
  *          The argument for reordering functions.
  *
  *******************************************************************************/
@@ -303,7 +303,7 @@ cost( symbol_cblk_t *cblk )
  *          The context of the current thread. This provides information
  *          about total number of thread used and the rank of the current thread.
  *
- * @param[int, out] args
+ * @param[inout] args
  *          The argument for reordering functions.
  *
  *******************************************************************************/
@@ -368,7 +368,7 @@ order_tasks( isched_t              *ctx,
  *
  *******************************************************************************
  *
- * @param[int, out] pastix_data
+ * @param[inout] pastix_data
  *          The pastix_data providing the scheduler, the symbolic structure,
  *          and the ordering providing by Scotch that will be updated with
  *          the new rows permutation for each supernode. It will also gives
@@ -431,7 +431,7 @@ static void (*reorder_table[4])(pastix_data_t *, pastix_int_t , pastix_int_t *) 
  *
  *******************************************************************************
  *
- * @param[int, out] pastix_data
+ * @param[inout] pastix_data
  *          The pastix_data providing the scheduler, the symbolic structure,
  *          and the ordering providing by Scotch that will be updated with
  *          the new rows permutation for each supernode. It will also gives

@@ -55,6 +55,7 @@ types_dict = {
     "pastix_int_t":      ("__pastix_int__"),
     "pastix_data_t":     ("c_void"),
     "pastix_order_t":    ("c_void"),
+    "pastix_graph_t":    ("c_void"),
     "size_t":            ("c_size_t"),
     "char":              ("c_char"),
     "double":            ("c_double"),

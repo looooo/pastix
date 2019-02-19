@@ -310,7 +310,6 @@ pastixInitParam( pastix_int_t *iparm,
     }
 
     /* Symbolic factorization */
-    iparm[IPARM_SF_KASS]               = 0;
     iparm[IPARM_AMALGAMATION_LVLCBLK]  = 5;
     iparm[IPARM_AMALGAMATION_LVLBLAS]  = 5;
 
