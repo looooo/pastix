@@ -391,7 +391,7 @@ pastixSymbolPrintStats( const symbol_matrix_t *symbptr )
     symbol_cblk_t *cblk;
     symbol_blok_t *blok;
     pastix_int_t itercblk, dof;
-    pastix_int_t cblknbr, bloknbr;
+    pastix_int_t cblknbr, bloknbr, cblksel;
     pastix_int_t cblkmin, cblkmax;
     pastix_int_t blokmin, blokmax;
     double cblkavg1, blokavg1;
@@ -399,6 +399,7 @@ pastixSymbolPrintStats( const symbol_matrix_t *symbptr )
     size_t mem = 0;
 
     cblknbr  = symbptr->cblknbr;
+    cblksel  = 0;
     bloknbr  = symbptr->bloknbr - cblknbr;
     cblkmin  = PASTIX_INT_MAX;
     cblkmax  = 0;
@@ -419,6 +420,7 @@ pastixSymbolPrintStats( const symbol_matrix_t *symbptr )
 
         pastix_int_t colnbr = cblk->lcolnum - cblk->fcolnum + 1;
 
+        cblksel += cblk->selevtx;
         cblkmin = pastix_imin( cblkmin, colnbr );
         cblkmax = pastix_imax( cblkmax, colnbr );
         cblkavg1 += colnbr;
@@ -471,6 +473,12 @@ pastixSymbolPrintStats( const symbol_matrix_t *symbptr )
             (long)blokmin, (long)blokmax, blokavg1, blokavg2,
             pastix_print_value( mem ),
             pastix_print_unit( mem ) );
+
+    if ( cblksel > 0 ) {
+        fprintf( stdout,
+                 "      Number of selected cblk           %10ld\n",
+                 (long)cblksel );
+    }
 }
 
 /**

@@ -162,10 +162,12 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     }
 
     /* Free graph structure, we don't need it anymore */
+#if !defined(PASTIX_ORDER_DRAW_LASTSEP)
     if (pastix_data->graph != NULL) {
         graphExit( pastix_data->graph );
         memFree_null( pastix_data->graph );
     }
+#endif
 
     /* Cleanup the solver structure if we already computed it */
     if ( pastix_data->solvmatr != NULL ) {

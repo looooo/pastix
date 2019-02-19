@@ -11,7 +11,7 @@
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
- * @date 2018-07-16
+ * @date 2018-11-08
  *
  *
  * @addtogroup pastix_graph
@@ -69,8 +69,10 @@ void graphSave( pastix_data_t        *pastix_data,
  * @name Graph manipulation subroutines
  * @{
  */
-void graphSort      ( pastix_graph_t *graph );
-void graphNoDiag    ( pastix_graph_t *graph );
+int  graphCopy      ( pastix_graph_t       *graphdst,
+                      const pastix_graph_t *graphsrc );
+void graphSort      ( pastix_graph_t       *graph );
+void graphNoDiag    ( pastix_graph_t       *graph );
 int  graphSymmetrize(       pastix_int_t    n,
                       const pastix_int_t   *ia,
                       const pastix_int_t   *ja,
@@ -91,6 +93,37 @@ int  graphApplyPerm ( const pastix_graph_t *graphA,
                       const pastix_int_t   *perm,
                             pastix_graph_t *graphPA );
 
+int graphIsolateRange( const pastix_graph_t *graphIn,
+                       const pastix_order_t *order,
+		             pastix_graph_t *graphOut,
+                             pastix_int_t    fnode,
+                             pastix_int_t    lnode,
+                             pastix_int_t    distance );
+void graphComputeProjection( const pastix_graph_t *graph,
+                             const int            *vertlvl,
+                                   pastix_order_t *order,
+                             const pastix_graph_t *subgraph,
+                                   pastix_order_t *suborder,
+                                   pastix_int_t    fnode,
+                                   pastix_int_t    lnode,
+                                   pastix_int_t    sn_level,
+                                   pastix_int_t    distance,
+                                   pastix_int_t    maxdepth,
+                                   pastix_int_t    maxwidth,
+                                   pastix_int_t   *depthsze );
+
+pastix_int_t graphIsolateConnectedComponents( const pastix_graph_t *graph,
+                                              pastix_int_t         *comp_vtx,
+                                              pastix_int_t         *comp_sze );
+
+int graphComputeKway( const pastix_graph_t *graph,
+                      pastix_order_t       *order,
+                      pastix_int_t         *peritab,
+                      pastix_int_t         *comp_nbr,
+                      pastix_int_t         *comp_sze,
+                      pastix_int_t         *comp_vtx,
+                      pastix_int_t          comp_id,
+                      pastix_int_t          nbpart );
 /**
  * @}
  */

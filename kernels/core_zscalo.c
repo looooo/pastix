@@ -241,7 +241,7 @@ cpucblk_zscalo( pastix_trans_t      trans,
     }
 
     M = cblk->stride - N;
-    kernel_trace_stop( PastixKernelSCALOCblk, M, N, 0, (pastix_fixdbl_t)(M*N), time );
+    kernel_trace_stop( cblk->fblokptr->inlast, PastixKernelSCALOCblk, M, N, 0, (pastix_fixdbl_t)(M*N), time );
 }
 
 /**

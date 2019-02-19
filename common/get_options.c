@@ -77,6 +77,13 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_reordering_split",      iparm)) { return IPARM_REORDERING_SPLIT; }
     if(0 == strcasecmp("iparm_reordering_stop",       iparm)) { return IPARM_REORDERING_STOP; }
 
+    if(0 == strcasecmp("iparm_splitting_strategy",             iparm)) { return IPARM_SPLITTING_STRATEGY; }
+    if(0 == strcasecmp("iparm_splitting_levels_projections",   iparm)) { return IPARM_SPLITTING_LEVELS_PROJECTIONS; }
+    if(0 == strcasecmp("iparm_splitting_levels_kway",          iparm)) { return IPARM_SPLITTING_LEVELS_KWAY; }
+    if(0 == strcasecmp("iparm_splitting_projections_depth",    iparm)) { return IPARM_SPLITTING_PROJECTIONS_DEPTH; }
+    if(0 == strcasecmp("iparm_splitting_projections_distance", iparm)) { return IPARM_SPLITTING_PROJECTIONS_DISTANCE; }
+    if(0 == strcasecmp("iparm_splitting_projections_width", iparm))    { return IPARM_SPLITTING_PROJECTIONS_WIDTH; }
+
     if(0 == strcasecmp("iparm_min_blocksize",         iparm)) { return IPARM_MIN_BLOCKSIZE; }
     if(0 == strcasecmp("iparm_max_blocksize",         iparm)) { return IPARM_MAX_BLOCKSIZE; }
     if(0 == strcasecmp("iparm_tasks2d_level",         iparm)) { return IPARM_TASKS2D_LEVEL; }
@@ -282,6 +289,10 @@ parse_enums( const char *string )
 
     /* For retro-compatibility */
     if(0 == strcasecmp("pastixcompressmethodrrqr",  string)) { return PastixCompressMethodPQRCP;  }
+
+    if(0 == strcasecmp("pastixsplitnot",              string)) { return PastixSplitNot;             }
+    if(0 == strcasecmp("pastixsplitkway",             string)) { return PastixSplitKway;            }
+    if(0 == strcasecmp("pastixsplitkwayprojections",  string)) { return PastixSplitKwayProjections; }
 
     /* If the value is directly given without string */
     {

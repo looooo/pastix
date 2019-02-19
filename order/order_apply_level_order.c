@@ -36,10 +36,10 @@
  * @return the elimination tree structure associated to the ordering.
  *
  *******************************************************************************/
-static inline EliminTree *
+EliminTree *
 pastixOrderBuildEtree( const pastix_order_t *order )
 {
-    EliminTree *etree = NULL;
+    EliminTree  *etree = NULL;
     eTreeNode_t *enode;
     pastix_int_t i, fathnum;
 
@@ -61,7 +61,6 @@ pastixOrderBuildEtree( const pastix_order_t *order )
 
     return etree;
 }
-
 
 /**
  *******************************************************************************

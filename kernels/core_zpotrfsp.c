@@ -248,7 +248,7 @@ cpucblk_zpotrfsp1d_potrf( SolverMatrix       *solvmtx,
     core_zpotrfsp(ncols, L, stride, &nbpivots, criteria );
     kernel_trace_stop_lvl2( flops );
 
-    kernel_trace_stop( PastixKernelPOTRF, ncols, 0, 0, flops, time );
+    kernel_trace_stop( cblk->fblokptr->inlast, PastixKernelPOTRF, ncols, 0, 0, flops, time );
 
     if ( nbpivots ) {
         pastix_atomic_add_32b( &(solvmtx->nbpivots), nbpivots );
@@ -290,7 +290,7 @@ cpucblk_zpotrfsp1d_panel( SolverMatrix       *solvmtx,
 
     cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
                      PastixConjTrans, PastixNonUnit,
-                     cblk, L, L, &(solvmtx->lowrank) );
+                     cblk, L, L, solvmtx );
     return nbpivots;
 }
 

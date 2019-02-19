@@ -94,6 +94,11 @@ core_get_rklimit_begin( pastix_int_t M, pastix_int_t N ) {
     return ( pastix_lr_minratio * M * N ) / ( M + N );
 }
 
+static inline pastix_int_t
+core_get_rklimit_test( pastix_int_t M, pastix_int_t N ) {
+    return pastix_imin( M, N );
+}
+
 extern pastix_int_t (*core_get_rklimit)( pastix_int_t, pastix_int_t );
 
 struct pastix_lr_s;
@@ -154,7 +159,10 @@ typedef enum memory_stats_e {
     FR_InDiag  = 0, /**< Full-rank block, inside a diagonal block from non-split partition*/
     FR_OffDiag = 1, /**< Full-rank block, outside a diagonal block from non-split partition*/
     LR_InDiag  = 2, /**< Low-rank block, inside a diagonal block from non-split partition*/
-    LR_OffDiag = 3  /**< Low-rank block, outside a diagonal block from non-split partition*/
+    LR_OffDiag = 3, /**< Low-rank block, outside a diagonal block from non-split partition*/
+    LR_InSele  = 4, /**< Non-compressible block, outside a diagonal block from non-split partition*/
+    LR_OffSele = 5, /**< Non-compressible block, outside a diagonal block from non-split partition*/
+    LR_ToSele  = 6  /**< Non-compressible block, inside a diagonal block from non-split partition, that contributes to a selected cblk*/
 } memory_stats_t;
 
 /**

@@ -91,6 +91,7 @@ computeNbSplit( const BlendCtrl *ctrl,
         return 1;
     }
     nseq = width / blas_min_col;
+    //nseq = pastix_iceil( width, step );
 
     /* Make sure cblk are at least blas_min_col wide */
     if ( nseq > 1 && (width / nseq) < blas_min_col ) {
@@ -450,7 +451,8 @@ splitSmart( const BlendCtrl       *ctrl,
 
                 assert( (lcol >= fcol) && (lcol <= lcolnum) );
 
-                extraCblkAdd( extracblk, fcol, lcol );
+                extraCblkAdd( extracblk, fcol, lcol,
+                              symbmtx->cblktab[cblknum].selevtx );
                 nbcblk++;
 
                 /* pastix_print( 0, 0, "(%ld, %ld) ", */

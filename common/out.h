@@ -47,7 +47,13 @@
     "    Compress minimal width                %8ld\n"          \
     "    Compress minimal height               %8ld\n"          \
     "    Compress min ratio                    %8f\n"           \
-    "    Orthogonalization method              %8s\n"
+    "    Orthogonalization method              %8s\n"           \
+    "    Splitting Strategy                    %8s\n"           \
+    "    Levels of projections                 %8ld\n"          \
+    "    Levels of kway                        %8ld\n"          \
+    "    Projections distance                  %8ld\n"          \
+    "    Projections depth                     %8ld\n"          \
+    "    Projections width                     %8ld\n"
 
 #define OUT_STEP_ORDER                                          \
     "+-------------------------------------------------+\n"     \
@@ -267,6 +273,7 @@ pastix_print_error( const char *fmt, ... )
     va_start(arglist, fmt);
     vfprintf(stderr, fmt, arglist);
     va_end(arglist);
+    assert(0);
 }
 
 static inline void

@@ -215,8 +215,8 @@ core_ztrsmsp_2d( pastix_side_t             side,
  *          must be the coeftab of this column block.
  *          Next column blok must be accessible through cblk[1].
  *
- * @param[in] lowrank
- *          The structure with low-rank parameters.
+ * @param[in] solvmtx
+ *          The symbolic structure of pastix.
  *
  *******************************************************************************
  *
@@ -226,7 +226,7 @@ core_ztrsmsp_2d( pastix_side_t             side,
 static inline pastix_fixdbl_t
 core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                  pastix_trans_t trans, pastix_diag_t diag,
-                 SolverCblk *cblk, const pastix_lr_t *lowrank )
+                 SolverCblk *cblk, SolverMatrix *solvmtx )
 {
     const SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, lda;
@@ -235,6 +235,8 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
 
     pastix_fixdbl_t flops = 0.0;
     pastix_fixdbl_t flops_c;
+
+    pastix_lr_t *lowrank = &solvmtx->lowrank;
 
     N     = cblk->lcolnum - cblk->fcolnum + 1;
     fblok = cblk[0].fblokptr;  /* The diagonal block */
@@ -249,28 +251,35 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
     assert( cblk->cblktype & CBLK_COMPRESSED );
     assert( cblk->cblktype & CBLK_LAYOUT_2D  );
 
+    /* TODO: maybe do no try to compress first off-diagonal block as it is done in Minimal-Memory strategy? */
     for (blok=fblok+1; blok<lblok; blok++) {
 
         lrC = blok->LRblock + coef;
 
         /* Try to compress the block: compress_end version */
-        if ( lowrank->compress_when == PastixCompressWhenEnd )
-        {
+        if ( lowrank->compress_when == PastixCompressWhenEnd ){
 
             M = blok_rownbr(blok);
             if ( ( N > lowrank->compress_min_width  ) &&
                  ( M > lowrank->compress_min_height ) )
             {
-                pastix_lrblock_t C;
+                SolverCblk *fcblk = solvmtx->cblktab + blok->fcblknm;
+                if ( ( fcblk->selevtx == 0             ) ||
+                     ( fcblk->sndeidx != cblk->sndeidx ) )
+                {
+                    if ( ( blok != fblok+1 ) || ( fcblk->sndeidx != cblk->sndeidx ) ){
+                        pastix_lrblock_t C;
 
-                kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
-                flops_c = lowrank->core_ge2lr( lowrank->tolerance, -1,
-                                             M, N, lrC->u, M, &C );
-                kernel_trace_stop_lvl2_rank( flops_c, C.rk );
-                flops += flops_c;
+                        kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
+                        flops_c = lowrank->core_ge2lr( lowrank->tolerance, -1,
+                                                       M, N, lrC->u, M, &C );
+                        kernel_trace_stop_lvl2_rank( flops_c, C.rk );
+                        flops += flops_c;
 
-                core_zlrfree(lrC);
-                memcpy( lrC, &C, sizeof(pastix_lrblock_t) );
+                        core_zlrfree(lrC);
+                        memcpy( lrC, &C, sizeof(pastix_lrblock_t) );
+                    }
+                }
             }
         }
 
@@ -343,8 +352,8 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
  *
- * @param[in] lowrank
- *          The structure with low-rank parameters.
+ * @param[in] solvmtx
+ *          The symbolic structure of pastix.
  *
  *******************************************************************************/
 void
@@ -353,7 +362,7 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                        SolverCblk         *cblk,
                  const pastix_complex64_t *A,
                        pastix_complex64_t *C,
-                 const pastix_lr_t        *lowrank )
+                       SolverMatrix       *solvmtx )
 {
     if (  cblk[0].fblokptr + 1 < cblk[1].fblokptr )
     {
@@ -367,7 +376,7 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
             time  = kernel_trace_start( ktype );
 
             flops = core_ztrsmsp_lr( coef, side, uplo, trans, diag,
-                                     cblk, lowrank );
+                                     cblk, solvmtx );
         }
         else {
             if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
@@ -387,7 +396,7 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
             flops = FLOPS_ZTRSM( PastixRight, m, n );
         }
 
-        kernel_trace_stop( ktype, m, n, 0, flops, time );
+        kernel_trace_stop( cblk->fblokptr->inlast, ktype, m, n, 0, flops, time );
     }
 }
 
@@ -480,7 +489,7 @@ core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
         full_m += M;
     }
 
-    kernel_trace_stop( PastixKernelTRSMBlok2d,
+    kernel_trace_stop( cblk->fblokptr->inlast, PastixKernelTRSMBlok2d,
                        full_m, N, 0, flops, time );
     return;
 }
@@ -579,6 +588,7 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
                 pastix_fixdbl_t  flops;
                 pastix_lrblock_t C;
 
+                /* TODO: add preselected vertices here !!!  */
                 kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
                 flops = lowrank->core_ge2lr( lowrank->tolerance, -1,
                                              M, N, lrC->u, M, &C );
@@ -617,7 +627,7 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
         full_m += M;
     }
 
-    kernel_trace_stop( PastixKernelTRSMBlokLR,
+    kernel_trace_stop( cblk->fblokptr->inlast, PastixKernelTRSMBlokLR,
                        full_m, N, full_n, flops, time );
 }
 

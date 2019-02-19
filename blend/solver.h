@@ -43,6 +43,7 @@ typedef struct simuctrl_s SimuCtrl;
 #define CBLK_TASKS_2D   (1 << 2)
 #define CBLK_COMPRESSED (1 << 3)
 #define CBLK_IN_SCHUR   (1 << 4)
+#define CBLK_IN_LAST    (1 << 5)
 
 /**
  *@}
@@ -121,6 +122,7 @@ typedef struct solver_blok_s {
     pastix_int_t coefind;    /**< Index in coeftab                         */
     pastix_int_t browind;    /**< Index in browtab                         */
     int8_t       gpuid;      /**< Store on which GPU the block is computed */
+    int8_t       inlast;     /**< Index of the block among last separator (2), coupling with last separator (1) or other blocks (0) */
 
     /* LR structures */
     pastix_lrblock_t *LRblock; /**< Store the blok (L/U) in LR format. Allocated for the cblk. */
@@ -146,6 +148,7 @@ typedef struct solver_cblk_s  {
     void                *lcoeftab;   /**< Coefficients access vector              */
     void                *ucoeftab;   /**< Coefficients access vector              */
     void                *handler[2]; /**< Runtime data handler                    */
+    pastix_int_t         selevtx;    /**< Index to identify selected cblk for which intra-separator contributions are not compressed */
 } SolverCblk;
 
 struct parsec_sparse_matrix_desc_s;
@@ -226,6 +229,9 @@ struct solver_matrix_s {
     pastix_int_t *            proc2clust;           /*+ proc -> cluster                           +*/
     pastix_int_t              gridldim;             /*+ Dimensions of the virtual processors      +*/
     pastix_int_t              gridcdim;             /*+ grid if dense end block                   +*/
+
+    pastix_int_t             *selevtx;              /*+ Array to identify which cblk are pre-selected +*/
+
 };
 
 /**

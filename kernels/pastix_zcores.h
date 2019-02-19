@@ -130,7 +130,8 @@ void cpucblk_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_t
                       pastix_complex64_t *work, pastix_int_t lwork, const pastix_lr_t *lowrank );
 void cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                       pastix_trans_t trans, pastix_diag_t diag, SolverCblk *cblk,
-                      const pastix_complex64_t *A, pastix_complex64_t *C, const pastix_lr_t *lowrank );
+                      const pastix_complex64_t *A, pastix_complex64_t *C,
+                      SolverMatrix *solvmtx );
 void cpucblk_zscalo ( pastix_trans_t trans, SolverCblk *cblk, pastix_complex64_t *LD );
 
 void cpublok_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_trans_t trans,
@@ -234,15 +235,15 @@ int  cpucblk_zdiff    ( pastix_coefside_t    side,
  *    @name PastixComplex64 compression/uncompression routines
  *    @{
  */
-pastix_int_t cpucblk_zcompress  ( pastix_coefside_t side,
-                                  SolverCblk       *cblk,
-                                  pastix_lr_t       lowrank );
+pastix_int_t cpucblk_zcompress( const SolverMatrix *solvmtx,
+                                pastix_coefside_t   side,
+                                SolverCblk         *cblk );
 void         cpucblk_zuncompress( pastix_coefside_t side,
                                   SolverCblk       *cblk );
-void         cpucblk_zmemory    ( pastix_coefside_t   side,
-                                  const SolverMatrix *solvmtx,
-                                  const SolverCblk   *cblk,
-                                  pastix_int_t       *gain );
+void         cpucblk_zmemory    ( pastix_coefside_t  side,
+                                  SolverMatrix      *solvmtx,
+                                  SolverCblk        *cblk,
+                                  pastix_int_t      *gain );
 
 /**
  *     @}

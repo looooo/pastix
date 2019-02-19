@@ -258,6 +258,17 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     pastixSymbolBuildRowtab( pastix_data->symbmtx );
     pastixSymbolRealloc( pastix_data->symbmtx );
 
+    if ( ordemesh->selevtx != NULL ) {
+        symbol_matrix_t *symbmtx = pastix_data->symbmtx;
+        symbol_cblk_t   *cblk    = symbmtx->cblktab;
+        int8_t          *selevtx = ordemesh->selevtx;
+        pastix_int_t i;
+
+        for(i=0; i<symbmtx->cblknbr; i++, cblk++, selevtx++ ) {
+            cblk->selevtx = *selevtx;
+        }
+    }
+
 #if !defined( NDEBUG )
     if ( pastixOrderCheck( ordemesh ) != 0 ) {
         errorPrint( "pastix_subtask_symbfact: pastixOrderCheck on final ordering after symbolic "

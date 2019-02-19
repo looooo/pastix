@@ -195,9 +195,7 @@ solverMatrixGen( pastix_int_t           clustnum,
         symbol_blok_t *symbblok = symbmtx->bloktab;
         SimuBlok      *simublok = simuctrl->bloktab;
         Cand          *candcblk = ctrl->candtab;
-#if defined(PASTIX_SUPERNODE_STATS)
-        pastix_int_t  *sndetab = ordeptr->sndetab;
-#endif
+        pastix_int_t  *sndetab  = ordeptr->sndetab;
         pastix_int_t   blokamax = 0; /* Maximum area of a block in the global matrix */
         pastix_int_t   nbcblk2d = 0;
         pastix_int_t   nbblok2d = 0;
@@ -259,6 +257,7 @@ solverMatrixGen( pastix_int_t           clustnum,
                     solvblok->coefind = layout2D ? stride * nbcols : stride;
                     solvblok->browind = -1;
                     solvblok->gpuid   = GPUID_UNDEFINED;
+                    solvblok->inlast  = 0;
                     solvblok->LRblock = NULL;
 
                     stride += nbrows;
@@ -309,6 +308,11 @@ solverMatrixGen( pastix_int_t           clustnum,
                 solvcblk->lock     = PASTIX_ATOMIC_UNLOCKED;
                 solvcblk->ctrbcnt  = -1;
                 solvcblk->cblktype = candcblk->cblktype;
+
+                if ( ordeptr->sndetab[ordeptr->sndenbr-1] <= fcolnum ) {
+                    solvcblk->cblktype = solvcblk->cblktype | CBLK_IN_LAST;
+                }
+
                 solvcblk->gpuid    = GPUID_UNDEFINED;
                 solvcblk->fcolnum  = fcolnum;
                 solvcblk->lcolnum  = lcolnum;
@@ -319,22 +323,21 @@ solverMatrixGen( pastix_int_t           clustnum,
                 solvcblk->lcoeftab = NULL;
                 solvcblk->ucoeftab = NULL;
                 solvcblk->gcblknum = i;
+                solvcblk->selevtx  = symbcblk->selevtx;
 
                 assert( nodenbr == fcolnum );
 
-#if defined(PASTIX_SUPERNODE_STATS)
-                {
-                    while ( sndetab[1] <= solvcblk->lcolnum ) {
-                        sndetab++;
-                        assert( (sndetab - ordeptr->sndetab) < ordeptr->sndenbr );
-                    }
-                    assert( (sndetab[0] <= solvcblk->fcolnum) &&
-                            (sndetab[1] >  solvcblk->lcolnum) );
-                    solvcblk->sndeidx = sndetab - ordeptr->sndetab;
+                /*
+                 * Compute the original supernode in the nested dissection
+                 */
+                while ( sndetab[1] <= solvcblk->lcolnum ) {
+                    sndetab++;
+                    assert( (sndetab - ordeptr->sndetab) < ordeptr->sndenbr );
                 }
-#else
-                solvcblk->sndeidx = i;
-#endif
+                assert( (sndetab[0] <= solvcblk->fcolnum) &&
+                        (sndetab[1] >  solvcblk->lcolnum) );
+                solvcblk->sndeidx = sndetab - ordeptr->sndetab;
+
                 solvcblk->handler[0] = NULL;
                 solvcblk->handler[1] = NULL;
 
@@ -443,6 +446,29 @@ solverMatrixGen( pastix_int_t           clustnum,
         assert( solvmtx->cblknbr == cblknum );
         assert( solvmtx->bloknbr == solvblok - solvmtx->bloktab );
     }
+
+#if defined(PASTIX_SUPERNODE_STATS)
+    /*
+     * Should be improved by using the brow array in order to cover the blocks
+     * in front of the last cblk
+     */
+    {
+        SolverBlok *solvblok = solvmtx->bloktab;
+
+        for(i=0; i<solvmtx->bloknbr; i++, solvblok++ ) {
+            SolverCblk *fcblk = solvmtx->cblktab + solvblok->fcblknm;
+            SolverCblk *lcblk = solvmtx->cblktab + solvblok->lcblknm;
+            if ( fcblk->cblktype & CBLK_IN_LAST ) {
+                if ( lcblk->cblktype & CBLK_IN_LAST ) {
+                    solvblok->inlast = 2;
+                }
+                else {
+                    solvblok->inlast = 1;
+                }
+            }
+        }
+    }
+#endif
 
     /*
      * Update browind fields

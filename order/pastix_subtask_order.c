@@ -22,7 +22,10 @@
 #include "common.h"
 #include "spm.h"
 #include "graph.h"
+#include "blend/elimintree.h"
 #include "pastix/order.h"
+
+EliminTree *pastixOrderBuildEtree( const pastix_order_t *order );
 
 /**
  *******************************************************************************
@@ -479,11 +482,51 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     /*
      * Backup of the original supernodes
      */
-#if defined(PASTIX_SUPERNODE_STATS)
     ordemesh->sndenbr = ordemesh->cblknbr;
     ordemesh->sndetab = malloc( (ordemesh->sndenbr+1) * sizeof(pastix_int_t) );
     memcpy( ordemesh->sndetab, ordemesh->rangtab, (ordemesh->sndenbr+1) * sizeof(pastix_int_t) );
+
+    /*
+     * Block Low-Rank clustering
+     */
+    if ( ( iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever ) &&
+         ( iparm[IPARM_SPLITTING_STRATEGY] != PastixSplitNot ) )
+    {
+#if !defined(PASTIX_ORDERING_SCOTCH)
+        pastix_print_warning( "Clustering is not available yet when Scotch is disabled" );
+#else
+        EliminTree  *etree;
+        pastix_int_t min_cblk = ordemesh->rangtab[ordemesh->cblknbr-1];
+        pastix_int_t ret;
+
+        graphBase( pastix_data->graph, 0 );
+
+        etree = pastixOrderBuildEtree( ordemesh );
+
+        ret = orderSupernodes( pastix_data->graph, ordemesh,
+                               etree, iparm );
+
+        /*
+         * Draw last separator
+         */
+#if defined(PASTIX_ORDER_DRAW_LASTSEP)
+        if ( ret == 0 ){
+            orderDraw( pastix_data, min_cblk );
+        }
 #endif
+        eTreeExit( etree );
+
+        (void)ret;
+        (void)min_cblk;
+#endif /* !defined(PASTIX_ORDERING_SCOTCH) */
+    }
+
+    /* Reduce the error code */
+    MPI_Allreduce(&retval, &retval_rcv, 1, MPI_INT, MPI_MAX,
+                  pastix_data->pastix_comm);
+    if (retval_rcv != PASTIX_SUCCESS) {
+        return retval_rcv;
+    }
 
     clockStop(timer);
     if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {

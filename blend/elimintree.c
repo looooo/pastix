@@ -58,6 +58,7 @@ eTreeInit( pastix_int_t nodenbr )
         enode->total   =  0.0;
         enode->subtree =  0.0;
         enode->cripath =  0.0;
+        enode->ndlevel = -1;
         enode->sonsnbr =  0;
         enode->fathnum = -1;
         enode->fsonnum = -1;
@@ -224,6 +225,49 @@ eTreeLevel(const EliminTree *etree)
  *
  *******************************************************************************
  *
+ * @param[inout] etree
+ *          The pointer to the elimination tree. On exit, all traversed nodes
+ *          will be updated with the depth related to the given root.
+ *
+ *
+ * @param[in] rootnum
+ *          The root of the tree to study.
+ *
+ * @param[in] rootlvl
+ *          The level of the root node.
+ *
+ *******************************************************************************
+ *
+ * @return The maximal depth of the tree.
+ *
+ *******************************************************************************/
+pastix_int_t
+eTreeComputeLevels( EliminTree *etree, pastix_int_t rootnum, pastix_int_t rootlvl )
+{
+    pastix_int_t sonsnbr, i, son, max;
+    pastix_int_t maxlevel;
+
+    etree->nodetab[ rootnum ].ndlevel = rootlvl;
+    sonsnbr = etree->nodetab[ rootnum ].sonsnbr;
+
+    maxlevel = rootlvl;
+    rootlvl++;
+    for(i=0;i<sonsnbr;i++)
+    {
+        son = eTreeSonI( etree, rootnum, i );
+        max = eTreeComputeLevels( etree, son, rootlvl );
+        maxlevel = pastix_imax( max, maxlevel );
+    }
+    return maxlevel;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Compute the number of level existing below a given node.
+ *
+ *******************************************************************************
+ *
  * @param[in] etree
  *          The pointer to the elimination tree.
  *
@@ -345,6 +389,61 @@ eTreePrint(const EliminTree *etree, FILE *stream, pastix_int_t rootnum )
             eTreePrint(etree, stream, son);
         }
     }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Return the smallest index of the nodes belonging to the evel lvl in
+ * the elimination tree.
+ *
+ * Look recursively in the elimination tree to return the smallest index of all
+ * the ndoes belonging to a same level defined by lvl.
+ *
+ *******************************************************************************
+ *
+ * @param[in] etree
+ *          The pointer to the elimination tree.
+ *
+ * @param[in] root
+ *          The root of the subtree to study.
+ *
+ * @param[in] lvl
+ *          The number of levels below root to look for.
+ *
+ * @param[in] idxmin
+ *          The minimum index already discovered.
+ *
+ *******************************************************************************
+ *
+ * @return The minimum index found in the descendants of the root node, lvl
+ * levels below.
+ *
+ *******************************************************************************/
+pastix_int_t
+eTreeGetLevelMinIdx( const EliminTree *etree,
+                     pastix_int_t      root,
+                     pastix_int_t      lvl,
+                     pastix_int_t      idxmin )
+{
+    int i, sonsnbr;
+    pastix_int_t idx, son;
+
+    idx = (root == -1) ? idxmin : pastix_imin( root, idxmin );
+
+    if ( lvl == 0 ) {
+        return idx;
+    }
+
+    sonsnbr = etree->nodetab[ eTreeRoot(etree) ].sonsnbr;
+
+    lvl--;
+    for(i=0;i<sonsnbr;i++)
+    {
+        son = eTreeSonI(etree, root, i);
+        idx = eTreeGetLevelMinIdx( etree, son, lvl, idx );
+    }
+    return idx;
 }
 
 /**

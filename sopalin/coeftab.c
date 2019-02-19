@@ -258,7 +258,7 @@ pcoeftabComp( isched_thread_t *ctx,
     pastix_int_t task, gain = 0;
     int rank = ctx->rank;
 
-    pastix_int_t (*compfunc)( pastix_coefside_t, SolverCblk*, pastix_lr_t ) = NULL;
+    pastix_int_t (*compfunc)( const SolverMatrix*, pastix_coefside_t, SolverCblk* ) = NULL;
 
     switch( flttype ) {
     case PastixComplex32:
@@ -283,7 +283,7 @@ pcoeftabComp( isched_thread_t *ctx,
         cblk     = solvmtx->cblktab + itercblk;
 
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            gain += compfunc( side, cblk, solvmtx->lowrank );
+            gain += compfunc( solvmtx, side, cblk );
         }
     }
 
@@ -317,10 +317,10 @@ coeftabCompress( pastix_data_t *pastix_data )
     struct coeftabcomp_s args;
     pastix_lr_t  *lr;
 
-    args.solvmtx   = pastix_data->solvmatr;
-    args.flttype   = pastix_data->bcsc->flttype;
-    args.lock      = PASTIX_ATOMIC_UNLOCKED;
-    args.gain      = 0;
+    args.solvmtx = pastix_data->solvmatr;
+    args.flttype = pastix_data->bcsc->flttype;
+    args.lock    = PASTIX_ATOMIC_UNLOCKED;
+    args.gain    = 0;
 
     /* Set the lowrank properties */
     lr = &(pastix_data->solvmatr->lowrank);

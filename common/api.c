@@ -214,7 +214,14 @@ pastixWelcome( const pastix_data_t *pastix )
                       /* Compress width  */ (long)pastix->iparm[IPARM_COMPRESS_MIN_WIDTH],
                       /* Compress height */ (long)pastix->iparm[IPARM_COMPRESS_MIN_HEIGHT],
                       /* Min ratio       */ (double)pastix->dparm[DPARM_COMPRESS_MIN_RATIO],
-                      /* Ortho    method */ ((pastix->iparm[IPARM_COMPRESS_ORTHO] == PastixCompressOrthoCGS) ? "CGS" : (pastix->iparm[IPARM_COMPRESS_ORTHO] == PastixCompressOrthoQR) ? "QR" : "partialQR") );
+                      /* Ortho    method */ ((pastix->iparm[IPARM_COMPRESS_ORTHO] == PastixCompressOrthoCGS) ? "CGS" : (pastix->iparm[IPARM_COMPRESS_ORTHO] == PastixCompressOrthoQR) ? "QR" : "partialQR"),
+                      /* Splitting strategy    */ ((pastix->iparm[IPARM_SPLITTING_STRATEGY] == PastixSplitNot)             ? "Not used" :
+                                                   (pastix->iparm[IPARM_SPLITTING_STRATEGY] == PastixSplitKway)            ? "KWAY" : "KWAY and projections"),
+                      /* Levels of projections */ (long)pastix->iparm[IPARM_SPLITTING_LEVELS_PROJECTIONS],
+                      /* Levels of kway        */ (long)pastix->iparm[IPARM_SPLITTING_LEVELS_KWAY],
+                      /* Projections distance  */ (long)pastix->iparm[IPARM_SPLITTING_PROJECTIONS_DISTANCE],
+                      /* Projections depth     */ (long)pastix->iparm[IPARM_SPLITTING_PROJECTIONS_DEPTH],
+                      /* Projections width     */ (long)pastix->iparm[IPARM_SPLITTING_PROJECTIONS_WIDTH] );
     }
 }
 
@@ -278,7 +285,13 @@ pastixInitParam( pastix_int_t *iparm,
     /*
      * Ordering parameters
      */
+    iparm[IPARM_ORDERING]              = -1;
+#if defined(PASTIX_ORDERING_METIS)
+    iparm[IPARM_ORDERING]              = PastixOrderMetis;
+#endif
+#if defined(PASTIX_ORDERING_SCOTCH)
     iparm[IPARM_ORDERING]              = PastixOrderScotch;
+#endif
     iparm[IPARM_ORDERING_DEFAULT]      = 1;
 
     /* Scotch */
@@ -316,6 +329,14 @@ pastixInitParam( pastix_int_t *iparm,
     /* Reordering */
     iparm[IPARM_REORDERING_SPLIT]      = 0;
     iparm[IPARM_REORDERING_STOP]       = PASTIX_INT_MAX;
+
+    /* Splitting */
+    iparm[IPARM_SPLITTING_STRATEGY]             = PastixSplitNot;
+    iparm[IPARM_SPLITTING_LEVELS_PROJECTIONS]   = 2;
+    iparm[IPARM_SPLITTING_LEVELS_KWAY]          = 2;
+    iparm[IPARM_SPLITTING_PROJECTIONS_DEPTH]    = 3;
+    iparm[IPARM_SPLITTING_PROJECTIONS_DISTANCE] = 2;
+    iparm[IPARM_SPLITTING_PROJECTIONS_WIDTH]    = 1;
 
     /* Analyze */
     iparm[IPARM_MIN_BLOCKSIZE]         = 160;
@@ -649,10 +670,6 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
 
     /* DIRTY Initialization for Scotch */
     srand(1);
-
-    /* Environement variables */
-    /* On Mac set VECLIB_MAXIMUM_THREADS if not setted */
-    setenv("VECLIB_MAXIMUM_THREADS", "1", 0);
 
     if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
         pastixWelcome( pastix );

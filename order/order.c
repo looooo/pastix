@@ -69,10 +69,8 @@ pastixOrderAlloc( pastix_order_t * const ordeptr,
 
     ordeptr->vertnbr = vertnbr;
     ordeptr->cblknbr = cblknbr;
-#if defined(PASTIX_SUPERNODE_STATS)
     ordeptr->sndenbr = cblknbr;
     ordeptr->sndetab = NULL;
-#endif
 
     if (vertnbr != 0) {
         MALLOC_INTERN(ordeptr->permtab, vertnbr, pastix_int_t);
@@ -83,6 +81,64 @@ pastixOrderAlloc( pastix_order_t * const ordeptr,
         MALLOC_INTERN(ordeptr->rangtab, cblknbr+1, pastix_int_t);
         MALLOC_INTERN(ordeptr->treetab, cblknbr,   pastix_int_t);
     }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_order
+ *
+ * @brief Allocate the order structure for a given number of vertices with no
+ * cblk, and id permutation.
+ *
+ * The base value is set to 0 by default.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] ordeptr
+ *          The data structure is set to 0 and then initialize.
+ *          Need to call pastixOrderExit() to release the memory first if required to
+ *          prevent memory leak.
+ *
+ * @param[in] vertnbr
+ *          The number of nodes, this is the size of the internal permtab and
+ *          peritab arrays.
+ *          If vertnbr == 0, permtab and peritab are not allocated.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect,
+ * @retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
+ *
+ *******************************************************************************/
+int
+pastixOrderAllocId( pastix_order_t * const ordeptr,
+                    pastix_int_t           vertnbr )
+{
+    pastix_int_t *perm;
+    pastix_int_t *invp;
+    pastix_int_t  i;
+    int rc;
+
+    rc = pastixOrderAlloc( ordeptr, vertnbr, 1 );
+    if ( rc != PASTIX_SUCCESS ) {
+        return rc;
+    }
+
+    perm = ordeptr->permtab;
+    invp = ordeptr->peritab;
+
+    for(i=0; i<vertnbr; i++, perm++, invp++) {
+        *perm = i;
+        *invp = i;
+    }
+
+    ordeptr->rangtab[0] = 0;
+    ordeptr->rangtab[1] = vertnbr;
+    ordeptr->treetab[0] = -1;
 
     return PASTIX_SUCCESS;
 }
@@ -173,10 +229,8 @@ pastixOrderInit( pastix_order_t * const ordeptr,
     ordeptr->baseval = baseval;
     ordeptr->vertnbr = vertnbr;
     ordeptr->cblknbr = cblknbr;
-#if defined(PASTIX_SUPERNODE_STATS)
     ordeptr->sndenbr = cblknbr;
     ordeptr->sndetab = NULL;
-#endif
 
     if ( permtab ) {
         ordeptr->permtab = permtab;
@@ -186,10 +240,8 @@ pastixOrderInit( pastix_order_t * const ordeptr,
     }
     if ( rangtab ) {
         ordeptr->rangtab = rangtab;
-#if defined(PASTIX_SUPERNODE_STATS)
         ordeptr->sndetab = malloc( (ordeptr->sndenbr+1) * sizeof(pastix_int_t) );
         memcpy( ordeptr->sndetab, ordeptr->rangtab, (ordeptr->sndenbr+1) * sizeof(pastix_int_t) );
-#endif
     }
     if ( treetab ) {
         ordeptr->treetab = treetab;
@@ -232,11 +284,12 @@ pastixOrderExit( pastix_order_t * const ordeptr )
     if (ordeptr->treetab != NULL) {
         memFree_null (ordeptr->treetab);
     }
-#if defined(PASTIX_SUPERNODE_STATS)
+    if (ordeptr->selevtx != NULL) {
+        memFree_null (ordeptr->selevtx);
+    }
     if (ordeptr->sndetab != NULL) {
         memFree_null (ordeptr->sndetab);
     }
-#endif
     memset(ordeptr, 0, sizeof(pastix_order_t) );
 }
 
@@ -302,14 +355,12 @@ pastixOrderBase( pastix_order_t * const ordeptr,
             ordeptr->treetab[cblknum] += baseadj;
         }
     }
-#if defined(PASTIX_SUPERNODE_STATS)
     if (ordeptr->sndetab != NULL) {
         pastix_int_t sndenum;
         for (sndenum = 0; sndenum <= ordeptr->sndenbr; sndenum ++) {
             ordeptr->sndetab[sndenum] += baseadj;
         }
     }
-#endif
 
     ordeptr->baseval = baseval;
 }
@@ -441,9 +492,8 @@ pastixOrderCopy( pastix_order_t       * const ordedst,
     ordedst->baseval = ordesrc->baseval;
     ordedst->vertnbr = ordesrc->vertnbr;
     ordedst->cblknbr = ordesrc->cblknbr;
-#if defined(PASTIX_SUPERNODE_STATS)
     ordedst->sndenbr = ordesrc->sndenbr;
-#endif
+
     if ( (ordedst->permtab == NULL) &&
          (ordedst->peritab == NULL) &&
          (ordedst->rangtab == NULL) &&
@@ -472,12 +522,11 @@ pastixOrderCopy( pastix_order_t       * const ordedst,
         memcpy( ordedst->treetab, ordesrc->treetab, ordesrc->cblknbr * sizeof(pastix_int_t) );
     }
 
-#if defined(PASTIX_SUPERNODE_STATS)
     if ( (ordesrc->sndetab != NULL) && (ordedst->sndetab != NULL) )
     {
         memcpy( ordedst->sndetab, ordesrc->sndetab, (ordesrc->sndenbr+1) * sizeof(pastix_int_t) );
     }
-#endif
+
     return PASTIX_SUCCESS;
 }
 

@@ -28,6 +28,9 @@
 
 #include "pastix/datatypes.h"
 
+struct etree_s;
+typedef struct etree_s EliminTree;
+
 /**
  * @brief Order structure.
  *
@@ -38,14 +41,13 @@ typedef struct pastix_order_s {
     pastix_int_t  baseval;   /**< base value used for numbering       */
     pastix_int_t  vertnbr;   /**< Number of vertices                  */
     pastix_int_t  cblknbr;   /**< Number of column blocks             */
-    pastix_int_t *permtab;   /**< Permutation array [based]           */
-    pastix_int_t *peritab;   /**< Inverse permutation array [based]   */
-    pastix_int_t *rangtab;   /**< Supernode array [based,+1]          */
-    pastix_int_t *treetab;   /**< Partitioning tree [based]           */
-#if defined(PASTIX_SUPERNODE_STATS)
-    pastix_int_t  sndenbr;   /**< The number of original supernodes   */
-    pastix_int_t *sndetab;   /**< Original supernode array [based,+1] */
-#endif
+    pastix_int_t *permtab;   /**< Permutation array of size vertnbr [based]           */
+    pastix_int_t *peritab;   /**< Inverse permutation array of size vertnbr [based]   */
+    pastix_int_t *rangtab;   /**< Supernode array of size cblknbr+1 [based,+1]        */
+    pastix_int_t *treetab;   /**< Partitioning tree of size cblknbr+1 [based]         */
+    int8_t       *selevtx;   /**< Selected vertices for low-rank clustering of size cblknbr */
+    pastix_int_t  sndenbr;   /**< The number of original supernodes before clustering */
+    pastix_int_t *sndetab;   /**< Original supernode array of size sndenbr [based,+1] */
 } pastix_order_t;
 
 /**
@@ -63,6 +65,8 @@ int  pastixOrderInit  (       pastix_order_t * const ordeptr,
 int  pastixOrderAlloc (       pastix_order_t * const ordeptr,
                               pastix_int_t           vertnbr,
                               pastix_int_t           cblknbr );
+int  pastixOrderAllocId(      pastix_order_t * const ordeptr,
+                              pastix_int_t           vertnbr );
 void pastixOrderExit  (       pastix_order_t * const ordeptr );
 void pastixOrderBase  (       pastix_order_t * const ordeptr,
                               pastix_int_t           baseval );
@@ -119,6 +123,15 @@ int  pastixOrderApplyLevelOrder( pastix_order_t *ordeptr,
 int  pastixOrderAddIsolate( pastix_order_t     *ordeptr,
                             pastix_int_t        new_n,
                             const pastix_int_t *perm );
+
+void orderDraw( pastix_data_t *pastix_data,
+                pastix_int_t   min_cblk );
+
+pastix_int_t
+orderSupernodes( const pastix_graph_t *graph,
+                 pastix_order_t       *order,
+                 EliminTree           *etree,
+                 pastix_int_t         *iparm );
 
 /**
  * @}
