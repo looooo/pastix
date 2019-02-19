@@ -1,6 +1,6 @@
 /**
  *
- * @file symbol_fax_graph.c
+ * @file symbol_fax_direct.c
  *
  * PaStiX fax symbolic factorization routines fro Scotch esmumps library Part of
  * a parallel direct block solver. This is the block symbolic factorization
@@ -24,6 +24,7 @@
  *
  **/
 #include "common.h"
+#include "graph.h"
 #include "symbol.h"
 #include "pastix/order.h"
 #include "symbol_fax.h"
@@ -71,30 +72,29 @@
  *
  *******************************************************************************/
 int
-pastixSymbolFaxGraph(       symbol_matrix_t *symbptr,
-                            pastix_int_t     vertnbr,
-                      const pastix_int_t    *verttab,
-                      const pastix_int_t    *edgetab,
-                      const pastix_order_t  *ordeptr )
+pastixSymbolFaxDirect( symbol_matrix_t      *symbptr,
+                       const pastix_graph_t *graphA,
+                       const pastix_order_t *ordeptr )
 {
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-    pastix_int_t baseval = verttab[0];
-    pastix_int_t edgenbr = verttab[vertnbr] - baseval;
-    const pastix_int_t * verttax;
-    pastix_int_t         edgenum;
-    const pastix_int_t * edgetax;
+    pastix_int_t        vertnbr = graphA->n;
+    const pastix_int_t *verttab = graphA->colptr;
+    const pastix_int_t *edgetab = graphA->rows;
+    pastix_int_t        baseval = verttab[0];
+    pastix_int_t        edgenbr = verttab[vertnbr] - baseval;
+    const pastix_int_t *verttax;
+    pastix_int_t        edgenum;
+    const pastix_int_t *edgetax;
 
     verttax = verttab - baseval;
     edgetax = edgetab - baseval;
 
-#define SYMBOL_FAX_ITERATOR(ngbdptr, vertnum, vertend)	\
-    for (edgenum = verttax[vertnum];			\
-         edgenum < verttax[vertnum + 1];                \
-         edgenum ++) {					\
+#define SYMBOL_FAX_ITERATOR( ngbdptr, vertnum, vertend )                                           \
+    for ( edgenum = verttax[vertnum]; edgenum < verttax[vertnum + 1]; edgenum++ ) {                \
         vertend = edgetax[edgenum];
 
-#define SYMBOL_FAX_VERTEX_DEGREE(ngbdptr, vertnum)	\
-    (verttax[(vertnum) + 1] - verttax[(vertnum)])
+#define SYMBOL_FAX_VERTEX_DEGREE( ngbdptr, vertnum )                                               \
+    ( verttax[( vertnum ) + 1] - verttax[( vertnum )] )
 
     {
 #define SYMBOL_FAX_INCLUDED

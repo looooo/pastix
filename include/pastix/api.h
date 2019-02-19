@@ -60,7 +60,6 @@ typedef enum pastix_iparm_e {
     IPARM_METIS_DBGLVL,          /**< Metis parameters (see Metis Manual)                            Default: 0                         IN  */
 
     /* Symbolic Factorization */
-    IPARM_SF_KASS,               /**< Force KASS instead of Fax to perform symbolic factorization    Default: 0                         IN  */
     IPARM_AMALGAMATION_LVLBLAS,  /**< Amalgamation level                                             Default: 5                         IN  */
     IPARM_AMALGAMATION_LVLCBLK,  /**< Amalgamation level                                             Default: 5                         IN  */
 

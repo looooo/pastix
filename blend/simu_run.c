@@ -40,21 +40,67 @@
 #if defined(PASTIX_BLEND_GENTRACE)
 #include <GTG.h>
 
-static inline trace_return_t
-blendAddVar(varPrec time, const char*  type,
-            const char*  cont, varPrec val) {
-    return addVar( time, type, cont, val );
+/**
+ *******************************************************************************
+ *
+ * @brief Increment a traced counter.
+ *
+ *******************************************************************************
+ *
+ * @param[in] time
+ *          The timestamp of the event.
+ *
+ * @param[in] type
+ *          The type string of the variable to modify.
+ *
+ * @param[in] cont
+ *          The string of the container that holds the variable.
+ *
+ * @param[in] val
+ *          The value to add to the counter.
+ *
+ *******************************************************************************/
+static inline void
+blendAddVar( varPrec time, const char*  type,
+             const char*  cont, varPrec val )
+{
+    addVar( time, type, cont, val );
 }
-static inline trace_return_t
-blendSubVar(varPrec time, const char*  type,
-            const char*  cont, varPrec val) {
-    return subVar( time, type, cont, val );
+
+/**
+ *******************************************************************************
+ *
+ * @brief Decrement a traced counter.
+ *
+ *******************************************************************************
+ *
+ * @param[in] time
+ *          The timestamp of the event.
+ *
+ * @param[in] type
+ *          The type string of the variable to modify.
+ *
+ * @param[in] cont
+ *          The string of the container that holds the variable.
+ *
+ * @param[in] val
+ *          The value used to decrement the counter.
+ *
+ *******************************************************************************/
+static inline void
+blendSubVar( varPrec time, const char*  type,
+             const char*  cont, varPrec val )
+{
+    subVar( time, type, cont, val );
 }
 
 #else
 
-#define blendAddVar( time, type, cont, val ) do {} while(0)
-#define blendSubVar( time, type, cont, val ) do {} while(0)
+#define blendAddVar( time, type, cont, val ) \
+    do { } while (0)
+
+#define blendSubVar( time, type, cont, val ) \
+    do { } while (0)
 
 #endif
 

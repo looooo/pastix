@@ -82,7 +82,7 @@
  * @defgroup order_dev Ordering internal function documentation
  * @ingroup  pastix_order
  *
- ******
+ ********
  *
  * @defgroup pastix_symbol Symbolic Factorization
  * @ingroup  pastix_analyze
@@ -98,9 +98,6 @@
  * @ingroup  symbol_dev
  *
  * @defgroup symbol_dev_fax         FAX symbolic factorization
- * @ingroup  symbol_dev
- *
- * @defgroup symbol_dev_kass        KASS symbolic factorization
  * @ingroup  symbol_dev
  *
  * @defgroup symbol_dev_reordering  Reordering

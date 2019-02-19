@@ -103,6 +103,15 @@ int  pastixOrderGrid( pastix_order_t **myorder, pastix_int_t nx,
 void pastixOrderFindSupernodes( const pastix_graph_t *graph,
                                 pastix_order_t * const ordeptr );
 
+int  pastixOrderAmalgamate( int             verbose,
+                            int             ilu,
+                            int             levelk,
+                            int             rat_cblk,
+                            int             rat_blas,
+                            pastix_graph_t *graph,
+                            pastix_order_t *orderptr,
+                            MPI_Comm        pastix_comm );
+
 int  pastixOrderApplyLevelOrder( pastix_order_t *ordeptr,
                                  pastix_int_t    level_tasks2d,
                                  pastix_int_t    width_tasks2d );
