@@ -263,7 +263,7 @@ cpucblk_zhetrfsp1d_hetrf( SolverMatrix       *solvmtx,
     core_zhetrfsp( ncols, L, stride, &nbpivots, criteria );
     kernel_trace_stop_lvl2( flops );
 
-    kernel_trace_stop( PastixKernelHETRF, ncols, 0, 0, flops, time );
+    kernel_trace_stop( cblk->fblokptr->inlast, PastixKernelHETRF, ncols, 0, 0, flops, time );
 
     if ( nbpivots ) {
         pastix_atomic_add_32b( &(solvmtx->nbpivots), nbpivots );
@@ -436,7 +436,7 @@ cpucblk_zhetrfsp1d_panel( SolverMatrix       *solvmtx,
      */
     cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixUpper,
                      PastixNoTrans, PastixNonUnit,
-                     cblk, L, L, &(solvmtx->lowrank) );
+                     cblk, L, L, solvmtx );
 
     if ( (DLh != NULL) && (cblk->cblktype & CBLK_LAYOUT_2D) ) {
         /* Copy L into the temporary buffer and multiply by D */

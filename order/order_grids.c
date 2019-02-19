@@ -183,10 +183,12 @@ order_grid3D_classic( pastix_int_t *rangtab,
 
     /* In which direction do we cut? 0 for x, 1 for y */
     dir = 0;
-    if (ny > nx)
+    if (ny > nx) {
         dir = 1;
-    if ((nz > nx) && (nz > ny))
+    }
+    if ((nz > nx) && (nz > ny)) {
         dir = 2;
+    }
 
     /* If we cut in direction x */
     if (dir == 0){

@@ -105,6 +105,24 @@ void qsort2IntAsc(void ** const pbase,
                   const pastix_int_t     total_elems);
 
 /*
+ Function: qsort3IntAsc
+
+ Sort 3 arrays simultaneously, the first array is an
+ array of pastix_int_t and used as primary key for sorting.
+ The second and third arrays are sorted based on the primary key.
+
+ Parameters:
+ pbase       - Array of pointers to the first element of each array to sort.
+ total_elems - Number of element in each array.
+
+ Returns:
+ Nothing
+
+ */
+void qsort3IntAsc(void ** const pbase,
+                  const pastix_int_t     total_elems);
+
+/*
  Function: qsort2SmallIntAsc
 
  Sort 2 arrays simultaneously, the first array is an

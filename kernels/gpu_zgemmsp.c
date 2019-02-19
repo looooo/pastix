@@ -252,7 +252,7 @@ gpucblk_zgemmsp(       pastix_coefside_t  sideA,
         m -= (cblk->cblktype & CBLK_LAYOUT_2D) ? blok->coefind / k : blok->coefind;
         m -= (sideA == PastixUCoef) ? blok_rownbr( blok ) : 0;
 
-        kernel_trace_stop( PastixKernelGEMMCblk2d2d, m, n, k, FLOPS_ZGEMM( m, n, k ), time );
+        kernel_trace_stop( blok->inlast, PastixKernelGEMMCblk2d2d, m, n, k, FLOPS_ZGEMM( m, n, k ), time );
     }
     (void)sideB; (void)lowrank; (void)time;
 }
@@ -433,7 +433,7 @@ gpublok_zgemmsp(       pastix_coefside_t  sideA,
 #if defined(PASTIX_GENERATE_MODEL)
     cudaStreamSynchronize( stream );
 #endif
-    kernel_trace_stop( PastixKernelGEMMBlok2d2d,
+    kernel_trace_stop( blokB->inlast, PastixKernelGEMMBlok2d2d,
                        full_m, full_m, K, flops, time );
 
     (void)lblokN; (void)sideA; (void)sideB; (void)lowrank; (void)time;
@@ -554,7 +554,7 @@ gpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
 #if defined(PASTIX_GENERATE_MODEL)
     cudaStreamSynchronize( stream );
 #endif
-    kernel_trace_stop( PastixKernelTRSMBlok2d,
+    kernel_trace_stop( blok->inlast, PastixKernelTRSMBlok2d,
                        full_m, N, 0, flops, time );
 
     (void)lowrank; (void)coef;

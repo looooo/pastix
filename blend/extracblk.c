@@ -182,13 +182,15 @@ extraCblkExit( ExtraCblk_t *extracblk )
 void
 extraCblkAdd( ExtraCblk_t *extracblk,
               pastix_int_t fcolnum,
-              pastix_int_t lcolnum )
+              pastix_int_t lcolnum,
+              int8_t       selevtx )
 {
     pastix_int_t curcblk = extraCblkInc( extracblk );
 
     extracblk->cblktab[ curcblk ].fcolnum = fcolnum;
     extracblk->cblktab[ curcblk ].lcolnum = lcolnum;
     extracblk->cblktab[ curcblk ].bloknum = -1;
+    extracblk->cblktab[ curcblk ].selevtx = selevtx;
 }
 
 /**

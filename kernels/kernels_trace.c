@@ -45,7 +45,7 @@ int32_t               model_size        = 0;
 #endif
 
 pastix_atomic_lock_t lock_flops = PASTIX_ATOMIC_UNLOCKED;
-double overall_flops = 0.0;
+double overall_flops[3] = { 0.0, 0.0, 0.0 };
 
 double pastix_lr_minratio = 1.0;
 pastix_int_t pastix_lr_ortho = 0;
@@ -134,7 +134,9 @@ kernelsTraceStart( const pastix_data_t *pastix_data )
 
     memset( (void*)kernels_flops, 0, PastixKernelLvl1Nbr * sizeof(double) );
 
-    overall_flops = 0.0;
+    overall_flops[0] = 0.0;
+    overall_flops[1] = 0.0;
+    overall_flops[2] = 0.0;
     kernels_trace_started = 1;
 
     (void)solvmtx;
@@ -239,7 +241,23 @@ kernelsTraceStop( const pastix_data_t *pastix_data )
 #endif
 
     /* Update the real number of Flops performed */
-    pastix_data->dparm[DPARM_FACT_THFLOPS] = overall_flops;
+    pastix_data->dparm[DPARM_FACT_THFLOPS] = overall_flops[0] + overall_flops[1] + overall_flops[2];
+
+#if defined(PASTIX_SUPERNODE_STATS)
+    if (pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot) {
+        fprintf( stdout,
+                 "    Details of the number of operations:\n"
+                 "      - POTRF(A11) + TRSM(A11, A21): %6.2lf %cFlops\n"
+                 "      - HERK(A21, A22)             : %6.2lf %cFlops\n"
+                 "      - POTRF(A22)                 : %6.2lf %cFlops\n"
+                 "      Total                        : %6.2lf %cFlops\n",
+                 pastix_print_value( overall_flops[0] ), pastix_print_unit( overall_flops[0] ),
+                 pastix_print_value( overall_flops[1] ), pastix_print_unit( overall_flops[1] ),
+                 pastix_print_value( overall_flops[2] ), pastix_print_unit( overall_flops[2] ),
+                 pastix_print_value( pastix_data->dparm[DPARM_FACT_THFLOPS] ),
+                 pastix_print_unit( pastix_data->dparm[DPARM_FACT_THFLOPS] ) );
+    }
+#endif /* defined(PASTIX_SUPERNODE_STATS) */
 
     kernels_trace_started = 0;
     pastix_atomic_unlock( &lock_flops );

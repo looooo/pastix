@@ -616,7 +616,7 @@ core_zgemmsp_block_frfr( pastix_trans_t trans,
         }
     }
 
-    kernel_trace_stop( PastixKernelGEMMBlok2d2d,
+    kernel_trace_stop( blokB->inlast, PastixKernelGEMMBlok2d2d,
                        full_m, full_m, K,
                        flops, time );
 
@@ -807,7 +807,7 @@ core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
         }
     }
 
-    kernel_trace_stop( PastixKernelGEMMBlokLRLR,
+    kernel_trace_stop( blokB->inlast, PastixKernelGEMMBlokLRLR,
                        full_m, full_m, K,
                        flops, time );
 
@@ -980,7 +980,7 @@ core_zgemmsp_block_lrlr( pastix_coefside_t  sideA,
         }
     }
 
-    kernel_trace_stop( PastixKernelGEMMBlokLRLR,
+    kernel_trace_stop( blokB->inlast, PastixKernelGEMMBlokLRLR,
                        full_m, full_m, K,
                        flops, time );
 
@@ -1410,7 +1410,7 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
         flops = FLOPS_ZGEMM( m, n, k );
     }
 
-    kernel_trace_stop( ktype, m, n, k, flops, time );
+    kernel_trace_stop( blok->inlast, ktype, m, n, k, flops, time );
 }
 
 /**

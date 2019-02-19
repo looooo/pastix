@@ -23,12 +23,13 @@
  * @brief Node of the elimination tree.
  */
 typedef struct etree_node_s {
-    double         total;   /**< Cost of the treenode only (compute + send)    */
-    double         subtree; /**< Cost of the subtree (includes total)          */
-    double         cripath; /**< Cost of the citical path to the node included */
-    pastix_int_t   sonsnbr; /**< Number of sons                                */
-    pastix_int_t   fathnum; /**< index of the father node                      */
-    pastix_int_t   fsonnum; /**< index of first son                            */
+    double       total;   /**< Cost of the treenode only (compute + send)    */
+    double       subtree; /**< Cost of the subtree (includes total)          */
+    double       cripath; /**< Cost of the citical path to the node included */
+    int          ndlevel; /**< Node depth in the elimination tree            */
+    int          sonsnbr; /**< Number of sons                                */
+    pastix_int_t fathnum; /**< index of the father node                      */
+    pastix_int_t fsonnum; /**< index of first son                            */
 } eTreeNode_t;
 
 /**
@@ -50,6 +51,9 @@ pastix_int_t  eTreeLeavesNbr (const EliminTree *);
 pastix_int_t  eTreeLevel     (const EliminTree *);
 pastix_int_t  eTreeNodeLevel (const EliminTree *, pastix_int_t );
 EliminTree   *eTreeBuild     (const symbol_matrix_t *);
+
+pastix_int_t eTreeComputeLevels   ( EliminTree *, pastix_int_t, pastix_int_t );
+pastix_int_t eTreeGetLevelMinIdx  ( const EliminTree *, pastix_int_t, pastix_int_t, pastix_int_t );
 
 /**
  *******************************************************************************

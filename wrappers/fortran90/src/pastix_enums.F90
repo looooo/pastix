@@ -19,70 +19,76 @@ module pastix_enums
 
   ! enum iparm
   enum, bind(C)
-     enumerator :: IPARM_VERBOSE               = 1
-     enumerator :: IPARM_IO_STRATEGY           = 2
-     enumerator :: IPARM_NNZEROS               = 3
-     enumerator :: IPARM_NNZEROS_BLOCK_LOCAL   = 4
-     enumerator :: IPARM_ALLOCATED_TERMS       = 5
-     enumerator :: IPARM_PRODUCE_STATS         = 6
-     enumerator :: IPARM_MC64                  = 7
-     enumerator :: IPARM_ORDERING              = 8
-     enumerator :: IPARM_ORDERING_DEFAULT      = 9
-     enumerator :: IPARM_SCOTCH_SWITCH_LEVEL   = 10
-     enumerator :: IPARM_SCOTCH_CMIN           = 11
-     enumerator :: IPARM_SCOTCH_CMAX           = 12
-     enumerator :: IPARM_SCOTCH_FRAT           = 13
-     enumerator :: IPARM_METIS_CTYPE           = 14
-     enumerator :: IPARM_METIS_RTYPE           = 15
-     enumerator :: IPARM_METIS_NO2HOP          = 16
-     enumerator :: IPARM_METIS_NSEPS           = 17
-     enumerator :: IPARM_METIS_NITER           = 18
-     enumerator :: IPARM_METIS_UFACTOR         = 19
-     enumerator :: IPARM_METIS_COMPRESS        = 20
-     enumerator :: IPARM_METIS_CCORDER         = 21
-     enumerator :: IPARM_METIS_PFACTOR         = 22
-     enumerator :: IPARM_METIS_SEED            = 23
-     enumerator :: IPARM_METIS_DBGLVL          = 24
-     enumerator :: IPARM_AMALGAMATION_LVLBLAS  = 25
-     enumerator :: IPARM_AMALGAMATION_LVLCBLK  = 26
-     enumerator :: IPARM_REORDERING_SPLIT      = 27
-     enumerator :: IPARM_REORDERING_STOP       = 28
-     enumerator :: IPARM_MIN_BLOCKSIZE         = 29
-     enumerator :: IPARM_MAX_BLOCKSIZE         = 30
-     enumerator :: IPARM_TASKS2D_LEVEL         = 31
-     enumerator :: IPARM_TASKS2D_WIDTH         = 32
-     enumerator :: IPARM_ALLCAND               = 33
-     enumerator :: IPARM_INCOMPLETE            = 34
-     enumerator :: IPARM_LEVEL_OF_FILL         = 35
-     enumerator :: IPARM_FACTORIZATION         = 36
-     enumerator :: IPARM_STATIC_PIVOTING       = 37
-     enumerator :: IPARM_FREE_CSCUSER          = 38
-     enumerator :: IPARM_SCHUR_FACT_MODE       = 39
-     enumerator :: IPARM_SCHUR_SOLV_MODE       = 40
-     enumerator :: IPARM_APPLYPERM_WS          = 41
-     enumerator :: IPARM_REFINEMENT            = 42
-     enumerator :: IPARM_NBITER                = 43
-     enumerator :: IPARM_ITERMAX               = 44
-     enumerator :: IPARM_GMRES_IM              = 45
-     enumerator :: IPARM_SCHEDULER             = 46
-     enumerator :: IPARM_THREAD_NBR            = 47
-     enumerator :: IPARM_AUTOSPLIT_COMM        = 48
-     enumerator :: IPARM_GPU_NBR               = 49
-     enumerator :: IPARM_GPU_MEMORY_PERCENTAGE = 50
-     enumerator :: IPARM_GPU_MEMORY_BLOCK_SIZE = 51
-     enumerator :: IPARM_COMPRESS_MIN_WIDTH    = 52
-     enumerator :: IPARM_COMPRESS_MIN_HEIGHT   = 53
-     enumerator :: IPARM_COMPRESS_WHEN         = 54
-     enumerator :: IPARM_COMPRESS_METHOD       = 55
-     enumerator :: IPARM_COMPRESS_ORTHO        = 56
-     enumerator :: IPARM_THREAD_COMM_MODE      = 57
-     enumerator :: IPARM_MODIFY_PARAMETER      = 58
-     enumerator :: IPARM_START_TASK            = 59
-     enumerator :: IPARM_END_TASK              = 60
-     enumerator :: IPARM_FLOAT                 = 61
-     enumerator :: IPARM_MTX_TYPE              = 62
-     enumerator :: IPARM_DOF_NBR               = 63
-     enumerator :: IPARM_SIZE                  = 63
+     enumerator :: IPARM_VERBOSE                        = 1
+     enumerator :: IPARM_IO_STRATEGY                    = 2
+     enumerator :: IPARM_NNZEROS                        = 3
+     enumerator :: IPARM_NNZEROS_BLOCK_LOCAL            = 4
+     enumerator :: IPARM_ALLOCATED_TERMS                = 5
+     enumerator :: IPARM_PRODUCE_STATS                  = 6
+     enumerator :: IPARM_MC64                           = 7
+     enumerator :: IPARM_ORDERING                       = 8
+     enumerator :: IPARM_ORDERING_DEFAULT               = 9
+     enumerator :: IPARM_SCOTCH_SWITCH_LEVEL            = 10
+     enumerator :: IPARM_SCOTCH_CMIN                    = 11
+     enumerator :: IPARM_SCOTCH_CMAX                    = 12
+     enumerator :: IPARM_SCOTCH_FRAT                    = 13
+     enumerator :: IPARM_METIS_CTYPE                    = 14
+     enumerator :: IPARM_METIS_RTYPE                    = 15
+     enumerator :: IPARM_METIS_NO2HOP                   = 16
+     enumerator :: IPARM_METIS_NSEPS                    = 17
+     enumerator :: IPARM_METIS_NITER                    = 18
+     enumerator :: IPARM_METIS_UFACTOR                  = 19
+     enumerator :: IPARM_METIS_COMPRESS                 = 20
+     enumerator :: IPARM_METIS_CCORDER                  = 21
+     enumerator :: IPARM_METIS_PFACTOR                  = 22
+     enumerator :: IPARM_METIS_SEED                     = 23
+     enumerator :: IPARM_METIS_DBGLVL                   = 24
+     enumerator :: IPARM_AMALGAMATION_LVLBLAS           = 25
+     enumerator :: IPARM_AMALGAMATION_LVLCBLK           = 26
+     enumerator :: IPARM_REORDERING_SPLIT               = 27
+     enumerator :: IPARM_REORDERING_STOP                = 28
+     enumerator :: IPARM_SPLITTING_STRATEGY             = 29
+     enumerator :: IPARM_SPLITTING_LEVELS_PROJECTIONS   = 30
+     enumerator :: IPARM_SPLITTING_LEVELS_KWAY          = 31
+     enumerator :: IPARM_SPLITTING_PROJECTIONS_DEPTH    = 32
+     enumerator :: IPARM_SPLITTING_PROJECTIONS_DISTANCE = 33
+     enumerator :: IPARM_SPLITTING_PROJECTIONS_WIDTH    = 34
+     enumerator :: IPARM_MIN_BLOCKSIZE                  = 35
+     enumerator :: IPARM_MAX_BLOCKSIZE                  = 36
+     enumerator :: IPARM_TASKS2D_LEVEL                  = 37
+     enumerator :: IPARM_TASKS2D_WIDTH                  = 38
+     enumerator :: IPARM_ALLCAND                        = 39
+     enumerator :: IPARM_INCOMPLETE                     = 40
+     enumerator :: IPARM_LEVEL_OF_FILL                  = 41
+     enumerator :: IPARM_FACTORIZATION                  = 42
+     enumerator :: IPARM_STATIC_PIVOTING                = 43
+     enumerator :: IPARM_FREE_CSCUSER                   = 44
+     enumerator :: IPARM_SCHUR_FACT_MODE                = 45
+     enumerator :: IPARM_SCHUR_SOLV_MODE                = 46
+     enumerator :: IPARM_APPLYPERM_WS                   = 47
+     enumerator :: IPARM_REFINEMENT                     = 48
+     enumerator :: IPARM_NBITER                         = 49
+     enumerator :: IPARM_ITERMAX                        = 50
+     enumerator :: IPARM_GMRES_IM                       = 51
+     enumerator :: IPARM_SCHEDULER                      = 52
+     enumerator :: IPARM_THREAD_NBR                     = 53
+     enumerator :: IPARM_AUTOSPLIT_COMM                 = 54
+     enumerator :: IPARM_GPU_NBR                        = 55
+     enumerator :: IPARM_GPU_MEMORY_PERCENTAGE          = 56
+     enumerator :: IPARM_GPU_MEMORY_BLOCK_SIZE          = 57
+     enumerator :: IPARM_COMPRESS_MIN_WIDTH             = 58
+     enumerator :: IPARM_COMPRESS_MIN_HEIGHT            = 59
+     enumerator :: IPARM_COMPRESS_WHEN                  = 60
+     enumerator :: IPARM_COMPRESS_METHOD                = 61
+     enumerator :: IPARM_COMPRESS_ORTHO                 = 62
+     enumerator :: IPARM_THREAD_COMM_MODE               = 63
+     enumerator :: IPARM_MODIFY_PARAMETER               = 64
+     enumerator :: IPARM_START_TASK                     = 65
+     enumerator :: IPARM_END_TASK                       = 66
+     enumerator :: IPARM_FLOAT                          = 67
+     enumerator :: IPARM_MTX_TYPE                       = 68
+     enumerator :: IPARM_DOF_NBR                        = 69
+     enumerator :: IPARM_SIZE                           = 69
   end enum
 
   ! enum dparm
@@ -236,6 +242,14 @@ module pastix_enums
      enumerator :: PastixCompressOrthoCGS       = 0
      enumerator :: PastixCompressOrthoQR        = 1
      enumerator :: PastixCompressOrthoPartialQR = 2
+  end enum
+
+  ! enum split
+  enum, bind(C)
+     enumerator :: PastixSplitNot             = 0
+     enumerator :: PastixSplitKway            = 1
+     enumerator :: PastixSplitKwayProjections = 2
+     enumerator :: PastixSplitProjections     = 3
   end enum
 
   ! enum layout

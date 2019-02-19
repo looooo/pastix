@@ -49,7 +49,7 @@ module_name = "pastix_enums"
 
 # exclude inline functions from the interface
 exclude_list = [ "inline", "spmIntSort", "spmIntMSort",
-                 "pastixOrderCompute", "pastixOrderApplyLevelOrder",
+                 "orderDraw", "orderSupernodes", "pastixOrderCompute", "pastixOrderApplyLevelOrder",
                  "pastixOrderAddIsolate", "pastixOrderFindSupernodes" ]
 
 def polish_file(whole_file):

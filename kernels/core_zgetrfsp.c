@@ -250,7 +250,7 @@ cpucblk_zgetrfsp1d_getrf( SolverMatrix       *solvmtx,
     /* Transpose Akk in ucoeftab */
     core_zgetro( ncols, ncols, L, stride, U, stride );
 
-    kernel_trace_stop( PastixKernelGETRF, ncols, 0, 0, flops, time );
+    kernel_trace_stop( cblk->fblokptr->inlast, PastixKernelGETRF, ncols, 0, 0, flops, time );
 
     if ( nbpivots ) {
         pastix_atomic_add_32b( &(solvmtx->nbpivots), nbpivots );
@@ -302,10 +302,10 @@ cpucblk_zgetrfsp1d_panel( SolverMatrix       *solvmtx,
      */
     cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixUpper,
                      PastixNoTrans, PastixNonUnit,
-                     cblk, L, L, &(solvmtx->lowrank) );
+                     cblk, L, L, solvmtx );
     cpucblk_ztrsmsp( PastixUCoef, PastixRight, PastixUpper,
                      PastixNoTrans, PastixUnit,
-                     cblk, U, U, &(solvmtx->lowrank) );
+                     cblk, U, U, solvmtx );
     return nbpivots;
 }
 

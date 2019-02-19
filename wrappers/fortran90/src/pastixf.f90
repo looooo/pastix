@@ -31,6 +31,7 @@ module pastixf
      type(c_ptr)                :: peritab
      type(c_ptr)                :: rangtab
      type(c_ptr)                :: treetab
+     type(c_ptr)                :: selevtx
      integer(kind=pastix_int_t) :: sndenbr
      type(c_ptr)                :: sndetab
   end type pastix_order_t
@@ -67,6 +68,19 @@ module pastixf
        integer(kind=pastix_int_t), value :: vertnbr
        integer(kind=pastix_int_t), value :: cblknbr
      end function pastixOrderAlloc_c
+  end interface
+
+  interface
+     function pastixOrderAllocId_c(ordeptr, vertnbr) &
+          bind(c, name='pastixOrderAllocId')
+       use iso_c_binding
+       import pastix_int_t
+       import pastix_order_t
+       implicit none
+       integer(kind=c_int)               :: pastixOrderAllocId_c
+       type(c_ptr),                value :: ordeptr
+       integer(kind=pastix_int_t), value :: vertnbr
+     end function pastixOrderAllocId_c
   end interface
 
   interface
@@ -562,6 +576,16 @@ contains
 
     info = pastixOrderAlloc_c(c_loc(ordeptr), vertnbr, cblknbr)
   end subroutine pastixOrderAlloc
+
+  subroutine pastixOrderAllocId(ordeptr, vertnbr, info)
+    use iso_c_binding
+    implicit none
+    type(pastix_order_t),       intent(in), target :: ordeptr
+    integer(kind=pastix_int_t), intent(in)         :: vertnbr
+    integer(kind=c_int),        intent(out)        :: info
+
+    info = pastixOrderAllocId_c(c_loc(ordeptr), vertnbr)
+  end subroutine pastixOrderAllocId
 
   subroutine pastixOrderExit(ordeptr)
     use iso_c_binding

@@ -125,6 +125,8 @@ cmake_dependent_option(PASTIX_ORDERING_PTSCOTCH
 # Symbolic factorization options
 option(PASTIX_SYMBOL_DUMP_SYMBMTX
   "Dump the generated symbol matrix in a postscript file" OFF)
+option(PASTIX_ORDER_DRAW_LASTSEP
+  "Dump the last separator in a ivview file" OFF)
 
 # Analyze step options
 option(PASTIX_BLEND_DEEPEST_DISTRIB
@@ -380,7 +382,7 @@ if (PASTIX_ORDERING_PTSCOTCH)
     include_directories( ${PTSCOTCH_INCLUDE_DIRS_DEP} )
     link_directories( ${PTSCOTCH_LIBRARY_DIRS_DEP} )
     link_libraries( ${PTSCOTCH_LIBRARIES_DEP} )
-    
+
     list(APPEND CMAKE_INSTALL_RPATH
       ${PTSCOTCH_LIBRARY_DIRS_DEP}
       )
@@ -656,6 +658,8 @@ set(PASTIX_LIB_SRCS
   # Files that are fully converted
   #
   graph/graph.c
+  graph/graph_compute_projection.c
+  graph/graph_connected_components.c
   graph/graph_io.c
   graph/graph_isolate.c
   graph/graph_prepare.c
@@ -748,7 +752,10 @@ set_source_files_properties(
 if(PASTIX_ORDERING_SCOTCH)
   set(PASTIX_LIB_SRCS
     ${PASTIX_LIB_SRCS}
+    graph/graph_compute_kway.c
     order/order_compute_scotch.c
+    order/order_draw.c
+    order/order_supernodes.c
     )
 endif()
 if(PASTIX_ORDERING_PTSCOTCH)
@@ -942,6 +949,8 @@ add_documented_files(
   #
   graph/graph.h
   graph/graph.c
+  graph/graph_compute_kway.c
+  graph/graph_compute_projection.c
   graph/graph_io.c
   graph/graph_isolate.c
   graph/graph_prepare.c
@@ -954,12 +963,14 @@ add_documented_files(
   order/order_amalgamate.c
   order/order_apply_level_order.c
   order/order_check.c
+  order/order_draw.c
   order/order_find_supernodes.c
   order/order_grids.c
   order/order_io.c
   order/order_compute_metis.c
   order/order_compute_ptscotch.c
   order/order_compute_scotch.c
+  order/order_supernodes.c
   order/pastix_subtask_order.c
   #
   symbol/fax_csr.h

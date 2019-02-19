@@ -190,11 +190,14 @@ cpucblk_zfillin_fr( pastix_coefside_t    side,
                          (rownum > (solvcblk->fcolnum + itercoltab)) )
                     {
 #if defined(PRECISION_z) || defined(PRECISION_c)
-                        if (bcsc->mtxtype == PastixHermitian)
+                        if (bcsc->mtxtype == PastixHermitian) {
                             ucoeftab[coefindx] = conj(Uvalues[iterval]);
+                        }
                         else
 #endif
+                        {
                             ucoeftab[coefindx] = Uvalues[iterval];
+                        }
                     }
                 }
                 else {

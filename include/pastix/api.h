@@ -67,6 +67,14 @@ typedef enum pastix_iparm_e {
     IPARM_REORDERING_SPLIT,      /**< Reordering split level                                         Default: 0                         IN  */
     IPARM_REORDERING_STOP,       /**< Reordering stop criteria                                       Default: PASTIX_INT_MAX            IN  */
 
+    IPARM_SPLITTING_STRATEGY,    /**< Strategy used to split supernodes                              Default: PASTIX_INT_MAX           IN    */
+    IPARM_SPLITTING_LEVELS_PROJECTIONS,   /**< Levels of projections                                 Default: PASTIX_INT_MAX           IN    */
+    IPARM_SPLITTING_LEVELS_KWAY ,         /**< Levels of kway                                        Default: PASTIX_INT_MAX           IN    */
+    IPARM_SPLITTING_PROJECTIONS_DEPTH,    /**< Number of level used for projections                  Default: PASTIX_INT_MAX           IN    */
+    IPARM_SPLITTING_PROJECTIONS_DISTANCE, /**< Distance used for projections                         Default: PASTIX_INT_MAX           IN    */
+    IPARM_SPLITTING_PROJECTIONS_WIDTH,    /**< Width used for projections
+                                           Default: PASTIX_INT_MAX IN */
+
     /* Analyze */
     IPARM_MIN_BLOCKSIZE,         /**< Minimum block size                                             Default: 160                       IN  */
     IPARM_MAX_BLOCKSIZE,         /**< Maximum block size                                             Default: 320                       IN  */
@@ -327,31 +335,40 @@ typedef enum pastix_error_e {
  * @brief Compression strategy available for IPARM_COMPRESS_WHEN parameter
  */
 typedef enum pastix_compress_when_e {
-    PastixCompressNever,
-    PastixCompressWhenBegin,
-    PastixCompressWhenEnd,
-    PastixCompressWhenDuring
+    PastixCompressNever,      /**< Do not use compression                                              */
+    PastixCompressWhenBegin,  /**< Compress before any numerical operation (Minimal-Memory)            */
+    PastixCompressWhenEnd,    /**< Compress after contributions were accumulated (Just-In-Time)        */
+    PastixCompressWhenDuring  /**< Compress after contributions from other supernodes were accumulated */
 } pastix_compress_when_t;
 
 /**
  * @brief Compression method available for IPARM_COMPRESS_METHOD parameter
  */
 typedef enum pastix_compress_method_e {
-    PastixCompressMethodSVD,
-    PastixCompressMethodPQRCP,
-    PastixCompressMethodRQRCP,
-    PastixCompressMethodTQRCP,
-    PastixCompressMethodNbr
+    PastixCompressMethodSVD,   /**< Use singular value decomposition for low-rank compression       */
+    PastixCompressMethodPQRCP, /**< Use partial QR with column pivoting for low-rank compression    */
+    PastixCompressMethodRQRCP, /**< Use randomized QR with column pivoting for low-rank compression */
+    PastixCompressMethodTQRCP, /**< Use truncated QR with column pivotingfor low-rank compression   */
+    PastixCompressMethodNbr    /**< Total number of available compression methods                   */
 } pastix_compress_method_t;
 
 /**
  * @brief Orthogonalization method available for IPARM_COMPRESS_ORTHO parameter
  */
 typedef enum pastix_compress_ortho_e {
-    PastixCompressOrthoCGS,
-    PastixCompressOrthoQR,
-    PastixCompressOrthoPartialQR,
+    PastixCompressOrthoCGS,        /**< Orthogonalize low-rank bases with Gram-Schimdt                                           */
+    PastixCompressOrthoQR,         /**< Orthogonalize low-rank bases with QR decomposition                                       */
+    PastixCompressOrthoPartialQR,  /**< Orthogonalize low-rank bases with projections in orthogonal space followed by smaller QR */
 } pastix_compress_ortho_t;
+
+/**
+ * @brief Splitting strategy available for IPARM_SPLITTING_STRATEGY parameter
+ */
+typedef enum pastix_split_e {
+    PastixSplitNot,              /**< Do not apply dedicated low-rank clustering strategy */
+    PastixSplitKway,             /**< Use k-way partitioning                              */
+    PastixSplitKwayProjections,  /**< Use projections and k-way in clusters               */
+} pastix_split_t;
 
 /**
  *

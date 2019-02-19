@@ -38,6 +38,7 @@ typedef struct symbol_cblk_s {
     pastix_int_t lcolnum; /**< Last column index (inclusive)    */
     pastix_int_t bloknum; /**< First block in column (diagonal) */
     pastix_int_t brownum; /**< First block in row facing the diagonal block in browtab, 0-based */
+    int8_t       selevtx;
 #if defined( PASTIX_SYMBOL_DUMP_SYMBMTX )
     pastix_int_t split_cblk;
 #endif

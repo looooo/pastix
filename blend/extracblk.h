@@ -41,7 +41,8 @@ void extraCblkInit ( pastix_int_t        cblknbr,
 void extraCblkExit ( ExtraCblk_t        *extracblk );
 void extraCblkAdd  ( ExtraCblk_t        *extracblk,
                      pastix_int_t        fcolnum,
-                     pastix_int_t        lcolnum   );
+                     pastix_int_t        lcolnum,
+                     int8_t              selevtx );
 void extraCblkMerge( const ExtraCblk_t  *extracblk,
                      symbol_matrix_t    *newsymb,
                      Cand              **candtab   );

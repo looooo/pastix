@@ -85,17 +85,20 @@ pastixOrderAddIsolate(       pastix_order_t *ordemesh,
 
     memcpy( &ordesave, ordemesh, sizeof(pastix_order_t) );
     rc = pastixOrderAlloc( ordemesh, new_n, cblknbr + 1 );
-    if (rc != PASTIX_SUCCESS)
+    if (rc != PASTIX_SUCCESS) {
         return rc;
+    }
 
     ordemesh->baseval = baseval;
     for(i=0; i< new_n; i++) {
         ip = perm[i];
         assert(ip < new_n);
-        if (ip < n)
+        if (ip < n) {
             ordemesh->permtab[i] = ordesave.permtab[ ip ];
-        else
+        }
+        else {
             ordemesh->permtab[i] = ip+baseval;
+        }
     }
     for(i=0; i<new_n; i++) {
         ip = ordemesh->permtab[i] - baseval;

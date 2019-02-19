@@ -226,6 +226,7 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
             cblktax[cblknum].lcolnum = colmax - 1;
             cblktax[cblknum].bloknum = bloknum;
             cblktax[cblknum].brownum = -1;
+            cblktax[cblknum].selevtx = 0;
 
             degrsum = 0;
             for ( ; colnum < colmax; colnum ++) { /* For all columns                                  */
@@ -492,6 +493,7 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
         cblktax[cblknum].lcolnum = vertnbr + baseval;
     cblktax[cblknum].bloknum = bloknum;
     cblktax[cblknum].brownum = -1;
+    cblktax[cblknum].selevtx = 0;
 
     memFree (ctrbtax + baseval);                    /* Free contribution link array */
 

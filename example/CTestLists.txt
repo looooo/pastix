@@ -23,11 +23,14 @@ set( PASTIX_FACTO
      0 1 2) # LLh, LDLt, LU
 set( PASTIX_SCHEDS
      0 1) # sequential, static
-   set( PASTIX_COMPRESS_METHOD
+set( PASTIX_COMPRESS_METHOD
      svd
      pqrcp )
 #     rqrcp
 #     tqrcp )
+set( PASTIX_SPLIT_METHOD
+    pastixsplitkway
+    pastixsplitkwayprojections )
 if (PASTIX_WITH_PARSEC)
   list( APPEND PASTIX_SCHEDS 2 ) # parsec
 endif (PASTIX_WITH_PARSEC)
@@ -60,8 +63,10 @@ foreach(example ${PASTIX_DRIVERS} )
   endforeach()
 endforeach()
 
-set( PASTIX_ORDER
-  pastixorderscotch )
+set( PASTIX_ORDER )
+if (PASTIX_ORDERING_SCOTCH)
+  list( APPEND PASTIX_ORDER pastixorderscotch )
+endif (PASTIX_ORDERING_SCOTCH)
 if (PASTIX_ORDERING_METIS)
   list( APPEND PASTIX_ORDER pastixordermetis )
 endif (PASTIX_ORDERING_METIS)
@@ -133,10 +138,13 @@ foreach(example ${PASTIX_TESTS} )
       endif()
       foreach(facto ${factos} )
         foreach(method ${PASTIX_COMPRESS_METHOD} )
-          # Begin
-          add_test(example_${method}begin_sched${scheduler}_facto${facto}_${arithm}_${example}  ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_method pastixcompressmethod${method} -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
-          # End
-          add_test(example_${method}end_sched${scheduler}_facto${facto}_${arithm}_${example}    ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} -i iparm_compress_when pastixcompresswhenend   -i iparm_compress_method pastixcompressmethod${method} -i iparm_compress_min_width 16 -i iparm_compress_min_height 16)
+          foreach(split ${PASTIX_SPLIT_METHOD} )
+            set( LOWRANK_PARAMS ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} -i iparm_compress_min_width 16 -i iparm_compress_min_height 16 -i iparm_splitting_strategy ${split} -i iparm_compress_method pastixcompressmethod${method} )
+            # Begin
+            add_test(example_${method}begin_${split}_sched${scheduler}_facto${facto}_${arithm}_${example}  ${LOWRANK_PARAMS} -i iparm_compress_when pastixcompresswhenbegin)
+            # End
+            add_test(example_${method}end_${split}_sched${scheduler}_facto${facto}_${arithm}_${example}    ${LOWRANK_PARAMS} -i iparm_compress_when pastixcompresswhenend  )
+          endforeach()
         endforeach()
       endforeach()
     endforeach()

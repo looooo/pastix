@@ -243,7 +243,7 @@ cpucblk_zinit( pastix_coefside_t    side,
          (compress_when == PastixCompressWhenBegin)                  &&
          (cblk_colnbr( cblk ) > solvmtx->lowrank.compress_min_width) )
     {
-        cpucblk_zcompress( side, cblk, solvmtx->lowrank );
+        cpucblk_zcompress( solvmtx, side, cblk );
     }
 
     (void)directory;

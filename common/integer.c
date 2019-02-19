@@ -414,6 +414,62 @@ intRandReset (void)
 #undef INTSORTCMP
 #undef INTSORTNTAB
 
+/**
+ *******************************************************************************
+ *
+ * @fn      void qsort3IntAsc(void ** const pbase, const pastix_int_t n);
+ * @ingroup pastix_dev_integer
+ *
+ * @brief Sorts in ascending order array of element composed of three
+ * pastix_int_t by ascending order. The first value is used as key.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pbase
+ *          Pointer to the array of triplet of integers to sort.
+ *
+ * @param[in] n
+ *          The number of elements in the array.
+ *
+ *******************************************************************************
+ */
+#define INTSORTNAME                 qsort3IntAsc
+#define INTSORTSIZE(x)              (sizeof (pastix_int_t))
+#define INTSORTNTAB                 3
+#define INTSORTSWAP(p,q)            do {                        \
+        pastix_int_t *ptr1 = (pastix_int_t*)base_ptr;           \
+        pastix_int_t *ptr2 = (pastix_int_t*)(*(pbase+1));       \
+        pastix_int_t *ptr3 = (pastix_int_t*)(*(pbase+2));       \
+        pastix_int_t *intp = (pastix_int_t*)p;                  \
+        pastix_int_t *intq = (pastix_int_t*)q;                  \
+        pastix_int_t  t;                                        \
+        long          disp_p = (intp - ptr1);                   \
+        long          disp_q = (intq - ptr1);                   \
+        /* swap integers */                                     \
+        t = *intp;                                              \
+        *intp = *intq;                                          \
+        *intq = t;                                              \
+        /* swap on second integer array */                      \
+        intp = ptr2 + disp_p;                                   \
+        intq = ptr2 + disp_q;                                   \
+        t = *intp;                                              \
+        *intp = *intq;                                          \
+        *intq = t;                                              \
+        /* swap on third integer array */                       \
+        intp = ptr3 + disp_p;                                   \
+        intq = ptr3 + disp_q;                                   \
+        t = *intp;                                              \
+        *intp = *intq;                                          \
+        *intq = t;                                              \
+    } while (0)
+#define INTSORTCMP(p,q)   (*((pastix_int_t *) (p)) < *((pastix_int_t *) (q)))
+#include "common_sort2.c"
+#undef INTSORTNAME
+#undef INTSORTSIZE
+#undef INTSORTSWAP
+#undef INTSORTCMP
+#undef INTSORTNTAB
+
 /*
  Function: qsort2SmallIntAsc
 

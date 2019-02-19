@@ -139,7 +139,7 @@ extern pastix_atomic_lock_t lock_flops;
 /**
  * @brief Overall number of flops
  */
-extern double overall_flops;
+extern double overall_flops[3];
 
 #if defined(PASTIX_WITH_EZTRACE)
 
@@ -253,7 +253,7 @@ kernel_trace_start( pastix_ktype_t ktype )
  *
  *******************************************************************************/
 static inline void
-kernel_trace_stop( pastix_ktype_t ktype, int m, int n, int k, double flops, double starttime )
+kernel_trace_stop( int8_t inlast, pastix_ktype_t ktype, int m, int n, int k, double flops, double starttime )
 {
 
 #if defined(PASTIX_WITH_EZTRACE)
@@ -285,7 +285,7 @@ kernel_trace_stop( pastix_ktype_t ktype, int m, int n, int k, double flops, doub
 #endif
 
     pastix_atomic_lock( &lock_flops );
-    overall_flops += flops;
+    overall_flops[inlast] += flops;
     pastix_atomic_unlock( &lock_flops );
 
     (void)ktype;

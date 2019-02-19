@@ -33,6 +33,7 @@ class pypastix_order_t(Structure):
                 ("peritab",  POINTER(__pastix_int__)),
                 ("rangtab",  POINTER(__pastix_int__)),
                 ("treetab",  POINTER(__pastix_int__)),
+                ("selevtx",  POINTER(__pastix_int__)),
                 ("sndenbr",  __pastix_int__         ),
                 ("sndetab",  POINTER(__pastix_int__)) ]
 
@@ -56,6 +57,11 @@ def pypastix_pastixOrderAlloc( ordeptr, vertnbr, cblknbr ):
                                             __pastix_int__ ]
     libpastix.pastixOrderAlloc.restype = c_int
     return libpastix.pastixOrderAlloc( ordeptr, vertnbr, cblknbr )
+
+def pypastix_pastixOrderAllocId( ordeptr, vertnbr ):
+    libpastix.pastixOrderAllocId.argtypes = [ c_void_p, __pastix_int__ ]
+    libpastix.pastixOrderAllocId.restype = c_int
+    return libpastix.pastixOrderAllocId( ordeptr, vertnbr )
 
 def pypastix_pastixOrderExit( ordeptr ):
     libpastix.pastixOrderExit.argtypes = [ c_void_p ]

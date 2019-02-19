@@ -8,6 +8,7 @@ stages:
 
 build_pastix:
   stage: build
+  tags: ["large"]
   artifacts:
     name: pastix_build
     expire_in: 42 minutes
@@ -27,6 +28,7 @@ build_pastix:
 
 test_pastix:
   stage: test
+  tags: ["large"]
   dependencies:
     - build_pastix
   artifacts:
@@ -56,6 +58,7 @@ test_pastix:
 
 sonar_pastix:
   stage: sonar
+  tags: ["large"]
   dependencies:
     - build_pastix
     - test_pastix
@@ -78,6 +81,7 @@ sonar_pastix:
 
 pages:
   stage: deploy
+  tags: ["large"]
   dependencies:
     - build_pastix
   artifacts:
