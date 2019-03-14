@@ -99,3 +99,13 @@ pages:
     - master@solverstack/pastix
     - master@pastix/pastix
 
+package:
+  stage: deploy
+  tags: ["large"]
+  dependencies:
+    - build_pastix
+    - test_pastix
+  only:
+    - /^release-.*$/
+  script:
+    - ./tools/release.sh
