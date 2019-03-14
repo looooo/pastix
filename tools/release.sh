@@ -23,7 +23,7 @@ release=""
 function get_release()
 {
     local firstline=$( grep -n "^# " ChangeLog.md | head -n 1 | cut -d ':' -f 1 )
-    release=$( head -n $firstline ChangeLog.md | tail -n 1 | sed -'s/# pastix-//' )
+    release=$( head -n $firstline ChangeLog.md | tail -n 1 | sed 's/# pastix\-//' )
 }
 
 # Get the release name through the branch name, and through the ChangeLog file.
@@ -31,10 +31,10 @@ function get_release()
 RELEASE_NAME=`echo $CI_COMMIT_REF_NAME | cut -d - -f 2`
 get_release
 
-if [ -z $RELEASE_NAME || -z $release || "$RELEASE_NAME" != "$release" ]
+if [ -z "$RELEASE_NAME" -o -z "$release" -o "$RELEASE_NAME" != "$release" ]
 then
     echo "Commit name $RELEASE_NAME is different from ChangeLog name $release"
-    return 1
+    exit 1
 fi
 
 wget https://raw.githubusercontent.com/Kentzo/git-archive-all/master/git_archive_all.py
