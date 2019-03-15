@@ -51,7 +51,7 @@ MYURL=`eval $GETURL | jq .url | tr -d '"'`
 gen_changelog
 
 # Try to remove the release if it already exists
-curl --request DELETE --header "PRIVATE-TOKEN: $RELEASE_TOKEN" " https://gitlab.inria.fr/api/v4/projects/$CI_PROJECT_ID/releases/v$RELEASE_NAME"
+curl --request DELETE --header "PRIVATE-TOKEN: $RELEASE_TOKEN" https://gitlab.inria.fr/api/v4/projects/$CI_PROJECT_ID/releases/v$RELEASE_NAME
 
 # Generate the curl command that create the release
 COMMAND=`echo curl --header \"Content-Type: application/json\" --header \"PRIVATE-TOKEN: $RELEASE_TOKEN\" \
