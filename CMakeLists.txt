@@ -281,7 +281,7 @@ endif()
 #---------------------------------
 if (PASTIX_WITH_STARPU)
 
-  set(PASTIX_STARPU_VERSION "1.2" CACHE STRING "oldest STARPU version desired")
+  set(PASTIX_STARPU_VERSION "1.3" CACHE STRING "oldest STARPU version desired")
 
   # Create list of components in order to make a single call to find_package(starpu...)
   set(STARPU_COMPONENT_LIST "HWLOC")

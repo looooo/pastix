@@ -39,6 +39,7 @@ starpu_pastix_filter_list( void *father_interface,
     vector_child->id = vector_father->id;
     vector_child->nx = chunk_size;
     vector_child->elemsize = elemsize;
+    vector_child->allocsize = vector_child->nx * elemsize;
 
     if (vector_father->dev_handle)
     {
