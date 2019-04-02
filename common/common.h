@@ -23,7 +23,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <errno.h>
-#include <inttypes.h>
+#include <stdint.h>
 #include <limits.h>
 #include "sys/atomic.h"
 #include "memory.h"

@@ -17,7 +17,7 @@
 #ifndef _pastix_datatypes_h_
 #define _pastix_datatypes_h_
 
-#include <inttypes.h>
+#include <stdint.h>
 
 /** ****************************************************************************
  * Integers
