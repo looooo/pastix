@@ -35,7 +35,7 @@ typedef struct parsec_sparse_matrix_desc_s {
     int                       typesze;    /**< Arithmetic size                                                                 */
     int                       mtxtype;    /**< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.            */
     SolverMatrix             *solvmtx;    /**< Solver matrix structure that describes the problem and stores the original data */
-    void                    **d_blocktab; /**< Pointer to GPU arrays that contains frownum,lrownum of each block for Fermi     */
+    void                    **gpu_blocktab; /**< Pointer to GPU arrays that contains frownum,lrownum of each block for Fermi     */
 } parsec_sparse_matrix_desc_t;
 
 void parsec_sparse_matrix_init( SolverMatrix *solvmtx,

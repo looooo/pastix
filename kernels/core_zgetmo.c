@@ -1,6 +1,6 @@
 /**
  *
- * @file core_zgetro.c
+ * @file core_zgetmo.c
  *
  * PaStiX kernel routines
  *
@@ -45,7 +45,7 @@
  *
  ******************************************************************************/
 void
-core_zgetro( int m, int n,
+core_zgetmo( int m, int n,
              const pastix_complex64_t *A, int lda,
              pastix_complex64_t *B, int ldb )
 {

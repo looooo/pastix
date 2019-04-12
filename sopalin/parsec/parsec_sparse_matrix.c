@@ -449,7 +449,7 @@ parsec_sparse_matrix_init_fermi( parsec_sparse_matrix_desc_t *spmtx,
     }
 
     ndevices -= 2;
-    spmtx->d_blocktab = calloc(ndevices, sizeof(void*));
+    spmtx->gpu_blocktab = calloc(ndevices, sizeof(void*));
 
     fprintf(stderr, "ndevices = %ld\n", ndevices );
     for(i = 0; i < ndevices; i++) {
@@ -458,10 +458,10 @@ parsec_sparse_matrix_init_fermi( parsec_sparse_matrix_desc_t *spmtx,
         fprintf(stderr, "cuda index = %d\n", gpu_device->cuda_index );
         cudaSetDevice( gpu_device->cuda_index );
 
-        cudaMalloc( &(spmtx->d_blocktab[i]),
+        cudaMalloc( &(spmtx->gpu_blocktab[i]),
                     size );
 
-        cudaMemcpy( spmtx->d_blocktab[i],
+        cudaMemcpy( spmtx->gpu_blocktab[i],
                     bloktab, size,
                     cudaMemcpyHostToDevice );
     }
@@ -483,10 +483,10 @@ parsec_sparse_matrix_destroy_fermi( parsec_sparse_matrix_desc_t *spmtx )
         if( NULL == (gpu_device = (gpu_device_t*)parsec_devices_get(i+2)) ) continue;
 
         cudaSetDevice( gpu_device->cuda_index );
-        cudaFree( spmtx->d_blocktab[i] );
+        cudaFree( spmtx->gpu_blocktab[i] );
     }
 
-    free( spmtx->d_blocktab );
+    free( spmtx->gpu_blocktab );
 }
 #endif /*defined(PASTIX_CUDA_FERMI)*/
 

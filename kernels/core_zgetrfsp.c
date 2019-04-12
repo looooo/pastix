@@ -248,7 +248,7 @@ cpucblk_zgetrfsp1d_getrf( SolverMatrix       *solvmtx,
     kernel_trace_stop_lvl2( flops );
 
     /* Transpose Akk in ucoeftab */
-    core_zgetro( ncols, ncols, L, stride, U, stride );
+    core_zgetmo( ncols, ncols, L, stride, U, stride );
 
     kernel_trace_stop( cblk->fblokptr->inlast, PastixKernelGETRF, ncols, 0, 0, flops, time );
 
