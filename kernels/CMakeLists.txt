@@ -47,7 +47,7 @@ add_custom_target(kernels_headers_tgt
 set(SOURCES
   # CPU extra kernel
   core_zgemdm.c
-  core_zgetro.c
+  core_zgetmo.c
   core_zgeadd.c
   core_zplrnt.c
   core_ztradd.c

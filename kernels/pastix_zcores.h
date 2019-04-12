@@ -33,7 +33,7 @@
  */
 void core_zplrnt( int m, int n, pastix_complex64_t *A, int lda,
                   int gM, int m0, int n0, unsigned long long int seed );
-void core_zgetro( int m, int n,
+void core_zgetmo( int m, int n,
                   const pastix_complex64_t *A, int lda,
                   pastix_complex64_t *B, int ldb );
 int  core_zgeadd( pastix_trans_t trans, pastix_int_t M, pastix_int_t N,

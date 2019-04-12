@@ -36,16 +36,16 @@
 
 /* extern "C" void */
 /* GENERATE_SM_VERSION_NAME(gemm)( char TRANSA, char TRANSB, int m , int n , int k , */
-/*                                  cuDoubleComplex alpha, const cuDoubleComplex *d_A, int lda, */
-/*                                                         const cuDoubleComplex *d_B, int ldb, */
-/*                                  cuDoubleComplex beta,        cuDoubleComplex *d_C, int ldc, */
+/*                                  cuDoubleComplex alpha, const cuDoubleComplex *gpu_A, int lda, */
+/*                                                         const cuDoubleComplex *gpu_B, int ldb, */
+/*                                  cuDoubleComplex beta,        cuDoubleComplex *gpu_C, int ldc, */
 /*                                  int blocknbr, const int *blocktab, int fblocknbr, const int *fblocktab, */
 /*                                  cudaStream_t stream ) */
 extern "C" void
 pastix_fermi_zgemmsp( char TRANSA, char TRANSB, int m , int n , int k ,
-                      cuDoubleComplex alpha, const cuDoubleComplex *d_A, int lda,
-                                             const cuDoubleComplex *d_B, int ldb,
-                      cuDoubleComplex beta,        cuDoubleComplex *d_C, int ldc,
+                      cuDoubleComplex alpha, const cuDoubleComplex *gpu_A, int lda,
+                                             const cuDoubleComplex *gpu_B, int ldb,
+                      cuDoubleComplex beta,        cuDoubleComplex *gpu_C, int ldc,
                       int blocknbr, const int *blocktab, int fblocknbr, const int *fblocktab,
                       cudaStream_t stream )
 {
@@ -88,18 +88,18 @@ pastix_fermi_zgemmsp( char TRANSA, char TRANSB, int m , int n , int k ,
 
         M      - INTEGER.
         On entry,  M  specifies  the number  of rows  of the  matrix
-        op( d_A )  and of the  matrix d_C.  M  must  be at least  zero.
+        op( gpu_A )  and of the  matrix gpu_C.  M  must  be at least  zero.
         Unchanged on exit.
 
         N      - INTEGER.
         On entry,  N  specifies the number  of columns of the matrix
-        op( d_B ) and the number of columns of the matrix d_C. N must be
+        op( gpu_B ) and the number of columns of the matrix gpu_C. N must be
         at least zero.
         Unchanged on exit.
 
         K      - INTEGER.
         On entry,  K  specifies  the number of columns of the matrix
-        op( d_A ) and the number of rows of the matrix op( d_B ). K must
+        op( gpu_A ) and the number of rows of the matrix op( gpu_B ). K must
         be at least  zero.
         Unchanged on exit.
 
@@ -107,12 +107,12 @@ pastix_fermi_zgemmsp( char TRANSA, char TRANSB, int m , int n , int k ,
         On entry, ALPHA specifies the scalar alpha.
         Unchanged on exit.
 
-        d_A    - COMPLEX_16 array of DIMENSION ( LDA, ka ), where ka is
+        gpu_A    - COMPLEX_16 array of DIMENSION ( LDA, ka ), where ka is
         k  when  TRANSA = 'N' or 'n',  and is  m  otherwise.
         Before entry with  TRANSA = 'N' or 'n',  the leading  m by k
-        part of the array d_A must contain the matrix d_A, otherwise
-        the leading  k by m  part of the array d_A must contain  the
-        matrix d_A.
+        part of the array gpu_A must contain the matrix gpu_A, otherwise
+        the leading  k by m  part of the array gpu_A must contain  the
+        matrix gpu_A.
         Unchanged on exit.
 
         LDA    - INTEGER.
@@ -122,16 +122,16 @@ pastix_fermi_zgemmsp( char TRANSA, char TRANSB, int m , int n , int k ,
         least  max( 1, k ).
         Unchanged on exit.
 
-        d_B    - COMPLEX_16 array of DIMENSION ( LDB, kb ), where kb is
+        gpu_B    - COMPLEX_16 array of DIMENSION ( LDB, kb ), where kb is
         n  when  TRANSB = 'N' or 'n',  and is  k  otherwise.
         Before entry with  TRANSB = 'N' or 'n',  the leading  k by n
-        part of the array d_B must contain the matrix d_B, otherwise
-        the leading  n by k  part of the array d_B must contain  the
-        matrix d_B.
+        part of the array gpu_B must contain the matrix gpu_B, otherwise
+        the leading  n by k  part of the array gpu_B must contain  the
+        matrix gpu_B.
         Unchanged on exit.
 
         LDB    - INTEGER.
-        On entry, LDB specifies the first dimension of d_B as declared
+        On entry, LDB specifies the first dimension of gpu_B as declared
         in the calling (sub) program. When  TRANSB = 'N' or 'n' then
         LDB must be at least  max( 1, k ), otherwise  LDB must be at
         least  max( 1, n ).
@@ -139,18 +139,18 @@ pastix_fermi_zgemmsp( char TRANSA, char TRANSB, int m , int n , int k ,
 
         BETA   - COMPLEX_16.
         On entry,  BETA  specifies the scalar  beta.  When  BETA  is
-        supplied as zero then d_C need not be set on input.
+        supplied as zero then gpu_C need not be set on input.
         Unchanged on exit.
 
-        d_C    - COMPLEX_16 array of DIMENSION ( LDC, n ).
-        Before entry, the leading  m by n  part of the array  d_C must
-        contain the matrix  d_C,  except when  beta  is zero, in which
-        case d_C need not be set on entry.
-        On exit, the array  d_C  is overwritten by the  m by n  matrix
-        ( alpha*op( d_A )*op( d_B ) + beta*d_C ).
+        gpu_C    - COMPLEX_16 array of DIMENSION ( LDC, n ).
+        Before entry, the leading  m by n  part of the array  gpu_C must
+        contain the matrix  gpu_C,  except when  beta  is zero, in which
+        case gpu_C need not be set on entry.
+        On exit, the array  gpu_C  is overwritten by the  m by n  matrix
+        ( alpha*op( gpu_A )*op( gpu_B ) + beta*gpu_C ).
 
         LDC    - INTEGER.
-        On entry, LDC specifies the first dimension of d_C as declared
+        On entry, LDC specifies the first dimension of gpu_C as declared
         in  the  calling  (sub)  program.   LDC  must  be  at  least
         max( 1, m ).
         Unchanged on exit.
@@ -187,8 +187,8 @@ pastix_fermi_zgemmsp( char TRANSA, char TRANSB, int m , int n , int k ,
         sizeB>=CUBLAS_MAX_1DBUF_SIZE )
         {
             cublasZgemm(TRANSA, TRANSB, m, n, k, alpha,
-                        d_A, lda, d_B, ldb,
-                        beta, d_C, ldc);
+                        gpu_A, lda, gpu_B, ldb,
+                        beta, gpu_C, ldc);
             return;
         }
 #else
@@ -206,29 +206,29 @@ pastix_fermi_zgemmsp( char TRANSA, char TRANSB, int m , int n , int k ,
     // Warning: works because DIM_X and DIM_Y are equals for every cases of one precision
     dim3 dimBlock(DIM_X, DIM_Y);
 
-    offsetA = offsetA/sizeof(d_A[0]);
-    offsetB = offsetB/sizeof(d_B[0]);
+    offsetA = offsetA/sizeof(gpu_A[0]);
+    offsetB = offsetB/sizeof(gpu_B[0]);
 
     // NN
     if (TransA==0 && TransB ==0){
       if((m >= BLK_M_nn) && (n >= BLK_N_nn)){
         dim3 dimGrid(m/BLK_M_nn, n/BLK_N_nn);
-        GENERATE_SM_VERSION_NAME(gemm_nn)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_nn)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                            (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_nn != 0) && (n >= BLK_N_nn)){
         dim3 dimGrid_bottom(1, n/BLK_N_nn);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_nn)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_nn)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((n%BLK_N_nn != 0) && (m >= BLK_M_nn)){
         dim3 dimGrid_right(m/BLK_M_nn,1);
-        GENERATE_SM_VERSION_NAME(gemm_right_nn)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_right_nn)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                        (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_nn != 0) && (n%BLK_N_nn != 0)){
         dim3 dimGrid_bottom_right(1, 1);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_right_nn)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_right_nn)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     }
@@ -236,27 +236,27 @@ pastix_fermi_zgemmsp( char TRANSA, char TRANSB, int m , int n , int k ,
     else if (TransA==0 && TransB ==1){
       /*dim3 dimGrid(m/BLK_M_nt + (m%BLK_M_nt != 0),
         n/BLK_N_nt + (n%BLK_N_nt != 0));
-        //GENERATE_SM_VERSION_NAME(gemm_nt)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        //GENERATE_SM_VERSION_NAME(gemm_nt)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
         //(int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);*/
       ///////////////////////////////////////////////
       if((m >= BLK_M_nt) && (n >= BLK_N_nt)){
         dim3 dimGrid(m/BLK_M_nt, n/BLK_N_nt);
-        GENERATE_SM_VERSION_NAME(gemm_nt)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_nt)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                            (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_nt != 0) && (n >= BLK_N_nt)){
         dim3 dimGrid_bottom(1, n/BLK_N_nt);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_nt)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_nt)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((n%BLK_N_nt != 0) && (m >= BLK_M_nt)){
         dim3 dimGrid_right(m/BLK_M_nt,1);
-        GENERATE_SM_VERSION_NAME(gemm_right_nt)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_right_nt)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                        (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_nt != 0) && (n%BLK_N_nt != 0)){
         dim3 dimGrid_bottom_right(1, 1);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_right_nt)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_right_nt)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     }
@@ -264,22 +264,22 @@ pastix_fermi_zgemmsp( char TRANSA, char TRANSB, int m , int n , int k ,
     else if (TransA==1 && TransB ==0){
       if((m >= BLK_M_tn) && (n >= BLK_N_tn)){
         dim3 dimGrid(m/BLK_M_tn, n/BLK_N_tn);
-        GENERATE_SM_VERSION_NAME(gemm_tn)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_tn)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                            (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tn != 0) && (n >= BLK_N_tn)){
         dim3 dimGrid_bottom(1, n/BLK_N_tn);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_tn)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_tn)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((n%BLK_N_tn != 0) && (m >= BLK_M_tn)){
         dim3 dimGrid_right(m/BLK_M_tn,1);
-        GENERATE_SM_VERSION_NAME(gemm_right_tn)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_right_tn)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                        (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tn != 0) && (n%BLK_N_tn != 0)){
         dim3 dimGrid_bottom_right(1, 1);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_right_tn)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_right_tn)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     }
@@ -287,22 +287,22 @@ pastix_fermi_zgemmsp( char TRANSA, char TRANSB, int m , int n , int k ,
     else if (TransA==1 && TransB ==1){
       if((m >= BLK_M_tt) && (n >= BLK_N_tt)){
         dim3 dimGrid(m/BLK_M_tt, n/BLK_N_tt);
-        GENERATE_SM_VERSION_NAME(gemm_tt)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_tt)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                            (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tt != 0) && (n >= BLK_N_tt)){
         dim3 dimGrid_bottom(1, n/BLK_N_tt);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_tt)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_tt)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((n%BLK_N_tt != 0) && (m >= BLK_M_tt)){
         dim3 dimGrid_right(m/BLK_M_tt,1);
-        GENERATE_SM_VERSION_NAME(gemm_right_tt)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_right_tt)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                        (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tt != 0) && (n%BLK_N_tt != 0)){
         dim3 dimGrid_bottom_right(1, 1);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_right_tt)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_right_tt)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     }
@@ -311,22 +311,22 @@ pastix_fermi_zgemmsp( char TRANSA, char TRANSB, int m , int n , int k ,
     else if (TransA==0 && TransB ==2){
       if((m >= BLK_M_nt) && (n >= BLK_N_nt)){
         dim3 dimGrid(m/BLK_M_nt, n/BLK_N_nt);
-        GENERATE_SM_VERSION_NAME(gemm_nc)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_nc)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                            (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_nt != 0) && (n >= BLK_N_nt)){
         dim3 dimGrid_bottom(1, n/BLK_N_nt);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_nc)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_nc)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((n%BLK_N_nt != 0) && (m >= BLK_M_nt)){
         dim3 dimGrid_right(m/BLK_M_nt,1);
-        GENERATE_SM_VERSION_NAME(gemm_right_nc)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_right_nc)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                        (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_nt != 0) && (n%BLK_N_nt != 0)){
         dim3 dimGrid_bottom_right(1, 1);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_right_nc)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_right_nc)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     }
@@ -334,22 +334,22 @@ pastix_fermi_zgemmsp( char TRANSA, char TRANSB, int m , int n , int k ,
     else if (TransA==1 && TransB ==2){
       if((m >= BLK_M_tt) && (n >= BLK_N_tt)){
         dim3 dimGrid(m/BLK_M_tt, n/BLK_N_tt);
-        GENERATE_SM_VERSION_NAME(gemm_tc)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_tc)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                            (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tt != 0) && (n >= BLK_N_tt)){
         dim3 dimGrid_bottom(1, n/BLK_N_tt);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_tc)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_tc)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((n%BLK_N_tt != 0) && (m >= BLK_M_tt)){
         dim3 dimGrid_right(m/BLK_M_tt,1);
-        GENERATE_SM_VERSION_NAME(gemm_right_tc)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_right_tc)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                        (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tt != 0) && (n%BLK_N_tt != 0)){
         dim3 dimGrid_bottom_right(1, 1);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_right_tc)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_right_tc)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     }
@@ -357,22 +357,22 @@ pastix_fermi_zgemmsp( char TRANSA, char TRANSB, int m , int n , int k ,
     else if (TransA==2 && TransB ==0){
       if((m >= BLK_M_tn) && (n >= BLK_N_tn)){
         dim3 dimGrid(m/BLK_M_tn, n/BLK_N_tn);
-        GENERATE_SM_VERSION_NAME(gemm_cn)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_cn)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                            (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tn != 0) && (n >= BLK_N_tn)){
         dim3 dimGrid_bottom(1, n/BLK_N_tn);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_cn)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_cn)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((n%BLK_N_tn != 0) && (m >= BLK_M_tn)){
         dim3 dimGrid_right(m/BLK_M_tn,1);
-        GENERATE_SM_VERSION_NAME(gemm_right_cn)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_right_cn)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                        (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tn != 0) && (n%BLK_N_tn != 0)){
         dim3 dimGrid_bottom_right(1, 1);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_right_cn)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_right_cn)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     }
@@ -380,22 +380,22 @@ pastix_fermi_zgemmsp( char TRANSA, char TRANSB, int m , int n , int k ,
     else if (TransA==2 && TransB ==1){
       if((m >= BLK_M_tt) && (n >= BLK_N_tt)){
         dim3 dimGrid(m/BLK_M_tt, n/BLK_N_tt);
-        GENERATE_SM_VERSION_NAME(gemm_ct)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_ct)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                            (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tt != 0) && (n >= BLK_N_tt)){
         dim3 dimGrid_bottom(1, n/BLK_N_tt);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_ct)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_ct)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((n%BLK_N_tt != 0) && (m >= BLK_M_tt)){
         dim3 dimGrid_right(m/BLK_M_tt,1);
-        GENERATE_SM_VERSION_NAME(gemm_right_ct)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_right_ct)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                        (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tt != 0) && (n%BLK_N_tt != 0)){
         dim3 dimGrid_bottom_right(1, 1);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_right_ct)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_right_ct)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     }
@@ -403,22 +403,22 @@ pastix_fermi_zgemmsp( char TRANSA, char TRANSB, int m , int n , int k ,
     else if (TransA==2 && TransB ==2){
       if((m >= BLK_M_tt) && (n >= BLK_N_tt)){
         dim3 dimGrid(m/BLK_M_tt, n/BLK_N_tt);
-        GENERATE_SM_VERSION_NAME(gemm_cc)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_cc)<<< dimGrid, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                            (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tt != 0) && (n >= BLK_N_tt)){
         dim3 dimGrid_bottom(1, n/BLK_N_tt);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_cc)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_cc)<<< dimGrid_bottom, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((n%BLK_N_tt != 0) && (m >= BLK_M_tt)){
         dim3 dimGrid_right(m/BLK_M_tt,1);
-        GENERATE_SM_VERSION_NAME(gemm_right_cc)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_right_cc)<<< dimGrid_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                        (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
       if((m%BLK_M_tt != 0) && (n%BLK_N_tt != 0)){
         dim3 dimGrid_bottom_right(1, 1);
-        GENERATE_SM_VERSION_NAME(gemm_bottom_right_cc)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, d_A, lda, d_B, ldb, beta, d_C, ldc,
+        GENERATE_SM_VERSION_NAME(gemm_bottom_right_cc)<<< dimGrid_bottom_right, dimBlock, 0, stream >>>(m, n, k, alpha, gpu_A, lda, gpu_B, ldb, beta, gpu_C, ldc,
                                                                          (int)offsetA, (int)offsetB, blocknbr, blocktab, fblocknbr, fblocktab);
       }
     }

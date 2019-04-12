@@ -43,7 +43,7 @@
 
     where op( X ) is one of
 
-        op( X ) = X   or   op( X ) = X**T   or   op( X ) = X**H,
+        op( X ) = X   or   op( X ) = X^T   or   op( X ) = X^H,
 
     alpha and beta are scalars, and A, B and C are matrices, with
     op( A ) an m by k matrix, op( B ) a k by n matrix and C an m by n matrix.
@@ -55,16 +55,16 @@
             On entry, transA specifies the form of op( A ) to be used in
             the matrix multiplication as follows:
       -     = 'N':  op( A ) = A.
-      -     = 'T':  op( A ) = A**T.
-      -     = 'C':  op( A ) = A**H.
+      -     = 'T':  op( A ) = A^T.
+      -     = 'C':  op( A ) = A^H.
 
     @param[in]
     transB  CHARACTER*1.
             On entry, transB specifies the form of op( B ) to be used in
             the matrix multiplication as follows:
       -     = 'N':  op( B ) = B.
-      -     = 'T':  op( B ) = B**T.
-      -     = 'C':  op( B ) = B**H.
+      -     = 'T':  op( B ) = B^T.
+      -     = 'C':  op( B ) = B^H.
 
     @param[in]
     m       INTEGER.

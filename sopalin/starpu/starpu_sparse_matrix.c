@@ -111,7 +111,7 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
     spmtx->mtxtype = mtxtype;
     spmtx->solvmtx = solvmtx;
     spmtx->cblktab_handle = NULL;
-    spmtx->d_blocktab     = NULL;
+    spmtx->gpu_blocktab     = NULL;
 
     cblknbr   = solvmtx->cblknbr;
     cblkmin2d = solvmtx->cblkmin2d;

@@ -69,7 +69,7 @@ typedef struct starpu_sparse_matrix_desc_s {
     int             mtxtype;        /**< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.                         */
     SolverMatrix   *solvmtx;        /**< Solver matrix structure that describes the problem and stores the original data              */
     starpu_cblk_t  *cblktab_handle; /**< Array of 2D column-block handlers (NULL when using 1D kernels only)                          */
-    void          **d_blocktab;     /**< Pointer to GPU arrays that contains frownum,lrownum of each block for Fermi (NULL otherwise) */
+    void          **gpu_blocktab;     /**< Pointer to GPU arrays that contains frownum,lrownum of each block for Fermi (NULL otherwise) */
 } starpu_sparse_matrix_desc_t;
 
 /**

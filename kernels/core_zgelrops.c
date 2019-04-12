@@ -339,7 +339,7 @@ core_zlr2ge( pastix_trans_t trans, pastix_int_t m, pastix_int_t n,
     }
     else {
         if ( Alr->rk == -1 ) {
-            core_zgetro( m, n, Alr->u, Alr->rkmax, A, lda );
+            core_zgetmo( m, n, Alr->u, Alr->rkmax, A, lda );
         }
         else if ( Alr->rk == 0 ) {
             ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', n, m,

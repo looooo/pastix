@@ -76,36 +76,36 @@ pastix_sgemm_vbatched_nt(
 void
 pastix_fermi_zgemmsp(
     char TRANSA, char TRANSB, int m , int n , int k ,
-    cuDoubleComplex alpha, const cuDoubleComplex *d_A, int lda,
-                           const cuDoubleComplex *d_B, int ldb,
-    cuDoubleComplex beta,        cuDoubleComplex *d_C, int ldc,
+    cuDoubleComplex alpha, const cuDoubleComplex *gpu_A, int lda,
+                           const cuDoubleComplex *gpu_B, int ldb,
+    cuDoubleComplex beta,        cuDoubleComplex *gpu_C, int ldc,
     int blocknbr, const int *blocktab, int fblocknbr, const int *fblocktab,
     cudaStream_t stream );
 
 void
 pastix_fermi_cgemmsp(
     char TRANSA, char TRANSB, int m , int n , int k ,
-    cuFloatComplex alpha, const cuFloatComplex *d_A, int lda,
-                          const cuFloatComplex *d_B, int ldb,
-    cuFloatComplex beta,        cuFloatComplex *d_C, int ldc,
+    cuFloatComplex alpha, const cuFloatComplex *gpu_A, int lda,
+                          const cuFloatComplex *gpu_B, int ldb,
+    cuFloatComplex beta,        cuFloatComplex *gpu_C, int ldc,
     int blocknbr, const int *blocktab, int fblocknbr, const int *fblocktab,
     cudaStream_t stream );
 
 void
 pastix_fermi_dgemmsp(
     char TRANSA, char TRANSB, int m , int n , int k ,
-    double alpha, const double *d_A, int lda,
-                  const double *d_B, int ldb,
-    double beta,        double *d_C, int ldc,
+    double alpha, const double *gpu_A, int lda,
+                  const double *gpu_B, int ldb,
+    double beta,        double *gpu_C, int ldc,
     int blocknbr, const int *blocktab, int fblocknbr, const int *fblocktab,
     cudaStream_t stream );
 
 void
 pastix_fermi_sgemmsp(
     char TRANSA, char TRANSB, int m , int n , int k ,
-    float alpha, const float *d_A, int lda,
-                 const float *d_B, int ldb,
-    float beta,        float *d_C, int ldc,
+    float alpha, const float *gpu_A, int lda,
+                 const float *gpu_B, int ldb,
+    float beta,        float *gpu_C, int ldc,
     int blocknbr, const int *blocktab, int fblocknbr, const int *fblocktab,
     cudaStream_t stream );
 

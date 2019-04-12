@@ -218,7 +218,7 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
 
             /*
              * Apply previous Householder reflectors to the column K
-             * A(RK:M,RK) := A(RK:M,RK) - A(RK:M,OFFSET+1:RK-1)*F(K,1:K-1)**H
+             * A(RK:M,RK) := A(RK:M,RK) - A(RK:M,OFFSET+1:RK-1)*F(K,1:K-1)^H
              */
             if ( k > 0 ) {
                 assert( (rk < n) && (rk < m) );
@@ -251,7 +251,7 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
 
             /*
              * Compute Kth column of F:
-             * F(K+1:N,K) := tau(K)*A(RK:M,K+1:N)**H*A(RK:M,K).
+             * F(K+1:N,K) := tau(K)*A(RK:M,K+1:N)^H*A(RK:M,K).
              */
             if ((rk+1) < n) {
                 pastix_complex64_t alpha = tau[rk];
@@ -268,7 +268,7 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
 
             /*
              * Incremental updating of F:
-             * F(1:N,K) := F(1:N-OFFSET,K) - tau(RK)*F(1:N,1:K-1)*A(RK:M,OFFSET+1:RK-1)**H*A(RK:M,RK).
+             * F(1:N,K) := F(1:N-OFFSET,K) - tau(RK)*F(1:N,1:K-1)*A(RK:M,OFFSET+1:RK-1)^H*A(RK:M,RK).
              */
             if (k > 0) {
                 pastix_complex64_t alpha = -tau[rk];
@@ -285,7 +285,7 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
 
             /*
              * Update the current row of A:
-             * A(RK,RK+1:N) := A(RK,RK+1:N) - A(RK,OFFSET+1:RK)*F(K+1:N,1:K)**H.
+             * A(RK,RK+1:N) := A(RK,RK+1:N) - A(RK,OFFSET+1:RK)*F(K+1:N,1:K)^H.
              */
             if ((rk+1) < n) {
 #if defined(PRECISION_c) || defined(PRECISION_z)
@@ -340,7 +340,7 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
         /*
          * Apply the block reflector to the rest of the matrix:
          * A(RK+1:M,RK+1:N) := A(RK+1:M,RK+1:N) -
-         * A(RK+1:M,OFFSET+1:RK)*F(K+1:N-OFFSET,1:K)**H.
+         * A(RK+1:M,OFFSET+1:RK)*F(K+1:N-OFFSET,1:K)^H.
          */
         if ( rk < n )
         {

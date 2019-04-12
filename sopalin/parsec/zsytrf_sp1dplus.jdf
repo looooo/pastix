@@ -202,7 +202,7 @@ BODY [ type=CUDA
 #if defined(PASTIX_CUDA_FERMI)
             gpu_zgemmsp_fermi( datacode,
                                PastixLower, PastixTrans,
-                               descA->d_blocktab[parsec_body.index],
+                               descA->gpu_blocktab[parsec_body.index],
                                lcblk, blok, fcblk,
                                A, B, C,
                                parsec_body.stream );

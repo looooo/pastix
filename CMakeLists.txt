@@ -36,7 +36,8 @@ endif()
 
 # Define precision supported by PaStiX
 # ------------------------------------
-set( RP_PASTIX_DICTIONNARY ${MORSE_CMAKE_MODULE_PATH}/precision_generator/subs.py )
+set( RP_PASTIX_DICTIONNARY
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/local_subs.py )
 set( RP_PASTIX_PRECISIONS  "p;s;d;c;z" )
 include(RulesPrecisions)
 
