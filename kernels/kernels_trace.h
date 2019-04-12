@@ -154,7 +154,7 @@ extern int pastix_eztrace_level;
 
 static inline void kernel_trace_start_lvl0     ( pastix_ktype0_t ktype )  { (void)ktype; }
 static inline void kernel_trace_stop_lvl0      ( double flops )           { (void)flops; }
-static inline void kernel_trace_start_lvl2     ( pastix_ktype2_t ktype )  { (void)ktype; (void)index; }
+static inline void kernel_trace_start_lvl2     ( pastix_ktype2_t ktype )  { (void)ktype; }
 static inline void kernel_trace_stop_lvl2      ( double flops )           { (void)flops; }
 static inline void kernel_trace_stop_lvl2_rank ( double flops, int rank ) { (void)flops; (void)rank; }
 
