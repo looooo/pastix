@@ -52,15 +52,45 @@ void
 pastix_gendirtemp( char **dirtemp )
 {
     if ( *dirtemp == NULL ) {
-        mode_t old_mask = umask(S_IWGRP | S_IWOTH);
-
+        mode_t old_mask;
         *dirtemp = strdup( "pastix-XXXXXX" );
-        *dirtemp = mkdtemp( *dirtemp );
-        (void)umask(old_mask);
 
-        if ( *dirtemp == NULL ) {
-            errorPrint("pastix_gendirtemp: Couldn't not generate the tempory directory to store the output files");
+#if !defined(HAVE_MKDTEMP)
+        {
+            int status;
+
+            *dirtemp = mktemp( *dirtemp );
+            if ( (*dirtemp)[0] == '\0' ) {
+                perror( "pastix_gendirtemp/mktemp" );
+                errorPrint("pastix_gendirtemp: Couldn't not generate the temporary unique string");
+                free( *dirtemp );
+                *dirtemp = NULL;
+                return;
+            }
+
+            old_mask = umask(S_IWGRP | S_IWOTH);
+            status = mkdir( *dirtemp, 0700 );
+            (void)umask(old_mask);
+
+            if ( status == -1 ) {
+                perror( "pastix_gendirtemp/mkdir" );
+                errorPrint("pastix_gendirtemp: Couldn't not generate the temporary output directory");
+                free( *dirtemp );
+                *dirtemp = NULL;
+                return;
+            }
         }
+#else
+        {
+            old_mask = umask(S_IWGRP | S_IWOTH);
+            *dirtemp = mkdtemp( *dirtemp );
+            if ( *dirtemp == NULL ) {
+                perror( "pastix_gendirtemp/mkdtemp" );
+                errorPrint("pastix_gendirtemp: Couldn't not generate the temporary unique string");
+            }
+            (void)umask(old_mask);
+        }
+#endif
     }
 }
 

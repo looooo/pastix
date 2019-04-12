@@ -219,6 +219,8 @@ check_include_files(complex.h HAVE_COMPLEX_H)
 check_include_files(sys/param.h HAVE_SYS_PARAM_H)
 check_include_files(sys/types.h HAVE_SYS_TYPES_H)
 check_include_files(syslog.h HAVE_SYSLOG_H)
+check_function_exists(getline HAVE_GETLINE)
+check_function_exists(mkdtemp HAVE_MKDTEMP)
 
 #
 # Fortran tricks

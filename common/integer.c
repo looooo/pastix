@@ -85,7 +85,11 @@ void api_dumparm(FILE *stream,
 }
 
 static inline pastix_int_t intRandVal(pastix_int_t ival) {
+#if defined(COMMON_RANDOM_RAND)
+    return (pastix_int_t) (((pastix_uint_t) rand ()) % ((pastix_uint_t) (ival)));
+#else
     return (pastix_int_t) (((pastix_uint_t) random ()) % ((pastix_uint_t) (ival)));
+#endif
 }
 
 /********************************/

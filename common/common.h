@@ -32,6 +32,11 @@
 #include "pastixdata.h"
 #include "out.h"
 
+#if defined(PASTIX_OS_WINDOWS)
+#include <windows.h>
+#define COMMON_RANDOM_RAND 1
+#endif
+
 /*
   Macro: EXIT
 
@@ -157,5 +162,9 @@ static inline void set_dparm(double *dparm, pastix_dparm_t offset, double value)
 
 void api_dumparm(FILE *stream, pastix_int_t *iparm, double *dparm);
 
-#endif /* _common_h_ */
+#if !defined(HAVE_GETLINE)
+ssize_t getdelim(char **buf, size_t *bufsiz, int delimiter, FILE *fp);
+ssize_t getline(char **buf, size_t *bufsiz, FILE *fp);
+#endif
 
+#endif /* _common_h_ */
