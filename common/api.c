@@ -69,7 +69,11 @@ pastix_gendirtemp( char **dirtemp )
             }
 
             old_mask = umask(S_IWGRP | S_IWOTH);
+#if defined(PASTIX_OS_WINDOWS)
+            status = mkdir( *dirtemp );
+#else
             status = mkdir( *dirtemp, 0700 );
+#endif
             (void)umask(old_mask);
 
             if ( status == -1 ) {
