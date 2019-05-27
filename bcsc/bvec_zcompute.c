@@ -62,8 +62,10 @@ bvec_znrm2_seq( pastix_data_t            *pastix_data,
 
     for( i=0; i < n; i++, valptr++ )
     {
+        /* Real part */
         frobenius_update( 1, &scale, &sum, valptr );
 #if defined(PRECISION_z) || defined(PRECISION_c)
+        /* Imaginary part */
         valptr++;
         frobenius_update( 1, &scale, &sum, valptr );
 #endif

@@ -205,10 +205,11 @@ coeftabExit( SolverMatrix *solvmtx )
                 if ( blok->LRblock != NULL ) {
                     for (; blok<lblok; blok++) {
                         core_zlrfree(blok->LRblock);
-                        if (solvmtx->factotype == PastixFactLU)
+                        if (solvmtx->factotype == PastixFactLU) {
                             core_zlrfree(blok->LRblock+1);
+                        }
                     }
-                    free(solvmtx->cblktab[i].fblokptr->LRblock);
+                    memFree_null(solvmtx->cblktab[i].fblokptr->LRblock);
                 }
             }
         }
