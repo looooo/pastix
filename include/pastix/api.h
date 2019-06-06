@@ -238,7 +238,7 @@ typedef enum pastix_solv_mode_e {
  */
 typedef enum pastix_refine_e {
     PastixRefineGMRES,   /**< GMRES              */
-    PastixRefineCG,      /**< Conjugate Gradiant */
+    PastixRefineCG,      /**< Conjugate Gradient */
     PastixRefineSR,      /**< Simple refinement  */
     PastixRefineBiCGSTAB /**< BiCGStab           */
 } pastix_refine_t;
@@ -349,6 +349,7 @@ typedef enum pastix_compress_method_e {
     PastixCompressMethodPQRCP, /**< Use partial QR with column pivoting for low-rank compression    */
     PastixCompressMethodRQRCP, /**< Use randomized QR with column pivoting for low-rank compression */
     PastixCompressMethodTQRCP, /**< Use truncated QR with column pivotingfor low-rank compression   */
+    PastixCompressMethodRQRRT, /**< Use randomized QR with rotation for low-rank compression        */
     PastixCompressMethodNbr    /**< Total number of available compression methods                   */
 } pastix_compress_method_t;
 

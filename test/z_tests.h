@@ -27,7 +27,7 @@ int z_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc );
 int z_bvec_gemv_check( int check, int m, int n, pastix_int_t *iparm, pastix_fixdbl_t *dparm );
 int z_bvec_check( pastix_data_t *pastix_data, pastix_int_t m );
 
-int z_lowrank_genmat( int mode, double tolerance, pastix_int_t rank,
+int z_lowrank_genmat( int mode, double tolerance, double threshold, pastix_int_t rank,
                       pastix_int_t m, pastix_int_t n,
                       pastix_complex64_t *A, pastix_int_t lda,
                       double             *normA );

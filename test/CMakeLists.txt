@@ -26,11 +26,13 @@ set(tests_headers
 add_custom_target(tests_headers_tgt
   DEPENDS ${tests_headers} )
 
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
 ## Generate the test library files for all required precisions
 set(LIB_SOURCES
   z_bcsc_tests.c
+  z_bvec_tests.c
 )
 
 ## reset variables
@@ -59,6 +61,9 @@ target_link_libraries( bcsc_test
 set (TESTS
   bcsc_norm_tests.c
   bcsc_spmv_tests.c
+  bcsc_spmv_time.c
+  bvec_gemv_tests.c
+  bvec_tests.c
   )
 
 foreach (_file ${TESTS})
@@ -69,7 +74,15 @@ endforeach()
 
 ## CTest execution
 set( BCSC_TESTS
-  bcsc_norm_tests bcsc_spmv_tests )
+  bcsc_norm_tests
+  bcsc_spmv_tests
+  bcsc_spmv_time
+  )
+
+set( BVEC_TESTS
+  bvec_gemv_tests
+  bvec_tests
+  )
 
 # Laplacian
 foreach(example ${BCSC_TESTS} )
@@ -98,6 +111,11 @@ foreach(example ${BCSC_TESTS} )
   add_test(test_mm2_${example} ./${example} --mm ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx)
 endforeach()
 
+# Bvec tests
+foreach(example ${BVEC_TESTS} )
+  add_test(test_${example} ./${example} )
+endforeach()
+
 ###################################
 #   Low-rank testings
 ###
@@ -107,58 +125,57 @@ find_package(TMG)
 
 if(TMG_FOUND)
   ## Generate the test library files for all required precisions
-  set(LIB_SOURCES
+  set(LRLIB_SOURCES
     z_lowrank_tests.c
-    z_bvec_tests.c
     )
 
   ## reset variables
-  set(generated_libfiles "")
+  set(generated_lrlibfiles "")
 
-  precisions_rules_py(generated_libfiles
-    "${LIB_SOURCES}"
+  precisions_rules_py(generated_lrlibfiles
+    "${LRLIB_SOURCES}"
     PRECISIONS "p;s;d;c;z")
 
-  add_library(pastix_tests
-    ${generated_libfiles}
+  add_library( pastix_lrtests
+    ${generated_lrlibfiles}
+    tests_auxiliary.c
     )
 
-  add_dependencies( pastix_tests
+  add_dependencies( pastix_lrtests
     tests_headers_tgt
     )
 
-  target_link_libraries( pastix_tests
+  target_link_libraries( pastix_lrtests
     pastix
     pastix_kernels
     ${LAPACKE_LIBRARIES_DEP}
     ${TMG_LIBRARIES_DEP}
     ${EXTRA_LIBS}
-    m)
+    m )
 
-  set(TESTS_SOURCES
+  set(LR_TESTS_SOURCES
+    z_ge2lr_performance.c
+    z_ge2lr_stability.c
     z_ge2lr_tests.c
-    z_rradd_tests.c
     z_lrmm_tests.c
+    z_rradd_tests.c
     )
 
   ## reset variables
-  set(generated_exfiles)
+  set(generated_lrfiles)
 
-  precisions_rules_py(generated_exfiles
-    "${TESTS_SOURCES}"
+  precisions_rules_py(generated_lrfiles
+    "${LR_TESTS_SOURCES}"
     PRECISIONS "p;s;d;c;z")
 
   set( testings
-    ${generated_exfiles}
-    bcsc_spmv_time.c
-    bvec_gemv_tests.c
-    bvec_tests.c )
+    ${generated_lrfiles} )
 
   foreach (_file ${testings})
     get_filename_component(_name_we ${_file} NAME_WE)
     add_executable(${_name_we} ${_file})
     target_link_libraries(${_name_we}
-      pastix_tests
+      pastix_lrtests
       pastix_kernels
       pastix
       ${LAPACKE_LIBRARIES_DEP}
@@ -166,7 +183,7 @@ if(TMG_FOUND)
       ${EXTRA_LIBS}
       m)
 
-    add_test(test_${_name_we} ./${_name_we} -9 1000:10:1 )
+    add_test(test_${_name_we} ./${_name_we} -n 300 -p 10 )
   endforeach()
 
 endif()

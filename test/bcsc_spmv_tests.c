@@ -70,6 +70,9 @@ int main (int argc, char **argv)
                       NULL, NULL,
                       NULL, &driver, &filename );
 
+    /**
+     * Read the sparse matrix with the driver
+     */
     spm = malloc( sizeof( spmatrix_t ) );
     spmReadDriver( driver, filename, spm );
     free(filename);
@@ -78,28 +81,19 @@ int main (int argc, char **argv)
     if ( ret != 0 ) {
         spmExit( spm );
         *spm = spm2;
+        ret = 0;
     }
-
-    spmBase( spm, 0 );
 
     if ( spm->flttype == SpmPattern ) {
         spmGenFakeValues( spm );
     }
 
     /**
-     * Run preprocessing steps required to generate the blocked csc
+     * Startup pastix to perform the analyze step
      */
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
     pastix_task_analyze( pastix_data, spm );
-
-    /**
-     * Generate the blocked csc
-     */
-    pastix_data->bcsc = malloc( sizeof(pastix_bcsc_t) );
-    bcscInit( spm,
-              pastix_data->ordemesh,
-              pastix_data->solvmatr,
-              spm->mtxtype == SpmGeneral,
-              pastix_data->bcsc );
+    pastix_subtask_spm2bcsc( pastix_data, spm );
 
     printf(" -- BCSC MatVec Test --\n");
     for( t=PastixNoTrans; t<=PastixConjTrans; t++ )

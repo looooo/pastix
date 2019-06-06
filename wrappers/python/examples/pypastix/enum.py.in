@@ -210,7 +210,8 @@ class compress_method:
     PQRCP = 1
     RQRCP = 2
     TQRCP = 3
-    Nbr   = 4
+    RQRRT = 4
+    Nbr   = 5
 
 class compress_ortho:
     OrthoCGS       = 0
@@ -221,7 +222,6 @@ class split:
     Not             = 0
     Kway            = 1
     KwayProjections = 2
-    Projections     = 3
 
 class layout:
     RowMajor = 101

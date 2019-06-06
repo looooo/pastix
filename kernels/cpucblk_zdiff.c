@@ -90,8 +90,8 @@ cpucblk_zdiff( pastix_coefside_t side,
                      -1., coefA, stride,
                       1., coefB, stride );
 
-        normdiff = LAPACKE_zlange( LAPACK_COL_MAJOR, 'M', stride, ncols,
-                                   coefB, stride );
+        normdiff = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'M', stride, ncols,
+                                        coefB, stride, NULL );
         res = (normfull == 0.) ? 0. : (normdiff / (normfull * eps));
 
         if ( res > 10 ) {

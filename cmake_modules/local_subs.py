@@ -29,6 +29,7 @@ subs = {
         ('',                     'sxx2fr',               'dxx2fr',               'cxx2fr',               'zxx2fr'              ),
         ('',                     'sxx2lr',               'dxx2lr',               'cxx2lr',               'zxx2lr'              ),
         ('',                     'sytrf',                'sytrf',                'hetrf',                'hetrf'               ),
+        ('',                     'slassq',               'dlassq',               'slassq',               'dlassq'              ),
 
         # ----- PaStiX Variables
         (r'\b',                 r'szero\b',             r'dzero\b',             r'czero\b',             r'zzero\b'             ),

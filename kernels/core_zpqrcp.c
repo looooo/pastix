@@ -36,7 +36,7 @@ static pastix_complex64_t zzero =  0.0;
  *
  * This routine is originated from the LAPACK kernels zgeqp3/zlaqps and was
  * modified by A. Buttari for MUMPS-BLR.
- * In this version the stopping criterion is based on the frobeniux norm of the
+ * In this version the stopping criterion is based on the frobenius norm of the
  * residual, and not on the estimate of the two-norm making it more
  * restrictive. Thus, the returned ranks are larger, but this gives a better
  * accuracy.
@@ -170,7 +170,6 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
         jpvt[j] = j;
     }
 
-    offset = 0;
     machine_prec = sqrt(LAPACKE_dlamch_work('e'));
     rk = 0;
 
@@ -240,10 +239,10 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
              * Generate elementary reflector H(k).
              */
             if ((rk+1) < m) {
-                LAPACKE_zlarfg(m-rk, A + rk * lda + rk, A + rk * lda + (rk+1), 1, tau + rk);
+                LAPACKE_zlarfg_work(m-rk, A + rk * lda + rk, A + rk * lda + (rk+1), 1, tau + rk);
             }
             else{
-                LAPACKE_zlarfg(1,    A + rk * lda + rk, A + rk * lda + rk,     1, tau + rk);
+                LAPACKE_zlarfg_work(1,    A + rk * lda + rk, A + rk * lda + rk,     1, tau + rk);
             }
 
             akk = A[rk * lda + rk];
@@ -251,7 +250,7 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
 
             /*
              * Compute Kth column of F:
-             * F(K+1:N,K) := tau(K)*A(RK:M,K+1:N)^H*A(RK:M,K).
+             * F(RK+1:N,RK) := tau(RK)*A(RK:M,RK+1:N)^H*A(RK:M,RK).
              */
             if ((rk+1) < n) {
                 pastix_complex64_t alpha = tau[rk];
@@ -268,7 +267,7 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
 
             /*
              * Incremental updating of F:
-             * F(1:N,K) := F(1:N-OFFSET,K) - tau(RK)*F(1:N,1:K-1)*A(RK:M,OFFSET+1:RK-1)^H*A(RK:M,RK).
+             * F(1:N-OFFSET,K) := F(1:N-OFFSET,K) - tau(RK)*F(1:N,1:K-1)*A(RK:M,OFFSET+1:RK-1)^H*A(RK:M,RK).
              */
             if (k > 0) {
                 pastix_complex64_t alpha = -tau[rk];
@@ -421,8 +420,8 @@ core_zge2lr_pqrcp( pastix_fixdbl_t tol, pastix_int_t rklimit,
                    const void *A, pastix_int_t lda,
                    pastix_lrblock_t *Alr )
 {
-    return core_zge2lr_qr( core_zpqrcp, tol, rklimit,
-                           m, n, A, lda, Alr );
+    return core_zge2lr_qrcp( core_zpqrcp, tol, rklimit,
+                             m, n, A, lda, Alr );
 }
 
 

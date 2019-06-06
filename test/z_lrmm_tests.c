@@ -52,6 +52,7 @@ int main( int argc, char **argv )
     pastix_int_t lda, ldb, ldc;
     double       eps = LAPACKE_dlamch_work('e');
     double       tolerance = sqrt(eps);
+    double       threshold = tolerance * tolerance;
     pastix_complex64_t *A, *B, *C;
     double              normA, normB, normC;
     int ranks[3], rA, rB, rC, r, s, i, j, l, meth;
@@ -83,7 +84,7 @@ int main( int argc, char **argv )
             lda = m;
 
             A = malloc( lda * k * sizeof( pastix_complex64_t ) );
-            z_lowrank_genmat( mode, tolerance, rA,
+            z_lowrank_genmat( mode, tolerance, threshold, rA,
                               m, k, A, lda, &normA );
             core_ge2lr( tolerance, pastix_imin( m, k ),
                         m, k, A, lda, &lrA );
@@ -96,7 +97,7 @@ int main( int argc, char **argv )
                 ldb = n;
 
                 B = malloc( ldb * k * sizeof( pastix_complex64_t ) );
-                z_lowrank_genmat( mode, tolerance, rB,
+                z_lowrank_genmat( mode, tolerance, threshold, rB,
                                   n, k, B, ldb, &normB );
                 core_ge2lr( tolerance, pastix_imin( n, k ),
                             n, k, B, ldb, &lrB );
@@ -109,7 +110,7 @@ int main( int argc, char **argv )
                     ldc = Cm;
 
                     C = malloc( ldc * Cn * sizeof( pastix_complex64_t ) );
-                    z_lowrank_genmat( mode, tolerance, rC,
+                    z_lowrank_genmat( mode, tolerance, threshold, rC,
                                       Cm, Cn, C, ldc, &normC );
                     core_ge2lr( tolerance, pastix_imin( Cm, Cn ),
                                 Cm, Cn, C, ldc, &lrC );

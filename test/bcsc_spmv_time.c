@@ -51,7 +51,7 @@ int main ( int argc, char **argv )
     pastix_fixdbl_t     dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
     spm_driver_t        driver;
     char               *filename;
-    pastix_spm_t       *spm;
+    pastix_spm_t       *spm, spm2;
     int                 check = 1;
     int                 rc, nrhs = 20;
 
@@ -75,6 +75,17 @@ int main ( int argc, char **argv )
     spmReadDriver( driver, filename, spm );
     free( filename );
     spmPrintInfo( spm, stdout );
+
+    rc = spmCheckAndCorrect( spm, &spm2 );
+    if ( rc != 0 ) {
+        spmExit( spm );
+        *spm = spm2;
+        rc = 0;
+    }
+
+    if ( spm->flttype == SpmPattern ) {
+        spmGenFakeValues( spm );
+    }
 
     /**
      * Startup pastix to perform the analyze step
