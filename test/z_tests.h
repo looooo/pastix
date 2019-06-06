@@ -22,6 +22,8 @@
 
 extern pastix_lr_t z_lowrank;
 
+int z_bcsc_spmv_time( pastix_data_t *pastix_data, const spmatrix_t *spm, pastix_int_t nrhs );
+
 int z_bcsc_spmv_check( spm_trans_t trans, const spmatrix_t *spm, const pastix_data_t *pastix_data );
 int z_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc );
 int z_bvec_gemv_check( int check, int m, int n, pastix_int_t *iparm, pastix_fixdbl_t *dparm );

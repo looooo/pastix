@@ -45,7 +45,7 @@ z_bcsc_spmv_check( spm_trans_t          trans,
 
     double Anorm, Xnorm, Y0norm, Ysnorm, Ydnorm, Rnorm;
     double eps, result;
-    int info_solution, start = 1;
+    int rc, info_solution, start = 1;
 
     eps = LAPACKE_dlamch_work('e');
 
@@ -73,7 +73,11 @@ z_bcsc_spmv_check( spm_trans_t          trans,
     memcpy( yd, y0, spm->gN * sizeof(pastix_complex64_t) );
 
     /* Compute the spm matrix-vector product */
-    spmMatVec( trans, alpha, spm, x, beta, ys );
+    rc = spmMatVec( trans, alpha, spm, x, beta, ys );
+    if ( rc != SPM_SUCCESS ) {
+        info_solution = 1;
+        goto end;
+    }
 
     /* Compute the bcsc matrix-vector product */
     bvec_zlapmr( 1, PastixDirBackward, pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
@@ -110,6 +114,7 @@ z_bcsc_spmv_check( spm_trans_t          trans,
         info_solution = 0;
     }
 
+  end:
     free(x); free(y0); free(ys); free(yd);
 
     return info_solution;

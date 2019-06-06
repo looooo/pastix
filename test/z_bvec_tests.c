@@ -236,9 +236,9 @@ z_bvec_check( pastix_data_t *pastix_data,
 }
 
 int
-z_bcsc_spmv_time( pastix_data_t *pastix_data,
-                  spmatrix_t    *spm,
-                  pastix_int_t   nrhs )
+z_bcsc_spmv_time( pastix_data_t    *pastix_data,
+                  const spmatrix_t *spm,
+                  pastix_int_t      nrhs )
 {
     int                 i;
     int                 rc = 0;

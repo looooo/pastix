@@ -13,19 +13,9 @@
  * @date 2018-07-16
  *
  **/
-
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <assert.h>
-#include <time.h>
 #include <pastix.h>
 #include "common.h"
-#include <spm.h>
-#include <bcsc.h>
-#include "sopalin_data.h"
+#include "bcsc/bcsc.h"
 
 #include "z_tests.h"
 #include "c_tests.h"
@@ -41,9 +31,10 @@
         printf("SUCCESS\n");                    \
     }
 
-char* fltnames[] = { "Pattern", "", "Float", "Double", "Complex32", "Complex64" };
+char* fltnames[]   = { "Pattern", "", "Float", "Double", "Complex32", "Complex64" };
 char* transnames[] = { "NoTrans", "Trans", "ConjTrans" };
-char* mtxnames[] = { "General", "Symmetric", "Hermitian" };
+char* mtxnames[]   = { "General", "Symmetric", "Hermitian" };
+char* schednames[] = { "Sequential", "Static" };
 
 int main (int argc, char **argv)
 {
@@ -53,7 +44,7 @@ int main (int argc, char **argv)
     spm_driver_t    driver;             /* Matrix driver(s) requested by user               */
     spmatrix_t     *spm, spm2;
     char *filename;                     /* Filename(s) given by user                        */
-    int t;
+    int s, t;
     int ret = PASTIX_SUCCESS;
     int err = 0;
 
@@ -67,7 +58,7 @@ int main (int argc, char **argv)
      * Get options from command line
      */
     pastixGetOptions( argc, argv,
-                      NULL, NULL,
+                      iparm, dparm,
                       NULL, &driver, &filename );
 
     /**
@@ -96,42 +87,42 @@ int main (int argc, char **argv)
     pastix_subtask_spm2bcsc( pastix_data, spm );
 
     printf(" -- BCSC MatVec Test --\n");
-    for( t=PastixNoTrans; t<=PastixConjTrans; t++ )
+    for( s=PastixSchedSequential; s<=PastixSchedStatic; s++ )
     {
-        if ( (t == PastixConjTrans) &&
-             ((spm->flttype != SpmComplex64) && (spm->flttype != SpmComplex32)) )
+        pastix_data->iparm[IPARM_SCHEDULER] = s;
+        for( t=PastixNoTrans; t<=PastixConjTrans; t++ )
         {
-            continue;
+            if ( (t == PastixConjTrans) &&
+                 ((spm->flttype != SpmComplex64) && (spm->flttype != SpmComplex32)) )
+            {
+                continue;
+            }
+            printf("   Case %s - %s - %s - %s:\n",
+                   schednames[s],
+                   fltnames[spm->flttype],
+                   mtxnames[spm->mtxtype - SpmGeneral],
+                   transnames[t - PastixNoTrans] );
+
+            switch( spm->flttype ){
+            case SpmComplex64:
+                ret = z_bcsc_spmv_check( t, spm, pastix_data );
+                break;
+
+            case SpmComplex32:
+                ret = c_bcsc_spmv_check( t, spm, pastix_data );
+                break;
+
+            case SpmFloat:
+                ret = s_bcsc_spmv_check( t, spm, pastix_data );
+                break;
+
+            case SpmDouble:
+            default:
+                ret = d_bcsc_spmv_check( t, spm, pastix_data );
+            }
+            PRINT_RES(ret);
         }
-        if ( (spm->mtxtype != SpmGeneral) && (t != PastixNoTrans) )
-        {
-            continue;
-        }
-        printf("   Case %s - %s - %s:\n",
-               fltnames[spm->flttype],
-               mtxnames[spm->mtxtype - SpmGeneral],
-               transnames[t - PastixNoTrans] );
-
-        switch( spm->flttype ){
-        case SpmComplex64:
-            ret = z_bcsc_spmv_check( t, spm, pastix_data );
-            break;
-
-        case SpmComplex32:
-            ret = c_bcsc_spmv_check( t, spm, pastix_data );
-            break;
-
-        case SpmFloat:
-            ret = s_bcsc_spmv_check( t, spm, pastix_data );
-            break;
-
-        case SpmDouble:
-        default:
-            ret = d_bcsc_spmv_check( t, spm, pastix_data );
-        }
-        PRINT_RES(ret);
     }
-
     spmExit( spm );
     free( spm );
 

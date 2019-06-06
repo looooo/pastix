@@ -16,33 +16,12 @@
  *
  **/
 #include <pastix.h>
-#include <stdlib.h>
-#include <string.h>
-#include "refinement/z_refine_functions.h"
-#include "bcsc/bcsc.h"
-#include "bcsc/bcsc_z.h"
-#include <time.h>
-#include <pastix/order.h>
-#if defined(HAVE_GETOPT_H)
-#include <getopt.h>
-#endif  /* defined(HAVE_GETOPT_H) */
+#include "common.h"
 
-int
-z_bcsc_spmv_time( pastix_data_t *pastix_data,
-                  spmatrix_t    *spm,
-                  pastix_int_t   nrhs );
-int
-c_bcsc_spmv_time( pastix_data_t *pastix_data,
-                  spmatrix_t    *spm,
-                  pastix_int_t   nrhs );
-int
-d_bcsc_spmv_time( pastix_data_t *pastix_data,
-                  spmatrix_t    *spm,
-                  pastix_int_t   nrhs );
-int
-s_bcsc_spmv_time( pastix_data_t *pastix_data,
-                  spmatrix_t    *spm,
-                  pastix_int_t   nrhs );
+#include "z_tests.h"
+#include "c_tests.h"
+#include "d_tests.h"
+#include "s_tests.h"
 
 int main ( int argc, char **argv )
 {
