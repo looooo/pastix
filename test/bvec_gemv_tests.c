@@ -97,7 +97,7 @@ int main ( int argc, char **argv )
             {
                 printf("   Case %s - %s: ",
                        fltnames[t], schednames[s] );
-                switch( flttype ){
+                switch( t ){
                 case SpmComplex64:
                     rc = z_bvec_gemv_check( check, m, n, iparm, dparm );
                     break;

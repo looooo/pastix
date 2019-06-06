@@ -234,7 +234,8 @@ module pastix_enums
      enumerator :: PastixCompressMethodPQRCP = 1
      enumerator :: PastixCompressMethodRQRCP = 2
      enumerator :: PastixCompressMethodTQRCP = 3
-     enumerator :: PastixCompressMethodNbr   = 4
+     enumerator :: PastixCompressMethodRQRRT = 4
+     enumerator :: PastixCompressMethodNbr   = 5
   end enum
 
   ! enum compress_ortho
@@ -249,7 +250,6 @@ module pastix_enums
      enumerator :: PastixSplitNot             = 0
      enumerator :: PastixSplitKway            = 1
      enumerator :: PastixSplitKwayProjections = 2
-     enumerator :: PastixSplitProjections     = 3
   end enum
 
   ! enum layout

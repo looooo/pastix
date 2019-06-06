@@ -69,6 +69,7 @@ set(SOURCES
   core_zpqrcp.c
   core_zrqrcp.c
   core_ztqrcp.c
+  core_zrqrrt.c
   core_zlrothu.c
   core_zgelrops_svd.c
   core_zgelrops.c

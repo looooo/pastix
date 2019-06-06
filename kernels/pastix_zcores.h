@@ -50,12 +50,17 @@ int  core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_
                   pastix_complex64_t *A, pastix_int_t lda,
                   pastix_int_t *jpvt, pastix_complex64_t *tau,
                   pastix_complex64_t *work, pastix_int_t lwork,  double *rwork );
-int  core_ztqrcp( double tol, pastix_int_t maxrank, int unused, pastix_int_t nb,
+int  core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
                   pastix_int_t m, pastix_int_t n,
                   pastix_complex64_t *A, pastix_int_t lda,
                   pastix_int_t *jpvt, pastix_complex64_t *tau,
                   pastix_complex64_t *work, pastix_int_t lwork,  double *rwork );
-int  core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
+int  core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
+                  pastix_int_t m, pastix_int_t n,
+                  pastix_complex64_t *A, pastix_int_t lda, pastix_complex64_t *tau,
+                  pastix_complex64_t *B, pastix_int_t ldb, pastix_complex64_t *tau_b,
+                  pastix_complex64_t *work, pastix_int_t lwork,  double normA );
+int  core_ztqrcp( double tol, pastix_int_t maxrank, int unused, pastix_int_t nb,
                   pastix_int_t m, pastix_int_t n,
                   pastix_complex64_t *A, pastix_int_t lda,
                   pastix_int_t *jpvt, pastix_complex64_t *tau,

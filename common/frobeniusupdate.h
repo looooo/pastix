@@ -42,7 +42,7 @@
  *******************************************************************************/
 static inline void
 #if defined(PRECISION_d) || defined(PRECISION_z)
-frobenius_update( int nb, double *scale, double *sumsq, double *value )
+frobenius_update( int nb, double *scale, double *sumsq, const double *value )
 {
     double absval = fabs(*value);
     double ratio;
@@ -58,7 +58,7 @@ frobenius_update( int nb, double *scale, double *sumsq, double *value )
     }
 }
 #elif defined(PRECISION_s) || defined(PRECISION_c)
-frobenius_update( int nb, float *scale, float *sumsq, float *value )
+frobenius_update( int nb, float *scale, float *sumsq, const float *value )
 {
     float absval = fabs(*value);
     float ratio;

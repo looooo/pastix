@@ -64,6 +64,12 @@ core_zlralloc( pastix_int_t      M,
         A->u = u;
         A->v = NULL;
     }
+    else if ( rkmax == 0 ) {
+        A->rk = 0;
+        A->rkmax = 0;
+        A->u = NULL;
+        A->v = NULL;
+    }
     else {
         pastix_int_t rk = pastix_imin( M, N );
         rkmax = pastix_imin( rkmax, rk );
@@ -697,6 +703,10 @@ core_zlrconcatenate_v( pastix_trans_t transA1, pastix_complex64_t alpha,
  * @brief Template to convert a full rank matrix into a low rank matrix through
  * QR decompositions
  *
+ * This version is only used when permutation method is used. Only difference
+ * from core_zge2lr_qrrt is the V calculation part, That is: Instead of applying
+ * inverse rotation on V, here inverse permutation is applied
+ *
  *******************************************************************************
  *
  * @param[in] rrqrfct
@@ -729,11 +739,11 @@ core_zlrconcatenate_v( pastix_trans_t transA1, pastix_complex64_t alpha,
  *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zge2lr_qr( core_zrrqr_t rrqrfct,
-                pastix_fixdbl_t tol, pastix_int_t rklimit,
-                pastix_int_t m, pastix_int_t n,
-                const void *Avoid, pastix_int_t lda,
-                pastix_lrblock_t *Alr )
+core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct,
+                  pastix_fixdbl_t tol, pastix_int_t rklimit,
+                  pastix_int_t m, pastix_int_t n,
+                  const void *Avoid, pastix_int_t lda,
+                  pastix_lrblock_t *Alr )
 {
     int                 ret;
     pastix_int_t        nb = 32;
@@ -749,9 +759,15 @@ core_zge2lr_qr( core_zrrqr_t rrqrfct,
     double norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
                                        A, lda, NULL );
 
+    if ( (norm == 0.) && (tol >= 0.)) {
+        core_zlralloc( m, n, 0, Alr );
+        return 0. ;
+    }
+
     /* work */
     rklimit = ( rklimit < 0 ) ? core_get_rklimit( m, n ) : rklimit;
-    ret = rrqrfct( tol * norm, rklimit, 1, nb,
+    tol = ( tol < 0. ) ? -1. : tol * norm;
+    ret = rrqrfct( tol, rklimit, 0, nb,
                    m, n, NULL, m,
                    NULL, NULL,
                    &zzsize, -1, NULL );
@@ -766,13 +782,11 @@ core_zge2lr_qr( core_zrrqr_t rrqrfct,
 
 #if defined(PASTIX_DEBUG_LR)
     zwork = NULL;
-
     tau   = malloc( n     * sizeof(pastix_complex64_t) );
     work  = malloc( lwork * sizeof(pastix_complex64_t) );
     rwork = malloc( rsize * sizeof(double) );
 #else
     zwork = malloc( zsize * sizeof(pastix_complex64_t) + rsize * sizeof(double) );
-
     tau   = zwork;
     work  = tau + n;
     rwork = (double*)(work + lwork);
@@ -789,7 +803,7 @@ core_zge2lr_qr( core_zrrqr_t rrqrfct,
                                A, lda, Alr->u, m );
     assert(ret == 0);
 
-    ret = rrqrfct( tol * norm, rklimit, 1, nb,
+    ret = rrqrfct( tol, rklimit, 0, nb,
                    m, n, Alr->u, m,
                    jpvt, tau,
                    work, lwork, rwork );
@@ -872,6 +886,218 @@ core_zge2lr_qr( core_zrrqr_t rrqrfct,
 /**
  *******************************************************************************
  *
+ * @brief Template to convert a full rank matrix into a low rank matrix through
+ * QR decompositions
+ *
+ * This version is only used when rotational method is used.  Only difference
+ * from core_zge2lr_qr is the V calculation part, That is: Instead of applying
+ * inverse permutation on V, here inverse rotation is applied
+ *
+ *******************************************************************************
+ *
+ * @param[in] rrqrfct
+ *          QR decomposition function used to compute the rank revealing
+ *          factorization and create the low-rank form of A.
+ *
+ * @param[in] tol
+ *          The tolerance used as a criterion to eliminate information from the
+ *          full rank matrix
+ *
+ * @param[in] rklimit
+ *          The maximum rank to store the matrix in low-rank format. If
+ *          -1, set to min(m, n) / PASTIX_LR_MINRATIO.
+ *
+ * @param[in] m
+ *          Number of rows of the matrix A, and of the low rank matrix Alr.
+ *
+ * @param[in] n
+ *          Number of columns of the matrix A, and of the low rank matrix Alr.
+ *
+ * @param[in] A
+ *          The matrix of dimension lda-by-n that needs to be compressed
+ *
+ * @param[in] lda
+ *          The leading dimension of the matrix A. lda >= max(1, m)
+ *
+ * @param[out] Alr
+ *          The low rank matrix structure that will store the low rank
+ *          representation of A
+ *
+ *******************************************************************************/
+pastix_fixdbl_t
+core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct,
+                  pastix_fixdbl_t tol, pastix_int_t rklimit,
+                  pastix_int_t m, pastix_int_t n,
+                  const void *Avoid, pastix_int_t lda,
+                  pastix_lrblock_t *Alr )
+{
+    int                 ret, newrk;
+    pastix_int_t        nb = 32;
+    pastix_complex64_t *A = (pastix_complex64_t*)Avoid;
+    pastix_int_t        lwork;
+    pastix_complex64_t *work, *tau, *B, *tau_b, zzsize;
+    pastix_int_t       *jpvt;
+    pastix_int_t        zsize, bsize;
+    pastix_complex64_t *zwork;
+    pastix_fixdbl_t     flops;
+
+    char trans;
+#if defined(PRECISION_c) || defined(PRECISION_z)
+    trans = 'C';
+#else
+    trans = 'T';
+#endif
+
+    double norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
+                                       A, lda, NULL );
+
+    if ( (norm == 0.) && (tol >= 0.)) {
+        core_zlralloc( m, n, 0, Alr );
+        return 0. ;
+    }
+
+    /* work */
+    rklimit = ( rklimit < 0 ) ? core_get_rklimit( m, n ) : rklimit;
+    tol = ( tol < 0. ) ? -1. : tol * norm;
+    ret = rrqrfct( tol, rklimit, nb,
+                   m, n,
+                   NULL, m, NULL,
+                   NULL, n, NULL,
+                   &zzsize, -1, norm );
+
+    lwork = (pastix_int_t)zzsize;
+    zsize = lwork;
+    bsize = n * rklimit;
+    /* tau */
+    zsize += n;
+    /* B and tau_b */
+    zsize += bsize + n;
+
+#if defined(PASTIX_DEBUG_LR)
+    zwork = NULL;
+    tau   = malloc( n     * sizeof(pastix_complex64_t) );
+    B     = malloc( bsize * sizeof(pastix_complex64_t) );
+    tau_b = malloc( n     * sizeof(pastix_complex64_t) );
+    work  = malloc( lwork * sizeof(pastix_complex64_t) );
+#else
+    zwork = malloc( zsize * sizeof(pastix_complex64_t) );
+    tau   = zwork;
+    B     = tau + n;
+    tau_b = B + bsize;
+    work  = tau_b + n;
+#endif
+
+    jpvt = malloc( n * sizeof(pastix_int_t) );
+
+    /**
+     * Allocate the Low rank matrix in full-rank to store the copy of A
+     */
+    core_zlralloc( m, n, -1, Alr );
+
+    ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
+                               A, lda, Alr->u, m );
+    assert(ret == 0);
+
+    newrk = rrqrfct( tol, rklimit, nb,
+                     m, n,
+                     Alr->u, m, tau,
+                     B, n, tau_b,
+                     work, lwork, norm );
+    if (newrk == -1) {
+        flops = FLOPS_ZGEQRF( m, n );
+    }
+    else {
+        flops = FLOPS_ZGEQRF( m, newrk ) + FLOPS_ZUNMQR( m, n-newrk, newrk, PastixLeft );
+    }
+
+    /**
+     * It was not interesting to compress, so we restore the dense version in Alr
+     */
+    if ( newrk == -1 ) {
+        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
+                                   A, lda, Alr->u, Alr->rkmax );
+        assert(ret == 0);
+    }
+    else if ( newrk == 0 ) {
+        core_zlrsze( 0, m, n, Alr, 0, 0, rklimit );
+    }
+    /**
+     * We compute U and V
+     */
+    else {
+        pastix_complex64_t *Acpy = Alr->u;
+        pastix_complex64_t *U, *V;
+        pastix_int_t d, rk = 0;
+
+        assert( newrk > 0 );
+
+        /* Resize Alr */
+        Alr->u = NULL;
+        core_zlrsze( 0, m, n, Alr, newrk, newrk, rklimit );
+        U = Alr->u;
+        V = Alr->v;
+
+        /* Compute the final U form */
+        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, Alr->rk,
+                                   Acpy, m, U, m );
+        assert(ret == 0);
+
+        ret = LAPACKE_zungqr_work( LAPACK_COL_MAJOR, m, Alr->rk, Alr->rk,
+                                   U, m, tau, work, lwork );
+        assert(ret == 0);
+        flops += FLOPS_ZUNGQR( m, Alr->rk, Alr->rk );
+
+        /* Compute the final V form */
+        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'U', Alr->rk, n,
+                                   Acpy, m, V, Alr->rk );
+        assert(ret == 0);
+        ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'L', Alr->rk-1, Alr->rk-1,
+                                   0.0, 0.0, V + 1, Alr->rk );
+        assert(ret == 0);
+        /*
+         * Apply inverse rotations to V^T
+         */
+        {
+            /*
+             * Householders are applied in the reverse order of before
+             */
+            rk = (Alr->rk / nb) * nb;
+            while( rk >= 0 ) {
+                d = pastix_imin( nb, Alr->rk - rk );
+                ret = LAPACKE_zunmqr_work( LAPACK_COL_MAJOR, 'R', trans,
+                                           Alr->rk - rk, n - rk, d,
+                                           B + rk * n       + rk, n, tau_b + rk,
+                                           V + rk * Alr->rk + rk, Alr->rk,
+                                           work, lwork );
+                assert(ret == 0);
+                rk -= nb;
+            }
+        }
+
+        free( Acpy );
+    }
+
+#if defined(PASTIX_DEBUG_LR)
+    if ( Alr->rk > 0 ) {
+        int rc = core_zlrdbg_check_orthogonality( m, Alr->rk, Alr->u, m );
+        if (rc == 1) {
+            fprintf(stderr, "Failed to compress a matrix and generate an orthogonal u\n" );
+        }
+    }
+#endif
+
+    free( zwork );
+    free( jpvt );
+#if defined(PASTIX_DEBUG_LR)
+    free( tau   );
+    free( work  );
+#endif
+    return flops;
+}
+
+/**
+ *******************************************************************************
+ *
  * @brief Template to perform the addition of two low-rank structures with
  * compression kernel based on QR decomposition.
  *
@@ -931,7 +1157,7 @@ core_zge2lr_qr( core_zrrqr_t rrqrfct,
  *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zrradd_qr( core_zrrqr_t rrqrfct,
+core_zrradd_qr( core_zrrqr_cp_t rrqrfct,
                 const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
                 pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                 pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,

@@ -23,6 +23,51 @@
 #include "pastix_zlrcores.h"
 #include "z_nan_check.h"
 
+#if !defined(PASTIX_SVD_2NORM)
+#include "common/frobeniusupdate.h"
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup kernel_lr_svd_null
+ *
+ * @brief Compute the frobenius norm of a vector
+ *
+ * This routine is inspired from LAPACK zlassq function, and allows to
+ * accumulate the contribution backward for better accuracy as opposed to dnrm2
+ * which allows only positive increment.
+ *
+ *******************************************************************************
+ *
+ * @param[in] n
+ *          The number of elemnts in the vector
+ *
+ * @param[in] x
+ *          The vector of size n * incx
+ *
+ * @param[in] incx
+ *          The increment between two elments in the vector x.
+ *
+ *******************************************************************************
+ *
+ * @return  The frobenius norm of the vector x.
+ *
+ *******************************************************************************/
+static inline double
+core_dlassq( int n, const double *x, int incx )
+{
+    double scale = 1.;
+    double sumsq = 0.;
+    int i;
+
+    for( i=0; i<n; i++, x+=incx ) {
+        frobenius_update( 1, &scale, &sumsq, x );
+    }
+
+    return scale * sqrt( sumsq );
+}
+#endif /* !defined(PASTIX_SVD_2NORM) */
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static pastix_complex64_t zone  =  1.0;
 static pastix_complex64_t zzero =  0.0;
@@ -97,7 +142,12 @@ core_zge2lrx( double tol, pastix_int_t m, pastix_int_t n,
 
     norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
                                 A, lda, NULL );
-    relative_tolerance = tol * norm;
+    if ( tol < 0. ) {
+        relative_tolerance = -1;
+    }
+    else {
+        relative_tolerance = tol * norm;
+    }
 
     /*
      * Query the workspace needed for the gesvd
@@ -142,8 +192,26 @@ core_zge2lrx( double tol, pastix_int_t m, pastix_int_t n,
         EXIT(MOD_SOPALIN, INTERNAL_ERR);
     }
 
-    for (i=0; i<minMN; i++, v+=1){
-        if (s[i] > relative_tolerance)
+    for (i=0; i<minMN; i++, v+=1) {
+        double frob_norm;
+
+        /*
+         * There are two different stopping criteria for SVD to decide the
+         * compression rank:
+         *	1) The 2-norm:
+         *         Compare the singular values to the threshold
+         *      2) The Frobenius norm:
+         *         Compare the Frobenius norm of the trailing singular values to
+         *         the threshold. Note that we use a reverse accumulation of the
+         *         singular values to avoid accuracy issues.
+         */
+#if defined(PASTIX_SVD_2NORM)
+        frob_norm = s[i];
+#else
+        frob_norm = core_dlassq( minMN-i, s + minMN - 1, -1 );
+#endif
+
+        if (frob_norm >= relative_tolerance)
         {
             cblas_zdscal(n, s[i], v, ldv);
         }
@@ -556,8 +624,8 @@ core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void 
     ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M, new_rank,
                                0.0, 0.0, B->u, ldbu );
     assert(ret == 0);
-    ret = LAPACKE_zlacpy( LAPACK_COL_MAJOR, 'A', rank, new_rank,
-                          u, rank, B->u, ldbu );
+    ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', rank, new_rank,
+                               u, rank, B->u, ldbu );
     assert(ret == 0);
 #else
     tmp = B->u;

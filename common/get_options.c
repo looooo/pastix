@@ -286,6 +286,7 @@ parse_enums( const char *string )
     if(0 == strcasecmp("pastixcompressmethodpqrcp", string)) { return PastixCompressMethodPQRCP; }
     if(0 == strcasecmp("pastixcompressmethodrqrcp", string)) { return PastixCompressMethodRQRCP; }
     if(0 == strcasecmp("pastixcompressmethodtqrcp", string)) { return PastixCompressMethodTQRCP; }
+    if(0 == strcasecmp("pastixcompressmethodrqrrt", string)) { return PastixCompressMethodRQRRT; }
 
     /* For retro-compatibility */
     if(0 == strcasecmp("pastixcompressmethodrrqr",  string)) { return PastixCompressMethodPQRCP;  }

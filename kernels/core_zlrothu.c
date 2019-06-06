@@ -437,7 +437,7 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
     assert( N1 >= (N2 + offy) );
 
     W     = malloc(ldwork * sizeof(pastix_complex64_t));
-    eps   = LAPACKE_dlamch( 'e' );
+    eps   = LAPACKE_dlamch_work( 'e' );
     alpha = 1. / sqrt(2);
 
     /* Classical Gram-Schmidt */

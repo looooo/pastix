@@ -380,8 +380,8 @@ core_zge2lr_rqrcp( pastix_fixdbl_t tol, pastix_int_t rklimit,
                    const void *A, pastix_int_t lda,
                    pastix_lrblock_t *Alr )
 {
-    return core_zge2lr_qr( core_zrqrcp, tol, rklimit,
-                           m, n, A, lda, Alr );
+    return core_zge2lr_qrcp( core_zrqrcp, tol, rklimit,
+                             m, n, A, lda, Alr );
 }
 
 /**

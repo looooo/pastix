@@ -273,8 +273,8 @@ core_ztqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
                                    work, lwork );
         assert( ret == 0 );
 
-        ret = LAPACKE_zlarft( LAPACK_COL_MAJOR, 'F', 'C', m-rk, d,
-                              A + rk * lda + rk, lda, tau + rk, T, b );
+        ret = LAPACKE_zlarft_work( LAPACK_COL_MAJOR, 'F', 'C', m-rk, d,
+                                   A + rk * lda + rk, lda, tau + rk, T, b );
         assert( ret == 0 );
 
         /*
@@ -437,8 +437,8 @@ core_zge2lr_tqrcp( pastix_fixdbl_t tol, pastix_int_t rklimit,
                    const void *A, pastix_int_t lda,
                    pastix_lrblock_t *Alr )
 {
-    return core_zge2lr_qr( core_ztqrcp, tol, rklimit,
-                           m, n, A, lda, Alr );
+    return core_zge2lr_qrcp( core_ztqrcp, tol, rklimit,
+                             m, n, A, lda, Alr );
 }
 
 

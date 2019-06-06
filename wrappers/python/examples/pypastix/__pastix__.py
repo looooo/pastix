@@ -33,7 +33,7 @@ class pypastix_order_t(Structure):
                 ("peritab",  POINTER(__pastix_int__)),
                 ("rangtab",  POINTER(__pastix_int__)),
                 ("treetab",  POINTER(__pastix_int__)),
-                ("selevtx",  POINTER(__pastix_int__)),
+                ("selevtx",  POINTER(c_int8)        ),
                 ("sndenbr",  __pastix_int__         ),
                 ("sndetab",  POINTER(__pastix_int__)) ]
 
