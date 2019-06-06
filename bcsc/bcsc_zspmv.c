@@ -159,8 +159,8 @@ __bcsc_zspmv_loop( pastix_trans_t            trans,
      +     Symmetric | Trans       | L
      +     Symmetric | ConjTrans   | conj(L)
      +     Hermitian | NoTrans     | conj(L)
-     +     Hermitian | Trans       | conj(L)
-     +     Hermitian | ConjTrans   | L
+     +     Hermitian | Trans       | L
+     +     Hermitian | ConjTrans   | conj(L)
      */
     cblk   = bcsc->cscftab + begin;
     valptr = (pastix_complex64_t*)bcsc->Lvalues;
@@ -184,7 +184,7 @@ __bcsc_zspmv_loop( pastix_trans_t            trans,
     /* Conj(L) */
     else if ( ( (bcsc->mtxtype == PastixGeneral  ) && (trans == PastixConjTrans) ) ||
               ( (bcsc->mtxtype == PastixSymmetric) && (trans == PastixConjTrans) ) ||
-              ( (bcsc->mtxtype == PastixHermitian) && (trans != PastixConjTrans) ) )
+              ( (bcsc->mtxtype == PastixHermitian) && (trans != PastixTrans    ) ) )
     {
         zspmv_Ax = __bcsc_zspmv_conjAx;
     }
@@ -394,8 +394,8 @@ pthread_bcsc_zspmv_tasktab( isched_thread_t *ctx,
      +     Symmetric | Trans       | L
      +     Symmetric | ConjTrans   | conj(L)
      +     Hermitian | NoTrans     | conj(L)
-     +     Hermitian | Trans       | conj(L)
-     +     Hermitian | ConjTrans   | L
+     +     Hermitian | Trans       | L
+     +     Hermitian | ConjTrans   | conj(L)
      */
     valptr = (pastix_complex64_t*)bcsc->Lvalues;
 
@@ -418,7 +418,7 @@ pthread_bcsc_zspmv_tasktab( isched_thread_t *ctx,
     /* Conj(L) */
     else if ( ( (bcsc->mtxtype == PastixGeneral  ) && (trans == PastixConjTrans) ) ||
               ( (bcsc->mtxtype == PastixSymmetric) && (trans == PastixConjTrans) ) ||
-              ( (bcsc->mtxtype == PastixHermitian) && (trans != PastixConjTrans) ) )
+              ( (bcsc->mtxtype == PastixHermitian) && (trans != PastixTrans    ) ) )
     {
         zspmv_Ax = __bcsc_zspmv_conjAx;
     }
