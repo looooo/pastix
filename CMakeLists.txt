@@ -62,9 +62,12 @@ option(BUILD_SHARED_LIBS
   "Build shared libraries" OFF)
 option(BUILD_64bits
   "Build 64 bits mode" ON)
+
+### Build type
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are None, Debug, Release, RelWithDebInfo and MinSizeRel." FORCE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are None, Debug, Release, RelWithDebInfo and MinSizeRel (TSAN, ASAN, LSAN, MSAN and UBSAN for Sanitizer)" FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
+include(Sanitizer)
 
 ### Distributed engine parameters
 option(PASTIX_WITH_MPI
