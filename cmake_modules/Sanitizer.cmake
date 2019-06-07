@@ -1,49 +1,70 @@
+include (CheckCCompilerFlag)
+include (CheckCXXCompilerFlag)
+
+set( SANITIZERS
+  TSAN ASAN LSAN MSAN UBSAN )
+
 # ThreadSanitizer
-set(CMAKE_C_FLAGS_TSAN
-    "-fsanitize=thread -g -O1"
-    CACHE STRING "Flags used by the C compiler during ThreadSanitizer builds."
-    FORCE)
-set(CMAKE_CXX_FLAGS_TSAN
-    "-fsanitize=thread -g -O1"
-    CACHE STRING "Flags used by the C++ compiler during ThreadSanitizer builds."
-    FORCE)
+set( TSAN_OPTION "-fsanitize=thread" )
+set( TSAN_FLAGS  "-g -O1" )
 
 # AddressSanitizer
-set(CMAKE_C_FLAGS_ASAN
-    "-fsanitize=address -fno-optimize-sibling-calls -fsanitize-address-use-after-scope -fno-omit-frame-pointer -g -O1"
-    CACHE STRING "Flags used by the C compiler during AddressSanitizer builds."
-    FORCE)
-set(CMAKE_CXX_FLAGS_ASAN
-    "-fsanitize=address -fno-optimize-sibling-calls -fsanitize-address-use-after-scope -fno-omit-frame-pointer -g -O1"
-    CACHE STRING "Flags used by the C++ compiler during AddressSanitizer builds."
-    FORCE)
+set( ASAN_OPTION "-fsanitize=address" )
+set( ASAN_FLAGS  " -fno-optimize-sibling-calls -fsanitize-address-use-after-scope -fno-omit-frame-pointer" )
 
 # LeakSanitizer
-set(CMAKE_C_FLAGS_LSAN
-    "-fsanitize=leak -fno-omit-frame-pointer -g -O1"
-    CACHE STRING "Flags used by the C compiler during LeakSanitizer builds."
-    FORCE)
-set(CMAKE_CXX_FLAGS_LSAN
-    "-fsanitize=leak -fno-omit-frame-pointer -g -O1"
-    CACHE STRING "Flags used by the C++ compiler during LeakSanitizer builds."
-    FORCE)
+set( LSAN_OPTION "-fsanitize=leak" )
+set( LSAN_FLAGS  "-fno-omit-frame-pointer" )
 
 # MemorySanitizer
-set(CMAKE_C_FLAGS_MSAN
-    "-fsanitize=memory -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2 -fno-omit-frame-pointer -g -O2"
-    CACHE STRING "Flags used by the C compiler during MemorySanitizer builds."
-    FORCE)
-set(CMAKE_CXX_FLAGS_MSAN
-    "-fsanitize=memory -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2 -fno-omit-frame-pointer -g -O2"
-    CACHE STRING "Flags used by the C++ compiler during MemorySanitizer builds."
-    FORCE)
+set( MSAN_OPTION "-fsanitize=memory" )
+set( MSAN_FLAGS  "-fno-optimize-sibling-calls -fsanitize-memory-track-origins=2 -fno-omit-frame-pointer" )
 
 # UndefinedBehaviour
-set(CMAKE_C_FLAGS_UBSAN
-    "-fsanitize=undefined"
-    CACHE STRING "Flags used by the C compiler during UndefinedBehaviourSanitizer builds."
-    FORCE)
-set(CMAKE_CXX_FLAGS_UBSAN
-    "-fsanitize=undefined"
-    CACHE STRING "Flags used by the C++ compiler during UndefinedBehaviourSanitizer builds."
-    FORCE)
+set( UBSAN_OPTION "-fsanitize=undefined" )
+set( UBSAN_FLAGS  "" )
+
+foreach(sanitizer ${SANITIZERS} )
+  check_c_compiler_flag(   "${${sanitizer}_OPTION} ${${sanitizer}_FLAGS}" HAVE_C_${sanitizer} )
+  check_cxx_compiler_flag( "${${sanitizer}_OPTION} ${${sanitizer}_FLAGS}" HAVE_CXX_${sanitizer} )
+
+  if ( HAVE_C_${sanitizer} OR HAVE_CXX_${sanitizer} )
+
+    set( CMAKE_C_FLAGS_${sanitizer} "${${sanitizer}_OPTION} ${${sanitizer}_FLAGS}" CACHE STRING
+      "Flags used by the C compiler during ${sanitizer} builds."
+      FORCE )
+    set( CMAKE_CXX_FLAGS_${sanitizer} "${${sanitizer}_OPTION} ${${sanitizer}_FLAGS}" CACHE STRING
+      "Flags used by the C++ compiler during ${sanitizer} builds."
+      FORCE )
+    set( CMAKE_Fortran_FLAGS_${sanitizer} "" CACHE STRING
+      "Flags used by the Fortran compiler during ${sanitizer} builds."
+      FORCE )
+    set( CMAKE_EXE_LINKER_FLAGS_${sanitizer}
+      "${${sanitizer}_OPTION}" CACHE STRING
+      "Flags used for linking binaries during ${sanitizer} builds."
+      FORCE )
+    set( CMAKE_MODULE_LINKER_FLAGS_${sanitizer}
+      "" CACHE STRING
+      "Flags used by the linker the creation of module during ${sanitizer} builds."
+      FORCE )
+    set( CMAKE_SHARED_LINKER_FLAGS_${sanitizer}
+      "${${sanitizer}_OPTION}" CACHE STRING
+      "Flags used by the shared libraries linker during ${sanitizer} builds."
+      FORCE )
+    set( CMAKE_STATIC_LINKER_FLAGS_${sanitizer}
+      "" CACHE STRING
+      "Flags used by the static libraries linker during ${sanitizer} builds."
+      FORCE )
+    mark_as_advanced(
+      CMAKE_C_FLAGS_${sanitizer}
+      CMAKE_CXX_FLAGS_${sanitizer}
+      CMAKE_Fortran_FLAGS_${sanitizer}
+      CMAKE_EXE_LINKER_FLAGS_${sanitizer}
+      CMAKE_MODULE_LINKER_FLAGS_${sanitizer}
+      CMAKE_SHARED_LINKER_FLAGS_${sanitizer}
+      CMAKE_STATIC_LINKER_FLAGS_${sanitizer} )
+
+    set( CMAKE_BUILD_TYPE_DROP_LIST ${CMAKE_BUILD_TYPE_DROP_LIST} "${sanitizer}")
+  endif()
+endforeach()
+
