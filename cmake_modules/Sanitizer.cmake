@@ -25,8 +25,10 @@ set( UBSAN_OPTION "-fsanitize=undefined" )
 set( UBSAN_FLAGS  "" )
 
 foreach(sanitizer ${SANITIZERS} )
+  set(CMAKE_REQUIRED_FLAGS "${${sanitizer}_OPTION}" ) # Also needs to be a link flag for test to pass
   check_c_compiler_flag(   "${${sanitizer}_OPTION} ${${sanitizer}_FLAGS}" HAVE_C_${sanitizer} )
   check_cxx_compiler_flag( "${${sanitizer}_OPTION} ${${sanitizer}_FLAGS}" HAVE_CXX_${sanitizer} )
+  unset(CMAKE_REQUIRED_FLAGS)
 
   if ( HAVE_C_${sanitizer} OR HAVE_CXX_${sanitizer} )
 
