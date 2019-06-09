@@ -62,9 +62,14 @@ option(BUILD_SHARED_LIBS
   "Build shared libraries" OFF)
 option(BUILD_64bits
   "Build 64 bits mode" ON)
+
+### Build type
+set( CMAKE_BUILD_TYPE_DROP_LIST "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+include(Sanitizer)
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are None, Debug, Release, RelWithDebInfo and MinSizeRel." FORCE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are None, Debug, Release, RelWithDebInfo, MinSizeRel, ..." FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_BUILD_TYPE_DROP_LIST})
 
 ### Distributed engine parameters
 option(PASTIX_WITH_MPI
