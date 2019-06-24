@@ -88,6 +88,7 @@ z_lowrank_genmat( int                 mode,
     if ( rank == 0 ) {
         LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', m, n,
                              0., 0., A, lda );
+        *normA = 0.;
         return 0;
     }
 
@@ -152,8 +153,9 @@ z_lowrank_genmat( int                 mode,
         break;
 
         case 2: {
-            int    s1 = (rank / 2) - 1;
-            int    s2 = rank + ( rank / 2 ) - 1;
+            int    s1 = pastix_imax( 0, (rank / 2) - 1 );
+            int    s2 = pastix_imin( pastix_imax( rank + ( rank / 2 ) - 1, rank ),
+                                     minMN );
             double p1 = log( 1. / tolerance );
             double p2 = log( threshold / tolerance );
 

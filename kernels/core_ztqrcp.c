@@ -202,9 +202,9 @@ core_ztqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
 
     rk = 0;
     d  = 0;
-    while ( (rk < maxrank) && loop )
+    while ( loop )
     {
-        ib = pastix_imin( b, maxrank-rk );
+        ib = pastix_imin( b, minMN-rk );
         d = core_zpqrcp( tolB, ib, 1, nb,
                          bp, n-rk,
                          B      + rk * ldb, ldb,
@@ -215,10 +215,16 @@ core_ztqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
         if ( d == -1 ) {
             d = ib;
         }
+        /* If smaller than ib, we reached the threshold */
         if ( d < ib ) {
             loop = 0;
         }
         if ( d == 0 ) {
+            break;
+        }
+        /* If we exceeded the max rank, let's stop now */
+        if ( (rk + d) > maxrank ) {
+            rk = -1;
             break;
         }
 
@@ -387,16 +393,9 @@ core_ztqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
     }
     free( jpvt_b );
 
-    if ( d == -1 ) {
-        return -1;
-    }
-    else {
-        assert( rk <= maxrank );
-        return rk;
-    }
-
     (void)ret;
     (void)refine;
+    return rk;
 }
 
 /**

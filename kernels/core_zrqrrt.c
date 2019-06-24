@@ -23,8 +23,8 @@
 #include "z_nan_check.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-static pastix_complex64_t zone  =  1.0;
-static pastix_complex64_t zzero =  0.0;
+static pastix_complex64_t zone  = 1.0;
+static pastix_complex64_t zzero = 0.0;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
@@ -131,7 +131,6 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
     int                 SEED[4] = {26, 67, 52, 197};
     int                 ret, i;
     pastix_int_t        d, ib, loop = 1;
-    pastix_int_t        b = 32;
     pastix_int_t        ldo = m;
     pastix_int_t        size_O = ldo * nb;
     pastix_int_t        rk, minMN, lwkopt;
@@ -196,9 +195,9 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
     }
     normR = normA;
     rk = 0;
-    while ( (rk < maxrank) && loop && (normR > tol) )
+    while ( (rk < maxrank) && loop )
     {
-        ib = pastix_imin( b, maxrank-rk );
+        ib = pastix_imin( nb, maxrank-rk );
         d = ib;
 
         /* Computation of the projection matrix A * omega^H */
@@ -254,6 +253,8 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
             double ssq = 1.;
             double scl = normR;
 
+            loop = 0;
+
             for( i=d-1; i>=0; i-- ) {
                 double normRk = cblas_dznrm2( n-rk-i, A + (rk+i) * lda + (rk+i), lda );
 
@@ -261,8 +262,11 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
                 normRk = scl * sqrt( ssq );
 
                 if ( normRk > tol ) {
-                    d = i+1;
-                    loop = 0;
+                    /*
+                     * The rank is i+1, and we need to be below the threshold
+                     * tol, so we need the i from the previsous iteration (+1)
+                     */
+                    d = pastix_imin( d, i+2 );
                     break;
                 }
             }
@@ -276,7 +280,12 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
 #endif
 
     (void)ret;
-    return rk;
+    if ( (loop && (rk < minMN)) || (rk > maxrank) ) {
+        return -1;
+    }
+    else {
+        return rk;
+    }
 }
 
 /**

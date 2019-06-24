@@ -155,31 +155,7 @@ core_zlrmm_Cnull( core_zlrmm_t *params )
         transV = transB;
     }
 
-    if ( AB.rk != 0 ) {
-        pastix_atomic_lock( lock );
-        switch ( C->rk ) {
-        case -1:
-            /*
-             * C became full rank
-             */
-            flops += core_zlr2fr( params, &AB, transV );
-            break;
-
-        case 0:
-            /*
-             * C is still null
-             */
-            flops += core_zlr2null( params, &AB, transV, infomask );
-            break;
-
-        default:
-            /*
-             * C is low-rank of rank k
-             */
-            flops += core_zlr2lr( params, &AB, transV );
-        }
-        pastix_atomic_unlock( lock );
-    }
+    flops += core_zlradd( params, &AB, transV, infomask );
 
     /* Free memory from zlrm3 */
     if ( infomask & PASTIX_LRM3_ALLOCU ) {
@@ -189,7 +165,6 @@ core_zlrmm_Cnull( core_zlrmm_t *params )
         free(AB.v);
     }
 
-    assert( C->rk <= C->rkmax);
     PASTE_CORE_ZLRMM_VOID;
 
     return flops;
@@ -263,31 +238,7 @@ core_zlrmm_Clr( core_zlrmm_t *params )
         transV = transB;
     }
 
-    if ( AB.rk != 0 ) {
-        pastix_atomic_lock( lock );
-        switch ( C->rk ) {
-        case -1:
-            /*
-             * C became full rank
-             */
-            flops += core_zlr2fr( params, &AB, transV );
-            break;
-
-        case 0:
-            /*
-             * C is still null
-             */
-            flops += core_zlr2null( params, &AB, transV, infomask );
-            break;
-
-        default:
-            /*
-             * C is low-rank of rank k
-             */
-            flops += core_zlr2lr( params, &AB, transV );
-        }
-        pastix_atomic_unlock( lock );
-    }
+    flops += core_zlradd( params, &AB, transV, infomask );
 
     /* Free memory from zlrm3 */
     if ( infomask & PASTIX_LRM3_ALLOCU ) {
@@ -297,7 +248,6 @@ core_zlrmm_Clr( core_zlrmm_t *params )
         free(AB.v);
     }
 
-    assert( C->rk <= C->rkmax);
     PASTE_CORE_ZLRMM_VOID;
 
     return flops;
@@ -351,20 +301,7 @@ core_zlrmm( core_zlrmm_t *params )
             ((work == NULL) && (lwork <= 0)) );
 
     if ( C->rk == 0 ) {
-#if 0
-        /* Debug case with NULL matrix replaced by the unit vector times 0 */
-        pastix_cblk_lock( fcblk );
-        if ( C->rk == 0 ) {
-            core_zlrsze( 0, Cm, Cn, C, 1, 1, -1 );
-            memset(C->u, 0, Cm * sizeof(pastix_complex64_t) );
-            memset(C->v, 0, Cn * sizeof(pastix_complex64_t) );
-            ((pastix_complex64_t*)(C->u))[0] = 1.;
-        }
-        pastix_cblk_unlock( fcblk );
-        flops = core_zlrmm_Clr( params );
-#else
         flops = core_zlrmm_Cnull( params );
-#endif
     }
     else if ( C->rk == -1 ) {
         flops = core_zlrmm_Cfr( params );

@@ -197,16 +197,10 @@ pastix_fixdbl_t core_zlrlr2lr( core_zlrmm_t     *params,
  *      @name add_lr Functions to add the AB contribution in a low-rank format to any C matrix
  *      @{
  */
-pastix_fixdbl_t core_zlr2fr  ( core_zlrmm_t           *params,
-                               const pastix_lrblock_t *AB,
-                               pastix_trans_t          transV );
-pastix_fixdbl_t core_zlr2lr  ( core_zlrmm_t           *params,
-                               const pastix_lrblock_t *AB,
-                               pastix_trans_t          transV );
-pastix_fixdbl_t core_zlr2null( core_zlrmm_t           *params,
-                               const pastix_lrblock_t *AB,
-                               pastix_trans_t          transV,
-                               int                     infomask );
+pastix_fixdbl_t core_zlradd( core_zlrmm_t           *params,
+                             const pastix_lrblock_t *AB,
+                             pastix_trans_t          transV,
+                             int                     infomask );
 
 /**
  *       @}

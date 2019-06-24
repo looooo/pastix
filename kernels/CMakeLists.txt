@@ -77,6 +77,7 @@ set(SOURCES
   cpucblk_zinit.c
   cpucblk_zcompress.c
   cpucblk_zdiff.c
+  cpucblk_zadd.c
   cpucblk_zschur.c
   # Solve operation
   solve_ztrsmsp.c

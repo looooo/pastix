@@ -1201,8 +1201,7 @@ core_zgemmsp_lr( pastix_coefside_t         sideA,
     const SolverBlok *fblok;
     const SolverBlok *lblok;
 
-    pastix_complex64_t *Cfull;
-    pastix_int_t N, K, stridef, shift;
+    pastix_int_t N, K, shift;
     pastix_lrblock_t *lrB;
     core_zlrmm_t params;
 
@@ -1215,11 +1214,6 @@ core_zgemmsp_lr( pastix_coefside_t         sideA,
     assert( fcblk->cblktype & CBLK_LAYOUT_2D );
 
     shift = (sideA == PastixUCoef) ? 1 : 0;
-
-    /* Move the Cfull pointer to the top of the right column */
-    stridef = fcblk->stride;
-    Cfull = (sideA == PastixUCoef) ? fcblk->ucoeftab : fcblk->lcoeftab;
-    Cfull = Cfull + (blok->frownum - fcblk->fcolnum) * stridef;
 
     /* Get the B block and its dimensions */
     lrB = (sideB == PastixLCoef) ? blok->LRblock : blok->LRblock+1;
@@ -1244,6 +1238,7 @@ core_zgemmsp_lr( pastix_coefside_t         sideA,
     params.beta    = 1.0;
     params.work    = work;
     params.lwork   = lwork;
+    params.lwused  = 0;
     params.lock    = &(fcblk->lock);
     params.B       = lrB;
 
@@ -1354,7 +1349,7 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
 {
     pastix_ktype_t ktype;
     pastix_fixdbl_t time, flops = 0.0;
-    pastix_int_t m = cblk->stride ;
+    pastix_int_t m = cblk->stride;
     pastix_int_t n = blok_rownbr( blok );
     pastix_int_t k = cblk_colnbr( cblk );
 

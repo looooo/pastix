@@ -194,6 +194,7 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
             if ( (VN1[pvt] == 0.) || (VN1[pvt] < tol) ) {
                 residual = cblas_dnrm2( n-rk, VN1 + rk, 1 );
                 if ( (residual == 0.) || (residual < tol) ) {
+                    assert( rk < maxrank );
                     return rk;
                 }
             }
@@ -371,7 +372,7 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
 
     /* We reached maxrank, so we check if the threshold is met or not */
     residual = cblas_dnrm2( n-rk, VN1 + rk, 1 );
-    if ( (tol < 0) || ( (residual == 0.) || (residual < tol) ) ) {
+    if ( (tol < 0.) || ( (residual == 0.) || (residual < tol) ) ) {
         assert( rk == maxrank );
         return rk;
     }

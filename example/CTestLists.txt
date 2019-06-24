@@ -25,9 +25,10 @@ set( PASTIX_SCHEDS
      0 1) # sequential, static
 set( PASTIX_COMPRESS_METHOD
      svd
-     pqrcp )
-#     rqrcp
-#     tqrcp )
+     pqrcp
+     rqrcp
+     tqrcp
+     rqrrt )
 set( PASTIX_SPLIT_METHOD
     pastixsplitkway
     pastixsplitkwayprojections )

@@ -76,15 +76,17 @@ static pastix_complex64_t zzero =  0.0;
 /**
  *******************************************************************************
  *
- * @ingroup kernel_lr_svd_null
- *
- * @brief Computes a SVD with truncation.
+ * @brief Convert a full rank matrix in a low rank matrix, using SVD.
  *
  *******************************************************************************
  *
  * @param[in] tol
  *          The tolerance used as a criteria to eliminate information from the
  *          full rank matrix
+ *
+ * @param[in] rklimit
+ *          The maximum rank to store the matrix in low-rank format. If
+ *          -1, set to min(M, N) / PASTIX_LR_MINRATIO.
  *
  * @param[in] m
  *          Number of rows of the matrix A, and of the low rank matrix Alr.
@@ -102,23 +104,22 @@ static pastix_complex64_t zzero =  0.0;
  *          The low rank matrix structure that will store the low rank
  *          representation of A
  *
- *******************************************************************************
- *
- * @return  This routine will return the rank of A
- *
  *******************************************************************************/
-static inline int
-core_zge2lrx( double tol, pastix_int_t m, pastix_int_t n,
-              const pastix_complex64_t *A, pastix_int_t lda,
-              pastix_lrblock_t *Alr )
+pastix_fixdbl_t
+core_zge2lr_svd( pastix_fixdbl_t tol, pastix_int_t rklimit,
+                 pastix_int_t m, pastix_int_t n,
+                 const void *Avoid, pastix_int_t lda,
+                 pastix_lrblock_t *Alr )
 {
+    const pastix_complex64_t *A = (const pastix_complex64_t*)Avoid;
+    pastix_fixdbl_t flops = 0.0;
     pastix_complex64_t *u, *v, *zwork, *Acpy, ws;
     double             *rwork, *s;
     pastix_int_t        i, ret, ldu, ldv;
-    pastix_int_t        minMN = pastix_imin( m, n );
+    pastix_int_t        minMN, imax;
     pastix_int_t        lwork = -1;
     pastix_int_t        zsize, rsize;
-    double              norm, relative_tolerance;
+    double              norm;
 
 #if !defined(NDEBUG)
     if ( m < 0 ) {
@@ -130,24 +131,39 @@ core_zge2lrx( double tol, pastix_int_t m, pastix_int_t n,
     if ( lda < m ) {
         return -5;
     }
-    if ( (Alr->u == NULL) || (Alr->v == NULL) || (Alr->rkmax < minMN) ) {
-        return -6;
-    }
 #endif
 
+    norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
+                                A, lda, NULL );
+
+    /* Quick return on norm */
+    if ( (norm == 0.) && (tol >= 0.)) {
+        core_zlralloc( m, n, 0, Alr );
+        return 0. ;
+    }
+
+    rklimit = ( rklimit < 0 ) ? core_get_rklimit( m, n ) : rklimit;
+    tol = ( tol < 0. ) ? -1. : tol * norm;
+
+    /* Quick return on max rank */
+    minMN = pastix_imin(m, n);
+    if ( rklimit < 0 ) {
+        rklimit = minMN;
+    }
+    rklimit = pastix_imin( minMN, rklimit );
+    if ( (minMN == 0) || (rklimit == 0) ) {
+        core_zlralloc( m, n, 0, Alr );
+        return 0;
+    }
+
+    /*
+     * Allocate a temporary Low rank matrix to store the full U and V
+     */
+    core_zlralloc( m, n, pastix_imin( m, n ), Alr );
     u = Alr->u;
     v = Alr->v;
     ldu = m;
     ldv = Alr->rkmax;
-
-    norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
-                                A, lda, NULL );
-    if ( tol < 0. ) {
-        relative_tolerance = -1;
-    }
-    else {
-        relative_tolerance = tol * norm;
-    }
 
     /*
      * Query the workspace needed for the gesvd
@@ -192,7 +208,9 @@ core_zge2lrx( double tol, pastix_int_t m, pastix_int_t n,
         EXIT(MOD_SOPALIN, INTERNAL_ERR);
     }
 
-    for (i=0; i<minMN; i++, v+=1) {
+    /* Let's stop i before going too far */
+    imax = pastix_imin( minMN, rklimit+1 );
+    for (i=0; i<imax; i++, v+=1) {
         double frob_norm;
 
         /*
@@ -211,7 +229,7 @@ core_zge2lrx( double tol, pastix_int_t m, pastix_int_t n,
         frob_norm = core_dlassq( minMN-i, s + minMN - 1, -1 );
 #endif
 
-        if (frob_norm >= relative_tolerance)
+        if (frob_norm >= tol)
         {
             cblas_zdscal(n, s[i], v, ldv);
         }
@@ -219,82 +237,22 @@ core_zge2lrx( double tol, pastix_int_t m, pastix_int_t n,
             break;
         }
     }
-    Alr->rk = i;
-
-    memFree_null(zwork);
-    return i;
-}
-
-/**
- *******************************************************************************
- *
- * @brief Convert a full rank matrix in a low rank matrix, using SVD.
- *
- *******************************************************************************
- *
- * @param[in] tol
- *          The tolerance used as a criteria to eliminate information from the
- *          full rank matrix
- *
- * @param[in] rklimit
- *          The maximum rank to store the matrix in low-rank format. If
- *          -1, set to min(M, N) / PASTIX_LR_MINRATIO.
- *
- * @param[in] m
- *          Number of rows of the matrix A, and of the low rank matrix Alr.
- *
- * @param[in] n
- *          Number of columns of the matrix A, and of the low rank matrix Alr.
- *
- * @param[in] A
- *          The matrix of dimension lda-by-n that needs to be compressed
- *
- * @param[in] lda
- *          The leading dimension of the matrix A. lda >= max(1, m)
- *
- * @param[out] Alr
- *          The low rank matrix structure that will store the low rank
- *          representation of A
- *
- *******************************************************************************/
-pastix_fixdbl_t
-core_zge2lr_svd( pastix_fixdbl_t tol, pastix_int_t rklimit,
-                 pastix_int_t m, pastix_int_t n,
-                 const void *Avoid, pastix_int_t lda,
-                 pastix_lrblock_t *Alr )
-{
-    const pastix_complex64_t *A = (const pastix_complex64_t*)Avoid;
-    pastix_fixdbl_t flops = 0.0;
-    int ret;
-    /*
-     * Allocate a temorary Low rank matrix
-     */
-    core_zlralloc( m, n, pastix_imin( m, n ), Alr );
-
-    /*
-     * Compress the dense matrix with the temporary space just allocated
-     */
-
-    /* TODO: add flops */
-    ret = core_zge2lrx( tol, m, n, A, lda, Alr );
-
-    if ( ret < 0 ) {
-        core_zlrfree( Alr );
-    }
 
     /*
      * Resize the space used by the low rank matrix
      */
-    ret = core_zlrsze( 1, m, n, Alr, ret, -1, rklimit );
+    core_zlrsze( 1, m, n, Alr, i, -1, rklimit );
 
     /*
-     * It was not interesting to compress, so we store the dense version in Alr
+     * It was not interesting to compress, so we restore the dense version in Alr
      */
-    if (ret == -1) {
+    if (Alr->rk == -1) {
         ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
                                    A, lda, Alr->u, Alr->rkmax );
         assert(ret == 0);
     }
+
+    memFree_null(zwork);
     return flops;
 }
 

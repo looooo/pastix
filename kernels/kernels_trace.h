@@ -66,6 +66,9 @@ typedef enum pastix_ktype_e {
     PastixKernelGEMMCblkLRLR, /**< GEMM applied from a panel in low-rank to a panel in low-rank   */
     PastixKernelGEMMBlok2d2d, /**< GEMM applied from a block in 2d layout to a block in 2d layout */
     PastixKernelGEMMBlokLRLR, /**< GEMM applied from a block in low-rank to a block in low-rank   */
+    PastixKernelGEADDCblkFRFR, /**< GEADD applied from a panel in full-rank to a panel in full-rank  */
+    PastixKernelGEADDCblkFRLR, /**< GEADD applied from a panel in full-rank to a panel in low-rank  */
+    PastixKernelGEADDCblkLRLR, /**< GEADD applied from a panel in low-rank to a panel in low-rank   */
     PastixKernelLvl1Nbr
 } pastix_ktype_t;
 
