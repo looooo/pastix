@@ -58,7 +58,7 @@ core_zlralloc( pastix_int_t      M,
 
     if ( rkmax == -1 ) {
         u = malloc( M * N * sizeof(pastix_complex64_t) );
-        memset(u, 0, M * N * sizeof(pastix_complex64_t) );
+        memset( u, 0, M * N * sizeof(pastix_complex64_t) );
         A->rk = -1;
         A->rkmax = M;
         A->u = u;
@@ -745,9 +745,10 @@ core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct,
                   const void *Avoid, pastix_int_t lda,
                   pastix_lrblock_t *Alr )
 {
-    int                 ret;
+    int                 ret, newrk;
     pastix_int_t        nb = 32;
     pastix_complex64_t *A = (pastix_complex64_t*)Avoid;
+    pastix_complex64_t *Acpy;
     pastix_int_t        lwork;
     pastix_complex64_t *work, *tau, zzsize;
     double             *rwork;
@@ -774,20 +775,23 @@ core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct,
 
     lwork = (pastix_int_t)zzsize;
     zsize = lwork;
+    /* Acpy */
+    zsize += m * n;
     /* tau */
     zsize += n;
-
     /* rwork */
     rsize = 2 * n;
 
 #if defined(PASTIX_DEBUG_LR)
     zwork = NULL;
+    Acpy  = malloc( m * n * sizeof(pastix_complex64_t) );
     tau   = malloc( n     * sizeof(pastix_complex64_t) );
     work  = malloc( lwork * sizeof(pastix_complex64_t) );
     rwork = malloc( rsize * sizeof(double) );
 #else
     zwork = malloc( zsize * sizeof(pastix_complex64_t) + rsize * sizeof(double) );
-    tau   = zwork;
+    Acpy  = zwork;
+    tau   = Acpy + m * n;
     work  = tau + n;
     rwork = (double*)(work + lwork);
 #endif
@@ -795,49 +799,41 @@ core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct,
     jpvt = malloc( n * sizeof(pastix_int_t) );
 
     /**
-     * Allocate the Low rank matrix in full-rank to store the copy of A
+     * Backup A into Acpy to try to compress
      */
-    core_zlralloc( m, n, -1, Alr );
-
     ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
-                               A, lda, Alr->u, m );
+                               A, lda, Acpy, m );
     assert(ret == 0);
 
-    ret = rrqrfct( tol, rklimit, 0, nb,
-                   m, n, Alr->u, m,
-                   jpvt, tau,
-                   work, lwork, rwork );
-    if (ret == -1) {
+    newrk = rrqrfct( tol, rklimit, 0, nb,
+                     m, n, Acpy, m,
+                     jpvt, tau,
+                     work, lwork, rwork );
+    if (newrk == -1) {
         flops = FLOPS_ZGEQRF( m, n );
     }
     else {
-        flops = FLOPS_ZGEQRF( m, ret ) + FLOPS_ZUNMQR( m, n-ret, ret, PastixLeft );
+        flops = FLOPS_ZGEQRF( m, newrk ) + FLOPS_ZUNMQR( m, n-newrk, newrk, PastixLeft );
     }
 
     /**
      * It was not interesting to compress, so we restore the dense version in Alr
      */
-    if ( ret == -1 ) {
+    core_zlralloc( m, n, newrk, Alr );
+    Alr->rk = newrk;
+
+    if ( newrk == -1 ) {
         ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
                                    A, lda, Alr->u, Alr->rkmax );
         assert(ret == 0);
     }
-    else if ( ret == 0 ) {
-        core_zlrsze( 0, m, n, Alr, 0, 0, rklimit );
-    }
-    /**
-     * We compute U and V
-     */
-    else {
+    else if ( newrk > 0 ) {
+        /**
+         * We compute U and V
+         */
         pastix_int_t i;
-        pastix_complex64_t *Acpy = Alr->u;
         pastix_complex64_t *U, *V;
 
-        assert( ret > 0 );
-
-        /* Resize Alr */
-        Alr->u = NULL;
-        core_zlrsze( 0, m, n, Alr, ret, ret, rklimit );
         U = Alr->u;
         V = Alr->v;
 
@@ -860,8 +856,6 @@ core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct,
                     Acpy + i       * m,
                     Alr->rk * sizeof(pastix_complex64_t) );
         }
-
-        free( Acpy );
     }
 
 #if defined(PASTIX_DEBUG_LR)
@@ -876,6 +870,7 @@ core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct,
     free( zwork );
     free( jpvt );
 #if defined(PASTIX_DEBUG_LR)
+    free( Acpy );
     free( tau   );
     free( work  );
     free( rwork );
@@ -934,6 +929,7 @@ core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct,
     int                 ret, newrk;
     pastix_int_t        nb = 32;
     pastix_complex64_t *A = (pastix_complex64_t*)Avoid;
+    pastix_complex64_t *Acpy;
     pastix_int_t        lwork;
     pastix_complex64_t *work, *tau, *B, *tau_b, zzsize;
     pastix_int_t       *jpvt;
@@ -968,6 +964,8 @@ core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct,
     lwork = (pastix_int_t)zzsize;
     zsize = lwork;
     bsize = n * rklimit;
+    /* Acpy */
+    zsize += m * n;
     /* tau */
     zsize += n;
     /* B and tau_b */
@@ -975,13 +973,15 @@ core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct,
 
 #if defined(PASTIX_DEBUG_LR)
     zwork = NULL;
+    Acpy  = malloc( m * n * sizeof(pastix_complex64_t) );
     tau   = malloc( n     * sizeof(pastix_complex64_t) );
     B     = malloc( bsize * sizeof(pastix_complex64_t) );
     tau_b = malloc( n     * sizeof(pastix_complex64_t) );
     work  = malloc( lwork * sizeof(pastix_complex64_t) );
 #else
     zwork = malloc( zsize * sizeof(pastix_complex64_t) );
-    tau   = zwork;
+    Acpy  = zwork;
+    tau   = Acpy + m * n;
     B     = tau + n;
     tau_b = B + bsize;
     work  = tau_b + n;
@@ -990,17 +990,15 @@ core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct,
     jpvt = malloc( n * sizeof(pastix_int_t) );
 
     /**
-     * Allocate the Low rank matrix in full-rank to store the copy of A
+     * Backup A into Acpy to try to compress
      */
-    core_zlralloc( m, n, -1, Alr );
-
     ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
-                               A, lda, Alr->u, m );
+                               A, lda, Acpy, m );
     assert(ret == 0);
 
     newrk = rrqrfct( tol, rklimit, nb,
                      m, n,
-                     Alr->u, m, tau,
+                     Acpy, m, tau,
                      B, n, tau_b,
                      work, lwork, norm );
     if (newrk == -1) {
@@ -1013,27 +1011,21 @@ core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct,
     /**
      * It was not interesting to compress, so we restore the dense version in Alr
      */
+    core_zlralloc( m, n, newrk, Alr );
+    Alr->rk = newrk;
+
     if ( newrk == -1 ) {
         ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
                                    A, lda, Alr->u, Alr->rkmax );
         assert(ret == 0);
     }
-    else if ( newrk == 0 ) {
-        core_zlrsze( 0, m, n, Alr, 0, 0, rklimit );
-    }
-    /**
-     * We compute U and V
-     */
-    else {
-        pastix_complex64_t *Acpy = Alr->u;
+    else if ( newrk > 0 ) {
+        /**
+         * We compute U and V
+         */
         pastix_complex64_t *U, *V;
         pastix_int_t d, rk = 0;
 
-        assert( newrk > 0 );
-
-        /* Resize Alr */
-        Alr->u = NULL;
-        core_zlrsze( 0, m, n, Alr, newrk, newrk, rklimit );
         U = Alr->u;
         V = Alr->v;
 
@@ -1073,8 +1065,6 @@ core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct,
                 rk -= nb;
             }
         }
-
-        free( Acpy );
     }
 
 #if defined(PASTIX_DEBUG_LR)
@@ -1089,8 +1079,11 @@ core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct,
     free( zwork );
     free( jpvt );
 #if defined(PASTIX_DEBUG_LR)
-    free( tau   );
-    free( work  );
+    free( Acpy );
+    free( tau );
+    free( B );
+    free( tau_b );
+    free( work );
 #endif
     return flops;
 }

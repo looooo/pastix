@@ -72,7 +72,6 @@ cpucblk_zdiff( pastix_coefside_t side,
 
     assert( ncols  == cblk_colnbr( cblkB ) );
     assert( stride == cblkB->stride );
-    assert( !(cblkA->cblktype & CBLK_LAYOUT_2D) ); /* Not yet implemented */
 
     eps = LAPACKE_dlamch_work( 'e' );
 
@@ -120,7 +119,7 @@ cpucblk_zdiff( pastix_coefside_t side,
         res = (normfull == 0.) ? 0. : (normdiff / (normfull * eps));
 
         if ( res > 10 ) {
-            fprintf(stderr, "KO on L: ||full(A)||_f=%e, ||comp(A)||_f=%e, ||comp(A)-full(A)||_0=%e, ||comp(A)-full(A)||_0 / (||full(A)||_2 * eps)=%e\n",
+            fprintf(stderr, "KO on U: ||full(A)||_f=%e, ||comp(A)||_f=%e, ||comp(A)-full(A)||_0=%e, ||comp(A)-full(A)||_0 / (||full(A)||_2 * eps)=%e\n",
                     normfull, normlowr, normdiff, res );
             rc++;
         }

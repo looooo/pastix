@@ -235,6 +235,11 @@ void cpucblk_zdump    ( pastix_coefside_t    side,
 int  cpucblk_zdiff    ( pastix_coefside_t    side,
                         const SolverCblk    *cblkA,
                         SolverCblk          *cblkB );
+void cpucblk_zadd     ( pastix_coefside_t    side,
+                        double               alpha,
+                        const SolverCblk    *cblkA,
+                        SolverCblk          *cblkB,
+                        const pastix_lr_t   *lowrank );
 /**
  *    @}
  *    @name PastixComplex64 compression/uncompression routines

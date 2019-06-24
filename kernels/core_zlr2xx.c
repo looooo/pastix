@@ -56,7 +56,7 @@ static pastix_complex64_t zzero =  0.0;
  * @return The number of flops required to perform the operation.
  *
  *******************************************************************************/
-pastix_fixdbl_t
+static inline pastix_fixdbl_t
 core_zlr2fr( core_zlrmm_t           *params,
              const pastix_lrblock_t *AB,
              pastix_trans_t          transV )
@@ -67,6 +67,8 @@ core_zlr2fr( core_zlrmm_t           *params,
     pastix_fixdbl_t flops = 0.;
     pastix_complex64_t *Cfr = C->u;
     Cfr += Cm * offy + offx;
+
+    assert( C->rk == -1 );
 
     /* TODO: find a suitable name to trace this kind of kernel. */
     if ( AB->rk == -1 ) {
@@ -121,7 +123,7 @@ core_zlr2fr( core_zlrmm_t           *params,
  * @return The number of flops required to perform the operation.
  *
  *******************************************************************************/
-pastix_fixdbl_t
+static inline pastix_fixdbl_t
 core_zlr2lr( core_zlrmm_t           *params,
              const pastix_lrblock_t *AB,
              pastix_trans_t          transV )
@@ -133,6 +135,8 @@ core_zlr2lr( core_zlrmm_t           *params,
     pastix_int_t ldabv = (transV == PastixNoTrans) ? AB->rkmax : N;
     pastix_fixdbl_t total_flops = 0.;
     pastix_fixdbl_t flops = 0.;
+
+    assert( (C->rk >= 0) && (C->rk <= C->rkmax) );
 
     /*
      * The rank is too big, we need to uncompress/compress C
@@ -232,7 +236,7 @@ core_zlr2lr( core_zlrmm_t           *params,
  * @return The number of flops required to perform the operation.
  *
  *******************************************************************************/
-pastix_fixdbl_t
+static inline pastix_fixdbl_t
 core_zlr2null(core_zlrmm_t           *params,
               const pastix_lrblock_t *AB,
               pastix_trans_t          transV,
@@ -339,4 +343,77 @@ core_zlr2null(core_zlrmm_t           *params,
 
     PASTE_CORE_ZLRMM_VOID;
     return total_flops;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Perform the addition of two low-rank matrices.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] params
+ *          The LRMM structure that stores all the parameters used in the LRMM
+ *          functions family.
+ *          On exit, the C matrix contains the addition of C and A aligned with its own
+ *          dimensions.
+ *          @sa core_zlrmm_t
+ *
+ * @param[in] A
+ *          The low-rank structure of the A matrix to add to C.
+ *
+ * @param[in] transV
+ *          Specify if A->v is stored normally or transposed.
+ *          - If PastixNoTrans, AB->v is stored normally for low-rank format.
+ *          - If PastixTrans, AB->v is stored transposed.
+ *          - If PastixConjTrans, AB->v is stored transposed, and conj() must be
+ *          applied to the matrix.
+ *
+ * @param[in] infomask
+ *          Mask of informations returned by the core_zxx2lr() functions.
+ *          If CORE_LRMM_ORTHOU is set, then A.u is orthogonal, otherwise an
+ *          orthogonalization step is added before adding it to C.
+ *
+ *******************************************************************************
+ *
+ * @return The number of flops required to perform the operation.
+ *
+ *******************************************************************************/
+pastix_fixdbl_t
+core_zlradd( core_zlrmm_t           *params,
+             const pastix_lrblock_t *A,
+             pastix_trans_t          transV,
+             int                     infomask )
+{
+    pastix_lrblock_t *C = params->C;
+    pastix_fixdbl_t   flops = 0.;
+
+    if ( A->rk != 0 ) {
+        pastix_atomic_lock( params->lock );
+        switch ( C->rk ) {
+        case -1:
+            /*
+             * C became full rank
+             */
+            flops = core_zlr2fr( params, A, transV );
+            break;
+
+        case 0:
+            /*
+             * C is still null
+             */
+            flops = core_zlr2null( params, A, transV, infomask );
+            break;
+
+        default:
+            /*
+             * C is low-rank of rank k
+             */
+            flops = core_zlr2lr( params, A, transV );
+        }
+        assert( C->rk <= C->rkmax);
+        pastix_atomic_unlock( params->lock );
+    }
+
+    return flops;
 }

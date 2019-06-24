@@ -188,9 +188,9 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
                  CBLAS_SADDR(zzero), B, ldb );
 
     rk = 0;
-    while ( (rk < maxrank) && loop )
+    while ( loop )
     {
-        ib = pastix_imin( b, maxrank-rk );
+        ib = pastix_imin( b, minMN-rk );
         d = core_zpqrcp( tolB, ib, 1, nb,
                          bp, n-rk,
                          B + rk*ldb, ldb,
@@ -202,10 +202,17 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
         if ( d == -1 ) {
             d = ib;
         }
+        /* If smaller than ib, we reached the threshold */
         if ( d < ib ) {
             loop = 0;
         }
         if ( d == 0 ) {
+            loop = 0;
+            break;
+        }
+        /* If we exceeded the max rank, let's stop now */
+        if ( (rk + d) > maxrank ) {
+            rk = -1;
             break;
         }
 
@@ -282,6 +289,7 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
         rk += d;
     }
 
+#if 0
     d = 0;
     if ( refine && !loop && (rk < maxrank) ) {
         /*
@@ -320,7 +328,13 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
                 }
             }
         }
+
+        rk += d;
+        if ( rk > maxrank) {
+            rk = -1;
+        }
     }
+#endif
     free( jpvt_b );
 
 #if defined(PASTIX_DEBUG_LR)
@@ -330,15 +344,7 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
     free( subw  );
 #endif
 
-    if ( d == -1 ) {
-        return -1;
-    }
-    else if ( rk < maxrank ) {
-        return pastix_imin( maxrank, rk+d );
-    }
-    else {
-        return rk;
-    }
+    return rk;
     (void)ret;
 }
 

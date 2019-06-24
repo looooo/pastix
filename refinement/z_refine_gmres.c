@@ -70,7 +70,7 @@ pastix_int_t z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 
     /* if ( pastix_data->bcsc->mtxtype == PastixHermitian ) { */
     /*     /\* Check if we need dotu for non hermitian matrices (CEA patch) *\/ */
-    /*     solver.dot = &bvev_zdotc_seq; */
+    /*     solver.dot = &bvec_zdotc_seq; */
     /* } */
 
     /* Get the parameters */
@@ -94,7 +94,7 @@ pastix_int_t z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     gmG   = (pastix_complex64_t *)solver.malloc(im1 * sizeof(pastix_complex64_t));
 
     /**
-     * H stores the h_{i,j} elements ot the upper hessenberg matrix H (See Alg. 9.5 p 270)
+     * H stores the h_{i,j} elements of the upper hessenberg matrix H (See Alg. 9.5 p 270)
      * V stores the v_{i} vectors
      * W stores the M^{-1} v_{i} vectors to avoid the application of the
      *          preconditioner on the output result (See line 11 of Alg 9.5)
@@ -319,7 +319,13 @@ pastix_int_t z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
             solver.gemv( pastix_data, n, i+1, 1.0, gmWi, n, gmG, 1.0, x );
         }
 
-        if ((resid_b <= eps) || (iters >= itermax))
+        /**
+         * Exit only if maximum number of iteration is reached.
+         * Exit on residual is checked at the beginning of the outer loop to be
+         * sure that the final residual of Ax-b is equal to the estimator
+         * computed within the inner loop.
+         */
+        if (iters >= itermax)
         {
             outflag = 0;
         }

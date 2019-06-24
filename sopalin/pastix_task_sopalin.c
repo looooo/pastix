@@ -215,7 +215,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     lr->core_ge2lr = ge2lrMethods[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][bcsc->flttype-2];
     lr->core_rradd = rraddMethods[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][bcsc->flttype-2];
 
-    if ( pastix_data->iparm[IPARM_COMPRESS_METHOD] == PastixCompressWhenBegin ) {
+    if ( pastix_data->iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin ) {
         core_get_rklimit = core_get_rklimit_begin;
     }
     else {
