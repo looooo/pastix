@@ -48,19 +48,25 @@ z_init_smp( isched_thread_t *ctx,
     struct z_argument_init_s *arg = (struct z_argument_init_s*)args;
     pastix_int_t              n   = arg->n;
     pastix_complex64_t       *x   = arg->x;
-    pastix_int_t              begin, end, rank, size;
+    pastix_int_t              begin, end, rank, size, nn;
 
     size  = ctx->global_ctx->world_size;
     rank  = ctx->rank;
-    begin = (n / size) * rank;
+    nn    = n / size;
+
+    begin = nn * rank;
     if ( rank == (size - 1) ) {
         end = n;
     }
     else {
-        end = (n / size) * (rank + 1);
+        end = nn * (rank + 1);
     }
 
-    core_zplrnt( (end-begin), 1, x, n, n, begin, 0, 7213 );
+    assert( begin >= 0 );
+    assert( end <= n );
+    assert( begin < end );
+
+    core_zplrnt( (end-begin), 1, x + begin, n, n, begin, 0, 7213 );
 }
 
 static inline void
@@ -73,7 +79,7 @@ z_init( pastix_data_t      *pastix_data,
     if ( sched == PastixSchedSequential ) {
         core_zplrnt( n, 1, x, n, n, 0, 0, 7213 );
     }
-    else if ( sched >= 1 ) {
+    else {
         struct z_argument_init_s args = { n, x };
         isched_parallel_call ( pastix_data->isched, z_init_smp, &args );
     }
@@ -81,8 +87,8 @@ z_init( pastix_data_t      *pastix_data,
 
 int
 z_bvec_gemv_check( int check, int m, int n,
-                         pastix_int_t    *iparm,
-                         pastix_fixdbl_t *dparm )
+                   pastix_int_t    *iparm,
+                   pastix_fixdbl_t *dparm )
 {
     pastix_data_t      *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
     int                 i;
