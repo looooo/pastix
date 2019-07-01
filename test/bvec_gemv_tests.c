@@ -60,7 +60,7 @@ int main ( int argc, char **argv )
     pastix_int_t        m, n, s, t;
     int err = 0;
     int rc = 0;
-    pastix_int_t    dim3;
+    pastix_int_t    dim3, dof;
     spm_coeftype_t  flttype;
     pastix_fixdbl_t alpha, beta;
 
@@ -86,7 +86,7 @@ int main ( int argc, char **argv )
         n = iparm[IPARM_GMRES_IM];
     }
     else {
-        spmParseLaplacianInfo( filename, &flttype, &m, &n, &dim3, &alpha, &beta );
+        spmParseLaplacianInfo( filename, &flttype, &m, &n, &dim3, &alpha, &beta, &dof );
     }
 
     if ( check ) {

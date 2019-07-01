@@ -78,17 +78,18 @@ int main (int argc, char **argv)
      * Parse Laplacian dimensions and generate associate manual ordering
      */
     {
-        pastix_int_t   dim1, dim2, dim3;
+        pastix_int_t   dim1, dim2, dim3, dof;
         spm_coeftype_t flttype;
         double         alpha, beta;
 
-        spmParseLaplacianInfo( filename, &flttype, &dim1, &dim2, &dim3, &alpha, &beta );
+        spmParseLaplacianInfo( filename, &flttype, &dim1, &dim2, &dim3, &alpha, &beta, &dof );
         ord = malloc(sizeof(pastix_order_t));
         pastixOrderGrid( &ord, dim1, dim2, dim3 );
 
         (void) flttype;
         (void) alpha;
         (void) beta;
+        (void) dof;
     }
     free( filename );
 
