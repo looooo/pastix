@@ -91,15 +91,16 @@ int main (int argc, char **argv)
      * Initialize the schur list with the first third of the unknowns
      */
     {
-        pastix_int_t      dim1, dim2, dim3;
+        pastix_int_t      dim1, dim2, dim3, dof;
         pastix_coeftype_t flttype;
         double            alpha, beta;
 
-        spmParseLaplacianInfo( filename, &flttype, &dim1, &dim2, &dim3, &alpha, &beta );
+        spmParseLaplacianInfo( filename, &flttype, &dim1, &dim2, &dim3, &alpha, &beta, &dof );
 
         (void) flttype;
         (void) alpha;
         (void) beta;
+        (void) dof;
         free(filename);
 
         if ( (dim1 != dim2) || (dim1 != dim3) ){
