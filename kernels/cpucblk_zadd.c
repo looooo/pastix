@@ -363,7 +363,7 @@ cpucblk_zadd( pastix_coefside_t  side,
               SolverCblk        *cblkB,
               const pastix_lr_t *lowrank )
 {
-    pastix_ktype_t ktype;
+    pastix_ktype_t ktype = PastixKernelGEADDCblkFRFR;
     pastix_fixdbl_t time, flops = 0.0;
     pastix_int_t m = cblkA->stride;
     pastix_int_t n = cblk_colnbr( cblkA );
