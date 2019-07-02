@@ -344,8 +344,11 @@ simu_putInAllReadyQueues( const BlendCtrl *ctrl,
     double ready_date = 0.0;
     pastix_int_t procnum;
     pastix_int_t bloknum = task->bloknum;
-    pastix_int_t treelevel = cblkcand->treelevel;
-
+#if defined(PASTIX_BLEND_COSTLEVEL)
+    double       level = cblkcand->costlevel;
+#else
+    pastix_int_t level = cblkcand->treelevel;
+#endif
     assert( tasknum != -1 );
 
     blendAddVar( timerVal( &(task->time) ), "VR_AP", "Appli", 1 );
@@ -360,10 +363,10 @@ simu_putInAllReadyQueues( const BlendCtrl *ctrl,
             procnum <= cblkcand->lcandnum; procnum++, sproc++)
         {
             if( ready_date > timerVal( &(sproc->timer) ) ) {
-                pqueuePush2( sproc->futuretask, tasknum, ready_date, treelevel);
+                pqueuePush2( sproc->futuretask, tasknum, ready_date, level );
             }
             else {
-                pqueuePush2( sproc->readytask, tasknum, treelevel, bloknum);
+                pqueuePush2( sproc->readytask, tasknum, level, bloknum );
             }
             blendAddVar( ready_date, "VR_TS", sproc->procalias, 1 );
         }
@@ -378,10 +381,10 @@ simu_putInAllReadyQueues( const BlendCtrl *ctrl,
             ready_date = timerVal( simuctrl->ftgttimetab + CLUST2INDEX(bloknum, ctrl->core2clust[procnum]) );
 
             if(ready_date > timerVal( &(sproc->timer) )) {
-                pqueuePush2( sproc->futuretask, tasknum, ready_date, treelevel);
+                pqueuePush2( sproc->futuretask, tasknum, ready_date, level );
             }
             else {
-                pqueuePush2( sproc->readytask, tasknum, treelevel, bloknum);
+                pqueuePush2( sproc->readytask, tasknum, level, bloknum );
             }
             blendAddVar( ready_date, "VR_TS", sproc->procalias, 1 );
         }
@@ -907,16 +910,26 @@ simu_pushToReadyHeap( const BlendCtrl *ctrl,
     while( pqueueSize(sproc->futuretask) > 0 )
     {
         tasknum = pqueueRead(sproc->futuretask);
-        timer = &(simuctrl->ftgttimetab[CLUST2INDEX(simuctrl->tasktab[tasknum].bloknum, clustnum )]);
+        cblknum = simuctrl->tasktab[tasknum].cblknum;
 
-        if(! timerComp( &(sproc->timer), timer ) )
+        if( ctrl->candtab[cblknum].fccandnum == ctrl->candtab[cblknum].lccandnum) {
+            timer = &(simuctrl->tasktab[tasknum].time);
+        }
+        else {
+            timer = &(simuctrl->ftgttimetab[CLUST2INDEX(simuctrl->tasktab[tasknum].bloknum, clustnum )]);
+        }
+
+        if( timerComp( timer, &(sproc->timer) ) )
         {
             tasknum = pqueuePop(sproc->futuretask);
-            cblknum = simuctrl->tasktab[tasknum].cblknum;
 
-            pqueuePush2(sproc->readytask, tasknum,
-                        ctrl->candtab[cblknum].treelevel,
-                        simuctrl->tasktab[tasknum].bloknum );
+            pqueuePush2( sproc->readytask, tasknum,
+#if defined(PASTIX_BLEND_COSTLEVEL)
+                         ctrl->candtab[cblknum].costlevel,
+#else
+                         ctrl->candtab[cblknum].treelevel,
+#endif
+                         simuctrl->tasktab[tasknum].bloknum );
         }
         else {
             break;

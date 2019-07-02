@@ -365,10 +365,10 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
     if(ctrl.count_ops && (ctrl.leader == procnum)) {
         pastixSymbolGetFlops( symbmtx,
-                        iparm[IPARM_FLOAT],
-                        iparm[IPARM_FACTORIZATION],
-                        &(dparm[DPARM_FACT_THFLOPS]),
-                        &(dparm[DPARM_FACT_RLFLOPS]) );
+                              iparm[IPARM_FLOAT],
+                              iparm[IPARM_FACTORIZATION],
+                              &(dparm[DPARM_FACT_THFLOPS]),
+                              &(dparm[DPARM_FACT_RLFLOPS]) );
     }
 
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
