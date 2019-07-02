@@ -1,0 +1,30 @@
+#
+# This file describes the common rules for the stages
+#
+---
+.only-master:
+  only:
+    - master@solverstack/pastix
+    - master@pastix/pastix
+
+.only-branches-seq:
+  only:
+    - branches
+    - master@pastix/pastix
+    - master@solverstack/pastix
+  except:
+    - master
+    - schedules
+
+.only-branches-mpi:
+  # only:
+  #   - branches
+  #   - master@pastix/pastix
+  #   - master@solverstack/pastix
+  # except:
+  #   - master
+  #   - schedules
+  only:
+    - /^.*mpi.*$/
+
+

@@ -1,0 +1,9 @@
+---
+package:
+  stage: deploy
+  tags: ["large"]
+  dependencies: []
+  only:
+    - /^release-.*$/
+  script:
+    - ./tools/release.sh

@@ -1,0 +1,45 @@
+---
+.build_script_template: &build_script
+  stage: build
+  tags: ["large"]
+  artifacts:
+    name: pastix_build_${VERSION}
+    expire_in: 42 minutes
+    untracked: true
+    paths:
+      - install-${VERSION}
+      - build
+      - pastix-build-${VERSION}.log
+  script:
+    - cd build
+    - echo $VERSION | tee ../pastix-build-${VERSION}.log
+    - cmake -DPASTIX_CI_VERSION=${VERSION}
+            -C ../.gitlab/ci-test-initial-cache.cmake  ..
+    - make -j 4 | tee ../pastix-build-${VERSION}.log
+    - make install | tee -a ../pastix-build-${VERSION}.log
+  only:
+    - branches
+    - master@pastix/pastix
+    - master@solverstack/pastix
+
+.build_script_template_seq: &build_script_seq
+  extends:
+    - .build_script_template
+    - .only-branches-seq
+
+.build_script_template_mpi: &build_script_mpi
+  extends:
+    - .build_script_template
+    - .only-branches-mpi
+
+build_pastix_seq:
+  <<: *build_script_seq
+  variables:
+    VERSION: seq
+
+build_pastix_mpi:
+  <<: *build_script_mpi
+  variables:
+    VERSION: mpi
+  # only:
+  #   - /^.*mpi.*$/
