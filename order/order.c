@@ -389,10 +389,11 @@ void pastixOrderExpand( pastix_order_t * const ordeptr,
                         spmatrix_t     * const spm )
 {
     pastix_int_t *peritab;
-    pastix_int_t  c, i, j, n;
-    pastix_int_t  begin, end, sum;
+    pastix_int_t  i, j, n;
+    pastix_int_t  begin, end, sum_rang, sum_snde;
     pastix_int_t *newperi;
     pastix_int_t *rangtab;
+    pastix_int_t *sndetab;
     const pastix_int_t *dofs;
 
     spmBase( spm, 0 );
@@ -405,35 +406,47 @@ void pastixOrderExpand( pastix_order_t * const ordeptr,
      */
     peritab = ordeptr->peritab;
     rangtab = ordeptr->rangtab;
+    sndetab = ordeptr->sndetab;
 
     MALLOC_INTERN( ordeptr->peritab, n, pastix_int_t );
     newperi = ordeptr->peritab;
 
     dofs = spm->dofs;
 
-    i = 0;
-    for (c=0; c<ordeptr->cblknbr; c++, rangtab++)
+    sum_rang = 0;
+    sum_snde = 0;
+    for (i=0; i<ordeptr->vertnbr; i++)
     {
-        sum = 0;
-        for (; i<rangtab[1]; ++i)
-        {
-            if ( spm->dof <= 0 ) {
-                begin = dofs[ peritab[i] ];
-                end   = dofs[ peritab[i] + 1 ];
-            }
-            else {
-                begin = peritab[i] * spm->dof;
-                end   = begin + spm->dof;
-            }
-
-            sum += (end - begin);
-
-            for ( j=begin; j<end; ++j, ++newperi ) {
-                *newperi = j;
-            }
+        if ( spm->dof <= 0 ) {
+            begin = dofs[ peritab[i] ];
+            end   = dofs[ peritab[i] + 1 ];
         }
-        rangtab[1] = rangtab[0] + sum;
+        else {
+            begin = peritab[i] * spm->dof;
+            end   = begin + spm->dof;
+        }
+
+        if ( i == rangtab[1] ) {
+            rangtab[1] = rangtab[0] + sum_rang;
+            rangtab++;
+            sum_rang = 0;
+        }
+        if ( i == sndetab[1] ) {
+            sndetab[1] = sndetab[0] + sum_snde;
+            sndetab++;
+            sum_snde = 0;
+        }
+
+        sum_rang += (end - begin);
+        sum_snde += (end - begin);
+
+        for ( j=begin; j<end; ++j, ++newperi ) {
+            *newperi = j;
+        }
     }
+    rangtab[1] = rangtab[0] + sum_rang;
+    sndetab[1] = sndetab[0] + sum_snde;
+
     ordeptr->vertnbr = n;
     memFree_null( peritab );
 

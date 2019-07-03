@@ -117,17 +117,7 @@ int main (int argc, char **argv)
      * Expand the ordering, symbol, and spm for the final analyse step, and for
      * numerical computations.
      */
-    pastixSymbolExpand( pastix_data->symbmtx );
-    pastixOrderExpand( pastix_data->ordemesh, spm );
-
-    spm2 = spmExpand( spm );
-    spmExit( spm );
-    memcpy( spm, spm2, sizeof(pastix_spm_t) );
-    free( spm2 );
-
-#if !defined(NDEBUG)
-    pastixOrderCheck( pastix_data->ordemesh );
-#endif
+    pastixExpand( pastix_data, spm );
 
     pastix_subtask_blend( pastix_data );
 

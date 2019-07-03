@@ -150,6 +150,9 @@ int  pastixGetSchur           ( const pastix_data_t *pastix_data,
                                 void                *S,
                                 pastix_int_t         lds );
 
+void pastixExpand            ( const pastix_data_t *pastix_data,
+                               spmatrix_t          *spm );
+
 /*
  * Function to provide access to the diagonal
  */

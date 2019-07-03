@@ -262,6 +262,10 @@ def pypastix_pastixGetSchur( pastix_data, S, lds ):
     libpastix.pastixGetSchur.restype = c_int
     return libpastix.pastixGetSchur( pastix_data, S, lds )
 
+def pypastix_pastixExpand( pastix_data, spm ):
+    libpastix.pastixExpand.argtypes = [ c_void_p, POINTER(pyspm_spmatrix_t) ]
+    libpastix.pastixExpand( pastix_data, spm )
+
 def pypastix_pastixGetDiag( pastix_data, D, incD ):
     libpastix.pastixGetDiag.argtypes = [ c_void_p, c_void_p, __pastix_int__ ]
     libpastix.pastixGetDiag.restype = c_int
