@@ -476,3 +476,53 @@ pastix( pastix_data_t **pastix_data_ptr,
 
     return PASTIX_SUCCESS;
 }
+
+
+/**
+ *******************************************************************************
+ *
+ * @brief Expand an spm structure and the already computed data structure
+ * associated if any.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix context in which the spm is used
+ *
+ * @param[in] spm
+ *          The multi-dof sparse matrix to expand into a single dof sparse matrix.
+ *          On exit, spm contains the expanded matrix. The compressed form of
+ *          the matrix is destroyed.
+ *
+ *******************************************************************************/
+void
+pastixExpand( const pastix_data_t *pastix_data,
+              spmatrix_t          *spm )
+{
+    spmatrix_t *tmp;
+
+    if ( spm == NULL ) {
+        return;
+    }
+
+    if ( ( pastix_data->steps & STEP_ORDERING ) &&
+         ( pastix_data->ordemesh != NULL ) )
+    {
+        pastixOrderExpand( pastix_data->ordemesh, spm );
+#if !defined(NDEBUG)
+        pastixOrderCheck( pastix_data->ordemesh );
+#endif
+    }
+    if ( ( pastix_data->steps & STEP_SYMBFACT ) &&
+         ( pastix_data->symbmtx != NULL ) )
+    {
+        pastixSymbolExpand( pastix_data->symbmtx );
+    }
+
+    tmp = spmExpand( spm );
+    if ( tmp != spm ) {
+        spmExit( spm );
+        memcpy( spm, tmp, sizeof(spmatrix_t) );
+        free( tmp );
+    }
+}

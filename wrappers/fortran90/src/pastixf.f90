@@ -515,6 +515,18 @@ module pastixf
   end interface
 
   interface
+     subroutine pastixExpand_c(pastix_data, spm) &
+          bind(c, name='pastixExpand')
+       use iso_c_binding
+       import pastix_data_t
+       import spmatrix_t
+       implicit none
+       type(c_ptr), value :: pastix_data
+       type(c_ptr), value :: spm
+     end subroutine pastixExpand_c
+  end interface
+
+  interface
      function pastixGetDiag_c(pastix_data, D, incD) &
           bind(c, name='pastixGetDiag')
        use iso_c_binding
@@ -961,6 +973,15 @@ contains
 
     info = pastixGetSchur_c(c_loc(pastix_data), S, lds)
   end subroutine pastixGetSchur
+
+  subroutine pastixExpand(pastix_data, spm)
+    use iso_c_binding
+    implicit none
+    type(pastix_data_t), intent(in),    target :: pastix_data
+    type(spmatrix_t),    intent(inout), target :: spm
+
+    call pastixExpand_c(c_loc(pastix_data), c_loc(spm))
+  end subroutine pastixExpand
 
   subroutine pastixGetDiag(pastix_data, D, incD, info)
     use iso_c_binding
