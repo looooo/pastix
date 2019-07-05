@@ -515,6 +515,7 @@ pastix_task_numfact( pastix_data_t *pastix_data,
 {
     pastix_int_t *iparm;
     pastix_int_t  procnum;
+    pastix_int_t  steps;
     int rc;
 
     /*
@@ -541,25 +542,27 @@ pastix_task_numfact( pastix_data_t *pastix_data,
                       pastixFactotypeStr( iparm[IPARM_FACTORIZATION] ) );
     }
 
-    if ( !(pastix_data->steps & STEP_CSC2BCSC) ) {
-        rc = pastix_subtask_spm2bcsc( pastix_data, spm );
-        if (rc != PASTIX_SUCCESS) {
-            return rc;
-        }
+    /* Invalidate upcoming steps */
+    steps = ~(STEP_CSC2BCSC  |
+              STEP_BCSC2CTAB |
+              STEP_NUMFACT   |
+              STEP_SOLVE     |
+              STEP_REFINE    );
+    pastix_data->steps &= steps;
+
+    rc = pastix_subtask_spm2bcsc( pastix_data, spm );
+    if (rc != PASTIX_SUCCESS) {
+        return rc;
     }
 
-    if ( !(pastix_data->steps & STEP_BCSC2CTAB) ) {
-        rc = pastix_subtask_bcsc2ctab( pastix_data );
-        if (rc != PASTIX_SUCCESS) {
-            return rc;
-        }
+    rc = pastix_subtask_bcsc2ctab( pastix_data );
+    if (rc != PASTIX_SUCCESS) {
+        return rc;
     }
 
-    if ( !(pastix_data->steps & STEP_NUMFACT) ) {
-        rc = pastix_subtask_sopalin( pastix_data );
-        if (rc != PASTIX_SUCCESS) {
-            return rc;
-        }
+    rc = pastix_subtask_sopalin( pastix_data );
+    if (rc != PASTIX_SUCCESS) {
+        return rc;
     }
 
     return EXIT_SUCCESS;
