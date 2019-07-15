@@ -126,7 +126,7 @@ isched_thread_init(void *ptr)
 
     /* Set thread affinity for the worker */
     if ( isched->bindto >= 0 ) {
-        isched_topo_bind_on_core_index( isched->bindto % isched->world_size );
+        isched_topo_bind_on_core_index( isched->bindto % isched->global_ctx->world_size );
     }
 
     if ( thread_ctx->rank != 0 ) {
