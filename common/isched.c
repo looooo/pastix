@@ -123,6 +123,7 @@ isched_thread_init(void *ptr)
 
     thread_ctx->global_ctx = isched->global_ctx;
     thread_ctx->rank       = isched->rank;
+    thread_ctx->bindto     = isched->bindto;
 
     /* Set thread affinity for the worker */
     if ( isched->bindto >= 0 ) {
