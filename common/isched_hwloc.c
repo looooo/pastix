@@ -45,6 +45,14 @@ int isched_hwloc_init(void)
     if ( first_init == 0 ) {
         hwloc_bitmap_t cpuset = hwloc_bitmap_alloc();
 
+        unsigned version = hwloc_get_api_version();
+        if ((version >> 16) != (HWLOC_API_VERSION >> 16)) {
+            fprintf(stderr,
+                    "isched_hwloc_init: PaStiX is compiled for hwloc API 0x%x but running on incompatible library API 0x%x.\n",
+                    HWLOC_API_VERSION, version );
+            exit(EXIT_FAILURE);
+        }
+
         rc = hwloc_topology_init( &topology );
         if ( rc != 0 ) {
             return -1;
