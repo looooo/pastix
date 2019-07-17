@@ -141,7 +141,7 @@ void *
 isched_thread_destroy(isched_thread_t *ctx)
 {
     /* thread 0 is not bound */
-    if ( ctx->rank != 0 ) {
+    if ( (ctx->rank == 0) && (ctx->bindto >= 0) ) {
         isched_topo_unbind();
     }
     memFree_null( ctx );
@@ -181,7 +181,6 @@ isched_parallel_section(isched_thread_t *ctx)
         isched_barrier_wait(&(isched->barrier) );
     }
 
-    isched_thread_destroy( ctx );
     return NULL;
 }
 

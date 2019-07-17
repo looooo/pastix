@@ -137,11 +137,15 @@ int isched_hwloc_bind_on_core_index(int cpu_index)
 int isched_hwloc_unbind()
 {
 #if defined(HAVE_HWLOC_BITMAP)
-    hwloc_obj_t      obj;      /* Hwloc object    */
-    assert( first_init > 0 );
+    hwloc_obj_t obj;
+
+    /* HwLoc has not been initialized */
+    if ( first_init <= 0 ) {
+        return -1;
+    }
 
     /* Get last one.  */
-    obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_MACHINE, 0);
+    obj = hwloc_get_obj_by_type( topology, HWLOC_OBJ_MACHINE, 0 );
     if (!obj) {
         fprintf(stderr, "isched_hwloc_unbind: Could not get object\n");
         return PASTIX_ERR_UNKNOWN;
