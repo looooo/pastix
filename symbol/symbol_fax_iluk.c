@@ -22,7 +22,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup symbol_fax_dev
+ * @ingroup symbol_dev_fax
  *
  * @brief Create the symbol matrix from the graph of the non zero pattern of the
  * factorized matrix and the supernode partition.
@@ -205,7 +205,7 @@ pastixSymbolFaxILUk( symbol_matrix_t      *symbptr,
 /**
  *******************************************************************************
  *
- * @ingroup symbol_fax_dev
+ * @ingroup symbol_dev_fax
  *
  * @brief Patch the symbol matrix to add blocks in order to get a
  * real elimination tree.

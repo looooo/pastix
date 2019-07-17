@@ -440,14 +440,24 @@ pastixSymbolPrintStats( const symbol_matrix_t *symbptr )
     }
 
     dof = symbptr->dof;
-    blokmin *= dof;
-    blokmax *= dof;
     cblkmin *= dof;
     cblkmax *= dof;
     cblkavg1 = (cblkavg1 * (double)dof ) / (double)cblknbr;
-    blokavg1 = (blokavg1 * (double)dof ) / (double)bloknbr;
     cblkavg2 = sqrt( ((cblkavg2 * (double)dof * (double)dof) / (double)cblknbr) - cblkavg1 * cblkavg1 );
-    blokavg2 = sqrt( ((blokavg2 * (double)dof * (double)dof) / (double)bloknbr) - blokavg1 * blokavg1 );
+
+    /* Check if we have at least one off-diagonal block */
+    if ( bloknbr > 0 ) {
+        blokmin *= dof;
+        blokmax *= dof;
+        blokavg1 = (blokavg1 * (double)dof ) / (double)bloknbr;
+        blokavg2 = sqrt( ((blokavg2 * (double)dof * (double)dof) / (double)bloknbr) - blokavg1 * blokavg1 );
+    }
+    else {
+        blokmin = 0;
+        blokmax = 0;
+        blokavg1 = 0.;
+        blokavg2 = 0.;
+    }
 
     /* Compute symbol matrix space */
     mem = sizeof( symbol_matrix_t );
