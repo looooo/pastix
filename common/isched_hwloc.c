@@ -21,6 +21,7 @@
 
 static hwloc_topology_t topology;
 static int first_init = 0;
+static int initialized = 0;
 static volatile pastix_atomic_lock_t topo_lock = PASTIX_ATOMIC_UNLOCKED;
 
 #if defined(HAVE_HWLOC_PARENT_MEMBER)
@@ -55,27 +56,39 @@ int isched_hwloc_init(void)
 
         rc = hwloc_topology_init( &topology );
         if ( rc != 0 ) {
+            fprintf(stderr,
+                    "isched_hwloc_init: Failed to initialize HwLoc topology. Binding will not be available\n");
+            first_init++;
+            pastix_atomic_unlock( &topo_lock );
             return -1;
         }
+
         rc = hwloc_topology_load( topology );
         if ( rc != 0 ) {
+            fprintf(stderr,
+                    "isched_hwloc_init: Failed to load the HwLoc topology. Binding will not be available\n");
+            first_init++;
+            pastix_atomic_unlock( &topo_lock );
             return -1;
         }
+
         rc = hwloc_get_cpubind( topology, cpuset, HWLOC_CPUBIND_PROCESS );
-        if ( rc != 0 ) {
-            return -1;
-        }
+        if ( rc == 0 ) {
 #if HWLOC_API_VERSION >= 0x20000
-        rc = hwloc_topology_restrict( topology, cpuset, HWLOC_RESTRICT_FLAG_REMOVE_CPULESS );
+            rc = hwloc_topology_restrict( topology, cpuset, HWLOC_RESTRICT_FLAG_REMOVE_CPULESS );
 #else
-        rc = hwloc_topology_restrict( topology, cpuset, 0 );
+            rc = hwloc_topology_restrict( topology, cpuset, 0 );
 #endif
-        if ( rc != 0 ) {
-            return -1;
+            if ( rc != 0 ) {
+                fprintf(stderr,
+                        "isched_hwloc_init: Failed to restrict the topology to the correct cpuset\n"
+                        "                   This may generate incorrect bindings\n");
+            }
         }
         hwloc_bitmap_free(cpuset);
     }
 
+    initialized = 1;
     first_init++;
     pastix_atomic_unlock( &topo_lock );
     return rc;
@@ -85,7 +98,7 @@ int isched_hwloc_destroy(void)
 {
     pastix_atomic_lock( &topo_lock );
     first_init--;
-    if ( first_init == 0 ) {
+    if ( (first_init == 0) && initialized ) {
         hwloc_topology_destroy(topology);
     }
     pastix_atomic_unlock( &topo_lock );
