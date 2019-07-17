@@ -139,20 +139,23 @@ pthread_bvec_znrm2( isched_thread_t *ctx,
 #endif
     }
 
-    pastix_atomic_lock( &(arg->lock) );
-    {
-        double ratio;
-        if ( arg->scale < scale ) {
-            ratio = arg->scale / scale;
-            arg->sumsq = sumsq + arg->sumsq * ratio * ratio;
-            arg->scale = scale;
+    /* If we computed something */
+    if ( scale != 0. ) {
+        pastix_atomic_lock( &(arg->lock) );
+        {
+            double ratio;
+            if ( arg->scale < scale ) {
+                ratio = arg->scale / scale;
+                arg->sumsq = sumsq + arg->sumsq * ratio * ratio;
+                arg->scale = scale;
+            }
+            else {
+                ratio = scale / arg->scale;
+                arg->sumsq = sumsq * ratio * ratio + arg->sumsq;
+            }
         }
-        else {
-            ratio = scale / arg->scale;
-            arg->sumsq = sumsq * ratio * ratio + arg->sumsq;
-        }
+        pastix_atomic_unlock( &(arg->lock) );
     }
-    pastix_atomic_unlock( &(arg->lock) );
 }
 
 /**
@@ -265,13 +268,15 @@ pthread_bvec_zscal( isched_thread_t *ctx,
 
     rank = (pastix_int_t)ctx->rank;
     begin = (n/size) * rank;
-    if (rank  == (size - 1)) {
+    if (rank == (size - 1)) {
         end = n;
     } else {
         end = (n/size) * (rank + 1);
     }
 
-    cblas_zscal( end - begin, CBLAS_SADDR(alpha), x + begin, 1 );
+    if ( (end - begin) > 0 ) {
+        cblas_zscal( end - begin, CBLAS_SADDR(alpha), x + begin, 1 );
+    }
 }
 
 /**
@@ -399,7 +404,9 @@ pthread_bvec_zaxpy( isched_thread_t *ctx,
         end = (n/size) * (rank + 1);
     }
 
-    cblas_zaxpy( end - begin, CBLAS_SADDR(alpha), x + begin, 1, y + begin, 1 );
+    if ( (end - begin) > 0 ) {
+        cblas_zaxpy( end - begin, CBLAS_SADDR(alpha), x + begin, 1, y + begin, 1 );
+    }
 }
 
 /**
@@ -542,9 +549,11 @@ pthread_bvec_zdotc( isched_thread_t *ctx,
         r += (*xptr) * conj(*yptr);
     }
 
-    pastix_atomic_lock( &(arg->lock) );
-    arg->sum += r;
-    pastix_atomic_unlock( &(arg->lock) );
+    if ( cabs(r) > 0. ) {
+        pastix_atomic_lock( &(arg->lock) );
+        arg->sum += r;
+        pastix_atomic_unlock( &(arg->lock) );
+    }
 }
 
 /**
@@ -683,9 +692,11 @@ pthread_bvec_zdotu( isched_thread_t *ctx,
         r += (*xptr) * (*yptr);
     }
 
-    pastix_atomic_lock( &(arg->lock) );
-    arg->sum += r;
-    pastix_atomic_unlock( &(arg->lock) );
+    if ( cabs(r) > 0. ) {
+        pastix_atomic_lock( &(arg->lock) );
+        arg->sum += r;
+        pastix_atomic_unlock( &(arg->lock) );
+    }
 }
 
 /**
@@ -942,7 +953,9 @@ pthread_bvec_zcopy( isched_thread_t *ctx,
         end = (n/size) * (rank + 1);
     }
 
-    memcpy( arg->y + begin, arg->x + begin, (end - begin) * sizeof(pastix_complex64_t) );
+    if ( (end - begin) > 0 ) {
+        memcpy( arg->y + begin, arg->x + begin, (end - begin) * sizeof(pastix_complex64_t) );
+    }
 }
 
 /**
@@ -1126,9 +1139,11 @@ pthread_bvec_zgemv( isched_thread_t *ctx,
         sub_m += m % size; /* Last thread has to do more tasks */
     }
 
-    cblas_zgemv( CblasColMajor, CblasNoTrans, sub_m, n,
-                 CBLAS_SADDR(alpha), Aptr, lda, xptr, 1,
-                 CBLAS_SADDR(beta), yptr, 1 );
+    if ( sub_m > 0 ) {
+        cblas_zgemv( CblasColMajor, CblasNoTrans, sub_m, n,
+                     CBLAS_SADDR(alpha), Aptr, lda, xptr, 1,
+                     CBLAS_SADDR(beta), yptr, 1 );
+    }
 }
 
 /**
