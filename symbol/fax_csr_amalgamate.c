@@ -13,7 +13,7 @@
  * @author Mathieu Faverge
  * @date 2018-07-16
  *
- * @addtogroup symbol_fax_dev
+ * @addtogroup symbol_dev_csr
  * @{
  **/
 #include "common.h"

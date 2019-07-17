@@ -945,6 +945,8 @@ generate_env_file( PROJECTNAME PASTIX )
 add_documented_files(
   README.md
   docs/doxygen/chapters/eztrace.doxy
+  docs/doxygen/chapters/thread_bindings.doxy
+  tools/binding_for_multimpi.c
   kernels/pastix_lowrank.h
   #
   include/pastix.h

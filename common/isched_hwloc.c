@@ -21,6 +21,7 @@
 
 static hwloc_topology_t topology;
 static int first_init = 0;
+static int initialized = 0;
 static volatile pastix_atomic_lock_t topo_lock = PASTIX_ATOMIC_UNLOCKED;
 
 #if defined(HAVE_HWLOC_PARENT_MEMBER)
@@ -29,23 +30,75 @@ static volatile pastix_atomic_lock_t topo_lock = PASTIX_ATOMIC_UNLOCKED;
 #define HWLOC_GET_PARENT(OBJ)  (OBJ)->father
 #endif  /* defined(HAVE_HWLOC_PARENT_MEMBER) */
 
+#if !defined(HAVE_HWLOC_BITMAP)
+#define hwloc_bitmap_t        hwloc_cpuset_t
+#define hwloc_bitmap_alloc    hwloc_cpuset_alloc
+#define hwloc_bitmap_free     hwloc_cpuset_free
+#define hwloc_bitmap_dup      hwloc_cpuset_dup
+#define hwloc_bitmap_singlify hwloc_cpuset_singlify
+#define hwloc_bitmap_free     hwloc_cpuset_free
+#endif
+
 int isched_hwloc_init(void)
 {
+    int rc = 0;
     pastix_atomic_lock( &topo_lock );
     if ( first_init == 0 ) {
-        hwloc_topology_init(&topology);
-        hwloc_topology_load(topology);
+        hwloc_bitmap_t cpuset = hwloc_bitmap_alloc();
+
+        unsigned version = hwloc_get_api_version();
+        if ((version >> 16) != (HWLOC_API_VERSION >> 16)) {
+            fprintf(stderr,
+                    "isched_hwloc_init: PaStiX is compiled for hwloc API 0x%x but running on incompatible library API 0x%x.\n",
+                    HWLOC_API_VERSION, version );
+            exit(EXIT_FAILURE);
+        }
+
+        rc = hwloc_topology_init( &topology );
+        if ( rc != 0 ) {
+            fprintf(stderr,
+                    "isched_hwloc_init: Failed to initialize HwLoc topology. Binding will not be available\n");
+            first_init++;
+            pastix_atomic_unlock( &topo_lock );
+            return -1;
+        }
+
+        rc = hwloc_topology_load( topology );
+        if ( rc != 0 ) {
+            fprintf(stderr,
+                    "isched_hwloc_init: Failed to load the HwLoc topology. Binding will not be available\n");
+            first_init++;
+            pastix_atomic_unlock( &topo_lock );
+            return -1;
+        }
+
+        rc = hwloc_get_cpubind( topology, cpuset, HWLOC_CPUBIND_PROCESS );
+        if ( rc == 0 ) {
+#if HWLOC_API_VERSION >= 0x20000
+            rc = hwloc_topology_restrict( topology, cpuset, HWLOC_RESTRICT_FLAG_REMOVE_CPULESS );
+#else
+            rc = hwloc_topology_restrict( topology, cpuset, 0 );
+#endif
+            if ( rc != 0 ) {
+                fprintf(stderr,
+                        "isched_hwloc_init: Failed to restrict the topology to the correct cpuset\n"
+                        "                   This may generate incorrect bindings\n");
+            }
+        }
+        hwloc_bitmap_free(cpuset);
     }
+
+    initialized = 1;
     first_init++;
     pastix_atomic_unlock( &topo_lock );
-    return 0;
+    return rc;
 }
 
 int isched_hwloc_destroy(void)
 {
     pastix_atomic_lock( &topo_lock );
     first_init--;
-    if ( first_init == 0 ) {
+    if ( (first_init == 0) && initialized ) {
         hwloc_topology_destroy(topology);
     }
     pastix_atomic_unlock( &topo_lock );
@@ -66,8 +119,8 @@ int isched_hwloc_world_size()
 
 int isched_hwloc_bind_on_core_index(int cpu_index)
 {
-    hwloc_obj_t      core;     /* Hwloc object    */
-    hwloc_cpuset_t   cpuset;   /* Hwloc cpuset    */
+    hwloc_obj_t    core;     /* Hwloc object    */
+    hwloc_bitmap_t cpuset;   /* Hwloc cpuset    */
 
     /* Get the core of index cpu_index */
     core = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, cpu_index);
@@ -79,31 +132,18 @@ int isched_hwloc_bind_on_core_index(int cpu_index)
     }
 
     /* Get a copy of its cpuset that we may modify.  */
-#if !defined(HAVE_HWLOC_BITMAP)
-    cpuset = hwloc_cpuset_dup(core->cpuset);
-    hwloc_cpuset_singlify(cpuset);
-#else
     cpuset = hwloc_bitmap_dup(core->cpuset);
     hwloc_bitmap_singlify(cpuset);
-#endif
 
     /* And try to bind ourself there.  */
     if (hwloc_set_cpubind(topology, cpuset, HWLOC_CPUBIND_THREAD)) {
         char *str = NULL;
-#if !defined(HAVE_HWLOC_BITMAP)
-        hwloc_cpuset_asprintf(&str, core->cpuset);
-#else
         hwloc_bitmap_asprintf(&str, core->cpuset);
-#endif
         fprintf(stderr, "isched_hwloc: couldn't bind to cpuset %s\n", str);
         free(str);
 
         /* Free our cpuset copy */
-#if !defined(HAVE_HWLOC_BITMAP)
-        hwloc_cpuset_free(cpuset);
-#else
         hwloc_bitmap_free(cpuset);
-#endif
         return -1;
     }
 
@@ -111,22 +151,22 @@ int isched_hwloc_bind_on_core_index(int cpu_index)
     cpu_index = core->os_index;
 
     /* Free our cpuset copy */
-#if !defined(HAVE_HWLOC_BITMAP)
-    hwloc_cpuset_free(cpuset);
-#else
     hwloc_bitmap_free(cpuset);
-#endif
     return cpu_index;
 }
 
 int isched_hwloc_unbind()
 {
 #if defined(HAVE_HWLOC_BITMAP)
-    hwloc_obj_t      obj;      /* Hwloc object    */
-    assert( first_init > 0 );
+    hwloc_obj_t obj;
+
+    /* HwLoc has not been initialized */
+    if ( first_init <= 0 ) {
+        return -1;
+    }
 
     /* Get last one.  */
-    obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_MACHINE, 0);
+    obj = hwloc_get_obj_by_type( topology, HWLOC_OBJ_MACHINE, 0 );
     if (!obj) {
         fprintf(stderr, "isched_hwloc_unbind: Could not get object\n");
         return PASTIX_ERR_UNKNOWN;

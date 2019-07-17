@@ -15,6 +15,7 @@
 
 /**
  * Extract of PaStiX internal scheduler for simpler compilation of this small test
+ * DO NOT use these function in your code, but call directly the ones from PaStiX.
  */
 static hwloc_topology_t topology;
 

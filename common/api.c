@@ -566,6 +566,10 @@ apiInitMPI( pastix_data_t *pastix,
  * @brief Initialize the solver instance with a bintab array to specify the
  * thread binding.
  *
+ * @remark You should always prefer the pastixInit() function when hwloc is
+ * available, and use the pastixInitWithAffinity() function only if you know
+ * what you want to do with your threads.
+ *
  *******************************************************************************
  *
  * @param[inout] pastix_data
@@ -580,9 +584,14 @@ apiInitMPI( pastix_data_t *pastix,
  * @param[inout] dparm
  *          The floating point array of parameters to initialize.
  *
- * @param[in]   bindtab
+ * @param[in] bindtab
  *          Integer array of size iparm[IPARM_THREAD_NBR] that will specify the
  *          thread binding. NULL if let to the system.
+ *          Each thread i will be bound to to the core bindtab[i] if
+ *          bindtab[i] >= 0, or not bound if bindtab[i] < 0.
+ *          If other libraries of the main application are spawning their own threads
+ *          too (eg. OpenMP), we strongly recommend not to bind the main thread,
+ *          and let bindtab[0] = -1 to avoid binding impact on other libraries.
  *
  *******************************************************************************/
 void

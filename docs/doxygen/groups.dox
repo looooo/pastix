@@ -97,7 +97,10 @@
  * @defgroup symbol_dev_draw        Drawing
  * @ingroup  symbol_dev
  *
- * @defgroup symbol_dev_fax         FAX symbolic factorization
+ * @defgroup symbol_dev_fax         Symbolic factorization
+ * @ingroup  symbol_dev
+ *
+ * @defgroup symbol_dev_csr         CSR structure
  * @ingroup  symbol_dev
  *
  * @defgroup symbol_dev_reordering  Reordering

@@ -36,6 +36,7 @@ typedef struct isched_s isched_t;
 typedef struct isched_thread_s {
     isched_t        *global_ctx;
     int              rank;
+    int              bindto;
 } isched_thread_t;
 
 /**

@@ -21,7 +21,7 @@
 /**
  *******************************************************************************
  *
- * @ingroup symbol_fax_dev
+ * @ingroup symbol_dev_csr
  *
  * @brief Initialize the data structure by doing the first allocations within
  * the structure and initializing the fields.
@@ -50,7 +50,7 @@ faxCSRInit( pastix_int_t n, fax_csr_t *csr )
 /**
  *******************************************************************************
  *
- * @ingroup symbol_fax_dev
+ * @ingroup symbol_dev_csr
  *
  * @brief Free the data store in the structure.
  *
@@ -76,7 +76,7 @@ faxCSRClean( fax_csr_t *csr )
 /**
  *******************************************************************************
  *
- * @ingroup symbol_fax_dev
+ * @ingroup symbol_dev_csr
  *
  * @brief Computes the number of non zero entries in the graph.
  *
@@ -108,7 +108,7 @@ faxCSRGetNNZ( const fax_csr_t *csr )
 /**
  *******************************************************************************
  *
- * @ingroup symbol_fax_dev
+ * @ingroup symbol_dev_csr
  *
  * @brief Compact a compressed graph.
  *
@@ -154,7 +154,7 @@ faxCSRCompact( fax_csr_t *csr )
 /**
  *******************************************************************************
  *
- * @ingroup symbol_fax_dev
+ * @ingroup symbol_dev_csr
  *
  * @brief Generate the graph of P*A from the graph of A and the
  * permutation vector.
@@ -223,7 +223,7 @@ faxCSRGenPA( const pastix_graph_t *graphA, const pastix_int_t *perm, fax_csr_t *
 /**
  *******************************************************************************
  *
- * @ingroup symbol_fax_dev
+ * @ingroup symbol_dev_csr
  *
  * @brief Compact a element wise graph of a matrix A, according to the
  * associated partition.
