@@ -389,6 +389,7 @@ cpucblk_zadd( pastix_coefside_t  side,
     else {
         if ( cblkA->cblktype & CBLK_COMPRESSED ) {
             assert(0 /* We do not add a compressed cblk to a non compressed cblk */);
+            time  = kernel_trace_start( ktype );
         }
         else {
             ktype = PastixKernelGEADDCblkFRFR;

@@ -16,7 +16,6 @@
  * @{
  *
  **/
-
 #ifndef _kernels_trace_h_
 #define _kernels_trace_h_
 

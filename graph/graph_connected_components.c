@@ -57,7 +57,7 @@ static void queue_free (Queue *self) {
 /**
  * @brief Invert partition p1 and p2 in buffer A of size (p1+p2), using workspace W of size p1
  */
-static inline void
+void
 move_to_end( pastix_int_t  p1,
              pastix_int_t  p2,
              pastix_int_t *A,

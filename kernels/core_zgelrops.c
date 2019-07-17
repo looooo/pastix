@@ -876,6 +876,7 @@ core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct,
     free( rwork );
 #endif
     return flops;
+    (void)ret;
 }
 
 /**
@@ -1086,6 +1087,7 @@ core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct,
     free( work );
 #endif
     return flops;
+    (void)ret;
 }
 
 /**

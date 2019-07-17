@@ -123,7 +123,7 @@ struct args_reorder_t
  *          The argument for reordering functions.
  *
  *******************************************************************************/
-static inline void
+void
 thread_preorder_basic_stategy( isched_thread_t *ctx, void *args )
 {
     struct args_reorder_t *arg = (struct args_reorder_t*)args;
@@ -189,7 +189,7 @@ thread_preorder_basic_stategy( isched_thread_t *ctx, void *args )
  *          The argument for reordering functions.
  *
  *******************************************************************************/
-static inline void
+void
 thread_preorder_zigzag_stategy( isched_thread_t *ctx, void *args )
 {
     struct args_reorder_t *arg = (struct args_reorder_t*)args;

@@ -372,7 +372,7 @@ candSubTreeBuild( pastix_int_t           rootnum,
  *               Pointer to the symbol matrix we are working with.
  *
  *******************************************************************************/
-static inline void
+void
 candSubTreeDistribFirstWidth( pastix_int_t           rootnum,
                               pastix_int_t           cblktype,
                               pastix_int_t           ratiolimit2D,
@@ -458,7 +458,7 @@ candSubTreeDistribFirstWidth( pastix_int_t           rootnum,
  * @return the cblktype flag of the root of the subtree.
  *
  *******************************************************************************/
-static inline pastix_int_t
+pastix_int_t
 candSubTreeDistribDeepestWidth( pastix_int_t           rootnum,
                                 pastix_int_t           cblktype,
                                 pastix_int_t           ratiolimit2D,
@@ -543,7 +543,7 @@ candSubTreeDistribDeepestWidth( pastix_int_t           rootnum,
  * @return the cblktype flag of the root of the subtree.
  *
  *******************************************************************************/
-static inline pastix_int_t
+pastix_int_t
 candSubTreeDistribDeepestLevel( pastix_int_t           rootnum,
                                 pastix_int_t           cblktype,
                                 pastix_int_t           level2D,
@@ -625,7 +625,7 @@ candSubTreeDistribDeepestLevel( pastix_int_t           rootnum,
  *               Pointer to the symbol matrix we are working with.
  *
  *******************************************************************************/
-static inline void
+void
 candSubTreeDistribFirstLevel( pastix_int_t           rootnum,
                               pastix_int_t           cblktype,
                               pastix_int_t           level2D,

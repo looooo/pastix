@@ -13,6 +13,9 @@
  * @date 2018-07-16
  *
  **/
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
 #include "common.h"
 #include "bcsc.h"
 #include "solver.h"

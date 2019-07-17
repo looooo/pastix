@@ -177,7 +177,7 @@ __bcsc_zspmv_loop( pastix_trans_t            trans,
             if ( rank != 0 ) {
                 return;
             }
-            return __bcsc_zspmv_Ax_ind( bcsc, alpha, valptr, x, beta, y );
+            __bcsc_zspmv_Ax_ind( bcsc, alpha, valptr, x, beta, y );
         }
     }
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -295,7 +295,7 @@ struct z_argument_spmv_s
  *          The parameter as specified in bcsc_zspmv.
  *
  *******************************************************************************/
-static inline void
+void
 pthread_bcsc_zspmv( isched_thread_t *ctx,
                     void            *args )
 {
@@ -346,7 +346,7 @@ pthread_bcsc_zspmv( isched_thread_t *ctx,
  *          The parameter as specified in bcsc_zspmv.
  *
  *******************************************************************************/
-static inline void
+void
 pthread_bcsc_zspmv_tasktab( isched_thread_t *ctx,
                             void            *args )
 {
@@ -411,7 +411,7 @@ pthread_bcsc_zspmv_tasktab( isched_thread_t *ctx,
             if ( rank != 0 ) {
                 return;
             }
-            return __bcsc_zspmv_Ax_ind( bcsc, alpha, valptr, x, beta, y );
+            __bcsc_zspmv_Ax_ind( bcsc, alpha, valptr, x, beta, y );
         }
     }
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -460,7 +460,7 @@ pthread_bcsc_zspmv_tasktab( isched_thread_t *ctx,
  *          The argument containing arrays to initialise (blocs and indexes).
  *
  *******************************************************************************/
-static inline void
+void
 bcsc_zspmv_get_balanced_indexes( const pastix_data_t      *pastix_data,
                                  struct z_argument_spmv_s *args )
 {
