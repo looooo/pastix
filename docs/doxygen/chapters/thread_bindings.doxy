@@ -18,7 +18,7 @@ a correct linkage to HwLoc.
 
 If you use the sequential library, no specific attention is required for the bindings.
 
-\section SharedMT Using multi-threaded PaStiX
+\subsection SharedMT Using multi-threaded PaStiX
 
 In that case, the binding of the threads can be very important for the
 performance of your application. The function pastixInit() by default
@@ -82,7 +82,7 @@ your code.
 If the thread 0 is bound to something, any other threads later created
 from this one will inherit its properties, including the
 binding. Thus, if it is bound to a single core, you may have
-performance issues is the portion of your code creating their own
+performance issues with other portion of your code that will create their own
 threads. So, we strongly recommend to let bindtab[0] to -1, unless you
 know exactly what you are doing.
 
@@ -114,10 +114,10 @@ node. Once this is done, the resources of a same node need to be
 shared correctly. We consider here a linear numbering of the cores,
 but you may have the same issue as in \ref SharedMT.
 
-The example \file tools/binding_for_multimpi.c describes how you can
+The example tools/binding_for_multimpi.c describes how you can
 do to split your resources among the MPI processes and generate the
-correct bindtab. Don't forget that bindtab[0] mays till need to be set
-to 0 in a context where the application is mixing multiple threaded
+correct bindtab. Don't forget that bindtab[0] may still need to be set
+to -1 in a context where the application is mixing multiple threaded
 libraries.
 
 */
