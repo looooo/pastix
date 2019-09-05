@@ -380,7 +380,7 @@ amalgamate_merge_col( pastix_int_t a, pastix_int_t b, fax_csr_t *P, pastix_int_t
  *          Percentage of fill-in allowed using structure BLAS performance
  *          model. rat_blas >= rat_cblk.
  *          The ratio is always on the number of non zero entries of the
- *          pattern, but the criteria to merge columns is based only on reducing
+ *          pattern, but the criterion to merge columns is based only on reducing
  *          the cost of computations. The cost function used is a model for
  *          Cholesky factorization or solve in double precision, other
  *          factorization and/or precision are not implemented. They are

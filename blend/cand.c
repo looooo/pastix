@@ -138,7 +138,7 @@ candSave( const Cand    *candtab,
  * @param[inout] candtab
  *          On entry, the array of candidates with the first and last core
  *          candidates initialized.
- *          On exit, the array of candidate with te first and last cluster
+ *          On exit, the array of candidate with the first and last cluster
  *          candidate information updated.
  *
  * @param[in] cblknbr
@@ -247,7 +247,7 @@ candCheck( const Cand            *candtab,
  *               Pointer to the global elimination tree structure. The node
  *               fields total and subtree are updated. Total represents the
  *               total cost of of the current node only, and subtree the cost of
- *               the current node and all its descendents.
+ *               the current node and all its descendants.
  *
  * @param[in]    symbmtx
  *               Pointer to the symbol matrix we are working with.
@@ -336,8 +336,8 @@ candSubTreeBuild( pastix_int_t           rootnum,
  *
  * This function defines which cblk are candidates to be stored with a 2D
  * layout, computed as 2D tasks, compressible, and/or be part of the Schur
- * complement. The criteria to remove the 2D task flags or the LR flag is the
- * width of the cblk. As soon as one cblk that do not match the criterai is
+ * complement. The criteria to remove the 2D task flag or the LR flag is the
+ * width of the cblk. As soon as one cblk that does not match the criterion is
  * found, all its descendant loose the flag too.
  *
  *******************************************************************************
@@ -347,7 +347,7 @@ candSubTreeBuild( pastix_int_t           rootnum,
  *
  * @param[in]    cblktype
  *               List of flags that can be forwarded to rootnum and its
- *               descendents.
+ *               descendants.
  *
  * @param[in]    ratiolimit2D
  *               Ratio that defines the minimal size to allow the flag 2D to be
@@ -417,7 +417,7 @@ candSubTreeDistribFirstWidth( pastix_int_t           rootnum,
  *
  * This function defines which cblk are candidates to be stored with a 2D
  * layout, computed as 2D tasks, compressible, and/or be part of the Schur
- * complement. The criteria to remove the 2D task flags and the LR flag is the
+ * complement. The criterion to remove the 2D task flag and the LR flag is the
  * width of the cblk.
  * This function enables the flags to the deepest nodes that respect the
  * condition, as well as to all their ascendants in the elimination tree.
@@ -429,7 +429,7 @@ candSubTreeDistribFirstWidth( pastix_int_t           rootnum,
  *
  * @param[in]    cblktype
  *               List of flags that can be forwarded to rootnum and its
- *               descendents.
+ *               descendants.
  *
  * @param[in]    ratiolimit2D
  *               Ratio that defines the minimal size to allow the flag 2D for a
@@ -504,8 +504,8 @@ candSubTreeDistribDeepestWidth( pastix_int_t           rootnum,
  * different levels based on depth.
  *
  * This function defines which cblk are candidates to be stored with a 2D layout,
- * computed as 2D tasks, and/or be part of the Schur complement. The criteria to
- * remove the 2D task flags is the depth on the elimination tree.
+ * computed as 2D tasks, and/or be part of the Schur complement. The criterion to
+ * remove the 2D task flag is the depth on the elimination tree.
  *
  *******************************************************************************
  *
@@ -514,7 +514,7 @@ candSubTreeDistribDeepestWidth( pastix_int_t           rootnum,
  *
  * @param[in]    cblktype
  *               List of flags that can be forwarded to rootnum and its
- *               descendents.
+ *               descendants.
  *
  * @param[in]    level2D
  *               The number of levels of the tree that will be flagged as 2D
@@ -590,8 +590,8 @@ candSubTreeDistribDeepestLevel( pastix_int_t           rootnum,
  * different levels based on depth.
  *
  * This function defines which cblk are candidates to be stored with a 2D layout,
- * computed as 2D tasks, and/or be part of the Schur complement. The criteria to
- * remove the 2D task flags is the depth on the elimination tree.
+ * computed as 2D tasks, and/or be part of the Schur complement. The criterion to
+ * remove the 2D task flag is the depth on the elimination tree.
  *
  *******************************************************************************
  *
@@ -600,7 +600,7 @@ candSubTreeDistribDeepestLevel( pastix_int_t           rootnum,
  *
  * @param[in]    cblktype
  *               List of flags that can be forwarded to rootnum and its
- *               descendents.
+ *               descendants.
  *
  * @param[in]    level2D
  *               The number of levels of the tree that will be flagged as 2D
@@ -689,7 +689,7 @@ candSubTreeDistribFirstLevel( pastix_int_t           rootnum,
  *
  * @param[in]    lr_when
  *               Define if compression technics will be used or not. If not
- *               PastixCompressNever, then all cblkw with a larger width than
+ *               PastixCompressNever, then all cblk with a width larger than
  *               lr_width are tagged as compressible.
  *
  * @param[in]    lr_width
@@ -743,7 +743,7 @@ candBuild( pastix_int_t level_tasks2d, pastix_int_t width_tasks2d,
         son = eTreeSonI(etree, root, i);
 #if defined(PASTIX_BLEND_DEEPEST_DISTRIB)
         /*
-         * Find the deepest node that matches the criteria for a flag, and assign
+         * Find the deepest node that matches the criterion for a flag, and assign
          * the flag to all its ancestors to the root
          */
         if( level_tasks2d < 0 )

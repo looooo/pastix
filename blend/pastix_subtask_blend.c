@@ -38,8 +38,8 @@
  *
  * This function computes the structural information required to factorize
  * and solve the problem. It requires an ordering structure, as well as the
- * symbolic factorization structure. It results a solver structure that contains
- * all informations architecture and problem dependent to efficiently solve the
+ * symbolic factorization structure. It computes a solver structure that contains
+ * all informations, architecture and problem dependent, to efficiently solve the
  * system.
  * On exit, the symbol structure is destroyed and only local uncompressed
  * information is stored in the solver structure.
@@ -204,7 +204,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     /*
      * Split the existing symbol matrix according to the number of candidates
      * and cblk types.
-     * It takes the original symbol and candtab, and return the new symbol and
+     * It takes the original symbol and candtab, and returns the new symbol and
      * candtab. If the symbmtx is modified, the costmtx is updated, as well as
      * the tree.
      */
@@ -325,7 +325,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     /*
      * Split the existing symbol matrix according to the number of candidates
      * and cblk types.
-     * It takes the original symbol and candtab, and return the new symbol and
+     * It takes the original symbol and candtab, and returns the new symbol and
      * candtab. If the symbmtx is modified, the costmtx is updated, as well as
      * the tree.
      */

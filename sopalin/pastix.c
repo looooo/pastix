@@ -326,7 +326,7 @@ pastix( pastix_data_t **pastix_data_ptr,
     }
 
     /*
-     * Numerical factorisation
+     * Numerical factorization
      */
     if (iparm[IPARM_END_TASK] < PastixTaskNumfact) {
         return PASTIX_SUCCESS;
