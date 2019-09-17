@@ -183,12 +183,12 @@ simu_computeFtgtCosts( const BlendCtrl     *ctrl,
  *
  * @param[inout] simuctrl
  *          The main simulation structure. On exit, the ctrbcnt field of the
- *          blocks is updated with the number of contribution that they each
+ *          blocks is updated with the number of contributions that they each
  *          should receive.
  *
  * @param[in] ricar
  *          True if ILU(k) factorization is applied to change the algorithm to
- *          compute the number of contribution.
+ *          compute the number of contributions.
  *
  *******************************************************************************/
 static inline void
@@ -200,7 +200,7 @@ simu_computeBlockCtrbNbr(const symbol_matrix_t *symbptr,
     pastix_int_t facebloknum, firstbloknum;
 
     /*
-     * Compute the number of contribution per block to each block.
+     * Compute the number of contributions per block to each block.
      * Might be optimized if we computed the input graph before.
      */
     {
@@ -254,7 +254,7 @@ simu_computeBlockCtrbNbr(const symbol_matrix_t *symbptr,
 /**
  *******************************************************************************
  *
- * @brief Print the number of contribution per cblk and block for debug.
+ * @brief Print the number of contributions per cblk and block for debug.
  *
  *******************************************************************************
  *
@@ -316,7 +316,7 @@ simu_printBlockCtrbNbr( const BlendCtrl       *ctrl,
  *
  * This function according to the ready date of a task put this task on the
  * ready queue of a processor.
- * When the ready date of a task is inferior to the proc timer then he
+ * When the ready date of a task is inferior to the proc timer then the
  * task is ordered according to its priorities in the elimination tree.
  *
  *******************************************************************************
@@ -398,7 +398,7 @@ simu_putInAllReadyQueues( const BlendCtrl *ctrl,
  * executed.
  *
  * This function is the main and more costly one. It looks for each worker,
- * which tasks is the first one available for execution, and from all those
+ * which task is the first one available for execution, and from all those
  * couples, which one is the first one to finish.
  *
  *******************************************************************************
@@ -417,7 +417,7 @@ simu_putInAllReadyQueues( const BlendCtrl *ctrl,
  *******************************************************************************
  *
  * @return The next task selected for execution in the simulator. The worker
- *         selected is treturned in the procnumptr field.
+ *         selected is returned in the procnumptr field.
  *
  *******************************************************************************/
 static inline pastix_int_t
@@ -439,7 +439,7 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
         SimuProc *sproc = &(simuctrl->proctab[p]);
         tasknum = -1;
         /*
-         * First we search the earlier task in the set of task whose ready date
+         * First we search the earlier task in the set of tasks whose ready date
          * is < proc timer
          */
         while( pqueueSize(sproc->readytask) > 0 )
@@ -486,7 +486,7 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
 
             /*
              * We prevent to distribute on the same processor set when all time
-             * are equals
+             * are equal
              */
             if((timeready == earlytimeready) && (timerVal(TIMER(p)) < earlyproctimer))
             {
@@ -868,9 +868,9 @@ simu_computeTask( const BlendCtrl       *ctrl,
 /**
  *******************************************************************************
  *
- * @brief Push all task from future to ready
+ * @brief Push all tasks from future to ready
  *
- * This routine pushes all future task from the future task heap to the ready
+ * This routine pushes all future tasks from the future task heap to the ready
  * one, if the time at which the task will be ready is already passed by the
  * computation unit.
  *
@@ -884,8 +884,8 @@ simu_computeTask( const BlendCtrl       *ctrl,
  *          computational unit pr are updated.
  *
  * @param[in] procnum
- *          The computational unit index for which, the data need to be transfer
- *          from the future task heap to ready task heap if the computatuional
+ *          The computational unit index for which the data need to be transfer
+ *          from the future task heap to ready task heap if the computational
  *          unit timer is more advanced than the ready time of the tasks.
  *
  *******************************************************************************/

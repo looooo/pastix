@@ -188,8 +188,8 @@ typedef enum pastix_verbose_e {
  */
 typedef enum pastix_io_e {
     PastixIONo         = 0, /**< No output or input */
-    PastixIOLoad       = 1, /**< Load ordering and symbol matrix instead of applying symbolic factorisation step */
-    PastixIOSave       = 2, /**< Save ordering and symbol matrix after symbolic factorisation step */
+    PastixIOLoad       = 1, /**< Load ordering and symbol matrix instead of applying symbolic factorization step */
+    PastixIOSave       = 2, /**< Save ordering and symbol matrix after symbolic factorization step */
     PastixIOLoadGraph  = 4, /**< Load graph  during ordering step */
     PastixIOSaveGraph  = 8, /**< Save graph  during ordering step */
     PastixIOLoadCSC    = 16,/**< Load CSC(d) during ordering step */

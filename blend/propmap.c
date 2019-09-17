@@ -223,8 +223,8 @@ propMappSubtree( const propmap_t *pmptr,
         cumul_cost = -cumul_cost;
 
         /*
-         * If the subtree cost is less than what the first candidate can
-         * process, folowing nodes will be smaller and following candidates have
+         * If the subtree cost is smaller than what the first candidate can
+         * process, following nodes will be smaller and following candidates have
          * at least the same amount of ressources available so, we skip to the
          * second stage
          */
@@ -236,7 +236,7 @@ propMappSubtree( const propmap_t *pmptr,
         }
 
         /*
-         * If a candidate cannot participate to multiple subtree, we check with
+         * If a candidate cannot participate to multiple subtrees, we check with
          * epsilon to avoid overflow
          */
         if ( pmptr->nocrossproc &&
@@ -255,7 +255,7 @@ propMappSubtree( const propmap_t *pmptr,
         }
 
         /*
-         * Computes how many candidate will participate to this node.  We add
+         * Computes how many candidate will participate to this node. We add
          * candidate as long as we have some and they all have more than espilon
          * extra work.
          */
@@ -382,19 +382,19 @@ propMappSubtree( const propmap_t *pmptr,
  *******************************************************************************
  *
  * @param[inout] candtab
- *          On entry, the candtab array must conatins the cost of each node of
- *          the elimination tree, and there depth in the tree as computed by
+ *          On entry, the candtab array must contain the cost of each node of
+ *          the elimination tree, and their depth in the tree as computed by
  *          candBuild().
- *          On exit, the fields fcandnum, and lcandnum are computed with the
+ *          On exit, the fields fcandnum and lcandnum are computed with the
  *          proportional mapping algorithm that tries to balance the load
- *          between the candidate and distribute the branches to everyone
+ *          between the candidates and distribute the branches to everyone
  *          according to their cost.
  *
  * @param[in] etree
  *          The elimination tree to map on the ressources.
  *
  * @param[in] candnbr
- *          The total number of candidate to distribute over the elimination
+ *          The total number of candidates to distribute over the elimination
  *          tree.
  *
  * @param[in] nocrossproc
