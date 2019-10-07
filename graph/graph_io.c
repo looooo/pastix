@@ -152,12 +152,14 @@ graphSave( pastix_data_t        *pastix_data,
 
     spmUpdateComputedFields( &spm );
 
-    stream = pastix_fopenw( &(pastix_data->dirtemp), filename, "w" );
-    if ( stream ) {
-        spmSave( &spm, stream );
-        fclose(stream);
+    pastix_gendirectories( pastix_data );
+    if ( pastix_data->procnbr == 0 ) {
+        stream = pastix_fopenw( pastix_data->dir_global, filename, "w" );
+        if ( stream ) {
+            spmSave( &spm, stream );
+            fclose(stream);
+        }
     }
-
     if (env) {
         pastix_cleanenv( filename );
     }

@@ -52,7 +52,7 @@ int
 solverDraw ( const SolverMatrix * const  solvptr,
              FILE * const                stream,
              int                         verbose,
-             char **                     directory )
+             const char                 *directory )
 {
     pastix_int_t cblknum;                    /* Number of current column block */
     time_t       picttime;                   /* Creation time                  */

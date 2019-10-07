@@ -450,11 +450,12 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
     {
         FILE *stream = NULL;
 
-        stream = pastix_fopenw( &(pastix_data->dirtemp), "solver.eps", "w" );
+        pastix_gendirectories( pastix_data );
+        stream = pastix_fopenw( pastix_data->dir_local, "solver.eps", "w" );
         if ( stream ) {
             solverDraw( pastix_data->solvmatr,
                         stream, iparm[IPARM_VERBOSE],
-                        &(pastix_data->dirtemp) );
+                        pastix_data->dir_local );
             fclose(stream);
         }
     }

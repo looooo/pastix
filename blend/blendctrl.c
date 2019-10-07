@@ -241,7 +241,12 @@ blendCtrlInit( pastix_data_t *pastix_data,
     /* Save iparm for other options */
     ctrl->iparm = iparm;
     ctrl->dparm = dparm;
-    ctrl->dirtemp = &(pastix_data->dirtemp);
+    if ( (ctrl->iparm[IPARM_VERBOSE] >= 2) &&
+         (pastix_data->dir_local == NULL) )
+    {
+        pastix_gendirectories( pastix_data );
+    }
+    ctrl->dirname = pastix_data->dir_local;
 
     /*
      * Initialize architecture description

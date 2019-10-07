@@ -342,7 +342,7 @@ int           solverCheck     ( const SolverMatrix *solvmtx );
 int           solverDraw      ( const SolverMatrix *solvptr,
                                 FILE               *stream,
                                 int                 verbose,
-                                char              **directory );
+                                const char         *directory );
 void          solverPrintStats( const SolverMatrix *solvptr );
 
 /*

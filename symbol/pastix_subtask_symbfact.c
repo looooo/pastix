@@ -285,9 +285,10 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
      * Save the symbolic factorization
      */
     if ( iparm[IPARM_IO_STRATEGY] & PastixIOSave ) {
+        pastix_gendirectories( pastix_data );
         if ( procnum == 0 ) {
             FILE *stream = NULL;
-            stream       = pastix_fopenw( &( pastix_data->dirtemp ), "symbgen", "w" );
+            stream       = pastix_fopenw( pastix_data->dir_global, "symbgen", "w" );
             if ( stream ) {
                 pastixSymbolSave( pastix_data->symbmtx, stream );
                 fclose( stream );
@@ -299,12 +300,15 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
      * Dump an eps file of the symbolic factorization
      */
 #if defined( PASTIX_SYMBOL_DUMP_SYMBMTX )
-    if ( procnum == 0 ) {
-        FILE *stream = NULL;
-        stream       = pastix_fopenw( &( pastix_data->dirtemp ), "symbol.eps", "w" );
-        if ( stream ) {
-            pastixSymbolDraw( pastix_data->symbmtx, stream );
-            fclose( stream );
+    {
+        pastix_gendirectories( pastix_data );
+        if ( procnum == 0 ) {
+            FILE *stream = NULL;
+            stream       = pastix_fopenw( pastix_data->dir_global, "symbol.eps", "w" );
+            if ( stream ) {
+                pastixSymbolDraw( pastix_data->symbmtx, stream );
+                fclose( stream );
+            }
         }
     }
 #endif

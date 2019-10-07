@@ -44,7 +44,7 @@ coeftab_fct_memory_t coeftabMemory[4] =
 struct coeftabinit_s {
     const SolverMatrix  *datacode; /**< The sovler matrix                         */
     const pastix_bcsc_t *bcsc;     /**< The internal block CSC                    */
-    char               **dirtemp;  /**< The pointer to the output directory       */
+    const char          *dirname;  /**< The pointer to the output directory       */
     pastix_coefside_t    side;     /**< The side of the matrix beeing initialized */
 };
 
@@ -73,14 +73,14 @@ pcoeftabInit( isched_thread_t *ctx,
     struct coeftabinit_s *ciargs   = (struct coeftabinit_s*)args;
     const SolverMatrix   *datacode = ciargs->datacode;
     const pastix_bcsc_t  *bcsc     = ciargs->bcsc;
-    char                **dirtemp  = ciargs->dirtemp;
+    const char           *dirname  = ciargs->dirname;
     pastix_coefside_t     side     = ciargs->side;
     pastix_int_t i, itercblk;
     pastix_int_t task;
     int rank = ctx->rank;
 
     void (*initfunc)( pastix_coefside_t, const SolverMatrix*,
-                      const pastix_bcsc_t*, pastix_int_t, char **) = NULL;
+                      const pastix_bcsc_t*, pastix_int_t, const char *) = NULL;
 
     switch( bcsc->flttype ) {
     case PastixComplex32:
@@ -104,7 +104,7 @@ pcoeftabInit( isched_thread_t *ctx,
         itercblk = datacode->tasktab[task].cblknum;
 
         /* Init as full rank */
-        initfunc( side, datacode, bcsc, itercblk, dirtemp );
+        initfunc( side, datacode, bcsc, itercblk, dirname );
     }
 }
 
@@ -134,15 +134,15 @@ coeftabInit( pastix_data_t    *pastix_data,
 {
     struct coeftabinit_s args;
 
-    args.datacode   = pastix_data->solvmatr;
-    args.bcsc       = pastix_data->bcsc;
-    args.side       = side;
-    args.dirtemp    = &(pastix_data->dirtemp);
+    args.datacode = pastix_data->solvmatr;
+    args.bcsc     = pastix_data->bcsc;
+    args.side     = side;
 
 #if defined(PASTIX_DEBUG_DUMP_COEFTAB)
-    /* Make sure dirtemp is initialized before calling it with multiple threads */
-    pastix_gendirtemp( args.dirtemp );
+    /* Make sure dir_local is initialized before calling it with multiple threads */
+    pastix_gendirectories( pastix_data );
 #endif
+    args.dirname = pastix_data->dir_local;
 
     isched_parallel_call( pastix_data->isched, pcoeftabInit, &args );
 }

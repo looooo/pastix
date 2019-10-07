@@ -224,7 +224,7 @@ void cpucblk_zinit    ( pastix_coefside_t    side,
                         const SolverMatrix  *solvmtx,
                         const pastix_bcsc_t *bcsc,
                         pastix_int_t         itercblk,
-                        char               **directory );
+                        const char          *directory );
 void cpucblk_zgetschur( const SolverCblk    *cblk,
                         int                  upper_part,
                         pastix_complex64_t  *S,

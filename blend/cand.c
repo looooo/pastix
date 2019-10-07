@@ -105,7 +105,7 @@ candExit( Cand *candtab )
 void
 candSave( const Cand    *candtab,
           pastix_int_t   cblknbr,
-          char         **directory )
+          const char    *directory )
 {
     pastix_int_t i;
     FILE *f = NULL;
