@@ -41,7 +41,7 @@ int   candCheck( const Cand            *candtab,
                  const symbol_matrix_t *symbmtx );
 void  candSave ( const Cand            *candtab,
                        pastix_int_t     cblknbr,
-                       char           **directory );
+                 const char            *directory );
 void  candBuild( pastix_int_t           level_tasks2d,
                  pastix_int_t           width_tasks2d,
                  pastix_compress_when_t lr_when,

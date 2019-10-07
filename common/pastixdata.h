@@ -88,7 +88,8 @@ struct pastix_data_s {
     pastix_model_t  *cpu_models;         /**< CPU model coefficients for the kernels                              */
     pastix_model_t  *gpu_models;         /**< GPU model coefficients for the kernels                              */
 
-    char            *dirtemp;            /**< Unique directory name to store output files                         */
+    char            *dir_global;         /**< Unique directory name to store output files                         */
+    char            *dir_local;          /**< Unique directory name to store output specific to a MPI process     */
 
     /* Backup for old pastix interface */
     void            *b;

@@ -191,6 +191,11 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                       (long)ctrl.clustnbr, (long)ctrl.local_nbcores, (long)ctrl.local_nbthrds);
     }
 
+    /* Prepare the directories for the output files if needed */
+    if ( verbose > PastixVerboseYes ) {
+        pastix_gendirectories( pastix_data );
+    }
+
     /* Verify the coherence of the initial symbol matrix */
     if(ctrl.debug)
     {
@@ -307,15 +312,17 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
 #if defined(PASTIX_BLEND_PROPMAP_2STEPS)
     /* Dump the dot of the eTree before split */
-    if ( verbose > PastixVerboseYes ) {
+    if (( verbose > PastixVerboseYes ) &&
+        ( pastix_data->procnum == 0 ) )
+    {
         FILE *stream = NULL;
-        stream = pastix_fopenw( &(pastix_data->dirtemp), "etree.dot", "w" );
+        stream = pastix_fopenw( pastix_data->dir_global, "etree.dot", "w" );
         if ( stream ) {
             candGenDotLevel( ctrl.etree, ctrl.candtab, stream, 5);
             fclose(stream);
         }
 
-        stream = pastix_fopenw( &(pastix_data->dirtemp), "ctree.dot", "w" );
+        stream = pastix_fopenw( pastix_data->dir_global, "ctree.dot", "w" );
         if ( stream ) {
             candGenCompressedDot( ctrl.etree, ctrl.candtab, stream );
             fclose(stream);
@@ -347,15 +354,17 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     }
 
     /* Dump the dot of the eTree after split */
-    if ( verbose > PastixVerboseYes ) {
+    if (( verbose > PastixVerboseYes ) &&
+        ( pastix_data->procnum == 0 ) )
+    {
         FILE *stream = NULL;
-        stream = pastix_fopenw( &(pastix_data->dirtemp), "etree_split.dot", "w" );
+        stream = pastix_fopenw( pastix_data->dir_global, "etree_split.dot", "w" );
         if ( stream ) {
             candGenDot( ctrl.etree, ctrl.candtab, stream );
             fclose(stream);
         }
 
-        stream = pastix_fopenw( &(pastix_data->dirtemp), "ctree_split.dot", "w" );
+        stream = pastix_fopenw( pastix_data->dir_global, "ctree_split.dot", "w" );
         if ( stream ) {
             candGenCompressedDot( ctrl.etree, ctrl.candtab, stream );
             fclose(stream);
@@ -374,7 +383,8 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 #if defined(PASTIX_SYMBOL_DUMP_SYMBMTX)
     {
         FILE *stream = NULL;
-        stream = pastix_fopenw( &(pastix_data->dirtemp), "symbol_after_split.eps", "w" );
+        pastix_gendirectories( pastix_data );
+        stream = pastix_fopenw( pastix_data->dir_global, "symbol_after_split.eps", "w" );
         if ( stream ) {
             pastixSymbolDraw( symbmtx, stream );
             fclose( stream );
@@ -385,7 +395,8 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     if (0)
     {
         FILE *file = NULL;
-        file = pastix_fopenw( &(pastix_data->dirtemp), "symbol_after_split", "w" );
+        pastix_gendirectories( pastix_data );
+        file = pastix_fopenw( pastix_data->dir_global, "symbol_after_split", "w" );
         if ( file ) {
             pastixSymbolSave( symbmtx, file );
             fclose( file );
@@ -564,7 +575,8 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     if (0)
     {
         FILE *file = NULL;
-        file = pastix_fopenw( &(pastix_data->dirtemp), "solvergen", "w" );
+        pastix_gendirectories( pastix_data );
+        file = pastix_fopenw( pastix_data->dir_global, "solvergen", "w" );
         if ( file ) {
             solverSave( solvmtx, file );
             fclose(file);

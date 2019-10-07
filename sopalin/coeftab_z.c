@@ -55,7 +55,8 @@ coeftab_zdump( pastix_data_t      *pastix_data,
     pastix_int_t itercblk;
     FILE *stream = NULL;
 
-    stream = pastix_fopenw( &(pastix_data->dirtemp), filename, "w" );
+    pastix_gendirectories( pastix_data );
+    stream = pastix_fopenw( pastix_data->dir_global, filename, "w" );
     if ( stream == NULL ){
         return;
     }

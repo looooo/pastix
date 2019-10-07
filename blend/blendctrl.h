@@ -85,8 +85,8 @@ typedef struct blendctrl_s {
      */
     pastix_int_t   *iparm;           /**< In/Out Integer parameters                                         */
     double         *dparm;           /**< In/Out Float parameters                                           */
-    char          **dirtemp;         /**< Temporary unique directory to store output files
-                                          (must point to pastix_data->dirtemp                               */
+    const char     *dirname;         /**< Temporary unique directory to store output files
+                                          (Initialized to pastix_data->dir_local)                           */
     /**
      * @}
      * @name Other

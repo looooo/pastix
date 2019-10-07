@@ -190,7 +190,7 @@ cpucblk_zinit( pastix_coefside_t    side,
                const SolverMatrix  *solvmtx,
                const pastix_bcsc_t *bcsc,
                pastix_int_t         itercblk,
-               char               **directory )
+               const char          *directory )
 {
     pastix_int_t compress_when = solvmtx->lowrank.compress_when;
     SolverCblk  *cblk = solvmtx->cblktab + itercblk;

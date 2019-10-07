@@ -278,11 +278,11 @@ simu_printBlockCtrbNbr( const BlendCtrl       *ctrl,
     pastix_int_t i, j;
     symbol_cblk_t *curcblk;
 
-    fd1 = pastix_fopenw( ctrl->dirtemp, "contribblok.txt", "w" );
+    fd1 = pastix_fopenw( ctrl->dirname, "contribblok.txt", "w" );
     if ( fd1 == NULL ) {
         return;
     }
-    fd2 = pastix_fopenw( ctrl->dirtemp, "contribcblk.txt", "w" );
+    fd2 = pastix_fopenw( ctrl->dirname, "contribcblk.txt", "w" );
     if ( fd2 == NULL ) {
         return;
     }
@@ -988,12 +988,11 @@ simuRun( SimuCtrl              *simuctrl,
         char *tracename = NULL;
         int rc;
 
-        pastix_gendirtemp( ctrl->dirtemp );
-        if ( *(ctrl->dirtemp) == NULL ) {
+        if ( ctrl->dirname == NULL ) {
             tracename = strdup( "blend" );
         }
         else {
-            rc = asprintf( &tracename, "%s/blend", *(ctrl->dirtemp) );
+            rc = asprintf( &tracename, "%s/blend", ctrl->dirname );
         }
 
         setTraceType (PAJE);

@@ -317,14 +317,16 @@ pastixOrderSave( pastix_data_t        *pastix_data,
         env = 0;
     }
 
-    stream = pastix_fopenw(  &(pastix_data->dirtemp), filename, "w" );
-    rc = ordering_save(ordemesh, stream);
-    if (rc != PASTIX_SUCCESS )
-    {
-        errorPrint ("cannot save order");
+    pastix_gendirectories( pastix_data );
+    if ( pastix_data->procnbr == 0 ) {
+        stream = pastix_fopenw( pastix_data->dir_global, filename, "w" );
+        rc = ordering_save(ordemesh, stream);
+        if (rc != PASTIX_SUCCESS )
+        {
+            errorPrint ("cannot save order");
+        }
+        fclose(stream);
     }
-    fclose(stream);
-
     if (env) {
         pastix_cleanenv( filename );
     }

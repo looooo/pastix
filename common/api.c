@@ -34,6 +34,12 @@
 #include "sopalin/starpu/pastix_starpu.h"
 #endif
 
+#if defined(PASTIX_OS_WINDOWS)
+#define pastix_mkdir( __str ) mkdir( (__str) )
+#else
+#define pastix_mkdir( __str ) mkdir( (__str), 0700 )
+#endif
+
 /**
  *******************************************************************************
  *
@@ -43,58 +49,106 @@
  *
  *******************************************************************************
  *
- * @param[inout] dirtemp
- *          On entry, if dirtemp is not initizalized, the unique string is
- *          generated, otherwise nothing is done.
+ * @param[inout] pastix_data
+ *          On entry, the pastix_data structure associated to the pastix instance.
+ *          On exit, if not already initialized, pastix_data->dir_global and
+ *          pastix_data->dir_local are initialized.
  *
  *******************************************************************************/
 void
-pastix_gendirtemp( char **dirtemp )
+pastix_gendirectories( pastix_data_t *pastix_data )
 {
-    if ( *dirtemp == NULL ) {
-        mode_t old_mask;
-        *dirtemp = strdup( "pastix-XXXXXX" );
+    char **dir_global = &(pastix_data->dir_global);
+    mode_t old_mask;
+    int rc, len;
+
+    if ( *dir_global != NULL ) {
+        return;
+    }
+
+    if ( pastix_data->procnum == 0 )
+    {
+        *dir_global = strdup( "pastix-XXXXXX" );
 
 #if !defined(HAVE_MKDTEMP)
         {
-            int status;
-
-            *dirtemp = mktemp( *dirtemp );
-            if ( (*dirtemp)[0] == '\0' ) {
-                perror( "pastix_gendirtemp/mktemp" );
-                errorPrint("pastix_gendirtemp: Couldn't not generate the temporary unique string");
-                free( *dirtemp );
-                *dirtemp = NULL;
+            *dir_global = mktemp( *dir_global );
+            if ( (*dir_global)[0] == '\0' ) {
+                perror( "pastix_gendirectories/global/mktemp" );
+                free( *dir_global );
+                *dir_global = NULL;
                 return;
             }
 
             old_mask = umask(S_IWGRP | S_IWOTH);
-#if defined(PASTIX_OS_WINDOWS)
-            status = mkdir( *dirtemp );
-#else
-            status = mkdir( *dirtemp, 0700 );
-#endif
+            rc = pastix_mkdir( *dir_global );
             (void)umask(old_mask);
 
-            if ( status == -1 ) {
-                perror( "pastix_gendirtemp/mkdir" );
-                errorPrint("pastix_gendirtemp: Couldn't not generate the temporary output directory");
-                free( *dirtemp );
-                *dirtemp = NULL;
+            if ( rc == -1 ) {
+                perror( "pastix_gendirectories/global/mkdir" );
+                free( *dir_global );
+                *dir_global = NULL;
                 return;
             }
         }
 #else
         {
             old_mask = umask(S_IWGRP | S_IWOTH);
-            *dirtemp = mkdtemp( *dirtemp );
-            if ( *dirtemp == NULL ) {
-                perror( "pastix_gendirtemp/mkdtemp" );
-                errorPrint("pastix_gendirtemp: Couldn't not generate the temporary unique string");
-            }
+            *dir_global = mkdtemp( *dir_global );
             (void)umask(old_mask);
+            if ( *dir_global == NULL ) {
+                perror( "pastix_gendirectories/global/mkdtemp" );
+                return;
+            }
         }
 #endif
+        /* Broadcast the main directory to everyone */
+        len = strlen( *dir_global );
+
+        MPI_Bcast( &len, 1, MPI_INT,
+                   0, pastix_data->inter_node_comm );
+        MPI_Bcast( pastix_data->dir_global, len+1, MPI_CHAR,
+                   0, pastix_data->inter_node_comm );
+
+        fprintf( stdout, "OUTPUTDIR: %s\n", *dir_global );
+    }
+    else {
+        MPI_Bcast( &len, 1, MPI_INT,
+                   0, pastix_data->inter_node_comm );
+        pastix_data->dir_global = malloc( (len+1) * sizeof(char) );
+        MPI_Bcast( pastix_data->dir_global, len+1, MPI_CHAR,
+                   0, pastix_data->inter_node_comm );
+    }
+
+    assert( *dir_global != NULL );
+
+    /*
+     * Create the local directory name
+     */
+#if defined(PASTIX_WITH_MPI)
+    if (pastix_data->procnbr > 1)
+    {
+        char *localdir;
+        rc = asprintf( &localdir, "%s/%0*d",
+                       *dir_global,
+                       (int)pastix_iceil( pastix_data->procnbr, 10 ),
+                       pastix_data->procnum );
+
+        old_mask = umask(S_IWGRP | S_IWOTH);
+        rc = pastix_mkdir( localdir );
+        (void)umask(old_mask);
+
+        if ( rc == -1 ) {
+            perror( "pastix_gendirectories/local/mkdir" );
+            free( localdir );
+            return;
+        }
+        pastix_data->dir_local = localdir;
+    }
+    else
+#endif
+    {
+        pastix_data->dir_local = strdup( *dir_global );
     }
 }
 
@@ -107,9 +161,9 @@ pastix_gendirtemp( char **dirtemp )
  *
  *******************************************************************************
  *
- * @param[inout] dirtemp
+ * @param[in] dirname
  *          The pointer to the directory string associated to the instance.
- *          If not initizalized, initialized on exit.
+ *          It must have been initialized before calling.
  *
  * @param[in] filename
  *          The filename to create in the unique directory.
@@ -123,20 +177,18 @@ pastix_gendirtemp( char **dirtemp )
  *
  *******************************************************************************/
 FILE *
-pastix_fopenw( char       **dirtemp,
-               const char  *filename,
-               const char  *mode )
+pastix_fopenw( const char *dirname,
+               const char *filename,
+               const char *mode )
 {
     char *fullname;
     FILE *f = NULL;
     int rc;
 
-    pastix_gendirtemp( dirtemp );
-    if ( *dirtemp == NULL ) {
-        return NULL;
-    }
+    /* Make sure dirname has been initialized before calling fopen */
+    assert( dirname );
 
-    rc = asprintf( &fullname, "%s/%s", *dirtemp, filename );
+    rc = asprintf( &fullname, "%s/%s", dirname, filename );
     if (rc <= 0 ) {
         errorPrint("pastix_fopenw: Couldn't not generate the tempory filename for the output file");
         return NULL;
@@ -707,7 +759,8 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     pastix->cpu_models = NULL;
     pastix->gpu_models = NULL;
 
-    pastix->dirtemp    = NULL;
+    pastix->dir_global = NULL;
+    pastix->dir_local  = NULL;
 
     pastixModelsLoad( pastix );
 
@@ -838,8 +891,11 @@ pastixFinalize( pastix_data_t **pastix_data )
         pastix->gpu_models = NULL;
     }
 
-    if ( pastix->dirtemp != NULL ) {
-        free( pastix->dirtemp );
+    if ( pastix->dir_global != NULL ) {
+        free( pastix->dir_global );
+    }
+    if ( pastix->dir_local != NULL ) {
+        free( pastix->dir_local );
     }
     memFree_null(*pastix_data);
 }
