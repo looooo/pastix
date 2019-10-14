@@ -72,7 +72,7 @@ sequential_zsytrf( pastix_data_t  *pastix_data,
 }
 
 void
-thread_pzsytrf( isched_thread_t *ctx, void *args )
+thread_zsytrf_static( isched_thread_t *ctx, void *args )
 {
     sopalin_data_t     *sopalin_data = (sopalin_data_t*)args;
     SolverMatrix       *datacode = sopalin_data->solvmtx;
@@ -123,25 +123,129 @@ thread_pzsytrf( isched_thread_t *ctx, void *args )
 }
 
 void
-thread_zsytrf( pastix_data_t  *pastix_data,
+static_zsytrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )
 {
-    isched_parallel_call( pastix_data->isched, thread_pzsytrf, sopalin_data );
+    isched_parallel_call( pastix_data->isched, thread_zsytrf_static, sopalin_data );
 }
 
-static void (*zsytrf_table[4])(pastix_data_t *, sopalin_data_t *) = {
+struct args_zsytrf_t
+{
+    sopalin_data_t     *sopalin_data;
+    volatile int32_t    taskcnt ;
+};
+
+void
+thread_zsytrf_dynamic( isched_thread_t *ctx, void *args )
+{
+    struct args_zsytrf_t *arg = (struct args_zsytrf_t *)args;
+    sopalin_data_t       *sopalin_data = arg->sopalin_data;
+    SolverMatrix         *datacode = sopalin_data->solvmtx;
+    SolverCblk           *cblk;
+    Task                 *t;
+    pastix_queue_t       *computeQueue;
+    pastix_complex64_t   *work1, *work2;
+    pastix_int_t          N, i, ii, lwork1, lwork2;
+    pastix_int_t          tasknbr, *tasktab, cblknum;
+    int32_t               local_taskcnt = 0;
+    int                   rank = ctx->rank;
+    int                   dest = (ctx->rank +1)%ctx->global_ctx->world_size;
+
+    lwork1 = datacode->offdmax;
+    lwork2 = pastix_imax( datacode->gemmmax, datacode->blokmax );
+    if ( datacode->lowrank.compress_when == PastixCompressWhenBegin ) {
+        lwork2 = pastix_imax( lwork2, 2 * datacode->blokmax );
+    }
+    MALLOC_INTERN( work1, lwork1, pastix_complex64_t );
+    MALLOC_INTERN( work2, lwork2, pastix_complex64_t );
+    MALLOC_INTERN( datacode->computeQueue[rank], 1, pastix_queue_t );
+
+    tasknbr      = datacode->ttsknbr[rank];
+    tasktab      = datacode->ttsktab[rank];
+    computeQueue = datacode->computeQueue[rank];
+    pqueueInit( computeQueue, tasknbr );
+
+    for (ii=0; ii<tasknbr; ii++) {
+        i = tasktab[ii];
+        t = datacode->tasktab + i;
+
+        if ( !(t->ctrbcnt) ) {
+            pqueuePush1( computeQueue, t->cblknum, t->prionum );
+        }
+    }
+
+        /* Make sure that all computeQueues are allocated */
+    isched_barrier_wait( &(ctx->global_ctx->barrier) );
+
+    while( arg->taskcnt > 0 )
+    {
+        cblknum = pqueuePop(computeQueue);
+
+        if( cblknum == -1 ){
+            if ( local_taskcnt ) {
+                pastix_atomic_sub_32b( &(arg->taskcnt), local_taskcnt );
+                local_taskcnt = 0;
+            }
+            cblknum = stealQueue( datacode, rank, &dest,
+                                  ctx->global_ctx->world_size );
+        }
+        if( cblknum != -1 ){
+            cblk = datacode->cblktab + cblknum;
+            if ( cblk->cblktype & CBLK_IN_SCHUR ) {
+                continue;
+            }
+
+            N = cblk_colnbr( cblk );
+            cblk->threadid = rank;
+            /* Compute, Add other cblks which have 0 ctrbcnt */
+            cpucblk_zsytrfsp1d( datacode, cblk,
+                                /*
+                                * Workspace size has been computed without the
+                                * diagonal block, thus in order to work with generic
+                                * TRSM and GEMM kernels, we must shift the DLh workspace
+                                * by the diagonal block size
+                                */
+                                work1 - (N*N), work2, lwork2 );
+            local_taskcnt++;
+        }
+    }
+    memFree_null( work1 );
+    memFree_null( work2 );
+
+    /* Make sure that everyone is done before freeing */
+    isched_barrier_wait( &(ctx->global_ctx->barrier) );
+    pqueueExit( computeQueue );
+    memFree_null( computeQueue );
+}
+
+void
+dynamic_zsytrf( pastix_data_t  *pastix_data,
+                 sopalin_data_t *sopalin_data )
+{
+    volatile int32_t     taskcnt = sopalin_data->solvmtx->tasknbr;
+    struct args_zsytrf_t args_zsytrf = {sopalin_data, taskcnt};
+    /* Allocate the computeQueue */
+    MALLOC_INTERN( sopalin_data->solvmtx->computeQueue,
+                   pastix_data->isched->world_size, pastix_queue_t * );
+
+    isched_parallel_call( pastix_data->isched, thread_zsytrf_dynamic, &args_zsytrf );
+    memFree_null( sopalin_data->solvmtx->computeQueue );
+}
+
+static void (*zsytrf_table[5])(pastix_data_t *, sopalin_data_t *) = {
     sequential_zsytrf,
-    thread_zsytrf,
+    static_zsytrf,
 #if defined(PASTIX_WITH_PARSEC)
     parsec_zsytrf,
 #else
     NULL,
 #endif
 #if defined(PASTIX_WITH_STARPU)
-    starpu_zsytrf
+    starpu_zsytrf,
 #else
-    NULL
+    NULL,
 #endif
+    dynamic_zsytrf
 };
 
 void
@@ -152,7 +256,7 @@ sopalin_zsytrf( pastix_data_t  *pastix_data,
     void (*zsytrf)(pastix_data_t *, sopalin_data_t *) = zsytrf_table[ sched ];
 
     if (zsytrf == NULL) {
-        zsytrf = thread_zsytrf;
+        zsytrf = static_zsytrf;
     }
     zsytrf( pastix_data, sopalin_data );
 

@@ -149,6 +149,7 @@ typedef struct solver_cblk_s  {
     void                *ucoeftab;   /**< Coefficients access vector              */
     void                *handler[2]; /**< Runtime data handler                    */
     pastix_int_t         selevtx;    /**< Index to identify selected cblk for which intra-separator contributions are not compressed */
+    pastix_int_t         threadid;   /**< Rank of the accessing thread            */
 } SolverCblk;
 
 struct parsec_sparse_matrix_desc_s;
@@ -225,6 +226,7 @@ struct solver_matrix_s {
     pastix_int_t              tasknbr;              /*+ Number of Tasks                           +*/
     pastix_int_t **           ttsktab;              /*+ Task access vector by thread              +*/
     pastix_int_t *            ttsknbr;              /*+ Number of tasks by thread                 +*/
+    pastix_queue_t **         computeQueue;         /*+ Queue of task to compute by thread        +*/
 
     pastix_int_t *            proc2clust;           /*+ proc -> cluster                           +*/
     pastix_int_t              gridldim;             /*+ Dimensions of the virtual processors      +*/
@@ -285,6 +287,40 @@ cblk_rownbr( const SolverCblk *cblk )
         rownbr += blok_rownbr(blok);
     }
     return rownbr;
+}
+
+/**
+ * @brief    Task stealing method.
+ *
+ * @param[inout] solvmtx
+ *            The pointer to the solverMatrix.
+ * @param[in] rank
+ *            Rank of the computeQueue.
+ * @param[inout] dest
+ *            Rank of the stolen queue.
+ * @param[in] nbthreads
+ *            Total amount of threads in the node.
+ */
+static inline pastix_int_t
+stealQueue( SolverMatrix *solvmtx,
+            int           rank,
+            int          *dest,
+            int           nbthreads )
+{
+    int rk = *dest;
+    pastix_queue_t *stoleQueue;
+    pastix_int_t    cblknum = -1;
+    while( rk != rank )
+    {
+        assert( solvmtx->computeQueue[ rk ] );
+        stoleQueue = solvmtx->computeQueue[ rk ];
+        if( (cblknum = pqueuePop(stoleQueue)) != -1 ){
+            *dest = rk;
+            return cblknum;
+        }
+        rk = (rk + 1)%nbthreads;
+    }
+    return cblknum;
 }
 
 /**

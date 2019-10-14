@@ -262,7 +262,7 @@ pastixWelcome( const pastix_data_t *pastix )
                   /* Version    */ PASTIX_VERSION_MAJOR, PASTIX_VERSION_MINOR, PASTIX_VERSION_MICRO,
                   /* Sched. seq */ "Enabled",
                   /* Sched. sta */ (pastix->isched ? "Started" : "Disabled"),
-                  /* Sched. dyn */ "Disabled",
+                  /* Sched. dyn */ ( (pastix->iparm[IPARM_SCHEDULER] == PastixSchedDynamic) ? "Started" : "Disabled" ),
                   /* Sched. PaR */
 #if defined(PASTIX_WITH_PARSEC)
                   (pastix->parsec == NULL ? "Enabled" : "Started" ),

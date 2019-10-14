@@ -79,7 +79,7 @@ struct args_ztrsm_t
 };
 
 void
-thread_pztrsm( isched_thread_t *ctx, void *args )
+thread_ztrsm_static( isched_thread_t *ctx, void *args )
 {
     struct args_ztrsm_t *arg = (struct args_ztrsm_t*)args;
     pastix_data_t      *pastix_data  = arg->pastix_data;
@@ -171,28 +171,29 @@ thread_pztrsm( isched_thread_t *ctx, void *args )
 }
 
 void
-thread_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
+static_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
               sopalin_data_t *sopalin_data,
               int nrhs, pastix_complex64_t *b, int ldb )
 {
     struct args_ztrsm_t args_ztrsm = {pastix_data, side, uplo, trans, diag, sopalin_data, nrhs, b, ldb};
-    isched_parallel_call( pastix_data->isched, thread_pztrsm, &args_ztrsm );
+    isched_parallel_call( pastix_data->isched, thread_ztrsm_static, &args_ztrsm );
 }
 
-static void (*ztrsm_table[4])(pastix_data_t *, int, int, int, int, sopalin_data_t *,
+static void (*ztrsm_table[5])(pastix_data_t *, int, int, int, int, sopalin_data_t *,
                               int, pastix_complex64_t *, int) = {
     sequential_ztrsm,
-    thread_ztrsm,
+    static_ztrsm,
 #if defined(PASTIX_WITH_PARSEC)
     NULL, /* parsec_ztrsm not yet implemented */
 #else
     NULL,
 #endif
 #if defined(PASTIX_WITH_STARPU)
-    starpu_ztrsm
+    starpu_ztrsm,
 #else
-    NULL
+    NULL,
 #endif
+    static_ztrsm
 };
 
 void
@@ -205,7 +206,7 @@ sopalin_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int di
                   int, pastix_complex64_t *, int) = ztrsm_table[ sched ];
 
     if (ztrsm == NULL) {
-        ztrsm = thread_ztrsm;
+        ztrsm = static_ztrsm;
     }
     ztrsm( pastix_data, side, uplo, trans, diag, sopalin_data, nrhs, b, ldb );
 }

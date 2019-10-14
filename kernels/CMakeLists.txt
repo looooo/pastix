@@ -38,6 +38,7 @@ precisions_rules_py(generated_headers
 
 set(kernels_headers
   ${generated_headers}
+  queue.h
   )
 
 add_custom_target(kernels_headers_tgt
@@ -92,6 +93,7 @@ set(kernels_sources
   ${generated_sources}
   lowrank.c
   kernels_trace.c
+  queue.c
   )
 
 if(PASTIX_WITH_CUDA)
@@ -155,6 +157,8 @@ add_documented_files(
   DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   ${generated_headers}
   ${generated_sources}
+  queue.c
+  queue.h
   )
 
 # add_documented_files(

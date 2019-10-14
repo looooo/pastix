@@ -48,7 +48,8 @@ subs = {
         ('pastix_p',             'pastix_s',             'pastix_d',             'pastix_c',             'pastix_z'            ),
         ('sequential_p',         'sequential_s',         'sequential_d',         'sequential_c',         'sequential_z'        ),
         ('thread_p',             'thread_s',             'thread_d',             'thread_c',             'thread_z'            ),
-        ('thread_pp',            'thread_ps',            'thread_pd',            'thread_pc',            'thread_pz'           ),
+        ('static_p',             'static_s',             'static_d',             'static_c',             'static_z'            ),
+        ('dynamic_p',            'dynamic_s',            'dynamic_d',            'dynamic_c',            'dynamic_z'           ),
         ('vec_p',                'vec_s',                'vec_d',                'vec_c',                'vec_z'               ),
     ]
 }

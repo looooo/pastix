@@ -557,7 +557,6 @@ solverMatrixGen( pastix_int_t           clustnum,
             pastix_int_t j, jloc;
 
             solvmtx->ttsknbr[p] = ttsknbr;
-
             if(ttsknbr > 0) {
                 MALLOC_INTERN(solvmtx->ttsktab[p], ttsknbr, pastix_int_t);
             }
@@ -570,6 +569,7 @@ solverMatrixGen( pastix_int_t           clustnum,
                 j    = extendint_Read(simuproc->tasktab, i);
                 jloc = tasklocalnum[j];
                 solvmtx->ttsktab[p][i] = jloc;
+                solvmtx->cblktab[jloc].threadid = p;
 
 #if defined(PASTIX_DYNSCHED)
                 solvmtx->tasktab[jloc].threadid = p;

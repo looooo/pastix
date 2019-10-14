@@ -22,7 +22,7 @@ set( PASTIX_REFINE
 set( PASTIX_FACTO
      0 1 2) # LLh, LDLt, LU
 set( PASTIX_SCHEDS
-     0 1) # sequential, static
+     0 1 4) # sequential, static, dynamic
 set( PASTIX_COMPRESS_METHOD
      svd
      pqrcp
