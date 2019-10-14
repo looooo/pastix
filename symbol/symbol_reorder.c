@@ -17,7 +17,7 @@
 #include "symbol.h"
 #include "symbol_reorder.h"
 #include "pastix/order.h"
-#include "blend/queue.h"
+#include "queue.h"
 #include "blend/extendVector.h"
 
 /**
@@ -412,11 +412,12 @@ thread_reorder( pastix_data_t *pastix_data,
     memFree_null( args_reorder.tasktab );
 }
 
-static void (*reorder_table[4])(pastix_data_t *, pastix_int_t , pastix_int_t *) = {
+static void (*reorder_table[5])(pastix_data_t *, pastix_int_t , pastix_int_t *) = {
     sequential_reorder,
     thread_reorder,
     NULL,
-    NULL
+    NULL,
+    thread_reorder
 };
 
 /**

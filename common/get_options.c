@@ -551,7 +551,7 @@ pastixGetOptions( int argc, char **argv,
 
         case 's': {
             int schedtype = atoi( optarg );
-            if ( (schedtype >= 0) && (schedtype <= 3)){
+            if ( (schedtype >= 0) && (schedtype <= 4) ){
                 iparam[IPARM_SCHEDULER] = schedtype;
             }
             else {

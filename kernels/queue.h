@@ -35,9 +35,10 @@ typedef struct pastix_queue_item_s {
  * @brief Queue structure.
  */
 typedef struct pastix_queue_s {
-    pastix_int_t         size;   /**< Allocated memory size          */
-    pastix_int_t         used;   /**< Number of element in the queue */
-    pastix_queue_item_t *elttab; /**< Array of the element           */
+    pastix_int_t          size;   /**< Allocated memory size                           */
+    volatile pastix_int_t used;   /**< Number of element in the queue                  */
+    pastix_queue_item_t  *elttab; /**< Array of the element                            */
+    pastix_atomic_lock_t  lock;   /**< Lock for insertion and removal in shared memory */
 } pastix_queue_t;
 
 int          pqueueInit(        pastix_queue_t *, pastix_int_t );

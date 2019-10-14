@@ -713,7 +713,6 @@ set(PASTIX_LIB_SRCS
   blend/extendVector.c
   blend/extracblk.c
   blend/propmap.c
-  blend/queue.c
   blend/simu.c
   blend/simu_run.c
   blend/simu_task.c
@@ -1022,8 +1021,6 @@ add_documented_files(
   blend/extracblk.h
   blend/extracblk.c
   blend/perf.h
-  blend/queue.h
-  blend/queue.c
   #
   blend/simu.h
   blend/simu_timer.h

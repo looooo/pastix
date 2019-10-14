@@ -513,6 +513,10 @@ cpucblk_zsytrfsp1d( SolverMatrix       *solvmtx,
                              work, lwork, &(solvmtx->lowrank) );
         }
         pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
+        if( !(fcblk->ctrbcnt) && (solvmtx->computeQueue) ){
+            pastix_queue_t *queue = solvmtx->computeQueue[ cblk->threadid ];
+            pqueuePush1( queue, fcblk - solvmtx->cblktab, queue->size );
+        }
     }
 
     return nbpivots;

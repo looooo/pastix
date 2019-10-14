@@ -627,7 +627,8 @@ bcsc_zspmv( const pastix_data_t      *pastix_data,
 {
     pastix_int_t *iparm = pastix_data->iparm;
 
-    if ( iparm[IPARM_SCHEDULER] == PastixSchedStatic ) {
+    if ( (iparm[IPARM_SCHEDULER] == PastixSchedStatic) ||
+         (iparm[IPARM_SCHEDULER] == PastixSchedDynamic) ) {
         bcsc_zspmv_smp( pastix_data, trans, alpha, x, beta, y );
     }
     else {

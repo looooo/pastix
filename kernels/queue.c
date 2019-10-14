@@ -81,6 +81,7 @@ pqueueInit(pastix_queue_t *q,
 {
     q->size = size;
     q->used = 0;
+    q->lock = PASTIX_ATOMIC_UNLOCKED;
     if (q->size != 0)
     {
         MALLOC_INTERN(q->elttab, size, pastix_queue_item_t);
@@ -177,6 +178,7 @@ pqueuePush2(pastix_queue_t *q,
             double          key1,
             double          key2)
 {
+    pastix_atomic_lock( &(q->lock) );
     pastix_int_t i, hi;
 
     /* Allocate more space if necessary */
@@ -213,6 +215,7 @@ pqueuePush2(pastix_queue_t *q,
 
         i = hi; hi = (i+1)/2-1;
     }
+    pastix_atomic_unlock( &(q->lock) );
 }
 
 /**
@@ -262,10 +265,12 @@ pqueueRead(const pastix_queue_t *q)
 pastix_int_t
 pqueuePop2(pastix_queue_t *q, double *key1, double*key2)
 {
+    pastix_atomic_lock( &(q->lock) );
     pastix_int_t i, j;
     pastix_int_t return_elt;
 
     if (q->used == 0) {
+        pastix_atomic_unlock( &(q->lock) );
         return -1;
     }
 
@@ -304,6 +309,7 @@ pqueuePop2(pastix_queue_t *q, double *key1, double*key2)
             break;
         }
     }
+    pastix_atomic_unlock( &(q->lock) );
     return return_elt;
 }
 
