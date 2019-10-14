@@ -152,16 +152,17 @@ install(TARGETS pastix_kernels
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib)
 
-### Add documented files to the global property
+### Add generated files to the global property
 add_documented_files(
   DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   ${generated_headers}
   ${generated_sources}
-  queue.c
-  queue.h
   )
 
-# add_documented_files(
-#   # Headers
-#   # Source files
-#   )
+### Add non generated files to the global property
+add_documented_files(
+  # Headers
+  queue.h
+  # Source files
+  queue.c
+  )
