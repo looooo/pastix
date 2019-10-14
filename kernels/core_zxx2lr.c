@@ -479,7 +479,7 @@ core_zlrlr2lr( core_zlrmm_t     *params,
     /*
      * Try to compress (Av^h Bv^h')
      */
-    flops += lowrank->core_ge2lr( lowrank->tolerance, -1, A->rk, B->rk, work2, A->rk, &rArB );
+    flops += lowrank->core_ge2lr( lowrank->use_reltol, lowrank->tolerance, -1, A->rk, B->rk, work2, A->rk, &rArB );
 
     /*
      * The rank of AB is not smaller than min(rankA, rankB)

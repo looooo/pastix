@@ -118,6 +118,7 @@ typedef enum pastix_iparm_e {
     IPARM_COMPRESS_WHEN,         /**< When to compress a supernode                                   Default: PastixCompressNever       IN  */
     IPARM_COMPRESS_METHOD,       /**< Compression method (See pastix_compress_method_t)              Default: PastixCompressMethodPQRCP IN  */
     IPARM_COMPRESS_ORTHO,        /**< Orthogonalization method                                       Default: PastixCompressOrthoCGS    IN  */
+    IPARM_COMPRESS_RELTOL,       /**< Enable/Disable relative tolerance                              Default: 0                         IN  */
 
     /* MPI modes */
     IPARM_THREAD_COMM_MODE,      /**< Threaded communication mode                                    Default: PastixThreadMultiple      IN  */

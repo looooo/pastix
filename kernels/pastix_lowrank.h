@@ -117,7 +117,7 @@ typedef struct pastix_lrblock_s {
 /**
  * @brief Type of the functions to compress a dense block into a low-rank form.
  */
-typedef pastix_fixdbl_t (*fct_ge2lr_t)( pastix_fixdbl_t, pastix_int_t, pastix_int_t, pastix_int_t,
+typedef pastix_fixdbl_t (*fct_ge2lr_t)( int, pastix_fixdbl_t, pastix_int_t, pastix_int_t, pastix_int_t,
                                         const void *, pastix_int_t, pastix_lrblock_t * );
 
 /**
@@ -143,13 +143,14 @@ extern const fct_rradd_t rraddMethods[PastixCompressMethodNbr][4];
  *        kernels and their parameters.
  */
 typedef struct pastix_lr_s {
-    pastix_int_t compress_when;       /**< When to compress in the full solver              */
-    pastix_int_t compress_method;     /**< Compression method                               */
-    pastix_int_t compress_min_width;  /**< Minimum width to compress a supernode            */
-    pastix_int_t compress_min_height; /**< Minimum height to compress an off-diagonal block */
-    double       tolerance;           /**< Absolute compression tolerance                   */
-    fct_rradd_t  core_rradd;          /**< Recompression function                           */
-    fct_ge2lr_t  core_ge2lr;          /**< Compression function                             */
+    pastix_int_t compress_when;       /**< When to compress in the full solver               */
+    pastix_int_t compress_method;     /**< Compression method                                */
+    pastix_int_t compress_min_width;  /**< Minimum width to compress a supernode             */
+    pastix_int_t compress_min_height; /**< Minimum height to compress an off-diagonal block  */
+    int          use_reltol;          /**< Enable/disable relative tolerance vs absolute one */
+    double       tolerance;           /**< Absolute compression tolerance                    */
+    fct_rradd_t  core_rradd;          /**< Recompression function                            */
+    fct_ge2lr_t  core_ge2lr;          /**< Compression function                              */
 } pastix_lr_t;
 
 /**

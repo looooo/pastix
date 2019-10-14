@@ -130,11 +130,12 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
 {
     int                 SEED[4] = {26, 67, 52, 197};
     int                 ret, i;
+    pastix_int_t        bp = ( nb < 0 ) ? 32 : nb;
     pastix_int_t        d, ib, loop = 1;
     pastix_int_t        ldo = m;
-    pastix_int_t        size_O = ldo * nb;
+    pastix_int_t        size_O = ldo * bp;
     pastix_int_t        rk, minMN, lwkopt;
-    pastix_int_t        sublw = n * nb;
+    pastix_int_t        sublw = n * bp;
     pastix_complex64_t *omega = work;
     pastix_complex64_t *subw  = work;
     double normR;
@@ -147,10 +148,6 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
 #else
     trans = 'T';
 #endif
-
-    if ( nb < 0 ) {
-        nb = 32;
-    }
 
     lwkopt = sublw;
     if ( lwork == -1 ) {
@@ -177,7 +174,30 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
         maxrank = minMN;
     }
     maxrank = pastix_imin( maxrank, minMN );
-    if ( (minMN == 0) || (maxrank == 0) ) {
+
+    /* Compute the norm of A if not provided by the user */
+    if ( normA < 0 ) {
+        normA = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
+                                     A, lda, NULL );
+    }
+
+    /**
+     * If maximum rank is 0, then either the matrix norm is below the tolerance,
+     * and we can return a null rank matrix, or it is not and we need to return
+     * a full rank matrix.
+     */
+    if ( maxrank == 0 ) {
+        if ( tol < 0. ) {
+            return 0;
+        }
+        if ( normA < tol ) {
+            return 0;
+        }
+        return -1;
+    }
+
+    /* Quick exit if A is null rank for the given tolerance */
+    if ( normA < tol ) {
         return 0;
     }
 
@@ -189,26 +209,48 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
     /* Computation of the Gaussian matrix */
     LAPACKE_zlarnv_work(3, SEED, size_O, omega);
 
-    if ( normA < 0 ) {
-        normA = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
-                                     A, lda, NULL );
-    }
-    normR = normA;
     rk = 0;
     while ( (rk < maxrank) && loop )
     {
-        ib = pastix_imin( nb, maxrank-rk );
+        /*
+         * Note that we can use maxrank instead of minMN to compute ib, as it is
+         * useless to compute extra columns with rotation. The residual will
+         * tell us if we managed to compress or not
+         */
+        ib = pastix_imin( bp, maxrank-rk );
         d = ib;
 
-        /* Computation of the projection matrix A * omega^H */
+        /* Computation of the projection matrix B = A_{0:m,k:n}^H * omega */
         cblas_zgemm( CblasColMajor, CblasConjTrans, CblasNoTrans,
                      n-rk, d, m-rk,
                      CBLAS_SADDR(zone),  A + rk*lda + rk, lda,
                                          omega,           ldo,
                      CBLAS_SADDR(zzero), B + rk*ldb + rk, ldb );
 
+        /* Try to do some power iteration to refine the projection */
+        if (0)
+        {
+            for(int l=0; l<2; l++)
+            {
+                cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
+                             m-rk, d, n-rk,
+                             CBLAS_SADDR(zone),  A + rk*lda + rk, lda,
+                                                 B + rk*ldb + rk, ldb,
+                             CBLAS_SADDR(zzero), omega,           ldo );
+
+                cblas_zgemm( CblasColMajor, CblasConjTrans, CblasNoTrans,
+                             n-rk, d, m-rk,
+                             CBLAS_SADDR(zone),  A + rk*lda + rk, lda,
+                                                 omega,           ldo,
+                             CBLAS_SADDR(zzero), B + rk*ldb + rk, ldb );
+            }
+
+            /* Computation of the Gaussian matrix */
+            LAPACKE_zlarnv_work(3, SEED, size_O, omega);
+        }
+
         /*
-         * QR factorization of the sample matrix B^H.
+         * QR factorization of the sample matrix B = Q_{B} R_{B}.
          * At the end, the householders will be stored at the lower part of the matrix
          */
         ret = LAPACKE_zgeqrf_work( LAPACK_COL_MAJOR, n-rk, d,
@@ -217,7 +259,7 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
         assert(ret == 0);
 
         /*
-         *  A_panel = A_panel Q_{B} for rotational version
+         *  A_{0:m,k:n} = A_{0:m,k:n} Q_{B} for rotational version
          */
         ret = LAPACKE_zunmqr_work( LAPACK_COL_MAJOR, 'R', 'N',
                                    m - rk, n - rk, d,
@@ -227,7 +269,7 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
         assert(ret == 0);
 
         /*
-         * Factorize d columns of A without pivoting
+         * Factorize d columns of A_{k:m,k:k+d} without pivoting
          */
         ret = LAPACKE_zgeqrf_work( LAPACK_COL_MAJOR, m-rk, d,
                                    A + rk*lda + rk, lda, tau + rk,
@@ -236,7 +278,7 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
 
         if ( rk+d < n ) {
             /*
-             * Update trailing submatrix: A <- Q^h A
+             * Update trailing submatrix: A_{k:m,k+d:n} <- Q^h A_{k:m,k+d:n}
              */
             ret = LAPACKE_zunmqr_work( LAPACK_COL_MAJOR, 'L', trans,
                                        m-rk, n-rk-d, d,
@@ -263,10 +305,12 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
 
                 if ( normRk > tol ) {
                     /*
-                     * The rank is i+1, and we need to be below the threshold
-                     * tol, so we need the i from the previsous iteration (+1)
+                     * The actual rank is i (the i^th column has just been
+                     * removed from the selection), and we need to be below the
+                     * threshold tol, so we need the i from the previous
+                     * iteration (+1)
                      */
-                    d = pastix_imin( d, i+2 );
+                    d = i+1;
                     break;
                 }
             }
@@ -295,6 +339,10 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
  *
  *******************************************************************************
  *
+ * @param[in] use_reltol
+ *          Defines if the kernel should use relative tolerance (tol *||A||), or
+ *          absolute tolerance (tol).
+ *
  * @param[in] tol
  *          The tolerance used as a criterion to eliminate information from the
  *          full rank matrix
@@ -321,11 +369,11 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
  *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zge2lr_rqrrt( pastix_fixdbl_t tol, pastix_int_t rklimit,
+core_zge2lr_rqrrt( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
                    pastix_int_t m, pastix_int_t n,
                    const void *A, pastix_int_t lda,
                    pastix_lrblock_t *Alr )
 {
-    return core_zge2lr_qrrt( core_zrqrrt, tol, rklimit,
+    return core_zge2lr_qrrt( core_zrqrrt, use_reltol, tol, rklimit,
                              m, n, A, lda, Alr );
 }

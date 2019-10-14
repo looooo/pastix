@@ -102,19 +102,15 @@ core_ztqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
     pastix_int_t        j, k, in, itmp, d, ib, loop = 1;
     int                 ret;
     pastix_int_t        minMN, lwkopt;
-    pastix_int_t        b = 24;
-    pastix_int_t        p = 8;
-    pastix_int_t        bp = b + p;
+    pastix_int_t        p  = 5;
+    pastix_int_t        bp = ( nb < p ) ? 32 : nb;
+    pastix_int_t        b  = bp - p;
     pastix_int_t        size_B, size_O, size_W, size_Y, size_A, size_T, sublw;
     pastix_int_t        ldb, ldw, ldy;
     pastix_int_t       *jpvt_b;
     pastix_int_t        rk;
     double              tolB = sqrt( (double)(bp) ) * tol;
     pastix_complex64_t *AP, *Y, *WT, *T, *B, *tau_b, *omega, *subw;
-
-    if ( nb < 0 ) {
-        nb = 32;
-    }
 
     minMN = pastix_imin(m, n);
     if ( maxrank < 0 ) {
@@ -133,7 +129,7 @@ core_ztqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
     size_A = m * n;
     size_T = b * b;
 
-    sublw = n * nb + pastix_imax( bp, n );     /* pqrcp */
+    sublw = n * bp + pastix_imax( bp, n );     /* pqrcp */
     sublw = pastix_imax( sublw, size_O );      /* Omega */
     sublw = pastix_imax( sublw, b * maxrank ); /* update */
 
@@ -159,8 +155,22 @@ core_ztqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
     }
 #endif
 
-    if ( (minMN == 0) || (maxrank == 0) ) {
-        return 0;
+    /**
+     * If maximum rank is 0, then either the matrix norm is below the tolerance,
+     * and we can return a null rank matrix, or it is not and we need to return
+     * a full rank matrix.
+     */
+    if ( maxrank == 0 ) {
+        double norm;
+        if ( tol < 0. ) {
+            return 0;
+        }
+        norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
+                                    A, lda, NULL );
+        if ( norm < tol ) {
+            return 0;
+        }
+        return -1;
     }
 
     jpvt_b = malloc( n * sizeof(pastix_int_t) );
@@ -205,7 +215,7 @@ core_ztqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
     while ( loop )
     {
         ib = pastix_imin( b, minMN-rk );
-        d = core_zpqrcp( tolB, ib, 1, nb,
+        d = core_zpqrcp( tolB, ib, 1, bp,
                          bp, n-rk,
                          B      + rk * ldb, ldb,
                          jpvt_b + rk, tau_b,
@@ -405,6 +415,10 @@ core_ztqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
  *
  *******************************************************************************
  *
+ * @param[in] use_reltol
+ *          Defines if the kernel should use relative tolerance (tol *||A||), or
+ *          absolute tolerance (tol).
+ *
  * @param[in] tol
  *          The tolerance used as a criterion to eliminate information from the
  *          full rank matrix
@@ -431,12 +445,12 @@ core_ztqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
  *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zge2lr_tqrcp( pastix_fixdbl_t tol, pastix_int_t rklimit,
+core_zge2lr_tqrcp( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
                    pastix_int_t m, pastix_int_t n,
                    const void *A, pastix_int_t lda,
                    pastix_lrblock_t *Alr )
 {
-    return core_zge2lr_qrcp( core_ztqrcp, tol, rklimit,
+    return core_zge2lr_qrcp( core_ztqrcp, use_reltol, tol, rklimit,
                              m, n, A, lda, Alr );
 }
 

@@ -45,6 +45,13 @@ static pastix_complex64_t zzero =  0.0;
  *   finalize the computations, while in the paper above they use a spectrum
  *   revealing algorithm to refine the solution.
  *
+ * More information can also be found in Finding Structure with Randomness:
+ * Probabilistic Algorithms for Constructing Approximate Matrix
+ * Decompositions. N. Halko, P. G. Martinsson, and J. A. Tropp
+ *
+ * Based on this paper, we set the p parameter to 5, as it seems sufficient, and
+ * because we iterate multiple times to get the final rank.
+ *
  *******************************************************************************
  *
  * @param[in] tol
@@ -111,9 +118,9 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
     int                 SEED[4] = {26, 67, 52, 197};
     pastix_int_t        j, k, in, itmp, d, ib, loop = 1;
     int                 ret;
-    pastix_int_t        b = 24;
-    pastix_int_t        p = 8;
-    pastix_int_t        bp = b + p;
+    pastix_int_t        p  = 5;
+    pastix_int_t        bp = ( nb < p ) ? 32 : nb;
+    pastix_int_t        b  = bp - p;
     pastix_int_t        ldb = bp;
     pastix_int_t        ldo = bp;
     pastix_int_t        size_O = ldo * m;
@@ -126,7 +133,7 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
     pastix_complex64_t *tau_b = B + size_B;
     pastix_complex64_t *omega = tau_b + n;
     pastix_complex64_t *subw  = tau_b + n;
-    pastix_int_t        sublw = n * nb + pastix_imax( bp, n );
+    pastix_int_t        sublw = n * bp + pastix_imax( bp, n );
     sublw = pastix_imax( sublw, size_O );
 
     char trans;
@@ -135,10 +142,6 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
 #else
     trans = 'T';
 #endif
-
-    if ( nb < 0 ) {
-        nb = 32;
-    }
 
     lwkopt  = size_B + n + sublw;
     if ( lwork == -1 ) {
@@ -165,8 +168,23 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
         maxrank = minMN;
     }
     maxrank = pastix_imin( maxrank, minMN );
-    if ( (minMN == 0) || (maxrank == 0) ) {
-        return 0;
+
+    /**
+     * If maximum rank is 0, then either the matrix norm is below the tolerance,
+     * and we can return a null rank matrix, or it is not and we need to return
+     * a full rank matrix.
+     */
+    if ( maxrank == 0 ) {
+        double norm;
+        if ( tol < 0. ) {
+            return 0;
+        }
+        norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
+                                    A, lda, NULL );
+        if ( norm < tol ) {
+            return 0;
+        }
+        return -1;
     }
 
 #if defined(PASTIX_DEBUG_LR)
@@ -181,6 +199,8 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
 
     /* Computation of the Gaussian matrix */
     LAPACKE_zlarnv_work(3, SEED, size_O, omega);
+
+    /* Project with the gaussian matrix: B = Omega * A */
     cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                  bp, n, m,
                  CBLAS_SADDR(zone),  omega, ldo,
@@ -191,11 +211,11 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
     while ( loop )
     {
         ib = pastix_imin( b, minMN-rk );
-        d = core_zpqrcp( tolB, ib, 1, nb,
+        d = core_zpqrcp( tolB, ib, 1, bp,
                          bp, n-rk,
                          B + rk*ldb, ldb,
                          jpvt_b + rk, tau_b,
-                         subw, sublw, /* >= (n*nb)+max(bp, n) */
+                         subw, sublw, /* >= (n*bp)+max(bp, n) */
                          rwork );     /* >=  2*n */
 
         /* If fails to reach the tolerance before maxrank, let's restore the max value */
@@ -296,7 +316,7 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
          * Apply a Rank-revealing QR on the trailing submatrix to get the last
          * columns
          */
-        d = core_zpqrcp( tol, maxrank-rk, 0, nb,
+        d = core_zpqrcp( tol, maxrank-rk, 0, bp,
                          m-rk, n-rk,
                          A + rk * lda + rk, lda,
                          jpvt_b, tau + rk,
@@ -330,7 +350,7 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
         }
 
         rk += d;
-        if ( rk > maxrank) {
+        if ( rk > maxrank ) {
             rk = -1;
         }
     }
@@ -356,8 +376,12 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
  *
  *******************************************************************************
  *
+ * @param[in] use_reltol
+ *          Defines if the kernel should use relative tolerance (tol *||A||), or
+ *          absolute tolerance (tol).
+ *
  * @param[in] tol
- *          The tolerance used as a criterai to eliminate information from the
+ *          The tolerance used as a criteria to eliminate information from the
  *          full rank matrix
  *
  * @param[in] rklimit
@@ -382,12 +406,12 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
  *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zge2lr_rqrcp( pastix_fixdbl_t tol, pastix_int_t rklimit,
+core_zge2lr_rqrcp( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
                    pastix_int_t m, pastix_int_t n,
                    const void *A, pastix_int_t lda,
                    pastix_lrblock_t *Alr )
 {
-    return core_zge2lr_qrcp( core_zrqrcp, tol, rklimit,
+    return core_zge2lr_qrcp( core_zrqrcp, use_reltol, tol, rklimit,
                              m, n, A, lda, Alr );
 }
 
