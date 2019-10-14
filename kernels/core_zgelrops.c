@@ -714,7 +714,7 @@ core_zlrconcatenate_v( pastix_trans_t transA1, pastix_complex64_t alpha,
  *          factorization and create the low-rank form of A.
  *
  * @param[in] tol
- *          The tolerance used as a criteria to eliminate information from the
+ *          The tolerance used as a criterion to eliminate information from the
  *          full rank matrix
  *
  * @param[in] rklimit

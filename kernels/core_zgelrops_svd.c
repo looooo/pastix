@@ -81,7 +81,7 @@ static pastix_complex64_t zzero =  0.0;
  *******************************************************************************
  *
  * @param[in] tol
- *          The tolerance used as a criteria to eliminate information from the
+ *          The tolerance used as a criterion to eliminate information from the
  *          full rank matrix.
  *          If tol < 0, then we compress up to rklimit. So if rklimit is set to
  *          min(m,n), and tol < 0., we get a full representation of the matrix

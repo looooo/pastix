@@ -381,7 +381,7 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
  *          absolute tolerance (tol).
  *
  * @param[in] tol
- *          The tolerance used as a criteria to eliminate information from the
+ *          The tolerance used as a criterion to eliminate information from the
  *          full rank matrix
  *
  * @param[in] rklimit
