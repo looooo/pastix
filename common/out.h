@@ -47,6 +47,7 @@
     "    Compress minimal width                %8ld\n"          \
     "    Compress minimal height               %8ld\n"          \
     "    Compress min ratio                    %8f\n"           \
+    "    Tolerance criteria per block          %8s\n"           \
     "    Orthogonalization method              %8s\n"           \
     "    Splitting Strategy                    %8s\n"           \
     "    Levels of projections                 %8ld\n"          \

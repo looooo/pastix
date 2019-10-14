@@ -37,19 +37,52 @@
 #include "z_tests.h"
 #include "tests.h"
 
-double
-z_lowrank_ge2lr_performance( FILE *f, pastix_compress_method_t method, int prank, int mode, double tol_cmp,
-                             int m, int n, pastix_complex64_t *A, pastix_int_t lda,
-                             double normA )
+/**
+ *******************************************************************************
+ *
+ * @brief Compress a dense matrix with all the vectors to print the decrease of
+ * the residual norm.
+ *
+ *******************************************************************************
+ *
+ * @param[in,out] f
+ *          The output file to which the results are printed.
+ *
+ * @param[in] nbruns
+ *          The number of times the compression is performed ot get an average
+ *          result. nbruns > 1
+ *
+ * @param[in] lowrank
+ *          The data structure that defines the kernels used for the
+ *          compression. It also defines, the tolerance of the low-rank
+ *          representation and if absolute or relative tolerance is applied.
+ *
+ * @param[in] A
+ *          The test matrix to study.
+ *          On entry, m, n, ld, rk, and fr must be defined.
+ *
+ *******************************************************************************
+ *
+ * @retval 0 on success
+ * @retval <0, if one of the parameter is incorrect
+ * @retval >0, if one or more of the tests failed.
+ *
+ *******************************************************************************/
+int
+z_lowrank_ge2lr_performance( FILE *f, int nbruns,
+                             const pastix_lr_t   *lowrank,
+                             const test_matrix_t *A )
 {
-    fct_ge2lr_t core_ge2lr = ge2lrMethods[method][PastixComplex64-2];
     pastix_complex64_t *A2;
     pastix_lrblock_t    lrA;
+    pastix_int_t m     = A->m;
+    pastix_int_t n     = A->n;
+    pastix_int_t lda   = A->ld;
     pastix_int_t minMN = pastix_imin(m, n);
     pastix_fixdbl_t flops, gflops;
-    double resid, normR, timer;
-    double tol_gen = tol_cmp;
-    int rank, crank;
+    double resid, normR;
+    Clock timer, total_timer = 0.;
+    int i;
 
     if (m < 0) {
         fprintf(stderr, "Invalid m parameter\n");
@@ -67,48 +100,57 @@ z_lowrank_ge2lr_performance( FILE *f, pastix_compress_method_t method, int prank
     /* Backup A in A2 */
     A2 = malloc( m * n * sizeof(pastix_complex64_t));
     LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
-                         A, lda, A2, m );
+                         A->fr, lda, A2, m );
+
+    memset( &lrA, 0, sizeof(pastix_lrblock_t) );
 
     /* Compress A */
-    clockStart(timer);
-    core_ge2lr( tol_cmp, minMN, m, n, A, lda, &lrA );
-    clockStop(timer);
-    timer = clockVal(timer);
+    nbruns = pastix_imax( nbruns, 1 );
+    for (i=0; i<nbruns; i++) {
+        core_zlrfree(&lrA);
 
-    crank = lrA.rk;
-    rank = ( prank * n ) / 100;
+        clockStart(timer);
+        lowrank->core_ge2lr( lowrank->use_reltol, lowrank->tolerance,
+                             minMN, m, n, A->fr, lda, &lrA );
+        clockStop(timer);
+        assert( timer >= 0. );
+        total_timer += timer;
+    }
 
-    flops = FLOPS_ZGEQRF( m, rank ) +
-        FLOPS_ZUNMQR( m, n - rank, rank, PastixLeft ) +
-        FLOPS_ZUNGQR( m, rank, rank);
-    gflops = flops * 1e-9 / timer;
+    flops = FLOPS_ZGEQRF( m, A->rk ) +
+        FLOPS_ZUNMQR( m, n - A->rk, A->rk, PastixLeft ) +
+        FLOPS_ZUNGQR( m, A->rk, A->rk);
+    gflops = (nbruns * flops * 1.e-9) / total_timer;
 
     /*
-     * Let's check the result
+     * Let's check the last result
      */
     core_zlr2ge( PastixNoTrans, m, n,
                  &lrA, A2, lda );
 
     core_zgeadd( PastixNoTrans, m, n,
-                 -1., A,  lda,
-                  1., A2, lda );
+                 -1., A->fr, lda,
+                  1., A2,    lda );
 
     /* Frobenius norm of ||A - (U_i *V_i)|| */
     normR = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n, A2, lda, NULL );
-    resid = normR / ( tol_cmp * normA );
+    resid = lowrank->tolerance;
+    if ( (lowrank->use_reltol) && (A->norm > 0.) ) {
+        resid *= A->norm;
+    }
+    if ( lrA.rk > 0 ) {
+        resid *= (double)(lrA.rk);
+    }
+    resid = normR / resid;
 
     if ( f == stdout ) {
-        fprintf( f, "%7s %5d %4d %e %6d %5d %e %e %5d %e %e %e %e %s\n",
-                 compmeth_shnames[method], prank, mode, tol_gen,
-                 n, rank, normA,
-                 tol_cmp, crank, timer, gflops, normR, resid,
+        fprintf( f, " %5d %e %e %e %e %s\n",
+                 lrA.rk, total_timer/nbruns, gflops, normR, resid,
                  (resid > 10.) ? "FAILED" : "SUCCESS" );
     }
     else {
-        fprintf( f, "%s;%d;%d;%e;%d;%d;%e;%e;%d;%e;%e;%e;%e;%s\n",
-                 compmeth_shnames[method], prank, mode, tol_gen,
-                 n, rank, normA,
-                 tol_cmp, crank, timer, gflops, normR, resid,
+        fprintf( f, "%d;%e;%e;%e;%e;%s\n",
+                 lrA.rk, total_timer/nbruns, gflops, normR, resid,
                  (resid > 10.) ? "FAILED" : "SUCCESS" );
     }
 
@@ -119,13 +161,12 @@ z_lowrank_ge2lr_performance( FILE *f, pastix_compress_method_t method, int prank
 
 int main( int argc, char **argv )
 {
-    pastix_complex64_t *A;
-    pastix_int_t n, r, lda;
+    test_matrix_t A;
+    pastix_int_t n;
     int mode, p, i, ret, rc = 0;
-    double tolerance, tol_cmp, threshold;
-    double normA;
     test_param_t params;
     double eps = LAPACKE_dlamch_work('e');
+    pastix_lr_t lowrank;
 
     testGetOptions( argc, argv, &params, eps );
 
@@ -143,35 +184,62 @@ int main( int argc, char **argv )
                  "N", "Rank", "NormA",
                  "TolCmp", "CRank", "Time", "GFlops", "||A-UVt||_f", "||A-UVt||_f/(||A||_f * eps)" );
     }
-    tolerance = params.tol_gen;
-    threshold = params.threshold;
-    tol_cmp = params.tol_cmp;
+
+    lowrank.compress_when       = PastixCompressWhenEnd;
+    lowrank.compress_method     = PastixCompressMethodPQRCP;
+    lowrank.compress_min_width  = 0;
+    lowrank.compress_min_height = 0;
+    lowrank.use_reltol          = params.use_reltol;
+    lowrank.tolerance           = params.tol_cmp;
+    lowrank.core_ge2lr          = core_zge2lr_svd;
+    lowrank.core_rradd          = core_zrradd_svd;
 
     for (n=params.n[0]; n<=params.n[1]; n+=params.n[2]) {
-        lda = n;
-        A = malloc( n * lda * sizeof(pastix_complex64_t) );
+        A.m  = n;
+        A.n  = n;
+        A.ld = n;
+        A.fr = malloc( A.ld * A.n * sizeof(pastix_complex64_t) );
 
         for (p=params.prank[0]; p<=params.prank[1]; p+=params.prank[2]) {
-            r = (p * n) / 100;
+            A.rk = (p * n) / 100;
 
             for (mode=params.mode[0]; mode<=params.mode[1]; mode+=params.mode[2])
             {
                 /*
                  * Generate a matrix of a given rank for the prescribed tolerance
                  */
-                z_lowrank_genmat( mode, tolerance, threshold, r,
-                                  n, n, A, lda, &normA );
+                z_lowrank_genmat( mode, params.tol_gen,
+                                  params.threshold, &A );
 
                 /* Let's test all methods we have */
                 for(i=params.method[0]; i<=params.method[1]; i+=params.method[2])
                 {
-                    ret = z_lowrank_ge2lr_performance( params.output, i, p, mode, tol_cmp,
-                                                       n, n, A, lda, normA );
+                    lowrank.compress_method = i;
+                    lowrank.core_ge2lr = ge2lrMethods[i][PastixComplex64-2];
+                    lowrank.core_rradd = rraddMethods[i][PastixComplex64-2];
+
+                    if ( params.output == stdout ) {
+                        fprintf( params.output, "%7s %5d %4d %e %6d %5d %e %e",
+                                 compmeth_shnames[i], p, mode, params.tol_gen,
+                                 A.n, A.rk, A.norm, params.tol_cmp );
+                    }
+                    else {
+                        fprintf( params.output, "%s;%d;%d;%e;%d;%d;%e;%e;",
+                                 compmeth_shnames[i], p, mode, params.tol_gen,
+                                 A.n, A.rk, A.norm, params.tol_cmp );
+                    }
+
+                    ret = z_lowrank_ge2lr_performance( params.output, params.nb_runs,
+                                                       &lowrank, &A );
                     rc += (ret ? 1 : 0 );
                 }
             }
         }
-        free(A);
+        free(A.fr);
+    }
+
+    if ( params.output != stdout ) {
+        fclose( params.output );
     }
 
     if( rc == 0 ) {

@@ -39,20 +39,47 @@
 
 static pastix_complex64_t mzone = -1.0;
 
+/**
+ *******************************************************************************
+ *
+ * @brief Compress a dense matrix with all the vectors to print the decrease of
+ * the residual norm.
+ *
+ *******************************************************************************
+ *
+ * @param[in] lowrank
+ *          The data structure that defines the kernels used for the
+ *          compression. It also defines, the tolerance of the low-rank
+ *          representation and if absolute or relative tolerance is applied.
+ *
+ * @param[in] A
+ *          The test matrix to study.
+ *          On entry, m, n, ld, rk, and fr must be defined.
+ *
+ * @param[in,out] output
+ *          The output file to which the residuals norm are dumped into.
+ *
+ *******************************************************************************
+ *
+ * @retval 0 on success
+ * @retval <0, if one of the parameter is incorrect
+ * @retval >0, if one or more of the tests failed.
+ *
+ *******************************************************************************/
 int
-z_lowrank_stability_ge2lr( int mode, pastix_compress_method_t method, double tolerance,
-                           pastix_int_t m, pastix_int_t n,
-                           pastix_complex64_t *A, pastix_int_t lda,
-                           double normA,
-                           fct_ge2lr_t core_ge2lr, pastix_int_t prank )
+z_lowrank_stability_ge2lr( const pastix_lr_t   *lowrank,
+                           const test_matrix_t *A,
+                           FILE                *output )
 {
     pastix_lrblock_t    lrA;
     pastix_complex64_t *A2;
     pastix_complex64_t *u, *v;
+    pastix_int_t m     = A->m;
+    pastix_int_t n     = A->n;
+    pastix_int_t lda   = A->ld;
     pastix_int_t minMN = pastix_imin(m, n);
     pastix_int_t i, ldu, ldv;
     double norm_residual;
-    FILE *f;
 
     if (m < 0) {
         fprintf(stderr, "Invalid m parameter\n");
@@ -67,53 +94,31 @@ z_lowrank_stability_ge2lr( int mode, pastix_compress_method_t method, double tol
         return -6;
     }
 
-    /* Backup A in A2 */
+    /* Backup A into A2 */
     A2 = malloc( m * n * sizeof(pastix_complex64_t));
     LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
-                         A, lda, A2, m );
+                         A->fr, lda, A2, m );
 
     /*
-     * Compress and then uncompress
+     * Fully compress the matrix A
      */
-    core_ge2lr( -1., minMN, m, n, A, lda, &lrA );
+    lowrank->core_ge2lr( 1, -1., minMN, m, n, A->fr, lda, &lrA );
 
     /* Let's check we have the maximal rank */
     assert( lrA.rk == minMN );
 
-    /* Open the file */
-    {
-        char *filename;
-        int rc;
-
-        rc = asprintf( &filename, "stability_m%d_n%d_mode%d_tol%e_prank%d_%s.log",
-                       (int)m, (int)n, mode, tolerance, (int)prank, compmeth_shnames[method]);
-        f = fopen( filename, "w" );
-        free(filename);
-        (void)rc;
-    }
-
-    fprintf( f,
-             "# method = %s\n"
-             "# mode = %d\n"
-             "# M = %d\n"
-             "# N = %d\n"
-             "# tol = %e\n"
-             "# ||A|| = %e\n",
-             compmeth_lgnames[method], mode,
-             (int)m, (int)n, tolerance, normA );
-
     /*
      * Let's compute the frobenius norm of A - U[:,1:i] * V[:,1:i]^T for i in [1:minMN]
      */
-    u = lrA.u;
-    v = lrA.v;
+    u   = lrA.u;
+    v   = lrA.v;
     ldu = m;
     ldv = lrA.rkmax;
     for(i=0; i<minMN; i++) {
         norm_residual = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
                                              A2, m, NULL );
 
-        fprintf( f, "%d %e\n", (int)(i+1), norm_residual/normA );
+        fprintf( output, "%4d %e\n", (int)(i+1), norm_residual/A->norm );
 
 	/* Subtract the i^th outer product */
         cblas_zgerc( CblasColMajor, m, n,
@@ -123,54 +128,87 @@ z_lowrank_stability_ge2lr( int mode, pastix_compress_method_t method, double tol
                      A2,          m );
     }
 
-    fclose(f);
     core_zlrfree(&lrA);
     free(A2);
 
-    (void)normA;
     return 0;
 }
 
 int main( int argc, char **argv )
 {
-    pastix_complex64_t *A;
-    pastix_int_t n, r, lda;
-    int mode, p, i;
+    test_matrix_t A;
+    pastix_int_t n;
+    int mode, p, i, rc;
     double tolerance, threshold;
-    double normA;
     test_param_t params;
     double eps = LAPACKE_dlamch_work('e');
+    pastix_lr_t lowrank;
 
     testGetOptions( argc, argv, &params, eps );
+
+    lowrank.compress_when       = PastixCompressWhenEnd;
+    lowrank.compress_method     = PastixCompressMethodPQRCP;
+    lowrank.compress_min_width  = 0;
+    lowrank.compress_min_height = 0;
+    lowrank.use_reltol          = 1;
+    lowrank.tolerance           = params.tol_gen;
+    lowrank.core_ge2lr          = core_zge2lr_svd;
+    lowrank.core_rradd          = core_zrradd_svd;
 
     tolerance = params.tol_gen;
     threshold = params.threshold;
     for (n=params.n[0]; n<=params.n[1]; n+=params.n[2]) {
-        lda = n;
-        A = malloc( n * lda * sizeof(pastix_complex64_t) );
+        A.m  = n;
+        A.n  = n;
+        A.ld = n;
+        A.fr = malloc( A.ld * A.n * sizeof(pastix_complex64_t) );
 
         for (p=params.prank[0]; p<=params.prank[1]; p+=params.prank[2]) {
-            r = (p * n) / 100;
+            A.rk = (p * n) / 100;
 
             for (mode=params.mode[0]; mode<=params.mode[1]; mode+=params.mode[2]) {
                 printf( "   -- Test GE2LR Tol=%e M=N=LDA=%ld R=%ld MODE=%d\n",
-                        tolerance, (long)n, (long)r, mode );
+                        tolerance, (long)A.n, (long)A.rk, mode );
 
                 /*
                  * Generate a matrix of a given rank for the prescribed tolerance
                  */
-                z_lowrank_genmat( mode, tolerance, threshold, r,
-                                  n, n, A, lda, &normA );
+                z_lowrank_genmat( mode, tolerance, threshold, &A );
 
                 /* Let's test all methods we have */
                 for(i=params.method[0]; i<=params.method[1]; i+=params.method[2])
                 {
-                    z_lowrank_stability_ge2lr( mode, i, tolerance,
-                                               n, n, A, lda, normA,
-                                               ge2lrMethods[i][PastixComplex64-2], p );
+                    FILE *f;
+                    char *filename;
+
+                    lowrank.compress_method = i;
+                    lowrank.core_ge2lr = ge2lrMethods[i][PastixComplex64-2];
+                    lowrank.core_rradd = rraddMethods[i][PastixComplex64-2];
+
+                    rc = asprintf( &filename,
+                                   "stability_m%d_n%d_mode%d_tol%e_prank%d_%s.log",
+                                   (int)A.m, (int)A.n, mode, tolerance, (int)A.rk,
+                                   compmeth_shnames[i]);
+                    f = fopen( filename, "w" );
+                    free(filename);
+
+                    fprintf( f,
+                             "# method = %s\n"
+                             "# mode = %d\n"
+                             "# M = %d\n"
+                             "# N = %d\n"
+                             "# tol = %e\n"
+                             "# ||A|| = %e\n",
+                             compmeth_lgnames[i], mode,
+                             (int)A.m, (int)A.n, tolerance, A.norm );
+
+                    z_lowrank_stability_ge2lr( &lowrank, &A, f );
+                    fclose(f);
                 }
             }
         }
-        free(A);
+
+        free(A.fr);
     }
+    (void)rc;
 }

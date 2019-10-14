@@ -61,6 +61,7 @@ set(SOURCES
   core_zpxtrfsp.c
   core_zgetrfsp.c
   # Low-rank kernels
+  core_zlrnrm.c
   core_zlrdbg.c
   core_zlr2xx.c
   core_zxx2lr.c

@@ -57,6 +57,8 @@ test_usage(void)
             "    --p_range      : Defines the rank percentage range pmin:pmax:pstep\n"
             " -x --method       : Defines the compression method\n"
             "    --x_range      : Defines the compression method range xmin:xmax:xstep\n"
+            " -i --niter        : Defines the number of iteation per test case\n"
+            " -r --reltol       : Defines is the system uses relative or absolute tolerance\n"
             " -t --tol_gen      : Defines the precision with which the matrix is generated\n"
             "    --tol_cmp      : Defines the compression tolerance (Default: tol_gen)\n"
             " -s --threshold    : Defines the precision threshold with which the matrix is generated\n"
@@ -71,7 +73,7 @@ test_usage(void)
 /**
  * @brief Define the options and their requirement used by the low-rank tests
  */
-#define GETOPT_STRING "n:N:m:M:p:P:x:X:t:T:o:s:h"
+#define GETOPT_STRING "i:n:N:m:M:p:P:x:X:r:t:T:o:s:h"
 
 #if defined(HAVE_GETOPT_LONG)
 /**
@@ -85,6 +87,8 @@ static struct option long_options[] =
     {"m_range",   required_argument, 0, 'M'},
     {"p",         required_argument, 0, 'p'},
     {"p_range",   required_argument, 0, 'P'},
+    {"r",         required_argument, 0, 'r'},
+    {"reltol",    required_argument, 0, 'r'},
     {"x",         required_argument, 0, 'x'},
     {"x_range",   required_argument, 0, 'X'},
     {"tol_gen",   required_argument, 0, 't'},
@@ -92,6 +96,8 @@ static struct option long_options[] =
     {"threshold", required_argument, 0, 's'},
     {"output",    required_argument, 0, 'o'},
     {"help",      no_argument,       0, 'h'},
+    {"i",         required_argument, 0, 'i'},
+    {"niter",     required_argument, 0, 'i'},
     {0, 0, 0, 0}
 };
 #endif  /* defined(HAVE_GETOPT_LONG) */
@@ -122,6 +128,9 @@ testGetOptions( int argc, char **argv,
     params->method[1] = PastixCompressMethodNbr-1;
     params->method[2] = 1;
 
+    params->nb_runs    = 1;
+    params->use_reltol = 0;
+
     params->tol_gen = sqrt( eps );
     params->tol_cmp = params->tol_gen;
     params->threshold = params->tol_gen * params->tol_gen;
@@ -139,6 +148,10 @@ testGetOptions( int argc, char **argv,
 
         switch(c)
         {
+        case 'i':
+            params->nb_runs = atoi( optarg );
+            break;
+
         case 'n':
             params->n[0] = atoi( optarg );
             params->n[1] = params->n[0];
@@ -167,6 +180,10 @@ testGetOptions( int argc, char **argv,
 
         case 'P':
             get_range( optarg, params->prank );
+            break;
+
+        case 'r':
+            params->use_reltol = atoi( optarg ) ? 1 : 0;
             break;
 
         case 'x':

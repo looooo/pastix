@@ -81,14 +81,15 @@ module pastix_enums
      enumerator :: IPARM_COMPRESS_WHEN                  = 60
      enumerator :: IPARM_COMPRESS_METHOD                = 61
      enumerator :: IPARM_COMPRESS_ORTHO                 = 62
-     enumerator :: IPARM_THREAD_COMM_MODE               = 63
-     enumerator :: IPARM_MODIFY_PARAMETER               = 64
-     enumerator :: IPARM_START_TASK                     = 65
-     enumerator :: IPARM_END_TASK                       = 66
-     enumerator :: IPARM_FLOAT                          = 67
-     enumerator :: IPARM_MTX_TYPE                       = 68
-     enumerator :: IPARM_DOF_NBR                        = 69
-     enumerator :: IPARM_SIZE                           = 69
+     enumerator :: IPARM_COMPRESS_RELTOL                = 63
+     enumerator :: IPARM_THREAD_COMM_MODE               = 64
+     enumerator :: IPARM_MODIFY_PARAMETER               = 65
+     enumerator :: IPARM_START_TASK                     = 66
+     enumerator :: IPARM_END_TASK                       = 67
+     enumerator :: IPARM_FLOAT                          = 68
+     enumerator :: IPARM_MTX_TYPE                       = 69
+     enumerator :: IPARM_DOF_NBR                        = 70
+     enumerator :: IPARM_SIZE                           = 70
   end enum
 
   ! enum dparm

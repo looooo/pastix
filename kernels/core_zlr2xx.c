@@ -180,7 +180,7 @@ core_zlr2lr( core_zlrmm_t           *params,
         /* Try to recompress */
         kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_recompress );
         core_zlrfree(C); // TODO: Can we give it directly to ge2lr as this
-        flops = lowrank->core_ge2lr( lowrank->tolerance, -1, Cm, Cn, Cfr, Cm, C );
+        flops = lowrank->core_ge2lr( lowrank->use_reltol, lowrank->tolerance, -1, Cm, Cn, Cfr, Cm, C );
         kernel_trace_stop_lvl2_rank( flops, C->rk );
         total_flops += flops;
 
@@ -278,7 +278,7 @@ core_zlr2null(core_zlrmm_t           *params,
 
         /* Try to recompress C */
         kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_recompress );
-        flops = lowrank->core_ge2lr( lowrank->tolerance, -1, Cm, Cn, Cfr, Cm, C );
+        flops = lowrank->core_ge2lr( lowrank->use_reltol, lowrank->tolerance, -1, Cm, Cn, Cfr, Cm, C );
         kernel_trace_stop_lvl2_rank( flops, C->rk );
         total_flops += flops;
 
@@ -316,7 +316,7 @@ core_zlr2null(core_zlrmm_t           *params,
                 flops = 0.0;
             }
 
-            flops += lowrank->core_ge2lr( lowrank->tolerance, rklimit,
+            flops += lowrank->core_ge2lr( lowrank->use_reltol, lowrank->tolerance, rklimit,
                                           M, N, ABfr, M, &backup );
 
             core_zlrcpy( lowrank, PastixNoTrans, alpha,

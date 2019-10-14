@@ -90,8 +90,7 @@ computeNbSplit( const BlendCtrl *ctrl,
     if( width <= blas_max_col) {
         return 1;
     }
-    nseq = width / blas_min_col;
-    //nseq = pastix_iceil( width, step );
+    nseq = pastix_iceil( width, blas_max_col );
 
     /* Make sure cblk are at least blas_min_col wide */
     if ( nseq > 1 && (width / nseq) < blas_min_col ) {

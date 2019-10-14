@@ -159,7 +159,7 @@ coeftab_zdiff( pastix_coefside_t   side,
 pastix_int_t
 coeftab_zcompress( SolverMatrix *solvmtx )
 {
-    SolverCblk *cblk  = solvmtx->cblktab;
+    SolverCblk       *cblk = solvmtx->cblktab;
     pastix_coefside_t side = (solvmtx->factotype == PastixFactLU) ? PastixLUCoef : PastixLCoef;
     pastix_int_t cblknum, gain = 0;
 

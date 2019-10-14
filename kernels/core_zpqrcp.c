@@ -149,8 +149,23 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
         maxrank = minMN;
     }
     maxrank = pastix_imin( minMN, maxrank );
-    if ( (minMN == 0) || (maxrank == 0) ) {
-        return 0;
+
+    /**
+     * If maximum rank is 0, then either the matrix norm is below the tolerance,
+     * and we can return a null rank matrix, or it is not and we need to return
+     * a full rank matrix.
+     */
+    if ( maxrank == 0 ) {
+        double norm;
+        if ( tol < 0. ) {
+            return 0;
+        }
+        norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n,
+                                    A, lda, NULL );
+        if ( norm < tol ) {
+            return 0;
+        }
+        return -1;
     }
 
     VN1 = rwork;
@@ -390,8 +405,12 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
  *
  *******************************************************************************
  *
+ * @param[in] use_reltol
+ *          Defines if the kernel should use relative tolerance (tol *||A||), or
+ *          absolute tolerance (tol).
+ *
  * @param[in] tol
- *          The tolerance used as a criterai to eliminate information from the
+ *          The tolerance used as a criteria to eliminate information from the
  *          full rank matrix
  *
  * @param[in] rklimit
@@ -416,12 +435,12 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
  *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zge2lr_pqrcp( pastix_fixdbl_t tol, pastix_int_t rklimit,
+core_zge2lr_pqrcp( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
                    pastix_int_t m, pastix_int_t n,
                    const void *A, pastix_int_t lda,
                    pastix_lrblock_t *Alr )
 {
-    return core_zge2lr_qrcp( core_zpqrcp, tol, rklimit,
+    return core_zge2lr_qrcp( core_zpqrcp, use_reltol, tol, rklimit,
                              m, n, A, lda, Alr );
 }
 

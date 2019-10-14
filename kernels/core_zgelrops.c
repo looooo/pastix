@@ -418,14 +418,14 @@ core_zlrcpy( const pastix_lr_t *lowrank,
     pastix_int_t ldau, ldav;
     int ret;
 
-    assert( A->rk <= core_get_rklimit( M2, N2 ) );
     assert( (M1 + offx) <= M2 );
     assert( (N1 + offy) <= N2 );
 
     ldau = (A->rk == -1) ? A->rkmax : M1;
     ldav = (transAv == PastixNoTrans) ? A->rkmax : N1;
 
-    core_zlrsze( 0, M2, N2, B, A->rk, -1, -1 );
+    core_zlrfree( B );
+    core_zlralloc( M2, N2, A->rk, B );
     u = B->u;
     v = B->v;
 
@@ -467,7 +467,7 @@ core_zlrcpy( const pastix_lr_t *lowrank,
 
         core_zlr2ge( PastixNoTrans, M2, N2, B, work, M2 );
 
-        lowrank->core_ge2lr( lowrank->tolerance, -1, M2, N2, work, M2, B );
+        lowrank->core_ge2lr( lowrank->use_reltol, lowrank->tolerance, -1, M2, N2, work, M2, B );
 
         free(work);
     }
@@ -714,7 +714,7 @@ core_zlrconcatenate_v( pastix_trans_t transA1, pastix_complex64_t alpha,
  *          factorization and create the low-rank form of A.
  *
  * @param[in] tol
- *          The tolerance used as a criterai to eliminate information from the
+ *          The tolerance used as a criteria to eliminate information from the
  *          full rank matrix
  *
  * @param[in] rklimit
@@ -740,7 +740,7 @@ core_zlrconcatenate_v( pastix_trans_t transA1, pastix_complex64_t alpha,
  *******************************************************************************/
 pastix_fixdbl_t
 core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct,
-                  pastix_fixdbl_t tol, pastix_int_t rklimit,
+                  int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
                   pastix_int_t m, pastix_int_t n,
                   const void *Avoid, pastix_int_t lda,
                   pastix_lrblock_t *Alr )
@@ -767,7 +767,13 @@ core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct,
 
     /* work */
     rklimit = ( rklimit < 0 ) ? core_get_rklimit( m, n ) : rklimit;
-    tol = ( tol < 0. ) ? -1. : tol * norm;
+    if ( tol < 0. ) {
+        tol = -1.;
+    }
+    else if ( use_reltol ) {
+        tol = tol * norm;
+    }
+
     ret = rrqrfct( tol, rklimit, 0, nb,
                    m, n, NULL, m,
                    NULL, NULL,
@@ -922,7 +928,7 @@ core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct,
  *******************************************************************************/
 pastix_fixdbl_t
 core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct,
-                  pastix_fixdbl_t tol, pastix_int_t rklimit,
+                  int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
                   pastix_int_t m, pastix_int_t n,
                   const void *Avoid, pastix_int_t lda,
                   pastix_lrblock_t *Alr )
@@ -955,7 +961,13 @@ core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct,
 
     /* work */
     rklimit = ( rklimit < 0 ) ? core_get_rklimit( m, n ) : rklimit;
-    tol = ( tol < 0. ) ? -1. : tol * norm;
+    if ( tol < 0. ) {
+        tol = -1.;
+    }
+    else if ( use_reltol ) {
+        tol = tol * norm;
+    }
+
     ret = rrqrfct( tol, rklimit, nb,
                    m, n,
                    NULL, m, NULL,
@@ -1164,7 +1176,6 @@ core_zrradd_qr( core_zrrqr_cp_t rrqrfct,
     pastix_complex64_t *u1u2, *v1v2, *u;
     pastix_complex64_t *zbuf, *tauV;
     size_t wzsize;
-    double norm;
     double tol = lowrank->tolerance;
 
     /* PQRCP parameters / workspace */
@@ -1354,8 +1365,12 @@ core_zrradd_qr( core_zrrqr_cp_t rrqrfct,
 
     MALLOC_INTERN( jpvt, pastix_imax(rank, N), pastix_int_t );
 
-    norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, N,
-                                v1v2, ldv, NULL );
+    if ( lowrank->use_reltol ) {
+        double normA, normB;
+        normA = core_zlrnrm( PastixFrobeniusNorm, transA1,       M1, N1, A );
+        normB = core_zlrnrm( PastixFrobeniusNorm, PastixNoTrans, M2, N2, B );
+        tol = tol * ( cabs(alpha) * normA + normB );
+    }
 
     /*
      * Perform RRQR factorization on (I u2Tu1) v1v2 = (Q2 R2)
@@ -1363,7 +1378,7 @@ core_zrradd_qr( core_zrrqr_cp_t rrqrfct,
      */
     kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_rradd_recompression );
     rklimit = pastix_imin( rklimit, rank );
-    new_rank = rrqrfct( tol * norm, rklimit, 1, nb,
+    new_rank = rrqrfct( tol, rklimit, 1, nb,
                         rank, N, v1v2, ldv,
                         jpvt, tauV,
                         zwork, lwork, rwork );

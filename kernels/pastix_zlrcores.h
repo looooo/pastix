@@ -50,6 +50,11 @@ void core_zlrconcatenate_v( pastix_trans_t transA1, pastix_complex64_t alpha,
                                              pastix_int_t N2,       pastix_lrblock_t *B,
                             pastix_int_t offy,
                             pastix_complex64_t *v1v2 );
+
+double core_zlrnrm( pastix_normtype_t ntype, int transV,
+                    pastix_int_t M, pastix_int_t N,
+                    const pastix_lrblock_t *A );
+
 /**
  *     @}
  * @}
@@ -221,7 +226,8 @@ pastix_fixdbl_t core_zlrmm( core_zlrmm_t *params );
  *    @{
  */
 
-pastix_fixdbl_t core_zge2lr_svd( pastix_fixdbl_t tol, pastix_int_t rklimit, pastix_int_t m, pastix_int_t n,
+pastix_fixdbl_t core_zge2lr_svd( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
+                                 pastix_int_t m, pastix_int_t n,
                                  const void *Avoid, pastix_int_t lda, pastix_lrblock_t *Alr );
 pastix_fixdbl_t core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
                                  pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
@@ -259,36 +265,42 @@ typedef int (*core_zrrqr_rt_t)( double tol, pastix_int_t maxrank, pastix_int_t n
  *    @{
  */
 
-pastix_fixdbl_t core_zge2lr_pqrcp( pastix_fixdbl_t tol, pastix_int_t rklimit, pastix_int_t m, pastix_int_t n,
+pastix_fixdbl_t core_zge2lr_pqrcp( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
+                                   pastix_int_t m, pastix_int_t n,
                                    const void *Avoid, pastix_int_t lda, pastix_lrblock_t *Alr );
 pastix_fixdbl_t core_zrradd_pqrcp( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
                                    pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                                    pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
                                    pastix_int_t offx, pastix_int_t offy );
 
-pastix_fixdbl_t core_zge2lr_rqrcp( pastix_fixdbl_t tol, pastix_int_t rklimit, pastix_int_t m, pastix_int_t n,
+pastix_fixdbl_t core_zge2lr_rqrcp( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
+                                   pastix_int_t m, pastix_int_t n,
                                    const void *Avoid, pastix_int_t lda, pastix_lrblock_t *Alr );
 pastix_fixdbl_t core_zrradd_rqrcp( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
                                    pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                                    pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
                                    pastix_int_t offx, pastix_int_t offy );
 
-pastix_fixdbl_t core_zge2lr_tqrcp( pastix_fixdbl_t tol, pastix_int_t rklimit, pastix_int_t m, pastix_int_t n,
+pastix_fixdbl_t core_zge2lr_tqrcp( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
+                                   pastix_int_t m, pastix_int_t n,
                                    const void *Avoid, pastix_int_t lda, pastix_lrblock_t *Alr );
 pastix_fixdbl_t core_zrradd_tqrcp( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
                                    pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
                                    pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
                                    pastix_int_t offx, pastix_int_t offy );
 
-pastix_fixdbl_t core_zge2lr_rqrrt( pastix_fixdbl_t tol, pastix_int_t rklimit, pastix_int_t m, pastix_int_t n,
+pastix_fixdbl_t core_zge2lr_rqrrt( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
+                                   pastix_int_t m, pastix_int_t n,
                                    const void *Avoid, pastix_int_t lda, pastix_lrblock_t *Alr );
 
 
-pastix_fixdbl_t core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct, pastix_fixdbl_t tol, pastix_int_t rklimit,
+pastix_fixdbl_t core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct,
+                                  int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
                                   pastix_int_t m, pastix_int_t n,
                                   const void *Avoid, pastix_int_t lda,
                                   pastix_lrblock_t *Alr );
-pastix_fixdbl_t core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct, pastix_fixdbl_t tol, pastix_int_t rklimit,
+pastix_fixdbl_t core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct,
+                                  int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
                                   pastix_int_t m, pastix_int_t n,
                                   const void *Avoid, pastix_int_t lda,
                                   pastix_lrblock_t *Alr);

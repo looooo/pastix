@@ -82,7 +82,10 @@ static pastix_complex64_t zzero =  0.0;
  *
  * @param[in] tol
  *          The tolerance used as a criteria to eliminate information from the
- *          full rank matrix
+ *          full rank matrix.
+ *          If tol < 0, then we compress up to rklimit. So if rklimit is set to
+ *          min(m,n), and tol < 0., we get a full representation of the matrix
+ *          under the form U * V^t.
  *
  * @param[in] rklimit
  *          The maximum rank to store the matrix in low-rank format. If
@@ -106,7 +109,7 @@ static pastix_complex64_t zzero =  0.0;
  *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zge2lr_svd( pastix_fixdbl_t tol, pastix_int_t rklimit,
+core_zge2lr_svd( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
                  pastix_int_t m, pastix_int_t n,
                  const void *Avoid, pastix_int_t lda,
                  pastix_lrblock_t *Alr )
@@ -137,23 +140,40 @@ core_zge2lr_svd( pastix_fixdbl_t tol, pastix_int_t rklimit,
                                 A, lda, NULL );
 
     /* Quick return on norm */
-    if ( (norm == 0.) && (tol >= 0.)) {
+    if ( (norm == 0.) && (tol >= 0.) ) {
         core_zlralloc( m, n, 0, Alr );
         return 0. ;
     }
 
     rklimit = ( rklimit < 0 ) ? core_get_rklimit( m, n ) : rklimit;
-    tol = ( tol < 0. ) ? -1. : tol * norm;
+    if ( tol < 0. ) {
+        tol = -1.;
+    }
+    else if ( use_reltol ) {
+        tol = tol * norm;
+    }
 
     /* Quick return on max rank */
     minMN = pastix_imin(m, n);
-    if ( rklimit < 0 ) {
-        rklimit = minMN;
-    }
     rklimit = pastix_imin( minMN, rklimit );
-    if ( (minMN == 0) || (rklimit == 0) ) {
-        core_zlralloc( m, n, 0, Alr );
-        return 0;
+
+    /**
+     * If maximum rank is 0, then either the matrix norm is below the tolerance,
+     * and we can return a null rank matrix, or it is not and we need to return
+     * a full rank matrix.
+     */
+    if ( rklimit == 0 ) {
+        if ( (tol < 0.) || (norm < tol) ) {
+            core_zlralloc( m, n, 0, Alr );
+            return 0.;
+        }
+
+        /* Return full rank */
+        core_zlralloc( m, n, -1, Alr );
+        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
+                                   A, lda, Alr->u, Alr->rkmax );
+        assert(ret == 0);
+        return 0.;
     }
 
     /*
@@ -322,7 +342,6 @@ core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void 
     pastix_complex64_t  querysize;
     pastix_complex64_t  alpha = *((pastix_complex64_t*)alphaptr);
     double *s;
-    double norm, relative_tolerance;
     size_t wzsize, wdsize;
     double tol = lowrank->tolerance;
     pastix_fixdbl_t flops, total_flops = 0.0;
@@ -474,9 +493,12 @@ core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void 
                 v1v2, rank, R, rank);
     total_flops += FLOPS_ZTRMM( PastixRight, rank, rank );
 
-    norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, rank,
-                               R, rank, NULL );
-    relative_tolerance = tol * norm;
+    if ( lowrank->use_reltol ) {
+        double normA, normB;
+        normA = core_zlrnrm( PastixFrobeniusNorm, transA1,       M1, N1, A );
+        normB = core_zlrnrm( PastixFrobeniusNorm, PastixNoTrans, M2, N2, B );
+        tol = tol * ( cabs(alpha) * normA + normB );
+    }
 
     /*
      * Compute svd(R) = u sigma v^t
@@ -501,13 +523,11 @@ core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void 
     tmp = v;
 
     for (i=0; i<rank; i++, tmp+=1){
-        if (s[i] > relative_tolerance)
+        if (s[i] <= tol)
         {
-            cblas_zdscal(rank, s[i], tmp, rank);
-        }
-        else {
             break;
         }
+        cblas_zdscal(rank, s[i], tmp, rank);
     }
     new_rank = i;
     kernel_trace_stop_lvl2_rank( flops, new_rank );

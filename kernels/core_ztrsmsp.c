@@ -271,7 +271,7 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                         pastix_lrblock_t C;
 
                         kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
-                        flops_c = lowrank->core_ge2lr( lowrank->tolerance, -1,
+                        flops_c = lowrank->core_ge2lr( lowrank->use_reltol, lowrank->tolerance, -1,
                                                        M, N, lrC->u, M, &C );
                         kernel_trace_stop_lvl2_rank( flops_c, C.rk );
                         flops += flops_c;
@@ -590,7 +590,7 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
 
                 /* TODO: add preselected vertices here !!!  */
                 kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
-                flops = lowrank->core_ge2lr( lowrank->tolerance, -1,
+                flops = lowrank->core_ge2lr( lowrank->use_reltol, lowrank->tolerance, -1,
                                              M, N, lrC->u, M, &C );
                 kernel_trace_stop_lvl2_rank( flops, C.rk );
 

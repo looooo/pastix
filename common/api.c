@@ -150,6 +150,7 @@ pastix_gendirectories( pastix_data_t *pastix_data )
     {
         pastix_data->dir_local = strdup( *dir_global );
     }
+    (void)rc;
 }
 
 /**
@@ -300,9 +301,11 @@ pastixWelcome( const pastix_data_t *pastix )
                       /* Compress width  */ (long)pastix->iparm[IPARM_COMPRESS_MIN_WIDTH],
                       /* Compress height */ (long)pastix->iparm[IPARM_COMPRESS_MIN_HEIGHT],
                       /* Min ratio       */ (double)pastix->dparm[DPARM_COMPRESS_MIN_RATIO],
-                      /* Ortho    method */ ((pastix->iparm[IPARM_COMPRESS_ORTHO] == PastixCompressOrthoCGS) ? "CGS" : (pastix->iparm[IPARM_COMPRESS_ORTHO] == PastixCompressOrthoQR) ? "QR" : "partialQR"),
-                      /* Splitting strategy    */ ((pastix->iparm[IPARM_SPLITTING_STRATEGY] == PastixSplitNot)             ? "Not used" :
-                                                   (pastix->iparm[IPARM_SPLITTING_STRATEGY] == PastixSplitKway)            ? "KWAY" : "KWAY and projections"),
+                      /* Tolerance used  */ pastix->iparm[IPARM_COMPRESS_RELTOL] ? "Relative" : "Absolute",
+                      /* Ortho method    */ ((pastix->iparm[IPARM_COMPRESS_ORTHO] == PastixCompressOrthoCGS) ? "CGS" :
+                                             (pastix->iparm[IPARM_COMPRESS_ORTHO] == PastixCompressOrthoQR)  ? "QR" : "partialQR"),
+                      /* Splitting strategy    */ ((pastix->iparm[IPARM_SPLITTING_STRATEGY] == PastixSplitNot)  ? "Not used" :
+                                                   (pastix->iparm[IPARM_SPLITTING_STRATEGY] == PastixSplitKway) ? "KWAY" : "KWAY and projections"),
                       /* Levels of projections */ (long)pastix->iparm[IPARM_SPLITTING_LEVELS_PROJECTIONS],
                       /* Levels of kway        */ (long)pastix->iparm[IPARM_SPLITTING_LEVELS_KWAY],
                       /* Projections distance  */ (long)pastix->iparm[IPARM_SPLITTING_PROJECTIONS_DISTANCE],

@@ -104,7 +104,7 @@ cpucblk_zcompress( const SolverMatrix *solvmtx,
                         A = lrA->u;
 
                         kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
-                        flops = lowrank.core_ge2lr( lowrank.tolerance, -1, nrows, ncols,
+                        flops = lowrank.core_ge2lr( lowrank.use_reltol, lowrank.tolerance, -1, nrows, ncols,
                                                     A, nrows, lrA );
                         kernel_trace_stop_lvl2_rank( flops, lrA->rk );
 
@@ -129,7 +129,7 @@ cpucblk_zcompress( const SolverMatrix *solvmtx,
                         A = lrA->u;
 
                         kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
-                        flops = lowrank.core_ge2lr( lowrank.tolerance, -1, nrows, ncols,
+                        flops = lowrank.core_ge2lr( lowrank.use_reltol, lowrank.tolerance, -1, nrows, ncols,
                                                     A, nrows, lrA );
                         kernel_trace_stop_lvl2_rank( flops, lrA->rk );
 
