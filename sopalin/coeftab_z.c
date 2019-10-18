@@ -246,6 +246,8 @@ coeftab_zmemory( SolverMatrix *solvmtx )
         else{
             if ( side != PastixUCoef ) {
                 if ( solvblok->LRblock[0].rk >= 0 ) {
+                    assert( solvblok->LRblock[0].rk <= core_get_rklimit( nrows, ncols ) );
+                    assert( ((nrows+ncols) * solvblok->LRblock[0].rkmax) <= size );
                     last[solvblok->inlast] += ((nrows+ncols) * solvblok->LRblock[0].rkmax);
                 }
                 else {
@@ -255,7 +257,9 @@ coeftab_zmemory( SolverMatrix *solvmtx )
 
             if ( side != PastixLCoef ) {
                 if ( solvblok->LRblock[1].rk >= 0 ) {
-                    last[solvblok->inlast] += ((nrows+ncols) * solvblok->LRblock[0].rkmax);
+                    assert( solvblok->LRblock[1].rk <= core_get_rklimit( nrows, ncols ) );
+                    assert( ((nrows+ncols) * solvblok->LRblock[1].rkmax) <= size );
+                    last[solvblok->inlast] += ((nrows+ncols) * solvblok->LRblock[1].rkmax);
                 }
                 else {
                     last[solvblok->inlast] += size;

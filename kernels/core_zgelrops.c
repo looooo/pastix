@@ -177,6 +177,7 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
 
     /* If no extra memory allocated, let's fix rkmax to rk */
     newrkmax = (newrkmax == -1) ? newrk : newrkmax;
+    newrkmax = pastix_imax( newrkmax, newrk );
 
     /*
      * It is not interesting to compress, so we alloc space to store the full matrix
@@ -217,7 +218,9 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
         pastix_complex64_t *u, *v;
         int ret;
 
-        if ( ( A->rk == -1 ) || (newrkmax > A->rkmax) ) {
+        if (  ( A->rk == -1 ) ||
+             (( A->rk != -1 ) && (newrkmax != A->rkmax)) )
+        {
 #if defined(PASTIX_DEBUG_LR)
             u = malloc( M * newrkmax * sizeof(pastix_complex64_t) );
             v = malloc( N * newrkmax * sizeof(pastix_complex64_t) );
@@ -243,7 +246,7 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
         }
 
         /* Update rk and rkmax */
-        A->rkmax = A->rk == -1 ? newrkmax : pastix_imax( newrkmax, A->rkmax );
+        A->rkmax = newrkmax;
         A->rk    = newrk;
 
         (void)ret;
@@ -1366,6 +1369,28 @@ core_zrradd_qr( core_zrrqr_cp_t rrqrfct,
     MALLOC_INTERN( jpvt, pastix_imax(rank, N), pastix_int_t );
 
     if ( lowrank->use_reltol ) {
+        /**
+         * In relative tolerance, we can choose two solutions:
+         *  1) The first one, more conservative, is to compress relatively to
+         *  the norm of the final matrix \[ \alpha A + B \]. In this kernel, we
+         *  exploit the fact that the V part contains all the information while
+         *  the U part is orthonormal, and compute it as follow:
+         *
+         * double norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, N,
+         *                                    v1v2, ldv, NULL );
+         * tol = tol * norm;
+         *
+         *  2) The second solution, less conservative, will allow to reduce the
+         *  rank more efficiently. Sine A, and B have been compressed relatively
+         *  to their respective norms, there is no reason to compress the sum
+         *  relatively to its own norm, but it is more reasonbale to compress it
+         *  relatively to the norm of A and B. For example, A-B would be full
+         *  with the first criterion, and rank null with the second.
+         *  Note that here, we can only have an estimation that once again
+         *  reduces the conservation of the criteria.
+         *  || \alpha A + B || <= |\alpha| ||A|| + ||B|| <= |\alpha| ||U_aV_a|| + ||U_bV_b||
+         *
+         */
         double normA, normB;
         normA = core_zlrnrm( PastixFrobeniusNorm, transA1,       M1, N1, A );
         normB = core_zlrnrm( PastixFrobeniusNorm, PastixNoTrans, M2, N2, B );

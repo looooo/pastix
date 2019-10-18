@@ -595,10 +595,7 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
                 kernel_trace_stop_lvl2_rank( flops, C.rk );
 
                 core_zlrfree(lrC);
-                lrC->u = C.u;
-                lrC->v = C.v;
-                lrC->rk = C.rk;
-                lrC->rkmax = C.rkmax;
+                memcpy( lrC, &C, sizeof(pastix_lrblock_t) );
             }
         }
 

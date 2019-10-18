@@ -253,7 +253,7 @@ cpucblk_zmemory( pastix_coefside_t   side,
 
     pastix_int_t ncols = cblk_colnbr( cblk );
     pastix_int_t size;
-    pastix_int_t gainblok;
+    pastix_int_t gainblok, gaintmp;
 
     /* Compute potential gains if blocks where not compressed */
     if ( (cblk->selevtx == 1) && (cblk->cblktype & CBLK_COMPRESSED)) {
@@ -272,13 +272,17 @@ cpucblk_zmemory( pastix_coefside_t   side,
         if ( (side != PastixUCoef) &&
              (blok->LRblock[0].rk >= 0) )
         {
-            gainblok += (size - ((nrows+ncols) * blok->LRblock[0].rkmax));
+            gaintmp = (size - ((nrows+ncols) * blok->LRblock[0].rkmax));
+            assert( gaintmp >= 0 );
+            gainblok += gaintmp;
         }
 
         if ( (side != PastixLCoef) &&
              (blok->LRblock[1].rk >= 0) )
         {
-            gainblok += (size - ((nrows+ncols) * blok->LRblock[1].rkmax));
+            gaintmp = (size - ((nrows+ncols) * blok->LRblock[1].rkmax));
+            assert( gaintmp >= 0 );
+            gainblok += gaintmp;
         }
 
         if (cblk->selevtx == 1){
