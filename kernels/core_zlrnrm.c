@@ -41,7 +41,7 @@ core_zlrnrm( pastix_normtype_t ntype, int transV,
              const pastix_lrblock_t *A )
 {
     if ( ntype != PastixFrobeniusNorm ) {
-        fprintf( stderr, "core_zlrnrm: Only the Frobenieu norm is available for now\n");
+        fprintf( stderr, "core_zlrnrm: Only the Frobenius norm is available for now\n");
         ntype = PastixFrobeniusNorm;
     }
 
@@ -60,12 +60,13 @@ core_zlrnrm( pastix_normtype_t ntype, int transV,
                                      M, A->rk, A->u, M, NULL );
         if ( transV == PastixNoTrans ) {
             normV = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f',
-                                         A->rkmax, N, A->v, A->rkmax, NULL );
+                                         A->rk, N, A->v, A->rkmax, NULL );
         }
         else {
             normV = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f',
                                          N, A->rk, A->v, N, NULL );
         }
+        /* This is an over-estimation of the norm as with frobenius ||UV|| <= ||U|| * ||V|| */
         return normU * normV;
     }
 }

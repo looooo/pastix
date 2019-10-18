@@ -23,6 +23,7 @@
 #include "pastix_zlrcores.h"
 #include "z_nan_check.h"
 
+#define PASTIX_SVD_2NORM 1
 #if !defined(PASTIX_SVD_2NORM)
 #include "common/frobeniusupdate.h"
 
@@ -249,13 +250,10 @@ core_zge2lr_svd( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
         frob_norm = core_dlassq( minMN-i, s + minMN - 1, -1 );
 #endif
 
-        if (frob_norm >= tol)
-        {
-            cblas_zdscal(n, s[i], v, ldv);
-        }
-        else {
+        if (frob_norm < tol) {
             break;
         }
+        cblas_zdscal(n, s[i], v, ldv);
     }
 
     /*
@@ -494,6 +492,28 @@ core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void 
     total_flops += FLOPS_ZTRMM( PastixRight, rank, rank );
 
     if ( lowrank->use_reltol ) {
+        /**
+         * In relative tolerance, we can choose two solutions:
+         *  1) The first one, more conservative, is to compress relatively to
+         *  the norm of the final matrix \[ \alpha A + B \]. In this kernel, we
+         *  exploit the fact that the previous computed product contains all the
+         *  information of the final matrix to do it as follow:
+         *
+         * double norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', rank, rank,
+         *                                    R, rank, NULL );
+         * tol = tol * norm;
+         *
+         *  2) The second solution, less conservative, will allow to reduce the
+         *  rank more efficiently. Sine A, and B have been compressed relatively
+         *  to their respective norms, there is no reason to compress the sum
+         *  relatively to its own norm, but it is more reasonbale to compress it
+         *  relatively to the norm of A and B. For example, A-B would be full
+         *  with the first criterion, and rank null with the second.
+         *  Note that here, we can only have an estimation that once again
+         *  reduces the conservation of the criteria.
+         *  || \alpha A + B || <= |\alpha| ||A|| + ||B|| <= |\alpha| ||U_aV_a|| + ||U_bV_b||
+         *
+         */
         double normA, normB;
         normA = core_zlrnrm( PastixFrobeniusNorm, transA1,       M1, N1, A );
         normB = core_zlrnrm( PastixFrobeniusNorm, PastixNoTrans, M2, N2, B );
@@ -523,8 +543,25 @@ core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void 
     tmp = v;
 
     for (i=0; i<rank; i++, tmp+=1){
-        if (s[i] <= tol)
-        {
+        double frob_norm;
+
+        /*
+         * There are two different stopping criteria for SVD to decide the
+         * compression rank:
+         *	1) The 2-norm:
+         *         Compare the singular values to the threshold
+         *      2) The Frobenius norm:
+         *         Compare the Frobenius norm of the trailing singular values to
+         *         the threshold. Note that we use a reverse accumulation of the
+         *         singular values to avoid accuracy issues.
+         */
+#if defined(PASTIX_SVD_2NORM)
+        frob_norm = s[i];
+#else
+        frob_norm = core_dlassq( rank-i, s + rank - 1, -1 );
+#endif
+
+        if (frob_norm < tol) {
             break;
         }
         cblas_zdscal(rank, s[i], tmp, rank);
