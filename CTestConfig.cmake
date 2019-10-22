@@ -39,6 +39,10 @@ if(NOT BUILDNAME)
   endif(CMAKE_BUILD_TYPE)
 
   # Specific options of Pastix
+  if(PASTIX_WITH_MPI)
+    set(BUILDNAME "${BUILDNAME}-MPI")
+  endif(PASTIX_WITH_MPI)
+
   if(PASTIX_WITH_STARPU)
     set(BUILDNAME "${BUILDNAME}-StarPU")
   endif(PASTIX_WITH_STARPU)

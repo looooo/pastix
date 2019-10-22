@@ -1,111 +1,24 @@
+---
 image: hpclib/hiepacs
 
 stages:
   - build
   - test
+  - analyse
   - sonar
   - deploy
 
-build_pastix:
-  stage: build
-  tags: ["large"]
-  artifacts:
-    name: pastix_build
-    expire_in: 42 minutes
-    untracked: true
-  script:
-    - git submodule update --init --recursive
-    - source .gitlab-ci-env.sh
-    - mkdir build
-    - cd build
-    - cmake .. -DCMAKE_INSTALL_PREFIX=${PWD}/../install -DBUILD_SHARED_LIBS=ON -DPASTIX_WITH_STARPU=ON -DPASTIX_WITH_PARSEC=ON -DPASTIX_ORDERING_METIS=ON -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_C_FLAGS="-O0 -g -fPIC --coverage -Wall -fdiagnostics-show-option -fno-inline" -DCMAKE_EXE_LINKER_FLAGS="--coverage" -DPASTIX_INT64=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-    - make -j 4 | tee ../pastix-build.log
-    - make install | tee -a ../pastix-build.log
-  only:
-    - branches
-    - master@pastix/pastix
-    - master@solverstack/pastix
+before_script:
+  - git submodule update --init --recursive
+  - source .gitlab/env.sh
+  - echo "VERSION=${VERSION}"
+  - mkdir -p build
 
-test_pastix:
-  stage: test
-  tags: ["large"]
-  dependencies:
-    - build_pastix
-  artifacts:
-    name: pastix_test
-    expire_in: 42 minutes
-    paths:
-      - pastix.lcov
-      - pastix-gcov.log
-  script:
-    - git submodule update --init --recursive
-    - source .gitlab-ci-env.sh
-    - source install/bin/pastix_env.sh
-    - (cd build &&
-       eval "ctest
-             $TESTS_RESTRICTION
-             -D ExperimentalTest
-             -D ExperimentalCoverage
-             -D ExperimentalSubmit
-             | tee -a ../pastix-build.log")
-    - lcov --capture --directory build -q --output-file pastix.lcov
-    - lcov --remove pastix.lcov '*spm/*' '*parsec/*trf_sp*' -q --output-file /tmp/pastix.lcov && mv /tmp/pastix.lcov .
-    - lcov --summary pastix.lcov | tee -a pastix-gcov.log
-  only:
-    - branches
-    - master@pastix/pastix
-    - master@solverstack/pastix
-
-sonar_pastix:
-  stage: sonar
-  tags: ["large"]
-  dependencies:
-    - build_pastix
-    - test_pastix
-  artifacts:
-    name: pastix_sonar
-    expire_in: 1 week
-    paths:
-      - pastix.lcov
-      - coverage/
-      - pastix-coverage.xml
-      - pastix-cppcheck.xml
-      - pastix-rats.xml
-      - sonar.log
-  script:
-    - source .gitlab-ci-env.sh
-    - ./tools/analysis.sh
-  only:
-    - master@solverstack/pastix
-    - master@pastix/pastix
-
-pages:
-  stage: deploy
-  tags: ["large"]
-  dependencies:
-    - build_pastix
-  artifacts:
-    paths:
-    - public
-  script:
-    - source .gitlab-ci-env.sh
-    - git submodule update --init --recursive
-    - mkdir -p build
-    - cd build
-    - cmake .. -DBUILD_DOCUMENTATION=ON -DPASTIX_WITH_STARPU=ON -DPASTIX_WITH_PARSEC=ON -DPASTIX_ORDERING_METIS=ON -DPASTIX_INT64=OFF
-    - make docs
-    - mv docs/out/html ../public/
-  only:
-    - master@solverstack/pastix
-    - master@pastix/pastix
-
-package:
-  stage: deploy
-  tags: ["large"]
-  dependencies:
-    - build_pastix
-    - test_pastix
-  only:
-    - /^release-.*$/
-  script:
-    - ./tools/release.sh
+include:
+  - .gitlab/common.yml
+  - .gitlab/build.yml
+  - .gitlab/test.yml
+  - .gitlab/coverage.yml
+  - .gitlab/sonarqube.yml
+  - .gitlab/pages.yml
+  - .gitlab/release.yml

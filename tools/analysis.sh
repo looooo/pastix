@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Performs an analysis of PaStiX source code:
 # - we consider to be in PaStiX's source code root
@@ -16,7 +16,8 @@ then
 fi
 BUILDDIR=${BUILDDIR:-build}
 
-./.gitlab-ci-filelist.sh $BUILDDIR
+TOOLSDIR=$(dirname $0)
+$TOOLSDIR/filelist.sh $BUILDDIR
 
 # Generate coverage xml output
 lcov_cobertura.py pastix.lcov --output pastix-coverage.xml
@@ -25,11 +26,11 @@ lcov_cobertura.py pastix.lcov --output pastix-coverage.xml
 export UNDEFINITIONS="-UWIN32 -UWIN64 -U_MSC_EXTENSIONS -U_MSC_VER -U__SUNPRO_C -U__SUNPRO_CC -U__sun -Usun -U__cplusplus"
 export UNDEFINITIONS="$UNDEFINITIONS -UPARSEC_PROF_DRY_BODY -UPARSEC_PROF_DRY_RUN -UPARSEC_PROF_TRACE -UPARSEC_PROF_GRAPHER -UPARSEC_SIM -DPINS_ENABLE -UBUILD_PARSEC"
 export UNDEFINITIONS="$UNDEFINITIONS -UPARSEC_DEBUG_NOISIER -UPARSEC_DEBUG_PARANOID -UPARSEC_DEBUG_HISTORY -UPARSEC_C_PARSEC_HAVE_VISIBILITY"
-export UNDEFINITIONS="$UNDEFINITIONS -UBUILDING_STRAPU"
-export UNDEFINITIONS="$UNDEFINITIONS -UNAPA_SOPALIN -UPASTIX_WITH_STARPU_DIST"
+export UNDEFINITIONS="$UNDEFINITIONS -UBUILDING_STARPU -UPASTIX_WITH_STARPU_DIST"
+export UNDEFINITIONS="$UNDEFINITIONS -UNAPA_SOPALIN"
 
 # to get it displayed and captured by gitlab to expose the badge on the main page
-cat ./pastix-gcov.log
+lcov --summary pastix.lcov | tee pastix-gcov.log
 
 # run cppcheck analysis
 cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingInclude ${UNDEFINITIONS} --file-list=./filelist-c.txt 2> pastix-cppcheck.xml
@@ -45,10 +46,10 @@ cat > sonar-project.properties << EOF
 sonar.host.url=https://sonarqube.inria.fr/sonarqube
 sonar.login=$SONARQUBE_LOGIN
 
-sonar.links.homepage=https://gitlab.inria.fr/solverstack/pastix
-sonar.links.scm=https://gitlab.inria.fr/solverstack/pastix.git
-sonar.links.ci=https://gitlab.inria.fr/solverstack/pastix/pipelines
-sonar.links.issue=https://gitlab.inria.fr/solverstack/pastix/issues
+sonar.links.homepage=$CI_PROJECT_URL
+sonar.links.scm=$CI_REPOSITORY_URL
+sonar.links.ci=$CI_PROJECT_URL/pipelines
+sonar.links.issue=$CI_PROJECT_URL/issues
 
 sonar.projectKey=$SONARQUBE_PROJECTKEY
 sonar.projectDescription=Parallel Sparse direct Solver
@@ -66,7 +67,7 @@ sonar.c.compiler.reportPath=pastix-build.log
 sonar.c.coverage.reportPath=pastix-coverage.xml
 sonar.c.cppcheck.reportPath=pastix-cppcheck.xml
 sonar.c.rats.reportPath=pastix-rats.xml
-sonar.c.jsonCompilationDatabase=build/compile_commands.json
+sonar.c.jsonCompilationDatabase=${BUILDDIR}/compile_commands.json
 EOF
 
 # run sonar analysis + publish on sonarqube-dev

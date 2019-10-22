@@ -1,0 +1,144 @@
+---
+.test_script_template: &test_script
+  stage: test
+  tags: ["large"]
+  artifacts:
+    name: pastix_test_${VERSION}
+    expire_in: 42 minutes
+    paths:
+      - pastix-${VERSION}-sched${SCHED}.lcov
+      - pastix-gcov-${VERSION}-sched${SCHED}.log
+  script:
+    - source install-${VERSION}/bin/pastix_env.sh
+    - (cd build &&
+       eval "ctest
+             $TESTS_RESTRICTION
+             -D ExperimentalTest
+             -D ExperimentalCoverage
+             -D ExperimentalSubmit
+             | tee -a ../pastix-build-${VERSION}.log")
+    - lcov --capture --directory build
+           -q --output-file pastix-${VERSION}-sched${SCHED}.lcov
+           | tee -a pastix-gcov-${VERSION}-sched${SCHED}.log
+
+.test_script_template_seq: &test_script_seq
+  extends:
+    - .test_script_template
+    - .only-branches-seq
+
+.test_script_template_mpi: &test_script_mpi
+  extends:
+    - .test_script_template
+    - .only-branches-mpi
+
+test_pastix_seq_sched0:
+  variables:
+    VERSION: seq
+    SCHED: 0
+    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+  dependencies:
+    - build_pastix_seq
+  <<: *test_script_seq
+
+test_pastix_seq_sched1:
+  variables:
+    VERSION: seq
+    SCHED: 1
+    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+  dependencies:
+    - build_pastix_seq
+  <<: *test_script_seq
+
+test_pastix_seq_sched2:
+  variables:
+    VERSION: seq
+    SCHED: 2
+    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+  dependencies:
+    - build_pastix_seq
+  <<: *test_script_seq
+
+test_pastix_seq_sched3:
+  variables:
+    VERSION: seq
+    SCHED: 3
+    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+    STARPU_WORKERS_NOBIND: 1
+    STARPU_SILENT: 1
+  dependencies:
+    - build_pastix_seq
+  <<: *test_script_seq
+
+test_pastix_seq_sched4:
+  variables:
+    VERSION: seq
+    SCHED: 4
+    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+  dependencies:
+    - build_pastix_seq
+  <<: *test_script_seq
+
+test_pastix_seq_other:
+  variables:
+    VERSION: seq
+    SCHED: 9
+    TESTS_RESTRICTION: "-E \"_sched\""
+  dependencies:
+    - build_pastix_seq
+  <<: *test_script_seq
+
+test_pastix_mpi_sched0:
+  variables:
+    VERSION: mpi
+    SCHED: 0
+    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+  dependencies:
+    - build_pastix_mpi
+  <<: *test_script_mpi
+
+test_pastix_mpi_sched1:
+  variables:
+    VERSION: mpi
+    SCHED: 1
+    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+  dependencies:
+    - build_pastix_mpi
+  <<: *test_script_mpi
+
+test_pastix_mpi_sched2:
+  variables:
+    VERSION: mpi
+    SCHED: 2
+    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+  dependencies:
+    - build_pastix_mpi
+  <<: *test_script_mpi
+
+test_pastix_mpi_sched3:
+  variables:
+    VERSION: mpi
+    SCHED: 3
+    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+    STARPU_WORKERS_NOBIND: 1
+    STARPU_SILENT: 1
+  dependencies:
+    - build_pastix_mpi
+  <<: *test_script_mpi
+
+test_pastix_mpi_sched4:
+  variables:
+    VERSION: mpi
+    SCHED: 4
+    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+  dependencies:
+    - build_pastix_mpi
+  <<: *test_script_mpi
+
+test_pastix_mpi_other:
+  variables:
+    VERSION: mpi
+    SCHED: 9
+    TESTS_RESTRICTION: "-E \"_sched\""
+  dependencies:
+    - build_pastix_mpi
+  <<: *test_script_mpi

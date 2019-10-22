@@ -1,0 +1,18 @@
+---
+sonar_pastix:
+  stage: sonar
+  tags: ["large"]
+  artifacts:
+    name: pastix_sonar
+    expire_in: 1 week
+    paths:
+      - pastix.lcov
+      - coverage/
+      - pastix-coverage.xml
+      - pastix-cppcheck.xml
+      - pastix-rats.xml
+      - sonar.log
+  script:
+    - ./tools/analysis.sh
+  extends:
+    - .only-master
