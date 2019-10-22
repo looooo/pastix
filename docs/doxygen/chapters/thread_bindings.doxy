@@ -98,8 +98,8 @@ correct binding for you.
 \subsection MPISeq Using sequential PaStiX in an MPI context, or PaStiX in a MPI+sequential context
 
 If you use the binding capabilities of the MPI launcher and HwLoc, you have
-nothing to do. Otherwise, it becomes tricky to bind you only thread to
-the single core you'll get. This is explain in the next section with
+nothing to do. Otherwise, it becomes tricky to bind your only thread to
+the single core you'll get. This is explained in the next section with
 the example for multi-threaded pastix.
 
 \subsection MPImt  Using multi-threaded PaStiX in an MPI context, or PaStiX in a MPI+threads context

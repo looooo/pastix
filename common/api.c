@@ -113,6 +113,7 @@ pastix_gendirectories( pastix_data_t *pastix_data )
         fprintf( stdout, "OUTPUTDIR: %s\n", *dir_global );
     }
     else {
+        len = 0;
         MPI_Bcast( &len, 1, MPI_INT,
                    0, pastix_data->inter_node_comm );
         pastix_data->dir_global = malloc( (len+1) * sizeof(char) );
