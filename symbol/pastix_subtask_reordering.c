@@ -80,10 +80,10 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
 
     /* Start the step */
     if (iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
-        pastix_int_t criteria = (iparm[IPARM_REORDERING_STOP] == PASTIX_INT_MAX) ? -1 : iparm[IPARM_REORDERING_STOP];
+        pastix_int_t criterion = (iparm[IPARM_REORDERING_STOP] == PASTIX_INT_MAX) ? -1 : iparm[IPARM_REORDERING_STOP];
         pastix_print( procnum, 0, OUT_STEP_REORDER,
                       (long)iparm[IPARM_REORDERING_SPLIT],
-                      (long)criteria );
+                      (long)criterion );
     }
 
     /* Print the reordering complexity */

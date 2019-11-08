@@ -35,7 +35,7 @@
  *          The pastix_data providing the scheduler, the symbolic structure,
  *          and the ordering providing by Scotch that will be updated with
  *          the new rows permutation for each supernode. It will also gives
- *          a srop criteria the reordering of each supernode. The split_level
+ *          a stopping criterion the reordering of each supernode. The split_level
  *          field activates the split level heuristic, dividing distances
  *          computations into two stages: for upper and for lower
  *          contruibuting supernodes.
@@ -372,7 +372,7 @@ order_tasks( isched_t              *ctx,
  *          The pastix_data providing the scheduler, the symbolic structure,
  *          and the ordering providing by Scotch that will be updated with
  *          the new rows permutation for each supernode. It will also gives
- *          a srop criteria the reordering of each supernode. The split_level
+ *          a stopping criterion the reordering of each supernode. The split_level
  *          field activates the split level heuristic, dividing distances
  *          computations into two stages: for upper and for lower
  *          contruibuting supernodes.
@@ -436,7 +436,7 @@ static void (*reorder_table[5])(pastix_data_t *, pastix_int_t , pastix_int_t *) 
  *          The pastix_data providing the scheduler, the symbolic structure,
  *          and the ordering providing by Scotch that will be updated with
  *          the new rows permutation for each supernode. It will also gives
- *          a srop criteria the reordering of each supernode. The split_level
+ *          a stopping criterion the reordering of each supernode. The split_level
  *          field activates the split level heuristic, dividing distances
  *          computations into two stages: for upper and for lower
  *          contruibuting supernodes.

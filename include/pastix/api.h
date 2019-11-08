@@ -65,7 +65,7 @@ typedef enum pastix_iparm_e {
 
     /* Reordering */
     IPARM_REORDERING_SPLIT,      /**< Reordering split level                                         Default: 0                         IN  */
-    IPARM_REORDERING_STOP,       /**< Reordering stop criteria                                       Default: PASTIX_INT_MAX            IN  */
+    IPARM_REORDERING_STOP,       /**< Reordering stop criterion                                      Default: PASTIX_INT_MAX            IN  */
 
     IPARM_SPLITTING_STRATEGY,    /**< Strategy used to split supernodes                              Default: PASTIX_INT_MAX           IN    */
     IPARM_SPLITTING_LEVELS_PROJECTIONS,   /**< Levels of projections                                 Default: PASTIX_INT_MAX           IN    */

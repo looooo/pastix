@@ -1381,13 +1381,13 @@ core_zrradd_qr( core_zrrqr_cp_t rrqrfct,
          * tol = tol * norm;
          *
          *  2) The second solution, less conservative, will allow to reduce the
-         *  rank more efficiently. Sine A, and B have been compressed relatively
+         *  rank more efficiently. Since A and B have been compressed relatively
          *  to their respective norms, there is no reason to compress the sum
-         *  relatively to its own norm, but it is more reasonbale to compress it
+         *  relatively to its own norm, but it is more reasonable to compress it
          *  relatively to the norm of A and B. For example, A-B would be full
          *  with the first criterion, and rank null with the second.
          *  Note that here, we can only have an estimation that once again
-         *  reduces the conservation of the criteria.
+         *  reduces the conservation of the criterion.
          *  || \alpha A + B || <= |\alpha| ||A|| + ||B|| <= |\alpha| ||U_aV_a|| + ||U_bV_b||
          *
          */

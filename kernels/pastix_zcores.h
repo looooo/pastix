@@ -102,15 +102,15 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
  *    @{
  */
 void core_zpotrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
-                    pastix_int_t *nbpivot, double criteria );
+                    pastix_int_t *nbpivot, double criterion );
 void core_zpxtrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
-                    pastix_int_t *nbpivot, double criteria );
+                    pastix_int_t *nbpivot, double criterion );
 void core_zgetrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
-                    pastix_int_t *nbpivot, double criteria );
+                    pastix_int_t *nbpivot, double criterion );
 void core_zhetrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
-                    pastix_int_t *nbpivot, double criteria );
+                    pastix_int_t *nbpivot, double criterion );
 void core_zsytrfsp( pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda,
-                    pastix_int_t *nbpivot, double criteria );
+                    pastix_int_t *nbpivot, double criterion );
 
 /**
  *     @}

@@ -394,11 +394,11 @@ eTreePrint(const EliminTree *etree, FILE *stream, pastix_int_t rootnum )
 /**
  *******************************************************************************
  *
- * @brief Return the smallest index of the nodes belonging to the evel lvl in
+ * @brief Return the smallest index of the nodes belonging to the level lvl in
  * the elimination tree.
  *
  * Look recursively in the elimination tree to return the smallest index of all
- * the ndoes belonging to a same level defined by lvl.
+ * the nodes belonging to a same level defined by lvl.
  *
  *******************************************************************************
  *

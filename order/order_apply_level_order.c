@@ -76,7 +76,7 @@ pastixOrderBuildEtree( const pastix_order_t *order )
  *
  * @param[in] level_tasks2d
  *          Define the ways 2D tasks are decided. If < 0, autolvel will be made
- *          based on all blocks above the minimal width_tasks2d criteria. If 0,
+ *          based on all blocks above the minimal width_tasks2d criterion. If 0,
  *          1D tasks will be used, and if > 0, only the first level_tasks2d lvel
  *          of the elimination tree will be considered as 2D tasks.
  *

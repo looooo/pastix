@@ -47,7 +47,7 @@
     "    Compress minimal width                %8ld\n"          \
     "    Compress minimal height               %8ld\n"          \
     "    Compress min ratio                    %8f\n"           \
-    "    Tolerance criteria per block          %8s\n"           \
+    "    Tolerance criterion per block         %8s\n"           \
     "    Orthogonalization method              %8s\n"           \
     "    Splitting Strategy                    %8s\n"           \
     "    Levels of projections                 %8ld\n"          \
@@ -89,7 +89,7 @@
     "+-------------------------------------------------+\n"     \
     "  Reordering step:\n"                                      \
     "    Split level                           %8ld\n"          \
-    "    Stoping criteria                      %8ld\n"
+    "    Stoping criterion                     %8ld\n"
 #define OUT_REORDERING_TIME                             \
     "    Time for reordering                   %e s\n"
 #define OUT_REORDERING_OPS                                              \
