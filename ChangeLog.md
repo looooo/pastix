@@ -1,8 +1,9 @@
-# pastix-6.0.2
+# pastix-6.0.3
 
 - Update spm module to ada4963
 - Update morse_cmake to ade4996
-  - cmake: Update cmake_module to integrate the last version of the precision generator
+  - CMake: Update cmake_module to integrate the last version of the precision generator
+- Change StarPU requirement to >= 1.3
 - Refactor and extend the CI/CTests
 - Update documentation
 - Low-rank:
@@ -21,8 +22,8 @@
 - Add support for multi-dof in Fortran
 - Fix issue in simulation, and a switch between cost and tree levels
 - Refinement: Fix issue with gemv computation and PastixConjTrans
-- cmake: Enable a round-robin selection of CMAKE_BUILD_TYPE  depending on the sanitizers provided by the compiler
-- homebrew: update formula
+- CMake: Enable a round-robin selection of CMAKE_BUILD_TYPE  depending on the sanitizers provided by the compiler
+- Homebrew: update formula
 
 # pastix-6.0.2
 
