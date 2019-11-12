@@ -1,15 +1,13 @@
 /**
- * @file example/regular_first_sep.c
+ * @file examples/regular_first_sep.c
  *
  * @brief Set by hand the first separator (for regular cube only).
  *
- * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
- * @author Pierre Ramet
- * @author Mathieu Faverge
- * @author Hastaran Matias
+ * @author Gregoire Pichon
  * @date 2017-05-02
  *
  * @ingroup pastix_examples

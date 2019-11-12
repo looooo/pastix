@@ -1,7 +1,7 @@
 #
 #  @file check_header.sh
 #
-#  @copyright 2016-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2016-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @version 6.0.1
@@ -50,7 +50,7 @@ check_header_copyright()
     basename=`basename $filename`
 
     #toto=`grep -E " @copyright [0-9]{4}-20[0-9]{2} Bordeaux INP" $filename`
-    toto=`grep -E " @copyright [0-9]{4}-201[89] Bordeaux INP" $filename`
+    toto=`grep -E " @copyright [0-9]{4}-2019 Bordeaux INP" $filename`
     # if [ $? -ne 0 ]
     # then
     #     toto=`grep -E " @copyright 20[0-9]{2}      Bordeaux INP" $filename`

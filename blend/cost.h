@@ -4,7 +4,7 @@
  *
  * PaStiX analyse headers for the cost matrix arrays functions.
  *
- * @copyright 1998-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 1998-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.1

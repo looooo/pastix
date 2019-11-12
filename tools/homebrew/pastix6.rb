@@ -1,3 +1,16 @@
+###
+#
+#  @file pastix6.rb
+#  @copyright 2013-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @brief Homebrew formula for PaStiX 6
+#
+#  @version 6.0.3
+#  @author Pierre Ramet
+#  @date 2018-07-16
+#
+###
 class Pastix6 < Formula
   desc "Parallel solver for sparse linear systems based on direct methods"
   homepage "https://gitlab.inria.fr/solverstack/pastix"

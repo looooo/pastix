@@ -4,7 +4,7 @@
 
  PaStiX simple python example with the solver object
 
- @copyright 2017-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.0.1

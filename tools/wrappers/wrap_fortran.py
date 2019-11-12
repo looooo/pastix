@@ -7,7 +7,7 @@ Wrapper Fortran 90
 
  PaStiX generator for the Fortran 90 wrapper
 
- @copyright 2017-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.0.3
@@ -154,7 +154,7 @@ class wrap_fortran:
 !
 ! ''' + f['description'] + '''
 !
-! @copyright 2017-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+! @copyright 2017-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !                      Univ. Bordeaux. All rights reserved.
 !
 ! @version 6.0.3

@@ -1,4 +1,17 @@
-#!/bin/bash
+#!/usr/bin/env bash
+###
+#
+#  @file release.sh
+#  @copyright 2013-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @brief Script to generate the release when pushing a branch and tag of the same name
+#
+#  @version 6.0.3
+#  @author Pierre Ramet
+#  @date 2018-07-16
+#
+###
 
 changelog=""
 

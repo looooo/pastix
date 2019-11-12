@@ -1,4 +1,15 @@
 #!/usr/bin/env bash
+###
+#
+#  @file analysis.sh
+#  @copyright 2013-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @version 6.0.3
+#  @author Mathieu Faverge
+#  @date 2018-07-16
+#
+###
 
 # Performs an analysis of PaStiX source code:
 # - we consider to be in PaStiX's source code root

@@ -1,3 +1,14 @@
+###
+#
+#  @file local_subs.py
+#  @copyright 2019-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @version 6.0.3
+#  @author Mathieu Faverge
+#  @date 2019-07-16
+#
+###
 subs = {
     # ------------------------------------------------------------
     # replacements applied to mixed precision files.

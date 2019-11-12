@@ -1,4 +1,15 @@
 #!/usr/bin/python3
+###
+#
+#  @file clean_counters.py
+#  @copyright 2013-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @version 6.0.3
+#  @author Mathieu Faverge
+#  @date 2018-07-16
+#
+###
 
 from __future__ import print_function
 import csv

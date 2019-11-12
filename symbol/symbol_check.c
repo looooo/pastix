@@ -4,7 +4,7 @@
  *
  * PaStiX routines to check the correctness of the symbol structure.
  *
- * @copyright 1999-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 1999-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.1

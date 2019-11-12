@@ -4,7 +4,7 @@
  *
  * PaStiX order driver to perform ordering with Scotch library.
  *
- * @copyright 2004-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.1

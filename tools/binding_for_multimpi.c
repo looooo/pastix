@@ -1,5 +1,13 @@
 /**
  *
+ *  @file binding_for_multimpi.c
+ *  @copyright 2013-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                       Univ. Bordeaux. All rights reserved.
+ *
+ *  @version 6.0.3
+ *  @author Pierre Ramet
+ *  @date 2018-07-16
+ *
  * Small test to see what's the bindtab array should look like in case of
  * multiple MPI processes per node.
  * This test can be compiled with:
