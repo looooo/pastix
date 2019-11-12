@@ -3,7 +3,7 @@
 #  @copyright 2013-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.0.1
+#  @version 6.0.3
 #  @author Mathieu Faverge
 #  @date 2018-07-16
 #
@@ -17,7 +17,7 @@ include(CheckFunctionExists)
 # The current version number
 set(PASTIX_VERSION_MAJOR 6)
 set(PASTIX_VERSION_MINOR 0)
-set(PASTIX_VERSION_MICRO 2)
+set(PASTIX_VERSION_MICRO 3)
 
 set(PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VERSION_MICRO}")
 

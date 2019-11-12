@@ -1,5 +1,31 @@
 # pastix-6.0.2
 
+- Update spm module to ada4963
+- Update morse_cmake to ade4996
+  - cmake: Update cmake_module to integrate the last version of the precision generator
+- Refactor and extend the CI/CTests
+- Update documentation
+- Low-rank:
+  - Add a new parameter IPARM_COMPRESS_RELTOL to switch between absolute and relative tolerance
+  - Improved stability of low-rank kernels
+  - Extend the number of tests
+  - Add rotation QR kernels (unstable/work in progress)
+  - Enable multiple low-rank factorization in a row
+- Supports compilation with mpicc (no distributed solver yet)
+- Add separated output directories for future distributed process, or for MPI multiple instances
+- Octave: Fix issue with number of threads larger than the number of columns
+- Octave: Fix compilation on Windows system
+- Documentation: add documentation on process binding
+- HwLoc: fix binding when already restricted through batch scheduler and/or MPI
+- Fix issue solverstack/pastix#35, make pastix_task_analyze thread safe
+- Add support for multi-dof in Fortran
+- Fix issue in simulation, and a switch between cost and tree levels
+- Refinement: Fix issue with gemv computation and PastixConjTrans
+- cmake: Enable a round-robin selection of CMAKE_BUILD_TYPE  depending on the sanitizers provided by the compiler
+- homebrew: update formula
+
+# pastix-6.0.2
+
 - Integrate the clusting strategies developped for low-rank (See https://hal.inria.fr/hal-01961675)
 - Restructure the ordering/symbolic factorization code to make sure with exit the ordering step with permutation, partition, and elimination tree.
 - Relook the splitting/proportional mapping strategy
