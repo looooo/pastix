@@ -9,7 +9,6 @@
 
 .only-branches-seq:
   except:
-    - master
     - schedules
   only:
     - branches
