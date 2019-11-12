@@ -13,7 +13,6 @@
     - master@pastix/pastix
     - master@solverstack/pastix
   except:
-    - master
     - schedules
 
 .only-branches-mpi:
@@ -22,7 +21,6 @@
   #   - master@pastix/pastix
   #   - master@solverstack/pastix
   # except:
-  #   - master
   #   - schedules
   only:
     - /^.*mpi.*$/

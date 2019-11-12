@@ -41,5 +41,3 @@ build_pastix_mpi:
   <<: *build_script_mpi
   variables:
     VERSION: mpi
-  # only:
-  #   - /^.*mpi.*$/
