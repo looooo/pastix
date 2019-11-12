@@ -6,7 +6,7 @@
  * @copyright 2015-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.0
+ * @version 6.0.3
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Hastaran Matias

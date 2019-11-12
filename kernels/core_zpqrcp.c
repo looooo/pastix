@@ -8,7 +8,7 @@
  * @copyright 2016-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.1
+ * @version 6.0.3
  * @author Alfredo Buttari
  * @author Gregoire Pichon
  * @date 2018-07-16

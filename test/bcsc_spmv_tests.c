@@ -7,7 +7,7 @@
  *
  * Tests and validate the bcsc_spmv routines.
  *
- * @version 6.0.1
+ * @version 6.0.3
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @date 2018-07-16

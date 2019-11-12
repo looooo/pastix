@@ -9,7 +9,7 @@
  *
  * PaStiX thread binding routines header.
  *
- * @version 6.0.1
+ * @version 6.0.3
  * @author Mathieu Faverge
  * @date 2018-07-16
  *

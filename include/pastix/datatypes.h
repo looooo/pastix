@@ -7,7 +7,7 @@
  *
  * Definitions of the datatypes used in PaStiX
  *
- * @version 6.0.1
+ * @version 6.0.3
  * @author Mathieu Faverge
  * @author Xavier Lacoste
  * @author Pierre Ramet

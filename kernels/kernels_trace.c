@@ -7,7 +7,7 @@
  *
  * PaStiX trace and modelling routines
  *
- * @version 6.0.1
+ * @version 6.0.3
  * @author Gregoire Pichon
  * @author Mathieu Faverge
  * @date 2018-07-16
