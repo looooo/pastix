@@ -14,15 +14,15 @@
 class Pastix6 < Formula
   desc "Parallel solver for sparse linear systems based on direct methods"
   homepage "https://gitlab.inria.fr/solverstack/pastix"
-  url "https://gitlab.inria.fr/solverstack/pastix/uploads/a09589904f6087022b7566fb5f42fe87/pastix-6.0.2.tar.gz"
-  sha256 "07f57d8c1d8d4620b4af9152b5ed07ffe3fdc4bd94a75e4ecb4a86b2e23074ee"
+  url "https://gitlab.inria.fr/solverstack/pastix//uploads/bd29252eb0390fa7bcb4e4d238c5b30a/pastix-6.0.3.tar.gz"
+  sha256 "8d98799f8f90fdf4849340d9f3214d4b041bca0cdb2e9d8b410587707d569f8c"
   head "https://gitlab.inria.fr/solverstack/pastix.git"
 
   bottle :disable, "needs to be rebuilt"
 
   depends_on "openblas"
   depends_on "hwloc"              # Could be optinal but strongly recommanded
-  depends_on "scotch"             # Could be optinal but strongly recommanded
+  depends_on "scotch5"            # Could be optinal but strongly recommanded
   depends_on "metis" => :optional # Use METIS ordering.
   depends_on "gcc"   => :build    # GNU Fortran is now provided as part of GCC
   depends_on "cmake" => :build
