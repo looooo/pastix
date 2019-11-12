@@ -89,7 +89,7 @@ compute_cblklevel( const pastix_int_t *treetab,
  *          The index of the second row.
  *
  * @param[in] stop
- *          The stop criteria to disregard rows that are far away.
+ *          The stop criterion to disregard rows that are far away.
  *
  *******************************************************************************
  *
@@ -145,7 +145,7 @@ hamming_distance( pastix_int_t **vectors,
             errorPrint("reordering: fatal error occured");
         }
 
-        /* The computation is stopped if sum overlapped a given limit (stop criteria) */
+        /* The computation is stopped if sum overlapped a given limit (stop criterion) */
         if ( sum >= stop ) {
             return stop;
         }
@@ -187,7 +187,7 @@ hamming_distance( pastix_int_t **vectors,
  *          The pointer to the sets of lower contributing
  *          supernodes for each row of the current supernode. Those lower
  *          contributing supernodes correspond to supernodes with a level higher
- *          than split_level criteria.
+ *          than split_level criterion.
  *
  * @param[in] lw_vectors_size
  *          The pointer to the sizes of each set of lower contributing
@@ -198,22 +198,22 @@ hamming_distance( pastix_int_t **vectors,
  *          The pointer to the sets of upper contributing
  *          supernodes for each row of the current supernode. Those upper
  *          contributing supernodes correspond to supernodes with a level smaller
- *          than split_level criteria.
+ *          than split_level criterion.
  *
  * @param[in] up_vectors_size
  *          The pointer to the sizes of each set of upper contributing
  *          supernode, to stop the computation when a row have been totally
  *          covered.
  *
- * @param[in] stop_criteria
- *          The stop criteria to disregard rows that are far away.
+ * @param[in] stop_criterion
+ *          The stop criterion to disregard rows that are far away.
  *
  *******************************************************************************/
 static inline void
 symbol_reorder_tsp( pastix_int_t size, pastix_order_t *order, pastix_int_t sn_id,
                     pastix_int_t **lw_vectors, pastix_int_t *lw_vectors_size,
                     pastix_int_t **up_vectors, pastix_int_t *up_vectors_size,
-                    pastix_int_t stop_criteria )
+                    pastix_int_t stop_criterion )
 {
     pastix_int_t  i, j, k, l, elected;
     pastix_int_t *tmpinvp;
@@ -233,7 +233,7 @@ symbol_reorder_tsp( pastix_int_t size, pastix_order_t *order, pastix_int_t sn_id
     tmpinvp[0] = -1;
     tmpinvp[1] = 0;
 
-    distance = hamming_distance( lw_vectors, lw_vectors_size, 0, -1, stop_criteria );
+    distance = hamming_distance( lw_vectors, lw_vectors_size, 0, -1, stop_criterion );
 
     tmplen[0] = distance;
     tmplen[1] = distance;
@@ -254,9 +254,9 @@ symbol_reorder_tsp( pastix_int_t size, pastix_order_t *order, pastix_int_t sn_id
 
         /* Start by adding the row in first position */
         lw_before_pos = hamming_distance( lw_vectors, lw_vectors_size, i,
-                                          tmpinvp[0], stop_criteria );
+                                          tmpinvp[0], stop_criterion );
         lw_after_pos  = hamming_distance( lw_vectors, lw_vectors_size, i,
-                                          tmpinvp[1], stop_criteria );
+                                          tmpinvp[1], stop_criterion );
         up_after_pos  = hamming_distance( up_vectors, up_vectors_size, i,
                                           tmpinvp[1], 1 );
 
@@ -275,13 +275,13 @@ symbol_reorder_tsp( pastix_int_t size, pastix_order_t *order, pastix_int_t sn_id
                 /* If split was used previously, this first distance may not be already computed */
                 if ( lw_after_pos == -1 )
                     lw_before_pos = hamming_distance( lw_vectors, lw_vectors_size, i,
-                                                      tmpinvp[j], stop_criteria );
+                                                      tmpinvp[j], stop_criterion );
                 else
                     lw_before_pos = lw_after_pos;
 
 
                 lw_after_pos = hamming_distance( lw_vectors, lw_vectors_size, i,
-                                                 tmpinvp[j+1], stop_criteria );
+                                                 tmpinvp[j+1], stop_criterion );
 
                 l = lw_before_pos + lw_after_pos - tmplen[j];
 
@@ -336,14 +336,14 @@ symbol_reorder_tsp( pastix_int_t size, pastix_order_t *order, pastix_int_t sn_id
 
         /* Test between last and first */
         first_pos = hamming_distance( lw_vectors, lw_vectors_size, i,
-                                      tmpinvp[0], stop_criteria );
+                                      tmpinvp[0], stop_criterion );
         last_pos  = hamming_distance( lw_vectors, lw_vectors_size, i,
-                                      tmpinvp[i], stop_criteria );
+                                      tmpinvp[i], stop_criterion );
 
         lw_before_pos = hamming_distance( lw_vectors, lw_vectors_size, i,
-                                          tmpinvp[mpos-1], stop_criteria );
+                                          tmpinvp[mpos-1], stop_criterion );
         lw_after_pos  = hamming_distance( lw_vectors, lw_vectors_size, i,
-                                          tmpinvp[mpos  ], stop_criteria);
+                                          tmpinvp[mpos  ], stop_criterion );
 
         l = first_pos + last_pos - tmplen[i];
         if ( l < minl ) {
@@ -443,8 +443,8 @@ symbol_reorder_tsp( pastix_int_t size, pastix_order_t *order, pastix_int_t sn_id
  *          supernodes is large enough, the computation is stopped, as long as
  *          it will be large taking into account lower contributing supernodes.
  *
- * @param[in] stop_criteria
- *          The stop criteria to disregard rows that are far away.
+ * @param[in] stop_criterion
+ *          The stop criterion to disregard rows that are far away.
  *
  *******************************************************************************/
 void
@@ -455,7 +455,7 @@ symbol_reorder_cblk( const symbol_matrix_t *symbptr,
                      pastix_int_t       *depthweight,
                      pastix_int_t        depthmax,
                      pastix_int_t        split_level,
-                     pastix_int_t        stop_criteria )
+                     pastix_int_t        stop_criterion )
 {
     symbol_blok_t *blok;
     pastix_int_t **up_vectors, *up_vectors_size;
@@ -591,7 +591,7 @@ symbol_reorder_cblk( const symbol_matrix_t *symbptr,
     symbol_reorder_tsp( size, order, cblk - symbptr->cblktab,
                         lw_vectors, lw_vectors_size,
                         up_vectors, up_vectors_size,
-                        stop_criteria );
+                        stop_criterion );
 
     for (i=0; i<size; i++) {
         memFree_null( lw_vectors[i] );
@@ -621,7 +621,7 @@ symbol_reorder_cblk( const symbol_matrix_t *symbptr,
  *          lower contruibuting supernodes. If a resulting distance for upper
  *          supernodes is large enough, the computation is stopped, as long as
  *          it will be large taking into account lower contributing supernodes.
- *          The stop_criteria field disregards rows that are far away.
+ *          The stop_criterion field disregards rows that are far away.
  *
  *******************************************************************************/
 void

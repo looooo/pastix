@@ -51,7 +51,7 @@ static pastix_complex64_t mzone = -1.0;
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
- * @param[in] criteria
+ * @param[in] criterion
  *          Threshold use for static pivoting. If diagonal value is under this
  *          threshold, its value is replaced by the threshold and the number of
  *          pivots is incremented.
@@ -67,7 +67,7 @@ core_zpotf2sp( pastix_int_t        n,
                pastix_complex64_t *A,
                pastix_int_t        lda,
                pastix_int_t       *nbpivots,
-               double              criteria )
+               double              criterion )
 {
     pastix_int_t k;
     pastix_complex64_t *Akk = A;   /* A [k  ][k] */
@@ -75,8 +75,8 @@ core_zpotf2sp( pastix_int_t        n,
     pastix_complex64_t  alpha;
 
     for (k=0; k<n; k++){
-        if ( cabs(*Akk) < criteria ) {
-            (*Akk) = (pastix_complex64_t)criteria;
+        if ( cabs(*Akk) < criterion ) {
+            (*Akk) = (pastix_complex64_t)criterion;
             (*nbpivots)++;
         }
 
@@ -129,7 +129,7 @@ core_zpotf2sp( pastix_int_t        n,
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
- * @param[in] criteria
+ * @param[in] criterion
  *          Threshold use for static pivoting. If diagonal value is under this
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
@@ -145,7 +145,7 @@ core_zpotrfsp( pastix_int_t        n,
                pastix_complex64_t *A,
                pastix_int_t        lda,
                pastix_int_t       *nbpivots,
-               double              criteria )
+               double              criterion )
 {
     pastix_int_t k, blocknbr, blocksize, matrixsize;
     pastix_complex64_t *tmp,*tmp1,*tmp2;
@@ -159,7 +159,7 @@ core_zpotrfsp( pastix_int_t        n,
         tmp  = A+(k*MAXSIZEOFBLOCKS)*(lda+1);      /* Lk,k     */
 
         /* Factorize the diagonal block Akk*/
-        core_zpotf2sp(blocksize, tmp, lda, nbpivots, criteria);
+        core_zpotf2sp(blocksize, tmp, lda, nbpivots, criterion);
 
         if ((k*MAXSIZEOFBLOCKS+blocksize) < n) {
 
@@ -223,7 +223,7 @@ cpucblk_zpotrfsp1d_potrf( SolverMatrix       *solvmtx,
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivots = 0;
     pastix_fixdbl_t time, flops;
-    double criteria = solvmtx->diagthreshold;
+    double criterion = solvmtx->diagthreshold;
 
     time = kernel_trace_start( PastixKernelPOTRF );
 
@@ -245,7 +245,7 @@ cpucblk_zpotrfsp1d_potrf( SolverMatrix       *solvmtx,
     /* Factorize diagonal block */
     flops = FLOPS_ZPOTRF( ncols );
     kernel_trace_start_lvl2( PastixKernelLvl2POTRF );
-    core_zpotrfsp(ncols, L, stride, &nbpivots, criteria );
+    core_zpotrfsp(ncols, L, stride, &nbpivots, criterion );
     kernel_trace_stop_lvl2( flops );
 
     kernel_trace_stop( cblk->fblokptr->inlast, PastixKernelPOTRF, ncols, 0, 0, flops, time );

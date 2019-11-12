@@ -54,7 +54,7 @@ static pastix_complex64_t mzone = -1.0;
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
- * @param[in] criteria
+ * @param[in] criterion
  *          Threshold use for static pivoting. If diagonal value is under this
  *          threshold, its value is replaced by the threshold and the number of
  *          pivots is incremented.
@@ -66,7 +66,7 @@ core_zgetf2sp( pastix_int_t        m,
                pastix_complex64_t *A,
                pastix_int_t        lda,
                pastix_int_t       *nbpivots,
-               double              criteria )
+               double              criterion )
 {
     pastix_int_t k, minMN;
     pastix_complex64_t *Akk, *Aik, alpha;
@@ -77,12 +77,12 @@ core_zgetf2sp( pastix_int_t        m,
     for (k=0; k<minMN; k++) {
         Aik = Akk + 1;
 
-        if ( cabs(*Akk) < criteria ) {
+        if ( cabs(*Akk) < criterion ) {
             if ( creal(*Akk) < 0. ) {
-                *Akk = (pastix_complex64_t)(-criteria);
+                *Akk = (pastix_complex64_t)(-criterion);
             }
             else {
-                *Akk = (pastix_complex64_t)criteria;
+                *Akk = (pastix_complex64_t)criterion;
             }
             (*nbpivots)++;
         }
@@ -127,7 +127,7 @@ core_zgetf2sp( pastix_int_t        m,
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
- * @param[in] criteria
+ * @param[in] criterion
  *          Threshold use for static pivoting. If diagonal value is under this
  *          threshold, its value is replaced by the threshold and the number of
  *          pivots is incremented.
@@ -138,7 +138,7 @@ core_zgetrfsp( pastix_int_t        n,
                pastix_complex64_t *A,
                pastix_int_t        lda,
                pastix_int_t       *nbpivots,
-               double              criteria )
+               double              criterion )
 {
     pastix_int_t k, blocknbr, blocksize, matrixsize, tempm;
     pastix_complex64_t *Akk, *Lik, *Ukj, *Aij;
@@ -156,7 +156,7 @@ core_zgetrfsp( pastix_int_t        n,
         Aij = Ukj + blocksize;
 
         /* Factorize the diagonal block Akk*/
-        core_zgetf2sp( tempm, blocksize, Akk, lda, nbpivots, criteria );
+        core_zgetf2sp( tempm, blocksize, Akk, lda, nbpivots, criterion );
 
         matrixsize = tempm - blocksize;
         if ( matrixsize > 0 ) {
@@ -219,7 +219,7 @@ cpucblk_zgetrfsp1d_getrf( SolverMatrix       *solvmtx,
     pastix_int_t ncols, stride;
     pastix_int_t nbpivots = 0;
     pastix_fixdbl_t time, flops;
-    double criteria = solvmtx->diagthreshold;
+    double criterion = solvmtx->diagthreshold;
 
     time = kernel_trace_start( PastixKernelGETRF );
 
@@ -244,7 +244,7 @@ cpucblk_zgetrfsp1d_getrf( SolverMatrix       *solvmtx,
     /* Factorize diagonal block */
     flops = FLOPS_ZGETRF( ncols, ncols );
     kernel_trace_start_lvl2( PastixKernelLvl2GETRF );
-    core_zgetrfsp(ncols, L, stride, &nbpivots, criteria);
+    core_zgetrfsp(ncols, L, stride, &nbpivots, criterion);
     kernel_trace_stop_lvl2( flops );
 
     /* Transpose Akk in ucoeftab */

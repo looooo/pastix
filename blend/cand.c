@@ -336,7 +336,7 @@ candSubTreeBuild( pastix_int_t           rootnum,
  *
  * This function defines which cblk are candidates to be stored with a 2D
  * layout, computed as 2D tasks, compressible, and/or be part of the Schur
- * complement. The criteria to remove the 2D task flag or the LR flag is the
+ * complement. The criterion to remove the 2D task flag or the LR flag is the
  * width of the cblk. As soon as one cblk that does not match the criterion is
  * found, all its descendant loose the flag too.
  *
@@ -761,7 +761,7 @@ candBuild( pastix_int_t level_tasks2d, pastix_int_t width_tasks2d,
 #else
         /*
          * Propagate the flags to all the sons as long as the node matches the
-         * criteria to keep them. Stops earlier than previous case with btterfly
+         * criterion to keep them. Stops earlier than previous case with btterfly
          * like meshes.
          */
         if( level_tasks2d < 0 )

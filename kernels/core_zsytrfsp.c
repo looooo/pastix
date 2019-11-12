@@ -53,7 +53,7 @@ static pastix_complex64_t mzone = -1.0;
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
- * @param[in] criteria
+ * @param[in] criterion
  *          Threshold use for static pivoting. If diagonal value is under this
  *          threshold, its value is replaced by the threshold and the number of
  *          pivots is incremented.
@@ -64,7 +64,7 @@ core_zsytf2sp( pastix_int_t        n,
                pastix_complex64_t *A,
                pastix_int_t        lda,
                pastix_int_t       *nbpivots,
-               double              criteria )
+               double              criterion )
 {
     pastix_int_t k, m;
     pastix_complex64_t *Akk = A;     /* A [k  ][k  ] */
@@ -74,12 +74,12 @@ core_zsytf2sp( pastix_int_t        n,
 
     m = n-1;
     for (k=0; k<n; k++, m--){
-        if ( cabs(*Akk) < criteria ) {
+        if ( cabs(*Akk) < criterion ) {
             if ( creal(*Akk) < 0. ) {
-                *Akk = (pastix_complex64_t)(-criteria);
+                *Akk = (pastix_complex64_t)(-criterion);
             }
             else {
-                *Akk = (pastix_complex64_t)criteria;
+                *Akk = (pastix_complex64_t)criterion;
             }
             (*nbpivots)++;
         }
@@ -130,7 +130,7 @@ core_zsytf2sp( pastix_int_t        n,
  *          Pointer to the number of piovting operations made during
  *          factorization. It is updated during this call
  *
- * @param[in] criteria
+ * @param[in] criterion
  *          Threshold use for static pivoting. If diagonal value is under this
  *          threshold, its value is replaced by the threshold and the nu,ber of
  *          pivots is incremented.
@@ -141,7 +141,7 @@ core_zsytrfsp( pastix_int_t        n,
                pastix_complex64_t *A,
                pastix_int_t        lda,
                pastix_int_t       *nbpivots,
-               double              criteria )
+               double              criterion )
 {
     pastix_int_t k, blocknbr, blocksize, matrixsize, col;
     pastix_complex64_t *Akk, *Amk, *Akm, *Amm;
@@ -159,7 +159,7 @@ core_zsytrfsp( pastix_int_t        n,
         Amm = Amk + blocksize * lda;         /* Lk+1,k+1 */
 
         /* Factorize the diagonal block Akk*/
-        core_zsytf2sp(blocksize, Akk, lda, nbpivots, criteria);
+        core_zsytf2sp(blocksize, Akk, lda, nbpivots, criterion);
 
         if ((k*MAXSIZEOFBLOCKS+blocksize) < n) {
 
@@ -234,7 +234,7 @@ cpucblk_zsytrfsp1d_sytrf( SolverMatrix       *solvmtx,
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivots = 0;
     pastix_fixdbl_t time, flops;
-    double criteria = solvmtx->diagthreshold;
+    double criterion = solvmtx->diagthreshold;
 
     time = kernel_trace_start( PastixKernelSYTRF );
 
@@ -258,7 +258,7 @@ cpucblk_zsytrfsp1d_sytrf( SolverMatrix       *solvmtx,
      */
     flops = FLOPS_ZSYTRF( ncols );
     kernel_trace_start_lvl2( PastixKernelLvl2SYTRF );
-    core_zsytrfsp( ncols, L, stride, &nbpivots, criteria );
+    core_zsytrfsp( ncols, L, stride, &nbpivots, criterion );
     kernel_trace_stop_lvl2( flops );
 
     kernel_trace_stop( cblk->fblokptr->inlast, PastixKernelSYTRF, ncols, 0, 0, flops, time );

@@ -153,7 +153,7 @@ orderSupernodes( const pastix_graph_t *graph,
                      (long)sn_id, (int)sn_level, (long)(lnode-fnode) );
         }
 
-        /* Reinitialize date structures */
+        /* Reinitialize data structures */
         extendint_Clear( &sn_parts );
 
         pastixOrderAllocId( &sn_order, sn_vertnbr );
