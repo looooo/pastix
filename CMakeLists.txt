@@ -63,14 +63,6 @@ option(BUILD_SHARED_LIBS
 option(BUILD_64bits
   "Build 64 bits mode" ON)
 
-### Build type
-set( CMAKE_BUILD_TYPE_DROP_LIST "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-include(Sanitizer)
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are None, Debug, Release, RelWithDebInfo, MinSizeRel, ..." FORCE)
-endif(NOT CMAKE_BUILD_TYPE)
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_BUILD_TYPE_DROP_LIST})
-
 ### Distributed engine parameters
 option(PASTIX_WITH_MPI
     "Build PaStiX for distributed memory with MPI" OFF)
@@ -496,10 +488,25 @@ set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
 #
 
 # Compile the spm library
-add_subdirectory(spm)
-set( SPM_LIBRARY spm )
-include_directories("spm/include")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/spm/include")
+if ( PASTIX_WITH_FORTRAN )
+  find_package( SPM COMPONENTS FORTRAN )
+else()
+  find_package( SPM )
+endif()
+
+if( (PASTIX_INT64 AND (NOT SPM_INTSIZE EQUAL 8)) OR (PASTIX_INT32 AND (NOT SPM_INTSIZE EQUAL 4)) )
+  message( WARNING "PASTIX_INT64 is enabled and provided SPM does not have the same support. Internal SPM will be compiled.")
+  unset( SPM_FOUND )
+endif()
+
+if ( SPM_FOUND )
+  include_directories(${SPM_INCLUDE_DIRS})
+else()
+  add_subdirectory(spm)
+  set( SPM_LIBRARIES spm )
+  include_directories("spm/include")
+  include_directories("${CMAKE_CURRENT_BINARY_DIR}/spm/include")
+endif()
 
 # Disable restrict (temporary)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Drestrict=")
@@ -797,7 +804,7 @@ add_dependencies(pastix
 )
 
 target_link_libraries(pastix
-  ${SPM_LIBRARY}
+  ${SPM_LIBRARIES}
   pastix_kernels
   ${LAPACKE_LIBRARIES_DEP}
   ${CBLAS_LIBRARIES_DEP}

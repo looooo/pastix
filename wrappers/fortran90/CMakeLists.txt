@@ -47,7 +47,10 @@ set (EXAMPLES
 foreach (_file ${EXAMPLES})
   get_filename_component(_name_we ${_file} NAME_WE)
   add_executable(${_name_we} examples/${_file})
-  target_link_libraries(${_name_we} pastixf spmf)
+  target_link_libraries( ${_name_we}
+    pastixf
+    ${SPM_LIBRARIES_FORTRAN}
+    )
 
   install(TARGETS ${_name_we}       RUNTIME DESTINATION examples )
   install(FILES   examples/${_file}         DESTINATION examples )
@@ -63,7 +66,10 @@ set( _file fmultilap.f90 )
 
 get_filename_component(_name_we ${_file} NAME_WE)
 add_executable(${_name_we} examples/${_file})
-target_link_libraries(${_name_we} pastixf spmf)
+target_link_libraries( ${_name_we}
+  pastixf
+  ${SPM_LIBRARIES_FORTRAN}
+  )
 
 install(TARGETS ${_name_we}       RUNTIME DESTINATION examples )
 install(FILES   examples/${_file}         DESTINATION examples )

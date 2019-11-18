@@ -45,13 +45,14 @@ if (PYTHONINTERP_FOUND)
     simple step-by-step schur simple_obj schur_obj )
 
   # Add path to SPM, and to the .so in the environment to run the tests
-  set( TEST_ENV_LIST
-    "PYTHONPATH=$ENV{PYTHONPATH}:${CMAKE_SOURCE_DIR}/spm/wrappers/python"
-    "LIBRARY_PATH=$ENV{LIBRARY_PATH}:${CMAKE_BINARY_DIR}:${CMAKE_BINARY_DIR}/spm"
-    "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:${CMAKE_BINARY_DIR}:${CMAKE_BINARY_DIR}/spm"
-    "DYLDLIBRARY_PATH=$ENV{DYLD_LIBRARY_PATH}:${CMAKE_BINARY_DIR}:${CMAKE_BINARY_DIR}/spm"
-    )
-
+  if( NOT SPM_FOUND )
+    set( TEST_ENV_LIST
+      "PYTHONPATH=$ENV{PYTHONPATH}:${CMAKE_SOURCE_DIR}/spm/wrappers/python"
+      "LIBRARY_PATH=$ENV{LIBRARY_PATH}:${CMAKE_BINARY_DIR}:${CMAKE_BINARY_DIR}/spm"
+      "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:${CMAKE_BINARY_DIR}:${CMAKE_BINARY_DIR}/spm"
+      "DYLDLIBRARY_PATH=$ENV{DYLD_LIBRARY_PATH}:${CMAKE_BINARY_DIR}:${CMAKE_BINARY_DIR}/spm"
+      )
+  endif()
   foreach(example ${PYTHON_TESTS} )
     add_test(python_${example} ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/examples/${example}.py)
     set_tests_properties( python_${example} PROPERTIES
