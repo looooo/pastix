@@ -11,6 +11,7 @@ stages:
 before_script:
   - git submodule update --init --recursive
   - source .gitlab/env.sh
+  - if [ ! -z "$SPM_DIR" ]; then source $SPM_DIR/bin/spm_env.sh; fi
   - echo "VERSION=${VERSION}"
   - mkdir -p build
 
