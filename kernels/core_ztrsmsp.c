@@ -258,12 +258,15 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
 
         /* Try to compress the block: compress_end version */
         if ( lowrank->compress_when == PastixCompressWhenEnd ){
-
             M = blok_rownbr(blok);
-            if ( ( N > lowrank->compress_min_width  ) &&
-                 ( M > lowrank->compress_min_height ) )
+
+            /* Check the size of the block */
+            if ( ( N >= lowrank->compress_min_width  ) &&
+                 ( M >= lowrank->compress_min_height ) )
             {
                 SolverCblk *fcblk = solvmtx->cblktab + blok->fcblknm;
+
+                /* Check if the block is preselected */
                 if ( ( fcblk->selevtx == 0             ) ||
                      ( fcblk->sndeidx != cblk->sndeidx ) )
                 {
@@ -582,8 +585,8 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
         /* Try to compress the block: compress_end version */
         if ( lowrank->compress_when == PastixCompressWhenEnd )
         {
-            if ( ( N > lowrank->compress_min_width ) &&
-                 ( M > lowrank->compress_min_height ) )
+            if ( ( N >= lowrank->compress_min_width ) &&
+                 ( M >= lowrank->compress_min_height ) )
             {
                 pastix_fixdbl_t  flops;
                 pastix_lrblock_t C;
