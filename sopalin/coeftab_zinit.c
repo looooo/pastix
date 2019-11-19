@@ -237,11 +237,10 @@ cpucblk_zinit( pastix_coefside_t    side,
 
     /**
      * Try to compress the cblk if needs to be compressed
-     * TODO: change the criterion based on the level in the tree
      */
     if ( (cblk->cblktype & CBLK_COMPRESSED)                          &&
          (compress_when == PastixCompressWhenBegin)                  &&
-         (cblk_colnbr( cblk ) > solvmtx->lowrank.compress_min_width) )
+         (cblk_colnbr( cblk ) >= solvmtx->lowrank.compress_min_width) )
     {
         cpucblk_zcompress( solvmtx, side, cblk );
     }

@@ -70,7 +70,7 @@ cpucblk_zcompress( const SolverMatrix *solvmtx,
     assert( cblk->cblktype & CBLK_LAYOUT_2D  );
     assert( cblk->cblktype & CBLK_COMPRESSED );
 
-    if ( ncols <= lowrank.compress_min_width ) {
+    if ( ncols < lowrank.compress_min_width ) {
         return 0;
     }
 
@@ -85,61 +85,63 @@ cpucblk_zcompress( const SolverMatrix *solvmtx,
     {
         pastix_int_t nrows = blok_rownbr( blok );
 
-        if ( nrows > lowrank.compress_min_height )
-        {
-            gain = nrows * ncols;
+        /* Skip uncompressible blocks */
+        if ( nrows < lowrank.compress_min_height ) {
+            continue;
+        }
 
-            /* Lower part */
-            if ( side != PastixUCoef ) {
-                lrA = blok->LRblock;
+        gain = nrows * ncols;
 
-                /* Try to compress */
-                if ( lrA->rk == -1 ) {
+        /* Lower part */
+        if ( side != PastixUCoef ) {
+            lrA = blok->LRblock;
 
-                    /* We do not compress blocks that will contribute to pre-selected cblk of a same separator */
-                    /* Thus we can compress blocks that contribute to a non-preselected cblk or blocks that contribute to another separator */
-                    if ( ( (solvmtx->cblktab + blok->fcblknm)->selevtx == 0 ) ||
-                         ( (solvmtx->cblktab + blok->fcblknm)->sndeidx != cblk->sndeidx ) ){
+            /* Try to compress */
+            if ( lrA->rk == -1 ) {
 
-                        A = lrA->u;
+                /* We do not compress blocks that will contribute to pre-selected cblk of a same separator */
+                /* Thus we can compress blocks that contribute to a non-preselected cblk or blocks that contribute to another separator */
+                if ( ( (solvmtx->cblktab + blok->fcblknm)->selevtx == 0 ) ||
+                     ( (solvmtx->cblktab + blok->fcblknm)->sndeidx != cblk->sndeidx ) ){
 
-                        kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
-                        flops = lowrank.core_ge2lr( lowrank.use_reltol, lowrank.tolerance, -1, nrows, ncols,
-                                                    A, nrows, lrA );
-                        kernel_trace_stop_lvl2_rank( flops, lrA->rk );
+                    A = lrA->u;
 
-                        free( A );
-                    }
-                }
+                    kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
+                    flops = lowrank.core_ge2lr( lowrank.use_reltol, lowrank.tolerance, -1, nrows, ncols,
+                                                A, nrows, lrA );
+                    kernel_trace_stop_lvl2_rank( flops, lrA->rk );
 
-                if  ( lrA->rk != -1 ) {
-                    gainL += gain - ((nrows+ncols) * lrA->rk);
+                    free( A );
                 }
             }
 
-            /* Upper part */
-            if ( side != PastixLCoef ) {
-                lrA = blok->LRblock + 1;
+            if  ( lrA->rk != -1 ) {
+                gainL += gain - ((nrows+ncols) * lrA->rk);
+            }
+        }
 
-                if( lrA->rk == -1 ) {
+        /* Upper part */
+        if ( side != PastixLCoef ) {
+            lrA = blok->LRblock + 1;
 
-                    if ( ( (solvmtx->cblktab + blok->fcblknm)->selevtx == 0 ) ||
-                         ( (solvmtx->cblktab + blok->fcblknm)->sndeidx != cblk->sndeidx ) ){
+            if( lrA->rk == -1 ) {
 
-                        A = lrA->u;
+                if ( ( (solvmtx->cblktab + blok->fcblknm)->selevtx == 0 ) ||
+                     ( (solvmtx->cblktab + blok->fcblknm)->sndeidx != cblk->sndeidx ) ){
 
-                        kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
-                        flops = lowrank.core_ge2lr( lowrank.use_reltol, lowrank.tolerance, -1, nrows, ncols,
-                                                    A, nrows, lrA );
-                        kernel_trace_stop_lvl2_rank( flops, lrA->rk );
+                    A = lrA->u;
 
-                        free( A );
-                    }
+                    kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
+                    flops = lowrank.core_ge2lr( lowrank.use_reltol, lowrank.tolerance, -1, nrows, ncols,
+                                                A, nrows, lrA );
+                    kernel_trace_stop_lvl2_rank( flops, lrA->rk );
+
+                    free( A );
                 }
+            }
 
-                if  ( lrA->rk != -1 ) {
-                    gainU += gain - ((nrows+ncols) * lrA->rk);
-                }
+            if  ( lrA->rk != -1 ) {
+                gainU += gain - ((nrows+ncols) * lrA->rk);
             }
         }
     }
