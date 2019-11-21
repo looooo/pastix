@@ -1097,3 +1097,8 @@ add_subdirectory(docs)
 add_custom_target (tags
   COMMAND etags ${PASTIX_LIB_SRCS}
   DEPENDS ${PASTIX_LIB_SRCS} )
+
+#############################################################
+# Print Options
+#############################################################
+include(PrintOpts)
