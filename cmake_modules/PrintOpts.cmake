@@ -55,21 +55,13 @@ set(dep_message "${dep_message}"
 "       Binaries to build\n"
 "       documentation .......: ${BUILD_DOCUMENTATION}\n"
 "       testing .............: ${BUILD_TESTING}\n"
-"       Precisions ..........: ${PASTIX_PRECISIONS}\n")
-# "       PASTIX dependencies :\n"
-# foreach (_dep ${PASTIX_LIBRARIES_DEP})
-#     set(dep_message "${dep_message}"
-#     "                                 ${_dep}\n")
-# endforeach ()
-set(dep_message "${dep_message}"
+"       Precisions ..........: ${PASTIX_PRECISIONS}\n"
 "\n"
 "       INSTALL_PREFIX ......: ${CMAKE_INSTALL_PREFIX}\n\n")
 
 string(REPLACE ";" " " dep_message_wsc "${dep_message}")
 message(${dep_message})
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/config.log "${dep_message_wsc}")
-# message(STATUS "Configuration is done - A summary of the current configuration"
-# "\n   has been written in ${CMAKE_CURRENT_BINARY_DIR}/config.log")
-# installation
-# ------------
-#INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/config.log DESTINATION share/pastix)
+message(STATUS "Configuration is done - A summary of the current configuration"
+"\n   has been written in ${CMAKE_CURRENT_BINARY_DIR}/config.log")
+
