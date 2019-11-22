@@ -17,10 +17,10 @@ set(dep_message "\nConfiguration of Pastix:\n"
         "\n"
         "       Compiler: C .........: ${CMAKE_C_COMPILER} (${CMAKE_C_COMPILER_ID})\n"
         "       Compiler: Fortran ...: ${CMAKE_Fortran_COMPILER} (${CMAKE_Fortran_COMPILER_ID})\n")
-if(PASTIX_USE_MPI)
+if(PASTIX_WITH_MPI)
   set(dep_message "${dep_message}"
   "       Compiler: MPI .......: ${MPI_C_COMPILER}\n"
-  "       compiler flags ......: ${MPI_C_COMPILE_FLAGS}\n")
+  "       Compiler flags ......: ${MPI_C_COMPILE_FLAGS}\n")
 endif()
 set(dep_message "${dep_message}"
 "       Linker: .............: ${CMAKE_LINKER}\n"
