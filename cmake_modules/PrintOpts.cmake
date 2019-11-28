@@ -33,18 +33,20 @@ set(dep_message "${dep_message}"
 "\n"
 "       Implementation paradigm\n"
 "       MPI .................: ${PASTIX_WITH_MPI}\n")
-if(PASTIX_WITH_MPI)
+if(PASTIX_WITH_MPI AND PASTIX_DEBUG_MPI)
   set(dep_message "${dep_message}"
-  "         Dump MPI messages .: ${PASTIX_DEBUG_MPI}\n"
-  "         Facto debug .......: ${PASTIX_DEBUG_FACTO}\n"
-  "         Pastix distributed : ${PASTIX_DISTRIBUTED}\n")
-  endif()
+  "         Dump MPI messages .: ${PASTIX_DEBUG_MPI}\n")
+endif()
+if(PASTIX_WITH_MPI AND PASTIX_DEBUG_FACTO)
+  set(dep_message "${dep_message}"
+  "         Facto debug .......: ${PASTIX_DEBUG_FACTO}\n")
+endif()
 set(dep_message "${dep_message}"
 "       CUDA ................: ${PASTIX_WITH_CUDA}\n")
 if(PASTIX_WITH_CUDA)
   set(dep_message "${dep_message}"
   "         Fermi kernels .....: ${PASTIX_CUDA_FERMI}\n")
-  endif()
+endif()
 set(dep_message "${dep_message}"
 "\n"
 "       Ordering selected\n"
@@ -54,10 +56,10 @@ set(dep_message "${dep_message}"
 "\n"
 "       Runtime specific\n"
 "       PARSEC ..............: ${PASTIX_WITH_PARSEC}\n")
-if(PASTIX_WITH_PARSEC)
+if(PASTIX_WITH_PARSEC AND PASTIX_DEBUG_PARSEC)
   set(dep_message "${dep_message}"
   "         PaRSEC debug ......: ${PASTIX_DEBUG_PARSEC}\n")
-  endif()
+endif()
 set(dep_message "${dep_message}"
 "       STARPU ..............: ${PASTIX_WITH_STARPU}\n"
 "\n"
