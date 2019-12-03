@@ -155,8 +155,11 @@ option(PASTIX_DEBUG_BLEND
   "Debug the analyze step" OFF)
 option(PASTIX_DEBUG_DUMP_COEFTAB
   "Dump all cblk on disk after modifications" OFF)
-option(PASTIX_DEBUG_FACTO
-  "Debug the factorization step" OFF)
+cmake_dependent_option(PASTIX_DEBUG_FACTO
+  "Debug the factorization step" OFF
+  "PASTIX_WITH_MPI" OFF)
+option(PASTIX_DEBUG_SOLVE
+  "Debug the solve step" OFF)
 cmake_dependent_option(PASTIX_DEBUG_PARSEC
   "Debug the parsec implementation of the factorization step" OFF
   "PASTIX_WITH_PARSEC" OFF)
@@ -168,6 +171,9 @@ option(PASTIX_DEBUG_GMRES
   "Debug the gmres refinment by enabling the computation of the true resiudal at each iteration" OFF)
 option(PASTIX_DEBUG_EXIT_ON_SIGSEGV
   "Generate a segfault on exit calls to trakc in gdb" OFF)
+cmake_dependent_option(PASTIX_DEBUG_MPI
+  "Dump all the MPI messages" OFF
+  "PASTIX_WITH_MPI" OFF)
 
 ###############################################################################
 # Look for dependencies #
@@ -1097,3 +1103,8 @@ add_subdirectory(docs)
 add_custom_target (tags
   COMMAND etags ${PASTIX_LIB_SRCS}
   DEPENDS ${PASTIX_LIB_SRCS} )
+
+#############################################################
+# Print Options
+#############################################################
+include(PrintOpts)
