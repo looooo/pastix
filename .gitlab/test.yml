@@ -31,114 +31,173 @@
     - .test_script_template
     - .only-branches-mpi
 
-test_pastix_seq_sched0:
+test_pastix_seq_shm_sched0:
   variables:
     VERSION: seq
     SCHED: 0
-    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
   dependencies:
     - build_pastix_seq
   <<: *test_script_seq
 
-test_pastix_seq_sched1:
+test_pastix_seq_shm_sched1:
   variables:
     VERSION: seq
     SCHED: 1
-    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
   dependencies:
     - build_pastix_seq
   <<: *test_script_seq
 
-test_pastix_seq_sched2:
+test_pastix_seq_shm_sched2:
   variables:
     VERSION: seq
     SCHED: 2
-    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
+    PARSEC_MCA_runtime_bind_main_thread: 0
   dependencies:
     - build_pastix_seq
   <<: *test_script_seq
 
-test_pastix_seq_sched3:
+test_pastix_seq_shm_sched3:
   variables:
     VERSION: seq
     SCHED: 3
-    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
     STARPU_WORKERS_NOBIND: 1
     STARPU_SILENT: 1
   dependencies:
     - build_pastix_seq
   <<: *test_script_seq
 
-test_pastix_seq_sched4:
+test_pastix_seq_shm_sched4:
   variables:
     VERSION: seq
     SCHED: 4
-    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
   dependencies:
     - build_pastix_seq
   <<: *test_script_seq
 
-test_pastix_seq_other:
+test_pastix_seq_shm_other:
   variables:
     VERSION: seq
     SCHED: 9
-    TESTS_RESTRICTION: "-E \"_sched\""
+    TESTS_RESTRICTION: "-R \"shm_\" -E \"sched\""
   dependencies:
     - build_pastix_seq
   <<: *test_script_seq
 
-test_pastix_mpi_sched0:
+test_pastix_mpi_shm_sched0:
   variables:
     VERSION: mpi
     SCHED: 0
-    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
   dependencies:
     - build_pastix_mpi
   <<: *test_script_mpi
 
-test_pastix_mpi_sched1:
+test_pastix_mpi_shm_sched1:
   variables:
     VERSION: mpi
     SCHED: 1
-    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
   dependencies:
     - build_pastix_mpi
   <<: *test_script_mpi
 
-test_pastix_mpi_sched2:
+test_pastix_mpi_shm_sched2:
   variables:
     VERSION: mpi
     SCHED: 2
-    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
+    PARSEC_MCA_runtime_bind_main_thread: 0
   dependencies:
     - build_pastix_mpi
   <<: *test_script_mpi
 
-test_pastix_mpi_sched3:
+test_pastix_mpi_shm_sched3:
   variables:
     VERSION: mpi
     SCHED: 3
-    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
     STARPU_WORKERS_NOBIND: 1
     STARPU_SILENT: 1
   dependencies:
     - build_pastix_mpi
   <<: *test_script_mpi
 
-test_pastix_mpi_sched4:
+test_pastix_mpi_shm_sched4:
   variables:
     VERSION: mpi
     SCHED: 4
-    TESTS_RESTRICTION: "-R \"_sched${SCHED}\""
+    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
   dependencies:
     - build_pastix_mpi
   <<: *test_script_mpi
 
-test_pastix_mpi_other:
+test_pastix_mpi_shm_other:
   variables:
     VERSION: mpi
     SCHED: 9
-    TESTS_RESTRICTION: "-E \"_sched\""
+    TESTS_RESTRICTION: "-R \"shm_\" -E \"sched\""
+  dependencies:
+    - build_pastix_mpi
+  <<: *test_script_mpi
+
+test_pastix_mpi_dist_sched0:
+  variables:
+    VERSION: mpi
+    SCHED: 0
+    TESTS_RESTRICTION: "-R \"mpi_.*_sched${SCHED}\""
+  dependencies:
+    - build_pastix_mpi
+  <<: *test_script_mpi
+
+test_pastix_mpi_dist_sched1:
+  variables:
+    VERSION: mpi
+    SCHED: 1
+    TESTS_RESTRICTION: "-R \"mpi_.*_sched${SCHED}\""
+  dependencies:
+    - build_pastix_mpi
+  <<: *test_script_mpi
+
+test_pastix_mpi_dist_sched2:
+  variables:
+    VERSION: mpi
+    SCHED: 2
+    TESTS_RESTRICTION: "-R \"mpi_.*_sched${SCHED}\""
+    PARSEC_MCA_runtime_bind_main_thread: 0
+  dependencies:
+    - build_pastix_mpi
+  <<: *test_script_mpi
+
+test_pastix_mpi_dist_sched3:
+  variables:
+    VERSION: mpi
+    SCHED: 3
+    TESTS_RESTRICTION: "-R \"mpi_.*_sched${SCHED}\""
+    STARPU_WORKERS_NOBIND: 1
+    STARPU_SILENT: 1
+  dependencies:
+    - build_pastix_mpi
+  <<: *test_script_mpi
+
+test_pastix_mpi_dist_sched4:
+  variables:
+    VERSION: mpi
+    SCHED: 4
+    TESTS_RESTRICTION: "-R \"mpi_.*_sched${SCHED}\""
+  dependencies:
+    - build_pastix_mpi
+  <<: *test_script_mpi
+
+test_pastix_mpi_dist_other:
+  variables:
+    VERSION: mpi
+    SCHED: 9
+    TESTS_RESTRICTION: "-R \"mpi_\" -E \"sched\""
   dependencies:
     - build_pastix_mpi
   <<: *test_script_mpi
