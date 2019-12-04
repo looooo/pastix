@@ -55,7 +55,7 @@ foreach (_file ${EXAMPLES})
   install(TARGETS ${_name_we}       RUNTIME DESTINATION examples )
   install(FILES   examples/${_file}         DESTINATION examples )
 
-  add_test(fortran_${_name_we} ./${_name_we})
+  add_test( shm_fortran_${_name_we} ./${_name_we} )
 
 endforeach()
 
@@ -94,8 +94,8 @@ set( _mt  "${CMAKE_CURRENT_SOURCE_DIR}/examples/test_mt.in" )
 set( _exe "${CMAKE_CURRENT_BINARY_DIR}/fmultilap"           )
 
 if (BASH)
-  add_test( NAME fortran_${_name_we}_seq COMMAND ${BASH} -c "${_exe} < ${_seq}" )
-  add_test( NAME fortran_${_name_we}_mt  COMMAND ${BASH} -c "${_exe} < ${_mt}"  )
+  add_test( NAME shm_fortran_${_name_we}_seq COMMAND ${BASH} -c "${_exe} < ${_seq}" )
+  add_test( NAME shm_fortran_${_name_we}_mt  COMMAND ${BASH} -c "${_exe} < ${_mt}"  )
 endif()
 
 #

@@ -54,8 +54,8 @@ if (PYTHONINTERP_FOUND)
       )
   endif()
   foreach(example ${PYTHON_TESTS} )
-    add_test(python_${example} ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/examples/${example}.py)
-    set_tests_properties( python_${example} PROPERTIES
+    add_test( shm_python_${example} ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/examples/${example}.py)
+    set_tests_properties( shm_python_${example} PROPERTIES
       ENVIRONMENT "${TEST_ENV_LIST}" )
   endforeach()
 endif()

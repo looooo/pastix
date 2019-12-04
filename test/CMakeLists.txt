@@ -83,37 +83,48 @@ set( BVEC_TESTS
   bvec_gemv_tests
   bvec_tests
   )
+set( RUNTYPE shm )
 
-# Laplacian
-foreach(example ${BCSC_TESTS} )
-  foreach(arithm ${PASTIX_PRECISIONS} )
-    add_test(test_lap_${arithm}_${example} ./${example} --lap ${arithm}:10:10:10)
+# Add runtype
+if (PASTIX_WITH_MPI)
+  list( APPEND RUNTYPE mpi )
+endif()
+
+foreach( version ${RUNTYPE} )
+  unset( exe )
+  if( version STREQUAL "shm" )
+    set( exe "")
+  endif()
+  if( version STREQUAL "mpi" )
+    set( exe mpiexec -np 4 )
+  endif()
+
+  foreach(example ${BCSC_TESTS} )
+    set( _test_name ${version}_test_${example} )
+    set( _test_cmd  ${exe} ./${example} )
+
+    # Laplacian
+    foreach(arithm ${PASTIX_PRECISIONS} )
+      add_test(${_test_name}_lap_${arithm} ${_test_cmd} --lap ${arithm}:10:10:10)
+    endforeach()
+
+    # RSA
+    add_test(${_test_name}_rsa ${_test_cmd} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa)
+
+    # Matrix Market
+    add_test(${_test_name}_mm ${_test_cmd} --mm ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx)
+
+    # Harwell Boeing
+    add_test(${_test_name}_hb ${_test_cmd} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua)
+
+    # Matrix Market - Hermitian
+    add_test(${_test_name}_mm2 ${_test_cmd} --mm ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx)
   endforeach()
-endforeach()
 
-# RSA
-foreach(example ${BCSC_TESTS} )
-  add_test(test_rsa_${example} ./${example} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa)
-endforeach()
-
-# Matrix Market
-foreach(example ${BCSC_TESTS} )
-  add_test(test_mm_${example} ./${example} --mm ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx)
-endforeach()
-
-# Harwell Boeing
-foreach(example ${BCSC_TESTS} )
-  add_test(test_hb_${example} ./${example} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua)
-endforeach()
-
-# Matrix Market - Hermitian
-foreach(example ${BCSC_TESTS} )
-  add_test(test_mm2_${example} ./${example} --mm ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx)
-endforeach()
-
-# Bvec tests
-foreach(example ${BVEC_TESTS} )
-  add_test(test_${example} ./${example} )
+  # Bvec tests
+  foreach(example ${BVEC_TESTS} )
+    add_test(${version}_test_${example} ${exe} ./${example} )
+  endforeach()
 endforeach()
 
 ###################################
@@ -177,13 +188,12 @@ if(TMG_FOUND)
     target_link_libraries(${_name_we}
       pastix_lrtests
       pastix_kernels
-      pastix
       ${LAPACKE_LIBRARIES_DEP}
       ${TMG_LIBRARIES_DEP}
       ${EXTRA_LIBS}
       m)
 
-    add_test(test_${_name_we} ./${_name_we} -n 300 -p 10 )
+    add_test(shm_test_${_name_we} ./${_name_we} -n 300 -p 10 )
   endforeach()
 
 endif()
