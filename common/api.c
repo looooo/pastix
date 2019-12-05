@@ -40,6 +40,12 @@
 #define pastix_mkdir( __str ) mkdir( (__str), 0700 )
 #endif
 
+#if defined(PASTIX_WITH_MPI)
+static int pastix_mpi_in_use = 0;  /**< Counter of the number of Pastix instances using MPI          */
+static int pastix_mpi_init = 0;    /**< Boolean to know if MPI has been initialized by pastix or not */
+static volatile pastix_atomic_lock_t pastix_mpi_lock = PASTIX_ATOMIC_UNLOCKED; /**< Lock to protect the MPI initialization */
+#endif
+
 /**
  *******************************************************************************
  *
@@ -553,17 +559,19 @@ pastixInitParam( pastix_int_t *iparm,
  *******************************************************************************/
 static inline void
 apiInitMPI( pastix_data_t *pastix,
-            MPI_Comm       comm,
+            PASTIX_Comm    comm,
             int            autosplit )
 {
     /*
      * Setup all communicators for autosplitmode and initialize number/rank of
      * processes.
      */
-    pastix->pastix_comm = MPI_COMM_SELF; /* MPI is not available yet */
+    if ( comm == 0 ) {
+        comm = MPI_COMM_WORLD;
+    }
+    pastix->pastix_comm = comm;
     MPI_Comm_size(pastix->pastix_comm, &(pastix->procnbr));
     MPI_Comm_rank(pastix->pastix_comm, &(pastix->procnum));
-    assert(pastix->procnbr==1); /* MPI is not available yet */
 
 #if defined(PASTIX_WITH_MPI)
     if ( autosplit )
@@ -610,6 +618,8 @@ apiInitMPI( pastix_data_t *pastix,
         pastix->inter_node_procnbr = pastix->procnbr;
         pastix->inter_node_procnum = pastix->procnum;
     }
+
+    assert( pastix->inter_node_procnbr * pastix->intra_node_procnbr == pastix->procnbr );
     (void)autosplit;
     (void)comm;
 }
@@ -652,7 +662,7 @@ apiInitMPI( pastix_data_t *pastix,
  *******************************************************************************/
 void
 pastixInitWithAffinity( pastix_data_t **pastix_data,
-                        MPI_Comm        pastix_comm,
+                        PASTIX_Comm     pastix_comm,
                         pastix_int_t   *iparm,
                         double         *dparm,
                         const int      *bindtab )
@@ -666,31 +676,58 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     memset( pastix, 0, sizeof(pastix_data_t) );
 
     /*
-     * Check if MPI is initialized
-     */
-    pastix->initmpi = 0;
-#if defined(PASTIX_WITH_MPI)
-    {
-        int provided = MPI_THREAD_SINGLE;
-        int flag = 0;
-        MPI_Initialized(&flag);
-        if ( !flag ) {
-            MPI_Init_thread( NULL, NULL, MPI_THREAD_MULTIPLE, &provided );
-            pastix->initmpi = 1;
-        }
-        else {
-            MPI_Query_thread( &provided );
-        }
-    }
-#endif
-
-    /*
      * Initialize iparm/dparm vectors and set them to default values if not set
      * by the user.
      */
     if ( iparm[IPARM_MODIFY_PARAMETER] == 0 ) {
         pastixInitParam( iparm, dparm );
     }
+
+    /*
+     * Check if MPI is initialized
+     */
+#if defined(PASTIX_WITH_MPI)
+    {
+        int provided = MPI_THREAD_SINGLE;
+        int flag = 0;
+
+        pastix_atomic_lock( &pastix_mpi_lock );
+        pastix_mpi_in_use++;
+
+        MPI_Initialized(&flag);
+        if ( !flag ) {
+            MPI_Init_thread( NULL, NULL, MPI_THREAD_MULTIPLE, &provided );
+            pastix_mpi_init = 1;
+        }
+        else {
+            MPI_Query_thread( &provided );
+        }
+
+         if ( iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
+            char *str;
+            switch ( provided ) {
+            case MPI_THREAD_MULTIPLE:
+                str = "MPI_THREAD_MULTIPLE";
+                break;
+            case MPI_THREAD_SERIALIZED:
+                str = "MPI_THREAD_SERIALIZED";
+                break;
+            case MPI_THREAD_FUNNELED:
+                str = "MPI_THREAD_FUNNELED";
+                break;
+            case MPI_THREAD_SINGLE:
+                str = "MPI_THREAD_SINGLE";
+                break;
+            default:
+                str = "MPI_THREAD_UNKNOWN";
+            }
+            pastix_print( pastix->procnum, 0,
+                          "MPI initialized with thread level support: %s\n",
+                          str );
+        }
+        pastix_atomic_unlock( &pastix_mpi_lock );
+    }
+#endif
 
     pastix->iparm = iparm;
     pastix->dparm = dparm;
@@ -805,7 +842,7 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
  *******************************************************************************/
 void
 pastixInit( pastix_data_t **pastix_data,
-            MPI_Comm        pastix_comm,
+            PASTIX_Comm     pastix_comm,
             pastix_int_t   *iparm,
             double         *dparm )
 {
@@ -881,9 +918,12 @@ pastixFinalize( pastix_data_t **pastix_data )
 #endif /* defined(PASTIX_WITH_STARPU) */
 
 #if defined(PASTIX_WITH_MPI)
-    if ( pastix->initmpi ) {
+    pastix_atomic_lock( &pastix_mpi_lock );
+    pastix_mpi_in_use--;
+    if ( (pastix_mpi_in_use == 0) && pastix_mpi_init ) {
         MPI_Finalize();
     }
+    pastix_atomic_unlock( &pastix_mpi_lock );
 #endif
 
     if ( pastix->cpu_models != NULL ) {

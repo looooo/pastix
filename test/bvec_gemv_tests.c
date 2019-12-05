@@ -52,17 +52,18 @@ char* schednames[] = { "Sequential", "Static" };
 
 int main ( int argc, char **argv )
 {
-    pastix_int_t        iparm[IPARM_SIZE];  /*< Integer in/out parameters for pastix                */
-    pastix_fixdbl_t     dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
-    spm_driver_t        driver = SpmDriverRSA;
-    char               *filename = NULL;
-    int                 check = 1;
-    pastix_int_t        m, n, s, t;
+    pastix_data_t   *pastix_data = NULL;
+    pastix_int_t     iparm[IPARM_SIZE];  /*< Integer in/out parameters for pastix                */
+    pastix_fixdbl_t  dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
+    spm_driver_t     driver = SpmDriverRSA;
+    char            *filename = NULL;
+    int              check = 1;
+    pastix_int_t     m, n, s, t;
+    pastix_int_t     dim3, dof;
+    spm_coeftype_t   flttype;
+    pastix_fixdbl_t  alpha, beta;
     int err = 0;
     int rc = 0;
-    pastix_int_t    dim3, dof;
-    spm_coeftype_t  flttype;
-    pastix_fixdbl_t alpha, beta;
 
     /**
      * Initialize parameters to default values
@@ -79,6 +80,11 @@ int main ( int argc, char **argv )
                           iparm, dparm,
                           &check, &driver, &filename );
     }
+
+    /**
+     * Startup pastix to start the scheduler
+     */
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     if ( driver != SpmDriverLaplacian ) {
         flttype = SpmDouble;
@@ -99,20 +105,20 @@ int main ( int argc, char **argv )
                        fltnames[t], schednames[s] );
                 switch( t ){
                 case SpmComplex64:
-                    rc = z_bvec_gemv_check( check, m, n, iparm, dparm );
+                    rc = z_bvec_gemv_check( pastix_data, check, m, n );
                     break;
 
                 case SpmComplex32:
-                    rc = c_bvec_gemv_check( check, m, n, iparm, dparm );
+                    rc = c_bvec_gemv_check( pastix_data, check, m, n );
                     break;
 
                 case SpmFloat:
-                    rc = s_bvec_gemv_check( check, m, n, iparm, dparm );
+                    rc = s_bvec_gemv_check( pastix_data, check, m, n );
                     break;
 
                 case SpmDouble:
                 default:
-                    rc = d_bvec_gemv_check( check, m, n, iparm, dparm );
+                    rc = d_bvec_gemv_check( pastix_data, check, m, n );
                 }
                 PRINT_RES(rc);
             }
@@ -130,22 +136,24 @@ int main ( int argc, char **argv )
     else {
         switch( flttype ){
         case SpmComplex64:
-            rc = z_bvec_gemv_check( check, m, n, iparm, dparm );
+            rc = z_bvec_gemv_check( pastix_data, check, m, n );
             break;
 
         case SpmComplex32:
-            rc = c_bvec_gemv_check( check, m, n, iparm, dparm );
+            rc = c_bvec_gemv_check( pastix_data, check, m, n );
             break;
 
         case SpmFloat:
-            rc = s_bvec_gemv_check( check, m, n, iparm, dparm );
+            rc = s_bvec_gemv_check( pastix_data, check, m, n );
             break;
 
         case SpmDouble:
         default:
-            rc = d_bvec_gemv_check( check, m, n, iparm, dparm );
+            rc = d_bvec_gemv_check( pastix_data, check, m, n );
         }
     }
+
+    pastixFinalize( &pastix_data );
 
     return rc;
 }

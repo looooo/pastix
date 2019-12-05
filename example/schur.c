@@ -302,8 +302,15 @@ int main (int argc, char **argv)
     lds = nschur;
     S = malloc( pastix_size_of( spm->flttype ) * nschur * lds );
 
-    pastixGetSchur( pastix_data, S, lds );
+    rc = pastixGetSchur( pastix_data, S, lds );
 
+    if( rc == -1 ){
+        spmExit( spm );
+        free( spm );
+        free( S );
+        pastixFinalize( &pastix_data );
+        exit(0);
+    }
 
     /**
      * Factorize the Schur complement

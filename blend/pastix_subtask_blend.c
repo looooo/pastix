@@ -532,7 +532,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         dparm[DPARM_FILL_IN] = (double)(iparm[IPARM_NNZEROS]) / (double)(pastix_data->csc->gnnzexp);
 
         if (verbose > PastixVerboseNot) {
-            pastix_print( 0, 0, OUT_BLEND_SUMMARY,
+            pastix_print( procnum, 0, OUT_BLEND_SUMMARY,
                           (long)iparm[IPARM_NNZEROS],
                           (double)dparm[DPARM_FILL_IN],
                           pastixFactotypeStr( iparm[IPARM_FACTORIZATION] ),
@@ -549,7 +549,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                 }
                 if (verbose > PastixVerboseYes)
                 {
-                    MPI_Comm pastix_comm = pastix_data->inter_node_comm;
+                    PASTIX_Comm  pastix_comm = pastix_data->inter_node_comm;
                     pastix_int_t sizeL = solvmtx->coefnbr;
                     pastix_int_t sizeG = 0;
 

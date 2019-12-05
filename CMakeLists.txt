@@ -871,7 +871,6 @@ set(PASTIX_HDRS
   include/pastix/api.h
   include/pastix/old_api.h
   include/pastix/datatypes.h
-  include/pastix/nompi.h
   include/pastix/order.h
   graph/graph.h
   include/cblas.h

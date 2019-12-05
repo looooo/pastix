@@ -86,22 +86,15 @@ z_init( pastix_data_t      *pastix_data,
 }
 
 int
-z_bvec_gemv_check( int check, int m, int n,
-                   pastix_int_t    *iparm,
-                   pastix_fixdbl_t *dparm )
+z_bvec_gemv_check( pastix_data_t *pastix_data,
+                   int check, int m, int n )
 {
-    pastix_data_t      *pastix_data = NULL; /*< Pointer to the storage structure required by pastix */
     int                 i;
     int                 rc = 0;
     pastix_complex64_t *A, *x, *y, *y0;
     pastix_complex64_t  alpha = 3.5;
     pastix_complex64_t  beta = -4.8;
     struct z_solver     solver;
-
-    /**
-     * Startup pastix to start the scheduler
-     */
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     z_refine_init( &solver, pastix_data );
 
@@ -152,11 +145,11 @@ z_bvec_gemv_check( int check, int m, int n,
         double t, flops;
         Clock timer;
 
-        clockStart(timer);
+        timer = clockGetLocal();
         for ( i = 0; i < 50 ; ++i) {
             solver.gemv( pastix_data, m, n, alpha, A, m, x, beta, y );
         }
-        clockStop(timer);
+        timer = clockGetLocal() - timer;
 
         t = clockVal(timer) / 50.;
         flops = FLOPS_ZGEMV( m, n ) / t;
@@ -167,8 +160,6 @@ z_bvec_gemv_check( int check, int m, int n,
     free( A );
     free( x );
     free( y );
-
-    pastixFinalize( &pastix_data );
 
     return rc;
 }
@@ -196,43 +187,43 @@ z_bvec_check( pastix_data_t *pastix_data,
     z_init( pastix_data, m, x );
 
     printf("========== copy function time ==========\n");
-    clockStart(timer);
+    timer = clockGetLocal();
     for( i=0; i<50; ++i ) {
         solver.copy( pastix_data, m, x, y );
     }
-    clockStop(timer);
+    timer = clockGetLocal() - timer;
     printf("    Time for copy (N= %ld)         : %e \n", (long)m, clockVal(timer)/50.);
 
     printf("========== axpy function time ==========\n");
-    clockStart(timer);
+    timer = clockGetLocal();
     for( i=0; i<50; ++i ) {
         solver.axpy( pastix_data, m, alpha, x, y );
     }
-    clockStop(timer);
+    timer = clockGetLocal() - timer;
     printf("    Time for axpy (N= %ld)         : %e \n", (long)m, clockVal(timer)/50.);
 
     printf("========== dot function time ==========\n");
-    clockStart(timer);
+    timer = clockGetLocal();
     for( i=0; i<50; ++i ) {
         solver.dot( pastix_data, m, x, y );
     }
-    clockStop(timer);
+    timer = clockGetLocal() - timer;
     printf("    Time for dot  (N= %ld)         : %e \n", (long)m, clockVal(timer)/50.);
 
     printf("========== norm function time ==========\n");
-    clockStart(timer);
+    timer = clockGetLocal();
     for( i=0; i<50; ++i ) {
         solver.norm( pastix_data, m, x );
     }
-    clockStop(timer);
+    timer = clockGetLocal() - timer;
     printf("    Time for norm (N= %ld)         : %e \n", (long)m, clockVal(timer)/50.);
 
     printf("========== scal function time ==========\n");
-    clockStart(timer);
+    timer = clockGetLocal();
     for( i=0; i<50; ++i ) {
         solver.scal( pastix_data, m, alpha, x );
     }
-    clockStop(timer);
+    timer = clockGetLocal() - timer;
     printf("    Time for scal (N= %ld)         : %e \n", (long)m, clockVal(timer)/50.);
 
     free( x );
@@ -266,11 +257,11 @@ z_bcsc_spmv_time( pastix_data_t    *pastix_data,
     z_init( pastix_data, spm->nexp * nrhs, x );
     z_init( pastix_data, spm->nexp * nrhs, y );
 
-    clockStart(timer);
+    timer = clockGetLocal();
     for ( i = 0; i < 50 ; ++i) {
         solver.spmv( pastix_data, PastixNoTrans, alpha, x, beta, y );
     }
-    clockStop(timer);
+    timer = clockGetLocal() - timer;
 
     t = clockVal(timer) / 50.;
     flops = FLOPS_ZGEMM( spm->nnzexp, 1, 1 ) / t;

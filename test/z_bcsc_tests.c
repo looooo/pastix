@@ -65,8 +65,8 @@ z_bcsc_spmv_check( spm_trans_t          trans,
     core_zplrnt( spm->gN, 1, y0, spm->gN, 1, start, 0, seed ); start += spm->gN;
 
     /* Allocate cs/cd */
-    ys    = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
-    yd    = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
+    ys = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
+    yd = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
 
     /* Initialize cs/cd */
     memcpy( ys, y0, spm->gN * sizeof(pastix_complex64_t) );
@@ -88,6 +88,7 @@ z_bcsc_spmv_check( spm_trans_t          trans,
     bvec_zlapmr( 1, PastixDirBackward, pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
     bvec_zlapmr( 1, PastixDirBackward, pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
 
+    info_solution = 0;
     Anorm  = spmNorm( SpmInfNorm, spm );
     Xnorm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,  x, spm->gN );
     Y0norm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1, y0, spm->gN );
@@ -115,6 +116,11 @@ z_bcsc_spmv_check( spm_trans_t          trans,
     }
 
   end:
+#if defined(PASTIX_WITH_MPI)
+    MPI_Allreduce( MPI_IN_PLACE, &info_solution, 1, MPI_INT,
+                   MPI_SUM, pastix_data->inter_node_comm );
+#endif
+
     free(x); free(y0); free(ys); free(yd);
 
     return info_solution;

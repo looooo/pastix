@@ -1,6 +1,6 @@
 /**
  *
- * @file pastix/nompi.h
+ * @file nompi.h
  *
  * PaStiX header to redefine all MPI keywords in order to allow compilation
  * without MPI.
@@ -15,14 +15,13 @@
  * @date 2018-07-16
  *
  **/
-#ifndef _pastix_nompi_h_
-#define _pastix_nompi_h_
+#ifndef _nompi_h_
+#define _nompi_h_
 
 #define MPI_Datatype int
 #define MPI_Op       int
 #define MPI_Request  int
 #define MPI_Aint     int
-#define MPI_Comm     int
 #define MPI_Fint     int
 
 #define MPI_CHAR              1
@@ -73,6 +72,7 @@
 #define MPI_ANY_TAG           3
 #define MPI_REQUEST_NULL      4
 #define MPI_UNDEFINED         5
+#define MPI_DATATYPE_NULL     6
 #define MPI_SUM               8
 #define MPI_MAX               9
 #define MPI_BOTTOM            NULL
@@ -98,9 +98,11 @@ typedef struct MPI_Status{
 #define MPI_Isend(buf, count, datatype, dest, tag, comm, request)
 #define MPI_Wait(request, status)
 #define MPI_Waitany(count, array_of_requests, index, status);
+#define MPI_Waitsome(count, array_of_requests, outcount, array_of_indexes, array_of_statuses)
 #define MPI_Cancel(request)
 #define MPI_Test(request, flag, status)
 #define MPI_Testany(count, array_of_requests, index, flag, array_of_statuses)
+#define MPI_Testsome(count, array_of_requests, outcount, array_of_indexes, array_of_statuses)
 #define MPI_Iprobe(source, tag, comm, flag, status)
 #define MPI_Recv_init(buf, count, datatype, dest, tag, comm, request)
 #define MPI_Start(request)
@@ -171,7 +173,7 @@ pastix_nompi_copy( void *dst, const void *src, int count, MPI_Datatype datatype 
 static inline int
 MPI_Gather( const void *sendbuf, int sendcount, MPI_Datatype sendtype,
             void *recvbuf, int recvcount, MPI_Datatype recvtype,
-            int root, MPI_Comm comm )
+            int root, PASTIX_Comm comm )
 {
     assert( sendcount == recvcount );
     assert( sendtype == recvtype );
@@ -185,7 +187,7 @@ MPI_Gather( const void *sendbuf, int sendcount, MPI_Datatype sendtype,
 
 static inline int
 MPI_Allreduce( const void *sendbuf, void *recvbuf, int count,
-               MPI_Datatype datatype, MPI_Op op, MPI_Comm comm )
+               MPI_Datatype datatype, MPI_Op op, PASTIX_Comm comm )
 {
     (void)op;
     (void)comm;
@@ -195,7 +197,7 @@ MPI_Allreduce( const void *sendbuf, void *recvbuf, int count,
 static inline int
 MPI_Alltoall( const void *sendbuf, int sendcount, MPI_Datatype sendtype,
               void *recvbuf, int recvcount, MPI_Datatype recvtype,
-              MPI_Comm comm )
+              PASTIX_Comm comm )
 {
     assert( sendcount == recvcount );
     assert( sendtype == recvtype );
@@ -208,7 +210,7 @@ MPI_Alltoall( const void *sendbuf, int sendcount, MPI_Datatype sendtype,
 
 static inline int
 MPI_Reduce( const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype,
-            MPI_Op op, int root, MPI_Comm comm )
+            MPI_Op op, int root, PASTIX_Comm comm )
 {
     (void)op;
     (void)root;
@@ -218,7 +220,7 @@ MPI_Reduce( const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype
 
 static inline int
 MPI_Bcast( void *buffer, int count, MPI_Datatype datatype, int root,
-           MPI_Comm comm )
+           PASTIX_Comm comm )
 {
     (void)buffer;
     (void)count;
@@ -231,4 +233,4 @@ MPI_Bcast( void *buffer, int count, MPI_Datatype datatype, int root,
 #define MPI_Comm_f2c(comm) 0;
 #define MPI_Init_thread(argc, argv,required,provided)
 
-#endif /* _pastix_nompi_h_ */
+#endif /* _nompi_h_ */

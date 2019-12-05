@@ -20,6 +20,9 @@
 #define _common_h_
 
 #include "pastix.h"
+#if !defined(PASTIX_WITH_MPI)
+#include "nompi.h"
+#endif
 #include <unistd.h>
 #include <assert.h>
 #include <errno.h>

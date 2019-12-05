@@ -444,12 +444,12 @@ z_lowrank_check_ge2lr( pastix_lr_t   *lowrank,
         /*
          * Compress and then uncompress
          */
-        clockStart( timer );
+        timer = clockGetLocal();
         lowrank->core_ge2lr( lowrank->use_reltol, lowrank->tolerance, minMN,
                              m, n, A->fr, ld, &(A->lr) );
-        clockStop( timer );
+        timer = clockGetLocal() - timer;
         assert( timer >= 0. );
-        total_timer += clockVal( timer );
+        total_timer += timer;
 
         /*
          * Let's check the result
@@ -590,12 +590,12 @@ z_lowrank_check_rradd( pastix_lr_t         *lowrank,
                  B->m, B->n, &(C->lr), 0, 0 );
 
     /* Perform C = B - A in LR format */
-    clockStart(timer);
+    timer = clockGetLocal();
     lowrank->core_rradd( lowrank, PastixNoTrans, &alpha,
                          A->m, A->n, &(A->lr),
                          C->m, C->n, &(C->lr),
                          offx, offy );
-    clockStop(timer);
+    timer = clockGetLocal() - timer;
 
     /*
      * Check || (\alpha * A+B) - c( \alpha * c(A) + c(B) ) || < tol * (|\alpha| + 1)         (Absolute)
@@ -773,9 +773,9 @@ z_lowrank_check_lrmm( pastix_lr_t         *lowrank,
         zlrmm_params.lwused  = -1;
         zlrmm_params.lock    = &lock;
 
-        clockStart( timer );
+        timer = clockGetLocal();
         core_zlrmm( &zlrmm_params );
-        clockStop( timer );
+        timer = clockGetLocal() - timer;
     }
 
     /*

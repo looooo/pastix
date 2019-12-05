@@ -66,7 +66,7 @@ pastixOrderComputePTScotch( pastix_data_t  *pastix_data,
 #if defined(PERSONAL_PTSCOTCH_STRATEGY)
     char             strat[1024];
 #endif
-    MPI_Comm         pastix_comm;
+    PASTIX_Comm      pastix_comm;
     pastix_order_t  *ordemesh = pastix_data->ordemesh;
     Clock            timer;
     pastix_int_t    *colptr;

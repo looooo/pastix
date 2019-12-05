@@ -35,8 +35,12 @@
 
 #if defined(PASTIX_WITH_MPI)
 #include <mpi.h>
+typedef MPI_comm PASTIX_Comm;
 #else
-#include "pastix/nompi.h"
+typedef uintptr_t PASTIX_Comm;
+#ifndef MPI_COMM_WORLD
+#define MPI_COMM_WORLD 0
+#endif
 #endif
 
 #include "pastix/api.h"
@@ -46,7 +50,7 @@
  * Main function for compatibility with former versions
  */
 int pastix( pastix_data_t **pastix_data,
-            MPI_Comm        pastix_comm,
+            PASTIX_Comm     pastix_comm,
             pastix_int_t    n,
             pastix_int_t   *colptr,
             pastix_int_t   *row,
@@ -64,11 +68,11 @@ int pastix( pastix_data_t **pastix_data,
 void pastixInitParam( pastix_int_t   *iparm,
                       double         *dparm );
 void pastixInit     ( pastix_data_t **pastix_data,
-                      MPI_Comm        pastix_comm,
+                      PASTIX_Comm     pastix_comm,
                       pastix_int_t   *iparm,
                       double         *dparm );
 void pastixInitWithAffinity( pastix_data_t **pastix_data,
-                             MPI_Comm        pastix_comm,
+                             PASTIX_Comm     pastix_comm,
                              pastix_int_t   *iparm,
                              double         *dparm,
                              const int      *bindtab );

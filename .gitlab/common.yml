@@ -20,7 +20,7 @@
   #   - master
   #   - schedules
   only:
-    - /^.*mpi.*$/
+    - /^[/]*mpi\/.*$/
   #   - branches
   #   - master@pastix/pastix
   #   - master@solverstack/pastix

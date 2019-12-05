@@ -52,7 +52,6 @@ int main (int argc, char **argv)
      * Initialize parameters to default values
      */
     pastixInitParam( iparm, dparm );
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Get options from command line
@@ -60,6 +59,8 @@ int main (int argc, char **argv)
     pastixGetOptions( argc, argv,
                       iparm, dparm,
                       NULL, &driver, &filename );
+
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Read the sparse matrix with the driver
@@ -120,21 +121,36 @@ int main (int argc, char **argv)
             default:
                 ret = d_bcsc_spmv_check( t, spm, pastix_data );
             }
-            PRINT_RES(ret);
+            err += ret;
+            if ( pastix_data->procnum == 0 ) {
+                printf( "   Case %s - %s - %s - %s: ",
+                        schednames[s],
+                        fltnames[spm->flttype],
+                        mtxnames[spm->mtxtype - SpmGeneral],
+                        transnames[t - PastixNoTrans] );
+                if( err != 0 ) {
+                    printf( "FAILED\n" );
+                }
+                else {
+                    printf( "SUCCESS\n" );
+                }
+            }
         }
     }
+
     spmExit( spm );
     free( spm );
 
+    if ( pastix_data->procnum == 0 ) {
+        if( err == 0 ) {
+            printf(" -- All tests PASSED --\n");
+        }
+        else {
+            printf(" -- %d tests FAILED --\n", err);
+        }
+    }
+
     pastixFinalize( &pastix_data );
 
-    if( err == 0 ) {
-        printf(" -- All tests PASSED --\n");
-        return EXIT_SUCCESS;
-    }
-    else
-    {
-        printf(" -- %d tests FAILED --\n", err);
-        return EXIT_FAILURE;
-    }
+    return ( err == 0 ) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

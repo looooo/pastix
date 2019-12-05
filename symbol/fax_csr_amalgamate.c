@@ -407,7 +407,7 @@ faxCSRAmalgamate( int             ilu,
                   double          rat_blas,
                   fax_csr_t      *graphL,
                   pastix_order_t *order,
-                  MPI_Comm        pastix_comm )
+                  PASTIX_Comm     pastix_comm )
 {
     double ( *cblktime )( pastix_int_t, const pastix_int_t *, pastix_int_t );
 

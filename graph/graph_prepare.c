@@ -220,7 +220,7 @@ graphPrepare(      pastix_data_t   *pastix_data,
          */
         else
         {
-            MPI_Comm     pastix_comm = pastix_data->pastix_comm;
+            PASTIX_Comm  pastix_comm = pastix_data->pastix_comm;
             pastix_int_t gN = 0;
             int copy_l2g = 1;
 

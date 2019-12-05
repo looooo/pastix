@@ -422,6 +422,9 @@ typedef enum pastix_uplo_e {
 
 /**
  * @brief Data blocks used in the kernel
+ *
+ * @warning Must be 0 and 1 respectively for Left and Upper as is it used to
+ * shift the pointers in the kernels from the lower to upper part.
  */
 typedef enum pastix_coefside_e {
     PastixLCoef  = 0, /**< Coefficients of the lower triangular L are used         */

@@ -50,6 +50,9 @@ struct isched_s {
     pthread_cond_t   statuscond;
     volatile int     status;
 
+    pthread_mutex_t  commlock;
+    volatile int     commid;
+
     pthread_t       *tids;
     isched_thread_t *master;
 

@@ -78,7 +78,8 @@ coeftab_zdump( pastix_data_t      *pastix_data,
 /**
  *******************************************************************************
  *
- * @brief Compare two solver matrices in full-rank format.
+ * @brief Compare two solver matrices in full-rank format with the same data
+ * distribution.
  *
  * The second solver matrix is overwritten by the difference of the two
  * matrices.  The frobenius norm of the difference of each column block is
@@ -272,7 +273,7 @@ coeftab_zmemory( SolverMatrix *solvmtx )
     }
     memlast[3] = memlast[0] + memlast[1] + memlast[2];
 
-    pastix_print( 0, 0,
+    pastix_print( solvmtx->clustnum, 0,
                   "    Compression on LAST\n"
                   "      ------------------------------------------------\n"
                   "        A11                     %8.3g %co\n"
@@ -345,7 +346,7 @@ coeftab_zmemory( SolverMatrix *solvmtx )
     /* printf("Orig %.3g %co   ", printflopsv(orig[LR_OffSele]), printflopsu(orig[LR_OffSele])); */
     LR_DiagInDiag = LR_DiagInDiag * pastix_size_of( PastixComplex64 );
 
-    pastix_print( 0, 0,
+    pastix_print( solvmtx->clustnum, 0,
                   "    Compression:\n"
                   "      ------------------------------------------------\n"
                   "      Full-rank cblk\n"

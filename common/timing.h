@@ -21,14 +21,10 @@
 
 typedef double Clock;
 
-/** TIMING SYSTEM-SPECIFICS **/
-#if defined(PASTIX_WITH_MPI)
-#define clockGet() MPI_Wtime()
-#else
 #if defined(HAVE_CLOCK_GETTIME)
 #include <unistd.h>
 #include <time.h>
-static inline double clockGet(void)
+static inline double clockGetLocal(void)
 {
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
@@ -37,7 +33,7 @@ static inline double clockGet(void)
 
 #elif defined(HAVE_GETRUSAGE)
 #include <sys/time.h>
-static inline double clockGet(void)
+static inline double clockGetLocal(void)
 {
     struct rusage       data;
     getrusage (RUSAGE_SELF, &data);
@@ -47,7 +43,7 @@ static inline double clockGet(void)
 }
 
 #elif defined(__IA64)
-static inline double clockGet(void)
+static inline double clockGetLocal(void)
 {
     uint64_t ret;
     __asm__ __volatile__ ("mov %0=ar.itc" : "=r"(ret));
@@ -55,7 +51,7 @@ static inline double clockGet(void)
 }
 
 #elif defined(__X86)
-static inline double clockGet(void)
+static inline double clockGetLocal(void)
 {
     uint64_t ret;
     unsigned hi, lo;
@@ -67,7 +63,7 @@ static inline double clockGet(void)
 #elif defined(__bgp__)
 
 #include <bpcore/ppc450_inlines.h>
-static inline double clockGet(void)
+static inline double clockGetLocal(void)
 {
     return (double)_bgp_GetTimeBase();
 }
@@ -75,7 +71,7 @@ static inline double clockGet(void)
 #elif defined(HAVE_GETRUSAGE)
 
 #include <sys/time.h>
-static inline double clockGet(void)
+static inline double clockGetLocal(void)
 {
     struct rusage       data;
     getrusage (RUSAGE_SELF, &data);
@@ -87,7 +83,7 @@ static inline double clockGet(void)
 #else
 
 #include <sys/time.h>
-static inline double clockGet(void)
+static inline double clockGetLocal(void)
 {
     struct timeval tv;
     gettimeofday( &tv, NULL );
@@ -95,6 +91,12 @@ static inline double clockGet(void)
 }
 
 #endif
+
+/** TIMING SYSTEM-SPECIFICS **/
+#if defined(PASTIX_WITH_MPI)
+#define clockGet() MPI_Wtime()
+#else
+#define clockGet() clockGetLocal()
 #endif /* defined(PASTIX_WITH_MPI) */
 
 #define clockInit(clk)  do { clk = clockGet(); } while(0)
@@ -111,8 +113,8 @@ static inline double clockGet(void)
         MPI_Barrier(comm);                      \
         clk = clockGet() - (clk); } while(0)
 #else
-#define clockSyncStart(clk) do { clk = clockGet(); } while(0)
-#define clockSyncStop(clk)  do { clk = clockGet() - (clk); } while(0)
+#define clockSyncStart(clk, comm) clockStart( clk )
+#define clockSyncStop(clk, comm)  clockStop( clk )
 #endif
 
 #endif /* _timing_h_ */

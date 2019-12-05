@@ -114,7 +114,7 @@ int  pastixOrderAmalgamate( int             verbose,
                             int             rat_blas,
                             pastix_graph_t *graph,
                             pastix_order_t *orderptr,
-                            MPI_Comm        pastix_comm );
+                            PASTIX_Comm     pastix_comm );
 
 int  pastixOrderApplyLevelOrder( pastix_order_t *ordeptr,
                                  pastix_int_t    level_tasks2d,

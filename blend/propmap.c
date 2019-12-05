@@ -330,8 +330,9 @@ propMappSubtree( const propmap_t *pmptr,
         /* Fill queue proc order by remain cost descending */
         MALLOC_INTERN(queue_proc, 1, pastix_queue_t);
         pqueueInit(queue_proc, candnbr);
-        for (i=0; i<candnbr; i++)
+        for (i=0; i<candnbr; i++) {
             pqueuePush1(queue_proc, i, -cost_remain[i]);
+        }
 
         while (pqueueSize(queue_tree) > 0)
         {
@@ -424,7 +425,7 @@ propMappTree( Cand               *candtab,
     pmdata.candnbr     = candnbr;
     pmdata.nocrossproc = nocrossproc;
 
-    if (allcand) {
+    if ( allcand ) {
         propMappSubtreeOn1P( &pmdata, eTreeRoot(etree),
                              0, candnbr-1, 0 );
     }

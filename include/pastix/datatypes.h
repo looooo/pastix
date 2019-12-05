@@ -102,6 +102,10 @@ extern pastix_complex32_t csqrtf(pastix_complex32_t z);
 
 #endif /* HAVE_COMPLEX_H */
 
+#define PASTIX_MPI_COMPLEX64 MPI_C_DOUBLE_COMPLEX
+#define PASTIX_MPI_COMPLEX32 MPI_C_FLOAT_COMPLEX
+#define PASTIX_MPI_DOUBLE    MPI_DOUBLE
+#define PASTIX_MPI_FLOAT     MPI_FLOAT
 
 static inline size_t
 pastix_size_of(pastix_coeftype_t type)
