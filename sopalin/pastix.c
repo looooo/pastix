@@ -100,7 +100,7 @@
  */
 int
 pastix( pastix_data_t **pastix_data_ptr,
-        MPI_Comm        pastix_comm,
+        PASTIX_Comm     pastix_comm,
         pastix_int_t    n,
         pastix_int_t   *colptr,
         pastix_int_t   *row,
@@ -144,7 +144,7 @@ pastix( pastix_data_t **pastix_data_ptr,
              * parameters
              */
             if (iparm[IPARM_VERBOSE] > PastixVerboseNo) {
-                pastix_print( 0, 0, "WARNING: PaStiX schedulers restarted\n" );
+                pastix_print( (*pastix_data_ptr)->inter_node_procnum, 0, "WARNING: PaStiX schedulers restarted\n" );
             }
             pastixFinalize( pastix_data_ptr );
         }

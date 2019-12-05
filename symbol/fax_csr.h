@@ -55,7 +55,7 @@ void faxCSRAmalgamate( int             ilu,
                        double          rat_blas,
                        fax_csr_t      *graphL,
                        pastix_order_t *order,
-                       MPI_Comm        pastix_comm );
+                       PASTIX_Comm     pastix_comm );
 
 /**
  * @}

@@ -17,13 +17,13 @@
  *
 
  **/
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
 #include <pastix.h>
-#include <stdlib.h>
-#include <string.h>
 #include "refinement/z_refine_functions.h"
 #include "bcsc/bcsc.h"
 #include "bcsc/bcsc_z.h"
-#include <time.h>
 #if defined(HAVE_GETOPT_H)
 #include <getopt.h>
 #endif  /* defined(HAVE_GETOPT_H) */
@@ -41,7 +41,8 @@ int main ( int argc, char **argv )
     pastix_data_t      *pastix_data = NULL;
     pastix_int_t        iparm[IPARM_SIZE];  /*< Integer in/out parameters for pastix                */
     pastix_fixdbl_t     dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
-    spm_driver_t        driver = SpmDriverRSA;
+    spm_driver_t        driver = (spm_driver_t)-1;
+    spmatrix_t         *spm, spm2;
     char               *filename = NULL;
     int                 check = 1;
     pastix_int_t        m, n, s, t;
@@ -66,13 +67,28 @@ int main ( int argc, char **argv )
                           &check, &driver, &filename );
     }
 
-    if ( driver != SpmDriverLaplacian ) {
+    if ( driver == (spm_driver_t)-1 ) {
+        driver = SpmDriverLaplacian;
         flttype = SpmDouble;
         m = 10000;
         n = iparm[IPARM_GMRES_IM];
+        rc = asprintf( &filename, "d:%d:%d", (int)m, (int)n );
     }
     else {
         spmParseLaplacianInfo( filename, &flttype, &m, &n, &dim3, &alpha, &beta, &dof );
+    }
+
+    /**
+     * Read the sparse matrix with the driver
+     */
+    spm = malloc( sizeof( spmatrix_t ) );
+    spmReadDriver( driver, filename, spm );
+    free( filename );
+
+    rc = spmCheckAndCorrect( spm, &spm2 );
+    if ( rc != 0 ) {
+        spmExit( spm );
+        *spm = spm2;
     }
 
     /**
@@ -128,6 +144,7 @@ int main ( int argc, char **argv )
         }
     }
 
+    spmExit( spm );
     pastixFinalize( &pastix_data );
 
     return rc;

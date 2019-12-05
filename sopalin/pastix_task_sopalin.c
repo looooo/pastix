@@ -105,8 +105,8 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
      */
     {
         pastix_data->dparm[ DPARM_A_NORM ] = spmNorm( SpmFrobeniusNorm, spm );
-        if (pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
-            pastix_print( 0, 0,
+        if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
+            pastix_print( pastix_data->inter_node_procnum, 0,
                           "    ||A||_2  =                            %e\n",
                           pastix_data->dparm[ DPARM_A_NORM ] );
         }
@@ -116,7 +116,7 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
      * Fill in the internal blocked CSC. We consider that if this step is called
      * the spm values have changed so we need to update the blocked csc.
      */
-    if (pastix_data->bcsc != NULL)
+    if ( pastix_data->bcsc != NULL )
     {
         bcscExit( pastix_data->bcsc );
         memFree_null( pastix_data->bcsc );
@@ -131,7 +131,7 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
                      pastix_data->bcsc );
 
     if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
-        pastix_print( 0, 0, OUT_BCSC_TIME, time );
+        pastix_print( pastix_data->inter_node_procnum, 0, OUT_BCSC_TIME, time );
     }
 
     if ( pastix_data->iparm[IPARM_FREE_CSCUSER] ) {
@@ -198,7 +198,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    clockStart(timer);
+    clockSyncStart( timer, pastix_data->inter_node_comm );
 
     /* Initialize low-rank parameters */
     lr = &(pastix_data->solvmatr->lowrank);
@@ -265,7 +265,8 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
         /* Create the matrix descriptor */
         parsec_sparse_matrix_init( pastix_data->solvmatr,
                                    pastix_size_of( bcsc->flttype ), mtxtype,
-                                   1, 0 );
+                                   pastix_data->inter_node_procnbr,
+                                   pastix_data->inter_node_procnum );
     }
 #endif
 
@@ -275,13 +276,14 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
         /* Create the matrix descriptor */
         starpu_sparse_matrix_init( pastix_data->solvmatr,
                                    pastix_size_of( bcsc->flttype ), mtxtype,
-                                   1, 0 );
+                                   pastix_data->inter_node_procnbr,
+                                   pastix_data->inter_node_procnum );
     }
 #endif
 
-    clockStop(timer);
-    if (pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot) {
-        pastix_print( 0, 0, OUT_COEFTAB_TIME,
+    clockSyncStop( timer, pastix_data->inter_node_comm );
+    if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+        pastix_print( pastix_data->inter_node_procnum, 0, OUT_COEFTAB_TIME,
                       clockVal(timer) );
     }
 
@@ -325,12 +327,9 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
     sopalin_data_t  sopalin_data;
     SolverBackup_t *sbackup;
     pastix_bcsc_t  *bcsc;
-/* #ifdef PASTIX_WITH_MPI */
-/*     MPI_Comm       pastix_comm = pastix_data->inter_node_comm; */
-/* #endif */
-    pastix_int_t *iparm;
-/*     double        *dparm    = pastix_data->dparm; */
-/*     SolverMatrix  *solvmatr = pastix_data->solvmatr; */
+    PASTIX_Comm     pastix_comm;
+    pastix_int_t   *iparm;
+    double         *dparm;
 
     /*
      * Check parameters
@@ -358,7 +357,9 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
         return PASTIX_ERR_BADPARAMETER;
     }
 
+    pastix_comm = pastix_data->inter_node_comm;
     iparm = pastix_data->iparm;
+    dparm = pastix_data->dparm;
 
     /* Prepare the sopalin_data structure */
     {
@@ -367,10 +368,10 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
         sopalin_data.solvmtx = pastix_data->solvmatr;
 
         /* TODO: might change the behavior: if the user wants a ratio of the norm, it could compute it himself */
-        if ( pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] < 0. ) {
-            threshold = - pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ];
+        if ( dparm[ DPARM_EPSILON_MAGN_CTRL ] < 0. ) {
+            threshold = - dparm[ DPARM_EPSILON_MAGN_CTRL ];
         }
-        else if ( pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] == 0. ) {
+        else if ( dparm[ DPARM_EPSILON_MAGN_CTRL ] == 0. ) {
             /*
              * Use the rule presented in "Making Sparse Gaussian Elimination
              * Scalable by Static Pivoting", S. X. Li, J. Demmel
@@ -385,10 +386,10 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
             else {
                 eps = LAPACKE_dlamch_work( 'e' );
             }
-            threshold =  sqrt(eps) * pastix_data->dparm[DPARM_A_NORM];
+            threshold =  sqrt(eps) * dparm[DPARM_A_NORM];
         }
         else {
-            threshold = pastix_data->dparm[ DPARM_EPSILON_MAGN_CTRL ] * pastix_data->dparm[DPARM_A_NORM];
+            threshold = dparm[ DPARM_EPSILON_MAGN_CTRL ] * dparm[DPARM_A_NORM];
         }
 
         sopalin_data.solvmtx->diagthreshold = threshold;
@@ -402,15 +403,19 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
     pastix_data->solvmatr->restore = 2;
     {
         void (*factofct)( pastix_data_t *, sopalin_data_t *);
-        double timer, flops;
+        double timer, timer_local, flops, flops_g = 0.;
 
         factofct = sopalinFacto[ pastix_data->iparm[IPARM_FACTORIZATION] ][bcsc->flttype-2];
         assert(factofct);
 
         kernelsTraceStart( pastix_data );
-        clockStart(timer);
+        clockSyncStart( timer, pastix_comm );
+        clockStart(timer_local);
+
         factofct( pastix_data, &sopalin_data );
-        clockStop(timer);
+
+        clockStop(timer_local);
+        clockSyncStop( timer, pastix_comm );
         kernelsTraceStop( pastix_data );
 
         /* Output time and flops */
@@ -418,15 +423,27 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
         flops = pastix_data->dparm[DPARM_FACT_THFLOPS] / pastix_data->dparm[DPARM_FACT_TIME];
         pastix_data->dparm[DPARM_FACT_FLOPS] = ((flops / 1024.) / 1024.) / 1024.;
 
-        pastix_data->iparm[IPARM_STATIC_PIVOTING] = sopalin_data.solvmtx->nbpivots;
+        /* Compute the number of flops performed (may be different from THFLOPS for low-rank) */
+        {
+            double flops_l = pastix_data->dparm[DPARM_FACT_RLFLOPS];
+            MPI_Reduce( &flops_l, &flops_g, 1, MPI_DOUBLE, MPI_SUM, 0, pastix_data->inter_node_comm );
+        }
 
-        if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
-            pastix_print( 0, 0, OUT_SOPALIN_TIME,
+        /* Reduce the number of pivots */
+        {
+            int nbpivot_l = sopalin_data.solvmtx->nbpivots;
+            int nbpivot_g;
+            MPI_Allreduce( &nbpivot_l, &nbpivot_g, 1, MPI_INT, MPI_SUM, pastix_data->inter_node_comm );
+            pastix_data->iparm[IPARM_STATIC_PIVOTING] = nbpivot_g;
+        }
+
+        if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+            pastix_print( pastix_data->inter_node_procnum, 0, OUT_SOPALIN_TIME,
                           clockVal(timer),
                           pastix_print_value( flops ),
                           pastix_print_unit(  flops ),
-                          pastix_print_value( pastix_data->dparm[DPARM_FACT_THFLOPS] ),
-                          pastix_print_unit(  pastix_data->dparm[DPARM_FACT_THFLOPS] ),
+                          pastix_print_value( flops_g ),
+                          pastix_print_unit(  flops_g ),
                           (long)pastix_data->iparm[IPARM_STATIC_PIVOTING] );
         }
 
@@ -475,6 +492,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
                              STEP_REFINE );
     pastix_data->steps |= STEP_NUMFACT;
 
+    (void)pastix_comm;
     return EXIT_SUCCESS;
 }
 

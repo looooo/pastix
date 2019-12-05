@@ -86,7 +86,7 @@ pastixOrderAmalgamate( int             verbose,
                        int             rat_blas,
                        pastix_graph_t *csc,
                        pastix_order_t *orderptr,
-                       MPI_Comm        pastix_comm )
+                       PASTIX_Comm     pastix_comm )
 {
     fax_csr_t     graphPA, graphL;
     pastix_int_t  n;

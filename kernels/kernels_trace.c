@@ -244,7 +244,7 @@ kernelsTraceStop( const pastix_data_t *pastix_data )
 #endif
 
     /* Update the real number of Flops performed */
-    pastix_data->dparm[DPARM_FACT_THFLOPS] = overall_flops[0] + overall_flops[1] + overall_flops[2];
+    pastix_data->dparm[DPARM_FACT_RLFLOPS] = overall_flops[0] + overall_flops[1] + overall_flops[2];
 
 #if defined(PASTIX_SUPERNODE_STATS)
     if (pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot) {
@@ -257,8 +257,8 @@ kernelsTraceStop( const pastix_data_t *pastix_data )
                  pastix_print_value( overall_flops[0] ), pastix_print_unit( overall_flops[0] ),
                  pastix_print_value( overall_flops[1] ), pastix_print_unit( overall_flops[1] ),
                  pastix_print_value( overall_flops[2] ), pastix_print_unit( overall_flops[2] ),
-                 pastix_print_value( pastix_data->dparm[DPARM_FACT_THFLOPS] ),
-                 pastix_print_unit( pastix_data->dparm[DPARM_FACT_THFLOPS] ) );
+                 pastix_print_value( pastix_data->dparm[DPARM_FACT_RLFLOPS] ),
+                 pastix_print_unit( pastix_data->dparm[DPARM_FACT_RLFLOPS] ) );
     }
 #endif /* defined(PASTIX_SUPERNODE_STATS) */
 

@@ -227,6 +227,9 @@ isched_t *ischedInit(int cores, const int *coresbind)
     pthread_cond_init( &(isched->statuscond), NULL);
     isched->status = ISCHED_ACT_STAND_BY;
 
+    pthread_mutex_init(&(isched->commlock), NULL);
+    isched->commid = -1;
+
     isched->pfunc = NULL;
     isched->pargs = NULL;
 

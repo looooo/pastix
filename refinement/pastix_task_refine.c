@@ -143,7 +143,7 @@ pastix_subtask_refine( pastix_data_t *pastix_data,
         }
     }
 
-    clockStart(timer);
+    clockSyncStart( timer, pastix_data->inter_node_comm );
     {
         pastix_int_t (*refinefct)(pastix_data_t *, void *, void *) = sopalinRefine[iparm[IPARM_REFINEMENT]][pastix_data->bcsc->flttype -2];
         char *xptr = (char *)x;
@@ -160,11 +160,12 @@ pastix_subtask_refine( pastix_data_t *pastix_data,
             pastix_data->iparm[IPARM_NBITER] = pastix_imax( it, pastix_data->iparm[IPARM_NBITER] );
         }
     }
-    clockStop(timer);
+    clockSyncStop( timer, pastix_data->inter_node_comm );
 
     pastix_data->dparm[DPARM_REFINE_TIME] = clockVal(timer);
-    if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
-        pastix_print( 0, 0, OUT_TIME_REFINE,
+    if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+        pastix_print( pastix_data->inter_node_procnum,
+                      0, OUT_TIME_REFINE,
                       pastix_data->dparm[DPARM_REFINE_TIME] );
     }
 
