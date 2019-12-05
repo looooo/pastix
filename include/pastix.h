@@ -35,7 +35,7 @@
 
 #if defined(PASTIX_WITH_MPI)
 #include <mpi.h>
-typedef MPI_comm PASTIX_Comm;
+typedef MPI_Comm PASTIX_Comm;
 #else
 typedef uintptr_t PASTIX_Comm;
 #ifndef MPI_COMM_WORLD
