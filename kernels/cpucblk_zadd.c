@@ -400,3 +400,66 @@ cpucblk_zadd( pastix_coefside_t  side,
 
     kernel_trace_stop( cblkB->fblokptr->inlast, ktype, m, n, 0, flops, time );
 }
+
+/**
+ *******************************************************************************
+ *
+ * @brief Add column blok recv coeftabs in full rank format.
+ *
+ *******************************************************************************
+ *
+ * @param[in] side
+ *          Define which side of the cblk must be tested.
+ *          @arg PastixLCoef if lower part only
+ *          @arg PastixUCoef if upper part only
+ *
+ * @param[in] alpha
+ *          The scalar alpha
+ *
+ * @param[inout] cblk
+ *          The column block of the B matrix
+ *          On exit, cblk coefficient arrays are overwritten by the result of
+ *          alpha * A + B.
+ *
+ *******************************************************************************/
+void
+cpucblk_zadd_recv( pastix_coefside_t  side,
+                   double             alpha,
+                   SolverCblk        *cblk )
+{
+    pastix_complex64_t *A, *B;
+    pastix_ktype_t      ktype = PastixKernelGEADDCblkFRFR;
+    pastix_fixdbl_t     time, flops = 0.0;
+    pastix_int_t        m = cblk->stride;
+    pastix_int_t        n = cblk_colnbr( cblk );
+
+    /* Should be either L or U, not both. */
+    if ( side == PastixLUCoef ) {
+        assert(0);
+    }
+
+    flops = m * n;
+    time  = kernel_trace_start( ktype );
+
+    /* Compression is not handled for the moment */
+    assert(!(cblk->cblktype & CBLK_COMPRESSED) );
+    assert( cblk->cblktype & CBLK_RECV );
+
+    if ( side == PastixUCoef ) {
+        A = cblk->rcoeftab + m*n*sizeof(pastix_complex64_t);
+        B = cblk->ucoeftab;
+    }
+    else {
+        A = cblk->rcoeftab;
+        B = cblk->lcoeftab;
+    }
+    assert( (A != NULL) && (B != NULL) );
+
+    pastix_cblk_lock( cblk );
+    core_zgeadd( PastixNoTrans, m, n,
+                         alpha, A, m,
+                            1., B, m );
+    pastix_cblk_unlock( cblk );
+
+    kernel_trace_stop( cblk->fblokptr->inlast, ktype, m, n, 0, flops, time );
+}

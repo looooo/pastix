@@ -51,8 +51,6 @@ solverLoad( SolverMatrix *solvptr,
     SolverCblk    *cblktnd;
     SolverBlok    *blokptr;
     SolverBlok    *bloktnd;
-    solver_ftgt_t *ftgtptr;
-    solver_ftgt_t *ftgttnd;
     Task          *taskptr;
     Task          *tasknd;
 
@@ -73,12 +71,18 @@ solverLoad( SolverMatrix *solvptr,
          intLoad (stream, &nodenbr) +
          intLoad (stream, &baseval) != 5) ||
         (versval < 0)                     ||        /* Version should be 0 or 1 */
-        (versval > 1)                     ||
+        (versval > 2)                     ||
         (bloknbr < cblknbr)               ||
         (nodenbr < cblknbr)) {
         errorPrint ("solverLoad: bad input (1)");
         return PASTIX_ERR_FILE;
     }
+
+    if ( versval > 1 ) {
+        errorPrint("solverLoad: Version 0 and 1 of the solver files are not supported anymore");
+        return PASTIX_ERR_FILE;
+    }
+
     MALLOC_INTERN(solvptr->cblktab, cblknbr + 1, SolverCblk);
     MALLOC_INTERN(solvptr->bloktab, bloknbr,     SolverBlok);
     if (solvptr->cblktab == NULL || solvptr->bloktab == NULL) {
@@ -133,20 +137,16 @@ solverLoad( SolverMatrix *solvptr,
     }
 
 
-    if(  intLoad (stream, &solvptr->coefnbr) +
-         intLoad (stream, &solvptr->ftgtnbr) +
-         intLoad (stream, &solvptr->gemmmax) +
-         intLoad (stream, &solvptr->nbftmax) +
-         intLoad (stream, &solvptr->arftmax) +
-         intLoad (stream, &clustnum) +
-         intLoad (stream, &clustnbr) +
-         intLoad (stream, &solvptr->indnbr) +
-         intLoad (stream, &solvptr->tasknbr) +
-         intLoad (stream, &solvptr->procnbr) +
-         intLoad (stream, &solvptr->thrdnbr) +
-         intLoad (stream, &solvptr->gridldim) +
-         intLoad (stream, &solvptr->gridcdim)
-         != 13)
+    if( intLoad (stream, &solvptr->coefnbr) +
+        intLoad (stream, &solvptr->gemmmax) +
+        intLoad (stream, &solvptr->nbftmax) +
+        intLoad (stream, &solvptr->arftmax) +
+        intLoad (stream, &clustnum)         +
+        intLoad (stream, &clustnbr)         +
+        intLoad (stream, &solvptr->tasknbr) +
+        intLoad (stream, &solvptr->procnbr) +
+        intLoad (stream, &solvptr->thrdnbr)
+        != 11 )
     {
         errorPrint ("solverLoad: bad input (1)");
         return PASTIX_ERR_FILE;
@@ -157,8 +157,6 @@ solverLoad( SolverMatrix *solvptr,
 
     if (((solvptr->cblktab = (SolverCblk *)   memAlloc((solvptr->cblknbr + 1) * sizeof(SolverCblk)    )) == NULL) ||
         ((solvptr->bloktab = (SolverBlok *)   memAlloc( solvptr->bloknbr      * sizeof(SolverBlok)    )) == NULL) ||
-        ((solvptr->ftgttab = (solver_ftgt_t *)memAlloc( solvptr->ftgtnbr      * sizeof(solver_ftgt_t) )) == NULL) ||
-        ((solvptr->indtab  = (pastix_int_t *) memAlloc( solvptr->indnbr       * sizeof(pastix_int_t)  )) == NULL) ||
         ((solvptr->tasktab = (Task *)         memAlloc((solvptr->tasknbr+1)   * sizeof(Task)          )) == NULL) ||
         ((solvptr->ttsknbr = (pastix_int_t *) memAlloc((solvptr->thrdnbr)     * sizeof(pastix_int_t)  )) == NULL) ||
         ((solvptr->ttsktab = (pastix_int_t **)memAlloc((solvptr->thrdnbr)     * sizeof(pastix_int_t *))) == NULL) )
@@ -169,12 +167,6 @@ solverLoad( SolverMatrix *solvptr,
         }
         if (solvptr->bloktab != NULL) {
             memFree_null (solvptr->bloktab);
-        }
-        if (solvptr->ftgttab != NULL) {
-            memFree_null (solvptr->ftgttab);
-        }
-        if (solvptr->indtab != NULL) {
-            memFree_null (solvptr->indtab);
         }
         if (solvptr->tasktab != NULL) {
             memFree_null (solvptr->tasktab);
@@ -207,20 +199,6 @@ solverLoad( SolverMatrix *solvptr,
 
     }
 
-    for (ftgtptr = solvptr->ftgttab,                /* Read fan in target data */
-             ftgttnd = ftgtptr + solvptr->ftgtnbr;
-         ftgtptr < ftgttnd; ftgtptr ++)
-    {
-        for(i=0;i<FTGT_MAXINFO;i++) {
-            intLoad (stream, &(ftgtptr->infotab[i]));
-        }
-        ftgtptr->coeftab = NULL;
-    }
-
-    for(i=0;i<solvptr->indnbr;i++) {                   /** Read indtab **/
-        intLoad(stream, &(solvptr->indtab[i]));
-    }
-
     for (taskptr = solvptr->tasktab,                /** Read Task data **/
              tasknd = taskptr + solvptr->tasknbr +1;
          (taskptr < tasknd); taskptr ++)
@@ -234,11 +212,8 @@ solverLoad( SolverMatrix *solvptr,
         {
             /* volatile pb alpha */
             intLoad(stream, &temp);
-            taskptr->ftgtcnt = temp;
-            intLoad(stream, &temp);
             taskptr->ctrbcnt = temp;
         }
-        intLoad(stream, &(taskptr->indnum));
     }
 
     for(i=0;i<solvptr->thrdnbr;i++)                 /** Read task by thread data **/
@@ -255,89 +230,6 @@ solverLoad( SolverMatrix *solvptr,
             intLoad(stream, &(solvptr->ttsktab[i][j]));
         }
     }
-
-    for(i=0;i<solvptr->procnbr;i++)                 /** Read proc -> cluster **/
-    {
-        intLoad(stream, &(solvptr->proc2clust[i]));
-    }
-
-    /* if(  intLoad (stream, &(solvptr->updovct.sm2xmax)) + /\** Read updown **\/ */
-    /*      intLoad (stream, &(solvptr->updovct.sm2xsze)) + */
-    /*      intLoad (stream, &(solvptr->updovct.sm2xnbr)) + */
-    /*      intLoad (stream, &(solvptr->updovct.gcblk2listnbr)) + */
-    /*      intLoad (stream, &(solvptr->updovct.listptrnbr)) + */
-    /*      intLoad (stream, &(solvptr->updovct.listnbr)) + */
-    /*      intLoad (stream, &(solvptr->updovct.loc2globnbr)) + */
-    /*      intLoad (stream, &(solvptr->updovct.gcblknbr)) + */
-    /*      intLoad (stream, &(solvptr->updovct.gnodenbr)) */
-    /*      != 9) */
-    /* { */
-    /*     errorPrint ("solverLoad: bad input (1)"); */
-    /*     return     PASTIX_ERR_FILE; */
-    /* } */
-
-    /* MALLOC_INTERN(solvptr->updovct.cblktab,    solvptr->cblknbr,       UpDownCblk); */
-    /* MALLOC_INTERN(solvptr->updovct.gcblk2list, solvptr->updovct.gcblk2listnbr, pastix_int_t); */
-    /* MALLOC_INTERN(solvptr->updovct.listptr,    solvptr->updovct.listptrnbr,    pastix_int_t); */
-    /* MALLOC_INTERN(solvptr->updovct.listcblk,   solvptr->updovct.listnbr,       pastix_int_t); */
-    /* MALLOC_INTERN(solvptr->updovct.listblok,   solvptr->updovct.listnbr,       pastix_int_t); */
-    /* MALLOC_INTERN(solvptr->updovct.loc2glob,   solvptr->updovct.loc2globnbr,   pastix_int_t); */
-    /* MALLOC_INTERN(solvptr->updovct.lblk2gcblk, solvptr->bloknbr,       pastix_int_t); */
-
-    /* for (i=0;i<solvptr->cblknbr;i++) */
-    /* { */
-    /*     intLoad(stream, &(solvptr->updovct.cblktab[i].sm2xind)); */
-    /*     intLoad(stream, &(solvptr->updovct.cblktab[i].browprocnbr)); */
-    /*     intLoad(stream, &(solvptr->updovct.cblktab[i].msgnbr)); */
-    /*     { */
-    /*         pastix_int_t msgcnt = solvptr->updovct.cblktab[i].msgcnt; */
-    /*         intLoad(stream, &msgcnt); */
-    /*     } */
-    /*     intLoad(stream, &(solvptr->updovct.cblktab[i].ctrbnbr)); */
-    /*     { */
-    /*         pastix_int_t ctrbcnt = solvptr->updovct.cblktab[i].ctrbcnt; */
-    /*         intLoad(stream, &ctrbcnt); */
-    /*     } */
-
-    /*     MALLOC_INTERN(solvptr->updovct.cblktab[i].browproctab, */
-    /*                   solvptr->updovct.cblktab[i].browprocnbr, */
-    /*                   pastix_int_t); */
-    /*     MALLOC_INTERN(solvptr->updovct.cblktab[i].browcblktab, */
-    /*                   solvptr->updovct.cblktab[i].browprocnbr, */
-    /*                   pastix_int_t); */
-
-    /*     for (j=0;j<solvptr->updovct.cblktab[i].browprocnbr;j++) */
-    /*     { */
-    /*         intLoad(stream, &(solvptr->updovct.cblktab[i].browproctab[j])); */
-    /*         intLoad(stream, &(solvptr->updovct.cblktab[i].browcblktab[j])); */
-    /*     } */
-    /* } */
-
-    /* for (i=0;i<solvptr->updovct.gcblk2listnbr;i++) */
-    /* { */
-    /*     intLoad(stream, &(solvptr->updovct.gcblk2list[i])); */
-    /* } */
-
-    /* for (i=0;i<solvptr->updovct.listptrnbr;i++) */
-    /* { */
-    /*     intLoad(stream, &(solvptr->updovct.listptr[i])); */
-    /* } */
-
-    /* for (i=0;i<solvptr->updovct.listnbr;i++) */
-    /* { */
-    /*     intLoad(stream, &(solvptr->updovct.listcblk[i])); */
-    /*     intLoad(stream, &(solvptr->updovct.listblok[i])); */
-    /* } */
-
-    /* for (i=0;i<solvptr->updovct.loc2globnbr;i++) */
-    /* { */
-    /*     intLoad(stream, &(solvptr->updovct.loc2glob[i])); */
-    /* } */
-
-    /* for (i=0;i<solvptr->bloknbr;i++) */
-    /* { */
-    /*     intLoad(stream, &(solvptr->updovct.lblk2gcblk[i])); */
-    /* } */
 
     return PASTIX_SUCCESS;
 }
@@ -373,8 +265,6 @@ solverSave( const SolverMatrix *solvptr,
     SolverCblk    *cblktnd;
     SolverBlok    *blokptr;
     SolverBlok    *bloktnd;
-    solver_ftgt_t *ftgtptr;
-    solver_ftgt_t *ftgttnd;
     Task          *taskptr;
 
     /* Save the solver matrix */
@@ -384,7 +274,7 @@ solverSave( const SolverMatrix *solvptr,
         const SolverBlok *bloktnd;
         const SolverBlok *blokptr;
 
-        o = (fprintf (stream, "1\n%ld\t%ld\t%ld\t%ld\n", /* Write file header */
+        o = (fprintf (stream, "2\n%ld\t%ld\t%ld\t%ld\n", /* Write file header */
                       (long) solvptr->cblknbr,
                       (long) solvptr->bloknbr,
                       (long) solvptr->nodenbr,
@@ -407,20 +297,16 @@ solverSave( const SolverMatrix *solvptr,
     }
 
     /* Write file header */
-    o = (fprintf (stream, "\n%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
+    o = (fprintf (stream, "\n%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
                   (long) solvptr->coefnbr,
-                  (long) solvptr->ftgtnbr,
                   (long) solvptr->gemmmax,
                   (long) solvptr->nbftmax,
                   (long) solvptr->arftmax,
                   (long) solvptr->clustnum,
                   (long) solvptr->clustnbr,
-                  (long) solvptr->indnbr,
                   (long) solvptr->tasknbr,
                   (long) solvptr->procnbr,
-                  (long) solvptr->thrdnbr,
-                  (long) solvptr->gridldim,
-                  (long) solvptr->gridcdim
+                  (long) solvptr->thrdnbr
                   ) == EOF);
 
     /* write cblk data */
@@ -439,22 +325,6 @@ solverSave( const SolverMatrix *solvptr,
         o = (fprintf (stream, "%ld\n",(long) blokptr->coefind) == EOF);
     }
 
-    /* Write fan in target data */
-    for (ftgtptr = solvptr->ftgttab,
-             ftgttnd = ftgtptr + solvptr->ftgtnbr;
-         (ftgtptr < ftgttnd) && (o==0); ftgtptr ++)
-    {
-        for(i=0;i<FTGT_MAXINFO;i++) {
-            o = (fprintf(stream, "%ld\t", (long)ftgtptr->infotab[i]) == EOF);
-        }
-        fprintf(stream, "\n");
-        fprintf(stream, "\n");
-    }
-
-    /* Write indtab */
-    for(i=0;i<solvptr->indnbr;i++) {
-        fprintf(stream, "%ld\t", (long)solvptr->indtab[i]);
-    }
     fprintf(stream, "\n");
     fprintf(stream, "\n");
 
@@ -464,11 +334,9 @@ solverSave( const SolverMatrix *solvptr,
         for (taskptr = solvptr->tasktab;
              (taskptr < taskend) && (o==0); taskptr ++)
         {
-            fprintf(stream, "%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
+            fprintf(stream, "%ld\t%ld\t%ld\t%ld\t%ld\n",
                     (long)taskptr->taskid, (long)taskptr->prionum, (long)taskptr->cblknum, (long)taskptr->bloknum,
-                    (long)taskptr->ftgtcnt, (long)taskptr->ctrbcnt, (long)taskptr->indnum);
-            fprintf(stream, "\n");
-            fprintf(stream, "\n");
+                    (long)taskptr->ctrbcnt);
         }
     }
 
@@ -481,63 +349,6 @@ solverSave( const SolverMatrix *solvptr,
             fprintf(stream, "%ld\n", (long)solvptr->ttsktab[i][j]);
         }
     }
-
-    /* Write proc2clust */
-    for (i=0; i<solvptr->procnbr; i++)
-    {
-        fprintf(stream, "%ld\n", (long)solvptr->proc2clust[i]);
-    }
-
-    /* /\*fprintf(stream, "updo\n");*\/ */
-    /* fprintf(stream, "%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n", */
-    /*         (long) solvptr->updovct.sm2xmax, (long) solvptr->updovct.sm2xsze, (long) solvptr->updovct.sm2xnbr, */
-    /*         (long) solvptr->updovct.gcblk2listnbr, (long) solvptr->updovct.listptrnbr, (long) solvptr->updovct.listnbr, */
-    /*         (long) solvptr->updovct.loc2globnbr, (long) solvptr->updovct.gcblknbr, (long) solvptr->updovct.gnodenbr); */
-
-    /* /\*fprintf(stream, "updown cblk\n");*\/ */
-    /* for (i=0; i<solvptr->cblknbr; i++) */
-    /* { */
-    /*     fprintf(stream, "%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n", */
-    /*             (long) solvptr->updovct.cblktab[i].sm2xind, (long) solvptr->updovct.cblktab[i].browprocnbr, (long) solvptr->updovct.cblktab[i].msgnbr, */
-    /*             (long) solvptr->updovct.cblktab[i].msgcnt, (long) solvptr->updovct.cblktab[i].ctrbnbr, (long) solvptr->updovct.cblktab[i].ctrbcnt); */
-
-    /*     for (j=0; j<solvptr->updovct.cblktab[i].browprocnbr; j++) */
-    /*     { */
-    /*         fprintf(stream, "%ld\t%ld\t\n", */
-    /*                 (long) solvptr->updovct.cblktab[i].browproctab[j], */
-    /*                 (long) solvptr->updovct.cblktab[i].browcblktab[j]); */
-    /*     } */
-    /* } */
-
-    /* /\*fprintf(stream, "updown gcblk2list\n");*\/ */
-    /* for (i=0; i<solvptr->updovct.gcblk2listnbr; i++) */
-    /* { */
-    /*     fprintf(stream, "%ld\n", (long) solvptr->updovct.gcblk2list[i]); */
-    /* } */
-
-    /* /\*fprintf(stream, "updown listptr\n");*\/ */
-    /* for (i=0; i<solvptr->updovct.listptrnbr; i++) */
-    /* { */
-    /*     fprintf(stream, "%ld\n", (long) solvptr->updovct.listptr[i]); */
-    /* } */
-
-    /* /\*fprintf(stream, "updown listcblk & listblok\n");*\/ */
-    /* for (i=0; i<solvptr->updovct.listnbr; i++) */
-    /* { */
-    /*     fprintf(stream, "%ld\t%ld\n", (long) solvptr->updovct.listcblk[i], (long) solvptr->updovct.listblok[i]); */
-    /* } */
-
-    /* /\*fprintf(stream, "updown loc2globcblk\n");*\/ */
-    /* for (i=0; i<solvptr->updovct.loc2globnbr; i++) */
-    /* { */
-    /*     fprintf(stream, "%ld\n", (long) solvptr->updovct.loc2glob[i]); */
-    /* } */
-
-    /* /\*fprintf(stream, "updown lblk2gcblk\n");*\/ */
-    /* for (i=0; i<solvptr->bloknbr; i++) */
-    /* { */
-    /*     fprintf(stream, "%ld\n", (long) solvptr->updovct.lblk2gcblk[i]); */
-    /* } */
 
     return o ? PASTIX_ERR_FILE : PASTIX_SUCCESS;
 }

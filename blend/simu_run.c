@@ -138,12 +138,12 @@ blendSubVar( varPrec time, const char*  type,
  *
  *******************************************************************************/
 static inline void
-simu_computeFtgtCosts( const BlendCtrl     *ctrl,
-                       const solver_ftgt_t *ftgt,
-                       pastix_int_t         clustsrc,
-                       pastix_int_t         sync_comm_nbr,
-                       double              *send,
-                       double              *add )
+simu_computeFtgtCosts( const BlendCtrl *ctrl,
+                       const SimuFtgt  *ftgt,
+                       pastix_int_t     clustsrc,
+                       pastix_int_t     sync_comm_nbr,
+                       double          *send,
+                       double          *add )
 {
     pastix_int_t M, N;
     pastix_int_t clustdst = ctrl->core2clust[ftgt->infotab[FTGT_PROCDST]];
@@ -601,14 +601,14 @@ simu_computeTaskReceiveTime( const BlendCtrl       *ctrl,
         /* Task with several cand proc */
         /* The information about ftgt costs are in the ftgt of the diagonal block;
          this loop sums the cost of all the ftgt received by the blocks in this column block */
-        if(simuctrl->ftgttab[i].ftgt.infotab[FTGT_CTRBNBR]>0) {
+        if(simuctrl->ftgttab[i].infotab[FTGT_CTRBNBR]>0) {
             for(j=bloknum;j<symbptr->cblktab[cblknum+1].bloknum;j++)
             {
-                if(simuctrl->ftgttab[simuctrl->bloktab[j].ftgtnum + i-simuctrl->bloktab[bloknum].ftgtnum].ftgt.infotab[FTGT_CTRBNBR]>0)
+                if(simuctrl->ftgttab[simuctrl->bloktab[j].ftgtnum + i-simuctrl->bloktab[bloknum].ftgtnum].infotab[FTGT_CTRBNBR]>0)
                 {
                     double send, add;
 
-                    simu_computeFtgtCosts( ctrl, &(simuctrl->ftgttab[CLUST2INDEX(j, clustdst)].ftgt), clustdst,
+                    simu_computeFtgtCosts( ctrl, simuctrl->ftgttab + CLUST2INDEX(j, clustdst), clustdst,
                                            ctrl->candtab[cblknum].lccandnum - ctrl->candtab[cblknum].fccandnum + 1,
                                            &send, &add );
 
@@ -698,8 +698,7 @@ simu_updateFtgt( const symbol_matrix_t *symbptr,
                        pastix_int_t     bloknum,
                        pastix_int_t     fbloknum )
 {
-    solver_ftgt_t *ftgt     = &(simuctrl->ftgttab[ftgtnum].ftgt);
-    pastix_int_t  *infotab  = ftgt->infotab;
+    pastix_int_t  *infotab  = simuctrl->ftgttab[ftgtnum].infotab;
     symbol_blok_t *blokptr  = (symbptr->bloktab) + bloknum;
     symbol_blok_t *fblokptr = (symbptr->bloktab) + fbloknum;
 
@@ -1106,6 +1105,7 @@ simuRun( SimuCtrl              *simuctrl,
         /* Make sure the cblk is not already atributed to someone and give it to the selected proc */
         assert( simuctrl->ownetab[cblknum] < 0 );
         simuctrl->ownetab[cblknum] = pr;
+        simuctrl->cblktab[cblknum].owned = ( clustnum == ctrl->clustnum );
         for(j = symbptr->cblktab[cblknum].bloknum;
             j < symbptr->cblktab[cblknum+1].bloknum; j++)
         {
@@ -1158,17 +1158,14 @@ simuRun( SimuCtrl              *simuctrl,
             {
                 for(j=simuctrl->bloktab[b].ftgtnum; j<simuctrl->bloktab[b+1].ftgtnum; j++)
                 {
-                    if( (simuctrl->ftgttab[j].ftgt.infotab[FTGT_CTRBNBR] >0)
-                        && (j != CLUST2INDEX(b, clustnum)))
+                    if( (simuctrl->ftgttab[j].infotab[FTGT_CTRBNBR] > 0) &&
+                        (j != CLUST2INDEX(b, clustnum)) )
                     {
                         simuctrl->ftgttab[j].clustnum = INDEX2CLUST(j, b);
-                        simuctrl->ftgttab[j].ftgt.infotab[FTGT_PRIONUM] = task->prionum;
-                        simuctrl->ftgttab[j].ftgt.infotab[FTGT_PROCDST] = pr;
-                        simuctrl->ftgttab[j].ftgt.infotab[FTGT_BLOKDST] = b;
-                        simuctrl->ftgttab[j].ftgt.infotab[FTGT_TASKDST] = simuctrl->bloktab[bloknum].tasknum;
-#if defined(PASTIX_WITH_STARPU_DIST)
-                        simuctrl->ftgttab[j].ftgt.infotab[FTGT_GCBKDST] = simuctrl->tasktab[simuctrl->bloktab[bloknum].tasknum].cblknum;
-#endif
+                        simuctrl->ftgttab[j].infotab[FTGT_PRIONUM] = task->prionum;
+                        simuctrl->ftgttab[j].infotab[FTGT_PROCDST] = pr;
+                        simuctrl->ftgttab[j].infotab[FTGT_BLOKDST] = b;
+                        simuctrl->ftgttab[j].infotab[FTGT_TASKDST] = simuctrl->bloktab[bloknum].tasknum;
                         extendint_Add(&(simuctrl->clustab[INDEX2CLUST(j,b)].ftgtsend[clustnum]), j);
 
                         simuctrl->tasktab[simuctrl->bloktab[bloknum].tasknum].ftgtcnt++;

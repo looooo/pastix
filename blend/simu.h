@@ -23,6 +23,24 @@
 #include "simu_timer.h"
 
 /**
+ * @brief Fan-in target information fields
+ * @warning The number of fields must be odd for memory alignment purpose.
+ */
+typedef enum {
+    FTGT_CTRBNBR = 0,           /**< Number of contributions            */
+    FTGT_CTRBCNT,               /**< Number of contributions remaining  */
+    FTGT_PROCDST,               /**< Destination for fanintarget        */
+    FTGT_TASKDST,               /**< Task  destination                  */
+    FTGT_BLOKDST,               /**< Block destination (->COMP_1D)      */
+    FTGT_PRIONUM,               /**< Fanintarget priority               */
+    FTGT_FCOLNUM,               /**< Fanintarget first column           */
+    FTGT_LCOLNUM,               /**< Fanintarget last column            */
+    FTGT_FROWNUM,               /**< Fanintarget first row              */
+    FTGT_LROWNUM,               /**< Fanintarget last row               */
+    FTGT_MAXINFO
+} simu_ftgt_e;
+
+/**
  * @brief Process structure for the simulation.
  */
 typedef struct simu_cluster_s {
@@ -47,18 +65,19 @@ typedef struct simu_proc_s {
  * @brief Fan-in structure for the simulation.
  */
 typedef struct simu_ftgt_s {
-    solver_ftgt_t ftgt;         /**< Fan-in informations                            */
-    pastix_int_t  clustnum;     /**< Cluster sending the contribution               */
-    SimuTimer     timerecv;     /**< Simulated clock of the reception time          */
-    double        costsend;     /**< Cost to send the contribution                  */
-    double        costadd;      /**< Cost to add the contribution to its final cblk */
+    pastix_int_t infotab[FTGT_MAXINFO]; /**< Fan-in information array                       */
+    pastix_int_t clustnum;              /**< Cluster sending the contribution               */
+    SimuTimer    timerecv;              /**< Simulated clock of the reception time          */
+    double       costsend;              /**< Cost to send the contribution                  */
+    double       costadd;               /**< Cost to add the contribution to its final cblk */
 } SimuFtgt;
 
 /**
  * @brief Column block structure for the simulation.
  */
 typedef struct simu_cblk_s {
-    pastix_int_t ctrbcnt;       /**< Counter of remaining contributions for the cblk */
+    pastix_int_t ctrbcnt;       /**< Counter of remaining contributions for the cblk     */
+    int8_t       owned;         /**< Boolean to indicate if owned by the local processor */
 } SimuCblk;
 
 /**

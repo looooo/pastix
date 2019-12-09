@@ -76,54 +76,38 @@ solver_copy( const SolverMatrix *solvin,
     for (solvcblk = solvout->cblktab; solvcblk  < solvout->cblktab + solvout->cblknbr; solvcblk++) {
         pastix_int_t bloknbr = (solvcblk+1)->fblokptr - solvcblk->fblokptr;
         solvcblk->fblokptr = solvblok;
-        solvblok+= bloknbr;
+        solvblok += bloknbr;
 
         if ( flttype == -1 ) {
             solvcblk->lcoeftab = NULL;
             solvcblk->ucoeftab = NULL;
         }
         else {
-            void *lcoeftab = solvcblk->lcoeftab;
-            void *ucoeftab = solvcblk->ucoeftab;
-            size_t size = cblk_colnbr( solvcblk ) * solvcblk->stride
-                * pastix_size_of( flttype );
-
-            if ( lcoeftab ) {
-                MALLOC_INTERN( solvcblk->lcoeftab, size, char );
-                memcpy(solvcblk->lcoeftab, lcoeftab, size );
+            if ( solvcblk->cblktype & CBLK_COMPRESSED ) {
+                /* Not handled for now */
             }
             else {
-                solvcblk->lcoeftab = NULL;
-            }
+                void *lcoeftab = solvcblk->lcoeftab;
+                void *ucoeftab = solvcblk->ucoeftab;
+                size_t size = cblk_colnbr( solvcblk ) * solvcblk->stride
+                            * pastix_size_of( flttype );
 
-            if ( ucoeftab ) {
-                MALLOC_INTERN( solvcblk->ucoeftab, size, char );
-                memcpy(solvcblk->ucoeftab, ucoeftab, size );
-            }
-            else {
-                solvcblk->ucoeftab = NULL;
+                if ( ucoeftab ) {
+                    MALLOC_INTERN( solvcblk->lcoeftab, 2 * size, char );
+                    solvcblk->ucoeftab = (char*)lcoeftab + size;
+                    memcpy(solvcblk->lcoeftab, lcoeftab, size );
+                    memcpy(solvcblk->ucoeftab, ucoeftab, size );
+                }
+                else {
+                    MALLOC_INTERN( solvcblk->lcoeftab, size, char );
+                    memcpy(solvcblk->lcoeftab, lcoeftab, size );
+                    solvcblk->ucoeftab = NULL;
+                }
             }
         }
+        solvcblk->rcoeftab = NULL;
     }
     solvcblk->fblokptr = solvblok;
-
-    /* Copy ftgttab */
-    if (solvout->ftgtnbr != 0)
-    {
-        MALLOC_INTERN(solvout->ftgttab, solvout->ftgtnbr, solver_ftgt_t);
-        memcpy(solvout->ftgttab, solvin->ftgttab,
-               solvout->ftgtnbr*sizeof(solver_ftgt_t));
-    }
-    /* Copy infotab of fan intarget */
-    /*
-     for(i=0;i<solvin->ftgtnbr;i++)
-       memcpy(solvout->ftgttab[i].infotab, solvin->ftgttab[i].infotab, FTGT_MAXINFO*sizeof(pastix_int_t));
-     */
-
-    /* Copy indtab */
-    MALLOC_INTERN(solvout->indtab, solvout->indnbr, pastix_int_t);
-    memcpy(solvout->indtab, solvin->indtab, solvout->indnbr*sizeof(pastix_int_t));
-
 
     /* Copy ttsktab & ttsknbr */
     if (solvout->bublnbr>0)
@@ -145,10 +129,6 @@ solver_copy( const SolverMatrix *solvin,
         solvout->ttsknbr = NULL;
         solvout->ttsktab = NULL;
     }
-
-    MALLOC_INTERN(solvout->proc2clust, solvout->procnbr, pastix_int_t);
-    memcpy(solvout->proc2clust, solvin->proc2clust,
-           solvout->procnbr * sizeof(pastix_int_t));
 }
 
 /**

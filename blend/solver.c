@@ -71,14 +71,6 @@ solver_size( const SolverMatrix *solvptr )
     }
 #endif
 
-    /* Fanins */
-    if ( solvptr->ftgttab ) {
-        mem += solvptr->ftgtnbr * sizeof( solver_ftgt_t );
-    }
-    if ( solvptr->indtab ) {
-        mem += solvptr->indnbr  * sizeof( pastix_int_t );
-    }
-
     /* /\* BubbleTree *\/ */
     /* if ( solvptr->btree ) { */
     /*     mem += solvptr->bublnbr * sizeof( BubbleTree ); */
@@ -98,11 +90,6 @@ solver_size( const SolverMatrix *solvptr )
         for( i=0; i<solvptr->thrdnbr; i++ ) {
             mem += solvptr->ttsknbr[i] * sizeof(pastix_int_t);
         }
-    }
-
-    /* proc2clust */
-    if ( solvptr->proc2clust ) {
-        mem += solvptr->procnbr * sizeof(pastix_int_t);
     }
 
     return mem;
@@ -165,14 +152,8 @@ solverExit(SolverMatrix *solvmtx)
     if(solvmtx->browtab) {
         memFree_null(solvmtx->browtab);
     }
-    if(solvmtx->ftgttab) {
-        memFree_null(solvmtx->ftgttab);
-    }
     if(solvmtx->tasktab) {
         memFree_null(solvmtx->tasktab);
-    }
-    if(solvmtx->indtab) {
-        memFree_null(solvmtx->indtab);
     }
     memFree_null(solvmtx->ttsknbr);
     for (i=0;i<solvmtx->bublnbr;i++)
@@ -182,8 +163,6 @@ solverExit(SolverMatrix *solvmtx)
         }
     }
     memFree_null(solvmtx->ttsktab);
-    memFree_null(solvmtx->proc2clust);
-
 #if defined(PASTIX_WITH_STARPU)
     {
         if ( solvmtx->starpu_desc_rhs != NULL ) {

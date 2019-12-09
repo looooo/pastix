@@ -86,16 +86,12 @@ solverMatrixGen( pastix_int_t           clustnum,
                  const BlendCtrl       *ctrl )
 {
     pastix_int_t  p, c;
-    pastix_int_t  cursor;
     pastix_int_t  i, j, k;
-    pastix_int_t  ftgtnum      = 0;
     pastix_int_t  coefnbr      = 0;
     pastix_int_t  nodenbr      = 0;
-    pastix_int_t  odb_nbr      = 0;
     pastix_int_t  cblknum      = 0;
     pastix_int_t  tasknum      = 0;
     pastix_int_t  brownum      = 0;
-    pastix_int_t  indnbr       = 0;
     pastix_int_t *cblklocalnum = NULL;
     pastix_int_t *bloklocalnum = NULL;
     pastix_int_t *tasklocalnum = NULL;
@@ -117,11 +113,6 @@ solverMatrixGen( pastix_int_t           clustnum,
     solvmtx->procnbr  = ctrl->total_nbcores;
     solvmtx->thrdnbr  = ctrl->local_nbthrds;
     solvmtx->bublnbr  = ctrl->local_nbctxts;
-    solvmtx->ftgtcnt  = simuctrl->ftgtcnt;
-
-    /* Copy the vector used to get a cluster number from a processor number */
-    MALLOC_INTERN(solvmtx->proc2clust, solvmtx->procnbr, pastix_int_t);
-    memcpy(solvmtx->proc2clust, ctrl->core2clust, sizeof(pastix_int_t)*solvmtx->procnbr);
 
     /*
      * Compute local indexes to compress the symbol information into solver
@@ -491,8 +482,6 @@ solverMatrixGen( pastix_int_t           clustnum,
         pastix_int_t nbftmax  = 0;
 
         tasknum = 0;
-        ftgtnum = 0;
-        indnbr  = 0;
 
         for(i=0; i<simuctrl->tasknbr; i++, simutask++)
         {
@@ -505,17 +494,8 @@ solverMatrixGen( pastix_int_t           clustnum,
                 solvtask->prionum = simutask->prionum;
                 solvtask->cblknum = cblklocalnum[ simutask->cblknum ];
                 solvtask->bloknum = bloklocalnum[ simutask->bloknum ];
-                solvtask->ftgtcnt = simutask->ftgtcnt;
                 solvtask->ctrbcnt = simutask->ctrbcnt;
-                solvtask->indnum  = indnbr;
 
-                /*
-                 * Count number of index needed in indtab:
-                 *  => number of off-diagonal block below the block (including the block itself)
-                 */
-                odb_nbr = symbmtx->cblktab[ simutask->cblknum + 1 ].bloknum - simutask->bloknum - 1;
-
-                indnbr += (odb_nbr*(odb_nbr+1))/2;
                 tasknum++; solvtask++;
             }
         }
@@ -526,12 +506,9 @@ solverMatrixGen( pastix_int_t           clustnum,
         solvtask->prionum = -1;
         solvtask->cblknum = solvmtx->cblknbr+1;
         solvtask->bloknum = solvmtx->bloknbr+1;
-        solvtask->ftgtcnt = 0;
         solvtask->ctrbcnt = 0;
-        solvtask->indnum  = indnbr;
 
         /* Store the final indnbr */
-        solvmtx->indnbr  = indnbr;
         solvmtx->nbftmax = nbftmax;
     }
 
@@ -583,135 +560,6 @@ solverMatrixGen( pastix_int_t           clustnum,
             solvmtx->btree->nodetab[p].priomax = priomax;
 #endif
         }
-    }
-
-    /*
-     * Fill in ftgttab
-     */
-    {
-        solvmtx->ftgtnbr = 0;
-        solvmtx->ftgttab = NULL;
-
-        /* Compute local number of outgoing contributions */
-        for(c=0; c<ctrl->clustnbr; c++) {
-            if(c == clustnum) {
-                assert( extendint_Size(&(simuctrl->clustab[clustnum].ftgtsend[c])) == 0 );
-                continue;
-            }
-            solvmtx->ftgtnbr += extendint_Size(&(simuctrl->clustab[clustnum].ftgtsend[c]));
-        }
-
-        if(solvmtx->ftgtnbr > 0) {
-            SimuCluster   *simuclust = &(simuctrl->clustab[clustnum]);
-            solver_ftgt_t *solvftgt;
-            pastix_int_t   ftgtnbr;
-
-            MALLOC_INTERN(solvmtx->ftgttab, solvmtx->ftgtnbr, solver_ftgt_t);
-
-            /* Allocate array to store local indexes */
-            ftgtnbr = simuctrl->bloktab[symbmtx->bloknbr].ftgtnum;
-            MALLOC_INTERN(ftgtlocalnum, ftgtnbr, pastix_int_t);
-            memset(ftgtlocalnum, -1, ftgtnbr * sizeof(pastix_int_t));
-
-            cursor = 0;
-            solvftgt = solvmtx->ftgttab;
-
-            for(c=0; c<ctrl->clustnbr; c++)
-            {
-                ftgtnbr = extendint_Size(&(simuclust->ftgtsend[c]));
-                for(i=0; i<ftgtnbr; i++)
-                {
-                    ftgtnum = extendint_Read(&(simuclust->ftgtsend[c]), i);
-                    ftgtlocalnum[ftgtnum] = cursor;
-
-                    /* Copy information computed during simulation */
-                    memcpy(solvftgt->infotab, simuctrl->ftgttab[ftgtnum].ftgt.infotab, FTGT_MAXINFO*sizeof(pastix_int_t));
-
-                    /* Update with Degre of freedoms */
-                    solvftgt->infotab[FTGT_FCOLNUM] *= dof;
-                    solvftgt->infotab[FTGT_LCOLNUM] *= dof;
-                    solvftgt->infotab[FTGT_LCOLNUM] += dof - 1;
-                    solvftgt->infotab[FTGT_FROWNUM] *= dof;
-                    solvftgt->infotab[FTGT_LROWNUM] *= dof;
-                    solvftgt->infotab[FTGT_LROWNUM] += dof - 1;
-
-                    /* Convert to local numbering */
-                    solvftgt->infotab[FTGT_TASKDST] = tasklocalnum[solvftgt->infotab[FTGT_TASKDST]];
-                    solvftgt->infotab[FTGT_BLOKDST] = bloklocalnum[solvftgt->infotab[FTGT_BLOKDST]];
-
-                    /* Restore ctrbcnt (modified durind simulation) */
-                    solvftgt->infotab[FTGT_CTRBCNT] = solvmtx->ftgttab[cursor].infotab[FTGT_CTRBNBR];
-                    solvftgt->coeftab = NULL;
-
-                    cursor++; solvftgt++;
-                }
-            }
-        }
-    }
-
-    /*
-     * Fill in indtab
-     */
-    {
-        solvmtx->indtab = NULL;
-        if (solvmtx->indnbr) {
-            MALLOC_INTERN(solvmtx->indtab, solvmtx->indnbr, pastix_int_t);
-        }
-
-        indnbr = 0;
-        for(i=0; i<simuctrl->tasknbr; i++)
-        {
-            pastix_int_t bloknum = simuctrl->tasktab[i].bloknum;
-            pastix_int_t cblknum = simuctrl->tasktab[i].cblknum;
-
-            if(simuctrl->bloktab[bloknum].ownerclust != clustnum)
-                continue;
-
-            assert(indnbr == solvmtx->tasktab[tasklocalnum[i]].indnum);
-            assert(bloklocalnum[simuctrl->tasktab[i].bloknum] == solvmtx->tasktab[tasklocalnum[i]].bloknum);
-            assert(cblklocalnum[simuctrl->tasktab[i].cblknum] == solvmtx->tasktab[tasklocalnum[i]].cblknum);
-
-            {
-                pastix_int_t fbloknum = symbmtx->cblktab[cblknum  ].bloknum+1;
-                pastix_int_t lbloknum = symbmtx->cblktab[cblknum+1].bloknum;
-
-                /*
-                 * For each couple (bloknum,j) \ j>=bloknum of off-diagonal
-                 * block, check where goes the contribution
-                 */
-                for(bloknum=fbloknum; bloknum<lbloknum; bloknum++)
-                {
-                    pastix_int_t firstbloknum = 0;
-                    pastix_int_t facebloknum  = 0;
-
-                    for(j=bloknum; j<lbloknum; j++)
-                    {
-                        facebloknum = pastixSymbolGetFacingBloknum(symbmtx, bloknum, j, firstbloknum, ctrl->ricar);
-
-                        if(facebloknum >= 0) {
-                            firstbloknum = facebloknum;
-
-                            if(simuctrl->bloktab[facebloknum].ownerclust != clustnum)
-                            {
-                                solvmtx->indtab[indnbr] = ftgtlocalnum[CLUST2INDEX(facebloknum, clustnum)];
-                                assert(solvmtx->indtab[indnbr] < solvmtx->ftgtnbr);
-                            }
-                            else
-                            {
-                                solvmtx->indtab[indnbr] = - tasklocalnum[simuctrl->bloktab[facebloknum].tasknum];
-                                assert( (- solvmtx->indtab[indnbr]) < solvmtx->tasknbr );
-                            }
-                        }
-                        else {
-                            /* The facing block does not exist */
-                            solvmtx->indtab[indnbr] =  solvmtx->ftgtnbr+1;
-                        }
-                        indnbr++;
-                    }
-                }
-            }
-        }
-        assert(indnbr == solvmtx->indnbr);
     }
 
     /*

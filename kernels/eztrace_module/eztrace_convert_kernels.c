@@ -80,6 +80,9 @@ define_kernels_properties()
     kernels_lvl1[PastixKernelGEMMCblkLRLR] = (kernels_t) {"lvl1_gemm_cblk_lrlr", GTG_GREEN};
     kernels_lvl1[PastixKernelGEMMBlok2d2d] = (kernels_t) {"lvl1_gemm_blok_2d2d", GTG_GREEN};
     kernels_lvl1[PastixKernelGEMMBlokLRLR] = (kernels_t) {"lvl1_gemm_blok_lrlr", GTG_GREEN};
+    kernels_lvl1[PastixKernelGEADDCblkFRFR] = (kernels_t) {"lvl1_geadd_cblk_frfr", GTG_GREEN};
+    kernels_lvl1[PastixKernelGEADDCblkFRLR] = (kernels_t) {"lvl1_geadd_cblk_frlr", GTG_GREEN};
+    kernels_lvl1[PastixKernelGEADDCblkLRLR] = (kernels_t) {"lvl1_geadd_cblk_lrlr", GTG_GREEN};
 
     /* Level 2 kernels - Factorization kernels */
     kernels_lvl2 = kernels_lvl1 + PastixKernelLvl1Nbr;
