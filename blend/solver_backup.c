@@ -25,7 +25,6 @@ struct SolverBackup_s {
     pastix_int_t  arftmax;        /**< Maximum area of FanIn Target: doubled by LU decomposition                   */
     pastix_int_t  nbftmax;        /**< Maximum number of FanIn Target: doubled by LU decomposition                 */
     pastix_int_t *task_ctrbcnt;   /**< Number of contribution: the counter is decreased to 0 during factorization  */
-    pastix_int_t *task_ftgtcnt;   /**< Number of FanIn contrib: the counter is decreased to 0 during factorization */
     pastix_int_t *fanin_ctrbnbr;  /**< Number of contribution to FanIn: decreased during facto and solve           */
     pastix_int_t *fanin_prionum;  /**< Replaced by the number of msg packed during factorization sends             */
     pastix_int_t *symbol_cblknum; /**< Replaced by the negative FanIn index during facto and solve                 */
@@ -72,26 +71,10 @@ solverBackupInit( const SolverMatrix *solvmtx )
         Task *task = solvmtx->tasktab;
 
         MALLOC_INTERN(b->task_ctrbcnt, solvmtx->tasknbr, pastix_int_t);
-        MALLOC_INTERN(b->task_ftgtcnt, solvmtx->tasknbr, pastix_int_t);
 
         for (i=0; i<solvmtx->tasknbr; i++, task++)
         {
             b->task_ctrbcnt[i] = task->ctrbcnt;
-            b->task_ftgtcnt[i] = task->ftgtcnt;
-        }
-    }
-
-    if (solvmtx->ftgtnbr)
-    {
-        solver_ftgt_t *ftgt = solvmtx->ftgttab;
-
-        MALLOC_INTERN(b->fanin_ctrbnbr, solvmtx->ftgtnbr, pastix_int_t);
-        MALLOC_INTERN(b->fanin_prionum, solvmtx->ftgtnbr, pastix_int_t);
-
-        for (i=0; i<solvmtx->ftgtnbr; i++, ftgt++)
-        {
-            b->fanin_ctrbnbr[i] = ftgt->infotab[FTGT_CTRBNBR];
-            b->fanin_prionum[i] = ftgt->infotab[FTGT_PRIONUM];
         }
     }
 
@@ -161,7 +144,7 @@ solverBackupRestore( SolverMatrix         *solvmtx,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    if ( solvmtx->restore == 0) {
+    if ( solvmtx->restore == 0 ) {
         return PASTIX_SUCCESS;
     }
 
@@ -177,20 +160,7 @@ solverBackupRestore( SolverMatrix         *solvmtx,
             for (i=0; i<solvmtx->tasknbr; i++, task++)
             {
                 task->ctrbcnt = b->task_ctrbcnt[i];
-                task->ftgtcnt = b->task_ftgtcnt[i];
             }
-        }
-    }
-
-    if (solvmtx->ftgtnbr)
-    {
-        solver_ftgt_t *ftgt = solvmtx->ftgttab;
-
-        for (i=0; i<solvmtx->ftgtnbr; i++, ftgt++)
-        {
-            ftgt->infotab[FTGT_CTRBNBR] = b->fanin_ctrbnbr[i];
-            ftgt->infotab[FTGT_CTRBCNT] = b->fanin_ctrbnbr[i];
-            ftgt->infotab[FTGT_PRIONUM] = b->fanin_prionum[i];
         }
     }
 
@@ -236,7 +206,6 @@ solverBackupExit( SolverBackup_t *b )
     if (b->task_ctrbcnt)
     {
         memFree_null(b->task_ctrbcnt);
-        memFree_null(b->task_ftgtcnt);
     }
 
     if (b->fanin_ctrbnbr)

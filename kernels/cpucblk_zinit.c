@@ -50,6 +50,26 @@ cpucblk_zalloc( pastix_coefside_t  side,
 {
     pastix_int_t ncols = cblk_colnbr( cblk );
 
+    /* Make sure they have the correct values */
+    assert( PastixLCoef == 0 );
+    assert( PastixUCoef == 1 );
+
+    pastix_cblk_lock( cblk );
+
+    /* Shift to play with bitmasks */
+    side += 1;
+    if ( cblk->lcoeftab != NULL ) {
+        side &= ( ~(PastixLCoef+1) );
+    }
+    if ( cblk->ucoeftab != NULL ) {
+        side &= ( ~(PastixUCoef+1) );
+    }
+    if ( !side ) {
+        pastix_cblk_unlock( cblk );
+        return;
+    }
+    side -= 1;
+
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
         pastix_lrblock_t   *LRblocks = NULL;
         SolverBlok         *blok     = cblk[0].fblokptr;
@@ -86,24 +106,97 @@ cpucblk_zalloc( pastix_coefside_t  side,
             }
             LRblocks++;
         }
+
+        /* Backup the fact that the cblk has been initialized */
+        if ( side != PastixUCoef ) {
+            cblk->lcoeftab = (void*)-1;
+        }
+        if ( side != PastixLCoef ) {
+            cblk->ucoeftab = (void*)-1;
+        }
     }
     else {
         size_t coefnbr = cblk->stride * ncols;
 
-        if ( side != PastixUCoef ) {
-            assert( cblk->lcoeftab == NULL );
-
+        if ( side == PastixLCoef ) {
             MALLOC_INTERN( cblk->lcoeftab, coefnbr, pastix_complex64_t );
             memset( cblk->lcoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
         }
 
-        if ( side != PastixLCoef ) {
-            assert( cblk->ucoeftab == NULL );
+        else {
+            MALLOC_INTERN( cblk->lcoeftab, 2 * coefnbr, pastix_complex64_t );
+            memset( cblk->lcoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
 
-            MALLOC_INTERN( cblk->ucoeftab, coefnbr, pastix_complex64_t );
+            cblk->ucoeftab = (pastix_complex64_t *)cblk->lcoeftab + coefnbr;
             memset( cblk->ucoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
+            assert( cblk->ucoeftab );
         }
+        assert( cblk->lcoeftab );
     }
+    pastix_cblk_unlock( cblk );
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Free the cblk structure that store the coefficient
+ *
+ * This routines performs the free and is thread-safe if called in
+ * parallel on the Lower and upper part.
+ *
+ *******************************************************************************
+ *
+ * @param[in] side
+ *          Define which side of the matrix must be initialized.
+ *          @arg PastixLCoef if lower part only
+ *          @arg PastixUCoef if upper part only
+ *          @arg PastixLUCoef if both sides.
+ *
+ * @param[inout] cblk
+ *          The column block to free.
+ *
+ *******************************************************************************/
+void
+cpucblk_zfree( pastix_coefside_t  side,
+               SolverCblk        *cblk )
+{
+    pastix_cblk_lock( cblk );
+    if ( (side != PastixUCoef) && (cblk->lcoeftab != NULL) ) {
+
+        if ( cblk->cblktype & CBLK_COMPRESSED ) {
+            SolverBlok *blok  = cblk[0].fblokptr;
+            SolverBlok *lblok = cblk[1].fblokptr;
+
+            assert( blok->LRblock != NULL );
+            for (; blok<lblok; blok++) {
+                core_zlrfree(blok->LRblock);
+            }
+        }
+        else {
+            memFree_null( cblk->lcoeftab );
+        }
+        cblk->lcoeftab = NULL;
+    }
+    if ( (side != PastixLCoef) && (cblk->ucoeftab != NULL) ) {
+
+        if ( cblk->cblktype & CBLK_COMPRESSED ) {
+            SolverBlok *blok  = cblk[0].fblokptr;
+            SolverBlok *lblok = cblk[1].fblokptr;
+
+            assert( blok->LRblock != NULL );
+            for (; blok<lblok; blok++) {
+                core_zlrfree(blok->LRblock + 1);
+            }
+        }
+        cblk->ucoeftab = NULL;
+    }
+    if ( (cblk->cblktype & CBLK_COMPRESSED) &&
+         (cblk->lcoeftab == NULL)           &&
+         (cblk->ucoeftab == NULL) ) {
+        free( cblk->fblokptr->LRblock );
+        cblk->fblokptr->LRblock = NULL;
+    }
+    pastix_cblk_unlock( cblk );
 }
 
 /**

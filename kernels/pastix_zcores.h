@@ -216,6 +216,8 @@ int cpucblk_zsytrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
  */
 void cpucblk_zalloc   ( pastix_coefside_t    side,
                         SolverCblk          *cblk );
+void cpucblk_zfree    ( pastix_coefside_t    side,
+                        SolverCblk          *cblk );
 void cpucblk_zfillin  ( pastix_coefside_t    side,
                         const SolverMatrix  *solvmtx,
                         const pastix_bcsc_t *bcsc,
@@ -240,6 +242,9 @@ void cpucblk_zadd     ( pastix_coefside_t    side,
                         const SolverCblk    *cblkA,
                         SolverCblk          *cblkB,
                         const pastix_lr_t   *lowrank );
+void cpucblk_zadd_recv( pastix_coefside_t    side,
+                        double               alpha,
+                        SolverCblk          *cblk );
 /**
  *    @}
  *    @name PastixComplex64 compression/uncompression routines

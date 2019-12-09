@@ -378,8 +378,9 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
         return;
     }
 
-    if ( (cblk->cblktype & CBLK_IN_SCHUR) && (mode != PastixSolvModeSchur) )
+    if ( (cblk->cblktype & CBLK_IN_SCHUR) && (mode != PastixSolvModeSchur) ) {
         return;
+    }
 
     /* In sequential */
     assert( cblk->fcolnum == cblk->lcolidx );

@@ -67,9 +67,13 @@ coeftab_zdump( pastix_data_t      *pastix_data,
      */
     for (itercblk=0; itercblk<solvmtx->cblknbr; itercblk++, cblk++)
     {
+        if( cblk->cblktype & CBLK_FANIN ){
+            continue;
+        }
         cpucblk_zdump( PastixLCoef, cblk, stream );
-        if ( NULL != cblk->ucoeftab )
+        if ( NULL != cblk->ucoeftab ) {
             cpucblk_zdump( PastixUCoef, cblk, stream );
+        }
     }
 
     fclose( stream );

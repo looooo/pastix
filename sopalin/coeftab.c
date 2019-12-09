@@ -186,32 +186,16 @@ coeftabExit( SolverMatrix *solvmtx )
 #endif
 
     /* Free arrays of solvmtx */
-    if(solvmtx->cblktab)
+    if( solvmtx->cblktab )
     {
-        for (i = 0; i < solvmtx->cblknbr; i++)
-        {
-            if (solvmtx->cblktab[i].lcoeftab) {
-                memFree_null(solvmtx->cblktab[i].lcoeftab);
-            }
+        SolverCblk *cblk = solvmtx->cblktab;
 
-            if (solvmtx->cblktab[i].ucoeftab) {
-                memFree_null(solvmtx->cblktab[i].ucoeftab);
+        for ( i = 0; i < solvmtx->cblknbr; i++, cblk++ ) {
+            /* Free is precision independent, so we can use any version */
+            if( cblk->cblktype & CBLK_FANIN ){
+                continue;
             }
-
-            if (solvmtx->cblktab[i].cblktype & CBLK_COMPRESSED) {
-                SolverBlok *blok  = solvmtx->cblktab[i].fblokptr;
-                SolverBlok *lblok = solvmtx->cblktab[i+1].fblokptr;
-
-                if ( blok->LRblock != NULL ) {
-                    for (; blok<lblok; blok++) {
-                        core_zlrfree(blok->LRblock);
-                        if (solvmtx->factotype == PastixFactLU) {
-                            core_zlrfree(blok->LRblock+1);
-                        }
-                    }
-                    memFree_null(solvmtx->cblktab[i].fblokptr->LRblock);
-                }
-            }
+            cpucblk_zfree( PastixLUCoef, cblk );
         }
     }
 }
