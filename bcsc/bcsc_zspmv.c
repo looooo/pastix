@@ -25,13 +25,14 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-typedef void (*bcsc_zspmv_Ax_fct_t)( const pastix_bcsc_t *,
-                                     const bcsc_cblk_t *,
-                                     pastix_complex64_t,
-                                     const pastix_complex64_t *,
-                                     const pastix_complex64_t *,
-                                     pastix_complex64_t,
-                                     pastix_complex64_t * );
+typedef void ( *bcsc_zspmv_Ax_fct_t )( const pastix_bcsc_t *,
+                                       const bcsc_cblk_t *,
+                                       pastix_complex64_t,
+                                       const pastix_complex64_t *,
+                                       const pastix_complex64_t *,
+                                       pastix_complex64_t,
+                                       pastix_complex64_t * );
+
 static inline void
 __bcsc_zspmv_by( pastix_int_t        n,
                  pastix_complex64_t  beta,
@@ -123,7 +124,8 @@ __bcsc_zspmv_conjAx( const pastix_bcsc_t      *bcsc,
 #endif
 
 static inline void
-__bcsc_zspmv_loop( pastix_trans_t            trans,
+__bcsc_zspmv_loop( const SolverMatrix       *solvmtx,
+                   pastix_trans_t            trans,
                    pastix_complex64_t        alpha,
                    const pastix_bcsc_t      *bcsc,
                    const pastix_complex64_t *x,
@@ -245,30 +247,31 @@ bcsc_zspmv_seq( const pastix_data_t      *pastix_data,
                 pastix_complex64_t        beta,
                 pastix_complex64_t       *y )
 {
-    pastix_bcsc_t *bcsc = pastix_data->bcsc;
+    pastix_bcsc_t *bcsc    = pastix_data->bcsc;
+    SolverMatrix  *solvmtx = pastix_data->solvmatr;
 
     if( (bcsc == NULL) || (y == NULL) || (x == NULL) ) {
         return;
     }
 
-    __bcsc_zspmv_loop( trans, alpha, bcsc, x, beta, y,
+    __bcsc_zspmv_loop( solvmtx,
+                       trans, alpha, bcsc, x, beta, y,
                        0, 0, bcsc->cscfnbr );
 }
 
 /**
  * @brief Data structure for parallel arguments of spmv functions
  */
-struct z_argument_spmv_s
-{
-  pastix_trans_t            trans;
-  pastix_complex64_t        alpha;
-  const pastix_bcsc_t      *bcsc;
-  const pastix_complex64_t *x;
-  pastix_complex64_t        beta;
-  pastix_complex64_t       *y;
-  SolverMatrix             *mtx;
-  pastix_int_t             *start_indexes; /* starting position for each thread*/
-  pastix_int_t             *start_bloc;
+struct z_argument_spmv_s {
+    pastix_trans_t            trans;
+    pastix_complex64_t        alpha;
+    const pastix_bcsc_t      *bcsc;
+    const pastix_complex64_t *x;
+    pastix_complex64_t        beta;
+    pastix_complex64_t       *y;
+    SolverMatrix             *mtx;
+    pastix_int_t             *start_indexes; /* starting position for each thread*/
+    pastix_int_t             *start_bloc;
 };
 
 /**
@@ -317,7 +320,8 @@ pthread_bcsc_zspmv( isched_thread_t *ctx,
         end = start_bloc[rank + 1];
     }
 
-    __bcsc_zspmv_loop( arg->trans, arg->alpha, bcsc, arg->x,
+    __bcsc_zspmv_loop( arg->mtx,
+                       arg->trans, arg->alpha, bcsc, arg->x,
                        arg->beta, arg->y + start_indexes[rank],
                        rank, begin, end );
 }
@@ -569,7 +573,7 @@ bcsc_zspmv_smp( const pastix_data_t      *pastix_data,
 
         bcsc_zspmv_get_balanced_indexes( pastix_data, &arg );
 
-        isched_parallel_call ( pastix_data->isched, pthread_bcsc_zspmv, &arg );
+        isched_parallel_call( pastix_data->isched, pthread_bcsc_zspmv, &arg );
 
         memFree_null( arg.start_indexes );
     }
@@ -627,6 +631,9 @@ bcsc_zspmv( const pastix_data_t      *pastix_data,
 {
     pastix_int_t *iparm = pastix_data->iparm;
 
+    /* y is duplicated on all nodes. Set to 0 non local data */
+    bvec_znullify_remote( pastix_data, y );
+
     if ( (iparm[IPARM_SCHEDULER] == PastixSchedStatic) ||
          (iparm[IPARM_SCHEDULER] == PastixSchedDynamic) ) {
         bcsc_zspmv_smp( pastix_data, trans, alpha, x, beta, y );
@@ -634,4 +641,6 @@ bcsc_zspmv( const pastix_data_t      *pastix_data,
     else {
         bcsc_zspmv_seq( pastix_data, trans, alpha, x, beta, y );
     }
+
+    bvec_zallreduce( pastix_data, y );
 }
