@@ -23,6 +23,21 @@
 #include "bcsc_z.h"
 #include "frobeniusupdate.h"
 #include "cblas.h"
+#include "solver.h"
+
+#if defined(PASTIX_WITH_MPI)
+void
+bvec_zmpi_frb_merge( double       *dist,
+                     double       *loc,
+                     int          *len,
+                     MPI_Datatype *dtype )
+{
+    assert( *len == 2 );
+    frobenius_merge( dist[0], dist[1], loc, loc+1 );
+    (void)len;
+    (void)dtype;
+}
+#endif
 
 /**
  *******************************************************************************
@@ -54,8 +69,7 @@ bvec_znrm2_seq( pastix_data_t            *pastix_data,
                 const pastix_complex64_t *x )
 {
     (void)pastix_data;
-    double scale = 0.;
-    double sum = 1.;
+    double data[] = { 0., 1. }; /* Scale, Sum */
     double norm;
     double *valptr = (double*)x;
     pastix_int_t i;
@@ -63,26 +77,37 @@ bvec_znrm2_seq( pastix_data_t            *pastix_data,
     for( i=0; i < n; i++, valptr++ )
     {
         /* Real part */
-        frobenius_update( 1, &scale, &sum, valptr );
+        frobenius_update( 1, data, data + 1, valptr );
 #if defined(PRECISION_z) || defined(PRECISION_c)
         /* Imaginary part */
         valptr++;
-        frobenius_update( 1, &scale, &sum, valptr );
+        frobenius_update( 1, data, data + 1, valptr );
 #endif
     }
 
-    norm = scale*sqrt(sum);
+#if defined(PASTIX_WITH_MPI)
+    {
+        MPI_Op merge;
 
+        MPI_Op_create( (MPI_User_function *)bvec_zmpi_frb_merge, 1, &merge );
+        MPI_Allreduce( MPI_IN_PLACE, data, 2, MPI_DOUBLE, merge, solvmtx->solv_comm );
+        MPI_Op_free( &merge );
+    }
+#endif
+
+    norm = data[0] * sqrt( data[1] );
+
+    (void)n;
     return norm;
 }
 
 struct z_argument_nrm2_s
 {
-  pastix_int_t              n;
-  const pastix_complex64_t *x;
-  pastix_atomic_lock_t      lock;
-  double                    scale;
-  double                    sumsq;
+    pastix_int_t              n;
+    const pastix_complex64_t *x;
+    pastix_atomic_lock_t      lock;
+    double                    scale;
+    double                    sumsq;
 };
 
 /**
@@ -142,18 +167,7 @@ pthread_bvec_znrm2( isched_thread_t *ctx,
     /* If we computed something */
     if ( scale != 0. ) {
         pastix_atomic_lock( &(arg->lock) );
-        {
-            double ratio;
-            if ( arg->scale < scale ) {
-                ratio = arg->scale / scale;
-                arg->sumsq = sumsq + arg->sumsq * ratio * ratio;
-                arg->scale = scale;
-            }
-            else {
-                ratio = scale / arg->scale;
-                arg->sumsq = sumsq * ratio * ratio + arg->sumsq;
-            }
-        }
+        frobenius_merge( scale, sumsq, &(arg->scale), &(arg->sumsq) );
         pastix_atomic_unlock( &(arg->lock) );
     }
 }
@@ -210,7 +224,7 @@ bvec_znrm2_smp( pastix_data_t            *pastix_data,
  *          The size of the vector x.
  *
  * @param[in] alpha
- *          The scalar to sclae the vector x.
+ *          The scalar to scale the vector x.
  *
  * @param[inout] x
  *          The vector x to scale.
@@ -222,8 +236,25 @@ bvec_zscal_seq( pastix_data_t      *pastix_data,
                 pastix_complex64_t  alpha,
                 pastix_complex64_t *x )
 {
+#if defined(PASTIX_WITH_MPI) && 0
+    SolverMatrix  *solvmtx = pastix_data->solvmatr;
+    SolverCblk    *scblk   = solvmtx->cblktab;
+    pastix_bcsc_t *bcsc    = pastix_data->bcsc;
+    bcsc_cblk_t   *bcblk   = bcsc->cscftab;
+    pastix_int_t   i, cblknbr;
+
+    cblknbr = bcsc->cscfnbr;
+    for( i = 0; i < cblknbr; i++, bcblk++ ) {
+        scblk  = solvmtx->cblktab + bcblk->cblknum;
+        n = cblk_colnbr( scblk );
+
+        cblas_zscal( n, CBLAS_SADDR(alpha), x + scblk->lcolidx, 1 );
+    }
+#else
     (void)pastix_data;
     cblas_zscal( n, CBLAS_SADDR(alpha), x, 1 );
+#endif
+
 }
 
 struct z_argument_scal_s
@@ -345,16 +376,34 @@ bvec_zaxpy_seq( pastix_data_t            *pastix_data,
                 const pastix_complex64_t *x,
                 pastix_complex64_t       *y)
 {
+#if defined(PASTIX_WITH_MPI) && 0
+    SolverMatrix  *solvmtx = pastix_data->solvmatr;
+    SolverCblk    *scblk   = solvmtx->cblktab;
+    pastix_bcsc_t *bcsc    = pastix_data->bcsc;
+    bcsc_cblk_t   *bcblk   = bcsc->cscftab;
+    pastix_int_t   i, cblknbr;
+
+    cblknbr = bcsc->cscfnbr;
+    for( i = 0; i < cblknbr; i++, bcblk++ ){
+        scblk   = solvmtx->cblktab + bcblk->cblknum;
+        n = cblk_colnbr( scblk );
+
+        cblas_zaxpy( n, CBLAS_SADDR(alpha),
+                     x + scblk->lcolidx, 1,
+                     y + scblk->lcolidx, 1 );
+    }
+#else
     (void)pastix_data;
     cblas_zaxpy( n, CBLAS_SADDR(alpha), x, 1, y, 1 );
+#endif
 }
 
 struct z_argument_axpy_s
 {
-  pastix_int_t              n;
-  pastix_complex64_t        alpha;
-  const pastix_complex64_t *x;
-  pastix_complex64_t       *y;
+    pastix_int_t              n;
+    pastix_complex64_t        alpha;
+    const pastix_complex64_t *x;
+    pastix_complex64_t       *y;
 };
 
 /**
@@ -448,11 +497,11 @@ bvec_zaxpy_smp( pastix_data_t            *pastix_data,
 
 struct z_argument_dotc_s
 {
-  pastix_int_t              n;
-  const pastix_complex64_t *x;
-  const pastix_complex64_t *y;
-  pastix_atomic_lock_t      lock;
-  pastix_complex64_t        sum;
+    pastix_int_t              n;
+    const pastix_complex64_t *x;
+    const pastix_complex64_t *y;
+    pastix_atomic_lock_t      lock;
+    pastix_complex64_t        sum;
 };
 
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -499,6 +548,11 @@ bvec_zdotc_seq( pastix_data_t            *pastix_data,
     {
         r += (*xptr) * conj(*yptr);
     }
+
+#if defined(PASTIX_WITH_MPI)
+    MPI_Allreduce( MPI_IN_PLACE, &r, 1, PASTIX_MPI_COMPLEX64,
+                   MPI_SUM, solvmtx->solv_comm );
+#endif
 
     return r;
 }
@@ -631,14 +685,19 @@ bvec_zdotu_seq( pastix_data_t            *pastix_data,
 {
     (void)pastix_data;
     int i;
-    const pastix_complex64_t *xptr = x;
-    const pastix_complex64_t *yptr = y;
-    pastix_complex64_t        r = 0.0;
+    pastix_complex64_t *xptr = (pastix_complex64_t*)x;
+    pastix_complex64_t *yptr = (pastix_complex64_t*)y;
+    pastix_complex64_t r = 0.0;
 
     for (i=0; i<n; i++, xptr++, yptr++)
     {
         r += (*xptr) * (*yptr);
     }
+
+#if defined(PASTIX_WITH_MPI)
+    MPI_Allreduce( MPI_IN_PLACE, &r, 1, PASTIX_MPI_COMPLEX64,
+                   MPI_SUM, solvmtx->solv_comm );
+#endif
 
     return r;
 }
@@ -904,8 +963,24 @@ bvec_zcopy_seq( pastix_data_t            *pastix_data,
                 const pastix_complex64_t *x,
                 pastix_complex64_t       *y )
 {
+#if defined(PASTIX_WITH_MPI) && 0
+    SolverMatrix  *solvmtx = pastix_data->solvmatr;
+    SolverCblk    *scblk   = solvmtx->cblktab;
+    pastix_bcsc_t *bcsc    = pastix_data->bcsc;
+    bcsc_cblk_t   *bcblk   = bcsc->cscftab;
+    pastix_int_t   i, cblknbr;
+
+    cblknbr = bcsc->cscfnbr;
+    for( i = 0; i < cblknbr; i++, bcblk++ ) {
+        scblk  = solvmtx->cblktab + bcblk->cblknum;
+        n = cblk_colnbr( scblk );
+
+        memcpy( y + scblk->lcolidx, x + scblk->lcolidx, n * sizeof(pastix_complex64_t) );
+    }
+#else
     (void)pastix_data;
     memcpy( y, x, n * sizeof(pastix_complex64_t) );
+#endif
 }
 
 struct argument_copy_s {
@@ -1069,10 +1144,29 @@ bvec_zgemv_seq( pastix_data_t            *pastix_data,
                 pastix_complex64_t        beta,
                 pastix_complex64_t       *y )
 {
+#if defined(PASTIX_WITH_MPI) && 0
+    SolverMatrix  *solvmtx = pastix_data->solvmatr;
+    SolverCblk    *scblk   = solvmtx->cblktab;
+    pastix_bcsc_t *bcsc    = pastix_data->bcsc;
+    bcsc_cblk_t   *bcblk   = bcsc->cscftab;
+    pastix_int_t   i, cblknbr;
+
+    cblknbr = bcsc->cscfnbr;
+    for( i = 0; i < cblknbr; i++, bcblk++ ) {
+        scblk  = solvmtx->cblktab + bcblk->cblknum;
+        m = cblk_colnbr( scblk );
+
+        cblas_zgemv( CblasColMajor, CblasNoTrans, m, n,
+                     CBLAS_SADDR(alpha), A + scblk->lcolidx, lda, x, 1,
+                     CBLAS_SADDR(beta), y + scblk->lcolidx, 1 );
+    }
+#else
     (void)pastix_data;
     cblas_zgemv( CblasColMajor, CblasNoTrans, m, n,
                  CBLAS_SADDR(alpha), A, lda, x, 1,
                  CBLAS_SADDR(beta), y, 1 );
+#endif
+
 }
 
 struct z_gemv_s
@@ -1199,4 +1293,88 @@ bvec_zgemv_smp( pastix_data_t            *pastix_data,
     struct z_gemv_s arg = {m, n, alpha, A, lda, x, beta, y};
 
     isched_parallel_call( pastix_data->isched, pthread_bvec_zgemv, &arg );
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc
+ *
+ * @brief Set to 0 remote coefficients
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The information about sequential and parallel version (Number of
+ *          thread, ...).
+ *
+ * @param[inout] y
+ *          On entry, the initial vector y of size m.
+ *          On exit, the y vector with remote section set to 0.
+ *
+ *******************************************************************************/
+void
+bvec_znullify_remote( const pastix_data_t *pastix_data,
+                      pastix_complex64_t  *y )
+{
+#if defined( PASTIX_WITH_MPI )
+    const SolverMatrix *solvmtx = pastix_data->solvmatr;
+    const SolverCblk   *cblk = solvmtx->cblktab;
+    pastix_int_t        cblknbr;
+    pastix_int_t        i, lastindex = 0;
+
+    cblknbr = solvmtx->cblknbr;
+    for ( i = 0; i < cblknbr; i++, cblk++ ) {
+        if ( cblk->cblktype & CBLK_FANIN ) {
+            continue;
+        }
+
+        if ( cblk->fcolnum != lastindex ) {
+            /* Set to 0 all remote data bewtween previous local cblk, and current cblk */
+            memset(
+                y + lastindex, 0, ( cblk->fcolnum - lastindex ) * sizeof( pastix_complex64_t ) );
+        }
+        lastindex = cblk->lcolnum + 1;
+    }
+
+    if ( lastindex < solvmtx->nodenbr ) {
+        /* Set to 0 all remote data bewtween previous local cblk, and current cblk */
+        memset( y + lastindex, 0, ( solvmtx->nodenbr - lastindex ) * sizeof( pastix_complex64_t ) );
+    }
+#endif
+    (void)pastix_data;
+    (void)y;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc
+ *
+ * @brief Apply an all reduce of the vector on all nodes
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The information about sequential and parallel version (Number of
+ *          thread, ...).
+ *
+ * @param[inout] y
+ *          On entry, the initial vector y of size m.
+ *          On exit, the y vector with remote section set to 0.
+ *
+ *******************************************************************************/
+void
+bvec_zallreduce( const pastix_data_t *pastix_data,
+                 pastix_complex64_t  *y )
+{
+#if defined( PASTIX_WITH_MPI )
+    /* Reduce the partial sums on all nodes */
+    MPI_Allreduce( MPI_IN_PLACE,
+                   y, pastix_data->bcsc->gN,
+                   PASTIX_MPI_COMPLEX64, MPI_SUM,
+                   pastix_data->inter_node_comm );
+#endif
+    (void)pastix_data;
+    (void)y;
 }

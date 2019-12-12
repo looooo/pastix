@@ -299,6 +299,9 @@ bcsc_init_centralized( const spmatrix_t     *spm,
 
         for (itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
         {
+            if( cblk->cblktype & CBLK_FANIN ){
+                continue;
+            }
             for (itercol  = cblk->fcolnum;
                  itercol <= cblk->lcolnum;
                  itercol++ )

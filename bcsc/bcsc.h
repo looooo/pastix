@@ -26,8 +26,9 @@
  * @brief Compressed colptr format for the bcsc
  */
 typedef struct bcsc_cblk_s {
-    pastix_int_t  colnbr; /**< Number of columns in the block column.                                    */
-    pastix_int_t *coltab; /**< Array of indexes of the start of each column in the row and value arrays. */
+    pastix_int_t  colnbr;  /**< Number of columns in the block column.                                    */
+    pastix_int_t  cblknum; /**< Index of the corresponding cblk in the local solver matrix                */
+    pastix_int_t *coltab;  /**< Array of indexes of the start of each column in the row and value arrays. */
 } bcsc_cblk_t;
 
 /**

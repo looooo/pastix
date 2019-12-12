@@ -156,6 +156,16 @@ void bcsc_zspmv_smp( const pastix_data_t      *pastix_data,
 
 /**
  *    @}
+ *
+ *    @name PastixComplex64 MPI vector operations
+ *    @{
+ */
+void bvec_znullify_remote( const pastix_data_t *pastix_data,
+                           pastix_complex64_t  *y );
+void bvec_zallreduce( const pastix_data_t *pastix_data,
+                      pastix_complex64_t  *y );
+/**
+ *    @}
  * @}
  */
 #endif /* _bcsc_z_h_ */

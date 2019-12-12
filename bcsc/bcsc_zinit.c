@@ -75,8 +75,9 @@ bcsc_zinit_A( const spmatrix_t     *spm,
         itercblk = col2cblk[ itercol2 ];
 
         /* The block column is not stored locally, we skip it */
-        if (itercblk == -1)
+        if ( itercblk == -1 ) {
             continue;
+        }
 
         coltab  = bcsc->cscftab[itercblk].coltab;
         fcolnum = solvmtx->cblktab[itercblk].fcolnum;
@@ -175,8 +176,9 @@ bcsc_zinit_Lt( const spmatrix_t     *spm,
             itercblk = col2cblk[ iterrow2 ];
 
             /* The block column is not stored locally, we skip it */
-            if ((itercblk == -1) || (iterrow == itercol))
+            if ( (itercblk == -1) || (iterrow == itercol) ) {
                 continue;
+            }
 
             coltab  = bcsc->cscftab[itercblk].coltab;
             fcolnum = solvmtx->cblktab[itercblk].fcolnum;
@@ -270,8 +272,9 @@ bcsc_zinit_Lh( const spmatrix_t     *spm,
             itercblk = col2cblk[ iterrow2 ];
 
             /* The block column is not stored locally, we skip it */
-            if ((itercblk == -1) || (iterrow == itercol))
+            if ( (itercblk == -1) || (iterrow == itercol) ) {
                 continue;
+            }
 
             coltab  = bcsc->cscftab[itercblk].coltab;
             fcolnum = solvmtx->cblktab[itercblk].fcolnum;
@@ -367,8 +370,9 @@ bcsc_zinit_At( const spmatrix_t     *spm,
             itercblk = col2cblk[ iterrow2 ];
 
             /* The block column is not stored locally, we skip it */
-            if (itercblk == -1)
+            if ( itercblk == -1 ) {
                 continue;
+            }
 
             coltab  = bcsc->cscftab[itercblk].coltab;
             fcolnum = solvmtx->cblktab[itercblk].fcolnum;
