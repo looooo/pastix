@@ -192,12 +192,12 @@ __bcsc_zspmv_loop( const SolverMatrix       *solvmtx,
     }
 #endif /* defined(PRECISION_z) || defined(PRECISION_c) */
 
-    for( bloc=begin; bloc<end; bloc++ )
+    for( bloc=begin; bloc<end; bloc++, cblk++ )
     {
-        zspmv_Ax( bcsc, cblk, alpha, valptr, x, beta, y );
+        const SolverCblk   *solv_cblk = solvmtx->cblktab + cblk->cblknum;
+        pastix_complex64_t *yptr      = y + solv_cblk->lcolidx;
 
-        y += cblk->colnbr;
-        cblk++;
+        zspmv_Ax( bcsc, cblk, alpha, valptr, x, beta, yptr );
     }
 }
 
@@ -434,7 +434,7 @@ pthread_bcsc_zspmv_tasktab( isched_thread_t *ctx,
         t = mtx->tasktab + task_id;
 
         solv_cblk = mtx->cblktab + t->cblknum;
-        bcsc_cblk = bcsc->cscftab + t->cblknum;
+        bcsc_cblk = bcsc->cscftab + solv_cblk->lcblknum;
         yptr = y + solv_cblk->fcolnum;
 
         zspmv_Ax( bcsc, bcsc_cblk, alpha, valptr, x, beta, yptr );

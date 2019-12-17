@@ -64,13 +64,22 @@ solver_copy( const SolverMatrix *solvin,
     memcpy(solvout->cblktab, solvin->cblktab,
            (solvout->cblknbr+1)*sizeof(SolverCblk));
 
-    MALLOC_INTERN(solvout->bloktab, solvout->bloknbr, SolverBlok);
+    MALLOC_INTERN(solvout->bloktab, solvout->bloknbr+1, SolverBlok);
     memcpy(solvout->bloktab, solvin->bloktab,
-           solvout->bloknbr*sizeof(SolverBlok));
+           (solvout->bloknbr+1)*sizeof(SolverBlok));
 
     MALLOC_INTERN(solvout->browtab, solvout->brownbr, pastix_int_t);
     memcpy(solvout->browtab, solvin->browtab,
            solvout->brownbr*sizeof(pastix_int_t));
+
+    if ( solvin->gcbl2loc ) {
+        MALLOC_INTERN(solvout->gcbl2loc, solvout->gcblknbr, pastix_int_t);
+        memcpy(solvout->gcbl2loc, solvin->gcbl2loc,
+               solvout->gcblknbr*sizeof(pastix_int_t));
+    }
+    else {
+        solvout->gcbl2loc = NULL;
+    }
 
     solvblok = solvout->bloktab;
     for (solvcblk = solvout->cblktab; solvcblk  < solvout->cblktab + solvout->cblknbr; solvcblk++) {

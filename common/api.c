@@ -896,6 +896,12 @@ pastixFinalize( pastix_data_t **pastix_data )
         memFree_null( pastix->solvmatr );
     }
 
+    if ( pastix->solvglob != NULL )
+    {
+        solverExit( pastix->solvglob );
+        memFree_null( pastix->solvglob );
+    }
+
     if ( pastix->bcsc != NULL )
     {
         bcscExit( pastix->bcsc );

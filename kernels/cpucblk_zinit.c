@@ -229,8 +229,8 @@ cpucblk_zfillin_fr( pastix_coefside_t    side,
                     const pastix_bcsc_t *bcsc,
                     pastix_int_t         itercblk )
 {
-    const bcsc_cblk_t *csccblk = bcsc->cscftab + itercblk;
-    SolverCblk *solvcblk = solvmtx->cblktab + itercblk;
+    SolverCblk *solvcblk       = solvmtx->cblktab + itercblk;
+    const bcsc_cblk_t *csccblk = bcsc->cscftab + solvcblk->lcblknum;
     SolverBlok *solvblok;
     SolverBlok *lsolvblok = (solvcblk+1)->fblokptr;
     pastix_complex64_t *lcoeftab = solvcblk->lcoeftab;
@@ -336,8 +336,8 @@ cpucblk_zfillin_lr( pastix_coefside_t    side,
                     const pastix_bcsc_t *bcsc,
                     pastix_int_t         itercblk )
 {
-    const bcsc_cblk_t *csccblk = bcsc->cscftab + itercblk;
-    SolverCblk *solvcblk = solvmtx->cblktab + itercblk;
+    SolverCblk *solvcblk       = solvmtx->cblktab + itercblk;
+    const bcsc_cblk_t *csccblk = bcsc->cscftab + solvcblk->lcblknum;
     SolverBlok *solvblok;
     SolverBlok *lsolvblok = (solvcblk+1)->fblokptr;
     pastix_complex64_t *lcoeftab, *ucoeftab;
@@ -444,4 +444,3 @@ cpucblk_zfillin( pastix_coefside_t    side,
         cpucblk_zfillin_fr( side, solvmtx, bcsc, itercblk );
     }
 }
-

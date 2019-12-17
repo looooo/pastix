@@ -310,6 +310,7 @@ pastixSymbolBuildRowtab( symbol_matrix_t *symbptr )
     pastix_int_t   cblknbr;
     pastix_int_t   edgenbr = symbptr->bloknbr - symbptr->cblknbr;
 
+    symbptr->browmax = 0;
     cblknbr = symbptr->cblknbr;
 
     MALLOC_INTERN(innbr, cblknbr, pastix_int_t );
@@ -338,6 +339,7 @@ pastixSymbolBuildRowtab( symbol_matrix_t *symbptr )
     cblk->brownum = 0;
     for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
     {
+        symbptr->browmax = pastix_imax( symbptr->browmax, innbr[ itercblk ] );
         cblk[1].brownum = cblk[0].brownum + innbr[ itercblk ];
         innbr[itercblk] = cblk[0].brownum;
     }

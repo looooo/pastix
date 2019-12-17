@@ -57,7 +57,7 @@ bcsc_zinit_A( const spmatrix_t     *spm,
 {
     pastix_complex64_t *values  = (pastix_complex64_t*)(spm->values);
     pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
-    pastix_int_t itercblk, itercol, baseval;
+    pastix_int_t itercblk, iterbcsc, itercol, baseval;
     pastix_int_t i, ival, idofcol, idofrow;
     int dof = spm->dof;
 
@@ -79,8 +79,9 @@ bcsc_zinit_A( const spmatrix_t     *spm,
             continue;
         }
 
-        coltab  = bcsc->cscftab[itercblk].coltab;
-        fcolnum = solvmtx->cblktab[itercblk].fcolnum;
+        fcolnum  = solvmtx->cblktab[itercblk].fcolnum;
+        iterbcsc = solvmtx->cblktab[itercblk].lcblknum;
+        coltab   = bcsc->cscftab[iterbcsc].coltab;
 
         frow = spm->colptr[itercol]   - baseval;
         lrow = spm->colptr[itercol+1] - baseval;
@@ -148,7 +149,7 @@ bcsc_zinit_Lt( const spmatrix_t     *spm,
 {
     pastix_complex64_t *values  = (pastix_complex64_t*)(spm->values);
     pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
-    pastix_int_t itercblk, itercol, baseval;
+    pastix_int_t itercblk, iterbcsc, itercol, baseval;
     pastix_int_t i, ival, idofcol, idofrow;
     int dof = spm->dof;
 
@@ -180,8 +181,9 @@ bcsc_zinit_Lt( const spmatrix_t     *spm,
                 continue;
             }
 
-            coltab  = bcsc->cscftab[itercblk].coltab;
-            fcolnum = solvmtx->cblktab[itercblk].fcolnum;
+            fcolnum  = solvmtx->cblktab[itercblk].fcolnum;
+            iterbcsc = solvmtx->cblktab[itercblk].lcblknum;
+            coltab   = bcsc->cscftab[iterbcsc].coltab;
 
             ival = i * dof * dof;
 
@@ -244,7 +246,7 @@ bcsc_zinit_Lh( const spmatrix_t     *spm,
 {
     pastix_complex64_t *values  = (pastix_complex64_t*)(spm->values);
     pastix_complex64_t *Lvalues = (pastix_complex64_t*)(bcsc->Lvalues);
-    pastix_int_t itercblk, itercol, baseval;
+    pastix_int_t itercblk, iterbcsc, itercol, baseval;
     pastix_int_t i, ival, idofcol, idofrow;
     int dof = spm->dof;
 
@@ -276,8 +278,9 @@ bcsc_zinit_Lh( const spmatrix_t     *spm,
                 continue;
             }
 
-            coltab  = bcsc->cscftab[itercblk].coltab;
-            fcolnum = solvmtx->cblktab[itercblk].fcolnum;
+            fcolnum  = solvmtx->cblktab[itercblk].fcolnum;
+            iterbcsc = solvmtx->cblktab[itercblk].lcblknum;
+            coltab   = bcsc->cscftab[iterbcsc].coltab;
 
             ival = i * dof * dof;
 
@@ -342,7 +345,7 @@ bcsc_zinit_At( const spmatrix_t     *spm,
 {
     pastix_complex64_t *values  = (pastix_complex64_t*)(spm->values);
     pastix_complex64_t *Uvalues = (pastix_complex64_t*)(bcsc->Uvalues);
-    pastix_int_t itercblk, itercol, baseval;
+    pastix_int_t itercblk, iterbcsc, itercol, baseval;
     pastix_int_t i, ival, idofcol, idofrow;
     int dof = spm->dof;
 
@@ -374,8 +377,9 @@ bcsc_zinit_At( const spmatrix_t     *spm,
                 continue;
             }
 
-            coltab  = bcsc->cscftab[itercblk].coltab;
-            fcolnum = solvmtx->cblktab[itercblk].fcolnum;
+            fcolnum  = solvmtx->cblktab[itercblk].fcolnum;
+            iterbcsc = solvmtx->cblktab[itercblk].lcblknum;
+            coltab   = bcsc->cscftab[iterbcsc].coltab;
 
             ival = i * dof * dof;
 

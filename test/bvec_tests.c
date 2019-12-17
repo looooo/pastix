@@ -96,6 +96,21 @@ int main ( int argc, char **argv )
      */
     pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
+    /**
+     * Run preprocessing steps required to generate solverMatrix
+     */
+    pastix_task_analyze( pastix_data, spm );
+
+    /**
+     * Generate the blocked csc
+     */
+    pastix_data->bcsc = malloc( sizeof(pastix_bcsc_t) );
+    bcscInit( spm,
+              pastix_data->ordemesh,
+              pastix_data->solvmatr,
+              spm->mtxtype == SpmGeneral,
+              pastix_data->bcsc );
+
     if ( check ) {
         for( s=PastixSchedSequential; s<=PastixSchedStatic; s++ )
         {
