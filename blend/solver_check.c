@@ -26,6 +26,10 @@
 #include "extendVector.h"
 #include "blendctrl.h"
 #include "simu.h"
+#include "pastix_zcores.h"
+#include "pastix_ccores.h"
+#include "pastix_dcores.h"
+#include "pastix_scores.h"
 
 /**
  *******************************************************************************
@@ -79,6 +83,7 @@ solverCheck( const SolverMatrix *solvmtx )
             /* Dimensions are similar to any other cblk but storeed remotely */
             assert( cblk[0].lcolnum < cblk[1].fcolnum );
             assert( cblk->lcolidx == -1 );
+            assert( cblk->ownerid != solvmtx->clustnum );
 
             assert( fblok->lcblknm == fblok->fcblknm );
             assert( fblok->browind == -1 );
@@ -87,6 +92,8 @@ solverCheck( const SolverMatrix *solvmtx )
             assert( cblk[0].lcolnum < cblk[1].fcolnum );
             assert( (cblk[1].cblktype & CBLK_FANIN) ||
                     (!(cblk[1].cblktype & CBLK_FANIN) && (cblk[0].lcolidx < cblk[1].lcolidx)) );
+            assert( (solvmtx->gcbl2loc == NULL) ||
+                    (cblk->ownerid == solvmtx->clustnum) );
 
             assert( fblok->lcblknm == fblok->fcblknm );
             assert( fblok->browind == -1 );
@@ -114,7 +121,10 @@ solverCheck( const SolverMatrix *solvmtx )
             assert( blok->browind == j );
             assert( blok->fcblknm == i );
 
+            /* Bloks in Fanin sould never appear in the browtab */
             assert( !(fcblk->cblktype & CBLK_FANIN) );
+            assert( ((fcblk->ownerid == solvmtx->clustnum) && !(fcblk->cblktype & CBLK_RECV)) ||
+                    ((fcblk->ownerid != solvmtx->clustnum) &&  (fcblk->cblktype & CBLK_RECV)) );
         }
     }
 

@@ -125,6 +125,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     pastix_order_t  *ordeptr;
     symbol_matrix_t *symbmtx;
     SolverMatrix    *solvmtx;
+    SolverMatrix    *solvmtx_glob;
     SimuCtrl        *simuctrl;
     double           timer_all     = 0.;
     double           timer_current = 0.;
@@ -174,8 +175,14 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         solverExit( pastix_data->solvmatr );
         memFree_null( pastix_data->solvmatr );
     }
+    if ( pastix_data->solvglob != NULL ) {
+        solverExit( pastix_data->solvglob );
+        memFree_null( pastix_data->solvglob );
+    }
     solvmtx = (SolverMatrix*)malloc(sizeof(SolverMatrix));
+    solvmtx_glob = (SolverMatrix*)malloc(sizeof(SolverMatrix));
     pastix_data->solvmatr = solvmtx;
+    pastix_data->solvglob = solvmtx_glob;
 
     /* Start the analyze step */
     clockStart(timer_all);
@@ -473,8 +480,13 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         }
         clockStart(timer_current);
 
+        solverMatrixGenSeq( ctrl.clustnum, solvmtx_glob, symbmtx,
+                            pastix_data->ordemesh, simuctrl, &ctrl,
+                            pastix_data->inter_node_comm, pastix_data->isched, 0 );
+
         solverMatrixGen( ctrl.clustnum, solvmtx, symbmtx,
-                         pastix_data->ordemesh, simuctrl, &ctrl );
+                         pastix_data->ordemesh, simuctrl, &ctrl,
+                         pastix_data->inter_node_comm, pastix_data->isched );
 
         clockStop(timer_current);
         if( verbose > PastixVerboseNo ) {
@@ -492,13 +504,14 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     /* Realloc solver memory in a contiguous way  */
     {
         solverRealloc(solvmtx);
-
+        solverRealloc(solvmtx_glob);
 #if defined(PASTIX_DEBUG_BLEND)
         if (!ctrl.ricar) {
             if( verbose > PastixVerboseYes ) {
                 pastix_print( procnum, 0, OUT_BLEND_CHKSOLVER );
             }
             solverCheck(solvmtx);
+            solverCheck(solvmtx_glob);
         }
 #endif
     }

@@ -84,6 +84,7 @@ typedef struct solver_blok_s {
     void        *handler[2]; /**< Runtime data handler                     */
     pastix_int_t lcblknm;    /**< Local column block                       */
     pastix_int_t fcblknm;    /**< Facing column block                      */
+    pastix_int_t gbloknm;    /**< Index in global bloktab                  */
     pastix_int_t frownum;    /**< First row index                          */
     pastix_int_t lrownum;    /**< Last row index (inclusive)               */
     pastix_int_t coefind;    /**< Index in coeftab                         */
@@ -112,11 +113,17 @@ typedef struct solver_cblk_s  {
     pastix_int_t         brown2d;    /**< First 2D-block in row facing the diagonal block in browtab, 0-based */
     pastix_int_t         gcblknum;   /**< Global column block index                                           */
     pastix_int_t         sndeidx;    /**< Global index of the original supernode the cblk belongs to          */
+    pastix_int_t         lcblknum;   /**< Local cblk index if classic cblk, -1 otherwise (FANIN | RECV)       */
     void                *lcoeftab;   /**< Coefficients access vector, lower part  */
     void                *ucoeftab;   /**< Coefficients access vector, upper part  */
     void                *handler[2]; /**< Runtime data handler                    */
     pastix_int_t         selevtx;    /**< Index to identify selected cblk for which intra-separator contributions are not compressed */
+    int                  ownerid;    /**< Rank of the owner                       */
     pastix_int_t         threadid;   /**< Rank of the accessing thread            */
+    pastix_int_t         reqindex;   /**< Index of the cblk in the request array  */
+
+    pastix_int_t         recvnbr;    /**< Number of necessary receptions for this cblk */
+    pastix_int_t         recvcnt;    /**< Counter for received receptions              */
     void                *rcoeftab;   /**< Receiving coefficents vector                 */
 } SolverCblk;
 
@@ -145,7 +152,12 @@ struct solver_matrix_s {
     pastix_int_t            nodenbr;       /**< Number of nodes before dof extension              */
     pastix_int_t            coefnbr;       /**< Number of coefficients (node after dof extension) */
     pastix_int_t            gcblknbr;      /**< Global number of column blocks                    */
-    pastix_int_t            cblknbr;       /**< Number of column blocks                   */
+    pastix_int_t            cblknbr;       /**< Local number of column blocks                     */
+    pastix_int_t            faninnbr;      /**< Local number of fanin cblk (included in cblknbr)  */
+    pastix_int_t            fanincnt;      /**< Number of sends to realize                        */
+    pastix_int_t            maxrecv;       /**< Maximum blok size for a cblk_recv   */
+    pastix_int_t            recvnbr;       /**< Local number of recv cblk (included in cblknbr)   */
+    pastix_int_t            recvcnt;       /**< Number of receptions to realize                   */
     pastix_int_t            cblkmax1d;     /**< Rank of the last cblk not beeing enabled for 2D computations */
     pastix_int_t            cblkmin2d;     /**< Rank of the first cblk beeing enabled for 2D computations    */
     pastix_int_t            cblkmaxblk;    /**< Maximum number of blocks per cblk         */
@@ -154,9 +166,11 @@ struct solver_matrix_s {
     pastix_int_t            nb2dblok;      /**< Number of 2D blocks                       */
     pastix_int_t            bloknbr;       /**< Number of blocks                          */
     pastix_int_t            brownbr;       /**< Size of the browtab array                 */
-    SolverCblk   * restrict cblktab;       /**< Array of solver column blocks             */
-    SolverBlok   * restrict bloktab;       /**< Array of solver blocks                    */
+    SolverCblk   * restrict cblktab;       /**< Array of solver column blocks [+1]        */
+    SolverBlok   * restrict bloktab;       /**< Array of solver blocks        [+1]        */
     pastix_int_t * restrict browtab;       /**< Array of blocks                           */
+
+    pastix_int_t           *gcbl2loc;      /**< Array of local cblknum corresponding to gcblknum */
 
     pastix_lr_t             lowrank;       /**< Low-rank parameters                       */
     pastix_factotype_t      factotype;     /**< General or symmetric factorization?       */
@@ -176,6 +190,7 @@ struct solver_matrix_s {
     pastix_int_t              blokmax;              /*+ Maximum size of 2D blocks                 +*/
     pastix_int_t              nbftmax;              /*+ Maximum block number in ftgt              +*/
     pastix_int_t              arftmax;              /*+ Maximum block area in ftgt                +*/
+    pastix_int_t              colmax;               /*+ Maximum column width in solvmtx           +*/
 
     pastix_int_t              clustnum;             /*+ current processor number                  +*/
     pastix_int_t              clustnbr;             /*+ number of processors                      +*/
@@ -191,7 +206,12 @@ struct solver_matrix_s {
     pastix_queue_t **         computeQueue;         /*+ Queue of task to compute by thread        +*/
 
     pastix_int_t             *selevtx;              /*+ Array to identify which cblk are pre-selected +*/
+    MPI_Request              *reqtab;               /*+ Array of request for MPI asynchronous messages +*/
+    pastix_int_t             *reqlocal;             /*+ Array of local cblknum corresponding to reqtab +*/
+    pastix_int_t              reqnbr;               /*+ Length of the reqtab array                     +*/
+    volatile int32_t          reqnum;               /*+ Current amount of requests computed            +*/
 
+    PASTIX_Comm               solv_comm;            /*+ Copy of the pastix_data->inter_node_comm       +*/
 };
 
 /**
@@ -342,7 +362,19 @@ int  solverMatrixGen( pastix_int_t           clustnum,
                       const symbol_matrix_t *symbmtx,
                       const pastix_order_t  *ordeptr,
                       const SimuCtrl        *simuctl,
-                      const BlendCtrl       *ctrl );
+                      const BlendCtrl       *ctrl,
+                      PASTIX_Comm            comm,
+                      isched_t              *isched );
+
+int  solverMatrixGenSeq( pastix_int_t           clustnum,
+                         SolverMatrix          *solvmtx,
+                         const symbol_matrix_t *symbmtx,
+                         const pastix_order_t  *ordeptr,
+                         const SimuCtrl        *simuctl,
+                         const BlendCtrl       *ctrl,
+                         PASTIX_Comm            comm,
+                         isched_t              *isched,
+                         pastix_int_t           is_dbg );
 
 int  solverLoad( SolverMatrix       *solvptr,
                  FILE               *stream );
@@ -359,6 +391,12 @@ int           solverDraw      ( const SolverMatrix *solvptr,
                                 int                 verbose,
                                 const char         *directory );
 void          solverPrintStats( const SolverMatrix *solvptr );
+
+void solverReqtabInit ( SolverMatrix *solvmtx,
+                        pastix_int_t  scheduler );
+void solverReqtabExit ( SolverMatrix *solvmtx   );
+void solverSendersInit( SolverMatrix *solvmtx   );
+void solverSendersExit( SolverMatrix *solvmtx   );
 
 /*
  * Solver backup

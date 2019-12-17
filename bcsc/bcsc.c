@@ -58,19 +58,27 @@ bcsc_init_coltab( const SolverMatrix  *solvmtx,
                         pastix_bcsc_t *bcsc )
 {
     bcsc_cblk_t *blockcol;
-    pastix_int_t index, iter, idxcol, nodeidx, colsize;
+    pastix_int_t cblknum, bcscnum, iter, idxcol, nodeidx, colsize;
 
-    bcsc->cscfnbr = solvmtx->cblknbr;
+    SolverCblk *cblk = solvmtx->cblktab;
+    bcsc->cscfnbr    = solvmtx->cblknbr - solvmtx->faninnbr;
     MALLOC_INTERN( bcsc->cscftab, bcsc->cscfnbr, bcsc_cblk_t );
 
-    idxcol = 0;
+    idxcol   = 0;
+    cblk     = solvmtx->cblktab;
     blockcol = bcsc->cscftab;
-    for (index=0; index<bcsc->cscfnbr; index++, blockcol++)
+    bcscnum  = 0;
+    for (cblknum = 0; cblknum < solvmtx->cblknbr; cblknum++, cblk++)
     {
-        pastix_int_t fcolnum = solvmtx->cblktab[index].fcolnum;
-        pastix_int_t lcolnum = solvmtx->cblktab[index].lcolnum;
+        pastix_int_t fcolnum = cblk->fcolnum;
 
-        blockcol->colnbr = (lcolnum - fcolnum + 1);
+        if ( cblk->cblktype & CBLK_FANIN ) {
+            continue;
+        }
+
+        blockcol->cblknum = cblknum;
+        blockcol->colnbr  = cblk_colnbr( cblk );
+        assert( cblk->lcblknum == bcscnum );
         MALLOC_INTERN( blockcol->coltab, blockcol->colnbr + 1, pastix_int_t );
 
         /* Works only for DoF constant */
@@ -86,7 +94,12 @@ bcsc_init_coltab( const SolverMatrix  *solvmtx,
         }
 
         idxcol = blockcol->coltab[blockcol->colnbr];
+
+        blockcol++;
+        bcscnum++;
     }
+    assert( (blockcol - bcsc->cscftab) == bcsc->cscfnbr );
+    assert( bcscnum == bcsc->cscfnbr );
 
     if ( idxcol > 0 ) {
         MALLOC_INTERN( bcsc->rowtab,  idxcol, pastix_int_t);

@@ -113,7 +113,7 @@ solver_size( const SolverMatrix *solvptr )
  *
  *******************************************************************************/
 void
-solverInit(SolverMatrix *solvmtx)
+solverInit( SolverMatrix *solvmtx )
 {
     memset(solvmtx, 0, sizeof (SolverMatrix));
     return;
@@ -151,6 +151,9 @@ solverExit(SolverMatrix *solvmtx)
     }
     if(solvmtx->browtab) {
         memFree_null(solvmtx->browtab);
+    }
+    if(solvmtx->gcbl2loc) {
+        memFree_null(solvmtx->gcbl2loc);
     }
     if(solvmtx->tasktab) {
         memFree_null(solvmtx->tasktab);
@@ -400,6 +403,139 @@ solverPrintStats( const SolverMatrix *solvptr )
              gemm_dense, gemm_starpu_full2, gemm_starpu_hybrid, gemm_full1 );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Instanciate the arrays for the requests according to the scheduler.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The pointer to the solver matrix structure.
+ *
+ * @param[in] scheduler
+ *          The current scheduler.
+ *
+ *******************************************************************************/
+void
+solverReqtabInit( SolverMatrix *solvmtx,
+                  pastix_int_t  scheduler )
+{
+    SolverCblk   *cblk;
+    MPI_Request  *requests;
+    pastix_int_t  i, k, reqnbr;
+
+    reqnbr = (scheduler == PastixSchedDynamic) ?
+              solvmtx->faninnbr + 1 : solvmtx->faninnbr + solvmtx->recvnbr;
+    solvmtx->reqnbr = reqnbr;
+
+    MALLOC_INTERN( solvmtx->reqlocal,  reqnbr, pastix_int_t );
+    MALLOC_INTERN( solvmtx->reqtab,    reqnbr, MPI_Request  );
+
+    requests  = solvmtx->reqtab;
+    for ( i = 0; i < reqnbr; i++, requests++ )
+    {
+        *requests = MPI_REQUEST_NULL;
+    }
+
+    /* Set every reqlocalnum to -1 */
+    if( scheduler == PastixSchedDynamic ){
+        memset( solvmtx->reqlocal, 0xff, reqnbr * sizeof(pastix_int_t) );
+        return;
+    }
+
+    /* Set every reqlocalnum */
+    k    = 0;
+    cblk = solvmtx->cblktab;
+    for( i = 0; i < solvmtx->cblknbr; i++, cblk++ )
+    {
+        if( cblk->cblktype & (CBLK_RECV|CBLK_FANIN) ){
+            solvmtx->reqlocal[k] = cblk - solvmtx->cblktab;
+            cblk->reqindex       = k;
+            k++;
+        }
+    }
+    assert( k == reqnbr );
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Free the arrays related to the requests
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The pointer to the solver matrix structure.
+ *
+ *******************************************************************************/
+void
+solverReqtabExit( SolverMatrix *solvmtx )
+{
+    if(solvmtx->reqtab) {
+        memFree_null(solvmtx->reqtab);
+    }
+    if(solvmtx->reqlocal) {
+        memFree_null(solvmtx->reqlocal);
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Instanciate the rcoeftab to store the remote contributor
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The pointer to the solver matrix structure.
+ *
+ *******************************************************************************/
+void
+solverSendersInit( SolverMatrix *solvmtx )
+{
+    pastix_int_t i;
+    pastix_int_t cblknbr = solvmtx->cblknbr;
+    SolverCblk  *cblk    = solvmtx->cblktab;
+
+    for ( i = 0; i < cblknbr; i++, cblk++ )
+    {
+        if( !(cblk->cblktype & CBLK_RECV) ){
+            continue;
+        }
+        MALLOC_INTERN( cblk->rcoeftab, cblk->recvnbr, int );
+        memset( cblk->rcoeftab, 0xff, cblk->recvnbr*sizeof(int) );
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Free the rcoeftabs
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The pointer to the solver matrix structure.
+ *
+ *******************************************************************************/
+void
+solverSendersExit( SolverMatrix *solvmtx )
+{
+    pastix_int_t i;
+    pastix_int_t cblknbr = solvmtx->cblknbr;
+    SolverCblk  *cblk    = solvmtx->cblktab;
+
+    for ( i = 0; i < cblknbr; i++, cblk++ )
+    {
+        if( !(cblk->cblktype & CBLK_RECV) ){
+            continue;
+        }
+        assert( cblk->rcoeftab != NULL );
+        memFree_null( cblk->rcoeftab );
+        cblk->recvcnt = cblk->recvnbr;
+    }
+}
 /**
  *@}
  */

@@ -29,6 +29,8 @@ struct SolverBackup_s {
     pastix_int_t *fanin_prionum;  /**< Replaced by the number of msg packed during factorization sends             */
     pastix_int_t *symbol_cblknum; /**< Replaced by the negative FanIn index during facto and solve                 */
     pastix_int_t  symbol_nodenbr; /**< ???                                                                         */
+    pastix_int_t  recvcnt;
+    pastix_int_t  fanincnt;
 };
 
 /**
@@ -94,9 +96,13 @@ solverBackupInit( const SolverMatrix *solvmtx )
         SolverCblk *cblk = solvmtx->cblktab;
         for (i=0; i<solvmtx->cblknbr; i++, cblk++)
         {
-            cblk->ctrbcnt = cblk[1].brownum - cblk[0].brownum;
+            cblk->ctrbcnt = cblk->recvnbr + cblk[1].brownum - cblk[0].brownum;
         }
     }
+
+    b->recvcnt  = solvmtx->recvcnt;
+    b->fanincnt = solvmtx->fanincnt;
+
     return b;
 }
 
@@ -179,8 +185,13 @@ solverBackupRestore( SolverMatrix         *solvmtx,
 
         for (i=0; i<solvmtx->cblknbr; i++, cblk++) {
             cblk->gpuid = GPUID_UNDEFINED;
+            cblk->recvcnt = cblk->recvnbr;
         }
     }
+
+    solvmtx->recvcnt  = b->recvcnt;
+    solvmtx->fanincnt = b->fanincnt;
+
     return PASTIX_SUCCESS;
 }
 

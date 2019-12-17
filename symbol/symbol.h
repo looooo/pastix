@@ -74,6 +74,7 @@ typedef struct symbol_matrix_s {
     symbol_cblk_t *cblktab;   /**< Array of column blocks [+1,based]          */
     symbol_blok_t *bloktab;   /**< Array of blocks in CSC format [based]      */
     pastix_int_t  *browtab;   /**< Array of blocks in CSR format [based]      */
+    pastix_int_t   browmax;   /**< Maximum number of input edges per node     */
     pastix_int_t   dof;       /**< Degrees of freedom per node (constant
                                    if > 0, variadic if < 1                    */
     pastix_int_t  *dofs;      /**< Array of the first column of each element

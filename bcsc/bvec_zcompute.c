@@ -68,21 +68,32 @@ bvec_znrm2_seq( pastix_data_t            *pastix_data,
                 pastix_int_t              n,
                 const pastix_complex64_t *x )
 {
-    (void)pastix_data;
-    double data[] = { 0., 1. }; /* Scale, Sum */
-    double norm;
-    double *valptr = (double*)x;
-    pastix_int_t i;
+    SolverMatrix  *solvmtx = pastix_data->solvmatr;
+    SolverCblk    *scblk;
+    pastix_bcsc_t *bcsc    = pastix_data->bcsc;
+    bcsc_cblk_t   *bcblk   = bcsc->cscftab;
+    pastix_int_t   cblknbr, colnbr;
+    double         data[] = { 0., 1. }; /* Scale, Sum */
+    double         norm;
+    const double  *valptr;
+    pastix_int_t   i, j;
 
-    for( i=0; i < n; i++, valptr++ )
-    {
-        /* Real part */
-        frobenius_update( 1, data, data + 1, valptr );
+    cblknbr = bcsc->cscfnbr;
+    for( i = 0; i < cblknbr; i++, bcblk++ ) {
+        scblk  = solvmtx->cblktab + bcblk->cblknum;
+        colnbr = cblk_colnbr( scblk );
+        valptr = (const double*)(x + scblk->lcolidx);
+
+        for( j=0; j < colnbr; j++, valptr++ )
+        {
+            /* Real part */
+            frobenius_update( 1, data, data + 1, valptr );
 #if defined(PRECISION_z) || defined(PRECISION_c)
-        /* Imaginary part */
-        valptr++;
-        frobenius_update( 1, data, data + 1, valptr );
+            /* Imaginary part */
+            valptr++;
+            frobenius_update( 1, data, data + 1, valptr );
 #endif
+        }
     }
 
 #if defined(PASTIX_WITH_MPI)
@@ -538,15 +549,25 @@ bvec_zdotc_seq( pastix_data_t            *pastix_data,
                 const pastix_complex64_t *x,
                 const pastix_complex64_t *y )
 {
-    (void)pastix_data;
-    int i;
-    pastix_complex64_t *xptr = (pastix_complex64_t*)x;
-    pastix_complex64_t *yptr = (pastix_complex64_t*)y;
-    pastix_complex64_t r = 0.0;
+    SolverMatrix             *solvmtx = pastix_data->solvmatr;
+    SolverCblk               *scblk   = solvmtx->cblktab;
+    pastix_bcsc_t            *bcsc    = pastix_data->bcsc;
+    bcsc_cblk_t              *bcblk   = bcsc->cscftab;
+    pastix_int_t              i, j, cblknbr;
+    const pastix_complex64_t *xptr;
+    const pastix_complex64_t *yptr;
+    pastix_complex64_t        r = 0.0;
 
-    for (i=0; i<n; i++, xptr++, yptr++)
-    {
-        r += (*xptr) * conj(*yptr);
+    cblknbr = bcsc->cscfnbr;
+    for( i = 0; i < cblknbr; i++, bcblk++ ) {
+        scblk  = solvmtx->cblktab + bcblk->cblknum;
+        n = cblk_colnbr( scblk );
+
+        xptr = x + scblk->lcolidx;
+        yptr = y + scblk->lcolidx;
+        for( j=0; j<n; j++, xptr++, yptr++ ) {
+            r += (*xptr) * conj(*yptr);
+        }
     }
 
 #if defined(PASTIX_WITH_MPI)
@@ -683,15 +704,25 @@ bvec_zdotu_seq( pastix_data_t            *pastix_data,
                 const pastix_complex64_t *x,
                 const pastix_complex64_t *y )
 {
-    (void)pastix_data;
-    int i;
-    pastix_complex64_t *xptr = (pastix_complex64_t*)x;
-    pastix_complex64_t *yptr = (pastix_complex64_t*)y;
-    pastix_complex64_t r = 0.0;
+    SolverMatrix             *solvmtx = pastix_data->solvmatr;
+    SolverCblk               *scblk   = solvmtx->cblktab;
+    pastix_bcsc_t            *bcsc    = pastix_data->bcsc;
+    bcsc_cblk_t              *bcblk   = bcsc->cscftab;
+    pastix_int_t              i, j, cblknbr;
+    const pastix_complex64_t *xptr;
+    const pastix_complex64_t *yptr;
+    pastix_complex64_t        r = 0.0;
 
-    for (i=0; i<n; i++, xptr++, yptr++)
-    {
-        r += (*xptr) * (*yptr);
+    cblknbr = bcsc->cscfnbr;
+    for( i = 0; i < cblknbr; i++, bcblk++ ) {
+        scblk  = solvmtx->cblktab + bcblk->cblknum;
+        n = cblk_colnbr( scblk );
+
+        xptr = x + scblk->lcolidx;
+        yptr = y + scblk->lcolidx;
+        for( j=0; j<n; j++, xptr++, yptr++ ) {
+            r += (*xptr) * (*yptr);
+        }
     }
 
 #if defined(PASTIX_WITH_MPI)
