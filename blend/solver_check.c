@@ -79,37 +79,46 @@ solverCheck( const SolverMatrix *solvmtx )
 
         fblok = cblk->fblokptr;
 
+        assert( cblk[0].lcolnum < cblk[1].fcolnum );
+        assert( fblok->browind == -1 );
+        assert( fblok->lcblknm == i );
+
         if ( cblk->cblktype & CBLK_FANIN ) {
             /* Dimensions are similar to any other cblk but storeed remotely */
-            assert( cblk[0].lcolnum < cblk[1].fcolnum );
-            assert( cblk->lcolidx == -1 );
             assert( cblk->ownerid != solvmtx->clustnum );
 
-            assert( fblok->lcblknm == fblok->fcblknm );
-            assert( fblok->browind == -1 );
+            assert( fblok->fcblknm == -1 );
         }
         else {
-            assert( cblk[0].lcolnum < cblk[1].fcolnum );
             assert( (cblk[1].cblktype & CBLK_FANIN) ||
                     (!(cblk[1].cblktype & CBLK_FANIN) && (cblk[0].lcolidx < cblk[1].lcolidx)) );
             assert( (solvmtx->gcbl2loc == NULL) ||
                     (cblk->ownerid == solvmtx->clustnum) );
 
             assert( fblok->lcblknm == fblok->fcblknm );
-            assert( fblok->browind == -1 );
         }
-        assert( fblok->lcblknm == i );
 
         /* Check bloks in the current cblk */
         blok = fblok + 1;
         for ( ; blok < cblk[1].fblokptr; blok++ ) {
-            fcblk = solvmtx->cblktab + blok->fcblknm;
-            fblok = fcblk->fblokptr;
-
-            assert( blok->lcblknm < blok->fcblknm );
+            assert( blok->lcblknm == i );
             assert( blok->frownum <= blok->lrownum );
-            assert( blok->frownum >= fblok->frownum );
-            assert( blok->lrownum <= fblok->lrownum );
+
+            /* Next block in the same cblk must be after */
+            assert( (blok[1].lcblknm != blok[0].lcblknm) ||
+                    ((blok[1].lcblknm == blok[0].lcblknm) && (blok[0].lrownum < blok[1].frownum)) );
+
+            if ( cblk->cblktype & CBLK_FANIN ) {
+                assert( blok->fcblknm == -1 );
+            }
+            else {
+                fcblk = solvmtx->cblktab + blok->fcblknm;
+                fblok = fcblk->fblokptr;
+
+                assert( blok->lcblknm < blok->fcblknm );
+                assert( blok->frownum >= fblok->frownum );
+                assert( blok->lrownum <= fblok->lrownum );
+            }
         }
 
         /* Check previous bloks in row */
@@ -123,8 +132,7 @@ solverCheck( const SolverMatrix *solvmtx )
 
             /* Bloks in Fanin sould never appear in the browtab */
             assert( !(fcblk->cblktype & CBLK_FANIN) );
-            assert( ((fcblk->ownerid == solvmtx->clustnum) && !(fcblk->cblktype & CBLK_RECV)) ||
-                    ((fcblk->ownerid != solvmtx->clustnum) &&  (fcblk->cblktype & CBLK_RECV)) );
+            assert( fcblk->ownerid == solvmtx->clustnum );
         }
     }
 

@@ -357,8 +357,7 @@ is_block_inside_fblock( const SolverBlok *blok,
 void solverInit( SolverMatrix *solvmtx );
 void solverExit( SolverMatrix *solvmtx );
 
-int  solverMatrixGen( pastix_int_t           clustnum,
-                      SolverMatrix          *solvmtx,
+int  solverMatrixGen( SolverMatrix          *solvmtx,
                       const symbol_matrix_t *symbmtx,
                       const pastix_order_t  *ordeptr,
                       const SimuCtrl        *simuctl,
@@ -366,8 +365,7 @@ int  solverMatrixGen( pastix_int_t           clustnum,
                       PASTIX_Comm            comm,
                       isched_t              *isched );
 
-int  solverMatrixGenSeq( pastix_int_t           clustnum,
-                         SolverMatrix          *solvmtx,
+int  solverMatrixGenSeq( SolverMatrix          *solvmtx,
                          const symbol_matrix_t *symbmtx,
                          const pastix_order_t  *ordeptr,
                          const SimuCtrl        *simuctl,

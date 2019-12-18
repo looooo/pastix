@@ -48,9 +48,6 @@
  *
  *******************************************************************************
  *
- * @param[in] clustnum
- *          The index of the local PaStiX process.
- *
  * @param[inout] solvmtx
  *          On entry, the allocated pointer to a solver matrix structure.
  *          On exit, this structure holds alls the local information required to
@@ -79,8 +76,7 @@
  *
  *******************************************************************************/
 int
-solverMatrixGen( pastix_int_t           clustnum,
-                 SolverMatrix          *solvmtx,
+solverMatrixGen( SolverMatrix          *solvmtx,
                  const symbol_matrix_t *symbmtx,
                  const pastix_order_t  *ordeptr,
                  const SimuCtrl        *simuctrl,
@@ -188,13 +184,13 @@ solverMatrixGen( pastix_int_t           clustnum,
                 /* Save max block size */
                 blokamax = pastix_imax( blokamax, nbrows * nbcols );
 
-                if ( ( simublok->ownerclust == clustnum ) || ( fcbklocalnum[i] != -1 ) ) {
+                if ( ( simublok->ownerclust == ctrl->clustnum ) || ( fcbklocalnum[i] != -1 ) ) {
+                    pastix_int_t fcblknm = ( simublok->ownerclust == ctrl->clustnum ) ? cblklocalnum[symbblok->fcblknm] : -1;
                     flaglocal = 1;
 
                     /* Init the blok */
                     solvMatGen_init_blok( solvblok,
-                                          cblklocalnum[symbblok->fcblknm],
-                                          cblklocalnum[symbblok->lcblknm],
+                                          cblklocalnum[symbblok->lcblknm], fcblknm,
                                           frownum, lrownum, stride, nbcols,
                                           candcblk->cblktype & CBLK_LAYOUT_2D );
                     solvblok->gbloknm = gbloknm;
@@ -252,7 +248,7 @@ solverMatrixGen( pastix_int_t           clustnum,
                     solvmtx->cblkschur = cblknum;
                 }
 
-                solvcblk->ownerid    = clustnum;
+                solvcblk->ownerid    = ctrl->clustnum;
                 solvcblk->reqindex   = -1;
                 solvmtx->gcbl2loc[i] = solvcblk - solvmtx->cblktab;
 
@@ -342,7 +338,7 @@ solverMatrixGen( pastix_int_t           clustnum,
     /* Fill in tasktab */
     solvMatGen_fill_tasktab( solvmtx, isched, simuctrl,
                              tasklocalnum, cblklocalnum,
-                             bloklocalnum, clustnum, 0 );
+                             bloklocalnum, ctrl->clustnum, 0 );
 
     memFree_null(cblklocalnum);
     memFree_null(fcbklocalnum);
@@ -369,9 +365,6 @@ solverMatrixGen( pastix_int_t           clustnum,
  * PaStiX process.
  *
  *******************************************************************************
- *
- * @param[in] clustnum
- *          The index of the local PaStiX process.
  *
  * @param[inout] solvmtx
  *          On entry, the allocated pointer to a solver matrix structure.
@@ -401,8 +394,7 @@ solverMatrixGen( pastix_int_t           clustnum,
  *
  *******************************************************************************/
 int
-solverMatrixGenSeq( pastix_int_t           clustnum,
-                    SolverMatrix          *solvmtx,
+solverMatrixGenSeq( SolverMatrix          *solvmtx,
                     const symbol_matrix_t *symbmtx,
                     const pastix_order_t  *ordeptr,
                     const SimuCtrl        *simuctrl,
@@ -424,7 +416,7 @@ solverMatrixGenSeq( pastix_int_t           clustnum,
 
     solverInit( solvmtx );
 
-    solvmtx->clustnum  = clustnum;
+    solvmtx->clustnum  = ctrl->clustnum;
     solvmtx->clustnbr  = ctrl->clustnbr;
     solvmtx->procnbr   = ctrl->total_nbcores;
     solvmtx->thrdnbr   = ctrl->local_nbthrds;
@@ -495,7 +487,7 @@ solverMatrixGenSeq( pastix_int_t           clustnum,
 
                 /* Init the blok */
                 solvMatGen_init_blok( solvblok,
-                                      symbblok->fcblknm, symbblok->lcblknm,
+                                      symbblok->lcblknm, symbblok->fcblknm,
                                       frownum, lrownum, stride, nbcols,
                                       candcblk->cblktype & CBLK_LAYOUT_2D );
                 stride += nbrows;
@@ -531,7 +523,8 @@ solverMatrixGenSeq( pastix_int_t           clustnum,
             }
 
             /* Every cblk is local */
-            solvcblk->ownerid = simublok[-1].ownerclust;
+            solvcblk->ownerid = ctrl->clustnum;
+            //solvcblk->ownerid = simublok[-1].ownerclust;
             assert( nodenbr == fcolnum );
 
             /* Compute the original supernode in the nested dissection */
@@ -600,7 +593,7 @@ solverMatrixGenSeq( pastix_int_t           clustnum,
 
     /* Fill in tasktab */
     solvMatGen_fill_tasktab( solvmtx, isched, simuctrl,
-                             NULL, NULL, NULL, clustnum, is_dbg );
+                             NULL, NULL, NULL, ctrl->clustnum, is_dbg );
 
     /* Compute the maximum area of the temporary buffer */
     solvMatGen_max_buffers( solvmtx );
