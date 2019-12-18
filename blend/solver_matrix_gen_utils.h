@@ -135,14 +135,22 @@ solvMatGen_get_rownum( const symbol_matrix_t *symbmtx,
  ********************************************************************************/
 static inline void
 solvMatGen_init_blok( SolverBlok  *solvblok,
-                      pastix_int_t fcblknm,
                       pastix_int_t lcblknm,
+                      pastix_int_t fcblknm,
                       pastix_int_t frownum,
                       pastix_int_t lrownum,
                       pastix_int_t stride,
                       pastix_int_t nbcols,
                       pastix_int_t layout2D )
 {
+    assert( fcblknm >= -1 );
+    assert( lcblknm >= 0 );
+    assert( (fcblknm == -1) || (lcblknm <= fcblknm) );
+    assert( frownum >= 0 );
+    assert( lrownum >= frownum );
+    assert( stride  >= 0 );
+    assert( nbcols  >= 0 );
+
     solvblok->handler[0] = NULL;
     solvblok->handler[1] = NULL;
     solvblok->fcblknm    = fcblknm;
@@ -206,10 +214,17 @@ solvMatGen_init_cblk( SolverCblk    *solvcblk,
                       pastix_int_t   nodenbr,
                       pastix_int_t   cblknum )
 {
+    assert( fblokptr != NULL );
+    assert( fcolnum >= 0 );
+    assert( lcolnum >= fcolnum );
+    assert( stride  >= 0 );
+    assert( nodenbr >= 0 );
+    assert( brownum >= 0 );
+
     /* Init the cblk */
     solvcblk->lock       = PASTIX_ATOMIC_UNLOCKED;
     solvcblk->ctrbcnt    = -1;
-    solvcblk->cblktype   = (cblknum == -1)? 0 : candcblk->cblktype;
+    solvcblk->cblktype   = (cblknum == -1) ? 0 : candcblk->cblktype;
     solvcblk->gpuid      = GPUID_UNDEFINED;
     solvcblk->fcolnum    = fcolnum;
     solvcblk->lcolnum    = lcolnum;

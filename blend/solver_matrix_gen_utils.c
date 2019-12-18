@@ -311,11 +311,9 @@ solvMatGen_reorder_browtab( const symbol_matrix_t *symbmtx,
 
         /* Get the local cblk which owns the block */
         browcblk = solvmtx->cblktab + lcblknm;
-        assert( browcblk->ownerid == solvmtx->clustnum );
 
         /* Fanin should not contribute to local data */
         if( browcblk->cblktype & CBLK_FANIN ) {
-            assert( 0 ); /* Should never happen */
             *b = -3;
             brownbr--;
             continue;
@@ -359,7 +357,8 @@ solvMatGen_reorder_browtab( const symbol_matrix_t *symbmtx,
 
             /* Get the local cblk which owns the block */
             browcblk = solvmtx->cblktab + lcblknm;
-            assert( browcblk->ownerid == solvmtx->clustnum );
+            assert( (cblklocalnum == NULL) ||
+                    (browcblk->ownerid == solvmtx->clustnum) );
 
             /* Find the SolvBlok corresponding to the SymbBlok */
             lbloknm = ( bloklocalnum == NULL ) ? *b : bloklocalnum[ *b ];

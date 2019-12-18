@@ -480,11 +480,11 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         }
         clockStart(timer_current);
 
-        solverMatrixGenSeq( ctrl.clustnum, solvmtx_glob, symbmtx,
+        solverMatrixGenSeq( solvmtx_glob, symbmtx,
                             pastix_data->ordemesh, simuctrl, &ctrl,
                             pastix_data->inter_node_comm, pastix_data->isched, 0 );
 
-        solverMatrixGen( ctrl.clustnum, solvmtx, symbmtx,
+        solverMatrixGen( solvmtx, symbmtx,
                          pastix_data->ordemesh, simuctrl, &ctrl,
                          pastix_data->inter_node_comm, pastix_data->isched );
 
