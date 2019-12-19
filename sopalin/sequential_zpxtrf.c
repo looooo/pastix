@@ -192,6 +192,11 @@ thread_zpxtrf_dynamic( isched_thread_t *ctx, void *args )
                                   ctx->global_ctx->world_size );
         }
 
+        /* Still no job, let's loop again */
+        if ( cblknum == -1 ) {
+            continue;
+        }
+
         cblk = datacode->cblktab + cblknum;
         if ( cblk->cblktype & CBLK_IN_SCHUR ) {
             continue;
