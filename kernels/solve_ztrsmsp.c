@@ -378,6 +378,8 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
         return;
     }
 
+    assert( !( cblk->cblktype & CBLK_FANIN ) );
+
     if ( (cblk->cblktype & CBLK_IN_SCHUR) && (mode != PastixSolvModeSchur) ) {
         return;
     }
@@ -460,7 +462,7 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
                              pastix_trans_t      trans,
                              pastix_diag_t       diag,
                              const SolverMatrix *datacode,
-                             const SolverCblk   *cblk,
+                             SolverCblk         *cblk,
                              int                 nrhs,
                              pastix_complex64_t *b,
                              int                 ldb )
@@ -526,11 +528,17 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
         return;
     }
 
-    if ( !(cblk->cblktype & CBLK_IN_SCHUR) || (mode == PastixSolvModeSchur) ) {
+    if ( !(cblk->cblktype & CBLK_FANIN) &&
+         (!(cblk->cblktype & CBLK_IN_SCHUR) || (mode == PastixSolvModeSchur)) )
+    {
         /* Solve the diagonal block */
         solve_blok_ztrsm(
             cs, side, PastixLower, tA, diag, cblk,
             nrhs, b + cblk->lcolidx, ldb );
+
+        if ( cblk->cblktype & CBLK_RECV ) {
+            cpucblk_zsend_rhs_backward( datacode, cblk, b );
+        }
     }
 
     /* Apply the update */

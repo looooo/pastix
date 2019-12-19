@@ -81,6 +81,9 @@ set(SOURCES
   cpucblk_zdiff.c
   cpucblk_zadd.c
   cpucblk_zschur.c
+  # MPI operations
+  cpucblk_zmpi_coeftab.c
+  cpucblk_zmpi_rhs.c
   # Solve operation
   solve_ztrsmsp.c
 )
@@ -91,8 +94,9 @@ precisions_rules_py(generated_sources
 
 set(kernels_sources
   ${generated_sources}
-  lowrank.c
+  kernels.c
   kernels_trace.c
+  lowrank.c
   queue.c
   )
 
@@ -162,7 +166,11 @@ add_documented_files(
 ### Add non generated files to the global property
 add_documented_files(
   # Headers
+  kernels.h
   queue.h
   # Source files
+  kernels.c
+  kernels_trace.c
+  lowrank.c
   queue.c
   )

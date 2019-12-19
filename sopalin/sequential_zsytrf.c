@@ -50,9 +50,16 @@ sequential_zsytrf( pastix_data_t  *pastix_data,
 
     cblk = datacode->cblktab;
     for (i=0; i<datacode->cblknbr; i++, cblk++){
-
-        if ( cblk->cblktype & CBLK_IN_SCHUR )
+        if ( cblk->cblktype & CBLK_IN_SCHUR ) {
             break;
+        }
+
+        /* Wait for incoming dependencies */
+        if ( cpucblk_zincoming_deps( 0, PastixLCoef,
+                                     datacode, cblk ) )
+        {
+            continue;
+        }
 
         N = cblk_colnbr( cblk );
 
@@ -99,13 +106,18 @@ thread_zsytrf_static( isched_thread_t *ctx, void *args )
         t = datacode->tasktab + i;
         cblk = datacode->cblktab + t->cblknum;
 
-        if ( cblk->cblktype & CBLK_IN_SCHUR )
+        if ( cblk->cblktype & CBLK_IN_SCHUR ) {
             continue;
+        }
+
+        /* Wait for incoming dependencies */
+        if ( cpucblk_zincoming_deps( 1, PastixLCoef,
+                                     datacode, cblk ) )
+        {
+            continue;
+        }
 
         N = cblk_colnbr( cblk );
-
-        /* Wait */
-        do { } while( cblk->ctrbcnt );
 
         /* Compute */
         cpucblk_zsytrfsp1d( datacode, cblk,
@@ -132,7 +144,8 @@ static_zsytrf( pastix_data_t  *pastix_data,
 struct args_zsytrf_t
 {
     sopalin_data_t     *sopalin_data;
-    volatile int32_t    taskcnt ;
+    volatile int32_t    taskcnt;
+    pastix_complex64_t *recv;
 };
 
 void
@@ -149,7 +162,10 @@ thread_zsytrf_dynamic( isched_thread_t *ctx, void *args )
     pastix_int_t          tasknbr, *tasktab, cblknum;
     int32_t               local_taskcnt = 0;
     int                   rank = ctx->rank;
-    int                   dest = (ctx->rank +1)%ctx->global_ctx->world_size;
+    int                   dest = (ctx->rank + 1)%ctx->global_ctx->world_size;
+#if defined(PASTIX_WITH_MPI)
+    pastix_complex64_t   *recv = arg->recv;
+#endif
 
     lwork1 = datacode->offdmax;
     lwork2 = pastix_imax( datacode->gemmmax, datacode->blokmax );
@@ -165,6 +181,7 @@ thread_zsytrf_dynamic( isched_thread_t *ctx, void *args )
     computeQueue = datacode->computeQueue[rank];
     pqueueInit( computeQueue, tasknbr );
 
+    /* Initialize the local task queue with available cblks */
     for (ii=0; ii<tasknbr; ii++) {
         i = tasktab[ii];
         t = datacode->tasktab + i;
@@ -174,14 +191,23 @@ thread_zsytrf_dynamic( isched_thread_t *ctx, void *args )
         }
     }
 
-        /* Make sure that all computeQueues are allocated */
+    /* Make sure that all computeQueues are allocated */
     isched_barrier_wait( &(ctx->global_ctx->barrier) );
 
     while( arg->taskcnt > 0 )
     {
         cblknum = pqueuePop(computeQueue);
 
-        if( cblknum == -1 ){
+#if defined(PASTIX_WITH_MPI)
+        /* Nothing to do, let's make progress on comunications */
+        if( cblknum == -1 ) {
+            cpucblk_zmpi_progress( PastixLCoef, ctx, datacode, rank, recv );
+            cblknum = pqueuePop(computeQueue);
+        }
+#endif
+
+        /* No more local job, let's steal our neighbours */
+        if( cblknum == -1 ) {
             if ( local_taskcnt ) {
                 pastix_atomic_sub_32b( &(arg->taskcnt), local_taskcnt );
                 local_taskcnt = 0;
@@ -189,25 +215,25 @@ thread_zsytrf_dynamic( isched_thread_t *ctx, void *args )
             cblknum = stealQueue( datacode, rank, &dest,
                                   ctx->global_ctx->world_size );
         }
-        if( cblknum != -1 ){
-            cblk = datacode->cblktab + cblknum;
-            if ( cblk->cblktype & CBLK_IN_SCHUR ) {
-                continue;
-            }
 
-            N = cblk_colnbr( cblk );
-            cblk->threadid = rank;
-            /* Compute, Add other cblks which have 0 ctrbcnt */
-            cpucblk_zsytrfsp1d( datacode, cblk,
-                                /*
-                                * Workspace size has been computed without the
-                                * diagonal block, thus in order to work with generic
-                                * TRSM and GEMM kernels, we must shift the DLh workspace
-                                * by the diagonal block size
-                                */
-                                work1 - (N*N), work2, lwork2 );
-            local_taskcnt++;
+        cblk = datacode->cblktab + cblknum;
+        if ( cblk->cblktype & CBLK_IN_SCHUR ) {
+            continue;
         }
+        cblk->threadid = rank;
+
+        N = cblk_colnbr( cblk );
+
+        /* Compute */
+        cpucblk_zsytrfsp1d( datacode, cblk,
+                            /*
+                             * Workspace size has been computed without the
+                             * diagonal block, thus in order to work with generic
+                             * TRSM and GEMM kernels, we must shift the DLh workspace
+                             * by the diagonal block size
+                             */
+                            work1 - (N*N), work2, lwork2 );
+        local_taskcnt++;
     }
     memFree_null( work1 );
     memFree_null( work2 );
@@ -222,14 +248,32 @@ void
 dynamic_zsytrf( pastix_data_t  *pastix_data,
                  sopalin_data_t *sopalin_data )
 {
-    volatile int32_t     taskcnt = sopalin_data->solvmtx->tasknbr;
-    struct args_zsytrf_t args_zsytrf = {sopalin_data, taskcnt};
+    SolverMatrix        *datacode = sopalin_data->solvmtx;
+    int32_t              taskcnt = datacode->tasknbr;
+    struct args_zsytrf_t args_zsytrf = { sopalin_data, taskcnt, NULL };
     /* Allocate the computeQueue */
-    MALLOC_INTERN( sopalin_data->solvmtx->computeQueue,
+    MALLOC_INTERN( datacode->computeQueue,
                    pastix_data->isched->world_size, pastix_queue_t * );
 
+#if defined(PASTIX_WITH_MPI)
+    MALLOC_INTERN( args_zsytrf.recv, datacode->maxrecv, pastix_complex64_t);
+
+    /* Initialize the persistant communication */
+    if( datacode->recvnbr ){
+        MPI_Recv_init( args_zsytrf.recv, datacode->maxrecv,
+                       PASTIX_MPI_COMPLEX64, MPI_ANY_SOURCE, MPI_ANY_TAG,
+                       datacode->solv_comm, datacode->reqtab );
+        MPI_Start( datacode->reqtab );
+        datacode->reqnum++;
+    }
+#endif
+
     isched_parallel_call( pastix_data->isched, thread_zsytrf_dynamic, &args_zsytrf );
-    memFree_null( sopalin_data->solvmtx->computeQueue );
+
+#if defined(PASTIX_WITH_MPI)
+    memFree_null( args_zsytrf.recv );
+    MPI_Barrier( pastix_data->inter_node_comm );
+#endif
 }
 
 static void (*zsytrf_table[5])(pastix_data_t *, sopalin_data_t *) = {
@@ -256,9 +300,26 @@ sopalin_zsytrf( pastix_data_t  *pastix_data,
     void (*zsytrf)(pastix_data_t *, sopalin_data_t *) = zsytrf_table[ sched ];
 
     if (zsytrf == NULL) {
+        sched = PastixSchedSequential;
         zsytrf = static_zsytrf;
     }
+
+    if ( (sched == PastixSchedSequential) ||
+         (sched == PastixSchedStatic)     ||
+         (sched == PastixSchedDynamic) )
+    {
+        solverReqtabInit( sopalin_data->solvmtx, sched );
+    }
+
     zsytrf( pastix_data, sopalin_data );
+
+    if ( (sched == PastixSchedSequential) ||
+         (sched == PastixSchedStatic)     ||
+         (sched == PastixSchedDynamic) )
+    {
+        cpucblk_zrequest_cleanup( PastixLCoef, sched, sopalin_data->solvmtx );
+        solverReqtabExit( sopalin_data->solvmtx );
+    }
 
 #if defined(PASTIX_DEBUG_FACTO)
     coeftab_zdump( pastix_data, sopalin_data->solvmtx, "sytrf.txt" );

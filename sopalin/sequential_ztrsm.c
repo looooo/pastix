@@ -17,7 +17,8 @@
  **/
 #include "common.h"
 #include "solver.h"
-#include "bcsc.h"
+#include "bcsc/bcsc.h"
+#include "bcsc/bcsc_z.h"
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 
@@ -31,8 +32,9 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
                   int nrhs, pastix_complex64_t *b, int ldb )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
-    SolverCblk *cblk;
+    SolverCblk   *cblk;
     pastix_int_t i, cblknbr;
+
     pastix_solv_mode_t mode = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
 
     /* Backward like */
@@ -45,9 +47,16 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
 
         cblk = datacode->cblktab + cblknbr - 1;
         for (i=0; i<cblknbr; i++, cblk--){
+            if( cblk->cblktype & CBLK_FANIN ){
+                cpucblk_zrecv_rhs_backward( datacode, cblk, b );
+            }
+
             solve_cblk_ztrsmsp_backward( mode, side, uplo, trans, diag,
                                          datacode, cblk, nrhs, b, ldb );
         }
+
+        bvec_znullify_remote( pastix_data, b );
+        bvec_zallreduce( pastix_data, b );
     }
     /* Forward like */
     else
@@ -58,13 +67,29 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
          * ( (side == PastixLeft)  && (uplo == PastixLower) && (trans == PastixNoTrans) )
          */
     {
-        cblknbr = (mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
+        pastix_complex64_t *work;
+        MALLOC_INTERN( work, datacode->colmax, pastix_complex64_t );
 
+        bvec_znullify_remote( pastix_data, b );
+
+        cblknbr = (mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
         cblk = datacode->cblktab;
         for (i=0; i<cblknbr; i++, cblk++){
+
+            if( cblk->cblktype & CBLK_FANIN ){
+                cpucblk_zsend_rhs_forward( datacode, cblk, b );
+                continue;
+            }
+
+            if( cblk->cblktype & CBLK_RECV ) {
+                cpucblk_zrecv_rhs_forward( datacode, cblk, work, nrhs, b, ldb );
+            }
+
             solve_cblk_ztrsmsp_forward( mode, side, uplo, trans, diag,
                                         datacode, cblk, nrhs, b, ldb );
         }
+
+        memFree_null(work);
     }
 }
 
@@ -208,5 +233,17 @@ sopalin_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int di
     if (ztrsm == NULL) {
         ztrsm = static_ztrsm;
     }
+
+#if defined(PASTIX_WITH_MPI)
+    if( pastix_data->inter_node_procnbr > 1 ) {
+        /* Force sequential if MPI as no other runtime is supported yet */
+        ztrsm = sequential_ztrsm;
+    }
+#endif
+
     ztrsm( pastix_data, side, uplo, trans, diag, sopalin_data, nrhs, b, ldb );
+
+#if defined(PASTIX_WITH_MPI)
+   MPI_Barrier( pastix_data->inter_node_comm );
+#endif
 }

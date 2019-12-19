@@ -222,6 +222,11 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
                      pastix_int_t nrhs, void *b, pastix_int_t ldb )
 {
     sopalin_data_t sopalin_data;
+    int i, bs = nrhs;
+
+#if defined(PASTIX_WITH_MPI)
+    bs = 1;
+#endif
 
     /*
      * Check parameters
@@ -243,23 +248,43 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
 
     switch (flttype) {
     case PastixComplex64:
-        sopalin_ztrsm( pastix_data, side, uplo, trans, diag,
-                       &sopalin_data, nrhs, (pastix_complex64_t *)b, ldb );
-        break;
+    {
+        pastix_complex64_t *lb = b;
+        for( i = 0; i < nrhs; i+=bs, lb += ldb ) {
+            sopalin_ztrsm( pastix_data, side, uplo, trans, diag,
+                           &sopalin_data, bs, lb, ldb );
+        }
+    }
+    break;
     case PastixComplex32:
-        sopalin_ctrsm( pastix_data, side, uplo, trans, diag,
-                       &sopalin_data, nrhs, (pastix_complex32_t *)b, ldb );
-        break;
+    {
+        pastix_complex32_t *lb = b;
+        for( i = 0; i < nrhs; i+=bs, lb += ldb ) {
+            sopalin_ctrsm( pastix_data, side, uplo, trans, diag,
+                           &sopalin_data, bs, lb, ldb );
+        }
+    }
+    break;
     case PastixDouble:
+    {
+        double *lb = b;
         trans = (trans == PastixConjTrans) ? PastixTrans : trans;
-        sopalin_dtrsm( pastix_data, side, uplo, trans, diag,
-                       &sopalin_data, nrhs, (double *)b, ldb );
-        break;
+        for( i = 0; i < nrhs; i+=bs, lb += ldb ) {
+            sopalin_dtrsm( pastix_data, side, uplo, trans, diag,
+                           &sopalin_data, bs, lb, ldb );
+        }
+    }
+    break;
     case PastixFloat:
+    {
+        float *lb = b;
         trans = (trans == PastixConjTrans) ? PastixTrans : trans;
-        sopalin_strsm( pastix_data, side, uplo, trans, diag,
-                       &sopalin_data, nrhs, (float *)b, ldb );
-        break;
+        for( i = 0; i < nrhs; i+=bs, lb += ldb ) {
+            sopalin_strsm( pastix_data, side, uplo, trans, diag,
+                           &sopalin_data, bs, lb, ldb );
+        }
+    }
+    break;
     default:
         fprintf(stderr, "Unknown floating point arithmetic\n" );
     }
@@ -402,6 +427,9 @@ pastix_subtask_solve( pastix_data_t *pastix_data,
     bcsc  = pastix_data->bcsc;
 
     {
+#if defined(PASTIX_WITH_MPI)
+        solverSendersInit( pastix_data->solvmatr );
+#endif
         double timer;
         pastix_trans_t trans = PastixTrans;
 
@@ -481,6 +509,9 @@ pastix_subtask_solve( pastix_data_t *pastix_data,
             pastix_print( pastix_data->inter_node_procnum, 0, OUT_TIME_SOLV,
                           pastix_data->dparm[DPARM_SOLV_TIME] );
         }
+#if defined(PASTIX_WITH_MPI)
+        solverSendersExit( pastix_data->solvmatr );
+#endif
     }
 
     return EXIT_SUCCESS;

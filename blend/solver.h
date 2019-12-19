@@ -192,8 +192,8 @@ struct solver_matrix_s {
     pastix_int_t              arftmax;              /*+ Maximum block area in ftgt                +*/
     pastix_int_t              colmax;               /*+ Maximum column width in solvmtx           +*/
 
-    pastix_int_t              clustnum;             /*+ current processor number                  +*/
-    pastix_int_t              clustnbr;             /*+ number of processors                      +*/
+    int                       clustnum;             /*+ current processor number                  +*/
+    int                       clustnbr;             /*+ number of processors                      +*/
     pastix_int_t              procnbr;              /*+ Number of physical processor used         +*/
     pastix_int_t              thrdnbr;              /*+ Number of local computation threads       +*/
     pastix_int_t              bublnbr;              /*+ Number of local computation threads       +*/

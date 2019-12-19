@@ -429,8 +429,8 @@ solverReqtabInit( SolverMatrix *solvmtx,
               solvmtx->faninnbr + 1 : solvmtx->faninnbr + solvmtx->recvnbr;
     solvmtx->reqnbr = reqnbr;
 
-    MALLOC_INTERN( solvmtx->reqlocal,  reqnbr, pastix_int_t );
-    MALLOC_INTERN( solvmtx->reqtab,    reqnbr, MPI_Request  );
+    MALLOC_INTERN( solvmtx->reqlocal, reqnbr, pastix_int_t );
+    MALLOC_INTERN( solvmtx->reqtab,   reqnbr, MPI_Request  );
 
     requests  = solvmtx->reqtab;
     for ( i = 0; i < reqnbr; i++, requests++ )
@@ -439,7 +439,7 @@ solverReqtabInit( SolverMatrix *solvmtx,
     }
 
     /* Set every reqlocalnum to -1 */
-    if( scheduler == PastixSchedDynamic ){
+    if( scheduler == PastixSchedDynamic ) {
         memset( solvmtx->reqlocal, 0xff, reqnbr * sizeof(pastix_int_t) );
         return;
     }
@@ -503,6 +503,15 @@ solverSendersInit( SolverMatrix *solvmtx )
         if( !(cblk->cblktype & CBLK_RECV) ){
             continue;
         }
+
+        /*
+         * Exploit rcoeftab from numercial factorization to store the list of
+         * processors to send to /recv from during the solve step
+         *
+         * WARNING: This should be precomuted at the anlyze step to be able to
+         * perform any backward trsm on the matrix without depending on a
+         * forward step.
+         */
         MALLOC_INTERN( cblk->rcoeftab, cblk->recvnbr, int );
         memset( cblk->rcoeftab, 0xff, cblk->recvnbr*sizeof(int) );
     }
@@ -528,7 +537,7 @@ solverSendersExit( SolverMatrix *solvmtx )
 
     for ( i = 0; i < cblknbr; i++, cblk++ )
     {
-        if( !(cblk->cblktype & CBLK_RECV) ){
+        if ( !(cblk->cblktype & CBLK_RECV) ) {
             continue;
         }
         assert( cblk->rcoeftab != NULL );

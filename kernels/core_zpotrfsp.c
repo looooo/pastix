@@ -343,16 +343,16 @@ cpucblk_zpotrfsp1d( SolverMatrix       *solvmtx,
     {
         fcblk = (solvmtx->cblktab + blok->fcblknm);
 
+        if ( fcblk->cblktype & CBLK_FANIN ) {
+            cpucblk_zalloc( PastixLCoef, fcblk );
+        }
+
         cpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
                          cblk, blok, fcblk,
                          L, L, fcblk->lcoeftab,
                          work, lwork, &(solvmtx->lowrank) );
 
-        pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
-        if( !(fcblk->ctrbcnt) && (solvmtx->computeQueue) ){
-            pastix_queue_t *queue = solvmtx->computeQueue[ cblk->threadid ];
-            pqueuePush1( queue, fcblk - solvmtx->cblktab, queue->size );
-        }
+        cpucblk_zrelease_deps( PastixLCoef, solvmtx, cblk, fcblk );
    }
 
     return nbpivots;
