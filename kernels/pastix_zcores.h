@@ -247,6 +247,45 @@ void cpucblk_zadd_recv( pastix_coefside_t    side,
                         SolverCblk          *cblk );
 /**
  *    @}
+ *    @name PastixComplex64 MPI routines
+ *    @{
+ */
+int cpucblk_zincoming_deps( int                mt_flag,
+                            pastix_coefside_t  side,
+                            SolverMatrix      *solvmtx,
+                            SolverCblk        *cblk );
+void cpucblk_zrelease_deps( pastix_coefside_t  side,
+                            SolverMatrix      *solvmtx,
+                            const SolverCblk  *cblk,
+                            SolverCblk        *fcbk );
+void cpucblk_zrequest_cleanup( pastix_coefside_t side,
+                               pastix_int_t      sched,
+                               SolverMatrix     *solvmtx );
+
+void cpucblk_zmpi_progress( pastix_coefside_t   side,
+                            isched_thread_t    *ctx,
+                            SolverMatrix       *solvmtx,
+                            pastix_int_t        threadid,
+                            pastix_complex64_t *recv );
+
+void cpucblk_zsend_rhs_forward( const SolverMatrix *solvmtx,
+                                SolverCblk         *cblk,
+                                pastix_complex64_t *b );
+void cpucblk_zrecv_rhs_forward( const SolverMatrix *solvmtx,
+                                SolverCblk         *cblk,
+                                pastix_complex64_t *work,
+                                pastix_int_t        nrhs,
+                                pastix_complex64_t *b,
+                                pastix_int_t        ldb );
+void cpucblk_zsend_rhs_backward( const SolverMatrix *solvmtx,
+                                 SolverCblk         *cblk,
+                                 pastix_complex64_t *b );
+void cpucblk_zrecv_rhs_backward( const SolverMatrix *solvmtx,
+                                 SolverCblk         *cblk,
+                                 pastix_complex64_t *b );
+
+/**
+ *    @}
  *    @name PastixComplex64 compression/uncompression routines
  *    @{
  */
@@ -284,7 +323,7 @@ void solve_cblk_ztrsmsp_forward( pastix_solv_mode_t mode, pastix_side_t side, pa
                                  int nrhs, pastix_complex64_t *b, int ldb );
 void solve_cblk_ztrsmsp_backward( pastix_solv_mode_t mode, pastix_side_t side, pastix_uplo_t uplo,
                                   pastix_trans_t trans, pastix_diag_t diag,
-                                  const SolverMatrix *datacode, const SolverCblk *cblk,
+                                  const SolverMatrix *datacode, SolverCblk *cblk,
                                   int nrhs, pastix_complex64_t *b, int ldb );
 
 void solve_cblk_zdiag( const SolverCblk   *cblk,

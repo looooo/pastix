@@ -119,16 +119,18 @@ cpucblk_zalloc( pastix_coefside_t  side,
         size_t coefnbr = cblk->stride * ncols;
 
         if ( side == PastixLCoef ) {
+            assert( cblk->lcoeftab == NULL );
             MALLOC_INTERN( cblk->lcoeftab, coefnbr, pastix_complex64_t );
             memset( cblk->lcoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
         }
-
         else {
+            assert( cblk->lcoeftab == NULL );
+            assert( cblk->ucoeftab == NULL );
+
             MALLOC_INTERN( cblk->lcoeftab, 2 * coefnbr, pastix_complex64_t );
-            memset( cblk->lcoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
+            memset( cblk->lcoeftab, 0, 2 * coefnbr * sizeof(pastix_complex64_t) );
 
             cblk->ucoeftab = (pastix_complex64_t *)cblk->lcoeftab + coefnbr;
-            memset( cblk->ucoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
             assert( cblk->ucoeftab );
         }
         assert( cblk->lcoeftab );

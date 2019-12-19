@@ -48,9 +48,16 @@ sequential_zpotrf( pastix_data_t  *pastix_data,
 
     cblk = datacode->cblktab;
     for (i=0; i<datacode->cblknbr; i++, cblk++){
-
-        if ( cblk->cblktype & CBLK_IN_SCHUR )
+        if ( cblk->cblktype & CBLK_IN_SCHUR ) {
             break;
+        }
+
+        /* Wait for incoming dependencies */
+        if ( cpucblk_zincoming_deps( 0, PastixLCoef,
+                                     datacode, cblk ) )
+        {
+            continue;
+        }
 
         /* Compute */
         cpucblk_zpotrfsp1d( datacode, cblk,
@@ -68,8 +75,8 @@ thread_zpotrf_static( isched_thread_t *ctx, void *args )
     SolverCblk         *cblk;
     Task               *t;
     pastix_complex64_t *work;
-    pastix_int_t  i, ii, lwork;
-    pastix_int_t  tasknbr, *tasktab;
+    pastix_int_t i, ii, lwork;
+    pastix_int_t tasknbr, *tasktab;
     int rank = ctx->rank;
 
     lwork = datacode->gemmmax;
@@ -86,11 +93,16 @@ thread_zpotrf_static( isched_thread_t *ctx, void *args )
         t = datacode->tasktab + i;
         cblk = datacode->cblktab + t->cblknum;
 
-        if ( cblk->cblktype & CBLK_IN_SCHUR )
+        if ( cblk->cblktype & CBLK_IN_SCHUR ) {
             continue;
+        }
 
-        /* Wait */
-        do { } while( cblk->ctrbcnt );
+        /* Wait for incoming dependencies */
+        if ( cpucblk_zincoming_deps( 1, PastixLCoef,
+                                     datacode, cblk ) )
+        {
+            continue;
+        }
 
         /* Compute */
         cpucblk_zpotrfsp1d( datacode, cblk,
@@ -111,6 +123,7 @@ struct args_zpotrf_t
 {
     sopalin_data_t     *sopalin_data;
     volatile int32_t    taskcnt;
+    pastix_complex64_t *recv;
 };
 
 void
@@ -127,7 +140,10 @@ thread_zpotrf_dynamic( isched_thread_t *ctx, void *args )
     pastix_int_t          tasknbr, *tasktab, cblknum;
     int32_t               local_taskcnt = 0;
     int                   rank = ctx->rank;
-    int                   dest = (ctx->rank +1)%ctx->global_ctx->world_size;
+    int                   dest = (ctx->rank + 1)%ctx->global_ctx->world_size;
+#if defined(PASTIX_WITH_MPI)
+    pastix_complex64_t   *recv = arg->recv;
+#endif
 
     lwork = datacode->gemmmax;
     if ( datacode->lowrank.compress_when == PastixCompressWhenBegin ) {
@@ -141,6 +157,7 @@ thread_zpotrf_dynamic( isched_thread_t *ctx, void *args )
     computeQueue = datacode->computeQueue[rank];
     pqueueInit( computeQueue, tasknbr );
 
+    /* Initialize the local task queue with available cblks */
     for (ii=0; ii<tasknbr; ii++) {
         i = tasktab[ii];
         t = datacode->tasktab + i;
@@ -157,7 +174,16 @@ thread_zpotrf_dynamic( isched_thread_t *ctx, void *args )
     {
         cblknum = pqueuePop(computeQueue);
 
-        if( cblknum == -1 ){
+#if defined(PASTIX_WITH_MPI)
+        /* Nothing to do, let's make progress on comunications */
+        if( cblknum == -1 ) {
+            cpucblk_zmpi_progress( PastixLCoef, ctx, datacode, rank, recv );
+            cblknum = pqueuePop(computeQueue);
+        }
+#endif
+
+        /* No more local job, let's steal our neighbours */
+        if( cblknum == -1 ) {
             if ( local_taskcnt ) {
                 pastix_atomic_sub_32b( &(arg->taskcnt), local_taskcnt );
                 local_taskcnt = 0;
@@ -165,18 +191,17 @@ thread_zpotrf_dynamic( isched_thread_t *ctx, void *args )
             cblknum = stealQueue( datacode, rank, &dest,
                                   ctx->global_ctx->world_size );
         }
-        if( cblknum != -1 ){
-            cblk = datacode->cblktab + cblknum;
-            if ( cblk->cblktype & CBLK_IN_SCHUR ) {
-                continue;
-            }
 
-            cblk->threadid = rank;
-            /* Compute */
-            cpucblk_zpotrfsp1d( datacode, cblk,
-                                work, lwork );
-            local_taskcnt++;
+        cblk = datacode->cblktab + cblknum;
+        if ( cblk->cblktype & CBLK_IN_SCHUR ) {
+            continue;
         }
+        cblk->threadid = rank;
+
+        /* Compute */
+        cpucblk_zpotrfsp1d( datacode, cblk,
+                            work, lwork );
+        local_taskcnt++;
     }
     memFree_null( work );
 
@@ -190,15 +215,35 @@ void
 dynamic_zpotrf( pastix_data_t  *pastix_data,
                 sopalin_data_t *sopalin_data )
 {
-    volatile int32_t     taskcnt = sopalin_data->solvmtx->tasknbr;
-    struct args_zpotrf_t args_zpotrf = {sopalin_data, taskcnt};
+    SolverMatrix        *datacode = sopalin_data->solvmtx;
+    int32_t              taskcnt = datacode->tasknbr;
+    struct args_zpotrf_t args_zpotrf = { sopalin_data, taskcnt, NULL };
+
     /* Allocate the computeQueue */
-    MALLOC_INTERN( sopalin_data->solvmtx->computeQueue,
+    MALLOC_INTERN( datacode->computeQueue,
                    pastix_data->isched->world_size, pastix_queue_t * );
+
+#if defined(PASTIX_WITH_MPI)
+    MALLOC_INTERN( args_zpotrf.recv, datacode->maxrecv, pastix_complex64_t );
+
+    /* Initialize the persistant communication */
+    if( datacode->recvnbr ){
+        MPI_Recv_init( args_zpotrf.recv, datacode->maxrecv,
+                       PASTIX_MPI_COMPLEX64, MPI_ANY_SOURCE, MPI_ANY_TAG,
+                       datacode->solv_comm, datacode->reqtab );
+        MPI_Start( datacode->reqtab );
+        datacode->reqnum++;
+    }
+#endif
 
     isched_parallel_call( pastix_data->isched, thread_zpotrf_dynamic, &args_zpotrf );
 
-    memFree_null( sopalin_data->solvmtx->computeQueue );
+    memFree_null( datacode->computeQueue );
+
+#if defined(PASTIX_WITH_MPI)
+    memFree_null( args_zpotrf.recv );
+    MPI_Barrier( pastix_data->inter_node_comm );
+#endif
 }
 
 static void (*zpotrf_table[5])(pastix_data_t *, sopalin_data_t *) = {
@@ -225,9 +270,26 @@ sopalin_zpotrf( pastix_data_t  *pastix_data,
     void (*zpotrf)(pastix_data_t *, sopalin_data_t *) = zpotrf_table[ sched ];
 
     if (zpotrf == NULL) {
+        sched = PastixSchedSequential;
         zpotrf = static_zpotrf;
     }
+
+    if ( (sched == PastixSchedSequential) ||
+         (sched == PastixSchedStatic)     ||
+         (sched == PastixSchedDynamic) )
+    {
+        solverReqtabInit( sopalin_data->solvmtx, sched );
+    }
+
     zpotrf( pastix_data, sopalin_data );
+
+    if ( (sched == PastixSchedSequential) ||
+         (sched == PastixSchedStatic)     ||
+         (sched == PastixSchedDynamic) )
+    {
+        cpucblk_zrequest_cleanup( PastixLCoef, sched, sopalin_data->solvmtx );
+        solverReqtabExit( sopalin_data->solvmtx );
+    }
 
 #if defined(PASTIX_DEBUG_FACTO)
     coeftab_zdump( pastix_data, sopalin_data->solvmtx, "potrf.txt" );

@@ -500,6 +500,10 @@ cpucblk_zsytrfsp1d( SolverMatrix       *solvmtx,
     {
         fcblk = solvmtx->cblktab + blok->fcblknm;
 
+        if ( fcblk->cblktype & CBLK_FANIN ) {
+            cpucblk_zalloc( PastixLCoef, fcblk );
+        }
+
         /* Update on L */
         if (DLt == NULL) {
             core_zsytrfsp1d_gemm( cblk, blok, fcblk,
@@ -512,11 +516,7 @@ cpucblk_zsytrfsp1d( SolverMatrix       *solvmtx,
                              L, DLt, fcblk->lcoeftab,
                              work, lwork, &(solvmtx->lowrank) );
         }
-        pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
-        if( !(fcblk->ctrbcnt) && (solvmtx->computeQueue) ){
-            pastix_queue_t *queue = solvmtx->computeQueue[ cblk->threadid ];
-            pqueuePush1( queue, fcblk - solvmtx->cblktab, queue->size );
-        }
+        cpucblk_zrelease_deps( PastixLCoef, solvmtx, cblk, fcblk );
     }
 
     return nbpivots;

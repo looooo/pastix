@@ -20,6 +20,9 @@
 #include "pastix_dlrcores.h"
 #include "pastix_slrcores.h"
 
+double pastix_lr_minratio = 1.0;
+pastix_int_t pastix_lr_ortho = 0;
+
 const char *compmeth_shnames[PastixCompressMethodNbr] = {
     "SVD",
     "PQRCP",

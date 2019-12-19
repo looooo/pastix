@@ -36,6 +36,9 @@ sequential_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
     cblk = datacode->cblktab;
     cblknbr = (mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
     for (i=0; i<cblknbr; i++, cblk++) {
+        if ( cblk->ownerid != datacode->clustnum ) {
+            continue;
+        }
         solve_cblk_zdiag( cblk, nrhs,
                           b + cblk->lcolidx, ldb, NULL );
     }
@@ -80,6 +83,9 @@ thread_zdiag_static( isched_thread_t *ctx, void *args )
             continue;
         }
         cblk = datacode->cblktab + t->cblknum;
+        if ( cblk->ownerid != datacode->clustnum ) {
+            continue;
+        }
         solve_cblk_zdiag( cblk, nrhs,
                           b + cblk->lcolidx, ldb, NULL );
     }
