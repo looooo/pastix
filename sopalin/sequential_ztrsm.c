@@ -26,6 +26,10 @@
 #include "starpu/pastix_zstarpu.h"
 #endif
 
+#if defined(PASTIX_WITH_MPI)
+#include "coeftab.h"
+#endif
+
 void
 sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
                   sopalin_data_t *sopalin_data,
@@ -204,6 +208,65 @@ static_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int dia
     isched_parallel_call( pastix_data->isched, thread_ztrsm_static, &args_ztrsm );
 }
 
+#if defined(PASTIX_WITH_MPI)
+void
+runtime_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
+               sopalin_data_t *sopalin_data,
+               int nrhs, pastix_complex64_t *b, int ldb )
+{
+    SolverMatrix *datacode = sopalin_data->solvmtx;
+    SolverCblk *cblk;
+    pastix_int_t i, cblknbr;
+
+    /* Collect the matrix on node 0 */
+    coeftab_gather( datacode, datacode->solv_comm, 0, PastixComplex64 );
+
+    if ( sopalin_data->solvmtx->clustnum == 0 ) {
+        pastix_solv_mode_t mode = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
+
+        /* Backward like */
+        if ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
+             ( (side == PastixLeft)  && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
+             ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
+             ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) )
+        {
+            cblknbr = (mode == PastixSolvModeLocal) ? datacode->cblkschur : datacode->cblknbr;
+
+            cblk = datacode->cblktab + cblknbr - 1;
+            for ( i=0; i<cblknbr; i++, cblk-- ) {
+                assert( !(cblk->cblktype & (CBLK_FANIN | CBLK_RECV)) );
+                solve_cblk_ztrsmsp_backward( mode, side, uplo, trans, diag,
+                                             datacode, cblk, nrhs, b, ldb );
+            }
+        }
+        /* Forward like */
+        else
+            /**
+             * ( (side == PastixRight) && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
+             * ( (side == PastixRight) && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
+             * ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
+             * ( (side == PastixLeft)  && (uplo == PastixLower) && (trans == PastixNoTrans) )
+             */
+        {
+            cblknbr = (mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
+            cblk = datacode->cblktab;
+            for (i=0; i<cblknbr; i++, cblk++){
+                solve_cblk_ztrsmsp_forward( mode, side, uplo, trans, diag,
+                                            datacode, cblk, nrhs, b, ldb );
+            }
+        }
+
+        /* Free the gathered coefficients of the matrix */
+        coeftab_nullify( datacode );
+    }
+    else {
+        memset( b, 0, ldb * nrhs * sizeof(pastix_complex64_t) );
+    }
+
+    bvec_zallreduce( pastix_data, b );
+}
+#endif
+
 static void (*ztrsm_table[5])(pastix_data_t *, int, int, int, int, sopalin_data_t *,
                               int, pastix_complex64_t *, int) = {
     sequential_ztrsm,
@@ -236,8 +299,13 @@ sopalin_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int di
 
 #if defined(PASTIX_WITH_MPI)
     if( pastix_data->inter_node_procnbr > 1 ) {
-        /* Force sequential if MPI as no other runtime is supported yet */
-        ztrsm = sequential_ztrsm;
+        if( (sched == PastixSchedStarPU) || (sched == PastixSchedParsec) ) {
+            ztrsm = runtime_ztrsm;
+        }
+        else {
+            /* Force sequential if MPI as no other runtime is supported yet */
+            ztrsm = sequential_ztrsm;
+        }
     }
 #endif
 

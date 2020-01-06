@@ -26,6 +26,7 @@
 #include "pastix_zcuda.h"
 #endif
 #include "pastix_starpu.h"
+#include "pastix_zstarpu.h"
 #include "codelets.h"
 #include "pastix_starpu_model.h"
 
@@ -100,17 +101,17 @@ static void fct_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_CPU( cblk_zgemmsp, 3 )
-CODELETS_GPU( cblk_zgemmsp, 3, STARPU_CUDA_ASYNC )
+CODELETS_CPU( cblk_zgemmsp, 3 );
+CODELETS_GPU( cblk_zgemmsp, 3, STARPU_CUDA_ASYNC );
 
 void
-starpu_task_cblk_zgemmsp( pastix_coefside_t sideA,
+starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
+                          pastix_coefside_t sideA,
                           pastix_coefside_t sideB,
                           pastix_trans_t    trans,
                           const SolverCblk *cblk,
                           const SolverBlok *blok,
                           SolverCblk       *fcblk,
-                          sopalin_data_t   *sopalin_data,
                           int               prio )
 {
     struct starpu_codelet *codelet = &cl_cblk_zgemmsp_cpu;
@@ -216,18 +217,18 @@ static void fct_blok_zgemmsp_gpu(void *descr[], void *cl_arg)
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_CPU( blok_zgemmsp, 3 )
-CODELETS_GPU( blok_zgemmsp, 3, STARPU_CUDA_ASYNC )
+CODELETS_CPU( blok_zgemmsp, 3 );
+CODELETS_GPU( blok_zgemmsp, 3, STARPU_CUDA_ASYNC );
 
 void
-starpu_task_blok_zgemmsp( pastix_coefside_t sideA,
+starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
+                          pastix_coefside_t sideA,
                           pastix_coefside_t sideB,
                           pastix_trans_t    trans,
                           const SolverCblk *cblk,
                           SolverCblk       *fcblk,
                           const SolverBlok *blokA,
                           const SolverBlok *blokB,
-                          sopalin_data_t   *sopalin_data,
                           int               prio )
 {
     SolverBlok *blokC = fcblk->fblokptr;

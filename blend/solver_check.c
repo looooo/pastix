@@ -132,7 +132,8 @@ solverCheck( const SolverMatrix *solvmtx )
 
             /* Bloks in Fanin sould never appear in the browtab */
             assert( !(fcblk->cblktype & CBLK_FANIN) );
-            assert( fcblk->ownerid == solvmtx->clustnum );
+            assert( (solvmtx->gcbl2loc == NULL) ||
+                    (fcblk->ownerid == solvmtx->clustnum) );
         }
     }
 

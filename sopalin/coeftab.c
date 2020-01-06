@@ -318,3 +318,162 @@ coeftabCompress( pastix_data_t *pastix_data )
 
     return args.gain;
 }
+
+#if defined(PASTIX_WITH_MPI)
+/**
+ *******************************************************************************
+ *
+ * @brief Send all the cblk to their original nodes from the root node.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The solver matrix to scatter.
+ *
+ * @param[in] comm
+ *          MPI communicator
+ *
+ * @param[in] root
+ *          Root node from which the solvmtx is scattered.
+ *
+ * @param[in] typesze
+ *          Size of the data elements in the SolverMatrix.
+ *
+ ******************************************************************************/
+void
+coeftab_scatter( SolverMatrix     *solvmtx,
+                 PASTIX_Comm       comm,
+                 pastix_int_t      root,
+                 pastix_coeftype_t flttype )
+{
+    static void (*free_fct_array[4])( pastix_coefside_t, SolverCblk * ) = {
+        cpucblk_sfree, cpucblk_dfree, cpucblk_cfree, cpucblk_zfree
+    };
+    void (*free_fct)( pastix_coefside_t, SolverCblk * ) = free_fct_array[ flttype - 2 ];
+    SolverCblk  *cblk;
+    pastix_int_t i;
+    MPI_Status   status;
+    size_t eltsize = pastix_size_of( flttype );
+    pastix_coefside_t side = PastixLCoef;
+
+    if ( solvmtx->factotype == PastixFactLU ) {
+        side = PastixLUCoef;
+        eltsize *= 2;
+    }
+
+    cblk = solvmtx->cblktab;
+    for(i=0; i<solvmtx->cblknbr; i++, cblk++)
+    {
+        size_t cblksize = eltsize * cblk->stride  * cblk_colnbr( cblk );
+
+        /* Data which does not belong to the root node must be sent */
+        if ( (solvmtx->clustnum == root) &&
+             (solvmtx->clustnum != cblk->ownerid) )
+        {
+            MPI_Send( cblk->lcoeftab, cblksize, MPI_CHAR,
+                      cblk->ownerid, i, comm );
+            free_fct( side, cblk );
+        }
+
+        /* Data which belongs locally must be received */
+        if ( (solvmtx->clustnum != root) &&
+             (solvmtx->clustnum == cblk->ownerid) )
+        {
+            MPI_Recv( cblk->lcoeftab, cblksize, MPI_CHAR,
+                      root, i, comm, &status );
+        }
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Gather all the column blocks on the root node.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The solver matrix to gather.
+ *
+ * @param[in] comm
+ *          MPI communicator
+ *
+ * @param[in] root
+ *          Root node on which the solvmtx is gathered.
+ *
+ * @param[in] typesze
+ *          Size of the data elements in the SolverMatrix.
+ *
+ ******************************************************************************/
+void
+coeftab_gather( SolverMatrix     *solvmtx,
+                PASTIX_Comm       comm,
+                pastix_int_t      root,
+                pastix_coeftype_t flttype )
+{
+    static void (*alloc_fct_array[4])( pastix_coefside_t, SolverCblk * ) = {
+        cpucblk_salloc, cpucblk_dalloc, cpucblk_calloc, cpucblk_zalloc
+    };
+    void (*alloc_fct)( pastix_coefside_t, SolverCblk * ) = alloc_fct_array[ flttype - 2 ];
+    SolverCblk *cblk;
+    pastix_int_t i;
+    MPI_Status status;
+    size_t eltsize = pastix_size_of( flttype );
+    pastix_coefside_t side = PastixLCoef;
+
+    if ( solvmtx->factotype == PastixFactLU ) {
+        side = PastixLUCoef;
+        eltsize *= 2;
+    }
+
+    cblk = solvmtx->cblktab;
+    for( i=0; i<solvmtx->cblknbr; i++, cblk++ )
+    {
+        size_t cblksize = eltsize * cblk->stride  * cblk_colnbr( cblk );
+
+        if ( (solvmtx->clustnum == root) &&
+             (solvmtx->clustnum != cblk->ownerid) )
+        {
+            alloc_fct( side, cblk );
+
+            MPI_Recv( cblk->lcoeftab, cblksize, MPI_CHAR,
+                      cblk->ownerid, i, comm, &status );
+        }
+
+        if ( (solvmtx->clustnum != root) &&
+             (solvmtx->clustnum == cblk->ownerid) )
+        {
+            MPI_Send( cblk->lcoeftab, cblksize, MPI_CHAR,
+                      root, i, comm );
+        }
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Nullify all the distant cblks.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The solver matrix.
+ *
+ ******************************************************************************/
+void
+coeftab_nullify( SolverMatrix *solvmtx )
+{
+    SolverCblk *cblk;
+    pastix_int_t i;
+    pastix_coefside_t side = ( solvmtx->factotype == PastixFactLU ) ? PastixLUCoef : PastixLCoef;
+
+    cblk = solvmtx->cblktab;
+    for( i=0; i < solvmtx->cblknbr; i++, cblk++ )
+    {
+        if ( solvmtx->clustnum != cblk->ownerid )
+        {
+            cpucblk_zfree( side, cblk );
+        }
+    }
+}
+#endif /* PASTIX_WITH_MPI */

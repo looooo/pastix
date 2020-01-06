@@ -32,29 +32,29 @@
         .nbuffers  = (_nbuffers_),                                      \
         .name      = #_name_ ,                                          \
         .model     = &(starpu_##_name_##_model)                         \
-    };
+    }
 
 #if defined(PASTIX_STARPU_SIMULATION)
 
-#define CODELETS_CPU(_name_, _nbuffers_ )                                  \
+#define CODELETS_CPU(_name_, _nbuffers_ )                               \
     CODELETS_ALL( cpu, _name_, _nbuffers_, (starpu_cpu_func_t) 1, NULL, STARPU_CPU, 0 )
 
-#define CODELETS_GPU(_name_, _nbuffers_, _cuda_flags_)                       \
+#define CODELETS_GPU(_name_, _nbuffers_, _cuda_flags_)                  \
     CODELETS_ALL( gpu, _name_, _nbuffers_, (starpu_cpu_func_t) 1, (starpu_cuda_func_t) 1, STARPU_CPU | STARPU_CUDA, _cuda_flags_ )
 
 #else
 
-#define CODELETS_CPU(_name_, _nbuffers_ )                                  \
+#define CODELETS_CPU(_name_, _nbuffers_ )                               \
     CODELETS_ALL( cpu, _name_, _nbuffers_, fct_##_name_##_cpu, NULL, STARPU_CPU, 0 )
 
-#define CODELETS_GPU(_name_, _nbuffers_, _cuda_flags_)                       \
+#define CODELETS_GPU(_name_, _nbuffers_, _cuda_flags_)                  \
     CODELETS_ALL( gpu, _name_, _nbuffers_, fct_##_name_##_cpu, fct_##_name_##_gpu, STARPU_CPU | STARPU_CUDA, _cuda_flags_ )
 
 #endif
 
 #if !defined(PASTIX_WITH_CUDA)
 #undef CODELETS_GPU
-#define CODELETS_GPU(_name_, _nbuffers_, _cuda_flags_) 
+#define CODELETS_GPU(_name_, _nbuffers_, _cuda_flags_)
 #endif
 
 #endif /* _codelets_h_ */

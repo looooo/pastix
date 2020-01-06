@@ -24,6 +24,7 @@
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 #include "pastix_starpu.h"
+#include "pastix_zstarpu.h"
 #include "codelets.h"
 
 /**
@@ -58,7 +59,7 @@ static void fct_solve_blok_ztrsm_cpu(void *descr[], void *cl_arg)
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_CPU( solve_blok_ztrsm, 2 )
+CODELETS_CPU( solve_blok_ztrsm, 2 );
 
 /**
  *******************************************************************************
@@ -98,13 +99,13 @@ CODELETS_CPU( solve_blok_ztrsm, 2 )
  *
  *******************************************************************************/
 void
-starpu_stask_blok_ztrsm( pastix_coefside_t coef,
+starpu_stask_blok_ztrsm( sopalin_data_t   *sopalin_data,
+                         pastix_coefside_t coef,
                          pastix_side_t     side,
                          pastix_uplo_t     uplo,
                          pastix_trans_t    trans,
                          pastix_diag_t     diag,
                          const SolverCblk *cblk,
-                         sopalin_data_t   *sopalin_data,
                          pastix_int_t      prio )
 {
     SolverMatrix          *solvmtx = sopalin_data->solvmtx;

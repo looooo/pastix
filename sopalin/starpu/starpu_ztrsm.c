@@ -126,7 +126,7 @@ starpu_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
 
     /* Solve the diagonal block */
     starpu_stask_blok_ztrsm(
-        cs, side, PastixLower, tA, diag, cblk, sopalin_data, prio );
+        sopalin_data, cs, side, PastixLower, tA, diag, cblk, prio );
 
     /* Apply the update */
     for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
@@ -136,8 +136,8 @@ starpu_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
             return;
         }
 
-        starpu_stask_blok_zgemm( cs, PastixLeft, tA,
-                                 cblk, blok, fcbk, sopalin_data, prio );
+        starpu_stask_blok_zgemm( sopalin_data, cs, PastixLeft, tA,
+                                 cblk, blok, fcbk, prio );
     }
 }
 
@@ -239,7 +239,7 @@ starpu_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
     if ( !(cblk->cblktype & CBLK_IN_SCHUR) || (mode == PastixSolvModeSchur) ) {
         /* Solve the diagonal block */
         starpu_stask_blok_ztrsm(
-            cs, side, PastixLower, tA, diag, cblk, sopalin_data, prio );
+            sopalin_data, cs, side, PastixLower, tA, diag, cblk, prio );
     }
 
     /* Apply the update */
@@ -251,8 +251,8 @@ starpu_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
             continue;
         }
 
-        starpu_stask_blok_zgemm( cs, PastixRight, tA,
-                                 cblk, blok, fcbk, sopalin_data, prio );
+        starpu_stask_blok_zgemm( sopalin_data, cs, PastixRight, tA,
+                                 cblk, blok, fcbk, prio );
     }
 }
 
@@ -399,14 +399,17 @@ starpu_ztrsm( pastix_data_t      *pastix_data,
         /* Create the sparse matrix descriptor */
         starpu_sparse_matrix_init( sopalin_data->solvmtx,
                                    sizeof( pastix_complex64_t ), PastixHermitian,
-                                   1, 0 );
+                                   pastix_data->inter_node_procnbr,
+                                   pastix_data->inter_node_procnum );
         sdesc = sopalin_data->solvmtx->starpu_desc;
     }
 
     /* Create the dense matrix descriptor */
     starpu_dense_matrix_init( sopalin_data->solvmtx,
                               nrhs, (char*)b, ldb,
-                              sizeof(pastix_complex64_t), 1, 0 );
+                              sizeof(pastix_complex64_t),
+                              pastix_data->inter_node_procnbr,
+                              pastix_data->inter_node_procnum );
     ddesc = sopalin_data->solvmtx->starpu_desc_rhs;
 
     starpu_resume();
@@ -416,7 +419,7 @@ starpu_ztrsm( pastix_data_t      *pastix_data,
     starpu_dense_matrix_getoncpu( ddesc );
     starpu_task_wait_for_all();
 #if defined(PASTIX_WITH_MPI)
-    starpu_mpi_barrier(MPI_COMM_WORLD);
+    starpu_mpi_barrier(pastix_data->inter_node_comm);
 #endif
     starpu_pause();
 

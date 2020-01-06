@@ -33,6 +33,18 @@ void coeftabExit( SolverMatrix      *solvmtx );
 
 pastix_int_t coeftabCompress( pastix_data_t *pastix_data );
 
+#if defined(PASTIX_WITH_MPI)
+void coeftab_scatter( SolverMatrix *solvmtx,
+                      PASTIX_Comm   comm,
+                      pastix_int_t  root,
+                      pastix_coeftype_t typesze );
+void coeftab_gather ( SolverMatrix *solvmtx,
+                      PASTIX_Comm   comm,
+                      pastix_int_t  root,
+                      pastix_coeftype_t typesze );
+void coeftab_nullify( SolverMatrix *solvmtx );
+#endif
+
 /**
  * @brief Type of the memory gain functions
  */

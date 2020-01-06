@@ -80,6 +80,7 @@ starpu_dense_matrix_init( SolverMatrix *solvmtx,
 
     cblknbr = solvmtx->cblknbr;
 
+    spmtx->mpitag  = pastix_starpu_get_tag();
     spmtx->ncol    = ncol;
     spmtx->typesze = typesize;
     spmtx->solvmtx = solvmtx;
@@ -89,15 +90,25 @@ starpu_dense_matrix_init( SolverMatrix *solvmtx,
     /* Initialize 1D cblk handlers */
     cblk    = spmtx->solvmtx->cblktab;
     handler = spmtx->handletab;
-    for(cblknum = 0;
-        cblknum < cblknbr;
-        cblknum++, cblk++, handler++ )
+    for( cblknum = 0;
+         cblknum < cblknbr;
+         cblknum++, cblk++, handler++ )
     {
         nrow = cblk_colnbr( cblk );
 
-        starpu_matrix_data_register( handler, STARPU_MAIN_RAM,
-                                     (uintptr_t)(A + (cblk->lcolidx * typesize)),
-                                     lda, nrow, ncol, typesize );
+        if( cblk->ownerid == myrank ) {
+            starpu_matrix_data_register( handler, STARPU_MAIN_RAM,
+                                         (uintptr_t)(A + (cblk->lcolidx * typesize)),
+                                         lda, nrow, ncol, typesize );
+        }
+        else {
+            starpu_matrix_data_register( handler, -1, 0,
+                                         lda, nrow, ncol, typesize );
+        }
+#if defined(PASTIX_WITH_MPI)
+        assert( spmtx->mpitag | cblknum );
+        starpu_mpi_data_register( *handler, spmtx->mpitag | ((int64_t)cblknum), cblk->ownerid );
+#endif
     }
 
     solvmtx->starpu_desc_rhs = spmtx;
@@ -129,9 +140,15 @@ starpu_dense_matrix_getoncpu( starpu_dense_matrix_desc_t *spmtx )
     for(cblknum=0; cblknum<cblknbr; cblknum++, cblk++, handler++)
     {
         assert( handler );
-        starpu_data_acquire_cb( *handler, STARPU_R,
-                                (void (*)(void*))&starpu_data_release,
-                                *handler );
+
+#if defined(PASTIX_WITH_MPI)
+        starpu_mpi_cache_flush( spmtx->solvmtx->solv_comm, *handler );
+#endif
+        if ( cblk->ownerid == spmtx->solvmtx->clustnum ) {
+            starpu_data_acquire_cb( *handler, STARPU_R,
+                                    (void (*)(void*))&starpu_data_release,
+                                    *handler );
+        }
     }
 }
 

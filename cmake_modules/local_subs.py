@@ -61,6 +61,7 @@ subs = {
         ('thread_p',             'thread_s',             'thread_d',             'thread_c',             'thread_z'            ),
         ('static_p',             'static_s',             'static_d',             'static_c',             'static_z'            ),
         ('dynamic_p',            'dynamic_s',            'dynamic_d',            'dynamic_c',            'dynamic_z'           ),
+        ('runtime_p',            'runtime_s',            'runtime_d',            'runtime_c',            'runtime_z'           ),
         ('vec_p',                'vec_s',                'vec_d',                'vec_c',                'vec_z'               ),
     ]
 }

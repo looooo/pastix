@@ -48,8 +48,8 @@ if (PASTIX_WITH_STARPU)
 endif (PASTIX_WITH_STARPU)
 
 # Add runtype
-if (PASTIX_WITH_MPI)
-  list( APPEND TYPE mpi )
+if( PASTIX_WITH_MPI )
+  list( APPEND RUNTYPE mpi )
 endif()
 
 # Add orderings

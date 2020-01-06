@@ -21,6 +21,9 @@
 #ifndef _pastix_starpu_h_
 #define _pastix_starpu_h_
 
+#include "common.h"
+#include "solver.h"
+
 #if defined(PASTIX_WITH_MPI)
 #include <starpu_mpi.h>
 #else
@@ -43,11 +46,17 @@
 
 typedef struct starpu_conf starpu_conf_t;
 
+#if defined(PASTIX_STARPU_SYNC)
+#define TASK_SYNCHRONOUS , STARPU_TASK_SYNCHRONOUS, 1
+#else
+#define TASK_SYNCHRONOUS
+#endif
+
 #if defined(PASTIX_WITH_MPI)
 #define starpu_insert_task starpu_mpi_insert_task
-#define pastix_codelet(_codelet_) MPI_COMM_WORLD, _codelet_
+#define pastix_codelet(_codelet_) sopalin_data->solvmtx->solv_comm, _codelet_ TASK_SYNCHRONOUS
 #else
-#define pastix_codelet(_codelet_) _codelet_
+#define pastix_codelet(_codelet_) _codelet_ TASK_SYNCHRONOUS
 #endif
 
 /**
@@ -65,6 +74,7 @@ typedef struct starpu_cblk_s {
  * @brief StarPU descriptor stucture for the sparse matrix.
  */
 typedef struct starpu_sparse_matrix_desc_s {
+    int64_t         mpitag;         /**< MPI id of StarPU */
     int             typesze;        /**< Arithmetic size                                                                              */
     int             mtxtype;        /**< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.                         */
     SolverMatrix   *solvmtx;        /**< Solver matrix structure that describes the problem and stores the original data              */
@@ -76,6 +86,7 @@ typedef struct starpu_sparse_matrix_desc_s {
  * @brief StarPU descriptor for the vectors linked to a given sparse matrix.
  */
 typedef struct starpu_dense_matrix_desc_s {
+    int64_t               mpitag;    /**< MPI id of StarPU */
     int                   ncol;      /**< Number of columns of the matrix                                                 */
     int                   typesze;   /**< Arithmetic size                                                                 */
     SolverMatrix         *solvmtx;   /**< Solver matrix structure that describes the problem and stores the original data */
@@ -99,6 +110,18 @@ void pastix_starpu_init( pastix_data_t *pastix,
                          int *argc, char **argv[],
                          const int *bindtab );
 void pastix_starpu_finalize( pastix_data_t *pastix );
+
+int64_t pastix_starpu_get_tag( );
+
+void
+pastix_starpu_partition_submit( pastix_coefside_t side,
+                                SolverCblk       *cblk,
+                                starpu_cblk_t    *starpu_cblk );
+void
+pastix_starpu_unpartition_submit( const starpu_sparse_matrix_desc_t *spmtx,
+                                  int rank, pastix_coefside_t side,
+                                  SolverCblk    *cblk,
+                                  starpu_cblk_t *starpu_cblk );
 
 #endif /* _pastix_starpu_h_ */
 
