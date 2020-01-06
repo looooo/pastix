@@ -26,6 +26,7 @@
 #include "pastix_zcuda.h"
 #endif
 #include "pastix_starpu.h"
+#include "pastix_zstarpu.h"
 #include "codelets.h"
 #include "pastix_starpu_model.h"
 
@@ -98,18 +99,18 @@ static void fct_blok_ztrsmsp_gpu(void *descr[], void *cl_arg)
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_CPU( blok_ztrsmsp, 2 )
-CODELETS_GPU( blok_ztrsmsp, 2, STARPU_CUDA_ASYNC )
+CODELETS_CPU( blok_ztrsmsp, 2 );
+CODELETS_GPU( blok_ztrsmsp, 2, STARPU_CUDA_ASYNC );
 
 void
-starpu_task_blok_ztrsmsp( pastix_coefside_t coef,
+starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
+                          pastix_coefside_t coef,
                           pastix_side_t     side,
                           pastix_uplo_t     uplo,
                           pastix_trans_t    trans,
                           pastix_diag_t     diag,
-                          SolverCblk       *cblk,
+                          const SolverCblk *cblk,
                           SolverBlok       *blok,
-                          sopalin_data_t   *sopalin_data,
                           int               prio )
 {
     pastix_int_t blok_m = blok - cblk->fblokptr;

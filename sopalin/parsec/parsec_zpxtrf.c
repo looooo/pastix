@@ -67,10 +67,10 @@
  *
  * @sa parsec_zpxtrf_sp1dplus
  * @sa parsec_zpxtrf_sp1dplus_Destruct
- * @sa parsec_zpotrf_sp1dplus
- * @sa parsec_cpotrf_sp1dplus_New
- * @sa parsec_dpotrf_sp1dplus_New
- * @sa parsec_spotrf_sp1dplus_New
+ * @sa parsec_zpxtrf_sp1dplus
+ * @sa parsec_cpxtrf_sp1dplus_New
+ * @sa parsec_dpxtrf_sp1dplus_New
+ * @sa parsec_spxtrf_sp1dplus_New
  *
  ******************************************************************************/
 parsec_taskpool_t*
@@ -91,10 +91,9 @@ parsec_zpxtrf_sp1dplus_New( parsec_sparse_matrix_desc_t *A,
     parsec_private_memory_init( parsec_zpxtrf_sp1dplus->_g_p_work,
                                 lwork * sizeof(pastix_complex64_t) );
 
-    /* This is a default initializer for now, as it is not used in distributed */
-    parsec_matrix_add2arena_rect( parsec_zpxtrf_sp1dplus->arenas[PARSEC_zpxtrf_sp1dplus_DEFAULT_ARENA],
-                                  parsec_datatype_double_complex_t,
-                                  /*sopalin_data->solvmtx->gemmmax*/ 1, 1, 1 );
+    parsec_arena_construct( parsec_zpxtrf_sp1dplus->arenas[PARSEC_zpxtrf_sp1dplus_DEFAULT_ARENA],
+                            sizeof(pastix_complex64_t), PARSEC_ARENA_ALIGNMENT_SSE,
+                            parsec_datatype_double_complex_t );
 
 #if defined(PASTIX_GENERATE_MODEL)
     parsec_zpxtrf_sp1dplus->_g_forced_pushout = 1;
@@ -120,8 +119,6 @@ parsec_zpxtrf_sp1dplus_Destruct( parsec_taskpool_t *taskpool )
 {
     parsec_zpxtrf_sp1dplus_taskpool_t *parsec_zpxtrf_sp1dplus = NULL;
     parsec_zpxtrf_sp1dplus = (parsec_zpxtrf_sp1dplus_taskpool_t *)taskpool;
-
-    parsec_matrix_del2arena( parsec_zpxtrf_sp1dplus->arenas[PARSEC_zpxtrf_sp1dplus_DEFAULT_ARENA] );
 
     parsec_private_memory_fini( parsec_zpxtrf_sp1dplus->_g_p_work );
     free( parsec_zpxtrf_sp1dplus->_g_p_work );
@@ -177,13 +174,15 @@ parsec_zpxtrf_sp1dplus( parsec_context_t *parsec,
 
     parsec_zpxtrf_sp1dplus = parsec_zpxtrf_sp1dplus_New( A, sopalin_data );
 
-    if ( parsec_zpxtrf_sp1dplus != NULL )
-    {
-        parsec_enqueue( parsec, (parsec_taskpool_t*)parsec_zpxtrf_sp1dplus);
-        parsec_context_start( parsec );
-        parsec_context_wait( parsec );
-        parsec_zpxtrf_sp1dplus_Destruct( parsec_zpxtrf_sp1dplus );
+    if ( parsec_zpxtrf_sp1dplus == NULL ) {
+        return -1;
     }
+
+    parsec_context_add_taskpool( parsec, (parsec_taskpool_t*)parsec_zpxtrf_sp1dplus );
+    parsec_context_start( parsec );
+    parsec_context_wait( parsec );
+    parsec_zpxtrf_sp1dplus_Destruct( parsec_zpxtrf_sp1dplus );
+
     return info;
 }
 
@@ -227,10 +226,10 @@ parsec_zpxtrf_sp1dplus( parsec_context_t *parsec,
  *
  * @sa parsec_zpxtrf_sp2d
  * @sa parsec_zpxtrf_sp2d_Destruct
- * @sa parsec_zpotrf_sp2d
- * @sa parsec_cpotrf_sp2d_New
- * @sa parsec_dpotrf_sp2d_New
- * @sa parsec_spotrf_sp2d_New
+ * @sa parsec_zpxtrf_sp2d
+ * @sa parsec_cpxtrf_sp2d_New
+ * @sa parsec_dpxtrf_sp2d_New
+ * @sa parsec_spxtrf_sp2d_New
  *
  ******************************************************************************/
 parsec_taskpool_t*
@@ -251,9 +250,9 @@ parsec_zpxtrf_sp2d_New( parsec_sparse_matrix_desc_t *A,
     parsec_private_memory_init( parsec_zpxtrf_sp2d->_g_p_work,
                                 lwork * sizeof(pastix_complex64_t) );
 
-    parsec_matrix_add2arena_rect( parsec_zpxtrf_sp2d->arenas[PARSEC_zpxtrf_sp2d_DEFAULT_ARENA],
-                                  parsec_datatype_double_complex_t,
-                                  /*sopalin_data->solvmtx->gemmmax*/ 1, 1, 1 );
+    parsec_arena_construct( parsec_zpxtrf_sp2d->arenas[PARSEC_zpxtrf_sp2d_DEFAULT_ARENA],
+                            sizeof(pastix_complex64_t), PARSEC_ARENA_ALIGNMENT_SSE,
+                            parsec_datatype_double_complex_t );
 
 #if defined(PASTIX_GENERATE_MODEL)
     parsec_zpxtrf_sp2d->_g_forced_pushout = 1;
@@ -279,8 +278,6 @@ parsec_zpxtrf_sp2d_Destruct( parsec_taskpool_t *taskpool )
 {
     parsec_zpxtrf_sp2d_taskpool_t *parsec_zpxtrf_sp2d = NULL;
     parsec_zpxtrf_sp2d = (parsec_zpxtrf_sp2d_taskpool_t *)taskpool;
-
-    parsec_matrix_del2arena( parsec_zpxtrf_sp2d->arenas[PARSEC_zpxtrf_sp2d_DEFAULT_ARENA] );
 
     parsec_private_memory_fini( parsec_zpxtrf_sp2d->_g_p_work );
     free( parsec_zpxtrf_sp2d->_g_p_work );
@@ -336,13 +333,15 @@ parsec_zpxtrf_sp2d( parsec_context_t *parsec,
 
     parsec_zpxtrf_sp2d = parsec_zpxtrf_sp2d_New( A, sopalin_data );
 
-    if ( parsec_zpxtrf_sp2d != NULL )
-    {
-        parsec_enqueue( parsec, (parsec_taskpool_t*)parsec_zpxtrf_sp2d );
-        parsec_context_start( parsec );
-        parsec_context_wait( parsec );
-        parsec_zpxtrf_sp2d_Destruct( parsec_zpxtrf_sp2d );
+    if ( parsec_zpxtrf_sp2d == NULL ) {
+        return -1;
     }
+
+    parsec_context_add_taskpool( parsec, (parsec_taskpool_t*)parsec_zpxtrf_sp2d );
+    parsec_context_start( parsec );
+    parsec_context_wait( parsec );
+    parsec_zpxtrf_sp2d_Destruct( parsec_zpxtrf_sp2d );
+
     return info;
 }
 
@@ -367,7 +366,7 @@ parsec_zpxtrf_sp2d( parsec_context_t *parsec,
  *
  * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.
-  *
+ *
  * @param[inout] sopalin_data
  *          Solver matrix information structure that will guide the algorithm.
  *
@@ -397,7 +396,8 @@ parsec_zpxtrf( pastix_data_t  *pastix_data,
         /* Create the matrix descriptor */
         parsec_sparse_matrix_init( sopalin_data->solvmtx,
                                    sizeof( pastix_complex64_t ), PastixSymmetric,
-                                   1, 0 );
+                                   pastix_data->inter_node_procnbr,
+                                   pastix_data->inter_node_procnum );
         sdesc = sopalin_data->solvmtx->parsec_desc;
     }
 

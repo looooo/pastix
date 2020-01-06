@@ -88,12 +88,15 @@ pastix_parsec_init( pastix_data_t *pastix,
 
         rc = asprintf(&value, "%d", (int)(iparm[IPARM_GPU_NBR]));
         parsec_setenv_mca_param( "device_cuda_enabled", value, &environ );
+        free(value);
 
         rc = asprintf(&value, "%d", (int)(iparm[IPARM_GPU_MEMORY_BLOCK_SIZE]));
         parsec_setenv_mca_param( "device_cuda_memory_block_size", value, &environ );
+        free(value);
 
         rc = asprintf(&value, "%d", (int)(iparm[IPARM_GPU_MEMORY_PERCENTAGE]));
         parsec_setenv_mca_param( "device_cuda_memory_use", value, &environ );
+        free(value);
 
         if (iparm[IPARM_GPU_NBR] > 0) {
             if (iparm[IPARM_VERBOSE] > 2) {
@@ -103,8 +106,6 @@ pastix_parsec_init( pastix_data_t *pastix,
                 parsec_setenv_mca_param( "device_show_capabilities", "1", &environ );
             }
         }
-
-        free(value);
 
 #if defined(PASTIX_WITH_CUDA)
         cublasInit();

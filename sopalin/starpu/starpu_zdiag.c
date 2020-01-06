@@ -53,7 +53,10 @@ starpu_zdiag_sp1dplus( pastix_data_t               *pastix_data,
     cblk = datacode->cblktab;
     cblknbr = (mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
     for (k=0; k<cblknbr; k++, cblk++) {
-        starpu_stask_cblk_zdiag( sopalin_data, cblk, cblknbr - k);
+        if ( cblk->ownerid != datacode->clustnum ) {
+            continue;
+        }
+        starpu_stask_cblk_zdiag( sopalin_data, cblk, cblknbr - k );
     }
 }
 
@@ -103,14 +106,17 @@ starpu_zdiag( pastix_data_t      *pastix_data,
         /* Create the sparse matrix descriptor */
         starpu_sparse_matrix_init( sopalin_data->solvmtx,
                                    sizeof( pastix_complex64_t ), PastixHermitian,
-                                   1, 0 );
+                                   pastix_data->inter_node_procnbr,
+                                   pastix_data->inter_node_procnum );
         sdesc = sopalin_data->solvmtx->starpu_desc;
     }
 
     /* Create the dense matrix descriptor */
     starpu_dense_matrix_init( sopalin_data->solvmtx,
                               nrhs, (char*)b, ldb,
-                              sizeof(pastix_complex64_t), 1, 0 );
+                              sizeof(pastix_complex64_t),
+                              pastix_data->inter_node_procnbr,
+                              pastix_data->inter_node_procnum );
     ddesc = sopalin_data->solvmtx->starpu_desc_rhs;
 
     starpu_resume();
@@ -120,7 +126,7 @@ starpu_zdiag( pastix_data_t      *pastix_data,
     starpu_dense_matrix_getoncpu( ddesc );
     starpu_task_wait_for_all();
 #if defined(PASTIX_WITH_MPI)
-    starpu_mpi_barrier(MPI_COMM_WORLD);
+    starpu_mpi_barrier(pastix_data->inter_node_comm);
 #endif
     starpu_pause();
 

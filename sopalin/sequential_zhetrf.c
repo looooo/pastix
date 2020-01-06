@@ -330,6 +330,6 @@ sopalin_zhetrf( pastix_data_t  *pastix_data,
     }
 
 #if defined(PASTIX_DEBUG_FACTO)
-    coeftab_zdump( pastix_data, sopalin_data->solvmtx, "hetrf.txt" );
+    coeftab_zdump( pastix_data, sopalin_data->solvmtx, "hetrf" );
 #endif
 }

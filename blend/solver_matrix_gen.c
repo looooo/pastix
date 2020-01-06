@@ -523,7 +523,7 @@ solverMatrixGenSeq( SolverMatrix          *solvmtx,
             }
 
             /* Every cblk is local */
-            solvcblk->ownerid = ctrl->clustnum;
+            solvcblk->ownerid = simublok[-1].ownerclust;
             assert( nodenbr == fcolnum );
 
             /* Compute the original supernode in the nested dissection */

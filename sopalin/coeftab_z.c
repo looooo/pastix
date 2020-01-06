@@ -49,17 +49,14 @@
 void
 coeftab_zdump( pastix_data_t      *pastix_data,
                const SolverMatrix *solvmtx,
-               const char         *filename )
+               const char         *prefix )
 {
     SolverCblk *cblk = solvmtx->cblktab;
     pastix_int_t itercblk;
+    char  filename[256];
     FILE *stream = NULL;
 
     pastix_gendirectories( pastix_data );
-    stream = pastix_fopenw( pastix_data->dir_global, filename, "w" );
-    if ( stream == NULL ){
-        return;
-    }
 
     /*
      * TODO: there is a problem right here for now, because there are no
@@ -67,16 +64,26 @@ coeftab_zdump( pastix_data_t      *pastix_data,
      */
     for (itercblk=0; itercblk<solvmtx->cblknbr; itercblk++, cblk++)
     {
-        if( cblk->cblktype & CBLK_FANIN ){
+        if ( cblk->cblktype & CBLK_FANIN ) {
             continue;
         }
+        if ( solvmtx->clustnum != cblk->ownerid ) {
+            continue;
+        }
+
+        sprintf( filename, "%s_%ld.txt", prefix, (long)cblk->gcblknum );
+        stream = pastix_fopenw( pastix_data->dir_global, filename, "w" );
+        if ( stream == NULL ){
+            continue;
+        }
+
         cpucblk_zdump( PastixLCoef, cblk, stream );
         if ( NULL != cblk->ucoeftab ) {
             cpucblk_zdump( PastixUCoef, cblk, stream );
         }
-    }
 
-    fclose( stream );
+        fclose( stream );
+    }
 }
 
 /**

@@ -68,7 +68,7 @@
  *
  * @sa parsec_zhetrf_sp1dplus
  * @sa parsec_zhetrf_sp1dplus_Destruct
- * @sa parsec_zgetrf_sp1dplus
+ * @sa parsec_zhetrf_sp1dplus
  * @sa parsec_chetrf_sp1dplus_New
  * @sa parsec_dhetrf_sp1dplus_New
  * @sa parsec_shetrf_sp1dplus_New
@@ -95,10 +95,9 @@ parsec_zhetrf_sp1dplus_New( parsec_sparse_matrix_desc_t *A,
     parsec_private_memory_init( parsec_zhetrf_sp1dplus->_g_p_work,
                                 lwork * sizeof(pastix_complex64_t) );
 
-    /* This is a default initializer for now, as it is not used in distributed */
-    parsec_matrix_add2arena_rect( parsec_zhetrf_sp1dplus->arenas[PARSEC_zhetrf_sp1dplus_DEFAULT_ARENA],
-                                  parsec_datatype_double_complex_t, 1,
-                                  /*sopalin_data->solvmtx->offdmax*/ 1, 1 );
+    parsec_arena_construct( parsec_zhetrf_sp1dplus->arenas[PARSEC_zhetrf_sp1dplus_DEFAULT_ARENA],
+                            sizeof(pastix_complex64_t), PARSEC_ARENA_ALIGNMENT_SSE,
+                            parsec_datatype_double_complex_t );
 
     parsec_matrix_add2arena_rect( parsec_zhetrf_sp1dplus->arenas[PARSEC_zhetrf_sp1dplus_CBLK_WS_ARENA],
                                   parsec_datatype_double_complex_t, offdmax, 1, offdmax );
@@ -128,7 +127,6 @@ parsec_zhetrf_sp1dplus_Destruct( parsec_taskpool_t *taskpool )
     parsec_zhetrf_sp1dplus_taskpool_t *parsec_zhetrf_sp1dplus = NULL;
     parsec_zhetrf_sp1dplus = (parsec_zhetrf_sp1dplus_taskpool_t *)taskpool;
 
-    parsec_matrix_del2arena( parsec_zhetrf_sp1dplus->arenas[PARSEC_zhetrf_sp1dplus_DEFAULT_ARENA] );
     parsec_matrix_del2arena( parsec_zhetrf_sp1dplus->arenas[PARSEC_zhetrf_sp1dplus_CBLK_WS_ARENA] );
 
     parsec_private_memory_fini( parsec_zhetrf_sp1dplus->_g_p_work );
@@ -185,13 +183,15 @@ parsec_zhetrf_sp1dplus( parsec_context_t *parsec,
 
     parsec_zhetrf_sp1dplus = parsec_zhetrf_sp1dplus_New( A, sopalin_data );
 
-    if ( parsec_zhetrf_sp1dplus != NULL )
-    {
-        parsec_enqueue( parsec, (parsec_taskpool_t*)parsec_zhetrf_sp1dplus);
-        parsec_context_start( parsec );
-        parsec_context_wait( parsec );
-        parsec_zhetrf_sp1dplus_Destruct( parsec_zhetrf_sp1dplus );
+    if ( parsec_zhetrf_sp1dplus == NULL ) {
+        return -1;
     }
+
+    parsec_context_add_taskpool( parsec, (parsec_taskpool_t*)parsec_zhetrf_sp1dplus );
+    parsec_context_start( parsec );
+    parsec_context_wait( parsec );
+    parsec_zhetrf_sp1dplus_Destruct( parsec_zhetrf_sp1dplus );
+
     return info;
 }
 
@@ -236,7 +236,7 @@ parsec_zhetrf_sp1dplus( parsec_context_t *parsec,
  *
  * @sa parsec_zhetrf_sp2d
  * @sa parsec_zhetrf_sp2d_Destruct
- * @sa parsec_zgetrf_sp2d
+ * @sa parsec_zhetrf_sp2d
  * @sa parsec_chetrf_sp2d_New
  * @sa parsec_dhetrf_sp2d_New
  * @sa parsec_shetrf_sp2d_New
@@ -263,9 +263,9 @@ parsec_zhetrf_sp2d_New( parsec_sparse_matrix_desc_t *A,
     parsec_private_memory_init( parsec_zhetrf_sp2d->_g_p_work,
                                 lwork * sizeof(pastix_complex64_t) );
 
-    parsec_matrix_add2arena_rect( parsec_zhetrf_sp2d->arenas[PARSEC_zhetrf_sp2d_DEFAULT_ARENA],
-                                  parsec_datatype_double_complex_t,
-                                  /*sopalin_data->solvmtx->offdmax*/ 1, 1, 1 );
+    parsec_arena_construct( parsec_zhetrf_sp2d->arenas[PARSEC_zhetrf_sp2d_DEFAULT_ARENA],
+                            sizeof(pastix_complex64_t), PARSEC_ARENA_ALIGNMENT_SSE,
+                            parsec_datatype_double_complex_t );
 
     parsec_matrix_add2arena_rect( parsec_zhetrf_sp2d->arenas[PARSEC_zhetrf_sp2d_CBLK_WS_ARENA],
                                   parsec_datatype_double_complex_t,
@@ -300,9 +300,10 @@ parsec_zhetrf_sp2d_Destruct( parsec_taskpool_t *taskpool )
     parsec_zhetrf_sp2d_taskpool_t *parsec_zhetrf_sp2d = NULL;
     parsec_zhetrf_sp2d = (parsec_zhetrf_sp2d_taskpool_t *)taskpool;
 
-    parsec_matrix_del2arena( parsec_zhetrf_sp2d->arenas[PARSEC_zhetrf_sp2d_DEFAULT_ARENA] );
     parsec_matrix_del2arena( parsec_zhetrf_sp2d->arenas[PARSEC_zhetrf_sp2d_CBLK_WS_ARENA] );
-    parsec_matrix_del2arena( parsec_zhetrf_sp2d->arenas[PARSEC_zhetrf_sp2d_BLOK_WS_ARENA] );
+    if ( parsec_zhetrf_sp2d->arenas[PARSEC_zhetrf_sp2d_BLOK_WS_ARENA]->elem_size > 0 ) {
+        parsec_matrix_del2arena( parsec_zhetrf_sp2d->arenas[PARSEC_zhetrf_sp2d_BLOK_WS_ARENA] );
+    }
 
     parsec_private_memory_fini( parsec_zhetrf_sp2d->_g_p_work );
     free( parsec_zhetrf_sp2d->_g_p_work );
@@ -358,13 +359,15 @@ parsec_zhetrf_sp2d( parsec_context_t *parsec,
 
     parsec_zhetrf_sp2d = parsec_zhetrf_sp2d_New( A, sopalin_data );
 
-    if ( parsec_zhetrf_sp2d != NULL )
-    {
-        parsec_enqueue( parsec, (parsec_taskpool_t*)parsec_zhetrf_sp2d );
-        parsec_context_start( parsec );
-        parsec_context_wait( parsec );
-        parsec_zhetrf_sp2d_Destruct( parsec_zhetrf_sp2d );
+    if ( parsec_zhetrf_sp2d == NULL ) {
+        return -1;
     }
+
+    parsec_context_add_taskpool( parsec, (parsec_taskpool_t*)parsec_zhetrf_sp2d );
+    parsec_context_start( parsec );
+    parsec_context_wait( parsec );
+    parsec_zhetrf_sp2d_Destruct( parsec_zhetrf_sp2d );
+
     return info;
 }
 
@@ -389,7 +392,7 @@ parsec_zhetrf_sp2d( parsec_context_t *parsec,
  *
  * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.
-  *
+ *
  * @param[inout] sopalin_data
  *          Solver matrix information structure that will guide the algorithm.
  *
@@ -419,12 +422,13 @@ parsec_zhetrf( pastix_data_t  *pastix_data,
         /* Create the matrix descriptor */
         parsec_sparse_matrix_init( sopalin_data->solvmtx,
                                    sizeof( pastix_complex64_t ), PastixHermitian,
-                                   1, 0 );
+                                   pastix_data->inter_node_procnbr,
+                                   pastix_data->inter_node_procnum );
         sdesc = sopalin_data->solvmtx->parsec_desc;
     }
 
     /*
-     * Select 1D or 2D jdf based on distribution_level
+     * Select 1D or 2D jdf based on 2d tasks level
      */
     if ( pastix_data->iparm[IPARM_TASKS2D_LEVEL] != 0 )
     {

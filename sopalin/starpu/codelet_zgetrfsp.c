@@ -23,6 +23,7 @@
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 #include "pastix_starpu.h"
+#include "pastix_zstarpu.h"
 #include "codelets.h"
 #include "pastix_starpu_model.h"
 
@@ -58,7 +59,7 @@ static void fct_cblk_zgetrfsp1d_panel_cpu(void *descr[], void *cl_arg)
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_CPU( cblk_zgetrfsp1d_panel, 2 )
+CODELETS_CPU( cblk_zgetrfsp1d_panel, 2 );
 
 void
 starpu_task_cblk_zgetrfsp1d_panel( sopalin_data_t *sopalin_data,
@@ -111,7 +112,7 @@ static void fct_blok_zgetrfsp_cpu(void *descr[], void *cl_arg)
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_CPU( blok_zgetrfsp, 2 )
+CODELETS_CPU( blok_zgetrfsp, 2 );
 
 void
 starpu_task_blok_zgetrf( sopalin_data_t *sopalin_data,

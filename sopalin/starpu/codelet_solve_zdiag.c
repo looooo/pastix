@@ -24,6 +24,7 @@
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 #include "pastix_starpu.h"
+#include "pastix_zstarpu.h"
 #include "codelets.h"
 
 /**
@@ -54,7 +55,8 @@ static void fct_solve_cblk_zdiag_cpu(void *descr[], void *cl_arg)
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_CPU( solve_cblk_zdiag, 2 )
+CODELETS_CPU( solve_cblk_zdiag, 2 );
+
 /**
  *******************************************************************************
  *
@@ -75,8 +77,8 @@ CODELETS_CPU( solve_cblk_zdiag, 2 )
  *******************************************************************************/
 void
 starpu_stask_cblk_zdiag( sopalin_data_t *sopalin_data,
-                        SolverCblk     *cblk,
-                        int             prio )
+                         SolverCblk     *cblk,
+                         int             prio )
 {
     SolverMatrix *solvmtx = sopalin_data->solvmtx;
     pastix_int_t  cblknum = cblk - solvmtx->cblktab;

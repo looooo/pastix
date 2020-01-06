@@ -23,6 +23,7 @@
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 #include "pastix_starpu.h"
+#include "pastix_zstarpu.h"
 #include "codelets.h"
 
 /**
@@ -57,30 +58,34 @@ static void fct_blok_zscalo_cpu(void *descr[], void *cl_arg)
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_CPU( blok_zscalo, 3 )
+CODELETS_CPU( blok_zscalo, 3 );
 
 void
-starpu_task_blok_zscalo( pastix_trans_t    trans,
+starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
+                         pastix_trans_t    trans,
                          SolverCblk       *cblk,
                          SolverBlok       *blok,
-                         sopalin_data_t   *sopalin_data,
                          int               prio )
 {
     starpu_data_handle_t *handler = (starpu_data_handle_t*)(blok->handler);
     SolverBlok  *blokA = blok;
     pastix_int_t blok_m = blok - cblk->fblokptr;
-    pastix_int_t M = blok_rownbr( blokA );
-
-    while( (blokA < cblk[1].fblokptr) &&
-           (blokA[0].fcblknm == blokA[1].fcblknm) &&
-           (blokA[0].lcblknm == blokA[1].lcblknm) )
-    {
-        blokA++;
-        M += blok_rownbr( blokA );
-    }
+    pastix_int_t M = blok_rownbr_ext( blokA );
 
     starpu_vector_data_register( handler + 1, -1, (uintptr_t)NULL, M * cblk_colnbr( cblk ),
                                  sopalin_data->solvmtx->starpu_desc->typesze );
+
+#if defined(PASTIX_WITH_MPI)
+    {
+        int64_t tag_desc = sopalin_data->solvmtx->starpu_desc->mpitag;
+        int64_t bloknum  = blok - sopalin_data->solvmtx->bloktab;
+        int64_t tag_blok = 2 * (sopalin_data->solvmtx->cblknbr + bloknum) + 1;
+
+        starpu_mpi_data_register( *(handler+1),
+                                  tag_desc | tag_blok,
+                                  cblk->ownerid );
+    }
+#endif /* PASTIX_WITH_MPI */
 
     starpu_insert_task(
         pastix_codelet(&cl_blok_zscalo_cpu),

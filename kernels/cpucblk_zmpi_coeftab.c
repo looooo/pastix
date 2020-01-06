@@ -224,9 +224,6 @@ cpucblk_zrequest_handle_recv( pastix_coefside_t  side,
 
     /* Receptions cblks contribute to themselves */
     cpucblk_zrelease_deps( side, solvmtx, cblk, cblk );
-
-    /* We are done with this update, we can now receive another one */
-    cblk->rcoeftab = NULL;
 }
 
 /**
@@ -536,7 +533,6 @@ cpucblk_zmpi_progress( pastix_coefside_t   side,
 
         if ( cblk->cblktype & CBLK_RECV ) {
             cblk->threadid = threadid;
-            assert( cblk->rcoeftab == NULL );
             cblk->rcoeftab = recv;
 
             cpucblk_zrequest_handle_recv( side, solvmtx, cblk );

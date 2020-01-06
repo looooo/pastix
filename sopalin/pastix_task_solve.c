@@ -487,17 +487,21 @@ pastix_subtask_solve( pastix_data_t *pastix_data,
 
         case PastixFactLU:
         default:
+            dump_rhs( pastix_data->inter_node_procnum,  "LUAfterperm", bcsc->flttype, bcsc->gN, nrhs, b, bcsc->gN );
+
             /* Solve L y = P b with y = U P x */
             pastix_subtask_trsm( pastix_data, bcsc->flttype,
                                  PastixLeft, PastixLower,
                                  PastixNoTrans, PastixUnit,
                                  nrhs, b, ldb );
+            dump_rhs( pastix_data->inter_node_procnum,  "LUAfterDown", bcsc->flttype, bcsc->gN, nrhs, b, bcsc->gN );
 
             /* Solve y = U (P x) */
             pastix_subtask_trsm( pastix_data, bcsc->flttype,
                                  PastixLeft, PastixUpper,
                                  PastixNoTrans, PastixNonUnit,
                                  nrhs, b, ldb );
+            dump_rhs( pastix_data->inter_node_procnum,  "LUAfterUp", bcsc->flttype, bcsc->gN, nrhs, b, bcsc->gN );
             break;
         }
         clockSyncStop( timer, pastix_data->inter_node_comm );

@@ -113,6 +113,24 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
     }
 
     /*
+     * Temporary switch of the solver pointer for the runtime
+     */
+    if ( !(pastix_data->steps & STEP_CSC2BCSC) )
+    {
+        SolverMatrix *tmp;
+        switch( pastix_data->iparm[IPARM_SCHEDULER] ){
+        case PastixSchedParsec:
+        case PastixSchedStarPU:
+            tmp = pastix_data->solvmatr;
+            pastix_data->solvmatr = pastix_data->solvglob;
+            pastix_data->solvglob = tmp;
+            break;
+        default:
+            break;
+        }
+    }
+
+    /*
      * Fill in the internal blocked CSC. We consider that if this step is called
      * the spm values have changed so we need to update the blocked csc.
      */

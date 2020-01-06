@@ -76,8 +76,8 @@ starpu_zpotrf_sp1dplus( sopalin_data_t              *sopalin_data,
             fcblk = (solvmtx->cblktab + blok->fcblknm);
             cblk_n = fcblk - solvmtx->cblktab;
 
-            starpu_task_cblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
-                                      cblk, blok, fcblk, sopalin_data,
+            starpu_task_cblk_zgemmsp( sopalin_data, PastixLCoef, PastixLCoef, PastixConjTrans,
+                                      cblk, blok, fcblk,
                                       cblknbr - pastix_imin( k + m, cblk_n ) );
         }
     }
@@ -130,9 +130,8 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
         if ( cblk->cblktype & CBLK_TASKS_2D ) {
             assert( k >= solvmtx->cblkmin2d );
             cblkhandle = desc->cblktab_handle + (k - solvmtx->cblkmin2d);
-            starpu_data_partition_submit( cblk->handler[0],
-                                          cblkhandle->handlenbr,
-                                          cblkhandle->handletab );
+
+            pastix_starpu_partition_submit( PastixLCoef, cblk, cblkhandle );
             continue;
         }
 
@@ -148,8 +147,8 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
             fcblk = (solvmtx->cblktab + blok->fcblknm);
             cblk_n = fcblk - solvmtx->cblktab;
 
-            starpu_task_cblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
-                                      cblk, blok, fcblk, sopalin_data,
+            starpu_task_cblk_zgemmsp( sopalin_data, PastixLCoef, PastixLCoef, PastixConjTrans,
+                                      cblk, blok, fcblk,
                                       cblknbr - pastix_imin( k + m, cblk_n ) );
         }
     }
@@ -164,9 +163,7 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
             continue;
         }
 
-        starpu_data_partition_submit( cblk->handler[0],
-                                      cblkhandle->handlenbr,
-                                      cblkhandle->handletab );
+        pastix_starpu_partition_submit( PastixLCoef, cblk, cblkhandle );
     }
 
     /* Now we submit all 2D tasks */
@@ -180,9 +177,8 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
 
         if (cblk->cblktype & CBLK_IN_SCHUR)
         {
-            starpu_data_unpartition_submit( cblk->handler[0],
-                                            cblkhandle->handlenbr,
-                                            cblkhandle->handletab, STARPU_MAIN_RAM );
+            pastix_starpu_unpartition_submit( desc, sopalin_data->solvmtx->clustnum,
+                                              PastixLCoef, cblk, cblkhandle );
             continue;
         }
 
@@ -194,16 +190,16 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
 
             cblk_n = blokA->fcblknm;
 
-            starpu_task_blok_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
+            starpu_task_blok_ztrsmsp( sopalin_data, PastixLCoef, PastixRight, PastixLower,
                                       PastixConjTrans, PastixNonUnit,
-                                      cblk, blokA, sopalin_data,
+                                      cblk, blokA,
                                       cblknbr - k );
 
             for(blokB=cblk->fblokptr + 1; blokB<=blokA; blokB++) {
 
-                starpu_task_blok_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+                starpu_task_blok_zgemmsp( sopalin_data, PastixLCoef, PastixLCoef, PastixConjTrans,
                                           cblk, solvmtx->cblktab + blokB->fcblknm,
-                                          blokA, blokB, sopalin_data,
+                                          blokA, blokB,
                                           cblknbr - pastix_imin( k + m, cblk_n ) );
 
                 /* Skip B blocks facing the same cblk */
@@ -223,9 +219,8 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
                 blokA++;
             }
         }
-        starpu_data_unpartition_submit( cblk->handler[0],
-                                        cblkhandle->handlenbr,
-                                        cblkhandle->handletab, STARPU_MAIN_RAM );
+        pastix_starpu_unpartition_submit( desc, sopalin_data->solvmtx->clustnum,
+                                          PastixLCoef, cblk, cblkhandle );
     }
     (void)desc;
 }
@@ -275,7 +270,8 @@ starpu_zpotrf( pastix_data_t  *pastix_data,
         /* Create the matrix descriptor */
         starpu_sparse_matrix_init( sopalin_data->solvmtx,
                                    sizeof( pastix_complex64_t ), PastixHermitian,
-                                   1, 0 );
+                                   pastix_data->inter_node_procnbr,
+                                   pastix_data->inter_node_procnum );
         sdesc = sopalin_data->solvmtx->starpu_desc;
     }
 
@@ -295,7 +291,7 @@ starpu_zpotrf( pastix_data_t  *pastix_data,
     starpu_sparse_matrix_getoncpu( sdesc );
     starpu_task_wait_for_all();
 #if defined(PASTIX_WITH_MPI)
-    starpu_mpi_barrier(MPI_COMM_WORLD);
+    starpu_mpi_barrier( pastix_data->inter_node_comm );
 #endif
     starpu_pause();
 

@@ -65,6 +65,7 @@ lastbrow  = %{ if ( browk0 == browk1 ) return 0; else return datacode->browtab[ 
 isTwoD    = %{ SolverCblk *cblk = datacode->cblktab + k;     return (cblk->cblktype & CBLK_TASKS_2D);         %}
 firstblok = %{ SolverCblk *cblk = datacode->cblktab + k;     return (cblk->fblokptr - datacode->bloktab) + 1; %}
 lastblok  = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return (cblk->fblokptr - datacode->bloktab) - 1; %}
+cblksize  = %{ SolverCblk *cblk = datacode->cblktab + k;     return (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ); %}
 
 // Parallel partitioning
 :descA(0, k, 0)
@@ -72,7 +73,7 @@ lastblok  = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return (cblk->fblok
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
 RW L <- ( browk0 == browk1 ) ? descA(0, k, 0) : C GEMM1D( lastbrow )
-     -> !isTwoD ? A GEMM1D(firstblok .. lastblok)
+     -> !isTwoD ? A GEMM1D(firstblok .. lastblok)                    [ layout=parsec_datatype_double_complex_t count=cblksize ]
      -> descA(0, k, 0)
 
 CTL ctl -> isTwoD ? ctl OneToTwoD(k, 0 .. (lastblok-firstblok+1))
@@ -151,7 +152,7 @@ next    = %{
     }
     %}
 
-n  = %{ if (brownum == -1) return 0; else return blok_rownbr(datacode->bloktab + bloknum); %}
+n  = %{ if (brownum == -1) return 0; else return blok_rownbr_ext(datacode->bloktab + bloknum); %}
 k  = %{ if (brownum == -1) return 0; else return cblk_colnbr(datacode->cblktab + lcblknm); %}
 m  = %{ if (brownum == -1) return 0; else {
         if ((datacode->cblktab + lcblknm)->cblktype & CBLK_LAYOUT_2D) {
@@ -161,11 +162,13 @@ m  = %{ if (brownum == -1) return 0; else {
         }
     }%}
 
+lcblksze = %{ SolverCblk *cblk = datacode->cblktab + lcblknm; return (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ); %}
+
 // Parallel partitioning
 :descA(0, fcblknm, 0)
 
 // Parameters
-READ  A  <- (brownum != -1 && !isTwoD) ? L POTRF( lcblknm ) : NULL
+READ  A  <- (brownum != -1 && !isTwoD) ? L POTRF( lcblknm ) : NULL                    [ layout=parsec_datatype_double_complex_t count=lcblksze ]
 
 RW    C  <- (brownum == -1) || isTwoD ? NULL
          <- (brownum != -1) && !isTwoD && (brownum == first) ? descA( 0, fcblknm, 0 )
@@ -271,17 +274,23 @@ noskip  = %{ if (m == 0) {
 first   = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k;     return cblk->brown2d; } else { return 0; }%}
 last    = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; } else { return 0; }%}
 
+displm  = %{ SolverBlok *blok = datacode->bloktab + fblokk + m;
+             return blok->coefind; %}
+bloksze = %{ SolverCblk *cblk = datacode->cblktab + k;
+             SolverBlok *blok = datacode->bloktab + fblokk + m;
+             return cblk_colnbr( cblk ) * blok_rownbr_ext( blok ); %}
+
 // Parallel partitioning
 :descA(0, k, noskip)
 
 // Parameters
-READ A <- isTwoD && noskip ? descA(0, k, noskip) : NULL
+READ A <- isTwoD && noskip ? descA(0, k, noskip) : NULL                      [ layout=parsec_datatype_double_complex_t count=bloksze displ=displm ]
        /* This cblk is a leaf */
-       -> isTwoD && noskip && (first == last) && (m == 0) ? A POTRF2D( k )
-       -> isTwoD && noskip && (first == last) && (m != 0) ? C TRSM2D( k, m )
+       -> isTwoD && noskip && (first == last) && (m == 0) ? A POTRF2D( k )   [ layout=parsec_datatype_double_complex_t count=bloksze displ=displm ]
+       -> isTwoD && noskip && (first == last) && (m != 0) ? C TRSM2D( k, m ) [ layout=parsec_datatype_double_complex_t count=bloksze displ=displm ]
 
        /* This cblk must receive 2D updates */
-       -> isTwoD && noskip && (first <  last) ? C GEMM2D( k, m, first )
+       -> isTwoD && noskip && (first <  last) ? C GEMM2D( k, m, first )      [ layout=parsec_datatype_double_complex_t count=bloksze displ=displm ]
 
 CTL  ctl <- (isTwoD) ? ctl POTRF(k)
 
@@ -303,17 +312,21 @@ lblokk  = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return (cblk->fblokpt
 first   = %{ SolverCblk *cblk = datacode->cblktab + k;     return cblk->brown2d; %}
 last    = %{ SolverCblk *cblk = datacode->cblktab + k + 1; return cblk->brownum; %}
 
+bloksze = %{ SolverCblk *cblk = datacode->cblktab + k;
+             SolverBlok *blok = cblk->fblokptr;
+             return cblk_colnbr( cblk ) * blok_rownbr_ext( blok ); %}
+
 // Parallel partitioning
 :descA(0, k, 1)
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
-RW   A  <-  isTwoD & (first == last) ? A OneToTwoD( k, 0 )
-        <-  isTwoD & (first <  last) ? C GEMM2D( k, 0, last-1 )
-        <- !isTwoD ? NULL
+RW   A  <-  isTwoD & (first == last) ? A OneToTwoD( k, 0 )      [ layout=parsec_datatype_double_complex_t count=bloksze ]
+        <-  isTwoD & (first <  last) ? C GEMM2D( k, 0, last-1 ) [ layout=parsec_datatype_double_complex_t count=bloksze ]
+        <- !isTwoD ? NULL                                       [ layout=parsec_datatype_double_complex_t count=bloksze ]
 
-        ->  isTwoD ? A TRSM2D( k, 1 .. (lblokk-fblokk) )
-        ->  isTwoD ? descA(0, k, 1)
+        ->  isTwoD ? A TRSM2D( k, 1 .. (lblokk-fblokk) )        [ layout=parsec_datatype_double_complex_t count=bloksze ]
+        ->  isTwoD ? descA(0, k, 1)                             [ layout=parsec_datatype_double_complex_t count=bloksze ]
 
 ; %{ return cblknbr - k; %}
 
@@ -350,19 +363,27 @@ browkb  = %{ if (noskip) { SolverBlok *blok = datacode->bloktab + fblokk + m;  r
 fblokn  = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + fcblknm;     return cblk->fblokptr - datacode->bloktab;   } else { return 0; } %}
 lblokn  = %{ if (noskip) { SolverCblk *cblk = datacode->cblktab + fcblknm + 1; return cblk->fblokptr - datacode->bloktab-1; } else { return 0; } %}
 
+blkksze = %{ SolverCblk *cblk = datacode->cblktab + k;
+             SolverBlok *blok = cblk->fblokptr;
+             return cblk_colnbr( cblk ) * blok_rownbr_ext( blok ); %}
+
+blknsze = %{ SolverCblk *cblk = datacode->cblktab + k;
+             SolverBlok *blok = datacode->bloktab + fblokk + m;
+             return cblk_colnbr( cblk ) * blok_rownbr_ext( blok ); %}
+
 // Parallel partitioning
 :descA(0, k, noskip)
 
 // Parameters
 /* C is A(k) if it's a leaf or get the cblk from the last update */
-READ  A   <-  isTwoD ? A POTRF2D( k ) : NULL
+READ  A   <-  isTwoD ? A POTRF2D( k ) : NULL                                      [ layout=parsec_datatype_double_complex_t count=blkksze ]
 
-RW    C   <-  isTwoD & noskip & (first == last) ? A OneToTwoD( k, m )
-          <-  isTwoD & noskip & (first <  last) ? C GEMM2D( k, m, last-1 )
-          <-(!isTwoD) | (!noskip) ? NULL
-          ->  isTwoD & noskip ? A FWDTOGEMM2D( k, m, 1 .. m )
-          ->  isTwoD & noskip ? B GEMM2D( fcblknm, 0 .. (lblokn-fblokn), browkb )
-          ->  isTwoD & noskip ? descA(0, k, noskip)
+RW    C   <-  isTwoD & noskip & (first == last) ? A OneToTwoD( k, m )             [ layout=parsec_datatype_double_complex_t count=blknsze ]
+          <-  isTwoD & noskip & (first <  last) ? C GEMM2D( k, m, last-1 )        [ layout=parsec_datatype_double_complex_t count=blknsze ]
+          <-(!isTwoD) | (!noskip) ? NULL                                          [ layout=parsec_datatype_double_complex_t count=blknsze ]
+          ->  isTwoD & noskip ? A FWDTOGEMM2D( k, m, 1 .. m )                     [ layout=parsec_datatype_double_complex_t count=blknsze ]
+          ->  isTwoD & noskip ? B GEMM2D( fcblknm, 0 .. (lblokn-fblokn), browkb ) [ layout=parsec_datatype_double_complex_t count=blknsze ]
+          ->  isTwoD & noskip ? descA(0, k, noskip)                               [ layout=parsec_datatype_double_complex_t count=blknsze ]
 
 ; %{ return cblknbr - k; %}
 
@@ -462,12 +483,16 @@ blok_mn = %{
 browkb = %{ SolverBlok *blok = datacode->bloktab + fblokk + n;
             return blok->browind; %}
 
+blkmsze = %{ SolverCblk *cblk = datacode->cblktab + k;
+             SolverBlok *blok = datacode->bloktab + fblokk + m;
+             return cblk_colnbr( cblk ) * blok_rownbr_ext( blok ); %}
+
 // Parallel partitioning
 :descA(0, cblk_n, blok_mn)
 
 // Parameters
-READ  A  <- noskipM ? C TRSM2D( k, m ) : NULL
-         -> noskipM & noskipN ? A GEMM2D( cblk_n, blok_mn, browkb )
+READ  A  <- noskipM ? C TRSM2D( k, m ) : NULL                       [ layout=parsec_datatype_double_complex_t count=blkmsze ]
+         -> noskipM & noskipN ? A GEMM2D( cblk_n, blok_mn, browkb ) [ layout=parsec_datatype_double_complex_t count=blkmsze ]
 
 ; %{ return cblknbr - k; %}
 
@@ -547,16 +572,16 @@ blok_mk = %{
 
 todo = (is2dA && is2dC && noskipC && blok_nk && blok_mk)
 
-dimm = %{ if (!todo) return 0; else return blok_rownbr(datacode->bloktab + fblokk + blok_mk);  %}
-dimn = %{ if (!todo) return 0; else return blok_rownbr(datacode->bloktab + blok_nk); %}
+dimm = %{ if (!todo) return 0; else return blok_rownbr_ext(datacode->bloktab + fblokk + blok_mk);  %}
+dimn = %{ if (!todo) return 0; else return blok_rownbr_ext(datacode->bloktab + blok_nk); %}
 dimk = %{ if (!todo) return 0; else return cblk_colnbr(datacode->cblktab + cblk_k);  %}
 
 // Parallel partitioning
 :descA(0, cblk_n, noskipC)
 
 // Parameters
-READ  A  <-  is2dA & (blok_mk > 0) ? A FWDTOGEMM2D( cblk_k, blok_mk, blok_nk-fblokk ) : NULL
-READ  B  <-  is2dA & (blok_nk > 0) ? C TRSM2D( cblk_k, blok_nk-fblokk ) : NULL
+READ  A  <-  is2dA & (blok_mk > 0) ? A FWDTOGEMM2D( cblk_k, blok_mk, blok_nk-fblokk ) : NULL [ layout=parsec_datatype_double_complex_t count=%{ return dimm * dimk; %} ]
+READ  B  <-  is2dA & (blok_nk > 0) ? C TRSM2D( cblk_k, blok_nk-fblokk ) : NULL               [ layout=parsec_datatype_double_complex_t count=%{ return dimn * dimk; %} ]
 
 RW    C  <- (k == first) ? A OneToTwoD( cblk_n, blok_mn )
          <- (k != first) ? C GEMM2D( cblk_n, blok_mn, k-1 )

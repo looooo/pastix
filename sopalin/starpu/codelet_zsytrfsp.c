@@ -23,6 +23,7 @@
 #include "sopalin_data.h"
 #include "pastix_zcores.h"
 #include "pastix_starpu.h"
+#include "pastix_zstarpu.h"
 #include "codelets.h"
 #include "pastix_starpu_model.h"
 
@@ -58,7 +59,7 @@ static void fct_cblk_zsytrfsp1d_panel_cpu(void *descr[], void *cl_arg)
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_CPU( cblk_zsytrfsp1d_panel, 2 )
+CODELETS_CPU( cblk_zsytrfsp1d_panel, 2 );
 
 void
 starpu_task_cblk_zsytrfsp1d_panel( sopalin_data_t *sopalin_data,
@@ -77,6 +78,17 @@ starpu_task_cblk_zsytrfsp1d_panel( sopalin_data_t *sopalin_data,
         starpu_vector_data_register( handler + 1, -1, (uintptr_t)NULL, 0,
                                      sopalin_data->solvmtx->starpu_desc->typesze );
     }
+
+#if defined(PASTIX_WITH_MPI)
+    {
+        int64_t tag_desc = sopalin_data->solvmtx->starpu_desc->mpitag;
+        int64_t tag_cblk = 2 * cblk->gcblknum + 1;
+
+        starpu_mpi_data_register( *(handler+1),
+                                  tag_desc | tag_cblk,
+                                  cblk->ownerid );
+    }
+#endif /* PASTIX_WITH_MPI */
 
     starpu_insert_task(
         pastix_codelet(&cl_cblk_zsytrfsp1d_panel_cpu),
@@ -123,7 +135,7 @@ static void fct_blok_zsytrfsp_cpu(void *descr[], void *cl_arg)
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_CPU( blok_zsytrfsp, 1 )
+CODELETS_CPU( blok_zsytrfsp, 1 );
 
 void
 starpu_task_blok_zsytrf( sopalin_data_t *sopalin_data,

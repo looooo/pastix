@@ -111,7 +111,7 @@ spm_data_key_to_value( parsec_data_key_t   key,
  *           - uplo: 0 for the lower part, 1 for the upper part
  *           - cblknum: the index of the cblk
  *           - bloknum: =0 if this is the full cblk,
-                        >0 for the (bloknum-1)^th block in the cblk.
+ *                      >0 for the (bloknum-1)^th block in the cblk.
  *
  *******************************************************************************
  *
@@ -177,8 +177,24 @@ parsec_sparse_matrix_data_key( parsec_data_collection_t *mat, ... )
 static uint32_t
 parsec_sparse_matrix_rank_of( parsec_data_collection_t *mat, ... )
 {
-    (void)mat;
-    return 0;
+    parsec_sparse_matrix_desc_t *spmtx = (parsec_sparse_matrix_desc_t*)mat;
+    SolverCblk *cblk;
+    va_list ap;
+    int uplo;
+    pastix_int_t cblknum, bloknum;
+
+    va_start(ap, mat);
+    uplo    = va_arg(ap, int);
+    cblknum = va_arg(ap, int);
+    bloknum = va_arg(ap, int) - 1;
+    va_end(ap);
+
+    uplo = uplo ? 1 : 0;
+
+    cblk = spmtx->solvmtx->cblktab + cblknum;
+
+    (void)bloknum;
+    return cblk->ownerid;
 }
 
 /**
@@ -203,8 +219,18 @@ static uint32_t
 parsec_sparse_matrix_rank_of_key( parsec_data_collection_t    *mat,
                                   parsec_data_key_t  key )
 {
-    (void)mat; (void)key;
-    return 0;
+    parsec_sparse_matrix_desc_t *spmtx = (parsec_sparse_matrix_desc_t*)mat;
+    SolverMatrix *solvmtx = spmtx->solvmtx;
+    SolverCblk *cblk;
+    int uplo;
+    pastix_int_t cblknum, bloknum;
+
+    spm_data_key_to_value( key, solvmtx,
+                           &uplo, &cblknum, &bloknum );
+
+    cblk = solvmtx->cblktab + cblknum;
+
+    return cblk->ownerid;
 }
 
 /**
@@ -339,7 +365,7 @@ parsec_sparse_matrix_data_of( parsec_data_collection_t *mat, ... )
  ******************************************************************************/
 static parsec_data_t *
 parsec_sparse_matrix_data_of_key( parsec_data_collection_t    *mat,
-                           parsec_data_key_t  key )
+                                  parsec_data_key_t  key )
 {
     parsec_sparse_matrix_desc_t *spmtx = (parsec_sparse_matrix_desc_t*)mat;
     SolverMatrix *solvmtx = spmtx->solvmtx;
@@ -395,8 +421,8 @@ parsec_sparse_matrix_data_of_key( parsec_data_collection_t    *mat,
  ******************************************************************************/
 static int
 parsec_sparse_matrix_key_to_string( parsec_data_collection_t *mat,
-                             uint32_t key,
-                             char *buffer, uint32_t buffer_size )
+                                    uint32_t key,
+                                    char *buffer, uint32_t buffer_size )
 {
     parsec_sparse_matrix_desc_t *spmtx = (parsec_sparse_matrix_desc_t*)mat;
     int uplo;
@@ -420,7 +446,7 @@ parsec_sparse_matrix_key_to_string( parsec_data_collection_t *mat,
 #if defined(PASTIX_CUDA_FERMI)
 void
 parsec_sparse_matrix_init_fermi( parsec_sparse_matrix_desc_t *spmtx,
-                          const SolverMatrix   *solvmtx )
+                                 const SolverMatrix   *solvmtx )
 {
     gpu_device_t* gpu_device;
     SolverBlok *blok;
@@ -435,7 +461,7 @@ parsec_sparse_matrix_init_fermi( parsec_sparse_matrix_desc_t *spmtx,
     bloknbr = solvmtx->bloknbr;
     size = 2 * bloknbr * sizeof(int);
 
-	/**
+    /**
      * Initialize array on CPU
      */
     bloktab = (int*)malloc( size );
@@ -576,6 +602,9 @@ parsec_sparse_matrix_init( SolverMatrix *solvmtx,
         parsec_data_t **handler = (parsec_data_t**)(cblk->handler);
         size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
 
+        if ( cblk->ownerid != myrank ) {
+            continue;
+        }
         parsec_data_create( handler,
                             o, cblknum * 2, cblk->lcoeftab, size );
 
@@ -594,6 +623,9 @@ parsec_sparse_matrix_init( SolverMatrix *solvmtx,
         parsec_data_t **handler = (parsec_data_t**)(cblk->handler);
         size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
 
+        if ( cblk->ownerid != myrank ) {
+            continue;
+        }
         parsec_data_create( handler,
                             o, cblknum * 2, cblk->lcoeftab, size );
 
@@ -602,8 +634,9 @@ parsec_sparse_matrix_init( SolverMatrix *solvmtx,
                                 o, cblknum * 2 + 1, cblk->ucoeftab, size );
         }
 
-        if ( !(cblk->cblktype & CBLK_TASKS_2D) )
+        if ( !(cblk->cblktype & CBLK_TASKS_2D) ) {
             continue;
+        }
 
         /*
          * Diagonal block
