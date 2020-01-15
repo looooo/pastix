@@ -30,6 +30,10 @@
 #ifndef _symbol_h_
 #define _symbol_h_
 
+#define SYMBCBLK_NOTHING 0
+#define SYMBCBLK_PROJ    1
+#define SYMBCBLK_KWAY    2
+
 /**
  * @brief Symbol column block structure.
  */

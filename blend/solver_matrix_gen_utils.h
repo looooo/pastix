@@ -234,7 +234,7 @@ solvMatGen_init_cblk( SolverCblk    *solvcblk,
     solvcblk->brownum    = brownum;
     solvcblk->gcblknum   = cblknum;
     solvcblk->lcblknum   = cblknum;
-    solvcblk->selevtx    = symbcblk->selevtx;
+    solvcblk->selevtx    = (symbcblk->selevtx == SYMBCBLK_PROJ) ? 1 : 0;
     solvcblk->recvnbr    = 0;
     solvcblk->recvcnt    = 0;
     solvcblk->lcoeftab   = NULL;

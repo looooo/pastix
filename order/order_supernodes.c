@@ -185,10 +185,11 @@ orderSupernodes( const pastix_graph_t *graph,
             memcpy(permtab, order->permtab, graph->n * sizeof(pastix_int_t));
             memcpy(peritab, order->peritab, graph->n * sizeof(pastix_int_t));
 
+            /* Compute the projection of the sublevel separators onto the subgraph */
             graphComputeProjection( graph, n_levels, order,
                                     &sn_graph, &sn_order,
                                     fnode, lnode, sn_level,
-                                    1, max_depth, max_width,
+                                    max_distance, max_depth, max_width,
                                     depth_size );
 
             /* Print statistics */
@@ -205,13 +206,15 @@ orderSupernodes( const pastix_graph_t *graph,
             {
                 pastix_int_t selected, total, totalsel;
                 pastix_int_t totalmax = iparm[IPARM_MAX_BLOCKSIZE] * 16;
-                pastix_int_t selecmax = 50 * sqrt( sn_vertnbr );
+                pastix_int_t selecmax = 20 * sqrt( sn_vertnbr );
                 selected = 0;
                 totalsel = 0;
                 total    = sn_vertnbr;
 
                 for( i=0; i<max_depth; i++ ) {
                     totalsel += depth_size[i];
+
+                    /* If we reach the maximum size of pre-selected unknowns, we exit */
                     if ( totalsel > selecmax ) {
                         break;
                     }
@@ -225,22 +228,32 @@ orderSupernodes( const pastix_graph_t *graph,
                     }
                 }
 
+                /* Add last partition of selected unknowns */
+                if ( (selected > iparm[IPARM_MIN_BLOCKSIZE]) && (total > totalmax) ) {
+                    extendint_Add( &sn_parts, selected );
+                    selected = 0;
+                }
+                else {
+                    /* Unselect the unknowns */
+                    total += selected;
+                    selected = 0;
+                }
+
                 if ( iparm[IPARM_VERBOSE] > 2 ) {
                     fprintf( stdout, "    - %ld nodes selected, %ld remains for K-Way\n",
-                             (long)(sn_vertnbr - total - selected), (long)(total + selected) );
+                             (long)(sn_vertnbr - total), (long)(total) );
                 }
 
                 /*
                  * The number of remaining unknowns is the non-selected unknowns
                  * + the selected unknows not extracted
                  */
-                if ((sn_vertnbr - total - selected) == 0){
-                    memcpy(order->permtab, permtab, graph->n * sizeof(pastix_int_t));
-                    memcpy(order->peritab, peritab, graph->n * sizeof(pastix_int_t));
+                if ( (sn_vertnbr - total) == 0 ) {
+                    memcpy( order->permtab, permtab, graph->n * sizeof(pastix_int_t) );
+                    memcpy( order->peritab, peritab, graph->n * sizeof(pastix_int_t) );
                 }
 
-                sn_vertnbr = total + selected;
-
+                sn_vertnbr = total;
             }
             free(permtab);
             free(peritab);
@@ -394,7 +407,7 @@ orderSupernodes( const pastix_graph_t *graph,
 
         /* First cblk */
         fnode += extendint_Read( &sn_parts, sn_nbparts-1 );
-        new_selevtx[ new_cblknbr ] = ( sn_nbparts-1 < sn_nbpart_proj ) ? 1 : 0;
+        new_selevtx[ new_cblknbr ] = ( sn_nbparts-1 < sn_nbpart_proj ) ? SYMBCBLK_PROJ : SYMBCBLK_KWAY;
         new_cblknbr++;
         new_rangtab[ new_cblknbr ] = fnode;
 
@@ -408,7 +421,7 @@ orderSupernodes( const pastix_graph_t *graph,
         {
             /* Chain cblk together */
             new_treetab[new_cblknbr-1] = -1 - new_cblknbr;
-            new_selevtx[ new_cblknbr ] = ( i < sn_nbpart_proj ) ? 1 : 0;
+            new_selevtx[ new_cblknbr ] = ( i < sn_nbpart_proj ) ? SYMBCBLK_PROJ : SYMBCBLK_KWAY;
             fnode += extendint_Read( &sn_parts, i );
             new_cblknbr++;
             new_rangtab[new_cblknbr] = fnode;

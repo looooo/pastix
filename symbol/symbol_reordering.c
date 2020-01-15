@@ -269,22 +269,22 @@ symbol_reorder_tsp( pastix_int_t size, pastix_order_t *order, pastix_int_t sn_id
             up_after_pos  = hamming_distance( up_vectors, up_vectors_size, i,
                                               tmpinvp[j+1], 1 );
 
-            if ( up_before_pos < 1 ||
-                 up_after_pos  < 1 ) {
-
+            if ( (up_before_pos < 1) ||
+                 (up_after_pos  < 1) )
+            {
                 /* If split was used previously, this first distance may not be already computed */
-                if ( lw_after_pos == -1 )
+                if ( lw_after_pos == -1 ) {
                     lw_before_pos = hamming_distance( lw_vectors, lw_vectors_size, i,
                                                       tmpinvp[j], stop_criterion );
-                else
+                }
+                else {
                     lw_before_pos = lw_after_pos;
-
+                }
 
                 lw_after_pos = hamming_distance( lw_vectors, lw_vectors_size, i,
                                                  tmpinvp[j+1], stop_criterion );
 
                 l = lw_before_pos + lw_after_pos - tmplen[j];
-
 
                 /* Minimize the cut between two lines, for the same TSP result */
                 if ( l == minl ) {
@@ -302,23 +302,13 @@ symbol_reorder_tsp( pastix_int_t size, pastix_order_t *order, pastix_int_t sn_id
 
                 /* Position that minimizes TSP */
                 if ( l < minl ) {
-                    minl    = l;
-                    mpos   =  j + 1;
                     min_cut = lw_before_pos;
-                    if ( lw_after_pos < min_cut ) {
-                        min_cut = lw_after_pos;
-                    }
-                }
-
-                if ( l < minl ) {
                     minl    = l;
                     mpos    = j + 1;
-                    min_cut = lw_before_pos;
                     if ( lw_after_pos < min_cut ) {
                         min_cut = lw_after_pos;
                     }
                 }
-
 
                 /* Stop if two lines are equal (already done tmpinvp[j]) */
                 if ( lw_after_pos == 0 ) {
@@ -331,7 +321,6 @@ symbol_reorder_tsp( pastix_int_t size, pastix_order_t *order, pastix_int_t sn_id
             else {
                 lw_after_pos = -1;
             }
-
         }
 
         /* Test between last and first */
