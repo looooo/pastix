@@ -86,14 +86,15 @@ class iparm:
     compress_method                = 60
     compress_ortho                 = 61
     compress_reltol                = 62
-    thread_comm_mode               = 63
-    modify_parameter               = 64
-    start_task                     = 65
-    end_task                       = 66
-    float                          = 67
-    mtx_type                       = 68
-    dof_nbr                        = 69
-    size                           = 70
+    compress_preselect             = 63
+    thread_comm_mode               = 64
+    modify_parameter               = 65
+    start_task                     = 66
+    end_task                       = 67
+    float                          = 68
+    mtx_type                       = 69
+    dof_nbr                        = 70
+    size                           = 71
 
 class dparm:
     fill_in            = 0

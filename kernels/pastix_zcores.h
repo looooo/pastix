@@ -289,6 +289,10 @@ void cpucblk_zrecv_rhs_backward( const SolverMatrix *solvmtx,
  *    @name PastixComplex64 compression/uncompression routines
  *    @{
  */
+pastix_fixdbl_t cpublok_zcompress( const pastix_lr_t *lowrank,
+                                   pastix_coefside_t coef,
+                                   pastix_int_t M, pastix_int_t N,
+                                   SolverBlok *blok );
 pastix_int_t cpucblk_zcompress( const SolverMatrix *solvmtx,
                                 pastix_coefside_t   side,
                                 SolverCblk         *cblk );
@@ -297,6 +301,7 @@ void         cpucblk_zuncompress( pastix_coefside_t side,
 void         cpucblk_zmemory    ( pastix_coefside_t  side,
                                   SolverMatrix      *solvmtx,
                                   SolverCblk        *cblk,
+                                  pastix_int_t      *orig,
                                   pastix_int_t      *gain );
 
 /**

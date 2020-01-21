@@ -143,14 +143,15 @@ extern const fct_rradd_t rraddMethods[PastixCompressMethodNbr][4];
  *        kernels and their parameters.
  */
 typedef struct pastix_lr_s {
-    pastix_int_t compress_when;       /**< When to compress in the full solver               */
-    pastix_int_t compress_method;     /**< Compression method                                */
-    pastix_int_t compress_min_width;  /**< Minimum width to compress a supernode             */
-    pastix_int_t compress_min_height; /**< Minimum height to compress an off-diagonal block  */
-    int          use_reltol;          /**< Enable/disable relative tolerance vs absolute one */
-    double       tolerance;           /**< Absolute compression tolerance                    */
-    fct_rradd_t  core_rradd;          /**< Recompression function                            */
-    fct_ge2lr_t  core_ge2lr;          /**< Compression function                              */
+    pastix_compress_when_t   compress_when;       /**< When to compress in the full solver                  */
+    pastix_compress_method_t compress_method;     /**< Compression method                                   */
+    pastix_int_t             compress_min_width;  /**< Minimum width to compress a supernode                */
+    pastix_int_t             compress_min_height; /**< Minimum height to compress an off-diagonal block     */
+    int                      compress_preselect;  /**< Enable/disable the compression of preselected blocks */
+    int                      use_reltol;          /**< Enable/disable relative tolerance vs absolute one    */
+    double                   tolerance;           /**< Absolute compression tolerance                       */
+    fct_rradd_t              core_rradd;          /**< Recompression function                               */
+    fct_ge2lr_t              core_ge2lr;          /**< Compression function                                 */
 } pastix_lr_t;
 
 /**
@@ -163,7 +164,8 @@ typedef enum memory_stats_e {
     LR_OffDiag = 3, /**< Low-rank block, outside a diagonal block from non-split partition*/
     LR_InSele  = 4, /**< Non-compressible block, outside a diagonal block from non-split partition*/
     LR_OffSele = 5, /**< Non-compressible block, outside a diagonal block from non-split partition*/
-    LR_ToSele  = 6  /**< Non-compressible block, inside a diagonal block from non-split partition, that contributes to a selected cblk*/
+    LR_ToSele  = 6, /**< Non-compressible block, inside a diagonal block from non-split partition, that contributes to a selected cblk*/
+    MEMORY_STATS_SIZE
 } memory_stats_t;
 
 /**

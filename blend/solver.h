@@ -271,6 +271,28 @@ blok_rownbr_ext( const SolverBlok *blok )
 }
 
 /**
+ * @brief Return if a block is preselected as either part of the projection, or
+ *        as a sub-diagonal block.
+ * @param[in] cblk
+ *            The pointer to the cblk to which belong the block.
+ * @param[in] blok
+ *            The pointer to the block.
+ * @param[in] fcbk
+ *            The pointer to the facing cblk of the block.
+ * @return True is the block is preselected, false otherwise.
+ */
+static inline int
+blok_is_preselected( const SolverCblk *cblk,
+                     const SolverBlok *blok,
+                     const SolverCblk *fcbk )
+{
+    int is_preselected = ( fcbk->selevtx );
+    int is_firstoffd   = ( blok == (cblk->fblokptr + 1) );
+
+    return ( fcbk->sndeidx == cblk->sndeidx ) && ( is_preselected | is_firstoffd );
+}
+
+/**
  * @brief     Compute the number of rows of a column block.
  * @param[in] cblk
  *            The pointer to the column block.

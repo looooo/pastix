@@ -119,6 +119,7 @@ typedef enum pastix_iparm_e {
     IPARM_COMPRESS_METHOD,       /**< Compression method (See pastix_compress_method_t)              Default: PastixCompressMethodPQRCP IN  */
     IPARM_COMPRESS_ORTHO,        /**< Orthogonalization method                                       Default: PastixCompressOrthoCGS    IN  */
     IPARM_COMPRESS_RELTOL,       /**< Enable/Disable relative tolerance                              Default: 0                         IN  */
+    IPARM_COMPRESS_PRESELECT,    /**< Enable/Disable compression of preselected blocks               Default: -1 (automatic)            IN  */
 
     /* MPI modes */
     IPARM_THREAD_COMM_MODE,      /**< Threaded communication mode                                    Default: PastixThreadMultiple      IN  */

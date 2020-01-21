@@ -224,6 +224,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     lr->compress_method     = pastix_data->iparm[IPARM_COMPRESS_METHOD];
     lr->compress_min_width  = pastix_data->iparm[IPARM_COMPRESS_MIN_WIDTH];
     lr->compress_min_height = pastix_data->iparm[IPARM_COMPRESS_MIN_HEIGHT];
+    lr->compress_preselect  = pastix_data->iparm[IPARM_COMPRESS_PRESELECT];
     lr->use_reltol          = pastix_data->iparm[IPARM_COMPRESS_RELTOL];
     lr->tolerance           = pastix_data->dparm[DPARM_COMPRESS_TOLERANCE];
 
@@ -235,9 +236,20 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     lr->core_rradd = rraddMethods[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][bcsc->flttype-2];
 
     if ( pastix_data->iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin ) {
+        if ( lr->compress_preselect == -1 ) {
+            lr->compress_preselect = 1;
+        }
         core_get_rklimit = core_get_rklimit_begin;
     }
     else {
+        if ( lr->compress_preselect == -1 ) {
+            if ( lr->tolerance <= 1.e-10 ) {
+                lr->compress_preselect = 0;
+            }
+            else {
+                lr->compress_preselect = 1;
+            }
+        }
         core_get_rklimit = core_get_rklimit_end;
     }
 
