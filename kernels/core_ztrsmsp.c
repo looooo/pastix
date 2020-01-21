@@ -228,7 +228,7 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                  pastix_trans_t trans, pastix_diag_t diag,
                  SolverCblk *cblk, SolverMatrix *solvmtx )
 {
-    const SolverBlok *fblok, *lblok, *blok;
+    SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, lda;
     pastix_lrblock_t *lrA, *lrC;
     pastix_complex64_t *A;
@@ -251,38 +251,31 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
     assert( cblk->cblktype & CBLK_COMPRESSED );
     assert( cblk->cblktype & CBLK_LAYOUT_2D  );
 
-    /* TODO: maybe do no try to compress first off-diagonal block as it is done in Minimal-Memory strategy? */
     for (blok=fblok+1; blok<lblok; blok++) {
 
+        M   = blok_rownbr(blok);
         lrC = blok->LRblock + coef;
 
-        /* Try to compress the block: compress_end version */
-        if ( lowrank->compress_when == PastixCompressWhenEnd ){
-            M = blok_rownbr(blok);
+        /* Check the size of the block */
+        if ( ( N >= lowrank->compress_min_width  ) &&
+             ( M >= lowrank->compress_min_height ) )
+        {
+            int is_preselected = blok_is_preselected( cblk, blok, solvmtx->cblktab + blok->fcblknm );
 
-            /* Check the size of the block */
-            if ( ( N >= lowrank->compress_min_width  ) &&
-                 ( M >= lowrank->compress_min_height ) )
+            /*
+             * Try to compress the block: 2 cases
+             *   - We are in the compress_end version
+             *   - We are in the compress_begin version, and the block was preselected
+             */
+            if ( (lowrank->compress_when == PastixCompressWhenEnd) &&
+                 (lowrank->compress_preselect || (!is_preselected)) )
             {
-                SolverCblk *fcblk = solvmtx->cblktab + blok->fcblknm;
-
-                /* Check if the block is preselected */
-                if ( ( fcblk->selevtx == 0             ) ||
-                     ( fcblk->sndeidx != cblk->sndeidx ) )
-                {
-                    if ( ( blok != fblok+1 ) || ( fcblk->sndeidx != cblk->sndeidx ) ){
-                        pastix_lrblock_t C;
-
-                        kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
-                        flops_c = lowrank->core_ge2lr( lowrank->use_reltol, lowrank->tolerance, -1,
-                                                       M, N, lrC->u, M, &C );
-                        kernel_trace_stop_lvl2_rank( flops_c, C.rk );
-                        flops += flops_c;
-
-                        core_zlrfree(lrC);
-                        memcpy( lrC, &C, sizeof(pastix_lrblock_t) );
-                    }
-                }
+                flops += cpublok_zcompress( lowrank, coef, M, N, blok );
+            }
+            if ( (lowrank->compress_when == PastixCompressWhenBegin) &&
+                 (lowrank->compress_preselect &&  is_preselected ) )
+            {
+                flops += cpublok_zcompress( lowrank, coef, M, N, blok );
             }
         }
 
@@ -299,7 +292,6 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                 flops += flops_c;
             }
             else {
-                M = blok_rownbr(blok);
                 kernel_trace_start_lvl2( PastixKernelLvl2_FR_TRSM );
                 cblas_ztrsm(CblasColMajor,
                             (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)trans, (CBLAS_DIAG)diag,
@@ -551,7 +543,7 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
                     pastix_int_t        blok_m,
                     const pastix_lr_t  *lowrank )
 {
-    const SolverBlok *fblok, *lblok, *blok;
+    SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, lda, cblk_m, full_m, full_n;
     pastix_complex64_t *A;
     pastix_lrblock_t *lrA, *lrC;
@@ -582,23 +574,27 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
         M = blok_rownbr(blok);
         lrC = blok->LRblock + coef;
 
-        /* Try to compress the block: compress_end version */
-        if ( lowrank->compress_when == PastixCompressWhenEnd )
+        if ( ( N >= lowrank->compress_min_width ) &&
+             ( M >= lowrank->compress_min_height ) )
         {
-            if ( ( N >= lowrank->compress_min_width ) &&
-                 ( M >= lowrank->compress_min_height ) )
+            int is_preselected = 0;
+            /* int is_preselected = (!lowrank->compress_preselect) && */
+            /*     blok_is_preselected( cblk, blok, solvmtx->cblktab + blok->fcblknm ); */
+
+            /*
+             * Try to compress the block: 2 cases
+             *   - We are in the compress_end version
+             *   - We are in the compress_begin version, and the block was preselected
+             */
+            if ( (lowrank->compress_when == PastixCompressWhenEnd) &&
+                 (lowrank->compress_preselect || (!is_preselected)) )
             {
-                pastix_fixdbl_t  flops;
-                pastix_lrblock_t C;
-
-                /* TODO: add preselected vertices here !!!  */
-                kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
-                flops = lowrank->core_ge2lr( lowrank->use_reltol, lowrank->tolerance, -1,
-                                             M, N, lrC->u, M, &C );
-                kernel_trace_stop_lvl2_rank( flops, C.rk );
-
-                core_zlrfree(lrC);
-                memcpy( lrC, &C, sizeof(pastix_lrblock_t) );
+                flops += cpublok_zcompress( lowrank, coef, M, N, blok );
+            }
+            if ( (lowrank->compress_when == PastixCompressWhenBegin) &&
+                 (lowrank->compress_preselect &&  is_preselected ) )
+            {
+                flops += cpublok_zcompress( lowrank, coef, M, N, blok );
             }
         }
 

@@ -229,11 +229,11 @@ coeftab_zmemory( SolverMatrix *solvmtx )
     pastix_coefside_t side = (solvmtx->factotype == PastixFactLU) ? PastixLUCoef : PastixLCoef;
     SolverCblk  *cblk = solvmtx->cblktab;
     SolverBlok  *blok;
-    pastix_int_t i, cblknum, in_height, off_height;
-    pastix_int_t gain[7] = { 0, 0, 0, 0, 0, 0, 0 };
-    pastix_int_t orig[7] = { 0, 0, 0, 0, 0, 0, 0 };
-    pastix_fixdbl_t memgain[7];
-    pastix_fixdbl_t memorig[7];
+    pastix_int_t i, cblknum;
+    pastix_int_t    gain[MEMORY_STATS_SIZE] = { 0, 0, 0, 0, 0, 0, 0 };
+    pastix_int_t    orig[MEMORY_STATS_SIZE] = { 0, 0, 0, 0, 0, 0, 0 };
+    pastix_fixdbl_t memgain[MEMORY_STATS_SIZE];
+    pastix_fixdbl_t memorig[MEMORY_STATS_SIZE];
     pastix_fixdbl_t totgain, totorig;
 
     pastix_int_t LR_DiagInDiag = 0;
@@ -298,34 +298,29 @@ coeftab_zmemory( SolverMatrix *solvmtx )
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
 
-        in_height = 0;
-        blok = cblk->fblokptr;
-        while( (blok < cblk[1].fblokptr) &&
-               ((solvmtx->cblktab + blok->fcblknm)->sndeidx == cblk->sndeidx) )
+        if ( !(cblk->cblktype & CBLK_COMPRESSED) )
         {
-            in_height += blok_rownbr( blok );
-            blok++;
-        }
-        off_height = cblk->stride - in_height;
+            pastix_int_t in_height = 0;
+            pastix_int_t off_height = cblk->stride;
 
-        if ( !(cblk->cblktype & CBLK_COMPRESSED) ) {
+            /* Compute the size of the original supernode diagonal block */
+            blok = cblk->fblokptr;
+            while( (blok < cblk[1].fblokptr) &&
+                   ((solvmtx->cblktab + blok->fcblknm)->sndeidx == cblk->sndeidx) )
+            {
+                in_height += blok_rownbr( blok );
+                blok++;
+            }
+
+            /* Size of the cblk outside the diagonal block */
+            off_height -= in_height;
+
             orig[FR_InDiag]  += cblk_colnbr( cblk ) * in_height;
             orig[FR_OffDiag] += cblk_colnbr( cblk ) * off_height;
         }
         else {
             LR_DiagInDiag += cblk_colnbr( cblk ) * cblk_colnbr( cblk );
-            if (cblk->selevtx == 1){
-                orig[LR_InSele]  += cblk_colnbr( cblk ) * in_height;
-                orig[LR_OffSele] += cblk_colnbr( cblk ) * off_height;
-            }
-            else{
-                orig[LR_InDiag]  += cblk_colnbr( cblk ) * in_height;
-                orig[LR_OffDiag] += cblk_colnbr( cblk ) * off_height;
-            }
-        }
-
-        if (cblk->cblktype & CBLK_COMPRESSED) {
-            cpucblk_zmemory( side, solvmtx, cblk, gain );
+            cpucblk_zmemory( side, solvmtx, cblk, orig, gain );
         }
     }
 

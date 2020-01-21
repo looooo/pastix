@@ -25,10 +25,69 @@
 /**
  *******************************************************************************
  *
+ * @brief Compress a single block from full-rank to low-rank format
+ *
+ * The compression to low-rank format is parameterized by the input information
+ * stored in the low-rank structure.
+ *
+ *******************************************************************************
+ *
+ * @param[in] lowrank
+ *          The pointer to the low-rank structure describing the lo-rank
+ *          compression parameters.
+ *
+ * @param[in] side
+ *          Define which side of the matrix must be compressed.
+ *          @arg PastixLCoef if lower part only
+ *          @arg PastixUCoef if upper part only
+ *
+ * @param[in] M
+ *          The number of rows in the block
+ *
+ * @param[in] N
+ *          The number of columns in the block
+ *
+ * @param[inout] blok
+ *          The block to compress. On input, it points to a full-rank matrix. On
+ *          output, if possible the matrix is compressed in block low-rank
+ *          format.
+ *
+ *******************************************************************************
+ *
+ * @return The number of flops used to compress the block.
+ *
+ *******************************************************************************/
+pastix_fixdbl_t
+cpublok_zcompress( const pastix_lr_t *lowrank,
+                   pastix_coefside_t side,
+                   pastix_int_t M, pastix_int_t N,
+                   SolverBlok *blok )
+{
+    pastix_fixdbl_t flops;
+    pastix_lrblock_t   *lrA = blok->LRblock + side;
+    pastix_complex64_t *A = lrA->u;
+
+    assert( lrA->rk == -1   );
+    assert( lrA->u  != NULL );
+    assert( lrA->v  == NULL );
+
+    kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
+    flops = lowrank->core_ge2lr( lowrank->use_reltol, lowrank->tolerance, -1,
+                                 M, N, A, M, lrA );
+    kernel_trace_stop_lvl2_rank( flops, lrA->rk );
+
+    free( A );
+
+    return flops;
+}
+
+/**
+ *******************************************************************************
+ *
  * @brief Compress a single column block from full-rank to low-rank format
  *
  * The compression to low-rank format is parameterized by the input information
- * stored in the lowrank structure.
+ * stored in the low-rank structure.
  *
  *******************************************************************************
  *
@@ -56,37 +115,33 @@ cpucblk_zcompress( const SolverMatrix *solvmtx,
                    SolverCblk         *cblk )
 {
     pastix_lrblock_t   *lrA;
-    pastix_complex64_t *A;
     SolverBlok         *blok  = cblk[0].fblokptr + 1;
     SolverBlok         *lblok = cblk[1].fblokptr;
     pastix_int_t        ncols = cblk_colnbr( cblk );
     pastix_int_t        gain;
     pastix_int_t        gainL = 0;
     pastix_int_t        gainU = 0;
-    pastix_fixdbl_t     flops;
-    pastix_lr_t         lowrank = solvmtx->lowrank;
-
+    const pastix_lr_t  *lowrank = &(solvmtx->lowrank);
 
     assert( cblk->cblktype & CBLK_LAYOUT_2D  );
     assert( cblk->cblktype & CBLK_COMPRESSED );
 
-    if ( ncols < lowrank.compress_min_width ) {
+    if ( ncols < lowrank->compress_min_width ) {
         return 0;
-    }
-
-    /* Skip the first off-diagonal block that is non-compressible (only within original separators)*/
-    if ( blok != lblok ){
-        if ( (solvmtx->cblktab + blok->fcblknm)->sndeidx == cblk->sndeidx ){
-            blok++;
-        }
     }
 
     for (; blok<lblok; blok++)
     {
         pastix_int_t nrows = blok_rownbr( blok );
+        int is_preselected = (!lowrank->compress_preselect) &&
+            blok_is_preselected( cblk, blok, solvmtx->cblktab + blok->fcblknm );
 
         /* Skip uncompressible blocks */
-        if ( nrows < lowrank.compress_min_height ) {
+        if ( nrows < lowrank->compress_min_height ) {
+            continue;
+        }
+
+        if ( is_preselected ) {
             continue;
         }
 
@@ -96,26 +151,12 @@ cpucblk_zcompress( const SolverMatrix *solvmtx,
         if ( side != PastixUCoef ) {
             lrA = blok->LRblock;
 
-            /* Try to compress */
+            /* Try to compress non selected blocks */
             if ( lrA->rk == -1 ) {
-
-                /* We do not compress blocks that will contribute to pre-selected cblk of a same separator */
-                /* Thus we can compress blocks that contribute to a non-preselected cblk or blocks that contribute to another separator */
-                if ( ( (solvmtx->cblktab + blok->fcblknm)->selevtx == 0 ) ||
-                     ( (solvmtx->cblktab + blok->fcblknm)->sndeidx != cblk->sndeidx ) ){
-
-                    A = lrA->u;
-
-                    kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
-                    flops = lowrank.core_ge2lr( lowrank.use_reltol, lowrank.tolerance, -1, nrows, ncols,
-                                                A, nrows, lrA );
-                    kernel_trace_stop_lvl2_rank( flops, lrA->rk );
-
-                    free( A );
-                }
+                cpublok_zcompress( lowrank, PastixLCoef, nrows, ncols, blok );
             }
 
-            if  ( lrA->rk != -1 ) {
+            if ( lrA->rk != -1 ) {
                 gainL += gain - ((nrows+ncols) * lrA->rk);
             }
         }
@@ -124,23 +165,11 @@ cpucblk_zcompress( const SolverMatrix *solvmtx,
         if ( side != PastixLCoef ) {
             lrA = blok->LRblock + 1;
 
-            if( lrA->rk == -1 ) {
-
-                if ( ( (solvmtx->cblktab + blok->fcblknm)->selevtx == 0 ) ||
-                     ( (solvmtx->cblktab + blok->fcblknm)->sndeidx != cblk->sndeidx ) ){
-
-                    A = lrA->u;
-
-                    kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
-                    flops = lowrank.core_ge2lr( lowrank.use_reltol, lowrank.tolerance, -1, nrows, ncols,
-                                                A, nrows, lrA );
-                    kernel_trace_stop_lvl2_rank( flops, lrA->rk );
-
-                    free( A );
-                }
+            if ( lrA->rk == -1 ) {
+                cpublok_zcompress( lowrank, PastixUCoef, nrows, ncols, blok );
             }
 
-            if  ( lrA->rk != -1 ) {
+            if ( lrA->rk != -1 ) {
                 gainU += gain - ((nrows+ncols) * lrA->rk);
             }
         }
@@ -240,14 +269,18 @@ cpucblk_zuncompress( pastix_coefside_t side,
  * @param[in] cblk
  *          The column block to study.
  *
- * @param[in] gain
- *          The structure that counts gain on each type of block.
+ * @param[in,out] orig
+ *          The structure that counts the original cost of the blocks.
+ *
+ * @param[in,out] gain
+ *          The structure that counts gain on each type of the blocks.
  *
  *******************************************************************************/
 void
 cpucblk_zmemory( pastix_coefside_t   side,
                  SolverMatrix       *solvmtx,
                  SolverCblk         *cblk,
+                 pastix_int_t       *orig,
                  pastix_int_t       *gain )
 {
     SolverBlok *blok  = cblk[0].fblokptr + 1;
@@ -255,20 +288,21 @@ cpucblk_zmemory( pastix_coefside_t   side,
 
     pastix_int_t ncols = cblk_colnbr( cblk );
     pastix_int_t size;
+    pastix_int_t origblok;
     pastix_int_t gainblok, gaintmp;
 
     /* Compute potential gains if blocks where not compressed */
-    if ( (cblk->selevtx == 1) && (cblk->cblktype & CBLK_COMPRESSED)) {
-        cblk->selevtx = 0;
+    if ( cblk->cblktype & CBLK_COMPRESSED ) {
         cpucblk_zcompress( solvmtx, side, cblk );
-        cblk->selevtx = 1;
     }
 
     for (; blok<lblok; blok++)
     {
+        const SolverCblk *fcblk = solvmtx->cblktab + blok->fcblknm;
         pastix_int_t nrows = blok_rownbr( blok );
         size = nrows * ncols;
         gainblok = 0;
+        origblok = size;
 
         /* Lower part */
         if ( (side != PastixUCoef) &&
@@ -279,6 +313,7 @@ cpucblk_zmemory( pastix_coefside_t   side,
             gainblok += gaintmp;
         }
 
+        /* Upper part */
         if ( (side != PastixLCoef) &&
              (blok->LRblock[1].rk >= 0) )
         {
@@ -287,20 +322,21 @@ cpucblk_zmemory( pastix_coefside_t   side,
             gainblok += gaintmp;
         }
 
-        if (cblk->selevtx == 1){
-            if ( (solvmtx->cblktab + blok->fcblknm)->sndeidx == cblk->sndeidx ) {
-                gain[LR_InSele] += gainblok;
-            }
-            else {
-                gain[LR_OffSele] += gainblok;
-            }
+        if ( blok_is_preselected( cblk, blok, fcblk ) )
+        {
+            /* Selected block should always be inside supernode diagonal blocks */
+            assert( fcblk->sndeidx == cblk->sndeidx );
+            gain[LR_InSele] += gainblok;
+            orig[LR_InSele] += origblok;
         }
         else{
-            if ( (solvmtx->cblktab + blok->fcblknm)->sndeidx == cblk->sndeidx ) {
+            if ( fcblk->sndeidx == cblk->sndeidx ) {
                 gain[LR_InDiag] += gainblok;
+                orig[LR_InDiag] += origblok;
             }
             else {
                 gain[LR_OffDiag] += gainblok;
+                orig[LR_OffDiag] += origblok;
             }
         }
     }
