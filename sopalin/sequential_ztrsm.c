@@ -51,6 +51,11 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
 
         cblk = datacode->cblktab + cblknbr - 1;
         for (i=0; i<cblknbr; i++, cblk--){
+            if( cblk->cblktype & CBLK_RECV ){
+                cpucblk_zsend_rhs_backward( datacode, cblk, b );
+                continue;
+            }
+
             if( cblk->cblktype & CBLK_FANIN ){
                 cpucblk_zrecv_rhs_backward( datacode, cblk, b );
             }
@@ -79,7 +84,6 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
         cblknbr = (mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
         cblk = datacode->cblktab;
         for (i=0; i<cblknbr; i++, cblk++){
-
             if( cblk->cblktype & CBLK_FANIN ){
                 cpucblk_zsend_rhs_forward( datacode, cblk, b );
                 continue;
@@ -87,6 +91,7 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
 
             if( cblk->cblktype & CBLK_RECV ) {
                 cpucblk_zrecv_rhs_forward( datacode, cblk, work, nrhs, b, ldb );
+                continue;
             }
 
             solve_cblk_ztrsmsp_forward( mode, side, uplo, trans, diag,

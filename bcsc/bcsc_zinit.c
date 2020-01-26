@@ -80,7 +80,7 @@ bcsc_zinit_A( const spmatrix_t     *spm,
         }
 
         fcolnum  = solvmtx->cblktab[itercblk].fcolnum;
-        iterbcsc = solvmtx->cblktab[itercblk].lcblknum;
+        iterbcsc = solvmtx->cblktab[itercblk].bcscnum;
         coltab   = bcsc->cscftab[iterbcsc].coltab;
 
         frow = spm->colptr[itercol]   - baseval;
@@ -182,7 +182,7 @@ bcsc_zinit_Lt( const spmatrix_t     *spm,
             }
 
             fcolnum  = solvmtx->cblktab[itercblk].fcolnum;
-            iterbcsc = solvmtx->cblktab[itercblk].lcblknum;
+            iterbcsc = solvmtx->cblktab[itercblk].bcscnum;
             coltab   = bcsc->cscftab[iterbcsc].coltab;
 
             ival = i * dof * dof;
@@ -279,7 +279,7 @@ bcsc_zinit_Lh( const spmatrix_t     *spm,
             }
 
             fcolnum  = solvmtx->cblktab[itercblk].fcolnum;
-            iterbcsc = solvmtx->cblktab[itercblk].lcblknum;
+            iterbcsc = solvmtx->cblktab[itercblk].bcscnum;
             coltab   = bcsc->cscftab[iterbcsc].coltab;
 
             ival = i * dof * dof;
@@ -378,7 +378,7 @@ bcsc_zinit_At( const spmatrix_t     *spm,
             }
 
             fcolnum  = solvmtx->cblktab[itercblk].fcolnum;
-            iterbcsc = solvmtx->cblktab[itercblk].lcblknum;
+            iterbcsc = solvmtx->cblktab[itercblk].bcscnum;
             coltab   = bcsc->cscftab[iterbcsc].coltab;
 
             ival = i * dof * dof;

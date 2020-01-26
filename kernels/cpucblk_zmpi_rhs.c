@@ -92,29 +92,21 @@ cpucblk_zsend_rhs_backward( const SolverMatrix *solvmtx,
 {
 #if defined(PASTIX_WITH_MPI)
     pastix_int_t colnbr = cblk_colnbr(cblk);
-    int rc, j;
+    int rc;
 
     assert( colnbr <= solvmtx->colmax );
     assert( cblk->cblktype & CBLK_RECV );
 
-    for( j=0; j<cblk->recvnbr; j++ ) {
-        /* Cast saved senders */
-        int *send_to = cblk->rcoeftab;
-
-        assert( (send_to[j] >= 0) &&
-                (send_to[j] <= solvmtx->clustnbr) &&
-                (send_to[j] != solvmtx->clustnum) );
-
 #if defined (PASTIX_DEBUG_MPI)
-        fprintf( stderr, "[%2d] RHS Bwd: Send cblk %ld to %2d at index %ld of size %ld\n",
-                 solvmtx->clustnum, (long)cblk->gcblknum, send_to[j],
-                 (long)cblk->lcolidx, (long)colnbr );
+    fprintf( stderr, "[%2d] RHS Bwd: Send cblk %ld to %2d at index %ld of size %ld\n",
+             solvmtx->clustnum, (long)cblk->gcblknum, cblk->ownerid,
+             (long)cblk->lcolidx, (long)colnbr );
 #endif
 
-        rc = MPI_Send( b + cblk->lcolidx, colnbr, PASTIX_MPI_COMPLEX64,
-                       send_to[ j ], cblk->gcblknum, solvmtx->solv_comm );
-        assert( rc == MPI_SUCCESS );
-    }
+    rc = MPI_Send( b + cblk->lcolidx, colnbr, PASTIX_MPI_COMPLEX64,
+                   cblk->ownerid, cblk->gcblknum, solvmtx->solv_comm );
+
+    assert( rc == MPI_SUCCESS );
     (void)rc;
 #else
     (void)solvmtx;
@@ -154,13 +146,13 @@ cpucblk_zrecv_rhs_backward( const SolverMatrix *solvmtx,
     assert( cblk->cblktype & CBLK_FANIN );
 
 #if defined (PASTIX_DEBUG_MPI)
-    fprintf( stderr, "[%2d] RHS Bwd: Recv cblk %ld from ANY at index %ld of size %ld\n",
-             solvmtx->clustnum, (long)cblk->gcblknum,
+    fprintf( stderr, "[%2d] RHS Bwd: Recv cblk %ld from %ld at index %ld of size %ld\n",
+             solvmtx->clustnum, (long)cblk->gcblknum, (long)cblk->ownerid,
              (long)cblk->lcolidx, (long)colnbr );
 #endif
 
     rc = MPI_Recv( b + cblk->lcolidx, colnbr, PASTIX_MPI_COMPLEX64,
-                   MPI_ANY_SOURCE, cblk->gcblknum, solvmtx->solv_comm, &status );
+                   cblk->ownerid, cblk->gcblknum, solvmtx->solv_comm, &status );
     assert( rc == MPI_SUCCESS );
 
 #if defined (PASTIX_DEBUG_MPI)
@@ -210,37 +202,29 @@ cpucblk_zrecv_rhs_forward( const SolverMatrix *solvmtx,
 #if defined(PASTIX_WITH_MPI)
     MPI_Status   status;
     pastix_int_t colnbr = cblk_colnbr(cblk);
-    int rc, j;
+    int rc;
 
     assert( colnbr <= solvmtx->colmax );
     assert( cblk->cblktype & CBLK_RECV );
 
-    for( j=0; j<cblk->recvnbr; j++ ) {
-        /* Allow us to save the distant contributors for the backward step */
-        int *senders = cblk->rcoeftab;
-
 #if defined (PASTIX_DEBUG_MPI)
-        fprintf( stderr, "[%2d] RHS Fwd: Recv cblk %ld from ANY at index %ld of size %ld\n",
-                 solvmtx->clustnum, (long)cblk->gcblknum,
-                 (long)cblk->lcolidx, (long)colnbr );
+    fprintf( stderr, "[%2d] RHS Fwd: Recv cblk %ld from %ld at index %ld of size %ld\n",
+             solvmtx->clustnum, (long)cblk->gcblknum, (long)cblk->ownerid,
+             (long)cblk->lcolidx, (long)colnbr );
 #endif
 
-        rc = MPI_Recv( work, colnbr, PASTIX_MPI_COMPLEX64,
-                       MPI_ANY_SOURCE, cblk->gcblknum, solvmtx->solv_comm, &status );
-        assert( rc == MPI_SUCCESS );
+    rc = MPI_Recv( work, colnbr, PASTIX_MPI_COMPLEX64,
+                   MPI_ANY_SOURCE, cblk->gcblknum, solvmtx->solv_comm, &status );
+    assert( rc == MPI_SUCCESS );
 
 #if defined (PASTIX_DEBUG_MPI)
-        fprintf( stderr, "[%2d] RHS Fwd: Received cblk %ld from %2d\n",
-                 solvmtx->clustnum, (long)cblk->gcblknum, status.MPI_SOURCE );
+    fprintf( stderr, "[%2d] RHS Fwd: Received cblk %ld from %2d\n",
+                     solvmtx->clustnum, (long)cblk->gcblknum, status.MPI_SOURCE );
 #endif
 
-        core_zgeadd( PastixNoTrans, colnbr, nrhs,
-                     1., work, ldb,
-                     1., b + cblk->lcolidx, ldb );
-
-        /* Store the remote contributor for the backward step */
-        senders[j] = status.MPI_SOURCE;
-    }
+    core_zgeadd( PastixNoTrans, colnbr, nrhs,
+                 1., work, ldb,
+                 1., b + cblk->lcolidx, ldb );
 
     (void)rc;
 #else

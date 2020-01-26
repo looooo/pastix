@@ -61,7 +61,7 @@ bcsc_init_coltab( const SolverMatrix  *solvmtx,
     pastix_int_t cblknum, bcscnum, iter, idxcol, nodeidx, colsize;
 
     SolverCblk *cblk = solvmtx->cblktab;
-    bcsc->cscfnbr    = solvmtx->cblknbr - solvmtx->faninnbr;
+    bcsc->cscfnbr    = solvmtx->cblknbr - solvmtx->faninnbr - solvmtx->recvnbr;
     MALLOC_INTERN( bcsc->cscftab, bcsc->cscfnbr, bcsc_cblk_t );
 
     idxcol   = 0;
@@ -72,13 +72,13 @@ bcsc_init_coltab( const SolverMatrix  *solvmtx,
     {
         pastix_int_t fcolnum = cblk->fcolnum;
 
-        if ( cblk->cblktype & CBLK_FANIN ) {
+        if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) {
             continue;
         }
 
         blockcol->cblknum = cblknum;
         blockcol->colnbr  = cblk_colnbr( cblk );
-        assert( cblk->lcblknum == bcscnum );
+        assert( cblk->bcscnum == bcscnum );
         MALLOC_INTERN( blockcol->coltab, blockcol->colnbr + 1, pastix_int_t );
 
         /* Works only for DoF constant */
@@ -312,7 +312,7 @@ bcsc_init_centralized( const spmatrix_t     *spm,
 
         for (itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
         {
-            if( cblk->cblktype & CBLK_FANIN ){
+            if( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ){
                 continue;
             }
             for (itercol  = cblk->fcolnum;

@@ -427,9 +427,6 @@ pastix_subtask_solve( pastix_data_t *pastix_data,
     bcsc  = pastix_data->bcsc;
 
     {
-#if defined(PASTIX_WITH_MPI)
-        solverSendersInit( pastix_data->solvmatr );
-#endif
         double timer;
         pastix_trans_t trans = PastixTrans;
 
@@ -513,9 +510,6 @@ pastix_subtask_solve( pastix_data_t *pastix_data,
             pastix_print( pastix_data->inter_node_procnum, 0, OUT_TIME_SOLV,
                           pastix_data->dparm[DPARM_SOLV_TIME] );
         }
-#if defined(PASTIX_WITH_MPI)
-        solverSendersExit( pastix_data->solvmatr );
-#endif
     }
 
     return EXIT_SUCCESS;

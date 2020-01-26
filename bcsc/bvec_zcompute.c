@@ -1356,7 +1356,7 @@ bvec_znullify_remote( const pastix_data_t *pastix_data,
 
     cblknbr = solvmtx->cblknbr;
     for ( i = 0; i < cblknbr; i++, cblk++ ) {
-        if ( cblk->cblktype & CBLK_FANIN ) {
+        if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) {
             continue;
         }
 

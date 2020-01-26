@@ -114,7 +114,6 @@ solver_copy( const SolverMatrix *solvin,
                 }
             }
         }
-        solvcblk->rcoeftab = NULL;
     }
     solvcblk->fblokptr = solvblok;
 
