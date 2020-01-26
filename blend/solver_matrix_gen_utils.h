@@ -212,7 +212,8 @@ solvMatGen_init_cblk( SolverCblk    *solvcblk,
                       pastix_int_t   brownum,
                       pastix_int_t   stride,
                       pastix_int_t   nodenbr,
-                      pastix_int_t   cblknum )
+                      pastix_int_t   cblknum,
+                      int            ownerid )
 {
     assert( fblokptr != NULL );
     assert( fcolnum >= 0 );
@@ -233,15 +234,15 @@ solvMatGen_init_cblk( SolverCblk    *solvcblk,
     solvcblk->lcolidx    = nodenbr;
     solvcblk->brownum    = brownum;
     solvcblk->gcblknum   = cblknum;
-    solvcblk->lcblknum   = cblknum;
+    solvcblk->bcscnum    = -1;
     solvcblk->selevtx    = (symbcblk->selevtx == SYMBCBLK_PROJ) ? 1 : 0;
-    solvcblk->recvnbr    = 0;
-    solvcblk->recvcnt    = 0;
+    solvcblk->ownerid    = ownerid;
     solvcblk->lcoeftab   = NULL;
     solvcblk->ucoeftab   = NULL;
-    solvcblk->rcoeftab   = NULL;
     solvcblk->handler[0] = NULL;
     solvcblk->handler[1] = NULL;
+    solvcblk->reqindex   = -1;
+    solvcblk->threadid   = -1;
 }
 
 /**
@@ -348,7 +349,21 @@ void solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
                                 pastix_int_t    *bloklocalnum,
                                 pastix_int_t    *tasklocalnum,
                                 pastix_int_t    *fcbklocalnum,
-                                pastix_int_t    *pcbklocalnum  );
+                                pastix_int_t    *pcbklocalnum,
+                                int            **recv_sources_ptr );
+
+void solvMatGen_init_cblk_recv( const symbol_matrix_t *symbmtx,
+                                      SolverCblk      *solvcblk,
+                                      SolverBlok      *solvblok,
+                                      Cand            *candcblk,
+                                      pastix_int_t    *cblklocalnum,
+                                      pastix_int_t     recvidx,
+                                      pastix_int_t     fcolnum,
+                                      pastix_int_t     lcolnum,
+                                      pastix_int_t     brownum,
+                                      pastix_int_t     nodenbr,
+                                      pastix_int_t     cblknum,
+                                      int              ownerid );
 
 pastix_int_t
 solvMatGen_reorder_browtab( const symbol_matrix_t *symbmtx,

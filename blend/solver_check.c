@@ -52,12 +52,12 @@
 int
 solverCheck( const SolverMatrix *solvmtx )
 {
-    int          i, j;
+    int          i, j, browtype, cblktype;
     SolverBlok  *blok, *fblok;
     SolverCblk  *cblk, *fcblk;
     pastix_int_t bloknum;
 
-    assert( solvmtx->cblknbr <= solvmtx->gcblknbr );
+    assert( (solvmtx->cblknbr - solvmtx->recvnbr - solvmtx->faninnbr ) <= solvmtx->gcblknbr );
 
     cblk = solvmtx->cblktab;
 
@@ -65,41 +65,106 @@ solverCheck( const SolverMatrix *solvmtx )
         /* Make sure the lock is initialized correctly */
         assert( cblk->lock == PASTIX_ATOMIC_UNLOCKED );
 
-        /*
-         * Check that:
-         *    - the brownum is lower or equal to the next one
-         *    - the brown2d is included between the two brow values
-         */
-        assert( cblk[1].brownum >= cblk[0].brownum );
-        assert( ( cblk[0].brownum <= cblk[0].brown2d ) && ( cblk[0].brown2d <= cblk[1].brownum ) );
-
         /* Check dimensions */
         assert( cblk->fcolnum <= cblk->lcolnum );
         assert( cblk->stride >= cblk_colnbr( cblk ) );
 
+        /* Check the range of value for the ownerid */
+        assert( (cblk->ownerid  >=  0) && (cblk->ownerid  < solvmtx->clustnbr) );
+        assert( (cblk->threadid >= -1) && (cblk->threadid < solvmtx->thrdnbr ) );
+
+        /* Check that pointers have been initialized to null */
+        assert( cblk->lcoeftab == NULL );
+        assert( cblk->ucoeftab == NULL );
+
+        /* Check that we have at least one block */
+        assert( (cblk[1].fblokptr - cblk[0].fblokptr) >= 1 );
+
         fblok = cblk->fblokptr;
+        fcblk = solvmtx->cblktab + fblok->fcblknm;
 
-        assert( cblk[0].lcolnum < cblk[1].fcolnum );
-        assert( fblok->browind == -1 );
-        assert( fblok->lcblknm == i );
+        if ( cblk->cblktype & CBLK_RECV ) {
+            /*
+             * Check the redundancy of information, the facing cblk of the first
+             * block should match the index of the local cblk which refers to
+             * the local non recv version of this cblk.
+             */
+            assert( fcblk->lcolidx  == cblk->lcolidx  );
+            assert( fcblk->sndeidx  == cblk->sndeidx  );
+            assert( fcblk->gcblknum == cblk->gcblknum );
+            assert( fcblk->fblokptr->lcblknm == fblok->fcblknm );
+            assert( i < fcblk->fblokptr->lcblknm );
 
-        if ( cblk->cblktype & CBLK_FANIN ) {
-            /* Dimensions are similar to any other cblk but storeed remotely */
+            /* It has to be remote */
             assert( cblk->ownerid != solvmtx->clustnum );
 
-            assert( fblok->fcblknm == -1 );
+            /* No index in the bcsctab */
+            assert( -1 == cblk->bcscnum );
+
+            /* It has to be included in the destination */
+            assert( cblk->fcolnum >= fcblk->fcolnum );
+            assert( cblk->lcolnum <= fcblk->lcolnum );
+
+            /* It has no input contributions */
+            assert( ( cblk[0].brownum == cblk[0].brown2d ) &&
+                    ( cblk[0].brown2d == cblk[1].brownum ) );
+
+            /* Check that reception blocks are included within local reception blocks */
+            {
+                SolverBlok *rblok;
+                blok  = fblok;
+                rblok = fcblk->fblokptr;
+                for ( ; blok < cblk[1].fblokptr; blok++ ) {
+                    while( !is_block_inside_fblock( blok, rblok ) ) {
+                        rblok++;
+                        assert( rblok->lcblknm == (fcblk - solvmtx->cblktab) );
+                    }
+                }
+                assert( rblok->lcblknm == (fcblk - solvmtx->cblktab) );
+            }
         }
         else {
-            assert( (cblk[1].cblktype & CBLK_FANIN) ||
-                    (!(cblk[1].cblktype & CBLK_FANIN) && (cblk[0].lcolidx < cblk[1].lcolidx)) );
-            assert( (solvmtx->gcbl2loc == NULL) ||
-                    (cblk->ownerid == solvmtx->clustnum) );
+            /* It has to be included in the destination */
+            assert( cblk[0].lcolnum < cblk[1].fcolnum );
 
-            assert( fblok->lcblknm == fblok->fcblknm );
+            /* Check that we have none or some contributions */
+            assert( cblk[1].brownum >= cblk[0].brownum );
+            assert( ( cblk[0].brownum <= cblk[0].brown2d ) &&
+                    ( cblk[0].brown2d <= cblk[1].brownum ) );
+
+            /* First diagonal block should not appear in the browtab */
+            assert( fblok->browind == -1 );
+
+            if ( cblk->cblktype & CBLK_FANIN ) {
+                assert( -1 == cblk->bcscnum );
+
+                /* It has to be remote */
+                assert( cblk->ownerid != solvmtx->clustnum );
+
+                /* Fanin targets do not contribute locally so we don't know the target */
+                assert( fblok->fcblknm == -1 );
+
+                /* Uncomment when rhs will be distributed */
+                // assert( cblk->lcolidx == -1 );
+            }
+            else {
+                /* Check that first diagonal block belongs to ourself */
+                assert( fblok->fcblknm == fblok->lcblknm );
+
+                assert( cblk->bcscnum != -1 );
+
+                /* It has to be local */
+                assert( (solvmtx->gcbl2loc == NULL) ||
+                        (cblk->ownerid == solvmtx->clustnum) );
+
+                /* Check if possible that the right hand side index are in increasing order */
+                assert( (cblk[1].cblktype & CBLK_FANIN) ||
+                        (!(cblk[1].cblktype & CBLK_FANIN) && (cblk[0].lcolidx < cblk[1].lcolidx)) );
+            }
         }
 
         /* Check bloks in the current cblk */
-        blok = fblok + 1;
+        blok = fblok;
         for ( ; blok < cblk[1].fblokptr; blok++ ) {
             assert( blok->lcblknm == i );
             assert( blok->frownum <= blok->lrownum );
@@ -111,17 +176,31 @@ solverCheck( const SolverMatrix *solvmtx )
             if ( cblk->cblktype & CBLK_FANIN ) {
                 assert( blok->fcblknm == -1 );
             }
+            else if ( cblk->cblktype & CBLK_RECV ) {
+                if ( blok == cblk->fblokptr ) {
+                    assert( blok->fcblknm != -1 );
+                    assert( blok->browind != -1 );
+                    assert( blok->lcblknm < blok->fcblknm );
+                }
+                else {
+                    assert( blok->fcblknm == -1 );
+                    assert( blok->browind == -1 );
+                }
+            }
             else {
                 fcblk = solvmtx->cblktab + blok->fcblknm;
                 fblok = fcblk->fblokptr;
 
-                assert( blok->lcblknm < blok->fcblknm );
+                assert( ((blok == cblk->fblokptr) && (blok->lcblknm == blok->fcblknm)) ||
+                        (blok->lcblknm < blok->fcblknm) );
                 assert( blok->frownum >= fblok->frownum );
                 assert( blok->lrownum <= fblok->lrownum );
             }
         }
 
         /* Check previous bloks in row */
+        browtype = 0;
+        cblktype = 0;
         for ( j = cblk[0].brownum; j < cblk[1].brownum; j++ ) {
             bloknum = solvmtx->browtab[j];
             blok    = solvmtx->bloktab + bloknum;
@@ -130,10 +209,24 @@ solverCheck( const SolverMatrix *solvmtx )
             assert( blok->browind == j );
             assert( blok->fcblknm == i );
 
-            /* Bloks in Fanin sould never appear in the browtab */
+            /* Blocks in Fanin sould never appear in the browtab */
             assert( !(fcblk->cblktype & CBLK_FANIN) );
-            assert( (solvmtx->gcbl2loc == NULL) ||
-                    (fcblk->ownerid == solvmtx->clustnum) );
+
+            /* The contribution comes from a RECV cblk */
+            if ( fcblk->cblktype & CBLK_RECV ) {
+                assert( fcblk->ownerid != solvmtx->clustnum );
+
+                /* It can come only from the diagonal block */
+                assert( blok == fcblk->fblokptr );
+            }
+            else {
+                assert( (solvmtx->gcbl2loc == NULL) || (fcblk->ownerid == solvmtx->clustnum) );
+            }
+
+            /* Check that the brow is sorted correctly (1D, 2D, RECV) */
+            cblktype = fcblk->cblktype & ( CBLK_TASKS_2D | CBLK_RECV );
+            assert( cblktype >= browtype );
+            browtype = browtype | cblktype; /* Take the max for the next step */
         }
     }
 

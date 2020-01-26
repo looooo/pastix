@@ -84,7 +84,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                  PASTIX_Comm            comm,
                  isched_t              *isched )
 {
-    pastix_int_t  i, j;
+    pastix_int_t  i, j, k;
     pastix_int_t  coefnbr      = 0;
     pastix_int_t  nodenbr      = 0;
     pastix_int_t  cblknum      = 0;
@@ -92,6 +92,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
     pastix_int_t *cblklocalnum = NULL;
     pastix_int_t *fcbklocalnum = NULL;
     pastix_int_t *pcbklocalnum = NULL;
+    int          *recv_sources = NULL;
     pastix_int_t *bloklocalnum = NULL;
     pastix_int_t *tasklocalnum = NULL;
     pastix_int_t *browtmp      = NULL;
@@ -124,11 +125,12 @@ solverMatrixGen( SolverMatrix          *solvmtx,
     MALLOC_INTERN( fcbklocalnum, symbmtx->cblknbr,  pastix_int_t );
     MALLOC_INTERN( pcbklocalnum, symbmtx->cblknbr,  pastix_int_t );
     MALLOC_INTERN( tasklocalnum, simuctrl->tasknbr, pastix_int_t );
+    MALLOC_INTERN( recv_sources, symbmtx->cblknbr * solvmtx->clustnbr, int );
 
     /* Compute local indexes to compress the symbol information into solver */
     solvMatGen_fill_localnums( symbmtx, simuctrl, solvmtx,
                                cblklocalnum, bloklocalnum, tasklocalnum,
-                               fcbklocalnum, pcbklocalnum );
+                               fcbklocalnum, pcbklocalnum, &recv_sources );
 
     /***************************************************************************
      * Fill in the local bloktab and cblktab
@@ -151,8 +153,9 @@ solverMatrixGen( SolverMatrix          *solvmtx,
         pastix_int_t   nbcblk2d = 0;
         pastix_int_t   nbblok2d = 0;
         pastix_int_t   gbloknm  = 0;
-        pastix_int_t   lcblkidx = 0; /* Index of the local classic cblk */
+        pastix_int_t   bcscidx  = 0; /* Index of the local classic cblk */
         pastix_int_t   sndeidx  = 0; /* Index of the current supernode in the original elimination tree */
+        pastix_int_t   recvcnt  = 0;
 
         solvmtx->cblkmax1d  = -1;
         solvmtx->cblkmin2d  = solvmtx->cblknbr;
@@ -166,7 +169,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
         nodenbr             = 0;
         coefnbr             = 0;
         for ( i = 0; i < symbmtx->cblknbr; i++, symbcblk++, candcblk++ ) {
-            SolverBlok  *fblokptr = solvblok;
+            SolverBlok  *fblokptr;
             pastix_int_t fbloknum = symbcblk[0].bloknum;
             pastix_int_t lbloknum = symbcblk[1].bloknum;
             pastix_int_t stride   = 0;
@@ -175,7 +178,26 @@ solverMatrixGen( SolverMatrix          *solvmtx,
 
             nbcols = solvMatGen_get_colnum( symbmtx, symbcblk, &fcolnum, &lcolnum );
 
+            recvcnt = pcbklocalnum[i];
+            for( k = 0; k < recvcnt; k++ )
+            {
+                fblokptr = solvblok;
+                solvMatGen_init_cblk_recv( symbmtx, solvcblk, solvblok, candcblk,
+                                           cblklocalnum, pcbklocalnum[i],
+                                           fcolnum, lcolnum, brownum, nodenbr, i,
+                                           recv_sources[solvmtx->recvcnt] );
+
+                pastix_int_t cblksize = cblk_colnbr(solvcblk) * solvcblk->stride;
+                solvmtx->maxrecv = pastix_imax( solvmtx->maxrecv, cblksize );
+                pcbklocalnum[i]--;
+                solvmtx->recvcnt++;
+                cblknum++;
+                solvcblk++;
+                solvblok += (symbcblk[1].bloknum - symbcblk[0].bloknum);
+            }
+
             flaglocal = 0;
+            fblokptr  = solvblok;
             for ( j = fbloknum; j < lbloknum; j++, symbblok++, simublok++ ) {
                 pastix_int_t frownum, lrownum, nbrows;
 
@@ -204,13 +226,20 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                 pastix_int_t brownbr;
                 solvmtx->colmax = pastix_imax( solvmtx->colmax, nbcols );
 
+                /* Update the 1D/2D infos of the solvmtx through the CBLK_RECV. */
+                for( k = 1; k <= recvcnt; k++ )
+                {
+                    solvMatGen_cblkIs2D( solvmtx, &nbcblk2d, &nbblok2d,
+                                        (solvblok - fblokptr), tasks2D, cblknum - k );
+                }
+
                 /* Update the 1D/2D infos of the solvmtx through a cblk. */
                 solvMatGen_cblkIs2D( solvmtx, &nbcblk2d, &nbblok2d,
                                     (solvblok - fblokptr), tasks2D, cblknum );
 
                 /* Init the cblk */
                 solvMatGen_init_cblk( solvcblk, fblokptr, candcblk, symbcblk,
-                                      fcolnum, lcolnum, brownum, stride, nodenbr, i );
+                                      fcolnum, lcolnum, brownum, stride, nodenbr, i, ctrl->clustnum);
 
 #if defined(PASTIX_WITH_MPI)
                 if ( solvmtx->clustnbr > 1 )
@@ -248,33 +277,17 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                     solvmtx->cblkschur = cblknum;
                 }
 
-                solvcblk->ownerid    = ctrl->clustnum;
-                solvcblk->reqindex   = -1;
                 solvmtx->gcbl2loc[i] = solvcblk - solvmtx->cblktab;
 
                 /* If the cblk is a fanin one */
                 if ( fcbklocalnum[i] != -1 ) {
-                    solvcblk->lcblknum  = -1;
                     solvcblk->cblktype |= CBLK_FANIN;
                     solvcblk->ownerid   = fcbklocalnum[i];
-                    solvmtx->faninnbr++;
                     solvmtx->fanincnt++;
                 }
-                /* If the cblk is a recv one */
-                else if ( pcbklocalnum[i] ) {
-                    pastix_int_t cblksize = cblk_colnbr(solvcblk) * solvcblk->stride;
-                    solvmtx->maxrecv    = pastix_imax( solvmtx->maxrecv, cblksize );
-                    solvmtx->recvnbr++;
-                    solvmtx->recvcnt   += pcbklocalnum[i];
-                    solvcblk->recvnbr   = pcbklocalnum[i];
-                    solvcblk->recvcnt   = pcbklocalnum[i];
-                    solvcblk->cblktype |= CBLK_RECV;
-                    solvcblk->lcblknum  = lcblkidx;
-                    lcblkidx++;
-                }
                 else {
-                    solvcblk->lcblknum = lcblkidx;
-                    lcblkidx++;
+                    solvcblk->bcscnum = bcscidx;
+                    bcscidx++;
                 }
 
                 /* Compute the original supernode in the nested dissection */
@@ -290,6 +303,18 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                  */
                 brownbr = solvMatGen_reorder_browtab( symbmtx, symbcblk, solvmtx, solvcblk,
                                                       browtmp, cblklocalnum, bloklocalnum, brownum );
+
+                /* Diagonal bloks of CBLK_RECV are added here in the browtab */
+                while( recvcnt ) {
+                    fblokptr = solvcblk[-recvcnt].fblokptr;
+                    solvmtx->browtab[brownum + brownbr] = fblokptr - solvmtx->bloktab;
+                    fblokptr->browind = brownum + brownbr;
+                    brownbr++;
+
+                    /* Supernode index is copied in too */
+                    solvcblk[-recvcnt].sndeidx = solvcblk->sndeidx;
+                    recvcnt--;
+                }
 
                 brownum += brownbr;
 
@@ -310,7 +335,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
         if ( cblknum > 0 ) {
             solvMatGen_init_cblk( solvcblk, solvblok, candcblk, symbcblk,
                                   solvcblk[-1].lcolnum + 1, solvcblk[-1].lcolnum + 1,
-                                  brownum, 0, nodenbr, -1 );
+                                  brownum, 0, nodenbr, -1, solvmtx->clustnum );
         }
 
         /*  Add a virtual blok to avoid side effect in the loops on cblk bloks */
@@ -331,6 +356,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
         assert( solvmtx->brownbr  == brownum );
         assert( solvmtx->cblknbr  == cblknum );
         assert( solvmtx->faninnbr == solvmtx->fanincnt );
+        assert( solvmtx->recvnbr  == solvmtx->recvcnt );
         assert( solvmtx->bloknbr  == solvblok - solvmtx->bloktab );
     }
     memFree_null( browtmp );
@@ -345,6 +371,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
     memFree_null(pcbklocalnum);
     memFree_null(bloklocalnum);
     memFree_null(tasklocalnum);
+    memFree_null(recv_sources);
 
     /* Compute the maximum area of the temporary buffer */
     solvMatGen_max_buffers( solvmtx );
@@ -499,7 +526,8 @@ solverMatrixGenSeq( SolverMatrix          *solvmtx,
 
             /* Init the cblk */
             solvMatGen_init_cblk( solvcblk, fblokptr, candcblk, symbcblk,
-                                  fcolnum, lcolnum, brownum, stride, nodenbr, i );
+                                  fcolnum, lcolnum, brownum, stride, nodenbr, i, ctrl->clustnum );
+            solvcblk->bcscnum = i;
 #if defined(PASTIX_WITH_MPI)
             /* No low-rank compression in distributed for the moment */
             if ( (solvmtx->clustnbr > 1) && (solvcblk->cblktype & CBLK_COMPRESSED) )
@@ -558,7 +586,7 @@ solverMatrixGenSeq( SolverMatrix          *solvmtx,
         if ( cblknum > 0 ) {
             solvMatGen_init_cblk( solvcblk, solvblok, candcblk, symbcblk,
                                   solvcblk[-1].lcolnum + 1, solvcblk[-1].lcolnum + 1,
-                                  symbcblk->brownum, 0, nodenbr, -1 );
+                                  symbcblk->brownum, 0, nodenbr, -1, ctrl->clustnum);
         }
 
         /*  Add a virtual blok to avoid side effect in the loops on cblk bloks */

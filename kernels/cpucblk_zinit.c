@@ -232,7 +232,7 @@ cpucblk_zfillin_fr( pastix_coefside_t    side,
                     pastix_int_t         itercblk )
 {
     SolverCblk *solvcblk       = solvmtx->cblktab + itercblk;
-    const bcsc_cblk_t *csccblk = bcsc->cscftab + solvcblk->lcblknum;
+    const bcsc_cblk_t *csccblk = bcsc->cscftab + solvcblk->bcscnum;
     SolverBlok *solvblok;
     SolverBlok *lsolvblok = (solvcblk+1)->fblokptr;
     pastix_complex64_t *lcoeftab = solvcblk->lcoeftab;
@@ -339,7 +339,7 @@ cpucblk_zfillin_lr( pastix_coefside_t    side,
                     pastix_int_t         itercblk )
 {
     SolverCblk *solvcblk       = solvmtx->cblktab + itercblk;
-    const bcsc_cblk_t *csccblk = bcsc->cscftab + solvcblk->lcblknum;
+    const bcsc_cblk_t *csccblk = bcsc->cscftab + solvcblk->bcscnum;
     SolverBlok *solvblok;
     SolverBlok *lsolvblok = (solvcblk+1)->fblokptr;
     pastix_complex64_t *lcoeftab, *ucoeftab;

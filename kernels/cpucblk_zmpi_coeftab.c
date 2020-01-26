@@ -127,19 +127,14 @@ cpucblk_zirecv( pastix_coefside_t   side,
     }
 
     /* Init rcoeftab only when it's called */
-    if ( cblk->rcoeftab == NULL ) {
-        MALLOC_INTERN( cblk->rcoeftab, cblksize, pastix_complex64_t );
-    }
+    cpucblk_zalloc( side, cblk );
 
-    assert( cblk->rcoeftab );
 #if defined(PASTIX_DEBUG_MPI)
-    memset( cblk->rcoeftab, 0, cblksize * sizeof(pastix_complex64_t) );
-
     fprintf( stderr, "[%2d] Post Irecv for cblk %ld from any source\n",
              solvmtx->clustnum, (long)cblk->gcblknum );
 #endif
 
-    rc = MPI_Irecv( cblk->rcoeftab, cblksize, PASTIX_MPI_COMPLEX64,
+    rc = MPI_Irecv( cblk->lcoeftab, cblksize, PASTIX_MPI_COMPLEX64,
                     MPI_ANY_SOURCE, cblk->gcblknum, solvmtx->solv_comm, request );
     assert( rc == MPI_SUCCESS );
 
@@ -205,9 +200,10 @@ cpucblk_zrequest_handle_fanin( pastix_coefside_t   side,
 static inline void
 cpucblk_zrequest_handle_recv( pastix_coefside_t  side,
                               SolverMatrix      *solvmtx,
-                              SolverCblk        *cblk )
+                              const SolverCblk  *cblk )
 {
     assert( cblk->cblktype & CBLK_RECV );
+    SolverCblk *fcbk = solvmtx->cblktab + cblk->fblokptr->fcblknm;
 
 #if defined(PASTIX_DEBUG_MPI)
     /* We can't know the sender easily, so we don't print it */
@@ -215,15 +211,15 @@ cpucblk_zrequest_handle_recv( pastix_coefside_t  side,
              solvmtx->clustnum, (long)cblk->gcblknum );
 #endif
 
-    cpucblk_zadd_recv( PastixLCoef, 1., cblk );
+    cpucblk_zadd( PastixLCoef, 1., cblk, fcbk, NULL );
 
     /* If side is LU, let's add the U part too */
     if ( side != PastixLCoef ) {
-        cpucblk_zadd_recv( PastixUCoef, 1., cblk );
+        cpucblk_zadd( PastixUCoef, 1., cblk, fcbk, NULL );
     }
 
     /* Receptions cblks contribute to themselves */
-    cpucblk_zrelease_deps( side, solvmtx, cblk, cblk );
+    cpucblk_zrelease_deps( side, solvmtx, cblk, fcbk );
 }
 
 /**
@@ -275,14 +271,8 @@ cpucblk_zrequest_handle( pastix_coefside_t  side,
         if ( cblk->cblktype & CBLK_RECV ) {
             cpucblk_zrequest_handle_recv( side, solvmtx, cblk );
 
-            cblk->recvcnt--;
-            /* Relaunch the reception if there is still more work to do */
-            if ( cblk->recvcnt ) {
-                cpucblk_zirecv( side, solvmtx, cblk );
-            }
-            else {
-                memFree_null( cblk->rcoeftab );
-            }
+            /* Free the coeftabs for this scheduler */
+            cpucblk_zfree( side, cblk );
         }
     }
 }
@@ -516,8 +506,12 @@ cpucblk_zmpi_progress( pastix_coefside_t   side,
 
             /* Get the associated recv cblk */
             cblk = solvmtx->cblktab + solvmtx->gcbl2loc[ tag ];
+            /* Get through source */
+            while( cblk->ownerid != source ) {
+                cblk--;
+                assert( cblk->gcblknum == tag );
+            }
             assert( cblk != NULL );
-            (void)source;
         }
         else {
             cblk = solvmtx->cblktab + solvmtx->reqlocal[ reqid ];
@@ -533,7 +527,11 @@ cpucblk_zmpi_progress( pastix_coefside_t   side,
 
         if ( cblk->cblktype & CBLK_RECV ) {
             cblk->threadid = threadid;
-            cblk->rcoeftab = recv;
+            cblk->lcoeftab = recv;
+
+            if( side != PastixLCoef ) {
+                cblk->ucoeftab = recv + (cblk_colnbr(cblk) * cblk->stride);
+            }
 
             cpucblk_zrequest_handle_recv( side, solvmtx, cblk );
             solvmtx->recvcnt--;
@@ -594,6 +592,9 @@ cpucblk_zincoming_deps( int                mt_flag,
                         SolverCblk        *cblk )
 {
 #if defined(PASTIX_WITH_MPI)
+    pastix_int_t j = -1;
+    pastix_int_t cblknum;
+
     if ( cblk->cblktype & CBLK_FANIN ) {
         /*
          * We are in the sequential case, we progress on communications and
@@ -605,6 +606,21 @@ cpucblk_zincoming_deps( int                mt_flag,
 
     if ( cblk->cblktype & CBLK_RECV ) {
         cpucblk_zirecv( side, solvmtx, cblk );
+        return 1;
+    }
+
+    /* Called only with the static scheduler */
+    if( mt_flag ){
+        /* Post all reception for this cblk */
+        cblknum = cblk - solvmtx->cblktab;
+
+        while( ((cblknum + j) >= 0) &&
+               (cblk[j].cblktype & CBLK_RECV) )
+        {
+            assert( cblk[j].fblokptr->fcblknm == cblknum );
+            cpucblk_zirecv( side, solvmtx, cblk + j );
+            j--;
+        }
     }
 
     /* Make sure we receive every contribution */

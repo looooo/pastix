@@ -72,15 +72,18 @@ solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
                            pastix_int_t    *bloklocalnum,
                            pastix_int_t    *tasklocalnum,
                            pastix_int_t    *fcbklocalnum,
-                           pastix_int_t    *pcbklocalnum )
+                           pastix_int_t    *pcbklocalnum,
+                           int            **recv_sources_ptr )
 {
     pastix_int_t  *localindex;
     pastix_int_t  *countcluster;
     symbol_cblk_t *symbcblk;
     pastix_int_t   cblknum, fcbknum, brownum, brownbr;
+    pastix_int_t   faninnbr, recvnbr;
     pastix_int_t   i, j, k, c, fc;
     pastix_int_t   flaglocal;
     pastix_int_t   clustnum = solvmtx->clustnum;
+    int           *recv_sources = *recv_sources_ptr;
 
     /* Initialize the set of cluster candidates for each cblk */
     MALLOC_INTERN( countcluster, solvmtx->clustnbr, pastix_int_t );
@@ -111,6 +114,8 @@ solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
     cblknum  = 0;
     fcbknum  = 0;
     brownum  = 0;
+    recvnbr  = 0;
+    faninnbr = 0;
     symbcblk = symbmtx->cblktab;
     for ( i = 0; i < symbmtx->cblknbr; i++, symbcblk++ ) {
         brownbr = symbcblk[1].brownum - symbcblk[0].brownum;
@@ -154,8 +159,15 @@ solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
             /* Compute the amount of different contributers in a cblk */
             for ( j=0; j<solvmtx->clustnbr; j++ )
             {
+                /* Each time countcluster[j] != 0, a new sender can be registered*/
                 if( countcluster[j] != 0 ){
-                    pcbklocalnum[i]++;
+                    pcbklocalnum[i]++;                              /* Amount of receptions for cblk i */
+                    recv_sources[recvnbr] = j;                      /* Register source                 */
+                    localindex[clustnum] +=  (symbcblk[1].bloknum
+                                            - symbcblk[0].bloknum); /* Duplicate the amount of bloks   */
+                    brownbr++;                                      /* One more blok will be in the browtab */
+                    cblknum++;                                      /* Add one cblk                    */
+                    recvnbr++;                                      /* Add one reception count         */
                 }
             }
         }
@@ -177,6 +189,7 @@ solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
                 /* If the facing cblk isn't local, we need to have a local copy of it */
                 if ( ( fcbklocalnum[fcbknum] == -1 ) && ( fc != c ) ) {
                     fcbklocalnum[fcbknum] = fc;
+                    faninnbr++;
                 }
             }
         }
@@ -206,6 +219,14 @@ solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
     solvmtx->cblknbr = cblknum;
     solvmtx->bloknbr = localindex[clustnum];
     solvmtx->brownbr = brownum;
+
+    /* Reallocate recv_sources tab to diminish it's size */
+    if( recvnbr > 0 ){
+        int *sources = (int *)realloc( recv_sources, recvnbr * sizeof(int) );
+        *recv_sources_ptr = sources;
+    }
+    solvmtx->recvnbr  = recvnbr;
+    solvmtx->faninnbr = faninnbr;
 
     memFree_null( localindex );
     memFree_null( countcluster );
@@ -311,6 +332,9 @@ solvMatGen_reorder_browtab( const symbol_matrix_t *symbmtx,
 
         /* Get the local cblk which owns the block */
         browcblk = solvmtx->cblktab + lcblknm;
+
+        /* Recv should never appear through cblklocalnum */
+        assert( !(browcblk->cblktype & CBLK_RECV) );
 
         /* Fanin should not contribute to local data */
         if( browcblk->cblktype & CBLK_FANIN ) {
@@ -435,7 +459,7 @@ solvMatGen_fill_ttsktab( isched_thread_t *ctx, void *args )
             jloc = j;
         }
         /* Only local cblks should appear in the tasktab */
-        assert( !(solvmtx->cblktab[ solvmtx->tasktab[jloc].cblknum ].cblktype & CBLK_FANIN) );
+        assert( !(solvmtx->cblktab[ solvmtx->tasktab[jloc].cblknum ].cblktype & (CBLK_FANIN|CBLK_RECV)) );
         solvmtx->ttsktab[rank][i] = jloc;
         solvmtx->cblktab[jloc].threadid = rank;
 
@@ -745,6 +769,121 @@ solvMatGen_stats_last( SolverMatrix *solvmtx )
 #else
     (void)solvmtx;
 #endif
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Init a recv solver cblk
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbmtx
+ *          The pointer to the symbol matrix.
+ *
+ * @param[inout] solvcblk
+ *          The pointer to the cblk.
+ *
+ * @param[inout] solvblok
+ *          The pointer to the first block of the cblk.
+ *
+ * @param[in] candcblk
+ *          Allow us to know the type of the cblk.
+ *
+ * @param[in] cblklocalnum
+ *          Pointer to the cblklocalnum.
+ *
+ * @param[in] recvidx
+ *          Which CBLK_RECV is concerned.
+ *
+ * @param[in] fcolnum
+ *          First column of the cblk.
+ *
+ * @param[in] lcolnum
+ *          Last column of the cblk.
+ *
+ * @param[in] brownum
+ *          Index in th browtab.
+ *
+ * @param[in] stride
+ *          Stride of the cblk.
+ *
+ * @param[in] nodenbr
+ *          Current global column index.
+ *
+ * @param[in] cblknum
+ *          Global cblk index.
+ *
+ * @param[in] ownerid
+ *          Owner of the cblk.
+ *
+ *******************************************************************************/
+void
+solvMatGen_init_cblk_recv( const symbol_matrix_t *symbmtx,
+                                 SolverCblk      *solvcblk,
+                                 SolverBlok      *solvblok,
+                                 Cand            *candcblk,
+                                 pastix_int_t    *cblklocalnum,
+                                 pastix_int_t     recvidx,
+                                 pastix_int_t     fcolnum,
+                                 pastix_int_t     lcolnum,
+                                 pastix_int_t     brownum,
+                                 pastix_int_t     nodenbr,
+                                 pastix_int_t     cblknum,
+                                 int              ownerid )
+{
+    assert( solvblok != NULL );
+    assert( fcolnum >= 0 );
+    assert( lcolnum >= fcolnum );
+    assert( nodenbr >= 0 );
+    assert( brownum >= 0 );
+
+    symbol_cblk_t *symbcblk = symbmtx->cblktab + cblknum;
+    symbol_blok_t *symbblok = symbmtx->bloktab + symbcblk->bloknum;
+
+    SolverBlok  *fblokptr = solvblok;
+    pastix_int_t fbloknum = symbcblk[0].bloknum;
+    pastix_int_t lbloknum = symbcblk[1].bloknum;
+    pastix_int_t frownum, lrownum ;
+    pastix_int_t lcblknm, fcblknm;
+    pastix_int_t j, stride = 0;
+    pastix_int_t nbrows, nbcols;
+    pastix_int_t tasks2D  = candcblk->cblktype & CBLK_TASKS_2D;
+
+    nbcols = lcolnum - fcolnum + 1;
+    nbrows = solvMatGen_get_rownum( symbmtx, symbblok, &frownum, &lrownum );
+
+    lcblknm = cblklocalnum[symbblok->lcblknm] - recvidx;
+    /* TODO : Adapt bloks to the received zone */
+    for ( j = fbloknum; j < lbloknum; j++, symbblok++ ) {
+        fcblknm = (j > fbloknum) ? -1 : cblklocalnum[symbblok->fcblknm];
+        nbrows  = solvMatGen_get_rownum( symbmtx, symbblok, &frownum, &lrownum );
+
+        solvMatGen_init_blok( solvblok,
+                              lcblknm, fcblknm,
+                              frownum, lrownum,
+                              stride, nbcols, tasks2D );
+        solvblok->gbloknm = -1;
+        stride += nbrows;
+        solvblok++;
+    }
+
+    solvMatGen_init_cblk( solvcblk, fblokptr, candcblk, symbcblk,
+                          fcolnum, lcolnum, brownum, stride, nodenbr,
+                          cblknum, ownerid );
+
+    solvcblk->brown2d   = brownum;
+    solvcblk->cblktype |= CBLK_RECV;
+
+    /* No low-rank compression in distributed for the moment */
+    if( solvcblk->cblktype & CBLK_COMPRESSED ) {
+        solvcblk->cblktype &= (~CBLK_COMPRESSED);
+    }
+
+    /* No Schur complement in distributed for the moment */
+    if( solvcblk->cblktype & CBLK_IN_SCHUR ) {
+        solvcblk->cblktype &= (~CBLK_IN_SCHUR);
+    }
 }
 
 /**

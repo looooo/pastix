@@ -434,7 +434,7 @@ pthread_bcsc_zspmv_tasktab( isched_thread_t *ctx,
         t = mtx->tasktab + task_id;
 
         solv_cblk = mtx->cblktab + t->cblknum;
-        bcsc_cblk = bcsc->cscftab + solv_cblk->lcblknum;
+        bcsc_cblk = bcsc->cscftab + solv_cblk->bcscnum;
         yptr = y + solv_cblk->fcolnum;
 
         zspmv_Ax( bcsc, bcsc_cblk, alpha, valptr, x, beta, yptr );

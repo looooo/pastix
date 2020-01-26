@@ -84,7 +84,7 @@ typedef struct solver_blok_s {
     void        *handler[2]; /**< Runtime data handler                     */
     pastix_int_t lcblknm;    /**< Local column block                       */
     pastix_int_t fcblknm;    /**< Facing column block                      */
-    pastix_int_t gbloknm;    /**< Index in global bloktab                  */
+    pastix_int_t gbloknm;    /**< Index in global bloktab (UNUSED)         */
     pastix_int_t frownum;    /**< First row index                          */
     pastix_int_t lrownum;    /**< Last row index (inclusive)               */
     pastix_int_t coefind;    /**< Index in coeftab                         */
@@ -111,20 +111,16 @@ typedef struct solver_cblk_s  {
     pastix_int_t         lcolidx;    /**< First column index (Local numbering), used for the rhs vectors      */
     pastix_int_t         brownum;    /**< First block in row facing the diagonal block in browtab, 0-based    */
     pastix_int_t         brown2d;    /**< First 2D-block in row facing the diagonal block in browtab, 0-based */
-    pastix_int_t         gcblknum;   /**< Global column block index                                           */
     pastix_int_t         sndeidx;    /**< Global index of the original supernode the cblk belongs to          */
-    pastix_int_t         lcblknum;   /**< Local cblk index if classic cblk, -1 otherwise (FANIN | RECV)       */
+    pastix_int_t         gcblknum;   /**< Global column block index                                           */
+    pastix_int_t         bcscnum;    /**< Index in the bcsctab if local cblk, -1 otherwise (FANIN | RECV)      */
     void                *lcoeftab;   /**< Coefficients access vector, lower part  */
     void                *ucoeftab;   /**< Coefficients access vector, upper part  */
     void                *handler[2]; /**< Runtime data handler                    */
     pastix_int_t         selevtx;    /**< Index to identify selected cblk for which intra-separator contributions are not compressed */
     int                  ownerid;    /**< Rank of the owner                       */
-    pastix_int_t         threadid;   /**< Rank of the accessing thread            */
+    int                  threadid;   /**< Rank of the accessing thread            */
     pastix_int_t         reqindex;   /**< Index of the cblk in the request array  */
-
-    pastix_int_t         recvnbr;    /**< Number of necessary receptions for this cblk */
-    pastix_int_t         recvcnt;    /**< Counter for received receptions              */
-    void                *rcoeftab;   /**< Receiving coefficents vector                 */
 } SolverCblk;
 
 struct parsec_sparse_matrix_desc_s;
@@ -415,8 +411,6 @@ void          solverPrintStats( const SolverMatrix *solvptr );
 void solverReqtabInit ( SolverMatrix *solvmtx,
                         pastix_int_t  scheduler );
 void solverReqtabExit ( SolverMatrix *solvmtx   );
-void solverSendersInit( SolverMatrix *solvmtx   );
-void solverSendersExit( SolverMatrix *solvmtx   );
 
 /*
  * Solver backup

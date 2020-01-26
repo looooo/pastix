@@ -378,7 +378,7 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
         return;
     }
 
-    assert( !( cblk->cblktype & CBLK_FANIN ) );
+    assert( !( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) );
 
     if ( (cblk->cblktype & CBLK_IN_SCHUR) && (mode != PastixSolvModeSchur) ) {
         return;
@@ -528,7 +528,7 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
         return;
     }
 
-    if ( !(cblk->cblktype & CBLK_FANIN) &&
+    if ( !(cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) &&
          (!(cblk->cblktype & CBLK_IN_SCHUR) || (mode == PastixSolvModeSchur)) )
     {
         /* Solve the diagonal block */
@@ -536,9 +536,6 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
             cs, side, PastixLower, tA, diag, cblk,
             nrhs, b + cblk->lcolidx, ldb );
 
-        if ( cblk->cblktype & CBLK_RECV ) {
-            cpucblk_zsend_rhs_backward( datacode, cblk, b );
-        }
     }
 
     /* Apply the update */
@@ -546,7 +543,8 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
         blok = datacode->bloktab + datacode->browtab[j];
         fcbk = datacode->cblktab + blok->lcblknm;
 
-        if ( (fcbk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeInterface) ) {
+        if ( ((fcbk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeInterface))
+           || (fcbk->cblktype & CBLK_RECV) ) {
             continue;
         }
 

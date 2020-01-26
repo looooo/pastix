@@ -129,7 +129,7 @@ void z_refine_init( struct z_solver *solver, pastix_data_t *pastix_data )
     if ( (sched == PastixSchedSequential)      ||
          (pastix_data->inter_node_procnbr > 1) )
     {
-        solver->spmv = &bcsc_zspmv_seq;
+        solver->spmv = &bcsc_zspmv;
         solver->copy = &bvec_zcopy_seq;
         solver->dot  = &bvec_zdotc_seq;
         solver->axpy = &bvec_zaxpy_seq;
@@ -137,7 +137,7 @@ void z_refine_init( struct z_solver *solver, pastix_data_t *pastix_data )
         solver->norm = &bvec_znrm2_seq;
         solver->gemv = &bvec_zgemv_seq;
     } else {
-        solver->spmv = &bcsc_zspmv_smp;
+        solver->spmv = &bcsc_zspmv;
         solver->copy = &bvec_zcopy_smp;
         solver->dot  = &bvec_zdotc_smp;
         solver->axpy = &bvec_zaxpy_smp;

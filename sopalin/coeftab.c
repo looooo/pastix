@@ -192,7 +192,7 @@ coeftabExit( SolverMatrix *solvmtx )
 
         for ( i = 0; i < solvmtx->cblknbr; i++, cblk++ ) {
             /* Free is precision independent, so we can use any version */
-            if( cblk->cblktype & CBLK_FANIN ){
+            if( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ){
                 continue;
             }
             cpucblk_zfree( PastixLUCoef, cblk );

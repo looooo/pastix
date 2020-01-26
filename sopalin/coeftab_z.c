@@ -64,7 +64,7 @@ coeftab_zdump( pastix_data_t      *pastix_data,
      */
     for (itercblk=0; itercblk<solvmtx->cblknbr; itercblk++, cblk++)
     {
-        if ( cblk->cblktype & CBLK_FANIN ) {
+        if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) {
             continue;
         }
         if ( solvmtx->clustnum != cblk->ownerid ) {
