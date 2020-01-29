@@ -133,8 +133,20 @@ cpucblk_zcompress( const SolverMatrix *solvmtx,
     for (; blok<lblok; blok++)
     {
         pastix_int_t nrows = blok_rownbr( blok );
-        int is_preselected = (!lowrank->compress_preselect) &&
-            blok_is_preselected( cblk, blok, solvmtx->cblktab + blok->fcblknm );
+        int is_preselected = blok_is_preselected( cblk, blok, solvmtx->cblktab + blok->fcblknm );
+
+        /*
+         * If we are in the 'end' scenario, the preselected blocks must be
+         * compressed.
+         * If we are in the 'begin' or 'during' scenarii, the preselected blocks
+         * may be compressed directly by calling cpublok_zcompress and not
+         * cpucblk_zcompress.
+         */
+        if ( (lowrank->compress_when == PastixCompressWhenEnd) &&
+             (lowrank->compress_preselect) )
+        {
+            is_preselected = 0;
+        }
 
         /* Skip uncompressible blocks */
         if ( nrows < lowrank->compress_min_height ) {

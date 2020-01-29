@@ -234,7 +234,7 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
     pastix_complex64_t *A;
 
     pastix_fixdbl_t flops = 0.0;
-    pastix_fixdbl_t flops_c;
+    pastix_fixdbl_t flops_lr, flops_c;
 
     pastix_lr_t *lowrank = &solvmtx->lowrank;
 
@@ -255,6 +255,8 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
 
         M   = blok_rownbr(blok);
         lrC = blok->LRblock + coef;
+        flops_lr = 0.;
+        flops_c  = 0.;
 
         /* Check the size of the block */
         if ( ( N >= lowrank->compress_min_width  ) &&
@@ -270,12 +272,12 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
             if ( (lowrank->compress_when == PastixCompressWhenEnd) &&
                  (lowrank->compress_preselect || (!is_preselected)) )
             {
-                flops += cpublok_zcompress( lowrank, coef, M, N, blok );
+                flops_lr = cpublok_zcompress( lowrank, coef, M, N, blok );
             }
             if ( (lowrank->compress_when == PastixCompressWhenBegin) &&
-                 (lowrank->compress_preselect &&  is_preselected ) )
+                 (lowrank->compress_preselect && is_preselected ) )
             {
-                flops += cpublok_zcompress( lowrank, coef, M, N, blok );
+                flops_lr = cpublok_zcompress( lowrank, coef, M, N, blok );
             }
         }
 
@@ -289,7 +291,6 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                             lrC->v, lrC->rkmax);
                 flops_c = FLOPS_ZTRSM( side, lrC->rk, N );
                 kernel_trace_stop_lvl2( flops_c );
-                flops += flops_c;
             }
             else {
                 kernel_trace_start_lvl2( PastixKernelLvl2_FR_TRSM );
@@ -300,9 +301,10 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                             lrC->u, lrC->rkmax);
                 flops_c = FLOPS_ZTRSM( side, M, N );
                 kernel_trace_stop_lvl2( flops_c );
-                flops += flops_c;
             }
         }
+
+        flops += flops_lr + flops_c;
     }
     return flops;
 }
