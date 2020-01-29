@@ -73,8 +73,15 @@ foreach (_file ${TESTS})
 endforeach()
 
 ## CTest execution
-set( BCSC_TESTS
-  bcsc_norm_tests
+set( BCSC_TESTS )
+
+if ( NOT PASTIX_WITH_MPI )
+  list( APPEND BCSC_TESTS
+    bcsc_norm_tests
+    )
+endif()
+
+list( APPEND BCSC_TESTS
   bcsc_spmv_tests
   bcsc_spmv_time
   )
@@ -99,6 +106,7 @@ foreach( version ${RUNTYPE} )
     set( exe mpiexec -np 4 )
   endif()
 
+  # Bcsc tests
   foreach(example ${BCSC_TESTS} )
     set( _test_name ${version}_test_${example} )
     set( _test_cmd  ${exe} ./${example} )
@@ -123,7 +131,10 @@ foreach( version ${RUNTYPE} )
 
   # Bvec tests
   foreach(example ${BVEC_TESTS} )
-    add_test(${version}_test_${example} ${exe} ./${example} )
+    set( _test_name ${version}_test_${example} )
+    set( _test_cmd  ${exe} ./${example} )
+
+    add_test(${_test_name} ${_test_cmd})
   endforeach()
 endforeach()
 

@@ -15,7 +15,7 @@ program fsimple
   use pastix_enums
   use spmf
   use pastixf
-  ! use mpi_f08
+
   implicit none
 
   type(pastix_data_t),        pointer                      :: pastix_data

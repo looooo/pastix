@@ -125,12 +125,12 @@ int main ( int argc, char **argv )
         }
         if( err == 0 ) {
             printf(" -- All tests PASSED --\n");
-            return EXIT_SUCCESS;
+            rc = EXIT_SUCCESS;
         }
         else
         {
             printf(" -- %d tests FAILED --\n", err);
-            return EXIT_FAILURE;
+            rc = EXIT_FAILURE;
         }
     }
     else {
