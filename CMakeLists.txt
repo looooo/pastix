@@ -98,9 +98,6 @@ cmake_dependent_option(PASTIX_DISTRIBUTED
 cmake_dependent_option(PASTIX_THREAD_COMM
  "Enable the specific communication thread (requires PASTIX_WITH_MPI)" ON "PASTIX_WITH_MPI" OFF)
 
-cmake_dependent_option(PASTIX_FUNNELED
- "Enable the funneled (requires PASTIX_THREAD_COMM), toggle using IPARM_THREAD_COMM_MODE" ON "PASTIX_THREAD_COMM" OFF)
-
 option(PASTIX_INT64
   "Choose between int32 and int64 for integer representation" ON)
 

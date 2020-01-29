@@ -46,9 +46,9 @@
  *          Current number of refinement iterations
  *
  *******************************************************************************/
-void z_refine_output_oneiter( double t0, double tf, double err, pastix_int_t nb_iters )
+void z_refine_output_oneiter( pastix_fixdbl_t t0, pastix_fixdbl_t tf, double err, pastix_int_t nb_iters )
 {
-    double stt;
+    pastix_fixdbl_t stt;
 
     stt = tf - t0;
     fprintf(stdout, OUT_ITERREFINE_ITER, (int)nb_iters);
@@ -87,7 +87,7 @@ void z_refine_output_oneiter( double t0, double tf, double err, pastix_int_t nb_
 void z_refine_output_final( pastix_data_t      *pastix_data,
                             pastix_complex64_t  err,
                             pastix_int_t        nb_iters,
-                            double              tf,
+                            pastix_fixdbl_t     tf,
                             void               *x,
                             pastix_complex64_t *gmresx )
 {

@@ -60,8 +60,6 @@ int main (int argc, char **argv)
                       iparm, dparm,
                       NULL, &driver, &filename );
 
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
-
     /**
      * Read the sparse matrix with the driver
      */

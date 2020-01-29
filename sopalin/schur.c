@@ -112,6 +112,14 @@ pastixGetSchur( const pastix_data_t *pastix_data,
         errorPrint("pastix_getSchur: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
+#if defined(PASTIX_WITH_MPI)
+    if (pastix_data->inter_node_procnbr > 1) {
+        if ( pastix_data->inter_node_procnum == 0 ) {
+            errorPrint("pastix_getSchur: Schur complement is not available yet with multiple MPI processes\n");
+        }
+        return -1;
+    }
+#endif
 
     iparm = pastix_data->iparm;
     switch(iparm[IPARM_FLOAT])

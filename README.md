@@ -30,20 +30,32 @@ Future releases will be available on this gitlab project.
 
 ## Available Features
 
-|                         | Seq    | Static | Dyn    | StarPU     | PaRSEC     |
-|-------------------------|--------|--------|--------|------------|------------|
-| POTRF (Cholesky)        | SHM/LR | SHM/LR | SHM/LR | SHM/LR/GPU | SHM/LR/GPU |
-| PXTRF (LL^t for complex)| SHM/LR | SHM/LR | SHM/LR | SHM/LR/GPU | SHM/LR/GPU |
-| HETRF (LDL^h)           | SHM/LR | SHM/LR | SHM/LR | SHM/LR/GPU | SHM/LR/GPU |
-| SYTRF (LDL^t)           | SHM/LR | SHM/LR | SHM/LR | SHM/LR/GPU | SHM/LR/GPU |
-| GETRF (LU)              | SHM/LR | SHM/LR | SHM/LR | SHM/LR/GPU | SHM/LR/GPU |
-| TRSM                    | SHM/LR | SHM/LR | SHM/LR | SHM/LR     | -          |
-| DIAG                    | SHM/LR | SHM/LR | SHM/LR | SHM/LR     | -          |
+* Features available in shared memory with POSIX threads for multicores architectures.
+|                         | Seq   | Static | Dyn   | StarPU    | PaRSEC    |
+|-------------------------|-------|--------|-------|-----------|-----------|
+| POTRF (Cholesky)        | FR/LR | FR/LR  | FR/LR | FR/LR/GPU | FR/LR/GPU |
+| PXTRF (LL^t for complex)| FR/LR | FR/LR  | FR/LR | FR/LR/GPU | FR/LR/GPU |
+| HETRF (LDL^h)           | FR/LR | FR/LR  | FR/LR | FR/LR/GPU | FR/LR/GPU |
+| SYTRF (LDL^t)           | FR/LR | FR/LR  | FR/LR | FR/LR/GPU | FR/LR/GPU |
+| GETRF (LU)              | FR/LR | FR/LR  | FR/LR | FR/LR/GPU | FR/LR/GPU |
+| TRSM                    | FR/LR | FR/LR  | FR/LR | FR/LR     | -         |
+| DIAG                    | FR/LR | FR/LR  | FR/LR | FR/LR     | -         |
 
-* SHM means Shared Memory using POSIX theads for multicores architectures
-* LR means (block) Low-Rank compression technique to reduce the memory footprint and/or the time-to-solution
+* Features available in hybrid shared/distributed memory with MPI between processes, and POSIX threads within a process.
+|                         | Seq   | Static | Dyn   | StarPU    | PaRSEC    |
+|-------------------------|-------|--------|-------|-----------|-----------|
+| POTRF (Cholesky)        | FR    | FR     | FR    | FR/GPU    | FR/GPU    |
+| PXTRF (LL^t for complex)| FR    | FR     | FR    | FR/GPU    | FR/GPU    |
+| HETRF (LDL^h)           | FR    | FR     | FR    | FR/GPU    | FR/GPU    |
+| SYTRF (LDL^t)           | FR    | FR     | FR    | FR/GPU    | FR/GPU    |
+| GETRF (LU)              | FR    | FR     | FR    | FR/GPU    | FR/GPU    |
+| TRSM                    | FR    | FR     | FR    | FR        | -         |
+| DIAG                    | FR    | FR     | FR    | FR        | -         |
+
+* FR means Full-Rank computations without compression techniques
+* LR means Low-Rank compression technique to reduce the memory footprint and/or the time-to-solution
 * *WARNING* GPU kernels are not available on compressed supernodes
-* MPI is not available yet and will come with 6.1.0
+* *WARNING* Low-rank compression and Schur complement are not available with MPI yet.
 
 ## Documentation
 
@@ -118,6 +130,7 @@ The following people contribute or contributed to the development of PaStiX:
 * Grégoire Pichon, Low-rank solver
 * Florent Pruvost, CMake and Spack
 * Theophile Terraz
+* Tony Delarue, MPI implementation
 
 If we forgot your name, please let us know that we can fix that mistake.
 

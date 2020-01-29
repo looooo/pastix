@@ -97,6 +97,22 @@ static void *solve_smp(void *arg)
         free( bindtab );
     }
 
+#if defined(PASTIX_WITH_MPI)
+    {
+        int size, rank;
+        MPI_Comm_size( MPI_COMM_WORLD, &size );
+        MPI_Comm_rank( MPI_COMM_WORLD, &rank );
+        if( size > 1 ) {
+            if ( rank == 0 ) {
+                fprintf( stderr, "\nWarning: Reentrant doesn't work with multiple MPI instances\n" );
+                fprintf( stderr, "Quitting now\n" );
+            }
+            pastixFinalize( &pastix_data );
+            exit(0);
+        }
+    }
+#endif
+
     /**
      * Perform ordering, symbolic factorization, and analyze steps
      */

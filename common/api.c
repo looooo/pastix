@@ -42,7 +42,7 @@
 
 #if defined(PASTIX_WITH_MPI)
 static int pastix_mpi_in_use = 0;  /**< Counter of the number of Pastix instances using MPI          */
-static int pastix_mpi_init = 0;    /**< Boolean to know if MPI has been initialized by pastix or not */
+static int pastix_mpi_init   = 0;  /**< Boolean to know if MPI has been initialized by pastix or not */
 static volatile pastix_atomic_lock_t pastix_mpi_lock = PASTIX_ATOMIC_UNLOCKED; /**< Lock to protect the MPI initialization */
 #endif
 

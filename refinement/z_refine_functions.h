@@ -32,9 +32,9 @@ struct z_solver
     void* (*malloc)(size_t);
     void  (*free)(void*);
 
-    void   (*output_oneiter)(double, double, double, pastix_int_t);
+    void   (*output_oneiter)( pastix_fixdbl_t, pastix_fixdbl_t, double, pastix_int_t);
     void   (*output_final)( pastix_data_t *, pastix_complex64_t, pastix_int_t,
-                            double, void*, pastix_complex64_t*);
+                            pastix_fixdbl_t, void*, pastix_complex64_t*);
 
     void   (*scal)( pastix_data_t *, pastix_int_t, pastix_complex64_t, pastix_complex64_t * );
     pastix_complex64_t (*dot) ( pastix_data_t *, pastix_int_t, const pastix_complex64_t *, const pastix_complex64_t * );

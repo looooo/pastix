@@ -626,6 +626,7 @@ parsec_sparse_matrix_init( SolverMatrix *solvmtx,
         if ( cblk->ownerid != myrank ) {
             continue;
         }
+
         parsec_data_create( handler,
                             o, cblknum * 2, cblk->lcoeftab, size );
 

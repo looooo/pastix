@@ -6,7 +6,7 @@
     name: pastix_test_${VERSION}
     expire_in: 42 minutes
     paths:
-      - pastix-${VERSION}-sched${SCHED}.lcov
+      - pastix-${VERSION}-${RUN}-sched${SCHED}.lcov
       - pastix-gcov-${VERSION}-sched${SCHED}.log
   script:
     - source install-${VERSION}/bin/pastix_env.sh
@@ -18,7 +18,7 @@
              -D ExperimentalSubmit
              | tee -a ../pastix-build-${VERSION}.log")
     - lcov --capture --directory build
-           -q --output-file pastix-${VERSION}-sched${SCHED}.lcov
+           -q --output-file pastix-${VERSION}-${RUN}-sched${SCHED}.lcov
            | tee -a pastix-gcov-${VERSION}-sched${SCHED}.log
 
 .test_script_template_seq: &test_script_seq
@@ -34,6 +34,7 @@
 test_pastix_seq_shm_sched0:
   variables:
     VERSION: seq
+    RUN: shm
     SCHED: 0
     TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
   dependencies:
@@ -43,6 +44,7 @@ test_pastix_seq_shm_sched0:
 test_pastix_seq_shm_sched1:
   variables:
     VERSION: seq
+    RUN: shm
     SCHED: 1
     TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
   dependencies:
@@ -52,6 +54,7 @@ test_pastix_seq_shm_sched1:
 test_pastix_seq_shm_sched2:
   variables:
     VERSION: seq
+    RUN: shm
     SCHED: 2
     TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
     PARSEC_MCA_runtime_bind_main_thread: 0
@@ -62,6 +65,7 @@ test_pastix_seq_shm_sched2:
 test_pastix_seq_shm_sched3:
   variables:
     VERSION: seq
+    RUN: shm
     SCHED: 3
     TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
     STARPU_WORKERS_NOBIND: 1
@@ -73,6 +77,7 @@ test_pastix_seq_shm_sched3:
 test_pastix_seq_shm_sched4:
   variables:
     VERSION: seq
+    RUN: shm
     SCHED: 4
     TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
   dependencies:
@@ -82,6 +87,7 @@ test_pastix_seq_shm_sched4:
 test_pastix_seq_shm_other:
   variables:
     VERSION: seq
+    RUN: shm
     SCHED: 9
     TESTS_RESTRICTION: "-R \"shm_\" -E \"sched\""
   dependencies:
@@ -91,6 +97,7 @@ test_pastix_seq_shm_other:
 test_pastix_mpi_shm_sched0:
   variables:
     VERSION: mpi
+    RUN: shm
     SCHED: 0
     TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
   dependencies:
@@ -100,6 +107,7 @@ test_pastix_mpi_shm_sched0:
 test_pastix_mpi_shm_sched1:
   variables:
     VERSION: mpi
+    RUN: shm
     SCHED: 1
     TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
   dependencies:
@@ -109,6 +117,7 @@ test_pastix_mpi_shm_sched1:
 test_pastix_mpi_shm_sched2:
   variables:
     VERSION: mpi
+    RUN: shm
     SCHED: 2
     TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
     PARSEC_MCA_runtime_bind_main_thread: 0
@@ -119,6 +128,7 @@ test_pastix_mpi_shm_sched2:
 test_pastix_mpi_shm_sched3:
   variables:
     VERSION: mpi
+    RUN: shm
     SCHED: 3
     TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
     STARPU_WORKERS_NOBIND: 1
@@ -130,6 +140,7 @@ test_pastix_mpi_shm_sched3:
 test_pastix_mpi_shm_sched4:
   variables:
     VERSION: mpi
+    RUN: shm
     SCHED: 4
     TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
   dependencies:
@@ -139,6 +150,7 @@ test_pastix_mpi_shm_sched4:
 test_pastix_mpi_shm_other:
   variables:
     VERSION: mpi
+    RUN: shm
     SCHED: 9
     TESTS_RESTRICTION: "-R \"shm_\" -E \"sched\""
   dependencies:
@@ -148,6 +160,7 @@ test_pastix_mpi_shm_other:
 test_pastix_mpi_dist_sched0:
   variables:
     VERSION: mpi
+    RUN: dist
     SCHED: 0
     TESTS_RESTRICTION: "-R \"mpi_.*_sched${SCHED}\""
   dependencies:
@@ -157,6 +170,7 @@ test_pastix_mpi_dist_sched0:
 test_pastix_mpi_dist_sched1:
   variables:
     VERSION: mpi
+    RUN: dist
     SCHED: 1
     TESTS_RESTRICTION: "-R \"mpi_.*_sched${SCHED}\""
   dependencies:
@@ -166,6 +180,7 @@ test_pastix_mpi_dist_sched1:
 test_pastix_mpi_dist_sched2:
   variables:
     VERSION: mpi
+    RUN: dist
     SCHED: 2
     TESTS_RESTRICTION: "-R \"mpi_.*_sched${SCHED}\""
     PARSEC_MCA_runtime_bind_main_thread: 0
@@ -176,6 +191,7 @@ test_pastix_mpi_dist_sched2:
 test_pastix_mpi_dist_sched3:
   variables:
     VERSION: mpi
+    RUN: dist
     SCHED: 3
     TESTS_RESTRICTION: "-R \"mpi_.*_sched${SCHED}\""
     STARPU_WORKERS_NOBIND: 1
@@ -187,6 +203,7 @@ test_pastix_mpi_dist_sched3:
 test_pastix_mpi_dist_sched4:
   variables:
     VERSION: mpi
+    RUN: dist
     SCHED: 4
     TESTS_RESTRICTION: "-R \"mpi_.*_sched${SCHED}\""
   dependencies:
@@ -196,6 +213,7 @@ test_pastix_mpi_dist_sched4:
 test_pastix_mpi_dist_other:
   variables:
     VERSION: mpi
+    RUN: dist
     SCHED: 9
     TESTS_RESTRICTION: "-R \"mpi_\" -E \"sched\""
   dependencies:
