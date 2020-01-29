@@ -63,7 +63,6 @@ pastix_starpu_register_cblk_lr( const starpu_sparse_matrix_desc_t *spmtx,
     starpu_data_handle_t *handler  = ((starpu_data_handle_t*)(cblk->handler)) + side;
     pastix_lrblock_t     *LRblocks = cblk->fblokptr->LRblock + side;
     pastix_int_t          nbbloks  = cblk[1].fblokptr - cblk[0].fblokptr;
-    int64_t               tag_cblk = 2 * cblk->gcblknum + side;
 
     if( cblk->ownerid == myrank ) {
         starpu_vector_data_register( handler, STARPU_MAIN_RAM,
@@ -74,8 +73,12 @@ pastix_starpu_register_cblk_lr( const starpu_sparse_matrix_desc_t *spmtx,
     }
 
 #if defined(PASTIX_WITH_MPI)
-    starpu_mpi_data_register( *handler, spmtx->mpitag | tag_cblk, cblk->ownerid );
+    {
+        int64_t tag_cblk = 2 * cblk->gcblknum + side;
+        starpu_mpi_data_register( *handler, spmtx->mpitag | tag_cblk, cblk->ownerid );
+    }
 #endif
+    (void)spmtx;
 }
 
 static inline void

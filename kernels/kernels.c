@@ -16,6 +16,7 @@
  **/
 #include "common.h"
 
-pastix_atomic_lock_t pastix_mpi_lock = PASTIX_ATOMIC_UNLOCKED;
+pthread_mutex_t    pastix_comm_lock = PTHREAD_MUTEX_INITIALIZER;
+volatile pthread_t pastix_comm_tid  = (pthread_t)-1;
 
 

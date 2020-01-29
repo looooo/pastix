@@ -168,7 +168,7 @@ cpucblk_zrecv_rhs_backward( const SolverMatrix *solvmtx,
 #endif
 }
 
-    /**
+/**
  *******************************************************************************
  *
  * @brief Receive the rhs associated to a cblk->lcolidx to the remote node.
@@ -230,6 +230,9 @@ cpucblk_zrecv_rhs_forward( const SolverMatrix *solvmtx,
 #else
     (void)solvmtx;
     (void)cblk;
+    (void)work;
+    (void)nrhs;
     (void)b;
+    (void)ldb;
 #endif
 }

@@ -413,49 +413,30 @@ solverPrintStats( const SolverMatrix *solvptr )
  * @param[inout] solvmtx
  *          The pointer to the solver matrix structure.
  *
- * @param[in] scheduler
- *          The current scheduler.
- *
  *******************************************************************************/
 void
-solverReqtabInit( SolverMatrix *solvmtx,
-                  pastix_int_t  scheduler )
+solverRequestInit( SolverMatrix *solvmtx )
 {
-    SolverCblk   *cblk;
-    MPI_Request  *requests;
-    pastix_int_t  i, k, reqnbr;
+    MPI_Request  *request;
+    pastix_int_t *reqindx;
+    pastix_int_t  i, reqnbr;
 
-    reqnbr = (scheduler == PastixSchedDynamic) ?
-              solvmtx->faninnbr + 1 : solvmtx->faninnbr + solvmtx->recvnbr;
-    solvmtx->reqnbr = reqnbr;
+    reqnbr = solvmtx->faninnbr + 1;
+    solvmtx->reqnbr  = reqnbr;
+    solvmtx->reqlock = PASTIX_ATOMIC_UNLOCKED;
 
-    MALLOC_INTERN( solvmtx->reqlocal, reqnbr, pastix_int_t );
-    MALLOC_INTERN( solvmtx->reqtab,   reqnbr, MPI_Request  );
+    MALLOC_INTERN( solvmtx->reqtab, reqnbr, MPI_Request  );
+    MALLOC_INTERN( solvmtx->reqidx, reqnbr, pastix_int_t );
 
-    requests  = solvmtx->reqtab;
-    for ( i = 0; i < reqnbr; i++, requests++ )
+    request = solvmtx->reqtab;
+    reqindx = solvmtx->reqidx;
+    for ( i = 0; i < reqnbr; i++, request++, reqindx++ )
     {
-        *requests = MPI_REQUEST_NULL;
+        *request = MPI_REQUEST_NULL;
+        *reqindx = -1;
     }
 
-    /* Set every reqlocalnum to -1 */
-    if( scheduler == PastixSchedDynamic ) {
-        memset( solvmtx->reqlocal, 0xff, reqnbr * sizeof(pastix_int_t) );
-        return;
-    }
-
-    /* Set every reqlocalnum */
-    k    = 0;
-    cblk = solvmtx->cblktab;
-    for( i = 0; i < solvmtx->cblknbr; i++, cblk++ )
-    {
-        if( cblk->cblktype & (CBLK_RECV|CBLK_FANIN) ){
-            solvmtx->reqlocal[k] = cblk - solvmtx->cblktab;
-            cblk->reqindex       = k;
-            k++;
-        }
-    }
-    assert( k == reqnbr );
+    return;
 }
 
 /**
@@ -470,13 +451,91 @@ solverReqtabInit( SolverMatrix *solvmtx,
  *
  *******************************************************************************/
 void
-solverReqtabExit( SolverMatrix *solvmtx )
+solverRequestExit( SolverMatrix *solvmtx )
 {
-    if(solvmtx->reqtab) {
-        memFree_null(solvmtx->reqtab);
+    assert( solvmtx->reqnum == 0 );
+    assert( solvmtx->reqlock == PASTIX_ATOMIC_UNLOCKED );
+
+    if( solvmtx->reqtab ) {
+        memFree_null( solvmtx->reqtab );
     }
-    if(solvmtx->reqlocal) {
-        memFree_null(solvmtx->reqlocal);
+    if( solvmtx->reqidx ) {
+        memFree_null( solvmtx->reqidx );
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Allocate the reception buffer, and initiate the first persistant
+ * reception
+ *
+ *******************************************************************************
+ *
+ * @param[in] side
+ *          Define which side of the cblk must be tested.
+ *          @arg PastixLCoef if lower part only
+ *          @arg PastixUCoef if upper part only
+ *          @arg PastixLUCoef if both sides.
+ *
+ * @param[inout] solvmtx
+ *          The pointer to the solver matrix structure.
+ *
+ * @param[in] flttype
+ *          Define which type are the coefficients.
+ *          @arg PastixFloat
+ *          @arg PastixDouble
+ *          @arg PastixComplex32
+ *          @arg PastixComplex64
+ *
+ *******************************************************************************/
+void
+solverRecvInit( pastix_coefside_t side,
+                SolverMatrix     *solvmtx,
+                int               flttype )
+{
+    /* Compute the max size (in bytes) for the communication buffer */
+    pastix_int_t size = pastix_size_of(flttype) * solvmtx->maxrecv;
+    size *= (side == PastixLUCoef) ? 2 : 1;
+
+    if( solvmtx->recvnbr == 0 ) {
+        return;
+    }
+
+    assert( solvmtx->maxrecv > 0 );
+
+    /* Init communication */
+    MALLOC_INTERN( solvmtx->rcoeftab, size, char );
+    MPI_Recv_init( solvmtx->rcoeftab, size,
+                   MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG,
+                   solvmtx->solv_comm, solvmtx->reqtab );
+    MPI_Start( solvmtx->reqtab );
+
+    solvmtx->reqnum++;
+#if defined(PASTIX_DEBUG_MPI)
+    fprintf( stderr, "[%2d] Start persistant recv from any source\n",
+             solvmtx->clustnum );
+#endif
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Free the array linked to pending reception.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The pointer to the solver matrix structure.
+ *
+ *******************************************************************************/
+void
+solverRecvExit( SolverMatrix *solvmtx )
+{
+    /* In fact, the pointer should never been freed by this call */
+    assert( solvmtx->reqtab == NULL );
+    if( solvmtx->rcoeftab ) {
+        memFree_null( solvmtx->rcoeftab );
     }
 }
 

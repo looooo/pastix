@@ -241,7 +241,6 @@ solvMatGen_init_cblk( SolverCblk    *solvcblk,
     solvcblk->ucoeftab   = NULL;
     solvcblk->handler[0] = NULL;
     solvcblk->handler[1] = NULL;
-    solvcblk->reqindex   = -1;
     solvcblk->threadid   = -1;
 }
 
