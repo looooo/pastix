@@ -98,7 +98,7 @@ thread_zgetrf_static( isched_thread_t *ctx, void *args )
         }
 
         /* Wait for incoming dependencies */
-        if ( cpucblk_zincoming_deps( 1, PastixLUCoef,
+        if ( cpucblk_zincoming_deps( rank, PastixLUCoef,
                                      datacode, cblk ) )
         {
             continue;
@@ -123,7 +123,6 @@ struct args_zgetrf_t
 {
     sopalin_data_t     *sopalin_data;
     volatile int32_t    taskcnt;
-    pastix_complex64_t *recv;
 };
 
 void
@@ -141,9 +140,6 @@ thread_zgetrf_dynamic( isched_thread_t *ctx, void *args )
     int32_t               local_taskcnt = 0;
     int                   rank = ctx->rank;
     int                   dest = (ctx->rank + 1)%ctx->global_ctx->world_size;
-#if defined(PASTIX_WITH_MPI)
-    pastix_complex64_t   *recv = arg->recv;
-#endif
 
     lwork = datacode->gemmmax;
     if ( datacode->lowrank.compress_when == PastixCompressWhenBegin ) {
@@ -177,7 +173,7 @@ thread_zgetrf_dynamic( isched_thread_t *ctx, void *args )
 #if defined(PASTIX_WITH_MPI)
         /* Nothing to do, let's make progress on comunications */
         if( cblknum == -1 ) {
-            cpucblk_zmpi_progress( PastixLUCoef, ctx, datacode, rank, recv );
+            cpucblk_zmpi_progress( PastixLUCoef, datacode, rank );
             cblknum = pqueuePop(computeQueue);
         }
 #endif
@@ -222,31 +218,17 @@ dynamic_zgetrf( pastix_data_t  *pastix_data,
 {
     SolverMatrix        *datacode = sopalin_data->solvmtx;
     int32_t              taskcnt = datacode->tasknbr;
-    struct args_zgetrf_t args_zgetrf = { sopalin_data, taskcnt, NULL };
+    struct args_zgetrf_t args_zgetrf = { sopalin_data, taskcnt };
 
     /* Allocate the computeQueue */
     MALLOC_INTERN( datacode->computeQueue,
                    pastix_data->isched->world_size, pastix_queue_t * );
-
-#if defined(PASTIX_WITH_MPI)
-    MALLOC_INTERN( args_zgetrf.recv, 2 * datacode->maxrecv, pastix_complex64_t );
-
-    /* Initialize the persistant communication */
-    if( datacode->recvnbr ){
-        MPI_Recv_init( args_zgetrf.recv, 2 * datacode->maxrecv,
-                       PASTIX_MPI_COMPLEX64, MPI_ANY_SOURCE, MPI_ANY_TAG,
-                       datacode->solv_comm, datacode->reqtab );
-        MPI_Start( datacode->reqtab );
-        datacode->reqnum++;
-    }
-#endif
 
     isched_parallel_call( pastix_data->isched, thread_zgetrf_dynamic, &args_zgetrf );
 
     memFree_null( datacode->computeQueue );
 
 #if defined(PASTIX_WITH_MPI)
-    memFree_null( args_zgetrf.recv );
     MPI_Barrier( pastix_data->inter_node_comm );
 #endif
 }
@@ -283,7 +265,8 @@ sopalin_zgetrf( pastix_data_t  *pastix_data,
          (sched == PastixSchedStatic)     ||
          (sched == PastixSchedDynamic) )
     {
-        solverReqtabInit( sopalin_data->solvmtx, sched );
+        solverRequestInit( sopalin_data->solvmtx );
+        solverRecvInit( PastixLUCoef, sopalin_data->solvmtx, PastixComplex64 );
     }
 
     zgetrf( pastix_data, sopalin_data );
@@ -293,7 +276,8 @@ sopalin_zgetrf( pastix_data_t  *pastix_data,
          (sched == PastixSchedDynamic) )
     {
         cpucblk_zrequest_cleanup( PastixLUCoef, sched, sopalin_data->solvmtx );
-        solverReqtabExit( sopalin_data->solvmtx );
+        solverRequestExit( sopalin_data->solvmtx );
+        solverRecvExit( sopalin_data->solvmtx );
     }
 
 #if defined(PASTIX_DEBUG_FACTO)

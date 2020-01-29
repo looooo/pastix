@@ -39,7 +39,7 @@
  * @param[inout] solvmtx
  *          The solver matrix structure.
  *
- * @param[inout] cblk
+ * @param[in] cblk
  *          The column block that will be sent.
  *
  *******************************************************************************/
@@ -75,68 +75,17 @@ cpucblk_zisend( pastix_coefside_t side,
     assert( rc == MPI_SUCCESS );
 
     /* Register the request to make it progress */
-    pastix_atomic_lock( &pastix_mpi_lock );
-    if ( solvmtx->computeQueue ){
-        solvmtx->reqtab[ solvmtx->reqnum ] = request;
-        solvmtx->reqlocal[ solvmtx->reqnum ] = cblk - solvmtx->cblktab;
-        solvmtx->reqnum++;
-    }
-    else{
-        solvmtx->reqtab[ cblk->reqindex ] = request;
-    }
-    pastix_atomic_unlock( &pastix_mpi_lock );
+    pastix_atomic_lock( &(solvmtx->reqlock) );
 
-    (void)rc;
-}
+    assert( solvmtx->reqidx[ solvmtx->reqnum ] == -1 );
+    assert( solvmtx->reqnum >= 0 );
+    assert( solvmtx->reqnum < solvmtx->reqnbr );
 
-/**
- *******************************************************************************
- *
- * @brief  Asynchronously receive a cblk from cblk->ownerid
- *
- *******************************************************************************
- *
- * @param[in] side
- *          Define which side of the cblk must be tested.
- *          @arg PastixLCoef if lower part only
- *          @arg PastixUCoef if upper part only
- *          @arg PastixLUCoef if both sides.
- *
- * @param[in] solvmtx
- *          The solver matrix structure.
- *
- * @param[inout] cblk
- *          The column block that will be sent.
- *
- *******************************************************************************/
-void
-cpucblk_zirecv( pastix_coefside_t   side,
-                const SolverMatrix *solvmtx,
-                SolverCblk         *cblk )
-{
-    pastix_int_t cblksize = cblk->stride * cblk_colnbr(cblk);
-    MPI_Request *request  = solvmtx->reqtab + cblk->reqindex;
-    int rc;
+    solvmtx->reqtab[ solvmtx->reqnum ] = request;
+    solvmtx->reqidx[ solvmtx->reqnum ] = cblk - solvmtx->cblktab;
+    solvmtx->reqnum++;
 
-    /* Compression is not handled yet */
-    assert( !(cblk->cblktype & CBLK_COMPRESSED) );
-    assert(   cblk->cblktype & CBLK_RECV        );
-
-    if ( side == PastixLUCoef ) {
-        cblksize *= 2;
-    }
-
-    /* Init rcoeftab only when it's called */
-    cpucblk_zalloc( side, cblk );
-
-#if defined(PASTIX_DEBUG_MPI)
-    fprintf( stderr, "[%2d] Post Irecv for cblk %ld from any source\n",
-             solvmtx->clustnum, (long)cblk->gcblknum );
-#endif
-
-    rc = MPI_Irecv( cblk->lcoeftab, cblksize, PASTIX_MPI_COMPLEX64,
-                    MPI_ANY_SOURCE, cblk->gcblknum, solvmtx->solv_comm, request );
-    assert( rc == MPI_SUCCESS );
+    pastix_atomic_unlock( &(solvmtx->reqlock) );
 
     (void)rc;
 }
@@ -200,17 +149,57 @@ cpucblk_zrequest_handle_fanin( pastix_coefside_t   side,
 static inline void
 cpucblk_zrequest_handle_recv( pastix_coefside_t  side,
                               SolverMatrix      *solvmtx,
-                              const SolverCblk  *cblk )
+                              int threadid, const MPI_Status *status )
 {
-    assert( cblk->cblktype & CBLK_RECV );
-    SolverCblk *fcbk = solvmtx->cblktab + cblk->fblokptr->fcblknm;
+    SolverCblk *cblk, *fcbk;
+    int src = status->MPI_SOURCE;
+    int tag = status->MPI_TAG;
+
+    assert( ( 0 <= src ) && ( src < solvmtx->clustnbr ) );
+    assert( ( 0 <= tag ) && ( tag < solvmtx->gcblknbr ) );
+
+    /*
+     * Let's look for the local cblk
+     */
+    fcbk = solvmtx->cblktab + solvmtx->gcbl2loc[ tag ];
+    cblk = fcbk--;
+
+    /* Get through source */
+    while( cblk->ownerid != src ) {
+        cblk--;
+        assert( cblk >= solvmtx->cblktab );
+        assert( cblk->gcblknum == tag );
+        assert( cblk->cblktype & CBLK_RECV );
+    }
 
 #if defined(PASTIX_DEBUG_MPI)
-    /* We can't know the sender easily, so we don't print it */
-    fprintf( stderr, "[%2d] Irecv for cblk %ld (DONE)\n",
-             solvmtx->clustnum, (long)cblk->gcblknum );
+    {
+        pastix_int_t size = (cblk_colnbr(cblk) * cblk->stride);
+        int count = 0;
+
+        if ( side != PastixLCoef ) {
+            size *= 2;
+        }
+
+        MPI_Get_count( status, PASTIX_MPI_COMPLEX64, &count );
+        assert( count == size );
+
+        /* We can't know the sender easily, so we don't print it */
+        fprintf( stderr, "[%2d] Irecv of size %d/%ld for cblk %ld (DONE)\n",
+                 solvmtx->clustnum, count, (long)size, (long)cblk->gcblknum );
+    }
 #endif
 
+    /* Initialize the cblk with the reception buffer */
+    cblk->threadid = (fcbk->threadid == -1) ? threadid : fcbk->threadid;
+    cblk->lcoeftab = solvmtx->rcoeftab;
+
+    if( side != PastixLCoef ) {
+        pastix_complex64_t *recv = cblk->lcoeftab;
+        cblk->ucoeftab = recv + (cblk_colnbr(cblk) * cblk->stride);
+    }
+
+    fcbk = solvmtx->cblktab + cblk->fblokptr->fcblknm;
     cpucblk_zadd( PastixLCoef, 1., cblk, fcbk, NULL );
 
     /* If side is LU, let's add the U part too */
@@ -241,117 +230,68 @@ cpucblk_zrequest_handle_recv( pastix_coefside_t  side,
  * @param[inout] solvmtx
  *          The solver matrix structure.
  *
+ * @param[in] threadid
+ *          Id of the thread calling this method.
+ *
  * @param[in] outcount
  *          Amount of finshed requests
  *
- * @param[inout] indexes
+ * @param[in] indexes
  *          Array of completed requests
  *
+ * @param[in] statuses
+ *          Array of statuses for the completed requests
+ *
  *******************************************************************************/
-static inline void
+static inline int
 cpucblk_zrequest_handle( pastix_coefside_t  side,
                          SolverMatrix      *solvmtx,
+                         int                threadid,
                          int                outcount,
-                         int               *indexes  )
+                         const int         *indexes,
+                         const MPI_Status  *statuses )
 {
-    pastix_int_t i, index;
-    SolverCblk *cblk;
+    pastix_int_t i, reqid;
+    int          nbrequest = outcount;
 
     for( i = 0; i < outcount; i++ ){
-        index = indexes[i];
-        assert( solvmtx->reqtab[index] == MPI_REQUEST_NULL );
+        reqid = indexes[i];
 
-        cblk = solvmtx->cblktab + solvmtx->reqlocal[index];
+        /*
+         * Handle the reception
+         */
+        if ( solvmtx->reqidx[reqid] == -1 ) {
+            cpucblk_zrequest_handle_recv( side, solvmtx,
+                                          threadid, statuses + i );
+            solvmtx->recvcnt--;
 
-        if ( cblk->cblktype & CBLK_FANIN ) {
+            /* Let's restart the communication */
+            if ( solvmtx->recvcnt > 0 ) {
+                MPI_Start( solvmtx->reqtab + reqid );
+                nbrequest--;
+            }
+            else {
+                MPI_Request_free( solvmtx->reqtab + reqid );
+                solvmtx->reqtab[reqid] = MPI_REQUEST_NULL;
+            }
+        }
+        /*
+         * Handle the emission
+         */
+        else {
+            SolverCblk *cblk = solvmtx->cblktab + solvmtx->reqidx[ reqid ];
+            assert( cblk->cblktype & CBLK_FANIN );
+
             cpucblk_zrequest_handle_fanin( side, solvmtx, cblk );
-            continue;
-        }
 
-        if ( cblk->cblktype & CBLK_RECV ) {
-            cpucblk_zrequest_handle_recv( side, solvmtx, cblk );
-
-            /* Free the coeftabs for this scheduler */
-            cpucblk_zfree( side, cblk );
+#if !defined(NDEBUG)
+            solvmtx->reqidx[ reqid ] = -1;
+#endif
+            solvmtx->fanincnt--;
         }
     }
-}
 
-/**
- *******************************************************************************
- *
- * @brief Wait some active MPI requests and process the finished ones.
- *
- *******************************************************************************
- *
- * @param[in] side
- *          Define which side of the cblk must be tested.
- *          @arg PastixLCoef if lower part only
- *          @arg PastixUCoef if upper part only
- *          @arg PastixLUCoef if both sides.
- *
- * @param[inout] solvmtx
- *          The solver matrix structure.
- *
- *******************************************************************************/
-void
-cpucblk_zwaitsome( pastix_coefside_t  side,
-                   SolverMatrix      *solvmtx )
-{
-    int        outcount, rc;
-    int        reqnbr = solvmtx->reqnbr;
-    int        indexes[reqnbr];
-    MPI_Status statuses[reqnbr];
-
-    pastix_atomic_lock( &pastix_mpi_lock );
-    rc = MPI_Waitsome( reqnbr, solvmtx->reqtab, &outcount, indexes, statuses );
-    pastix_atomic_unlock( &pastix_mpi_lock );
-    assert( rc == MPI_SUCCESS );
-
-    if ( outcount != MPI_UNDEFINED ) {
-        cpucblk_zrequest_handle( side, solvmtx, outcount, indexes  );
-    }
-
-    (void)rc;
-}
-
-/**
- *******************************************************************************
- *
- * @brief Test some active MPI requests and process the finished ones.
- *
- *******************************************************************************
- *
- * @param[in] side
- *          Define which side of the cblk must be tested.
- *          @arg PastixLCoef if lower part only
- *          @arg PastixUCoef if upper part only
- *          @arg PastixLUCoef if both sides.
- *
- * @param[inout] solvmtx
- *          The solver matrix structure.
- *
- *******************************************************************************/
-void
-cpucblk_ztestsome( pastix_coefside_t  side,
-                   SolverMatrix      *solvmtx )
-{
-    int reqnbr = solvmtx->reqnbr;
-    int indexes[reqnbr];
-    int outcount = 0;
-    int rc;
-    MPI_Status statuses[reqnbr];
-
-    pastix_atomic_lock( &pastix_mpi_lock );
-    rc = MPI_Testsome( reqnbr, solvmtx->reqtab, &outcount, indexes, statuses );
-    pastix_atomic_unlock( &pastix_mpi_lock );
-    assert( rc == MPI_SUCCESS );
-
-    if ( outcount > 0 ) {
-        cpucblk_zrequest_handle( side, solvmtx, outcount, indexes );
-    }
-
-    (void)rc;
+    return nbrequest;
 }
 
 /**
@@ -368,76 +308,66 @@ cpucblk_ztestsome( pastix_coefside_t  side,
 static inline void
 cpucblk_zupdate_reqtab( SolverMatrix *solvmtx )
 {
-    /* If there is only one reception request */
-    if ( solvmtx->reqnbr == 1 ) {
-        return;
+    /* Pointer to the compressed array of request */
+    MPI_Request  *outrequest = solvmtx->reqtab;
+    pastix_int_t *outreqloc  = solvmtx->reqidx;
+    int           outreqnbr  = 0;
+
+    /* Pointer to the input array of request */
+    MPI_Request  *inrequest = solvmtx->reqtab;
+    pastix_int_t *inreqloc  = solvmtx->reqidx;
+    int           inreqnbr  = 0;
+
+    /* Look for the first completed request */
+    while( (outreqnbr < solvmtx->reqnum) &&
+           (*outrequest != MPI_REQUEST_NULL) )
+    {
+        outrequest++;
+        outreqnbr++;
+        outreqloc++;
     }
 
-    pastix_atomic_lock( &pastix_mpi_lock );
+    inrequest = outrequest;
+    inreqloc  = outreqloc;
+    inreqnbr  = outreqnbr;
+    for( ; inreqnbr < solvmtx->reqnum;
+         inreqnbr++, inrequest++, inreqloc++ )
     {
-        /* Pointer to the compressed array of request */
-        MPI_Request  *outrequest = solvmtx->reqtab;
-        pastix_int_t *outreqloc  = solvmtx->reqlocal;
-        int           outreqnbr  = 0;
-
-        /* Pointer to the input array of request */
-        MPI_Request  *inrequest = solvmtx->reqtab;
-        pastix_int_t *inreqloc  = solvmtx->reqlocal;
-        int           inreqnbr  = solvmtx->reqnum;
-
-        /* Look for the first completed request */
-        while( (outreqnbr < solvmtx->reqnbr) &&
-               (*outrequest != MPI_REQUEST_NULL) )
+        if ( *inrequest == MPI_REQUEST_NULL )
         {
-            outrequest++;
-            outreqnbr++;
-            outreqloc++;
+            continue;
         }
 
-        inrequest = outrequest;
-        inreqloc  = outreqloc;
-        while( outreqnbr < inreqnbr )
-        {
-            /*
-             * Skip all completed requests
-             * until the next non completed one
-             */
-            while( *inrequest == MPI_REQUEST_NULL )
-            {
-                inrequest++;
-                inreqloc++;
-            }
-            /* Pack the uncompleted request */
-            *outrequest = *inrequest;
-            *outreqloc  = *inreqloc;
+        /* Pack the uncompleted request */
+        *outrequest = *inrequest;
+        *outreqloc  = *inreqloc;
 
-            /* Move to the next one */
-            outrequest++;
-            outreqloc++;
-            outreqnbr++;
+        /* Move to the next one */
+        outrequest++;
+        outreqloc++;
+        outreqnbr++;
+    }
 
-            inrequest++;
-            inreqloc++;
-        }
-
-        /* Set to -1 remaining of the array */
-        memset( outreqloc, 0xff, (solvmtx->reqnbr - outreqnbr) * sizeof(pastix_int_t) );
+#if !defined(NDEBUG)
+    /* Set to -1 remaining of the array */
+    memset( outreqloc, 0xff, (solvmtx->reqnbr - outreqnbr) * sizeof(pastix_int_t) );
+#endif
 
 #if defined(PASTIX_DEBUG_MPI)
-        int  i;
-        for( i = outreqnbr; i < solvmtx->reqnbr; i++ )
-        {
-            solvmtx->reqtab[i] = MPI_REQUEST_NULL;
-        }
-#endif
+    int  i;
+    for( i = outreqnbr; i < solvmtx->reqnbr; i++ )
+    {
+        solvmtx->reqtab[i] = MPI_REQUEST_NULL;
     }
-    pastix_atomic_unlock( &pastix_mpi_lock );
+#endif
+    assert( outreqnbr < solvmtx->reqnum );
+    solvmtx->reqnum = outreqnbr;
 }
 
 /**
  *******************************************************************************
  *
- * @brief Progress communications with the dynamic scheduler.
+ * @brief Progress communications for one process
  *
  * If a communication is completed, it will be treated.
  * If cblktype & CBLK_FANIN : Will deallocate coeftab
@@ -451,109 +381,72 @@ cpucblk_zupdate_reqtab( SolverMatrix *solvmtx )
  *          @arg PastixUCoef if upper part only
  *          @arg PastixLUCoef if both sides.
  *
- * @param[in] ctx
- *          Context to assure thread-safety.
- *
  * @param[inout] solvmtx
  *          The solver matrix structure.
  *
  * @param[in] threadid
  *          Id of the thread calling this method.
  *
- * @param[inout] recv
- *          Reception buffer of the persistant communication.
- *
  *******************************************************************************/
 void
 cpucblk_zmpi_progress( pastix_coefside_t   side,
-                       isched_thread_t    *ctx,
                        SolverMatrix       *solvmtx,
-                       pastix_int_t        threadid,
-                       pastix_complex64_t *recv )
+                       int                 threadid )
 {
-    int        ii, outcount = 0;
+    pthread_t  tid = pthread_self();
+    int        outcount = 1;
+    int        nbrequest, nbfree;
     int        indexes[ solvmtx->reqnbr ];
     MPI_Status statuses[ solvmtx->reqnbr ];
 
     /* Check if someone is already communicating or not */
-    pthread_mutex_lock( &(ctx->global_ctx->commlock) );
-    if ( ctx->global_ctx->commid == -1 ) {
-        ctx->global_ctx->commid = threadid;
+    pthread_mutex_lock( &pastix_comm_lock );
+    if ( pastix_comm_tid == (pthread_t)-1 ) {
+        pastix_comm_tid = tid;
     }
-    pthread_mutex_unlock( &(ctx->global_ctx->commlock) );
+    pthread_mutex_unlock( &pastix_comm_lock );
 
-    if ( threadid != ctx->global_ctx->commid ) {
+    if ( tid != pastix_comm_tid ) {
         return;
     }
 
     /*
-     * We suppose that we have at least one reception if needed, or some send
+     * Let's register the number of active requests.
+     * We now suppose that the current thread is working on the first nbrequest
+     * active in the reqtab array. Additional requests can be posted during this
+     * progression, but it will be with a larger index. Thus, we do not need to
+     * protect every changes in these requests.
+     * When this is done, the requests arrays is locked to be packed, and the
+     * number of requests is updated for the next round.
      */
-    assert( solvmtx->reqnum >= 0 );
-    MPI_Testsome( solvmtx->reqnum, solvmtx->reqtab, &outcount, indexes, statuses );
+    pastix_atomic_lock( &(solvmtx->reqlock) );
+    nbrequest = solvmtx->reqnum;
+    pastix_atomic_unlock( &(solvmtx->reqlock) );
 
-    for( ii=0; ii<outcount; ii++ )
+    while( (outcount > 0) && (nbrequest > 0) )
     {
-        SolverCblk *cblk;
-        int         reqid  = indexes[ii];
+        MPI_Testsome( nbrequest, solvmtx->reqtab, &outcount, indexes, statuses );
+        nbfree = 0;
 
-        if ( solvmtx->reqlocal[ reqid ] == -1 ) {
-            int source = statuses[ii].MPI_SOURCE;
-            int tag    = statuses[ii].MPI_TAG;
-
-            assert( ( 0 <= tag    ) && ( tag    < solvmtx->gcblknbr ) );
-            assert( ( 0 <= source ) && ( source < solvmtx->clustnbr ) );
-
-            /* Get the associated recv cblk */
-            cblk = solvmtx->cblktab + solvmtx->gcbl2loc[ tag ];
-            /* Get through source */
-            while( cblk->ownerid != source ) {
-                cblk--;
-                assert( cblk->gcblknum == tag );
-            }
-            assert( cblk != NULL );
-        }
-        else {
-            cblk = solvmtx->cblktab + solvmtx->reqlocal[ reqid ];
+        /* Handle all the completed requests */
+        if ( outcount > 0 ) {
+            nbfree = cpucblk_zrequest_handle( side, solvmtx, threadid,
+                                              outcount, indexes, statuses );
         }
 
-        if ( cblk->cblktype & CBLK_FANIN ) {
-            cpucblk_zrequest_handle_fanin( side, solvmtx, cblk );
-
-            solvmtx->reqnum--;
-            solvmtx->fanincnt--;
-            continue;
+        /*
+         * Pack the request arrays, and update the number of active requests by
+         * removing the completed ones
+         */
+        pastix_atomic_lock( &(solvmtx->reqlock) );
+        if ( nbfree > 0 ) {
+            cpucblk_zupdate_reqtab( solvmtx );
         }
-
-        if ( cblk->cblktype & CBLK_RECV ) {
-            cblk->threadid = threadid;
-            cblk->lcoeftab = recv;
-
-            if( side != PastixLCoef ) {
-                cblk->ucoeftab = recv + (cblk_colnbr(cblk) * cblk->stride);
-            }
-
-            cpucblk_zrequest_handle_recv( side, solvmtx, cblk );
-            solvmtx->recvcnt--;
-
-            /* Let's restart the communication */
-            if ( solvmtx->recvcnt > 0 ) {
-                MPI_Start( solvmtx->reqtab + reqid );
-            }
-            else {
-                MPI_Request_free( solvmtx->reqtab + reqid );
-                solvmtx->reqtab[reqid] = MPI_REQUEST_NULL;
-                solvmtx->reqnum--;
-            }
-            continue;
-        }
-        assert(0);
+        nbrequest = solvmtx->reqnum;
+        pastix_atomic_unlock( &(solvmtx->reqlock) );
     }
 
-    if ( outcount > 0 ) {
-        cpucblk_zupdate_reqtab( solvmtx );
-    }
-    ctx->global_ctx->commid = -1;
+    pastix_comm_tid = -1;
 }
 #endif /* defined(PASTIX_WITH_MPI) */
 
@@ -586,62 +479,35 @@ cpucblk_zmpi_progress( pastix_coefside_t   side,
  *
  *******************************************************************************/
 int
-cpucblk_zincoming_deps( int                mt_flag,
+cpucblk_zincoming_deps( int                rank,
                         pastix_coefside_t  side,
                         SolverMatrix      *solvmtx,
                         SolverCblk        *cblk )
 {
 #if defined(PASTIX_WITH_MPI)
-    pastix_int_t j = -1;
-    pastix_int_t cblknum;
-
     if ( cblk->cblktype & CBLK_FANIN ) {
         /*
          * We are in the sequential case, we progress on communications and
          * return if nothing.
          */
-        cpucblk_ztestsome( side, solvmtx );
+        //cpucblk_ztestsome( side, solvmtx );
         return 1;
     }
 
     if ( cblk->cblktype & CBLK_RECV ) {
-        cpucblk_zirecv( side, solvmtx, cblk );
         return 1;
-    }
-
-    /* Called only with the static scheduler */
-    if( mt_flag ){
-        /* Post all reception for this cblk */
-        cblknum = cblk - solvmtx->cblktab;
-
-        while( ((cblknum + j) >= 0) &&
-               (cblk[j].cblktype & CBLK_RECV) )
-        {
-            assert( cblk[j].fblokptr->fcblknm == cblknum );
-            cpucblk_zirecv( side, solvmtx, cblk + j );
-            j--;
-        }
     }
 
     /* Make sure we receive every contribution */
     while( cblk->ctrbcnt > 0 ) {
-        if ( mt_flag ) {
-            /*
-             * Change for test to make sure we do not dead lock in a wait on
-             * something received by another thread
-             */
-            cpucblk_ztestsome( side, solvmtx );
-        }
-        else {
-            cpucblk_zwaitsome( side, solvmtx );
-        }
+        cpucblk_zmpi_progress( side, solvmtx, rank );
     }
 #else
     assert( !(cblk->cblktype & (CBLK_FANIN | CBLK_RECV)) );
     do { } while( cblk->ctrbcnt > 0 );
 #endif
 
-    (void)mt_flag;
+    (void)rank;
     (void)side;
     (void)solvmtx;
 
@@ -685,6 +551,8 @@ cpucblk_zrelease_deps( pastix_coefside_t  side,
             cpucblk_zisend( side, solvmtx, fcbk );
             return;
         }
+#else
+        (void)side;
 #endif
         if ( solvmtx->computeQueue ) {
             pastix_queue_t *queue = solvmtx->computeQueue[ cblk->threadid ];
@@ -735,8 +603,7 @@ cpucblk_zrequest_cleanup( pastix_coefside_t side,
     pastix_int_t i;
     int rc;
     SolverCblk  *cblk;
-    int          reqnbr = (sched == PastixSchedDynamic) ?
-                           solvmtx->reqnum : solvmtx->reqnbr;
+    int          reqnbr =  solvmtx->reqnum;
     MPI_Status   status;
 
 #if defined(PASTIX_DEBUG_MPI)
@@ -747,25 +614,27 @@ cpucblk_zrequest_cleanup( pastix_coefside_t side,
     for( i=0; i<reqnbr; i++ )
     {
         if ( solvmtx->reqtab[i] == MPI_REQUEST_NULL ) {
+            assert( 0 /* MPI_REQUEST_NULL should have been pushed to the end */ );
+            solvmtx->reqnum--;
             continue;
         }
 
         /* Make sure that we don't have an already cleaned request in dynamic */
-        assert( solvmtx->reqlocal[i] != -1 );
+        assert( solvmtx->reqidx[i] != -1 );
 
         rc = MPI_Wait( solvmtx->reqtab + i, &status );
         assert( rc == MPI_SUCCESS );
 
-        cblk = solvmtx->cblktab + solvmtx->reqlocal[i];
+        cblk = solvmtx->cblktab + solvmtx->reqidx[i];
 
         /* We should wait only for fanin */
         assert( cblk->cblktype & CBLK_FANIN );
 
         cpucblk_zrequest_handle_fanin( side, solvmtx, cblk );
 
-        solvmtx->reqnum = (sched == PastixSchedDynamic) ?
-                           solvmtx->reqnum - 1 : solvmtx->reqnum;
+        solvmtx->reqnum--;
     }
+    assert( solvmtx->reqnum == 0 );
 #else
     (void)side;
     (void)solvmtx;

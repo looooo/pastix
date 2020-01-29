@@ -263,10 +263,8 @@ void cpucblk_zrequest_cleanup( pastix_coefside_t side,
                                SolverMatrix     *solvmtx );
 
 void cpucblk_zmpi_progress( pastix_coefside_t   side,
-                            isched_thread_t    *ctx,
                             SolverMatrix       *solvmtx,
-                            pastix_int_t        threadid,
-                            pastix_complex64_t *recv );
+                            int                 threadid );
 
 void cpucblk_zsend_rhs_forward( const SolverMatrix *solvmtx,
                                 SolverCblk         *cblk,

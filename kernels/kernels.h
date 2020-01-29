@@ -17,6 +17,7 @@
 #ifndef _kernels_h_
 #define _kernels_h_
 
-extern pastix_atomic_lock_t pastix_mpi_lock;
+extern pthread_mutex_t    pastix_comm_lock;
+extern volatile pthread_t pastix_comm_tid;
 
 #endif /* _kernels_h_ */

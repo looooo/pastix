@@ -70,7 +70,7 @@ typedef struct task_s {
     pastix_int_t          bloknum; /**< Attached block                                            */
     pastix_int_t volatile ctrbcnt; /**< Total number of contributions                             */
 #if defined(PASTIX_DYNSCHED)
-    pastix_int_t          threadid;/**< Index of the bubble which contains the task               */
+    int                   threadid;/**< Index of the bubble which contains the task               */
 #endif
 } Task;
 
@@ -120,7 +120,6 @@ typedef struct solver_cblk_s  {
     pastix_int_t         selevtx;    /**< Index to identify selected cblk for which intra-separator contributions are not compressed */
     int                  ownerid;    /**< Rank of the owner                       */
     int                  threadid;   /**< Rank of the accessing thread            */
-    pastix_int_t         reqindex;   /**< Index of the cblk in the request array  */
 } SolverCblk;
 
 struct parsec_sparse_matrix_desc_s;
@@ -202,10 +201,13 @@ struct solver_matrix_s {
     pastix_queue_t **         computeQueue;         /*+ Queue of task to compute by thread        +*/
 
     pastix_int_t             *selevtx;              /*+ Array to identify which cblk are pre-selected +*/
-    MPI_Request              *reqtab;               /*+ Array of request for MPI asynchronous messages +*/
-    pastix_int_t             *reqlocal;             /*+ Array of local cblknum corresponding to reqtab +*/
-    pastix_int_t              reqnbr;               /*+ Length of the reqtab array                     +*/
-    volatile int32_t          reqnum;               /*+ Current amount of requests computed            +*/
+
+    MPI_Request              *reqtab;               /**< Array of requests for MPI asynchronous messages      */
+    pastix_int_t             *reqidx;               /**< Array of local cblknum index corresponding to reqtab */
+    pastix_int_t              reqnbr;               /**< Length of the reqtab/reqidx arrays                   */
+    volatile int32_t          reqnum;               /**< Current amount of active requests (packed)           */
+    pastix_atomic_lock_t      reqlock;              /**< Lock to access the request arrays                    */
+    void                     *rcoeftab;             /**< Reception buffer for the communication               */
 
     PASTIX_Comm               solv_comm;            /*+ Copy of the pastix_data->inter_node_comm       +*/
 };
@@ -408,9 +410,13 @@ int           solverDraw      ( const SolverMatrix *solvptr,
                                 const char         *directory );
 void          solverPrintStats( const SolverMatrix *solvptr );
 
-void solverReqtabInit ( SolverMatrix *solvmtx,
-                        pastix_int_t  scheduler );
-void solverReqtabExit ( SolverMatrix *solvmtx   );
+void solverRequestInit( SolverMatrix *solvmtx );
+void solverRequestExit( SolverMatrix *solvmtx );
+
+void solverRecvInit( pastix_coefside_t side,
+                     SolverMatrix     *solvmtx,
+                     int               flttype );
+void solverRecvExit( SolverMatrix     *solvmtx );
 
 /*
  * Solver backup
