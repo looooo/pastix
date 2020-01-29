@@ -477,6 +477,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_COMPRESS_WHEN]         = PastixCompressNever;
     iparm[IPARM_COMPRESS_METHOD]       = PastixCompressMethodPQRCP;
     iparm[IPARM_COMPRESS_ORTHO]        = PastixCompressOrthoCGS;
+    iparm[IPARM_COMPRESS_PRESELECT]    = -1;
 
     /* MPI modes */
 #if defined(PASTIX_WITH_MPI)

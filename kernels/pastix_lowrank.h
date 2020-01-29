@@ -158,13 +158,12 @@ typedef struct pastix_lr_s {
  * @brief Enum to define the type of block.
  */
 typedef enum memory_stats_e {
-    FR_InDiag  = 0, /**< Full-rank block, inside a diagonal block from non-split partition*/
-    FR_OffDiag = 1, /**< Full-rank block, outside a diagonal block from non-split partition*/
-    LR_InDiag  = 2, /**< Low-rank block, inside a diagonal block from non-split partition*/
-    LR_OffDiag = 3, /**< Low-rank block, outside a diagonal block from non-split partition*/
-    LR_InSele  = 4, /**< Non-compressible block, outside a diagonal block from non-split partition*/
-    LR_OffSele = 5, /**< Non-compressible block, outside a diagonal block from non-split partition*/
-    LR_ToSele  = 6, /**< Non-compressible block, inside a diagonal block from non-split partition, that contributes to a selected cblk*/
+    FR_InDiag  = 0, /**< Full-rank block inside a diagonal block from the non-split partition                 */
+    FR_OffDiag = 1, /**< Full-rank block outside a diagonal block from the non-split partition                */
+    LR_InDiag  = 2, /**< Non selected Low-rank block inside a diagonal block from the non-split partition     */
+    LR_InSele  = 3, /**< Selected low-rank block inside a diagonal block from the non-split partition         */
+    LR_OffDiag = 4, /**< Low-rank block outside a diagonal block from the non-split partition                 */
+    LR_DInD    = 5, /**< Non-compressible diagonal block inside a diagonal block from the non-split partition */
     MEMORY_STATS_SIZE
 } memory_stats_t;
 

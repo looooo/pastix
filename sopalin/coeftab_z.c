@@ -230,15 +230,13 @@ coeftab_zmemory( SolverMatrix *solvmtx )
     SolverCblk  *cblk = solvmtx->cblktab;
     SolverBlok  *blok;
     pastix_int_t i, cblknum;
-    pastix_int_t    gain[MEMORY_STATS_SIZE] = { 0, 0, 0, 0, 0, 0, 0 };
-    pastix_int_t    orig[MEMORY_STATS_SIZE] = { 0, 0, 0, 0, 0, 0, 0 };
-    pastix_fixdbl_t memgain[MEMORY_STATS_SIZE];
-    pastix_fixdbl_t memorig[MEMORY_STATS_SIZE];
-    pastix_fixdbl_t totgain, totorig;
+    pastix_int_t    gain[MEMORY_STATS_SIZE] = { 0 };
+    pastix_int_t    orig[MEMORY_STATS_SIZE] = { 0 };
+    pastix_fixdbl_t memlr[MEMORY_STATS_SIZE] = { 0. };
+    pastix_fixdbl_t memfr[MEMORY_STATS_SIZE] = { 0. };
+    pastix_fixdbl_t totlr, totfr;
 
-    pastix_int_t LR_DiagInDiag = 0;
-
-    pastix_int_t    last[3] = { 0, 0, 0 };
+    pastix_int_t    last[3] = { 0 };
     pastix_fixdbl_t memlast[4];
 
     SolverBlok *solvblok = solvmtx->bloktab;
@@ -297,6 +295,7 @@ coeftab_zmemory( SolverMatrix *solvmtx )
                   pastix_print_value(memlast[3]), pastix_print_unit(memlast[3]));
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
+        pastix_int_t colnbr = cblk_colnbr( cblk );
 
         if ( !(cblk->cblktype & CBLK_COMPRESSED) )
         {
@@ -315,11 +314,12 @@ coeftab_zmemory( SolverMatrix *solvmtx )
             /* Size of the cblk outside the diagonal block */
             off_height -= in_height;
 
-            orig[FR_InDiag]  += cblk_colnbr( cblk ) * in_height;
-            orig[FR_OffDiag] += cblk_colnbr( cblk ) * off_height;
+            orig[FR_InDiag]  += colnbr * in_height;
+            orig[FR_OffDiag] += colnbr * off_height;
         }
         else {
-            LR_DiagInDiag += cblk_colnbr( cblk ) * cblk_colnbr( cblk );
+            /* The gain for the diagonal block is always 0 */
+            orig[LR_DInD] += colnbr * colnbr;
             cpucblk_zmemory( side, solvmtx, cblk, orig, gain );
         }
     }
@@ -330,63 +330,47 @@ coeftab_zmemory( SolverMatrix *solvmtx )
         orig[LR_InDiag]  *= 2;
         orig[LR_OffDiag] *= 2;
         orig[LR_InSele]  *= 2;
-        orig[LR_OffSele] *= 2;
     }
 
-    totgain = 0.;
-    totorig = 0.;
+    totlr = 0.;
+    totfr = 0.;
 
-    for (i=0; i<7; i++) {
-        memgain[i] = (orig[i] - gain[i]) * pastix_size_of( PastixComplex64 );
-        memorig[i] =  orig[i]            * pastix_size_of( PastixComplex64 );
-        /* printf("Memgain %.3g %co   ", pastix_print_value(memgain[i]), pastix_print_unit(memgain[i])); */
-        /* printf("Memorig %.3g %co\n",  pastix_print_value(memorig[i]), pastix_print_unit(memorig[i])); */
-        totgain += memgain[i];
-        totorig += memorig[i];
+    for (i=0; i<MEMORY_STATS_SIZE; i++) {
+        memlr[i] = (orig[i] - gain[i]) * pastix_size_of( PastixComplex64 );
+        memfr[i] =  orig[i]            * pastix_size_of( PastixComplex64 );
+        totlr += memlr[i];
+        totfr += memfr[i];
     }
-    totgain += (memorig[LR_InSele] - memgain[LR_InSele]);
-    totgain -= memgain[LR_ToSele];
-    totorig -= memorig[LR_ToSele];
-
-    /* printf("Gain %.3g %co   ", printflopsv(gain[LR_OffSele]), printflopsu(gain[LR_OffSele])); */
-    /* printf("Orig %.3g %co   ", printflopsv(orig[LR_OffSele]), printflopsu(orig[LR_OffSele])); */
-    LR_DiagInDiag = LR_DiagInDiag * pastix_size_of( PastixComplex64 );
 
     pastix_print( solvmtx->clustnum, 0,
                   "    Compression:\n"
                   "      ------------------------------------------------\n"
-                  "      Full-rank cblk\n"
-                  "        Inside supernodes                     %8.3g %co\n"
-                  "        Outside supernodes                    %8.3g %co\n"
-                  "      Low-rank cblk\n"
-                  "        Inside supernodes       %8.3g %co / %8.3g %co  (potential gain %8.3g %co / %8.3g %co)\n"
-                  "        Size of dense diagonal blocks inside %8.3g %co\n"
-                  "        Real gain               %8.3g %co / %8.3g %co\n"
-                  "        Outside supernodes      %8.3g %co / %8.3g %co\n"
-                  "      Selected cblk\n"
-                  "        Inside supernodes                     %8.3g %co (compressed: %8.3g %co)\n"
-                  "        Outside supernodes      %8.3g %co / %8.3g %co\n"
+                  "      Full-rank supernodes\n"
+                  "        Inside                                %8.3g %co\n"
+                  "        Outside                               %8.3g %co\n"
+                  "      Low-rank supernodes\n"
+                  "        Diag in diag                          %8.3g %co\n"
+                  "        Inside not selected     %8.3g %co / %8.3g %co\n"
+                  "        Inside selected         %8.3g %co / %8.3g %co\n"
+                  "        Outside                 %8.3g %co / %8.3g %co\n"
                   "      ------------------------------------------------\n"
                   "      Total                     %8.3g %co / %8.3g %co\n",
-                  pastix_print_value(memorig[FR_InDiag] ), pastix_print_unit(memorig[FR_InDiag] ),
-                  pastix_print_value(memorig[FR_OffDiag]), pastix_print_unit(memorig[FR_OffDiag]),
-                  pastix_print_value(memgain[LR_InDiag] ), pastix_print_unit(memgain[LR_InDiag] ),
-                  pastix_print_value(memorig[LR_InDiag] ), pastix_print_unit(memorig[LR_InDiag] ),
-                  pastix_print_value(memgain[LR_ToSele] ), pastix_print_unit(memgain[LR_ToSele] ),
-                  pastix_print_value(memorig[LR_ToSele] ), pastix_print_unit(memorig[LR_ToSele] ),
+                  pastix_print_value(memfr[FR_InDiag] ), pastix_print_unit(memfr[FR_InDiag] ),
+                  pastix_print_value(memfr[FR_OffDiag]), pastix_print_unit(memfr[FR_OffDiag]),
 
-                  pastix_print_value(LR_DiagInDiag),       pastix_print_unit(LR_DiagInDiag),
-                  pastix_print_value(memgain[LR_InDiag]-LR_DiagInDiag), pastix_print_unit(memgain[LR_InDiag]-LR_DiagInDiag),
-                  pastix_print_value(memorig[LR_InDiag]-LR_DiagInDiag), pastix_print_unit(memorig[LR_InDiag]-LR_DiagInDiag),
+                  pastix_print_value(memfr[LR_DInD]),    pastix_print_unit(memfr[LR_DInD]),
 
-                  pastix_print_value(memgain[LR_OffDiag]), pastix_print_unit(memgain[LR_OffDiag]),
-                  pastix_print_value(memorig[LR_OffDiag]), pastix_print_unit(memorig[LR_OffDiag]),
-                  pastix_print_value(memorig[LR_InSele] ), pastix_print_unit(memorig[LR_InSele]),
-                  pastix_print_value(memgain[LR_InSele] ), pastix_print_unit(memgain[LR_InSele]),
-                  pastix_print_value(memgain[LR_OffSele]), pastix_print_unit(memgain[LR_OffSele]),
-                  pastix_print_value(memorig[LR_OffSele]), pastix_print_unit(memorig[LR_OffSele]),
-                  pastix_print_value(totgain),             pastix_print_unit(totgain),
-                  pastix_print_value(totorig),             pastix_print_unit(totorig) );
+                  pastix_print_value(memlr[LR_InDiag] ), pastix_print_unit(memlr[LR_InDiag] ),
+                  pastix_print_value(memfr[LR_InDiag] ), pastix_print_unit(memfr[LR_InDiag] ),
+
+                  pastix_print_value(memlr[LR_InSele] ), pastix_print_unit(memlr[LR_InSele]),
+                  pastix_print_value(memfr[LR_InSele] ), pastix_print_unit(memfr[LR_InSele]),
+
+                  pastix_print_value(memlr[LR_OffDiag]), pastix_print_unit(memlr[LR_OffDiag]),
+                  pastix_print_value(memfr[LR_OffDiag]), pastix_print_unit(memfr[LR_OffDiag]),
+
+                  pastix_print_value(totlr),             pastix_print_unit(totlr),
+                  pastix_print_value(totfr),             pastix_print_unit(totfr) );
 
     return;
 }
