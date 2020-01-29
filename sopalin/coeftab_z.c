@@ -236,15 +236,17 @@ coeftab_zmemory( SolverMatrix *solvmtx )
     pastix_fixdbl_t memfr[MEMORY_STATS_SIZE] = { 0. };
     pastix_fixdbl_t totlr, totfr;
 
+#if defined(PASTIX_SUPERNODE_STATS)
     pastix_int_t    last[3] = { 0 };
     pastix_fixdbl_t memlast[4];
+    SolverBlok     *solvblok = solvmtx->bloktab;
 
-    SolverBlok *solvblok = solvmtx->bloktab;
     for(i=0; i<solvmtx->bloknbr; i++, solvblok++ ) {
-        SolverCblk *lcblk = solvmtx->cblktab + solvblok->lcblknm;
+        SolverCblk  *lcblk = solvmtx->cblktab + solvblok->lcblknm;
         pastix_int_t ncols = cblk_colnbr( lcblk );
         pastix_int_t nrows = blok_rownbr( solvblok );
         pastix_int_t size  = ncols * nrows;
+
         if ( !(lcblk->cblktype & CBLK_COMPRESSED) ) {
             if ( side != PastixLCoef ) {
                 last[solvblok->inlast] += 2 * size;
@@ -293,6 +295,7 @@ coeftab_zmemory( SolverMatrix *solvmtx )
                   pastix_print_value(memlast[1]), pastix_print_unit(memlast[1]),
                   pastix_print_value(memlast[2]), pastix_print_unit(memlast[2]),
                   pastix_print_value(memlast[3]), pastix_print_unit(memlast[3]));
+#endif
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
         pastix_int_t colnbr = cblk_colnbr( cblk );
