@@ -4,15 +4,18 @@
 
  PaStiX julia wrapper
 
- @copyright 2020-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2020-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.0.0
  @author Mathieu Faverge
- @author Lebdaoui selmane
- @date 2020-07-15
+ @author Selmane Lebdaoui
+ @author Tony Delarue
+ @date 2021-01-14
 
-This file has been automatically generated with gen_wrappers.py
+ This file has been automatically generated with gen_wrappers.py
+
+ @ingroup wrap_julia
 
 =#
 
@@ -87,6 +90,10 @@ end
 
 @cbindings libpastix begin
     @cextern pastixOrderGet( pastix_data::Ptr{Pastix_data_t} )::Ptr{Pastix_order_t}
+end
+
+@cbindings libpastix begin
+    @cextern pastixOrderBcast( ordemesh::Ptr{Pastix_order_t}, root::Cint, pastix_comm::__get_mpi_type__() )::Cvoid
 end
 
 @cbindings libpastix begin
