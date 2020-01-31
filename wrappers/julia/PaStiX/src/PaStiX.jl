@@ -19,6 +19,7 @@ This file has been automatically generated with gen_wrappers.py
 module PaStiX
 using CBinding
 using Libdl
+
 function pastix_library_path()
     x = Libdl.dlext
     return "libpastix.$x"
@@ -28,7 +29,6 @@ libpastix = pastix_library_path()
 include("pastix_enums.jl")
 
 using spm
-
 if pastix_mpi_enabled
     using MPI
 end

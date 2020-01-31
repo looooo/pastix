@@ -41,8 +41,8 @@ module pastixf
           invp, rang, tree) &
           bind(c, name='pastixOrderInit')
        use iso_c_binding
-       import pastix_int_t
        import pastix_order_t
+       import pastix_int_t
        implicit none
        integer(kind=c_int)               :: pastixOrderInit_c
        type(c_ptr),                value :: ordeptr
@@ -60,8 +60,8 @@ module pastixf
      function pastixOrderAlloc_c(ordeptr, vertnbr, cblknbr) &
           bind(c, name='pastixOrderAlloc')
        use iso_c_binding
-       import pastix_int_t
        import pastix_order_t
+       import pastix_int_t
        implicit none
        integer(kind=c_int)               :: pastixOrderAlloc_c
        type(c_ptr),                value :: ordeptr
@@ -74,8 +74,8 @@ module pastixf
      function pastixOrderAllocId_c(ordeptr, vertnbr) &
           bind(c, name='pastixOrderAllocId')
        use iso_c_binding
-       import pastix_int_t
        import pastix_order_t
+       import pastix_int_t
        implicit none
        integer(kind=c_int)               :: pastixOrderAllocId_c
        type(c_ptr),                value :: ordeptr
@@ -97,8 +97,8 @@ module pastixf
      subroutine pastixOrderBase_c(ordeptr, baseval) &
           bind(c, name='pastixOrderBase')
        use iso_c_binding
-       import pastix_int_t
        import pastix_order_t
+       import pastix_int_t
        implicit none
        type(c_ptr),                value :: ordeptr
        integer(kind=pastix_int_t), value :: baseval
@@ -170,8 +170,8 @@ module pastixf
      function pastixOrderGrid_c(myorder, nx, ny, nz) &
           bind(c, name='pastixOrderGrid')
        use iso_c_binding
-       import pastix_int_t
        import pastix_order_t
+       import pastix_int_t
        implicit none
        integer(kind=c_int)               :: pastixOrderGrid_c
        type(c_ptr)                       :: myorder
@@ -260,8 +260,8 @@ module pastixf
      function pastix_task_analyze_c(pastix_data, spm) &
           bind(c, name='pastix_task_analyze')
        use iso_c_binding
-       import pastix_data_t
        import spmatrix_t
+       import pastix_data_t
        implicit none
        integer(kind=c_int)   :: pastix_task_analyze_c
        type(c_ptr),    value :: pastix_data
@@ -273,8 +273,8 @@ module pastixf
      function pastix_task_numfact_c(pastix_data, spm) &
           bind(c, name='pastix_task_numfact')
        use iso_c_binding
-       import pastix_data_t
        import spmatrix_t
+       import pastix_data_t
        implicit none
        integer(kind=c_int)   :: pastix_task_numfact_c
        type(c_ptr),    value :: pastix_data
@@ -367,8 +367,8 @@ module pastixf
      function pastix_subtask_spm2bcsc_c(pastix_data, spm) &
           bind(c, name='pastix_subtask_spm2bcsc')
        use iso_c_binding
-       import pastix_data_t
        import spmatrix_t
+       import pastix_data_t
        implicit none
        integer(kind=c_int)   :: pastix_subtask_spm2bcsc_c
        type(c_ptr),    value :: pastix_data
@@ -518,8 +518,8 @@ module pastixf
      subroutine pastixExpand_c(pastix_data, spm) &
           bind(c, name='pastixExpand')
        use iso_c_binding
-       import pastix_data_t
        import spmatrix_t
+       import pastix_data_t
        implicit none
        type(c_ptr), value :: pastix_data
        type(c_ptr), value :: spm

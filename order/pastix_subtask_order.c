@@ -599,7 +599,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     }
 
 #if !defined(NDEBUG)
-    assert( pastixOrderCheck( ordemesh ) == PASTIX_SUCCESS );
+    assert( pastixOrderCheck( pastix_data->ordemesh ) == PASTIX_SUCCESS );
 #endif
 
     /* Backup the spm pointer for further information */

@@ -331,6 +331,10 @@ if (PASTIX_ORDERING_SCOTCH)
   find_package(SCOTCH)
 
   if (SCOTCH_FOUND)
+    cmake_dependent_option(PASTIX_ORDERING_SCOTCH_MT
+    "Enable multi-threaded ordering step With Scotch library (require Scotch v6.1 or above)" ON
+    "HAVE_SCOTCH_CONTEXT_INIT" OFF)
+
     # Check coherency for integer size
     if(PASTIX_INT64 AND NOT SCOTCH_Num_8)
       message(FATAL_ERROR "PASTIX_INT64 is enabled and provided Scotch is not compiled with int64 support, please build with -DPASTIX_INT64=OFF or install a 64 bits version of Scotch.")

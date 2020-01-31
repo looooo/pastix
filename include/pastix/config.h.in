@@ -68,6 +68,7 @@
 #cmakedefine PASTIX_ORDERING_SCOTCH
 #cmakedefine PASTIX_ORDERING_METIS
 #cmakedefine PASTIX_ORDERING_PTSCOTCH
+#cmakedefine PASTIX_ORDERING_SCOTCH_MT
 
 /* Symbolic factorization options */
 #cmakedefine PASTIX_SYMBOL_DUMP_SYMBMTX

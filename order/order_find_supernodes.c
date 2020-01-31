@@ -397,7 +397,7 @@ pastixOrderFindSupernodes( const pastix_graph_t *graph,
         assert(invp[i] < n);
     }
 
-    memset( S, 0 sizeof(pastix_int_t) * n );
+    memset( S, 0, sizeof(pastix_int_t) * n );
     for(i=0;i<n;i++)
         S[perm[i]]++;
 

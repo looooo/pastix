@@ -43,6 +43,7 @@ typedef enum pastix_iparm_e {
     IPARM_ORDERING_DEFAULT,      /**< Use default ordering parameters with Scotch or Metis           Default: 1                         IN  */
 
     /* Subset for Scotch */
+    IPARM_SCOTCH_MT,             /**< Ordering multi-threaded  (see Scotch Manual)                   Default: 1 (if available)          IN  */
     IPARM_SCOTCH_SWITCH_LEVEL,   /**< Ordering switch level    (see Scotch Manual)                   Default: 120                       IN  */
     IPARM_SCOTCH_CMIN,           /**< Ordering cmin parameter  (see Scotch Manual)                   Default: 0                         IN  */
     IPARM_SCOTCH_CMAX,           /**< Ordering cmax parameter  (see Scotch Manual)                   Default: 100000                    IN  */
