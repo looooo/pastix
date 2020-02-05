@@ -67,7 +67,7 @@ pqueueItemComparison(const pastix_queue_item_t *item1,
  *          The qallocated pointer to the queue to initialize.
  *
  * @param[in] size
- *          The inital size for the queue.
+ *          The initial size for the queue.
  *
  *******************************************************************************
  *

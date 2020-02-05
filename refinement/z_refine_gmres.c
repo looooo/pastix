@@ -321,7 +321,7 @@ pastix_int_t z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 
         /**
          * Exit only if maximum number of iteration is reached.
-         * Exit on residual is checked at the beginning of the outer loop to be
+         * Exit on residual if checked at the beginning of the outer loop to be
          * sure that the final residual of Ax-b is equal to the estimator
          * computed within the inner loop.
          */

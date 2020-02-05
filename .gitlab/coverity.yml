@@ -1,0 +1,31 @@
+---
+coverity:
+  stage: analyse
+  tags: ["large"]
+  dependencies: []
+  artifacts:
+    name: pastix_coverity
+    expire_in: 1 week
+    paths:
+      - pastix.tgz
+  variables:
+    VERSION: mpi
+  script:
+    - mkdir -p build-coverity
+    - cd build-coverity
+    - cmake -DPASTIX_CI_VERSION=${VERSION}
+            -C ../.gitlab/ci-test-initial-cache.cmake  ..
+    - cov-build --dir ../cov-int make -j 4
+    - cd ..
+    - tar czvf pastix.tgz cov-int
+    - curl --form token=$COVERITY_TOKEN
+           --form email=mathieu.faverge@inria.fr
+           --form file=@pastix.tgz
+           --form version="`git rev-parse --short HEAD`"
+           --form description=""
+           https://scan.coverity.com/builds?project=PaStiX
+  only:
+    - master@pastix/pastix
+    - master@solverstack/pastix
+  except:
+    - schedules

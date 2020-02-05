@@ -4,7 +4,7 @@
   tags: ["large"]
   artifacts:
     name: pastix_build_${VERSION}
-    expire_in: 42 minutes
+    expire_in: 180 minutes
     untracked: true
     paths:
       - install-${VERSION}

@@ -635,6 +635,7 @@ cpucblk_zrequest_cleanup( pastix_coefside_t side,
         solvmtx->reqnum--;
     }
     assert( solvmtx->reqnum == 0 );
+    (void)rc;
 #else
     (void)side;
     (void)solvmtx;

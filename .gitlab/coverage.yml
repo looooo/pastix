@@ -6,7 +6,7 @@ coverage:
   stage: analyse
   artifacts:
     name: pastix_coverage
-    expire_in: 42 minutes
+    expire_in: 180 minutes
     paths:
       - pastix.lcov
       - pastix-*.lcov

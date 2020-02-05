@@ -4,7 +4,7 @@
   tags: ["large"]
   artifacts:
     name: pastix_test_${VERSION}
-    expire_in: 42 minutes
+    expire_in: 180 minutes
     paths:
       - pastix-${VERSION}-${RUN}-sched${SCHED}.lcov
       - pastix-gcov-${VERSION}-sched${SCHED}.log
