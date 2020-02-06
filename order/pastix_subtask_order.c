@@ -102,11 +102,11 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     pastix_int_t    schur_n;
     pastix_int_t   *schur_colptr;
     pastix_int_t   *schur_rows;
-    pastix_int_t   *schur_perm;
+    pastix_int_t   *schur_perm = NULL;
     pastix_int_t    zeros_n;
     pastix_int_t   *zeros_colptr;
     pastix_int_t   *zeros_rows;
-    pastix_int_t   *zeros_perm;
+    pastix_int_t   *zeros_perm = NULL;
     pastix_int_t   *iparm;
     pastix_graph_t  subgraph;
     pastix_graph_t *graph;
@@ -411,9 +411,9 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     if (retval_rcv != PASTIX_SUCCESS) {
 
         /* Cleanup memory */
-        if ( zeros_colptr != schur_colptr ) { memFree_null( zeros_colptr ); }
-        if ( zeros_rows   != schur_rows   ) { memFree_null( zeros_rows   ); }
-        if ( zeros_perm   != NULL         ) { memFree_null( zeros_perm   ); }
+        if ( zeros_colptr != schur_colptr  ) { memFree_null( zeros_colptr ); }
+        if ( zeros_rows   != schur_rows    ) { memFree_null( zeros_rows   ); }
+        if ( zeros_perm   != NULL          ) { memFree_null( zeros_perm   ); }
         if ( schur_colptr != graph->colptr ) { memFree_null( schur_colptr ); }
         if ( schur_rows   != graph->rows   ) { memFree_null( schur_rows   ); }
         if ( schur_perm   != NULL          ) { memFree_null( schur_perm   ); }
