@@ -5,13 +5,13 @@
  * This file contains routines to create the graph of the direct
  * factorization of a graph A.
  *
- * @copyright 2004-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
  * @author Pascal Henon
  * @author Mathieu Faverge
- * @date 2018-07-16
+ * @date 2020-02-05
  *
  **/
 #include "common.h"
@@ -52,9 +52,9 @@ faxCSRFactDirect( const fax_csr_t *graphA, const pastix_order_t *order, fax_csr_
     pastix_int_t        nnznbr, father;
     pastix_int_t       *tmp     = NULL;
     pastix_int_t       *ja      = NULL;
-    const pastix_int_t  cblknbr = order->cblknbr;
-    const pastix_int_t *rangtab = order->rangtab;
-    const pastix_int_t *treetab = order->treetab;
+    pastix_int_t        cblknbr;
+    const pastix_int_t *rangtab;
+    const pastix_int_t *treetab;
 
     /* Check parameters */
     if ( graphA == NULL ) {
@@ -67,7 +67,11 @@ faxCSRFactDirect( const fax_csr_t *graphA, const pastix_order_t *order, fax_csr_
         return -3;
     }
 
-    if ( ( order->cblknbr < 0 ) || ( order->cblknbr > graphA->n ) ) {
+    cblknbr = order->cblknbr;
+    rangtab = order->rangtab;
+    treetab = order->treetab;
+
+    if ( ( cblknbr < 0 ) || ( cblknbr > graphA->n ) ) {
         return -4;
     }
 

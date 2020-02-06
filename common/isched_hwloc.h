@@ -2,16 +2,16 @@
  *
  * @file isched_hwloc.h
  *
- * @copyright 2008-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2008-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  * @copyright 2010-2014 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
  *
  * PaStiX thread binding routines with hwloc header.
  *
- * @version 6.0.1
+ * @version 6.1.0
  * @author Mathieu Faverge
- * @date 2018-07-16
+ * @date 2019-11-12
  *
  **/
 #ifndef _isched_hwloc_h_

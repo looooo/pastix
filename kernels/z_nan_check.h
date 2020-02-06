@@ -1,17 +1,17 @@
 /**
  * @file z_nan_check.h
  *
- * @copyright 2016-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @brief Manage nancheck for lowrank kernels.
  * This header describes all the LAPACKE functions used for low-rank kernels,
  * as well as some macros to manage nancheck.
  *
- * @version 6.0.1
+ * @version 6.1.0
  * @author Mathieu Faverge
  * @author Gregoire Pichon
- * @date 2018-07-16
+ * @date 2019-11-12
  * @precisions normal z -> s d c
  *
  */

@@ -4,14 +4,14 @@
 
  PaStiX python wrapper
 
- @copyright 2017-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.0.3
  @author Pierre Ramet
  @author Mathieu Faverge
  @author Louis Poirel
- @date 2018-07-16
+ @date 2019-11-12
 
 This file has been automatically generated with gen_wrappers.py
 

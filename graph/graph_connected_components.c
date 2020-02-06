@@ -4,12 +4,12 @@
  *
  * PaStiX routines to isolate disconnected subgraphs
  *
- * @copyright 2004-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
  * @author Gregoire Pichon
- * @date 2018-01-19
+ * @date 2020-02-05
  *
  **/
 #include "common.h"
@@ -100,11 +100,13 @@ graphIsolateConnectedComponents( const pastix_graph_t *graph,
     queue_init (&q, n);
 
     total = n;
-    while ( total != 0 ){
+    while ( total > 0 ) {
         i = 0;
-        while ( comp_vtx[i] != -1 ) {
+
+        while ((i < n) && (comp_vtx[i] != -1) ) {
             i++;
         }
+        assert( i < n );
 
         queue_push_back( &q, i );
         comp_vtx[i]   = cur;

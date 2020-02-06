@@ -4,13 +4,13 @@
  *
  * PaStiX low-rank common structures to store pointer to the multiple functions.
  *
- * @copyright 2016-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
  * @author Gregoire Pichon
  * @author Mathieu Faverge
- * @date 2018-07-16
+ * @date 2019-12-19
  * @precisions normal z -> c d s
  *
  **/

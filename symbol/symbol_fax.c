@@ -5,12 +5,12 @@
  * PaStiX fax symbol structure routines issued from Scotch esmumps library.
  * This is the generic block symbolic factorization routine.
  *
- * @copyright 2004-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.1
+ * @version 6.1.0
  * @author Francois Pellegrini
- * @date 2018-07-16
+ * @date 2020-02-05
  *
  *   Dates:
  *     Version 0.0 - from 22 jul 1998 to 29 sep 1998
@@ -179,6 +179,10 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
     pastix_int_t                       hashmsk;  /* Mask for access to hash table                     */
     pastix_int_t                       colend;   /* Column number of vertex neighbor                  */
 
+    pastix_int_t  *ctrbtab = NULL; /* Array for contribution chaining */
+    symbol_cblk_t *cblktab = NULL; /* Column block array              */
+    symbol_blok_t *bloktab = NULL; /* Block array                     */
+
     permtax = ordeptr->permtab - baseval;           /* Compute array bases */
     peritax = ordeptr->peritab - baseval;
     rangtax = ordeptr->rangtab - baseval;
@@ -188,10 +192,6 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
 
     /* Allocate arrays for factoring   */
     {
-        pastix_int_t  *ctrbtab = NULL; /* Array for contribution chaining */
-        symbol_cblk_t *cblktab = NULL; /* Column block array              */
-        symbol_blok_t *bloktab = NULL; /* Block array                     */
-
         MALLOC_INTERN(ctrbtab, ordeptr->cblknbr,     pastix_int_t);
         MALLOC_INTERN(cblktab, ordeptr->cblknbr + 1, symbol_cblk_t);
         MALLOC_INTERN(bloktab, blokmax,              symbol_blok_t);
@@ -263,9 +263,9 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
 
                 if ((bloktmp = (symbol_blok_t *) memRealloc (bloktax + baseval, (blokmax * sizeof (symbol_blok_t)))) == NULL) {
                     errorPrint ("symbolFax: out of memory (2)");
-                    memFree    (bloktax + baseval);
-                    memFree    (cblktax + baseval);
-                    memFree    (ctrbtax + baseval);
+                    memFree    (bloktab);
+                    memFree    (cblktab);
+                    memFree    (ctrbtab);
                     return     (1);
                 }
                 bloktax = bloktmp - baseval;
@@ -429,9 +429,9 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
 #ifdef FAX_DEBUG
                         if (tlokfre == ~0) {
                             errorPrint ("symbolFax: internal error (1)");
-                            memFree    (bloktax + baseval);
-                            memFree    (cblktax + baseval);
-                            memFree    (ctrbtax + baseval);
+                            memFree    (bloktab);
+                            memFree    (cblktab);
+                            memFree    (ctrbtab);
                             return     (1);
                         }
 #endif /* FAX_DEBUG */
@@ -495,7 +495,7 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
     cblktax[cblknum].brownum = -1;
     cblktax[cblknum].selevtx = 0;
 
-    memFree (ctrbtax + baseval);                    /* Free contribution link array */
+    memFree (ctrbtab);                              /* Free contribution link array */
 
     symbptr->baseval = baseval;                     /* Fill in matrix fields */
     symbptr->cblknbr = ordeptr->cblknbr;

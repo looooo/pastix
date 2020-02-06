@@ -1,16 +1,16 @@
 /**
  * @file old/simple.c
  *
- * @copyright 2015-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * This is a simple example that:
  * reads the matrix, checks if it is correct and corrects it if needed,
  * and then runs pastix in one call.
  *
- * @version 6.0.1
+ * @version 6.1.0
  * @author Hastaran Matias
- * @date 2018-07-16
+ * @date 2019-11-12
  *
  **/
 #include <pastix.h>

@@ -10,13 +10,13 @@
  * because some spm functions are not implemented yet with the support for
  * multiple degrees of freedom.
  *
- * @copyright 2015-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
  * @author Bridonneau Vincent
  * @author Faverge Mathieu
- * @date 2018-08-10
+ * @date 2019-11-12
  *
  * @ingroup pastix_examples
  * @code

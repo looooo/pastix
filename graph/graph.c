@@ -4,14 +4,14 @@
  *
  * PaStiX graph structure routines
  *
- * @copyright 2004-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.1
+ * @version 6.1.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
- * @date 2018-07-16
+ * @date 2020-02-05
  *
  * @addtogroup pastix_graph
  * @{
@@ -170,13 +170,13 @@ graphCopy( pastix_graph_t       *graphdst,
     {
         MALLOC_INTERN( graphdst->colptr, graphsrc->n + 1, pastix_int_t );
         memcpy( graphdst->colptr, graphsrc->colptr, (graphsrc->n+1) * sizeof(pastix_int_t) );
-    }
 
-    if ( graphsrc->rows != NULL )
-    {
-        pastix_int_t nnz = graphdst->colptr[graphdst->n] - graphdst->colptr[0];
-        MALLOC_INTERN( graphdst->rows, nnz, pastix_int_t );
-        memcpy( graphdst->rows, graphsrc->rows, nnz * sizeof(pastix_int_t) );
+        if ( graphsrc->rows != NULL )
+        {
+            pastix_int_t nnz = graphdst->colptr[graphdst->n] - graphdst->colptr[0];
+            MALLOC_INTERN( graphdst->rows, nnz, pastix_int_t );
+            memcpy( graphdst->rows, graphsrc->rows, nnz * sizeof(pastix_int_t) );
+        }
     }
 
     if ( graphsrc->loc2glob != NULL )

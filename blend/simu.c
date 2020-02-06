@@ -4,14 +4,14 @@
  *
  * PaStiX simulation basic functions.
  *
- * @copyright 2004-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
  * @author Pascal Henon
  * @author Pierre Ramet
  * @author Mathieu Faverge
- * @date 2018-07-16
+ * @date 2019-12-09
  *
  * @addtogroup blend_dev_simu
  * @{

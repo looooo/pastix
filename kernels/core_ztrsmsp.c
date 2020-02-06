@@ -4,14 +4,14 @@
  *
  * PaStiX kernel routines
  *
- * @copyright 2012-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
- * @date 2018-07-16
+ * @date 2020-02-05
  * @precisions normal z -> c d s
  *
  **/
@@ -579,9 +579,7 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
         if ( ( N >= lowrank->compress_min_width ) &&
              ( M >= lowrank->compress_min_height ) )
         {
-            int is_preselected = 0;
-            /* int is_preselected = (!lowrank->compress_preselect) && */
-            /*     blok_is_preselected( cblk, blok, solvmtx->cblktab + blok->fcblknm ); */
+            int is_preselected = blok_is_preselected( cblk, blok, cblk + (blok->fcblknm - blok->lcblknm) );
 
             /*
              * Try to compress the block: 2 cases

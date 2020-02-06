@@ -4,7 +4,7 @@
  *
  * Precision dependent sequential routines to apply operation of the full matrix.
  *
- * @copyright 2015-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
@@ -12,7 +12,7 @@
  * @author Xavier Lacoste
  * @author Gregoire Pichon
  * @author Mathieu Faverge
- * @date 2018-07-16
+ * @date 2020-01-29
  *
  * @precisions normal z -> s d c
  *

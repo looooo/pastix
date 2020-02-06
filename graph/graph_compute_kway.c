@@ -4,12 +4,12 @@
  *
  * PaStiX routines to compute kway on a given supernode
  *
- * @copyright 2004-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.0
+ * @version 6.1.0
  * @author Gregoire Pichon
- * @date 2018-11-08
+ * @date 2019-11-12
  *
  **/
 #include "common.h"

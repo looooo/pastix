@@ -4,13 +4,13 @@
  *
  * PaStiX sparse matrix descriptor for StarPU.
  *
- * @copyright 2016-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2018-07-16
+ * @date 2020-01-29
  *
  * @addtogroup pastix_starpu
  * @{
