@@ -1,7 +1,7 @@
 # PaStiX: A sparse direct solver
 
 [![pipeline status](https://gitlab.inria.fr/solverstack/pastix/badges/master/pipeline.svg)](https://gitlab.inria.fr/solverstack/pastix/pipelines) [![coverage report](https://gitlab.inria.fr/solverstack/pastix/badges/master/coverage.svg)](https://sonarqube.inria.fr/sonarqube/dashboard?id=hiepacs%3Apastix%3Agitlab%3Amaster)[![coverity report](https://scan.coverity.com/projects/20282/badge.svg)](https://scan.coverity.com/projects/pastix)
-</a>
+
 PaStiX (Parallel Sparse matriX package) is a scientific library that provides a
 high performance parallel solver for very large sparse linear systems based on
 direct methods.  Numerical algorithms are implemented in single or double
@@ -31,6 +31,7 @@ Future releases will be available on this gitlab project.
 ## Available Features
 
 * Features available in shared memory with POSIX threads for multicores architectures.
+
 |                         | Seq   | Static | Dyn   | StarPU    | PaRSEC    |
 |-------------------------|-------|--------|-------|-----------|-----------|
 | POTRF (Cholesky)        | FR/LR | FR/LR  | FR/LR | FR/LR/GPU | FR/LR/GPU |
@@ -42,6 +43,7 @@ Future releases will be available on this gitlab project.
 | DIAG                    | FR/LR | FR/LR  | FR/LR | FR/LR     | -         |
 
 * Features available in hybrid shared/distributed memory with MPI between processes, and POSIX threads within a process.
+
 |                         | Seq   | Static | Dyn   | StarPU    | PaRSEC    |
 |-------------------------|-------|--------|-------|-----------|-----------|
 | POTRF (Cholesky)        | FR    | FR     | FR    | FR/GPU    | FR/GPU    |
