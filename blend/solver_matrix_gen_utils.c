@@ -16,7 +16,7 @@
  * @author Mathieu Faverge
  * @date 2020-01-26
  *
- * @addtogroup blend_dev
+ * @addtogroup blend_dev_solver
  * @{
  *
  **/
