@@ -4,14 +4,14 @@
  *
  * PaStiX simulation task basic functions.
  *
- * @copyright 2004-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
  * @author Pascal Henon
  * @author Pierre Ramet
  * @author Mathieu Faverge
- * @date 2018-07-16
+ * @date 2020-02-05
  *
  * @addtogroup blend_dev_split
  * @{
@@ -413,6 +413,7 @@ splitSmart( const BlendCtrl       *ctrl,
 
         /* Initialize the nbblocksperline array */
         if ( fsplitrow == -1 ) {
+            assert( fcolnum != -1 );
             fsplitrow = fcolnum;
             nblocksperline = computeNbBlocksPerLine( symbmtx, fsplitrow );
             nblocksperline -= fsplitrow;
@@ -476,6 +477,9 @@ splitSmart( const BlendCtrl       *ctrl,
     if ( fsplitrow != -1) {
         nblocksperline += fsplitrow;
         memFree_null( nblocksperline );
+    }
+    else {
+        assert( nblocksperline == NULL );
     }
 }
 /**

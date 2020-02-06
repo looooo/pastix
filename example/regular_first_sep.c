@@ -3,12 +3,12 @@
  *
  * @brief Set by hand the first separator (for regular cube only).
  *
- * @copyright 2015-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
  * @author Gregoire Pichon
- * @date 2017-05-02
+ * @date 2019-11-12
  *
  * @ingroup pastix_examples
  * @code

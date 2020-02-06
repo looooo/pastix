@@ -2,7 +2,7 @@
  *
  * @file out.h
  *
- * @copyright 2004-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * PaStiX memory tracking function.
@@ -12,7 +12,7 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Gregoire Pichon
- * @date 2018-07-16
+ * @date 2020-02-05
  *
  */
 #ifndef _out_h_
@@ -296,7 +296,7 @@ pastix_print_value( double flops )
     static double ratio = (double)(1<<10);
     int unit = 0;
 
-    while ( (flops > ratio) && (unit < 9) ) {
+    while ( (flops > ratio) && (unit < 8) ) {
         flops /= ratio;
         unit++;
     }
@@ -310,7 +310,7 @@ pastix_print_unit( double flops )
     static double ratio = (double)(1<<10);
     int unit = 0;
 
-    while ( (flops > ratio) && (unit < 9) ) {
+    while ( (flops > ratio) && (unit < 8) ) {
         flops /= ratio;
         unit++;
     }

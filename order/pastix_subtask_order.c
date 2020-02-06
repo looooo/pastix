@@ -9,14 +9,14 @@
  *    - PASTIX_ORDERING_PTSCOTCH: Enable PT-Scotch graph partitioning library.
  *    - PASTIX_ORDERING_METIS: Enable Metis graph partitioning library.
  *
- * @copyright 2015-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.1
+ * @version 6.1.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
- * @date 2018-07-16
+ * @date 2020-02-05
  *
  **/
 #include "common.h"
@@ -409,6 +409,15 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     MPI_Allreduce( &retval, &retval_rcv, 1, MPI_INT, MPI_MAX,
                    pastix_data->pastix_comm );
     if (retval_rcv != PASTIX_SUCCESS) {
+
+        /* Cleanup memory */
+        if ( zeros_colptr != schur_colptr ) { memFree_null( zeros_colptr ); }
+        if ( zeros_rows   != schur_rows   ) { memFree_null( zeros_rows   ); }
+        if ( zeros_perm   != NULL         ) { memFree_null( zeros_perm   ); }
+        if ( schur_colptr != graph->colptr ) { memFree_null( schur_colptr ); }
+        if ( schur_rows   != graph->rows   ) { memFree_null( schur_rows   ); }
+        if ( schur_perm   != NULL          ) { memFree_null( schur_perm   ); }
+
         return retval_rcv;
     }
 

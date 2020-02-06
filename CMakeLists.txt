@@ -1,11 +1,11 @@
 ###
 #
-#  @copyright 2013-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2013-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @version 6.0.3
 #  @author Mathieu Faverge
-#  @date 2018-07-16
+#  @date 2020-02-05
 #
 ###
 cmake_minimum_required (VERSION 2.8)
@@ -16,8 +16,8 @@ include(CheckFunctionExists)
 
 # The current version number
 set(PASTIX_VERSION_MAJOR 6)
-set(PASTIX_VERSION_MINOR 0)
-set(PASTIX_VERSION_MICRO 3)
+set(PASTIX_VERSION_MINOR 1)
+set(PASTIX_VERSION_MICRO 0)
 
 set(PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VERSION_MICRO}")
 
@@ -804,6 +804,8 @@ endif()
 add_library(pastix
   ${PASTIX_LIB_SRCS}
   )
+
+set_target_properties(pastix PROPERTIES VERSION ${PASTIX_VERSION} SOVERSION ${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR})
 
 add_dependencies(pastix
   kernels_headers_tgt

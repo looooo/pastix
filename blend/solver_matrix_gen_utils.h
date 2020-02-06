@@ -5,16 +5,16 @@
  * PaStiX solver structure generation functions to factorize
  * solver_matric_gen.c .
  *
- * @copyright 1998-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 1998-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.1
+ * @version 6.1.0
  * @author Tony Delarue
  * @author Pascal Henon
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Mathieu Faverge
- * @date 2018-07-16
+ * @date 2020-01-29
  *
  * @addtogroup blend_dev
  * @{

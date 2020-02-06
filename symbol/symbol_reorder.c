@@ -2,12 +2,12 @@
  *
  * @file symbol_reorder.c
  *
- * @copyright 2012-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
  * @author Vincent Bridonneau
- * @date 2018-07-16
+ * @date 2019-11-12
  *
  * @precisions normal z -> s d c
  *

@@ -4,7 +4,7 @@
  *
  * PaStiX solver structure generation function.
  *
- * @copyright 1998-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 1998-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
@@ -13,7 +13,7 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Mathieu Faverge
- * @date 2018-07-16
+ * @date 2020-01-26
  *
  **/
 #include <stdio.h>

@@ -4,14 +4,14 @@
  *
  * Non precision dependent routines and variables associated to the kernels.
  *
- * @copyright 2015-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.1
+ * @version 6.1.0
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2019-04-11
+ * @date 2020-01-29
  *
  **/
 #ifndef _kernels_h_

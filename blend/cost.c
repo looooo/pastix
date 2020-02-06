@@ -4,12 +4,12 @@
  *
  * PaStiX analyse functions for the cost matrix arrays.
  *
- * @copyright 1998-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 1998-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.1
+ * @version 6.1.0
  * @author Pascal Henon
- * @date 2018-07-16
+ * @date 2019-11-12
  *
  * @addtogroup blend_dev_cost
  * @{

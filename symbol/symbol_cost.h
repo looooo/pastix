@@ -4,16 +4,16 @@
  *
  * PaStiX cost functions for the symbol structure
  *
- * @copyright 2004-2019 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.1
+ * @version 6.1.0
  * @author David Goudin
  * @author Francois Pellegrini
  * @author Mathieu Faverge
  * @author Pascal Henon
  * @author Pierre Ramet
- * @date 2018-07-16
+ * @date 2019-11-12
  *
  * @addtogroup symbol_dev_cost
  * @{
