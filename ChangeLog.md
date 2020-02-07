@@ -1,3 +1,22 @@
+# pastix-6.1.0
+
+- Add a new dynamic scheduler supported by the internal threads for numerical factorization
+- Add MPI support for the numerical factorization and solve
+        - Available for all schedulers: sequential, internal threads (static, dynamic), StarPU, and PaRSEC
+        - WARNING: The RHS is not distributed yet, and must be replicated on all nodes
+        - WARNING: The low-rank and Schur functionalities are not available in distributed yet
+- Enable the use of an external SPM module
+- Improve splitting strategy:
+        - avoid unnecessary splits when using K-Way
+        - reduce the range of possible split to limit the apparition of small blocks
+- Change the preselected behavior to be:
+        - never compressed in the JustInTime scenario
+        - compress the preselected block just before applying the TRSM in the MinimalMemory scenario
+        - the behavior can be change through IPARM_COMPRESS_PRESELECT
+- Add a cmake summary
+- Add coverity scan
+- Update README.md and documentation
+
 # pastix-6.0.3
 
 - Update spm module to ada4963
