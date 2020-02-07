@@ -13,6 +13,14 @@
 #
 ###
 
+#
+# Steps to do the release:
+#    - Update information in the code (see update_release.sh)
+#    - Update the ChangeLog
+#    - Push the hash on solverstack as:
+#          - a tag named vx.x.x
+#          - a branch named release-x.x.x (will trigger the CI to generate the release)
+#
 changelog=""
 
 function gen_changelog()
