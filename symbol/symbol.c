@@ -346,7 +346,7 @@ pastixSymbolBuildRowtab( symbol_matrix_t *symbptr )
     assert( cblk[0].brownum == edgenbr );
 
     /* Initialize the browtab */
-    MALLOC_INTERN(browtab, edgenbr, pastix_int_t );
+    MALLOC_INTERN( browtab, edgenbr, pastix_int_t );
 
     cblk = symbptr->cblktab;
     blok = symbptr->bloktab;
