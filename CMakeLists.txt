@@ -953,6 +953,19 @@ generate_pkgconfig_files(
 
 generate_env_file( PROJECTNAME PASTIX )
 
+#
+# Add uninstall target to remove installed files
+#
+if(NOT TARGET uninstall)
+  configure_file(
+    "${MORSE_CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    IMMEDIATE @ONLY)
+
+  add_custom_target(uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+endif()
+
 #############################################################
 #
 #      Build documentation
