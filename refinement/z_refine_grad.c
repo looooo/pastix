@@ -81,6 +81,9 @@ pastix_int_t z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
     clockStart(refine_clk);
 
     normb = solver.norm( pastix_data, n, b );
+    if ( normb == 0. ) {
+        normb = 1;
+    }
     normx = solver.norm( pastix_data, n, x );
 
     /* Compute r0 = b - A * x */
