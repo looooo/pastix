@@ -121,6 +121,9 @@ pastix_int_t z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 #endif
 
     normb = solver.norm( pastix_data, n, b );
+    if ( normb == 0. ) {
+        normb = 1;
+    }
     normx = solver.norm( pastix_data, n, x );
 
     clockInit(refine_clk);

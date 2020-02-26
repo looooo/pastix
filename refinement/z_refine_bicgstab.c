@@ -92,6 +92,9 @@ pastix_int_t z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
     clockInit(refine_clk);clockStart(refine_clk);
 
     normb = solver.norm( pastix_data, n, b );
+    if ( normb == 0. ) {
+        normb = 1;
+    }
     normx = solver.norm( pastix_data, n, x );
 
     /* r = b - Ax */

@@ -78,6 +78,9 @@ z_pivot_smp( pastix_data_t *pastix_data,
     clockStart(refine_clk);
 
     normb = solver.norm( pastix_data, n, b );
+    if ( normb == 0. ) {
+        normb = 1;
+    }
 
     t0 = clockGet();
     while(flag)
