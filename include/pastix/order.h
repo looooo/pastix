@@ -26,7 +26,10 @@
 #ifndef _pastix_order_h_
 #define _pastix_order_h_
 
+#include "pastix/config.h"
 #include "pastix/datatypes.h"
+
+BEGIN_C_DECLS
 
 struct etree_s;
 typedef struct etree_s EliminTree;
@@ -136,6 +139,8 @@ orderSupernodes( const pastix_graph_t *graph,
 /**
  * @}
  */
+
+END_C_DECLS
 
 #endif /* _pastix_order_h_ */
 

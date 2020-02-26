@@ -20,6 +20,8 @@
 #ifndef _pastix_api_h_
 #define _pastix_api_h_
 
+BEGIN_C_DECLS
+
 /**
  * @brief Integer parameters
  */
@@ -470,6 +472,8 @@ typedef enum pastix_dir_e {
 /**
  * @}
  */
+
+END_C_DECLS
 
 #endif /* _pastix_api_h_ */
 
