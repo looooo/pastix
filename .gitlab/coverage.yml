@@ -22,5 +22,3 @@ coverage:
       done
     - lcov $INPUT_FILES -o pastix.lcov  | tee -a pastix-gcov.log
     - lcov --summary pastix.lcov | tee -a pastix-gcov.log
-  extends:
-    - .only-branches-seq

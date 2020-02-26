@@ -46,6 +46,8 @@ typedef uintptr_t PASTIX_Comm;
 #include "pastix/api.h"
 #include "pastix/datatypes.h"
 
+BEGIN_C_DECLS
+
 /*
  * Main function for compatibility with former versions
  */
@@ -170,5 +172,7 @@ int  pastixGetDiag( const pastix_data_t *pastix_data,
 void pastixGetOptions( int argc, char **argv,
                         pastix_int_t *iparm, double *dparm,
                         int *check, spm_driver_t *driver, char **filename );
+
+END_C_DECLS
 
 #endif /* _pastix_h_ */

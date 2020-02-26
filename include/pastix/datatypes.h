@@ -19,6 +19,8 @@
 
 #include <stdint.h>
 
+BEGIN_C_DECLS
+
 /** ****************************************************************************
  * Integers
  **/
@@ -148,5 +150,7 @@ typedef struct pastix_order_s pastix_order_t;
 /* Solver matrix structure to store L(U)*/
 struct solver_matrix_s;
 typedef struct solver_matrix_s SolverMatrix;
+
+END_C_DECLS
 
 #endif /* _pastix_datatypes_h_ */

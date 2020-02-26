@@ -31,7 +31,7 @@ echo "wrappers/python/examples/pypastix/enum.py" >> filelist.txt
 # Remove files in kernel/gpus that are C++ and not our own files.
 sed -i "/kernels\/gpus\/.*/d" filelist.txt
 
-# Remove all CMakeFiles generated file
+# Remove all CMakeFiles generated files
 sed -i '/CMakeFiles/d' filelist.txt
 
 # Remove all .cmake files
