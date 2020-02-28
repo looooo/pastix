@@ -499,9 +499,14 @@ void
 pastixExpand( const pastix_data_t *pastix_data,
               spmatrix_t          *spm )
 {
-    spmatrix_t *tmp;
+    spmatrix_t tmp;
 
     if ( spm == NULL ) {
+        return;
+    }
+
+    /* Nothing to expand */
+    if ( spm->dof == 1 ) {
         return;
     }
 
@@ -519,10 +524,7 @@ pastixExpand( const pastix_data_t *pastix_data,
         pastixSymbolExpand( pastix_data->symbmtx );
     }
 
-    tmp = spmExpand( spm );
-    if ( tmp != spm ) {
-        spmExit( spm );
-        memcpy( spm, tmp, sizeof(spmatrix_t) );
-        free( tmp );
-    }
+    spmExpand( spm, &tmp );
+    spmExit( spm );
+    memcpy( spm, &tmp, sizeof(spmatrix_t) );
 }
