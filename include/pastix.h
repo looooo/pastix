@@ -84,7 +84,7 @@ void pastixFinalize ( pastix_data_t **pastix_data );
  * Main steps of the solver
  */
 int pastix_task_analyze( pastix_data_t      *pastix_data,
-                         spmatrix_t         *spm );
+                         const spmatrix_t   *spm );
 int pastix_task_numfact( pastix_data_t      *pastix_data,
                          spmatrix_t         *spm );
 int pastix_task_solve  ( pastix_data_t      *pastix_data,

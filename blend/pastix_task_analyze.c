@@ -49,8 +49,8 @@
  *
  *******************************************************************************/
 int
-pastix_task_analyze( pastix_data_t *pastix_data,
-                     spmatrix_t    *spm )
+pastix_task_analyze( pastix_data_t    *pastix_data,
+                     const spmatrix_t *spm )
 {
     int rc;
 

@@ -9,7 +9,7 @@
 !
 ! @version 6.0.3
 ! @author Mathieu Faverge
-! @date 2019-11-12
+! @date 2020-02-28
 !
 ! This file has been automatically generated with gen_wrappers.py
 !
@@ -766,7 +766,7 @@ contains
     use iso_c_binding
     implicit none
     type(pastix_data_t), intent(inout), target :: pastix_data
-    type(spmatrix_t),    intent(inout), target :: spm
+    type(spmatrix_t),    intent(in),    target :: spm
     integer(kind=c_int), intent(out)           :: info
 
     info = pastix_task_analyze_c(c_loc(pastix_data), c_loc(spm))

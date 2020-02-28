@@ -18,6 +18,7 @@ Wrapper Python
 import os
 import re
 import argparse
+import time
 from . import *
 
 indent="    "
@@ -157,7 +158,7 @@ class wrap_python:
  @author Pierre Ramet
  @author Mathieu Faverge
  @author Louis Poirel
- @date 2019-12-05
+ @date ''' + time.strftime( "%Y-%m-%d" ) + '''
 
 This file has been automatically generated with gen_wrappers.py
 

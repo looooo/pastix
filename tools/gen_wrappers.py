@@ -13,7 +13,7 @@
  @version 6.1.0
  @author Pierre Ramet
  @author Mathieu Faverge
- @date 2019-11-12
+ @date 2020-01-21
 
 """
 import os
@@ -63,6 +63,9 @@ def polish_file(whole_file):
     # Remove C comments:
     clean_file = re.sub(r"(?s)/\*.*?\*/", "", clean_file)
     clean_file = re.sub(r"//.*", "", clean_file)
+    # Remove BEGIN/END_C_DECLS statement:
+    clean_file = re.sub("BEGIN_C_DECLS", "", clean_file)
+    clean_file = re.sub("END_C_DECLS", "", clean_file)
     # Remove C directives (multilines then monoline):
     clean_file = re.sub(r"(?m)^#(.*[\\][\n])+.*?$", "", clean_file)
     clean_file = re.sub("(?m)^#.*$", "", clean_file)

@@ -18,6 +18,7 @@ Wrapper Fortran 90
 import os
 import re
 import argparse
+import time
 from . import *
 
 # set indentation in the f90 file
@@ -159,7 +160,7 @@ class wrap_fortran:
 !
 ! @version 6.0.3
 ! @author Mathieu Faverge
-! @date 2019-12-05
+! @date ''' + time.strftime( "%Y-%m-%d" ) + '''
 !
 ! This file has been automatically generated with gen_wrappers.py
 !
