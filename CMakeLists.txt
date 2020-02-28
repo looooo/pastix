@@ -491,16 +491,25 @@ set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
 #
 
 # Compile the spm library
-if ( PASTIX_WITH_FORTRAN )
-  find_package( SPM QUIET COMPONENTS FORTRAN )
-else()
-  find_package( SPM QUIET )
-endif()
+option( PASTIX_WITH_EXTERNAL_SPM "Force the use of an external SpM library that should be correctly set in the environment variables" OFF )
 
-if ( SPM_FOUND )
-  if( (PASTIX_INT64 AND (NOT SPM_INTSIZE EQUAL 8)) OR (PASTIX_INT32 AND (NOT SPM_INTSIZE EQUAL 4)) )
-    message( WARNING "PASTIX_INT64 is enabled and provided SPM does not have the same support. Internal SPM will be compiled.")
-    unset( SPM_FOUND )
+if ( PASTIX_WITH_EXTERNAL_SPM )
+  if ( PASTIX_WITH_FORTRAN )
+    find_package( SPM QUIET COMPONENTS FORTRAN )
+  else()
+    find_package( SPM QUIET )
+  endif()
+
+  if ( SPM_FOUND )
+    if( (PASTIX_INT64 AND (NOT SPM_INTSIZE EQUAL 8)) OR (PASTIX_INT32 AND (NOT SPM_INTSIZE EQUAL 4)) )
+      message( WARNING "PASTIX_INT64 is enabled and provided SPM does not have the same support. Internal SPM will be compiled.")
+      unset( SPM_FOUND )
+    endif()
+  endif()
+
+  # Final check
+  if ( NOT SPM_FOUND )
+    message( FATAL_ERROR "No external SpM library found. Please disable PASTIX_WITH_EXTERNAL_SPM or correctly set your environment" )
   endif()
 endif()
 
