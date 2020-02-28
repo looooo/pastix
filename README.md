@@ -104,7 +104,9 @@ The main options to configure the PaStiX configuration build are:
   * PASTIX_WITH_PARSEC[=OFF]: Enable/disable the PaRSEC runtime support. Require to install PaRSEC tag pastix-_releasenumber_ (mymaster for master branch) from the repository <https://bitbucket.org/mfaverge/parsec> that includes a few patches on top of the original PaRSEC runtime system. PaRSEC needs to be compiled with option -DPARSEC_WITH_DEVEL_HEADERS=ON.
   * PASTIX_WITH_STARPU[=OFF]: Enable/disable the StarPU runtime support. Require to install StarPU 1.3.
 * Distributed memory:
-  * PASTIX_WITH_MPI=[OFF]: Distributed memory is not supported yet in PaStiX, however you might need to enable this option if your PaRSEC library has been compiled with MPI support.
+  * PASTIX_WITH_MPI=[OFF]: Enable/disable distributed memory support (See above for details). If used with the PaRSEC library, MPI should be enabled or disabled in both libraries.*
+* External SpM library:
+  * PASTIX_WITH_EXTERNAL_SPM=[OFF]: Enable/disable the use of an external SpM library in favor of the internal one.
 * Documentation:
   * BUILD_DOCUMENTATION[=OFF] to enable the Doxygen documentation generation.
 
