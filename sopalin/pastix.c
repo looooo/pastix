@@ -254,6 +254,7 @@ pastix( pastix_data_t **pastix_data_ptr,
             o = malloc( sizeof(pastix_order_t) );
             ret = pastixOrderAlloc( o, 0, 0 );
             if (PASTIX_SUCCESS != ret) {
+                free(o);
                 return ret;
             }
 

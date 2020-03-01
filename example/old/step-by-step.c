@@ -186,9 +186,9 @@ int main (int argc, char **argv)
             iparm[IPARM_END_TASK]   = API_TASK_SOLVE;
 
             fprintf(stdout, "\t>> Solve step number %ld  <<\n", (long)(j+1));
-            pastix(&pastix_data, MPI_COMM_WORLD,
-                   spm->n, spm->colptr, spm->rowptr, spm->values,
-                   NULL, NULL, x, nrhs, iparm, dparm );
+            pastix( &pastix_data, MPI_COMM_WORLD,
+                    spm->n, NULL, NULL, NULL,
+                    NULL, NULL, x, nrhs, iparm, dparm );
 
             /*
              * Step 5.2 - Refinnement
@@ -199,10 +199,10 @@ int main (int argc, char **argv)
             iparm[IPARM_END_TASK]   = API_TASK_REFINE;
 
             fprintf(stdout, "\t>> Refine step number %ld  <<\n", (long)(j+1));
-            pastix(&pastix_data, MPI_COMM_WORLD,
-                   spm->n, spm->colptr, spm->rowptr, spm->values,
-                   NULL, NULL, b, nrhs, iparm, dparm );
-            if (check) {
+            pastix( &pastix_data, MPI_COMM_WORLD,
+                    spm->n, NULL, NULL, NULL,
+                    NULL, NULL, b, nrhs, iparm, dparm );
+            if ( check ) {
                 rc = spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
             }
         }
