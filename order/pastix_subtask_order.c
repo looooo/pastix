@@ -180,8 +180,9 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     procnum  = pastix_data->procnum;
     pastixOrderAlloc( ordemesh, 0, 0 );
 
-    if (iparm[IPARM_VERBOSE] > PastixVerboseNot)
+    if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
         pastix_print(procnum, 0, "%s", OUT_STEP_ORDER);
+    }
 
     /*
      * Prepare a copy of user's SPM
@@ -538,6 +539,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     }
 
     clockStop(timer);
+    pastix_data->dparm[DPARM_ORDER_TIME] = clockVal(timer);
     if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
         pastix_print(procnum, 0, OUT_ORDER_TIME, clockVal(timer));
     }

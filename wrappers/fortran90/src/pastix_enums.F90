@@ -9,7 +9,7 @@
 !
 ! @version 6.0.3
 ! @author Mathieu Faverge
-! @date 2020-01-21
+! @date 2020-03-01
 !
 ! This file has been automatically generated with gen_wrappers.py
 !
@@ -99,21 +99,25 @@ module pastix_enums
      enumerator :: DPARM_EPSILON_REFINEMENT = 2
      enumerator :: DPARM_RELATIVE_ERROR     = 3
      enumerator :: DPARM_EPSILON_MAGN_CTRL  = 4
-     enumerator :: DPARM_ANALYZE_TIME       = 5
-     enumerator :: DPARM_PRED_FACT_TIME     = 6
-     enumerator :: DPARM_FACT_TIME          = 7
-     enumerator :: DPARM_SOLV_TIME          = 8
-     enumerator :: DPARM_FACT_FLOPS         = 9
-     enumerator :: DPARM_FACT_THFLOPS       = 10
-     enumerator :: DPARM_FACT_RLFLOPS       = 11
-     enumerator :: DPARM_SOLV_FLOPS         = 12
-     enumerator :: DPARM_SOLV_THFLOPS       = 13
-     enumerator :: DPARM_SOLV_RLFLOPS       = 14
-     enumerator :: DPARM_REFINE_TIME        = 15
-     enumerator :: DPARM_A_NORM             = 16
-     enumerator :: DPARM_COMPRESS_TOLERANCE = 17
-     enumerator :: DPARM_COMPRESS_MIN_RATIO = 18
-     enumerator :: DPARM_SIZE               = 18
+     enumerator :: DPARM_ORDER_TIME         = 5
+     enumerator :: DPARM_SYMBFACT_TIME      = 6
+     enumerator :: DPARM_REORDER_TIME       = 7
+     enumerator :: DPARM_BLEND_TIME         = 8
+     enumerator :: DPARM_ANALYZE_TIME       = 9
+     enumerator :: DPARM_PRED_FACT_TIME     = 10
+     enumerator :: DPARM_FACT_TIME          = 11
+     enumerator :: DPARM_FACT_FLOPS         = 12
+     enumerator :: DPARM_FACT_THFLOPS       = 13
+     enumerator :: DPARM_FACT_RLFLOPS       = 14
+     enumerator :: DPARM_SOLV_TIME          = 15
+     enumerator :: DPARM_SOLV_FLOPS         = 16
+     enumerator :: DPARM_SOLV_THFLOPS       = 17
+     enumerator :: DPARM_SOLV_RLFLOPS       = 18
+     enumerator :: DPARM_REFINE_TIME        = 19
+     enumerator :: DPARM_A_NORM             = 20
+     enumerator :: DPARM_COMPRESS_TOLERANCE = 21
+     enumerator :: DPARM_COMPRESS_MIN_RATIO = 22
+     enumerator :: DPARM_SIZE               = 22
   end enum
 
   ! enum task

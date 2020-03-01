@@ -144,15 +144,16 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     pastixOrderBase( ordemesh, 0 );
     graphBase( graph, 0 );
 
-    if ( iparm[IPARM_VERBOSE] > PastixVerboseNot )
+    if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
         pastix_print( procnum, 0, OUT_STEP_FAX );
+    }
 
     /* Allocate the symbol matrix structure */
     if ( pastix_data->symbmtx == NULL ) {
         MALLOC_INTERN( pastix_data->symbmtx, 1, symbol_matrix_t );
     }
     else {
-        errorPrint( "pastix_subtask_symbfact: Symbol Matrix already allocated !!!" );
+        pastixSymbolExit( pastix_data->symbmtx );
     }
 
     /*Symbol matrix loaded from file */
@@ -324,6 +325,9 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
                           &( dparm[DPARM_FACT_RLFLOPS] ) );
 
     clockStop( timer );
+
+    /* Warning: the timer will be overwritten by the call in reordering step */
+    pastix_data->dparm[DPARM_SYMBFACT_TIME] = clockVal(timer);
 
     if ( procnum == 0 ) {
         if ( iparm[IPARM_VERBOSE] > PastixVerboseNo )

@@ -58,7 +58,7 @@
 
 #define OUT_STEP_ORDER                                          \
     "+-------------------------------------------------+\n"     \
-    "  Ordering step :\n"
+    "  Ordering subtask :\n"
 #define OUT_SUBSTEP_GRAPH                       \
     "    Prepare graph structure:\n"
 #define OUT_ORDER_SYMGRAPH                      \
@@ -76,7 +76,7 @@
 
 #define OUT_STEP_FAX                                            \
     "+-------------------------------------------------+\n"     \
-    "  Symbolic factorization step:\n"
+    "  Symbolic factorization subtask:\n"
 #define OUT_FAX_METHOD                          \
     "    Symbol factorization using: %s\n"
 #define OUT_FAX_SUMMARY                                                 \
@@ -87,7 +87,7 @@
 
 #define OUT_STEP_REORDER                                        \
     "+-------------------------------------------------+\n"     \
-    "  Reordering step:\n"                                      \
+    "  Reordering subtask:\n"                                      \
     "    Split level                           %8ld\n"          \
     "    Stoping criterion                     %8ld\n"
 #define OUT_REORDERING_TIME                             \
@@ -98,7 +98,7 @@
 
 #define OUT_STEP_BLEND                                          \
     "+-------------------------------------------------+\n"     \
-    "  Analyse step:\n"
+    "  Mapping/Scheduling subtask:\n"
 #define OUT_BLEND_CONF                                  \
     "    Number of cluster                     %8ld\n"  \
     "    Number of processor per cluster       %8ld\n"  \
@@ -144,7 +144,7 @@
 #define OUT_BLEND_SOLVER_TIME                           \
     "    Solver built in                       %e s\n"
 #define OUT_BLEND_TIME                                  \
-    "    Time for analyze                      %e s\n"
+    "    Time for mapping/scheduling           %e s\n"
 
 #define OUT_BLEND_SUMMARY                                               \
     "    Number of non-zeroes in blocked L     %8ld\n"                  \
@@ -153,11 +153,16 @@
     "    Prediction:\n"                                                 \
     "      Model                       %20s\n"                          \
     "      Time to factorize                   %e s\n"                  \
-    "    Time for analyze                      %e s\n"
+    "    Time for mapping/scheduling           %e s\n"
+
+#define OUT_STEP_ANALYZE                                        \
+    "+-------------------------------------------------+\n"     \
+    "  Analyze task:\n"                                         \
+    "    Total time for analyze                %e s\n"
 
 #define OUT_STEP_SOPALIN                                          \
     "+-------------------------------------------------+\n"     \
-    "  Factorization step:\n"                                   \
+    "  Factorization task:\n"                                   \
     "    Factorization used: %s\n"
 
 #define OUT_BCSC_TIME                                   \
