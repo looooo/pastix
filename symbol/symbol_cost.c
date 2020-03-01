@@ -332,28 +332,53 @@ pastixSymbolGetNNZ( const symbol_matrix_t *symbptr )
     pastix_int_t cblknbr;
     pastix_int_t nnz = 0;
     pastix_int_t dof = symbptr->dof;
+    const pastix_int_t *dofs = symbptr->dofs;
 
     cblknbr = symbptr->cblknbr;
     cblk    = symbptr->cblktab;
     blok    = symbptr->bloktab;
 
-    for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
-    {
-        pastix_int_t iterblok = cblk[0].bloknum + 1;
-        pastix_int_t lbloknum = cblk[1].bloknum;
-
-        pastix_int_t colnbr = dof * (cblk->lcolnum - cblk->fcolnum + 1);
-
-        /* Diagonal block */
-        blok++;
-        nnz += ( colnbr * (colnbr+1) ) / 2 - colnbr;
-
-        /* Off-diagonal blocks */
-        for( ; iterblok < lbloknum; iterblok++, blok++)
+    if ( dof > 0 ) {
+        for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
         {
-            pastix_int_t rownbr = (blok->lrownum - blok->frownum + 1) * dof;
+            pastix_int_t iterblok = cblk[0].bloknum + 1;
+            pastix_int_t lbloknum = cblk[1].bloknum;
 
-            nnz += rownbr * colnbr;
+            pastix_int_t colnbr = dof * (cblk->lcolnum - cblk->fcolnum + 1);
+
+            /* Diagonal block */
+            blok++;
+            nnz += ( colnbr * (colnbr+1) ) / 2 - colnbr;
+
+            /* Off-diagonal blocks */
+            for( ; iterblok < lbloknum; iterblok++, blok++)
+            {
+                pastix_int_t rownbr = (blok->lrownum - blok->frownum + 1) * dof;
+
+                nnz += rownbr * colnbr;
+            }
+        }
+    }
+    else {
+        assert( symbptr->baseval == 0 );
+
+        for(itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
+        {
+            pastix_int_t iterblok = cblk[0].bloknum + 1;
+            pastix_int_t lbloknum = cblk[1].bloknum;
+            pastix_int_t colnbr = dofs[ cblk->lcolnum + 1 ] - dofs[ cblk->fcolnum ];
+
+            /* Diagonal block */
+            blok++;
+            nnz += ( colnbr * (colnbr+1) ) / 2 - colnbr;
+
+            /* Off-diagonal blocks */
+            for( ; iterblok < lbloknum; iterblok++, blok++)
+            {
+                pastix_int_t rownbr = dofs[ blok->lrownum + 1 ] - dofs[ blok->frownum ];
+
+                nnz += rownbr * colnbr;
+            }
         }
     }
 
