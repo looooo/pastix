@@ -202,11 +202,6 @@ blendCtrlInit( pastix_data_t *pastix_data,
                    (int) procnum, (int) procnbr);
         return PASTIX_ERR_BADPARAMETER;
     }
-    if( ctrl == NULL )
-    {
-        errorPrint("blendCtrlInit: Illegal ctrl parameter\n");
-        return PASTIX_ERR_BADPARAMETER;
-    }
 
     /* Initialize options */
     ctrl->count_ops = 1;

@@ -884,8 +884,8 @@ core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct,
     free( work  );
     free( rwork );
 #endif
-    return flops;
     (void)ret;
+    return flops;
 }
 
 /**

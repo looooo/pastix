@@ -364,9 +364,9 @@ core_zrqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
     free( subw  );
 #endif
 
-    return rk;
     (void)ret;
     (void)refine;
+    return rk;
 }
 
 /**

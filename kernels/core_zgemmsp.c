@@ -122,6 +122,8 @@ core_zgemmsp_1d1d( pastix_coefside_t sideA, pastix_trans_t trans,
     assert(!(cblk->cblktype  & CBLK_LAYOUT_2D));
     assert(!(fcblk->cblktype & CBLK_LAYOUT_2D));
 
+    assert( work != NULL );
+
     shift = (sideA == PastixUCoef) ? 1 : 0;
 
     stride  = cblk->stride;
@@ -1071,6 +1073,8 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
     assert(  fcblk->cblktype & CBLK_COMPRESSED );
     assert(  fcblk->cblktype & CBLK_LAYOUT_2D  );
 
+    assert( (lwork == 0) || ((lwork > 0) && (work != NULL)) );
+
     shift  = (sideA == PastixUCoef) ? 1 : 0;
     stride = cblk->stride;
 
@@ -1212,6 +1216,8 @@ core_zgemmsp_lr( pastix_coefside_t         sideA,
     assert( fcblk->cblktype & CBLK_COMPRESSED );
     assert( cblk->cblktype  & CBLK_LAYOUT_2D );
     assert( fcblk->cblktype & CBLK_LAYOUT_2D );
+
+    assert( (lwork == 0) || ((lwork > 0) && (work != NULL)) );
 
     shift = (sideA == PastixUCoef) ? 1 : 0;
 

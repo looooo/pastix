@@ -162,16 +162,15 @@ int main( int argc, char **argv )
         }
     }
 
+    (void) argc;
+    (void) argv;
+
     if( err == 0 ) {
         printf(" -- All tests PASSED --\n");
         return EXIT_SUCCESS;
     }
-    else
-    {
+    else {
         printf(" -- %d tests FAILED --\n", err);
         return EXIT_FAILURE;
     }
-
-    (void) argc;
-    (void) argv;
 }

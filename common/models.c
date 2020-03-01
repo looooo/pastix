@@ -243,10 +243,6 @@ modelsRead( pastix_model_t *model,
     while( str[0] == '#' );
 
     /* Read the model name */
-    if ( rc == -1 ) {
-        perror( "modelsRead(getline model name)" );
-        return -1;
-    }
     model->name = strdup( str );
 
     /* Read the model values */
