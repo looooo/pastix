@@ -128,26 +128,14 @@ pastix_env_is_on(char * str) {
 static inline
 int pastix_getenv_get_value_int(char * string, int default_value) {
     long int ret;
-    int base = 10;
-    char *endptr;
     char *str = pastix_getenv(string);
     if (str == NULL) return default_value;
 
-    ret = strtol(str, &endptr, base);
-
-    /* Check for various possible errors */
-    if ((errno == ERANGE && (ret == LONG_MAX || ret == LONG_MIN))
-        || (errno != 0 && ret == 0)) {
-        perror("strtol");
+    if ( sscanf( str, "%ld", &ret ) != 1 ) {
+        perror("sscanf");
         return default_value;
     }
 
-    if (endptr == str) {
-        return default_value;
-    }
-
-    if (*endptr != '\0')        /* Not necessarily an error... */
-        fprintf(stderr, "Further characters after %s value: %s\n", string, endptr);
     return (int)ret;
 }
 

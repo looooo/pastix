@@ -194,7 +194,8 @@ solverPrintStats( const SolverMatrix *solvptr )
     SolverCblk *cblk;
     SolverBlok *blok;
     size_t memstruct, memcoef;
-    pastix_int_t itercblk, cblknbr;
+    pastix_int_t itercblk;
+    int64_t      cblknbr;
 
     /* 0: Total, 1: 1d, 2: 2d */
     int64_t fcol[3], lcol[3];

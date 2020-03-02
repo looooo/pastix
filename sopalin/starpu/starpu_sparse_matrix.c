@@ -218,14 +218,19 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
         cblk = spmtx->solvmtx->cblktab + cblkmin2d;
         cblkhandle = spmtx->cblktab_handle;
 
-        for(cblknum = cblkmin2d, n = 0;
-            cblknum < cblknbr;
-            cblknum++, n++, cblk++, cblkhandle++ )
+        sizenbr = (cblk[1].fblokptr - cblk[0].fblokptr) + 1;
+        sizetab = malloc( sizenbr * sizeof(size_t) );
+        assert( sizenbr >= 1 );
+
+        for( cblknum = cblkmin2d, n = 0;
+             cblknum < cblknbr;
+             cblknum++, n++, cblk++, cblkhandle++ )
         {
             pastix_starpu_register_cblk( spmtx, cblk, myrank );
 
-            if ( !(cblk->cblktype & CBLK_TASKS_2D) )
+            if ( !(cblk->cblktype & CBLK_TASKS_2D) ) {
                 continue;
+            }
 
             /* Let's build the sizetab array */
             blok  = cblk[0].fblokptr;

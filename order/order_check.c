@@ -51,8 +51,8 @@ pastixOrderCheck (const pastix_order_t * const  ordeptr)
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    if (ordeptr->cblknbr < 0) {
-        errorPrint ("pastixOrderCheck: invalid nunber of column blocks");
+    if ( (ordeptr->cblknbr < 0) || (ordeptr->vertnbr < 0) ) {
+        errorPrint ("pastixOrderCheck: invalid number of vertices and/or column blocks");
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -62,19 +62,26 @@ pastixOrderCheck (const pastix_order_t * const  ordeptr)
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    if ( (ordeptr->permtab == NULL) && (ordeptr->vertnbr > 0) ) {
+    if ( ordeptr->vertnbr == 0 ) {
+        /* Nothing to check */
+        assert( ordeptr->cblknbr == 0 );
+        return PASTIX_SUCCESS;
+    }
+    assert( ordeptr->cblknbr > 0 );
+
+    if ( ordeptr->permtab == NULL ) {
         errorPrint ("pastixOrderCheck: permtab array is missing");
         return PASTIX_ERR_BADPARAMETER;
     }
-    if ( (ordeptr->peritab == NULL) && (ordeptr->vertnbr > 0) ) {
+    if ( ordeptr->peritab == NULL ) {
         errorPrint ("pastixOrderCheck: peritab array is missing");
         return PASTIX_ERR_BADPARAMETER;
     }
-    if (ordeptr->rangtab == NULL) {
+    if ( ordeptr->rangtab == NULL ) {
         errorPrint ("pastixOrderCheck: rangtab array is missing");
         return PASTIX_ERR_BADPARAMETER;
     }
-    if ( (ordeptr->treetab == NULL) && (ordeptr->cblknbr > 0) ) {
+    if ( ordeptr->treetab == NULL ) {
         errorPrint ("pastixOrderCheck: treetab array is missing");
         return PASTIX_ERR_BADPARAMETER;
     }

@@ -100,6 +100,7 @@ pastixOrderApplyLevelOrder( pastix_order_t *order,
     pastix_int_t    baseval;                  /* Node base value            */
     pastix_int_t    i, s, node, sonsnbr;
     pastix_int_t    nfcol, ofcol, size;
+    int rc;
 
     /* Parameter checks */
     if ( order == NULL ) {
@@ -120,27 +121,30 @@ pastixOrderApplyLevelOrder( pastix_order_t *order,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    if (order->cblknbr < 0) {
+    if ( order->cblknbr < 0 ) {
         errorPrint ("pastixOrderApplyLevelOrder: invalid nunber of column blocks");
         return PASTIX_ERR_BADPARAMETER;
     }
     baseval = order->baseval;
-    if (baseval < 0) {
+    if ( baseval < 0 ) {
         errorPrint ("pastixOrderApplyLevelOrder: invalid vertex node base number");
         return PASTIX_ERR_BADPARAMETER;
     }
 
     /* Quick return */
-    if (order->cblknbr == 0) {
+    if ( order->cblknbr <= 1 ) {
         return PASTIX_SUCCESS;
     }
 
-    assert(baseval == order->rangtab[0]);
+    assert( baseval == order->rangtab[0] );
 
     memcpy( &oldorder, order, sizeof(pastix_order_t) );
-    pastixOrderAlloc( order,
-                      oldorder.vertnbr,
-                      oldorder.cblknbr );
+    rc = pastixOrderAlloc( order,
+                           oldorder.vertnbr,
+                           oldorder.cblknbr );
+    if ( rc != PASTIX_SUCCESS ) {
+        return rc;
+    }
 
     /*
      * Build the elimination tree from top to bottom

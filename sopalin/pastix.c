@@ -272,6 +272,10 @@ pastix( pastix_data_t **pastix_data_ptr,
 
         ret = pastix_subtask_order( pastix_data, spm, o );
         if (PASTIX_SUCCESS != ret) {
+            if ( o != NULL ) {
+                pastixOrderExit(o);
+                free(o);
+            }
             return ret;
         }
 

@@ -1101,8 +1101,8 @@ core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct,
     free( tau_b );
     free( work );
 #endif
-    return flops;
     (void)ret;
+    return flops;
 }
 
 /**

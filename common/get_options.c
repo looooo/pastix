@@ -299,15 +299,9 @@ parse_enums( const char *string )
 
     /* If the value is directly given without string */
     {
-        int value = atoi(string);
-        if (value == 0)
-        {
-            if(0 == strcmp("0", string)) {
-                return 0;
-            }
-            else {
-                return -1;
-            }
+        int value;
+        if ( sscanf( string, "%d", &value ) != 1 ) {
+            return -1;
         }
         else {
             return value;

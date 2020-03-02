@@ -412,8 +412,9 @@ splitSmart( const BlendCtrl       *ctrl,
         }
 
         /* Initialize the nbblocksperline array */
-        if ( fsplitrow == -1 ) {
-            assert( fcolnum != -1 );
+        if ( nblocksperline == NULL ) {
+            assert( fsplitrow == -1 );
+            assert( fcolnum   != -1 );
             fsplitrow = fcolnum;
             nblocksperline = computeNbBlocksPerLine( symbmtx, fsplitrow );
             nblocksperline -= fsplitrow;
@@ -474,12 +475,10 @@ splitSmart( const BlendCtrl       *ctrl,
         }
     }
 
-    if ( fsplitrow != -1) {
+    if ( nblocksperline != NULL ) {
+        assert( fsplitrow != -1 );
         nblocksperline += fsplitrow;
         memFree_null( nblocksperline );
-    }
-    else {
-        assert( nblocksperline == NULL );
     }
 }
 /**
