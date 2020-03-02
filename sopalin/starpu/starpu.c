@@ -29,8 +29,8 @@
 /* Take 24 bits for the tile id, and 7 bits for descriptor id.
  These values can be changed through the call CHAMELEON_user_tag_size(int tag_width, int tag_sep) */
 #define TAG_WIDTH_MIN 20
-static int starpu_tag_width = 64;
-static int starpu_tag_sep   = 32;
+static int starpu_tag_width = 63;
+static int starpu_tag_sep   = 31;
 static volatile int32_t starpu_tag_counter = 0;
 static int _tag_mpi_initialized_ = 0;
 
@@ -56,7 +56,7 @@ pastix_starpu_tag_init( pastix_data_t *pastix )
 
         void *tag_ub_p = NULL;
 
-        starpu_tag_width = 64;
+        starpu_tag_width = 63;
         starpu_tag_sep   = 24;
 
 #if defined(HAVE_STARPU_MPI_COMM_GET_ATTR) || 1
