@@ -144,11 +144,10 @@ graphSave( pastix_data_t        *pastix_data,
     spm.n   = graph->n;
     spm.nnz = graph->colptr[ graph->n ] - graph->colptr[ 0 ];
     spm.dof = graph->dof;
-    assert( spm.dof == 1 );
     spm.colptr   = graph->colptr;
     spm.rowptr   = graph->rows;
     spm.loc2glob = graph->loc2glob;
-    spm.dofs     = NULL;
+    spm.dofs     = graph->dofs;
 
     spmUpdateComputedFields( &spm );
 
