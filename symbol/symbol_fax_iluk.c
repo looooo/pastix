@@ -88,6 +88,7 @@ pastixSymbolFaxILUk( symbol_matrix_t      *symbptr,
     faxCSRGenPA( graphA, ordeptr->permtab, &graphPA );
 
     /* Create the graph of L */
+    memset( &graphL, 0, sizeof(fax_csr_t) );
     faxCSRFactILUk( &graphPA, ordeptr, levelk, &graphL );
     faxCSRClean( &graphPA );
 

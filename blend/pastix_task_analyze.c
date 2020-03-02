@@ -52,7 +52,8 @@ int
 pastix_task_analyze( pastix_data_t    *pastix_data,
                      const spmatrix_t *spm )
 {
-    int rc;
+    Clock timer;
+    int   rc;
 
     /*
      * Check parameters
@@ -65,6 +66,8 @@ pastix_task_analyze( pastix_data_t    *pastix_data,
         errorPrint("pastix_task_analyze: pastixInit() has to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
+
+    clockStart( timer );
 
     /*
      * Ordering step
@@ -96,6 +99,14 @@ pastix_task_analyze( pastix_data_t    *pastix_data,
     rc = pastix_subtask_blend( pastix_data );
     if (rc != PASTIX_SUCCESS) {
         return rc;
+    }
+
+    clockStop( timer );
+    pastix_data->dparm[DPARM_ANALYZE_TIME] = clockVal(timer);
+
+    if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+        pastix_print( pastix_data->procnum, 0,
+                      OUT_STEP_ANALYZE, clockVal(timer) );
     }
 
     return PASTIX_SUCCESS;

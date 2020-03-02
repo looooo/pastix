@@ -195,6 +195,8 @@ solverCheck( const SolverMatrix *solvmtx )
                         (blok->lcblknm < blok->fcblknm) );
                 assert( blok->frownum >= fblok->frownum );
                 assert( blok->lrownum <= fblok->lrownum );
+
+                (void)fblok;
             }
         }
 

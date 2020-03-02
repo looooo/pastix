@@ -58,8 +58,8 @@ cblk_gemmsp_cost( struct starpu_task           *task,
         coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelGEMMCblk2d2d][0]);
     }
     else {
-        coefs = NULL;
         assert(0);
+        return 0.;
     }
 
     /* Get cost in us */
@@ -121,8 +121,8 @@ blok_gemmsp_cost( struct starpu_task           *task,
         coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelGEMMBlok2d2d][0]);
     }
     else {
-        coefs = NULL;
         assert(0);
+        return 0.;
     }
 
     /* Get cost in us */
@@ -173,8 +173,8 @@ blok_trsmsp_cost( struct starpu_task           *task,
         coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelTRSMBlok2d][0]);
     }
     else {
-        coefs = NULL;
         assert(0);
+        return 0.;
     }
 
     /* Get cost in us */
@@ -214,8 +214,8 @@ cblk_getrf_cost( struct starpu_task           *task,
         cost += 2. * modelsGetCost2Param( coefs, M, N );
     }
     else {
-        coefs = NULL;
         assert(0);
+        return 0.;
     }
 
     (void)nimpl;
@@ -245,8 +245,8 @@ blok_getrf_cost( struct starpu_task           *task,
         coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelGETRF][0]);
     }
     else {
-        coefs = NULL;
         assert(0);
+        return 0.;
     }
 
     (void)nimpl;
@@ -288,6 +288,7 @@ cblk_potrf_cost( struct starpu_task           *task,
     }
     else {
         assert(0);
+        return 0.;
     }
 
     (void)nimpl;
@@ -317,8 +318,8 @@ blok_potrf_cost( struct starpu_task           *task,
         coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelPOTRF][0]);
     }
     else {
-        coefs = NULL;
         assert(0);
+        return 0.;
     }
 
     (void)nimpl;
@@ -360,6 +361,7 @@ cblk_pxtrf_cost( struct starpu_task           *task,
     }
     else {
         assert(0);
+        return 0.;
     }
 
     (void)nimpl;
@@ -389,8 +391,8 @@ blok_pxtrf_cost( struct starpu_task           *task,
         coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelPXTRF][0]);
     }
     else {
-        coefs = NULL;
         assert(0);
+        return 0.;
     }
 
     (void)nimpl;
@@ -432,6 +434,7 @@ cblk_hetrf_cost( struct starpu_task           *task,
     }
     else {
         assert(0);
+        return 0.;
     }
 
     (void)nimpl;
@@ -461,8 +464,8 @@ blok_hetrf_cost( struct starpu_task           *task,
         coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelHETRF][0]);
     }
     else {
-        coefs = NULL;
         assert(0);
+        return 0.;
     }
 
     (void)nimpl;
@@ -504,6 +507,7 @@ cblk_sytrf_cost( struct starpu_task           *task,
     }
     else {
         assert(0);
+        return 0.;
     }
 
     (void)nimpl;
@@ -533,8 +537,8 @@ blok_sytrf_cost( struct starpu_task           *task,
         coefs = &((*(sopalin_data->gpu_coefs))[PastixKernelSYTRF][0]);
     }
     else {
-        coefs = NULL;
         assert(0);
+        return 0.;
     }
 
     (void)nimpl;

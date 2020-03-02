@@ -698,6 +698,10 @@ pastixSymbolReorderingPrintComplexity( const symbol_matrix_t *symbptr )
             schur_nbiops = nbcblk * (width-1);
         }
     }
+
+    if ( nbiops == 0 ) {
+        nbiops = 1;
+    }
     fprintf( stdout, OUT_REORDERING_OPS,
              (long)schur_nbiops, (double)schur_nbiops / (double)(nbiops) * 100.,
              (long)nbiops );

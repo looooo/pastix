@@ -132,9 +132,11 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
 #endif
 
     clockStop(timer);
+    pastix_data->dparm[DPARM_REORDER_TIME] = clockVal(timer);
+
     if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
-        pastix_print(procnum, 0, OUT_REORDERING_TIME,
-                     (double)clockVal(timer));
+        pastix_print( procnum, 0, OUT_REORDERING_TIME,
+                      (double)clockVal(timer) );
     }
     return PASTIX_SUCCESS;
 }

@@ -87,9 +87,11 @@ int main (int argc, char **argv)
         spm->flttype = SpmPattern;
 
         spm2 = spmDofExtend( spm, variadic, dofmax );
-        spmExit( spm );
-        free( spm );
-        spm = spm2;
+        if ( spm2 != NULL ) {
+            spmExit( spm );
+            free( spm );
+            spm = spm2;
+        }
     }
 
     /* Check the spm */

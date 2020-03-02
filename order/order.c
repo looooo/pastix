@@ -64,22 +64,25 @@ pastixOrderAlloc( pastix_order_t * const ordeptr,
     if ( cblknbr < 0 ) {
         return PASTIX_ERR_BADPARAMETER;
     }
+    if ( cblknbr > vertnbr ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
 
-    memset(ordeptr, 0, sizeof(pastix_order_t));
+    memset( ordeptr, 0, sizeof(pastix_order_t) );
 
     ordeptr->vertnbr = vertnbr;
     ordeptr->cblknbr = cblknbr;
     ordeptr->sndenbr = cblknbr;
     ordeptr->sndetab = NULL;
 
-    if (vertnbr != 0) {
-        MALLOC_INTERN(ordeptr->permtab, vertnbr, pastix_int_t);
-        MALLOC_INTERN(ordeptr->peritab, vertnbr, pastix_int_t);
+    if ( vertnbr > 0 ) {
+        MALLOC_INTERN( ordeptr->permtab, vertnbr, pastix_int_t );
+        MALLOC_INTERN( ordeptr->peritab, vertnbr, pastix_int_t );
     }
 
-    if (cblknbr != 0) {
-        MALLOC_INTERN(ordeptr->rangtab, cblknbr+1, pastix_int_t);
-        MALLOC_INTERN(ordeptr->treetab, cblknbr,   pastix_int_t);
+    if ( cblknbr > 0 ) {
+        MALLOC_INTERN( ordeptr->rangtab, cblknbr+1, pastix_int_t );
+        MALLOC_INTERN( ordeptr->treetab, cblknbr,   pastix_int_t );
     }
 
     return PASTIX_SUCCESS;

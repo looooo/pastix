@@ -144,17 +144,21 @@ typedef enum pastix_dparm_e {
     DPARM_EPSILON_REFINEMENT,    /**< Epsilon for refinement                            Default: -1.              IN  */
     DPARM_RELATIVE_ERROR,        /**< Relative backward error                           Default: -                OUT */
     DPARM_EPSILON_MAGN_CTRL,     /**< Epsilon for magnitude control                     Default: 0.               IN  */
-    DPARM_ANALYZE_TIME,          /**< Time for Analyse step (wallclock)                 Default: -                OUT */
+    DPARM_ORDER_TIME,            /**< Time for subtask order (wallclock)                Default: -                OUT */
+    DPARM_SYMBFACT_TIME,         /**< Time for subtask symbfact (wallclock)             Default: -                OUT */
+    DPARM_REORDER_TIME,          /**< Time for subtask reordering (wallclock)           Default: -                OUT */
+    DPARM_BLEND_TIME,            /**< Time for subtask blend (wallclock)                Default: -                OUT */
+    DPARM_ANALYZE_TIME,          /**< Time for task analyse (wallclock)                 Default: -                OUT */
     DPARM_PRED_FACT_TIME,        /**< Predicted factorization time                      Default: -                OUT */
-    DPARM_FACT_TIME,             /**< Time for Numerical Factorization step (wallclock) Default: -                OUT */
-    DPARM_SOLV_TIME,             /**< Time for Solve step (wallclock)                   Default: -                OUT */
+    DPARM_FACT_TIME,             /**< Time for task Numerical Factorization (wallclock) Default: -                OUT */
     DPARM_FACT_FLOPS,            /**< Factorization GFlops/s                            Default: -                OUT */
     DPARM_FACT_THFLOPS,          /**< Factorization theoretical Flops                   Default: -                OUT */
     DPARM_FACT_RLFLOPS,          /**< Factorization performed Flops                     Default: -                OUT */
+    DPARM_SOLV_TIME,             /**< Time for task Solve (wallclock)                   Default: -                OUT */
     DPARM_SOLV_FLOPS,            /**< Solve GFlops/s                                    Default: -                OUT */
     DPARM_SOLV_THFLOPS,          /**< Solve theoretical Flops                           Default: -                OUT */
     DPARM_SOLV_RLFLOPS,          /**< Solve performed Flops                             Default: -                OUT */
-    DPARM_REFINE_TIME,           /**< Time for Refinement step (wallclock)              Default: -                OUT */
+    DPARM_REFINE_TIME,           /**< Time for task refinement (wallclock)              Default: -                OUT */
     DPARM_A_NORM,                /**< ||A||_f norm                                      Default: -                OUT */
     DPARM_COMPRESS_TOLERANCE,    /**< Tolerance for low-rank kernels                    Default: 0.01             IN  */
     DPARM_COMPRESS_MIN_RATIO,    /**< Min ratio for rank w.r.t. strict rank             Default: 1.0              IN  */

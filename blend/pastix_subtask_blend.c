@@ -52,7 +52,7 @@
  *   IPARM_MAX_BLOCKSIZE, IPARM_MIN_BLOCKSIZE, IPARM_NNZEROS,
  *   IPARM_NNZEROS_BLOCK_LOCAL, IPARM_STARPU, IPARM_THREAD_NBR, IPARM_VERBOSE
  *
- *   DPARM_ANALYZE_TIME, DPARM_FACT_FLOPS, DPARM_FACT_RLFLOPS,
+ *   DPARM_BLEND_TIME, DPARM_FACT_FLOPS, DPARM_FACT_RLFLOPS,
  *   DPARM_FACT_THFLOPS, DPARM_FILL_IN, DPARM_PRED_FACT_TIME, DPARM_SOLV_FLOPS
  *
  * This function is constructed as a sequence of steps that are described below.
@@ -520,7 +520,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
     /* End timing */
     clockStop(timer_all);
-    set_dparm(dparm, DPARM_ANALYZE_TIME, clockVal(timer_all) );
+    pastix_data->dparm[DPARM_BLEND_TIME] = clockVal(timer_all);
 
     if (verbose > PastixVerboseYes) {
         pastixSymbolPrintStats( pastix_data->symbmtx );
@@ -552,7 +552,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                           pastix_print_value( dparm[DPARM_FACT_THFLOPS] ),
                           pastix_print_unit( dparm[DPARM_FACT_THFLOPS] ),
                           PERF_MODEL, dparm[DPARM_PRED_FACT_TIME],
-                          dparm[DPARM_ANALYZE_TIME] );
+                          dparm[DPARM_BLEND_TIME] );
 
             if (0) /* TODO: consider that when moving to distributed */
             {

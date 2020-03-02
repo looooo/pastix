@@ -109,6 +109,7 @@ core_zscalo( pastix_trans_t            trans,
     }
 #endif
 
+#if defined(PRECISION_z) || defined(PRECISION_c)
     if (trans == PastixConjTrans) {
         for( j=0; j<N; j++, D += ldd ) {
             alpha = *D;
@@ -119,7 +120,9 @@ core_zscalo( pastix_trans_t            trans,
             B += ldb - M;
         }
     }
-    else {
+    else
+#endif
+    {
         for( j=0; j<N; j++, D += ldd ) {
             alpha = *D;
             for( i=0; i<M; i++, B++, A++ ) {

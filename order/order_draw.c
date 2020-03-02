@@ -52,6 +52,9 @@ orderDraw( pastix_data_t *pastix_data,
     pastix_int_t  *sn_colptr;
     pastix_int_t  *sn_rows;
 
+    assert( graph != NULL );
+    assert( order != NULL );
+
     graphIsolateRange( graph, order, &sn_pgraph,
                        min_cblk, order->vertnbr,
                        pastix_data->iparm[IPARM_SPLITTING_PROJECTIONS_DISTANCE] );
@@ -151,8 +154,6 @@ orderDraw( pastix_data_t *pastix_data,
     }
 
     /* Free graph structure, we don't need it anymore */
-    if (pastix_data->graph != NULL) {
-        graphExit( pastix_data->graph );
-        memFree_null( pastix_data->graph );
-    }
+    graphExit( pastix_data->graph );
+    memFree_null( pastix_data->graph );
 }

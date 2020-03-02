@@ -133,6 +133,7 @@ pastixOrderAmalgamate( int             verbose,
      * Compute the graph of the factorized matrix L before amalgamation
      * and the associated treetab and nodetab
      */
+    memset( &graphL, 0, sizeof( fax_csr_t ) );
     /* Direct Factorization */
     if ( ( ilu == 0 ) || ( levelk == -1 ) )
     {

@@ -11,7 +11,7 @@
  @author Pierre Ramet
  @author Mathieu Faverge
  @author Louis Poirel
- @date 2020-01-21
+ @date 2020-03-01
 
 This file has been automatically generated with gen_wrappers.py
 
@@ -101,21 +101,25 @@ class dparm:
     epsilon_refinement = 1
     relative_error     = 2
     epsilon_magn_ctrl  = 3
-    analyze_time       = 4
-    pred_fact_time     = 5
-    fact_time          = 6
-    solv_time          = 7
-    fact_flops         = 8
-    fact_thflops       = 9
-    fact_rlflops       = 10
-    solv_flops         = 11
-    solv_thflops       = 12
-    solv_rlflops       = 13
-    refine_time        = 14
-    a_norm             = 15
-    compress_tolerance = 16
-    compress_min_ratio = 17
-    size               = 18
+    order_time         = 4
+    symbfact_time      = 5
+    reorder_time       = 6
+    blend_time         = 7
+    analyze_time       = 8
+    pred_fact_time     = 9
+    fact_time          = 10
+    fact_flops         = 11
+    fact_thflops       = 12
+    fact_rlflops       = 13
+    solv_time          = 14
+    solv_flops         = 15
+    solv_thflops       = 16
+    solv_rlflops       = 17
+    refine_time        = 18
+    a_norm             = 19
+    compress_tolerance = 20
+    compress_min_ratio = 21
+    size               = 22
 
 class task:
     Init     = 0

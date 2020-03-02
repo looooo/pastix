@@ -297,11 +297,11 @@ int z_rradd_short()
 }
 
 int main( int argc, char *argv[] ) {
+    (void)argv;
     if ( argc > 1 ) {
         return z_rradd_short();
     }
     else {
         return z_rradd_long();
     }
-    (void)argv;
 }
