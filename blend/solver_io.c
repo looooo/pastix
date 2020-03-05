@@ -61,6 +61,7 @@ solverLoad( SolverMatrix *solvptr,
     pastix_int_t   cblknum;
     pastix_int_t   bloknbr;
     pastix_int_t   bloknum;
+    pastix_int_t   tmp;
 
     solverInit(solvptr);
 
@@ -140,7 +141,7 @@ solverLoad( SolverMatrix *solvptr,
     if( intLoad (stream, &solvptr->coefnbr) +
         intLoad (stream, &solvptr->gemmmax) +
         intLoad (stream, &solvptr->nbftmax) +
-        intLoad (stream, &solvptr->arftmax) +
+        intLoad (stream, &tmp)              +
         intLoad (stream, &clustnum)         +
         intLoad (stream, &clustnbr)         +
         intLoad (stream, &solvptr->tasknbr) +
@@ -301,7 +302,7 @@ solverSave( const SolverMatrix *solvptr,
                   (long) solvptr->coefnbr,
                   (long) solvptr->gemmmax,
                   (long) solvptr->nbftmax,
-                  (long) solvptr->arftmax,
+                  (long) 0, /*solvptr->arftmax,*/
                   (long) solvptr->clustnum,
                   (long) solvptr->clustnbr,
                   (long) solvptr->tasknbr,

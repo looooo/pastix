@@ -22,7 +22,6 @@
  * @brief Structure to store backup of counter modified during numerical factorization and solve steps.
  */
 struct SolverBackup_s {
-    pastix_int_t  arftmax;        /**< Maximum area of FanIn Target: doubled by LU decomposition                   */
     pastix_int_t  nbftmax;        /**< Maximum number of FanIn Target: doubled by LU decomposition                 */
     pastix_int_t *task_ctrbcnt;   /**< Number of contribution: the counter is decreased to 0 during factorization  */
     pastix_int_t *fanin_ctrbnbr;  /**< Number of contribution to FanIn: decreased during facto and solve           */
@@ -65,7 +64,6 @@ solverBackupInit( const SolverMatrix *solvmtx )
     MALLOC_INTERN( b, 1, SolverBackup_t );
     memset( b, 0, sizeof(SolverBackup_t) );
 
-    b->arftmax = solvmtx->arftmax;
     b->nbftmax = solvmtx->nbftmax;
 
     if (solvmtx->tasknbr)
@@ -156,7 +154,6 @@ solverBackupRestore( SolverMatrix         *solvmtx,
 
     /* After factorization */
     if ( solvmtx->restore == 2 ) {
-        solvmtx->arftmax = b->arftmax;
         solvmtx->nbftmax = b->nbftmax;
 
         if (solvmtx->tasknbr)
