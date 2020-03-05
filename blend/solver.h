@@ -61,6 +61,27 @@ typedef struct simuctrl_s SimuCtrl;
 #define DRUNK                       4
 
 /**
+ * @brief Solver recv block structure.
+ */
+typedef struct solver_blok_recv_s {
+    pastix_int_t frownum; /**< First row contributed in the block (lrownum+1 of the original block if none) */
+    pastix_int_t lrownum; /**< Last row contributed in the block (frownum-1 of the original block if none)  */
+} solver_blok_recv_t;
+
+/**
+ * @brief Solver recv column block structure.
+ *
+ * The structure works as a list of cblk for each remote owner to compute the exact contributions.
+ */
+typedef struct solver_cblk_recv_s {
+    struct solver_cblk_recv_s *next;
+    pastix_int_t ownerid;
+    pastix_int_t fcolnum; /**< First column contributed in the block (lcolnum+1 of the original cblk if none) */
+    pastix_int_t lcolnum; /**< Last column contributed in the block (fcolnum-1 of the original cblk if none)  */
+    solver_blok_recv_t bloktab[1]; /**< Array of reception blocks */
+} solver_cblk_recv_t;
+
+/**
  * @brief The task structure for the numerical factorization
  */
 typedef struct task_s {
