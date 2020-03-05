@@ -86,6 +86,105 @@ typedef struct symbol_matrix_s {
 } symbol_matrix_t;
 
 /**
+ *******************************************************************************
+ *
+ * @brief Get the expanded column indexes of a symbol_cblk.
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbmtx
+ *          Pointer to the symbol matrix.
+ *
+ * @param[in] symbcblk
+ *          The pointer to the current symbol_cblk.
+ *
+ * @param[inout] fcolnum
+ *          First column index of the current cblk.
+ *
+ * @param[inout] symbcblk
+ *          Last column index of the current cblk.
+ *
+ * @return The number of columns of the expanded cblk.
+ *
+ *******************************************************************************/
+static inline pastix_int_t
+symbol_cblk_get_colnum( const symbol_matrix_t *symbmtx,
+                        symbol_cblk_t         *symbcblk,
+                        pastix_int_t          *fcolnum,
+                        pastix_int_t          *lcolnum )
+{
+    if ( symbmtx->dof < 0 ) {
+        *fcolnum = symbmtx->dofs[symbcblk->fcolnum];
+        *lcolnum = symbmtx->dofs[symbcblk->lcolnum + 1] - 1;
+    }
+    else {
+        *fcolnum = symbmtx->dof *   symbcblk->fcolnum;
+        *lcolnum = symbmtx->dof * ( symbcblk->lcolnum + 1 ) - 1;
+    }
+    return (*lcolnum) - (*fcolnum) + 1;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Get the expanded row index of a symbol_blok.
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbmtx
+ *          Pointer to the symbol matrix.
+ *
+ * @param[in] symbblok
+ *          The pointer to the current symbol_blok.
+ *
+ * @param[inout] frownum
+ *          First row index of the current blok.
+ *
+ * @param[inout] lrownum
+ *          Last row index of the current blok.
+ *
+ * @return The number of rows of the expanded blok.
+ *
+ *******************************************************************************/
+static inline pastix_int_t
+symbol_blok_get_rownum( const symbol_matrix_t *symbmtx,
+                        symbol_blok_t         *symbblok,
+                        pastix_int_t          *frownum,
+                        pastix_int_t          *lrownum )
+{
+    if ( symbmtx->dof < 0 ) {
+        *frownum = symbmtx->dofs[symbblok->frownum];
+        *lrownum = symbmtx->dofs[symbblok->lrownum + 1] - 1;
+    }
+    else {
+        *frownum = symbmtx->dof *   symbblok->frownum;
+        *lrownum = symbmtx->dof * ( symbblok->lrownum + 1 ) - 1;
+    }
+    return (*lrownum) - (*frownum) + 1;
+}
+
+/**
+ * @brief Check if a block is included inside another one.
+ *
+ * Indicate if a blok is included inside another block.
+ * i.e. indicate if the row range of the first block is included in the
+ * one of the second.
+ *
+ * @param[in] blok  The block that is tested for inclusion.
+ * @param[in] fblok The block that is suppose to include the first one.
+ *
+ * @retval true   if the first block is     included in the second one.
+ * @retval false  if the first block is not included in the second one.
+ */
+static inline int
+is_symbblock_inside_fblock( const symbol_blok_t *blok,
+                            const symbol_blok_t *fblok )
+{
+    return ((blok->frownum >= fblok->frownum) &&
+            (blok->lrownum <= fblok->lrownum));
+}
+
+/**
  * @name Symbol basic subroutines
  * @{
  */
