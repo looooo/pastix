@@ -622,9 +622,8 @@ solvMatGen_fill_tasktab( SolverMatrix       *solvmtx,
                          pastix_int_t        clustnum,
                          int                 is_dbg )
 {
-    SimuTask    *simutask = simuctrl->tasktab;
     Task        *solvtask;
-    pastix_int_t nbftmax  = 0;
+    SimuTask    *simutask = simuctrl->tasktab;
     pastix_int_t tasknum  = 0;
     pastix_int_t i;
 
@@ -636,7 +635,6 @@ solvMatGen_fill_tasktab( SolverMatrix       *solvmtx,
     {
         for(i=0; i<simuctrl->tasknbr; i++, simutask++)
         {
-            nbftmax = pastix_imax( nbftmax, simutask->ftgtcnt );
             assert( tasknum == i );
 
             solvtask->taskid  = COMP_1D;
@@ -674,8 +672,6 @@ solvMatGen_fill_tasktab( SolverMatrix       *solvmtx,
     solvtask->cblknum = solvmtx->cblknbr+1;
     solvtask->bloknum = solvmtx->bloknbr+1;
     solvtask->ctrbcnt = 0;
-
-    solvmtx->nbftmax = nbftmax;
 
     /* Fill in the ttsktab arrays (one per thread) */
     MALLOC_INTERN(solvmtx->ttsknbr, solvmtx->bublnbr, pastix_int_t  );

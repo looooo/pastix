@@ -204,7 +204,6 @@ struct solver_matrix_s {
     pastix_int_t              offdmax;              /*+ Maximum size of the off-diagonal blocks for hetrf/sytrf temporary buffers +*/
     pastix_int_t              gemmmax;              /*+ Maximum size of the GEMM update for 1d GEMM computations                  +*/
     pastix_int_t              blokmax;              /*+ Maximum size of 2D blocks                 +*/
-    pastix_int_t              nbftmax;              /*+ Maximum block number in ftgt              +*/
     pastix_int_t              colmax;               /*+ Maximum column width in solvmtx           +*/
 
     int                       clustnum;             /*+ current processor number                  +*/

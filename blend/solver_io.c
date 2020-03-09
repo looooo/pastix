@@ -140,7 +140,7 @@ solverLoad( SolverMatrix *solvptr,
 
     if( intLoad (stream, &solvptr->coefnbr) +
         intLoad (stream, &solvptr->gemmmax) +
-        intLoad (stream, &solvptr->nbftmax) +
+        intLoad (stream, &tmp)              +
         intLoad (stream, &tmp)              +
         intLoad (stream, &clustnum)         +
         intLoad (stream, &clustnbr)         +
@@ -301,7 +301,7 @@ solverSave( const SolverMatrix *solvptr,
     o = (fprintf (stream, "\n%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n",
                   (long) solvptr->coefnbr,
                   (long) solvptr->gemmmax,
-                  (long) solvptr->nbftmax,
+                  (long) 0, /*solvptr->nbftmax,*/
                   (long) 0, /*solvptr->arftmax,*/
                   (long) solvptr->clustnum,
                   (long) solvptr->clustnbr,
