@@ -23,114 +23,44 @@
 #ifndef _solver_matrix_gen_utils_h_
 #define _solver_matrix_gen_utils_h_
 
-/**
- *******************************************************************************
- *
- * @brief Get the expanded column indexes of a symbol_cblk.
- *
- *******************************************************************************
- *
- * @param[in] symbmtx
- *          Pointer to the symbol matrix.
- *
- * @param[in] symbcblk
- *          The pointer to the current symbol_cblk.
- *
- * @param[inout] fcolnum
- *          First column index of the current cblk.
- *
- * @param[inout] symbcblk
- *          Last column index of the current cblk.
- *
- * @return The number of columns of the expanded cblk.
- *
- *******************************************************************************/
-static inline pastix_int_t
-solvMatGen_get_colnum( const symbol_matrix_t *symbmtx,
-                       symbol_cblk_t         *symbcblk,
-                       pastix_int_t          *fcolnum,
-                       pastix_int_t          *lcolnum )
-{
-    if ( symbmtx->dof < 0 ) {
-        *fcolnum = symbmtx->dofs[symbcblk->fcolnum];
-        *lcolnum = symbmtx->dofs[symbcblk->lcolnum + 1] - 1;
-    }
-    else {
-        *fcolnum = symbmtx->dof *   symbcblk->fcolnum;
-        *lcolnum = symbmtx->dof * ( symbcblk->lcolnum + 1 ) - 1;
-    }
-    return (*lcolnum) - (*fcolnum) + 1;
-}
+#include "elimintree.h"
+#include "cost.h"
+#include "symbol.h"
+#include "cand.h"
+#include "solver.h"
+#include "pastix/order.h"
 
 /**
  *******************************************************************************
  *
- * @brief Get the expanded row index of a symbol_blok.
- *
- *******************************************************************************
- *
- * @param[in] symbmtx
- *          Pointer to the symbol matrix.
- *
- * @param[in] symbblok
- *          The pointer to the current symbol_blok.
- *
- * @param[inout] frownum
- *          First row index of the current blok.
- *
- * @param[inout] lrownum
- *          Last row index of the current blok.
- *
- * @return The number of rows of the expanded blok.
- *
- *******************************************************************************/
-static inline pastix_int_t
-solvMatGen_get_rownum( const symbol_matrix_t *symbmtx,
-                       symbol_blok_t         *symbblok,
-                       pastix_int_t          *frownum,
-                       pastix_int_t          *lrownum )
-{
-    if ( symbmtx->dof < 0 ) {
-        *frownum = symbmtx->dofs[symbblok->frownum];
-        *lrownum = symbmtx->dofs[symbblok->lrownum + 1] - 1;
-    }
-    else {
-        *frownum = symbmtx->dof *   symbblok->frownum;
-        *lrownum = symbmtx->dof * ( symbblok->lrownum + 1 ) - 1;
-    }
-    return (*lrownum) - (*frownum) + 1;
-}
-
-/**
- *******************************************************************************
- *
- * @brief Init a local solver block, virtual or not.
+ * @brief Initialize a solver block.
  *
  *******************************************************************************
  *
  * @param[inout] solvblok
- *          The pointer to the block.
+ *          The pointer to the solver block to initialize.
+ *
+ * @param[in] lcblknm
+ *          Local column block index.
  *
  * @param[in] fcblknm
- *          First column block index.
+ *          Facing column block index.
  *
- *  @param[in] lcblknm
- *          Last column block index.
- *
- *  @param[in] frownum
+ * @param[in] frownum
  *          First row of the block.
  *
  * @param[in] lrownum
  *          Last row of the block.
  *
  * @param[in] stride
- *          Stride of the block.
+ *          Stride of the column block.
  *
  * @param[in] nbcols
- *          Amount of columns in the cblk. Not set in the cblk at this time.
+ *          Number of columns of the cblk to which belong the current block.
  *
  * @param[in] layout2D
- *          Parameter which indicates if it is a 2D block
+ *          Parameter which indicates if the cblk layout is 1D lapack or 2D tile
+ *          layout.
  *
  ********************************************************************************/
 static inline void
@@ -167,59 +97,57 @@ solvMatGen_init_blok( SolverBlok  *solvblok,
 /**
  *******************************************************************************
  *
- * @brief Init a local solver cblk, virtual or not.
+ * @brief Initialize a solver cblk.
  *
  *******************************************************************************
  *
  * @param[inout] solvcblk
- *          The pointer to the cblk.
+ *          The pointer to the solver cblk to initialize.
  *
- * @param[inout] fblokptr
+ * @param[in] fblokptr
  *          The pointer to the first block.
  *
  * @param[in] candcblk
- *          Allow us to know the type of the cblk.
+ *          The associated cand structure to the cblk to know the type of the cblk.
  *
  * @param[in] symbcblk
- *          Corresponding global cblk in the symbol matrix.
+ *          The associated symbol cblk structure to get symbol information.
  *
  * @param[in] fcolnum
- *          First column of the cblk.
+ *          Index of the first column included in the cblk.
  *
  * @param[in] lcolnum
- *          Last column of the cblk.
+ *          Index of the last column included in the cblk.
  *
  * @param[in] brownum
- *          Index in th browtab.
+ *          Index of the first contribution to this cblk in the browtab.
  *
  * @param[in] stride
  *          Stride of the cblk.
  *
- * @param[in] nodenbr
- *          Current global column index.
- *
  * @param[in] cblknum
- *          Global cblkindex. -1 if virtual.
+ *          The global index of the cblk. -1 if virtual.
+ *
+ * @param[in] ownerid
+ *          The owner if of the cluster that owns the main instance of the cblk.
  *
  *******************************************************************************/
 static inline void
-solvMatGen_init_cblk( SolverCblk    *solvcblk,
-                      SolverBlok    *fblokptr,
-                      Cand          *candcblk,
-                      symbol_cblk_t *symbcblk,
-                      pastix_int_t   fcolnum,
-                      pastix_int_t   lcolnum,
-                      pastix_int_t   brownum,
-                      pastix_int_t   stride,
-                      pastix_int_t   nodenbr,
-                      pastix_int_t   cblknum,
-                      int            ownerid )
+solvMatGen_init_cblk( SolverCblk          *solvcblk,
+                      SolverBlok          *fblokptr,
+                      const Cand          *candcblk,
+                      const symbol_cblk_t *symbcblk,
+                      pastix_int_t         fcolnum,
+                      pastix_int_t         lcolnum,
+                      pastix_int_t         brownum,
+                      pastix_int_t         stride,
+                      pastix_int_t         cblknum,
+                      int                  ownerid )
 {
     assert( fblokptr != NULL );
     assert( fcolnum >= 0 );
     assert( lcolnum >= fcolnum );
     assert( stride  >= 0 );
-    assert( nodenbr >= 0 );
     assert( brownum >= 0 );
 
     /* Init the cblk */
@@ -231,7 +159,7 @@ solvMatGen_init_cblk( SolverCblk    *solvcblk,
     solvcblk->lcolnum    = lcolnum;
     solvcblk->fblokptr   = fblokptr;
     solvcblk->stride     = stride;
-    solvcblk->lcolidx    = nodenbr;
+    solvcblk->lcolidx    = -1;
     solvcblk->brownum    = brownum;
     solvcblk->gcblknum   = cblknum;
     solvcblk->bcscnum    = -1;
@@ -247,7 +175,10 @@ solvMatGen_init_cblk( SolverCblk    *solvcblk,
 /**
  *******************************************************************************
  *
- * @brief Make the link between the supernodes and the cblks.
+ * @brief Register the original supernode index of the cblk.
+ *
+ * This computes the index in the original elimination tree before spliting the
+ * large supernodes.
  *
  *******************************************************************************
  *
@@ -255,12 +186,14 @@ solvMatGen_init_cblk( SolverCblk    *solvcblk,
  *          The pointer to the cblk.
  *
  * @param[in] sndeidx
- *          The index of the last visited supernode.
+ *          The index of the last visited supernode to reduce the complexity of
+ *          the function.
  *
  * @param[in] ordeptr
  *          The ordering structure.
  *
- * @return  The current sndeidx that can be used to reduce the cost of further calls.
+ * @return The supernode index of the given cblk. The value can be used in the
+ *         future calls of the function to reduce its complexity cost.
  *
  *******************************************************************************/
 static inline pastix_int_t
@@ -288,7 +221,7 @@ solvMatGen_supernode_index( SolverCblk           *solvcblk,
 /**
  *******************************************************************************
  *
- * @brief Update the 1D/2D infos of the solvmtx through a cblk.
+ * @brief Update the 1D/2D infos of the solver matrix through a cblk.
  *
  *******************************************************************************
  *
@@ -297,9 +230,13 @@ solvMatGen_supernode_index( SolverCblk           *solvcblk,
  *
  * @param[inout] nbcblk2d
  *          Amount of 2D cblk.
+ *          On exit, the number of cblk is updated if the given cblk is
+ *          considered as 2D.
  *
  * @param[inout] nbblok2d
  *          Amount of 2D blocks.
+ *          On exit, the number of blok is updated if the given cblk is
+ *          considered as 2D.
  *
  * @param[in] nbbloks
  *          Amount blocks in the current cblk.
@@ -342,49 +279,69 @@ solvMatGen_cblkIs2D( SolverMatrix *solvmtx,
 }
 
 void solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
-                                const SimuCtrl  *simuctrl,
-                                SolverMatrix    *solvmtx,
-                                pastix_int_t    *cblklocalnum,
-                                pastix_int_t    *bloklocalnum,
-                                pastix_int_t    *tasklocalnum,
-                                pastix_int_t    *fcbklocalnum,
-                                pastix_int_t    *pcbklocalnum,
-                                int            **recv_sources_ptr );
+                                const SimuCtrl        *simuctrl,
+                                SolverMatrix          *solvmtx,
+                                pastix_int_t          *cblklocalnum,
+                                pastix_int_t          *bloklocalnum,
+                                pastix_int_t          *tasklocalnum,
+                                solver_cblk_recv_t   **ftgttab );
 
-void solvMatGen_init_cblk_recv( const symbol_matrix_t *symbmtx,
-                                      SolverCblk      *solvcblk,
-                                      SolverBlok      *solvblok,
-                                      Cand            *candcblk,
-                                      pastix_int_t    *cblklocalnum,
-                                      pastix_int_t     recvidx,
-                                      pastix_int_t     fcolnum,
-                                      pastix_int_t     lcolnum,
-                                      pastix_int_t     brownum,
-                                      pastix_int_t     nodenbr,
-                                      pastix_int_t     cblknum,
-                                      int              ownerid );
+SolverBlok* solvMatGen_register_local_cblk( const symbol_matrix_t *symbmtx,
+                                            const Cand            *candcblk,
+                                            const pastix_int_t    *cblklocalnum,
+                                            SolverCblk            *solvcblk,
+                                            SolverBlok            *solvblok,
+                                            pastix_int_t           lcblknm,
+                                            pastix_int_t           brownum,
+                                            pastix_int_t           gcblknm,
+                                            pastix_int_t           ownerid );
 
-pastix_int_t
-solvMatGen_reorder_browtab( const symbol_matrix_t *symbmtx,
-                            symbol_cblk_t         *symbcblk,
-                            SolverMatrix          *solvmtx,
-                            SolverCblk            *solvcblk,
-                            pastix_int_t          *browtmp,
-                            pastix_int_t          *cblklocalnum,
-                            pastix_int_t          *bloklocalnum,
-                            pastix_int_t           brownum );
+SolverBlok* solvMatGen_register_remote_cblk( const symbol_matrix_t    *symbmtx,
+                                             const solver_cblk_recv_t *recvcblk,
+                                             const Cand               *candcblk,
+                                             const pastix_int_t       *cblklocalnum,
+                                             SolverCblk               *solvcblk,
+                                             SolverBlok               *solvblok,
+                                             pastix_int_t              lcblknm,
+                                             pastix_int_t              brownum,
+                                             pastix_int_t              gcblknm );
 
-void solvMatGen_fill_tasktab( SolverMatrix   *solvmtx,
-                              isched_t       *isched,
-                              const SimuCtrl *simuctrl,
-                              pastix_int_t   *tasklocalnum,
-                              pastix_int_t   *cblklocalnum,
-                              pastix_int_t   *bloklocalnum,
-                              pastix_int_t    clustnum,
-                              int             is_dbg );
+pastix_int_t solvMatGen_reorder_browtab( const symbol_matrix_t *symbmtx,
+                                         const symbol_cblk_t   *symbcblk,
+                                         SolverMatrix          *solvmtx,
+                                         SolverCblk            *solvcblk,
+                                         pastix_int_t          *browtmp,
+                                         const pastix_int_t    *cblklocalnum,
+                                         const pastix_int_t    *bloklocalnum,
+                                         pastix_int_t           brownum );
+
+void solvMatGen_fill_tasktab( SolverMatrix       *solvmtx,
+                              isched_t           *isched,
+                              const SimuCtrl     *simuctrl,
+                              const pastix_int_t *tasklocalnum,
+                              const pastix_int_t *cblklocalnum,
+                              const pastix_int_t *bloklocalnum,
+                              pastix_int_t        clustnum,
+                              int                 is_dbg );
 
 void solvMatGen_stats_last( SolverMatrix *solvmtx );
 void solvMatGen_max_buffers( SolverMatrix *solvmtx );
+
+void solver_recv_update_fanin( solver_cblk_recv_t   **faninptr,
+                               const symbol_matrix_t *symbmtx,
+                               const symbol_cblk_t   *cblk,
+                               const symbol_blok_t   *blok,
+                               const symbol_cblk_t   *fcblk,
+                               int ownerid );
+void solver_recv_update_recv( solver_cblk_recv_t   **recvptr,
+                              const symbol_matrix_t *symbmtx,
+                              const symbol_cblk_t   *cblk,
+                              const symbol_blok_t   *blok,
+                              const symbol_cblk_t   *fcblk,
+                              int                    ownerid );
+int  solver_recv_get_bloknbr( const solver_cblk_recv_t *ftgtptr,
+                              const symbol_cblk_t      *symbcblk,
+                              const symbol_blok_t      *symbblok );
 
 #endif /* _solver_matrix_gen_utils_h_ */
 

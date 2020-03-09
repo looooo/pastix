@@ -1353,6 +1353,7 @@ bvec_znullify_remote( const pastix_data_t *pastix_data,
     const SolverCblk   *cblk = solvmtx->cblktab;
     pastix_int_t        cblknbr;
     pastix_int_t        i, lastindex = 0;
+    pastix_int_t        n = pastix_data->csc->gNexp;
 
     cblknbr = solvmtx->cblknbr;
     for ( i = 0; i < cblknbr; i++, cblk++ ) {
@@ -1368,9 +1369,9 @@ bvec_znullify_remote( const pastix_data_t *pastix_data,
         lastindex = cblk->lcolnum + 1;
     }
 
-    if ( lastindex < solvmtx->nodenbr ) {
+    if ( lastindex < n ) {
         /* Set to 0 all remote data bewtween previous local cblk, and current cblk */
-        memset( y + lastindex, 0, ( solvmtx->nodenbr - lastindex ) * sizeof( pastix_complex64_t ) );
+        memset( y + lastindex, 0, ( n - lastindex ) * sizeof( pastix_complex64_t ) );
     }
 #endif
     (void)pastix_data;

@@ -768,6 +768,7 @@ set(PASTIX_LIB_SRCS
   blend/solver_io.c
   blend/solver_matrix_gen.c
   blend/solver_matrix_gen_utils.c
+  blend/solver_recv.c
   blend/splitsymbol.c
 
   common/api.c

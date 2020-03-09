@@ -57,43 +57,35 @@
  * @param[inout] tasklocalnum
  *          Local tasks infos.
  *
- * @param[inout] fcbklocalnum
- *          Array to compute CBLK_FANIN infos.
- *
- * @param[inout] pcbklocalnum
- *          Array to compute CBLK_RECV infos.
+ * @param[inout] ftgttab
+ *          Array of fan-in to store the lists of recv/fanin cblk per local cblk.
  *
  *******************************************************************************/
 void
 solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
-                           const SimuCtrl  *simuctrl,
-                           SolverMatrix    *solvmtx,
-                           pastix_int_t    *cblklocalnum,
-                           pastix_int_t    *bloklocalnum,
-                           pastix_int_t    *tasklocalnum,
-                           pastix_int_t    *fcbklocalnum,
-                           pastix_int_t    *pcbklocalnum,
-                           int            **recv_sources_ptr )
+                           const SimuCtrl        *simuctrl,
+                           SolverMatrix          *solvmtx,
+                           pastix_int_t          *cblklocalnum,
+                           pastix_int_t          *bloklocalnum,
+                           pastix_int_t          *tasklocalnum,
+                           solver_cblk_recv_t   **ftgttab )
 {
     pastix_int_t  *localindex;
-    pastix_int_t  *countcluster;
     symbol_cblk_t *symbcblk;
-    pastix_int_t   cblknum, fcbknum, brownum, brownbr;
+    symbol_blok_t *symbblok;
+    pastix_int_t   cblknum, brownum, brownbr;
     pastix_int_t   faninnbr, recvnbr;
     pastix_int_t   i, j, k, c, fc;
     pastix_int_t   flaglocal;
     pastix_int_t   clustnum = solvmtx->clustnum;
-    int           *recv_sources = *recv_sources_ptr;
 
     /* Initialize the set of cluster candidates for each cblk */
-    MALLOC_INTERN( countcluster, solvmtx->clustnbr, pastix_int_t );
     MALLOC_INTERN( localindex,   solvmtx->clustnbr, pastix_int_t );
-
-    memset( localindex, 0, solvmtx->clustnbr * sizeof(pastix_int_t) );
 
     /*
      * Compute local number of tasks on each cluster
      */
+    memset( localindex, 0, solvmtx->clustnbr * sizeof(pastix_int_t) );
     for ( i = 0; i < simuctrl->tasknbr; i++ ) {
         c = simuctrl->bloktab[ simuctrl->tasktab[i].bloknum ].ownerclust;
 
@@ -105,104 +97,158 @@ solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
     /*
      * Compute the local numbering of the fan-in and recv cblks on each cluster
      */
-
-    /* Set the arrays to compute local informations */
-    memset( localindex,   0,    solvmtx->clustnbr * sizeof( pastix_int_t ) );
-    memset( pcbklocalnum, 0,    symbmtx->cblknbr  * sizeof( pastix_int_t ) );
-    memset( fcbklocalnum, 0xff, symbmtx->cblknbr  * sizeof( pastix_int_t ) );
+    /* Reset the array to compute local informations */
+    memset( localindex, 0, solvmtx->clustnbr * sizeof( pastix_int_t ) );
 
     cblknum  = 0;
-    fcbknum  = 0;
     brownum  = 0;
     recvnbr  = 0;
     faninnbr = 0;
     symbcblk = symbmtx->cblktab;
     for ( i = 0; i < symbmtx->cblknbr; i++, symbcblk++ ) {
         brownbr = symbcblk[1].brownum - symbcblk[0].brownum;
-        memset( countcluster, 0, solvmtx->clustnbr * sizeof( pastix_int_t ) );
 
         /*
          * The cblk is considered local if data are local, or if we store a
          * compressed copy for fanin
          */
-        flaglocal = ( fcbklocalnum[i] != -1 ) || ( simuctrl->cblktab[i].owned );
+        flaglocal = ( simuctrl->cblktab[i].owned ) || ( ftgttab[i] != NULL );
         if ( !flaglocal ) {
             cblklocalnum[i] = -i - 1;
+#if !defined(NDEBUG)
+            for ( j=symbcblk[0].bloknum; j<symbcblk[1].bloknum; j++ ) {
+                bloklocalnum[j] = -1;
+                assert( simuctrl->bloktab[j].ownerclust != clustnum );
+            }
+#endif
             continue;
         }
 
         /*
-         * The cblk is local and we may receive remote information, let's:
-         *    - compute the size of the compressed browtab
-         *    - compute the number of remote fanin to be received for the update
-         *    - compute the set of remote nodes sending a fanin
-         *
-         * Work on the incoming edges.
+         * The cblk is local.
          */
-        if ( ( simuctrl->cblktab[i].owned ) &&
-             ( symbcblk[1].brownum > symbcblk[0].brownum ) )
-        {
+        if ( simuctrl->cblktab[i].owned ) {
+            solver_cblk_recv_t *ftgtcblk;
+
+            /*
+             * The cblk is local. We may receive remote information, let's:
+             *    - compute the size of the compressed browtab
+             *    - compute the number of remote fanin to be received for the update
+             *    - compute the set of remote nodes sending a fanin
+             *
+             * To do that, we work on the incoming edges.
+             */
             for ( j = symbcblk[0].brownum; j < symbcblk[1].brownum; j++ ) {
                 k = symbmtx->browtab[j];
+                symbblok = symbmtx->bloktab + k;
                 c = simuctrl->bloktab[k].ownerclust;
 
-                assert( i == symbmtx->bloktab[k].fcblknm );
+                assert( i == symbblok->fcblknm );
 
-                /* Compute the amount of remote contributions */
+                /* This is a remote contribution we add it to the ftgt and update the counters */
                 if ( c != clustnum ) {
-                    countcluster[c]++;
+                    solver_recv_update_recv( ftgttab + i,
+                                             symbmtx,
+                                             symbmtx->cblktab + symbblok->lcblknm,
+                                             symbblok, symbcblk, c );
                     brownbr--;
                 }
+                assert( brownbr >= 0 );
             }
-            assert( brownbr >= 0 );
 
-            /* Compute the amount of different contributers in a cblk */
-            for ( j=0; j<solvmtx->clustnbr; j++ )
+            /*
+             * Now that all remote contributions have been computed and summarized in ftgttab[i],
+             * let's compute the local information for the indices
+             */
+            ftgtcblk = ftgttab[i];
+            while( ftgtcblk != NULL ) {
+                assert( (ftgtcblk->ownerid != -1) &&
+                        (ftgtcblk->ownerid != clustnum) );
+
+                /* Book some space for the reception blocks */
+                localindex[clustnum] += solver_recv_get_bloknbr( ftgtcblk, symbcblk,
+                                                                 symbmtx->bloktab + symbcblk->bloknum );
+
+                brownbr++; /* One more blok will be in the browtab */
+                cblknum++; /* Add one cblk                         */
+                recvnbr++; /* Add one reception count              */
+
+                ftgtcblk = ftgtcblk->next;
+            }
+
+            /*
+             * Now, we need to get through the outgoing dependencies to generate
+             * the fanin informations if it needs to be added, and to compute
+             * local block indices.
+             */
+            symbblok = symbmtx->bloktab + symbcblk->bloknum;
+            for ( j=symbcblk[0].bloknum; j<symbcblk[1].bloknum; j++, symbblok++ ) {
+                symbol_cblk_t *symbfcbk;
+                pastix_int_t fcblknum, fbloknum;
+
+                bloklocalnum[j] = localindex[clustnum];
+                localindex[clustnum]++;
+
+                assert( simuctrl->bloktab[j].ownerclust == clustnum );
+
+                fcblknum = symbblok->fcblknm;
+                symbfcbk = symbmtx->cblktab + fcblknum;
+                fbloknum = symbfcbk->bloknum;
+                fc = simuctrl->bloktab[fbloknum].ownerclust;
+
+                /*
+                 * If the facing cblk isn't local, we need to have a local copy
+                 * of it to store the fan-in
+                 */
+                if ( fc != clustnum ) {
+                    solver_recv_update_fanin( ftgttab + fcblknum,
+                                              symbmtx, symbcblk, symbblok, symbfcbk, fc );
+                }
+            }
+        }
+        else {
+            /* If the cblk is not local, it is a fanin */
+
+            /*
+             * First, let's look at incoming dependencies to reduce the brownbr
+             */
             {
-                /* Each time countcluster[j] != 0, a new sender can be registered*/
-                if( countcluster[j] != 0 ){
-                    pcbklocalnum[i]++;                              /* Amount of receptions for cblk i */
-                    recv_sources[recvnbr] = j;                      /* Register source                 */
-                    localindex[clustnum] +=  (symbcblk[1].bloknum
-                                            - symbcblk[0].bloknum); /* Duplicate the amount of bloks   */
-                    brownbr++;                                      /* One more blok will be in the browtab */
-                    cblknum++;                                      /* Add one cblk                    */
-                    recvnbr++;                                      /* Add one reception count         */
+                for ( j = symbcblk[0].brownum; j < symbcblk[1].brownum; j++ ) {
+                    k = symbmtx->browtab[j];
+                    c = simuctrl->bloktab[k].ownerclust;
+                    if ( c != clustnum ) {
+                        brownbr--;
+                    }
                 }
             }
-        }
 
-        /*
-         * If the cblk is local (fanin or classic), we add it to the list
-         *
-         * Work on the outgoing edges.
-         */
-        for ( j = symbcblk[0].bloknum; j < symbcblk[1].bloknum; j++ ) {
-            c               = simuctrl->bloktab[j].ownerclust;
-            bloklocalnum[j] = localindex[clustnum];
-            localindex[clustnum]++;
+            /*
+             * Second, let's update the localindex counter based on the number of local blocks
+             */
+            {
+                /* Check we have one and only one solver_cblk_recv associated to it */
+                solver_cblk_recv_t *ftgtcblk = ftgttab[i];
+                solver_blok_recv_t *ftgtblok;
+                assert( ftgtcblk       != NULL );
+                assert( ftgtcblk->next == NULL );
 
-            if ( c == clustnum ) {
-                fcbknum = symbmtx->bloktab[j].fcblknm;
-                fc      = simuctrl->bloktab[symbmtx->cblktab[fcbknum].bloknum].ownerclust;
+                symbblok = symbmtx->bloktab + symbcblk->bloknum;
+                faninnbr++;
+                ftgtblok = ftgtcblk->bloktab;
+                for ( j=symbcblk[0].bloknum; j<symbcblk[1].bloknum; j++, symbblok++, ftgtblok++ )
+                {
+                    assert( simuctrl->bloktab[j].ownerclust != clustnum );
 
-                /* If the facing cblk isn't local, we need to have a local copy of it */
-                if ( ( fcbklocalnum[fcbknum] == -1 ) && ( fc != c ) ) {
-                    fcbklocalnum[fcbknum] = fc;
-                    faninnbr++;
-                }
-            }
-        }
-
-        /*
-         * If this is a fanin, we compute the size of the local browtab
-         */
-        if ( fcbklocalnum[i] != -1 ) {
-            for ( j = symbcblk[0].brownum; j < symbcblk[1].brownum; j++ ) {
-                k = symbmtx->browtab[j];
-                c = simuctrl->bloktab[k].ownerclust;
-                if ( c != clustnum ) {
-                    brownbr--;
+                    if ( (ftgtblok->frownum <= ftgtblok->lrownum) &&
+                         (ftgtblok->frownum >= symbblok->frownum) &&
+                         (ftgtblok->lrownum <= symbblok->lrownum) )
+                    {
+                        bloklocalnum[j] = localindex[clustnum];
+                        localindex[clustnum]++;
+                    }
+                    else {
+                        bloklocalnum[j] = -1;
+                    }
                 }
             }
         }
@@ -221,15 +267,10 @@ solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
     solvmtx->brownbr = brownum;
 
     /* Reallocate recv_sources tab to diminish it's size */
-    if( recvnbr > 0 ){
-        int *sources = (int *)realloc( recv_sources, recvnbr * sizeof(int) );
-        *recv_sources_ptr = sources;
-    }
     solvmtx->recvnbr  = recvnbr;
     solvmtx->faninnbr = faninnbr;
 
     memFree_null( localindex );
-    memFree_null( countcluster );
 }
 
 /**
@@ -253,13 +294,14 @@ solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
  *          The pointer to the current solver cblk.
  *
  * @param[inout] browtmp
- *          An array that we will fill with the local browtab infos.
+ *          Workspace array used to reorder the local brow information.
+ *          Must be of size at least (symbcblk[1].brownum - symbcblk[0].brownum)
  *
  * @param[in] cblklocalnum
- *          Local cblk infos.
+ *          Local cblk indices.
  *
  * @param[in] bloklocalnum
- *          Local blok infos.
+ *          Local blok indices.
  *
  * @param[in] brownum
  *         Current brownum.
@@ -267,12 +309,12 @@ solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
  *******************************************************************************/
 pastix_int_t
 solvMatGen_reorder_browtab( const symbol_matrix_t *symbmtx,
-                            symbol_cblk_t         *symbcblk,
+                            const symbol_cblk_t   *symbcblk,
                             SolverMatrix          *solvmtx,
                             SolverCblk            *solvcblk,
                             pastix_int_t          *browtmp,
-                            pastix_int_t          *cblklocalnum,
-                            pastix_int_t          *bloklocalnum,
+                            const pastix_int_t    *cblklocalnum,
+                            const pastix_int_t    *bloklocalnum,
                             pastix_int_t           brownum )
 {
     pastix_int_t   brownbr;
@@ -402,12 +444,16 @@ solvMatGen_reorder_browtab( const symbol_matrix_t *symbmtx,
     return brownbr;
 }
 
+/**
+ * @brief Structure to pass information to the muti-threaded ttsktab
+ *        initialization function.
+ */
 struct args_ttsktab
 {
-    SolverMatrix   *solvmtx;
-    const SimuCtrl *simuctrl;
-    pastix_int_t   *tasklocalnum;
-    pastix_int_t    clustnum;
+    SolverMatrix       *solvmtx;      /**< Pointer to the solver matrix            */
+    const SimuCtrl     *simuctrl;     /**< Pointer to simulation control structure */
+    const pastix_int_t *tasklocalnum; /**< Array of the local indices of the tasks */
+    pastix_int_t        clustnum;     /**< Index of the local cluster              */
 };
 
 /**
@@ -418,23 +464,24 @@ struct args_ttsktab
  *******************************************************************************
  *
  * @param[in] ctx
- *          the context of the current thread
+ *          The context of the current thread
  *
  * @param[inout] args
- *          The parameter as specified in solverMatricGen*.
+ *          The pointer to the args_ttsktab structure that parameterize the
+ *          function call.
  *
  *******************************************************************************/
 void
 solvMatGen_fill_ttsktab( isched_thread_t *ctx, void *args )
 {
-    struct args_ttsktab *arg     = (struct args_ttsktab*)args;
-    SolverMatrix   *solvmtx      = arg->solvmtx;
-    const SimuCtrl *simuctrl     = arg->simuctrl;
-    pastix_int_t   *tasklocalnum = arg->tasklocalnum;
-    pastix_int_t    clustnum     = arg->clustnum;
-    int             rank         = ctx->rank;
-    SimuProc       *simuproc     = simuctrl->proctab
-                               + ( simuctrl->clustab[clustnum].fprocnum + rank );
+    struct args_ttsktab *arg          = (struct args_ttsktab*)args;
+    SolverMatrix        *solvmtx      = arg->solvmtx;
+    const SimuCtrl      *simuctrl     = arg->simuctrl;
+    const pastix_int_t  *tasklocalnum = arg->tasklocalnum;
+    pastix_int_t         clustnum     = arg->clustnum;
+    int                  rank         = ctx->rank;
+    SimuProc            *simuproc     = simuctrl->proctab
+        + ( simuctrl->clustab[clustnum].fprocnum + rank );
     pastix_int_t i;
     pastix_int_t priomin = PASTIX_INT_MAX;
     pastix_int_t priomax = 0;
@@ -487,7 +534,8 @@ solvMatGen_fill_ttsktab( isched_thread_t *ctx, void *args )
  *          the context of the current thread
  *
  * @param[inout] args
- *          The parameter as specified in solverMatricGen*.
+ *          The pointer to the args_ttsktab structure that parameterize the
+ *          function call.
  *
  *******************************************************************************/
 void
@@ -535,7 +583,7 @@ solvMatGen_fill_ttsktab_dbg( isched_thread_t *ctx, void *args )
 /**
  *******************************************************************************
  *
- * @brief Fill the tasktab.
+ * @brief Fill the global tasktab array, as well as the thread ttsktab arrays.
  *
  *******************************************************************************
  *
@@ -546,16 +594,16 @@ solvMatGen_fill_ttsktab_dbg( isched_thread_t *ctx, void *args )
  *          The internal context to run multi-threaded functions.
  *
  * @param[in] simuctrl
- *          The pointer to the simuctrl structure.
+ *          The pointer to the simulation control structure.
  *
  * @param[in] tasklocalnum
- *          Local tasks infos.
+ *          Array of the local indices of the tasks.
  *
  * @param[in] cblklocalnum
- *          Local cblk infos.
+ *          Array of the local indices of the cblk.
  *
  * @param[in] bloklocalnum
- *          Local blok infos.
+ *          Array of the local indices of the blocks.
  *
  * @param[in] clustnum
  *          Rank of the MPI instance.
@@ -565,18 +613,17 @@ solvMatGen_fill_ttsktab_dbg( isched_thread_t *ctx, void *args )
  *
  *******************************************************************************/
 void
-solvMatGen_fill_tasktab( SolverMatrix   *solvmtx,
-                         isched_t       *isched,
-                         const SimuCtrl *simuctrl,
-                         pastix_int_t   *tasklocalnum,
-                         pastix_int_t   *cblklocalnum,
-                         pastix_int_t   *bloklocalnum,
-                         pastix_int_t    clustnum,
-                         int             is_dbg )
+solvMatGen_fill_tasktab( SolverMatrix       *solvmtx,
+                         isched_t           *isched,
+                         const SimuCtrl     *simuctrl,
+                         const pastix_int_t *tasklocalnum,
+                         const pastix_int_t *cblklocalnum,
+                         const pastix_int_t *bloklocalnum,
+                         pastix_int_t        clustnum,
+                         int                 is_dbg )
 {
-    SimuTask    *simutask = simuctrl->tasktab;
     Task        *solvtask;
-    pastix_int_t nbftmax  = 0;
+    SimuTask    *simutask = simuctrl->tasktab;
     pastix_int_t tasknum  = 0;
     pastix_int_t i;
 
@@ -588,7 +635,6 @@ solvMatGen_fill_tasktab( SolverMatrix   *solvmtx,
     {
         for(i=0; i<simuctrl->tasknbr; i++, simutask++)
         {
-            nbftmax = pastix_imax( nbftmax, simutask->ftgtcnt );
             assert( tasknum == i );
 
             solvtask->taskid  = COMP_1D;
@@ -627,8 +673,6 @@ solvMatGen_fill_tasktab( SolverMatrix   *solvmtx,
     solvtask->bloknum = solvmtx->bloknbr+1;
     solvtask->ctrbcnt = 0;
 
-    solvmtx->nbftmax = nbftmax;
-
     /* Fill in the ttsktab arrays (one per thread) */
     MALLOC_INTERN(solvmtx->ttsknbr, solvmtx->bublnbr, pastix_int_t  );
     MALLOC_INTERN(solvmtx->ttsktab, solvmtx->bublnbr, pastix_int_t* );
@@ -646,7 +690,7 @@ solvMatGen_fill_tasktab( SolverMatrix   *solvmtx,
 /**
  *******************************************************************************
  *
- * @brief Compute the maximum area of the temporary buffer
+ * @brief Compute the maximum area of the temporary buffers
  *        used during computation
  *
  * During this loop, we compute the maximum area that will be used as
@@ -656,7 +700,7 @@ solvMatGen_fill_tasktab( SolverMatrix   *solvmtx,
  *    - gemmmax: For all, this is the maximum area used to compute the
  *               compacted gemm on a CPU.
  *
- * Rk: This loop is not merged with the main block loop, since strides have
+ * Rk: This loop is not merged within the main block loop, since strides have
  * to be peviously computed.
  *
  *******************************************************************************
@@ -738,7 +782,7 @@ solvMatGen_max_buffers( SolverMatrix *solvmtx )
  * @brief Mark blocks if they belong to the last supernode, or if they are
  * facing it for statistical purpose only.
  *
- * TODO : Should be improved by using the brow array in order to cover the
+ * TODO : Should be improved by using the brow array in order to cover only the
  *        blocks in front of the last cblk
  *
  *******************************************************************************
@@ -774,106 +818,212 @@ solvMatGen_stats_last( SolverMatrix *solvmtx )
 /**
  *******************************************************************************
  *
- * @brief Init a recv solver cblk
+ * @brief Register a local cblk from a symbol_cblk_t structure !(Fanin|Recv)
  *
  *******************************************************************************
  *
  * @param[in] symbmtx
  *          The pointer to the symbol matrix.
  *
- * @param[inout] solvcblk
- *          The pointer to the cblk.
- *
- * @param[inout] solvblok
- *          The pointer to the first block of the cblk.
- *
  * @param[in] candcblk
- *          Allow us to know the type of the cblk.
+ *          The cand structure associated to the current cblk to get the type of
+ *          the cblk.
  *
  * @param[in] cblklocalnum
- *          Pointer to the cblklocalnum.
+ *          Array of the local indices of the cblk.
  *
- * @param[in] recvidx
- *          Which CBLK_RECV is concerned.
+ * @param[inout] solvcblk
+ *          Pointer to the current cblk to register.
  *
- * @param[in] fcolnum
- *          First column of the cblk.
+ * @param[inout] solvblok
+ *          Pointer to the first block of the current cblk.
  *
- * @param[in] lcolnum
- *          Last column of the cblk.
+ * @param[in] lcblknm
+ *          The local index of the cblk.
  *
  * @param[in] brownum
- *          Index in th browtab.
+ *          The current index in the browtab.
  *
- * @param[in] stride
- *          Stride of the cblk.
- *
- * @param[in] nodenbr
- *          Current global column index.
- *
- * @param[in] cblknum
- *          Global cblk index.
+ * @param[in] gcblknm
+ *          The global index of the current cblk.
  *
  * @param[in] ownerid
- *          Owner of the cblk.
+ *          The index of the local MPI rank.
+ *
+ * @return The pointer to the next solver block to register.
  *
  *******************************************************************************/
-void
-solvMatGen_init_cblk_recv( const symbol_matrix_t *symbmtx,
-                                 SolverCblk      *solvcblk,
-                                 SolverBlok      *solvblok,
-                                 Cand            *candcblk,
-                                 pastix_int_t    *cblklocalnum,
-                                 pastix_int_t     recvidx,
-                                 pastix_int_t     fcolnum,
-                                 pastix_int_t     lcolnum,
-                                 pastix_int_t     brownum,
-                                 pastix_int_t     nodenbr,
-                                 pastix_int_t     cblknum,
-                                 int              ownerid )
+SolverBlok*
+solvMatGen_register_local_cblk( const symbol_matrix_t *symbmtx,
+                                const Cand            *candcblk,
+                                const pastix_int_t    *cblklocalnum,
+                                SolverCblk            *solvcblk,
+                                SolverBlok            *solvblok,
+                                pastix_int_t           lcblknm,
+                                pastix_int_t           brownum,
+                                pastix_int_t           gcblknm,
+                                pastix_int_t           ownerid )
 {
-    assert( solvblok != NULL );
-    assert( fcolnum >= 0 );
-    assert( lcolnum >= fcolnum );
-    assert( nodenbr >= 0 );
-    assert( brownum >= 0 );
-
-    symbol_cblk_t *symbcblk = symbmtx->cblktab + cblknum;
+    symbol_cblk_t *symbcblk = symbmtx->cblktab + gcblknm;
     symbol_blok_t *symbblok = symbmtx->bloktab + symbcblk->bloknum;
+    SolverBlok    *fblokptr = solvblok;
+    pastix_int_t   stride   = 0;
+    pastix_int_t   layout2D = candcblk->cblktype & CBLK_LAYOUT_2D;
+    pastix_int_t   fcolnum, lcolnum, nbcols, j;
 
-    SolverBlok  *fblokptr = solvblok;
-    pastix_int_t fbloknum = symbcblk[0].bloknum;
-    pastix_int_t lbloknum = symbcblk[1].bloknum;
-    pastix_int_t frownum, lrownum ;
-    pastix_int_t lcblknm, fcblknm;
-    pastix_int_t j, stride = 0;
-    pastix_int_t nbrows, nbcols;
-    pastix_int_t tasks2D  = candcblk->cblktype & CBLK_TASKS_2D;
+    assert( solvblok != NULL );
+    assert( brownum >= 0 );
+    assert( symbblok->lcblknm == gcblknm );
+    assert( (cblklocalnum == NULL) || (lcblknm == cblklocalnum[gcblknm]) );
 
-    nbcols = lcolnum - fcolnum + 1;
-    nbrows = solvMatGen_get_rownum( symbmtx, symbblok, &frownum, &lrownum );
+    /*
+     * Compute the number of columns of the fan-in
+     */
+    nbcols = symbol_cblk_get_colnum( symbmtx, symbcblk, &fcolnum, &lcolnum );
 
-    lcblknm = cblklocalnum[symbblok->lcblknm] - recvidx;
-    /* TODO : Adapt bloks to the received zone */
-    for ( j = fbloknum; j < lbloknum; j++, symbblok++ ) {
-        fcblknm = (j > fbloknum) ? -1 : cblklocalnum[symbblok->fcblknm];
-        nbrows  = solvMatGen_get_rownum( symbmtx, symbblok, &frownum, &lrownum );
+    /*
+     * Register all the local blocks
+     */
+    for ( j=symbcblk[0].bloknum; j<symbcblk[1].bloknum; j++, symbblok++ )
+    {
+        pastix_int_t frownum, lrownum, nbrows;
 
-        solvMatGen_init_blok( solvblok,
-                              lcblknm, fcblknm,
-                              frownum, lrownum,
-                              stride, nbcols, tasks2D );
-        solvblok->gbloknm = -1;
+        nbrows = symbol_blok_get_rownum( symbmtx, symbblok, &frownum, &lrownum );
+        assert( nbrows >= 1 );
+
+        /* Init the blok */
+        solvMatGen_init_blok( solvblok, lcblknm,
+                              cblklocalnum == NULL ? symbblok->fcblknm : cblklocalnum[symbblok->fcblknm],
+                              frownum, lrownum, stride, nbcols,
+                              layout2D );
+        solvblok->gbloknm = j;
         stride += nbrows;
         solvblok++;
     }
 
     solvMatGen_init_cblk( solvcblk, fblokptr, candcblk, symbcblk,
-                          fcolnum, lcolnum, brownum, stride, nodenbr,
-                          cblknum, ownerid );
+                          fcolnum, lcolnum, brownum, stride,
+                          gcblknm, ownerid );
 
-    solvcblk->brown2d   = brownum;
-    solvcblk->cblktype |= CBLK_RECV;
+    solvcblk->lcolidx = fcolnum;
+
+    return solvblok;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Register a remote cblk from a solver_recv_cblk_t structure (Fanin|Recv)
+ *
+ *******************************************************************************
+ *
+ * @param[in] symbmtx
+ *          The pointer to the symbol matrix.
+ *
+ * @param[in] recvcblk
+ *          The associated solver_recv_cblk_t structure used to initialize the
+ *          remote cblk.
+ *
+ * @param[in] candcblk
+ *          The cand structure associated to the current cblk to get the type of
+ *          the cblk.
+ *
+ * @param[in] cblklocalnum
+ *          Array of the local indices of the cblk.
+ *
+ * @param[inout] solvcblk
+ *          Pointer to the current cblk to register.
+ *
+ * @param[inout] solvblok
+ *          Pointer to the first block of the current cblk.
+ *
+ * @param[in] lcblknm
+ *          The local index of the cblk.
+ *
+ * @param[in] brownum
+ *          The current index in the browtab.
+ *
+ * @param[in] gcblknm
+ *          The global index of the current cblk.
+ *
+ * @return The pointer to the next solver block to register.
+ *
+ *******************************************************************************/
+SolverBlok*
+solvMatGen_register_remote_cblk( const symbol_matrix_t    *symbmtx,
+                                 const solver_cblk_recv_t *recvcblk,
+                                 const Cand               *candcblk,
+                                 const pastix_int_t       *cblklocalnum,
+                                 SolverCblk               *solvcblk,
+                                 SolverBlok               *solvblok,
+                                 pastix_int_t              lcblknm,
+                                 pastix_int_t              brownum,
+                                 pastix_int_t              gcblknm )
+{
+    const solver_blok_recv_t *recvblok = recvcblk->bloktab;
+    symbol_cblk_t *symbcblk = symbmtx->cblktab + gcblknm;
+    symbol_blok_t *symbblok = symbmtx->bloktab + symbcblk->bloknum;
+    SolverBlok    *fblokptr = solvblok;
+    pastix_int_t   stride   = 0;
+    pastix_int_t   layout2D = candcblk->cblktype & CBLK_LAYOUT_2D;
+    pastix_int_t   fcolnum, lcolnum, nbcols, j;
+
+    assert( solvblok != NULL );
+    assert( brownum >= 0 );
+    assert( symbblok->lcblknm == gcblknm );
+
+    /*
+     * Compute the number of columns of the fan-in
+     */
+    if ( symbmtx->dof < 0 ) {
+        fcolnum = symbmtx->dofs[recvcblk->fcolnum];
+        lcolnum = symbmtx->dofs[recvcblk->lcolnum + 1] - 1;
+    }
+    else {
+        fcolnum = symbmtx->dof *   recvcblk->fcolnum;
+        lcolnum = symbmtx->dof * ( recvcblk->lcolnum + 1 ) - 1;
+    }
+    nbcols = lcolnum - fcolnum + 1;
+
+    /*
+     * Register all the local blocks
+     */
+    for ( j=symbcblk[0].bloknum; j<symbcblk[1].bloknum; j++, recvblok++ )
+    {
+        pastix_int_t frownum, lrownum, nbrows;
+
+        if ( symbmtx->dof < 0 ) {
+            frownum = symbmtx->dofs[recvblok->frownum];
+            lrownum = symbmtx->dofs[recvblok->lrownum + 1] - 1;
+        }
+        else {
+            frownum = symbmtx->dof *   recvblok->frownum;
+            lrownum = symbmtx->dof * ( recvblok->lrownum + 1 ) - 1;
+        }
+        nbrows = lrownum - frownum + 1;
+
+        if ( nbrows < 1 ) {
+            continue;
+        }
+
+        /* Init the blok */
+        solvMatGen_init_blok( solvblok,
+                              lcblknm, -1,
+                              frownum, lrownum, stride, nbcols,
+                              layout2D );
+        solvblok->gbloknm = j;
+        stride += nbrows;
+        solvblok++;
+    }
+
+    /* Overwrite the fcblknm of the first block */
+    fblokptr->fcblknm = cblklocalnum[symbblok->fcblknm];
+
+    solvMatGen_init_cblk( solvcblk, fblokptr, candcblk, symbcblk,
+                          fcolnum, lcolnum, brownum, stride,
+                          gcblknm, recvcblk->ownerid );
+
+    solvcblk->lcolidx = fcolnum;
 
     /* No low-rank compression in distributed for the moment */
     if( solvcblk->cblktype & CBLK_COMPRESSED ) {
@@ -884,6 +1034,8 @@ solvMatGen_init_cblk_recv( const symbol_matrix_t *symbmtx,
     if( solvcblk->cblktype & CBLK_IN_SCHUR ) {
         solvcblk->cblktype &= (~CBLK_IN_SCHUR);
     }
+
+    return solvblok;
 }
 
 /**

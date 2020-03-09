@@ -116,6 +116,8 @@ void
 solverInit( SolverMatrix *solvmtx )
 {
     memset(solvmtx, 0, sizeof (SolverMatrix));
+    solvmtx->cblkmax1d  = -1;
+    solvmtx->cblkmaxblk = 1;
     return;
 }
 
