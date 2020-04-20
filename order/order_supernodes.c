@@ -161,9 +161,12 @@ orderSupernodes( const pastix_graph_t *graph,
 
         /**
          * Extract the subgraph with unknowns of the supernode sn_id
+         *
+         * 1 is sufficient for the max_distance in most cases, but set to 2 for
+         * corner cases that need extra connexions.
          */
         ret = graphIsolateRange( graph, order, &sn_graph,
-                                 fnode, lnode, max_distance );
+                                 fnode, lnode, 2 );
         if ( ret != EXIT_SUCCESS ) {
             fprintf(stderr, "Fatal error in graphIsolateSupernode()!\n");
             exit(1);
@@ -222,14 +225,14 @@ orderSupernodes( const pastix_graph_t *graph,
                     total    -= depth_size[i];
                     selected += depth_size[i];
 
-                    if ( (selected > iparm[IPARM_MIN_BLOCKSIZE]) && (total > totalmax) ) {
+                    if ( selected > iparm[IPARM_MIN_BLOCKSIZE] ) {
                         extendint_Add( &sn_parts, selected );
                         selected = 0;
                     }
                 }
 
                 /* Add last partition of selected unknowns */
-                if ( (selected > iparm[IPARM_MIN_BLOCKSIZE]) && (total > totalmax) ) {
+                if ( selected > iparm[IPARM_MIN_BLOCKSIZE] ) {
                     extendint_Add( &sn_parts, selected );
                     selected = 0;
                 }
