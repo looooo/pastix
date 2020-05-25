@@ -192,6 +192,10 @@ cmake_dependent_option(PASTIX_DEBUG_MPI
   "Dump all the MPI messages" OFF
   "PASTIX_WITH_MPI" OFF)
 
+# Option to generate LR TESTINGS (convenient if issues with tmg)
+option(PASTIX_LR_TESTINGS
+  "Enable the generation of low-rank testings (Requires LAPACKE with TMG support)" OFF)
+
 ###############################################################################
 # Look for dependencies #
 #########################
@@ -413,10 +417,10 @@ if (PASTIX_ORDERING_PTSCOTCH)
 
   # Check coherency for integer size
   if(PASTIX_INT64 AND NOT PTSCOTCH_Num_8)
-    message(FATAL_ERROR "PASTIX_INT64 is enabled and provided PT-Scotch is not compiled with int64 support.")
+    message(FATAL_ERROR "PASTIX_INT64 is enabled and provided PT-Scotch is not compiled with int64 support, please build with -DPASTIX_INT64=OFF or install a 64 bits version of PT-Scotch.")
   endif()
   if(NOT PASTIX_INT64 AND NOT PTSCOTCH_Num_4)
-    message(FATAL_ERROR "PASTIX_INT64 is disabled and provided PT-Scotch is not compiled with int32 support.")
+    message(FATAL_ERROR "PASTIX_INT64 is disabled and provided PT-Scotch is not compiled with int32 support, please build with -DPASTIX_INT64=ON or install a 32 bits version of PT-Scotch.")
   endif()
 endif()
 
@@ -437,10 +441,10 @@ if (PASTIX_ORDERING_SCOTCH)
 
   # Check coherency for integer size
   if(PASTIX_INT64 AND NOT SCOTCH_Num_8)
-    message(FATAL_ERROR "PASTIX_INT64 is enabled and provided Scotch is not compiled with int64 support.")
+    message(FATAL_ERROR "PASTIX_INT64 is enabled and provided Scotch is not compiled with int64 support, please build with -DPASTIX_INT64=OFF or install a 64 bits version of Scotch.")
   endif()
   if(NOT PASTIX_INT64 AND NOT SCOTCH_Num_4)
-    message(FATAL_ERROR "PASTIX_INT64 is disabled and provided Scotch is not compiled with int32 support.")
+    message(FATAL_ERROR "PASTIX_INT64 is disabled and provided Scotch is not compiled with int32 support, please build with -DPASTIX_INT64=ON or install a 32 bits version of Scotch.")
   endif()
 endif()
 
