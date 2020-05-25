@@ -192,6 +192,10 @@ cmake_dependent_option(PASTIX_DEBUG_MPI
   "Dump all the MPI messages" OFF
   "PASTIX_WITH_MPI" OFF)
 
+# Option to generate LR TESTINGS (convenient if issues with tmg)
+option(PASTIX_LR_TESTINGS
+  "Enable the generation of low-rank testings (Requires LAPACKE with TMG support)" OFF)
+
 ###############################################################################
 # Look for dependencies #
 #########################

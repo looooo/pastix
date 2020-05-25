@@ -12,6 +12,7 @@ set( CMAKE_C_FLAGS -O0 -g )
 
 set( PASTIX_ORDERING_METIS ON CACHE BOOL "" )
 set( PASTIX_INT64 OFF CACHE BOOL "" )
+set( PASTIX_LR_TESTINGS ON CACHE BOOL "" )
 
 option(MORSE_ENABLE_WARNING  "Enable warning messages"        ON)
 option(MORSE_ENABLE_COVERAGE "Enable flags for coverage test" ON)

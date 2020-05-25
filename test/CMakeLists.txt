@@ -141,71 +141,72 @@ endforeach()
 ###################################
 #   Low-rank testings
 ###
+if(PASTIX_LR_TESTINGS)
 
-## Tests requires TMG lib to generate random matrices.
-find_package(TMG)
+  ## Tests requires TMG lib to generate random matrices.
+  find_package(TMG)
 
-if(TMG_FOUND)
-  ## Generate the test library files for all required precisions
-  set(LRLIB_SOURCES
-    z_lowrank_tests.c
-    )
+  if(TMG_FOUND)
+    ## Generate the test library files for all required precisions
+    set(LRLIB_SOURCES
+      z_lowrank_tests.c
+      )
 
-  ## reset variables
-  set(generated_lrlibfiles "")
+    ## reset variables
+    set(generated_lrlibfiles "")
 
-  precisions_rules_py(generated_lrlibfiles
-    "${LRLIB_SOURCES}"
-    PRECISIONS "p;s;d;c;z")
+    precisions_rules_py(generated_lrlibfiles
+      "${LRLIB_SOURCES}"
+      PRECISIONS "p;s;d;c;z")
 
-  add_library( pastix_lrtests
-    ${generated_lrlibfiles}
-    tests_auxiliary.c
-    )
+    add_library( pastix_lrtests
+      ${generated_lrlibfiles}
+      tests_auxiliary.c
+      )
 
-  add_dependencies( pastix_lrtests
-    tests_headers_tgt
-    )
+    add_dependencies( pastix_lrtests
+      tests_headers_tgt
+      )
 
-  target_link_libraries( pastix_lrtests
-    pastix
-    pastix_kernels
-    ${LAPACKE_LIBRARIES_DEP}
-    ${TMG_LIBRARIES_DEP}
-    ${EXTRA_LIBS}
-    m )
-
-  set(LR_TESTS_SOURCES
-    z_ge2lr_performance.c
-    z_ge2lr_stability.c
-    z_ge2lr_tests.c
-    z_lrmm_tests.c
-    z_rradd_tests.c
-    )
-
-  ## reset variables
-  set(generated_lrfiles)
-
-  precisions_rules_py(generated_lrfiles
-    "${LR_TESTS_SOURCES}"
-    PRECISIONS "p;s;d;c;z")
-
-  set( testings
-    ${generated_lrfiles} )
-
-  foreach (_file ${testings})
-    get_filename_component(_name_we ${_file} NAME_WE)
-    add_executable(${_name_we} ${_file})
-    target_link_libraries(${_name_we}
-      pastix_lrtests
+    target_link_libraries( pastix_lrtests
+      pastix
       pastix_kernels
       ${LAPACKE_LIBRARIES_DEP}
       ${TMG_LIBRARIES_DEP}
       ${EXTRA_LIBS}
-      m)
+      m )
 
-    add_test(shm_test_${_name_we} ./${_name_we} -n 300 -p 10 )
-  endforeach()
+    set(LR_TESTS_SOURCES
+      z_ge2lr_performance.c
+      z_ge2lr_stability.c
+      z_ge2lr_tests.c
+      z_lrmm_tests.c
+      z_rradd_tests.c
+      )
 
+    ## reset variables
+    set(generated_lrfiles)
+
+    precisions_rules_py(generated_lrfiles
+      "${LR_TESTS_SOURCES}"
+      PRECISIONS "p;s;d;c;z")
+
+    set( testings
+      ${generated_lrfiles} )
+
+    foreach (_file ${testings})
+      get_filename_component(_name_we ${_file} NAME_WE)
+      add_executable(${_name_we} ${_file})
+      target_link_libraries(${_name_we}
+        pastix_lrtests
+        pastix_kernels
+        ${LAPACKE_LIBRARIES_DEP}
+        ${TMG_LIBRARIES_DEP}
+        ${EXTRA_LIBS}
+        m)
+
+      add_test(shm_test_${_name_we} ./${_name_we} -n 300 -p 10 )
+    endforeach()
+
+  endif()
 endif()
-
