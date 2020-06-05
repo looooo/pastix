@@ -58,6 +58,11 @@ int main (int argc, char **argv)
                       &check, &driver, &filename );
 
     /**
+     * Startup PaStiX
+     */
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+
+    /**
      * Let's hack this test to use different dofs:
      *    if check < 3, then we check constant dof,
      *    otherwise, we check variadic dof
@@ -102,11 +107,6 @@ int main (int argc, char **argv)
         memcpy( spm, spm2, sizeof(pastix_spm_t) );
     }
     free( spm2 );
-
-    /**
-     * Startup PaStiX
-     */
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Perform ordering, symbolic factorization, and analyze steps

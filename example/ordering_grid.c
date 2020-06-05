@@ -46,6 +46,11 @@ int main (int argc, char **argv)
                       &check, &driver, &filename );
 
     /**
+     * Startup PaStiX
+     */
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+
+    /**
      * Build optimal ordering (for laplacians only)
      */
     if ( driver != SpmDriverLaplacian ){
@@ -92,11 +97,6 @@ int main (int argc, char **argv)
         (void) dof;
     }
     free( filename );
-
-    /**
-     * Startup PaStiX
-     */
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Perform ordering, symbolic factorization, and analyze steps

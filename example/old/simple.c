@@ -32,6 +32,13 @@ int main (int argc, char **argv)
     int             check = 1;
     int             ret   = PASTIX_SUCCESS;
 
+#if defined(PASTIX_WITH_MPI)
+    {
+        int provided;
+        MPI_Init_thread( &argc, &argv, MPI_THREAD_MULTIPLE, &provided );
+    }
+#endif
+
     /*
      * Initialize parameters to default values
      */
@@ -136,5 +143,10 @@ int main (int argc, char **argv)
     free( spm );
     free( b );
     free( x );
+
+#if defined(PASTIX_WITH_MPI)
+    MPI_Finalize();
+#endif
+
     return ret;
 }

@@ -60,27 +60,6 @@ static void *solve_smp(void *arg)
     check = param.check;
 
     /**
-     * Read the sparse matrix with the driver
-     */
-    spm = malloc( sizeof( spmatrix_t ) );
-    spmReadDriver( param.driver, param.filename, spm );
-
-    spmPrintInfo( spm, stdout );
-
-    rc = spmCheckAndCorrect( spm, &spm2 );
-    if ( rc != 0 ) {
-        spmExit( spm );
-        *spm = spm2;
-    }
-
-    /**
-     * Generate a Fake values array if needed for the numerical part
-     */
-    if ( spm->flttype == SpmPattern ) {
-        spmGenFakeValues( spm );
-    }
-
-    /**
      * Startup PaStiX
      */
     {
@@ -112,6 +91,28 @@ static void *solve_smp(void *arg)
         }
     }
 #endif
+
+
+    /**
+     * Read the sparse matrix with the driver
+     */
+    spm = malloc( sizeof( spmatrix_t ) );
+    spmReadDriver( param.driver, param.filename, spm );
+
+    spmPrintInfo( spm, stdout );
+
+    rc = spmCheckAndCorrect( spm, &spm2 );
+    if ( rc != 0 ) {
+        spmExit( spm );
+        *spm = spm2;
+    }
+
+    /**
+     * Generate a Fake values array if needed for the numerical part
+     */
+    if ( spm->flttype == SpmPattern ) {
+        spmGenFakeValues( spm );
+    }
 
     /**
      * Perform ordering, symbolic factorization, and analyze steps

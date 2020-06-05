@@ -67,6 +67,11 @@ int main ( int argc, char **argv )
                           &check, &driver, &filename );
     }
 
+    /**
+     * Initialize the PaStiX library
+     */
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+
     if ( driver == (spm_driver_t)-1 ) {
         driver = SpmDriverLaplacian;
         flttype = SpmDouble;
@@ -90,11 +95,6 @@ int main ( int argc, char **argv )
         spmExit( spm );
         *spm = spm2;
     }
-
-    /**
-     * Startup pastix to start the scheduler
-     */
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Run preprocessing steps required to generate solverMatrix

@@ -40,6 +40,13 @@ int main (int argc, char **argv)
     int             check       = 1;
     int             rc          = 0;
 
+#if defined(PASTIX_WITH_MPI)
+    {
+        int provided;
+        MPI_Init_thread( &argc, &argv, MPI_THREAD_MULTIPLE, &provided );
+    }
+#endif
+
     /*
      * Initialize parameters to default values
      */
@@ -226,5 +233,10 @@ int main (int argc, char **argv)
     if ( x0 ) {
         free( x0 );
     }
+
+#if defined(PASTIX_WITH_MPI)
+    MPI_Finalize();
+#endif
+
     return rc;
 }

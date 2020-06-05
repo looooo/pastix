@@ -45,6 +45,20 @@ int main (int argc, char **argv)
                       &check, &driver, &filename );
 
     /**
+     * Set low-rank parameters
+     */
+    iparm[IPARM_COMPRESS_WHEN]       = PastixCompressWhenEnd;
+    iparm[IPARM_COMPRESS_METHOD]     = PastixCompressMethodPQRCP;
+    iparm[IPARM_COMPRESS_MIN_WIDTH]  = 128;
+    iparm[IPARM_COMPRESS_MIN_HEIGHT] = 25;
+    dparm[DPARM_COMPRESS_TOLERANCE]  = 1e-8;
+
+    /**
+     * Startup PaStiX
+     */
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+
+    /**
      * Read the sparse matrix with the driver
      */
     spm = malloc( sizeof( spmatrix_t ) );
@@ -65,20 +79,6 @@ int main (int argc, char **argv)
     if ( spm->flttype == SpmPattern ) {
         spmGenFakeValues( spm );
     }
-
-    /**
-     * Set low-rank parameters
-     */
-    iparm[IPARM_COMPRESS_WHEN]       = PastixCompressWhenEnd;
-    iparm[IPARM_COMPRESS_METHOD]     = PastixCompressMethodPQRCP;
-    iparm[IPARM_COMPRESS_MIN_WIDTH]  = 128;
-    iparm[IPARM_COMPRESS_MIN_HEIGHT] = 25;
-    dparm[DPARM_COMPRESS_TOLERANCE]  = 1e-8;
-
-    /**
-     * Startup PaStiX
-     */
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Perform ordering, symbolic factorization, and analyze steps

@@ -59,7 +59,6 @@ int main (int argc, char **argv)
      * Initialize parameters to default values
      */
     pastixInitParam( iparm, dparm );
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
      * Get options from command line
@@ -67,6 +66,11 @@ int main (int argc, char **argv)
     pastixGetOptions( argc, argv,
                       NULL, NULL,
                       NULL, &driver, &filename );
+
+    /**
+     * Initialize the PaStiX library
+     */
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     spm = malloc( sizeof( spmatrix_t ) );
     spmReadDriver( driver, filename, spm );
