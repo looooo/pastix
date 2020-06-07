@@ -18,15 +18,32 @@ endif()
 
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/enum.py.in"
-  "${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/enum.py" @ONLY)
+  "${CMAKE_CURRENT_BINARY_DIR}/examples/pypastix/enum.py" @ONLY)
 
-# Install python package
-install(FILES
+# Copy wrapper to build
+file(COPY
   ${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/__init__.py
   ${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/__pastix__.py
   ${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/pastix.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/enum.py
   ${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/solver.py
+  DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/examples/pypastix )
+
+# Copy examples to build
+file(COPY
+  ${CMAKE_CURRENT_SOURCE_DIR}/examples/schur_obj.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/examples/schur.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/examples/simple_obj.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/examples/simple.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/examples/step-by-step.py
+  DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/examples )
+
+# Install python package
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/examples/pypastix/__init__.py
+  ${CMAKE_CURRENT_BINARY_DIR}/examples/pypastix/__pastix__.py
+  ${CMAKE_CURRENT_BINARY_DIR}/examples/pypastix/pastix.py
+  ${CMAKE_CURRENT_BINARY_DIR}/examples/pypastix/enum.py
+  ${CMAKE_CURRENT_BINARY_DIR}/examples/pypastix/solver.py
   DESTINATION lib/python/pypastix )
 
 # Install python examples
@@ -47,14 +64,14 @@ if (PYTHONINTERP_FOUND)
   # Add path to SPM, and to the .so in the environment to run the tests
   if( NOT SPM_FOUND )
     set( TEST_ENV_LIST
-      "PYTHONPATH=$ENV{PYTHONPATH}:${CMAKE_SOURCE_DIR}/spm/wrappers/python"
+      "PYTHONPATH=$ENV{PYTHONPATH}:${CMAKE_BINARY_DIR}/spm/wrappers/python"
       "LIBRARY_PATH=$ENV{LIBRARY_PATH}:${CMAKE_BINARY_DIR}:${CMAKE_BINARY_DIR}/spm"
       "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:${CMAKE_BINARY_DIR}:${CMAKE_BINARY_DIR}/spm"
       "DYLDLIBRARY_PATH=$ENV{DYLD_LIBRARY_PATH}:${CMAKE_BINARY_DIR}:${CMAKE_BINARY_DIR}/spm"
       )
   endif()
   foreach(example ${PYTHON_TESTS} )
-    add_test( shm_python_${example} ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/examples/${example}.py)
+    add_test( shm_python_${example} ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/examples/${example}.py)
     set_tests_properties( shm_python_${example} PROPERTIES
       ENVIRONMENT "${TEST_ENV_LIST}" )
   endforeach()

@@ -61,6 +61,11 @@ int main (int argc, char **argv)
                       NULL, &driver, &filename );
 
     /**
+     * Initialize the PaStiX library
+     */
+    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
+
+    /**
      * Read the sparse matrix with the driver
      */
     spm = malloc( sizeof( spmatrix_t ) );
@@ -81,7 +86,6 @@ int main (int argc, char **argv)
     /**
      * Startup pastix to perform the analyze step
      */
-    pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
     pastix_task_analyze( pastix_data, spm );
     pastix_subtask_spm2bcsc( pastix_data, spm );
 
