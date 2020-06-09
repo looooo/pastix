@@ -31,8 +31,8 @@
  *          The pastix data structure that holds the graph and the ordering.
  *          On exit the output directories may be initialized, if not previously.
  *
- * @param[in] filename
- *          The output filename.
+ * @param[in] extname
+ *          Filename extension to specify the .map file if multiple.
  *
  * @param[in] sndeidx
  *          The index of the supernode to dump into file.
