@@ -23,9 +23,7 @@
 #include "spm.h"
 #include "graph.h"
 #include "blend/elimintree.h"
-#include "pastix/order.h"
-
-EliminTree *pastixOrderBuildEtree( const pastix_order_t *order );
+#include "order_internal.h"
 
 /**
  *******************************************************************************
@@ -521,7 +519,8 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
          */
 #if defined(PASTIX_ORDER_DRAW_LASTSEP)
         if ( ret == 0 ){
-            orderDraw( pastix_data, min_cblk );
+            orderDraw( pastix_data, "bsplit", ordemesh->sndenbr-1,
+                       orderDrawGraph | orderDrawCoordinates | orderDrawMapping );
         }
 #endif
         eTreeExit( etree );
