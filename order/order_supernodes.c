@@ -208,7 +208,6 @@ orderSupernodes( const pastix_graph_t *graph,
             /* Partition the supernode if sets of preselected unknowns have correct sizes */
             {
                 pastix_int_t selected, total, totalsel;
-                pastix_int_t totalmax = iparm[IPARM_MAX_BLOCKSIZE] * 16;
                 pastix_int_t selecmax = 20 * sqrt( sn_vertnbr );
                 selected = 0;
                 totalsel = 0;

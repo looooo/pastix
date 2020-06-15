@@ -12,13 +12,10 @@
  * @date 2019-11-12
  *
  */
-#include <pastix.h>
-#include <spm.h>
-#include "graph.h"
-#include "symbol.h"
-#include "pastix/order.h"
+#define _GNU_SOURCE 1
 #include "common.h"
-#include "solver.h"
+#include "order_internal.h"
+#include "graph.h"
 #include <scotch.h>
 
 /**
@@ -30,130 +27,198 @@
  *
  *******************************************************************************
  *
- * @param[in] pastix_data
+ * @param[inout] pastix_data
  *          The pastix data structure that holds the graph and the ordering.
+ *          On exit the output directories may be initialized, if not previously.
  *
- * @param[in] min_cblk
- *          The index of the first vertex belonging to the last separator.
+ * @param[in] extname
+ *          Filename extension to specify the .map file if multiple.
+ *
+ * @param[in] sndeidx
+ *          The index of the supernode to dump into file.
+ *
+ * @param[in] dump
+ *          Define which information to dump:
+ *          - (0x1 << 0) dumps the graph file
+ *          - (0x1 << 1) dumps the coordinate file
+ *          - (0x1 << 2) dumps the color mapping file
  *
  *******************************************************************************/
 void
 orderDraw( pastix_data_t *pastix_data,
-           pastix_int_t   min_cblk )
+           const char    *extname,
+           pastix_int_t   sndeidx,
+           int            dump )
 {
+    char           *fname;
     FILE           *file;
-    pastix_graph_t *graph  = pastix_data->graph;
-    pastix_order_t *order  = pastix_data->ordemesh;
-    pastix_int_t    size   = order->vertnbr-min_cblk;
-    pastix_int_t    color  = 0;
+    pastix_graph_t *graph = pastix_data->graph;
+    pastix_order_t *order = pastix_data->ordemesh;
+    pastix_int_t    ibeg, iend, size;
     pastix_int_t    i, j;
-    SCOTCH_Graph   sn_sgraph;
-    pastix_graph_t sn_pgraph;
-    pastix_int_t  *sn_colptr;
-    pastix_int_t  *sn_rows;
+    int             rc;
 
     assert( graph != NULL );
     assert( order != NULL );
+    assert( order->sndetab != NULL );
 
-    graphIsolateRange( graph, order, &sn_pgraph,
-                       min_cblk, order->vertnbr,
-                       pastix_data->iparm[IPARM_SPLITTING_PROJECTIONS_DISTANCE] );
+    ibeg = order->sndetab[sndeidx];
+    iend = order->sndetab[sndeidx+1];
+    size = iend - ibeg;
 
-    sn_colptr = sn_pgraph.colptr;
-    sn_rows   = sn_pgraph.rows;
-
-
-    if(!SCOTCH_graphInit(&sn_sgraph))
-    {
-        SCOTCH_graphBuild( &sn_sgraph,
-                           order->baseval,
-                           size,
-                           sn_colptr,
-                           NULL,
-                           NULL,
-                           NULL,
-                           sn_colptr[ size ] - order->baseval,
-                           sn_rows,
-                           NULL );
-    }
-    else {
-        fprintf( stderr, "Failed to build graph\n" );
-        return;
+    if ( dump ) {
+        pastix_gendirectories( pastix_data );
     }
 
-    file = fopen( "part.grf","w" );
-    SCOTCH_graphSave( &sn_sgraph, file );
-    fclose(file);
+    /*
+     * Dump the graph file
+     */
+    if ( dump & orderDrawGraph ) {
+        SCOTCH_Graph   sn_sgraph;
+        pastix_graph_t sn_pgraph;
+        pastix_int_t  *sn_colptr;
+        pastix_int_t  *sn_rows;
 
-    fprintf(stderr,"Check: %d\n", SCOTCH_graphCheck( &sn_sgraph ));
+        /**
+         * Extract the subgraph with unknowns of the supernode sndeidx
+         *
+         * 1 is sufficient for the max_distance in most cases, but set to 2 for
+         * corner cases that need extra connexions, and to match order_supernode.
+         */
+        graphIsolateRange( graph, order, &sn_pgraph,
+                           ibeg, iend, 2 );
 
-    free(sn_colptr);
-    free(sn_rows);
+        sn_colptr = sn_pgraph.colptr;
+        sn_rows   = sn_pgraph.rows;
 
-    /* Build xyz file */
-    {
-        FILE *fileout;
-        int rc;
-        (void) rc;
-        file = fopen( "before.xyz", "r" );
-        if ( file == NULL ) {
-            fprintf(stderr, "Please give before.xyz file\n");
+        if ( !SCOTCH_graphInit(&sn_sgraph) )
+        {
+            SCOTCH_graphBuild( &sn_sgraph,
+                               order->baseval,
+                               size,
+                               sn_colptr,
+                               NULL,
+                               NULL,
+                               NULL,
+                               sn_colptr[ size ] - order->baseval,
+                               sn_rows,
+                               NULL );
+        }
+        else
+        {
+            fprintf( stderr, "Failed to build graph\n" );
             return;
         }
 
-        fileout = fopen( "part.xyz", "w" );
+        rc = asprintf( &fname, "part.%ld.grf", (long)sndeidx);
+        assert( rc != -1 );
 
+        file = pastix_fopenw( pastix_data->dir_global, fname, "w" );
+        SCOTCH_graphSave( &sn_sgraph, file );
+        fclose( file );
+        free(fname);
+
+        fprintf(stderr,"Check: %d\n", SCOTCH_graphCheck( &sn_sgraph ));
+        free(sn_colptr);
+        free(sn_rows);
+    }
+
+    /*
+     * Dump the XYZ file
+     */
+    if ( dump & orderDrawCoordinates )
+    {
+        FILE *filein;
         long dim, n;
-        rc = fscanf( file, "%ld %ld", &dim, &n );
 
+        filein = fopen( "before.xyz", "r" );
+        if ( filein == NULL ) {
+            fprintf( stderr, "Please give before.xyz file\n" );
+            return;
+        }
+
+        /* Read dimensions */
+        rc = fscanf( filein, "%ld %ld", &dim, &n );
         if ( n != order->vertnbr ){
             fprintf(stderr, "Cannot proceed part.xyz and part.map files: invalid number of vertices in before.xyz\n");
-            fclose(file);
-            fclose(fileout);
+            fclose(filein);
             return;
         }
 
-        fprintf(fileout, "%ld %ld\n", (long)dim, (long)size );
+        rc = asprintf( &fname, "part.%ld.xyz", (long)sndeidx);
+        assert( rc != -1 );
+        file = pastix_fopenw( pastix_data->dir_global, fname, "w" );
+        free( fname );
+
+        fprintf( file, "%ld %ld\n", (long)dim, (long)size );
         for(i=0; i<order->vertnbr; i++) {
             long v, iv;
             double x, y, z;
 
-            rc = fscanf(file, "%ld %lf %lf %lf", &v, &x, &y, &z );
+            rc = fscanf(filein, "%ld %lf %lf %lf", &v, &x, &y, &z );
             assert( rc == 4 );
-            /* If permutation in the last supernode, we keep it */
+
+            /* If node within the selected supernode, let's keep it */
             iv = order->permtab[i];
-            if ( iv >= min_cblk ) {
-                fprintf(fileout, "%ld %lf %lf %lf\n", (long)(iv-min_cblk), x, y, z);
+            if ( (iv >= ibeg) && (iv < iend) ) {
+                fprintf( file, "%ld %lf %lf %lf\n",
+                         (long)(iv - ibeg), x, y, z );
             }
         }
 
         fclose(file);
-        fclose(fileout);
+        fclose(filein);
     }
 
-    /* Set colors */
+    /*
+     * Dump the mapping file
+     */
+    if ( dump & orderDrawMapping )
     {
-        FILE *fileout = fopen("part.map" ,"w");
-        fprintf(fileout, "%ld\n", (long)size);
+        pastix_int_t color = 0;
 
-        for (i=order->cblknbr-1; i>0; i--){
+        if ( extname ) {
+            rc = asprintf( &fname, "part.%ld.%s.map",
+                           (long)sndeidx, extname );
+        }
+        else {
+            rc = asprintf( &fname, "part.%ld.map",
+                           (long)sndeidx );
+        }
+        assert( rc != -1 );
+        file = pastix_fopenw( pastix_data->dir_global, fname, "w" );
+        free( fname );
+
+        fprintf( file, "%ld\n", (long)size );
+
+        /*
+         * Look for the last cblk implied in the original supernode
+         * The search is down backward to have more coherent coloring from one
+         * version to another, and because we usually draw the last supernode
+         * and no more.
+         */
+        i = order->cblknbr;
+        while ( (i > 0) && (order->rangtab[i] > iend) ) {
+            i--;
+        }
+        i--;
+
+        for (; i>0; i--) {
             pastix_int_t fnode = order->rangtab[i];
             pastix_int_t lnode = order->rangtab[i+1];
 
-            if ( fnode < min_cblk ) {
-                assert( lnode <= min_cblk );
+            if ( fnode < ibeg ) {
+                assert( lnode <= ibeg );
                 break;
             }
 
             for (j=fnode; j<lnode; j++) {
-                fprintf(fileout, "%ld %ld\n", (long)(j-min_cblk), (long)color);
+                fprintf( file, "%ld %ld\n",
+                         (long)(j - ibeg), (long)color );
             }
             color++;
         }
-        fclose(fileout);
+        fclose(file);
     }
-
-    /* Free graph structure, we don't need it anymore */
-    graphExit( pastix_data->graph );
-    memFree_null( pastix_data->graph );
+    (void)rc;
 }

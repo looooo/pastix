@@ -127,15 +127,6 @@ int  pastixOrderAddIsolate( pastix_order_t     *ordeptr,
                             pastix_int_t        new_n,
                             const pastix_int_t *perm );
 
-void orderDraw( pastix_data_t *pastix_data,
-                pastix_int_t   min_cblk );
-
-pastix_int_t
-orderSupernodes( const pastix_graph_t *graph,
-                 pastix_order_t       *order,
-                 EliminTree           *etree,
-                 pastix_int_t         *iparm );
-
 /**
  * @}
  */
