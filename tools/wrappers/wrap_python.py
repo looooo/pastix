@@ -151,7 +151,7 @@ class wrap_python:
 
  ''' + f['description'] + '''
 
- @copyright 2017-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-''' + time.strftime( "%Y" ) + ''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.0.3
@@ -225,6 +225,8 @@ import numpy as np
                 param[1] = re.sub(r"Spm", "trans.", param[1])
             elif ename == "normtype":
                 param[0] = re.sub(r"Norm", "", param[0])
+            elif ename == "ordering":
+                param[0] = re.sub(r"Order", "", param[0])
             else:
                 param[0] = re.sub(ename, "", param[0], flags=re.IGNORECASE)
             length = max( length, len(param[0]))

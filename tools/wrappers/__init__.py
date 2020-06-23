@@ -26,7 +26,7 @@ return_variables_dict = {
 }
 
 # global list used to determine derived types
-derived_types = [ 'spmatrix_t', 'spm_int_t', 'pastix_int_t', 'pastix_data_t', 'pastix_order_t']
+derived_types = [ 'spmatrix_t', 'spm_int_t', 'pastix_int_t', 'pastix_data_t', 'pastix_order_t', 'MPI_Comm' ]
 
 # name arrays which will be translated to assumed-size arrays, e.g. pA(*)
 arrays_names_2D = ["pA", "pB", "pC", "pAB", "pQ", "pX", "pAs"]
@@ -38,3 +38,4 @@ __all__ = [ 'return_variables_dict', 'derived_types', 'arrays_names_1D', 'arrays
 
 from .wrap_python  import *
 from .wrap_fortran import *
+from .wrap_julia import *

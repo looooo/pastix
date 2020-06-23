@@ -9,7 +9,7 @@
 !
 ! @version 6.0.3
 ! @author Mathieu Faverge
-! @date 2020-03-01
+! @date 2020-07-15
 !
 ! This file has been automatically generated with gen_wrappers.py
 !
@@ -195,7 +195,7 @@ module pastix_enums
      enumerator :: PastixSchedDynamic    = 4
   end enum
 
-  ! enum order
+  ! enum ordering
   enum, bind(C)
      enumerator :: PastixOrderScotch   = 0
      enumerator :: PastixOrderMetis    = 1

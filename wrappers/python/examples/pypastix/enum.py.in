@@ -11,7 +11,7 @@
  @author Pierre Ramet
  @author Mathieu Faverge
  @author Louis Poirel
- @date 2020-03-01
+ @date 2020-07-15
 
 This file has been automatically generated with gen_wrappers.py
 
@@ -180,7 +180,7 @@ class scheduler:
     StarPU     = 3
     Dynamic    = 4
 
-class order:
+class ordering:
     Scotch   = 0
     Metis    = 1
     Personal = 2
