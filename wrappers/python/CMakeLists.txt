@@ -56,8 +56,8 @@ install(FILES
   )
 
 ## CTest execution
-find_package(PythonInterp QUIET)
-if (PYTHONINTERP_FOUND)
+find_package (Python3 COMPONENTS Interpreter QUIET)
+if (Python3_Interpreter_FOUND)
   set( PYTHON_TESTS
     simple step-by-step schur simple_obj schur_obj )
 
@@ -71,7 +71,7 @@ if (PYTHONINTERP_FOUND)
       )
   endif()
   foreach(example ${PYTHON_TESTS} )
-    add_test( shm_python_${example} ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/examples/${example}.py)
+    add_test( shm_python_${example} ${Python3_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/examples/${example}.py)
     set_tests_properties( shm_python_${example} PROPERTIES
       ENVIRONMENT "${TEST_ENV_LIST}" )
   endforeach()
