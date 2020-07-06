@@ -203,9 +203,12 @@ void pastixSymbolExpand (       symbol_matrix_t *symbptr );
  * @name Symbol IO subroutines
  * @{
  */
-int pastixSymbolSave( const symbol_matrix_t *symbptr, FILE *stream );
-int pastixSymbolLoad(       symbol_matrix_t *symbptr, FILE *stream );
-int pastixSymbolDraw( const symbol_matrix_t *symbptr, FILE *stream );
+int  pastixSymbolSave( const symbol_matrix_t *symbptr, FILE *stream );
+int  pastixSymbolLoad(       symbol_matrix_t *symbptr, FILE *stream );
+int  pastixSymbolDraw( const symbol_matrix_t *symbptr, FILE *stream );
+void pastixSymbolDrawMap( pastix_data_t *pastix_data,
+                          const char    *extname,
+                          pastix_int_t   sndeidx );
 
 /**
  * @}

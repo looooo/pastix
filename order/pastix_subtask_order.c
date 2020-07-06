@@ -514,21 +514,20 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         ret = orderSupernodes( pastix_data->graph, ordemesh,
                                etree, iparm );
 
-        /*
-         * Draw last separator
-         */
-#if defined(PASTIX_ORDER_DRAW_LASTSEP)
-        if ( ret == 0 ){
-            orderDraw( pastix_data, "bsplit", ordemesh->sndenbr-1,
-                       orderDrawGraph | orderDrawCoordinates | orderDrawMapping );
-        }
-#endif
         eTreeExit( etree );
 
         (void)ret;
         (void)min_cblk;
 #endif /* !defined(PASTIX_ORDERING_SCOTCH) */
     }
+
+#if defined(PASTIX_ORDER_DRAW_LASTSEP)
+    /*
+     * Draw last separator graph and xyz
+     */
+    orderDraw( pastix_data, NULL, ordemesh->sndenbr-1,
+               orderDrawGraph | orderDrawCoordinates );
+#endif
 
     /* Reduce the error code */
     MPI_Allreduce(&retval, &retval_rcv, 1, MPI_INT, MPI_MAX,

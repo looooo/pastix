@@ -740,6 +740,7 @@ set(PASTIX_LIB_SRCS
   symbol/symbol_cost_flops.c
   symbol/symbol_cost_perfs.c
   symbol/symbol_draw.c
+  symbol/symbol_draw_map.c
   symbol/symbol_expand.c
   symbol/symbol_fax_direct.c
   symbol/symbol_fax_iluk.c

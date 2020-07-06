@@ -163,12 +163,10 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     }
 
     /* Free graph structure, we don't need it anymore */
-#if !defined(PASTIX_ORDER_DRAW_LASTSEP)
     if ( pastix_data->graph != NULL ) {
         graphExit( pastix_data->graph );
         memFree_null( pastix_data->graph );
     }
-#endif
 
     /* Cleanup the solver structure if we already computed it */
     if ( pastix_data->solvmatr != NULL ) {
@@ -179,6 +177,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         solverExit( pastix_data->solvglob );
         memFree_null( pastix_data->solvglob );
     }
+
     solvmtx = (SolverMatrix*)malloc(sizeof(SolverMatrix));
     solvmtx_glob = (SolverMatrix*)malloc(sizeof(SolverMatrix));
     pastix_data->solvmatr = solvmtx;
@@ -212,6 +211,15 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         pastixSymbolCheck(symbmtx);
     }
 
+#if defined(PASTIX_ORDER_DRAW_LASTSEP)
+    /*
+     * Draw last separator before split
+     */
+    if ( iparm[IPARM_SPLITTING_STRATEGY] == PastixSplitKwayProjections ) {
+        pastixSymbolDrawMap( pastix_data, "bsplit", ordeptr->sndenbr-1 );
+    }
+#endif
+
 #if !defined(PASTIX_BLEND_PROPMAP_2STEPS)
     /*
      * Split the existing symbol matrix according to the number of candidates
@@ -234,6 +242,12 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                           clockVal(timer_current) );
         }
     }
+#if defined(PASTIX_ORDER_DRAW_LASTSEP)
+    /*
+     * Draw last separator after split
+     */
+    pastixSymbolDrawMap( pastix_data, "asplit", ordeptr->sndenbr-1 );
+#endif
 #endif
 
     /* Build the elimination tree from the symbolic partition */
@@ -397,12 +411,6 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
             fclose( stream );
         }
     }
-#endif
-
-#if defined(PASTIX_ORDER_DRAW_LASTSEP)
-    orderDraw( pastix_data, "asplit",
-               pastix_data->ordemesh->sndenbr-1,
-               orderDrawMapping );
 #endif
 
     if (0)
