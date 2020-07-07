@@ -238,7 +238,7 @@ isched_t *ischedInit(int cores, const int *coresbind)
         isched->world_size = pastix_getenv_get_value_int("PASTIX_NUM_THREADS", -1);
         if ( isched->world_size == -1 ) {
             isched->world_size = isched_topo_world_size();
-            fprintf(stderr, "ischedInit: Could not find the number of cores: the thread number is set to %d\n", isched->world_size);
+            fprintf( stderr, "ischedInit: The thread number has been automatically set to %d\n", isched->world_size );
         }
     }
     else

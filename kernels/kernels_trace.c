@@ -83,8 +83,8 @@ kernelsTraceStart( const pastix_data_t *pastix_data )
             pastix_cleanenv(level);
         }
 
-        if ( pastix_data->dir_local != NULL ) {
-            pastix_setenv( "EZTRACE_TRACE_DIR", pastix_data->dir_local, 1 );
+        if ( pastix_data->dir_global != NULL ) {
+            pastix_setenv( "EZTRACE_TRACE_DIR", pastix_data->dir_global, 1 );
         }
         eztrace_start ();
     }

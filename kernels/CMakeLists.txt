@@ -127,6 +127,11 @@ add_dependencies(pastix_kernels
 )
 
 if(PASTIX_WITH_EZTRACE)
+   if (PASTIX_WITH_MPI)
+     set( EZTRACE_LIBRARIES
+       ${EZTRACE_LIBRARIES}
+       eztrace-mpi )
+   endif()
    target_link_libraries(pastix_kernels
      ${EZTRACE_LIBRARIES}
      litl
