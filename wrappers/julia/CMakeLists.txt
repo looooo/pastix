@@ -48,13 +48,6 @@ file(COPY
   ${CMAKE_CURRENT_SOURCE_DIR}/PaStiX/src/PaStiX.jl
   DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/PaStiX/src )
 
-# Copy examples to build
-file(COPY
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/simple.jl
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/step-by-step.jl
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/schur.jl
-  DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/PaStiX/examples )
-
 # Install julia package
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/PaStiX/Project.toml

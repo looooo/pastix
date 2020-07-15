@@ -31,6 +31,11 @@ program flaplacian
   integer(kind=pastix_int_t)                                          :: i, j, k, l, nrhs
   integer(c_int)                                                      :: info
 
+  ! 1- Initialize the parameters and the solver
+  ! (Done before any calls to spm to automatically intialize MPI if needed)
+  call pastixInitParam( iparm, dparm )
+  call pastixInit( pastix_data, 0, iparm, dparm )
+
   !
   ! Generate a 10x10x10 complex Laplacian
   !
@@ -140,10 +145,6 @@ program flaplacian
   !
   ! Solve the problem
   !
-
-  ! 1- Initialize the parameters and the solver
-  call pastixInitParam( iparm, dparm )
-  call pastixInit( pastix_data, 0, iparm, dparm )
 
   ! 2- Analyze the problem
   call pastix_task_analyze( pastix_data, spm, info )

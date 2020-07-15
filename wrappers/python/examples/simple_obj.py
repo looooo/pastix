@@ -19,8 +19,8 @@ import scipy.sparse as sps
 import numpy as np
 
 # Set the problem
-n = 9
-A = sps.spdiags([np.ones(n)*i for i in [4, -1, -1, -1, -1]],
+n = 1000
+A = sps.spdiags([np.ones(n)*i for i in [8., -1., -1., -1., -1.]],
                 [0, 1, 3, -1, -3], n, n)
 x0 = np.arange(n)
 b = A.dot(x0)

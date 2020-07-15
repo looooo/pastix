@@ -21,6 +21,7 @@ import numpy as np
 
 # Start with __ to prevent broadcast to file importing enum
 __pastix_int__ = @PASTIX_PYTHON_INTEGER@
+__pastix_mpi_enabled__ = @PASTIX_PYTHON_MPI_ENABLED@
 
 class iparm:
     verbose                        = 0

@@ -15,7 +15,16 @@
 !
 module pastix_enums
   use iso_c_binding
+#if defined(PASTIX_WITH_MPI)
+  use mpi_f08
+#endif
   implicit none
+
+#if !defined(PASTIX_WITH_MPI)
+  type, bind(c) :: MPI_Comm
+     integer(kind=c_int) :: MPI_Comm
+  end type MPI_Comm
+#endif
 
   ! enum iparm
   enum, bind(C)

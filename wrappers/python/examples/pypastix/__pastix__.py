@@ -19,11 +19,24 @@ This file has been automatically generated with gen_wrappers.py
 from ctypes import *
 import numpy as np
 
-
 from . import libpastix
 from .enum import __pastix_int__
+from .enum import __pastix_mpi_enabled__
 from spm import pyspm_spmatrix_t
 import spm
+
+if __pastix_mpi_enabled__:
+    from mpi4py import MPI
+
+def __get_mpi_type__():
+    if not __pastix_mpi_enabled__:
+        return c_int
+    if MPI._sizeof(MPI.Comm) == sizeof(c_long):
+        return c_long
+    elif MPI._sizeof(MPI.Comm) == sizeof(c_int):
+        return c_int
+    else:
+        return c_void_p
 
 class pypastix_order_t(Structure):
     _fields_ = [("baseval",  __pastix_int__         ),

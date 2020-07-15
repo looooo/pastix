@@ -30,6 +30,14 @@ program fsimple
   type(c_ptr)                                              :: x0_ptr, x_ptr, b_ptr
 
   !
+  ! Solve the problem
+  !
+
+  ! 1- Initialize the parameters and the solver
+  call pastixInitParam( iparm, dparm )
+  call pastixInit( pastix_data, 0, iparm, dparm )
+
+  !
   ! Initialize the problem
   !   1- The matrix
   allocate( spm )
@@ -60,14 +68,6 @@ program fsimple
 
   call spmGenRHS( SpmRhsRndX, nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, info )
   x = b
-
-  !
-  ! Solve the problem
-  !
-
-  ! 1- Initialize the parameters and the solver
-  call pastixInitParam( iparm, dparm )
-  call pastixInit( pastix_data, 0, iparm, dparm )
 
   ! 2- Analyze the problem
   call pastix_task_analyze( pastix_data, spm, info )
