@@ -33,6 +33,7 @@ pastix_data = pastix.init( iparm, dparm )
 # Change some parameters
 iparm[pastix.iparm.factorization] = pastix.factotype.LU
 
+rc = 0
 for nspb in range(1,3):
     # Load a sparse matrix from HB driver
     spmA = spm.spmatrix( None, driver=spm.driver.Laplacian, filename=("%d:%d:%d:4.:1."%(nspb*5, nspb*5, nspb*5)) )
@@ -63,6 +64,8 @@ for nspb in range(1,3):
             pastix.task_refine( pastix_data, spmA, b, x )
 
             # Check solution
-            spmA.checkAxb( x0, b, x )
+            rc |= spmA.checkAxb( x0, b, x )
 
 pastix.finalize( pastix_data, iparm, dparm )
+
+exit(rc)

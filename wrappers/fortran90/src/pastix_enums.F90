@@ -9,13 +9,22 @@
 !
 ! @version 6.0.3
 ! @author Mathieu Faverge
-! @date 2020-03-01
+! @date 2020-07-15
 !
 ! This file has been automatically generated with gen_wrappers.py
 !
 module pastix_enums
   use iso_c_binding
+#if defined(PASTIX_WITH_MPI)
+  use mpi_f08
+#endif
   implicit none
+
+#if !defined(PASTIX_WITH_MPI)
+  type, bind(c) :: MPI_Comm
+     integer(kind=c_int) :: MPI_Comm
+  end type MPI_Comm
+#endif
 
   ! enum iparm
   enum, bind(C)
@@ -195,7 +204,7 @@ module pastix_enums
      enumerator :: PastixSchedDynamic    = 4
   end enum
 
-  ! enum order
+  ! enum ordering
   enum, bind(C)
      enumerator :: PastixOrderScotch   = 0
      enumerator :: PastixOrderMetis    = 1

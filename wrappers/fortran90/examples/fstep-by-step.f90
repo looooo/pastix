@@ -34,6 +34,10 @@ program fsimple
   nfact = 2
   nsolv = 3
 
+  ! 1- Initialize the parameters and the solver
+  call pastixInitParam( iparm, dparm )
+  call pastixInit( pastix_data, 0, iparm, dparm )
+
   !
   ! Initialize the problem
   !   1- The matrix
@@ -58,10 +62,6 @@ program fsimple
   x0_ptr = c_loc(x0)
   x_ptr  = c_loc(x)
   b_ptr  = c_loc(b)
-
-  ! 1- Initialize the parameters and the solver
-  call pastixInitParam( iparm, dparm )
-  call pastixInit( pastix_data, 0, iparm, dparm )
 
   ! 2- Perform ordering, symbolic factorization, and analyze steps
   call pastix_subtask_order( pastix_data, spm, order, info )

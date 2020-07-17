@@ -30,6 +30,10 @@ program fmultidof
   real(kind=c_double), dimension(:,:), allocatable, target :: x0, x, b
   type(c_ptr)                                              :: x0_ptr, x_ptr, b_ptr
 
+  ! 1- Initialize the parameters and the solver
+  call pastixInitParam( iparm, dparm )
+  call pastixInit( pastix_data, 0, iparm, dparm )
+
   !
   ! Initialize the problem
   !   1- The matrix
@@ -65,10 +69,6 @@ program fmultidof
   !
   ! Solve the problem
   !
-
-  ! 1- Initialize the parameters and the solver
-  call pastixInitParam( iparm, dparm )
-  call pastixInit( pastix_data, 0, iparm, dparm )
 
   ! 2- Analyze the problem
   !   a- Split the analyze in substeps. The first three steps handle

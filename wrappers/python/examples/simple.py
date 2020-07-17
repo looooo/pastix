@@ -58,6 +58,8 @@ pastix.task_solve( pastix_data, spmA, x )
 pastix.task_refine( pastix_data, spmA, b, x )
 
 # Check solution
-spmA.checkAxb( x0, b, x )
+rc = spmA.checkAxb( x0, b, x )
 
 pastix.finalize( pastix_data, iparm, dparm )
+
+exit(rc)

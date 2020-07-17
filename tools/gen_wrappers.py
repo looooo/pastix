@@ -49,7 +49,9 @@ module_name = "pastix_enums"
 
 # exclude inline functions from the interface
 exclude_list = [ "inline", "spmIntSort", "spmIntMSort",
-                 "orderDraw", "orderSupernodes", "pastixOrderCompute", "pastixOrderApplyLevelOrder",
+                 "orderDraw", "orderSupernodes",
+                 "pastixOrderCompute", "pastixOrderApplyLevelOrder",
+                 "pastixOrderExpand", "pastixOrderAmalgamate",
                  "pastixOrderAddIsolate", "pastixOrderFindSupernodes" ]
 
 def polish_file(whole_file):
@@ -86,6 +88,8 @@ def polish_file(whole_file):
     # Split the line based on ";" and "}"
     clean_file = re.sub(r";", "\n", clean_file)
     clean_file = re.sub(r"}", "}\n", clean_file)
+
+    clean_file = re.sub(r"\bSPM_Comm", "MPI_Comm", clean_file)
 
     return clean_file
 
@@ -367,6 +371,16 @@ def parse_prototypes(preprocessed_list):
 
     return function_list
 
+def gen_enum_copy( input_enum ):
+    output_enum = list()
+    output_enum.append( input_enum[0] )
+    output_enum.append( list() )
+
+    for e in input_enum[1]:
+        output_enum[1].append( e[:] )
+
+    return output_enum
+
 def write_module(f, wrapper, generator, enum_list, struct_list, function_list):
     """Generate a single Fortran module. Its structure will be:
        enums converted to constants
@@ -382,7 +396,8 @@ def write_module(f, wrapper, generator, enum_list, struct_list, function_list):
     # enums
     if (len(enum_list) > 0):
         for enum in enum_list:
-            f_interface = generator.enum( f, enum )
+            enum_cpy = gen_enum_copy( enum )
+            f_interface = generator.enum( f, enum_cpy )
             modulefile.write(f_interface + "\n")
 
     # derived types
@@ -485,8 +500,20 @@ pastix_enums = {
                    'footer'      : enums_fortran_footer,
                    'enums'       : { 'mtxtype'  : "    enumerator :: PastixSymPosDef = PastixConjTrans + 1\n    enumerator :: PastixHerPosDef    = PastixConjTrans + 2\n" }
     },
+    'julia'   : { 'filename'    : "wrappers/julia/PaStiX/src/pastix_enums.jl.in",
+                   'description' : "PaStiX julia wrapper to define enums and datatypes",
+                   'header'      : "Pastix_int_t = @PASTIX_JULIA_INTEGER@\npastix_mpi_enabled = @PASTIX_JULIA_MPI_ENABLED@\nconst Pastix_data_t = Cvoid\nconst Pastix_graph_t = Ptr{Cvoid}\n",
+                   'footer'      : "",
+                   'enums'       : "",
+    },
 }
-
+"""
+"const PastixPattern =  SpmPattern"
+                                 "const PastixFloat = SpmFloat"
+                                 "const PastixDouble = SpmDouble"
+                                 "const PastixComplex32 = SpmComplex32"
+                                 "const PastixComplex64 = SpmComplex64
+"""
 pastix = {
     'filename' : [ "include/pastix/order.h", "include/pastix.h" ],
     'python'   : { 'filename'    : "wrappers/python/examples/pypastix/__pastix__.py",
@@ -511,6 +538,34 @@ import spm
   end type pastix_data_t
 ''',
                    'footer'      : "",
+                   'enums'       : {}
+    },
+    'julia'   : { 'filename'    : "wrappers/julia/PaStiX/src/PaStiX.jl",
+                   'description' : "PaStiX julia wrapper",
+                   'header'      : "module PaStiX\n"
+                                   "using CBinding\n"
+                                   "using Libdl\n"
+                                   "function pastix_library_path()\n"
+                                   "    x = Libdl.dlext\n"
+                                   "    return \"libpastix.$x\"\n"
+                                   "end\n\n"
+                                   "libpastix = pastix_library_path()\n"
+                                   "include(\"pastix_enums.jl\")\n\n"
+                                   "using spm\n\n"
+                                   "if pastix_mpi_enabled\n"
+                                   "    using MPI\n"
+                                   "end\n\n"
+                                   "function __get_mpi_type__()\n"
+                                   "    if !pastix_mpi_enabled\n"
+                                   "        return Cint\n"
+                                   "    elseif sizeof(MPI.MPI_Comm) == sizeof(Clong)\n"
+                                   "        return Clong\n"
+                                   "    elseif sizeof(MPI.MPI_Comm) == sizeof(Cint)\n"
+                                   "        return Cint\n"
+                                   "    end\n"
+                                   "    return Cvoid\n"
+                                   "end\n",
+                   'footer'      : "end #module",
                    'enums'       : {}
     },
 }
@@ -558,6 +613,11 @@ def main():
 
         modulefilename = write_module( f['python'], False,
                                        wrappers.wrap_python,
+                                       enum_list, struct_list, function_list)
+        print( "Exported file: " + modulefilename )
+
+        modulefilename = write_module( f['julia'], False,
+                                       wrappers.wrap_julia,
                                        enum_list, struct_list, function_list)
         print( "Exported file: " + modulefilename )
 

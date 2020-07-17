@@ -1,0 +1,299 @@
+#=
+
+ @file pastix_enums.jl
+
+ PaStiX julia wrapper to define enums and datatypes
+
+ @copyright 2020-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+                      Univ. Bordeaux. All rights reserved.
+
+ @version 6.0.0
+ @author Mathieu Faverge
+ @author Lebdaoui selmane
+ @date 2020-07-15
+
+This file has been automatically generated with gen_wrappers.py
+
+=#
+
+Pastix_int_t = @PASTIX_JULIA_INTEGER@
+pastix_mpi_enabled = @PASTIX_JULIA_MPI_ENABLED@
+const Pastix_data_t = Cvoid
+const Pastix_graph_t = Ptr{Cvoid}
+
+@cenum Pastix_iparm_t {
+    iparm_verbose                        = 1,
+    iparm_io_strategy                    = 2,
+    iparm_nnzeros                        = 3,
+    iparm_nnzeros_block_local            = 4,
+    iparm_allocated_terms                = 5,
+    iparm_produce_stats                  = 6,
+    iparm_mc64                           = 7,
+    iparm_ordering                       = 8,
+    iparm_ordering_default               = 9,
+    iparm_scotch_switch_level            = 10,
+    iparm_scotch_cmin                    = 11,
+    iparm_scotch_cmax                    = 12,
+    iparm_scotch_frat                    = 13,
+    iparm_metis_ctype                    = 14,
+    iparm_metis_rtype                    = 15,
+    iparm_metis_no2hop                   = 16,
+    iparm_metis_nseps                    = 17,
+    iparm_metis_niter                    = 18,
+    iparm_metis_ufactor                  = 19,
+    iparm_metis_compress                 = 20,
+    iparm_metis_ccorder                  = 21,
+    iparm_metis_pfactor                  = 22,
+    iparm_metis_seed                     = 23,
+    iparm_metis_dbglvl                   = 24,
+    iparm_amalgamation_lvlblas           = 25,
+    iparm_amalgamation_lvlcblk           = 26,
+    iparm_reordering_split               = 27,
+    iparm_reordering_stop                = 28,
+    iparm_splitting_strategy             = 29,
+    iparm_splitting_levels_projections   = 30,
+    iparm_splitting_levels_kway          = 31,
+    iparm_splitting_projections_depth    = 32,
+    iparm_splitting_projections_distance = 33,
+    iparm_splitting_projections_width    = 34,
+    iparm_min_blocksize                  = 35,
+    iparm_max_blocksize                  = 36,
+    iparm_tasks2d_level                  = 37,
+    iparm_tasks2d_width                  = 38,
+    iparm_allcand                        = 39,
+    iparm_incomplete                     = 40,
+    iparm_level_of_fill                  = 41,
+    iparm_factorization                  = 42,
+    iparm_static_pivoting                = 43,
+    iparm_free_cscuser                   = 44,
+    iparm_schur_fact_mode                = 45,
+    iparm_schur_solv_mode                = 46,
+    iparm_applyperm_ws                   = 47,
+    iparm_refinement                     = 48,
+    iparm_nbiter                         = 49,
+    iparm_itermax                        = 50,
+    iparm_gmres_im                       = 51,
+    iparm_scheduler                      = 52,
+    iparm_thread_nbr                     = 53,
+    iparm_autosplit_comm                 = 54,
+    iparm_gpu_nbr                        = 55,
+    iparm_gpu_memory_percentage          = 56,
+    iparm_gpu_memory_block_size          = 57,
+    iparm_compress_min_width             = 58,
+    iparm_compress_min_height            = 59,
+    iparm_compress_when                  = 60,
+    iparm_compress_method                = 61,
+    iparm_compress_ortho                 = 62,
+    iparm_compress_reltol                = 63,
+    iparm_compress_preselect             = 64,
+    iparm_thread_comm_mode               = 65,
+    iparm_modify_parameter               = 66,
+    iparm_start_task                     = 67,
+    iparm_end_task                       = 68,
+    iparm_float                          = 69,
+    iparm_mtx_type                       = 70,
+    iparm_dof_nbr                        = 71,
+    iparm_size                           = 71,
+}
+
+@cenum Pastix_dparm_t {
+    dparm_fill_in            = 1,
+    dparm_epsilon_refinement = 2,
+    dparm_relative_error     = 3,
+    dparm_epsilon_magn_ctrl  = 4,
+    dparm_order_time         = 5,
+    dparm_symbfact_time      = 6,
+    dparm_reorder_time       = 7,
+    dparm_blend_time         = 8,
+    dparm_analyze_time       = 9,
+    dparm_pred_fact_time     = 10,
+    dparm_fact_time          = 11,
+    dparm_fact_flops         = 12,
+    dparm_fact_thflops       = 13,
+    dparm_fact_rlflops       = 14,
+    dparm_solv_time          = 15,
+    dparm_solv_flops         = 16,
+    dparm_solv_thflops       = 17,
+    dparm_solv_rlflops       = 18,
+    dparm_refine_time        = 19,
+    dparm_a_norm             = 20,
+    dparm_compress_tolerance = 21,
+    dparm_compress_min_ratio = 22,
+    dparm_size               = 22,
+}
+
+@cenum Pastix_task_t {
+    taskinit     = 0,
+    taskordering = 1,
+    tasksymbfact = 2,
+    taskanalyze  = 3,
+    tasknumfact  = 4,
+    tasksolve    = 5,
+    taskrefine   = 6,
+    taskclean    = 7,
+}
+
+@cenum Pastix_verbose_t {
+    verbosenot = 0,
+    verboseno  = 1,
+    verboseyes = 2,
+}
+
+@cenum Pastix_io_t {
+    iono        = 0,
+    ioload      = 1,
+    iosave      = 2,
+    ioloadgraph = 4,
+    iosavegraph = 8,
+    ioloadcsc   = 16,
+    iosavecsc   = 32,
+}
+
+@cenum Pastix_fact_mode_t {
+    factmodelocal = 0,
+    factmodeschur = 1,
+    factmodeboth  = 2,
+}
+
+@cenum Pastix_solv_mode_t {
+    solvmodelocal     = 0,
+    solvmodeinterface = 1,
+    solvmodeschur     = 2,
+}
+
+@cenum Pastix_refine_t {
+    refinegmres    = 0,
+    refinecg       = 1,
+    refinesr       = 2,
+    refinebicgstab = 3,
+}
+
+@cenum Pastix_factotype_t {
+    factpotrf = 0,
+    factsytrf = 1,
+    factgetrf = 2,
+    factpxtrf = 3,
+    facthetrf = 4,
+    factllh   = 0,
+    factldlt  = 1,
+    factlu    = 2,
+    factllt   = 3,
+    factldlh  = 4,
+}
+
+@cenum Pastix_scheduler_t {
+    schedsequential = 0,
+    schedstatic     = 1,
+    schedparsec     = 2,
+    schedstarpu     = 3,
+    scheddynamic    = 4,
+}
+
+@cenum Pastix_ordering_t {
+    orderscotch   = 0,
+    ordermetis    = 1,
+    orderpersonal = 2,
+    orderptscotch = 3,
+    orderparmetis = 4,
+}
+
+@cenum Pastix_threadmode_t {
+    threadmultiple = 1,
+    threadfunneled = 2,
+}
+
+@cenum Pastix_error_t {
+    success            = 0,
+    err_unknown        = 1,
+    err_alloc          = 2,
+    err_notimplemented = 3,
+    err_outofmemory    = 4,
+    err_thread         = 5,
+    err_internal       = 6,
+    err_badparameter   = 7,
+    err_file           = 8,
+    err_integer_type   = 9,
+    err_io             = 10,
+    err_mpi            = 11,
+}
+
+@cenum Pastix_compress_when_t {
+    compressnever      = 0,
+    compresswhenbegin  = 1,
+    compresswhenend    = 2,
+    compresswhenduring = 3,
+}
+
+@cenum Pastix_compress_method_t {
+    compressmethodsvd   = 0,
+    compressmethodpqrcp = 1,
+    compressmethodrqrcp = 2,
+    compressmethodtqrcp = 3,
+    compressmethodrqrrt = 4,
+    compressmethodnbr   = 5,
+}
+
+@cenum Pastix_compress_ortho_t {
+    compressorthocgs       = 0,
+    compressorthoqr        = 1,
+    compressorthopartialqr = 2,
+}
+
+@cenum Pastix_split_t {
+    splitnot             = 0,
+    splitkway            = 1,
+    splitkwayprojections = 2,
+}
+
+@cenum Pastix_layout_t {
+    rowmajor = 101,
+    colmajor = 102,
+}
+
+@cenum Pastix_trans_t {
+    notrans   = 111,
+    trans     = 112,
+    conjtrans = 113,
+}
+
+@cenum Pastix_mtxtype_t {
+    general   = notrans,
+    symmetric = trans,
+    hermitian = conjtrans,
+}
+
+@cenum Pastix_uplo_t {
+    upper      = 121,
+    lower      = 122,
+    upperlower = 123,
+}
+
+@cenum Pastix_coefside_t {
+    lcoef  = 0,
+    ucoef  = 1,
+    lucoef = 2,
+}
+
+@cenum Pastix_diag_t {
+    nonunit = 131,
+    unit    = 132,
+}
+
+@cenum Pastix_side_t {
+    left  = 141,
+    right = 142,
+}
+
+@cenum Pastix_normtype_t {
+    onenorm       = 171,
+    frobeniusnorm = 174,
+    infnorm       = 175,
+    maxnorm       = 177,
+}
+
+@cenum Pastix_dir_t {
+    dirforward  = 391,
+    dirbackward = 392,
+}
+
+

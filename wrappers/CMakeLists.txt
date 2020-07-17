@@ -8,23 +8,14 @@
 #  @date 2020-01-29
 #
 ###
-if ( PASTIX_WITH_MPI )
-  if ( PASTIX_WITH_FORTRAN )
-    message(STATUS "--- Fortran wrapper is disabled due to MPI support activated")
-    set( PASTIX_WITH_FORTRAN OFF )
-  endif()
-endif()
 
 if (PASTIX_WITH_FORTRAN)
   add_subdirectory( fortran90 )
 endif()
 
 if (BUILD_SHARED_LIBS)
-  if ( PASTIX_WITH_MPI )
-    message(STATUS "--- Python wrapper is disabled due to MPI support activated")
-  else()
   add_subdirectory( python )
-  endif()
+  add_subdirectory( julia )
 else()
-  message(STATUS "--- Python wrapper is disabled with static libraries")
+  message(STATUS "--- Python and Julia wrappers are disabled with static libraries")
 endif()
