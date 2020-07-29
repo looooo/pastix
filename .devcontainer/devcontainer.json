@@ -1,0 +1,74 @@
+// For format details, see https://aka.ms/vscode-remote/devcontainer.json or this file's README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.128.0/containers/docker-existing-dockerfile
+{
+	"name": "hpclib hiepacs openmpi",
+	// For MacOS : update the Remote > Containers: Workspace Mount Consistency property in settings to delegated or consistent (instead of cached)
+	// https://code.visualstudio.com/docs/remote/containers-advanced#_update-the-mount-consistency-to-delegated-for-macos
+
+	// Sets the run context to one level up instead of the .devcontainer folder.
+	"context": "..",
+
+	// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
+	"image" : "hpclib/hiepacs-openmpi",
+	// "dockerFile": "Dockerfile",
+
+	// Set *default* container specific settings.json values on container create.
+	// Remove your local .vscode/settings.json
+	"settings": {
+		"terminal.integrated.shell.linux": null,
+		"cmake.configureSettings": {
+			"CMAKE_INSTALL_PREFIX": "/workspaces/pastix/install/",
+			"BUILD_SHARED_LIBS": "ON",
+			"BUILD_DOCUMENTATION": "ON",
+			"PASTIX_INT64": "OFF",
+			"PASTIX_WITH_MPI": "ON",
+			"PASTIX_WITH_CUDA": "OFF",
+			"PASTIX_WITH_STARPU": "ON",
+			"PASTIX_WITH_PARSEC": "ON"
+		},
+		"cmake.buildDirectory": "${workspaceRoot}/build-mpi",
+		"cmake.configureOnOpen": false,
+		"C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"
+	},
+
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		"ms-vscode.cpptools",
+		"austin.code-gnu-global",
+		"hiro-sun.vscode-emacs",
+		"gocarlos.cmake-tools",
+		"twxs.cmake",
+		"mitaki28.vscode-clang",
+		"ms-python.python",
+		"julialang.language-julia",
+		"krvajalm.linter-gfortran",
+		"bbenoist.Doxygen",
+		"cschlosser.doxdocgen",
+		"VisualStudioExptTeam.vscodeintellicode",
+		"CoenraadS.bracket-pair-colorizer",
+		"shardulm94.trailing-spaces",
+		"vscode-icons-team.vscode-icons",
+		"shakram02.bash-beautify",
+		"redhat.vscode-yaml",
+		"mhutchie.git-graph",
+		"donjayamanne.githistory",
+		"eamodio.gitlens",
+		"yzhang.markdown-all-in-one",
+		"DavidAnson.vscode-markdownlint",
+	]
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Uncomment the next line to run commands after the container is created - for example installing curl.
+	// "postCreateCommand": "apt-get update && apt-get install -y curl",
+
+	// Uncomment when using a ptrace-based debugger like C++, Go, and Rust
+	// "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
+
+	// Uncomment to use the Docker CLI from inside the container. See https://aka.ms/vscode-remote/samples/docker-from-docker.
+	// "mounts": [ "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind" ],
+
+	// Uncomment to connect as a non-root user. See https://aka.ms/vscode-remote/containers/non-root.
+	// "remoteUser": "vscode"
+}
