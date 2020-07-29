@@ -34,9 +34,7 @@
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
 		"ms-vscode.cpptools",
-		"austin.code-gnu-global",
-		"hiro-sun.vscode-emacs",
-		"gocarlos.cmake-tools",
+		"ms-vscode.cmake-tools",
 		"twxs.cmake",
 		"mitaki28.vscode-clang",
 		"ms-python.python",
@@ -45,16 +43,16 @@
 		"bbenoist.Doxygen",
 		"cschlosser.doxdocgen",
 		"VisualStudioExptTeam.vscodeintellicode",
-		"CoenraadS.bracket-pair-colorizer",
-		"shardulm94.trailing-spaces",
-		"vscode-icons-team.vscode-icons",
-		"shakram02.bash-beautify",
-		"redhat.vscode-yaml",
 		"mhutchie.git-graph",
 		"donjayamanne.githistory",
 		"eamodio.gitlens",
 		"yzhang.markdown-all-in-one",
-		"DavidAnson.vscode-markdownlint",
+		"redhat.vscode-yaml",
+		"hiro-sun.vscode-emacs",
+		"CoenraadS.bracket-pair-colorizer",
+		"shardulm94.trailing-spaces",
+		"vscode-icons-team.vscode-icons",
+		"shakram02.bash-beautify"
 	]
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
