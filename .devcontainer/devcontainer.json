@@ -26,9 +26,9 @@
 			"PASTIX_WITH_STARPU": "ON",
 			"PASTIX_WITH_PARSEC": "ON"
 		},
-		"cmake.buildDirectory": "${workspaceRoot}/build-mpi",
+		"cmake.buildDirectory": "${workspaceRoot}/build-docker",
 		"cmake.testEnvironment": {
-			"PYTHON_PATH": "${workspaceRoot}/build-mpi/wrappers/python:${workspaceRoot}/build-mpi/spm/wrappers/python"
+			"PYTHON_PATH": "${workspaceRoot}/build-docker/wrappers/python:${workspaceRoot}/build-docker/spm/wrappers/python"
 		},
 		"cmake.configureOnOpen": false,
 		"cmake.configureOnEdit": false,
