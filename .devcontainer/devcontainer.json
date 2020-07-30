@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/vscode-remote/devcontainer.json or this file's README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.128.0/containers/docker-existing-dockerfile
 {
-	"name": "hpclib hiepacs openmpi",
+	"name": "hpclib/hiepacs-openmpi",
 	// For MacOS : update the Remote > Containers: Workspace Mount Consistency property in settings to delegated or consistent (instead of cached)
 	// https://code.visualstudio.com/docs/remote/containers-advanced#_update-the-mount-consistency-to-delegated-for-macos
 
@@ -27,8 +27,23 @@
 			"PASTIX_WITH_PARSEC": "ON"
 		},
 		"cmake.buildDirectory": "${workspaceRoot}/build-docker",
+		"cmake.configureEnvironment": {
+			"DYLD_LIBRARY_PATH": "${env.DYLD_LIBRARY_PATH}:${workspaceRoot}/build-docker:${workspaceRoot}/build-docker/spm",
+			"LD_LIBRARY_PATH": "${env.LD_LIBRARY_PATH}:${workspaceRoot}/build-docker:${workspaceRoot}/build-docker/spm",
+			"LIBRARY_PATH": "${env.LIBRARY_PATH}:${workspaceRoot}/build-docker:${workspaceRoot}/build-docker/spm",
+			"PYTHON_PATH": "${env.PYTHON_PATH}:${workspaceRoot}/build-docker/wrappers/python:${workspaceRoot}/build-docker/spm/wrappers/python"
+		},
+		"cmake.buildEnvironment": {
+			"DYLD_LIBRARY_PATH": "${env.DYLD_LIBRARY_PATH}:${workspaceRoot}/build-docker:${workspaceRoot}/build-docker/spm",
+			"LD_LIBRARY_PATH": "${env.LD_LIBRARY_PATH}:${workspaceRoot}/build-docker:${workspaceRoot}/build-docker/spm",
+			"LIBRARY_PATH": "${env.LIBRARY_PATH}:${workspaceRoot}/build-docker:${workspaceRoot}/build-docker/spm",
+			"PYTHON_PATH": "${env.PYTHON_PATH}:${workspaceRoot}/build-docker/wrappers/python:${workspaceRoot}/build-docker/spm/wrappers/python"
+		},
 		"cmake.testEnvironment": {
-			"PYTHON_PATH": "${workspaceRoot}/build-docker/wrappers/python:${workspaceRoot}/build-docker/spm/wrappers/python"
+			"DYLD_LIBRARY_PATH": "${env.DYLD_LIBRARY_PATH}:${workspaceRoot}/build-docker:${workspaceRoot}/build-docker/spm",
+			"LD_LIBRARY_PATH": "${env.LD_LIBRARY_PATH}:${workspaceRoot}/build-docker:${workspaceRoot}/build-docker/spm",
+			"LIBRARY_PATH": "${env.LIBRARY_PATH}:${workspaceRoot}/build-docker:${workspaceRoot}/build-docker/spm",
+			"PYTHON_PATH": "${env.PYTHON_PATH}:${workspaceRoot}/build-docker/wrappers/python:${workspaceRoot}/build-docker/spm/wrappers/python"
 		},
 		"cmake.configureOnOpen": false,
 		"cmake.configureOnEdit": false,
