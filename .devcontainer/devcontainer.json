@@ -27,8 +27,12 @@
 			"PASTIX_WITH_PARSEC": "ON"
 		},
 		"cmake.buildDirectory": "${workspaceRoot}/build-mpi",
+		"cmake.testEnvironment": {
+			"PYTHON_PATH": "${workspaceRoot}/build-mpi/wrappers/python:${workspaceRoot}/build-mpi/spm/wrappers/python"
+		},
 		"cmake.configureOnOpen": false,
-		"C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"
+		"cmake.configureOnEdit": false,
+		"C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 	},
 
 	// Add the IDs of extensions you want installed when the container is created.
