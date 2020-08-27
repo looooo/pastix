@@ -47,19 +47,21 @@
 		},
 		"cmake.configureOnOpen": false,
 		"cmake.configureOnEdit": false,
-		"C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+		// "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+		// "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
 	},
 
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
 		"ms-vscode.cpptools",
-		"ms-vscode.cmake-tools",
+		"gocarlos.cmake-tools",
+		// "ms-vscode.cmake-tools",
 		"twxs.cmake",
 		"mitaki28.vscode-clang",
 		"ms-python.python",
 		"julialang.language-julia",
 		"krvajalm.linter-gfortran",
-		"bbenoist.Doxygen",
+		"bbenoist.doxygen",
 		"cschlosser.doxdocgen",
 		"VisualStudioExptTeam.vscodeintellicode",
 		"mhutchie.git-graph",
@@ -68,7 +70,7 @@
 		"yzhang.markdown-all-in-one",
 		"redhat.vscode-yaml",
 		"hiro-sun.vscode-emacs",
-		"CoenraadS.bracket-pair-colorizer",
+		"coenraads.bracket-pair-colorizer",
 		"shardulm94.trailing-spaces",
 		"vscode-icons-team.vscode-icons",
 		"shakram02.bash-beautify"
