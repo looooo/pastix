@@ -18,41 +18,40 @@ RUN apt-get update && apt-get install -y \
   libfftw3-dev \
   libfxt-dev \
   libgtg-dev \
+  libhypre-dev \
   liblapack-dev \
   liblapacke-dev \
   libmetis-dev \
+  libmumps-dev \
+  libopenmpi-dev \
+  libpapi-dev \
+  libparmetis-dev \
+  libpfm4-dev \
+  libptscotch-dev \
+  libscalapack-mpi-dev \
+  libsuitesparse-dev \
   nvidia-cuda-dev \
   nvidia-cuda-toolkit \
-  zlib1g-dev	      \
-  python3-numpy	      \
-  python3-mpi4py      \
-  python3-scipy	      \
-  && \
+  ocl-icd-opencl-dev \
+  petsc-dev \
+  slepc-dev \
+  zlib1g-dev \
+  python3-numpy \
+  python3-mpi4py \
+  python3-scipy && \
   apt-get autoremove -y
+
+# Install ViTE packages
+RUN apt-get update && apt-get install -y \
+    qtbase5-dev qt5-qmake qttools5-dev \
+    libglm-dev \
+    libglew-dev
 
 # change the default shell to be bash
 SHELL ["/bin/bash", "-c"]
 
 # Create directory where to install our specific libraries
 RUN mkdir -p /builds/install
-
-# Install OpenMPI
-RUN cd $HOME && \
-    wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.2.tar.bz2 && \
-    tar xvjf openmpi-4.0.2.tar.bz2 && \
-    cd openmpi-4.0.2/ && \
-    ./configure --prefix=/builds/install/openmpi && \
-    make -j 4 && \
-    make install && \
-    cd $HOME && \
-    rm openmpi-4.0.2/ -rf
-ENV OPENMPI_DIR=/builds/install/openmpi
-
-ENV PATH=$OPENMPI_DIR/bin:$PATH
-ENV LD_RUN_PATH=$OPENMPI_DIR/lib:$LD_RUN_PATH
-ENV LD_LIBRARY_PATH=$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
-ENV INCLUDE_PATH=$OPENMPI_DIR/include:$INCLUDE_PATH
-ENV PKG_CONFIG_PATH=$OPENMPI_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
 
 # Install QUARK
 RUN cd $HOME && \
@@ -89,21 +88,21 @@ ENV PARSEC_DIR=/builds/install/parsec-shm
 
 # Install SimGrid
 RUN cd $HOME && \
-    wget http://gforge.inria.fr/frs/download.php/file/35817/SimGrid-3.13.tar.gz && \
-    tar xvzf SimGrid-3.13.tar.gz && \
-    cd SimGrid-3.13 && \
-    cmake . -DCMAKE_INSTALL_PREFIX=/builds/install/simgrid -DCMAKE_BUILD_TYPE=Debug && \
+    wget https://github.com/simgrid/simgrid/releases/download/v3.25/SimGrid-3.25.tar.gz && \
+    tar xvzf SimGrid-3.25.tar.gz && \
+    cd SimGrid-3.25 && \
+    cmake . -DCMAKE_INSTALL_PREFIX=/builds/install/simgrid -DCMAKE_BUILD_TYPE=Debug -Denable_msg=ON && \
     make -j5 && \
     make install && \
     cd $HOME && \
-    rm SimGrid-3.13/ SimGrid-3.13.tar.gz -rf
+    rm SimGrid-3.25/ SimGrid-3.25.tar.gz -rf
 ENV SIMGRID_DIR=/builds/install/simgrid
 
 # Install StarPU
 RUN cd $HOME && \
-    wget http://starpu.gforge.inria.fr/files/starpu-1.3.2/starpu-1.3.2.tar.gz && \
-    tar xvzf starpu-1.3.2.tar.gz && \
-    cd starpu-1.3.2/ && \
+    wget http://starpu.gforge.inria.fr/files/starpu-1.3.4/starpu-1.3.4.tar.gz && \
+    tar xvzf starpu-1.3.4.tar.gz && \
+    cd starpu-1.3.4/ && \
     ./configure --prefix=/builds/install/starpu --enable-debug && \
     make -j5 && \
     make install && \
@@ -111,9 +110,51 @@ RUN cd $HOME && \
     make -j5 && \
     make install && \
     cd $HOME && \
-    rm starpu-1.3.2/ starpu-1.3.2.tar.gz -rf
+    rm starpu-1.3.4/ starpu-1.3.4.tar.gz -rf
 ENV STARPU_DIR=/builds/install/starpu
 ENV STARPUSIMGRID_DIR=/builds/install/starpu-simgrid
+
+# Install Chameleon
+RUN cd $HOME && \
+    git clone --recursive https://gitlab.inria.fr/solverstack/chameleon.git && \
+    cd chameleon/ && \
+    source ./.gitlab-ci-env.sh && \
+    mkdir build && \
+    cd build && \
+    cmake .. -DCMAKE_INSTALL_PREFIX=/builds/install/chameleon -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -DCHAMELEON_USE_MPI=ON -DCHAMELEON_ENABLE_DOC=ON && \
+    make -j5 && \
+    make install && \
+    cd $HOME && \
+    rm chameleon/ -rf
+ENV CHAMELEON_DIR=/builds/install/chameleon
+
+# Install HQR
+RUN cd $HOME && \
+    git clone --recursive https://gitlab.inria.fr/solverstack/hqr.git && \
+    cd hqr/ && \
+    mkdir build && \
+    cd build && \
+    cmake .. -DCMAKE_INSTALL_PREFIX=/builds/install/hqr -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON && \
+    make -j5 && \
+    make install && \
+    cd $HOME && \
+    rm hqr/ -rf
+ENV HQR_DIR=/builds/install/hqr
+
+# Install Fabulous
+RUN cd $HOME && \
+    git clone --recursive https://gitlab.inria.fr/solverstack/fabulous.git && \
+    cd fabulous/ && \
+    git checkout release/1.0 && \
+    git submodule update && \
+    mkdir build && \
+    cd build && \
+    cmake .. -DCMAKE_INSTALL_PREFIX=/builds/install/fabulous -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -DFABULOUS_BUILD_C_API=ON -DFABULOUS_BUILD_Fortran_API=ON && \
+    make -j5 && \
+    make install && \
+    cd $HOME && \
+    rm fabulous/ -rf
+ENV FABULOUS_DIR=/builds/install/fabulous
 
 # Install SPM
 RUN cd $HOME && \
@@ -128,40 +169,60 @@ RUN cd $HOME && \
     rm spm/ -rf
 ENV SPM_DIR=/builds/install/spm
 
-# Install Scotch
-ENV SCOTCH_DIR=/builds/install/scotch
+# Install PaStiX
 RUN cd $HOME && \
-    wget https://gforge.inria.fr/frs/download.php/file/38187/scotch_6.0.9.tar.gz && \
-    tar xvzf scotch_6.0.9.tar.gz && \
-    cd scotch_6.0.9/src && \
-    mkdir -p $SCOTCH_DIR  && \
-    cp Make.inc/Makefile.inc.i686_pc_linux3 Makefile.inc && \
-    sed -i 's/__restrict//' Makefile.inc && \
-    sed -i 's/CCD		= gcc/CCD		= mpicc/' Makefile.inc && \
-    echo "prefix = $SCOTCH_DIR" >> Makefile.inc && \
-    make scotch ptscotch && \
+    git clone --recursive https://gitlab.inria.fr/solverstack/pastix.git && \
+    cd pastix/ && \
+    mkdir build && \
+    cd build && \
+    PARSEC_DIR=/builds/install/parsec-shm && \
+    cmake .. -DCMAKE_INSTALL_PREFIX=/builds/install/pastix -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -DPASTIX_WITH_STARPU=ON -DPASTIX_WITH_PARSEC=ON -DPASTIX_INT64=OFF && \
+    make -j5 && \
     make install && \
     cd $HOME && \
-    rm scotch_6.0.9/ -rf
+    rm pastix/ -rf
+ENV PASTIX_DIR=/builds/install/pastix
+
+# Install Maphys
+RUN cd $HOME && \
+    git clone --recursive https://gitlab.inria.fr/solverstack/maphys/maphys.git && \
+    cd maphys/ && \
+    git checkout develop && \
+    git submodule update && \
+    mkdir build && \
+    cd build && \
+    cmake .. -DCMAKE_INSTALL_PREFIX=/builds/install/maphys -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -DPASTIX_VER_6=ON && \
+    make -j5 && \
+    make install && \
+    cd $HOME && \
+    rm maphys/ -rf
+
+# Install HYPRE
+RUN cd $HOME && \
+    wget https://github.com/hypre-space/hypre/archive/v2.19.0.tar.gz && \
+    tar xf v2.19.0.tar.gz && \
+    rm v2.19.0.tar.gz && \
+    cd hypre-2.19.0/src && \
+    ./configure --prefix=/builds/install/hypre --enable-debug --enable-shared && \
+    make -j5 install
 
 # Set gitlab environment
 RUN chown -R gitlab:gitlab /builds
 USER gitlab
 
 # specific env. var.
-ENV OPENMPI_DIR=/builds/install/openmpi
 ENV QUARK_DIR=/builds/install/quark
 ENV PARSEC_DIR=/builds/install/parsec-shm
 ENV STARPU_DIR=/builds/install/starpu
 ENV SIMGRID_DIR=/builds/install/simgrid
 ENV STARPUSIMGRID_DIR=/builds/install/starpu-simgrid
+ENV CHAMELEON_DIR=/builds/install/chameleon
+ENV HQR_DIR=/builds/install/hqr
+ENV FABULOUS_DIR=/builds/install/fabulous
 ENV SPM_DIR=/builds/install/spm
-ENV SCOTCH_DIR=/builds/install/scotch
-
-ENV PATH=$OPENMPI_DIR/bin:$PATH
-ENV LD_RUN_PATH=$OPENMPI_DIR/lib:$LD_RUN_PATH
-ENV LD_LIBRARY_PATH=$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
-ENV INCLUDE_PATH=$OPENMPI_DIR/include:$INCLUDE_PATH
-ENV PKG_CONFIG_PATH=$OPENMPI_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
-
+ENV SCALFMM_DIR=/builds/install/scalfmm
+ENV PASTIX_DIR=/builds/install/pastix
+ENV MAPHYS_DIR=/builds/install/maphys
+ENV PAMPA_DIR=/builds/install/pampa
+ENV HYPRE_DIR=/builds/install/hypre
 WORKDIR /builds

@@ -1,5 +1,5 @@
 ---
-image: hpclib/hiepacs-openmpi
+image: hpclib/hiepacs
 
 stages:
   - build
