@@ -1,14 +1,12 @@
 ## Installing PaStiX with runtime support
 
-
 ** Requirements **
 
 In addition to the requirements of the sequential or MPI version, you'll need:
 
-    * A runtime system among:
-      * StarPU (https://starpu.gitlabpages.inria.fr)
-      * PaRSEC (http://icl.utk.edu/parsec/)
-
+  * A runtime system among:
+    * StarPU (https://starpu.gitlabpages.inria.fr)
+    * PaRSEC (http://icl.utk.edu/parsec/)
 
 ### Download and install StarPU
 

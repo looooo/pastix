@@ -70,7 +70,7 @@ make install
 ```
 
 Note that as before we defined a `PASTIX_DIR` variable to define the
-install directory of PaStiX, and you just need to turn ON/OFF the
+install directory of PaStiX, and you just need to turn `ON`/`OFF` the
 runtime systems based on the available one(s).
 
 Once the compilation finished, you can setup your environment easily

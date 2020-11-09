@@ -16,14 +16,14 @@ memory with MPI between processes, and POSIX threads within a process.
 **Disclaimer**
 
 Even if PaStiX works in distributed, it is still under development.
-You can face either performance issues (without runtimes) or memory
+You can face either performance issues (without runtime) or memory
 issues (with StarPU or PaRSEC)
 
 **Requirements**
 
 In addition to the requirements of the sequential PaStiX, you'll need:
 
-    * An MPI implementation (MPICH, OpenMPI...)
+  * An MPI implementation (MPICH, OpenMPI...)
 
 ### Download and install OpenMPI
 
@@ -53,7 +53,7 @@ derivatives form the most widely used implementations of MPI in the world
 
 We recommend a release >= 3.0 available on the [MPICH
 website](https://www.mpich.org/).
-A Ubuntu package (version 3.x) is also available on Ubuntu,
+An Ubuntu package (version 3.x) is also available on Ubuntu,
 and can be download with :
 
 ```sh
@@ -66,9 +66,10 @@ mpiexec --version
 ```
 ### Download and install StarPU
 
-Please refer to [_Installing PaStiX with runtime support_](./Pastix_Runtime.md)
-for StarPU installation. The only step that will change for MPI support will be
-during the configuration :
+Please refer to [_Installing PaStiX with runtime
+support_](./Pastix_Runtime.md) for StarPU installation. The only step
+that will change for MPI support is that the `--enable-mpi` option
+becomes mandatory when configuring StarPU:
 
 ```sh
 mkdir build_MPI
@@ -80,9 +81,12 @@ make install
 
 ### Download and install PaRSEC
 
-Please refer to [_Installing PaStiX with runtime support_](./Pastix_Runtime.md)
-for PaRSEC installation. The only step that will change for MPI support will be
-during the configuration :
+Please refer to [_Installing PaStiX with runtime
+support_](./Pastix_Runtime.md) for PaRSEC installation. The only step
+that will change for MPI support is that the
+`-DPARSEC_DIST_WITH_MPI=ON` option becomes mandatory when configuring
+PaRSEC:
+
 
 ```sh
 mkdir build_MPI
@@ -122,9 +126,9 @@ And then, you can run your favorite example:
 mpiexec -n 4 simple -9 10:10:10
 ```
 
-### How to use pastix with MPI
+### How to use PaStiX with MPI
 
-PaStiX works with all the schedulers whithout runtimes in distributed
+PaStiX works with all the schedulers without runtime in distributed
 memory, but if you want the best performances possible with POSIX threads,
 please use the dynamic scheduler (option **-s 4**):
 ```sh
@@ -132,9 +136,9 @@ mpiexec -n 4 simple -s 4 -9 10:10:10
 ```
 
 In the same way, if you intent to run multiple MPI instances on one node,
-make sur that the number of MPI instances per node times the number of
-threads per MPI instances is less or equals the number of cores of the node.
+make sure that the number of MPI instances per node times the number of
+threads per MPI instance is less or equals the number of cores of the node.
 
-If HWLOC gives you trouble in the recognition of the topology, you can
-specify the amount of threads per node with the option **-t**.
-But don't forget to contact us afterwards!
+If hwloc gives you trouble in the recognition of the topology, you can
+specify the amount of threads per node with the option **-t**. It this
+still does not work, you can contact us to describe your problem.
