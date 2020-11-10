@@ -6,7 +6,7 @@ PaStiX needs some libraries to be build on your system :
 
 * BLAS (MKL, OpenBlas, ...) and CBLAS (sequential version required)
 * LAPACK and LAPACKE (sequential version required, with TMG enabled for testing)
-* HWLOC (highly recommended)
+* HWLOC (but **highly recommended**)
 * SCOTCH (optional)
 * METIS (optional)
 
@@ -19,8 +19,14 @@ prescribes a set of low-level routines for performing common
 linear algebra operations. These routines were originally wrote in
 Fortran, so we need the CBLAS interface to compile it in C.
 
+On Linux :
 ```sh
 sudo apt-get install libopenblas-dev
+```
+
+On Mac:
+```sh
+brew install openblas
 ```
 
 **Install LAPACK and LAPACKE**
@@ -28,6 +34,7 @@ sudo apt-get install libopenblas-dev
 LAPACK and LAPACKE are librairies that provide routines for
 solving systems of linear equations. They depend on the BLAS library.
 
+On Linux :
 ```sh
 sudo apt-get install liblapacke-dev
 ```
@@ -41,8 +48,14 @@ caches, cores and simultaneous multithreading. It also gathers various
 system attributes such as cache and memory information as well as the 
 locality of I/O devices such as network interfaces, InfiniBand HCAs or GPUs.
 
+On Linux :
 ```sh
 sudo apt-get install libhwloc-dev
+```
+
+On Mac:
+```sh
+brew install hwloc
 ```
 
 ### Install an ordering library
@@ -54,16 +67,28 @@ and [Metis](http://glaros.dtc.umn.edu/gkhome/metis/metis/overview).
 
 You can install it simply with the following command :
 
+On Linux :
 ```sh
 sudo apt-get install libsmetis-dev
 ```
 
+On Mac:
+```sh
+brew install metis
+```
+
 #### Install Scotch
 
-You can install it simply with the following command :
+You can install it simply with the following command on Linux:
 
 ```sh
 sudo apt-get install libscotch-dev
+```
+
+on Mac : (use the homebrew formula available in the PaStiX repository)
+
+```sh
+brew install $PASTIX_DIR/tools/homebrew/scotch5.rb
 ```
 
 Or, for the 6.0 version :
@@ -125,19 +150,44 @@ export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$SCOTCH_DIR/lib:
 Note that these lines can (should) be added to your environment file
 such as `.bashrc` to set it by default.
 
+### Get Pastix
+
+To use the lastest stable development branch of PaStiX, please clone the master branch.
+Note that PaStiX contains two git submodule for spm and morse_cmake.
+To get sources please use these commands:
+```sh
+# if git version >= 1.9
+git clone --recursive git@gitlab.inria.fr:solverstack/pastix.git
+cd pastix
+# else
+git clone https://gitlab.inria.fr/solverstack/pastix.git
+cd pastix
+git submodule init
+git submodule update
+```
+
 ### Build and Install PaStiX
 
-Now that you have installed all the required libraries, you should be
-able to compile PaStiX:
-
 Go in your PaStiX source directory and create a new build directory to
-build the shared memory version:
+build the dafault shared memory (without MPI) version:
 ```sh
 mkdir build
 cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=${PASTIX_DIR} -DPASTIX_INT64=[ON|OFF] \
+         -DPASTIX_ORDERING_SCOTCH=[ON|OFF] \
+         -DPASTIX_ORDERING_METIS=[ON|OFF]
 make
+```
+
+Then you can install it simply with the command :
+
+On Linux :
+```sh
 make install
+```
+On Mac
+```sh
+brew install ../tools/homebrew/pastix6.rb
 ```
 
 Note that as before we defined a `PASTIX_DIR` variable to define the

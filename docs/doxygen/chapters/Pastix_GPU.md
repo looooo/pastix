@@ -9,7 +9,7 @@ enable GPUs support.
 In addition to the requirements of the sequential or MPI version, you'll need:
 
     * A CUDA library
-    * A runtime system mong:
+    * A runtime system among:
       * StarPU (https://starpu.gitlabpages.inria.fr)
       * PaRSEC (http://icl.utk.edu/parsec/)
 
@@ -55,7 +55,7 @@ Let's define the directory where you want to StarPU everything as:
 export STARPU_DIR=/your/path/to/install
 ```
 Note that you can also keep the default install directory, and install
-in the system using root privileges. We do not recommend this latest version.
+in the system using root privileges.
 
 Let's create a build directory outside the source directory to
 configure and build StarPU with minimal flags for PaStiX:
@@ -112,9 +112,9 @@ top of PaRSEC is not yet tested and validated).
 
 The latest release available is the one from the [BitBucket
 repository](https://bitbucket.org/icldistcomp/parsec). However, due to specific requirements in the context of
-PaStiX, we **solely** rely on [this dedicated
+PaStiX, we <span style="color:red">**solely**</span> rely on [this dedicated
 fork](https://bitbucket.org/mfaverge/parsec) with the specific
-`pastix-6.0.2` tag. Be careful to compile PaStiX **only** with the
+`pastix-6.0.2` tag. Be careful to compile PaStiX **only** with this
 specific revision to enable GPUs support.
 
 Go into your own working directory for PaRSEC.
@@ -132,7 +132,7 @@ export PARSEC_DIR=/your/path/to/install
 ```
 
 Note that you can also keep the default install directory, and install
-in the system using root privileges. We do not recommend this latest version.
+in the system using root privileges.
 
 Let's create a build directory outside the source directory to
 configure and build PaRSEC with minimal flags for PaStiX:
