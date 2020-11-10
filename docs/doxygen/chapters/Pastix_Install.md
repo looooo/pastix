@@ -1,4 +1,4 @@
-## Build PaStiX with CMake
+## Build and Install PaStiX with CMake
 
 ** Requirements **
 
@@ -125,7 +125,7 @@ export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$SCOTCH_DIR/lib:
 Note that these lines can (should) be added to your environment file
 such as `.bashrc` to set it by default.
 
-### Build PaStiX
+### Build and Install PaStiX
 
 Now that you have installed all the required libraries, you should be
 able to compile PaStiX:
