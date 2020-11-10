@@ -210,4 +210,3 @@ simple -9 10:10:10
 
 You setup is ready to play with GPUs. Please refer to section _How to
 to use PaStiX with GPUs_ to get as best results as possible.
-
