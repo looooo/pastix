@@ -34,11 +34,6 @@ void         coeftab_zmemory    ( SolverMatrix *solvmtx );
 
 /**
  *    @}
- *    @name PastixComplex64 initialization routines
- *    @{
- */
-/**
- *    @}
  *    @name PastixComplex64 Extraction routines
  *    @{
  */
@@ -53,12 +48,12 @@ void coeftab_zgetdiag( const SolverMatrix *solvmtx,
  *    @name PastixComplex64 debug routines
  *    @{
  */
-void coeftab_zdump    ( pastix_data_t      *pastix_data,
-                        const SolverMatrix *solvmtx,
-                        const char         *filename );
-int  coeftab_zdiff    ( pastix_coefside_t   side,
-                        const SolverMatrix *solvA,
-                        SolverMatrix       *solvB );
+void coeftab_zdump( pastix_data_t      *pastix_data,
+                    const SolverMatrix *solvmtx,
+                    const char         *filename );
+int  coeftab_zdiff( pastix_coefside_t   side,
+                    const SolverMatrix *solvA,
+                    SolverMatrix       *solvB );
 
 /**
  *    @}

@@ -42,7 +42,9 @@ sequential_zhetrf( pastix_data_t  *pastix_data,
 
     lwork1 = datacode->offdmax;
     lwork2 = pastix_imax( datacode->gemmmax, datacode->blokmax );
-    if ( datacode->lowrank.compress_when == PastixCompressWhenBegin ) {
+    if ( (datacode->lowrank.compress_when != PastixCompressNever) &&
+         (datacode->lowrank.ilu_lvl < INT_MAX) )
+    {
         lwork2 = pastix_imax( lwork2, 2 * datacode->blokmax );
     }
     MALLOC_INTERN( work1, lwork1, pastix_complex64_t );
@@ -92,7 +94,9 @@ thread_zhetrf_static( isched_thread_t *ctx, void *args )
 
     lwork1 = datacode->offdmax;
     lwork2 = pastix_imax( datacode->gemmmax, datacode->blokmax );
-    if ( datacode->lowrank.compress_when == PastixCompressWhenBegin ) {
+    if ( (datacode->lowrank.compress_when != PastixCompressNever) &&
+         (datacode->lowrank.ilu_lvl < INT_MAX) )
+    {
         lwork2 = pastix_imax( lwork2, 2 * datacode->blokmax );
     }
     MALLOC_INTERN( work1, lwork1, pastix_complex64_t );
@@ -165,7 +169,9 @@ thread_zhetrf_dynamic( isched_thread_t *ctx, void *args )
 
     lwork1 = datacode->offdmax;
     lwork2 = pastix_imax( datacode->gemmmax, datacode->blokmax );
-    if ( datacode->lowrank.compress_when == PastixCompressWhenBegin ) {
+    if ( (datacode->lowrank.compress_when != PastixCompressNever) &&
+         (datacode->lowrank.ilu_lvl < INT_MAX) )
+    {
         lwork2 = pastix_imax( lwork2, 2 * datacode->blokmax );
     }
     MALLOC_INTERN( work1, lwork1, pastix_complex64_t );

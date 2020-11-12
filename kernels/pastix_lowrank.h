@@ -149,6 +149,7 @@ typedef struct pastix_lr_s {
     pastix_int_t             compress_min_height; /**< Minimum height to compress an off-diagonal block     */
     int                      compress_preselect;  /**< Enable/disable the compression of preselected blocks */
     int                      use_reltol;          /**< Enable/disable relative tolerance vs absolute one    */
+    int                      ilu_lvl;             /**< The ILU levels above which the blocks are originally compressed */
     double                   tolerance;           /**< Absolute compression tolerance                       */
     fct_rradd_t              core_rradd;          /**< Recompression function                               */
     fct_ge2lr_t              core_ge2lr;          /**< Compression function                                 */

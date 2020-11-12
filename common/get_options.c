@@ -121,6 +121,7 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_compress_ortho",        iparm)) { return IPARM_COMPRESS_ORTHO; }
     if(0 == strcasecmp("iparm_compress_reltol",       iparm)) { return IPARM_COMPRESS_RELTOL; }
     if(0 == strcasecmp("iparm_compress_preselect",    iparm)) { return IPARM_COMPRESS_PRESELECT; }
+    if(0 == strcasecmp("iparm_compress_iluk",         iparm)) { return IPARM_COMPRESS_ILUK; }
 
     if(0 == strcasecmp("iparm_modify_parameter",      iparm)) { return IPARM_MODIFY_PARAMETER; }
     if(0 == strcasecmp("iparm_start_task",            iparm)) { return IPARM_START_TASK; }

@@ -144,6 +144,20 @@ coeftabInit( pastix_data_t    *pastix_data,
 #endif
     args.dirname = pastix_data->dir_local;
 
+    /* Initialize ILU level block variables */
+    {
+        SolverCblk *cblk = pastix_data->solvmatr->cblktab;
+        SolverBlok *blok = pastix_data->solvmatr->bloktab;
+        pastix_int_t i;
+
+        for (i=0; i<pastix_data->solvmatr->cblknbr; i++, cblk++) {
+            cblk->ctrbcnt = cblk[1].brownum - cblk[0].brownum;
+        }
+
+        for (i=0; i<pastix_data->solvmatr->bloknbr; i++, blok++) {
+            blok->iluklvl = INT_MAX;
+        }
+    }
     isched_parallel_call( pastix_data->isched, pcoeftabInit, &args );
 }
 
@@ -243,7 +257,7 @@ pcoeftabComp( isched_thread_t *ctx,
     pastix_int_t task, gain = 0;
     int rank = ctx->rank;
 
-    pastix_int_t (*compfunc)( const SolverMatrix*, pastix_coefside_t, SolverCblk* ) = NULL;
+    pastix_int_t (*compfunc)( const SolverMatrix*, pastix_coefside_t, int, SolverCblk* ) = NULL;
 
     switch( flttype ) {
     case PastixComplex32:
@@ -268,7 +282,7 @@ pcoeftabComp( isched_thread_t *ctx,
         cblk     = solvmtx->cblktab + itercblk;
 
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            gain += compfunc( solvmtx, side, cblk );
+            gain += compfunc( solvmtx, side, -1, cblk );
         }
     }
 

@@ -428,11 +428,11 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_REORDERING_STOP]       = PASTIX_INT_MAX;
 
     /* Splitting */
-    iparm[IPARM_SPLITTING_STRATEGY]             = PastixSplitNot;
-    iparm[IPARM_SPLITTING_LEVELS_PROJECTIONS]   = 2;
-    iparm[IPARM_SPLITTING_LEVELS_KWAY]          = 2;
+    iparm[IPARM_SPLITTING_STRATEGY]             = PastixSplitKway;
+    iparm[IPARM_SPLITTING_LEVELS_PROJECTIONS]   = 0;
+    iparm[IPARM_SPLITTING_LEVELS_KWAY]          = PASTIX_INT_MAX / 2;
     iparm[IPARM_SPLITTING_PROJECTIONS_DEPTH]    = 3;
-    iparm[IPARM_SPLITTING_PROJECTIONS_DISTANCE] = 2;
+    iparm[IPARM_SPLITTING_PROJECTIONS_DISTANCE] = 3;
     iparm[IPARM_SPLITTING_PROJECTIONS_WIDTH]    = 1;
 
     /* Analyze */
@@ -474,12 +474,13 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_GPU_MEMORY_BLOCK_SIZE] = 32 * 1024;
 
     /* Compression */
-    iparm[IPARM_COMPRESS_MIN_WIDTH]    = 120;
+    iparm[IPARM_COMPRESS_MIN_WIDTH]    = 128;
     iparm[IPARM_COMPRESS_MIN_HEIGHT]   = 20;
     iparm[IPARM_COMPRESS_WHEN]         = PastixCompressNever;
     iparm[IPARM_COMPRESS_METHOD]       = PastixCompressMethodPQRCP;
     iparm[IPARM_COMPRESS_ORTHO]        = PastixCompressOrthoCGS;
-    iparm[IPARM_COMPRESS_PRESELECT]    = -1;
+    iparm[IPARM_COMPRESS_PRESELECT]    = 1;
+    iparm[IPARM_COMPRESS_ILUK]         = -2;
 
     /* MPI modes */
 #if defined(PASTIX_WITH_MPI)

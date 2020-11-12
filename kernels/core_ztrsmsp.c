@@ -262,20 +262,14 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
         if ( ( N >= lowrank->compress_min_width  ) &&
              ( M >= lowrank->compress_min_height ) )
         {
-            int is_preselected = blok_is_preselected( cblk, blok, solvmtx->cblktab + blok->fcblknm );
+            int is_preselected = ( blok->iluklvl <= lowrank->ilu_lvl );
 
             /*
              * Try to compress the block: 2 cases
-             *   - We are in the compress_end version
-             *   - We are in the compress_begin version, and the block was preselected
+             *      - Non preselected blocks are always compressed
+             *      - Preselected blocks are compressed if compress_preselect
              */
-            if ( (lowrank->compress_when == PastixCompressWhenEnd) &&
-                 (lowrank->compress_preselect || (!is_preselected)) )
-            {
-                flops_lr = cpublok_zcompress( lowrank, coef, M, N, blok );
-            }
-            if ( (lowrank->compress_when == PastixCompressWhenBegin) &&
-                 (lowrank->compress_preselect && is_preselected ) )
+            if ( lowrank->compress_preselect || (!is_preselected) )
             {
                 flops_lr = cpublok_zcompress( lowrank, coef, M, N, blok );
             }
@@ -579,22 +573,16 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
         if ( ( N >= lowrank->compress_min_width ) &&
              ( M >= lowrank->compress_min_height ) )
         {
-            int is_preselected = blok_is_preselected( cblk, blok, cblk + (blok->fcblknm - blok->lcblknm) );
+            int is_preselected = ( blok->iluklvl <= lowrank->ilu_lvl );
 
             /*
              * Try to compress the block: 2 cases
-             *   - We are in the compress_end version
-             *   - We are in the compress_begin version, and the block was preselected
+             *      - Non preselected blocks are always compressed
+             *      - Preselected blocks are compressed if compress_preselect
              */
-            if ( (lowrank->compress_when == PastixCompressWhenEnd) &&
-                 (lowrank->compress_preselect || (!is_preselected)) )
+            if ( lowrank->compress_preselect || (!is_preselected) )
             {
-                flops += cpublok_zcompress( lowrank, coef, M, N, blok );
-            }
-            if ( (lowrank->compress_when == PastixCompressWhenBegin) &&
-                 (lowrank->compress_preselect &&  is_preselected ) )
-            {
-                flops += cpublok_zcompress( lowrank, coef, M, N, blok );
+                flops = cpublok_zcompress( lowrank, coef, M, N, blok );
             }
         }
 

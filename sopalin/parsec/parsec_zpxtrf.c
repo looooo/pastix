@@ -81,7 +81,9 @@ parsec_zpxtrf_sp1dplus_New( parsec_sparse_matrix_desc_t *A,
     pastix_int_t lwork;
 
     lwork = sopalin_data->solvmtx->gemmmax;
-    if ( sopalin_data->solvmtx->lowrank.compress_when == PastixCompressWhenBegin ) {
+    if ( (sopalin_data->solvmtx->lowrank.compress_when != PastixCompressNever) &&
+         (sopalin_data->solvmtx->lowrank.ilu_lvl < INT_MAX) )
+    {
         lwork = pastix_imax( lwork, 2 * sopalin_data->solvmtx->blokmax );
     }
 
@@ -240,7 +242,9 @@ parsec_zpxtrf_sp2d_New( parsec_sparse_matrix_desc_t *A,
     pastix_int_t lwork;
 
     lwork = sopalin_data->solvmtx->gemmmax;
-    if ( sopalin_data->solvmtx->lowrank.compress_when == PastixCompressWhenBegin ) {
+    if ( (sopalin_data->solvmtx->lowrank.compress_when != PastixCompressNever) &&
+         (sopalin_data->solvmtx->lowrank.ilu_lvl < INT_MAX) )
+    {
         lwork = pastix_imax( lwork, 2 * sopalin_data->solvmtx->blokmax );
     }
 
