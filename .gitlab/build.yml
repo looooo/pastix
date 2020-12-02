@@ -1,7 +1,7 @@
 ---
 .build_script_template: &build_script
   stage: build
-  tags: ["large"]
+  tags: ["large","docker"]
   artifacts:
     name: pastix_build_${VERSION}
     expire_in: 180 minutes

@@ -4,6 +4,7 @@
 ---
 coverage:
   stage: analyse
+  tags: ["docker"]
   artifacts:
     name: pastix_coverage
     expire_in: 180 minutes
