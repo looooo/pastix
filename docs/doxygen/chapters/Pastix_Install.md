@@ -210,7 +210,7 @@ brew install ${PASTIX_SOURCE_DIR}/tools/homebrew/pastix6.rb
 Once the compilation finished, you can setup your environment easily
 by sourcing the provided file:
 ```sh
-source $PASTIX_DIR/bin/pastix_env.sh
+source ${PASTIX_DIR}/bin/pastix_env.sh
 ```
 
 And then, you can run your favorite example:
@@ -220,3 +220,52 @@ simple -9 10:10:10
 
 You setup is ready to play with PaStiX. Please refer to section [How to
 to use PaStiX](todo.md) to get as best results as possible.
+
+### How to link PaStiX within your code
+
+As said previously, you can setup your environment easily by sourcing the provided file:
+```sh
+source ${PASTIX_DIR}/bin/pastix_env.sh
+```
+
+But, you can also have a look on examples installed to see how to link PaStiX within your code :
+```sh
+cd ${PASTIX_DIR}/examples
+make clean
+VERBOSE=1 make
+```
+
+You will get the following output with a `C` driver using `OpenBLAS` :
+```sh
+cc -o simple simple.c -I$PASTIX_DIR/include -Wall -O2 -I$PASTIX_DIR/include/pastix \
+-L$PASTIX_DIR/lib -lpastix -lpastix_kernels -lspm -lhwloc -L/usr/lib/x86_64-linux-gnu \
+-llapacke -L/usr/lib/x86_64-linux-gnu/openblas-pthread -lopenblas -L/usr/lib/x86_64-linux-gnu \
+-lscotch -L/usr/lib/x86_64-linux-gnu -lscotcherrexit -L/usr/lib/x86_64-linux-gnu \
+-lpthread -L/usr/lib/x86_64-linux-gnu -lz -L/usr/lib/x86_64-linux-gnu -lm \
+-L/usr/lib/x86_64-linux-gnu -lrt
+```
+
+You will get the following output with a `Fortran` driver using `openblas` :
+```sh
+f77 -o fsimple fsimple.f90 -I$PASTIX_DIR/include -I$PASTIX_DIR/include/pastix -Wall -O2 \
+-L$PASTIX_DIR/lib -lpastixf -lpastix -lpastix_kernels -lpastix -lpastix_kernels -lspmf \
+-lspm -lhwloc -L/usr/lib/x86_64-linux-gnu -llapacke -L/usr/lib/x86_64-linux-gnu/openblas-pthread \
+-lopenblas -L/usr/lib/x86_64-linux-gnu -lscotch -L/usr/lib/x86_64-linux-gnu -lscotcherrexit \
+-L/usr/lib/x86_64-linux-gnu -lpthread -L/usr/lib/x86_64-linux-gnu -lz -L/usr/lib/x86_64-linux-gnu \
+-lm -L/usr/lib/x86_64-linux-gnu -lrt
+```
+
+It will work if you change the examples Makefile accordingly :
+```sh
+PASTIXINCS=$(shell echo `PKG_CONFIG_PATH=${PKG_CONFIG_PATH} pkg-config --cflags pastix`)
+PASTIXLIBS=$(shell echo `PKG_CONFIG_PATH=${PKG_CONFIG_PATH} pkg-config --libs pastix`)
+
+CFLAGS= ${PASTIXINCS} -Wall -O2 -I${PASTIX_DIR}/include/pastix
+LDFLAGS= ${PASTIXLIBS} ${EXTRALIBS}
+
+PASTIXFINCS=$(shell echo `PKG_CONFIG_PATH=${PKG_CONFIG_PATH} pkg-config --cflags pastixf`)
+PASTIXFLIBS=$(shell echo `PKG_CONFIG_PATH=${PKG_CONFIG_PATH} pkg-config --libs pastixf`)
+
+FFLAGS=${PASTIXFINCS} -Wall -O2
+LDFFLAGS=${PASTIXFLIBS} ${EXTRALIBS}
+```

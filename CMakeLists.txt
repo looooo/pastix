@@ -830,6 +830,11 @@ add_documented_files(
   README.md
   docs/doxygen/chapters/eztrace.doxy
   docs/doxygen/chapters/thread_bindings.doxy
+  docs/doxygen/chapters/Pastix_Install.md
+  docs/doxygen/chapters/Pastix_MPI.md
+  docs/doxygen/chapters/Pastix_Runtime.md
+  docs/doxygen/chapters/Pastix_GPU.md
+  docs/doxygen/chapters/How_PaStiX_GPU.md
   tools/binding_for_multimpi.c
   kernels/pastix_lowrank.h
   #
