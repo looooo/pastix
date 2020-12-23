@@ -13,7 +13,9 @@
  @version 6.1.0
  @author Pierre Ramet
  @author Mathieu Faverge
- @date 2020-01-21
+ @author Selmane Lebdaoui
+ @author Tony Delarue
+ @date 2020-12-23
 
 """
 import os

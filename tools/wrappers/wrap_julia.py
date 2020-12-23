@@ -121,10 +121,13 @@ class wrap_julia:
 
  @version 6.0.0
  @author Mathieu Faverge
- @author Lebdaoui selmane
+ @author Selmane Lebdaoui
+ @author Tony Delarue
  @date ''' + time.strftime( "%Y-%m-%d" ) + '''
 
-This file has been automatically generated with gen_wrappers.py
+ This file has been automatically generated with gen_wrappers.py
+
+ @ingroup wrap_julia
 
 =#
 '''
@@ -148,7 +151,15 @@ This file has been automatically generated with gen_wrappers.py
         params = enum[1]
 
         # initialize a string with the fortran interface
-        jl_interface = "@cenum " + "Pastix_" + ename + "_t " + "{\n"
+        bib = ""
+        Bib = ""
+        if ("SPM" in f['description']):
+            bib = "spm_"
+            Bib = "Spm"
+        elif ("PaStiX" in f['description']):
+            bib = "pastix_"
+            Bib = "PASTIX"
+        jl_interface = "@cenum " + bib + ename + "_t " + "{\n"
 
         # loop over the arguments of the enum to get max param length
         # And modify the names first

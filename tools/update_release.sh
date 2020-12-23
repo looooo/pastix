@@ -6,43 +6,90 @@
 #
 #  @version 6.1.0
 #  @author Mathieu Faverge
-#  @date 2019-11-12
+#  @date 2020-12-23
 #
 #!/usr/bin/env sh
+
+tag=
+majorversion=1
+minorversion=0
+microversion=0
+
+version="$majorversion.$minorversion.$microversion"
+
+#for i in $( git diff v6.0.2 --name-only ); do if [ -f $i ]; then sed -i 's/@version [0-9].[0-9].[0-9]/@version 1.0.0/' $i; fi; done
+if [ ! -z "$tag" ]
+then
+    fileslist=$( git diff $tag --name-only )
+else
+    fileslist=$( git ls-files )
+fi
+
+fulllist=$( git ls-files )
 
 #
 # Steps to update header information before doing the release
 #
-#   1) First update the date of the files with the following lines
+
 #
-for f in `git ls-files`
+# 1) Check header files with check_headers.sh
+#
+#./tools/check_headers.sh
+
+#
+# 2) Check that the fortran/python wrappers have been updated (see gen_wrappers.py)
+#
+#./tools/gen_wrappers.py
+
+#
+# 3) First update the date of the files with the following lines
+#
+for f in $fileslist
 do
-    date=`git log -1 --format=%cd --date=short CMakeLists.txt`
+    if [ ! -f $f ]
+    then
+        continue;
+    fi
+
+    date=$( git log -1 --format=%cd --date=short $f )
     echo $date $f
     sed -i "s/date [-0-9]*\$/date $date/" $f
 done
 
 #
-#   2) Update the release number
+# 4) Update the release number
 #
-git grep -E "version 6\.0_.[01]" | awk -F ":" '{ print $1 }' | sort -u | xargs sed -i 's/version 6\.0\.[01]/version 6.1.0/'
+for f in $fileslist
+do
+    if [ ! -f $f ]
+    then
+        continue;
+    fi
+
+    sed -i "s/@version [0-9]\.[0-9]\.[0-9][0-9]*/@version $version/" $f
+done
 
 #
-# Or this one to update only changed files since last release
+# 5) Update manually the version number in CMakeLists.txt
 #
-for i in $( git diff v6.0.2 --name-only ); do if [ -f $i ]; then sed -i 's/@version [0-9].[0-9].[0-9]/@version 6.0.3/' $i; fi; done
+sed -i "s/set( PASTIX_VERSION_MAJOR [0-9] )/set( PASTIX_VERSION_MAJOR $majorversion )/" CMakeLists.txt
+sed -i "s/set( PASTIX_VERSION_MINOR [0-9] )/set( PASTIX_VERSION_MINOR $minorversion )/" CMakeLists.txt
+sed -i "s/set( PASTIX_VERSION_MICRO [0-9][0-9]* )/set( PASTIX_VERSION_MICRO $microversion )/" CMakeLists.txt
 
 #
-#   3) Update manually the version number in CMakeLists.txt
+# 6) If necessary, update the copyright information
 #
+for f in $fulllist
+do
+    if [ ! -f $f ]
+    then
+        continue;
+    fi
+
+    year=$( date +%Y )
+    sed -i "s/copyright \([0-9]*\)-[0-9]* Bordeaux/copyright \1-$year Bordeaux/" $f
+done
 
 #
-#   4) If necessary, update the copyright information
-#
-git grep -E "copyright [0-9]{4}-[0-9]{4}" | awk -F ":" '{ print $1 }' | sort -u | xargs sed -i 's/copyright \([0-9]*\)-[0-9]* Bordeaux/copyright \1-2020 Bordeaux/'
-
-#
-#   5) Check that the fortran/python wrappers have been updated (see gen_wrappers.py)
-#   6) Check header files with check_headers.sh
-#   7) Update homebrew formula (only after release)
+# 7) Update homebrew formula (only after release)
 #
