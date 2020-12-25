@@ -11,9 +11,6 @@
 include(RulesPrecisions)
 include(RulesJDF)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
 # reset variables
 set(generated_sources "")
 set(generated_jdf     "")
@@ -78,35 +75,34 @@ precisions_rules_py(generated_jdf
   "${JDF}"
   PRECISIONS "s;d;c;z")
 
-jdf_rules(generated_sources
-	 "${generated_jdf}"
-	)
+jdf_rules( generated_sources
+  "${generated_jdf}"
+  )
 
 add_library(pastix_parsec
   ${generated_headers}
   ${generated_sources}
   ${EXTRA_SOURCES})
 
-if ( ${PARSEC_parsec_distribution_LIBRARY} )
-  target_link_libraries(pastix_parsec
-    pastix_kernels
-    ${PARSEC_LIBRARIES_DEP}
-    parsec_distribution
-    parsec_distribution_matrix
-    ${PARSEC_LIBRARIES_DEP}
-    parsec-base
-    )
-else()
-  target_link_libraries(pastix_parsec
-    pastix_kernels
-    ${PARSEC_LIBRARIES_DEP}
-    )
-endif()
+target_include_directories( pastix_parsec PRIVATE
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/common> )
 
-add_dependencies(pastix_parsec
+target_include_directories( pastix_parsec PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> )
+
+target_link_libraries( pastix_parsec PUBLIC
+  pastix_kernels
+  MORSE::PARSEC
+  )
+
+add_dependencies( pastix_parsec
   sopalin_headers
   parsec_headers_tgt
-)
+  )
 
 ### Generate the lib
 if (MPI_C_FOUND)

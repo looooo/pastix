@@ -20,8 +20,14 @@ set (INTERNAL_EXAMPLES
 foreach (_file ${INTERNAL_EXAMPLES})
   get_filename_component(_name_we ${_file} NAME_WE)
   add_executable(${_name_we} ${_file})
-  target_link_libraries(${_name_we} pastix)
-  target_link_libraries(${_name_we} ${BLAS_LIBRARIES})
+
+  target_include_directories( ${_name_we} PRIVATE
+    $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}> )
+  target_link_libraries( ${_name_we} PRIVATE
+    pastix
+    MORSE::LAPACKE )
+
 endforeach()
 
 set (EXAMPLES
@@ -40,8 +46,13 @@ set (EXAMPLES
 foreach (_file ${EXAMPLES})
   get_filename_component(_name_we ${_file} NAME_WE)
   add_executable(${_name_we} ${_file})
-  target_link_libraries(${_name_we} pastix)
-  target_link_libraries(${_name_we} ${BLAS_LIBRARIES})
+
+  target_include_directories( ${_name_we} PRIVATE
+    $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}> )
+  target_link_libraries( ${_name_we} PRIVATE
+    pastix
+    MORSE::LAPACKE )
 
   install(TARGETS ${_name_we} RUNTIME DESTINATION examples )
   install(FILES   ${_file}            DESTINATION examples )

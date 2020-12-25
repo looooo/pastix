@@ -9,10 +9,6 @@
 #
 ###
 include(RulesPrecisions)
-include(RulesJDF)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # reset variables
 set(generated_sources "")
@@ -80,9 +76,17 @@ add_library(pastix_starpu
   ${generated_sources}
   ${EXTRA_SOURCES})
 
-target_link_libraries(pastix_starpu
+target_include_directories( pastix_starpu PRIVATE
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}>
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/common> )
+
+target_include_directories( pastix_starpu PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> )
+
+target_link_libraries( pastix_starpu PUBLIC
   pastix_kernels
-  ${STARPU_LIBRARIES_DEP}
+  MORSE::STARPU
   )
 
 add_dependencies(pastix_starpu

@@ -15,8 +15,6 @@ include(AddSourceFiles)
 set(generated_sources "")
 set(generated_headers "")
 
-include_directories("${CMAKE_CURRENT_BINARY_DIR}")
-
 ### Generate the headers in all precisions
 set(HEADERS
   z_refine_functions.h

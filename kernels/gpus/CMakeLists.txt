@@ -10,11 +10,6 @@
 ###
 include(RulesPrecisions)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/kepler)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/kepler/gemm_config)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/fermi)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/fermi)
-
 # reset variables
 set(cuda_generated_files "")
 set(generated_headers "")

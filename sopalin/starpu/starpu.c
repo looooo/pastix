@@ -59,11 +59,7 @@ pastix_starpu_tag_init( pastix_data_t *pastix )
         starpu_tag_width = 63;
         starpu_tag_sep   = 24;
 
-#if defined(HAVE_STARPU_MPI_COMM_GET_ATTR) || 1
         starpu_mpi_comm_get_attr( pastix->inter_node_comm, STARPU_MPI_TAG_UB, &tag_ub_p, &ok );
-#else
-        MPI_Comm_get_attr( pastix->inter_node_comm, MPI_TAG_UB, &tag_ub_p, &ok );
-#endif
         tag_ub = (uintptr_t)tag_ub_p;
 
         if ( !ok ) {
