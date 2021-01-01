@@ -13,8 +13,8 @@
  *
  **/
 #include "common.h"
-#include "spm.h"
-#include "graph.h"
+#include <spm.h>
+#include "graph/graph.h"
 #include "pastix/order.h"
 
 /**

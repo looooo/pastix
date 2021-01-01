@@ -16,7 +16,7 @@
  **/
 #include "common.h"
 #include "pastix/order.h"
-#include "symbol.h"
+#include "symbol/symbol.h"
 #include "symbol_reorder.h"
 
 /**

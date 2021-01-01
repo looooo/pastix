@@ -15,7 +15,7 @@
  *
  **/
 #include "common.h"
-#include "graph.h"
+#include "graph/graph.h"
 #include "pastix/order.h"
 #if defined(PASTIX_ORDERING_PTSCOTCH)
 #include <ptscotch.h>

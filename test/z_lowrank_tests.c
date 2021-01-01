@@ -22,7 +22,7 @@
 #include <cblas.h>
 #include <assert.h>
 #include <pastix.h>
-#include "common/common.h"
+#include "common.h"
 #include <lapacke.h>
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"

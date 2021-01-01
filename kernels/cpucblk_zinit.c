@@ -16,9 +16,9 @@
  * @precisions normal z -> s d c
  *
  **/
-#include "common.h"
-#include "solver.h"
-#include "bcsc.h"
+#include "common/common.h"
+#include "blend/solver.h"
+#include "bcsc/bcsc.h"
 #include "pastix_zcores.h"
 #include "pastix_zlrcores.h"
 

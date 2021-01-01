@@ -15,9 +15,9 @@
  *
  **/
 #include "common.h"
-#include "symbol.h"
+#include "symbol/symbol.h"
 #include "queue.h"
-#include "solver.h"
+#include "blend/solver.h"
 
 /**
  *******************************************************************************

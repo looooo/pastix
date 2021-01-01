@@ -19,8 +19,8 @@
  *
  **/
 #include "common.h"
-#include "solver.h"
-#include "sopalin_data.h"
+#include "blend/solver.h"
+#include "sopalin/sopalin_data.h"
 #include "pastix_zcores.h"
 #if defined(PASTIX_WITH_CUDA)
 #include "pastix_zcuda.h"

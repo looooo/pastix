@@ -13,7 +13,7 @@
  *
  **/
 #include "common.h"
-#include "symbol.h"
+#include "symbol/symbol.h"
 #include "symbol_reorder.h"
 
 /**

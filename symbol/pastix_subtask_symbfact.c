@@ -20,10 +20,10 @@
  *
  **/
 #include "common.h"
-#include "spm.h"
-#include "graph.h"
+#include <spm.h>
+#include "graph/graph.h"
 #include "pastix/order.h"
-#include "symbol.h"
+#include "symbol/symbol.h"
 #if defined( PASTIX_DISTRIBUTED )
 #include "csc_utils.h"
 #include "cscd_utils_intern.h"

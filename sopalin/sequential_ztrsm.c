@@ -16,10 +16,10 @@
  *
  **/
 #include "common.h"
-#include "solver.h"
+#include "blend/solver.h"
 #include "bcsc/bcsc.h"
 #include "bcsc/bcsc_z.h"
-#include "sopalin_data.h"
+#include "sopalin/sopalin_data.h"
 #include "pastix_zcores.h"
 
 #if defined(PASTIX_WITH_STARPU)
@@ -27,7 +27,7 @@
 #endif
 
 #if defined(PASTIX_WITH_MPI)
-#include "coeftab.h"
+#include "sopalin/coeftab.h"
 #endif
 
 void

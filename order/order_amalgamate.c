@@ -15,9 +15,9 @@
  *
  **/
 #include "common.h"
-#include "graph.h"
+#include "graph/graph.h"
 #include "pastix/order.h"
-#include "fax_csr.h"
+#include "symbol/fax_csr.h"
 
 /**
  *******************************************************************************

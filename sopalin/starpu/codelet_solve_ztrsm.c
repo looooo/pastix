@@ -20,8 +20,8 @@
  *
  **/
 #include "common.h"
-#include "solver.h"
-#include "sopalin_data.h"
+#include "blend/solver.h"
+#include "sopalin/sopalin_data.h"
 #include "pastix_zcores.h"
 #include "pastix_starpu.h"
 #include "pastix_zstarpu.h"

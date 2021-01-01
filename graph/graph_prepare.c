@@ -15,8 +15,8 @@
  *
  **/
 #include "common.h"
-#include "spm.h"
-#include "graph.h"
+#include <spm.h>
+#include "graph/graph.h"
 #if defined(PASTIX_DISTRIBUTED) && 0
 #include "cscd_utils_intern.h"
 #endif

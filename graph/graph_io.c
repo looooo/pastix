@@ -15,8 +15,8 @@
  *
  **/
 #include "common.h"
-#include "graph.h"
-#include "spm.h"
+#include "graph/graph.h"
+#include <spm.h>
 
 /**
  *******************************************************************************

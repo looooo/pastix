@@ -16,9 +16,9 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif
-#include "common.h"
-#include "bcsc.h"
-#include "solver.h"
+#include "common/common.h"
+#include "bcsc/bcsc.h"
+#include "blend/solver.h"
 #include "kernels_trace.h"
 
 /**

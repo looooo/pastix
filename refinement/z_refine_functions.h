@@ -20,7 +20,7 @@
 #define _z_refine_functions_h_
 
 #include "common.h"
-#include "bcsc.h"
+#include "bcsc/bcsc.h"
 
 struct z_solver
 {

@@ -17,7 +17,7 @@
  *
  **/
 #include "common.h"
-#include "solver.h"
+#include "blend/solver.h"
 #include "pastix_starpu.h"
 #include <starpu_data.h>
 

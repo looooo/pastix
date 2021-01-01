@@ -24,7 +24,7 @@
 #include <parsec/devices/cuda/dev_cuda.h>
 #endif
 
-#include "solver.h"
+#include "blend/solver.h"
 #include "pastix_parsec.h"
 
 /**

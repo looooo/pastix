@@ -13,8 +13,8 @@
  *
  **/
 #include "common.h"
-#include "symbol.h"
-#include "solver.h"
+#include "symbol/symbol.h"
+#include "blend/solver.h"
 
 /*+ Generic PostScript (tm) output definitions. +*/
 #define SOLVER_PSDPI      72    /*+ PostScript dots-per-inch            +*/

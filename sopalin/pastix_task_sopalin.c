@@ -18,11 +18,11 @@
 #include "common.h"
 #include <lapacke.h>
 #include "isched.h"
-#include "spm.h"
-#include "bcsc.h"
+#include <spm.h>
+#include "bcsc/bcsc.h"
 #include "blend/solver.h"
 #include "coeftab.h"
-#include "sopalin_data.h"
+#include "sopalin/sopalin_data.h"
 #include "kernels/pastix_lowrank.h"
 #include "kernels/pastix_zlrcores.h"
 #include "kernels/pastix_clrcores.h"

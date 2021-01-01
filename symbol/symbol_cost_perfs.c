@@ -21,8 +21,8 @@
  *
  **/
 #include "common.h"
-#include "symbol_cost.h"
-#include "perf.h"
+#include "symbol/symbol_cost.h"
+#include "blend/perf.h"
 
 /**
  * @name Performance functions set

@@ -17,11 +17,11 @@
  *
  **/
 #include "common.h"
-#include "bcsc.h"
-#include "z_refine_functions.h"
-#include "c_refine_functions.h"
-#include "d_refine_functions.h"
-#include "s_refine_functions.h"
+#include "bcsc/bcsc.h"
+#include "refinement/z_refine_functions.h"
+#include "refinement/c_refine_functions.h"
+#include "refinement/d_refine_functions.h"
+#include "refinement/s_refine_functions.h"
 #include "pastix/order.h"
 
 /**

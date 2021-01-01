@@ -14,14 +14,14 @@
  **/
 #include "common.h"
 #include "pastix/order.h"
-#include "spm.h"
-#include "solver.h"
-#include "bcsc.h"
+#include <spm.h>
+#include "blend/solver.h"
+#include "bcsc/bcsc.h"
 
-#include "bcsc_z.h"
-#include "bcsc_c.h"
-#include "bcsc_d.h"
-#include "bcsc_s.h"
+#include "bcsc/bcsc_z.h"
+#include "bcsc/bcsc_c.h"
+#include "bcsc/bcsc_d.h"
+#include "bcsc/bcsc_s.h"
 
 /**
  *******************************************************************************

@@ -16,7 +16,7 @@
  *
  **/
 #include "common.h"
-#include "spm.h"
+#include <spm.h>
 #include "pastix/order.h"
 
 /**

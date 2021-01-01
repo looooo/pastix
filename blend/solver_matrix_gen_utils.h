@@ -25,9 +25,9 @@
 
 #include "elimintree.h"
 #include "cost.h"
-#include "symbol.h"
+#include "symbol/symbol.h"
 #include "cand.h"
-#include "solver.h"
+#include "blend/solver.h"
 #include "pastix/order.h"
 
 /**

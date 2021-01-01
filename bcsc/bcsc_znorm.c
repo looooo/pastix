@@ -13,7 +13,7 @@
  *
  **/
 #include "common.h"
-#include "bcsc.h"
+#include "bcsc/bcsc.h"
 #include <math.h>
 #include "frobeniusupdate.h"
 

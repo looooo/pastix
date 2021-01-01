@@ -16,7 +16,7 @@
  *
  **/
 #include "common.h"
-#include "symbol.h"
+#include "symbol/symbol.h"
 #include "solver_matrix_gen_utils.h"
 
 /**

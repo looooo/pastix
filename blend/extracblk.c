@@ -16,7 +16,7 @@
  *
  **/
 #include "common.h"
-#include "symbol.h"
+#include "symbol/symbol.h"
 #include "cost.h"
 #include "elimintree.h"
 #include "cand.h"

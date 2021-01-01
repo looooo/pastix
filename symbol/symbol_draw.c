@@ -15,7 +15,7 @@
  **/
 #include <time.h>
 #include "common.h"
-#include "symbol.h"
+#include "symbol/symbol.h"
 
 /**
  * @addtogroup symbol_dev_draw

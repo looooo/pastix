@@ -15,7 +15,7 @@
  **/
 #include "common.h"
 #include "queue.h"
-#include "solver.h"
+#include "blend/solver.h"
 
 /**
  *******************************************************************************

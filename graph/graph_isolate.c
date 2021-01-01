@@ -17,7 +17,7 @@
 #include "common.h"
 #include "pastix/order.h"
 #include "blend/extendVector.h"
-#include "graph.h"
+#include "graph/graph.h"
 
 /**
  *******************************************************************************

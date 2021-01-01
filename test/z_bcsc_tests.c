@@ -24,11 +24,11 @@
 #include <pastix.h>
 #include <common.h>
 #include <spm.h>
-#include <bcsc.h>
-#include "lapacke.h"
+#include "bcsc/bcsc.h"
+#include <lapacke.h>
 #include <z_spm.h>
-#include <bcsc_z.h>
-#include <bcsc.h>
+#include "bcsc/bcsc_z.h"
+#include "bcsc/bcsc.h"
 #include <pastix/order.h>
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"

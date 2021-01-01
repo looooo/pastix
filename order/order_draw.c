@@ -15,7 +15,7 @@
 #define _GNU_SOURCE 1
 #include "common.h"
 #include "order_internal.h"
-#include "graph.h"
+#include "graph/graph.h"
 #include <scotch.h>
 
 /**
