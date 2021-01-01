@@ -24,20 +24,7 @@ static int first_init = 0;
 static int initialized = 0;
 static volatile pastix_atomic_lock_t topo_lock = PASTIX_ATOMIC_UNLOCKED;
 
-#if defined(HAVE_HWLOC_PARENT_MEMBER)
 #define HWLOC_GET_PARENT(OBJ)  (OBJ)->parent
-#else
-#define HWLOC_GET_PARENT(OBJ)  (OBJ)->father
-#endif  /* defined(HAVE_HWLOC_PARENT_MEMBER) */
-
-#if !defined(HAVE_HWLOC_BITMAP)
-#define hwloc_bitmap_t        hwloc_cpuset_t
-#define hwloc_bitmap_alloc    hwloc_cpuset_alloc
-#define hwloc_bitmap_free     hwloc_cpuset_free
-#define hwloc_bitmap_dup      hwloc_cpuset_dup
-#define hwloc_bitmap_singlify hwloc_cpuset_singlify
-#define hwloc_bitmap_free     hwloc_cpuset_free
-#endif
 
 int isched_hwloc_init(void)
 {
@@ -157,7 +144,6 @@ int isched_hwloc_bind_on_core_index(int cpu_index)
 
 int isched_hwloc_unbind()
 {
-#if defined(HAVE_HWLOC_BITMAP)
     hwloc_obj_t obj;
 
     /* HwLoc has not been initialized */
@@ -179,7 +165,7 @@ int isched_hwloc_unbind()
         free(str);
         return -1;
     }
-#endif
+
     return PASTIX_SUCCESS;
 }
 

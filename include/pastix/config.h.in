@@ -64,10 +64,6 @@
 
 /* Optional packages */
 #cmakedefine HAVE_HWLOC
-#cmakedefine HAVE_HWLOC_BITMAP
-#cmakedefine HAVE_HWLOC_PARENT_MEMBER
-#cmakedefine HAVE_HWLOC_CACHE_ATTR
-#cmakedefine HAVE_HWLOC_OBJ_PU
 
 /* Ordering options */
 #cmakedefine PASTIX_ORDERING_SCOTCH
