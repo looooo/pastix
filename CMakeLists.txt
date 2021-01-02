@@ -669,6 +669,7 @@ target_include_directories( pastix PUBLIC
 target_link_libraries( pastix PUBLIC
   spm
   pastix_kernels
+  Threads::Threads
 )
 
 if(PASTIX_ORDERING_PTSCOTCH)

@@ -26,7 +26,6 @@
 #cmakedefine PASTIX_WITH_EZTRACE
 
 /* system */
-#cmakedefine HAVE_PTHREAD
 #cmakedefine HAVE_SCHED_SETAFFINITY
 #cmakedefine HAVE_CLOCK_GETTIME
 /* #cmakedefine HAVE_ASPRINTF */
