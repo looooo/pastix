@@ -732,6 +732,7 @@ contains
     !
     allocate( matrix%spm )
     call spmInit( matrix%spm )
+    matrix%spm%baseval = 1
     matrix%spm%mtxtype = SpmHermitian
     matrix%spm%flttype = SpmComplex64
     matrix%spm%fmttype = SpmIJV
