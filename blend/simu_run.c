@@ -26,14 +26,14 @@
 #include <unistd.h>
 
 #include "common.h"
-#include "symbol.h"
+#include "symbol/symbol.h"
 #include "extendVector.h"
 #include "queue.h"
 #include "elimintree.h"
 #include "cost.h"
 #include "cand.h"
 #include "blendctrl.h"
-#include "solver.h"
+#include "blend/solver.h"
 #include "simu.h"
 #include "perf.h"
 

@@ -22,7 +22,7 @@
 #define _pastix_starpu_h_
 
 #include "common.h"
-#include "solver.h"
+#include "blend/solver.h"
 
 #if defined(PASTIX_WITH_MPI)
 #include <starpu_mpi.h>

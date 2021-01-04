@@ -20,8 +20,8 @@
  *
  **/
 #include "common.h"
-#include "spm.h"
-#include "graph.h"
+#include <spm.h>
+#include "graph/graph.h"
 #include "blend/elimintree.h"
 #include "order_internal.h"
 

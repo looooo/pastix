@@ -15,9 +15,9 @@
 #ifndef _pastixdata_h_
 #define _pastixdata_h_
 
-#include "isched.h"
-#include "symbol.h"
-#include "queue.h"
+#include "common/isched.h"
+#include "symbol/symbol.h"
+#include "kernels/queue.h"
 
 /*
  * Steps of the pastix solver

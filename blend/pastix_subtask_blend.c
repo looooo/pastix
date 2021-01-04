@@ -16,18 +16,18 @@
  *
  **/
 #include "common.h"
-#include "spm.h"
-#include "graph.h"
-#include "order_internal.h"
-#include "perf.h"
-#include "elimintree.h"
-#include "cost.h"
-#include "cand.h"
-#include "extendVector.h"
+#include <spm.h>
+#include "graph/graph.h"
+#include "order/order_internal.h"
+#include "blend/perf.h"
+#include "blend/elimintree.h"
+#include "blend/cost.h"
+#include "blend/cand.h"
+#include "blend/extendVector.h"
 #include "blendctrl.h"
-#include "solver.h"
-#include "simu.h"
-#include "blend.h"
+#include "blend/solver.h"
+#include "blend/simu.h"
+#include "blend/blend.h"
 
 /**
  *******************************************************************************

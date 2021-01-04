@@ -50,6 +50,7 @@ program flaplacian
   !
   allocate( spm )
   call spmInit( spm )
+  spm%baseval = 1
   spm%mtxtype = SpmSymmetric
   spm%flttype = SpmComplex64
   spm%fmttype = SpmIJV

@@ -18,8 +18,8 @@ extern "C" %{
 #include <parsec/data_distribution.h>
 #include <parsec/private_mempool.h>
 #include "common.h"
-#include "solver.h"
-#include "sopalin_data.h"
+#include "blend/solver.h"
+#include "sopalin/sopalin_data.h"
 #include "pastix_zcores.h"
 #include "pastix_zcuda.h"
 #include "pastix_parsec.h"

@@ -13,7 +13,7 @@
  * @date 2019-11-12
  *
  **/
- #include <stdint.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -21,10 +21,10 @@
 #include <assert.h>
 #include <time.h>
 #include <pastix.h>
-#include "common.h"
 #include <spm.h>
-#include <bcsc.h>
-#include "sopalin_data.h"
+#include "common.h"
+#include "bcsc/bcsc.h"
+#include "sopalin/sopalin_data.h"
 
 #include "z_tests.h"
 #include "c_tests.h"

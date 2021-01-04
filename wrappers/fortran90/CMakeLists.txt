@@ -53,7 +53,9 @@ set_source_files_properties(
   COMPILE_DEFINITIONS "${pastixf_compile_definitions}"
   INCLUDE_DIRECTORIES "${pastixf_include_dirs}" )
 
-target_link_libraries( pastixf pastix )
+target_link_libraries( pastixf PUBLIC
+  pastix spmf )
+
 install(TARGETS pastixf
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
@@ -80,16 +82,16 @@ foreach (_file ${EXAMPLES})
 
   add_executable(${_name_we} examples/${_file})
 
-  target_link_libraries(${_name_we}
-    pastixf
-    ${SPM_LIBRARIES_FORTRAN} )
+  target_link_libraries(${_name_we} PRIVATE
+    pastixf spmf )
 
   if ( PASTIX_WITH_MPI )
     set_source_files_properties(
       examples/${_file}
       PROPERTIES COMPILE_DEFINITIONS "PASTIX_WITH_MPI=1")
 
-    target_link_libraries(${_name_we} MPI::MPI_Fortran)
+    target_link_libraries(${_name_we} PRIVATE
+      MPI::MPI_Fortran )
   endif()
 
   install(TARGETS ${_name_we}       RUNTIME DESTINATION examples )
@@ -117,16 +119,16 @@ set( _file fmultilap.f90 )
 get_filename_component(_name_we ${_file} NAME_WE)
 add_executable(${_name_we} examples/${_file})
 
-target_link_libraries( ${_name_we}
-  pastixf
-  ${SPM_LIBRARIES_FORTRAN} )
+target_link_libraries( ${_name_we} PRIVATE
+  pastixf )
 
 if ( PASTIX_WITH_MPI )
   set_source_files_properties(
     examples/${_file}
     PROPERTIES COMPILE_DEFINITIONS "PASTIX_WITH_MPI=1")
 
-  target_link_libraries(${_name_we} MPI::MPI_Fortran)
+  target_link_libraries( ${_name_we} PRIVATE
+    MPI::MPI_Fortran )
 endif()
 
 install(TARGETS ${_name_we}       RUNTIME DESTINATION examples )
@@ -140,7 +142,7 @@ if (OpenMP_Fortran_FOUND)
   set_target_properties( ${_name_we}
     PROPERTIES
     COMPILE_FLAGS ${OpenMP_Fortran_FLAGS} )
-  target_link_libraries( ${_name_we}
+  target_link_libraries( ${_name_we} PRIVATE
     ${OpenMP_Fortran_LIBRARIES} )
 endif()
 

@@ -21,11 +21,11 @@
  *
  **/
 #include "common.h"
-#include "symbol.h"
-#include "elimintree.h"
-#include "cost.h"
-#include "cand.h"
-#include "solver.h"
+#include "symbol/symbol.h"
+#include "blend/elimintree.h"
+#include "blend/cost.h"
+#include "blend/cand.h"
+#include "blend/solver.h"
 
 /**
  *******************************************************************************

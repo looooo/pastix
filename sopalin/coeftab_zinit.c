@@ -18,8 +18,8 @@
  **/
 #define _GNU_SOURCE 1
 #include "common.h"
-#include "solver.h"
-#include "bcsc.h"
+#include "blend/solver.h"
+#include "bcsc/bcsc.h"
 #include "sopalin/coeftab_z.h"
 #include "pastix_zcores.h"
 

@@ -132,6 +132,8 @@ core_zscalo( pastix_trans_t            trans,
             B += ldb - M;
         }
     }
+
+    (void)trans;
     return PASTIX_SUCCESS;
 }
 

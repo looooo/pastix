@@ -19,8 +19,8 @@
 #include <stdlib.h>
 
 #include "common.h"
-#include "symbol.h"
-#include "cost.h"
+#include "symbol/symbol.h"
+#include "blend/cost.h"
 
 /**
  *******************************************************************************

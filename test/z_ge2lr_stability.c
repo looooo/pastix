@@ -26,7 +26,7 @@
 #include <assert.h>
 #include <time.h>
 #include <pastix.h>
-#include "common/common.h"
+#include "common.h"
 #include <lapacke.h>
 #include <cblas.h>
 #include "blend/solver.h"

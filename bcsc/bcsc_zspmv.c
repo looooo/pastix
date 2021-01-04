@@ -18,9 +18,9 @@
  **/
 #include "common.h"
 #include <math.h>
-#include "bcsc.h"
+#include "bcsc/bcsc.h"
 #include "bcsc_z.h"
-#include "solver.h"
+#include "blend/solver.h"
 #include "pastix/datatypes.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS

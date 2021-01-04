@@ -20,7 +20,7 @@
 #include <assert.h>
 
 #include "common.h"
-#include "symbol.h"
+#include "symbol/symbol.h"
 #include "symbol_cost.h"
 
 /**

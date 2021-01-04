@@ -16,8 +16,8 @@
 #if !defined(PASTIX_ORDERING_SCOTCH)
 #error "This file should be compiled inly if SCOTCH is enabled and found"
 #endif /* defined(PASTIX_ORDERING_PTSCOTCH) */
-#include "spm.h"
-#include "graph.h"
+#include <spm.h>
+#include "graph/graph.h"
 #include "pastix/order.h"
 #include <scotch.h>
 

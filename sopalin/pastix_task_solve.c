@@ -17,15 +17,15 @@
  **/
 #define _GNU_SOURCE 1
 #include "common.h"
-#include "bcsc.h"
+#include "bcsc/bcsc.h"
 #include "pastix/order.h"
-#include "solver.h"
-#include "sopalin_data.h"
+#include "blend/solver.h"
+#include "sopalin/sopalin_data.h"
 
-#include "bcsc_z.h"
-#include "bcsc_c.h"
-#include "bcsc_d.h"
-#include "bcsc_s.h"
+#include "bcsc/bcsc_z.h"
+#include "bcsc/bcsc_c.h"
+#include "bcsc/bcsc_d.h"
+#include "bcsc/bcsc_s.h"
 
 #if defined(PASTIX_DEBUG_SOLVE)
 #include <z_spm.h>

@@ -17,8 +17,8 @@
  **/
 #include "common.h"
 #include "isched.h"
-#include "solver.h"
-#include "sopalin_data.h"
+#include "blend/solver.h"
+#include "sopalin/sopalin_data.h"
 #include "sopalin/coeftab_z.h"
 #include "pastix_zcores.h"
 

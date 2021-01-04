@@ -18,7 +18,7 @@
  *
  **/
 #include "common.h"
-#include "solver.h"
+#include "blend/solver.h"
 #include "lapacke.h"
 #include "sopalin/coeftab_z.h"
 #include "pastix_zcores.h"

@@ -19,10 +19,10 @@
 #if defined(PASTIX_ORDERING_METIS)
 #include <metis.h>
 #endif
-#include "graph.h"
+#include "graph/graph.h"
 #include "pastix/order.h"
-#include "solver.h"
-#include "bcsc.h"
+#include "blend/solver.h"
+#include "bcsc/bcsc.h"
 #include "isched.h"
 #include <sys/types.h>
 #include <sys/stat.h>

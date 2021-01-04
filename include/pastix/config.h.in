@@ -26,7 +26,6 @@
 #cmakedefine PASTIX_WITH_EZTRACE
 
 /* system */
-#cmakedefine HAVE_PTHREAD
 #cmakedefine HAVE_SCHED_SETAFFINITY
 #cmakedefine HAVE_CLOCK_GETTIME
 /* #cmakedefine HAVE_ASPRINTF */
@@ -64,10 +63,6 @@
 
 /* Optional packages */
 #cmakedefine HAVE_HWLOC
-#cmakedefine HAVE_HWLOC_BITMAP
-#cmakedefine HAVE_HWLOC_PARENT_MEMBER
-#cmakedefine HAVE_HWLOC_CACHE_ATTR
-#cmakedefine HAVE_HWLOC_OBJ_PU
 
 /* Ordering options */
 #cmakedefine PASTIX_ORDERING_SCOTCH

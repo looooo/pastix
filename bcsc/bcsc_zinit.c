@@ -16,9 +16,9 @@
  **/
 #include "common.h"
 #include "pastix/order.h"
-#include "spm.h"
-#include "solver.h"
-#include "bcsc.h"
+#include <spm.h>
+#include "blend/solver.h"
+#include "bcsc/bcsc.h"
 #include "bcsc_z.h"
 
 /**

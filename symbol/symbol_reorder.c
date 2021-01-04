@@ -13,9 +13,9 @@
  *
  **/
 #include "common.h"
-#include "solver.h"
-#include "symbol.h"
-#include "symbol_reorder.h"
+#include "blend/solver.h"
+#include "symbol/symbol.h"
+#include "symbol/symbol_reorder.h"
 #include "pastix/order.h"
 #include "queue.h"
 #include "blend/extendVector.h"

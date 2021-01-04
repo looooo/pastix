@@ -19,11 +19,11 @@
 #include "common.h"
 #include <math.h>
 #include "lapacke.h"
-#include "bcsc.h"
+#include "bcsc/bcsc.h"
 #include "bcsc_z.h"
 #include "frobeniusupdate.h"
 #include "cblas.h"
-#include "solver.h"
+#include "blend/solver.h"
 
 #if defined(PASTIX_WITH_MPI)
 void

@@ -22,8 +22,8 @@
 #include <parsec/arena.h>
 #include <parsec/data_dist/matrix/matrix.h>
 #include "common.h"
-#include "solver.h"
-#include "sopalin_data.h"
+#include "blend/solver.h"
+#include "sopalin/sopalin_data.h"
 #include "zpotrf_sp1dplus.h"
 #include "zpotrf_sp2d.h"
 #include "pastix_parsec.h"

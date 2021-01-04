@@ -26,13 +26,13 @@
 
 #include "common.h"
 #include "cost.h"
-#include "symbol.h"
+#include "symbol/symbol.h"
 #include "elimintree.h"
 #include "extendVector.h"
 #include "cand.h"
 #include "queue.h"
 #include "blendctrl.h"
-#include "solver.h"
+#include "blend/solver.h"
 #include "simu.h"
 
 #include "extracblk.h"

@@ -25,8 +25,8 @@
 #include <getopt.h>
 #endif  /* defined(HAVE_GETOPT_H) */
 
-#include "common/common.h"
-#include "common/flops.h"
+#include "common.h"
+#include "flops.h"
 #include "bcsc/bcsc.h"
 #include "bcsc/bcsc_z.h"
 #include "blend/solver.h"

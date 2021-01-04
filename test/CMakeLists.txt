@@ -26,9 +26,6 @@ set(tests_headers
 add_custom_target(tests_headers_tgt
   DEPENDS ${tests_headers} )
 
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
-include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
-
 ## Generate the test library files for all required precisions
 set(LIB_SOURCES
   z_bcsc_tests.c
@@ -42,19 +39,30 @@ precisions_rules_py(generated_libfiles
    "${LIB_SOURCES}"
    PRECISIONS "p;s;d;c;z")
 
-add_library(bcsc_test
-   ${generated_libfiles}
-   )
+add_library( bcsc_test
+  ${generated_libfiles}
+  )
 
 add_dependencies( bcsc_test
   tests_headers_tgt
   )
 
-target_link_libraries( bcsc_test
+target_include_directories( bcsc_test PRIVATE
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}>
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/common> )
+
+target_include_directories( bcsc_test PUBLIC
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/test>
+  $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}/test> )
+
+target_link_libraries( bcsc_test PUBLIC
   pastix
   pastix_kernels
-  ${SPM_LIBRARY}
-  ${LAPACKE_LIBRARIES_DEP}
+  spm
+  MORSE::LAPACKE
+  MORSE::CBLAS
+  MORSE::M
   )
 
 ## Generate all test executables
@@ -69,7 +77,14 @@ set (TESTS
 foreach (_file ${TESTS})
   get_filename_component(_name_we ${_file} NAME_WE)
   add_executable(${_name_we} ${_file})
-  target_link_libraries(${_name_we} pastix bcsc_test)
+
+  target_include_directories( ${_name_we} PRIVATE
+    $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}>
+    $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/common> )
+
+  target_link_libraries(${_name_we} PRIVATE
+    pastix bcsc_test )
 endforeach()
 
 ## CTest execution
@@ -168,13 +183,22 @@ if(PASTIX_LR_TESTINGS)
       tests_headers_tgt
       )
 
-    target_link_libraries( pastix_lrtests
+    target_include_directories( pastix_lrtests PRIVATE
+      $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}>
+      $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/common> )
+
+    target_include_directories( pastix_lrtests PUBLIC
+      $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/test>
+      $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}/test> )
+
+    target_link_libraries( pastix_lrtests PUBLIC
       pastix
       pastix_kernels
-      ${LAPACKE_LIBRARIES_DEP}
-      ${TMG_LIBRARIES_DEP}
-      ${EXTRA_LIBS}
-      m )
+      MORSE::LAPACKE
+      MORSE::CBLAS
+      MORSE::M
+      )
 
     set(LR_TESTS_SOURCES
       z_ge2lr_performance.c
@@ -197,13 +221,25 @@ if(PASTIX_LR_TESTINGS)
     foreach (_file ${testings})
       get_filename_component(_name_we ${_file} NAME_WE)
       add_executable(${_name_we} ${_file})
-      target_link_libraries(${_name_we}
+
+
+      target_include_directories( ${_name_we} PRIVATE
+        $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}>
+        $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/common> )
+
+      target_include_directories( ${_name_we} PUBLIC
+        $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/test>
+        $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}/test> )
+
+
+      target_link_libraries( ${_name_we} PRIVATE
         pastix_lrtests
         pastix_kernels
-        ${LAPACKE_LIBRARIES_DEP}
-        ${TMG_LIBRARIES_DEP}
-        ${EXTRA_LIBS}
-        m)
+        MORSE::LAPACKE
+        MORSE::CBLAS
+        MORSE::M
+        )
 
       add_test(shm_test_${_name_we} ./${_name_we} -n 300 -p 10 )
     endforeach()

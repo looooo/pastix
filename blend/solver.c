@@ -14,8 +14,8 @@
  *
  **/
 #include "common.h"
-#include "solver.h"
-#include "coeftab.h"
+#include "blend/solver.h"
+#include "sopalin/coeftab.h"
 
 #if defined(PASTIX_WITH_PARSEC)
 #include "sopalin/parsec/pastix_parsec.h"

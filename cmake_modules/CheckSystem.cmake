@@ -147,17 +147,8 @@ int main(void) {
 
 # Check for Thread library
 # ------------------------
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-find_package(Threads)
-if(Threads_FOUND)
-  CMAKE_PUSH_CHECK_STATE()
-  list( APPEND CMAKE_REQUIRED_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}" )
-  check_function_exists(pthread_create HAVE_PTHREAD)
-  CMAKE_POP_CHECK_STATE()
-  if(HAVE_PTHREAD)
-    list(APPEND EXTRA_LIBS ${CMAKE_THREAD_LIBS_INIT})
-  endif(HAVE_PTHREAD)
-endif(Threads_FOUND)
+set( CMAKE_THREAD_PREFER_PTHREAD TRUE )
+find_package( Threads REQUIRED )
 
 check_function_exists(sched_setaffinity HAVE_SCHED_SETAFFINITY)
 if( NOT HAVE_SCHED_SETAFFINITY )

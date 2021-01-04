@@ -15,10 +15,10 @@
  *
  **/
 #include "common.h"
-#include "bcsc.h"
+#include "bcsc/bcsc.h"
 #include "isched.h"
-#include "solver.h"
-#include "coeftab.h"
+#include "blend/solver.h"
+#include "sopalin/coeftab.h"
 #include "pastix_zcores.h"
 #include "pastix_ccores.h"
 #include "pastix_dcores.h"

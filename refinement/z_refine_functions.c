@@ -18,11 +18,11 @@
  **/
 #include "common.h"
 #include "cblas.h"
-#include "bcsc.h"
-#include "bvec.h"
-#include "bcsc_z.h"
-#include "sopalin_data.h"
-#include "z_refine_functions.h"
+#include "bcsc/bcsc.h"
+#include "bcsc/bvec.h"
+#include "bcsc/bcsc_z.h"
+#include "sopalin/sopalin_data.h"
+#include "refinement/z_refine_functions.h"
 
 /**
  *******************************************************************************

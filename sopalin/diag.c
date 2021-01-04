@@ -19,7 +19,7 @@
  *
  **/
 #include "common.h"
-#include "spm.h"
+#include <spm.h>
 #include "blend/solver.h"
 #include "sopalin/coeftab_z.h"
 #include "sopalin/coeftab_c.h"

@@ -15,7 +15,7 @@
  *
  **/
 #include "common.h"
-#include "solver.h"
+#include "blend/solver.h"
 
 /**
  * @ingroup blend_dev_solver

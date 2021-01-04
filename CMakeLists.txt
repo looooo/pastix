@@ -15,11 +15,11 @@ include(CMakeDependentOption)
 include(CheckFunctionExists)
 
 # The current version number
-set(PASTIX_VERSION_MAJOR 6)
-set(PASTIX_VERSION_MINOR 1)
-set(PASTIX_VERSION_MICRO 0)
+set( PASTIX_VERSION_MAJOR 6 )
+set( PASTIX_VERSION_MINOR 1 )
+set( PASTIX_VERSION_MICRO 0 )
 
-set(PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VERSION_MICRO}")
+set( PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VERSION_MICRO}" )
 
 find_package(Git QUIET)
 
@@ -196,81 +196,32 @@ cmake_dependent_option(PASTIX_DEBUG_MPI
 option(PASTIX_LR_TESTINGS
   "Enable the generation of low-rank testings (Requires LAPACKE with TMG support)" OFF)
 
-###############################################################################
+#########################
 # Look for dependencies #
 #########################
 
-if (PASTIX_WITH_FORTRAN)
-  include(FortranCInterface)
-  FortranCInterface_HEADER(common/FCmangle.h
-    MACRO_NAMESPACE "FC_"
-    SYMBOL_NAMESPACE "FC_")
-  link_directories( ${CMAKE_Fortran_IMPLICIT_LINK_DIRECTORIES} )
-endif()
+# PaStiX depends on the libm
+#---------------------------
+find_package(M REQUIRED)
 
 # PaStiX depends on LAPACKE and CBLAS
 #------------------------------------
-find_package(CBLAS) # Should be REQUIRED for BLAS sequential only
-if(CBLAS_FOUND)
-    message(STATUS "cblas: ${CBLAS_INCLUDE_DIRS}")
-    include_directories(${CBLAS_INCLUDE_DIRS})
-endif()
-
-find_package(LAPACKE) # Should be also REQUIRED
-if(LAPACKE_FOUND)
-  message(STATUS "lapacke: ${LAPACKE_INCLUDE_DIRS}")
-  include_directories(${LAPACKE_INCLUDE_DIRS})
-endif()
-
-### Store dependencies not handled with pkg-config
-set( DEPS_LIBRARIES
-  ${LAPACKE_LIBRARIES_DEP}
-  ${CBLAS_LIBRARIES_DEP}
-  )
-
-list(APPEND CMAKE_INSTALL_RPATH
-  ${LAPACKE_LIBRARY_DIRS_DEP}
-  ${CBLAS_LIBRARY_DIRS_DEP}
-  )
+find_package(CBLAS REQUIRED)
+find_package(LAPACKE REQUIRED)
 
 # PaStiX depends on HwLoc
 #---------------------------
 find_package(HWLOC)
 set(HAVE_HWLOC ${HWLOC_FOUND})
-if( HWLOC_FOUND )
-  link_directories( ${HWLOC_LIBRARY_DIRS} )
-  link_libraries( ${HWLOC_LIBRARIES} )
-  include_directories( ${HWLOC_INCLUDE_DIRS} )
-  list(APPEND CMAKE_INSTALL_RPATH
-    ${HWLOC_LIBRARY_DIRS}
-    )
-endif (HWLOC_FOUND)
 
 # PaStiX might depend on MPI
-#------------------------------
+#---------------------------
 if (PASTIX_WITH_MPI)
-  # Force the detection of the C library
-  find_package(MPI)
-  string(REPLACE ";" " " MPI_C_COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
-  if (MPI_C_FOUND)
-    list(APPEND EXTRA_LIBS ${MPI_C_LIBRARIES} )
-    include_directories( ${MPI_C_INCLUDE_PATH} )
-
-    # Check to see if support for MPI 2.0 is available
-    set(saved_include "${CMAKE_REQUIRED_INCLUDES}" )
-    set(saved_libs    "${CMAKE_REQUIRED_LIBRARIES}")
-    set(CMAKE_REQUIRED_INCLUDES  "${CMAKE_REQUIRED_INCLUDES};${MPI_C_INCLUDE_PATH}")
-    set(CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES};${MPI_C_LIBRARIES}")
-    check_function_exists(MPI_Type_create_resized HAVE_MPI_20)
-    set(CMAKE_REQUIRED_INCLUDES  "${saved_include}")
-    set(CMAKE_REQUIRED_LIBRARIES "${saved_libs}")
-  else (MPI_C_FOUND)
-    message(FATAL_ERROR "MPI is required but was not found. Please provide an MPI compiler in your environment or configure with -DPASTIX_WITH_MPI=OFF")
-  endif (MPI_C_FOUND)
+  find_package(MPI REQUIRED)
 endif (PASTIX_WITH_MPI)
 
 # PaStiX might depend on CUDA
-#-------------------------------
+#----------------------------
 if( PASTIX_WITH_CUDA )
 
     find_package(CUDA)
@@ -303,58 +254,13 @@ if( PASTIX_WITH_CUDA )
 endif()
 
 # PaStiX might depend on StarPU
-#---------------------------------
+#------------------------------
 if (PASTIX_WITH_STARPU)
 
-  set(PASTIX_STARPU_VERSION "1.3" CACHE STRING "oldest STARPU version desired")
+  # Specify the minimum version
+  set( PASTIX_STARPU_VERSION "1.3" CACHE STRING "oldest STARPU version desired" )
 
-  # Create list of components in order to make a single call to find_package(starpu...)
-  set(STARPU_COMPONENT_LIST "HWLOC")
-  if(PASTIX_WITH_MPI)
-    list(APPEND STARPU_COMPONENT_LIST "MPI")
-  endif()
-  if(PASTIX_WITH_CUDA)
-    list(APPEND STARPU_COMPONENT_LIST "CUDA")
-  endif()
-  if(PASTIX_WITH_FXT)
-    list(APPEND STARPU_COMPONENT_LIST "FXT")
-  endif()
-
-  find_package(STARPU ${PASTIX_STARPU_VERSION} REQUIRED
-    COMPONENTS ${STARPU_COMPONENT_LIST})
-
-  # Add definition and include_dir if found
-  if(STARPU_FOUND)
-    include_directories(${STARPU_INCLUDE_DIRS_DEP})
-    link_directories(${STARPU_LIBRARY_DIRS_DEP})
-    set(CMAKE_REQUIRED_INCLUDES "${STARPU_INCLUDE_DIRS_DEP}")
-    if(PASTIX_USE_FXT)
-      # check if fxt profiling is accessible in starpu and activate it in magmamorse
-      set(CMAKE_REQUIRED_LIBRARIES "${STARPU_LIBRARIES_DEP}")
-      unset(STARPU_FXT_START_PROFILING_FOUND CACHE)
-      check_function_exists(starpu_fxt_start_profiling STARPU_FXT_START_PROFILING_FOUND)
-      if ( STARPU_FXT_START_PROFILING_FOUND )
-        message(STATUS "Set HAVE_STARPU_FXT_PROFILING - Activate FxT profiling through StarPU")
-        add_definitions(-DHAVE_STARPU_FXT_PROFILING)
-      endif()
-    endif()
-    if (PASTIX_WITH_MPI)
-      # Check if a specific function exist
-      set(CMAKE_REQUIRED_LIBRARIES "${STARPU_LIBRARIES_DEP}")
-      unset(STARPU_MPI_DATA_REGISTER_FOUND CACHE)
-      check_function_exists(starpu_mpi_data_register STARPU_MPI_DATA_REGISTER_FOUND)
-      if ( STARPU_MPI_DATA_REGISTER_FOUND )
-        add_definitions(-DHAVE_STARPU_MPI_DATA_REGISTER)
-      endif()
-    endif()
-
-    list(APPEND CMAKE_INSTALL_RPATH
-      ${STARPU_LIBRARY_DIRS_DEP}
-      )
-
-  else(STARPU_FOUND)
-    message(FATAL_ERROR "StarPU with ${STARPU_COMPONENT_LIST} components is required but was not found. Please provide the StarPU library in your environment or configure with -DPASTIX_WITH_STARPU=OFF")
-  endif()
+  find_package( STARPU ${PASTIX_STARPU_VERSION} REQUIRED )
 
 endif (PASTIX_WITH_STARPU)
 
@@ -362,127 +268,64 @@ endif (PASTIX_WITH_STARPU)
 #------------------------------
 if (PASTIX_WITH_PARSEC)
 
-    # Create list of components in order to make a single call to find_package(starpu...)
-    set(PARSEC_COMPONENT_LIST "HWLOC")
-    if(PASTIX_WITH_MPI)
-        list(APPEND PARSEC_COMPONENT_LIST "MPI")
-    endif()
-    if(PASTIX_WITH_CUDA)
-        list(APPEND PARSEC_COMPONENT_LIST "CUDA")
-    endif()
+  find_package( PARSEC REQUIRED )
 
-    find_package(PARSEC REQUIRED
-      COMPONENTS ${PARSEC_COMPONENT_LIST})
-
-    # Add definition and include_dir if found
-    if(PARSEC_FOUND)
-      include_directories(${PARSEC_INCLUDE_DIRS_DEP})
-      link_directories(${PARSEC_LIBRARY_DIRS_DEP})
-      list(APPEND CMAKE_INSTALL_RPATH ${PARSEC_LIBRARY_DIRS_DEP})
-    else()
-        message(FATAL_ERROR "Parsec with ${PARSEC_COMPONENT_LIST} components is required but was not found. Please provide the PaRSEC library in your environment or configure with -DPASTIX_WITH_PARSEC=OFF")
-    endif()
-
-    # Add the index-array dep management option to PTGCC compilation flags.
-    include(RulesJDF)
-    set(PARSEC_PTGPP_CFLAGS "--dep-management;index-array;${PARSEC_PTGPP_CFLAGS}")
+  # Add the index-array dep management option to PTGCC compilation flags.
+  include(RulesJDF)
+  set(PARSEC_PTGPP_CFLAGS "--dep-management;index-array;${PARSEC_PTGPP_CFLAGS}")
 
 endif (PASTIX_WITH_PARSEC)
 
 ### Add trace generation
 if(PASTIX_WITH_EZTRACE)
-  if (NOT EZTRACE_FOUND)
-    find_package(EZTRACE REQUIRED)
-  endif()
-
-  include_directories(${EZTRACE_INCLUDE_DIRS})
-  link_directories(${EZTRACE_LIBRARY_DIRS})
+  find_package(EZTRACE REQUIRED)
 endif(PASTIX_WITH_EZTRACE)
 
 # PaStiX might depend on Scotch/PT-Scotch
 #----------------------------------------
 if (PASTIX_ORDERING_PTSCOTCH)
   find_package(PTSCOTCH)
+
   if (PTSCOTCH_FOUND)
-    include_directories( ${PTSCOTCH_INCLUDE_DIRS_DEP} )
-    link_directories( ${PTSCOTCH_LIBRARY_DIRS_DEP} )
-    link_libraries( ${PTSCOTCH_LIBRARIES_DEP} )
-
-    list(APPEND CMAKE_INSTALL_RPATH
-      ${PTSCOTCH_LIBRARY_DIRS_DEP}
-      )
-  else (PTSCOTCH_FOUND)
-    message(FATAL_ERROR "PTSCOTCH is required if PASTIX_ORDERING_PTSCOCTH is on but was not found. Please provide an PtScotch library in your environment or configure with -DPASTIX_ORDERING_PTSCOTCH=OFF")
-  endif (PTSCOTCH_FOUND)
-
-  # Check coherency for integer size
-  if(PASTIX_INT64 AND NOT PTSCOTCH_Num_8)
-    message(FATAL_ERROR "PASTIX_INT64 is enabled and provided PT-Scotch is not compiled with int64 support, please build with -DPASTIX_INT64=OFF or install a 64 bits version of PT-Scotch.")
-  endif()
-  if(NOT PASTIX_INT64 AND NOT PTSCOTCH_Num_4)
-    message(FATAL_ERROR "PASTIX_INT64 is disabled and provided PT-Scotch is not compiled with int32 support, please build with -DPASTIX_INT64=ON or install a 32 bits version of PT-Scotch.")
+    # Check coherency for integer size
+    if(PASTIX_INT64 AND NOT PTSCOTCH_Num_8)
+      message(FATAL_ERROR "PASTIX_INT64 is enabled and provided PT-Scotch is not compiled with int64 support, please build with -DPASTIX_INT64=OFF or install a 64 bits version of PT-Scotch.")
+    endif()
+    if(NOT PASTIX_INT64 AND NOT PTSCOTCH_Num_4)
+      message(FATAL_ERROR "PASTIX_INT64 is disabled and provided PT-Scotch is not compiled with int32 support, please build with -DPASTIX_INT64=ON or install a 32 bits version of PT-Scotch.")
+    endif()
   endif()
 endif()
 
 if (PASTIX_ORDERING_SCOTCH)
   find_package(SCOTCH)
+
   if (SCOTCH_FOUND)
-    message(STATUS "Scotch inlude dirs: ${SCOTCH_INCLUDE_DIRS}" )
-    include_directories( ${SCOTCH_INCLUDE_DIRS} )
-    link_directories( ${SCOTCH_LIBRARY_DIRS} )
-    link_libraries( ${SCOTCH_LIBRARIES} )
-
-    list(APPEND CMAKE_INSTALL_RPATH
-      ${SCOTCH_LIBRARY_DIRS}
-      )
-  else()
-    message(FATAL_ERROR "Scotch is required but was not found. Please provide a Scotch library in your environment or configure with -DPASTIX_ORDERING_SCOTCH=OFF")
-  endif()
-
-  # Check coherency for integer size
-  if(PASTIX_INT64 AND NOT SCOTCH_Num_8)
-    message(FATAL_ERROR "PASTIX_INT64 is enabled and provided Scotch is not compiled with int64 support, please build with -DPASTIX_INT64=OFF or install a 64 bits version of Scotch.")
-  endif()
-  if(NOT PASTIX_INT64 AND NOT SCOTCH_Num_4)
-    message(FATAL_ERROR "PASTIX_INT64 is disabled and provided Scotch is not compiled with int32 support, please build with -DPASTIX_INT64=ON or install a 32 bits version of Scotch.")
+    # Check coherency for integer size
+    if(PASTIX_INT64 AND NOT SCOTCH_Num_8)
+      message(FATAL_ERROR "PASTIX_INT64 is enabled and provided Scotch is not compiled with int64 support, please build with -DPASTIX_INT64=OFF or install a 64 bits version of Scotch.")
+    endif()
+    if(NOT PASTIX_INT64 AND NOT SCOTCH_Num_4)
+      message(FATAL_ERROR "PASTIX_INT64 is disabled and provided Scotch is not compiled with int32 support, please build with -DPASTIX_INT64=ON or install a 32 bits version of Scotch.")
+    endif()
   endif()
 endif()
-
-set( DEPS_LIBRARIES
-  ${DEPS_LIBRARIES}
-  ${PTSCOTCH_LIBRARIES_DEP}
-  ${SCOTCH_LIBRARIES}
-  )
 
 # PaStiX might depend on Metis/ParMetis
 #--------------------------------------
 if (PASTIX_ORDERING_METIS)
   find_package(METIS)
+
   if (METIS_FOUND)
-    include_directories( ${METIS_INCLUDE_DIRS} )
-    link_directories( ${METIS_LIBRARY_DIRS} )
-    link_libraries( ${METIS_LIBRARIES} )
-
-    list(APPEND CMAKE_INSTALL_RPATH
-      ${METIS_LIBRARY_DIRS}
-      )
-  else()
-    message(FATAL_ERROR "Metis is required but was not found. Please provide a Metis library in your environment or configure with -DPASTIX_ORDERING_METIS=OFF")
-  endif()
-
-  # Check coherency for integer size
-  if(PASTIX_INT64 AND NOT METIS_Idx_8)
-    message(FATAL_ERROR "PASTIX_INT64 is enabled and provided Metis is not compiled with int64 support.")
-  endif()
-  if(NOT PASTIX_INT64 AND NOT METIS_Idx_4)
-    message(FATAL_ERROR "PASTIX_INT64 is disabled and provided Metis is not compiled with int32 support.")
+    # Check coherency for integer size
+    if(PASTIX_INT64 AND NOT METIS_Idx_8)
+      message(FATAL_ERROR "PASTIX_INT64 is enabled and provided Metis is not compiled with int64 support.")
+    endif()
+    if(NOT PASTIX_INT64 AND NOT METIS_Idx_4)
+      message(FATAL_ERROR "PASTIX_INT64 is disabled and provided Metis is not compiled with int32 support.")
+    endif()
   endif()
 endif()
-
-set( DEPS_LIBRARIES
-  ${DEPS_LIBRARIES}
-  ${METIS_LIBRARIES}
-  )
 
 # PaStiX might depend on GTG
 #---------------------------
@@ -492,11 +335,6 @@ if (GTG_FOUND)
   # Symbolic factorization options
   option(PASTIX_BLEND_GENTRACE
     "Allow trace generation in Blend simulation" OFF)
-
-  if (PASTIX_BLEND_GENTRACE)
-    include_directories( ${GTG_INCLUDE_DIRS} )
-    link_directories( ${GTG_LIBRARY_DIRS} )
-  endif()
 else()
   set( PASTIX_BLEND_GENTRACE OFF )
 endif()
@@ -516,6 +354,7 @@ set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
 
 # Compile the spm library
 option( PASTIX_WITH_EXTERNAL_SPM "Force the use of an external SpM library that should be correctly set in the environment variables" OFF )
+set( PASTIX_SPM_VERSION "1.0.0" CACHE STRING "Minimal SPM API" )
 
 if ( PASTIX_WITH_EXTERNAL_SPM )
   if ( PASTIX_WITH_FORTRAN )
@@ -539,51 +378,19 @@ endif()
 
 if ( SPM_FOUND )
   message( STATUS "Use installed SPM" )
-  include_directories(${SPM_INCLUDE_DIRS})
 else()
   message( STATUS "Use internal SPM" )
   add_subdirectory(spm)
-  set( SPM_LIBRARIES spm )
-  set( SPM_LIBRARIES_FORTRAN spmf )
-  include_directories("spm/include")
-  include_directories("${CMAKE_CURRENT_BINARY_DIR}/spm/include")
 endif()
 
 # Disable restrict (temporary)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Drestrict=")
 
-set(PROJECT_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
-include_directories(BEFORE "${PROJECT_INCLUDE_DIR}")
-
-STRING(COMPARE EQUAL ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} PROJECT_COMPILE_INPLACE)
-if(NOT PROJECT_COMPILE_INPLACE)
-  include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-endif(NOT PROJECT_COMPILE_INPLACE)
-
 #Configuration header
 configure_file (
   "${CMAKE_CURRENT_SOURCE_DIR}/include/pastix/config.h.in"
-  "${PROJECT_INCLUDE_DIR}/pastix/config.h")
-install(FILES "${PROJECT_INCLUDE_DIR}/pastix/config.h" DESTINATION include/pastix)
-
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/include")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/common")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/kernels")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/kernels")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bcsc")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/bcsc")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/refinement")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/refinement")
-
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sopalin")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blend")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/graph")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
+  "${CMAKE_CURRENT_BINARY_DIR}/include/pastix/config.h")
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/include/pastix/config.h" DESTINATION include/pastix)
 
 # Sub modules
 set(modules kernels refinement) #csc kernels sopalin common)
@@ -592,12 +399,10 @@ foreach (module ${modules})
 endforeach()
 
 if (PASTIX_WITH_PARSEC)
-    include_directories("${CMAKE_CURRENT_BINARY_DIR}/sopalin")
     add_subdirectory(sopalin/parsec)
 endif()
 
 if (PASTIX_WITH_STARPU)
-    include_directories("${CMAKE_CURRENT_BINARY_DIR}/sopalin")
     add_subdirectory(sopalin/starpu)
 endif()
 
@@ -840,7 +645,9 @@ add_library(pastix
   ${PASTIX_LIB_SRCS}
   )
 
-set_target_properties(pastix PROPERTIES VERSION ${PASTIX_VERSION} SOVERSION ${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR})
+set_target_properties( pastix PROPERTIES
+  VERSION ${PASTIX_VERSION}
+  SOVERSION ${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR} )
 
 add_dependencies(pastix
   kernels_headers_tgt
@@ -849,27 +656,36 @@ add_dependencies(pastix
   sopalin_headers
 )
 
-target_link_libraries(pastix
-  ${SPM_LIBRARIES}
+target_include_directories( pastix PRIVATE
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}>
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/common> )
+
+target_include_directories( pastix PUBLIC
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}/include>
+  $<INSTALL_INTERFACE:include> )
+
+target_link_libraries( pastix PUBLIC
+  spm
   pastix_kernels
-  ${LAPACKE_LIBRARIES_DEP}
-  ${CBLAS_LIBRARIES_DEP}
+  Threads::Threads
 )
 
 if(PASTIX_ORDERING_PTSCOTCH)
-  target_link_libraries(pastix ${PTSCOTCH_LIBRARIES_DEP} )
+  target_link_libraries( pastix PUBLIC MORSE::PTSCOTCH )
 endif()
 if(PASTIX_ORDERING_SCOTCH)
-  target_link_libraries(pastix ${SCOTCH_LIBRARIES} )
+  target_link_libraries( pastix PUBLIC MORSE::SCOTCH )
 endif()
 if(PASTIX_ORDERING_METIS)
-  target_link_libraries(pastix ${METIS_LIBRARIES} )
+  target_link_libraries( pastix PUBLIC MORSE::METIS )
 endif()
 
 if(PASTIX_WITH_PARSEC)
-  target_link_libraries(pastix
+  target_link_libraries( pastix PRIVATE
     pastix_parsec
-  )
+    )
 
   add_dependencies(pastix
     parsec_headers_tgt
@@ -877,7 +693,7 @@ if(PASTIX_WITH_PARSEC)
 endif()
 
 if(PASTIX_WITH_STARPU)
-  target_link_libraries(pastix
+  target_link_libraries(pastix PRIVATE
     pastix_starpu
     )
 
@@ -887,11 +703,15 @@ if(PASTIX_WITH_STARPU)
 endif()
 
 if (PASTIX_BLEND_GENTRACE)
-  target_link_libraries(pastix
+  target_link_libraries(pastix PRIVATE
     ${GTG_LIBRARIES}
     )
 endif()
 
+if(HWLOC_FOUND)
+  target_link_libraries( pastix PRIVATE
+    MORSE::HWLOC )
+endif()
 # foreach (module2 ${modules})
 #   add_dependencies(pastix ${module2}_headers)
 # endforeach()

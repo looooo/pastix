@@ -14,8 +14,8 @@
  */
 #define _GNU_SOURCE 1
 #include "common.h"
-#include "order_internal.h"
-#include "symbol.h"
+#include "order/order_internal.h"
+#include "symbol/symbol.h"
 
 /**
  *******************************************************************************

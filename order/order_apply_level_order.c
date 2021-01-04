@@ -16,7 +16,7 @@
  **/
 #include <string.h>
 #include "common.h"
-#include "elimintree.h"
+#include "blend/elimintree.h"
 #include "pastix/order.h"
 
 /**

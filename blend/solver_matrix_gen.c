@@ -24,8 +24,8 @@
 #include <sys/stat.h>
 
 #include "common.h"
-#include "symbol.h"
-#include "solver.h"
+#include "symbol/symbol.h"
+#include "blend/solver.h"
 #include "elimintree.h"
 #include "cost.h"
 #include "cand.h"

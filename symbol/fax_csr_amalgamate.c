@@ -18,9 +18,9 @@
  **/
 #include "common.h"
 #include "pastix/order.h"
-#include "fax_csr.h"
-#include "queue.h"
-#include "perf.h"
+#include "symbol/fax_csr.h"
+#include "kernels/queue.h"
+#include "blend/perf.h"
 
 /**
  * @brief Minimal memory increase accepted by the amalgamation algorithm (2%)

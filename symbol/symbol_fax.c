@@ -38,7 +38,7 @@
 #define SYMBOL_FAX
 
 #include "common.h"
-#include "symbol.h"
+#include "symbol/symbol.h"
 #include "pastix/order.h"
 #include "fax.h"
 #include "symbol_fax.h"

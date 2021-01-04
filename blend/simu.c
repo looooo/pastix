@@ -22,15 +22,15 @@
 #include <math.h>
 
 #include "common.h"
-#include "symbol.h"
-#include "elimintree.h"
-#include "cost.h"
-#include "cand.h"
+#include "symbol/symbol.h"
+#include "blend/elimintree.h"
+#include "blend/cost.h"
+#include "blend/cand.h"
 #include "queue.h"
-#include "extendVector.h"
-#include "blendctrl.h"
-#include "solver.h"
-#include "simu.h"
+#include "blend/extendVector.h"
+#include "blend/blendctrl.h"
+#include "blend/solver.h"
+#include "blend/simu.h"
 
 /**
  *******************************************************************************

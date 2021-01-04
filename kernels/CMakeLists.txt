@@ -15,8 +15,6 @@ include(AddSourceFiles)
 set(generated_sources "")
 set(generated_headers "")
 
-include_directories("${CMAKE_CURRENT_BINARY_DIR}")
-
 ### Add trace generation
 if(PASTIX_WITH_EZTRACE)
   add_library(eztrace-convert-kernels SHARED
@@ -126,6 +124,23 @@ add_dependencies(pastix_kernels
   kernels_headers_tgt
 )
 
+target_include_directories( pastix_kernels PRIVATE
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}>
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/common> )
+
+target_include_directories( pastix_kernels PUBLIC
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  $<INSTALL_INTERFACE:include> )
+
+target_link_libraries( pastix_kernels PUBLIC  spm            )
+target_link_libraries( pastix_kernels PRIVATE MORSE::LAPACKE )
+target_link_libraries( pastix_kernels PRIVATE MORSE::CBLAS   )
+target_link_libraries( pastix_kernels PUBLIC  MORSE::M       )
+
 if(PASTIX_WITH_EZTRACE)
    if (PASTIX_WITH_MPI)
      set( EZTRACE_LIBRARIES
@@ -137,12 +152,6 @@ if(PASTIX_WITH_EZTRACE)
      litl
    )
 endif(PASTIX_WITH_EZTRACE)
-
-target_link_libraries( pastix_kernels
-  ${LAPACKE_LIBRARIES_DEP}
-  ${CBLAS_LIBRARIES_DEP}
-  ${EXTRA_LIBS}
-)
 
 if(PASTIX_WITH_CUDA)
     # if(PASTIX_CUDA_FERMI)

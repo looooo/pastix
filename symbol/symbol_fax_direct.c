@@ -24,8 +24,8 @@
  *
  **/
 #include "common.h"
-#include "graph.h"
-#include "symbol.h"
+#include "graph/graph.h"
+#include "symbol/symbol.h"
 #include "pastix/order.h"
 #include "symbol_fax.h"
 
