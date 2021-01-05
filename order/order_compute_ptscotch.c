@@ -85,8 +85,8 @@ pastixOrderComputePTScotch( pastix_data_t  *pastix_data,
     }
 
      /* Enable this define to fix the SCOTCH random generator */
-#if defined(SCOTCH_FIX_SEED)
-    _SCOTCHintRandInit();
+#if defined(PASTIX_ORDERING_FIX_SEED) && defined(PASTIX_ORDERING_SCOTCH_MT)
+    SCOTCH_randomSeed( (SCOTCH_Num) pastix_data->id );
 #endif
 
     gN     = graph->gN;

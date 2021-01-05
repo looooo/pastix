@@ -139,6 +139,8 @@ option(PASTIX_ORDERING_METIS
 cmake_dependent_option(PASTIX_ORDERING_PTSCOTCH
   "Activate the PT-scotch ordering (requires PASTIX_DISTRIBUTED and PASTIX_ORDERING_SCOTCH)" ON
   "PASTIX_DISTRIBUTED;PASTIX_ORDERING_SCOTCH" OFF)
+option(PASTIX_ORDERING_FIX_SEED
+  "Fix the value of the random seed for ordering algorithm (when possible, Debug purpose)." ON )
 
 # Symbolic factorization options
 option(PASTIX_SYMBOL_DUMP_SYMBMTX

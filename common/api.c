@@ -731,6 +731,11 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     }
 #endif
 
+    /*
+     * TODO : Replace this id by a list of ids to know
+     *        which sub-problem this instance represents.
+     */
+    pastix->id    = 953833;
     pastix->iparm = iparm;
     pastix->dparm = dparm;
 
@@ -806,9 +811,6 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     pastix->dir_local  = NULL;
 
     pastixModelsLoad( pastix );
-
-    /* DIRTY Initialization for Scotch */
-    srand(1);
 
     if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
         pastixWelcome( pastix );
