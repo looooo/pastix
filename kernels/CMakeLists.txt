@@ -147,10 +147,8 @@ if(PASTIX_WITH_EZTRACE)
        ${EZTRACE_LIBRARIES}
        eztrace-mpi )
    endif()
-   target_link_libraries(pastix_kernels
-     ${EZTRACE_LIBRARIES}
-     litl
-   )
+   target_link_libraries(pastix_kernels PUBLIC  ${EZTRACE_LIBRARIES} )
+   target_link_libraries(pastix_kernels PRIVATE litl )
 endif(PASTIX_WITH_EZTRACE)
 
 if(PASTIX_WITH_CUDA)
@@ -161,8 +159,7 @@ if(PASTIX_WITH_CUDA)
     #   target_link_libraries( pastix_kernels
     #                          pastix_cucores_sm35 )
     # endif()
-    target_link_libraries( pastix_kernels
-      pastix_kernels_cuda )
+    target_link_libraries( pastix_kernels PRIVATE pastix_kernels_cuda )
 endif()
 
 ### Install library

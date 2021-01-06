@@ -227,33 +227,60 @@ endif (PASTIX_WITH_MPI)
 #----------------------------
 if( PASTIX_WITH_CUDA )
 
-    find_package(CUDA)
+  # When our cmake_minimum version will be 3.17 we will be able to use this
+  # far better module: FindCUDAToolkit
+  # https://cmake.org/cmake/help/latest/module/FindCUDAToolkit.html#module:FindCUDAToolkit
 
-    set(HAVE_CUDA ${CUDA_FOUND})
-    if (CUDA_FOUND)
-        if(CUDA_VERSION VERSION_LESS "3.0")
-            set(CUDA_HOST_COMPILATION_CPP OFF)
-        endif(CUDA_VERSION VERSION_LESS "3.0")
-        set(CUDA_BUILD_EMULATION OFF)
-        include_directories(${CUDA_INCLUDE_DIRS})
-        link_libraries(${CUDA_LIBRARIES}) # need CUDA libs to link.
-        set(saved_include "${CMAKE_REQUIRED_INCLUDES}")
-        set(saved_libs "${CMAKE_REQUIRED_LIBRARIES}")
-        set(CMAKE_REQUIRED_INCLUDES  "${CMAKE_REQUIRED_INCLUDES};${CUDA_INCLUDE_DIRS}")
-        set(CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES};${CUDA_LIBRARIES}")
-        if(CUDA_VERSION VERSION_LESS "4.0")
-            set(CUDA_HAVE_PEER_DEVICE_MEMORY_ACCESS 0)
-        else()
-            check_function_exists(cuDeviceCanAccessPeer CUDA_HAVE_PEER_DEVICE_MEMORY_ACCESS)
-        endif()
-        set(CMAKE_REQUIRED_INCLUDES  "${saved_include}")
-        set(CMAKE_REQUIRED_LIBRARIES "${saved_libs}")
+  find_package(CUDA REQUIRED)
 
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DCUDA_SM_VERSION=20")
-    else(CUDA_FOUND)
-        message(FATAL_ERROR "CUDA is required but was not found. Please provide a CUDA library in your environment or configure with -DPASTIX_WITH_CUDA=OFF")
-    endif (CUDA_FOUND)
+  set(HAVE_CUDA ${CUDA_FOUND})
+  if (CUDA_FOUND)
+    # create imported target because not provided with old cmake
+    add_library(CUDA::CUDA INTERFACE IMPORTED)
+    add_library(CUDA::CUBLAS INTERFACE IMPORTED)
 
+    if(CUDA_VERSION VERSION_LESS "3.0")
+      set(CUDA_HOST_COMPILATION_CPP OFF)
+    endif(CUDA_VERSION VERSION_LESS "3.0")
+    set(CUDA_BUILD_EMULATION OFF)
+
+    if (CUDA_INCLUDE_DIRS)
+      set_target_properties(CUDA::CUDA PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${CUDA_INCLUDE_DIRS}")
+    else()
+      message(WARNING "PASTIX_WITH_CUDA requires"
+        "\n   CUDA_INCLUDE_DIRS to be found. Be sure you have"
+        "\n   cuda headers with your distribution of CUDA.")
+    endif()
+
+    if (CUDA_LIBRARIES)
+      set_target_properties(CUDA::CUDA PROPERTIES INTERFACE_LINK_LIBRARIES "${CUDA_LIBRARIES}")
+
+      # Check cuDeviceCanAccessPeer
+      set(CMAKE_REQUIRED_INCLUDES  "${CUDA_INCLUDE_DIRS}")
+      set(CMAKE_REQUIRED_LIBRARIES "${CUDA_LIBRARIES}")
+      if(CUDA_VERSION VERSION_LESS "4.0")
+        set(CUDA_HAVE_PEER_DEVICE_MEMORY_ACCESS 0)
+      else()
+        check_function_exists(cuDeviceCanAccessPeer CUDA_HAVE_PEER_DEVICE_MEMORY_ACCESS)
+      endif()
+      unset(CMAKE_REQUIRED_INCLUDES)
+      unset(CMAKE_REQUIRED_LIBRARIES)
+
+      # Add cublas if found
+      if (CUDA_CUBLAS_LIBRARIES)
+        set_target_properties(CUDA::CUBLAS PROPERTIES INTERFACE_LINK_LIBRARIES "${CUDA_CUBLAS_LIBRARIES}")
+        target_link_libraries(CUDA::CUBLAS INTERFACE CUDA::CUDA)
+      else()
+        message(FATAL_ERROR "PASTIX_WITH_CUDA requires"
+          "\n   CUDA_CUBLAS_LIBRARIES to be found. Be sure you have"
+          "\n   libcublas with your distribution of CUDA.")
+      endif()
+    else()
+      message(FATAL_ERROR "PASTIX_WITH_CUDA_CUDA requires"
+        "\n   CUDA_LIBRARIES to be found. Be sure you have"
+        "\n   libcuda with your distribution of CUDA.")
+    endif()
+  endif (CUDA_FOUND)
 endif()
 
 # PaStiX might depend on StarPU
