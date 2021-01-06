@@ -136,10 +136,10 @@ target_include_directories( pastix_kernels PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   $<INSTALL_INTERFACE:include> )
 
-target_link_libraries( pastix_kernels PUBLIC  spm            )
-target_link_libraries( pastix_kernels PRIVATE MORSE::LAPACKE )
-target_link_libraries( pastix_kernels PRIVATE MORSE::CBLAS   )
-target_link_libraries( pastix_kernels PUBLIC  MORSE::M       )
+target_link_libraries( pastix_kernels PUBLIC spm            )
+target_link_libraries( pastix_kernels PUBLIC MORSE::LAPACKE )
+target_link_libraries( pastix_kernels PUBLIC MORSE::CBLAS   )
+target_link_libraries( pastix_kernels PUBLIC MORSE::M       )
 
 if(PASTIX_WITH_EZTRACE)
    if (PASTIX_WITH_MPI)
