@@ -67,6 +67,9 @@ include(CheckSystem)
 # Set the RPATH config
 # --------------------
 
+# For fPIC when build static
+set( CMAKE_POSITION_INDEPENDENT_CODE ON )
+
 # use, i.e. don't skip the full RPATH for the build tree
 set(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
