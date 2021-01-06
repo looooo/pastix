@@ -1,5 +1,5 @@
 ---
-image: hpclib/hiepacs
+image: registry.gitlab.inria.fr/solverstack/chameleon/hiepacs
 
 stages:
   - build
