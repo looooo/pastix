@@ -736,6 +736,15 @@ install(FILES
   DESTINATION include )
 install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
 
+# export target pastix
+install(EXPORT pastixTargets
+        NAMESPACE PASTIX::
+        DESTINATION lib/cmake/pastix
+        )
+
+# install target file
+install(TARGETS pastix EXPORT pastixTargets)
+
 ## Executable and tests
 enable_testing()
 include(CTest)

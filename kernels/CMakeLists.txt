@@ -170,6 +170,14 @@ install(TARGETS pastix_kernels
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib)
 
+# export target pastix_kernels
+# ----------------------------
+install(EXPORT pastix_kernelsTargets
+  NAMESPACE PASTIX::
+  DESTINATION lib/cmake/pastix
+  )
+install(TARGETS pastix_kernels EXPORT pastix_kernelsTargets)
+
 ### Add generated files to the global property
 add_documented_files(
   DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}

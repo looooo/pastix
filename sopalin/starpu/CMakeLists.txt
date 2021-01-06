@@ -103,6 +103,14 @@ install(TARGETS pastix_starpu
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib)
 
+# export target pastix_starpu
+# ---------------------------
+install(EXPORT pastix_starpuTargets
+  NAMESPACE PASTIX::
+  DESTINATION lib/cmake/pastix
+  )
+install(TARGETS pastix_starpu EXPORT pastix_starpuTargets)
+
 ### Add non-generated documented files to the global property
 add_documented_files(
   # Headers

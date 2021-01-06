@@ -52,6 +52,14 @@ install(TARGETS pastixf
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib )
 
+# export target pastixf
+# ---------------------
+install(EXPORT pastixfTargets
+        NAMESPACE PASTIX::
+        DESTINATION lib/cmake/pastix
+        )
+install(TARGETS pastixf EXPORT pastixfTargets)
+
 # Add examples
 # ------------
 set (EXAMPLES

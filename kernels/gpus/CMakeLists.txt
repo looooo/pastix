@@ -77,4 +77,12 @@ install(TARGETS pastix_kernels_cuda
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib )
 
+# export target pastix_kernels
+# ----------------------------
+install(EXPORT pastix_kernels_cudaTargets
+  NAMESPACE PASTIX::
+  DESTINATION lib/cmake/pastix
+  )
+install(TARGETS pastix_kernels_cuda EXPORT pastix_kernels_cudaTargets)
+
 cuda_build_clean_target()
