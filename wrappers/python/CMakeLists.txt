@@ -1,6 +1,6 @@
 ###
 #
-#  @copyright 2017-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @version 6.0.3
@@ -28,19 +28,19 @@ configure_file(
 
 # Copy wrapper to build
 file(COPY
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/__init__.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/__pastix__.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/pastix.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/pypastix/solver.py
+  examples/pypastix/__init__.py
+  examples/pypastix/__pastix__.py
+  examples/pypastix/pastix.py
+  examples/pypastix/solver.py
   DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/examples/pypastix )
 
 # Copy examples to build
 file(COPY
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/schur_obj.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/schur.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/simple_obj.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/simple.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/step-by-step.py
+  examples/schur_obj.py
+  examples/schur.py
+  examples/simple_obj.py
+  examples/simple.py
+  examples/step-by-step.py
   DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/examples )
 
 # Install python package
@@ -54,12 +54,23 @@ install(FILES
 
 # Install python examples
 install(FILES
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/simple.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/simple_obj.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/schur.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/schur_obj.py
-  DESTINATION examples
+  examples/simple.py
+  examples/simple_obj.py
+  examples/schur.py
+  examples/schur_obj.py
+  examples/step-by-step.py
+  DESTINATION examples/python
   )
+
+# Documentation
+# -------------
+add_documented_files(
+  examples/simple.py
+  examples/simple_obj.py
+  examples/schur.py
+  examples/schur_obj.py
+  examples/step-by-step.py
+)
 
 ## CTest execution
 find_package (Python3 COMPONENTS Interpreter QUIET)
@@ -77,17 +88,17 @@ if (Python3_Interpreter_FOUND)
       )
   endif()
   foreach(example ${PYTHON_TESTS} )
-    set( _test_suffix_ python_${example} )
+    set( _test_suffix_ ${example} )
     set( _test_file_   ${CMAKE_CURRENT_BINARY_DIR}/examples/${example}.py )
 
-    set( _test_name_ shm_${_test_suffix_} )
+    set( _test_name_ python_shm_${_test_suffix_} )
     add_test( ${_test_name_} ${Python3_EXECUTABLE} ${_test_file_} )
     set_tests_properties( ${_test_name_}
       PROPERTIES ENVIRONMENT "${TEST_ENV_LIST}" )
 
     if (PASTIX_WITH_MPI)
       set( _test_name_ mpi_${_test_suffix_} )
-      add_test( ${_test_name_} mpiexec -np 4 --host localhost:4 ${Python3_EXECUTABLE} ${_test_file_} )
+      add_test( ${_test_name_} ${MPIEXEC_EXECUTABLE} -np 4 --host localhost:4 ${Python3_EXECUTABLE} ${_test_file_} )
       set_tests_properties( ${_test_name_}
         PROPERTIES ENVIRONMENT "${TEST_ENV_LIST}" )
     endif()
@@ -100,10 +111,10 @@ if (Python3_Interpreter_FOUND)
     schur schur_obj )
 
   foreach(example ${PYTHON_TESTS} )
-    set( _test_suffix_ python_${example} )
+    set( _test_suffix_ ${example} )
     set( _test_file_   ${CMAKE_CURRENT_BINARY_DIR}/examples/${example}.py )
 
-    set( _test_name_ shm_${_test_suffix_} )
+    set( _test_name_ python_shm_${_test_suffix_} )
     add_test( ${_test_name_} ${Python3_EXECUTABLE} ${_test_file_} )
     set_tests_properties( ${_test_name_}
       PROPERTIES ENVIRONMENT "${TEST_ENV_LIST}" )
