@@ -990,6 +990,35 @@ add_custom_target (tags
   COMMAND etags ${PASTIX_LIB_SRCS}
   DEPENDS ${PASTIX_LIB_SRCS} )
 
+###############################################################################
+# Export targets #
+##################
+
+# see https://cmake.org/cmake/help/latest/module/CMakePackageConfigHelpers.html
+include(CMakePackageConfigHelpers)
+
+set(BIN_INSTALL_DIR "bin/"     CACHE STRING "where to install executables relative to prefix" )
+set(INC_INSTALL_DIR "include/" CACHE STRING "where to install headers relative to prefix"     )
+set(LIB_INSTALL_DIR "lib/"     CACHE STRING "where to install libraries relative to prefix"   )
+
+configure_package_config_file( cmake_modules/PASTIXConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/PASTIXConfig.cmake
+  INSTALL_DESTINATION ${LIB_INSTALL_DIR}/cmake/pastix
+  PATH_VARS BIN_INSTALL_DIR INC_INSTALL_DIR LIB_INSTALL_DIR)
+write_basic_package_version_file(PASTIXConfigVersion.cmake
+  VERSION ${PASTIX_VERSION}
+  COMPATIBILITY AnyNewerVersion)
+
+# Install config files
+install( FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/PASTIXConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/PASTIXConfigVersion.cmake
+  DESTINATION ${LIB_INSTALL_DIR}/cmake/pastix)
+
+# need MORSE Find modules: necessary files must be distributed in the install path
+set(morse_dependencies "M;CBLAS;LAPACKE;HWLOC;PARSEC;STARPU")
+morse_install_finds(morse_dependencies ${LIB_INSTALL_DIR}/cmake/pastix/find)
+
 #############################################################
 # Print Options
 #############################################################
