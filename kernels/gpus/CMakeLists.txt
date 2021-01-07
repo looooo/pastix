@@ -71,10 +71,20 @@ set_source_files_properties(
 
 cuda_add_library(pastix_kernels_cuda
   ${cuda_generated_files})
+
 cuda_add_cublas_to_target( pastix_kernels_cuda )
+#target_link_libraries( pastix_kernels_cuda PRIVATE CUDA::CUBLAS )
 
 install(TARGETS pastix_kernels_cuda
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib )
+
+# export target pastix_kernels
+# ----------------------------
+install(EXPORT pastix_kernels_cudaTargets
+  NAMESPACE PASTIX::
+  DESTINATION lib/cmake/pastix
+  )
+install(TARGETS pastix_kernels_cuda EXPORT pastix_kernels_cudaTargets)
 
 cuda_build_clean_target()

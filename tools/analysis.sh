@@ -2,7 +2,7 @@
 ###
 #
 #  @file analysis.sh
-#  @copyright 2013-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2013-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @version 6.0.3
@@ -31,7 +31,7 @@ TOOLSDIR=$(dirname $0)
 $TOOLSDIR/filelist.sh $BUILDDIR
 
 # Generate coverage xml output
-lcov_cobertura.py pastix.lcov --output pastix-coverage.xml
+python3 /usr/local/lib/python3.8/dist-packages/lcov_cobertura.py pastix.lcov --output pastix-coverage.xml
 
 # Undefine this because not relevant in our configuration
 export UNDEFINITIONS="-UWIN32 -UWIN64 -U_MSC_EXTENSIONS -U_MSC_VER -U__SUNPRO_C -U__SUNPRO_CC -U__sun -Usun -U__cplusplus"
@@ -66,7 +66,6 @@ sonar.projectKey=$SONARQUBE_PROJECTKEY
 sonar.projectDescription=Parallel Sparse direct Solver
 sonar.projectVersion=master
 
-sonar.language=c
 sonar.sources=$BUILDDIR, bcsc, blend, common, example, graph, include, kernels, order, refinement, sopalin, symbol, test
 sonar.inclusions=`cat filelist.txt | grep -v spm | xargs echo | sed 's/ /, /g'`
 sonar.sourceEncoding=UTF-8
@@ -79,6 +78,9 @@ sonar.c.coverage.reportPath=pastix-coverage.xml
 sonar.c.cppcheck.reportPath=pastix-cppcheck.xml
 sonar.c.rats.reportPath=pastix-rats.xml
 sonar.c.jsonCompilationDatabase=${BUILDDIR}/compile_commands.json
+sonar.lang.patterns.c++: **/*.cxx,**/*.cpp,**/*.cc,**/*.hxx,**/*.hpp,**/*.hh
+sonar.lang.patterns.c: **/*.c,**/*.h
+sonar.lang.patterns.python: **/*.py
 EOF
 
 # run sonar analysis + publish on sonarqube-dev

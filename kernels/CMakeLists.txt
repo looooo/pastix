@@ -136,10 +136,10 @@ target_include_directories( pastix_kernels PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   $<INSTALL_INTERFACE:include> )
 
-target_link_libraries( pastix_kernels PUBLIC  spm            )
-target_link_libraries( pastix_kernels PRIVATE MORSE::LAPACKE )
-target_link_libraries( pastix_kernels PRIVATE MORSE::CBLAS   )
-target_link_libraries( pastix_kernels PUBLIC  MORSE::M       )
+target_link_libraries( pastix_kernels PUBLIC spm            )
+target_link_libraries( pastix_kernels PUBLIC MORSE::LAPACKE )
+target_link_libraries( pastix_kernels PUBLIC MORSE::CBLAS   )
+target_link_libraries( pastix_kernels PUBLIC MORSE::M       )
 
 if(PASTIX_WITH_EZTRACE)
    if (PASTIX_WITH_MPI)
@@ -147,10 +147,8 @@ if(PASTIX_WITH_EZTRACE)
        ${EZTRACE_LIBRARIES}
        eztrace-mpi )
    endif()
-   target_link_libraries(pastix_kernels
-     ${EZTRACE_LIBRARIES}
-     litl
-   )
+   target_link_libraries(pastix_kernels PUBLIC  ${EZTRACE_LIBRARIES} )
+   target_link_libraries(pastix_kernels PRIVATE litl )
 endif(PASTIX_WITH_EZTRACE)
 
 if(PASTIX_WITH_CUDA)
@@ -161,14 +159,21 @@ if(PASTIX_WITH_CUDA)
     #   target_link_libraries( pastix_kernels
     #                          pastix_cucores_sm35 )
     # endif()
-    target_link_libraries( pastix_kernels
-      pastix_kernels_cuda )
+    target_link_libraries( pastix_kernels PRIVATE pastix_kernels_cuda )
 endif()
 
 ### Install library
 install(TARGETS pastix_kernels
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib)
+
+# export target pastix_kernels
+# ----------------------------
+install(EXPORT pastix_kernelsTargets
+  NAMESPACE PASTIX::
+  DESTINATION lib/cmake/pastix
+  )
+install(TARGETS pastix_kernels EXPORT pastix_kernelsTargets)
 
 ### Add generated files to the global property
 add_documented_files(

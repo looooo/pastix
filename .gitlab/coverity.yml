@@ -1,7 +1,7 @@
 ---
 coverity:
   stage: analyse
-  tags: ["large","docker"]
+  tags: ["docker", "large"]
   dependencies: []
   artifacts:
     name: pastix_coverity

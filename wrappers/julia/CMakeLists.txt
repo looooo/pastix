@@ -1,6 +1,6 @@
 ###
 #
-#  @copyright 2019-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2019-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @version 6.0.0
@@ -30,23 +30,30 @@ configure_file(
 #Copy wrapper to build
 if ( PASTIX_WITH_MPI )
   file(COPY
-    ${CMAKE_CURRENT_SOURCE_DIR}/PaStiX/Project.mpi.toml
-    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/PaStiX )
+    PaStiX/Project.mpi.toml
+    DESTINATION PaStiX )
   file(RENAME
     ${CMAKE_CURRENT_BINARY_DIR}/PaStiX/Project.mpi.toml
     ${CMAKE_CURRENT_BINARY_DIR}/PaStiX/Project.toml )
 else()
   file(COPY
-    ${CMAKE_CURRENT_SOURCE_DIR}/PaStiX/Project.shm.toml
-    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/PaStiX )
+    PaStiX/Project.shm.toml
+    DESTINATION PaStiX )
   file(RENAME
     ${CMAKE_CURRENT_BINARY_DIR}/PaStiX/Project.shm.toml
     ${CMAKE_CURRENT_BINARY_DIR}/PaStiX/Project.toml )
 endif()
 
 file(COPY
-  ${CMAKE_CURRENT_SOURCE_DIR}/PaStiX/src/PaStiX.jl
+  PaStiX/src/PaStiX.jl
   DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/PaStiX/src )
+
+# Copy examples to build
+file(COPY
+  examples/simple.jl
+  examples/step-by-step.jl
+  examples/schur.jl
+  DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/PaStiX/examples )
 
 # Install julia package
 install(FILES
@@ -59,10 +66,18 @@ install(FILES
 
 # Install julia examples
 install(FILES
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/simple.jl
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/step-by-step.jl
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/schur.jl
+  examples/simple.jl
+  examples/step-by-step.jl
+  examples/schur.jl
   DESTINATION lib/julia/PaStiX/examples )
+
+# Documentation
+# -------------
+add_documented_files(
+  examples/simple.jl
+  examples/step-by-step.jl
+  examples/schur.jl
+)
 
 find_program( Julia_EXECUTABLE julia DOC "Julia executable" )
 if(Julia_EXECUTABLE)
@@ -90,7 +105,13 @@ if ( Julia_ENABLE_TESTS )
 
   set( Julia_DEPOT_PATH ${CMAKE_CURRENT_BINARY_DIR}/depot )
   set( Julia_MPI_BINARY "system" )
-  set( Julia_ENVIRONEMENT "JULIA_DEPOT_PATH=${Julia_DEPOT_PATH}" "JULIA_MPI_BINARY=${Julia_MPI_BINARY}" )
+  set( Julia_ENVIRONEMENT
+    "JULIA_DEPOT_PATH=${Julia_DEPOT_PATH}"
+    "JULIA_MPI_BINARY=${Julia_MPI_BINARY}"
+    "LIBRARY_PATH=$ENV{LIBRARY_PATH}:${CMAKE_BINARY_DIR}:${CMAKE_BINARY_DIR}/spm/src"
+    "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:${CMAKE_BINARY_DIR}:${CMAKE_BINARY_DIR}/spm/src"
+    "DYLD_LIBRARY_PATH=$ENV{DYLD_LIBRARY_PATH}:${CMAKE_BINARY_DIR}:${CMAKE_BINARY_DIR}/spm/src"
+    )
 
   #
   # Make sure the PaStiX package is built before use, and if necessary
@@ -102,40 +123,35 @@ if ( Julia_ENABLE_TESTS )
     set( _julia_init_ ${Julia_EXECUTABLE} "--project" "-e" "using Pkg\; Pkg.activate(\"PaStiX\")\; Pkg.develop(PackageSpec(path=\"../../spm/wrappers/julia/spm\"))\; Pkg.instantiate()" )
   endif()
 
-  add_test( shm_julia_set_mpi  ${_julia_init_} )
-  set_tests_properties( shm_julia_set_mpi
+  add_test( julia_init  ${_julia_init_} )
+  set_tests_properties( julia_init
     PROPERTIES ENVIRONMENT "${Julia_ENVIRONEMENT}" )
-  if ( PASTIX_WITH_MPI )
-    add_test( mpi_julia_set_mpi ${_julia_init_} )
-    set_tests_properties( mpi_julia_set_mpi
-      PROPERTIES ENVIRONMENT "${Julia_ENVIRONEMENT}" )
-  endif()
 
   set( JULIA_TESTS
     simple step-by-step )
 
   foreach( example ${JULIA_TESTS} )
-    set( _test_suffix_ julia_${example} )
-    set( _test_file_   ${CMAKE_CURRENT_SOURCE_DIR}/examples/${example}.jl )
+    set( _test_suffix_ ${example} )
+    set( _test_file_   ${CMAKE_CURRENT_BINARY_DIR}/PaStiX/examples/${example}.jl )
 
-    set( _test_name_ shm_${_test_suffix_} )
+    set( _test_name_ julia_shm_${_test_suffix_} )
     add_test( ${_test_name_} ${Julia_EXECUTABLE} ${_test_file_} )
     set_tests_properties( ${_test_name_}
       PROPERTIES ENVIRONMENT "${Julia_ENVIRONEMENT}" )
 
     if (PASTIX_WITH_MPI)
-      set( _test_name_ mpi_${_test_suffix_} )
-      add_test( ${_test_name_} mpiexec -np 4 --host localhost:4 ${Julia_EXECUTABLE} ${_test_file_} )
+      set( _test_name_ julia_mpi_${_test_suffix_} )
+      add_test( ${_test_name_} ${MPIEXEC_EXECUTABLE} -np 4 --host localhost:4 ${Julia_EXECUTABLE} ${_test_file_} )
       set_tests_properties( ${_test_name_}
         PROPERTIES ENVIRONMENT "${Julia_ENVIRONEMENT}" )
     endif()
   endforeach()
 
   set( example schur )
-  set( _test_suffix_ julia_${example} )
-  set( _test_file_   ${CMAKE_CURRENT_SOURCE_DIR}/examples/${example}.jl )
+  set( _test_suffix_ ${example} )
+  set( _test_file_   ${CMAKE_CURRENT_BINARY_DIR}/PaStiX/examples/${example}.jl )
 
-  set( _test_name_ shm_${_test_suffix_} )
+  set( _test_name_ julia_shm_${_test_suffix_} )
   add_test( ${_test_name_} ${Julia_EXECUTABLE} ${_test_file_} )
   set_tests_properties( ${_test_name_}
     PROPERTIES ENVIRONMENT "${Julia_ENVIRONEMENT}" )

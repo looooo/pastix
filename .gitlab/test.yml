@@ -1,221 +1,59 @@
 ---
-.test_script_template: &test_script
+.test_script_sched_template: &test_script_sched
   stage: test
-  tags: ["large","docker"]
+  tags: ["large", "docker"]
   artifacts:
-    name: pastix_test_${VERSION}
+    name: pastix_test_${VERSION}_${RUN}_sched${SCHED}
     expire_in: 180 minutes
     paths:
       - pastix-${VERSION}-${RUN}-sched${SCHED}.lcov
-      - pastix-gcov-${VERSION}-sched${SCHED}.log
+      - pastix-gcov-${VERSION}-${RUN}-sched${SCHED}.log
+    reports:
+      junit: report.xml
   script:
     - source install-${VERSION}/bin/pastix_env.sh
     - (cd build &&
        eval "ctest
-             $TESTS_RESTRICTION
+             -R \"^${RUN}_.*_sched${SCHED}\"
              -D ExperimentalTest
              -D ExperimentalCoverage
              -D ExperimentalSubmit
              | tee -a ../pastix-build-${VERSION}.log")
     - lcov --capture --directory build
            -q --output-file pastix-${VERSION}-${RUN}-sched${SCHED}.lcov
-           | tee -a pastix-gcov-${VERSION}-sched${SCHED}.log
+           | tee -a pastix-gcov-${VERSION}-${RUN}-sched${SCHED}.log
+    - xsltproc -o report.xml /home/gitlab/ctest-to-junit.xsl build/Testing/**/Test.xml
 
-.test_script_template_seq: &test_script_seq
+.test_script_sched_template_seq: &test_script_sched_seq
   extends:
-    - .test_script_template
+    - .test_script_sched_template
     - .only-branches-seq
 
-.test_script_template_mpi: &test_script_mpi
+.test_script_sched_template_mpi: &test_script_sched_mpi
   extends:
-    - .test_script_template
+    - .test_script_sched_template
     - .only-branches-mpi
 
-test_pastix_seq_shm_sched0:
+test_seq_sched:
   variables:
     VERSION: seq
-    RUN: shm
-    SCHED: 0
-    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
+  needs: [build_pastix_seq]
+  parallel:
+    matrix:
+      - SCHED: [0, 1, 2, 3, 4]
+        RUN: shm
   dependencies:
     - build_pastix_seq
-  <<: *test_script_seq
+  <<: *test_script_sched_seq
 
-test_pastix_seq_shm_sched1:
-  variables:
-    VERSION: seq
-    RUN: shm
-    SCHED: 1
-    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
-  dependencies:
-    - build_pastix_seq
-  <<: *test_script_seq
-
-test_pastix_seq_shm_sched2:
-  variables:
-    VERSION: seq
-    RUN: shm
-    SCHED: 2
-    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
-    PARSEC_MCA_runtime_bind_main_thread: 0
-  dependencies:
-    - build_pastix_seq
-  <<: *test_script_seq
-
-test_pastix_seq_shm_sched3:
-  variables:
-    VERSION: seq
-    RUN: shm
-    SCHED: 3
-    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
-    STARPU_WORKERS_NOBIND: 1
-    STARPU_SILENT: 1
-  dependencies:
-    - build_pastix_seq
-  <<: *test_script_seq
-
-test_pastix_seq_shm_sched4:
-  variables:
-    VERSION: seq
-    RUN: shm
-    SCHED: 4
-    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
-  dependencies:
-    - build_pastix_seq
-  <<: *test_script_seq
-
-test_pastix_seq_shm_other:
-  variables:
-    VERSION: seq
-    RUN: shm
-    SCHED: 9
-    TESTS_RESTRICTION: "-R \"shm_\" -E \"sched\""
-  dependencies:
-    - build_pastix_seq
-  <<: *test_script_seq
-
-test_pastix_mpi_shm_sched0:
+test_mpi_sched:
   variables:
     VERSION: mpi
-    RUN: shm
-    SCHED: 0
-    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
+  needs: [build_pastix_mpi]
+  parallel:
+    matrix:
+      - SCHED: [0, 1, 2, 3, 4]
+        RUN: [shm, mpi]
   dependencies:
     - build_pastix_mpi
-  <<: *test_script_mpi
-
-test_pastix_mpi_shm_sched1:
-  variables:
-    VERSION: mpi
-    RUN: shm
-    SCHED: 1
-    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
-  dependencies:
-    - build_pastix_mpi
-  <<: *test_script_mpi
-
-test_pastix_mpi_shm_sched2:
-  variables:
-    VERSION: mpi
-    RUN: shm
-    SCHED: 2
-    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
-    PARSEC_MCA_runtime_bind_main_thread: 0
-  dependencies:
-    - build_pastix_mpi
-  <<: *test_script_mpi
-
-test_pastix_mpi_shm_sched3:
-  variables:
-    VERSION: mpi
-    RUN: shm
-    SCHED: 3
-    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
-    STARPU_WORKERS_NOBIND: 1
-    STARPU_SILENT: 1
-  dependencies:
-    - build_pastix_mpi
-  <<: *test_script_mpi
-
-test_pastix_mpi_shm_sched4:
-  variables:
-    VERSION: mpi
-    RUN: shm
-    SCHED: 4
-    TESTS_RESTRICTION: "-R \"shm_.*_sched${SCHED}\""
-  dependencies:
-    - build_pastix_mpi
-  <<: *test_script_mpi
-
-test_pastix_mpi_shm_other:
-  variables:
-    VERSION: mpi
-    RUN: shm
-    SCHED: 9
-    TESTS_RESTRICTION: "-R \"shm_\" -E \"sched\""
-  dependencies:
-    - build_pastix_mpi
-  <<: *test_script_mpi
-
-test_pastix_mpi_dist_sched0:
-  variables:
-    VERSION: mpi
-    RUN: dist
-    SCHED: 0
-    TESTS_RESTRICTION: "-R \"mpi_.*_sched${SCHED}\""
-  dependencies:
-    - build_pastix_mpi
-  <<: *test_script_mpi
-
-test_pastix_mpi_dist_sched1:
-  variables:
-    VERSION: mpi
-    RUN: dist
-    SCHED: 1
-    TESTS_RESTRICTION: "-R \"mpi_.*_sched${SCHED}\""
-  dependencies:
-    - build_pastix_mpi
-  <<: *test_script_mpi
-
-test_pastix_mpi_dist_sched2:
-  variables:
-    VERSION: mpi
-    RUN: dist
-    SCHED: 2
-    TESTS_RESTRICTION: "-R \"mpi_.*_sched${SCHED}\""
-    PARSEC_MCA_runtime_bind_main_thread: 0
-  dependencies:
-    - build_pastix_mpi
-  <<: *test_script_mpi
-
-test_pastix_mpi_dist_sched3:
-  variables:
-    VERSION: mpi
-    RUN: dist
-    SCHED: 3
-    TESTS_RESTRICTION: "-R \"mpi_.*_sched${SCHED}\""
-    STARPU_WORKERS_NOBIND: 1
-    STARPU_SILENT: 1
-  dependencies:
-    - build_pastix_mpi
-  <<: *test_script_mpi
-
-test_pastix_mpi_dist_sched4:
-  variables:
-    VERSION: mpi
-    RUN: dist
-    SCHED: 4
-    TESTS_RESTRICTION: "-R \"mpi_.*_sched${SCHED}\""
-  dependencies:
-    - build_pastix_mpi
-  <<: *test_script_mpi
-
-test_pastix_mpi_dist_other:
-  variables:
-    VERSION: mpi
-    RUN: dist
-    SCHED: 9
-    TESTS_RESTRICTION: "-R \"mpi_\" -E \"sched\""
-  dependencies:
-    - build_pastix_mpi
-  <<: *test_script_mpi
+  <<: *test_script_sched_mpi

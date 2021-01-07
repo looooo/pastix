@@ -15,7 +15,7 @@ includedir=${exec_prefix}/include
 
 Name: PaStiX - Fortran
 Description: Parallel sparse direct solver - Fortran interface
-Version: @PASTIX_VERSION_MAJOR@.@PASTIX_VERSION_MINOR@.@PASTIX_VERSION_MICRO@
+Version: @PASTIX_VERSION@
 Cflags: -I${includedir} -I${includedir}/pastix
 Libs: -L${libdir} -lpastixf @PASTIX_PKGCONFIG_LIBS@
 Libs.private: @PASTIX_PKGCONFIG_LIBS_PRIVATE@

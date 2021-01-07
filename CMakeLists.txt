@@ -67,6 +67,9 @@ include(CheckSystem)
 # Set the RPATH config
 # --------------------
 
+# For fPIC when build static
+set( CMAKE_POSITION_INDEPENDENT_CODE ON )
+
 # use, i.e. don't skip the full RPATH for the build tree
 set(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
@@ -224,33 +227,60 @@ endif (PASTIX_WITH_MPI)
 #----------------------------
 if( PASTIX_WITH_CUDA )
 
-    find_package(CUDA)
+  # When our cmake_minimum version will be 3.17 we will be able to use this
+  # far better module: FindCUDAToolkit
+  # https://cmake.org/cmake/help/latest/module/FindCUDAToolkit.html#module:FindCUDAToolkit
 
-    set(HAVE_CUDA ${CUDA_FOUND})
-    if (CUDA_FOUND)
-        if(CUDA_VERSION VERSION_LESS "3.0")
-            set(CUDA_HOST_COMPILATION_CPP OFF)
-        endif(CUDA_VERSION VERSION_LESS "3.0")
-        set(CUDA_BUILD_EMULATION OFF)
-        include_directories(${CUDA_INCLUDE_DIRS})
-        link_libraries(${CUDA_LIBRARIES}) # need CUDA libs to link.
-        set(saved_include "${CMAKE_REQUIRED_INCLUDES}")
-        set(saved_libs "${CMAKE_REQUIRED_LIBRARIES}")
-        set(CMAKE_REQUIRED_INCLUDES  "${CMAKE_REQUIRED_INCLUDES};${CUDA_INCLUDE_DIRS}")
-        set(CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES};${CUDA_LIBRARIES}")
-        if(CUDA_VERSION VERSION_LESS "4.0")
-            set(CUDA_HAVE_PEER_DEVICE_MEMORY_ACCESS 0)
-        else()
-            check_function_exists(cuDeviceCanAccessPeer CUDA_HAVE_PEER_DEVICE_MEMORY_ACCESS)
-        endif()
-        set(CMAKE_REQUIRED_INCLUDES  "${saved_include}")
-        set(CMAKE_REQUIRED_LIBRARIES "${saved_libs}")
+  find_package(CUDA REQUIRED)
 
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DCUDA_SM_VERSION=20")
-    else(CUDA_FOUND)
-        message(FATAL_ERROR "CUDA is required but was not found. Please provide a CUDA library in your environment or configure with -DPASTIX_WITH_CUDA=OFF")
-    endif (CUDA_FOUND)
+  set(HAVE_CUDA ${CUDA_FOUND})
+  if (CUDA_FOUND)
+    # create imported target because not provided with old cmake
+    add_library(CUDA::CUDA INTERFACE IMPORTED)
+    add_library(CUDA::CUBLAS INTERFACE IMPORTED)
 
+    if(CUDA_VERSION VERSION_LESS "3.0")
+      set(CUDA_HOST_COMPILATION_CPP OFF)
+    endif(CUDA_VERSION VERSION_LESS "3.0")
+    set(CUDA_BUILD_EMULATION OFF)
+
+    if (CUDA_INCLUDE_DIRS)
+      set_target_properties(CUDA::CUDA PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${CUDA_INCLUDE_DIRS}")
+    else()
+      message(WARNING "PASTIX_WITH_CUDA requires"
+        "\n   CUDA_INCLUDE_DIRS to be found. Be sure you have"
+        "\n   cuda headers with your distribution of CUDA.")
+    endif()
+
+    if (CUDA_LIBRARIES)
+      set_target_properties(CUDA::CUDA PROPERTIES INTERFACE_LINK_LIBRARIES "${CUDA_LIBRARIES}")
+
+      # Check cuDeviceCanAccessPeer
+      set(CMAKE_REQUIRED_INCLUDES  "${CUDA_INCLUDE_DIRS}")
+      set(CMAKE_REQUIRED_LIBRARIES "${CUDA_LIBRARIES}")
+      if(CUDA_VERSION VERSION_LESS "4.0")
+        set(CUDA_HAVE_PEER_DEVICE_MEMORY_ACCESS 0)
+      else()
+        check_function_exists(cuDeviceCanAccessPeer CUDA_HAVE_PEER_DEVICE_MEMORY_ACCESS)
+      endif()
+      unset(CMAKE_REQUIRED_INCLUDES)
+      unset(CMAKE_REQUIRED_LIBRARIES)
+
+      # Add cublas if found
+      if (CUDA_CUBLAS_LIBRARIES)
+        set_target_properties(CUDA::CUBLAS PROPERTIES INTERFACE_LINK_LIBRARIES "${CUDA_CUBLAS_LIBRARIES}")
+        target_link_libraries(CUDA::CUBLAS INTERFACE CUDA::CUDA)
+      else()
+        message(FATAL_ERROR "PASTIX_WITH_CUDA requires"
+          "\n   CUDA_CUBLAS_LIBRARIES to be found. Be sure you have"
+          "\n   libcublas with your distribution of CUDA.")
+      endif()
+    else()
+      message(FATAL_ERROR "PASTIX_WITH_CUDA_CUDA requires"
+        "\n   CUDA_LIBRARIES to be found. Be sure you have"
+        "\n   libcuda with your distribution of CUDA.")
+    endif()
+  endif (CUDA_FOUND)
 endif()
 
 # PaStiX might depend on StarPU
@@ -736,6 +766,15 @@ install(FILES
   DESTINATION include )
 install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
 
+# export target pastix
+install(EXPORT pastixTargets
+        NAMESPACE PASTIX::
+        DESTINATION lib/cmake/pastix
+        )
+
+# install target file
+install(TARGETS pastix EXPORT pastixTargets)
+
 ## Executable and tests
 enable_testing()
 include(CTest)
@@ -977,6 +1016,35 @@ add_subdirectory(docs)
 add_custom_target (tags
   COMMAND etags ${PASTIX_LIB_SRCS}
   DEPENDS ${PASTIX_LIB_SRCS} )
+
+###############################################################################
+# Export targets #
+##################
+
+# see https://cmake.org/cmake/help/latest/module/CMakePackageConfigHelpers.html
+include(CMakePackageConfigHelpers)
+
+set(BIN_INSTALL_DIR "bin/"     CACHE STRING "where to install executables relative to prefix" )
+set(INC_INSTALL_DIR "include/" CACHE STRING "where to install headers relative to prefix"     )
+set(LIB_INSTALL_DIR "lib/"     CACHE STRING "where to install libraries relative to prefix"   )
+
+configure_package_config_file( cmake_modules/PASTIXConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/PASTIXConfig.cmake
+  INSTALL_DESTINATION ${LIB_INSTALL_DIR}/cmake/pastix
+  PATH_VARS BIN_INSTALL_DIR INC_INSTALL_DIR LIB_INSTALL_DIR)
+write_basic_package_version_file(PASTIXConfigVersion.cmake
+  VERSION ${PASTIX_VERSION}
+  COMPATIBILITY AnyNewerVersion)
+
+# Install config files
+install( FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/PASTIXConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/PASTIXConfigVersion.cmake
+  DESTINATION ${LIB_INSTALL_DIR}/cmake/pastix)
+
+# need MORSE Find modules: necessary files must be distributed in the install path
+set(morse_dependencies "M;CBLAS;LAPACKE;HWLOC;PARSEC;STARPU")
+morse_install_finds(morse_dependencies ${LIB_INSTALL_DIR}/cmake/pastix/find)
 
 #############################################################
 # Print Options

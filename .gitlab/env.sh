@@ -8,15 +8,21 @@ VERSION="$1"
 #export PKG_CONFIG_PATH=$OPENMPI_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
 
 #StarPU
+export STARPU_SILENT=1
+export STARPU_WORKERS_NOBIND=1
+export STARPU_MPI_NOBIND=1
 export LD_LIBRARY_PATH=$STARPU_DIR/lib:$LD_LIBRARY_PATH
 export PKG_CONFIG_PATH=$STARPU_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
+
 #PaRSEC
+export PARSEC_MCA_runtime_bind_main_thread=0
 if [ "$VERSION" == "mpi" ]
 then
     export PARSEC_DIR=/home/gitlab/install/parsec-mpi
 else
     export PARSEC_DIR=/home/gitlab/install/parsec-shm
 fi
+
 export PATH=$PARSEC_DIR/bin:$PATH
 export LD_LIBRARY_PATH=$PARSEC_DIR/lib:$LD_LIBRARY_PATH
 export PKG_CONFIG_PATH=$PARSEC_DIR/lib/pkgconfig:$PKG_CONFIG_PATH

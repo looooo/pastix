@@ -15,7 +15,7 @@ includedir=${exec_prefix}/include
 
 Name: PaStiX
 Description: Parallel sparse direct solver
-Version: @PASTIX_VERSION_MAJOR@.@PASTIX_VERSION_MINOR@.@PASTIX_VERSION_MICRO@
+Version: @PASTIX_VERSION@
 Cflags: -I${includedir}
 Libs: -L${libdir} @PASTIX_PKGCONFIG_LIBS@
 Libs.private: @PASTIX_PKGCONFIG_LIBS_PRIVATE@

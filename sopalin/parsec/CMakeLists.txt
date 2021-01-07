@@ -113,6 +113,14 @@ install(TARGETS pastix_parsec
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib)
 
+# export target pastix_parsec
+# ---------------------------
+install(EXPORT pastix_parsecTargets
+  NAMESPACE PASTIX::
+  DESTINATION lib/cmake/pastix
+  )
+install(TARGETS pastix_parsec EXPORT pastix_parsecTargets)
+
 ### Add non-generated documented files to the global property
 add_documented_files(
   # Headers

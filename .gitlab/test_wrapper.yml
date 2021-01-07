@@ -1,0 +1,77 @@
+---
+.test_script_wrapper_template: &test_script_wrapper
+  stage: test
+  tags: ["large", "docker"]
+  artifacts:
+    name: pastix_test_${VERSION}_${WRAPPER}
+    expire_in: 180 minutes
+    paths:
+      - pastix-${VERSION}-${WRAPPER}.lcov
+      - pastix-gcov-${VERSION}-${WRAPPER}.log
+  script:
+    - source install-${VERSION}/bin/pastix_env.sh
+    - (cd build &&
+       eval "ctest
+             -E \"sched\" -R \"${WRAPPER}_\"
+             -D ExperimentalTest
+             -D ExperimentalCoverage
+             -D ExperimentalSubmit
+             | tee -a ../pastix-test-${VERSION}-${WRAPPER}.log")
+    - lcov --capture --directory build
+           -q --output-file pastix-${VERSION}-${WRAPPER}.lcov
+           | tee -a pastix-gcov-${VERSION}-${WRAPPER}.log
+    - xsltproc -o report.xml /home/gitlab/ctest-to-junit.xsl build/Testing/**/Test.xml
+
+.test_script_wrapper_template_seq: &test_script_wrapper_seq
+  extends:
+    - .test_script_wrapper_template
+    - .only-branches-seq
+
+.test_script_wrapper_template_mpi: &test_script_wrapper_mpi
+  extends:
+    - .test_script_wrapper_template
+    - .only-branches-mpi
+
+test_seq_wrapper:
+  variables:
+    VERSION: seq
+  needs: [build_pastix_seq]
+  parallel:
+    matrix:
+      - WRAPPER: [python, fortran, julia]
+  dependencies:
+    - build_pastix_seq
+  <<: *test_script_wrapper_seq
+
+test_mpi_wrapper:
+  variables:
+    VERSION: mpi
+  needs: [build_pastix_mpi]
+  parallel:
+    matrix:
+      - WRAPPER: [python, fortran, julia]
+  dependencies:
+    - build_pastix_mpi
+  <<: *test_script_wrapper_mpi
+
+test_seq:
+  variables:
+    VERSION: seq
+  needs: [build_pastix_seq]
+  parallel:
+    matrix:
+      - WRAPPER: [c, bcsc, lr]
+  dependencies:
+    - build_pastix_seq
+  <<: *test_script_wrapper_seq
+
+test_mpi:
+  variables:
+    VERSION: mpi
+  needs: [build_pastix_mpi]
+  parallel:
+    matrix:
+      - WRAPPER: [c, bcsc, lr]
+  dependencies:
+    - build_pastix_mpi
+  <<: *test_script_wrapper_mpi

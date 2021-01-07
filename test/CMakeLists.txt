@@ -123,7 +123,7 @@ foreach( version ${RUNTYPE} )
 
   # Bcsc tests
   foreach(example ${BCSC_TESTS} )
-    set( _test_name ${version}_test_${example} )
+    set( _test_name bcsc_${version}_test_${example} )
     set( _test_cmd  ${exe} ./${example} )
 
     # Laplacian
@@ -146,7 +146,7 @@ foreach( version ${RUNTYPE} )
 
   # Bvec tests
   foreach(example ${BVEC_TESTS} )
-    set( _test_name ${version}_test_${example} )
+    set( _test_name bcsc_${version}_test_${example} )
     set( _test_cmd  ${exe} ./${example} )
 
     add_test(${_test_name} ${_test_cmd})
@@ -241,7 +241,7 @@ if(PASTIX_LR_TESTINGS)
         MORSE::M
         )
 
-      add_test(shm_test_${_name_we} ./${_name_we} -n 300 -p 10 )
+      add_test( lr_shm_test_${_name_we} ./${_name_we} -n 300 -p 10 )
     endforeach()
 
   endif()

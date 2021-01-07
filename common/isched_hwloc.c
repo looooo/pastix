@@ -16,6 +16,7 @@
  */
 #include "common.h"
 #include "isched_hwloc.h"
+#include <hwloc.h>
 
 #if defined(HAVE_HWLOC)
 

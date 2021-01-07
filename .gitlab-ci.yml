@@ -1,5 +1,5 @@
 ---
-image: hpclib/hiepacs
+image: registry.gitlab.inria.fr/solverstack/chameleon/hiepacs
 
 stages:
   - build
@@ -20,6 +20,7 @@ include:
   - .gitlab/common.yml
   - .gitlab/build.yml
   - .gitlab/test.yml
+  - .gitlab/test_wrapper.yml
   - .gitlab/coverage.yml
   - .gitlab/sonarqube.yml
   - .gitlab/pages.yml

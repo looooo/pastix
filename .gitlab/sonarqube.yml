@@ -1,7 +1,7 @@
 ---
 sonar_pastix:
   stage: sonar
-  tags: ["large","docker"]
+  tags: ["docker", "large"]
   artifacts:
     name: pastix_sonar
     expire_in: 1 week
