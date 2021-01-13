@@ -26,6 +26,7 @@ foreach (_file ${INTERNAL_EXAMPLES})
     $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}> )
   target_link_libraries( ${_name_we} PRIVATE
     pastix
+    pastix_kernels
     MORSE::LAPACKE )
 
 endforeach()
@@ -51,12 +52,14 @@ foreach (_file ${EXAMPLES})
     $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
     $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}> )
   target_link_libraries( ${_name_we} PRIVATE
-    pastix
-    MORSE::LAPACKE )
+    pastix )
 
   install(TARGETS ${_name_we} RUNTIME DESTINATION examples )
   install(FILES   ${_file}            DESTINATION examples )
 endforeach()
+
+target_link_libraries( schur     PRIVATE MORSE::LAPACKE )
+target_link_libraries( reentrant PRIVATE Threads::Threads )
 
 ### Install a makefile for user compilation test
 set( EXAMPLE_LIBS ${DEPS_LIBRARIES} )

@@ -19,8 +19,8 @@
 #include "../blend/solver.h"
 #include "../sopalin/coeftab.h"
 #include <lapacke.h>
-#include <pastix.h>
 #include <spm.h>
+#include <pastix.h>
 
 int
 pastixSymbolRank( const SolverMatrix    * const solvmtr,

@@ -196,6 +196,7 @@ if(PASTIX_LR_TESTINGS)
       pastix
       pastix_kernels
       MORSE::LAPACKE
+      MORSE::TMG
       MORSE::CBLAS
       MORSE::M
       )
