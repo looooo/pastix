@@ -22,12 +22,8 @@
  * @code
  *
  */
-#include <pastix.h>
 #include <spm.h>
-#include "pastix/order.h"
-#include "common/common.h"
-#include "blend/solver.h"
-#include "common/pastixdata.h"
+#include <pastix.h>
 
 int main (int argc, char **argv)
 {

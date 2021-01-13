@@ -17,8 +17,12 @@ set( PASTIX_LR_TESTINGS ON CACHE BOOL "" )
 option(MORSE_ENABLE_WARNING  "Enable warning messages"        ON)
 option(MORSE_ENABLE_COVERAGE "Enable flags for coverage test" ON)
 
+# Enable the runtimes
 set( PASTIX_WITH_STARPU ON CACHE BOOL "" )
 set( PASTIX_WITH_PARSEC ON CACHE BOOL "" )
+
+# Enable the Low-rank testings
+set( PASTIX_LR_TESTINGS ON CACHE BOOL "" )
 
 if ( "${PASTIX_CI_VERSION}" STREQUAL "doc" )
   set( BUILD_DOCUMENTATION ON CACHE BOOL "" )

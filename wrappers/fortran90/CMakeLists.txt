@@ -47,18 +47,20 @@ if ( PASTIX_WITH_MPI )
   target_link_libraries( pastixf PUBLIC MPI::MPI_Fortran)
 endif()
 
-install(TARGETS pastixf
-  RUNTIME DESTINATION bin
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib )
-
 # export target pastixf
 # ---------------------
 install(EXPORT pastixfTargets
         NAMESPACE PASTIX::
         DESTINATION lib/cmake/pastix
         )
-install(TARGETS pastixf EXPORT pastixfTargets)
+
+# Installation
+# ------------
+install(TARGETS pastixf
+        EXPORT pastixfTargets
+        RUNTIME DESTINATION bin
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib)
 
 # Add examples
 # ------------

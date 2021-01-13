@@ -162,18 +162,19 @@ if(PASTIX_WITH_CUDA)
     target_link_libraries( pastix_kernels PRIVATE pastix_kernels_cuda )
 endif()
 
-### Install library
-install(TARGETS pastix_kernels
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib)
-
 # export target pastix_kernels
 # ----------------------------
 install(EXPORT pastix_kernelsTargets
   NAMESPACE PASTIX::
   DESTINATION lib/cmake/pastix
   )
-install(TARGETS pastix_kernels EXPORT pastix_kernelsTargets)
+
+# Installation
+# ------------
+install(TARGETS pastix_kernels
+        EXPORT pastix_kernelsTargets
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib)
 
 ### Add generated files to the global property
 add_documented_files(

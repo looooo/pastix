@@ -109,17 +109,19 @@ if (MPI_C_FOUND)
   set_target_properties(pastix_parsec PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
 endif (MPI_C_FOUND)
 
-install(TARGETS pastix_parsec
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib)
-
 # export target pastix_parsec
 # ---------------------------
 install(EXPORT pastix_parsecTargets
   NAMESPACE PASTIX::
   DESTINATION lib/cmake/pastix
   )
-install(TARGETS pastix_parsec EXPORT pastix_parsecTargets)
+
+# Installation
+# ------------
+install(TARGETS pastix_parsec
+        EXPORT pastix_parsecTargets
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib)
 
 ### Add non-generated documented files to the global property
 add_documented_files(

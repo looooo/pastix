@@ -99,17 +99,19 @@ if (MPI_C_FOUND)
   set_target_properties(pastix_starpu PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
 endif (MPI_C_FOUND)
 
-install(TARGETS pastix_starpu
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib)
-
 # export target pastix_starpu
 # ---------------------------
 install(EXPORT pastix_starpuTargets
   NAMESPACE PASTIX::
   DESTINATION lib/cmake/pastix
   )
-install(TARGETS pastix_starpu EXPORT pastix_starpuTargets)
+
+# Installation
+# ------------
+install(TARGETS pastix_starpu
+        EXPORT pastix_starpuTargets
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib)
 
 ### Add non-generated documented files to the global property
 add_documented_files(

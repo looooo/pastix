@@ -404,12 +404,18 @@ if ( PASTIX_WITH_EXTERNAL_SPM )
   if ( NOT SPM_FOUND )
     message( FATAL_ERROR "No external SpM library found. Please disable PASTIX_WITH_EXTERNAL_SPM or correctly set your environment" )
   endif()
+else()
+  set( SPM_FOUND FALSE )
 endif()
 
 if ( SPM_FOUND )
   message( STATUS "Use installed SPM" )
 else()
   message( STATUS "Use internal SPM" )
+  set( SPM_INT64        ${PASTIX_INT64}           CACHE BOOL "" )
+  set( SPM_WITH_FORTRAN ${PASTIX_WITH_FORTRAN}    CACHE BOOL "" )
+  set( SPM_WITH_MPI     ${PASTIX_WITH_MPI}        CACHE BOOL "" )
+  set( SPM_WITH_SCOTCH  ${PASTIX_ORDERING_SCOTCH} CACHE BOOL "" )
   add_subdirectory(spm)
 endif()
 
@@ -696,20 +702,22 @@ target_include_directories( pastix PUBLIC
   $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}/include>
   $<INSTALL_INTERFACE:include> )
 
-target_link_libraries( pastix PUBLIC
-  spm
-  pastix_kernels
-  Threads::Threads
-)
+target_link_libraries( pastix PUBLIC  spm )
+target_link_libraries( pastix PRIVATE pastix_kernels )
+target_link_libraries( pastix PRIVATE Threads::Threads )
+
+if(PASTIX_WITH_MPI)
+  target_link_libraries( pastix PUBLIC MPI::MPI_C )
+endif()
 
 if(PASTIX_ORDERING_PTSCOTCH)
-  target_link_libraries( pastix PUBLIC MORSE::PTSCOTCH )
+  target_link_libraries( pastix PRIVATE MORSE::PTSCOTCH )
 endif()
 if(PASTIX_ORDERING_SCOTCH)
-  target_link_libraries( pastix PUBLIC MORSE::SCOTCH )
+  target_link_libraries( pastix PRIVATE MORSE::SCOTCH )
 endif()
 if(PASTIX_ORDERING_METIS)
-  target_link_libraries( pastix PUBLIC MORSE::METIS )
+  target_link_libraries( pastix PRIVATE MORSE::METIS )
 endif()
 
 if(PASTIX_WITH_PARSEC)
@@ -746,11 +754,6 @@ endif()
 #   add_dependencies(pastix ${module2}_headers)
 # endforeach()
 
-install(TARGETS pastix
-  RUNTIME DESTINATION bin
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib)
-
 # Install header files
 set(PASTIX_HDRS
   include/pastix/api.h
@@ -772,8 +775,13 @@ install(EXPORT pastixTargets
         DESTINATION lib/cmake/pastix
         )
 
-# install target file
-install(TARGETS pastix EXPORT pastixTargets)
+# Installation
+# ------------
+install(TARGETS pastix
+        EXPORT pastixTargets
+        RUNTIME DESTINATION bin
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib)
 
 ## Executable and tests
 enable_testing()
@@ -1043,7 +1051,7 @@ install( FILES
   DESTINATION ${LIB_INSTALL_DIR}/cmake/pastix)
 
 # need MORSE Find modules: necessary files must be distributed in the install path
-set(morse_dependencies "M;CBLAS;LAPACKE;HWLOC;PARSEC;STARPU")
+set(morse_dependencies "M;CBLAS;LAPACKE;HWLOC;SCOTCH;PTSCOTCH;METIS;PARMETIS;PARSEC;STARPU")
 morse_install_finds(morse_dependencies ${LIB_INSTALL_DIR}/cmake/pastix/find)
 
 #############################################################
