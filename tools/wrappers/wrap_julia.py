@@ -132,7 +132,7 @@ class wrap_julia:
 =#
 '''
         if f['header'] != "":
-            header += "\n" + f['header']
+            header += f['header']
         return header;
 
     @staticmethod
@@ -154,10 +154,10 @@ class wrap_julia:
         bib = ""
         Bib = ""
         if ("SPM" in f['description']):
-            bib = "spm_"
+            bib = "Spm_"
             Bib = "Spm"
         elif ("PaStiX" in f['description']):
-            bib = "pastix_"
+            bib = "Pastix_"
             Bib = "PASTIX"
         jl_interface = "@cenum " + bib + ename + "_t " + "{\n"
 
