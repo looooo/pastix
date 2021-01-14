@@ -165,8 +165,7 @@ class wrap_fortran:
 ! This file has been automatically generated with gen_wrappers.py
 !
 module ''' + modname + '''
-  use iso_c_binding
-'''
+  use iso_c_binding'''
 
         if f['header'] != "":
             header += f['header']

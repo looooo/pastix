@@ -171,7 +171,7 @@ from ctypes import *
 import numpy as np
 '''
         if f['header'] != "":
-            header += "\n" + f['header']
+            header += f['header']
         return header;
 
     @staticmethod

@@ -491,82 +491,117 @@ pastix_enums = {
     'filename' : [ "include/pastix/api.h" ],
     'python'   : { 'filename'    : "wrappers/python/examples/pypastix/enum.py.in",
                    'description' : "PaStiX python wrapper to define enums and datatypes",
-                   'header'      : "# Start with __ to prevent broadcast to file importing enum\n__pastix_int__ = @PASTIX_PYTHON_INTEGER@\n",
+                   'header'      : """
+# Start with __ to prevent broadcast to file importing enum
+__pastix_int__ = @PASTIX_PYTHON_INTEGER@
+__pastix_mpi_enabled__ = @PASTIX_PYTHON_MPI_ENABLED@
+""",
                    'footer'      : "",
                    'enums'       : { 'coeftype' : enums_python_coeftype,
                                      'mtxtype'  : "    SymPosDef = trans.ConjTrans + 1\n    HerPosDef = trans.ConjTrans + 2\n" }
     },
     'fortran'  : { 'filename'    : "wrappers/fortran90/src/pastix_enums.F90",
                    'description' : "PaStiX fortran 90 wrapper to define enums and datatypes",
-                   'header'      : "  implicit none\n",
+                   'header'      : """
+#if defined(PASTIX_WITH_MPI)
+  use mpi_f08
+#endif
+  implicit none
+
+#if !defined(PASTIX_WITH_MPI)
+  type, bind(c) :: MPI_Comm
+     integer(kind=c_int) :: MPI_Comm
+  end type MPI_Comm
+#endif
+""",
                    'footer'      : enums_fortran_footer,
                    'enums'       : { 'mtxtype'  : "    enumerator :: PastixSymPosDef = PastixConjTrans + 1\n    enumerator :: PastixHerPosDef    = PastixConjTrans + 2\n" }
     },
     'julia'   : { 'filename'    : "wrappers/julia/PaStiX/src/pastix_enums.jl.in",
                    'description' : "PaStiX julia wrapper to define enums and datatypes",
-                   'header'      : "Pastix_int_t = @PASTIX_JULIA_INTEGER@\npastix_mpi_enabled = @PASTIX_JULIA_MPI_ENABLED@\nconst Pastix_data_t = Cvoid\nconst Pastix_graph_t = Ptr{Cvoid}\n",
+                   'header'      : """
+Pastix_int_t = @PASTIX_JULIA_INTEGER@
+pastix_mpi_enabled = @PASTIX_JULIA_MPI_ENABLED@
+const Pastix_data_t = Cvoid
+const Pastix_graph_t = Ptr{Cvoid}
+""",
                    'footer'      : "",
                    'enums'       : "",
     },
 }
-"""
-"const PastixPattern =  SpmPattern"
-                                 "const PastixFloat = SpmFloat"
-                                 "const PastixDouble = SpmDouble"
-                                 "const PastixComplex32 = SpmComplex32"
-                                 "const PastixComplex64 = SpmComplex64
-"""
+
 pastix = {
     'filename' : [ "include/pastix/order.h", "include/pastix.h" ],
     'python'   : { 'filename'    : "wrappers/python/examples/pypastix/__pastix__.py",
                    'description' : "PaStiX python wrapper",
-                   'header'      : '''
+                   'header'      : """
 from . import libpastix
 from .enum import __pastix_int__
+from .enum import __pastix_mpi_enabled__
 from spm import pyspm_spmatrix_t
 import spm
-''',
+
+if __pastix_mpi_enabled__:
+    from mpi4py import MPI
+
+def __get_mpi_type__():
+    if not __pastix_mpi_enabled__:
+        return c_int
+    if MPI._sizeof(MPI.Comm) == sizeof(c_long):
+        return c_long
+    elif MPI._sizeof(MPI.Comm) == sizeof(c_int):
+        return c_int
+    else:
+        return c_void_p
+""",
                    'footer'      : "",
                    'enums'       : {}
     },
     'fortran'  : { 'filename'    : "wrappers/fortran90/src/pastixf.f90",
                    'description' : "PaStiX Fortran 90 wrapper",
-                   'header'      : '''  use spmf
+                   'header'      : """
+  use spmf
   use pastix_enums
   implicit none
 
   type, bind(c) :: pastix_data_t
      type(c_ptr) :: ptr
   end type pastix_data_t
-''',
+""",
                    'footer'      : "",
                    'enums'       : {}
     },
     'julia'   : { 'filename'    : "wrappers/julia/PaStiX/src/PaStiX.jl",
                    'description' : "PaStiX julia wrapper",
-                   'header'      : "module PaStiX\n"
-                                   "using CBinding\n"
-                                   "using Libdl\n"
-                                   "function pastix_library_path()\n"
-                                   "    x = Libdl.dlext\n"
-                                   "    return \"libpastix.$x\"\n"
-                                   "end\n\n"
-                                   "libpastix = pastix_library_path()\n"
-                                   "include(\"pastix_enums.jl\")\n\n"
-                                   "using spm\n\n"
-                                   "if pastix_mpi_enabled\n"
-                                   "    using MPI\n"
-                                   "end\n\n"
-                                   "function __get_mpi_type__()\n"
-                                   "    if !pastix_mpi_enabled\n"
-                                   "        return Cint\n"
-                                   "    elseif sizeof(MPI.MPI_Comm) == sizeof(Clong)\n"
-                                   "        return Clong\n"
-                                   "    elseif sizeof(MPI.MPI_Comm) == sizeof(Cint)\n"
-                                   "        return Cint\n"
-                                   "    end\n"
-                                   "    return Cvoid\n"
-                                   "end\n",
+                   'header'      : """
+module PaStiX
+using CBinding
+using Libdl
+
+function pastix_library_path()
+    x = Libdl.dlext
+    return "libpastix.$x"
+end
+
+libpastix = pastix_library_path()
+include("pastix_enums.jl")
+
+using spm
+if pastix_mpi_enabled
+    using MPI
+end
+
+function __get_mpi_type__()
+    if !pastix_mpi_enabled
+        return Cint
+    elseif sizeof(MPI.MPI_Comm) == sizeof(Clong)
+        return Clong
+    elseif sizeof(MPI.MPI_Comm) == sizeof(Cint)
+        return Cint
+    end
+    return Cvoid
+end
+""",
                    'footer'      : "end #module",
                    'enums'       : {}
     },
