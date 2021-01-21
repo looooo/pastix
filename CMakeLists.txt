@@ -139,6 +139,8 @@ option(PASTIX_ORDERING_METIS
 cmake_dependent_option(PASTIX_ORDERING_PTSCOTCH
   "Activate the PT-scotch ordering (requires PASTIX_DISTRIBUTED and PASTIX_ORDERING_SCOTCH)" ON
   "PASTIX_DISTRIBUTED;PASTIX_ORDERING_SCOTCH" OFF)
+option(PASTIX_ORDERING_FIX_SEED
+  "Fix the value of the random seed for ordering algorithm (when possible, Debug purpose)." ON )
 
 # Symbolic factorization options
 option(PASTIX_SYMBOL_DUMP_SYMBMTX
@@ -331,6 +333,10 @@ if (PASTIX_ORDERING_SCOTCH)
   find_package(SCOTCH)
 
   if (SCOTCH_FOUND)
+    cmake_dependent_option(PASTIX_ORDERING_SCOTCH_MT
+    "Enable multi-threaded ordering step With Scotch library (require Scotch v6.1 or above)" ON
+    "HAVE_SCOTCH_CONTEXT_INIT" OFF)
+
     # Check coherency for integer size
     if(PASTIX_INT64 AND NOT SCOTCH_Num_8)
       message(FATAL_ERROR "PASTIX_INT64 is enabled and provided Scotch is not compiled with int64 support, please build with -DPASTIX_INT64=OFF or install a 64 bits version of Scotch.")

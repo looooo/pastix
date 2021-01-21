@@ -81,6 +81,10 @@ int  pastixOrderCopy  (       pastix_order_t * const ordedst,
 
 const pastix_order_t *pastixOrderGet( const pastix_data_t * const pastix_data );
 
+void pastixOrderBcast( pastix_order_t *ordemesh,
+                       int             root,
+                       PASTIX_Comm     pastix_comm  );
+
 /**
  * @}
  * @name Order IO subroutines

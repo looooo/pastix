@@ -392,6 +392,7 @@ pastixInitParam( pastix_int_t *iparm,
 
     /* Scotch */
     {
+        iparm[IPARM_SCOTCH_MT]           = 1;
         iparm[IPARM_SCOTCH_SWITCH_LEVEL] = 120;
         iparm[IPARM_SCOTCH_CMIN]         = 0;
         iparm[IPARM_SCOTCH_CMAX]         = 100000;
@@ -730,6 +731,11 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     }
 #endif
 
+    /*
+     * TODO : Replace this id by a list of ids to know
+     *        which sub-problem this instance represents.
+     */
+    pastix->id    = 953833;
     pastix->iparm = iparm;
     pastix->dparm = dparm;
 
@@ -805,9 +811,6 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     pastix->dir_local  = NULL;
 
     pastixModelsLoad( pastix );
-
-    /* DIRTY Initialization for Scotch */
-    srand(1);
 
     if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
         pastixWelcome( pastix );

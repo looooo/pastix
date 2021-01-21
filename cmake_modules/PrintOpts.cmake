@@ -50,7 +50,12 @@ endif()
 set(dep_message "${dep_message}"
 "\n"
 "       Ordering selected\n"
-"       SCOTCH ..............: ${PASTIX_ORDERING_SCOTCH}\n"
+"       SCOTCH ..............: ${PASTIX_ORDERING_SCOTCH}\n")
+if(PASTIX_ORDERING_SCOTCH AND PASTIX_ORDERING_SCOTCH_MT)
+set(dep_message "${dep_message}"
+"         Mutithreaded ......: ${PASTIX_ORDERING_SCOTCH_MT}\n")
+endif()
+set(dep_message "${dep_message}"
 "       PTSCOTCH ............: ${PASTIX_ORDERING_PTSCOTCH}\n"
 "       METIS ...............: ${PASTIX_ORDERING_METIS}\n"
 "\n"

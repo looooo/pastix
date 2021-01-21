@@ -4,16 +4,19 @@
 
  PaStiX python wrapper
 
- @copyright 2017-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.0.3
  @author Pierre Ramet
  @author Mathieu Faverge
  @author Louis Poirel
- @date 2020-07-15
+ @author Tony Delarue
+ @date 2021-01-14
 
-This file has been automatically generated with gen_wrappers.py
+ This file has been automatically generated with gen_wrappers.py
+
+ @ingroup wrap_python
 
 """
 from ctypes import *
@@ -98,6 +101,10 @@ def pypastix_pastixOrderGet( pastix_data ):
     libpastix.pastixOrderGet.argtypes = [ c_void_p ]
     libpastix.pastixOrderGet.restype = c_void_p
     return libpastix.pastixOrderGet( pastix_data )
+
+def pypastix_pastixOrderBcast( ordemesh, root, pastix_comm ):
+    libpastix.pastixOrderBcast.argtypes = [ c_void_p, c_int, c_int ]
+    libpastix.pastixOrderBcast( ordemesh, root, pastix_comm )
 
 def pypastix_pastixOrderLoad( pastix_data, ordeptr ):
     libpastix.pastixOrderLoad.argtypes = [ c_void_p, c_void_p ]

@@ -50,6 +50,7 @@ typedef struct pastix_model_s pastix_model_t;
  *
  */
 struct pastix_data_s {
+    pastix_int_t     id;                 /**< Unique identifier of the pastix instance                            */
     pastix_int_t    *iparm;              /**< Store integer parameters (input/output)                             */
     double          *dparm;              /**< Store floating parameters (input/output)                            */
 

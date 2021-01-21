@@ -54,6 +54,7 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_ordering",              iparm)) { return IPARM_ORDERING; }
     if(0 == strcasecmp("iparm_ordering_default",      iparm)) { return IPARM_ORDERING_DEFAULT; }
 
+    if(0 == strcasecmp("iparm_scotch_mt",             iparm)) { return IPARM_SCOTCH_MT; }
     if(0 == strcasecmp("iparm_scotch_switch_level",   iparm)) { return IPARM_SCOTCH_SWITCH_LEVEL; }
     if(0 == strcasecmp("iparm_scotch_cmin",           iparm)) { return IPARM_SCOTCH_CMIN; }
     if(0 == strcasecmp("iparm_scotch_cmax",           iparm)) { return IPARM_SCOTCH_CMAX; }

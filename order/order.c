@@ -578,3 +578,95 @@ pastixOrderGet( const pastix_data_t * const pastix_data )
     }
     return pastix_data->ordemesh;
 }
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_order
+ *
+ * @brief This routine broadcast the ordemesh structure from node root to all
+ *        the other nodes.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] ordemesh
+ *          The ordering structure of the problem.
+ *
+ * @param[in] root
+ *          The node that will broadcast its ordemesh.
+ *
+ * @param[in] comm
+ *          The MPI communicator of the problem.
+ *
+ *******************************************************************************/
+void
+pastixOrderBcast( pastix_order_t *ordemesh,
+                  int             root,
+                  PASTIX_Comm     pastix_comm )
+{
+    pastix_int_t    vertnbr, cblknbr, sndenbr;
+    int             clustnum;
+
+    MPI_Comm_rank( pastix_comm, &clustnum );
+
+    /* Free previous order structure */
+    if ( clustnum != root ) {
+        pastixOrderExit( ordemesh );
+    }
+
+    /* Copy ordemesh datas from node 0 */
+    MPI_Bcast( ordemesh, sizeof(pastix_order_t), MPI_BYTE,
+               root, pastix_comm );
+
+    vertnbr = ordemesh->vertnbr;
+    cblknbr = ordemesh->cblknbr;
+    sndenbr = ordemesh->sndenbr;
+
+    if ( ordemesh->permtab ) {
+        if ( clustnum != root ) {
+            MALLOC_INTERN( ordemesh->permtab, vertnbr, pastix_int_t );
+        }
+        MPI_Bcast( ordemesh->permtab, vertnbr, PASTIX_MPI_INT,
+                   root, pastix_comm );
+    }
+
+    if ( ordemesh->peritab ) {
+        if ( clustnum != root ) {
+            MALLOC_INTERN( ordemesh->peritab, vertnbr, pastix_int_t );
+        }
+        MPI_Bcast( ordemesh->peritab, vertnbr, PASTIX_MPI_INT,
+                   root, pastix_comm );
+    }
+
+    if ( ordemesh->rangtab ) {
+        if ( clustnum != root ) {
+            MALLOC_INTERN( ordemesh->rangtab, cblknbr+1, pastix_int_t );
+        }
+        MPI_Bcast( ordemesh->rangtab, cblknbr+1, PASTIX_MPI_INT,
+                   root, pastix_comm );
+    }
+
+    if ( ordemesh->treetab ) {
+        if ( clustnum != root ) {
+            MALLOC_INTERN( ordemesh->treetab, cblknbr, pastix_int_t );
+        }
+        MPI_Bcast( ordemesh->treetab, cblknbr, PASTIX_MPI_INT,
+                   root, pastix_comm );
+    }
+
+    if ( ordemesh->selevtx ) {
+        if ( clustnum != root ) {
+            MALLOC_INTERN( ordemesh->selevtx, cblknbr, int8_t );
+        }
+        MPI_Bcast( ordemesh->selevtx, cblknbr * sizeof(int8_t), MPI_BYTE,
+                   root, pastix_comm );
+    }
+
+    if ( ordemesh->sndetab ) {
+        if ( clustnum != root ) {
+            MALLOC_INTERN( ordemesh->sndetab, sndenbr+1, pastix_int_t );
+        }
+        MPI_Bcast( ordemesh->sndetab, sndenbr+1, PASTIX_MPI_INT,
+                   root, pastix_comm );
+    }
+}

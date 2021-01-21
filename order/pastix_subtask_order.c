@@ -598,8 +598,14 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         }
     }
 
+    /*
+     * For now, what the rank 0 has will overwrite what the others have, even if
+     * they all computed something
+     */
+    pastixOrderBcast( pastix_data->ordemesh, 0, pastix_data->pastix_comm );
+
 #if !defined(NDEBUG)
-    assert( pastixOrderCheck( ordemesh ) == PASTIX_SUCCESS );
+    assert( pastixOrderCheck( pastix_data->ordemesh ) == PASTIX_SUCCESS );
 #endif
 
     /* Backup the spm pointer for further information */
