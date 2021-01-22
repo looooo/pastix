@@ -46,8 +46,8 @@ void graphExit( pastix_graph_t *graph )
         memFree_null(graph->colptr);
     }
 
-    if (graph->rows != NULL) {
-        memFree_null(graph->rows);
+    if (graph->rowptr != NULL) {
+        memFree_null(graph->rowptr);
     }
 
     if (graph->loc2glob != NULL) {
@@ -83,7 +83,7 @@ void graphBase( pastix_graph_t *graph,
         return;
     }
     if ( (graph->colptr == NULL) ||
-         (graph->rows   == NULL) )
+         (graph->rowptr == NULL) )
     {
         errorPrint("graphBase: graph pointer is not correctly initialized");
         return;
@@ -106,7 +106,7 @@ void graphBase( pastix_graph_t *graph,
         graph->colptr[i]   += baseadj;
     }
     for (i = 0; i < nnz; i++) {
-        graph->rows[i] += baseadj;
+        graph->rowptr[i] += baseadj;
     }
 
     if (graph->loc2glob != NULL) {
@@ -162,7 +162,7 @@ graphCopy( pastix_graph_t       *graphdst,
     graphdst->n   = graphsrc->n;
     graphdst->dof = graphsrc->dof;
     graphdst->colptr   = NULL;
-    graphdst->rows     = NULL;
+    graphdst->rowptr   = NULL;
     graphdst->loc2glob = NULL;
     graphdst->glob2loc = NULL;
 
@@ -171,11 +171,11 @@ graphCopy( pastix_graph_t       *graphdst,
         MALLOC_INTERN( graphdst->colptr, graphsrc->n + 1, pastix_int_t );
         memcpy( graphdst->colptr, graphsrc->colptr, (graphsrc->n+1) * sizeof(pastix_int_t) );
 
-        if ( graphsrc->rows != NULL )
+        if ( graphsrc->rowptr != NULL )
         {
             pastix_int_t nnz = graphdst->colptr[graphdst->n] - graphdst->colptr[0];
-            MALLOC_INTERN( graphdst->rows, nnz, pastix_int_t );
-            memcpy( graphdst->rows, graphsrc->rows, nnz * sizeof(pastix_int_t) );
+            MALLOC_INTERN( graphdst->rowptr, nnz, pastix_int_t );
+            memcpy( graphdst->rowptr, graphsrc->rowptr, nnz * sizeof(pastix_int_t) );
         }
     }
 

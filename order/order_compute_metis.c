@@ -96,7 +96,7 @@ pastixOrderComputeMetis( pastix_data_t  *pastix_data,
         return rc;
     }
     ordemesh->baseval = baseval;
-    rc = METIS_NodeND( &n, graph->colptr, graph->rows, NULL,
+    rc = METIS_NodeND( &n, graph->colptr, graph->rowptr, NULL,
                        opt, ordemesh->peritab, ordemesh->permtab);
 
     assert( n == graph->n );

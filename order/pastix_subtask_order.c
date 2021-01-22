@@ -200,7 +200,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         assert( pastix_data->schur_list != NULL );
         graphIsolate(graph->n,
                      graph->colptr,
-                     graph->rows,
+                     graph->rowptr,
                      pastix_data->schur_n,
                      pastix_data->schur_list,
                      &schur_colptr,
@@ -212,7 +212,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     } else {
         schur_n      = graph->n;
         schur_colptr = graph->colptr;
-        schur_rows   = graph->rows;
+        schur_rows   = graph->rowptr;
     }
 
     /*
@@ -250,7 +250,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     subgraph.dof      = graph->dof;
     subgraph.dofs     = graph->dofs;
     subgraph.colptr   = zeros_colptr;
-    subgraph.rows     = zeros_rows;
+    subgraph.rowptr   = zeros_rows;
     subgraph.loc2glob = graph->loc2glob;
 
     /* Select the ordering method chosen by the user */
@@ -414,7 +414,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         if ( zeros_rows   != schur_rows    ) { memFree_null( zeros_rows   ); }
         if ( zeros_perm   != NULL          ) { memFree_null( zeros_perm   ); }
         if ( schur_colptr != graph->colptr ) { memFree_null( schur_colptr ); }
-        if ( schur_rows   != graph->rows   ) { memFree_null( schur_rows   ); }
+        if ( schur_rows   != graph->rowptr   ) { memFree_null( schur_rows   ); }
         if ( schur_perm   != NULL          ) { memFree_null( schur_perm   ); }
 
         return retval_rcv;
@@ -483,7 +483,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         pastixOrderAddIsolate( ordemesh, n, schur_perm );
 
         if ( schur_colptr != graph->colptr ) { memFree_null( schur_colptr ); }
-        if ( schur_rows   != graph->rows   ) { memFree_null( schur_rows   ); }
+        if ( schur_rows   != graph->rowptr   ) { memFree_null( schur_rows   ); }
         if ( schur_perm   != NULL          ) { memFree_null( schur_perm   ); }
     }
 

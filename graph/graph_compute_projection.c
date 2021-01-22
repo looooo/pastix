@@ -49,7 +49,7 @@ graphComputeProjection( const pastix_graph_t *graph,
     /* (i, j ) in initial ordering  */
     /* (ip,jp) in permuted ordering */
     colptr  = graph->colptr;
-    rows    = graph->rows;
+    rows    = graph->rowptr;
     peritab = order->peritab;
     subvert = subvertlvl;
 
@@ -125,7 +125,7 @@ graphComputeProjection( const pastix_graph_t *graph,
         memcpy( subvertlv2, subvertlvl, n * sizeof(pastix_int_t) );
 
         colptr = subgraph->colptr;
-        rows   = subgraph->rows;
+        rows   = subgraph->rowptr;
         maxdepth = -maxdepth;
 
         /*

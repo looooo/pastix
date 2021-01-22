@@ -144,7 +144,7 @@ ocs_scotchgraph_init( SCOTCH_Graph   *scotchgraph,
     {
         cscd2csc_int( graph->n,
                       graph->colptr,
-                      graph->rows,
+                      graph->rowptr,
                       NULL, NULL, NULL, NULL,
                       &n, &colptr, &rows,
                       NULL, NULL, NULL, NULL,

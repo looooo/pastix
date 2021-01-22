@@ -81,7 +81,7 @@ graphLoad( const pastix_data_t *pastix_data,
         graph->dof      = spm.dof;
         assert( spm.dof == 1 );
         graph->colptr   = spm.colptr;
-        graph->rows     = spm.rowptr;
+        graph->rowptr   = spm.rowptr;
         graph->loc2glob = spm.loc2glob;
     }
 
@@ -145,7 +145,7 @@ graphSave( pastix_data_t        *pastix_data,
     spm.nnz = graph->colptr[ graph->n ] - graph->colptr[ 0 ];
     spm.dof = graph->dof;
     spm.colptr   = graph->colptr;
-    spm.rowptr   = graph->rows;
+    spm.rowptr   = graph->rowptr;
     spm.loc2glob = graph->loc2glob;
     spm.dofs     = graph->dofs;
 

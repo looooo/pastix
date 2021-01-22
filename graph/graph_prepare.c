@@ -15,7 +15,6 @@
  *
  **/
 #include "common.h"
-#include <spm.h>
 #include "graph/graph.h"
 #if defined(PASTIX_DISTRIBUTED) && 0
 #include "cscd_utils_intern.h"
@@ -42,8 +41,8 @@ graphNoDiag( pastix_graph_t *graph )
     pastix_int_t  i, j, indj;
     pastix_int_t  n   = graph->n;
     pastix_int_t *ia  = graph->colptr;
-    pastix_int_t *ja  = graph->rows;
-    pastix_int_t *ja2 = graph->rows;
+    pastix_int_t *ja  = graph->rowptr;
+    pastix_int_t *ja2 = graph->rowptr;
     int baseval = ia[0];
 
     indj = ia[0];
@@ -65,12 +64,12 @@ graphNoDiag( pastix_graph_t *graph )
         ia[0] = indj;
 
         /* Store the new ia[i+1] */
-        indj = (ja2 - graph->rows) + baseval;
+        indj = (ja2 - graph->rowptr) + baseval;
     }
     ia[0] = indj;
 
-    graph->rows =
-        (pastix_int_t *) memRealloc ( graph->rows,
+    graph->rowptr =
+        (pastix_int_t *) memRealloc ( graph->rowptr,
                                       (ia[0]-baseval)*sizeof (pastix_int_t) );
 }
 
@@ -96,7 +95,7 @@ void
 graphSort( pastix_graph_t *graph )
 {
     pastix_int_t *ia = graph->colptr;
-    pastix_int_t *ja = graph->rows;
+    pastix_int_t *ja = graph->rowptr;
     pastix_int_t  n = graph->n;
     pastix_int_t  itercol;
     int baseval = ia[0];
@@ -196,9 +195,9 @@ graphPrepare(      pastix_data_t   *pastix_data,
                 pastix_int_t nnz = colptr[n]-colptr[0];
                 tmpgraph->n = n;
                 MALLOC_INTERN(tmpgraph->colptr, (n+1), pastix_int_t);
-                MALLOC_INTERN(tmpgraph->rows,   nnz,   pastix_int_t);
+                MALLOC_INTERN(tmpgraph->rowptr,  nnz,  pastix_int_t);
                 memcpy(tmpgraph->colptr, colptr, (n+1)*sizeof(pastix_int_t));
-                memcpy(tmpgraph->rows,   rows,     nnz*sizeof(pastix_int_t));
+                memcpy(tmpgraph->rowptr, rows,     nnz*sizeof(pastix_int_t));
 
                 if (iparm[IPARM_VERBOSE] > PastixVerboseNo) {
                     pastix_print(procnum, 0, "%s", OUT_ORDER_SORT);
@@ -234,7 +233,7 @@ graphPrepare(      pastix_data_t   *pastix_data,
                 cscd_symgraph_int(n, colptr, rows, NULL,
                                   &(tmpgraph->n),
                                   &(tmpgraph->colptr),
-                                  &(tmpgraph->rows), NULL,
+                                  &(tmpgraph->rowptr), NULL,
                                   loc2glob,
                                   pastix_comm, 1);
                 assert( n == tmpgraph->n );
@@ -244,16 +243,16 @@ graphPrepare(      pastix_data_t   *pastix_data,
                 pastix_int_t nnz = colptr[n]-colptr[0];
                 tmpgraph->n = n;
                 MALLOC_INTERN(tmpgraph->colptr, (n+1), pastix_int_t);
-                MALLOC_INTERN(tmpgraph->rows,   nnz,   pastix_int_t);
+                MALLOC_INTERN(tmpgraph->rowptr,  nnz,  pastix_int_t);
                 memcpy(tmpgraph->colptr, colptr, (n+1)*sizeof(pastix_int_t));
-                memcpy(tmpgraph->rows,   rows,     nnz*sizeof(pastix_int_t));
+                memcpy(tmpgraph->rowptr,   rows,   nnz*sizeof(pastix_int_t));
             }
             MALLOC_INTERN(tmpgraph->loc2glob,   n,   pastix_int_t);
             memcpy(tmpgraph->loc2glob, loc2glob, n*sizeof(pastix_int_t));
 
             cscd_noDiag(tmpgraph->n,
                         tmpgraph->colptr,
-                        tmpgraph->rows,
+                        tmpgraph->rowptr,
                         NULL,
                         loc2glob);
 
@@ -306,7 +305,7 @@ graphPrepare(      pastix_data_t   *pastix_data,
 
                     /* Apply the new permutation to the local graph */
                     for (i = 0; i < (tmpgraph->colptr)[n] - 1; i++)
-                        tmpgraph->rows[i] = pastix_data->PTS_permtab[(tmpgraph->rows)[i]-1];
+                        tmpgraph->rowptr[i] = pastix_data->PTS_permtab[(tmpgraph->rowptr)[i]-1];
 
                     /* Initialize loc2glob */
                     copy_l2g = 0;

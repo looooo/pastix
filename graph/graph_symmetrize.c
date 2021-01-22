@@ -212,7 +212,7 @@ int graphSymmetrize(       pastix_int_t    n,
         newgraph->gN = n;
         newgraph->n  = n;
         newgraph->colptr   = newia;
-        newgraph->rows     = newja;
+        newgraph->rowptr   = newja;
         newgraph->loc2glob = NULL;
     }
 #if defined(PASTIX_WITH_MPI) && defined(PASTIX_DISTRIBUTED)

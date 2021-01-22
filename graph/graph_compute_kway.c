@@ -141,7 +141,7 @@ int graphComputeKway( const pastix_graph_t *graph,
                            NULL,
                            NULL,
                            comp_graph.colptr[ comp_n ] - comp_graph.colptr[ 0 ],
-                           comp_graph.rows,
+                           comp_graph.rowptr,
                            NULL);
     }
     else {

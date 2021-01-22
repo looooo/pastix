@@ -373,7 +373,7 @@ pastixOrderFindSupernodes( const pastix_graph_t *graph,
     pastix_int_t *invp = ordeptr->peritab;
     pastix_int_t  n  = graph->n;
     pastix_int_t *ia = graph->colptr;
-    pastix_int_t *ja = graph->rows;
+    pastix_int_t *ja = graph->rowptr;
 
     assert( graph->colptr[0] == 0 );
 
