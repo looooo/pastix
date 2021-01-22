@@ -211,9 +211,9 @@ graph_isolate_init_newrow(       pastix_int_t *newrow,
  *
  * @param[in] colptr
  *          Array of size n+1.
- *          Index of first element of each column in rows array.
+ *          Index of first element of each column in rowptr array.
  *
- * @param[in] rows
+ * @param[in] rowptr
  *          Array of size nnz = colptr[n] - colptr[0].
  *          Rows of each non zero entries.
  *
@@ -231,7 +231,7 @@ graph_isolate_init_newrow(       pastix_int_t *newrow,
  *          If new_colptr == NULL, nothing is returned, otherwise the pointer to
  *          the allocated structure based as the input colptr.
  *
- * @param[out] new_rows
+ * @param[out] new_rowptr
  *          Array of size new_nnz = (*new_colptr)[n] - (*new_colptr)[0].
  *          Rows of each non zero entries for the new graph.
  *          If new_rows == NULL, nothing is returned, otherwise the pointer to
@@ -282,6 +282,9 @@ int graphIsolate(       pastix_int_t   n,
         return PASTIX_ERR_BADPARAMETER;
     }
 
+    /* For the moment, make sure the graph is 0 based */
+    assert(baseval == 0);
+
     /* Quick Return */
     if (isolate_n == 0) {
         if (new_colptr != NULL) *new_colptr = (pastix_int_t*)colptr;
@@ -327,6 +330,81 @@ int graphIsolate(       pastix_int_t   n,
     graph_isolate_assign_ptr( new_invp, tmpinvp );
 
     return PASTIX_SUCCESS;
+}
+
+/**
+ * @brief Fill the isolated colptr and rowptr.
+ */
+static inline void
+graph_iRange_fill_outptr( const pastix_graph_t  *graph,
+                          const pastix_order_t  *order,
+                                ExtendVectorINT *vec,
+                                pastix_int_t    *out_colptr,
+                                pastix_int_t    *out_rowptr,
+                                pastix_int_t     fnode,
+                                pastix_int_t     lnode,
+                                pastix_int_t     distance )
+{
+    pastix_int_t *out_connected;
+    pastix_int_t *colptr ,*rowptr, *rowtmp;
+    pastix_int_t *perm   = order->permtab;
+    pastix_int_t *invp   = order->peritab;
+    pastix_int_t  out_n  = lnode - fnode;
+    pastix_int_t  ip, jp, k, jj, i, j;
+    pastix_int_t  d, sze, baseval;
+
+    MALLOC_INTERN( out_connected, out_n, pastix_int_t );
+
+    /* The first loop counts the number of edges */
+    baseval = graph->baseval;
+    colptr  = graph->colptr;
+    rowptr  = graph->rowptr - baseval;
+    rowtmp  = out_rowptr;
+    for( ip=fnode; ip<lnode; ip++ )
+    {
+        /* Clear the previous computations */
+        extendint_Clear( vec );
+        memset(out_connected, 0, out_n * sizeof(pastix_int_t));
+        out_connected[ip-fnode] = 1;
+
+        /* i^th vertex in the initial numbering */
+        extendint_Add( vec, invp[ip] );
+        sze =  1;
+        d   = -1;
+        k   =  0;
+
+        while( d < distance ) {
+            for(; k<sze; k++) {
+                i = extendint_Read( vec, k );
+
+                for (jj = colptr[i]; jj < colptr[i+1]; jj++)
+                {
+                    j  = rowptr[jj] - baseval;
+                    jp = perm[j];
+
+                    /* Count edges in each column of the new graph */
+                    if ( ( jp >= fnode ) && ( jp < lnode ) ) {
+                        if (out_connected[jp-fnode] == 0){
+                            out_connected[jp-fnode] = 1;
+
+                            /* Fill the out_colptr */
+                            out_colptr[ip-fnode+1]++;
+
+                            /* Fill the out_rowptr */
+                            *rowtmp = jp-fnode;
+                            rowtmp++;
+                        }
+                    }
+                    else {
+                        extendint_Add( vec, j );
+                    }
+                }
+            }
+            d++;
+            sze = extendint_Size( vec );
+        }
+    }
+    free(out_connected);
 }
 
 /**
@@ -380,21 +458,13 @@ graphIsolateRange( const pastix_graph_t *graph,
                          pastix_int_t    lnode,
                          pastix_int_t    distance )
 {
-    ExtendVectorINT     vec;
-    pastix_int_t        baseval = graph->colptr[0];
-    pastix_int_t        n       = graph->n;
-    const pastix_int_t *colptr  = graph->colptr;
-    const pastix_int_t *rows    = graph->rowptr;
-    const pastix_int_t *perm    = order->permtab;
-    const pastix_int_t *invp    = order->peritab;
-    pastix_int_t  out_n = lnode - fnode;
-    pastix_int_t  out_nnz;
-    pastix_int_t *out_colptr;
-    pastix_int_t *out_rows;
-    pastix_int_t  k, i, ip, jj, j, jp, sze, d;
-    pastix_int_t *out_connected;
-    pastix_int_t  row_counter;
-    int ret = PASTIX_SUCCESS;
+    ExtendVectorINT vec;
+    pastix_int_t   *out_rowptr;
+    pastix_int_t   *out_colptr;
+    pastix_int_t    baseval = graph->baseval;
+    pastix_int_t    n       = graph->n;
+    pastix_int_t    out_n   = lnode - fnode;
+    pastix_int_t    i;
 
     if ( out_graph == NULL ) {
         errorPrintW( "graphIsolateSupernode: Incorrect pointer for the output graph\n");
@@ -403,12 +473,14 @@ graphIsolateRange( const pastix_graph_t *graph,
 
     n             = graph->n;
     out_graph->n  = out_n;
-    out_graph->gN = out_n;
 
     if ( out_n == 0 ) {
         errorPrintW( "graphIsolateSupernode: Empty supernode\n");
         return PASTIX_ERR_BADPARAMETER;
     }
+
+    /* For the moment, make sure the graph is 0 based */
+    assert(baseval == 0);
 
     /* Quick Return */
     if ( out_n == n ) {
@@ -423,121 +495,46 @@ graphIsolateRange( const pastix_graph_t *graph,
     memset( out_graph->colptr, 0, (out_n + 1) * sizeof(pastix_int_t) );
     out_colptr = out_graph->colptr;
 
-    /* Temporary array of connections to avoid double counting when extending */
-    MALLOC_INTERN(out_connected, out_n, pastix_int_t);
+    /* Create the new_rowptr array, will be reallocated later */
+    MALLOC_INTERN( out_graph->rowptr, graph->nnz, pastix_int_t );
+    out_rowptr = out_graph->rowptr;
 
-    /* (i,j) in permutated ordering */
-    /* (ip,jp) in initial ordering */
-    out_colptr[0] = baseval;
+    /*
+     * (i,j) in permutated ordering
+     * (ip,jp) in initial ordering
+     */
+    out_graph->baseval = baseval;
+    out_colptr[0]      = baseval;
 
     extendint_Init( &vec, 100 );
 
-    /*
-     * The first loop counts the number of edges
-     */
-    for (ip=fnode; ip<lnode; ip++)
-    {
-        extendint_Clear( &vec );
-        memset(out_connected, 0, (out_n) * sizeof(pastix_int_t));
-        out_connected[ip-fnode] = 1;
-
-        /* i^th vertex in the initial numbering */
-        extendint_Add( &vec, invp[ip] );
-        sze =  1;
-        d   = -1;
-        k   =  0;
-
-        while( d < distance ) {
-            for(; k<sze; k++) {
-                i = extendint_Read( &vec, k );
-
-                for (jj = colptr[i  ]-baseval;
-                     jj < colptr[i+1]-baseval; jj++) {
-
-                    j  = rows[jj]-baseval;
-                    jp = perm[j];
-
-                    /* Count edges in each column of the new graph */
-                    if ( ( jp >= fnode ) && ( jp < lnode ) ) {
-                        if (out_connected[jp-fnode] == 0){
-                            out_connected[jp-fnode] = 1;
-                            out_colptr[ip-fnode+1]++;
-                        }
-                    }
-                    else {
-                        extendint_Add( &vec, j );
-                    }
-                }
-            }
-            d++;
-            sze = extendint_Size( &vec );
-        }
-    }
+    /* Fill the out_colptr and the out_rowptr */
+    graph_iRange_fill_outptr( graph, order, &vec,
+                              out_colptr, out_rowptr,
+                              fnode, lnode, distance );
 
     /* Update the colptr */
     for (i = 0; i < out_n; i++){
         out_colptr[i+1] += out_colptr[i];
     }
 
-    out_nnz = out_colptr[out_n] - out_colptr[0];
+    out_graph->nnz = out_colptr[out_n] - out_colptr[0];
 
     /* Allocation will fail if matrix is diagonal and no off-diagonal elements are found */
-    if ( out_nnz == 0 ){
+    if ( out_graph->nnz == 0 ){
         fprintf( stderr, "Diagonal matrix cannot be correcly managed here!\n" );
-        //return EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
 
-    /* Create the new rows array */
-    MALLOC_INTERN( out_graph->rowptr, out_nnz, pastix_int_t );
-    out_rows = out_graph->rowptr;
-    row_counter = 0;
-
-    /*
-     * The second loop initialize the row array
-     */
-    for (ip=fnode; ip<lnode; ip++){
-        extendint_Clear( &vec );
-        memset(out_connected, 0, out_n * sizeof(pastix_int_t));
-        out_connected[ip-fnode] = 1;
-
-        /* i^th vertex in the initial numbering */
-        extendint_Add( &vec, invp[ip] );
-        sze =  1;
-        d   = -1;
-        k   =  0;
-
-        while( d < distance ) {
-            for(; k<sze; k++) {
-                i = extendint_Read( &vec, k );
-
-                for (jj = colptr[i  ]-baseval;
-                     jj < colptr[i+1]-baseval; jj++) {
-
-                    j  = rows[jj]-baseval;
-                    jp = perm[j];
-
-                    /* Count edges in each column of the new graph */
-                    if ( ( jp >= fnode ) && ( jp < lnode ) )
-                    {
-                        if (out_connected[jp-fnode] == 0){
-                            out_connected[jp-fnode] = 1;
-                            out_rows[row_counter] = jp-fnode;
-                            row_counter++;
-                        }
-                    }
-                    else {
-                        extendint_Add( &vec, j );
-                    }
-                }
-            }
-            d++;
-            sze = extendint_Size( &vec );
-        }
-    }
+    /* Create the new rowptr array */
+    out_graph->rowptr =
+        (pastix_int_t *) memRealloc( out_graph->rowptr, out_graph->nnz * sizeof(pastix_int_t) );
 
     extendint_Exit( &vec );
-    free(out_connected);
     graphBase( out_graph, 0 );
 
-    return ret;
+    /* Update mainly gN and gnnz */
+    graphUpdateComputedFields( out_graph );
+
+    return PASTIX_SUCCESS;
 }
