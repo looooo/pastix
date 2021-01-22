@@ -564,7 +564,6 @@ set(PASTIX_LIB_SRCS
   graph/graph_io.c
   graph/graph_isolate.c
   graph/graph_prepare.c
-  graph/graph_symmetrize.c
   #
   order/order.c
   order/order_add_isolate.c
@@ -905,7 +904,6 @@ add_documented_files(
   graph/graph_io.c
   graph/graph_isolate.c
   graph/graph_prepare.c
-  graph/graph_symmetrize.c
   #
   include/pastix/order.h
   #order/order_scotch_strats.h TODO: include in developer version

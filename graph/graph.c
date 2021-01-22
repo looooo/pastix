@@ -11,6 +11,7 @@
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
+ * @author Tony Delarue
  * @date 2020-02-05
  *
  * @addtogroup pastix_graph
@@ -19,6 +20,11 @@
  **/
 #include "common.h"
 #include "graph/graph.h"
+
+#define assert_graph(_graph_)                   \
+    assert(_graph_->fmttype == SpmCSC);         \
+    assert(_graph_->flttype == SpmPattern);     \
+    assert(_graph_->values  == NULL);           \
 
 /**
  *******************************************************************************
@@ -31,28 +37,17 @@
  *          The pointer graph structure to free.
  *
  *******************************************************************************/
-void graphExit( pastix_graph_t *graph )
+void
+graphExit( pastix_graph_t *graph )
 {
     /* Parameter checks */
     if ( graph == NULL ) {
-        errorPrint("graphClean: graph pointer is NULL");
+        errorPrint("graphExit: graph pointer is NULL");
         return;
     }
+    assert_graph( graph );
 
-    graph->gN = 0;
-    graph->n  = 0;
-
-    if ( graph->colptr != NULL) {
-        memFree_null(graph->colptr);
-    }
-
-    if (graph->rowptr != NULL) {
-        memFree_null(graph->rowptr);
-    }
-
-    if (graph->loc2glob != NULL) {
-        memFree_null( graph->loc2glob );
-    }
+    spmExit( graph );
 
     return;
 }
@@ -71,12 +66,10 @@ void graphExit( pastix_graph_t *graph )
  *          The base value to use in the graph (0 or 1).
  *
  *******************************************************************************/
-void graphBase( pastix_graph_t *graph,
-                int             baseval )
+void
+graphBase( pastix_graph_t *graph,
+           pastix_int_t    baseval )
 {
-    pastix_int_t baseadj;
-    pastix_int_t i, n, nnz;
-
     /* Parameter checks */
     if ( graph == NULL ) {
         errorPrint("graphBase: graph pointer is NULL");
@@ -95,25 +88,10 @@ void graphBase( pastix_graph_t *graph,
         return;
     }
 
-    baseadj = baseval - graph->colptr[0];
-    if (baseadj == 0)
-	return;
+    assert_graph(graph);
 
-    n   = graph->n;
-    nnz = graph->colptr[n] - graph->colptr[0];
+    spmBase( graph, baseval );
 
-    for (i = 0; i <= n; i++) {
-        graph->colptr[i]   += baseadj;
-    }
-    for (i = 0; i < nnz; i++) {
-        graph->rowptr[i] += baseadj;
-    }
-
-    if (graph->loc2glob != NULL) {
-        for (i = 0; i < n; i++) {
-            graph->loc2glob[i] += baseadj;
-        }
-    }
     return;
 }
 
@@ -147,6 +125,8 @@ int
 graphCopy( pastix_graph_t       *graphdst,
            const pastix_graph_t *graphsrc )
 {
+    pastix_graph_t *graph_tmp;
+
     /* Parameter checks */
     if ( graphdst == NULL ) {
         return PASTIX_ERR_BADPARAMETER;
@@ -157,42 +137,108 @@ graphCopy( pastix_graph_t       *graphdst,
     if ( graphsrc == graphdst ) {
         return PASTIX_ERR_BADPARAMETER;
     }
+    assert_graph(graphsrc);
+    assert_graph(graphdst);
 
-    graphdst->gN  = graphsrc->gN;
-    graphdst->n   = graphsrc->n;
-    graphdst->dof = graphsrc->dof;
-    graphdst->colptr   = NULL;
-    graphdst->rowptr   = NULL;
-    graphdst->loc2glob = NULL;
-    graphdst->glob2loc = NULL;
+    /* Clear the prexisting graph */
+    graphExit( graphdst );
 
-    if ( graphsrc->colptr != NULL )
-    {
-        MALLOC_INTERN( graphdst->colptr, graphsrc->n + 1, pastix_int_t );
-        memcpy( graphdst->colptr, graphsrc->colptr, (graphsrc->n+1) * sizeof(pastix_int_t) );
+    /* Copy the source graph */
+    graph_tmp = spmCopy( graphsrc );
+    memcpy( graphdst, graph_tmp, sizeof(pastix_graph_t) );
 
-        if ( graphsrc->rowptr != NULL )
-        {
-            pastix_int_t nnz = graphdst->colptr[graphdst->n] - graphdst->colptr[0];
-            MALLOC_INTERN( graphdst->rowptr, nnz, pastix_int_t );
-            memcpy( graphdst->rowptr, graphsrc->rowptr, nnz * sizeof(pastix_int_t) );
-        }
-    }
-
-    if ( graphsrc->loc2glob != NULL )
-    {
-        MALLOC_INTERN( graphdst->loc2glob, graphsrc->n, pastix_int_t );
-        memcpy( graphdst->loc2glob, graphsrc->loc2glob, graphsrc->n * sizeof(pastix_int_t) );
-    }
-
-    if ( graphsrc->glob2loc != NULL )
-    {
-        MALLOC_INTERN( graphdst->glob2loc, graphsrc->gN, pastix_int_t );
-        memcpy( graphdst->glob2loc, graphsrc->glob2loc, graphsrc->gN * sizeof(pastix_int_t) );
-    }
+    memFree_null( graph_tmp );
 
     return PASTIX_SUCCESS;
 }
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_graph
+ *
+ * @brief This routine sortes the subarray of edges of each vertex.
+ *
+ * WARNING: The sort is always performed, do not call this routine
+ * when it is not required.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] graph
+ *          On entry, the pointer to the graph structure.
+ *          On exit, the same graph with subarrays of edges sorted by ascending
+ *          order.
+ *
+ *******************************************************************************/
+void
+graphSort( pastix_graph_t *graph )
+{
+    assert_graph(graph);
+    spmSort(graph);
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_graph
+ *
+ * @brief Symmetrize a given graph
+ *
+ *******************************************************************************
+ *
+ * @param[inout] graph
+ *          The initialized graph structure that will be symmetrized.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on success,
+ * @retval PASTIX_ERR_BADPARAMETER if incorrect parameters are given.
+ *
+ *******************************************************************************/
+int
+graphSymmetrize( pastix_graph_t *graph )
+{
+    /* Parameter checks */
+    if ( graph == NULL ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    assert_graph(graph);
+
+    spmSymmetrize( graph );
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_graph
+ *
+ * @brief Update dofs, nnz, nnzexp, gnnz, n, nexp, gN of a given graph
+ *
+ *******************************************************************************
+ *
+ * @param[inout] graph
+ *          The initialized graph structure that will be updated.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on success,
+ * @retval PASTIX_ERR_BADPARAMETER if incorrect parameters are given.
+ *
+ *******************************************************************************/
+int
+graphUpdateComputedFields( pastix_graph_t *graph )
+{
+    /* Parameter checks */
+    if ( graph == NULL ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    assert_graph(graph);
+
+    spmUpdateComputedFields( graph );
+    return PASTIX_SUCCESS;
+}
+
 
 /**
  * @}

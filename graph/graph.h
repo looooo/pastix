@@ -11,6 +11,7 @@
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
+ * @author Tony Delarue
  * @date 2019-11-12
  *
  *
@@ -33,8 +34,9 @@
  */
 int  graphPrepare(       pastix_data_t   *pastix_data,
                    const spmatrix_t      *spm,
-                         pastix_graph_t  **graph );
-void graphBase   (       pastix_graph_t  *graph, int baseval );
+                         pastix_graph_t **graph );
+void graphBase   (       pastix_graph_t  *graph,
+                         pastix_int_t     baseval );
 void graphExit   (       pastix_graph_t  *graph );
 
 /**
@@ -43,8 +45,8 @@ void graphExit   (       pastix_graph_t  *graph );
  * @{
  */
 void graphLoad( const pastix_data_t  *pastix_data,
-                pastix_graph_t       *graph );
-void graphSave( pastix_data_t        *pastix_data,
+                      pastix_graph_t *graph );
+void graphSave(       pastix_data_t  *pastix_data,
                 const pastix_graph_t *graph );
 
 /**
@@ -52,15 +54,13 @@ void graphSave( pastix_data_t        *pastix_data,
  * @name Graph manipulation subroutines
  * @{
  */
-int  graphCopy      ( pastix_graph_t       *graphdst,
+int  graphCopy      (       pastix_graph_t *graphdst,
                       const pastix_graph_t *graphsrc );
-void graphSort      ( pastix_graph_t       *graph );
-void graphNoDiag    ( pastix_graph_t       *graph );
-int  graphSymmetrize(       pastix_int_t    n,
-                      const pastix_int_t   *ia,
-                      const pastix_int_t   *ja,
-                      const pastix_int_t   *loc2glob,
-                            pastix_graph_t *newgraph );
+void graphSort      (       pastix_graph_t *graph );
+void graphNoDiag    (       pastix_graph_t *graph );
+int  graphSymmetrize(       pastix_graph_t *graph );
+
+int  graphUpdateComputedFields( pastix_graph_t *graph );
 
 int  graphIsolate   (       pastix_int_t    n,
                       const pastix_int_t   *colptr,
@@ -78,7 +78,7 @@ int  graphApplyPerm ( const pastix_graph_t *graphA,
 
 int graphIsolateRange( const pastix_graph_t *graphIn,
                        const pastix_order_t *order,
-		             pastix_graph_t *graphOut,
+                             pastix_graph_t *graphOut,
                              pastix_int_t    fnode,
                              pastix_int_t    lnode,
                              pastix_int_t    distance );
