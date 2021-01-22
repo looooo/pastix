@@ -239,6 +239,74 @@ graphUpdateComputedFields( pastix_graph_t *graph )
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_graph
+ *
+ * @brief This routine build a graph thanks to an spm;
+ *
+ * This function copies an spm structure into a graph one. If all subpointers
+ * are NULL, then they are all allocated and contains the original spm
+ * values on exit. If one or more array pointers are not NULL, then, only those
+ * are copied to the graphdst structure.
+ * We will take care that our graph does not contain coefficients, therefore has
+ * SpmPattern floating type and is a SpmCSC format type.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] graph
+ *          The destination graph.
+ *
+ * @param[in] graphsrc
+ *          The source Sparse Matrix.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *
+ *******************************************************************************/
+int
+graphSpm2Graph( pastix_graph_t   *graph,
+                const spmatrix_t *spm )
+{
+    spmatrix_t *spm2;
+
+    /* Parameter checks */
+    if ( graph == NULL ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( spm == NULL ) {
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    /*
+     * Clear the prexisting graph
+     * Might be uninitialized, so we call spmExit instead of graphExit.
+     */
+    spmExit( graph );
+
+    /* Copy existing datas */
+    spm2 = spmCopy(spm);
+    memcpy( graph, spm2, sizeof(pastix_graph_t) );
+
+    /* A graph does not contain values */
+    if( spm->flttype != SpmPattern ) {
+        assert( graph->values != NULL );
+
+        graph->flttype = SpmPattern;
+        memFree_null(graph->values);
+    }
+
+    /* Make sure the graph is in CSC format */
+    spmConvert( SpmCSC, graph );
+
+    /* Free the new allocated spm2 */
+    memFree_null( spm2 );
+
+    return PASTIX_SUCCESS;
+}
 
 /**
  * @}

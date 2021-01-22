@@ -56,6 +56,8 @@ void graphSave(       pastix_data_t  *pastix_data,
  */
 int  graphCopy      (       pastix_graph_t *graphdst,
                       const pastix_graph_t *graphsrc );
+int  graphSpm2Graph (       pastix_graph_t *graph,
+                      const spmatrix_t     *spm );
 void graphSort      (       pastix_graph_t *graph );
 void graphNoDiag    (       pastix_graph_t *graph );
 int  graphSymmetrize(       pastix_graph_t *graph );

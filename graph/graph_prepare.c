@@ -136,7 +136,7 @@ graphPrepare(      pastix_data_t   *pastix_data,
     }
     else
     {
-        graphCopy( tmpgraph, spm );
+        graphSpm2Graph( tmpgraph, spm );
 
         /*
          * If the spm is symmetric, it only contains half of its datas.
