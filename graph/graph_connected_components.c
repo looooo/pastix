@@ -81,25 +81,55 @@ move_to_end( pastix_int_t  p1,
     memcpy( A + to, W, p1 * sizeof(pastix_int_t) );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_graph
+ *
+ * @brief Isolate the connected components from the original graph
+ *
+ *******************************************************************************
+ *
+ * @param[in] graph
+ *          The original graph associated from which vertices and edges must be
+ *          extracted.
+ *
+ * @param[inout] comp_vtx
+ *          Array of size n that hold the index of the component for each vertex
+ *          of the graph.
+ *
+ * @param[inout] comp_size
+ *          The size of each components in the graph.
+ *
+ *******************************************************************************
+ *
+ * @retval The amount of connected components in the graph
+ *
+ *******************************************************************************/
 pastix_int_t
 graphIsolateConnectedComponents( const pastix_graph_t *graph,
                                  pastix_int_t *comp_vtx,
                                  pastix_int_t *comp_sze )
 {
-    const pastix_int_t *colptr = graph->colptr;
-    const pastix_int_t *rows   = graph->rowptr;
-    Queue q;
-    pastix_int_t i, v, total;
-    pastix_int_t n   = graph->n;
-    pastix_int_t cur = 0;
+    const pastix_int_t *colptr;
+    const pastix_int_t *rowptr;
+    pastix_int_t baseval = graph->baseval;
+    pastix_int_t n       = graph->n;
+    pastix_int_t cur     = 0;
+    pastix_int_t i, u, v, total;
+    Queue        q;
 
-    for (i = 0; i < n; i++){
-        comp_vtx[i] = -1;
-    }
+    /* Set the comp_vtx to -1 */
+    memset(comp_vtx, 0xff, n*sizeof(pastix_int_t));
+
+    /* Make sure the graph is 0 based. */
+    assert(baseval == 0);
 
     queue_init (&q, n);
 
-    total = n;
+    total  = n;
+    colptr = graph->colptr;
+    rowptr = graph->rowptr - baseval;
     while ( total > 0 ) {
         i = 0;
 
@@ -118,7 +148,7 @@ graphIsolateConnectedComponents( const pastix_graph_t *graph,
             v = queue_pop_front( &q );
 
             for (i = colptr[v]; i < colptr[v+1]; i++) {
-                pastix_int_t u = rows[i];
+                u = rowptr[i] - baseval;
 
                 if ( comp_vtx[u] != -1 ) {
                     assert( comp_vtx[u] == comp_vtx[v] );

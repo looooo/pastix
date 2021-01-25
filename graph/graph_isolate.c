@@ -26,7 +26,7 @@ static inline void
 graph_isolate_assign_ptr( pastix_int_t **newptr,
                           pastix_int_t  *tmpptr )
 {
-    if ( newptr != NULL) {
+    if ( newptr != NULL ) {
         *newptr = tmpptr;
     } else {
         memFree_null( tmpptr );
@@ -39,14 +39,14 @@ graph_isolate_assign_ptr( pastix_int_t **newptr,
  *        in the new ones.
  */
 static inline void
-graph_isolate_everything(       pastix_int_t **newcol,
+graph_isolate_everything(       pastix_int_t   n,
+                                pastix_int_t   nnz,
                           const pastix_int_t  *oldcol,
-                                pastix_int_t **newrow,
                           const pastix_int_t  *oldrow,
+                                pastix_int_t **newcol,
+                                pastix_int_t **newrow,
                                 pastix_int_t **newperm,
-                                pastix_int_t **newinvp,
-                                pastix_int_t   n,
-                                pastix_int_t   nnz )
+                                pastix_int_t **newinvp )
 {
     pastix_int_t i;
 
@@ -76,11 +76,11 @@ graph_isolate_everything(       pastix_int_t **newcol,
  * @brief Init and fill the inverse permutation array.
  */
 static inline void
-graph_isolate_permutations(       pastix_int_t *permtab,
-                                  pastix_int_t *invptab,
-                            const pastix_int_t *isolate_list,
-                                  pastix_int_t  n,
+graph_isolate_permutations(       pastix_int_t  n,
                                   pastix_int_t  isolate_n,
+                            const pastix_int_t *isolate_list,
+                                  pastix_int_t *permtab,
+                                  pastix_int_t *invptab,
                                   pastix_int_t  baseval )
 {
     pastix_int_t *invp_isolate, *invp_nonisol;
@@ -124,12 +124,12 @@ graph_isolate_permutations(       pastix_int_t *permtab,
  * @brief Init and fill the new column array.
  */
 static inline void
-graph_isolate_init_newcol(       pastix_int_t *newcol,
+graph_isolate_init_newcol(       pastix_int_t  n,
                            const pastix_int_t *colptr,
                            const pastix_int_t *rowptr,
-                           const pastix_int_t *permtab,
-                                 pastix_int_t  n,
                                  pastix_int_t  new_n,
+                                 pastix_int_t *newcol,
+                           const pastix_int_t *permtab,
                                  pastix_int_t  baseval )
 {
     pastix_int_t  i, j, ip;
@@ -162,13 +162,13 @@ graph_isolate_init_newcol(       pastix_int_t *newcol,
  * @brief Init and fill the new row array.
  */
 static inline void
-graph_isolate_init_newrow(       pastix_int_t *newrow,
-                           const pastix_int_t *rowptr,
-                           const pastix_int_t *newcol,
+graph_isolate_init_newrow(       pastix_int_t  n,
                            const pastix_int_t *colptr,
-                           const pastix_int_t *permtab,
-                                 pastix_int_t  n,
+                           const pastix_int_t *rowptr,
                                  pastix_int_t  new_n,
+                           const pastix_int_t *newcol,
+                                 pastix_int_t *newrow,
+                           const pastix_int_t *permtab,
                                  pastix_int_t  baseval )
 {
     pastix_int_t  i, j, ip, index, row;
@@ -283,7 +283,7 @@ int graphIsolate(       pastix_int_t   n,
     }
 
     /* For the moment, make sure the graph is 0 based */
-    assert(baseval == 0);
+    assert( baseval == 0 );
 
     /* Quick Return */
     if (isolate_n == 0) {
@@ -294,8 +294,8 @@ int graphIsolate(       pastix_int_t   n,
 
     /* We isolate the whole graph */
     if (isolate_n == n) {
-        graph_isolate_everything( new_colptr, colptr, new_rowptr, rowptr,
-                                  new_perm, new_invp, n, nnz );
+        graph_isolate_everything( n, nnz, colptr, rowptr,
+                                  new_colptr, new_rowptr, new_perm, new_invp );
         return PASTIX_SUCCESS;
     }
 
@@ -305,23 +305,23 @@ int graphIsolate(       pastix_int_t   n,
     /* Init invp and perm array */
     MALLOC_INTERN(tmpinvp, n, pastix_int_t);
     MALLOC_INTERN(tmpperm, n, pastix_int_t);
-    graph_isolate_permutations( tmpperm, tmpinvp, isolate_list,
-                                n, isolate_n, baseval );
+    graph_isolate_permutations( n, isolate_n, isolate_list,
+                                tmpperm, tmpinvp, baseval );
 
     /* Create the new_colptr array */
     MALLOC_INTERN(tmpcolptr, new_n + 1, pastix_int_t);
     memset(tmpcolptr, 0, (new_n + 1)*sizeof(pastix_int_t));
-    graph_isolate_init_newcol( tmpcolptr, colptr, rowptr, tmpperm,
-                               n, new_n, baseval );
+    graph_isolate_init_newcol( n, colptr, rowptr,
+                               new_n, tmpcolptr, tmpperm, baseval );
 
     new_nnz = tmpcolptr[new_n] - tmpcolptr[0];
 
     /* Create the new rowptr array */
     if ( new_nnz != 0 ) {
         MALLOC_INTERN(tmprowptr, new_nnz, pastix_int_t);
-        graph_isolate_init_newrow( tmprowptr, rowptr,
-                                   tmpcolptr, colptr,
-                                   tmpperm, n, new_n, baseval );
+        graph_isolate_init_newrow( n, colptr, rowptr,
+                                   new_n, tmpcolptr, tmprowptr,
+                                   tmpperm, baseval );
     }
 
     graph_isolate_assign_ptr( new_colptr, tmpcolptr );
@@ -480,7 +480,7 @@ graphIsolateRange( const pastix_graph_t *graph,
     }
 
     /* For the moment, make sure the graph is 0 based */
-    assert(baseval == 0);
+    assert( baseval == 0 );
 
     /* Quick Return */
     if ( out_n == n ) {
