@@ -97,7 +97,6 @@
 
 #cmakedefine PASTIX_CUDA_FERMI
 
-#cmakedefine PASTIX_DISTRIBUTED
 #cmakedefine PASTIX_THREAD_COMM
 
 /* Debug */

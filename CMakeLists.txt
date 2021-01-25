@@ -115,9 +115,6 @@ option(PASTIX_GENERATE_MODEL
 option(PASTIX_WITH_FORTRAN
   "Enable Fortran files/interface/examples to be compiled" ON)
 
-cmake_dependent_option(PASTIX_DISTRIBUTED
- "Enable the distributed interface (requires PASTIX_WITH_MPI)" OFF "PASTIX_WITH_MPI" OFF)
-
 cmake_dependent_option(PASTIX_THREAD_COMM
  "Enable the specific communication thread (requires PASTIX_WITH_MPI)" ON "PASTIX_WITH_MPI" OFF)
 
@@ -137,8 +134,8 @@ option(PASTIX_ORDERING_SCOTCH
 option(PASTIX_ORDERING_METIS
   "Enable Metis ordering"  OFF)
 cmake_dependent_option(PASTIX_ORDERING_PTSCOTCH
-  "Activate the PT-scotch ordering (requires PASTIX_DISTRIBUTED and PASTIX_ORDERING_SCOTCH)" ON
-  "PASTIX_DISTRIBUTED;PASTIX_ORDERING_SCOTCH" OFF)
+  "Activate the PT-scotch ordering (requires PASTIX_ORDERING_SCOTCH)" OFF
+  "PASTIX_WITH_MPI;PASTIX_ORDERING_SCOTCH" OFF)
 option(PASTIX_ORDERING_FIX_SEED
   "Fix the value of the random seed for ordering algorithm (when possible, Debug purpose)." ON )
 
