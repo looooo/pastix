@@ -124,7 +124,7 @@ pastix_size_of(pastix_coeftype_t type)
     }
 }
 
-/** ****************************************************************************
+/******************************************************************************
  * Pastix data structures
  **/
 
@@ -140,8 +140,7 @@ struct pastix_data_s;
 typedef struct pastix_data_s pastix_data_t;
 
 /* Graph structure (No values) */
-struct pastix_graph_s;
-typedef struct pastix_graph_s pastix_graph_t;
+typedef struct spmatrix_s pastix_graph_t;
 
 /* Ordering structure */
 struct pastix_order_s;

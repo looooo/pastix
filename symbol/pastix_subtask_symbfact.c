@@ -24,10 +24,6 @@
 #include "graph/graph.h"
 #include "pastix/order.h"
 #include "symbol/symbol.h"
-#if defined( PASTIX_DISTRIBUTED )
-#include "csc_utils.h"
-#include "cscd_utils_intern.h"
-#endif /* defined(PASTIX_DISTRIBUTED) */
 
 /**
  *******************************************************************************
@@ -190,7 +186,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
         if ( graph->loc2glob != NULL ) {
             cscd2csc_int( graph->n,
                           graph->colptr,
-                          graph->rows,
+                          graph->rowptr,
                           NULL,
                           NULL,
                           NULL,
@@ -212,7 +208,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
         {
             nfax      = graph->n;
             colptrfax = graph->colptr;
-            rowfax    = graph->rows;
+            rowfax    = graph->rowptr;
         }
 
         pastixSymbolInit( graph, ordemesh, pastix_data->symbmtx );

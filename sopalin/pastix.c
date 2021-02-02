@@ -222,6 +222,7 @@ pastix( pastix_data_t **pastix_data_ptr,
             spm->rowptr = row;
             spm->values = avals;
 
+            spm->baseval = spmFindBase(spm);
             spmUpdateComputedFields( spm );
 
             pastix_data->csc = spm;

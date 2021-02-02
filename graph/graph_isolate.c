@@ -301,9 +301,9 @@ graphIsolateRange( const pastix_graph_t *graph,
 {
     ExtendVectorINT     vec;
     pastix_int_t        baseval = graph->colptr[0];
-    pastix_int_t        n       = graph->n;;
+    pastix_int_t        n       = graph->n;
     const pastix_int_t *colptr  = graph->colptr;
-    const pastix_int_t *rows    = graph->rows;
+    const pastix_int_t *rows    = graph->rowptr;
     const pastix_int_t *perm    = order->permtab;
     const pastix_int_t *invp    = order->peritab;
     pastix_int_t  out_n = lnode - fnode;
@@ -407,8 +407,8 @@ graphIsolateRange( const pastix_graph_t *graph,
     }
 
     /* Create the new rows array */
-    MALLOC_INTERN( out_graph->rows, out_nnz, pastix_int_t );
-    out_rows = out_graph->rows;
+    MALLOC_INTERN( out_graph->rowptr, out_nnz, pastix_int_t );
+    out_rows = out_graph->rowptr;
     row_counter = 0;
 
     /*

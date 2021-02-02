@@ -204,7 +204,7 @@ faxCSRGenPA( const pastix_graph_t *graphA, const pastix_int_t *perm, fax_csr_t *
         MALLOC_INTERN( graphPA->rows[ip], graphPA->nnz[ip], pastix_int_t );
 
         rowsPA = graphPA->rows[ip];
-        rowsA  = graphA->rows + graphA->colptr[i] - baseval;
+        rowsA  = graphA->rowptr + graphA->colptr[i] - baseval;
 
         /* Add diagonal */
         *rowsPA = ip;

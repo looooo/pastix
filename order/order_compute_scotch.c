@@ -144,7 +144,7 @@ ocs_scotchgraph_init( SCOTCH_Graph   *scotchgraph,
     {
         cscd2csc_int( graph->n,
                       graph->colptr,
-                      graph->rows,
+                      graph->rowptr,
                       NULL, NULL, NULL, NULL,
                       &n, &colptr, &rows,
                       NULL, NULL, NULL, NULL,
@@ -159,7 +159,7 @@ ocs_scotchgraph_init( SCOTCH_Graph   *scotchgraph,
     {
         n       = graph->n;
         colptr  = graph->colptr;
-        rows    = graph->rows;
+        rows    = graph->rowptr;
         baseval = colptr[0];
         nnz     = colptr[n] - baseval;
         weights = NULL;
@@ -209,11 +209,18 @@ ocs_scotchgraph_init( SCOTCH_Graph   *scotchgraph,
  *
  *******************************************************************************/
 static inline void
-ocs_scotchgraph_exit( SCOTCH_Graph *scotchgraph )
+ocs_scotchgraph_exit( SCOTCH_Graph *scotchgraph,
+                      pastix_int_t  baseval )
 {
     pastix_int_t *colptr  = NULL;
     pastix_int_t *rows    = NULL;
     pastix_int_t *weights = NULL;
+
+    /*
+     * SCOTCH_graphBase may have had side effects on our graph.
+     * Call this routine again with our saved baseval.
+     */
+    SCOTCH_graphBase( scotchgraph, baseval );
 
     SCOTCH_graphData (
         scotchgraph,
@@ -363,20 +370,11 @@ ocs_reallocate_ordemesh( pastix_order_t *ordemesh )
  *
  *******************************************************************************
  *
+ * @param[inout] pastix_data
+ *          Pointer to the pastix_data instance.
+ *
  * @param[inout] scotchgraph
  *          The Scotch graph structure that will be ordered.
- *
- * @param[inout] ordemesh
- *          The ordering structure of PaStiX
- *
- * @param[in] iparm
- *          Integer parameter array.
- *
- * @param[in] procnum
- *          The local MPI clustnum (output purpose).
- *
- * @param[in] n
- *          Number of local vertices in compressed graph;
  *
  ********************************************************************************
  *
@@ -540,6 +538,7 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
     SCOTCH_Graph    scotchgraph;
     int             ret      = PASTIX_SUCCESS;
     pastix_order_t *ordemesh = pastix_data->ordemesh;
+    pastix_int_t    baseval  = graph->baseval;
 
     /* Check integer compatibility */
     if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num)) {
@@ -562,16 +561,15 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
      * Compute the ordering
      */
 #if defined(PASTIX_ORDERING_SCOTCH_MT)
-    if ( iparm[IPARM_SCOTCH_MT] )
+    if ( pastix_data->iparm[IPARM_SCOTCH_MT] )
     {
         SCOTCH_Context sctx;
-        SCOTCH_Graph   scotchgraphloc;
 
         struct args_ocs_mt args = {
             .pastix_data = pastix_data,
             .scotch_ctx  = &sctx,
             .scotch_grf  = &scotchgraph,
-            .ret         = &ret,
+            .ret         = ret,
         };
         isched_parallel_call( pastix_data->isched, ocs_compute_graph_ordering_mt, &args );
         ret = args.ret;
@@ -583,7 +581,7 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
     }
 
     /* Free the Scotch graph structure */
-    ocs_scotchgraph_exit( &scotchgraph );
+    ocs_scotchgraph_exit( &scotchgraph, baseval );
 
     /* If something has failed in Scotch */
     if ( ret != 0 ) {

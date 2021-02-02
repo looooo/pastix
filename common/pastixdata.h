@@ -99,17 +99,6 @@ struct pastix_data_s {
     /**
      * Former fields that are no longer used for now
      */
-#ifdef PASTIX_DISTRIBUTED
-#if defined(PASTIX_ORDERING_SCOTCH)
-    pastix_int_t    *PTS_permtab;
-    pastix_int_t    *PTS_peritab;
-#endif /* PASTIX_ORDERING_SCOTCH */
-    pastix_int_t    *glob2loc;           /*+ local column number of global column, or -(owner+1) is not local    */
-    pastix_int_t     ncol_int;           /*+ Number of local columns in internal CSCD                            */
-    pastix_int_t    *l2g_int;            /*+ Local to global column numbers in internal CSCD                     */
-    void  *b_int;              /*+ Local part of the right-hand-side                                   */
-#endif /* PASTIX_DISTRIBUTED */
-
     int             *bindtab;            /*+ Tabular giving for each thread a CPU to bind it too                 */
     void            *schur_tab;
     pastix_int_t     schur_tab_set;

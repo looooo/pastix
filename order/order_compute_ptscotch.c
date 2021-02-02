@@ -92,7 +92,7 @@ pastixOrderComputePTScotch( pastix_data_t  *pastix_data,
     gN     = graph->gN;
     n      = graph->n;
     colptr = graph->colptr;
-    rows   = graph->rows;
+    rows   = graph->rowptr;
     baseval= colptr[0];
     nnz    = colptr[n] - baseval;
 

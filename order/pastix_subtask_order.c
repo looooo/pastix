@@ -136,6 +136,14 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     }
 
     /*
+     * If the spm is distributed, we leave the subtask order for the moment
+     */
+    if( spm->loc2glob != NULL ) {
+        errorPrint("pastix_subtask_order: the spm has to be centralized for the moment");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    /*
      * Backup flttype from the spm into iparm[IPARM_FLOAT] for later use
      */
     iparm[IPARM_FLOAT] = spm->flttype;
@@ -189,6 +197,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      * coefficients
      */
     graphPrepare( pastix_data, spm, &(pastix_data->graph) );
+    graphBase( pastix_data->graph, 0 );
     graph = pastix_data->graph;
 
     /*
@@ -200,7 +209,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         assert( pastix_data->schur_list != NULL );
         graphIsolate(graph->n,
                      graph->colptr,
-                     graph->rows,
+                     graph->rowptr,
                      pastix_data->schur_n,
                      pastix_data->schur_list,
                      &schur_colptr,
@@ -212,7 +221,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     } else {
         schur_n      = graph->n;
         schur_colptr = graph->colptr;
-        schur_rows   = graph->rows;
+        schur_rows   = graph->rowptr;
     }
 
     /*
@@ -245,13 +254,10 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
 
     clockStart(timer);
 
-    subgraph.gN       = graph->gN;
-    subgraph.n        = zeros_n;
-    subgraph.dof      = graph->dof;
-    subgraph.dofs     = graph->dofs;
-    subgraph.colptr   = zeros_colptr;
-    subgraph.rows     = zeros_rows;
-    subgraph.loc2glob = graph->loc2glob;
+    memcpy( &subgraph, graph, sizeof(pastix_graph_t) );
+    subgraph.n      = zeros_n;
+    subgraph.colptr = zeros_colptr;
+    subgraph.rowptr = zeros_rows;
 
     /* Select the ordering method chosen by the user */
     switch (iparm[IPARM_ORDERING]) {
@@ -414,7 +420,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         if ( zeros_rows   != schur_rows    ) { memFree_null( zeros_rows   ); }
         if ( zeros_perm   != NULL          ) { memFree_null( zeros_perm   ); }
         if ( schur_colptr != graph->colptr ) { memFree_null( schur_colptr ); }
-        if ( schur_rows   != graph->rows   ) { memFree_null( schur_rows   ); }
+        if ( schur_rows   != graph->rowptr ) { memFree_null( schur_rows   ); }
         if ( schur_perm   != NULL          ) { memFree_null( schur_perm   ); }
 
         return retval_rcv;
@@ -430,7 +436,6 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         ( ordemesh->treetab == NULL ) )
     {
         /* TODO: if rangtab is provided, treetab could be easily calculated */
-        graphBase( &subgraph, 0 );
         pastixOrderFindSupernodes( &subgraph, ordemesh );
 
 #if !defined(NDEBUG) && defined(PASTIX_DEBUG_ORDERING)
@@ -483,7 +488,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         pastixOrderAddIsolate( ordemesh, n, schur_perm );
 
         if ( schur_colptr != graph->colptr ) { memFree_null( schur_colptr ); }
-        if ( schur_rows   != graph->rows   ) { memFree_null( schur_rows   ); }
+        if ( schur_rows   != graph->rowptr ) { memFree_null( schur_rows   ); }
         if ( schur_perm   != NULL          ) { memFree_null( schur_perm   ); }
     }
 

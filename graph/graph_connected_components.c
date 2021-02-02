@@ -87,7 +87,7 @@ graphIsolateConnectedComponents( const pastix_graph_t *graph,
                                  pastix_int_t *comp_sze )
 {
     const pastix_int_t *colptr = graph->colptr;
-    const pastix_int_t *rows   = graph->rows;
+    const pastix_int_t *rows   = graph->rowptr;
     Queue q;
     pastix_int_t i, v, total;
     pastix_int_t n   = graph->n;

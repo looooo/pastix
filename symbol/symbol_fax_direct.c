@@ -79,7 +79,7 @@ pastixSymbolFaxDirect( symbol_matrix_t      *symbptr,
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
     pastix_int_t        vertnbr = graphA->n;
     const pastix_int_t *verttab = graphA->colptr;
-    const pastix_int_t *edgetab = graphA->rows;
+    const pastix_int_t *edgetab = graphA->rowptr;
     pastix_int_t        baseval = verttab[0];
     pastix_int_t        edgenbr = verttab[vertnbr] - baseval;
     const pastix_int_t *verttax;

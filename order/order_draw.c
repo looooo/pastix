@@ -89,7 +89,7 @@ orderDraw( pastix_data_t *pastix_data,
                            ibeg, iend, 2 );
 
         sn_colptr = sn_pgraph.colptr;
-        sn_rows   = sn_pgraph.rows;
+        sn_rows   = sn_pgraph.rowptr;
 
         if ( !SCOTCH_graphInit(&sn_sgraph) )
         {
