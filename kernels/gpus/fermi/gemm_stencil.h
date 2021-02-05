@@ -371,13 +371,13 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 
 #define version trans_nn
 
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_RIGHT
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_RIGHT
 
 #undef BLK_M
@@ -404,13 +404,13 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 
 #define version trans_nt
 
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_RIGHT
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_RIGHT
 
 #undef BLK_M
@@ -433,13 +433,13 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 
 #define version trans_nc
 
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_RIGHT
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_RIGHT
 #undef BLK_M
 #undef BLK_N
@@ -465,13 +465,13 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 #define DIM_YB DIM_YB_tt
 
 #define version trans_tt
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_RIGHT
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_RIGHT
 #undef BLK_M
 #undef BLK_N
@@ -493,13 +493,13 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 
 #define version trans_tc
 
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_RIGHT
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_RIGHT
 #undef BLK_M
 #undef BLK_N
@@ -520,13 +520,13 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 
 #define version trans_ct
 
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_RIGHT
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_RIGHT
 #undef BLK_M
 #undef BLK_N
@@ -547,13 +547,13 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 
 #define version trans_cc
 
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_RIGHT
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_RIGHT
 #undef BLK_M
 #undef BLK_N
@@ -581,13 +581,13 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 
 #define version trans_tn
 
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_RIGHT
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_RIGHT
 #undef BLK_M
 #undef BLK_N
@@ -609,13 +609,13 @@ texture<float, 1, cudaReadModeElementType> tex_ref_B;
 
 #define version trans_cn
 
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #define KERNEL_RIGHT
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_BOTTOM
-#include "gemm_stencil_generic.cu"
+#include "fermi/gemm_stencil_generic.cu"
 #undef KERNEL_RIGHT
 #undef BLK_M
 #undef BLK_N

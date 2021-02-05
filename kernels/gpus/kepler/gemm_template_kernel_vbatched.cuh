@@ -18,8 +18,8 @@ static inline int pastix_ceildiv( int a, int b ) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#include "gemm_template_device_defs.cuh"
-#include "gemm_template_device.cuh"
+#include "kepler/gemm_template_device_defs.cuh"
+#include "kepler/gemm_template_device.cuh"
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <class T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K,
 	 const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,

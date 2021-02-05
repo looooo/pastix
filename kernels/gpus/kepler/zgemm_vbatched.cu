@@ -23,12 +23,11 @@
 
 #define PastixComplex64_PRECISION
 
-#include "gemm_template_kernel_vbatched.cuh"
-
-#include "gemm_config/zgemm_param_nn.h"
-#include "gemm_config/zgemm_param_nt.h"
-#include "gemm_config/zgemm_param_tn.h"
-#include "gemm_config/zgemm_param_tt.h"
+#include "kepler/gemm_template_kernel_vbatched.cuh"
+#include "kepler/gemm_config/zgemm_param_nn.h"
+#include "kepler/gemm_config/zgemm_param_nt.h"
+#include "kepler/gemm_config/zgemm_param_tn.h"
+#include "kepler/gemm_config/zgemm_param_tt.h"
 
 #define version(s,v) s ## _V_ ## v
 /**
