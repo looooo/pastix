@@ -208,8 +208,17 @@ find_package(M REQUIRED)
 
 # PaStiX depends on LAPACKE and CBLAS
 #------------------------------------
+set( CBLAS_MT FALSE )
 find_package(CBLAS REQUIRED)
-find_package(LAPACKE REQUIRED)
+
+## Tests requires TMG lib to generate random matrices.
+set( LAPACKE_MT FALSE )
+if (PASTIX_LR_TESTINGS)
+  find_package(LAPACKE REQUIRED
+    COMPONENTS TMG)
+else()
+  find_package(LAPACKE REQUIRED)
+endif()
 
 # PaStiX depends on HwLoc
 #---------------------------

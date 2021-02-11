@@ -158,9 +158,6 @@ endforeach()
 ###
 if(PASTIX_LR_TESTINGS)
 
-  ## Tests requires TMG lib to generate random matrices.
-  find_package(TMG)
-
   if(TMG_FOUND)
     ## Generate the test library files for all required precisions
     set(LRLIB_SOURCES
