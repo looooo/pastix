@@ -75,6 +75,21 @@ cuda_add_library(pastix_kernels_cuda
 cuda_add_cublas_to_target( pastix_kernels_cuda )
 #target_link_libraries( pastix_kernels_cuda PRIVATE CUDA::CUBLAS )
 
+target_include_directories( pastix_kernels_cuda PRIVATE
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}>
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/common> )
+
+target_include_directories( pastix_kernels_cuda PUBLIC
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  $<INSTALL_INTERFACE:include> )
+
+# TODO: Add PRIVATE dependency when updating the FindCUDA
+target_link_libraries( pastix_kernels_cuda spm )
+
 # export target pastix_kernels
 # ----------------------------
 install(EXPORT pastix_kernels_cudaTargets

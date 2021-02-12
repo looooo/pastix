@@ -32,7 +32,7 @@
 
 #define PastixComplex64_PRECISION
 
-#include "gemm_stencil.h"
+#include "fermi/gemm_stencil.h"
 
 /* extern "C" void */
 /* GENERATE_SM_VERSION_NAME(gemm)( char TRANSA, char TRANSB, int m , int n , int k , */
