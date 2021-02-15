@@ -1403,7 +1403,7 @@ bvec_zallreduce( const pastix_data_t *pastix_data,
 #if defined( PASTIX_WITH_MPI )
     /* Reduce the partial sums on all nodes */
     MPI_Allreduce( MPI_IN_PLACE,
-                   y, pastix_data->bcsc->gN,
+                   y, pastix_data->csc->gNexp,
                    PASTIX_MPI_COMPLEX64, MPI_SUM,
                    pastix_data->inter_node_comm );
 #endif

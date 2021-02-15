@@ -668,6 +668,8 @@ pastix_task_solve( pastix_data_t *pastix_data,
                    pastix_int_t nrhs, void *b, pastix_int_t ldb )
 {
     pastix_bcsc_t *bcsc;
+    void          *bglob = NULL;
+    void          *tmp   = NULL;
 
     /*
      * Check parameters
@@ -679,6 +681,18 @@ pastix_task_solve( pastix_data_t *pastix_data,
 
     bcsc  = pastix_data->bcsc;
 
+    /* The spm is distributed, so we have to gather the RHS */
+    if ( pastix_data->csc->loc2glob != NULL ) {
+        if( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
+            pastix_print( pastix_data->procnum, 0, "pastix_task_solve: the RHS has to be centralized for the moment\n" );
+        }
+
+        tmp = b;
+        spmGatherRHS( nrhs, pastix_data->csc, b, ldb, &bglob, -1 );
+        b   = bglob;
+        ldb = pastix_data->csc->gNexp;
+    }
+
     /* Compute P * b */
     pastix_subtask_applyorder( pastix_data, bcsc->flttype,
                                PastixDirForward, bcsc->gN, nrhs, b, ldb );
@@ -689,6 +703,15 @@ pastix_task_solve( pastix_data_t *pastix_data,
     /* Compute P^t * b */
     pastix_subtask_applyorder( pastix_data, bcsc->flttype,
                                PastixDirBackward, bcsc->gN, nrhs, b, ldb );
+
+    if( tmp != NULL ) {
+        pastix_int_t ldbglob = ldb;
+        ldb = pastix_data->csc->nexp;
+        b   = tmp;
+
+        spmExtractLocalRHS( nrhs, pastix_data->csc, bglob, ldbglob, b, ldb );
+        memFree_null( bglob );
+    }
 
     return EXIT_SUCCESS;
 }

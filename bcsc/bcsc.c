@@ -390,20 +390,33 @@ bcscInit( const spmatrix_t     *spm,
                 pastix_int_t    initAt,
                 pastix_bcsc_t  *bcsc )
 {
-    assert( ord->baseval == 0 );
-    assert( ord->vertnbr == spm->n );
-
+    spmatrix_t *spmg;
     double time = 0.;
-    clockStart(time);
 
     if ( spm->loc2glob == NULL ) {
-        bcsc_init_centralized( spm, ord, solvmtx, initAt, bcsc );
+        spmg = (spmatrix_t *)spm;
     }
+#if defined(PASTIX_WITH_MPI)
     else {
-        fprintf(stderr, "bcscInit: Distributed SPM not yet supported");
+        pastix_print(solvmtx->clustnum, 0, "bcscInit: the SPM has to be centralized for the moment\n");
+        spmg = spmGather( spm, -1 );
     }
+#endif
+
+    assert( ord->baseval == 0 );
+    assert( ord->vertnbr == spmg->n );
+
+    clockStart(time);
+
+    bcsc_init_centralized( spmg, ord, solvmtx, initAt, bcsc );
 
     clockStop(time);
+
+    if( spmg != spm ) {
+        spmExit(spmg);
+        memFree_null( spmg );
+    }
+
     return time;
 }
 
