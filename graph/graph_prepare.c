@@ -130,9 +130,6 @@ graphPrepare(      pastix_data_t   *pastix_data,
     if (io_strategy & PastixIOLoadGraph)
     {
         graphLoad( pastix_data, tmpgraph );
-        /* TODO : remove these pointers when GraphLoad is done */
-        tmpgraph->dof  = spm->dof;
-        tmpgraph->dofs = spm->dofs;
     }
     else
     {
