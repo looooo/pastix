@@ -33,14 +33,15 @@
 #include <d_spm.h>
 #include <s_spm.h>
 
+static volatile int32_t step = 0;
+
 static inline void
-dump_rhs( int rank, char *name, spm_coeftype_t flttype, int m, int n, const void *b, int ldb )
+dump_rhs( pastix_data_t *pastix_data, const char *name,
+          spm_coeftype_t flttype, int m, int n, const void *b, int ldb )
 {
     FILE *f;
-    char *fullname;
-    asprintf( &fullname, "%s.%d", name, rank );
-    f = fopen( fullname, "w" );
-    free(fullname);
+    f = pastix_fopenw( (pastix_data->dir_local == NULL) ? "." : pastix_data->dir_local,
+                       name, "w" );
 
     switch( flttype ) {
     case SpmComplex64:
@@ -63,9 +64,10 @@ dump_rhs( int rank, char *name, spm_coeftype_t flttype, int m, int n, const void
 }
 #else
 static inline void
-dump_rhs( int rank, char *name, spm_coeftype_t flttype, int m, int n, const void *b, int ldb )
+dump_rhs( pastix_data_t *pastix_data, const char *name,
+          spm_coeftype_t flttype, int m, int n, const void *b, int ldb )
 {
-    (void)rank;
+    (void)pastix_data;
     (void)name;
     (void)m;
     (void)n;
@@ -165,6 +167,19 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
     default:
         bvec_dlapmr( ts, dir, m, n, b, ldb, perm );
     }
+
+#if defined(PASTIX_DEBUG_SOLVE)
+    {
+        char *fullname;
+        int32_t lstep = pastix_atomic_inc_32b( &step );
+        asprintf( &fullname, "solve_%02d_applyorder_%s.rhs", lstep,
+                  ( dir == PastixDirForward ) ? "Forward" : "Backward" );
+
+        dump_rhs( pastix_data, fullname,
+                  flttype, m, n, b, ldb );
+        free(fullname);
+    }
+#endif
 
     return PASTIX_SUCCESS;
 }
@@ -289,6 +304,22 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
         fprintf(stderr, "Unknown floating point arithmetic\n" );
     }
 
+#if defined(PASTIX_DEBUG_SOLVE)
+    {
+        char *fullname;
+        int32_t lstep = pastix_atomic_inc_32b( &step );
+        asprintf( &fullname, "solve_%02d_trsm_%c%c%c%c.rhs", lstep,
+                  (side  == PastixLeft)  ? 'L' : 'R',
+                  (uplo  == PastixUpper) ? 'U' : 'L',
+                  (trans == PastixConjTrans) ? 'C' : (trans == PastixTrans ? 'T' : 'N'),
+                  (diag  == PastixUnit)  ? 'U' : 'N' );
+
+        dump_rhs( pastix_data, fullname,
+                  flttype, pastix_data->bcsc->gN, nrhs, b, ldb );
+        free(fullname);
+    }
+#endif
+
     return PASTIX_SUCCESS;
 }
 
@@ -367,6 +398,18 @@ pastix_subtask_diag( pastix_data_t *pastix_data, pastix_coeftype_t flttype,
         fprintf(stderr, "Unknown floating point arithmetic\n" );
     }
 
+#if defined(PASTIX_DEBUG_SOLVE)
+    {
+        char *fullname;
+        int32_t lstep = pastix_atomic_inc_32b( &step );
+        asprintf( &fullname, "solve_%02d_diag.rhs", lstep );
+
+        dump_rhs( pastix_data, fullname,
+                  flttype, pastix_data->bcsc->gN, nrhs, b, ldb );
+        free(fullname);
+    }
+#endif
+
     return PASTIX_SUCCESS;
 }
 
@@ -382,6 +425,182 @@ pastix_subtask_diag( pastix_data_t *pastix_data, pastix_coeftype_t flttype,
  *
  * This routine is affected by the following parameters:
  *   IPARM_VERBOSE, IPARM_FACTORIZATION.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+ *
+ * @param[in] transA
+ *          PastixNoTrans:   A is not transposed (CSC matrix)
+ *          PastixTrans:     A is transposed (CSR of symmetric/general matrix)
+ *          PastixConjTrans: A is conjugate transposed (CSR of hermitian matrix)
+ *
+ * @param[in] nrhs
+ *          The number of right-and-side vectors.
+ *
+ * @param[inout] b
+ *          The right-and-side vectors (can be multiple RHS).
+ *          On exit, the solution is stored in place of the right-hand-side vector.
+ *
+ * @param[in] ldb
+ *          The leading dimension of the right-and-side vectors.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *
+ *******************************************************************************/
+int
+pastix_subtask_solve_adv( pastix_data_t *pastix_data, pastix_trans_t transA,
+                          pastix_int_t nrhs, void *b, pastix_int_t ldb )
+{
+    pastix_bcsc_t     *bcsc;
+    pastix_factotype_t factotype;
+
+    pastix_uplo_t  uplo;
+    pastix_diag_t  diag;
+    pastix_trans_t trans;
+    pastix_trans_t transfact = PastixTrans;
+
+    /*
+     * Check parameters
+     */
+    if (pastix_data == NULL) {
+        errorPrint("pastix_task_solve: wrong pastix_data parameter");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( !(pastix_data->steps & STEP_NUMFACT) ) {
+        errorPrint("pastix_task_solve: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    bcsc      = pastix_data->bcsc;
+    factotype = pastix_data->iparm[IPARM_FACTORIZATION];
+
+    /**
+     *
+     * Summary of the operations to perform the full solve if the original A was
+     * either transposed or conjugate transposed.
+     *
+     * op(A)     | Factorization       | Step 1    | Step 2
+     * ----------+---------------------+-----------+-----------
+     * NoTrans   | L U                 | L   y = b | U   x = y
+     * NoTrans   | L L^t               | L   y = b | L^t x = y
+     * NoTrans   | L L^h               | L   y = b | L^h x = y
+     * Trans     |(L U  )^t = U^t  L^t | U^t y = b | L^t x = y
+     * Trans     |(L L^t)^t = L    L^t | L   y = b | L^t x = y
+     * Trans     |(L L^h)^t = c(L) L^t | Not handled (c(L))
+     * ConjTrans |(L U  )^h = U^h  L^h | Not handled (U^h)
+     * ConjTrans |(L L^t)^h = c(L) L^h | Not handled (c(L))
+     * ConjTrans |(L L^h)^h = L    L^h | L   y = b | L^h x = y
+     *
+     */
+    /* Value of the transpose case */
+    if ( ((bcsc->flttype == PastixComplex32) || (bcsc->flttype == PastixComplex64)) &&
+         ((factotype == PastixFactLLH ) || ( factotype == PastixFactLDLH )) )
+    {
+        transfact = PastixConjTrans;
+    }
+
+    if ( (transA != PastixNoTrans) &&
+         (transA != transfact) )
+    {
+        errorPrint("pastix_task_solve: transA incompatible with the factotype used (require extra conj(L) not handled)");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    {
+        double timer;
+        /* Start timer */
+        clockSyncStart( timer, pastix_data->inter_node_comm );
+
+        /*
+         * Solve the first step
+         */
+        uplo  = PastixLower;
+        trans = PastixNoTrans;
+        diag  = PastixNonUnit;
+
+        if (( transA != PastixNoTrans ) && ( factotype == PastixFactLU )) {
+            uplo  = PastixUpper;
+            trans = transA;
+        }
+        if (( transA == PastixNoTrans ) && ( factotype == PastixFactLU )) {
+            diag = PastixUnit;
+        }
+
+        if (( factotype == PastixFactLDLT ) ||
+            ( factotype == PastixFactLDLH ) )
+        {
+            diag = PastixUnit;
+        }
+
+        pastix_subtask_trsm( pastix_data, bcsc->flttype,
+                             PastixLeft, uplo, trans, diag,
+                             nrhs, b, ldb );
+
+        /*
+         * Solve the diagonal step
+         */
+        if( (factotype == PastixFactLDLT) ||
+            (factotype == PastixFactLDLH) )
+        {
+            /* Solve y = D z with z = ([L^t | L^h] P x) */
+            pastix_subtask_diag( pastix_data, bcsc->flttype, nrhs, b, ldb );
+        }
+
+        /*
+         * Solve the second step
+         */
+        uplo  = PastixLower;
+        trans = transfact;
+        diag  = PastixNonUnit;
+
+        if (( transA == PastixNoTrans ) && ( factotype == PastixFactLU )) {
+            uplo  = PastixUpper;
+            trans = PastixNoTrans;
+        }
+        if (( transA != PastixNoTrans ) && ( factotype == PastixFactLU )) {
+            diag = PastixUnit;
+        }
+
+        if (( factotype == PastixFactLDLT ) ||
+            ( factotype == PastixFactLDLH ) )
+        {
+            diag = PastixUnit;
+        }
+
+        pastix_subtask_trsm( pastix_data, bcsc->flttype,
+                             PastixLeft, uplo, trans, diag,
+                             nrhs, b, ldb );
+
+        /* Stop Timer */
+        clockSyncStop( timer, pastix_data->inter_node_comm );
+
+        pastix_data->dparm[DPARM_SOLV_TIME] = clockVal(timer);
+        if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+            pastix_print( pastix_data->inter_node_procnum, 0, OUT_TIME_SOLV,
+                          pastix_data->dparm[DPARM_SOLV_TIME] );
+        }
+    }
+
+    return EXIT_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_solve
+ *
+ * @brief Solve the given problem without applying the permutation.
+ *
+ * @warning The input vector is considered already permuted. For a solve step
+ * with permutation, see pastix_task_solve()
+ *
+ * This routine is affected by the following parameters:
+ *   IPARM_VERBOSE, IPARM_FACTORIZATION, IPARM_TRANSPOSE_SOLVE.
  *
  *******************************************************************************
  *
@@ -408,111 +627,9 @@ int
 pastix_subtask_solve( pastix_data_t *pastix_data,
                       pastix_int_t nrhs, void *b, pastix_int_t ldb )
 {
-    pastix_int_t  *iparm;
-    pastix_bcsc_t *bcsc;
-
-    /*
-     * Check parameters
-     */
-    if (pastix_data == NULL) {
-        errorPrint("pastix_task_solve: wrong pastix_data parameter");
-        return PASTIX_ERR_BADPARAMETER;
-    }
-    if ( !(pastix_data->steps & STEP_NUMFACT) ) {
-        errorPrint("pastix_task_solve: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function");
-        return PASTIX_ERR_BADPARAMETER;
-    }
-
-    iparm = pastix_data->iparm;
-    bcsc  = pastix_data->bcsc;
-
-    {
-        double timer;
-        pastix_trans_t trans = PastixTrans;
-
-        clockSyncStart( timer, pastix_data->inter_node_comm );
-        switch ( iparm[IPARM_FACTORIZATION] ){
-        case PastixFactLLH:
-            trans = PastixConjTrans;
-
-            pastix_attr_fallthrough;
-
-        case PastixFactLLT:
-            dump_rhs( pastix_data->inter_node_procnum,  "LLTAfterPerm.rhs", bcsc->flttype, bcsc->gN, nrhs, b,  bcsc->gN );
-
-            /* Solve L y = P b with y = L^t P x */
-            pastix_subtask_trsm( pastix_data, bcsc->flttype,
-                                 PastixLeft, PastixLower,
-                                 PastixNoTrans, PastixNonUnit,
-                                 nrhs, b, ldb );
-            dump_rhs( pastix_data->inter_node_procnum,  "LLTAfterDown.rhs", bcsc->flttype, bcsc->gN, nrhs, b, bcsc->gN );
-
-            /* Solve y = L^t (P x) */
-            pastix_subtask_trsm( pastix_data, bcsc->flttype,
-                                 PastixLeft, PastixLower,
-                                 trans, PastixNonUnit,
-                                 nrhs, b, ldb );
-            dump_rhs( pastix_data->inter_node_procnum,  "LLTAfterUp.rhs", bcsc->flttype, bcsc->gN, nrhs, b, bcsc->gN );
-            break;
-
-        case PastixFactLDLH:
-            trans = PastixConjTrans;
-
-            pastix_attr_fallthrough;
-
-        case PastixFactLDLT:
-            dump_rhs( pastix_data->inter_node_procnum,  "LDLTAfterPerm", bcsc->flttype, bcsc->gN, nrhs, b, bcsc->gN );
-
-            /* Solve L y = P b with y = D L^t P x */
-            pastix_subtask_trsm( pastix_data, bcsc->flttype,
-                                 PastixLeft, PastixLower,
-                                 PastixNoTrans, PastixUnit,
-                                 nrhs, b, ldb );
-            dump_rhs( pastix_data->inter_node_procnum,  "LDLTAfterDown", bcsc->flttype, bcsc->gN, nrhs, b, bcsc->gN );
-
-            /* Solve y = D z with z = (L^t P x) */
-            pastix_subtask_diag( pastix_data, bcsc->flttype, nrhs, b, ldb );
-            dump_rhs( pastix_data->inter_node_procnum,  "LDLTAfterDiag", bcsc->flttype, bcsc->gN, nrhs, b, bcsc->gN );
-
-            /* Solve z = L^t (P x) */
-            pastix_subtask_trsm( pastix_data, bcsc->flttype,
-                                 PastixLeft, PastixLower,
-                                 trans, PastixUnit,
-                                 nrhs, b, ldb );
-            dump_rhs( pastix_data->inter_node_procnum,  "LDLTAfterUp", bcsc->flttype, bcsc->gN, nrhs, b, bcsc->gN );
-            break;
-
-        case PastixFactLU:
-        default:
-            dump_rhs( pastix_data->inter_node_procnum,  "LUAfterperm", bcsc->flttype, bcsc->gN, nrhs, b, bcsc->gN );
-
-            /* Solve L y = P b with y = U P x */
-            pastix_subtask_trsm( pastix_data, bcsc->flttype,
-                                 PastixLeft, PastixLower,
-                                 PastixNoTrans, PastixUnit,
-                                 nrhs, b, ldb );
-            dump_rhs( pastix_data->inter_node_procnum,  "LUAfterDown", bcsc->flttype, bcsc->gN, nrhs, b, bcsc->gN );
-
-            /* Solve y = U (P x) */
-            pastix_subtask_trsm( pastix_data, bcsc->flttype,
-                                 PastixLeft, PastixUpper,
-                                 PastixNoTrans, PastixNonUnit,
-                                 nrhs, b, ldb );
-            dump_rhs( pastix_data->inter_node_procnum,  "LUAfterUp", bcsc->flttype, bcsc->gN, nrhs, b, bcsc->gN );
-            break;
-        }
-        clockSyncStop( timer, pastix_data->inter_node_comm );
-
-        dump_rhs( pastix_data->inter_node_procnum,  "Final", bcsc->flttype, bcsc->gN, nrhs, b, bcsc->gN );
-
-        pastix_data->dparm[DPARM_SOLV_TIME] = clockVal(timer);
-        if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
-            pastix_print( pastix_data->inter_node_procnum, 0, OUT_TIME_SOLV,
-                          pastix_data->dparm[DPARM_SOLV_TIME] );
-        }
-    }
-
-    return EXIT_SUCCESS;
+    return pastix_subtask_solve_adv( pastix_data,
+                                     pastix_data->iparm[IPARM_TRANSPOSE_SOLVE],
+                                     nrhs, b, ldb );
 }
 
 /**
@@ -523,7 +640,7 @@ pastix_subtask_solve( pastix_data_t *pastix_data,
  * @brief Solve the given problem.
  *
  * This routine is affected by the following parameters:
- *   IPARM_VERBOSE, IPARM_FACTORIZATION.
+ *   IPARM_VERBOSE, IPARM_FACTORIZATION, IPARM_TRANSPOSE_SOLVE.
  *
  *******************************************************************************
  *
