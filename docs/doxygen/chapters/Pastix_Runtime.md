@@ -159,14 +159,14 @@ export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$PARSEC_DIR/lib:
 Note that these lines can (should) be added to your environment file
 such as `.bashrc` to set it by default.
 
-### Compile PaStiX with CUDA
+### Compile PaStiX with runtime support
 
 Now that you have at least one of the two runtime systems as
 described above, you should be able to compile PaStiX with
 runtime support:
 
 Go in your PaStiX source directory and create a new build directory to
-build the GPU version:
+build the runtime version:
 ```sh
 mkdir build
 cd build
@@ -184,11 +184,6 @@ Once the compilation finished, you can setup your environment easily
 by sourcing the provided file:
 ```sh
 source $PASTIX_DIR/bin/pastix_env.sh
-```
-
-And then, you can run your favorite example:
-```sh
-simple -s [2|3] -9 10:10:10
 ```
 
 ### How to use PaStiX with runtime systems
