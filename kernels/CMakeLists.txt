@@ -20,6 +20,21 @@ if(PASTIX_WITH_EZTRACE)
   add_library(eztrace-convert-kernels SHARED
         eztrace_module/eztrace_convert_kernels.c
   )
+
+  target_include_directories( eztrace-convert-kernels PRIVATE
+    $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}>
+    $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/common> )
+
+  target_include_directories( eztrace-convert-kernels PUBLIC
+    $<BUILD_INTERFACE:${EZTRACE_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<INSTALL_INTERFACE:include> )
+
+  target_link_libraries( eztrace-convert-kernels PUBLIC spm )
 endif(PASTIX_WITH_EZTRACE)
 
 ### Generate the headers in all precisions
@@ -142,13 +157,20 @@ target_link_libraries( pastix_kernels PUBLIC MORSE::CBLAS   )
 target_link_libraries( pastix_kernels PUBLIC MORSE::M       )
 
 if(PASTIX_WITH_EZTRACE)
-   if (PASTIX_WITH_MPI)
-     set( EZTRACE_LIBRARIES
+  set( EZTRACE_LIBRARIES
        ${EZTRACE_LIBRARIES}
-       eztrace-mpi )
-   endif()
-   target_link_libraries(pastix_kernels PUBLIC  ${EZTRACE_LIBRARIES} )
-   target_link_libraries(pastix_kernels PRIVATE litl )
+       ${EZTRACE_LIBRARY_DIRS}/liblitl.so)
+
+  if (PASTIX_WITH_MPI)
+    set( EZTRACE_LIBRARIES
+        ${EZTRACE_LIBRARIES}
+        ${EZTRACE_LIBRARY_DIRS}/libeztrace-mpi.so )
+  endif()
+
+  target_include_directories( pastix_kernels PUBLIC
+    $<BUILD_INTERFACE:${EZTRACE_INCLUDE_DIRS}> )
+
+  target_link_libraries( pastix_kernels PUBLIC ${EZTRACE_LIBRARIES} )
 endif(PASTIX_WITH_EZTRACE)
 
 if(PASTIX_WITH_CUDA)

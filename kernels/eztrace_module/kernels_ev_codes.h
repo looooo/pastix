@@ -19,9 +19,9 @@
 #ifndef _kernels_ev_codes_h_
 #define _kernels_ev_codes_h_
 
-#include "eztrace.h"
-#include "eztrace_sampling.h"
-#include "ev_codes.h"
+#include <eztrace.h>
+#include <eztrace_sampling.h>
+#include <ev_codes.h>
 
 #define KERNELS_EVENTS_ID    USER_MODULE_ID(0x51)
 #define KERNELS_PREFIX       GENERATE_USER_MODULE_PREFIX( KERNELS_EVENTS_ID )
