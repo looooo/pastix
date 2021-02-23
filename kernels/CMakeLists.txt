@@ -27,7 +27,6 @@ if(PASTIX_WITH_EZTRACE)
     $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/common> )
 
   target_include_directories( eztrace-convert-kernels PUBLIC
-    $<BUILD_INTERFACE:${EZTRACE_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -35,6 +34,8 @@ if(PASTIX_WITH_EZTRACE)
     $<INSTALL_INTERFACE:include> )
 
   target_link_libraries( eztrace-convert-kernels PUBLIC spm )
+  target_link_libraries( eztrace-convert-kernels PUBLIC MORSE::EZTRACE )
+  target_link_libraries( eztrace-convert-kernels PRIVATE MORSE::LITL   )
 endif(PASTIX_WITH_EZTRACE)
 
 ### Generate the headers in all precisions
@@ -157,20 +158,9 @@ target_link_libraries( pastix_kernels PUBLIC MORSE::CBLAS   )
 target_link_libraries( pastix_kernels PUBLIC MORSE::M       )
 
 if(PASTIX_WITH_EZTRACE)
-  set( EZTRACE_LIBRARIES
-       ${EZTRACE_LIBRARIES}
-       ${EZTRACE_LIBRARY_DIRS}/liblitl.so)
+  target_link_libraries( pastix_kernels PUBLIC MORSE::EZTRACE )
+  target_link_libraries( pastix_kernels PRIVATE MORSE::LITL   )
 
-  if (PASTIX_WITH_MPI)
-    set( EZTRACE_LIBRARIES
-        ${EZTRACE_LIBRARIES}
-        ${EZTRACE_LIBRARY_DIRS}/libeztrace-mpi.so )
-  endif()
-
-  target_include_directories( pastix_kernels PUBLIC
-    $<BUILD_INTERFACE:${EZTRACE_INCLUDE_DIRS}> )
-
-  target_link_libraries( pastix_kernels PUBLIC ${EZTRACE_LIBRARIES} )
 endif(PASTIX_WITH_EZTRACE)
 
 if(PASTIX_WITH_CUDA)

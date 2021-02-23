@@ -316,7 +316,13 @@ endif (PASTIX_WITH_PARSEC)
 
 ### Add trace generation
 if(PASTIX_WITH_EZTRACE)
-  find_package(EZTRACE REQUIRED)
+  if(PASTIX_WITH_MPI)
+    find_package(EZTRACE REQUIRED
+                 COMPONENTS MPI)
+  else()
+    find_package(EZTRACE REQUIRED)
+  endif()
+  find_package(LITL REQUIRED)
 endif(PASTIX_WITH_EZTRACE)
 
 # PaStiX might depend on Scotch/PT-Scotch
