@@ -453,6 +453,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_SCHUR_FACT_MODE]       = PastixFactModeLocal;
 
     /* Solve */
+    iparm[IPARM_TRANSPOSE_SOLVE]       = PastixNoTrans;
     iparm[IPARM_SCHUR_SOLV_MODE]       = PastixSolvModeLocal;
     iparm[IPARM_APPLYPERM_WS]          = 1;
 

@@ -98,6 +98,7 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_free_cscuser",          iparm)) { return IPARM_FREE_CSCUSER; }
     if(0 == strcasecmp("iparm_schur_fact_mode",       iparm)) { return IPARM_SCHUR_FACT_MODE; }
 
+    if(0 == strcasecmp("iparm_transpose_solve",       iparm)) { return IPARM_TRANSPOSE_SOLVE; }
     if(0 == strcasecmp("iparm_schur_solv_mode",       iparm)) { return IPARM_SCHUR_SOLV_MODE; }
     if(0 == strcasecmp("iparm_applyperm_ws",          iparm)) { return IPARM_APPLYPERM_WS; }
 

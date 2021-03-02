@@ -96,6 +96,7 @@ typedef enum pastix_iparm_e {
     IPARM_SCHUR_FACT_MODE,       /**< Specify if the Schur is factorized (@see pastix_fact_mode_t)   Default: PastixFactModeLocal       IN  */
 
     /* Solve */
+    IPARM_TRANSPOSE_SOLVE,       /**< Solve A^t x = b (to avoid CSR/CSC conversion for instance)     Default: PastixNoTrans             IN  */
     IPARM_SCHUR_SOLV_MODE,       /**< Specify the solve parts to apply (@see pastix_solv_mode_t)     Default: PastixSolvModeLocal       IN  */
     IPARM_APPLYPERM_WS,          /**< Enable/disable extra workspace for a thread-safe swap          Default: 1                         IN  */
 
