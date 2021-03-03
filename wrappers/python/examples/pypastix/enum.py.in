@@ -12,7 +12,7 @@
  @author Mathieu Faverge
  @author Louis Poirel
  @author Tony Delarue
- @date 2021-01-14
+ @date 2021-03-03
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -73,33 +73,34 @@ class iparm:
     static_pivoting                = 43
     free_cscuser                   = 44
     schur_fact_mode                = 45
-    schur_solv_mode                = 46
-    applyperm_ws                   = 47
-    refinement                     = 48
-    nbiter                         = 49
-    itermax                        = 50
-    gmres_im                       = 51
-    scheduler                      = 52
-    thread_nbr                     = 53
-    autosplit_comm                 = 54
-    gpu_nbr                        = 55
-    gpu_memory_percentage          = 56
-    gpu_memory_block_size          = 57
-    compress_min_width             = 58
-    compress_min_height            = 59
-    compress_when                  = 60
-    compress_method                = 61
-    compress_ortho                 = 62
-    compress_reltol                = 63
-    compress_preselect             = 64
-    thread_comm_mode               = 65
-    modify_parameter               = 66
-    start_task                     = 67
-    end_task                       = 68
-    float                          = 69
-    mtx_type                       = 70
-    dof_nbr                        = 71
-    size                           = 72
+    transpose_solve                = 46
+    schur_solv_mode                = 47
+    applyperm_ws                   = 48
+    refinement                     = 49
+    nbiter                         = 50
+    itermax                        = 51
+    gmres_im                       = 52
+    scheduler                      = 53
+    thread_nbr                     = 54
+    autosplit_comm                 = 55
+    gpu_nbr                        = 56
+    gpu_memory_percentage          = 57
+    gpu_memory_block_size          = 58
+    compress_min_width             = 59
+    compress_min_height            = 60
+    compress_when                  = 61
+    compress_method                = 62
+    compress_ortho                 = 63
+    compress_reltol                = 64
+    compress_preselect             = 65
+    thread_comm_mode               = 66
+    modify_parameter               = 67
+    start_task                     = 68
+    end_task                       = 69
+    float                          = 70
+    mtx_type                       = 71
+    dof_nbr                        = 72
+    size                           = 73
 
 class dparm:
     fill_in            = 0

@@ -9,7 +9,7 @@
 !
 ! @version 6.0.3
 ! @author Mathieu Faverge
-! @date 2021-01-14
+! @date 2021-03-03
 !
 ! This file has been automatically generated with gen_wrappers.py
 !
@@ -74,33 +74,34 @@ module pastix_enums
      enumerator :: IPARM_STATIC_PIVOTING                = 44
      enumerator :: IPARM_FREE_CSCUSER                   = 45
      enumerator :: IPARM_SCHUR_FACT_MODE                = 46
-     enumerator :: IPARM_SCHUR_SOLV_MODE                = 47
-     enumerator :: IPARM_APPLYPERM_WS                   = 48
-     enumerator :: IPARM_REFINEMENT                     = 49
-     enumerator :: IPARM_NBITER                         = 50
-     enumerator :: IPARM_ITERMAX                        = 51
-     enumerator :: IPARM_GMRES_IM                       = 52
-     enumerator :: IPARM_SCHEDULER                      = 53
-     enumerator :: IPARM_THREAD_NBR                     = 54
-     enumerator :: IPARM_AUTOSPLIT_COMM                 = 55
-     enumerator :: IPARM_GPU_NBR                        = 56
-     enumerator :: IPARM_GPU_MEMORY_PERCENTAGE          = 57
-     enumerator :: IPARM_GPU_MEMORY_BLOCK_SIZE          = 58
-     enumerator :: IPARM_COMPRESS_MIN_WIDTH             = 59
-     enumerator :: IPARM_COMPRESS_MIN_HEIGHT            = 60
-     enumerator :: IPARM_COMPRESS_WHEN                  = 61
-     enumerator :: IPARM_COMPRESS_METHOD                = 62
-     enumerator :: IPARM_COMPRESS_ORTHO                 = 63
-     enumerator :: IPARM_COMPRESS_RELTOL                = 64
-     enumerator :: IPARM_COMPRESS_PRESELECT             = 65
-     enumerator :: IPARM_THREAD_COMM_MODE               = 66
-     enumerator :: IPARM_MODIFY_PARAMETER               = 67
-     enumerator :: IPARM_START_TASK                     = 68
-     enumerator :: IPARM_END_TASK                       = 69
-     enumerator :: IPARM_FLOAT                          = 70
-     enumerator :: IPARM_MTX_TYPE                       = 71
-     enumerator :: IPARM_DOF_NBR                        = 72
-     enumerator :: IPARM_SIZE                           = 72
+     enumerator :: IPARM_TRANSPOSE_SOLVE                = 47
+     enumerator :: IPARM_SCHUR_SOLV_MODE                = 48
+     enumerator :: IPARM_APPLYPERM_WS                   = 49
+     enumerator :: IPARM_REFINEMENT                     = 50
+     enumerator :: IPARM_NBITER                         = 51
+     enumerator :: IPARM_ITERMAX                        = 52
+     enumerator :: IPARM_GMRES_IM                       = 53
+     enumerator :: IPARM_SCHEDULER                      = 54
+     enumerator :: IPARM_THREAD_NBR                     = 55
+     enumerator :: IPARM_AUTOSPLIT_COMM                 = 56
+     enumerator :: IPARM_GPU_NBR                        = 57
+     enumerator :: IPARM_GPU_MEMORY_PERCENTAGE          = 58
+     enumerator :: IPARM_GPU_MEMORY_BLOCK_SIZE          = 59
+     enumerator :: IPARM_COMPRESS_MIN_WIDTH             = 60
+     enumerator :: IPARM_COMPRESS_MIN_HEIGHT            = 61
+     enumerator :: IPARM_COMPRESS_WHEN                  = 62
+     enumerator :: IPARM_COMPRESS_METHOD                = 63
+     enumerator :: IPARM_COMPRESS_ORTHO                 = 64
+     enumerator :: IPARM_COMPRESS_RELTOL                = 65
+     enumerator :: IPARM_COMPRESS_PRESELECT             = 66
+     enumerator :: IPARM_THREAD_COMM_MODE               = 67
+     enumerator :: IPARM_MODIFY_PARAMETER               = 68
+     enumerator :: IPARM_START_TASK                     = 69
+     enumerator :: IPARM_END_TASK                       = 70
+     enumerator :: IPARM_FLOAT                          = 71
+     enumerator :: IPARM_MTX_TYPE                       = 72
+     enumerator :: IPARM_DOF_NBR                        = 73
+     enumerator :: IPARM_SIZE                           = 73
   end enum
 
   ! enum dparm
