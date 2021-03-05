@@ -69,7 +69,7 @@ int main (int argc, char **argv)
      * Check we are in the correct conditions
      */
     if ( (spm->mtxtype == SpmHermitian) &&
-         ((spm->flttype == SpmComplex32) || (spm->flttype = SpmComplex64)) &&
+         ((spm->flttype == SpmComplex32) || (spm->flttype == SpmComplex64)) &&
          ((iparm[IPARM_FACTORIZATION] == PastixFactLLH) || (iparm[IPARM_FACTORIZATION] == PastixFactLDLH)) )
     {
         fprintf( stderr, "WARNING: This is not possible to use the CSR trick with Hermitian matrices and LL^h / LDL^h factorizations.\n" );
