@@ -9,7 +9,7 @@
 !
 ! @version 6.0.3
 ! @author Mathieu Faverge
-! @date 2021-01-14
+! @date 2021-03-03
 !
 ! This file has been automatically generated with gen_wrappers.py
 !
@@ -500,6 +500,22 @@ module pastixf
   end interface
 
   interface
+     function pastix_subtask_solve_adv_c(pastix_data, transA, nrhs, b, ldb) &
+          bind(c, name='pastix_subtask_solve_adv')
+       use iso_c_binding
+       import pastix_int_t
+       import pastix_data_t
+       implicit none
+       integer(kind=c_int)               :: pastix_subtask_solve_adv_c
+       type(c_ptr),                value :: pastix_data
+       integer(c_int),             value :: transA
+       integer(kind=pastix_int_t), value :: nrhs
+       type(c_ptr),                value :: b
+       integer(kind=pastix_int_t), value :: ldb
+     end function pastix_subtask_solve_adv_c
+  end interface
+
+  interface
      subroutine pastixSetSchurUnknownList_c(pastix_data, n, list) &
           bind(c, name='pastixSetSchurUnknownList')
        use iso_c_binding
@@ -974,6 +990,20 @@ contains
     info = pastix_subtask_refine_c(c_loc(pastix_data), n, nrhs, b, ldb, x, &
          ldx)
   end subroutine pastix_subtask_refine
+
+  subroutine pastix_subtask_solve_adv(pastix_data, transA, nrhs, b, ldb, info)
+    use iso_c_binding
+    implicit none
+    type(pastix_data_t),        intent(inout), target :: pastix_data
+    integer(c_int),             intent(in)            :: transA
+    integer(kind=pastix_int_t), intent(in)            :: nrhs
+    type(c_ptr),                intent(inout), target :: b
+    integer(kind=pastix_int_t), intent(in)            :: ldb
+    integer(kind=c_int),        intent(out)           :: info
+
+    info = pastix_subtask_solve_adv_c(c_loc(pastix_data), transA, nrhs, b, &
+         ldb)
+  end subroutine pastix_subtask_solve_adv
 
   subroutine pastixSetSchurUnknownList(pastix_data, n, list)
     use iso_c_binding

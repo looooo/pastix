@@ -366,7 +366,9 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
         cs = PastixUCoef;
 
         /* We do not handle conjtrans in complex as we store U^t */
+#if defined(PRECISION_z) || defined(PRECISION_c)
         assert( trans != PastixConjTrans );
+#endif
     }
     else if ( (side == PastixLeft)  && (uplo == PastixLower) && (trans == PastixNoTrans) ) {
         tA = trans;

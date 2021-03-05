@@ -41,6 +41,7 @@ set (EXAMPLES
   refinement.c
   schur.c
   simple.c
+  simple_trans.c
   step-by-step.c
   )
 

@@ -629,7 +629,32 @@ bcsc_zspmv( const pastix_data_t      *pastix_data,
             pastix_complex64_t        beta,
             pastix_complex64_t       *y )
 {
-    pastix_int_t *iparm = pastix_data->iparm;
+    pastix_int_t   *iparm  = pastix_data->iparm;
+    pastix_trans_t  transA = iparm[IPARM_TRANSPOSE_SOLVE];
+
+    /*
+     * trans           | transA          | Final
+     * ----------------+-----------------+-----------------
+     * PastixNoTrans   | PastixNoTrans   | PastixNoTrans
+     * PastixNoTrans   | PastixTrans     | PastixTrans
+     * PastixNoTrans   | PastixConjTrans | PastixConjTrans
+     * PastixTrans     | PastixNoTrans   | PastixTrans
+     * PastixTrans     | PastixTrans     | PastixNoTrans
+     * PastixTrans     | PastixConjTrans | INCORRECT
+     * PastixConjTrans | PastixNoTrans   | PastixConjTrans
+     * PastixConjTrans | PastixTrans     | INCORRECT
+     * PastixConjTrans | PastixConjTrans | PastixNoTrans
+     */
+    if ( trans == PastixNoTrans ) {
+        trans = transA;
+    }
+    else if ( trans == transA ) {
+        trans = PastixNoTrans;
+    }
+    else if ( transA != PastixNoTrans ) {
+        errorPrint("bcsc_zspmv: incompatible trans and transA");
+        return;
+    }
 
     /* y is duplicated on all nodes. Set to 0 non local data */
     bvec_znullify_remote( pastix_data, y );
