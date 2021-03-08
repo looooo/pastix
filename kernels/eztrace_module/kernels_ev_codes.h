@@ -125,3 +125,7 @@ kernel_trace_stop_lvl2_rank( double flops, int rank )
 }
 
 #endif /* _kernels_ev_codes_h_ */
+
+/**
+ * @}
+ */

@@ -23,8 +23,7 @@ if(PASTIX_WITH_EZTRACE)
 
   target_include_directories( eztrace-convert-kernels PRIVATE
     $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}>
-    $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/common> )
+    $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}> )
 
   target_include_directories( eztrace-convert-kernels PUBLIC
     $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/include>
@@ -33,7 +32,6 @@ if(PASTIX_WITH_EZTRACE)
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<INSTALL_INTERFACE:include> )
 
-  target_link_libraries( eztrace-convert-kernels PUBLIC spm )
   target_link_libraries( eztrace-convert-kernels PUBLIC MORSE::EZTRACE )
   target_link_libraries( eztrace-convert-kernels PRIVATE MORSE::LITL   )
 endif(PASTIX_WITH_EZTRACE)
