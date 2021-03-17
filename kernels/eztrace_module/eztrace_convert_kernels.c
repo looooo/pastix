@@ -13,11 +13,15 @@
  * @date 2019-12-09
  *
  */
+#define _GNU_SOURCE
 #include <eztrace_convert.h>
 #include <stdio.h>
 #include <strings.h>
 #include <GTG.h>
-#include "kernels_trace.h"
+#include <math.h>
+#include <assert.h>
+#include "pastix/config.h"
+#include "kernels_enums.h"
 
 static inline double kernels_dmin( double a, double b) {
     return ( a < b ) ? a : b;
