@@ -66,8 +66,8 @@ mpiexec --version
 ```
 ### Download and install StarPU
 
-Please refer to [_Installing PaStiX with runtime
-support_](./Pastix_Runtime.md) for StarPU installation. The only step
+Please refer to [Installing PaStiX with runtime support](https://solverstack.gitlabpages.inria.fr/pastix/md_docs_doxygen_chapters_Pastix_Runtime.html)
+for StarPU installation. The only step
 that will change for MPI support is that the `--enable-mpi` option
 becomes mandatory when configuring StarPU:
 
@@ -81,8 +81,8 @@ make install
 
 ### Download and install PaRSEC
 
-Please refer to [_Installing PaStiX with runtime
-support_](./Pastix_Runtime.md) for PaRSEC installation. The only step
+Please refer to [Installing PaStiX with runtime support](https://solverstack.gitlabpages.inria.fr/pastix/md_docs_doxygen_chapters_Pastix_Runtime.html)
+for PaRSEC installation. The only step
 that will change for MPI support is that the
 `-DPARSEC_DIST_WITH_MPI=ON` option becomes mandatory when configuring
 PaRSEC:

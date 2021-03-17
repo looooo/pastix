@@ -26,7 +26,7 @@ users](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html).
 
 ### Download and install StarPU
 
-Please refer to [_Installing PaStiX with runtime support_](./Pastix_Runtime.md)
+Please refer to [Installing PaStiX with runtime support](https://solverstack.gitlabpages.inria.fr/pastix/md_docs_doxygen_chapters_Pastix_Runtime.html)
 for StarPU installation. The only step that will change for GPU support will be
 during the configuration :
 
@@ -40,7 +40,7 @@ make install
 
 ### Download and install PaRSEC
 
-Please refer to [_Installing PaStiX with runtime support_](./Pastix_Runtime.md)
+Please refer to [Installing PaStiX with runtime support](https://solverstack.gitlabpages.inria.fr/pastix/md_docs_doxygen_chapters_Pastix_Runtime.html)
 for PaRSEC installation. The only step that will change for GPU support will be
 during the configuration :
 
@@ -85,5 +85,5 @@ simple -9 10:10:10
 ```
 
 You setup is ready to play with GPUs. Please refer to section
-[_How to use PaStiX with GPUs_](./How_PaStiX_GPU.md) to get
-as best results as possible.
+[How to use PaStiX with GPUs](https://solverstack.gitlabpages.inria.fr/pastix/md_docs_doxygen_chapters_How_PaStiX_GPU.html)
+to get as best results as possible.
