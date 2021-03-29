@@ -430,7 +430,7 @@ pastixInitParam( pastix_int_t *iparm,
     /* Splitting */
     iparm[IPARM_SPLITTING_STRATEGY]             = PastixSplitKway;
     iparm[IPARM_SPLITTING_LEVELS_PROJECTIONS]   = 0;
-    iparm[IPARM_SPLITTING_LEVELS_KWAY]          = PASTIX_INT_MAX / 2;
+    iparm[IPARM_SPLITTING_LEVELS_KWAY]          = PASTIX_INT_MAX;
     iparm[IPARM_SPLITTING_PROJECTIONS_DEPTH]    = 3;
     iparm[IPARM_SPLITTING_PROJECTIONS_DISTANCE] = 3;
     iparm[IPARM_SPLITTING_PROJECTIONS_WIDTH]    = 1;

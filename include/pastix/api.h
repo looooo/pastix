@@ -72,7 +72,7 @@ typedef enum pastix_iparm_e {
 
     IPARM_SPLITTING_STRATEGY,             /**< Strategy used to split supernodes                     Default: PastixSplitKway           IN  */
     IPARM_SPLITTING_LEVELS_PROJECTIONS,   /**< Levels of projections                                 Default: 0                         IN  */
-    IPARM_SPLITTING_LEVELS_KWAY ,         /**< Levels of kway                                        Default: PASTIX_INT_MAX/2          IN  */
+    IPARM_SPLITTING_LEVELS_KWAY ,         /**< Levels of kway                                        Default: PASTIX_INT_MAX            IN  */
     IPARM_SPLITTING_PROJECTIONS_DEPTH,    /**< Number of level used for projections                  Default: 3                         IN  */
     IPARM_SPLITTING_PROJECTIONS_DISTANCE, /**< Distance used for projections                         Default: 3                         IN  */
     IPARM_SPLITTING_PROJECTIONS_WIDTH,    /**< Width used for projections                            Default: 1                         IN  */
