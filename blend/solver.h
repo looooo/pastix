@@ -112,6 +112,7 @@ typedef struct solver_blok_s {
     pastix_int_t browind;    /**< Index in browtab                         */
     int8_t       gpuid;      /**< Store on which GPU the block is computed */
     int8_t       inlast;     /**< Index of the block among last separator (2), coupling with last separator (1) or other blocks (0) */
+    int          iluklvl;    /**< The block ILU(k) level */
 
     /* LR structures */
     pastix_lrblock_t *LRblock; /**< Store the blok (L/U) in LR format. Allocated for the cblk. */

@@ -293,6 +293,7 @@ pastix_fixdbl_t cpublok_zcompress( const pastix_lr_t *lowrank,
                                    SolverBlok *blok );
 pastix_int_t cpucblk_zcompress( const SolverMatrix *solvmtx,
                                 pastix_coefside_t   side,
+                                int                 max_ilulvl,
                                 SolverCblk         *cblk );
 void         cpucblk_zuncompress( pastix_coefside_t side,
                                   SolverCblk       *cblk );

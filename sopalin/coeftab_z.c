@@ -148,7 +148,7 @@ coeftab_zdiff( pastix_coefside_t   side,
  *
  * @brief Compress all the cblks marked as valid for low-rank format.
  *
- * All the cblk in the top levels of the elimination tree markes as candidates
+ * All the cblk in the top levels of the elimination tree marked as candidates
  * for compression are compressed if there is a gain to compress them. The
  * compression to low-rank format is parameterized by the input information
  * stored in the lowrank structure. On exit, all the cblks marked for
@@ -177,7 +177,7 @@ coeftab_zcompress( SolverMatrix *solvmtx )
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            gain += cpucblk_zcompress( solvmtx, side, cblk );
+            gain += cpucblk_zcompress( solvmtx, side, -1, cblk );
         }
     }
     return gain;

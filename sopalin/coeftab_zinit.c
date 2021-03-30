@@ -156,6 +156,67 @@ cpucblk_zdump( pastix_coefside_t side,
     }
 }
 
+void coeftab_zcblkComputeILULevels( const SolverMatrix *solvmtx, SolverCblk *cblk )
+{
+    /* If there are off diagonal supernodes in the column */
+    SolverBlok *blokB = cblk->fblokptr + 1; /* this diagonal block */
+    SolverBlok *lblkB = cblk[1].fblokptr;   /* the next diagonal block */
+
+    for (; blokB<lblkB; blokB++) {
+        SolverCblk *fcblk = solvmtx->cblktab + blokB->fcblknm;
+        SolverBlok *blokC = fcblk->fblokptr;
+        SolverBlok *blokA;
+
+        /* If there are off-diagonal supernodes in the column*/
+        for (blokA=blokB; blokA<lblkB; blokA++) {
+            int lvl_AB;
+
+            /* Find the facing block */
+            while ( !is_block_inside_fblock(blokA, blokC) ) {
+                blokC++;
+                assert( blokC < fcblk[1].fblokptr );
+            }
+
+            /* Compute the level k of the block */
+            if ( (blokA->iluklvl == INT_MAX) ||
+                 (blokB->iluklvl == INT_MAX) )
+            {
+                lvl_AB = INT_MAX;
+            }
+            else {
+                lvl_AB = blokA->iluklvl + blokB->iluklvl + 1;
+            }
+
+            pastix_cblk_lock( fcblk );
+            blokC->iluklvl = pastix_imin( blokC->iluklvl,
+                                          lvl_AB );
+            assert( blokC->iluklvl >= 0 );
+            pastix_cblk_unlock( fcblk );
+        }
+
+        pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
+    }
+}
+
+void coeftab_zcblkComputePreselect( const SolverMatrix *solvmtx, SolverCblk *cblk )
+{
+    /* If there are off diagonal supernodes in the column */
+    SolverBlok *blok = cblk->fblokptr + 1; /* this diagonal block */
+    SolverBlok *lblk = cblk[1].fblokptr;   /* the next diagonal block */
+
+    for (; blok<lblk; blok++) {
+        SolverCblk *fcblk = solvmtx->cblktab + blok->fcblknm;
+        int is_preselected = blok_is_preselected( cblk, blok, fcblk );
+
+        if ( is_preselected ) {
+            blok->iluklvl = -1;
+        }
+        else {
+            blok->iluklvl = INT_MAX;
+        }
+    }
+}
+
 /**
  *******************************************************************************
  *
@@ -192,8 +253,8 @@ cpucblk_zinit( pastix_coefside_t    side,
                pastix_int_t         itercblk,
                const char          *directory )
 {
-    pastix_int_t compress_when = solvmtx->lowrank.compress_when;
-    SolverCblk  *cblk = solvmtx->cblktab + itercblk;
+    SolverCblk  *cblk    = solvmtx->cblktab + itercblk;
+    int          ilukmax = solvmtx->lowrank.ilu_lvl;
 
     cpucblk_zalloc( side, cblk );
     cpucblk_zfillin( side, solvmtx, bcsc, itercblk );
@@ -235,14 +296,21 @@ cpucblk_zinit( pastix_coefside_t    side,
     }
 #endif /* defined(PASTIX_DEBUG_DUMP_COEFTAB) */
 
+    /* Update ILU levels if needed */
+    if ( (ilukmax > 0) && (ilukmax < INT_MAX) ) {
+#if !defined(PASTIX_WITH_MPI)
+        do {} while( cblk->ctrbcnt > 0 );
+        coeftab_zcblkComputeILULevels( solvmtx, cblk );
+#endif
+    }
+
     /**
      * Try to compress the cblk if needs to be compressed
      */
-    if ( (cblk->cblktype & CBLK_COMPRESSED)                          &&
-         (compress_when == PastixCompressWhenBegin)                  &&
-         (cblk_colnbr( cblk ) >= solvmtx->lowrank.compress_min_width) )
+    if ( (cblk->cblktype & CBLK_COMPRESSED) &&
+         (ilukmax < INT_MAX) )
     {
-        cpucblk_zcompress( solvmtx, side, cblk );
+        cpucblk_zcompress( solvmtx, side, ilukmax, cblk );
     }
 
     (void)directory;

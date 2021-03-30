@@ -276,6 +276,9 @@ cpucblk_zfillin_fr( pastix_coefside_t    side,
                     coefindx  = solvblok->coefind;
                     coefindx += rownum - solvblok->frownum; /* Row shift    */
                     coefindx += itercoltab * ldd;           /* Column shift */
+                    pastix_cblk_lock( solvcblk );
+                    solvblok->iluklvl = 0;
+                    pastix_cblk_unlock( solvcblk );
 
                     if ( side != PastixUCoef ) {
                         lcoeftab[coefindx] = Lvalues[iterval];
@@ -380,6 +383,9 @@ cpucblk_zfillin_lr( pastix_coefside_t    side,
                 {
                     coefindx  = rownum - solvblok->frownum; /* Row shift    */
                     coefindx += itercoltab * ldd;           /* Column shift */
+                    pastix_cblk_lock( solvcblk );
+                    solvblok->iluklvl = 0;
+                    pastix_cblk_unlock( solvcblk );
 
                     if ( side != PastixUCoef ) {
                         lcoeftab[coefindx] = Lvalues[iterval];

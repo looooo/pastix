@@ -104,8 +104,10 @@ BODY
     }
     else {
         /* Compression between 1D and 2D updates */
-        if ( lowrank.compress_when == PastixCompressWhenDuring ) {
-            cpucblk_zcompress( datacode, PastixLCoef, cblk );
+        if ( (lowrank.compress_when != PastixCompressNever) &&
+             (lowrank.ilu_lvl >= 0) )
+        {
+            cpucblk_zcompress( datacode, PastixLCoef, -1, cblk );
         }
     }
 }

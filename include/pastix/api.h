@@ -70,13 +70,12 @@ typedef enum pastix_iparm_e {
     IPARM_REORDERING_SPLIT,      /**< Reordering split level                                         Default: 0                         IN  */
     IPARM_REORDERING_STOP,       /**< Reordering stop criterion                                      Default: PASTIX_INT_MAX            IN  */
 
-    IPARM_SPLITTING_STRATEGY,    /**< Strategy used to split supernodes                              Default: PASTIX_INT_MAX           IN    */
-    IPARM_SPLITTING_LEVELS_PROJECTIONS,   /**< Levels of projections                                 Default: PASTIX_INT_MAX           IN    */
-    IPARM_SPLITTING_LEVELS_KWAY ,         /**< Levels of kway                                        Default: PASTIX_INT_MAX           IN    */
-    IPARM_SPLITTING_PROJECTIONS_DEPTH,    /**< Number of level used for projections                  Default: PASTIX_INT_MAX           IN    */
-    IPARM_SPLITTING_PROJECTIONS_DISTANCE, /**< Distance used for projections                         Default: PASTIX_INT_MAX           IN    */
-    IPARM_SPLITTING_PROJECTIONS_WIDTH,    /**< Width used for projections
-                                           Default: PASTIX_INT_MAX IN */
+    IPARM_SPLITTING_STRATEGY,             /**< Strategy used to split supernodes                     Default: PastixSplitKway           IN  */
+    IPARM_SPLITTING_LEVELS_PROJECTIONS,   /**< Levels of projections                                 Default: 0                         IN  */
+    IPARM_SPLITTING_LEVELS_KWAY ,         /**< Levels of kway                                        Default: PASTIX_INT_MAX            IN  */
+    IPARM_SPLITTING_PROJECTIONS_DEPTH,    /**< Number of level used for projections                  Default: 3                         IN  */
+    IPARM_SPLITTING_PROJECTIONS_DISTANCE, /**< Distance used for projections                         Default: 3                         IN  */
+    IPARM_SPLITTING_PROJECTIONS_WIDTH,    /**< Width used for projections                            Default: 1                         IN  */
 
     /* Analyze */
     IPARM_MIN_BLOCKSIZE,         /**< Minimum block size                                             Default: 160                       IN  */
@@ -117,13 +116,14 @@ typedef enum pastix_iparm_e {
     IPARM_GPU_MEMORY_BLOCK_SIZE, /**< Size of GPU memory pages (for PaRSEC runtime)                  Default: 32 * 1024                 IN  */
 
     /* Compression */
-    IPARM_COMPRESS_MIN_WIDTH,    /**< Minimum width to compress a supernode                          Default: 120                       IN  */
+    IPARM_COMPRESS_MIN_WIDTH,    /**< Minimum width to compress a supernode                          Default: 128                       IN  */
     IPARM_COMPRESS_MIN_HEIGHT,   /**< Minimum height to compress an off-diagonal block               Default: 20                        IN  */
     IPARM_COMPRESS_WHEN,         /**< When to compress a supernode                                   Default: PastixCompressNever       IN  */
     IPARM_COMPRESS_METHOD,       /**< Compression method (See pastix_compress_method_t)              Default: PastixCompressMethodPQRCP IN  */
     IPARM_COMPRESS_ORTHO,        /**< Orthogonalization method                                       Default: PastixCompressOrthoCGS    IN  */
     IPARM_COMPRESS_RELTOL,       /**< Enable/Disable relative tolerance                              Default: 0                         IN  */
-    IPARM_COMPRESS_PRESELECT,    /**< Enable/Disable compression of preselected blocks               Default: -1 (automatic)            IN  */
+    IPARM_COMPRESS_PRESELECT,    /**< Enable/Disable compression of preselected blocks               Default: 1                         IN  */
+    IPARM_COMPRESS_ILUK,         /**< Set the ILU(k) level of preselection (-2 for auto-level)       Default: -2                        IN  */
 
     /* MPI modes */
     IPARM_THREAD_COMM_MODE,      /**< Threaded communication mode                                    Default: PastixThreadMultiple      IN  */

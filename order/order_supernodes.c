@@ -60,8 +60,8 @@ orderSupernodes( const pastix_graph_t *graph,
     pastix_int_t    max_depth    = iparm[IPARM_SPLITTING_PROJECTIONS_DEPTH];
     pastix_int_t    max_distance = iparm[IPARM_SPLITTING_PROJECTIONS_DISTANCE];
     pastix_int_t    max_width    = iparm[IPARM_SPLITTING_PROJECTIONS_WIDTH];
-    pastix_int_t    lvl_kway     = iparm[IPARM_SPLITTING_LEVELS_KWAY];
     pastix_int_t    lvl_proj     = iparm[IPARM_SPLITTING_LEVELS_PROJECTIONS];
+    pastix_int_t    lvl_kway     = iparm[IPARM_SPLITTING_LEVELS_KWAY];
     pastix_int_t   *depth_size = NULL;
     int            *n_levels   = NULL;
     pastix_int_t    i, sn_first, sn_id;
@@ -80,13 +80,15 @@ orderSupernodes( const pastix_graph_t *graph,
         return PASTIX_ERR_BADPARAMETER;
     }
 
+    lvl_kway = pastix_imax( lvl_proj, lvl_kway );
+
     pastixOrderBase( order, 0 );
 
     /* Make sure the node levels are computed in the etree */
     eTreeComputeLevels( etree, eTreeRoot(etree), 0 );
 
     /* Get the minimal index of a node at the max depth considered */
-    sn_first = eTreeGetLevelMinIdx( etree, eTreeRoot(etree), lvl_proj+lvl_kway, order->cblknbr );
+    sn_first = eTreeGetLevelMinIdx( etree, eTreeRoot(etree), lvl_kway, order->cblknbr );
 
     extendint_Init( &sn_parts, 16 );
 
@@ -139,7 +141,7 @@ orderSupernodes( const pastix_graph_t *graph,
         sn_level   = etree->nodetab[sn_id].ndlevel;
         sn_nbparts_max = pastix_iceil( sn_vertnbr, iparm[IPARM_MAX_BLOCKSIZE] );
 
-        if ( (sn_level > (lvl_kway+lvl_proj)) ||
+        if ( (sn_level > (lvl_kway)) ||
              (sn_nbparts_max == 1) )
         {
             new_treetab[ new_cblknbr ] = order->treetab[sn_id];

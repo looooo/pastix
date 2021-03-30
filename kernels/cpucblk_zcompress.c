@@ -63,13 +63,15 @@ cpublok_zcompress( const pastix_lr_t *lowrank,
                    pastix_int_t M, pastix_int_t N,
                    SolverBlok *blok )
 {
-    pastix_fixdbl_t flops;
+    pastix_fixdbl_t     flops;
     pastix_lrblock_t   *lrA = blok->LRblock + side;
-    pastix_complex64_t *A = lrA->u;
+    pastix_complex64_t *A   = lrA->u;
 
-    assert( lrA->rk == -1   );
-    assert( lrA->u  != NULL );
-    assert( lrA->v  == NULL );
+    if ( lrA->rk != -1 ) {
+        return 0.;
+    }
+    assert( lrA->u != NULL );
+    assert( lrA->v == NULL );
 
     kernel_trace_start_lvl2( PastixKernelLvl2_LR_init_compress );
     flops = lowrank->core_ge2lr( lowrank->use_reltol, lowrank->tolerance, -1,
@@ -112,6 +114,7 @@ cpublok_zcompress( const pastix_lr_t *lowrank,
 pastix_int_t
 cpucblk_zcompress( const SolverMatrix *solvmtx,
                    pastix_coefside_t   side,
+                   int                 max_ilulvl,
                    SolverCblk         *cblk )
 {
     pastix_lrblock_t   *lrA;
@@ -133,20 +136,7 @@ cpucblk_zcompress( const SolverMatrix *solvmtx,
     for (; blok<lblok; blok++)
     {
         pastix_int_t nrows = blok_rownbr( blok );
-        int is_preselected = blok_is_preselected( cblk, blok, solvmtx->cblktab + blok->fcblknm );
-
-        /*
-         * If we are in the 'end' scenario, the preselected blocks must be
-         * compressed.
-         * If we are in the 'begin' or 'during' scenarii, the preselected blocks
-         * may be compressed directly by calling cpublok_zcompress and not
-         * cpucblk_zcompress.
-         */
-        if ( (lowrank->compress_when == PastixCompressWhenEnd) &&
-             (lowrank->compress_preselect) )
-        {
-            is_preselected = 0;
-        }
+        int is_preselected = ( blok->iluklvl <= max_ilulvl );
 
         /* Skip uncompressible blocks */
         if ( nrows < lowrank->compress_min_height ) {
@@ -305,7 +295,7 @@ cpucblk_zmemory( pastix_coefside_t   side,
 
     /* Compute potential gains if blocks where not compressed */
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        cpucblk_zcompress( solvmtx, side, cblk );
+        cpucblk_zcompress( solvmtx, side, -1, cblk );
     }
 
     for (; blok<lblok; blok++)

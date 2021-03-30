@@ -227,6 +227,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     lr->compress_preselect  = pastix_data->iparm[IPARM_COMPRESS_PRESELECT];
     lr->use_reltol          = pastix_data->iparm[IPARM_COMPRESS_RELTOL];
     lr->tolerance           = pastix_data->dparm[DPARM_COMPRESS_TOLERANCE];
+    lr->ilu_lvl             = pastix_data->iparm[IPARM_COMPRESS_ILUK];
 
     pastix_lr_minratio      = pastix_data->dparm[DPARM_COMPRESS_MIN_RATIO];
     pastix_lr_ortho         = pastix_data->iparm[IPARM_COMPRESS_ORTHO];
@@ -235,21 +236,28 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     lr->core_ge2lr = ge2lrMethods[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][bcsc->flttype-2];
     lr->core_rradd = rraddMethods[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][bcsc->flttype-2];
 
-    if ( pastix_data->iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin ) {
-        if ( lr->compress_preselect == -1 ) {
-            lr->compress_preselect = 1;
+    /*
+     * Update the ilu level based on when
+     */
+    if ( lr->ilu_lvl == -2 ) {
+        if ( pastix_data->iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin ) {
+            lr->ilu_lvl = -1;
         }
+        else if ( pastix_data->iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenEnd ) {
+            lr->ilu_lvl = INT_MAX;
+        }
+        else if ( pastix_data->iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenDuring ) {
+            lr->ilu_lvl = 0;
+        }
+    }
+
+    /*
+     * Set the maximum rank function
+     */
+    if ( pastix_data->iparm[IPARM_COMPRESS_WHEN] == PastixCompressWhenBegin ) {
         core_get_rklimit = core_get_rklimit_begin;
     }
     else {
-        if ( lr->compress_preselect == -1 ) {
-            if ( lr->tolerance <= 1.e-10 ) {
-                lr->compress_preselect = 0;
-            }
-            else {
-                lr->compress_preselect = 1;
-            }
-        }
         core_get_rklimit = core_get_rklimit_end;
     }
 

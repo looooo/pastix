@@ -41,7 +41,9 @@ sequential_zpxtrf( pastix_data_t  *pastix_data,
     (void)sopalin_data;
 
     lwork = datacode->gemmmax;
-    if ( datacode->lowrank.compress_when == PastixCompressWhenBegin ) {
+    if ( (datacode->lowrank.compress_when != PastixCompressNever) &&
+         (datacode->lowrank.ilu_lvl < INT_MAX) )
+    {
         lwork = pastix_imax( lwork, 2 * datacode->blokmax );
     }
     MALLOC_INTERN( work, lwork, pastix_complex64_t );
@@ -80,7 +82,9 @@ thread_zpxtrf_static( isched_thread_t *ctx, void *args )
     int rank = ctx->rank;
 
     lwork = datacode->gemmmax;
-    if ( datacode->lowrank.compress_when == PastixCompressWhenBegin ) {
+    if ( (datacode->lowrank.compress_when != PastixCompressNever) &&
+         (datacode->lowrank.ilu_lvl < INT_MAX) )
+    {
         lwork = pastix_imax( lwork, 2 * datacode->blokmax );
     }
     MALLOC_INTERN( work, lwork, pastix_complex64_t );
@@ -142,7 +146,9 @@ thread_zpxtrf_dynamic( isched_thread_t *ctx, void *args )
     int                   dest = (ctx->rank + 1)%ctx->global_ctx->world_size;
 
     lwork = datacode->gemmmax;
-    if ( datacode->lowrank.compress_when == PastixCompressWhenBegin ) {
+    if ( (datacode->lowrank.compress_when != PastixCompressNever) &&
+         (datacode->lowrank.ilu_lvl < INT_MAX) )
+    {
         lwork = pastix_imax( lwork, 2 * datacode->blokmax );
     }
     MALLOC_INTERN( work, lwork, pastix_complex64_t );

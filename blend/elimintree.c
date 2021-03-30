@@ -435,7 +435,10 @@ eTreeGetLevelMinIdx( const EliminTree *etree,
         return idx;
     }
 
-    sonsnbr = etree->nodetab[ eTreeRoot(etree) ].sonsnbr;
+    sonsnbr = etree->nodetab[ root ].sonsnbr;
+    if ( sonsnbr == 0 ) {
+        return idx;
+    }
 
     lvl--;
     for(i=0;i<sonsnbr;i++)
