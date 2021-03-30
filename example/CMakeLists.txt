@@ -43,6 +43,7 @@ set (EXAMPLES
   simple.c
   simple_trans.c
   step-by-step.c
+  simple_dist.c
   )
 
 foreach (_file ${EXAMPLES})

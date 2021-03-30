@@ -115,6 +115,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     int             retval_rcv;
     int             do_schur = 1;
     int             do_zeros = 1;
+    spmatrix_t     *spmg     = NULL;
 
     /*
      * Check parameters
@@ -127,26 +128,32 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         errorPrint("pastix_subtask_order: wrong spm parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
-    iparm = pastix_data->iparm;
-    n = spm->n;
-
     if ( !(pastix_data->steps & STEP_INIT) ) {
         errorPrint("pastix_subtask_order: pastixInit() has to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
 
     /*
-     * If the spm is distributed, we leave the subtask order for the moment
+     * If the spm is distributed, have to gather it for the moment
      */
-    if( spm->loc2glob != NULL ) {
-        errorPrint("pastix_subtask_order: the spm has to be centralized for the moment");
-        return PASTIX_ERR_BADPARAMETER;
+    if ( spm->loc2glob == NULL ) {
+        spmg = (spmatrix_t *)spm;
     }
+#if defined(PASTIX_WITH_MPI)
+    else {
+        if( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
+            pastix_print( pastix_data->procnum, 0, "pastix_subtask_order: the SPM has to be centralized for the moment\n" );
+        }
+        spmg = spmGather( spm, -1 );
+    }
+#endif
 
+    iparm = pastix_data->iparm;
+    n = spm->n;
     /*
      * Backup flttype from the spm into iparm[IPARM_FLOAT] for later use
      */
-    iparm[IPARM_FLOAT] = spm->flttype;
+    iparm[IPARM_FLOAT] = spmg->flttype;
 
     if (pastix_data->schur_n > 0)
     {
@@ -196,7 +203,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      * operations as symmetrizing the graph and removing the diagonal
      * coefficients
      */
-    graphPrepare( pastix_data, spm, &(pastix_data->graph) );
+    graphPrepare( pastix_data, spmg, &(pastix_data->graph) );
     graphBase( pastix_data->graph, 0 );
     graph = pastix_data->graph;
 
@@ -325,7 +332,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
 
             n = spm->gN;
             /* Personal ordering have to be global ordering */
-            assert( spm->gN == spm->n );
+            assert( spmg->gN == spmg->n );
 
             pastixOrderAlloc(ordemesh, n, 0);
 
@@ -567,7 +574,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      * Remark: No need to copy back for personal
      */
     if (iparm[IPARM_ORDERING] != PastixOrderPersonal) {
-        if ( spm->loc2glob == NULL ) {
+        if ( spmg->loc2glob == NULL ) {
             if ( myorder != NULL )
             {
                 retval = pastixOrderCopy( myorder, ordemesh );
@@ -588,7 +595,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
                 pastix_int_t i;
 
                 for(i=0; i<n; i++) {
-                    myorder->permtab[i] = permtab[spm->loc2glob[i]];
+                    myorder->permtab[i] = permtab[spmg->loc2glob[i]];
                 }
             }
             if (myorder->peritab != NULL) {
@@ -596,7 +603,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
                 pastix_int_t i;
 
                 for(i=0; i<n; i++) {
-                    myorder->peritab[i] = peritab[spm->loc2glob[i]];
+                    myorder->peritab[i] = peritab[spmg->loc2glob[i]];
                 }
             }
             /* TODO: Copy also rangtab and treetab ? */
@@ -615,6 +622,12 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
 
     /* Backup the spm pointer for further information */
     pastix_data->csc = spm;
+
+    /* Free the gathered spm */
+    if ( spmg != spm ) {
+        spmExit( spmg );
+        memFree_null( spmg );
+    }
 
     /* Invalidate following steps, and add order step to the ones performed */
     pastix_data->steps &= ~( STEP_SYMBFACT  |

@@ -198,3 +198,26 @@ foreach( version ${RUNTYPE} )
   endforeach()
 
 endforeach()
+
+# Add scattered spm test. Only with MPI.
+if( PASTIX_WITH_MPI )
+  set(MPI_TESTS simple_dist)
+  set(NPROCS 1 4)
+
+  foreach(example ${MPI_TESTS})
+    foreach(nproc ${NPROCS})
+      foreach(arithm ${PASTIX_PRECISIONS} )
+        set(factos ${PASTIX_FACTO})
+        if (arithm IN_LIST _complex)
+          list(APPEND factos 3 4)
+        endif()
+        foreach(facto ${factos} )
+          set( _test_name c_mpi_example_${example}_${nproc}_lap_${arithm}_facto${facto} )
+          set( _test_cmd  mpiexec -n ${nproc} ./${example} -9 ${arithm}:10:10:10:2 -f ${facto} )
+          add_test(${_test_name} ${_test_cmd} -c 2 )
+        endforeach()
+      endforeach()
+    endforeach()
+  endforeach()
+
+endif()
