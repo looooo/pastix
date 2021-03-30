@@ -474,6 +474,13 @@ graphIsolateRange( const pastix_graph_t *graph,
     n             = graph->n;
     out_graph->n  = out_n;
 
+    /* Copy dofs datas, as they are global */
+    out_graph->dof  = graph->dof;
+    if( out_graph->dof < 0 ) {
+        MALLOC_INTERN( out_graph->dofs, graph->gN, pastix_int_t );
+        memcpy( out_graph->dofs, graph->dofs, graph->gN * sizeof(pastix_int_t) );
+    }
+
     if ( out_n == 0 ) {
         errorPrintW( "graphIsolateSupernode: Empty supernode\n");
         return PASTIX_ERR_BADPARAMETER;
