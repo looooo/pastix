@@ -265,10 +265,6 @@ dynamic_zsytrf( pastix_data_t  *pastix_data,
     isched_parallel_call( pastix_data->isched, thread_zsytrf_dynamic, &args_zsytrf );
 
     memFree_null( datacode->computeQueue );
-
-#if defined(PASTIX_WITH_MPI)
-    MPI_Barrier( pastix_data->inter_node_comm );
-#endif
 }
 
 static void (*zsytrf_table[5])(pastix_data_t *, sopalin_data_t *) = {
