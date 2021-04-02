@@ -295,7 +295,8 @@ cpucblk_zmemory( pastix_coefside_t   side,
 
     /* Compute potential gains if blocks where not compressed */
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        cpucblk_zcompress( solvmtx, side, -1, cblk );
+        int ilu_lvl = solvmtx->lowrank.compress_preselect ? -1 : solvmtx->lowrank.ilu_lvl;
+        cpucblk_zcompress( solvmtx, side, ilu_lvl, cblk );
     }
 
     for (; blok<lblok; blok++)
