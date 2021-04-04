@@ -173,11 +173,14 @@ coeftab_zcompress( SolverMatrix *solvmtx )
 {
     SolverCblk       *cblk = solvmtx->cblktab;
     pastix_coefside_t side = (solvmtx->factotype == PastixFactLU) ? PastixLUCoef : PastixLCoef;
-    pastix_int_t cblknum, gain = 0;
+    int               ilu_lvl;
+    pastix_int_t      cblknum, gain = 0;
+
+    ilu_lvl = solvmtx->lowrank.compress_preselect ? -1 : solvmtx->lowrank.ilu_lvl;
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            gain += cpucblk_zcompress( solvmtx, side, -1, cblk );
+            gain += cpucblk_zcompress( solvmtx, side, ilu_lvl, cblk );
         }
     }
     return gain;
