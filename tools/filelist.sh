@@ -12,12 +12,11 @@
 #  @date 2019-11-12
 #
 ###
-
 if [ $# -gt 0 ]
 then
     BUILDDIR=$1
 fi
-BUILDDIR=${BUILDDIR-=build}
+BUILDDIR=${BUILDDIR:-build}
 
 echo $PWD
 rm -f filelist.txt

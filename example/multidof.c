@@ -101,6 +101,7 @@ int main (int argc, char **argv)
     if ( rc != 0 ) {
         spmExit( spm );
         memcpy( spm, spm2, sizeof(pastix_spm_t) );
+        rc = 0;
     }
     free( spm2 );
 

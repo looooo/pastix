@@ -2,7 +2,7 @@
  *
  * @file frobeniusupdate.h
  *
- * Forumla to update frobenius norm computation in a safe manner.
+ * Formula to update frobenius norm computation in a safe manner.
  *
  * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.

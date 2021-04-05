@@ -1238,15 +1238,18 @@ static inline void
 pthread_bvec_zgemv( isched_thread_t *ctx,
                     void            *args )
 {
-    struct z_gemv_s          *arg = (struct z_gemv_s*)args;
-    pastix_int_t              m = arg->m, sub_m;
-    pastix_int_t              n = arg->n;
+    struct z_gemv_s          *arg   = (struct z_gemv_s*)args;
+    pastix_int_t              m     = arg->m, sub_m;
+    pastix_int_t              n     = arg->n;
     pastix_complex64_t        alpha = arg->alpha;
-    const pastix_complex64_t *A = arg->A, *Aptr;
-    pastix_int_t              lda = arg->lda;
-    const pastix_complex64_t *x = arg->x, *xptr;
-    pastix_complex64_t        beta = arg->beta;
-    pastix_complex64_t       *y = arg->y, *yptr;
+    const pastix_complex64_t *A     = arg->A;
+    const pastix_complex64_t *Aptr;
+    pastix_int_t              lda   = arg->lda;
+    const pastix_complex64_t *x     = arg->x;
+    const pastix_complex64_t *xptr;
+    pastix_complex64_t        beta  = arg->beta;
+    pastix_complex64_t       *y     = arg->y;
+    pastix_complex64_t       *yptr;
     pastix_int_t              size, rank;
 
     size = (pastix_int_t)ctx->global_ctx->world_size;

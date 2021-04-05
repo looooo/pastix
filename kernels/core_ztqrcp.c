@@ -34,7 +34,9 @@ static pastix_complex64_t zzero =  0.0;
  *
  * @brief Compute a randomized QR factorization with truncated updates.
  *
- * This routine is originated from ???.
+ * This routine is derivated from "Randomized QR with Column Pivoting",
+ * J. A. Duersch and M. Gu, SIAM Journal on Scientific Computing, vol. 39,
+ * no. 4, pp. C263-C291, 2017.
  *
  *******************************************************************************
  *
@@ -387,12 +389,14 @@ core_ztqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
             assert( ret == 0 );
 
             /* Updating B */
+            /* Solving S_11 * R_11^{-1} */
             cblas_ztrsm( CblasColMajor, CblasRight, CblasUpper,
                          CblasNoTrans, CblasNonUnit,
                          d, d,
                          CBLAS_SADDR(zone), A + rk*lda + rk, lda,
                                             B + rk*ldb,      ldb );
 
+            /* Updating S_12 = S_12 - (S_11 * R_11^{-1}) * R_12  */
             cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                          d, n - (rk+d), d,
                          CBLAS_SADDR(mzone), B +  rk   *ldb,      ldb,
