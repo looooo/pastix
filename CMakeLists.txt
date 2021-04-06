@@ -1071,7 +1071,7 @@ install( FILES
   DESTINATION ${LIB_INSTALL_DIR}/cmake/pastix)
 
 # need MORSE Find modules: necessary files must be distributed in the install path
-set(morse_dependencies "M;CBLAS;LAPACKE;HWLOC;SCOTCH;PTSCOTCH;METIS;PARMETIS;PARSEC;STARPU")
+set(morse_dependencies "M;BLASEXT;CBLAS;LAPACKEXT;TMG;LAPACKE;HWLOC;SCOTCH;PTSCOTCH;METIS;PARMETIS;PARSEC;STARPU;GTG;LITL;EZTRACE")
 morse_install_finds(morse_dependencies ${LIB_INSTALL_DIR}/cmake/pastix/find)
 
 #############################################################
