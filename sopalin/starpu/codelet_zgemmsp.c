@@ -125,19 +125,16 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
 
     starpu_insert_task(
         pastix_codelet(codelet),
-        STARPU_VALUE, &sideA,        sizeof(pastix_coefside_t),
-        STARPU_VALUE, &sideB,        sizeof(pastix_coefside_t),
-        STARPU_VALUE, &trans,        sizeof(pastix_trans_t),
-        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
-        STARPU_VALUE, &blok,         sizeof(SolverBlok*),
-        STARPU_VALUE, &fcblk,        sizeof(SolverCblk*),
-        STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
-        STARPU_R,      cblk->handler[sideA],
-        STARPU_R,      cblk->handler[sideB],
-        STARPU_RW,     fcblk->handler[sideA],
-#if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
-        STARPU_NAME, "cblk_zgemmsp",
-#endif
+        STARPU_VALUE,   &sideA,        sizeof(pastix_coefside_t),
+        STARPU_VALUE,   &sideB,        sizeof(pastix_coefside_t),
+        STARPU_VALUE,   &trans,        sizeof(pastix_trans_t),
+        STARPU_VALUE,   &cblk,         sizeof(SolverCblk*),
+        STARPU_VALUE,   &blok,         sizeof(SolverBlok*),
+        STARPU_VALUE,   &fcblk,        sizeof(SolverCblk*),
+        STARPU_VALUE,   &sopalin_data, sizeof(sopalin_data_t*),
+        STARPU_R,        cblk->handler[sideA],
+        STARPU_R,        cblk->handler[sideB],
+        STARPU_RW,       fcblk->handler[sideA],
         STARPU_PRIORITY, prio,
         0);
 }
@@ -279,21 +276,18 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
 
     starpu_insert_task(
         pastix_codelet(codelet),
-        STARPU_VALUE, &sideA,        sizeof(pastix_coefside_t),
-        STARPU_VALUE, &sideB,        sizeof(pastix_coefside_t),
-        STARPU_VALUE, &trans,        sizeof(pastix_trans_t),
-        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
-        STARPU_VALUE, &fcblk,        sizeof(SolverCblk*),
-        STARPU_VALUE, &blok_mk,      sizeof(pastix_int_t),
-        STARPU_VALUE, &blok_nk,      sizeof(pastix_int_t),
-        STARPU_VALUE, &blok_mn,      sizeof(pastix_int_t),
-        STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
-        STARPU_R,      blokA->handler[sideA],
-        STARPU_R,      blokB->handler[sideB],
-        STARPU_RW,     blokC->handler[sideA],
-#if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
-        STARPU_NAME, "blok_zgemmsp",
-#endif
+        STARPU_VALUE,   &sideA,        sizeof(pastix_coefside_t),
+        STARPU_VALUE,   &sideB,        sizeof(pastix_coefside_t),
+        STARPU_VALUE,   &trans,        sizeof(pastix_trans_t),
+        STARPU_VALUE,   &cblk,         sizeof(SolverCblk*),
+        STARPU_VALUE,   &fcblk,        sizeof(SolverCblk*),
+        STARPU_VALUE,   &blok_mk,      sizeof(pastix_int_t),
+        STARPU_VALUE,   &blok_nk,      sizeof(pastix_int_t),
+        STARPU_VALUE,   &blok_mn,      sizeof(pastix_int_t),
+        STARPU_VALUE,   &sopalin_data, sizeof(sopalin_data_t*),
+        STARPU_R,        blokA->handler[sideA],
+        STARPU_R,        blokB->handler[sideB],
+        STARPU_RW,       blokC->handler[sideA],
         STARPU_PRIORITY, prio,
         0);
 }

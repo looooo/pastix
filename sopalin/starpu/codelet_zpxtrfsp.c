@@ -66,12 +66,9 @@ starpu_task_cblk_zpxtrfsp1d_panel( sopalin_data_t *sopalin_data,
 {
     starpu_insert_task(
         pastix_codelet(&cl_cblk_zpxtrfsp1d_panel_cpu),
-        STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
-        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
-        STARPU_RW,     cblk->handler[0],
-#if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
-        STARPU_NAME, "cblk_zpxtrfsp1d_panel",
-#endif
+        STARPU_VALUE,   &sopalin_data, sizeof(sopalin_data_t*),
+        STARPU_VALUE,   &cblk,         sizeof(SolverCblk*),
+        STARPU_RW,       cblk->handler[0],
         STARPU_PRIORITY, prio,
         0);
 }
@@ -117,12 +114,9 @@ starpu_task_blok_zpxtrf( sopalin_data_t *sopalin_data,
 {
     starpu_insert_task(
         pastix_codelet(&cl_blok_zpxtrfsp_cpu),
-        STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
-        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
-        STARPU_RW,     cblk->fblokptr->handler[0],
-#if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
-        STARPU_NAME, "blok_zpxtrfsp",
-#endif
+        STARPU_VALUE,   &sopalin_data, sizeof(sopalin_data_t*),
+        STARPU_VALUE,   &cblk,         sizeof(SolverCblk*),
+        STARPU_RW,       cblk->fblokptr->handler[0],
         STARPU_PRIORITY, prio,
         0);
 }
