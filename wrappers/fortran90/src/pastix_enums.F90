@@ -1,18 +1,20 @@
-
-!
-! @file pastix_enums.F90
-!
-! PaStiX fortran 90 wrapper to define enums and datatypes
-!
-! @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
-!                      Univ. Bordeaux. All rights reserved.
-!
-! @version 6.0.3
-! @author Mathieu Faverge
-! @date 2021-03-03
-!
-! This file has been automatically generated with gen_wrappers.py
-!
+!>
+!> @file pastix_enums.F90
+!>
+!> PaStiX fortran 90 wrapper to define enums and datatypes
+!>
+!> @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+!>                      Univ. Bordeaux. All rights reserved.
+!>
+!> @version 6.0.3
+!> @author Mathieu Faverge
+!> @author Tony Delarue
+!> @date 2021-04-06
+!>
+!> This file has been automatically generated with gen_wrappers.py
+!>
+!> @ingroup wrap_fortran
+!>
 module pastix_enums
   use iso_c_binding
 #if defined(PASTIX_WITH_MPI)
@@ -94,14 +96,15 @@ module pastix_enums
      enumerator :: IPARM_COMPRESS_ORTHO                 = 64
      enumerator :: IPARM_COMPRESS_RELTOL                = 65
      enumerator :: IPARM_COMPRESS_PRESELECT             = 66
-     enumerator :: IPARM_THREAD_COMM_MODE               = 67
-     enumerator :: IPARM_MODIFY_PARAMETER               = 68
-     enumerator :: IPARM_START_TASK                     = 69
-     enumerator :: IPARM_END_TASK                       = 70
-     enumerator :: IPARM_FLOAT                          = 71
-     enumerator :: IPARM_MTX_TYPE                       = 72
-     enumerator :: IPARM_DOF_NBR                        = 73
-     enumerator :: IPARM_SIZE                           = 73
+     enumerator :: IPARM_COMPRESS_ILUK                  = 67
+     enumerator :: IPARM_THREAD_COMM_MODE               = 68
+     enumerator :: IPARM_MODIFY_PARAMETER               = 69
+     enumerator :: IPARM_START_TASK                     = 70
+     enumerator :: IPARM_END_TASK                       = 71
+     enumerator :: IPARM_FLOAT                          = 72
+     enumerator :: IPARM_MTX_TYPE                       = 73
+     enumerator :: IPARM_DOF_NBR                        = 74
+     enumerator :: IPARM_SIZE                           = 74
   end enum
 
   ! enum dparm

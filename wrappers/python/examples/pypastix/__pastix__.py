@@ -10,9 +10,8 @@
  @version 6.0.3
  @author Pierre Ramet
  @author Mathieu Faverge
- @author Louis Poirel
  @author Tony Delarue
- @date 2021-03-03
+ @date 2021-04-06
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -103,7 +102,7 @@ def pypastix_pastixOrderGet( pastix_data ):
     return libpastix.pastixOrderGet( pastix_data )
 
 def pypastix_pastixOrderBcast( ordemesh, root, pastix_comm ):
-    libpastix.pastixOrderBcast.argtypes = [ c_void_p, c_int, c_int ]
+    libpastix.pastixOrderBcast.argtypes = [ c_void_p, c_int, __get_mpi_type__() ]
     libpastix.pastixOrderBcast( ordemesh, root, pastix_comm )
 
 def pypastix_pastixOrderLoad( pastix_data, ordeptr ):
@@ -124,7 +123,7 @@ def pypastix_pastixOrderGrid( myorder, nx, ny, nz ):
 
 def pypastix_pastix( pastix_data, pastix_comm, n, colptr, row, avals, perm,
                      invp, b, nrhs, iparm, dparm ):
-    libpastix.pastix.argtypes = [ c_void_p, c_int, __pastix_int__,
+    libpastix.pastix.argtypes = [ c_void_p, __get_mpi_type__(), __pastix_int__,
                                   POINTER(__pastix_int__),
                                   POINTER(__pastix_int__), c_void_p,
                                   POINTER(__pastix_int__),
@@ -149,7 +148,8 @@ def pypastix_pastixInitParam( iparm, dparm ):
                                dparm.ctypes.data_as( POINTER(c_double) ) )
 
 def pypastix_pastixInit( pastix_data, pastix_comm, iparm, dparm ):
-    libpastix.pastixInit.argtypes = [ c_void_p, c_int, POINTER(__pastix_int__),
+    libpastix.pastixInit.argtypes = [ c_void_p, __get_mpi_type__(),
+                                      POINTER(__pastix_int__),
                                       POINTER(c_double) ]
     libpastix.pastixInit( pointer( pastix_data ), pastix_comm,
                           iparm.ctypes.data_as( POINTER(__pastix_int__) ),
@@ -157,7 +157,7 @@ def pypastix_pastixInit( pastix_data, pastix_comm, iparm, dparm ):
 
 def pypastix_pastixInitWithAffinity( pastix_data, pastix_comm, iparm, dparm,
                                      bindtab ):
-    libpastix.pastixInitWithAffinity.argtypes = [ c_void_p, c_int,
+    libpastix.pastixInitWithAffinity.argtypes = [ c_void_p, __get_mpi_type__(),
                                                   POINTER(__pastix_int__),
                                                   POINTER(c_double), c_int_p ]
     libpastix.pastixInitWithAffinity( pointer( pastix_data ), pastix_comm,

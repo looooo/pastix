@@ -11,7 +11,7 @@
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2021-03-03
+ @date 2021-04-06
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -91,14 +91,15 @@ const Pastix_graph_t = Ptr{Cvoid}
     iparm_compress_ortho                 = 64,
     iparm_compress_reltol                = 65,
     iparm_compress_preselect             = 66,
-    iparm_thread_comm_mode               = 67,
-    iparm_modify_parameter               = 68,
-    iparm_start_task                     = 69,
-    iparm_end_task                       = 70,
-    iparm_float                          = 71,
-    iparm_mtx_type                       = 72,
-    iparm_dof_nbr                        = 73,
-    iparm_size                           = 73,
+    iparm_compress_iluk                  = 67,
+    iparm_thread_comm_mode               = 68,
+    iparm_modify_parameter               = 69,
+    iparm_start_task                     = 70,
+    iparm_end_task                       = 71,
+    iparm_float                          = 72,
+    iparm_mtx_type                       = 73,
+    iparm_dof_nbr                        = 74,
+    iparm_size                           = 74,
 }
 
 @cenum Pastix_dparm_t {
