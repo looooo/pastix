@@ -97,7 +97,7 @@ module pastix_enums
      enumerator :: IPARM_COMPRESS_RELTOL                = 65
      enumerator :: IPARM_COMPRESS_PRESELECT             = 66
      enumerator :: IPARM_COMPRESS_ILUK                  = 67
-     enumerator :: IPARM_THREAD_COMM_MODE               = 68
+     enumerator :: IPARM_MPI_THREAD_LEVEL               = 68
      enumerator :: IPARM_MODIFY_PARAMETER               = 69
      enumerator :: IPARM_START_TASK                     = 70
      enumerator :: IPARM_END_TASK                       = 71
@@ -218,10 +218,13 @@ module pastix_enums
      enumerator :: PastixOrderParMetis = 4
   end enum
 
-  ! enum threadmode
+  ! enum mpithreadmode
   enum, bind(C)
-     enumerator :: PastixThreadMultiple = 1
-     enumerator :: PastixThreadFunneled = 2
+     enumerator :: PastixMpiNone             = 0
+     enumerator :: PastixMpiThreadSingle     = 1
+     enumerator :: PastixMpiThreadFunneled   = 2
+     enumerator :: PastixMpiThreadSerialized = 3
+     enumerator :: PastixMpiThreadMultiple   = 4
   end enum
 
   ! enum error

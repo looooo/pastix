@@ -93,7 +93,7 @@ class iparm:
     compress_reltol                = 64
     compress_preselect             = 65
     compress_iluk                  = 66
-    thread_comm_mode               = 67
+    mpi_thread_level               = 67
     modify_parameter               = 68
     start_task                     = 69
     end_task                       = 70
@@ -193,9 +193,12 @@ class ordering:
     PtScotch = 3
     ParMetis = 4
 
-class threadmode:
-    Multiple = 1
-    Funneled = 2
+class mpithreadmode:
+    MpiNone             = 0
+    MpiThreadSingle     = 1
+    MpiThreadFunneled   = 2
+    MpiThreadSerialized = 3
+    MpiThreadMultiple   = 4
 
 class error:
     SUCCESS        = 0

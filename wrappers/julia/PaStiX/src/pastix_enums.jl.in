@@ -92,7 +92,7 @@ const Pastix_graph_t = Ptr{Cvoid}
     iparm_compress_reltol                = 65,
     iparm_compress_preselect             = 66,
     iparm_compress_iluk                  = 67,
-    iparm_thread_comm_mode               = 68,
+    iparm_mpi_thread_level               = 68,
     iparm_modify_parameter               = 69,
     iparm_start_task                     = 70,
     iparm_end_task                       = 71,
@@ -203,9 +203,12 @@ const Pastix_graph_t = Ptr{Cvoid}
     orderparmetis = 4,
 }
 
-@cenum Pastix_threadmode_t {
-    threadmultiple = 1,
-    threadfunneled = 2,
+@cenum Pastix_mpithreadmode_t {
+    mpinone             = 0,
+    mpithreadsingle     = 1,
+    mpithreadfunneled   = 2,
+    mpithreadserialized = 3,
+    mpithreadmultiple   = 4,
 }
 
 @cenum Pastix_error_t {
