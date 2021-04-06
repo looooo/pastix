@@ -159,35 +159,27 @@ def parse_triple(string):
     else:
         const=0
 
-    parts = string.split()
-    if (len(parts) < 2 or len(parts) > 3):
+    string = string.strip()
+    m = re.search(r"^(.*[\s\*])([^\*\s]+)$", string )
+
+    if m == None:
         print("Error: Cannot detect type for ", string)
 
-    type_part = str.strip(parts[0])
+    type_part = m.group(1).strip()
+    name_part = m.group(2).strip()
+    pointer_part = ""
+    name_with_pointer = name_part
 
-    if (len(parts) == 2):
-        name_with_pointer = str.strip(parts[1])
-        if (name_with_pointer.find("**") > -1):
+    if type_part[-1:] == "*":
+        type_part = type_part[:-1].strip()
+        pointer_part = "*"
+        name_with_pointer = "*" + name_part
+
+        # Double pointer case
+        if type_part[-1:] == "*":
+            type_part = type_part[:-1].strip()
             pointer_part = "**"
-            name_part = name_with_pointer.replace("**", "")
-        elif (name_with_pointer.find("*") > -1):
-            pointer_part = "*"
-            name_part    = name_with_pointer.replace("*", "")
-        else:
-            pointer_part = ""
-            name_part    = name_with_pointer
-
-    elif (len(parts) == 3):
-        if (str.strip(parts[1]) == "**"):
-            pointer_part = "**"
-            name_part    = str.strip(parts[2])
-        elif (str.strip(parts[1]) == "*"):
-            pointer_part = "*"
-            name_part    = str.strip(parts[2])
-        else:
-            print("Error: Too many parts for ", string)
-
-    name_part = name_part.strip()
+            name_with_pointer = "**" + name_part
 
     return [type_part, pointer_part, name_part, const]
 
