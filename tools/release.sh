@@ -38,6 +38,8 @@ function gen_changelog()
         changelog="$changelog$line\\n"
         #echo $line
     done
+
+    changelog="$changelog\nWARNING: Download the source archive by clicking on the link __Download release__ above, please do not consider the automatic Source code links as they are missing the submodules.\n"
 }
 
 release=""
