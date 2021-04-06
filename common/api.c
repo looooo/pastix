@@ -464,7 +464,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_GMRES_IM]              = 25;
 
     /* Context */
-    iparm[IPARM_SCHEDULER]             = PastixSchedStatic;
+    iparm[IPARM_SCHEDULER]             = PastixSchedDynamic;
     iparm[IPARM_THREAD_NBR]            = -1;
     iparm[IPARM_AUTOSPLIT_COMM]        = 0;
 

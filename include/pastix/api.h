@@ -106,7 +106,7 @@ typedef enum pastix_iparm_e {
     IPARM_GMRES_IM,              /**< GMRES restart parameter                                        Default: 25                        IN  */
 
     /* Context */
-    IPARM_SCHEDULER,             /**< Scheduler mode                                                 Default: PastixSchedStatic         IN  */
+    IPARM_SCHEDULER,             /**< Scheduler mode                                                 Default: PastixSchedDynamic        IN  */
     IPARM_THREAD_NBR,            /**< Number of threads per process (-1 for auto detect)             Default: -1                        IN  */
     IPARM_AUTOSPLIT_COMM,        /**< Automaticaly split communicator to have one MPI task by node   Default: 0                         IN  */
 
