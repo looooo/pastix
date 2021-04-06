@@ -152,7 +152,7 @@ pastix_starpu_init( pastix_data_t *pastix,
 #endif
 
     conf = pastix->starpu;
-    conf->ncpus = iparm[IPARM_THREAD_NBR];
+    conf->ncpus = pastix_imax( 1, (iparm[IPARM_THREAD_NBR] - iparm[IPARM_GPU_NBR] - 1) );
     conf->ncuda = iparm[IPARM_GPU_NBR];
     conf->nopencl = 0;
 
