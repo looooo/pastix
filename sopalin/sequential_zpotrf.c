@@ -177,14 +177,14 @@ thread_zpotrf_dynamic( isched_thread_t *ctx, void *args )
         cblknum = pqueuePop(computeQueue);
 
 #if defined(PASTIX_WITH_MPI)
-        /* Nothing to do, let's make progress on comunications */
+        /* Nothing to do, let's make progress on communications */
         if( cblknum == -1 ) {
             cpucblk_zmpi_progress( PastixLCoef, datacode, rank );
             cblknum = pqueuePop(computeQueue);
         }
 #endif
 
-        /* No more local job, let's steal our neighbours */
+        /* No more local job, let's steal our neighbors */
         if( cblknum == -1 ) {
             if ( local_taskcnt ) {
                 pastix_atomic_sub_32b( &(arg->taskcnt), local_taskcnt );
@@ -223,7 +223,7 @@ dynamic_zpotrf( pastix_data_t  *pastix_data,
                 sopalin_data_t *sopalin_data )
 {
     SolverMatrix        *datacode = sopalin_data->solvmtx;
-    int32_t              taskcnt = datacode->tasknbr;
+    int32_t              taskcnt = datacode->tasknbr - (datacode->cblknbr - datacode->cblkschur);
     struct args_zpotrf_t args_zpotrf = { sopalin_data, taskcnt };
 
     /* Allocate the computeQueue */
