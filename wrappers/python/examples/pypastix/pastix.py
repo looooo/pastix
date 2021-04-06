@@ -25,9 +25,9 @@ def initParam():
     pypastix_pastixInitParam( iparm_, dparm_ )
     return iparm_, dparm_
 
-def init( iparm, dparm ):
+def init( iparm, dparm, comm=pypastix_default_comm ):
     pastix_data = c_void_p();
-    pypastix_pastixInit( pastix_data, c_int(0), iparm, dparm )
+    pypastix_pastixInit( pastix_data, comm, iparm, dparm )
     return pastix_data
 
 def finalize( pastix_data, iparm, dparm ):

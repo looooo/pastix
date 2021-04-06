@@ -29,16 +29,25 @@ import spm
 
 if __pastix_mpi_enabled__:
     from mpi4py import MPI
-
-def __get_mpi_type__():
-    if not __pastix_mpi_enabled__:
-        return c_int
     if MPI._sizeof(MPI.Comm) == sizeof(c_long):
-        return c_long
+        pypastix_mpi_comm = c_long
     elif MPI._sizeof(MPI.Comm) == sizeof(c_int):
-        return c_int
+        pypastix_mpi_comm = c_int
     else:
-        return c_void_p
+        pypastix_mpi_comm = c_void_p
+
+    pypastix_default_comm = MPI.COMM_WORLD
+
+    def pypastix_convert_comm( comm ):
+        comm_ptr = MPI._addressof(comm)
+        return pypastix_mpi_comm.from_address(comm_ptr)
+else:
+    pypastix_mpi_comm = c_int
+
+    pypastix_default_comm = 0
+
+    def pypastix_convert_comm( comm ):
+        return c_int(comm)
 
 class pypastix_order_t(Structure):
     _fields_ = [("baseval",  __pastix_int__         ),
@@ -102,8 +111,9 @@ def pypastix_pastixOrderGet( pastix_data ):
     return libpastix.pastixOrderGet( pastix_data )
 
 def pypastix_pastixOrderBcast( ordemesh, root, pastix_comm ):
-    libpastix.pastixOrderBcast.argtypes = [ c_void_p, c_int, __get_mpi_type__() ]
-    libpastix.pastixOrderBcast( ordemesh, root, pastix_comm )
+    libpastix.pastixOrderBcast.argtypes = [ c_void_p, c_int, pypastix_mpi_comm ]
+    libpastix.pastixOrderBcast( ordemesh, root,
+                                pypastix_convert_comm( pastix_comm ) )
 
 def pypastix_pastixOrderLoad( pastix_data, ordeptr ):
     libpastix.pastixOrderLoad.argtypes = [ c_void_p, c_void_p ]
@@ -123,7 +133,7 @@ def pypastix_pastixOrderGrid( myorder, nx, ny, nz ):
 
 def pypastix_pastix( pastix_data, pastix_comm, n, colptr, row, avals, perm,
                      invp, b, nrhs, iparm, dparm ):
-    libpastix.pastix.argtypes = [ c_void_p, __get_mpi_type__(), __pastix_int__,
+    libpastix.pastix.argtypes = [ c_void_p, pypastix_mpi_comm, __pastix_int__,
                                   POINTER(__pastix_int__),
                                   POINTER(__pastix_int__), c_void_p,
                                   POINTER(__pastix_int__),
@@ -131,7 +141,8 @@ def pypastix_pastix( pastix_data, pastix_comm, n, colptr, row, avals, perm,
                                   __pastix_int__, POINTER(__pastix_int__),
                                   POINTER(c_double) ]
     libpastix.pastix.restype = c_int
-    return libpastix.pastix( pointer( pastix_data ), pastix_comm, n,
+    return libpastix.pastix( pointer( pastix_data ),
+                             pypastix_convert_comm( pastix_comm ), n,
                              colptr.ctypes.data_as( POINTER(__pastix_int__) ),
                              row.ctypes.data_as( POINTER(__pastix_int__) ),
                              avals,
@@ -148,19 +159,21 @@ def pypastix_pastixInitParam( iparm, dparm ):
                                dparm.ctypes.data_as( POINTER(c_double) ) )
 
 def pypastix_pastixInit( pastix_data, pastix_comm, iparm, dparm ):
-    libpastix.pastixInit.argtypes = [ c_void_p, __get_mpi_type__(),
+    libpastix.pastixInit.argtypes = [ c_void_p, pypastix_mpi_comm,
                                       POINTER(__pastix_int__),
                                       POINTER(c_double) ]
-    libpastix.pastixInit( pointer( pastix_data ), pastix_comm,
+    libpastix.pastixInit( pointer( pastix_data ),
+                          pypastix_convert_comm( pastix_comm ),
                           iparm.ctypes.data_as( POINTER(__pastix_int__) ),
                           dparm.ctypes.data_as( POINTER(c_double) ) )
 
 def pypastix_pastixInitWithAffinity( pastix_data, pastix_comm, iparm, dparm,
                                      bindtab ):
-    libpastix.pastixInitWithAffinity.argtypes = [ c_void_p, __get_mpi_type__(),
+    libpastix.pastixInitWithAffinity.argtypes = [ c_void_p, pypastix_mpi_comm,
                                                   POINTER(__pastix_int__),
                                                   POINTER(c_double), c_int_p ]
-    libpastix.pastixInitWithAffinity( pointer( pastix_data ), pastix_comm,
+    libpastix.pastixInitWithAffinity( pointer( pastix_data ),
+                                      pypastix_convert_comm( pastix_comm ),
                                       iparm.ctypes.data_as( POINTER(__pastix_int__) ),
                                       dparm.ctypes.data_as( POINTER(c_double) ),
                                       bindtab.ctypes.data_as( c_int_p ) )
