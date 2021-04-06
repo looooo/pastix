@@ -510,15 +510,15 @@ __pastix_mpi_enabled__ = @PASTIX_PYTHON_MPI_ENABLED@
                    'enums'       : { 'mtxtype'  : "    enumerator :: PastixSymPosDef = PastixConjTrans + 1\n    enumerator :: PastixHerPosDef    = PastixConjTrans + 2\n" }
     },
     'julia'   : { 'filename'    : "wrappers/julia/PaStiX/src/pastix_enums.jl.in",
-                   'description' : "PaStiX julia wrapper to define enums and datatypes",
-                   'header'      : """
+                  'description' : "PaStiX julia wrapper to define enums and datatypes",
+                  'header'      : """
 Pastix_int_t = @PASTIX_JULIA_INTEGER@
 pastix_mpi_enabled = @PASTIX_JULIA_MPI_ENABLED@
 const Pastix_data_t = Cvoid
 const Pastix_graph_t = Ptr{Cvoid}
 """,
-                   'footer'      : "",
-                   'enums'       : "",
+                  'footer'      : "",
+                  'enums'       : {}
     },
 }
 
@@ -535,16 +535,25 @@ import spm
 
 if __pastix_mpi_enabled__:
     from mpi4py import MPI
-
-def __get_mpi_type__():
-    if not __pastix_mpi_enabled__:
-        return c_int
     if MPI._sizeof(MPI.Comm) == sizeof(c_long):
-        return c_long
+        pypastix_mpi_comm = c_long
     elif MPI._sizeof(MPI.Comm) == sizeof(c_int):
-        return c_int
+        pypastix_mpi_comm = c_int
     else:
-        return c_void_p
+        pypastix_mpi_comm = c_void_p
+
+    pypastix_default_comm = MPI.COMM_WORLD
+
+    def pypastix_convert_comm( comm ):
+        comm_ptr = MPI._addressof(comm)
+        return pypastix_mpi_comm.from_address(comm_ptr)
+else:
+    pypastix_mpi_comm = c_int
+
+    pypastix_default_comm = 0
+
+    def pypastix_convert_comm( comm ):
+        return c_int(comm)
 """,
                    'footer'      : "",
                    'enums'       : {}
@@ -564,8 +573,8 @@ def __get_mpi_type__():
                    'enums'       : {}
     },
     'julia'   : { 'filename'    : "wrappers/julia/PaStiX/src/PaStiX.jl",
-                   'description' : "PaStiX julia wrapper",
-                   'header'      : """
+                  'description' : "PaStiX julia wrapper",
+                  'header'      : """
 module PaStiX
 using CBinding
 using Libdl
@@ -594,8 +603,8 @@ function __get_mpi_type__()
     return Cvoid
 end
 """,
-                   'footer'      : "end #module",
-                   'enums'       : {}
+                  'footer'      : "end #module",
+                  'enums'       : {}
     },
 }
 

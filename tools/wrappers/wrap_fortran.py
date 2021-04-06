@@ -12,7 +12,8 @@ Wrapper Fortran 90
 
  @version 6.0.3
  @author Mathieu Faverge
- @date 2019-12-05
+ @author Tony Delarue
+ @date 2021-03-31
 
 """
 import os
@@ -32,6 +33,8 @@ iindent=3
 types_dict = {
     "int":            ("integer(kind=c_int)"),
     "int8_t":         ("integer(kind=c_int8_t)"),
+    "seed_t":                 ("integer(kind=c_long_long)"),
+    "unsigned long long int": ("integer(kind=c_long_long)"),
     "spm_coeftype_t": ("integer(c_int)"),
     "spm_dir_t":      ("integer(c_int)"),
     "spm_trans_t":    ("integer(c_int)"),
@@ -46,6 +49,15 @@ types_dict = {
     "spm_mtxtype_t":  ("integer(c_int)"),
     "spmatrix_t":     ("type(spmatrix_t)"),
     "spm_int_t":      ("integer(kind=spm_int_t)"),
+    "size_t":         ("integer(kind=c_size_t)"),
+    "char":           ("character(kind=c_char)"),
+    "double":         ("real(kind=c_double)"),
+    "float":          ("real(kind=c_float)"),
+    "spm_complex64_t":("complex(kind=c_double_complex)"),
+    "spm_complex32_t":("complex(kind=c_float_complex)"),
+    "void":           ("type(c_ptr)"),
+    "MPI_Comm":       ("type(MPI_Comm)"),
+    "FILE":           ("type(c_ptr)"),
     "pastix_coeftype_t": ("integer(c_int)"),
     "pastix_dir_t":      ("integer(c_int)"),
     "pastix_trans_t":    ("integer(c_int)"),
@@ -61,17 +73,9 @@ types_dict = {
     "pastix_int_t":      ("integer(kind=pastix_int_t)"),
     "pastix_order_t":    ("type(pastix_order_t)"),
     "pastix_graph_t":    ("type(pastix_graph_t)"),
-    "size_t":            ("integer(kind=c_size_t)"),
-    "char":              ("character(kind=c_char)"),
-    "double":            ("real(kind=c_double)"),
-    "float":             ("real(kind=c_float)"),
     "pastix_complex64_t":("complex(kind=c_double_complex)"),
     "pastix_complex32_t":("complex(kind=c_float_complex)"),
-    "spm_complex64_t":   ("complex(kind=c_double_complex)"),
-    "spm_complex32_t":   ("complex(kind=c_float_complex)"),
-    "void":              ("type(c_ptr)"),
     "PASTIX_Comm":       ("integer(kind=c_int)"),
-    "FILE":              ("type(c_ptr)"),
 }
 
 def iso_c_interface_type(arg, return_value, list):
@@ -149,21 +153,23 @@ class wrap_fortran:
     def header( f ):
         filename = os.path.basename( f['filename'] )
         modname = re.sub(r".f90", "", filename, flags=re.IGNORECASE)
-        header = '''
-!
-! @file '''+ filename +'''
-!
-! ''' + f['description'] + '''
-!
-! @copyright 2017-''' + time.strftime( "%Y" ) + ''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
-!                      Univ. Bordeaux. All rights reserved.
-!
-! @version 6.0.3
-! @author Mathieu Faverge
-! @date ''' + time.strftime( "%Y-%m-%d" ) + '''
-!
-! This file has been automatically generated with gen_wrappers.py
-!
+        header = '''!>
+!> @file '''+ filename +'''
+!>
+!> ''' + f['description'] + '''
+!>
+!> @copyright 2017-''' + time.strftime( "%Y" ) + ''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+!>                      Univ. Bordeaux. All rights reserved.
+!>
+!> @version 6.0.3
+!> @author Mathieu Faverge
+!> @author Tony Delarue
+!> @date ''' + time.strftime( "%Y-%m-%d" ) + '''
+!>
+!> This file has been automatically generated with gen_wrappers.py
+!>
+!> @ingroup wrap_fortran
+!>
 module ''' + modname + '''
   use iso_c_binding'''
 
@@ -300,7 +306,7 @@ end module ''' + modname
         # add common header
         f_interface += s*" " + "use iso_c_binding\n"
         # import derived types
-        for derived_type in used_derived_types:
+        for derived_type in sorted( used_derived_types ):
             f_interface += s*" " + "import " + derived_type +"\n"
         f_interface += s*" " + "implicit none\n"
 
