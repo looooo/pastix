@@ -296,6 +296,7 @@ starpu_zhetrf( pastix_data_t  *pastix_data,
         sdesc = sopalin_data->solvmtx->starpu_desc;
     }
 
+    starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
     starpu_resume();
     /*
      * Select 1D or 2D algorithm based on 2d tasks level
@@ -315,6 +316,7 @@ starpu_zhetrf( pastix_data_t  *pastix_data,
     starpu_mpi_barrier(pastix_data->inter_node_comm);
 #endif
     starpu_pause();
+    starpu_profiling_status_set(STARPU_PROFILING_DISABLE);
 
     return;
 }

@@ -7,13 +7,14 @@ Wrapper Julia
 
  PaStiX generator for the  wrapper
 
- @copyright 2019-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2019-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.0.0
  @author Mathieu Faverge
  @author Selmane Lebdaoui
- @date 2020-06-18
+ @author Tony Delarue
+ @date 2021-03-31
 
 """
 import os
@@ -29,6 +30,8 @@ iindent=4
 types_dict = {
     "int":            ("Cint"),
     "int8_t":         ("Int8"),
+    "seed_t":                 ("Culonglong"),
+    "unsigned long long int": ("Culonglong"),
     "spm_coeftype_t": ("spm.spm_coeftype_t"),
     "spm_dir_t":      ("spm.spm_dir_t"),
     "spm_trans_t":    ("spm.spm_trans_t"),
@@ -43,6 +46,15 @@ types_dict = {
     "spm_mtxtype_t":  ("spm.spm_mtxtype_t"),
     "spm_int_t":      ("spm.spm_int_t"),
     "spmatrix_t":     ("spm.spmatrix_t"),
+    "size_t":         ("Csize_t"),
+    "char":           ("Cchar"),
+    "double":         ("Cdouble"),
+    "float":          ("Cfloat"),
+    "spm_complex64_t":("ComplexF64"),
+    "spm_complex32_t":("ComplexF32"),
+    "void":           ("Cvoid"),
+    "MPI_Comm":       ("__get_mpi_type__()"),
+    "FILE":           ("Cvoid"),
     "pastix_coeftype_t": ("spm.spm_coeftype_t"),
     "pastix_dir_t":      ("spm.spm_dir_t"),
     "pastix_trans_t":    ("Pastix_trans_t"),
@@ -60,13 +72,7 @@ types_dict = {
     "pastix_ordering_t": ("Pastix_ordering_t"),
     "pastix_order_t":    ("Pastix_order_t"),
     "pastix_graph_t":    ("Pastix_graph_t"),
-    "size_t":            ("Csize_t"),
-    "char":              ("Cchar"),
-    "double":            ("Cdouble"),
-    "float":             ("Cfloat"),
-    "void":              ("Cvoid"),
     "PASTIX_Comm":       ("__get_mpi_type__()"),
-    "FILE":              ("Cvoid"),
 }
 
 def iso_c_interface_type(arg, return_value, args_list, args_size):
@@ -153,13 +159,16 @@ class wrap_julia:
         # initialize a string with the fortran interface
         bib = ""
         Bib = ""
+        BIB = ""
         if ("SPM" in f['description']):
-            bib = "Spm_"
+            bib = "spm"
             Bib = "Spm"
+            BIB = "SPM"
         elif ("PaStiX" in f['description']):
-            bib = "Pastix_"
-            Bib = "PASTIX"
-        jl_interface = "@cenum " + bib + ename + "_t " + "{\n"
+            bib = "pastix"
+            Bib = "Pastix"
+            BIB = "PASTIX"
+        jl_interface = "@cenum " + Bib + "_" + ename + "_t " + "{\n"
 
         # loop over the arguments of the enum to get max param length
         # And modify the names first
@@ -170,10 +179,13 @@ class wrap_julia:
             param[0] = re.sub(r"PASTIX_", "", param[0])
 
             if ename == "mtxtype":
+                param[1] = re.sub(r"trans.", "Spm", param[1])
                 param[1] = re.sub(r"Pastix", "", param[1])
                 param[1] = param[1].lower()
+            # if ename == "verbose":
+            #     param[0] = re.sub(r"Verbose", "", param[0])
+            length = max( length, len(param[0]))
 
-            length= max( length, len(param[0]) )
         fmt="%-"+ str(length) + "s"
 
         # Increment for index array enums
@@ -182,8 +194,9 @@ class wrap_julia:
             inc=1
 
         # loop over the arguments of the enum
+        suffix=""
         for param in params:
-            name  = param[0].lower()
+            name = param[0].lower()
             if isinstance(param[1],int):
                 if name[1:10] == "parm_size":
                     value = str(param[1])
@@ -191,7 +204,10 @@ class wrap_julia:
                     value = str(param[1] + inc)
             else:
                 value = str(param[1])
-            jl_interface += indent + format(fmt % name) + " = " + value + ",\n"
+            if(ename == "error" and  name=="SUCCESS"):
+                jl_interface += indent + format(fmt % name) + indent + " = " + value + ",\n"
+            else :
+                jl_interface += indent + format(fmt % (name + suffix)) + " = " + value + ",\n"
 
         jl_interface+="}\n"
         return jl_interface
@@ -207,7 +223,7 @@ class wrap_julia:
         s = 0
         name = struct[0][2]
         name = re.sub(r"pastix_", "", name)
-        py_interface +=  "@cstruct " + "Pastix_" + name + " {\n"
+        py_interface +=  "@cstruct " + "Pastix" + "_" + name + " {\n"
         s = iindent
         py_interface +=  s*" "
         headline = s*" "

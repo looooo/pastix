@@ -7,7 +7,7 @@ Wrapper Python
 
  PaStiX generator for the python wrapper
 
- @copyright 2017-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.0.3
@@ -29,6 +29,8 @@ iindent=4
 types_dict = {
     "int":            ("c_int"),
     "int8_t":         ("c_int8"),
+    "seed_t":                 ("c_ulonglong"),
+    "unsigned long long int": ("c_ulonglong"),
     "spm_coeftype_t": ("c_int"),
     "spm_dir_t":      ("c_int"),
     "spm_trans_t":    ("c_int"),
@@ -43,6 +45,13 @@ types_dict = {
     "spm_mtxtype_t":  ("c_int"),
     "spm_int_t":      ("__spm_int__"),
     "spmatrix_t":     ("pyspm_spmatrix_t"),
+    "size_t":         ("c_size_t"),
+    "char":           ("c_char"),
+    "double":         ("c_double"),
+    "float":          ("c_float"),
+    "void":           ("c_void"),
+    "MPI_Comm":       ("pypastix_mpi_comm"),
+    "FILE":           ("c_void"),
     "pastix_coeftype_t": ("c_int"),
     "pastix_dir_t":      ("c_int"),
     "pastix_trans_t":    ("c_int"),
@@ -59,13 +68,7 @@ types_dict = {
     "pastix_data_t":     ("c_void"),
     "pastix_order_t":    ("c_void"),
     "pastix_graph_t":    ("c_void"),
-    "size_t":            ("c_size_t"),
-    "char":              ("c_char"),
-    "double":            ("c_double"),
-    "float":             ("c_float"),
-    "void":              ("c_void"),
-    "PASTIX_Comm":       ("c_int"),
-    "FILE":              ("c_void"),
+    "PASTIX_Comm":       ("pypastix_mpi_comm"),
 }
 
 def iso_c_interface_type(arg, return_value, args_list, args_size):
@@ -135,6 +138,10 @@ def iso_c_wrapper_type(arg, args_list, args_size):
     if arg[1] == "**":
         f_call = "pointer( " + f_call + " )"
 
+    # Call to communicators
+    if (arg[0] == "PASTIX_Comm") or (arg[0] == "MPI_Comm"):
+        f_call = "pypastix_convert_comm( " + f_call + " )"
+
     args_size[0] = max(args_size[0], len(f_name))
     args_size[1] = max(args_size[1], len(f_type))
     args_size[2] = max(args_size[2], len(f_call))
@@ -158,7 +165,6 @@ class wrap_python:
  @version 6.0.3
  @author Pierre Ramet
  @author Mathieu Faverge
- @author Louis Poirel
  @author Tony Delarue
  @date ''' + time.strftime( "%Y-%m-%d" ) + '''
 

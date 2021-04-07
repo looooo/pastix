@@ -249,6 +249,22 @@ pastix_fopen( const char *filename )
     return f;
 }
 
+static const char *
+pastix_mpithreadmode_getstr( pastix_mpithreadmode_t mpi_mode ) {
+    switch ( mpi_mode ) {
+    case PastixMpiThreadMultiple:
+        return "Multiple";
+    case PastixMpiThreadSerialized:
+        return "Serialized";
+    case PastixMpiThreadFunneled:
+        return "Funneled";
+    case PastixMpiThreadSingle:
+        return "Single";
+    default:
+        return "No MPI enabled";
+    }
+}
+
 /**
  *******************************************************************************
  *
@@ -285,11 +301,7 @@ pastixWelcome( const pastix_data_t *pastix )
                   /* MPI nbr    */ pastix->procnbr,
                   /* Thrd nbr   */ (int)(pastix->iparm[IPARM_THREAD_NBR]),
                   /* GPU nbr    */ (int)(pastix->iparm[IPARM_GPU_NBR]),
-#if defined(PASTIX_WITH_MPI)
-                  /* MPI mode   */ ((pastix->iparm[IPARM_THREAD_COMM_MODE] == PastixThreadMultiple) ? "Multiple" : "Funneled"),
-#else
-                  "Disabled",
-#endif
+                  /* MPI mode   */ pastix_mpithreadmode_getstr( pastix->iparm[IPARM_MPI_THREAD_LEVEL] ),
                   /* Distrib    */ ((pastix->iparm[IPARM_TASKS2D_LEVEL] == 0) ? "1D" : "2D"),
                                    ((pastix->iparm[IPARM_TASKS2D_LEVEL] <  0) ? ((long)pastix->iparm[IPARM_TASKS2D_WIDTH]) :
                                                                                -((long)pastix->iparm[IPARM_TASKS2D_LEVEL])),
@@ -464,7 +476,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_GMRES_IM]              = 25;
 
     /* Context */
-    iparm[IPARM_SCHEDULER]             = PastixSchedStatic;
+    iparm[IPARM_SCHEDULER]             = PastixSchedDynamic;
     iparm[IPARM_THREAD_NBR]            = -1;
     iparm[IPARM_AUTOSPLIT_COMM]        = 0;
 
@@ -483,34 +495,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_COMPRESS_ILUK]         = -2;
 
     /* MPI modes */
-#if defined(PASTIX_WITH_MPI)
-    {
-        int flag = 0;
-        int provided = MPI_THREAD_SINGLE;
-        MPI_Initialized(&flag);
-
-        iparm[IPARM_THREAD_COMM_MODE] = 0;
-        if (flag) {
-            MPI_Query_thread(&provided);
-            switch( provided ) {
-            case MPI_THREAD_MULTIPLE:
-                iparm[IPARM_THREAD_COMM_MODE] = PastixThreadMultiple;
-                break;
-            case MPI_THREAD_SERIALIZED:
-            case MPI_THREAD_FUNNELED:
-                iparm[IPARM_THREAD_COMM_MODE] = PastixThreadFunneled;
-                break;
-                /*
-                 * In the folowing cases, we consider that any MPI implementation
-                 * should provide enough level of parallelism to turn in Funneled mode
-                 */
-            case MPI_THREAD_SINGLE:
-            default:
-                iparm[IPARM_THREAD_COMM_MODE] = PastixThreadFunneled;
-            }
-        }
-    }
-#endif /* defined(PASTIX_WITH_MPI) */
+    iparm[IPARM_MPI_THREAD_LEVEL] = PastixMpiNone;
 
     /* Subset for old pastix interface  */
     iparm[IPARM_MODIFY_PARAMETER] = 1;
@@ -707,27 +692,21 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
             MPI_Query_thread( &provided );
         }
 
-         if ( iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
-            char *str;
-            switch ( provided ) {
-            case MPI_THREAD_MULTIPLE:
-                str = "MPI_THREAD_MULTIPLE";
-                break;
-            case MPI_THREAD_SERIALIZED:
-                str = "MPI_THREAD_SERIALIZED";
-                break;
-            case MPI_THREAD_FUNNELED:
-                str = "MPI_THREAD_FUNNELED";
-                break;
-            case MPI_THREAD_SINGLE:
-                str = "MPI_THREAD_SINGLE";
-                break;
-            default:
-                str = "MPI_THREAD_UNKNOWN";
-            }
-            pastix_print( pastix->procnum, 0,
-                          "MPI initialized with thread level support: %s\n",
-                          str );
+        switch ( provided ) {
+        case MPI_THREAD_MULTIPLE:
+            iparm[IPARM_MPI_THREAD_LEVEL] = PastixMpiThreadMultiple;
+            break;
+        case MPI_THREAD_SERIALIZED:
+            iparm[IPARM_MPI_THREAD_LEVEL] = PastixMpiThreadSerialized;
+            break;
+        case MPI_THREAD_FUNNELED:
+            iparm[IPARM_MPI_THREAD_LEVEL] = PastixMpiThreadFunneled;
+            break;
+        case MPI_THREAD_SINGLE:
+            iparm[IPARM_MPI_THREAD_LEVEL] = PastixMpiThreadSingle;
+            break;
+        default:
+            iparm[IPARM_MPI_THREAD_LEVEL] = PastixMpiNone;
         }
         pastix_atomic_unlock( &pastix_mpi_lock );
     }

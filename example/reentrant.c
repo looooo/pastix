@@ -105,6 +105,7 @@ static void *solve_smp(void *arg)
     if ( rc != 0 ) {
         spmExit( spm );
         *spm = spm2;
+        rc = 0;
     }
 
     /**

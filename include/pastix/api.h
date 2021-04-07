@@ -106,7 +106,7 @@ typedef enum pastix_iparm_e {
     IPARM_GMRES_IM,              /**< GMRES restart parameter                                        Default: 25                        IN  */
 
     /* Context */
-    IPARM_SCHEDULER,             /**< Scheduler mode                                                 Default: PastixSchedStatic         IN  */
+    IPARM_SCHEDULER,             /**< Scheduler mode                                                 Default: PastixSchedDynamic        IN  */
     IPARM_THREAD_NBR,            /**< Number of threads per process (-1 for auto detect)             Default: -1                        IN  */
     IPARM_AUTOSPLIT_COMM,        /**< Automaticaly split communicator to have one MPI task by node   Default: 0                         IN  */
 
@@ -126,7 +126,7 @@ typedef enum pastix_iparm_e {
     IPARM_COMPRESS_ILUK,         /**< Set the ILU(k) level of preselection (-2 for auto-level)       Default: -2                        IN  */
 
     /* MPI modes */
-    IPARM_THREAD_COMM_MODE,      /**< Threaded communication mode                                    Default: PastixThreadMultiple      IN  */
+    IPARM_MPI_THREAD_LEVEL,      /**< MPI thread level support                                       Default: PastixMpiNone             OUT */
 
     /* Subset for old interface */
     IPARM_MODIFY_PARAMETER,      /**< Indicate if parameters have been set by user                   Default: 1                         IN  */
@@ -313,15 +313,16 @@ typedef enum pastix_ordering_e {
     PastixOrderParMetis  /**< Use ParMetis ordering                       */
 } pastix_ordering_t;
 
-#if defined(PASTIX_WITH_MPI)
 /**
  * @brief MPI thread mode
  */
-typedef enum pastix_threadmode_e {
-    PastixThreadMultiple = 1, /**< All threads communicate              */
-    PastixThreadFunneled = 2  /**< One thread perform all the MPI Calls */
-} pastix_threadmode_t;
-#endif /* defined(PASTIX_WITH_MPI) */
+typedef enum pastix_mpithreadmode_e {
+    PastixMpiNone             = 0, /**< No MPI support                */
+    PastixMpiThreadSingle     = 1, /**< MPI thread single support     */
+    PastixMpiThreadFunneled   = 2, /**< MPI thread funneled support   */
+    PastixMpiThreadSerialized = 3, /**< MPI thread serialized support */
+    PastixMpiThreadMultiple   = 4, /**< MPI thread multiple support   */
+} pastix_mpithreadmode_t;
 
 /**
  * @brief Error codes

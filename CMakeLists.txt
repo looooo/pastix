@@ -430,10 +430,14 @@ if ( SPM_FOUND )
   message( STATUS "Use installed SPM" )
 else()
   message( STATUS "Use internal SPM" )
-  set( SPM_INT64        ${PASTIX_INT64}           CACHE BOOL "" )
-  set( SPM_WITH_FORTRAN ${PASTIX_WITH_FORTRAN}    CACHE BOOL "" )
-  set( SPM_WITH_MPI     ${PASTIX_WITH_MPI}        CACHE BOOL "" )
-  set( SPM_WITH_SCOTCH  ${PASTIX_ORDERING_SCOTCH} CACHE BOOL "" )
+  set( SPM_INT64        ${PASTIX_INT64}           CACHE BOOL "" FORCE )
+  set( SPM_WITH_FORTRAN ${PASTIX_WITH_FORTRAN}    CACHE BOOL "" FORCE )
+  set( SPM_WITH_MPI     ${PASTIX_WITH_MPI}        CACHE BOOL "" FORCE )
+  set( SPM_WITH_SCOTCH  ${PASTIX_ORDERING_SCOTCH} CACHE BOOL "" FORCE )
+  mark_as_advanced( SPM_INT64        )
+  mark_as_advanced( SPM_WITH_FORTRAN )
+  mark_as_advanced( SPM_WITH_MPI     )
+  mark_as_advanced( SPM_WITH_SCOTCH  )
   add_subdirectory(spm)
 endif()
 
@@ -1067,7 +1071,7 @@ install( FILES
   DESTINATION ${LIB_INSTALL_DIR}/cmake/pastix)
 
 # need MORSE Find modules: necessary files must be distributed in the install path
-set(morse_dependencies "M;CBLAS;LAPACKE;HWLOC;SCOTCH;PTSCOTCH;METIS;PARMETIS;PARSEC;STARPU")
+set(morse_dependencies "M;BLASEXT;CBLAS;LAPACKEXT;TMG;LAPACKE;HWLOC;SCOTCH;PTSCOTCH;METIS;PARMETIS;PARSEC;STARPU;GTG;LITL;EZTRACE")
 morse_install_finds(morse_dependencies ${LIB_INSTALL_DIR}/cmake/pastix/find)
 
 #############################################################

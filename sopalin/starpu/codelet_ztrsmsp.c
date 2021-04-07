@@ -124,19 +124,16 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
 
     starpu_insert_task(
         pastix_codelet(codelet),
-        STARPU_VALUE, &coef,         sizeof(pastix_coefside_t),
-        STARPU_VALUE, &side,         sizeof(pastix_side_t),
-        STARPU_VALUE, &uplo,         sizeof(pastix_uplo_t),
-        STARPU_VALUE, &trans,        sizeof(pastix_trans_t),
-        STARPU_VALUE, &diag,         sizeof(pastix_diag_t),
-        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
-        STARPU_VALUE, &blok_m,       sizeof(pastix_int_t),
-        STARPU_VALUE, &sopalin_data, sizeof(sopalin_data_t*),
-        STARPU_R,      cblk->fblokptr->handler[coef],
-        STARPU_RW,     blok->handler[coef],
-#if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
-        STARPU_NAME, "blok_ztrsmsp",
-#endif
+        STARPU_VALUE,   &coef,         sizeof(pastix_coefside_t),
+        STARPU_VALUE,   &side,         sizeof(pastix_side_t),
+        STARPU_VALUE,   &uplo,         sizeof(pastix_uplo_t),
+        STARPU_VALUE,   &trans,        sizeof(pastix_trans_t),
+        STARPU_VALUE,   &diag,         sizeof(pastix_diag_t),
+        STARPU_VALUE,   &cblk,         sizeof(SolverCblk*),
+        STARPU_VALUE,   &blok_m,       sizeof(pastix_int_t),
+        STARPU_VALUE,   &sopalin_data, sizeof(sopalin_data_t*),
+        STARPU_R,        cblk->fblokptr->handler[coef],
+        STARPU_RW,       blok->handler[coef],
         STARPU_PRIORITY, prio,
         0);
 }

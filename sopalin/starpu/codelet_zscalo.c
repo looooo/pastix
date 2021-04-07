@@ -89,15 +89,12 @@ starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
 
     starpu_insert_task(
         pastix_codelet(&cl_blok_zscalo_cpu),
-        STARPU_VALUE, &trans,  sizeof(pastix_trans_t),
-        STARPU_VALUE, &cblk,   sizeof(SolverCblk*),
-        STARPU_VALUE, &blok_m, sizeof(pastix_int_t),
-        STARPU_R,      blok->handler[0],
-        STARPU_R,      cblk->fblokptr->handler[0],
-        STARPU_W,      blok->handler[1],
-#if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
-        STARPU_NAME, "blok_zscalo",
-#endif
+        STARPU_VALUE,   &trans,  sizeof(pastix_trans_t),
+        STARPU_VALUE,   &cblk,   sizeof(SolverCblk*),
+        STARPU_VALUE,   &blok_m, sizeof(pastix_int_t),
+        STARPU_R,        blok->handler[0],
+        STARPU_R,        cblk->fblokptr->handler[0],
+        STARPU_W,        blok->handler[1],
         STARPU_PRIORITY, prio,
         0);
 }

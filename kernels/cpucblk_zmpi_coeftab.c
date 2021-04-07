@@ -60,8 +60,9 @@ cpucblk_zisend( pastix_coefside_t side,
     }
 
 #if defined(PASTIX_DEBUG_MPI)
-    fprintf( stderr, "[%2d] Post Isend for cblk %ld toward %2d\n",
-             solvmtx->clustnum, (long)cblk->gcblknum, cblk->ownerid );
+    fprintf( stderr, "[%2d] Post Isend for cblk %ld toward %2d ( %ld Bytes )\n",
+             solvmtx->clustnum, (long)cblk->gcblknum, cblk->ownerid,
+             (long)(cblksize * sizeof(pastix_complex64_t)) );
 #endif
 
     if ( side == PastixUCoef ) {
@@ -118,8 +119,13 @@ cpucblk_zrequest_handle_fanin( pastix_coefside_t   side,
     assert( cblk->cblktype & CBLK_FANIN );
 
 #if defined(PASTIX_DEBUG_MPI)
-    fprintf( stderr, "[%2d] Isend for cblk %ld toward %2d (DONE)\n",
-             solvmtx->clustnum, (long)cblk->gcblknum, cblk->ownerid );
+    {
+        size_t cblksize = ( side == PastixLUCoef ) ? 2 : 1;
+        cblksize = cblksize * cblk_colnbr( cblk ) * cblk->stride * sizeof(pastix_complex64_t);
+
+        fprintf( stderr, "[%2d] Isend for cblk %ld toward %2d ( %ld Bytes ) (DONE)\n",
+                 solvmtx->clustnum, (long)cblk->gcblknum, cblk->ownerid, (long)cblksize );
+    }
 #endif
     cpucblk_zfree( side, cblk );
 

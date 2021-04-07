@@ -16,6 +16,7 @@
 """
 import pypastix as pastix
 import scipy.sparse as sps
+import scipy.sparse.linalg
 import numpy as np
 
 # Set the problem
@@ -23,6 +24,9 @@ n = 1000
 A = sps.spdiags([np.ones(n)*i for i in [8., -1., -1., -1., -1.]],
                 [0, 1, 3, -1, -3], n, n)
 x0 = np.arange(n)
+
+normA = sps.linalg.norm( A )
+A = A / normA
 b = A.dot(x0)
 
 # Hack to make sure that the mkl is loaded
@@ -34,8 +38,11 @@ solver = pastix.solver(A, verbose=True)
 # Solve
 x = solver.solve( b )
 
+resid = A.dot( x ) - b
+print( "Norm residual: ", np.linalg.norm( resid ) )
+
 # Check the solution
-rc = solver.check( x, b, x0=x0 )
+rc = solver.check( x, b, x0, eps=1e-12 )
 
 solver.finalize()
 

@@ -177,8 +177,9 @@ class solver(object):
 
         return x
 
-    def check( self, x, b, x0=None ):
-        return self.spmA.checkAxb(x0, b, x)
+    def check( self, x, b, x0=None, nrhs=-1, **kwargs ):
+        eps = kwargs.setdefault( 'eps', -1. )
+        return self.spmA.checkAxb( x0, b, x, eps=eps )
 
     def finalize(self):
         finalize(self.pastix_data, self.iparm, self.dparm)

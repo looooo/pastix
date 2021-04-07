@@ -46,7 +46,7 @@ graphLoad( const pastix_data_t *pastix_data,
 {
     FILE *stream   = NULL;
     char *filename = NULL;
-    int   rc, env = 1;
+    int   env = 1;
 
     /* Parameter checks */
     if ( graph == NULL ) {
