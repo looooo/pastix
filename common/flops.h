@@ -4,11 +4,13 @@
  *
  * @copyright 2010-2012 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
- * @copyright 2012-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.1.0
  * @author Mathieu Faverge
+ * @author Gregoire Pichon
+ * @author Pierre Ramet
  * @date 2019-11-12
  *
  **/

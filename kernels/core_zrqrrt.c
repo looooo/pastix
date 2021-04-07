@@ -4,11 +4,12 @@
  *
  * PaStiX Rank-revealing QR kernel based on randomization technique with rotation.
  *
- * @copyright 2016-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
  * @author Esragul Korkmaz
+ * @author Mathieu Faverge
  * @date 2019-11-12
  * @precisions normal z -> c d s
  *

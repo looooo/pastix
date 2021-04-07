@@ -5,12 +5,13 @@
  * PaStiX fax symbol structure routines issued from Scotch esmumps library.
  * This is the generic block symbolic factorization routine.
  *
- * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.1.0
+ * @version 6.2.0
  * @author Francois Pellegrini
- * @date 2020-02-05
+ * @author Mathieu Faverge
+ * @date 2021-01-03
  *
  *   Dates:
  *     Version 0.0 - from 22 jul 1998 to 29 sep 1998

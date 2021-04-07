@@ -4,15 +4,18 @@
  *
  *  Functions computing operations on the BCSC.
  *
- * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.3
+ * @version 6.2.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
- * @author Théophile terraz
- * @date 2020-01-26
+ * @author Gregoire Pichon
+ * @author Theophile Terraz
+ * @author Tony Delarue
+ * @author Vincent Bridonneau
+ * @date 2021-04-07
  * @precisions normal z -> c d s
  *
  **/

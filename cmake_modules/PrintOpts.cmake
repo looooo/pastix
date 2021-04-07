@@ -1,12 +1,13 @@
 ###
 #  @file PrintOpts.cmake
 #
-#  @copyright 2019-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2019-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.0.3
+#  @version 6.2.0
 #  @author Tony Delarue
-#  @date 2019-11-28
+#  @author Mathieu Faverge
+#  @date 2021-01-14
 #
 ###
 

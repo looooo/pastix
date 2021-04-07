@@ -6,12 +6,12 @@
  *
  * @copyright 2010-2015 Univ. of Tennessee, Univ. of California Berkeley and
  *                      Univ. of Colorado Denver. All rights reserved.
- * @copyright 2012-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.1.0
+ * @version 6.2.0
  * @author Mathieu Faverge
- * @date 2019-11-12
+ * @date 2021-01-03
  * @precisions normal z -> c d s
  *
  **/

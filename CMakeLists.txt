@@ -1,11 +1,17 @@
 ###
 #
-#  @copyright 2013-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2013-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.0.3
+#  @version 6.2.0
 #  @author Mathieu Faverge
-#  @date 2020-02-05
+#  @author Gregoire Pichon
+#  @author Matias Hastaran
+#  @author Pierre Ramet
+#  @author Tony Delarue
+#  @author Vincent Bridonneau
+#  @author Xavier Lacoste
+#  @date 2021-04-07
 #
 ###
 cmake_minimum_required (VERSION 3.3)
@@ -16,7 +22,7 @@ include(CheckFunctionExists)
 
 # The current version number
 set( PASTIX_VERSION_MAJOR 6 )
-set( PASTIX_VERSION_MINOR 1 )
+set( PASTIX_VERSION_MINOR 2 )
 set( PASTIX_VERSION_MICRO 0 )
 
 set( PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VERSION_MICRO}" )

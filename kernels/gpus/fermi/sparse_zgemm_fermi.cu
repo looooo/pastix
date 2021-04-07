@@ -1,9 +1,9 @@
 /**
- * @version 6.0.3
+ * @version 6.2.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
- * @date 2019-11-12
+ * @date 2021-02-12
  * @precisions normal z -> c d s
  *
  **/

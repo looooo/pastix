@@ -4,21 +4,20 @@
  *
  * PaStiX main header file.
  *
- * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.3
- * @author Alban Bellot
- * @author Astrid Casadei
+ * @version 6.2.0
  * @author David Goudin
  * @author Francois Pellegrini
  * @author Gregoire Pichon
- * @author Mathias Hastaran
  * @author Mathieu Faverge
  * @author Pascal Henon
  * @author Pierre Ramet
  * @author Xavier Lacoste
- * @date 2019-12-05
+ * @author Theophile Terraz
+ * @author Tony Delarue
+ * @date 2021-03-05
  *
  **/
 #ifndef _pastix_h_

@@ -3,14 +3,17 @@
  *
  * PaStiX kernel header.
  *
- * @copyright 2011-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2011-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.3
+ * @version 6.2.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
- * @date 2020-01-29
+ * @author Esragul Korkmaz
+ * @author Gregoire Pichon
+ * @author Tony Delarue
+ * @date 2021-03-30
  * @precisions normal z -> c d s
  *
  */

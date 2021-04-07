@@ -4,14 +4,15 @@
  *
  * PaStiX simulation task basic functions.
  *
- * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.3
+ * @version 6.2.0
  * @author Pascal Henon
  * @author Pierre Ramet
  * @author Mathieu Faverge
- * @date 2020-02-05
+ * @author Xavier Lacoste
+ * @date 2021-01-03
  *
  * @addtogroup blend_dev_split
  * @{

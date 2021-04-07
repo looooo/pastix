@@ -3,12 +3,15 @@
  *
  * @brief A reentrant example that runs two threads then run two instances of the solver in each thread.
  *
- * @copyright 2015-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.1.0
- * @author Hastaran Matias
- * @date 2020-01-29
+ * @version 6.2.0
+ * @author Mathieu Faverge
+ * @author Matias Hastaran
+ * @author Pierre Ramet
+ * @author Tony Delarue
+ * @date 2021-04-07
  *
  * @ingroup pastix_examples
  * @code

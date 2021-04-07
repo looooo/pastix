@@ -2,18 +2,17 @@
  *
  * @file common.h
  *
- * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.3
+ * @version 6.2.0
  * @author David Goudin
- * @author François Pellegrini
  * @author Gregoire Pichon
  * @author Mathieu Faverge
  * @author Pascal Henon
  * @author Pierre Ramet
  * @author Xavier Lacoste
- * @date 2019-12-05
+ * @date 2020-03-02
  *
  **/
 #ifndef _common_h_

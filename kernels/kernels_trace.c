@@ -2,15 +2,15 @@
  *
  * @file kernels_trace.c
  *
- * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * PaStiX trace and modelling routines
  *
- * @version 6.0.3
+ * @version 6.2.0
  * @author Gregoire Pichon
  * @author Mathieu Faverge
- * @date 2019-12-19
+ * @date 2021-01-03
  *
  **/
 #ifndef _GNU_SOURCE

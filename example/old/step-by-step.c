@@ -2,16 +2,18 @@
  *
  * @file old/step-by-step.c
  *
- * @copyright 2015-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * This an example calling PaStiX in step-by-step mode.
  * If runs one full analyze (ordering, symbolic factorization, analyze), then
  * it loops over 2 factorizations that are both used for 2 solves each.
  *
- * @version 6.1.0
- * @author Hastaran Matias
- * @date 2019-11-12
+ * @version 6.2.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Tony Delarue
+ * @date 2020-06-07
  *
  **/
 #include <pastix.h>

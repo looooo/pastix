@@ -1,23 +1,23 @@
 #
 #  @file update_release.sh
 #
-#  @copyright 2016-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2016-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.1.0
+#  @version 6.2.0
 #  @author Mathieu Faverge
-#  @date 2020-12-23
+#  @date 2021-01-02
 #
 #!/usr/bin/env sh
 
-tag=
-majorversion=1
-minorversion=0
+tag=v6.1.0
+majorversion=6
+minorversion=2
 microversion=0
 
 version="$majorversion.$minorversion.$microversion"
 
-#for i in $( git diff v6.0.2 --name-only ); do if [ -f $i ]; then sed -i 's/@version [0-9].[0-9].[0-9]/@version 1.0.0/' $i; fi; done
+#for i in $( git diff v6.0.2 --name-only ); do if [ -f $i ]; then sed -i 's/@version [0-9].[0-9].[0-9]/@version 6.2.0/' $i; fi; done
 if [ ! -z "$tag" ]
 then
     fileslist=$( git diff $tag --name-only )

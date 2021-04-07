@@ -2,16 +2,17 @@
  *
  * @file isched_hwloc.c
  *
- * @copyright 2008-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2008-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  * @copyright 2010-2014 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
  *
  * PaStiX thread binding routines.
  *
- * @version 6.0.3
+ * @version 6.2.0
  * @author Mathieu Faverge
- * @date 2019-11-12
+ * @author Pierre Ramet
+ * @date 2021-01-06
  *
  */
 #include "common.h"

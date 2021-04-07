@@ -1,12 +1,12 @@
 #
 #  @file check_authors.sh
 #
-#  @copyright 2016-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2016-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 1.0.0
+#  @version 6.2.0
 #  @author Mathieu Faverge
-#  @date 2020-12-23
+#  @date 2021-04-07
 #
 # This script check that basic informations is present and correct in
 # headers of source files.
@@ -17,19 +17,22 @@ list_cleanup()
 {
     cfile=$1
 
-    sed -i '/Not Committed Yet/d'                     $cfile
-    sed -i 's/BRIDONNEAU Vincent/Vincent Bridonneau/' $cfile
-    sed -i 's/DELARUE Tony/Tony Delarue/'             $cfile
-    sed -i 's/Gregoire Pichon/Grégoire Pichon/'       $cfile
-    sed -i 's/KORKMAZ Esragul/Esragul Korkmaz/'       $cfile
-    sed -i 's/KUHN Matthieu/Matthieu Kuhn/'           $cfile
-    sed -i 's/MASLIAH Ian/Ian Masliah/'               $cfile
-    sed -i 's/POIREL Louis/Louis Poirel/'             $cfile
-    sed -i 's/PRUVOST Florent/Florent Pruvost/'       $cfile
-    sed -i 's/RAMET Pierre/Pierre Ramet/'             $cfile
-    sed -i 's/^Grégoire$/Grégoire Pichon/'            $cfile
-    sed -i 's/matias hastaran/Matias Hastaran/'       $cfile
-    sed -i 's/tdelarue/Tony Delarue/'                 $cfile
+    sed -i '/Not Committed Yet/d'                       $cfile
+    sed -i 's/BRIDONNEAU Vincent/Vincent Bridonneau/'   $cfile
+    sed -i 's/DELARUE Tony/Tony Delarue/'               $cfile
+    sed -i 's/Grégoire Pichon/Gregoire Pichon/'         $cfile
+    sed -i 's/KORKMAZ Esragul/Esragul Korkmaz/'         $cfile
+    sed -i 's/KUHN Matthieu/Matthieu Kuhn/'             $cfile
+    sed -i 's/MASLIAH Ian/Ian Masliah/'                 $cfile
+    sed -i 's/POIREL Louis/Louis Poirel/'               $cfile
+    sed -i 's/PRUVOST Florent/Florent Pruvost/'         $cfile
+    sed -i 's/RAMET Pierre/Pierre Ramet/'               $cfile
+    sed -i 's/^Grégoire$/Gregoire Pichon/'              $cfile
+    sed -i 's/matias hastaran/Matias Hastaran/'         $cfile
+    sed -i 's/Hastaran Matias/Matias Hastaran/'         $cfile
+    sed -i 's/Mathias Hastaran/Matias Hastaran/'        $cfile
+    sed -i 's/tdelarue/Tony Delarue/'                   $cfile
+    sed -i 's/François Pellegrini/Francois Pellegrini/' $cfile
 
     cat $cfile | sort -u > ${cfile}.tmp
     mv ${cfile}.tmp $cfile
@@ -94,6 +97,24 @@ check_authors_list()
     sed -i '/Mathieu Faverge/d' /tmp/author_list2.txt
     sed -i '/Pierre Ramet/d'    /tmp/author_list2.txt
     sed -i '/Tony Delarue/d'    /tmp/author_list2.txt
+    sed -i '/Gregoire Pichon/d' /tmp/author_list2.txt
+    sed -i '/Xavier Lacoste/d'  /tmp/author_list2.txt
+    sed -i '/Pascal Henon/d'    /tmp/author_list2.txt
+
+    sed -i '/Ahmad Abdelfattah/d'    /tmp/author_list2.txt
+    sed -i '/Alfredo Buttari/d'      /tmp/author_list2.txt
+    sed -i '/Andrea Piacentini/d'    /tmp/author_list2.txt
+    sed -i '/Azzam Haidar/d'         /tmp/author_list2.txt
+    sed -i '/David Goudin/d'         /tmp/author_list2.txt
+    sed -i '/Dulceneia Becker/d'     /tmp/author_list2.txt
+    sed -i '/François Pellegrini/d'  /tmp/author_list2.txt
+    sed -i '/Jakub Kurzak/d'         /tmp/author_list2.txt
+    sed -i '/Louis Poirel/d'         /tmp/author_list2.txt
+    sed -i '/Mark Gates/d'           /tmp/author_list2.txt
+    sed -i '/Pierre Lemarinier/d'    /tmp/author_list2.txt
+    sed -i '/Piotr Luszczek/d'       /tmp/author_list2.txt
+    sed -i '/Stan Tomov/d'           /tmp/author_list2.txt
+    sed -i '/Claire Soyez-Martin/d'  /tmp/author_list2.txt
 
     while read -r author
     do
@@ -125,5 +146,13 @@ cat /tmp/full_author_list.txt
 
 for i in $files
 do
+    if [ $i == "tools/check_authors.sh" ]
+    then
+        continue;
+    fi
+    if [ $i == "tools/check_header.sh" ]
+    then
+        continue;
+    fi
     check_authors_list $i
 done

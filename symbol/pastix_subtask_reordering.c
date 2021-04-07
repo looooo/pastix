@@ -4,14 +4,15 @@
  *
  * PaStiX reordering task
  *
- * @copyright 2015-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.3
+ * @version 6.2.0
  * @author Gregoire Pichon
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2019-11-12
+ * @author Vincent Bridonneau
+ * @date 2020-03-02
  *
  */
 #include "common.h"

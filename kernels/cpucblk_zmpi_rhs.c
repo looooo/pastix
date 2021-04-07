@@ -4,14 +4,14 @@
  *
  * Precision dependent routines to manag communications for the solve part.
  *
- * @copyright 2015-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.1.0
+ * @version 6.2.0
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2020-01-29
+ * @date 2021-01-03
  *
  * @precisions normal z -> s d c
  *

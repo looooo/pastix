@@ -4,7 +4,7 @@
  *
  * PaStiX analyse elimin tree and graph header
  *
- * @copyright 1998-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 1998-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.1.0

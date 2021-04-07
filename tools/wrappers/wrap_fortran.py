@@ -7,13 +7,14 @@ Wrapper Fortran 90
 
  PaStiX generator for the Fortran 90 wrapper
 
- @copyright 2017-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.0.3
+ @version 6.2.0
  @author Mathieu Faverge
  @author Tony Delarue
- @date 2021-03-31
+ @author Selmane Lebdaoui
+ @date 2021-04-07
 
 """
 import os
@@ -161,9 +162,10 @@ class wrap_fortran:
 !> @copyright 2017-''' + time.strftime( "%Y" ) + ''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !>                      Univ. Bordeaux. All rights reserved.
 !>
-!> @version 6.0.3
+!> @version 6.2.0
 !> @author Mathieu Faverge
 !> @author Tony Delarue
+!> @author Selmane Lebdaoui
 !> @date ''' + time.strftime( "%Y-%m-%d" ) + '''
 !>
 !> This file has been automatically generated with gen_wrappers.py

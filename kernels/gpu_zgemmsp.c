@@ -2,7 +2,7 @@
  *
  * @file gpu_zgemmsp.c
  *
- * @copyright 2012-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * PaStiX GPU kernel routines
@@ -11,6 +11,7 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
+ * @author Gregoire Pichon
  * @date 2019-11-12
  * @precisions normal z -> c d s
  *

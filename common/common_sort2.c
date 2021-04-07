@@ -5,12 +5,12 @@
  *
  * File template to generate sort functions using qsort based algorithm.
  *
- * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.1.0
- * @author François Pellegrini
  * @author Xavier Lacoste
+ * @author Mathieu Faverge
  * @date 2019-11-12
  *
  */

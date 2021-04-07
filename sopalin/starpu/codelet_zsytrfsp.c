@@ -4,13 +4,13 @@
  *
  * StarPU codelets for LDL^t functions
  *
- * @copyright 2016-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.1.0
+ * @version 6.2.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2020-01-06
+ * @date 2021-04-07
  *
  * @precisions normal z -> z c d s
  *

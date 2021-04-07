@@ -2,7 +2,7 @@
  *
  * @file isched.h
  *
- * @copyright 2008-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2008-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  * @copyright 2010-2014 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
@@ -11,6 +11,7 @@
  *
  * @version 6.0.3
  * @author Mathieu Faverge
+ * @author Pierre Ramet
  * @date 2020-01-29
  *
  **/

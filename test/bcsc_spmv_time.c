@@ -5,12 +5,15 @@
  * Tests performance of spmv for parallel and sequential version.
  * Validation is made in bcsc_matmvec_tests.c
  *
- * @copyright 2015-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.3
+ * @version 6.2.0
  * @author Vincent Bridonneau
- * @date 2019-11-12
+ * @author Esragul Korkmaz
+ * @author Mathieu Faverge
+ * @author Tony Delarue
+ * @date 2020-06-07
  *
  * @precisions normal z -> c d s
  *

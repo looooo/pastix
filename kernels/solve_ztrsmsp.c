@@ -4,14 +4,16 @@
  *
  * PaStiX solve kernels routines
  *
- * @copyright 2012-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.1.0
+ * @version 6.2.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
- * @date 2020-01-26
+ * @author Tony Delarue
+ * @author Vincent Bridonneau
+ * @date 2021-03-05
  * @precisions normal z -> c d s
  *
  **/

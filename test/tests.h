@@ -4,11 +4,12 @@
  *
  * Tests functions header.
  *
- * @copyright 2018-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2018-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
  * @author Mathieu Faverge
+ * @author Esragul Korkmaz
  * @date 2019-11-12
  *
  **/

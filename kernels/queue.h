@@ -4,12 +4,13 @@
  *
  * PaStiX queue structure header.
  *
- * @copyright 2004-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
  * @author Pascal Henon
  * @author Mathieu Faverge
+ * @author Tony Delarue
  * @date 2019-11-12
  *
  * @addtogroup blend_dev_queue

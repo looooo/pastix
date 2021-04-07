@@ -5,13 +5,15 @@
  * PaStiX implementation of the partial rank-revealing QR with column pivoting
  * based on Lapack GEQP3.
  *
- * @copyright 2016-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.3
+ * @version 6.2.0
  * @author Alfredo Buttari
  * @author Gregoire Pichon
- * @date 2019-11-12
+ * @author Esragul Korkmaz
+ * @author Mathieu Faverge
+ * @date 2020-03-02
  * @precisions normal z -> c d s
  *
  **/

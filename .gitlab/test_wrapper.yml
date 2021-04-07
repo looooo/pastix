@@ -12,7 +12,7 @@
     - source install-${VERSION}/bin/pastix_env.sh
     - (cd build &&
        eval "ctest
-             -E \"sched\" -R \"${WRAPPER}_\"
+             -E \"sched\" -R \"^${WRAPPER}_\"
              -D ExperimentalTest
              -D ExperimentalCoverage
              -D ExperimentalSubmit

@@ -3,12 +3,12 @@
 !
 ! Fortran 90 example using a matrix read with the spm driver.
 !
-! @copyright 2017-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+! @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !                      Univ. Bordeaux. All rights reserved.
 !
-! @version 6.0.3
+! @version 6.2.0
 ! @author Mathieu Faverge
-! @date 2019-11-12
+! @date 2020-07-16
 !
 program fmultidof
   use iso_c_binding

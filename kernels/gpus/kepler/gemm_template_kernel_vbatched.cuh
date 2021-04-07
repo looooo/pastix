@@ -3,6 +3,7 @@
        Univ. of Tennessee, Knoxville
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
+       @author Mathieu Faverge
        @date
 
        @author Mark Gates

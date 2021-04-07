@@ -1,11 +1,17 @@
 ###
 #
-#  @copyright 2013-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2013-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.0.3
+#  @version 6.2.0
 #  @author Mathieu Faverge
-#  @date 2020-01-29
+#  @author Esragul Korkmaz
+#  @author Florent Pruvost
+#  @author Matias Hastaran
+#  @author Pierre Ramet
+#  @author Tony Delarue
+#  @author Vincent Bridonneau
+#  @date 2021-02-12
 #
 ###
 include(RulesPrecisions)

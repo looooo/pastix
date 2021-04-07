@@ -1,3 +1,31 @@
+# pastix-6.2.0
+
+- Update cmake_morse submodule to use modern cmake detection
+- Update spm submodule with a full MPI support of the sparse matrices
+- headers: Fix issue for C++ inclusion of the spm/pastix headers
+- headers: Add const keyword where data is input
+- cmake: Add an uninstall rule
+- Fix solverstack/pastix#43: issue with B null
+- timings: add time for analysis subtasks as well as total time
+- MPI: reduction of the communication buffer sizes
+- Low-rank: Improve default settings for th low-rank factorization
+- Low-rank: add ILU(k) preselection
+- cmake: add options to disable low-rank testings depending on tmglib (solverstack/pastix#50)
+- examples: Update testings to call pastixInit before spmInit in order to initialize MPI automatically if needed (solverstack/pastix#52)
+- EZTrace: Fix issue when using EZTrace in distributed (Require master revision of EZTrace)
+- Wrappers: Add MPI support intor Fortran, python and julia wrappers
+- hwloc: Remove references to old revision of hwloc (< 1.0.0)
+- Remove deprecated bzero
+- doc: Add tutorials for compilation and usage of GPU, MPI and runtime versions
+- scotch: add deterministic option to fix the random algorithms
+- scotch: add multi-threaded support for future scotch 6.2.0
+- graph: exploit the spm structure to manipulate the graph in the ordering step
+- sopalin: add a IPARM_TRANSPOSE_SOLVE option to solve A^t x = b in order to avoid CSC/CSR conversions
+- example: add a simple_dist example to show how to use the solver with a distributed sparse matrix (be careful, for now, the matrix is gathered multiple times and it may create large slow down)
+- schur: Fix schur complement factorization with dynamic scheduler
+- scheduler: dynamic scheduler is now the default
+- Licence: Change licence from Cecill-C to LGPL
+
 # pastix-6.1.0
 
 - Add a new dynamic scheduler supported by the internal threads for numerical factorization

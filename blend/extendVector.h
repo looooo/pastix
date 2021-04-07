@@ -4,11 +4,12 @@
  *
  * PaStiX analyse header for extend vector structure.
  *
- * @copyright 1998-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 1998-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.1.0
  * @author Pascal Henon
+ * @author Mathieu Faverge
  * @date 2019-11-12
  *
  * @addtogroup blend_dev_extint

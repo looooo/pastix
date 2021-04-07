@@ -3,17 +3,19 @@
  *
  * Precision dependent coeficient array header.
  *
- * @copyright 2012-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.1.0
+ * @version 6.2.0
  * @author David Goudin
  * @author Pascal Henon
  * @author Francois Pellegrini
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Xavier Lacoste
- * @date 2019-11-12
+ * @author Esragul Korkmaz
+ * @author Gregoire Pichon
+ * @date 2021-03-30
  *
  * @precisions normal z -> s d c
  *

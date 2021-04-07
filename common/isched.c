@@ -2,7 +2,7 @@
  *
  * @file isched.c
  *
- * @copyright 2008-2020 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2008-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  * @copyright 2010-2014 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
@@ -10,9 +10,10 @@
  * PaStiX Internal Thread System routines
  * Contains basic functions to handle threads for internal schedulings.
  *
- * @version 6.0.3
+ * @version 6.2.0
  * @author Mathieu Faverge
- * @date 2020-01-29
+ * @author Pierre Ramet
+ * @date 2020-07-07
  *
  */
 #include "common.h"
