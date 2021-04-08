@@ -272,6 +272,9 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
     MALLOC_INTERN(extranewnum, extracblk->curcblk+1, pastix_int_t);
     newnum[0] = 0;
     memcpy(newnum+1, extracblk->sptcbnb, (oldsymb->cblknbr) * sizeof(pastix_int_t));
+#ifndef NDEBUG
+    memset(extranewnum, 0xff, (extracblk->curcblk+1) * sizeof(pastix_int_t));
+#endif
 
     /* Compute number of blocks that will be generated,
      * and copy main information of cblktab and candtab */
@@ -454,8 +457,10 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
                 /* If facing cblk is splitted */
                 if ( sptfcbnb > 1 )
                 {
-                    pastix_int_t newfcblknum = extranewnum[ sptfcblk ];
-                    symbol_cblk_t  *newfcblk =  &(extracblk->cblktab[ sptfcblk ]);
+                    pastix_int_t   newfcblknum = extranewnum[ sptfcblk ];
+                    symbol_cblk_t *newfcblk    = &(extracblk->cblktab[ sptfcblk ]);
+
+                    assert( newfcblk != -1 );
 
                     /* Create new blocks facing this cblk */
                     for(l=0; l<sptfcbnb; l++, newfcblk++)

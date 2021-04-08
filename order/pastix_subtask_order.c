@@ -430,6 +430,11 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         if ( schur_rows   != graph->rowptr ) { memFree_null( schur_rows   ); }
         if ( schur_perm   != NULL          ) { memFree_null( schur_perm   ); }
 
+        if ( spmg != spm ) {
+            spmExit( spmg );
+            memFree_null( spmg );
+        }
+
         return retval_rcv;
     }
 

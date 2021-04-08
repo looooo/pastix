@@ -172,11 +172,13 @@ amalgamate_get_sonslist( pastix_int_t        node,
     ind = 0;
     for ( i = sonindex[node]; i < sonindex[node + 1]; i++ ) {
         s = sontab[i];
+        assert( s != -1 );
         if ( colweight[s] <= 0 ) {
             ind += amalgamate_get_sonslist( s, sonindex, sontab, colweight, list + ind );
         }
-        else
+        else {
             list[ind++] = s;
+        }
     }
     return ind;
 }
@@ -547,6 +549,9 @@ faxCSRAmalgamate( int             ilu,
 
         MALLOC_INTERN( sonindex, n + 1, pastix_int_t );
         MALLOC_INTERN( sontab, nbsons, pastix_int_t );
+#ifndef NDEBUG
+        memset( sontab, 0xff, nbsons * sizeof(pastix_int_t) );
+#endif
 
         /* Create the sonindex array */
         sonindex[0] = 0;
@@ -561,6 +566,7 @@ faxCSRAmalgamate( int             ilu,
             assert( ( father != i ) && ( father < n ) );
             if ( father >= 0 ) /** IF THIS SNODE IS NOT A ROOT **/
             {
+                assert( sontab[tmp[father]] == -1 );
                 sontab[tmp[father]] = i;
                 tmp[father]++;
                 assert( tmp[father] <= sonindex[father + 1] );

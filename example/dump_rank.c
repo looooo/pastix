@@ -23,8 +23,8 @@
 #include <pastix.h>
 
 int
-pastixSymbolRank( const SolverMatrix    * const solvmtr,
-                  FILE                  * const stream )
+pastixSymbolRank( const SolverMatrix * const solvmtr,
+                  FILE               * const stream )
 {
     const SolverCblk *cblktnd;
     const SolverCblk *cblkptr;
@@ -35,6 +35,11 @@ pastixSymbolRank( const SolverMatrix    * const solvmtr,
 #if defined(PASTIX_SUPERNODE_STATS)
     version = 2;
 #endif
+
+    if ( stream == NULL ) {
+        fprintf( stderr, "Missing output file\n" );
+        return 0;
+    }
 
     o = (fprintf (stream, "%d\n%ld\t%ld\t%ld\t%ld\n", /* Write file header */
                   version,
@@ -84,8 +89,8 @@ pastixSymbolRank( const SolverMatrix    * const solvmtr,
 }
 
 int
-pastixSymbolRank_last( const SolverMatrix    * const solvmtr,
-                       FILE                  * const stream )
+pastixSymbolRank_last( const SolverMatrix * const solvmtr,
+                       FILE               * const stream )
 {
     const SolverBlok *bloktnd;
     const SolverBlok *blokptr;
@@ -99,6 +104,11 @@ pastixSymbolRank_last( const SolverMatrix    * const solvmtr,
 #if defined(PASTIX_SUPERNODE_STATS)
     version = 2;
 #endif
+
+    if ( stream == NULL ) {
+        fprintf( stderr, "Missing output file\n" );
+        return 0;
+    }
 
     o = (fprintf (stream, "%d\n%ld\t%ld\t%ld\t%ld\n", /* Write file header */
                   version,

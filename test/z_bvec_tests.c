@@ -98,9 +98,9 @@ z_bvec_gemv_check( pastix_data_t *pastix_data,
 
     z_refine_init( &solver, pastix_data );
 
-    A = malloc( sizeof(pastix_complex64_t) * m * n );
-    x = malloc( sizeof(pastix_complex64_t) * n );
-    y = malloc( sizeof(pastix_complex64_t) * m );
+    A = malloc( sizeof(pastix_complex64_t) * (size_t)m * (size_t)n );
+    x = malloc( sizeof(pastix_complex64_t) * (size_t)n );
+    y = malloc( sizeof(pastix_complex64_t) * (size_t)m );
 
     /**
      * generate matrice of size 'n * nrhs'
