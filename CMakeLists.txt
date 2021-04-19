@@ -138,7 +138,7 @@ endif()
 option(PASTIX_ORDERING_SCOTCH
   "Enable Scotch Ordering" ON)
 option(PASTIX_ORDERING_METIS
-  "Enable Metis ordering"  OFF)
+  "Enable Metis ordering" OFF)
 cmake_dependent_option(PASTIX_ORDERING_PTSCOTCH
   "Activate the PT-scotch ordering (requires PASTIX_ORDERING_SCOTCH)" OFF
   "PASTIX_WITH_MPI;PASTIX_ORDERING_SCOTCH" OFF)
@@ -348,7 +348,7 @@ if (PASTIX_ORDERING_PTSCOTCH)
 endif()
 
 if (PASTIX_ORDERING_SCOTCH)
-  find_package(SCOTCH)
+  find_package(SCOTCH REQUIRED)
 
   if (SCOTCH_FOUND)
     cmake_dependent_option(PASTIX_ORDERING_SCOTCH_MT
@@ -368,7 +368,7 @@ endif()
 # PaStiX might depend on Metis/ParMetis
 #--------------------------------------
 if (PASTIX_ORDERING_METIS)
-  find_package(METIS)
+  find_package(METIS REQUIRED)
 
   if (METIS_FOUND)
     # Check coherency for integer size
