@@ -1,10 +1,10 @@
 ###
 #
-#  @file pastix6.rb
+#  @file pastix.rb
 #  @copyright 2013-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @brief Homebrew formula for PaStiX 6
+#  @brief Homebrew formula for PaStiX 6.*
 #
 #  @version 6.2.0
 #  @author Pierre Ramet
@@ -12,35 +12,37 @@
 #  @date 2020-02-28
 #
 ###
-class Pastix6 < Formula
+class Pastix64 < Formula
   desc "Parallel solver for sparse linear systems based on direct methods"
   homepage "https://gitlab.inria.fr/solverstack/pastix"
-  url "https://gitlab.inria.fr/solverstack/pastix//uploads/98ce9b47514d0ee2b73089fe7bcb3391/pastix-6.1.0.tar.gz"
-  sha256 "3d8df8ac6663488e107b56a1a55a7b6cd25ae29a31e893fee27f4cddef72a7d0"
+  url "https://gitlab.inria.fr/solverstack/pastix//uploads/5c09cf4e0c120c45e27bc20d24e7f521/pastix-6.2.0.tar.gz"
+  sha256 "dbf2f252c8162cbde2c52730325b9ae6d8410772be5b4e93c368d9b8d2d79257"
   head "https://gitlab.inria.fr/solverstack/pastix.git"
+  license "LGPL"
 
   bottle :disable, "needs to be rebuilt"
 
   depends_on "openblas"
-  depends_on "hwloc"              # Could be optinal but strongly recommanded
-  depends_on "scotch5"            # Could be optinal but strongly recommanded
-  depends_on "metis" => :optional # Use METIS ordering.
-  depends_on "gcc"   => :build    # GNU Fortran is now provided as part of GCC
-  depends_on "cmake" => :build
+  depends_on "openmpi"
+  depends_on "hwloc"               # Could be optinal but strongly recommanded
+  depends_on "scotch64"            # Could be optinal but strongly recommanded
+  depends_on "metis"  => :optional # Enable METIS ordering
+  depends_on "starpu" => :optional # Enable STARPU runtime
+  depends_on "gcc"    => :build    # GNU Fortran is now provided as part of GCC
+  depends_on "cmake"  => :build
 
   def install
     args = ["-DCMAKE_INSTALL_PREFIX=#{prefix}",
             "-DBUILD_SHARED_LIBS=ON",
             "-DBUILD_DOCUMENTATION=OFF",
-            "-DBUILD_64bits=OFF",
-            "-DPASTIX_INT64=OFF",
+            "-DPASTIX_INT64=ON",
             "-DPASTIX_ORDERING_SCOTCH=ON",
             "-DPASTIX_WITH_FORTRAN=ON",
-            "-DPASTIX_WITH_MPI=OFF",
+            "-DPASTIX_WITH_MPI=ON",
             "-DPASTIX_WITH_CUDA=OFF",
-            "-DPASTIX_WITH_STARPU=OFF",
             "-DPASTIX_WITH_PARSEC=OFF"]
     args += ["-DPASTIX_ORDERING_METIS=ON"] if build.with? "metis"
+    args += ["-DPASTIX_WITH_STARPU=ON"] if build.with? "starpu"
     mkdir "build" do
       system "cmake", "..", *args
       system "make"
@@ -53,7 +55,7 @@ class Pastix6 < Formula
     Set the PYTHONPATH environment variable:
       export PYTHONPATH=#{prefix}/lib/python:$PYTHONPATH
     Try python example with:
-      python #{prefix}/examples/simple.py
+      python #{prefix}/examples/python/simple.py
     Or simple example with:
       #{prefix}/examples/simple -9 10:10:10
     EOS
