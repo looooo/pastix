@@ -61,6 +61,7 @@ then
     exit 1
 fi
 
+# generate the archive
 wget https://raw.githubusercontent.com/Kentzo/git-archive-all/master/git_archive_all.py
 python3 git_archive_all.py --force-submodules pastix-$RELEASE_NAME.tar.gz
 

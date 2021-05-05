@@ -94,7 +94,7 @@ check_header_date()
     if [ $? -ne 0 ]
     then
         print_header $filename
-        echo -n "@date line missing or incorrect"; grep "@version" $filename; echo "";
+        echo -n "@date line missing or incorrect"; grep "@date" $filename; echo "";
     fi
 }
 
@@ -174,6 +174,10 @@ files=$( git ls-files                     |
              grep -v kernels/gpus/kepler  |
              grep -v kernels/gpus/fermi   |
              grep -v test/matrix          )
+if [ $# -gt 0 ]
+then
+    files=$*
+fi
 
 for f in $files
 do
