@@ -1,7 +1,7 @@
 """
  @file local_subs.py
 
- Python SPM specific substitution rules for the Precision Generator script.
+ Python PaStiX specific substitution rules for the Precision Generator script.
 
  @copyright 2019-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.

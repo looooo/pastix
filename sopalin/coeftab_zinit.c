@@ -299,10 +299,14 @@ cpucblk_zinit( pastix_coefside_t    side,
 
     /* Update ILU levels if needed */
     if ( (ilukmax > 0) && (ilukmax < INT_MAX) ) {
-#if !defined(PASTIX_WITH_MPI)
-        do {} while( cblk->ctrbcnt > 0 );
-        coeftab_zcblkComputeILULevels( solvmtx, cblk );
+#if defined(PASTIX_WITH_MPI)
+        /* For now, we can't compute ILU(k) levels in distributed */
+        if ( solvmtx->clustnbr == 1 )
 #endif
+        {
+            do {} while( cblk->ctrbcnt > 0 );
+            coeftab_zcblkComputeILULevels( solvmtx, cblk );
+        }
     }
 
     /**
