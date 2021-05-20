@@ -525,7 +525,7 @@ pastixInitParam( pastix_int_t *iparm,
     dparm[DPARM_SOLV_RLFLOPS]       =  0.;
     dparm[DPARM_REFINE_TIME]        =  0.;
     dparm[DPARM_A_NORM]             = -1.;
-    dparm[DPARM_COMPRESS_TOLERANCE] = 0.01;
+    dparm[DPARM_COMPRESS_TOLERANCE] =  1e-8;
     dparm[DPARM_COMPRESS_MIN_RATIO] =  1.;
 }
 
