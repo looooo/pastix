@@ -15,6 +15,22 @@
 #
 ###
 cmake_minimum_required (VERSION 3.3)
+
+if( ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR} )
+  message(FATAL_ERROR "
+    Because PaStiX generates many source files at compile time,
+    Building in the source directory is forbidden.
+    Please:
+     1) remove entirely this directory
+     2) extract or clone a fresh revision of pastix
+     3) create a build directory and run cmake from this directory or
+    run with (for exemple):
+    mkdir build && cd build && cmake ..
+    or
+    cmake . -B./build
+")
+endif()
+
 project (PASTIX C CXX Fortran)
 
 include(CMakeDependentOption)
