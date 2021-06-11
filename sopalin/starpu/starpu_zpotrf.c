@@ -269,9 +269,10 @@ starpu_zpotrf( pastix_data_t  *pastix_data,
     if ( sdesc == NULL ) {
         /* Create the matrix descriptor */
         starpu_sparse_matrix_init( sopalin_data->solvmtx,
-                                   sizeof( pastix_complex64_t ), PastixHermitian,
+                                   PastixHermitian,
                                    pastix_data->inter_node_procnbr,
-                                   pastix_data->inter_node_procnum );
+                                   pastix_data->inter_node_procnum,
+                                   PastixComplex64 );
         sdesc = sopalin_data->solvmtx->starpu_desc;
     }
 

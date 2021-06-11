@@ -336,9 +336,10 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     {
         /* Create the matrix descriptor */
         starpu_sparse_matrix_init( pastix_data->solvmatr,
-                                   pastix_size_of( bcsc->flttype ), mtxtype,
+                                   mtxtype,
                                    pastix_data->inter_node_procnbr,
-                                   pastix_data->inter_node_procnum );
+                                   pastix_data->inter_node_procnum,
+                                   pastix_data->bcsc->flttype );
     }
 #endif
 
