@@ -45,7 +45,6 @@ void
 graphLoad( const pastix_data_t *pastix_data,
            pastix_graph_t      *graph )
 {
-    FILE *stream   = NULL;
     char *filename = NULL;
     int   env = 1;
 
@@ -68,11 +67,7 @@ graphLoad( const pastix_data_t *pastix_data,
         env = 0;
     }
 
-    stream = pastix_fopen( filename );
-    if ( stream ) {
-        spmLoad( graph, stream );
-        fclose(stream);
-    }
+    spmLoad( graph, filename );
 
     if (env) {
         pastix_cleanenv( filename );
@@ -107,8 +102,8 @@ void
 graphSave( pastix_data_t        *pastix_data,
            const pastix_graph_t *graph )
 {
-    FILE *stream   = NULL;
     char *filename = NULL;
+    char *fullname = NULL;
     int   env      = 1;
 
     /* Parameter checks */
@@ -130,13 +125,13 @@ graphSave( pastix_data_t        *pastix_data,
     }
 
     pastix_gendirectories( pastix_data );
-    stream = pastix_fopenw( pastix_data->dir_local, filename, "w" );
-    if ( stream ) {
-        spmSave( graph, stream );
-        fclose(stream);
+    fullname = pastix_fname( pastix_data->dir_local, filename );
+    if ( fullname ) {
+        spmSave( graph, fullname );
+        free( fullname );
     }
 
-    if (env) {
+    if ( env ) {
         pastix_cleanenv( filename );
     }
 }

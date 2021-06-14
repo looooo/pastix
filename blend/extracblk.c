@@ -461,7 +461,8 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
                     pastix_int_t   newfcblknum = extranewnum[ sptfcblk ];
                     symbol_cblk_t *newfcblk    = &(extracblk->cblktab[ sptfcblk ]);
 
-                    assert( newfcblk != -1 );
+                    assert( newfcblknum != -1 );
+                    assert( newfcblk != NULL );
 
                     /* Create new blocks facing this cblk */
                     for(l=0; l<sptfcbnb; l++, newfcblk++)

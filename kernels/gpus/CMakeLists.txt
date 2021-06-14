@@ -76,6 +76,8 @@ cuda_add_library(pastix_kernels_cuda
 cuda_add_cublas_to_target( pastix_kernels_cuda )
 #target_link_libraries( pastix_kernels_cuda PRIVATE CUDA::CUBLAS )
 
+set_property(TARGET pastix_kernels_cuda PROPERTY CXX_STANDARD 11)
+
 target_include_directories( pastix_kernels_cuda PRIVATE
   $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
   $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}>

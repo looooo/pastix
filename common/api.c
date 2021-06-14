@@ -169,6 +169,46 @@ pastix_gendirectories( pastix_data_t *pastix_data )
  *
  * @ingroup pastix_api
  *
+ * @brief Generate the full filename within local or global directory.
+ *
+ *******************************************************************************
+ *
+ * @param[in] dirname
+ *          The pointer to the directory string associated to the instance.
+ *          It must have been initialized before calling.
+ *
+ * @param[in] filename
+ *          The filename to create in the unique directory.
+ *
+ *******************************************************************************
+ *
+ * @return The filename to use. NULL if failed.
+ *
+ *******************************************************************************/
+char *
+pastix_fname( const char *dirname,
+              const char *filename )
+{
+    char *fullname = NULL;
+    int rc;
+
+    /* Make sure dirname has been initialized before calling fopen */
+    assert( dirname );
+
+    rc = asprintf( &fullname, "%s/%s", dirname, filename );
+    if ( rc <= 0 ) {
+        errorPrint("pastix_fname: Couldn't not generate the tempory filename for the output file");
+        return NULL;
+    }
+
+    return fullname;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_api
+ *
  * @brief Open a file in the unique directory of the pastix instance
  *
  *******************************************************************************
@@ -195,23 +235,21 @@ pastix_fopenw( const char *dirname,
 {
     char *fullname;
     FILE *f = NULL;
-    int rc;
 
     /* Make sure dirname has been initialized before calling fopen */
     assert( dirname );
 
-    rc = asprintf( &fullname, "%s/%s", dirname, filename );
-    if (rc <= 0 ) {
-        errorPrint("pastix_fopenw: Couldn't not generate the tempory filename for the output file");
+    fullname = pastix_fname( dirname, filename );
+    if ( !fullname ) {
         return NULL;
     }
 
-    f = fopen(fullname, mode);
+    f = fopen( fullname, mode );
     free( fullname );
 
-    if (NULL == f)
+    if ( NULL == f )
     {
-        perror("pastix_fopenw");
+        perror( "pastix_fopenw" );
         errorPrint( "pastix_fopenw: Couldn't open file: %s with mode %s\n",
                     filename, mode );
         return NULL;
