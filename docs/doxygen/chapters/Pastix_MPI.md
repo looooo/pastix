@@ -74,7 +74,7 @@ becomes mandatory when configuring StarPU:
 ```sh
 mkdir build_MPI
 cd build_MPI
-../starpu-1.3.7/configure --prefix=${STARPU_DIR} --enable-mpi
+../configure --prefix=${STARPU_DIR}
 make
 make install
 ```
@@ -123,7 +123,7 @@ source $PASTIX_DIR/bin/pastix_env.sh
 ```
 And then, you can run your favorite example:
 ```sh
-mpiexec -n 4 simple -9 10:10:10
+mpiexec -n 4 $PASTIX_DIR/examples/simple -9 10:10:10
 ```
 
 ### How to use PaStiX with MPI
@@ -132,7 +132,7 @@ PaStiX works with all the schedulers without runtime in distributed
 memory, but if you want the best performances possible with POSIX threads,
 please use the dynamic scheduler (option **-s 4**):
 ```sh
-mpiexec -n 4 simple -s 4 -9 10:10:10
+mpiexec -n 4  $PASTIX_DIR/examples/simple -s 4 -9 10:10:10
 ```
 
 In the same way, if you intent to run multiple MPI instances on one node,

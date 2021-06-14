@@ -45,7 +45,7 @@ configure and build StarPU with minimal flags for PaStiX:
 ```sh
 mkdir build
 cd build
-../starpu-1.3.7/configure --prefix=${STARPU_DIR}
+../configure --prefix=${STARPU_DIR}
 make
 make install
 ```

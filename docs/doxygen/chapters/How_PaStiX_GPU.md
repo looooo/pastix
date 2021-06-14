@@ -74,7 +74,7 @@ Then, all these variables will automatically be used by PaStiX when it
 uses the PaRSEC scheduler as in:
 
 ```sh
-$PASTIX_HOME_DIR/build/example/bench_facto -g 1 -s 2 --mm your_matrix.mtx
+$PASTIX_BINARY_DIR/example/bench_facto -g 1 -s 2 --mm your_matrix.mtx
 ```
 
 Note that this example uses 1 GPU (`-g 1`) and PaRSEC (`-s 2`), and
@@ -118,7 +118,7 @@ at the beginning of you command line:
 
 ```sh
 STARPU_NWORKER_PER_CUDA=8 STARPU_CUDA_PIPELINE=4 \
-$PASTIX_HOME_DIR/build/example/bench_facto -g 1 -s 3 --mm your_matrix.mtx
+$PASTIX_BINARY_DIR/example/bench_facto -g 1 -s 3 --mm your_matrix.mtx
 ```
 
 or
@@ -126,7 +126,7 @@ or
 ```sh
 export STARPU_NWORKER_PER_CUDA=8
 export STARPU_CUDA_PIPELINE=4
-$PASTIX_HOME_DIR/build/example/bench_facto -g 1 -s 3 --mm your_matrix.mtx
+$PASTIX_BINARY_DIR/example/bench_facto -g 1 -s 3 --mm your_matrix.mtx
 ```
 
 Note that these examples use a single gpu (`-g 1`) with StarPU (`-s 3`).

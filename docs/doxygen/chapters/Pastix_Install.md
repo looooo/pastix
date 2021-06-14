@@ -126,10 +126,10 @@ To build scotch, you have to copy the Make.inc corresponding to your architectur
 ```sh
 cd scotch_x.x.x/src
 cp Make.inc/Makefile.inc.xxxx_xxx_xxx Makefile.in
-make [-DINTSIZE32|-DINTSIZE64]
+make
 make prefix=$SCOTCH_DIR install
 ```
-Note that either you choose INTSIZE32 or INTSIZE64, it will
+Note that either you choose INTSIZE32 or INTSIZE64 in the Makefile.in file, it will
 define the value of -DPASTIX_INT64=[ON|OFF] for PaStiX.
 
 Scotch is now installed on your system but may not be available in
@@ -215,7 +215,7 @@ source ${PASTIX_DIR}/bin/pastix_env.sh
 
 And then, you can run your favorite example:
 ```sh
-simple -9 10:10:10
+ ${PASTIX_DIR}/examples/simple -9 10:10:10
 ```
 
 You setup is ready to play with PaStiX. Please refer to section [How to

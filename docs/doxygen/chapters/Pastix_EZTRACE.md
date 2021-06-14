@@ -32,7 +32,7 @@ make install
 If you want to use EZTrace with MPI, please change the previous configure
 line with this one :
 ```sh
-./configure --prefix=${EZTRACE_DIR} --with-mpi=path/to/your/mpi/include/dir
+../configure --prefix=${EZTRACE_DIR} --with-mpi=path/to/your/mpi/dir
 ```
 
 EZTrace is now installed on your system but may not be available in
@@ -108,12 +108,12 @@ During the compilation, we built an `eztrace-convert-kernels` library
 to trace PaStiX kernels (POTRF, GETRF, SYTRF, GEMM, etc.). You have to include
 it in your environment with :
 ```sh
-export EZTRACE_LIBRARY_PATH=$PASTIX_SOURCE_DIR/build/kernels
+export EZTRACE_LIBRARY_PATH=$PASTIX_BINARY_DIR/kernels
 ```
 
 Or, if you have installed PaStiX :
 ```sh
-export EZTRACE_LIBRARY_PATH=$PASTIX_DIR/kernels
+export EZTRACE_LIBRARY_PATH=$PASTIX_DIR/lib/kernels
 ```
 
 Then you have to include it in the module loaded for EZTrace. You can see

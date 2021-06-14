@@ -33,7 +33,7 @@ during the configuration :
 ```sh
 mkdir build_cuda
 cd build_cuda
-../starpu-1.3.7/configure --prefix=${STARPU_DIR} --enable-cuda
+../configure --prefix=${STARPU_DIR} --enable-cuda
 make
 make install
 ```
