@@ -341,6 +341,8 @@ pastixFactotypeStr( pastix_factotype_t ft ) {
 }
 
 void   pastix_gendirectories( pastix_data_t *pastix_data );
+char * pastix_fname ( const char *dirname,
+                      const char *filename );
 FILE * pastix_fopenw( const char *dirname,
                       const char *filename,
                       const char *mode );
