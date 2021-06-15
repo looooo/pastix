@@ -126,10 +126,10 @@ To build scotch, you have to copy the Make.inc corresponding to your architectur
 ```sh
 cd scotch_x.x.x/src
 cp Make.inc/Makefile.inc.xxxx_xxx_xxx Makefile.in
-make [-DINTSIZE32|-DINTSIZE64]
+make
 make prefix=$SCOTCH_DIR install
 ```
-Note that either you choose INTSIZE32 or INTSIZE64, it will
+Note that either you choose INTSIZE32 or INTSIZE64 in the Makefile.in file, it will
 define the value of -DPASTIX_INT64=[ON|OFF] for PaStiX.
 
 Scotch is now installed on your system but may not be available in
@@ -147,7 +147,7 @@ again.
 On Linux:
 ```sh
 export PATH=$PATH:$SCOTCH_DIR/bin
-export PKG_CONFIG_PATH=:$PKG_CONFIG_PATH:$SCOTCH_DIR/lib/pkgconfig
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$SCOTCH_DIR/lib/pkgconfig
 export LD_RUN_PATH=$LD_RUN_PATH:$SCOTCH_DIR/lib
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SCOTCH_DIR/lib
 export INCLUDE_PATH=$INCLUDE_PATH:$SCOTCH_DIR/include
@@ -156,7 +156,7 @@ export INCLUDE_PATH=$INCLUDE_PATH:$SCOTCH_DIR/include
 On MacOS:
 ```sh
 export PATH=$PATH:$SCOTCH_DIR/bin
-export PKG_CONFIG_PATH=:$PKG_CONFIG_PATH:$SCOTCH_DIR/lib/pkgconfig
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$SCOTCH_DIR/lib/pkgconfig
 export INCLUDE_PATH=$INCLUDE_PATH:$SCOTCH_DIR/include
 export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$SCOTCH_DIR/lib:
 ```
@@ -204,7 +204,7 @@ install directory of PaStiX.
 On Mac, if you decide to not build PaStiX and only install it with all its
 dependencies, you can simply run :
 ```sh
-brew install ${PASTIX_SOURCE_DIR}/tools/homebrew/pastix6.rb
+brew install ${PASTIX_SRC_DIR}/tools/homebrew/pastix6.rb
 ```
 
 Once the compilation finished, you can setup your environment easily
@@ -215,7 +215,7 @@ source ${PASTIX_DIR}/bin/pastix_env.sh
 
 And then, you can run your favorite example:
 ```sh
-simple -9 10:10:10
+ ${PASTIX_DIR}/examples/simple -9 10:10:10
 ```
 
 You setup is ready to play with PaStiX. Please refer to section [How to

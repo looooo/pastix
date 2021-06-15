@@ -45,7 +45,7 @@ configure and build StarPU with minimal flags for PaStiX:
 ```sh
 mkdir build
 cd build
-../starpu-1.3.7/configure --prefix=${STARPU_DIR}
+../configure --prefix=${STARPU_DIR}
 make
 make install
 ```
@@ -65,7 +65,7 @@ again.
 On Linux:
 ```sh
 export PATH=$PATH:$STARPU_DIR/bin
-export PKG_CONFIG_PATH=:$PKG_CONFIG_PATH:$STARPU_DIR/lib/pkgconfig
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$STARPU_DIR/lib/pkgconfig
 export LD_RUN_PATH=$LD_RUN_PATH:$STARPU_DIR/lib
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$STARPU_DIR/lib
 export INCLUDE_PATH=$INCLUDE_PATH:$STARPU_DIR/include
@@ -74,7 +74,7 @@ export INCLUDE_PATH=$INCLUDE_PATH:$STARPU_DIR/include
 On MacOS:
 ```sh
 export PATH=$PATH:$STARPU_DIR/bin
-export PKG_CONFIG_PATH=:$PKG_CONFIG_PATH:$STARPU_DIR/lib/pkgconfig
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$STARPU_DIR/lib/pkgconfig
 export INCLUDE_PATH=$INCLUDE_PATH:$STARPU_DIR/include
 export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$STARPU_DIR/lib:
 ```
@@ -142,7 +142,7 @@ again.
 On Linux:
 ```sh
 export PATH=$PATH:$PARSEC_DIR/bin
-export PKG_CONFIG_PATH=:$PKG_CONFIG_PATH:$PARSEC_DIR/lib/pkgconfig
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$PARSEC_DIR/lib/pkgconfig
 export LD_RUN_PATH=$LD_RUN_PATH:$PARSEC_DIR/lib
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PARSEC_DIR/lib
 export INCLUDE_PATH=$INCLUDE_PATH:$PARSEC_DIR/include
@@ -151,7 +151,7 @@ export INCLUDE_PATH=$INCLUDE_PATH:$PARSEC_DIR/include
 On MacOS:
 ```sh
 export PATH=$PATH:$PARSEC_DIR/bin
-export PKG_CONFIG_PATH=:$PKG_CONFIG_PATH:$PARSEC_DIR/lib/pkgconfig
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$PARSEC_DIR/lib/pkgconfig
 export INCLUDE_PATH=$INCLUDE_PATH:$PARSEC_DIR/include
 export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$PARSEC_DIR/lib:
 ```

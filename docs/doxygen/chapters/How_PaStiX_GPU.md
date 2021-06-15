@@ -10,7 +10,7 @@ The options **-s** defines the scheduler:
 * **-s 3** uses the StarPU scheduler.
 
 ```sh
-$PASTIX_HOME_DIR/build/example/simple -g x -s [2|3] --mm your_matrix.mtx
+$PASTIX_BUILD_DIR/example/simple -g x -s [2|3] --mm your_matrix.mtx
 ```
 
 Note that GPUs have a significant impact when the number
@@ -21,7 +21,7 @@ Note that the performance are largely impacted on the first
 factorization by the loading of the CUDA library. To better evaluate
 the performance on your matrices, we recommend to do multiple runs
 with the help of the ` bench_facto` example
-(`$PASTIX_HOME_DIR/example/bench_facto.c`) or to do CUDA calls on fake
+(`$PASTIX_SRC_DIR/example/bench_facto.c`) or to do CUDA calls on fake
 data before calling the solver.
 
 ### Obtaining better performance with PaRSEC
@@ -74,7 +74,7 @@ Then, all these variables will automatically be used by PaStiX when it
 uses the PaRSEC scheduler as in:
 
 ```sh
-$PASTIX_HOME_DIR/build/example/bench_facto -g 1 -s 2 --mm your_matrix.mtx
+$PASTIX_BUILD_DIR/example/bench_facto -g 1 -s 2 --mm your_matrix.mtx
 ```
 
 Note that this example uses 1 GPU (`-g 1`) and PaRSEC (`-s 2`), and
@@ -118,7 +118,7 @@ at the beginning of you command line:
 
 ```sh
 STARPU_NWORKER_PER_CUDA=8 STARPU_CUDA_PIPELINE=4 \
-$PASTIX_HOME_DIR/build/example/bench_facto -g 1 -s 3 --mm your_matrix.mtx
+$PASTIX_BUILD_DIR/example/bench_facto -g 1 -s 3 --mm your_matrix.mtx
 ```
 
 or
@@ -126,7 +126,7 @@ or
 ```sh
 export STARPU_NWORKER_PER_CUDA=8
 export STARPU_CUDA_PIPELINE=4
-$PASTIX_HOME_DIR/build/example/bench_facto -g 1 -s 3 --mm your_matrix.mtx
+$PASTIX_BUILD_DIR/example/bench_facto -g 1 -s 3 --mm your_matrix.mtx
 ```
 
 Note that these examples use a single gpu (`-g 1`) with StarPU (`-s 3`).
