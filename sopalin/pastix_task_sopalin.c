@@ -266,6 +266,15 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
 
     pastix_data->solvmatr->factotype = pastix_data->iparm[IPARM_FACTORIZATION];
 
+#if defined(PASTIX_WITH_MPI)
+    if ( ( pastix_data->iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever ) &&
+         ( ( pastix_data->iparm[IPARM_SCHEDULER] == PastixSchedParsec ) ||
+           ( pastix_data->iparm[IPARM_SCHEDULER] == PastixSchedStarPU ) ) )
+    {
+        errorPrint( "pastix_task_sopalin: Low-Rank with MPI communication is not available yet with runtime" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+#endif
     /*
      * Fill in the internal coeftab structure. We consider that if this step is
      * called the bcsc values have changed, or a factorization have already been

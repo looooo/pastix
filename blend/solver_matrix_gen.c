@@ -261,15 +261,9 @@ solverMatrixGen( SolverMatrix          *solvmtx,
 #if defined(PASTIX_WITH_MPI)
             if ( solvmtx->clustnbr > 1 )
             {
-                /* No low-rank compression in distributed for the moment */
-                if( solvcblk->cblktype & CBLK_COMPRESSED ) {
-                    static int warning_compressed = 1;
-                    if ( warning_compressed && (solvmtx->clustnum == 0) ) {
-                        fprintf( stderr,
-                                 "Warning: Low-rank compression is not yet available with multiple MPI processes\n"
-                                 "         It is thus disabled and the factorization will be performed in full-rank\n" );
-                        warning_compressed = 0;
-                    }
+                if ( (solvcblk->cblktype & CBLK_COMPRESSED) &&
+                     (solvcblk->cblktype & (CBLK_FANIN | CBLK_RECV)) )
+                {
                     solvcblk->cblktype &= (~CBLK_COMPRESSED);
                 }
 
@@ -507,16 +501,9 @@ solverMatrixGenSeq( SolverMatrix          *solvmtx,
                                  (solvblok - solvcblk->fblokptr), tasks2D, cblknum );
 
 #if defined(PASTIX_WITH_MPI)
-            /* No low-rank compression in distributed for the moment */
-            if ( (solvmtx->clustnbr > 1) && (solvcblk->cblktype & CBLK_COMPRESSED) )
+            if ( (solvcblk->cblktype & CBLK_COMPRESSED) &&
+                 (solvcblk->cblktype & (CBLK_FANIN | CBLK_RECV)) )
             {
-                static int warning_compressed = 1;
-                if ( warning_compressed && (solvmtx->clustnum == 0) ) {
-                    fprintf( stderr,
-                             "Warning: Low-rank compression is not available yet with multiple MPI processes\n"
-                             "         It is thus disabled and the factorization will be performed in full-rank\n" );
-                    warning_compressed = 0;
-                }
                 solvcblk->cblktype &= (~CBLK_COMPRESSED);
             }
 #endif
