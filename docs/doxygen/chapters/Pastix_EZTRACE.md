@@ -50,7 +50,7 @@ again.
 On Linux:
 ```sh
 export PATH=$PATH:$EZTRACE_DIR/bin
-export PKG_CONFIG_PATH=:$PKG_CONFIG_PATH:$EZTRACE_DIR/lib/pkgconfig
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$EZTRACE_DIR/lib/pkgconfig
 export LD_RUN_PATH=$LD_RUN_PATH:$EZTRACE_DIR/lib
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$EZTRACE_DIR/lib
 export INCLUDE_PATH=$INCLUDE_PATH:$EZTRACE_DIR/include
@@ -59,7 +59,7 @@ export INCLUDE_PATH=$INCLUDE_PATH:$EZTRACE_DIR/include
 On MacOS:
 ```sh
 export PATH=$PATH:$EZTRACE_DIR/bin
-export PKG_CONFIG_PATH=:$PKG_CONFIG_PATH:$EZTRACE_DIR/lib/pkgconfig
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$EZTRACE_DIR/lib/pkgconfig
 export INCLUDE_PATH=$INCLUDE_PATH:$EZTRACE_DIR/include
 export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$EZTRACE_DIR/lib:
 ```
@@ -108,12 +108,12 @@ During the compilation, we built an `eztrace-convert-kernels` library
 to trace PaStiX kernels (POTRF, GETRF, SYTRF, GEMM, etc.). You have to include
 it in your environment with :
 ```sh
-export EZTRACE_LIBRARY_PATH=$PASTIX_BINARY_DIR/kernels
+export EZTRACE_LIBRARY_PATH=$PASTIX_BUILD_DIR/kernels
 ```
 
 Or, if you have installed PaStiX :
 ```sh
-export EZTRACE_LIBRARY_PATH=$PASTIX_DIR/lib/kernels
+export EZTRACE_LIBRARY_PATH=$PASTIX_DIR/lib
 ```
 
 Then you have to include it in the module loaded for EZTrace. You can see
