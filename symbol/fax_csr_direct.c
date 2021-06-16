@@ -116,7 +116,7 @@ faxCSRFactDirect( const fax_csr_t *graphA, const pastix_order_t *order, fax_csr_
     /* Check that all terms of A are in the pattern */
     {
         pastix_int_t ind;
-        int j;
+        pastix_int_t j;
         for ( k = 0; k < cblknbr; k++ ) {
             /* Put the diagonal elements (A does not contains them) */
             for ( i = rangtab[k]; i < rangtab[k + 1]; i++ ) {
