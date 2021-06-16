@@ -11,6 +11,7 @@
   except:
     - schedules
   only:
+    - merge_requests
     - branches
     - master@pastix/pastix
     - master@solverstack/pastix
@@ -19,6 +20,7 @@
   except:
     - schedules
   only:
+    - merge_requests
     - branches
     - master@pastix/pastix
     - master@solverstack/pastix
