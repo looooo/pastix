@@ -846,7 +846,7 @@ restart:
             pastix_int_t *ja;
             ja = graphL->rows[i];
             for ( j = 0; j < graphL->nnz[i]; j++ ) {
-                ja[j] = otrder->permtab[ja[j]];
+                ja[j] = order->permtab[ja[j]];
             }
         }
 
