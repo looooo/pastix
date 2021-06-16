@@ -186,7 +186,7 @@ ocs_scotchgraph_init( SCOTCH_Graph   *scotchgraph,
                             NULL) )
     {
         errorPrint("pastix : graphBuildGraph");
-        EXIT(MOD_SOPALIN,INTERNAL_ERR);
+        EXIT(MOD_SOPALIN,PASTIX_ERR_INTERNAL);
     }
 
     SCOTCH_graphBase( scotchgraph, 0 );
