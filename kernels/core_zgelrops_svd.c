@@ -228,7 +228,7 @@ core_zge2lr_svd( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
     assert(ret == 0);
     if( ret != 0 ){
         errorPrint("SVD Failed\n");
-        EXIT(MOD_SOPALIN, INTERNAL_ERR);
+        EXIT(MOD_SOPALIN, PASTIX_ERR_INTERNAL);
     }
 
     /* Let's stop i before going too far */
@@ -536,7 +536,7 @@ core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void 
     assert(ret == 0);
     if (ret != 0) {
         errorPrint("LAPACKE_zgesvd FAILED");
-        EXIT(MOD_SOPALIN, INTERNAL_ERR);
+        EXIT(MOD_SOPALIN, PASTIX_ERR_INTERNAL);
     }
 
     /*
