@@ -33,6 +33,7 @@
 #include "timing.h"
 #include "pastixdata.h"
 #include "out.h"
+#include "parse_options.h"
 
 #if defined(PASTIX_OS_WINDOWS)
 #include <windows.h>
