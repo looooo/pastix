@@ -58,7 +58,7 @@ Use the following format:
 ```
 /**
  * @ingroup name_of_parent_module
-
+ *
  * @brief Single line explanation of the structure
  *
  * General description of the structure

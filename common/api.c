@@ -291,22 +291,6 @@ pastix_fopen( const char *filename )
     return f;
 }
 
-static const char *
-pastix_mpithreadmode_getstr( pastix_mpithreadmode_t mpi_mode ) {
-    switch ( mpi_mode ) {
-    case PastixMpiThreadMultiple:
-        return "Multiple";
-    case PastixMpiThreadSerialized:
-        return "Serialized";
-    case PastixMpiThreadFunneled:
-        return "Funneled";
-    case PastixMpiThreadSingle:
-        return "Single";
-    default:
-        return "No MPI enabled";
-    }
-}
-
 /**
  *******************************************************************************
  *

@@ -665,6 +665,7 @@ set(PASTIX_LIB_SRCS
   common/isched.c
   common/models.c
   common/get_options.c
+  common/parse_options.c
   common/getline.c
   #
   bcsc/bcsc.c
