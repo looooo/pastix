@@ -96,7 +96,11 @@ starpu_task_cblk_zsytrfsp1d_panel( sopalin_data_t *sopalin_data,
         STARPU_VALUE,   &cblk,         sizeof(SolverCblk*),
         STARPU_RW,       cblk->handler[0],
         STARPU_W,        cblk->handler[1],
+#if defined(PASTIX_STARPU_HETEROPRIO)
+        STARPU_PRIORITY, 0,
+#else
         STARPU_PRIORITY, prio,
+#endif
         0);
 }
 
@@ -144,7 +148,11 @@ starpu_task_blok_zsytrf( sopalin_data_t *sopalin_data,
         STARPU_VALUE,   &sopalin_data, sizeof(sopalin_data_t*),
         STARPU_VALUE,   &cblk,         sizeof(SolverCblk*),
         STARPU_RW,       cblk->fblokptr->handler[0],
+#if defined(PASTIX_STARPU_HETEROPRIO)
+        STARPU_PRIORITY, 0,
+#else
         STARPU_PRIORITY, prio,
+#endif
         0);
 }
 

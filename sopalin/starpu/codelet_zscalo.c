@@ -96,7 +96,11 @@ starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
         STARPU_R,        blok->handler[0],
         STARPU_R,        cblk->fblokptr->handler[0],
         STARPU_W,        blok->handler[1],
+#if defined(PASTIX_STARPU_HETEROPRIO)
+        STARPU_PRIORITY, 0,
+#else
         STARPU_PRIORITY, prio,
+#endif
         0);
 }
 

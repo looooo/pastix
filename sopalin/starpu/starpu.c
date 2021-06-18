@@ -35,22 +35,22 @@
 void
 init_heteroprio( unsigned ctx )
 {
-    // CPU uses 5 buckets and visits them in the natural order
+    /* CPU uses 5 buckets and visits them in the natural order */
     starpu_heteroprio_set_nb_prios( ctx, STARPU_CPU_IDX, 2 );
-    // It uses direct mapping idx => idx
+    /* It uses direct mapping idx => idx */
     for ( unsigned idx = 0; idx < 2; ++idx ) {
         starpu_heteroprio_set_mapping( ctx, STARPU_CPU_IDX, idx, idx );
-        // If there are no CUDA workers, we must tell that CPU is faster
+        /* If there are no CUDA workers, we must tell that CPU is faster */
         starpu_heteroprio_set_faster_arch( ctx, STARPU_CPU_IDX, idx );
     }
     if ( starpu_cuda_worker_get_count() ) {
-        // CUDA is enabled and uses 2 buckets
+        /* CUDA is enabled and uses 2 buckets */
         starpu_heteroprio_set_nb_prios( ctx, STARPU_CUDA_IDX, 1 );
-        // CUDA will first look at bucket 1
+        /* CUDA will first look at bucket 1 */
         starpu_heteroprio_set_mapping( ctx, STARPU_CUDA_IDX, 0, 1 );
-        // For bucket 1, CUDA is the fastest
+        /* For bucket 1, CUDA is the fastest */
         starpu_heteroprio_set_faster_arch( ctx, STARPU_CUDA_IDX, 1 );
-        // And CPU is 30 times slower
+        /* And CPU is 30 times slower */
         starpu_heteroprio_set_arch_slow_factor( ctx, STARPU_CPU_IDX, 1, 10.0f );
     }
 }
@@ -193,8 +193,8 @@ pastix_starpu_init( pastix_data_t *pastix,
 
 #if defined( PASTIX_STARPU_HETEROPRIO )
     /*
-    Set scheduling to heteroprio in any case if requested at compilation
-    */
+     * Set scheduling to heteroprio in any case if requested at compilation
+     */
     conf->sched_policy_name = "heteroprio";
     conf->sched_policy_init = &init_heteroprio;
 #else /* PASTIX_STARPU_HETEROPRIO */

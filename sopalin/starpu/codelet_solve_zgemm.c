@@ -138,6 +138,9 @@ starpu_stask_blok_zgemm( sopalin_data_t   *sopalin_data,
 #if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
         STARPU_NAME, "solve_blok_zgemm",
 #endif
+#if defined(PASTIX_STARPU_HETEROPRIO)
+        STARPU_PRIORITY, 0,
+#endif
         0);
     (void)prio;
 }
