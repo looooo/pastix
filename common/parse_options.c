@@ -3,7 +3,8 @@
  * @file parse_options.c
  *
  * This file is generated automatically. If you want to modify it, modify
- * ${PASTIX_HOME}/docs/pastix_params.yaml and run ${PASTIX_HOME}/tools/gen_param/gen_parm_files.py.
+ * ${PASTIX_HOME}/tools/gen_param/pastix_[iparm/dparm/enums].py and run
+ * ${PASTIX_HOME}/tools/gen_param/gen_parm_files.py ${PASTIX_HOME}.
  *
  * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -15,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2021-05-07
+ * @date 2021-06-21
  *
  */
 #include "common.h"
@@ -50,15 +51,20 @@ parse_iparm( const char *iparm )
 {
     if(0 == strcasecmp("iparm_verbose",                        iparm)) { return IPARM_VERBOSE; }
     if(0 == strcasecmp("iparm_io_strategy",                    iparm)) { return IPARM_IO_STRATEGY; }
+
     if(0 == strcasecmp("iparm_produce_stats",                  iparm)) { return IPARM_PRODUCE_STATS; }
+
     if(0 == strcasecmp("iparm_mc64",                           iparm)) { return IPARM_MC64; }
+
     if(0 == strcasecmp("iparm_ordering",                       iparm)) { return IPARM_ORDERING; }
     if(0 == strcasecmp("iparm_ordering_default",               iparm)) { return IPARM_ORDERING_DEFAULT; }
+
     if(0 == strcasecmp("iparm_scotch_mt",                      iparm)) { return IPARM_SCOTCH_MT; }
     if(0 == strcasecmp("iparm_scotch_switch_level",            iparm)) { return IPARM_SCOTCH_SWITCH_LEVEL; }
     if(0 == strcasecmp("iparm_scotch_cmin",                    iparm)) { return IPARM_SCOTCH_CMIN; }
     if(0 == strcasecmp("iparm_scotch_cmax",                    iparm)) { return IPARM_SCOTCH_CMAX; }
     if(0 == strcasecmp("iparm_scotch_frat",                    iparm)) { return IPARM_SCOTCH_FRAT; }
+
     if(0 == strcasecmp("iparm_metis_ctype",                    iparm)) { return IPARM_METIS_CTYPE; }
     if(0 == strcasecmp("iparm_metis_rtype",                    iparm)) { return IPARM_METIS_RTYPE; }
     if(0 == strcasecmp("iparm_metis_no2hop",                   iparm)) { return IPARM_METIS_NO2HOP; }
@@ -70,8 +76,10 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_metis_pfactor",                  iparm)) { return IPARM_METIS_PFACTOR; }
     if(0 == strcasecmp("iparm_metis_seed",                     iparm)) { return IPARM_METIS_SEED; }
     if(0 == strcasecmp("iparm_metis_dbglvl",                   iparm)) { return IPARM_METIS_DBGLVL; }
+
     if(0 == strcasecmp("iparm_amalgamation_lvlblas",           iparm)) { return IPARM_AMALGAMATION_LVLBLAS; }
     if(0 == strcasecmp("iparm_amalgamation_lvlcblk",           iparm)) { return IPARM_AMALGAMATION_LVLCBLK; }
+
     if(0 == strcasecmp("iparm_reordering_split",               iparm)) { return IPARM_REORDERING_SPLIT; }
     if(0 == strcasecmp("iparm_reordering_stop",                iparm)) { return IPARM_REORDERING_STOP; }
     if(0 == strcasecmp("iparm_splitting_strategy",             iparm)) { return IPARM_SPLITTING_STRATEGY; }
@@ -80,28 +88,36 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_splitting_projections_depth",    iparm)) { return IPARM_SPLITTING_PROJECTIONS_DEPTH; }
     if(0 == strcasecmp("iparm_splitting_projections_distance", iparm)) { return IPARM_SPLITTING_PROJECTIONS_DISTANCE; }
     if(0 == strcasecmp("iparm_splitting_projections_width",    iparm)) { return IPARM_SPLITTING_PROJECTIONS_WIDTH; }
+
     if(0 == strcasecmp("iparm_min_blocksize",                  iparm)) { return IPARM_MIN_BLOCKSIZE; }
     if(0 == strcasecmp("iparm_max_blocksize",                  iparm)) { return IPARM_MAX_BLOCKSIZE; }
     if(0 == strcasecmp("iparm_tasks2d_level",                  iparm)) { return IPARM_TASKS2D_LEVEL; }
     if(0 == strcasecmp("iparm_tasks2d_width",                  iparm)) { return IPARM_TASKS2D_WIDTH; }
     if(0 == strcasecmp("iparm_allcand",                        iparm)) { return IPARM_ALLCAND; }
+
     if(0 == strcasecmp("iparm_incomplete",                     iparm)) { return IPARM_INCOMPLETE; }
     if(0 == strcasecmp("iparm_level_of_fill",                  iparm)) { return IPARM_LEVEL_OF_FILL; }
+
     if(0 == strcasecmp("iparm_factorization",                  iparm)) { return IPARM_FACTORIZATION; }
     if(0 == strcasecmp("iparm_free_cscuser",                   iparm)) { return IPARM_FREE_CSCUSER; }
     if(0 == strcasecmp("iparm_schur_fact_mode",                iparm)) { return IPARM_SCHUR_FACT_MODE; }
+
     if(0 == strcasecmp("iparm_transpose_solve",                iparm)) { return IPARM_TRANSPOSE_SOLVE; }
     if(0 == strcasecmp("iparm_schur_solv_mode",                iparm)) { return IPARM_SCHUR_SOLV_MODE; }
     if(0 == strcasecmp("iparm_applyperm_ws",                   iparm)) { return IPARM_APPLYPERM_WS; }
+
     if(0 == strcasecmp("iparm_refinement",                     iparm)) { return IPARM_REFINEMENT; }
     if(0 == strcasecmp("iparm_itermax",                        iparm)) { return IPARM_ITERMAX; }
     if(0 == strcasecmp("iparm_gmres_im",                       iparm)) { return IPARM_GMRES_IM; }
+
     if(0 == strcasecmp("iparm_scheduler",                      iparm)) { return IPARM_SCHEDULER; }
     if(0 == strcasecmp("iparm_thread_nbr",                     iparm)) { return IPARM_THREAD_NBR; }
     if(0 == strcasecmp("iparm_autosplit_comm",                 iparm)) { return IPARM_AUTOSPLIT_COMM; }
+
     if(0 == strcasecmp("iparm_gpu_nbr",                        iparm)) { return IPARM_GPU_NBR; }
     if(0 == strcasecmp("iparm_gpu_memory_percentage",          iparm)) { return IPARM_GPU_MEMORY_PERCENTAGE; }
     if(0 == strcasecmp("iparm_gpu_memory_block_size",          iparm)) { return IPARM_GPU_MEMORY_BLOCK_SIZE; }
+
     if(0 == strcasecmp("iparm_compress_min_width",             iparm)) { return IPARM_COMPRESS_MIN_WIDTH; }
     if(0 == strcasecmp("iparm_compress_min_height",            iparm)) { return IPARM_COMPRESS_MIN_HEIGHT; }
     if(0 == strcasecmp("iparm_compress_when",                  iparm)) { return IPARM_COMPRESS_WHEN; }
@@ -110,6 +126,7 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_compress_reltol",                iparm)) { return IPARM_COMPRESS_RELTOL; }
     if(0 == strcasecmp("iparm_compress_preselect",             iparm)) { return IPARM_COMPRESS_PRESELECT; }
     if(0 == strcasecmp("iparm_compress_iluk",                  iparm)) { return IPARM_COMPRESS_ILUK; }
+
     if(0 == strcasecmp("iparm_modify_parameter",               iparm)) { return IPARM_MODIFY_PARAMETER; }
     if(0 == strcasecmp("iparm_start_task",                     iparm)) { return IPARM_START_TASK; }
     if(0 == strcasecmp("iparm_end_task",                       iparm)) { return IPARM_END_TASK; }

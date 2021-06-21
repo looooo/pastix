@@ -1,7 +1,8 @@
 import time
 
 const_str = ''' * This file is generated automatically. If you want to modify it, modify
- * ${PASTIX_HOME}/tools/gen_param/pastix_params.py and run ${PASTIX_HOME}/tools/gen_param/gen_parm_files.py.
+ * ${PASTIX_HOME}/tools/gen_param/pastix_[iparm/dparm/enums].py and run
+ * ${PASTIX_HOME}/tools/gen_param/gen_parm_files.py ${PASTIX_HOME}.
  *
  * @copyright 2004-'''+ time.strftime( "%Y" ) +''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -129,21 +130,29 @@ def gen_parse_iparm( iparms ) :
     @in  parm   : iparm/dparm
     @out The parse_iparm/parse_dparm routines string
     """
+    maxName   = 0
+    for group in iparms :
+        tmpname = max( list( map(lambda x : len(x['name']), group["subgroup"] ) ) )
+        if tmpname > maxName :
+            maxName = tmpname
+
     result  = "pastix_iparm_t\n"\
               "parse_iparm( const char *iparm )\n"\
               "{\n"
 
-    for groups in iparms :
-        maxsize  = max( list( map(lambda x : len(x['name']), groups["subgroup"] ) ) )
-        for iparm in groups["subgroup"] :
+    for group in iparms :
+        for iparm in group["subgroup"] :
             name = iparm["name"]
             if iparm['access'] != 'IN' :
                 continue
 
-            spaces = " " * ( maxsize - len(name) )
+            spaces = " " * ( maxName - len(name) )
 
-            result += "    if(0 == strcasecmp(\"" + name +"\","+ spaces +" iparm)) { return "+ name +"; }\n"
-        result +="\n"
+            result += "    if(0 == strcasecmp(\"" + name +"\","+ spaces +" iparm)) { return "+ name.upper() +"; }\n"
+
+        # For the moment, MPI modes group don't have IN iparm. Add this exception for the moment
+        if group["name"] != "mpi_modes" :
+            result +="\n"
 
     result += "    return -1;\n"\
               "}\n\n"
@@ -170,7 +179,7 @@ def gen_parse_dparm( dparms ) :
 
         spaces = " " * ( maxsize - len(name) )
 
-        result += "    if(0 == strcasecmp(\"" + name +"\","+ spaces +" dparm)) { return "+ name +"; }\n"
+        result += "    if(0 == strcasecmp(\"" + name +"\","+ spaces +" dparm)) { return "+ name.upper() +"; }\n"
 
     result += "\n    return -1;\n"\
               "}\n\n"
@@ -212,30 +221,40 @@ def gen_parse_enums( iparms, enums ) :
             previous = enumname
 
             values =  find_enums_name( enumname, enums )['values']
-            currMaxSize = max( list( map(lambda x : len(x['name']), values.values()) ) )
-            for field in values.values() :
-                name = field["name"]
+            currMaxSize = max( list( map(lambda x : len(x['name']), values) ) )
+            for value in values :
+                name = value["name"]
                 spaces = " " * ( currMaxSize - len(name) )
                 result += "    if(0 == strcasecmp(\"" + name.lower() +"\","+ spaces +" string)) { return "+ name +"; }\n"
 
             result +="\n"
 
     # If the value is directly given without string
-    result += "    /* If the value is directly given without string */\n"\
-              "    {\n"\
-              "        int value;\n"\
-              "        if ( sscanf( string, \"%d\", &value ) != 1 ) {\n"\
-              "            return -1;\n"\
-              "        }\n"\
-              "        else {\n"\
-              "            return value;\n"\
-              "        }\n"\
-              "    }\n"\
-              "}\n\n"
+    result += '''    /* If the value is directly given without string */
+    {
+        int value;
+        if ( sscanf( string, "%d", &value ) != 1 ) {
+            return -1;
+        }
+        else {
+            return value;
+        }
+    }
+}
+
+'''
 
     return result
 
 def gen_enum_get_str_declaration( enum, inHeader ) :
+    """
+    Generate a string that corresponds to pastix_[enum]_getstr declaration
+    either for the c file or the prototype declaration.
+
+    @in  enum     : The concerned enum .
+    @in  inHeader : Boolean which indicates if we're on the .c or .h file.
+    @out the enum declaration string for the pastix_[enum]_getstr routine.
+    """
     ftype = "const char*"
     name  = "pastix_"+ enum +"_getstr( pastix_"+  enum +"_t value )"
 
@@ -250,23 +269,23 @@ def gen_enum_get_str( enum ) :
     """
     Generate a string that corresponds to the declaration of the enum_getstr routine
 
-    @in  enum : The YAML structure that corresponds to the current enum.
-    @out the enum declaration string for the pastix_[enum]_getstr routine
+    @in  enum : The current enum dictionnary.
+    @out the enum declaration string for the pastix_[enum]_getstr routine.
     """
     work = enum
     name = enum['name']
     # Factotype has redondant values for its enum:
     # We have to work with this exception
     if name == "factotype" :
-        work = { 'values' : {} }
+        work = { 'values' : [] }
         for i in range(5, 10):
-            work['values'][i] = enum['values'][i]
+            work['values'].append( enum['values'][i] )
 
     result = gen_enum_get_str_declaration( name, False) + "{\n"\
              "    switch( value ) {\n"
 
-    for field in work['values'].values() :
-        valname = field['name']
+    for value in work['values'] :
+        valname = value['name']
         result += "    case "+ valname + ":\n"
         result += "        return \""+ valname + "\";\n"
 
@@ -274,6 +293,14 @@ def gen_enum_get_str( enum ) :
     return result
 
 def genParseOptC( iparms, dparms, enums ) :
+    """
+    Generate a string that corresponds to parse_options.c
+
+    @in  iparms : The array containing iparm groups.
+    @in  dparms : The array containing dparms.
+    @in  enums  : The array containing enums.
+    @out the enum declaration string for the pastix_[enum]_getstr routine
+    """
     result  = parse_options_begin
 
     result += parse_iparm_doc
@@ -287,7 +314,15 @@ def genParseOptC( iparms, dparms, enums ) :
 
     return result
 
-def genParseOptGetstr( enums ) :
+def genParseOptH( enums ) :
+    """
+    Write pastix_options.h completely.
+    Declare all pastix_[enum]_getstr in the .c file.
+
+    @in  enums  : The array containing enums.
+    @out headerFile : The complete parse_options.h string.
+    @out cFile      : The string for all the pastix_[enum]_getstr declarations.
+    """
     cFile      = ""
     headerFile = parse_options_header_begin
 
