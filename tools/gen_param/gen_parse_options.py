@@ -1,12 +1,7 @@
-import os
-import sys
-import re
-import string
-import yaml
 import time
 
 const_str = ''' * This file is generated automatically. If you want to modify it, modify
- * ${PASTIX_HOME}/docs/pastix_params.yaml and run ${PASTIX_HOME}/tools/gen_param/gen_parm_files.py.
+ * ${PASTIX_HOME}/tools/gen_param/pastix_params.py and run ${PASTIX_HOME}/tools/gen_param/gen_parm_files.py.
  *
  * @copyright 2004-'''+ time.strftime( "%Y" ) +''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -126,39 +121,74 @@ parse_enums_doc = '''/**
  *******************************************************************************/
 '''
 
-def gen_parse_param( params, parm ) :
+def gen_parse_iparm( iparms ) :
     """
     Generate the parse_iparm/parse_dparm routines
 
-    @in  params : The param dictionnary structure.
+    @in  dparms : The param dictionnary structure.
     @in  parm   : iparm/dparm
     @out The parse_iparm/parse_dparm routines string
     """
-    result  = "pastix_"+ parm +"_t\n"\
-              "parse_"+ parm +"( const char *"+ parm +" )\n"\
+    result  = "pastix_iparm_t\n"\
+              "parse_iparm( const char *iparm )\n"\
               "{\n"
 
-    maxsize  = max( list( map(lambda x : len(x), params.keys() ) ) )
-    for name in params :
-        param = params[name]
-        if param['INOUT'] != 'IN' :
+    for groups in iparms :
+        maxsize  = max( list( map(lambda x : len(x['name']), groups["subgroup"] ) ) )
+        for iparm in groups["subgroup"] :
+            name = iparm["name"]
+            if iparm['access'] != 'IN' :
+                continue
+
+            spaces = " " * ( maxsize - len(name) )
+
+            result += "    if(0 == strcasecmp(\"" + name +"\","+ spaces +" iparm)) { return "+ name +"; }\n"
+        result +="\n"
+
+    result += "    return -1;\n"\
+              "}\n\n"
+
+    return result
+
+def gen_parse_dparm( dparms ) :
+    """
+    Generate the parse_iparm/parse_dparm routines
+
+    @in  dparms : The param dictionnary structure.
+    @in  parm   : iparm/dparm
+    @out The parse_iparm/parse_dparm routines string
+    """
+    result  = "pastix_dparm_t\n"\
+              "parse_dparm( const char *dparm )\n"\
+              "{\n"
+
+    maxsize  = max( list( map(lambda x : len(x['name']), dparms ) ) )
+    for dparm in dparms :
+        name = dparm["name"]
+        if dparm['access'] != 'IN' :
             continue
 
         spaces = " " * ( maxsize - len(name) )
 
-        result += "    if(0 == strcasecmp(\"" + name.lower() +"\","+ spaces +" "+ parm +")) { return "+ name +"; }\n"
+        result += "    if(0 == strcasecmp(\"" + name +"\","+ spaces +" dparm)) { return "+ name +"; }\n"
 
     result += "\n    return -1;\n"\
               "}\n\n"
 
     return result
 
+def find_enums_name( name, enums ):
+    for enum in enums :
+        if name == enum["name"] :
+            return enum
+    return -1
+
 def gen_parse_enums( iparms, enums ) :
     """
     Generate the parse_enums routine
 
     @in  iparms : The IPARM dictionnary.
-    @in  enums  : The ENUMS dictionnary.
+    @in  enums  : The enumS dictionnary.
     @out The parse_enums routine string
     """
     previous = ""
@@ -166,29 +196,29 @@ def gen_parse_enums( iparms, enums ) :
               "parse_enums( const char *string )\n"\
               "{\n"
 
-    for name in iparms :
-        iparm = iparms[name]
-        if iparm['INOUT'] != 'IN' :
-            continue
+    for groups in iparms :
+        for iparm in groups["subgroup"] :
+            if iparm['access'] != 'IN' :
+                continue
 
-        # We have an enum IPARM
-        if 'ENUM' not in iparm :
-            continue
-        enumname = iparm['ENUM']
+            # We have an enum IPARM
+            if 'enum' not in iparm :
+                continue
+            enumname = iparm['enum']
 
-        # Avoid IPARM that may point to the same enums
-        if previous == enumname :
-            continue
-        previous = enumname
+            # Avoid IPARM that may point to the same enums
+            if previous == enumname :
+                continue
+            previous = enumname
 
-        values      = enums[enumname]['VALUES']
-        currMaxSize = max( list( map(lambda x : len(x['NAME']), values.values()) ) )
-        for field in values.values() :
-            name = field["NAME"]
-            spaces = " " * ( currMaxSize - len(name) )
-            result += "    if(0 == strcasecmp(\"" + name.lower() +"\","+ spaces +" string)) { return "+ name +"; }\n"
+            values =  find_enums_name( enumname, enums )['values']
+            currMaxSize = max( list( map(lambda x : len(x['name']), values.values()) ) )
+            for field in values.values() :
+                name = field["name"]
+                spaces = " " * ( currMaxSize - len(name) )
+                result += "    if(0 == strcasecmp(\"" + name.lower() +"\","+ spaces +" string)) { return "+ name +"; }\n"
 
-        result +="\n"
+            result +="\n"
 
     # If the value is directly given without string
     result += "    /* If the value is directly given without string */\n"\
@@ -216,7 +246,7 @@ def gen_enum_get_str_declaration( enum, inHeader ) :
 
     return result
 
-def gen_enum_get_str( name, enum ) :
+def gen_enum_get_str( enum ) :
     """
     Generate a string that corresponds to the declaration of the enum_getstr routine
 
@@ -224,18 +254,19 @@ def gen_enum_get_str( name, enum ) :
     @out the enum declaration string for the pastix_[enum]_getstr routine
     """
     work = enum
+    name = enum['name']
     # Factotype has redondant values for its enum:
     # We have to work with this exception
     if name == "factotype" :
-        work = { 'VALUES' : {} }
+        work = { 'values' : {} }
         for i in range(5, 10):
-            work['VALUES'][i] = enum['VALUES'][i]
+            work['values'][i] = enum['values'][i]
 
     result = gen_enum_get_str_declaration( name, False) + "{\n"\
              "    switch( value ) {\n"
 
-    for field in work['VALUES'].values() :
-        valname = field.get('NAME')
+    for field in work['values'].values() :
+        valname = field['name']
         result += "    case "+ valname + ":\n"
         result += "        return \""+ valname + "\";\n"
 
@@ -246,10 +277,10 @@ def genParseOptC( iparms, dparms, enums ) :
     result  = parse_options_begin
 
     result += parse_iparm_doc
-    result += gen_parse_param( iparms, "iparm" )
+    result += gen_parse_iparm( iparms )
 
     result += parse_dparm_doc
-    result += gen_parse_param( dparms, "dparm" )
+    result += gen_parse_dparm( dparms )
 
     result += parse_enums_doc
     result += gen_parse_enums( iparms, enums )
@@ -260,9 +291,9 @@ def genParseOptGetstr( enums ) :
     cFile      = ""
     headerFile = parse_options_header_begin
 
-    for name in enums :
-        headerFile += gen_enum_get_str_declaration( name, True )
-        cFile      += gen_enum_get_str( name, enums[name] )
+    for enum in enums :
+        headerFile += gen_enum_get_str_declaration( enum['name'], True )
+        cFile      += gen_enum_get_str( enum )
 
     headerFile += parse_options_header_end
     return headerFile, cFile

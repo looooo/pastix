@@ -29,7 +29,7 @@ dparm_fill_in = {
 	"default" : "-",
 	"brief" : "Maximum memory (-DMEMORY_USAGE)",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -42,7 +42,7 @@ dparm_epsilon_refinement = {
 	"default" : "-1.",
 	"brief" : "Epsilon for refinement",
 	"access" : "IN",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -55,7 +55,7 @@ dparm_relative_error = {
 	"default" : "-",
 	"brief" : "Relative backward error",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -68,7 +68,7 @@ dparm_epsilon_magn_ctrl = {
 	"default" : "0.",
 	"brief" : "Epsilon for magnitude control",
 	"access" : "IN",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -81,7 +81,7 @@ dparm_order_time = {
 	"default" : "-",
 	"brief" : "Time for subtask order (wallclock)",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -94,7 +94,7 @@ dparm_symbfact_time = {
 	"default" : "-",
 	"brief" : "Time for subtask symbfact (wallclock)",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -107,7 +107,7 @@ dparm_reorder_time = {
 	"default" : "-",
 	"brief" : "Time for subtask reordering (wallclock)",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -120,7 +120,7 @@ dparm_blend_time = {
 	"default" : "-",
 	"brief" : "Time for subtask blend (wallclock)",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -133,7 +133,7 @@ dparm_analyze_time = {
 	"default" : "-",
 	"brief" : "Time for task analyse (wallclock)",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -146,7 +146,7 @@ dparm_pred_fact_time = {
 	"default" : "-",
 	"brief" : "Predicted factorization time",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -159,7 +159,7 @@ dparm_fact_time = {
 	"default" : "-",
 	"brief" : "Time for task Numerical Factorization (wallclock)",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -172,7 +172,7 @@ dparm_fact_flops = {
 	"default" : "-",
 	"brief" : "Factorization GFlops/s",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -185,7 +185,7 @@ dparm_fact_thflops = {
 	"default" : "-",
 	"brief" : "Factorization theoretical Flops",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -198,7 +198,7 @@ dparm_fact_rlflops = {
 	"default" : "-",
 	"brief" : "Factorization performed Flops",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -211,7 +211,7 @@ dparm_solv_time = {
 	"default" : "-",
 	"brief" : "Time for task Solve (wallclock)",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -224,7 +224,7 @@ dparm_solv_flops = {
 	"default" : "-",
 	"brief" : "Solve GFlops/s",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -237,7 +237,7 @@ dparm_solv_thflops = {
 	"default" : "-",
 	"brief" : "Solve theoretical Flops",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -250,7 +250,7 @@ dparm_solv_rlflops = {
 	"default" : "-",
 	"brief" : "Solve performed Flops",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -263,7 +263,7 @@ dparm_refine_time = {
 	"default" : "-",
 	"brief" : "Time for task refinement (wallclock)",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -276,7 +276,7 @@ dparm_a_norm = {
 	"default" : "-",
 	"brief" : "(||A||_f) norm",
 	"access" : "OUT",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -289,7 +289,7 @@ dparm_compress_tolerance = {
 	"default" : "0.01",
 	"brief" : "Tolerance for low-rank kernels",
 	"access" : "IN",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",
@@ -302,7 +302,7 @@ dparm_compress_min_ratio = {
 	"default" : "1.0",
 	"brief" : "Min ratio for rank w.r.t. strict rank",
 	"access" : "IN",
-	"description" : '''
+	"description" : r'''
 A long description in the doxygen format
 ''',
 	"range" : "TODO",

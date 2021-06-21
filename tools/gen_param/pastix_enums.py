@@ -33,7 +33,7 @@ task = {
 	"name" : "task",
 	"doc" : {
 		"brief" : "Main steps for the pastix() interface.",
-		"details" : '''
+		"details" : r'''
 Those enums are used of the IPARM_START_TASK and IPARM_END_TASK parameters
 that configure the pastix() call.
 ''',
@@ -160,7 +160,7 @@ fact_mode = {
 	"name" : "fact_mode",
 	"doc" : {
 		"brief" : "Factorization Schur modes",
-		"details" : '''
+		"details" : r'''
 Describe which part of the matrix is factorized or not
 ''',
 	},
@@ -186,7 +186,7 @@ solv_mode = {
 	"name" : "solv_mode",
 	"doc" : {
 		"brief" : "Solve Schur modes",
-		"details" : '''
+		"details" : r'''
 Describe which part of the solve is applied with the matrix
 
 \f[ A = \left( \begin{array}{cc}
@@ -252,7 +252,7 @@ coeftype = {
 	"name" : "coeftype",
 	"doc" : {
 		"brief" : "Arithmetic types.",
-		"details" : '''
+		"details" : r'''
 This describes the different arithmetics that can be stored in a sparse matrix.
 @remark The values start at 2 for compatibility purpose with PLASMA and
 DPLASMA libraries, and they match the ones used in spm.
@@ -682,7 +682,7 @@ mtxtype = {
 	"name" : "mtxtype",
 	"doc" : {
 		"brief" : "Matrix symmetry type property.",
-		"details" : '''
+		"details" : r'''
 @remark Must match transposition.
 ''',
 	},
@@ -737,7 +737,7 @@ coefside = {
 	"name" : "coefside",
 	"doc" : {
 		"brief" : "Data blocks used in the kernel",
-		"details" : '''
+		"details" : r'''
 @warning Must be 0 and 1 respectively for Left and Upper as is it used to
 shift the pointers in the kernels from the lower to upper part.
 ''',
@@ -814,22 +814,22 @@ normtype = {
 		0 : {
     		"name": "PastixOneNorm",
     		"value": "171",
-    		"brief": "One norm:       max_j( sum_i( |a_{ij	}| ) )"
+    		"brief": "One norm:       max_j( sum_i( |a_{ij}| ) )"
     	},
 		1 : {
     		"name": "PastixFrobeniusNorm",
     		"value": "174",
-    		"brief": "Frobenius norm: sqrt( sum_{i,j	} (a_{ij	}^2) )"
+    		"brief": "Frobenius norm: sqrt( sum_{i,j} (a_{ij}^2) )"
     	},
 		2 : {
     		"name": "PastixInfNorm",
     		"value": "175",
-    		"brief": "Inifinite norm: max_i( sum_j( |a_{ij	}| ) )"
+    		"brief": "Inifinite norm: max_i( sum_j( |a_{ij}| ) )"
     	},
 		3 : {
     		"name": "PastixMaxNorm",
     		"value": "177",
-    		"brief": "Inifinite norm: max_{i,j	}( | a_{ij	} | )"
+    		"brief": "Inifinite norm: max_{i,j}( | a_{ij} | )"
     	}
 	}
 }
