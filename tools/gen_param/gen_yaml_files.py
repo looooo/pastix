@@ -1,20 +1,12 @@
-import yaml
+import sys
+import os
+from pastix_iparm import iparm
+from pastix_dparm import dparm
+from pastix_enums import enums
 from gen_pastix_api import *
 from gen_parse_options import *
 
-def genPastixEnumsFiles( apiHeader, parseoptH, pasrseOptC,
-                         iparmyaml, dparmyaml, enumsyaml ) :
-    stream = open(iparmyaml, 'r')
-    iparm  = yaml.safe_load(stream)
-    stream.close()
-
-    stream = open(dparmyaml, 'r')
-    dparm  = yaml.safe_load(stream)
-    stream.close()
-
-    stream = open(enumsyaml, 'r')
-    enums  = yaml.safe_load(stream)
-    stream.close()
+def genPastixEnumsFiles( apiHeader, parseoptH, pasrseoptC ) :
 
     apiFile = open( apiHeader , "w" )
     apiFile.write( pastix_enums_begin )
@@ -44,11 +36,7 @@ if len(sys.argv) < 2 :
 
 pastixHome    = sys.argv[1]
 apiHeader     = os.path.join( pastixHome, "include", "pastix/api.h" )
-iparmyaml     = os.path.join( pastixHome, "docs",    "pastix_iparm.yaml" )
-dparmyaml     = os.path.join( pastixHome, "docs",    "pastix_dparm.yaml" )
-enumsyaml     = os.path.join( pastixHome, "docs",    "pastix_enums.yaml" )
 parseoptC     = os.path.join( pastixHome, "common",  "parse_options.c" )
 parseOptH     = os.path.join( pastixHome, "common",  "parse_options.h" )
 
-genPastixEnumsFiles( apiHeader , parseOptH, parseoptC,
-                     iparmyaml, dparmyaml, enumsyaml )
+genPastixEnumsFiles( apiHeader, parseOptH, parseoptC )

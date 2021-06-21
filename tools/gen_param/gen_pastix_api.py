@@ -5,7 +5,8 @@ import string
 import time
 
 const_str = ''' * This file is generated automatically. If you want to modify it, modify
- * ${PASTIX_HOME}/docs/pastix_params.yaml and run ${PASTIX_HOME}/tools/gen_param/gen_parm_files.py.
+ * ${PASTIX_HOME}/tools/gen_param/pastix_[iparm/dparm/enums].py and run
+ * ${PASTIX_HOME}/tools/gen_param/gen_parm_files.py ${PASTIX_HOME}.
  *
  * @copyright 2004-'''+ time.strftime( "%Y" ) +''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -71,15 +72,15 @@ def get_param_max_str_size( params ) :
     @in  params : The params dictionnary
     @out max name, brief and default value size
     """
-    maxName   = max( list( map(lambda x : len(x),            params.keys())   ) )
+    maxName   = max( list( map(lambda x : len(x['name']),    params) ) )
 
-    maxBrief  = max( list( map(lambda x : len(x['BRIEF']),   params.values()) ) )
+    maxBrief  = max( list( map(lambda x : len(x['brief']),   params) ) )
 
-    maxDefVal = max( list( map(lambda x : len(x['DEFAULT']), params.values()) ) )
+    maxDefVal = max( list( map(lambda x : len(x['default']), params) ) )
 
     return maxName, maxBrief, maxDefVal
 
-def gen_param( params, prefix ) :
+def gen_param( params ) :
     """
     Generate a string that corresponds to the declaration of the prefix
 
@@ -87,57 +88,58 @@ def gen_param( params, prefix ) :
     @in  prefix : IPARM/DPARM
     @out the enum declaration string for the pastix_[i/d]parm_t
     """
-    ptype = ""
-    if prefix == "IPARM" :
-        ptype = "Integer"
-    else :
-        ptype = "Float"
-
-    result = "/**\n"\
-             " * @brief " + ptype + " parameters\n"\
-             " */\n"\
-             "typedef enum pastix_"+ prefix.lower() +"_e {\n"
-
     maxName, maxBrief, maxDefVal = get_param_max_str_size( params )
-
-    for field in params :
-        param = params[field]
+    result = ""
+    for param in params :
         # Get the fields
-        name    = field + ","
-        brief   = param['BRIEF']
-        default = param['DEFAULT']
-        inout   = " " + param['INOUT']
+        name    = param['name'].upper() + ","
+        brief   = param['brief']
+        default = param['default']
+        inout   = param['access']
 
         # Align them correctly
         name    += " " * ( maxName   - len(name) + 1 )
-        brief   += " " * ( maxBrief  - len(brief)    )
-        default += " " * ( maxDefVal - len(default)  )
+        brief   += " " * ( maxBrief  - len(brief) + 3 )
+        default += " " * ( maxDefVal - len(default) + 3  )
         inout   += " " * ( 3         - len(inout) )
 
         # Add them in the result
         result += "    " + name +" /**< "+ brief +" Default: "+ default + inout +" */\n"
-
-    result += "    "+ prefix +"_SIZE\n"\
-              "} pastix_"+ prefix.lower() +"_t;\n\n"
     return result
 
 #
 # Wrappers for iparm/dparm
 #
-def genIparmDeclaration( params ) :
-    return gen_param( params, "IPARM" )
+def genIparmDeclaration( iparms ) :
+    result = "/**\n"\
+             " * @brief Integer parameters\n"\
+             " */\n"\
+             "typedef enum pastix_iparm_e {\n"
+    for group in iparms :
+        if group["brief"] != "None" :
+            result += "    /* "+ group["brief"] +" */\n"
+        result += gen_param( group["subgroup"] )
+        result += "\n"
+    result += "    IPARM_SIZE\n"\
+              "} pastix_iparm_t;\n\n"
+    return result
 
-def genDparmDeclaration( params ) :
-    return gen_param( params, "DPARM" )
+def genDparmDeclaration( dparms ) :
+    result = "/**\n"\
+             " * @brief Float parameters\n"\
+             " */\n"\
+             "typedef enum pastix_dparm_e {\n"
+    result += gen_param( dparms )
+    result += "    DPARM_SIZE\n"\
+              "} pastix_dparm_t;\n\n"
+    return result
 
 def gen_enum_documentation(enum):
     result = "/**\n"\
-          " * @brief " + enum['DOC']['BRIEF'] + "\n"
+          " * @brief " + enum['doc']['brief'] + "\n"
 
-    if 'DETAILS' in enum['DOC'] :
-        result += " *\n"
-
-        details = enum['DOC']['DETAILS'].split("\n")
+    if 'details' in enum['doc'] :
+        details = enum['doc']['details'].split("\n")
         details = details[:len(details) - 1]
 
         for line in details:
@@ -149,52 +151,53 @@ def gen_enum_documentation(enum):
 
     return result
 
-def gen_enum_declaration( name, enum ) :
+def gen_enum_declaration( enum ) :
     """
     Generate a string that corresponds to the declaration of an enum
 
     @in  enum : The YAML structure that corresponds to the enum to declare
     @out the enum declaration string for the pastix_[enum]_t
     """
+    name = enum['name']
     # Write documentation
     result = gen_enum_documentation( enum )
 
     # End comment, begin enum declaration
     result += "typedef enum pastix_"+ name + "_e {\n"\
 
-    values = enum['VALUES']
-    last   = list(enum['VALUES'].keys())[-1]
+    values = enum['values']
+    last   = list(enum['values'].keys())[-1]
 
-    nameMaxSize  = max(list( map(lambda x : len(x['NAME']), values.values()) ))
+    nameMaxSize  = max(list( map(lambda x : len(x['name']), values.values()) ))
     briefMaxSize = 0
     valueMaxSize = 0
-    if 'BRIEF' in values[0] :
-        briefMaxSize = max(list( map(lambda x : len(x['BRIEF']), values.values() ) ))
-    if 'VALUE' in values[0] :
-        valueMaxSize = max(list( map(lambda x : len(x['VALUE']), values.values() ) ))
+    if 'brief' in values[0] :
+        briefMaxSize = max(list( map(lambda x : len(x['brief']), values.values() ) ))
+    if 'value' in values[0] :
+        valueMaxSize = max(list( map(lambda x : len(x['value']), values.values() ) ))
 
     for value in values.values() :
         # Name
-        result += "    " + value['NAME']
+        result += "    " + value['name']
 
         # If a value is given, put it in the file
-        if 'VALUE' in value :
-            result += " " * (nameMaxSize - len(value['NAME']) )
-            result += " = "+ value['VALUE']
+        if 'value' in value :
+            result += " " * (nameMaxSize - len(value['name']) )
+            result += " = "+ value['value']
 
-        if value != enum['VALUES'][ last ] :
+        if value != enum['values'][ last ] :
             result += ","
         else :
-            if 'BRIEF' in value :
+            if 'brief' in value :
                 result += " "
 
         # If a brief comment is given, put it in the file
-        if 'BRIEF' in value :
-            if 'VALUE' in value :
-                result += " " * (valueMaxSize - len(value['VALUE']) ) + " /**< "
+        if 'brief' in value :
+            if 'value' in value :
+                result += " " * (valueMaxSize - len(value['value']) ) + " /**< "
             else :
-                result += " " * (nameMaxSize  - len(value['NAME']) ) + " /**< "
-            result += value['BRIEF'] + " " * (briefMaxSize - len(value['BRIEF']) ) + " */"
+                result += " " * (nameMaxSize  - len(value['name']) ) + " /**< "
+            result += value['brief'] + " " * (briefMaxSize - len(value['brief']) ) + " */"
         result += "\n"
 
     # End of the enum declaration
@@ -205,10 +208,10 @@ def gen_coeftype( enum ) :
     result = gen_enum_documentation( enum )
     result += "#define pastix_coeftype_t spm_coeftype_t\n"
 
-    maxsize = max( list( map( lambda x : len(x["NAME"]) + 1, enum["VALUES"].values() ) ) )
+    maxsize = max( list( map( lambda x : len(x["name"]) + 1, enum["values"].values() ) ) )
 
-    for value in enum["VALUES"].values() :
-        result += "#define "+ value["NAME"] + ( maxsize - len(value["NAME"]) ) * " " + value["VALUE"] +"\n"
+    for value in enum["values"].values() :
+        result += "#define "+ value["name"] + ( maxsize - len(value["name"]) ) * " " + value["value"] +"\n"
     result += close_bracket + "\n"
     return result
 
@@ -222,16 +225,17 @@ def genPastixEnums( enums ) :
     """
     headerFile  = ""
 
-    for name in enums :
+    for enum in enums :
+        name = enum["name"]
         if name == "coeftype" :
-            headerFile += gen_coeftype( enums[name] )
+            headerFile += gen_coeftype( enum )
             continue
 
         # Begin BLAS-like enums
         if name == "layout" :
             headerFile += blas_str + "\n"
 
-        headerFile += gen_enum_declaration( name, enums[name] )
+        headerFile += gen_enum_declaration( enum )
 
     # Close BLAS-like enums bracket
     headerFile += close_bracket
