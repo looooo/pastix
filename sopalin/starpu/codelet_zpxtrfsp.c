@@ -69,7 +69,11 @@ starpu_task_cblk_zpxtrfsp1d_panel( sopalin_data_t *sopalin_data,
         STARPU_VALUE,   &sopalin_data, sizeof(sopalin_data_t*),
         STARPU_VALUE,   &cblk,         sizeof(SolverCblk*),
         STARPU_RW,       cblk->handler[0],
+#if defined(PASTIX_STARPU_HETEROPRIO)
+        STARPU_PRIORITY, 0,
+#else
         STARPU_PRIORITY, prio,
+#endif
         0);
 }
 
@@ -100,6 +104,7 @@ static void fct_blok_zpxtrfsp_cpu(void *descr[], void *cl_arg)
 
     solvmtx = sopalin_data->solvmtx;
     nbpivot = cpucblk_zpxtrfsp1d_pxtrf( solvmtx, cblk, L );
+    
 
     (void)nbpivot;
 }
@@ -117,7 +122,11 @@ starpu_task_blok_zpxtrf( sopalin_data_t *sopalin_data,
         STARPU_VALUE,   &sopalin_data, sizeof(sopalin_data_t*),
         STARPU_VALUE,   &cblk,         sizeof(SolverCblk*),
         STARPU_RW,       cblk->fblokptr->handler[0],
+#if defined(PASTIX_STARPU_HETEROPRIO)
+        STARPU_PRIORITY, 0,
+#else
         STARPU_PRIORITY, prio,
+#endif
         0);
 }
 

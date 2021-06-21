@@ -93,6 +93,7 @@
 /* Scheduling options */
 #cmakedefine PASTIX_WITH_PARSEC
 #cmakedefine PASTIX_WITH_STARPU
+#cmakedefine PASTIX_STARPU_HETEROPRIO
 
 /* Models */
 #cmakedefine PASTIX_GENERATE_MODEL
