@@ -41,42 +41,42 @@ that configure the pastix() call.
     "values" : [
         {
             "name": "PastixTaskInit",
-            "value": "0",
+            "value": 0,
             "brief": "Startup the library"
         },
         {
             "name": "PastixTaskOrdering",
-            "value": "1",
+            "value": 1,
             "brief": "Ordering"
         },
         {
             "name": "PastixTaskSymbfact",
-            "value": "2",
+            "value": 2,
             "brief": "Symbolic factorization"
         },
         {
             "name": "PastixTaskAnalyze",
-            "value": "3",
+            "value": 3,
             "brief": "Tasks mapping and scheduling"
         },
         {
             "name": "PastixTaskNumfact",
-            "value": "4",
+            "value": 4,
             "brief": "Numerical factorization"
         },
         {
             "name": "PastixTaskSolve",
-            "value": "5",
+            "value": 5,
             "brief": "Numerical solve"
         },
         {
             "name": "PastixTaskRefine",
-            "value": "6",
+            "value": 6,
             "brief": "Numerical refinement"
         },
         {
             "name": "PastixTaskClean",
-            "value": "7",
+            "value": 7,
             "brief": "Clean"
         }
     ]
@@ -91,17 +91,17 @@ verbose = {
     "values" : [
         {
             "name": "PastixVerboseNot",
-            "value": "0",
+            "value": 0,
             "brief": "Nothing"
         },
         {
             "name": "PastixVerboseNo",
-            "value": "1",
+            "value": 1,
             "brief": "Default"
         },
         {
             "name": "PastixVerboseYes",
-            "value": "2",
+            "value": 2,
             "brief": "Extended"
         }
     ]
@@ -116,37 +116,37 @@ io = {
     "values" : [
         {
             "name": "PastixIONo",
-            "value": "0",
+            "value": 0,
             "brief": "No output or input"
         },
         {
             "name": "PastixIOLoad",
-            "value": "1",
+            "value": 1,
             "brief": "Load ordering and symbol matrix instead of applying symbolic factorization step"
         },
         {
             "name": "PastixIOSave",
-            "value": "2",
+            "value": 2,
             "brief": "Save ordering and symbol matrix after symbolic factorization step"
         },
         {
             "name": "PastixIOLoadGraph",
-            "value": "4",
+            "value": 4,
             "brief": "Load graph  during ordering step"
         },
         {
             "name": "PastixIOSaveGraph",
-            "value": "8",
+            "value": 8,
             "brief": "Save graph  during ordering step"
         },
         {
             "name": "PastixIOLoadCSC",
-            "value": "16",
+            "value": 16,
             "brief": "Load CSC(d) during ordering step"
         },
         {
             "name": "PastixIOSaveCSC",
-            "value": "32",
+            "value": 32,
             "brief": "Save CSC(d) during ordering step"
         }
     ]
@@ -164,15 +164,15 @@ Describe which part of the matrix is factorized or not
     "values" : [
         {
             "name": "PastixFactModeLocal",
-            "value": "0"
+            "value": 0
         },
         {
             "name": "PastixFactModeSchur",
-            "value": "1"
+            "value": 1
         },
         {
             "name": "PastixFactModeBoth",
-            "value": "2"
+            "value": 2
         }
     ]
 }
@@ -202,15 +202,15 @@ PastixSolvModeSchur applies all steps.
     "values" : [
         {
             "name": "PastixSolvModeLocal",
-            "value": "0"
+            "value": 0
         },
         {
             "name": "PastixSolvModeInterface",
-            "value": "1"
+            "value": 1
         },
         {
             "name": "PastixSolvModeSchur",
-            "value": "2"
+            "value": 2
         }
     ]
 }
@@ -289,52 +289,52 @@ factotype = {
     "values" : [
         {
             "name": "PastixFactPOTRF",
-            "value": "0",
+            "value": 0,
             "brief": "Cholesky factorization"
         },
         {
             "name": "PastixFactSYTRF",
-            "value": "1",
+            "value": 1,
             "brief": "LDL^t factorization"
         },
         {
             "name": "PastixFactGETRF",
-            "value": "2",
+            "value": 2,
             "brief": "LU factorization"
         },
         {
             "name": "PastixFactPXTRF",
-            "value": "3",
+            "value": 3,
             "brief": "LL^t factorization for complex matrices"
         },
         {
             "name": "PastixFactHETRF",
-            "value": "4",
+            "value": 4,
             "brief": "LDL^h factorization for complex matrices"
         },
         {
             "name": "PastixFactLLH",
-            "value": "0",
+            "value": 0,
             "brief": "LL^h factorization for complex matrices"
         },
         {
             "name": "PastixFactLDLT",
-            "value": "1",
+            "value": 1,
             "brief": "LDL^t factorization"
         },
         {
             "name": "PastixFactLU",
-            "value": "2",
+            "value": 2,
             "brief": "LU factorization"
         },
         {
             "name": "PastixFactLLT",
-            "value": "3",
+            "value": 3,
             "brief": "LL^t factorization"
         },
         {
             "name": "PastixFactLDLH",
-            "value": "4",
+            "value": 4,
             "brief": "LDL^h factorization for complex matrices"
         }
     ]
@@ -349,27 +349,27 @@ scheduler = {
     "values" : [
         {
             "name": "PastixSchedSequential",
-            "value": "0",
+            "value": 0,
             "brief": "Sequential"
         },
         {
             "name": "PastixSchedStatic",
-            "value": "1",
+            "value": 1,
             "brief": "Shared memory with static scheduler"
         },
         {
             "name": "PastixSchedParsec",
-            "value": "2",
+            "value": 2,
             "brief": "PaRSEC scheduler"
         },
         {
             "name": "PastixSchedStarPU",
-            "value": "3",
+            "value": 3,
             "brief": "StarPU scheduler"
         },
         {
             "name": "PastixSchedDynamic",
-            "value": "4",
+            "value": 4,
             "brief": "Shared memory with dynamic scheduler"
         }
     ]
@@ -414,27 +414,27 @@ mpithreadmode = {
     "values" : [
         {
             "name": "PastixMpiNone",
-            "value": "0",
+            "value": 0,
             "brief": "No MPI support"
         },
         {
             "name": "PastixMpiThreadSingle",
-            "value": "1",
+            "value": 1,
             "brief": "MPI thread single support"
         },
         {
             "name": "PastixMpiThreadFunneled",
-            "value": "2",
+            "value": 2,
             "brief": "MPI thread funneled support"
         },
         {
             "name": "PastixMpiThreadSerialized",
-            "value": "3",
+            "value": 3,
             "brief": "MPI thread serialized support"
         },
         {
             "name": "PastixMpiThreadMultiple",
-            "value": "4",
+            "value": 4,
             "brief": "MPI thread multiple support"
         }
     ]
@@ -449,62 +449,62 @@ error = {
     "values" : [
         {
             "name": "PASTIX_SUCCESS",
-            "value": "0",
+            "value": 0,
             "brief": "No error"
         },
         {
             "name": "PASTIX_ERR_UNKNOWN",
-            "value": "1",
+            "value": 1,
             "brief": "Unknown error"
         },
         {
             "name": "PASTIX_ERR_ALLOC",
-            "value": "2",
+            "value": 2,
             "brief": "Allocation error"
         },
         {
             "name": "PASTIX_ERR_NOTIMPLEMENTED",
-            "value": "3",
+            "value": 3,
             "brief": "Not implemented feature"
         },
         {
             "name": "PASTIX_ERR_OUTOFMEMORY",
-            "value": "4",
+            "value": 4,
             "brief": "Not enough memory"
         },
         {
             "name": "PASTIX_ERR_THREAD",
-            "value": "5",
+            "value": 5,
             "brief": "Error with threads"
         },
         {
             "name": "PASTIX_ERR_INTERNAL",
-            "value": "6",
+            "value": 6,
             "brief": "Internal error"
         },
         {
             "name": "PASTIX_ERR_BADPARAMETER",
-            "value": "7",
+            "value": 7,
             "brief": "Bad parameters given"
         },
         {
             "name": "PASTIX_ERR_FILE",
-            "value": "8",
+            "value": 8,
             "brief": "Error in In/Out operations"
         },
         {
             "name": "PASTIX_ERR_INTEGER_TYPE",
-            "value": "9",
+            "value": 9,
             "brief": "Error with integer types"
         },
         {
             "name": "PASTIX_ERR_IO",
-            "value": "10",
+            "value": 10,
             "brief": "Error with input/output"
         },
         {
             "name": "PASTIX_ERR_MPI",
-            "value": "11",
+            "value": 11,
             "brief": "Error with MPI calls"
         }
     ]
@@ -623,12 +623,12 @@ layout = {
     "values" : [
         {
             "name": "PastixRowMajor",
-            "value": "101",
+            "value": 101,
             "brief": "Storage in row major order"
         },
         {
             "name": "PastixColMajor",
-            "value": "102",
+            "value": 102,
             "brief": "Storage in column major order"
         }
     ]
@@ -643,17 +643,17 @@ trans = {
     "values" : [
         {
             "name": "PastixNoTrans",
-            "value": "111",
+            "value": 111,
             "brief": "Use A"
         },
         {
             "name": "PastixTrans",
-            "value": "112",
+            "value": 112,
             "brief": "Use A^t"
         },
         {
             "name": "PastixConjTrans",
-            "value": "113",
+            "value": 113,
             "brief": "Use conj(A^t)"
         }
     ]
@@ -696,17 +696,17 @@ uplo = {
     "values" : [
         {
             "name": "PastixUpper",
-            "value": "121",
+            "value": 121,
             "brief": "Use lower triangle of A"
         },
         {
             "name": "PastixLower",
-            "value": "122",
+            "value": 122,
             "brief": "Use upper triangle of A"
         },
         {
             "name": "PastixUpperLower",
-            "value": "123",
+            "value": 123,
             "brief": "Use the full A"
         }
     ]
@@ -725,17 +725,17 @@ shift the pointers in the kernels from the lower to upper part.
     "values" : [
         {
             "name": "PastixLCoef",
-            "value": "0",
+            "value": 0,
             "brief": "Coefficients of the lower triangular L are used"
         },
         {
             "name": "PastixUCoef",
-            "value": "1",
+            "value": 1,
             "brief": "Coefficients of the upper triangular U are used"
         },
         {
             "name": "PastixLUCoef",
-            "value": "2",
+            "value": 2,
             "brief": "Coefficients of the upper/lower triangular U/L are used"
         }
     ]
@@ -750,12 +750,12 @@ diag = {
     "values" : [
         {
             "name": "PastixNonUnit",
-            "value": "131",
+            "value": 131,
             "brief": "Diagonal is non unitary"
         },
         {
             "name": "PastixUnit",
-            "value": "132",
+            "value": 132,
             "brief": "Diagonal is unitary"
         }
     ]
@@ -770,12 +770,12 @@ side = {
     "values" : [
         {
             "name": "PastixLeft",
-            "value": "141",
+            "value": 141,
             "brief": "Apply operator on the left"
         },
         {
             "name": "PastixRight",
-            "value": "142",
+            "value": 142,
             "brief": "Apply operator on the right"
         }
     ]
@@ -790,22 +790,22 @@ normtype = {
     "values" : [
         {
             "name": "PastixOneNorm",
-            "value": "171",
+            "value": 171,
             "brief": "One norm:       max_j( sum_i( |a_{ij}| ) )"
         },
         {
             "name": "PastixFrobeniusNorm",
-            "value": "174",
+            "value": 174,
             "brief": "Frobenius norm: sqrt( sum_{i,j} (a_{ij}^2) )"
         },
         {
             "name": "PastixInfNorm",
-            "value": "175",
+            "value": 175,
             "brief": "Inifinite norm: max_i( sum_j( |a_{ij}| ) )"
         },
         {
             "name": "PastixMaxNorm",
-            "value": "177",
+            "value": 177,
             "brief": "Inifinite norm: max_{i,j}( | a_{ij} | )"
         }
     ]
@@ -820,12 +820,12 @@ dir = {
     "values" : [
         {
             "name": "PastixDirForward",
-            "value": "391",
+            "value": 391,
             "brief": "Forward direction"
         },
         {
             "name": "PastixDirBackward",
-            "value": "392",
+            "value": 392,
             "brief": "Backward direction"
         }
     ]

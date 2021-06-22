@@ -204,7 +204,7 @@ def gen_enum_declaration( enum ) :
     if 'brief' in values[0] :
         briefMaxSize = max(list( map(lambda x : len(x['brief']), values) ))
     if 'value' in values[0] :
-        valueMaxSize = max(list( map(lambda x : len(x['value']), values) ))
+        valueMaxSize = max(list( map(lambda x : len(str(x['value'])), values) ))
 
     for value in values :
         # Name
@@ -213,7 +213,7 @@ def gen_enum_declaration( enum ) :
         # If a value is given, put it in the file
         if 'value' in value :
             result += " " * (nameMaxSize - len(value['name']) )
-            result += " = "+ value['value']
+            result += " = "+ str(value['value'])
 
         if value != enum['values'][ last ] :
             result += ","
@@ -224,9 +224,9 @@ def gen_enum_declaration( enum ) :
         # If a brief comment is given, put it in the file
         if 'brief' in value :
             if 'value' in value :
-                result += " " * (valueMaxSize - len(value['value']) ) + " /**< "
+                result += " " * (valueMaxSize - len(str(value['value'])) ) + " /**< "
             else :
-                result += " " * (nameMaxSize  - len(value['name']) ) + " /**< "
+                result += " " * (nameMaxSize  - len(    value['name'])   ) + " /**< "
             result += value['brief'] + " " * (briefMaxSize - len(value['brief']) ) + " */"
         result += "\n"
 
@@ -247,7 +247,7 @@ def gen_coeftype( enum ) :
     maxsize = max( list( map( lambda x : len(x["name"]) + 1, enum["values"] ) ) )
 
     for value in enum["values"] :
-        result += "#define "+ value["name"] + ( maxsize - len(value["name"]) ) * " " + value["value"] +"\n"
+        result += "#define "+ value["name"] + ( maxsize - len(value["name"]) ) * " " + str(value['value']) +"\n"
     result += close_bracket + "\n"
     return result
 
