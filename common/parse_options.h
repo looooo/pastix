@@ -3,7 +3,8 @@
  * @file parse_options.h
  *
  * This file is generated automatically. If you want to modify it, modify
- * ${PASTIX_HOME}/docs/pastix_params.yaml and run ${PASTIX_HOME}/tools/gen_param/gen_parm_files.py.
+ * ${PASTIX_HOME}/tools/gen_param/pastix_[iparm/dparm/enums].py and run
+ * ${PASTIX_HOME}/tools/gen_param/gen_parm_files.py ${PASTIX_HOME}.
  *
  * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
@@ -15,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2021-05-07
+ * @date 2021-06-21
  *
  */
 #ifndef _parse_options_h_
