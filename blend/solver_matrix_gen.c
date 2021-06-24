@@ -43,9 +43,9 @@
  *
  * @brief Initialize the solver matrix structure
  *
- * This function takes all the global preprocessing steps: the symbol matrix,
- * and the resul of the simulation step to generate the solver matrix that hold
- * only local information to each PaStiX process.
+ * This function takes all the global preprocessing steps: the symbol matrix
+ * and the result of the simulation step to generate the solver matrix that holds
+ * only local information of each PaStiX process.
  *
  *******************************************************************************
  *
