@@ -297,9 +297,11 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                    ctrl.etree,
                    symbmtx,
                    ctrl.costmtx );
+
         if( verbose > PastixVerboseNo ) {
             pastix_print( procnum, 0, OUT_BLEND_ELIMTREE_TOTAL_COST,
-                          ctrl.etree->nodetab[ eTreeRoot(ctrl.etree) ].subtree );
+                          ctrl.etree->nodetab[ eTreeRoot(ctrl.etree) ].subcost,
+                          ctrl.etree->nodetab[ eTreeRoot(ctrl.etree) ].subpath );
         }
     }
 

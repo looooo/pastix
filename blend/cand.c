@@ -276,19 +276,26 @@ candSubTreeBuild( pastix_int_t           rootnum,
                   double                *cripath )
 {
     double cost, mycp = 0.0;
-    pastix_int_t i, son;
+    pastix_int_t i, son, sonsnbr;
 
-    /* Get cost of current node */
+    /* Get costs of current node */
     if ( rootnum == -1 ) {
-        cost = 0.;
+        etree->nodetab[ rootnum ].ndecost = 0.;
     }
     else {
-        cost = costmtx->cblkcost[rootnum];
+        etree->nodetab[ rootnum ].ndecost = costmtx->cblkcost[rootnum];
     }
-    etree->nodetab[ rootnum ].total   = cost;
-    etree->nodetab[ rootnum ].subtree = cost;
 
-    for(i=0; i<etree->nodetab[rootnum].sonsnbr; i++)
+    mycp = etree->nodetab[ rootnum ].ndepath;
+    cost = etree->nodetab[ rootnum ].ndecost;
+
+    etree->nodetab[ rootnum ].subpath = mycp;
+    etree->nodetab[ rootnum ].subcost = cost;
+
+    sonsnbr = etree->nodetab[rootnum].sonsnbr;
+    mycp = 0.0;
+
+    for(i=0; i<sonsnbr; i++)
     {
         double soncp = 0.0;
 
@@ -296,38 +303,22 @@ candSubTreeBuild( pastix_int_t           rootnum,
         candtab[ son ].treelevel = candtab[ rootnum ].treelevel - 1;
         candtab[ son ].costlevel = candtab[ rootnum ].costlevel - cost;
 
-        etree->nodetab[ rootnum ].subtree +=
+        etree->nodetab[ rootnum ].subcost +=
             candSubTreeBuild( son, candtab, etree, symbmtx, costmtx, &soncp );
 
         mycp = (mycp > soncp) ? mycp : soncp;
     }
 
-    /* Update local critical path */
-    if (rootnum >= 0)
-    {
-        pastix_int_t bloknum = symbmtx->cblktab[ rootnum ].bloknum;
-        pastix_int_t fcblknm;
+    etree->nodetab[ rootnum ].subpath += mycp;
 
-        /* Add Facto and solve */
-        mycp += costmtx->blokcost[ bloknum ];
+    *cripath = etree->nodetab[ rootnum ].subpath;
 
-        /* Add first GEMM */
-        bloknum++;
-        if (bloknum <  symbmtx->cblktab[ rootnum+1 ].bloknum) {
-            fcblknm = symbmtx->bloktab[ bloknum ].fcblknm;
+    assert( etree->nodetab[ rootnum ].subpath <= etree->nodetab[ rootnum ].subcost );
+    assert( etree->nodetab[ rootnum ].ndepath <= etree->nodetab[ rootnum ].ndecost );
+    assert( etree->nodetab[ rootnum ].subpath >= etree->nodetab[ rootnum ].ndepath );
+    assert( etree->nodetab[ rootnum ].subcost >= etree->nodetab[ rootnum ].ndecost );
 
-            while( (bloknum <  symbmtx->cblktab[ rootnum+1 ].bloknum) &&
-                   (fcblknm == symbmtx->bloktab[ bloknum   ].fcblknm) )
-            {
-                mycp += costmtx->blokcost[ bloknum ];
-                bloknum++;
-            }
-        }
-    }
-    etree->nodetab[ rootnum ].cripath = mycp;
-    *cripath = mycp;
-
-    return etree->nodetab[ rootnum ].subtree;
+    return etree->nodetab[ rootnum ].subcost;
 }
 
 /**
