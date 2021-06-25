@@ -22,12 +22,11 @@
 #include "pastix_zcores.h"
 #include "pastix_zlrcores.h"
 #include <lapacke.h>
-#if defined( PASTIX_WITH_MPI )
 
 /**
  *******************************************************************************
  *
- * @brief Compute the size of a block to send in LR
+ * @brief Compute the size of a block to send in LR.
  *
  *******************************************************************************
  *
@@ -38,14 +37,14 @@
  *          @arg PastixLUCoef if both sides.
  *
  * @param[in] N
- *          The number of columns of the matrix A.
+ *          The number of columns of the block.
  *
  * @param[in] blok
- *          The block whose size we want to know..
+ *          The block for which the size is computed.
  *
  *******************************************************************************
  *
- * @return Size of a block to send in LR
+ * @return size of the LR block to send in bytes
  *
  *******************************************************************************/
 size_t
@@ -74,7 +73,7 @@ cpublok_zcompute_size_lr( pastix_coefside_t side, pastix_int_t N, const SolverBl
 /**
  *******************************************************************************
  *
- * @brief Compute the size of a cblk to send in LR
+ * @brief Compute the size of a cblk to send in LR.
  *
  *******************************************************************************
  *
@@ -85,14 +84,13 @@ cpublok_zcompute_size_lr( pastix_coefside_t side, pastix_int_t N, const SolverBl
  *          @arg PastixLUCoef if both sides.
  *
  * @param[in] cblk
- *          The column block that will be sent.
+ *          The low-rank column block for which the size is computed.
  *
  *******************************************************************************
  *
- * @return Size of a cblk to send in LR
+ * @return size of the LR cblk to send in bytes.
  *
  *******************************************************************************/
-
 pastix_uint_t
 cpucblk_zcompute_size_lr( pastix_coefside_t side, const SolverCblk *cblk )
 {
@@ -125,7 +123,7 @@ cpucblk_zcompute_size_lr( pastix_coefside_t side, const SolverCblk *cblk )
  *          @arg PastixLUCoef if both sides.
  *
  * @param[in] cblk
- *          The column block that will be sent.
+ *          The column block for which the size is computed.
  *
  *******************************************************************************
  *
@@ -150,7 +148,7 @@ cpucblk_zcompute_size( pastix_coefside_t side, const SolverCblk *cblk )
 /**
  *******************************************************************************
  *
- * @brief Pack low-rank data for a block
+ * @brief Pack low-rank data for a block.
  *
  *******************************************************************************
  *
@@ -161,17 +159,17 @@ cpucblk_zcompute_size( pastix_coefside_t side, const SolverCblk *cblk )
  *          @arg PastixLUCoef if both sides.
  *
  * @param[in] blok
- *          Block that will be sent.
+ *          The solver block to pack.
  *
  * @param[in] N
- *          Number of columns of the matrix A.
+ *          Number of columns of the block.
  *
  * @param[inout] buffer
- *          Pointer on packed data
+ *          Pointer to the buffer where to pack the data.
  *
  *******************************************************************************
  *
- * @return Pointer to the data buffer.
+ * @return Pointer to the end of the packed data.
  *
  *******************************************************************************/
 char *
@@ -193,7 +191,7 @@ cpublok_zpack_lr( pastix_coefside_t side, pastix_uint_t N, const SolverBlok *blo
 /**
  *******************************************************************************
  *
- * @brief Pack low-rank data
+ * @brief Pack a low-rank cblk data.
  *
  *******************************************************************************
  *
@@ -204,14 +202,11 @@ cpublok_zpack_lr( pastix_coefside_t side, pastix_uint_t N, const SolverBlok *blo
  *          @arg PastixLUCoef if both sides.
  *
  * @param[in] cblk
- *          The column block that will be sent.
+ *          The column block to pack.
  *
  * @param[in] size
- *          Size of packed data
+ *          Size to allocate the buffer.
  *
- *******************************************************************************
- *
- * @return Pointer to the data buffer.
  *
  *******************************************************************************/
 void *
@@ -219,7 +214,7 @@ cpucblk_zpack_lr( pastix_coefside_t side, const SolverCblk *cblk, size_t size )
 {
     assert( cblk->cblktype & CBLK_COMPRESSED );
 
-    char *buffer = malloc( size );
+    char *buffer = malloc(size);
     char *tmp    = buffer;
 
     const SolverBlok *blok  = cblk->fblokptr;
@@ -230,14 +225,13 @@ cpucblk_zpack_lr( pastix_coefside_t side, const SolverCblk *cblk, size_t size )
     for ( ; blok < lblok; blok++ ) {
         tmp = cpublok_zpack_lr( side, N, blok, tmp );
     }
-
     return buffer;
 }
 
 /**
  *******************************************************************************
  *
- * @brief Unpack low rank data and fill the cblk concerned by the computation
+ * @brief Unpack low rank data and fill the cblk concerned by the computation.
  *
  *******************************************************************************
  *
@@ -248,17 +242,17 @@ cpucblk_zpack_lr( pastix_coefside_t side, const SolverCblk *cblk, size_t size )
  *          @arg PastixLUCoef if both sides.
  *
  * @param[in] N
- *          Number of columns of the matrix.
+ *          Number of columns of the block.
  *
  * @param[inout] blok
  *          The blok concerned by the computation.
  *
  * @param[inout] buffer
- *          Pointer on packed data
+ *           Pointer on the packed data.
  *
  *******************************************************************************
  *
- * @return Pointer to the data buffer.
+ * @return Pointer to the next data to unpack.
  *
  *******************************************************************************/
 char *
@@ -280,7 +274,7 @@ cpublok_zunpack_lr( pastix_coefside_t side, pastix_int_t N, SolverBlok *blok, ch
 /**
  *******************************************************************************
  *
- * @brief Unpack low rank data and fill the cblk concerned by the computation
+ * @brief Unpack a low-rank column block and fill the cblk concerned by the computation.
  *
  *******************************************************************************
  *
@@ -291,10 +285,10 @@ cpublok_zunpack_lr( pastix_coefside_t side, pastix_int_t N, SolverBlok *blok, ch
  *          @arg PastixLUCoef if both sides.
  *
  * @param[inout] cblk
- *          The cblk concerned by the computation.
+ *          The cblk to unpack.
  *
  * @param[inout] buffer
- *          Pointer on packed data
+ *          Pointer on packed data.
  *
  *******************************************************************************
  *
@@ -306,8 +300,8 @@ cpucblk_zunpack_lr( pastix_coefside_t side, SolverCblk *cblk, void *buffer )
 {
     assert( cblk->cblktype & CBLK_COMPRESSED );
 
-    SolverBlok * blok  = cblk->fblokptr;
-    SolverBlok * lblok = cblk[1].fblokptr;
+    SolverBlok *blok  = cblk->fblokptr;
+    SolverBlok *lblok = cblk[1].fblokptr;
     pastix_int_t N     = cblk_colnbr( cblk );
 
     for ( ; blok < lblok; blok++ ) {
@@ -318,7 +312,7 @@ cpucblk_zunpack_lr( pastix_coefside_t side, SolverCblk *cblk, void *buffer )
 /**
  *******************************************************************************
  *
- * @brief Pack data in full rank
+ * @brief Pack data in full rank.
  *
  *******************************************************************************
  *
@@ -333,7 +327,8 @@ cpucblk_zunpack_lr( pastix_coefside_t side, SolverCblk *cblk, void *buffer )
  *
  *******************************************************************************
  *
- * @return Pointer to the data buffer.
+ * @return Pointer to the data buffer. Note that in full-rank, the data pointer is directly returned
+ * without data copy.
  *
  *******************************************************************************/
 void *
@@ -347,7 +342,7 @@ cpucblk_zpack_fr( pastix_coefside_t side, const SolverCblk *cblk )
 /**
  *******************************************************************************
  *
- * @brief Unpack data in full rank
+ * @brief Unpack data in full rank.
  *
  *******************************************************************************
  *
@@ -358,10 +353,10 @@ cpucblk_zpack_fr( pastix_coefside_t side, const SolverCblk *cblk )
  *          @arg PastixLUCoef if both sides.
  *
  * @param[in] cblk
- *          The column block that will be sent.
+ *          The column block to unpack.
  *
  * @param[in] buffer
- *          Pointer on packed data
+ *          Pointer on packed data.
  *
  *******************************************************************************/
 void
@@ -378,7 +373,7 @@ cpucblk_zunpack_fr( pastix_coefside_t side, SolverCblk *cblk, pastix_complex64_t
 /**
  *******************************************************************************
  *
- * @brief Pack data (Full rank or low rank)
+ * @brief Pack a column block (Full rank or low rank).
  *
  *******************************************************************************
  *
@@ -389,18 +384,18 @@ cpucblk_zunpack_fr( pastix_coefside_t side, SolverCblk *cblk, pastix_complex64_t
  *          @arg PastixLUCoef if both sides.
  *
  * @param[in] cblk
- *          The column block that will be sent.it a
+ *          The column block that will be sent.
  *
- * @param[in] size
- *          Size of the packed data
+ * @param[inout] buffer
+ *          Pointer on packed data.
  *
  *******************************************************************************
  *
- * @return Pointer to the data buffer
+ * @return Pointer to the data buffer.
  *
  *******************************************************************************/
 void *
-cpucblk_zpack( pastix_coefside_t side, const SolverCblk *cblk, const pastix_uint_t size )
+cpucblk_zpack( pastix_coefside_t side, const SolverCblk *cblk, size_t size )
 {
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
         return cpucblk_zpack_lr( side, cblk, size );
@@ -413,7 +408,7 @@ cpucblk_zpack( pastix_coefside_t side, const SolverCblk *cblk, const pastix_uint
 /**
  *******************************************************************************
  *
- * @brief Unpack data and fill the cblk concerned by the computation
+ * @brief Unpack data and fill the cblk concerned by the computation.
  *
  *******************************************************************************
  *
@@ -424,10 +419,10 @@ cpucblk_zpack( pastix_coefside_t side, const SolverCblk *cblk, const pastix_uint
  *          @arg PastixLUCoef if both sides.
  *
  * @param[inout] cblk
- *          The cblk concerned by the computation.
+ *          The cblk to unpack.
  *
  * @param[in] buffer
- *          Pointer on packed data
+ *          Pointer on packed data.
  *
  *******************************************************************************/
 void
@@ -441,6 +436,7 @@ cpucblk_zunpack( pastix_coefside_t side, SolverCblk *cblk, pastix_complex64_t *b
     }
 }
 
+#if defined( PASTIX_WITH_MPI )
 /**
  *******************************************************************************
  *
@@ -468,6 +464,8 @@ cpucblk_zisend( pastix_coefside_t side,
 {
     MPI_Request  request;
     int rc;
+    size_t bufsize;
+    void *buffer;
 
     assert( cblk->cblktype & CBLK_FANIN );
 
@@ -478,8 +476,8 @@ cpucblk_zisend( pastix_coefside_t side,
              (long)(cblksize * sizeof(pastix_complex64_t)) );
 #endif
 
-    pastix_uint_t bufsize = cpucblk_zcompute_size( side, cblk );
-    void *buffer = cpucblk_zpack( side, cblk, bufsize );
+    bufsize = cpucblk_zcompute_size( side, cblk );
+    buffer = cpucblk_zpack( side, cblk, bufsize );
 
     rc = MPI_Isend( buffer, bufsize, PASTIX_MPI_COMPLEX64,
                         cblk->ownerid, cblk->gcblknum, solvmtx->solv_comm, &request );
@@ -618,7 +616,6 @@ cpucblk_zrequest_handle_recv( pastix_coefside_t side,
     cpucblk_zunpack( side, cblk, solvmtx->rcoeftab );
 
     fcbk = solvmtx->cblktab + cblk->fblokptr->fcblknm;
-
     cpucblk_zadd( PastixLCoef, 1., cblk, fcbk, NULL );
 
     /* If side is LU, let's add the U part too */

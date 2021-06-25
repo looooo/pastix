@@ -259,14 +259,13 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                                  (solvblok - solvcblk->fblokptr), tasks2D, cblknum );
 
 #if defined(PASTIX_WITH_MPI)
-            if ( solvmtx->clustnbr > 1 )
-            {
-                if ( (solvcblk->cblktype & CBLK_COMPRESSED) &&
-                     (solvcblk->cblktype & (CBLK_FANIN | CBLK_RECV)) )
-                {
-                    solvcblk->cblktype &= (~CBLK_COMPRESSED);
+            if ( solvmtx->clustnbr > 1 ) {
+#if defined(PASTIX_BLEND_FANIN_LR)
+                if ( ( solvcblk->cblktype & CBLK_COMPRESSED ) &&
+                     ( solvcblk->cblktype & ( CBLK_FANIN | CBLK_RECV ) ) ) {
+                    solvcblk->cblktype &= ( ~CBLK_COMPRESSED );
                 }
-
+#endif
                 /* No Schur complement in distributed for the moment */
                 if( solvcblk->cblktype & CBLK_IN_SCHUR ) {
                     static int warning_schur = 1;

@@ -34,7 +34,7 @@ void core_zlralloc( pastix_int_t M, pastix_int_t N, pastix_int_t rkmax, pastix_l
 void core_zlrfree ( pastix_lrblock_t *A );
 int  core_zlrsze  ( int copy, pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, pastix_int_t newrk, pastix_int_t newrkmax, pastix_int_t rklimit );
 int  core_zlr2ge  ( pastix_trans_t trans, pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *Alr, pastix_complex64_t *A, pastix_int_t lda );
-size_t core_zlrgetsize( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A );
+
 void core_zlrcpy  ( const pastix_lr_t *lowrank,
                     pastix_trans_t transA, pastix_complex64_t alpha,
                     pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
@@ -56,8 +56,8 @@ double core_zlrnrm( pastix_normtype_t ntype, int transV,
                     pastix_int_t M, pastix_int_t N,
                     const pastix_lrblock_t *A );
 
+size_t core_zlrgetsize( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A );
 char *core_zlrpack( pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *A, char *buffer );
-
 char *core_zlrunpack( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, char *buffer );
 
 /**
