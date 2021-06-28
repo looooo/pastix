@@ -120,13 +120,15 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
      */
     if ( !(pastix_data->steps & STEP_CSC2BCSC) )
     {
-        SolverMatrix *tmp;
+        SolverMatrix *solvmtx = pastix_data->solvmatr;
         switch( pastix_data->iparm[IPARM_SCHEDULER] ){
         case PastixSchedParsec:
         case PastixSchedStarPU:
-            tmp = pastix_data->solvmatr;
-            pastix_data->solvmatr = pastix_data->solvglob;
-            pastix_data->solvglob = tmp;
+            if ( solvmtx->cblknbr != solvmtx->gcblknbr )
+            {
+                pastix_data->solvmatr = pastix_data->solvglob;
+                pastix_data->solvglob = solvmtx;
+            }
             break;
         default:
             break;
