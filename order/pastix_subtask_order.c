@@ -531,7 +531,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         etree = pastixOrderBuildEtree( ordemesh );
 
         ret = orderSupernodes( pastix_data->graph, ordemesh,
-                               etree, iparm );
+                               etree, iparm, do_schur );
 
         eTreeExit( etree );
 
