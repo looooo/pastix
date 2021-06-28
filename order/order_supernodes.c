@@ -44,6 +44,11 @@
  * @param[in] iparm
  *          The integer array of parameters.
  *
+ * @param[in] do_schur
+ *          If do_schur is not zero, the last cblk represents the schur. Thus, 
+ *          neither k-way nor projection applied on it. If do_schur is zero,
+ *          both k-way and projection can be performed everywhere. 
+ *
  *******************************************************************************
  *
  * @retval PASTIX_SUCCESS on successful exit,
@@ -54,7 +59,8 @@ pastix_int_t
 orderSupernodes( const pastix_graph_t *graph,
                  pastix_order_t       *order,
                  EliminTree           *etree,
-                 pastix_int_t         *iparm )
+                 pastix_int_t         *iparm,
+                 int                   do_schur )
 {
     ExtendVectorINT sn_parts;
     pastix_split_t  strategy     = iparm[IPARM_SPLITTING_STRATEGY];
@@ -143,7 +149,8 @@ orderSupernodes( const pastix_graph_t *graph,
         sn_nbparts_max = pastix_iceil( sn_vertnbr, iparm[IPARM_MAX_BLOCKSIZE] );
 
         if ( (sn_level > (lvl_kway)) ||
-             (sn_nbparts_max == 1) )
+             (sn_nbparts_max == 1) ||
+             ((sn_id == order->cblknbr-1) && (do_schur)) )
         {
             new_treetab[ new_cblknbr ] = order->treetab[sn_id];
             new_cblknbr++;

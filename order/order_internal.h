@@ -34,7 +34,8 @@ pastix_int_t
 orderSupernodes( const pastix_graph_t *graph,
                  pastix_order_t       *order,
                  EliminTree           *etree,
-                 pastix_int_t         *iparm );
+                 pastix_int_t         *iparm, 
+                 int                   do_schur );
 
 EliminTree *pastixOrderBuildEtree( const pastix_order_t *order );
 
