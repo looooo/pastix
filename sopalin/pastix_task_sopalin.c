@@ -543,6 +543,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
                              STEP_SOLVE |
                              STEP_REFINE );
     pastix_data->steps |= STEP_NUMFACT;
+    pastix_data->sched  = pastix_data->iparm[IPARM_SCHEDULER];
 
     (void)pastix_comm;
     return EXIT_SUCCESS;
