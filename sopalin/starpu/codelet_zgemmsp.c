@@ -294,7 +294,7 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
         STARPU_R,        blokB->handler[sideB],
         STARPU_RW,       blokC->handler[sideA],
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, 1,
+        STARPU_PRIORITY, 3,
 #else
         STARPU_PRIORITY, prio,
 #endif

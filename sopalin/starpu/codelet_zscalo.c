@@ -88,7 +88,8 @@ starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
     }
 #endif /* PASTIX_WITH_MPI */
 
-    starpu_insert_task(
+    printf("zscalo\n");
+starpu_insert_task(
         pastix_codelet(&cl_blok_zscalo_cpu),
         STARPU_VALUE,   &trans,  sizeof(pastix_trans_t),
         STARPU_VALUE,   &cblk,   sizeof(SolverCblk*),
