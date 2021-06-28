@@ -681,6 +681,17 @@ pastix_task_solve( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
+    /*
+     * Check that the solver matrix is compatible with the solve step
+     */
+    if ( ((pastix_data->iparm[IPARM_SCHEDULER] == PastixSchedParsec) ||
+          (pastix_data->iparm[IPARM_SCHEDULER] == PastixSchedStarPU)) &&
+         (pastix_data->solvmatr->gcblknbr != pastix_data->solvmatr->cblknbr) )
+    {
+        errorPrint("pastix_task_solve: The Solver Matrix can't be distributed with runtimes for the moment");
+        return PASTIX_ERR_NOTIMPLEMENTED;
+    }
+
     bcsc  = pastix_data->bcsc;
 
     /* The spm is distributed, so we have to gather the RHS */
