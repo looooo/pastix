@@ -747,7 +747,7 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     pastix->dparm = dparm;
 
     pastix->steps = 0;
-    pastix->sched = -1;
+    pastix->sched = PastixSchedStatic;
 
     pastix->isched = NULL;
 #if defined(PASTIX_WITH_PARSEC)

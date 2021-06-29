@@ -33,6 +33,16 @@
 #define STEP_SOLVE     (1 << 7)
 #define STEP_REFINE    (1 << 8)
 
+/*
+ * Scheduler family
+ */
+#define PASTIX_SCHED_FAMILY_RUNTIME ((1 << PastixSchedParsec) | (1 << PastixSchedStarPU))
+#define PASTIX_SCHED_FAMILY_PTHREAD ((1 << PastixSchedSequential) | (1 << PastixSchedStatic) | (1 << PastixSchedDynamic))
+
+#define isSchedRuntime( _runtime_ ) ( (1 << (_runtime_)) & PASTIX_SCHED_FAMILY_RUNTIME )
+#define isSchedPthread( _runtime_ ) ( (1 << (_runtime_)) & PASTIX_SCHED_FAMILY_PTHREAD )
+#define isSchedValid( _runtime_, _family_ )  ( (1 << (_runtime_)) & (_family_) )
+
 struct pastix_bcsc_s;
 typedef struct pastix_bcsc_s pastix_bcsc_t;
 

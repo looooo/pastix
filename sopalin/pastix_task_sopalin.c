@@ -116,22 +116,21 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
     }
 
     /*
-     * Temporary switch of the solver pointer for the runtime
+     * Switch of the solver pointer for the runtime.
      */
-    if ( !(pastix_data->steps & STEP_CSC2BCSC) )
     {
         SolverMatrix *solvmtx = pastix_data->solvmatr;
-        switch( pastix_data->iparm[IPARM_SCHEDULER] ){
-        case PastixSchedParsec:
-        case PastixSchedStarPU:
-            if ( solvmtx->cblknbr != solvmtx->gcblknbr )
-            {
-                pastix_data->solvmatr = pastix_data->solvglob;
-                pastix_data->solvglob = solvmtx;
-            }
-            break;
-        default:
-            break;
+        pastix_int_t  isched  = pastix_data->iparm[IPARM_SCHEDULER];
+        pastix_int_t  sched   = pastix_data->sched;
+
+        /*
+         * If between 2 runs, the scheduler have been changed to one
+         * from another family -> switch pointers
+         */
+        if( (isSchedRuntime(isched) && isSchedPthread(sched)) ||
+            (isSchedPthread(isched) && isSchedRuntime(sched)) ) {
+            pastix_data->solvmatr = pastix_data->solvglob;
+            pastix_data->solvglob = solvmtx;
         }
     }
 
@@ -166,6 +165,7 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
      */
     pastix_data->steps &= ~STEP_BCSC2CTAB;
     pastix_data->steps |= STEP_CSC2BCSC;
+    pastix_data->sched  = pastix_data->iparm[IPARM_SCHEDULER];
 
     return PASTIX_SUCCESS;
 }
@@ -219,6 +219,24 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     if (pastix_data->bcsc == NULL) {
         errorPrint("pastix_subtask_bcsc2ctab: wrong pastix_data->bcsc parameter");
         return PASTIX_ERR_BADPARAMETER;
+    }
+
+    /*
+     * Check if the scheduler have been changed between two steps.
+     * If it's the case, check if the new scheduler is in the same family
+     * than the prvious one.
+     * If not, rehabilitate the previous one.
+     */
+    {
+        if( pastix_data->sched != pastix_data->iparm[IPARM_SCHEDULER] ) {
+            pastix_int_t isched = pastix_data->iparm[IPARM_SCHEDULER];
+            pastix_int_t sched  = pastix_data->sched;
+
+            if (( isSchedRuntime(sched) && isSchedPthread(isched) ) ||
+                ( isSchedPthread(sched) && isSchedRuntime(isched) )) {
+                pastix_data->iparm[IPARM_SCHEDULER] = sched;
+            }
+        }
     }
 
     clockSyncStart( timer, pastix_data->inter_node_comm );
@@ -342,6 +360,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     /* Invalidate following step, and add current step to the ones performed */
     pastix_data->steps &= ~STEP_NUMFACT;
     pastix_data->steps |= STEP_BCSC2CTAB;
+    pastix_data->sched  = pastix_data->iparm[IPARM_SCHEDULER];
 
     (void)mtxtype;
     return PASTIX_SUCCESS;
@@ -407,6 +426,24 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
     if (bcsc == NULL) {
         errorPrint("pastix_subtask_sopalin: wrong pastix_data_bcsc parameter");
         return PASTIX_ERR_BADPARAMETER;
+    }
+
+    /*
+     * Check if the scheduler have been changed between two steps.
+     * If it's the case, check if the new scheduler is in the same family
+     * than the prvious one.
+     * If not, rehabilitate the previous one.
+     */
+    {
+        if( pastix_data->sched != pastix_data->iparm[IPARM_SCHEDULER] ) {
+            pastix_int_t isched = pastix_data->iparm[IPARM_SCHEDULER];
+            pastix_int_t sched  = pastix_data->sched;
+
+            if (( isSchedRuntime(sched) && isSchedPthread(isched) ) ||
+                ( isSchedPthread(sched) && isSchedRuntime(isched) )) {
+                pastix_data->iparm[IPARM_SCHEDULER] = sched;
+            }
+        }
     }
 
     pastix_comm = pastix_data->inter_node_comm;

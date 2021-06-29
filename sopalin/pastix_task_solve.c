@@ -681,14 +681,25 @@ pastix_task_solve( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
+    if ( (!pastix_data->steps & STEP_NUMFACT) ) {
+        errorPrint("pastix_task_solve: Numerical factorization hasn't been done.");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
     /*
      * If the scheduler used for the solve step is different from the one
-     * used for the factorization, force the scheduler to be the same.
+     * used for the factorization, assure that the scheduler is in the same family
+     * than the one for the factorization.
      */
-    if ( pastix_data->steps & STEP_NUMFACT )
     {
         if( pastix_data->sched != pastix_data->iparm[IPARM_SCHEDULER] ) {
-            pastix_data->iparm[IPARM_SCHEDULER] = pastix_data->sched;
+            pastix_int_t isched = pastix_data->iparm[IPARM_SCHEDULER];
+            pastix_int_t sched  = pastix_data->sched;
+
+            if (( isSchedRuntime(sched) && isSchedPthread(isched) ) ||
+                ( isSchedPthread(sched) && isSchedRuntime(isched) )) {
+                pastix_data->iparm[IPARM_SCHEDULER] = sched;
+            }
         }
     }
 
