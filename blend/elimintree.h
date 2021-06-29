@@ -23,9 +23,10 @@
  * @brief Node of the elimination tree.
  */
 typedef struct etree_node_s {
-    double       total;   /**< Cost of the treenode only (compute + send)    */
-    double       subtree; /**< Cost of the subtree (includes total)          */
-    double       cripath; /**< Cost of the citical path to the node included */
+    double       ndecost; /**< Cost of the tree node only (compute + send)   */
+    double       ndepath; /**< Critical path of the tree node only           */
+    double       subcost; /**< Cost of the subtree (including node)          */
+    double       subpath; /**< Critical path of the subtree (including node) */
     int          ndlevel; /**< Node depth in the elimination tree            */
     int          sonsnbr; /**< Number of sons                                */
     pastix_int_t fathnum; /**< index of the father node                      */

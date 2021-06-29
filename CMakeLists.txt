@@ -1022,6 +1022,7 @@ add_documented_files(
   blend/solver_matrix_gen.c
   blend/solver_matrix_gen_utils.h
   blend/solver_matrix_gen_utils.c
+  blend/solver_recv.c
   #
   blend/propmap.c
   blend/splitsymbol.c

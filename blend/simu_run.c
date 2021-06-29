@@ -42,6 +42,7 @@
 
 #if defined(PASTIX_BLEND_GENTRACE)
 #include <GTG.h>
+#include <GTGPaje.h>
 
 /**
  *******************************************************************************
@@ -64,10 +65,12 @@
  *
  *******************************************************************************/
 static inline void
-blendAddVar( varPrec time, const char*  type,
+blendAddVar( int clustnum, varPrec time, const char*  type,
              const char*  cont, varPrec val )
 {
-    addVar( time, type, cont, val );
+    if ( clustnum == 0 ) {
+        addVar( time, type, cont, val );
+    }
 }
 
 /**
@@ -91,18 +94,20 @@ blendAddVar( varPrec time, const char*  type,
  *
  *******************************************************************************/
 static inline void
-blendSubVar( varPrec time, const char*  type,
+blendSubVar( int clustnum, varPrec time, const char*  type,
              const char*  cont, varPrec val )
 {
-    subVar( time, type, cont, val );
+    if ( clustnum == 0 ) {
+        subVar( time, type, cont, val );
+    }
 }
 
 #else
 
-#define blendAddVar( time, type, cont, val ) \
+#define blendAddVar( clustnum, time, type, cont, val ) \
     do { } while (0)
 
-#define blendSubVar( time, type, cont, val ) \
+#define blendSubVar( clustnum, time, type, cont, val ) \
     do { } while (0)
 
 #endif
@@ -354,7 +359,7 @@ simu_putInAllReadyQueues( const BlendCtrl *ctrl,
 #endif
     assert( tasknum != -1 );
 
-    blendAddVar( timerVal( &(task->time) ), "VR_AP", "Appli", 1 );
+    blendAddVar( ctrl->clustnum, timerVal( &(task->time) ), "VR_AP", "Appli", 1 );
 
     /* Get the ready date of the task on the processor passed in parameter */
     if( cblkcand->fccandnum == cblkcand->lccandnum )
@@ -371,7 +376,7 @@ simu_putInAllReadyQueues( const BlendCtrl *ctrl,
             else {
                 pqueuePush2( sproc->readytask, tasknum, level, bloknum );
             }
-            blendAddVar( ready_date, "VR_TS", sproc->procalias, 1 );
+            blendAddVar( ctrl->clustnum, ready_date, "VR_TS", sproc->procalias, 1 );
         }
     }
     else
@@ -383,13 +388,13 @@ simu_putInAllReadyQueues( const BlendCtrl *ctrl,
         {
             ready_date = timerVal( simuctrl->ftgttimetab + CLUST2INDEX(bloknum, ctrl->core2clust[procnum]) );
 
-            if(ready_date > timerVal( &(sproc->timer) )) {
+            if( ready_date > timerVal( &(sproc->timer) ) ) {
                 pqueuePush2( sproc->futuretask, tasknum, ready_date, level );
             }
             else {
                 pqueuePush2( sproc->readytask, tasknum, level, bloknum );
             }
-            blendAddVar( ready_date, "VR_TS", sproc->procalias, 1 );
+            blendAddVar( ctrl->clustnum, ready_date, "VR_TS", sproc->procalias, 1 );
         }
     }
 }
@@ -509,7 +514,8 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
     }
 
 #if defined(PASTIX_BLEND_GENTRACE)
-    if ( earlytask != -1 ) {
+    if ( (earlytask != -1) && (ctrl->clustnum == 0) )
+    {
         const SimuTask *task     = simuctrl->tasktab + earlytask;
         const Cand     *cblkcand = ctrl->candtab + task->cblknum;
         SimuProc       *sproc    = &(simuctrl->proctab[cblkcand->fcandnum]);
@@ -517,10 +523,10 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
         for(p =  cblkcand->fcandnum;
             p <= cblkcand->lcandnum; p++, sproc++)
         {
-            blendSubVar( earlytimeready, "VR_TS", sproc->procalias, 1 );
+            blendSubVar( ctrl->clustnum, earlytimeready, "VR_TS", sproc->procalias, 1 );
         }
 
-        blendSubVar( earlytimeready, "VR_AP", "Appli", 1 );
+        blendSubVar( ctrl->clustnum, earlytimeready, "VR_AP", "Appli", 1 );
     }
 #endif
 
@@ -999,6 +1005,7 @@ simuRun( SimuCtrl              *simuctrl,
 
         setTraceType (PAJE);
         initTrace (tracename, 0, GTG_FLAG_NONE);
+        pajeEventDefAddParam( GTG_PAJE_EVTDEF_SetState, "TaskId", GTG_PAJE_FIELDTYPE_Int );
         free(tracename);
 
         addContType ("CT_Appli", "0",        "Application" );
@@ -1145,9 +1152,14 @@ simuRun( SimuCtrl              *simuctrl,
 
 #if defined(PASTIX_BLEND_GENTRACE)
         if (ctrl->clustnum == 0) {
+            char *str_val;
+            int rc;
             assert( (procnames != NULL) && (pr < ctrl->total_nbthrds) );
             assert( procnames[pr] != NULL );
-            setState( timerVal( TIMER(pr) ), "ST_TS", procnames[pr], "Comp" );
+            rc = asprintf( &str_val, "Comp\" \"%d", (int)i );
+            setState( timerVal( TIMER(pr) ), "ST_TS", procnames[pr], str_val );
+            free(str_val);
+            (void)rc;
         }
 #endif
 
@@ -1190,9 +1202,14 @@ simuRun( SimuCtrl              *simuctrl,
 
 #if defined(PASTIX_BLEND_GENTRACE)
         if (ctrl->clustnum == 0) {
+            char *str_val;
+            int rc;
             assert( (procnames != NULL) && (pr < ctrl->total_nbthrds) );
             assert( procnames[pr] != NULL );
-            setState( timerVal( TIMER(pr) ), "ST_TS", procnames[pr], "Wait" );
+            rc = asprintf( &str_val, "Wait\" \"%d", (int)i );
+            setState( timerVal( TIMER(pr) ), "ST_TS", procnames[pr], str_val );
+            free(str_val);
+            (void)rc;
         }
 #endif
         simu_pushToReadyHeap(ctrl, simuctrl, pr);

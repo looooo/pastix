@@ -141,9 +141,9 @@ compress_setSonsNbr( const EliminTree *etree,
 
     /* Copy current node */
     cnode = ctree->nodetab + (*cnodeidx);
-    cnode->total   = etree->nodetab[rootnum].total;
-    cnode->subtree = etree->nodetab[rootnum].subtree;
-    cnode->cripath = etree->nodetab[rootnum].cripath;
+    cnode->ndecost = etree->nodetab[rootnum].ndecost;
+    cnode->subcost = etree->nodetab[rootnum].subcost;
+    cnode->subpath = etree->nodetab[rootnum].subpath;
     cnode->fathnum = fathnum;
 
     ccand[ *cnodeidx ].fcandnum = fcand;
@@ -169,7 +169,7 @@ compress_setSonsNbr( const EliminTree *etree,
                     etree->sonstab + etree->nodetab[ son ].fsonnum,
                     etree->nodetab[ son ].sonsnbr * sizeof(pastix_int_t) );
             gdsonsnbr += etree->nodetab[son].sonsnbr;
-            total     += etree->nodetab[son].total;
+            total     += etree->nodetab[son].ndecost;
 
             if ( (fcand != candtab[son].fcandnum) ||
                  (lcand != candtab[son].lcandnum) )
@@ -185,7 +185,7 @@ compress_setSonsNbr( const EliminTree *etree,
                 tmp[i] = tmp[sonsnbr+i];
             }
             sonsnbr = gdsonsnbr;
-            cnode->total += total;
+            cnode->ndecost += total;
         }
     }
     while( merge && (sonsnbr>0) );
@@ -216,8 +216,8 @@ compress_setSonsNbr( const EliminTree *etree,
                  (ccand[sonj].lcandnum != ccand[soni].lcandnum) )
                 continue;
 
-            ctree->nodetab[soni].total   += ctree->nodetab[sonj].total;
-            ctree->nodetab[soni].subtree += ctree->nodetab[sonj].subtree;
+            ctree->nodetab[soni].ndecost += ctree->nodetab[sonj].ndecost;
+            ctree->nodetab[soni].subcost += ctree->nodetab[sonj].subcost;
             assert( ctree->nodetab[sonj].sonsnbr == 0 );
             assert( ctree->nodetab[sonj].fathnum == ctree->nodetab[soni].fathnum );
             ctree->nodetab[sonj].fathnum = -2;
@@ -267,29 +267,32 @@ candGenDot( const EliminTree *etree,
             continue;
 
         if ( candtab == NULL ) {
-            fprintf( stream, "\t\"%ld\" [label=\"#%ld\\nSubtree cost: %e\\nNode cost: %e\\nNode CP: %e\"]\n",
+            fprintf( stream, "\t\"%ld\" [label=\"#%ld\\nNode: %e:%e\\nSubtree: %e:%e\"]\n",
                      (long)i, (long)i,
-                     etree->nodetab[i].subtree,
-                     etree->nodetab[i].total,
-                     etree->nodetab[i].cripath );
+                     etree->nodetab[i].ndecost,
+                     etree->nodetab[i].ndepath,
+                     etree->nodetab[i].subcost,
+                     etree->nodetab[i].subpath );
         }
         else {
             if ( candtab[i].lcandnum != candtab[i].fcandnum ) {
-                fprintf( stream, "\t\"%ld\" [label=\"#%ld\\nCand: %ld - %ld\\nSubtree cost: %e\\nNode cost: %e\\nNode CP: %e\"]\n",
+                fprintf( stream, "\t\"%ld\" [label=\"#%ld\\nCand: %ld - %ld\\nNode: %e:%e\\nSubtree cost: %e:%e\"]\n",
                          (long)i, (long)i,
                          (long)(candtab[i].fcandnum),
                          (long)(candtab[i].lcandnum),
-                         etree->nodetab[i].subtree,
-                         etree->nodetab[i].total,
-                         etree->nodetab[i].cripath );
+                         etree->nodetab[i].ndecost,
+                         etree->nodetab[i].ndepath,
+                         etree->nodetab[i].ndecost,
+                         etree->nodetab[i].subpath );
             }
             else {
-                fprintf(stream, "\t\"%ld\" [label=\"#%ld\\nCand: %ld\\nSubtree cost: %e\\nNode cost: %e\\nNode CP: %e\" colorscheme=set312 style=filled fillcolor=%ld]\n",
+                fprintf( stream, "\t\"%ld\" [label=\"#%ld\\nCand: %ld\\nNode: %e:%e\\nSubtree cost: %e:%e\" colorscheme=set312 style=filled fillcolor=%ld]\n",
                         (long)i, (long)i,
                         (long)(candtab[i].fcandnum),
-                        etree->nodetab[i].subtree,
-                        etree->nodetab[i].total,
-                        etree->nodetab[i].cripath,
+                         etree->nodetab[i].ndecost,
+                         etree->nodetab[i].ndepath,
+                         etree->nodetab[i].ndecost,
+                         etree->nodetab[i].subpath,
                         (long)((candtab[i].lcandnum % 12) + 1));
             }
         }
@@ -339,9 +342,9 @@ candGenDotLevelSub( const EliminTree *etree,
     if ( candtab == NULL ) {
         fprintf( stream, "\t\"%ld\" [label=\"#%ld\\nSubtree cost: %e\\nNode cost: %e\\nNode CP: %e\"]\n",
                  (long)rootnum, (long)rootnum,
-                 etree->nodetab[rootnum].subtree,
-                 etree->nodetab[rootnum].total,
-                 etree->nodetab[rootnum].cripath );
+                 etree->nodetab[rootnum].subcost,
+                 etree->nodetab[rootnum].ndecost,
+                 etree->nodetab[rootnum].subpath );
     }
     else {
         if ( candtab[rootnum].lcandnum != candtab[rootnum].fcandnum ) {
@@ -349,17 +352,17 @@ candGenDotLevelSub( const EliminTree *etree,
                      (long)rootnum, (long)rootnum,
                      (long)(candtab[rootnum].fcandnum),
                      (long)(candtab[rootnum].lcandnum),
-                     etree->nodetab[rootnum].subtree,
-                     etree->nodetab[rootnum].total,
-                     etree->nodetab[rootnum].cripath );
+                     etree->nodetab[rootnum].subcost,
+                     etree->nodetab[rootnum].ndecost,
+                     etree->nodetab[rootnum].subpath );
         }
         else {
             fprintf(stream, "\t\"%ld\" [label=\"#%ld\\nCand: %ld\\nSubtree cost: %e\\nNode cost: %e\\nNode CP: %e\" colorscheme=set312 style=filled fillcolor=%ld]\n",
                     (long)rootnum, (long)rootnum,
                     (long)(candtab[rootnum].fcandnum),
-                    etree->nodetab[rootnum].subtree,
-                    etree->nodetab[rootnum].total,
-                    etree->nodetab[rootnum].cripath,
+                    etree->nodetab[rootnum].subcost,
+                    etree->nodetab[rootnum].ndecost,
+                    etree->nodetab[rootnum].subpath,
                     (long)((candtab[rootnum].lcandnum % 12) + 1));
         }
     }

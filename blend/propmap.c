@@ -43,7 +43,6 @@ typedef struct propmap_s {
     int               nocrossproc; /**< Enable/disable the distribution of one candidate on multiple branches */
 } propmap_t;
 
-
 /**
  *******************************************************************************
  *
@@ -160,13 +159,15 @@ propMappSubtree( const propmap_t *pmptr,
         return;
     }
 
+    assert( pmptr->etree->nodetab[rootnum].ndecost <= pmptr->etree->nodetab[rootnum].subcost );
+
     /* Work that each processor is intended to get from this treenode */
-    isocost = pmptr->etree->nodetab[rootnum].total / candnbr;
+    isocost = pmptr->etree->nodetab[rootnum].ndecost / candnbr;
     for(p=0;p<candnbr;p++)
         cost_remain[p] -= isocost;
 
     /* Get cost remaining in the descendance of the treenode */
-    aspt_cost = pmptr->etree->nodetab[rootnum].subtree - pmptr->etree->nodetab[rootnum].total;
+    aspt_cost = pmptr->etree->nodetab[rootnum].subcost - pmptr->etree->nodetab[rootnum].ndecost;
 
     /*
      * If the first and last candidate have already received more work that they
@@ -204,15 +205,14 @@ propMappSubtree( const propmap_t *pmptr,
     /* Create the list of sons sorted by descending order of cost */
     MALLOC_INTERN(queue_tree, 1, pastix_queue_t);
     pqueueInit(queue_tree, sonsnbr);
+    double soncost;
     for(i=0; i<sonsnbr; i++)
     {
-        double soncost;
-
         /* Cost in the current subtree to be mapped */
-        cumul_cost = -pmptr->etree->nodetab[eTreeSonI(pmptr->etree, rootnum, i)].subtree;
+        cumul_cost = -pmptr->etree->nodetab[eTreeSonI(pmptr->etree, rootnum, i)].subcost;
 
         /* Cost of the root node in the subtree */
-        soncost    = -pmptr->etree->nodetab[eTreeSonI(pmptr->etree, rootnum, i)].total;
+        soncost    = -pmptr->etree->nodetab[eTreeSonI(pmptr->etree, rootnum, i)].ndecost;
 
         pqueuePush2(queue_tree, i, cumul_cost, (pastix_int_t)soncost);
     }
@@ -363,7 +363,6 @@ propMappSubtree( const propmap_t *pmptr,
     return;
 }
 
-
 /**
  * @}
  */
@@ -437,7 +436,7 @@ propMappTree( Cand               *candtab,
 
         /* Prepare the initial cost_remain array */
         MALLOC_INTERN(cost_remain, candnbr, double);
-        isocost = etree->nodetab[ eTreeRoot(etree) ].subtree / candnbr;
+        isocost = etree->nodetab[ eTreeRoot(etree) ].subcost / candnbr;
 
         for(p=0; p<candnbr; p++) {
             cost_remain[p] = isocost;
@@ -445,7 +444,7 @@ propMappTree( Cand               *candtab,
 
         propMappSubtree( &pmdata, eTreeRoot(etree),
                          0, candnbr-1,
-                         0, cost_remain);
+                         0, cost_remain );
 
         memFree_null(cost_remain);
     }

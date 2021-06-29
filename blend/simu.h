@@ -129,7 +129,6 @@ typedef struct simuctrl_s {
     SimuTimer    *ftgttimetab;  /**< Vector containing a timer for each cluster on each ftgt   */
 } SimuCtrl;
 
-
 pastix_int_t simuInit        ( SimuCtrl *, const symbol_matrix_t *, const Cand *, pastix_int_t, pastix_int_t );
 pastix_int_t simuRealloc     ( SimuCtrl *, pastix_int_t, pastix_int_t );
 void         simuExit        ( SimuCtrl *, pastix_int_t, pastix_int_t, pastix_int_t );
