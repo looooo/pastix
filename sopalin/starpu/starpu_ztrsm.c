@@ -412,6 +412,11 @@ starpu_ztrsm( pastix_data_t      *pastix_data,
                               pastix_data->inter_node_procnum );
     ddesc = sopalin_data->solvmtx->starpu_desc_rhs;
 
+#if defined(STARPU_USE_FXT)
+    if (pastix->iparm[IPARM_TRACE] & (PastixTraceSolve | PastixTraceRefine)) {
+        starpu_fxt_start_profiling();
+    }
+#endif
     starpu_resume();
     starpu_ztrsm_sp1dplus( pastix_data, sopalin_data, side, uplo, trans, diag );
 
@@ -422,6 +427,11 @@ starpu_ztrsm( pastix_data_t      *pastix_data,
     starpu_mpi_barrier(pastix_data->inter_node_comm);
 #endif
     starpu_pause();
+#if defined(STARPU_USE_FXT)
+    if (pastix->iparm[IPARM_TRACE] & (PastixTraceSolve | PastixTraceRefine)) {
+        starpu_fxt_stop_profiling();
+    }
+#endif
 
     return;
 }
