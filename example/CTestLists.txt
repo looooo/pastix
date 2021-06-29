@@ -169,8 +169,7 @@ foreach( version ${RUNTYPE} )
     endforeach()
   endforeach()
 
-  # Low Rank, not in distributed
-  if( NOT (version STREQUAL "mpi") )
+  # Low Rank
     foreach(example ${PASTIX_TESTS} )
       foreach(scheduler ${PASTIX_SCHEDS} )
         foreach(arithm ${PASTIX_PRECISIONS} )
