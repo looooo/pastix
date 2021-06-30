@@ -119,18 +119,19 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
      * Switch of the solver pointer for the runtime.
      */
     {
-        SolverMatrix *solvmtx = pastix_data->solvmatr;
-        pastix_int_t  isched  = pastix_data->iparm[IPARM_SCHEDULER];
-        pastix_int_t  sched   = pastix_data->sched;
+        pastix_int_t isched = pastix_data->iparm[IPARM_SCHEDULER];
+        pastix_int_t sched  = pastix_data->sched;
 
         /*
          * If between 2 runs, the scheduler have been changed to one
-         * from another family -> switch pointers
+         * from another family -> switch pastix_data->solvmatr pointer
          */
-        if( (isSchedRuntime(isched) && isSchedPthread(sched)) ||
-            (isSchedPthread(isched) && isSchedRuntime(sched)) ) {
+        if ( isSchedRuntime(isched) && isSchedPthread(sched) ) {
             pastix_data->solvmatr = pastix_data->solvglob;
-            pastix_data->solvglob = solvmtx;
+        }
+
+        if ( isSchedPthread(isched) && isSchedRuntime(sched) ) {
+            pastix_data->solvmatr = pastix_data->solvloc;
         }
     }
 
@@ -224,17 +225,17 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     /*
      * Check if the scheduler have been changed between two steps.
      * If it's the case, check if the new scheduler is in the same family
-     * than the prvious one.
+     * than the previous one.
      * If not, rehabilitate the previous one.
      */
     {
-        if( pastix_data->sched != pastix_data->iparm[IPARM_SCHEDULER] ) {
-            pastix_int_t isched = pastix_data->iparm[IPARM_SCHEDULER];
-            pastix_int_t sched  = pastix_data->sched;
+        pastix_int_t *isched = pastix_data->iparm + IPARM_SCHEDULER;
+        pastix_int_t  sched  = pastix_data->sched;
+        if( sched != *isched ) {
 
-            if (( isSchedRuntime(sched) && isSchedPthread(isched) ) ||
-                ( isSchedPthread(sched) && isSchedRuntime(isched) )) {
-                pastix_data->iparm[IPARM_SCHEDULER] = sched;
+            if (( isSchedRuntime(sched) && isSchedPthread(*isched) ) ||
+                ( isSchedPthread(sched) && isSchedRuntime(*isched) )) {
+                *isched = sched;
             }
         }
     }
@@ -431,19 +432,21 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
     /*
      * Check if the scheduler have been changed between two steps.
      * If it's the case, check if the new scheduler is in the same family
-     * than the prvious one.
-     * If not, rehabilitate the previous one.
+     * than the previous one.
+     * If not, rehabilitate the previous scheduler.
      */
     {
-        if( pastix_data->sched != pastix_data->iparm[IPARM_SCHEDULER] ) {
-            pastix_int_t isched = pastix_data->iparm[IPARM_SCHEDULER];
-            pastix_int_t sched  = pastix_data->sched;
+        pastix_int_t *isched = pastix_data->iparm + IPARM_SCHEDULER;
+        pastix_int_t  sched  = pastix_data->sched;
+        if( sched != *isched ) {
 
-            if (( isSchedRuntime(sched) && isSchedPthread(isched) ) ||
-                ( isSchedPthread(sched) && isSchedRuntime(isched) )) {
-                pastix_data->iparm[IPARM_SCHEDULER] = sched;
+            if (( isSchedRuntime(sched) && isSchedPthread(*isched) ) ||
+                ( isSchedPthread(sched) && isSchedRuntime(*isched) )) {
+                *isched = sched;
             }
         }
+        assert(( isSchedRuntime(*isched) && (pastix_data->solvmatr == pastix_data->solvglob) ) ||
+               ( isSchedPthread(*isched) && (pastix_data->solvmatr == pastix_data->solvloc)  ));
     }
 
     pastix_comm = pastix_data->inter_node_comm;

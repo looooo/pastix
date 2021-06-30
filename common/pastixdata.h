@@ -95,7 +95,8 @@ struct pastix_data_s {
     symbol_matrix_t *symbmtx;            /**< Symbol Matrix                                                       */
 
     pastix_bcsc_t   *bcsc;               /**< Csc after reordering grouped by cblk                                */
-    SolverMatrix    *solvmatr;           /**< Solver informations associated to the matrix problem - Local        */
+    SolverMatrix    *solvmatr;           /**< Solver informations associated to the matrix problem                */
+    SolverMatrix    *solvloc;            /**< Solver informations associated to the matrix problem - Local        */
     SolverMatrix    *solvglob;           /**< Solver informations associated to the matrix problem - Global       */
 
     pastix_model_t  *cpu_models;         /**< CPU model coefficients for the kernels                              */

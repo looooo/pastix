@@ -902,10 +902,10 @@ pastixFinalize( pastix_data_t **pastix_data )
         memFree_null( pastix->symbmtx );
     }
 
-    if ( pastix->solvmatr != NULL )
+    if ( pastix->solvloc != NULL )
     {
-        solverExit( pastix->solvmatr );
-        memFree_null( pastix->solvmatr );
+        solverExit( pastix->solvloc );
+        memFree_null( pastix->solvloc );
     }
 
     if ( pastix->solvglob != NULL )
