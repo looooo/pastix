@@ -461,10 +461,10 @@ cpucblk_zisend( pastix_coefside_t side,
                 SolverMatrix     *solvmtx,
                 const SolverCblk *cblk )
 {
-    MPI_Request  request;
-    int rc;
-    size_t bufsize;
-    void *buffer;
+    MPI_Request request;
+    size_t      bufsize;
+    void       *buffer;
+    int         rc;
 
     assert( cblk->cblktype & CBLK_FANIN );
 
@@ -476,10 +476,10 @@ cpucblk_zisend( pastix_coefside_t side,
 #endif
 
     bufsize = cpucblk_zcompute_size( side, cblk );
-    buffer = cpucblk_zpack( side, cblk, bufsize );
+    buffer  = cpucblk_zpack( side, cblk, bufsize );
 
     rc = MPI_Isend( buffer, bufsize, PASTIX_MPI_COMPLEX64,
-                        cblk->ownerid, cblk->gcblknum, solvmtx->solv_comm, &request );
+                    cblk->ownerid, cblk->gcblknum, solvmtx->solv_comm, &request );
 
     if (cblk->cblktype & CBLK_COMPRESSED) {
         free(buffer);
@@ -567,10 +567,13 @@ cpucblk_zrequest_handle_fanin( pastix_coefside_t   side,
 static inline void
 cpucblk_zrequest_handle_recv( pastix_coefside_t   side,
                               SolverMatrix       *solvmtx,
-                              pastix_complex64_t *recvbuf,
-                              int threadid, int src, int tag )
+                              int                 threadid,
+                              const MPI_Status   *status,
+                              pastix_complex64_t *recvbuf )
 {
     SolverCblk *cblk, *fcbk;
+    int src = status->MPI_SOURCE;
+    int tag = status->MPI_TAG;
 
     assert( ( 0 <= src ) && ( src < solvmtx->clustnbr ) );
     assert( ( 0 <= tag ) && ( tag < solvmtx->gcblknbr ) );
@@ -609,8 +612,6 @@ cpucblk_zrequest_handle_recv( pastix_coefside_t   side,
 
     /* Initialize the cblk with the reception buffer */
     cblk->threadid = (fcbk->threadid == -1) ? threadid : fcbk->threadid;
-    cblk->lcoeftab = recvbuf;
-
     cpucblk_zunpack( side, cblk, recvbuf );
 
     fcbk = solvmtx->cblktab + cblk->fblokptr->fcblknm;
@@ -677,15 +678,15 @@ cpucblk_zrequest_handle( pastix_coefside_t  side,
         if ( solvmtx->reqidx[reqid] == -1 ) {
             /* We're on a cblk recv, copy datas and restart communications */
             pastix_complex64_t *recvbuf;
-            pastix_int_t        size;
-            int                 src, tag;
+            MPI_Status          status;
+            int                 size;
 
-            src  = statuses[i].MPI_SOURCE;
-            tag  = statuses[i].MPI_TAG;
-            size = (side == PastixLUCoef) ? solvmtx->maxrecv * 2 : solvmtx->maxrecv;
+            memcpy( &status, statuses + i, sizeof(MPI_Status) );
+            MPI_Get_count( &status, PASTIX_MPI_COMPLEX64, &size );
 
             MALLOC_INTERN( recvbuf, size, pastix_complex64_t );
             memcpy( recvbuf, solvmtx->rcoeftab, size * sizeof(pastix_complex64_t) );
+
             solvmtx->recvcnt--;
 
             /* Let's restart the communication */
@@ -698,8 +699,8 @@ cpucblk_zrequest_handle( pastix_coefside_t  side,
                 solvmtx->reqtab[reqid] = MPI_REQUEST_NULL;
             }
 
-            cpucblk_zrequest_handle_recv( side, solvmtx, recvbuf,
-                                          threadid, src, tag );
+            cpucblk_zrequest_handle_recv( side, solvmtx, threadid,
+                                          &status, recvbuf );
             memFree_null(recvbuf);
         }
         /*
