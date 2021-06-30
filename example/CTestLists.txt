@@ -169,10 +169,12 @@ foreach( version ${RUNTYPE} )
     endforeach()
   endforeach()
 
-  # Low Rank, not in distributed
-  if( NOT (version STREQUAL "mpi") )
+  # Low Rank
     foreach(example ${PASTIX_TESTS} )
       foreach(scheduler ${PASTIX_SCHEDS} )
+        if( (version STREQUAL "mpi") AND ((scheduler EQUAL 2) OR (scheduler EQUAL 3)) )
+          continue()
+        endif()
         foreach(arithm ${PASTIX_PRECISIONS} )
           if (arithm IN_LIST _complex)
             list(APPEND factos 3 4)
@@ -202,7 +204,6 @@ foreach( version ${RUNTYPE} )
         endforeach()
       endforeach()
     endforeach()
-  endif()
 endforeach()
 
 # Add scattered spm test. Only with MPI.

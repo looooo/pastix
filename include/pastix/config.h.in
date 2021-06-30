@@ -82,6 +82,7 @@
 #cmakedefine PASTIX_BLEND_GENTRACE
 #cmakedefine PASTIX_BLEND_DEEPEST_DISTRIB
 #cmakedefine PASTIX_BLEND_PROPMAP_2STEPS
+#cmakedefine PASTIX_BLEND_FANIN_FR
 
 #cmakedefine FORGET_PARTITION
 #cmakedefine COMPACT_SMX

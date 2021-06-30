@@ -1543,3 +1543,147 @@ core_zrradd_qr( core_zrrqr_cp_t rrqrfct,
     (void)ret;
     return total_flops;
 }
+
+/**
+ *******************************************************************************
+ *
+ * @brief Compute the size of a block to send in LR
+ *
+ *******************************************************************************
+ *
+ * @param[in] M
+ *          The number of rows of the matrix A.
+ *
+ * @param[in] N
+ *          The number of columns of the matrix A.
+ *
+ * @param[in] A
+ *          The low-rank representation of the matrix A.
+ *
+ *******************************************************************************
+ *
+ * @return Size of a block to send in LR
+ *
+ *******************************************************************************/
+size_t
+core_zlrgetsize( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A )
+{
+    if ( A->rk != -1 ) {
+        return A->rk * ( M + N );
+    }
+    else {
+        return M * N;
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Pack low-rank data by side
+ *
+ *******************************************************************************
+ *
+ * @param[in] M
+ *          The number of rows of the matrix A.
+ *
+ * @param[in] N
+ *          The number of columns of the matrix A.
+ *
+ * @param[in] A
+ *          The low-rank representation of the matrix A.
+ *
+ * @param[inout] buffer
+ *          Pointer on packed data
+ *
+ *******************************************************************************
+ *
+ * @return Pointer on packed data shifted to the next block
+ *
+ *******************************************************************************/
+char *
+core_zlrpack( pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *A, char *buffer )
+{
+    int   rk    = A->rk;
+    int   rkmax = A->rkmax;
+    void *u     = A->u;
+    void *v     = A->v;
+
+    /* Store the rank */
+    memcpy( buffer, &rk, sizeof( int ) );
+    buffer += sizeof( int );
+
+    if ( rk != -1 ) {
+        /* Pack the u part */
+        memcpy( buffer, u, rk * M * sizeof( pastix_complex64_t ) );
+        buffer += rk * M * sizeof( pastix_complex64_t );
+
+        /* Pack the v part */
+        if ( rk == rkmax ) {
+            memcpy( buffer, v, rk * N * sizeof( pastix_complex64_t ) );
+            buffer += rk * N * sizeof( pastix_complex64_t );
+        }
+        else {
+            LAPACKE_zlacpy_work(
+                LAPACK_COL_MAJOR, 'A', rk, N, v, rkmax, (pastix_complex64_t *)buffer, rk );
+            buffer += rk * N * sizeof( pastix_complex64_t );
+        }
+    }
+    else {
+        memcpy( buffer, u, M * N * sizeof( pastix_complex64_t ) );
+        buffer += M * N * sizeof( pastix_complex64_t );
+    }
+
+    return buffer;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Unpack low rank data and fill the cblk concerned by the computation
+ *
+ *******************************************************************************
+ *
+ * @param[in] M
+ *          The number of rows of the matrix A.
+ *
+ * @param[in] N
+ *          The number of columns of the matrix A.
+ *
+ * @param[in] A
+ *          The low-rank representation of the matrix A.
+ *
+ * @param[inout] buffer
+ *          Pointer on packed data
+ *
+ *******************************************************************************
+ *
+ * @return Pointer on packed data shifted to the next block
+ *
+ *******************************************************************************/
+char *
+core_zlrunpack( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, char *buffer )
+{
+    int rk;
+    memcpy( &rk, buffer, sizeof( int ) );
+    buffer += sizeof( int );
+
+    /* Make sure A can store the unpacked values */
+    core_zlrsze( 0, M, N, A, rk, rk, rk );
+
+    if ( rk != -1 ) {
+        /* Unpack U */
+        memcpy( A->u, buffer, M * rk * sizeof( pastix_complex64_t ) );
+        buffer += M * rk * sizeof( pastix_complex64_t );
+
+        /* Unpack V */
+        memcpy( A->v, buffer, N * rk * sizeof( pastix_complex64_t ) );
+        buffer += N * rk * sizeof( pastix_complex64_t );
+    }
+    else {
+        /* Unpack the full block */
+        memcpy( A->u, buffer, M * N * sizeof( pastix_complex64_t ) );
+        buffer += M * N * sizeof( pastix_complex64_t );
+    }
+
+    return buffer;
+}

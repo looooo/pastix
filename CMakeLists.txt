@@ -112,6 +112,9 @@ option(BUILD_64bits
 option(PASTIX_WITH_MPI
     "Build PaStiX for distributed memory with MPI" OFF)
 
+cmake_dependent_option(PASTIX_BLEND_FANIN_FR
+        "The fanin will be processed in full rank " OFF "PASTIX_WITH_MPI" OFF)
+
 ### GPU engine parameters
 option(PASTIX_WITH_CUDA
     "Enable GPU support using CUDA kernels" OFF)
