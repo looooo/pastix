@@ -65,8 +65,8 @@ struct pastix_data_s {
     pastix_int_t    *iparm;              /**< Store integer parameters (input/output)                             */
     double          *dparm;              /**< Store floating parameters (input/output)                            */
 
-    pastix_int_t     steps;              /**< Bitmask of the steps performed or not                               */
-    pastix_int_t     sched;              /**< Indicates the scheduler used for the factorization step             */
+    pastix_int_t       steps;            /**< Bitmask of the steps performed or not                               */
+    pastix_scheduler_t sched;            /**< Indicates the scheduler used for the factorization step             */
 
     PASTIX_Comm      pastix_comm;        /**< PaStiX MPI communicator used for the ordering step                  */
     PASTIX_Comm      intra_node_comm;    /**< PaStiX intra node MPI communicator used for synchronizations        */
