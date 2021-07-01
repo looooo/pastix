@@ -45,7 +45,8 @@ init_heteroprio( unsigned ctx )
     }
     if ( starpu_cuda_worker_get_count() ) {
         int cuda_matching[] = { 3, 2, 1 };
-        float cuda_factors[] = { 30.0f, 20.0f, 10.0f };
+        float cuda_factor = 125.0f / starpu_cpu_worker_get_count();
+        float cuda_factors[] = { cuda_factor, cuda_factor, cuda_factor };
         /* CUDA is enabled and uses 2 buckets */
         starpu_heteroprio_set_nb_prios( ctx, STARPU_CUDA_IDX, 3 );
 
