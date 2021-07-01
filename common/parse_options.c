@@ -53,6 +53,7 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_io_strategy",                    iparm)) { return IPARM_IO_STRATEGY; }
 
     if(0 == strcasecmp("iparm_produce_stats",                  iparm)) { return IPARM_PRODUCE_STATS; }
+    if(0 == strcasecmp("iparm_trace",                          iparm)) { return IPARM_TRACE; }
 
     if(0 == strcasecmp("iparm_mc64",                           iparm)) { return IPARM_MC64; }
 
@@ -312,6 +313,19 @@ pastix_task_getstr( pastix_task_t value )
         return "PastixTaskClean";
     default :
         return "Bad task given";
+    }
+}
+
+const char*
+pastix_trace_getstr( pastix_trace_t value )
+{
+    switch( value ) {
+    case PastixTraceNumfact:
+        return "PastixTraceNumfact";
+    case PastixTraceSolve:
+        return "PastixTraceSolve";
+    default :
+        return "Bad trace given";
     }
 }
 

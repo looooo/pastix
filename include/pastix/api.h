@@ -192,20 +192,12 @@ typedef enum pastix_task_e {
     PastixTaskClean    = 7  /**< Clean                        */
 } pastix_task_t;
 
-
-/*
- * Steps to trace
+/**
+ * @brief Steps to trace.
  */
 typedef enum pastix_trace_e {
-    PastixTraceInit      = (1 << 0),
-    PastixTraceOrdering  = (1 << 1),
-    PastixTraceSymbfact  = (1 << 2),
-    PastixTraceAnalyse   = (1 << 3),
-    PastixTraceCSC2BCSC  = (1 << 4),
-    PastixTraceBCSC2CTAB = (1 << 5),
-    PastixTraceNumfact   = (1 << 6),
-    PastixTraceSolve     = (1 << 7),
-    PastixTraceRefine    = (1 << 8),
+    PastixTraceNumfact = 16,
+    PastixTraceSolve   = 32
 } pastix_trace_t;
 
 /**

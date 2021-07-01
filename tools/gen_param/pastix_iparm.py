@@ -112,12 +112,23 @@ A long description in the doxygen format
 ''',
 }
 
+iparm_trace = {
+    "name" : "iparm_trace",
+    "default" : "PastixTraceNumfact",
+    "brief" : "Bitmask of the steps to trace",
+    "access" : "IN",
+    "description" : r'''
+A long description in the doxygen format
+''',
+}
+
 iparm_stats_group = {
     "subgroup" : [
         iparm_nnzeros,
         iparm_nnzeros_block_local,
         iparm_allocated_terms,
         iparm_produce_stats,
+        iparm_trace,
     ],
     "name" : "stats",
     "brief" : "Stats",
