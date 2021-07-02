@@ -59,6 +59,20 @@ typedef struct starpu_conf starpu_conf_t;
 #define pastix_codelet(_codelet_) _codelet_ TASK_SYNCHRONOUS
 #endif
 
+#if defined(PASTIX_STARPU_HETEROPRIO)
+typedef enum heteroprio_bucket_order_e {
+	SolveDiagBucket = 0,
+    SolveGEMMBucket = 0,
+    SolveTRSMBucket = 0,
+    TRFSPBucket = 0,
+    ScaloBucket = 0,
+    TRSMSPBucket = 2,
+    GEMM1DBucket = 1,
+    GEMM2DBucket = 3,
+    NumberBuckets
+} heteroprio_bucket_order_t;
+#endif
+
 /**
  * @brief Additional StarPU handlers for a column-block when using 2D kernels.
  *

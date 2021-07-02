@@ -100,7 +100,7 @@ starpu_stask_cblk_zdiag( sopalin_data_t *sopalin_data,
         STARPU_NAME, "solve_cblk_zdiag",
 #endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, 0,
+        STARPU_PRIORITY, SolveDiagBucket,
 #endif
         0);
     (void)prio;

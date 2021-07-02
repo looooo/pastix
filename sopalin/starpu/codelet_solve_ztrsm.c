@@ -134,7 +134,7 @@ starpu_stask_blok_ztrsm( sopalin_data_t   *sopalin_data,
         STARPU_NAME, "solve_blok_ztrsm",
 #endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, 0,
+        STARPU_PRIORITY, SolveTRSMBucket,
 #endif
         0);
     (void)prio;

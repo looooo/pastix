@@ -136,7 +136,7 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
         STARPU_R,        cblk->fblokptr->handler[coef],
         STARPU_RW,       blok->handler[coef],
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, 2,
+        STARPU_PRIORITY, TRSMSPBucket,
 #else
         STARPU_PRIORITY, prio,
 #endif

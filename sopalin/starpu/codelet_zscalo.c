@@ -88,8 +88,7 @@ starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
     }
 #endif /* PASTIX_WITH_MPI */
 
-    printf("zscalo\n");
-starpu_insert_task(
+    starpu_insert_task(
         pastix_codelet(&cl_blok_zscalo_cpu),
         STARPU_VALUE,   &trans,  sizeof(pastix_trans_t),
         STARPU_VALUE,   &cblk,   sizeof(SolverCblk*),
@@ -98,7 +97,7 @@ starpu_insert_task(
         STARPU_R,        cblk->fblokptr->handler[0],
         STARPU_W,        blok->handler[1],
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, 0,
+        STARPU_PRIORITY, ScaloBucket,
 #else
         STARPU_PRIORITY, prio,
 #endif
