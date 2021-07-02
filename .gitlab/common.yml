@@ -22,3 +22,10 @@
     - merge_requests
     - master@pastix/pastix
     - master@solverstack/pastix
+
+preliminary_checks:
+  stage: .pre
+  script:
+    - .gitlab/check_ci.sh
+  only:
+    - merge_requests
