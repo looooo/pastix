@@ -36,7 +36,7 @@ void
 init_heteroprio( unsigned ctx )
 {
     /* CPU uses 4 buckets and visits them in the natural order */
-    starpu_heteroprio_set_nb_prios( ctx, STARPU_CPU_IDX, NumberBuckets );
+    starpu_heteroprio_set_nb_prios( ctx, STARPU_CPU_IDX, BucketNumber );
     /* It uses direct mapping idx => idx */
     unsigned idx;
     for ( idx = 0; idx < 4; ++idx ) {

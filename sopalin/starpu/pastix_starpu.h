@@ -64,12 +64,14 @@ typedef enum heteroprio_bucket_order_e {
     BucketSolveDiag = 0,
     BucketSolveGEMM = 0,
     BucketSolveTRSM = 0,
-    BucketFacto     = 0,
+    BucketFacto1D   = 0,
+    BucketFacto2D   = 0,
     BucketScalo     = 0,
-    BucketTRSMSP    = 2,
+    BucketTRSM1D    = 2,
+    BucketTRSM2D    = 2,
     BucketGEMM1D    = 1,
     BucketGEMM2D    = 3,
-    NumberBuckets
+    BucketNumber
 } heteroprio_bucket_order_t;
 #endif
 
