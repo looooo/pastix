@@ -1,3 +1,18 @@
+# pastix-6.2.1
+
+- MPI/PThreads: Small improvement on communication reactivity (pastix/pastix!278)
+- Runtime: Fix issue in distributed when looping over the factorization with runtime systems (pastix/pastix!274)
+- MPI/refinement: Fix issu in frobenius merge in distributed (pastix/pastix!276)
+- MPI/low-rank: Introduce a first version of the distributed low-rank solver with PThread schedulers (pastix/pastix!270)
+- analyze: Enable the generation of distributed simulated traces (pastix/pastix!272)
+- LR/Schur: Fix issue when using low-rank and Schur functionnality that was re-ordering the Schur complement (pastix/pastix!273)
+- api: Introduction of th generator for the iparm/dparm/enum in order to later extend their documentation (pastix/pastix!263)
+- starpu/gpu: start testing the heteroprio scheduler (pastix/pastix!269)
+- debug: Fix compilation of many debug functionnalities (pastix/pastix!267)
+- doc: update on the tutorials
+- spm: update the IO functionalities and integrate the fix on distributed load/save from SPM. (pastix/pastix!265)
+- cmake: better protect in source compilation
+
 # pastix-6.2.0
 
 - Update cmake_morse submodule to use modern cmake detection
