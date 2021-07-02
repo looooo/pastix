@@ -59,16 +59,16 @@ typedef struct starpu_conf starpu_conf_t;
 #define pastix_codelet(_codelet_) _codelet_ TASK_SYNCHRONOUS
 #endif
 
-#if defined(PASTIX_STARPU_HETEROPRIO)
+#if defined( PASTIX_STARPU_HETEROPRIO )
 typedef enum heteroprio_bucket_order_e {
-	SolveDiagBucket = 0,
-    SolveGEMMBucket = 0,
-    SolveTRSMBucket = 0,
-    TRFSPBucket = 0,
-    ScaloBucket = 0,
-    TRSMSPBucket = 2,
-    GEMM1DBucket = 1,
-    GEMM2DBucket = 3,
+    BucketSolveDiag = 0,
+    BucketSolveGEMM = 0,
+    BucketSolveTRSM = 0,
+    BucketFacto     = 0,
+    BucketScalo     = 0,
+    BucketTRSMSP    = 2,
+    BucketGEMM1D    = 1,
+    BucketGEMM2D    = 3,
     NumberBuckets
 } heteroprio_bucket_order_t;
 #endif

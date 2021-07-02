@@ -139,7 +139,7 @@ starpu_stask_blok_zgemm( sopalin_data_t   *sopalin_data,
         STARPU_NAME, "solve_blok_zgemm",
 #endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, SolveGEMMBucket,
+        STARPU_PRIORITY, BucketSolveGEMM,
 #endif
         0);
     (void)prio;

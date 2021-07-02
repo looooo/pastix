@@ -98,7 +98,7 @@ starpu_task_cblk_zhetrfsp1d_panel( sopalin_data_t *sopalin_data,
         STARPU_RW,       cblk->handler[0],
         STARPU_W,        cblk->handler[1],
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, TRFSPBucket,
+        STARPU_PRIORITY, BucketFacto,
 #else
         STARPU_PRIORITY, prio,
 #endif
@@ -150,7 +150,7 @@ starpu_task_blok_zhetrf( sopalin_data_t *sopalin_data,
         STARPU_VALUE,   &cblk,         sizeof(SolverCblk*),
         STARPU_RW,       cblk->fblokptr->handler[0],
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, TRFSPBucket,
+        STARPU_PRIORITY, BucketFacto,
 #else
         STARPU_PRIORITY, prio,
 #endif

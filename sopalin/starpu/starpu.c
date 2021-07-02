@@ -38,25 +38,27 @@ init_heteroprio( unsigned ctx )
     /* CPU uses 4 buckets and visits them in the natural order */
     starpu_heteroprio_set_nb_prios( ctx, STARPU_CPU_IDX, NumberBuckets );
     /* It uses direct mapping idx => idx */
-    for ( unsigned idx = 0; idx < 4; ++idx ) {
+    unsigned idx;
+    for ( idx = 0; idx < 4; ++idx ) {
         starpu_heteroprio_set_mapping( ctx, STARPU_CPU_IDX, idx, idx );
         /* If there are no CUDA workers, we must tell that CPU is faster */
         starpu_heteroprio_set_faster_arch( ctx, STARPU_CPU_IDX, idx );
     }
     if ( starpu_cuda_worker_get_count() ) {
-        const int cuda_matching[] = { 3, 2, 1 };
-        const float cuda_factor = 125.0f / starpu_cpu_worker_get_count();
-        const float cuda_factors[] = { cuda_factor, cuda_factor, cuda_factor };
+        const int   cuda_matching[] = { 3, 2, 1 };
+        const float cuda_factor     = 125.0f / starpu_cpu_worker_get_count();
+        const float cuda_factors[]  = { cuda_factor, cuda_factor, cuda_factor };
         /* CUDA is enabled and uses 2 buckets */
         starpu_heteroprio_set_nb_prios( ctx, STARPU_CUDA_IDX, 3 );
 
-        for ( unsigned idx = 0; idx < 3; ++idx ) {
-        /* CUDA has its own mapping */
-        starpu_heteroprio_set_mapping( ctx, STARPU_CUDA_IDX, idx, cuda_matching[idx] );
-        /* For its buckets, CUDA is the fastest */
-        starpu_heteroprio_set_faster_arch( ctx, STARPU_CUDA_IDX, cuda_matching[idx] );
-        /* And CPU is slower by a factor dependant on the bucket */
-        starpu_heteroprio_set_arch_slow_factor( ctx, STARPU_CPU_IDX, cuda_matching[idx], cuda_factors[idx] );
+        for ( idx = 0; idx < 3; ++idx ) {
+            /* CUDA has its own mapping */
+            starpu_heteroprio_set_mapping( ctx, STARPU_CUDA_IDX, idx, cuda_matching[idx] );
+            /* For its buckets, CUDA is the fastest */
+            starpu_heteroprio_set_faster_arch( ctx, STARPU_CUDA_IDX, cuda_matching[idx] );
+            /* And CPU is slower by a factor dependant on the bucket */
+            starpu_heteroprio_set_arch_slow_factor(
+                ctx, STARPU_CPU_IDX, cuda_matching[idx], cuda_factors[idx] );
         }
     }
 }

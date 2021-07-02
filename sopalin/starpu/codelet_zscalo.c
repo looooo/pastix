@@ -97,7 +97,7 @@ starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
         STARPU_R,        cblk->fblokptr->handler[0],
         STARPU_W,        blok->handler[1],
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, ScaloBucket,
+        STARPU_PRIORITY, BucketScalo,
 #else
         STARPU_PRIORITY, prio,
 #endif
