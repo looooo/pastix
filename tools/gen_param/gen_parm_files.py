@@ -1,3 +1,17 @@
+#!/usr/bin/env python
+"""
+ @file gen_parm_files.py
+
+ Python script to generate the parameters files.
+
+ @copyright 2021-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+                      Univ. Bordeaux. All rights reserved.
+
+ @version 6.2.0
+ @author Tony Delarue
+ @date 2021-04-07
+
+"""
 import sys
 import os
 from pastix_iparm import iparm

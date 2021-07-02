@@ -1,11 +1,19 @@
-/*
- * Copyright (c) 2010      The University of Tennessee and The University
- *                         of Tennessee Research Foundation.  All rights
- *                         reserved.
+/**
  *
+ * @file zcsc2cblk_wrapper.c
+ *
+ * PaStiX zcsc2cblk PaRSEC wrapper.
+ *
+ * @copyright 2016-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.2.0
+ * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @date 2021-03-30
  * @precisions normal z -> s d c
  *
- */
+ **/
 #include "parsec_internal.h"
 #include "dsparse.h"
 #include "data_dist/sparse-matrix/pastix_internal/pastix_internal.h"

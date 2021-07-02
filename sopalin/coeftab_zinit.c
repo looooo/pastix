@@ -7,12 +7,12 @@
  * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Esragul Korkmaz
- * @date 2021-03-30
+ * @date 2021-05-05
  *
  * @precisions normal z -> s d c
  *

@@ -1,3 +1,16 @@
+###
+#
+#  @file starpu.rb
+#  @copyright 2020-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @brief Homebrew formula for StarPU
+#
+#  @version 6.2.1
+#  @author Pierre Ramet
+#  @date 2021-04-25
+#
+###
 # Documentation: https://docs.brew.sh/Formula-Cookbook
 #                https://rubydoc.brew.sh/Formula
 # PLEASE REMOVE ALL GENERATED COMMENTS BEFORE SUBMITTING YOUR PULL REQUEST!

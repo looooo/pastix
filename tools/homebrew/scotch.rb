@@ -1,3 +1,16 @@
+###
+#
+#  @file scotch.rb
+#  @copyright 2020-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @brief Homebrew formula for Scotch
+#
+#  @version 6.2.1
+#  @author Pierre Ramet
+#  @date 2021-04-25
+#
+###
 class Scotch < Formula
   desc "Package for graph and mesh partitioning"
   homepage "https://gforge.inria.fr/projects/scotch"

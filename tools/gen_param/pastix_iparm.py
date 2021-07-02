@@ -1,27 +1,39 @@
-#
-# This file allows us to generate:
-#      - Documentation files
-#      - IPARM/DPARM and their related enums declaration file
-#        ( $PASTIX_HOME/include/pastix/api.h )
-#      - parse_iparm, parse_dparm and parse_enums implementation and declaration.
-#        pastix_ENUM_getstr implementation and declaration.
-#        ( $PASTIX_HOME/common/parse_options.[h/c] )W
-#
-# If you want to modify one of these files, please modify this one.
-#
-###
-# SYNTAX documentation. [] are used for optional keys.
-#
-# parm_name = {
-#   "default": Default value. If none, please write ("-")
-#   ["description"]: Full description for documentation.
-#   "brief": Short description for the refcard / comments.
-#   "access": "IN"/"OUT"
-#   ["min"]: Parm min value.
-#   ["max"]: Parm max value.
-#   ["enum"]: This PARM is related to an enum.
-# }
-###
+"""
+ @file pastix_iparm.py
+
+ Declaration of the iparm parameters.
+
+ @copyright 2021-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+                      Univ. Bordeaux. All rights reserved.
+
+ @version 6.2.0
+ @author Tony Delarue
+ @date 2021-04-07
+
+ This file allows us to generate:
+      - Documentation files
+      - IPARM/DPARM and their related enums declaration file
+        ( $PASTIX_HOME/include/pastix/api.h )
+      - parse_iparm, parse_dparm and parse_enums implementation and declaration.
+        pastix_ENUM_getstr implementation and declaration.
+        ( $PASTIX_HOME/common/parse_options.[h/c] )W
+
+ If you want to modify one of these files, please modify this one.
+
+ ***
+
+ SYNTAX documentation. [] are used for optional keys.
+
+ parm_name = {
+   "default": Default value. If none, please write ("-")
+   ["description"]: Full description for documentation.
+   "brief": Short description for the refcard / comments.
+   "access": "IN"/"OUT"
+   ["min"]: Parm min value.
+   ["max"]: Parm max value.
+   ["enum"]: This PARM is related to an enum.
+ }
+"""
 
 iparm = []
 

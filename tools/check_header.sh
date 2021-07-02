@@ -4,9 +4,9 @@
 #  @copyright 2016-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.2.0
+#  @version 6.2.1
 #  @author Mathieu Faverge
-#  @date 2021-01-02
+#  @date 2021-05-05
 #
 # This script check that basic informations is present and correct in
 # headers of source files.
@@ -173,6 +173,8 @@ files=$( git ls-files                     |
              grep -v lapacke.h            |
              grep -v kernels/gpus/kepler  |
              grep -v kernels/gpus/fermi   |
+             grep -v "wrappers/fortran90/examples/test_.*\.in" |
+             grep -v "wrappers/julia/PaStiX/Project\..*\.toml" |
              grep -v test/matrix          )
 if [ $# -gt 0 ]
 then

@@ -5,10 +5,10 @@
  * @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Pierre Ramet
  * @author Mathieu Faverge
- * @date 2021-04-07
+ * @date 2021-06-21
  *
  * @addtogroup pastix_starpu
  * @{

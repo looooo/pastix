@@ -1,10 +1,21 @@
 extern "C" %{
-  /**
-   * PLASMA include for defined and constants.
-   *
-   * @precisions normal z -> s d c
-   *
-   */
+/**
+ *
+ * @file zcsc2cblk.jdf
+ *
+ * PaRSEC 2D algorithm jdf for he matrix initialization
+ *
+ * @copyright 2016-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ *
+ * @version 6.2.0
+ * @author Mathieu Faverge
+ * @author Gregoire Pichon
+ * @author Pierre Ramet
+ * @date 2021-04-02
+ * @precisions normal z -> s d c
+ *
+ **/
 #include "dplasma/lib/dplasmajdf.h"
 #include "data_dist/sparse-matrix/pastix_internal/pastix_internal.h"
 #include "data_dist/sparse-matrix/sparse-matrix.h"

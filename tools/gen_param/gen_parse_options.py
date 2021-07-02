@@ -1,3 +1,16 @@
+"""
+ @file gen_parse_options.py
+
+ Declaration of the parse_options.[hc] files that are generated automatically.
+
+ @copyright 2021-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+                      Univ. Bordeaux. All rights reserved.
+
+ @version 6.2.0
+ @author Tony Delarue
+ @date 2021-04-07
+
+"""
 import time
 
 const_str = ''' * This file is generated automatically. If you want to modify it, modify
@@ -7,7 +20,7 @@ const_str = ''' * This file is generated automatically. If you want to modify it
  * @copyright 2004-'''+ time.strftime( "%Y" ) +''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
