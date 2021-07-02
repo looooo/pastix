@@ -33,6 +33,16 @@
 #define STEP_SOLVE     (1 << 7)
 #define STEP_REFINE    (1 << 8)
 
+/*
+ * Scheduler family
+ */
+#define PASTIX_SCHED_FAMILY_RUNTIME ((1 << PastixSchedParsec) | (1 << PastixSchedStarPU))
+#define PASTIX_SCHED_FAMILY_PTHREAD ((1 << PastixSchedSequential) | (1 << PastixSchedStatic) | (1 << PastixSchedDynamic))
+
+#define isSchedRuntime( _runtime_ ) ( (1 << (_runtime_)) & PASTIX_SCHED_FAMILY_RUNTIME )
+#define isSchedPthread( _runtime_ ) ( (1 << (_runtime_)) & PASTIX_SCHED_FAMILY_PTHREAD )
+#define isSchedValid( _runtime_, _family_ )  ( (1 << (_runtime_)) & (_family_) )
+
 struct pastix_bcsc_s;
 typedef struct pastix_bcsc_s pastix_bcsc_t;
 
@@ -55,7 +65,8 @@ struct pastix_data_s {
     pastix_int_t    *iparm;              /**< Store integer parameters (input/output)                             */
     double          *dparm;              /**< Store floating parameters (input/output)                            */
 
-    pastix_int_t     steps;              /**< Bitmask of the steps performed or not                               */
+    pastix_int_t       steps;            /**< Bitmask of the steps performed or not                               */
+    pastix_scheduler_t sched;            /**< Indicates the scheduler used for the factorization step             */
 
     PASTIX_Comm      pastix_comm;        /**< PaStiX MPI communicator used for the ordering step                  */
     PASTIX_Comm      intra_node_comm;    /**< PaStiX intra node MPI communicator used for synchronizations        */
@@ -84,7 +95,8 @@ struct pastix_data_s {
     symbol_matrix_t *symbmtx;            /**< Symbol Matrix                                                       */
 
     pastix_bcsc_t   *bcsc;               /**< Csc after reordering grouped by cblk                                */
-    SolverMatrix    *solvmatr;           /**< Solver informations associated to the matrix problem - Local        */
+    SolverMatrix    *solvmatr;           /**< Solver informations associated to the matrix problem                */
+    SolverMatrix    *solvloc;            /**< Solver informations associated to the matrix problem - Local        */
     SolverMatrix    *solvglob;           /**< Solver informations associated to the matrix problem - Global       */
 
     pastix_model_t  *cpu_models;         /**< CPU model coefficients for the kernels                              */

@@ -126,7 +126,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     double          *dparm;
     pastix_order_t  *ordeptr;
     symbol_matrix_t *symbmtx;
-    SolverMatrix    *solvmtx;
+    SolverMatrix    *solvmtx_loc;
     SolverMatrix    *solvmtx_glob;
     SimuCtrl        *simuctrl;
     double           timer_all     = 0.;
@@ -180,10 +180,13 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         memFree_null( pastix_data->solvglob );
     }
 
-    solvmtx = (SolverMatrix*)malloc(sizeof(SolverMatrix));
+    solvmtx_loc  = (SolverMatrix*)malloc(sizeof(SolverMatrix));
     solvmtx_glob = (SolverMatrix*)malloc(sizeof(SolverMatrix));
-    pastix_data->solvmatr = solvmtx;
+    pastix_data->solvloc  = solvmtx_loc;
     pastix_data->solvglob = solvmtx_glob;
+
+    /* The problem is more likely to be solved by the local problem, may change later */
+    pastix_data->solvmatr = pastix_data->solvloc;
 
     /* Start the analyze step */
     clockStart(timer_all);
@@ -502,7 +505,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                             pastix_data->ordemesh, simuctrl, &ctrl,
                             pastix_data->inter_node_comm, pastix_data->isched, 0 );
 
-        solverMatrixGen( solvmtx, symbmtx,
+        solverMatrixGen( solvmtx_loc, symbmtx,
                          pastix_data->ordemesh, simuctrl, &ctrl,
                          pastix_data->inter_node_comm, pastix_data->isched );
 
@@ -511,7 +514,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
             pastix_print( procnum, 0, OUT_BLEND_SOLVER_TIME,
                           clockVal(timer_current) );
             if( verbose > PastixVerboseYes ) {
-                solverPrintStats( solvmtx );
+                solverPrintStats( solvmtx_loc );
             }
         }
     }
@@ -521,14 +524,14 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
 
     /* Realloc solver memory in a contiguous way  */
     {
-        solverRealloc(solvmtx);
+        solverRealloc(solvmtx_loc);
         solverRealloc(solvmtx_glob);
 #if defined(PASTIX_DEBUG_BLEND)
         if (!ctrl.ricar) {
             if( verbose > PastixVerboseYes ) {
                 pastix_print( procnum, 0, OUT_BLEND_CHKSOLVER );
             }
-            solverCheck(solvmtx);
+            solverCheck(solvmtx_loc);
             solverCheck(solvmtx_glob);
         }
 #endif
@@ -557,7 +560,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         }
         dparm[DPARM_SOLV_FLOPS] = (double)iparm[IPARM_NNZEROS]; /* number of operations for solve */
 
-        iparm[IPARM_NNZEROS_BLOCK_LOCAL] = solvmtx->coefnbr;
+        iparm[IPARM_NNZEROS_BLOCK_LOCAL] = solvmtx_loc->coefnbr;
 
         /* Affichage */
         dparm[DPARM_FILL_IN] = (double)(iparm[IPARM_NNZEROS]) / (double)(pastix_data->csc->gnnzexp);
@@ -581,7 +584,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
                 if (verbose > PastixVerboseYes)
                 {
                     PASTIX_Comm  pastix_comm = pastix_data->inter_node_comm;
-                    pastix_int_t sizeL = solvmtx->coefnbr;
+                    pastix_int_t sizeL = solvmtx_loc->coefnbr;
                     pastix_int_t sizeG = 0;
 
                     MPI_Reduce(&sizeL, &sizeG, 1, PASTIX_MPI_INT, MPI_MAX, 0, pastix_comm);
@@ -609,7 +612,7 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
         pastix_gendirectories( pastix_data );
         file = pastix_fopenw( pastix_data->dir_global, "solvergen", "w" );
         if ( file ) {
-            solverSave( solvmtx, file );
+            solverSave( solvmtx_loc, file );
             fclose(file);
         }
     }

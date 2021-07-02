@@ -261,6 +261,12 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
+    /*
+     * Ensure that the scheduler is correct and is in the same
+     * family that the one used for the factorization.
+     */
+    pastix_check_and_correct_scheduler( pastix_data );
+
     sopalin_data.solvmtx = pastix_data->solvmatr;
 
     switch (flttype) {
@@ -380,6 +386,12 @@ pastix_subtask_diag( pastix_data_t *pastix_data, pastix_coeftype_t flttype,
         errorPrint("pastix_subtask_trsm: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function");
         return PASTIX_ERR_BADPARAMETER;
     }
+
+    /*
+     * Ensure that the scheduler is correct and is in the same
+     * family that the one used for the factorization.
+     */
+    pastix_check_and_correct_scheduler( pastix_data );
 
     sopalin_data.solvmtx = pastix_data->solvmatr;
 
@@ -678,6 +690,11 @@ pastix_task_solve( pastix_data_t *pastix_data,
      */
     if (pastix_data == NULL) {
         errorPrint("pastix_task_solve: wrong pastix_data parameter");
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    if ( !(pastix_data->steps & STEP_NUMFACT) ) {
+        errorPrint("pastix_task_solve: Numerical factorization hasn't been done.");
         return PASTIX_ERR_BADPARAMETER;
     }
 

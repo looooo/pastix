@@ -747,6 +747,7 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     pastix->dparm = dparm;
 
     pastix->steps = 0;
+    pastix->sched = PastixSchedDynamic;
 
     pastix->isched = NULL;
 #if defined(PASTIX_WITH_PARSEC)
@@ -901,16 +902,21 @@ pastixFinalize( pastix_data_t **pastix_data )
         memFree_null( pastix->symbmtx );
     }
 
-    if ( pastix->solvmatr != NULL )
+    if ( pastix->solvloc != NULL )
     {
-        solverExit( pastix->solvmatr );
-        memFree_null( pastix->solvmatr );
+        solverExit( pastix->solvloc );
+        memFree_null( pastix->solvloc );
     }
 
     if ( pastix->solvglob != NULL )
     {
         solverExit( pastix->solvglob );
         memFree_null( pastix->solvglob );
+    }
+
+    if ( pastix->solvmatr != NULL )
+    {
+        pastix->solvmatr = NULL;
     }
 
     if ( pastix->bcsc != NULL )

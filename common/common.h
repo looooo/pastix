@@ -125,8 +125,8 @@ pastix_env_is_on(char * str) {
     return pastix_env_is_set_to(str, "1");
 }
 
-static inline
-int pastix_getenv_get_value_int(char * string, int default_value) {
+static inline int
+pastix_getenv_get_value_int(char * string, int default_value) {
     long int ret;
     char *str = pastix_getenv(string);
     if (str == NULL) return default_value;
@@ -149,6 +149,32 @@ static inline void set_iparm(pastix_int_t *iparm, pastix_iparm_t offset, pastix_
 static inline void set_dparm(double *dparm, pastix_dparm_t offset, double value)
 {
     if (dparm != NULL) dparm[offset] = (double)value;
+}
+
+/*
+ * Check if the scheduler have been changed between two steps.
+ * If it's the case, check if the new scheduler is in the same family
+ * than the previous one.
+ * If not, rehabilitate the previous scheduler.
+ */
+static inline void
+pastix_check_and_correct_scheduler( pastix_data_t *pastix_data )
+{
+    if ( pastix_data->inter_node_procnbr == 1 ) {
+        return;
+    }
+    pastix_int_t *isched = pastix_data->iparm + IPARM_SCHEDULER;
+    pastix_int_t  sched  = pastix_data->sched;
+
+    if( (isSchedRuntime(*isched) && (pastix_data->solvmatr != pastix_data->solvglob)) ||
+        (isSchedPthread(*isched) && (pastix_data->solvmatr != pastix_data->solvloc )) )
+    {
+        pastix_print_warning( "Scheduler can't be changed to %s, restore %s scheduler\n",
+                              pastix_scheduler_getstr( *isched ), pastix_scheduler_getstr( sched ) );
+        *isched = pastix_data->sched;
+    }
+    /* Backup latest scheduler */
+    pastix_data->sched = *isched;
 }
 
 void api_dumparm(FILE *stream, pastix_int_t *iparm, double *dparm);

@@ -116,21 +116,19 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
     }
 
     /*
-     * Temporary switch of the solver pointer for the runtime
+     * Switch the SolverMatrix pointer according to the runtime.
      */
-    if ( !(pastix_data->steps & STEP_CSC2BCSC) )
     {
-        SolverMatrix *tmp;
-        switch( pastix_data->iparm[IPARM_SCHEDULER] ){
-        case PastixSchedParsec:
-        case PastixSchedStarPU:
-            tmp = pastix_data->solvmatr;
+        pastix_int_t isched = pastix_data->iparm[IPARM_SCHEDULER];
+
+        if ( isSchedRuntime( isched ) ) {
             pastix_data->solvmatr = pastix_data->solvglob;
-            pastix_data->solvglob = tmp;
-            break;
-        default:
-            break;
         }
+        else {
+            assert( isSchedPthread( isched ) );
+            pastix_data->solvmatr = pastix_data->solvloc;
+        }
+        pastix_data->sched = isched;
     }
 
     /*
@@ -218,6 +216,9 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
         errorPrint("pastix_subtask_bcsc2ctab: wrong pastix_data->bcsc parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
+
+    /* Ensure that the scheduler is correct */
+    pastix_check_and_correct_scheduler( pastix_data );
 
     clockSyncStart( timer, pastix_data->inter_node_comm );
 
@@ -406,6 +407,9 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
         errorPrint("pastix_subtask_sopalin: wrong pastix_data_bcsc parameter");
         return PASTIX_ERR_BADPARAMETER;
     }
+
+    /* Ensure that the scheduler is correct */
+    pastix_check_and_correct_scheduler( pastix_data );
 
     pastix_comm = pastix_data->inter_node_comm;
     iparm = pastix_data->iparm;
