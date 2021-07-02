@@ -95,6 +95,48 @@ that configure the pastix() call.
 }
 enums.append(task)
 
+trace = {
+    "name" : "trace",
+    "doc" : {
+        "brief" : "Steps to trace.",
+    },
+    "values" : [
+        # {
+        #     "name": "PastixTraceInit",
+        #     "value": 1
+        # },
+        # {
+        #     "name": "PastixTraceOrdering",
+        #     "value": 2,
+        # },
+        # {
+        #     "name": "PastixTraceSymbfact",
+        #     "value": 4
+        # },
+        # {
+        #     "name": "PastixTraceAnalyze",
+        #     "value": 8
+        # },
+        {
+            "name": "PastixTraceNumfact",
+            "value": 16
+        },
+        {
+            "name": "PastixTraceSolve",
+            "value": 32
+        }
+        # {
+        #     "name": "PastixTraceRefine",
+        #     "value": 64
+        # },
+        # {
+        #     "name": "PastixTraceClean",
+        #     "value": 128
+        # }
+    ]
+}
+enums.append(trace)
+
 verbose = {
     "name" : "verbose",
     "doc" : {

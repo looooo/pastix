@@ -412,6 +412,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_NNZEROS_BLOCK_LOCAL]   = 0;
     iparm[IPARM_ALLOCATED_TERMS]       = 0;
     iparm[IPARM_PRODUCE_STATS]         = 0;
+    iparm[IPARM_TRACE]                 = PastixTraceNumfact;
 
     /* Scaling */
     iparm[IPARM_MC64]                  = 0;

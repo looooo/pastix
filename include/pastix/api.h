@@ -41,6 +41,7 @@ typedef enum pastix_iparm_e {
     IPARM_NNZEROS_BLOCK_LOCAL,            /**< Number of nonzero entries in the local block factorized matrix Default: -                         OUT */
     IPARM_ALLOCATED_TERMS,                /**< Maximum memory allocated for matrix terms                      Default: -                         OUT */
     IPARM_PRODUCE_STATS,                  /**< Compute some statistiques (such as precision error)            Default: 0                         IN  */
+    IPARM_TRACE,                          /**< Bitmask of the steps to trace                                  Default: PastixTraceNumfact        IN  */
 
     /* Scaling */
     IPARM_MC64,                           /**< MC64 operation                                                 Default: 0                         IN  */
@@ -190,6 +191,14 @@ typedef enum pastix_task_e {
     PastixTaskRefine   = 6, /**< Numerical refinement         */
     PastixTaskClean    = 7  /**< Clean                        */
 } pastix_task_t;
+
+/**
+ * @brief Steps to trace.
+ */
+typedef enum pastix_trace_e {
+    PastixTraceNumfact = 16,
+    PastixTraceSolve   = 32
+} pastix_trace_t;
 
 /**
  * @brief Verbose modes

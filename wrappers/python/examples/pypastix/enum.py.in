@@ -13,7 +13,7 @@
  @author Tony Delarue
  @author Esragul Korkmaz
  @author Selmane Lebdaoui
- @date 2021-04-07
+ @date 2021-07-02
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -34,75 +34,76 @@ class iparm:
     nnzeros_block_local            = 3
     allocated_terms                = 4
     produce_stats                  = 5
-    mc64                           = 6
-    ordering                       = 7
-    ordering_default               = 8
-    scotch_mt                      = 9
-    scotch_switch_level            = 10
-    scotch_cmin                    = 11
-    scotch_cmax                    = 12
-    scotch_frat                    = 13
-    metis_ctype                    = 14
-    metis_rtype                    = 15
-    metis_no2hop                   = 16
-    metis_nseps                    = 17
-    metis_niter                    = 18
-    metis_ufactor                  = 19
-    metis_compress                 = 20
-    metis_ccorder                  = 21
-    metis_pfactor                  = 22
-    metis_seed                     = 23
-    metis_dbglvl                   = 24
-    amalgamation_lvlblas           = 25
-    amalgamation_lvlcblk           = 26
-    reordering_split               = 27
-    reordering_stop                = 28
-    splitting_strategy             = 29
-    splitting_levels_projections   = 30
-    splitting_levels_kway          = 31
-    splitting_projections_depth    = 32
-    splitting_projections_distance = 33
-    splitting_projections_width    = 34
-    min_blocksize                  = 35
-    max_blocksize                  = 36
-    tasks2d_level                  = 37
-    tasks2d_width                  = 38
-    allcand                        = 39
-    incomplete                     = 40
-    level_of_fill                  = 41
-    factorization                  = 42
-    static_pivoting                = 43
-    free_cscuser                   = 44
-    schur_fact_mode                = 45
-    transpose_solve                = 46
-    schur_solv_mode                = 47
-    applyperm_ws                   = 48
-    refinement                     = 49
-    nbiter                         = 50
-    itermax                        = 51
-    gmres_im                       = 52
-    scheduler                      = 53
-    thread_nbr                     = 54
-    autosplit_comm                 = 55
-    gpu_nbr                        = 56
-    gpu_memory_percentage          = 57
-    gpu_memory_block_size          = 58
-    compress_min_width             = 59
-    compress_min_height            = 60
-    compress_when                  = 61
-    compress_method                = 62
-    compress_ortho                 = 63
-    compress_reltol                = 64
-    compress_preselect             = 65
-    compress_iluk                  = 66
-    mpi_thread_level               = 67
-    modify_parameter               = 68
-    start_task                     = 69
-    end_task                       = 70
-    float                          = 71
-    mtx_type                       = 72
-    dof_nbr                        = 73
-    size                           = 74
+    trace                          = 6
+    mc64                           = 7
+    ordering                       = 8
+    ordering_default               = 9
+    scotch_mt                      = 10
+    scotch_switch_level            = 11
+    scotch_cmin                    = 12
+    scotch_cmax                    = 13
+    scotch_frat                    = 14
+    metis_ctype                    = 15
+    metis_rtype                    = 16
+    metis_no2hop                   = 17
+    metis_nseps                    = 18
+    metis_niter                    = 19
+    metis_ufactor                  = 20
+    metis_compress                 = 21
+    metis_ccorder                  = 22
+    metis_pfactor                  = 23
+    metis_seed                     = 24
+    metis_dbglvl                   = 25
+    amalgamation_lvlblas           = 26
+    amalgamation_lvlcblk           = 27
+    reordering_split               = 28
+    reordering_stop                = 29
+    splitting_strategy             = 30
+    splitting_levels_projections   = 31
+    splitting_levels_kway          = 32
+    splitting_projections_depth    = 33
+    splitting_projections_distance = 34
+    splitting_projections_width    = 35
+    min_blocksize                  = 36
+    max_blocksize                  = 37
+    tasks2d_level                  = 38
+    tasks2d_width                  = 39
+    allcand                        = 40
+    incomplete                     = 41
+    level_of_fill                  = 42
+    factorization                  = 43
+    static_pivoting                = 44
+    free_cscuser                   = 45
+    schur_fact_mode                = 46
+    transpose_solve                = 47
+    schur_solv_mode                = 48
+    applyperm_ws                   = 49
+    refinement                     = 50
+    nbiter                         = 51
+    itermax                        = 52
+    gmres_im                       = 53
+    scheduler                      = 54
+    thread_nbr                     = 55
+    autosplit_comm                 = 56
+    gpu_nbr                        = 57
+    gpu_memory_percentage          = 58
+    gpu_memory_block_size          = 59
+    compress_min_width             = 60
+    compress_min_height            = 61
+    compress_when                  = 62
+    compress_method                = 63
+    compress_ortho                 = 64
+    compress_reltol                = 65
+    compress_preselect             = 66
+    compress_iluk                  = 67
+    mpi_thread_level               = 68
+    modify_parameter               = 69
+    start_task                     = 70
+    end_task                       = 71
+    float                          = 72
+    mtx_type                       = 73
+    dof_nbr                        = 74
+    size                           = 75
 
 class dparm:
     fill_in            = 0
@@ -138,6 +139,10 @@ class task:
     Solve    = 5
     Refine   = 6
     Clean    = 7
+
+class trace:
+    Numfact = 16
+    Solve   = 32
 
 class verbose:
     Not = 0

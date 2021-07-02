@@ -29,6 +29,7 @@ pastix_dparm_t parse_dparm( const char *dparm  );
 int            parse_enums( const char *string );
 
 const char* pastix_task_getstr( pastix_task_t value );
+const char* pastix_trace_getstr( pastix_trace_t value );
 const char* pastix_verbose_getstr( pastix_verbose_t value );
 const char* pastix_io_getstr( pastix_io_t value );
 const char* pastix_fact_mode_getstr( pastix_fact_mode_t value );

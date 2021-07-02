@@ -240,6 +240,9 @@ pastix_starpu_init( pastix_data_t *pastix,
             conf->workers_bindid[i] = bindtab[i];
         }
     }
+#if defined(STARPU_USE_FXT)
+    starpu_fxt_autostart_profiling( 0 ); /* FxT starts profiling upon explicit call only */
+#endif
     rc = starpu_init( conf );
 
     starpu_malloc_on_node_set_default_flags( STARPU_MAIN_RAM,
