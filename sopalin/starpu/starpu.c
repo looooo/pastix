@@ -35,11 +35,11 @@
 void
 init_heteroprio( unsigned ctx )
 {
+    unsigned idx;
     /* CPU uses 4 buckets and visits them in the natural order */
     starpu_heteroprio_set_nb_prios( ctx, STARPU_CPU_IDX, BucketNumber );
     /* It uses direct mapping idx => idx */
-    unsigned idx;
-    for ( idx = 0; idx < 4; ++idx ) {
+    for ( idx = 0; idx < BucketNumber; ++idx ) {
         starpu_heteroprio_set_mapping( ctx, STARPU_CPU_IDX, idx, idx );
         /* If there are no CUDA workers, we must tell that CPU is faster */
         starpu_heteroprio_set_faster_arch( ctx, STARPU_CPU_IDX, idx );
