@@ -45,7 +45,7 @@ init_heteroprio( unsigned ctx )
         starpu_heteroprio_set_faster_arch( ctx, STARPU_CPU_IDX, idx );
     }
     if ( starpu_cuda_worker_get_count() ) {
-        const int   cuda_matching[] = { 3, 2, 1 };
+        const int   cuda_matching[] = { BucketGEMM2D, BucketTRSM2D, BucketGEMM1D };
         const float cuda_factor     = 125.0f / starpu_cpu_worker_get_count();
         const float cuda_factors[]  = { cuda_factor, cuda_factor, cuda_factor };
         /* CUDA is enabled and uses 2 buckets */
