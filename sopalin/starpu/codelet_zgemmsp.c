@@ -137,7 +137,7 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
         STARPU_R,        cblk->handler[sideB],
         STARPU_RW,       fcblk->handler[sideA],
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, BucketSolveGEMM1D,
+        STARPU_PRIORITY, BucketGEMM1D,
 #else
         STARPU_PRIORITY, prio,
 #endif
@@ -294,7 +294,7 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
         STARPU_R,        blokB->handler[sideB],
         STARPU_RW,       blokC->handler[sideA],
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, BucketSolveGEMM2D,
+        STARPU_PRIORITY, BucketGEMM2D,
 #else
         STARPU_PRIORITY, prio,
 #endif
