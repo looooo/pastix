@@ -70,7 +70,7 @@ starpu_task_cblk_zpxtrfsp1d_panel( sopalin_data_t *sopalin_data,
         STARPU_VALUE,   &cblk,         sizeof(SolverCblk*),
         STARPU_RW,       cblk->handler[0],
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, 0,
+        STARPU_PRIORITY, BucketFacto1D,
 #else
         STARPU_PRIORITY, prio,
 #endif
@@ -123,7 +123,7 @@ starpu_task_blok_zpxtrf( sopalin_data_t *sopalin_data,
         STARPU_VALUE,   &cblk,         sizeof(SolverCblk*),
         STARPU_RW,       cblk->fblokptr->handler[0],
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, 0,
+        STARPU_PRIORITY, BucketFacto2D,
 #else
         STARPU_PRIORITY, prio,
 #endif

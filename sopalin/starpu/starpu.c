@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include "pastix_starpu.h"
 
-#if defined( PASTIX_STARPU_HETEROPRIO )
+#if defined(PASTIX_STARPU_HETEROPRIO)
 #include <starpu_heteroprio.h>
 /**
  *******************************************************************************
@@ -35,23 +35,31 @@
 void
 init_heteroprio( unsigned ctx )
 {
-    /* CPU uses 5 buckets and visits them in the natural order */
-    starpu_heteroprio_set_nb_prios( ctx, STARPU_CPU_IDX, 2 );
+    unsigned idx;
+    /* CPU uses 4 buckets and visits them in the natural order */
+    starpu_heteroprio_set_nb_prios( ctx, STARPU_CPU_IDX, BucketNumber );
     /* It uses direct mapping idx => idx */
-    for ( unsigned idx = 0; idx < 2; ++idx ) {
+    for ( idx = 0; idx < BucketNumber; ++idx ) {
         starpu_heteroprio_set_mapping( ctx, STARPU_CPU_IDX, idx, idx );
         /* If there are no CUDA workers, we must tell that CPU is faster */
         starpu_heteroprio_set_faster_arch( ctx, STARPU_CPU_IDX, idx );
     }
     if ( starpu_cuda_worker_get_count() ) {
+        const int   cuda_matching[] = { BucketGEMM2D, BucketTRSM2D, BucketGEMM1D };
+        const float cuda_factor     = 125.0f / starpu_cpu_worker_get_count();
+        const float cuda_factors[]  = { cuda_factor, cuda_factor, cuda_factor };
         /* CUDA is enabled and uses 2 buckets */
-        starpu_heteroprio_set_nb_prios( ctx, STARPU_CUDA_IDX, 1 );
-        /* CUDA will first look at bucket 1 */
-        starpu_heteroprio_set_mapping( ctx, STARPU_CUDA_IDX, 0, 1 );
-        /* For bucket 1, CUDA is the fastest */
-        starpu_heteroprio_set_faster_arch( ctx, STARPU_CUDA_IDX, 1 );
-        /* And CPU is 30 times slower */
-        starpu_heteroprio_set_arch_slow_factor( ctx, STARPU_CPU_IDX, 1, 10.0f );
+        starpu_heteroprio_set_nb_prios( ctx, STARPU_CUDA_IDX, 3 );
+
+        for ( idx = 0; idx < 3; ++idx ) {
+            /* CUDA has its own mapping */
+            starpu_heteroprio_set_mapping( ctx, STARPU_CUDA_IDX, idx, cuda_matching[idx] );
+            /* For its buckets, CUDA is the fastest */
+            starpu_heteroprio_set_faster_arch( ctx, STARPU_CUDA_IDX, cuda_matching[idx] );
+            /* And CPU is slower by a factor dependant on the bucket */
+            starpu_heteroprio_set_arch_slow_factor(
+                ctx, STARPU_CPU_IDX, cuda_matching[idx], cuda_factors[idx] );
+        }
     }
 }
 #endif
@@ -191,7 +199,7 @@ pastix_starpu_init( pastix_data_t *pastix,
     conf->ncuda = iparm[IPARM_GPU_NBR];
     conf->nopencl = 0;
 
-#if defined( PASTIX_STARPU_HETEROPRIO )
+#if defined(PASTIX_STARPU_HETEROPRIO)
     /*
      * Set scheduling to heteroprio in any case if requested at compilation
      */
