@@ -114,6 +114,9 @@ option(BUILD_64bits
 option(PASTIX_WITH_MPI
     "Build PaStiX for distributed memory with MPI" OFF)
 
+cmake_dependent_option(PASTIX_COMMUNICATION_MATRIX
+        "Generates a matrix of communications between nodes" OFF "PASTIX_WITH_MPI" OFF)
+
 cmake_dependent_option(PASTIX_BLEND_FANIN_FR
         "The fanin will be processed in full rank " OFF "PASTIX_WITH_MPI" OFF)
 
@@ -730,6 +733,12 @@ else()
     )
 endif()
 
+if(PASTIX_COMMUNICATION_MATRIX)
+  list(APPEND PASTIX_LIB_SRCS
+    blend/solver_comm_matrix.c
+    )
+endif()
+
 add_library(pastix
   ${PASTIX_LIB_SRCS}
   )
@@ -1025,6 +1034,8 @@ add_documented_files(
   blend/solver_draw.c
   blend/solver_io.c
   blend/solver_matrix_gen.c
+  blend/solver_comm_matrix.h
+  blend/solver_comm_matrix.c
   blend/solver_matrix_gen_utils.h
   blend/solver_matrix_gen_utils.c
   blend/solver_recv.c

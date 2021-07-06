@@ -16,6 +16,7 @@
  **/
 #include "common.h"
 #include "blend/solver.h"
+#include "blend/solver_comm_matrix.h"
 #include "sopalin/coeftab.h"
 
 #if defined(PASTIX_WITH_PARSEC)
@@ -439,7 +440,7 @@ solverRequestInit( SolverMatrix *solvmtx )
         *request = MPI_REQUEST_NULL;
         *reqindx = -1;
     }
-
+    solverComMatrixInit( solvmtx );
     return;
 }
 
@@ -466,6 +467,8 @@ solverRequestExit( SolverMatrix *solvmtx )
     if( solvmtx->reqidx ) {
         memFree_null( solvmtx->reqidx );
     }
+    solverComMatrixGather( solvmtx );
+    solverComMatrixExit( solvmtx );
 }
 
 /**

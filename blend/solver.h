@@ -232,6 +232,8 @@ struct solver_matrix_s {
     pastix_atomic_lock_t      reqlock;              /**< Lock to access the request arrays                    */
     void                     *rcoeftab;             /**< Reception buffer for the communication               */
 
+    size_t                   *com_vector;           /**< Matrix of communications between nodes.              */
+
     PASTIX_Comm               solv_comm;            /*+ Copy of the pastix_data->inter_node_comm       +*/
 };
 

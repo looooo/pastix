@@ -19,6 +19,7 @@
  **/
 #include "common/common.h"
 #include "blend/solver.h"
+#include "blend/solver_comm_matrix.h"
 #include "kernels.h"
 #include "pastix_zcores.h"
 #include "pastix_zlrcores.h"
@@ -469,7 +470,6 @@ cpucblk_zisend( pastix_coefside_t side,
 
     assert( cblk->cblktype & CBLK_FANIN );
 
-
 #if defined(PASTIX_DEBUG_MPI)
     fprintf( stderr, "[%2d] Post Isend for cblk %ld toward %2d ( %ld Bytes )\n",
              solvmtx->clustnum, (long)cblk->gcblknum, cblk->ownerid,
@@ -487,6 +487,8 @@ cpucblk_zisend( pastix_coefside_t side,
     }
 
     assert( rc == MPI_SUCCESS );
+
+    solverCommMatrixAdd( solvmtx, cblk->ownerid, bufsize );
 
     /* Register the request to make it progress */
     pastix_atomic_lock( &(solvmtx->reqlock) );
