@@ -92,6 +92,7 @@
 /* Numerical factorization options */
 #cmakedefine PASTIX_NUMFACT_DUMP_SOLVER
 #cmakedefine PASTIX_SUPERNODE_STATS
+#cmakedefine PASTIX_COMMUNICATION_MATRIX
 
 /* Scheduling options */
 #cmakedefine PASTIX_WITH_PARSEC
