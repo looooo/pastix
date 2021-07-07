@@ -47,11 +47,129 @@
  *
  *******************************************************************************/
 void
+cpucblk_zalloc_lr( pastix_coefside_t  side,
+                   SolverCblk        *cblk,
+                   int                rkmax )
+{
+    pastix_int_t      ncols    = cblk_colnbr( cblk );
+    pastix_lrblock_t *LRblocks = NULL;
+    SolverBlok       *blok     = cblk[0].fblokptr;
+    SolverBlok       *lblok    = cblk[1].fblokptr;
+
+    /* H then split */
+    assert( cblk->cblktype & CBLK_LAYOUT_2D );
+
+    LRblocks = blok->LRblock;
+
+    if ( LRblocks == NULL ) {
+        /* One allocation per cblk */
+        LRblocks = malloc( 2 * (lblok - blok) * sizeof(pastix_lrblock_t) );
+        memset( LRblocks, 0, 2 * (lblok - blok) * sizeof(pastix_lrblock_t) );
+        if (!pastix_atomic_cas_xxb( &(blok->LRblock), (uint64_t)NULL, (uint64_t)LRblocks, sizeof(void*) )) {
+            free( LRblocks );
+            LRblocks = blok->LRblock;
+        }
+    }
+    assert( LRblocks != NULL );
+
+    for (; blok<lblok; blok++)
+    {
+        pastix_int_t nrows = blok_rownbr( blok );
+        blok->LRblock = LRblocks;
+
+        if ( side != PastixUCoef ) {
+            core_zlralloc( nrows, ncols, rkmax, LRblocks );
+        }
+        LRblocks++;
+
+        if ( side != PastixLCoef ) {
+            core_zlralloc( nrows, ncols, rkmax, LRblocks );
+        }
+        LRblocks++;
+    }
+
+    /* Backup the fact that the cblk has been initialized */
+    if ( side != PastixUCoef ) {
+        cblk->lcoeftab = (void*)-1;
+    }
+    if ( side != PastixLCoef ) {
+        cblk->ucoeftab = (void*)-1;
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Allocate the cblk structure to store the coefficient
+ *
+ * When stored in low-rank format, the data pointer in the low-rank structure of
+ * each block must be initialized.
+ * This routines performs only the allocation and is thread-safe if called in
+ * parallel on the Lower and upper part.
+ *
+ *******************************************************************************
+ *
+ * @param[in] side
+ *          Define which side of the matrix must be initialized.
+ *          @arg PastixLCoef if lower part only
+ *          @arg PastixUCoef if upper part only
+ *          @arg PastixLUCoef if both sides.
+ *
+ * @param[inout] cblk
+ *          The column block to allocate.
+ *
+ *******************************************************************************/
+void
+cpucblk_zalloc_fr( pastix_coefside_t  side,
+                   SolverCblk        *cblk )
+{
+    pastix_int_t ncols   = cblk_colnbr( cblk );
+    size_t       coefnbr = cblk->stride * ncols;
+
+    if ( side == PastixLCoef ) {
+        assert( cblk->lcoeftab == NULL );
+        MALLOC_INTERN( cblk->lcoeftab, coefnbr, pastix_complex64_t );
+        memset( cblk->lcoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
+    }
+    else {
+        assert( cblk->lcoeftab == NULL );
+        assert( cblk->ucoeftab == NULL );
+
+        MALLOC_INTERN( cblk->lcoeftab, 2 * coefnbr, pastix_complex64_t );
+        memset( cblk->lcoeftab, 0, 2 * coefnbr * sizeof(pastix_complex64_t) );
+
+        cblk->ucoeftab = (pastix_complex64_t *)cblk->lcoeftab + coefnbr;
+        assert( cblk->ucoeftab );
+    }
+    assert( cblk->lcoeftab );
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Allocate the cblk structure to store the coefficient
+ *
+ * When stored in low-rank format, the data pointer in the low-rank structure of
+ * each block must be initialized.
+ * This routines performs only the allocation and is thread-safe if called in
+ * parallel on the Lower and upper part.
+ *
+ *******************************************************************************
+ *
+ * @param[in] side
+ *          Define which side of the matrix must be initialized.
+ *          @arg PastixLCoef if lower part only
+ *          @arg PastixUCoef if upper part only
+ *          @arg PastixLUCoef if both sides.
+ *
+ * @param[inout] cblk
+ *          The column block to allocate.
+ *
+ *******************************************************************************/
+void
 cpucblk_zalloc( pastix_coefside_t  side,
                 SolverCblk        *cblk )
 {
-    pastix_int_t ncols = cblk_colnbr( cblk );
-
     /* Make sure they have the correct values */
     assert( PastixLCoef == 0 );
     assert( PastixUCoef == 1 );
@@ -73,69 +191,10 @@ cpucblk_zalloc( pastix_coefside_t  side,
     side -= 1;
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        pastix_lrblock_t   *LRblocks = NULL;
-        SolverBlok         *blok     = cblk[0].fblokptr;
-        SolverBlok         *lblok    = cblk[1].fblokptr;
-
-        /* H then split */
-        assert( cblk->cblktype & CBLK_LAYOUT_2D );
-
-        LRblocks = blok->LRblock;
-
-        if ( LRblocks == NULL ) {
-            /* One allocation per cblk */
-            LRblocks = malloc( 2 * (lblok - blok) * sizeof(pastix_lrblock_t) );
-            memset( LRblocks, 0, 2 * (lblok - blok) * sizeof(pastix_lrblock_t) );
-            if (!pastix_atomic_cas_xxb( &(blok->LRblock), (uint64_t)NULL, (uint64_t)LRblocks, sizeof(void*) )) {
-                free( LRblocks );
-                LRblocks = blok->LRblock;
-            }
-        }
-        assert( LRblocks != NULL );
-
-        for (; blok<lblok; blok++)
-        {
-            pastix_int_t nrows = blok_rownbr( blok );
-            blok->LRblock = LRblocks;
-
-            if ( side != PastixUCoef ) {
-                core_zlralloc( nrows, ncols, -1, LRblocks );
-            }
-            LRblocks++;
-
-            if ( side != PastixLCoef ) {
-                core_zlralloc( nrows, ncols, -1, LRblocks );
-            }
-            LRblocks++;
-        }
-
-        /* Backup the fact that the cblk has been initialized */
-        if ( side != PastixUCoef ) {
-            cblk->lcoeftab = (void*)-1;
-        }
-        if ( side != PastixLCoef ) {
-            cblk->ucoeftab = (void*)-1;
-        }
+        cpucblk_zalloc_lr( side, cblk, -1 );
     }
     else {
-        size_t coefnbr = cblk->stride * ncols;
-
-        if ( side == PastixLCoef ) {
-            assert( cblk->lcoeftab == NULL );
-            MALLOC_INTERN( cblk->lcoeftab, coefnbr, pastix_complex64_t );
-            memset( cblk->lcoeftab, 0, coefnbr * sizeof(pastix_complex64_t) );
-        }
-        else {
-            assert( cblk->lcoeftab == NULL );
-            assert( cblk->ucoeftab == NULL );
-
-            MALLOC_INTERN( cblk->lcoeftab, 2 * coefnbr, pastix_complex64_t );
-            memset( cblk->lcoeftab, 0, 2 * coefnbr * sizeof(pastix_complex64_t) );
-
-            cblk->ucoeftab = (pastix_complex64_t *)cblk->lcoeftab + coefnbr;
-            assert( cblk->ucoeftab );
-        }
-        assert( cblk->lcoeftab );
+        cpucblk_zalloc_fr( side, cblk );
     }
     pastix_cblk_unlock( cblk );
 }
@@ -175,6 +234,10 @@ cpucblk_zfree( pastix_coefside_t  side,
             for (; blok<lblok; blok++) {
                 core_zlrfree(blok->LRblock);
             }
+
+            if ( cblk->lcoeftab != (void*)-1 ) {
+                memFree_null( cblk->lcoeftab );
+            }
         }
         else {
             memFree_null( cblk->lcoeftab );
@@ -196,7 +259,8 @@ cpucblk_zfree( pastix_coefside_t  side,
     }
     if ( (cblk->cblktype & CBLK_COMPRESSED) &&
          (cblk->lcoeftab == NULL)           &&
-         (cblk->ucoeftab == NULL) ) {
+         (cblk->ucoeftab == NULL) )
+    {
         free( cblk->fblokptr->LRblock );
         cblk->fblokptr->LRblock = NULL;
     }

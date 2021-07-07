@@ -217,6 +217,11 @@ int cpucblk_zsytrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
  *    @name PastixComplex64 initialization and additionnal routines
  *    @{
  */
+void cpucblk_zalloc_lr( pastix_coefside_t  side,
+                        SolverCblk        *cblk,
+                        int                rkmax );
+void cpucblk_zalloc_fr( pastix_coefside_t  side,
+                        SolverCblk        *cblk );
 void cpucblk_zalloc   ( pastix_coefside_t    side,
                         SolverCblk          *cblk );
 void cpucblk_zfree    ( pastix_coefside_t    side,

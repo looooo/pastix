@@ -188,6 +188,10 @@ solverMatrixGen( SolverMatrix          *solvmtx,
 
                     /* Update the maximum reception buffer size */
                     cblksize         = cblk_colnbr(solvcblk) * solvcblk->stride;
+
+                    if ( solvcblk->cblktype & CBLK_COMPRESSED ) {
+                        cblksize += (solvblok - solvcblk->fblokptr);
+                    }
                     solvmtx->maxrecv = pastix_imax( solvmtx->maxrecv, cblksize );
 
                     /* Update information about 1d/2d tasks */
@@ -261,7 +265,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
 
 #if defined(PASTIX_WITH_MPI)
             if ( solvmtx->clustnbr > 1 ) {
-#if defined(PASTIX_BLEND_FANIN_LR)
+#if defined(PASTIX_BLEND_FANIN_FR)
                 if ( ( solvcblk->cblktype & CBLK_COMPRESSED ) &&
                      ( solvcblk->cblktype & ( CBLK_FANIN | CBLK_RECV ) ) ) {
                     solvcblk->cblktype &= ( ~CBLK_COMPRESSED );
