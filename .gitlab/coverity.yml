@@ -1,5 +1,6 @@
 ---
 coverity:
+  extends: .only-master
   stage: analyse
   tags: ["docker", "large"]
   dependencies: []
@@ -24,8 +25,5 @@ coverity:
            --form version="`git rev-parse --short HEAD`"
            --form description=""
            https://scan.coverity.com/builds?project=PaStiX
-  only:
-    - master@pastix/pastix
-    - master@solverstack/pastix
   except:
     - schedules
