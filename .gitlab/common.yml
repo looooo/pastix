@@ -3,11 +3,13 @@
 #
 ---
 .only-master:
+  interruptible: true
   only:
     - master@solverstack/pastix
     - master@pastix/pastix
 
 .only-branches-seq:
+  interruptible: true
   except:
     - schedules
   only:
@@ -16,6 +18,7 @@
     - master@solverstack/pastix
 
 .only-branches-mpi:
+  interruptible: true
   except:
     - schedules
   only:

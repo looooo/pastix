@@ -12,7 +12,6 @@
 # headers of source files.
 #
 #!/usr/bin/env sh
-
 header=1
 nberr=0
 
@@ -198,7 +197,6 @@ do
 
     check_header $f
 done
-
 
 if [ $nberr -gt 0 ]
 then
