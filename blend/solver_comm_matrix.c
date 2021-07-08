@@ -1,6 +1,6 @@
 /**
  *
- * @file solver_com_matrix.c
+ * @file solver_comm_matrix.c
  *
  * PaStiX communication matrix handler.
  *
