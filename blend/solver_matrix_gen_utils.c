@@ -1025,11 +1025,11 @@ solvMatGen_register_remote_cblk( const symbol_matrix_t    *symbmtx,
 
     solvcblk->lcolidx = fcolnum;
 
-    /* No low-rank compression in distributed for the moment */
+#if defined(PASTIX_BLEND_FANIN_FR)
     if( solvcblk->cblktype & CBLK_COMPRESSED ) {
         solvcblk->cblktype &= (~CBLK_COMPRESSED);
     }
-
+#endif
     /* No Schur complement in distributed for the moment */
     if( solvcblk->cblktype & CBLK_IN_SCHUR ) {
         solvcblk->cblktype &= (~CBLK_IN_SCHUR);

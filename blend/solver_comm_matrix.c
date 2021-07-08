@@ -99,6 +99,7 @@ solverComMatrixGather( SolverMatrix *solvmtx )
                 fprintf( file, "\n" );
             }
         }
+        fclose(file);
     }
     free( com_matrix );
 }
