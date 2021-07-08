@@ -120,7 +120,7 @@ starpu_zdiag( pastix_data_t      *pastix_data,
     ddesc = sopalin_data->solvmtx->starpu_desc_rhs;
 
 #if defined(STARPU_USE_FXT)
-    if (pastix->iparm[IPARM_TRACE] & PastixTraceSolve) {
+    if (pastix_data->iparm[IPARM_TRACE] & PastixTraceSolve) {
         starpu_fxt_start_profiling();
     }
 #endif
@@ -135,7 +135,7 @@ starpu_zdiag( pastix_data_t      *pastix_data,
 #endif
     starpu_pause();
 #if defined(STARPU_USE_FXT)
-    if (pastix->iparm[IPARM_TRACE] & PastixTraceSolve) {
+    if (pastix_data->iparm[IPARM_TRACE] & PastixTraceSolve) {
         starpu_fxt_stop_profiling();
     }
 #endif

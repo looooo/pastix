@@ -298,7 +298,7 @@ starpu_zsytrf( pastix_data_t  *pastix_data,
 
     starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
 #if defined(STARPU_USE_FXT)
-    if (pastix->iparm[IPARM_TRACE] & PastixTraceNumfact) {
+    if (pastix_data->iparm[IPARM_TRACE] & PastixTraceNumfact) {
         starpu_fxt_start_profiling();
     }
 #endif
@@ -322,7 +322,7 @@ starpu_zsytrf( pastix_data_t  *pastix_data,
 #endif
     starpu_pause();
 #if defined(STARPU_USE_FXT)
-    if (pastix->iparm[IPARM_TRACE] & PastixTraceNumfact) {
+    if (pastix_data->iparm[IPARM_TRACE] & PastixTraceNumfact) {
         starpu_fxt_stop_profiling();
     }
 #endif
