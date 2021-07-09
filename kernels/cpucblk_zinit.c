@@ -191,7 +191,7 @@ cpucblk_zalloc( pastix_coefside_t  side,
     side -= 1;
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        cpucblk_zalloc_lr( side, cblk, -1 );
+        cpucblk_zalloc_lr( side, cblk, cblk->cblktype & CBLK_FANIN ? 0 : -1 );
     }
     else {
         cpucblk_zalloc_fr( side, cblk );
