@@ -3,11 +3,13 @@
 #
 ---
 .only-master:
+  interruptible: true
   only:
     - master@solverstack/pastix
     - master@pastix/pastix
 
 .only-branches-seq:
+  interruptible: true
   except:
     - schedules
   only:
@@ -16,9 +18,17 @@
     - master@solverstack/pastix
 
 .only-branches-mpi:
+  interruptible: true
   except:
     - schedules
   only:
     - merge_requests
     - master@pastix/pastix
     - master@solverstack/pastix
+
+preliminary_checks:
+  stage: .pre
+  script:
+    - .gitlab/check_ci.sh
+  only:
+    - merge_requests
