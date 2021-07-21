@@ -29,7 +29,7 @@
  *    @name PastixComplex64 cblk-BLAS GPU kernels
  *    @{
  */
-void gpucblk_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_trans_t trans,
+double gpucblk_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_trans_t trans,
                       const SolverCblk *cblk, const SolverBlok *blok, SolverCblk *fcblk,
                       const cuDoubleComplex *A, const cuDoubleComplex *B, cuDoubleComplex *C,
                       const pastix_lr_t *lowrank, cudaStream_t stream );

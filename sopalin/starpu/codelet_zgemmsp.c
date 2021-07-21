@@ -96,11 +96,15 @@ static void fct_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
     starpu_codelet_unpack_args( cl_arg, &sideA, &sideB, &trans,
                                 &cblk, &blok, &fcblk, &sopalin_data );
 
-    gpucblk_zgemmsp( sideA, sideB, trans,
-                     cblk, blok, fcblk,
-                     A, B, C,
-                     &(sopalin_data->solvmtx->lowrank),
-                     starpu_cuda_get_local_stream() );
+    double flops = gpucblk_zgemmsp( sideA, sideB, trans,
+                                    cblk, blok, fcblk,
+                                    A, B, C,
+                                    &(sopalin_data->solvmtx->lowrank),
+                                    starpu_cuda_get_local_stream() );
+
+    
+    ((profile_data_t *) starpu_task_get_current()->callback_arg)->flops  = flops;
+    
 }
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
@@ -128,6 +132,7 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
 #endif
 
     profile_data_t *callback_arg = malloc( sizeof( profile_data_t ) );
+    callback_arg->flops          = -1e20;
     callback_arg->measures       = &cblk_zgemmsp_perf;
 
     starpu_insert_task(
