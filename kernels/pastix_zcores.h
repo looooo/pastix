@@ -132,7 +132,7 @@ int  cpucblk_zgeaddsp1d( const SolverCblk *cblk1, SolverCblk *cblk2,
                          const pastix_complex64_t *L1, pastix_complex64_t *L2,
                          const pastix_complex64_t *U1, pastix_complex64_t *U2 );
 
-void cpucblk_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_trans_t trans,
+double cpucblk_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_trans_t trans,
                       const SolverCblk *cblk, const SolverBlok *blok, SolverCblk *fcblk,
                       const pastix_complex64_t *A, const pastix_complex64_t *B, pastix_complex64_t *C,
                       pastix_complex64_t *work, pastix_int_t lwork, const pastix_lr_t *lowrank );

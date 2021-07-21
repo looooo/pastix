@@ -1490,7 +1490,7 @@ core_zgemmsp_lrfr( pastix_coefside_t         sideA,
  *          block.
  *
  *******************************************************************************/
-void
+double
 cpucblk_zgemmsp(       pastix_coefside_t   sideA,
                        pastix_coefside_t   sideB,
                        pastix_trans_t      trans,
@@ -1572,6 +1572,8 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
     }
 
     kernel_trace_stop( blok->inlast, ktype, m, n, k, flops, time );
+    
+    return flops;
 }
 
 /**
