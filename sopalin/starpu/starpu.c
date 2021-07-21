@@ -286,6 +286,47 @@ pastix_starpu_init( pastix_data_t *pastix,
     (void)rc;
 }
 
+void 
+profiling_callback( void *profile_data )
+{
+    struct starpu_task                *task  = starpu_task_get_current();
+    profile_data_t                    *arg   = profile_data;
+    double                             flops = arg->flops;
+    measure_t                      *measures = arg->measures;
+    struct starpu_profiling_task_info *info  = task->profiling_info;
+    assert( info != NULL );
+    double duration = starpu_timing_timespec_delay_us( &info->start_time, &info->end_time );
+    double speed    = flops / ( 1000.0 * duration );
+    measures[info->workerid].sum  += speed;
+    measures[info->workerid].sum2 += speed * speed;
+    measures[info->workerid].n    += 1;
+}
+
+void profiling_display_info( const char *name, const measure_t *measures) {
+    unsigned worker;
+    int header = 0;
+    for (worker = 0; worker < starpu_worker_get_count(); worker++) {
+        if (measures[worker].n > 0) {
+            if ( !header ) {
+                fprintf(stderr, "Performance for kernel %s: \n", name);
+                fprintf(stderr, "\tWorker  Gflop/s  delta  Nb\n");
+                header = 1;
+            }
+            char workername[128];
+            starpu_worker_get_name(worker, workername, 128);
+
+            long   n    = measures[worker].n;
+            double sum  = measures[worker].sum;
+            double sum2 = measures[worker].sum2;
+
+            double avg = sum / n;
+            double sd  = sqrt((sum2 - (sum*sum)/n)/n);
+
+            printf("\t%s\t%.2lf\t%.2lf\t%ld\n", workername, avg, sd, n);
+        }
+    }
+}
+
 /**
  *******************************************************************************
  *

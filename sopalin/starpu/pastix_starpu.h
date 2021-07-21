@@ -141,6 +141,19 @@ pastix_starpu_unpartition_submit( const starpu_sparse_matrix_desc_t *spmtx,
 
 #endif /* _pastix_starpu_h_ */
 
+typedef struct measure_s {
+    double sum;
+    double sum2;
+    long   n;
+} measure_t;
+
+typedef struct profile_data_s {
+    measure_t *measures;
+    double     flops;
+} profile_data_t;
+
+void profiling_callback( void *callback_arg );
+
 /**
  *@}
  */
