@@ -154,6 +154,14 @@ typedef struct profile_data_s {
 
 void profiling_callback( void *callback_arg );
 
+#define KERNEL_PERF_DECL( _kernel_prefix_, _kernel_suffix_ )                                       \
+    extern measure_t _kernel_prefix_##_z##_kernel_suffix_##_perf[STARPU_NMAXWORKERS];              \
+    extern measure_t _kernel_prefix_##_c##_kernel_suffix_##_perf[STARPU_NMAXWORKERS];              \
+    extern measure_t _kernel_prefix_##_d##_kernel_suffix_##_perf[STARPU_NMAXWORKERS];              \
+    extern measure_t _kernel_prefix_##_s##_kernel_suffix_##_perf[STARPU_NMAXWORKERS];
+
+KERNEL_PERF_DECL( cblk, gemmsp )
+
 /**
  *@}
  */

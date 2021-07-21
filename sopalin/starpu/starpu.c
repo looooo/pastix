@@ -343,6 +343,14 @@ void profiling_display_info( const char *name, const measure_t *measures) {
 void
 pastix_starpu_finalize( pastix_data_t *pastix )
 {
+    const char *kernel_names[] = { "cblk_zgemmsp", "cblk_cgemmsp", "cblk_dgemmsp", "cblk_sgemmsp" };
+    measure_t  *measures[] = { cblk_zgemmsp_perf, cblk_cgemmsp_perf, cblk_dgemmsp_perf, cblk_sgemmsp_perf};
+    int index;
+    for (index = 0; index < 4; index++) {
+        profiling_display_info( kernel_names[index], measures[index] );
+    }
+
+
     if (pastix->starpu != NULL) {
         starpu_resume();
 
