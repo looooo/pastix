@@ -332,7 +332,7 @@ gpucblk_zgemmsp(       pastix_coefside_t  sideA,
  *          The CUDA stream that will execute the kernel.
  *
  *******************************************************************************/
-void
+double
 gpublok_zgemmsp(       pastix_coefside_t  sideA,
                        pastix_coefside_t  sideB,
                        pastix_trans_t     trans,
@@ -437,7 +437,7 @@ gpublok_zgemmsp(       pastix_coefside_t  sideA,
 #endif
     kernel_trace_stop( blokB->inlast, PastixKernelGEMMBlok2d2d,
                        full_m, full_m, K, flops, time );
-
+    return flops;                       
     (void)lblokN; (void)sideA; (void)sideB; (void)lowrank; (void)time;
 }
 
