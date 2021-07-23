@@ -302,11 +302,13 @@ profiling_callback( void *profile_data )
     measures[info->workerid].n    += 1;
 }
 
-void profiling_display_info( const char *name, const measure_t *measures) {
+void
+profiling_display_info( const char *name, const measure_t *measures )
+{
     unsigned worker;
-    int header = 0;
-    for (worker = 0; worker < starpu_worker_get_count(); worker++) {
-        if (measures[worker].n > 0) {
+    int      header = 0;
+    for ( worker = 0; worker < starpu_worker_get_count(); worker++ ) {
+        if ( measures[worker].n > 0 ) {
             if ( !header ) {
                 fprintf(stderr, "Performance for kernel %s: \n", name);
                 fprintf(stderr, "\tWorker  Gflop/s  delta  Nb\n");
@@ -327,6 +329,18 @@ void profiling_display_info( const char *name, const measure_t *measures) {
     }
 }
 
+#define KERNEL_NAMES( _kernel_prefix_, _kernel_suffix_) \
+    _kernel_prefix_ "_z" _kernel_suffix_,               \
+    _kernel_prefix_ "_c" _kernel_suffix_,               \
+    _kernel_prefix_ "_d" _kernel_suffix_,               \
+    _kernel_prefix_ "_s" _kernel_suffix_                \
+
+#define KERNEL_MEASURES(  _kernel_prefix_, _kernel_suffix_) \
+    _kernel_prefix_##_z##_kernel_suffix_##_perf,            \
+    _kernel_prefix_##_c##_kernel_suffix_##_perf,            \
+    _kernel_prefix_##_d##_kernel_suffix_##_perf,            \
+    _kernel_prefix_##_s##_kernel_suffix_##_perf             \
+
 /**
  *******************************************************************************
  *
@@ -343,15 +357,15 @@ void profiling_display_info( const char *name, const measure_t *measures) {
 void
 pastix_starpu_finalize( pastix_data_t *pastix )
 {
-    const char *kernel_names[] = { "cblk_zgemmsp", "cblk_cgemmsp", "cblk_dgemmsp", "cblk_sgemmsp" };
-    measure_t  *measures[] = { cblk_zgemmsp_perf, cblk_cgemmsp_perf, cblk_dgemmsp_perf, cblk_sgemmsp_perf};
-    int index;
-    for (index = 0; index < 4; index++) {
+    const char *kernel_names[] = { KERNEL_NAMES( "cblk", "gemmsp" ) };
+    measure_t  *measures[]     = { KERNEL_MEASURES( cblk, gemmsp ) };
+    int         nb_kernels     =  index < sizeof( measures ) / sizeof( *measures );
+    int         index;
+    for ( index = 0; nb_kernels; index++ ) {
         profiling_display_info( kernel_names[index], measures[index] );
     }
 
-
-    if (pastix->starpu != NULL) {
+    if ( pastix->starpu != NULL ) {
         starpu_resume();
 
 #if defined(PASTIX_WITH_MPI)
