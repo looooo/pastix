@@ -161,6 +161,7 @@ void profiling_callback( void *callback_arg );
     extern measure_t _kernel_prefix_##_s##_kernel_suffix_##_perf[STARPU_NMAXWORKERS];
 
 KERNEL_PERF_DECL( cblk, gemmsp )
+KERNEL_PERF_DECL( blok, gemmsp )
 
 /**
  *@}

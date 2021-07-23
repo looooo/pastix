@@ -532,11 +532,11 @@ core_zgemmsp_2d2d( pastix_coefside_t sideA, pastix_trans_t trans,
  * @sa core_zgemmsp_1d2d
  *
  *******************************************************************************/
-static inline void
-core_zgemmsp_block_frfr( pastix_trans_t trans,
-                         pastix_int_t blok_mk,
-                         pastix_int_t blok_kn,
-                         pastix_int_t blok_mn,
+static inline double
+core_zgemmsp_block_frfr(       pastix_trans_t      trans,
+                               pastix_int_t        blok_mk,
+                               pastix_int_t        blok_kn,
+                               pastix_int_t        blok_mn,
                          const SolverCblk         *cblk,
                                SolverCblk         *fcblk,
                          const pastix_complex64_t *A,
@@ -624,8 +624,8 @@ core_zgemmsp_block_frfr( pastix_trans_t trans,
                        full_m, full_m, K,
                        flops, time );
 
+    return flops;
     (void)lblokN;
-    return;
 }
 
 /**
@@ -696,7 +696,7 @@ core_zgemmsp_block_frfr( pastix_trans_t trans,
  *          The structure with low-rank parameters.
  *
  *******************************************************************************/
-static inline void
+static inline double
 core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
                          pastix_trans_t            transB,
                          pastix_int_t              blok_mk,
@@ -814,7 +814,7 @@ core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
     kernel_trace_stop( blokB->inlast, PastixKernelGEMMBlokLRLR,
                        full_m, full_m, K,
                        flops, time );
-
+    return flops;
     (void)lblokN;
 }
 
@@ -882,7 +882,7 @@ core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
  *          The structure with low-rank parameters.
  *
  *******************************************************************************/
-static inline void
+static inline double
 core_zgemmsp_block_lrlr( pastix_coefside_t  sideA,
                          pastix_coefside_t  sideB,
                          pastix_trans_t     transB,
@@ -987,7 +987,7 @@ core_zgemmsp_block_lrlr( pastix_coefside_t  sideA,
     kernel_trace_stop( blokB->inlast, PastixKernelGEMMBlokLRLR,
                        full_m, full_m, K,
                        flops, time );
-
+    return flops;
     (void)lblokN;
 }
 
@@ -1193,9 +1193,9 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
  *
  *******************************************************************************/
 static inline pastix_fixdbl_t
-core_zgemmsp_lr( pastix_coefside_t         sideA,
-                 pastix_coefside_t         sideB,
-                 pastix_trans_t            trans,
+core_zgemmsp_lr(       pastix_coefside_t   sideA,
+                       pastix_coefside_t   sideB,
+                       pastix_trans_t      trans,
                  const SolverCblk         *cblk,
                  const SolverBlok         *blok,
                        SolverCblk         *fcblk,
@@ -1644,7 +1644,7 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
  *          The structure with the low-rank parameters.
  *
  *******************************************************************************/
-void
+double
 cpublok_zgemmsp(       pastix_coefside_t   sideA,
                        pastix_coefside_t   sideB,
                        pastix_trans_t      transB,
@@ -1660,16 +1660,16 @@ cpublok_zgemmsp(       pastix_coefside_t   sideA,
 {
     if ( fcblk->cblktype & CBLK_COMPRESSED ) {
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            core_zgemmsp_block_lrlr( sideA, sideB, transB,
-                                     blok_mk, blok_nk, blok_mn,
-                                     cblk, fcblk,
-                                     lowrank );
+            return core_zgemmsp_block_lrlr( sideA, sideB, transB,
+                                            blok_mk, blok_nk, blok_mn,
+                                            cblk, fcblk,
+                                            lowrank );
         }
         else {
-            core_zgemmsp_block_frlr( sideA, transB,
-                                     blok_mk, blok_nk, blok_mn,
-                                     cblk, fcblk,
-                                     A, B, lowrank );
+            return core_zgemmsp_block_frlr( sideA, transB,
+                                            blok_mk, blok_nk, blok_mn,
+                                            cblk, fcblk,
+                                            A, B, lowrank );
         }
     }
     else {
@@ -1677,10 +1677,10 @@ cpublok_zgemmsp(       pastix_coefside_t   sideA,
             assert(0);
         }
         else {
-            core_zgemmsp_block_frfr( transB,
-                                     blok_mk, blok_nk, blok_mn,
-                                     cblk, fcblk,
-                                     A, B, C );
+            return core_zgemmsp_block_frfr( transB,
+                                            blok_mk, blok_nk, blok_mn,
+                                            cblk, fcblk,
+                                            A, B, C );
         }
     }
 }

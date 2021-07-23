@@ -357,8 +357,10 @@ profiling_display_info( const char *name, const measure_t *measures )
 void
 pastix_starpu_finalize( pastix_data_t *pastix )
 {
-    const char *kernel_names[] = { KERNEL_NAMES( "cblk", "gemmsp" ) };
-    measure_t  *measures[]     = { KERNEL_MEASURES( cblk, gemmsp ) };
+    const char *kernel_names[] = { KERNEL_NAMES( "cblk", "gemmsp" ),
+                                   KERNEL_NAMES( "blok", "gemmsp" ) };
+    measure_t  *measures[]     = { KERNEL_MEASURES( cblk, gemmsp ),
+                                   KERNEL_MEASURES( blok, gemmsp ) };
     int         nb_kernels     =  index < sizeof( measures ) / sizeof( *measures );
     int         index;
     for ( index = 0; nb_kernels; index++ ) {
