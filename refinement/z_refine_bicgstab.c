@@ -192,7 +192,8 @@ pastix_int_t z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
 
         clockStop((refine_clk));
         t3 = clockGet();
-        if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+        if ( ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) &&
+             ( pastix_data->procnum == 0 ) ) {
             solver.output_oneiter( t0, t3, resid_b, nb_iter );
         }
     }

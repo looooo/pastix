@@ -107,7 +107,8 @@ z_pivot_smp( pastix_data_t *pastix_data,
         }
         else {
             t3 = clockGet();
-            if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+            if ( ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) &&
+                 ( pastix_data->procnum == 0 ) ) {
                 solver.output_oneiter( t0, t3, berr, iter );
             }
             t0 = clockGet();
