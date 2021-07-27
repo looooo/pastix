@@ -286,6 +286,61 @@ pastix_starpu_init( pastix_data_t *pastix,
     (void)rc;
 }
 
+void 
+profiling_callback( void *profile_data )
+{
+    struct starpu_task                *task  = starpu_task_get_current();
+    profile_data_t                    *arg   = profile_data;
+    double                             flops = arg->flops;
+    measure_t                      *measures = arg->measures;
+    struct starpu_profiling_task_info *info  = task->profiling_info;
+    assert( info != NULL );
+    double duration = starpu_timing_timespec_delay_us( &info->start_time, &info->end_time );
+    double speed    = flops / ( 1000.0 * duration );
+    measures[info->workerid].sum  += speed;
+    measures[info->workerid].sum2 += speed * speed;
+    measures[info->workerid].n    += 1;
+}
+
+void
+profiling_display_info( const char *name, const measure_t *measures )
+{
+    unsigned worker;
+    int      header = 0;
+    for ( worker = 0; worker < starpu_worker_get_count(); worker++ ) {
+        if ( measures[worker].n > 0 ) {
+            if ( !header ) {
+                fprintf(stderr, "Performance for kernel %s: \n", name);
+                fprintf(stderr, "\tWorker  Gflop/s  delta  Nb\n");
+                header = 1;
+            }
+            char workername[128];
+            starpu_worker_get_name(worker, workername, 128);
+
+            long   n    = measures[worker].n;
+            double sum  = measures[worker].sum;
+            double sum2 = measures[worker].sum2;
+
+            double avg = sum / n;
+            double sd  = sqrt((sum2 - (sum*sum)/n)/n);
+
+            printf("\t%s\t%.2lf\t%.2lf\t%ld\n", workername, avg, sd, n);
+        }
+    }
+}
+
+#define KERNEL_NAMES( _kernel_prefix_, _kernel_suffix_) \
+    _kernel_prefix_ "_z" _kernel_suffix_,               \
+    _kernel_prefix_ "_c" _kernel_suffix_,               \
+    _kernel_prefix_ "_d" _kernel_suffix_,               \
+    _kernel_prefix_ "_s" _kernel_suffix_                \
+
+#define KERNEL_MEASURES(  _kernel_prefix_, _kernel_suffix_) \
+    _kernel_prefix_##_z##_kernel_suffix_##_perf,            \
+    _kernel_prefix_##_c##_kernel_suffix_##_perf,            \
+    _kernel_prefix_##_d##_kernel_suffix_##_perf,            \
+    _kernel_prefix_##_s##_kernel_suffix_##_perf             \
+
 /**
  *******************************************************************************
  *
@@ -302,7 +357,17 @@ pastix_starpu_init( pastix_data_t *pastix,
 void
 pastix_starpu_finalize( pastix_data_t *pastix )
 {
-    if (pastix->starpu != NULL) {
+    const char *kernel_names[] = { KERNEL_NAMES( "cblk", "gemmsp" ),
+                                   KERNEL_NAMES( "blok", "gemmsp" ) };
+    measure_t  *measures[]     = { KERNEL_MEASURES( cblk, gemmsp ),
+                                   KERNEL_MEASURES( blok, gemmsp ) };
+    int         nb_kernels     =  index < sizeof( measures ) / sizeof( *measures );
+    int         index;
+    for ( index = 0; nb_kernels; index++ ) {
+        profiling_display_info( kernel_names[index], measures[index] );
+    }
+
+    if ( pastix->starpu != NULL ) {
         starpu_resume();
 
 #if defined(PASTIX_WITH_MPI)

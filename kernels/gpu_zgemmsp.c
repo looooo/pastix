@@ -141,7 +141,7 @@ gpu_zgemmsp_fermi( const SolverMatrix *solvmatr,
  *          The CUDA stream that will execute the kernel.
  *
  *******************************************************************************/
-void
+double
 gpucblk_zgemmsp(       pastix_coefside_t  sideA,
                        pastix_coefside_t  sideB,
                        pastix_trans_t     trans,
@@ -254,6 +254,7 @@ gpucblk_zgemmsp(       pastix_coefside_t  sideA,
         m -= (sideA == PastixUCoef) ? blok_rownbr( blok ) : 0;
 
         kernel_trace_stop( blok->inlast, PastixKernelGEMMCblk2d2d, m, n, k, FLOPS_ZGEMM( m, n, k ), time );
+        return FLOPS_ZGEMM( m, n, k );
     }
     (void)sideB; (void)lowrank; (void)time;
 }
@@ -331,7 +332,7 @@ gpucblk_zgemmsp(       pastix_coefside_t  sideA,
  *          The CUDA stream that will execute the kernel.
  *
  *******************************************************************************/
-void
+double
 gpublok_zgemmsp(       pastix_coefside_t  sideA,
                        pastix_coefside_t  sideB,
                        pastix_trans_t     trans,
@@ -436,7 +437,7 @@ gpublok_zgemmsp(       pastix_coefside_t  sideA,
 #endif
     kernel_trace_stop( blokB->inlast, PastixKernelGEMMBlok2d2d,
                        full_m, full_m, K, flops, time );
-
+    return flops;                       
     (void)lblokN; (void)sideA; (void)sideB; (void)lowrank; (void)time;
 }
 

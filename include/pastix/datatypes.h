@@ -55,6 +55,9 @@ typedef unsigned int pastix_uint_t;
 
 #endif
 
+#ifndef NAN
+#define NAN ( 0. / 0. )
+#endif
 
 /** ****************************************************************************
  * Double that are not converted through precision generator functions
