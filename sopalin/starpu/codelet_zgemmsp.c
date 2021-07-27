@@ -135,7 +135,7 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
 #endif
 
     profile_data_t *callback_arg = malloc( sizeof( profile_data_t ) );
-    callback_arg->flops          = -1e20;
+    callback_arg->flops          = NAN;
     callback_arg->measures       = &cblk_zgemmsp_perf;
 
     starpu_insert_task(
@@ -300,7 +300,7 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
 
     profile_data_t *callback_arg = malloc( sizeof( profile_data_t ) );
     callback_arg->measures       = &blok_zgemmsp_perf;
-    callback_arg->flops          = -1e20;
+    callback_arg->flops          = NAN;
 
     starpu_insert_task(
         pastix_codelet(codelet),
