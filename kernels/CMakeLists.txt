@@ -45,6 +45,7 @@ set(HEADERS
   pastix_zcuda.h
   pastix_zlrcores.h
   z_nan_check.h
+  cpucblk_zpack.h
 )
 
 precisions_rules_py(generated_headers
@@ -99,6 +100,7 @@ set(SOURCES
   # MPI operations
   cpucblk_zmpi_coeftab.c
   cpucblk_zmpi_rhs.c
+  cpucblk_zpack.c
   # Solve operation
   solve_ztrsmsp.c
 )
