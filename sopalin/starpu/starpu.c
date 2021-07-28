@@ -310,8 +310,8 @@ profiling_display_info( const char *name, const measure_t *measures )
     for ( worker = 0; worker < starpu_worker_get_count(); worker++ ) {
         if ( measures[worker].n > 0 ) {
             if ( !header ) {
-                fprintf(stderr, "Performance for kernel %s: \n", name);
-                fprintf(stderr, "\tWorker  Gflop/s  delta  Nb\n");
+                printf("Performance for kernel %s: \n", name);
+                printf("\tWorker  Gflop/s  delta  Nb\n");
                 header = 1;
             }
             char workername[128];
@@ -361,9 +361,9 @@ pastix_starpu_finalize( pastix_data_t *pastix )
                                    KERNEL_NAMES( "blok", "gemmsp" ) };
     measure_t  *measures[]     = { KERNEL_MEASURES( cblk, gemmsp ),
                                    KERNEL_MEASURES( blok, gemmsp ) };
-    int         nb_kernels     =  index < sizeof( measures ) / sizeof( *measures );
+    int         nb_kernels     =  sizeof( measures ) / sizeof( *measures );
     int         index;
-    for ( index = 0; nb_kernels; index++ ) {
+    for ( index = 0; index < nb_kernels; index++ ) {
         profiling_display_info( kernel_names[index], measures[index] );
     }
 
