@@ -138,6 +138,8 @@ option(PASTIX_WITH_STARPU
 cmake_dependent_option(PASTIX_STARPU_HETEROPRIO
     "Enable heteroprio scheduling with GPU instead of dmdas" OFF "PASTIX_WITH_STARPU" OFF)
 
+check_function_exists( starpu_sched_ctx_get_sched_policy_callback HAVE_STARPU_SCHED_POLICY_CALLBACK )
+
 option(PASTIX_WITH_PARSEC
   "Build PaStiX with PaRSEC runtime support" OFF)
 
