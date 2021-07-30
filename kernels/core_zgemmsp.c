@@ -624,8 +624,8 @@ core_zgemmsp_block_frfr(       pastix_trans_t      trans,
                        full_m, full_m, K,
                        flops, time );
 
-    return flops;
     (void)lblokN;
+    return flops;
 }
 
 /**
@@ -814,8 +814,8 @@ core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
     kernel_trace_stop( blokB->inlast, PastixKernelGEMMBlokLRLR,
                        full_m, full_m, K,
                        flops, time );
-    return flops;
     (void)lblokN;
+    return flops;
 }
 
 /**
@@ -987,8 +987,8 @@ core_zgemmsp_block_lrlr( pastix_coefside_t  sideA,
     kernel_trace_stop( blokB->inlast, PastixKernelGEMMBlokLRLR,
                        full_m, full_m, K,
                        flops, time );
-    return flops;
     (void)lblokN;
+    return flops;
 }
 
 /**
@@ -1675,6 +1675,7 @@ cpublok_zgemmsp(       pastix_coefside_t   sideA,
     else {
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
             assert(0);
+            return 0.; /* Avoids compilation and coverity warning */
         }
         else {
             return core_zgemmsp_block_frfr( transB,

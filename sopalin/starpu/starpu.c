@@ -37,28 +37,28 @@ init_heteroprio( unsigned ctx )
 {
     unsigned idx;
     /* CPU uses 4 buckets and visits them in the natural order */
-    starpu_heteroprio_set_nb_prios( ctx, STARPU_CPU_IDX, BucketNumber );
+    starpu_heteroprio_set_nb_prios( ctx, STARPU_CPU_WORKER, BucketNumber );
     /* It uses direct mapping idx => idx */
     for ( idx = 0; idx < BucketNumber; ++idx ) {
-        starpu_heteroprio_set_mapping( ctx, STARPU_CPU_IDX, idx, idx );
+        starpu_heteroprio_set_mapping( ctx, STARPU_CPU_WORKER, idx, idx );
         /* If there are no CUDA workers, we must tell that CPU is faster */
-        starpu_heteroprio_set_faster_arch( ctx, STARPU_CPU_IDX, idx );
+        starpu_heteroprio_set_faster_arch( ctx, STARPU_CPU_WORKER, idx );
     }
     if ( starpu_cuda_worker_get_count() ) {
         const int   cuda_matching[] = { BucketGEMM2D, BucketTRSM2D, BucketGEMM1D };
         const float cuda_factor     = 125.0f / starpu_cpu_worker_get_count();
         const float cuda_factors[]  = { cuda_factor, cuda_factor, cuda_factor };
         /* CUDA is enabled and uses 2 buckets */
-        starpu_heteroprio_set_nb_prios( ctx, STARPU_CUDA_IDX, 3 );
+        starpu_heteroprio_set_nb_prios( ctx, STARPU_CUDA_WORKER, 3 );
 
         for ( idx = 0; idx < 3; ++idx ) {
             /* CUDA has its own mapping */
-            starpu_heteroprio_set_mapping( ctx, STARPU_CUDA_IDX, idx, cuda_matching[idx] );
+            starpu_heteroprio_set_mapping( ctx, STARPU_CUDA_WORKER, idx, cuda_matching[idx] );
             /* For its buckets, CUDA is the fastest */
-            starpu_heteroprio_set_faster_arch( ctx, STARPU_CUDA_IDX, cuda_matching[idx] );
+            starpu_heteroprio_set_faster_arch( ctx, STARPU_CUDA_WORKER, cuda_matching[idx] );
             /* And CPU is slower by a factor dependant on the bucket */
             starpu_heteroprio_set_arch_slow_factor(
-                ctx, STARPU_CPU_IDX, cuda_matching[idx], cuda_factors[idx] );
+                ctx, STARPU_CPU_WORKER, cuda_matching[idx], cuda_factors[idx] );
         }
     }
 }
@@ -204,7 +204,11 @@ pastix_starpu_init( pastix_data_t *pastix,
      * Set scheduling to heteroprio in any case if requested at compilation
      */
     conf->sched_policy_name = "heteroprio";
+#if !defined(HAVE_STARPU_SCHED_POLICY_CALLBACK )
     conf->sched_policy_init = &init_heteroprio;
+#else
+    conf->sched_policy_callback = &init_heteroprio;
+#endif
 #else /* PASTIX_STARPU_HETEROPRIO */
 
     if (conf->ncuda > 0) {
