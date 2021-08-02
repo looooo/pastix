@@ -139,6 +139,7 @@ pastix_starpu_unpartition_submit( const starpu_sparse_matrix_desc_t *spmtx,
                                   SolverCblk    *cblk,
                                   starpu_cblk_t *starpu_cblk );
 
+#if defined( PASTIX_STARPU_PROFILING )
 typedef struct measure_s {
     double sum;
     double sum2;
@@ -160,6 +161,7 @@ void profiling_callback( void *callback_arg );
 
 KERNEL_PERF_DECL( cblk, gemmsp )
 KERNEL_PERF_DECL( blok, gemmsp )
+#endif /* PASTIX_STARPU_PROFILING */
 
 #endif /* _pastix_starpu_h_ */
 

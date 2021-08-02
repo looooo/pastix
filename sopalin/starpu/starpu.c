@@ -290,6 +290,7 @@ pastix_starpu_init( pastix_data_t *pastix,
     (void)rc;
 }
 
+#if defined( PASTIX_STARPU_PROFILING )
 void 
 profiling_callback( void *profile_data )
 {
@@ -345,6 +346,21 @@ profiling_display_info( const char *name, const measure_t *measures )
     _kernel_prefix_##_d##_kernel_suffix_##_perf,            \
     _kernel_prefix_##_s##_kernel_suffix_##_perf             \
 
+void 
+profiling_display_allinfo() 
+{
+    const char *kernel_names[] = { KERNEL_NAMES( "cblk", "gemmsp" ),
+                                   KERNEL_NAMES( "blok", "gemmsp" ) };
+    measure_t  *measures[]     = { KERNEL_MEASURES( cblk, gemmsp ),
+                                   KERNEL_MEASURES( blok, gemmsp ) };
+    int         nb_kernels     =  sizeof( measures ) / sizeof( *measures );
+    int         index;
+    for ( index = 0; index < nb_kernels; index++ ) {
+        profiling_display_info( kernel_names[index], measures[index] );
+    }
+}
+#endif
+
 /**
  *******************************************************************************
  *
@@ -361,19 +377,12 @@ profiling_display_info( const char *name, const measure_t *measures )
 void
 pastix_starpu_finalize( pastix_data_t *pastix )
 {
-    const char *kernel_names[] = { KERNEL_NAMES( "cblk", "gemmsp" ),
-                                   KERNEL_NAMES( "blok", "gemmsp" ) };
-    measure_t  *measures[]     = { KERNEL_MEASURES( cblk, gemmsp ),
-                                   KERNEL_MEASURES( blok, gemmsp ) };
-    int         nb_kernels     =  sizeof( measures ) / sizeof( *measures );
-    int         index;
-    for ( index = 0; index < nb_kernels; index++ ) {
-        profiling_display_info( kernel_names[index], measures[index] );
-    }
-
     if ( pastix->starpu != NULL ) {
         starpu_resume();
 
+#if defined(PASTIX_STARPU_PROFILING)
+    profiling_display_allinfo();
+#endif
 #if defined(PASTIX_WITH_MPI)
         starpu_mpi_shutdown();
 #endif

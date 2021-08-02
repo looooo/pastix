@@ -41,8 +41,10 @@ static struct starpu_perfmodel starpu_cblk_zgemmsp_model =
     .arch_cost_function = cblk_gemmsp_cost,
 };
 
+#if defined( PASTIX_STARPU_PROFILING )
 measure_t cblk_zgemmsp_perf[STARPU_NMAXWORKERS];
 measure_t blok_zgemmsp_perf[STARPU_NMAXWORKERS];
+#endif
 
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void fct_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
@@ -74,7 +76,9 @@ static void fct_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
                              cblk, blok, fcblk,
                              A, B, C, NULL, -1,
                              &( sopalin_data->solvmtx->lowrank ) );
+#if defined( PASTIX_STARPU_PROFILING )
     ((profile_data_t *) starpu_task_get_current()->callback_arg)->flops = flops;
+#endif
 }
 
 #if defined(PASTIX_WITH_CUDA)
@@ -105,8 +109,9 @@ static void fct_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
                              &(sopalin_data->solvmtx->lowrank),
                              starpu_cuda_get_local_stream() );
 
-    
+#if defined( PASTIX_STARPU_PROFILING )
     ((profile_data_t *) starpu_task_get_current()->callback_arg)->flops  = flops;
+#endif
     
 }
 #endif /* defined(PASTIX_WITH_CUDA) */
@@ -134,9 +139,11 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
     }
 #endif
 
+#if defined( PASTIX_STARPU_PROFILING )
     profile_data_t *callback_arg = malloc( sizeof( profile_data_t ) );
     callback_arg->flops          = NAN;
     callback_arg->measures       = cblk_zgemmsp_perf;
+#endif
 
     starpu_insert_task(
         pastix_codelet(codelet),
@@ -150,7 +157,9 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
         STARPU_R,        cblk->handler[sideA],
         STARPU_R,        cblk->handler[sideB],
         STARPU_RW,       fcblk->handler[sideA],
+#if defined( PASTIX_STARPU_PROFILING )
         STARPU_CALLBACK_WITH_ARG, profiling_callback, callback_arg,
+#endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
         STARPU_PRIORITY, BucketGEMM1D,
 #else
@@ -199,7 +208,9 @@ static void fct_blok_zgemmsp_cpu(void *descr[], void *cl_arg)
                              blok_mk, blok_nk, blok_mn,
                              A, B, C,
                              &(sopalin_data->solvmtx->lowrank) );
+#if defined( PASTIX_STARPU_PROFILING )
     ((profile_data_t *) starpu_task_get_current()->callback_arg)->flops = flops;
+#endif
 }
 
 #if defined(PASTIX_WITH_CUDA)
@@ -233,7 +244,9 @@ static void fct_blok_zgemmsp_gpu(void *descr[], void *cl_arg)
                              A, B, C,
                              &(sopalin_data->solvmtx->lowrank),
                              starpu_cuda_get_local_stream() );
-    ((profile_data_t *) starpu_task_get_current()->callback_arg)->flops = flops;                     
+#if defined( PASTIX_STARPU_PROFILING )
+    ((profile_data_t *) starpu_task_get_current()->callback_arg)->flops = flops;
+#endif                     
 }
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
@@ -298,9 +311,11 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
     assert( blokB[-1].fcblknm != blokB[0].fcblknm );
     assert( (blok_mn == 0) || (blokC[-1].fcblknm != blokC[0].fcblknm) );
 
+#if defined( PASTIX_STARPU_PROFILING )
     profile_data_t *callback_arg = malloc( sizeof( profile_data_t ) );
     callback_arg->measures       = blok_zgemmsp_perf;
     callback_arg->flops          = NAN;
+#endif
 
     starpu_insert_task(
         pastix_codelet(codelet),
@@ -316,7 +331,9 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
         STARPU_R,        blokA->handler[sideA],
         STARPU_R,        blokB->handler[sideB],
         STARPU_RW,       blokC->handler[sideA],
-        STARPU_CALLBACK_WITH_ARG, profiling_callback, callback_arg,        
+#if defined( PASTIX_STARPU_PROFILING )
+        STARPU_CALLBACK_WITH_ARG, profiling_callback, callback_arg,
+#endif  
 #if defined(PASTIX_STARPU_HETEROPRIO)
         STARPU_PRIORITY, BucketGEMM2D,
 #else
