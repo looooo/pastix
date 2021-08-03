@@ -36,7 +36,10 @@
  * Cblk version
  */
 #if defined( PASTIX_STARPU_PROFILING )
-starpu_profile_t cblk_zgemmsp_profile = { .next = NULL, .name = "cblk_zgemmsp" };
+starpu_profile_t cblk_zgemmsp_profile = {
+    .next = NULL,
+    .name = "cblk_zgemmsp"
+};
 
 /**
  * @brief Profiling registration function
@@ -102,14 +105,14 @@ static struct starpu_perfmodel starpu_cblk_zgemmsp_model =
 static void
 fct_cblk_zgemmsp_cpu( void *descr[], void *cl_arg )
 {
+    struct cl_cblk_zgemmsp_args_s *args = (struct cl_cblk_zgemmsp_args_s *)cl_arg;
     const void                    *A;
     const void                    *B;
     void                          *C;
-    struct cl_cblk_zgemmsp_args_s *args = (struct cl_cblk_zgemmsp_args_s *)cl_arg;
 
-    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
-    B = (const void *)STARPU_VECTOR_GET_PTR( descr[1] );
-    C = (void *)      STARPU_VECTOR_GET_PTR( descr[2] );
+    A = pastix_starpu_cblk_get_ptr( descr[0] );
+    B = pastix_starpu_cblk_get_ptr( descr[1] );
+    C = pastix_starpu_cblk_get_ptr( descr[2] );
 
     /* Check layout due to NULL workspace for now */
     assert( args->cblk->cblktype  & CBLK_LAYOUT_2D );
@@ -125,14 +128,14 @@ fct_cblk_zgemmsp_cpu( void *descr[], void *cl_arg )
 static void
 fct_cblk_zgemmsp_gpu( void *descr[], void *cl_arg )
 {
+    struct cl_cblk_zgemmsp_args_s *args  = (struct cl_cblk_zgemmsp_args_s *)cl_arg;
     const void                    *A;
     const void                    *B;
     void                          *C;
-    struct cl_cblk_zgemmsp_args_s *args  = (struct cl_cblk_zgemmsp_args_s *)cl_arg;
 
-    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
-    B = (const void *)STARPU_VECTOR_GET_PTR( descr[1] );
-    C = (void *)      STARPU_VECTOR_GET_PTR( descr[2] );
+    A = pastix_starpu_cblk_get_ptr( descr[0] );
+    B = pastix_starpu_cblk_get_ptr( descr[1] );
+    C = pastix_starpu_cblk_get_ptr( descr[2] );
 
     args->profile_data.flops = gpucblk_zgemmsp( args->sideA, args->trans,
                                                 args->cblk, args->blok, args->fcblk,
@@ -328,13 +331,13 @@ static void
 fct_blok_zgemmsp_cpu( void *descr[], void *cl_arg )
 {
     struct cl_blok_zgemmsp_args_s *args = (struct cl_blok_zgemmsp_args_s *)cl_arg;
-    const void *                   A;
-    const void *                   B;
-    void *                         C;
+    const void                    *A;
+    const void                    *B;
+    void                          *C;
 
-    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
-    B = (const void *)STARPU_VECTOR_GET_PTR( descr[1] );
-    C = (void *)      STARPU_VECTOR_GET_PTR( descr[2] );
+    A = pastix_starpu_blok_get_ptr( descr[0] );
+    B = pastix_starpu_blok_get_ptr( descr[1] );
+    C = pastix_starpu_blok_get_ptr( descr[2] );
 
     assert( args->cblk->cblktype  & CBLK_TASKS_2D );
     assert( args->fcblk->cblktype & CBLK_TASKS_2D );
@@ -350,14 +353,14 @@ fct_blok_zgemmsp_cpu( void *descr[], void *cl_arg )
 static void
 fct_blok_zgemmsp_gpu( void *descr[], void *cl_arg )
 {
+    struct cl_blok_zgemmsp_args_s *args = (struct cl_blok_zgemmsp_args_s *)cl_arg;
     const void                    *A;
     const void                    *B;
     void                          *C;
-    struct cl_blok_zgemmsp_args_s *args = (struct cl_blok_zgemmsp_args_s *)cl_arg;
 
-    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
-    B = (const void *)STARPU_VECTOR_GET_PTR( descr[1] );
-    C = (void *)      STARPU_VECTOR_GET_PTR( descr[2] );
+    A = pastix_starpu_blok_get_ptr( descr[0] );
+    B = pastix_starpu_blok_get_ptr( descr[1] );
+    C = pastix_starpu_blok_get_ptr( descr[2] );
 
     assert( args->cblk->cblktype  & CBLK_TASKS_2D );
     assert( args->fcblk->cblktype & CBLK_TASKS_2D );

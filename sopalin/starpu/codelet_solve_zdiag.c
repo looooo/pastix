@@ -62,16 +62,20 @@ static struct starpu_perfmodel starpu_solve_cblk_zdiag_model = {
 static void
 fct_solve_cblk_zdiag_cpu( void *descr[], void *cl_arg )
 {
+    struct cl_solve_cblk_zdiag_args_s *args = (struct cl_solve_cblk_zdiag_args_s *) cl_arg;
+    void                              *A;
     int                                nrhs;
     pastix_complex64_t                *b;
     int                                ldb;
-    struct cl_solve_cblk_zdiag_args_s *args = (struct cl_solve_cblk_zdiag_args_s *)cl_arg;
 
+    A    = pastix_starpu_cblk_get_ptr( descr[0] );
     b    = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR( descr[1] );
     ldb  = (int)STARPU_MATRIX_GET_LD( descr[1] );
     nrhs = (int)STARPU_MATRIX_GET_NY( descr[1] );
 
     solve_cblk_zdiag( args->cblk, nrhs, b, ldb, NULL );
+
+    (void)A; //TODO
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
@@ -142,12 +146,7 @@ starpu_stask_cblk_zdiag( sopalin_data_t *sopalin_data,
               (long)cblknum );
 #endif
 
-    /* if ( cblk->cblktype & CBLK_TASKS_2D ) { */
-    /*     handle = cblk->fblokptr->handler[0]; */
-    /* } */
-    /* else { */
-        handle = cblk->handler[0];
-    /* } */
+    handle = cblk->handler[0];
 
     starpu_insert_task(
         pastix_codelet(&cl_solve_cblk_zdiag_cpu),

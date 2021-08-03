@@ -64,14 +64,14 @@ static struct starpu_perfmodel starpu_blok_zscalo_model = {
 static void
 fct_blok_zscalo_cpu( void *descr[], void *cl_arg )
 {
+    struct cl_blok_zscalo_args_s *args = (struct cl_blok_zscalo_args_s *)cl_arg;
     const void                   *A;
     const void                   *D;
     void                         *B;
-    struct cl_blok_zscalo_args_s *args = (struct cl_blok_zscalo_args_s *)cl_arg;
 
-    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
-    D = (const void *)STARPU_VECTOR_GET_PTR( descr[1] );
-    B = (void *)      STARPU_VECTOR_GET_PTR( descr[2] );
+    A = pastix_starpu_blok_get_ptr( descr[0] );
+    D = pastix_starpu_blok_get_ptr( descr[1] );
+    B = pastix_starpu_blok_get_ptr( descr[2] );
 
     assert( args->cblk->cblktype & CBLK_TASKS_2D );
 

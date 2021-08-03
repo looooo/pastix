@@ -73,7 +73,7 @@ fct_solve_blok_zgemm_cpu( void *descr[], void *cl_arg )
     pastix_int_t                       nrhs, ldb, ldc;
     struct cl_solve_blok_zgemm_args_s *args = (struct cl_solve_blok_zgemm_args_s *)cl_arg;
 
-    dataA = (const void *)        STARPU_VECTOR_GET_PTR( descr[0] );
+    dataA = pastix_starpu_cblk_get_ptr( descr[0] );
     B     = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR( descr[1] );
     ldb   = (pastix_int_t)        STARPU_MATRIX_GET_LD( descr[1] );
     nrhs  = (pastix_int_t)        STARPU_MATRIX_GET_NY( descr[1] );

@@ -108,12 +108,12 @@ static struct starpu_perfmodel starpu_blok_ztrsmsp_model =
 static void
 fct_blok_ztrsmsp_cpu( void *descr[], void *cl_arg )
 {
+    struct cl_blok_ztrsmsp_args_s *args = (struct cl_blok_ztrsmsp_args_s *)cl_arg;
     const void                    *A;
     void                          *C;
-    struct cl_blok_ztrsmsp_args_s *args = (struct cl_blok_ztrsmsp_args_s *)cl_arg;
 
-    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
-    C = (void *)      STARPU_VECTOR_GET_PTR( descr[1] );
+    A = pastix_starpu_blok_get_ptr( descr[0] );
+    C = pastix_starpu_blok_get_ptr( descr[1] );
 
     assert( args->cblk->cblktype & CBLK_TASKS_2D );
 
@@ -127,12 +127,12 @@ fct_blok_ztrsmsp_cpu( void *descr[], void *cl_arg )
 static void
 fct_blok_ztrsmsp_gpu( void *descr[], void *cl_arg )
 {
+    struct cl_blok_ztrsmsp_args_s *args = (struct cl_blok_ztrsmsp_args_s *)cl_arg;
     const void                    *A;
     void                          *C;
-    struct cl_blok_ztrsmsp_args_s *args = (struct cl_blok_ztrsmsp_args_s *)cl_arg;
 
-    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
-    C = (void *)      STARPU_VECTOR_GET_PTR( descr[1] );
+    A = pastix_starpu_blok_get_ptr( descr[0] );
+    C = pastix_starpu_blok_get_ptr( descr[1] );
 
     assert( args->cblk->cblktype & CBLK_TASKS_2D );
 
