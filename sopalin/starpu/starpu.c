@@ -291,7 +291,7 @@ pastix_starpu_init( pastix_data_t *pastix,
 }
 
 #if defined( PASTIX_STARPU_PROFILING )
-void 
+void
 profiling_callback( void *profile_data )
 {
     struct starpu_task                *task  = starpu_task_get_current();
@@ -346,8 +346,8 @@ profiling_display_info( const char *name, const measure_t *measures )
     _kernel_prefix_##_d##_kernel_suffix_##_perf,            \
     _kernel_prefix_##_s##_kernel_suffix_##_perf             \
 
-void 
-profiling_display_allinfo() 
+void
+profiling_display_allinfo()
 {
     const char *kernel_names[] = { KERNEL_NAMES( "cblk", "gemmsp" ),
                                    KERNEL_NAMES( "blok", "gemmsp" ) };

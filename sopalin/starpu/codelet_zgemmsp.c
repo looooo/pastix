@@ -112,7 +112,7 @@ static void fct_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
 #if defined( PASTIX_STARPU_PROFILING )
     ((profile_data_t *) starpu_task_get_current()->callback_arg)->flops  = flops;
 #endif
-    
+
 }
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
@@ -246,7 +246,7 @@ static void fct_blok_zgemmsp_gpu(void *descr[], void *cl_arg)
                              starpu_cuda_get_local_stream() );
 #if defined( PASTIX_STARPU_PROFILING )
     ((profile_data_t *) starpu_task_get_current()->callback_arg)->flops = flops;
-#endif                     
+#endif
 }
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
@@ -333,7 +333,7 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
         STARPU_RW,       blokC->handler[sideA],
 #if defined( PASTIX_STARPU_PROFILING )
         STARPU_CALLBACK_WITH_ARG, profiling_callback, callback_arg,
-#endif  
+#endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
         STARPU_PRIORITY, BucketGEMM2D,
 #else
