@@ -104,7 +104,6 @@ static void fct_blok_zpxtrfsp_cpu(void *descr[], void *cl_arg)
 
     solvmtx = sopalin_data->solvmtx;
     nbpivot = cpucblk_zpxtrfsp1d_pxtrf( solvmtx, cblk, L );
-    
 
     (void)nbpivot;
 }

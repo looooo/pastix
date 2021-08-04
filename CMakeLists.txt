@@ -135,6 +135,9 @@ option(PASTIX_WITH_EZTRACE
 option(PASTIX_WITH_STARPU
     "Build PaStiX with StarPU runtime support" OFF)
 
+cmake_dependent_option(PASTIX_STARPU_PROFILING
+    "Enable kernel profiling depending on worker" OFF "PASTIX_WITH_STARPU" OFF)
+
 cmake_dependent_option(PASTIX_STARPU_HETEROPRIO
     "Enable heteroprio scheduling with GPU instead of dmdas" OFF "PASTIX_WITH_STARPU" OFF)
 
