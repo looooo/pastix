@@ -475,8 +475,8 @@ coeftab_zgetdiag( const SolverMatrix *solvmtx,
     {
         nbcol = cblk_colnbr( cblk );
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            assert( cblk->fblokptr->LRblock[0].rk == -1 );
-            A   = cblk->fblokptr->LRblock[0].u;
+            assert( cblk->fblokptr->lLRblock->rk == -1 );
+            A   = cblk->fblokptr->lLRblock->u;
             lda = cblk_colnbr( cblk ) + 1;
         }
         else {

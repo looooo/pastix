@@ -53,13 +53,13 @@ cpublok_zcompute_size_lr( pastix_coefside_t side, pastix_int_t N, const SolverBl
 
     /* Add lower part size */
     if ( side != PastixUCoef ) {
-        suv += core_zlrgetsize( M, N, &( blok->LRblock[0] ) );
+        suv += core_zlrgetsize( M, N, ( blok->lLRblock ) );
         coef++;
     }
 
     /* Add upper part size */
     if ( side != PastixLCoef ) {
-        suv += core_zlrgetsize( M, N, &( blok->LRblock[1] ) );
+        suv += core_zlrgetsize( M, N, ( blok->uLRblock ) );
         coef++;
     }
 
@@ -175,11 +175,11 @@ cpublok_zpack_lr( pastix_coefside_t side, pastix_uint_t N, const SolverBlok *blo
     pastix_int_t M = blok_rownbr( blok );
 
     if ( side != PastixUCoef ) {
-        buffer = core_zlrpack( M, N, blok->LRblock, buffer );
+        buffer = core_zlrpack( M, N, blok->lLRblock, buffer );
     }
 
     if ( side != PastixLCoef ) {
-        buffer = core_zlrpack( M, N, blok->LRblock + 1, buffer );
+        buffer = core_zlrpack( M, N, blok->uLRblock, buffer );
     }
 
     return buffer;
@@ -270,11 +270,11 @@ cpublok_zunpack_lr( pastix_coefside_t side, pastix_int_t N, SolverBlok *blok, ch
     pastix_int_t M = blok_rownbr( blok );
 
     if ( side != PastixUCoef ) {
-        buffer = core_zlrunpack( M, N, blok->LRblock, buffer );
+        buffer = core_zlrunpack( M, N, blok->lLRblock, buffer );
     }
 
     if ( side != PastixLCoef ) {
-        buffer = core_zlrunpack( M, N, blok->LRblock + 1, buffer );
+        buffer = core_zlrunpack( M, N, blok->uLRblock, buffer );
     }
 
     return buffer;

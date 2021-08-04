@@ -127,14 +127,14 @@ solverDraw ( const SolverMatrix * const  solvptr,
                 pastix_int_t conso_LR    = 0;
                 double       gain;
 
-                if (blok->LRblock[0].rk != -1){
-                    conso_LR += (((nrows+ncols) * blok->LRblock[0].rk));
+                if (blok->lLRblock->rk != -1){
+                    conso_LR += (((nrows+ncols) * blok->lLRblock->rk));
                 }
                 else{
                     conso_LR += nrows*ncols;
                 }
-                if (blok->LRblock[1].rk != -1){
-                    conso_LR += (((nrows+ncols) * blok->LRblock[1].rk));
+                if (blok->uLRblock->rk != -1){
+                    conso_LR += (((nrows+ncols) * blok->uLRblock->rk));
                 }
                 else{
                     conso_LR += nrows*ncols;
@@ -228,15 +228,15 @@ solverDraw ( const SolverMatrix * const  solvptr,
                              (long) (blok->lrownum - solvptr->baseval + 1),
                              nb_contrib);
 
-                    if (blok->LRblock[0].rk != -1){
-                        conso_LR += (((nrows+ncols) * blok->LRblock[0].rk));
+                    if (blok->lLRblock->rk != -1){
+                        conso_LR += (((nrows+ncols) * blok->lLRblock->rk));
                     }
                     else{
                         conso_LR += nrows*ncols;
                     }
                     if (factoLU){
-                        if (blok->LRblock[1].rk != -1){
-                            conso_LR += (((nrows+ncols) * blok->LRblock[1].rk));
+                        if (blok->uLRblock->rk != -1){
+                            conso_LR += (((nrows+ncols) * blok->uLRblock->rk));
                         }
                         else{
                             conso_LR += nrows*ncols;

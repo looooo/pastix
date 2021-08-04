@@ -118,7 +118,8 @@ typedef struct solver_blok_s {
     int          iluklvl;    /**< The block ILU(k) level */
 
     /* LR structures */
-    pastix_lrblock_t *LRblock; /**< Store the blok (L/U) in LR format. Allocated for the cblk. */
+    pastix_lrblock_t *lLRblock; /**< Store the lower blok in LR format. Allocated for the cblk. */
+    pastix_lrblock_t *uLRblock; /**< Store the upper blok in LR format. Allocated for the cblk. */
 } SolverBlok;
 
 /**

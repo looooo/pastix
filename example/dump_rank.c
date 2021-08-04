@@ -75,10 +75,10 @@ pastixSymbolRank( const SolverMatrix * const solvmtr,
                              blok_rownbr( blokptr ) );
         rk = rkmax;
 
-        if ( (blokptr->LRblock != NULL) &&
-             (blokptr->LRblock[0].rk != -1) )
+        if ( (blokptr->lLRblock != NULL) &&
+             (blokptr->lLRblock->rk != -1) )
         {
-            rk = blokptr->LRblock[0].rk;
+            rk = blokptr->lLRblock->rk;
         }
 
         o = (fprintf (stream, "%ld\t%ld\t%ld\t%ld\t%ld\n",
@@ -129,10 +129,10 @@ pastixSymbolRank_last( const SolverMatrix * const solvmtr,
 
         rk = rkmax;
 
-        if ( (blokptr->LRblock != NULL) &&
-             (blokptr->LRblock[0].rk != -1) ){
+        if ( (blokptr->lLRblock != NULL) &&
+             (blokptr->lLRblock->rk != -1) ){
             pastix_int_t size_fr, size_lr;
-            rk = blokptr->LRblock[0].rk;
+            rk = blokptr->lLRblock->rk;
             size_fr = cblk_colnbr( solvmtr->cblktab + blokptr->lcblknm ) * blok_rownbr( blokptr );
             size_lr = rk * ( cblk_colnbr( solvmtr->cblktab + blokptr->lcblknm ) + blok_rownbr( blokptr ) );
             ratio = (1.0*size_fr) / (1.0*size_lr);

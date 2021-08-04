@@ -63,23 +63,23 @@ cpucblk_zgetschur_lr( const SolverCblk *cblk, int upper_part,
         coefind = blok->coefind / ncols;
 
         ret = core_zlr2ge( PastixNoTrans, nrows, ncols,
-                           blok->LRblock,
+                           blok->lLRblock,
                            S + coefind, lds );
         assert( ret == 0 );
         /* TODO: check/fix with respect to full rank (L+U instead of just L or U)*/
 
         if ( upper_part ) {
             if ( blok == cblk[0].fblokptr ) {
-                assert( cblk->fblokptr->LRblock[1].rk    == -1    );
-                assert( cblk->fblokptr->LRblock[1].rkmax == ncols );
+                assert( cblk->fblokptr->uLRblock->rk    == -1    );
+                assert( cblk->fblokptr->uLRblock->rkmax == ncols );
 
                 core_zgeadd( PastixTrans, ncols, ncols,
-                             1.0, cblk->fblokptr->LRblock[1].u, ncols,
+                             1.0, cblk->fblokptr->uLRblock->u, ncols,
                              1.0, S + coefind * lds, lds );
 
             } else {
                 ret = core_zlr2ge( PastixTrans, nrows, ncols,
-                                   blok->LRblock+1,
+                                   blok->uLRblock,
                                    S + coefind * lds, lds );
                 assert( ret == 0 );
             }
