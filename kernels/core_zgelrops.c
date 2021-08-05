@@ -1612,6 +1612,7 @@ core_zlrpack( pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *A, char *b
     /* Store the rank */
     memcpy( buffer, &rk, sizeof( int ) );
     buffer += sizeof( int );
+
     if ( rk != -1 ) {
         /* Pack the u part */
         memcpy( buffer, u, rk * M * sizeof( pastix_complex64_t ) );

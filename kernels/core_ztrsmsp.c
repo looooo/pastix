@@ -244,7 +244,7 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
     fblok = cblk[0].fblokptr;  /* The diagonal block */
     lblok = cblk[1].fblokptr;  /* The diagonal block of the next cblk */
 
-    lrA   = coef == PastixLCoef ? fblok->lLRblock : fblok->uLRblock;
+    lrA   = fblok->LRblock[coef];
     A     = lrA->u;
     lda   = lrA->rkmax;
 
@@ -256,7 +256,7 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
     for (blok=fblok+1; blok<lblok; blok++) {
 
         M   = blok_rownbr(blok);
-        lrC = coef == PastixLCoef ? blok->lLRblock : blok->uLRblock;
+        lrC = blok->LRblock[coef];
         flops_lr = 0.;
         flops_c  = 0.;
 
@@ -552,7 +552,7 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
     fblok = cblk[0].fblokptr;  /* The diagonal block */
     lblok = cblk[1].fblokptr;  /* The diagonal block of the next cblk */
 
-    lrA   = coef == PastixLCoef ? fblok->lLRblock : fblok->uLRblock;
+    lrA   = fblok->LRblock[coef];
     A     = lrA->u;
     lda   = lrA->rkmax;
 
@@ -570,7 +570,7 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
     for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
 
         M = blok_rownbr(blok);
-        lrC = coef == PastixLCoef ? blok->lLRblock : blok->uLRblock;
+        lrC = blok->LRblock[coef];
 
         if ( ( N >= lowrank->compress_min_width ) &&
              ( M >= lowrank->compress_min_height ) )

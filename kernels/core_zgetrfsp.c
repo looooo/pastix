@@ -228,14 +228,14 @@ cpucblk_zgetrfsp1d_getrf( SolverMatrix       *solvmtx,
     stride = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        assert( cblk->fblokptr->lLRblock->rk == -1 &&
-                cblk->fblokptr->uLRblock->rk == -1 );
-        L = cblk->fblokptr->lLRblock->u;
-        U = cblk->fblokptr->uLRblock->u;
+        assert( cblk->fblokptr->LRblock[0]->rk == -1 &&
+                cblk->fblokptr->LRblock[1]->rk == -1 );
+        L = cblk->fblokptr->LRblock[0]->u;
+        U = cblk->fblokptr->LRblock[1]->u;
         stride = ncols;
 
-        assert( stride == cblk->fblokptr->lLRblock->rkmax );
-        assert( stride == cblk->fblokptr->uLRblock->rkmax );
+        assert( stride == cblk->fblokptr->LRblock[0]->rkmax );
+        assert( stride == cblk->fblokptr->LRblock[1]->rkmax );
     }
 
     core_zgeadd( PastixTrans, ncols, ncols,

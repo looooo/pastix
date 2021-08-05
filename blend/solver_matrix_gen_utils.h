@@ -91,8 +91,8 @@ solvMatGen_init_blok( SolverBlok  *solvblok,
     solvblok->browind    = -1;
     solvblok->gpuid      = GPUID_UNDEFINED;
     solvblok->inlast     = 0;
-    solvblok->lLRblock   = NULL;
-    solvblok->uLRblock   = NULL;
+    solvblok->LRblock[0] = NULL;
+    solvblok->LRblock[1] = NULL;
 }
 
 /**

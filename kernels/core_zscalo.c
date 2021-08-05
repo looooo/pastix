@@ -187,27 +187,27 @@ cpucblk_zscalo( pastix_trans_t      trans,
         pastix_int_t ldl, ldd, ldb;
 
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            D   = cblk->fblokptr->lLRblock->u;
+            D   = cblk->fblokptr->LRblock[0]->u;
             ldd = N+1;
 
             for(; blok < lblk; blok++) {
                 M = blok_rownbr( blok );
 
-                memcpy( blok->uLRblock, blok->lLRblock, sizeof(pastix_lrblock_t) );
+                memcpy( blok->LRblock[1], blok->LRblock[0], sizeof(pastix_lrblock_t) );
 
-                if ( blok->uLRblock->rk == -1 ) {
-                    assert( M == blok->uLRblock->rkmax );
+                if ( blok->LRblock[1]->rk == -1 ) {
+                    assert( M == blok->LRblock[1]->rkmax );
 
-                    blok->uLRblock->u = LD + blok->coefind;
+                    blok->LRblock[1]->u = LD + blok->coefind;
 
-                    L = blok->lLRblock->u;
-                    B = blok->uLRblock->u;
+                    L = blok->LRblock[0]->u;
+                    B = blok->LRblock[1]->u;
                 }
                 else {
-                    blok->uLRblock->v = LD + blok->coefind;
-                    L = blok->lLRblock->v;
-                    B = blok->uLRblock->v;
-                    M = blok->lLRblock->rkmax;
+                    blok->LRblock[1]->v = LD + blok->coefind;
+                    L = blok->LRblock[0]->v;
+                    B = blok->LRblock[1]->v;
+                    M = blok->LRblock[0]->rkmax;
                 }
 
                 ldl = M;
@@ -313,26 +313,26 @@ cpublok_zscalo( pastix_trans_t            trans,
     cblk_m = blok->fcblknm;
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        D = cblk->fblokptr->lLRblock->u;
+        D = cblk->fblokptr->LRblock[0]->u;
 
         for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
             M = blok_rownbr( blok );
 
-            memcpy( blok->uLRblock, blok->lLRblock, sizeof(pastix_lrblock_t) );
+            memcpy( blok->LRblock[1], blok->LRblock[0], sizeof(pastix_lrblock_t) );
 
-            if ( blok->uLRblock->rk == -1 ) {
-                assert( M == blok->uLRblock->rkmax );
+            if ( blok->LRblock[1]->rk == -1 ) {
+                assert( M == blok->LRblock[1]->rkmax );
 
-                blok->uLRblock->u = B + blok->coefind - offset;
+                blok->LRblock[1]->u = B + blok->coefind - offset;
 
-                lA = blok->lLRblock->u;
-                lB = blok->uLRblock->u;
+                lA = blok->LRblock[0]->u;
+                lB = blok->LRblock[1]->u;
             }
             else {
-                blok->uLRblock->v = B + blok->coefind - offset;
-                lA = blok->lLRblock->v;
-                lB = blok->uLRblock->v;
-                M  = blok->lLRblock->rkmax;
+                blok->LRblock[1]->v = B + blok->coefind - offset;
+                lA = blok->LRblock[0]->v;
+                lB = blok->LRblock[1]->v;
+                M  = blok->LRblock[0]->rkmax;
             }
 
             /* Compute B = op(A) * D */

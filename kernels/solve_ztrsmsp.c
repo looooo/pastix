@@ -83,7 +83,7 @@ solve_blok_ztrsm( pastix_coefside_t   coefside,
     n = cblk_colnbr( cblk );
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        lrA = (coefside == PastixUCoef) ? cblk->fblokptr->uLRblock : cblk->fblokptr->lLRblock;
+        lrA = cblk->fblokptr->LRblock[coefside];
         A   = lrA->u;
         lda = n;
     }
@@ -202,7 +202,7 @@ solve_blok_zgemm( pastix_coefside_t         coefside,
 
     if ( bowner->cblktype & CBLK_COMPRESSED ) {
         A   = NULL;
-        lrA = (coefside == PastixUCoef) ? blok->uLRblock : blok->lLRblock;
+        lrA = blok->LRblock[coefside];
     }
     else {
         A  = (coefside == PastixLCoef) ? bowner->lcoeftab : bowner->ucoeftab;
@@ -597,8 +597,8 @@ solve_cblk_zdiag( const SolverCblk   *cblk,
     assert( blok_rownbr( cblk->fblokptr ) == tempn );
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        A = (pastix_complex64_t*)(cblk->fblokptr->lLRblock->u);
-        assert( cblk->fblokptr->lLRblock->rkmax == lda );
+        A = (pastix_complex64_t*)(cblk->fblokptr->LRblock[0]->u);
+        assert( cblk->fblokptr->LRblock[0]->rkmax == lda );
     }
     else {
         A = (pastix_complex64_t*)(cblk->lcoeftab);

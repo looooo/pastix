@@ -124,7 +124,7 @@ cpucblk_zadd_frlr( pastix_coefside_t   side,
         params.M    = blok_rownbr( blokA );
         params.Cm   = blok_rownbr( blokB );
         params.offx = blokA->frownum - blokB->frownum;
-        params.C    = shift == PastixLCoef ? blokB->lLRblock : blokB->uLRblock;
+        params.C    = blokB->LRblock[shift];
 
         flops += core_zlradd( &params, &lrA,
                               PastixNoTrans, 0 );
@@ -216,14 +216,8 @@ cpucblk_zadd_lrlr( pastix_coefside_t   side,
         params.M    = blok_rownbr( blokA );
         params.Cm   = blok_rownbr( blokB );
         params.offx = blokA->frownum - blokB->frownum;
-        params.C    = shift == PastixLCoef ? blokB->lLRblock : blokB->uLRblock;
-        if ( shift == PastixLCoef ) {
-            flops += core_zlradd( &params, blokA->lLRblock,
-                                  PastixNoTrans, PASTIX_LRM3_ORTHOU );
-        } else {
-            flops += core_zlradd( &params, blokA->uLRblock,
-                                  PastixNoTrans, PASTIX_LRM3_ORTHOU );
-        }
+        params.C    = blokB->LRblock[shift];
+        flops += core_zlradd( &params, blokA->LRblock[shift], PastixNoTrans, PASTIX_LRM3_ORTHOU );
     }
     return flops;
 }

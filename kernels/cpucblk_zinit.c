@@ -60,15 +60,15 @@ cpucblk_zalloc_lr( pastix_coefside_t  side,
     /* H then split */
     assert( cblk->cblktype & CBLK_LAYOUT_2D );
 
-    LRblocks = blok->lLRblock;
+    LRblocks = blok->LRblock[0];
 
     if ( LRblocks == NULL ) {
         /* One allocation per cblk */
         LRblocks = malloc( 2 * size * sizeof(pastix_lrblock_t) );
         memset( LRblocks, 0, 2 * size * sizeof(pastix_lrblock_t) );
-        if (!pastix_atomic_cas_xxb( &(blok->lLRblock), (uint64_t)NULL, (uint64_t)LRblocks, sizeof(void*) )) {
+        if (!pastix_atomic_cas_xxb( &(blok->LRblock[0]), (uint64_t)NULL, (uint64_t)LRblocks, sizeof(void*) )) {
             free( LRblocks );
-            LRblocks = blok->lLRblock;
+            LRblocks = blok->LRblock[0];
         }
     }
     assert( LRblocks != NULL );
@@ -76,15 +76,15 @@ cpucblk_zalloc_lr( pastix_coefside_t  side,
     for (; blok<lblok; blok++)
     {
         pastix_int_t nrows = blok_rownbr( blok );
-        blok->lLRblock = LRblocks;
-        blok->uLRblock = LRblocks + size;
+        blok->LRblock[0] = LRblocks;
+        blok->LRblock[1] = LRblocks + size;
 
         if ( side != PastixUCoef ) {
-            core_zlralloc( nrows, ncols, rkmax, blok->lLRblock );
+            core_zlralloc( nrows, ncols, rkmax, blok->LRblock[0] );
         }
 
         if ( side != PastixLCoef ) {
-            core_zlralloc( nrows, ncols, rkmax, blok->uLRblock );
+            core_zlralloc( nrows, ncols, rkmax, blok->LRblock[1] );
         }
         LRblocks++;
     }
@@ -231,9 +231,9 @@ cpucblk_zfree( pastix_coefside_t  side,
             SolverBlok *blok  = cblk[0].fblokptr;
             SolverBlok *lblok = cblk[1].fblokptr;
 
-            assert( blok->lLRblock != NULL );
+            assert( blok->LRblock[0] != NULL );
             for (; blok<lblok; blok++) {
-                core_zlrfree(blok->lLRblock);
+                core_zlrfree(blok->LRblock[0]);
             }
 
             if ( cblk->lcoeftab != (void*)-1 ) {
@@ -251,9 +251,9 @@ cpucblk_zfree( pastix_coefside_t  side,
             SolverBlok *blok  = cblk[0].fblokptr;
             SolverBlok *lblok = cblk[1].fblokptr;
 
-            assert( blok->uLRblock != NULL );
+            assert( blok->LRblock[1] != NULL );
             for (; blok<lblok; blok++) {
-                core_zlrfree(blok->uLRblock);
+                core_zlrfree(blok->LRblock[1]);
             }
         }
         cblk->ucoeftab = NULL;
@@ -262,9 +262,9 @@ cpucblk_zfree( pastix_coefside_t  side,
          (cblk->lcoeftab == NULL)           &&
          (cblk->ucoeftab == NULL) )
     {
-        free( cblk->fblokptr->lLRblock );
-        cblk->fblokptr->lLRblock = NULL;
-        cblk->fblokptr->uLRblock = NULL;
+        free( cblk->fblokptr->LRblock[0] );
+        cblk->fblokptr->LRblock[0] = NULL;
+        cblk->fblokptr->LRblock[1] = NULL;
     }
     pastix_cblk_unlock( cblk );
 }
@@ -427,8 +427,8 @@ cpucblk_zfillin_lr( pastix_coefside_t    side,
 
         solvblok = solvcblk->fblokptr;
         ldd = blok_rownbr( solvblok );
-        lcoeftab = (pastix_complex64_t*)(solvblok->lLRblock->u);
-        ucoeftab = (pastix_complex64_t*)(solvblok->uLRblock->u);
+        lcoeftab = (pastix_complex64_t*)(solvblok->LRblock[0]->u);
+        ucoeftab = (pastix_complex64_t*)(solvblok->LRblock[1]->u);
 
         for (iterval=frow; iterval<lrow; iterval++)
         {
@@ -443,8 +443,8 @@ cpucblk_zfillin_lr( pastix_coefside_t    side,
                 {
                     solvblok++;
                     ldd = blok_rownbr( solvblok );
-                    lcoeftab = (pastix_complex64_t*)(solvblok->lLRblock->u);
-                    ucoeftab = (pastix_complex64_t*)(solvblok->uLRblock->u);
+                    lcoeftab = (pastix_complex64_t*)(solvblok->LRblock[0]->u);
+                    ucoeftab = (pastix_complex64_t*)(solvblok->LRblock[1]->u);
                 }
 
                 if ( solvblok < lsolvblok )
