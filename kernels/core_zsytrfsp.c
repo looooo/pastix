@@ -243,11 +243,11 @@ cpucblk_zsytrfsp1d_sytrf( SolverMatrix       *solvmtx,
     stride = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        assert( cblk->fblokptr->LRblock[0].rk == -1 );
-        L = cblk->fblokptr->LRblock[0].u;
+        assert( cblk->fblokptr->LRblock[0]->rk == -1 );
+        L = cblk->fblokptr->LRblock[0]->u;
         stride = ncols;
 
-        assert( stride == cblk->fblokptr->LRblock[0].rkmax );
+        assert( stride == cblk->fblokptr->LRblock[0]->rkmax );
     }
 
     /*

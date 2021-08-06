@@ -65,7 +65,7 @@ cpublok_zcompress( const pastix_lr_t *lowrank,
                    SolverBlok *blok )
 {
     pastix_fixdbl_t     flops;
-    pastix_lrblock_t   *lrA = blok->LRblock + side;
+    pastix_lrblock_t   *lrA = blok->LRblock[side];
     pastix_complex64_t *A   = lrA->u;
 
     if ( lrA->rk != -1 ) {
@@ -152,7 +152,7 @@ cpucblk_zcompress( const SolverMatrix *solvmtx,
 
         /* Lower part */
         if ( side != PastixUCoef ) {
-            lrA = blok->LRblock;
+            lrA = blok->LRblock[0];
 
             /* Try to compress non selected blocks */
             if ( lrA->rk == -1 ) {
@@ -166,7 +166,7 @@ cpucblk_zcompress( const SolverMatrix *solvmtx,
 
         /* Upper part */
         if ( side != PastixLCoef ) {
-            lrA = blok->LRblock + 1;
+            lrA = blok->LRblock[1];
 
             if ( lrA->rk == -1 ) {
                 cpublok_zcompress( lowrank, PastixUCoef, nrows, ncols, blok );
@@ -215,12 +215,12 @@ cpucblk_zuncompress( pastix_coefside_t side,
             pastix_lrblock_t lrtmp;
             pastix_int_t nrows = blok_rownbr( blok );
 
-            memcpy( &lrtmp, blok->LRblock, sizeof(pastix_lrblock_t) );
+            memcpy( &lrtmp, blok->LRblock[0], sizeof(pastix_lrblock_t) );
 
-            core_zlralloc( nrows, ncols, -1, blok->LRblock );
+            core_zlralloc( nrows, ncols, -1, blok->LRblock[0] );
             ret = core_zlr2ge( PastixNoTrans, nrows, ncols,
                                &lrtmp,
-                               blok->LRblock[0].u, nrows );
+                               blok->LRblock[0]->u, nrows );
             assert( ret == 0 );
             core_zlrfree( &lrtmp );
         }
@@ -234,12 +234,12 @@ cpucblk_zuncompress( pastix_coefside_t side,
             pastix_lrblock_t lrtmp;
             pastix_int_t nrows = blok_rownbr( blok );
 
-            memcpy( &lrtmp, blok->LRblock+1, sizeof(pastix_lrblock_t) );
+            memcpy( &lrtmp, blok->LRblock[1], sizeof(pastix_lrblock_t) );
 
-            core_zlralloc( nrows, ncols, -1, blok->LRblock+1 );
+            core_zlralloc( nrows, ncols, -1, blok->LRblock[1] );
             ret = core_zlr2ge( PastixNoTrans, nrows, ncols,
                                &lrtmp,
-                               blok->LRblock[1].u, nrows );
+                               blok->LRblock[1]->u, nrows );
             assert( ret == 0 );
             core_zlrfree( &lrtmp );
         }
@@ -310,18 +310,18 @@ cpucblk_zmemory( pastix_coefside_t   side,
 
         /* Lower part */
         if ( (side != PastixUCoef) &&
-             (blok->LRblock[0].rk >= 0) )
+             (blok->LRblock[0]->rk >= 0) )
         {
-            gaintmp = (size - ((nrows+ncols) * blok->LRblock[0].rkmax));
+            gaintmp = (size - ((nrows+ncols) * blok->LRblock[0]->rkmax));
             assert( gaintmp >= 0 );
             gainblok += gaintmp;
         }
 
         /* Upper part */
         if ( (side != PastixLCoef) &&
-             (blok->LRblock[1].rk >= 0) )
+             (blok->LRblock[1]->rk >= 0) )
         {
-            gaintmp = (size - ((nrows+ncols) * blok->LRblock[1].rkmax));
+            gaintmp = (size - ((nrows+ncols) * blok->LRblock[1]->rkmax));
             assert( gaintmp >= 0 );
             gainblok += gaintmp;
         }

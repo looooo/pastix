@@ -789,7 +789,7 @@ core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
             assert( bC < lblokN );
         }
 
-        lrC = bC->LRblock + sideA;
+        lrC = bC->LRblock[sideA];
 
         params.A = &lrA;
         params.C = lrC;
@@ -958,7 +958,7 @@ core_zgemmsp_block_lrlr( pastix_coefside_t  sideA,
         M   = blok_rownbr(bA);
         params.M  = M;
         full_m   += M;
-        lrA = bA->LRblock + sideA;
+        lrA = bA->LRblock[sideA];
 
         /* Find facing C blok */
         while (!is_block_inside_fblock( bA, bC )) {
@@ -966,14 +966,14 @@ core_zgemmsp_block_lrlr( pastix_coefside_t  sideA,
             assert( bC < lblokN );
         }
 
-        lrC  = bC->LRblock + sideA;
+        lrC  = bC->LRblock[sideA];
 
         params.A = lrA;
         params.C = lrC;
         params.Cm = blok_rownbr( bC );
 
         for (bB = blokB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++) {
-            lrB = bB->LRblock + sideB;
+            lrB = bB->LRblock[sideB];
 
             params.N    = blok_rownbr( bB );
             params.offx = bA->frownum - bC->frownum;
@@ -1125,7 +1125,7 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
         lrA.u = (pastix_complex64_t*)A + iterblok->coefind; /* Same as for B */
         lrA.v = NULL;
 
-        lrC = fblok->LRblock + shift;
+        lrC = fblok->LRblock[shift];
 
         params.M  = M;
         params.A  = &lrA;
@@ -1224,7 +1224,7 @@ core_zgemmsp_lr(       pastix_coefside_t   sideA,
     shift = (sideA == PastixUCoef) ? 1 : 0;
 
     /* Get the B block and its dimensions */
-    lrB = (sideB == PastixLCoef) ? blok->LRblock : blok->LRblock+1;
+    lrB = blok->LRblock[sideB];
     K = cblk_colnbr( cblk );
     N = blok_rownbr( blok );
 
@@ -1261,8 +1261,8 @@ core_zgemmsp_lr(       pastix_coefside_t   sideA,
         }
 
         params.M  = blok_rownbr( iterblok );
-        params.A  = iterblok->LRblock + shift;
-        params.C  = fblok->LRblock + shift;
+        params.A  = iterblok->LRblock[shift];
+        params.C  = fblok->LRblock[shift];
         params.Cm = blok_rownbr( fblok );
 
         params.offx = iterblok->frownum - fblok->frownum;
@@ -1368,7 +1368,7 @@ core_zgemmsp_lrfr( pastix_coefside_t         sideA,
     shift = (sideA == PastixUCoef) ? 1 : 0;
 
     /* Get the B block and its dimensions */
-    lrB = (sideB == PastixLCoef) ? blok->LRblock : blok->LRblock+1;
+    lrB = blok->LRblock[sideB];
     K = cblk_colnbr( cblk );
     N = blok_rownbr( blok );
 
@@ -1409,7 +1409,7 @@ core_zgemmsp_lrfr( pastix_coefside_t         sideA,
         }
 
         params.M  = blok_rownbr( iterblok );
-        params.A  = iterblok->LRblock + shift;
+        params.A  = iterblok->LRblock[shift];
         params.Cm = blok_rownbr( fblok );
         params.offx = iterblok->frownum - fblok->frownum;
         params.offy = blok->frownum - fcblk->fcolnum;

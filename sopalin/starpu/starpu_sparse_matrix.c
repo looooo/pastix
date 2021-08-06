@@ -61,8 +61,8 @@ pastix_starpu_register_cblk_lr( const starpu_sparse_matrix_desc_t *spmtx,
                                 const SolverCblk *cblk,
                                 int myrank, int side )
 {
-    starpu_data_handle_t *handler  = ((starpu_data_handle_t*)(cblk->handler)) + side;
-    pastix_lrblock_t     *LRblocks = cblk->fblokptr->LRblock + side;
+    starpu_data_handle_t *handler  = ( (starpu_data_handle_t *)( cblk->handler ) ) + side;
+    pastix_lrblock_t     *LRblocks = cblk->fblokptr->LRblock[side];
     pastix_int_t          nbbloks  = cblk[1].fblokptr - cblk[0].fblokptr;
 
     if( cblk->ownerid == myrank ) {

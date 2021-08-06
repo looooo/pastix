@@ -55,19 +55,20 @@ cpucblk_zalloc_lr( pastix_coefside_t  side,
     pastix_lrblock_t *LRblocks = NULL;
     SolverBlok       *blok     = cblk[0].fblokptr;
     SolverBlok       *lblok    = cblk[1].fblokptr;
+    size_t            size     = lblok - blok;
 
     /* H then split */
     assert( cblk->cblktype & CBLK_LAYOUT_2D );
 
-    LRblocks = blok->LRblock;
+    LRblocks = blok->LRblock[0];
 
     if ( LRblocks == NULL ) {
         /* One allocation per cblk */
-        LRblocks = malloc( 2 * (lblok - blok) * sizeof(pastix_lrblock_t) );
-        memset( LRblocks, 0, 2 * (lblok - blok) * sizeof(pastix_lrblock_t) );
-        if (!pastix_atomic_cas_xxb( &(blok->LRblock), (uint64_t)NULL, (uint64_t)LRblocks, sizeof(void*) )) {
+        LRblocks = malloc( 2 * size * sizeof(pastix_lrblock_t) );
+        memset( LRblocks, 0, 2 * size * sizeof(pastix_lrblock_t) );
+        if (!pastix_atomic_cas_xxb( &(blok->LRblock[0]), (uint64_t)NULL, (uint64_t)LRblocks, sizeof(void*) )) {
             free( LRblocks );
-            LRblocks = blok->LRblock;
+            LRblocks = blok->LRblock[0];
         }
     }
     assert( LRblocks != NULL );
@@ -75,15 +76,15 @@ cpucblk_zalloc_lr( pastix_coefside_t  side,
     for (; blok<lblok; blok++)
     {
         pastix_int_t nrows = blok_rownbr( blok );
-        blok->LRblock = LRblocks;
+        blok->LRblock[0] = LRblocks;
+        blok->LRblock[1] = LRblocks + size;
 
         if ( side != PastixUCoef ) {
-            core_zlralloc( nrows, ncols, rkmax, LRblocks );
+            core_zlralloc( nrows, ncols, rkmax, blok->LRblock[0] );
         }
-        LRblocks++;
 
         if ( side != PastixLCoef ) {
-            core_zlralloc( nrows, ncols, rkmax, LRblocks );
+            core_zlralloc( nrows, ncols, rkmax, blok->LRblock[1] );
         }
         LRblocks++;
     }
@@ -230,9 +231,9 @@ cpucblk_zfree( pastix_coefside_t  side,
             SolverBlok *blok  = cblk[0].fblokptr;
             SolverBlok *lblok = cblk[1].fblokptr;
 
-            assert( blok->LRblock != NULL );
+            assert( blok->LRblock[0] != NULL );
             for (; blok<lblok; blok++) {
-                core_zlrfree(blok->LRblock);
+                core_zlrfree(blok->LRblock[0]);
             }
 
             if ( cblk->lcoeftab != (void*)-1 ) {
@@ -250,9 +251,9 @@ cpucblk_zfree( pastix_coefside_t  side,
             SolverBlok *blok  = cblk[0].fblokptr;
             SolverBlok *lblok = cblk[1].fblokptr;
 
-            assert( blok->LRblock != NULL );
+            assert( blok->LRblock[1] != NULL );
             for (; blok<lblok; blok++) {
-                core_zlrfree(blok->LRblock + 1);
+                core_zlrfree(blok->LRblock[1]);
             }
         }
         cblk->ucoeftab = NULL;
@@ -261,8 +262,9 @@ cpucblk_zfree( pastix_coefside_t  side,
          (cblk->lcoeftab == NULL)           &&
          (cblk->ucoeftab == NULL) )
     {
-        free( cblk->fblokptr->LRblock );
-        cblk->fblokptr->LRblock = NULL;
+        free( cblk->fblokptr->LRblock[0] );
+        cblk->fblokptr->LRblock[0] = NULL;
+        cblk->fblokptr->LRblock[1] = NULL;
     }
     pastix_cblk_unlock( cblk );
 }
@@ -425,8 +427,8 @@ cpucblk_zfillin_lr( pastix_coefside_t    side,
 
         solvblok = solvcblk->fblokptr;
         ldd = blok_rownbr( solvblok );
-        lcoeftab = (pastix_complex64_t*)(solvblok->LRblock[0].u);
-        ucoeftab = (pastix_complex64_t*)(solvblok->LRblock[1].u);
+        lcoeftab = (pastix_complex64_t*)(solvblok->LRblock[0]->u);
+        ucoeftab = (pastix_complex64_t*)(solvblok->LRblock[1]->u);
 
         for (iterval=frow; iterval<lrow; iterval++)
         {
@@ -441,8 +443,8 @@ cpucblk_zfillin_lr( pastix_coefside_t    side,
                 {
                     solvblok++;
                     ldd = blok_rownbr( solvblok );
-                    lcoeftab = (pastix_complex64_t*)(solvblok->LRblock[0].u);
-                    ucoeftab = (pastix_complex64_t*)(solvblok->LRblock[1].u);
+                    lcoeftab = (pastix_complex64_t*)(solvblok->LRblock[0]->u);
+                    ucoeftab = (pastix_complex64_t*)(solvblok->LRblock[1]->u);
                 }
 
                 if ( solvblok < lsolvblok )

@@ -237,11 +237,11 @@ cpucblk_zpotrfsp1d_potrf( SolverMatrix       *solvmtx,
     assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        assert( cblk->fblokptr->LRblock[0].rk == -1 );
-        L = cblk->fblokptr->LRblock[0].u;
+        assert( cblk->fblokptr->LRblock[0]->rk == -1 );
+        L = cblk->fblokptr->LRblock[0]->u;
         stride = ncols;
 
-        assert( stride == cblk->fblokptr->LRblock[0].rkmax );
+        assert( stride == cblk->fblokptr->LRblock[0]->rkmax );
     }
 
     /* Factorize diagonal block */
