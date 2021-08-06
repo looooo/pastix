@@ -64,10 +64,9 @@ static struct starpu_perfmodel starpu_cblk_zgemmsp_model =
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void fct_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
 {
-    
-    const pastix_complex64_t *     A;
-    const pastix_complex64_t *     B;
-    pastix_complex64_t *           C;
+    const pastix_complex64_t      *A;
+    const pastix_complex64_t      *B;
+    pastix_complex64_t            *C;
     struct cl_cblk_zgemmsp_args_s *args = (struct cl_cblk_zgemmsp_args_s *) cl_arg;
 
     A = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -96,10 +95,6 @@ static void fct_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
     B = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
     C = (cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-    /* Check layout due to NULL workspace for now */
-    assert(  args->cblk->cblktype & CBLK_LAYOUT_2D );
-    assert( args->fcblk->cblktype & CBLK_LAYOUT_2D );
-
     args->flops = gpucblk_zgemmsp( args->sideA, args->sideB, args->trans,
                                    args->cblk, args->blok, args->fcblk,
                                    A, B, C,
@@ -122,8 +117,8 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
                           int               prio )
 {
     struct cl_cblk_zgemmsp_args_s *cl_arg;
-    struct starpu_task *task;
-    int ret;
+    struct starpu_task            *task;
+    int                            ret;
 
     /*
      * Create the arguments array
@@ -145,12 +140,15 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
      * Create the task structure
      */
     task = starpu_task_create();
-    //task->name;
     task->cl = &cl_cblk_zgemmsp_any;
 
+#if defined(PASTIX_DEBUG_STARPU)
+    asprintf( &task->name, "%s( %ld )", codelet->name, (long)(cblk - sopalin_data->cblktab) );
+#endif
+
 #if defined(PASTIX_WITH_CUDA)
-    if ( !(cblk->cblktype  & CBLK_COMPRESSED) &&
-         !(fcblk->cblktype & CBLK_COMPRESSED) )
+    if ( (cblk->cblktype  & CBLK_COMPRESSED) ||
+         (fcblk->cblktype & CBLK_COMPRESSED) )
     {
         /* Disable CUDA */
         task->where = cl_cblk_zgemmsp_any.where & (~STARPU_CUDA);
@@ -192,8 +190,6 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
     task->priority = prio;
 #endif
 
-    //task->flops; /* Check if that can be used in the kernels */
-
     /*
      * Submit the task for execution
      */
@@ -213,7 +209,6 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
 #if defined( PASTIX_STARPU_PROFILING )
 measure_t blok_zgemmsp_perf[STARPU_NMAXWORKERS];
 #endif
-
 
 struct cl_blok_zgemmsp_args_s {
     sopalin_data_t   *sopalin_data;
@@ -361,12 +356,18 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
      * Create the task structure
      */
     task = starpu_task_create();
-    //task->name;
     task->cl = &cl_blok_zgemmsp_any;
 
+#if defined(PASTIX_DEBUG_STARPU)
+   asprintf( &task->name, "%s( %ld, %ld, %ld )", codelet->name,
+             (long)(blokA - sopalin_data->bloktab),
+             (long)(blokB - sopalin_data->bloktab),
+             (long)(blokC - sopalin_data->bloktab) );
+#endif
+
 #if defined(PASTIX_WITH_CUDA)
-    if ( !(cblk->cblktype  & CBLK_COMPRESSED) &&
-         !(fcblk->cblktype & CBLK_COMPRESSED) )
+    if ( (cblk->cblktype  & CBLK_COMPRESSED) ||
+         (fcblk->cblktype & CBLK_COMPRESSED) )
     {
         /* Disable CUDA */
         task->where = cl_blok_zgemmsp_any.where & (~STARPU_CUDA);
