@@ -50,12 +50,19 @@
 
 #define CODELETS_GPU(_name_, _nbuffers_, _cuda_flags_)                  \
     CODELETS_ALL( gpu, _name_, _nbuffers_, fct_##_name_##_cpu, fct_##_name_##_gpu, STARPU_CPU | STARPU_CUDA, _cuda_flags_ )
-
 #endif
 
 #if !defined(PASTIX_WITH_CUDA)
 #undef CODELETS_GPU
 #define CODELETS_GPU(_name_, _nbuffers_, _cuda_flags_)
+#endif
+
+#if defined (PASTIX_WITH_CUDA)
+#define CODELETS_ANY(_name_, _nbuffers_, _cuda_flags_)                 \
+    CODELETS_ALL( any, _name_, _nbuffers_, fct_##_name_##_cpu, fct_##_name_##_gpu, STARPU_CPU | STARPU_CUDA, _cuda_flags_ )
+#else
+#define CODELETS_ANY(_name_, _nbuffers_, _cuda_flags_)                 \
+    CODELETS_ALL( any, _name_, _nbuffers_, fct_##_name_##_cpu, NULL, STARPU_CPU, 0 )
 #endif
 
 #endif /* _codelets_h_ */
