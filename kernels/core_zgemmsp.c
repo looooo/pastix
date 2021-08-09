@@ -650,14 +650,6 @@ core_zgemmsp_block_frfr(       pastix_trans_t      trans,
  *
  *******************************************************************************
  *
- * @param[in] sideA
- *          Specify if A and C belong to the lower part, or to the upper part.
- *          If sideA == PastixLCoef, the contribution of:
- *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
- *          C, otherwise the contribution:
- *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
- *          to C.
- *
  * @param[in] transB
  *          Specify the transposition used for the B matrices. It has to be either
  *          PastixTrans or PastixConjTrans.
@@ -697,8 +689,7 @@ core_zgemmsp_block_frfr(       pastix_trans_t      trans,
  *
  *******************************************************************************/
 static inline double
-core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
-                         pastix_trans_t            transB,
+core_zgemmsp_block_frlr( pastix_trans_t            transB,
                          pastix_int_t              blok_mk,
                          pastix_int_t              blok_kn,
                          pastix_int_t              blok_mn,
@@ -706,6 +697,7 @@ core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
                                SolverCblk         *fcblk,
                          const pastix_complex64_t *A,
                          const pastix_complex64_t *B,
+                               pastix_lrblock_t   *lrC,
                          const pastix_lr_t        *lowrank )
 {
     const SolverBlok *blokA, *blokB, *blokC;
@@ -714,7 +706,6 @@ core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
     const SolverBlok *fblokN, *lblokN;
 
     pastix_lrblock_t lrA, lrB;
-    pastix_lrblock_t *lrC;
     core_zlrmm_t params;
 
     pastix_int_t M, K, cblk_n, cblk_m, full_m;
@@ -786,10 +777,9 @@ core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
         /* Find facing C blok */
         while (!is_block_inside_fblock( bA, bC )) {
             bC++;
+            lrC++;
             assert( bC < lblokN );
         }
-
-        lrC = bC->LRblock[sideA];
 
         params.A = &lrA;
         params.C = lrC;
@@ -840,20 +830,6 @@ core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
  *
  *******************************************************************************
  *
- * @param[in] sideA
- *          Specify if A and C belong to the lower part, or to the upper part.
- *          If sideA == PastixLCoef, the contribution of:
- *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
- *          C, otherwise the contribution:
- *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
- *          to C.
- *
- * @param[in] sideB
- *          Specify if B belongs to the L part, or to the U part. this is used
- *          internally in the kernel to select the correct data pointer.
- *          If PastixLCoef, B belongs to the L part, otherwise B belongs to the
- *          U part.
- *
  * @param[in] transB
  *          Specify the transposition used for the B matrices. It has to be either
  *          PastixTrans or PastixConjTrans.
@@ -883,23 +859,22 @@ core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
  *
  *******************************************************************************/
 static inline double
-core_zgemmsp_block_lrlr( pastix_coefside_t  sideA,
-                         pastix_coefside_t  sideB,
-                         pastix_trans_t     transB,
-                         pastix_int_t       blok_mk,
-                         pastix_int_t       blok_kn,
-                         pastix_int_t       blok_mn,
-                         const SolverCblk  *cblk,
-                               SolverCblk  *fcblk,
-                         const pastix_lr_t *lowrank )
+core_zgemmsp_block_lrlr( pastix_trans_t          transB,
+                         pastix_int_t            blok_mk,
+                         pastix_int_t            blok_kn,
+                         pastix_int_t            blok_mn,
+                         const SolverCblk       *cblk,
+                         SolverCblk             *fcblk,
+                         const pastix_lrblock_t *lrA,
+                         const pastix_lrblock_t *lrB,
+                         pastix_lrblock_t       *lrC,
+                         const pastix_lr_t      *lowrank )
 {
     const SolverBlok *blokA, *blokB, *blokC;
     const SolverBlok *bA, *bB, *bC;
     const SolverBlok *fblokK, *lblokK;
     const SolverBlok *fblokN, *lblokN;
 
-    const pastix_lrblock_t *lrA, *lrB;
-    pastix_lrblock_t *lrC;
     core_zlrmm_t params;
 
     pastix_int_t M, K, cblk_n, cblk_m, full_m;
@@ -954,26 +929,23 @@ core_zgemmsp_block_lrlr( pastix_coefside_t  sideA,
     params.lock    = &(lock);
 
     bC = blokC;
-    for (bA = blokA; (bA < lblokK) && (bA->fcblknm == cblk_m); bA++) {
+    for (bA = blokA; (bA < lblokK) && (bA->fcblknm == cblk_m); bA++, lrA++) {
         M   = blok_rownbr(bA);
         params.M  = M;
         full_m   += M;
-        lrA = bA->LRblock[sideA];
 
         /* Find facing C blok */
         while (!is_block_inside_fblock( bA, bC )) {
             bC++;
+            lrC++;
             assert( bC < lblokN );
         }
-
-        lrC  = bC->LRblock[sideA];
 
         params.A = lrA;
         params.C = lrC;
         params.Cm = blok_rownbr( bC );
 
-        for (bB = blokB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++) {
-            lrB = bB->LRblock[sideB];
+        for (bB = blokB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++, lrB++) {
 
             params.N    = blok_rownbr( bB );
             params.offx = bA->frownum - bC->frownum;
@@ -1587,18 +1559,6 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
  *
  *******************************************************************************
  *
- * @param[in] sideA
- *          Specify if A and C belong to the L part, or to the U part of the
- *          matrix. This is used internally in the kernels to select the correct
- *          data pointers.  If PastixLCoef, A and C belong to the L part,
- *          otherwise A and C belong to the U part.
- *
- * @param[in] sideB
- *          Specify if B belongs to the lower or upper part of the matrix. This
- *          is used internally in the kernels to select the correct data
- *          pointers.  If PastixLCoef, B belongs to the L part, otherwise B
- *          belongs to the U part.
- *
  * @param[in] transB
  *          Specify wheter B should be used as PastixNoTrans, PastixTrans, or
  *          PastixConjTrans in the computations.
@@ -1645,31 +1605,29 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
  *
  *******************************************************************************/
 double
-cpublok_zgemmsp(       pastix_coefside_t   sideA,
-                       pastix_coefside_t   sideB,
-                       pastix_trans_t      transB,
+cpublok_zgemmsp(       pastix_trans_t      transB,
                  const SolverCblk         *cblk,
                        SolverCblk         *fcblk,
                        pastix_int_t        blok_mk,
                        pastix_int_t        blok_nk,
                        pastix_int_t        blok_mn,
-                 const pastix_complex64_t *A,
-                 const pastix_complex64_t *B,
-                       pastix_complex64_t *C,
+                 const void               *A,
+                 const void               *B,
+                       void               *C,
                  const pastix_lr_t        *lowrank )
 {
     if ( fcblk->cblktype & CBLK_COMPRESSED ) {
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            return core_zgemmsp_block_lrlr( sideA, sideB, transB,
+            return core_zgemmsp_block_lrlr( transB,
                                             blok_mk, blok_nk, blok_mn,
                                             cblk, fcblk,
-                                            lowrank );
+                                            A, B, C, lowrank );
         }
         else {
-            return core_zgemmsp_block_frlr( sideA, transB,
+            return core_zgemmsp_block_frlr( transB,
                                             blok_mk, blok_nk, blok_mn,
                                             cblk, fcblk,
-                                            A, B, lowrank );
+                                            A, B, C, lowrank );
         }
     }
     else {
