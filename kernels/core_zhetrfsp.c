@@ -230,13 +230,15 @@ core_zhetrfsp( pastix_int_t        n,
  *
  *******************************************************************************/
 int
-cpucblk_zhetrfsp1d_hetrf( SolverMatrix       *solvmtx,
-                          SolverCblk         *cblk,
-                          pastix_complex64_t *L )
+cpucblk_zhetrfsp1d_hetrf( SolverMatrix *solvmtx,
+                          SolverCblk   *cblk,
+                          void         *dataL )
 {
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivots = 0;
     pastix_fixdbl_t time, flops;
+    pastix_complex64_t *L;
+    pastix_lrblock_t *lrL;
     double criterion = solvmtx->diagthreshold;
 
     time = kernel_trace_start( PastixKernelHETRF );
@@ -245,11 +247,15 @@ cpucblk_zhetrfsp1d_hetrf( SolverMatrix       *solvmtx,
     stride = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        assert( cblk->fblokptr->LRblock[0]->rk == -1 );
-        L = cblk->fblokptr->LRblock[0]->u;
+        /* dataL is a LRblock */
+        lrL = (pastix_lrblock_t *)dataL;
+        assert( lrL->rk == -1 );
+        L = lrL->u;
         stride = ncols;
 
         assert( stride == cblk->fblokptr->LRblock[0]->rkmax );
+    } else {
+        L = (pastix_complex64_t *)dataL;
     }
 
     /*

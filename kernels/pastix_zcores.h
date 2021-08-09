@@ -183,8 +183,7 @@ int cpucblk_zpotrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
  *    @name PastixComplex64 cblk LDL^h kernels
  *    @{
  */
-int cpucblk_zhetrfsp1d_hetrf( SolverMatrix *solvmtx, SolverCblk *cblk,
-                              pastix_complex64_t *L );
+int cpucblk_zhetrfsp1d_hetrf( SolverMatrix *solvmtx, SolverCblk *cblk, void *L );
 int cpucblk_zhetrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk,
                               pastix_complex64_t *L, pastix_complex64_t *DLh );
 int cpucblk_zhetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
@@ -205,8 +204,7 @@ int cpucblk_zpxtrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
  *    @name PastixComplex64 cblk LDL^t kernels
  *    @{
  */
-int cpucblk_zsytrfsp1d_sytrf( SolverMatrix *solvmtx, SolverCblk *cblk,
-                              pastix_complex64_t *L );
+int cpucblk_zsytrfsp1d_sytrf( SolverMatrix *solvmtx, SolverCblk *cblk, void *L );
 int cpucblk_zsytrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk,
                               pastix_complex64_t *L, pastix_complex64_t *DLt );
 int cpucblk_zsytrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
