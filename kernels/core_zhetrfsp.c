@@ -432,7 +432,7 @@ void core_zhetrfsp1d_gemm( const SolverCblk         *cblk,
 int
 cpucblk_zhetrfsp1d_panel( SolverMatrix       *solvmtx,
                           SolverCblk         *cblk,
-                          pastix_complex64_t *L,
+                          void               *L,
                           pastix_complex64_t *DLh )
 {
     pastix_int_t nbpivots;

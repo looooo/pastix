@@ -164,7 +164,7 @@ void cpublok_zscalo ( pastix_trans_t trans,
 int cpucblk_zgetrfsp1d_getrf( SolverMatrix *solvmtx, SolverCblk *cblk,
                               void *L, void *U );
 int cpucblk_zgetrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk,
-                              pastix_complex64_t *L, pastix_complex64_t *U );
+                              void *L, void *U );
 int cpucblk_zgetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
                               pastix_complex64_t *work, pastix_int_t lwork );
 
@@ -173,8 +173,8 @@ int cpucblk_zgetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
  *    @name PastixComplex64 cblk Cholesky kernels
  *    @{
  */
-int cpucblk_zpotrfsp1d_potrf( SolverMatrix *solvmtx, SolverCblk *cblk, pastix_complex64_t *L );
-int cpucblk_zpotrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk, pastix_complex64_t *L );
+int cpucblk_zpotrfsp1d_potrf( SolverMatrix *solvmtx, SolverCblk *cblk, void *dataL );
+int cpucblk_zpotrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk, void *dataL );
 int cpucblk_zpotrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
                               pastix_complex64_t *work, pastix_int_t lwork );
 
@@ -185,7 +185,7 @@ int cpucblk_zpotrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
  */
 int cpucblk_zhetrfsp1d_hetrf( SolverMatrix *solvmtx, SolverCblk *cblk, void *L );
 int cpucblk_zhetrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk,
-                              pastix_complex64_t *L, pastix_complex64_t *DLh );
+                              void *dataL, pastix_complex64_t *DLh );
 int cpucblk_zhetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
                               pastix_complex64_t *work1, pastix_complex64_t *work2, pastix_int_t lwork );
 
@@ -194,8 +194,8 @@ int cpucblk_zhetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
  *    @name PastixComplex64 cblk LL^t kernels
  *    @{
  */
-int cpucblk_zpxtrfsp1d_pxtrf( SolverMatrix *solvmtx, SolverCblk *cblk, pastix_complex64_t *L );
-int cpucblk_zpxtrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk, pastix_complex64_t *L );
+int cpucblk_zpxtrfsp1d_pxtrf( SolverMatrix *solvmtx, SolverCblk *cblk, void *dataL );
+int cpucblk_zpxtrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk, void *dataL );
 int cpucblk_zpxtrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
                               pastix_complex64_t *work, pastix_int_t lwork );
 
@@ -206,7 +206,7 @@ int cpucblk_zpxtrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
  */
 int cpucblk_zsytrfsp1d_sytrf( SolverMatrix *solvmtx, SolverCblk *cblk, void *L );
 int cpucblk_zsytrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk,
-                              pastix_complex64_t *L, pastix_complex64_t *DLt );
+                              void *dataL, pastix_complex64_t *DLt );
 int cpucblk_zsytrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
                               pastix_complex64_t *work1, pastix_complex64_t *work2, pastix_int_t lwork );
 

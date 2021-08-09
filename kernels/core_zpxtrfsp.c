@@ -210,11 +210,13 @@ core_zpxtrfsp( pastix_int_t        n,
 int
 cpucblk_zpxtrfsp1d_pxtrf( SolverMatrix       *solvmtx,
                           SolverCblk         *cblk,
-                          pastix_complex64_t *L )
+                          void               *dataL )
 {
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivots = 0;
     pastix_fixdbl_t time, flops;
+    pastix_complex64_t *L;
+    pastix_lrblock_t *lrL;
     double criterion = solvmtx->diagthreshold;
 
     time = kernel_trace_start( PastixKernelPXTRF );
@@ -227,11 +229,15 @@ cpucblk_zpxtrfsp1d_pxtrf( SolverMatrix       *solvmtx,
     assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        assert( cblk->fblokptr->LRblock[0]->rk == -1 );
-        L = cblk->fblokptr->LRblock[0]->u;
+        /* dataL is a LRblock */
+        lrL = (pastix_lrblock_t *)dataL;
+        assert( lrL->rk == -1 );
+        L = lrL->u;
         stride = ncols;
 
-        assert( stride == cblk->fblokptr->LRblock[0]->rkmax );
+        assert( stride == lrL->rkmax );
+    } else {
+        L = (pastix_complex64_t *)dataL;
     }
 
     /* Factorize diagonal block */
@@ -275,14 +281,14 @@ cpucblk_zpxtrfsp1d_pxtrf( SolverMatrix       *solvmtx,
 int
 cpucblk_zpxtrfsp1d_panel( SolverMatrix       *solvmtx,
                           SolverCblk         *cblk,
-                          pastix_complex64_t *L )
+                          void               *dataL )
 {
     pastix_int_t nbpivots;
-    nbpivots = cpucblk_zpxtrfsp1d_pxtrf( solvmtx, cblk, L );
+    nbpivots = cpucblk_zpxtrfsp1d_pxtrf( solvmtx, cblk, dataL );
 
     cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
                      PastixTrans, PastixNonUnit,
-                     cblk, L, L, solvmtx );
+                     cblk, dataL, dataL, solvmtx );
     return nbpivots;
 }
 

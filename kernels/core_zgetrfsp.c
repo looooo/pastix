@@ -299,10 +299,7 @@ cpucblk_zgetrfsp1d_getrf( SolverMatrix       *solvmtx,
  *
  *******************************************************************************/
 int
-cpucblk_zgetrfsp1d_panel( SolverMatrix       *solvmtx,
-                          SolverCblk         *cblk,
-                          pastix_complex64_t *L,
-                          pastix_complex64_t *U )
+cpucblk_zgetrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk, void *L, void *U )
 {
     pastix_int_t nbpivots;
     nbpivots = cpucblk_zgetrfsp1d_getrf( solvmtx, cblk, L, U );
