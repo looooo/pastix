@@ -214,12 +214,15 @@ core_zgetrfsp( pastix_int_t        n,
 int
 cpucblk_zgetrfsp1d_getrf( SolverMatrix       *solvmtx,
                           SolverCblk         *cblk,
-                          pastix_complex64_t *L,
-                          pastix_complex64_t *U )
+                          void               *dataL,
+                          void               *dataU )
 {
     pastix_int_t ncols, stride;
     pastix_int_t nbpivots = 0;
     pastix_fixdbl_t time, flops;
+    pastix_lrblock_t *lrL, *lrU;
+    pastix_complex64_t *L, *U;
+
     double criterion = solvmtx->diagthreshold;
 
     time = kernel_trace_start( PastixKernelGETRF );
@@ -228,14 +231,20 @@ cpucblk_zgetrfsp1d_getrf( SolverMatrix       *solvmtx,
     stride = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        assert( cblk->fblokptr->LRblock[0]->rk == -1 &&
-                cblk->fblokptr->LRblock[1]->rk == -1 );
-        L = cblk->fblokptr->LRblock[0]->u;
-        U = cblk->fblokptr->LRblock[1]->u;
+        /* dataL and dataU are LRblock */
+
+        lrL = (pastix_lrblock_t *)dataL;
+        lrU = (pastix_lrblock_t *)dataL;
+        L   = lrL->u;
+        U   = lrU->u;
+
         stride = ncols;
 
-        assert( stride == cblk->fblokptr->LRblock[0]->rkmax );
-        assert( stride == cblk->fblokptr->LRblock[1]->rkmax );
+        assert( stride == lrL->rkmax );
+        assert( stride == lrU->rkmax );
+    } else {
+        L = (pastix_complex64_t *)dataL;
+        U = (pastix_complex64_t *)dataU;
     }
 
     core_zgeadd( PastixTrans, ncols, ncols,
@@ -256,6 +265,8 @@ cpucblk_zgetrfsp1d_getrf( SolverMatrix       *solvmtx,
     if ( nbpivots ) {
         pastix_atomic_add_32b( &(solvmtx->nbpivots), nbpivots );
     }
+    (void)lrL;
+    (void)lrU;
     return nbpivots;
 }
 

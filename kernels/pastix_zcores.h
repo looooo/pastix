@@ -162,7 +162,7 @@ void cpublok_zscalo ( pastix_trans_t trans,
  *    @{
  */
 int cpucblk_zgetrfsp1d_getrf( SolverMatrix *solvmtx, SolverCblk *cblk,
-                              pastix_complex64_t *L, pastix_complex64_t *U );
+                              void *L, void *U );
 int cpucblk_zgetrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk,
                               pastix_complex64_t *L, pastix_complex64_t *U );
 int cpucblk_zgetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
