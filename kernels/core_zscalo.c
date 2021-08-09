@@ -292,12 +292,14 @@ cpublok_zscalo( pastix_trans_t            trans,
                 SolverCblk               *cblk,
                 pastix_int_t              blok_m,
                 const pastix_complex64_t *A,
-                const pastix_complex64_t *D,
-                pastix_complex64_t       *B )
+                const void               *dataD,
+                void                     *dataB )
 {
     const SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, ldd, offset, cblk_m;
     const pastix_complex64_t *lA;
+    pastix_lrblock_t *lrD, *lrB;
+    pastix_complex64_t *D, *B;
     pastix_complex64_t *lB;
 
     N     = cblk_colnbr( cblk );
@@ -313,8 +315,9 @@ cpublok_zscalo( pastix_trans_t            trans,
     cblk_m = blok->fcblknm;
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        D = cblk->fblokptr->LRblock[0]->u;
-
+        lrD = (pastix_lrblock_t *)dataD;
+        lrB = (pastix_lrblock_t *)dataB;
+        D = lrD->u;
         for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
             M = blok_rownbr( blok );
 
@@ -323,13 +326,13 @@ cpublok_zscalo( pastix_trans_t            trans,
             if ( blok->LRblock[1]->rk == -1 ) {
                 assert( M == blok->LRblock[1]->rkmax );
 
-                blok->LRblock[1]->u = B + blok->coefind - offset;
+                blok->LRblock[1]->u = lrB->u + blok->coefind - offset;
 
                 lA = blok->LRblock[0]->u;
                 lB = blok->LRblock[1]->u;
             }
             else {
-                blok->LRblock[1]->v = B + blok->coefind - offset;
+                blok->LRblock[1]->v = lrB->v + blok->coefind - offset;
                 lA = blok->LRblock[0]->v;
                 lB = blok->LRblock[1]->v;
                 M  = blok->LRblock[0]->rkmax;
@@ -342,7 +345,8 @@ cpublok_zscalo( pastix_trans_t            trans,
     }
     else {
         for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
-
+            D   = (pastix_complex64_t *)dataD;
+            B   = (pastix_complex64_t *)dataB;
             lA  = A + blok->coefind - offset;
             lB  = B + blok->coefind - offset;
             M   = blok_rownbr(blok);
