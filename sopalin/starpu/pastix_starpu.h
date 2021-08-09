@@ -145,12 +145,17 @@ typedef struct measure_s {
     double sum2;
     long   n;
 } measure_t;
+#endif
+
 
 typedef struct profile_data_s {
+#if defined( PASTIX_STARPU_PROFILING )
     measure_t *measures;
+#endif
     double     flops;
 } profile_data_t;
 
+#if defined( PASTIX_STARPU_PROFILING )
 void profiling_callback( void *callback_arg );
 
 #define KERNEL_PERF_DECL( _kernel_prefix_, _kernel_suffix_ )                                       \
