@@ -150,7 +150,7 @@ double cpublok_zgemmsp( pastix_trans_t trans,
 double cpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                       pastix_trans_t trans, pastix_diag_t diag,
                       const SolverCblk *cblk, pastix_int_t blok_m,
-                      const pastix_complex64_t *A, pastix_complex64_t *C,
+                      const void *A, pastix_complex64_t *C,
                       const pastix_lr_t *lowrank );
 void cpublok_zscalo ( pastix_trans_t trans,
                       SolverCblk *cblk, pastix_int_t blok_m,
