@@ -156,7 +156,7 @@ struct measure_s {
     long   n;
 };
 
-void profiling_callback( void *callback_arg );
+void cl_profiling_callback( void *callback_arg );
 
 #define KERNEL_PERF_DECL( _kernel_prefix_, _kernel_suffix_ )                                       \
     extern measure_t _kernel_prefix_##_z##_kernel_suffix_##_perf[STARPU_NMAXWORKERS];              \
@@ -166,6 +166,7 @@ void profiling_callback( void *callback_arg );
 
 KERNEL_PERF_DECL( cblk, gemmsp )
 KERNEL_PERF_DECL( blok, gemmsp )
+KERNEL_PERF_DECL( blok, trsmsp )
 #endif /* defined( PASTIX_STARPU_PROFILING ) */
 
 #endif /* _pastix_starpu_h_ */

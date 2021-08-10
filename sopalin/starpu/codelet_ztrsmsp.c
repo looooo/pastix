@@ -142,7 +142,7 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
         STARPU_CL_ARGS,       cl_arg,                       sizeof( struct cl_blok_ztrsmsp_args_s ),
         STARPU_EXECUTE_WHERE, execute_where,
 #if defined(PASTIX_STARPU_PROFILING)
-        STARPU_CALLBACK_WITH_ARG_NFREE, profiling_callback, cl_arg,
+        STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
 #endif
         STARPU_R,             cblk->fblokptr->handler[coef],
         STARPU_RW,            blok->handler[coef],

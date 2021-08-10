@@ -292,13 +292,13 @@ pastix_starpu_init( pastix_data_t *pastix,
 
 #if defined( PASTIX_STARPU_PROFILING )
 void
-profiling_callback( void *profile_data )
+cl_profiling_callback( void *callback_arg )
 {
-    struct starpu_task                *task  = starpu_task_get_current();
-    profile_data_t                    *arg   = profile_data;
-    double                             flops = arg->flops;
-    measure_t                      *measures = arg->measures;
-    struct starpu_profiling_task_info *info  = task->profiling_info;
+    struct starpu_task                *task     = starpu_task_get_current();
+    profile_data_t                    *arg      = (profile_data_t *) callback_arg;
+    double                             flops    = arg->flops;
+    measure_t                         *measures = arg->measures;
+    struct starpu_profiling_task_info *info     = task->profiling_info;
     assert( info != NULL );
     double duration = starpu_timing_timespec_delay_us( &info->start_time, &info->end_time );
     double speed    = flops / ( 1000.0 * duration );
@@ -350,9 +350,11 @@ void
 profiling_display_allinfo()
 {
     const char *kernel_names[] = { KERNEL_NAMES( "cblk", "gemmsp" ),
-                                   KERNEL_NAMES( "blok", "gemmsp" ) };
+                                   KERNEL_NAMES( "blok", "gemmsp" ),
+                                   KERNEL_NAMES( "blok", "trsmsp" ) };
     measure_t  *measures[]     = { KERNEL_MEASURES( cblk, gemmsp ),
-                                   KERNEL_MEASURES( blok, gemmsp ) };
+                                   KERNEL_MEASURES( blok, gemmsp ),
+                                   KERNEL_MEASURES( blok, trsmsp ) };
     int         nb_kernels     =  sizeof( measures ) / sizeof( *measures );
     int         index;
     for ( index = 0; index < nb_kernels; index++ ) {
