@@ -114,7 +114,6 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
                           int               prio )
 {
     struct cl_cblk_zgemmsp_args_s *cl_arg;
-    struct starpu_task            *task;
     long long                      execute_where;
 #if defined(PASTIX_DEBUG_STARPU)
     char                          *task_name;
@@ -269,7 +268,6 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
     SolverBlok  *blokC   = fcblk->fblokptr;
 
     struct cl_blok_zgemmsp_args_s *cl_arg;
-    struct starpu_task            *task;
     long long                      execute_where;
 #if defined(PASTIX_DEBUG_STARPU)
     char                          *name;
