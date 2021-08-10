@@ -491,10 +491,10 @@ gpublok_zgemmsp(       pastix_coefside_t  sideA,
  *          The structure with low-rank parameters.
  *
  *******************************************************************************/
-void
+double
 gpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                  pastix_trans_t trans, pastix_diag_t diag,
-                       SolverCblk      *cblk,
+                 const SolverCblk      *cblk,
                        pastix_int_t     blok_m,
                  const cuDoubleComplex *A,
                        cuDoubleComplex *C,
@@ -558,6 +558,6 @@ gpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
 #endif
     kernel_trace_stop( blok->inlast, PastixKernelTRSMBlok2d,
                        full_m, N, 0, flops, time );
-
     (void)lowrank; (void)coef;
+    return flops;
 }

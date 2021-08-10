@@ -439,10 +439,10 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
  *          fcblk.ucoeftab otherwise.
  *
  *******************************************************************************/
-static inline void
+static inline double
 core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
                     pastix_trans_t trans, pastix_diag_t diag,
-                          SolverCblk         *cblk,
+                    const SolverCblk         *cblk,
                           pastix_int_t        blok_m,
                     const pastix_complex64_t *A,
                           pastix_complex64_t *C )
@@ -484,7 +484,7 @@ core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
 
     kernel_trace_stop( cblk->fblokptr->inlast, PastixKernelTRSMBlok2d,
                        full_m, N, 0, flops, time );
-    return;
+    return flops;
 }
 
 /**
@@ -531,13 +531,13 @@ core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
  *          The structure with low-rank parameters.
  *
  *******************************************************************************/
-static inline void
+static inline double
 core_ztrsmsp_lrsub( pastix_coefside_t   coef,
                     pastix_side_t       side,
                     pastix_uplo_t       uplo,
                     pastix_trans_t      trans,
                     pastix_diag_t       diag,
-                    SolverCblk         *cblk,
+                    const SolverCblk   *cblk,
                     pastix_int_t        blok_m,
                     const pastix_lr_t  *lowrank )
 {
@@ -615,6 +615,7 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
 
     kernel_trace_stop( cblk->fblokptr->inlast, PastixKernelTRSMBlokLR,
                        full_m, N, full_n, flops, time );
+    return flops;
 }
 
 /**
@@ -667,21 +668,21 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
  *          The structure with low-rank parameters.
  *
  *******************************************************************************/
-void
+double
 cpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                  pastix_trans_t trans, pastix_diag_t diag,
-                       SolverCblk         *cblk,
+                 const SolverCblk         *cblk,
                        pastix_int_t        blok_m,
                  const pastix_complex64_t *A,
                        pastix_complex64_t *C,
                  const pastix_lr_t        *lowrank )
 {
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        core_ztrsmsp_lrsub( coef, side, uplo, trans, diag,
-                            cblk, blok_m, lowrank );
+        return core_ztrsmsp_lrsub( coef, side, uplo, trans, diag,
+                                   cblk, blok_m, lowrank );
     }
     else {
-        core_ztrsmsp_2dsub( side, uplo, trans, diag,
-                            cblk, blok_m, A, C );
+        return core_ztrsmsp_2dsub( side, uplo, trans, diag,
+                                   cblk, blok_m, A, C );
     }
 }

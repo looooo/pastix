@@ -40,9 +40,9 @@ double gpublok_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix
                       const cuDoubleComplex *A, const cuDoubleComplex *B, cuDoubleComplex *C,
                       const pastix_lr_t *lowrank, cudaStream_t stream );
 
-void gpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
+double gpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
                       pastix_trans_t trans, pastix_diag_t diag,
-                      SolverCblk *cblk, pastix_int_t blok_m,
+                      const SolverCblk *cblk, pastix_int_t blok_m,
                       const cuDoubleComplex *A, cuDoubleComplex *C,
                       const pastix_lr_t *lowrank, cudaStream_t stream );
 
