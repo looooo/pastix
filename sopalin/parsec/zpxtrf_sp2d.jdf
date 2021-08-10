@@ -426,7 +426,7 @@ BODY
         SolverCblk *cblk = datacode->cblktab + k;
 
         if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
-            cpublok_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
+            cpublok_ztrsmsp( /*PastixLCoef,*/ PastixRight, PastixLower,
                              PastixTrans, PastixNonUnit,
                              cblk, m, A, C, &lowrank );
         }
@@ -644,7 +644,7 @@ BODY
         pastix_int_t nk = blok_nk - fblokk;
 
         if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
-            cpublok_zgemmsp( PastixLCoef, PastixLCoef, PastixTrans,
+            cpublok_zgemmsp( /*PastixLCoef, PastixLCoef, */ PastixTrans,
                              cblk, fcblk, blok_mk, nk, blok_mn,
                              A, B, C, &lowrank );
         }

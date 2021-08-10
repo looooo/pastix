@@ -43,19 +43,21 @@ static void fct_blok_zscalo_cpu(void *descr[], void *cl_arg)
     SolverCblk     *cblk;
     pastix_int_t    blok_m;
 
-    const pastix_complex64_t *A;
-    const pastix_complex64_t *D;
-    pastix_complex64_t *B;
+    const void *A;
+    const void *D;
+    void *B;
 
-    A = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
-    D = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
-    B = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[2]);
+    A = (const void *)STARPU_VECTOR_GET_PTR(descr[0]);
+    D = (const void *)STARPU_VECTOR_GET_PTR(descr[1]);
+    B = (void *)STARPU_VECTOR_GET_PTR(descr[2]);
 
     starpu_codelet_unpack_args( cl_arg, &trans, &cblk, &blok_m );
 
     assert( cblk->cblktype & CBLK_TASKS_2D );
 
-    cpublok_zscalo( trans, cblk, blok_m, A, D, B );
+    cpublok_zscalo( trans, cblk, blok_m, A, D,
+                    ((cblk->cblktype & CBLK_COMPRESSED) ? (void*)(cblk->fblokptr->LRblock[1]) : (void*)B),
+                    B );
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 

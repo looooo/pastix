@@ -212,10 +212,10 @@ core_zgetrfsp( pastix_int_t        n,
  *
  *******************************************************************************/
 int
-cpucblk_zgetrfsp1d_getrf( SolverMatrix       *solvmtx,
-                          SolverCblk         *cblk,
-                          void               *dataL,
-                          void               *dataU )
+cpucblk_zgetrfsp1d_getrf( SolverMatrix *solvmtx,
+                          SolverCblk   *cblk,
+                          void         *dataL,
+                          void         *dataU )
 {
     pastix_int_t ncols, stride;
     pastix_int_t nbpivots = 0;
@@ -234,10 +234,11 @@ cpucblk_zgetrfsp1d_getrf( SolverMatrix       *solvmtx,
         /* dataL and dataU are LRblock */
 
         lrL = (pastix_lrblock_t *)dataL;
-        lrU = (pastix_lrblock_t *)dataL;
-        L   = lrL->u;
-        U   = lrU->u;
+        lrU = (pastix_lrblock_t *)dataU;
+        assert( (lrL->rk == -1) && (lrU->rk == -1) );
 
+        L = lrL->u;
+        U = lrU->u;
         stride = ncols;
 
         assert( stride == lrL->rkmax );
@@ -265,8 +266,6 @@ cpucblk_zgetrfsp1d_getrf( SolverMatrix       *solvmtx,
     if ( nbpivots ) {
         pastix_atomic_add_32b( &(solvmtx->nbpivots), nbpivots );
     }
-    (void)lrL;
-    (void)lrU;
     return nbpivots;
 }
 
@@ -299,7 +298,10 @@ cpucblk_zgetrfsp1d_getrf( SolverMatrix       *solvmtx,
  *
  *******************************************************************************/
 int
-cpucblk_zgetrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk, void *L, void *U )
+cpucblk_zgetrfsp1d_panel( SolverMatrix *solvmtx,
+                          SolverCblk   *cblk,
+                          void         *L,
+                          void         *U )
 {
     pastix_int_t nbpivots;
     nbpivots = cpucblk_zgetrfsp1d_getrf( solvmtx, cblk, L, U );
@@ -309,12 +311,12 @@ cpucblk_zgetrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk, void *L, void
      * column, and by transposition the L part of the diagonal block is
      * similarly stored in the U panel
      */
-    cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixUpper,
+    cpucblk_ztrsmsp( PastixRight, PastixUpper,
                      PastixNoTrans, PastixNonUnit,
-                     cblk, L, L, solvmtx );
-    cpucblk_ztrsmsp( PastixUCoef, PastixRight, PastixUpper,
+                     cblk, L, L, &(solvmtx->lowrank) );
+    cpucblk_ztrsmsp( PastixRight, PastixUpper,
                      PastixNoTrans, PastixUnit,
-                     cblk, U, U, solvmtx );
+                     cblk, U, U, &(solvmtx->lowrank) );
     return nbpivots;
 }
 
@@ -351,8 +353,8 @@ cpucblk_zgetrfsp1d( SolverMatrix       *solvmtx,
                     pastix_complex64_t *work,
                     pastix_int_t        lwork )
 {
-    pastix_complex64_t *L = cblk->lcoeftab;
-    pastix_complex64_t *U = cblk->ucoeftab;
+    void        *L = cblk_getdataL( cblk );
+    void        *U = cblk_getdataU( cblk );
     SolverCblk  *fcblk;
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivots;
@@ -365,23 +367,23 @@ cpucblk_zgetrfsp1d( SolverMatrix       *solvmtx,
     /* if there are off-diagonal supernodes in the column */
     for( ; blok < lblk; blok++ )
     {
-        fcblk = (solvmtx->cblktab + blok->fcblknm);
+        fcblk = solvmtx->cblktab + blok->fcblknm;
 
         if ( fcblk->cblktype & CBLK_FANIN ) {
             cpucblk_zalloc( PastixLUCoef, fcblk );
         }
 
         /* Update on L */
-        cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
+        cpucblk_zgemmsp( PastixLCoef, PastixTrans,
                          cblk, blok, fcblk,
-                         L, U, fcblk->lcoeftab,
+                         L, U, cblk_getdataL( fcblk ),
                          work, lwork, &(solvmtx->lowrank) );
 
         /* Update on U */
         if ( blok+1 < lblk ) {
-            cpucblk_zgemmsp( PastixUCoef, PastixLCoef, PastixTrans,
+            cpucblk_zgemmsp( PastixUCoef, PastixTrans,
                              cblk, blok, fcblk,
-                             U, L, fcblk->ucoeftab,
+                             U, L, cblk_getdataU( fcblk ),
                              work, lwork, &(solvmtx->lowrank) );
         }
         cpucblk_zrelease_deps( PastixLUCoef, solvmtx, cblk, fcblk );

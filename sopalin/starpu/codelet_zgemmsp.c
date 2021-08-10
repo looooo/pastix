@@ -78,7 +78,7 @@ static void fct_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
     assert(  args->cblk->cblktype & CBLK_LAYOUT_2D );
     assert( args->fcblk->cblktype & CBLK_LAYOUT_2D );
 
-    args->profile_data.flops = cpucblk_zgemmsp( args->sideA, args->sideB, args->trans,
+    args->profile_data.flops = cpucblk_zgemmsp( args->sideA, args->trans,
                                                 args->cblk, args->blok, args->fcblk,
                                                 A, B, C, NULL, 0,
                                                 &( args->sopalin_data->solvmtx->lowrank ) );
@@ -210,19 +210,19 @@ static struct starpu_perfmodel starpu_blok_zgemmsp_model =
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void fct_blok_zgemmsp_cpu( void *descr[], void *cl_arg )
 {
-    const pastix_complex64_t      *A;
-    const pastix_complex64_t      *B;
-    pastix_complex64_t            *C;
     struct cl_blok_zgemmsp_args_s *args = (struct cl_blok_zgemmsp_args_s *) cl_arg;
+    const void *A;
+    const void *B;
+    void       *C;
 
-    A = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
-    B = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
-    C = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[2]);
+    A = (const void *)STARPU_VECTOR_GET_PTR(descr[0]);
+    B = (const void *)STARPU_VECTOR_GET_PTR(descr[1]);
+    C = (void *)STARPU_VECTOR_GET_PTR(descr[2]);
 
     assert( args->cblk->cblktype  & CBLK_TASKS_2D );
     assert( args->fcblk->cblktype & CBLK_TASKS_2D );
 
-    args->profile_data.flops = cpublok_zgemmsp( args->sideA, args->sideB, args->trans,
+    args->profile_data.flops = cpublok_zgemmsp( args->trans,
                                                 args->cblk, args->fcblk,
                                                 args->blok_mk, args->blok_nk, args->blok_mn,
                                                 A, B, C,

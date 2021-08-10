@@ -66,13 +66,13 @@ static pastix_complex64_t mzone = -1.0;
  *
  *******************************************************************************/
 void
-solve_blok_ztrsm( pastix_coefside_t   coefside,
-                  pastix_side_t       side,
+solve_blok_ztrsm( pastix_side_t       side,
                   pastix_uplo_t       uplo,
                   pastix_trans_t      trans,
                   pastix_diag_t       diag,
                   const SolverCblk   *cblk,
                   int                 nrhs,
+                  const void         *dataA,
                   pastix_complex64_t *b,
                   int                 ldb )
 {
@@ -83,12 +83,13 @@ solve_blok_ztrsm( pastix_coefside_t   coefside,
     n = cblk_colnbr( cblk );
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        lrA = cblk->fblokptr->LRblock[coefside];
+        lrA = (pastix_lrblock_t *)dataA;
+        assert( lrA->rk == -1 );
         A   = lrA->u;
         lda = n;
     }
     else {
-        A   = (coefside == PastixLCoef) ? cblk->lcoeftab : cblk->ucoeftab;
+        A   = (pastix_complex64_t *)dataA;
         lda = (cblk->cblktype & CBLK_LAYOUT_2D) ? n : cblk->stride;
     }
 
@@ -152,23 +153,21 @@ solve_blok_ztrsm( pastix_coefside_t   coefside,
  *
  *******************************************************************************/
 void
-solve_blok_zgemm( pastix_coefside_t         coefside,
-                  pastix_side_t             side,
+solve_blok_zgemm( pastix_side_t             side,
                   pastix_trans_t            trans,
                   pastix_int_t              nrhs,
                   const SolverCblk         *cblk,
                   const SolverBlok         *blok,
                   SolverCblk               *fcbk,
+                  const void               *dataA,
                   const pastix_complex64_t *B,
                   pastix_int_t              ldb,
                   pastix_complex64_t       *C,
                   pastix_int_t              ldc )
 {
-    pastix_int_t        m, n, lda;
-    pastix_lrblock_t   *lrA;
-    pastix_complex64_t *A;
-    pastix_int_t        offB, offC;
-    const SolverCblk   *bowner;
+    pastix_int_t      m, n, lda;
+    pastix_int_t      offB, offC;
+    const SolverCblk *bowner;
 
     if ( side == PastixLeft ) {
         /*
@@ -201,20 +200,8 @@ solve_blok_zgemm( pastix_coefside_t         coefside,
             (blok < bowner[1].fblokptr) );
 
     if ( bowner->cblktype & CBLK_COMPRESSED ) {
-        A   = NULL;
-        lrA = blok->LRblock[coefside];
-    }
-    else {
-        A  = (coefside == PastixLCoef) ? bowner->lcoeftab : bowner->ucoeftab;
-        A += blok->coefind;
-        lrA = NULL;
-        lda = (bowner->cblktype & CBLK_LAYOUT_2D) ? lda : bowner->stride;
-    }
-
-    if ( lrA != NULL ) {
-        pastix_complex64_t *tmp;
-
-        assert( A == NULL );
+        const pastix_lrblock_t *lrA = dataA;
+        pastix_complex64_t     *tmp;
 
         switch (lrA->rk){
         case 0:
@@ -270,7 +257,9 @@ solve_blok_zgemm( pastix_coefside_t         coefside,
         }
     }
     else{
-        assert( A != NULL );
+        const pastix_complex64_t *A = dataA;
+        lda = (bowner->cblktype & CBLK_LAYOUT_2D) ? lda : bowner->stride;
+
         pastix_cblk_lock( fcbk );
         cblas_zgemm(
             CblasColMajor, (CBLAS_TRANSPOSE)trans, CblasNoTrans,
@@ -340,10 +329,13 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
                             pastix_complex64_t *b,
                             int                 ldb )
 {
-    SolverCblk *fcbk;
-    SolverBlok *blok;
-    pastix_trans_t tA;
+    SolverCblk       *fcbk;
+    const SolverBlok *blok;
+    pastix_trans_t    tA;
     pastix_coefside_t cs;
+    const void               *dataA = NULL;
+    const pastix_lrblock_t   *lrA;
+    const pastix_complex64_t *A;
 
     if ( (side == PastixRight) && (uplo == PastixUpper) && (trans == PastixNoTrans) ) {
         /*  We store U^t, so we swap uplo and trans */
@@ -390,21 +382,37 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
     assert( cblk->fcolnum == cblk->lcolidx );
 
     /* Solve the diagonal block */
-    solve_blok_ztrsm(
-        cs, side, PastixLower,
-        tA, diag, cblk,
-        nrhs, b + cblk->lcolidx, ldb );
+    solve_blok_ztrsm( side, PastixLower,
+                      tA, diag, cblk, nrhs,
+                      cblk_getdata( cblk, cs ),
+                      b + cblk->lcolidx, ldb );
 
     /* Apply the update */
     for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
-        fcbk  = datacode->cblktab + blok->fcblknm;
+        fcbk = datacode->cblktab + blok->fcblknm;
 
         if ( (fcbk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeLocal) ) {
             return;
         }
 
-        solve_blok_zgemm( cs, PastixLeft, tA, nrhs,
+        /*
+         * Make sure we get the correct pointer to the lrA, or to the right position in [lu]coeftab
+         */
+        dataA = cblk_getdata( cblk, cs );
+        if ( cblk->cblktype & CBLK_COMPRESSED ) {
+            lrA = dataA;
+            lrA += (blok - cblk->fblokptr);
+            dataA = lrA;
+        }
+        else {
+            A = dataA;
+            A += blok->coefind;
+            dataA = A;
+        }
+
+        solve_blok_zgemm( PastixLeft, tA, nrhs,
                           cblk, blok, fcbk,
+                          dataA,
                           b + cblk->lcolidx, ldb,
                           b + fcbk->lcolidx, ldb );
         pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
@@ -469,11 +477,14 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
                              pastix_complex64_t *b,
                              int                 ldb )
 {
-    SolverCblk *fcbk;
-    SolverBlok *blok;
-    pastix_int_t j;
-    pastix_trans_t tA;
+    SolverCblk       *fcbk;
+    const SolverBlok *blok;
+    pastix_int_t      j;
+    pastix_trans_t    tA;
     pastix_coefside_t cs;
+    const void               *dataA = NULL;
+    const pastix_lrblock_t   *lrA;
+    const pastix_complex64_t *A;
 
     /*
      *  Left / Upper / NoTrans (Backward)
@@ -534,9 +545,10 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
          (!(cblk->cblktype & CBLK_IN_SCHUR) || (mode == PastixSolvModeSchur)) )
     {
         /* Solve the diagonal block */
-        solve_blok_ztrsm(
-            cs, side, PastixLower, tA, diag, cblk,
-            nrhs, b + cblk->lcolidx, ldb );
+        solve_blok_ztrsm( side, PastixLower, tA, diag,
+                          cblk, nrhs,
+                          cblk_getdata( cblk, cs ),
+                          b + cblk->lcolidx, ldb );
 
     }
 
@@ -550,8 +562,24 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
             continue;
         }
 
-        solve_blok_zgemm( cs, PastixRight, tA, nrhs,
+        /*
+         * Make sure we get the correct pointer to the lrA, or to the right position in [lu]coeftab
+         */
+        dataA = cblk_getdata( fcbk, cs );
+        if ( fcbk->cblktype & CBLK_COMPRESSED ) {
+            lrA = dataA;
+            lrA += (blok - fcbk->fblokptr);
+            dataA = lrA;
+        }
+        else {
+            A = dataA;
+            A += blok->coefind;
+            dataA = A;
+        }
+
+        solve_blok_zgemm( PastixRight, tA, nrhs,
                           cblk, blok, fcbk,
+                          dataA,
                           b + cblk->lcolidx, ldb,
                           b + fcbk->lcolidx, ldb );
         pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );

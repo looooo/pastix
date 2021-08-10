@@ -60,7 +60,7 @@ static pastix_complex64_t mzone = -1.0;
  *          pivots is incremented.
  *
  *******************************************************************************/
-static void
+static inline void
 core_zsytf2sp( pastix_int_t        n,
                pastix_complex64_t *A,
                pastix_int_t        lda,
@@ -235,8 +235,8 @@ cpucblk_zsytrfsp1d_sytrf( SolverMatrix *solvmtx,
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivots = 0;
     pastix_fixdbl_t time, flops;
-    pastix_lrblock_t *lrL;
     pastix_complex64_t *L;
+    pastix_lrblock_t *lrL;
     double criterion = solvmtx->diagthreshold;
 
     time = kernel_trace_start( PastixKernelSYTRF );
@@ -247,11 +247,11 @@ cpucblk_zsytrfsp1d_sytrf( SolverMatrix *solvmtx,
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
         /* dataL is a LRblock */
         lrL = (pastix_lrblock_t *)dataL;
-        assert( lrL->rk == -1 );
-        L = lrL->u;
+        L   = lrL->u;
         stride = ncols;
 
-        assert( stride == cblk->fblokptr->LRblock[0]->rkmax );
+        assert( lrL->rk == -1 );
+        assert( stride == lrL->rkmax );
     } else {
         L = (pastix_complex64_t *)dataL;
     }
@@ -428,10 +428,10 @@ void core_zsytrfsp1d_gemm( const SolverCblk         *cblk,
  *
  *******************************************************************************/
 int
-cpucblk_zsytrfsp1d_panel( SolverMatrix       *solvmtx,
-                          SolverCblk         *cblk,
-                          void               *L,
-                          pastix_complex64_t *DLt )
+cpucblk_zsytrfsp1d_panel( SolverMatrix *solvmtx,
+                          SolverCblk   *cblk,
+                          void         *L,
+                          void         *DLt )
 {
     pastix_int_t nbpivots;
     nbpivots = cpucblk_zsytrfsp1d_sytrf( solvmtx, cblk, L );
@@ -439,13 +439,14 @@ cpucblk_zsytrfsp1d_panel( SolverMatrix       *solvmtx,
     /*
      * We exploit the fact that (DL^t) is stored in the upper triangle part of L
      */
-    cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixUpper,
+    cpucblk_ztrsmsp( PastixRight, PastixUpper,
                      PastixNoTrans, PastixNonUnit,
-                     cblk, L, L, solvmtx );
+                     cblk, L, L, &(solvmtx->lowrank) );
 
     if ( (DLt != NULL) && (cblk->cblktype & CBLK_LAYOUT_2D) ) {
-        /* Copy L into the temporary buffer and multiply by D */
-        cpucblk_zscalo( PastixNoTrans, cblk, DLt );
+
+        /*Copy L into the temporary buffer and multiply by D */
+        cpucblk_zscalo( PastixNoTrans, cblk, L, DLt );
     }
     return nbpivots;
 }
@@ -488,7 +489,8 @@ cpucblk_zsytrfsp1d( SolverMatrix       *solvmtx,
                     pastix_complex64_t *work,
                     pastix_int_t        lwork )
 {
-    pastix_complex64_t *L = cblk->lcoeftab;
+    void        *dataL = cblk_getdataL( cblk );
+    void        *dataDLt = cblk_getdataU( cblk );
     SolverCblk  *fcblk;
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivots;
@@ -496,9 +498,18 @@ cpucblk_zsytrfsp1d( SolverMatrix       *solvmtx,
     if ( !(cblk->cblktype & CBLK_LAYOUT_2D) ) {
         DLt = NULL;
     }
+    else {
+        if (cblk->cblktype & CBLK_COMPRESSED) {
+            cpucblk_zalloc_lrws( cblk, dataDLt, DLt );
+        }
+        else {
+            assert( dataDLt == NULL );
+            dataDLt = DLt;
+        }
+    }
 
     /* if there are off-diagonal supernodes in the column */
-    nbpivots = cpucblk_zsytrfsp1d_panel( solvmtx, cblk, L, DLt );
+    nbpivots = cpucblk_zsytrfsp1d_panel( solvmtx, cblk, dataL, dataDLt );
 
     blok = cblk->fblokptr+1; /* this diagonal block */
     lblk = cblk[1].fblokptr; /* the next diagonal block */
@@ -512,15 +523,15 @@ cpucblk_zsytrfsp1d( SolverMatrix       *solvmtx,
         }
 
         /* Update on L */
-        if (DLt == NULL) {
+        if ( DLt == NULL ) {
             core_zsytrfsp1d_gemm( cblk, blok, fcblk,
-                                  L, fcblk->lcoeftab,
+                                  dataL, fcblk->lcoeftab,
                                   work );
         }
         else {
-            cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
+            cpucblk_zgemmsp( PastixLCoef, PastixTrans,
                              cblk, blok, fcblk,
-                             L, DLt, fcblk->lcoeftab,
+                             dataL, dataDLt, cblk_getdataL( fcblk ),
                              work, lwork, &(solvmtx->lowrank) );
         }
         cpucblk_zrelease_deps( PastixLCoef, solvmtx, cblk, fcblk );

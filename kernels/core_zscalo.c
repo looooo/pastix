@@ -165,11 +165,14 @@ core_zscalo( pastix_trans_t            trans,
 void
 cpucblk_zscalo( pastix_trans_t      trans,
                 SolverCblk         *cblk,
-                pastix_complex64_t *LD )
+                void               *dataL,
+                void               *dataLD )
 {
     const SolverBlok *blok, *lblk;
     pastix_int_t M, N;
+    pastix_lrblock_t *lrL, *lrLD;
     pastix_fixdbl_t time;
+    pastix_complex64_t *LD;
 
     time = kernel_trace_start( PastixKernelSCALOCblk );
 
@@ -181,67 +184,83 @@ cpucblk_zscalo( pastix_trans_t      trans,
     /* if there are off-diagonal supernodes in the column */
     if ( blok < lblk )
     {
-        const pastix_complex64_t *D;
         const pastix_complex64_t *L;
-        pastix_complex64_t *B;
-        pastix_int_t ldl, ldd, ldb;
+        const pastix_complex64_t *D;
+        pastix_int_t ldl, ldd, ldld;
 
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            D   = cblk->fblokptr->LRblock[0]->u;
+            lrL  = (pastix_lrblock_t *)dataL;
+            lrLD = (pastix_lrblock_t *)dataLD;
+            D   = lrL->u;
             ldd = N+1;
 
-            for(; blok < lblk; blok++) {
+            lrL++; lrLD++;
+            for(; blok < lblk; blok++, lrL++, lrLD++) {
                 M = blok_rownbr( blok );
 
-                memcpy( blok->LRblock[1], blok->LRblock[0], sizeof(pastix_lrblock_t) );
+                assert( lrLD->rk == -1 );
 
-                if ( blok->LRblock[1]->rk == -1 ) {
-                    assert( M == blok->LRblock[1]->rkmax );
+                /* Copy L in LD */
+                lrLD->rk    = lrL->rk;
+                lrLD->rkmax = lrL->rkmax;
 
-                    blok->LRblock[1]->u = LD + blok->coefind;
+                if ( lrL->rk == -1 ) {
+                    assert( M == lrL->rkmax );
 
-                    L = blok->LRblock[0]->u;
-                    B = blok->LRblock[1]->u;
+                    /* Initialize the workspace */
+                    memcpy( lrLD->u, lrL->u, lrL->rkmax * N * sizeof(pastix_complex64_t) );
+                    lrLD->v = NULL;
+
+                    L  = lrL->u;
+                    LD = lrLD->u;
                 }
                 else {
-                    blok->LRblock[1]->v = LD + blok->coefind;
-                    L = blok->LRblock[0]->v;
-                    B = blok->LRblock[1]->v;
-                    M = blok->LRblock[0]->rkmax;
+                    /*
+                     * Initialize the workspace
+                     */
+                    memcpy( lrLD->u, lrL->u, M * lrL->rk    * sizeof(pastix_complex64_t) );
+                    lrLD->v = ((pastix_complex64_t *)lrLD->u) + M * lrL->rk;
+                    memcpy( lrLD->v, lrL->v, N * lrL->rkmax * sizeof(pastix_complex64_t) );
+
+                    L  = lrL->v;
+                    LD = lrLD->v;
+                    M  = lrLD->rkmax;
                 }
 
-                ldl = M;
-                ldb = M;
+                ldl  = M;
+                ldld = M;
 
-                /* Compute B = LD */
+                /* Compute LD = L * D */
                 core_zscalo( trans, M, N,
                              L, ldl, D, ldd,
-                             B, ldb );
+                             LD, ldld );
             }
         }
         else if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
-            L = D = cblk->lcoeftab;
+            L = D = (pastix_complex64_t *)dataL;
+            LD = (pastix_complex64_t *)dataLD;
             ldd = N+1;
 
             for(; blok < lblk; blok++) {
                 M = blok_rownbr( blok );
 
-                /* Compute B = LD */
+                /* Compute LD = L * D */
                 core_zscalo( trans, M, N,
                              L  + blok->coefind, M, D, ldd,
                              LD + blok->coefind, M );
             }
         }
         else {
-            L = D = cblk->lcoeftab;
+            L = D = (pastix_complex64_t *)dataL;
+            LD = (pastix_complex64_t *)dataLD;
             ldl = cblk->stride;
             ldd = cblk->stride+1;
 
-            M   = cblk->stride - N;
-            B   = LD + blok->coefind;
-            ldb = cblk->stride;
+            M    = cblk->stride - N;
+            LD   = LD + blok->coefind;
+            ldld = cblk->stride;
 
-            core_zscalo( trans, M, N, L + blok->coefind, ldl, D, ldd, B, ldb );
+            core_zscalo( trans, M, N, L + blok->coefind, ldl, D, ldd, LD, ldld );
         }
     }
 
@@ -288,18 +307,18 @@ cpucblk_zscalo( pastix_trans_t      trans,
  *
  *******************************************************************************/
 void
-cpublok_zscalo( pastix_trans_t            trans,
-                SolverCblk               *cblk,
-                pastix_int_t              blok_m,
-                const pastix_complex64_t *A,
-                const void               *dataD,
-                void                     *dataB )
+cpublok_zscalo( pastix_trans_t trans,
+                SolverCblk    *cblk,
+                pastix_int_t   blok_m,
+                const void    *dataA,
+                const void    *dataD,
+                void          *dataB )
 {
     const SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, ldd, offset, cblk_m;
     const pastix_complex64_t *lA;
-    pastix_lrblock_t *lrD, *lrB;
-    pastix_complex64_t *D, *B;
+    pastix_lrblock_t *lrD, *lrB, *lrA;
+    pastix_complex64_t *D, *B, *A;
     pastix_complex64_t *lB;
 
     N     = cblk_colnbr( cblk );
@@ -315,27 +334,39 @@ cpublok_zscalo( pastix_trans_t            trans,
     cblk_m = blok->fcblknm;
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
+        lrA = (pastix_lrblock_t *)dataA;
         lrD = (pastix_lrblock_t *)dataD;
         lrB = (pastix_lrblock_t *)dataB;
         D = lrD->u;
-        for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
+        for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++, lrA++, lrB++) {
             M = blok_rownbr( blok );
 
-            memcpy( blok->LRblock[1], blok->LRblock[0], sizeof(pastix_lrblock_t) );
+            /* Copy A in B */
+            lrB->rk    = lrA->rk;
+            lrB->rkmax = lrA->rkmax;
 
-            if ( blok->LRblock[1]->rk == -1 ) {
-                assert( M == blok->LRblock[1]->rkmax );
+            if ( lrB->rk == -1 ) {
+                assert( M == lrA->rkmax );
+                assert( NULL == lrA->v );
 
-                blok->LRblock[1]->u = lrB->u + blok->coefind - offset;
+                /* Initialize the workspace */
+                memcpy( lrB->u, lrA->u, lrA->rkmax * N * sizeof(pastix_complex64_t) );
+                lrB->v = NULL;
 
-                lA = blok->LRblock[0]->u;
-                lB = blok->LRblock[1]->u;
+                lA = lrA->u;
+                lB = lrB->u;
             }
             else {
-                blok->LRblock[1]->v = lrB->v + blok->coefind - offset;
-                lA = blok->LRblock[0]->v;
-                lB = blok->LRblock[1]->v;
-                M  = blok->LRblock[0]->rkmax;
+                /*
+                 * Initialize the workspace
+                 */
+                memcpy( lrB->u, lrA->u, M * lrA->rk    * sizeof(pastix_complex64_t) );
+                lrB->v = ((pastix_complex64_t *)lrB->u) + M * lrA->rk;
+                memcpy( lrB->v, lrA->v, N * lrA->rkmax * sizeof(pastix_complex64_t) );
+
+                lA = lrA->v;
+                lB = lrB->v;
+                M  = lrA->rkmax;
             }
 
             /* Compute B = op(A) * D */
@@ -344,12 +375,14 @@ cpublok_zscalo( pastix_trans_t            trans,
         }
     }
     else {
+        A = (pastix_complex64_t *)dataA;
+        D = (pastix_complex64_t *)dataD;
+        B = (pastix_complex64_t *)dataB;
+
         for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
-            D   = (pastix_complex64_t *)dataD;
-            B   = (pastix_complex64_t *)dataB;
-            lA  = A + blok->coefind - offset;
-            lB  = B + blok->coefind - offset;
-            M   = blok_rownbr(blok);
+            lA = A + blok->coefind - offset;
+            lB = B + blok->coefind - offset;
+            M  = blok_rownbr(blok);
 
             /* Compute B = op(A) * D */
             core_zscalo( trans, M, N,

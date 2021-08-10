@@ -218,7 +218,9 @@ core_zpotrfsp( pastix_int_t        n,
  *
  *******************************************************************************/
 int
-cpucblk_zpotrfsp1d_potrf( SolverMatrix *solvmtx, SolverCblk *cblk, void *dataL )
+cpucblk_zpotrfsp1d_potrf( SolverMatrix *solvmtx,
+                          SolverCblk   *cblk,
+                          void         *dataL )
 {
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivots = 0;
@@ -229,8 +231,8 @@ cpucblk_zpotrfsp1d_potrf( SolverMatrix *solvmtx, SolverCblk *cblk, void *dataL )
 
     time = kernel_trace_start( PastixKernelPOTRF );
 
-    ncols   = cblk->lcolnum - cblk->fcolnum + 1;
-    stride  = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
+    ncols  = cblk->lcolnum - cblk->fcolnum + 1;
+    stride = (cblk->cblktype & CBLK_LAYOUT_2D) ? ncols : cblk->stride;
 
     /* check if diagonal column block */
     assert( cblk->fcolnum == cblk->fblokptr->frownum );
@@ -239,11 +241,11 @@ cpucblk_zpotrfsp1d_potrf( SolverMatrix *solvmtx, SolverCblk *cblk, void *dataL )
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
         /* dataL is a LRblock */
         lrL = (pastix_lrblock_t *)dataL;
-        assert( lrL->rk == -1 );
-        L = lrL->u;
+        L   = lrL->u;
         stride = ncols;
 
-        assert( stride == cblk->fblokptr->LRblock[0]->rkmax );
+        assert( lrL->rk == -1 );
+        assert( stride == lrL->rkmax );
     } else {
         L = (pastix_complex64_t *)dataL;
     }
@@ -287,14 +289,16 @@ cpucblk_zpotrfsp1d_potrf( SolverMatrix *solvmtx, SolverCblk *cblk, void *dataL )
  *
  *******************************************************************************/
 int
-cpucblk_zpotrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk, void *L )
+cpucblk_zpotrfsp1d_panel( SolverMatrix *solvmtx,
+                          SolverCblk   *cblk,
+                          void         *L )
 {
     pastix_int_t nbpivots;
     nbpivots = cpucblk_zpotrfsp1d_potrf( solvmtx, cblk, L );
 
-    cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
+    cpucblk_ztrsmsp( PastixRight, PastixLower,
                      PastixConjTrans, PastixNonUnit,
-                     cblk, L, L, solvmtx );
+                     cblk, L, L, &(solvmtx->lowrank) );
     return nbpivots;
 }
 
@@ -332,7 +336,7 @@ cpucblk_zpotrfsp1d( SolverMatrix       *solvmtx,
                     pastix_complex64_t *work,
                     pastix_int_t        lwork )
 {
-    pastix_complex64_t *L = cblk->lcoeftab;
+    void        *L = cblk_getdataL( cblk );
     SolverCblk  *fcblk;
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivots;
@@ -345,15 +349,15 @@ cpucblk_zpotrfsp1d( SolverMatrix       *solvmtx,
     /* If there are off-diagonal blocks, perform the updates */
     for( ; blok < lblk; blok++ )
     {
-        fcblk = (solvmtx->cblktab + blok->fcblknm);
+        fcblk = solvmtx->cblktab + blok->fcblknm;
 
         if ( fcblk->cblktype & CBLK_FANIN ) {
             cpucblk_zalloc( PastixLCoef, fcblk );
         }
 
-        cpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixConjTrans,
+        cpucblk_zgemmsp( PastixLCoef, PastixConjTrans,
                          cblk, blok, fcblk,
-                         L, L, fcblk->lcoeftab,
+                         L, L, cblk_getdataL( fcblk ),
                          work, lwork, &(solvmtx->lowrank) );
 
         cpucblk_zrelease_deps( PastixLCoef, solvmtx, cblk, fcblk );

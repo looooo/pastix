@@ -73,7 +73,7 @@ core_ztrsmsp_1d( pastix_side_t             side,
                  pastix_uplo_t             uplo,
                  pastix_trans_t            trans,
                  pastix_diag_t             diag,
-                 SolverCblk               *cblk,
+                 const SolverCblk         *cblk,
                  const pastix_complex64_t *A,
                  pastix_complex64_t       *C )
 {
@@ -150,7 +150,7 @@ core_ztrsmsp_2d( pastix_side_t             side,
                  pastix_uplo_t             uplo,
                  pastix_trans_t            trans,
                  pastix_diag_t             diag,
-                 SolverCblk               *cblk,
+                 const SolverCblk         *cblk,
                  const pastix_complex64_t *A,
                  pastix_complex64_t       *C )
 {
@@ -192,10 +192,6 @@ core_ztrsmsp_2d( pastix_side_t             side,
  *
  *******************************************************************************
  *
- * @param[in] coef
- *          - PastixLCoef, use the lower part of the off-diagonal blocks.
- *          - PastixUCoef, use the upper part of the off-diagonal blocks
- *
  * @param[in] side
  *          Specify whether the off-diagonal blocks appear on the left or right in the
  *          equation. It has to be either PastixLeft or PastixRight.
@@ -226,25 +222,26 @@ core_ztrsmsp_2d( pastix_side_t             side,
  *
  *******************************************************************************/
 static inline pastix_fixdbl_t
-core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
-                 pastix_trans_t trans, pastix_diag_t diag,
-                 SolverCblk *cblk, SolverMatrix *solvmtx )
+core_ztrsmsp_lr( pastix_side_t           side,
+                 pastix_uplo_t           uplo,
+                 pastix_trans_t          trans,
+                 pastix_diag_t           diag,
+                 const SolverCblk       *cblk,
+                 const pastix_lrblock_t *lrA,
+                 pastix_lrblock_t       *lrC,
+                 const pastix_lr_t      *lowrank )
 {
     SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, lda;
-    pastix_lrblock_t *lrA, *lrC;
     pastix_complex64_t *A;
 
     pastix_fixdbl_t flops = 0.0;
     pastix_fixdbl_t flops_lr, flops_c;
 
-    pastix_lr_t *lowrank = &solvmtx->lowrank;
-
     N     = cblk->lcolnum - cblk->fcolnum + 1;
     fblok = cblk[0].fblokptr;  /* The diagonal block */
     lblok = cblk[1].fblokptr;  /* The diagonal block of the next cblk */
 
-    lrA   = fblok->LRblock[coef];
     A     = lrA->u;
     lda   = lrA->rkmax;
 
@@ -253,10 +250,10 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
     assert( cblk->cblktype & CBLK_COMPRESSED );
     assert( cblk->cblktype & CBLK_LAYOUT_2D  );
 
-    for (blok=fblok+1; blok<lblok; blok++) {
+    lrC++; /* Skip diagonal block */
+    for (blok=fblok+1; blok<lblok; blok++, lrC++) {
 
         M   = blok_rownbr(blok);
-        lrC = blok->LRblock[coef];
         flops_lr = 0.;
         flops_c  = 0.;
 
@@ -273,7 +270,7 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
              */
             if ( lowrank->compress_preselect || (!is_preselected) )
             {
-                flops_lr = cpublok_zcompress( lowrank, coef, M, N, blok );
+                flops_lr = cpublok_zcompress( lowrank, M, N, lrC );
             }
         }
 
@@ -350,12 +347,14 @@ core_ztrsmsp_lr( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
  *
  *******************************************************************************/
 void
-cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
-                 pastix_trans_t trans, pastix_diag_t diag,
-                       SolverCblk         *cblk,
-                 const pastix_complex64_t *A,
-                       pastix_complex64_t *C,
-                       SolverMatrix       *solvmtx )
+cpucblk_ztrsmsp( pastix_side_t      side,
+                 pastix_uplo_t      uplo,
+                 pastix_trans_t     trans,
+                 pastix_diag_t      diag,
+                 const SolverCblk  *cblk,
+                 const void        *A,
+                 void              *C,
+                 const pastix_lr_t *lowrank )
 {
     if (  cblk[0].fblokptr + 1 < cblk[1].fblokptr )
     {
@@ -368,8 +367,8 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
             ktype = PastixKernelTRSMCblkLR;
             time  = kernel_trace_start( ktype );
 
-            flops = core_ztrsmsp_lr( coef, side, uplo, trans, diag,
-                                     cblk, solvmtx );
+            flops = core_ztrsmsp_lr( side, uplo, trans, diag,
+                                     cblk, A, C, lowrank );
         }
         else {
             if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
@@ -440,12 +439,14 @@ cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
  *
  *******************************************************************************/
 static inline double
-core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
-                    pastix_trans_t trans, pastix_diag_t diag,
+core_ztrsmsp_2dsub( pastix_side_t             side,
+                    pastix_uplo_t             uplo,
+                    pastix_trans_t            trans,
+                    pastix_diag_t             diag,
                     const SolverCblk         *cblk,
-                          pastix_int_t        blok_m,
+                    pastix_int_t              blok_m,
                     const pastix_complex64_t *A,
-                          pastix_complex64_t *C )
+                    pastix_complex64_t       *C )
 {
     const SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, lda, ldc, offset, cblk_m, full_m;
@@ -497,10 +498,6 @@ core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
  *
  *******************************************************************************
  *
- * @param[in] coef
- *          - PastixLCoef, use the lower part of the off-diagonal blocks.
- *          - PastixUCoef, use the upper part of the off-diagonal blocks
- *
  * @param[in] side
  *          Specify whether the off-diagonal blocks appear on the left or right in the
  *          equation. It has to be either PastixLeft or PastixRight.
@@ -527,25 +524,30 @@ core_ztrsmsp_2dsub( pastix_side_t side, pastix_uplo_t uplo,
  *          TRSM is also applied to all the folowing blocks which are facing the
  *          same diagonal block
  *
+ * @param[in] lrA
+ *          Low-rank structure of the diagonal block.
+ *
+ * @param[inout] lrC
+ *          Low-rank structure of the block to solve.
+ *
  * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
  *******************************************************************************/
 static inline double
-core_ztrsmsp_lrsub( pastix_coefside_t   coef,
-                    pastix_side_t       side,
-                    pastix_uplo_t       uplo,
-                    pastix_trans_t      trans,
-                    pastix_diag_t       diag,
-                    const SolverCblk   *cblk,
-                    pastix_int_t        blok_m,
-                    pastix_lrblock_t   *lrA,
-                    const pastix_lr_t  *lowrank )
+core_ztrsmsp_lrsub( pastix_side_t           side,
+                    pastix_uplo_t           uplo,
+                    pastix_trans_t          trans,
+                    pastix_diag_t           diag,
+                    const SolverCblk       *cblk,
+                    pastix_int_t            blok_m,
+                    const pastix_lrblock_t *lrA,
+                    pastix_lrblock_t       *lrC,
+                    const pastix_lr_t      *lowrank )
 {
     SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, lda, cblk_m, full_m, full_n;
     pastix_complex64_t *A;
-    pastix_lrblock_t *lrC;
     pastix_fixdbl_t flops = 0.0;
     pastix_fixdbl_t time = kernel_trace_start( PastixKernelTRSMBlokLR );
 
@@ -567,10 +569,9 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
     full_m = 0;
     full_n = 0;
 
-    for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
+    for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++, lrC++) {
 
         M = blok_rownbr(blok);
-        lrC = blok->LRblock[coef];
 
         if ( ( N >= lowrank->compress_min_width ) &&
              ( M >= lowrank->compress_min_height ) )
@@ -584,7 +585,7 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
              */
             if ( lowrank->compress_preselect || (!is_preselected) )
             {
-                flops = cpublok_zcompress( lowrank, coef, M, N, blok );
+                flops = cpublok_zcompress( lowrank, M, N, lrC );
             }
         }
 
@@ -669,17 +670,19 @@ core_ztrsmsp_lrsub( pastix_coefside_t   coef,
  *
  *******************************************************************************/
 double
-cpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
-                 pastix_trans_t trans, pastix_diag_t diag,
-                 const SolverCblk         *cblk,
-                       pastix_int_t        blok_m,
-                       void               *A,
-                       pastix_complex64_t *C,
-                 const pastix_lr_t        *lowrank )
+cpublok_ztrsmsp( pastix_side_t      side,
+                 pastix_uplo_t      uplo,
+                 pastix_trans_t     trans,
+                 pastix_diag_t      diag,
+                 const SolverCblk  *cblk,
+                 pastix_int_t       blok_m,
+                 const void        *A,
+                 void              *C,
+                 const pastix_lr_t *lowrank )
 {
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        return core_ztrsmsp_lrsub( coef, side, uplo, trans, diag,
-                                   cblk, blok_m, A, lowrank );
+        return core_ztrsmsp_lrsub( side, uplo, trans, diag,
+                                   cblk, blok_m, A, C, lowrank );
     }
     else {
         return core_ztrsmsp_2dsub( side, uplo, trans, diag,
