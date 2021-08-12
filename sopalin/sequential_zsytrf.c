@@ -293,8 +293,8 @@ sopalin_zsytrf( pastix_data_t  *pastix_data,
     void (*zsytrf)(pastix_data_t *, sopalin_data_t *) = zsytrf_table[ sched ];
 
     if (zsytrf == NULL) {
-        sched = PastixSchedSequential;
-        zsytrf = static_zsytrf;
+        sched  = PastixSchedDynamic;
+        zsytrf = dynamic_zsytrf;
     }
 
     if ( (sched == PastixSchedSequential) ||

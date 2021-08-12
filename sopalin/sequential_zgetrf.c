@@ -262,8 +262,8 @@ sopalin_zgetrf( pastix_data_t  *pastix_data,
     void (*zgetrf)(pastix_data_t *, sopalin_data_t *) = zgetrf_table[ sched ];
 
     if (zgetrf == NULL) {
-        sched = PastixSchedSequential;
-        zgetrf = static_zgetrf;
+        sched  = PastixSchedDynamic;
+        zgetrf = dynamic_zgetrf;
     }
 
     if ( (sched == PastixSchedSequential) ||

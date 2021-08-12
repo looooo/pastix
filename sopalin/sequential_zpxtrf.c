@@ -261,8 +261,8 @@ sopalin_zpxtrf( pastix_data_t  *pastix_data,
     void (*zpxtrf)(pastix_data_t *, sopalin_data_t *) = zpxtrf_table[ sched ];
 
     if (zpxtrf == NULL) {
-        sched = PastixSchedSequential;
-        zpxtrf = static_zpxtrf;
+        sched  = PastixSchedDynamic;
+        zpxtrf = dynamic_zpxtrf;
     }
 
     if ( (sched == PastixSchedSequential) ||
