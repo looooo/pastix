@@ -76,7 +76,7 @@ static void fct_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
 
     args->profile_data.flops = cpucblk_zgemmsp( args->sideA, args->sideB, args->trans,
                                                 args->cblk, args->blok, args->fcblk,
-                                                A, B, C, NULL, -1,
+                                                A, B, C, NULL, 0,
                                                 &( args->sopalin_data->solvmtx->lowrank ) );
 }
 
