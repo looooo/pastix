@@ -55,9 +55,7 @@ static void fct_blok_zscalo_cpu(void *descr[], void *cl_arg)
 
     assert( cblk->cblktype & CBLK_TASKS_2D );
 
-    cpublok_zscalo( trans, cblk, blok_m, A, D,
-                    ((cblk->cblktype & CBLK_COMPRESSED) ? (void*)(cblk->fblokptr->LRblock[1]) : (void*)B),
-                    B );
+    cpublok_zscalo( trans, cblk, blok_m, A, D, B );
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 

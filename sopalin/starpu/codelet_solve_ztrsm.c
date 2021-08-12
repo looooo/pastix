@@ -48,16 +48,15 @@ static void fct_solve_blok_ztrsm_cpu(void *descr[], void *cl_arg)
     pastix_complex64_t *A, *B;
     pastix_int_t        nrhs, ldb;
 
-    A    = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[0]);
+    A    = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
     B    = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
     ldb  = (pastix_int_t)        STARPU_MATRIX_GET_LD (descr[1]);
     nrhs = (pastix_int_t)        STARPU_MATRIX_GET_NY (descr[1]);
 
     starpu_codelet_unpack_args( cl_arg, &coef, &side, &uplo, &trans, &diag, &cblk );
-    fprintf(stderr, "%p", A);
 
     solve_blok_ztrsm( side, uplo, trans, diag,
-                      cblk, A, nrhs, B, ldb );
+                      cblk, nrhs, A, B, ldb );
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
