@@ -248,20 +248,39 @@ cblk_colnbr( const SolverCblk *cblk )
 {
     return cblk->lcolnum - cblk->fcolnum + 1;
 }
+
+/**
+ * @brief     TODO
+ * @param[in] cblk
+ *            The pointer to the column block.
+ * @return    TODO
+ */
 static inline void *
 cblk_getdataL( const SolverCblk *cblk ) {
     return (cblk->cblktype & CBLK_COMPRESSED) ? cblk->fblokptr->LRblock[0] : cblk->lcoeftab;
 }
 
+/**
+ * @brief     TODO
+ * @param[in] cblk
+ *            The pointer to the column block.
+ * @return    TODO
+ */
 static inline void *
 cblk_getdataU( const SolverCblk *cblk ) {
     return (cblk->cblktype & CBLK_COMPRESSED) ? cblk->fblokptr->LRblock[1] : cblk->ucoeftab;
 }
 
+/**
+ * @brief     TODO
+ * @param[in] cblk
+ *            The pointer to the column block.
+ * @return    TODO
+ */
 static inline void *
 cblk_getdata( const SolverCblk *cblk, pastix_coefside_t side ) {
     return cblk->cblktype & CBLK_COMPRESSED
-               ? cblk->fblokptr->LRblock[( side == PastixUCoef ? 1 : 0 )]
+               ? cblk->fblokptr->LRblock[side]
            : side == PastixUCoef ? cblk->ucoeftab
                                  : cblk->lcoeftab;
 }
