@@ -59,7 +59,7 @@ pastix_starpu_filter_list( void *father_interface,
 static inline void
 pastix_starpu_register_cblk_lr( const starpu_sparse_matrix_desc_t *spmtx,
                                 const SolverCblk *cblk,
-                                int myrank, int side )
+                                int myrank, pastix_coefside_t side )
 {
     starpu_data_handle_t *handler  = ( (starpu_data_handle_t *)( cblk->handler ) ) + side;
     pastix_lrblock_t     *LRblocks = cblk->fblokptr->LRblock[side];
@@ -67,10 +67,10 @@ pastix_starpu_register_cblk_lr( const starpu_sparse_matrix_desc_t *spmtx,
 
     if( cblk->ownerid == myrank ) {
         starpu_vector_data_register( handler, STARPU_MAIN_RAM,
-                                     (uintptr_t)LRblocks, nbbloks * 2, sizeof(pastix_lrblock_t) );
+                                     (uintptr_t)LRblocks, nbbloks, sizeof(pastix_lrblock_t) );
     }
     else {
-        starpu_vector_data_register( handler, -1, 0, nbbloks * 2, sizeof(pastix_lrblock_t) );
+        starpu_vector_data_register( handler, -1, 0, nbbloks, sizeof(pastix_lrblock_t) );
     }
 
 #if defined(PASTIX_WITH_MPI)
@@ -249,7 +249,7 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
                 /*
                  * Diagonal block
                  */
-                sizetab[nchildren+1] = 2;
+                sizetab[nchildren+1] = 1;
                 nchildren++;
 
                 /*
@@ -267,7 +267,7 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
                         blok++;
                         nbrow ++;
                     }
-                    size = nbrow * 2;
+                    size = nbrow;
 
                     sizetab[nchildren+1] = sizetab[nchildren] + size;
                     nchildren++;

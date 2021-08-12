@@ -41,8 +41,8 @@ measure_t blok_ztrsmsp_perf[STARPU_NMAXWORKERS];
 struct cl_blok_ztrsmsp_args_s {
     profile_data_t    profile_data;
     sopalin_data_t   *sopalin_data;
-    double            coef;
-    pastix_coefside_t side;
+    pastix_coefside_t coef;
+    pastix_side_t     side;
     pastix_uplo_t     uplo;
     pastix_trans_t    trans;
     pastix_diag_t     diag;
@@ -69,7 +69,7 @@ static void fct_blok_ztrsmsp_cpu(void *descr[], void *cl_arg)
 
     assert( args->cblk->cblktype & CBLK_TASKS_2D );
 
-    args->profile_data.flops = cpublok_ztrsmsp( args->coef, args->side, args->uplo, 
+    args->profile_data.flops = cpublok_ztrsmsp( args->coef, args->side, args->uplo,
                                                 args->trans, args->diag,
                                                 args->cblk, args->blok_m, A, C,
                                                 &(args->sopalin_data->solvmtx->lowrank) );
@@ -87,7 +87,7 @@ static void fct_blok_ztrsmsp_gpu(void *descr[], void *cl_arg)
 
     assert( args->cblk->cblktype & CBLK_TASKS_2D );
 
-    args->profile_data.flops = gpublok_ztrsmsp( args->coef, args->side, args->uplo, 
+    args->profile_data.flops = gpublok_ztrsmsp( args->coef, args->side, args->uplo,
                                                 args->trans, args->diag,
                                                 args->cblk, args->blok_m, A, C,
                                                 &(args->sopalin_data->solvmtx->lowrank),
@@ -108,7 +108,7 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
                           const SolverCblk *cblk,
                           SolverBlok       *blok,
                           int               prio )
-{   
+{
     struct cl_blok_ztrsmsp_args_s *cl_arg;
     long long                      execute_where;
     pastix_int_t                   blok_m  = blok - cblk->fblokptr;
