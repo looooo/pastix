@@ -219,9 +219,10 @@ core_zhetrfsp( pastix_int_t        n,
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[inout] L
- *          The pointer to the matrix storing the coefficients of the
- *          panel. Must be of size cblk.stride -by- cblk.width
+ * @param[inout] dataL
+ *          The pointer to the correct representation of lower part of the data.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  *******************************************************************************
  *
@@ -416,12 +417,15 @@ void core_zhetrfsp1d_gemm( const SolverCblk         *cblk,
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
  * @param[inout] L
- *          The pointer to the matrix storing the coefficients of the
- *          panel. Must be of size cblk.stride -by- cblk.width
+ *           The pointer to the correct representation of lower part of the data.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  * @param[inout] DLh
- *          The pointer to the upper matrix storing the coefficients the
- *          temporary DL^h product. Must be of size cblk.stride -by- cblk.width
+ *           The pointer to the correct representation of Dlh matrix
+ *           (stored in the upper part bu default).
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  *******************************************************************************
  *

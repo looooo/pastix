@@ -27,23 +27,24 @@
 /**
  *******************************************************************************
  *
- * @brief Allocate the cblk structure to store the coefficient
+ * @brief Initialize a lrblock structure from a workspace from a specific block to the end of all
+ * blocks.
  *
- * When stored in low-rank format, the data pointer in the low-rank structure of
- * each block must be initialized.
- * This routines performs only the allocation and is thread-safe if called in
- * parallel on the Lower and upper part.
+ * The lrblock structure must be allocated before.
  *
  *******************************************************************************
  *
- * @param[in] side
- *          Define which side of the matrix must be initialized.
- *          @arg PastixLCoef if lower part only
- *          @arg PastixUCoef if upper part only
- *          @arg PastixLUCoef if both sides.
- *
  * @param[inout] cblk
- *          The column block to allocate.
+ *          The column block associated to the initialization.
+ *
+ * @param[in] blok
+ *          The block representation associated to the initialization.
+ *
+ * @param[in] lrblok
+ *          The structure blok to initialize. Must be allocated before.
+ *
+ * @param[in] ws
+ *          The workspace associated with the data that will be used for initialize lrblok.
  *
  *******************************************************************************/
 void
@@ -75,23 +76,20 @@ cpublok_zalloc_lrws( const SolverCblk   *cblk,
 /**
  *******************************************************************************
  *
- * @brief Allocate the cblk structure to store the coefficient
+ * @brief Initialize lrblock structure from a workspace from all blocks of the cblk associated.
  *
- * When stored in low-rank format, the data pointer in the low-rank structure of
- * each block must be initialized.
- * This routines performs only the allocation and is thread-safe if called in
- * parallel on the Lower and upper part.
+ * The lrblock structure must be allocated before.
  *
  *******************************************************************************
  *
- * @param[in] side
- *          Define which side of the matrix must be initialized.
- *          @arg PastixLCoef if lower part only
- *          @arg PastixUCoef if upper part only
- *          @arg PastixLUCoef if both sides.
- *
  * @param[inout] cblk
- *          The column block to allocate.
+ *          The column block associated to the initialization.
+ *
+ * @param[in] lrblok
+ *          The structure blok to initialize. Must be allocated before.
+ *
+ * @param[in] ws
+ *          The workspace associated with the data that will be used for initialize lrblok.
  *
  *******************************************************************************/
 void

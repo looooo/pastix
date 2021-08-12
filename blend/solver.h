@@ -250,10 +250,11 @@ cblk_colnbr( const SolverCblk *cblk )
 }
 
 /**
- * @brief     TODO
+ * @brief     Get the pointer to the data associated to the lower part of the cblk.
  * @param[in] cblk
  *            The pointer to the column block.
- * @return    TODO
+ * @return    lcoeftab if the cblk is not compressed.
+ *            fblokptr->LRblock[0] if the cblk is compressed.
  */
 static inline void *
 cblk_getdataL( const SolverCblk *cblk ) {
@@ -261,10 +262,11 @@ cblk_getdataL( const SolverCblk *cblk ) {
 }
 
 /**
- * @brief     TODO
+ * @brief     Get the pointer to the data associated to the upper part of the cblk.
  * @param[in] cblk
  *            The pointer to the column block.
- * @return    TODO
+ * @return    lcoeftab if the cblk is not compressed.
+ *            fblokptr->LRblock[1] if the cblk is compressed.
  */
 static inline void *
 cblk_getdataU( const SolverCblk *cblk ) {
@@ -272,10 +274,14 @@ cblk_getdataU( const SolverCblk *cblk ) {
 }
 
 /**
- * @brief     TODO
+ * @brief     Get the pointer to the data associated to the side part of the cblk.
  * @param[in] cblk
  *            The pointer to the column block.
- * @return    TODO
+ * @param[in] side
+ *            side of the data needed.
+ *            PastixLCoef for the lower part PastixUCoef for the upper part.
+ * @return    [lu]coeftab if the cblk is not compressed.
+ *            fblokptr->LRblock[side] if the cblk is compressed.
  */
 static inline void *
 cblk_getdata( const SolverCblk *cblk, pastix_coefside_t side ) {

@@ -273,14 +273,14 @@ dynamic_zhetrf( pastix_data_t  *pastix_data,
 static void (*zhetrf_table[5])(pastix_data_t *, sopalin_data_t *) = {
     sequential_zhetrf,
     static_zhetrf,
-/* #if defined(PASTIX_WITH_PARSEC) */
-/*     parsec_zhetrf, */
-/* #else */
+/* #if defined(PASTIX_WITH_PARSEC)
+    parsec_zhetrf,
+#else */
     NULL,
-/* #endif */
-/* #if defined(PASTIX_WITH_STARPU) */
-/*     starpu_zhetrf, */
-/* #else */
+/* #endif
+#if defined(PASTIX_WITH_STARPU)
+    starpu_zhetrf,
+#else */
     NULL,
 /* #endif */
     dynamic_zhetrf

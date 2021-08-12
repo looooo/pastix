@@ -684,6 +684,10 @@ core_zgemmsp_block_frfr(       pastix_trans_t      trans,
  *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
  *          cblk.stride -by- cblk.width
  *
+ * @param[in] lrC
+ *            Pointer to the low-rank representation of the block C.
+ *            Must be followed by the low-rank representation of the following blocks.
+ *
  * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
@@ -855,13 +859,16 @@ core_zgemmsp_block_frlr( pastix_trans_t            transB,
  *          fcblk[1].
  *
  * @param[inout] lrA
- *          The pointer on the low rank representation of the block A.
+ *          Pointer to the low-rank representation of the block A.
+ *          Must be followed by the low-rank representation of the following blocks.
  *
  * @param[inout] lrB
- *          The pointer on the low rank representation of the block B.
+ *          Pointer to the low-rank representation of the block B.
+ *          Must be followed by the low-rank representation of the following blocks.
  *
  * @param[inout] lrC
- *          The pointer on the low rank representation of the block C.
+ *          Pointer to the low-rank representation of the block C.
+ *          Must be followed by the low-rank representation of the following blocks.
  *
  * @param[in] lowrank
  *          The structure with low-rank parameters.
@@ -1019,7 +1026,8 @@ core_zgemmsp_block_lrlr( pastix_trans_t          transB,
  *          cblk.stride -by- cblk.width
  *
  * @param[in] lrC
- *          The pointer to low rank representation of C.
+ *          Pointer to the low-rank representation of the block C.
+ *          Must be followed by the low-rank representation of the following blocks.
  *
  * @param[in] work
  *          Temporary memory buffer.
@@ -1142,12 +1150,6 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
  *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
  *          to C.
  *
- * @param[in] sideB
- *          Specify if B belongs to the L part, or to the U part. this is used
- *          internally in the kernel to select the correct data pointer.
- *          If PastixLCoef, B belongs to the L part, otherwise B belongs to the
- *          U part.
- *
  * @param[in] trans
  *          Specify the transposition used for the B matrix. It has to be either
  *          PastixTrans or PastixConjTrans.
@@ -1165,6 +1167,18 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
  *          we compute the contributions. The C pointer must be one of the
  *          coeftab from this fcblk. Next column blok must be accessible through
  *          fcblk[1].
+ *
+ * @param[in] lrA
+ *            Pointer to the low-rank representation of the block A.
+ *            Must be followed by the low-rank representation of the following blocks.
+ *
+ * @param[in] lrB
+ *            Pointer to the low-rank representation of the block B.
+ *            Must be followed by the low-rank representation of the following blocks.
+ *
+ * @param[in] lrC
+ *            Pointer to the low-rank representation of the block B.
+ *            Must be followed by the low-rank representation of the following blocks.
  *
  * @param[in] work
  *          Temporary memory buffer.
@@ -1297,10 +1311,12 @@ core_zgemmsp_lr(       pastix_coefside_t   sideA,
  *          fcblk[1].
  *
  * @param[in] lrA
- *          The pointer to the low rank representation of A.
+ *          Pointer to the low-rank representation of the block A.
+ *            Must be followed by the low-rank representation of the following blocks.
  *
  * @param[in] lrB
- *          The pointer to the low rank representation of B.
+ *          Pointer to the low-rank representation of the block B.
+ *            Must be followed by the low-rank representation of the following blocks.
  *
  * @param[inout] C
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
@@ -1447,18 +1463,19 @@ core_zgemmsp_lrfr( pastix_coefside_t         sideA,
  *          fcblk[1].
  *
  * @param[in] A
- *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
- *          coefficients of the panel when the Lower part is computed,
- *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *          The pointer to the correct representation of A.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
- * @param[in] B The pointer to the coeftab of the cblk.lcoeftab matrix storing
- *          the coefficients of the panel, if Symmetric/Hermitian cases or if
- *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
- *          cblk.stride -by- cblk.width
+ * @param[in] B
+ *          The pointer to the correct representation of B.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  * @param[inout] C
- *          The pointer to the fcblk.lcoeftab if the lower part is computed,
- *          fcblk.ucoeftab otherwise.
+ *          The pointer to the correct representation of C.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  * @param[in] work
  *          Temporary memory buffer.
@@ -1597,18 +1614,18 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
  *          0-based for the diagonal block.
  *
  * @param[in] A
- *          The pointer to the correct representation of the data.
- *          - coeftab if the block is in full rank
+ *          The pointer to the correct representation of A.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
  *          - pastix_lr_block if the block is compressed.
  *
  * @param[in] B
-  *          The pointer to the correct representation of the data.
- *          - coeftab if the block is in full rank
+ *          The pointer to the correct representation of B.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
  *          - pastix_lr_block if the block is compressed.
  *
- * @param[inout] C
- *          The pointer to the correct representation of the data.
- *          - coeftab if the block is in full rank
+ * @param[in] C
+ *          The pointer to the correct representation of C.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
  *          - pastix_lr_block if the block is compressed.
  *
  * @param[in] lowrank

@@ -155,11 +155,15 @@ core_zscalo( pastix_trans_t            trans,
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[inout] LD
- *          The pointer to workspace of size cblk->stride - by -
- *          cblk_colnbr(cblk) that will store L * D on exit, where L is the
- *          lower coeftab array and D the diagonal matrix taken from the
- *          diagonal of the diagonal block.
+ * @param[inout] dataL
+ *          The pointer to the correct representation of lower part of the data.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
+ *
+ * @param[inout] dataLD
+ *          The pointer to the correct representation of LD.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  *******************************************************************************/
 void
@@ -291,19 +295,20 @@ cpucblk_zscalo( pastix_trans_t      trans,
  *          Index of the off-diagonal block to be solved in the cblk. All blocks
  *          facing the same cblk, in the current column block will be solved.
  *
- * @param[in] A
- *          The pointer to the A matrix of size blok_rownbr( blok ) - by -
- *          cblk_colnbr( cblk ) that stores L, where L is the
- *          lower coeftab array.
+ * @param[in] dataA
+ *          The pointer to the correct representation of data of A.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
- * @param[in] D
- *          The pointer to the diagonal matrix D size cblk_colnbr(cblk) - by -
- *          cblk_colnbr(cblk). D is usually the diagonal matrix taken from the
- *          diagonal of the diagonal block.
+ * @param[in] dataD
+ *          The pointer to the correct representation of data of D.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
- * @param[inout] B
- *          The pointer to the B matrix of size blok_rownbr( blok ) - by -
- *          cblk_colnbr( cblk ) that will holds the result op(A) * D on exit.
+ * @param[inout] dataB
+ *          The pointer to the correct representation of data of B.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  *******************************************************************************/
 void

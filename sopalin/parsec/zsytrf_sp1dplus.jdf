@@ -239,7 +239,7 @@ BODY
                     work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
                 }
 
-                cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
+                cpucblk_zgemmsp( PastixLCoef, PastixTrans,
                                  lcblk, blok, fcblk,
                                  A, ((pastix_complex64_t*)B) - N*N, C,
                                  work, lwork, &lowrank );

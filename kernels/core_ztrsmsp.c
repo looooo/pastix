@@ -213,8 +213,16 @@ core_ztrsmsp_2d( pastix_side_t             side,
  *          must be the coeftab of this column block.
  *          Next column blok must be accessible through cblk[1].
  *
- * @param[in] solvmtx
- *          The symbolic structure of pastix.
+ * @param[in] lrA
+ *          Pointer to the low-rank representation of the block A.
+ *          Must be followed by the low-rank representation of the following blocks.
+ *
+ * @param[in] lrC
+ *          Pointer to the low-rank representation of the block C.
+ *          Must be followed by the low-rank representation of the following blocks.
+ *
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
  *
  *******************************************************************************
  *
@@ -309,9 +317,6 @@ core_ztrsmsp_lr( pastix_side_t           side,
  *
  *******************************************************************************
  *
- * @param[in] coef
- *          Specify whether we work with the lower matrix, or the upper matrix.
- *
  * @param[in] side
  *          Specify whether the A matrix appears on the left or right in the
  *          equation. It has to be either PastixLeft or PastixRight.
@@ -334,16 +339,17 @@ core_ztrsmsp_lr( pastix_side_t           side,
  *          Next column blok must be accessible through cblk[1].
  *
  * @param[in] A
- *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
- *          coefficients of the panel when the Lower part is computed,
- *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *          The pointer to the correct representation of A.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  * @param[inout] C
- *          The pointer to the fcblk.lcoeftab if the lower part is computed,
- *          fcblk.ucoeftab otherwise.
+ *          The pointer to the correct representation of C.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
- * @param[in] solvmtx
- *          The symbolic structure of pastix.
+ * @param[in] lowrank
+ *          The structure with low-rank parameters.
  *
  *******************************************************************************/
 void
@@ -525,10 +531,12 @@ core_ztrsmsp_2dsub( pastix_side_t             side,
  *          same diagonal block
  *
  * @param[in] lrA
- *          Low-rank structure of the diagonal block.
+ *          Pointer to the low-rank representation of the block A.
+ *          Must be followed by the low-rank representation of the following blocks.
  *
  * @param[inout] lrC
- *          Low-rank structure of the block to solve.
+ *          Pointer to the low-rank representation of the block C.
+ *          Must be followed by the low-rank representation of the following blocks.
  *
  * @param[in] lowrank
  *          The structure with low-rank parameters.
@@ -657,13 +665,14 @@ core_ztrsmsp_lrsub( pastix_side_t           side,
  *          same diagonal block
  *
  * @param[in] A
- *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
- *          coefficients of the panel when the Lower part is computed,
- *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *          The pointer to the correct representation of A.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  * @param[inout] C
- *          The pointer to the fcblk.lcoeftab if the lower part is computed,
- *          fcblk.ucoeftab otherwise.
+ *          The pointer to the correct representation of C.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  * @param[in] lowrank
  *          The structure with low-rank parameters.

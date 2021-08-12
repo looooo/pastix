@@ -217,9 +217,10 @@ core_zsytrfsp( pastix_int_t        n,
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[inout] L
- *          The pointer to the matrix storing the coefficients of the
- *          panel. Must be of size cblk.stride -by- cblk.width
+ * @param[inout] dataL
+ *          The pointer to the correct representation of lower part of the data.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  *******************************************************************************
  *
@@ -445,7 +446,7 @@ cpucblk_zsytrfsp1d_panel( SolverMatrix *solvmtx,
 
     if ( (DLt != NULL) && (cblk->cblktype & CBLK_LAYOUT_2D) ) {
 
-        /*Copy L into the temporary buffer and multiply by D */
+        /* Copy L into the temporary buffer and multiply by D */
         cpucblk_zscalo( PastixNoTrans, cblk, L, DLt );
     }
     return nbpivots;

@@ -37,10 +37,6 @@ static pastix_complex64_t mzone = -1.0;
  *
  *******************************************************************************
  *
- * @param[in] coefside
- *          Specify whether the computation are made with the L part, or the U
- *          part of A. It has to be either PastixLCoef, or PastixUCoef.
- *
  * @param[in] side
  *          Specify the side parameter of the TRSM.
  *
@@ -56,6 +52,11 @@ static pastix_complex64_t mzone = -1.0;
  *
  * @param[in] cblk
  *          The cblk structure that corresponds to the A and B matrix.
+ *
+ * @param[in] dataA
+ *          The pointer to the correct representation of the data of A.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  * @param[inout] B
  *          The pointer to the matrix B, that is a portion of the right hand
@@ -107,11 +108,7 @@ solve_blok_ztrsm( pastix_side_t       side,
  * @brief Apply a solve gemm update related to a single block of the matrix A.
  *
  *******************************************************************************
- *
- * @param[in] coefside
- *          Specify whether the computation are made with the L part, or the U
- *          part of A. It has to be either PastixLCoef, or PastixUCoef.
- *
+ * 
  * @param[in] side
  *          Specify whether the blok parameter belongs to cblk (PastixLeft), or
  *          to fcbk (PastixRight).
@@ -136,6 +133,11 @@ solve_blok_ztrsm( pastix_side_t       side,
  *
  * @param[inout] fcbk
  *          The cblk structure that corresponds to the C matrix.
+ *
+ * @param[in] dataA
+ *          The pointer to the correct representation of the data of A.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  * @param[in] B
  *          The pointer to the matrix B, that is a portion of the right hand

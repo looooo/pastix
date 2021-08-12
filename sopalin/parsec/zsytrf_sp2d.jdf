@@ -260,7 +260,7 @@ BODY
                 work = (pastix_complex64_t *)parsec_private_memory_pop( p_work );
             }
 
-            cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
+            cpucblk_zgemmsp( PastixLCoef, PastixTrans,
                              lcblk, blok, fcblk,
                              A, ((pastix_complex64_t*)B) - N*N, C,
                              work, lwork, &lowrank );
@@ -447,13 +447,11 @@ BODY
         SolverCblk *cblk = datacode->cblktab + k;
 
         if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
-            cpublok_ztrsmsp( /*PastixLCoef,*/ PastixRight, PastixUpper,
+            cpublok_ztrsmsp( PastixRight, PastixUpper,
                              PastixNoTrans, PastixNonUnit,
                              cblk, m, A, C, &lowrank );
 
-            cpublok_zscalo( PastixTrans, cblk, m, C, A,
-                            cblk->cblktype & CBLK_COMPRESSED ? cblk->fblokptr->LRblock[1] : WS,
-                            WS );
+            cpublok_zscalo( PastixTrans, cblk, m, C, A, WS );
         }
     }
 }
@@ -669,7 +667,7 @@ BODY
         pastix_int_t nk = blok_nk - fblokk;
 
         if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
-            cpublok_zgemmsp( /*PastixLCoef, PastixUCoef, */ PastixTrans,
+            cpublok_zgemmsp( PastixTrans,
                              cblk, fcblk, blok_mk, nk, blok_mn,
                              A, B, C, &lowrank );
         }

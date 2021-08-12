@@ -140,17 +140,12 @@ starpu_stask_blok_zgemm( sopalin_data_t   *sopalin_data,
     struct starpu_codelet *codelet = &cl_solve_blok_zgemm_cpu;
     starpu_data_handle_t   handle;
 
-    /* if ( cblk->cblktype & CBLK_TASKS_2D ) { */
-    /*     handle = blok->handler[coef]; */
-    /* } */
-    /* else { */
     if ( side == PastixRight ) {
         handle = fcbk->handler[coef];
     }
     else {
         handle = cblk->handler[coef];
     }
-    /* } */
 
     starpu_insert_task(
         pastix_codelet(codelet),
