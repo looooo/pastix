@@ -47,6 +47,101 @@
  *
  *******************************************************************************/
 void
+cpublok_zalloc_lrws( const SolverCblk   *cblk,
+                     const SolverBlok   *blok,
+                     pastix_lrblock_t   *lrblok,
+                     pastix_complex64_t *ws )
+{
+    SolverBlok  *lblok   = cblk[1].fblokptr;
+    pastix_int_t fcblknm = blok->fcblknm;
+    pastix_int_t ncols   = cblk_colnbr( cblk );
+
+    /* H then split */
+    assert( cblk->cblktype & CBLK_LAYOUT_2D );
+    assert( lrblok != NULL );
+
+    for (; (blok < lblok) && (blok->fcblknm == fcblknm); blok++, lrblok++)
+    {
+        pastix_int_t nrows = blok_rownbr( blok );
+        lrblok->rk    = -1;
+        lrblok->rkmax = nrows;
+        lrblok->u     = ws;
+        lrblok->v     = NULL;
+
+        ws += nrows * ncols;
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Allocate the cblk structure to store the coefficient
+ *
+ * When stored in low-rank format, the data pointer in the low-rank structure of
+ * each block must be initialized.
+ * This routines performs only the allocation and is thread-safe if called in
+ * parallel on the Lower and upper part.
+ *
+ *******************************************************************************
+ *
+ * @param[in] side
+ *          Define which side of the matrix must be initialized.
+ *          @arg PastixLCoef if lower part only
+ *          @arg PastixUCoef if upper part only
+ *          @arg PastixLUCoef if both sides.
+ *
+ * @param[inout] cblk
+ *          The column block to allocate.
+ *
+ *******************************************************************************/
+void
+cpucblk_zalloc_lrws( const SolverCblk   *cblk,
+                     pastix_lrblock_t   *lrblok,
+                     pastix_complex64_t *ws )
+{
+    pastix_int_t      ncols = cblk_colnbr( cblk );
+    const SolverBlok *blok  = cblk[0].fblokptr;
+    const SolverBlok *lblok = cblk[1].fblokptr;
+
+    /* H then split */
+    assert( cblk->cblktype & CBLK_LAYOUT_2D );
+    assert( lrblok != NULL );
+
+    for (; blok<lblok; blok++, lrblok++)
+    {
+        pastix_int_t nrows = blok_rownbr( blok );
+        lrblok->rk    = -1;
+        lrblok->rkmax = nrows;
+        lrblok->u     = ws;
+        lrblok->v     = NULL;
+
+        ws += nrows * ncols;
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Allocate the cblk structure to store the coefficient
+ *
+ * When stored in low-rank format, the data pointer in the low-rank structure of
+ * each block must be initialized.
+ * This routines performs only the allocation and is thread-safe if called in
+ * parallel on the Lower and upper part.
+ *
+ *******************************************************************************
+ *
+ * @param[in] side
+ *          Define which side of the matrix must be initialized.
+ *          @arg PastixLCoef if lower part only
+ *          @arg PastixUCoef if upper part only
+ *          @arg PastixLUCoef if both sides.
+ *
+ * @param[inout] cblk
+ *          The column block to allocate.
+ *
+ *******************************************************************************/
+void
 cpucblk_zalloc_lr( pastix_coefside_t  side,
                    SolverCblk        *cblk,
                    int                rkmax )
