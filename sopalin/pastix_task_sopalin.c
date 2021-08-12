@@ -270,7 +270,8 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
 #if defined(PASTIX_WITH_MPI)
     if ( ( pastix_data->iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever ) &&
          ( ( pastix_data->iparm[IPARM_SCHEDULER] == PastixSchedParsec ) ||
-           ( pastix_data->iparm[IPARM_SCHEDULER] == PastixSchedStarPU ) ) )
+           ( pastix_data->iparm[IPARM_SCHEDULER] == PastixSchedStarPU ) )   &&
+         ( pastix_data->procnbr > 1 ) )
     {
         errorPrint( "pastix_task_sopalin: Low-Rank with MPI communication is not available yet with runtime" );
         return PASTIX_ERR_BADPARAMETER;
