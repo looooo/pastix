@@ -52,9 +52,8 @@ struct cl_cblk_zgemmsp_args_s {
 
 static struct starpu_perfmodel starpu_cblk_zgemmsp_model =
 {
-    .type = STARPU_PER_ARCH,
+    .type = STARPU_HISTORY_BASED,
     .symbol = "cblk_zgemmsp",
-    .arch_cost_function = cblk_gemmsp_cost,
 };
 
 
@@ -194,9 +193,8 @@ struct cl_blok_zgemmsp_args_s {
 
 static struct starpu_perfmodel starpu_blok_zgemmsp_model =
 {
-    .type = STARPU_PER_ARCH,
+    .type = STARPU_HISTORY_BASED,
     .symbol = "blok_zgemmsp",
-    .arch_cost_function = blok_gemmsp_cost,
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)

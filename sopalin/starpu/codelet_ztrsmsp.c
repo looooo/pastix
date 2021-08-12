@@ -52,9 +52,8 @@ struct cl_blok_ztrsmsp_args_s {
 
 static struct starpu_perfmodel starpu_blok_ztrsmsp_model =
 {
-    .type = STARPU_PER_ARCH,
+    .type = STARPU_HISTORY_BASED,
     .symbol = "blok_ztrsmsp",
-    .arch_cost_function = blok_trsmsp_cost,
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
