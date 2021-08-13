@@ -52,7 +52,12 @@ struct cl_blok_ztrsmsp_args_s {
 
 static struct starpu_perfmodel starpu_blok_ztrsmsp_model =
 {
+#if defined(PASTIX_STARPU_COST_PER_ARCH)
+    .type = STARPU_PER_ARCH,
+    .arch_cost_function = cblk_gemmsp_cost,
+#else
     .type = STARPU_HISTORY_BASED,
+#endif
     .symbol = "blok_ztrsmsp",
 };
 

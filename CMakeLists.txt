@@ -138,6 +138,9 @@ option(PASTIX_WITH_STARPU
 cmake_dependent_option(PASTIX_STARPU_PROFILING
     "Enable kernel profiling depending on worker" OFF "PASTIX_WITH_STARPU" OFF)
 
+cmake_dependent_option(PASTIX_STARPU_COST_PER_ARCH
+    "Enable kernel perfmodel to depend on cost function" OFF "PASTIX_WITH_STARPU" OFF)
+
 cmake_dependent_option(PASTIX_STARPU_HETEROPRIO
     "Enable heteroprio scheduling with GPU instead of dmdas" OFF "PASTIX_WITH_STARPU" OFF)
 
