@@ -265,7 +265,7 @@ starpu_sparse_matrix_init( SolverMatrix *solvmtx,
                            (blok[0].lcblknm == blok[1].lcblknm) )
                     {
                         blok++;
-                        nbrow ++;
+                        nbrow++;
                     }
                     size = nbrow;
 
