@@ -541,7 +541,6 @@ pastix_parsec_register_cblk_fr( parsec_data_collection_t          *o,
     size_t size    = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
 
     parsec_data_create( handler, o, id, dataptr, size );
-    assert(cblk->handler[side]);
 }
 
 static inline void
@@ -566,6 +565,9 @@ pastix_parsec_register_cblk( parsec_data_collection_t          *o,
                 o, handler + 1, cblknum * 2 + 1, spmtx, cblk, PastixUCoef );
         }
     }
+
+    assert(cblk->handler[0]);
+    assert(cblk->handler[1] || ( spmtx->mtxtype != PastixGeneral ));
 }
 
 /**
@@ -669,7 +671,7 @@ parsec_sparse_matrix_init( SolverMatrix *solvmtx,
             continue;
         }
 
-        pastix_parsec_register_cblk(o, cblknum, spmtx, cblk);
+        pastix_parsec_register_cblk( o, cblknum, spmtx, cblk );
 
         if ( !(cblk->cblktype & CBLK_TASKS_2D) ) {
             continue;
@@ -679,23 +681,20 @@ parsec_sparse_matrix_init( SolverMatrix *solvmtx,
             /*
              * Diagonal block
              */
-            dataptrL   = cblk->fblokptr->LRblock[0];
-            dataptrU   = cblk->fblokptr->LRblock[1];
-            blok   = cblk->fblokptr;
-            size   = sizeof( pastix_lrblock_t );
-            offset = blok->coefind;
-            key2   = n * ld;
+            dataptrL = cblk->fblokptr->LRblock[0];
+            dataptrU = cblk->fblokptr->LRblock[1];
+            blok     = cblk->fblokptr;
+            size     = sizeof( pastix_lrblock_t );
+            offset   = 0;
+            key2     = n * ld;
 
             assert( offset == 0 );
-            parsec_data_create(
-                (parsec_data_t **)&( blok->handler[0] ), o, key1 + key2, dataptrL + offset, size );
+            parsec_data_create( (parsec_data_t **)&( blok->handler[0] ),
+                                o, key1 + key2, dataptrL + offset, size );
 
             if ( mtxtype == PastixGeneral ) {
                 parsec_data_create( (parsec_data_t **)&( blok->handler[1] ),
-                                    o,
-                                    key1 + key2 + 1,
-                                    dataptrU + offset,
-                                    size );
+                                    o, key1 + key2 + 1, dataptrU + offset, size );
             }
             else {
                 blok->handler[1] = NULL;
@@ -711,29 +710,28 @@ parsec_sparse_matrix_init( SolverMatrix *solvmtx,
                 fblok  = blok;
                 m      = 0;
                 size   = blok_rownbr( blok );
-                offset = blok->coefind;
-                nbrow = 1;
+                offset = blok - cblk->fblokptr;
+                nbrow  = 1;
 
                 while ( ( blok < lblok ) && ( blok[0].fcblknm == blok[1].fcblknm ) &&
                         ( blok[0].lcblknm == blok[1].lcblknm ) ) {
                     blok++;
                     m++;
-                    nbrow ++;
+                    nbrow++;
                 }
-
                 size = nbrow;
 
                 parsec_data_create( (parsec_data_t **)&( fblok->handler[0] ),
                                     &spmtx->super,
                                     key1 + key2,
-                                    ptrL + offset,
+                                    dataptrL + offset,
                                     size );
 
                 if ( mtxtype == PastixGeneral ) {
                     parsec_data_create( (parsec_data_t **)&( fblok->handler[1] ),
                                         &spmtx->super,
                                         key1 + key2 + 1,
-                                        ptrU + offset,
+                                        dataptrU + offset,
                                         size );
                 }
                 else {
@@ -781,8 +779,10 @@ parsec_sparse_matrix_init( SolverMatrix *solvmtx,
                 size   = blok_rownbr( blok );
                 offset = blok->coefind * (size_t)spmtx->typesze;
 
-                while ( ( blok < lblok ) && ( blok[0].fcblknm == blok[1].fcblknm ) &&
-                        ( blok[0].lcblknm == blok[1].lcblknm ) ) {
+                while ( ( blok < lblok ) &&
+                        ( blok[0].fcblknm == blok[1].fcblknm ) &&
+                        ( blok[0].lcblknm == blok[1].lcblknm ) )
+                {
                     blok++;
                     m++;
                     size += blok_rownbr( blok );
