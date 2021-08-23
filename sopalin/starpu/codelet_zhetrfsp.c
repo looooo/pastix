@@ -31,30 +31,41 @@
 /**
  * Cblk version
  */
+#if defined( PASTIX_STARPU_PROFILING )
+measure_t cblk_zhetrfsp_perf[STARPU_NMAXWORKERS];
+#endif
+
+struct cl_cblk_zhetrfsp_args_s {
+    profile_data_t  profile_data;
+    SolverMatrix   *solvmtx;
+    SolverCblk     *cblk;
+};
+
 static struct starpu_perfmodel starpu_cblk_zhetrfsp1d_panel_model =
 {
+#if defined(PASTIX_STARPU_COST_PER_ARCH)
     .type = STARPU_PER_ARCH,
-    .symbol = "cblk_zhetrf",
     .arch_cost_function = cblk_hetrf_cost,
+#else
+    .type = STARPU_HISTORY_BASED,
+#endif
+    .symbol = "cblk_zhetrf",
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void fct_cblk_zhetrfsp1d_panel_cpu(void *descr[], void *cl_arg)
 {
-    sopalin_data_t *sopalin_data;
-    SolverMatrix   *solvmtx;
-    SolverCblk     *cblk;
-    pastix_complex64_t *L;
-    pastix_complex64_t *DL;
-    int nbpivot;
+    SolverMatrix                   *solvmtx;
+    pastix_complex64_t             *L;
+    pastix_complex64_t             *DL;
+    int                             nbpivot;
+    struct cl_cblk_zhetrfsp_args_s *args = (struct cl_cblk_zhetrfsp_args_s *)cl_arg;
 
     L  = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
     DL = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-    starpu_codelet_unpack_args( cl_arg, &sopalin_data, &cblk );
-
-    solvmtx = sopalin_data->solvmtx;
-    nbpivot = cpucblk_zhetrfsp1d_panel( solvmtx, cblk, L, DL );
+    solvmtx = args->solvmtx;
+    nbpivot = cpucblk_zhetrfsp1d_panel( solvmtx, args->cblk, L, DL );
 
     (void)nbpivot;
 }
@@ -67,6 +78,7 @@ starpu_task_cblk_zhetrfsp1d_panel( sopalin_data_t *sopalin_data,
                                    SolverCblk     *cblk,
                                    int             prio )
 {
+    struct cl_cblk_zhetrfsp_args_s *cl_arg;
     starpu_data_handle_t *handler = (starpu_data_handle_t*)(cblk->handler);
     pastix_int_t N = cblk_colnbr( cblk );
     pastix_int_t M = cblk->stride;
@@ -91,47 +103,72 @@ starpu_task_cblk_zhetrfsp1d_panel( sopalin_data_t *sopalin_data,
     }
 #endif /* PASTIX_WITH_MPI */
 
+    /*
+     * Create the arguments array
+     */
+    cl_arg                        = malloc( sizeof(struct cl_cblk_zhetrfsp_args_s) );
+    cl_arg->solvmtx               = sopalin_data->solvmtx;
+#if defined(PASTIX_STARPU_PROFILING)
+    cl_arg->profile_data.measures = cblk_zhetrfsp_perf;
+    cl_arg->profile_data.flops    = NAN;
+#endif
+    cl_arg->cblk                  = cblk;
+
     starpu_insert_task(
         pastix_codelet(&cl_cblk_zhetrfsp1d_panel_cpu),
-        STARPU_VALUE,   &sopalin_data, sizeof(sopalin_data_t*),
-        STARPU_VALUE,   &cblk,         sizeof(SolverCblk*),
-        STARPU_RW,       cblk->handler[0],
-        STARPU_W,        cblk->handler[1],
+        STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_cblk_zhetrfsp_args_s ),
+#if defined(PASTIX_STARPU_PROFILING)
+        STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
+#endif
+        STARPU_RW,                      cblk->handler[0],
+        STARPU_W,                       cblk->handler[1],
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, BucketFacto1D,
+        STARPU_PRIORITY,                BucketFacto1D,
 #else
-        STARPU_PRIORITY, prio,
+        STARPU_PRIORITY,                prio,
 #endif
         0);
+    (void) prio;
 }
 
 /**
  * Blok version
  */
+#if defined( PASTIX_STARPU_PROFILING )
+measure_t blok_zhetrfsp_perf[STARPU_NMAXWORKERS];
+#endif
+
+struct cl_blok_zhetrfsp_args_s {
+    profile_data_t  profile_data;
+    SolverMatrix   *solvmtx;
+    SolverCblk     *cblk;
+};
+
 static struct starpu_perfmodel starpu_blok_zhetrfsp_model =
 {
+#if defined(PASTIX_STARPU_COST_PER_ARCH)
     .type = STARPU_PER_ARCH,
-    .symbol = "blok_zhetrfsp",
     .arch_cost_function = blok_hetrf_cost,
+#else
+    .type = STARPU_HISTORY_BASED,
+#endif
+    .symbol = "blok_zhetrfsp",
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void fct_blok_zhetrfsp_cpu(void *descr[], void *cl_arg)
 {
-    sopalin_data_t *sopalin_data;
-    SolverMatrix   *solvmtx;
-    SolverCblk     *cblk;
-    pastix_complex64_t *L;
-    int nbpivot;
+    SolverMatrix                   *solvmtx;
+    pastix_complex64_t             *L;
+    int                             nbpivot;
+    struct cl_blok_zhetrfsp_args_s *args = (struct cl_blok_zhetrfsp_args_s *)cl_arg;
 
     L = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-    starpu_codelet_unpack_args( cl_arg, &sopalin_data, &cblk );
+    assert(args->cblk->cblktype & CBLK_TASKS_2D);
 
-    assert(cblk->cblktype & CBLK_TASKS_2D);
-
-    solvmtx = sopalin_data->solvmtx;
-    nbpivot = cpucblk_zhetrfsp1d_hetrf( solvmtx, cblk, L );
+    solvmtx = args->solvmtx;
+    nbpivot = cpucblk_zhetrfsp1d_hetrf( solvmtx, args->cblk, L );
 
     (void)nbpivot;
 }
@@ -144,10 +181,25 @@ starpu_task_blok_zhetrf( sopalin_data_t *sopalin_data,
                          SolverCblk     *cblk,
                          int             prio )
 {
+    struct cl_blok_zhetrfsp_args_s *cl_arg;
+
+    /*
+    * Create the arguments array
+    */
+    cl_arg                        = malloc( sizeof(struct cl_blok_zhetrfsp_args_s) );
+    cl_arg->solvmtx               = sopalin_data->solvmtx;
+#if defined(PASTIX_STARPU_PROFILING)
+    cl_arg->profile_data.measures = blok_zhetrfsp_perf;
+    cl_arg->profile_data.flops    = NAN;
+#endif
+    cl_arg->cblk                  = cblk;
+
     starpu_insert_task(
         pastix_codelet(&cl_blok_zhetrfsp_cpu),
-        STARPU_VALUE,   &sopalin_data, sizeof(sopalin_data_t*),
-        STARPU_VALUE,   &cblk,         sizeof(SolverCblk*),
+        STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_blok_zhetrfsp_args_s ),
+#if defined(PASTIX_STARPU_PROFILING)
+        STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
+#endif
         STARPU_RW,       cblk->fblokptr->handler[0],
 #if defined(PASTIX_STARPU_HETEROPRIO)
         STARPU_PRIORITY, BucketFacto2D,
@@ -155,6 +207,7 @@ starpu_task_blok_zhetrf( sopalin_data_t *sopalin_data,
         STARPU_PRIORITY, prio,
 #endif
         0);
+    (void) prio;
 }
 
 /**
