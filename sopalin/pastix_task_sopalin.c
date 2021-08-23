@@ -121,6 +121,15 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
     {
         pastix_int_t isched = pastix_data->iparm[IPARM_SCHEDULER];
 
+        /*
+         * Temporary disable LDL[th] factorization with runtime
+         */
+        if ( ( isSchedRuntime( isched ) ) &&
+             ( ( pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLDLH ) ||
+               ( pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLDLT ) ) ) {
+            isched = PastixSchedDynamic;
+        }
+
         if ( isSchedRuntime( isched ) ) {
             pastix_data->solvmatr = pastix_data->solvglob;
         }
