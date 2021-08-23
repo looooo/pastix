@@ -516,6 +516,60 @@ parsec_sparse_matrix_destroy_fermi( parsec_sparse_matrix_desc_t *spmtx )
 }
 #endif /*defined(PASTIX_CUDA_FERMI)*/
 
+static inline void
+pastix_parsec_register_cblk_lr( parsec_data_collection_t          *o,
+                                parsec_data_t                    **handler,
+                                pastix_int_t                       id,
+                                const SolverCblk                  *cblk,
+                                int                                side )
+{
+    pastix_lrblock_t *dataptr = cblk->fblokptr->LRblock[side];
+    size_t            size = ( cblk[1].fblokptr - cblk[0].fblokptr ) * sizeof( pastix_lrblock_t );
+
+    parsec_data_create( handler, o, id, dataptr, size );
+}
+
+static inline void
+pastix_parsec_register_cblk_fr( parsec_data_collection_t          *o,
+                                parsec_data_t                    **handler,
+                                pastix_int_t                       id,
+                                const parsec_sparse_matrix_desc_t *spmtx,
+                                const SolverCblk                  *cblk,
+                                int                                side )
+{
+    void  *dataptr = ( side == PastixUCoef ) ? cblk->ucoeftab : cblk->lcoeftab;
+    size_t size    = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
+
+    parsec_data_create( handler, o, id, dataptr, size );
+}
+
+static inline void
+pastix_parsec_register_cblk( parsec_data_collection_t          *o,
+                             pastix_int_t                       cblknum,
+                             const parsec_sparse_matrix_desc_t *spmtx,
+                             const SolverCblk                  *cblk )
+{
+    parsec_data_t **handler = (parsec_data_t **)( cblk->handler );
+
+    if ( cblk->cblktype & CBLK_COMPRESSED ) {
+        pastix_parsec_register_cblk_lr( o, handler, cblknum * 2, cblk, PastixLCoef );
+
+        if ( spmtx->mtxtype == PastixGeneral ) {
+            pastix_parsec_register_cblk_lr( o, handler + 1, cblknum * 2 + 1, cblk, PastixUCoef );
+        }
+    }
+    else {
+        pastix_parsec_register_cblk_fr( o, handler, cblknum * 2, spmtx, cblk, PastixLCoef );
+        if ( spmtx->mtxtype == PastixGeneral ) {
+            pastix_parsec_register_cblk_fr(
+                o, handler + 1, cblknum * 2 + 1, spmtx, cblk, PastixUCoef );
+        }
+    }
+
+    assert(cblk->handler[0]);
+    assert(cblk->handler[1] || ( spmtx->mtxtype != PastixGeneral ));
+}
+
 /**
  *******************************************************************************
  *
@@ -558,9 +612,10 @@ parsec_sparse_matrix_init( SolverMatrix *solvmtx,
     parsec_data_key_t key1, key2;
     SolverCblk *cblk;
     SolverBlok *blok, *fblok, *lblok;
-    pastix_int_t m=0, n=0, cblknum;
+    pastix_int_t m=0, n=0, cblknum, nbrow;
     size_t size, offset;
     char *ptrL, *ptrU;
+    pastix_lrblock_t *dataptrL, *dataptrU;
 
     if ( spmtx != NULL ) {
         parsec_sparse_matrix_destroy( spmtx );
@@ -599,18 +654,10 @@ parsec_sparse_matrix_init( SolverMatrix *solvmtx,
         cblknum < cblkmin2d;
         cblknum++, n++, cblk++ )
     {
-        parsec_data_t **handler = (parsec_data_t**)(cblk->handler);
-        size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
-
         if ( cblk->ownerid != myrank ) {
             continue;
-        }
-        parsec_data_create( handler,
-                            o, cblknum * 2, cblk->lcoeftab, size );
-
-        if ( mtxtype == PastixGeneral ) {
-            parsec_data_create( handler+1,
-                                o, cblknum * 2 + 1, cblk->ucoeftab, size );
+        } else {
+            pastix_parsec_register_cblk( o, cblknum, spmtx, cblk );
         }
     }
 
@@ -620,89 +667,151 @@ parsec_sparse_matrix_init( SolverMatrix *solvmtx,
         cblknum < cblknbr;
         cblknum++, n++, cblk++ )
     {
-        parsec_data_t **handler = (parsec_data_t**)(cblk->handler);
-        size = (size_t)cblk->stride * (size_t)cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
-
         if ( cblk->ownerid != myrank ) {
             continue;
         }
 
-        parsec_data_create( handler,
-                            o, cblknum * 2, cblk->lcoeftab, size );
-
-        if ( mtxtype == PastixGeneral ) {
-            parsec_data_create( handler+1,
-                                o, cblknum * 2 + 1, cblk->ucoeftab, size );
-        }
+        pastix_parsec_register_cblk( o, cblknum, spmtx, cblk );
 
         if ( !(cblk->cblktype & CBLK_TASKS_2D) ) {
             continue;
         }
 
-        /*
-         * Diagonal block
-         */
-        ptrL   = cblk->lcoeftab;
-        ptrU   = cblk->ucoeftab;
-        blok   = cblk->fblokptr;
-        size   = blok_rownbr( blok ) * cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
-        offset = blok->coefind * (size_t)spmtx->typesze;
-        key2   = n * ld;
+        if ( cblk->cblktype & CBLK_COMPRESSED ) {
+            /*
+             * Diagonal block
+             */
+            dataptrL = cblk->fblokptr->LRblock[0];
+            dataptrU = cblk->fblokptr->LRblock[1];
+            blok     = cblk->fblokptr;
+            size     = sizeof( pastix_lrblock_t );
+            offset   = 0;
+            key2     = n * ld;
 
-        assert(offset == 0);
-        parsec_data_create( (parsec_data_t**)&(blok->handler[0]),
-                            o, key1 + key2,
-                            ptrL + offset, size );
-
-        if ( mtxtype == PastixGeneral ) {
-            parsec_data_create( (parsec_data_t**)&(blok->handler[1]),
-                                o, key1 + key2 + 1,
-                                ptrU + offset, size );
-        }
-        else {
-            blok->handler[1] = NULL;
-        }
-
-        /*
-         * Off-diagonal blocks
-         */
-        blok++; key2 += 2;
-        lblok = cblk[1].fblokptr;
-        for( ; blok < lblok; blok++, key2+=2 )
-        {
-            fblok = blok;
-            m = 0;
-            size   = blok_rownbr( blok );
-            offset = blok->coefind * (size_t)spmtx->typesze;
-
-            while( (blok < lblok) &&
-                   (blok[0].fcblknm == blok[1].fcblknm) &&
-                   (blok[0].lcblknm == blok[1].lcblknm) )
-            {
-                blok++; m++;
-                size += blok_rownbr( blok );
-            }
-            size *= cblk_colnbr( cblk )
-                *  (size_t)spmtx->typesze;
-
-            parsec_data_create( (parsec_data_t**)&(fblok->handler[0]),
-                                &spmtx->super, key1 + key2,
-                                ptrL + offset, size );
+            assert( offset == 0 );
+            parsec_data_create( (parsec_data_t **)&( blok->handler[0] ),
+                                o, key1 + key2, dataptrL + offset, size );
 
             if ( mtxtype == PastixGeneral ) {
-                parsec_data_create( (parsec_data_t**)&(fblok->handler[1]),
-                                    &spmtx->super, key1 + key2 + 1,
-                                    ptrU + offset, size );
+                parsec_data_create( (parsec_data_t **)&( blok->handler[1] ),
+                                    o, key1 + key2 + 1, dataptrU + offset, size );
             }
             else {
-                fblok->handler[1] = NULL;
+                blok->handler[1] = NULL;
             }
 
-            key2 += m * 2;
+            /*
+             * Off-diagonal blocks
+             */
+            blok++;
+            key2 += 2;
+            lblok = cblk[1].fblokptr;
+            for ( ; blok < lblok; blok++, key2 += 2 ) {
+                fblok  = blok;
+                m      = 0;
+                size   = blok_rownbr( blok );
+                offset = blok - cblk->fblokptr;
+                nbrow  = 1;
+
+                while ( ( blok < lblok ) && ( blok[0].fcblknm == blok[1].fcblknm ) &&
+                        ( blok[0].lcblknm == blok[1].lcblknm ) ) {
+                    blok++;
+                    m++;
+                    nbrow++;
+                }
+                size = nbrow;
+
+                parsec_data_create( (parsec_data_t **)&( fblok->handler[0] ),
+                                    &spmtx->super,
+                                    key1 + key2,
+                                    dataptrL + offset,
+                                    size );
+
+                if ( mtxtype == PastixGeneral ) {
+                    parsec_data_create( (parsec_data_t **)&( fblok->handler[1] ),
+                                        &spmtx->super,
+                                        key1 + key2 + 1,
+                                        dataptrU + offset,
+                                        size );
+                }
+                else {
+                    fblok->handler[1] = NULL;
+                }
+
+                key2 += m * 2;
+            }
+        }
+        else {
+            /*
+             * Diagonal block
+             */
+            ptrL   = cblk->lcoeftab;
+            ptrU   = cblk->ucoeftab;
+            blok   = cblk->fblokptr;
+            size   = blok_rownbr( blok ) * cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
+            offset = blok->coefind * (size_t)spmtx->typesze;
+            key2   = n * ld;
+
+            assert( offset == 0 );
+            parsec_data_create(
+                (parsec_data_t **)&( blok->handler[0] ), o, key1 + key2, ptrL + offset, size );
+
+            if ( mtxtype == PastixGeneral ) {
+                parsec_data_create( (parsec_data_t **)&( blok->handler[1] ),
+                                    o,
+                                    key1 + key2 + 1,
+                                    ptrU + offset,
+                                    size );
+            }
+            else {
+                blok->handler[1] = NULL;
+            }
+
+            /*
+             * Off-diagonal blocks
+             */
+            blok++;
+            key2 += 2;
+            lblok = cblk[1].fblokptr;
+            for ( ; blok < lblok; blok++, key2 += 2 ) {
+                fblok  = blok;
+                m      = 0;
+                size   = blok_rownbr( blok );
+                offset = blok->coefind * (size_t)spmtx->typesze;
+
+                while ( ( blok < lblok ) &&
+                        ( blok[0].fcblknm == blok[1].fcblknm ) &&
+                        ( blok[0].lcblknm == blok[1].lcblknm ) )
+                {
+                    blok++;
+                    m++;
+                    size += blok_rownbr( blok );
+                }
+                size *= cblk_colnbr( cblk ) * (size_t)spmtx->typesze;
+
+                parsec_data_create( (parsec_data_t **)&( fblok->handler[0] ),
+                                    &spmtx->super,
+                                    key1 + key2,
+                                    ptrL + offset,
+                                    size );
+
+                if ( mtxtype == PastixGeneral ) {
+                    parsec_data_create( (parsec_data_t **)&( fblok->handler[1] ),
+                                        &spmtx->super,
+                                        key1 + key2 + 1,
+                                        ptrU + offset,
+                                        size );
+                }
+                else {
+                    fblok->handler[1] = NULL;
+                }
+
+                key2 += m * 2;
+            }
         }
     }
 
-#if defined(PASTIX_CUDA_FERMI)
+#if defined( PASTIX_CUDA_FERMI )
     parsec_sparse_matrix_init_fermi( spmtx, solvmtx );
 #endif
 
