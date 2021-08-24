@@ -48,6 +48,8 @@ int            parse_enums( const char *string );
 '''
 
 parse_options_header_end = '''
+void pastix_param2csv( const pastix_data_t *pastix_data, FILE *csv );
+
 END_C_DECLS
 
 #endif /* _parse_options_h_ */
@@ -210,7 +212,7 @@ def gen_parse_enums( iparms, enums ) :
     Generate the parse_enums routine
 
     @in  iparms : The IPARM dictionnary.
-    @in  enums  : The enumS dictionnary.
+    @in  enums  : The ENUMS dictionnary.
     @out The parse_enums routine string
     """
     previous = ""

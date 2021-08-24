@@ -18,7 +18,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2021-07-02
+ * @date 2021-08-24
  *
  * @addtogroup pastix_api
  * @{
@@ -164,6 +164,8 @@ typedef enum pastix_dparm_e {
     DPARM_FACT_FLOPS,         /**< Factorization GFlops/s                            Default: -    OUT */
     DPARM_FACT_THFLOPS,       /**< Factorization theoretical Flops                   Default: -    OUT */
     DPARM_FACT_RLFLOPS,       /**< Factorization performed Flops                     Default: -    OUT */
+    DPARM_MEM_FR,             /**< Memory used by the matrix in full-rank format     Default: -    OUT */
+    DPARM_MEM_LR,             /**< Memory used by the matrix in low-rank format      Default: -    OUT */
     DPARM_SOLV_TIME,          /**< Time for task Solve (wallclock)                   Default: -    OUT */
     DPARM_SOLV_FLOPS,         /**< Solve GFlops/s                                    Default: -    OUT */
     DPARM_SOLV_THFLOPS,       /**< Solve theoretical Flops                           Default: -    OUT */

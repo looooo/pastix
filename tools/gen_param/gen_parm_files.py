@@ -19,6 +19,7 @@ from pastix_dparm import dparm
 from pastix_enums import enums
 from gen_api_header import genApiHeaderFile
 from gen_parse_options import genParseOptH, genParseOptC
+from gen_parm_2_csv import parm2csv
 
 def genPastixEnumsFiles( apiHeader, parseoptH, parseoptC ) :
 
@@ -30,6 +31,7 @@ def genPastixEnumsFiles( apiHeader, parseoptH, parseoptC ) :
     parseopt = open( parseoptC , "w" )
     parseopt.write( genParseOptC(iparm, dparm, enums) )
     parseopt.write( content )
+    parseopt.write( parm2csv(iparm, dparm) )
     parseopt.close()
 
     parseopt = open( parseoptH , "w" )

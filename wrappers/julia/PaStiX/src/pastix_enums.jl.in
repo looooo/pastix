@@ -11,7 +11,7 @@
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2021-07-02
+ @date 2021-08-23
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -118,15 +118,17 @@ const Pastix_graph_t = Ptr{Cvoid}
     dparm_fact_flops         = 12,
     dparm_fact_thflops       = 13,
     dparm_fact_rlflops       = 14,
-    dparm_solv_time          = 15,
-    dparm_solv_flops         = 16,
-    dparm_solv_thflops       = 17,
-    dparm_solv_rlflops       = 18,
-    dparm_refine_time        = 19,
-    dparm_a_norm             = 20,
-    dparm_compress_tolerance = 21,
-    dparm_compress_min_ratio = 22,
-    dparm_size               = 22,
+    dparm_mem_fr             = 15,
+    dparm_mem_lr             = 16,
+    dparm_solv_time          = 17,
+    dparm_solv_flops         = 18,
+    dparm_solv_thflops       = 19,
+    dparm_solv_rlflops       = 20,
+    dparm_refine_time        = 21,
+    dparm_a_norm             = 22,
+    dparm_compress_tolerance = 23,
+    dparm_compress_min_ratio = 24,
+    dparm_size               = 24,
 }
 
 @cenum Pastix_task_t {
