@@ -191,6 +191,28 @@ A long description in the doxygen format
 }
 dparm.append(dparm_fact_rlflops)
 
+dparm_mem_fr = {
+    "name" : "dparm_mem_fr",
+    "default" : "-",
+    "brief" : "Memory used by the matrix in full-rank format",
+    "access" : "OUT",
+    "description" : r'''
+A long description in the doxygen format
+'''
+}
+dparm.append(dparm_mem_fr)
+
+dparm_mem_lr = {
+    "name" : "dparm_mem_lr",
+    "default" : "-",
+    "brief" : "Memory used by the matrix in low-rank format",
+    "access" : "OUT",
+    "description" : r'''
+A long description in the doxygen format
+'''
+}
+dparm.append(dparm_mem_lr)
+
 dparm_solv_time = {
     "name" : "dparm_solv_time",
     "default" : "-",

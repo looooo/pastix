@@ -543,6 +543,8 @@ pastixInitParam( pastix_int_t *iparm,
     dparm[DPARM_FACT_FLOPS]         =  0.;
     dparm[DPARM_FACT_THFLOPS]       =  0.;
     dparm[DPARM_FACT_RLFLOPS]       =  0.;
+    dparm[DPARM_MEM_FR]             =  0.;
+    dparm[DPARM_MEM_LR]             =  0.;
     dparm[DPARM_SOLV_FLOPS]         =  0.;
     dparm[DPARM_SOLV_THFLOPS]       =  0.;
     dparm[DPARM_SOLV_RLFLOPS]       =  0.;
@@ -966,4 +968,45 @@ pastixFinalize( pastix_data_t **pastix_data )
         free( pastix->dir_local );
     }
     memFree_null(*pastix_data);
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_api
+ *
+ * @brief Dump the iparm and dparm parameters in a CSV file.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The main data structure.
+ *
+ *******************************************************************************/
+void
+pastixDumpParameters( const pastix_data_t *pastix_data )
+{
+    FILE   *csv      = NULL;
+    char   *fullname = NULL;
+    int     rc;
+    int32_t lidx;
+    static volatile int32_t id = 0;
+
+
+    if( pastix_data->inter_node_procnum != 0 ) {
+        return;
+    }
+    lidx = pastix_atomic_add_32b( &id, 1 );
+    rc  = asprintf( &fullname, "idparam_%d.csv", lidx );
+
+    if ( rc <= 0 ) {
+        errorPrint("pastixDumpParameters: Couldn't not generate the filename for the output file");
+        return;
+    }
+
+    csv = pastix_fopenw( pastix_data->dir_global, fullname, "w" );
+    pastix_param2csv( pastix_data, csv );
+
+    fclose(csv);
+    free(fullname);
 }

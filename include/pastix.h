@@ -174,8 +174,14 @@ int  pastixGetDiag( const pastix_data_t *pastix_data,
  * Function to provide a common way to read binary options in examples/testings
  */
 void pastixGetOptions( int argc, char **argv,
-                        pastix_int_t *iparm, double *dparm,
-                        int *check, spm_driver_t *driver, char **filename );
+                       pastix_int_t *iparm, double *dparm,
+                       int *check, spm_driver_t *driver, char **filename );
+
+/*
+ * Function to provide a common way to output
+ * the iparm/dparm parameters in a CSV file.
+ */
+void pastixDumpParameters( const pastix_data_t *pastix_data );
 
 END_C_DECLS
 

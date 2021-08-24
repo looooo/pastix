@@ -16,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2021-07-02
+ * @date 2021-08-24
  *
  */
 #ifndef _parse_options_h_
@@ -54,6 +54,8 @@ const char* pastix_diag_getstr( pastix_diag_t value );
 const char* pastix_side_getstr( pastix_side_t value );
 const char* pastix_normtype_getstr( pastix_normtype_t value );
 const char* pastix_dir_getstr( pastix_dir_t value );
+
+void pastix_param2csv( const pastix_data_t *pastix_data, FILE *csv );
 
 END_C_DECLS
 

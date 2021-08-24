@@ -227,9 +227,13 @@ coeftab_zuncompress( SolverMatrix *solvmtx )
  * @param[in] solvmtx
  *          The solver matrix of the problem.
  *
+ * @param[inout] dparm
+ *          The double parameter array which is going to be updated.
+ *
  *******************************************************************************/
 void
-coeftab_zmemory( SolverMatrix *solvmtx )
+coeftab_zmemory( SolverMatrix    *solvmtx,
+                 pastix_fixdbl_t *dparm )
 {
     pastix_coefside_t side = (solvmtx->factotype == PastixFactLU) ? PastixLUCoef : PastixLCoef;
     SolverCblk  *cblk = solvmtx->cblktab;
@@ -389,6 +393,9 @@ coeftab_zmemory( SolverMatrix *solvmtx )
 
                   pastix_print_value(totlr),             pastix_print_unit(totlr),
                   pastix_print_value(totfr),             pastix_print_unit(totfr) );
+
+    dparm[DPARM_MEM_FR] = totfr;
+    dparm[DPARM_MEM_LR] = totlr;
 
     return;
 }

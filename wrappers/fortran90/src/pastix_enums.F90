@@ -9,9 +9,8 @@
 !> @version 6.2.0
 !> @author Mathieu Faverge
 !> @author Tony Delarue
-!> @author Esragul Korkmaz
 !> @author Selmane Lebdaoui
-!> @date 2021-07-02
+!> @date 2021-08-23
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -126,15 +125,17 @@ module pastix_enums
      enumerator :: DPARM_FACT_FLOPS         = 12
      enumerator :: DPARM_FACT_THFLOPS       = 13
      enumerator :: DPARM_FACT_RLFLOPS       = 14
-     enumerator :: DPARM_SOLV_TIME          = 15
-     enumerator :: DPARM_SOLV_FLOPS         = 16
-     enumerator :: DPARM_SOLV_THFLOPS       = 17
-     enumerator :: DPARM_SOLV_RLFLOPS       = 18
-     enumerator :: DPARM_REFINE_TIME        = 19
-     enumerator :: DPARM_A_NORM             = 20
-     enumerator :: DPARM_COMPRESS_TOLERANCE = 21
-     enumerator :: DPARM_COMPRESS_MIN_RATIO = 22
-     enumerator :: DPARM_SIZE               = 22
+     enumerator :: DPARM_MEM_FR             = 15
+     enumerator :: DPARM_MEM_LR             = 16
+     enumerator :: DPARM_SOLV_TIME          = 17
+     enumerator :: DPARM_SOLV_FLOPS         = 18
+     enumerator :: DPARM_SOLV_THFLOPS       = 19
+     enumerator :: DPARM_SOLV_RLFLOPS       = 20
+     enumerator :: DPARM_REFINE_TIME        = 21
+     enumerator :: DPARM_A_NORM             = 22
+     enumerator :: DPARM_COMPRESS_TOLERANCE = 23
+     enumerator :: DPARM_COMPRESS_MIN_RATIO = 24
+     enumerator :: DPARM_SIZE               = 24
   end enum
 
   ! enum task

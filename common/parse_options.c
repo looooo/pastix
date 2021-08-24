@@ -16,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2021-07-02
+ * @date 2021-08-24
  *
  */
 #include "common.h"
@@ -737,5 +737,145 @@ pastix_dir_getstr( pastix_dir_t value )
     default :
         return "Bad dir given";
     }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Dump the iparm an dparm parameters in the CSV file.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The main data structure.
+ *
+ * @param[inout] csv
+ *          The csv file that will contain the dumped datas.
+ *
+ *******************************************************************************/
+void
+pastix_param2csv( const pastix_data_t *pastix_data,
+                        FILE          *csv )
+{
+    pastix_int_t *iparm = pastix_data->iparm;
+    double       *dparm = pastix_data->dparm;
+
+    fprintf( csv, "%s,%s\n",  "iparm_verbose",      pastix_verbose_getstr(iparm[IPARM_VERBOSE]) );
+    fprintf( csv, "%s,%s\n",  "iparm_io_strategy",  pastix_io_getstr(iparm[IPARM_IO_STRATEGY]) );
+
+    fprintf( csv, "%s,%ld\n", "iparm_nnzeros",             (long)iparm[IPARM_NNZEROS] );
+    fprintf( csv, "%s,%ld\n", "iparm_nnzeros_block_local", (long)iparm[IPARM_NNZEROS_BLOCK_LOCAL] );
+    fprintf( csv, "%s,%ld\n", "iparm_allocated_terms",     (long)iparm[IPARM_ALLOCATED_TERMS] );
+    fprintf( csv, "%s,%ld\n", "iparm_produce_stats",       (long)iparm[IPARM_PRODUCE_STATS] );
+    fprintf( csv, "%s,%ld\n", "iparm_trace",               (long)iparm[IPARM_TRACE] );
+
+    fprintf( csv, "%s,%ld\n", "iparm_mc64", (long)iparm[IPARM_MC64] );
+
+    fprintf( csv, "%s,%s\n",  "iparm_ordering",          pastix_ordering_getstr(iparm[IPARM_ORDERING]) );
+    fprintf( csv, "%s,%ld\n", "iparm_ordering_default", (long)iparm[IPARM_ORDERING_DEFAULT] );
+
+    fprintf( csv, "%s,%ld\n", "iparm_scotch_mt",           (long)iparm[IPARM_SCOTCH_MT] );
+    fprintf( csv, "%s,%ld\n", "iparm_scotch_switch_level", (long)iparm[IPARM_SCOTCH_SWITCH_LEVEL] );
+    fprintf( csv, "%s,%ld\n", "iparm_scotch_cmin",         (long)iparm[IPARM_SCOTCH_CMIN] );
+    fprintf( csv, "%s,%ld\n", "iparm_scotch_cmax",         (long)iparm[IPARM_SCOTCH_CMAX] );
+    fprintf( csv, "%s,%ld\n", "iparm_scotch_frat",         (long)iparm[IPARM_SCOTCH_FRAT] );
+
+    fprintf( csv, "%s,%ld\n", "iparm_metis_ctype",    (long)iparm[IPARM_METIS_CTYPE] );
+    fprintf( csv, "%s,%ld\n", "iparm_metis_rtype",    (long)iparm[IPARM_METIS_RTYPE] );
+    fprintf( csv, "%s,%ld\n", "iparm_metis_no2hop",   (long)iparm[IPARM_METIS_NO2HOP] );
+    fprintf( csv, "%s,%ld\n", "iparm_metis_nseps",    (long)iparm[IPARM_METIS_NSEPS] );
+    fprintf( csv, "%s,%ld\n", "iparm_metis_niter",    (long)iparm[IPARM_METIS_NITER] );
+    fprintf( csv, "%s,%ld\n", "iparm_metis_ufactor",  (long)iparm[IPARM_METIS_UFACTOR] );
+    fprintf( csv, "%s,%ld\n", "iparm_metis_compress", (long)iparm[IPARM_METIS_COMPRESS] );
+    fprintf( csv, "%s,%ld\n", "iparm_metis_ccorder",  (long)iparm[IPARM_METIS_CCORDER] );
+    fprintf( csv, "%s,%ld\n", "iparm_metis_pfactor",  (long)iparm[IPARM_METIS_PFACTOR] );
+    fprintf( csv, "%s,%ld\n", "iparm_metis_seed",     (long)iparm[IPARM_METIS_SEED] );
+    fprintf( csv, "%s,%ld\n", "iparm_metis_dbglvl",   (long)iparm[IPARM_METIS_DBGLVL] );
+
+    fprintf( csv, "%s,%ld\n", "iparm_amalgamation_lvlblas", (long)iparm[IPARM_AMALGAMATION_LVLBLAS] );
+    fprintf( csv, "%s,%ld\n", "iparm_amalgamation_lvlcblk", (long)iparm[IPARM_AMALGAMATION_LVLCBLK] );
+
+    fprintf( csv, "%s,%ld\n", "iparm_reordering_split",               (long)iparm[IPARM_REORDERING_SPLIT] );
+    fprintf( csv, "%s,%ld\n", "iparm_reordering_stop",                (long)iparm[IPARM_REORDERING_STOP] );
+    fprintf( csv, "%s,%s\n",  "iparm_splitting_strategy",              pastix_split_getstr(iparm[IPARM_SPLITTING_STRATEGY]) );
+    fprintf( csv, "%s,%ld\n", "iparm_splitting_levels_projections",   (long)iparm[IPARM_SPLITTING_LEVELS_PROJECTIONS] );
+    fprintf( csv, "%s,%ld\n", "iparm_splitting_levels_kway",          (long)iparm[IPARM_SPLITTING_LEVELS_KWAY] );
+    fprintf( csv, "%s,%ld\n", "iparm_splitting_projections_depth",    (long)iparm[IPARM_SPLITTING_PROJECTIONS_DEPTH] );
+    fprintf( csv, "%s,%ld\n", "iparm_splitting_projections_distance", (long)iparm[IPARM_SPLITTING_PROJECTIONS_DISTANCE] );
+    fprintf( csv, "%s,%ld\n", "iparm_splitting_projections_width",    (long)iparm[IPARM_SPLITTING_PROJECTIONS_WIDTH] );
+
+    fprintf( csv, "%s,%ld\n", "iparm_min_blocksize", (long)iparm[IPARM_MIN_BLOCKSIZE] );
+    fprintf( csv, "%s,%ld\n", "iparm_max_blocksize", (long)iparm[IPARM_MAX_BLOCKSIZE] );
+    fprintf( csv, "%s,%ld\n", "iparm_tasks2d_level", (long)iparm[IPARM_TASKS2D_LEVEL] );
+    fprintf( csv, "%s,%ld\n", "iparm_tasks2d_width", (long)iparm[IPARM_TASKS2D_WIDTH] );
+    fprintf( csv, "%s,%ld\n", "iparm_allcand",       (long)iparm[IPARM_ALLCAND] );
+
+    fprintf( csv, "%s,%ld\n", "iparm_incomplete",    (long)iparm[IPARM_INCOMPLETE] );
+    fprintf( csv, "%s,%ld\n", "iparm_level_of_fill", (long)iparm[IPARM_LEVEL_OF_FILL] );
+
+    fprintf( csv, "%s,%s\n",  "iparm_factorization",    pastix_factotype_getstr(iparm[IPARM_FACTORIZATION]) );
+    fprintf( csv, "%s,%ld\n", "iparm_static_pivoting", (long)iparm[IPARM_STATIC_PIVOTING] );
+    fprintf( csv, "%s,%ld\n", "iparm_free_cscuser",    (long)iparm[IPARM_FREE_CSCUSER] );
+    fprintf( csv, "%s,%s\n",  "iparm_schur_fact_mode",  pastix_fact_mode_getstr(iparm[IPARM_SCHUR_FACT_MODE]) );
+
+    fprintf( csv, "%s,%s\n",  "iparm_transpose_solve",  pastix_trans_getstr(iparm[IPARM_TRANSPOSE_SOLVE]) );
+    fprintf( csv, "%s,%s\n",  "iparm_schur_solv_mode",  pastix_solv_mode_getstr(iparm[IPARM_SCHUR_SOLV_MODE]) );
+    fprintf( csv, "%s,%ld\n", "iparm_applyperm_ws",    (long)iparm[IPARM_APPLYPERM_WS] );
+
+    fprintf( csv, "%s,%s\n",  "iparm_refinement",  pastix_refine_getstr(iparm[IPARM_REFINEMENT]) );
+    fprintf( csv, "%s,%ld\n", "iparm_nbiter",     (long)iparm[IPARM_NBITER] );
+    fprintf( csv, "%s,%ld\n", "iparm_itermax",    (long)iparm[IPARM_ITERMAX] );
+    fprintf( csv, "%s,%ld\n", "iparm_gmres_im",   (long)iparm[IPARM_GMRES_IM] );
+
+    fprintf( csv, "%s,%s\n",  "iparm_scheduler",       pastix_scheduler_getstr(iparm[IPARM_SCHEDULER]) );
+    fprintf( csv, "%s,%ld\n", "iparm_thread_nbr",     (long)iparm[IPARM_THREAD_NBR] );
+    fprintf( csv, "%s,%ld\n", "iparm_autosplit_comm", (long)iparm[IPARM_AUTOSPLIT_COMM] );
+
+    fprintf( csv, "%s,%ld\n", "iparm_gpu_nbr",               (long)iparm[IPARM_GPU_NBR] );
+    fprintf( csv, "%s,%ld\n", "iparm_gpu_memory_percentage", (long)iparm[IPARM_GPU_MEMORY_PERCENTAGE] );
+    fprintf( csv, "%s,%ld\n", "iparm_gpu_memory_block_size", (long)iparm[IPARM_GPU_MEMORY_BLOCK_SIZE] );
+
+    fprintf( csv, "%s,%ld\n", "iparm_compress_min_width",  (long)iparm[IPARM_COMPRESS_MIN_WIDTH] );
+    fprintf( csv, "%s,%ld\n", "iparm_compress_min_height", (long)iparm[IPARM_COMPRESS_MIN_HEIGHT] );
+    fprintf( csv, "%s,%s\n",  "iparm_compress_when",        pastix_compress_when_getstr(iparm[IPARM_COMPRESS_WHEN]) );
+    fprintf( csv, "%s,%s\n",  "iparm_compress_method",      pastix_compress_method_getstr(iparm[IPARM_COMPRESS_METHOD]) );
+    fprintf( csv, "%s,%s\n",  "iparm_compress_ortho",       pastix_compress_ortho_getstr(iparm[IPARM_COMPRESS_ORTHO]) );
+    fprintf( csv, "%s,%ld\n", "iparm_compress_reltol",     (long)iparm[IPARM_COMPRESS_RELTOL] );
+    fprintf( csv, "%s,%ld\n", "iparm_compress_preselect",  (long)iparm[IPARM_COMPRESS_PRESELECT] );
+    fprintf( csv, "%s,%ld\n", "iparm_compress_iluk",       (long)iparm[IPARM_COMPRESS_ILUK] );
+
+    fprintf( csv, "%s,%s\n",  "iparm_mpi_thread_level",  pastix_mpithreadmode_getstr(iparm[IPARM_MPI_THREAD_LEVEL]) );
+
+    fprintf( csv, "%s,%ld\n", "iparm_modify_parameter", (long)iparm[IPARM_MODIFY_PARAMETER] );
+    fprintf( csv, "%s,%s\n",  "iparm_start_task",        pastix_task_getstr(iparm[IPARM_START_TASK]) );
+    fprintf( csv, "%s,%s\n",  "iparm_end_task",          pastix_task_getstr(iparm[IPARM_END_TASK]) );
+    fprintf( csv, "%s,%s\n",  "iparm_float",             pastix_coeftype_getstr(iparm[IPARM_FLOAT]) );
+    fprintf( csv, "%s,%ld\n", "iparm_mtx_type",         (long)iparm[IPARM_MTX_TYPE] );
+    fprintf( csv, "%s,%ld\n", "iparm_dof_nbr",          (long)iparm[IPARM_DOF_NBR] );
+
+    fprintf( csv, "%s,%e\n",  "dparm_fill_in",            dparm[DPARM_FILL_IN] );
+    fprintf( csv, "%s,%e\n",  "dparm_epsilon_refinement", dparm[DPARM_EPSILON_REFINEMENT] );
+    fprintf( csv, "%s,%e\n",  "dparm_relative_error",     dparm[DPARM_RELATIVE_ERROR] );
+    fprintf( csv, "%s,%e\n",  "dparm_epsilon_magn_ctrl",  dparm[DPARM_EPSILON_MAGN_CTRL] );
+    fprintf( csv, "%s,%e\n",  "dparm_order_time",         dparm[DPARM_ORDER_TIME] );
+    fprintf( csv, "%s,%e\n",  "dparm_symbfact_time",      dparm[DPARM_SYMBFACT_TIME] );
+    fprintf( csv, "%s,%e\n",  "dparm_reorder_time",       dparm[DPARM_REORDER_TIME] );
+    fprintf( csv, "%s,%e\n",  "dparm_blend_time",         dparm[DPARM_BLEND_TIME] );
+    fprintf( csv, "%s,%e\n",  "dparm_analyze_time",       dparm[DPARM_ANALYZE_TIME] );
+    fprintf( csv, "%s,%e\n",  "dparm_pred_fact_time",     dparm[DPARM_PRED_FACT_TIME] );
+    fprintf( csv, "%s,%e\n",  "dparm_fact_time",          dparm[DPARM_FACT_TIME] );
+    fprintf( csv, "%s,%e\n",  "dparm_fact_flops",         dparm[DPARM_FACT_FLOPS] );
+    fprintf( csv, "%s,%e\n",  "dparm_fact_thflops",       dparm[DPARM_FACT_THFLOPS] );
+    fprintf( csv, "%s,%e\n",  "dparm_fact_rlflops",       dparm[DPARM_FACT_RLFLOPS] );
+    fprintf( csv, "%s,%e\n",  "dparm_mem_fr",             dparm[DPARM_MEM_FR] );
+    fprintf( csv, "%s,%e\n",  "dparm_mem_lr",             dparm[DPARM_MEM_LR] );
+    fprintf( csv, "%s,%e\n",  "dparm_solv_time",          dparm[DPARM_SOLV_TIME] );
+    fprintf( csv, "%s,%e\n",  "dparm_solv_flops",         dparm[DPARM_SOLV_FLOPS] );
+    fprintf( csv, "%s,%e\n",  "dparm_solv_thflops",       dparm[DPARM_SOLV_THFLOPS] );
+    fprintf( csv, "%s,%e\n",  "dparm_solv_rlflops",       dparm[DPARM_SOLV_RLFLOPS] );
+    fprintf( csv, "%s,%e\n",  "dparm_refine_time",        dparm[DPARM_REFINE_TIME] );
+    fprintf( csv, "%s,%e\n",  "dparm_a_norm",             dparm[DPARM_A_NORM] );
+    fprintf( csv, "%s,%e\n",  "dparm_compress_tolerance", dparm[DPARM_COMPRESS_TOLERANCE] );
+    fprintf( csv, "%s,%e\n",  "dparm_compress_min_ratio", dparm[DPARM_COMPRESS_MIN_RATIO] );
 }
 
