@@ -252,13 +252,13 @@ BODY
                 }
 
                 if (s == 0) {
-                    cpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
+                    cpucblk_zgemmsp( PastixLCoef, PastixTrans,
                                      lcblk, blok, fcblk,
                                      A, B, C,
                                      work, lwork, &lowrank );
                 }
                 else {
-                    cpucblk_zgemmsp( PastixUCoef, PastixLCoef, PastixTrans,
+                    cpucblk_zgemmsp( PastixUCoef, PastixTrans,
                                      lcblk, blok, fcblk,
                                      B, A, C,
                                      work, lwork, &lowrank );

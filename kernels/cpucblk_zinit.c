@@ -27,6 +27,99 @@
 /**
  *******************************************************************************
  *
+ * @brief Initialize a lrblock structure from a workspace from a specific block to the end of all
+ * blocks.
+ *
+ * The lrblock structure must be allocated before.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] cblk
+ *          The column block associated to the initialization.
+ *
+ * @param[in] blok
+ *          The block representation associated to the initialization.
+ *
+ * @param[in] lrblok
+ *          The structure blok to initialize. Must be allocated before.
+ *
+ * @param[in] ws
+ *          The workspace associated with the data that will be used for initialize lrblok.
+ *
+ *******************************************************************************/
+void
+cpublok_zalloc_lrws( const SolverCblk   *cblk,
+                     const SolverBlok   *blok,
+                     pastix_lrblock_t   *lrblok,
+                     pastix_complex64_t *ws )
+{
+    SolverBlok  *lblok   = cblk[1].fblokptr;
+    pastix_int_t fcblknm = blok->fcblknm;
+    pastix_int_t ncols   = cblk_colnbr( cblk );
+
+    /* H then split */
+    assert( cblk->cblktype & CBLK_LAYOUT_2D );
+    assert( lrblok != NULL );
+
+    for (; (blok < lblok) && (blok->fcblknm == fcblknm); blok++, lrblok++)
+    {
+        pastix_int_t nrows = blok_rownbr( blok );
+        lrblok->rk    = -1;
+        lrblok->rkmax = nrows;
+        lrblok->u     = ws;
+        lrblok->v     = NULL;
+
+        ws += nrows * ncols;
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Initialize lrblock structure from a workspace from all blocks of the cblk associated.
+ *
+ * The lrblock structure must be allocated before.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] cblk
+ *          The column block associated to the initialization.
+ *
+ * @param[in] lrblok
+ *          The structure blok to initialize. Must be allocated before.
+ *
+ * @param[in] ws
+ *          The workspace associated with the data that will be used for initialize lrblok.
+ *
+ *******************************************************************************/
+void
+cpucblk_zalloc_lrws( const SolverCblk   *cblk,
+                     pastix_lrblock_t   *lrblok,
+                     pastix_complex64_t *ws )
+{
+    pastix_int_t      ncols = cblk_colnbr( cblk );
+    const SolverBlok *blok  = cblk[0].fblokptr;
+    const SolverBlok *lblok = cblk[1].fblokptr;
+
+    /* H then split */
+    assert( cblk->cblktype & CBLK_LAYOUT_2D );
+    assert( lrblok != NULL );
+
+    for (; blok<lblok; blok++, lrblok++)
+    {
+        pastix_int_t nrows = blok_rownbr( blok );
+        lrblok->rk    = -1;
+        lrblok->rkmax = nrows;
+        lrblok->u     = ws;
+        lrblok->v     = NULL;
+
+        ws += nrows * ncols;
+    }
+}
+
+/**
+ *******************************************************************************
+ *
  * @brief Allocate the cblk structure to store the coefficient
  *
  * When stored in low-rank format, the data pointer in the low-rank structure of

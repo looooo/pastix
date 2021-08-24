@@ -197,9 +197,10 @@ core_zpxtrfsp( pastix_int_t        n,
  *          Pointer to the structure representing the panel to factorize in the
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
- * @param[inout] L
- *          The pointer to the matrix storing the coefficients of the
- *          panel. Must be of size cblk.stride -by- cblk.width
+ * @param[inout] dataL
+ *          The pointer to the correct representation of the lower part the data.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  *******************************************************************************
  *
@@ -208,13 +209,15 @@ core_zpxtrfsp( pastix_int_t        n,
  *
  *******************************************************************************/
 int
-cpucblk_zpxtrfsp1d_pxtrf( SolverMatrix       *solvmtx,
-                          SolverCblk         *cblk,
-                          pastix_complex64_t *L )
+cpucblk_zpxtrfsp1d_pxtrf( SolverMatrix *solvmtx,
+                          SolverCblk   *cblk,
+                          void         *dataL )
 {
     pastix_int_t  ncols, stride;
     pastix_int_t  nbpivots = 0;
     pastix_fixdbl_t time, flops;
+    pastix_complex64_t *L;
+    pastix_lrblock_t *lrL;
     double criterion = solvmtx->diagthreshold;
 
     time = kernel_trace_start( PastixKernelPXTRF );
@@ -227,11 +230,15 @@ cpucblk_zpxtrfsp1d_pxtrf( SolverMatrix       *solvmtx,
     assert( cblk->lcolnum == cblk->fblokptr->lrownum );
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        assert( cblk->fblokptr->LRblock[0]->rk == -1 );
-        L = cblk->fblokptr->LRblock[0]->u;
+        /* dataL is a LRblock */
+        lrL = (pastix_lrblock_t *)dataL;
+        L   = lrL->u;
         stride = ncols;
 
-        assert( stride == cblk->fblokptr->LRblock[0]->rkmax );
+        assert( lrL->rk == -1 );
+        assert( stride == lrL->rkmax );
+    } else {
+        L = (pastix_complex64_t *)dataL;
     }
 
     /* Factorize diagonal block */
@@ -263,8 +270,9 @@ cpucblk_zpxtrfsp1d_pxtrf( SolverMatrix       *solvmtx,
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
  * @param[inout] L
- *          The pointer to the matrix storing the coefficients of the
- *          panel. Must be of size cblk.stride -by- cblk.width
+ *          The pointer to the correct representation of the lower part the data.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  *******************************************************************************
  *
@@ -273,16 +281,16 @@ cpucblk_zpxtrfsp1d_pxtrf( SolverMatrix       *solvmtx,
  *
  *******************************************************************************/
 int
-cpucblk_zpxtrfsp1d_panel( SolverMatrix       *solvmtx,
-                          SolverCblk         *cblk,
-                          pastix_complex64_t *L )
+cpucblk_zpxtrfsp1d_panel( SolverMatrix *solvmtx,
+                          SolverCblk   *cblk,
+                          void         *L )
 {
     pastix_int_t nbpivots;
     nbpivots = cpucblk_zpxtrfsp1d_pxtrf( solvmtx, cblk, L );
 
-    cpucblk_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
+    cpucblk_ztrsmsp( PastixRight, PastixLower,
                      PastixTrans, PastixNonUnit,
-                     cblk, L, L, solvmtx );
+                     cblk, L, L, &(solvmtx->lowrank) );
     return nbpivots;
 }
 
@@ -320,7 +328,7 @@ cpucblk_zpxtrfsp1d( SolverMatrix       *solvmtx,
                     pastix_complex64_t *work,
                     pastix_int_t        lwork )
 {
-    pastix_complex64_t *L = cblk->lcoeftab;
+    void        *L = cblk_getdataL( cblk );
     SolverCblk  *fcblk;
     SolverBlok  *blok, *lblk;
     pastix_int_t nbpivots;
@@ -339,9 +347,9 @@ cpucblk_zpxtrfsp1d( SolverMatrix       *solvmtx,
             cpucblk_zalloc( PastixLCoef, fcblk );
         }
 
-        cpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixTrans,
+        cpucblk_zgemmsp( PastixLCoef, PastixTrans,
                          cblk, blok, fcblk,
-                         L, L, fcblk->lcoeftab,
+                         L, L, cblk_getdataL( fcblk ),
                          work, lwork, &(solvmtx->lowrank) );
 
         cpucblk_zrelease_deps( PastixLCoef, solvmtx, cblk, fcblk );

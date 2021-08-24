@@ -73,7 +73,7 @@ static void fct_blok_ztrsmsp_cpu(void *descr[], void *cl_arg)
 
     assert( args->cblk->cblktype & CBLK_TASKS_2D );
 
-    args->profile_data.flops = cpublok_ztrsmsp( args->coef, args->side, args->uplo,
+    args->profile_data.flops = cpublok_ztrsmsp( args->side, args->uplo,
                                                 args->trans, args->diag,
                                                 args->cblk, args->blok_m, A, C,
                                                 &(args->sopalin_data->solvmtx->lowrank) );

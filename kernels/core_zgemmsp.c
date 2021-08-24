@@ -650,14 +650,6 @@ core_zgemmsp_block_frfr(       pastix_trans_t      trans,
  *
  *******************************************************************************
  *
- * @param[in] sideA
- *          Specify if A and C belong to the lower part, or to the upper part.
- *          If sideA == PastixLCoef, the contribution of:
- *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
- *          C, otherwise the contribution:
- *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
- *          to C.
- *
  * @param[in] transB
  *          Specify the transposition used for the B matrices. It has to be either
  *          PastixTrans or PastixConjTrans.
@@ -692,13 +684,16 @@ core_zgemmsp_block_frfr(       pastix_trans_t      trans,
  *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
  *          cblk.stride -by- cblk.width
  *
+ * @param[in] lrC
+ *            Pointer to the low-rank representation of the block C.
+ *            Must be followed by the low-rank representation of the following blocks.
+ *
  * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
  *******************************************************************************/
 static inline double
-core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
-                         pastix_trans_t            transB,
+core_zgemmsp_block_frlr( pastix_trans_t            transB,
                          pastix_int_t              blok_mk,
                          pastix_int_t              blok_kn,
                          pastix_int_t              blok_mn,
@@ -706,6 +701,7 @@ core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
                                SolverCblk         *fcblk,
                          const pastix_complex64_t *A,
                          const pastix_complex64_t *B,
+                               pastix_lrblock_t   *lrC,
                          const pastix_lr_t        *lowrank )
 {
     const SolverBlok *blokA, *blokB, *blokC;
@@ -714,7 +710,6 @@ core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
     const SolverBlok *fblokN, *lblokN;
 
     pastix_lrblock_t lrA, lrB;
-    pastix_lrblock_t *lrC;
     core_zlrmm_t params;
 
     pastix_int_t M, K, cblk_n, cblk_m, full_m;
@@ -786,10 +781,9 @@ core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
         /* Find facing C blok */
         while (!is_block_inside_fblock( bA, bC )) {
             bC++;
+            lrC++;
             assert( bC < lblokN );
         }
-
-        lrC = bC->LRblock[sideA];
 
         params.A = &lrA;
         params.C = lrC;
@@ -840,20 +834,6 @@ core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
  *
  *******************************************************************************
  *
- * @param[in] sideA
- *          Specify if A and C belong to the lower part, or to the upper part.
- *          If sideA == PastixLCoef, the contribution of:
- *          (block .. (cblk[1].fblokptr-1)) -by- block is computed and added to
- *          C, otherwise the contribution:
- *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
- *          to C.
- *
- * @param[in] sideB
- *          Specify if B belongs to the L part, or to the U part. this is used
- *          internally in the kernel to select the correct data pointer.
- *          If PastixLCoef, B belongs to the L part, otherwise B belongs to the
- *          U part.
- *
  * @param[in] transB
  *          Specify the transposition used for the B matrices. It has to be either
  *          PastixTrans or PastixConjTrans.
@@ -878,28 +858,40 @@ core_zgemmsp_block_frlr( pastix_coefside_t         sideA,
  *          coeftab from this fcblk. Next column blok must be accessible through
  *          fcblk[1].
  *
+ * @param[inout] lrA
+ *          Pointer to the low-rank representation of the block A.
+ *          Must be followed by the low-rank representation of the following blocks.
+ *
+ * @param[inout] lrB
+ *          Pointer to the low-rank representation of the block B.
+ *          Must be followed by the low-rank representation of the following blocks.
+ *
+ * @param[inout] lrC
+ *          Pointer to the low-rank representation of the block C.
+ *          Must be followed by the low-rank representation of the following blocks.
+ *
  * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
  *******************************************************************************/
 static inline double
-core_zgemmsp_block_lrlr( pastix_coefside_t  sideA,
-                         pastix_coefside_t  sideB,
-                         pastix_trans_t     transB,
-                         pastix_int_t       blok_mk,
-                         pastix_int_t       blok_kn,
-                         pastix_int_t       blok_mn,
-                         const SolverCblk  *cblk,
-                               SolverCblk  *fcblk,
-                         const pastix_lr_t *lowrank )
+core_zgemmsp_block_lrlr( pastix_trans_t          transB,
+                         pastix_int_t            blok_mk,
+                         pastix_int_t            blok_kn,
+                         pastix_int_t            blok_mn,
+                         const SolverCblk       *cblk,
+                         SolverCblk             *fcblk,
+                         const pastix_lrblock_t *lrA,
+                         const pastix_lrblock_t *lrB,
+                         pastix_lrblock_t       *lrC,
+                         const pastix_lr_t      *lowrank )
 {
+    const pastix_lrblock_t *blrB;
     const SolverBlok *blokA, *blokB, *blokC;
     const SolverBlok *bA, *bB, *bC;
     const SolverBlok *fblokK, *lblokK;
     const SolverBlok *fblokN, *lblokN;
 
-    const pastix_lrblock_t *lrA, *lrB;
-    pastix_lrblock_t *lrC;
     core_zlrmm_t params;
 
     pastix_int_t M, K, cblk_n, cblk_m, full_m;
@@ -954,31 +946,28 @@ core_zgemmsp_block_lrlr( pastix_coefside_t  sideA,
     params.lock    = &(lock);
 
     bC = blokC;
-    for (bA = blokA; (bA < lblokK) && (bA->fcblknm == cblk_m); bA++) {
+    for (bA = blokA; (bA < lblokK) && (bA->fcblknm == cblk_m); bA++, lrA++) {
         M   = blok_rownbr(bA);
         params.M  = M;
         full_m   += M;
-        lrA = bA->LRblock[sideA];
 
         /* Find facing C blok */
         while (!is_block_inside_fblock( bA, bC )) {
             bC++;
+            lrC++;
             assert( bC < lblokN );
         }
-
-        lrC  = bC->LRblock[sideA];
 
         params.A = lrA;
         params.C = lrC;
         params.Cm = blok_rownbr( bC );
 
-        for (bB = blokB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++) {
-            lrB = bB->LRblock[sideB];
+        for (bB = blokB, blrB = lrB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++, blrB++) {
 
             params.N    = blok_rownbr( bB );
             params.offx = bA->frownum - bC->frownum;
             params.offy = bB->frownum - fcblk->fcolnum;
-            params.B    = lrB;
+            params.B    = blrB;
 
             flops += core_zlrmm( &params );
         }
@@ -1036,6 +1025,10 @@ core_zgemmsp_block_lrlr( pastix_coefside_t  sideA,
  *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
  *          cblk.stride -by- cblk.width
  *
+ * @param[in] lrC
+ *          Pointer to the low-rank representation of the block C.
+ *          Must be followed by the low-rank representation of the following blocks.
+ *
  * @param[in] work
  *          Temporary memory buffer.
  *
@@ -1055,6 +1048,7 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
                            SolverCblk         *fcblk,
                      const pastix_complex64_t *A,
                      const pastix_complex64_t *B,
+                           pastix_lrblock_t   *lrC,
                            pastix_complex64_t *work,
                            pastix_int_t        lwork,
                      const pastix_lr_t        *lowrank )
@@ -1062,7 +1056,7 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
     const SolverBlok *iterblok;
     const SolverBlok *fblok;
     const SolverBlok *lblok;
-    pastix_lrblock_t lrA, lrB, *lrC;
+    pastix_lrblock_t  lrA, lrB;
     core_zlrmm_t params;
 
     pastix_int_t stride, shift;
@@ -1115,6 +1109,7 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
         while (!is_block_inside_fblock( iterblok, fblok ))
         {
             fblok++;
+            lrC++;
             assert( fblok < fcblk[1].fblokptr );
         }
 
@@ -1124,8 +1119,6 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
         lrA.rkmax = (cblk->cblktype & CBLK_LAYOUT_2D) ? M : stride;
         lrA.u = (pastix_complex64_t*)A + iterblok->coefind; /* Same as for B */
         lrA.v = NULL;
-
-        lrC = fblok->LRblock[shift];
 
         params.M  = M;
         params.A  = &lrA;
@@ -1157,12 +1150,6 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
  *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
  *          to C.
  *
- * @param[in] sideB
- *          Specify if B belongs to the L part, or to the U part. this is used
- *          internally in the kernel to select the correct data pointer.
- *          If PastixLCoef, B belongs to the L part, otherwise B belongs to the
- *          U part.
- *
  * @param[in] trans
  *          Specify the transposition used for the B matrix. It has to be either
  *          PastixTrans or PastixConjTrans.
@@ -1181,6 +1168,18 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
  *          coeftab from this fcblk. Next column blok must be accessible through
  *          fcblk[1].
  *
+ * @param[in] lrA
+ *            Pointer to the low-rank representation of the block A.
+ *            Must be followed by the low-rank representation of the following blocks.
+ *
+ * @param[in] lrB
+ *            Pointer to the low-rank representation of the block B.
+ *            Must be followed by the low-rank representation of the following blocks.
+ *
+ * @param[in] lrC
+ *            Pointer to the low-rank representation of the block B.
+ *            Must be followed by the low-rank representation of the following blocks.
+ *
  * @param[in] work
  *          Temporary memory buffer.
  *
@@ -1194,11 +1193,13 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
  *******************************************************************************/
 static inline pastix_fixdbl_t
 core_zgemmsp_lr(       pastix_coefside_t   sideA,
-                       pastix_coefside_t   sideB,
                        pastix_trans_t      trans,
                  const SolverCblk         *cblk,
                  const SolverBlok         *blok,
                        SolverCblk         *fcblk,
+                 const pastix_lrblock_t   *lrA,
+                 const pastix_lrblock_t   *lrB,
+                       pastix_lrblock_t   *lrC,
                        pastix_complex64_t *work,
                        pastix_int_t        lwork,
                  const pastix_lr_t        *lowrank )
@@ -1208,7 +1209,6 @@ core_zgemmsp_lr(       pastix_coefside_t   sideA,
     const SolverBlok *lblok;
 
     pastix_int_t N, K, shift;
-    pastix_lrblock_t *lrB;
     core_zlrmm_t params;
 
     pastix_fixdbl_t flops = 0.0;
@@ -1224,7 +1224,6 @@ core_zgemmsp_lr(       pastix_coefside_t   sideA,
     shift = (sideA == PastixUCoef) ? 1 : 0;
 
     /* Get the B block and its dimensions */
-    lrB = blok->LRblock[sideB];
     K = cblk_colnbr( cblk );
     N = blok_rownbr( blok );
 
@@ -1248,21 +1247,23 @@ core_zgemmsp_lr(       pastix_coefside_t   sideA,
     params.lwork   = lwork;
     params.lwused  = 0;
     params.lock    = &(fcblk->lock);
-    params.B       = lrB;
+    params.B       = lrB + (blok - cblk->fblokptr);
 
     /* for all following blocks in block column */
-    for (iterblok=blok+shift; iterblok<lblok; iterblok++) {
+    lrA = lrA + (blok - cblk->fblokptr) + shift;
+    for (iterblok=blok+shift; iterblok<lblok; iterblok++, lrA++) {
 
         /* Find facing blok */
         while (!is_block_inside_fblock( iterblok, fblok ))
         {
             fblok++;
+            lrC++;
             assert( fblok < fcblk[1].fblokptr );
         }
 
         params.M  = blok_rownbr( iterblok );
-        params.A  = iterblok->LRblock[shift];
-        params.C  = fblok->LRblock[shift];
+        params.A  = lrA;
+        params.C  = lrC;
         params.Cm = blok_rownbr( fblok );
 
         params.offx = iterblok->frownum - fblok->frownum;
@@ -1290,11 +1291,6 @@ core_zgemmsp_lr(       pastix_coefside_t   sideA,
  *          (block+1 .. (cblk[1].fblokptr-1)) -by- block is computed and added
  *          to C.
  *
- * @param[in] sideB
- *          Specify if B belongs to the L part, or to the U part. this is used
- *          internally in the kernel to select the correct data pointer.
- *          If PastixLCoef, B belongs to the L part, otherwise B belongs to the
- *          U part.
  *
  * @param[in] trans
  *          Specify the transposition used for the B matrix. It has to be either
@@ -1313,6 +1309,14 @@ core_zgemmsp_lr(       pastix_coefside_t   sideA,
  *          we compute the contributions. The C pointer must be one of the
  *          coeftab from this fcblk. Next column blok must be accessible through
  *          fcblk[1].
+ *
+ * @param[in] lrA
+ *          Pointer to the low-rank representation of the block A.
+ *            Must be followed by the low-rank representation of the following blocks.
+ *
+ * @param[in] lrB
+ *          Pointer to the low-rank representation of the block B.
+ *            Must be followed by the low-rank representation of the following blocks.
  *
  * @param[inout] C
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
@@ -1336,11 +1340,12 @@ core_zgemmsp_lr(       pastix_coefside_t   sideA,
  *******************************************************************************/
 static inline pastix_fixdbl_t
 core_zgemmsp_lrfr( pastix_coefside_t         sideA,
-                   pastix_coefside_t         sideB,
                    pastix_trans_t            trans,
                    const SolverCblk         *cblk,
                    const SolverBlok         *blok,
                          SolverCblk         *fcblk,
+                   const pastix_lrblock_t   *lrA,
+                   const pastix_lrblock_t   *lrB,
                          pastix_complex64_t *C,
                          pastix_complex64_t *work,
                          pastix_int_t        lwork,
@@ -1351,7 +1356,6 @@ core_zgemmsp_lrfr( pastix_coefside_t         sideA,
     const SolverBlok *lblok;
 
     pastix_int_t N, K, shift;
-    pastix_lrblock_t *lrB;
     pastix_lrblock_t lrC;
     core_zlrmm_t params;
 
@@ -1368,7 +1372,6 @@ core_zgemmsp_lrfr( pastix_coefside_t         sideA,
     shift = (sideA == PastixUCoef) ? 1 : 0;
 
     /* Get the B block and its dimensions */
-    lrB = blok->LRblock[sideB];
     K = cblk_colnbr( cblk );
     N = blok_rownbr( blok );
 
@@ -1392,14 +1395,15 @@ core_zgemmsp_lrfr( pastix_coefside_t         sideA,
     params.lwork   = lwork;
     params.lwused  = 0;
     params.lock    = &(fcblk->lock);
-    params.B       = lrB;
+    params.B       = lrB + (blok - cblk->fblokptr);
     params.C       = &lrC;
 
     lrC.rk = -1;
     lrC.v  = NULL;
 
     /* for all following blocks in block column */
-    for (iterblok=blok+shift; iterblok<lblok; iterblok++) {
+    lrA = lrA + (blok - cblk->fblokptr) + shift;
+    for (iterblok=blok+shift; iterblok<lblok; iterblok++, lrA++) {
 
         /* Find facing blok */
         while (!is_block_inside_fblock( iterblok, fblok ))
@@ -1409,7 +1413,7 @@ core_zgemmsp_lrfr( pastix_coefside_t         sideA,
         }
 
         params.M  = blok_rownbr( iterblok );
-        params.A  = iterblok->LRblock[shift];
+        params.A  = lrA;
         params.Cm = blok_rownbr( fblok );
         params.offx = iterblok->frownum - fblok->frownum;
         params.offy = blok->frownum - fcblk->fcolnum;
@@ -1440,12 +1444,6 @@ core_zgemmsp_lrfr( pastix_coefside_t         sideA,
  *          which we compute the contributions. Next column blok must be
  *          accessible through cblk[1].
  *
- * @param[in] sideB
- *          Specify if B belongs to the L part, or to the U part. this is used
- *          internally in the kernel to select the correct data pointer.
- *          If PastixLCoef, B belongs to the L part, otherwise B belongs to the
- *          U part.
- *
  * @param[in] trans
  *          Specify the transposition used for the B matrix. It has to be either
  *          PastixTrans or PastixConjTrans.
@@ -1465,18 +1463,19 @@ core_zgemmsp_lrfr( pastix_coefside_t         sideA,
  *          fcblk[1].
  *
  * @param[in] A
- *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
- *          coefficients of the panel when the Lower part is computed,
- *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *          The pointer to the correct representation of A.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
- * @param[in] B The pointer to the coeftab of the cblk.lcoeftab matrix storing
- *          the coefficients of the panel, if Symmetric/Hermitian cases or if
- *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
- *          cblk.stride -by- cblk.width
+ * @param[in] B
+ *          The pointer to the correct representation of B.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  * @param[inout] C
- *          The pointer to the fcblk.lcoeftab if the lower part is computed,
- *          fcblk.ucoeftab otherwise.
+ *          The pointer to the correct representation of C.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  * @param[in] work
  *          Temporary memory buffer.
@@ -1492,14 +1491,13 @@ core_zgemmsp_lrfr( pastix_coefside_t         sideA,
  *******************************************************************************/
 double
 cpucblk_zgemmsp(       pastix_coefside_t   sideA,
-                       pastix_coefside_t   sideB,
                        pastix_trans_t      trans,
                  const SolverCblk         *cblk,
                  const SolverBlok         *blok,
                        SolverCblk         *fcblk,
-                 const pastix_complex64_t *A,
-                 const pastix_complex64_t *B,
-                       pastix_complex64_t *C,
+                       const void         *A,
+                       const void         *B,
+                             void         *C,
                        pastix_complex64_t *work,
                        pastix_int_t        lwork,
                  const pastix_lr_t        *lowrank )
@@ -1518,9 +1516,10 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
             ktype = PastixKernelGEMMCblkLRLR;
             time  = kernel_trace_start( ktype );
 
-            flops = core_zgemmsp_lr( sideA, sideB, trans,
+            flops = core_zgemmsp_lr( sideA, trans,
                                      cblk, blok, fcblk,
-                                     work, lwork, lowrank );
+                                     A, B, C, work, lwork,
+                                     lowrank );
         }
         else {
             ktype = PastixKernelGEMMCblkFRLR;
@@ -1528,7 +1527,7 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
 
             flops = core_zgemmsp_fulllr( sideA, trans,
                                          cblk, blok, fcblk,
-                                         A, B, work, lwork,
+                                         A, B, C, work, lwork,
                                          lowrank );
         }
     }
@@ -1536,10 +1535,10 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
         if ( cblk->cblktype & CBLK_COMPRESSED) {
             ktype = PastixKernelGEMMCblk2d2d;
             time  = kernel_trace_start( ktype );
-
-            core_zgemmsp_lrfr( sideA, sideB, trans,
-                               cblk, blok, fcblk, C,
-                               work, lwork, lowrank );
+            core_zgemmsp_lrfr( sideA, trans,
+                               cblk, blok, fcblk,
+                               A, B, C, work, lwork,
+                               lowrank );
         }
         else if ( cblk->cblktype & CBLK_LAYOUT_2D ) {
             ktype = PastixKernelGEMMCblk2d2d;
@@ -1587,18 +1586,6 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
  *
  *******************************************************************************
  *
- * @param[in] sideA
- *          Specify if A and C belong to the L part, or to the U part of the
- *          matrix. This is used internally in the kernels to select the correct
- *          data pointers.  If PastixLCoef, A and C belong to the L part,
- *          otherwise A and C belong to the U part.
- *
- * @param[in] sideB
- *          Specify if B belongs to the lower or upper part of the matrix. This
- *          is used internally in the kernels to select the correct data
- *          pointers.  If PastixLCoef, B belongs to the L part, otherwise B
- *          belongs to the U part.
- *
  * @param[in] transB
  *          Specify wheter B should be used as PastixNoTrans, PastixTrans, or
  *          PastixConjTrans in the computations.
@@ -1627,49 +1614,48 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
  *          0-based for the diagonal block.
  *
  * @param[in] A
- *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
- *          coefficients of the panel when the Lower part is computed,
- *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *          The pointer to the correct representation of A.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
- * @param[in] B The pointer to the coeftab of the cblk.lcoeftab matrix storing
- *          the coefficients of the panel, if Symmetric/Hermitian cases or if
- *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
- *          cblk.stride -by- cblk.width
+ * @param[in] B
+ *          The pointer to the correct representation of B.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
- * @param[inout] C
- *          The pointer to the fcblk.lcoeftab if the lower part is computed,
- *          fcblk.ucoeftab otherwise.
+ * @param[in] C
+ *          The pointer to the correct representation of C.
+ *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
+ *          - pastix_lr_block if the block is compressed.
  *
  * @param[in] lowrank
  *          The structure with the low-rank parameters.
  *
  *******************************************************************************/
 double
-cpublok_zgemmsp(       pastix_coefside_t   sideA,
-                       pastix_coefside_t   sideB,
-                       pastix_trans_t      transB,
+cpublok_zgemmsp(       pastix_trans_t      transB,
                  const SolverCblk         *cblk,
                        SolverCblk         *fcblk,
                        pastix_int_t        blok_mk,
                        pastix_int_t        blok_nk,
                        pastix_int_t        blok_mn,
-                 const pastix_complex64_t *A,
-                 const pastix_complex64_t *B,
-                       pastix_complex64_t *C,
+                 const void               *A,
+                 const void               *B,
+                       void               *C,
                  const pastix_lr_t        *lowrank )
 {
     if ( fcblk->cblktype & CBLK_COMPRESSED ) {
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            return core_zgemmsp_block_lrlr( sideA, sideB, transB,
+            return core_zgemmsp_block_lrlr( transB,
                                             blok_mk, blok_nk, blok_mn,
                                             cblk, fcblk,
-                                            lowrank );
+                                            A, B, C, lowrank );
         }
         else {
-            return core_zgemmsp_block_frlr( sideA, transB,
+            return core_zgemmsp_block_frlr( transB,
                                             blok_mk, blok_nk, blok_mn,
                                             cblk, fcblk,
-                                            A, B, lowrank );
+                                            A, B, C, lowrank );
         }
     }
     else {

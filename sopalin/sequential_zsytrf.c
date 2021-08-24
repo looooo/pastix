@@ -268,20 +268,22 @@ dynamic_zsytrf( pastix_data_t  *pastix_data,
 
     memFree_null( datacode->computeQueue );
 }
-
+/*
+ * Need to uncomment
+ * */
 static void (*zsytrf_table[5])(pastix_data_t *, sopalin_data_t *) = {
     sequential_zsytrf,
     static_zsytrf,
-#if defined(PASTIX_WITH_PARSEC)
-    parsec_zsytrf,
-#else
+/* #if defined(PASTIX_WITH_PARSEC)
+*    parsec_zsytrf,
+#else */
     NULL,
-#endif
+/* #endif
 #if defined(PASTIX_WITH_STARPU)
     starpu_zsytrf,
-#else
+#else */
     NULL,
-#endif
+/* #endif */
     dynamic_zsytrf
 };
 

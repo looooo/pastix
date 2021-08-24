@@ -132,29 +132,28 @@ int  cpucblk_zgeaddsp1d( const SolverCblk *cblk1, SolverCblk *cblk2,
                          const pastix_complex64_t *L1, pastix_complex64_t *L2,
                          const pastix_complex64_t *U1, pastix_complex64_t *U2 );
 
-double cpucblk_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_trans_t trans,
+double cpucblk_zgemmsp( pastix_coefside_t sideA, pastix_trans_t trans,
                       const SolverCblk *cblk, const SolverBlok *blok, SolverCblk *fcblk,
-                      const pastix_complex64_t *A, const pastix_complex64_t *B, pastix_complex64_t *C,
+                      const void *A, const void *B, void *C,
                       pastix_complex64_t *work, pastix_int_t lwork, const pastix_lr_t *lowrank );
-void cpucblk_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
-                      pastix_trans_t trans, pastix_diag_t diag, SolverCblk *cblk,
-                      const pastix_complex64_t *A, pastix_complex64_t *C,
-                      SolverMatrix *solvmtx );
-void cpucblk_zscalo ( pastix_trans_t trans, SolverCblk *cblk, pastix_complex64_t *LD );
+void cpucblk_ztrsmsp( pastix_side_t side, pastix_uplo_t uplo,
+                      pastix_trans_t trans, pastix_diag_t diag, const SolverCblk *cblk,
+                      const void *A, void *C, const pastix_lr_t *lowrank );
+void cpucblk_zscalo ( pastix_trans_t trans, SolverCblk *cblk, void* dataL, void* dataLD );
 
-double cpublok_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_trans_t trans,
+double cpublok_zgemmsp( pastix_trans_t trans,
                         const SolverCblk *cblk, SolverCblk *fcblk,
                         pastix_int_t blok_mk, pastix_int_t blok_nk, pastix_int_t blok_mn,
-                        const pastix_complex64_t *A, const pastix_complex64_t *B, pastix_complex64_t *C,
+                        const void *A, const void *B, void *C,
                         const pastix_lr_t *lowrank );
-double cpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
-                      pastix_trans_t trans, pastix_diag_t diag,
-                      const SolverCblk *cblk, pastix_int_t blok_m,
-                      const pastix_complex64_t *A, pastix_complex64_t *C,
-                      const pastix_lr_t *lowrank );
+double cpublok_ztrsmsp( pastix_side_t side, pastix_uplo_t uplo,
+                        pastix_trans_t trans, pastix_diag_t diag,
+                        const SolverCblk *cblk, pastix_int_t blok_m,
+                        const void *A, void *C,
+                        const pastix_lr_t *lowrank );
 void cpublok_zscalo ( pastix_trans_t trans,
                       SolverCblk *cblk, pastix_int_t blok_m,
-                      const pastix_complex64_t *A, const pastix_complex64_t *D, pastix_complex64_t *B );
+                      const void *A, const void *dataD, void *dataB );
 
 /**
  *    @}
@@ -162,9 +161,9 @@ void cpublok_zscalo ( pastix_trans_t trans,
  *    @{
  */
 int cpucblk_zgetrfsp1d_getrf( SolverMatrix *solvmtx, SolverCblk *cblk,
-                              pastix_complex64_t *L, pastix_complex64_t *U );
+                              void *L, void *U );
 int cpucblk_zgetrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk,
-                              pastix_complex64_t *L, pastix_complex64_t *U );
+                              void *L, void *U );
 int cpucblk_zgetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
                               pastix_complex64_t *work, pastix_int_t lwork );
 
@@ -173,8 +172,8 @@ int cpucblk_zgetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
  *    @name PastixComplex64 cblk Cholesky kernels
  *    @{
  */
-int cpucblk_zpotrfsp1d_potrf( SolverMatrix *solvmtx, SolverCblk *cblk, pastix_complex64_t *L );
-int cpucblk_zpotrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk, pastix_complex64_t *L );
+int cpucblk_zpotrfsp1d_potrf( SolverMatrix *solvmtx, SolverCblk *cblk, void *dataL );
+int cpucblk_zpotrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk, void *dataL );
 int cpucblk_zpotrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
                               pastix_complex64_t *work, pastix_int_t lwork );
 
@@ -183,10 +182,9 @@ int cpucblk_zpotrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
  *    @name PastixComplex64 cblk LDL^h kernels
  *    @{
  */
-int cpucblk_zhetrfsp1d_hetrf( SolverMatrix *solvmtx, SolverCblk *cblk,
-                              pastix_complex64_t *L );
+int cpucblk_zhetrfsp1d_hetrf( SolverMatrix *solvmtx, SolverCblk *cblk, void *L );
 int cpucblk_zhetrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk,
-                              pastix_complex64_t *L, pastix_complex64_t *DLh );
+                              void *L, void *DLh );
 int cpucblk_zhetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
                               pastix_complex64_t *work1, pastix_complex64_t *work2, pastix_int_t lwork );
 
@@ -195,8 +193,8 @@ int cpucblk_zhetrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
  *    @name PastixComplex64 cblk LL^t kernels
  *    @{
  */
-int cpucblk_zpxtrfsp1d_pxtrf( SolverMatrix *solvmtx, SolverCblk *cblk, pastix_complex64_t *L );
-int cpucblk_zpxtrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk, pastix_complex64_t *L );
+int cpucblk_zpxtrfsp1d_pxtrf( SolverMatrix *solvmtx, SolverCblk *cblk, void *dataL );
+int cpucblk_zpxtrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk, void *dataL );
 int cpucblk_zpxtrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
                               pastix_complex64_t *work, pastix_int_t lwork );
 
@@ -205,10 +203,9 @@ int cpucblk_zpxtrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
  *    @name PastixComplex64 cblk LDL^t kernels
  *    @{
  */
-int cpucblk_zsytrfsp1d_sytrf( SolverMatrix *solvmtx, SolverCblk *cblk,
-                              pastix_complex64_t *L );
+int cpucblk_zsytrfsp1d_sytrf( SolverMatrix *solvmtx, SolverCblk *cblk, void *L );
 int cpucblk_zsytrfsp1d_panel( SolverMatrix *solvmtx, SolverCblk *cblk,
-                              pastix_complex64_t *L, pastix_complex64_t *DLt );
+                              void *L, void *DLt );
 int cpucblk_zsytrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
                               pastix_complex64_t *work1, pastix_complex64_t *work2, pastix_int_t lwork );
 
@@ -217,6 +214,9 @@ int cpucblk_zsytrfsp1d      ( SolverMatrix *solvmtx, SolverCblk *cblk,
  *    @name PastixComplex64 initialization and additionnal routines
  *    @{
  */
+void cpucblk_zalloc_lrws( const SolverCblk   *cblk,
+                          pastix_lrblock_t   *lrblok,
+                          pastix_complex64_t *ws );
 void cpucblk_zalloc_lr( pastix_coefside_t  side,
                         SolverCblk        *cblk,
                         int                rkmax );
@@ -296,9 +296,8 @@ void cpucblk_zrecv_rhs_backward( const SolverMatrix *solvmtx,
  *    @{
  */
 pastix_fixdbl_t cpublok_zcompress( const pastix_lr_t *lowrank,
-                                   pastix_coefside_t coef,
                                    pastix_int_t M, pastix_int_t N,
-                                   SolverBlok *blok );
+                                   pastix_lrblock_t *blok );
 pastix_int_t cpucblk_zcompress( const SolverMatrix *solvmtx,
                                 pastix_coefside_t   side,
                                 int                 max_ilulvl,
@@ -321,12 +320,12 @@ void         cpucblk_zmemory    ( pastix_coefside_t  side,
  *    for the solve step.
  */
 
-void solve_blok_ztrsm( pastix_coefside_t coefside, pastix_side_t side, pastix_uplo_t uplo,
+void solve_blok_ztrsm( pastix_side_t side, pastix_uplo_t uplo,
                        pastix_trans_t trans, pastix_diag_t diag, const SolverCblk *cblk,
-                       int nrhs, pastix_complex64_t *b, int ldb );
-void solve_blok_zgemm( pastix_coefside_t coefside, pastix_side_t side, pastix_trans_t trans,
+                       int nrhs, const void* dataA, pastix_complex64_t *b, int ldb );
+void solve_blok_zgemm( pastix_side_t side, pastix_trans_t trans,
                        pastix_int_t nrhs, const SolverCblk *cblk, const SolverBlok *blok,
-                       SolverCblk *fcbk, const pastix_complex64_t *B, pastix_int_t ldb,
+                       SolverCblk *fcbk, const void* dataA, const pastix_complex64_t *B, pastix_int_t ldb,
                        pastix_complex64_t *C, pastix_int_t ldc );
 
 void solve_cblk_ztrsmsp_forward( pastix_solv_mode_t mode, pastix_side_t side, pastix_uplo_t uplo,

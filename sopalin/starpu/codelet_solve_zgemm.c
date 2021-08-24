@@ -47,18 +47,41 @@ static void fct_solve_blok_zgemm_cpu(void *descr[], void *cl_arg)
     SolverCblk         *fcbk;
     pastix_complex64_t *B, *C;
     pastix_int_t        nrhs, ldb, ldc;
+    const void               *dataA = NULL;
+    const pastix_lrblock_t   *lrA;
+    const pastix_complex64_t *A;
 
-    B    = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
-    ldb  = (pastix_int_t)        STARPU_MATRIX_GET_LD (descr[1]);
-    nrhs = (pastix_int_t)        STARPU_MATRIX_GET_NY (descr[1]);
-    C    = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[2]);
-    ldc  = (pastix_int_t)        STARPU_MATRIX_GET_LD (descr[2]);
+    dataA = (const void *)STARPU_VECTOR_GET_PTR(descr[0]);
+    B     = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
+    ldb   = (pastix_int_t)        STARPU_MATRIX_GET_LD (descr[1]);
+    nrhs  = (pastix_int_t)        STARPU_MATRIX_GET_NY (descr[1]);
+    C     = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[2]);
+    ldc   = (pastix_int_t)        STARPU_MATRIX_GET_LD (descr[2]);
 
     starpu_codelet_unpack_args( cl_arg, &coef, &side, &trans,
                                 &cblk, &blok, &fcbk );
 
-    solve_blok_zgemm( coef, side, trans, nrhs,
-                      cblk, blok, fcbk, B, ldb, C, ldc );
+    /*
+     * Make sure we get the correct pointer to the lrA, or to the right position in [lu]coeftab
+     */
+    if ( (side == PastixLeft) && (cblk->cblktype & CBLK_COMPRESSED) ) {
+        lrA = dataA;
+        lrA += (blok - cblk->fblokptr);
+        dataA = lrA;
+    }
+    else if ( (side == PastixRight) && (fcbk->cblktype & CBLK_COMPRESSED) ) {
+        lrA = dataA;
+        lrA += (blok - fcbk->fblokptr);
+        dataA = lrA;
+    }
+    else {
+        A = dataA;
+        A += blok->coefind;
+        dataA = A;
+    }
+
+    solve_blok_zgemm( side, trans, nrhs,
+                      cblk, blok, fcbk, dataA, B, ldb, C, ldc );
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
@@ -117,12 +140,12 @@ starpu_stask_blok_zgemm( sopalin_data_t   *sopalin_data,
     struct starpu_codelet *codelet = &cl_solve_blok_zgemm_cpu;
     starpu_data_handle_t   handle;
 
-    /* if ( cblk->cblktype & CBLK_TASKS_2D ) { */
-    /*     handle = blok->handler[coef]; */
-    /* } */
-    /* else { */
+    if ( side == PastixRight ) {
+        handle = fcbk->handler[coef];
+    }
+    else {
         handle = cblk->handler[coef];
-    /* } */
+    }
 
     starpu_insert_task(
         pastix_codelet(codelet),

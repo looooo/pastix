@@ -37,18 +37,13 @@
  *          The pointer to the low-rank structure describing the lo-rank
  *          compression parameters.
  *
- * @param[in] side
- *          Define which side of the matrix must be compressed.
- *          @arg PastixLCoef if lower part only
- *          @arg PastixUCoef if upper part only
- *
  * @param[in] M
  *          The number of rows in the block
  *
  * @param[in] N
  *          The number of columns in the block
  *
- * @param[inout] blok
+ * @param[inout] lrA
  *          The block to compress. On input, it points to a full-rank matrix. On
  *          output, if possible the matrix is compressed in block low-rank
  *          format.
@@ -60,13 +55,11 @@
  *******************************************************************************/
 pastix_fixdbl_t
 cpublok_zcompress( const pastix_lr_t *lowrank,
-                   pastix_coefside_t side,
                    pastix_int_t M, pastix_int_t N,
-                   SolverBlok *blok )
+                   pastix_lrblock_t *lrA )
 {
     pastix_fixdbl_t     flops;
-    pastix_lrblock_t   *lrA = blok->LRblock[side];
-    pastix_complex64_t *A   = lrA->u;
+    pastix_complex64_t *A = lrA->u;
 
     if ( lrA->rk != -1 ) {
         return 0.;
@@ -156,7 +149,7 @@ cpucblk_zcompress( const SolverMatrix *solvmtx,
 
             /* Try to compress non selected blocks */
             if ( lrA->rk == -1 ) {
-                cpublok_zcompress( lowrank, PastixLCoef, nrows, ncols, blok );
+                cpublok_zcompress( lowrank, nrows, ncols, lrA );
             }
 
             if ( lrA->rk != -1 ) {
@@ -169,7 +162,7 @@ cpucblk_zcompress( const SolverMatrix *solvmtx,
             lrA = blok->LRblock[1];
 
             if ( lrA->rk == -1 ) {
-                cpublok_zcompress( lowrank, PastixUCoef, nrows, ncols, blok );
+                cpublok_zcompress( lowrank, nrows, ncols, lrA );
             }
 
             if ( lrA->rk != -1 ) {
