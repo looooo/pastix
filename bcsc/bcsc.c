@@ -392,7 +392,7 @@ bcscInit( const spmatrix_t     *spm,
                 pastix_int_t    initAt,
                 pastix_bcsc_t  *bcsc )
 {
-    spmatrix_t *spmg;
+    spmatrix_t *spmg = NULL;
     double time = 0.;
 
     if ( spm->loc2glob == NULL ) {

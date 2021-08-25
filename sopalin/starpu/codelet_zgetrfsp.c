@@ -39,7 +39,7 @@ measure_t cblk_zgetrfsp_perf[STARPU_NMAXWORKERS];
 struct cl_cblk_zgetrfsp_args_s {
     profile_data_t  profile_data;
     SolverMatrix   *solvmtx;
-    SolverCblk 	   *cblk;
+    SolverCblk     *cblk;
 };
 
 static struct starpu_perfmodel starpu_cblk_zgetrfsp1d_panel_model =
@@ -126,7 +126,7 @@ measure_t blok_zgetrfsp_perf[STARPU_NMAXWORKERS];
 struct cl_blok_zgetrfsp_args_s {
     profile_data_t  profile_data;
     SolverMatrix   *solvmtx;
-    SolverCblk 	   *cblk;
+    SolverCblk     *cblk;
 };
 
 static struct starpu_perfmodel starpu_blok_zgetrfsp_model =
@@ -190,7 +190,7 @@ starpu_task_blok_zgetrf( sopalin_data_t *sopalin_data,
         STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_blok_zgetrfsp_args_s ),
 #if defined(PASTIX_STARPU_PROFILING)
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
-#endif        
+#endif
         STARPU_RW,                      cblk->fblokptr->handler[0],
         STARPU_RW,                      cblk->fblokptr->handler[1],
 #if defined(PASTIX_DEBUG_STARPU)

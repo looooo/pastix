@@ -219,7 +219,7 @@ BODY [ type=CUDA
                                A, A, C,
                                parsec_body.stream );
 #else
-            gpucblk_zgemmsp( PastixLCoef, PastixLCoef, PastixTrans,
+            gpucblk_zgemmsp( PastixLCoef, PastixTrans,
                              lcblk, blok, fcblk,
                              A, A, C,
                              &lowrank, parsec_body.stream );
@@ -410,7 +410,7 @@ BODY [ type=CUDA
         assert( !(cblk->cblktype & CBLK_COMPRESSED ) );
 
         if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
-            gpublok_ztrsmsp( PastixLCoef, PastixRight, PastixLower,
+            gpublok_ztrsmsp( PastixRight, PastixLower,
                              PastixTrans, PastixNonUnit,
                              cblk, m, A, C, &lowrank,
                              parsec_body.stream );
@@ -625,7 +625,7 @@ BODY [ type=CUDA
                 !(fcblk->cblktype & CBLK_COMPRESSED ) );
 
         if (!(cblk->cblktype & CBLK_IN_SCHUR)) {
-            gpublok_zgemmsp( PastixLCoef, PastixLCoef, PastixTrans,
+            gpublok_zgemmsp( PastixTrans,
                              cblk, fcblk, blok_mk, nk, blok_mn,
                              A, B, C, &lowrank,
                              parsec_body.stream );

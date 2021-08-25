@@ -121,6 +121,7 @@ if(PASTIX_WITH_CUDA)
    set( CUDA_SOURCES
      # GPU kernel
      gpu_zgemmsp.c
+     gpu_ztrsmsp.c
     )
    set(CUDA_generated_files "")
    precisions_rules_py(CUDA_generated_files

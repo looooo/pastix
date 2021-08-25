@@ -528,11 +528,15 @@ core_zgemmsp_2d2d( pastix_coefside_t sideA, pastix_trans_t trans,
  *
  *******************************************************************************
  *
- * @sa core_zgemmsp_1d1d
- * @sa core_zgemmsp_1d2d
+ * @return  The number of flops performed
+ *
+ *******************************************************************************
+ *
+ * @sa core_zgemmsp_block_frlr
+ * @sa core_zgemmsp_block_lrlr
  *
  *******************************************************************************/
-static inline double
+static inline pastix_fixdbl_t
 core_zgemmsp_block_frfr(       pastix_trans_t      trans,
                                pastix_int_t        blok_mk,
                                pastix_int_t        blok_kn,
@@ -614,7 +618,7 @@ core_zgemmsp_block_frfr(       pastix_trans_t      trans,
                          CBLAS_SADDR(mzone), Aptr, lda,
                          Bptr, ldb,
                          CBLAS_SADDR(zone),  Cptr + (bA->frownum - bC->frownum)
-                         + (bB->frownum - fcblk->fcolnum) * ldc , ldc );
+                                                  + (bB->frownum - fcblk->fcolnum) * ldc , ldc );
 
             flops += FLOPS_ZGEMM( M, N, K );
         }
@@ -691,8 +695,12 @@ core_zgemmsp_block_frfr(       pastix_trans_t      trans,
  * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
+ *******************************************************************************
+ *
+ * @return  The number of flops performed
+ *
  *******************************************************************************/
-static inline double
+static inline pastix_fixdbl_t
 core_zgemmsp_block_frlr( pastix_trans_t            transB,
                          pastix_int_t              blok_mk,
                          pastix_int_t              blok_kn,
@@ -873,8 +881,12 @@ core_zgemmsp_block_frlr( pastix_trans_t            transB,
  * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
+ *******************************************************************************
+ *
+ * @return  The number of flops performed
+ *
  *******************************************************************************/
-static inline double
+static inline pastix_fixdbl_t
 core_zgemmsp_block_lrlr( pastix_trans_t          transB,
                          pastix_int_t            blok_mk,
                          pastix_int_t            blok_kn,
@@ -1489,7 +1501,7 @@ core_zgemmsp_lrfr( pastix_coefside_t         sideA,
  *          block.
  *
  *******************************************************************************/
-double
+pastix_fixdbl_t
 cpucblk_zgemmsp(       pastix_coefside_t   sideA,
                        pastix_trans_t      trans,
                  const SolverCblk         *cblk,
@@ -1632,7 +1644,7 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
  *          The structure with the low-rank parameters.
  *
  *******************************************************************************/
-double
+pastix_fixdbl_t
 cpublok_zgemmsp(       pastix_trans_t      transB,
                  const SolverCblk         *cblk,
                        SolverCblk         *fcblk,

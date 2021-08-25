@@ -44,7 +44,6 @@ struct cl_cblk_zgemmsp_args_s {
     profile_data_t    profile_data;
     sopalin_data_t   *sopalin_data;
     pastix_coefside_t sideA;
-    pastix_coefside_t sideB;
     pastix_trans_t    trans;
     const SolverCblk *cblk;
     const SolverBlok *blok;
@@ -97,7 +96,7 @@ static void fct_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
     B = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
     C = (cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-    args->profile_data.flops = gpucblk_zgemmsp( args->sideA, args->sideB, args->trans,
+    args->profile_data.flops = gpucblk_zgemmsp( args->sideA, args->trans,
                                                 args->cblk, args->blok, args->fcblk,
                                                 A, B, C,
                                                 &( args->sopalin_data->solvmtx->lowrank ),
@@ -134,7 +133,6 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
     cl_arg->profile_data.flops    = NAN;
 #endif
     cl_arg->sideA                 = sideA;
-    cl_arg->sideB                 = sideB;
     cl_arg->trans                 = trans;
     cl_arg->cblk                  = cblk;
     cl_arg->blok                  = blok;
@@ -187,8 +185,6 @@ measure_t blok_zgemmsp_perf[STARPU_NMAXWORKERS];
 struct cl_blok_zgemmsp_args_s {
     profile_data_t    profile_data;
     sopalin_data_t   *sopalin_data;
-    pastix_coefside_t sideA;
-    pastix_coefside_t sideB;
     pastix_trans_t    trans;
     const SolverCblk *cblk;
     SolverCblk       *fcblk;
@@ -245,7 +241,7 @@ static void fct_blok_zgemmsp_gpu( void *descr[], void *cl_arg )
     assert( args->cblk->cblktype  & CBLK_TASKS_2D );
     assert( args->fcblk->cblktype & CBLK_TASKS_2D );
 
-    args->profile_data.flops = gpublok_zgemmsp( args->sideA, args->sideB, args->trans,
+    args->profile_data.flops = gpublok_zgemmsp( args->trans,
                                                 args->cblk, args->fcblk,
                                                 args->blok_mk, args->blok_nk, args->blok_mn,
                                                 A, B, C,
@@ -321,8 +317,6 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
     cl_arg->profile_data.measures = blok_zgemmsp_perf;
     cl_arg->profile_data.flops    = NAN;
 #endif
-    cl_arg->sideA                 = sideA;
-    cl_arg->sideB                 = sideB;
     cl_arg->trans                 = trans;
     cl_arg->cblk                  = cblk;
     cl_arg->fcblk                 = fcblk;
