@@ -44,7 +44,7 @@ struct cl_cblk_zpotrfsp_args_s {
 
 static struct starpu_perfmodel starpu_cblk_zpotrfsp1d_panel_model =
 {
-#if defined(PASTIX_STARPU_COST_PER_ARCH)       
+#if defined(PASTIX_STARPU_COST_PER_ARCH)
     .type = STARPU_PER_ARCH,
     .arch_cost_function = cblk_potrf_cost,
 #else
@@ -180,7 +180,7 @@ starpu_task_blok_zpotrf( sopalin_data_t *sopalin_data,
     cl_arg->cblk                  = cblk;
 
     starpu_insert_task(
-        pastix_codelet(&cl_blok_zpotrfsp_cpu),        
+        pastix_codelet(&cl_blok_zpotrfsp_cpu),
         STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_blok_zpotrfsp_args_s ),
 #if defined(PASTIX_STARPU_PROFILING)
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,

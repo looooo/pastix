@@ -207,7 +207,7 @@ BODY [ type=CUDA
                                        A, B, C,
                                        parsec_body.stream );
 #else
-                    gpucblk_zgemmsp( PastixLCoef, PastixUCoef, PastixTrans,
+                    gpucblk_zgemmsp( PastixLCoef, PastixTrans,
                                      lcblk, blok, fcblk,
                                      A, B, C,
                                      &lowrank, parsec_body.stream );
@@ -222,7 +222,7 @@ BODY [ type=CUDA
                                        B, A, C,
                                        parsec_body.stream );
 #else
-                    gpucblk_zgemmsp( PastixUCoef, PastixLCoef, PastixTrans,
+                    gpucblk_zgemmsp( PastixUCoef, PastixTrans,
                                      lcblk, blok, fcblk,
                                      B, A, C,
                                      &lowrank, parsec_body.stream );

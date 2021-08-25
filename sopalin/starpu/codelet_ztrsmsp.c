@@ -42,7 +42,6 @@ measure_t blok_ztrsmsp_perf[STARPU_NMAXWORKERS];
 struct cl_blok_ztrsmsp_args_s {
     profile_data_t    profile_data;
     sopalin_data_t   *sopalin_data;
-    pastix_coefside_t coef;
     pastix_side_t     side;
     pastix_uplo_t     uplo;
     pastix_trans_t    trans;
@@ -92,7 +91,7 @@ static void fct_blok_ztrsmsp_gpu(void *descr[], void *cl_arg)
 
     assert( args->cblk->cblktype & CBLK_TASKS_2D );
 
-    args->profile_data.flops = gpublok_ztrsmsp( args->coef, args->side, args->uplo,
+    args->profile_data.flops = gpublok_ztrsmsp( args->side, args->uplo,
                                                 args->trans, args->diag,
                                                 args->cblk, args->blok_m, A, C,
                                                 &(args->sopalin_data->solvmtx->lowrank),
@@ -133,7 +132,6 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
     cl_arg->profile_data.measures = blok_ztrsmsp_perf;
     cl_arg->profile_data.flops    = NAN;
 #endif
-    cl_arg->coef                  = coef;
     cl_arg->side                  = side;
     cl_arg->uplo                  = uplo;
     cl_arg->trans                 = trans;
