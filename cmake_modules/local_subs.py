@@ -58,6 +58,7 @@ subs = {
         ('blok_p',               'blok_s',               'blok_d',               'blok_c',               'blok_z'              ),
         ('cblk_p',               'cblk_s',               'cblk_d',               'cblk_c',               'cblk_z'              ),
         ('coeftab_p',            'coeftab_s',            'coeftab_d',            'coeftab_c',            'coeftab_z'           ),
+        ('cuda_p',               'cuda_s',               'cuda_d',               'cuda_c',               'cuda_z'              ),
         ('core_p',               'core_s',               'core_d',               'core_c',               'core_z'              ),
         ('csc_p',                'csc_s',                'csc_d',                'csc_c',                'csc_z'               ),
         ('pastix_p',             'pastix_s',             'pastix_d',             'pastix_c',             'pastix_z'            ),
