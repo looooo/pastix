@@ -132,25 +132,25 @@ int  cpucblk_zgeaddsp1d( const SolverCblk *cblk1, SolverCblk *cblk2,
                          const pastix_complex64_t *L1, pastix_complex64_t *L2,
                          const pastix_complex64_t *U1, pastix_complex64_t *U2 );
 
-double cpucblk_zgemmsp( pastix_coefside_t sideA, pastix_trans_t trans,
-                      const SolverCblk *cblk, const SolverBlok *blok, SolverCblk *fcblk,
-                      const void *A, const void *B, void *C,
-                      pastix_complex64_t *work, pastix_int_t lwork, const pastix_lr_t *lowrank );
+pastix_fixdbl_t cpucblk_zgemmsp( pastix_coefside_t sideA, pastix_trans_t trans,
+                                 const SolverCblk *cblk, const SolverBlok *blok, SolverCblk *fcblk,
+                                 const void *A, const void *B, void *C,
+                                 pastix_complex64_t *work, pastix_int_t lwork, const pastix_lr_t *lowrank );
 void cpucblk_ztrsmsp( pastix_side_t side, pastix_uplo_t uplo,
                       pastix_trans_t trans, pastix_diag_t diag, const SolverCblk *cblk,
                       const void *A, void *C, const pastix_lr_t *lowrank );
 void cpucblk_zscalo ( pastix_trans_t trans, SolverCblk *cblk, void* dataL, void* dataLD );
 
-double cpublok_zgemmsp( pastix_trans_t trans,
-                        const SolverCblk *cblk, SolverCblk *fcblk,
-                        pastix_int_t blok_mk, pastix_int_t blok_nk, pastix_int_t blok_mn,
-                        const void *A, const void *B, void *C,
-                        const pastix_lr_t *lowrank );
-double cpublok_ztrsmsp( pastix_side_t side, pastix_uplo_t uplo,
-                        pastix_trans_t trans, pastix_diag_t diag,
-                        const SolverCblk *cblk, pastix_int_t blok_m,
-                        const void *A, void *C,
-                        const pastix_lr_t *lowrank );
+pastix_fixdbl_t cpublok_zgemmsp( pastix_trans_t trans,
+                                 const SolverCblk *cblk, SolverCblk *fcblk,
+                                 pastix_int_t blok_mk, pastix_int_t blok_nk, pastix_int_t blok_mn,
+                                 const void *A, const void *B, void *C,
+                                 const pastix_lr_t *lowrank );
+pastix_fixdbl_t cpublok_ztrsmsp( pastix_side_t side, pastix_uplo_t uplo,
+                                 pastix_trans_t trans, pastix_diag_t diag,
+                                 const SolverCblk *cblk, pastix_int_t blok_m,
+                                 const void *A, void *C,
+                                 const pastix_lr_t *lowrank );
 void cpublok_zscalo ( pastix_trans_t trans,
                       SolverCblk *cblk, pastix_int_t blok_m,
                       const void *A, const void *dataD, void *dataB );

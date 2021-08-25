@@ -444,7 +444,7 @@ cpucblk_ztrsmsp( pastix_side_t      side,
  *          fcblk.ucoeftab otherwise.
  *
  *******************************************************************************/
-static inline double
+static inline pastix_fixdbl_t
 core_ztrsmsp_2dsub( pastix_side_t             side,
                     pastix_uplo_t             uplo,
                     pastix_trans_t            trans,
@@ -542,7 +542,7 @@ core_ztrsmsp_2dsub( pastix_side_t             side,
  *          The structure with low-rank parameters.
  *
  *******************************************************************************/
-static inline double
+static inline pastix_fixdbl_t
 core_ztrsmsp_lrsub( pastix_side_t           side,
                     pastix_uplo_t           uplo,
                     pastix_trans_t          trans,
@@ -634,10 +634,6 @@ core_ztrsmsp_lrsub( pastix_side_t           side,
  *
  *******************************************************************************
  *
- * @param[in] coef
- *          - PastixLCoef, use the lower part of the off-diagonal blocks.
- *          - PastixUCoef, use the upper part of the off-diagonal blocks
- *
  * @param[in] side
  *          Specify whether the A matrix appears on the left or right in the
  *          equation. It has to be either PastixLeft or PastixRight.
@@ -678,7 +674,7 @@ core_ztrsmsp_lrsub( pastix_side_t           side,
  *          The structure with low-rank parameters.
  *
  *******************************************************************************/
-double
+pastix_fixdbl_t
 cpublok_ztrsmsp( pastix_side_t      side,
                  pastix_uplo_t      uplo,
                  pastix_trans_t     trans,

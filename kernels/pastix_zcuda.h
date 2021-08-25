@@ -29,33 +29,33 @@
  *    @name PastixComplex64 cblk-BLAS GPU kernels
  *    @{
  */
-double gpucblk_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_trans_t trans,
-                      const SolverCblk *cblk, const SolverBlok *blok, SolverCblk *fcblk,
-                      const cuDoubleComplex *A, const cuDoubleComplex *B, cuDoubleComplex *C,
-                      const pastix_lr_t *lowrank, cudaStream_t stream );
+pastix_fixdbl_t gpucblk_zgemmsp( pastix_coefside_t sideA, pastix_trans_t trans,
+                                 const SolverCblk *cblk, const SolverBlok *blok, SolverCblk *fcblk,
+                                 const cuDoubleComplex *A, const cuDoubleComplex *B, cuDoubleComplex *C,
+                                 const pastix_lr_t *lowrank, cudaStream_t stream );
 
-double gpublok_zgemmsp( pastix_coefside_t sideA, pastix_coefside_t sideB, pastix_trans_t trans,
-                      const SolverCblk *cblk, SolverCblk *fcblk,
-                      pastix_int_t blok_mk, pastix_int_t blok_nk, pastix_int_t blok_mn,
-                      const cuDoubleComplex *A, const cuDoubleComplex *B, cuDoubleComplex *C,
-                      const pastix_lr_t *lowrank, cudaStream_t stream );
+pastix_fixdbl_t gpublok_zgemmsp( pastix_trans_t trans,
+                                 const SolverCblk *cblk, SolverCblk *fcblk,
+                                 pastix_int_t blok_mk, pastix_int_t blok_nk, pastix_int_t blok_mn,
+                                 const void *A, const void *B, void *C,
+                                 const pastix_lr_t *lowrank, cudaStream_t stream );
 
-double gpublok_ztrsmsp( pastix_coefside_t coef, pastix_side_t side, pastix_uplo_t uplo,
-                      pastix_trans_t trans, pastix_diag_t diag,
-                      const SolverCblk *cblk, pastix_int_t blok_m,
-                      const cuDoubleComplex *A, cuDoubleComplex *C,
-                      const pastix_lr_t *lowrank, cudaStream_t stream );
+pastix_fixdbl_t gpublok_ztrsmsp( pastix_side_t side, pastix_uplo_t uplo,
+                                 pastix_trans_t trans, pastix_diag_t diag,
+                                 const SolverCblk *cblk, pastix_int_t blok_m,
+                                 const void *A, void *C,
+                                 const pastix_lr_t *lowrank, cudaStream_t stream );
 
-void gpu_zgemmsp_fermi( const SolverMatrix *solvmatr,
-                        pastix_uplo_t uplo, pastix_trans_t trans,
-                        int *blocktab,
-                        const SolverCblk      *cblk,
-                        const SolverBlok      *blok,
-                        SolverCblk      *fcblk,
-                        const cuDoubleComplex *A,
-                        const cuDoubleComplex *B,
-                        cuDoubleComplex *C,
-                        cudaStream_t stream );
+pastix_fixdbl_t gpu_zgemmsp_fermi( const SolverMatrix *solvmatr,
+                                   pastix_uplo_t uplo, pastix_trans_t trans,
+                                   int *blocktab,
+                                   const SolverCblk      *cblk,
+                                   const SolverBlok      *blok,
+                                   SolverCblk      *fcblk,
+                                   const cuDoubleComplex *A,
+                                   const cuDoubleComplex *B,
+                                   cuDoubleComplex *C,
+                                   cudaStream_t stream );
 
 /**
  *    @}
