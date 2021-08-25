@@ -224,6 +224,9 @@ option(PASTIX_DEBUG_SOLVE
 cmake_dependent_option(PASTIX_DEBUG_PARSEC
   "Debug the parsec implementation of the factorization step" OFF
   "PASTIX_WITH_PARSEC" OFF)
+cmake_dependent_option(PASTIX_DEBUG_STARPU
+  "Debug the starpu implementation of the factorization step" OFF
+  "PASTIX_WITH_STARPU" OFF)
 option(PASTIX_DEBUG_LR
   "Debug the lowrank kernels (Valgrind)" OFF)
 option(PASTIX_DEBUG_LR_NANCHECK

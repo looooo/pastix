@@ -19,6 +19,7 @@
  * @{
  *
  **/
+#define _GNU_SOURCE
 #include "common.h"
 #include "blend/solver.h"
 #include "sopalin/sopalin_data.h"
@@ -30,6 +31,19 @@
 /**
  * Block version
  */
+#if defined( PASTIX_STARPU_PROFILING )
+measure_t solve_blok_ztrsm_perf[STARPU_NMAXWORKERS];
+#endif
+
+struct cl_solve_blok_ztrsm_args_s {
+    profile_data_t    profile_data;
+    pastix_side_t     side;
+    pastix_uplo_t     uplo;
+    pastix_trans_t    trans;
+    pastix_diag_t     diag;
+    const SolverCblk *cblk;
+};
+
 static struct starpu_perfmodel starpu_solve_blok_ztrsm_model =
 {
     .type = STARPU_HISTORY_BASED,
@@ -39,24 +53,18 @@ static struct starpu_perfmodel starpu_solve_blok_ztrsm_model =
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void fct_solve_blok_ztrsm_cpu(void *descr[], void *cl_arg)
 {
-    pastix_coefside_t   coef;
-    pastix_side_t       side;
-    pastix_uplo_t       uplo;
-    pastix_trans_t      trans;
-    pastix_diag_t       diag;
-    SolverCblk         *cblk;
-    pastix_complex64_t *A, *B;
-    pastix_int_t        nrhs, ldb;
+    pastix_complex64_t                *A, *B;
+    pastix_int_t                       nrhs, ldb;
+    struct cl_solve_blok_ztrsm_args_s *args = (struct cl_solve_blok_ztrsm_args_s *) cl_arg;
 
     A    = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
     B    = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
     ldb  = (pastix_int_t)        STARPU_MATRIX_GET_LD (descr[1]);
     nrhs = (pastix_int_t)        STARPU_MATRIX_GET_NY (descr[1]);
 
-    starpu_codelet_unpack_args( cl_arg, &coef, &side, &uplo, &trans, &diag, &cblk );
-
-    solve_blok_ztrsm( side, uplo, trans, diag,
-                      cblk, nrhs, A, B, ldb );
+    solve_blok_ztrsm( args->side, args->uplo, 
+                      args->trans, args->diag, args->cblk,
+                      nrhs, A, B, ldb );
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
@@ -109,33 +117,42 @@ starpu_stask_blok_ztrsm( sopalin_data_t   *sopalin_data,
                          const SolverCblk *cblk,
                          pastix_int_t      prio )
 {
-    SolverMatrix          *solvmtx = sopalin_data->solvmtx;
-    pastix_int_t           cblknum = cblk - solvmtx->cblktab;
-    struct starpu_codelet *codelet = &cl_solve_blok_ztrsm_cpu;
-    starpu_data_handle_t   handle;
+    struct cl_solve_blok_ztrsm_args_s *cl_arg;
+    starpu_data_handle_t               handle  = cblk->handler[coef];
+    SolverMatrix                      *solvmtx = sopalin_data->solvmtx;
+    pastix_int_t                       cblknum = cblk - solvmtx->cblktab;
+#if defined(PASTIX_DEBUG_STARPU)
+    char                              *task_name;
+    asprintf( &task_name, "%s( %ld )", cl_solve_blok_ztrsm_cpu.name, (long)(cblknum) );
+#endif
 
-    /* if ( cblk->cblktype & CBLK_TASKS_2D ) { */
-    /*     handle = cblk->fblokptr->handler[coef]; */
-    /* } */
-    /* else { */
-        handle = cblk->handler[coef];
-    /* } */
+    /*
+     * Create the arguments array
+     */
+    cl_arg                        = malloc( sizeof(struct cl_solve_blok_ztrsm_args_s) );
+#if defined(PASTIX_STARPU_PROFILING)
+    cl_arg->profile_data.measures = solve_blok_ztrsm_perf;
+    cl_arg->profile_data.flops    = NAN;
+#endif
+    cl_arg->side                  = side;
+    cl_arg->trans                 = trans;
+    cl_arg->uplo                  = uplo;
+    cl_arg->diag                  = diag;
+    cl_arg->cblk                  = cblk;
 
     starpu_insert_task(
-        pastix_codelet(codelet),
-        STARPU_VALUE, &coef,         sizeof(pastix_coefside_t),
-        STARPU_VALUE, &side,         sizeof(pastix_side_t),
-        STARPU_VALUE, &uplo,         sizeof(pastix_uplo_t),
-        STARPU_VALUE, &trans,        sizeof(pastix_trans_t),
-        STARPU_VALUE, &diag,         sizeof(pastix_diag_t),
-        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
-        STARPU_R,      handle,
-        STARPU_RW,     solvmtx->starpu_desc_rhs->handletab[cblknum],
-#if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
-        STARPU_NAME, "solve_blok_ztrsm",
+        pastix_codelet(&cl_solve_blok_ztrsm_cpu),
+        STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_solve_blok_ztrsm_args_s ),
+#if defined(PASTIX_STARPU_PROFILING)
+        STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
+#endif
+        STARPU_R,                       handle,
+        STARPU_RW,                      solvmtx->starpu_desc_rhs->handletab[cblknum],
+#if defined(PASTIX_DEBUG_STARPU)
+        STARPU_NAME,                    task_name,
 #endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, BucketSolveTRSM,
+        STARPU_PRIORITY,                BucketSolveTRSM,
 #endif
         0);
     (void)prio;

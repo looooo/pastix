@@ -19,6 +19,7 @@
  * @{
  *
  **/
+#define _GNU_SOURCE
 #include "common.h"
 #include "blend/solver.h"
 #include "sopalin/sopalin_data.h"
@@ -30,6 +31,19 @@
 /**
  * Block version
  */
+#if defined( PASTIX_STARPU_PROFILING )
+measure_t solve_blok_zgemm_perf[STARPU_NMAXWORKERS];
+#endif
+
+struct cl_solve_blok_zgemm_args_s {
+    profile_data_t    profile_data;
+    pastix_side_t     side;
+    pastix_trans_t    trans;
+    const SolverCblk *cblk;
+    const SolverBlok *blok;
+    SolverCblk       *fcbk;
+};
+
 static struct starpu_perfmodel starpu_solve_blok_zgemm_model =
 {
     .type = STARPU_HISTORY_BASED,
@@ -39,17 +53,12 @@ static struct starpu_perfmodel starpu_solve_blok_zgemm_model =
 #if !defined(PASTIX_STARPU_SIMULATION)
 static void fct_solve_blok_zgemm_cpu(void *descr[], void *cl_arg)
 {
-    pastix_coefside_t   coef;
-    pastix_side_t       side;
-    pastix_trans_t      trans;
-    SolverCblk         *cblk;
-    SolverBlok         *blok;
-    SolverCblk         *fcbk;
-    pastix_complex64_t *B, *C;
-    pastix_int_t        nrhs, ldb, ldc;
-    const void               *dataA = NULL;
-    const pastix_lrblock_t   *lrA;
-    const pastix_complex64_t *A;
+    const void                        *dataA = NULL;
+    const pastix_lrblock_t            *lrA;
+    const pastix_complex64_t          *A;
+    pastix_complex64_t                *B, *C;
+    pastix_int_t                       nrhs, ldb, ldc;
+    struct cl_solve_blok_zgemm_args_s *args = (struct cl_solve_blok_zgemm_args_s *) cl_arg;
 
     dataA = (const void *)STARPU_VECTOR_GET_PTR(descr[0]);
     B     = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
@@ -58,30 +67,27 @@ static void fct_solve_blok_zgemm_cpu(void *descr[], void *cl_arg)
     C     = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[2]);
     ldc   = (pastix_int_t)        STARPU_MATRIX_GET_LD (descr[2]);
 
-    starpu_codelet_unpack_args( cl_arg, &coef, &side, &trans,
-                                &cblk, &blok, &fcbk );
-
     /*
      * Make sure we get the correct pointer to the lrA, or to the right position in [lu]coeftab
      */
-    if ( (side == PastixLeft) && (cblk->cblktype & CBLK_COMPRESSED) ) {
+    if ( (args->side == PastixLeft) && (args->cblk->cblktype & CBLK_COMPRESSED) ) {
         lrA = dataA;
-        lrA += (blok - cblk->fblokptr);
+        lrA += (args->blok - args->cblk->fblokptr);
         dataA = lrA;
     }
-    else if ( (side == PastixRight) && (fcbk->cblktype & CBLK_COMPRESSED) ) {
+    else if ( (args->side == PastixRight) && (args->fcbk->cblktype & CBLK_COMPRESSED) ) {
         lrA = dataA;
-        lrA += (blok - fcbk->fblokptr);
+        lrA += (args->blok - args->fcbk->fblokptr);
         dataA = lrA;
     }
     else {
         A = dataA;
-        A += blok->coefind;
+        A += args->blok->coefind;
         dataA = A;
     }
 
-    solve_blok_zgemm( side, trans, nrhs,
-                      cblk, blok, fcbk, dataA, B, ldb, C, ldc );
+    solve_blok_zgemm( args->side, args->trans, nrhs,
+                      args->cblk, args->blok, args->fcbk, dataA, B, ldb, C, ldc );
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
@@ -134,11 +140,32 @@ starpu_stask_blok_zgemm( sopalin_data_t   *sopalin_data,
                          SolverCblk       *fcbk,
                          pastix_int_t      prio )
 {
-    SolverMatrix          *solvmtx = sopalin_data->solvmtx;
-    pastix_int_t           cblknum = cblk - solvmtx->cblktab;
-    pastix_int_t           fcbknum = fcbk - solvmtx->cblktab;
-    struct starpu_codelet *codelet = &cl_solve_blok_zgemm_cpu;
-    starpu_data_handle_t   handle;
+    struct cl_solve_blok_zgemm_args_s *cl_arg;
+    SolverMatrix                      *solvmtx = sopalin_data->solvmtx;
+    pastix_int_t                       cblknum = cblk - solvmtx->cblktab;
+    pastix_int_t                       fcbknum = fcbk - solvmtx->cblktab;
+    starpu_data_handle_t               handle;
+#if defined(PASTIX_DEBUG_STARPU)
+    char                             *task_name;
+    asprintf( &task_name, "%s( %ld, %ld, %ld )",
+              cl_solve_blok_zgemm_cpu.name,
+              (long) (( side == PastixRight ) ? fcbknum : cblknum), (long) cblknum, (long) fcbknum );
+
+#endif
+    
+    /*
+     * Create the arguments array
+     */
+    cl_arg                        = malloc( sizeof(struct cl_solve_blok_zgemm_args_s) );
+#if defined(PASTIX_STARPU_PROFILING)
+    cl_arg->profile_data.measures = solve_blok_zgemm_perf;
+    cl_arg->profile_data.flops    = NAN;
+#endif
+    cl_arg->side                  = side;
+    cl_arg->trans                 = trans;
+    cl_arg->cblk                  = cblk;
+    cl_arg->blok                  = blok;
+    cl_arg->fcbk                  = fcbk;
 
     if ( side == PastixRight ) {
         handle = fcbk->handler[coef];
@@ -148,21 +175,19 @@ starpu_stask_blok_zgemm( sopalin_data_t   *sopalin_data,
     }
 
     starpu_insert_task(
-        pastix_codelet(codelet),
-        STARPU_VALUE, &coef,         sizeof(pastix_coefside_t),
-        STARPU_VALUE, &side,         sizeof(pastix_side_t),
-        STARPU_VALUE, &trans,        sizeof(pastix_trans_t),
-        STARPU_VALUE, &cblk,         sizeof(SolverCblk*),
-        STARPU_VALUE, &blok,         sizeof(SolverBlok*),
-        STARPU_VALUE, &fcbk,         sizeof(SolverCblk*),
-        STARPU_R,      handle,
-        STARPU_R,      solvmtx->starpu_desc_rhs->handletab[cblknum],
-        STARPU_RW,     solvmtx->starpu_desc_rhs->handletab[fcbknum],
-#if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
-        STARPU_NAME, "solve_blok_zgemm",
+        pastix_codelet(&cl_solve_blok_zgemm_cpu),
+        STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_solve_blok_zgemm_args_s ),
+#if defined(PASTIX_STARPU_PROFILING)
+        STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
+#endif
+        STARPU_R,                       handle,
+        STARPU_R,                       solvmtx->starpu_desc_rhs->handletab[cblknum],
+        STARPU_RW,                      solvmtx->starpu_desc_rhs->handletab[fcbknum],
+#if defined(PASTIX_DEBUG_STARPU)
+        STARPU_NAME,                    task_name,
 #endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, BucketSolveGEMM,
+        STARPU_PRIORITY,                BucketSolveGEMM,
 #endif
         0);
     (void)prio;

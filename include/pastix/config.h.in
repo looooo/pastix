@@ -118,6 +118,7 @@
 #cmakedefine PASTIX_DEBUG_FACTO
 #cmakedefine PASTIX_DEBUG_SOLVE
 #cmakedefine PASTIX_DEBUG_PARSEC
+#cmakedefine PASTIX_DEBUG_STARPU
 #cmakedefine PASTIX_DEBUG_LR
 #cmakedefine PASTIX_DEBUG_LR_NANCHECK
 #cmakedefine PASTIX_DEBUG_GMRES
