@@ -72,6 +72,7 @@ cpublok_zcompress( const pastix_lr_t *lowrank,
                                  M, N, A, M, lrA );
     kernel_trace_stop_lvl2_rank( flops, lrA->rk );
 
+    assert( A != lrA->u );
     free( A );
 
     return flops;
