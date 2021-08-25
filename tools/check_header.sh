@@ -170,6 +170,7 @@ check_header()
 files=$( git ls-files                     |
              grep -v "^\."                |
              grep -v ".*\.md"             |
+             grep -v ".*\.xml"            |
              grep -v LICENSE              |
              grep -v ".*\.cmake"          |
              grep -v "common/sys/atomic-" |
@@ -181,6 +182,7 @@ files=$( git ls-files                     |
              grep -v kernels/gpus/fermi   |
              grep -v "wrappers/fortran90/examples/test_.*\.in" |
              grep -v "wrappers/julia/PaStiX/Project\..*\.toml" |
+             grep -v "tools/bench/jube/requirements.txt"       |
              grep -v test/matrix          )
 if [ $# -gt 0 ]
 then
