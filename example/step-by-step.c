@@ -135,6 +135,10 @@ int main (int argc, char **argv)
             pastix_task_solve( pastix_data, nrhs, x, spm->n );
             pastix_task_refine( pastix_data, spm->n, nrhs, b, spm->n, x, spm->n );
 
+            if ( iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
+                pastixDumpParameters( pastix_data );
+            }
+
             if ( check ) {
                 rc |= spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
             }

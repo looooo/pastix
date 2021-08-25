@@ -1,0 +1,36 @@
+---
+.bench_plafrim_common :
+  stage: bench
+  tags: ['plafrim']
+  variables:
+    PLATFORM: plafrim
+  before_script:
+    - git submodule update --init --recursive
+  script:
+    - ./tools/bench/plafrim/run.sh
+  only:
+    - schedules
+  timeout: 1 week
+
+bench_plafrim_bora_openmpi:
+  variables:
+    NODE: bora
+    MPI: openmpi
+    SLURM_NP: 8
+    SLURM_CORES: 36
+    JUBE_ID: "000001"
+    JUBE_RUN: "potrf getrf"
+  extends: .bench_plafrim_common
+
+#########################################################
+#   Will be used when we will be sure that pastix-gpu   #
+#                  works on guix.                       #
+#########################################################
+# bench_plafrim_sirocco_openmpi:
+#   variables:
+#     NODE: sirocco
+#     MPI: openmpi
+#     SLURM_NP: 1
+#     SLURM_CORES: 40
+#     JUBE_ID: "000002"
+#   extends: .bench_plafrim_common
