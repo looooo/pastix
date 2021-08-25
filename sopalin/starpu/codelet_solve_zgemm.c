@@ -19,6 +19,7 @@
  * @{
  *
  **/
+#define _GNU_SOURCE
 #include "common.h"
 #include "blend/solver.h"
 #include "sopalin/sopalin_data.h"
@@ -144,6 +145,13 @@ starpu_stask_blok_zgemm( sopalin_data_t   *sopalin_data,
     pastix_int_t                       cblknum = cblk - solvmtx->cblktab;
     pastix_int_t                       fcbknum = fcbk - solvmtx->cblktab;
     starpu_data_handle_t               handle;
+#if defined(PASTIX_DEBUG_STARPU)
+    char                             *task_name;
+    asprintf( &task_name, "%s( %ld, %ld, %ld )",
+              cl_solve_blok_zgemm_cpu.name,
+              (long) (( side == PastixRight ) ? fcbknum : cblknum), (long) cblknum, (long) fcbknum );
+
+#endif
     
     /*
      * Create the arguments array
@@ -175,8 +183,8 @@ starpu_stask_blok_zgemm( sopalin_data_t   *sopalin_data,
         STARPU_R,                       handle,
         STARPU_R,                       solvmtx->starpu_desc_rhs->handletab[cblknum],
         STARPU_RW,                      solvmtx->starpu_desc_rhs->handletab[fcbknum],
-#if defined(PASTIX_STARPU_CODELETS_HAVE_NAME)
-        STARPU_NAME,                    "solve_blok_zgemm",
+#if defined(PASTIX_DEBUG_STARPU)
+        STARPU_NAME,                    task_name,
 #endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
         STARPU_PRIORITY,                BucketSolveGEMM,

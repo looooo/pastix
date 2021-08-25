@@ -19,6 +19,7 @@
  * @{
  *
  **/
+#define _GNU_SOURCE
 #include "common.h"
 #include "blend/solver.h"
 #include "sopalin/sopalin_data.h"
@@ -140,7 +141,7 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
     cl_arg->fcblk                 = fcblk;
 
 #if defined(PASTIX_DEBUG_STARPU)
-    asprintf( &task_name, "%s( %ld )", cl_cblk_zgemmsp_any->name, (long)(cblk - sopalin_data->cblktab) );
+    asprintf( &task_name, "%s( %ld )", cl_cblk_zgemmsp_any.name, (long)(cblk - sopalin_data->solvmtx->cblktab) );
 #endif
 
     execute_where = cl_cblk_zgemmsp_any.where;
@@ -278,7 +279,7 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
     struct cl_blok_zgemmsp_args_s *cl_arg;
     long long                      execute_where;
 #if defined(PASTIX_DEBUG_STARPU)
-    char                          *name;
+    char                          *task_name;
 #endif
 
     assert( blok_nk <= blok_mk );
@@ -330,10 +331,10 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
     cl_arg->blok_mn               = blok_mn;
 
 #if defined(PASTIX_DEBUG_STARPU)
-   asprintf( &task_name, "%s( %ld, %ld, %ld )", cl_blok_zgemmsp_any->name,
-             (long)(blokA - sopalin_data->bloktab),
-             (long)(blokB - sopalin_data->bloktab),
-             (long)(blokC - sopalin_data->bloktab) );
+   asprintf( &task_name, "%s( %ld, %ld, %ld )", cl_blok_zgemmsp_any.name,
+             (long)(blokA - sopalin_data->solvmtx->bloktab),
+             (long)(blokB - sopalin_data->solvmtx->bloktab),
+             (long)(blokC - sopalin_data->solvmtx->bloktab) );
 #endif
 
     execute_where = cl_blok_zgemmsp_any.where;

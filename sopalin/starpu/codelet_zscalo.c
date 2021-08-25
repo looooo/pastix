@@ -19,6 +19,7 @@
  * @{
  *
  **/
+#define _GNU_SOURCE
 #include "common.h"
 #include "blend/solver.h"
 #include "sopalin/sopalin_data.h"
@@ -79,6 +80,12 @@ starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
     SolverBlok                   *blokA = blok;
     pastix_int_t                  blok_m = blok - cblk->fblokptr;
     pastix_int_t                  M = blok_rownbr_ext( blokA );
+#if defined(PASTIX_DEBUG_STARPU)
+    char                          *task_name;
+    asprintf( &task_name, "%s( %ld, %ld )", cl_blok_zscalo_cpu.name,
+              (long)(cblk - sopalin_data->solvmtx->cblktab),
+              (long)(blok - sopalin_data->solvmtx->bloktab) );
+#endif
 
     starpu_vector_data_register( handler + 1, -1, (uintptr_t)NULL, M * cblk_colnbr( cblk ),
                                  sopalin_data->solvmtx->starpu_desc->typesze );
@@ -116,6 +123,9 @@ starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
         STARPU_R,                       blok->handler[0],
         STARPU_R,                       cblk->fblokptr->handler[0],
         STARPU_W,                       blok->handler[1],
+#if defined(PASTIX_DEBUG_STARPU)
+        STARPU_NAME,                    task_name,
+#endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
         STARPU_PRIORITY,                BucketScalo,
 #else

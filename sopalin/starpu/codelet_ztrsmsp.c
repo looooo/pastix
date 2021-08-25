@@ -19,6 +19,7 @@
  * @{
  *
  **/
+#define _GNU_SOURCE
 #include "common.h"
 #include "blend/solver.h"
 #include "sopalin/sopalin_data.h"
@@ -116,6 +117,12 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
     struct cl_blok_ztrsmsp_args_s *cl_arg;
     long long                      execute_where;
     pastix_int_t                   blok_m  = blok - cblk->fblokptr;
+#if defined(PASTIX_DEBUG_STARPU)
+    char                          *task_name;
+    asprintf( &task_name, "%s( %ld, %ld)", cl_blok_ztrsmsp_any.name,
+             (long)(cblk - sopalin_data->solvmtx->cblktab),
+             (long)(blok - sopalin_data->solvmtx->bloktab) );
+#endif
 
     /*
      * Create the arguments array
@@ -150,6 +157,9 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
 #endif
         STARPU_R,             cblk->fblokptr->handler[coef],
         STARPU_RW,            blok->handler[coef],
+#if defined(PASTIX_DEBUG_STARPU)
+        STARPU_NAME,          task_name,
+#endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
         STARPU_PRIORITY,      BucketTRSM2D,
 #else

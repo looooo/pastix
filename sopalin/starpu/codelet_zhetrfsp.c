@@ -19,6 +19,7 @@
  * @{
  *
  **/
+#define _GNU_SOURCE
 #include "common.h"
 #include "blend/solver.h"
 #include "sopalin/sopalin_data.h"
@@ -79,9 +80,13 @@ starpu_task_cblk_zhetrfsp1d_panel( sopalin_data_t *sopalin_data,
                                    int             prio )
 {
     struct cl_cblk_zhetrfsp_args_s *cl_arg;
-    starpu_data_handle_t *handler = (starpu_data_handle_t*)(cblk->handler);
-    pastix_int_t N = cblk_colnbr( cblk );
-    pastix_int_t M = cblk->stride;
+    starpu_data_handle_t           *handler = (starpu_data_handle_t*)(cblk->handler);
+    pastix_int_t                    N = cblk_colnbr( cblk );
+    pastix_int_t                    M = cblk->stride;
+#if defined(PASTIX_DEBUG_STARPU)
+    char                           *task_name;
+    asprintf( &task_name, "%s( %ld )", cl_cblk_zhetrfsp1d_panel_cpu.name, (long)(cblk - sopalin_data->solvmtx->cblktab) );
+#endif
 
     if ( M-N > 0 ) {
         starpu_vector_data_register( handler + 1, -1, (uintptr_t)NULL, M * N,
@@ -122,6 +127,9 @@ starpu_task_cblk_zhetrfsp1d_panel( sopalin_data_t *sopalin_data,
 #endif
         STARPU_RW,                      cblk->handler[0],
         STARPU_W,                       cblk->handler[1],
+#if defined(PASTIX_DEBUG_STARPU)
+        STARPU_NAME,                    task_name,
+#endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
         STARPU_PRIORITY,                BucketFacto1D,
 #else
@@ -182,7 +190,10 @@ starpu_task_blok_zhetrf( sopalin_data_t *sopalin_data,
                          int             prio )
 {
     struct cl_blok_zhetrfsp_args_s *cl_arg;
-
+#if defined(PASTIX_DEBUG_STARPU)
+    char                           *task_name;
+    asprintf( &task_name, "%s( %ld )", cl_blok_zhetrfsp_cpu.name, (long)(cblk - sopalin_data->solvmtx->cblktab) );
+#endif
     /*
     * Create the arguments array
     */
@@ -200,11 +211,14 @@ starpu_task_blok_zhetrf( sopalin_data_t *sopalin_data,
 #if defined(PASTIX_STARPU_PROFILING)
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
 #endif
-        STARPU_RW,       cblk->fblokptr->handler[0],
+        STARPU_RW,                      cblk->fblokptr->handler[0],
+#if defined(PASTIX_DEBUG_STARPU)
+        STARPU_NAME,                    task_name,
+#endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, BucketFacto2D,
+        STARPU_PRIORITY,                BucketFacto2D,
 #else
-        STARPU_PRIORITY, prio,
+        STARPU_PRIORITY,                prio,
 #endif
         0);
     (void) prio;

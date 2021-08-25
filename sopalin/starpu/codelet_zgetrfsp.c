@@ -19,6 +19,7 @@
  * @{
  *
  **/
+#define _GNU_SOURCE
 #include "common.h"
 #include "blend/solver.h"
 #include "sopalin/sopalin_data.h"
@@ -79,6 +80,14 @@ starpu_task_cblk_zgetrfsp1d_panel( sopalin_data_t *sopalin_data,
                                    int             prio )
 {
     struct cl_cblk_zgetrfsp_args_s *cl_arg;
+#if defined(PASTIX_DEBUG_STARPU)
+    char                           *task_name;
+    asprintf( &task_name, "%s( %ld )", cl_cblk_zgetrfsp1d_panel_cpu.name, (long)(cblk - sopalin_data->solvmtx->cblktab) );
+#endif
+
+    /*
+    * Create the arguments array
+    */
     cl_arg                        = malloc( sizeof( struct cl_cblk_zgetrfsp_args_s) );
     cl_arg->solvmtx               = sopalin_data->solvmtx;
 #if defined( PASTIX_STARPU_PROFILING )
@@ -95,6 +104,9 @@ starpu_task_cblk_zgetrfsp1d_panel( sopalin_data_t *sopalin_data,
 #endif
         STARPU_RW,                      cblk->handler[0],
         STARPU_RW,                      cblk->handler[1],
+#if defined(PASTIX_DEBUG_STARPU)
+        STARPU_NAME,                    task_name,
+#endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
         STARPU_PRIORITY,                BucketFacto1D,
 #else
@@ -156,6 +168,14 @@ starpu_task_blok_zgetrf( sopalin_data_t *sopalin_data,
                          int             prio )
 {
     struct cl_blok_zgetrfsp_args_s *cl_arg;
+#if defined(PASTIX_DEBUG_STARPU)
+    char                           *task_name;
+    asprintf( &task_name, "%s( %ld )", cl_blok_zgetrfsp_cpu.name, (long)(cblk - sopalin_data->solvmtx->cblktab) );
+#endif
+
+    /*
+    * Create the arguments array
+    */
     cl_arg                        = malloc( sizeof( struct cl_blok_zgetrfsp_args_s) );
     cl_arg->solvmtx               = sopalin_data->solvmtx;
 #if defined( PASTIX_STARPU_PROFILING )
@@ -164,18 +184,22 @@ starpu_task_blok_zgetrf( sopalin_data_t *sopalin_data,
 #endif
     cl_arg->cblk                  = cblk;
 
+
     starpu_insert_task(
         pastix_codelet(&cl_blok_zgetrfsp_cpu),
         STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_blok_zgetrfsp_args_s ),
 #if defined(PASTIX_STARPU_PROFILING)
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
 #endif        
-        STARPU_RW,       cblk->fblokptr->handler[0],
-        STARPU_RW,       cblk->fblokptr->handler[1],
+        STARPU_RW,                      cblk->fblokptr->handler[0],
+        STARPU_RW,                      cblk->fblokptr->handler[1],
+#if defined(PASTIX_DEBUG_STARPU)
+        STARPU_NAME,                    task_name,
+#endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY, BucketFacto2D,
+        STARPU_PRIORITY,                BucketFacto2D,
 #else
-        STARPU_PRIORITY, prio,
+        STARPU_PRIORITY,                prio,
 #endif
         0);
     (void) prio;
