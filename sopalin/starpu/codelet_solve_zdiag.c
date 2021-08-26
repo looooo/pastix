@@ -32,7 +32,20 @@
  * Cblk version
  */
 #if defined( PASTIX_STARPU_PROFILING )
-measure_t solve_cblk_zdiag_perf[STARPU_NMAXWORKERS];
+starpu_profile_t solve_cblk_zdiag_profile = {
+    .next = NULL,
+    .name = "solve_cblk_zdiag"
+};
+
+/**
+ * @brief Profiling registration function
+ */
+void solve_cblk_zdiag_profile_register( void ) __attribute__( ( constructor ) );
+void
+solve_cblk_zdiag_profile_register( void )
+{
+    profiling_register_cl( &solve_cblk_zdiag_profile );
+}
 #endif
 
 struct cl_solve_cblk_zdiag_args_s {
@@ -102,7 +115,7 @@ starpu_stask_cblk_zdiag( sopalin_data_t *sopalin_data,
      */
     cl_arg                         = malloc( sizeof(struct cl_solve_cblk_zdiag_args_s) );
 #if defined(PASTIX_STARPU_PROFILING)
-    cl_arg->profile_data.measures  = solve_cblk_zdiag_perf;
+    cl_arg->profile_data.measures  = solve_cblk_zdiag_profile.measures;
     cl_arg->profile_data.flops     = NAN;
 #endif
     cl_arg->cblk                   = cblk;

@@ -35,9 +35,21 @@
 /**
  * Cblk version
  */
-
 #if defined( PASTIX_STARPU_PROFILING )
-measure_t cblk_zgemmsp_perf[STARPU_NMAXWORKERS];
+starpu_profile_t cblk_zgemmsp_profile = {
+    .next = NULL,
+    .name = "cblk_zgemmsp"
+};
+
+/**
+ * @brief Profiling registration function
+ */
+void cblk_zgemmsp_profile_register( void ) __attribute__( ( constructor ) );
+void
+cblk_zgemmsp_profile_register( void )
+{
+    profiling_register_cl( &cblk_zgemmsp_profile );
+}
 #endif
 
 struct cl_cblk_zgemmsp_args_s {
@@ -129,7 +141,7 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
     cl_arg                        = malloc( sizeof( struct cl_cblk_zgemmsp_args_s ) );
     cl_arg->sopalin_data          = sopalin_data;
 #if defined( PASTIX_STARPU_PROFILING )
-    cl_arg->profile_data.measures = cblk_zgemmsp_perf;
+    cl_arg->profile_data.measures = cblk_zgemmsp_profile.measures;
     cl_arg->profile_data.flops    = NAN;
 #endif
     cl_arg->sideA                 = sideA;
@@ -179,7 +191,20 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
  * Blok version
  */
 #if defined( PASTIX_STARPU_PROFILING )
-measure_t blok_zgemmsp_perf[STARPU_NMAXWORKERS];
+starpu_profile_t blok_zgemmsp_profile = {
+    .next = NULL,
+    .name = "blok_zgemmsp"
+};
+
+/**
+ * @brief Profiling registration function
+ */
+void blok_zgemmsp_profile_register( void ) __attribute__( ( constructor ) );
+void
+blok_zgemmsp_profile_register( void )
+{
+    profiling_register_cl( &blok_zgemmsp_profile );
+}
 #endif
 
 struct cl_blok_zgemmsp_args_s {
@@ -314,7 +339,7 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
     cl_arg                        = malloc( sizeof(struct cl_blok_zgemmsp_args_s) );
     cl_arg->sopalin_data          = sopalin_data;
 #if defined(PASTIX_STARPU_PROFILING)
-    cl_arg->profile_data.measures = blok_zgemmsp_perf;
+    cl_arg->profile_data.measures = blok_zgemmsp_profile.measures;
     cl_arg->profile_data.flops    = NAN;
 #endif
     cl_arg->trans                 = trans;
