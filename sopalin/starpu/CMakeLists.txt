@@ -23,6 +23,7 @@ set(EXTRA_SOURCES
   starpu.c
   starpu_sparse_matrix.c
   starpu_dense_matrix.c
+  starpu_profile.c
   pastix_starpu_model.c
 )
 

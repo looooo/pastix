@@ -32,7 +32,20 @@
  * Cblk version
  */
 #if defined( PASTIX_STARPU_PROFILING )
-measure_t cblk_zpxtrfsp_perf[STARPU_NMAXWORKERS];
+starpu_profile_t cblk_zpxtrfsp_profile = {
+    .next = NULL,
+    .name = "cblk_zpxtrfsp"
+};
+
+/**
+ * @brief Profiling registration function
+ */
+void cblk_zpxtrfsp_profile_register( void ) __attribute__( ( constructor ) );
+void
+cblk_zpxtrfsp_profile_register( void )
+{
+    profiling_register_cl( &cblk_zpxtrfsp_profile );
+}
 #endif
 
 struct cl_cblk_zpxtrfsp_args_s {
@@ -88,7 +101,7 @@ starpu_task_cblk_zpxtrfsp1d_panel( sopalin_data_t *sopalin_data,
     cl_arg                        = malloc( sizeof(struct cl_cblk_zpxtrfsp_args_s) );
     cl_arg->solvmtx               = sopalin_data->solvmtx;
 #if defined(PASTIX_STARPU_PROFILING)
-    cl_arg->profile_data.measures = cblk_zpxtrfsp_perf;
+    cl_arg->profile_data.measures = cblk_zpxtrfsp_profile.measures;
     cl_arg->profile_data.flops    = NAN;
 #endif
     cl_arg->cblk                  = cblk;
@@ -116,7 +129,20 @@ starpu_task_cblk_zpxtrfsp1d_panel( sopalin_data_t *sopalin_data,
  * Blok version
  */
 #if defined( PASTIX_STARPU_PROFILING )
-measure_t blok_zpxtrfsp_perf[STARPU_NMAXWORKERS];
+starpu_profile_t blok_zpxtrfsp_profile = {
+    .next = NULL,
+    .name = "blok_zpxtrfsp"
+};
+
+/**
+ * @brief Profiling registration function
+ */
+void blok_zpxtrfsp_profile_register( void ) __attribute__( ( constructor ) );
+void
+blok_zpxtrfsp_profile_register( void )
+{
+    profiling_register_cl( &blok_zpxtrfsp_profile );
+}
 #endif
 
 struct cl_blok_zpxtrfsp_args_s {
@@ -174,7 +200,7 @@ starpu_task_blok_zpxtrf( sopalin_data_t *sopalin_data,
     cl_arg                        = malloc( sizeof(struct cl_blok_zpxtrfsp_args_s) );
     cl_arg->solvmtx               = sopalin_data->solvmtx;
 #if defined(PASTIX_STARPU_PROFILING)
-    cl_arg->profile_data.measures = blok_zpxtrfsp_perf;
+    cl_arg->profile_data.measures = blok_zpxtrfsp_profile.measures;
     cl_arg->profile_data.flops    = NAN;
 #endif
     cl_arg->cblk                  = cblk;

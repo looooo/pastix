@@ -142,6 +142,27 @@ pastix_starpu_unpartition_submit( const starpu_sparse_matrix_desc_t *spmtx,
 struct measure_s;
 typedef struct measure_s measure_t;
 
+struct measure_s {
+    double sum;
+    double sum2;
+    long   n;
+};
+
+/**
+ * Helper function and variable for the testings
+ */
+struct starpu_profile_s;
+typedef struct starpu_profile_s starpu_profile_t;
+
+/**
+ * @brief Data structure to register an implementation of dgemm/dgetrf
+ */
+struct starpu_profile_s {
+    starpu_profile_t *next;                         /**< Link to the next implementation  */
+    const char       *name;                         /**< Short name of the function       */
+    measure_t         measures[STARPU_NMAXWORKERS]; /**< Pointer to the array of measures */
+};
+
 typedef struct profile_data_s {
 #if defined( PASTIX_STARPU_PROFILING )
     measure_t *measures;
@@ -149,25 +170,15 @@ typedef struct profile_data_s {
     double     flops;
 } profile_data_t;
 
-#if defined( PASTIX_STARPU_PROFILING )
-struct measure_s {
-    double sum;
-    double sum2;
-    long   n;
-};
-
 void cl_profiling_callback( void *callback_arg );
+void profiling_register_cl( starpu_profile_t *codelet );
 
-#define KERNEL_PERF_DECL( _kernel_prefix_, _kernel_suffix_ )                                       \
-    extern measure_t _kernel_prefix_##_z##_kernel_suffix_##_perf[STARPU_NMAXWORKERS];              \
-    extern measure_t _kernel_prefix_##_c##_kernel_suffix_##_perf[STARPU_NMAXWORKERS];              \
-    extern measure_t _kernel_prefix_##_d##_kernel_suffix_##_perf[STARPU_NMAXWORKERS];              \
-    extern measure_t _kernel_prefix_##_s##_kernel_suffix_##_perf[STARPU_NMAXWORKERS];
+#if defined( PASTIX_STARPU_PROFILING )
+void profiling_display_allinfo();
+#else
+static inline void profiling_display_allinfo() {}
+#endif
 
-KERNEL_PERF_DECL( cblk, gemmsp )
-KERNEL_PERF_DECL( blok, gemmsp )
-KERNEL_PERF_DECL( blok, trsmsp )
-#endif /* defined( PASTIX_STARPU_PROFILING ) */
 
 #endif /* _pastix_starpu_h_ */
 

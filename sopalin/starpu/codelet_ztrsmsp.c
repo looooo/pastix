@@ -37,6 +37,21 @@
  */
 #if defined( PASTIX_STARPU_PROFILING )
 measure_t blok_ztrsmsp_perf[STARPU_NMAXWORKERS];
+
+starpu_profile_t blok_ztrsmsp_profile = {
+    .next = NULL,
+    .name = "cblk_ztrsmsp"
+};
+
+/**
+ * @brief Profiling registration function
+ */
+void blok_ztrsmsp_profile_register( void ) __attribute__( ( constructor ) );
+void
+blok_ztrsmsp_profile_register( void )
+{
+    profiling_register_cl( &blok_ztrsmsp_profile );
+}
 #endif
 
 struct cl_blok_ztrsmsp_args_s {
@@ -129,7 +144,7 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
     cl_arg                        = malloc( sizeof(struct cl_blok_ztrsmsp_args_s) );
     cl_arg->sopalin_data          = sopalin_data;
 #if defined(PASTIX_STARPU_PROFILING)
-    cl_arg->profile_data.measures = blok_ztrsmsp_perf;
+    cl_arg->profile_data.measures = blok_ztrsmsp_profile.measures;
     cl_arg->profile_data.flops    = NAN;
 #endif
     cl_arg->side                  = side;
