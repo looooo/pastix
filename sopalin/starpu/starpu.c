@@ -349,11 +349,39 @@ profiling_display_info( const char *name, const measure_t *measures )
 void
 profiling_display_allinfo()
 {
-    const char *kernel_names[] = { KERNEL_NAMES( "cblk", "gemmsp" ),
+    const char *kernel_names[] = { KERNEL_NAMES( "solve_cblk", "diag" ),
+                                   KERNEL_NAMES( "solve_blok", "gemm" ),
+                                   KERNEL_NAMES( "solve_blok", "trsm" ),
+                                   KERNEL_NAMES( "cblk", "gemmsp" ),
                                    KERNEL_NAMES( "blok", "gemmsp" ),
+                                   KERNEL_NAMES( "cblk", "getrfsp" ),
+                                   KERNEL_NAMES( "blok", "getrfsp" ),
+                                   KERNEL_NAMES( "cblk", "hetrfsp" ),
+                                   KERNEL_NAMES( "blok", "hetrfsp" ),
+                                   KERNEL_NAMES( "cblk", "potrfsp" ),
+                                   KERNEL_NAMES( "blok", "potrfsp" ),
+                                   KERNEL_NAMES( "cblk", "pxtrfsp" ),
+                                   KERNEL_NAMES( "blok", "pxtrfsp" ),
+                                   KERNEL_NAMES( "blok", "scalo" ),
+                                   KERNEL_NAMES( "cblk", "sytrfsp" ),
+                                   KERNEL_NAMES( "blok", "sytrfsp" ),
                                    KERNEL_NAMES( "blok", "trsmsp" ) };
-    measure_t  *measures[]     = { KERNEL_MEASURES( cblk, gemmsp ),
+    measure_t  *measures[]     = { KERNEL_MEASURES( solve_cblk, diag ),
+                                   KERNEL_MEASURES( solve_blok, gemm ),
+                                   KERNEL_MEASURES( solve_blok, trsm ),
+                                   KERNEL_MEASURES( cblk, gemmsp ),
                                    KERNEL_MEASURES( blok, gemmsp ),
+                                   KERNEL_MEASURES( cblk, getrfsp ),
+                                   KERNEL_MEASURES( blok, getrfsp ),
+                                   KERNEL_MEASURES( cblk, hetrfsp ),
+                                   KERNEL_MEASURES( blok, hetrfsp ),
+                                   KERNEL_MEASURES( cblk, potrfsp ),
+                                   KERNEL_MEASURES( blok, potrfsp ),
+                                   KERNEL_MEASURES( cblk, pxtrfsp ),
+                                   KERNEL_MEASURES( blok, pxtrfsp ),
+                                   KERNEL_MEASURES( blok, scalo ),
+                                   KERNEL_MEASURES( cblk, sytrfsp ),
+                                   KERNEL_MEASURES( blok, sytrfsp ),
                                    KERNEL_MEASURES( blok, trsmsp ) };
     int         nb_kernels     =  sizeof( measures ) / sizeof( *measures );
     int         index;

@@ -164,8 +164,22 @@ void cl_profiling_callback( void *callback_arg );
     extern measure_t _kernel_prefix_##_d##_kernel_suffix_##_perf[STARPU_NMAXWORKERS];              \
     extern measure_t _kernel_prefix_##_s##_kernel_suffix_##_perf[STARPU_NMAXWORKERS];
 
+KERNEL_PERF_DECL( solve_cblk, diag )
+KERNEL_PERF_DECL( solve_blok, gemm )
+KERNEL_PERF_DECL( solve_blok, trsm )
 KERNEL_PERF_DECL( cblk, gemmsp )
 KERNEL_PERF_DECL( blok, gemmsp )
+KERNEL_PERF_DECL( cblk, getrfsp )
+KERNEL_PERF_DECL( blok, getrfsp )
+KERNEL_PERF_DECL( cblk, hetrfsp )
+KERNEL_PERF_DECL( blok, hetrfsp )
+KERNEL_PERF_DECL( cblk, potrfsp )
+KERNEL_PERF_DECL( blok, potrfsp )
+KERNEL_PERF_DECL( cblk, pxtrfsp )
+KERNEL_PERF_DECL( blok, pxtrfsp )
+KERNEL_PERF_DECL( blok, scalo )
+KERNEL_PERF_DECL( cblk, sytrfsp )
+KERNEL_PERF_DECL( blok, sytrfsp )
 KERNEL_PERF_DECL( blok, trsmsp )
 #endif /* defined( PASTIX_STARPU_PROFILING ) */
 
