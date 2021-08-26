@@ -144,8 +144,6 @@ cmake_dependent_option(PASTIX_STARPU_COST_PER_ARCH
 cmake_dependent_option(PASTIX_STARPU_HETEROPRIO
     "Enable heteroprio scheduling with GPU instead of dmdas" OFF "PASTIX_WITH_STARPU" OFF)
 
-check_function_exists( starpu_sched_ctx_get_sched_policy_callback HAVE_STARPU_SCHED_POLICY_CALLBACK )
-
 option(PASTIX_WITH_PARSEC
   "Build PaStiX with PaRSEC runtime support" OFF)
 
@@ -344,6 +342,10 @@ if (PASTIX_WITH_STARPU)
   set( PASTIX_STARPU_VERSION "1.3" CACHE STRING "oldest STARPU version desired" )
 
   find_package( STARPU ${PASTIX_STARPU_VERSION} REQUIRED )
+
+  get_target_property(CMAKE_REQUIRED_LIBRARIES MORSE::STARPU INTERFACE_LINK_LIBRARIES)
+  check_function_exists(starpu_sched_ctx_get_sched_policy_callback HAVE_STARPU_SCHED_POLICY_CALLBACK)
+  unset(CMAKE_REQUIRED_LIBRARIES)
 
 endif (PASTIX_WITH_STARPU)
 
