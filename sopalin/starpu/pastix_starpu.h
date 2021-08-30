@@ -179,16 +179,16 @@ static inline void profiling_display_allinfo() {}
 #endif
 
 #if defined( PASTIX_STARPU_LOG_PROFILING )
-void log_profiling_init();
+void log_profiling_init( const char* dirname );
 void cl_log_profiling_register( const char *task_name, const char* cl_name,
                                 int m, int n, int k, double flops, double speed );
 
-void log_profiling_save_close( char* dirname, char* filename );
+void log_profiling_close();
 #else
-static inline void log_profiling_init() {}
-static inline void log_profiling_save_close( char* filepath ) {
-    (void) filepath;
+static inline void log_profiling_init( const char* dirname ) {
+    (void) dirname;
 }
+static inline void log_profiling_close() {}
 #endif
 
 

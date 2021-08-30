@@ -122,12 +122,12 @@ profiling_display_allinfo()
 
 FILE *log_profiling_file[STARPU_NMAXWORKERS];
 
-void log_profiling_init() {
+void log_profiling_init( const char *dirname ) {
     char *tmp;
     int   index = 0;
     for ( ; index < STARPU_NMAXWORKERS; index++ ) {
-        asprintf( &tmp, "pastix_starpu_tmp_file%d.txt", index );
-        log_profiling_file[index] = pastix_fopenw( "/tmp/", tmp, "w+" );
+        asprintf( &tmp, "pastix_starpu_log_file%d.txt", index );
+        log_profiling_file[index] = pastix_fopenw( dirname, tmp, "w+" );
     }
 }
 
@@ -138,24 +138,11 @@ void cl_log_profiling_register( const char *task_name, const char* cl_name,
     fprintf( log_profiling_file[info->workerid], "%s,%s,%d,%d,%d,%lf,%lf\n", task_name, cl_name, m, n, k, flops, speed );
 }
 
-void log_profiling_save_close( char* dirname, char* filename ) {
-    char *tmp_str;
-    FILE *tmp_file;
-    char  buffer[100];
-    int   index = 0;
-    FILE *file  = pastix_fopenw( dirname, filename, "w" );
+void log_profiling_close() {
+    int index = 0;
     for ( ; index < STARPU_NMAXWORKERS; index++ ) {
-        tmp_file = log_profiling_file[index];
-        rewind( tmp_file );
-        while ( !feof(tmp_file) ) {
-            fgets(buffer, sizeof(buffer), tmp_file);
-            fprintf(file, "%s", buffer);
-        }
-        fclose( tmp_file );
-        asprintf( &tmp_str, "/tmp/pastix_starpu_tmp_file%d.txt", index );
-        remove( tmp_str );
+        fclose( log_profiling_file[index] );
     }
-    fclose( file );
 }
 
 #endif /* defined( PASTIX_STARPU_LOG_PROFILING ) */
