@@ -59,7 +59,36 @@ struct cl_cblk_zgemmsp_args_s {
     SolverCblk       *fcblk;
 };
 
-static struct starpu_perfmodel starpu_cblk_zgemmsp_model = {
+#if defined(PASTIX_STARPU_LOG_PROFILING)
+void
+cl_profiling_cb_cblk_zgemmsp( void *callback_arg )
+{
+    cl_profiling_callback( callback_arg );
+
+    struct starpu_task                *task     = starpu_task_get_current();
+    struct starpu_profiling_task_info *info     = task->profiling_info;
+
+    if ( info == NULL ) {
+        return;
+    }
+    struct cl_cblk_zgemmsp_args_s     *args     = (struct cl_cblk_zgemmsp_args_s *) callback_arg;
+    double                             flops    = args->profile_data.flops;
+    double                             duration = starpu_timing_timespec_delay_us( &info->start_time, &info->end_time );
+    double                             speed    = flops / ( 1000.0 * duration );
+
+    pastix_int_t                       k        = cblk_colnbr( args->cblk );
+    pastix_int_t                       n        = blok_rownbr( args->blok );
+    pastix_int_t                       m        = args->cblk->stride;
+
+    m -= (args->cblk->cblktype & CBLK_LAYOUT_2D) ? args->blok->coefind / k : args->blok->coefind;
+    m -= (args->sideA == PastixUCoef) ? blok_rownbr( args->blok ) : 0;
+
+    cl_log_profiling_register(task->name, "cblk_zgemmsp", m, n, k, flops, speed);
+}
+#endif
+
+static struct starpu_perfmodel starpu_cblk_zgemmsp_model =
+{
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
     .type               = STARPU_PER_ARCH,
     .arch_cost_function = cblk_gemmsp_cost,
@@ -129,7 +158,7 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
     struct cl_cblk_zgemmsp_args_s *cl_arg = NULL;
     long long                      execute_where;
     int                            need_exec = 1;
-#if defined(PASTIX_DEBUG_STARPU)
+#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_LOG_PROFILING)
     char                          *task_name;
 #endif
 
@@ -166,12 +195,15 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
 #if defined( PASTIX_STARPU_PROFILING )
         cl_arg->profile_data.measures = cblk_zgemmsp_profile.measures;
         cl_arg->profile_data.flops    = NAN;
-#endif
         cl_arg->sideA                 = sideA;
         cl_arg->trans                 = trans;
         cl_arg->cblk                  = cblk;
         cl_arg->blok                  = blok;
         cl_arg->fcblk                 = fcblk;
+
+#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_LOG_PROFILING)
+        asprintf( &task_name, "%s( %ld )", cl_cblk_zgemmsp_any.name, (long)(cblk - sopalin_data->solvmtx->cblktab) );
+#endif
 
         execute_where = cl_cblk_zgemmsp_any.where;
 #if defined(PASTIX_WITH_CUDA)
@@ -195,12 +227,16 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
         STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_cblk_zgemmsp_args_s ),
         STARPU_EXECUTE_WHERE,           execute_where,
 #if defined(PASTIX_STARPU_PROFILING)
+#if defined(PASTIX_STARPU_LOG_PROFILING)
+        STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_cb_cblk_zgemmsp, cl_arg,
+#else
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
+#endif
 #endif
         STARPU_R,                       cblk->handler[sideA],
         STARPU_R,                       cblk->handler[sideB],
         STARPU_RW,                      fcblk->handler[sideA],
-#if defined(PASTIX_STARPU_DEBUG)
+#if defined(PASTIX_STARPU_DEBUG) || defined(PASTIX_STARPU_LOG_PROFILING)
         STARPU_NAME,                    task_name,
 #endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
@@ -244,7 +280,38 @@ struct cl_blok_zgemmsp_args_s {
     pastix_int_t      blok_mn;
 };
 
-static struct starpu_perfmodel starpu_blok_zgemmsp_model = {
+#if defined(PASTIX_STARPU_LOG_PROFILING)
+void
+cl_profiling_cb_blok_zgemmsp( void *callback_arg )
+{
+    cl_profiling_callback( callback_arg );
+
+    struct starpu_task                *task = starpu_task_get_current();
+    struct starpu_profiling_task_info *info = task->profiling_info;
+
+    if ( info == NULL ) {
+        return;
+    }
+    struct cl_blok_zgemmsp_args_s *args     = (struct cl_blok_zgemmsp_args_s *) callback_arg;
+    double          flops                   = args->profile_data.flops;
+    double          duration                = starpu_timing_timespec_delay_us( &info->start_time, &info->end_time );
+    double          speed                   = flops / ( 1000.0 * duration );
+
+
+    pastix_int_t      K      = cblk_colnbr( args->cblk );
+    const SolverBlok *blokA  = args->cblk[0].fblokptr + args->blok_mk;
+    pastix_int_t      cblk_m = blokA->fcblknm;
+    const SolverBlok *lblokK = args->cblk[1].fblokptr;
+    pastix_int_t      full_m = 0;
+    for (; (blokA < lblokK) && (blokA->fcblknm == cblk_m); blokA++) {
+        full_m += blok_rownbr(blokA);
+    }
+    cl_log_profiling_register(task->name, "blok_zgemmsp", full_m, full_m, K, flops, speed);
+}
+#endif
+
+static struct starpu_perfmodel starpu_blok_zgemmsp_model =
+{
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
     .type               = STARPU_PER_ARCH,
     .arch_cost_function = blok_gemmsp_cost,
@@ -326,7 +393,7 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
     struct cl_blok_zgemmsp_args_s *cl_arg = NULL;
     long long                      execute_where;
     int                            need_exec = 1;
-#if defined(PASTIX_DEBUG_STARPU)
+#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_LOG_PROFILING)
     char                          *task_name;
 #endif
 
@@ -412,7 +479,7 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
 #endif
     }
 
-#if defined(PASTIX_DEBUG_STARPU)
+#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_LOG_PROFILING)
     asprintf( &task_name, "%s( %ld, %ld, %ld )",
               cl_blok_zgemmsp_any.name,
               (long)(blokA - sopalin_data->solvmtx->bloktab),
@@ -425,7 +492,11 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
         STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_blok_zgemmsp_args_s ),
         STARPU_EXECUTE_WHERE,           execute_where,
 #if defined(PASTIX_STARPU_PROFILING)
+#if defined(PASTIX_STARPU_LOG_PROFILING)
+        STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_cb_blok_zgemmsp, cl_arg,
+#else
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
+#endif
 #endif
         STARPU_R,                       blokA->handler[sideA],
         STARPU_R,                       blokB->handler[sideB],
