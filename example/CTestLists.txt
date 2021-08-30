@@ -173,7 +173,7 @@ foreach( version ${RUNTYPE} )
   # Low Rank
   foreach(example ${PASTIX_TESTS} )
     foreach(scheduler ${PASTIX_SCHEDS} )
-      if( (version STREQUAL "mpi") AND ((scheduler EQUAL 2) OR (scheduler EQUAL 3)) )
+      if( (version STREQUAL "mpi") AND ((scheduler EQUAL 2)) )
         continue()
       endif()
       foreach(arithm ${PASTIX_PRECISIONS} )
