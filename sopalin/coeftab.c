@@ -26,7 +26,10 @@
 #include "pastix_ccores.h"
 #include "pastix_dcores.h"
 #include "pastix_scores.h"
-#include "pastix_zlrcores.h"
+#include "cpucblk_zpack.h"
+#include "cpucblk_cpack.h"
+#include "cpucblk_dpack.h"
+#include "cpucblk_spack.h"
 
 #if defined(PASTIX_WITH_PARSEC)
 #include "sopalin/parsec/pastix_parsec.h"
@@ -432,11 +435,13 @@ coeftab_gather( SolverMatrix     *solvmtx,
         cpucblk_salloc, cpucblk_dalloc, cpucblk_calloc, cpucblk_zalloc
     };
     void (*alloc_fct)( pastix_coefside_t, SolverCblk * ) = alloc_fct_array[ flttype - 2 ];
-    SolverCblk *cblk;
-    pastix_int_t i;
-    MPI_Status status;
-    size_t eltsize = pastix_size_of( flttype );
-    pastix_coefside_t side = PastixLCoef;
+    SolverCblk       *cblk;
+    pastix_int_t      i;
+    MPI_Status        status;
+    size_t            eltsize = pastix_size_of( flttype );
+    pastix_coefside_t side    = PastixLCoef;
+    size_t            bufsize = 0;
+    void             *recvbuf = NULL;
 
     if ( solvmtx->factotype == PastixFactLU ) {
         side = PastixLUCoef;
@@ -451,17 +456,79 @@ coeftab_gather( SolverMatrix     *solvmtx,
         if ( (solvmtx->clustnum == root) &&
              (solvmtx->clustnum != cblk->ownerid) )
         {
-            alloc_fct( side, cblk );
+            if ( cblk->cblktype & CBLK_COMPRESSED ) {
 
-            MPI_Recv( cblk->lcoeftab, cblksize, MPI_CHAR,
-                      cblk->ownerid, i, comm, &status );
+                cblksize += (cblk[1].fblokptr - cblk[0].fblokptr) * sizeof(int);
+                if ( side != PastixLCoef ) {
+                    cblksize *= 2;
+                }
+                MALLOC_INTERN( recvbuf, cblksize, char );
+                MPI_Recv( recvbuf, cblksize, MPI_CHAR,
+                          cblk->ownerid, i, comm, &status );
+
+                switch ( flttype ) {
+                    case PastixComplex64:
+                        cpucblk_zunpack_lr( side, cblk, recvbuf );
+                        break;
+                    case PastixComplex32:
+                        cpucblk_cunpack_lr( side, cblk, recvbuf );
+                        break;
+                    case PastixDouble:
+                        cpucblk_dunpack_lr( side, cblk, recvbuf );
+                        break;
+                    case PastixFloat:
+                        cpucblk_sunpack_lr( side, cblk, recvbuf );
+                        break;
+                    default:
+                        assert( 0 );
+                }
+                free( recvbuf );
+            }
+            else {
+                alloc_fct( side, cblk );
+                MPI_Recv( cblk->lcoeftab, cblksize, MPI_CHAR,
+                          cblk->ownerid, i, comm, &status );
+            }
         }
 
         if ( (solvmtx->clustnum != root) &&
              (solvmtx->clustnum == cblk->ownerid) )
         {
-            MPI_Send( cblk->lcoeftab, cblksize, MPI_CHAR,
-                      root, i, comm );
+            if ( cblk->cblktype & CBLK_COMPRESSED ) {
+                void *buffer = NULL;
+
+                switch ( flttype ) {
+                case PastixComplex64:
+                    bufsize = cpucblk_zcompute_size( side, cblk );
+                    buffer = cpucblk_zpack_lr( side, cblk, bufsize );
+                    break;
+
+                case PastixComplex32:
+                    bufsize = cpucblk_ccompute_size( side, cblk );
+                    buffer = cpucblk_cpack_lr( side, cblk, bufsize );
+                    break;
+
+                case PastixDouble:
+                    bufsize = cpucblk_dcompute_size( side, cblk );
+                    buffer = cpucblk_dpack_lr( side, cblk, bufsize );
+                    break;
+
+                case PastixFloat:
+                    bufsize = cpucblk_scompute_size( side, cblk );
+                    buffer = cpucblk_spack_lr( side, cblk, bufsize );
+                    break;
+
+                default:
+                    assert( 0 );
+                }
+
+                MPI_Send( buffer, bufsize, MPI_CHAR,
+                          root, i, comm );
+                free( buffer );
+            } else {
+                MPI_Send( cblk->lcoeftab, cblksize, MPI_CHAR,
+                          root, i, comm );
+            }
         }
     }
 }

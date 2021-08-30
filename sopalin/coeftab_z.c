@@ -256,6 +256,11 @@ coeftab_zmemory( SolverMatrix    *solvmtx,
         pastix_int_t nrows = blok_rownbr( solvblok );
         pastix_int_t size  = ncols * nrows;
 
+        /* Skip remote data */
+        if ( cblk->ownerid != solvmtx->clustnum ) {
+            continue;
+        }
+
         /* Let's skip recv and fanin for now */
         if ( lcblk->cblktype & (CBLK_RECV|CBLK_FANIN) ) {
             continue;
@@ -313,6 +318,11 @@ coeftab_zmemory( SolverMatrix    *solvmtx,
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
         pastix_int_t colnbr = cblk_colnbr( cblk );
+
+        /* Skip remote data */
+        if ( cblk->ownerid != solvmtx->clustnum ) {
+            continue;
+        }
 
         /* Let's skip recv and fanin for now */
         if ( cblk->cblktype & (CBLK_RECV|CBLK_FANIN) ) {
