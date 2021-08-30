@@ -53,26 +53,25 @@ struct cl_solve_cblk_zdiag_args_s {
     SolverCblk     *cblk;
 };
 
-static struct starpu_perfmodel starpu_solve_cblk_zdiag_model =
-{
-    .type = STARPU_HISTORY_BASED,
+static struct starpu_perfmodel starpu_solve_cblk_zdiag_model = {
+    .type   = STARPU_HISTORY_BASED,
     .symbol = "solve_cblk_zdiag",
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
-static void fct_solve_cblk_zdiag_cpu(void *descr[], void *cl_arg)
+static void
+fct_solve_cblk_zdiag_cpu( void *descr[], void *cl_arg )
 {
     int                                nrhs;
     pastix_complex64_t                *b;
     int                                ldb;
-    struct cl_solve_cblk_zdiag_args_s *args = (struct cl_solve_cblk_zdiag_args_s *) cl_arg;
+    struct cl_solve_cblk_zdiag_args_s *args = (struct cl_solve_cblk_zdiag_args_s *)cl_arg;
 
-    b    = (pastix_complex64_t*)STARPU_MATRIX_GET_PTR(descr[1]);
-    ldb  = (int)STARPU_MATRIX_GET_LD(descr[1]);
-    nrhs = (int)STARPU_MATRIX_GET_NY(descr[1]);
+    b    = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR( descr[1] );
+    ldb  = (int)STARPU_MATRIX_GET_LD( descr[1] );
+    nrhs = (int)STARPU_MATRIX_GET_NY( descr[1] );
 
-    solve_cblk_zdiag( args->cblk, nrhs,
-                      b, ldb, NULL );
+    solve_cblk_zdiag( args->cblk, nrhs, b, ldb, NULL );
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
@@ -107,18 +106,41 @@ starpu_stask_cblk_zdiag( sopalin_data_t *sopalin_data,
     pastix_int_t                       cblknum = cblk - solvmtx->cblktab;
 #if defined(PASTIX_DEBUG_STARPU)
     char                              *task_name;
-    asprintf( &task_name, "%s( %ld )", cl_solve_cblk_zdiag_cpu.name, (long)(cblknum) );
+#endif
+
+    /*
+     * Check if it needs to be submitted
+     */
+#if defined(PASTIX_WITH_MPI)
+    {
+        int need_submit = 0;
+        if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
+            need_submit = 1;
+        }
+        if ( starpu_mpi_cached_receive( solvmtx->starpu_desc_rhs->handletab[cblknum] ) ) {
+            need_submit = 1;
+        }
+        if ( !need_submit ) {
+            return;
+        }
+    }
 #endif
 
     /*
      * Create the arguments array
      */
-    cl_arg                         = malloc( sizeof(struct cl_solve_cblk_zdiag_args_s) );
+    cl_arg                        = malloc( sizeof(struct cl_solve_cblk_zdiag_args_s) );
 #if defined(PASTIX_STARPU_PROFILING)
-    cl_arg->profile_data.measures  = solve_cblk_zdiag_profile.measures;
-    cl_arg->profile_data.flops     = NAN;
+    cl_arg->profile_data.measures = solve_cblk_zdiag_profile.measures;
+    cl_arg->profile_data.flops    = NAN;
 #endif
-    cl_arg->cblk                   = cblk;
+    cl_arg->cblk                  = cblk;
+
+#if defined(PASTIX_DEBUG_STARPU)
+    asprintf( &task_name, "%s( %ld )",
+              cl_solve_cblk_zdiag_cpu.name,
+              (long)cblknum );
+#endif
 
     /* if ( cblk->cblktype & CBLK_TASKS_2D ) { */
     /*     handle = cblk->fblokptr->handler[0]; */
@@ -142,7 +164,7 @@ starpu_stask_cblk_zdiag( sopalin_data_t *sopalin_data,
         STARPU_PRIORITY,                BucketSolveDiag,
 #endif
         0);
-    (void) prio;
+    (void)prio;
 }
 /**
  * @}

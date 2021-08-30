@@ -55,26 +55,26 @@ struct cl_cblk_zpotrfsp_args_s {
     SolverCblk     *cblk;
 };
 
-static struct starpu_perfmodel starpu_cblk_zpotrfsp1d_panel_model =
-{
+static struct starpu_perfmodel starpu_cblk_zpotrfsp1d_panel_model = {
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
-    .type = STARPU_PER_ARCH,
+    .type               = STARPU_PER_ARCH,
     .arch_cost_function = cblk_potrf_cost,
 #else
-    .type = STARPU_HISTORY_BASED,
+    .type               = STARPU_HISTORY_BASED,
 #endif
-    .symbol = "cblk_zpotrfsp1d_panel",
+    .symbol             = "cblk_zpotrfsp1d_panel",
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
-static void fct_cblk_zpotrfsp1d_panel_cpu(void *descr[], void *cl_arg)
+static void
+fct_cblk_zpotrfsp1d_panel_cpu( void *descr[], void *cl_arg )
 {
     SolverMatrix                   *solvmtx;
-    pastix_complex64_t             *L;
+    void                           *L;
     int                             nbpivot;
     struct cl_cblk_zpotrfsp_args_s *args = (struct cl_cblk_zpotrfsp_args_s *)cl_arg;
 
-    L = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
+    L = (void *)STARPU_VECTOR_GET_PTR( descr[0] );
 
     solvmtx = args->solvmtx;
     nbpivot = cpucblk_zpotrfsp1d_panel( solvmtx, args->cblk, L );
@@ -93,7 +93,24 @@ starpu_task_cblk_zpotrfsp1d_panel( sopalin_data_t *sopalin_data,
     struct cl_cblk_zpotrfsp_args_s *cl_arg;
 #if defined(PASTIX_DEBUG_STARPU)
     char                           *task_name;
-    asprintf( &task_name, "%s( %ld )", cl_cblk_zpotrfsp1d_panel_cpu.name, (long)(cblk - sopalin_data->solvmtx->cblktab) );
+#endif
+
+    /*
+     * Check if it needs to be submitted
+     */
+#if defined(PASTIX_WITH_MPI)
+    {
+        int need_submit = 0;
+        if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
+            need_submit = 1;
+        }
+        if ( starpu_mpi_cached_receive( cblk->handler[0] ) ) {
+            need_submit = 1;
+        }
+        if ( !need_submit ) {
+            return;
+        }
+    }
 #endif
 
     /*
@@ -106,6 +123,12 @@ starpu_task_cblk_zpotrfsp1d_panel( sopalin_data_t *sopalin_data,
     cl_arg->profile_data.flops    = NAN;
 #endif
     cl_arg->cblk                  = cblk;
+
+#if defined(PASTIX_DEBUG_STARPU)
+    asprintf( &task_name, "%s( %ld )",
+              cl_cblk_zpotrfsp1d_panel_cpu.name,
+              (long)( cblk - sopalin_data->solvmtx->cblktab ) );
+#endif
 
     starpu_insert_task(
         pastix_codelet(&cl_cblk_zpotrfsp1d_panel_cpu),
@@ -123,7 +146,7 @@ starpu_task_cblk_zpotrfsp1d_panel( sopalin_data_t *sopalin_data,
         STARPU_PRIORITY,                prio,
 #endif
         0);
-    (void) prio;
+    (void)prio;
 }
 
 /**
@@ -152,28 +175,28 @@ struct cl_blok_zpotrfsp_args_s {
     SolverCblk     *cblk;
 };
 
-static struct starpu_perfmodel starpu_blok_zpotrfsp_model =
-{
+static struct starpu_perfmodel starpu_blok_zpotrfsp_model = {
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
-    .type = STARPU_PER_ARCH,
+    .type               = STARPU_PER_ARCH,
     .arch_cost_function = blok_potrf_cost,
 #else
-    .type = STARPU_HISTORY_BASED,
+    .type               = STARPU_HISTORY_BASED,
 #endif
-    .symbol = "blok_zpotrfsp",
+    .symbol             = "blok_zpotrfsp",
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
-static void fct_blok_zpotrfsp_cpu(void *descr[], void *cl_arg)
+static void
+fct_blok_zpotrfsp_cpu( void *descr[], void *cl_arg )
 {
     SolverMatrix                   *solvmtx;
-    pastix_complex64_t             *L;
+    void                           *L;
     int                             nbpivot;
     struct cl_blok_zpotrfsp_args_s *args = (struct cl_blok_zpotrfsp_args_s *)cl_arg;
 
-    L = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
+    L = (void *)STARPU_VECTOR_GET_PTR( descr[0] );
 
-    assert(args->cblk->cblktype & CBLK_TASKS_2D);
+    assert( args->cblk->cblktype & CBLK_TASKS_2D );
 
     solvmtx = args->solvmtx;
     nbpivot = cpucblk_zpotrfsp1d_potrf( solvmtx, args->cblk, L );
@@ -192,8 +215,26 @@ starpu_task_blok_zpotrf( sopalin_data_t *sopalin_data,
     struct cl_blok_zpotrfsp_args_s *cl_arg;
 #if defined(PASTIX_DEBUG_STARPU)
     char                           *task_name;
-    asprintf( &task_name, "%s( %ld )", cl_blok_zpotrfsp_cpu.name, (long)(cblk - sopalin_data->solvmtx->cblktab) );
 #endif
+
+    /*
+     * Check if it needs to be submitted
+     */
+#if defined(PASTIX_WITH_MPI)
+    {
+        int need_submit = 0;
+        if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
+            need_submit = 1;
+        }
+        if ( starpu_mpi_cached_receive( cblk->fblokptr->handler[0] ) ) {
+            need_submit = 1;
+        }
+        if ( !need_submit ) {
+            return;
+        }
+    }
+#endif
+
     /*
      * Create the arguments array
      */
@@ -204,6 +245,12 @@ starpu_task_blok_zpotrf( sopalin_data_t *sopalin_data,
     cl_arg->profile_data.flops    = NAN;
 #endif
     cl_arg->cblk                  = cblk;
+
+#if defined(PASTIX_DEBUG_STARPU)
+    asprintf( &task_name, "%s( %ld )",
+              cl_cblk_zpotrfsp1d_panel_cpu.name,
+              (long)( cblk - sopalin_data->solvmtx->cblktab ) );
+#endif
 
     starpu_insert_task(
         pastix_codelet(&cl_blok_zpotrfsp_cpu),
@@ -221,7 +268,7 @@ starpu_task_blok_zpotrf( sopalin_data_t *sopalin_data,
         STARPU_PRIORITY,                prio,
 #endif
         0);
-    (void) prio;
+    (void)prio;
 }
 
 /**

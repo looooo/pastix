@@ -65,26 +65,26 @@ struct cl_blok_ztrsmsp_args_s {
     pastix_int_t      blok_m;
 };
 
-static struct starpu_perfmodel starpu_blok_ztrsmsp_model =
-{
+static struct starpu_perfmodel starpu_blok_ztrsmsp_model = {
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
-    .type = STARPU_PER_ARCH,
+    .type               = STARPU_PER_ARCH,
     .arch_cost_function = cblk_gemmsp_cost,
 #else
-    .type = STARPU_HISTORY_BASED,
+    .type               = STARPU_HISTORY_BASED,
 #endif
-    .symbol = "blok_ztrsmsp",
+    .symbol             = "blok_ztrsmsp",
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
-static void fct_blok_ztrsmsp_cpu(void *descr[], void *cl_arg)
+static void
+fct_blok_ztrsmsp_cpu( void *descr[], void *cl_arg )
 {
-    const pastix_complex64_t     *A;
-    pastix_complex64_t           *C;
-    struct cl_blok_ztrsmsp_args_s *args = (struct cl_blok_ztrsmsp_args_s *) cl_arg;
+    const void                    *A;
+    void                          *C;
+    struct cl_blok_ztrsmsp_args_s *args = (struct cl_blok_ztrsmsp_args_s *)cl_arg;
 
-    A = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
-    C = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
+    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
+    C = (void *)      STARPU_VECTOR_GET_PTR( descr[1] );
 
     assert( args->cblk->cblktype & CBLK_TASKS_2D );
 
@@ -95,14 +95,15 @@ static void fct_blok_ztrsmsp_cpu(void *descr[], void *cl_arg)
 }
 
 #if defined(PASTIX_WITH_CUDA)
-static void fct_blok_ztrsmsp_gpu(void *descr[], void *cl_arg)
+static void
+fct_blok_ztrsmsp_gpu( void *descr[], void *cl_arg )
 {
-    const cuDoubleComplex         *A;
-    cuDoubleComplex               *C;
-    struct cl_blok_ztrsmsp_args_s *args = (struct cl_blok_ztrsmsp_args_s *) cl_arg;
+    const void                    *A;
+    void                          *C;
+    struct cl_blok_ztrsmsp_args_s *args = (struct cl_blok_ztrsmsp_args_s *)cl_arg;
 
-    A = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[0]);
-    C = (cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
+    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
+    C = (void *)      STARPU_VECTOR_GET_PTR( descr[1] );
 
     assert( args->cblk->cblktype & CBLK_TASKS_2D );
 
@@ -130,12 +131,27 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
 {
     struct cl_blok_ztrsmsp_args_s *cl_arg;
     long long                      execute_where;
-    pastix_int_t                   blok_m  = blok - cblk->fblokptr;
+    pastix_int_t                   blok_m = blok - cblk->fblokptr;
 #if defined(PASTIX_DEBUG_STARPU)
     char                          *task_name;
-    asprintf( &task_name, "%s( %ld, %ld)", cl_blok_ztrsmsp_any.name,
-             (long)(cblk - sopalin_data->solvmtx->cblktab),
-             (long)(blok - sopalin_data->solvmtx->bloktab) );
+#endif
+
+    /*
+     * Check if it needs to be submitted
+     */
+#if defined(PASTIX_WITH_MPI)
+    {
+        int need_submit = 0;
+        if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
+            need_submit = 1;
+        }
+        if ( starpu_mpi_cached_receive( blok->handler[coef] ) ) {
+            need_submit = 1;
+        }
+        if ( !need_submit ) {
+            return;
+        }
+    }
 #endif
 
     /*
@@ -161,25 +177,32 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
     }
 #endif
 
+#if defined(PASTIX_DEBUG_STARPU)
+    asprintf( &task_name, "%s( %ld, %ld)",
+              cl_blok_ztrsmsp_any.name,
+              (long)(cblk - sopalin_data->solvmtx->cblktab),
+              (long)(blok - sopalin_data->solvmtx->bloktab) );
+#endif
+
     starpu_insert_task(
         pastix_codelet(&cl_blok_ztrsmsp_any),
-        STARPU_CL_ARGS,       cl_arg,                       sizeof( struct cl_blok_ztrsmsp_args_s ),
-        STARPU_EXECUTE_WHERE, execute_where,
+        STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_blok_ztrsmsp_args_s ),
+        STARPU_EXECUTE_WHERE,           execute_where,
 #if defined(PASTIX_STARPU_PROFILING)
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
 #endif
-        STARPU_R,             cblk->fblokptr->handler[coef],
-        STARPU_RW,            blok->handler[coef],
+        STARPU_R,                       cblk->fblokptr->handler[coef],
+        STARPU_RW,                      blok->handler[coef],
 #if defined(PASTIX_DEBUG_STARPU)
-        STARPU_NAME,          task_name,
+        STARPU_NAME,                    task_name,
 #endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
-        STARPU_PRIORITY,      BucketTRSM2D,
+        STARPU_PRIORITY,                BucketTRSM2D,
 #else
-        STARPU_PRIORITY,      prio,
+        STARPU_PRIORITY,                prio,
 #endif
         0);
-    (void) prio;
+    (void)prio;
 }
 
 /**
