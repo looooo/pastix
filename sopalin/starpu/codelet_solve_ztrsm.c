@@ -75,7 +75,7 @@ static void fct_solve_blok_ztrsm_cpu(void *descr[], void *cl_arg)
     ldb  = (pastix_int_t)        STARPU_MATRIX_GET_LD (descr[1]);
     nrhs = (pastix_int_t)        STARPU_MATRIX_GET_NY (descr[1]);
 
-    solve_blok_ztrsm( args->side, args->uplo, 
+    solve_blok_ztrsm( args->side, args->uplo,
                       args->trans, args->diag, args->cblk,
                       nrhs, A, B, ldb );
 }
@@ -137,6 +137,24 @@ starpu_stask_blok_ztrsm( sopalin_data_t   *sopalin_data,
 #if defined(PASTIX_DEBUG_STARPU)
     char                              *task_name;
     asprintf( &task_name, "%s( %ld )", cl_solve_blok_ztrsm_cpu.name, (long)(cblknum) );
+#endif
+
+    /*
+     * Check if it needs to be submitted
+     */
+#if defined(PASTIX_WITH_MPI)
+    {
+        int need_submit = 0;
+        if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
+            need_submit = 1;
+        }
+        if ( starpu_mpi_cached_receive( solvmtx->starpu_desc_rhs->handletab[cblknum] ) ) {
+            need_submit = 1;
+        }
+        if ( !need_submit ) {
+            return;
+        }
+    }
 #endif
 
     /*

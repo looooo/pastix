@@ -99,8 +99,29 @@ starpu_task_cblk_zgetrfsp1d_panel( sopalin_data_t *sopalin_data,
 #endif
 
     /*
-    * Create the arguments array
-    */
+     * Check if it needs to be submitted
+     */
+#if defined(PASTIX_WITH_MPI)
+    {
+        int need_submit = 0;
+        if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
+            need_submit = 1;
+        }
+        if ( starpu_mpi_cached_receive( cblk->handler[0] ) ) {
+            need_submit = 1;
+        }
+        if ( starpu_mpi_cached_receive( cblk->handler[1] ) ) {
+            need_submit = 1;
+        }
+        if ( !need_submit ) {
+            return;
+        }
+    }
+#endif
+
+    /*
+     * Create the arguments array
+     */
     cl_arg                        = malloc( sizeof( struct cl_cblk_zgetrfsp_args_s) );
     cl_arg->solvmtx               = sopalin_data->solvmtx;
 #if defined( PASTIX_STARPU_PROFILING )
@@ -200,8 +221,29 @@ starpu_task_blok_zgetrf( sopalin_data_t *sopalin_data,
 #endif
 
     /*
-    * Create the arguments array
-    */
+     * Check if it needs to be submitted
+     */
+#if defined(PASTIX_WITH_MPI)
+    {
+        int need_submit = 0;
+        if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
+            need_submit = 1;
+        }
+        if ( starpu_mpi_cached_receive( cblk->fblokptr->handler[0] ) ) {
+            need_submit = 1;
+        }
+        if ( starpu_mpi_cached_receive( cblk->fblokptr->handler[1] ) ) {
+            need_submit = 1;
+        }
+        if ( !need_submit ) {
+            return;
+        }
+    }
+#endif
+
+    /*
+     * Create the arguments array
+     */
     cl_arg                        = malloc( sizeof( struct cl_blok_zgetrfsp_args_s) );
     cl_arg->solvmtx               = sopalin_data->solvmtx;
 #if defined( PASTIX_STARPU_PROFILING )

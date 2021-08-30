@@ -165,7 +165,28 @@ starpu_stask_blok_zgemm( sopalin_data_t   *sopalin_data,
               (long) (( side == PastixRight ) ? fcbknum : cblknum), (long) cblknum, (long) fcbknum );
 
 #endif
-    
+
+    /*
+     * Check if it needs to be submitted
+     */
+#if defined(PASTIX_WITH_MPI)
+    {
+        int need_submit = 0;
+        if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
+            need_submit = 1;
+        }
+        if ( fcbk->ownerid == sopalin_data->solvmtx->clustnum ) {
+            need_submit = 1;
+        }
+        if ( starpu_mpi_cached_receive( solvmtx->starpu_desc_rhs->handletab[fcbknum] ) ) {
+            need_submit = 1;
+        }
+        if ( !need_submit ) {
+            return;
+        }
+    }
+#endif
+
     /*
      * Create the arguments array
      */

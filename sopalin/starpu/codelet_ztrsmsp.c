@@ -139,6 +139,24 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
 #endif
 
     /*
+     * Check if it needs to be submitted
+     */
+#if defined(PASTIX_WITH_MPI)
+    {
+        int need_submit = 0;
+        if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
+            need_submit = 1;
+        }
+        if ( starpu_mpi_cached_receive( blok->handler[coef] ) ) {
+            need_submit = 1;
+        }
+        if ( !need_submit ) {
+            return;
+        }
+    }
+#endif
+
+    /*
      * Create the arguments array
      */
     cl_arg                        = malloc( sizeof(struct cl_blok_ztrsmsp_args_s) );

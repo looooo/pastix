@@ -100,6 +100,21 @@ starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
               (long)(blok - sopalin_data->solvmtx->bloktab) );
 #endif
 
+    /*
+     * Check if it needs to be submitted
+     */
+#if defined(PASTIX_WITH_MPI)
+    {
+        int need_submit = 0;
+        if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
+            need_submit = 1;
+        }
+        if ( !need_submit ) {
+            return;
+        }
+    }
+#endif
+
     starpu_vector_data_register( handler + 1, -1, (uintptr_t)NULL, M * cblk_colnbr( cblk ),
                                  sopalin_data->solvmtx->starpu_desc->typesze );
 

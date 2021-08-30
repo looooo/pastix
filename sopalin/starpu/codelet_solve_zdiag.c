@@ -111,6 +111,24 @@ starpu_stask_cblk_zdiag( sopalin_data_t *sopalin_data,
 #endif
 
     /*
+     * Check if it needs to be submitted
+     */
+#if defined(PASTIX_WITH_MPI)
+    {
+        int need_submit = 0;
+        if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
+            need_submit = 1;
+        }
+        if ( starpu_mpi_cached_receive( solvmtx->starpu_desc_rhs->handletab[cblknum] ) ) {
+            need_submit = 1;
+        }
+        if ( !need_submit ) {
+            return;
+        }
+    }
+#endif
+
+    /*
      * Create the arguments array
      */
     cl_arg                         = malloc( sizeof(struct cl_solve_cblk_zdiag_args_s) );
