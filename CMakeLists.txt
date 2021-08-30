@@ -138,6 +138,9 @@ option(PASTIX_WITH_STARPU
 cmake_dependent_option(PASTIX_STARPU_PROFILING
     "Enable kernel profiling depending on worker" OFF "PASTIX_WITH_STARPU" OFF)
 
+cmake_dependent_option(PASTIX_STARPU_LOG_PROFILING
+    "Enable kernel profiling on each task individually" OFF "PASTIX_STARPU_PROFILING" OFF)
+
 cmake_dependent_option(PASTIX_STARPU_COST_PER_ARCH
     "Enable kernel perfmodel to depend on cost function" OFF "PASTIX_WITH_STARPU" OFF)
 
