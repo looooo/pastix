@@ -54,28 +54,28 @@ struct cl_cblk_zsytrfsp_args_s {
     SolverCblk     *cblk;
 };
 
-static struct starpu_perfmodel starpu_cblk_zsytrfsp1d_panel_model =
-{
+static struct starpu_perfmodel starpu_cblk_zsytrfsp1d_panel_model = {
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
-    .type = STARPU_PER_ARCH,
+    .type               = STARPU_PER_ARCH,
     .arch_cost_function = cblk_sytrf_cost,
 #else
-    .type = STARPU_HISTORY_BASED,
+    .type               = STARPU_HISTORY_BASED,
 #endif
-    .symbol = "cblk_zsytrf",
+    .symbol             = "cblk_zsytrf",
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
-static void fct_cblk_zsytrfsp1d_panel_cpu(void *descr[], void *cl_arg)
+static void
+fct_cblk_zsytrfsp1d_panel_cpu( void *descr[], void *cl_arg )
 {
-    SolverMatrix                 *solvmtx;
-    pastix_complex64_t           *L;
-    pastix_complex64_t           *DL;
-    int                           nbpivot;
+    SolverMatrix                   *solvmtx;
+    void                           *L;
+    void                           *DL;
+    int                             nbpivot;
     struct cl_cblk_zsytrfsp_args_s *args = (struct cl_cblk_zsytrfsp_args_s *)cl_arg;
 
-    L  = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
-    DL = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
+    L  = (void *)STARPU_VECTOR_GET_PTR( descr[0] );
+    DL = (void *)STARPU_VECTOR_GET_PTR( descr[1] );
 
     solvmtx = args->solvmtx;
     nbpivot = cpucblk_zsytrfsp1d_panel( solvmtx, args->cblk, L, DL );
@@ -97,7 +97,6 @@ starpu_task_cblk_zsytrfsp1d_panel( sopalin_data_t *sopalin_data,
     pastix_int_t                    M       = cblk->stride;
 #if defined(PASTIX_DEBUG_STARPU)
     char                           *task_name;
-    asprintf( &task_name, "%s( %ld )", cl_cblk_zsytrfsp1d_panel_cpu.name, (long)(cblk - sopalin_data->solvmtx->cblktab) );
 #endif
 
     /*
@@ -118,7 +117,7 @@ starpu_task_cblk_zsytrfsp1d_panel( sopalin_data_t *sopalin_data,
     }
 #endif
 
-    if ( M-N > 0 ) {
+    if ( (M - N) > 0 ) {
         starpu_vector_data_register( handler + 1, -1, (uintptr_t)NULL, M * N,
                                      sopalin_data->solvmtx->starpu_desc->typesze );
     }
@@ -132,12 +131,15 @@ starpu_task_cblk_zsytrfsp1d_panel( sopalin_data_t *sopalin_data,
         int64_t tag_desc = sopalin_data->solvmtx->starpu_desc->mpitag;
         int64_t tag_cblk = 2 * cblk->gcblknum + 1;
 
-        starpu_mpi_data_register( *(handler+1),
+        starpu_mpi_data_register( *(handler + 1),
                                   tag_desc | tag_cblk,
                                   cblk->ownerid );
     }
 #endif /* PASTIX_WITH_MPI */
 
+    /*
+     * Create the arguments array
+     */
     cl_arg                        = malloc( sizeof(struct cl_cblk_zsytrfsp_args_s) );
     cl_arg->solvmtx               = sopalin_data->solvmtx;
 #if defined(PASTIX_STARPU_PROFILING)
@@ -145,6 +147,12 @@ starpu_task_cblk_zsytrfsp1d_panel( sopalin_data_t *sopalin_data,
     cl_arg->profile_data.flops    = NAN;
 #endif
     cl_arg->cblk                  = cblk;
+
+#if defined(PASTIX_DEBUG_STARPU)
+    asprintf( &task_name, "%s( %ld )",
+              cl_cblk_zsytrfsp1d_panel_cpu.name,
+              (long)( cblk - sopalin_data->solvmtx->cblktab ) );
+#endif
 
     starpu_insert_task(
         pastix_codelet(&cl_cblk_zsytrfsp1d_panel_cpu),
@@ -163,7 +171,7 @@ starpu_task_cblk_zsytrfsp1d_panel( sopalin_data_t *sopalin_data,
         STARPU_PRIORITY,                prio,
 #endif
         0);
-    (void) prio;
+    (void)prio;
 }
 
 /**
@@ -192,28 +200,28 @@ struct cl_blok_zsytrfsp_args_s {
     SolverCblk     *cblk;
 };
 
-static struct starpu_perfmodel starpu_blok_zsytrfsp_model =
-{
+static struct starpu_perfmodel starpu_blok_zsytrfsp_model = {
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
-    .type = STARPU_PER_ARCH,
+    .type               = STARPU_PER_ARCH,
     .arch_cost_function = blok_sytrf_cost,
 #else
-    .type = STARPU_HISTORY_BASED,
+    .type               = STARPU_HISTORY_BASED,
 #endif
-    .symbol = "blok_zsytrfsp",
+    .symbol             = "blok_zsytrfsp",
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
-static void fct_blok_zsytrfsp_cpu(void *descr[], void *cl_arg)
+static void
+fct_blok_zsytrfsp_cpu( void *descr[], void *cl_arg )
 {
     SolverMatrix                   *solvmtx;
-    pastix_complex64_t             *L;
+    void                           *L;
     int                             nbpivot;
     struct cl_blok_zsytrfsp_args_s *args = (struct cl_blok_zsytrfsp_args_s *)cl_arg;
 
-    L = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
+    L = (void *)STARPU_VECTOR_GET_PTR( descr[0] );
 
-    assert(args->cblk->cblktype & CBLK_TASKS_2D);
+    assert( args->cblk->cblktype & CBLK_TASKS_2D );
 
     solvmtx = args->solvmtx;
     nbpivot = cpucblk_zsytrfsp1d_sytrf( solvmtx, args->cblk, L );
@@ -232,7 +240,6 @@ starpu_task_blok_zsytrf( sopalin_data_t *sopalin_data,
     struct cl_blok_zsytrfsp_args_s *cl_arg;
 #if defined(PASTIX_DEBUG_STARPU)
     char                           *task_name;
-    asprintf( &task_name, "%s( %ld )", cl_blok_zsytrfsp_cpu.name, (long)(cblk - sopalin_data->solvmtx->cblktab) );
 #endif
 
     /*
@@ -264,6 +271,12 @@ starpu_task_blok_zsytrf( sopalin_data_t *sopalin_data,
 #endif
     cl_arg->cblk                  = cblk;
 
+#if defined(PASTIX_DEBUG_STARPU)
+    asprintf( &task_name, "%s( %ld )",
+              cl_blok_zsytrfsp_cpu.name,
+              (long)(cblk - sopalin_data->solvmtx->cblktab) );
+#endif
+
     starpu_insert_task(
         pastix_codelet(&cl_blok_zsytrfsp_cpu),
         STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_blok_zsytrfsp_args_s ),
@@ -280,7 +293,7 @@ starpu_task_blok_zsytrf( sopalin_data_t *sopalin_data,
         STARPU_PRIORITY,                prio,
 #endif
         0);
-    (void) prio;
+    (void)prio;
 }
 
 /**

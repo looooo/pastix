@@ -55,23 +55,23 @@ struct cl_blok_zscalo_args_s {
     pastix_int_t    blok_m;
 };
 
-static struct starpu_perfmodel starpu_blok_zscalo_model =
-{
-    .type = STARPU_HISTORY_BASED,
+static struct starpu_perfmodel starpu_blok_zscalo_model = {
+    .type   = STARPU_HISTORY_BASED,
     .symbol = "blok_zscalo",
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
-static void fct_blok_zscalo_cpu(void *descr[], void *cl_arg)
+static void
+fct_blok_zscalo_cpu( void *descr[], void *cl_arg )
 {
     const void                   *A;
     const void                   *D;
     void                         *B;
-    struct cl_blok_zscalo_args_s *args = (struct cl_blok_zscalo_args_s *) cl_arg;
+    struct cl_blok_zscalo_args_s *args = (struct cl_blok_zscalo_args_s *)cl_arg;
 
-    A = (const void *)STARPU_VECTOR_GET_PTR(descr[0]);
-    D = (const void *)STARPU_VECTOR_GET_PTR(descr[1]);
-    B = (void *)STARPU_VECTOR_GET_PTR(descr[2]);
+    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
+    D = (const void *)STARPU_VECTOR_GET_PTR( descr[1] );
+    B = (void *)      STARPU_VECTOR_GET_PTR( descr[2] );
 
     assert( args->cblk->cblktype & CBLK_TASKS_2D );
 
@@ -82,22 +82,19 @@ static void fct_blok_zscalo_cpu(void *descr[], void *cl_arg)
 CODELETS_CPU( blok_zscalo, 3 );
 
 void
-starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
-                         pastix_trans_t    trans,
-                         SolverCblk       *cblk,
-                         SolverBlok       *blok,
-                         int               prio )
+starpu_task_blok_zscalo( sopalin_data_t *sopalin_data,
+                         pastix_trans_t  trans,
+                         SolverCblk     *cblk,
+                         SolverBlok     *blok,
+                         int             prio )
 {
     struct cl_blok_zscalo_args_s *cl_arg;
-    starpu_data_handle_t         *handler = (starpu_data_handle_t*)(blok->handler);
-    SolverBlok                   *blokA = blok;
-    pastix_int_t                  blok_m = blok - cblk->fblokptr;
-    pastix_int_t                  M = blok_rownbr_ext( blokA );
+    starpu_data_handle_t         *handler = (starpu_data_handle_t *)( blok->handler );
+    SolverBlok                   *blokA   = blok;
+    pastix_int_t                  blok_m  = blok - cblk->fblokptr;
+    pastix_int_t                  M       = blok_rownbr_ext( blokA );
 #if defined(PASTIX_DEBUG_STARPU)
-    char                          *task_name;
-    asprintf( &task_name, "%s( %ld, %ld )", cl_blok_zscalo_cpu.name,
-              (long)(cblk - sopalin_data->solvmtx->cblktab),
-              (long)(blok - sopalin_data->solvmtx->bloktab) );
+    char                         *task_name;
 #endif
 
     /*
@@ -124,7 +121,7 @@ starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
         int64_t bloknum  = blok - sopalin_data->solvmtx->bloktab;
         int64_t tag_blok = 2 * (sopalin_data->solvmtx->cblknbr + bloknum) + 1;
 
-        starpu_mpi_data_register( *(handler+1),
+        starpu_mpi_data_register( *(handler + 1),
                                   tag_desc | tag_blok,
                                   cblk->ownerid );
     }
@@ -141,6 +138,13 @@ starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
     cl_arg->trans                 = trans;
     cl_arg->cblk                  = cblk;
     cl_arg->blok_m                = blok_m;
+
+#if defined(PASTIX_DEBUG_STARPU)
+    asprintf( &task_name, "%s( %ld, %ld )",
+              cl_blok_zscalo_cpu.name,
+              (long)(cblk - sopalin_data->solvmtx->cblktab),
+              (long)(blok - sopalin_data->solvmtx->bloktab) );
+#endif
 
     starpu_insert_task(
         pastix_codelet(&cl_blok_zscalo_cpu),
@@ -160,7 +164,7 @@ starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
         STARPU_PRIORITY,                prio,
 #endif
         0);
-    (void) prio;
+    (void)prio;
 }
 /**
  * @}

@@ -36,10 +36,7 @@
  * Cblk version
  */
 #if defined( PASTIX_STARPU_PROFILING )
-starpu_profile_t cblk_zgemmsp_profile = {
-    .next = NULL,
-    .name = "cblk_zgemmsp"
-};
+starpu_profile_t cblk_zgemmsp_profile = { .next = NULL, .name = "cblk_zgemmsp" };
 
 /**
  * @brief Profiling registration function
@@ -62,32 +59,31 @@ struct cl_cblk_zgemmsp_args_s {
     SolverCblk       *fcblk;
 };
 
-static struct starpu_perfmodel starpu_cblk_zgemmsp_model =
-{
+static struct starpu_perfmodel starpu_cblk_zgemmsp_model = {
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
-    .type = STARPU_PER_ARCH,
+    .type               = STARPU_PER_ARCH,
     .arch_cost_function = cblk_gemmsp_cost,
 #else
-    .type = STARPU_HISTORY_BASED,
+    .type               = STARPU_HISTORY_BASED,
 #endif
-    .symbol = "cblk_zgemmsp",
+    .symbol             = "cblk_zgemmsp",
 };
 
-
 #if !defined(PASTIX_STARPU_SIMULATION)
-static void fct_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
+static void
+fct_cblk_zgemmsp_cpu( void *descr[], void *cl_arg )
 {
-    const pastix_complex64_t      *A;
-    const pastix_complex64_t      *B;
-    pastix_complex64_t            *C;
-    struct cl_cblk_zgemmsp_args_s *args = (struct cl_cblk_zgemmsp_args_s *) cl_arg;
+    const void                    *A;
+    const void                    *B;
+    void                          *C;
+    struct cl_cblk_zgemmsp_args_s *args = (struct cl_cblk_zgemmsp_args_s *)cl_arg;
 
-    A = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[0]);
-    B = (const pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[1]);
-    C = (pastix_complex64_t *)STARPU_VECTOR_GET_PTR(descr[2]);
+    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
+    B = (const void *)STARPU_VECTOR_GET_PTR( descr[1] );
+    C = (void *)      STARPU_VECTOR_GET_PTR( descr[2] );
 
     /* Check layout due to NULL workspace for now */
-    assert(  args->cblk->cblktype & CBLK_LAYOUT_2D );
+    assert( args->cblk->cblktype  & CBLK_LAYOUT_2D );
     assert( args->fcblk->cblktype & CBLK_LAYOUT_2D );
 
     args->profile_data.flops = cpucblk_zgemmsp( args->sideA, args->trans,
@@ -97,16 +93,17 @@ static void fct_cblk_zgemmsp_cpu(void *descr[], void *cl_arg)
 }
 
 #if defined(PASTIX_WITH_CUDA)
-static void fct_cblk_zgemmsp_gpu(void *descr[], void *cl_arg)
+static void
+fct_cblk_zgemmsp_gpu( void *descr[], void *cl_arg )
 {
-    const cuDoubleComplex         *A;
-    const cuDoubleComplex         *B;
-    cuDoubleComplex               *C;
-    struct cl_cblk_zgemmsp_args_s *args  = (struct cl_cblk_zgemmsp_args_s *) cl_arg;
+    const void                    *A;
+    const void                    *B;
+    void                          *C;
+    struct cl_cblk_zgemmsp_args_s *args  = (struct cl_cblk_zgemmsp_args_s *)cl_arg;
 
-    A = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[0]);
-    B = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
-    C = (cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[2]);
+    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
+    B = (const void *)STARPU_VECTOR_GET_PTR( descr[1] );
+    C = (void *)      STARPU_VECTOR_GET_PTR( descr[2] );
 
     args->profile_data.flops = gpucblk_zgemmsp( args->sideA, args->trans,
                                                 args->cblk, args->blok, args->fcblk,
@@ -172,7 +169,9 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
     cl_arg->fcblk                 = fcblk;
 
 #if defined(PASTIX_DEBUG_STARPU)
-    asprintf( &task_name, "%s( %ld )", cl_cblk_zgemmsp_any.name, (long)(cblk - sopalin_data->solvmtx->cblktab) );
+    asprintf( &task_name, "%s( %ld )",
+              cl_cblk_zgemmsp_any.name,
+              (long)(cblk - sopalin_data->solvmtx->cblktab) );
 #endif
 
     execute_where = cl_cblk_zgemmsp_any.where;
@@ -205,7 +204,7 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
 #endif
 
         0);
-    (void) prio;
+    (void)prio;
 }
 
 /**
@@ -239,28 +238,28 @@ struct cl_blok_zgemmsp_args_s {
     pastix_int_t      blok_mn;
 };
 
-static struct starpu_perfmodel starpu_blok_zgemmsp_model =
-{
+static struct starpu_perfmodel starpu_blok_zgemmsp_model = {
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
-    .type = STARPU_PER_ARCH,
+    .type               = STARPU_PER_ARCH,
     .arch_cost_function = blok_gemmsp_cost,
 #else
-    .type = STARPU_HISTORY_BASED,
+    .type               = STARPU_HISTORY_BASED,
 #endif
-    .symbol = "blok_zgemmsp",
+    .symbol             = "blok_zgemmsp",
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
-static void fct_blok_zgemmsp_cpu( void *descr[], void *cl_arg )
+static void
+fct_blok_zgemmsp_cpu( void *descr[], void *cl_arg )
 {
-    struct cl_blok_zgemmsp_args_s *args = (struct cl_blok_zgemmsp_args_s *) cl_arg;
-    const void *A;
-    const void *B;
-    void       *C;
+    struct cl_blok_zgemmsp_args_s *args = (struct cl_blok_zgemmsp_args_s *)cl_arg;
+    const void *                   A;
+    const void *                   B;
+    void *                         C;
 
-    A = (const void *)STARPU_VECTOR_GET_PTR(descr[0]);
-    B = (const void *)STARPU_VECTOR_GET_PTR(descr[1]);
-    C = (void *)STARPU_VECTOR_GET_PTR(descr[2]);
+    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
+    B = (const void *)STARPU_VECTOR_GET_PTR( descr[1] );
+    C = (void *)      STARPU_VECTOR_GET_PTR( descr[2] );
 
     assert( args->cblk->cblktype  & CBLK_TASKS_2D );
     assert( args->fcblk->cblktype & CBLK_TASKS_2D );
@@ -273,16 +272,17 @@ static void fct_blok_zgemmsp_cpu( void *descr[], void *cl_arg )
 }
 
 #if defined(PASTIX_WITH_CUDA)
-static void fct_blok_zgemmsp_gpu( void *descr[], void *cl_arg )
+static void
+fct_blok_zgemmsp_gpu( void *descr[], void *cl_arg )
 {
-    const cuDoubleComplex         *A;
-    const cuDoubleComplex         *B;
-    cuDoubleComplex               *C;
-    struct cl_blok_zgemmsp_args_s *args = (struct cl_blok_zgemmsp_args_s *) cl_arg;
+    const void                    *A;
+    const void                    *B;
+    void                          *C;
+    struct cl_blok_zgemmsp_args_s *args = (struct cl_blok_zgemmsp_args_s *)cl_arg;
 
-    A = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[0]);
-    B = (const cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
-    C = (cuDoubleComplex *)STARPU_VECTOR_GET_PTR(descr[2]);
+    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
+    B = (const void *)STARPU_VECTOR_GET_PTR( descr[1] );
+    C = (void *)      STARPU_VECTOR_GET_PTR( descr[2] );
 
     assert( args->cblk->cblktype  & CBLK_TASKS_2D );
     assert( args->fcblk->cblktype & CBLK_TASKS_2D );
@@ -310,7 +310,6 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
                           const SolverBlok *blokB,
                           int               prio )
 {
-
     pastix_int_t frownum;
     pastix_int_t lrownum;
     pastix_int_t blok_mn = 0, j = 0;
@@ -392,10 +391,11 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
     cl_arg->blok_mn               = blok_mn;
 
 #if defined(PASTIX_DEBUG_STARPU)
-   asprintf( &task_name, "%s( %ld, %ld, %ld )", cl_blok_zgemmsp_any.name,
-             (long)(blokA - sopalin_data->solvmtx->bloktab),
-             (long)(blokB - sopalin_data->solvmtx->bloktab),
-             (long)(blokC - sopalin_data->solvmtx->bloktab) );
+    asprintf( &task_name, "%s( %ld, %ld, %ld )",
+              cl_blok_zgemmsp_any.name,
+              (long)(blokA - sopalin_data->solvmtx->bloktab),
+              (long)(blokB - sopalin_data->solvmtx->bloktab),
+              (long)(blokC - sopalin_data->solvmtx->bloktab) );
 #endif
 
     execute_where = cl_blok_zgemmsp_any.where;
@@ -427,7 +427,7 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
         STARPU_PRIORITY,                prio,
 #endif
         0);
-    (void) prio;
+    (void)prio;
 }
 
 /**

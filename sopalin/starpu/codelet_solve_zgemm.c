@@ -57,28 +57,28 @@ struct cl_solve_blok_zgemm_args_s {
     SolverCblk       *fcbk;
 };
 
-static struct starpu_perfmodel starpu_solve_blok_zgemm_model =
-{
-    .type = STARPU_HISTORY_BASED,
+static struct starpu_perfmodel starpu_solve_blok_zgemm_model = {
+    .type   = STARPU_HISTORY_BASED,
     .symbol = "solve_blok_zgemm",
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
-static void fct_solve_blok_zgemm_cpu(void *descr[], void *cl_arg)
+static void
+fct_solve_blok_zgemm_cpu( void *descr[], void *cl_arg )
 {
     const void                        *dataA = NULL;
     const pastix_lrblock_t            *lrA;
     const pastix_complex64_t          *A;
     pastix_complex64_t                *B, *C;
     pastix_int_t                       nrhs, ldb, ldc;
-    struct cl_solve_blok_zgemm_args_s *args = (struct cl_solve_blok_zgemm_args_s *) cl_arg;
+    struct cl_solve_blok_zgemm_args_s *args = (struct cl_solve_blok_zgemm_args_s *)cl_arg;
 
-    dataA = (const void *)STARPU_VECTOR_GET_PTR(descr[0]);
-    B     = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[1]);
-    ldb   = (pastix_int_t)        STARPU_MATRIX_GET_LD (descr[1]);
-    nrhs  = (pastix_int_t)        STARPU_MATRIX_GET_NY (descr[1]);
-    C     = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR(descr[2]);
-    ldc   = (pastix_int_t)        STARPU_MATRIX_GET_LD (descr[2]);
+    dataA = (const void *)        STARPU_VECTOR_GET_PTR( descr[0] );
+    B     = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR( descr[1] );
+    ldb   = (pastix_int_t)        STARPU_MATRIX_GET_LD( descr[1] );
+    nrhs  = (pastix_int_t)        STARPU_MATRIX_GET_NY( descr[1] );
+    C     = (pastix_complex64_t *)STARPU_MATRIX_GET_PTR( descr[2] );
+    ldc   = (pastix_int_t)        STARPU_MATRIX_GET_LD( descr[2] );
 
     /*
      * Make sure we get the correct pointer to the lrA, or to the right position in [lu]coeftab
@@ -159,11 +159,7 @@ starpu_stask_blok_zgemm( sopalin_data_t   *sopalin_data,
     pastix_int_t                       fcbknum = fcbk - solvmtx->cblktab;
     starpu_data_handle_t               handle;
 #if defined(PASTIX_DEBUG_STARPU)
-    char                             *task_name;
-    asprintf( &task_name, "%s( %ld, %ld, %ld )",
-              cl_solve_blok_zgemm_cpu.name,
-              (long) (( side == PastixRight ) ? fcbknum : cblknum), (long) cblknum, (long) fcbknum );
-
+    char                              *task_name;
 #endif
 
     /*
@@ -200,6 +196,14 @@ starpu_stask_blok_zgemm( sopalin_data_t   *sopalin_data,
     cl_arg->cblk                  = cblk;
     cl_arg->blok                  = blok;
     cl_arg->fcbk                  = fcbk;
+
+#if defined(PASTIX_DEBUG_STARPU)
+    asprintf( &task_name, "%s( %ld, %ld, %ld )",
+              cl_solve_blok_zgemm_cpu.name,
+              (long)( ( side == PastixRight ) ? fcbknum : cblknum ),
+              (long)cblknum,
+              (long)fcbknum );
+#endif
 
     if ( side == PastixRight ) {
         handle = fcbk->handler[coef];
