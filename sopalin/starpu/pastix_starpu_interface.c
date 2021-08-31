@@ -62,25 +62,43 @@ psi_allocate_data_on_node( void *data_interface, unsigned node )
         addr = handle;
     }
 
+    /* update the data properly */
+    interface->dataptr = (void *)addr;
+
     /* Allocate the workspace for the low-rank blocks */
     if ( interface->cblk->cblktype & CBLK_COMPRESSED )
     {
         SolverBlok       *blok    = interface->cblk->fblokptr;
         pastix_lrblock_t *LRblock = interface->dataptr;
         int               offset  = pastix_imax( 0, interface->offset );
-        int               i, ncols;
+        int               i, ncols, M;
 
         assert( node == STARPU_MAIN_RAM );
 
-        ncols = cblk_colnbr( cblk );
+        ncols = cblk_colnbr( interface->cblk );
         blok += offset;
         for ( i = 0; i < interface->nbblok; i++, blok++, LRblock++ ) {
-            core_zlralloc( blok_rownbr( blok ), ncols, -1, LRblock );
+            M = blok_rownbr( blok );
+
+            /* Allocate the LR block to its tight space */
+            switch ( interface->flttype ) {
+                case PastixComplex64:
+                    core_zlralloc( M, ncols, -1, LRblock );
+                    break;
+                case PastixComplex32:
+                    core_clralloc( M, ncols, -1, LRblock );
+                    break;
+                case PastixDouble:
+                    core_dlralloc( M, ncols, -1, LRblock );
+                    break;
+                case PastixFloat:
+                    core_slralloc( M, ncols, -1, LRblock );
+                    break;
+                default:
+                    assert( 0 );
+            }
         }
     }
-
-    /* update the data properly */
-    interface->dataptr = (void *)addr;
 
     return allocated_memory;
 }

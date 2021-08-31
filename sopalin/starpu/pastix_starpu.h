@@ -252,6 +252,16 @@ void pastix_starpu_register( starpu_data_handle_t *handleptr,
                              pastix_coefside_t     side,
                              pastix_coeftype_t     flttype );
 
+/**
+ * @brief Initialize the interface ID
+ */
+void pastix_starpu_interface_init();
+
+/**
+ * @brief Finalize the interface and reset the ID
+ */
+void pastix_starpu_interface_fini();
+
 #endif /* _pastix_starpu_h_ */
 
 /**
