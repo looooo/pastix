@@ -183,14 +183,13 @@ void log_profiling_init( const char* dirname );
 void cl_log_profiling_register( const char *task_name, const char* cl_name,
                                 int m, int n, int k, double flops, double speed );
 
-void log_profiling_close();
+void log_profiling_fini();
 #else
 static inline void log_profiling_init( const char* dirname ) {
     (void) dirname;
 }
-static inline void log_profiling_close() {}
+static inline void log_profiling_fini() {}
 #endif
-
 
 #endif /* _pastix_starpu_h_ */
 

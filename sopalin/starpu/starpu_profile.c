@@ -122,15 +122,44 @@ profiling_display_allinfo()
 
 FILE *log_profiling_file[STARPU_NMAXWORKERS];
 
+/**
+ * @brief Initializes the log_profiling functions. The function log_profiling_fini must be called to end the profiling.
+ *          Opens a series of FILE* into the given directory for concurrent logging of all individual tasks.
+ *
+ * @param[in] dirname
+ *          The path to the directory in which the log_profiling will be written.
+ */
 void log_profiling_init( const char *dirname ) {
-    char *tmp;
-    int   index = 0;
+    char file_base[]     = "pastix_starpu_log_file";
+    char file_post[]     = ".csv";
+    int  max_name_size   = (int) (log( STARPU_NMAXWORKERS ) / 2 + 1 )  + strlen( file_base ) + strlen( file_post ) + 1;
+    int  index           = 0;
+    char tmp[max_name_size];
     for ( ; index < STARPU_NMAXWORKERS; index++ ) {
-        asprintf( &tmp, "pastix_starpu_log_file%d.txt", index );
-        log_profiling_file[index] = pastix_fopenw( dirname, tmp, "w+" );
+        sprintf( tmp, "%s%d%s", file_base, index, file_post );
+        log_profiling_file[index] = pastix_fopenw( dirname, tmp, "w" );
     }
 }
 
+/**
+ * @brief Registers a full observation of an individual task.
+ *          Concurrent call to this function can be achieved on different STARPU_WORKERS.
+ *
+ * @param[in] task_name
+ *          The unique name of the task.
+ * @param[in] cl_name
+ *          The name given to the codelet.
+ * @param[in] m
+ *          The m parameter of the kernel (used by xxTRF, TRSM, and GEMM).
+ * @param[in] n
+ *          The n parameter of the kernel (used by TRSM, and GEMM).
+ * @param[in] k
+ *          The k parameter of the kernel (used by GEMM).
+ * @param[in] flops
+ *          The number of flops of the kernel.
+ * @param[in] speed
+ *          The speed of computation achieved by the task (in GFLop/s).
+ */
 void cl_log_profiling_register( const char *task_name, const char* cl_name,
                                 int m, int n, int k, double flops, double speed ) {
     struct starpu_task                *task = starpu_task_get_current();
@@ -138,7 +167,11 @@ void cl_log_profiling_register( const char *task_name, const char* cl_name,
     fprintf( log_profiling_file[info->workerid], "%s,%s,%d,%d,%d,%lf,%lf\n", task_name, cl_name, m, n, k, flops, speed );
 }
 
-void log_profiling_close() {
+/**
+ * @brief Terminates the log_profiling life cycle.
+ *
+ */
+void log_profiling_fini() {
     int index = 0;
     for ( ; index < STARPU_NMAXWORKERS; index++ ) {
         fclose( log_profiling_file[index] );
