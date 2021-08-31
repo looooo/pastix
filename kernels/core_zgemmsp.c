@@ -555,7 +555,7 @@ core_zgemmsp_block_frfr(       pastix_trans_t      trans,
     const pastix_complex64_t *Aptr, *Bptr;
     pastix_complex64_t *Cptr;
     pastix_int_t M, N, K, lda, ldb, ldc, cblk_n, cblk_m;
-    pastix_int_t full_m;
+    pastix_int_t full_m, full_n;
     size_t offsetA, offsetB, offsetC;
 
     pastix_fixdbl_t flops = 0.0;
@@ -608,10 +608,12 @@ core_zgemmsp_block_frfr(       pastix_trans_t      trans,
         Cptr = C + bC->coefind - offsetC;
         ldc = blok_rownbr(bC);
 
+        full_n = 0;
         for (bB = blokB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++) {
-            N = blok_rownbr( bB );
-            Bptr = B + bB->coefind - offsetB;
-            ldb = N;
+            N       = blok_rownbr( bB );
+            full_n += N;
+            Bptr    = B + bB->coefind - offsetB;
+            ldb     = N;
 
             cblas_zgemm( CblasColMajor, CblasNoTrans, (CBLAS_TRANSPOSE)trans,
                          M, N, K,
@@ -625,7 +627,7 @@ core_zgemmsp_block_frfr(       pastix_trans_t      trans,
     }
 
     kernel_trace_stop( blokB->inlast, PastixKernelGEMMBlok2d2d,
-                       full_m, full_m, K,
+                       full_m, full_n, K,
                        flops, time );
 
     (void)lblokN;
@@ -720,7 +722,7 @@ core_zgemmsp_block_frlr( pastix_trans_t            transB,
     pastix_lrblock_t lrA, lrB;
     core_zlrmm_t params;
 
-    pastix_int_t M, K, cblk_n, cblk_m, full_m;
+    pastix_int_t M, K, cblk_n, cblk_m, full_m, full_n;
     size_t offsetA, offsetB;
 
     pastix_fixdbl_t flops = 0.0;
@@ -797,9 +799,11 @@ core_zgemmsp_block_frlr( pastix_trans_t            transB,
         params.C = lrC;
         params.Cm = blok_rownbr( bC );
 
+        full_n = 0;
         for (bB = blokB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++) {
 
             params.N    = blok_rownbr( bB );
+            full_n     += params.N;
             params.offx = bA->frownum - bC->frownum;
             params.offy = bB->frownum - fcblk->fcolnum;
 
@@ -814,7 +818,7 @@ core_zgemmsp_block_frlr( pastix_trans_t            transB,
     }
 
     kernel_trace_stop( blokB->inlast, PastixKernelGEMMBlokLRLR,
-                       full_m, full_m, K,
+                       full_m, full_n, K,
                        flops, time );
     (void)lblokN;
     return flops;
@@ -906,7 +910,7 @@ core_zgemmsp_block_lrlr( pastix_trans_t          transB,
 
     core_zlrmm_t params;
 
-    pastix_int_t M, K, cblk_n, cblk_m, full_m;
+    pastix_int_t M, K, cblk_n, cblk_m, full_m, full_n;
 
     pastix_fixdbl_t flops = 0.0;
     pastix_fixdbl_t time = kernel_trace_start( PastixKernelGEMMBlok2d2d );
@@ -974,9 +978,12 @@ core_zgemmsp_block_lrlr( pastix_trans_t          transB,
         params.C = lrC;
         params.Cm = blok_rownbr( bC );
 
+        full_n = 0;
         for (bB = blokB, blrB = lrB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++, blrB++) {
 
             params.N    = blok_rownbr( bB );
+            full_n     += params.N;
+
             params.offx = bA->frownum - bC->frownum;
             params.offy = bB->frownum - fcblk->fcolnum;
             params.B    = blrB;
@@ -986,7 +993,7 @@ core_zgemmsp_block_lrlr( pastix_trans_t          transB,
     }
 
     kernel_trace_stop( blokB->inlast, PastixKernelGEMMBlokLRLR,
-                       full_m, full_m, K,
+                       full_m, full_n, K,
                        flops, time );
     (void)lblokN;
     return flops;

@@ -294,7 +294,6 @@ cl_profiling_cb_blok_zgemmsp( void *callback_arg )
     double          duration                = starpu_timing_timespec_delay_us( &info->start_time, &info->end_time );
     double          speed                   = flops / ( 1000.0 * duration );
 
-
     pastix_int_t      K      = cblk_colnbr( args->cblk );
     const SolverBlok *blokA  = args->cblk[0].fblokptr + args->blok_mk;
     const SolverBlok *blokB  = args->cblk[0].fblokptr + args->blok_nk;
