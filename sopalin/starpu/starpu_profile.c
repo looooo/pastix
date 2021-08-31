@@ -22,6 +22,9 @@
 #include <stdio.h>
 #include "pastix_starpu.h"
 
+#define PROFILING_LOG_FILENAME "profile_log_%d.csv"
+#define PROFILING_LOG_HEADERNAME "profile_log_header.csv"
+
 #if defined( PASTIX_STARPU_PROFILING )
 
 /*
@@ -118,27 +121,32 @@ profiling_display_allinfo()
 
 #endif /* defined( PASTIX_STARPU_PROFILING ) */
 
-#if defined( PASTIX_STARPU_LOG_PROFILING )
+#if defined( PASTIX_STARPU_PROFILING_LOG )
 
-FILE *log_profiling_file[STARPU_NMAXWORKERS];
+FILE *profiling_log_file[STARPU_NMAXWORKERS];
 
 /**
- * @brief Initializes the log_profiling functions. The function log_profiling_fini must be called to end the profiling.
+ * @brief Initializes the profiling_log functions. The function profiling_log_fini must be called to end the profiling.
  *          Opens a series of FILE* into the given directory for concurrent logging of all individual tasks.
  *
  * @param[in] dirname
- *          The path to the directory in which the log_profiling will be written.
+ *          The path to the directory in which the profiling_log will be written.
  */
-void log_profiling_init( const char *dirname ) {
-    char file_base[]     = "pastix_starpu_log_file";
-    char file_post[]     = ".csv";
-    int  max_name_size   = (int) (log( STARPU_NMAXWORKERS ) / 2 + 1 )  + strlen( file_base ) + strlen( file_post ) + 1;
-    int  index           = 0;
-    char tmp[max_name_size];
+void
+profiling_log_init( const char *dirname )
+{
+    char *tmp;
+    int   index = 0;
     for ( ; index < STARPU_NMAXWORKERS; index++ ) {
-        sprintf( tmp, "%s%d%s", file_base, index, file_post );
-        log_profiling_file[index] = pastix_fopenw( dirname, tmp, "w" );
+        asprintf( &tmp, PROFILING_LOG_FILENAME, index );
+        profiling_log_file[index] = pastix_fopenw( dirname, tmp, "w" );
+        assert( profiling_log_file[index] );
+        free( tmp );
     }
+    FILE* header = pastix_fopenw( dirname, PROFILING_LOG_HEADERNAME, "w" );
+    assert( header );
+    fprintf( header, "task_name; cl_name; m; n; k; flops; speed" );
+    fclose( header );
 }
 
 /**
@@ -160,25 +168,29 @@ void log_profiling_init( const char *dirname ) {
  * @param[in] speed
  *          The speed of computation achieved by the task (in GFLop/s).
  */
-void cl_log_profiling_register( const char *task_name, const char* cl_name,
-                                int m, int n, int k, double flops, double speed ) {
+void
+cl_profiling_log_register( const char *task_name, const char* cl_name,
+                                int m, int n, int k, double flops, double speed )
+{
     struct starpu_task                *task = starpu_task_get_current();
     struct starpu_profiling_task_info *info = task->profiling_info;
-    fprintf( log_profiling_file[info->workerid], "%s,%s,%d,%d,%d,%lf,%lf\n", task_name, cl_name, m, n, k, flops, speed );
+    fprintf( profiling_log_file[info->workerid], "%s;%s;%d;%d;%d;%lf;%lf\n", task_name, cl_name, m, n, k, flops, speed );
 }
 
 /**
- * @brief Terminates the log_profiling life cycle.
+ * @brief Terminates the profiling_log life cycle.
  *
  */
-void log_profiling_fini() {
+void
+profiling_log_fini()
+{
     int index = 0;
     for ( ; index < STARPU_NMAXWORKERS; index++ ) {
-        fclose( log_profiling_file[index] );
+        fclose( profiling_log_file[index] );
     }
 }
 
-#endif /* defined( PASTIX_STARPU_LOG_PROFILING ) */
+#endif /* defined( PASTIX_STARPU_PROFILING_LOG ) */
 
 /**
  * @}

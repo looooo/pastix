@@ -59,7 +59,7 @@ struct cl_cblk_zgemmsp_args_s {
     SolverCblk       *fcblk;
 };
 
-#if defined(PASTIX_STARPU_LOG_PROFILING)
+#if defined(PASTIX_STARPU_PROFILING_LOG)
 void
 cl_profiling_cb_cblk_zgemmsp( void *callback_arg )
 {
@@ -83,7 +83,7 @@ cl_profiling_cb_cblk_zgemmsp( void *callback_arg )
     m -= (args->cblk->cblktype & CBLK_LAYOUT_2D) ? args->blok->coefind / k : args->blok->coefind;
     m -= (args->sideA == PastixUCoef) ? blok_rownbr( args->blok ) : 0;
 
-    cl_log_profiling_register(task->name, "cblk_zgemmsp", m, n, k, flops, speed);
+    cl_profiling_log_register(task->name, "cblk_zgemmsp", m, n, k, flops, speed);
 }
 #endif
 
@@ -158,7 +158,7 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
     struct cl_cblk_zgemmsp_args_s *cl_arg = NULL;
     long long                      execute_where;
     int                            need_exec = 1;
-#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_LOG_PROFILING)
+#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
     char                          *task_name;
 #endif
 
@@ -201,10 +201,6 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
         cl_arg->blok                  = blok;
         cl_arg->fcblk                 = fcblk;
 
-#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_LOG_PROFILING)
-        asprintf( &task_name, "%s( %ld )", cl_cblk_zgemmsp_any.name, (long)(cblk - sopalin_data->solvmtx->cblktab) );
-#endif
-
         execute_where = cl_cblk_zgemmsp_any.where;
 #if defined(PASTIX_WITH_CUDA)
         if ( (cblk->cblktype  & CBLK_COMPRESSED) ||
@@ -216,7 +212,7 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
 #endif
     }
 
-#if defined(PASTIX_DEBUG_STARPU)
+#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
     asprintf( &task_name, "%s( %ld )",
               cl_cblk_zgemmsp_any.name,
               (long)(cblk - sopalin_data->solvmtx->cblktab) );
@@ -227,7 +223,7 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
         STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_cblk_zgemmsp_args_s ),
         STARPU_EXECUTE_WHERE,           execute_where,
 #if defined(PASTIX_STARPU_PROFILING)
-#if defined(PASTIX_STARPU_LOG_PROFILING)
+#if defined(PASTIX_STARPU_PROFILING_LOG)
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_cb_cblk_zgemmsp, cl_arg,
 #else
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
@@ -236,7 +232,7 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
         STARPU_R,                       cblk->handler[sideA],
         STARPU_R,                       cblk->handler[sideB],
         STARPU_RW,                      fcblk->handler[sideA],
-#if defined(PASTIX_STARPU_DEBUG) || defined(PASTIX_STARPU_LOG_PROFILING)
+#if defined(PASTIX_STARPU_DEBUG) || defined(PASTIX_STARPU_PROFILING_LOG)
         STARPU_NAME,                    task_name,
 #endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
@@ -280,7 +276,7 @@ struct cl_blok_zgemmsp_args_s {
     pastix_int_t      blok_mn;
 };
 
-#if defined(PASTIX_STARPU_LOG_PROFILING)
+#if defined(PASTIX_STARPU_PROFILING_LOG)
 void
 cl_profiling_cb_blok_zgemmsp( void *callback_arg )
 {
@@ -306,7 +302,7 @@ cl_profiling_cb_blok_zgemmsp( void *callback_arg )
     for (; (blokA < lblokK) && (blokA->fcblknm == cblk_m); blokA++) {
         full_m += blok_rownbr(blokA);
     }
-    cl_log_profiling_register(task->name, "blok_zgemmsp", full_m, full_m, K, flops, speed);
+    cl_profiling_log_register(task->name, "blok_zgemmsp", full_m, full_m, K, flops, speed);
 }
 #endif
 
@@ -393,7 +389,7 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
     struct cl_blok_zgemmsp_args_s *cl_arg = NULL;
     long long                      execute_where;
     int                            need_exec = 1;
-#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_LOG_PROFILING)
+#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
     char                          *task_name;
 #endif
 
@@ -479,7 +475,7 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
 #endif
     }
 
-#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_LOG_PROFILING)
+#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
     asprintf( &task_name, "%s( %ld, %ld, %ld )",
               cl_blok_zgemmsp_any.name,
               (long)(blokA - sopalin_data->solvmtx->bloktab),
@@ -492,7 +488,7 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
         STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_blok_zgemmsp_args_s ),
         STARPU_EXECUTE_WHERE,           execute_where,
 #if defined(PASTIX_STARPU_PROFILING)
-#if defined(PASTIX_STARPU_LOG_PROFILING)
+#if defined(PASTIX_STARPU_PROFILING_LOG)
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_cb_blok_zgemmsp, cl_arg,
 #else
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,

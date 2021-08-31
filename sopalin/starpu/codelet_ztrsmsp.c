@@ -65,7 +65,7 @@ struct cl_blok_ztrsmsp_args_s {
     pastix_int_t      blok_m;
 };
 
-#if defined(PASTIX_STARPU_LOG_PROFILING)
+#if defined(PASTIX_STARPU_PROFILING_LOG)
 void
 cl_profiling_cb_blok_ztrsmsp( void *callback_arg )
 {
@@ -89,7 +89,7 @@ cl_profiling_cb_blok_ztrsmsp( void *callback_arg )
     for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
         full_m += blok_rownbr(blok);
     }
-    cl_log_profiling_register(task->name, "blok_ztrsmsp", full_m, N, 0, flops, speed);
+    cl_profiling_log_register(task->name, "blok_ztrsmsp", full_m, N, 0, flops, speed);
 }
 #endif
 
@@ -179,12 +179,11 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
         }
     }
 
-#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_LOG_PROFILING)
+#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
     char                          *task_name;
     asprintf( &task_name, "%s( %ld, %ld )", cl_blok_ztrsmsp_any.name,
              (long)(cblk - sopalin_data->solvmtx->cblktab),
              (long)(blok - sopalin_data->solvmtx->bloktab) );
->>>>>>> StarPU Profiling: Apply log profiling to gpu codelets through wrapped callback
 #endif
 
     /*
@@ -222,14 +221,14 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
         STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_blok_ztrsmsp_args_s ),
         STARPU_EXECUTE_WHERE,           execute_where,
 #if defined(PASTIX_STARPU_PROFILING)
-#if defined(PASTIX_STARPU_LOG_PROFILING)
+#if defined(PASTIX_STARPU_PROFILING_LOG)
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_cb_blok_ztrsmsp, cl_arg,
 #else
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
 #endif
         STARPU_R,                       cblk->fblokptr->handler[coef],
         STARPU_RW,                      blok->handler[coef],
-#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_LOG_PROFILING)
+#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
         STARPU_NAME,                    task_name,
 #endif
 #if defined(PASTIX_STARPU_HETEROPRIO)

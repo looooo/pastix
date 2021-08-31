@@ -178,17 +178,17 @@ void profiling_display_allinfo();
 static inline void profiling_display_allinfo() {}
 #endif
 
-#if defined( PASTIX_STARPU_LOG_PROFILING )
-void log_profiling_init( const char* dirname );
-void cl_log_profiling_register( const char *task_name, const char* cl_name,
+#if defined( PASTIX_STARPU_PROFILING_LOG )
+void profiling_log_init( const char* dirname );
+void cl_profiling_log_register( const char *task_name, const char* cl_name,
                                 int m, int n, int k, double flops, double speed );
 
-void log_profiling_fini();
+void profiling_log_fini();
 #else
-static inline void log_profiling_init( const char* dirname ) {
+static inline void profiling_log_init( const char* dirname ) {
     (void) dirname;
 }
-static inline void log_profiling_fini() {}
+static inline void profiling_log_fini() {}
 #endif
 
 #endif /* _pastix_starpu_h_ */

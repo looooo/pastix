@@ -20,7 +20,6 @@
 #endif
 #include <stdio.h>
 #include "pastix_starpu.h"
-#define LOG_PROFILING_FILENAME "log_profile.csv"
 
 #if defined(PASTIX_STARPU_HETEROPRIO)
 #include <starpu_heteroprio.h>
@@ -189,7 +188,8 @@ pastix_starpu_init( pastix_data_t *pastix,
 
     pastix->starpu = malloc(sizeof(struct starpu_conf));
     starpu_conf_init( pastix->starpu );
-    log_profiling_init( "./" );
+    pastix_gendirectories( pastix );
+    profiling_log_init( pastix->dir_local );
 
     /* Force no GPUs if CUDA has not been enabled in PaStiX */
 #if !defined(PASTIX_WITH_CUDA)
@@ -312,7 +312,7 @@ pastix_starpu_finalize( pastix_data_t *pastix )
         starpu_resume();
 
         profiling_display_allinfo();
-        log_profiling_fini();
+        profiling_log_fini();
 
 #if defined(PASTIX_WITH_MPI)
         starpu_mpi_shutdown();
