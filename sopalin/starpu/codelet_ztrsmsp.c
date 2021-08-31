@@ -81,7 +81,7 @@ cl_profiling_cb_blok_ztrsmsp( void *callback_arg )
     double                             flops    = args->profile_data.flops;
     double                             duration = starpu_timing_timespec_delay_us( &info->start_time, &info->end_time );
     double                             speed    = flops / ( 1000.0 * duration );
-    pastix_int_t                       N        = args->cblk->lcolnum - args->cblk->fcolnum + 1;
+    pastix_int_t                       N        = cblk_colnbr( args->cblk );
     pastix_int_t                       full_m   = 0;
     const SolverBlok                  *lblok    = args->cblk[1].fblokptr;
     const SolverBlok                  *blok     = args->cblk[0].fblokptr + args->blok_m;
@@ -161,6 +161,9 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
     struct cl_blok_ztrsmsp_args_s *cl_arg;
     long long                      execute_where;
     pastix_int_t                   blok_m = blok - cblk->fblokptr;
+#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
+    char                          *task_name;
+#endif
 
     /*
      * Check if it needs to be submitted
@@ -178,12 +181,6 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
             return;
         }
     }
-
-#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
-    char                          *task_name;
-    asprintf( &task_name, "%s( %ld, %ld )", cl_blok_ztrsmsp_any.name,
-             (long)(cblk - sopalin_data->solvmtx->cblktab),
-             (long)(blok - sopalin_data->solvmtx->bloktab) );
 #endif
 
     /*
@@ -209,7 +206,7 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
     }
 #endif
 
-#if defined(PASTIX_DEBUG_STARPU)
+#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
     asprintf( &task_name, "%s( %ld, %ld)",
               cl_blok_ztrsmsp_any.name,
               (long)(cblk - sopalin_data->solvmtx->cblktab),
@@ -225,6 +222,7 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_cb_blok_ztrsmsp, cl_arg,
 #else
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
+#endif
 #endif
         STARPU_R,                       cblk->fblokptr->handler[coef],
         STARPU_RW,                      blok->handler[coef],

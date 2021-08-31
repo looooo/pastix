@@ -195,6 +195,7 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
 #if defined( PASTIX_STARPU_PROFILING )
         cl_arg->profile_data.measures = cblk_zgemmsp_profile.measures;
         cl_arg->profile_data.flops    = NAN;
+#endif
         cl_arg->sideA                 = sideA;
         cl_arg->trans                 = trans;
         cl_arg->cblk                  = cblk;
@@ -296,13 +297,19 @@ cl_profiling_cb_blok_zgemmsp( void *callback_arg )
 
     pastix_int_t      K      = cblk_colnbr( args->cblk );
     const SolverBlok *blokA  = args->cblk[0].fblokptr + args->blok_mk;
+    const SolverBlok *blokB  = args->cblk[0].fblokptr + args->blok_nk;
     pastix_int_t      cblk_m = blokA->fcblknm;
+    pastix_int_t      cblk_n = blokB->fcblknm;
     const SolverBlok *lblokK = args->cblk[1].fblokptr;
     pastix_int_t      full_m = 0;
+    pastix_int_t      full_n = 0;
     for (; (blokA < lblokK) && (blokA->fcblknm == cblk_m); blokA++) {
         full_m += blok_rownbr(blokA);
     }
-    cl_profiling_log_register(task->name, "blok_zgemmsp", full_m, full_m, K, flops, speed);
+    for (; (blokB < lblokK) && (blokB->fcblknm == cblk_n); blokB++) {
+        full_n += blok_rownbr( blokB );
+    }
+    cl_profiling_log_register(task->name, "blok_zgemmsp", full_m, full_n, K, flops, speed);
 }
 #endif
 
