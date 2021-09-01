@@ -159,8 +159,8 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
                           int               prio )
 {
     struct cl_blok_ztrsmsp_args_s *cl_arg;
-    long long                      execute_where;
-    pastix_int_t                   blok_m = blok - cblk->fblokptr;
+    long long                      execute_where = cl_blok_ztrsmsp_any.where;
+    pastix_int_t                   blok_m        = blok - cblk->fblokptr;
 #if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
     char                          *task_name;
 #endif
@@ -199,7 +199,6 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
     cl_arg->cblk                  = cblk;
     cl_arg->blok_m                = blok_m;
 
-    execute_where = cl_blok_ztrsmsp_any.where;
 #if defined(PASTIX_WITH_CUDA)
     if ( (cblk->cblktype & CBLK_COMPRESSED) ) {
         execute_where &= (~STARPU_CUDA);

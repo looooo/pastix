@@ -90,8 +90,7 @@ cl_profiling_cb_cblk_zgemmsp( void *callback_arg )
 }
 #endif
 
-static struct starpu_perfmodel starpu_cblk_zgemmsp_model =
-{
+static struct starpu_perfmodel starpu_cblk_zgemmsp_model = {
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
     .type               = STARPU_PER_ARCH,
     .arch_cost_function = cblk_gemmsp_cost,
@@ -158,9 +157,9 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
                           SolverCblk       *fcblk,
                           int               prio )
 {
-    struct cl_cblk_zgemmsp_args_s *cl_arg = NULL;
-    long long                      execute_where;
-    int                            need_exec = 1;
+    struct cl_cblk_zgemmsp_args_s *cl_arg        = NULL;
+    long long                      execute_where = cl_cblk_zgemmsp_any.where;
+    int                            need_exec     = 1;
 #if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
     char                          *task_name;
 #endif
@@ -205,7 +204,6 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
         cl_arg->blok                  = blok;
         cl_arg->fcblk                 = fcblk;
 
-        execute_where = cl_cblk_zgemmsp_any.where;
 #if defined(PASTIX_WITH_CUDA)
         if ( (cblk->cblktype  & CBLK_COMPRESSED) ||
              (fcblk->cblktype & CBLK_COMPRESSED) )
@@ -315,8 +313,7 @@ cl_profiling_cb_blok_zgemmsp( void *callback_arg )
 }
 #endif
 
-static struct starpu_perfmodel starpu_blok_zgemmsp_model =
-{
+static struct starpu_perfmodel starpu_blok_zgemmsp_model = {
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
     .type               = STARPU_PER_ARCH,
     .arch_cost_function = blok_gemmsp_cost,
@@ -395,9 +392,9 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
     pastix_int_t blok_nk = blokB - cblk->fblokptr;
     SolverBlok  *blokC   = fcblk->fblokptr;
 
-    struct cl_blok_zgemmsp_args_s *cl_arg = NULL;
-    long long                      execute_where;
-    int                            need_exec = 1;
+    struct cl_blok_zgemmsp_args_s *cl_arg        = NULL;
+    long long                      execute_where = cl_blok_zgemmsp_any.where;
+    int                            need_exec     = 1;
 #if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
     char                          *task_name;
 #endif
@@ -473,7 +470,6 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
         cl_arg->blok_nk               = blok_nk;
         cl_arg->blok_mn               = blok_mn;
 
-        execute_where = cl_blok_zgemmsp_any.where;
 #if defined(PASTIX_WITH_CUDA)
         if ( (cblk->cblktype  & CBLK_COMPRESSED) ||
              (fcblk->cblktype & CBLK_COMPRESSED) )
