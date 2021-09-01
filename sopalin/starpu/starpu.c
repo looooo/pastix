@@ -188,6 +188,8 @@ pastix_starpu_init( pastix_data_t *pastix,
 
     pastix->starpu = malloc(sizeof(struct starpu_conf));
     starpu_conf_init( pastix->starpu );
+    pastix_gendirectories( pastix );
+    profiling_log_init( pastix->dir_local );
 
     /* Force no GPUs if CUDA has not been enabled in PaStiX */
 #if !defined(PASTIX_WITH_CUDA)
@@ -310,6 +312,7 @@ pastix_starpu_finalize( pastix_data_t *pastix )
         starpu_resume();
 
         profiling_display_allinfo();
+        profiling_log_fini();
 
 #if defined(PASTIX_WITH_MPI)
         starpu_mpi_shutdown();

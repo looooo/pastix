@@ -343,7 +343,7 @@ cuda_zgemmsp_block_frfr( pastix_trans_t         trans,
     const cuDoubleComplex *Aptr, *Bptr;
     cuDoubleComplex *Cptr;
     pastix_int_t M, N, K, lda, ldb, ldc, cblk_n, cblk_m;
-    pastix_int_t full_m;
+    pastix_int_t full_m, full_n;
     size_t offsetA, offsetB, offsetC;
 
     pastix_fixdbl_t flops = 0.0;
@@ -397,10 +397,12 @@ cuda_zgemmsp_block_frfr( pastix_trans_t         trans,
         Cptr = C + bC->coefind - offsetC;
         ldc = blok_rownbr(bC);
 
+        full_n = 0;
         for (bB = blokB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++) {
             N = blok_rownbr( bB );
             Bptr = B + bB->coefind - offsetB;
             ldb = N;
+            full_n += N;
 
             cublasZgemm( 'N', transstr[trans - PastixNoTrans],
                          M, N, K,
@@ -417,7 +419,7 @@ cuda_zgemmsp_block_frfr( pastix_trans_t         trans,
     cudaStreamSynchronize( stream );
 #endif
     kernel_trace_stop( blokB->inlast, PastixKernelGEMMBlok2d2d,
-                       full_m, full_m, K, flops, time );
+                       full_m, full_n, K, flops, time );
 
     (void)lblokN;
     return flops;

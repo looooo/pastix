@@ -170,15 +170,26 @@ typedef struct profile_data_s {
     double     flops;
 } profile_data_t;
 
+#if defined( PASTIX_STARPU_PROFILING )
 void cl_profiling_callback( void *callback_arg );
 void profiling_register_cl( starpu_profile_t *codelet );
-
-#if defined( PASTIX_STARPU_PROFILING )
 void profiling_display_allinfo();
 #else
 static inline void profiling_display_allinfo() {}
 #endif
 
+#if defined( PASTIX_STARPU_PROFILING_LOG )
+void profiling_log_init( const char* dirname );
+void cl_profiling_log_register( const char *task_name, const char* cl_name,
+                                int m, int n, int k, double flops, double speed );
+
+void profiling_log_fini();
+#else
+static inline void profiling_log_init( const char* dirname ) {
+    (void) dirname;
+}
+static inline void profiling_log_fini() {}
+#endif
 
 #endif /* _pastix_starpu_h_ */
 
