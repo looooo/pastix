@@ -215,9 +215,11 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
     }
 
 #if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
-    asprintf( &task_name, "%s( %ld )",
+    asprintf( &task_name, "%s( %ld, %ld, %ld )",
               cl_cblk_zgemmsp_any.name,
-              (long)(cblk - sopalin_data->solvmtx->cblktab) );
+              (long)(cblk - sopalin_data->solvmtx->cblktab),
+              (long)(blok - sopalin_data->solvmtx->bloktab),
+              (long)sideA );
 #endif
 
     starpu_insert_task(
@@ -481,11 +483,12 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
     }
 
 #if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
-    asprintf( &task_name, "%s( %ld, %ld, %ld )",
+    asprintf( &task_name, "%s( %ld, %ld, %ld, %ld )",
               cl_blok_zgemmsp_any.name,
               (long)(blokA - sopalin_data->solvmtx->bloktab),
               (long)(blokB - sopalin_data->solvmtx->bloktab),
-              (long)(blokC - sopalin_data->solvmtx->bloktab) );
+              (long)(blokC - sopalin_data->solvmtx->bloktab),
+              (long)sideA );
 #endif
 
     starpu_insert_task(

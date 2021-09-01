@@ -206,10 +206,11 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
 #endif
 
 #if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
-    asprintf( &task_name, "%s( %ld, %ld)",
+    asprintf( &task_name, "%s( %ld, %ld, %ld )",
               cl_blok_ztrsmsp_any.name,
               (long)(cblk - sopalin_data->solvmtx->cblktab),
-              (long)(blok - sopalin_data->solvmtx->bloktab) );
+              (long)(blok - sopalin_data->solvmtx->bloktab),
+              (long)coef );
 #endif
 
     starpu_insert_task(
