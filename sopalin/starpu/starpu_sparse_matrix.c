@@ -94,7 +94,7 @@ pastix_starpu_register_interface( const starpu_sparse_matrix_desc_t *spmtx,
     }
 
 #if defined( PASTIX_WITH_MPI )
-        starpu_mpi_data_register( *handler, spmtx->mpitag | tag_cblk, cblk->ownerid );
+    starpu_mpi_data_register( *handler, spmtx->mpitag | tag_cblk, cblk->ownerid );
 #endif
     (void)tag_cblk;
     (void)spmtx;

@@ -334,6 +334,7 @@ starpu_zgetrf( pastix_data_t  *pastix_data,
     starpu_sparse_matrix_getoncpu( sdesc );
     starpu_task_wait_for_all();
 #if defined(PASTIX_WITH_MPI)
+    starpu_mpi_wait_for_all( pastix_data->pastix_comm );
     starpu_mpi_barrier(pastix_data->inter_node_comm);
 #endif
     starpu_pause();
