@@ -226,14 +226,9 @@ cpucblk_zpack_lr( pastix_coefside_t side, SolverCblk *cblk, size_t size )
         tmp = cpublok_zpack_lr( side, N, blok, tmp );
     }
 
-    if ( side != PastixUCoef ) {
-        assert( cblk->lcoeftab == (void*)-1 );
-        cblk->lcoeftab = buffer;
-    }
-    if ( side != PastixLCoef ) {
-        assert( cblk->ucoeftab == (void*)-1 );
-        cblk->ucoeftab = buffer;
-    }
+    assert( (side == PastixUCoef) || (cblk->lcoeftab == (void*)-1) );
+    assert( (side == PastixLCoef) || (cblk->ucoeftab == (void*)-1) );
+
     return buffer;
 }
 

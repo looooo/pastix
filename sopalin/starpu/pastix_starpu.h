@@ -111,8 +111,8 @@ typedef struct starpu_dense_matrix_desc_s {
 } starpu_dense_matrix_desc_t;
 
 void starpu_sparse_matrix_init    ( SolverMatrix *solvmtx,
-                                    int typesize, int mtxtype,
-                                    int nodes, int myrank );
+                                    int mtxtype,
+                                    int nodes, int myrank, pastix_coeftype_t flttype );
 void starpu_sparse_matrix_destroy ( starpu_sparse_matrix_desc_t *desc );
 void starpu_sparse_matrix_getoncpu( starpu_sparse_matrix_desc_t *desc );
 
@@ -155,7 +155,7 @@ struct starpu_profile_s;
 typedef struct starpu_profile_s starpu_profile_t;
 
 /**
- * @brief Data structure to register an implementation of dgemm/dgetrf
+ * @brief Profiling data structure to register a codelet to profile
  */
 struct starpu_profile_s {
     starpu_profile_t *next;                         /**< Link to the next implementation  */
@@ -163,6 +163,9 @@ struct starpu_profile_s {
     measure_t         measures[STARPU_NMAXWORKERS]; /**< Pointer to the array of measures */
 };
 
+/**
+ * @brief Base structure to all codelet arguments that include the profiling data
+ */
 typedef struct profile_data_s {
 #if defined( PASTIX_STARPU_PROFILING )
     measure_t *measures;
@@ -190,6 +193,74 @@ static inline void profiling_log_init( const char* dirname ) {
 }
 static inline void profiling_log_fini() {}
 #endif
+
+/**
+ * @brief StarPU Interface to handle cblks and bloks
+ */
+extern struct starpu_data_interface_ops pastix_starpu_interface_ops;
+
+/**
+ * @brief Alias to get the Interface id
+ */
+#define PASTIX_STARPU_INTERFACE_ID pastix_starpu_interface_ops.interfaceid
+
+/**
+ * @brief Interface data structure to register the pieces of data in StarPU
+ */
+typedef struct pastix_starpu_interface_s {
+    enum starpu_data_interface_id id;        /**< Identifier of the interface               */
+    pastix_coeftype_t             flttype;   /**< Floating type of the elements             */
+    int                           offset;    /**< -1 for cblk, blok offset for the subdatas */
+    int                           nbblok;    /**< Number of blocks                          */
+    size_t                        allocsize; /**< size currently allocated                  */
+    SolverCblk                   *cblk;      /**< Internal structure used to store the cblk */
+    void                         *dataptr;   /**< Pointer on data                           */
+} pastix_starpu_interface_t;
+
+static inline void *
+pastix_starpu_cblk_get_ptr( void *interface ) {
+    return ((pastix_starpu_interface_t *)interface)->dataptr;
+}
+
+static inline void *
+pastix_starpu_blok_get_ptr( void *interface ) {
+    return ((pastix_starpu_interface_t *)interface)->dataptr;
+}
+
+/**
+ * @brief Register a cblk at the StarPU level
+ *
+ * @param[out] handleptr
+ *      The StarPU data handle to the registered data. Space must be allocated on call.
+ *
+ * @param[in] home_node
+ *      The StarPU memory node enum to specify where the initial data is located
+ *      -1 if not local, STARPU_MAIN_RAM if local.
+ *
+ * @param[in] cblk
+ *      The cblk to register
+ *
+ * @param[in] side
+ *      Specify which part of the cblk (Upper or Lower) to register
+ *
+ * @param[in] flttype
+ *      Specify the arithmetic floating type of the coefficients
+ */
+void pastix_starpu_register( starpu_data_handle_t *handleptr,
+                             int                   home_node,
+                             SolverCblk           *cblk,
+                             pastix_coefside_t     side,
+                             pastix_coeftype_t     flttype );
+
+/**
+ * @brief Initialize the interface ID
+ */
+void pastix_starpu_interface_init();
+
+/**
+ * @brief Finalize the interface and reset the ID
+ */
+void pastix_starpu_interface_fini();
 
 #endif /* _pastix_starpu_h_ */
 

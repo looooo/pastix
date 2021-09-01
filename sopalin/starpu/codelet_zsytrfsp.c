@@ -68,17 +68,15 @@ static struct starpu_perfmodel starpu_cblk_zsytrfsp1d_panel_model = {
 static void
 fct_cblk_zsytrfsp1d_panel_cpu( void *descr[], void *cl_arg )
 {
-    SolverMatrix                   *solvmtx;
+    struct cl_cblk_zsytrfsp_args_s *args = (struct cl_cblk_zsytrfsp_args_s *)cl_arg;
     void                           *L;
     void                           *DL;
     int                             nbpivot;
-    struct cl_cblk_zsytrfsp_args_s *args = (struct cl_cblk_zsytrfsp_args_s *)cl_arg;
 
-    L  = (void *)STARPU_VECTOR_GET_PTR( descr[0] );
-    DL = (void *)STARPU_VECTOR_GET_PTR( descr[1] );
+    L  = pastix_starpu_cblk_get_ptr( descr[0] );
+    DL = pastix_starpu_cblk_get_ptr( descr[1] );
 
-    solvmtx = args->solvmtx;
-    nbpivot = cpucblk_zsytrfsp1d_panel( solvmtx, args->cblk, L, DL );
+    nbpivot = cpucblk_zsytrfsp1d_panel( args->solvmtx, args->cblk, L, DL );
 
     (void)nbpivot;
 }
@@ -117,6 +115,7 @@ starpu_task_cblk_zsytrfsp1d_panel( sopalin_data_t *sopalin_data,
     }
 #endif
 
+    // TODO
     if ( (M - N) > 0 ) {
         starpu_vector_data_register( handler + 1, -1, (uintptr_t)NULL, M * N,
                                      sopalin_data->solvmtx->starpu_desc->typesze );
@@ -214,17 +213,15 @@ static struct starpu_perfmodel starpu_blok_zsytrfsp_model = {
 static void
 fct_blok_zsytrfsp_cpu( void *descr[], void *cl_arg )
 {
-    SolverMatrix                   *solvmtx;
+    struct cl_blok_zsytrfsp_args_s *args = (struct cl_blok_zsytrfsp_args_s *)cl_arg;
     void                           *L;
     int                             nbpivot;
-    struct cl_blok_zsytrfsp_args_s *args = (struct cl_blok_zsytrfsp_args_s *)cl_arg;
 
-    L = (void *)STARPU_VECTOR_GET_PTR( descr[0] );
+    L = pastix_starpu_blok_get_ptr( descr[0] );
 
     assert( args->cblk->cblktype & CBLK_TASKS_2D );
 
-    solvmtx = args->solvmtx;
-    nbpivot = cpucblk_zsytrfsp1d_sytrf( solvmtx, args->cblk, L );
+    nbpivot = cpucblk_zsytrfsp1d_sytrf( args->solvmtx, args->cblk, L );
 
     (void)nbpivot;
 }

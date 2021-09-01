@@ -278,6 +278,7 @@ pastix_starpu_init( pastix_data_t *pastix,
     starpu_mpi_init_comm( argc, argv, 0, pastix->inter_node_comm );
     pastix_starpu_tag_init( pastix );
 #endif
+    pastix_starpu_interface_init();
 
 #if defined(PASTIX_WITH_CUDA) && !defined(PASTIX_STARPU_SIMULATION)
     starpu_cublas_init();
@@ -310,6 +311,8 @@ pastix_starpu_finalize( pastix_data_t *pastix )
 {
     if ( pastix->starpu != NULL ) {
         starpu_resume();
+
+        pastix_starpu_interface_fini();
 
         profiling_display_allinfo();
         profiling_log_fini();

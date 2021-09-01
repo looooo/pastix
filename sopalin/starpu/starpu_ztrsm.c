@@ -398,9 +398,10 @@ starpu_ztrsm( pastix_data_t      *pastix_data,
     if ( sdesc == NULL ) {
         /* Create the sparse matrix descriptor */
         starpu_sparse_matrix_init( sopalin_data->solvmtx,
-                                   sizeof( pastix_complex64_t ), PastixHermitian,
+                                   PastixHermitian,
                                    pastix_data->inter_node_procnbr,
-                                   pastix_data->inter_node_procnum );
+                                   pastix_data->inter_node_procnum,
+                                   PastixComplex64 );
         sdesc = sopalin_data->solvmtx->starpu_desc;
     }
 
@@ -424,6 +425,7 @@ starpu_ztrsm( pastix_data_t      *pastix_data,
     starpu_dense_matrix_getoncpu( ddesc );
     starpu_task_wait_for_all();
 #if defined(PASTIX_WITH_MPI)
+    starpu_mpi_wait_for_all( pastix_data->pastix_comm );
     starpu_mpi_barrier(pastix_data->inter_node_comm);
 #endif
     starpu_pause();

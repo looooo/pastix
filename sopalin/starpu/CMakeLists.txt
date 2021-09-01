@@ -25,6 +25,7 @@ set(EXTRA_SOURCES
   starpu_dense_matrix.c
   starpu_profile.c
   pastix_starpu_model.c
+  pastix_starpu_interface.c
 )
 
 ### Generate the headers in all precisions
@@ -122,8 +123,10 @@ install(TARGETS pastix_starpu
 add_documented_files(
   # Headers
   pastix_starpu.h
+  pastix_cblk_interface.h
   # Source files
   starpu.c
   starpu_sparse_matrix.c
   starpu_dense_matrix.c
+  pastix_starpu_interface.c
   )

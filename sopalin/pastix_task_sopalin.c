@@ -278,11 +278,10 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
 
 #if defined(PASTIX_WITH_MPI)
     if ( ( pastix_data->iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever ) &&
-         ( ( pastix_data->iparm[IPARM_SCHEDULER] == PastixSchedParsec ) ||
-           ( pastix_data->iparm[IPARM_SCHEDULER] == PastixSchedStarPU ) )   &&
+         ( pastix_data->iparm[IPARM_SCHEDULER] == PastixSchedParsec ) &&
          ( pastix_data->procnbr > 1 ) )
     {
-        errorPrint( "pastix_task_sopalin: Low-Rank with MPI communication is not available yet with runtime" );
+        errorPrint( "pastix_task_sopalin: Low-Rank with MPI communication is not available yet with PaRSEC\n" );
         return PASTIX_ERR_BADPARAMETER;
     }
 #endif
@@ -336,9 +335,10 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     {
         /* Create the matrix descriptor */
         starpu_sparse_matrix_init( pastix_data->solvmatr,
-                                   pastix_size_of( bcsc->flttype ), mtxtype,
+                                   mtxtype,
                                    pastix_data->inter_node_procnbr,
-                                   pastix_data->inter_node_procnum );
+                                   pastix_data->inter_node_procnum,
+                                   pastix_data->bcsc->flttype );
     }
 #endif
 

@@ -108,12 +108,12 @@ static struct starpu_perfmodel starpu_blok_ztrsmsp_model =
 static void
 fct_blok_ztrsmsp_cpu( void *descr[], void *cl_arg )
 {
+    struct cl_blok_ztrsmsp_args_s *args = (struct cl_blok_ztrsmsp_args_s *)cl_arg;
     const void                    *A;
     void                          *C;
-    struct cl_blok_ztrsmsp_args_s *args = (struct cl_blok_ztrsmsp_args_s *)cl_arg;
 
-    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
-    C = (void *)      STARPU_VECTOR_GET_PTR( descr[1] );
+    A = pastix_starpu_blok_get_ptr( descr[0] );
+    C = pastix_starpu_blok_get_ptr( descr[1] );
 
     assert( args->cblk->cblktype & CBLK_TASKS_2D );
 
@@ -127,12 +127,12 @@ fct_blok_ztrsmsp_cpu( void *descr[], void *cl_arg )
 static void
 fct_blok_ztrsmsp_gpu( void *descr[], void *cl_arg )
 {
+    struct cl_blok_ztrsmsp_args_s *args = (struct cl_blok_ztrsmsp_args_s *)cl_arg;
     const void                    *A;
     void                          *C;
-    struct cl_blok_ztrsmsp_args_s *args = (struct cl_blok_ztrsmsp_args_s *)cl_arg;
 
-    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
-    C = (void *)      STARPU_VECTOR_GET_PTR( descr[1] );
+    A = pastix_starpu_blok_get_ptr( descr[0] );
+    C = pastix_starpu_blok_get_ptr( descr[1] );
 
     assert( args->cblk->cblktype & CBLK_TASKS_2D );
 
@@ -159,8 +159,8 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
                           int               prio )
 {
     struct cl_blok_ztrsmsp_args_s *cl_arg;
-    long long                      execute_where;
-    pastix_int_t                   blok_m = blok - cblk->fblokptr;
+    long long                      execute_where = cl_blok_ztrsmsp_any.where;
+    pastix_int_t                   blok_m        = blok - cblk->fblokptr;
 #if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
     char                          *task_name;
 #endif
@@ -199,7 +199,6 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
     cl_arg->cblk                  = cblk;
     cl_arg->blok_m                = blok_m;
 
-    execute_where = cl_blok_ztrsmsp_any.where;
 #if defined(PASTIX_WITH_CUDA)
     if ( (cblk->cblktype & CBLK_COMPRESSED) ) {
         execute_where &= (~STARPU_CUDA);

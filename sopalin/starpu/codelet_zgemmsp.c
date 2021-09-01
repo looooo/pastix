@@ -36,7 +36,10 @@
  * Cblk version
  */
 #if defined( PASTIX_STARPU_PROFILING )
-starpu_profile_t cblk_zgemmsp_profile = { .next = NULL, .name = "cblk_zgemmsp" };
+starpu_profile_t cblk_zgemmsp_profile = {
+    .next = NULL,
+    .name = "cblk_zgemmsp"
+};
 
 /**
  * @brief Profiling registration function
@@ -87,8 +90,7 @@ cl_profiling_cb_cblk_zgemmsp( void *callback_arg )
 }
 #endif
 
-static struct starpu_perfmodel starpu_cblk_zgemmsp_model =
-{
+static struct starpu_perfmodel starpu_cblk_zgemmsp_model = {
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
     .type               = STARPU_PER_ARCH,
     .arch_cost_function = cblk_gemmsp_cost,
@@ -102,14 +104,14 @@ static struct starpu_perfmodel starpu_cblk_zgemmsp_model =
 static void
 fct_cblk_zgemmsp_cpu( void *descr[], void *cl_arg )
 {
+    struct cl_cblk_zgemmsp_args_s *args = (struct cl_cblk_zgemmsp_args_s *)cl_arg;
     const void                    *A;
     const void                    *B;
     void                          *C;
-    struct cl_cblk_zgemmsp_args_s *args = (struct cl_cblk_zgemmsp_args_s *)cl_arg;
 
-    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
-    B = (const void *)STARPU_VECTOR_GET_PTR( descr[1] );
-    C = (void *)      STARPU_VECTOR_GET_PTR( descr[2] );
+    A = pastix_starpu_cblk_get_ptr( descr[0] );
+    B = pastix_starpu_cblk_get_ptr( descr[1] );
+    C = pastix_starpu_cblk_get_ptr( descr[2] );
 
     /* Check layout due to NULL workspace for now */
     assert( args->cblk->cblktype  & CBLK_LAYOUT_2D );
@@ -125,14 +127,14 @@ fct_cblk_zgemmsp_cpu( void *descr[], void *cl_arg )
 static void
 fct_cblk_zgemmsp_gpu( void *descr[], void *cl_arg )
 {
+    struct cl_cblk_zgemmsp_args_s *args  = (struct cl_cblk_zgemmsp_args_s *)cl_arg;
     const void                    *A;
     const void                    *B;
     void                          *C;
-    struct cl_cblk_zgemmsp_args_s *args  = (struct cl_cblk_zgemmsp_args_s *)cl_arg;
 
-    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
-    B = (const void *)STARPU_VECTOR_GET_PTR( descr[1] );
-    C = (void *)      STARPU_VECTOR_GET_PTR( descr[2] );
+    A = pastix_starpu_cblk_get_ptr( descr[0] );
+    B = pastix_starpu_cblk_get_ptr( descr[1] );
+    C = pastix_starpu_cblk_get_ptr( descr[2] );
 
     args->profile_data.flops = gpucblk_zgemmsp( args->sideA, args->trans,
                                                 args->cblk, args->blok, args->fcblk,
@@ -155,9 +157,9 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
                           SolverCblk       *fcblk,
                           int               prio )
 {
-    struct cl_cblk_zgemmsp_args_s *cl_arg = NULL;
-    long long                      execute_where;
-    int                            need_exec = 1;
+    struct cl_cblk_zgemmsp_args_s *cl_arg        = NULL;
+    long long                      execute_where = cl_cblk_zgemmsp_any.where;
+    int                            need_exec     = 1;
 #if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
     char                          *task_name;
 #endif
@@ -202,7 +204,6 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
         cl_arg->blok                  = blok;
         cl_arg->fcblk                 = fcblk;
 
-        execute_where = cl_cblk_zgemmsp_any.where;
 #if defined(PASTIX_WITH_CUDA)
         if ( (cblk->cblktype  & CBLK_COMPRESSED) ||
              (fcblk->cblktype & CBLK_COMPRESSED) )
@@ -312,8 +313,7 @@ cl_profiling_cb_blok_zgemmsp( void *callback_arg )
 }
 #endif
 
-static struct starpu_perfmodel starpu_blok_zgemmsp_model =
-{
+static struct starpu_perfmodel starpu_blok_zgemmsp_model = {
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
     .type               = STARPU_PER_ARCH,
     .arch_cost_function = blok_gemmsp_cost,
@@ -328,13 +328,13 @@ static void
 fct_blok_zgemmsp_cpu( void *descr[], void *cl_arg )
 {
     struct cl_blok_zgemmsp_args_s *args = (struct cl_blok_zgemmsp_args_s *)cl_arg;
-    const void *                   A;
-    const void *                   B;
-    void *                         C;
+    const void                    *A;
+    const void                    *B;
+    void                          *C;
 
-    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
-    B = (const void *)STARPU_VECTOR_GET_PTR( descr[1] );
-    C = (void *)      STARPU_VECTOR_GET_PTR( descr[2] );
+    A = pastix_starpu_blok_get_ptr( descr[0] );
+    B = pastix_starpu_blok_get_ptr( descr[1] );
+    C = pastix_starpu_blok_get_ptr( descr[2] );
 
     assert( args->cblk->cblktype  & CBLK_TASKS_2D );
     assert( args->fcblk->cblktype & CBLK_TASKS_2D );
@@ -350,14 +350,14 @@ fct_blok_zgemmsp_cpu( void *descr[], void *cl_arg )
 static void
 fct_blok_zgemmsp_gpu( void *descr[], void *cl_arg )
 {
+    struct cl_blok_zgemmsp_args_s *args = (struct cl_blok_zgemmsp_args_s *)cl_arg;
     const void                    *A;
     const void                    *B;
     void                          *C;
-    struct cl_blok_zgemmsp_args_s *args = (struct cl_blok_zgemmsp_args_s *)cl_arg;
 
-    A = (const void *)STARPU_VECTOR_GET_PTR( descr[0] );
-    B = (const void *)STARPU_VECTOR_GET_PTR( descr[1] );
-    C = (void *)      STARPU_VECTOR_GET_PTR( descr[2] );
+    A = pastix_starpu_blok_get_ptr( descr[0] );
+    B = pastix_starpu_blok_get_ptr( descr[1] );
+    C = pastix_starpu_blok_get_ptr( descr[2] );
 
     assert( args->cblk->cblktype  & CBLK_TASKS_2D );
     assert( args->fcblk->cblktype & CBLK_TASKS_2D );
@@ -392,9 +392,9 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
     pastix_int_t blok_nk = blokB - cblk->fblokptr;
     SolverBlok  *blokC   = fcblk->fblokptr;
 
-    struct cl_blok_zgemmsp_args_s *cl_arg = NULL;
-    long long                      execute_where;
-    int                            need_exec = 1;
+    struct cl_blok_zgemmsp_args_s *cl_arg        = NULL;
+    long long                      execute_where = cl_blok_zgemmsp_any.where;
+    int                            need_exec     = 1;
 #if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
     char                          *task_name;
 #endif
@@ -470,7 +470,6 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
         cl_arg->blok_nk               = blok_nk;
         cl_arg->blok_mn               = blok_mn;
 
-        execute_where = cl_blok_zgemmsp_any.where;
 #if defined(PASTIX_WITH_CUDA)
         if ( (cblk->cblktype  & CBLK_COMPRESSED) ||
              (fcblk->cblktype & CBLK_COMPRESSED) )
