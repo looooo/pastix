@@ -181,7 +181,9 @@ void pastixGetOptions( int argc, char **argv,
  * Function to provide a common way to output
  * the iparm/dparm parameters in a CSV file.
  */
-void pastixDumpParameters( const pastix_data_t *pastix_data );
+void pastixDumpParam ( const pastix_data_t *pastix_data );
+int  pastixCheckParam( const pastix_int_t *iparm,
+                       const double       *dparm );
 
 END_C_DECLS
 

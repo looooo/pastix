@@ -984,7 +984,7 @@ pastixFinalize( pastix_data_t **pastix_data )
  *
  *******************************************************************************/
 void
-pastixDumpParameters( const pastix_data_t *pastix_data )
+pastixDumpParam( const pastix_data_t *pastix_data )
 {
     FILE   *csv      = NULL;
     char   *fullname = NULL;
@@ -1000,7 +1000,7 @@ pastixDumpParameters( const pastix_data_t *pastix_data )
     rc  = asprintf( &fullname, "idparam_%d.csv", lidx );
 
     if ( rc <= 0 ) {
-        errorPrint("pastixDumpParameters: Couldn't not generate the filename for the output file");
+        errorPrint("pastixDumpParam: Couldn't not generate the filename for the output file");
         return;
     }
 
@@ -1009,4 +1009,41 @@ pastixDumpParameters( const pastix_data_t *pastix_data )
 
     fclose(csv);
     free(fullname);
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_api
+ *
+ * @brief Check the values of iparm and dparm arrays.
+ *
+ *******************************************************************************
+ *
+ * @param[in] iparm
+ *          The iparm options array. Can be NULL.
+ *
+ * @param[in] dparm
+ *          The dparm options array. Can be NULL.
+ *
+ *******************************************************************************
+ *
+ * @return The amount of iparm/dparm with an incorrect value.
+ *
+ *******************************************************************************/
+int
+pastixCheckParam( const pastix_int_t *iparm,
+                  const double       *dparm )
+{
+    int irc = 0;
+    int drc = 0;
+
+    if ( iparm != NULL ) {
+        irc = iparm_check_values( iparm );
+    }
+    if ( dparm != NULL ) {
+        drc = dparm_check_values( dparm );
+    }
+
+    return irc + drc;
 }

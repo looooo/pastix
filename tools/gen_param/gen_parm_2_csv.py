@@ -28,7 +28,7 @@ documentation = '''/**
  *******************************************************************************/
 '''
 
-def parm2csv( iparms, dparms ) :
+def genParm2csv( iparms, dparms ) :
     result  = documentation
     result += '''void
 pastix_param2csv( const pastix_data_t *pastix_data,
@@ -59,6 +59,6 @@ pastix_param2csv( const pastix_data_t *pastix_data,
         spaces = " " * ( currMaxSize - len(name) )
         result += dline + "\"" + name + "\"," + spaces + " dparm[" + name.upper() + "] );\n"
 
-    result += "}\n\n"
+    result += "}\n"
 
     return result
