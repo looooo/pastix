@@ -11,23 +11,7 @@
  @date 2021-04-07
 
 """
-import time
-
-const_str = ''' * This file is generated automatically. If you want to modify it, modify
- * ${PASTIX_HOME}/tools/gen_param/pastix_[iparm/dparm/enums].py and run
- * ${PASTIX_HOME}/tools/gen_param/gen_parm_files.py ${PASTIX_HOME}.
- *
- * @copyright 2004-'''+ time.strftime( "%Y" ) +''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
- *                      Univ. Bordeaux. All rights reserved.
- *
- * @version 6.2.1
- * @author Xavier Lacoste
- * @author Pierre Ramet
- * @author Mathieu Faverge
- * @author Esragul Korkmaz
- * @author Gregoire Pichon
- * @author Tony Delarue
- * @date '''+ time.strftime( "%Y-%m-%d" )
+from generation_utils import headerFileEnd, const_str
 
 pastix_enums_begin = '''/**
  *
@@ -53,12 +37,7 @@ close_bracket = '''/**
  */
 '''
 
-pastix_enums_end = '''
-END_C_DECLS
-
-#endif /* _pastix_api_h_ */
-
-''' + close_bracket
+pastix_enums_end = headerFileEnd( "pastix_api" ) + "\n" + close_bracket
 
 blas_str = '''/**
  *

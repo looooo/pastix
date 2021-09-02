@@ -120,6 +120,7 @@ iparm_trace = {
     "description" : r'''
 A long description in the doxygen format
 ''',
+    "enum": "trace",
 }
 
 iparm_stats_group = {

@@ -6,115 +6,52 @@
  @copyright 2021-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.0
+ @version 6.2.1
  @author Tony Delarue
  @date 2021-04-07
 
 """
-import time
+import generation_utils as gu
 
-const_str = ''' * This file is generated automatically. If you want to modify it, modify
- * ${PASTIX_HOME}/tools/gen_param/pastix_[iparm/dparm/enums].py and run
- * ${PASTIX_HOME}/tools/gen_param/gen_parm_files.py ${PASTIX_HOME}.
- *
- * @copyright 2004-'''+ time.strftime( "%Y" ) +''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
- *                      Univ. Bordeaux. All rights reserved.
- *
- * @version 6.2.1
- * @author Mathieu Faverge
- * @author Pierre Ramet
- * @author Xavier Lacoste
- * @author Esragul Korkmaz
- * @author Gregoire Pichon
- * @author Tony Delarue
- * @date '''+ time.strftime( "%Y-%m-%d" )
-
-parse_options_header_begin = '''/**
- *
- * @file parse_options.h
- *
-'''+ const_str +'''
- *
- */
-#ifndef _parse_options_h_
-#define _parse_options_h_
-
-BEGIN_C_DECLS
-
-pastix_iparm_t parse_iparm( const char *iparm  );
+parse_options_header_begin = gu.headerFileBegin( 'parse_options' ) + '''pastix_iparm_t parse_iparm( const char *iparm  );
 pastix_dparm_t parse_dparm( const char *dparm  );
 int            parse_enums( const char *string );
 
 '''
 
-parse_options_header_end = '''
-void pastix_param2csv( const pastix_data_t *pastix_data, FILE *csv );
+parse_options_header_end = "\n" + gu.headerFileEnd( "parse_options" )
 
-END_C_DECLS
-
-#endif /* _parse_options_h_ */
-'''
-
-parse_options_begin = '''/**
- *
- * @file parse_options.c
- *
-'''+ const_str +'''
- *
- */
-#include "common.h"
-#if defined(HAVE_GETOPT_H)
+parse_options_begin = gu.contentFileBegin( "parse_options" ) +'''#if defined(HAVE_GETOPT_H)
 #include <getopt.h>
 #endif  /* defined(HAVE_GETOPT_H) */
 #include <string.h>
 
 '''
 
-parse_iparm_doc ='''/**
+idparm_doc = '''/**
  *******************************************************************************
  *
  * @ingroup pastix_common
  *
- * @brief Parse iparm keywords to return its associated index in the iparm array
+ * @brief Parse {idparm} keywords to return its associated index in the {idparm} array
  *
  * This function converts the string only for input parameters, output
  * parameters are not handled.
  *
  *******************************************************************************
  *
- * @param[in] iparm
- *          The iparm string to convert to enum.
+ * @param[in] {idparm}
+ *          The {idparm} string to convert to enum.
  *
  *******************************************************************************
  *
- * @retval The index of the iparm in the array.
- * @retval -1 if the string is not an iparm parameter.
+ * @retval The index of the {idparm} in the array.
+ * @retval -1 if the string is not {article} {idparm} parameter.
  *
  *******************************************************************************/
 '''
-
-parse_dparm_doc = '''/**
- *******************************************************************************
- *
- * @ingroup pastix_common
- *
- * @brief Parse dparm keywords to return its associated index in the dparm array
- *
- * This function converts the string only for input parameters, output
- * parameters are not handled.
- *
- *******************************************************************************
- *
- * @param[in] dparm
- *          The dparm string to convert to enum.
- *
- *******************************************************************************
- *
- * @retval The index of the dparm in the array.
- * @retval -1 if the string is not a dparm parameter.
- *
- *******************************************************************************/
-'''
+parse_iparm_doc = idparm_doc.format( idparm="iparm", article="an" )
+parse_dparm_doc = idparm_doc.format( idparm="dparm", article="a" )
 
 parse_enums_doc = '''/**
  *******************************************************************************
@@ -137,6 +74,8 @@ parse_enums_doc = '''/**
  *******************************************************************************/
 '''
 
+parse_idparm = gu.declaration.format( ftype='pastix_{idparm}_t', fname='parse_{idparm}', atype='const char', aname='*{idparm}', bracket='{bracket}' )
+
 def gen_parse_iparm( iparms ) :
     """
     Generate the parse_iparm/parse_dparm routines
@@ -151,23 +90,21 @@ def gen_parse_iparm( iparms ) :
         if tmpname > maxName :
             maxName = tmpname
 
-    result  = "pastix_iparm_t\n"\
-              "parse_iparm( const char *iparm )\n"\
-              "{\n"
-
+    result  = parse_idparm.format( idparm="iparm", bracket='{' )
+    newline = False
     for group in iparms :
         for iparm in group["subgroup"] :
             name = iparm["name"]
             if iparm['access'] != 'IN' :
                 continue
-
+            newline = True
             spaces = " " * ( maxName - len(name) )
 
             result += "    if(0 == strcasecmp(\"" + name +"\","+ spaces +" iparm)) { return "+ name.upper() +"; }\n"
 
-        # For the moment, MPI modes group don't have IN iparm. Add this exception for the moment
-        if group["name"] != "mpi_modes" :
+        if newline :
             result +="\n"
+            newline = False
 
     result += "    return -1;\n"\
               "}\n\n"
@@ -182,9 +119,7 @@ def gen_parse_dparm( dparms ) :
     @in  parm   : iparm/dparm
     @out The parse_iparm/parse_dparm routines string
     """
-    result  = "pastix_dparm_t\n"\
-              "parse_dparm( const char *dparm )\n"\
-              "{\n"
+    result = parse_idparm.format( idparm="dparm", bracket='{' )
 
     maxsize  = max( list( map(lambda x : len(x['name']), dparms ) ) )
     for dparm in dparms :
@@ -216,9 +151,7 @@ def gen_parse_enums( iparms, enums ) :
     @out The parse_enums routine string
     """
     previous = ""
-    result  = "int\n"\
-              "parse_enums( const char *string )\n"\
-              "{\n"
+    result  = gu.declaration.format( ftype='int', fname='parse_enums', atype='const char', aname='*string', bracket='{' )
 
     for groups in iparms :
         for iparm in groups["subgroup"] :
@@ -258,26 +191,6 @@ def gen_parse_enums( iparms, enums ) :
 }
 
 '''
-
-    return result
-
-def gen_enum_get_str_declaration( enum, inHeader ) :
-    """
-    Generate a string that corresponds to pastix_[enum]_getstr declaration
-    either for the c file or the prototype declaration.
-
-    @in  enum     : The concerned enum .
-    @in  inHeader : Boolean which indicates if we're on the .c or .h file.
-    @out the enum declaration string for the pastix_[enum]_getstr routine.
-    """
-    ftype = "const char*"
-    name  = "pastix_"+ enum +"_getstr( pastix_"+  enum +"_t value )"
-
-    if inHeader :
-        result = ftype + " " + name + ";\n"
-    else :
-        result = ftype + "\n" + name + "\n"
-
     return result
 
 def gen_enum_get_str( enum ) :
@@ -296,8 +209,8 @@ def gen_enum_get_str( enum ) :
         for i in range(5, 10):
             work['values'].append( enum['values'][i] )
 
-    result = gen_enum_get_str_declaration( name, False) + "{\n"\
-             "    switch( value ) {\n"
+    result  = gu.enumdecl.format( ftype="const char*", name=name, routine="getstr", bracket="{" )
+    result += "    switch( value ) {\n"
 
     for value in work['values'] :
         valname = value['name']
@@ -342,8 +255,14 @@ def genParseOptH( enums ) :
     headerFile = parse_options_header_begin
 
     for enum in enums :
-        headerFile += gen_enum_get_str_declaration( enum['name'], True )
+        headerFile += gu.enumprot.format( ftype="const char*", name=enum["name"], routine="getstr", bracket="{\n" )
         cFile      += gen_enum_get_str( enum )
 
-    headerFile += parse_options_header_end
+    headerFile += "\nvoid pastix_param2csv( const pastix_data_t *pastix_data, FILE *csv );\n"
+    headerFile += gu.prototype.format( ftype="int", fname='iparm_check_values',
+                                       atype='const pastix_int_t', aname='*iparm' )
+    headerFile += gu.prototype.format( ftype="int", fname='dparm_check_values',
+                                       atype='const double      ', aname='*dparm' )
+
+    headerFile  = headerFile[:len(headerFile) - 1] +  parse_options_header_end
     return headerFile, cFile

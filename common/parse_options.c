@@ -16,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2021-08-24
+ * @date 2021-08-31
  *
  */
 #include "common.h"
@@ -203,6 +203,9 @@ parse_enums( const char *string )
     if(0 == strcasecmp("pastixiosavegraph", string)) { return PastixIOSaveGraph; }
     if(0 == strcasecmp("pastixioloadcsc",   string)) { return PastixIOLoadCSC; }
     if(0 == strcasecmp("pastixiosavecsc",   string)) { return PastixIOSaveCSC; }
+
+    if(0 == strcasecmp("pastixtracenumfact", string)) { return PastixTraceNumfact; }
+    if(0 == strcasecmp("pastixtracesolve",   string)) { return PastixTraceSolve; }
 
     if(0 == strcasecmp("pastixorderscotch",   string)) { return PastixOrderScotch; }
     if(0 == strcasecmp("pastixordermetis",    string)) { return PastixOrderMetis; }
@@ -767,7 +770,7 @@ pastix_param2csv( const pastix_data_t *pastix_data,
     fprintf( csv, "%s,%ld\n", "iparm_nnzeros_block_local", (long)iparm[IPARM_NNZEROS_BLOCK_LOCAL] );
     fprintf( csv, "%s,%ld\n", "iparm_allocated_terms",     (long)iparm[IPARM_ALLOCATED_TERMS] );
     fprintf( csv, "%s,%ld\n", "iparm_produce_stats",       (long)iparm[IPARM_PRODUCE_STATS] );
-    fprintf( csv, "%s,%ld\n", "iparm_trace",               (long)iparm[IPARM_TRACE] );
+    fprintf( csv, "%s,%s\n",  "iparm_trace",                pastix_trace_getstr(iparm[IPARM_TRACE]) );
 
     fprintf( csv, "%s,%ld\n", "iparm_mc64", (long)iparm[IPARM_MC64] );
 
@@ -878,4 +881,3 @@ pastix_param2csv( const pastix_data_t *pastix_data,
     fprintf( csv, "%s,%e\n",  "dparm_compress_tolerance", dparm[DPARM_COMPRESS_TOLERANCE] );
     fprintf( csv, "%s,%e\n",  "dparm_compress_min_ratio", dparm[DPARM_COMPRESS_MIN_RATIO] );
 }
-
