@@ -19,6 +19,7 @@ add_subdirectory(old)
 set (INTERNAL_EXAMPLES
   dump_rank.c
   ordering_grid.c
+  pastix_benchmark.c
   )
 
 foreach (_file ${INTERNAL_EXAMPLES})

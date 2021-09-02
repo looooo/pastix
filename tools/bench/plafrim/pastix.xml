@@ -12,6 +12,14 @@
             <use from="parameters.xml">param_facto_getrf</use>
             <do>$command</do>
         </step>
+        <step name="run_potrf_lr" tag="potrf_lr">
+            <use from="parameters.xml">param_facto_potrf_lr</use>
+            <do>$command</do>
+        </step>
+        <step name="run_getrf_lr" tag="getrf_lr">
+            <use from="parameters.xml">param_facto_getrf_lr</use>
+            <do>$command</do>
+        </step>
 
         <!-- Analyse -->
         <analyser name="analyse">
@@ -21,6 +29,12 @@
                 <file>pastix-*/idparam_*.csv</file> <!-- file which should be scanned -->
             </analyse>
             <analyse step="run_getrf" tag="getrf">
+                <file>pastix-*/idparam_*.csv</file> <!-- file which should be scanned -->
+            </analyse>
+            <analyse step="run_potrf_lr" tag="potrf_lr">
+                <file>pastix-*/idparam_*.csv</file> <!-- file which should be scanned -->
+            </analyse>
+            <analyse step="run_getrf_lr" tag="getrf_lr">
                 <file>pastix-*/idparam_*.csv</file> <!-- file which should be scanned -->
             </analyse>
         </analyser>
@@ -36,7 +50,7 @@
                 <column>nmpi</column>
                 <column>ngpu</column>
                 <column>when</column>
-                <column>split</column>
+                <column>SPLIT</column>
                 <column>GFLOPS_avg</column>
                 <column>FTIME_avg</column>
                 <column>STIME_avg</column>
@@ -45,6 +59,7 @@
                 <column>SYTIME</column>
                 <column>ROTIME</column>
                 <column>BTIME</column>
+                <column>ATIME</column>
             </table>
         </result>
     </benchmark>

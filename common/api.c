@@ -992,10 +992,10 @@ pastixDumpParam( const pastix_data_t *pastix_data )
     int32_t lidx;
     static volatile int32_t id = 0;
 
-
     if( pastix_data->inter_node_procnum != 0 ) {
         return;
     }
+
     lidx = pastix_atomic_add_32b( &id, 1 );
     rc  = asprintf( &fullname, "idparam_%d.csv", lidx );
 

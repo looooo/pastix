@@ -55,7 +55,7 @@ def format_entry(row: Row, mpivendor : str, commit_pastix: Repo, guix_commits: D
     nmpi  = int( row.pop('nmpi') )
     ngpu  = int( row.pop('ngpu') )
     when  = str( row.pop('when') )
-    split = str( row.pop('split') )
+    split = str( row.pop('SPLIT') )
 
     gflops = float( row.pop('GFLOPS_avg') )
     ftime  = float( row.pop('FTIME_avg')  )
@@ -66,7 +66,7 @@ def format_entry(row: Row, mpivendor : str, commit_pastix: Repo, guix_commits: D
     sytime = float( row.pop('SYTIME') )
     rotime = float( row.pop('ROTIME') )
     btime  = float( row.pop('BTIME')  )
-    atime  = otime + sytime + rotime + btime
+    atime  = float( row.pop('ATIME')  )
 
     result = {
         "Commit_date_pastix": commit_date_pastix,
