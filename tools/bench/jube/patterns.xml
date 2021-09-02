@@ -2,13 +2,15 @@
 <jube>
     <!-- Regex pattern -->
     <patternset name="pastix">
-        <pattern name="GFLOPS" type="float">^dparm_fact_flops,(\d\.\d+e\+?\-?\d+)\n</pattern>
-        <pattern name="FTIME"  type="float">^dparm_fact_time,(\d\.\d+e\+?\-?\d+)\n</pattern>
-        <pattern name="STIME"  type="float">^dparm_solv_time,(\d\.\d+e\+?\-?\d+)\n</pattern>
-        <pattern name="RTIME"  type="float">^dparm_refine_time,(\d\.\d+e\+?\-?\d+)\n</pattern>
-        <pattern name="OTIME"  type="float">^dparm_order_time,(\d\.\d+e\+?\-?\d+)\n</pattern>
-        <pattern name="SYTIME" type="float">^dparm_symbfact_time,(\d\.\d+e\+?\-?\d+)\n</pattern>
-        <pattern name="ROTIME" type="float">^dparm_reorder_time,(\d\.\d+e\+?\-?\d+)\n</pattern>
-        <pattern name="BTIME"  type="float">^dparm_blend_time,(\d\.\d+e\+?\-?\d+)\n</pattern>
+        <pattern name="SPLIT"  type="string">^iparm_splitting_strategy,(\w+)\n</pattern>
+        <pattern name="GFLOPS" type="float" >^dparm_fact_flops,(\d\.\d+e\+?\-?\d+)\n</pattern>
+        <pattern name="FTIME"  type="float" >^dparm_fact_time,(\d\.\d+e\+?\-?\d+)\n</pattern>
+        <pattern name="STIME"  type="float" >^dparm_solv_time,(\d\.\d+e\+?\-?\d+)\n</pattern>
+        <pattern name="RTIME"  type="float" >^dparm_refine_time,(\d\.\d+e\+?\-?\d+)\n</pattern>
+        <pattern name="OTIME"  type="float" >^dparm_order_time,(\d\.\d+e\+?\-?\d+)\n</pattern>
+        <pattern name="SYTIME" type="float" >^dparm_symbfact_time,(\d\.\d+e\+?\-?\d+)\n</pattern>
+        <pattern name="ROTIME" type="float" >^dparm_reorder_time,(\d\.\d+e\+?\-?\d+)\n</pattern>
+        <pattern name="BTIME"  type="float" >^dparm_blend_time,(\d\.\d+e\+?\-?\d+)\n</pattern>
+        <pattern name="ATIME"  type="float" >^dparm_analyze_time,(\d\.\d+e\+?\-?\d+)\n</pattern>
     </patternset>
 </jube>

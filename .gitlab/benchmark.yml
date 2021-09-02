@@ -12,15 +12,31 @@
     - schedules
   timeout: 1 week
 
-bench_plafrim_bora_openmpi:
+.bench_plafrim_bora:
   variables:
     NODE: bora
     MPI: openmpi
     SLURM_NP: 8
     SLURM_CORES: 36
+  extends: .bench_plafrim_common
+
+bench_plafrim_bora_openmpi:
+  variables:
     JUBE_ID: "000001"
     JUBE_RUN: "potrf getrf"
-  extends: .bench_plafrim_common
+  extends: .bench_plafrim_bora
+
+bench_plafrim_bora_potrf_lr:
+  variables:
+    JUBE_ID: "000002"
+    JUBE_RUN: "potrf_lr"
+  extends: .bench_plafrim_bora
+
+bench_plafrim_bora_getrf_lr:
+  variables:
+    JUBE_ID: "000003"
+    JUBE_RUN: "getrf_lr"
+  extends: .bench_plafrim_bora
 
 #########################################################
 #   Will be used when we will be sure that pastix-gpu   #
@@ -32,5 +48,5 @@ bench_plafrim_bora_openmpi:
 #     MPI: openmpi
 #     SLURM_NP: 1
 #     SLURM_CORES: 40
-#     JUBE_ID: "000002"
+#     JUBE_ID: "000004"
 #   extends: .bench_plafrim_common
