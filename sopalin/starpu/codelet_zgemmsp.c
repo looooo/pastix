@@ -505,7 +505,7 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
         STARPU_R,                       blokA->handler[sideA],
         STARPU_R,                       blokB->handler[sideB],
         STARPU_RW,                      blokC->handler[sideA],
-#if defined(PASTIX_DEBUG_STARPU)
+#if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
         STARPU_NAME,                    task_name,
 #endif
 #if defined(PASTIX_STARPU_HETEROPRIO)
