@@ -80,7 +80,7 @@ psi_allocate_data_on_node( void *data_interface, unsigned node )
         for ( i = 0; i < interface->nbblok; i++, blok++, LRblock++ ) {
             M = blok_rownbr( blok );
 
-            /* Allocate the LR block to its tight space */
+            /* Allocate the LR block to its max space */
             switch ( interface->flttype ) {
                 case PastixComplex64:
                     core_zlralloc( M, ncols, -1, LRblock );
@@ -293,38 +293,32 @@ psi_pack_lr( pastix_starpu_interface_t *interface, void **ptr )
 {
     assert( interface->cblk->cblktype & CBLK_COMPRESSED );
 
-    size_t            elemsize = pastix_size_of( interface->flttype );
     char             *tmp      = *ptr;
     pastix_lrblock_t *LRblock  = interface->dataptr;
     int               N        = cblk_colnbr( interface->cblk );
     int               j        = 0;
-    int               M, rk;
+    int               M;
 
     SolverBlok *blok = interface->cblk->fblokptr + pastix_imax( 0, interface->offset );
 
     for ( ; j < interface->nbblok; j++, blok++, LRblock++ ) {
-        M  = blok_rownbr( blok );
-        rk = LRblock->rk;
+        M = blok_rownbr( blok );
 
-        /* Get the rank */
-        assert( rk >= -1 );
-        memcpy( tmp, &rk, sizeof( int ) );
-        tmp += sizeof( int );
-
-        /* Copy the data */
-        if ( rk != -1 ) {
-            /* Pack U */
-            memcpy( tmp, LRblock->u, M * rk * elemsize );
-            tmp += M * rk * elemsize;
-
-            /* Pack V */
-            memcpy( tmp, LRblock->v, N * rk * elemsize );
-            tmp += N * rk * elemsize;
-        }
-        else {
-            /* Pack the full block */
-            memcpy( tmp, LRblock->u, M * N * elemsize );
-            tmp += M * N * elemsize;
+        switch ( interface->flttype ) {
+        case PastixComplex64:
+            tmp = core_zlrpack( M, N, LRblock, tmp );
+            break;
+        case PastixComplex32:
+            tmp = core_clrpack( M, N, LRblock, tmp );
+            break;
+        case PastixDouble:
+            tmp = core_dlrpack( M, N, LRblock, tmp );
+            break;
+        case PastixFloat:
+            tmp = core_slrpack( M, N, LRblock, tmp );
+            break;
+        default:
+            assert( 0 );
         }
     }
 }
@@ -373,53 +367,37 @@ psi_unpack_lr( pastix_starpu_interface_t *interface, void *ptr )
 {
     assert( interface->cblk->cblktype & CBLK_COMPRESSED );
 
-    size_t            elemsize = pastix_size_of( interface->flttype );
     SolverBlok       *blok     = interface->cblk->fblokptr + pastix_imax( 0, interface->offset );
     pastix_lrblock_t *LRblock  = interface->dataptr;
     char             *tmp      = ptr;
     int               N        = cblk_colnbr( interface->cblk );
-    int               rk;
+    int               i, rk;
 
-    int i = 0;
-    for ( ; i < interface->nbblok; i++, blok++, LRblock++ ) {
+    for ( i=0; i < interface->nbblok; i++, blok++, LRblock++ ) {
         int M = blok_rownbr( blok );
 
-        /* Get the rank */
-        memcpy( &rk, tmp, sizeof( int ) );
-        tmp += sizeof( int );
+        rk = *((int*)tmp);
 
         /* Allocate the LR block to its tight space */
         switch ( interface->flttype ) {
             case PastixComplex64:
                 core_zlralloc( M, N, rk, LRblock );
+                tmp = core_zlrunpack( M, N, LRblock, tmp );
                 break;
             case PastixComplex32:
                 core_clralloc( M, N, rk, LRblock );
+                tmp = core_clrunpack( M, N, LRblock, tmp );
                 break;
             case PastixDouble:
                 core_dlralloc( M, N, rk, LRblock );
+                tmp = core_dlrunpack( M, N, LRblock, tmp );
                 break;
             case PastixFloat:
                 core_slralloc( M, N, rk, LRblock );
+                tmp = core_slrunpack( M, N, LRblock, tmp );
                 break;
             default:
                 assert( 0 );
-        }
-
-        /* Copy the data */
-        if ( rk != -1 ) {
-            /* Unpack U */
-            memcpy( LRblock->u, tmp, M * rk * elemsize );
-            tmp += M * rk * elemsize;
-
-            /* Unpack V */
-            memcpy( LRblock->v, tmp, N * rk * elemsize );
-            tmp += N * rk * elemsize;
-        }
-        else {
-            /* Unpack the full block */
-            memcpy( LRblock->u, tmp, M * N * elemsize );
-            tmp += M * N * elemsize;
         }
     }
 }
