@@ -175,23 +175,25 @@ psi_get_size( starpu_data_handle_t handle )
 {
     pastix_starpu_interface_t *interface =
         starpu_data_get_interface_on_node( handle, STARPU_MAIN_RAM );
-    size_t      size;
-    SolverCblk *cblk = interface->cblk;
+    size_t       size;
+    SolverCblk  *cblk  = interface->cblk;
+    pastix_int_t ncols = cblk_colnbr( cblk );
+    size_t       nrows;
 
-    pastix_starpu_logger;
-
-    if ( !( cblk->cblktype & CBLK_COMPRESSED ) ) {
-        if ( interface->offset == -1 ) {
-            pastix_int_t ncols = cblk_colnbr( cblk );
-            size               = cblk->stride * ncols * pastix_size_of( interface->flttype );
-        }
-        else {
-            size = interface->allocsize;
-        }
+    if ( interface->offset == -1 ) {
+        nrows = cblk->stride;
     }
     else {
-        size = interface->nbblok * sizeof( pastix_lrblock_t );
+        SolverBlok *fblok = interface->cblk->fblokptr + interface->offset;
+        SolverBlok *lblok = fblok + interface->nbblok;
+
+        nrows = 0;
+        for( ; fblok < lblok; fblok++ ) {
+            nrows += blok_rownbr( fblok );
+        }
     }
+
+    size = ncols * nrows;
 
 #ifdef STARPU_DEBUG
     STARPU_ASSERT_MSG( interface->id == PASTIX_STARPU_INTERFACE_ID,
@@ -509,29 +511,20 @@ psi_copy_any_to_any( void    *src_interface,
     pastix_starpu_interface_t *pastix_src = (pastix_starpu_interface_t *)src_interface;
     pastix_starpu_interface_t *pastix_dst = (pastix_starpu_interface_t *)dst_interface;
 
-    SolverCblk *cblk = pastix_src->cblk;
-    int         ret  = 0;
-    size_t      size = 0;
+    int ret = 0;
 
     pastix_starpu_logger;
 
-    if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        size = pastix_src->allocsize;
-    }
-    else {
-        pastix_int_t ncols   = cblk_colnbr( cblk );
-        size_t       coefnbr = cblk->stride * ncols;
-
-        size = coefnbr * pastix_size_of( pastix_src->flttype );
-    }
+    assert( !( cblk->cblktype & CBLK_COMPRESSED ) );
 
     if ( starpu_interface_copy( (uintptr_t)pastix_src->dataptr, 0, src_node,
                                 (uintptr_t)pastix_dst->dataptr, 0, dst_node,
-                                size,
-                                async_data ) ) {
+                                pastix_src->allocsize,
+                                async_data ) )
+    {
         ret = -EAGAIN;
     }
-    starpu_interface_data_copy( src_node, dst_node, size );
+    starpu_interface_data_copy( src_node, dst_node, pastix_src->allocsize );
 
     return ret;
 }
