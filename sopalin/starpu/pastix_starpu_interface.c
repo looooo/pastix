@@ -186,7 +186,7 @@ psi_get_size( starpu_data_handle_t handle )
 
 #ifdef STARPU_DEBUG
     STARPU_ASSERT_MSG( interface->id == PASTIX_STARPU_INTERFACE_ID,
-                       "Error. The given data is not a pastix interface for starpu." );
+                       "psi_get_size: The given data is not a pastix interface for starpu." );
 #endif
 
     return size;
@@ -202,7 +202,7 @@ psi_get_alloc_size( starpu_data_handle_t handle )
 
 #ifdef STARPU_DEBUG
     STARPU_ASSERT_MSG( interface->id == PASTIX_STARPU_INTERFACE_ID,
-                       "Error. The given data is not a ." );
+                       "psi_get_alloc_size: The given data is not a pastix interface for starpu." );
 #endif
 
     return interface->allocsize;
