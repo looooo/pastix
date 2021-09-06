@@ -76,40 +76,40 @@ psi_allocate_data_on_node( void *data_interface, unsigned node )
     /* update the data properly */
     interface->dataptr = (void *)addr;
 
-    /* Allocate the workspace for the low-rank blocks */
-    if ( interface->cblk->cblktype & CBLK_COMPRESSED )
-    {
-        SolverBlok       *blok    = interface->cblk->fblokptr;
-        pastix_lrblock_t *LRblock = interface->dataptr;
-        int               offset  = pastix_imax( 0, interface->offset );
-        int               i, ncols, M;
+    /* /\* Allocate the workspace for the low-rank blocks *\/ */
+    /* if ( interface->cblk->cblktype & CBLK_COMPRESSED ) */
+    /* { */
+    /*     SolverBlok       *blok    = interface->cblk->fblokptr; */
+    /*     pastix_lrblock_t *LRblock = interface->dataptr; */
+    /*     int               offset  = pastix_imax( 0, interface->offset ); */
+    /*     int               i, ncols, M; */
 
-        assert( node == STARPU_MAIN_RAM );
+    /*     assert( node == STARPU_MAIN_RAM ); */
 
-        ncols = cblk_colnbr( interface->cblk );
-        blok += offset;
-        for ( i = 0; i < interface->nbblok; i++, blok++, LRblock++ ) {
-            M = blok_rownbr( blok );
+    /*     ncols = cblk_colnbr( interface->cblk ); */
+    /*     blok += offset; */
+    /*     for ( i = 0; i < interface->nbblok; i++, blok++, LRblock++ ) { */
+    /*         M = blok_rownbr( blok ); */
 
-            /* Allocate the LR block to its max space */
-            switch ( interface->flttype ) {
-                case PastixComplex64:
-                    core_zlralloc( M, ncols, -1, LRblock );
-                    break;
-                case PastixComplex32:
-                    core_clralloc( M, ncols, -1, LRblock );
-                    break;
-                case PastixDouble:
-                    core_dlralloc( M, ncols, -1, LRblock );
-                    break;
-                case PastixFloat:
-                    core_slralloc( M, ncols, -1, LRblock );
-                    break;
-                default:
-                    assert( 0 );
-            }
-        }
-    }
+    /*         /\* Allocate the LR block to its max space *\/ */
+    /*         switch ( interface->flttype ) { */
+    /*             case PastixComplex64: */
+    /*                 core_zlralloc( M, ncols, -1, LRblock ); */
+    /*                 break; */
+    /*             case PastixComplex32: */
+    /*                 core_clralloc( M, ncols, -1, LRblock ); */
+    /*                 break; */
+    /*             case PastixDouble: */
+    /*                 core_dlralloc( M, ncols, -1, LRblock ); */
+    /*                 break; */
+    /*             case PastixFloat: */
+    /*                 core_slralloc( M, ncols, -1, LRblock ); */
+    /*                 break; */
+    /*             default: */
+    /*                 assert( 0 ); */
+    /*         } */
+    /*     } */
+    /* } */
 
     return allocated_memory;
 }
@@ -119,19 +119,19 @@ psi_free_data_on_node( void *data_interface, unsigned node )
 {
     pastix_starpu_interface_t *interface = (pastix_starpu_interface_t *)data_interface;
 
-    SolverCblk *cblk = interface->cblk;
+    /* SolverCblk *cblk = interface->cblk; */
 
     pastix_starpu_logger;
 
-    if ( cblk->cblktype & CBLK_COMPRESSED )
-    {
-        pastix_lrblock_t *LRblock = interface->dataptr;
-        int               i;
+    /* if ( cblk->cblktype & CBLK_COMPRESSED ) */
+    /* { */
+    /*     pastix_lrblock_t *LRblock = interface->dataptr; */
+    /*     int               i; */
 
-        for ( i = 0; i < interface->nbblok; i++, LRblock++ ) {
-            core_zlrfree( LRblock );
-        }
-    }
+    /*     for ( i = 0; i < interface->nbblok; i++, LRblock++ ) { */
+    /*         core_zlrfree( LRblock ); */
+    /*     } */
+    /* } */
 
     starpu_free_on_node( node, (uintptr_t)interface->dataptr, interface->allocsize );
 
