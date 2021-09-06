@@ -159,17 +159,6 @@ psi_to_pointer( void *data_interface, unsigned node )
     return interface->dataptr;
 }
 
-static inline int
-psi_pointer_is_inside( void *data_interface, unsigned node, void *ptr )
-{
-    pastix_starpu_logger;
-
-    (void)node;
-    (void)data_interface;
-    (void)ptr;
-    return 0;
-}
-
 static inline size_t
 psi_get_size( starpu_data_handle_t handle )
 {
@@ -534,12 +523,13 @@ static const struct starpu_data_copy_methods psi_copy_methods = {
 };
 
 struct starpu_data_interface_ops pastix_starpu_interface_ops = {
-    .init                  = psi_init,
     .register_data_handle  = psi_register_data_handle,
     .allocate_data_on_node = psi_allocate_data_on_node,
     .free_data_on_node     = psi_free_data_on_node,
+    .init                  = psi_init,
+    .copy_methods          = &psi_copy_methods,
     .to_pointer            = psi_to_pointer,
-    .pointer_is_inside     = psi_pointer_is_inside,
+    .pointer_is_inside     = NULL,
     .get_size              = psi_get_size,
     .get_alloc_size        = psi_get_alloc_size,
     .footprint             = psi_footprint,
@@ -547,15 +537,15 @@ struct starpu_data_interface_ops pastix_starpu_interface_ops = {
     .compare               = psi_compare,
     .alloc_compare         = psi_alloc_compare,
     .display               = psi_display,
+    .describe              = psi_describe,
     .pack_data             = psi_pack_data,
 #if defined( HAVE_STARPU_DATA_PEEK )
     .peek_data             = psi_peek_data,
 #endif
     .unpack_data           = psi_unpack_data,
-    .describe              = psi_describe,
-    .copy_methods          = &psi_copy_methods,
     .interfaceid           = STARPU_UNKNOWN_INTERFACE_ID,
     .interface_size        = sizeof( pastix_starpu_interface_t ),
+    .dontcache             = 0, /* Should we set it to 1 */
     .name                  = "PASTIX_STARPU_INTERFACE"
 };
 
