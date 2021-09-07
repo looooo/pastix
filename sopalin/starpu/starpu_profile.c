@@ -145,7 +145,7 @@ profiling_log_init( const char *dirname )
     }
     FILE* header = pastix_fopenw( dirname, PROFILING_LOG_HEADERNAME, "w" );
     assert( header );
-    fprintf( header, "task_name; cl_name; m; n; k; flops; speed" );
+    fprintf( header, "task_name;cl_name;m;n;k;flops;speed\n" );
     fclose( header );
 }
 
