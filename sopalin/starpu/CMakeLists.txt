@@ -123,7 +123,6 @@ install(TARGETS pastix_starpu
 add_documented_files(
   # Headers
   pastix_starpu.h
-  pastix_cblk_interface.h
   # Source files
   starpu.c
   starpu_sparse_matrix.c
