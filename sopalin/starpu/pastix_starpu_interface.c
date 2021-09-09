@@ -504,7 +504,7 @@ psi_copy_any_to_any( void    *src_interface,
 
     pastix_starpu_logger;
 
-    assert( !( cblk->cblktype & CBLK_COMPRESSED ) );
+    assert( !( pastix_src->cblk->cblktype & CBLK_COMPRESSED ) );
 
     if ( starpu_interface_copy( (uintptr_t)pastix_src->dataptr, 0, src_node,
                                 (uintptr_t)pastix_dst->dataptr, 0, dst_node,
