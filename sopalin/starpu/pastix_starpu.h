@@ -194,6 +194,18 @@ static inline void profiling_log_init( const char* dirname ) {
 static inline void profiling_log_fini() {}
 #endif
 
+#ifdef PASTIX_STARPU_STATS
+static inline void
+print_stats( double sub, double com, __attribute__((unused)) SolverMatrix *solvmtx )
+{
+    int src = 0;
+    MPI_Comm_rank( solvmtx->solv_comm, &src );
+    fprintf( stderr, "    Time to submit tasks on node %d        %e s\n", src, clockVal( sub ) );
+    fprintf( stderr, "    Time to execute tasks on node %d       %e s\n", src, clockVal( com ) );
+    fprintf( stderr, "    Total time on node %d                  %e s\n", src, clockVal( sub ) + clockVal( com ) );
+}
+#endif
+
 /**
  * @brief StarPU Interface to handle cblks and bloks
  */

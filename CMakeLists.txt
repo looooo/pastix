@@ -150,6 +150,9 @@ cmake_dependent_option(PASTIX_STARPU_HETEROPRIO
 cmake_dependent_option(PASTIX_STARPU_SYNC
         "Enable sync mode with StarPU" OFF "PASTIX_WITH_STARPU" OFF)
 
+cmake_dependent_option(PASTIX_STARPU_STATS
+        "Enable stats on StarPU tasks submission" OFF "PASTIX_WITH_STARPU" OFF)
+
 option(PASTIX_WITH_PARSEC
   "Build PaStiX with PaRSEC runtime support" OFF)
 

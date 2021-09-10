@@ -278,6 +278,8 @@ starpu_zsytrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )
 {
     starpu_sparse_matrix_desc_t *sdesc = sopalin_data->solvmtx->starpu_desc;
+    double sub = 0.;
+    double com = 0.;
 
     /*
      * Start StarPU if not already started
@@ -303,7 +305,11 @@ starpu_zsytrf( pastix_data_t  *pastix_data,
         starpu_fxt_start_profiling();
     }
 #endif
+#if defined(PASTIX_STARPU_STATS)
+    clockStart( sub );
+#else
     starpu_resume();
+#endif
     /*
      * Select 1D or 2D algorithm based on 2d tasks level
      */
@@ -317,6 +323,11 @@ starpu_zsytrf( pastix_data_t  *pastix_data,
     }
 
     starpu_sparse_matrix_getoncpu( sdesc );
+#if defined(PASTIX_STARPU_STATS)
+    clockStop( sub );
+    clockStart( com );
+    starpu_resume();
+#endif
     starpu_task_wait_for_all();
 #if defined(PASTIX_WITH_MPI)
     starpu_mpi_wait_for_all( pastix_data->pastix_comm );
@@ -329,6 +340,10 @@ starpu_zsytrf( pastix_data_t  *pastix_data,
     }
 #endif
     starpu_profiling_status_set(STARPU_PROFILING_DISABLE);
+#if defined(PASTIX_STARPU_STATS)
+    clockStop( com );
+    print_stats( sub, com, pastix_data->solvmatr );
+#endif
 
     return;
 }
