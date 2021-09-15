@@ -353,7 +353,7 @@ cuda_zgemmsp_block_frfr( pastix_trans_t         trans,
     assert( cblk->cblktype  & CBLK_LAYOUT_2D );
     assert( fcblk->cblktype & CBLK_LAYOUT_2D );
 
-    /**
+    /*
      * Blocs on column K
      */
     fblokK = cblk[0].fblokptr;
@@ -399,10 +399,10 @@ cuda_zgemmsp_block_frfr( pastix_trans_t         trans,
 
         full_n = 0;
         for (bB = blokB; (bB < lblokK) && (bB->fcblknm == cblk_n); bB++) {
-            N = blok_rownbr( bB );
-            Bptr = B + bB->coefind - offsetB;
-            ldb = N;
+            N       = blok_rownbr( bB );
             full_n += N;
+            Bptr    = B + bB->coefind - offsetB;
+            ldb     = N;
 
             cublasZgemm( 'N', transstr[trans - PastixNoTrans],
                          M, N, K,

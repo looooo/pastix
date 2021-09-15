@@ -95,12 +95,15 @@ static void *solve_smp(void *arg)
     }
 #endif
 
-
     /**
      * Read the sparse matrix with the driver
      */
     spm = malloc( sizeof( spmatrix_t ) );
-    spmReadDriver( param.driver, param.filename, spm );
+    rc = spmReadDriver( param.driver, param.filename, spm );
+    if ( rc != SPM_SUCCESS ) {
+        pastixFinalize( &pastix_data );
+        return NULL;
+    }
 
     spmPrintInfo( spm, stdout );
 
@@ -190,7 +193,7 @@ int main (int argc, char **argv)
     pastix_int_t   iparm[IPARM_SIZE];      /*< Integer in/out parameters for pastix                */
     double         dparm[DPARM_SIZE];      /*< Floating in/out parameters for pastix               */
     spm_driver_t   driver;                 /*< Matrix driver(s) requested by user                  */
-    char          *filename;               /*< Filename(s) given by user                           */
+    char          *filename = NULL;               /*< Filename(s) given by user                           */
     int            nbcallingthreads = 2;
     solve_param_t *solve_param;
     pthread_t     *threads;

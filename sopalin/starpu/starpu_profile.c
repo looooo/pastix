@@ -126,8 +126,11 @@ profiling_display_allinfo()
 FILE *profiling_log_file[STARPU_NMAXWORKERS];
 
 /**
- * @brief Initializes the profiling_log functions. The function profiling_log_fini must be called to end the profiling.
- *          Opens a series of FILE* into the given directory for concurrent logging of all individual tasks.
+ * @brief Initializes the profiling_log functions.
+ *
+ * The function profiling_log_fini() must be called to end the profiling.
+ * Opens a series of FILE* into the given directory for concurrent logging of
+ * all individual tasks.
  *
  * @param[in] dirname
  *          The path to the directory in which the profiling_log will be written.
