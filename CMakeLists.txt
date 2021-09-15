@@ -642,6 +642,7 @@ set(PASTIX_LIB_SRCS
   order/order_amalgamate.c
   order/order_apply_level_order.c
   order/order_check.c
+  order/order_compute_personal.c
   order/order_find_supernodes.c
   order/order_grids.c
   order/order_io.c
@@ -795,11 +796,11 @@ if(PASTIX_WITH_MPI)
   target_link_libraries( pastix PUBLIC MPI::MPI_C )
 endif()
 
-if(PASTIX_ORDERING_PTSCOTCH)
-  target_link_libraries( pastix PRIVATE MORSE::PTSCOTCH )
-endif()
 if(PASTIX_ORDERING_SCOTCH)
   target_link_libraries( pastix PRIVATE MORSE::SCOTCH )
+endif()
+if(PASTIX_ORDERING_PTSCOTCH)
+  target_link_libraries( pastix PRIVATE MORSE::PTSCOTCH )
 endif()
 if(PASTIX_ORDERING_METIS)
   target_link_libraries( pastix PRIVATE MORSE::METIS )
@@ -999,6 +1000,7 @@ add_documented_files(
   order/order_compute_metis.c
   order/order_compute_ptscotch.c
   order/order_compute_scotch.c
+  order/order_compute_personal.c
   order/order_supernodes.c
   order/pastix_subtask_order.c
   #
