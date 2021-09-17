@@ -98,7 +98,6 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
                       const spmatrix_t     *spm,
                             pastix_order_t *myorder )
 {
-    pastix_int_t    n;
     pastix_int_t    schur_n;
     pastix_int_t   *schur_colptr;
     pastix_int_t   *schur_rows;
@@ -117,7 +116,6 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     int             retval_rcv;
     int             do_schur = 1;
     int             do_zeros = 1;
-    spmatrix_t     *spmg     = NULL;
 
     /*
      * Check parameters
@@ -135,27 +133,9 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    /*
-     * If the spm is distributed, have to gather it for the moment
-     */
-    if ( spm->loc2glob == NULL ) {
-        spmg = (spmatrix_t *)spm;
-    }
-#if defined(PASTIX_WITH_MPI)
-    else {
-        if( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
-            pastix_print( pastix_data->procnum, 0, "pastix_subtask_order: the SPM has to be centralized for the moment\n" );
-        }
-        spmg = spmGather( spm, -1 );
-    }
-#endif
-
     iparm = pastix_data->iparm;
-    n = spm->n;
-    /*
-     * Backup flttype from the spm into iparm[IPARM_FLOAT] for later use
-     */
-    iparm[IPARM_FLOAT] = spmg->flttype;
+    /* Backup flttype from the spm into iparm[IPARM_FLOAT] for later use */
+    iparm[IPARM_FLOAT] = spm->flttype;
 
     if (pastix_data->schur_n > 0)
     {
@@ -205,9 +185,41 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      * operations as symmetrizing the graph and removing the diagonal
      * coefficients
      */
-    graphPrepare( pastix_data, spmg, &(pastix_data->graph) );
+    graphPrepare( pastix_data, spm, &(pastix_data->graph) );
     graphBase( pastix_data->graph, 0 );
     graph = pastix_data->graph;
+
+    /*
+     * If the graph is distributed and the ordering is not PT-Scotch
+     * we have to gather it for the moment.
+     */
+    if ( graph->loc2glob != NULL )
+    {
+        int to_gather = 0;
+
+        /* If the graph is distributed, we need to use PT-Scotch */
+        if ( iparm[IPARM_ORDERING] != PastixOrderPtScotch ) {
+            if( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
+                pastix_print( procnum, 0, "pastix_subtask_order: the graph is distributed and you don't use PT-Scotch.\n" );
+                pastix_print( procnum, 0, "                      We have to gather it on all nodes for the moment.\n" );
+            }
+            to_gather = 1;
+        }
+
+        /* For the moment, graphIsolate is not distributed */
+        if ( do_schur || do_zeros ) {
+            if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
+                pastix_print( procnum, 0, "pastix_subtask_order: the graph is distributed, but graphIsolate is not.\n" );
+                pastix_print( procnum, 0, "                      We have to gather it on all nodes for the moment.\n" );
+            }
+            to_gather = 1;
+        }
+        if ( to_gather ) {
+            graph = graphGather( pastix_data->graph, -1 );
+            graphExit( pastix_data->graph );
+            pastix_data->graph = graph;
+        }
+    }
 
     /*
      * Isolate Shur elements
@@ -348,12 +360,16 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         if ( schur_rows   != graph->rowptr ) { memFree_null( schur_rows   ); }
         if ( schur_perm   != NULL          ) { memFree_null( schur_perm   ); }
 
-        if ( spmg != spm ) {
-            spmExit( spmg );
-            memFree_null( spmg );
-        }
-
         return retval_rcv;
+    }
+
+    /* The odering step is distributed, but supernodes routines are not */
+    if( graph->loc2glob != NULL ) {
+        graph = graphGather( pastix_data->graph, -1 );
+        graphExit( pastix_data->graph );
+
+        memcpy( &subgraph, graph, sizeof(pastix_graph_t) );
+        pastix_data->graph = graph;
     }
 
     /* Rebase the ordering to 0 (for orderFindSupernodes) */
@@ -415,7 +431,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      */
     if ( do_schur )
     {
-        pastixOrderAddIsolate( ordemesh, n, schur_perm );
+        pastixOrderAddIsolate( ordemesh, graph->gN, schur_perm );
 
         if ( schur_colptr != graph->colptr ) { memFree_null( schur_colptr ); }
         if ( schur_rows   != graph->rowptr ) { memFree_null( schur_rows   ); }
@@ -497,7 +513,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      * Remark: No need to copy back for personal
      */
     if (iparm[IPARM_ORDERING] != PastixOrderPersonal) {
-        if ( spmg->loc2glob == NULL ) {
+        if ( graph->loc2glob == NULL ) {
             if ( myorder != NULL )
             {
                 retval = pastixOrderCopy( myorder, ordemesh );
@@ -509,24 +525,26 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             }
         }
         else {
-            int baseval = graph->colptr[0];
-            /* Should be 0-based ? */
-            assert (baseval == 0);
+            pastix_int_t *loc2glob;
+            pastix_int_t  baseval = graph->baseval;
+            pastix_int_t  i, n;
 
+            n = graph->n;
             if (myorder->permtab != NULL) {
                 pastix_int_t *permtab = ordemesh->permtab - baseval;
-                pastix_int_t i;
 
-                for(i=0; i<n; i++) {
-                    myorder->permtab[i] = permtab[spmg->loc2glob[i]];
+                loc2glob = graph->loc2glob;
+                for( i = 0; i < n; i++, loc2glob++ ) {
+                    myorder->permtab[i] = permtab[*loc2glob];
                 }
             }
             if (myorder->peritab != NULL) {
                 pastix_int_t *peritab = ordemesh->peritab - baseval;
                 pastix_int_t i;
 
-                for(i=0; i<n; i++) {
-                    myorder->peritab[i] = peritab[spmg->loc2glob[i]];
+                loc2glob = graph->loc2glob;
+                for( i = 0; i < n; i++, loc2glob++ ) {
+                    myorder->peritab[i] = peritab[*loc2glob];
                 }
             }
             /* TODO: Copy also rangtab and treetab ? */
@@ -545,12 +563,6 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
 
     /* Backup the spm pointer for further information */
     pastix_data->csc = spm;
-
-    /* Free the gathered spm */
-    if ( spmg != spm ) {
-        spmExit( spmg );
-        memFree_null( spmg );
-    }
 
     /* Invalidate following steps, and add order step to the ones performed */
     pastix_data->steps &= ~( STEP_SYMBFACT  |

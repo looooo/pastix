@@ -157,6 +157,40 @@ graphCopy( pastix_graph_t       *graphdst,
  *
  * @ingroup pastix_graph
  *
+ * @brief This routine gather a distributed graph on node root.
+ *
+ *******************************************************************************
+ *
+ * @param[in] graph
+ *          The distributed grapĥ.
+ *
+ * @param[in] root
+ *          The root where we want to gather the graph
+ *
+ *******************************************************************************
+ *
+ * @retval The gathered graph if on root node
+ * @retval NULL if not on root node, or if the graph can not be gathered.
+ *
+ ********************************************************************************/
+pastix_graph_t *
+graphGather( const pastix_graph_t *graph,
+             int                   root )
+{
+    pastix_graph_t *newgraph;
+
+    assert_graph( graph );
+    newgraph = spmGather( graph, root );
+    assert_graph( newgraph );
+
+    return newgraph;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_graph
+ *
  * @brief This routine sortes the subarray of edges of each vertex.
  *
  * WARNING: The sort is always performed, do not call this routine
