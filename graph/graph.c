@@ -162,28 +162,30 @@ graphCopy( pastix_graph_t       *graphdst,
  *******************************************************************************
  *
  * @param[in] graph
- *          The distributed grapĥ.
+ *          On entry, the distributed graph.
+ *          On exit, the gathered graph
  *
  * @param[in] root
  *          The root where we want to gather the graph
  *
- *******************************************************************************
- *
- * @retval The gathered graph if on root node
- * @retval NULL if not on root node, or if the graph can not be gathered.
- *
  ********************************************************************************/
-pastix_graph_t *
-graphGather( const pastix_graph_t *graph,
-             int                   root )
+void
+graphGather( pastix_graph_t **graph,
+             int              root )
 {
     pastix_graph_t *newgraph;
+    assert_graph( *graph );
 
-    assert_graph( graph );
-    newgraph = spmGather( graph, root );
-    assert_graph( newgraph );
+    if ( (*graph)->loc2glob == NULL ) {
+        return;
+    }
 
-    return newgraph;
+    newgraph = spmGather( *graph, root );
+    graphExit( *graph );
+    memFree(*graph);
+
+    *graph = newgraph;
+    assert_graph( *graph );
 }
 
 /**
