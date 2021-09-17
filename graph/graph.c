@@ -179,19 +179,23 @@ graphCopy( pastix_graph_t       *graphdst,
  * @param[in] comm
  *          MPI communicator.
  *
+ *******************************************************************************
+ *
+ * @retval 1 if the graph has been scattered, 0 if untouched
+ *
  *******************************************************************************/
-void
-graphScatter( pastix_graph_t **graph,
-              spm_int_t        n,
-              const spm_int_t *loc2glob,
-              int              root,
-              PASTIX_Comm      comm )
+int
+graphScatter( pastix_graph_t    **graph,
+              pastix_int_t        n,
+              const pastix_int_t *loc2glob,
+              int                 root,
+              PASTIX_Comm         comm )
 {
     pastix_graph_t *newgraph;
-    assert_graph( *graph );
+    assert_graph( (*graph) );
 
     if ( (*graph)->loc2glob != NULL ) {
-        return;
+        return 0;
     }
 
     /* Scatter the graph */
@@ -200,7 +204,8 @@ graphScatter( pastix_graph_t **graph,
     memFree(*graph);
 
     *graph = newgraph;
-    assert_graph( *graph );
+    assert_graph( (*graph) );
+    return 1;
 }
 
 /**
@@ -219,16 +224,20 @@ graphScatter( pastix_graph_t **graph,
  * @param[in] root
  *          The root where we want to gather the graph
  *
+ *******************************************************************************
+ *
+ * @retval 1 if the graph has been gathered, 0 if untouched
+ *
  ********************************************************************************/
-void
+int
 graphGather( pastix_graph_t **graph,
              int              root )
 {
     pastix_graph_t *newgraph;
-    assert_graph( *graph );
+    assert_graph( (*graph) );
 
     if ( (*graph)->loc2glob == NULL ) {
-        return;
+        return 0;
     }
 
     newgraph = spmGather( *graph, root );
@@ -236,7 +245,8 @@ graphGather( pastix_graph_t **graph,
     memFree(*graph);
 
     *graph = newgraph;
-    assert_graph( *graph );
+    assert_graph( (*graph) );
+    return 1;
 }
 
 /**

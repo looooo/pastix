@@ -194,8 +194,8 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      */
     if ( do_schur )
     {
-        graphGather( &graph, -1 );
         assert( pastix_data->schur_list != NULL );
+        graphGather( &graph, -1 );
         graphIsolate(graph->n,
                      graph->colptr,
                      graph->rowptr,
@@ -218,7 +218,13 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      */
     if ( do_zeros )
     {
-        graphGather( &graph, -1 );
+        if ( graphGather( &graph, -1 ) ) {
+            /* Graph has been gathered -> do_schur == 0 */
+            assert( do_schur == 0 );
+            schur_n      = graph->n;
+            schur_colptr = graph->colptr;
+            schur_rows   = graph->rowptr;
+        }
         assert( pastix_data->zeros_list != NULL );
         graphIsolate(schur_n,
                      schur_colptr,
@@ -258,7 +264,11 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "Scotch" );
         }
 #if defined(PASTIX_ORDERING_SCOTCH)
-        graphGather( &graph, -1 );
+        if ( graphGather( &graph, -1 ) ) {
+            assert( (do_schur == 0) && (do_zeros == 0) );
+            pastix_data->graph = graph;
+            memcpy( &subgraph, graph, sizeof(pastix_graph_t) );
+        }
         retval = pastixOrderComputeScotch( pastix_data, &subgraph );
 #else
         errorPrint("pastix_subtask_order: Ordering with Scotch requires to enable -DPASTIX_ORDERING_SCOTCH option");
@@ -274,7 +284,10 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "PT-Scotch" );
         }
 #if defined(PASTIX_ORDERING_PTSCOTCH)
-        graphScatter( &graph, -1, NULL, -1, pastix_data->pastix_comm );
+        if ( graphScatter( &graph, -1, NULL, -1, pastix_data->pastix_comm ) ) {
+            pastix_data->graph = graph;
+            memcpy( &subgraph, graph, sizeof(pastix_graph_t) );
+        }
         retval = pastixOrderComputePTScotch( pastix_data, &subgraph );
 #else
         errorPrint("pastix_subtask_order: Ordering with PT-Scotch requires to enable -DPASTIX_ORDERING_PTSCOTCH option");
@@ -290,7 +303,11 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "Metis" );
         }
 #if defined(PASTIX_ORDERING_METIS)
-        graphGather( &graph, -1 );
+        if ( graphGather( &graph, -1 ) ) {
+            assert( (do_schur == 0) && (do_zeros == 0) );
+            pastix_data->graph = graph;
+            memcpy( &subgraph, graph, sizeof(pastix_graph_t) );
+        }
         retval = pastixOrderComputeMetis( pastix_data, &subgraph );
         assert( ordemesh->rangtab == NULL );
 #else
@@ -334,13 +351,10 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         return retval_rcv;
     }
 
-    /* The odering step is distributed, but supernodes routines are not */
-    if( graph->loc2glob != NULL ) {
-        graph = graphGather( pastix_data->graph, -1 );
-        graphExit( pastix_data->graph );
-
-        memcpy( &subgraph, graph, sizeof(pastix_graph_t) );
+    /* The ordering step is distributed, but supernodes routines are not */
+    if ( graphGather( &graph, -1 ) ) {
         pastix_data->graph = graph;
+        memcpy( &subgraph, graph, sizeof(pastix_graph_t) );
     }
 
     /* Rebase the ordering to 0 (for orderFindSupernodes) */
