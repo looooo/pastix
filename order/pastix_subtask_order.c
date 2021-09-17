@@ -190,43 +190,11 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     graph = pastix_data->graph;
 
     /*
-     * If the graph is distributed and the ordering is not PT-Scotch
-     * we have to gather it for the moment.
-     */
-    if ( graph->loc2glob != NULL )
-    {
-        int to_gather = 0;
-
-        /* If the graph is distributed, we need to use PT-Scotch */
-        if ( iparm[IPARM_ORDERING] != PastixOrderPtScotch ) {
-            if( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
-                pastix_print( procnum, 0, "pastix_subtask_order: the graph is distributed and you don't use PT-Scotch.\n" );
-                pastix_print( procnum, 0, "                      We have to gather it on all nodes for the moment.\n" );
-            }
-            to_gather = 1;
-        }
-
-        /* For the moment, graphIsolate is not distributed */
-        if ( do_schur || do_zeros ) {
-            if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
-                pastix_print( procnum, 0, "pastix_subtask_order: the graph is distributed, but graphIsolate is not.\n" );
-                pastix_print( procnum, 0, "                      We have to gather it on all nodes for the moment.\n" );
-            }
-            to_gather = 1;
-        }
-        if ( to_gather ) {
-            graph = graphGather( pastix_data->graph, -1 );
-            graphExit( pastix_data->graph );
-            pastix_data->graph = graph;
-        }
-    }
-
-    /*
      * Isolate Shur elements
      */
     if ( do_schur )
     {
-        assert( graph->loc2glob == NULL );
+        graphGather( &graph, -1 );
         assert( pastix_data->schur_list != NULL );
         graphIsolate(graph->n,
                      graph->colptr,
@@ -250,7 +218,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      */
     if ( do_zeros )
     {
-        assert( graph->loc2glob == NULL );
+        graphGather( &graph, -1 );
         assert( pastix_data->zeros_list != NULL );
         graphIsolate(schur_n,
                      schur_colptr,
@@ -290,6 +258,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "Scotch" );
         }
 #if defined(PASTIX_ORDERING_SCOTCH)
+        graphGather( &graph, -1 );
         retval = pastixOrderComputeScotch( pastix_data, &subgraph );
 #else
         errorPrint("pastix_subtask_order: Ordering with Scotch requires to enable -DPASTIX_ORDERING_SCOTCH option");
@@ -305,6 +274,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "PT-Scotch" );
         }
 #if defined(PASTIX_ORDERING_PTSCOTCH)
+        graphScatter( &graph, -1, NULL, -1, pastix_data->pastix_comm );
         retval = pastixOrderComputePTScotch( pastix_data, &subgraph );
 #else
         errorPrint("pastix_subtask_order: Ordering with PT-Scotch requires to enable -DPASTIX_ORDERING_PTSCOTCH option");
@@ -320,6 +290,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "Metis" );
         }
 #if defined(PASTIX_ORDERING_METIS)
+        graphGather( &graph, -1 );
         retval = pastixOrderComputeMetis( pastix_data, &subgraph );
         assert( ordemesh->rangtab == NULL );
 #else

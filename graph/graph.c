@@ -157,6 +157,57 @@ graphCopy( pastix_graph_t       *graphdst,
  *
  * @ingroup pastix_graph
  *
+ * @brief This routine scatter a graph from node root to the other nodes
+ *
+ *******************************************************************************
+ *
+ * @param[inout] graph
+ *          On entry, the graph to scatter.
+ *          On exit, the scattered graph
+ *
+ * @param[in] n
+ *          Size of the loc2glob array if provided. Unused otherwise.
+ *
+ * @param[in] loc2glob
+ *          Distribution array of the matrix. Will be copied.
+ *          If NULL, the columns are evenly distributed among the processes.
+ *
+ * @param[in] root
+ *          The root process of the scatter operation. -1 if everyone hold a
+ *          copy of the graph.
+ *
+ * @param[in] comm
+ *          MPI communicator.
+ *
+ *******************************************************************************/
+void
+graphScatter( pastix_graph_t **graph,
+              spm_int_t        n,
+              const spm_int_t *loc2glob,
+              int              root,
+              PASTIX_Comm      comm )
+{
+    pastix_graph_t *newgraph;
+    assert_graph( *graph );
+
+    if ( (*graph)->loc2glob != NULL ) {
+        return;
+    }
+
+    /* Scatter the graph */
+    newgraph = spmScatter( *graph, n, loc2glob, 1, root, comm );
+    graphExit( *graph );
+    memFree(*graph);
+
+    *graph = newgraph;
+    assert_graph( *graph );
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_graph
+ *
  * @brief This routine gather a distributed graph on node root.
  *
  *******************************************************************************
