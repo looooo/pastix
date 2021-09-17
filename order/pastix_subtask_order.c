@@ -320,10 +320,10 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
          * Personal Ordering
          */
     case PastixOrderPersonal:
-        if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
-            pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal" );
+        if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+            pastix_print( procnum, 0, OUT_ORDER_METHOD, "Personal" );
         }
-        retval = pastixOrderComputePersonal( pastix_data, myorder, graph->gN );
+        retval = pastixOrderComputePersonal( pastix_data, myorder );
         break;
 
     default:

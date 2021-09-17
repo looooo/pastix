@@ -30,17 +30,16 @@
  *
  * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.
- *          On exit, the field ordemesh is initialize with the result of the
- *          ordering.
+ *          On exit, the field ordemesh is initialized with the identity
+ *          ordering if myorder is NULL, or with the provided ordering
+ *          otherwise.
  *
  * @param[inout] myorder
- *          On entry, the permutation provide by the user.
- *          On exit, if the structure attributs != NULL and IPARM_ORDERING parameter
- *          is not set to PastixOrderPersonal, contains the permutation generated.
+ *          On entry, the permutation provided by the user or NULL to get
+ *          the identity ordering.
+ *          On exit, if the permutation is not NULL, it contains the generated
+ *          ordering permutation.
  *          Otherwise, it is not referenced.
- *
- * @param[in] n
- *          The size of the ordemesh vertices.
  *
  *******************************************************************************
  *
@@ -51,74 +50,74 @@
  *******************************************************************************/
 int
 pastixOrderComputePersonal( pastix_data_t  *pastix_data,
-                            pastix_order_t *myorder,
-                            pastix_int_t    n )
+                            pastix_order_t *myorder )
 {
     pastix_order_t *ordemesh;
     pastix_int_t   *iparm;
-    pastix_int_t    i;
+    pastix_int_t    i, n;
     int             procnum;
     int             retval = PASTIX_SUCCESS;
 
     ordemesh = pastix_data->ordemesh;
     iparm    = pastix_data->iparm;
     procnum  = pastix_data->procnum;
+    n        = pastix_data->graph->gN;
 
     /* Load ordering from file */
     if ( iparm[IPARM_IO_STRATEGY] & PastixIOLoad ) {
-        if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
-            pastix_print(procnum, 0, OUT_ORDER_METHOD, "Load" );
+        if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+            pastix_print( procnum, 0, OUT_ORDER_METHOD, "Load" );
         }
         retval = pastixOrderLoad( pastix_data, ordemesh );
         return retval;
     }
-    pastixOrderAlloc(ordemesh, n, 0);
+    pastixOrderAlloc( ordemesh, n, 0 );
 
     /* Rebase the Personal ordering to 0 */
     if ( myorder != NULL ) {
         assert( myorder != NULL );
         assert( myorder->vertnbr == n );
-        pastixOrderBase(myorder, 0);
+        pastixOrderBase( myorder, 0 );
     }
 
     if ( (myorder == NULL) || (myorder->permtab == NULL) ) {
         if ( (myorder == NULL) || (myorder->peritab == NULL) ) {
-            if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
-                pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (identity)" );
+            if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+                pastix_print( procnum, 0, OUT_ORDER_METHOD, "Personal (identity)" );
             }
-            for(i=0; i<n; i++) {
+            for( i=0; i<n; i++ ) {
                 ordemesh->permtab[i] = i;
                 ordemesh->peritab[i] = i;
             }
         }
         else {
-            if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
-                pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (from myorder->peritab)" );
+            if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+                pastix_print( procnum, 0, OUT_ORDER_METHOD, "Personal (from myorder->peritab)" );
             }
             /* generate permtab from myorder->peritab */
-            for(i=0;i<n;i++) {
+            for( i=0; i<n; i++ ) {
                 ordemesh->permtab[myorder->peritab[i]] = i;
             }
-            memcpy(ordemesh->peritab, myorder->peritab, n*sizeof(pastix_int_t));
+            memcpy( ordemesh->peritab, myorder->peritab, n*sizeof(pastix_int_t) );
         }
     }
     else {
-        if (myorder->peritab == NULL) {
-            if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
-                pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (from myorder->permtab)" );
+        if ( myorder->peritab == NULL ) {
+            if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+                pastix_print( procnum, 0, OUT_ORDER_METHOD, "Personal (from myorder->permtab)" );
             }
             /* generate peritab from myorder->permtab */
-            for(i=0;i<n;i++) {
+            for( i=0; i<n; i++) {
                 ordemesh->peritab[myorder->permtab[i]] = i;
             }
-            memcpy(ordemesh->permtab, myorder->permtab, n*sizeof(pastix_int_t));
+            memcpy( ordemesh->permtab, myorder->permtab, n*sizeof(pastix_int_t) );
         }
         else {
-            if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
-                pastix_print(procnum, 0, OUT_ORDER_METHOD, "Personal (myorder->permtab/peritab)" );
+            if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+                pastix_print( procnum, 0, OUT_ORDER_METHOD, "Personal (myorder->permtab/peritab)" );
             }
-            memcpy(ordemesh->permtab, myorder->permtab, n*sizeof(pastix_int_t));
-            memcpy(ordemesh->peritab, myorder->peritab, n*sizeof(pastix_int_t));
+            memcpy( ordemesh->permtab, myorder->permtab, n*sizeof(pastix_int_t) );
+            memcpy( ordemesh->peritab, myorder->peritab, n*sizeof(pastix_int_t) );
         }
     }
 
@@ -131,16 +130,16 @@ pastixOrderComputePersonal( pastix_data_t  *pastix_data,
     /* If treetab is provided, user must also provide rangtab */
     if ( myorder != NULL ) {
         assert( !( (myorder->rangtab == NULL) && (myorder->treetab != NULL) ) );
-        if (myorder->rangtab != NULL )
+        if ( myorder->rangtab != NULL )
         {
             ordemesh->cblknbr = myorder->cblknbr;
-            MALLOC_INTERN(ordemesh->rangtab, myorder->cblknbr+1, pastix_int_t);
-            memcpy(ordemesh->rangtab, myorder->rangtab, (myorder->cblknbr+1)*sizeof(pastix_int_t));
+            MALLOC_INTERN( ordemesh->rangtab, myorder->cblknbr+1, pastix_int_t );
+            memcpy( ordemesh->rangtab, myorder->rangtab, (myorder->cblknbr+1)*sizeof(pastix_int_t) );
         }
-        if (myorder->treetab != NULL )
+        if ( myorder->treetab != NULL )
         {
-            MALLOC_INTERN(ordemesh->treetab, myorder->cblknbr, pastix_int_t);
-            memcpy(ordemesh->treetab, myorder->treetab, myorder->cblknbr*sizeof(pastix_int_t));
+            MALLOC_INTERN( ordemesh->treetab, myorder->cblknbr, pastix_int_t );
+            memcpy( ordemesh->treetab, myorder->treetab, myorder->cblknbr*sizeof(pastix_int_t) );
         }
     }
 
