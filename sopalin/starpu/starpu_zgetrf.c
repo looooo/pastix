@@ -363,6 +363,8 @@ starpu_zgetrf( pastix_data_t  *pastix_data,
     print_stats( sub, com, pastix_data->solvmatr );
 #endif
 
+    (void)com;
+    (void)sub;
     return;
 }
 
