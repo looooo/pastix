@@ -157,6 +157,103 @@ graphCopy( pastix_graph_t       *graphdst,
  *
  * @ingroup pastix_graph
  *
+ * @brief This routine scatter a graph from node root to the other nodes
+ *
+ *******************************************************************************
+ *
+ * @param[inout] graph
+ *          On entry, the graph to scatter.
+ *          On exit, the scattered graph
+ *
+ * @param[in] n
+ *          Size of the loc2glob array if provided. Unused otherwise.
+ *
+ * @param[in] loc2glob
+ *          Distribution array of the matrix. Will be copied.
+ *          If NULL, the columns are evenly distributed among the processes.
+ *
+ * @param[in] root
+ *          The root process of the scatter operation. -1 if everyone hold a
+ *          copy of the graph.
+ *
+ * @param[in] comm
+ *          MPI communicator.
+ *
+ *******************************************************************************
+ *
+ * @retval 1 if the graph has been scattered, 0 if untouched
+ *
+ *******************************************************************************/
+int
+graphScatter( pastix_graph_t    **graph,
+              pastix_int_t        n,
+              const pastix_int_t *loc2glob,
+              int                 root,
+              PASTIX_Comm         comm )
+{
+    pastix_graph_t *newgraph;
+    assert_graph( (*graph) );
+
+    if ( (*graph)->loc2glob != NULL ) {
+        return 0;
+    }
+
+    /* Scatter the graph */
+    newgraph = spmScatter( *graph, n, loc2glob, 1, root, comm );
+    graphExit( *graph );
+    memFree(*graph);
+
+    *graph = newgraph;
+    assert_graph( (*graph) );
+    return 1;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_graph
+ *
+ * @brief This routine gather a distributed graph on node root.
+ *
+ *******************************************************************************
+ *
+ * @param[in] graph
+ *          On entry, the distributed graph.
+ *          On exit, the gathered graph
+ *
+ * @param[in] root
+ *          The root where we want to gather the graph
+ *
+ *******************************************************************************
+ *
+ * @retval 1 if the graph has been gathered, 0 if untouched
+ *
+ ********************************************************************************/
+int
+graphGather( pastix_graph_t **graph,
+             int              root )
+{
+    pastix_graph_t *newgraph;
+    assert_graph( (*graph) );
+
+    if ( (*graph)->loc2glob == NULL ) {
+        return 0;
+    }
+
+    newgraph = spmGather( *graph, root );
+    graphExit( *graph );
+    memFree(*graph);
+
+    *graph = newgraph;
+    assert_graph( (*graph) );
+    return 1;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_graph
+ *
  * @brief This routine sortes the subarray of edges of each vertex.
  *
  * WARNING: The sort is always performed, do not call this routine
