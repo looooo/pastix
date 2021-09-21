@@ -136,17 +136,17 @@ int  pastixOrderAddIsolate( pastix_order_t     *ordeptr,
 
 /**
  * @}
+ * @name Scotch ordering common subroutines
+ * @{
  */
+char *order_scotch_build_strategy( const pastix_int_t *iparm,
+                                   pastix_int_t        procnum,
+                                   int                 isPTscotch );
+void  order_scotch_reallocate_ordemesh( pastix_order_t *ordemesh );
 
-/*
- * Order compoute common routines
+/**
+ * @}
  */
-pastix_int_t *order_compute_build_weights      ( const pastix_graph_t *graph );
-void          order_compute_build_strategy     ( char               *strat,
-                                                 const pastix_int_t *iparm,
-                                                 pastix_int_t        procnum,
-                                                 int                 isPTscotch );
-void          order_compute_reallocate_ordemesh( pastix_order_t *ordemesh );
 
 END_C_DECLS
 

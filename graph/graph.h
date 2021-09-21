@@ -116,6 +116,8 @@ int graphComputeKway( const pastix_graph_t *graph,
                       pastix_int_t         *comp_vtx,
                       pastix_int_t          comp_id,
                       pastix_int_t          nbpart );
+
+pastix_int_t *graphGetWeights( const pastix_graph_t *graph );
 /**
  * @}
  */

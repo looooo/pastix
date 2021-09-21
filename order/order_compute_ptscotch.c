@@ -22,14 +22,12 @@
 #include <ptscotch.h>
 #endif
 
-#define STRAT_STR_MAX 1024
-
 /**
  *******************************************************************************
  *
  * @ingroup pastix_order
  *
- * @brief Check the generated Scotch graph.
+ * @brief Check the PT-Scotch distributed graph.
  *
  *******************************************************************************
  *
@@ -41,13 +39,13 @@
  *
  *******************************************************************************/
 static inline void
-ocpts_graphcheck( const SCOTCH_Dgraph *graph,
-                  int                  procnum )
+ocpts_graph_check( const SCOTCH_Dgraph *graph,
+                   int                  procnum )
 {
 #if defined(PASTIX_DEBUG_ORDERING)
     Clock timer;
     clockStart(timer);
-    if( SCOTCH_dgraphCheck(graph) ) {
+    if ( SCOTCH_dgraphCheck(graph) ) {
         errorPrint("pastix: dgraphCheck");
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
@@ -64,22 +62,25 @@ ocpts_graphcheck( const SCOTCH_Dgraph *graph,
  *
  * @ingroup pastix_order
  *
- * @brief Build the Scotch graph.
+ * @brief Build the PT-Scotch distributed graph.
  *
  *******************************************************************************
  *
  * @param[inout] scotchgraph
- *          The Scotch_Dgraph structure that will be build.
+ *          The SCOTCH_Dgraph structure that will be build.
  *
  * @param[inout] graph
  *          The graph prepared by graphPrepare function on which we want to
  *          perform the ordering.
  *
+ * @param[in] comm
+ *          PaStiX communicator.
+ *
  *******************************************************************************/
 static inline void
-ocpts_scotchgraph_init( SCOTCH_Dgraph  *scotchgraph,
-                        pastix_graph_t *graph,
-                        PASTIX_Comm     comm )
+ocpts_graph_init( SCOTCH_Dgraph  *scotchgraph,
+                  pastix_graph_t *graph,
+                  PASTIX_Comm     comm )
 {
     pastix_int_t *colptr, *rowptr;
     pastix_int_t *weights;
@@ -102,7 +103,7 @@ ocpts_scotchgraph_init( SCOTCH_Dgraph  *scotchgraph,
     /*
      * Generate the vertex load array if dof != 1
      */
-    weights = order_compute_build_weights( graph );
+    weights = graphGetWeights( graph );
 
     if ( SCOTCH_dgraphBuild( scotchgraph,
                              baseval,      /* baseval */
@@ -123,7 +124,7 @@ ocpts_scotchgraph_init( SCOTCH_Dgraph  *scotchgraph,
     }
 
     /* Check the generated Scotch graph structure */
-    ocpts_graphcheck( scotchgraph, graph->clustnum );
+    ocpts_graph_check( scotchgraph, graph->clustnum );
 
     return;
 }
@@ -133,17 +134,20 @@ ocpts_scotchgraph_init( SCOTCH_Dgraph  *scotchgraph,
  *
  * @ingroup pastix_order
  *
- * @brief Cleanup the Scotch graph structure and free the associated data.
+ * @brief Cleanup the PT-Scotch graph structure and free the associated data.
  *
  *******************************************************************************
  *
  * @param[inout] scotchgraph
- *          The Scotch_Dgraph structure that will be clean.
+ *          The SCOTCH_Dgraph structure that will be clean.
+ *
+ * @param[inout] comm
+ *          The PaStiX communicator.
  *
  *******************************************************************************/
 static inline void
-ocpts_scotchgraph_exit( SCOTCH_Dgraph *scotchgraph,
-                        PASTIX_Comm    comm )
+ocpts_graph_exit( SCOTCH_Dgraph *scotchgraph,
+                  PASTIX_Comm    comm )
 {
     pastix_int_t *colptr  = NULL;
     pastix_int_t *rowptr  = NULL;
@@ -165,7 +169,7 @@ ocpts_scotchgraph_exit( SCOTCH_Dgraph *scotchgraph,
         NULL,     /* Max number of local edges             */
         &rowptr,  /* Edge array [edgenbr]                  */
         NULL,     /* Ghost adjency array                   */
-        NULL,     /* Edge load array                      */
+        NULL,     /* Edge load array                       */
         &comm );
 
     /* Free the vertex load array */
@@ -173,7 +177,6 @@ ocpts_scotchgraph_exit( SCOTCH_Dgraph *scotchgraph,
         memFree_null( weights );
     }
 
-    /* TODO : check why this exit doesn't work on one node */
     SCOTCH_dgraphExit( scotchgraph );
     return;
 }
@@ -191,7 +194,7 @@ ocpts_scotchgraph_exit( SCOTCH_Dgraph *scotchgraph,
  *          Pointer to the pastix_data instance.
  *
  * @param[inout] scotchgraph
- *          The Scotch_Dgraph structure that will be ordered.
+ *          The SCOTCH_Dgraph structure that will be ordered.
  *
  ********************************************************************************
  *
@@ -206,18 +209,9 @@ ocpts_compute_graph_ordering( pastix_data_t  *pastix_data,
     SCOTCH_Strat     stratdat;
     SCOTCH_Dordering ordedat;
     SCOTCH_Ordering  ordering;
-    int  ret;
-    char strat[STRAT_STR_MAX];
 
     /* Create Strategy string for Scotch */
     SCOTCH_stratInit( &stratdat );
-    order_compute_build_strategy( strat, pastix_data->iparm, pastix_data->procnum, 1 );
-
-    /* TODO : Create start strings for PT-Scotch  */
-    // if (!SCOTCH_stratDgraphOrder( &stratdat, strat )) {
-    //     errorPrint("pastix : SCOTCH_stratDgraphOrder\n");
-    //     EXIT(MOD_SOPALIN,INTERNAL_ERR);
-    // }
 
     /* Init distributed ordering */
     if ( SCOTCH_dgraphOrderInit(scotchgraph, &ordedat) )
@@ -227,15 +221,15 @@ ocpts_compute_graph_ordering( pastix_data_t  *pastix_data,
     }
 
     /* Compute distributed ordering */
-    if ( SCOTCH_dgraphOrderCompute(scotchgraph, &ordedat, &stratdat) )
+    if ( SCOTCH_dgraphOrderCompute( scotchgraph, &ordedat, &stratdat ) )
     {
-        pastix_print_error("pastix : SCOTCH_dgraphOrderCompute\n");
+        pastix_print_error( "pastix : SCOTCH_dgraphOrderCompute" );
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
 
     SCOTCH_stratExit( &stratdat );
 
-    /* Init centralised ordering */
+    /* Init centralized ordering */
     if ( SCOTCH_dgraphCorderInit( scotchgraph,
                                   &ordering,
                                   (SCOTCH_Num *) ordemesh->permtab,
@@ -244,12 +238,12 @@ ocpts_compute_graph_ordering( pastix_data_t  *pastix_data,
                                   (SCOTCH_Num *) ordemesh->rangtab,
                                   (SCOTCH_Num *) ordemesh->treetab) )
     {
-        pastix_print_error("pastix : SCOTCH_dgraphCorderInit\n");
+        pastix_print_error( "pastix : SCOTCH_dgraphCorderInit" );
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
 
     /* Gather distributed ordering on node 0 */
-    if (pastix_data->procnum == 0) {
+    if ( pastix_data->procnum == 0 ) {
         SCOTCH_dgraphOrderGather( scotchgraph, &ordedat, &ordering );
     }
     else {
@@ -259,24 +253,24 @@ ocpts_compute_graph_ordering( pastix_data_t  *pastix_data,
     /* Broadcast node 0 datas on all nodes */
     {
         int rangnbr, permnbr;
-        MPI_Bcast(&ordemesh->cblknbr, 1, PASTIX_MPI_INT, 0, pastix_data->pastix_comm);
+        MPI_Bcast( &ordemesh->cblknbr, 1, PASTIX_MPI_INT, 0, pastix_data->pastix_comm );
 
         rangnbr = ordemesh->cblknbr;
-        MPI_Bcast( ordemesh->rangtab, rangnbr+1, PASTIX_MPI_INT, 0, pastix_data->pastix_comm);
-        MPI_Bcast( ordemesh->treetab, rangnbr,   PASTIX_MPI_INT, 0, pastix_data->pastix_comm);
+        MPI_Bcast( ordemesh->rangtab, rangnbr+1, PASTIX_MPI_INT, 0, pastix_data->pastix_comm );
+        MPI_Bcast( ordemesh->treetab, rangnbr,   PASTIX_MPI_INT, 0, pastix_data->pastix_comm );
 
         permnbr = pastix_data->graph->gN;
-        MPI_Bcast( ordemesh->permtab, permnbr, PASTIX_MPI_INT, 0, pastix_data->pastix_comm);
-        MPI_Bcast( ordemesh->peritab, permnbr, PASTIX_MPI_INT, 0, pastix_data->pastix_comm);
+        MPI_Bcast( ordemesh->permtab, permnbr, PASTIX_MPI_INT, 0, pastix_data->pastix_comm );
+        MPI_Bcast( ordemesh->peritab, permnbr, PASTIX_MPI_INT, 0, pastix_data->pastix_comm );
     }
 
     /* Exit PT-Scotch ordering structures */
     SCOTCH_dgraphCorderExit( scotchgraph, &ordering );
     SCOTCH_dgraphOrderExit( scotchgraph, &ordedat );
 
+    memFree_null( strat );
     return PASTIX_SUCCESS;
 }
-
 
 /**
  *******************************************************************************
@@ -294,7 +288,7 @@ ocpts_compute_graph_ordering( pastix_data_t  *pastix_data,
  *
  * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.
- *          On exit, the field orddemesh is initialized with the result of the
+ *          On exit, the field ordemesh is initialized with the result of the
  *          ordering realized by PT-Scotch.
  *
  * @param[inout] graph
@@ -321,7 +315,7 @@ pastixOrderComputePTScotch( pastix_data_t  *pastix_data,
     pastix_int_t    baseval  = graph->baseval;
 
     /* Check integer compatibility */
-    if (sizeof(pastix_int_t) != sizeof(SCOTCH_Num)) {
+    if ( sizeof(pastix_int_t) != sizeof(SCOTCH_Num) ) {
         errorPrint("pastixOrderComputePTScotch: Inconsistent integer type between Pastix and PT-Scotch\n");
         return PASTIX_ERR_INTEGER_TYPE;
     }
@@ -332,14 +326,12 @@ pastixOrderComputePTScotch( pastix_data_t  *pastix_data,
 #endif
 
     /* Build The Scotch Dgraph */
-    ocpts_scotchgraph_init( &scotchdgraph, graph, pastix_data->pastix_comm );
+    ocpts_graph_init( &scotchdgraph, graph, pastix_data->pastix_comm );
 
     /* Allocate the ordering structure */
     pastixOrderAlloc( ordemesh, graph->gN, graph->gN );
 
-    /*
-     * Compute the ordering
-     */
+    /* Compute the ordering */
     ret = ocpts_compute_graph_ordering( pastix_data, &scotchdgraph );
 
     /*
@@ -349,14 +341,14 @@ pastixOrderComputePTScotch( pastix_data_t  *pastix_data,
     graphBase( graph, baseval );
 
     /* Free the Scotch graph structure */
-    ocpts_scotchgraph_exit( &scotchdgraph, pastix_data->pastix_comm );
+    ocpts_graph_exit( &scotchdgraph, pastix_data->pastix_comm );
 
     /* If something has failed in PT-Scotch */
     if ( ret != PASTIX_SUCCESS ) {
         pastixOrderExit( ordemesh );
         return PASTIX_ERR_INTERNAL;
     }
-    order_compute_reallocate_ordemesh( ordemesh );
+    order_scotch_reallocate_ordemesh( ordemesh );
 
     return ret;
 }
