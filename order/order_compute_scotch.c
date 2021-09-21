@@ -24,58 +24,8 @@
 #elif defined(PASTIX_ORDERING_SCOTCH)
 #include <scotch.h>
 #endif /* defined(PASTIX_ORDERING_PTSCOTCH) */
-#include "order_scotch_strats.h"
 
 #define STRAT_STR_MAX 1024
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_order
- *
- * @brief Build the vertex weight array out of the dof array.
- *
- *******************************************************************************
- *
- * @param[in] graph
- *          Pointer to the graph structure.
- *
- *******************************************************************************
- *
- * @retval The vertex weight array if graph->dof != 1, NULL otherwise.
- *
- *******************************************************************************/
-static inline pastix_int_t *
-ocs_build_weights( const pastix_graph_t *graph )
-{
-    pastix_int_t  i, n;
-    pastix_int_t *weights, *wptr;
-
-    if ( graph->dof == 1 ) {
-        return NULL;
-    }
-
-    n = graph->n;
-    MALLOC_INTERN( weights, n, pastix_int_t );
-
-    wptr = weights;
-    /* Constant dof */
-    if ( graph->dof > 1 ) {
-        for (i = 0; i < n; i++, wptr++ ) {
-            *wptr = graph->dof;
-        }
-    }
-    /* Variadic dof */
-    else {
-        pastix_int_t *dofptr = graph->dofs;
-
-        for (i = 0; i < n; i++, wptr++, dofptr++) {
-            *wptr = dofptr[1] - dofptr[0];
-        }
-    }
-
-    return weights;
-}
 
 /**
  *******************************************************************************
@@ -162,17 +112,19 @@ ocs_scotchgraph_init( SCOTCH_Graph   *scotchgraph,
         n       = graph->n;
         colptr  = graph->colptr;
         rows    = graph->rowptr;
-        baseval = colptr[0];
-        nnz     = colptr[n] - baseval;
+        baseval = graph->baseval;
+        nnz     = graph->nnz;
         weights = NULL;
     }
+    assert( baseval == colptr[0] );
+    assert( nnz == colptr[n] - colptr[0] );
 
     SCOTCH_graphInit( scotchgraph );
 
     /*
      * Generate the vertex load array if dof != 1
      */
-    weights = ocs_build_weights( graph );
+    weights = order_compute_build_weights( graph );
 
     if ( SCOTCH_graphBuild( scotchgraph,    /* Graph to build     */
                             baseval,        /* baseval            */
@@ -207,7 +159,7 @@ ocs_scotchgraph_init( SCOTCH_Graph   *scotchgraph,
  *******************************************************************************
  *
  * @param[inout] scotchgraph
- *          The Scotch graph structure that will be build.
+ *          The Scotch graph structure that will be cleaned.
  *
  *******************************************************************************/
 static inline void
@@ -258,116 +210,6 @@ ocs_scotchgraph_exit( SCOTCH_Graph *scotchgraph,
  *
  * @ingroup pastix_order
  *
- * @brief Generate the ordering strategy string based on the input parameters.
- *
- *******************************************************************************
- *
- * @param[inout] strat
- *          The preallocated ordering strategy string to initialize.
- *
- * @param[in] iparm
- *          Pointer to the iparm array.
- *
- * @param[in] procnum
- *          Procnum of the process. Output purpose.
- *
- *******************************************************************************/
-static inline void
-ocs_build_strategy( char               *strat,
-                    const pastix_int_t *iparm,
-                    pastix_int_t        procnum )
-{
-    int rc;
-
-    /* Default ordering */
-    if (iparm[IPARM_ORDERING_DEFAULT] == 1) {
-        if (iparm[IPARM_INCOMPLETE] == 0) {
-            if (iparm[IPARM_VERBOSE] > PastixVerboseNo) {
-                pastix_print( procnum, 0,
-                              "      Scotch direct strategy\n" );
-            }
-            snprintf( strat, STRAT_STR_MAX, SCOTCH_STRAT_DIRECT );
-        }
-        else {
-            if (iparm[IPARM_VERBOSE] > PastixVerboseNo) {
-                pastix_print( procnum, 0,
-                              "      Scotch incomplete strategy\n" );
-            }
-            snprintf(strat, STRAT_STR_MAX, SCOTCH_STRAT_INCOMP );
-        }
-    }
-    /* Personal ordering */
-    else {
-        rc = snprintf( strat, STRAT_STR_MAX, SCOTCH_STRAT_PERSO,
-                       (long)  iparm[IPARM_SCOTCH_SWITCH_LEVEL],
-                       (long)  iparm[IPARM_SCOTCH_CMIN],
-                       (long)  iparm[IPARM_SCOTCH_CMAX],
-                       ((float)iparm[IPARM_SCOTCH_FRAT])/100.,
-                       (long)  iparm[IPARM_SCOTCH_SWITCH_LEVEL],
-                       (long)  iparm[IPARM_SCOTCH_CMIN],
-                       (long)  iparm[IPARM_SCOTCH_CMAX],
-                       ((float)iparm[IPARM_SCOTCH_FRAT])/100. );
-        if ( rc > STRAT_STR_MAX ) {
-            pastix_print_error( "order_compute_scotch: Strategy string too long\n" );
-            exit(-1);
-        }
-
-        if (iparm[IPARM_VERBOSE] > PastixVerboseNo) {
-            pastix_print( procnum, 0,
-                          "Scotch personal strategy |%s|\n", strat );
-        }
-    }
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_order
- *
- * @brief Reallocate the ordering structure.
- *
- * If we decide to drop the Scothc partition to recompute it later, then
- * partition information is freed, otherwise its memory space is compressed.
- *
- *******************************************************************************
- *
- * @param[inout] ordemesh
- *          Pointer to the ordemesh structure to reallocate.
- *
- *******************************************************************************/
-static inline void
-ocs_reallocate_ordemesh( pastix_order_t *ordemesh )
-{
-#if defined(FORGET_PARTITION)
-    ordemesh->cblknbr = 0;
-    if (ordemesh->rangtab != NULL) {
-        memFree_null(ordemesh->rangtab);
-    }
-    if (ordemesh->treetab != NULL) {
-        memFree_null(ordemesh->treetab);
-    }
-#else
-    /**
-     * Adapt size of rangtab and treetab to the new cblknbr
-     * WARNING: If no nodes in the graph, nothing has been initialized.
-     */
-    ordemesh->rangtab =
-        (pastix_int_t *) memRealloc( ordemesh->rangtab,
-                                    (ordemesh->cblknbr + 1)*sizeof(pastix_int_t) );
-    ordemesh->treetab =
-        (pastix_int_t *) memRealloc( ordemesh->treetab,
-                                    (ordemesh->cblknbr)*sizeof(pastix_int_t) );
-    if (ordemesh->cblknbr == 0) {
-        ordemesh->rangtab[0] = ordemesh->baseval;
-    }
-#endif
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup pastix_order
- *
  * @brief Compute the graph ordering
  *
  *******************************************************************************
@@ -394,7 +236,7 @@ ocs_compute_graph_ordering( pastix_data_t  *pastix_data,
 
     /* Create Strategy string for Scotch */
     SCOTCH_stratInit( &stratdat );
-    ocs_build_strategy( strat, pastix_data->iparm, pastix_data->procnum );
+    order_compute_build_strategy( strat, pastix_data->iparm, pastix_data->procnum, 0 );
 
     /* Make sure the call to flex/yacc is serialized thanks to a global lock */
     {
@@ -590,7 +432,7 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
         pastixOrderExit(ordemesh);
         return PASTIX_ERR_INTERNAL;
     }
-    ocs_reallocate_ordemesh( ordemesh );
+    order_compute_reallocate_ordemesh( ordemesh );
 
     return ret;
 }

@@ -734,6 +734,7 @@ if(PASTIX_ORDERING_SCOTCH)
     order/order_compute_scotch.c
     order/order_draw.c
     order/order_supernodes.c
+    order/order_compute_common.c
     )
 endif()
 if(PASTIX_ORDERING_PTSCOTCH)
@@ -1001,6 +1002,7 @@ add_documented_files(
   order/order_compute_ptscotch.c
   order/order_compute_scotch.c
   order/order_compute_personal.c
+  order/order_compute_common.c
   order/order_supernodes.c
   order/pastix_subtask_order.c
   #

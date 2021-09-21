@@ -138,6 +138,16 @@ int  pastixOrderAddIsolate( pastix_order_t     *ordeptr,
  * @}
  */
 
+/*
+ * Order compoute common routines
+ */
+pastix_int_t *order_compute_build_weights      ( const pastix_graph_t *graph );
+void          order_compute_build_strategy     ( char               *strat,
+                                                 const pastix_int_t *iparm,
+                                                 pastix_int_t        procnum,
+                                                 int                 isPTscotch );
+void          order_compute_reallocate_ordemesh( pastix_order_t *ordemesh );
+
 END_C_DECLS
 
 #endif /* _pastix_order_h_ */
