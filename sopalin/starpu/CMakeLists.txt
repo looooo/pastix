@@ -21,6 +21,7 @@ set(generated_headers "")
 
 set(EXTRA_SOURCES
   starpu.c
+  starpu_tags.c
   starpu_sparse_matrix.c
   starpu_dense_matrix.c
   starpu_profile.c
