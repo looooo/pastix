@@ -43,7 +43,7 @@
  *          contain the copy.
  *
  * @param[in] flttype
- *          The floating point arithmetic sued in the input solver matrix to
+ *          The floating point arithmetic used in the input solver matrix to
  *          know the size of the memory space to duplicate for the coefficients.
  *
  *******************************************************************************/
@@ -158,7 +158,7 @@ solver_copy( const SolverMatrix *solvin,
  *          The solver matrix structure to duplicate.
  *
  * @param[in] flttype
- *          The floating point arithmetic sued in the input solver matrix to
+ *          The floating point arithmetic used in the input solver matrix to
  *          know the size of the memory space to duplicate for the coefficients.
  *
  *******************************************************************************
