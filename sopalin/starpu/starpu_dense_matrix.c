@@ -80,7 +80,7 @@ starpu_dense_matrix_init( SolverMatrix *solvmtx,
 
     cblknbr = solvmtx->cblknbr;
 
-    spmtx->mpitag  = pastix_starpu_get_tag();
+    spmtx->mpitag  = pastix_starpu_tag_book( solvmtx->gcblknbr );
     spmtx->ncol    = ncol;
     spmtx->typesze = typesize;
     spmtx->solvmtx = solvmtx;
@@ -106,8 +106,7 @@ starpu_dense_matrix_init( SolverMatrix *solvmtx,
                                          lda, nrow, ncol, typesize );
         }
 #if defined(PASTIX_WITH_MPI)
-        assert( spmtx->mpitag | cblknum );
-        starpu_mpi_data_register( *handler, spmtx->mpitag | ((int64_t)cblknum), cblk->ownerid );
+        starpu_mpi_data_register( *handler, spmtx->mpitag + ((int64_t)cblknum), cblk->ownerid );
 #endif
     }
 
@@ -183,6 +182,8 @@ starpu_dense_matrix_destroy( starpu_dense_matrix_desc_t *spmtx )
 
     free( spmtx->handletab );
     spmtx->handletab = NULL;
+
+     pastix_starpu_tag_release( spmtx->mpitag );
 }
 
 /**
