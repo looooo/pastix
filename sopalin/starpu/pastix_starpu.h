@@ -127,17 +127,23 @@ void pastix_starpu_init( pastix_data_t *pastix,
                          const int *bindtab );
 void pastix_starpu_finalize( pastix_data_t *pastix );
 
-int64_t pastix_starpu_get_tag( );
+/**
+ * MPI tag management
+ */
+int     pastix_starpu_tag_init( pastix_data_t *pastix );
+int64_t pastix_starpu_tag_book( int64_t nbtags );
+void    pastix_starpu_tag_release( int64_t min );
 
-void
-pastix_starpu_partition_submit( pastix_coefside_t side,
-                                SolverCblk       *cblk,
-                                starpu_cblk_t    *starpu_cblk );
-void
-pastix_starpu_unpartition_submit( const starpu_sparse_matrix_desc_t *spmtx,
-                                  int rank, pastix_coefside_t side,
-                                  SolverCblk    *cblk,
-                                  starpu_cblk_t *starpu_cblk );
+/**
+ * Data partition management
+ */
+void pastix_starpu_partition_submit( pastix_coefside_t side,
+                                     SolverCblk       *cblk,
+                                     starpu_cblk_t    *starpu_cblk );
+void pastix_starpu_unpartition_submit( const starpu_sparse_matrix_desc_t *spmtx,
+                                       int rank, pastix_coefside_t side,
+                                       SolverCblk    *cblk,
+                                       starpu_cblk_t *starpu_cblk );
 
 struct measure_s;
 typedef struct measure_s measure_t;
