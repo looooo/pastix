@@ -38,13 +38,19 @@ pastix_starpu_filter_interface( void                      *father_interface,
     assert( father->offset == -1 );
     assert( father->cblk->cblktype & CBLK_LAYOUT_2D );
 
-    child->id      = father->id;
-    child->flttype = father->flttype;
-    child->cblk    = father->cblk;
-    child->nbblok  = sizetab[id+1] - sizetab[id];
-    child->offset  = sizetab[id];
+    child->id        = father->id;
+    child->flttype   = father->flttype;
+    child->offset    = sizetab[id];
+    child->nbblok    = sizetab[id+1] - sizetab[id];
+    child->allocsize = 0;
+    child->cblk      = father->cblk;
+    child->dataptr   = NULL;
 
-    assert(child->offset >= 0);
+    assert( child->offset >= 0 );
+
+    if ( father->dataptr == NULL ) {
+        return;
+    }
 
     if ( father->cblk->cblktype & CBLK_COMPRESSED ) {
         childoff         = sizetab[id]   * sizeof( pastix_lrblock_t );
@@ -68,11 +74,17 @@ pastix_starpu_filter_interface( void                      *father_interface,
         }
     }
 
-    assert(child->allocsize > 0);
+#if defined(PASTIX_STARPU_INTERFACE_DEBUG)
+    fprintf( stderr,
+             "blok (%9s, size=%8ld, nbblok=%2ld )\n",
+             child->cblk->cblktype & CBLK_COMPRESSED ? "Low-rank" : "Full-rank",
+             child->allocsize, (long)(child->nbblok) );
+#endif
 
-    if ( father->dataptr ) {
-        child->dataptr = father->dataptr + childoff;
-    }
+    assert( child->allocsize > 0 );
+
+    child->dataptr = father->dataptr + childoff;
+
     (void)nchunks;
 }
 
@@ -159,7 +171,7 @@ starpu_sparse_matrix_init( SolverMatrix     *solvmtx,
     size_t       size;
     int64_t      tag_desc;
 #if defined( PASTIX_WITH_MPI )
-    int64_t tag;
+    int64_t      tag;
 #endif
 
     starpu_sparse_matrix_desc_t *spmtx = solvmtx->starpu_desc;

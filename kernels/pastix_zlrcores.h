@@ -60,6 +60,7 @@ double core_zlrnrm( pastix_normtype_t ntype, int transV,
 size_t core_zlrgetsize( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A );
 char *core_zlrpack( pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *A, char *buffer );
 char *core_zlrunpack( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, char *buffer );
+const char * core_zlrunpack2( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, const char *input, char **outptr );
 
 /**
  *     @}

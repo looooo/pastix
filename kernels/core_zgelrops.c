@@ -1688,3 +1688,76 @@ core_zlrunpack( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, char *buffe
 
     return buffer;
 }
+
+/**
+ *******************************************************************************
+ *
+ * @brief Unpack low rank data and fill the cblk concerned by the computation
+ *
+ *******************************************************************************
+ *
+ * @param[in] M
+ *          The number of rows of the matrix A.
+ *
+ * @param[in] N
+ *          The number of columns of the matrix A.
+ *
+ * @param[in] A
+ *          The low-rank representation of the matrix A.
+ *
+ * @param[inout] buffer
+ *          Pointer on packed data
+ *
+ *******************************************************************************
+ *
+ * @return Pointer on packed data shifted to the next block
+ *
+ *******************************************************************************/
+const char *
+core_zlrunpack2( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A,
+                 const char *input, char **outptr )
+{
+    char  *output = *outptr;
+    size_t size;
+    int    rk;
+
+    rk     = *((int *)input);
+    input += sizeof( int );
+
+    if ( rk != -1 ) {
+        A->rk    = rk;
+        A->rkmax = rk;
+
+        /* Unpack U */
+        size = M * rk * sizeof( pastix_complex64_t );
+        A->u = output;
+
+        memcpy( A->u, input, size );
+        input  += size;
+        output += size;
+
+        /* Unpack V */
+        size = N * rk * sizeof( pastix_complex64_t );
+        A->v = output;
+
+        memcpy( A->v, input, size );
+        input  += size;
+        output += size;
+    }
+    else {
+        A->rk    = -1;
+        A->rkmax = M;
+        A->v     = NULL;
+
+        /* Unpack the full block */
+        size = M * N * sizeof( pastix_complex64_t );
+        A->u = output;
+
+        memcpy( A->u, input, size );
+        input  += size;
+        output += size;
+    }
+
+    *outptr = output;
+    return input;
+}

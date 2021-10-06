@@ -22,7 +22,6 @@
 #include "kernels/pastix_slrcores.h"
 #include "pastix_starpu.h"
 
-/* #define PASTIX_STARPU_INTERFACE_DEBUG */
 #if defined(PASTIX_STARPU_INTERFACE_DEBUG)
 #define pastix_starpu_logger fprintf( stderr, "pastix_starpu: %s\n", __func__ )
 #else
@@ -123,16 +122,6 @@ psi_free_data_on_node( void *data_interface, unsigned node )
 
     pastix_starpu_logger;
 
-    /* if ( cblk->cblktype & CBLK_COMPRESSED ) */
-    /* { */
-    /*     pastix_lrblock_t *LRblock = interface->dataptr; */
-    /*     int               i; */
-
-    /*     for ( i = 0; i < interface->nbblok; i++, LRblock++ ) { */
-    /*         core_zlrfree( LRblock ); */
-    /*     } */
-    /* } */
-
     starpu_free_on_node( node, (uintptr_t)interface->dataptr, interface->allocsize );
 
     interface->dataptr = NULL;
@@ -204,6 +193,9 @@ psi_get_alloc_size( starpu_data_handle_t handle )
     STARPU_ASSERT_MSG( interface->id == PASTIX_STARPU_INTERFACE_ID,
                        "psi_get_alloc_size: The given data is not a pastix interface for starpu." );
 #endif
+
+    STARPU_ASSERT_MSG( interface->allocsize != (size_t)-1,
+                       "psi_get_alloc_size: The allocation size needs to be defined" );
 
     return interface->allocsize;
 }
@@ -284,26 +276,19 @@ psi_compute_size_lr( pastix_starpu_interface_t *interface )
     size_t            elemsize = pastix_size_of( interface->flttype );
     pastix_lrblock_t *LRblock  = interface->dataptr;
     pastix_int_t      N        = cblk_colnbr( interface->cblk );
-    pastix_int_t      suv, rk, M;
+    pastix_int_t      suv, M;
 
     SolverBlok *blok = interface->cblk->fblokptr + pastix_imax( 0, interface->offset );
 
     pastix_starpu_logger;
 
-    size_t size = 0;
+    suv = 0;
     int    i;
     for ( i = 0; i < interface->nbblok; i++, blok++, LRblock++ ) {
-        M  = blok_rownbr( blok );
-        rk = LRblock->rk;
-        if ( rk != -1 ) {
-            suv = rk * ( M + N );
-        }
-        else {
-            suv = M * N;
-        }
-        size += sizeof( int ) + suv * elemsize;
+        M = blok_rownbr( blok );
+        suv += sizeof( int ) + core_zlrgetsize( M, N, LRblock ) * elemsize;
     }
-    return size;
+    return suv;
 }
 
 static inline size_t
@@ -397,40 +382,47 @@ psi_pack_data( starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ss
 }
 
 static inline void
-psi_unpack_lr( pastix_starpu_interface_t *interface, void *ptr )
+psi_unpack_lr( pastix_starpu_interface_t *interface, unsigned node, const void *ptr, size_t count )
 {
-    assert( interface->cblk->cblktype & CBLK_COMPRESSED );
-
-    SolverBlok       *blok     = interface->cblk->fblokptr + pastix_imax( 0, interface->offset );
-    pastix_lrblock_t *LRblock  = interface->dataptr;
-    char             *tmp      = ptr;
-    int               N        = cblk_colnbr( interface->cblk );
-    int               i, rk;
+    SolverBlok       *blok    = interface->cblk->fblokptr + pastix_imax( 0, interface->offset );
+    pastix_lrblock_t *LRblock;
+    const char       *input   = ptr;
+    char             *output;
+    size_t            lrsize  = interface->nbblok * sizeof( pastix_lrblock_t );
+    int               N       = cblk_colnbr( interface->cblk );
+    int               i;
 
     pastix_starpu_logger;
+
+    assert( interface->cblk->cblktype & CBLK_COMPRESSED );
+    assert( interface->allocsize == 0 );
+
+    /* Remove the size of all the rk */
+    count -= interface->nbblok * sizeof( int );
+
+    interface->allocsize = count + lrsize;
+    psi_allocate_data_on_node( interface, node );
+
+    LRblock = interface->dataptr;
+    output  = interface->dataptr;
+    output += lrsize;
 
     for ( i=0; i < interface->nbblok; i++, blok++, LRblock++ ) {
         int M = blok_rownbr( blok );
 
-        rk = *((int*)tmp);
-
         /* Allocate the LR block to its tight space */
         switch ( interface->flttype ) {
             case PastixComplex64:
-                core_zlralloc( M, N, rk, LRblock );
-                tmp = core_zlrunpack( M, N, LRblock, tmp );
+                input = core_zlrunpack2( M, N, LRblock, input, &output );
                 break;
             case PastixComplex32:
-                core_clralloc( M, N, rk, LRblock );
-                tmp = core_clrunpack( M, N, LRblock, tmp );
+                input = core_clrunpack2( M, N, LRblock, input, &output );
                 break;
             case PastixDouble:
-                core_dlralloc( M, N, rk, LRblock );
-                tmp = core_dlrunpack( M, N, LRblock, tmp );
+                input = core_dlrunpack2( M, N, LRblock, input, &output );
                 break;
             case PastixFloat:
-                core_slralloc( M, N, rk, LRblock );
-                tmp = core_slrunpack( M, N, LRblock, tmp );
+                input = core_slrunpack2( M, N, LRblock, input, &output );
                 break;
             default:
                 assert( 0 );
@@ -443,6 +435,7 @@ psi_unpack_fr( pastix_starpu_interface_t *interface, void *ptr, size_t count )
 {
     pastix_starpu_logger;
 
+    assert( count == interface->allocsize );
     memcpy( interface->dataptr, ptr, count );
 }
 
@@ -457,7 +450,7 @@ psi_peek_data( starpu_data_handle_t handle, unsigned node, void *ptr, size_t cou
     pastix_starpu_logger;
 
     if ( interface->cblk->cblktype & CBLK_COMPRESSED ) {
-        psi_unpack_lr( interface, ptr );
+        psi_unpack_lr( interface, node, ptr, count );
     }
     else {
         psi_unpack_fr( interface, ptr, count );
@@ -595,14 +588,14 @@ pastix_starpu_register( starpu_data_handle_t *handleptr,
         .id        = PASTIX_STARPU_INTERFACE_ID,
         .flttype   = flttype,
         .offset    = -1,
-        .nbblok    =  1,
+        .nbblok    =  0,
         .allocsize = -1,
         .cblk      = cblk,
         .dataptr   = NULL,
     };
     SolverBlok *fblok = cblk[0].fblokptr;
     SolverBlok *lblok = cblk[1].fblokptr;
-    size_t      size;
+    size_t      size  = 0;
 
     assert( side != PastixLUCoef );
 
@@ -618,12 +611,22 @@ pastix_starpu_register( starpu_data_handle_t *handleptr,
         interface.dataptr = side == PastixLCoef ? cblk->lcoeftab : cblk->ucoeftab;
     }
     else {
-        size              = ( lblok - fblok ) * sizeof( pastix_lrblock_t );
+        if ( home_node != -1 )
+        {
+            size = ( lblok - fblok ) * sizeof( pastix_lrblock_t );
+        }
         interface.dataptr = cblk->fblokptr->LRblock[side];
     }
 
     interface.nbblok    = lblok - fblok;
     interface.allocsize = size;
+
+#if defined(PASTIX_STARPU_INTERFACE_DEBUG)
+    fprintf( stderr,
+             "cblk (%9s, size=%8ld, nbblok=%2ld )\n",
+             cblk->cblktype & CBLK_COMPRESSED ? "Low-rank" : "Full-rank",
+             interface.allocsize, (long)(interface.nbblok) );
+#endif
 
     starpu_data_register( handleptr, home_node, &interface, &pastix_starpu_interface_ops );
 }
