@@ -1,6 +1,6 @@
 /**
  *
- * @file codelet_ztrsmsp.c
+ * @file codelet_blok_ztrsmsp.c
  *
  * StarPU codelets for blas-like functions
  *
