@@ -154,7 +154,7 @@ fct_blok_zgemmsp_gpu( void *descr[], void *cl_arg )
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_ANY( blok_zgemmsp, 3, STARPU_CUDA_ASYNC );
+CODELETS_GPU( blok_zgemmsp, 3, STARPU_CUDA_ASYNC );
 
 void
 starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
