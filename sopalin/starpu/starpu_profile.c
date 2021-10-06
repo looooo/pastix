@@ -33,7 +33,7 @@
 starpu_profile_t *profile_list = NULL;
 
 /*
- * @brief Registers a measurement table contained in a starpu_profile_t cell into the profile_list.  
+ * @brief Registers a measurement table contained in a starpu_profile_t cell into the profile_list.
  */
 void
 profiling_register_cl( starpu_profile_t *codelet )
