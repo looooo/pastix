@@ -64,8 +64,8 @@ starpu_zpotrf_sp1dplus( sopalin_data_t              *sopalin_data,
             break;
         }
 
-        starpu_task_cblk_zpotrfsp1d_panel( sopalin_data, cblk,
-                                           cblknbr - k );
+        starpu_task_cblk_zpotrfsp( sopalin_data, cblk,
+                                   cblknbr - k );
 
         blok = cblk->fblokptr + 1; /* this diagonal block */
         lblk = cblk[1].fblokptr;   /* the next diagonal block */
@@ -135,8 +135,8 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
             continue;
         }
 
-        starpu_task_cblk_zpotrfsp1d_panel( sopalin_data, cblk,
-                                           cblknbr - k );
+        starpu_task_cblk_zpotrfsp( sopalin_data, cblk,
+                                   cblknbr - k );
 
         blok  = cblk->fblokptr + 1; /* this diagonal block */
         lblk = cblk[1].fblokptr;   /* the next diagonal block */

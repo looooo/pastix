@@ -19,21 +19,21 @@
 #ifndef _pastix_zstarpu_h_
 #define _pastix_zstarpu_h_
 
-void starpu_task_cblk_zgetrfsp1d_panel( sopalin_data_t *sopalin_data,
-                                        SolverCblk     *cblk,
-                                        int             prio );
-void starpu_task_cblk_zhetrfsp1d_panel( sopalin_data_t *sopalin_data,
-                                        SolverCblk     *cblk,
-                                        int             prio );
-void starpu_task_cblk_zpotrfsp1d_panel( sopalin_data_t *sopalin_data,
-                                        SolverCblk     *cblk,
-                                        int             prio );
-void starpu_task_cblk_zpxtrfsp1d_panel( sopalin_data_t *sopalin_data,
-                                        SolverCblk     *cblk,
-                                        int             prio );
-void starpu_task_cblk_zsytrfsp1d_panel( sopalin_data_t *sopalin_data,
-                                        SolverCblk     *cblk,
-                                        int             prio );
+void starpu_task_cblk_zgetrfsp( sopalin_data_t *sopalin_data,
+                                SolverCblk     *cblk,
+                                int             prio );
+void starpu_task_cblk_zhetrfsp( sopalin_data_t *sopalin_data,
+                                SolverCblk     *cblk,
+                                int             prio );
+void starpu_task_cblk_zpotrfsp( sopalin_data_t *sopalin_data,
+                                SolverCblk     *cblk,
+                                int             prio );
+void starpu_task_cblk_zpxtrfsp( sopalin_data_t *sopalin_data,
+                                SolverCblk     *cblk,
+                                int             prio );
+void starpu_task_cblk_zsytrfsp( sopalin_data_t *sopalin_data,
+                                SolverCblk     *cblk,
+                                int             prio );
 
 void starpu_task_blok_zgetrf( sopalin_data_t *sopalin_data,
                               SolverCblk     *cblk,
