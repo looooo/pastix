@@ -1,8 +1,18 @@
-def find_enums_name( name, enums ):
-    for enum in enums :
-        if name == enum["name"] :
-            return enum
-    return -1
+"""
+ @file gen_pastix_completion.py
+
+ Generate the pastix_completion.bash script that allows auto-completion
+ of pastix execution.
+
+ @copyright 2021-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+                      Univ. Bordeaux. All rights reserved.
+
+ @version 6.2.1
+ @author Tony Delarue
+ @date 2021-10-13
+
+"""
+import generation_utils as gu
 
 def genIparmCompletion( iparms ) :
     result = "            COMPREPLY=($(compgen -W \""
@@ -51,7 +61,7 @@ def genEnumsCompletion( iparms, enums ) :
             enumname  = iparm['enum']
             result += "        " + iparm["name"] + ''')
             COMPREPLY=($(compgen -W "'''
-            values =  find_enums_name( enumname, enums )['values']
+            values = gu.findEnumFromName( enumname, enums )['values']
             indent = ""
             for value in values :
                 name = value["name"]
@@ -79,7 +89,7 @@ def genEnumsCompletion( iparms, enums ) :
 
 def genShortCompletion():
     result = '''        -v|--verbose)
-            COMPREPLY=($(compgen -W "0 1 2" -- $cur))
+            COMPREPLY=($(compgen -W "0 1 2 3" -- $cur))
             ;;
         -f|--fact)
             COMPREPLY=($(compgen -W "0 1 2 3 4" -- $cur))
@@ -106,13 +116,26 @@ cd -
     return result
 
 def genCompletion( iparms, dparms, enums ) :
+    """
+    Write the pastix_completion script.
+
+    @in  iparms : The array containing the iparms.
+    @in  dparms : The array containing the dparms.
+    @in  enums  : The array containing the enums.
+    @out  : The complete pastix_completion.bash string.
+    """
     isize = len("    local LONG_OPTIONS=(\"") * " "
     long_opts  = '''--rsa --hb --ijv --mm --spm --lap --xlap --graph \\
 '''+ isize +'''--threads --gpus --sched --ord --fact --check --iparm --dparm --verbose --help'''
     short_opts = '''-0 -1 -2 -3 -4 -9 -x -G \\
 '''+ isize +''' -t -g -s -o -f -c -i -d -v -h'''
 
-    result = '''#!/usr/bin/env bash
+    result = '''#
+# @file pastix_completion.bash
+#
+'''+ gu.const_str.replace(" *", "#") +'''
+#
+#!/usr/bin/env bash
 
 BINARY_DIR=$1
 
