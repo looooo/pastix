@@ -9,6 +9,7 @@
 #                      Univ. Bordeaux. All rights reserved.
 #
 # @version 6.2.1
+# @author Mathieu Faverge
 # @author Tony Delarue
 # @date 2021-10-13
 #
@@ -92,20 +93,16 @@ _pastix_completion()
                                      iparm_compress_ortho \
                                      iparm_compress_reltol \
                                      iparm_compress_preselect \
-                                     iparm_compress_iluk \
-                                     iparm_modify_parameter \
-                                     iparm_start_task \
-                                     iparm_end_task \
-                                     iparm_float \
-                                     iparm_mtx_type \
-                                     iparm_dof_nbr" -- $cur))
+                                     iparm_compress_iluk" -- $cur))
             ;;
+
         -d|--dparm)
             COMPREPLY=($(compgen -W "dparm_epsilon_refinement \
                                      dparm_epsilon_magn_ctrl \
                                      dparm_compress_tolerance \
                                      dparm_compress_min_ratio" -- $cur))
             ;;
+
         iparm_verbose)
             COMPREPLY=($(compgen -W "pastixverbosenot \
                                      pastixverboseno \
@@ -242,17 +239,21 @@ _pastix_completion()
         -c|--check)
             COMPREPLY=($(compgen -W "0 1 2 3 4 5 6" -- $cur))
             ;;
-        *)
-            # For remaining options with one argument, we don't suggest anything
+
+        # For remaining options, we don't suggest anything
+        -0|-1|-2|-3|-4|-9|-x|-G|-t|-g|-h| \
+        --rsa|--hb|--ijv|--mm|--spm|--lap| \
+        --xlap|--graph|--threads|--gpus|--help| \
+        iparm_*|dparm_*)
+            COMPREPLY=($(compgen -W "" -- $cur))
             ;;
+
     esac
 }
 
 # Add the dynamic completion to the executable
-# Make sure the executable is in the PATH variable
-cd $BINARY_DIR
-for e in $(find . -maxdepth 1 -executable -type f | cut -d "/" -f 2)
+for exec in $(find $BINARY_DIR -maxdepth 1 -executable -type f)
 do
+    e=$(basename $exec)
     complete -F _pastix_completion $e
 done
-cd -

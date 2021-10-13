@@ -20,6 +20,9 @@ def genIparmCompletion( iparms ) :
     isize  = len("            COMPREPLY=($(compgen -W \"")
     indent = ""
     for group in iparms:
+        if group["name"] == "subset_for_old_interface" :
+            continue
+
         for iparm in group["subgroup"]:
             if iparm['access'] != 'IN' :
                 continue
@@ -83,8 +86,6 @@ def genEnumsCompletion( iparms, enums ) :
                 result = result[:len(result) -3] + '''" -- $cur))
             ;;
 '''
-    result += '''
-'''
     return result
 
 def genShortCompletion():
@@ -103,15 +104,42 @@ def genShortCompletion():
 '''
     return result
 
+def genNoCompletion() :
+    no_long  = "--rsa --hb --ijv --mm --spm --lap --xlap --graph --threads --gpus --help"
+    no_short = "-0 -1 -2 -3 -4 -9 -x -G -t -g -h"
+
+    indent = " " * 8
+    result = indent + "# For remaining options, we don't suggest anything\n" + indent
+
+    opts = no_short.split( " " )
+    for opt in opts :
+        result += opt + "|"
+    result += " \\\n" + indent
+
+    linesize = len(no_short)
+    size = 0
+    opts = no_long.split( " " )
+    for opt in opts :
+        size   += len(opt) + 1
+        result += opt + "|"
+        if size > linesize :
+            size = 0
+            result += " \\\n" + indent
+
+    result += "iparm_*|dparm_*)\n"
+
+    result += indent + '''    COMPREPLY=($(compgen -W "" -- $cur))
+            ;;
+'''
+    return result
+
 def genCompleteCommand():
     result = '''# Add the dynamic completion to the executable
-# Make sure the executable is in the PATH variable
-cd $BINARY_DIR
-for e in $(find . -maxdepth 1 -executable -type f | cut -d "/" -f 2)
+for exec in $(find $BINARY_DIR -maxdepth 1 -executable -type f)
 do
+    e=$(basename $exec)
     complete -F _pastix_completion $e
 done
-cd -
 '''
     return result
 
@@ -151,10 +179,12 @@ _pastix_completion()
     prev=${COMP_WORDS[COMP_CWORD-1]}
     case $prev in
         -i|--iparm)
-''' + genIparmCompletion(iparms) + '''        -d|--dparm)
-''' + genDparmCompletion(dparms) + genEnumsCompletion( iparms, enums ) + genShortCompletion() +'''        *)
-            # For remaining options with one argument, we don't suggest anything
-            ;;
+''' + genIparmCompletion(iparms) + '''
+        -d|--dparm)
+''' + genDparmCompletion(dparms) + '''
+''' + genEnumsCompletion( iparms, enums) + '''
+''' + genShortCompletion() + '''
+''' + genNoCompletion() +'''
     esac
 }
 
