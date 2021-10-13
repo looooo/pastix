@@ -72,13 +72,6 @@ def gen_enum_check_value( enum ) :
 '''
     return result
 
-
-def find_enums_name( name, enums ):
-    for enum in enums :
-        if name == enum["name"] :
-            return enum
-    return -1
-
 def iparmRangeCheckValue( iparm ) :
     result  = gu.declaration.format( ftype="static inline int", fname=iparm["name"]+'_check_value',
                                      atype='pastix_int_t', aname='iparm', bracket="{" )
@@ -147,7 +140,7 @@ def genCheckOpt( iparms, dparms, enums ) :
                     continue
                 previous = enumname
 
-                enum = find_enums_name( enumname, enums )
+                enum = gu.findEnumFromName( enumname, enums )
                 enums_str += gen_enum_check_value( enum )
                 iparm_str += iparmEnumCheckValue( iparm )
             else :

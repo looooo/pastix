@@ -62,6 +62,12 @@ def contentFileBegin( filename ) :
 #include "common.h"
 '''
 
+def findEnumFromName( name, enums ):
+    for enum in enums :
+        if name == enum["name"] :
+            return enum
+    return -1
+
 prototype   = '''{ftype} {fname}( {atype} {aname} );
 '''
 declaration = '''{ftype}

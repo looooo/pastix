@@ -136,12 +136,6 @@ def gen_parse_dparm( dparms ) :
 
     return result
 
-def find_enums_name( name, enums ):
-    for enum in enums :
-        if name == enum["name"] :
-            return enum
-    return -1
-
 def gen_parse_enums( iparms, enums ) :
     """
     Generate the parse_enums routine
@@ -168,7 +162,7 @@ def gen_parse_enums( iparms, enums ) :
                 continue
             previous = enumname
 
-            values =  find_enums_name( enumname, enums )['values']
+            values = gu.findEnumFromName( enumname, enums )['values']
             currMaxSize = max( list( map(lambda x : len(x['name']), values) ) )
             for value in values :
                 name = value["name"]
