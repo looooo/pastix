@@ -23,7 +23,6 @@ from gen_check_options import genCheckOpt
 from gen_parm_2_csv import genParm2csv
 from gen_pastix_completion import genCompletion
 
-
 ##################################################################################
 #                                   Main                                         #
 ##################################################################################
@@ -38,7 +37,7 @@ parseOptC  = os.path.join( pastixHome, "common",  "parse_options.c" )
 parseOptH  = os.path.join( pastixHome, "common",  "parse_options.h" )
 checkOptC  = os.path.join( pastixHome, "common",  "check_options.c" )
 checkOptH  = os.path.join( pastixHome, "common",  "check_options.h" )
-completion = os.path.join( pastixHome, "include", "pastix/pastix_completion.bash" )
+completion = os.path.join( pastixHome, "tools",   "pastix_completion.sh.in" )
 
 apiFile = open( apiHeader , "w" )
 apiFile.write( genApiHeaderFile( iparm, dparm, enums ) )

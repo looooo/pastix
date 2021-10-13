@@ -54,8 +54,10 @@ def genEnumsCompletion( iparms, enums ) :
     result = ""
     isize = len("            COMPREPLY=($(compgen -W \"")
     for group in iparms:
-        for iparm in group["subgroup"]:
+        if group["name"] == "subset_for_old_interface" :
+            continue
 
+        for iparm in group["subgroup"]:
             if iparm['access'] != 'IN' :
                 continue
             if 'enum' not in iparm :
@@ -159,13 +161,13 @@ def genCompletion( iparms, dparms, enums ) :
 '''+ isize +''' -t -g -s -o -f -c -i -d -v -h'''
 
     result = '''#
-# @file pastix_completion.bash
+# @file pastix_completion.sh
 #
 '''+ gu.const_str.replace(" *", "#") +'''
 #
 #!/usr/bin/env bash
 
-BINARY_DIR=$1
+BINARY_DIR=@CMAKE_INSTALL_PREFIX@/examples
 
 _pastix_completion()
 {

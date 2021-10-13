@@ -1,21 +1,22 @@
 #
-# @file pastix_completion.bash
+# @file pastix_completion.sh
 #
 # This file is generated automatically. If you want to modify it, modify
 # ${PASTIX_HOME}/tools/gen_param/pastix_[iparm/dparm/enums].py and run
 # ${PASTIX_HOME}/tools/gen_param/gen_parm_files.py ${PASTIX_HOME}.
 #
-# @copyright 2021-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+# @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                      Univ. Bordeaux. All rights reserved.
 #
 # @version 6.2.1
 # @author Mathieu Faverge
+# @author Pierre Ramet
 # @author Tony Delarue
-# @date 2021-10-13
+# @date 2021-10-18
 #
 #!/usr/bin/env bash
 
-BINARY_DIR=$1
+BINARY_DIR=@CMAKE_INSTALL_PREFIX@/examples
 
 _pastix_completion()
 {
@@ -198,33 +199,6 @@ _pastix_completion()
             COMPREPLY=($(compgen -W "pastixcompressorthocgs \
                                      pastixcompressorthoqr \
                                      pastixcompressorthopartialqr" -- $cur))
-            ;;
-        iparm_start_task)
-            COMPREPLY=($(compgen -W "pastixtaskinit \
-                                     pastixtaskordering \
-                                     pastixtasksymbfact \
-                                     pastixtaskanalyze \
-                                     pastixtasknumfact \
-                                     pastixtasksolve \
-                                     pastixtaskrefine \
-                                     pastixtaskclean" -- $cur))
-            ;;
-        iparm_end_task)
-            COMPREPLY=($(compgen -W "pastixtaskinit \
-                                     pastixtaskordering \
-                                     pastixtasksymbfact \
-                                     pastixtaskanalyze \
-                                     pastixtasknumfact \
-                                     pastixtasksolve \
-                                     pastixtaskrefine \
-                                     pastixtaskclean" -- $cur))
-            ;;
-        iparm_float)
-            COMPREPLY=($(compgen -W "pastixpattern \
-                                     pastixfloat \
-                                     pastixdouble \
-                                     pastixcomplex32 \
-                                     pastixcomplex64" -- $cur))
             ;;
 
         -v|--verbose)
