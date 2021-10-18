@@ -268,7 +268,6 @@ ocpts_compute_graph_ordering( pastix_data_t  *pastix_data,
     SCOTCH_dgraphCorderExit( scotchgraph, &ordering );
     SCOTCH_dgraphOrderExit( scotchgraph, &ordedat );
 
-    memFree_null( strat );
     return PASTIX_SUCCESS;
 }
 
