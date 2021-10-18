@@ -1,6 +1,6 @@
 /**
  *
- * @file codelet_ztrsmsp.c
+ * @file codelet_blok_ztrsmsp.c
  *
  * StarPU codelets for blas-like functions
  *
@@ -11,6 +11,7 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Ian Masliah
+ * @author Tom Moenne-Loccoz
  * @date 2021-06-21
  *
  * @precisions normal z -> z c d s
@@ -30,30 +31,10 @@
 #include "pastix_starpu.h"
 #include "pastix_zstarpu.h"
 #include "codelets.h"
-#include "pastix_starpu_model.h"
 
 /**
- * Block version
+ * @brief Main structure for all tasks of blok_ztrsmsp type
  */
-#if defined( PASTIX_STARPU_PROFILING )
-measure_t blok_ztrsmsp_perf[STARPU_NMAXWORKERS];
-
-starpu_profile_t blok_ztrsmsp_profile = {
-    .next = NULL,
-    .name = "cblk_ztrsmsp"
-};
-
-/**
- * @brief Profiling registration function
- */
-void blok_ztrsmsp_profile_register( void ) __attribute__( ( constructor ) );
-void
-blok_ztrsmsp_profile_register( void )
-{
-    profiling_register_cl( &blok_ztrsmsp_profile );
-}
-#endif
-
 struct cl_blok_ztrsmsp_args_s {
     profile_data_t    profile_data;
     sopalin_data_t   *sopalin_data;
@@ -65,39 +46,104 @@ struct cl_blok_ztrsmsp_args_s {
     pastix_int_t      blok_m;
 };
 
-#if defined(PASTIX_STARPU_PROFILING_LOG)
+/**
+ * @brief Functions to profile the codelet
+ *
+ * Two levels of profiling are available:
+ *   1) A generic one that returns the flops per worker
+ *   2) A more detailed one that generate logs of the performance for each kernel
+ */
+#if defined( PASTIX_STARPU_PROFILING )
+starpu_profile_t blok_ztrsmsp_profile = {
+    .next = NULL,
+    .name = "blok_ztrsmsp"
+};
+
+/**
+ * @brief Profiling registration function
+ */
+void blok_ztrsmsp_profile_register( void ) __attribute__( ( constructor ) );
 void
+blok_ztrsmsp_profile_register( void )
+{
+    profiling_register_cl( &blok_ztrsmsp_profile );
+}
+
+#if defined(PASTIX_STARPU_PROFILING_LOG)
+static void
 cl_profiling_cb_blok_ztrsmsp( void *callback_arg )
 {
     cl_profiling_callback( callback_arg );
 
-    struct starpu_task                *task     = starpu_task_get_current();
-    struct starpu_profiling_task_info *info     = task->profiling_info;
+    struct starpu_task                *task = starpu_task_get_current();
+    struct starpu_profiling_task_info *info = task->profiling_info;
 
+    /* Quick return */
     if ( info == NULL ) {
         return;
     }
-    struct cl_blok_ztrsmsp_args_s     *args     = (struct cl_blok_ztrsmsp_args_s *) callback_arg;
-    double                             flops    = args->profile_data.flops;
-    double                             duration = starpu_timing_timespec_delay_us( &info->start_time, &info->end_time );
-    double                             speed    = flops / ( 1000.0 * duration );
-    pastix_int_t                       N        = cblk_colnbr( args->cblk );
-    pastix_int_t                       full_m   = 0;
-    const SolverBlok                  *lblok    = args->cblk[1].fblokptr;
-    const SolverBlok                  *blok     = args->cblk[0].fblokptr + args->blok_m;
-    pastix_int_t                       cblk_m   = blok->fcblknm;
-    for (; (blok < lblok) && (blok->fcblknm == cblk_m); blok++) {
-        full_m += blok_rownbr(blok);
-    }
-    cl_profiling_log_register(task->name, "blok_ztrsmsp", full_m, N, 0, flops, speed);
+
+    struct cl_blok_ztrsmsp_args_s *args     = (struct cl_blok_ztrsmsp_args_s *) callback_arg;
+    pastix_fixdbl_t                flops    = args->profile_data.flops;
+    pastix_fixdbl_t                duration = starpu_timing_timespec_delay_us( &info->start_time, &info->end_time );
+    pastix_fixdbl_t                speed    = flops / ( 1000.0 * duration );
+
+    pastix_int_t M = blok_rownbr_ext( args->cblk->fblokptr + args->blok_m );
+    pastix_int_t N = cblk_colnbr( args->cblk );
+
+    cl_profiling_log_register( task->name, "blok_ztrsmsp", M, N, 0, flops, speed );
 }
 #endif
 
-static struct starpu_perfmodel starpu_blok_ztrsmsp_model =
+#if defined(PASTIX_STARPU_PROFILING_LOG)
+static void (*blok_ztrsmsp_callback)(void*) = cl_profiling_cb_blok_ztrsmsp;
+#else
+static void (*blok_ztrsmsp_callback)(void*) = cl_profiling_callback;
+#endif
+
+#endif /* defined( PASTIX_STARPU_PROFILING ) */
+
+/**
+ * @brief Cost model function
+ *
+ * The user can switch from the pastix static model to an history based model
+ * computed automatically.
+ */
+static inline pastix_fixdbl_t
+fct_blok_ztrsmsp_cost( struct starpu_task           *task,
+                       struct starpu_perfmodel_arch *arch,
+                       unsigned                      nimpl )
 {
+    struct cl_blok_ztrsmsp_args_s *args = (struct cl_blok_ztrsmsp_args_s *)(task->cl_arg);
+
+    pastix_fixdbl_t  cost = 0.;
+    pastix_fixdbl_t *coefs;
+    pastix_int_t     M = blok_rownbr_ext( args->cblk->fblokptr + args->blok_m );
+    pastix_int_t     N = cblk_colnbr( args->cblk );
+
+    switch( arch->devices->type ) {
+    case STARPU_CPU_WORKER:
+        coefs = &(args->sopalin_data->cpu_models->coefficients[PastixComplex64-2][PastixKernelTRSMBlok2d][0]);
+        break;
+    case STARPU_CUDA_WORKER:
+        coefs = &(args->sopalin_data->gpu_models->coefficients[PastixComplex64-2][PastixKernelTRSMBlok2d][0]);
+        break;
+    default:
+        assert(0);
+        return 0.;
+    }
+
+    /* Get cost in us */
+    cost = modelsGetCost2Param( coefs, M, N ) * 1e6;
+
+    (void)nimpl;
+    return cost;
+}
+
+static struct starpu_perfmodel starpu_blok_ztrsmsp_model = {
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
     .type               = STARPU_PER_ARCH,
-    .arch_cost_function = cblk_gemmsp_cost,
+    .arch_cost_function = fct_blok_ztrsmsp_cost,
 #else
     .type               = STARPU_HISTORY_BASED,
 #endif
@@ -105,6 +151,9 @@ static struct starpu_perfmodel starpu_blok_ztrsmsp_model =
 };
 
 #if !defined(PASTIX_STARPU_SIMULATION)
+/**
+ * @brief StarPU CPU implementation
+ */
 static void
 fct_blok_ztrsmsp_cpu( void *descr[], void *cl_arg )
 {
@@ -123,6 +172,9 @@ fct_blok_ztrsmsp_cpu( void *descr[], void *cl_arg )
                                                 &(args->sopalin_data->solvmtx->lowrank) );
 }
 
+/**
+ * @brief StarPU GPU implementation
+ */
 #if defined(PASTIX_WITH_CUDA)
 static void
 fct_blok_ztrsmsp_gpu( void *descr[], void *cl_arg )
@@ -145,7 +197,7 @@ fct_blok_ztrsmsp_gpu( void *descr[], void *cl_arg )
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
-CODELETS_ANY( blok_ztrsmsp, 2, STARPU_CUDA_ASYNC );
+CODELETS_GPU( blok_ztrsmsp, 2, STARPU_CUDA_ASYNC );
 
 void
 starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
@@ -160,10 +212,12 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
 {
     struct cl_blok_ztrsmsp_args_s *cl_arg;
     long long                      execute_where = cl_blok_ztrsmsp_any.where;
-    pastix_int_t                   blok_m        = blok - cblk->fblokptr;
+    int                            need_exec     = 1;
 #if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
     char                          *task_name;
 #endif
+
+    pastix_int_t blok_m = blok - cblk->fblokptr;
 
     /*
      * Check if it needs to be submitted
@@ -173,6 +227,9 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
         int need_submit = 0;
         if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
             need_submit = 1;
+        }
+        else {
+            need_exec = 0;
         }
         if ( starpu_mpi_cached_receive( blok->handler[coef] ) ) {
             need_submit = 1;
@@ -186,26 +243,29 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
     /*
      * Create the arguments array
      */
-    cl_arg                        = malloc( sizeof(struct cl_blok_ztrsmsp_args_s) );
-    cl_arg->sopalin_data          = sopalin_data;
+    if ( need_exec ) {
+        cl_arg                        = malloc( sizeof( struct cl_blok_ztrsmsp_args_s ) );
+        cl_arg->sopalin_data          = sopalin_data;
 #if defined(PASTIX_STARPU_PROFILING)
-    cl_arg->profile_data.measures = blok_ztrsmsp_profile.measures;
-    cl_arg->profile_data.flops    = NAN;
+        cl_arg->profile_data.measures = blok_ztrsmsp_profile.measures;
+        cl_arg->profile_data.flops    = NAN;
 #endif
-    cl_arg->side                  = side;
-    cl_arg->uplo                  = uplo;
-    cl_arg->trans                 = trans;
-    cl_arg->diag                  = diag;
-    cl_arg->cblk                  = cblk;
-    cl_arg->blok_m                = blok_m;
+        cl_arg->side                  = side;
+        cl_arg->uplo                  = uplo;
+        cl_arg->trans                 = trans;
+        cl_arg->diag                  = diag;
+        cl_arg->cblk                  = cblk;
+        cl_arg->blok_m                = blok_m;
 
 #if defined(PASTIX_WITH_CUDA)
-    if ( (cblk->cblktype & CBLK_COMPRESSED) ) {
-        execute_where &= (~STARPU_CUDA);
-    }
+        if ( (cblk->cblktype & CBLK_COMPRESSED) ) {
+            execute_where &= (~STARPU_CUDA);
+        }
 #endif
+    }
 
 #if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)
+    /* This actually generates a memory leak */
     asprintf( &task_name, "%s( %ld, %ld, %ld )",
               cl_blok_ztrsmsp_any.name,
               (long)(cblk - sopalin_data->solvmtx->cblktab),
@@ -218,11 +278,7 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
         STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_blok_ztrsmsp_args_s ),
         STARPU_EXECUTE_WHERE,           execute_where,
 #if defined(PASTIX_STARPU_PROFILING)
-#if defined(PASTIX_STARPU_PROFILING_LOG)
-        STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_cb_blok_ztrsmsp, cl_arg,
-#else
-        STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
-#endif
+        STARPU_CALLBACK_WITH_ARG_NFREE, blok_ztrsmsp_callback, cl_arg,
 #endif
         STARPU_R,                       cblk->fblokptr->handler[coef],
         STARPU_RW,                      blok->handler[coef],

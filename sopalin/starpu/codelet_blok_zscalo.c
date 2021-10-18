@@ -1,6 +1,6 @@
 /**
  *
- * @file codelet_zscalo.c
+ * @file codelet_blok_zscalo.c
  *
  * StarPU codelets for blas-like functions
  *

@@ -19,9 +19,11 @@
 #include "models.h"
 
 struct sopalin_data_s {
-    SolverMatrix *solvmtx;
-    double      (*cpu_coefs)[PastixKernelLvl1Nbr][8];
-    double      (*gpu_coefs)[PastixKernelLvl1Nbr][8];
+    SolverMatrix   *solvmtx;
+    double        (*cpu_coefs)[PastixKernelLvl1Nbr][8];
+    double        (*gpu_coefs)[PastixKernelLvl1Nbr][8];
+    pastix_model_t *cpu_models;
+    pastix_model_t *gpu_models;
 };
 typedef struct sopalin_data_s sopalin_data_t;
 
