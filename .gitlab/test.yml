@@ -17,7 +17,6 @@
              -R \"^${RUN}_.*_sched${SCHED}\"
              -D ExperimentalTest
              -D ExperimentalCoverage
-             -D ExperimentalSubmit
              | tee -a ../pastix-build-${VERSION}.log")
     - lcov --capture --directory build
            -q --output-file pastix-${VERSION}-${RUN}-sched${SCHED}.lcov

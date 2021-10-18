@@ -15,7 +15,6 @@
              -E \"sched\" -R \"^${WRAPPER}_\"
              -D ExperimentalTest
              -D ExperimentalCoverage
-             -D ExperimentalSubmit
              | tee -a ../pastix-test-${VERSION}-${WRAPPER}.log")
     - lcov --capture --directory build
            -q --output-file pastix-${VERSION}-${WRAPPER}.lcov
