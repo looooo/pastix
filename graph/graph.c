@@ -405,6 +405,65 @@ graphSpm2Graph( pastix_graph_t   *graph,
     return PASTIX_SUCCESS;
 }
 
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_graph
+ *
+ * @brief Build the vertex weight array out of the dof array.
+ *
+ *******************************************************************************
+ *
+ * @param[in] graph
+ *          Pointer to the graph structure.
+ *
+ *******************************************************************************
+ *
+ * @retval The vertex weight array if graph->dof != 1, NULL otherwise.
+ *
+ *******************************************************************************/
+pastix_int_t *
+graphGetWeights( const pastix_graph_t *graph )
+{
+    pastix_int_t  i, n;
+    pastix_int_t *weights, *wptr;
+
+    if ( graph->dof == 1 ) {
+        return NULL;
+    }
+
+    n = graph->n;
+    MALLOC_INTERN( weights, n, pastix_int_t );
+
+    wptr = weights;
+    /* Constant dof */
+    if ( graph->dof > 1 ) {
+        for ( i=0; i<n; i++, wptr++ ) {
+            *wptr = graph->dof;
+        }
+    }
+    /* Variadic dof */
+    else {
+        pastix_int_t *dofptr = graph->dofs;
+        if ( graph->loc2glob == NULL ) {
+            for ( i=0; i<n; i++, wptr++, dofptr++ ) {
+                *wptr = dofptr[1] - dofptr[0];
+            }
+        }
+        else {
+            pastix_int_t *dofptr   = graph->dofs - graph->baseval;
+            pastix_int_t *loc2glob = graph->loc2glob;
+
+            for ( i=0; i<n; i++, wptr++, loc2glob++ ) {
+                *wptr = dofptr[ *loc2glob + 1 ] - dofptr[ *loc2glob ];
+            }
+        }
+    }
+
+    return weights;
+}
+
 /**
  * @}
  */
