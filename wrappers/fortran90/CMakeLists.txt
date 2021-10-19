@@ -83,6 +83,7 @@ foreach (_file ${EXAMPLES})
   get_filename_component(_name_we ${_file} NAME_WE)
 
   add_executable( ${_name_we} examples/${_file} )
+  add_binary_to_completion( ${_name_we} )
   add_documented_files( examples/${_file} )
 
   target_link_libraries(${_name_we} PRIVATE
@@ -112,6 +113,7 @@ set( _file fmultilap.f90 )
 
 get_filename_component(_name_we ${_file} NAME_WE)
 add_executable(${_name_we} examples/${_file})
+add_binary_to_completion( ${_name_we} )
 add_documented_files( examples/${_file} )
 
 target_link_libraries( ${_name_we} PRIVATE

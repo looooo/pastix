@@ -65,3 +65,28 @@ function(add_documented_files)
   # append to global list
   set_property(GLOBAL APPEND PROPERTY ${PROJECT_NAME}_DOX_SRCS "${SRCS}")
 endfunction(add_documented_files)
+
+
+#
+# See https://cmake.org/pipermail/cmake/2010-March/035992.html
+#
+function(add_binary_to_completion)
+  cmake_parse_arguments(add_binary_to_completion "" "${oneValueArgs}" "" ${ARGN})
+
+  get_property(is_defined GLOBAL PROPERTY ${PROJECT_NAME}_COMP_BINARIES DEFINED)
+  if(NOT is_defined)
+    define_property(GLOBAL PROPERTY ${PROJECT_NAME}_COMP_BINARIES
+      BRIEF_DOCS "List of binaries candidate for bash auto-completion"
+      FULL_DOCS "List of binaries candidate for bash auto-completion")
+  endif()
+
+  set(ARGN ${add_binary_to_completion_UNPARSED_ARGUMENTS})
+  # make absolute paths
+  set(SRCS)
+  foreach(s IN LISTS ARGN)
+    get_filename_component(s "${s}" NAME_WE)
+    list(APPEND SRCS "${s}")
+  endforeach()
+  # append to global list
+  set_property(GLOBAL APPEND PROPERTY ${PROJECT_NAME}_COMP_BINARIES "${SRCS}")
+endfunction(add_binary_to_completion)

@@ -118,28 +118,19 @@ def genNoCompletion() :
         result += opt + "|"
     result += " \\\n" + indent
 
-    linesize = len(no_short)
-    size = 0
     opts = no_long.split( " " )
     for opt in opts :
-        size   += len(opt) + 1
         result += opt + "|"
-        if size > linesize :
-            size = 0
-            result += " \\\n" + indent
-
-    result += "iparm_*|dparm_*)\n"
-
-    result += indent + '''    COMPREPLY=($(compgen -W "" -- $cur))
+    result += " \\\n" + indent + "iparm_*|dparm_*)\n" + indent + '''    COMPREPLY=($(compgen -W "" -- $cur))
             ;;
 '''
+
     return result
 
 def genCompleteCommand():
     result = '''# Add the dynamic completion to the executable
-for exec in $(find $BINARY_DIR -maxdepth 1 -executable -type f)
+for e in $(echo "@PASTIX_COMP_BINARIES@" | sed 's/;/ /g')
 do
-    e=$(basename $exec)
     complete -F _pastix_completion $e
 done
 '''
@@ -166,8 +157,6 @@ def genCompletion( iparms, dparms, enums ) :
 '''+ gu.const_str.replace(" *", "#") +'''
 #
 #!/usr/bin/env bash
-
-BINARY_DIR=@CMAKE_INSTALL_PREFIX@/examples
 
 _pastix_completion()
 {

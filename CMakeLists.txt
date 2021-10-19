@@ -943,6 +943,8 @@ generate_pkgconfig_files(
 generate_env_file( PROJECTNAME PASTIX )
 
 # PaStiX auto-completion file
+# ---------------------------
+get_property( PASTIX_COMP_BINARIES GLOBAL PROPERTY PASTIX_COMP_BINARIES )
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/tools/pastix_completion.sh.in"
   "${CMAKE_CURRENT_BINARY_DIR}/bin/pastix_completion.sh" @ONLY)

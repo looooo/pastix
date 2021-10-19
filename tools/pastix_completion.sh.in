@@ -12,11 +12,9 @@
 # @author Mathieu Faverge
 # @author Pierre Ramet
 # @author Tony Delarue
-# @date 2021-10-18
+# @date 2021-10-19
 #
 #!/usr/bin/env bash
-
-BINARY_DIR=@CMAKE_INSTALL_PREFIX@/examples
 
 _pastix_completion()
 {
@@ -216,8 +214,7 @@ _pastix_completion()
 
         # For remaining options, we don't suggest anything
         -0|-1|-2|-3|-4|-9|-x|-G|-t|-g|-h| \
-        --rsa|--hb|--ijv|--mm|--spm|--lap| \
-        --xlap|--graph|--threads|--gpus|--help| \
+        --rsa|--hb|--ijv|--mm|--spm|--lap|--xlap|--graph|--threads|--gpus|--help| \
         iparm_*|dparm_*)
             COMPREPLY=($(compgen -W "" -- $cur))
             ;;
@@ -226,8 +223,7 @@ _pastix_completion()
 }
 
 # Add the dynamic completion to the executable
-for exec in $(find $BINARY_DIR -maxdepth 1 -executable -type f)
+for e in $(echo "@PASTIX_COMP_BINARIES@" | sed 's/;/ /g')
 do
-    e=$(basename $exec)
     complete -F _pastix_completion $e
 done
