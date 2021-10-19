@@ -25,6 +25,7 @@ set (INTERNAL_EXAMPLES
 foreach (_file ${INTERNAL_EXAMPLES})
   get_filename_component(_name_we ${_file} NAME_WE)
   add_executable(${_name_we} ${_file})
+  add_binary_to_completion( ${_name_we} )
 
   target_include_directories( ${_name_we} PRIVATE
     $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
@@ -54,6 +55,7 @@ set (EXAMPLES
 foreach (_file ${EXAMPLES})
   get_filename_component(_name_we ${_file} NAME_WE)
   add_executable(${_name_we} ${_file})
+  add_binary_to_completion(${_name_we})
 
   target_include_directories( ${_name_we} PRIVATE
     $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
