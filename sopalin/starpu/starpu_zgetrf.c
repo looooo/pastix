@@ -135,11 +135,6 @@ starpu_zgetrf_sp2d( sopalin_data_t              *sopalin_data,
         }
 
         if ( cblk->cblktype & CBLK_TASKS_2D ) {
-            assert( k >= solvmtx->cblkmin2d );
-            cblkhandle = desc->cblktab_handle + (k - solvmtx->cblkmin2d);
-
-            pastix_starpu_partition_submit( PastixLCoef, cblk, cblkhandle );
-            pastix_starpu_partition_submit( PastixUCoef, cblk, cblkhandle );
             continue;
         }
 
@@ -169,20 +164,6 @@ starpu_zgetrf_sp2d( sopalin_data_t              *sopalin_data,
         }
     }
 
-    /* Let's submit the partitionning */
-    k = solvmtx->cblkmax1d + 1;
-    cblk       = solvmtx->cblktab + k;
-    cblkhandle = desc->cblktab_handle + (k - solvmtx->cblkmin2d);
-    for (; k<solvmtx->cblknbr; k++, cblk++, cblkhandle++) {
-
-        if ( !(cblk->cblktype & CBLK_TASKS_2D) ) {
-            continue;
-        }
-
-        pastix_starpu_partition_submit( PastixLCoef, cblk, cblkhandle );
-        pastix_starpu_partition_submit( PastixUCoef, cblk, cblkhandle );
-    }
-
     /* Now we submit all 2D tasks */
     cblk       = solvmtx->cblktab + solvmtx->cblkmin2d;
     cblkhandle = desc->cblktab_handle;
@@ -192,12 +173,7 @@ starpu_zgetrf_sp2d( sopalin_data_t              *sopalin_data,
             continue; /* skip 1D cblk */
         }
 
-        if (cblk->cblktype & CBLK_IN_SCHUR)
-        {
-            pastix_starpu_unpartition_submit( desc, sopalin_data->solvmtx->clustnum,
-                                              PastixLCoef, cblk, cblkhandle );
-            pastix_starpu_unpartition_submit( desc, sopalin_data->solvmtx->clustnum,
-                                              PastixUCoef, cblk, cblkhandle );
+        if (cblk->cblktype & CBLK_IN_SCHUR) {
             continue;
         }
 
@@ -255,10 +231,6 @@ starpu_zgetrf_sp2d( sopalin_data_t              *sopalin_data,
                 blokA++;
             }
         }
-        pastix_starpu_unpartition_submit( desc, sopalin_data->solvmtx->clustnum,
-                                          PastixLCoef, cblk, cblkhandle );
-        pastix_starpu_unpartition_submit( desc, sopalin_data->solvmtx->clustnum,
-                                          PastixUCoef, cblk, cblkhandle );
     }
     (void)desc;
 }

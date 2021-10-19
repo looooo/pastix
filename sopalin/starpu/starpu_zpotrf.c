@@ -128,17 +128,13 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
         }
 
         if ( cblk->cblktype & CBLK_TASKS_2D ) {
-            assert( k >= solvmtx->cblkmin2d );
-            cblkhandle = desc->cblktab_handle + (k - solvmtx->cblkmin2d);
-
-            pastix_starpu_partition_submit( PastixLCoef, cblk, cblkhandle );
             continue;
         }
 
         starpu_task_cblk_zpotrfsp( sopalin_data, cblk,
                                    cblknbr - k );
 
-        blok  = cblk->fblokptr + 1; /* this diagonal block */
+        blok = cblk->fblokptr + 1; /* this diagonal block */
         lblk = cblk[1].fblokptr;   /* the next diagonal block */
 
         /* if there are off-diagonal supernodes in the column */
@@ -153,19 +149,6 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
         }
     }
 
-    /* Let's submit the partitionning */
-    k = solvmtx->cblkmax1d + 1;
-    cblk       = solvmtx->cblktab + k;
-    cblkhandle = desc->cblktab_handle + (k - solvmtx->cblkmin2d);
-    for (; k<solvmtx->cblknbr; k++, cblk++, cblkhandle++) {
-
-        if ( !(cblk->cblktype & CBLK_TASKS_2D) ) {
-            continue;
-        }
-
-        pastix_starpu_partition_submit( PastixLCoef, cblk, cblkhandle );
-    }
-
     /* Now we submit all 2D tasks */
     cblk       = solvmtx->cblktab + solvmtx->cblkmin2d;
     cblkhandle = desc->cblktab_handle;
@@ -175,10 +158,7 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
             continue; /* skip 1D cblk */
         }
 
-        if (cblk->cblktype & CBLK_IN_SCHUR)
-        {
-            pastix_starpu_unpartition_submit( desc, sopalin_data->solvmtx->clustnum,
-                                              PastixLCoef, cblk, cblkhandle );
+        if ( cblk->cblktype & CBLK_IN_SCHUR ) {
             continue;
         }
 
@@ -219,8 +199,6 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
                 blokA++;
             }
         }
-        pastix_starpu_unpartition_submit( desc, sopalin_data->solvmtx->clustnum,
-                                          PastixLCoef, cblk, cblkhandle );
     }
     (void)desc;
 }
