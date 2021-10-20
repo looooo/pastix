@@ -123,7 +123,7 @@ pastix_subtask_refine( pastix_data_t *pastix_data,
 
     if (nrhs > 1)
     {
-        errorPrintW("Refinement works only with 1 rhs, We will iterate on each RHS one by one\n");
+        pastix_print_warning( "Refinement works only with 1 rhs, We will iterate on each RHS one by one\n" );
     }
 
     if ( (pastix_data->schur_n > 0) && (iparm[IPARM_SCHUR_SOLV_MODE] != PastixSolvModeLocal))

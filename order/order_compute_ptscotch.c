@@ -221,7 +221,7 @@ ocpts_compute_graph_ordering( pastix_data_t  *pastix_data,
     /* Compute distributed ordering */
     if ( SCOTCH_dgraphOrderCompute( scotchgraph, &ordedat, &stratdat ) )
     {
-        pastix_print_error( "pastix : SCOTCH_dgraphOrderCompute"  );
+        pastix_print_error( "pastix : SCOTCH_dgraphOrderCompute" );
     }
 
     SCOTCH_stratExit( &stratdat );
@@ -235,7 +235,7 @@ ocpts_compute_graph_ordering( pastix_data_t  *pastix_data,
                                   (SCOTCH_Num *) ordemesh->rangtab,
                                   (SCOTCH_Num *) ordemesh->treetab) )
     {
-        pastix_print_error( "pastix : SCOTCH_dgraphCorderInit"  );
+        pastix_print_error( "pastix : SCOTCH_dgraphCorderInit" );
     }
 
     /* Gather distributed ordering on node 0 */

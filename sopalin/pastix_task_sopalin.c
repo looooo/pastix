@@ -300,7 +300,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
          ( pastix_data->iparm[IPARM_SCHEDULER] == PastixSchedParsec ) &&
          ( pastix_data->procnbr > 1 ) )
     {
-        pastix_print_error( "pastix_task_sopalin: Low-Rank with MPI communication is not available yet with PaRSEC\n"  );
+        pastix_print_error( "pastix_task_sopalin: Low-Rank with MPI communication is not available yet with PaRSEC\n" );
         return PASTIX_ERR_BADPARAMETER;
     }
 #endif

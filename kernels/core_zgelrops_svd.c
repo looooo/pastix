@@ -227,7 +227,7 @@ core_zge2lr_svd( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
                                  s, u, ldu, v, ldv,
                                  zwork, lwork, rwork + minMN );
     if ( ret != 0 ) {
-        pastix_print_error( "SVD Failed\n"  );
+        pastix_print_error( "SVD Failed\n" );
     }
 
     /* Let's stop i before going too far */

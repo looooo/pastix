@@ -109,7 +109,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
      * Check parameters
      */
     if ( pastix_data == NULL ) {
-        pastix_print_error( "pastix_subtask_symbfact: wrong pastix_data parameter"  );
+        pastix_print_error( "pastix_subtask_symbfact: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     iparm = pastix_data->iparm;
@@ -172,7 +172,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
         if ( iparm[IPARM_INCOMPLETE] == 0 ) {
 #if defined( COMPACT_SMX )
             if ( procnum == 0 )
-                errorPrintW( "COMPACT_SMX only works with incomplete factorization, force ILU(%d) "
+                pastix_print_warning( "COMPACT_SMX only works with incomplete factorization, force ILU(%d) "
                              "factorization.",
                              iparm[IPARM_LEVEL_OF_FILL] );
             iparm[IPARM_INCOMPLETE] = 1;
@@ -267,7 +267,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
         assert( 0 );
     }
     if ( pastixSymbolCheck( pastix_data->symbmtx ) != 0 ) {
-        pastix_print_error( "pastix_subtask_symbfact: symbolCheck on final symbol matrix failed !!!"  );
+        pastix_print_error( "pastix_subtask_symbfact: symbolCheck on final symbol matrix failed !!!" );
         assert( 0 );
     }
 #endif

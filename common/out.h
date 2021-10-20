@@ -294,8 +294,6 @@ pastix_print_warning( const char *fmt, ... )
     va_end(arglist);
 }
 
-#define errorPrintW pastix_print_warning
-
 static inline double
 pastix_print_value( double flops )
 {
