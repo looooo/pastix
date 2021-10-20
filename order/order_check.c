@@ -48,18 +48,18 @@ pastixOrderCheck (const pastix_order_t * const  ordeptr)
 
     /* Parameter checks */
     if (ordeptr == NULL) {
-        errorPrint ("pastixOrderCheck: invalid ordeptr pointer");
+        pastix_print_error( "pastixOrderCheck: invalid ordeptr pointer" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
     if ( (ordeptr->cblknbr < 0) || (ordeptr->vertnbr < 0) ) {
-        errorPrint ("pastixOrderCheck: invalid number of vertices and/or column blocks");
+        pastix_print_error( "pastixOrderCheck: invalid number of vertices and/or column blocks" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
     baseval = ordeptr->baseval;
     if (baseval < 0) {
-        errorPrint ("pastixOrderCheck: invalid vertex node base number");
+        pastix_print_error( "pastixOrderCheck: invalid vertex node base number" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -71,19 +71,19 @@ pastixOrderCheck (const pastix_order_t * const  ordeptr)
     assert( ordeptr->cblknbr > 0 );
 
     if ( ordeptr->permtab == NULL ) {
-        errorPrint ("pastixOrderCheck: permtab array is missing");
+        pastix_print_error( "pastixOrderCheck: permtab array is missing" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( ordeptr->peritab == NULL ) {
-        errorPrint ("pastixOrderCheck: peritab array is missing");
+        pastix_print_error( "pastixOrderCheck: peritab array is missing" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( ordeptr->rangtab == NULL ) {
-        errorPrint ("pastixOrderCheck: rangtab array is missing");
+        pastix_print_error( "pastixOrderCheck: rangtab array is missing" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( ordeptr->treetab == NULL ) {
-        errorPrint ("pastixOrderCheck: treetab array is missing");
+        pastix_print_error( "pastixOrderCheck: treetab array is missing" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -103,7 +103,7 @@ pastixOrderCheck (const pastix_order_t * const  ordeptr)
             (ordeptr->rangtab[rangnum] >  vnodmax) ||
             (ordeptr->rangtab[rangnum] >= ordeptr->rangtab[rangnum + 1]))
         {
-            errorPrint ("pastixOrderCheck: invalid range array");
+            pastix_print_error( "pastixOrderCheck: invalid range array" );
             return PASTIX_ERR_BADPARAMETER;
         }
     }
@@ -123,7 +123,7 @@ pastixOrderCheck (const pastix_order_t * const  ordeptr)
             (vnodold > vnodmax) ||
             (permtax[vnodold] != vnodnum))
         {
-            errorPrint ("pastixOrderCheck: invalid permutation arrays");
+            pastix_print_error( "pastixOrderCheck: invalid permutation arrays" );
             return PASTIX_ERR_BADPARAMETER;
         }
     }
@@ -138,13 +138,13 @@ pastixOrderCheck (const pastix_order_t * const  ordeptr)
             ((ordeptr->treetab[rangnum] != -1)       &&
              (ordeptr->treetab[rangnum]  < (baseval+rangnum)) ) )
         {
-            errorPrint ("pastixOrderCheck: invalid range array in treetab");
+            pastix_print_error( "pastixOrderCheck: invalid range array in treetab" );
             return PASTIX_ERR_BADPARAMETER;
         }
     }
     if ((rangnum > 0) && (ordeptr->treetab[rangnum] != (baseval-1)))
     {
-        errorPrint ("pastixOrderCheck: invalid father for cblknbr-1 node");
+        pastix_print_error( "pastixOrderCheck: invalid father for cblknbr-1 node" );
         return PASTIX_ERR_BADPARAMETER;
     }
 

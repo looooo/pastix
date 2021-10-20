@@ -325,13 +325,13 @@ pastixOrderBase( pastix_order_t * const ordeptr,
 
     /* Parameter checks */
     if ( ordeptr == NULL ) {
-        errorPrint("pastixOrderBase: ordeptr pointer is NULL");
+        pastix_print_error( "pastixOrderBase: ordeptr pointer is NULL" );
         return;
     }
     if ( (baseval != 0) &&
          (baseval != 1) )
     {
-        errorPrint("pastixOrderBase: baseval is incorrect, must be 0 or 1");
+        pastix_print_error( "pastixOrderBase: baseval is incorrect, must be 0 or 1" );
         return;
     }
 

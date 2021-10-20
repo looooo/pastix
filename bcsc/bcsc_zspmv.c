@@ -653,7 +653,7 @@ bcsc_zspmv( const pastix_data_t      *pastix_data,
         trans = PastixNoTrans;
     }
     else if ( transA != PastixNoTrans ) {
-        errorPrint("bcsc_zspmv: incompatible trans and transA");
+        pastix_print_error( "bcsc_zspmv: incompatible trans and transA" );
         return;
     }
 

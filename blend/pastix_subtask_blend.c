@@ -136,11 +136,11 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_subtask_blend: wrong pastix_data parameter");
+        pastix_print_error( "pastix_subtask_blend: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_SYMBFACT) ) {
-        errorPrint("pastix_subtask_blend: pastix_subtask_symbfact() has to be called before calling this function");
+        pastix_print_error( "pastix_subtask_blend: pastix_subtask_symbfact() has to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -152,15 +152,15 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     verbose = iparm[IPARM_VERBOSE];
 
     if (ordeptr == NULL) {
-        errorPrint("pastix_subtask_blend: the pastix_data->ordemesh field has not been initialized, pastix_task_order should be called first");
+        pastix_print_error( "pastix_subtask_blend: the pastix_data->ordemesh field has not been initialized, pastix_task_order should be called first" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if (symbmtx == NULL) {
-        errorPrint("pastix_subtask_blend: the pastix_data->symbmtx has not been initialized, pastix_task_symbfact should be called first");
+        pastix_print_error( "pastix_subtask_blend: the pastix_data->symbmtx has not been initialized, pastix_task_symbfact should be called first" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if (symbmtx->dof < 1) {
-        errorPrint("pastix_subtask_blend: Dof number has not been correctly initialized");
+        pastix_print_error( "pastix_subtask_blend: Dof number has not been correctly initialized" );
         return PASTIX_ERR_BADPARAMETER;
     }
 

@@ -152,13 +152,13 @@ int graphComputeKway( const pastix_graph_t *graph,
 
 #if !defined(NDEBUG)
     if ( SCOTCH_graphCheck( &comp_sgraph ) ) {
-        pastix_print_error( "error in graph graphCheck()...\n" );
+        pastix_print_error( "error in graph graphCheck()...\n"  );
         return PASTIX_ERR_BADPARAMETER;
     }
 #endif
 
     if ( SCOTCH_stratInit( &sstrat ) != 0 ) {
-        pastix_print_error( "Failed to initialize partitioning strategy\n" );
+        pastix_print_error( "Failed to initialize partitioning strategy\n"  );
         return PASTIX_ERR_UNKNOWN;
     }
 

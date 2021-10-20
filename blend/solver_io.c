@@ -75,19 +75,19 @@ solverLoad( SolverMatrix *solvptr,
         (versval > 2)                     ||
         (bloknbr < cblknbr)               ||
         (nodenbr < cblknbr)) {
-        errorPrint ("solverLoad: bad input (1)");
+        pastix_print_error( "solverLoad: bad input (1)" );
         return PASTIX_ERR_FILE;
     }
 
     if ( versval > 1 ) {
-        errorPrint("solverLoad: Version 0 and 1 of the solver files are not supported anymore");
+        pastix_print_error( "solverLoad: Version 0 and 1 of the solver files are not supported anymore" );
         return PASTIX_ERR_FILE;
     }
 
     MALLOC_INTERN(solvptr->cblktab, cblknbr + 1, SolverCblk);
     MALLOC_INTERN(solvptr->bloktab, bloknbr,     SolverBlok);
     if (solvptr->cblktab == NULL || solvptr->bloktab == NULL) {
-        errorPrint ("solverLoad: out of memory");
+        pastix_print_error( "solverLoad: out of memory" );
         solverExit (solvptr);
         solverInit (solvptr);
         return PASTIX_ERR_FILE;
@@ -102,7 +102,7 @@ solverLoad( SolverMatrix *solvptr,
              intLoad (stream, &solvptr->cblktab[cblknum].lcolnum) +
              intLoad (stream, &bloknum) != 3) ||
             (solvptr->cblktab[cblknum].fcolnum > solvptr->cblktab[cblknum].lcolnum)) {
-            errorPrint ("solverLoad: bad input (2)");
+            pastix_print_error( "solverLoad: bad input (2)" );
             /* solverExit (solvptr); */
             /* solverInit (solvptr); */
             return PASTIX_ERR_FILE;
@@ -118,7 +118,7 @@ solverLoad( SolverMatrix *solvptr,
              intLoad (stream, &solvptr->bloktab[bloknum].lrownum) +
              intLoad (stream, &solvptr->bloktab[bloknum].fcblknm) != 3) ||
             (solvptr->bloktab[bloknum].frownum > solvptr->bloktab[bloknum].lrownum)) {
-            errorPrint ("solverLoad: bad input (3)");
+            pastix_print_error( "solverLoad: bad input (3)" );
             solverExit (solvptr);
             solverInit (solvptr);
             return PASTIX_ERR_FILE;
@@ -129,7 +129,7 @@ solverLoad( SolverMatrix *solvptr,
             if ((versval == 0) &&
                 ((intLoad (stream, &levfval) != 1) ||
                  (levfval < 0))) {
-                errorPrint ("solverLoad: bad input (4)");
+                pastix_print_error( "solverLoad: bad input (4)" );
                 solverExit (solvptr);
                 solverInit (solvptr);
                 return PASTIX_ERR_FILE;
@@ -149,7 +149,7 @@ solverLoad( SolverMatrix *solvptr,
         intLoad (stream, &solvptr->thrdnbr)
         != 11 )
     {
-        errorPrint ("solverLoad: bad input (1)");
+        pastix_print_error( "solverLoad: bad input (1)" );
         return PASTIX_ERR_FILE;
     }
 
@@ -162,7 +162,7 @@ solverLoad( SolverMatrix *solvptr,
         ((solvptr->ttsknbr = (pastix_int_t *) memAlloc((solvptr->thrdnbr)     * sizeof(pastix_int_t)  )) == NULL) ||
         ((solvptr->ttsktab = (pastix_int_t **)memAlloc((solvptr->thrdnbr)     * sizeof(pastix_int_t *))) == NULL) )
     {
-        errorPrint ("solverLoad: out of memory (1)");
+        pastix_print_error( "solverLoad: out of memory (1)" );
         if (solvptr->cblktab != NULL) {
             memFree_null (solvptr->cblktab);
         }
@@ -181,7 +181,7 @@ solverLoad( SolverMatrix *solvptr,
     {
         if (intLoad (stream, &cblkptr->stride) != 1)
         {
-            errorPrint ("solverlLoad: bad input (2)");
+            pastix_print_error( "solverlLoad: bad input (2)" );
             solverExit (solvptr);
             return     PASTIX_ERR_FILE;
         }
@@ -193,7 +193,7 @@ solverLoad( SolverMatrix *solvptr,
     {
         if (intLoad (stream, &blokptr->coefind) != 1)
         {
-            errorPrint ("solverLoad: bad input (3)");
+            pastix_print_error( "solverLoad: bad input (3)" );
             solverExit (solvptr);
             return     PASTIX_ERR_FILE;
         }
@@ -223,7 +223,7 @@ solverLoad( SolverMatrix *solvptr,
         MALLOC_INTERN(solvptr->ttsktab[i], solvptr->ttsknbr[i], pastix_int_t);
         if (solvptr->ttsktab[i] == NULL)
         {
-            errorPrint ("solverLoad: out of memory (1)");
+            pastix_print_error( "solverLoad: out of memory (1)" );
             return 1;
         }
         for (j=0;j<solvptr->ttsknbr[i];j++)

@@ -91,7 +91,7 @@ order_scotch_build_strategy( const pastix_int_t *iparm,
                        (long)  iparm[IPARM_SCOTCH_CMAX],
                        ((float)iparm[IPARM_SCOTCH_FRAT])/100. );
         if ( rc > STRAT_STR_MAX ) {
-            pastix_print_error( "Order_scotch_build_strategy: Strategy string too long\n" );
+            pastix_print_error( "Order_scotch_build_strategy: Strategy string too long\n"  );
             exit(-1);
         }
 

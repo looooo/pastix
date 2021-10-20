@@ -77,7 +77,7 @@ compute_subtree_size(      pastix_int_t  n,
                 sum += T[i];
         }
         if(sum != n)
-            errorPrint("compute_subtree_size: sum of the subtree = %ld n = %ld", (long)sum, (long)n);
+            pastix_print_error( "compute_subtree_size: sum of the subtree = %ld n = %ld", (long)sum, (long)n );
         assert(n == sum);
     }
 #endif
@@ -180,7 +180,7 @@ compute_post_order(      pastix_int_t n,
         if(invp[i] != 1) { k++; }
     }
     if ( k > 0 ) {
-        errorPrint("Number of errors in perm vector in postorder %ld", (long)k);
+        pastix_print_error( "Number of errors in perm vector in postorder %ld", (long)k );
     }
     assert(k==0);
 #endif
@@ -411,7 +411,7 @@ pastixOrderFindSupernodes( const pastix_graph_t *graph,
     }
 
     if(k>0) {
-        errorPrint("perm array is not valid, number of error =  %ld", (long)k);
+        pastix_print_error( "perm array is not valid, number of error =  %ld", (long)k );
     }
     assert(k==0);
 #endif

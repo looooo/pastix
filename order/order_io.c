@@ -58,7 +58,7 @@ ordering_load( pastix_order_t *ordeptr,
          intLoad (stream, &vertnbr) != 3)  ||
         ((versval != 0) && (versval != 1)) ||
         (cblknbr > vertnbr)) {
-        errorPrint ("orderLoad: bad input (1)");
+        pastix_print_error( "orderLoad: bad input (1)" );
         return PASTIX_ERR_FILE;
     }
 
@@ -85,7 +85,7 @@ ordering_load( pastix_order_t *ordeptr,
     }
 
     if (i != 1) {
-        errorPrint ("pastixOrderLoad: bad input (2)");
+        pastix_print_error( "pastixOrderLoad: bad input (2)" );
         pastixOrderExit  (ordeptr);
         return PASTIX_ERR_FILE;
     }
@@ -160,7 +160,7 @@ int pastixOrderLoad( const pastix_data_t *pastix_data,
         rc = ordering_load(ordemesh, stream);
         if (rc != PASTIX_SUCCESS)
         {
-            errorPrint("test: cannot load order");
+            pastix_print_error( "test: cannot load order" );
         }
         fclose(stream);
     }
@@ -205,15 +205,15 @@ ordering_save( const pastix_order_t *ordeptr,
     int          o;
 
     if (ordeptr->permtab == NULL) {
-        errorPrint ("pastixOrderSave: cannot save ordering without direct permutation data");
+        pastix_print_error( "pastixOrderSave: cannot save ordering without direct permutation data" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if (ordeptr->rangtab == NULL) {
-        errorPrint ("pastixOrderSave: cannot save ordering without rangtab array");
+        pastix_print_error( "pastixOrderSave: cannot save ordering without rangtab array" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if (ordeptr->treetab == NULL) {
-        errorPrint ("pastixOrderSave: cannot save ordering without treetab array");
+        pastix_print_error( "pastixOrderSave: cannot save ordering without treetab array" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -226,7 +226,7 @@ ordering_save( const pastix_order_t *ordeptr,
     if (fprintf (stream, "1\n%ld\t%ld\n",
                  (long) ordeptr->cblknbr,
                  (long) vertnbr) == EOF) {
-        errorPrint ("pastixOrderSave: bad output (1)");
+        pastix_print_error( "pastixOrderSave: bad output (1)" );
         return PASTIX_ERR_FILE;
     }
 
@@ -255,7 +255,7 @@ ordering_save( const pastix_order_t *ordeptr,
     putc ('\n', stream);
 
     if (o != 1) {
-        errorPrint ("pastixOrderSave: bad output (2)");
+        pastix_print_error( "pastixOrderSave: bad output (2)" );
         return PASTIX_ERR_FILE;
     }
 
@@ -322,7 +322,7 @@ pastixOrderSave( pastix_data_t        *pastix_data,
         rc = ordering_save(ordemesh, stream);
         if (rc != PASTIX_SUCCESS )
         {
-            errorPrint ("cannot save order");
+            pastix_print_error( "cannot save order" );
         }
         fclose(stream);
     }

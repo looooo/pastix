@@ -217,7 +217,7 @@ candCheck( const Cand            *candtab,
             if( (candtab[i].fcandnum < candtab[facecblknum].fcandnum) ||
                 (candtab[i].lcandnum > candtab[facecblknum].lcandnum) )
             {
-                errorPrint("bad processor candidat sets : cblk %ld candidat =[%ld %ld] father %ld candidat = [%ld %ld].",
+                pastix_print_error( "bad processor candidat sets : cblk %ld candidat =[%ld %ld] father %ld candidat = [%ld %ld].",
                            (long)i, (long)candtab[i].fcandnum, (long)candtab[i].lcandnum,
                            (long)facecblknum, (long)candtab[facecblknum].fcandnum,
                            (long)candtab[facecblknum].lcandnum);

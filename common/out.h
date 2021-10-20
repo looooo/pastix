@@ -294,7 +294,6 @@ pastix_print_warning( const char *fmt, ... )
     va_end(arglist);
 }
 
-#define errorPrint  pastix_print_error
 #define errorPrintW pastix_print_warning
 
 static inline double

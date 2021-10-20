@@ -68,13 +68,13 @@ pastixSymbolLoad ( symbol_matrix_t * const symbptr,
         (versval > 1)                     ||
         (bloknbr < cblknbr)               ||
         (nodenbr < cblknbr)) {
-        errorPrint ("symbolLoad: bad input (1)");
+        pastix_print_error( "symbolLoad: bad input (1)" );
         return     (1);
     }
 
     if (((symbptr->cblktab = (symbol_cblk_t *) memAlloc ((cblknbr + 1) * sizeof (symbol_cblk_t))) == NULL) ||
         ((symbptr->bloktab = (symbol_blok_t *) memAlloc ( bloknbr      * sizeof (symbol_blok_t))) == NULL)) {
-        errorPrint ("symbolLoad: out of memory");
+        pastix_print_error( "symbolLoad: out of memory" );
         pastixSymbolExit (symbptr);
         return     (1);
     }
@@ -88,7 +88,7 @@ pastixSymbolLoad ( symbol_matrix_t * const symbptr,
              intLoad (stream, &symbptr->cblktab[cblknum].lcolnum) +
              intLoad (stream, &symbptr->cblktab[cblknum].bloknum) != 3) ||
             (symbptr->cblktab[cblknum].fcolnum > symbptr->cblktab[cblknum].lcolnum)) {
-            errorPrint ("symbolLoad: bad input (2)");
+            pastix_print_error( "symbolLoad: bad input (2)" );
             pastixSymbolExit (symbptr);
             return     (1);
         }
@@ -102,7 +102,7 @@ pastixSymbolLoad ( symbol_matrix_t * const symbptr,
              intLoad (stream, &symbptr->bloktab[bloknum].lrownum) +
              intLoad (stream, &symbptr->bloktab[bloknum].fcblknm) != 3) ||
             (symbptr->bloktab[bloknum].frownum > symbptr->bloktab[bloknum].lrownum)) {
-            errorPrint ("symbolLoad: bad input (3)");
+            pastix_print_error( "symbolLoad: bad input (3)" );
             pastixSymbolExit (symbptr);
             return     (1);
         }
@@ -112,7 +112,7 @@ pastixSymbolLoad ( symbol_matrix_t * const symbptr,
         {
             pastix_int_t tmp;
             if ((versval > 0) && (intLoad (stream, &tmp) != 1)) {
-                errorPrint ("symbolLoad: bad input (4)");
+                pastix_print_error( "symbolLoad: bad input (4)" );
                 pastixSymbolExit (symbptr);
                 return     (1);
             }

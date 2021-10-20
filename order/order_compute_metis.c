@@ -68,7 +68,7 @@ pastixOrderComputeMetis( pastix_data_t  *pastix_data,
     int   rc;
 
     if ( sizeof(pastix_int_t) != sizeof(idx_t)) {
-        errorPrint("Inconsistent integer type between PaStiX and Metis\n");
+        pastix_print_error( "Inconsistent integer type between PaStiX and Metis\n" );
         return PASTIX_ERR_INTEGER_TYPE;
     }
 
@@ -93,7 +93,7 @@ pastixOrderComputeMetis( pastix_data_t  *pastix_data,
     rc = pastixOrderAlloc( ordemesh, graph->n, 0 );
     if (rc != PASTIX_SUCCESS )
     {
-        errorPrint("pastixOrderComputeMetis: Error during odering initialization\n");
+        pastix_print_error( "pastixOrderComputeMetis: Error during odering initialization\n" );
         return rc;
     }
     ordemesh->baseval = baseval;
@@ -103,7 +103,7 @@ pastixOrderComputeMetis( pastix_data_t  *pastix_data,
     assert( n == graph->n );
     if (rc != METIS_OK )
     {
-        errorPrint("pastixOrderComputeMetis: Invalid code returned by METIS_NodeND (%d)\n", rc);
+        pastix_print_error( "pastixOrderComputeMetis: Invalid code returned by METIS_NodeND (%d)\n", rc );
         return PASTIX_ERR_INTERNAL;
     }
 

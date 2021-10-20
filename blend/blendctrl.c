@@ -173,32 +173,32 @@ blendCtrlInit( pastix_data_t *pastix_data,
     /* Check parameters */
     if( ctrl == NULL )
     {
-        errorPrint("blendCtrlInit: Illegal ctrl parameter\n");
+        pastix_print_error( "blendCtrlInit: Illegal ctrl parameter\n" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if( procnum < 0 )
     {
-        errorPrint("blendCtrlInit: Illegal procnum parameter\n");
+        pastix_print_error( "blendCtrlInit: Illegal procnum parameter\n" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if( procnbr < 1 )
     {
-        errorPrint("blendCtrlInit: Illegal procnbr parameter\n");
+        pastix_print_error( "blendCtrlInit: Illegal procnbr parameter\n" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if( local_coresnbr < 1 )
     {
-        errorPrint("blendCtrlInit: Illegal local_coresnbr parameter\n");
+        pastix_print_error( "blendCtrlInit: Illegal local_coresnbr parameter\n" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if( local_thrdsnbr < 1 )
     {
-        errorPrint("blendCtrlInit: Illegal local_thrdsnbr parameter\n");
+        pastix_print_error( "blendCtrlInit: Illegal local_thrdsnbr parameter\n" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if( procnum >= procnbr )
     {
-        errorPrint("blendCtrlInit: Incompatible values of procnum(%d) and procnbr (%d)\n",
+        pastix_print_error( "blendCtrlInit: Incompatible values of procnum(%d) and procnbr (%d)\n",
                    (int) procnum, (int) procnbr);
         return PASTIX_ERR_BADPARAMETER;
     }
@@ -225,7 +225,7 @@ blendCtrlInit( pastix_data_t *pastix_data,
     ctrl->up_after_split = 0;
     if(ctrl->blcolmin > ctrl->blcolmax)
     {
-        errorPrint("Parameter error : blocksize max < blocksize min (cf. iparm.txt).");
+        pastix_print_error( "Parameter error : blocksize max < blocksize min (cf. iparm.txt)." );
         assert(ctrl->blcolmin <= ctrl->blcolmax);
     }
 

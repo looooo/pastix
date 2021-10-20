@@ -72,7 +72,7 @@ graphExit( pastix_graph_t *graph )
 {
     /* Parameter checks */
     if ( graph == NULL ) {
-        errorPrint("graphExit: graph pointer is NULL");
+        pastix_print_error( "graphExit: graph pointer is NULL" );
         return;
     }
     assert_graph( graph );
@@ -102,13 +102,13 @@ graphBase( pastix_graph_t *graph,
 {
     /* Parameter checks */
     if ( graph == NULL ) {
-        errorPrint("graphBase: graph pointer is NULL");
+        pastix_print_error( "graphBase: graph pointer is NULL" );
         return;
     }
     if ( (baseval != 0) &&
          (baseval != 1) )
     {
-        errorPrint("graphBase: baseval is incorrect, must be 0 or 1");
+        pastix_print_error( "graphBase: baseval is incorrect, must be 0 or 1" );
         return;
     }
 

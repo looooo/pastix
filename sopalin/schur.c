@@ -96,25 +96,25 @@ pastixGetSchur( const pastix_data_t *pastix_data,
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_getSchur: wrong pastix_data parameter");
+        pastix_print_error( "pastix_getSchur: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if (S == NULL) {
-        errorPrint("pastix_getSchur: S parameter");
+        pastix_print_error( "pastix_getSchur: S parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if (lds <= 0) {
-        errorPrint("pastix_getSchur: lds parameter");
+        pastix_print_error( "pastix_getSchur: lds parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
-        errorPrint("pastix_getSchur: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function");
+        pastix_print_error( "pastix_getSchur: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
 #if defined(PASTIX_WITH_MPI)
     if (pastix_data->inter_node_procnbr > 1) {
         if ( pastix_data->inter_node_procnum == 0 ) {
-            errorPrint("pastix_getSchur: Schur complement is not available yet with multiple MPI processes\n");
+            pastix_print_error( "pastix_getSchur: Schur complement is not available yet with multiple MPI processes\n" );
         }
         return -1;
     }

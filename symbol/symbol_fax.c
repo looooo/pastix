@@ -263,7 +263,7 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
                 while (((char *) (bloktax + bloknum) + tlndoft) > ((char *) (bloktax + blokmax)));
 
                 if ((bloktmp = (symbol_blok_t *) memRealloc (bloktax + baseval, (blokmax * sizeof (symbol_blok_t)))) == NULL) {
-                    errorPrint ("symbolFax: out of memory (2)");
+                    pastix_print_error( "symbolFax: out of memory (2)" );
                     memFree    (bloktab);
                     memFree    (cblktab);
                     memFree    (ctrbtab);
@@ -429,7 +429,7 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
 
 #ifdef FAX_DEBUG
                         if (tlokfre == ~0) {
-                            errorPrint ("symbolFax: internal error (1)");
+                            pastix_print_error( "symbolFax: internal error (1)" );
                             memFree    (bloktab);
                             memFree    (cblktab);
                             memFree    (ctrbtab);
@@ -508,7 +508,7 @@ pastixSymbolFax( symbol_matrix_t * const symbptr,
 
 #ifdef FAX_DEBUG
     if (pastixSymbolCheck (symbptr) != 0) {
-        errorPrint ("symbolFax: internal error (2)");
+        pastix_print_error( "symbolFax: internal error (2)" );
         pastixSymbolExit (symbptr);
         return     (1);
     }

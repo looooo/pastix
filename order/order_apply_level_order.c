@@ -105,30 +105,30 @@ pastixOrderApplyLevelOrder( pastix_order_t *order,
 
     /* Parameter checks */
     if ( order == NULL ) {
-        errorPrint ("pastixOrderApplyLevelOrder: invalid order pointer");
+        pastix_print_error( "pastixOrderApplyLevelOrder: invalid order pointer" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
     if ( (order->permtab == NULL) && (order->vertnbr > 0) ) {
-        errorPrint ("pastixOrderApplyLevelOrder: invalid order->permtab pointer");
+        pastix_print_error( "pastixOrderApplyLevelOrder: invalid order->permtab pointer" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( order->rangtab == NULL ) {
-        errorPrint ("pastixOrderApplyLevelOrder: invalid order->rangtab pointer");
+        pastix_print_error( "pastixOrderApplyLevelOrder: invalid order->rangtab pointer" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( (order->treetab == NULL) && (order->cblknbr > 0) ) {
-        errorPrint ("pastixOrderApplyLevelOrder: invalid order->treetab pointer");
+        pastix_print_error( "pastixOrderApplyLevelOrder: invalid order->treetab pointer" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
     if ( order->cblknbr < 0 ) {
-        errorPrint ("pastixOrderApplyLevelOrder: invalid nunber of column blocks");
+        pastix_print_error( "pastixOrderApplyLevelOrder: invalid nunber of column blocks" );
         return PASTIX_ERR_BADPARAMETER;
     }
     baseval = order->baseval;
     if ( baseval < 0 ) {
-        errorPrint ("pastixOrderApplyLevelOrder: invalid vertex node base number");
+        pastix_print_error( "pastixOrderApplyLevelOrder: invalid vertex node base number" );
         return PASTIX_ERR_BADPARAMETER;
     }
 

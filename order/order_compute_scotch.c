@@ -49,7 +49,7 @@ ocs_graph_check( const SCOTCH_Graph *graph,
     Clock timer;
     clockStart(timer);
     if ( SCOTCH_graphCheck( graph ) ) {
-        errorPrint( "pastix: graphCheck" );
+        pastix_print_error( "pastix: graphCheck" );
     }
     clockStop(timer);
     pastix_print( procnum, 0, "SCOTCH_graphCheck done in %lf second\n", clockVal(timer) );
@@ -115,7 +115,7 @@ ocs_graph_init( SCOTCH_Graph   *scotchgraph,
                             rowptr,         /* Edge array         */
                             NULL) )
     {
-        errorPrint( "pastix : SCOTCH_graphBuild" );
+        pastix_print_error( "pastix : SCOTCH_graphBuild" );
     }
 
     /* Check the generated Scotch graph structure */
@@ -347,7 +347,7 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
 
     /* Check integer compatibility */
     if ( sizeof(pastix_int_t) != sizeof(SCOTCH_Num) ) {
-        errorPrint( "pastixOrderComputeScotch: Inconsistent integer type between Pastix and Scotch\n");
+        pastix_print_error( "pastixOrderComputeScotch: Inconsistent integer type between Pastix and Scotch\n" );
         return PASTIX_ERR_INTEGER_TYPE;
     }
 

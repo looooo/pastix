@@ -109,14 +109,14 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
      * Check parameters
      */
     if ( pastix_data == NULL ) {
-        errorPrint( "pastix_subtask_symbfact: wrong pastix_data parameter" );
+        pastix_print_error( "pastix_subtask_symbfact: wrong pastix_data parameter"  );
         return PASTIX_ERR_BADPARAMETER;
     }
     iparm = pastix_data->iparm;
     dparm = pastix_data->dparm;
 
     if ( !( pastix_data->steps & STEP_ORDERING ) ) {
-        errorPrint( "pastix_subtask_symbfact: pastix_subtask_order() has to be called before "
+        pastix_print_error( "pastix_subtask_symbfact: pastix_subtask_order() has to be called before "
                     "calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
@@ -126,12 +126,12 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     ordemesh = pastix_data->ordemesh;
 
     if ( graph == NULL ) {
-        errorPrint( "pastix_subtask_symbfact: the pastix_data->graph field has not been "
+        pastix_print_error( "pastix_subtask_symbfact: the pastix_data->graph field has not been "
                     "initialized, pastix_subtask_order should be called first" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( ordemesh == NULL ) {
-        errorPrint( "pastix_subtask_symbfact: the pastix_data->ordemesh field has not been "
+        pastix_print_error( "pastix_subtask_symbfact: the pastix_data->ordemesh field has not been "
                     "initialized, pastix_subtask_order should be called first" );
         return PASTIX_ERR_BADPARAMETER;
     }
@@ -262,12 +262,12 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
 
 #if !defined( NDEBUG )
     if ( pastixOrderCheck( ordemesh ) != 0 ) {
-        errorPrint( "pastix_subtask_symbfact: pastixOrderCheck on final ordering after symbolic "
+        pastix_print_error( "pastix_subtask_symbfact: pastixOrderCheck on final ordering after symbolic "
                     "factorization failed !!!" );
         assert( 0 );
     }
     if ( pastixSymbolCheck( pastix_data->symbmtx ) != 0 ) {
-        errorPrint( "pastix_subtask_symbfact: symbolCheck on final symbol matrix failed !!!" );
+        pastix_print_error( "pastix_subtask_symbfact: symbolCheck on final symbol matrix failed !!!"  );
         assert( 0 );
     }
 #endif

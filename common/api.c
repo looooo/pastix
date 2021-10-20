@@ -197,7 +197,7 @@ pastix_fname( const char *dirname,
 
     rc = asprintf( &fullname, "%s/%s", dirname, filename );
     if ( rc <= 0 ) {
-        errorPrint("pastix_fname: Couldn't not generate the tempory filename for the output file");
+        pastix_print_error( "pastix_fname: Couldn't not generate the tempory filename for the output file" );
         return NULL;
     }
 
@@ -250,7 +250,7 @@ pastix_fopenw( const char *dirname,
     if ( NULL == f )
     {
         perror( "pastix_fopenw" );
-        errorPrint( "pastix_fopenw: Couldn't open file: %s with mode %s\n",
+        pastix_print_error( "pastix_fopenw: Couldn't open file: %s with mode %s\n",
                     filename, mode );
         return NULL;
     }
@@ -283,7 +283,7 @@ pastix_fopen( const char *filename )
     if (NULL == f)
     {
         perror("pastix_fopen");
-        errorPrint( "pastix_fopen: Couldn't open file: %s with mode r\n",
+        pastix_print_error( "pastix_fopen: Couldn't open file: %s with mode r\n",
                     filename );
         return NULL;
     }
@@ -1000,7 +1000,7 @@ pastixDumpParam( const pastix_data_t *pastix_data )
     rc  = asprintf( &fullname, "idparam_%d.csv", lidx );
 
     if ( rc <= 0 ) {
-        errorPrint("pastixDumpParam: Couldn't not generate the filename for the output file");
+        pastix_print_error( "pastixDumpParam: Couldn't not generate the filename for the output file" );
         return;
     }
 

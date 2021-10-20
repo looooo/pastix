@@ -46,7 +46,7 @@ ocpts_graph_check( const SCOTCH_Dgraph *graph,
     Clock timer;
     clockStart(timer);
     if ( SCOTCH_dgraphCheck( graph ) ) {
-        errorPrint( "pastix: dgraphCheck" );
+        pastix_print_error( "pastix: dgraphCheck" );
     }
     clockStop(timer);
     pastix_print( procnum, 0, "SCOTCH_dgraphCheck done in %lf second\n", clockVal(timer) );
@@ -119,7 +119,7 @@ ocpts_graph_init( SCOTCH_Dgraph  *scotchgraph,
                              NULL,         /* Ghost edge array (if any); not const */
                              NULL ) )
     {
-        errorPrint( "pastix : SCOTCH_dgraphBuild\n" );
+        pastix_print_error( "pastix : SCOTCH_dgraphBuild\n" );
     }
 
     /* Check the generated Scotch graph structure */
@@ -221,7 +221,7 @@ ocpts_compute_graph_ordering( pastix_data_t  *pastix_data,
     /* Compute distributed ordering */
     if ( SCOTCH_dgraphOrderCompute( scotchgraph, &ordedat, &stratdat ) )
     {
-        pastix_print_error( "pastix : SCOTCH_dgraphOrderCompute" );
+        pastix_print_error( "pastix : SCOTCH_dgraphOrderCompute"  );
     }
 
     SCOTCH_stratExit( &stratdat );
@@ -235,7 +235,7 @@ ocpts_compute_graph_ordering( pastix_data_t  *pastix_data,
                                   (SCOTCH_Num *) ordemesh->rangtab,
                                   (SCOTCH_Num *) ordemesh->treetab) )
     {
-        pastix_print_error( "pastix : SCOTCH_dgraphCorderInit" );
+        pastix_print_error( "pastix : SCOTCH_dgraphCorderInit"  );
     }
 
     /* Gather distributed ordering on node 0 */
@@ -311,7 +311,7 @@ pastixOrderComputePTScotch( pastix_data_t  *pastix_data,
 
     /* Check integer compatibility */
     if ( sizeof(pastix_int_t) != sizeof(SCOTCH_Num) ) {
-        errorPrint("pastixOrderComputePTScotch: Inconsistent integer type between Pastix and PT-Scotch\n");
+        pastix_print_error( "pastixOrderComputePTScotch: Inconsistent integer type between Pastix and PT-Scotch\n" );
         return PASTIX_ERR_INTEGER_TYPE;
     }
 

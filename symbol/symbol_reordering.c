@@ -143,7 +143,7 @@ hamming_distance( pastix_int_t **vectors,
             }
         }
         else {
-            errorPrint("reordering: fatal error occured");
+            pastix_print_error( "reordering: fatal error occured" );
         }
 
         /* The computation is stopped if sum overlapped a given limit (stop criterion) */

@@ -1219,7 +1219,7 @@ core_zrradd_qr( core_zrrqr_cp_t rrqrfct,
     if ( ((M1 + offx) > M2) ||
          ((N1 + offy) > N2) )
     {
-        errorPrint("Dimensions are not correct");
+        pastix_print_error( "Dimensions are not correct" );
         assert(0 /* Incorrect dimensions */);
         return total_flops;
     }
