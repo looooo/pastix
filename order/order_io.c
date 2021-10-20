@@ -161,7 +161,6 @@ int pastixOrderLoad( const pastix_data_t *pastix_data,
         if (rc != PASTIX_SUCCESS)
         {
             errorPrint("test: cannot load order");
-            EXIT(MOD_SOPALIN, PASTIX_ERR_INTERNAL);
         }
         fclose(stream);
     }

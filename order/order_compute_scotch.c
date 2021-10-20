@@ -50,7 +50,6 @@ ocs_graph_check( const SCOTCH_Graph *graph,
     clockStart(timer);
     if ( SCOTCH_graphCheck( graph ) ) {
         errorPrint( "pastix: graphCheck" );
-        EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
     clockStop(timer);
     pastix_print( procnum, 0, "SCOTCH_graphCheck done in %lf second\n", clockVal(timer) );
@@ -117,7 +116,6 @@ ocs_graph_init( SCOTCH_Graph   *scotchgraph,
                             NULL) )
     {
         errorPrint( "pastix : SCOTCH_graphBuild" );
-        EXIT(MOD_SOPALIN,PASTIX_ERR_INTERNAL);
     }
 
     /* Check the generated Scotch graph structure */

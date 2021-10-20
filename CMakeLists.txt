@@ -240,8 +240,6 @@ option(PASTIX_DEBUG_LR_NANCHECK
   "Debug the lowrank kernels (nancheck)" OFF)
 option(PASTIX_DEBUG_GMRES
   "Debug the gmres refinment by enabling the computation of the true resiudal at each iteration" OFF)
-option(PASTIX_DEBUG_EXIT_ON_SIGSEGV
-  "Generate a segfault on exit calls to trakc in gdb" OFF)
 cmake_dependent_option(PASTIX_DEBUG_MPI
   "Dump all the MPI messages" OFF
   "PASTIX_WITH_MPI" OFF)

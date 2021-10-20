@@ -86,8 +86,6 @@ core_zpotf2sp( pastix_int_t        n,
         if ( creal(*Akk) < 0.0 )
         {
             errorPrint("Negative diagonal term\n");
-            assert(0);
-            EXIT(MOD_SOPALIN, PASTIX_ERR_INTERNAL);
         }
 
         *Akk = csqrt(*Akk);

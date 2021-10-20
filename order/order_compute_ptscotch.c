@@ -47,7 +47,6 @@ ocpts_graph_check( const SCOTCH_Dgraph *graph,
     clockStart(timer);
     if ( SCOTCH_dgraphCheck( graph ) ) {
         errorPrint( "pastix: dgraphCheck" );
-        EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
     clockStop(timer);
     pastix_print( procnum, 0, "SCOTCH_dgraphCheck done in %lf second\n", clockVal(timer) );
@@ -121,7 +120,6 @@ ocpts_graph_init( SCOTCH_Dgraph  *scotchgraph,
                              NULL ) )
     {
         errorPrint( "pastix : SCOTCH_dgraphBuild\n" );
-        EXIT(MOD_SOPALIN,PASTIX_ERR_INTERNAL);
     }
 
     /* Check the generated Scotch graph structure */
@@ -178,6 +176,7 @@ ocpts_graph_exit( SCOTCH_Dgraph *scotchgraph,
         memFree_null( weights );
     }
 
+    /* SCOTCH_dgraphExit( scotchgraph ); */
     return;
 }
 
@@ -217,14 +216,12 @@ ocpts_compute_graph_ordering( pastix_data_t  *pastix_data,
     if ( SCOTCH_dgraphOrderInit(scotchgraph, &ordedat) )
     {
         pastix_print_error("pastix : SCOTCH_dgraphOrderInit\n");
-        EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
 
     /* Compute distributed ordering */
     if ( SCOTCH_dgraphOrderCompute( scotchgraph, &ordedat, &stratdat ) )
     {
         pastix_print_error( "pastix : SCOTCH_dgraphOrderCompute" );
-        EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
 
     SCOTCH_stratExit( &stratdat );
@@ -239,7 +236,6 @@ ocpts_compute_graph_ordering( pastix_data_t  *pastix_data,
                                   (SCOTCH_Num *) ordemesh->treetab) )
     {
         pastix_print_error( "pastix : SCOTCH_dgraphCorderInit" );
-        EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
 
     /* Gather distributed ordering on node 0 */

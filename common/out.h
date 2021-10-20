@@ -281,6 +281,7 @@ pastix_print_error( const char *fmt, ... )
     vfprintf(stderr, fmt, arglist);
     va_end(arglist);
     assert(0);
+    exit(1);
 }
 
 static inline void
