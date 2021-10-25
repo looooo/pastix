@@ -387,15 +387,13 @@ graphSpm2Graph( pastix_graph_t   *graph,
     spmExit( graph );
 
     /* Copy existing datas */
-    spm2 = spmCopy(spm);
+    spm2 = spmCopy( spm );
     memcpy( graph, spm2, sizeof(pastix_graph_t) );
 
-    /* A graph does not contain values */
-    if( spm->flttype != SpmPattern ) {
-        assert( graph->values != NULL );
-
-        graph->flttype = SpmPattern;
-        memFree_null(graph->values);
+    /* Enforce Pattern type to the graph */
+    graph->flttype = SpmPattern;
+    if ( graph->values ) {
+        free( graph->values );
     }
 
     /* Make sure the graph is in CSC format */
