@@ -36,39 +36,33 @@ graph_isolate_assign_ptr( pastix_int_t **newptr,
 
 /**
  * @brief If isolate_n == n, everything needs to be isolated.
- *        That means that all the old arrays need to be copied
- *        in the new ones.
+ *        That means that we just need an id permuation.
  */
 static inline void
-graph_isolate_everything(       pastix_int_t   n,
-                                pastix_int_t   nnz,
-                          const pastix_int_t  *oldcol,
-                          const pastix_int_t  *oldrow,
-                                pastix_int_t **newcol,
-                                pastix_int_t **newrow,
-                                pastix_int_t **newperm,
-                                pastix_int_t **newinvp )
+graph_isolate_everything( pastix_int_t   n,
+                          pastix_int_t **newperm,
+                          pastix_int_t **newinvp )
 {
     pastix_int_t i;
 
-    if ( newcol != NULL ) {
-        MALLOC_INTERN( *newcol, (n+1), pastix_int_t );
-        memcpy( *newcol, oldcol, (n+1) * sizeof(pastix_int_t) );
-    }
-    if( newrow != NULL ) {
-        MALLOC_INTERN( *newrow, nnz, pastix_int_t );
-        memcpy( *newrow, oldrow, nnz * sizeof(pastix_int_t) );
-    }
     if( newperm != NULL ) {
+        pastix_int_t *perm;
+
         MALLOC_INTERN( *newperm, n, pastix_int_t );
-        for (i = 0; i < n; i++) {
-            (*newperm)[i] = i;
+
+        perm = *newperm;
+        for (i = 0; i < n; i++, perm++) {
+            *perm = i;
         }
     }
     if( newinvp != NULL ) {
+        pastix_int_t *invp;
+
         MALLOC_INTERN( *newinvp, n, pastix_int_t );
-        for (i = 0; i < n; i++) {
-            (*newinvp)[i] = i;
+
+        invp = *newinvp;
+        for (i = 0; i < n; i++, invp++) {
+            *invp = i;
         }
     }
 }
@@ -90,7 +84,7 @@ graph_isolate_permutations(       pastix_int_t  n,
     /* First, fill inverse permutations array */
     invp_nonisol = invptab;
     invp_isolate = invptab + (n - isolate_n);
-    for (i = 0; i <n; i++)
+    for (i=0; i<n; i++)
     {
         if ( ((invp_isolate - invptab) <  n) &&
              (i == (*isolate_list - baseval)) )
@@ -124,77 +118,106 @@ graph_isolate_permutations(       pastix_int_t  n,
 }
 
 /**
- * @brief Init and fill the new column array.
+ * @brief Compress the local copy of the graph with only the kept unknowns.
  */
 static inline void
-graph_isolate_init_newcol(       pastix_int_t  n,
-                           const pastix_int_t *colptr,
-                           const pastix_int_t *rowptr,
-                                 pastix_int_t  new_n,
-                                 pastix_int_t *newcol,
-                           const pastix_int_t *permtab,
-                                 pastix_int_t  baseval )
+graph_isolate_compress( const pastix_graph_t *oldgraph,
+                        pastix_graph_t       *newgraph,
+                        pastix_int_t          new_gn,
+                        const pastix_int_t   *permtab )
 {
-    pastix_int_t  i, j, ip;
+    pastix_int_t *newcol  = newgraph->colptr;
+    pastix_int_t *oldcol  = oldgraph->colptr;
+    pastix_int_t *newrow  = newgraph->rowptr;
+    pastix_int_t *oldrow  = oldgraph->rowptr;
+    pastix_int_t *newdof  = newgraph->dofs;
+    pastix_int_t *olddof  = oldgraph->dofs;
+    pastix_int_t *newl2g  = newgraph->loc2glob;
+    pastix_int_t *oldl2g  = oldgraph->loc2glob;
+    pastix_int_t  baseval = oldgraph->baseval;
 
-    newcol[0] = baseval;
-    for ( i = 0; i < n; i++, colptr++ )
+    pastix_int_t  i, j, k, ip, jp;
+    pastix_int_t  nbrows;
+    pastix_int_t  n = oldgraph->n;
+
+    /* Make sure the glob2loc is destroyed */
+    if ( newgraph->glob2loc ) {
+        free( newgraph->glob2loc );
+        newgraph->glob2loc = NULL;
+    }
+
+    /* Initial values */
+    *newcol = baseval;
+    if ( oldgraph->dofs ) {
+        *newdof = baseval;
+    }
+
+    for ( i=0; i<n; i++, oldcol++, olddof++, oldl2g++ )
     {
-        ip = permtab[i];
-        if( ip >= new_n ) {
-            rowptr += (colptr[1] - colptr[0]);
+        /* Get the new global index after permutation */
+        k  = oldgraph->loc2glob ? *oldl2g : i;
+        ip = permtab[k];
+
+        /* The vertex is isolated, we remove the full column */
+        if( ip >= new_gn ) {
+            oldrow += (oldcol[1] - oldcol[0]);
             continue;
         }
 
-        for( j = colptr[0]; j < colptr[1]; j++, rowptr++ )
+        nbrows = 0;
+        for( k=oldcol[0]; k<oldcol[1]; k++, oldrow++ )
         {
-            /* Count edges in each column of the new graph */
-            if( permtab[ *rowptr - baseval ] < new_n ) {
-                newcol[ip+1]++;
+            j  = *oldrow - baseval;
+            jp = permtab[j];
+
+            /* Copy only edges that are kept */
+            if( jp < new_gn ) {
+                *newrow = jp + baseval;
+                newrow++;
+                nbrows++;
             }
+        }
+
+        /* Update the new colptr */
+        newcol[1] = newcol[0] + nbrows;
+        newcol++;
+
+        /* Update the new loc2glob if any */
+        if ( oldgraph->loc2glob ) {
+            *newl2g = ip;
+            newl2g++;
+        }
+
+        /* Update the new dofs if any */
+        if ( oldgraph->dofs ) {
+            newdof[1] = newdof[0] + (olddof[1] - olddof[0]);
+            newdof++;
         }
     }
 
-    for (i = 0; i < new_n; i++)
+    /* Update sizes */
     {
-        newcol[i+1] += newcol[i];
+        pastix_int_t new_n, new_nnz;
+        new_n   = newcol - newgraph->colptr;
+        new_nnz = *newcol - baseval;
+
+        assert( new_n <= new_gn );
+        assert( new_nnz <= oldgraph->nnz );
+
+        newgraph->n   = new_n;
+        newgraph->nnz = new_nnz;
+
+        graphUpdateComputedFields( newgraph );
     }
-}
 
-/**
- * @brief Init and fill the new row array.
- */
-static inline void
-graph_isolate_init_newrow(       pastix_int_t  n,
-                           const pastix_int_t *colptr,
-                           const pastix_int_t *rowptr,
-                                 pastix_int_t  new_n,
-                           const pastix_int_t *newcol,
-                                 pastix_int_t *newrow,
-                           const pastix_int_t *permtab,
-                                 pastix_int_t  baseval )
-{
-    pastix_int_t  i, j, ip, index, row;
-
-    for( i = 0; i < n; i++, colptr++ )
-    {
-        ip = permtab[i];
-        if( ip >= new_n ) {
-            rowptr += (colptr[1] - colptr[0]);
-            continue;
-        }
-
-        index = newcol[ip] - baseval;
-        for( j = colptr[0]; j < colptr[1]; j++, rowptr++ )
-        {
-            row = permtab[ *rowptr-baseval ];
-            /* Count edges in each column of the new graph */
-            if( row < new_n ) {
-                newrow[index] = row + baseval;
-                index++;
-            }
-        }
-        assert( index == (newcol[ip+1]-baseval) );
+    /* Realloc what needs to be */
+    newgraph->colptr = realloc( newgraph->colptr, (newgraph->n+1) * sizeof(pastix_int_t) );
+    newgraph->rowptr = realloc( newgraph->rowptr, newgraph->nnz * sizeof(pastix_int_t) );
+    if ( newgraph->loc2glob ) {
+        newgraph->loc2glob = realloc( newgraph->loc2glob, newgraph->n * sizeof(pastix_int_t) );
+    }
+    if ( newgraph->dofs ) {
+        newgraph->dofs = realloc( newgraph->dofs, (newgraph->gN+1) * sizeof(pastix_int_t) );
     }
 }
 
@@ -261,74 +284,56 @@ graph_isolate_init_newrow(       pastix_int_t  n,
  * @retval PASTIX_ERR_BADPARAMETER if incorrect parameters are given.
  *
  *******************************************************************************/
-int graphIsolate(       pastix_int_t   n,
-                  const pastix_int_t  *colptr,
-                  const pastix_int_t  *rowptr,
-                        pastix_int_t   isolate_n,
-                        pastix_int_t  *isolate_list,
-                        pastix_int_t **new_colptr,
-                        pastix_int_t **new_rowptr,
-                        pastix_int_t **new_perm,
-                        pastix_int_t **new_invp )
+int graphIsolate( const pastix_graph_t *ingraph,
+                  pastix_graph_t       *outgraph,
+                  pastix_int_t          isolate_n,
+                  pastix_int_t         *isolate_list,
+                  pastix_int_t        **new_perm,
+                  pastix_int_t        **new_invp )
 {
-    pastix_int_t *tmpcolptr = NULL;
-    pastix_int_t *tmprowptr = NULL;
-    pastix_int_t *tmpperm   = NULL;
-    pastix_int_t *tmpinvp   = NULL;
-    pastix_int_t  baseval   = colptr[0];
-    pastix_int_t  nnz       = colptr[n] - baseval;
-    pastix_int_t  new_n     = n - isolate_n;
-    pastix_int_t  new_nnz;
+    pastix_int_t *tmpperm = NULL;
+    pastix_int_t *tmpinvp = NULL;
+    pastix_int_t  baseval = ingraph->baseval;
+    pastix_int_t  gN      = ingraph->gN;
+    pastix_int_t  new_n   = gN - isolate_n;
 
-    if ( (isolate_n > n)  || (isolate_n < 0) ) {
-        errorPrintW("Number of columns to isolate greater than the columns in the GRAPH matrix\n");
+    if ( (isolate_n > gN)  || (isolate_n < 0) ) {
+        errorPrintW("Number of columns to isolate greater than the columns in the graph matrix\n");
         return PASTIX_ERR_BADPARAMETER;
     }
 
     /* For the moment, make sure the graph is 0 based */
     assert( baseval == 0 );
 
+    /* We isolate the whole graph, so the new graph is empty */
+    if ( isolate_n == gN )
+    {
+        graphInitEmpty( outgraph, ingraph->comm );
+        graph_isolate_everything( gN, new_perm, new_invp );
+        return PASTIX_SUCCESS;
+    }
+
+    graphCopy( outgraph, ingraph );
+
     /* Quick Return */
-    if (isolate_n == 0) {
-        if (new_colptr != NULL) *new_colptr = (pastix_int_t*)colptr;
-        if (new_rowptr != NULL) *new_rowptr = (pastix_int_t*)rowptr;
+    if ( isolate_n == 0 ) {
+        pastix_print_warning( "graphIsolate: the graph is beeing duplicated to isolate no unknowns, are you sure you wanted to do that ?\n" );
         return PASTIX_SUCCESS;
     }
 
-    /* We isolate the whole graph */
-    if (isolate_n == n) {
-        graph_isolate_everything( n, nnz, colptr, rowptr,
-                                  new_colptr, new_rowptr, new_perm, new_invp );
-        return PASTIX_SUCCESS;
-    }
-
-    /* Sort the lost of vertices */
-    intSort1asc1(isolate_list, isolate_n);
+    /* Sort the list of vertices */
+    intSort1asc1( isolate_list, isolate_n );
 
     /* Init invp and perm array */
-    MALLOC_INTERN(tmpinvp, n, pastix_int_t);
-    MALLOC_INTERN(tmpperm, n, pastix_int_t);
-    graph_isolate_permutations( n, isolate_n, isolate_list,
+    MALLOC_INTERN( tmpinvp, gN, pastix_int_t );
+    MALLOC_INTERN( tmpperm, gN, pastix_int_t );
+    graph_isolate_permutations( gN, isolate_n, isolate_list,
                                 tmpperm, tmpinvp, baseval );
 
-    /* Create the new_colptr array */
-    MALLOC_INTERN(tmpcolptr, new_n + 1, pastix_int_t);
-    memset(tmpcolptr, 0, (new_n + 1)*sizeof(pastix_int_t));
-    graph_isolate_init_newcol( n, colptr, rowptr,
-                               new_n, tmpcolptr, tmpperm, baseval );
+    /* Create the new graph */
+    graph_isolate_compress( ingraph, outgraph, new_n, tmpperm );
 
-    new_nnz = tmpcolptr[new_n] - tmpcolptr[0];
-
-    /* Create the new rowptr array */
-    if ( new_nnz != 0 ) {
-        MALLOC_INTERN(tmprowptr, new_nnz, pastix_int_t);
-        graph_isolate_init_newrow( n, colptr, rowptr,
-                                   new_n, tmpcolptr, tmprowptr,
-                                   tmpperm, baseval );
-    }
-
-    graph_isolate_assign_ptr( new_colptr, tmpcolptr );
-    graph_isolate_assign_ptr( new_rowptr, tmprowptr );
+    /* Backup the permutation is asked by the caller */
     graph_isolate_assign_ptr( new_perm, tmpperm );
     graph_isolate_assign_ptr( new_invp, tmpinvp );
 

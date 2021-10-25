@@ -73,15 +73,12 @@ int graphScatter( pastix_graph_t    **graph,
                   PASTIX_Comm         comm );
 int graphGather ( pastix_graph_t **graph, int root );
 
-int  graphIsolate   (       pastix_int_t    n,
-                      const pastix_int_t   *colptr,
-                      const pastix_int_t   *rows,
-                            pastix_int_t    isolate_n,
-                            pastix_int_t   *isolate_list,
-                            pastix_int_t   **new_colptr,
-                            pastix_int_t   **new_rows,
-                            pastix_int_t   **new_perm,
-                            pastix_int_t   **new_invp );
+int  graphIsolate   ( const pastix_graph_t *ingraph,
+                      pastix_graph_t       *outgraph,
+                      pastix_int_t          isolate_n,
+                      pastix_int_t         *isolate_list,
+                      pastix_int_t        **new_perm,
+                      pastix_int_t        **new_invp );
 
 int  graphApplyPerm ( const pastix_graph_t *graphA,
                       const pastix_int_t   *perm,
