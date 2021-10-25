@@ -7,7 +7,7 @@
  * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
@@ -45,12 +45,12 @@ ocpts_graph_check( const SCOTCH_Dgraph *graph,
 #if defined(PASTIX_DEBUG_ORDERING)
     Clock timer;
     clockStart(timer);
-    if ( SCOTCH_dgraphCheck(graph) ) {
-        errorPrint("pastix: dgraphCheck");
+    if ( SCOTCH_dgraphCheck( graph ) ) {
+        errorPrint( "pastix: dgraphCheck" );
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
     clockStop(timer);
-    pastix_print( 0, 0, "[%d] SCOTCH_dgraphCheck done in %lf second\n", procnum, clockVal(timer) );
+    pastix_print( procnum, 0, "SCOTCH_dgraphCheck done in %lf second\n", clockVal(timer) );
 #else
     (void)graph;
     (void)procnum;
@@ -86,8 +86,9 @@ ocpts_graph_init( SCOTCH_Dgraph  *scotchgraph,
     pastix_int_t *weights;
     pastix_int_t  n, nnz, baseval;
 
-    /* Make sure graph is 0-base */
+    /* Make sure graph is 0-based */
     graphBase( graph, 0 );
+
     n       = graph->n;
     nnz     = graph->nnz;
     colptr  = graph->colptr;
@@ -119,8 +120,8 @@ ocpts_graph_init( SCOTCH_Dgraph  *scotchgraph,
                              NULL,         /* Ghost edge array (if any); not const */
                              NULL ) )
     {
-        errorPrint("pastix : SCOTCH_dgraphBuild\n");
-        EXIT(MOD_SOPALIN,INTERNAL_ERR);
+        errorPrint( "pastix : SCOTCH_dgraphBuild\n" );
+        EXIT(MOD_SOPALIN,PASTIX_ERR_INTERNAL);
     }
 
     /* Check the generated Scotch graph structure */
@@ -178,6 +179,7 @@ ocpts_graph_exit( SCOTCH_Dgraph *scotchgraph,
     }
 
     SCOTCH_dgraphExit( scotchgraph );
+
     return;
 }
 
@@ -319,9 +321,9 @@ pastixOrderComputePTScotch( pastix_data_t  *pastix_data,
         return PASTIX_ERR_INTEGER_TYPE;
     }
 
-     /* Enable this define to fix the SCOTCH random generator */
+    /* Enable this define to fix the SCOTCH random generator */
 #if defined(PASTIX_ORDERING_FIX_SEED) && defined(PASTIX_ORDERING_SCOTCH_MT)
-    SCOTCH_randomSeed( (SCOTCH_Num) pastix_data->id );
+    SCOTCH_randomSeed( (SCOTCH_Num)(pastix_data->id) );
 #endif
 
     /* Build The Scotch Dgraph */
