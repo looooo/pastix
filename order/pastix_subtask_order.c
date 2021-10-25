@@ -98,16 +98,13 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
                       const spmatrix_t     *spm,
                             pastix_order_t *myorder )
 {
-    pastix_int_t    schur_n;
-    pastix_int_t   *schur_colptr;
-    pastix_int_t   *schur_rows;
+    pastix_int_t    schur_gN;
     pastix_int_t   *schur_perm = NULL;
-    pastix_int_t    zeros_n;
-    pastix_int_t   *zeros_colptr;
-    pastix_int_t   *zeros_rows;
     pastix_int_t   *zeros_perm = NULL;
     pastix_int_t   *iparm;
-    pastix_graph_t  subgraph;
+    pastix_graph_t *subgraph;
+    pastix_graph_t  schurgraph;
+    pastix_graph_t  zerosgraph;
     pastix_graph_t *graph;
     pastix_order_t *ordemesh;
     Clock           timer;
@@ -116,6 +113,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     int             retval_rcv;
     int             do_schur = 1;
     int             do_zeros = 1;
+    int             subgraph_is_a_copy = 0;
     int             spmbase;
 
     /*
@@ -191,17 +189,10 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      * coefficients
      */
     graphPrepare( pastix_data, spm, &(pastix_data->graph) );
-    graphBase( pastix_data->graph, 0 );
     graph   = pastix_data->graph;
     spmbase = spmFindBase( spm );
 
-    /*
-     * graphIsolate works only on gathered graph,
-     * so let's do it once for all
-     */
-    if ( do_schur || do_zeros ) {
-        graphGather( &graph, -1 );
-    }
+    graphBase( graph, 0 );
 
     /*
      * Isolate Shur elements
@@ -219,23 +210,20 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             }
         }
 
-        graphIsolate( graph->n,
-                      graph->colptr,
-                      graph->rowptr,
+        graphIsolate( graph, &schurgraph,
                       pastix_data->schur_n,
                       pastix_data->schur_list,
-                      &schur_colptr,
-                      &schur_rows,
                       &schur_perm,
                       NULL );
 
-        schur_n = graph->n - pastix_data->schur_n;
+        subgraph_is_a_copy = 1;
     }
     else {
-        schur_n      = graph->n;
-        schur_colptr = graph->colptr;
-        schur_rows   = graph->rowptr;
+        memcpy( &schurgraph, graph, sizeof( pastix_graph_t ) );
     }
+
+    /* Backup only the needed part */
+    schur_gN = schurgraph.gN;
 
     /*
      * Isolate diagonal elements close to 0.
@@ -253,51 +241,41 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             }
         }
 
-        graphIsolate( schur_n,
-                      schur_colptr,
-                      schur_rows,
+        graphIsolate( &schurgraph, &zerosgraph,
                       pastix_data->zeros_n,
                       pastix_data->zeros_list,
-                      &zeros_colptr,
-                      &zeros_rows,
                       &zeros_perm,
                       NULL );
 
-        zeros_n = schur_n - pastix_data->zeros_n;
+        if ( subgraph_is_a_copy ) {
+            /* We do not longer require arrays in the schur subgraph */
+            graphExit( &schurgraph );
+        }
+        subgraph_is_a_copy = 1;
     }
     else {
-        zeros_n      = schur_n;
-        zeros_colptr = schur_colptr;
-        zeros_rows   = schur_rows;
+        memcpy( &zerosgraph, &schurgraph, sizeof( pastix_graph_t ) );
     }
+    subgraph = &zerosgraph;
 
     if ( iparm[IPARM_VERBOSE] > PastixVerboseYes ) {
-        pastix_print(procnum, 0, "%s", OUT_ORDER_INIT);
+        pastix_print( procnum, 0, "%s", OUT_ORDER_INIT );
     }
 
     clockStart(timer);
 
-    memcpy( &subgraph, graph, sizeof(pastix_graph_t) );
-    subgraph.n      = zeros_n;
-    subgraph.colptr = zeros_colptr;
-    subgraph.rowptr = zeros_rows;
-
     /* Select the ordering method chosen by the user */
-    switch (iparm[IPARM_ORDERING]) {
+    switch ( iparm[IPARM_ORDERING] ) {
         /*
          * Scotch Ordering
          */
     case PastixOrderScotch:
-        if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
-            pastix_print(procnum, 0, OUT_ORDER_METHOD, "Scotch" );
+        if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+            pastix_print( procnum, 0, OUT_ORDER_METHOD, "Scotch" );
         }
 #if defined(PASTIX_ORDERING_SCOTCH)
-        if ( graphGather( &graph, -1 ) ) {
-            assert( (do_schur == 0) && (do_zeros == 0) );
-            pastix_data->graph = graph;
-            memcpy( &subgraph, graph, sizeof(pastix_graph_t) );
-        }
-        retval = pastixOrderComputeScotch( pastix_data, &subgraph );
+        graphGather( &subgraph, -1 );
+        retval = pastixOrderComputeScotch( pastix_data, subgraph );
 #else
         errorPrint("pastix_subtask_order: Ordering with Scotch requires to enable -DPASTIX_ORDERING_SCOTCH option");
         retval = PASTIX_ERR_BADPARAMETER;
@@ -312,11 +290,8 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "PT-Scotch" );
         }
 #if defined(PASTIX_ORDERING_PTSCOTCH)
-        if ( graphScatter( &graph, -1, NULL, -1, pastix_data->pastix_comm ) ) {
-            pastix_data->graph = graph;
-            memcpy( &subgraph, graph, sizeof(pastix_graph_t) );
-        }
-        retval = pastixOrderComputePTScotch( pastix_data, &subgraph );
+        graphScatter( &subgraph, -1, NULL, -1, pastix_data->pastix_comm );
+        retval = pastixOrderComputePTScotch( pastix_data, subgraph );
 #else
         errorPrint("pastix_subtask_order: Ordering with PT-Scotch requires to enable -DPASTIX_ORDERING_PTSCOTCH option");
         retval = PASTIX_ERR_BADPARAMETER;
@@ -331,12 +306,8 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "Metis" );
         }
 #if defined(PASTIX_ORDERING_METIS)
-        if ( graphGather( &graph, -1 ) ) {
-            assert( (do_schur == 0) && (do_zeros == 0) );
-            pastix_data->graph = graph;
-            memcpy( &subgraph, graph, sizeof(pastix_graph_t) );
-        }
-        retval = pastixOrderComputeMetis( pastix_data, &subgraph );
+        graphGather( &subgraph, -1 );
+        retval = pastixOrderComputeMetis( pastix_data, subgraph );
         assert( ordemesh->rangtab == NULL );
 #else
         errorPrint("pastix_subtask_order: Ordering with Metis requires -DPASTIX_ORDERING_METIS flag at compile time");
@@ -351,7 +322,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
             pastix_print( procnum, 0, OUT_ORDER_METHOD, "Personal" );
         }
-        retval = pastixOrderComputePersonal( pastix_data, myorder );
+        retval = pastixOrderComputePersonal( pastix_data, subgraph, myorder );
         break;
 
     default:
@@ -369,20 +340,16 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     if (retval_rcv != PASTIX_SUCCESS) {
 
         /* Cleanup memory */
-        if ( zeros_colptr != schur_colptr  ) { memFree_null( zeros_colptr ); }
-        if ( zeros_rows   != schur_rows    ) { memFree_null( zeros_rows   ); }
-        if ( zeros_perm   != NULL          ) { memFree_null( zeros_perm   ); }
-        if ( schur_colptr != graph->colptr ) { memFree_null( schur_colptr ); }
-        if ( schur_rows   != graph->rowptr ) { memFree_null( schur_rows   ); }
-        if ( schur_perm   != NULL          ) { memFree_null( schur_perm   ); }
+        if ( do_zeros ) {
+            graphExit( &zerosgraph );
+            memFree_null( zeros_perm );
+        }
+        if ( do_schur ) {
+            graphExit( &schurgraph );
+            memFree_null( schur_perm );
+        }
 
         return retval_rcv;
-    }
-
-    /* The ordering step is distributed, but supernodes routines are not */
-    if ( graphGather( &graph, -1 ) ) {
-        pastix_data->graph = graph;
-        memcpy( &subgraph, graph, sizeof(pastix_graph_t) );
     }
 
     /* Rebase the ordering to 0 (for orderFindSupernodes) */
@@ -394,8 +361,11 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     if (( ordemesh->rangtab == NULL ) ||
         ( ordemesh->treetab == NULL ) )
     {
+        /* The ordering step may be distributed, but supernodes routines are not */
+        graphGather( &subgraph, -1 );
+
         /* TODO: if rangtab is provided, treetab could be easily calculated */
-        pastixOrderFindSupernodes( &subgraph, ordemesh );
+        pastixOrderFindSupernodes( subgraph, ordemesh );
 
 #if !defined(NDEBUG) && defined(PASTIX_DEBUG_ORDERING)
         assert( pastixOrderCheck( ordemesh ) == PASTIX_SUCCESS );
@@ -406,7 +376,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
                                iparm[IPARM_LEVEL_OF_FILL],
                                iparm[IPARM_AMALGAMATION_LVLCBLK],
                                iparm[IPARM_AMALGAMATION_LVLBLAS],
-                               &subgraph,
+                               subgraph,
                                ordemesh,
                                pastix_data->pastix_comm );
     }
@@ -414,6 +384,13 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
 #if !defined(NDEBUG) && defined(PASTIX_DEBUG_ORDERING)
     assert( pastixOrderCheck( ordemesh ) == PASTIX_SUCCESS );
 #endif
+
+    /*
+     * The subgraph is no longer needed, let's free it if it was a copy
+     */
+    if ( subgraph_is_a_copy ) {
+        graphExit( subgraph );
+    }
 
     /*
      * Reorder supernodes by level to get a better order for runtime systems,
@@ -432,11 +409,9 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      */
     if ( do_zeros )
     {
-        pastixOrderAddIsolate( ordemesh, schur_n, zeros_perm );
+        pastixOrderAddIsolate( ordemesh, schur_gN, zeros_perm );
 
-        if ( zeros_colptr != schur_colptr ) { memFree_null( zeros_colptr ); }
-        if ( zeros_rows   != schur_rows   ) { memFree_null( zeros_rows   ); }
-        if ( zeros_perm   != NULL         ) { memFree_null( zeros_perm   ); }
+        if ( zeros_perm != NULL ) { memFree_null( zeros_perm ); }
     }
 
     /*
@@ -446,9 +421,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     {
         pastixOrderAddIsolate( ordemesh, graph->gN, schur_perm );
 
-        if ( schur_colptr != graph->colptr ) { memFree_null( schur_colptr ); }
-        if ( schur_rows   != graph->rowptr ) { memFree_null( schur_rows   ); }
-        if ( schur_perm   != NULL          ) { memFree_null( schur_perm   ); }
+        if ( schur_perm != NULL ) { memFree_null( schur_perm ); }
     }
 
     /*
@@ -471,11 +444,11 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         pastix_int_t min_cblk = ordemesh->rangtab[ordemesh->cblknbr-1];
         pastix_int_t ret;
 
-        graphBase( pastix_data->graph, 0 );
+        graphBase( graph, 0 );
 
         etree = pastixOrderBuildEtree( ordemesh );
 
-        ret = orderSupernodes( pastix_data->graph, ordemesh,
+        ret = orderSupernodes( graph, ordemesh,
                                etree, iparm, do_schur );
 
         eTreeExit( etree );
@@ -494,15 +467,15 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
 #endif
 
     /* Reduce the error code */
-    MPI_Allreduce(&retval, &retval_rcv, 1, MPI_INT, MPI_MAX,
-                  pastix_data->pastix_comm);
-    if (retval_rcv != PASTIX_SUCCESS) {
+    MPI_Allreduce( &retval, &retval_rcv, 1, MPI_INT, MPI_MAX,
+                   pastix_data->pastix_comm );
+    if ( retval_rcv != PASTIX_SUCCESS ) {
         return retval_rcv;
     }
 
     clockStop(timer);
     pastix_data->dparm[DPARM_ORDER_TIME] = clockVal(timer);
-    if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
+    if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
         pastix_print(procnum, 0, OUT_ORDER_TIME, clockVal(timer));
     }
 
@@ -510,7 +483,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      * Save i/o strategy
      */
     if ( iparm[IPARM_IO_STRATEGY] & PastixIOSave ) {
-        if (procnum == 0) {
+        if ( procnum == 0 ) {
             retval = pastixOrderSave( pastix_data, ordemesh );
         }
 
