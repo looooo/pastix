@@ -111,8 +111,8 @@ graphBase( pastix_graph_t *graph,
  *
  *******************************************************************************
  *
- * @param[inout] graphdst
- *          The destination graph
+ * @param[output] graphdst
+ *          The destination graph. Must be allocated on entry.
  *
  * @param[in] graphsrc
  *          The source graph
@@ -140,10 +140,6 @@ graphCopy( pastix_graph_t       *graphdst,
         return PASTIX_ERR_BADPARAMETER;
     }
     assert_graph( graphsrc );
-    assert_graph( graphdst );
-
-    /* Clear the prexisting graph */
-    graphExit( graphdst );
 
     /* Copy the source graph */
     graph_tmp = spmCopy( graphsrc );
@@ -394,6 +390,7 @@ graphSpm2Graph( pastix_graph_t   *graph,
     graph->flttype = SpmPattern;
     if ( graph->values ) {
         free( graph->values );
+        graph->values = NULL;
     }
 
     /* Make sure the graph is in CSC format */
