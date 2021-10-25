@@ -8,7 +8,7 @@ include(CheckCSourceCompiles)
 # Gcc style atomics?
 CHECK_C_SOURCE_COMPILES("
       #include <stdint.h>
-      int main( int argc, char** argv) {
+      int main() {
          int32_t where = 0;
          if (!__sync_bool_compare_and_swap(&where, 0, 1))
             return -1;
@@ -18,7 +18,7 @@ CHECK_C_SOURCE_COMPILES("
 if( HAVE_ATOMIC_GCC_32_BUILTINS )
   CHECK_C_SOURCE_COMPILES("
         #include <stdint.h>
-        int main( int argc, char** argv) {
+        int main() {
            int64_t where = 0;
            if (!__sync_bool_compare_and_swap(&where, 0, 1))
               return -1;
@@ -29,7 +29,7 @@ endif( HAVE_ATOMIC_GCC_32_BUILTINS )
 if( HAVE_ATOMIC_GCC_64_BUILTINS )
   CHECK_C_SOURCE_COMPILES("
         #include <stdint.h>
-        int main( int argc, char** argv ) {
+        int main() {
             __int128_t where = 0;
             if( !__sync_bool_compare_and_swap(&where, 0, 1))
                 return -1;
@@ -43,7 +43,7 @@ if( HAVE_ATOMIC_GCC_64_BUILTINS )
     UNSET( HAVE_ATOMIC_GCC_128_BUILTINS CACHE )
     CHECK_C_SOURCE_COMPILES("
         #include <stdint.h>
-        int main( int argc, char** argv ) {
+        int main() {
             __int128_t where = 0;
             if( !__sync_bool_compare_and_swap(&where, 0, 1))
                 return -1;
@@ -61,7 +61,7 @@ endif( HAVE_ATOMIC_GCC_64_BUILTINS )
 CHECK_C_SOURCE_COMPILES("
       #include <stdint.h>
 
-      int main( int argc, char** argv)
+      int main()
       {
          int32_t where = 0, old = where;
 
@@ -75,7 +75,7 @@ if( HAVE_ATOMIC_XLC_32_BUILTINS )
   CHECK_C_SOURCE_COMPILES("
         #include <stdint.h>
 
-        int main( int argc, char** argv)
+        int main()
         {
            long where = 0, old = where;
 
@@ -91,7 +91,7 @@ endif( HAVE_ATOMIC_XLC_32_BUILTINS )
 CHECK_C_SOURCE_COMPILES("
       #include <stdint.h>
 
-      int main(int, const char**)
+      int main()
       {
          uint32_t where  = 0;
          if (!__sync_compare_and_swap(&where, 0, 1))
@@ -104,7 +104,7 @@ if( HAVE_ATOMIC_MIPOSPRO_32_BUILTINS )
   CHECK_C_SOURCE_COMPILES("
         #include <stdint.h>
 
-        int main(int, const char**)
+        int main()
         {
            uint64_t where  = 0;
            if (!__sync_compare_and_swap(&where, 0, 1))
@@ -115,12 +115,12 @@ if( HAVE_ATOMIC_MIPOSPRO_32_BUILTINS )
         " HAVE_ATOMIC_MIPOSPRO_64_BUILTINS)
 endif( HAVE_ATOMIC_MIPOSPRO_32_BUILTINS )
 
-# SUN OS style atomics? 
+# SUN OS style atomics?
 CHECK_C_SOURCE_COMPILES("
       #include <atomic.h>
       #include <stdint.h>
 
-      int main(int, const char**)
+      int main()
       {
          uint_t where = 0;
          if (0 != atomic_cas_uint(&where, 0, 1))
@@ -134,7 +134,7 @@ if( HAVE_ATOMIC_SUN_32 )
         #include <atomic.h>
         #include <stdint.h>
 
-        int main(int, const char**)
+        int main()
         {
            uint64_t where = 0;
            if (0 != atomic_cas_uint(&where, 0, 1))

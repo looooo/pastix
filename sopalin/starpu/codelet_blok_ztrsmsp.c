@@ -210,7 +210,7 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
                           SolverBlok       *blok,
                           int               prio )
 {
-    struct cl_blok_ztrsmsp_args_s *cl_arg;
+    struct cl_blok_ztrsmsp_args_s *cl_arg        = NULL;
     long long                      execute_where = cl_blok_ztrsmsp_any.where;
     int                            need_exec     = 1;
 #if defined(PASTIX_DEBUG_STARPU) || defined(PASTIX_STARPU_PROFILING_LOG)

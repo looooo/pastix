@@ -23,7 +23,7 @@
  * them instead of our own atomic assembly.
  */
 #if defined(__FUJITSU)
-  #undef HAVE_ATOMIC_XLC_32_BUILTINS
+#undef HAVE_ATOMIC_XLC_32_BUILTINS
 #endif
 #if defined(HAVE_ATOMIC_XLC_32_BUILTINS)
 #  include "common/sys/atomic-xlc.h"
@@ -55,34 +55,34 @@ static inline int pastix_atomic_cas_xxb( volatile void* location,
     switch(type_size){
     case 4:
         return pastix_atomic_cas_32b( (volatile uint32_t*)location,
-                                     (uint32_t)old_value, (uint32_t)new_value );
+                                      (uint32_t)old_value, (uint32_t)new_value );
     case 8:
         return pastix_atomic_cas_64b( (volatile uint64_t*)location,
-                                     (uint64_t)old_value, (uint64_t)new_value );
+                                      (uint64_t)old_value, (uint64_t)new_value );
     }
     return 0;
 }
 
 static inline uint64_t pastix_atomic_bor_xxb( volatile void* location,
-                                             uint64_t or_value,
-                                             size_t type_size )
+                                              uint64_t or_value,
+                                              size_t type_size )
 {
     assert( 4 == type_size );
     (void)type_size;
     return (uint64_t)pastix_atomic_bor_32b( (volatile uint32_t*)location,
-                                           (uint32_t)or_value);
+                                            (uint32_t)or_value);
 }
 
-#define pastix_atomic_band(LOCATION, OR_VALUE)  \
+#define pastix_atomic_band(LOCATION, OR_VALUE)                          \
     (__typeof__(*(LOCATION)))pastix_atomic_band_xxb(LOCATION, OR_VALUE, sizeof(*(LOCATION)) )
 
-#define pastix_atomic_bor(LOCATION, OR_VALUE)  \
+#define pastix_atomic_bor(LOCATION, OR_VALUE)                           \
     (__typeof__(*(LOCATION)))pastix_atomic_bor_xxb(LOCATION, OR_VALUE, sizeof(*(LOCATION)) )
 
 #define pastix_atomic_cas(LOCATION, OLD_VALUE, NEW_VALUE)               \
     pastix_atomic_cas_xxb((volatile void*)(LOCATION),                   \
-                         (uint64_t)(OLD_VALUE), (uint64_t)(NEW_VALUE), \
-                         sizeof(*(LOCATION)))
+                          (uint64_t)(OLD_VALUE), (uint64_t)(NEW_VALUE), \
+                          sizeof(*(LOCATION)))
 
 #define pastix_atomic_set_mask(LOCATION, MASK) pastix_atomic_bor((LOCATION), (MASK))
 #define pastix_atomic_clear_mask(LOCATION, MASK)  pastix_atomic_band((LOCATION), ~(MASK))
