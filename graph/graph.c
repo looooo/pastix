@@ -21,10 +21,12 @@
 #include "common.h"
 #include "graph/graph.h"
 
-#define assert_graph(_graph_)                   \
-    assert(_graph_->fmttype == SpmCSC);         \
-    assert(_graph_->flttype == SpmPattern);     \
-    assert(_graph_->values  == NULL);           \
+#define assert_graph( _graph_ )                         \
+    do {                                                \
+        assert( (_graph_)->fmttype == SpmCSC     );     \
+        assert( (_graph_)->flttype == SpmPattern );     \
+        assert( (_graph_)->values  == NULL       );     \
+    } while (0)
 
 /**
  *******************************************************************************
@@ -88,7 +90,7 @@ graphBase( pastix_graph_t *graph,
         return;
     }
 
-    assert_graph(graph);
+    assert_graph( graph );
 
     spmBase( graph, baseval );
 
@@ -137,8 +139,8 @@ graphCopy( pastix_graph_t       *graphdst,
     if ( graphsrc == graphdst ) {
         return PASTIX_ERR_BADPARAMETER;
     }
-    assert_graph(graphsrc);
-    assert_graph(graphdst);
+    assert_graph( graphsrc );
+    assert_graph( graphdst );
 
     /* Clear the prexisting graph */
     graphExit( graphdst );
@@ -192,7 +194,7 @@ graphScatter( pastix_graph_t    **graph,
               PASTIX_Comm         comm )
 {
     pastix_graph_t *newgraph;
-    assert_graph( (*graph) );
+    assert_graph( *graph );
 
     if ( (*graph)->loc2glob != NULL ) {
         return 0;
@@ -204,7 +206,7 @@ graphScatter( pastix_graph_t    **graph,
     memFree(*graph);
 
     *graph = newgraph;
-    assert_graph( (*graph) );
+    assert_graph( *graph );
     return 1;
 }
 
@@ -234,7 +236,7 @@ graphGather( pastix_graph_t **graph,
              int              root )
 {
     pastix_graph_t *newgraph;
-    assert_graph( (*graph) );
+    assert_graph( *graph );
 
     if ( (*graph)->loc2glob == NULL ) {
         return 0;
@@ -245,7 +247,7 @@ graphGather( pastix_graph_t **graph,
     memFree(*graph);
 
     *graph = newgraph;
-    assert_graph( (*graph) );
+    assert_graph( *graph );
     return 1;
 }
 
@@ -270,8 +272,8 @@ graphGather( pastix_graph_t **graph,
 void
 graphSort( pastix_graph_t *graph )
 {
-    assert_graph(graph);
-    spmSort(graph);
+    assert_graph( graph );
+    spmSort( graph );
 }
 
 /**
@@ -299,7 +301,7 @@ graphSymmetrize( pastix_graph_t *graph )
     if ( graph == NULL ) {
         return PASTIX_ERR_BADPARAMETER;
     }
-    assert_graph(graph);
+    assert_graph( graph );
 
     spmSymmetrize( graph );
     return PASTIX_SUCCESS;
@@ -330,7 +332,7 @@ graphUpdateComputedFields( pastix_graph_t *graph )
     if ( graph == NULL ) {
         return PASTIX_ERR_BADPARAMETER;
     }
-    assert_graph(graph);
+    assert_graph( graph );
 
     spmUpdateComputedFields( graph );
     return PASTIX_SUCCESS;
