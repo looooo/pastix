@@ -92,7 +92,9 @@ graph_isolate_permutations(       pastix_int_t  n,
     invp_isolate = invptab + (n - isolate_n);
     for (i = 0; i <n; i++)
     {
-        if ( i == (*isolate_list - baseval) ) {
+        if ( ((invp_isolate - invptab) <  n) &&
+             (i == (*isolate_list - baseval)) )
+        {
             *invp_isolate = i;
             invp_isolate++;
             isolate_list++;
