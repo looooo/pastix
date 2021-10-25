@@ -116,20 +116,21 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     int             retval_rcv;
     int             do_schur = 1;
     int             do_zeros = 1;
+    int             spmbase;
 
     /*
      * Check parameters
      */
-    if (pastix_data == NULL) {
-        errorPrint("pastix_subtask_order: wrong pastix_data parameter");
+    if ( pastix_data == NULL ) {
+        errorPrint( "pastix_subtask_order: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
-    if (spm == NULL) {
-        errorPrint("pastix_subtask_order: wrong spm parameter");
+    if ( spm == NULL ) {
+        errorPrint( "pastix_subtask_order: wrong spm parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_INIT) ) {
-        errorPrint("pastix_subtask_order: pastixInit() has to be called before calling this function");
+        errorPrint( "pastix_subtask_order: pastixInit() has to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -137,37 +138,41 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     /* Backup flttype from the spm into iparm[IPARM_FLOAT] for later use */
     iparm[IPARM_FLOAT] = spm->flttype;
 
-    if (pastix_data->schur_n > 0)
+    if ( pastix_data->schur_n > 0 )
     {
         /*
          * If ordering is set to PastixOrderPersonal, we consider that the schur
-         * complement is already isolated at the end of permutation array.
+         * complement is already isolated at the end of the permutation array.
          */
         if ( iparm[IPARM_ORDERING] == PastixOrderPersonal ) {
             do_schur = 0;
         }
-    } else {
+    }
+    else {
         do_schur = 0;
     }
-    if (pastix_data->zeros_n > 0)
+
+    if ( pastix_data->zeros_n > 0 )
     {
         /*
          * If ordering is set to PastixOrderPersonal, we consider that the zeros
-         * on diagonal are already isolated at the end of permutation array.
+         * on diagonal are already isolated at the end of the permutation array.
          */
         if ( iparm[IPARM_ORDERING] == PastixOrderPersonal ) {
             do_zeros = 0;
         }
-    } else {
+    }
+    else {
         do_zeros = 0;
     }
 
     /*
      * Clean ordering if it exists
      */
-    if (pastix_data->ordemesh != NULL) {
+    if ( pastix_data->ordemesh != NULL ) {
         pastixOrderExit(pastix_data->ordemesh);
-    } else {
+    }
+    else {
         MALLOC_INTERN( pastix_data->ordemesh, 1, pastix_order_t );
     }
 
@@ -175,8 +180,8 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     procnum  = pastix_data->procnum;
     pastixOrderAlloc( ordemesh, 0, 0 );
 
-    if (iparm[IPARM_VERBOSE] > PastixVerboseNot) {
-        pastix_print(procnum, 0, "%s", OUT_STEP_ORDER);
+    if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+        pastix_print( procnum, 0, "%s", OUT_STEP_ORDER );
     }
 
     /*
@@ -187,7 +192,16 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      */
     graphPrepare( pastix_data, spm, &(pastix_data->graph) );
     graphBase( pastix_data->graph, 0 );
-    graph = pastix_data->graph;
+    graph   = pastix_data->graph;
+    spmbase = spmFindBase( spm );
+
+    /*
+     * graphIsolate works only on gathered graph,
+     * so let's do it once for all
+     */
+    if ( do_schur || do_zeros ) {
+        graphGather( &graph, -1 );
+    }
 
     /*
      * Isolate Shur elements
@@ -195,19 +209,29 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     if ( do_schur )
     {
         assert( pastix_data->schur_list != NULL );
-        graphGather( &graph, -1 );
-        graphIsolate(graph->n,
-                     graph->colptr,
-                     graph->rowptr,
-                     pastix_data->schur_n,
-                     pastix_data->schur_list,
-                     &schur_colptr,
-                     &schur_rows,
-                     &schur_perm,
-                     NULL);
+
+        if ( spmbase != 0 ) {
+            /* We need to rebase the schur unknown list */
+            pastix_int_t i;
+
+            for( i=0; i<pastix_data->schur_n; i++ ) {
+                pastix_data->schur_list[i] -= spmbase;
+            }
+        }
+
+        graphIsolate( graph->n,
+                      graph->colptr,
+                      graph->rowptr,
+                      pastix_data->schur_n,
+                      pastix_data->schur_list,
+                      &schur_colptr,
+                      &schur_rows,
+                      &schur_perm,
+                      NULL );
 
         schur_n = graph->n - pastix_data->schur_n;
-    } else {
+    }
+    else {
         schur_n      = graph->n;
         schur_colptr = graph->colptr;
         schur_rows   = graph->rowptr;
@@ -218,32 +242,36 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      */
     if ( do_zeros )
     {
-        if ( graphGather( &graph, -1 ) ) {
-            /* Graph has been gathered -> do_schur == 0 */
-            assert( do_schur == 0 );
-            schur_n      = graph->n;
-            schur_colptr = graph->colptr;
-            schur_rows   = graph->rowptr;
-        }
         assert( pastix_data->zeros_list != NULL );
-        graphIsolate(schur_n,
-                     schur_colptr,
-                     schur_rows,
-                     pastix_data->zeros_n,
-                     pastix_data->zeros_list,
-                     &zeros_colptr,
-                     &zeros_rows,
-                     &zeros_perm,
-                     NULL);
+
+        if ( spmbase != 0 ) {
+            /* We need to rebase the zeros unknown list */
+            pastix_int_t i;
+
+            for( i=0; i<pastix_data->zeros_n; i++ ) {
+                pastix_data->zeros_list[i] -= spmbase;
+            }
+        }
+
+        graphIsolate( schur_n,
+                      schur_colptr,
+                      schur_rows,
+                      pastix_data->zeros_n,
+                      pastix_data->zeros_list,
+                      &zeros_colptr,
+                      &zeros_rows,
+                      &zeros_perm,
+                      NULL );
 
         zeros_n = schur_n - pastix_data->zeros_n;
-    } else {
+    }
+    else {
         zeros_n      = schur_n;
         zeros_colptr = schur_colptr;
         zeros_rows   = schur_rows;
     }
 
-    if (iparm[IPARM_VERBOSE] > PastixVerboseYes) {
+    if ( iparm[IPARM_VERBOSE] > PastixVerboseYes ) {
         pastix_print(procnum, 0, "%s", OUT_ORDER_INIT);
     }
 
