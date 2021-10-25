@@ -116,6 +116,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     int             retval_rcv;
     int             do_schur = 1;
     int             do_zeros = 1;
+    int             spmbase;
 
     /*
      * Check parameters
@@ -191,7 +192,16 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      */
     graphPrepare( pastix_data, spm, &(pastix_data->graph) );
     graphBase( pastix_data->graph, 0 );
-    graph = pastix_data->graph;
+    graph   = pastix_data->graph;
+    spmbase = spmFindBase( spm );
+
+    /*
+     * graphIsolate works only on gathered graph,
+     * so let's do it once for all
+     */
+    if ( do_schur || do_zeros ) {
+        graphGather( &graph, -1 );
+    }
 
     /*
      * Isolate Shur elements
@@ -199,19 +209,29 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     if ( do_schur )
     {
         assert( pastix_data->schur_list != NULL );
-        graphGather( &graph, -1 );
-        graphIsolate(graph->n,
-                     graph->colptr,
-                     graph->rowptr,
-                     pastix_data->schur_n,
-                     pastix_data->schur_list,
-                     &schur_colptr,
-                     &schur_rows,
-                     &schur_perm,
-                     NULL);
+
+        if ( spmbase != 0 ) {
+            /* We need to rebase the schur unknown list */
+            pastix_int_t i;
+
+            for( i=0; i<pastix_data->schur_n; i++ ) {
+                pastix_data->schur_list[i] -= spmbase;
+            }
+        }
+
+        graphIsolate( graph->n,
+                      graph->colptr,
+                      graph->rowptr,
+                      pastix_data->schur_n,
+                      pastix_data->schur_list,
+                      &schur_colptr,
+                      &schur_rows,
+                      &schur_perm,
+                      NULL );
 
         schur_n = graph->n - pastix_data->schur_n;
-    } else {
+    }
+    else {
         schur_n      = graph->n;
         schur_colptr = graph->colptr;
         schur_rows   = graph->rowptr;
@@ -222,32 +242,36 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      */
     if ( do_zeros )
     {
-        if ( graphGather( &graph, -1 ) ) {
-            /* Graph has been gathered -> do_schur == 0 */
-            assert( do_schur == 0 );
-            schur_n      = graph->n;
-            schur_colptr = graph->colptr;
-            schur_rows   = graph->rowptr;
-        }
         assert( pastix_data->zeros_list != NULL );
-        graphIsolate(schur_n,
-                     schur_colptr,
-                     schur_rows,
-                     pastix_data->zeros_n,
-                     pastix_data->zeros_list,
-                     &zeros_colptr,
-                     &zeros_rows,
-                     &zeros_perm,
-                     NULL);
+
+        if ( spmbase != 0 ) {
+            /* We need to rebase the zeros unknown list */
+            pastix_int_t i;
+
+            for( i=0; i<pastix_data->zeros_n; i++ ) {
+                pastix_data->zeros_list[i] -= spmbase;
+            }
+        }
+
+        graphIsolate( schur_n,
+                      schur_colptr,
+                      schur_rows,
+                      pastix_data->zeros_n,
+                      pastix_data->zeros_list,
+                      &zeros_colptr,
+                      &zeros_rows,
+                      &zeros_perm,
+                      NULL );
 
         zeros_n = schur_n - pastix_data->zeros_n;
-    } else {
+    }
+    else {
         zeros_n      = schur_n;
         zeros_colptr = schur_colptr;
         zeros_rows   = schur_rows;
     }
 
-    if (iparm[IPARM_VERBOSE] > PastixVerboseYes) {
+    if ( iparm[IPARM_VERBOSE] > PastixVerboseYes ) {
         pastix_print(procnum, 0, "%s", OUT_ORDER_INIT);
     }
 
