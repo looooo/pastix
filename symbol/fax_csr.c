@@ -194,7 +194,7 @@ faxCSRGenPA( const pastix_graph_t *graphA, const pastix_int_t *perm, fax_csr_t *
     /* Compute the number of nnz per vertex */
     for ( i = 0; i < n; i++ ) {
         ip = perm[i];
-        /* Add diagonal (could be removed fro direct) */
+        /* Add diagonal (could be removed for direct) */
         graphPA->nnz[ip] = graphA->colptr[i + 1] - graphA->colptr[i] + 1;
     }
 
