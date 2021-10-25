@@ -13,6 +13,7 @@
 
 set(dep_message "\nConfiguration of Pastix:\n"
 "       PASTIX_VERSION ......: ${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VERSION_MICRO}\n"
+"       BUILD_TYPE ..........: ${CMAKE_BUILD_TYPE}\n"
 "       BUILDNAME ...........: ${BUILDNAME}\n"
 "       SITE ................: ${SITE}\n"
 "\n"

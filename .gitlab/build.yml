@@ -14,6 +14,7 @@
     - cd build
     - echo $VERSION | tee ../pastix-build-${VERSION}.log
     - cmake -DPASTIX_CI_VERSION=${VERSION}
+            -DPASTIX_CI_BRANCH=${BRANCH}
             -C ../.gitlab/ci-test-initial-cache.cmake  ..
     - make -j 4 | tee ../pastix-build-${VERSION}.log
     - make install | tee -a ../pastix-build-${VERSION}.log
