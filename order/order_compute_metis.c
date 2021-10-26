@@ -43,7 +43,7 @@
  *          ordering realized by Scotch.
  *
  * @param[inout] graph
- *          The graph prepared by graphPrepare function on which wwe want to
+ *          The graph prepared by graphPrepare function on which we want to
  *          perform the ordering. On exit, the graph might be rebased.
  *
  *******************************************************************************

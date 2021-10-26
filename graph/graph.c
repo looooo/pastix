@@ -31,6 +31,34 @@
 /**
  *******************************************************************************
  *
+ * @brief Initialize an empty graph
+ *
+ *******************************************************************************
+ *
+ * @param[inout] graph
+ *          The empty graph to init.
+ *
+ * @param[in] comm
+ *          The MPI communicator used for the graph.
+ *
+ *******************************************************************************/
+void
+graphInitEmpty( pastix_graph_t *graph,
+                PASTIX_Comm     comm )
+{
+    spmInitDist( graph, comm );
+
+    graph->flttype = SpmPattern;
+
+    graph->colptr = malloc( sizeof( pastix_int_t ) );
+    graph->colptr[0] = 0;
+
+    graphUpdateComputedFields( graph );
+}
+
+/**
+ *******************************************************************************
+ *
  * @brief Free the content of the graph structure.
  *
  *******************************************************************************
@@ -77,12 +105,6 @@ graphBase( pastix_graph_t *graph,
         errorPrint("graphBase: graph pointer is NULL");
         return;
     }
-    if ( (graph->colptr == NULL) ||
-         (graph->rowptr == NULL) )
-    {
-        errorPrint("graphBase: graph pointer is not correctly initialized");
-        return;
-    }
     if ( (baseval != 0) &&
          (baseval != 1) )
     {
@@ -111,8 +133,8 @@ graphBase( pastix_graph_t *graph,
  *
  *******************************************************************************
  *
- * @param[inout] graphdst
- *          The destination graph
+ * @param[output] graphdst
+ *          The destination graph. Must be allocated on entry.
  *
  * @param[in] graphsrc
  *          The source graph
@@ -140,10 +162,6 @@ graphCopy( pastix_graph_t       *graphdst,
         return PASTIX_ERR_BADPARAMETER;
     }
     assert_graph( graphsrc );
-    assert_graph( graphdst );
-
-    /* Clear the prexisting graph */
-    graphExit( graphdst );
 
     /* Copy the source graph */
     graph_tmp = spmCopy( graphsrc );
@@ -167,17 +185,6 @@ graphCopy( pastix_graph_t       *graphdst,
  *          On entry, the graph to scatter.
  *          On exit, the scattered graph
  *
- * @param[in] n
- *          Size of the loc2glob array if provided. Unused otherwise.
- *
- * @param[in] loc2glob
- *          Distribution array of the matrix. Will be copied.
- *          If NULL, the columns are evenly distributed among the processes.
- *
- * @param[in] root
- *          The root process of the scatter operation. -1 if everyone hold a
- *          copy of the graph.
- *
  * @param[in] comm
  *          MPI communicator.
  *
@@ -187,26 +194,27 @@ graphCopy( pastix_graph_t       *graphdst,
  *
  *******************************************************************************/
 int
-graphScatter( pastix_graph_t    **graph,
-              pastix_int_t        n,
-              const pastix_int_t *loc2glob,
-              int                 root,
-              PASTIX_Comm         comm )
+graphScatterInPlace( pastix_graph_t *graph,
+                     PASTIX_Comm     comm )
 {
     pastix_graph_t *newgraph;
-    assert_graph( *graph );
+    assert_graph( graph );
 
-    if ( (*graph)->loc2glob != NULL ) {
+    if ( graph->loc2glob != NULL ) {
         return 0;
     }
 
     /* Scatter the graph */
-    newgraph = spmScatter( *graph, n, loc2glob, 1, root, comm );
-    graphExit( *graph );
-    memFree(*graph);
+    newgraph = spmScatter( graph, -1, NULL, 1, -1, comm );
 
-    *graph = newgraph;
-    assert_graph( *graph );
+    if ( newgraph != NULL ) {
+        graphExit( graph );
+        memcpy( graph, newgraph, sizeof( pastix_graph_t ) );
+        free( newgraph );
+    }
+
+    assert_graph( graph );
+
     return 1;
 }
 
@@ -215,7 +223,7 @@ graphScatter( pastix_graph_t    **graph,
  *
  * @ingroup pastix_graph
  *
- * @brief This routine gather a distributed graph on node root.
+ * @brief This routine gather a distributed graph on each note in place.
  *
  *******************************************************************************
  *
@@ -232,22 +240,25 @@ graphScatter( pastix_graph_t    **graph,
  *
  ********************************************************************************/
 int
-graphGather( pastix_graph_t **graph,
-             int              root )
+graphGatherInPlace( pastix_graph_t *graph )
 {
     pastix_graph_t *newgraph;
-    assert_graph( *graph );
+    assert_graph( graph );
 
-    if ( (*graph)->loc2glob == NULL ) {
+    if ( graph->loc2glob == NULL ) {
         return 0;
     }
 
-    newgraph = spmGather( *graph, root );
-    graphExit( *graph );
-    memFree(*graph);
+    newgraph = spmGather( graph, -1 );
 
-    *graph = newgraph;
-    assert_graph( *graph );
+    if ( newgraph != NULL ) {
+        graphExit( graph );
+        memcpy( graph, newgraph, sizeof( pastix_graph_t ) );
+        free( newgraph );
+    }
+
+    assert_graph( graph );
+
     return 1;
 }
 
@@ -387,15 +398,14 @@ graphSpm2Graph( pastix_graph_t   *graph,
     spmExit( graph );
 
     /* Copy existing datas */
-    spm2 = spmCopy(spm);
+    spm2 = spmCopy( spm );
     memcpy( graph, spm2, sizeof(pastix_graph_t) );
 
-    /* A graph does not contain values */
-    if( spm->flttype != SpmPattern ) {
-        assert( graph->values != NULL );
-
-        graph->flttype = SpmPattern;
-        memFree_null(graph->values);
+    /* Enforce Pattern type to the graph */
+    graph->flttype = SpmPattern;
+    if ( graph->values ) {
+        free( graph->values );
+        graph->values = NULL;
     }
 
     /* Make sure the graph is in CSC format */

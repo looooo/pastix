@@ -141,6 +141,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     /* Make sure they are both 0-based */
     pastixOrderBase( ordemesh, 0 );
     graphBase( graph, 0 );
+    graphGatherInPlace( graph );
 
     if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
         pastix_print( procnum, 0, OUT_STEP_FAX );
@@ -165,9 +166,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
     }
     /* Symbol matrix computed through Fax (Direct or ILU(k)) */
     else {
-        pastix_int_t  nfax;
-        pastix_int_t *colptrfax;
-        pastix_int_t *rowfax;
+        pastix_int_t nfax;
 
         /* Check correctness of parameters */
         if ( iparm[IPARM_INCOMPLETE] == 0 ) {
@@ -208,9 +207,7 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
         else
 #endif
         {
-            nfax      = graph->n;
-            colptrfax = graph->colptr;
-            rowfax    = graph->rowptr;
+            nfax = graph->gN;
         }
 
         pastixSymbolInit( graph, ordemesh, pastix_data->symbmtx );
@@ -243,11 +240,6 @@ pastix_subtask_symbfact( pastix_data_t *pastix_data )
         /* Set the beginning of the Schur complement */
         pastix_data->symbmtx->schurfcol =
             nfax - pastix_data->schur_n + pastix_data->symbmtx->baseval;
-
-        if ( graph->loc2glob != NULL ) {
-            memFree_null( colptrfax );
-            memFree_null( rowfax );
-        }
     } /* not PastixIOLoad */
 
     /* Rebase to 0 */

@@ -43,13 +43,13 @@
  *******************************************************************************/
 static inline void
 ocs_graph_check( const SCOTCH_Graph *graph,
-                pastix_int_t        procnum )
+                 int                 procnum )
 {
 #if defined(PASTIX_DEBUG_ORDERING)
     Clock timer;
     clockStart(timer);
-    if ( SCOTCH_graphCheck(graph) ) {
-        errorPrint("pastix: graphCheck");
+    if ( SCOTCH_graphCheck( graph ) ) {
+        errorPrint( "pastix: graphCheck" );
         EXIT(MOD_SOPALIN,INTERNAL_ERR);
     }
     clockStop(timer);
@@ -70,7 +70,7 @@ ocs_graph_check( const SCOTCH_Graph *graph,
  *******************************************************************************
  *
  * @param[inout] scotchgraph
- *          The Scotch graph structure that will be build.
+ *          The SCOTCH_Graph structure that will be build.
  *
  * @param[inout] graph
  *          The graph prepared by graphPrepare function on which we want to
@@ -83,14 +83,16 @@ ocs_graph_init( SCOTCH_Graph   *scotchgraph,
 {
     pastix_int_t *colptr, *rowptr;
     pastix_int_t *weights;
-    pastix_int_t  n, nnz;
-    pastix_int_t  baseval;
+    pastix_int_t  n, nnz, baseval;
+
+    /* Make sure graph is 0-based */
+    graphBase( graph, 0 );
 
     n       = graph->n;
+    nnz     = graph->nnz;
     colptr  = graph->colptr;
     rowptr  = graph->rowptr;
     baseval = graph->baseval;
-    nnz     = graph->nnz;
     weights = NULL;
 
     assert( baseval == colptr[0] );
@@ -114,11 +116,9 @@ ocs_graph_init( SCOTCH_Graph   *scotchgraph,
                             rowptr,         /* Edge array         */
                             NULL) )
     {
-        errorPrint("pastix : graphBuildGraph");
+        errorPrint( "pastix : SCOTCH_graphBuild" );
         EXIT(MOD_SOPALIN,PASTIX_ERR_INTERNAL);
     }
-
-    SCOTCH_graphBase( scotchgraph, 0 );
 
     /* Check the generated Scotch graph structure */
     ocs_graph_check( scotchgraph, 0 );
@@ -140,18 +140,11 @@ ocs_graph_init( SCOTCH_Graph   *scotchgraph,
  *
  *******************************************************************************/
 static inline void
-ocs_graph_exit( SCOTCH_Graph *scotchgraph,
-                pastix_int_t  baseval )
+ocs_graph_exit( SCOTCH_Graph *scotchgraph )
 {
     pastix_int_t *colptr  = NULL;
     pastix_int_t *rowptr  = NULL;
     pastix_int_t *weights = NULL;
-
-    /*
-     * SCOTCH_graphBase may have had side effects on our graph.
-     * Call this routine again with our saved baseval.
-     */
-    SCOTCH_graphBase( scotchgraph, baseval );
 
     SCOTCH_graphData (
         scotchgraph,
@@ -164,13 +157,6 @@ ocs_graph_exit( SCOTCH_Graph *scotchgraph,
         NULL,     /* Number of edges (arcs)   */
         &rowptr,  /* Edge array [edgenbr]     */
         NULL      /* Edge load array          */  );
-
-#if 0
-    if ( iparm[IPARM_GRAPHDIST] == 1 ) {
-        memFree_null( colptr );
-        memFree_null( rowptr );
-    }
-#endif
 
     /* Free the vertex load array */
     if ( weights != NULL ) {
@@ -195,7 +181,7 @@ ocs_graph_exit( SCOTCH_Graph *scotchgraph,
  *          Pointer to the pastix_data instance.
  *
  * @param[inout] scotchgraph
- *          The Scotch graph structure that will be ordered.
+ *          The SCOTCH_Graph structure that will be ordered.
  *
  ********************************************************************************
  *
@@ -336,7 +322,7 @@ ocs_compute_graph_ordering_mt( isched_thread_t *ctx, void *args )
  *
  * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.
- *          On exit, the field ordemesh is initialize with the result of the
+ *          On exit, the field ordemesh is initialized with the result of the
  *          ordering realized by Scotch.
  *
  * @param[inout] graph
@@ -360,11 +346,10 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
     SCOTCH_Graph    scotchgraph;
     int             ret      = PASTIX_SUCCESS;
     pastix_order_t *ordemesh = pastix_data->ordemesh;
-    pastix_int_t    baseval  = graph->baseval;
 
     /* Check integer compatibility */
     if ( sizeof(pastix_int_t) != sizeof(SCOTCH_Num) ) {
-        errorPrint("Inconsistent integer type\n");
+        errorPrint( "pastixOrderComputeScotch: Inconsistent integer type between Pastix and Scotch\n");
         return PASTIX_ERR_INTEGER_TYPE;
     }
 
@@ -403,10 +388,10 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
     }
 
     /* Free the Scotch graph structure */
-    ocs_graph_exit( &scotchgraph, baseval );
+    ocs_graph_exit( &scotchgraph );
 
     /* If something has failed in Scotch */
-    if ( ret != 0 ) {
+    if ( ret != PASTIX_SUCCESS ) {
         pastixOrderExit( ordemesh );
         return PASTIX_ERR_INTERNAL;
     }

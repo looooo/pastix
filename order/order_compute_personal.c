@@ -34,6 +34,10 @@
  *          ordering if myorder is NULL, or with the provided ordering
  *          otherwise.
  *
+ * @param[inout] graph
+ *          The graph prepared by graphPrepare function on which we want to
+ *          perform the ordering. On exit, the graph might be rebased.
+ *
  * @param[inout] myorder
  *          On entry, the permutation provided by the user or NULL to get
  *          the identity ordering.
@@ -50,6 +54,7 @@
  *******************************************************************************/
 int
 pastixOrderComputePersonal( pastix_data_t  *pastix_data,
+                            pastix_graph_t *graph,
                             pastix_order_t *myorder )
 {
     pastix_order_t *ordemesh;
@@ -61,7 +66,7 @@ pastixOrderComputePersonal( pastix_data_t  *pastix_data,
     ordemesh = pastix_data->ordemesh;
     iparm    = pastix_data->iparm;
     procnum  = pastix_data->procnum;
-    n        = pastix_data->graph->gN;
+    n        = graph->gN;
 
     /* Load ordering from file */
     if ( iparm[IPARM_IO_STRATEGY] & PastixIOLoad ) {
