@@ -178,8 +178,6 @@ ocpts_graph_exit( SCOTCH_Dgraph *scotchgraph,
         memFree_null( weights );
     }
 
-    SCOTCH_dgraphExit( scotchgraph );
-
     return;
 }
 
