@@ -4,12 +4,16 @@
 ---
 .only-master:
   interruptible: true
+  variables:
+    BRANCH: master
   only:
     - master@solverstack/pastix
     - master@pastix/pastix
 
 .only-branches-seq:
   interruptible: true
+  variables:
+    BRANCH: branch
   except:
     - schedules
   only:
@@ -19,6 +23,8 @@
 
 .only-branches-mpi:
   interruptible: true
+  variables:
+    BRANCH: branch
   except:
     - schedules
   only:

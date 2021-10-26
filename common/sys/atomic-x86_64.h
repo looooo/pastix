@@ -80,7 +80,7 @@ static inline int32_t pastix_atomic_dec_32b(volatile int32_t *location)
 }
 
 #define PASTIX_ATOMIC_HAS_ATOMIC_ADD_32B
-static inline int32_t pastix_atomic_add_32(volatile int32_t* v, int32_t i)
+static inline int32_t pastix_atomic_add_32b(volatile int32_t* v, int32_t i)
 {
     int ret = i;
    __asm__ __volatile__(
@@ -92,7 +92,7 @@ static inline int32_t pastix_atomic_add_32(volatile int32_t* v, int32_t i)
 }
 
 #define PASTIX_ATOMIC_HAS_ATOMIC_SUB_32B
-static inline int32_t pastix_atomic_sub_32(volatile int32_t* v, int32_t i)
+static inline int32_t pastix_atomic_sub_32b(volatile int32_t* v, int32_t i)
 {
     int ret = -i;
    __asm__ __volatile__(
