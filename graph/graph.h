@@ -66,12 +66,9 @@ int  graphSymmetrize(       pastix_graph_t *graph );
 
 int  graphUpdateComputedFields( pastix_graph_t *graph );
 
-int graphScatter( pastix_graph_t    **graph,
-                  pastix_int_t        n,
-                  const pastix_int_t *loc2glob,
-                  int                 root,
-                  PASTIX_Comm         comm );
-int graphGather ( pastix_graph_t **graph, int root );
+int graphScatterInPlace( pastix_graph_t *graph,
+                         PASTIX_Comm     comm  );
+int graphGatherInPlace ( pastix_graph_t *graph );
 
 int  graphIsolate   ( const pastix_graph_t *ingraph,
                       pastix_graph_t       *outgraph,

@@ -193,6 +193,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
     spmbase = spmFindBase( spm );
 
     graphBase( graph, 0 );
+    subgraph = graph;
 
     /*
      * Isolate Shur elements
@@ -217,13 +218,11 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
                       NULL );
 
         subgraph_is_a_copy = 1;
-    }
-    else {
-        memcpy( &schurgraph, graph, sizeof( pastix_graph_t ) );
+        subgraph = &schurgraph;
     }
 
     /* Backup only the needed part */
-    schur_gN = schurgraph.gN;
+    schur_gN = subgraph->gN;
 
     /*
      * Isolate diagonal elements close to 0.
@@ -241,22 +240,19 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             }
         }
 
-        graphIsolate( &schurgraph, &zerosgraph,
+        graphIsolate( subgraph, &zerosgraph,
                       pastix_data->zeros_n,
                       pastix_data->zeros_list,
                       &zeros_perm,
                       NULL );
 
         if ( subgraph_is_a_copy ) {
-            /* We do not longer require arrays in the schur subgraph */
-            graphExit( &schurgraph );
+            /* We do not longer require arrays from the schur subgraph */
+            graphExit( subgraph );
         }
         subgraph_is_a_copy = 1;
+        subgraph = &zerosgraph;
     }
-    else {
-        memcpy( &zerosgraph, &schurgraph, sizeof( pastix_graph_t ) );
-    }
-    subgraph = &zerosgraph;
 
     if ( iparm[IPARM_VERBOSE] > PastixVerboseYes ) {
         pastix_print( procnum, 0, "%s", OUT_ORDER_INIT );
@@ -274,7 +270,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             pastix_print( procnum, 0, OUT_ORDER_METHOD, "Scotch" );
         }
 #if defined(PASTIX_ORDERING_SCOTCH)
-        graphGather( &subgraph, -1 );
+        graphGatherInPlace( subgraph );
         retval = pastixOrderComputeScotch( pastix_data, subgraph );
 #else
         errorPrint("pastix_subtask_order: Ordering with Scotch requires to enable -DPASTIX_ORDERING_SCOTCH option");
@@ -290,7 +286,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "PT-Scotch" );
         }
 #if defined(PASTIX_ORDERING_PTSCOTCH)
-        graphScatter( &subgraph, -1, NULL, -1, pastix_data->pastix_comm );
+        graphScatterInPlace( subgraph, pastix_data->pastix_comm );
         retval = pastixOrderComputePTScotch( pastix_data, subgraph );
 #else
         errorPrint("pastix_subtask_order: Ordering with PT-Scotch requires to enable -DPASTIX_ORDERING_PTSCOTCH option");
@@ -306,7 +302,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
             pastix_print(procnum, 0, OUT_ORDER_METHOD, "Metis" );
         }
 #if defined(PASTIX_ORDERING_METIS)
-        graphGather( &subgraph, -1 );
+        graphGatherInPlace( subgraph );
         retval = pastixOrderComputeMetis( pastix_data, subgraph );
         assert( ordemesh->rangtab == NULL );
 #else
@@ -362,7 +358,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         ( ordemesh->treetab == NULL ) )
     {
         /* The ordering step may be distributed, but supernodes routines are not */
-        graphGather( &subgraph, -1 );
+        graphGatherInPlace( subgraph );
 
         /* TODO: if rangtab is provided, treetab could be easily calculated */
         pastixOrderFindSupernodes( subgraph, ordemesh );
@@ -498,25 +494,26 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      * Return the ordering to user if structure is not NULL
      * Remark: No need to copy back for personal
      */
-    if (iparm[IPARM_ORDERING] != PastixOrderPersonal) {
-        if ( graph->loc2glob == NULL ) {
-            if ( myorder != NULL )
-            {
-                retval = pastixOrderCopy( myorder, ordemesh );
-                MPI_Allreduce( &retval, &retval_rcv, 1, MPI_INT, MPI_MAX,
-                               pastix_data->pastix_comm );
-                if ( retval_rcv != PASTIX_SUCCESS ) {
-                    return retval_rcv;
-                }
+    if ( ( iparm[IPARM_ORDERING] != PastixOrderPersonal ) &&
+         ( myorder != NULL ) )
+    {
+        if ( graph->loc2glob == NULL )
+        {
+            retval = pastixOrderCopy( myorder, ordemesh );
+            MPI_Allreduce( &retval, &retval_rcv, 1, MPI_INT, MPI_MAX,
+                           pastix_data->pastix_comm );
+            if ( retval_rcv != PASTIX_SUCCESS ) {
+                return retval_rcv;
             }
         }
-        else {
+        else
+        {
             pastix_int_t *loc2glob;
             pastix_int_t  baseval = graph->baseval;
             pastix_int_t  i, n;
 
             n = graph->n;
-            if (myorder->permtab != NULL) {
+            if ( myorder->permtab != NULL ) {
                 pastix_int_t *permtab = ordemesh->permtab - baseval;
 
                 loc2glob = graph->loc2glob;

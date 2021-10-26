@@ -185,17 +185,6 @@ graphCopy( pastix_graph_t       *graphdst,
  *          On entry, the graph to scatter.
  *          On exit, the scattered graph
  *
- * @param[in] n
- *          Size of the loc2glob array if provided. Unused otherwise.
- *
- * @param[in] loc2glob
- *          Distribution array of the matrix. Will be copied.
- *          If NULL, the columns are evenly distributed among the processes.
- *
- * @param[in] root
- *          The root process of the scatter operation. -1 if everyone hold a
- *          copy of the graph.
- *
  * @param[in] comm
  *          MPI communicator.
  *
@@ -205,26 +194,27 @@ graphCopy( pastix_graph_t       *graphdst,
  *
  *******************************************************************************/
 int
-graphScatter( pastix_graph_t    **graph,
-              pastix_int_t        n,
-              const pastix_int_t *loc2glob,
-              int                 root,
-              PASTIX_Comm         comm )
+graphScatterInPlace( pastix_graph_t *graph,
+                     PASTIX_Comm     comm )
 {
     pastix_graph_t *newgraph;
-    assert_graph( *graph );
+    assert_graph( graph );
 
-    if ( (*graph)->loc2glob != NULL ) {
+    if ( graph->loc2glob != NULL ) {
         return 0;
     }
 
     /* Scatter the graph */
-    newgraph = spmScatter( *graph, n, loc2glob, 1, root, comm );
-    graphExit( *graph );
-    memFree(*graph);
+    newgraph = spmScatter( graph, -1, NULL, 1, -1, comm );
 
-    *graph = newgraph;
-    assert_graph( *graph );
+    if ( newgraph != NULL ) {
+        graphExit( graph );
+        memcpy( graph, newgraph, sizeof( pastix_graph_t ) );
+        free( newgraph );
+    }
+
+    assert_graph( graph );
+
     return 1;
 }
 
@@ -233,7 +223,7 @@ graphScatter( pastix_graph_t    **graph,
  *
  * @ingroup pastix_graph
  *
- * @brief This routine gather a distributed graph on node root.
+ * @brief This routine gather a distributed graph on each note in place.
  *
  *******************************************************************************
  *
@@ -250,22 +240,25 @@ graphScatter( pastix_graph_t    **graph,
  *
  ********************************************************************************/
 int
-graphGather( pastix_graph_t **graph,
-             int              root )
+graphGatherInPlace( pastix_graph_t *graph )
 {
     pastix_graph_t *newgraph;
-    assert_graph( *graph );
+    assert_graph( graph );
 
-    if ( (*graph)->loc2glob == NULL ) {
+    if ( graph->loc2glob == NULL ) {
         return 0;
     }
 
-    newgraph = spmGather( *graph, root );
-    graphExit( *graph );
-    memFree(*graph);
+    newgraph = spmGather( graph, -1 );
 
-    *graph = newgraph;
-    assert_graph( *graph );
+    if ( newgraph != NULL ) {
+        graphExit( graph );
+        memcpy( graph, newgraph, sizeof( pastix_graph_t ) );
+        free( newgraph );
+    }
+
+    assert_graph( graph );
+
     return 1;
 }
 
