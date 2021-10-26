@@ -31,6 +31,34 @@
 /**
  *******************************************************************************
  *
+ * @brief Initialize an empty graph
+ *
+ *******************************************************************************
+ *
+ * @param[inout] graph
+ *          The empty graph to init.
+ *
+ * @param[in] comm
+ *          The MPI communicator used for the graph.
+ *
+ *******************************************************************************/
+void
+graphInitEmpty( pastix_graph_t *graph,
+                PASTIX_Comm     comm )
+{
+    spmInitDist( graph, comm );
+
+    graph->flttype = SpmPattern;
+
+    graph->colptr = malloc( sizeof( pastix_int_t ) );
+    graph->colptr[0] = 0;
+
+    graphUpdateComputedFields( graph );
+}
+
+/**
+ *******************************************************************************
+ *
  * @brief Free the content of the graph structure.
  *
  *******************************************************************************
@@ -75,12 +103,6 @@ graphBase( pastix_graph_t *graph,
     /* Parameter checks */
     if ( graph == NULL ) {
         errorPrint("graphBase: graph pointer is NULL");
-        return;
-    }
-    if ( (graph->colptr == NULL) ||
-         (graph->rowptr == NULL) )
-    {
-        errorPrint("graphBase: graph pointer is not correctly initialized");
         return;
     }
     if ( (baseval != 0) &&

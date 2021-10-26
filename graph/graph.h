@@ -39,6 +39,8 @@ void graphBase   (       pastix_graph_t  *graph,
                          pastix_int_t     baseval );
 void graphExit   (       pastix_graph_t  *graph );
 
+void graphInitEmpty( pastix_graph_t *graph,
+                     PASTIX_Comm     comm );
 /**
  * @}
  * @name Graph IO subroutines
