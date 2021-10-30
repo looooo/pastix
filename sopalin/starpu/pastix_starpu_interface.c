@@ -683,6 +683,116 @@ pastix_starpu_register( starpu_data_handle_t *handleptr,
     starpu_data_register( handleptr, home_node, &interf, &pastix_starpu_interface_ops );
 }
 
+void
+pastix_starpu_register_ws( starpu_data_handle_t *handleptr,
+                           const SolverCblk     *cblk,
+                           pastix_coeftype_t     flttype )
+{
+    pastix_starpu_interface_t interf = {
+        .id        = PASTIX_STARPU_INTERFACE_ID,
+        .flttype   = flttype,
+        .offset    = -1,
+        .nbblok    =  0,
+        .allocsize = -1,
+        .cblk      = cblk,
+        .dataptr   = NULL,
+    };
+    SolverBlok  *fblok = cblk[0].fblokptr;
+    SolverBlok  *lblok = cblk[1].fblokptr;
+    size_t       size  = 0;
+    pastix_int_t M     = cblk->stride;
+    pastix_int_t N     = cblk_colnbr( cblk );
+
+    pastix_starpu_logger;
+
+    /*
+     * Get the correct size to allocate
+     */
+    interf.nbblok = lblok - fblok;
+    if ( (M - N) > 0 )
+    {
+        if ( (cblk->cblktype & CBLK_COMPRESSED) &&
+             (cblk_getdataL( cblk ) != NULL) )
+        {
+            size = M * N * pastix_size_of( flttype );
+            size += interf.nbblok * sizeof( pastix_lrblock_t );
+        }
+
+        if ( !(cblk->cblktype & CBLK_COMPRESSED) )
+        {
+            size = M * N * pastix_size_of( flttype );
+        }
+    }
+    interf.allocsize = size;
+
+#if defined(PASTIX_STARPU_INTERFACE_DEBUG)
+    fprintf( stderr,
+             "cblk (%9s, size=%8zu, nbblok=%2ld )\n",
+             cblk->cblktype & CBLK_COMPRESSED ? "Low-rank" : "Full-rank",
+             interf.allocsize, (long)(interf.nbblok) );
+#endif
+
+    starpu_data_register( handleptr, -1, &interf, &pastix_starpu_interface_ops );
+}
+
+void
+pastix_starpu_register_blok( starpu_data_handle_t *handleptr,
+                             const SolverCblk     *cblk,
+                             const SolverBlok     *blok,
+                             pastix_coeftype_t     flttype )
+{
+    pastix_starpu_interface_t interf = {
+        .id        = PASTIX_STARPU_INTERFACE_ID,
+        .flttype   = flttype,
+        .offset    = -1,
+        .nbblok    =  1,
+        .allocsize = -1,
+        .cblk      = cblk,
+        .dataptr   = NULL,
+    };
+    SolverBlok  *fblok = cblk[0].fblokptr;
+    SolverBlok  *lblok = cblk[1].fblokptr;
+    size_t       size  = 0;
+    pastix_int_t M     = blok_rownbr( blok );
+    pastix_int_t N     = cblk_colnbr( cblk );
+
+    pastix_starpu_logger;
+
+    /* Count the number of blocks and number of rows */
+    {
+        const SolverBlok *cblok = blok;
+
+        while( (cblok[0].lcblknm == cblok[1].lcblknm) &&
+               (cblok[0].fcblknm == cblok[1].fcblknm) )
+        {
+            cblok++;
+            interf.nbblok++;
+            M += blok_rownbr( cblok );
+        }
+    }
+
+    /*
+     * Get the right dataptr
+     * coeftab if the cblk is not compressed
+     * else lrblock
+     */
+    if ( !( cblk->cblktype & CBLK_COMPRESSED ) )
+    {
+        size = M * N * pastix_size_of( flttype );
+    }
+
+    interf.nbblok    = lblok - fblok;
+    interf.allocsize = size;
+
+#if defined(PASTIX_STARPU_INTERFACE_DEBUG)
+    fprintf( stderr,
+             "cblk (%9s, size=%8zu, nbblok=%2ld )\n",
+             cblk->cblktype & CBLK_COMPRESSED ? "Low-rank" : "Full-rank",
+             interf.allocsize, (long)(interf.nbblok) );
+#endif
+
+    starpu_data_register( handleptr, -1, &interf, &pastix_starpu_interface_ops );
+}
 /**
  * @}
  */

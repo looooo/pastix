@@ -289,6 +289,15 @@ void pastix_starpu_register( starpu_data_handle_t *handleptr,
                              pastix_coefside_t     side,
                              pastix_coeftype_t     flttype );
 
+void pastix_starpu_register_ws( starpu_data_handle_t *handleptr,
+                                const SolverCblk     *cblk,
+                                pastix_coeftype_t     flttype );
+
+void pastix_starpu_register_blok( starpu_data_handle_t *handleptr,
+                                  const SolverCblk     *cblk,
+                                  const SolverBlok     *blok,
+                                  pastix_coeftype_t     flttype );
+
 /**
  * @brief Initialize the interface ID
  */
