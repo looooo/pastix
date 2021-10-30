@@ -7,10 +7,13 @@
  * @copyright 2021-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Nolan Bredel
  * @author Mathieu Faverge
- * @date 2023-04-11
+ * @author Alycia Lisito
+ * @author Florent Pruvost
+ * @author Tom Moenne-Loccoz
+ * @date 2023-11-06
  *
  **/
 #include "common/common.h"
@@ -155,10 +158,10 @@ psi_get_size( starpu_data_handle_t handle )
 {
     pastix_starpu_interface_t *interf =
         starpu_data_get_interface_on_node( handle, STARPU_MAIN_RAM );
-    size_t       size;
-    SolverCblk  *cblk  = interf->cblk;
-    pastix_int_t ncols = cblk_colnbr( cblk );
-    size_t       nrows;
+    const SolverCblk *cblk  = interf->cblk;
+    pastix_int_t      ncols = cblk_colnbr( cblk );
+    size_t            nrows;
+    size_t            size;
 
     if ( interf->offset == -1 ) {
         nrows = cblk->stride;
@@ -207,7 +210,7 @@ psi_footprint( starpu_data_handle_t handle )
 {
     pastix_starpu_interface_t *interf =
         starpu_data_get_interface_on_node( handle, STARPU_MAIN_RAM );
-    SolverCblk *cblk = interf->cblk;
+    const SolverCblk *cblk = interf->cblk;
 
     pastix_starpu_logger;
 
@@ -231,8 +234,8 @@ psi_compare( void *data_interface_a, void *data_interface_b )
     pastix_starpu_interface_t *pastix_interface_a = (pastix_starpu_interface_t *)data_interface_a;
     pastix_starpu_interface_t *pastix_interface_b = (pastix_starpu_interface_t *)data_interface_b;
 
-    void *solva = ( pastix_interface_a->cblk );
-    void *solvb = ( pastix_interface_b->cblk );
+    const SolverCblk *solva = pastix_interface_a->cblk;
+    const SolverCblk *solvb = pastix_interface_b->cblk;
 
     pastix_starpu_logger;
 
@@ -258,7 +261,7 @@ psi_display( starpu_data_handle_t handle, FILE *f )
     pastix_starpu_interface_t *interf =
         (pastix_starpu_interface_t *)starpu_data_get_interface_on_node( handle, STARPU_MAIN_RAM );
 
-    SolverCblk *cblk = interf->cblk;
+    const SolverCblk *cblk = interf->cblk;
 
     pastix_starpu_logger;
 
@@ -358,7 +361,7 @@ psi_pack_data( starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ss
     pastix_starpu_interface_t *interf =
         (pastix_starpu_interface_t *)starpu_data_get_interface_on_node( handle, node );
 
-    SolverCblk *cblk = interf->cblk;
+    const SolverCblk *cblk = interf->cblk;
 
     pastix_starpu_logger;
 
@@ -478,7 +481,7 @@ static inline starpu_ssize_t
 psi_describe( void *data_interface, char *buf, size_t size )
 {
     pastix_starpu_interface_t *interf = (pastix_starpu_interface_t *)data_interface;
-    SolverCblk                *cblk      = interf->cblk;
+    const SolverCblk          *cblk   = interf->cblk;
 
     pastix_starpu_logger;
 
@@ -624,8 +627,7 @@ pastix_starpu_interface_fini()
  ********************************************************************************/
 void
 pastix_starpu_register( starpu_data_handle_t *handleptr,
-                        int                   home_node,
-                        SolverCblk           *cblk,
+                        const SolverCblk     *cblk,
                         pastix_coefside_t     side,
                         pastix_coeftype_t     flttype )
 {
@@ -641,6 +643,7 @@ pastix_starpu_register( starpu_data_handle_t *handleptr,
     SolverBlok *fblok = cblk[0].fblokptr;
     SolverBlok *lblok = cblk[1].fblokptr;
     size_t      size  = 0;
+    int         home_node = -1;
 
     assert( side != PastixLUCoef );
 
@@ -654,13 +657,17 @@ pastix_starpu_register( starpu_data_handle_t *handleptr,
     if ( !( cblk->cblktype & CBLK_COMPRESSED ) ) {
         size              = cblk->stride * cblk_colnbr( cblk ) * pastix_size_of( flttype );
         interf.dataptr = side == PastixLCoef ? cblk->lcoeftab : cblk->ucoeftab;
+        if ( interf.dataptr != NULL ) {
+            home_node = STARPU_MAIN_RAM;
+        }
     }
     else {
-        if ( home_node != -1 )
+        interf.dataptr = cblk->fblokptr->LRblock[side];
+        if ( interf.dataptr != NULL )
         {
             size = ( lblok - fblok ) * sizeof( pastix_lrblock_t );
+            home_node = STARPU_MAIN_RAM;
         }
-        interf.dataptr = cblk->fblokptr->LRblock[side];
     }
 
     interf.nbblok    = lblok - fblok;
