@@ -7,11 +7,13 @@
  * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Tom Moenne-Loccoz
- * @date 2023-06-07
+ * @author Alycia Lisito
+ * @author Nolan Bredel
+ * @date 2023-11-06
  *
  * @precisions normal z -> z c d s
  *
@@ -194,6 +196,11 @@ fct_cblk_zsytrfsp_cpu( void *descr[], void *cl_arg )
     L  = pastix_starpu_cblk_get_ptr( descr[0] );
     DL = pastix_starpu_cblk_get_ptr( descr[1] );
 
+    if ( (args->cblk->cblktype & CBLK_COMPRESSED) && (DL != NULL) ) {
+        char *ws = DL;
+        ws += (args->cblk[1].fblokptr - args->cblk[0].fblokptr) * sizeof( pastix_lrblock_t );
+        cpucblk_zalloc_lrws( args->cblk, DL, (pastix_complex64_t*)ws );
+    }
     cpucblk_zsytrfsp1d_panel( args->sopalin_data->solvmtx, args->cblk, L, DL );
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
@@ -230,8 +237,19 @@ starpu_task_cblk_zsytrfsp( sopalin_data_t *sopalin_data,
 #endif
 
     starpu_data_handle_t *handler = (starpu_data_handle_t *)( cblk->handler );
-    pastix_int_t          M       = cblk->stride;
-    pastix_int_t          N       = cblk_colnbr( cblk );
+
+    pastix_starpu_register_ws( handler + 1, cblk, PastixComplex64 );
+
+#if defined(PASTIX_WITH_MPI)
+    {
+        int64_t tag_desc = sopalin_data->solvmtx->starpu_desc->mpitag;
+        int64_t tag_cblk = 2 * cblk->gcblknum + 1;
+
+        starpu_mpi_data_register( *(handler + 1),
+                                  tag_desc + tag_cblk,
+                                  cblk->ownerid );
+    }
+#endif /* PASTIX_WITH_MPI */
 
     /*
      * Check if it needs to be submitted
@@ -253,27 +271,6 @@ starpu_task_cblk_zsytrfsp( sopalin_data_t *sopalin_data,
         }
     }
 #endif
-
-    // TODO
-    if ( (M - N) > 0 ) {
-        starpu_vector_data_register( handler + 1, -1, (uintptr_t)NULL, M * N,
-                                     sopalin_data->solvmtx->starpu_desc->typesze );
-    }
-    else {
-        starpu_vector_data_register( handler + 1, -1, (uintptr_t)NULL, 0,
-                                     sopalin_data->solvmtx->starpu_desc->typesze );
-    }
-
-#if defined(PASTIX_WITH_MPI)
-    {
-        int64_t tag_desc = sopalin_data->solvmtx->starpu_desc->mpitag;
-        int64_t tag_cblk = 2 * cblk->gcblknum + 1;
-
-        starpu_mpi_data_register( *(handler + 1),
-                                  tag_desc | tag_cblk,
-                                  cblk->ownerid );
-    }
-#endif /* PASTIX_WITH_MPI */
 
     /*
      * Create the arguments array

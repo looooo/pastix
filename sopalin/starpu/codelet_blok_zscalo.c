@@ -181,6 +181,20 @@ starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
     starpu_data_handle_t *handler = (starpu_data_handle_t *)( blok->handler );
     pastix_int_t          blok_m  = blok - cblk->fblokptr;
 
+    pastix_starpu_register_blok( handler+1, cblk, blok, PastixComplex64 );
+
+#if defined(PASTIX_WITH_MPI)
+    {
+        int64_t tag_desc = sopalin_data->solvmtx->starpu_desc->mpitag;
+        int64_t tag_cblk = 2 * sopalin_data->solvmtx->gcblknbr;
+        int64_t tag_blok = 2 * (blok - sopalin_data->solvmtx->bloktab) + 1;
+
+        starpu_mpi_data_register( *(handler + 1),
+                                  tag_desc + tag_cblk + tag_blok,
+                                  cblk->ownerid );
+    }
+#endif /* PASTIX_WITH_MPI */
+
     /*
      * Check if it needs to be submitted
      */
@@ -198,21 +212,6 @@ starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
         }
     }
 #endif
-
-    pastix_starpu_register_blok( handler +1, cblk, blok,
-                                 sopalin_data->solvmtx->starpu_desc->typesze );
-
-#if defined(PASTIX_WITH_MPI)
-    {
-        int64_t tag_desc = sopalin_data->solvmtx->starpu_desc->mpitag;
-        int64_t tag_cblk = 2 * sopalin_data->solvmtx->gcblknbr;
-        int64_t tag_blok = 2 * (blok - sopalin_data->solvmtx->bloktab) + 1;
-
-        starpu_mpi_data_register( *(handler + 1),
-                                  tag_desc + tag_cblk + tag_blok,
-                                  cblk->ownerid );
-    }
-#endif /* PASTIX_WITH_MPI */
 
     /*
      * Create the arguments array
