@@ -9,9 +9,10 @@
  * @copyright 2012-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Mathieu Faverge
- * @date 2023-01-13
+ * @author Nolan Bredel
+ * @date 2023-11-06
  * @precisions normal z -> c d s
  *
  **/
@@ -167,10 +168,10 @@ core_zscalo( pastix_trans_t            trans,
  *
  *******************************************************************************/
 void
-cpucblk_zscalo( pastix_trans_t      trans,
-                SolverCblk         *cblk,
-                void               *dataL,
-                void               *dataLD )
+cpucblk_zscalo( pastix_trans_t    trans,
+                const SolverCblk *cblk,
+                void             *dataL,
+                void             *dataLD )
 {
     const SolverBlok *blok, *lblk;
     pastix_int_t M, N;
@@ -312,12 +313,12 @@ cpucblk_zscalo( pastix_trans_t      trans,
  *
  *******************************************************************************/
 void
-cpublok_zscalo( pastix_trans_t trans,
-                SolverCblk    *cblk,
-                pastix_int_t   blok_m,
-                const void    *dataA,
-                const void    *dataD,
-                void          *dataB )
+cpublok_zscalo( pastix_trans_t    trans,
+                const SolverCblk *cblk,
+                pastix_int_t      blok_m,
+                const void       *dataA,
+                const void       *dataD,
+                void             *dataB )
 {
     const SolverBlok *fblok, *lblok, *blok;
     pastix_int_t M, N, ldd, offset, cblk_m;
