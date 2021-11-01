@@ -5,14 +5,15 @@
  * @copyright 2012-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Pascal Henon
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Tony Delarue
  * @author Vincent Bridonneau
- * @date 2023-07-20
+ * @author Alycia Lisito
+ * @date 2023-11-06
  *
  * @precisions normal z -> s d c
  *
@@ -67,8 +68,8 @@ sequential_zdiag( pastix_data_t      *pastix_data,
         if ( cblk->ownerid != datacode->clustnum ) {
             continue;
         }
-        solve_cblk_zdiag( cblk, nrhs,
-                          b + cblk->lcolidx, ldb, NULL );
+        solve_cblk_zdiag( cblk, cblk_getdataL( cblk ),
+                          nrhs, b + cblk->lcolidx, ldb, NULL );
     }
 }
 
@@ -132,8 +133,8 @@ thread_zdiag_static( isched_thread_t *ctx,
         if ( cblk->ownerid != datacode->clustnum ) {
             continue;
         }
-        solve_cblk_zdiag( cblk, nrhs,
-                          b + cblk->lcolidx, ldb, NULL );
+        solve_cblk_zdiag( cblk, cblk_getdataL( cblk ),
+                          nrhs, b + cblk->lcolidx, ldb, NULL );
     }
 }
 
@@ -241,8 +242,8 @@ thread_zdiag_dynamic( isched_thread_t *ctx,
         }
         if( cblknum != -1 ){
             cblk = datacode->cblktab + cblknum;
-            solve_cblk_zdiag( cblk, nrhs,
-                              b + cblk->lcolidx, ldb, NULL );
+            solve_cblk_zdiag( cblk, cblk_getdataL( cblk ),
+                              nrhs, b + cblk->lcolidx, ldb, NULL );
             local_taskcnt++;
         }
     }

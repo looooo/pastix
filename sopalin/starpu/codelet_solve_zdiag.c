@@ -7,11 +7,14 @@
  * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Vincent Bridonneau
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2023-06-07
+ * @author Alycia Lisito
+ * @author Nolan Bredel
+ * @author Tom Moenne-Loccoz
+ * @date 2023-11-06
  *
  * @precisions normal z -> z c d s
  *
@@ -76,9 +79,7 @@ fct_solve_cblk_zdiag_cpu( void *descr[], void *cl_arg )
     ldb  = (int)STARPU_MATRIX_GET_LD( descr[1] );
     nrhs = (int)STARPU_MATRIX_GET_NY( descr[1] );
 
-    solve_cblk_zdiag( args->cblk, nrhs, b, ldb, NULL );
-
-    (void)A; //TODO
+    solve_cblk_zdiag( args->cblk, A, nrhs, b, ldb, NULL );
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 

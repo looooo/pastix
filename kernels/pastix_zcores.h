@@ -562,6 +562,7 @@ void solve_cblk_ztrsmsp_backward( const args_solve_t *enums,
                                   pastix_rhs_t        b );
 
 void solve_cblk_zdiag( const SolverCblk   *cblk,
+                       const void         *dataA,
                        int                 nrhs,
                        pastix_complex64_t *b,
                        int                 ldb,
