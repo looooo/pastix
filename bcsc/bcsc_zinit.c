@@ -113,14 +113,14 @@ bcsc_zinit_A( const spmatrix_t     *spm,
             ip   = ord->permtab[ig] * dof;
             ival = i * dof * dof;
 
-            for (idofcol = 0; idofcol < dof; idofcol++)
+            for ( idofcol = 0; idofcol < dof; idofcol++ )
             {
                 pastix_int_t colidx = jp + idofcol - cblk->fcolnum;
                 pastix_int_t rowidx = ip;
                 pastix_int_t pos = coltab[ colidx ];
 
-                for (idofrow = 0; idofrow < dof;
-                     idofrow++, ival++, rowidx++, pos++)
+                for ( idofrow = 0; idofrow < dof;
+                      idofrow++, ival++, rowidx++, pos++ )
                 {
                     bcsc->rowtab[ pos ] = rowidx;
                     Lvalues[ pos ] = values[ ival ];
@@ -193,7 +193,7 @@ bcsc_zinit_At( const spmatrix_t     *spm,
     spm_complex64_t (*_bcsc_conj)(spm_complex64_t) = NULL;
 
     /* We're working on U */
-    if( spm->mtxtype == SpmGeneral ) {
+    if ( spm->mtxtype == SpmGeneral ) {
         _bcsc_conj = __fct_id;
         Uvalues = (pastix_complex64_t*)(bcsc->Uvalues);
     }
@@ -211,7 +211,6 @@ bcsc_zinit_At( const spmatrix_t     *spm,
         }
         Uvalues = (pastix_complex64_t*)(bcsc->Lvalues);
     }
-
 
     baseval = spm->baseval;
     assert(spm->n == spm->gN);
@@ -246,14 +245,14 @@ bcsc_zinit_At( const spmatrix_t     *spm,
             coltab = bcsc->cscftab[cblk->bcscnum].coltab;
             ival   = i * dof * dof;
 
-            for (idofcol = 0; idofcol < dof; idofcol++)
+            for ( idofcol = 0; idofcol < dof; idofcol++ )
             {
                 pastix_int_t colidx = jp + idofcol;
                 pastix_int_t rowidx = ip - cblk->fcolnum;
                 pastix_int_t pos;
 
-                for (idofrow = 0; idofrow < dof;
-                     idofrow++, ival++, rowidx++, pos++)
+                for ( idofrow = 0; idofrow < dof;
+                      idofrow++, ival++, rowidx++ )
                 {
                     pos = coltab[ rowidx ];
 
@@ -297,16 +296,16 @@ bcsc_zsort( const pastix_bcsc_t *bcsc,
     void *sortptr[2];
 
     blockcol = bcsc->cscftab;
-    for (itercblk=0; itercblk<bcsc->cscfnbr; itercblk++, blockcol++)
+    for ( itercblk=0; itercblk<bcsc->cscfnbr; itercblk++, blockcol++ )
     {
-        for (itercol=0; itercol<blockcol->colnbr; itercol++)
+        for ( itercol=0; itercol<blockcol->colnbr; itercol++ )
         {
             int i;
             sortptr[0] = (void*)(rowtab + blockcol->coltab[itercol]);
             sortptr[1] = (void*)(valtab + blockcol->coltab[itercol]);
 
             size = blockcol->coltab[itercol+1] - blockcol->coltab[itercol];
-            for (i=0; i<size; i++) {
+            for ( i=0; i<size; i++ ) {
                 assert( rowtab[ blockcol->coltab[itercol] + i ] != -1);
             }
 

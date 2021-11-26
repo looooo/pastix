@@ -63,14 +63,14 @@ bcsc_init_coltab( const SolverMatrix  *solvmtx,
     bcsc_cblk_t *blockcol;
     pastix_int_t cblknum, bcscnum, iter, idxcol, nodeidx, colsize;
 
-    bcsc->cscfnbr    = solvmtx->cblknbr - solvmtx->faninnbr - solvmtx->recvnbr;
+    bcsc->cscfnbr = solvmtx->cblknbr - solvmtx->faninnbr - solvmtx->recvnbr;
     MALLOC_INTERN( bcsc->cscftab, bcsc->cscfnbr, bcsc_cblk_t );
 
     idxcol   = 0;
     bcscnum  = 0;
     cblk     = solvmtx->cblktab;
     blockcol = bcsc->cscftab;
-    for (cblknum = 0; cblknum < solvmtx->cblknbr; cblknum++, cblk++)
+    for ( cblknum = 0; cblknum < solvmtx->cblknbr; cblknum++, cblk++ )
     {
         if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) {
             continue;
@@ -88,7 +88,7 @@ bcsc_init_coltab( const SolverMatrix  *solvmtx,
         assert( cblk->fcolnum % dof == 0 );
 
         blockcol->coltab[0] = idxcol;
-        for (iter=0; iter < blockcol->colnbr; iter++)
+        for ( iter=0; iter < blockcol->colnbr; iter++ )
         {
             nodeidx = ( cblk->fcolnum + (iter-iter%dof) ) / dof;
 
@@ -141,7 +141,7 @@ bcsc_restore_coltab( pastix_bcsc_t *bcsc )
     bcsc_cblk_t *blockcol;
     pastix_int_t index, iter, idxcol, idxcoltmp;
 
-    idxcol = 0;
+    idxcol   = 0;
     blockcol = bcsc->cscftab;
     for ( index=0; index<bcsc->cscfnbr; index++, blockcol++ )
     {
@@ -228,7 +228,7 @@ bcsc_init_global_coltab( const spmatrix_t     *spm,
                 for ( i=frow; i<lrow; i++ )
                 {
                     ig = rowptr[i] - baseval;
-                    if ( ig != jg) {
+                    if ( ig != jg ) {
                         ip = ord->permtab[ig];
                         globcol[ip]++;
                     }
@@ -307,9 +307,9 @@ bcsc_init( const spmatrix_t     *spm,
         MALLOC_INTERN( col2cblk, spm->gNexp, pastix_int_t );
         memset( col2cblk, 0xff, spm->gNexp * sizeof(pastix_int_t) );
 
-        for (cblknum=0; cblknum<cblknbr; cblknum++, cblk++)
+        for ( cblknum=0; cblknum<cblknbr; cblknum++, cblk++ )
         {
-            if( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ){
+            if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ){
                 continue;
             }
             for ( j=cblk->fcolnum; j<=cblk->lcolnum; j++ )
@@ -418,7 +418,7 @@ bcscExit( pastix_bcsc_t *bcsc )
         return;
     }
 
-    for (i=0, cblk=bcsc->cscftab; i < bcsc->cscfnbr; i++, cblk++ ) {
+    for ( i=0, cblk=bcsc->cscftab; i < bcsc->cscfnbr; i++, cblk++ ) {
         memFree_null( cblk->coltab );
     }
 
