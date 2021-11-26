@@ -11,6 +11,7 @@
  * @author Xavier Lacoste
  * @author Theophile Terraz
  * @author Tony Delarue
+ * @author Alycia Lisito
  * @date 2021-03-30
  *
  **/
@@ -25,53 +26,1120 @@
 #include "bcsc/bcsc_d.h"
 #include "bcsc/bcsc_s.h"
 
+#if defined(PASTIX_WITH_MPI)
 /**
  *******************************************************************************
  *
  * @ingroup bcsc_internal
  *
- * @brief Initialize the coltab of a block csc matrix.
+ * @brief Initializes the bcsc_handle_comm_t structure.
  *
  *******************************************************************************
  *
  * @param[in] solvmtx
- *          The solver matrix structure that describe the data distribution.
+ *          The solver matrix structure which describes the data distribution.
  *
- * @param[in] newcoltab
- *          Array of size spm->gN+1. This array is global coltab with -1 for non
- *          local indexes.
+ * @param[out] bcsc_comm
+ *          The bcsc_handle_comm initialised.
  *
- * @param[in] dof
- *          The degree of freedom of each unknown.
+ *******************************************************************************/
+void
+bcsc_handle_comm_init( const SolverMatrix *solvmtx,
+                       bcsc_handle_comm_t *bcsc_comm )
+{
+    bcsc_comm->clustnbr = solvmtx->clustnbr;
+    bcsc_comm->clustnum = solvmtx->clustnum;
+    bcsc_comm->comm     = solvmtx->solv_comm;
+
+    memset( bcsc_comm->data_comm, 0, bcsc_comm->clustnbr * sizeof(bcsc_proc_comm_t) );
+}
+
+/**
+ *******************************************************************************
  *
+ * @ingroup bcsc_internal
+ *
+ * @brief Frees the bcsc_handle_comm pointers.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] bcsc_comm
+ *          The bcsc_handle_comm_t structure.
+ *
+ *******************************************************************************/
+void
+bcsc_handle_comm_exit( bcsc_handle_comm_t *bcsc_comm )
+{
+    int c;
+    int clustnbr = bcsc_comm->clustnbr;
+
+    if( bcsc_comm->data_comm != NULL ) {
+        for ( c = 0; c < clustnbr; c++ ) {
+            if( bcsc_comm->data_comm[c].indexes_A != NULL ) {
+                memFree_null(bcsc_comm->data_comm[c].indexes_A);
+            }
+            if( bcsc_comm->data_comm[c].values_A != NULL ) {
+                memFree_null(bcsc_comm->data_comm[c].values_A);
+            }
+            if( bcsc_comm->data_comm[c].indexes_At != NULL ) {
+                memFree_null(bcsc_comm->data_comm[c].indexes_At);
+            }
+            if( bcsc_comm->data_comm[c].values_At != NULL ) {
+                memFree_null(bcsc_comm->data_comm[c].values_At);
+            }
+        }
+    }
+    free( bcsc_comm );
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Exchanges the amount of data the current processor will send to and
+ *        receive from each processor.
+ *
+ *******************************************************************************
+ *
+ * @param[in] bcsc_comm
+ *          The bcsc_handle_comm_t structure.
+ *
+ *******************************************************************************/
+static inline void
+bcsc_exchange_amount_of_data( bcsc_handle_comm_t *bcsc_comm )
+{
+    int               c;
+    int               clustnbr    = bcsc_comm->clustnbr;
+    int               clustnum    = bcsc_comm->clustnum;
+    pastix_int_t      idx_A_cnt   = 0;
+    pastix_int_t      val_A_cnt   = 0;
+    pastix_int_t      idx_At_cnt  = 0;
+    pastix_int_t      val_At_cnt  = 0;
+    pastix_int_t      counter_req = 0;
+    bcsc_proc_comm_t *data_comm   = bcsc_comm->data_comm;
+    MPI_Status        statuses[(clustnbr-1)*2];
+    MPI_Request       requests[(clustnbr-1)*2];
+    size_t            size;
+
+    /* Receives the amount of indexes and values. */
+    for ( c = 0; c < clustnbr; c++ ) {
+        if ( c == clustnum ) {
+            continue;
+        }
+
+        MPI_Irecv( &(data_comm[c].nrecvs), 4, PASTIX_MPI_INT,
+                   c, PastixTagCount, bcsc_comm->comm, &requests[counter_req++] );
+
+        MPI_Isend( &(data_comm[c].nsends), 4, PASTIX_MPI_INT,
+                   c, PastixTagCount, bcsc_comm->comm, &requests[counter_req++] );
+    }
+
+    MPI_Waitall( counter_req, requests, statuses );
+
+    /* Saves the total amount of indexes and values received. */
+    for ( c = 0; c < clustnbr; c++ ) {
+        if ( c == clustnum ) {
+            continue;
+        }
+
+        idx_A_cnt  += data_comm[c].nrecvs.idx_A;
+        val_A_cnt  += data_comm[c].nrecvs.val_A;
+        idx_At_cnt += data_comm[c].nrecvs.idx_At;
+        val_At_cnt += data_comm[c].nrecvs.val_At;
+    }
+    data_comm[clustnum].nrecvs.idx_A  = idx_A_cnt;
+    data_comm[clustnum].nrecvs.val_A  = val_A_cnt;
+    data_comm[clustnum].nrecvs.idx_At = idx_At_cnt;
+    data_comm[clustnum].nrecvs.val_At = val_At_cnt;
+
+    /* Allocates the indexes and values buffers. */
+    for ( c = 0; c < clustnbr; c++ ) {
+        bcsc_proc_comm_t   *data   = bcsc_comm->data_comm + c;
+        bcsc_data_amount_t *amount = ( c == clustnum ) ? &(data->nrecvs) : &(data->nsends);
+
+        if ( amount->idx_A != 0 ) {
+            MALLOC_INTERN( data->indexes_A,  amount->idx_A , pastix_int_t );
+        }
+        if ( amount->idx_At != 0 ) {
+            MALLOC_INTERN( data->indexes_At, amount->idx_At, pastix_int_t );
+        }
+        if ( amount->val_A != 0 ) {
+            size = amount->val_A * pastix_size_of( bcsc_comm->flttype );
+            MALLOC_INTERN( data->values_A,  size, char );
+        }
+        if ( amount->val_At != 0 ) {
+            size = amount->val_At * pastix_size_of( bcsc_comm->flttype );
+            MALLOC_INTERN( data->values_At, size, char );
+        }
+    }
+
+    return;
+}
+#endif
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Creates the array which represents the repartition of each column
+ *        in the block structure. The array size is spm->gNexp where:
+ *            - col2cblk[k] = cblknum, with cblknum the index of the block column
+ *              where the column k is stored.
+ *        This routine is called when the matrix is in shared memory.
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          The solvmtx structure associated to the problem.
+ *
+ * @param[in,out] bcsc
+ *           The internal block CSC structure.
+ *           The number of local columns is updated.
+ *
+ *******************************************************************************
+ *
+ * @return The col2cblk array which gives the repartition of the solvmtx columns
+ *         into the block structure.
+ *
+ *******************************************************************************/
+static inline pastix_int_t *
+bcsc_init_col2cblk_shm( const SolverMatrix  *solvmtx,
+                        const pastix_bcsc_t *bcsc )
+{
+    pastix_int_t      j;
+    pastix_int_t      cblknum;
+    pastix_int_t     *col2cblk;
+
+    /* Allocates the col2cblk. */
+    MALLOC_INTERN( col2cblk, bcsc->gN, pastix_int_t );
+    memset( col2cblk, 0xff, bcsc->gN * sizeof(pastix_int_t) );
+
+    const SolverCblk *cblk    = solvmtx->cblktab;
+    pastix_int_t      cblknbr = solvmtx->cblknbr;
+    /* Goes through the blocks. */
+    for ( cblknum = 0; cblknum < cblknbr; cblknum++, cblk++ ) {
+        if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) {
+            continue;
+        }
+        /*
+         * Goes through the columns of the block and adds the number of
+         * the block in col2cblk at the corresponding index.
+         */
+        for ( j = cblk->fcolnum; j <= cblk->lcolnum; j++ ) {
+            col2cblk[j] = cblknum;
+        }
+    }
+
+    return col2cblk;
+}
+
+#if defined(PASTIX_WITH_MPI)
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Creates the array which represents the repartition of each column
+ *        in the block structure. The array size is spm->gNexp where:
+ *            - col2cblk[k] = - (owner + 1) if the column is not stored in a local block
+ *            - col2cblk[k] = cblknum, if the column k is stored in a local block, with
+ *              cblknum the index of this block column.
+ *       This routine is called when the matrix is in distributed memory.
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          The solvmtx structure associated to the problem.
+ *
+ * @param[in,out] bcsc
+ *           The internal block CSC structure.
+ *           The number of local columns is updated.
+ *
+ *******************************************************************************
+ *
+ * @return The col2cblk array which gives the repartition of the solvmtx columns
+ *         into the block structure.
+ *
+ *******************************************************************************/
+static inline pastix_int_t *
+bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
+                        const pastix_bcsc_t *bcsc )
+{
+    pastix_int_t  n, nr = 0;
+    pastix_int_t  k, j, c;
+    pastix_int_t  clustnum  = solvmtx->clustnum;
+    pastix_int_t  clustnbr = solvmtx->clustnbr;
+    pastix_int_t  fcolnum, lcolnum, cblknum;
+    pastix_int_t *col2cblk;
+    pastix_int_t *col2cblk_bcast = NULL;
+
+    /* Allocates the col2cblk. */
+    MALLOC_INTERN( col2cblk, bcsc->gN, pastix_int_t );
+    memset( col2cblk, 0xff, bcsc->gN * sizeof(pastix_int_t) );
+
+    for( c = 0; c < clustnbr; c++ ) {
+        if ( c == clustnum ) {
+            const SolverCblk *cblk    = solvmtx->cblktab;
+            pastix_int_t      cblknbr = solvmtx->cblknbr;
+            pastix_int_t      colcount;
+
+            n = (solvmtx->cblknbr - solvmtx->faninnbr - solvmtx->recvnbr) * 2;
+
+            /* Sends the size of data. */
+            MPI_Bcast( &n, 1, PASTIX_MPI_INT, c, solvmtx->solv_comm );
+
+            if ( n > nr ) {
+                nr = n;
+                col2cblk_bcast = realloc( col2cblk_bcast, nr * sizeof(pastix_int_t) );
+            }
+
+            colcount = 0;
+            k = 0;
+            /* Goes through the blocks. */
+            for ( cblknum = 0; cblknum < cblknbr; cblknum++, cblk++ ) {
+                if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) {
+                    continue;
+                }
+                /* Adds the first and last columns of the block in col2cblk_bcast. */
+                col2cblk_bcast[k]   = cblk->fcolnum;
+                col2cblk_bcast[k+1] = cblk->lcolnum;
+                k += 2;
+                /*
+                 * Goes through the columns of the block and adds the
+                 * block number in col2cblk.
+                 */
+                for ( j = cblk->fcolnum; j <= cblk->lcolnum; j++ ) {
+                    colcount++;
+                    col2cblk[j] = cblknum;
+                }
+            }
+            assert( colcount == bcsc->n );
+
+            /* Sends the col2cblk_bcast. */
+            MPI_Bcast( col2cblk_bcast, n, PASTIX_MPI_INT, c, solvmtx->solv_comm );
+        }
+        else {
+            /* Receives the size of data from c. */
+            MPI_Bcast( &n, 1, PASTIX_MPI_INT, c, solvmtx->solv_comm );
+
+            if ( n > nr ) {
+                nr = n;
+                col2cblk_bcast = realloc( col2cblk_bcast, nr * sizeof(pastix_int_t) );
+            }
+
+            if ( n == 0 ) {
+                continue;
+            }
+
+            /* Receives the col2cblk_bcast from c. */
+            MPI_Bcast( col2cblk_bcast, n, PASTIX_MPI_INT, c, solvmtx->solv_comm );
+            /*
+             * Goes through the columns in col2cblk_bcast and adds the processor
+             * number in col2cblk.
+             */
+            for ( k = 0; k < n; k += 2 ) {
+                fcolnum = col2cblk_bcast[k];
+                lcolnum = col2cblk_bcast[k+1];
+                for ( j = fcolnum; j <= lcolnum; j++ ) {
+                    col2cblk[j] = - c - 1;
+                }
+            }
+        }
+    }
+
+    free( col2cblk_bcast );
+
+    return col2cblk;
+}
+#endif
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Creates the array which represents the repartition of each column
+ *        in the block structure. This routine calls bcsc_init_col2cblk_shm or
+ *        bcsc_init_col2cblk_dst according to the way the matrix is stored in the
+ *        memory.
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          The solvmtx structure associated to the problem.
+ *
+ * @param[in,out] bcsc
+ *           The internal block CSC structure.
+ *           The number of local columns is updated.
+ *
+ *******************************************************************************
+ *
+ * @return The col2cblk array which gives the repartition of the solvmtx columns
+ *         into the block structure.
+ *
+ *******************************************************************************/
+static inline pastix_int_t *
+bcsc_init_col2cblk( const SolverMatrix  *solvmtx,
+                    const pastix_bcsc_t *bcsc,
+                    const spmatrix_t    *spm )
+{
+    pastix_int_t *col2cblk;
+    /* Tests if the spm is in shared or distributed memory. */
+    if ( spm->loc2glob == NULL ) {
+        col2cblk = bcsc_init_col2cblk_shm( solvmtx, bcsc );
+    }
+#if defined(PASTIX_WITH_MPI)
+    else {
+        col2cblk = bcsc_init_col2cblk_dst( solvmtx, bcsc );
+    }
+#endif
+    return col2cblk;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Initializes the dofshit array of size gNexp which gives
+ *        dofshift[index_permuted] = index. This corresponds to the inverse of
+ *        the permutation given in ord->permtab.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering that needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ *******************************************************************************
+ *
+ * @return The dofshift array.
+ *
+ *******************************************************************************/
+static inline pastix_int_t*
+bcsc_init_dofshift( const spmatrix_t     *spm,
+                    const pastix_order_t *ord )
+{
+    pastix_int_t *dofshift, *ptr;
+    pastix_int_t *dofs;
+    pastix_int_t  dof;
+    pastix_int_t  idof, dofj, dofidx;
+    pastix_int_t  jg, jp;
+
+    /* Allocates the dofshift array. */
+    MALLOC_INTERN( dofshift, spm->gNexp, pastix_int_t );
+
+    dofs = spm->dofs;
+    dof  = spm->dof;
+    ptr  = dofshift;
+    for ( jg = 0; jg < spm->gN; jg++ ) {
+        jp     = ord->permtab[jg];
+        dofidx = (dof > 0) ? jp * dof : dofs[jg];
+        ptr    = dofshift + dofidx;
+        dofj   = (dof > 0) ? dof : dofs[jg+1] - dofs[jg];
+        for ( idof = 0; idof < dofj; idof++, ptr++ ) {
+            *ptr = jp;
+        }
+    }
+    return dofshift;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Initializes the coltab of a block csc matrix. The coltab corresponds to
+ *        the number of rows (expended) per column (non expended). This rountine
+ *        is called when the matrix is stored in shared memory or the matrix is
+ *        replicated on the processors and the matrix's degree of liberty is
+ *        constant.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering which needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[out] globcol
+ *          The array which contains, for each column, its begining in the
+ *          smp->colptr.
+ *
+ *******************************************************************************/
+static inline void
+bcsc_init_global_coltab_shm_cdof( const spmatrix_t     *spm,
+                                  const pastix_order_t *ord,
+                                  pastix_int_t         *globcol )
+{
+    pastix_int_t *colptr   = spm->colptr;
+    pastix_int_t *rowptr   = spm->rowptr;
+    pastix_int_t  dof      = spm->dof;
+    pastix_int_t  baseval  = spm->baseval;
+    pastix_int_t  frow, lrow;
+    pastix_int_t  k, j, ig, jg, ip, jp;
+    int           sym = (spm->mtxtype == SpmSymmetric) || (spm->mtxtype == SpmHermitian);
+
+    assert( dof > 0 );
+    assert( spm->loc2glob == NULL );
+
+    /* Goes through the column of the spm. */
+    for ( j = 0; j < spm->n; j++, colptr++ ) {
+        jg   = j;
+        jp   = ord->permtab[jg];
+        frow = colptr[0] - baseval;
+        lrow = colptr[1] - baseval;
+        assert( (lrow - frow) >= 0 );
+        /* Adds the number of values in the column jg. */
+        globcol[jp] += (lrow - frow) * dof;
+
+        /*
+         * Adds for At the number of values in the row ig and column jg. This
+         * is not required for the general case as the spm has a symmetric
+         * pattern.
+         */
+        if ( !sym ) {
+            continue;
+        }
+
+        for ( k = frow; k < lrow; k++ ) {
+            ig = rowptr[k] - baseval;
+            if ( ig != jg ) {
+                ip = ord->permtab[ig];
+                globcol[ip] += dof;
+            }
+        }
+    }
+
+    return;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Initializes the coltab of a block csc matrix. The coltab corresponds to
+ *        the number of rows (expended) per column (non expended). This rountine
+ *        is called when the matrix is stored in shared memory or the matrix is
+ *        replicated on the processors and the matrix's degree of liberty is
+ *        variadic.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering which needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[out] globcol
+ *          The array which contains, for each column, its begining in the
+ *          smp->colptr.
+ *
+ *******************************************************************************/
+static inline void
+bcsc_init_global_coltab_shm_vdof( const spmatrix_t     *spm,
+                                  const pastix_order_t *ord,
+                                  pastix_int_t         *globcol )
+{
+    pastix_int_t *colptr   = spm->colptr;
+    pastix_int_t *rowptr   = spm->rowptr;
+    pastix_int_t *dofs     = spm->dofs;
+    pastix_int_t  baseval  = spm->baseval;
+    pastix_int_t  frow, lrow;
+    pastix_int_t  k, j, ig, jg, ip, jp;
+    pastix_int_t  dofj, dofi;
+    int           sym = (spm->mtxtype == SpmSymmetric) || (spm->mtxtype == SpmHermitian);
+
+    assert( spm->dof <= 0 );
+    assert( spm->loc2glob == NULL );
+
+    /* Goes through the column of the spm. */
+    for ( j=0; j<spm->n; j++, colptr++ ) {
+        jg   = j;
+        dofj = dofs[jg+1] - dofs[jg];
+        jp   = ord->permtab[jg];
+        frow = colptr[0] - baseval;
+        lrow = colptr[1] - baseval;
+        assert( (lrow - frow) >= 0 );
+
+        for ( k=frow; k<lrow; k++ ) {
+            ig   = rowptr[k] - baseval;
+            dofi = dofs[ig+1] - dofs[ig];
+            /* Adds the number of values in the row ig and column jg. */
+            globcol[jp] += dofi;
+
+            /* Adds for At the number of values in the row ig and column jg. */
+            if ( sym && (ig != jg) ) {
+                ip = ord->permtab[ig];
+                globcol[ip] += dofj;
+            }
+        }
+    }
+
+    return;
+}
+
+#if defined(PASTIX_WITH_MPI)
+/**
+ *******************************************************************************
+ *
+ * @brief Initializes the coltab of a block csc matrix. The coltab corresponds to
+ *        the number of rows (expended) per column (non expended). This rountine
+ *        is called when the matrix is distributed in the memory and the matrix's
+ *        degree of liberty is constant.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering which needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[out] globcol
+ *          The array which contains, for each column, its begining in the
+ *          smp->colptr.
+ *
+ * @param[out] nsends_A
+ *          The array which contains the amount of indexes and values of A the
+ *          current processor has to send to each processor.
+ *          nsends_A[ 2*k ]   =  nbr of indexes to send to proc k.
+ *          nsends_A[ 2*k+1 ] =  nbr of values to send to proc k.
+ *
+ * @param[out] nsends_At
+ *          The array which contains the amount of indexes and values of At the
+ *          current processor has to send to each processor if the matrix is
+ *          general and nsends_At = NULL otherwise.
+ *
+ *******************************************************************************/
+static inline void
+bcsc_init_global_coltab_dst_cdof( const spmatrix_t     *spm,
+                                  const pastix_order_t *ord,
+                                  const pastix_int_t   *col2cblk,
+                                  pastix_int_t         *globcol,
+                                  bcsc_handle_comm_t   *bcsc_comm )
+{
+    pastix_int_t     *colptr    = spm->colptr;
+    pastix_int_t     *rowptr    = spm->rowptr;
+    pastix_int_t     *loc2glob  = spm->loc2glob;
+    pastix_int_t      dof       = spm->dof;
+    pastix_int_t      baseval   = spm->baseval;
+    bcsc_proc_comm_t *data_comm = bcsc_comm->data_comm;
+    pastix_int_t      frow, lrow;
+    pastix_int_t      k, j, ig, jg, ip, jp;
+    int               sym = (spm->mtxtype == SpmSymmetric) || (spm->mtxtype == SpmHermitian);
+    pastix_int_t      owner;
+
+    assert( dof > 0 );
+
+    /* Goes through the columns of spm. */
+    for ( j = 0; j < spm->n; j++, colptr++, loc2glob++ ) {
+        jg = *loc2glob - baseval;
+        jp = ord->permtab[jg];
+
+        frow = colptr[0] - baseval;
+        lrow = colptr[1] - baseval;
+        assert( (lrow - frow) >= 0 );
+
+        owner = col2cblk[jp * dof];
+
+        /* The column is in a block which does not belong to the current processor. */
+        if ( owner < 0 ) {
+            owner = - owner - 1;
+            /* Adds the number of indexes to send to the owner. */
+            data_comm[owner].nsends.idx_A += ( lrow - frow ) * 2;
+            /* Adds the number of values to send to the owner. */
+            data_comm[owner].nsends.val_A += ( lrow - frow ) * dof * dof;
+        }
+        else {
+            /* Adds number of values in column jp. */
+            globcol[jp] += (lrow - frow) * dof;
+        }
+
+        /*
+         * Adds for At the number of values in the row ig and column jg. This
+         * is not required for the general case as the spm has a symmetric
+         * pattern.
+         */
+        if ( !sym ) {
+            continue;
+        }
+
+        for ( k = frow; k < lrow; k++ ) {
+            ig = rowptr[k] - baseval;
+            if ( ig == jg ) {
+                continue;
+            }
+            ip    = ord->permtab[ig];
+            owner = col2cblk[ip * dof];
+
+            if ( owner < 0 ) {
+                owner = - owner - 1;
+                /* Adds the number of indexes to send to owner. */
+                data_comm[owner].nsends.idx_At += 2;
+                /* Adds the number of values to send to owner. */
+                data_comm[owner].nsends.val_At += dof * dof;
+            }
+            else {
+                /* Adds for At the number of values in column jg and row ip. */
+                globcol[ip] += dof;
+            }
+        }
+    }
+
+    return;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Initializes the coltab of a block csc matrix. The coltab corresponds to
+ *        the number of rows (expended) per column (non expended). This rountine
+ *        is called when the matrix is distributed in the memory and the matrix's
+ *        degree of liberty is variadic.
+ *
+ * DO NOT CURRENTLY WORKS
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering which needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[out] globcol
+ *          The array which contains, for each column, its begining in the
+ *          smp->colptr.
+ * *
+ * @param[out] nsends_A
+ *          The array which contains the amount of indexes and values of A the
+ *          current processor has to send to each processor.
+ *          nsends_A[ 2*k ]   =  nbr of indexes to send to proc k.
+ *          nsends_A[ 2*k+1 ] =  nbr of values to send to proc k.
+ *
+ * @param[out] nsends_At
+ *          The array which contains the amount of indexes and values of At the
+ *          current processor has to send to each processor if the matrix is
+ *          general and nsends_At = NULL otherwise.
+ *
+ *******************************************************************************/
+static inline void
+bcsc_init_global_coltab_dst_vdof( __attribute__((unused)) const spmatrix_t     *spm,
+                                  __attribute__((unused)) const pastix_order_t *ord,
+                                  __attribute__((unused)) const pastix_int_t   *col2cblk,
+                                  __attribute__((unused)) pastix_int_t         *globcol,
+                                  __attribute__((unused)) bcsc_handle_comm_t   *bcsc_comm )
+{
+    // pastix_int_t *colptr   = spm->colptr;
+    // pastix_int_t *rowptr   = spm->rowptr;
+    // pastix_int_t *loc2glob = spm->loc2glob;
+    // pastix_int_t *dofs     = spm->dofs;
+    // pastix_int_t  dof      = spm->dof;
+    // pastix_int_t  baseval  = spm->baseval;
+    // pastix_int_t  frow, lrow;
+    // pastix_int_t  k, j, ig, jg, ip, jp;
+    // pastix_int_t  dofj, dofi;
+    // int           sym = (spm->mtxtype == SpmSymmetric) || (spm->mtxtype == SpmHermitian);
+
+    // assert( dof <= 0 );
+
+    // for ( j=0; j<spm->n; j++, colptr++, loc2glob++ )
+    // {
+    //     jg   = *loc2glob - baseval;
+    //     jp   = ord->permtab[jg];
+    //     dofj = dofs[jg+1] - dofs[jg];
+
+    //     frow = colptr[0] - baseval;
+    //     lrow = colptr[1] - baseval;
+    //     assert( (lrow - frow) >= 0 );
+
+    //     jpe    = ...;
+    //     ownerj = col2cblk[jpe]; // FAUX
+    //     localj = ( ownerj >= 0 );
+    //     ownerj = - ownerj - 1;
+
+    //     for ( k=frow; k<lrow; k++ )
+    //     {
+    //         ig   = rowptr[k] - baseval;
+    //         dofi = dofs[ig+1] - dofs[ig];
+
+    //         if ( localj ) {
+    //             /* The column is local */
+    //             globcol[jp] += dofi;
+    //         }
+    //         else {
+    //             /* The column is remote */
+    //             //update_counter_tosend( ownerj, 1 /* Nbr Elt */, dofi /* Nbr values */ );
+    //         }
+
+    //         if ( sym && (ig != jg) ) {
+    //             ip     = ord->permtab[ig];
+    //             ipe    = ...;
+    //             owneri = col2cblk[ipe]; // FAUX
+
+    //             if ( owneri >= 0 ) {
+    //                 globcol[ip] += dofj;
+    //             }
+    //             else {
+    //                 owneri = - owneri - 1;
+    //                 //update_counter_tosend( owneri, 1 /* Nbr Elt */, dofj /* Nbr values */ );
+    //             }
+    //         }
+    //     }
+    // }
+
+    return;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Exchanges the indexes with the other processors and updates globcol
+ *        with the received indexes.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering which needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[out] globcol
+ *          The array which contains, for each column, its begining in the
+ *          smp->colptr. This array is updated with the data received from the
+ *          other processors.
+ *
+ * @param[in,out] bcsc_comm
+ *          The bcsc_handle_comm structure which contains the data the current
+ *          processor has to send to the other processors on entry. On exit,
+ *          the structure is updated with the received data from the other
+ *          processors.
+ *
+ *******************************************************************************/
+static inline void
+bcsc_exchange_indexes( const spmatrix_t     *spm,
+                       const pastix_order_t *ord,
+                       pastix_int_t         *globcol,
+                       bcsc_handle_comm_t   *bcsc_comm )
+{
+    pastix_int_t     *dofs     = spm->dofs;
+    pastix_int_t      dof      = spm->dof;
+    pastix_int_t      k, c, ip, jp, jg, ig, baseval;
+    pastix_int_t      clustnbr    = bcsc_comm->clustnbr;
+    pastix_int_t      clustnum    = bcsc_comm->clustnum;
+    bcsc_proc_comm_t *data_comm   = bcsc_comm->data_comm;
+    bcsc_proc_comm_t *data_local  = bcsc_comm->data_comm + clustnum;
+    pastix_int_t      idx_A_cnt   = 0;
+    pastix_int_t      idx_At_cnt  = 0;
+    pastix_int_t     *indexes_A;
+    pastix_int_t     *indexes_At;
+    pastix_int_t      counter_req = 0;
+    MPI_Status        statuses[(clustnbr-1)*4];
+    MPI_Request       requests[(clustnbr-1)*4];
+
+    assert( ord->baseval == 0 );
+    baseval = ord->baseval;
+
+    for ( c = 0; c < clustnbr; c++ ) {
+        data_comm = bcsc_comm->data_comm + c;
+        if ( c == clustnum ) {
+            continue;
+        }
+
+        /* Posts the receptions of the indexes. */
+        if ( data_comm->nrecvs.idx_A != 0 ) {
+            MPI_Irecv( data_local->indexes_A + idx_A_cnt, data_comm->nrecvs.idx_A,
+                       PASTIX_MPI_INT, c, PastixTagIndexesA, bcsc_comm->comm, &requests[counter_req++] );
+            idx_A_cnt += data_comm->nrecvs.idx_A;
+        }
+        if ( data_comm->nrecvs.idx_At != 0 ) {
+            MPI_Irecv( data_local->indexes_At + idx_At_cnt, data_comm->nrecvs.idx_At,
+                       PASTIX_MPI_INT, c, PastixTagIndexesAt, bcsc_comm->comm, &requests[counter_req++] );
+            idx_At_cnt += data_comm->nrecvs.idx_At;
+        }
+
+        /* Posts the emissions of the indexes. */
+        if ( data_comm->nsends.idx_A != 0 ) {
+            MPI_Isend( data_comm->indexes_A,  data_comm->nsends.idx_A,
+                       PASTIX_MPI_INT, c, PastixTagIndexesA, bcsc_comm->comm, &requests[counter_req++] );
+        }
+        if ( data_comm->nsends.idx_At != 0 ) {
+            MPI_Isend( data_comm->indexes_At, data_comm->nsends.idx_At,
+                       PASTIX_MPI_INT, c, PastixTagIndexesAt, bcsc_comm->comm, &requests[counter_req++] );
+        }
+    }
+
+    MPI_Waitall( counter_req, requests, statuses );
+
+    /* Checks the total amount of indexes and values received. */
+    assert( data_local->nrecvs.idx_A  == idx_A_cnt  );
+    assert( data_local->nrecvs.idx_At == idx_At_cnt );
+
+    /* Updates globcol. */
+    indexes_A  = data_local->indexes_A;
+    indexes_At = data_local->indexes_At;
+
+    /* Goes through data_local->indexes_A. */
+    for ( k = 0; k < data_local->nrecvs.idx_A; k += 2, indexes_A += 2 ) {
+        /* Adds the element (ip, jp) received to column jp. */
+        ip = indexes_A[0];
+        jp = indexes_A[1];
+        ig = ord->peritab[ip] - baseval;
+        globcol[jp] += ( dof < 0 ) ? dofs[ ig+1 ] - dofs[ig] : dof;
+    }
+
+    /* Goes through data_local->indexes_At. */
+    if ( spm->mtxtype != SpmGeneral ) {
+        for ( k = 0; k < data_local->nrecvs.idx_At; k += 2, indexes_At += 2 ) {
+            /* Adds the element (ip, jp) received to column ip (transpose). */
+            ip = indexes_At[0];
+            jp = indexes_At[1];
+            jg = ord->peritab[jp] - baseval;
+            globcol[ip] += ( dof < 0 ) ? dofs[ jg+1 ] - dofs[jg] : dof;
+        }
+    }
+}
+#endif
+
+/**
+ *******************************************************************************
+ *
+ * @brief Initializes the coltab of a block csc matrix. The coltab corresponds to
+ *        the number of rows (expended) per column (non expended). This routine
+ *        is calls bcsc_init_global_coltab_[shm,dst]_[c,v]dof according to the way
+ *        the matrix is stored and if the degree of liberty of the matrix is
+ *        constant or variadic. If the matrix is distributed in the memory, this
+ *        function also calls the routines which exchange the amount of data for
+ *        the communication, store the indexes and values to send and exchange
+ *        the indexes.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering which needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure which describes the data distribution.
+ *
+ * @param[in] col2cblk
+ *          The array which contains the repartition of the matrix columns
+ *          into the block structure.
+ *
+ * @param[in,out] bcsc_comm
+ *          The handle_comm_structure updated with the amount of data the current
+ *          processor has to send to the other processor if PASTIX_WITH_MPI = ON
+ *          and the matrix is distributed in memory. If it is not the case,
+ *          bcsc_comm = NULL.
+ *
+ * @param[in] initAt
+ *          The test to know if At has to be initialized:
+ *          - if initAt = 0 then the matrix is symmetric of hermitian which
+ *            means that Lvalues = Uvalues so At does not need to be
+ *            initialised.
+ *          - if initAt = 1 then the matrix is general and which means that
+ *            At needs to be initialised and computed.
+ *
+ *******************************************************************************
+ *
+ * @returns The array which contains, for each column, its begining in the
+ *          smp->colptr.
+ *
+ *******************************************************************************/
+static inline pastix_int_t*
+bcsc_init_global_coltab( const spmatrix_t     *spm,
+                         const pastix_order_t *ord,
+                         const SolverMatrix   *solvmtx,
+                         const pastix_int_t   *col2cblk,
+                         bcsc_handle_comm_t   *bcsc_comm )
+{
+    spm_int_t *globcol;
+
+    /*
+     * Allocates and initializes globcol which contains the number of elements in
+     * each column of the input matrix.
+     * Globcol is equivalent to the classic colptr for the internal blocked
+     * csc. The blocked csc integrates the permutation computed within order
+     * structure.
+     */
+    MALLOC_INTERN( globcol, spm->gN+1, pastix_int_t );
+    memset( globcol, 0, (spm->gN+1) * sizeof(pastix_int_t) );
+
+    if ( bcsc_comm == NULL ) {
+        if ( spm->dof > 0  ) {
+            bcsc_init_global_coltab_shm_cdof( spm, ord, globcol );
+        }
+        else {
+            bcsc_init_global_coltab_shm_vdof( spm, ord, globcol );
+        }
+    }
+#if defined(PASTIX_WITH_MPI)
+    else {
+        /* Initializes bcsc_comm. */
+        bcsc_handle_comm_init( solvmtx, bcsc_comm );
+
+        if ( spm->dof > 0 ) {
+            bcsc_init_global_coltab_dst_cdof( spm, ord, col2cblk, globcol, bcsc_comm );
+        }
+        else {
+            bcsc_init_global_coltab_dst_vdof( spm, ord, col2cblk, globcol, bcsc_comm );
+        }
+
+
+        /* Exchanges the amount of data which will be sent and received. */
+        bcsc_exchange_amount_of_data( bcsc_comm );
+
+        /* Stores the indexes and values the current processsor has to send to the others. */
+        switch( spm->flttype ) {
+            case SpmFloat:
+                bcsc_sstore_data( spm, ord, col2cblk, bcsc_comm );
+                break;
+            case SpmDouble:
+                bcsc_dstore_data( spm, ord, col2cblk, bcsc_comm );
+                break;
+            case SpmComplex32:
+                bcsc_cstore_data( spm, ord, col2cblk, bcsc_comm );
+                break;
+            case SpmComplex64:
+                bcsc_zstore_data( spm, ord, col2cblk, bcsc_comm );
+                break;
+            case SpmPattern:
+            default:
+                fprintf(stderr, "bcsc_init: Error unknown floating type for input spm\n");
+        }
+
+        /* Exchanges the indexes and updates globcol with the received indexes. */
+        bcsc_exchange_indexes( spm, ord, globcol, bcsc_comm );
+#if !defined(NDEBUG)
+        if ( spm->dof > 0 ) {
+            pastix_int_t ig, ip, ipe, dofi;
+            pastix_int_t nnzl = 0;
+            pastix_int_t nnzg = 0;
+            pastix_int_t nnz;
+            for( ig=0; ig<spm->gN; ig++ ) {
+                ip  = ord->permtab[ig];
+                ipe = ( spm->dof > 0 ) ? ip * spm->dof : spm->dofs[ ig ] - spm->baseval;
+                if ( col2cblk[ipe] < 0 ) {
+                    continue;
+                }
+
+                dofi = spm->dof > 0 ? spm->dof: spm->dofs[ig+1] - spm->dofs[ig];
+                nnzl += globcol[ip] * dofi;
+            }
+            MPI_Allreduce( &nnzl, &nnzg, 1, PASTIX_MPI_INT, MPI_SUM, bcsc_comm->comm );
+
+            if ( spm->mtxtype != SpmGeneral ) {
+                nnz = spm->gnnzexp * 2 - (spm->gN * spm->dof * spm->dof);
+            }
+            else {
+                nnz = spm->gnnzexp;
+            }
+            assert( nnzg == nnz );
+        }
+#endif
+    }
+
+#endif
+
+
+
+    (void)solvmtx;
+    (void)col2cblk;
+    return globcol;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Initializes the coltab of a block csc matrix. The coltab corresponds
+ *        to the number of rows (expended) per column (non expended). If the
+ *        matrix is distributed in the memory, this function also calls the
+ *        routines which exchange the amount of data for the communication,
+ *        store the indexes and values to send and exchange the indexes.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The spm structure that stores the dofs.
+ *
+ * @param[in] ord
+ *          The ordering which needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[in] col2cblk
+ *          The array which contains the repartition of the matrix columns
+ *          into the block structure.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure which describes the data distribution.
+
  * @param[inout] bcsc
  *          On entry, the pointer to an allocated bcsc.
- *          On exit, the bcsc stores the ininitialized coltab split per block.
+ *          On exit, the bcsc stores the initialized coltab split per block
+ *          corresponding to the input spm with the permutation applied
+ *          and grouped accordingly to the distribution described in solvmtx
+ *
+ * @param[in,out] bcsc_comm
+ *          The handle_comm_structure updated with the amount of data the current
+ *          processor has to send to the other processor if PASTIX_WITH_MPI = ON
+ *          and the matrix is distributed in memory. If it is not the case,
+ *          bcsc_comm = NULL.
+ *
+ * @param[in] initAt
+ *          The test to know if At has to be initialized:
+ *          - if initAt = 0 then the matrix is symmetric of hermitian which
+ *            means that Lvalues = Uvalues so At does not need to be
+ *            initialised.
+ *          - if initAt = 1 then the matrix is general and which means that
+ *            At needs to be initialised and computed.
  *
  *******************************************************************************
  *
  * @return The number of non zero unknowns in the matrix.
  *
  *******************************************************************************/
-static inline pastix_int_t
-bcsc_init_coltab( const SolverMatrix  *solvmtx,
-                  const pastix_int_t  *newcoltab,
-                        pastix_int_t   dof,
-                        pastix_bcsc_t *bcsc )
+pastix_int_t
+bcsc_init_coltab( const spmatrix_t     *spm,
+                  const pastix_order_t *ord,
+                  const pastix_int_t   *col2cblk,
+                  const SolverMatrix   *solvmtx,
+                  pastix_bcsc_t        *bcsc,
+                  bcsc_handle_comm_t   *bcsc_comm )
 {
-    SolverCblk  *cblk;
-    bcsc_cblk_t *blockcol;
-    pastix_int_t cblknum, bcscnum, iter, idxcol, nodeidx, colsize;
+    SolverCblk   *cblk;
+    bcsc_cblk_t  *blockcol;
+    pastix_int_t *dofshift = NULL;
+    pastix_int_t *globcol  = NULL;
+    pastix_int_t  cblknum, bcscnum, iter, idxcol, nodeidx, colsize;
 
     bcsc->cscfnbr = solvmtx->cblknbr - solvmtx->faninnbr - solvmtx->recvnbr;
     MALLOC_INTERN( bcsc->cscftab, bcsc->cscfnbr, bcsc_cblk_t );
+
+    /* Creates an array to convert expanded indexes to not expanded indexes. */
+    dofshift = bcsc_init_dofshift( spm, ord );
+
+    /* Computes the number of rows (expanded) per column (not expanded). */
+    globcol  = bcsc_init_global_coltab( spm, ord, solvmtx, col2cblk, bcsc_comm );
 
     idxcol   = 0;
     bcscnum  = 0;
     cblk     = solvmtx->cblktab;
     blockcol = bcsc->cscftab;
-    for ( cblknum = 0; cblknum < solvmtx->cblknbr; cblknum++, cblk++ )
-    {
+    for ( cblknum = 0; cblknum < solvmtx->cblknbr; cblknum++, cblk++ ) {
         if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) {
             continue;
         }
@@ -81,21 +1149,15 @@ bcsc_init_coltab( const SolverMatrix  *solvmtx,
         assert( cblk->bcscnum == bcscnum );
         MALLOC_INTERN( blockcol->coltab, blockcol->colnbr + 1, pastix_int_t );
 
-        /*
-         * Works only for DoF constant
-         * TODO : rework this part to work in variadic dof
-         */
-        assert( cblk->fcolnum % dof == 0 );
-
         blockcol->coltab[0] = idxcol;
-        for ( iter=0; iter < blockcol->colnbr; iter++ )
-        {
-            nodeidx = ( cblk->fcolnum + (iter-iter%dof) ) / dof;
-
-            colsize = (newcoltab[nodeidx+1] - newcoltab[nodeidx]) * dof;
+        for ( iter = 0; iter < blockcol->colnbr; iter++ ) {
+            nodeidx = dofshift[ cblk->fcolnum + iter ];
+            colsize = globcol[nodeidx];
+            //jpe = cblk->fcolnum + iter;
+            //jp  = dofshift[ jpe ];
+            //colsize = globcol[jp];
             blockcol->coltab[iter+1] = blockcol->coltab[iter] + colsize;
         }
-
         idxcol = blockcol->coltab[blockcol->colnbr];
 
         blockcol++;
@@ -103,6 +1165,9 @@ bcsc_init_coltab( const SolverMatrix  *solvmtx,
     }
     assert( (blockcol - bcsc->cscftab) == bcsc->cscfnbr );
     assert( bcscnum == bcsc->cscfnbr );
+
+    memFree_null( globcol );
+    memFree_null( dofshift );
 
     if ( idxcol > 0 ) {
         MALLOC_INTERN( bcsc->rowtab,  idxcol, pastix_int_t);
@@ -122,10 +1187,8 @@ bcsc_init_coltab( const SolverMatrix  *solvmtx,
  *
  * @ingroup bcsc_internal
  *
- * @brief Restore the coltab array
- *
- * Function to restore the coltab array when it has been modified to initialize
- * the row and values arrays.
+ * @brief Restores the coltab array when it has been modified to initialize
+ *        the row and values arrays.
  *
  *******************************************************************************
  *
@@ -158,7 +1221,7 @@ bcsc_restore_coltab( pastix_bcsc_t *bcsc )
 /**
  *******************************************************************************
  *
- * @brief Initialize the coltab of a centralized block csc matrix.
+ * @brief Initializes a block csc.
  *
  *******************************************************************************
  *
@@ -166,115 +1229,19 @@ bcsc_restore_coltab( pastix_bcsc_t *bcsc )
  *          The initial sparse matrix in the spm format.
  *
  * @param[in] ord
- *          The ordering that needs to be applied on the spm to generate the
+ *          The ordering which needs to be applied on the spm to generate the
  *          block csc.
  *
  * @param[in] solvmtx
- *          The solver matrix structure that describe the data distribution.
- *
- * @param[inout] bcsc
- *          On entry, the pointer to an allocated bcsc.
- *          On exit, the bcsc stores the input spm with the permutation applied
- *          and grouped accordingly to the distribution described in solvmtx.
- *
- *******************************************************************************
- *
- * @return The number of non zero unknowns in the matrix.
- *
- *******************************************************************************/
-pastix_int_t
-bcsc_init_global_coltab( const spmatrix_t     *spm,
-                         const pastix_order_t *ord,
-                         const SolverMatrix   *solvmtx,
-                               pastix_bcsc_t  *bcsc )
-{
-    pastix_int_t  valuesize, baseval;
-    pastix_int_t *globcol = NULL;
-    pastix_int_t *colptr  = spm->colptr;
-    pastix_int_t *rowptr  = spm->rowptr;
-    pastix_int_t  dof     = spm->dof;
-    int sym = (spm->mtxtype == SpmSymmetric) || (spm->mtxtype == SpmHermitian);
-
-    bcsc->mtxtype = spm->mtxtype;
-    baseval = spm->colptr[0];
-    /*
-     * Allocate and initialize globcol that contains the number of elements in
-     * each column of the input matrix
-     * Globcol is equivalent to the classic colptr for the internal blocked
-     * csc. The blocked csc integrate the permutation computed within order
-     * structure.
-     */
-    MALLOC_INTERN( globcol, spm->gN+1, pastix_int_t );
-    memset( globcol, 0, (spm->gN+1) * sizeof(pastix_int_t) );
-
-    assert( spm->n == spm->gN );
-
-    {
-        pastix_int_t *loc2glob;
-        pastix_int_t  frow, lrow;
-        pastix_int_t  k, j, ig, jg, ip, jp;
-
-        loc2glob = spm->loc2glob;
-        for ( j=0; j<spm->n; j++, colptr++, loc2glob++ )
-        {
-            jg   = (spm->loc2glob == NULL) ? j : *loc2glob - baseval;
-            jp   = ord->permtab[jg];
-            frow = colptr[0] - baseval;
-            lrow = colptr[1] - baseval;
-
-            globcol[jp] += lrow - frow;
-            assert( (lrow - frow) >= 0 );
-            if (sym) {
-                for ( k=frow; k<lrow; k++ )
-                {
-                    ig = rowptr[k] - baseval;
-                    if ( ig != jg ) {
-                        ip = ord->permtab[ig];
-                        globcol[ip]++;
-                    }
-                }
-            }
-        }
-
-        /* Compute displacements to update the colptr array */
-        {
-            pastix_int_t tmp, idx;
-
-            idx = 0;
-            for (j=0; j<=spm->gN; j++)
-            {
-                tmp = globcol[j];
-                globcol[j] = idx;
-                idx += tmp;
-            }
-        }
-    }
-
-    valuesize = bcsc_init_coltab( solvmtx, globcol, dof, bcsc );
-    memFree_null( globcol );
-
-    return valuesize;
-}
-
-/**
- *******************************************************************************
- *
- * @brief Initialize a block csc.
- *
- *******************************************************************************
- *
- * @param[in] spm
- *          The initial sparse matrix in the spm format.
- *
- * @param[in] ord
- *          The ordering that needs to be applied on the spm to generate the
- *          block csc.
- *
- * @param[in] solvmtx
- *          The solver matrix structure that describe the data distribution.
+ *          The solver matrix structure which describes the data distribution.
  *
  * @param[in] initAt
- *          A flag to enable/disable the initialization of A'
+ *          The test to know if At has to be initialized:
+ *          - if initAt = 0 then the matrix is symmetric of hermitian which
+ *            means that Lvalues = Uvalues so At does not need to be
+ *            initialised.
+ *          - if initAt = 1 then the matrix is general and which means that
+ *            At needs to be initialised and computed.
  *
  * @param[inout] bcsc
  *          On entry, the pointer to an allocated bcsc.
@@ -290,66 +1257,68 @@ bcsc_init( const spmatrix_t     *spm,
            pastix_bcsc_t        *bcsc )
 {
     pastix_int_t *col2cblk = NULL;
+    pastix_int_t valuesize;
 
     bcsc->mtxtype = spm->mtxtype;
     bcsc->flttype = spm->flttype;
-    bcsc->gN      = spm->gN;
-    bcsc->n       = spm->n;
+    bcsc->gN      = spm->gNexp;
+    bcsc->n       = solvmtx->nodenbr;
 
     /*
-     * Initialize the col2cblk array. col2cblk[i] contains the cblk index of the
-     * i-th column. col2cblk[i] = -1 if not local.
+     * Creates the col2cblk array which associates each column to a cblk
+     * (expanded).
      */
-    {
-        SolverCblk  *cblk    = solvmtx->cblktab;
-        pastix_int_t cblknbr = solvmtx->cblknbr;
-        pastix_int_t j, cblknum;
+    col2cblk = bcsc_init_col2cblk( solvmtx, bcsc, spm );
 
-        MALLOC_INTERN( col2cblk, spm->gNexp, pastix_int_t );
-        memset( col2cblk, 0xff, spm->gNexp * sizeof(pastix_int_t) );
-
-        for ( cblknum=0; cblknum<cblknbr; cblknum++, cblk++ )
-        {
-            if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) {
-                continue;
-            }
-            for ( j=cblk->fcolnum; j<=cblk->lcolnum; j++ )
-            {
-                col2cblk[j] = cblknum;
-            }
-        }
+    /*
+     * Initializes the coltab array of the bcsc and allocates the rowtab and
+     * Lvalues arrays.
+     */
+    bcsc_handle_comm_t *bcsc_comm = NULL;
+    if ( spm->loc2glob != NULL ) {
+        pastix_int_t size = sizeof(bcsc_handle_comm_t) + (solvmtx->clustnbr-1)*sizeof(bcsc_proc_comm_t);
+        bcsc_comm = (bcsc_handle_comm_t *)malloc( size );
+        bcsc_comm->flttype = bcsc->flttype;
     }
 
+    valuesize = bcsc_init_coltab( spm, ord, col2cblk, solvmtx, bcsc, bcsc_comm );
+
     /*
-     * Fill in the lower triangular part of the blocked csc with values and
+     * Fills in the lower triangular part of the blocked csc with values and
      * rows. The upper triangular part is done later if required through LU
      * factorization.
      */
     switch( spm->flttype ) {
     case SpmFloat:
-        bcsc_sinit( spm, ord, solvmtx, col2cblk, initAt, bcsc );
+        bcsc_sinit( spm, ord, solvmtx, col2cblk, initAt, bcsc, bcsc_comm, valuesize );
         break;
     case SpmDouble:
-        bcsc_dinit( spm, ord, solvmtx, col2cblk, initAt, bcsc );
+        bcsc_dinit( spm, ord, solvmtx, col2cblk, initAt, bcsc, bcsc_comm, valuesize );
         break;
     case SpmComplex32:
-        bcsc_cinit( spm, ord, solvmtx, col2cblk, initAt, bcsc );
+        bcsc_cinit( spm, ord, solvmtx, col2cblk, initAt, bcsc, bcsc_comm, valuesize );
         break;
     case SpmComplex64:
-        bcsc_zinit( spm, ord, solvmtx, col2cblk, initAt, bcsc );
+        bcsc_zinit( spm, ord, solvmtx, col2cblk, initAt, bcsc, bcsc_comm, valuesize );
         break;
     case SpmPattern:
     default:
         fprintf(stderr, "bcsc_init: Error unknown floating type for input spm\n");
     }
 
-    memFree_null(col2cblk);
+    memFree_null( col2cblk );
+
+#if defined( PASTIX_WITH_MPI )
+    if ( bcsc_comm != NULL ) {
+            bcsc_handle_comm_exit( bcsc_comm );
+    }
+#endif
 }
 
 /**
  *******************************************************************************
  *
- * @brief Initialize the block csc matrix.
+ * @brief Initializes the block csc matrix.
  *
  * The block csc matrix is used to initialize the factorized matrix, and to
  * perform the matvec operations in refinement.
@@ -360,14 +1329,19 @@ bcsc_init( const spmatrix_t     *spm,
  *          The initial sparse matrix in the spm format.
  *
  * @param[in] ord
- *          The ordering that needs to be applied on the spm to generate the
+ *          The ordering which needs to be applied on the spm to generate the
  *          block csc.
  *
  * @param[in] solvmtx
- *          The solver matrix structure that describe the data distribution.
+ *          The solver matrix structure which describes the data distribution.
  *
  * @param[in] initAt
- *          A flag to enable/disable the initialization of A'
+ *          The test to know if At has to be initialized:
+ *          - if initAt = 0 then the matrix is symmetric of hermitian which
+ *            means that Lvalues = Uvalues so At does not need to be
+ *            initialised.
+ *          - if initAt = 1 then the matrix is general which means that
+ *            At needs to be initialised and computed.
  *
  * @param[inout] bcsc
  *          On entry, the pointer to an allocated bcsc.
@@ -401,7 +1375,7 @@ bcscInit( const spmatrix_t     *spm,
 /**
  *******************************************************************************
  *
- * @brief Cleanup the block csc structure but do not free the bcsc pointer.
+ * @brief Frees the block csc structure but do not free the bcsc pointer.
  *
  *******************************************************************************
  *
