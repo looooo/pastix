@@ -40,7 +40,6 @@ __fct_conj( pastix_complex64_t val ) {
 #endif
 }
 
-
 /**
  *******************************************************************************
  *
@@ -85,11 +84,11 @@ bcsc_zinit_A( const spmatrix_t     *spm,
     pastix_int_t *coltab;
     pastix_int_t  itercblk;
     pastix_int_t  baseval, frow, lrow;
-    pastix_int_t  i, j, ig, jg, ip, jp;
+    pastix_int_t  k, j, ig, jg, ip, jp;
     pastix_int_t  ival, idofcol, idofrow;
 
     baseval = spm->baseval;
-    assert(spm->n == spm->gN);
+    assert( spm->n == spm->gN );
     /**
      * Initialize the values of the matrix A in the blocked csc format. This
      * applies the permutation to the values array.
@@ -100,6 +99,7 @@ bcsc_zinit_A( const spmatrix_t     *spm,
         jp = ord->permtab[jg] * dof;
 
         itercblk = col2cblk[jp];
+        /* The block column is not stored locally, we skip it */
         if ( itercblk == -1 ) {
             continue;
         }
@@ -107,11 +107,11 @@ bcsc_zinit_A( const spmatrix_t     *spm,
         coltab = bcsc->cscftab[cblk->bcscnum].coltab;
         frow   = colptr[0] - baseval;
         lrow   = colptr[1] - baseval;
-        for ( i=frow; i<lrow; i++ )
+        for ( k=frow; k<lrow; k++ )
         {
-            ig   = spm->rowptr[i] - baseval;
+            ig   = spm->rowptr[k] - baseval;
             ip   = ord->permtab[ig] * dof;
-            ival = i * dof * dof;
+            ival = k * dof * dof;
 
             for ( idofcol = 0; idofcol < dof; idofcol++ )
             {
@@ -186,7 +186,7 @@ bcsc_zinit_At( const spmatrix_t     *spm,
     pastix_int_t  dof      = spm->dof;
     SolverCblk   *cblk;
     pastix_int_t *coltab;
-    pastix_int_t  i, j, ig, jg, ip, jp;
+    pastix_int_t  k, j, ig, jg, ip, jp;
     pastix_int_t  itercblk, baseval, frow, lrow;
     pastix_int_t  ival, idofcol, idofrow;
 
@@ -213,7 +213,7 @@ bcsc_zinit_At( const spmatrix_t     *spm,
     }
 
     baseval = spm->baseval;
-    assert(spm->n == spm->gN);
+    assert( spm->n == spm->gN );
     /**
      * Initialize the values of the matrix A^t in the blocked csc format. This
      * applies the permutation to the values array.
@@ -225,9 +225,9 @@ bcsc_zinit_At( const spmatrix_t     *spm,
 
         frow = colptr[0] - baseval;
         lrow = colptr[1] - baseval;
-        for ( i=frow; i<lrow; i++ )
+        for ( k=frow; k<lrow; k++ )
         {
-            ig = spm->rowptr[i]-baseval;
+            ig = spm->rowptr[k]-baseval;
             ip = ord->permtab[ig] * dof;
 
             itercblk = col2cblk[ ip ];
@@ -243,7 +243,7 @@ bcsc_zinit_At( const spmatrix_t     *spm,
 
             cblk   = solvmtx->cblktab + itercblk;
             coltab = bcsc->cscftab[cblk->bcscnum].coltab;
-            ival   = i * dof * dof;
+            ival   = k * dof * dof;
 
             for ( idofcol = 0; idofcol < dof; idofcol++ )
             {
@@ -371,7 +371,7 @@ bcsc_zinit( const spmatrix_t     *spm,
     bcsc_zsort( bcsc, bcsc->rowtab, bcsc->Lvalues );
 
     if ( spm->mtxtype == SpmGeneral ) {
-	    /* A^t is not required if only refinement is performed */
+        /* A^t is not required if only refinement is performed */
         if (initAt) {
             pastix_int_t *trowtab, i;
             MALLOC_INTERN( bcsc->Uvalues, valuesize * pastix_size_of( bcsc->flttype ), char );

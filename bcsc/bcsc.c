@@ -212,7 +212,7 @@ bcsc_init_global_coltab( const spmatrix_t     *spm,
     {
         pastix_int_t *loc2glob;
         pastix_int_t  frow, lrow;
-        pastix_int_t  i, j, ig, jg, ip, jp;
+        pastix_int_t  k, j, ig, jg, ip, jp;
 
         loc2glob = spm->loc2glob;
         for ( j=0; j<spm->n; j++, colptr++, loc2glob++ )
@@ -225,9 +225,9 @@ bcsc_init_global_coltab( const spmatrix_t     *spm,
             globcol[jp] += lrow - frow;
             assert( (lrow - frow) >= 0 );
             if (sym) {
-                for ( i=frow; i<lrow; i++ )
+                for ( k=frow; k<lrow; k++ )
                 {
-                    ig = rowptr[i] - baseval;
+                    ig = rowptr[k] - baseval;
                     if ( ig != jg ) {
                         ip = ord->permtab[ig];
                         globcol[ip]++;
@@ -249,6 +249,7 @@ bcsc_init_global_coltab( const spmatrix_t     *spm,
             }
         }
     }
+
     valuesize = bcsc_init_coltab( solvmtx, globcol, dof, bcsc );
     memFree_null( globcol );
 
@@ -303,6 +304,7 @@ bcsc_init( const spmatrix_t     *spm,
         SolverCblk  *cblk    = solvmtx->cblktab;
         pastix_int_t cblknbr = solvmtx->cblknbr;
         pastix_int_t j, cblknum;
+
 
         MALLOC_INTERN( col2cblk, spm->gNexp, pastix_int_t );
         memset( col2cblk, 0xff, spm->gNexp * sizeof(pastix_int_t) );
