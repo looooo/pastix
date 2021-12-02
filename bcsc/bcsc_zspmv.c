@@ -86,7 +86,7 @@ __bcsc_zspmv_Ax_ind( const pastix_bcsc_t      *bcsc,
     const pastix_complex64_t *xptr = x;
     pastix_int_t bloc, i, j;
 
-    __bcsc_zspmv_by( bcsc->n, beta, y );
+    __bcsc_zspmv_by( bcsc->gN, beta, y );
 
     for( bloc=0; bloc<bcsc->cscfnbr; bloc++ )
     {
@@ -475,7 +475,7 @@ bcsc_zspmv_get_balanced_indexes( const pastix_data_t      *pastix_data,
     bcsc_cblk_t *cblk = bcsc->cscftab;
 
     if ( bcsc->mtxtype != PastixGeneral ) {
-        total = 2 * pastix_data->csc->nnzexp - bcsc->n;
+        total = 2 * pastix_data->csc->nnzexp - bcsc->gN;
     } else {
         total = pastix_data->csc->nnzexp;
     }
@@ -506,7 +506,7 @@ bcsc_zspmv_get_balanced_indexes( const pastix_data_t      *pastix_data,
 
     for ( ; rank < size; rank ++ ) {
         args->start_bloc[rank]    = bcsc->cscfnbr;
-        args->start_indexes[rank] = bcsc->n;
+        args->start_indexes[rank] = bcsc->gN;
     }
 }
 
