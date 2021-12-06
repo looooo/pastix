@@ -59,21 +59,19 @@ bcsc_init_coltab( const SolverMatrix  *solvmtx,
                         pastix_int_t   dof,
                         pastix_bcsc_t *bcsc )
 {
+    SolverCblk  *cblk;
     bcsc_cblk_t *blockcol;
     pastix_int_t cblknum, bcscnum, iter, idxcol, nodeidx, colsize;
 
-    SolverCblk *cblk = solvmtx->cblktab;
-    bcsc->cscfnbr    = solvmtx->cblknbr - solvmtx->faninnbr - solvmtx->recvnbr;
+    bcsc->cscfnbr = solvmtx->cblknbr - solvmtx->faninnbr - solvmtx->recvnbr;
     MALLOC_INTERN( bcsc->cscftab, bcsc->cscfnbr, bcsc_cblk_t );
 
     idxcol   = 0;
+    bcscnum  = 0;
     cblk     = solvmtx->cblktab;
     blockcol = bcsc->cscftab;
-    bcscnum  = 0;
-    for (cblknum = 0; cblknum < solvmtx->cblknbr; cblknum++, cblk++)
+    for ( cblknum = 0; cblknum < solvmtx->cblknbr; cblknum++, cblk++ )
     {
-        pastix_int_t fcolnum = cblk->fcolnum;
-
         if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) {
             continue;
         }
@@ -83,13 +81,16 @@ bcsc_init_coltab( const SolverMatrix  *solvmtx,
         assert( cblk->bcscnum == bcscnum );
         MALLOC_INTERN( blockcol->coltab, blockcol->colnbr + 1, pastix_int_t );
 
-        /* Works only for DoF constant */
-        assert( fcolnum % dof == 0 );
+        /*
+         * Works only for DoF constant
+         * TODO : rework this part to work in variadic dof
+         */
+        assert( cblk->fcolnum % dof == 0 );
 
         blockcol->coltab[0] = idxcol;
-        for (iter=0; iter < blockcol->colnbr; iter++)
+        for ( iter=0; iter < blockcol->colnbr; iter++ )
         {
-            nodeidx = ( fcolnum + (iter-iter%dof) ) / dof;
+            nodeidx = ( cblk->fcolnum + (iter-iter%dof) ) / dof;
 
             colsize = (newcoltab[nodeidx+1] - newcoltab[nodeidx]) * dof;
             blockcol->coltab[iter+1] = blockcol->coltab[iter] + colsize;
@@ -140,11 +141,11 @@ bcsc_restore_coltab( pastix_bcsc_t *bcsc )
     bcsc_cblk_t *blockcol;
     pastix_int_t index, iter, idxcol, idxcoltmp;
 
-    idxcol = 0;
+    idxcol   = 0;
     blockcol = bcsc->cscftab;
-    for (index=0; index<bcsc->cscfnbr; index++, blockcol++)
+    for ( index=0; index<bcsc->cscfnbr; index++, blockcol++ )
     {
-        for (iter=0; iter <= blockcol->colnbr; iter++)
+        for ( iter=0; iter <= blockcol->colnbr; iter++ )
         {
             idxcoltmp = blockcol->coltab[iter];
             blockcol->coltab[iter] = idxcol;
@@ -182,53 +183,54 @@ bcsc_restore_coltab( pastix_bcsc_t *bcsc )
  *
  *******************************************************************************/
 pastix_int_t
-bcsc_init_centralized_coltab( const spmatrix_t     *spm,
-                              const pastix_order_t *ord,
-                              const SolverMatrix   *solvmtx,
-                                    pastix_bcsc_t  *bcsc )
+bcsc_init_global_coltab( const spmatrix_t     *spm,
+                         const pastix_order_t *ord,
+                         const SolverMatrix   *solvmtx,
+                               pastix_bcsc_t  *bcsc )
 {
     pastix_int_t  valuesize, baseval;
-    pastix_int_t *globcol  = NULL;
-    pastix_int_t *colptr = spm->colptr;
-    pastix_int_t *rowptr = spm->rowptr;
-    int dof = spm->dof;
+    pastix_int_t *globcol = NULL;
+    pastix_int_t *colptr  = spm->colptr;
+    pastix_int_t *rowptr  = spm->rowptr;
+    pastix_int_t  dof     = spm->dof;
     int sym = (spm->mtxtype == SpmSymmetric) || (spm->mtxtype == SpmHermitian);
 
     bcsc->mtxtype = spm->mtxtype;
     baseval = spm->colptr[0];
-
     /*
      * Allocate and initialize globcol that contains the number of elements in
      * each column of the input matrix
      * Globcol is equivalent to the classic colptr for the internal blocked
-     * csc. The blocked csc integrate the perumtation computed within order
+     * csc. The blocked csc integrate the permutation computed within order
      * structure.
      */
     MALLOC_INTERN( globcol, spm->gN+1, pastix_int_t );
     memset( globcol, 0, (spm->gN+1) * sizeof(pastix_int_t) );
 
-    assert( spm->loc2glob == NULL );
+    assert( spm->n == spm->gN );
 
     {
-        pastix_int_t itercol, newcol;
+        pastix_int_t *loc2glob;
+        pastix_int_t  frow, lrow;
+        pastix_int_t  k, j, ig, jg, ip, jp;
 
-        for (itercol=0; itercol<spm->gN; itercol++)
+        loc2glob = spm->loc2glob;
+        for ( j=0; j<spm->n; j++, colptr++, loc2glob++ )
         {
-            pastix_int_t frow = colptr[itercol]   - baseval;
-            pastix_int_t lrow = colptr[itercol+1] - baseval;
-            newcol = ord->permtab[itercol];
-            globcol[newcol] += lrow - frow;
+            jg   = (spm->loc2glob == NULL) ? j : *loc2glob - baseval;
+            jp   = ord->permtab[jg];
+            frow = colptr[0] - baseval;
+            lrow = colptr[1] - baseval;
 
+            globcol[jp] += lrow - frow;
             assert( (lrow - frow) >= 0 );
             if (sym) {
-                pastix_int_t iterrow, newrow;
-
-                for (iterrow=frow; iterrow<lrow; iterrow++)
+                for ( k=frow; k<lrow; k++ )
                 {
-                    pastix_int_t tmprow = rowptr[iterrow] - baseval;
-                    if (tmprow != itercol) {
-                        newrow = ord->permtab[tmprow];
-                        globcol[newrow]++;
+                    ig = rowptr[k] - baseval;
+                    if ( ig != jg ) {
+                        ip = ord->permtab[ig];
+                        globcol[ip]++;
                     }
                 }
             }
@@ -239,10 +241,10 @@ bcsc_init_centralized_coltab( const spmatrix_t     *spm,
             pastix_int_t tmp, idx;
 
             idx = 0;
-            for (itercol=0; itercol<=spm->gN; itercol++)
+            for (j=0; j<=spm->gN; j++)
             {
-                tmp = globcol[itercol];
-                globcol[itercol] = idx;
+                tmp = globcol[j];
+                globcol[j] = idx;
                 idx += tmp;
             }
         }
@@ -257,7 +259,7 @@ bcsc_init_centralized_coltab( const spmatrix_t     *spm,
 /**
  *******************************************************************************
  *
- * @brief Initialize a centralized block csc when no MPI processes are involved.
+ * @brief Initialize a block csc.
  *
  *******************************************************************************
  *
@@ -280,16 +282,13 @@ bcsc_init_centralized_coltab( const spmatrix_t     *spm,
  *          and grouped accordingly to the distribution described in solvmtx.
  *
  *******************************************************************************/
-void
-bcsc_init_centralized( const spmatrix_t     *spm,
-                       const pastix_order_t *ord,
-                       const SolverMatrix   *solvmtx,
-                             pastix_int_t    initAt,
-                             pastix_bcsc_t  *bcsc )
+static inline void
+bcsc_init( const spmatrix_t     *spm,
+           const pastix_order_t *ord,
+           const SolverMatrix   *solvmtx,
+           pastix_int_t          initAt,
+           pastix_bcsc_t        *bcsc )
 {
-    pastix_int_t  itercol, itercblk;
-    pastix_int_t  cblknbr  = solvmtx->cblknbr;
-    pastix_int_t  eltnbr   = spm->gNexp;
     pastix_int_t *col2cblk = NULL;
 
     bcsc->mtxtype = spm->mtxtype;
@@ -297,31 +296,27 @@ bcsc_init_centralized( const spmatrix_t     *spm,
     bcsc->gN      = spm->gN;
     bcsc->n       = spm->n;
 
-    assert( spm->loc2glob == NULL );
-
     /*
      * Initialize the col2cblk array. col2cblk[i] contains the cblk index of the
      * i-th column. col2cblk[i] = -1 if not local.
      */
     {
-        SolverCblk *cblk = solvmtx->cblktab;
+        SolverCblk  *cblk    = solvmtx->cblktab;
+        pastix_int_t cblknbr = solvmtx->cblknbr;
+        pastix_int_t j, cblknum;
 
-        MALLOC_INTERN( col2cblk, eltnbr, pastix_int_t );
-        for (itercol=0; itercol<eltnbr; itercol++)
-        {
-            col2cblk[itercol] = -1;
-        }
 
-        for (itercblk=0; itercblk<cblknbr; itercblk++, cblk++)
+        MALLOC_INTERN( col2cblk, spm->gNexp, pastix_int_t );
+        memset( col2cblk, 0xff, spm->gNexp * sizeof(pastix_int_t) );
+
+        for ( cblknum=0; cblknum<cblknbr; cblknum++, cblk++ )
         {
-            if( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ){
+            if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ){
                 continue;
             }
-            for (itercol  = cblk->fcolnum;
-                 itercol <= cblk->lcolnum;
-                 itercol++ )
+            for ( j=cblk->fcolnum; j<=cblk->lcolnum; j++ )
             {
-                col2cblk[itercol] = itercblk;
+                col2cblk[j] = cblknum;
             }
         }
     }
@@ -333,20 +328,20 @@ bcsc_init_centralized( const spmatrix_t     *spm,
      */
     switch( spm->flttype ) {
     case SpmFloat:
-        bcsc_sinit_centralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
+        bcsc_sinit( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case SpmDouble:
-        bcsc_dinit_centralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
+        bcsc_dinit( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case SpmComplex32:
-        bcsc_cinit_centralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
+        bcsc_cinit( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case SpmComplex64:
-        bcsc_zinit_centralized( spm, ord, solvmtx, col2cblk, initAt, bcsc );
+        bcsc_zinit( spm, ord, solvmtx, col2cblk, initAt, bcsc );
         break;
     case SpmPattern:
     default:
-        fprintf(stderr, "bcsc_init_centralized: Error unknown floating type for input spm\n");
+        fprintf(stderr, "bcsc_init: Error unknown floating type for input spm\n");
     }
 
     memFree_null(col2cblk);
@@ -389,8 +384,8 @@ double
 bcscInit( const spmatrix_t     *spm,
           const pastix_order_t *ord,
           const SolverMatrix   *solvmtx,
-                pastix_int_t    initAt,
-                pastix_bcsc_t  *bcsc )
+          pastix_int_t          initAt,
+          pastix_bcsc_t        *bcsc )
 {
     double time = 0.;
 
@@ -398,11 +393,7 @@ bcscInit( const spmatrix_t     *spm,
     assert( ord->vertnbr == spm->n );
 
     clockStart(time);
-#if defined(PASTIX_WITH_MPI)
-    assert( spm->loc2glob == NULL );
-#endif
-
-    bcsc_init_centralized( spm, ord, solvmtx, initAt, bcsc );
+    bcsc_init( spm, ord, solvmtx, initAt, bcsc );
     clockStop(time);
 
     return time;
@@ -429,7 +420,7 @@ bcscExit( pastix_bcsc_t *bcsc )
         return;
     }
 
-    for (i=0, cblk=bcsc->cscftab; i < bcsc->cscfnbr; i++, cblk++ ) {
+    for ( i=0, cblk=bcsc->cscftab; i < bcsc->cscfnbr; i++, cblk++ ) {
         memFree_null( cblk->coltab );
     }
 
