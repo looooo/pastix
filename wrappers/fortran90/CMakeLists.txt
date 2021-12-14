@@ -1,14 +1,14 @@
 ###
 #
-#  @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2017-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.2
+#  @version 6.4.0
 #  @author Mathieu Faverge
 #  @author Tony Delarue
 #  @author Alycia Lisito
 #  @author Florent Pruvost
-#  @date 2023-12-07
+#  @date 2024-07-05
 #
 ###
 cmake_minimum_required (VERSION 3.12)
@@ -85,6 +85,7 @@ set (EXAMPLES
   flaplacian.F90
   fstep-by-step.F90
   fmultidof.F90
+  fusermat_csr.F90
   )
 
 # List of run types
