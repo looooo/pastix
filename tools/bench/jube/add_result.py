@@ -47,7 +47,7 @@ def open_csv(filename: str) -> List[Dict[str, str]]:
 
 def format_entry(row: Row, mpivendor : str, commit_pastix: Repo, guix_commits: Dict) -> Dict[str, Any]:
     """"format a result"""
-    commit_date_pastix = str(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(commit_pastix.committed_date)))
+    commit_date_pastix = time.strftime( "%Y-%m-%d", time.gmtime(time.time()) ) + " 00:00:00"
     commit_sha_pastix  = str(commit_pastix.hexsha)
     hostname  = str( row.pop('hostname')  )
     algorithm = str( row.pop('algorithm') )
