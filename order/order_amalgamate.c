@@ -102,11 +102,11 @@ pastixOrderAmalgamate( int             verbose,
         levelk = -1;
     }
     if ( csc == NULL ) {
-        errorPrintW( "pastixOrderAmalgamate: wrong parameter csc" );
+        pastix_print_warning( "pastixOrderAmalgamate: wrong parameter csc" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( orderptr == NULL ) {
-        errorPrintW( "pastixOrderAmalgamate: wrong parameter orderptr" );
+        pastix_print_warning( "pastixOrderAmalgamate: wrong parameter orderptr" );
         return PASTIX_ERR_BADPARAMETER;
     }
 

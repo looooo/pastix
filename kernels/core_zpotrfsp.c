@@ -85,9 +85,7 @@ core_zpotf2sp( pastix_int_t        n,
         /* Hermitian matrices, so imaginary part should be 0 */
         if ( creal(*Akk) < 0.0 )
         {
-            errorPrint("Negative diagonal term\n");
-            assert(0);
-            EXIT(MOD_SOPALIN, PASTIX_ERR_INTERNAL);
+            pastix_print_error( "Negative diagonal term\n" );
         }
 
         *Akk = csqrt(*Akk);

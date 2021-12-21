@@ -83,7 +83,7 @@ orderSupernodes( const pastix_graph_t *graph,
     }
 
     if ( order == NULL ) {
-        errorPrint ("orderSupernodes: invalid order pointer");
+        pastix_print_error( "orderSupernodes: invalid order pointer" );
         return PASTIX_ERR_BADPARAMETER;
     }
 

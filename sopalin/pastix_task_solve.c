@@ -130,21 +130,21 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_subtask_applyorder: wrong pastix_data parameter");
+        pastix_print_error( "pastix_subtask_applyorder: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if (b == NULL) {
-        errorPrint("pastix_subtask_applyorder: wrong b parameter");
+        pastix_print_error( "pastix_subtask_applyorder: wrong b parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_CSC2BCSC) ) {
-        errorPrint("pastix_subtask_applyorder: All steps from pastix_task_init() to pastix_subtask_csc2bcsc() have to be called before calling this function");
+        pastix_print_error( "pastix_subtask_applyorder: All steps from pastix_task_init() to pastix_subtask_csc2bcsc() have to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
     /* Make sure ordering is 0 based */
     if ( pastix_data->ordemesh->baseval != 0 ) {
-        errorPrint("pastix_subtask_applyorder: ordermesh must be 0-based");
+        pastix_print_error( "pastix_subtask_applyorder: ordermesh must be 0-based" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -249,15 +249,15 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_subtask_trsm: wrong pastix_data parameter");
+        pastix_print_error( "pastix_subtask_trsm: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if (b == NULL) {
-        errorPrint("pastix_subtask_trsm: wrong b parameter");
+        pastix_print_error( "pastix_subtask_trsm: wrong b parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
-        errorPrint("pastix_subtask_trsm: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function");
+        pastix_print_error( "pastix_subtask_trsm: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -375,15 +375,15 @@ pastix_subtask_diag( pastix_data_t *pastix_data, pastix_coeftype_t flttype,
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_subtask_diag: wrong pastix_data parameter");
+        pastix_print_error( "pastix_subtask_diag: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if (b == NULL) {
-        errorPrint("pastix_subtask_diag: wrong b parameter");
+        pastix_print_error( "pastix_subtask_diag: wrong b parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
-        errorPrint("pastix_subtask_trsm: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function");
+        pastix_print_error( "pastix_subtask_trsm: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -482,11 +482,11 @@ pastix_subtask_solve_adv( pastix_data_t *pastix_data, pastix_trans_t transA,
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_task_solve: wrong pastix_data parameter");
+        pastix_print_error( "pastix_task_solve: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
-        errorPrint("pastix_task_solve: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function");
+        pastix_print_error( "pastix_task_solve: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -521,7 +521,7 @@ pastix_subtask_solve_adv( pastix_data_t *pastix_data, pastix_trans_t transA,
     if ( (transA != PastixNoTrans) &&
          (transA != transfact) )
     {
-        errorPrint("pastix_task_solve: transA incompatible with the factotype used (require extra conj(L) not handled)");
+        pastix_print_error( "pastix_task_solve: transA incompatible with the factotype used (require extra conj(L) not handled)" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -689,12 +689,12 @@ pastix_task_solve( pastix_data_t *pastix_data,
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_task_solve: wrong pastix_data parameter");
+        pastix_print_error( "pastix_task_solve: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
-        errorPrint("pastix_task_solve: Numerical factorization hasn't been done.");
+        pastix_print_error( "pastix_task_solve: Numerical factorization hasn't been done." );
         return PASTIX_ERR_BADPARAMETER;
     }
 

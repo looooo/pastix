@@ -125,7 +125,6 @@
 #cmakedefine PASTIX_DEBUG_LR
 #cmakedefine PASTIX_DEBUG_LR_NANCHECK
 #cmakedefine PASTIX_DEBUG_GMRES
-#cmakedefine PASTIX_DEBUG_EXIT_ON_SIGSEGV
 #cmakedefine PASTIX_DEBUG_MPI
 
 /* Datatypes used */

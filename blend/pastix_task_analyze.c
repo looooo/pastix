@@ -60,11 +60,11 @@ pastix_task_analyze( pastix_data_t    *pastix_data,
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_task_analyze: wrong pastix_data parameter");
+        pastix_print_error( "pastix_task_analyze: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_INIT) ) {
-        errorPrint("pastix_task_analyze: pastixInit() has to be called before calling this function");
+        pastix_print_error( "pastix_task_analyze: pastixInit() has to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
 

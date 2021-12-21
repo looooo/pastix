@@ -226,10 +226,8 @@ core_zge2lr_svd( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
                                  m, n, Acpy, m,
                                  s, u, ldu, v, ldv,
                                  zwork, lwork, rwork + minMN );
-    assert(ret == 0);
-    if( ret != 0 ){
-        errorPrint("SVD Failed\n");
-        EXIT(MOD_SOPALIN, PASTIX_ERR_INTERNAL);
+    if ( ret != 0 ) {
+        pastix_print_error( "SVD Failed\n" );
     }
 
     /* Let's stop i before going too far */
@@ -363,7 +361,7 @@ core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void 
     if ( ((M1 + offx) > M2) ||
          ((N1 + offy) > N2) )
     {
-        errorPrint("Dimensions are not correct");
+        pastix_print_error( "Dimensions are not correct" );
         assert(0 /* Incorrect dimensions */);
         return total_flops;
     }
@@ -534,10 +532,8 @@ core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void 
                                  rank, rank, R, rank,
                                  s, u, rank, v, rank,
                                  zbuf, lwork, s + rank );
-    assert(ret == 0);
-    if (ret != 0) {
-        errorPrint("LAPACKE_zgesvd FAILED");
-        EXIT(MOD_SOPALIN, PASTIX_ERR_INTERNAL);
+    if ( ret != 0 ) {
+        pastix_print_error( "LAPACKE_zgesvd FAILED" );
     }
 
     /*

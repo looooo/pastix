@@ -298,7 +298,7 @@ int graphIsolate( const pastix_graph_t *ingraph,
     pastix_int_t  new_n   = gN - isolate_n;
 
     if ( (isolate_n > gN)  || (isolate_n < 0) ) {
-        errorPrintW("Number of columns to isolate greater than the columns in the graph matrix\n");
+        pastix_print_warning( "Number of columns to isolate greater than the columns in the graph matrix\n" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -475,7 +475,7 @@ graphIsolateRange( const pastix_graph_t *graph,
     pastix_int_t    i;
 
     if ( out_graph == NULL ) {
-        errorPrintW( "graphIsolateSupernode: Incorrect pointer for the output graph\n");
+        pastix_print_warning( "graphIsolateSupernode: Incorrect pointer for the output graph\n" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -490,7 +490,7 @@ graphIsolateRange( const pastix_graph_t *graph,
     }
 
     if ( out_n == 0 ) {
-        errorPrintW( "graphIsolateSupernode: Empty supernode\n");
+        pastix_print_warning( "graphIsolateSupernode: Empty supernode\n" );
         return PASTIX_ERR_BADPARAMETER;
     }
 

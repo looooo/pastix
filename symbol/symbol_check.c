@@ -73,7 +73,7 @@ pastixSymbolCheck(const symbol_matrix_t * const  symbptr)
             (cblktax[cblknum + 1].fcolnum-1 != cblktax[cblknum].lcolnum) ||
             (cblktax[cblknum + 1].bloknum   <= cblktax[cblknum].bloknum))
         {
-            errorPrint ("symbolCheck: invalid column block array");
+            pastix_print_error( "symbolCheck: invalid column block array" );
             assert(0);
             return     (1);
         }
@@ -81,7 +81,7 @@ pastixSymbolCheck(const symbol_matrix_t * const  symbptr)
         if ((bloktax[bloknum].frownum != cblktax[cblknum].fcolnum) ||
             (bloktax[bloknum].lrownum != cblktax[cblknum].lcolnum) ||
             (bloktax[bloknum].fcblknm != cblknum)) {
-            errorPrint ("symbolCheck: invalid diagonal block");
+            pastix_print_error( "symbolCheck: invalid diagonal block" );
             assert(0);
             return     (1);
         }
@@ -92,7 +92,7 @@ pastixSymbolCheck(const symbol_matrix_t * const  symbptr)
                 (bloktax[bloknum].fcblknm >  cblkmax)                      ||
                 (bloktax[bloknum].frownum <= bloktax[bloknum - 1].lrownum) ||
                 (bloktax[bloknum].fcblknm <  bloktax[bloknum - 1].fcblknm)) {
-                errorPrint ("symbolCheck: invalid block array");
+                pastix_print_error( "symbolCheck: invalid block array" );
                 assert(0);
                 return     (1);
             }
@@ -104,7 +104,7 @@ pastixSymbolCheck(const symbol_matrix_t * const  symbptr)
 
     /* Check that schur starts within the symbol */
     if ( (symbptr->schurfcol < 0) || (symbptr->schurfcol > (symbptr->nodenbr + 1)) ) {
-        errorPrint ("symbolCheck: invalid schurfcol");
+        pastix_print_error( "symbolCheck: invalid schurfcol" );
         assert(0);
         return     (1);
     }

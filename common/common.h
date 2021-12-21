@@ -41,21 +41,6 @@
 #define COMMON_RANDOM_RAND 1
 #endif
 
-/*
-  Macro: EXIT
-
-  Set IPARM_ERROR_NUMBER  to module+error, dumps parameters and exit.
-
-  Parameters:
-    module - Module where the error occurs.
-    error  - Value to set IPARM_ERROR_NUMBER to.
-*/
-#if defined(PASTIX_DEBUG_EXIT_ON_SIGSEGV)
-#define EXIT(module,error) { *(int *)0 = error; }
-#else
-#define EXIT(module,error) { abort(); }
-#endif
-
 /********************************************************************
  * CBLAS value address
  */

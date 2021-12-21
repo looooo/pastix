@@ -120,15 +120,15 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      * Check parameters
      */
     if ( pastix_data == NULL ) {
-        errorPrint( "pastix_subtask_order: wrong pastix_data parameter" );
+        pastix_print_error( "pastix_subtask_order: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( spm == NULL ) {
-        errorPrint( "pastix_subtask_order: wrong spm parameter" );
+        pastix_print_error( "pastix_subtask_order: wrong spm parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_INIT) ) {
-        errorPrint( "pastix_subtask_order: pastixInit() has to be called before calling this function" );
+        pastix_print_error( "pastix_subtask_order: pastixInit() has to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -273,7 +273,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         graphGatherInPlace( subgraph );
         retval = pastixOrderComputeScotch( pastix_data, subgraph );
 #else
-        errorPrint("pastix_subtask_order: Ordering with Scotch requires to enable -DPASTIX_ORDERING_SCOTCH option");
+        pastix_print_error( "pastix_subtask_order: Ordering with Scotch requires to enable -DPASTIX_ORDERING_SCOTCH option" );
         retval = PASTIX_ERR_BADPARAMETER;
 #endif
         break;
@@ -289,7 +289,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         graphScatterInPlace( subgraph, pastix_data->pastix_comm );
         retval = pastixOrderComputePTScotch( pastix_data, subgraph );
 #else
-        errorPrint("pastix_subtask_order: Ordering with PT-Scotch requires to enable -DPASTIX_ORDERING_PTSCOTCH option");
+        pastix_print_error( "pastix_subtask_order: Ordering with PT-Scotch requires to enable -DPASTIX_ORDERING_PTSCOTCH option" );
         retval = PASTIX_ERR_BADPARAMETER;
 #endif
         break;
@@ -306,7 +306,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         retval = pastixOrderComputeMetis( pastix_data, subgraph );
         assert( ordemesh->rangtab == NULL );
 #else
-        errorPrint("pastix_subtask_order: Ordering with Metis requires -DPASTIX_ORDERING_METIS flag at compile time");
+        pastix_print_error( "pastix_subtask_order: Ordering with Metis requires -DPASTIX_ORDERING_METIS flag at compile time" );
         retval = PASTIX_ERR_BADPARAMETER;
 #endif
         break;
@@ -322,7 +322,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         break;
 
     default:
-        errorPrint( "pastix_subtask_order: Ordering not available (iparm[IPARM_ORDERING]=%d)\n",
+        pastix_print_error( "pastix_subtask_order: Ordering not available (iparm[IPARM_ORDERING]=%d)\n",
                     (int)iparm[IPARM_ORDERING] );
         retval = PASTIX_ERR_BADPARAMETER;
         break;

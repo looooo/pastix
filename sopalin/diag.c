@@ -61,19 +61,19 @@ pastixGetDiag( const pastix_data_t *pastix_data,
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_getDiag: wrong pastix_data parameter");
+        pastix_print_error( "pastix_getDiag: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if (D == NULL) {
-        errorPrint("pastix_getDiag: D parameter");
+        pastix_print_error( "pastix_getDiag: D parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if (incD <= 0) {
-        errorPrint("pastix_getDiag: incD parameter");
+        pastix_print_error( "pastix_getDiag: incD parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
-        errorPrint("pastix_getDiag: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function");
+        pastix_print_error( "pastix_getDiag: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
 

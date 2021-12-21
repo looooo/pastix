@@ -184,12 +184,12 @@ core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
     }
     if ( ( ( transA == PastixNoTrans ) && ( LWORK < (M+1)*K) ) ||
          ( ( transA != PastixNoTrans ) && ( LWORK < (N+1)*K) ) ){
-        errorPrint("CORE_gemdm: Illegal value of LWORK\n");
+        pastix_print_error( "CORE_gemdm: Illegal value of LWORK\n" );
         if (transA == PastixNoTrans ) {
-            errorPrint("LWORK %d < (M=%d+1)*K=%d ", LWORK, M, K);
+            pastix_print_error( "LWORK %d < (M=%d+1)*K=%d ", LWORK, M, K );
         }
         if (transA == PastixNoTrans ) {
-            errorPrint("LWORK %d < (N=%d+1)*K=%d ", LWORK, N, K);
+            pastix_print_error( "LWORK %d < (N=%d+1)*K=%d ", LWORK, N, K );
         }
         return -17;
     }

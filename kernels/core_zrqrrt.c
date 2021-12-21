@@ -231,7 +231,8 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
         /* Try to do some power iteration to refine the projection */
         if (0)
         {
-            for(int l=0; l<2; l++)
+            int l;
+            for(l=0; l<2; l++)
             {
                 cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                              m-rk, d, n-rk,

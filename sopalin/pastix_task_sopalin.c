@@ -92,15 +92,15 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_subtask_spm2bcsc: wrong pastix_data parameter");
+        pastix_print_error( "pastix_subtask_spm2bcsc: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if (spm == NULL) {
-        errorPrint("pastix_subtask_spm2bcsc: wrong spm parameter");
+        pastix_print_error( "pastix_subtask_spm2bcsc: wrong spm parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_ANALYSE) ) {
-        errorPrint("pastix_subtask_spm2bcsc: All steps from pastix_task_init() to pastix_task_blend() have to be called before calling this function");
+        pastix_print_error( "pastix_subtask_spm2bcsc: All steps from pastix_task_init() to pastix_task_blend() have to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -233,15 +233,15 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_subtask_bcsc2ctab: wrong pastix_data parameter");
+        pastix_print_error( "pastix_subtask_bcsc2ctab: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_CSC2BCSC) ) {
-        errorPrint("pastix_subtask_bcsc2ctab: All steps from pastix_task_init() to pastix_stask_blend() have to be called before calling this function");
+        pastix_print_error( "pastix_subtask_bcsc2ctab: All steps from pastix_task_init() to pastix_stask_blend() have to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if (pastix_data->bcsc == NULL) {
-        errorPrint("pastix_subtask_bcsc2ctab: wrong pastix_data->bcsc parameter");
+        pastix_print_error( "pastix_subtask_bcsc2ctab: wrong pastix_data->bcsc parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -300,7 +300,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
          ( pastix_data->iparm[IPARM_SCHEDULER] == PastixSchedParsec ) &&
          ( pastix_data->procnbr > 1 ) )
     {
-        errorPrint( "pastix_task_sopalin: Low-Rank with MPI communication is not available yet with PaRSEC\n" );
+        pastix_print_error( "pastix_task_sopalin: Low-Rank with MPI communication is not available yet with PaRSEC\n" );
         return PASTIX_ERR_BADPARAMETER;
     }
 #endif
@@ -415,25 +415,25 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_subtask_sopalin: wrong pastix_data parameter");
+        pastix_print_error( "pastix_subtask_sopalin: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_ANALYSE) ) {
-        errorPrint("pastix_subtask_sopalin: All steps from pastix_task_init() to pastix_task_analyze() have to be called before calling this function");
+        pastix_print_error( "pastix_subtask_sopalin: All steps from pastix_task_init() to pastix_task_analyze() have to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_CSC2BCSC) ) {
-        errorPrint("pastix_subtask_sopalin: All steps from pastix_task_init() to pastix_task_analyze() have to be called before calling this function");
+        pastix_print_error( "pastix_subtask_sopalin: All steps from pastix_task_init() to pastix_task_analyze() have to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_BCSC2CTAB) ) {
-        errorPrint("pastix_subtask_sopalin: All steps from pastix_task_init() to pastix_task_analyze() have to be called before calling this function");
+        pastix_print_error( "pastix_subtask_sopalin: All steps from pastix_task_init() to pastix_task_analyze() have to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
     bcsc = pastix_data->bcsc;
     if (bcsc == NULL) {
-        errorPrint("pastix_subtask_sopalin: wrong pastix_data_bcsc parameter");
+        pastix_print_error( "pastix_subtask_sopalin: wrong pastix_data_bcsc parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -459,8 +459,8 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
              * Use the rule presented in "Making Sparse Gaussian Elimination
              * Scalable by Static Pivoting", S. X. Li, J. Demmel
              *
-             * sqrt(eps) * ||A||_1 is a small half precision pertrbation
-             * intriduced in the pb when the pivot is too small
+             * sqrt(eps) * ||A||_1 is a small half precision perturbation
+             * introduced in the pb when the pivot is too small
              */
             double eps;
             if ( (bcsc->flttype == PastixFloat) || (bcsc->flttype == PastixComplex32) ) {
@@ -631,15 +631,15 @@ pastix_task_numfact( pastix_data_t *pastix_data,
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_task_sopalin: wrong pastix_data parameter");
+        pastix_print_error( "pastix_task_sopalin: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if (spm == NULL) {
-        errorPrint("pastix_task_sopalin: wrong spm parameter");
+        pastix_print_error( "pastix_task_sopalin: wrong spm parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_ANALYSE) ) {
-        errorPrint("pastix_task_sopalin: All steps from pastix_task_init() to pastix_task_blend() have to be called before calling this function");
+        pastix_print_error( "pastix_task_sopalin: All steps from pastix_task_init() to pastix_task_blend() have to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
 

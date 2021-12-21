@@ -629,10 +629,10 @@ simu_computeTaskReceiveTime( const BlendCtrl       *ctrl,
 
 #if defined(PASTIX_DEBUG_BLEND)
         if(!(simuctrl->ftgttab[i].costsend >= 0.0)) {
-            errorPrint("ftgt %ld costsend %f", (long)i, simuctrl->ftgttab[i].costsend);
+            pastix_print_error( "ftgt %ld costsend %f", (long)i, simuctrl->ftgttab[i].costsend );
         }
         if(!(simuctrl->ftgttab[i].costadd >= 0.0)) {
-            errorPrint("ftgt %ld costadd %f", (long)i, simuctrl->ftgttab[i].costadd);
+            pastix_print_error( "ftgt %ld costadd %f", (long)i, simuctrl->ftgttab[i].costadd );
         }
 
         assert(simuctrl->ftgttab[i].costsend >= 0.0);

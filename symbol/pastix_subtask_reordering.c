@@ -69,7 +69,7 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
      * Check parameters
      */
     if (pastix_data == NULL) {
-        errorPrint("pastix_subtask_reordering: wrong pastix_data parameter");
+        pastix_print_error( "pastix_subtask_reordering: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     iparm    = pastix_data->iparm;
@@ -123,11 +123,11 @@ pastix_subtask_reordering( pastix_data_t *pastix_data )
 
 #if !defined(NDEBUG)
     if ( pastixOrderCheck( ordemesh ) != 0) {
-        errorPrint("pastix_subtask_reordering: pastixOrderCheck on final ordering failed !!!");
+        pastix_print_error( "pastix_subtask_reordering: pastixOrderCheck on final ordering failed !!!" );
         assert(0);
     }
     if( pastixSymbolCheck(pastix_data->symbmtx) != 0 ) {
-        errorPrint("pastix_subtask_reordering: symbolCheck on final symbol matrix failed !!!");
+        pastix_print_error( "pastix_subtask_reordering: symbolCheck on final symbol matrix failed !!!" );
         assert(0);
     }
 #endif
