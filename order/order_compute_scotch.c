@@ -18,7 +18,7 @@
  **/
 #include "common.h"
 #include "graph/graph.h"
-#include "pastix/order.h"
+#include "order/order_internal.h"
 #if defined(PASTIX_ORDERING_PTSCOTCH)
 #include <ptscotch.h>
 #elif defined(PASTIX_ORDERING_SCOTCH)

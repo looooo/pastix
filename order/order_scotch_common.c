@@ -18,7 +18,7 @@
  **/
 #include "common.h"
 #include "graph/graph.h"
-#include "pastix/order.h"
+#include "order/order_internal.h"
 #include "order_scotch_strats.h"
 
 #define STRAT_STR_MAX 1024

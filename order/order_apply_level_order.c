@@ -18,7 +18,7 @@
 #include <string.h>
 #include "common.h"
 #include "blend/elimintree.h"
-#include "pastix/order.h"
+#include "order/order_internal.h"
 
 /**
  *******************************************************************************
