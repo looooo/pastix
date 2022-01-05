@@ -38,7 +38,7 @@
  *
  *******************************************************************************/
 EliminTree *
-pastixOrderBuildEtree( const pastix_order_t *order )
+orderBuildEtree( const pastix_order_t *order )
 {
     EliminTree  *etree = NULL;
     eTreeNode_t *enode;
@@ -92,7 +92,7 @@ pastixOrderBuildEtree( const pastix_order_t *order )
  *
  *******************************************************************************/
 int
-pastixOrderApplyLevelOrder( pastix_order_t *order,
+orderApplyLevelOrder( pastix_order_t *order,
                             pastix_int_t    level_tasks2d,
                             pastix_int_t    width_tasks2d )
 {
@@ -105,30 +105,30 @@ pastixOrderApplyLevelOrder( pastix_order_t *order,
 
     /* Parameter checks */
     if ( order == NULL ) {
-        pastix_print_error( "pastixOrderApplyLevelOrder: invalid order pointer" );
+        pastix_print_error( "orderApplyLevelOrder: invalid order pointer" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
     if ( (order->permtab == NULL) && (order->vertnbr > 0) ) {
-        pastix_print_error( "pastixOrderApplyLevelOrder: invalid order->permtab pointer" );
+        pastix_print_error( "orderApplyLevelOrder: invalid order->permtab pointer" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( order->rangtab == NULL ) {
-        pastix_print_error( "pastixOrderApplyLevelOrder: invalid order->rangtab pointer" );
+        pastix_print_error( "orderApplyLevelOrder: invalid order->rangtab pointer" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( (order->treetab == NULL) && (order->cblknbr > 0) ) {
-        pastix_print_error( "pastixOrderApplyLevelOrder: invalid order->treetab pointer" );
+        pastix_print_error( "orderApplyLevelOrder: invalid order->treetab pointer" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
     if ( order->cblknbr < 0 ) {
-        pastix_print_error( "pastixOrderApplyLevelOrder: invalid nunber of column blocks" );
+        pastix_print_error( "orderApplyLevelOrder: invalid nunber of column blocks" );
         return PASTIX_ERR_BADPARAMETER;
     }
     baseval = order->baseval;
     if ( baseval < 0 ) {
-        pastix_print_error( "pastixOrderApplyLevelOrder: invalid vertex node base number" );
+        pastix_print_error( "orderApplyLevelOrder: invalid vertex node base number" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
@@ -150,7 +150,7 @@ pastixOrderApplyLevelOrder( pastix_order_t *order,
     /*
      * Build the elimination tree from top to bottom
      */
-    etree = pastixOrderBuildEtree( &oldorder );
+    etree = orderBuildEtree( &oldorder );
 
     /*
      * Build the sorted array per level

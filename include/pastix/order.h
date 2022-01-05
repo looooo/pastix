@@ -87,6 +87,9 @@ void pastixOrderBcast( pastix_order_t *ordemesh,
                        int             root,
                        PASTIX_Comm     pastix_comm  );
 
+int  pastixOrderGrid( pastix_order_t **myorder, pastix_int_t nx,
+                      pastix_int_t ny, pastix_int_t nz );
+
 /**
  * @}
  * @name Order IO subroutines
@@ -94,55 +97,6 @@ void pastixOrderBcast( pastix_order_t *ordemesh,
  */
 int  pastixOrderLoad( const pastix_data_t *pastix_data,       pastix_order_t *ordeptr );
 int  pastixOrderSave(       pastix_data_t *pastix_data, const pastix_order_t *ordeptr );
-
-/**
- * @}
- * @name Order compute subroutines
- * @{
- */
-int  pastixOrderComputeScotch(   pastix_data_t *pastix_data, pastix_graph_t *graph );
-int  pastixOrderComputePTScotch( pastix_data_t *pastix_data, pastix_graph_t *graph );
-int  pastixOrderComputeMetis(    pastix_data_t *pastix_data, pastix_graph_t *graph );
-int  pastixOrderComputeParMetis( pastix_data_t *pastix_data, pastix_graph_t *graph );
-int  pastixOrderComputePersonal( pastix_data_t *pastix_data, pastix_graph_t *graph, pastix_order_t *myorder );
-
-int  pastixOrderGrid( pastix_order_t **myorder, pastix_int_t nx,
-                      pastix_int_t ny, pastix_int_t nz );
-
-/**
- * @}
- * @name Order manipulation subroutines
- * @{
- */
-void pastixOrderFindSupernodes( const pastix_graph_t *graph,
-                                pastix_order_t * const ordeptr );
-
-int  pastixOrderAmalgamate( int             verbose,
-                            int             ilu,
-                            int             levelk,
-                            int             rat_cblk,
-                            int             rat_blas,
-                            pastix_graph_t *graph,
-                            pastix_order_t *orderptr,
-                            PASTIX_Comm     pastix_comm );
-
-int  pastixOrderApplyLevelOrder( pastix_order_t *ordeptr,
-                                 pastix_int_t    level_tasks2d,
-                                 pastix_int_t    width_tasks2d );
-
-int  pastixOrderAddIsolate( pastix_order_t     *ordeptr,
-                            pastix_int_t        new_n,
-                            const pastix_int_t *perm );
-
-/**
- * @}
- * @name Scotch ordering common subroutines
- * @{
- */
-char *order_scotch_build_strategy( const pastix_int_t *iparm,
-                                   pastix_int_t        procnum,
-                                   int                 isPTscotch );
-void  order_scotch_reallocate_ordemesh( pastix_order_t *ordemesh );
 
 /**
  * @}

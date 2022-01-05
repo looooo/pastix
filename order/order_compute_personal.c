@@ -53,7 +53,7 @@
  *
  *******************************************************************************/
 int
-pastixOrderComputePersonal( pastix_data_t  *pastix_data,
+orderComputePersonal( pastix_data_t  *pastix_data,
                             pastix_graph_t *graph,
                             pastix_order_t *myorder )
 {

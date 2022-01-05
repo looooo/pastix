@@ -44,6 +44,7 @@ typedef uintptr_t PASTIX_Comm;
 
 #include "pastix/api.h"
 #include "pastix/datatypes.h"
+#include "pastix/order.h"
 
 BEGIN_C_DECLS
 

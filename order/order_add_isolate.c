@@ -53,7 +53,7 @@
  *
  *******************************************************************************/
 int
-pastixOrderAddIsolate(       pastix_order_t *ordemesh,
+orderAddIsolate(       pastix_order_t *ordemesh,
                              pastix_int_t    new_n,
                        const pastix_int_t   *perm )
 {

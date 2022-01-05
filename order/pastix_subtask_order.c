@@ -271,7 +271,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         }
 #if defined(PASTIX_ORDERING_SCOTCH)
         graphGatherInPlace( subgraph );
-        retval = pastixOrderComputeScotch( pastix_data, subgraph );
+        retval = orderComputeScotch( pastix_data, subgraph );
 #else
         pastix_print_error( "pastix_subtask_order: Ordering with Scotch requires to enable -DPASTIX_ORDERING_SCOTCH option" );
         retval = PASTIX_ERR_BADPARAMETER;
@@ -287,7 +287,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         }
 #if defined(PASTIX_ORDERING_PTSCOTCH)
         graphScatterInPlace( subgraph, pastix_data->pastix_comm );
-        retval = pastixOrderComputePTScotch( pastix_data, subgraph );
+        retval = orderComputePTScotch( pastix_data, subgraph );
 #else
         pastix_print_error( "pastix_subtask_order: Ordering with PT-Scotch requires to enable -DPASTIX_ORDERING_PTSCOTCH option" );
         retval = PASTIX_ERR_BADPARAMETER;
@@ -303,7 +303,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         }
 #if defined(PASTIX_ORDERING_METIS)
         graphGatherInPlace( subgraph );
-        retval = pastixOrderComputeMetis( pastix_data, subgraph );
+        retval = orderComputeMetis( pastix_data, subgraph );
         assert( ordemesh->rangtab == NULL );
 #else
         pastix_print_error( "pastix_subtask_order: Ordering with Metis requires -DPASTIX_ORDERING_METIS flag at compile time" );
@@ -318,7 +318,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
             pastix_print( procnum, 0, OUT_ORDER_METHOD, "Personal" );
         }
-        retval = pastixOrderComputePersonal( pastix_data, subgraph, myorder );
+        retval = orderComputePersonal( pastix_data, subgraph, myorder );
         break;
 
     default:
@@ -361,13 +361,13 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
         graphGatherInPlace( subgraph );
 
         /* TODO: if rangtab is provided, treetab could be easily calculated */
-        pastixOrderFindSupernodes( subgraph, ordemesh );
+        orderFindSupernodes( subgraph, ordemesh );
 
 #if !defined(NDEBUG) && defined(PASTIX_DEBUG_ORDERING)
         assert( pastixOrderCheck( ordemesh ) == PASTIX_SUCCESS );
 #endif
 
-        pastixOrderAmalgamate( iparm[IPARM_VERBOSE],
+        orderAmalgamate( iparm[IPARM_VERBOSE],
                                iparm[IPARM_INCOMPLETE],
                                iparm[IPARM_LEVEL_OF_FILL],
                                iparm[IPARM_AMALGAMATION_LVLCBLK],
@@ -392,7 +392,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      * Reorder supernodes by level to get a better order for runtime systems,
      * and for the reordering algorithm
      */
-    pastixOrderApplyLevelOrder( ordemesh,
+    orderApplyLevelOrder( ordemesh,
                                 iparm[IPARM_TASKS2D_LEVEL],
                                 iparm[IPARM_TASKS2D_WIDTH] );
 
@@ -405,7 +405,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      */
     if ( do_zeros )
     {
-        pastixOrderAddIsolate( ordemesh, schur_gN, zeros_perm );
+        orderAddIsolate( ordemesh, schur_gN, zeros_perm );
 
         if ( zeros_perm != NULL ) { memFree_null( zeros_perm ); }
     }
@@ -415,7 +415,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      */
     if ( do_schur )
     {
-        pastixOrderAddIsolate( ordemesh, graph->gN, schur_perm );
+        orderAddIsolate( ordemesh, graph->gN, schur_perm );
 
         if ( schur_perm != NULL ) { memFree_null( schur_perm ); }
     }
@@ -442,7 +442,7 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
 
         graphBase( graph, 0 );
 
-        etree = pastixOrderBuildEtree( ordemesh );
+        etree = orderBuildEtree( ordemesh );
 
         ret = orderSupernodes( graph, ordemesh,
                                etree, iparm, do_schur );
