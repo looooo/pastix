@@ -230,7 +230,10 @@ MPI_Bcast( void *buffer, int count, MPI_Datatype datatype, int root,
     return MPI_SUCCESS;
 }
 
-#define MPI_Comm_f2c(comm) 0;
+#ifndef MPI_Comm_f2c
+#define MPI_Comm_f2c( _comm_ ) (_comm_)
+#endif
+
 #define MPI_Init_thread(argc, argv,required,provided)
 
 #endif /* _nompi_h_ */
