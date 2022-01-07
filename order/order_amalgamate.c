@@ -16,7 +16,7 @@
  **/
 #include "common.h"
 #include "graph/graph.h"
-#include "pastix/order.h"
+#include "order/order_internal.h"
 #include "symbol/fax_csr.h"
 
 /**
@@ -79,7 +79,7 @@
  *
  *******************************************************************************/
 int
-pastixOrderAmalgamate( int             verbose,
+orderAmalgamate( int             verbose,
                        int             ilu,
                        int             levelk,
                        int             rat_cblk,
@@ -102,11 +102,11 @@ pastixOrderAmalgamate( int             verbose,
         levelk = -1;
     }
     if ( csc == NULL ) {
-        pastix_print_warning( "pastixOrderAmalgamate: wrong parameter csc" );
+        pastix_print_warning( "orderAmalgamate: wrong parameter csc" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( orderptr == NULL ) {
-        pastix_print_warning( "pastixOrderAmalgamate: wrong parameter orderptr" );
+        pastix_print_warning( "orderAmalgamate: wrong parameter orderptr" );
         return PASTIX_ERR_BADPARAMETER;
     }
 

@@ -21,7 +21,7 @@ program fmultidof
   type(pastix_data_t),        pointer                      :: pastix_data
   type(pastix_order_t),       pointer                      :: order => null()
   type(spmatrix_t),           pointer                      :: spm
-  type(spmatrix_t),           pointer                      :: spm2
+  !type(spmatrix_t),           pointer                      :: spm2
   integer(kind=pastix_int_t), target                       :: iparm(iparm_size)
   real(kind=c_double),        target                       :: dparm(dparm_size)
   real(kind=c_double)                                      :: normA

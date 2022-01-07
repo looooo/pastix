@@ -15,7 +15,7 @@
  *
  **/
 #include "common.h"
-#include "pastix/order.h"
+#include "order/order_internal.h"
 
 /**
  *******************************************************************************

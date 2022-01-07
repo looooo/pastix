@@ -16,7 +16,7 @@
 #include "common.h"
 #include <spm.h>
 #include "graph/graph.h"
-#include "pastix/order.h"
+#include "order/order_internal.h"
 
 /**
  *******************************************************************************

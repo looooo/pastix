@@ -92,7 +92,7 @@ program fmultilap
   real(kind=c_double), dimension(dparm_size)        :: dparm     ! Global dparm array used to initialize the systems
   type(sys_lin), pointer                            :: matrix
   type(rhs_subset), pointer                         :: rhs
-  type(c_ptr)                                       :: x_ptr, b_ptr
+  type(c_ptr)                                       :: x_ptr, b_ptr, x0_ptr = c_null_ptr
   integer, dimension(:), allocatable                :: ila_thrmn, ila_thrmx, ila_thrsz
   integer(kind=c_int), dimension(:), pointer        :: bindtab
   integer(kind=pastix_int_t)                        :: th, im, ir, i, j, k
@@ -397,7 +397,7 @@ program fmultilap
 
               if (i==1) then
                  call spmGenRHS( SpmRhsRndX, rhs%nrhs, matrix%spm, &
-                      & c_null_ptr, params%n, b_ptr, params%n, info )
+                      & x_ptr, params%n, b_ptr, params%n, info )
 
                  if ( params%output ) then
                     ! Backup initial b that will be overwritten by check
@@ -486,9 +486,9 @@ program fmultilap
 
                  call spmCheckAxb( matrix%dparm(DPARM_EPSILON_REFINEMENT), rhs%nrhs, &
                       & matrix%spm,    &
-                      & c_null_ptr, params%n, &
-                      & b_ptr,      params%n, &
-                      & x_ptr,      params%n, info )
+                      & x0_ptr, params%n, &
+                      & b_ptr,  params%n, &
+                      & x_ptr,  params%n, info )
 
                  ginfo = ginfo + info
               end do

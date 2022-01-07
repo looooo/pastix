@@ -24,20 +24,65 @@ BEGIN_C_DECLS
 #define orderDrawCoordinates ( 0x1 << 1 )
 #define orderDrawMapping     ( 0x1 << 2 )
 
+/**
+ * @}
+ * @name Order compute subroutines
+ * @{
+ */
+int orderComputeScotch(   pastix_data_t *pastix_data, pastix_graph_t *graph );
+int orderComputePTScotch( pastix_data_t *pastix_data, pastix_graph_t *graph );
+int orderComputeMetis(    pastix_data_t *pastix_data, pastix_graph_t *graph );
+int orderComputeParMetis( pastix_data_t *pastix_data, pastix_graph_t *graph );
+int orderComputePersonal( pastix_data_t *pastix_data, pastix_graph_t *graph, pastix_order_t *myorder );
+
+/**
+ * @}
+ * @name Order manipulation subroutines
+ * @{
+ */
+void orderFindSupernodes( const pastix_graph_t *graph,
+                                pastix_order_t * const ordeptr );
+
+int  orderAmalgamate( int             verbose,
+                      int             ilu,
+                      int             levelk,
+                      int             rat_cblk,
+                      int             rat_blas,
+                      pastix_graph_t *graph,
+                      pastix_order_t *orderptr,
+                      PASTIX_Comm     pastix_comm );
+
+int  orderApplyLevelOrder( pastix_order_t *ordeptr,
+                           pastix_int_t    level_tasks2d,
+                           pastix_int_t    width_tasks2d );
+
+int  orderAddIsolate( pastix_order_t     *ordeptr,
+                      pastix_int_t        new_n,
+                      const pastix_int_t *perm );
+
+pastix_int_t orderSupernodes( const pastix_graph_t *graph,
+                              pastix_order_t       *order,
+                              EliminTree           *etree,
+                              pastix_int_t         *iparm,
+                              int                   do_schur );
+
+/**
+ * @}
+ * @name Order manipulation subroutines
+ * @{
+ */
 void
 orderDraw( pastix_data_t *pastix_data,
            const char    *filename,
            pastix_int_t   sndeidx,
            int            dump );
 
-pastix_int_t
-orderSupernodes( const pastix_graph_t *graph,
-                 pastix_order_t       *order,
-                 EliminTree           *etree,
-                 pastix_int_t         *iparm, 
-                 int                   do_schur );
+EliminTree *orderBuildEtree( const pastix_order_t *order );
 
-EliminTree *pastixOrderBuildEtree( const pastix_order_t *order );
+char *order_scotch_build_strategy( const pastix_int_t *iparm,
+                                   pastix_int_t        procnum,
+                                   int                 isPTscotch );
+void  order_scotch_reallocate_ordemesh( pastix_order_t *ordemesh );
 
 END_C_DECLS
 

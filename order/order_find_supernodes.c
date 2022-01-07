@@ -17,7 +17,7 @@
  **/
 #include "common.h"
 #include "graph/graph.h"
-#include "pastix/order.h"
+#include "order/order_internal.h"
 
 /**
  *******************************************************************************
@@ -357,7 +357,7 @@ compute_elimination_tree(      pastix_int_t n,
  *
  *******************************************************************************/
 void
-pastixOrderFindSupernodes( const pastix_graph_t *graph,
+orderFindSupernodes( const pastix_graph_t *graph,
                            pastix_order_t * const ordeptr )
 {
     pastix_int_t *father     = NULL; /* father[i] is the father of node i in he elimination tree of A */

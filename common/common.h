@@ -20,6 +20,7 @@
 #define _common_h_
 
 #include "pastix.h"
+#include "pastix/order.h"
 #if !defined(PASTIX_WITH_MPI)
 #include "nompi.h"
 #endif

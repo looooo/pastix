@@ -17,7 +17,7 @@
  **/
 #include "common.h"
 #include "graph/graph.h"
-#include "pastix/order.h"
+#include "order/order_internal.h"
 
 /**
  *******************************************************************************
@@ -53,7 +53,7 @@
  *
  *******************************************************************************/
 int
-pastixOrderComputePersonal( pastix_data_t  *pastix_data,
+orderComputePersonal( pastix_data_t  *pastix_data,
                             pastix_graph_t *graph,
                             pastix_order_t *myorder )
 {

@@ -18,7 +18,7 @@
  **/
 #include "common.h"
 #include "graph/graph.h"
-#include "pastix/order.h"
+#include "order/order_internal.h"
 #if defined(PASTIX_ORDERING_PTSCOTCH)
 #include <ptscotch.h>
 #elif defined(PASTIX_ORDERING_SCOTCH)
@@ -338,7 +338,7 @@ ocs_compute_graph_ordering_mt( isched_thread_t *ctx, void *args )
  *
  *******************************************************************************/
 int
-pastixOrderComputeScotch( pastix_data_t  *pastix_data,
+orderComputeScotch( pastix_data_t  *pastix_data,
                           pastix_graph_t *graph )
 {
     SCOTCH_Graph    scotchgraph;
@@ -347,7 +347,7 @@ pastixOrderComputeScotch( pastix_data_t  *pastix_data,
 
     /* Check integer compatibility */
     if ( sizeof(pastix_int_t) != sizeof(SCOTCH_Num) ) {
-        pastix_print_error( "pastixOrderComputeScotch: Inconsistent integer type between Pastix and Scotch\n" );
+        pastix_print_error( "orderComputeScotch: Inconsistent integer type between Pastix and Scotch\n" );
         return PASTIX_ERR_INTEGER_TYPE;
     }
 
