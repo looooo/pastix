@@ -27,7 +27,7 @@
 #include <spm.h>
 #include "bcsc/bcsc.h"
 #include <lapacke.h>
-#include <z_spm.h>
+#include <spm/z_spm.h>
 #include "bcsc/bcsc_z.h"
 #include "bcsc/bcsc.h"
 #include <pastix/order.h>
