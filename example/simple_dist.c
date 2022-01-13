@@ -25,7 +25,7 @@ int main (int argc, char **argv)
     double          dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
     spm_driver_t    driver;
     char           *filename = NULL;
-    spmatrix_t     *spm, *spmd, spm2;
+    spmatrix_t     *spm, spm2;
     void           *x, *b, *x0 = NULL;
     size_t          size;
     int             check = 1;
@@ -64,48 +64,46 @@ int main (int argc, char **argv)
 
 #if defined(PASTIX_WITH_MPI)
     /* Scatter the spm and make sure everything works in distributed */
-    spmd = spmScatter( spm, 0, NULL, 1, -1, MPI_COMM_WORLD );
+    spmScatter( &spm2, -1, spm, 0, NULL, 1, MPI_COMM_WORLD );
     spmExit(spm);
-    free(spm);
-#else
-    spmd = spm;
+    *spm = spm2;
 #endif
 
-    rc = spmCheckAndCorrect( spmd, &spm2 );
+    rc = spmCheckAndCorrect( spm, &spm2 );
     if ( rc != 0 ) {
-        spmExit( spmd );
-        *spmd = spm2;
+        spmExit( spm );
+        *spm = spm2;
         rc = 0;
     }
 
     /**
      * Generate a Fake values array if needed for the numerical part
      */
-    if ( spmd->flttype == SpmPattern ) {
-        spmGenFakeValues( spmd );
+    if ( spm->flttype == SpmPattern ) {
+        spmGenFakeValues( spm );
     }
 
     /**
      * Perform ordering, symbolic factorization, and analyze steps
      */
-    pastix_task_analyze( pastix_data, spmd );
+    pastix_task_analyze( pastix_data, spm );
 
     /**
      * Normalize A matrix (optional, but recommended for low-rank functionality)
      */
-    double normA = spmNorm( SpmFrobeniusNorm, spmd );
-    spmScalMatrix( 1./normA, spmd );
+    double normA = spmNorm( SpmFrobeniusNorm, spm );
+    spmScalMatrix( 1./normA, spm );
 
     /**
      * Perform the numerical factorization
      */
-    pastix_task_numfact( pastix_data, spmd );
+    pastix_task_numfact( pastix_data, spm );
 
     /**
      * Generates the b and x vector such that A * x = b
      * Compute the norms of the initial vectors if checking purpose.
      */
-    size = pastix_size_of( spmd->flttype ) * spmd->n * nrhs;
+    size = pastix_size_of( spm->flttype ) * spm->n * nrhs;
     x = malloc( size );
     b = malloc( size );
 
@@ -114,14 +112,14 @@ int main (int argc, char **argv)
         if ( check > 1 ) {
             x0 = malloc( size );
         }
-        spmGenRHS( SpmRhsRndX, nrhs, spmd, x0, spmd->n, b, spmd->n );
+        spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
         memcpy( x, b, size );
     }
     else {
-        spmGenRHS( SpmRhsRndB, nrhs, spmd, NULL, spmd->n, x, spmd->n );
+        spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
         /* Apply also normalization to b vectors */
-        spmScalVector( spmd->flttype, 1./normA, spmd->n * nrhs, b, 1 );
+        spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );
 
         /* Save b for refinement */
         memcpy( b, x, size );
@@ -130,20 +128,20 @@ int main (int argc, char **argv)
     /**
      * Solve the linear system (and perform the optional refinement)
      */
-    pastix_task_solve( pastix_data, nrhs, x, spmd->n );
-    pastix_task_refine( pastix_data, spmd->n, nrhs, b, spmd->n, x, spmd->n );
+    pastix_task_solve( pastix_data, nrhs, x, spm->n );
+    pastix_task_refine( pastix_data, spm->n, nrhs, b, spm->n, x, spm->n );
 
     if ( check )
     {
-        rc = spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spmd, x0, spmd->n, b, spmd->n, x, spmd->n );
+        rc = spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
 
         if ( x0 ) {
             free( x0 );
         }
     }
 
-    spmExit( spmd );
-    free( spmd );
+    spmExit( spm );
+    free( spm );
     free( x );
     free( b );
     pastixFinalize( &pastix_data );
