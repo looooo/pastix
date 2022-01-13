@@ -149,8 +149,6 @@ int
 graphCopy( pastix_graph_t       *graphdst,
            const pastix_graph_t *graphsrc )
 {
-    pastix_graph_t *graph_tmp;
-
     /* Parameter checks */
     if ( graphdst == NULL ) {
         return PASTIX_ERR_BADPARAMETER;
@@ -164,10 +162,7 @@ graphCopy( pastix_graph_t       *graphdst,
     assert_graph( graphsrc );
 
     /* Copy the source graph */
-    graph_tmp = spmCopy( graphsrc );
-    memcpy( graphdst, graph_tmp, sizeof(pastix_graph_t) );
-
-    memFree_null( graph_tmp );
+    spmCopy( graphsrc, graphdst );
 
     return PASTIX_SUCCESS;
 }
@@ -197,25 +192,27 @@ int
 graphScatterInPlace( pastix_graph_t *graph,
                      PASTIX_Comm     comm )
 {
-    pastix_graph_t *newgraph;
-    assert_graph( graph );
+    pastix_graph_t newgraph;
+    int            rc;
 
+    assert_graph( graph );
     if ( graph->loc2glob != NULL ) {
         return 0;
     }
 
     /* Scatter the graph */
-    newgraph = spmScatter( graph, -1, NULL, 1, -1, comm );
+    rc = spmScatter( &newgraph, -1, graph, -1, NULL, 1, comm );
 
-    if ( newgraph != NULL ) {
+    if ( rc == SPM_SUCCESS ) {
         graphExit( graph );
-        memcpy( graph, newgraph, sizeof( pastix_graph_t ) );
-        free( newgraph );
+        memcpy( graph, &newgraph, sizeof( pastix_graph_t ) );
+
+        assert_graph( graph );
+        return 1;
     }
-
-    assert_graph( graph );
-
-    return 1;
+    else {
+        return 0;
+    }
 }
 
 /**
@@ -242,24 +239,26 @@ graphScatterInPlace( pastix_graph_t *graph,
 int
 graphGatherInPlace( pastix_graph_t *graph )
 {
-    pastix_graph_t *newgraph;
-    assert_graph( graph );
+    pastix_graph_t newgraph;
+    int            rc;
 
+    assert_graph( graph );
     if ( graph->loc2glob == NULL ) {
         return 0;
     }
 
-    newgraph = spmGather( graph, -1 );
+    rc = spmGather( graph, -1, &newgraph );
 
-    if ( newgraph != NULL ) {
+    if ( rc == SPM_SUCCESS ) {
         graphExit( graph );
-        memcpy( graph, newgraph, sizeof( pastix_graph_t ) );
-        free( newgraph );
+        memcpy( graph, &newgraph, sizeof( pastix_graph_t ) );
+
+        assert_graph( graph );
+        return 1;
     }
-
-    assert_graph( graph );
-
-    return 1;
+    else {
+        return 0;
+    }
 }
 
 /**
@@ -381,8 +380,6 @@ int
 graphSpm2Graph( pastix_graph_t   *graph,
                 const spmatrix_t *spm )
 {
-    spmatrix_t *spm2;
-
     /* Parameter checks */
     if ( graph == NULL ) {
         return PASTIX_ERR_BADPARAMETER;
@@ -398,8 +395,7 @@ graphSpm2Graph( pastix_graph_t   *graph,
     spmExit( graph );
 
     /* Copy existing datas */
-    spm2 = spmCopy( spm );
-    memcpy( graph, spm2, sizeof(pastix_graph_t) );
+    spmCopy( spm, graph );
 
     /* Enforce Pattern type to the graph */
     graph->flttype = SpmPattern;
@@ -410,9 +406,6 @@ graphSpm2Graph( pastix_graph_t   *graph,
 
     /* Make sure the graph is in CSC format */
     spmConvert( SpmCSC, graph );
-
-    /* Free the new allocated spm2 */
-    memFree_null( spm2 );
 
     return PASTIX_SUCCESS;
 }
