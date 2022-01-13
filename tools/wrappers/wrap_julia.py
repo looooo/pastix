@@ -22,58 +22,31 @@ import re
 import argparse
 import time
 from . import *
+from pastix_julia import *
 
-indent="    "
-iindent=4
+def function_prepare_arg( function, arg, return_value ):
+    """Generate a declaration for a variable in the interface."""
 
-# translation_table of types
-types_dict = {
-    "int":            ("Cint"),
-    "int8_t":         ("Int8"),
-    "seed_t":                 ("Culonglong"),
-    "unsigned long long int": ("Culonglong"),
-    "spm_coeftype_t": ("spm.spm_coeftype_t"),
-    "spm_dir_t":      ("spm.spm_dir_t"),
-    "spm_trans_t":    ("spm.spm_trans_t"),
-    "spm_uplo_t":     ("spm.spm_uplo_t"),
-    "spm_diag_t":     ("spm.spm_diag_t"),
-    "spm_side_t":     ("spm.spm_side_t"),
-    "spm_driver_t":   ("spm.spm_driver_t"),
-    "spm_fmttype_t":  ("spm.spm_fmttype_t"),
-    "spm_layout_t":   ("spm.spm_layout_t"),
-    "spm_normtype_t": ("spm.spm_normtype_t"),
-    "spm_rhstype_t":  ("spm.spm_rhstype_t"),
-    "spm_mtxtype_t":  ("spm.spm_mtxtype_t"),
-    "spm_int_t":      ("spm.spm_int_t"),
-    "spmatrix_t":     ("spm.spmatrix_t"),
-    "size_t":         ("Csize_t"),
-    "char":           ("Cchar"),
-    "double":         ("Cdouble"),
-    "float":          ("Cfloat"),
-    "spm_complex64_t":("ComplexF64"),
-    "spm_complex32_t":("ComplexF32"),
-    "void":           ("Cvoid"),
-    "MPI_Comm":       ("__get_mpi_type__()"),
-    "FILE":           ("Cvoid"),
-    "pastix_coeftype_t": ("spm.spm_coeftype_t"),
-    "pastix_dir_t":      ("spm.spm_dir_t"),
-    "pastix_trans_t":    ("Pastix_trans_t"),
-    "pastix_uplo_t":     ("Cint"),
-    "pastix_diag_t":     ("Pastix_diag_t"),
-    "pastix_side_t":     ("Cint"),
-    "pastix_driver_t":   ("Pastix_driver_t"),
-    "pastix_fmttype_t":  ("Pastix_fmttype_t"),
-    "pastix_layout_t":   ("Pastix_layout_t"),
-    "pastix_normtype_t": ("Pastix_normtype_t"),
-    "pastix_rhstype_t":  ("Pastix_rhstype_t"),
-    "pastix_mtxtype_t":  ("Pastix_mtxtype_t"),
-    "pastix_int_t":      ("Pastix_int_t"),
-    "pastix_data_t":     ("Pastix_data_t"),
-    "pastix_ordering_t": ("Pastix_ordering_t"),
-    "pastix_order_t":    ("Pastix_order_t"),
-    "pastix_graph_t":    ("Pastix_graph_t"),
-    "PASTIX_Comm":       ("__get_mpi_type__()"),
-}
+    jtype = types_dict[arg['type']]
+    if arg['pointer'] > 0:
+        if jtype == "Cvoid":
+            jtype = "Ptr{Cvoid}"
+        elif jtype == "Cchar":
+            jtype = "Cstring"
+        elif jtype == "Cint":
+            jtype = "Ptr{Cint}"
+        else:
+            jtype = "Ptr{"+jtype+"}"
+    if arg['pointer'] > 1:
+        jtype = "Ptr{Cvoid}"
+
+    arg['jtype'] = jtype
+    arg['jname'] = format("%s::" % arg['name'] )
+
+    # Update the maximum length
+    sizes = function['sizes']
+    sizes['type'] = max( sizes['type'], len(arg['jtype']) )
+    sizes['name'] = max( sizes['name'], len(arg['jname']) )
 
 def iso_c_interface_type(arg, return_value, args_list, args_size):
     """Generate a declaration for a variable in the interface."""
@@ -113,7 +86,7 @@ def iso_c_interface_type(arg, return_value, args_list, args_size):
 class wrap_julia:
 
     @staticmethod
-    def header( f ):
+    def write_header( f ):
         filename = os.path.basename( f['filename'] )
         filename = re.sub(r"\.in", "", filename)
         header = '''#=
@@ -139,17 +112,15 @@ class wrap_julia:
 '''
         if f['header'] != "":
             header += f['header']
-        return header;
+
+        return header
 
     @staticmethod
-    def footer( f ):
-        filename = os.path.basename( f['filename'] )
-        modname = re.sub(r".f90", "", filename, flags=re.IGNORECASE)
-        footer = f['footer']
-        return footer
+    def write_footer( f ):
+        return f['footer']
 
     @staticmethod
-    def enum( f, enum ):
+    def write_enum( f, enum ):
         """Generate an interface for an enum.
            Translate it into constants."""
 
@@ -185,7 +156,6 @@ class wrap_julia:
             # if ename == "verbose":
             #     param[0] = re.sub(r"Verbose", "", param[0])
             length = max( length, len(param[0]))
-
         fmt="%-"+ str(length) + "s"
 
         # Increment for index array enums
@@ -209,11 +179,11 @@ class wrap_julia:
             else :
                 jl_interface += indent + format(fmt % (name + suffix)) + " = " + value + ",\n"
 
-        jl_interface+="}\n"
+        jl_interface+="}\n\n"
         return jl_interface
 
     @staticmethod
-    def struct(struct):
+    def write_struct(struct):
         """Generate an interface for a struct.
            Translate it into a derived type."""
 
@@ -237,28 +207,28 @@ class wrap_julia:
 
         s += iindent
 
+        # loop over the arguments of the struct
         for j in range(0,len(slist)):
             if (j > 0):
                 py_interface += "\n" + headline
             py_interface += format(slist[j][0] + slist[j][1])
 
-        py_interface += "\n}\n"
+        py_interface += "\n}\n\n"
         return py_interface
 
     @staticmethod
-    def function(function):
+    def write_function( function ):
         """Generate an interface for a function."""
 
-        return_type    = function[0][0]
-        return_pointer = function[0][1]
+        return_type    = function['rettype']['type']
+        return_pointer = function['rettype']['pointer']
 
-        # is it a function or a subroutine
-        if (return_type == "void"):
-            is_function = False
-        else:
-            is_function = True
+        sizes = { 'type' : 0, 'name' : 0 }
+        function['sizes']  = sizes
+        for arg in function['args']:
+            function_prepare_arg( function, arg, False )
 
-        c_symbol = function[0][2]
+        c_symbol = function['name']
         if "pastix" in c_symbol:
             libname = "libpastix"
             prefix  = ""
@@ -270,22 +240,69 @@ class wrap_julia:
             return
         cbinding_line = "@cbindings " + libname + " begin\n"
         func_line = indent + "@cextern " + c_symbol + "( "
-        slist = []
-        ssize = [ 0, 0 ]
-        for j in range(1,len(function)):
-            iso_c_interface_type(function[j], True, slist, ssize)
-        for j in range(0,len(slist)):
-            func_line += format(slist[j][0] + slist[j][1])
-            if (j != len(slist)-1):
-                func_line += ", "
-            else :
-                func_line += " "
 
+        # Print the argument of the function
+        j = 0
+        for arg in function['args']:
+            if j >= 1:
+                func_line += ", "
+            func_line += arg['jname'] + arg['jtype']
+            j += 1
+
+        # Print the return type
         ret_val = types_dict[return_type]
-        if return_pointer == "*" :
-            ret_val   = "Ptr{"+types_dict[return_type]+"}"
-        elif  return_pointer == "**" :
-            ret_val   = "Ptr{Ptr{"+types_dict[return_type]+"}}"
-        func_line += ")::" + ret_val
-        py_interface=cbinding_line + func_line + "\nend\n"
-        return py_interface
+        if return_pointer == 1:
+            ret_val = "Ptr{"+ret_val+"}"
+        elif return_pointer > 1:
+            ret_val = "Ptr{Ptr{"+ret_val+"}}"
+        func_line += " )::" + ret_val
+
+        # Final print
+        str_function = cbinding_line + func_line + "\nend\n\n"
+        return str_function
+
+    @staticmethod
+    def write_file( data, enum_list, struct_list, function_list ):
+        """
+        Generate a single julia file. It will contains:
+        enums, structs and interfaces of all C functions
+        """
+
+        modulefile = open( data['filename'], "w" )
+
+        header_str = wrap_julia.write_header( data )
+        modulefile.write( header_str )
+
+        # enums
+        if (enum_list and len(enum_list) > 0):
+            for enum in enum_list:
+                enum_cpy = gen_enum_copy( enum )
+                enum_str = wrap_julia.write_enum( data, enum_cpy )
+                modulefile.write( enum_str )
+
+        # derived types
+        if (struct_list and len(struct_list) > 0):
+            for struct in struct_list:
+                struct_str = wrap_julia.write_struct( struct )
+                modulefile.write( struct_str )
+
+        # functions
+        if (function_list and len(function_list) > 0):
+            for function in function_list:
+                function_str = wrap_julia.write_function( function )
+                modulefile.write( function_str )
+
+        footer_str = wrap_julia.write_footer( data )
+        modulefile.write( footer_str )
+
+        modulefile.close()
+
+        return data['filename']
+
+    @staticmethod
+    def write( enum_list, struct_list, function_list ):
+        f = wrap_julia.write_file( enums, enum_list, struct_list, None )
+        print( "Exported file: " + f )
+
+        f = wrap_julia.write_file( common, None, None, function_list )
+        print( "Exported file: " + f )
