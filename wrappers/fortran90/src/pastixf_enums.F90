@@ -1,33 +1,52 @@
 !>
-!> @file pastix_enums.F90
+!> @file pastixf_enums.F90
 !>
 !> PaStiX fortran 90 wrapper to define enums and datatypes
 !>
-!> @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+!> @copyright 2017-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !>                      Univ. Bordeaux. All rights reserved.
 !>
 !> @version 6.2.0
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2021-08-23
+!> @date 2022-01-13
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
 !> @ingroup wrap_fortran
 !>
-module pastix_enums
-  use iso_c_binding
+module pastixf_enums
+
+#include "pastix/config.h"
+
+  use, intrinsic :: iso_c_binding
 #if defined(PASTIX_WITH_MPI)
-  use mpi_f08
+  use :: mpi_f08, only : MPI_Comm, MPI_COMM_WORLD
 #endif
   implicit none
 
-#if !defined(PASTIX_WITH_MPI)
+#if defined(PASTIX_WITH_MPI)
+  logical, parameter :: pastix_with_mpi = .TRUE.
+#else
+  logical, parameter :: pastix_with_mpi = .FALSE.
+
   type, bind(c) :: MPI_Comm
-     integer(kind=c_int) :: MPI_Comm
+     integer(kind=c_int) :: MPI_VAL = 0
   end type MPI_Comm
+
+  type(MPI_Comm), parameter :: MPI_COMM_WORLD = MPI_Comm(0)
 #endif
+
+  integer, parameter :: pastix_int_t = PASTIX_INT_KIND
+
+  type, bind(c) :: pastix_data_t
+     type(c_ptr) :: ptr
+  end type pastix_data_t
+
+  type, bind(c) :: pastix_graph_t
+     type(c_ptr) :: ptr
+  end type pastix_graph_t
 
   ! enum iparm
   enum, bind(C)
@@ -345,7 +364,18 @@ module pastix_enums
      enumerator :: PastixDirBackward = 392
   end enum
 
-  integer, parameter :: pastix_int_t = PASTIX_INT_KIND
+  type, bind(c) :: pastix_order_t
+     integer(kind=pastix_int_t) :: baseval
+     integer(kind=pastix_int_t) :: vertnbr
+     integer(kind=pastix_int_t) :: cblknbr
+     type(c_ptr)                :: permtab
+     type(c_ptr)                :: peritab
+     type(c_ptr)                :: rangtab
+     type(c_ptr)                :: treetab
+     type(c_ptr)                :: selevtx
+     integer(kind=pastix_int_t) :: sndenbr
+     type(c_ptr)                :: sndetab
+  end type pastix_order_t
 
 contains
 
@@ -355,4 +385,4 @@ contains
     return
   end function pastix_getintsize
 
-end module pastix_enums
+end module pastixf_enums
