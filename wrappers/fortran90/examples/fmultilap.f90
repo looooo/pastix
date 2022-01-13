@@ -38,7 +38,6 @@
 !
 program fmultilap
   use iso_c_binding
-  use pastix_enums
   use spmf
   use pastixf
 
@@ -66,24 +65,24 @@ program fmultilap
   end type multilap_param
 
   type rhs_subset
-     integer(kind=pastix_int_t)                            :: idmat ! Index of the associated matrix
-     integer(kind=pastix_int_t)                            :: nrhs  ! Number of RHS in the subset
-     complex(kind=c_double_complex), dimension(:), pointer :: b0    ! Array of the initial b, to restart at each iteration
-     complex(kind=c_double_complex), dimension(:), pointer :: b     ! Array of the b vector
-     complex(kind=c_double_complex), dimension(:), pointer :: x     ! Array of the x vector
+     integer(kind=pastix_int_t)                              :: idmat ! Index of the associated matrix
+     integer(kind=pastix_int_t)                              :: nrhs  ! Number of RHS in the subset
+     complex(kind=c_double_complex), dimension(:,:), pointer :: b0    ! Array of the initial b, to restart at each iteration
+     complex(kind=c_double_complex), dimension(:,:), pointer :: b     ! Array of the b vector
+     complex(kind=c_double_complex), dimension(:,:), pointer :: x     ! Array of the x vector
   end type rhs_subset
 
   type sys_lin
-     integer(kind=pastix_int_t)                            :: pid         ! Index of the pastix instance factorizing the matrix
-     integer(kind=pastix_int_t)                            :: nsys        ! Number of subsystems used to solve the rhs
-     type(pastix_data_t),                          pointer :: pastix_data ! The pastix_data associated to the matrix
-     integer(kind=pastix_int_t),     dimension(iparm_size) :: iparm       ! iparm array associated to the matrix
-     real(kind=c_double),            dimension(dparm_size) :: dparm       ! dparm array associated to the matrix
-     type(spmatrix_t),                             pointer :: spm         ! Pointer to the spm matrix
-     integer(kind=pastix_int_t),     dimension(:), pointer :: rowptr      ! User matrix
-     integer(kind=pastix_int_t),     dimension(:), pointer :: colptr      ! User matrix
-     complex(kind=c_double_complex), dimension(:), pointer :: values      ! User matrix
-     type(rhs_subset),               dimension(:), pointer :: rhs         ! Array of rhs subsets
+     integer(kind=pastix_int_t)                              :: pid         ! Index of the pastix instance factorizing the matrix
+     integer(kind=pastix_int_t)                              :: nsys        ! Number of subsystems used to solve the rhs
+     type(pastix_data_t),                            pointer :: pastix_data ! The pastix_data associated to the matrix
+     integer(kind=pastix_int_t),     dimension(iparm_size)   :: iparm       ! iparm array associated to the matrix
+     real(kind=c_double),            dimension(dparm_size)   :: dparm       ! dparm array associated to the matrix
+     type(spmatrix_t),                               pointer :: spm         ! Pointer to the spm matrix
+     integer(kind=pastix_int_t),     dimension(:),   pointer :: rowptr      ! User matrix
+     integer(kind=pastix_int_t),     dimension(:),   pointer :: colptr      ! User matrix
+     complex(kind=c_double_complex), dimension(:),   pointer :: values      ! User matrix
+     type(rhs_subset),               dimension(:,:), pointer :: rhs         ! Array of rhs subsets
   end type sys_lin
 
   type(multilap_param)                              :: params    ! Parameters of the example
@@ -92,7 +91,6 @@ program fmultilap
   real(kind=c_double), dimension(dparm_size)        :: dparm     ! Global dparm array used to initialize the systems
   type(sys_lin), pointer                            :: matrix
   type(rhs_subset), pointer                         :: rhs
-  type(c_ptr)                                       :: x_ptr, b_ptr, x0_ptr = c_null_ptr
   integer, dimension(:), allocatable                :: ila_thrmn, ila_thrmx, ila_thrsz
   integer(kind=c_int), dimension(:), pointer        :: bindtab
   integer(kind=pastix_int_t)                        :: th, im, ir, i, j, k
@@ -144,19 +142,19 @@ program fmultilap
         ! Distribute the rhs solve in the same manner as the matrices factorizations
         !
         matrix%nsys = 1
-        allocate(matrix%rhs( matrix%nsys ))
+        allocate(matrix%rhs( matrix%nsys, 1 ))
 
-        rhs => matrix%rhs(1)
+        rhs => matrix%rhs(1,1)
         rhs%nrhs = params%nb_rhs
 
         size = rhs%nrhs * params%n
 
         if ( params%output ) then
            ! Allocate a backup of b that will be destroyed by the check
-           allocate(rhs%b0(size))
+           allocate(rhs%b0(size, 1))
         end if
-        allocate(rhs%b(size))
-        allocate(rhs%x(size))
+        allocate(rhs%b(size, 1))
+        allocate(rhs%x(size, 1))
 
      else
         !
@@ -166,11 +164,11 @@ program fmultilap
         call split_parall( params%nb_rhs, params%nb_fact_thd )
 
         matrix%nsys = iparm(IPARM_THREAD_NBR)
-        allocate(matrix%rhs( matrix%nsys ))
+        allocate(matrix%rhs( matrix%nsys, 1 ))
 
         do th = 1, iparm(IPARM_THREAD_NBR)
 
-           rhs => matrix%rhs(th)
+           rhs => matrix%rhs(th,1)
 
            rhs%nrhs = ila_thrsz(th)
            size = rhs%nrhs * params%n
@@ -178,10 +176,10 @@ program fmultilap
            if ( rhs%nrhs .gt. 0 ) then
               if ( params%output ) then
                  ! Allocate a backup of b that will be destroyed by the check
-                 allocate(rhs%b0(size))
+                 allocate(rhs%b0(size, 1))
               end if
-              allocate(rhs%b(size))
-              allocate(rhs%x(size))
+              allocate(rhs%b(size, 1))
+              allocate(rhs%x(size, 1))
            end if
         end do
      end if
@@ -196,7 +194,7 @@ program fmultilap
         matrix => sys_array(im)
         k = 1
         do j = 1, matrix%nsys
-           rhs => matrix%rhs(j)
+           rhs => matrix%rhs(j,1)
            write( 6, fmt=8889 ) im, rhs%nrhs, k, k + rhs%nrhs - 1
            k = k + rhs%nrhs
         end do
@@ -215,7 +213,7 @@ program fmultilap
   !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx) &
   !$OMP SHARED(dla_thread_stats, iparm, dparm)  &
   !$OMP PRIVATE(th, im, ir, i, j )              &
-  !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr)      &
+  !$OMP PRIVATE(matrix, rhs) &
   !$OMP PRIVATE(info, bindtab)
 
   !$OMP DO SCHEDULE(STATIC,1)
@@ -234,7 +232,7 @@ program fmultilap
         matrix%pid = th
 
         ! 1- Initialize the parameters and the solver
-        call pastixInitWithAffinity( matrix%pastix_data, 0, &
+        call pastixInitWithAffinity( matrix%pastix_data, MPI_COMM_WORLD, &
              & matrix%iparm, matrix%dparm, bindtab )
 
      end do
@@ -269,7 +267,7 @@ program fmultilap
      !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx) &
      !$OMP SHARED(dla_thread_stats, iparm, dparm)  &
      !$OMP PRIVATE(th, im, ir, i, j )              &
-     !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr)      &
+     !$OMP PRIVATE(matrix, rhs)      &
      !$OMP PRIVATE(info, bindtab)
 
      !$OMP DO SCHEDULE(STATIC,1)
@@ -370,7 +368,7 @@ program fmultilap
         !$OMP SHARED(ila_thrsz, ila_thrmn, ila_thrmx) &
         !$OMP SHARED(dla_thread_stats, iparm, dparm)  &
         !$OMP PRIVATE(th, im, ir, j )                 &
-        !$OMP PRIVATE(matrix, rhs, x_ptr, b_ptr)      &
+        !$OMP PRIVATE(matrix, rhs) &
         !$OMP PRIVATE(info)
 
         !$OMP DO SCHEDULE(STATIC,1)
@@ -385,28 +383,25 @@ program fmultilap
                  ir = mod( j-1, params%nb_fact_thd ) + 1
               end if
               matrix => sys_array(im)
-              rhs    => matrix%rhs( ir )
+              rhs    => matrix%rhs( ir, 1 )
 
               if ( .not. (rhs%nrhs .gt. 0)) then
                  cycle
               endif
 
               !   2- The right hand side
-              x_ptr = c_loc(rhs%x)
-              b_ptr = c_loc(rhs%b)
-
               if (i==1) then
                  call spmGenRHS( SpmRhsRndX, rhs%nrhs, matrix%spm, &
-                      & x_ptr, params%n, b_ptr, params%n, info )
+                      & B=rhs%b, ldb=params%n, info=info )
 
                  if ( params%output ) then
                     ! Backup initial b that will be overwritten by check
-                    rhs%b0(:) = rhs%b(:)
+                    rhs%b0(:,:) = rhs%b(:,:)
                  end if
               else
                  if ( params%output ) then
                     ! Restore the initial b overwritten by check
-                    rhs%b(:) = rhs%b0(:)
+                    rhs%b(:,:) = rhs%b0(:,:)
                  end if
               end if
 
@@ -417,13 +412,13 @@ program fmultilap
 
               ! 3- Permute the b pointer
               call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirForward, &
-                   &                          params%n, rhs%nrhs, b_ptr, params%n, info )
+                   &                          params%n, rhs%nrhs, rhs%b, params%n, info )
 
-              rhs%x(:) = rhs%b(:)
+              rhs%x(:,:) = rhs%b(:,:)
 
               ! 4- Solve the problem
               call pastix_subtask_solve( matrix%pastix_data, rhs%nrhs, &
-                   & x_ptr, matrix%spm%n, info )
+                   & rhs%x, matrix%spm%n, info )
 
               dla_thread_stats(th, MULTILAP_SOLV_TIME) =  &
                    & dla_thread_stats(th,MULTILAP_SOLV_TIME) + matrix%dparm(DPARM_SOLV_TIME)
@@ -432,15 +427,15 @@ program fmultilap
               call pastix_subtask_refine(            &
                    & matrix%pastix_data,             &
                    & matrix%spm%n, rhs%nrhs,         &
-                   & b_ptr, matrix%spm%n,            &
-                   & x_ptr, matrix%spm%n, info )
+                   & rhs%b, matrix%spm%n,            &
+                   & rhs%x, matrix%spm%n, info )
 
               ! 6- Apply the backward permutation on b and x
               call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
-                   &                          params%n, rhs%nrhs, b_ptr, params%n, info )
+                   &                          params%n, rhs%nrhs, rhs%b, params%n, info )
 
               call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
-                   &                          params%n, rhs%nrhs, x_ptr, params%n, info )
+                   &                          params%n, rhs%nrhs, rhs%x, params%n, info )
 
            end do solve_loop2
         end do solve_loop
@@ -467,7 +462,7 @@ program fmultilap
                     ir = mod( j-1, params%nb_fact_thd ) + 1
                  end if
                  matrix => sys_array(im)
-                 rhs    => matrix%rhs( ir )
+                 rhs    => matrix%rhs( ir, 1 )
 
                  if ( .not. (rhs%nrhs .gt. 0)) then
                     cycle
@@ -481,14 +476,10 @@ program fmultilap
                  !
                  call spmPrintInfo( matrix%spm )
 
-                 b_ptr = c_loc(rhs%b)
-                 x_ptr = c_loc(rhs%x)
-
                  call spmCheckAxb( matrix%dparm(DPARM_EPSILON_REFINEMENT), rhs%nrhs, &
                       & matrix%spm,    &
-                      & x0_ptr, params%n, &
-                      & b_ptr,  params%n, &
-                      & x_ptr,  params%n, info )
+                      & B=rhs%b, ldb=params%n, &
+                      & X=rhs%x, ldx=params%n, info=info )
 
                  ginfo = ginfo + info
               end do
@@ -530,7 +521,7 @@ program fmultilap
      call pastixFinalize( matrix%pastix_data )
 
      do ir = 1, matrix%nsys
-        rhs => matrix%rhs(ir)
+        rhs => matrix%rhs(ir, 1)
 
         if ( rhs%nrhs .gt. 0 ) then
            if ( params%output ) then
@@ -743,9 +734,10 @@ contains
     call spmUpdateComputedFields( matrix%spm )
     call spmAlloc( matrix%spm )
 
-    call c_f_pointer( matrix%spm%rowptr, matrix%rowptr, [params%nnz] )
-    call c_f_pointer( matrix%spm%colptr, matrix%colptr, [params%nnz] )
-    call c_f_pointer( matrix%spm%values, matrix%values, [params%nnz] )
+    call spmGetArray( matrix%spm,  &
+         colptr  = matrix%colptr, &
+         rowptr  = matrix%rowptr, &
+         zvalues = matrix%values )
 
     l = 1
     do i=1,dim1

@@ -10,9 +10,8 @@
 ! @author Mathieu Faverge
 ! @date 2020-07-16
 !
-program fsimple
+program fstep_by_step
   use iso_c_binding
-  use pastix_enums
   use spmf
   use pastixf
   ! use mpi_f08
@@ -27,7 +26,6 @@ program fsimple
   integer(c_int)                                           :: info
   integer(kind=pastix_int_t)                               :: nrhs
   real(kind=c_double), dimension(:,:), allocatable, target :: x0, x, b
-  type(c_ptr)                                              :: x0_ptr, x_ptr, b_ptr
   integer(kind=pastix_int_t), dimension(:), pointer        :: permtab
   integer                                                  :: i, j, nfact, nsolv
 
@@ -36,7 +34,7 @@ program fsimple
 
   ! 1- Initialize the parameters and the solver
   call pastixInitParam( iparm, dparm )
-  call pastixInit( pastix_data, 0, iparm, dparm )
+  call pastixInit( pastix_data, MPI_COMM_WORLD, iparm, dparm )
 
   !
   ! Initialize the problem
@@ -56,12 +54,9 @@ program fsimple
 
   !   2- The right hand side
   nrhs = 10
-  allocate(x0(spm%n,nrhs))
-  allocate(x( spm%n,nrhs))
-  allocate(b( spm%n,nrhs))
-  x0_ptr = c_loc(x0)
-  x_ptr  = c_loc(x)
-  b_ptr  = c_loc(b)
+  allocate(x0(spm%nexp,nrhs))
+  allocate(x( spm%nexp,nrhs))
+  allocate(b( spm%nexp,nrhs))
 
   ! 2- Perform ordering, symbolic factorization, and analyze steps
   call pastix_subtask_order( pastix_data, spm, order, info )
@@ -73,7 +68,7 @@ program fsimple
   call pastixOrderGet( pastix_data, order )
 
   ! Convert the permtab to Fortran array
-  call c_f_pointer( order%permtab, permtab, [order%vertnbr] )
+  call pastixOrderGetArray( order, permtab=permtab )
   print *, permtab(1:10)
 
   ! 3- Factorize nfact times the matrix
@@ -86,17 +81,17 @@ program fsimple
      ! Perform nsolv solve steps
      do j=0,nsolv
 
-        call spmGenRHS( SpmRhsRndX, nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, info )
+        call spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm%nexp, b, spm%nexp, info )
         x = b
 
         ! 4- Solve the problem
-        call pastix_task_solve( pastix_data, nrhs, x_ptr, spm%n, info )
+        call pastix_task_solve( pastix_data, nrhs, x, spm%nexp, info )
 
         ! 5- Refine the solution
-        call pastix_task_refine( pastix_data, spm%n, nrhs, b_ptr, spm%n, x_ptr, spm%n, info )
+        call pastix_task_refine( pastix_data, spm%nexp, nrhs, b, spm%nexp, x, spm%nexp, info )
 
         ! Check the solution
-        call spmCheckAxb( dparm(DPARM_EPSILON_REFINEMENT), nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, x_ptr, spm%n, info )
+        call spmCheckAxb( dparm(DPARM_EPSILON_REFINEMENT), nrhs, spm, x0, spm%nexp, b, spm%nexp, x, spm%nexp, info )
 
      end do
   end do
@@ -110,4 +105,4 @@ program fsimple
   deallocate(x)
   deallocate(b)
 
-end program fsimple
+end program fstep_by_step

@@ -12,7 +12,6 @@
 !
 program flaplacian
   use iso_c_binding
-  use pastix_enums
   use spmf
   use pastixf
   implicit none
@@ -21,7 +20,6 @@ program flaplacian
   integer(kind=spm_int_t),        dimension(:),   pointer             :: colptr
   complex(kind=c_double_complex), dimension(:),   pointer             :: values
   complex(kind=c_double_complex), dimension(:,:), allocatable, target :: x0, x, b
-  type(c_ptr)                                                         :: x0_ptr, x_ptr, b_ptr
   type(pastix_data_t),        pointer                                 :: pastix_data
   type(spmatrix_t),           pointer                                 :: spm
   type(spmatrix_t),           pointer                                 :: spm2
@@ -34,7 +32,7 @@ program flaplacian
   ! 1- Initialize the parameters and the solver
   ! (Done before any calls to spm to automatically intialize MPI if needed)
   call pastixInitParam( iparm, dparm )
-  call pastixInit( pastix_data, 0, iparm, dparm )
+  call pastixInit( pastix_data, MPI_COMM_WORLD, iparm, dparm )
 
   !
   ! Generate a 10x10x10 complex Laplacian
@@ -60,10 +58,7 @@ program flaplacian
 
   call spmUpdateComputedFields( spm )
   call spmAlloc( spm )
-
-  call c_f_pointer( spm%rowptr, rowptr, [nnz] )
-  call c_f_pointer( spm%colptr, colptr, [nnz] )
-  call c_f_pointer( spm%values, values, [nnz] )
+  call spmGetArray( spm, colptr=colptr, rowptr=rowptr, zvalues=values )
 
   l = 1
   do i=1,dim1
@@ -133,14 +128,11 @@ program flaplacian
 
   !   2- The right hand side
   nrhs = 10
-  allocate(x0(spm%n, nrhs))
-  allocate(x( spm%n, nrhs))
-  allocate(b( spm%n, nrhs))
-  x0_ptr = c_loc(x0)
-  x_ptr  = c_loc(x)
-  b_ptr  = c_loc(b)
+  allocate(x0(spm%nexp, nrhs))
+  allocate(x( spm%nexp, nrhs))
+  allocate(b( spm%nexp, nrhs))
 
-  call spmGenRHS( SpmRhsRndX, nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, info )
+  call spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm%nexp, b, spm%nexp, info )
   x = b
 
   !
@@ -154,10 +146,10 @@ program flaplacian
   call pastix_task_numfact( pastix_data, spm, info )
 
   ! 4- Solve the problem
-  call pastix_task_solve( pastix_data, nrhs, x_ptr, spm%n, info )
+  call pastix_task_solve( pastix_data, nrhs, x, spm%nexp, info )
 
   ! 5- Refine the solution
-  call pastix_task_refine( pastix_data, spm%n, nrhs, b_ptr, spm%n, x_ptr, spm%n, info )
+  call pastix_task_refine( pastix_data, spm%nexp, nrhs, b, spm%nexp, x, spm%nexp, info )
 
   ! 6- Destroy the C data structure
   call pastixFinalize( pastix_data )
@@ -165,7 +157,7 @@ program flaplacian
   !
   ! Check the solution
   !
-  call spmCheckAxb( dparm(DPARM_EPSILON_REFINEMENT), nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, x_ptr, spm%n, info )
+  call spmCheckAxb( dparm(DPARM_EPSILON_REFINEMENT), nrhs, spm, x0, spm%nexp, b, spm%nexp, x, spm%nexp, info )
 
   call spmExit( spm )
   deallocate(spm)
