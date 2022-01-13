@@ -571,7 +571,7 @@ pastixOrderCopy( pastix_order_t       * const ordedst,
  *         information, or NULL if pastix_data is invalid.
  *
  *******************************************************************************/
-const pastix_order_t *
+pastix_order_t *
 pastixOrderGet( const pastix_data_t * const pastix_data )
 {
     /* Parameter checks */
