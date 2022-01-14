@@ -259,12 +259,18 @@ pastix_task_refine( pastix_data_t *pastix_data,
         btmp = b;
         xtmp = x;
 
-        spmGatherRHS( nrhs, pastix_data->csc, b, ldb, &bglob,-1 );
-        spmGatherRHS( nrhs, pastix_data->csc, x, ldx, &xglob,-1 );
-
-        b = bglob;ldb = pastix_data->csc->gNexp;
-        x = xglob;ldx = pastix_data->csc->gNexp;
         n = pastix_data->csc->gNexp;
+
+        bglob = malloc( n * nrhs * pastix_size_of( bcsc->flttype ) );
+        xglob = malloc( n * nrhs * pastix_size_of( bcsc->flttype ) );
+
+        spmGatherRHS( nrhs, pastix_data->csc, b, ldb, -1, bglob, n );
+        spmGatherRHS( nrhs, pastix_data->csc, x, ldx, -1, xglob, n );
+
+        b = bglob;
+        x = xglob;
+        ldb = n;
+        ldx = n;
     }
 
     /* Compute P * b */

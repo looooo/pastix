@@ -12,7 +12,6 @@
 !
 program fsimple
   use iso_c_binding
-  use pastix_enums
   use spmf
   use pastixf
 
@@ -27,7 +26,6 @@ program fsimple
   integer(c_int)                                           :: info
   integer(kind=pastix_int_t)                               :: nrhs
   real(kind=c_double), dimension(:,:), allocatable, target :: x0, x, b
-  type(c_ptr)                                              :: x0_ptr, x_ptr, b_ptr
 
   !
   ! Solve the problem
@@ -35,7 +33,7 @@ program fsimple
 
   ! 1- Initialize the parameters and the solver
   call pastixInitParam( iparm, dparm )
-  call pastixInit( pastix_data, 0, iparm, dparm )
+  call pastixInit( pastix_data, MPI_COMM_WORLD, iparm, dparm )
 
   !
   ! Initialize the problem
@@ -59,14 +57,11 @@ program fsimple
 
   !   2- The right hand side
   nrhs = 10
-  allocate(x0(spm%n, nrhs))
-  allocate(x( spm%n, nrhs))
-  allocate(b( spm%n, nrhs))
-  x0_ptr = c_loc(x0)
-  x_ptr  = c_loc(x)
-  b_ptr  = c_loc(b)
+  allocate(x0(spm%nexp, nrhs))
+  allocate(x( spm%nexp, nrhs))
+  allocate(b( spm%nexp, nrhs))
 
-  call spmGenRHS( SpmRhsRndX, nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, info )
+  call spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm%nexp, b, spm%nexp, info )
   x = b
 
   ! 2- Analyze the problem
@@ -76,10 +71,10 @@ program fsimple
   call pastix_task_numfact( pastix_data, spm, info )
 
   ! 4- Solve the problem
-  call pastix_task_solve( pastix_data, nrhs, x_ptr, spm%n, info )
+  call pastix_task_solve( pastix_data, nrhs, x, spm%nexp, info )
 
   ! 5- Refine the solution
-  call pastix_task_refine( pastix_data, spm%n, nrhs, b_ptr, spm%n, x_ptr, spm%n, info )
+  call pastix_task_refine( pastix_data, spm%nexp, nrhs, b, spm%nexp, x, spm%nexp, info )
 
   ! 6- Destroy the C data structure
   call pastixFinalize( pastix_data )
@@ -87,7 +82,7 @@ program fsimple
   !
   ! Check the solution
   !
-  call spmCheckAxb( dparm(DPARM_EPSILON_REFINEMENT), nrhs, spm, x0_ptr, spm%n, b_ptr, spm%n, x_ptr, spm%n, info )
+  call spmCheckAxb( dparm(DPARM_EPSILON_REFINEMENT), nrhs, spm, x0, spm%nexp, b, spm%nexp, x, spm%nexp, info )
 
   call spmExit( spm )
   deallocate(spm)

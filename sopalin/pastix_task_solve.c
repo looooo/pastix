@@ -707,7 +707,9 @@ pastix_task_solve( pastix_data_t *pastix_data,
         }
 
         tmp = b;
-        spmGatherRHS( nrhs, pastix_data->csc, b, ldb, &bglob, -1 );
+        bglob = malloc( pastix_data->csc->gNexp * nrhs * pastix_size_of( bcsc->flttype ) );
+        spmGatherRHS( nrhs, pastix_data->csc, b, ldb,
+                      -1, bglob, pastix_data->csc->gNexp );
         b   = bglob;
         ldb = pastix_data->csc->gNexp;
     }

@@ -4,14 +4,14 @@
 
  PaStiX julia wrapper to define enums and datatypes
 
- @copyright 2020-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2020-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.2.0
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2021-08-23
+ @date 2022-01-13
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -23,6 +23,22 @@ Pastix_int_t = @PASTIX_JULIA_INTEGER@
 pastix_mpi_enabled = @PASTIX_JULIA_MPI_ENABLED@
 const Pastix_data_t = Cvoid
 const Pastix_graph_t = Ptr{Cvoid}
+
+using spm
+if pastix_mpi_enabled
+    using MPI
+end
+
+function __get_mpi_type__()
+    if !pastix_mpi_enabled
+        return Cint
+    elseif sizeof(MPI.MPI_Comm) == sizeof(Clong)
+        return Clong
+    elseif sizeof(MPI.MPI_Comm) == sizeof(Cint)
+        return Cint
+    end
+    return Cvoid
+end
 
 @cenum Pastix_iparm_t {
     iparm_verbose                        = 1,
@@ -313,4 +329,16 @@ const Pastix_graph_t = Ptr{Cvoid}
     dirbackward = 392,
 }
 
+@cstruct Pastix_order_t {
+    baseval::Pastix_int_t
+    vertnbr::Pastix_int_t
+    cblknbr::Pastix_int_t
+    permtab::Ptr{Pastix_int_t}
+    peritab::Ptr{Pastix_int_t}
+    rangtab::Ptr{Pastix_int_t}
+    treetab::Ptr{Pastix_int_t}
+    selevtx::Ptr{Int8}
+    sndenbr::Pastix_int_t
+    sndetab::Ptr{Pastix_int_t}
+}
 

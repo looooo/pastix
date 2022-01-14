@@ -25,26 +25,33 @@ set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod_files)
 install( DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/ DESTINATION include )
 
 set( pastixf_sources
-  src/pastix_enums.F90
+  src/pastix_f2c.c
+  src/pastixf_bindings.f90
+  src/pastixf_enums.F90
+  src/pastixf_functions.f90
+  src/pastixf_interfaces.f90
   src/pastixf.f90 )
 
 add_library( pastixf
   ${pastixf_sources} )
 
+target_include_directories( pastixf PRIVATE
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}>
+  $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/common> )
+
 set_target_properties( pastixf PROPERTIES VERSION ${PASTIX_VERSION} )
 set_target_properties( pastixf PROPERTIES SOVERSION ${PASTIX_VERSION_MAJOR} )
 
-target_link_libraries( pastixf PRIVATE
-   pastix spmf )
+target_link_libraries( pastixf PRIVATE pastix spmf )
 
 if ( PASTIX_INT64 )
-  target_compile_definitions( pastixf PRIVATE "PASTIX_INT_KIND=c_int64_t" )
+  set_source_files_properties( src/pastixf_enums.F90 PROPERTIES COMPILE_DEFINITIONS "PASTIX_INT_KIND=c_int64_t" )
 else()
-  target_compile_definitions( pastixf PRIVATE "PASTIX_INT_KIND=c_int32_t" )
+  set_source_files_properties( src/pastixf_enums.F90 PROPERTIES COMPILE_DEFINITIONS "PASTIX_INT_KIND=c_int32_t" )
 endif()
 
 if ( PASTIX_WITH_MPI )
-  target_compile_definitions( pastixf PUBLIC "PASTIX_WITH_MPI=1" )
   target_link_libraries( pastixf PUBLIC MPI::MPI_Fortran)
 endif()
 
@@ -88,6 +95,10 @@ foreach (_file ${EXAMPLES})
 
   target_link_libraries(${_name_we} PRIVATE
     pastixf spmf )
+  # Need this to use mpi and initialize it
+  if ( PASTIX_WITH_MPI )
+    target_compile_definitions( ${_name_we} PUBLIC "PASTIX_WITH_MPI=1" )
+  endif()
 
   install(TARGETS ${_name_we}       RUNTIME DESTINATION examples )
   install(FILES   examples/${_file}         DESTINATION examples )

@@ -161,7 +161,8 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
         if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
             pastix_print(pastix_data->procnum, 0, "bcscInit: the SPM has to be centralized for the moment\n");
         }
-        spmg = spmGather( spm, -1 );
+        spmg = malloc( sizeof(spmatrix_t) );
+        spmGather( spm, -1, spmg );
     }
 #endif
 

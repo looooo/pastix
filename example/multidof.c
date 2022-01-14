@@ -84,6 +84,7 @@ int main (int argc, char **argv)
      * multiple dofs (variadic or constant), thus we remove the value for
      * testing
      */
+    spm2 = malloc( sizeof( spmatrix_t ) );
     {
         if ( spm->values ) {
             free( spm->values );
@@ -91,8 +92,8 @@ int main (int argc, char **argv)
         }
         spm->flttype = SpmPattern;
 
-        spm2 = spmDofExtend( spm, variadic, dofmax );
-        if ( spm2 != NULL ) {
+        rc = spmDofExtend( spm, variadic, dofmax, spm2 );
+        if ( rc == SPM_SUCCESS ) {
             spmExit( spm );
             free( spm );
             spm = spm2;
@@ -100,7 +101,6 @@ int main (int argc, char **argv)
     }
 
     /* Check the spm */
-    spm2 = malloc( sizeof( spmatrix_t ) );
     rc = spmCheckAndCorrect( spm, spm2 );
     if ( rc != 0 ) {
         spmExit( spm );

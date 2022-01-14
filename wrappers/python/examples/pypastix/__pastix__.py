@@ -4,15 +4,15 @@
 
  PaStiX python wrapper
 
- @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.2.0
  @author Pierre Ramet
  @author Mathieu Faverge
  @author Tony Delarue
- @author Esragul Korkmaz
- @date 2021-04-07
+ @author Selmane Lebdaoui
+ @date 2022-01-13
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -132,8 +132,8 @@ def pypastix_pastixOrderGrid( myorder, nx, ny, nz ):
     libpastix.pastixOrderGrid.restype = c_int
     return libpastix.pastixOrderGrid( pointer( myorder ), nx, ny, nz )
 
-def pypastix_pastix( pastix_data, pastix_comm, n, colptr, row, avals, perm,
-                     invp, b, nrhs, iparm, dparm ):
+def pypastix_pastix( pastix_data, pastix_comm, n, colptr, rowptr, values, perm,
+                     invp, B, nrhs, iparm, dparm ):
     libpastix.pastix.argtypes = [ c_void_p, pypastix_mpi_comm, __pastix_int__,
                                   POINTER(__pastix_int__),
                                   POINTER(__pastix_int__), c_void_p,
@@ -145,10 +145,10 @@ def pypastix_pastix( pastix_data, pastix_comm, n, colptr, row, avals, perm,
     return libpastix.pastix( pointer( pastix_data ),
                              pypastix_convert_comm( pastix_comm ), n,
                              colptr.ctypes.data_as( POINTER(__pastix_int__) ),
-                             row.ctypes.data_as( POINTER(__pastix_int__) ),
-                             avals,
+                             rowptr.ctypes.data_as( POINTER(__pastix_int__) ),
+                             values,
                              perm.ctypes.data_as( POINTER(__pastix_int__) ),
-                             invp.ctypes.data_as( POINTER(__pastix_int__) ), b,
+                             invp.ctypes.data_as( POINTER(__pastix_int__) ), B,
                              nrhs,
                              iparm.ctypes.data_as( POINTER(__pastix_int__) ),
                              dparm.ctypes.data_as( POINTER(c_double) ) )
@@ -195,19 +195,19 @@ def pypastix_pastix_task_numfact( pastix_data, spm ):
     libpastix.pastix_task_numfact.restype = c_int
     return libpastix.pastix_task_numfact( pastix_data, spm )
 
-def pypastix_pastix_task_solve( pastix_data, nrhs, b, ldb ):
+def pypastix_pastix_task_solve( pastix_data, nrhs, B, ldb ):
     libpastix.pastix_task_solve.argtypes = [ c_void_p, __pastix_int__, c_void_p,
                                              __pastix_int__ ]
     libpastix.pastix_task_solve.restype = c_int
-    return libpastix.pastix_task_solve( pastix_data, nrhs, b, ldb )
+    return libpastix.pastix_task_solve( pastix_data, nrhs, B, ldb )
 
-def pypastix_pastix_task_refine( pastix_data, n, nrhs, b, ldb, x, ldx ):
+def pypastix_pastix_task_refine( pastix_data, n, nrhs, B, ldb, X, ldx ):
     libpastix.pastix_task_refine.argtypes = [ c_void_p, __pastix_int__,
                                               __pastix_int__, c_void_p,
                                               __pastix_int__, c_void_p,
                                               __pastix_int__ ]
     libpastix.pastix_task_refine.restype = c_int
-    return libpastix.pastix_task_refine( pastix_data, n, nrhs, b, ldb, x, ldx )
+    return libpastix.pastix_task_refine( pastix_data, n, nrhs, B, ldb, X, ldx )
 
 def pypastix_pastix_subtask_order( pastix_data, spm, myorder ):
     libpastix.pastix_subtask_order.argtypes = [ c_void_p,
@@ -247,51 +247,51 @@ def pypastix_pastix_subtask_sopalin( pastix_data ):
     libpastix.pastix_subtask_sopalin.restype = c_int
     return libpastix.pastix_subtask_sopalin( pastix_data )
 
-def pypastix_pastix_subtask_applyorder( pastix_data, flttype, dir, m, n, b, ldb ):
+def pypastix_pastix_subtask_applyorder( pastix_data, flttype, dir, m, n, B, ldb ):
     libpastix.pastix_subtask_applyorder.argtypes = [ c_void_p, c_int, c_int,
                                                      __pastix_int__,
                                                      __pastix_int__, c_void_p,
                                                      __pastix_int__ ]
     libpastix.pastix_subtask_applyorder.restype = c_int
     return libpastix.pastix_subtask_applyorder( pastix_data, flttype, dir, m, n,
-                                                b, ldb )
+                                                B, ldb )
 
 def pypastix_pastix_subtask_trsm( pastix_data, flttype, side, uplo, trans, diag,
-                                  nrhs, b, ldb ):
+                                  nrhs, B, ldb ):
     libpastix.pastix_subtask_trsm.argtypes = [ c_void_p, c_int, c_int, c_int,
                                                c_int, c_int, __pastix_int__,
                                                c_void_p, __pastix_int__ ]
     libpastix.pastix_subtask_trsm.restype = c_int
     return libpastix.pastix_subtask_trsm( pastix_data, flttype, side, uplo,
-                                          trans, diag, nrhs, b, ldb )
+                                          trans, diag, nrhs, B, ldb )
 
-def pypastix_pastix_subtask_diag( pastix_data, flttype, nrhs, b, ldb ):
+def pypastix_pastix_subtask_diag( pastix_data, flttype, nrhs, B, ldb ):
     libpastix.pastix_subtask_diag.argtypes = [ c_void_p, c_int, __pastix_int__,
                                                c_void_p, __pastix_int__ ]
     libpastix.pastix_subtask_diag.restype = c_int
-    return libpastix.pastix_subtask_diag( pastix_data, flttype, nrhs, b, ldb )
+    return libpastix.pastix_subtask_diag( pastix_data, flttype, nrhs, B, ldb )
 
-def pypastix_pastix_subtask_solve( pastix_data, nrhs, b, ldb ):
+def pypastix_pastix_subtask_solve( pastix_data, nrhs, B, ldb ):
     libpastix.pastix_subtask_solve.argtypes = [ c_void_p, __pastix_int__,
                                                 c_void_p, __pastix_int__ ]
     libpastix.pastix_subtask_solve.restype = c_int
-    return libpastix.pastix_subtask_solve( pastix_data, nrhs, b, ldb )
+    return libpastix.pastix_subtask_solve( pastix_data, nrhs, B, ldb )
 
-def pypastix_pastix_subtask_refine( pastix_data, n, nrhs, b, ldb, x, ldx ):
+def pypastix_pastix_subtask_refine( pastix_data, n, nrhs, B, ldb, X, ldx ):
     libpastix.pastix_subtask_refine.argtypes = [ c_void_p, __pastix_int__,
                                                  __pastix_int__, c_void_p,
                                                  __pastix_int__, c_void_p,
                                                  __pastix_int__ ]
     libpastix.pastix_subtask_refine.restype = c_int
-    return libpastix.pastix_subtask_refine( pastix_data, n, nrhs, b, ldb, x,
+    return libpastix.pastix_subtask_refine( pastix_data, n, nrhs, B, ldb, X,
                                             ldx )
 
-def pypastix_pastix_subtask_solve_adv( pastix_data, transA, nrhs, b, ldb ):
+def pypastix_pastix_subtask_solve_adv( pastix_data, transA, nrhs, B, ldb ):
     libpastix.pastix_subtask_solve_adv.argtypes = [ c_void_p, c_int,
                                                     __pastix_int__, c_void_p,
                                                     __pastix_int__ ]
     libpastix.pastix_subtask_solve_adv.restype = c_int
-    return libpastix.pastix_subtask_solve_adv( pastix_data, transA, nrhs, b,
+    return libpastix.pastix_subtask_solve_adv( pastix_data, transA, nrhs, B,
                                                ldb )
 
 def pypastix_pastixSetSchurUnknownList( pastix_data, n, list ):
@@ -308,10 +308,10 @@ def pypastix_pastixExpand( pastix_data, spm ):
     libpastix.pastixExpand.argtypes = [ c_void_p, POINTER(pyspm_spmatrix_t) ]
     libpastix.pastixExpand( pastix_data, spm )
 
-def pypastix_pastixGetDiag( pastix_data, D, incD ):
+def pypastix_pastixGetDiag( pastix_data, x, incx ):
     libpastix.pastixGetDiag.argtypes = [ c_void_p, c_void_p, __pastix_int__ ]
     libpastix.pastixGetDiag.restype = c_int
-    return libpastix.pastixGetDiag( pastix_data, D, incD )
+    return libpastix.pastixGetDiag( pastix_data, x, incx )
 
 def pypastix_pastixGetOptions( argc, argv, iparm, dparm, check, driver,
                                filename ):
@@ -324,4 +324,15 @@ def pypastix_pastixGetOptions( argc, argv, iparm, dparm, check, driver,
                                 dparm.ctypes.data_as( POINTER(c_double) ),
                                 check, driver, pointer( filename ) )
 
+def pypastix_pastixDumpParam( pastix_data ):
+    libpastix.pastixDumpParam.argtypes = [ c_void_p ]
+    libpastix.pastixDumpParam( pastix_data )
+
+def pypastix_pastixCheckParam( iparm, dparm ):
+    libpastix.pastixCheckParam.argtypes = [ POINTER(__pastix_int__),
+                                            POINTER(c_double) ]
+    libpastix.pastixCheckParam.restype = c_int
+    return libpastix.pastixCheckParam(
+                                       iparm.ctypes.data_as( POINTER(__pastix_int__) ),
+                                       dparm.ctypes.data_as( POINTER(c_double) ) )
 
