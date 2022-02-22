@@ -328,21 +328,21 @@ int main (int argc, char **argv)
      * Generates the b and x vector such that A * x = b
      * Compute the norms of the initial vectors if checking purpose.
      */
-    size = pastix_size_of( spm->flttype ) * spm->n * nrhs;
+    size = pastix_size_of( spm->flttype ) * spm->nexp * nrhs;
     x = malloc( size );
     b = malloc( size );
-    ldb = spm->n;
+    ldb = spm->nexp;
 
     if ( check )
     {
         if ( check > 1 ) {
             x0 = malloc( size );
         }
-        spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
+        spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->nexp, b, spm->nexp );
         memcpy( x, b, size );
     }
     else {
-        spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
+        spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->nexp, x, spm->nexp );
 
         /* Apply also normalization to b vectors */
         spmScalMat( 1./normA, spm, nrhs, b, spm->nexp );
@@ -353,7 +353,7 @@ int main (int argc, char **argv)
      */
     /* 1- Apply P to b */
     pastix_subtask_applyorder( pastix_data, spm->flttype,
-                               PastixDirForward, spm->n, nrhs, x, ldb );
+                               PastixDirForward, spm->nexp, nrhs, x, ldb );
 
     /* 2- Forward solve on the non Schur complement part of the system */
     if ( iparm[IPARM_FACTORIZATION] == PastixFactPOTRF ) {
@@ -369,7 +369,7 @@ int main (int argc, char **argv)
 
     /* 3- Solve the Schur complement part */
     schurSolve( spm->flttype, iparm[IPARM_FACTORIZATION],
-                spm->n, nschur, nrhs, S, lds, x, ldb, &ipiv );
+                spm->nexp, nschur, nrhs, S, lds, x, ldb, &ipiv );
 
     /* 4- Backward solve on the non Schur complement part of the system */
     if ( iparm[IPARM_FACTORIZATION] == PastixFactPOTRF ) {
@@ -385,11 +385,11 @@ int main (int argc, char **argv)
 
     /* 5- Apply P^t to x */
     pastix_subtask_applyorder( pastix_data, spm->flttype,
-                               PastixDirBackward, spm->n, nrhs, x, ldb );
+                               PastixDirBackward, spm->nexp, nrhs, x, ldb );
 
     if ( check )
     {
-        rc = spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+        rc = spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->nexp, b, spm->nexp, x, spm->nexp );
 
         if ( x0 ) {
             free( x0 );

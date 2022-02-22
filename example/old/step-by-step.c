@@ -53,8 +53,9 @@ int main (int argc, char **argv)
      * Initialize parameters to default values
      */
     iparm[IPARM_MODIFY_PARAMETER] = API_NO;
-    pastix( &pastix_data, MPI_COMM_WORLD, -1, NULL, NULL, NULL,
-            NULL, NULL, NULL, 1, iparm, dparm );
+    pastix(  &pastix_data, MPI_COMM_WORLD, -1,
+             NULL, NULL, NULL,
+             NULL, NULL, NULL, 1, iparm, dparm );
 
     /*
      * Update options from command line, and get the matrix filename
@@ -97,8 +98,8 @@ int main (int argc, char **argv)
      */
     iparm[IPARM_START_TASK] = API_TASK_INIT;
     iparm[IPARM_END_TASK]   = API_TASK_INIT;
-    pastix( &pastix_data, MPI_COMM_WORLD,
-            -1, NULL, NULL, NULL,
+    pastix( &pastix_data, MPI_COMM_WORLD, -1,
+            NULL, NULL, NULL,
             NULL, NULL, NULL, 1, iparm, dparm );
 
     /*
@@ -110,9 +111,9 @@ int main (int argc, char **argv)
      */
     iparm[IPARM_START_TASK] = API_TASK_ORDERING;
     iparm[IPARM_END_TASK]   = API_TASK_ORDERING;
-    pastix(&pastix_data, MPI_COMM_WORLD,
-           spm->n, spm->colptr, spm->rowptr, spm->values,
-           NULL, NULL, NULL, nrhs, iparm, dparm );
+    pastix( &pastix_data, MPI_COMM_WORLD, spm->nexp,
+            spm->colptr, spm->rowptr, spm->values,
+            NULL, NULL, NULL, nrhs, iparm, dparm );
 
 
     /*
@@ -122,9 +123,9 @@ int main (int argc, char **argv)
     iparm[IPARM_START_TASK] = API_TASK_SYMBFACT;
     iparm[IPARM_END_TASK]   = API_TASK_SYMBFACT;
 
-    pastix(&pastix_data, MPI_COMM_WORLD,
-           spm->n, spm->colptr, spm->rowptr, spm->values,
-           NULL, NULL, NULL, nrhs, iparm, dparm );
+    pastix( &pastix_data, MPI_COMM_WORLD,
+            spm->nexp, spm->colptr, spm->rowptr, spm->values,
+            NULL, NULL, NULL, nrhs, iparm, dparm );
 
     /*
      * Step 3 - Mapping and Compute scheduling
@@ -132,10 +133,11 @@ int main (int argc, char **argv)
      */
     iparm[IPARM_START_TASK] = API_TASK_ANALYSE;
     iparm[IPARM_END_TASK]   = API_TASK_ANALYSE;
-    pastix(&pastix_data, MPI_COMM_WORLD, spm->n, spm->colptr, spm->rowptr, spm->values,
-           NULL, NULL, NULL, nrhs, iparm, dparm );
+    pastix( &pastix_data, MPI_COMM_WORLD, spm->nexp,
+            spm->colptr, spm->rowptr, spm->values,
+            NULL, NULL, NULL, nrhs, iparm, dparm );
 
-    size = pastix_size_of( spm->flttype ) * spm->n;
+    size = pastix_size_of( spm->flttype ) * spm->nexp;
     x = malloc( size );
     b = malloc( size );
     if ( check > 1 ) {
@@ -159,8 +161,9 @@ int main (int argc, char **argv)
         fprintf(stdout, "\t> Factorisation number %ld <\n", (long)(i+1));
         iparm[IPARM_START_TASK] = API_TASK_NUMFACT;
         iparm[IPARM_END_TASK]   = API_TASK_NUMFACT;
-        pastix(&pastix_data, MPI_COMM_WORLD, spm->n, spm->colptr, spm->rowptr, spm->values,
-               NULL, NULL, NULL, nrhs, iparm, dparm );
+        pastix( &pastix_data, MPI_COMM_WORLD, spm->nexp,
+                spm->colptr, spm->rowptr, spm->values,
+                NULL, NULL, NULL, nrhs, iparm, dparm );
 
         /* Do two solve */
         for (j = 0; j < nsolv; j++)
@@ -172,11 +175,11 @@ int main (int argc, char **argv)
              */
             if ( check )
             {
-                spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
+                spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->nexp, b, spm->nexp );
                 memcpy( x, b, size );
             }
             else {
-                spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
+                spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->nexp, x, spm->nexp );
 
                 /* Apply also normalization to b vector */
                 spmScalMat( 1./normA, spm, nrhs, b, spm->nexp );
@@ -196,7 +199,7 @@ int main (int argc, char **argv)
 
             fprintf(stdout, "\t>> Solve step number %ld  <<\n", (long)(j+1));
             pastix( &pastix_data, MPI_COMM_WORLD,
-                    spm->n, NULL, NULL, NULL,
+                    spm->nexp, NULL, NULL, NULL,
                     NULL, NULL, x, nrhs, iparm, dparm );
 
             /*
@@ -209,10 +212,11 @@ int main (int argc, char **argv)
 
             fprintf(stdout, "\t>> Refine step number %ld  <<\n", (long)(j+1));
             pastix( &pastix_data, MPI_COMM_WORLD,
-                    spm->n, NULL, NULL, NULL,
+                    spm->nexp, NULL, NULL, NULL,
                     NULL, NULL, b, nrhs, iparm, dparm );
             if ( check ) {
-                rc = spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+                rc = spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm,
+                                  x0, spm->nexp, b, spm->nexp, x, spm->nexp );
             }
         }
     }
@@ -224,9 +228,9 @@ int main (int argc, char **argv)
     iparm[IPARM_START_TASK] = API_TASK_CLEAN;
     iparm[IPARM_END_TASK]   = API_TASK_CLEAN;
 
-    pastix(&pastix_data, MPI_COMM_WORLD,
-           spm->n, spm->colptr, spm->rowptr, spm->values,
-           NULL, NULL, x, nrhs, iparm, dparm );
+    pastix( &pastix_data, MPI_COMM_WORLD,
+            spm->nexp, spm->colptr, spm->rowptr, spm->values,
+            NULL, NULL, x, nrhs, iparm, dparm );
 
     spmExit( spm );
     free( spm );
