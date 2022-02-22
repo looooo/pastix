@@ -89,13 +89,13 @@ int main (int argc, char **argv)
      * Normalize A matrix (optional, but recommended for low-rank functionality)
      */
     double normA = spmNorm( SpmFrobeniusNorm, spm );
-    spmScalMatrix( 1./normA, spm );
+    spmScal( 1./normA, spm );
 
     /*
      * Generates the b and x vector such that A * x = b
      * Compute the norms of the initial vectors if checking purpose.
      */
-    size = pastix_size_of( spm->flttype ) * spm->n;
+    size = pastix_size_of( spm->flttype ) * spm->nexp;
     x = malloc( size );
     b = malloc( size );
 
@@ -104,14 +104,14 @@ int main (int argc, char **argv)
         if ( check > 1 ) {
             x0 = malloc( size );
         }
-        spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
+        spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->nexp, b, spm->nexp );
         memcpy( x, b, size );
     }
     else {
-        spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
+        spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->nexp, x, spm->nexp );
 
         /* Apply also normalization to b vector */
-        spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );
+        spmScalMat( 1./normA, spm, nrhs, b, spm->nexp );
 
         /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
         memcpy( b, x, size );
@@ -123,7 +123,7 @@ int main (int argc, char **argv)
     iparm[IPARM_START_TASK] = API_TASK_INIT;
     iparm[IPARM_END_TASK]   = API_TASK_CLEAN;
     ret = pastix( &pastix_data, MPI_COMM_WORLD,
-                  spm->n, spm->colptr, spm->rowptr, spm->values,
+                  spm->nexp, spm->colptr, spm->rowptr, spm->values,
                   NULL, NULL, x, nrhs, iparm, dparm );
 
     if (ret != PASTIX_SUCCESS) {
@@ -135,7 +135,8 @@ int main (int argc, char **argv)
      */
     if ( check )
     {
-        ret = spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+        ret = spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm,
+                           x0, spm->nexp, b, spm->nexp, x, spm->nexp );
         if ( x0 ) {
             free( x0 );
         }

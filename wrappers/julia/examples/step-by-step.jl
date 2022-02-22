@@ -55,7 +55,7 @@ for nsbp in 1:3
 
     # Scale A for low-rank: A / ||A||_f
     norm = spm.spmNorm( spm.SpmFrobeniusNorm, Aptr )
-    spm.spmScalMatrix( 1. / norm, Aptr )
+    spm.spmScal( 1. / norm, Aptr )
 
     # Perform analyze
     PaStiX.pastix_task_analyze( pastix_data, Aptr )

@@ -53,7 +53,7 @@ program fsimple
 
   ! Scale A for better stability with low-rank computations
   call spmNorm( SpmFrobeniusNorm, spm, normA )
-  call spmScalMatrix( 1. / normA, spm )
+  call spmScal( 1. / normA, spm )
 
   !   2- The right hand side
   nrhs = 10

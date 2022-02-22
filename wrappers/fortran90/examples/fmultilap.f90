@@ -412,13 +412,13 @@ program fmultilap
 
               ! 3- Permute the b pointer
               call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirForward, &
-                   &                          params%n, rhs%nrhs, rhs%b, params%n, info )
+                   &                          matrix%spm%nexp, rhs%nrhs, rhs%b, matrix%spm%nexp, info )
 
               rhs%x(:,:) = rhs%b(:,:)
 
               ! 4- Solve the problem
               call pastix_subtask_solve( matrix%pastix_data, rhs%nrhs, &
-                   & rhs%x, matrix%spm%n, info )
+                   & rhs%x, matrix%spm%nexp, info )
 
               dla_thread_stats(th, MULTILAP_SOLV_TIME) =  &
                    & dla_thread_stats(th,MULTILAP_SOLV_TIME) + matrix%dparm(DPARM_SOLV_TIME)
@@ -426,16 +426,16 @@ program fmultilap
               ! 5- Refine the solution
               call pastix_subtask_refine(            &
                    & matrix%pastix_data,             &
-                   & matrix%spm%n, rhs%nrhs,         &
-                   & rhs%b, matrix%spm%n,            &
-                   & rhs%x, matrix%spm%n, info )
+                   & matrix%spm%nexp, rhs%nrhs,         &
+                   & rhs%b, matrix%spm%nexp,            &
+                   & rhs%x, matrix%spm%nexp, info )
 
               ! 6- Apply the backward permutation on b and x
               call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
-                   &                          params%n, rhs%nrhs, rhs%b, params%n, info )
+                   &                          matrix%spm%nexp, rhs%nrhs, rhs%b, matrix%spm%nexp, info )
 
               call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
-                   &                          params%n, rhs%nrhs, rhs%x, params%n, info )
+                   &                          matrix%spm%nexp, rhs%nrhs, rhs%x, matrix%spm%nexp, info )
 
            end do solve_loop2
         end do solve_loop
@@ -478,8 +478,8 @@ program fmultilap
 
                  call spmCheckAxb( matrix%dparm(DPARM_EPSILON_REFINEMENT), rhs%nrhs, &
                       & matrix%spm,    &
-                      & B=rhs%b, ldb=params%n, &
-                      & X=rhs%x, ldx=params%n, info=info )
+                      & B=rhs%b, ldb=matrix%spm%nexp, &
+                      & X=rhs%x, ldx=matrix%spm%nexp, info=info )
 
                  ginfo = ginfo + info
               end do
