@@ -89,7 +89,7 @@ int main (int argc, char **argv)
      * Normalize A matrix (optional, but recommended for low-rank functionality)
      */
     double normA = spmNorm( SpmFrobeniusNorm, spm );
-    spmScalMatrix( 1./normA, spm );
+    spmScal( 1./normA, spm );
 
     /*
      * Generates the b and x vector such that A * x = b
@@ -111,7 +111,7 @@ int main (int argc, char **argv)
         spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
         /* Apply also normalization to b vector */
-        spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );
+        spmScalMat( 1./normA, spm, nrhs, b, spm->nexp );
 
         /* Save b for refinement: TODO: make 2 examples w/ or w/o refinement */
         memcpy( b, x, size );

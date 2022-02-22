@@ -94,9 +94,9 @@ int main (int argc, char **argv)
      * Normalize A matrix (optional, but recommended for low-rank functionality)
      */
     double normA = spmNorm( SpmFrobeniusNorm, spm );
-    spmScalMatrix( 1./normA, spm );
+    spmScal( 1./normA, spm );
 
-    size = pastix_size_of( spm->flttype ) * spm->n * nrhs;
+    size = pastix_size_of( spm->flttype ) * spm->nexp * nrhs;
     x = malloc( size );
     b = malloc( size );
     if ( check > 1 ) {
@@ -120,14 +120,14 @@ int main (int argc, char **argv)
              */
             if ( check )
             {
-                spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->n, b, spm->n );
+                spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm->nexp, b, spm->nexp );
                 memcpy( x, b, size );
             }
             else {
-                spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
+                spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->nexp, x, spm->nexp );
 
                 /* Apply also normalization to b vectors */
-                spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );
+                spmScalMat( 1./normA, spm, nrhs, b, spm->nexp );
 
                 /* Save b for refinement */
                 memcpy( b, x, size );
@@ -136,11 +136,11 @@ int main (int argc, char **argv)
             /**
              * Solve the linear system
              */
-            pastix_task_solve( pastix_data, nrhs, x, spm->n );
-            pastix_task_refine( pastix_data, spm->n, nrhs, b, spm->n, x, spm->n );
+            pastix_task_solve( pastix_data, nrhs, x, spm->nexp );
+            pastix_task_refine( pastix_data, spm->nexp, nrhs, b, spm->nexp, x, spm->nexp );
 
             if ( check ) {
-                rc |= spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->n, b, spm->n, x, spm->n );
+                rc |= spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm, x0, spm->nexp, b, spm->nexp, x, spm->nexp );
             }
         }
     }

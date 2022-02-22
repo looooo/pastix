@@ -62,7 +62,7 @@ program fmultidof
 
   ! Scale A for better stability with low-rank computations
   call spmNorm( SpmFrobeniusNorm, spm, normA )
-  call spmScalMatrix( 1. / normA, spm )
+  call spmScal( 1. / normA, spm )
 
   !
   ! Solve the problem

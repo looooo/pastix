@@ -130,7 +130,7 @@ static void *solve_smp(void *arg)
      * Normalize A matrix (optional, but recommended for low-rank functionality)
      */
     double normA = spmNorm( SpmFrobeniusNorm, spm );
-    spmScalMatrix( 1./normA, spm );
+    spmScal( 1./normA, spm );
 
     /**
      * Perform the numerical factorization
@@ -157,7 +157,7 @@ static void *solve_smp(void *arg)
         spmGenRHS( SpmRhsRndB, nrhs, spm, NULL, spm->n, x, spm->n );
 
         /* Apply also normalization to b vectors */
-        spmScalVector( spm->flttype, 1./normA, spm->n * nrhs, b, 1 );
+        spmScalMat( 1./normA, spm, nrhs, b, spm->nexp );
 
         /* Save b for refinement */
         memcpy( b, x, size );
