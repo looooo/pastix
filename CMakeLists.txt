@@ -976,6 +976,7 @@ add_documented_files(
   docs/doxygen/chapters/Pastix_Runtime.md
   docs/doxygen/chapters/Pastix_GPU.md
   docs/doxygen/chapters/How_PaStiX_GPU.md
+  docs/doxygen/chapters/Pastix_benchmarking.md
   tools/binding_for_multimpi.c
   kernels/pastix_lowrank.h
   #
