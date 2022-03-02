@@ -1,6 +1,6 @@
 ## Automated PaStiX benchmarking
 
-This section presents the work  put in place to autmatically benchmrak the PaStiX solver on the Plafrim platform.
+This section presents the work  put in place to autpmatically benchmark the PaStiX solver on the Plafrim platform.
 It is composed of several modules that will be listed here.
 
 ### Initialization of the benchmark
@@ -9,9 +9,9 @@ It is composed of several modules that will be listed here.
 
 The script is launched through a gitlab runner with the tag
 *plafrim*. It will use the `${PASTIX_DIR}/.gitlab/benchmark.yml` file
-that set the environment variables such as: the plafrim partition
+that sets the environment variables such as: the plafrim partition
 (sirocco or bora), the amount of nodes, or the amount of cores
-requested. Once the job configured, it runs the `run.sh` script.
+requested. Once the job is configured, it runs the `run.sh` script.
 
 **run.sh**:
 
@@ -36,7 +36,7 @@ able to adapt to new architectures.
 
 For each benchmark application the benchmark data is written out in a given format that enables JUBE
 to deduct the desired information. This data can be parsed by automatic pre- and post-processing
-scripts that draw information, and stores it more densely for manual interpretation.
+scripts that draw information, and store it more densely for manual interpretation.
 
 The JUBE benchmarking environment provides a script based framework to easily create benchmark sets,
 run those sets on different computer systems and evaluate the results.
@@ -98,7 +98,7 @@ jube run run_file.xml --tag run1 run2 --include-path our/path/to/parameters.xml 
 ```
 
 The runs outputs are stored in the `results/id` directory. If `id` is not set in the command line,
-a new one is autmatically created.
+a new one is automatically created.
 
 3 - <u>Analyze the patterns</u>
 
@@ -157,7 +157,7 @@ jube result results --id $id > results.csv
 
 ## Send the results to the ElasticSearch database
 
-The last step of the ` patix_guix.sh` script consists in sending the results to the ElasticSearch database. To perform this step, a python script parses the results from the runs to convert them to the ElasticSearch format, and then update the database with the following command:
+The last step of the `pastix_guix.sh` script consists in sending the results to the ElasticSearch database. To perform this step, a python script parses the results from the runs to convert them to the ElasticSearch format, and then updates the database with the following command:
 
 ```sh
 python3 ${PASTIX_DIR}/tools/bench/jube/add_result.py \
@@ -186,7 +186,7 @@ interest us as a **Search**. There are currently 2 **Search** used for the visua
 
 ### Visualization
 
-Now we can visualize the our datas. First we decide to link it with one of our search and then we
+Now we can visualize our data. First we decide to link it with one of our search and then we
 will decide to the axis of the visualization.
 
 For the moment, the X-axis corresponds to the pushed date and the Y-axis to the average values of the
