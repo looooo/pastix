@@ -1,21 +1,21 @@
 ###
 #
 #  @file scotch64.rb
-#  @copyright 2020-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2020-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @brief Homebrew formula for Scotch
 #
 #  @version 6.2.1
 #  @author Pierre Ramet
-#  @date 2021-04-25
+#  @date 2022-04-06
 #
 ###
 class Scotch64 < Formula
   desc "Package for graph and mesh partitioning"
-  homepage "https://gforge.inria.fr/projects/scotch"
-  url "https://gitlab.inria.fr/scotch/scotch/-/archive/v6.1.0/scotch-v6.1.0.tar.gz"
-  sha256 "4fe537f608f0fe39ec78807f90203f9cca1181deb16bfa93b7d4cd440e01bbd1"
+  homepage "https://gitlab.inria.fr/scotch/scotch"
+  url "https://gitlab.inria.fr/scotch/scotch/-/archive/v6.1.1/scotch-v6.1.1.tar.gz"
+  sha256 "14daf151399fc67f83fd3ff2933854f5e8d2207c7d35dd66a05660bf0bbd583c"
   revision 1
 
   option "without-test", "skip build-time tests (not recommended)"
@@ -23,6 +23,8 @@ class Scotch64 < Formula
 
   depends_on "open-mpi"
   depends_on "xz" => :optional # Provides lzma compression.
+
+  conflicts_with "scotch", because: "not compatible"
 
   def install
     cd "src" do
@@ -43,6 +45,7 @@ class Scotch64 < Formula
       make_args = ["CCS=#{ENV["CC"]}",
                    "CCP=mpicc",
                    "CCD=mpicc",
+                   "FC=gfortran",
                    "RANLIB=echo",
                    "CFLAGS=#{cflags.join(" ")}",
                    "LDFLAGS=#{ldflags.join(" ")}"]
@@ -63,6 +66,7 @@ class Scotch64 < Formula
 
       system "make", "scotch", "VERBOSE=ON", *make_args
       system "make", "ptscotch", "VERBOSE=ON", *make_args
+      system "make", "esmumps", "VERBOSE=ON", *make_args
       system "make", "install", "prefix=#{prefix}", *make_args
       system "make", "check", "ptcheck", "EXECP=mpirun -np 2", *make_args unless build.without? "test"
     end
