@@ -1,7 +1,7 @@
 ###
 #
 #  @file pastix64.rb
-#  @copyright 2013-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2013-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @brief Homebrew formula for PaStiX 6.*
@@ -9,27 +9,27 @@
 #  @version 6.2.1
 #  @author Pierre Ramet
 #  @author Mathieu Faverge
-#  @date 2021-04-25
+#  @date 2022-04-06
 #
 ###
 class Pastix64 < Formula
   desc "Parallel solver for sparse linear systems based on direct methods"
   homepage "https://gitlab.inria.fr/solverstack/pastix"
-  url "https://gitlab.inria.fr/solverstack/pastix//uploads/5c09cf4e0c120c45e27bc20d24e7f521/pastix-6.2.0.tar.gz"
-  sha256 "dbf2f252c8162cbde2c52730325b9ae6d8410772be5b4e93c368d9b8d2d79257"
+  url "https://gitlab.inria.fr/solverstack/pastix//uploads/3fc798eb3ca6282e21506349df7f9da2/pastix-6.2.1.tar.gz"
+  sha256 "b680cbfc265df8cba18d3a7093fcc02e260198c4a2d6a86d1e684bb291e309dd"
   head "https://gitlab.inria.fr/solverstack/pastix.git"
   license "LGPL"
 
-  bottle :disable, "needs to be rebuilt"
-
   depends_on "openblas"
   depends_on "openmpi"
-  depends_on "hwloc"               # Could be optinal but strongly recommanded
-  depends_on "scotch64"            # Could be optinal but strongly recommanded
+  depends_on "hwloc"               # Could be optional but strongly recommanded
+  depends_on "scotch64"            # Could be optional but strongly recommanded
   depends_on "metis"  => :optional # Enable METIS ordering
   depends_on "starpu" => :optional # Enable STARPU runtime
   depends_on "gcc"    => :build    # GNU Fortran is now provided as part of GCC
   depends_on "cmake"  => :build
+
+  conflicts_with "pastix", because: "not compatible"
 
   def install
     args = ["-DCMAKE_INSTALL_PREFIX=#{prefix}",
