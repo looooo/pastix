@@ -305,13 +305,12 @@ bcsc_init( const spmatrix_t     *spm,
         pastix_int_t cblknbr = solvmtx->cblknbr;
         pastix_int_t j, cblknum;
 
-
         MALLOC_INTERN( col2cblk, spm->gNexp, pastix_int_t );
         memset( col2cblk, 0xff, spm->gNexp * sizeof(pastix_int_t) );
 
         for ( cblknum=0; cblknum<cblknbr; cblknum++, cblk++ )
         {
-            if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ){
+            if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) {
                 continue;
             }
             for ( j=cblk->fcolnum; j<=cblk->lcolnum; j++ )
@@ -390,7 +389,7 @@ bcscInit( const spmatrix_t     *spm,
     double time = 0.;
 
     assert( ord->baseval == 0 );
-    assert( ord->vertnbr == spm->n );
+    assert( ord->vertnbr == spm->gN );
 
     clockStart(time);
     bcsc_init( spm, ord, solvmtx, initAt, bcsc );
