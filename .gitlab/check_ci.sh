@@ -51,27 +51,45 @@ check_draft()
     return 0
 }
 
-echo "----------------------------------------------------"
-check_rebase
+check_header()
+{
+    echo " Checking file headers: "
+    TOOLSDIR=$(dirname $0)/../tools
 
-echo ""
-echo "----------------------------------------------------"
-check_draft
+    $TOOLSDIR/check_header.sh
+    rc=$?
+    if [ $rc -eq 0 ]
+    then
+        echo "Check header: SUCCESS"
+    else
+        echo "Check header: FAILED"
+        success=0
+    fi
+}
 
-echo ""
-echo "----------------------------------------------------"
-echo " Checking file headers: "
-TOOLSDIR=$(dirname $0)/../tools
-
-$TOOLSDIR/check_header.sh
-rc=$?
-if [ $rc -eq 0 ]
+if [ $# -lt 1 ]
 then
-    echo "Check header: SUCCESS"
-else
-    echo "Check header: FAILED"
-    success=0
+    echo "Usage: $0 [rebase|draft|header]"
+    exit 1
 fi
+
+echo ""
+echo "----------------------------------------------------"
+case $1 in
+    rebase)
+	check_rebase
+	;;
+    draft)
+	check_draft
+	;;
+    header)
+	check_header
+	;;
+    *)
+        echo "Usage: $0 [rebase|draft|header]"
+	exit 1
+	;;
+esac
 
 if [ $success -eq 0 ]
 then

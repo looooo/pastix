@@ -18,6 +18,7 @@ before_script:
   - mkdir -p build
 
 include:
+  - .gitlab/preliminary.yml
   - .gitlab/benchmark.yml
   - .gitlab/common.yml
   - .gitlab/build.yml
