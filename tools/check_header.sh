@@ -51,7 +51,7 @@ check_header_copyright()
     filename=$1
     basename=$( basename $filename )
 
-    year=$( date +%Y )
+    year=$( git log -1 --format=%cd --date=format:%Y $filename )
     toto=$( grep -E " @copyright [0-9]{4}-$year Bordeaux INP" $filename )
 
     if [ $? -ne 0 ]
