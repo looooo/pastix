@@ -326,7 +326,7 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
 
     case PastixFactLLT:
     case PastixFactLDLT:
-        mtxtype = PastixHermitian;
+        mtxtype = PastixSymmetric;
         break;
 
     case PastixFactLU:

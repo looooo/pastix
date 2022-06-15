@@ -48,7 +48,7 @@ coeftab_fct_memory_t coeftabMemory[4] =
  * @brief Internal structure specific to the parallel call of pcoeftabInit()
  */
 struct coeftabinit_s {
-    const SolverMatrix  *datacode; /**< The sovler matrix                         */
+    const SolverMatrix  *datacode; /**< The solver matrix                         */
     const pastix_bcsc_t *bcsc;     /**< The internal block CSC                    */
     const char          *dirname;  /**< The pointer to the output directory       */
     pastix_coefside_t    side;     /**< The side of the matrix beeing initialized */
@@ -224,7 +224,7 @@ coeftabExit( SolverMatrix *solvmtx )
  * @brief Internal structure specific to the parallel call of pcoeftabComp()
  */
 struct coeftabcomp_s {
-    SolverMatrix        *solvmtx; /**< The sovler matrix               */
+    SolverMatrix        *solvmtx; /**< The solver matrix               */
     pastix_coeftype_t    flttype; /**< The arithmetic type             */
     pastix_atomic_lock_t lock;    /**< Lock to protect the gain update */
     pastix_int_t         gain;    /**< The memory gain on output       */
