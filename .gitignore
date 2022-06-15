@@ -183,3 +183,5 @@ ENV/
 # mypy
 .mypy_cache/
 
+# VScode project settings
+.vscode
