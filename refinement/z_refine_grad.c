@@ -4,17 +4,17 @@
  *
  * PaStiX refinement functions implementations.
  *
- * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Theophile Terraz
  * @author Gregoire Pichon
  * @author Vincent Bridonneau
- * @date 2021-01-03
+ * @date 2022-07-07
  * @precisions normal z -> c d s
  *
  **/
@@ -50,15 +50,16 @@ pastix_int_t z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
     struct z_solver     solver;
     pastix_int_t        n;
     Clock               refine_clk;
-    pastix_fixdbl_t     t0        = 0;
-    pastix_fixdbl_t     t3        = 0;
+    pastix_fixdbl_t     t0 = 0;
+    pastix_fixdbl_t     t3 = 0;
     int                 itermax;
-    int                 nb_iter   = 0;
-    int                 precond   = 1;
+    int                 nb_iter = 0;
+    int                 precond = 1;
     pastix_complex64_t *gradr;
     pastix_complex64_t *gradp;
     pastix_complex64_t *gradz;
     pastix_complex64_t *grad2;
+    pastix_complex32_t *sgrad = NULL;
     double normb, normx, normr, alpha, beta;
     double resid_b, eps;
 
@@ -78,6 +79,12 @@ pastix_int_t z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
     gradp = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
     gradz = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
     grad2 = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+
+    /* Allocating a vector at half-precision, NULL pointer otherwise */
+    if ( pastix_data->iparm[IPARM_MIXED] )
+    {
+        sgrad = solver.malloc( n * sizeof(pastix_complex32_t) );
+    }
 
     clockInit(refine_clk);
     clockStart(refine_clk);
@@ -99,7 +106,7 @@ pastix_int_t z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
     /* z = M^{-1} r */
     solver.copy( pastix_data, n, gradr, gradz );
     if ( precond ) {
-        solver.spsv( pastix_data, gradz );
+        solver.spsv( pastix_data, gradz, sgrad );
     }
 
     /* p = z */
@@ -128,7 +135,7 @@ pastix_int_t z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
         /* z = M-1 * r */
         solver.copy( pastix_data, n, gradr, gradz );
         if ( precond ) {
-            solver.spsv( pastix_data, gradz );
+            solver.spsv( pastix_data, gradz, sgrad );
         }
 
         /* beta = <r', z> / <r, z> */
@@ -157,6 +164,7 @@ pastix_int_t z_grad_smp(pastix_data_t *pastix_data, void *x, void *b)
     solver.free((void*) gradp);
     solver.free((void*) gradz);
     solver.free((void*) grad2);
+    solver.free((void*) sgrad);
 
     return nb_iter;
 }

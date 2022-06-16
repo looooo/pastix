@@ -4,21 +4,22 @@
  *
  * Precision dependent sequential routines to apply operation of the full matrix.
  *
- * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Gregoire Pichon
  * @author Mathieu Faverge
  * @author Esragul Korkmaz
  * @author Tony Delarue
- * @date 2021-04-02
+ * @date 2022-07-07
  *
  * @precisions normal z -> s d c
  *
  **/
+#define _GNU_SOURCE 1
 #include "common.h"
 #include "blend/solver.h"
 #include "lapacke.h"
@@ -86,6 +87,72 @@ coeftab_zdump( pastix_data_t      *pastix_data,
 
         fclose( stream );
     }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Dump a single column block into a FILE in a human readale format.
+ *
+ * All non-zeroes coefficients are dumped in the format:
+ *    i j val
+ * with one value per row.
+ * 
+ * The filename is as follows : {L, U}cblk{Index of the cblk}_init.txt
+ *
+ *******************************************************************************
+ *
+ * @param[in] side
+ *          Define which side of the matrix must be initialized.
+ *          @arg PastixLCoef if lower part only
+ *          @arg PastixUCoef if upper part only
+ *          @arg PastixLUCoef if both sides.
+ * 
+ * @param[in] cblk
+ *          The column block to dump into the file.
+ *
+ * @param[in] itercblk
+ *          The index of the cblk to dump
+ *
+ * @param[inout] directory
+ *          The pointer to the temporary directory where to store the output
+ *          files.
+ *
+ *******************************************************************************/
+void
+cpucblk_zdumpfile( pastix_coefside_t side,
+                   SolverCblk       *cblk,
+                   pastix_int_t      itercblk,
+                   const char       *directory )
+{
+    FILE *f = NULL;
+    char *filename;
+    int rc;
+
+    /* Lower part */
+    if ( side != PastixUCoef )
+    {
+        rc = asprintf( &filename, "Lcblk%05ld_init.txt", (long int) itercblk );
+        f  = pastix_fopenw( directory, filename, "w" );
+        if ( f != NULL ) {
+            cpucblk_zdump( PastixLCoef, cblk, f );
+            fclose( f );
+        }
+        free( filename );
+    }
+
+    /* Upper part */
+    if ( side != PastixLCoef )
+    {
+        rc = asprintf( &filename, "Ucblk%05ld_init.txt", (long int) itercblk );
+        f  = pastix_fopenw( directory, filename, "w" );
+        if ( f != NULL ) {
+            cpucblk_zdump( PastixUCoef, cblk, f );
+            fclose( f );
+        }
+        free( filename );
+    }
+    (void)rc;
 }
 
 /**

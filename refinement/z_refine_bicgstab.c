@@ -4,17 +4,17 @@
  *
  * PaStiX refinement functions implementations.
  *
- * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Theophile Terraz
  * @author Gregoire Pichon
  * @author Vincent Bridonneau
- * @date 2021-01-03
+ * @date 2022-07-07
  * @precisions normal z -> c d s
  *
  **/
@@ -65,6 +65,7 @@ pastix_int_t z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
     pastix_complex64_t *gradt;
     pastix_complex64_t *grad2;
     pastix_complex64_t *grad3;
+    pastix_complex32_t *sgrad = NULL;
     pastix_complex64_t  v1, v2, w;
     double normb, normx, normr, alpha, beta;
     double resid_b, eps;
@@ -90,6 +91,12 @@ pastix_int_t z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
     gradt  = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
     grad2  = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
     grad3  = (pastix_complex64_t *)solver.malloc(n * sizeof(pastix_complex64_t));
+
+    /* Allocating a vector at half-precision, NULL pointer otherwise */
+    if ( pastix_data->iparm[IPARM_MIXED] )
+    {
+        sgrad = solver.malloc( n * sizeof(pastix_complex32_t) );
+    }
 
     clockInit(refine_clk);clockStart(refine_clk);
 
@@ -123,7 +130,7 @@ pastix_int_t z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
         /* y = M-1 * p */
         solver.copy( pastix_data, n, gradp, grady );
         if ( precond ) {
-            solver.spsv( pastix_data, grady );
+            solver.spsv( pastix_data, grady, sgrad );
         }
 
         /* v = Ay */
@@ -141,7 +148,7 @@ pastix_int_t z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
         /* z = M^{-1} s */
         solver.copy( pastix_data, n, grads, gradz );
         if ( precond ) {
-            solver.spsv( pastix_data, gradz );
+            solver.spsv( pastix_data, gradz, sgrad );
         }
 
         /* t = Az */
@@ -151,7 +158,7 @@ pastix_int_t z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
         /* grad2 = M-1t */
         solver.copy( pastix_data, n, gradt, grad2 );
         if ( precond ) {
-            solver.spsv( pastix_data, grad2 );
+            solver.spsv( pastix_data, grad2, sgrad );
         }
 
         /* v1 = (M-1t, M-1s) */
@@ -210,6 +217,7 @@ pastix_int_t z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
     solver.free((void*) gradt);
     solver.free((void*) grad2);
     solver.free((void*) grad3);
+    solver.free((void*) sgrad);
 
     return nb_iter;
 }

@@ -3,12 +3,12 @@
 
  Declaration of the iparm parameters.
 
- @copyright 2021-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2021-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.0
+ @version 6.2.1
  @author Tony Delarue
- @date 2021-04-07
+ @date 2022-07-07
 
  This file allows us to generate:
       - Documentation files
@@ -974,6 +974,29 @@ Long description in the doxygen format
 ''',  # Optional
 }
 iparm.append(iparm_compression_group)
+
+iparm_mixed = {
+    "name" : "iparm_mixed",
+    "default" : "0",
+    "brief" : "Enables/Disables mixed-precision",
+    "access" : "IN",
+    "description" : r'''
+Enables the numerical factorization, solve and refinement steps to be done in mixed precision.
+It should only be used on Complex64 and Double matrices
+''',
+}
+
+iparm_mixed_group = {
+    "subgroup" : [
+        iparm_mixed,
+    ],
+    "name" : "mixed-precision",
+    "brief" : "mixed-precision parameters",
+    "description" :r'''
+The group parameters of the PaStiX mixed-precision solver mode
+''',  # Optional
+}
+iparm.append(iparm_mixed_group)
 
 iparm_mpi_thread_level = {
     "name" : "iparm_mpi_thread_level",

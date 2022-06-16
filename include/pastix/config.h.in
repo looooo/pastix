@@ -4,7 +4,7 @@
  *
  * PaStiX configuration parameters
  *
- * @copyright 2016-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.1
@@ -14,7 +14,7 @@
  * @author Tony Delarue
  * @author Nolan Bredel
  * @author Tom Moenne-Loccoz
- * @date 2021-06-29
+ * @date 2022-07-07
  *
  **/
 #ifndef _pastix_config_h_
@@ -56,6 +56,7 @@
 #cmakedefine HAVE_STRING_H
 #cmakedefine HAVE_COMPLEX_H
 #cmakedefine HAVE_FALLTHROUGH
+#cmakedefine HAVE_BUILTIN_EXPECT
 #cmakedefine HAVE_GETLINE
 #cmakedefine HAVE_MKDTEMP
 

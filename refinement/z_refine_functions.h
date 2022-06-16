@@ -4,17 +4,17 @@
  *
  * PaStiX refinement functions implementations.
  *
- * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Gregoire Pichon
  * @author Theophile Terraz
  * @author Vincent Bridonneau
- * @date 2021-01-03
+ * @date 2022-07-07
  * @precisions normal z -> c d s
  *
  **/
@@ -44,7 +44,7 @@ struct z_solver
     void   (*copy)( pastix_data_t *, pastix_int_t, const pastix_complex64_t *, pastix_complex64_t * );
     void   (*axpy)( pastix_data_t *, pastix_int_t, pastix_complex64_t, const pastix_complex64_t *, pastix_complex64_t *);
     void   (*spmv)( const pastix_data_t *, pastix_trans_t, pastix_complex64_t, const pastix_complex64_t *, pastix_complex64_t, pastix_complex64_t * );
-    void   (*spsv)( pastix_data_t *, pastix_complex64_t * );
+    void   (*spsv)( pastix_data_t *, pastix_complex64_t *, pastix_complex32_t * );
     double (*norm)( pastix_data_t *, pastix_int_t, const pastix_complex64_t * );
     void   (*gemv)( pastix_data_t *, pastix_int_t, pastix_int_t,
                     pastix_complex64_t, const pastix_complex64_t *, pastix_int_t,

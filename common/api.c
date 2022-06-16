@@ -4,7 +4,7 @@
  *
  * PaStiX API routines
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.1
@@ -15,7 +15,7 @@
  * @author Gregoire Pichon
  * @author Matias Hastaran
  * @author Tony Delarue
- * @date 2021-07-02
+ * @date 2022-07-07
  *
  **/
 #define _GNU_SOURCE 1
@@ -520,6 +520,9 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_COMPRESS_ORTHO]        = PastixCompressOrthoCGS;
     iparm[IPARM_COMPRESS_PRESELECT]    = 1;
     iparm[IPARM_COMPRESS_ILUK]         = -2;
+
+    /* Mixed-Precision */
+    iparm[IPARM_MIXED] = 0;
 
     /* MPI modes */
     iparm[IPARM_MPI_THREAD_LEVEL] = PastixMpiNone;

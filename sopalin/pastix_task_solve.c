@@ -14,7 +14,7 @@
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Tony Delarue
- * @date 2021-07-02
+ * @date 2022-07-07
  *
  **/
 #define _GNU_SOURCE 1
@@ -28,6 +28,8 @@
 #include "bcsc/bcsc_c.h"
 #include "bcsc/bcsc_d.h"
 #include "bcsc/bcsc_s.h"
+
+#include <lapacke.h>
 
 #if defined(PASTIX_DEBUG_SOLVE)
 #include <z_spm.h>
@@ -551,7 +553,7 @@ pastix_subtask_solve_adv( pastix_data_t *pastix_data, pastix_trans_t transA,
             diag = PastixUnit;
         }
 
-        pastix_subtask_trsm( pastix_data, bcsc->flttype,
+        pastix_subtask_trsm( pastix_data, pastix_data->solvmatr->flttype,
                              PastixLeft, uplo, trans, diag,
                              nrhs, b, ldb );
 
@@ -562,7 +564,7 @@ pastix_subtask_solve_adv( pastix_data_t *pastix_data, pastix_trans_t transA,
             (factotype == PastixFactLDLH) )
         {
             /* Solve y = D z with z = ([L^t | L^h] P x) */
-            pastix_subtask_diag( pastix_data, bcsc->flttype, nrhs, b, ldb );
+            pastix_subtask_diag( pastix_data, pastix_data->solvmatr->flttype, nrhs, b, ldb );
         }
 
         /*
@@ -586,7 +588,7 @@ pastix_subtask_solve_adv( pastix_data_t *pastix_data, pastix_trans_t transA,
             diag = PastixUnit;
         }
 
-        pastix_subtask_trsm( pastix_data, bcsc->flttype,
+        pastix_subtask_trsm( pastix_data, pastix_data->solvmatr->flttype,
                              PastixLeft, uplo, trans, diag,
                              nrhs, b, ldb );
 
@@ -684,6 +686,7 @@ pastix_task_solve( pastix_data_t *pastix_data,
     pastix_bcsc_t *bcsc;
     void          *bglob = NULL;
     void          *tmp   = NULL;
+    void          *sb;
 
     /*
      * Check parameters
@@ -714,16 +717,73 @@ pastix_task_solve( pastix_data_t *pastix_data,
         ldb = pastix_data->csc->gNexp;
     }
 
+    /* Generating halved-precision vector */
+    if ( pastix_data->iparm[IPARM_MIXED] &&
+         ((bcsc->flttype == PastixComplex64) || (bcsc->flttype == PastixDouble)) )
+    {
+        int    rc;
+        size_t size = ldb * nrhs;
+
+        switch(bcsc->flttype) {
+        case PastixComplex64:
+            sb = malloc( size * sizeof(pastix_complex32_t) );
+            rc = LAPACKE_zlag2c_work( LAPACK_COL_MAJOR, ldb, nrhs,
+                                      b, ldb, sb, ldb );
+            break;
+        case PastixDouble:
+            sb = malloc( size * sizeof(float) );
+            rc = LAPACKE_dlag2s_work( LAPACK_COL_MAJOR, ldb, nrhs,
+                                      b, ldb, sb, ldb );
+            break;
+        default:
+            pastix_print_error( "pastix_task_solve: Invalid float type for mixed-precision" );
+        }
+
+        if ( rc ) {
+            free( sb );
+            return PASTIX_ERR_INTERNAL;
+        }
+    }
+    else {
+        sb = b;
+    }
+
     /* Compute P * b */
-    pastix_subtask_applyorder( pastix_data, bcsc->flttype,
-                               PastixDirForward, bcsc->gN, nrhs, b, ldb );
+    pastix_subtask_applyorder( pastix_data, pastix_data->solvmatr->flttype,
+                               PastixDirForward, bcsc->gN, nrhs, sb, ldb );
 
     /* Solve A x = b */
-    pastix_subtask_solve( pastix_data, nrhs, b, ldb );
+    pastix_subtask_solve( pastix_data, nrhs, sb, ldb );
 
     /* Compute P^t * b */
-    pastix_subtask_applyorder( pastix_data, bcsc->flttype,
-                               PastixDirBackward, bcsc->gN, nrhs, b, ldb );
+    pastix_subtask_applyorder( pastix_data, pastix_data->solvmatr->flttype,
+                               PastixDirBackward, bcsc->gN, nrhs, sb, ldb );
+
+    /* Freeing mixed-precision vectors and reverting to given precision */
+    if ( pastix_data->iparm[IPARM_MIXED] &&
+         ((bcsc->flttype == PastixComplex64) || (bcsc->flttype == PastixDouble)) )
+    {
+        int rc;
+
+        switch(bcsc->flttype) {
+        case PastixComplex64:
+            rc = LAPACKE_clag2z_work( LAPACK_COL_MAJOR, ldb, nrhs,
+                                      sb, ldb, b, ldb );
+            break;
+        case PastixDouble:
+            rc = LAPACKE_slag2d_work( LAPACK_COL_MAJOR, ldb, nrhs,
+                                      sb, ldb, b, ldb );
+            break;
+        default:
+            pastix_print_error( "pastix_task_solve: Invalid float type for mixed-precision" );
+        }
+
+        assert( b != sb );
+        free( sb );
+        if( rc ) {
+            return PASTIX_ERR_INTERNAL;
+        }
+    }
 
     if( tmp != NULL ) {
         pastix_int_t ldbglob = ldb;

@@ -13,7 +13,7 @@
 #  @author Xavier Lacoste
 #  @author Nolan Bredel
 #  @author Tom Moenne-Loccoz
-#  @date 2021-06-29
+#  @date 2022-07-07
 #
 ###
 cmake_minimum_required (VERSION 3.3)
@@ -603,6 +603,15 @@ precisions_rules_py(generated_sopalin_sources
   PRECISIONS "p;s;d;c;z"
   )
 
+set(generated_sopalin_mixed_sources "")
+set(SOURCES
+  sopalin/coeftab_zcinit.c
+  )
+precisions_rules_py(generated_sopalin_mixed_sources
+  "${SOURCES}"
+  TARGETDIR "sopalin"
+  PRECISIONS "ds;zc")
+
 ##
 # Source files from refinement directory
 ##
@@ -715,6 +724,7 @@ set(PASTIX_LIB_SRCS
   ${generated_common_sources}
   ${generated_bcsc_sources}
   ${generated_sopalin_sources}
+  ${generated_sopalin_mixed_sources}
   ${generated_refinement_sources}
   )
 
@@ -1109,6 +1119,7 @@ add_documented_files(
   ${generated_bcsc_sources}
   ${generated_sopalin_headers}
   ${generated_sopalin_sources}
+  ${generated_sopalin_mixed_sources}
   ${generated_refinement_sources}
 )
 

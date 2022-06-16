@@ -105,6 +105,21 @@ int main(void) {
   HAVE_FALLTHROUGH
   )
 
+# Check for attribute __builtin_expect
+# ------------------------------------
+check_c_source_compiles("
+#include <stdarg.h>
+int main(void) {
+  int a = 2;
+  if ( __builtin_expect( (a > 0), 1 ) ) {
+     return 0;
+  }
+  return 0;
+}
+"
+  HAVE_BUILTIN_EXPECT
+  )
+
 # Check for Thread library
 # ------------------------
 set( CMAKE_THREAD_PREFER_PTHREAD TRUE )

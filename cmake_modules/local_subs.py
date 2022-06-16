@@ -3,19 +3,19 @@
 
  Python PaStiX specific substitution rules for the Precision Generator script.
 
- @copyright 2019-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2019-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.2.1
  @author Mathieu Faverge
  @author Esragul Korkmaz
  @author Tony Delarue
- @date 2021-05-05
+ @date 2022-07-07
 
 """
 subs = {
     # ------------------------------------------------------------
-    # replacements applied to mixed precision files.
+    # replacements applied to normal precision files.
     'normal': [
         # pattern                single                  double                  single-complex          double-complex
         #'12345678901234567890', '12345678901234567890', '12345678901234567890', '12345678901234567890', '12345678901234567890')
@@ -25,8 +25,10 @@ subs = {
         ('SpmPattern',           'SpmFloat',             'SpmDouble',            'SpmComplex32',        r'\bSpmComplex64'      ),
         ('SpmPattern',           'SpmFloat',             'SpmDouble',            'SpmFloat',            r'\bSpmDouble'         ),
         ('int',                  'float',                'double',               'pastix_complex32_t',  r'\bpastix_complex64_t'),
+        ('int',                  'float',                'float',                'pastix_complex32_t',  r'\bpastix_complex32_t'),
 
         ('PastixPattern',        'PastixFloat',          'PastixDouble',         'PastixComplex32',     r'\bPastixComplex64'   ),
+        ('PastixPattern',        'PastixFloat',          'PastixFloat',          'PastixComplex32',     r'\bPastixComplex32'   ),
         ('PastixPattern',        'PastixFloat',          'PastixDouble',         'PastixFloat',         r'\bPastixDouble'      ),
         ('MPI_INT',              'MPI_FLOAT',            'MPI_DOUBLE',           'MPI_COMPLEX32',        'MPI_COMPLEX64'       ),
 
@@ -68,5 +70,28 @@ subs = {
         ('dynamic_p',            'dynamic_s',            'dynamic_d',            'dynamic_c',            'dynamic_z'           ),
         ('runtime_p',            'runtime_s',            'runtime_d',            'runtime_c',            'runtime_z'           ),
         ('vec_p',                'vec_s',                'vec_d',                'vec_c',                'vec_z'               ),
-    ]
+        ('',                     'slag2d',               'slag2d',               'clag2z',               'clag2z'              ),
+    ], #end normal
+
+    # ------------------------------------------------------------
+    # replacements applied to mixed precision files.
+    'mixed' : [
+        # double/single,          double/single-complex
+        #'12345678901234567890', '12345678901234567890')
+
+        # ----- Additional Datatypes
+        ('double',               'pastix_complex64_t'  ),
+        ('float',                'pastix_complex32_t'  ),
+        ('double',               'spm_complex64_t'     ),
+
+        ('coeftab_dcblk',        'coeftab_zcblk'       ),
+        ('coeftab_ds',           'coeftab_zc'          ),
+        ('cpucblk_ds',           'cpucblk_zc'          ),
+        ('pastix_dcores',        'pastix_zcores'       ),
+        ('pastix_ds',            'pastix_zc'           ),
+        ('pastix_scores',        'pastix_ccores'       ),
+        ('cpucblk_s',            'cpucblk_c'           ),
+        ('DSOVERFCHECK',         'DOVERFCHECK'         ),
+        ('DSOVERFCHECK',         'ZCOVERFCHECK'        ),
+    ] #end mixed
 }

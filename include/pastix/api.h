@@ -8,17 +8,17 @@
  * ${PASTIX_HOME}/tools/gen_param/pastix_[iparm/dparm/enums].py and run
  * ${PASTIX_HOME}/tools/gen_param/gen_parm_files.py ${PASTIX_HOME}.
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.1
- * @author Xavier Lacoste
- * @author Pierre Ramet
  * @author Mathieu Faverge
+ * @author Pierre Ramet
+ * @author Xavier Lacoste
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2021-08-24
+ * @date 2022-07-07
  *
  * @addtogroup pastix_api
  * @{
@@ -131,6 +131,9 @@ typedef enum pastix_iparm_e {
     IPARM_COMPRESS_RELTOL,                /**< Enable/Disable relative tolerance                              Default: 0                         IN  */
     IPARM_COMPRESS_PRESELECT,             /**< Enable/Disable compression of preselected blocks               Default: 1                         IN  */
     IPARM_COMPRESS_ILUK,                  /**< Set the ILU(k) level of preselection (-2 for auto-level)       Default: -2                        IN  */
+
+    /* mixed-precision parameters */
+    IPARM_MIXED,                          /**< Enables/Disables mixed-precision                               Default: 0                         IN  */
 
     /* MPI modes */
     IPARM_MPI_THREAD_LEVEL,               /**< MPI thread level support                                       Default: PastixMpiNone             OUT */

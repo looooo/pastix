@@ -6,7 +6,7 @@
  * ${PASTIX_HOME}/tools/gen_param/pastix_[iparm/dparm/enums].py and run
  * ${PASTIX_HOME}/tools/gen_param/gen_parm_files.py ${PASTIX_HOME}.
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.1
@@ -16,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2021-08-31
+ * @date 2022-07-07
  *
  */
 #include "common.h"
@@ -765,6 +765,14 @@ iparm_compress_iluk_check_value( pastix_int_t iparm )
 }
 
 static inline int
+iparm_mixed_check_value( pastix_int_t iparm )
+{
+    /* TODO : Check range iparm[IPARM_MIXED] */
+    (void)iparm;
+    return 0;
+}
+
+static inline int
 iparm_modify_parameter_check_value( pastix_int_t iparm )
 {
     /* TODO : Check range iparm[IPARM_MODIFY_PARAMETER] */
@@ -924,6 +932,7 @@ iparm_check_values( const pastix_int_t *iparm )
     error += iparm_compress_reltol_check_value( iparm[IPARM_COMPRESS_RELTOL] );
     error += iparm_compress_preselect_check_value( iparm[IPARM_COMPRESS_PRESELECT] );
     error += iparm_compress_iluk_check_value( iparm[IPARM_COMPRESS_ILUK] );
+    error += iparm_mixed_check_value( iparm[IPARM_MIXED] );
     error += iparm_modify_parameter_check_value( iparm[IPARM_MODIFY_PARAMETER] );
     error += iparm_start_task_check_value( iparm[IPARM_START_TASK] );
     error += iparm_float_check_value( iparm[IPARM_FLOAT] );

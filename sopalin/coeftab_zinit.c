@@ -4,7 +4,7 @@
  *
  * Precision dependent coeficient array initialization routines.
  *
- * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.1
@@ -12,7 +12,7 @@
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Esragul Korkmaz
- * @date 2021-05-05
+ * @date 2022-07-07
  *
  * @precisions normal z -> s d c
  *
@@ -21,6 +21,7 @@
 #include "common.h"
 #include "blend/solver.h"
 #include "bcsc/bcsc.h"
+#include "sopalin/coeftab.h"
 #include "sopalin/coeftab_z.h"
 #include "pastix_zcores.h"
 
@@ -157,48 +158,6 @@ cpucblk_zdump( pastix_coefside_t side,
     }
 }
 
-void coeftab_zcblkComputeILULevels( const SolverMatrix *solvmtx, SolverCblk *cblk )
-{
-    /* If there are off diagonal supernodes in the column */
-    SolverBlok *blokB = cblk->fblokptr + 1; /* this diagonal block */
-    SolverBlok *lblkB = cblk[1].fblokptr;   /* the next diagonal block */
-
-    for (; blokB<lblkB; blokB++) {
-        SolverCblk *fcblk = solvmtx->cblktab + blokB->fcblknm;
-        SolverBlok *blokC = fcblk->fblokptr;
-        SolverBlok *blokA;
-
-        /* If there are off-diagonal supernodes in the column*/
-        for (blokA=blokB; blokA<lblkB; blokA++) {
-            int lvl_AB;
-
-            /* Find the facing block */
-            while ( !is_block_inside_fblock(blokA, blokC) ) {
-                blokC++;
-                assert( blokC < fcblk[1].fblokptr );
-            }
-
-            /* Compute the level k of the block */
-            if ( (blokA->iluklvl == INT_MAX) ||
-                 (blokB->iluklvl == INT_MAX) )
-            {
-                lvl_AB = INT_MAX;
-            }
-            else {
-                lvl_AB = blokA->iluklvl + blokB->iluklvl + 1;
-            }
-
-            pastix_cblk_lock( fcblk );
-            blokC->iluklvl = pastix_imin( blokC->iluklvl,
-                                          lvl_AB );
-            assert( blokC->iluklvl >= 0 );
-            pastix_cblk_unlock( fcblk );
-        }
-
-        pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
-    }
-}
-
 void coeftab_zcblkComputePreselect( const SolverMatrix *solvmtx, SolverCblk *cblk )
 {
     /* If there are off diagonal supernodes in the column */
@@ -266,34 +225,7 @@ cpucblk_zinit( pastix_coefside_t    side,
      * dependency with the pastix library due to pastix_fopenw()
      */
     {
-        FILE *f = NULL;
-        char *filename;
-        int rc;
-
-        /* Lower part */
-        if ( side != PastixUCoef )
-        {
-            rc = asprintf( &filename, "Lcblk%05ld_init.txt", itercblk );
-            f  = pastix_fopenw( directory, filename, "w" );
-            if ( f != NULL ) {
-                cpucblk_zdump( PastixLCoef, cblk, f );
-                fclose( f );
-            }
-            free( filename );
-        }
-
-        /* Upper part */
-        if ( side != PastixLCoef )
-        {
-            rc = asprintf( &filename, "Ucblk%05ld_init.txt", itercblk );
-            f  = pastix_fopenw( directory, filename, "w" );
-            if ( f != NULL ) {
-                cpucblk_zdump( PastixUCoef, cblk, f );
-                fclose( f );
-            }
-            free( filename );
-        }
-        (void)rc;
+        cpucblk_zdumpfile(side, cblk, itercblk, directory);
     }
 #endif /* defined(PASTIX_DEBUG_DUMP_COEFTAB) */
 
@@ -305,7 +237,7 @@ cpucblk_zinit( pastix_coefside_t    side,
 #endif
         {
             do {} while( cblk->ctrbcnt > 0 );
-            coeftab_zcblkComputeILULevels( solvmtx, cblk );
+            coeftabComputeCblkILULevels( solvmtx, cblk );
         }
     }
 

@@ -3,10 +3,10 @@
  *
  * PaStiX solver structure header.
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author David Goudin
  * @author Pascal Henon
  * @author Francois Pellegrini
@@ -16,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2021-03-30
+ * @date 2022-07-07
  *
  **/
 #ifndef _solver_h_
@@ -189,6 +189,7 @@ struct solver_matrix_s {
     SolverCblk   * restrict cblktab;       /**< Array of solver column blocks [+1]        */
     SolverBlok   * restrict bloktab;       /**< Array of solver blocks        [+1]        */
     pastix_int_t * restrict browtab;       /**< Array of blocks                           */
+    int                     flttype;       /**< valtab datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
 
     pastix_int_t           *gcbl2loc;      /**< Array of local cblknum corresponding to gcblknum */
 

@@ -15,7 +15,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Theophile Terraz
- * @date 2021-07-02
+ * @date 2022-07-07
  *
  **/
 #include "common.h"
@@ -266,8 +266,27 @@ pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
     pastix_lr_ortho         = pastix_data->iparm[IPARM_COMPRESS_ORTHO];
 
     bcsc = pastix_data->bcsc;
-    lr->core_ge2lr = ge2lrMethods[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][bcsc->flttype-2];
-    lr->core_rradd = rraddMethods[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][bcsc->flttype-2];
+
+    /* Make sure that mixed-precision isn't called in single precision */
+    {
+        int isDouble = (bcsc->flttype == PastixComplex64) || (bcsc->flttype == PastixDouble);
+        if ( pastix_data->iparm[IPARM_MIXED] && !isDouble )
+        {
+            pastix_print_warning( "pastix_subtask_bcsc2ctab: Mixed precision solve is not possible with single precision matrix\n"
+                                  "   Mixed precision is disabled\n" );
+            pastix_data->iparm[IPARM_MIXED] = 0;
+        }
+    }
+
+    /* Make sure IPARM_MIXED is 0 or 1 */
+    pastix_data->iparm[IPARM_MIXED] = pastix_data->iparm[IPARM_MIXED] ? 1 : 0;
+
+    /* Initialize the float type of the solver matrix */
+    pastix_data->solvmatr->flttype = bcsc->flttype - pastix_data->iparm[IPARM_MIXED];
+
+    /* Associate the compression methods corresponding to the precision of the solver matrix */
+    lr->core_ge2lr = ge2lrMethods[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][ (pastix_data->solvmatr->flttype-2) ];
+    lr->core_rradd = rraddMethods[ pastix_data->iparm[IPARM_COMPRESS_METHOD] ][ (pastix_data->solvmatr->flttype-2) ];
 
     /*
      * Update the ilu level based on when
@@ -491,7 +510,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
         void (*factofct)( pastix_data_t *, sopalin_data_t *);
         double timer, timer_local, flops, flops_g = 0.;
 
-        factofct = sopalinFacto[ pastix_data->iparm[IPARM_FACTORIZATION] ][bcsc->flttype-2];
+        factofct = sopalinFacto[ pastix_data->iparm[IPARM_FACTORIZATION] ][pastix_data->solvmatr->flttype-2];
         assert(factofct);
 
         kernelsTraceStart( pastix_data );
