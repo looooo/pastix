@@ -86,7 +86,7 @@ do
         continue;
     fi
 
-    year=$( date +%Y )
+    year=$( git log -1 --format=%cd --date=format:%Y $filename )
     sed -i "s/copyright \([0-9]*\)-[0-9]* Bordeaux/copyright \1-$year Bordeaux/" $f
 done
 
