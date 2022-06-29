@@ -1,7 +1,7 @@
 #
 #  @file update_release.sh
 #
-#  @copyright 2016-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2016-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @version 6.2.1
@@ -86,8 +86,13 @@ do
         continue;
     fi
 
-    year=$( git log -1 --format=%cd --date=format:%Y $filename )
-    sed -i "s/copyright \([0-9]*\)-[0-9]* Bordeaux/copyright \1-$year Bordeaux/" $f
+    year=$( git log -1 --format=%cd --date=format:%Y $f )
+    toto=$( grep -E " @copyright [0-9]{4}-$year Bordeaux INP" $f )
+
+    if [ $? -ne 0 ]
+    then
+        sed -i "s/copyright \([0-9]*\)-[0-9]* Bordeaux/copyright \1-$year Bordeaux/" $f
+    fi
 done
 
 #
