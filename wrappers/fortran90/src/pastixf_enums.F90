@@ -6,11 +6,11 @@
 !> @copyright 2017-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !>                      Univ. Bordeaux. All rights reserved.
 !>
-!> @version 6.2.0
+!> @version 6.2.1
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2022-01-13
+!> @date 2022-07-07
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -118,14 +118,15 @@ module pastixf_enums
      enumerator :: IPARM_COMPRESS_RELTOL                = 66
      enumerator :: IPARM_COMPRESS_PRESELECT             = 67
      enumerator :: IPARM_COMPRESS_ILUK                  = 68
-     enumerator :: IPARM_MPI_THREAD_LEVEL               = 69
-     enumerator :: IPARM_MODIFY_PARAMETER               = 70
-     enumerator :: IPARM_START_TASK                     = 71
-     enumerator :: IPARM_END_TASK                       = 72
-     enumerator :: IPARM_FLOAT                          = 73
-     enumerator :: IPARM_MTX_TYPE                       = 74
-     enumerator :: IPARM_DOF_NBR                        = 75
-     enumerator :: IPARM_SIZE                           = 75
+     enumerator :: IPARM_MIXED                          = 69
+     enumerator :: IPARM_MPI_THREAD_LEVEL               = 70
+     enumerator :: IPARM_MODIFY_PARAMETER               = 71
+     enumerator :: IPARM_START_TASK                     = 72
+     enumerator :: IPARM_END_TASK                       = 73
+     enumerator :: IPARM_FLOAT                          = 74
+     enumerator :: IPARM_MTX_TYPE                       = 75
+     enumerator :: IPARM_DOF_NBR                        = 76
+     enumerator :: IPARM_SIZE                           = 76
   end enum
 
   ! enum dparm

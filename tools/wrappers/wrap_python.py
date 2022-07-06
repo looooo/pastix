@@ -10,12 +10,12 @@ Wrapper Python
  @copyright 2017-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.0
+ @version 6.2.1
  @author Mathieu Faverge
  @author Tony Delarue
  @author Esragul Korkmaz
  @author Selmane Lebdaoui
- @date 2021-04-07
+ @date 2022-07-07
 
 """
 import os
@@ -23,7 +23,7 @@ import re
 import argparse
 import time
 from . import *
-from pastix_python import *
+from .pastix_python import *
 
 def function_prepare_arg( function, arg ):
     """Generate a declaration for a variable in the Fortran wrapper."""
@@ -110,7 +110,7 @@ class wrap_python:
  @copyright 2017-''' + time.strftime( "%Y" ) + ''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.0
+ @version 6.2.1
  @author Pierre Ramet
  @author Mathieu Faverge
  @author Tony Delarue

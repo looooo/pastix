@@ -9,11 +9,11 @@ Wrappers
  @copyright 2017-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.0
+ @version 6.2.1
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2021-01-02
+ @date 2022-07-07
 
 """
 
@@ -437,4 +437,3 @@ __all__ = [ 'exclude_list', 'return_variables_dict', 'derived_types', 'arrays_na
 from .wrap_python  import *
 from .wrap_fortran import *
 from .wrap_julia   import *
-

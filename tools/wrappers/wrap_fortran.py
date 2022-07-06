@@ -10,11 +10,11 @@ Wrapper Fortran 90
  @copyright 2017-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.0
+ @version 6.2.1
  @author Mathieu Faverge
  @author Tony Delarue
  @author Selmane Lebdaoui
- @date 2021-04-07
+ @date 2022-07-07
 
 """
 import os
@@ -22,7 +22,7 @@ import re
 import argparse
 import time
 from . import *
-from pastix_fortran import *
+from .pastix_fortran import *
 
 def function_register_derived_type( function, subset, ctype ):
     if not 'derived_types' in function.keys():
@@ -621,7 +621,7 @@ class wrap_fortran:
 !> @copyright 2017-''' + time.strftime( "%Y" ) + ''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !>                      Univ. Bordeaux. All rights reserved.
 !>
-!> @version 6.2.0
+!> @version 6.2.1
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
@@ -663,7 +663,7 @@ class wrap_fortran:
  * @copyright 2017-''' + time.strftime( "%Y" ) + ''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 1.1.0
+ * @version 6.2.1
  * @author Mathieu Faverge
  * @author Tony Delarue
  * @date ''' + time.strftime( "%Y-%m-%d" ) + '''
