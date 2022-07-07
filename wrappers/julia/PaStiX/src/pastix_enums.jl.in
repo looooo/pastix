@@ -7,11 +7,11 @@
  @copyright 2020-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.0
+ @version 6.2.1
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2022-01-13
+ @date 2022-07-07
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -109,14 +109,15 @@ end
     iparm_compress_reltol                = 66,
     iparm_compress_preselect             = 67,
     iparm_compress_iluk                  = 68,
-    iparm_mpi_thread_level               = 69,
-    iparm_modify_parameter               = 70,
-    iparm_start_task                     = 71,
-    iparm_end_task                       = 72,
-    iparm_float                          = 73,
-    iparm_mtx_type                       = 74,
-    iparm_dof_nbr                        = 75,
-    iparm_size                           = 75,
+    iparm_mixed                          = 69,
+    iparm_mpi_thread_level               = 70,
+    iparm_modify_parameter               = 71,
+    iparm_start_task                     = 72,
+    iparm_end_task                       = 73,
+    iparm_float                          = 74,
+    iparm_mtx_type                       = 75,
+    iparm_dof_nbr                        = 76,
+    iparm_size                           = 76,
 }
 
 @cenum Pastix_dparm_t {

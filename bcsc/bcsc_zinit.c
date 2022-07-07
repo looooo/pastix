@@ -2,17 +2,17 @@
  *
  * @file bcsc_zinit.c
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Theophile Terraz
  * @author Tony Delarue
  * @author Vincent Bridonneau
- * @date 2021-01-03
+ * @date 2022-07-07
  *
  * @precisions normal z -> c d s
  *
@@ -35,8 +35,8 @@ __fct_conj( pastix_complex64_t val ) {
     return conj( val );
 #else
     /* This function should not be called in this case */
-    (void)val;
     assert(0);
+    return val;
 #endif
 }
 
@@ -353,7 +353,6 @@ bcsc_zinit( const spmatrix_t     *spm,
 {
     pastix_int_t valuesize;
 
-    bcsc->flttype = spm->flttype;
     valuesize = bcsc_init_global_coltab( spm, ord, solvmtx, bcsc );
 
     /**

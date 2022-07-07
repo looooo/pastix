@@ -4,17 +4,17 @@
  *
  * PaStiX refinement functions implementations.
  *
- * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Gregoire Pichon
  * @author Theophile Terraz
  * @author Vincent Bridonneau
- * @date 2020-02-26
+ * @date 2022-07-07
  * @precisions normal z -> c d s
  *
  **/
@@ -53,6 +53,7 @@ z_pivot_smp( pastix_data_t *pastix_data,
     Clock               t0, t3, refine_clk;
     pastix_int_t        n, itermax;
     pastix_complex64_t *r, *dx;
+    pastix_complex32_t *sb = NULL;
     double              eps, normb, normr;
     double              berr, last_berr;
     pastix_int_t        iter = 0;
@@ -85,6 +86,12 @@ z_pivot_smp( pastix_data_t *pastix_data,
         normb = 1;
     }
 
+    /* Allocating a vector at half-precision, NULL pointer otherwise */
+    if ( pastix_data->iparm[IPARM_MIXED] )
+    {
+        sb = solver.malloc( n * sizeof(pastix_complex32_t) );
+    }
+
     t0 = clockGet();
     while(flag)
     {
@@ -101,7 +108,7 @@ z_pivot_smp( pastix_data_t *pastix_data,
         normr = solver.norm( pastix_data, n, r );
         berr = normr / normb;
 
-        /* Force te first error */
+        /* Force the first error */
         if ( iter == 0 ) {
             last_berr = 3 * berr;
         }
@@ -122,7 +129,7 @@ z_pivot_smp( pastix_data_t *pastix_data,
 
             /* Solve A dx = r */
             solver.copy( pastix_data, n, r, dx );
-            solver.spsv( pastix_data, dx );
+            solver.spsv( pastix_data, dx, sb );
 
             /* Accumulate the solution: x = x + dx */
             solver.axpy( pastix_data, n, 1.0, dx, x );
@@ -142,6 +149,7 @@ z_pivot_smp( pastix_data_t *pastix_data,
 
     solver.free( r );
     solver.free( dx );
+    solver.free( sb );
 
     return iter;
 }

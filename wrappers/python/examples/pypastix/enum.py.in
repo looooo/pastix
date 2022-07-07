@@ -7,12 +7,12 @@
  @copyright 2017-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.0
+ @version 6.2.1
  @author Pierre Ramet
  @author Mathieu Faverge
  @author Tony Delarue
  @author Selmane Lebdaoui
- @date 2022-01-13
+ @date 2022-07-07
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -95,14 +95,15 @@ class iparm:
     compress_reltol                = 65
     compress_preselect             = 66
     compress_iluk                  = 67
-    mpi_thread_level               = 68
-    modify_parameter               = 69
-    start_task                     = 70
-    end_task                       = 71
-    float                          = 72
-    mtx_type                       = 73
-    dof_nbr                        = 74
-    size                           = 75
+    mixed                          = 68
+    mpi_thread_level               = 69
+    modify_parameter               = 70
+    start_task                     = 71
+    end_task                       = 72
+    float                          = 73
+    mtx_type                       = 74
+    dof_nbr                        = 75
+    size                           = 76
 
 class dparm:
     fill_in            = 0

@@ -13,7 +13,7 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Tony Delarue
- * @date 2021-07-02
+ * @date 2022-07-07
  *
  **/
 #ifndef _common_h_
@@ -36,6 +36,14 @@
 #include "pastixdata.h"
 #include "out.h"
 #include "parse_options.h"
+
+#if defined(HAVE_BUILTIN_EXPECT)
+#define pastix_likely( _x_ )   __builtin_expect( (_x_), 1 )
+#define pastix_unlikely( _x_ ) __builtin_expect( (_x_), 0 )
+#else
+#define pastix_likely( _x_ )   ( _x_ )
+#define pastix_unlikely( _x_ ) ( _x_ )
+#endif
 
 #if defined(PASTIX_OS_WINDOWS)
 #include <windows.h>

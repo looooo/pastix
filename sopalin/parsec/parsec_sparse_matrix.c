@@ -4,13 +4,13 @@
  *
  * PaStiX sparse matrix descriptor for parsec.
  *
- * @copyright 2016-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2021-01-03
+ * @date 2022-07-07
  *
  * @addtogroup pastix_parsec
  * @{
@@ -575,7 +575,7 @@ pastix_parsec_register_cblk( parsec_data_collection_t          *o,
  *
  * @brief Generate the PaRSEC descriptor of the sparse matrix.
  *
- * This function creates the PaRSEC descriptor that will provide tha data
+ * This function creates the PaRSEC descriptor that will provide the data
  * mapping and memory location to PaRSEC for the computation.
  *
  *******************************************************************************

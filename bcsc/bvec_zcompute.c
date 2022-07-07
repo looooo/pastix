@@ -4,10 +4,10 @@
  *
  *  Functions computing operations on the BCSC.
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -15,7 +15,7 @@
  * @author Theophile Terraz
  * @author Tony Delarue
  * @author Vincent Bridonneau
- * @date 2021-04-07
+ * @date 2022-07-07
  * @precisions normal z -> c d s
  *
  **/
@@ -1108,24 +1108,61 @@ bvec_zcopy_smp( pastix_data_t            *pastix_data,
  * @ingroup bcsc
  *
  * @brief Solve A x = b with A the sparse matrix
+ * 
+ * In Complex64 and Double precision and if mixed-precision is enabled, solve 
+ * SA sx = sb with SA the sparse matrix previously initialized respectively 
+ * in Complex32 or Float precision.
  *
  *******************************************************************************
  *
  * @param[in] pastix_data
  *          The PaStiX data structure that describes the solver instance.
  *
- * @param[inout] d
+ * @param[inout] b
  *          On entry, the right hand side
- *          On exit, the solution of tha problem A x = b
+ *          On exit, the solution of the problem A x = b
+ * @param[inout] work
+ *          On entry, if mixed-precision is disabled or incompatible with the
+ * sparse matrix's precision, the normal solve function is called and work must
+ * be NULL. On exit, works stays NULL
+ *          If mixed-precision is enabled, work must be allocated as a vector
+ * half the size of b, so that the solve function can be performed in
+ * in mixed-precision. On exit, work is undefined.
  *
  *******************************************************************************/
 void bcsc_zspsv( pastix_data_t      *pastix_data,
-                 pastix_complex64_t *b )
+                 pastix_complex64_t *b,
+                 pastix_complex32_t *work )
 {
     pastix_int_t n = pastix_data->bcsc->gN;
     pastix_data->iparm[IPARM_VERBOSE]--;
+    int rc;
+#if defined(PRECISION_c) || defined(PRECISION_s)
+    assert( !pastix_data->iparm[IPARM_MIXED] );
+    assert( work == NULL );
     pastix_subtask_solve( pastix_data, 1, b, n );
+#else
+    if ( pastix_data->iparm[IPARM_MIXED] ) 
+    {
+        /* Copying b into work at half the precision */
+        rc = LAPACKE_zlag2c_work( LAPACK_COL_MAJOR, n, 1,
+                                  b, n, work, n );
+        assert( rc == 0 );
+        pastix_subtask_solve( pastix_data, 1, work, n );
+        /* Reverting to normal precision after solving */
+        rc = LAPACKE_clag2z_work( LAPACK_COL_MAJOR, n, 1,
+                                  work, n, b, n );
+        assert( rc == 0 );
+    }
+    else
+    {
+        assert(work == NULL);
+        pastix_subtask_solve( pastix_data, 1, b, n );
+    }
+#endif
     pastix_data->iparm[IPARM_VERBOSE]++;
+    (void)rc;
+    (void)work;
 }
 
 /**

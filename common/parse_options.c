@@ -6,7 +6,7 @@
  * ${PASTIX_HOME}/tools/gen_param/pastix_[iparm/dparm/enums].py and run
  * ${PASTIX_HOME}/tools/gen_param/gen_parm_files.py ${PASTIX_HOME}.
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.1
@@ -16,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2021-08-31
+ * @date 2022-07-07
  *
  */
 #include "common.h"
@@ -127,6 +127,8 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_compress_reltol",                iparm)) { return IPARM_COMPRESS_RELTOL; }
     if(0 == strcasecmp("iparm_compress_preselect",             iparm)) { return IPARM_COMPRESS_PRESELECT; }
     if(0 == strcasecmp("iparm_compress_iluk",                  iparm)) { return IPARM_COMPRESS_ILUK; }
+
+    if(0 == strcasecmp("iparm_mixed",                          iparm)) { return IPARM_MIXED; }
 
     if(0 == strcasecmp("iparm_modify_parameter",               iparm)) { return IPARM_MODIFY_PARAMETER; }
     if(0 == strcasecmp("iparm_start_task",                     iparm)) { return IPARM_START_TASK; }
@@ -846,6 +848,8 @@ pastix_param2csv( const pastix_data_t *pastix_data,
     fprintf( csv, "%s,%ld\n", "iparm_compress_reltol",     (long)iparm[IPARM_COMPRESS_RELTOL] );
     fprintf( csv, "%s,%ld\n", "iparm_compress_preselect",  (long)iparm[IPARM_COMPRESS_PRESELECT] );
     fprintf( csv, "%s,%ld\n", "iparm_compress_iluk",       (long)iparm[IPARM_COMPRESS_ILUK] );
+
+    fprintf( csv, "%s,%ld\n", "iparm_mixed", (long)iparm[IPARM_MIXED] );
 
     fprintf( csv, "%s,%s\n",  "iparm_mpi_thread_level",  pastix_mpithreadmode_getstr(iparm[IPARM_MPI_THREAD_LEVEL]) );
 

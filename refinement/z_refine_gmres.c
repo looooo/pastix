@@ -4,17 +4,17 @@
  *
  * PaStiX refinement functions implementations.
  *
- * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Theophile Terraz
  * @author Xavier Lacoste
  * @author Gregoire Pichon
  * @author Vincent Bridonneau
- * @date 2021-01-03
+ * @date 2022-07-07
  * @precisions normal z -> c d s
  *
  **/
@@ -54,6 +54,7 @@ pastix_int_t z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     pastix_complex64_t *gmWi, *gmW;
     pastix_complex64_t *gmcos, *gmsin;
     pastix_complex64_t *gmG;
+    pastix_complex32_t *sgmWi   = NULL;
 #if defined(PASTIX_DEBUG_GMRES)
     pastix_complex64_t *dbg_x, *dbg_r, *dbg_G;
 #endif
@@ -128,6 +129,12 @@ pastix_int_t z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     }
     normx = solver.norm( pastix_data, n, x );
 
+    /* Allocating a vector at half-precision, NULL pointer otherwise */
+    if ( pastix_data->iparm[IPARM_MIXED] )
+    {
+        sgmWi = solver.malloc( n * sizeof(pastix_complex32_t) );
+    }
+
     clockInit(refine_clk);
     clockStart(refine_clk);
 
@@ -186,7 +193,7 @@ pastix_int_t z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
 
             /* Compute w_{i} = M^{-1} v_{i} */
             if ( precond ) {
-                solver.spsv( pastix_data, gmWi );
+                solver.spsv( pastix_data, gmWi, sgmWi );
             }
 
             /* v_{i+1} = A (M^{-1} v_{i}) = A w_{i} */
@@ -311,7 +318,7 @@ pastix_int_t z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
              *     x = x0 + (M^{-1} (V_m y_m))
              */
             solver.gemv( pastix_data, n, i+1, 1.0, gmV, n, gmG, 0., gmW );
-            solver.spsv( pastix_data, gmW );
+            solver.spsv( pastix_data, gmW, sgmWi );
             solver.axpy( pastix_data, n, 1.,  gmW, x );
         }
         else {
@@ -348,6 +355,7 @@ pastix_int_t z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     solver.free(gmH);
     solver.free(gmV);
     solver.free(gmW);
+    solver.free(sgmWi);
 #if defined(PASTIX_DEBUG_GMRES)
     solver.free(dbg_x);
     solver.free(dbg_r);

@@ -10,11 +10,11 @@ Wrapper Julia
  @copyright 2019-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.0
+ @version 6.2.1
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2021-04-07
+ @date 2022-07-07
 
 """
 import os
@@ -22,7 +22,7 @@ import re
 import argparse
 import time
 from . import *
-from pastix_julia import *
+from .pastix_julia import *
 
 def function_prepare_arg( function, arg, return_value ):
     """Generate a declaration for a variable in the interface."""
@@ -98,7 +98,7 @@ class wrap_julia:
  @copyright 2020-''' + time.strftime( "%Y" ) + ''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.0
+ @version 6.2.1
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue

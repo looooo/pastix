@@ -4,17 +4,17 @@
  *
  * PaStiX coefficient array initialization and free routines.
  *
- * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2021-03-30
+ * @date 2022-07-07
  *
  **/
 #include "common.h"
@@ -31,6 +31,9 @@
 #include "cpucblk_dpack.h"
 #include "cpucblk_spack.h"
 
+#include "pastix_zccores.h"
+#include "pastix_dscores.h"
+
 #if defined(PASTIX_WITH_PARSEC)
 #include "sopalin/parsec/pastix_parsec.h"
 #endif
@@ -44,14 +47,34 @@ coeftab_fct_memory_t coeftabMemory[4] =
     coeftab_smemory, coeftab_dmemory, coeftab_cmemory, coeftab_zmemory
 };
 
+static void (*initfunc[2][4])( pastix_coefside_t, const SolverMatrix*,
+                               const pastix_bcsc_t*, pastix_int_t, const char *) =
+{
+    /* Normal precision functions */
+    {
+        cpucblk_sinit,
+        cpucblk_dinit,
+        cpucblk_cinit,
+        cpucblk_zinit
+    },
+    /* Mixed-precision functions */
+    {
+        cpucblk_sinit,
+        cpucblk_dsinit,
+        cpucblk_cinit,
+        cpucblk_zcinit
+    }
+};
+
 /**
  * @brief Internal structure specific to the parallel call of pcoeftabInit()
  */
 struct coeftabinit_s {
-    const SolverMatrix  *datacode; /**< The sovler matrix                         */
+    const SolverMatrix  *datacode; /**< The solver matrix                         */
     const pastix_bcsc_t *bcsc;     /**< The internal block CSC                    */
     const char          *dirname;  /**< The pointer to the output directory       */
     pastix_coefside_t    side;     /**< The side of the matrix beeing initialized */
+    pastix_int_t         mixed;    /**< The mixed-precision parameter             */
 };
 
 /**
@@ -81,28 +104,10 @@ pcoeftabInit( isched_thread_t *ctx,
     const pastix_bcsc_t  *bcsc     = ciargs->bcsc;
     const char           *dirname  = ciargs->dirname;
     pastix_coefside_t     side     = ciargs->side;
+    pastix_int_t          mixed    = ciargs->mixed;
     pastix_int_t i, itercblk;
     pastix_int_t task;
     int rank = ctx->rank;
-
-    void (*initfunc)( pastix_coefside_t, const SolverMatrix*,
-                      const pastix_bcsc_t*, pastix_int_t, const char *) = NULL;
-
-    switch( bcsc->flttype ) {
-    case PastixComplex32:
-        initfunc = cpucblk_cinit;
-        break;
-    case PastixComplex64:
-        initfunc = cpucblk_zinit;
-        break;
-    case PastixFloat:
-        initfunc = cpucblk_sinit;
-        break;
-    case PastixDouble:
-    case PastixPattern:
-    default:
-        initfunc = cpucblk_dinit;
-    }
 
     for (i=0; i < datacode->ttsknbr[rank]; i++)
     {
@@ -110,7 +115,7 @@ pcoeftabInit( isched_thread_t *ctx,
         itercblk = datacode->tasktab[task].cblknum;
 
         /* Init as full rank */
-        initfunc( side, datacode, bcsc, itercblk, dirname );
+        initfunc[mixed][bcsc->flttype - 2]( side, datacode, bcsc, itercblk, dirname );
     }
 }
 
@@ -143,6 +148,7 @@ coeftabInit( pastix_data_t    *pastix_data,
     args.datacode = pastix_data->solvmatr;
     args.bcsc     = pastix_data->bcsc;
     args.side     = side;
+    args.mixed    = pastix_data->iparm[IPARM_MIXED];
 
 #if defined(PASTIX_DEBUG_DUMP_COEFTAB)
     /* Make sure dir_local is initialized before calling it with multiple threads */
@@ -224,7 +230,7 @@ coeftabExit( SolverMatrix *solvmtx )
  * @brief Internal structure specific to the parallel call of pcoeftabComp()
  */
 struct coeftabcomp_s {
-    SolverMatrix        *solvmtx; /**< The sovler matrix               */
+    SolverMatrix        *solvmtx; /**< The solver matrix               */
     pastix_coeftype_t    flttype; /**< The arithmetic type             */
     pastix_atomic_lock_t lock;    /**< Lock to protect the gain update */
     pastix_int_t         gain;    /**< The memory gain on output       */
@@ -337,6 +343,63 @@ coeftabCompress( pastix_data_t *pastix_data )
     isched_parallel_call( pastix_data->isched, pcoeftabComp, (void*)(&args) );
 
     return args.gain;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Compute the ILU levels of a cblk
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          The solver matrix data structure.
+ *
+ * @param[in] cblk
+ *          The column block to compute the ILU levels of.
+ *
+ *******************************************************************************/
+void
+coeftabComputeCblkILULevels( const SolverMatrix *solvmtx, SolverCblk *cblk )
+{
+    /* If there are off diagonal supernodes in the column */
+    SolverBlok *blokB = cblk->fblokptr + 1; /* this diagonal block */
+    SolverBlok *lblkB = cblk[1].fblokptr;   /* the next diagonal block */
+
+    for (; blokB<lblkB; blokB++) {
+        SolverCblk *fcblk = solvmtx->cblktab + blokB->fcblknm;
+        SolverBlok *blokC = fcblk->fblokptr;
+        SolverBlok *blokA;
+
+        /* If there are off-diagonal supernodes in the column*/
+        for (blokA=blokB; blokA<lblkB; blokA++) {
+            int lvl_AB;
+
+            /* Find the facing block */
+            while ( !is_block_inside_fblock(blokA, blokC) ) {
+                blokC++;
+                assert( blokC < fcblk[1].fblokptr );
+            }
+
+            /* Compute the level k of the block */
+            if ( (blokA->iluklvl == INT_MAX) ||
+                 (blokB->iluklvl == INT_MAX) )
+            {
+                lvl_AB = INT_MAX;
+            }
+            else {
+                lvl_AB = blokA->iluklvl + blokB->iluklvl + 1;
+            }
+
+            pastix_cblk_lock( fcblk );
+            blokC->iluklvl = pastix_imin( blokC->iluklvl,
+                                          lvl_AB );
+            assert( blokC->iluklvl >= 0 );
+            pastix_cblk_unlock( fcblk );
+        }
+
+        pastix_atomic_dec_32b( &(fcblk->ctrbcnt) );
+    }
 }
 
 #if defined(PASTIX_WITH_MPI)

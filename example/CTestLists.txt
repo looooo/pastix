@@ -1,6 +1,6 @@
 ###
 #
-#  @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2017-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @version 6.2.1
@@ -8,7 +8,7 @@
 #  @author Pierre Ramet
 #  @author Tony Delarue
 #  @author Nolan Bredel
-#  @date 2021-06-29
+#  @date 2022-07-07
 #
 ###
 cmake_minimum_required (VERSION 3.3)
@@ -22,6 +22,8 @@ set( PASTIX_TESTS
   simple )
 set( PASTIX_REFINE
   refinement )
+set( PASTIX_MIXED
+  simple )
 set( PASTIX_FACTO
      0 1 2 ) # LLh, LDLt, LU
 set( PASTIX_SCHEDS
@@ -136,6 +138,41 @@ foreach( version ${RUNTYPE} )
       set( _test_cmd_her  ${exe} ./${example} -x ${arithm}:10:10:10:2 )
       set( _test_cmd_sym  ${exe} ./${example} -9 ${arithm}:10:10:10:2 )
       if (arithm IN_LIST _complex)
+        add_test(${_test_name}_cg_her       ${_test_cmd_her} -i iparm_refinement pastixrefinecg)
+        add_test(${_test_name}_gmres_her    ${_test_cmd_her} -i iparm_refinement pastixrefinegmres)
+        add_test(${_test_name}_bicgstab_her ${_test_cmd_her} -i iparm_refinement pastixrefinebicgstab)
+      endif()
+      add_test(${_test_name}_cg_sym       ${_test_cmd_sym} -i iparm_refinement pastixrefinecg)
+      add_test(${_test_name}_gmres_sym    ${_test_cmd_sym} -i iparm_refinement pastixrefinegmres)
+      add_test(${_test_name}_bicgstab_sym ${_test_cmd_sym} -i iparm_refinement pastixrefinebicgstab)
+    endforeach()
+  endforeach()
+
+  ### MIXED Precision
+  foreach(example ${PASTIX_MIXED} )
+    set( _test_name c_${version}_example_${example}_mixed_refine )
+    set( _test_cmd  ${exe} ./${example} -i iparm_mixed 1 )
+    add_test(${_test_name}_cg       ${_test_cmd} --hb ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1 -i iparm_refinement pastixrefinecg -d dparm_epsilon_magn_ctrl 1e-14)
+    add_test(${_test_name}_gmres    ${_test_cmd} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinegmres)
+    add_test(${_test_name}_bicgstab ${_test_cmd} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinebicgstab)
+    set( PASTIX_MIXED_PRECISION d z )
+    foreach( arithm_mixed ${PASTIX_MIXED_PRECISION} )
+      set(factos ${PASTIX_FACTO})
+      if (arithm_mixed IN_LIST _complex)
+        list(APPEND factos 3 4)
+      endif()
+      foreach(facto ${factos} )
+        set( _test_name c_${version}_example_${example}_mixed_lap_${arithm_mixed}_facto${facto} )
+        set( _test_cmd2  ${_test_cmd} -9 ${arithm_mixed}:10:10:10:2 -f ${facto} )
+        # Let's avoid testing with diagonal factorizations and Schur complement
+        if( NOT ((version STREQUAL "mpi")) )
+          add_test(${_test_name} ${_test_cmd2} -c 2 )
+        endif()
+      endforeach()
+      set( _test_name c_${version}_example_${example}_mixed_lap_${arithm_mixed}_refine )
+      set( _test_cmd_her  ${_test_cmd} -x ${arithm_mixed}:10:10:10:2 )
+      set( _test_cmd_sym  ${_test_cmd} -9 ${arithm_mixed}:10:10:10:2 )
+      if (arithm_mixed IN_LIST _complex)
         add_test(${_test_name}_cg_her       ${_test_cmd_her} -i iparm_refinement pastixrefinecg)
         add_test(${_test_name}_gmres_her    ${_test_cmd_her} -i iparm_refinement pastixrefinegmres)
         add_test(${_test_name}_bicgstab_her ${_test_cmd_her} -i iparm_refinement pastixrefinebicgstab)

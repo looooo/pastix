@@ -1,14 +1,14 @@
 ###
 #
-#  @copyright 2013-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2013-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.2.0
+#  @version 6.2.1
 #  @author Mathieu Faverge
 #  @author Esragul Korkmaz
 #  @author Gregoire Pichon
 #  @author Tony Delarue
-#  @date 2021-03-16
+#  @date 2022-07-07
 #
 ###
 include(RulesPrecisions)
@@ -17,6 +17,8 @@ include(AddSourceFiles)
 # reset variables
 set(generated_sources "")
 set(generated_headers "")
+set(generated_mixed_sources "")
+set(generated_mixed_headers "")
 
 ### Add trace generation
 if(PASTIX_WITH_EZTRACE)
@@ -48,12 +50,21 @@ set(HEADERS
   cpucblk_zpack.h
 )
 
-precisions_rules_py(generated_headers
+precisions_rules_py(generated_mixed_headers
   "${HEADERS}"
   PRECISIONS "s;d;c;z")
 
+set(MIXED_HEADERS
+  pastix_zccores.h
+  )
+
+precisions_rules_py(generated_mixed_headers
+  "${MIXED_HEADERS}"
+  PRECISIONS "ds;zc")
+
 set(kernels_headers
   ${generated_headers}
+  ${generated_mixed_headers}
   queue.h
   )
 
@@ -109,8 +120,17 @@ precisions_rules_py(generated_sources
   "${SOURCES}"
   PRECISIONS "s;d;c;z")
 
+set(MIXED_SOURCES
+  cpucblk_zcinit.c
+  )
+
+precisions_rules_py(generated_mixed_sources
+  "${MIXED_SOURCES}"
+  PRECISIONS "ds;zc")
+  
 set(kernels_sources
   ${generated_sources}
+  ${generated_mixed_sources}
   kernels.c
   kernels_trace.c
   lowrank.c
@@ -197,6 +217,8 @@ add_documented_files(
   DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   ${generated_headers}
   ${generated_sources}
+  ${generated_mixed_headers}
+  ${generated_mixed_sources}
   )
 
 ### Add non generated files to the global property

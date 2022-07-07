@@ -1,15 +1,15 @@
 /**
  * @file bcsc_z.h
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.1.0
+ * @version 6.2.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Vincent Bridonneau
- * @date 2019-12-12
+ * @date 2022-07-07
  *
  * @precisions normal z -> c d s
  *
@@ -133,7 +133,8 @@ double bcsc_znorm( pastix_normtype_t    ntype,
                    const pastix_bcsc_t *bcsc );
 
 void bcsc_zspsv( pastix_data_t      *pastix_data,
-                 pastix_complex64_t *b );
+                 pastix_complex64_t *b,
+                 pastix_complex32_t *work );
 
 void bcsc_zspmv( const pastix_data_t      *pastix_data,
                  pastix_trans_t            trans,

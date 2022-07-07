@@ -3,10 +3,10 @@
  *
  * Precision dependent coeficient array header.
  *
- * @copyright 2012-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author David Goudin
  * @author Pascal Henon
  * @author Francois Pellegrini
@@ -15,7 +15,7 @@
  * @author Xavier Lacoste
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
- * @date 2021-03-30
+ * @date 2022-07-07
  *
  * @precisions normal z -> s d c
  *
@@ -53,6 +53,10 @@ void coeftab_zgetdiag( const SolverMatrix *solvmtx,
 void coeftab_zdump( pastix_data_t      *pastix_data,
                     const SolverMatrix *solvmtx,
                     const char         *filename );
+void cpucblk_zdumpfile( pastix_coefside_t side,
+                        SolverCblk       *cblk,
+                        pastix_int_t      itercblk,
+                        const char       *directory );
 int  coeftab_zdiff( pastix_coefside_t   side,
                     const SolverMatrix *solvA,
                     SolverMatrix       *solvB );

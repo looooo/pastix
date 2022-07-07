@@ -7,13 +7,13 @@
  * @copyright 2015-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2021-03-30
+ * @date 2022-07-07
  *
  **/
 #include "common.h"
@@ -35,28 +35,28 @@
  *******************************************************************************/
 static pastix_int_t (*sopalinRefine[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
 {
-    //  PastixRefineGMRES
+    /* PastixRefineGMRES */
     {
         s_gmres_smp,
         d_gmres_smp,
         c_gmres_smp,
         z_gmres_smp
     },
-    //  PastixRefineCG
+    /* PastixRefineCG */
     {
         s_grad_smp,
         d_grad_smp,
         c_grad_smp,
         z_grad_smp
     },
-    //  PastixRefineSR
+    /* PastixRefineSR */
     {
         s_pivot_smp,
         d_pivot_smp,
         c_pivot_smp,
         z_pivot_smp
     },
-    //  PastixRefineBiCGSTAB
+    /* PastixRefineBiCGSTAB */
     {
         s_bicgstab_smp,
         d_bicgstab_smp,
@@ -134,8 +134,8 @@ pastix_subtask_refine( pastix_data_t *pastix_data,
 
     /* Prepare the refinement threshold, if not set by the user */
     if ( pastix_data->dparm[DPARM_EPSILON_REFINEMENT] < 0. ) {
-        if ( (bcsc->flttype == PastixFloat) ||
-             (bcsc->flttype == PastixComplex32) ) {
+        int isDouble = (bcsc->flttype == PastixDouble) || (bcsc->flttype == PastixComplex64);
+        if ( (!isDouble) || (isDouble && pastix_data->iparm[IPARM_MIXED]) ) {
             pastix_data->dparm[DPARM_EPSILON_REFINEMENT] = 1e-6;
         }
         else {
@@ -238,17 +238,6 @@ pastix_task_refine( pastix_data_t *pastix_data,
     {
         fprintf(stderr, "Refinement is not available with Schur complement when non local solve is required\n");
         return PASTIX_ERR_BADPARAMETER;
-    }
-
-    /* Prepare the refinement threshold, if not set by the user */
-    if ( pastix_data->dparm[DPARM_EPSILON_REFINEMENT] < 0. ) {
-        if ( (bcsc->flttype == PastixFloat) ||
-             (bcsc->flttype == PastixComplex32) ) {
-            pastix_data->dparm[DPARM_EPSILON_REFINEMENT] = 1e-6;
-        }
-        else {
-            pastix_data->dparm[DPARM_EPSILON_REFINEMENT] = 1e-12;
-        }
     }
 
     /* The spm is distributed, we have to gather it for the moment */
