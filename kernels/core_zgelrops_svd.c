@@ -4,7 +4,7 @@
  *
  * PaStiX low-rank kernel routines using SVD based on Lapack ZGESVD.
  *
- * @copyright 2016-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.1
@@ -12,7 +12,7 @@
  * @author Esragul Korkmaz
  * @author Mathieu Faverge
  * @author Nolan Bredel
- * @date 2021-06-16
+ * @date 2022-07-07
  * @precisions normal z -> c d s
  *
  **/
@@ -195,10 +195,18 @@ core_zge2lr_svd( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
 #if defined(PASTIX_DEBUG_LR_NANCHECK)
     ws = minMN;
 #else
-    ret = MYLAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
-                                 m, n, NULL, m,
-                                 NULL, NULL, ldu, NULL, ldv,
-                                 &ws, lwork, NULL );
+    {
+        /*
+         * rworkfix is a fix to an internal mkl bug
+         * see: https://community.intel.com/t5/Intel-oneAPI-Math-Kernel-Library/MKL-2021-4-CoreDump-with-LAPACKE-cgesvd-work-or-LAPACKE-zgesvd/m-p/1341228
+         */
+        double rwork;
+        ret = MYLAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
+                                     m, n, NULL, m,
+                                     NULL, NULL, ldu, NULL, ldv,
+                                     &ws, lwork, &rwork );
+        (void) rwork;
+    }
 #endif
     lwork = ws;
     zsize = ws;
@@ -414,10 +422,18 @@ core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void 
 #if defined(PASTIX_DEBUG_LR_NANCHECK)
     querysize = rank;
 #else
-    ret = MYLAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
-                                 rank, rank, NULL, rank,
-                                 NULL, NULL, rank, NULL, rank,
-                                 &querysize, -1, NULL);
+    {
+        /*
+         * rworkfix is a fix to an internal mkl bug
+         * see: https://community.intel.com/t5/Intel-oneAPI-Math-Kernel-Library/MKL-2021-4-CoreDump-with-LAPACKE-cgesvd-work-or-LAPACKE-zgesvd/m-p/1341228
+         */
+        double rwork;
+        ret = MYLAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
+                                     rank, rank, NULL, rank,
+                                     NULL, NULL, rank, NULL, rank,
+                                     &querysize, -1, &rwork );
+        (void) rwork;
+    }
 #endif
     lwork = pastix_imax( lwork, querysize );
     wzsize += lwork;
@@ -528,7 +544,7 @@ core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void 
     flops = FLOPS_ZGEQRF( rank, rank ) + FLOPS_ZGELQF( rank, (rank-1) );
 
     kernel_trace_start_lvl2( PastixKernelLvl2_LR_add2C_rradd_recompression );
-    ret = MYLAPACKE_zgesvd_work( CblasColMajor, 'S', 'S',
+    ret = MYLAPACKE_zgesvd_work( LAPACK_COL_MAJOR, 'S', 'S',
                                  rank, rank, R, rank,
                                  s, u, rank, v, rank,
                                  zbuf, lwork, s + rank );
