@@ -1,6 +1,6 @@
 ## Automated PaStiX benchmarking
 
-This section presents the work  put in place to autpmatically benchmark the PaStiX solver on the Plafrim platform.
+This section presents the work  put in place to automatically benchmark the PaStiX solver on the Plafrim platform.
 It is composed of several modules that will be listed here.
 
 ### Initialization of the benchmark
