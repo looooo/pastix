@@ -79,24 +79,18 @@ int main (int argc, char **argv)
 
     spmPrintInfo( spm, stdout );
 
-    /*
-     * For now many operations from the spm check do not work with values and
-     * multiple dofs (variadic or constant), thus we remove the value for
-     * testing
-     */
     spm2 = malloc( sizeof( spmatrix_t ) );
     {
-        if ( spm->values ) {
-            free( spm->values );
-            spm->values = NULL;
-        }
-        spm->flttype = SpmPattern;
-
         rc = spmDofExtend( spm, variadic, dofmax, spm2 );
+        /* Switch spm and spm2 */
         if ( rc == SPM_SUCCESS ) {
-            spmExit( spm );
-            free( spm );
-            spm = spm2;
+            spmatrix_t *spmtmp = spm;
+            spm  = spm2;
+            spm2 = spmtmp;
+        }
+        else {
+            fprintf( stderr, "multidof example: Failed to generate fake df for the matrix. Switch back to single dof mode.\n" );
+            assert( 0 );
         }
     }
 
@@ -108,6 +102,8 @@ int main (int argc, char **argv)
         rc = 0;
     }
     free( spm2 );
+
+    spmPrintInfo( spm, stdout );
 
     /**
      * Perform ordering, symbolic factorization, and analyze steps
