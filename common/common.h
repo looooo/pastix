@@ -121,7 +121,8 @@ pastix_env_is_on(char * str) {
 }
 
 static inline int
-pastix_getenv_get_value_int(char * string, int default_value) {
+pastix_getenv_get_value_int( char *string, int default_value )
+{
     long int ret;
     char *str = pastix_getenv(string);
     if (str == NULL) return default_value;
@@ -132,6 +133,18 @@ pastix_getenv_get_value_int(char * string, int default_value) {
     }
 
     return (int)ret;
+}
+
+static inline char *
+pastix_getenv_get_value_str( char *varname, const char *default_value )
+{
+    char *str = pastix_getenv( varname );
+    if ( str == NULL ) {
+        return strdup( default_value );
+    }
+    else {
+        return strdup( str );
+    }
 }
 
 /* **************************************** */

@@ -78,7 +78,10 @@ pastix_gendirectories( pastix_data_t *pastix_data )
 
     if ( pastix_data->procnum == 0 )
     {
-        *dir_global = strdup( "pastix-XXXXXX" );
+        char *name = pastix_getenv_get_value_str( "PASTIX_OUTPUT_DIR", "pastix" );
+        rc = asprintf( dir_global, "%s-XXXXXX", name );
+        assert( rc != -1 );
+        free( name );
 
 #if !defined(HAVE_MKDTEMP)
         {
@@ -131,7 +134,7 @@ pastix_gendirectories( pastix_data_t *pastix_data )
                    0, pastix_data->inter_node_comm );
     }
 
-    assert( *dir_global != NULL );
+    assert( pastix_data->dir_global != NULL );
 
     /*
      * Create the local directory name
@@ -141,7 +144,7 @@ pastix_gendirectories( pastix_data_t *pastix_data )
     {
         char *localdir;
         rc = asprintf( &localdir, "%s/%0*d",
-                       *dir_global,
+                       pastix_data->dir_global,
                        (int)pastix_iceil( pastix_data->procnbr, 10 ),
                        pastix_data->procnum );
 
