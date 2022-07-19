@@ -32,7 +32,9 @@
  */
 pastix_int_t coeftab_zcompress  ( SolverMatrix *solvmtx );
 void         coeftab_zuncompress( SolverMatrix *solvmtx );
-void         coeftab_zmemory    ( SolverMatrix *solvmtx, pastix_fixdbl_t *dparm );
+void         coeftab_zmemory    ( const SolverMatrix *solvmtx,
+                                  const pastix_int_t *iparm,
+                                  pastix_fixdbl_t    *dparm );
 
 /**
  *    @}

@@ -584,11 +584,9 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
     }
 #endif
 
-    if ( (pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot) &&
-         (pastix_data->iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever) )
+    /* Compute the memory usage */
     {
-        /* Compute the memory gain */
-        coeftabMemory[bcsc->flttype-2]( pastix_data->solvmatr, pastix_data->dparm );
+        coeftabMemory[pastix_data->solvmatr->flttype-2]( pastix_data->solvmatr, pastix_data->iparm, pastix_data->dparm );
 #if defined(PASTIX_WITH_MPI)
         MPI_Allreduce( MPI_IN_PLACE, pastix_data->dparm + DPARM_MEM_FR, 1, MPI_DOUBLE, MPI_SUM, pastix_data->inter_node_comm );
         MPI_Allreduce( MPI_IN_PLACE, pastix_data->dparm + DPARM_MEM_LR, 1, MPI_DOUBLE, MPI_SUM, pastix_data->inter_node_comm );

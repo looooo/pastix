@@ -97,7 +97,7 @@ coeftab_zdump( pastix_data_t      *pastix_data,
  * All non-zeroes coefficients are dumped in the format:
  *    i j val
  * with one value per row.
- * 
+ *
  * The filename is as follows : {L, U}cblk{Index of the cblk}_init.txt
  *
  *******************************************************************************
@@ -107,7 +107,7 @@ coeftab_zdump( pastix_data_t      *pastix_data,
  *          @arg PastixLCoef if lower part only
  *          @arg PastixUCoef if upper part only
  *          @arg PastixLUCoef if both sides.
- * 
+ *
  * @param[in] cblk
  *          The column block to dump into the file.
  *
@@ -294,17 +294,21 @@ coeftab_zuncompress( SolverMatrix *solvmtx )
  * @param[in] solvmtx
  *          The solver matrix of the problem.
  *
+ * @param[in] iparm
+ *          The integer parameter array
+ *
  * @param[inout] dparm
  *          The double parameter array which is going to be updated.
  *
  *******************************************************************************/
 void
-coeftab_zmemory( SolverMatrix    *solvmtx,
-                 pastix_fixdbl_t *dparm )
+coeftab_zmemory_lr( const SolverMatrix *solvmtx,
+                    const pastix_int_t *iparm,
+                    pastix_fixdbl_t    *dparm )
 {
     pastix_coefside_t side = (solvmtx->factotype == PastixFactLU) ? PastixLUCoef : PastixLCoef;
-    SolverCblk  *cblk = solvmtx->cblktab;
-    SolverBlok  *blok;
+    SolverCblk       *cblk = solvmtx->cblktab;
+    const SolverBlok *blok;
     pastix_int_t i, cblknum;
     pastix_int_t    gain[MEMORY_STATS_SIZE] = { 0 };
     pastix_int_t    orig[MEMORY_STATS_SIZE] = { 0 };
@@ -313,15 +317,15 @@ coeftab_zmemory( SolverMatrix    *solvmtx,
     pastix_fixdbl_t totlr, totfr;
 
 #if defined(PASTIX_SUPERNODE_STATS)
-    pastix_int_t    last[3] = { 0 };
-    pastix_fixdbl_t memlast[4];
-    SolverBlok     *solvblok = solvmtx->bloktab;
+    pastix_int_t      last[3] = { 0 };
+    pastix_fixdbl_t   memlast[4];
+    const SolverBlok *solvblok = solvmtx->bloktab;
 
     for(i=0; i<solvmtx->bloknbr; i++, solvblok++ ) {
-        SolverCblk  *lcblk = solvmtx->cblktab + solvblok->lcblknm;
-        pastix_int_t ncols = cblk_colnbr( lcblk );
-        pastix_int_t nrows = blok_rownbr( solvblok );
-        pastix_int_t size  = ncols * nrows;
+        const SolverCblk *lcblk = solvmtx->cblktab + solvblok->lcblknm;
+        pastix_int_t      ncols = cblk_colnbr( lcblk );
+        pastix_int_t      nrows = blok_rownbr( solvblok );
+        pastix_int_t      size  = ncols * nrows;
 
         /* Skip remote data */
         if ( cblk->ownerid != solvmtx->clustnum ) {
@@ -441,40 +445,139 @@ coeftab_zmemory( SolverMatrix    *solvmtx,
         totfr += memfr[i];
     }
 
-    pastix_print( solvmtx->clustnum, 0,
-                  "    Compression:\n"
-                  "      ------------------------------------------------\n"
-                  "      Full-rank supernodes\n"
-                  "        Inside                                %8.3g %co\n"
-                  "        Outside                               %8.3g %co\n"
-                  "      Low-rank supernodes\n"
-                  "        Diag in diag                          %8.3g %co\n"
-                  "        Inside not selected     %8.3g %co / %8.3g %co\n"
-                  "        Inside selected         %8.3g %co / %8.3g %co\n"
-                  "        Outside                 %8.3g %co / %8.3g %co\n"
-                  "      ------------------------------------------------\n"
-                  "      Total                     %8.3g %co / %8.3g %co\n",
-                  pastix_print_value(memfr[FR_InDiag] ), pastix_print_unit(memfr[FR_InDiag] ),
-                  pastix_print_value(memfr[FR_OffDiag]), pastix_print_unit(memfr[FR_OffDiag]),
+    if( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+        pastix_print( solvmtx->clustnum, 0,
+                      "    Compression:\n"
+                      "      ------------------------------------------------\n"
+                      "      Full-rank supernodes\n"
+                      "        Inside                                %8.3g %co\n"
+                      "        Outside                               %8.3g %co\n"
+                      "      Low-rank supernodes\n"
+                      "        Diag in diag                          %8.3g %co\n"
+                      "        Inside not selected     %8.3g %co / %8.3g %co\n"
+                      "        Inside selected         %8.3g %co / %8.3g %co\n"
+                      "        Outside                 %8.3g %co / %8.3g %co\n"
+                      "      ------------------------------------------------\n"
+                      "      Total                     %8.3g %co / %8.3g %co\n",
+                      pastix_print_value(memfr[FR_InDiag] ), pastix_print_unit(memfr[FR_InDiag] ),
+                      pastix_print_value(memfr[FR_OffDiag]), pastix_print_unit(memfr[FR_OffDiag]),
 
-                  pastix_print_value(memfr[LR_DInD]),    pastix_print_unit(memfr[LR_DInD]),
+                      pastix_print_value(memfr[LR_DInD]),    pastix_print_unit(memfr[LR_DInD]),
 
-                  pastix_print_value(memlr[LR_InDiag] ), pastix_print_unit(memlr[LR_InDiag] ),
-                  pastix_print_value(memfr[LR_InDiag] ), pastix_print_unit(memfr[LR_InDiag] ),
+                      pastix_print_value(memlr[LR_InDiag] ), pastix_print_unit(memlr[LR_InDiag] ),
+                      pastix_print_value(memfr[LR_InDiag] ), pastix_print_unit(memfr[LR_InDiag] ),
 
-                  pastix_print_value(memlr[LR_InSele] ), pastix_print_unit(memlr[LR_InSele]),
-                  pastix_print_value(memfr[LR_InSele] ), pastix_print_unit(memfr[LR_InSele]),
+                      pastix_print_value(memlr[LR_InSele] ), pastix_print_unit(memlr[LR_InSele]),
+                      pastix_print_value(memfr[LR_InSele] ), pastix_print_unit(memfr[LR_InSele]),
 
-                  pastix_print_value(memlr[LR_OffDiag]), pastix_print_unit(memlr[LR_OffDiag]),
-                  pastix_print_value(memfr[LR_OffDiag]), pastix_print_unit(memfr[LR_OffDiag]),
+                      pastix_print_value(memlr[LR_OffDiag]), pastix_print_unit(memlr[LR_OffDiag]),
+                      pastix_print_value(memfr[LR_OffDiag]), pastix_print_unit(memfr[LR_OffDiag]),
 
-                  pastix_print_value(totlr),             pastix_print_unit(totlr),
-                  pastix_print_value(totfr),             pastix_print_unit(totfr) );
+                      pastix_print_value(totlr),             pastix_print_unit(totlr),
+                      pastix_print_value(totfr),             pastix_print_unit(totfr) );
+    }
 
     dparm[DPARM_MEM_FR] = totfr;
     dparm[DPARM_MEM_LR] = totlr;
 
     return;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Compute the memory usage of the full-rank form for the entire matrix.
+ *
+ * This function returns the memory usage in bytes for the full matrix when
+ * column blocks are stored in full-rank format.
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          The solver matrix of the problem.
+ *
+ * @param[inout] dparm
+ *          The double parameter array which is going to be updated.
+ *
+ * @param[in] iparm
+ *          The integer parameter array
+ *
+ *******************************************************************************/
+void
+coeftab_zmemory_fr( const SolverMatrix *solvmtx,
+                    const pastix_int_t *iparm,
+                    pastix_fixdbl_t    *dparm )
+{
+    pastix_coefside_t side = (solvmtx->factotype == PastixFactLU) ? PastixLUCoef : PastixLCoef;
+    const SolverCblk *cblk = solvmtx->cblktab;
+    pastix_int_t    cblknum;
+    pastix_fixdbl_t totmem;
+
+    for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
+        pastix_int_t colnbr = cblk_colnbr( cblk );
+        pastix_int_t rownbr = cblk->stride;
+
+        /* Skip remote data */
+        if ( cblk->ownerid != solvmtx->clustnum ) {
+            continue;
+        }
+
+        /* Let's skip recv and fanin for now */
+        if ( cblk->cblktype & (CBLK_RECV|CBLK_FANIN) ) {
+            continue;
+        }
+
+        totmem += (double)colnbr * (double)rownbr;
+    }
+
+    if ( side == PastixLUCoef ) {
+        totmem *= 2.;
+    }
+
+    totmem *= (double)pastix_size_of( PastixComplex64 );
+
+    dparm[DPARM_MEM_FR] = totmem;
+
+    if( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
+        pastix_print( solvmtx->clustnum, 0,
+                      "    Memory usage of coeftab                   %8.3g %co\n",
+                      pastix_print_value(dparm[DPARM_MEM_FR]), pastix_print_unit(dparm[DPARM_MEM_FR]) );
+    }
+
+    return;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Compute the memory usage for the entire matrix.
+ *
+ * This functions computes the memory usage and gain if the matrix is compressed
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          The solver matrix of the problem.
+ *
+ * @param[in] iparm
+ *          The integer parameter array. Uses IPARM_COMPRESS_WHEN, IPARM_VERBOSE
+ *
+ * @param[inout] dparm
+ *          The double parameter array which is going to be updated.
+ *          Update DPARM_MEM_FR and DPARM_MEM_LR.
+ *
+ *******************************************************************************/
+void
+coeftab_zmemory( const SolverMatrix *solvmtx,
+                 const pastix_int_t *iparm,
+                 pastix_fixdbl_t    *dparm )
+{
+    if ( iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever ) {
+        coeftab_zmemory_lr( solvmtx, iparm, dparm );
+    }
+    else {
+        coeftab_zmemory_fr( solvmtx, iparm, dparm );
+    }
 }
 
 /**

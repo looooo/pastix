@@ -51,7 +51,7 @@ void coeftab_nullify( SolverMatrix *solvmtx );
 /**
  * @brief Type of the memory gain functions
  */
-typedef void (*coeftab_fct_memory_t)( SolverMatrix *, pastix_fixdbl_t * );
+typedef void (*coeftab_fct_memory_t)( const SolverMatrix *, const pastix_int_t *, pastix_fixdbl_t * );
 
 /**
  * @brief List of functions to compute the memory gain in low-rank per precision.

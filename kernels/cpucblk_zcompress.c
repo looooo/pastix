@@ -4,7 +4,7 @@
  *
  * Precision dependent function to compress/uncompress the coefficients
  *
- * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.0
@@ -275,7 +275,7 @@ cpucblk_zuncompress( pastix_coefside_t side,
  *******************************************************************************/
 void
 cpucblk_zmemory( pastix_coefside_t   side,
-                 SolverMatrix       *solvmtx,
+                 const SolverMatrix *solvmtx,
                  SolverCblk         *cblk,
                  pastix_int_t       *orig,
                  pastix_int_t       *gain )

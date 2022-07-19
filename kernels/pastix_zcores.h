@@ -3,7 +3,7 @@
  *
  * PaStiX kernel header.
  *
- * @copyright 2011-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2011-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.0
@@ -304,11 +304,11 @@ pastix_int_t cpucblk_zcompress( const SolverMatrix *solvmtx,
                                 SolverCblk         *cblk );
 void         cpucblk_zuncompress( pastix_coefside_t side,
                                   SolverCblk       *cblk );
-void         cpucblk_zmemory    ( pastix_coefside_t  side,
-                                  SolverMatrix      *solvmtx,
-                                  SolverCblk        *cblk,
-                                  pastix_int_t      *orig,
-                                  pastix_int_t      *gain );
+void         cpucblk_zmemory    ( pastix_coefside_t   side,
+                                  const SolverMatrix *solvmtx,
+                                  SolverCblk         *cblk,
+                                  pastix_int_t       *orig,
+                                  pastix_int_t       *gain );
 
 /**
  *     @}
