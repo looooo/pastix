@@ -8,7 +8,7 @@
 
  @version 6.2.1
  @author Tony Delarue
- @date 2022-07-07
+ @date 2022-08-02
 
  This file allows us to generate:
       - Documentation files
@@ -859,11 +859,24 @@ A long description in the doxygen format
 ''',
 }
 
+iparm_global_allocation = {
+    "name" : "iparm_global_allocation",
+    "default" : "0",
+    "brief" : "Enables/Disables the global allocation of the coeftab matrix",
+    "access" : "IN",
+    "description" : r'''
+Enables the allocation of the coeftab matrix with a single allocation instead of allocating the cblk's separately,
+in order to minimize the number of pinned memory allocation.
+It must not be used with compression options
+''',
+}
+
 iparm_gpu_group = {
     "subgroup" : [
         iparm_gpu_nbr,
         iparm_gpu_memory_percentage,
         iparm_gpu_memory_block_size,
+        iparm_global_allocation
     ],
     "name" : "gpu",
     "brief" : "GPU",

@@ -14,7 +14,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2022-07-07
+ * @date 2022-08-06
  *
  **/
 #include "common.h"
@@ -76,6 +76,64 @@ struct coeftabinit_s {
     pastix_coefside_t    side;     /**< The side of the matrix beeing initialized */
     pastix_int_t         mixed;    /**< The mixed-precision parameter             */
 };
+
+/**
+ *******************************************************************************
+ *
+ * @brief Allocates the entire coeftab matrix with a single allocation.
+ *
+ * The different cblk coeftabs are assigned inside the
+ * allocation, each one with their right size.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+ *          On exit, the internal coeftab matrix is allocated.
+ *
+ *******************************************************************************/
+void
+coeftabAlloc( pastix_data_t *pastix_data )
+{
+    SolverMatrix     *solvmatr = pastix_data->solvmatr;
+    SolverCblk       *cblk     = solvmatr->cblktab;
+    pastix_int_t      i, step  = 0;
+    pastix_coeftype_t flttype  = solvmatr->flttype;
+    size_t            size     = solvmatr->coefnbr * pastix_size_of( flttype );
+    char             *workL    = NULL;
+    char             *workU    = NULL;
+
+    MALLOC_INTERN( workL, size, char );
+    memset( workL, 0, size );
+
+    /* Only allocates the U part if necessary */
+    if ( pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU ) {
+        MALLOC_INTERN( workU, size, char );
+        memset( workU, 0, size );
+    }
+
+    /*
+     * Assign the cblks to their corresponding index in work
+     * lcoeftabs and ucoeftabs are both one allocation
+     */
+    for ( i=0; i<solvmatr->cblknbr; i++, cblk++ ) {
+
+        /* FANIN and RECV cblks are allocated independently */
+        if ( cblk->cblktype & (CBLK_RECV|CBLK_FANIN) ) {
+            continue;
+        }
+
+        assert( cblk->lcoeftab == NULL );
+        cblk->lcoeftab = workL + step;
+
+        if ( pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU ) {
+            assert( cblk->ucoeftab == NULL );
+            cblk->ucoeftab = workU + step;
+        }
+
+        step += cblk_colnbr( cblk ) * cblk->stride * pastix_size_of( flttype );
+    }
+}
 
 /**
  *******************************************************************************
@@ -145,10 +203,23 @@ coeftabInit( pastix_data_t    *pastix_data,
 {
     struct coeftabinit_s args;
 
+    pastix_data->solvmatr->globalalloc = pastix_data->iparm[IPARM_GLOBAL_ALLOCATION];
     args.datacode = pastix_data->solvmatr;
     args.bcsc     = pastix_data->bcsc;
     args.side     = side;
     args.mixed    = pastix_data->iparm[IPARM_MIXED];
+
+    if ( pastix_data->iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever ) {
+        pastix_print_warning( "Global allocation is not allowed with compression. It is disabled\n" );
+        pastix_data->solvmatr->globalalloc = 0;
+    }
+
+    /* Allocates the coeftab matrix before multi-threading if global allocation is enabled */
+    if ( args.datacode->globalalloc ) {
+        /* Make sure there is no compression */
+        assert( pastix_data->iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever );
+        coeftabAlloc( pastix_data );
+    }
 
 #if defined(PASTIX_DEBUG_DUMP_COEFTAB)
     /* Make sure dir_local is initialized before calling it with multiple threads */
@@ -211,17 +282,34 @@ coeftabExit( SolverMatrix *solvmtx )
     }
 #endif
 
+    /* If the coeftab is a single allocation, only free the first block */
+    if ( solvmtx->globalalloc ) {
+        memFree_null( solvmtx->cblktab->lcoeftab );
+        if ( solvmtx->cblktab->ucoeftab ) {
+            memFree_null( solvmtx->cblktab->ucoeftab );
+        }
+    }
+
     /* Free arrays of solvmtx */
-    if( solvmtx->cblktab )
+    if ( solvmtx->cblktab )
     {
         SolverCblk *cblk = solvmtx->cblktab;
 
         for ( i = 0; i < solvmtx->cblknbr; i++, cblk++ ) {
-            /* Free is precision independent, so we can use any version */
-            if( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ){
+            if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) {
                 continue;
             }
-            cpucblk_zfree( PastixLUCoef, cblk );
+            /* If the blocks are already freed set them to NULL, else free them */
+            if ( solvmtx->globalalloc ) {
+                cblk->lcoeftab = NULL;
+                if ( cblk->ucoeftab ) {
+                    cblk->ucoeftab = NULL;
+                }
+            }
+            /* Free is precision independent, so we can use any version */
+            else {
+                cpucblk_zfree( PastixLUCoef, cblk );
+            }
         }
     }
 }

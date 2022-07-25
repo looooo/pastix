@@ -16,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2022-07-07
+ * @date 2022-08-06
  *
  */
 #include "common.h"
@@ -692,6 +692,14 @@ iparm_gpu_memory_block_size_check_value( pastix_int_t iparm )
 }
 
 static inline int
+iparm_global_allocation_check_value( pastix_int_t iparm )
+{
+    /* TODO : Check range iparm[IPARM_GLOBAL_ALLOCATION] */
+    (void)iparm;
+    return 0;
+}
+
+static inline int
 iparm_compress_min_width_check_value( pastix_int_t iparm )
 {
     /* TODO : Check range iparm[IPARM_COMPRESS_MIN_WIDTH] */
@@ -924,6 +932,7 @@ iparm_check_values( const pastix_int_t *iparm )
     error += iparm_gpu_nbr_check_value( iparm[IPARM_GPU_NBR] );
     error += iparm_gpu_memory_percentage_check_value( iparm[IPARM_GPU_MEMORY_PERCENTAGE] );
     error += iparm_gpu_memory_block_size_check_value( iparm[IPARM_GPU_MEMORY_BLOCK_SIZE] );
+    error += iparm_global_allocation_check_value( iparm[IPARM_GLOBAL_ALLOCATION] );
     error += iparm_compress_min_width_check_value( iparm[IPARM_COMPRESS_MIN_WIDTH] );
     error += iparm_compress_min_height_check_value( iparm[IPARM_COMPRESS_MIN_HEIGHT] );
     error += iparm_compress_when_check_value( iparm[IPARM_COMPRESS_WHEN] );

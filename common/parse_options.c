@@ -16,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2022-07-07
+ * @date 2022-08-06
  *
  */
 #include "common.h"
@@ -118,6 +118,7 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_gpu_nbr",                        iparm)) { return IPARM_GPU_NBR; }
     if(0 == strcasecmp("iparm_gpu_memory_percentage",          iparm)) { return IPARM_GPU_MEMORY_PERCENTAGE; }
     if(0 == strcasecmp("iparm_gpu_memory_block_size",          iparm)) { return IPARM_GPU_MEMORY_BLOCK_SIZE; }
+    if(0 == strcasecmp("iparm_global_allocation",              iparm)) { return IPARM_GLOBAL_ALLOCATION; }
 
     if(0 == strcasecmp("iparm_compress_min_width",             iparm)) { return IPARM_COMPRESS_MIN_WIDTH; }
     if(0 == strcasecmp("iparm_compress_min_height",            iparm)) { return IPARM_COMPRESS_MIN_HEIGHT; }
@@ -839,6 +840,7 @@ pastix_param2csv( const pastix_data_t *pastix_data,
     fprintf( csv, "%s,%ld\n", "iparm_gpu_nbr",               (long)iparm[IPARM_GPU_NBR] );
     fprintf( csv, "%s,%ld\n", "iparm_gpu_memory_percentage", (long)iparm[IPARM_GPU_MEMORY_PERCENTAGE] );
     fprintf( csv, "%s,%ld\n", "iparm_gpu_memory_block_size", (long)iparm[IPARM_GPU_MEMORY_BLOCK_SIZE] );
+    fprintf( csv, "%s,%ld\n", "iparm_global_allocation",     (long)iparm[IPARM_GLOBAL_ALLOCATION] );
 
     fprintf( csv, "%s,%ld\n", "iparm_compress_min_width",  (long)iparm[IPARM_COMPRESS_MIN_WIDTH] );
     fprintf( csv, "%s,%ld\n", "iparm_compress_min_height", (long)iparm[IPARM_COMPRESS_MIN_HEIGHT] );

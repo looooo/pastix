@@ -13,7 +13,7 @@
  * @author Mathieu Faverge
  * @author Esragul Korkmaz
  * @author Brieuc Nicolas
- * @date 2022-07-07
+ * @date 2022-08-06
  *
  * @precisions mixed zc -> ds
  *
@@ -68,7 +68,11 @@ cpucblk_zcinit( pastix_coefside_t    side,
     int          ilukmax = solvmtx->lowrank.ilu_lvl;
     int rc;
 
-    cpucblk_calloc( side, cblk );
+    /* Do not allocate if already allocated */
+    if ( !solvmtx->globalalloc ) {
+        cpucblk_calloc( side, cblk );
+    }
+
     rc = cpucblk_zcfillin( side, solvmtx, bcsc, itercblk );
     if( rc != 0 ) {
         pastix_print_error("cpucblk_zcinit: mixed-precision overflow during the matrix initialization");
