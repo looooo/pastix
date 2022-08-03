@@ -168,27 +168,27 @@ struct solver_matrix_s {
     int restore; /**< Flag to indicate if it is require to restore data with
                       solverBackupRestore: 0: No need, 1:After solve,
                       2:After Factorization */
-    pastix_int_t            baseval;       /**< Base value for numberings                         */
-    pastix_int_t            nodenbr;       /**< Number of nodes before dof extension              */
-    pastix_int_t            coefnbr;       /**< Number of coefficients (node after dof extension) */
-    pastix_int_t            gcblknbr;      /**< Global number of column blocks                    */
-    pastix_int_t            cblknbr;       /**< Local number of column blocks                     */
-    pastix_int_t            faninnbr;      /**< Local number of fanin cblk (included in cblknbr)  */
-    pastix_int_t            fanincnt;      /**< Number of sends to realize                        */
-    pastix_int_t            maxrecv;       /**< Maximum blok size for a cblk_recv   */
-    pastix_int_t            recvnbr;       /**< Local number of recv cblk (included in cblknbr)   */
-    pastix_int_t            recvcnt;       /**< Number of receptions to realize                   */
+    pastix_int_t            baseval;       /**< Base value for numberings                                    */
+    pastix_int_t            nodenbr;       /**< Number of local columns (after dof extension)                */
+    pastix_int_t            coefnbr;       /**< Number of locally stored values (after dof extension)        */
+    pastix_int_t            gcblknbr;      /**< Global number of column blocks                               */
+    pastix_int_t            cblknbr;       /**< Local number of column blocks                                */
+    pastix_int_t            faninnbr;      /**< Local number of fanin cblk (included in cblknbr)             */
+    pastix_int_t            fanincnt;      /**< Number of sends to realize                                   */
+    pastix_int_t            maxrecv;       /**< Maximum blok size for a cblk_recv                            */
+    pastix_int_t            recvnbr;       /**< Local number of recv cblk (included in cblknbr)              */
+    pastix_int_t            recvcnt;       /**< Number of receptions to realize                              */
     pastix_int_t            cblkmax1d;     /**< Rank of the last cblk not beeing enabled for 2D computations */
     pastix_int_t            cblkmin2d;     /**< Rank of the first cblk beeing enabled for 2D computations    */
-    pastix_int_t            cblkmaxblk;    /**< Maximum number of blocks per cblk         */
-    pastix_int_t            cblkschur;     /**< Index of the first local cblk in Schur    */
-    pastix_int_t            nb2dcblk;      /**< Number of 2D cblks                        */
-    pastix_int_t            nb2dblok;      /**< Number of 2D blocks                       */
-    pastix_int_t            bloknbr;       /**< Number of blocks                          */
-    pastix_int_t            brownbr;       /**< Size of the browtab array                 */
-    SolverCblk   * restrict cblktab;       /**< Array of solver column blocks [+1]        */
-    SolverBlok   * restrict bloktab;       /**< Array of solver blocks        [+1]        */
-    pastix_int_t * restrict browtab;       /**< Array of blocks                           */
+    pastix_int_t            cblkmaxblk;    /**< Maximum number of blocks per cblk                            */
+    pastix_int_t            cblkschur;     /**< Index of the first local cblk in Schur                       */
+    pastix_int_t            nb2dcblk;      /**< Number of 2D cblks                                           */
+    pastix_int_t            nb2dblok;      /**< Number of 2D blocks                                          */
+    pastix_int_t            bloknbr;       /**< Number of blocks                                             */
+    pastix_int_t            brownbr;       /**< Size of the browtab array                                    */
+    SolverCblk   * restrict cblktab;       /**< Array of solver column blocks [+1]                           */
+    SolverBlok   * restrict bloktab;       /**< Array of solver blocks        [+1]                           */
+    pastix_int_t * restrict browtab;       /**< Array of blocks                                              */
     int                     flttype;       /**< valtab datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
     int                     globalalloc;   /**< Boolean for global allocation of coeftab  */
 
