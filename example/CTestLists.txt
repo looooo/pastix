@@ -8,7 +8,7 @@
 #  @author Pierre Ramet
 #  @author Tony Delarue
 #  @author Nolan Bredel
-#  @date 2022-07-07
+#  @date 2022-08-02
 #
 ###
 cmake_minimum_required (VERSION 3.3)
@@ -24,6 +24,8 @@ set( PASTIX_REFINE
   refinement )
 set( PASTIX_MIXED
   simple )
+set( PASTIX_ALLOC
+  simple step-by-step )
 set( PASTIX_FACTO
      0 1 2 ) # LLh, LDLt, LU
 set( PASTIX_SCHEDS
@@ -120,6 +122,22 @@ foreach( version ${RUNTYPE} )
       # Matrix Market - Hermitian
       add_test(${_test_name}_mm2 ${_test_cmd} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx -f 2)
     endforeach()
+  endforeach()
+
+  ### Single Allocation
+  foreach(example ${PASTIX_ALLOC} )
+      set( _test_name c_${version}_example_${example}_single )
+      set( _test_cmd  ${exe} ./${example} )
+      # RSA
+      if (PASTIX_WITH_FORTRAN)
+        add_test(${_test_name}_rsa ${_test_cmd} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1 -d dparm_epsilon_magn_ctrl 1e-14 -i iparm_global_allocation 1)
+      endif()
+      # Matrix Market
+      add_test(${_test_name}_mm  ${_test_cmd} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx  -f 1 -i iparm_global_allocation 1)
+      # Harwell Boeing
+      add_test(${_test_name}_hb  ${_test_cmd} --hb  ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua   -f 2 -i iparm_global_allocation 1)
+      # Matrix Market - Hermitian
+      add_test(${_test_name}_mm2 ${_test_cmd} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx -f 2 -i iparm_global_allocation 1)
   endforeach()
 
   ### Refinement

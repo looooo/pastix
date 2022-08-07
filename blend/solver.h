@@ -16,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2022-07-07
+ * @date 2022-08-02
  *
  **/
 #ifndef _solver_h_
@@ -190,6 +190,7 @@ struct solver_matrix_s {
     SolverBlok   * restrict bloktab;       /**< Array of solver blocks        [+1]        */
     pastix_int_t * restrict browtab;       /**< Array of blocks                           */
     int                     flttype;       /**< valtab datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
+    int                     globalalloc;   /**< Boolean for global allocation of coeftab  */
 
     pastix_int_t           *gcbl2loc;      /**< Array of local cblknum corresponding to gcblknum */
 

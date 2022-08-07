@@ -18,7 +18,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2022-07-07
+ * @date 2022-08-06
  *
  * @addtogroup pastix_api
  * @{
@@ -121,6 +121,7 @@ typedef enum pastix_iparm_e {
     IPARM_GPU_NBR,                        /**< Number of GPU devices                                          Default: 0                         IN  */
     IPARM_GPU_MEMORY_PERCENTAGE,          /**< Maximum percentage of the GPU memory used by the solver        Default: 95                        IN  */
     IPARM_GPU_MEMORY_BLOCK_SIZE,          /**< Size of GPU memory pages (for PaRSEC runtime)                  Default: 32 * 1024                 IN  */
+    IPARM_GLOBAL_ALLOCATION,              /**< Enables/Disables the global allocation of the coeftab matrix   Default: 0                         IN  */
 
     /* Compression */
     IPARM_COMPRESS_MIN_WIDTH,             /**< Minimum width to compress a supernode                          Default: 128                       IN  */

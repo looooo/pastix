@@ -12,7 +12,7 @@
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Esragul Korkmaz
- * @date 2022-07-07
+ * @date 2022-08-06
  *
  * @precisions normal z -> s d c
  *
@@ -216,7 +216,11 @@ cpucblk_zinit( pastix_coefside_t    side,
     SolverCblk  *cblk    = solvmtx->cblktab + itercblk;
     int          ilukmax = solvmtx->lowrank.ilu_lvl;
 
-    cpucblk_zalloc( side, cblk );
+    /* Do not allocate if already allocated */
+    if ( !solvmtx->globalalloc ) {
+        cpucblk_zalloc( side, cblk );
+    }
+
     cpucblk_zfillin( side, solvmtx, bcsc, itercblk );
 
 #if defined(PASTIX_DEBUG_DUMP_COEFTAB)

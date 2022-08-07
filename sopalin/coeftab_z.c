@@ -510,8 +510,8 @@ coeftab_zmemory_fr( const SolverMatrix *solvmtx,
 {
     pastix_coefside_t side = (solvmtx->factotype == PastixFactLU) ? PastixLUCoef : PastixLCoef;
     const SolverCblk *cblk = solvmtx->cblktab;
-    pastix_int_t    cblknum;
-    pastix_fixdbl_t totmem;
+    pastix_int_t      cblknum;
+    pastix_fixdbl_t   totmem = 0.;
 
     for(cblknum=0; cblknum<solvmtx->cblknbr; cblknum++, cblk++) {
         pastix_int_t colnbr = cblk_colnbr( cblk );

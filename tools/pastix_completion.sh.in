@@ -15,7 +15,7 @@
 # @author Esragul Korkmaz
 # @author Gregoire Pichon
 # @author Tony Delarue
-# @date 2022-07-07
+# @date 2022-08-06
 #
 #!/usr/bin/env bash
 
@@ -88,6 +88,7 @@ _pastix_completion()
                                      iparm_gpu_nbr \
                                      iparm_gpu_memory_percentage \
                                      iparm_gpu_memory_block_size \
+                                     iparm_global_allocation \
                                      iparm_compress_min_width \
                                      iparm_compress_min_height \
                                      iparm_compress_when \
