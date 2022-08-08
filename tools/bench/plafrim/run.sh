@@ -28,12 +28,12 @@ guix describe --format=json > guix.json
 GUIX_ENV="pastix"
 export MPI_OPTIONS=""
 # define env var depending on the node type
-if [ $NODE = "bora" ]
+if [ "$NODE" = "bora" ]
 then
   export SLURM_CONSTRAINTS="bora,omnipath"
   export PASTIX_BUILD_OPTIONS="-DPASTIX_WITH_MPI=ON -DCMAKE_BUILD_TYPE=Release -DPASTIX_WITH_STARPU=ON -DPASTIX_WITH_PARSEC=ON"
   export MPI_OPTIONS="--map-by ppr:1:node:pe=36"
-elif [ $NODE = "sirocco" ]
+elif [ "$NODE" = "sirocco" ]
 then
   export SLURM_CONSTRAINTS="sirocco,omnipath,v100"
   export PASTIX_BUILD_OPTIONS="-DPASTIX_WITH_MPI=OFF -DPASTIX_WITH_CUDA=ON -DCMAKE_BUILD_TYPE=Release -DPASTIX_WITH_STARPU=ON -DPASTIX_WITH_PARSEC=ON"
@@ -47,7 +47,7 @@ fi
 export STARPU_HOSTNAME=$NODE
 export PARSEC_HOSTNAME=$NODE
 
-if [ $MPI = "openmpi" ]
+if [ "$MPI" = "openmpi" ]
 then
   GUIX_ENV_MPI=""
   GUIX_ADHOC_MPI="openssh openmpi"
