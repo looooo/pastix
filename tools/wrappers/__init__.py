@@ -20,6 +20,7 @@ Wrappers
 # exclude inline functions from the interface
 exclude_list = [ "spmIntSort1Asc1", "spmIntSort2Asc1",
                  "spmIntSort2Asc2", "spmIntMSortIntAsc",
+                 "spmScalMatrix", "spmScalVector",
                  "orderDraw", "orderSupernodes",
                  "pastixOrderCompute", "pastixOrderApplyLevelOrder",
                  "pastixOrderExpand", "pastixOrderAmalgamate",
@@ -437,3 +438,4 @@ __all__ = [ 'exclude_list', 'return_variables_dict', 'derived_types', 'arrays_na
 from .wrap_python  import *
 from .wrap_fortran import *
 from .wrap_julia   import *
+
