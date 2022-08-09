@@ -15,7 +15,7 @@
  * @author Gregoire Pichon
  * @author Matias Hastaran
  * @author Tony Delarue
- * @date 2022-07-07
+ * @date 2022-10-21
  *
  **/
 #define _GNU_SOURCE 1
@@ -514,6 +514,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_GPU_NBR]               = 0;
     iparm[IPARM_GPU_MEMORY_PERCENTAGE] = 95;
     iparm[IPARM_GPU_MEMORY_BLOCK_SIZE] = 32 * 1024;
+    iparm[IPARM_GLOBAL_ALLOCATION]     = 0;
 
     /* Compression */
     iparm[IPARM_COMPRESS_MIN_WIDTH]    = 128;
