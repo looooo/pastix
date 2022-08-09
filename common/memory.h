@@ -2,17 +2,17 @@
  *
  * @file memory.h
  *
- * @copyright 1998-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 1998-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * PaStiX memory tracking function.
  *
- * @version 6.1.0
+ * @version 6.2.1
  * @author Francois Pellegrini
  * @author Xavier Lacoste
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2019-11-12
+ * @date 2022-10-21
  *
  */
 /*
@@ -36,6 +36,10 @@
  */
 #ifndef _memory_h_
 #define _memory_h_
+
+#if defined(PASTIX_WITH_CUDA)
+#include <cuda_runtime.h>
+#endif
 
 /*
  * Function: pastix_protected_malloc
@@ -77,11 +81,13 @@ static inline void *pastix_malloc_func( size_t size,
 #define MALLOC_EXTERN(ptr, size, type)		\
     ptr = (type*)malloc((size) * sizeof(type))
 
-#define MALLOC_ERROR( _str_ )                                           \
+#define __MALLOC_ERROR( _str_, _fname, _line )                                           \
     {                                                                   \
-        fprintf(stderr, "%s allocation (line=%d,file=%s)\n",(_str_),__LINE__,__FILE__); \
+        fprintf(stderr, "%s allocation (line=%d,file=%s)\n",(_str_),(_line),(_fname)); \
         exit(-1);                                                       \
     }
+
+#define MALLOC_ERROR( _str_ ) __MALLOC_ERROR( _str_, __FILE__, __LINE__ )
 
 /*
  * Macro: MALLOC_INTOREXTERN
@@ -121,5 +127,70 @@ static inline void *pastix_malloc_func( size_t size,
   } while (0)
 
 #define memRealloc realloc
+
+/**
+ *******************************************************************************
+ *
+ * @brief Allocates pinned memory via cuda and normal memory otherwise.
+ *
+ *******************************************************************************
+ *
+ * @param[in] size
+ *          The number of bytes to allocate.
+ *
+ * @param[in] fname
+ *          The name of the file, in order to the malloc error.
+ *
+ * @param[in] line
+ *          The number of the line, in order to the malloc error.
+ *
+ *******************************************************************************/
+static inline void *
+__pastix_malloc_pinned( size_t size, const char* fname, int line )
+{
+    void* ptr;
+#if defined(PASTIX_WITH_CUDA)
+    int rc;
+    rc = cudaMallocHost( &ptr, size );
+    if( rc )
+    {
+        __MALLOC_ERROR( "error with pinned-memory", fname, line );
+    }
+#else
+    ptr = malloc( size );
+#endif
+    (void)fname;
+    (void)line;
+    return ptr;
+}
+
+#define pastix_malloc_pinned( _size_ ) __pastix_malloc_pinned( _size_, __FILE__, __LINE__ )
+
+/**
+ *******************************************************************************
+ *
+ * @brief Frees and sets to NULL memory allocated with pastix_malloc_pinned.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] ptr
+ *          The address to free.
+ *
+ *******************************************************************************/
+static inline void
+__pastix_free_pinned( void *ptr )
+{
+#if defined(PASTIX_WITH_CUDA)
+    cudaFree( ptr );
+#else
+    free( ptr );
+#endif
+}
+
+#define pastix_free_pinned( _ptr_ ) do	\
+    {                                   \
+        __pastix_free_pinned( _ptr_ );  \
+        (_ptr_) = NULL;                 \
+    } while(0)
 
 #endif /* _memory_h_ */
