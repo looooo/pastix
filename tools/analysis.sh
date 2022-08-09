@@ -31,6 +31,7 @@ TOOLSDIR=$(dirname $0)
 $TOOLSDIR/filelist.sh $BUILDDIR
 
 # Generate coverage xml output
+$TOOLSDIR/coverage.sh
 python3 /usr/local/lib/python3.8/dist-packages/lcov_cobertura.py pastix.lcov --output pastix-coverage.xml
 
 # Undefine this because not relevant in our configuration

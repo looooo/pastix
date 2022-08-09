@@ -1,27 +1,12 @@
 #
-# Rule to gather the coverages from the different branches
+# Rule to generate the full coverage of the testings in the branches.
+# Not used by the master, as it is done in the analysis script for sonarqube
 #
 ---
 coverage:
   stage: analyse
   tags: ["docker"]
-  artifacts:
-    name: pastix_coverage
-    expire_in: 180 minutes
-    paths:
-      - pastix.lcov
-      - pastix-*.lcov
-      - pastix-gcov.log
   script:
-    - export INPUT_FILES=""
-    - for name in $( ls -1 pastix-*.lcov );
-      do
-        lcov --remove $name '*spm/*' '*parsec/*trf_sp*'
-           -q --output-file /tmp/$name | tee -a pastix-gcov.log;
-        mv /tmp/$name .;
-        export INPUT_FILES="$INPUT_FILES -a $name";
-      done
-    - lcov $INPUT_FILES -o pastix.lcov  | tee -a pastix-gcov.log
-    - lcov --summary pastix.lcov | tee -a pastix-gcov.log
-  extends:
-    - .only-branches-seq
+    - tools/coverage.sh | tee -a pastix-gcov.log
+  only:
+    - merge_requests
