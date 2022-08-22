@@ -198,17 +198,18 @@ solvMatGen_init_cblk( SolverCblk          *solvcblk,
  *
  *******************************************************************************/
 static inline pastix_int_t
-solvMatGen_supernode_index( SolverCblk           *solvcblk,
+solvMatGen_supernode_index( const symbol_cblk_t  *symbcblk,
+                            SolverCblk           *solvcblk,
                             pastix_int_t          sndeidx,
                             const pastix_order_t *ordeptr )
 {
     while ( (sndeidx < ordeptr->sndenbr ) &&
-            (ordeptr->sndetab[sndeidx+1] <= solvcblk->lcolnum) )
+            (ordeptr->sndetab[sndeidx+1] <= symbcblk->lcolnum) )
     {
         sndeidx++;
     }
-    assert( (ordeptr->sndetab[sndeidx]   <= solvcblk->fcolnum) &&
-            (ordeptr->sndetab[sndeidx+1] >  solvcblk->lcolnum) );
+    assert( (ordeptr->sndetab[sndeidx]   <= symbcblk->fcolnum) &&
+            (ordeptr->sndetab[sndeidx+1] >  symbcblk->lcolnum) );
     solvcblk->sndeidx = sndeidx;
 
     /* Register the cblk as being part of the last supernode */
