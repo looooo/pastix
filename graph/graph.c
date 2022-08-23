@@ -380,6 +380,8 @@ int
 graphSpm2Graph( pastix_graph_t   *graph,
                 const spmatrix_t *spm )
 {
+    spmatrix_t spmtmp;
+
     /* Parameter checks */
     if ( graph == NULL ) {
         return PASTIX_ERR_BADPARAMETER;
@@ -395,14 +397,14 @@ graphSpm2Graph( pastix_graph_t   *graph,
     spmExit( graph );
 
     /* Copy existing datas */
-    spmCopy( spm, graph );
+    memcpy( &spmtmp, spm, sizeof(pastix_graph_t) );
 
-    /* Enforce Pattern type to the graph */
-    graph->flttype = SpmPattern;
-    if ( graph->values ) {
-        free( graph->values );
-        graph->values = NULL;
-    }
+    /* A graph does not contain values */
+    spmtmp.flttype = SpmPattern;
+    spmtmp.values  = NULL;
+
+    /* Reallocate the arrays in case of modifications */
+    spmCopy( &spmtmp, graph );
 
     /* Make sure the graph is in CSC format */
     spmConvert( SpmCSC, graph );
