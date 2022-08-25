@@ -217,8 +217,8 @@ void
 cpucblk_zalloc_fr( pastix_coefside_t  side,
                    SolverCblk        *cblk )
 {
-    pastix_int_t ncols   = cblk_colnbr( cblk );
-    size_t       coefnbr = cblk->stride * ncols;
+    size_t ncols   = cblk_colnbr( cblk );
+    size_t coefnbr = cblk->stride * ncols;
 
     if ( side == PastixLCoef ) {
         assert( cblk->lcoeftab == NULL );
