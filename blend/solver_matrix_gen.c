@@ -94,7 +94,6 @@ solverMatrixGen( SolverMatrix          *solvmtx,
     solver_cblk_recv_t **ftgttab = NULL;
     (void)ordeptr;
 
-    assert( symbmtx->dof == 1 );
     assert( symbmtx->baseval == 0 );
 
     solverInit( solvmtx );
@@ -187,7 +186,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                     solvmtx->colmax = pastix_imax( solvmtx->colmax, cblk_colnbr(solvcblk) );
 
                     /* Update the maximum reception buffer size */
-                    cblksize         = cblk_colnbr(solvcblk) * solvcblk->stride;
+                    cblksize        = cblk_colnbr(solvcblk) * solvcblk->stride;
 
                     if ( solvcblk->cblktype & CBLK_COMPRESSED ) {
                         cblksize += (solvblok - solvcblk->fblokptr);
@@ -296,7 +295,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
             assert( cblknum == (solvcblk - solvmtx->cblktab) );
 
             /* Compute the original supernode in the nested dissection */
-            sndeidx = solvMatGen_supernode_index( solvcblk, sndeidx, ordeptr );
+            sndeidx = solvMatGen_supernode_index( symbcblk, solvcblk, sndeidx, ordeptr );
 
             /*
              * Copy browtab information
@@ -434,7 +433,6 @@ solverMatrixGenSeq( SolverMatrix          *solvmtx,
     pastix_int_t *browtmp = 0;
     (void)ordeptr;
 
-    assert( symbmtx->dof == 1 );
     assert( symbmtx->baseval == 0 );
 
     solverInit( solvmtx );
@@ -520,7 +518,7 @@ solverMatrixGenSeq( SolverMatrix          *solvmtx,
             }
 
             /* Compute the original supernode in the nested dissection */
-            sndeidx = solvMatGen_supernode_index( solvcblk, sndeidx, ordeptr );
+            sndeidx = solvMatGen_supernode_index( symbcblk, solvcblk, sndeidx, ordeptr );
 
             /*
              * Copy browtab information

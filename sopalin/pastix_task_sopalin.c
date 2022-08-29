@@ -85,8 +85,7 @@ int
 pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
                          spmatrix_t    *spm )
 {
-    spmatrix_t *spmg = NULL;
-    double      time;
+    double time;
 
     /*
      * Check parameters
@@ -150,33 +149,13 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
         bcscExit( pastix_data->bcsc );
         memFree_null( pastix_data->bcsc );
     }
-
     MALLOC_INTERN( pastix_data->bcsc, 1, pastix_bcsc_t );
 
-    if ( spm->loc2glob == NULL ) {
-        spmg = spm;
-    }
-#if defined(PASTIX_WITH_MPI)
-    else {
-        if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
-            pastix_print(pastix_data->procnum, 0, "bcscInit: the SPM has to be centralized for the moment\n");
-        }
-        spmg = malloc( sizeof(spmatrix_t) );
-        spmGather( spm, -1, spmg );
-    }
-#endif
-
-    time = bcscInit( spmg,
+    time = bcscInit( spm,
                      pastix_data->ordemesh,
                      pastix_data->solvmatr,
                      (pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU), /*&& (! pastix_data->iparm[IPARM_ONLY_REFINE]) )*/
                      pastix_data->bcsc );
-
-    /* Free the gathered spm */
-    if ( spmg != spm ) {
-        spmExit( spmg );
-        memFree_null( spmg );
-    }
 
     if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
         pastix_print( pastix_data->inter_node_procnum, 0, OUT_BCSC_TIME, time );
@@ -489,7 +468,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
             else {
                 eps = LAPACKE_dlamch_work( 'e' );
             }
-            threshold =  sqrt(eps) * dparm[DPARM_A_NORM];
+            threshold = sqrt(eps) * dparm[DPARM_A_NORM];
         }
         else {
             threshold = dparm[ DPARM_EPSILON_MAGN_CTRL ] * dparm[DPARM_A_NORM];

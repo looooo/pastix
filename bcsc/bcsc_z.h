@@ -24,12 +24,19 @@
  *    @name PastixComplex64 initialization functions
  *    @{
  */
-void bcsc_zinit( const spmatrix_t     *spm,
-                 const pastix_order_t *ord,
-                 const SolverMatrix   *solvmtx,
-                 const pastix_int_t   *col2cblk,
-                       int             initAt,
-                       pastix_bcsc_t  *bcsc );
+void bcsc_zinit( const spmatrix_t         *spm,
+                 const pastix_order_t     *ord,
+                 const SolverMatrix       *solvmtx,
+                 const pastix_int_t       *col2cblk,
+                       int                 initAt,
+                       pastix_bcsc_t      *bcsc,
+                       bcsc_handle_comm_t *bcsc_comm,
+                       pastix_int_t        valuesize );
+
+void bcsc_zstore_data( const spmatrix_t     *spm,
+                       const pastix_order_t *ord,
+                       const pastix_int_t   *col2cblk,
+                       bcsc_handle_comm_t   *bcsc_comm );
 /**
  *   @}
  * @}

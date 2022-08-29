@@ -396,8 +396,14 @@ solvMatGen_reorder_browtab( const symbol_matrix_t *symbmtx,
         solvblok = solvmtx->bloktab + lbloknm;
 
         assert( solvblok->lcblknm == lcblknm );
-        assert( ( symbblok->frownum == solvblok->frownum ) &&
-                ( symbblok->lrownum == solvblok->lrownum ) );
+#if !defined(NDEBUG)
+        {
+            pastix_int_t frownum, lrownum;
+            symbol_blok_get_rownum( symbmtx, symbblok, &frownum, &lrownum );
+            assert( ( frownum == solvblok->frownum ) &&
+                    ( lrownum == solvblok->lrownum ) );
+        }
+#endif
 
         solvmtx->browtab[brownum + j1d] = lbloknm;
         solvblok->browind = brownum + j1d;

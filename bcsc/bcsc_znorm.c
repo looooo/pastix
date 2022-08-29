@@ -110,8 +110,8 @@ bcsc_znorm_inf( const pastix_bcsc_t *bcsc )
         double *sumrow;
         valptr = (pastix_complex64_t*)bcsc->Lvalues;
 
-        MALLOC_INTERN( sumrow, bcsc->n, double);
-        memset( sumrow, 0, bcsc->n * sizeof(double) );
+        MALLOC_INTERN( sumrow, bcsc->gN, double);
+        memset( sumrow, 0, bcsc->gN * sizeof(double) );
 
         for( bloc=0; bloc < bcsc->cscfnbr; bloc++ )
         {
@@ -124,7 +124,7 @@ bcsc_znorm_inf( const pastix_bcsc_t *bcsc )
             }
         }
 
-        for( i=0; i<bcsc->n; i++)
+        for( i=0; i<bcsc->gN; i++)
         {
             if(norm < sumrow[i])
             {

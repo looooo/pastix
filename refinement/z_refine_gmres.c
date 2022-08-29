@@ -77,7 +77,7 @@ pastix_int_t z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
     /* } */
 
     /* Get the parameters */
-    n       = pastix_data->bcsc->n;
+    n       = pastix_data->bcsc->gN;
     im      = pastix_data->iparm[IPARM_GMRES_IM];
     im1     = im + 1;
     itermax = pastix_data->iparm[IPARM_ITERMAX];
