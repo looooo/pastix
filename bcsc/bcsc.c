@@ -73,20 +73,18 @@ bcsc_handle_comm_exit( bcsc_handle_comm_t *bcsc_comm )
     int c;
     int clustnbr = bcsc_comm->clustnbr;
 
-    if( bcsc_comm->data_comm != NULL ) {
-        for ( c = 0; c < clustnbr; c++ ) {
-            if( bcsc_comm->data_comm[c].indexes_A != NULL ) {
-                memFree_null(bcsc_comm->data_comm[c].indexes_A);
-            }
-            if( bcsc_comm->data_comm[c].values_A != NULL ) {
-                memFree_null(bcsc_comm->data_comm[c].values_A);
-            }
-            if( bcsc_comm->data_comm[c].indexes_At != NULL ) {
-                memFree_null(bcsc_comm->data_comm[c].indexes_At);
-            }
-            if( bcsc_comm->data_comm[c].values_At != NULL ) {
-                memFree_null(bcsc_comm->data_comm[c].values_At);
-            }
+    for ( c = 0; c < clustnbr; c++ ) {
+        if( bcsc_comm->data_comm[c].indexes_A != NULL ) {
+            memFree_null(bcsc_comm->data_comm[c].indexes_A);
+        }
+        if( bcsc_comm->data_comm[c].values_A != NULL ) {
+            memFree_null(bcsc_comm->data_comm[c].values_A);
+        }
+        if( bcsc_comm->data_comm[c].indexes_At != NULL ) {
+            memFree_null(bcsc_comm->data_comm[c].indexes_At);
+        }
+        if( bcsc_comm->data_comm[c].values_At != NULL ) {
+            memFree_null(bcsc_comm->data_comm[c].values_At);
         }
     }
     free( bcsc_comm );
@@ -292,7 +290,7 @@ bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
 
             if ( n > nr ) {
                 nr = n;
-                col2cblk_bcast = realloc( col2cblk_bcast, nr * sizeof(pastix_int_t) );
+                col2cblk_bcast = (pastix_int_t *)realloc( col2cblk_bcast, nr * sizeof(pastix_int_t) );
             }
 
             colcount = 0;
@@ -326,7 +324,7 @@ bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
 
             if ( n > nr ) {
                 nr = n;
-                col2cblk_bcast = realloc( col2cblk_bcast, nr * sizeof(pastix_int_t) );
+                col2cblk_bcast = (pastix_int_t *)realloc( col2cblk_bcast, nr * sizeof(pastix_int_t) );
             }
 
             if ( n == 0 ) {

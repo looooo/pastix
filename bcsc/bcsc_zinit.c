@@ -172,6 +172,7 @@ bcsc_zstore_data( const spmatrix_t     *spm,
             values += dofi * dofj;
         }
     }
+    memFree_null( data_cnt );
 }
 
 /**
@@ -910,5 +911,9 @@ bcsc_zinit( const spmatrix_t     *spm,
         bcsc->Uvalues = bcsc->Lvalues;
     }
 
-    (void)bcsc_comm;
+    (void) bcsc_comm;
+    (void) nbelt;
+#if defined(PASTIX_WITH_MPI)
+    (void) nbelt_recv;
+#endif
 }
