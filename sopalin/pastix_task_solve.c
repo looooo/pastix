@@ -21,6 +21,7 @@
 #include "common.h"
 #include "bcsc/bcsc.h"
 #include "pastix/order.h"
+#include "order/order_internal.h"
 #include "blend/solver.h"
 #include "sopalin/sopalin_data.h"
 
@@ -139,7 +140,7 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
                            void             *b,
                            pastix_int_t      ldb )
 {
-    pastix_int_t *perm;
+    pastix_int_t *perm = NULL;
     int ts;
 
     /*
@@ -165,7 +166,7 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
     }
 
     ts   = pastix_data->iparm[IPARM_APPLYPERM_WS];
-    perm = pastix_data->ordemesh->peritab;
+    perm = orderGetExpandedPeritab( pastix_data->ordemesh, pastix_data->csc );
 
     /* See also xlapmr and xlapmt */
     switch( flttype ) {
@@ -765,6 +766,7 @@ pastix_task_solve( pastix_data_t *pastix_data,
                                       b, ldb, sb, ldb );
             break;
         default:
+            rc = 1;
             pastix_print_error( "pastix_task_solve: Invalid float type for mixed-precision" );
         }
 
