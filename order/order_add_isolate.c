@@ -54,8 +54,8 @@
  *******************************************************************************/
 int
 orderAddIsolate(       pastix_order_t *ordemesh,
-                             pastix_int_t    new_n,
-                       const pastix_int_t   *perm )
+                       pastix_int_t    new_n,
+                 const pastix_int_t   *perm )
 {
     pastix_order_t ordesave;
     pastix_int_t i, ip;

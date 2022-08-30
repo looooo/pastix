@@ -896,7 +896,7 @@ bvec_zlapmr( int thread_safe,
     }
 
     if ( dir == PastixDirBackward ) {
-        for(k=0; k<m; k++) {
+        for( k = 0; k < m; k++ ) {
             i = k;
             j = perm_cpy[i];
 
@@ -910,7 +910,7 @@ bvec_zlapmr( int thread_safe,
 
             while( j != k ) {
 
-                for(jj=0; jj<n; jj++) {
+                for( jj = 0; jj < n; jj++ ) {
                     tmp             = A[j + jj * lda];
                     A[j + jj * lda] = A[k + jj * lda];
                     A[k + jj * lda] = tmp;
@@ -925,7 +925,7 @@ bvec_zlapmr( int thread_safe,
         }
     }
     else {
-        for(k=0; k<m; k++) {
+        for( k = 0; k < m; k++ ) {
             i = k;
             j = perm_cpy[i];
             perm_cpy[i] = -j-1;
@@ -940,7 +940,7 @@ bvec_zlapmr( int thread_safe,
             /* Mark the i^th element as being seen */
             while( i >= 0 ) {
 
-                for(jj=0; jj<n; jj++) {
+                for( jj = 0; jj < n; jj++ ) {
                     tmp             = A[j + jj * lda];
                     A[j + jj * lda] = A[i + jj * lda];
                     A[i + jj * lda] = tmp;
@@ -960,7 +960,7 @@ bvec_zlapmr( int thread_safe,
     }
     else {
         /* Restore perm array */
-        for(k=0; k<m; k++) {
+        for( k = 0; k < m; k++ ) {
             assert(perm[k] < 0);
             perm[k] = - perm[k] - 1;
         }
