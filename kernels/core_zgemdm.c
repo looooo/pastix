@@ -146,7 +146,7 @@ core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
              const pastix_complex64_t *D,    int incD,
                    pastix_complex64_t *WORK, int LWORK )
 {
-    int j, Am, Bm;
+    int j, Am, Bm, ret;
     pastix_complex64_t delta;
     pastix_complex64_t *wD2, *w;
     const pastix_complex64_t *wD;
@@ -255,7 +255,8 @@ core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
                 for (j=0; j<K; j++, wD++) {
                     delta = *wD;
                     cblas_zcopy(N, &B[LDB*j], 1,       &w[N*j], 1);
-                    LAPACKE_zlacgv_work(N,             &w[N*j], 1);
+                    ret = LAPACKE_zlacgv_work(N,             &w[N*j], 1);
+                    assert( ret == 0 );
                     cblas_zscal(N, CBLAS_SADDR(delta), &w[N*j], 1);
                 }
             }
@@ -278,5 +279,6 @@ core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
                         CBLAS_SADDR(beta),  C, LDC);
         }
     }
+    (void)ret;
     return PASTIX_SUCCESS;
 }

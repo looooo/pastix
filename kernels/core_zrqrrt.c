@@ -208,7 +208,8 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
 #endif
 
     /* Computation of the Gaussian matrix */
-    LAPACKE_zlarnv_work(3, SEED, size_O, omega);
+    ret = LAPACKE_zlarnv_work(3, SEED, size_O, omega);
+    assert( ret == 0 );
 
     rk = 0;
     while ( (rk < maxrank) && loop )
@@ -248,7 +249,8 @@ core_zrqrrt( double tol, pastix_int_t maxrank, pastix_int_t nb,
             }
 
             /* Computation of the Gaussian matrix */
-            LAPACKE_zlarnv_work(3, SEED, size_O, omega);
+            ret = LAPACKE_zlarnv_work(3, SEED, size_O, omega);
+            assert( ret == 0 );
         }
 
         /*

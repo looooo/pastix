@@ -205,7 +205,7 @@ core_zge2lr_svd( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
                                      m, n, NULL, m,
                                      NULL, NULL, ldu, NULL, ldv,
                                      &ws, lwork, &rwork );
-        (void) rwork;
+        (void)rwork;
     }
 #endif
     lwork = ws;
@@ -279,6 +279,7 @@ core_zge2lr_svd( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
         assert(ret == 0);
     }
 
+    (void)ret;
     memFree_null(zwork);
     return flops;
 }
@@ -432,7 +433,7 @@ core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void 
                                      rank, rank, NULL, rank,
                                      NULL, NULL, rank, NULL, rank,
                                      &querysize, -1, &rwork );
-        (void) rwork;
+        (void)rwork;
     }
 #endif
     lwork = pastix_imax( lwork, querysize );
@@ -696,6 +697,7 @@ core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void 
     kernel_trace_stop_lvl2( flops );
     total_flops += flops;
 
+    (void)ret;
     memFree_null(zbuf);
     return total_flops;
 }
