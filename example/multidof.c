@@ -114,9 +114,12 @@ int main (int argc, char **argv)
 
     /**
      * Expand the ordering, symbol, and spm for the final analyse step, and for
-     * numerical computations.
+     * numerical computations. This is required only if the dof is variadic as
+     * this case is not yet fully supported.
      */
-    pastixExpand( pastix_data, spm );
+    if ( spm->dof < 0 ) {
+        pastixExpand( pastix_data, spm );
+    }
 
     pastix_subtask_blend( pastix_data );
 
