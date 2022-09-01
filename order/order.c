@@ -475,6 +475,75 @@ void pastixOrderExpand( pastix_order_t   *ordeptr,
  *
  * @ingroup pastix_order
  *
+ * @brief This routine expand the peritab array for multi-dof matrices.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix_data structure that holds the ordering structure.
+ *          On exit, the peritab_exp pointer is updated if created.
+ *
+ * @param[in] spm
+ *          The sparse matrix structure providing the dof information.
+ *
+ * @return The expanded peritab array.
+ *
+ *******************************************************************************/
+pastix_int_t *
+orderGetExpandedPeritab( pastix_order_t   *ordeptr,
+                         const spmatrix_t *spm )
+{
+    pastix_int_t       *peritab, *peritab_exp;
+    pastix_int_t        i, j;
+    pastix_int_t        begin, end;
+    pastix_int_t        baseval_spm;
+    pastix_int_t        baseval_ord;
+    const pastix_int_t *dofs;
+
+    assert( ordeptr != NULL );
+    assert( spm     != NULL );
+    assert( spm->gN == ordeptr->vertnbr );
+
+    if ( spm->dof == 1 ) {
+        return ordeptr->peritab;
+    }
+
+    if ( ordeptr->peritab_exp != NULL ) {
+        return ordeptr->peritab_exp;
+    }
+
+    MALLOC_INTERN( peritab_exp, spm->gNexp, pastix_int_t );
+    ordeptr->peritab_exp = peritab_exp;
+
+    baseval_spm = spm->baseval;
+    baseval_ord = ordeptr->baseval;
+
+    /* Shift the dof ptr to take into account the baseval of peritab */
+    dofs    = spm->dofs - baseval_ord;
+    peritab = ordeptr->peritab;
+
+    for ( i = 0; i < ordeptr->vertnbr; i++, peritab++ ) {
+        if ( spm->dof <= 0 ) {
+            begin = dofs[ peritab[0] ] - baseval_spm;
+            end   = dofs[ peritab[1] ] - baseval_spm;
+        }
+        else {
+            begin = (peritab[0] - baseval_ord) * spm->dof;
+            end   = begin + spm->dof;
+        }
+        for ( j = begin; j < end; ++j, ++peritab_exp ) {
+            *peritab_exp = j;
+        }
+    }
+
+    return ordeptr->peritab_exp;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_order
+ *
  * @brief This routine copy a given ordering in a new one.
  *
  * This function copies an order structure into another one. If all subpointers
