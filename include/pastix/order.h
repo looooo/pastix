@@ -82,8 +82,8 @@ void pastixOrderBase( pastix_order_t *ordeptr,
 
 int pastixOrderCheck( const pastix_order_t *ordeptr );
 
-void pastixOrderExpand( pastix_order_t *ordeptr,
-                        spmatrix_t     *spm);
+void pastixOrderExpand( pastix_order_t   *ordeptr,
+                        const spmatrix_t *spm );
 
 int pastixOrderCopy( pastix_order_t       *ordedst,
                      const pastix_order_t *ordesrc );

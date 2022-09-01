@@ -382,26 +382,27 @@ pastixOrderBase( pastix_order_t * const ordeptr,
  *
  * @param[inout] ordeptr
  *          The ordering to expand. On entry, the order of the compressed
- *          unknown. On exit, the ordering is 0-based and contains the
- *          permutation for the expanded matrix.
+ *          matrix/graph. On exit, the ordering is 0-based and contains the
+ *          permutation for the expanded matrix. peritab_ext remains untouched
+ *          (=NULL) because peritab will already be expanded.
  *
- * @param[inout] spm
- *          The sparse matrix structure providing dof information. On exit, the
- *          spm is rebased to 0, if it is not the case on entry.
+ * @param[in] spm
+ *          The sparse matrix structure providing dof information.
  *
  *******************************************************************************/
-void pastixOrderExpand( pastix_order_t * const ordeptr,
-                        spmatrix_t     * const spm )
+void pastixOrderExpand( pastix_order_t   *ordeptr,
+                        const spmatrix_t *spm )
 {
-    pastix_int_t *peritab;
-    pastix_int_t  i, j, n;
-    pastix_int_t  begin, end, sum_rang, sum_snde;
-    pastix_int_t *newperi;
-    pastix_int_t *rangtab;
-    pastix_int_t *sndetab;
+    pastix_int_t       *peritab;
+    pastix_int_t        i, j, n;
+    pastix_int_t        begin, end, sum_rang, sum_snde;
+    pastix_int_t       *newperi;
+    pastix_int_t       *rangtab;
+    pastix_int_t       *sndetab;
+    pastix_int_t        baseval;
     const pastix_int_t *dofs;
 
-    spmBase( spm, 0 );
+    baseval = spm->baseval;
     pastixOrderBase( ordeptr, 0 );
 
     n = spm->nexp;
@@ -423,8 +424,8 @@ void pastixOrderExpand( pastix_order_t * const ordeptr,
     for (i=0; i<ordeptr->vertnbr; i++)
     {
         if ( spm->dof <= 0 ) {
-            begin = dofs[ peritab[i] ];
-            end   = dofs[ peritab[i] + 1 ];
+            begin = dofs[ peritab[i] ] - baseval;
+            end   = dofs[ peritab[i] + 1 ] - baseval;
         }
         else {
             begin = peritab[i] * spm->dof;
