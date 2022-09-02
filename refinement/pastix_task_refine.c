@@ -135,7 +135,7 @@ pastix_subtask_refine( pastix_data_t *pastix_data,
     /* Prepare the refinement threshold, if not set by the user */
     if ( pastix_data->dparm[DPARM_EPSILON_REFINEMENT] < 0. ) {
         int isDouble = (bcsc->flttype == PastixDouble) || (bcsc->flttype == PastixComplex64);
-        if ( (!isDouble) || (isDouble && pastix_data->iparm[IPARM_MIXED]) ) {
+        if ( (!isDouble) ) {
             pastix_data->dparm[DPARM_EPSILON_REFINEMENT] = 1e-6;
         }
         else {
