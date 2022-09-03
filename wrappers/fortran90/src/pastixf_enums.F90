@@ -10,7 +10,7 @@
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2022-07-07
+!> @date 2022-09-03
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -110,23 +110,24 @@ module pastixf_enums
      enumerator :: IPARM_GPU_NBR                        = 58
      enumerator :: IPARM_GPU_MEMORY_PERCENTAGE          = 59
      enumerator :: IPARM_GPU_MEMORY_BLOCK_SIZE          = 60
-     enumerator :: IPARM_COMPRESS_MIN_WIDTH             = 61
-     enumerator :: IPARM_COMPRESS_MIN_HEIGHT            = 62
-     enumerator :: IPARM_COMPRESS_WHEN                  = 63
-     enumerator :: IPARM_COMPRESS_METHOD                = 64
-     enumerator :: IPARM_COMPRESS_ORTHO                 = 65
-     enumerator :: IPARM_COMPRESS_RELTOL                = 66
-     enumerator :: IPARM_COMPRESS_PRESELECT             = 67
-     enumerator :: IPARM_COMPRESS_ILUK                  = 68
-     enumerator :: IPARM_MIXED                          = 69
-     enumerator :: IPARM_MPI_THREAD_LEVEL               = 70
-     enumerator :: IPARM_MODIFY_PARAMETER               = 71
-     enumerator :: IPARM_START_TASK                     = 72
-     enumerator :: IPARM_END_TASK                       = 73
-     enumerator :: IPARM_FLOAT                          = 74
-     enumerator :: IPARM_MTX_TYPE                       = 75
-     enumerator :: IPARM_DOF_NBR                        = 76
-     enumerator :: IPARM_SIZE                           = 76
+     enumerator :: IPARM_GLOBAL_ALLOCATION              = 61
+     enumerator :: IPARM_COMPRESS_MIN_WIDTH             = 62
+     enumerator :: IPARM_COMPRESS_MIN_HEIGHT            = 63
+     enumerator :: IPARM_COMPRESS_WHEN                  = 64
+     enumerator :: IPARM_COMPRESS_METHOD                = 65
+     enumerator :: IPARM_COMPRESS_ORTHO                 = 66
+     enumerator :: IPARM_COMPRESS_RELTOL                = 67
+     enumerator :: IPARM_COMPRESS_PRESELECT             = 68
+     enumerator :: IPARM_COMPRESS_ILUK                  = 69
+     enumerator :: IPARM_MIXED                          = 70
+     enumerator :: IPARM_MPI_THREAD_LEVEL               = 71
+     enumerator :: IPARM_MODIFY_PARAMETER               = 72
+     enumerator :: IPARM_START_TASK                     = 73
+     enumerator :: IPARM_END_TASK                       = 74
+     enumerator :: IPARM_FLOAT                          = 75
+     enumerator :: IPARM_MTX_TYPE                       = 76
+     enumerator :: IPARM_DOF_NBR                        = 77
+     enumerator :: IPARM_SIZE                           = 77
   end enum
 
   ! enum dparm

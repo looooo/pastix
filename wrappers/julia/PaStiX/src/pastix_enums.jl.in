@@ -11,7 +11,7 @@
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2022-07-07
+ @date 2022-09-03
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -101,23 +101,24 @@ end
     iparm_gpu_nbr                        = 58,
     iparm_gpu_memory_percentage          = 59,
     iparm_gpu_memory_block_size          = 60,
-    iparm_compress_min_width             = 61,
-    iparm_compress_min_height            = 62,
-    iparm_compress_when                  = 63,
-    iparm_compress_method                = 64,
-    iparm_compress_ortho                 = 65,
-    iparm_compress_reltol                = 66,
-    iparm_compress_preselect             = 67,
-    iparm_compress_iluk                  = 68,
-    iparm_mixed                          = 69,
-    iparm_mpi_thread_level               = 70,
-    iparm_modify_parameter               = 71,
-    iparm_start_task                     = 72,
-    iparm_end_task                       = 73,
-    iparm_float                          = 74,
-    iparm_mtx_type                       = 75,
-    iparm_dof_nbr                        = 76,
-    iparm_size                           = 76,
+    iparm_global_allocation              = 61,
+    iparm_compress_min_width             = 62,
+    iparm_compress_min_height            = 63,
+    iparm_compress_when                  = 64,
+    iparm_compress_method                = 65,
+    iparm_compress_ortho                 = 66,
+    iparm_compress_reltol                = 67,
+    iparm_compress_preselect             = 68,
+    iparm_compress_iluk                  = 69,
+    iparm_mixed                          = 70,
+    iparm_mpi_thread_level               = 71,
+    iparm_modify_parameter               = 72,
+    iparm_start_task                     = 73,
+    iparm_end_task                       = 74,
+    iparm_float                          = 75,
+    iparm_mtx_type                       = 76,
+    iparm_dof_nbr                        = 77,
+    iparm_size                           = 77,
 }
 
 @cenum Pastix_dparm_t {
