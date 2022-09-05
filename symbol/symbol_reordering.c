@@ -575,6 +575,7 @@ symbol_reorder_cblk( const symbol_matrix_t *symbptr,
                 }
             }
         }
+        (void)weight;
     }
 
     /* Apply the pseudo-TSP algorithm to the rows in the current supernode */
