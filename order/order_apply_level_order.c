@@ -93,8 +93,8 @@ orderBuildEtree( const pastix_order_t *order )
  *******************************************************************************/
 int
 orderApplyLevelOrder( pastix_order_t *order,
-                            pastix_int_t    level_tasks2d,
-                            pastix_int_t    width_tasks2d )
+                      pastix_int_t    level_tasks2d,
+                      pastix_int_t    width_tasks2d )
 {
     pastix_order_t  oldorder;
     EliminTree     *etree;

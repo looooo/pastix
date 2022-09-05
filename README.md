@@ -135,6 +135,8 @@ The following people contribute or contributed to the development of PaStiX:
 * Florent Pruvost, CMake and Spack
 * Theophile Terraz
 * Tony Delarue, MPI implementation
+* Brieuc Nicolas, mixed precision
+* Alycia Lisito
 
 If we forgot your name, please let us know that we can fix that mistake.
 

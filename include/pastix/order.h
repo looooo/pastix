@@ -43,60 +43,73 @@ typedef struct etree_s EliminTree;
  * It also stores the partitioning tree and the set of supernodes.
  */
 typedef struct pastix_order_s {
-    pastix_int_t  baseval;   /**< base value used for numbering       */
-    pastix_int_t  vertnbr;   /**< Number of vertices                  */
-    pastix_int_t  cblknbr;   /**< Number of column blocks             */
-    pastix_int_t *permtab;   /**< Permutation array of size vertnbr [based]           */
-    pastix_int_t *peritab;   /**< Inverse permutation array of size vertnbr [based]   */
-    pastix_int_t *rangtab;   /**< Supernode array of size cblknbr+1 [based,+1]        */
-    pastix_int_t *treetab;   /**< Partitioning tree of size cblknbr+1 [based]         */
-    int8_t       *selevtx;   /**< Selected vertices for low-rank clustering of size cblknbr */
-    pastix_int_t  sndenbr;   /**< The number of original supernodes before clustering */
-    pastix_int_t *sndetab;   /**< Original supernode array of size sndenbr [based,+1] */
+    pastix_int_t  baseval;     /**< base value used for numbering                             */
+    pastix_int_t  vertnbr;     /**< Number of vertices                                        */
+    pastix_int_t  cblknbr;     /**< Number of column blocks                                   */
+    pastix_int_t *permtab;     /**< Permutation array of size vertnbr [based]                 */
+    pastix_int_t *peritab;     /**< Inverse permutation array of size vertnbr [based]         */
+    pastix_int_t *rangtab;     /**< Supernode array of size cblknbr+1 [based,+1]              */
+    pastix_int_t *treetab;     /**< Partitioning tree of size cblknbr+1 [based]               */
+    int8_t       *selevtx;     /**< Selected vertices for low-rank clustering of size cblknbr */
+    pastix_int_t  sndenbr;     /**< The number of original supernodes before clustering       */
+    pastix_int_t *sndetab;     /**< Original supernode array of size sndenbr [based,+1]       */
+    pastix_int_t *peritab_exp; /**< Computed field that should not be modified by the user    */
 } pastix_order_t;
 
 /**
  * @name Order basic subroutines
  * @{
  */
-int  pastixOrderInit  (       pastix_order_t *ordeptr,
-                              pastix_int_t    baseval,
-                              pastix_int_t    vertnbr,
-                              pastix_int_t    cblknbr,
-                              pastix_int_t   *perm,
-                              pastix_int_t   *invp,
-                              pastix_int_t   *rang,
-                              pastix_int_t   *tree );
-int  pastixOrderAlloc (       pastix_order_t *ordeptr,
-                              pastix_int_t    vertnbr,
-                              pastix_int_t    cblknbr );
-int  pastixOrderAllocId(      pastix_order_t *ordeptr,
-                              pastix_int_t    vertnbr );
-void pastixOrderExit  (       pastix_order_t *ordeptr );
-void pastixOrderBase  (       pastix_order_t *ordeptr,
-                              pastix_int_t    baseval );
-int  pastixOrderCheck ( const pastix_order_t *ordeptr );
-void pastixOrderExpand(       pastix_order_t *ordeptr,
-                              spmatrix_t     *spm);
-int  pastixOrderCopy  (       pastix_order_t *ordedst,
-                        const pastix_order_t *ordesrc );
+int pastixOrderInit( pastix_order_t *ordeptr,
+                     pastix_int_t    baseval,
+                     pastix_int_t    vertnbr,
+                     pastix_int_t    cblknbr,
+                     pastix_int_t   *perm,
+                     pastix_int_t   *invp,
+                     pastix_int_t   *rang,
+                     pastix_int_t   *tree );
+
+int pastixOrderAlloc( pastix_order_t *ordeptr,
+                      pastix_int_t    vertnbr,
+                      pastix_int_t    cblknbr );
+
+int pastixOrderAllocId( pastix_order_t *ordeptr,
+                        pastix_int_t    vertnbr );
+
+void pastixOrderExit( pastix_order_t *ordeptr );
+
+void pastixOrderBase( pastix_order_t *ordeptr,
+                      pastix_int_t    baseval );
+
+int pastixOrderCheck( const pastix_order_t *ordeptr );
+
+void pastixOrderExpand( pastix_order_t   *ordeptr,
+                        const spmatrix_t *spm );
+
+int pastixOrderCopy( pastix_order_t       *ordedst,
+                     const pastix_order_t *ordesrc );
 
 pastix_order_t *pastixOrderGet( const pastix_data_t *pastix_data );
 
 void pastixOrderBcast( pastix_order_t *ordemesh,
                        int             root,
-                       PASTIX_Comm     pastix_comm  );
+                       PASTIX_Comm     pastix_comm );
 
-int  pastixOrderGrid( pastix_order_t **myorder, pastix_int_t nx,
-                      pastix_int_t ny, pastix_int_t nz );
+int pastixOrderGrid( pastix_order_t **myorder,
+                     pastix_int_t     nx,
+                     pastix_int_t     ny,
+                     pastix_int_t     nz );
 
 /**
  * @}
  * @name Order IO subroutines
  * @{
  */
-int  pastixOrderLoad( const pastix_data_t *pastix_data,       pastix_order_t *ordeptr );
-int  pastixOrderSave(       pastix_data_t *pastix_data, const pastix_order_t *ordeptr );
+int pastixOrderLoad( const pastix_data_t *pastix_data,
+                     pastix_order_t      *ordeptr );
+
+int pastixOrderSave( pastix_data_t        *pastix_data,
+                     const pastix_order_t *ordeptr );
 
 /**
  * @}

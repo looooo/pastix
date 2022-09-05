@@ -66,6 +66,9 @@ pastix_int_t orderSupernodes( const pastix_graph_t *graph,
                               pastix_int_t         *iparm,
                               int                   do_schur );
 
+pastix_int_t *orderGetExpandedPeritab( pastix_order_t   *ordeptr,
+                                       const spmatrix_t *spm );
+
 /**
  * @}
  * @name Order manipulation subroutines

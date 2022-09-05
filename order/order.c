@@ -295,6 +295,9 @@ pastixOrderExit( pastix_order_t * const ordeptr )
     if (ordeptr->sndetab != NULL) {
         memFree_null (ordeptr->sndetab);
     }
+    if (ordeptr->peritab_exp != NULL) {
+        memFree_null (ordeptr->peritab_exp);
+    }
     memset(ordeptr, 0, sizeof(pastix_order_t) );
 }
 
@@ -382,26 +385,27 @@ pastixOrderBase( pastix_order_t * const ordeptr,
  *
  * @param[inout] ordeptr
  *          The ordering to expand. On entry, the order of the compressed
- *          unknown. On exit, the ordering is 0-based and contains the
- *          permutation for the expanded matrix.
+ *          matrix/graph. On exit, the ordering is 0-based and contains the
+ *          permutation for the expanded matrix. peritab_ext remains untouched
+ *          (=NULL) because peritab will already be expanded.
  *
- * @param[inout] spm
- *          The sparse matrix structure providing dof information. On exit, the
- *          spm is rebased to 0, if it is not the case on entry.
+ * @param[in] spm
+ *          The sparse matrix structure providing dof information.
  *
  *******************************************************************************/
-void pastixOrderExpand( pastix_order_t * const ordeptr,
-                        spmatrix_t     * const spm )
+void pastixOrderExpand( pastix_order_t   *ordeptr,
+                        const spmatrix_t *spm )
 {
-    pastix_int_t *peritab;
-    pastix_int_t  i, j, n;
-    pastix_int_t  begin, end, sum_rang, sum_snde;
-    pastix_int_t *newperi;
-    pastix_int_t *rangtab;
-    pastix_int_t *sndetab;
+    pastix_int_t       *peritab;
+    pastix_int_t        i, j, n;
+    pastix_int_t        begin, end, sum_rang, sum_snde;
+    pastix_int_t       *newperi;
+    pastix_int_t       *rangtab;
+    pastix_int_t       *sndetab;
+    pastix_int_t        baseval;
     const pastix_int_t *dofs;
 
-    spmBase( spm, 0 );
+    baseval = spm->baseval;
     pastixOrderBase( ordeptr, 0 );
 
     n = spm->nexp;
@@ -423,8 +427,8 @@ void pastixOrderExpand( pastix_order_t * const ordeptr,
     for (i=0; i<ordeptr->vertnbr; i++)
     {
         if ( spm->dof <= 0 ) {
-            begin = dofs[ peritab[i] ];
-            end   = dofs[ peritab[i] + 1 ];
+            begin = dofs[ peritab[i] ] - baseval;
+            end   = dofs[ peritab[i] + 1 ] - baseval;
         }
         else {
             begin = peritab[i] * spm->dof;
@@ -464,6 +468,75 @@ void pastixOrderExpand( pastix_order_t * const ordeptr,
         j = ordeptr->peritab[i];
         ordeptr->permtab[j] = i;
     }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_order
+ *
+ * @brief This routine expand the peritab array for multi-dof matrices.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix_data structure that holds the ordering structure.
+ *          On exit, the peritab_exp pointer is updated if created.
+ *
+ * @param[in] spm
+ *          The sparse matrix structure providing the dof information.
+ *
+ * @return The expanded peritab array.
+ *
+ *******************************************************************************/
+pastix_int_t *
+orderGetExpandedPeritab( pastix_order_t   *ordeptr,
+                         const spmatrix_t *spm )
+{
+    pastix_int_t       *peritab, *peritab_exp;
+    pastix_int_t        i, j;
+    pastix_int_t        begin, end;
+    pastix_int_t        baseval_spm;
+    pastix_int_t        baseval_ord;
+    const pastix_int_t *dofs;
+
+    assert( ordeptr != NULL );
+    assert( spm     != NULL );
+    assert( spm->gN == ordeptr->vertnbr );
+
+    if ( spm->dof == 1 ) {
+        return ordeptr->peritab;
+    }
+
+    if ( ordeptr->peritab_exp != NULL ) {
+        return ordeptr->peritab_exp;
+    }
+
+    MALLOC_INTERN( peritab_exp, spm->gNexp, pastix_int_t );
+    ordeptr->peritab_exp = peritab_exp;
+
+    baseval_spm = spm->baseval;
+    baseval_ord = ordeptr->baseval;
+
+    /* Shift the dof ptr to take into account the baseval of peritab */
+    dofs    = spm->dofs - baseval_ord;
+    peritab = ordeptr->peritab;
+
+    for ( i = 0; i < ordeptr->vertnbr; i++, peritab++ ) {
+        if ( spm->dof <= 0 ) {
+            begin = dofs[ peritab[0] ] - baseval_spm;
+            end   = dofs[ peritab[1] ] - baseval_spm;
+        }
+        else {
+            begin = (peritab[0] - baseval_ord) * spm->dof;
+            end   = begin + spm->dof;
+        }
+        for ( j = begin; j < end; ++j, ++peritab_exp ) {
+            *peritab_exp = j;
+        }
+    }
+
+    return ordeptr->peritab_exp;
 }
 
 /**

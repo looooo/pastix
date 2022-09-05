@@ -21,6 +21,7 @@
 #include "common.h"
 #include "bcsc/bcsc.h"
 #include "pastix/order.h"
+#include "order/order_internal.h"
 #include "blend/solver.h"
 #include "sopalin/sopalin_data.h"
 
@@ -32,16 +33,21 @@
 #include <lapacke.h>
 
 #if defined(PASTIX_DEBUG_SOLVE)
-#include <z_spm.h>
-#include <c_spm.h>
-#include <d_spm.h>
-#include <s_spm.h>
+#include <spm/z_spm.h>
+#include <spm/c_spm.h>
+#include <spm/d_spm.h>
+#include <spm/s_spm.h>
 
 static volatile int32_t step = 0;
 
 static inline void
-dump_rhs( pastix_data_t *pastix_data, const char *name,
-          spm_coeftype_t flttype, int m, int n, const void *b, int ldb )
+dump_rhs( pastix_data_t  *pastix_data,
+          const char     *name,
+          spm_coeftype_t  flttype,
+          int             m,
+          int             n,
+          const void     *b,
+          int             ldb )
 {
     FILE *f;
     f = pastix_fopenw( (pastix_data->dir_local == NULL) ? "." : pastix_data->dir_local,
@@ -68,8 +74,13 @@ dump_rhs( pastix_data_t *pastix_data, const char *name,
 }
 #else
 static inline void
-dump_rhs( pastix_data_t *pastix_data, const char *name,
-          spm_coeftype_t flttype, int m, int n, const void *b, int ldb )
+dump_rhs( pastix_data_t  *pastix_data,
+          const char     *name,
+          spm_coeftype_t  flttype,
+          int             m,
+          int             n,
+          const void     *b,
+          int             ldb )
 {
     (void)pastix_data;
     (void)name;
@@ -121,11 +132,15 @@ dump_rhs( pastix_data_t *pastix_data, const char *name,
  *
  *******************************************************************************/
 int
-pastix_subtask_applyorder( pastix_data_t *pastix_data,
-                           pastix_coeftype_t flttype, pastix_dir_t dir,
-                           pastix_int_t m, pastix_int_t n, void *b, pastix_int_t ldb )
+pastix_subtask_applyorder( pastix_data_t    *pastix_data,
+                           pastix_coeftype_t flttype,
+                           pastix_dir_t      dir,
+                           pastix_int_t      m,
+                           pastix_int_t      n,
+                           void             *b,
+                           pastix_int_t      ldb )
 {
-    pastix_int_t *perm;
+    pastix_int_t *perm = NULL;
     int ts;
 
     /*
@@ -151,7 +166,7 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
     }
 
     ts   = pastix_data->iparm[IPARM_APPLYPERM_WS];
-    perm = pastix_data->ordemesh->peritab;
+    perm = orderGetExpandedPeritab( pastix_data->ordemesh, pastix_data->csc );
 
     /* See also xlapmr and xlapmt */
     switch( flttype ) {
@@ -235,10 +250,15 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
  *
  *******************************************************************************/
 int
-pastix_subtask_trsm( pastix_data_t *pastix_data,
-                     pastix_coeftype_t flttype, pastix_side_t side,
-                     pastix_uplo_t uplo, pastix_trans_t trans, pastix_diag_t diag,
-                     pastix_int_t nrhs, void *b, pastix_int_t ldb )
+pastix_subtask_trsm( pastix_data_t    *pastix_data,
+                     pastix_coeftype_t flttype,
+                     pastix_side_t     side,
+                     pastix_uplo_t     uplo,
+                     pastix_trans_t    trans,
+                     pastix_diag_t     diag,
+                     pastix_int_t      nrhs,
+                     void             *b,
+                     pastix_int_t      ldb )
 {
     sopalin_data_t sopalin_data;
     int i, bs = nrhs;
@@ -368,8 +388,11 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
  *
  *******************************************************************************/
 int
-pastix_subtask_diag( pastix_data_t *pastix_data, pastix_coeftype_t flttype,
-                     pastix_int_t nrhs, void *b, pastix_int_t ldb )
+pastix_subtask_diag( pastix_data_t    *pastix_data,
+                     pastix_coeftype_t flttype,
+                     pastix_int_t      nrhs,
+                     void             *b,
+                     pastix_int_t      ldb )
 {
     sopalin_data_t sopalin_data;
 
@@ -469,8 +492,11 @@ pastix_subtask_diag( pastix_data_t *pastix_data, pastix_coeftype_t flttype,
  *
  *******************************************************************************/
 int
-pastix_subtask_solve_adv( pastix_data_t *pastix_data, pastix_trans_t transA,
-                          pastix_int_t nrhs, void *b, pastix_int_t ldb )
+pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
+                          pastix_trans_t  transA,
+                          pastix_int_t    nrhs,
+                          void           *b,
+                          pastix_int_t    ldb )
 {
     pastix_bcsc_t     *bcsc;
     pastix_factotype_t factotype;
@@ -641,7 +667,9 @@ pastix_subtask_solve_adv( pastix_data_t *pastix_data, pastix_trans_t transA,
  *******************************************************************************/
 int
 pastix_subtask_solve( pastix_data_t *pastix_data,
-                      pastix_int_t nrhs, void *b, pastix_int_t ldb )
+                      pastix_int_t   nrhs,
+                      void          *b,
+                      pastix_int_t   ldb )
 {
     return pastix_subtask_solve_adv( pastix_data,
                                      pastix_data->iparm[IPARM_TRANSPOSE_SOLVE],
@@ -681,7 +709,9 @@ pastix_subtask_solve( pastix_data_t *pastix_data,
  *******************************************************************************/
 int
 pastix_task_solve( pastix_data_t *pastix_data,
-                   pastix_int_t nrhs, void *b, pastix_int_t ldb )
+                   pastix_int_t   nrhs,
+                   void          *b,
+                   pastix_int_t   ldb )
 {
     pastix_bcsc_t *bcsc;
     void          *bglob = NULL;
@@ -701,7 +731,7 @@ pastix_task_solve( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    bcsc  = pastix_data->bcsc;
+    bcsc = pastix_data->bcsc;
 
     /* The spm is distributed, so we have to gather the RHS */
     if ( pastix_data->csc->loc2glob != NULL ) {
@@ -736,6 +766,7 @@ pastix_task_solve( pastix_data_t *pastix_data,
                                       b, ldb, sb, ldb );
             break;
         default:
+            rc = 1;
             pastix_print_error( "pastix_task_solve: Invalid float type for mixed-precision" );
         }
 
