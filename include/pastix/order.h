@@ -43,16 +43,17 @@ typedef struct etree_s EliminTree;
  * It also stores the partitioning tree and the set of supernodes.
  */
 typedef struct pastix_order_s {
-    pastix_int_t  baseval;   /**< base value used for numbering       */
-    pastix_int_t  vertnbr;   /**< Number of vertices                  */
-    pastix_int_t  cblknbr;   /**< Number of column blocks             */
-    pastix_int_t *permtab;   /**< Permutation array of size vertnbr [based]           */
-    pastix_int_t *peritab;   /**< Inverse permutation array of size vertnbr [based]   */
-    pastix_int_t *rangtab;   /**< Supernode array of size cblknbr+1 [based,+1]        */
-    pastix_int_t *treetab;   /**< Partitioning tree of size cblknbr+1 [based]         */
-    int8_t       *selevtx;   /**< Selected vertices for low-rank clustering of size cblknbr */
-    pastix_int_t  sndenbr;   /**< The number of original supernodes before clustering */
-    pastix_int_t *sndetab;   /**< Original supernode array of size sndenbr [based,+1] */
+    pastix_int_t  baseval;     /**< base value used for numbering                             */
+    pastix_int_t  vertnbr;     /**< Number of vertices                                        */
+    pastix_int_t  cblknbr;     /**< Number of column blocks                                   */
+    pastix_int_t *permtab;     /**< Permutation array of size vertnbr [based]                 */
+    pastix_int_t *peritab;     /**< Inverse permutation array of size vertnbr [based]         */
+    pastix_int_t *rangtab;     /**< Supernode array of size cblknbr+1 [based,+1]              */
+    pastix_int_t *treetab;     /**< Partitioning tree of size cblknbr+1 [based]               */
+    int8_t       *selevtx;     /**< Selected vertices for low-rank clustering of size cblknbr */
+    pastix_int_t  sndenbr;     /**< The number of original supernodes before clustering       */
+    pastix_int_t *sndetab;     /**< Original supernode array of size sndenbr [based,+1]       */
+    pastix_int_t *peritab_exp; /**< Computed field that should not be modified by the user    */
 } pastix_order_t;
 
 /**

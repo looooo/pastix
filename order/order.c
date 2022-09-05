@@ -295,6 +295,9 @@ pastixOrderExit( pastix_order_t * const ordeptr )
     if (ordeptr->sndetab != NULL) {
         memFree_null (ordeptr->sndetab);
     }
+    if (ordeptr->peritab_exp != NULL) {
+        memFree_null (ordeptr->peritab_exp);
+    }
     memset(ordeptr, 0, sizeof(pastix_order_t) );
 }
 
