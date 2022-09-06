@@ -608,6 +608,7 @@ coeftab_zgetschur( const SolverMatrix *solvmtx,
     SolverCblk *cblk = solvmtx->cblktab + solvmtx->cblkschur;
     pastix_complex64_t *localS;
     pastix_int_t itercblk, fcolnum, nbcol;
+    pastix_int_t ret;
     int upper_part = (solvmtx->factotype == PastixFactLU);
     fcolnum = cblk->fcolnum;
 
@@ -615,7 +616,8 @@ coeftab_zgetschur( const SolverMatrix *solvmtx,
     assert( nbcol <= lds );
 
     /* Initialize the array to 0 */
-    LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', nbcol, nbcol, 0., 0., S, lds );
+    ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', nbcol, nbcol, 0., 0., S, lds );
+    assert( ret == 0 );
 
     for (itercblk=solvmtx->cblkschur; itercblk<solvmtx->cblknbr; itercblk++, cblk++)
     {
@@ -626,6 +628,7 @@ coeftab_zgetschur( const SolverMatrix *solvmtx,
 
         cpucblk_zgetschur( cblk, upper_part, localS, lds );
     }
+    (void)ret;
 }
 
 /**

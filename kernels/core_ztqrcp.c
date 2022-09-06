@@ -207,7 +207,8 @@ core_ztqrcp( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
     /*
      * Computation of the Gaussian matrix
      */
-    LAPACKE_zlarnv_work(3, SEED, size_O, omega);
+    ret = LAPACKE_zlarnv_work(3, SEED, size_O, omega);
+    assert( ret == 0 );
     cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                  bp, n, m,
                  CBLAS_SADDR(zone),  omega, bp,

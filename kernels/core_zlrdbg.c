@@ -47,7 +47,7 @@ core_zlrdbg_printsvd( pastix_int_t              M,
                       const pastix_complex64_t *A,
                       pastix_int_t              lda )
 {
-    pastix_int_t i;
+    pastix_int_t i, ret;
     pastix_int_t minMN = pastix_imin( M, N );
     size_t lrwork =  2 * minMN;
     size_t lzwork =  M * N;
@@ -58,14 +58,17 @@ core_zlrdbg_printsvd( pastix_int_t              M,
     s = (double*)(W + M*N);
     superb = s + minMN;
 
-    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M, N, A, lda, W, M );
-    LAPACKE_zgesvd(LAPACK_COL_MAJOR, 'N', 'N', M, N, W, M, s, NULL, 1, NULL, 1, superb );
+    ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M, N, A, lda, W, M );
+    assert( ret == 0 );
+    ret = LAPACKE_zgesvd(LAPACK_COL_MAJOR, 'N', 'N', M, N, W, M, s, NULL, 1, NULL, 1, superb );
+    assert( ret == 0 );
 
     for(i=0; i<minMN; i++) {
         fprintf( stderr, "%e ", s[i] );
     }
     fprintf(stderr, "\n");
 
+    (void)ret;
     free(W);
 }
 
@@ -103,7 +106,7 @@ core_zlrdbg_check_orthogonality( pastix_int_t              M,
     pastix_complex64_t *Id;
     double alpha, beta;
     double normQ, res;
-    pastix_int_t info_ortho;
+    pastix_int_t info_ortho, ret;
     pastix_int_t minMN = pastix_imin(M, N);
     pastix_int_t maxMN = pastix_imax(M, N);
     double eps = LAPACKE_dlamch_work('e');
@@ -113,8 +116,9 @@ core_zlrdbg_check_orthogonality( pastix_int_t              M,
 
     /* Build the identity matrix */
     Id = malloc( minMN * minMN * sizeof(pastix_complex64_t) );
-    LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', minMN, minMN,
-                         0., 1., Id, minMN );
+    ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', minMN, minMN,
+                              0., 1., Id, minMN );
+    assert( ret == 0 );
 
     if (M > N) {
         /* Perform Id - Q'Q */
@@ -138,6 +142,7 @@ core_zlrdbg_check_orthogonality( pastix_int_t              M,
     }
 
     free(Id);
+    (void)ret;
     return info_ortho;
 }
 
@@ -184,15 +189,16 @@ core_zlrdbg_check_orthogonality_AB( pastix_int_t M, pastix_int_t NA, pastix_int_
 {
     pastix_complex64_t *Zero;
     double norm, res;
-    pastix_int_t info_ortho;
+    pastix_int_t info_ortho, ret;
     double eps = LAPACKE_dlamch_work('e');
     pastix_complex64_t zone = 1.0;
     pastix_complex64_t zzero = 0.0;
 
     /* Build the null matrix */
     Zero = malloc( NA * NB * sizeof(pastix_complex64_t) );
-    LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', NA, NB,
-                         0., 0., Zero, NA );
+    ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', NA, NB,
+                               0., 0., Zero, NA );
+    assert( ret == 0 );
 
     cblas_zgemm(CblasColMajor, CblasConjTrans, CblasNoTrans,
                 NA, NB, M,
@@ -213,5 +219,6 @@ core_zlrdbg_check_orthogonality_AB( pastix_int_t M, pastix_int_t NA, pastix_int_
     }
 
     free(Zero);
+    (void)ret;
     return info_ortho;
 }

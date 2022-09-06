@@ -67,7 +67,7 @@ core_zhetf2sp( pastix_int_t        n,
                pastix_int_t       *nbpivots,
                double              criterion )
 {
-    pastix_int_t k, m;
+    pastix_int_t k, m, ret;
     pastix_complex64_t *Akk = A;     /* A [k  ][k  ] */
     pastix_complex64_t *Amk = A+1;   /* A [k+1][k  ] */
     pastix_complex64_t *Akm = A+lda; /* A [k  ][k+1] */
@@ -89,7 +89,8 @@ core_zhetf2sp( pastix_int_t        n,
         zalpha = 1.0 / (*Akk);
 
         cblas_zcopy( m, Amk, 1, Akm, lda );
-        LAPACKE_zlacgv_work( m, Akm, 1 );
+        ret = LAPACKE_zlacgv_work( m, Akm, 1 );
+        assert( ret == 0 );
 
         /* Scale the diagonal to compute L((k+1):n,k) */
         cblas_zscal(m, CBLAS_SADDR( zalpha ), Amk, 1 );
@@ -108,6 +109,7 @@ core_zhetf2sp( pastix_int_t        n,
         Amk = Akk+1;
         Akm = Akk+lda;
     }
+    (void)ret;
 }
 
 /**
@@ -145,7 +147,7 @@ core_zhetrfsp( pastix_int_t        n,
                pastix_int_t       *nbpivots,
                double              criterion )
 {
-    pastix_int_t k, blocknbr, blocksize, matrixsize, col;
+    pastix_int_t k, blocknbr, blocksize, matrixsize, col, ret;
     pastix_complex64_t *Akk, *Amk, *Akm, *Amm;
     pastix_complex64_t alpha;
 
@@ -186,7 +188,8 @@ core_zhetrfsp( pastix_int_t        n,
                 /* copy L(k+1+col:n,k+col)*D(k+col,k+col) into work(:,col) */
                 cblas_zcopy(matrixsize, Amk + col*lda, 1,
                                         Akm + col,     lda);
-                LAPACKE_zlacgv_work( matrixsize, Akm + col, lda );
+                ret = LAPACKE_zlacgv_work( matrixsize, Akm + col, lda );
+                assert( ret == 0 );
 
                 /* compute L(k+1+col:n,k+col) = A(k+1+col:n,k+col)D(k+col,k+col)^{-1} */
                 alpha = 1.0 / *(Akk + col*(lda+1));
@@ -203,6 +206,7 @@ core_zhetrfsp( pastix_int_t        n,
                         CBLAS_SADDR(zone),  Amm, lda);
         }
     }
+    (void)ret;
 }
 
 /**

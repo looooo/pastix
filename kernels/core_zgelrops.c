@@ -440,8 +440,9 @@ core_zlrcpy( const pastix_lr_t *lowrank,
 
     if ( A->rk == -1 ) {
         if ( (M1 != M2) || (N1 != N2) ) {
-            LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M2, N2,
-                                 0.0, 0.0, u, M2 );
+            ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M2, N2,
+                                      0.0, 0.0, u, M2 );
+            assert( ret == 0 );
         }
         ret = core_zgeadd( PastixNoTrans, M1, N1,
                            alpha, A->u, ldau,
@@ -450,8 +451,9 @@ core_zlrcpy( const pastix_lr_t *lowrank,
     }
     else {
         if ( M1 != M2 ) {
-            LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M2, B->rk,
-                                 0.0, 0.0, u, M2 );
+            ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', M2, B->rk,
+                                       0.0, 0.0, u, M2 );
+            assert( ret == 0 );
         }
         ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M1, A->rk,
                                    A->u, ldau,
@@ -459,8 +461,9 @@ core_zlrcpy( const pastix_lr_t *lowrank,
         assert(ret == 0);
 
         if ( N1 != N2 ) {
-            LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', B->rk, N2,
-                                 0.0, 0.0, v, B->rkmax );
+            ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', B->rk, N2,
+                                       0.0, 0.0, v, B->rkmax );
+            assert( ret == 0 );
         }
         ret = core_zgeadd( transAv, A->rk, N1,
                            alpha, A->v, ldav,
@@ -480,8 +483,8 @@ core_zlrcpy( const pastix_lr_t *lowrank,
     }
 #endif
 
-    (void) lowrank;
-    (void) ret;
+    (void)lowrank;
+    (void)ret;
 }
 
 
@@ -584,8 +587,9 @@ core_zlrconcatenate_u( pastix_complex64_t alpha,
                                    A->u, ldau, tmp + offx, M2 );
         assert(ret == 0);
     }
-    (void) ret;
-    (void) alpha;
+    (void)ret;
+    (void)alpha;
+    (void)rank;
 }
 
 
@@ -700,8 +704,8 @@ core_zlrconcatenate_v( pastix_trans_t transA1, pastix_complex64_t alpha,
                      alpha, A->v,              ldav,
                        0.0, tmp + offy * rank, rank );
     }
-    (void) ret;
-    (void) alpha;
+    (void)ret;
+    (void)alpha;
 }
 
 /**
@@ -1356,8 +1360,10 @@ core_zrradd_qr( core_zrrqr_cp_t rrqrfct,
          * The final B += A fit in B
          * Lets copy and return
          */
-        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M, B->rk, u1u2, ldu, B->u, ldbu );
-        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', B->rk, N, v1v2, ldv, B->v, ldbv );
+        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', M, B->rk, u1u2, ldu, B->u, ldbu );
+        assert( ret == 0 );
+        ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', B->rk, N, v1v2, ldv, B->v, ldbv );
+        assert( ret == 0 );
 
         free(zbuf);
 #if defined(PASTIX_DEBUG_LR)
@@ -1608,6 +1614,7 @@ core_zlrpack( pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *A, char *b
     int   rkmax = A->rkmax;
     void *u     = A->u;
     void *v     = A->v;
+    int   ret;
 
     /* Store the rank */
     memcpy( buffer, &rk, sizeof( int ) );
@@ -1624,8 +1631,9 @@ core_zlrpack( pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *A, char *b
             buffer += rk * N * sizeof( pastix_complex64_t );
         }
         else {
-            LAPACKE_zlacpy_work(
-                LAPACK_COL_MAJOR, 'A', rk, N, v, rkmax, (pastix_complex64_t *)buffer, rk );
+            ret = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', rk, N, v, rkmax,
+                                      (pastix_complex64_t *)buffer, rk );
+            assert( ret == 0 );
             buffer += rk * N * sizeof( pastix_complex64_t );
         }
     }
@@ -1633,6 +1641,8 @@ core_zlrpack( pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *A, char *b
         memcpy( buffer, u, M * N * sizeof( pastix_complex64_t ) );
         buffer += M * N * sizeof( pastix_complex64_t );
     }
+
+    (void)ret;
 
     return buffer;
 }

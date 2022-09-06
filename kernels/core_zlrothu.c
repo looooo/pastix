@@ -228,8 +228,9 @@ core_zlrorthu_partialqr( pastix_int_t M,  pastix_int_t N,
                 memset( U + (r1+r2-1) * ldu, 0,  M * sizeof(pastix_complex64_t) );
 
                 cblas_zswap( N, v2, ldv, V + (r1+r2-1),     ldv );
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N,
-                                     0., 0., V + (r1+r2-1), ldv );
+                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N,
+                                          0., 0., V + (r1+r2-1), ldv );
+                assert( ret == 0 );
                 r2--;
                 i--;
                 u2-= ldu;
@@ -237,8 +238,9 @@ core_zlrorthu_partialqr( pastix_int_t M,  pastix_int_t N,
             }
             else {
                 memset( u2, 0,  M * sizeof(pastix_complex64_t) );
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N,
-                                     0., 0., v2, ldv );
+                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N,
+                                          0., 0., v2, ldv );
+                assert( ret == 0 );
                 r2--;
             }
         }
@@ -432,6 +434,7 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
     pastix_fixdbl_t flops = 0.0;
     pastix_int_t i, rank = r1 + r2;
     pastix_int_t ldwork = rank;
+    pastix_int_t ret;
     double eps, norm;
     double norm_before, alpha;
 
@@ -461,8 +464,9 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
                 cblas_zswap( N2, v2 + offy * ldv, ldv, V + offy * ldv + rank, ldv );
 
 #if !defined(NDEBUG)
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N1,
-                                     0., 0., V + rank, ldv );
+                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N1,
+                                           0., 0., V + rank, ldv );
+                assert( ret == 0 );
 #endif
                 i--;
                 u2-= ldu;
@@ -471,8 +475,9 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
 #if !defined(NDEBUG)
             else {
                 memset( u2, 0,  M1 * sizeof(pastix_complex64_t) );
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N1,
-                                     0., 0., v2, ldv );
+                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N1,
+                                           0., 0., v2, ldv );
+                assert( ret == 0 );
             }
 #endif
             continue;
@@ -546,16 +551,18 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
                 memset( U + rank * ldu, 0,  M1 * sizeof(pastix_complex64_t) );
 
                 cblas_zswap( N1, v2, ldv, V + rank,     ldv );
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N1,
-                                     0., 0., V + rank, ldv );
+                ret  = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N1,
+                                            0., 0., V + rank, ldv );
+                assert( ret == 0 );
                 i--;
                 u2-= ldu;
                 v2--;
             }
             else {
                 memset( u2, 0,  M1 * sizeof(pastix_complex64_t) );
-                LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N1,
-                                     0., 0., v2, ldv );
+                ret = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', 1, N1,
+                                           0., 0., v2, ldv );
+                assert( ret == 0 );
             }
         }
     }
@@ -574,5 +581,6 @@ core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
 
     (void)offy;
     (void)N2;
+    (void)ret;
     return flops;
 }

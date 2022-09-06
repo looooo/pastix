@@ -109,7 +109,7 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
              pastix_complex64_t *work, pastix_int_t lwork,  double *rwork )
 {
     pastix_int_t minMN, ldf, lwkopt;
-    pastix_int_t j, k, jb, itemp, lsticc, pvt;
+    pastix_int_t j, k, jb, itemp, lsticc, pvt, ret;
     double temp, temp2, machine_prec, residual;
     pastix_complex64_t akk, *auxv, *f;
 
@@ -257,10 +257,12 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
              * Generate elementary reflector H(k).
              */
             if ((rk+1) < m) {
-                LAPACKE_zlarfg_work(m-rk, A + rk * lda + rk, A + rk * lda + (rk+1), 1, tau + rk);
+                ret = LAPACKE_zlarfg_work(m-rk, A + rk * lda + rk, A + rk * lda + (rk+1), 1, tau + rk);
+                assert( ret == 0 );
             }
             else{
-                LAPACKE_zlarfg_work(1,    A + rk * lda + rk, A + rk * lda + rk,     1, tau + rk);
+                ret = LAPACKE_zlarfg_work(1,    A + rk * lda + rk, A + rk * lda + rk,     1, tau + rk);
+                assert( ret == 0 );
             }
 
             akk = A[rk * lda + rk];
@@ -388,6 +390,7 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
     }
 
     (void)full_update;
+    (void)ret;
 
     /* We reached maxrank, so we check if the threshold is met or not */
     residual = cblas_dnrm2( n-rk, VN1 + rk, 1 );

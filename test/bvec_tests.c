@@ -81,6 +81,7 @@ int main ( int argc, char **argv )
         m = 10000;
         n = iparm[IPARM_GMRES_IM];
         rc = asprintf( &filename, "d:%d:%d", (int)m, (int)n );
+        assert( rc != -1 );
     }
     else {
         spmParseLaplacianInfo( filename, &flttype, &m, &n, &dim3, &alpha, &beta, &dof );
