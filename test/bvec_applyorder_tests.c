@@ -24,6 +24,7 @@
 
 #include "common.h"
 #include "blend/solver.h"
+#include "bcsc/bcsc.h"
 
 #include "z_tests.h"
 #include "c_tests.h"
@@ -51,16 +52,18 @@ int main (int argc, char **argv)
     spm_driver_t    driver = (spm_driver_t)-1;
     char           *filename = NULL;
     spmatrix_t     *original, *spm, *spmdof, spmtmp;
-    pastix_int_t    variadic, dofmax;
-    pastix_int_t    m, n, nrhs, mpi_type, dof, dim3;
-    pastix_int_t    mpi_begin   = 0;
-    pastix_int_t    mpi_end     = 0;
+    int             variadic, mpi_type;
+    pastix_int_t    m, n, nrhs, dim3, dof;
+    int             mpi_begin = 0;
+    int             mpi_end   = 0;
     spm_coeftype_t  type, flttype;
     pastix_fixdbl_t alpha, beta;
     int             clustnbr, myrank;
-    int             check = 1;
-    int             rc    = 0;
-    int             err   = 0;
+    static int      dofmax = 4; /* Maximum degree of freedom for multi-dof cases. */
+    int             dmax   = 3; /* 0: one, 1: multi-constant, 2: multi-variadic   */
+    int             check  = 1;
+    int             rc     = 0;
+    int             err    = 0;
 
     /**
      * Initialize parameters to default values
@@ -112,7 +115,7 @@ int main (int argc, char **argv)
     }
 
     /**
-     * Compute the ordering and get the pointer.
+     * Compute the ordering.
      */
     rc = pastix_subtask_order( pastix_data, original, NULL );
 
@@ -121,6 +124,7 @@ int main (int argc, char **argv)
     if ( clustnbr > 1 ) {
         mpi_begin = 1;
         mpi_end   = 1; /* Distributed interface is not yet available */
+        dmax      = 2; /* Variadic is not working with MPI           */
     }
 
     for ( mpi_type = mpi_begin; mpi_type <= mpi_end; mpi_type++ ) {
@@ -144,17 +148,25 @@ int main (int argc, char **argv)
         /**
          * Loop over dof configuration: None, Constant, Variadic
          */
-        for ( dof = 0; dof < 3; dof++ ) {
+        for ( dof = 0; dof < dmax; dof++ ) {
 
             /* Multidof. */
             if ( dof > 0 ) {
                 spmdof   = malloc( sizeof(spmatrix_t) );
                 variadic = dof - 1;
-                dofmax   = 4;
                 rc       = spmDofExtend( spm, variadic, dofmax, spmdof );
             }
             else {
                 spmdof = spm;
+            }
+
+            /* Make sure internal spm is reset, and recompute symbfact and mapping for the new matrix */
+            if ( mpi_type > 0 ) {
+                pastix_data->csc = spmdof;
+                pastix_task_analyze( pastix_data, spmdof );
+
+                pastix_data->bcsc = calloc( 1, sizeof( pastix_bcsc_t ) );
+                bcsc_init_struct( spmdof, pastix_data->solvmatr, pastix_data->bcsc );
             }
 
             for ( nrhs = 1; nrhs <= 5; nrhs += 4 ) {
@@ -167,7 +179,6 @@ int main (int argc, char **argv)
                     }
 
                     /* Checks the result. */
-                    spmdof->flttype = type;
                     switch ( type ) {
                     case SpmFloat :
                         rc = s_bvec_applyorder_check( pastix_data, spmdof, nrhs );
@@ -192,6 +203,12 @@ int main (int argc, char **argv)
                     }
                     err += rc;
                 }
+            }
+
+            if ( mpi_type > 0 ) {
+                bcscExit( pastix_data->bcsc );
+                free( pastix_data->bcsc );
+                pastix_data->bcsc = NULL;
             }
 
             if ( dof > 0 ) {
