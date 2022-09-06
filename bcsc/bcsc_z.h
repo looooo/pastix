@@ -9,7 +9,7 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Vincent Bridonneau
- * @date 2022-07-07
+ * @date 2022-10-11
  *
  * @precisions normal z -> c d s
  *
@@ -24,14 +24,12 @@
  *    @name PastixComplex64 initialization functions
  *    @{
  */
-void bcsc_zinit( const spmatrix_t         *spm,
-                 const pastix_order_t     *ord,
-                 const SolverMatrix       *solvmtx,
-                 const pastix_int_t       *col2cblk,
-                       int                 initAt,
-                       pastix_bcsc_t      *bcsc,
-                       bcsc_handle_comm_t *bcsc_comm,
-                       pastix_int_t        valuesize );
+void bcsc_zinit( const spmatrix_t     *spm,
+                 const pastix_order_t *ord,
+                 const SolverMatrix   *solvmtx,
+                 int                   initAt,
+                 pastix_bcsc_t        *bcsc,
+                 pastix_int_t          valuesize );
 
 void bcsc_zstore_data( const spmatrix_t     *spm,
                        const pastix_order_t *ord,
