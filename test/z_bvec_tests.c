@@ -256,7 +256,6 @@ z_bvec_check( pastix_data_t *pastix_data )
 
     gm = bcsc->gN;
     lm = bcsc->n;
-    lm = gm;
 
     x = malloc( sizeof(pastix_complex64_t) * lm * n );
     y = malloc( sizeof(pastix_complex64_t) * lm * n );
@@ -464,7 +463,6 @@ z_bvec_time( pastix_data_t *pastix_data )
 
     gm = bcsc->gN;
     lm = bcsc->n;
-    lm = gm;
 
     x = malloc( sizeof(pastix_complex64_t) * lm * n );
     y = malloc( sizeof(pastix_complex64_t) * lm * n );

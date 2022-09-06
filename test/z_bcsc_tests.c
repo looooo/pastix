@@ -105,7 +105,7 @@ z_bcsc_spmv_check( spm_trans_t       trans,
 
     /* Compute the bcsc matrix-vector product */
     {
-        pastix_int_t m = pastix_data->bcsc->gN;
+        pastix_int_t m = pastix_data->bcsc->n;
 
         struct pastix_rhs_s Pxd = {
             .allocated = 0,
