@@ -124,6 +124,7 @@ coeftabAlloc( pastix_data_t *pastix_data )
         }
 
         assert( cblk->lcoeftab == NULL );
+        assert( (size_t) (step) < size );
         cblk->lcoeftab = workL + step;
 
         if ( pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU ) {

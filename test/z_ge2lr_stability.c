@@ -79,7 +79,7 @@ z_lowrank_stability_ge2lr( const pastix_lr_t   *lowrank,
     pastix_int_t n     = A->n;
     pastix_int_t lda   = A->ld;
     pastix_int_t minMN = pastix_imin(m, n);
-    pastix_int_t i, ldu, ldv;
+    pastix_int_t i, ldu, ldv, rc;
     double norm_residual;
 
     if (m < 0) {
@@ -97,8 +97,9 @@ z_lowrank_stability_ge2lr( const pastix_lr_t   *lowrank,
 
     /* Backup A into A2 */
     A2 = malloc( m * n * sizeof(pastix_complex64_t));
-    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
-                         A->fr, lda, A2, m );
+    rc = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
+                              A->fr, lda, A2, m );
+    assert( rc == 0 );
 
     /*
      * Fully compress the matrix A
@@ -131,7 +132,7 @@ z_lowrank_stability_ge2lr( const pastix_lr_t   *lowrank,
 
     core_zlrfree(&lrA);
     free(A2);
-
+    (void)rc;
     return 0;
 }
 

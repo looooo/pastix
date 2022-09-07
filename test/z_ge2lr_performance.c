@@ -79,6 +79,7 @@ z_lowrank_ge2lr_performance( FILE *f, int nbruns,
     pastix_int_t n     = A->n;
     pastix_int_t lda   = A->ld;
     pastix_int_t minMN = pastix_imin(m, n);
+    pastix_int_t rc;
     pastix_fixdbl_t flops, gflops;
     double resid, normR;
     Clock timer, total_timer = 0.;
@@ -99,8 +100,9 @@ z_lowrank_ge2lr_performance( FILE *f, int nbruns,
 
     /* Backup A in A2 */
     A2 = malloc( m * n * sizeof(pastix_complex64_t));
-    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
-                         A->fr, lda, A2, m );
+    rc = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n,
+                              A->fr, lda, A2, m );
+    assert( rc == 0 );
 
     memset( &lrA, 0, sizeof(pastix_lrblock_t) );
 
@@ -156,6 +158,7 @@ z_lowrank_ge2lr_performance( FILE *f, int nbruns,
 
     free(A2);
     core_zlrfree(&lrA);
+    (void)rc;
     return (resid > 10.);
 }
 

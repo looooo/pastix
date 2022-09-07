@@ -85,8 +85,9 @@ z_rradd_test( int mode, int use_reltol, double tolerance,
     C.fr = Cfr;
 
     /* Copy B into C */
-    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', C.m, C.n,
-                         B->fr, B->ld, Cfr, C.ld );
+    rc = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', C.m, C.n,
+                              B->fr, B->ld, Cfr, C.ld );
+    assert( rc == 0 );
 
     /* C = B + \alpha * A */
     core_zgeadd( PastixNoTrans, A->m, A->n,

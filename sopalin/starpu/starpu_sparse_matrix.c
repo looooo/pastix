@@ -182,7 +182,7 @@ starpu_sparse_matrix_init( SolverMatrix     *solvmtx,
         spmtx = (starpu_sparse_matrix_desc_t *)malloc( sizeof( starpu_sparse_matrix_desc_t ) );
     }
 
-    tag_desc  = ( solvmtx->gcblknbr + solvmtx->bloknbr ) * 2;
+    tag_desc              = ( (int64_t) (solvmtx->gcblknbr + solvmtx->bloknbr) ) * 2;
     spmtx->mpitag         = pastix_starpu_tag_book( tag_desc );
     tag_desc              = spmtx->mpitag + 2 * solvmtx->gcblknbr;
     spmtx->typesze        = pastix_size_of( flttype );
