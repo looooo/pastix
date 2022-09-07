@@ -433,7 +433,7 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
                           SimuCtrl        *simuctrl,
                           pastix_int_t    *procnumptr )
 {
-    pastix_int_t p;
+    pastix_int_t p, rc;
     pastix_int_t procnum = -1;
     pastix_int_t tasknum;
     double earlytimeready = PASTIX_INT_MAX;
@@ -456,7 +456,8 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
             if( simuctrl->bloktab[simuctrl->tasktab[tasknum].bloknum].ownerclust >= 0 )
             {
                 /* This task have to be remove from the heap (already mapped) */
-                pqueuePop( sproc->readytask );
+                rc = pqueuePop( sproc->readytask );
+                assert( rc >= 0 );
                 tasknum = -1;
             }
             else
@@ -474,7 +475,8 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
                 if( simuctrl->bloktab[simuctrl->tasktab[tasknum].bloknum].ownerclust >= 0 )
                 {
                     /* This task have to be remove from the heap (already mapped) */
-                    pqueuePop(simuctrl->proctab[p].futuretask);
+                    rc = pqueuePop(simuctrl->proctab[p].futuretask);
+                    assert( rc >= 0 );
                     tasknum = -1;
                 }
                 else {
@@ -543,6 +545,7 @@ simu_getNextTaskNextProc( const BlendCtrl *ctrl,
 #endif
 
     *procnumptr = procnum;
+    (void)rc;
     return earlytask;
 }
 

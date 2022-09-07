@@ -233,7 +233,7 @@ solverPrintStats( const SolverMatrix *solvptr )
         pastix_int_t bcol_size  = (cblk[1].fblokptr - cblk[0].fblokptr);
         pastix_int_t brow_size[3];
         pastix_int_t brow_csze[3] = { 0, 0, 0 };
-        pastix_int_t nbpblok = 0;
+        int64_t      nbpblok = 0;
 
         brow_size[0] = cblk[1].brownum - cblk[0].brownum;
         brow_size[1] = cblk[0].brown2d - cblk[0].brownum;

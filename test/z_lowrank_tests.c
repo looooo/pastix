@@ -274,14 +274,8 @@ z_lowrank_genmat( int            mode,
 
         default: {
             double alpha;
-            if ( rank == 0 ) {
-                S[0]  = 0.;
-                alpha = 1;
-            }
-            else {
-                alpha = exp( log( tolerance ) / rank );
-                S[0] = alpha;
-            }
+            alpha = exp( log( tolerance ) / rank );
+            S[0] = alpha;
             for ( i = 1; i < minMN; i++ ) {
                 if ( rank == i ) {
                     alpha = exp( 2 * log( threshold/tolerance ) / rank );

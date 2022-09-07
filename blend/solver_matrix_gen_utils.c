@@ -405,6 +405,7 @@ solvMatGen_reorder_browtab( const symbol_matrix_t *symbmtx,
         }
 #endif
 
+        assert( brownum + j1d < solvmtx->brownbr );
         solvmtx->browtab[brownum + j1d] = lbloknm;
         solvblok->browind = brownum + j1d;
         *b = -1;
@@ -440,6 +441,7 @@ solvMatGen_reorder_browtab( const symbol_matrix_t *symbmtx,
             assert( ( symbblok->frownum == solvblok->frownum ) &&
                     ( symbblok->lrownum == solvblok->lrownum ) );
 
+            assert( brownum + j1d < solvmtx->brownbr );
             solvmtx->browtab[brownum + j1d] = lbloknm;
             solvblok->browind = brownum + j1d;
             j1d++;
