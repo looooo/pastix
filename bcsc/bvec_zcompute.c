@@ -1139,13 +1139,14 @@ void bcsc_zspsv( pastix_data_t      *pastix_data,
                  pastix_complex32_t *work )
 {
     struct pastix_rhs_s rhsb = {
-        .flttype = PastixComplex64,
-        .m       = pastix_data->bcsc->gN,
-        .n       = 1,
-        .ld      = pastix_data->bcsc->gN,
-        .b       = b,
+        .allocated = 0,
+        .flttype   = PastixComplex64,
+        .m         = pastix_data->bcsc->gN,
+        .n         = 1,
+        .ld        = pastix_data->bcsc->gN,
+        .b         = b,
     };
-    int          rc;
+    int rc;
 
     pastix_data->iparm[IPARM_VERBOSE]--;
 

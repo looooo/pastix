@@ -254,6 +254,16 @@ def pypastix_pastixRhsInit( pastix_data, rhs ):
     libpastix.pastixRhsInit.restype = c_int
     return libpastix.pastixRhsInit( pastix_data, pointer( rhs ) )
 
+def pypastix_pastixRhsDoubletoSingle( dB, sB ):
+    libpastix.pastixRhsDoubletoSingle.argtypes = [ c_void_p, c_void_p ]
+    libpastix.pastixRhsDoubletoSingle.restype = c_int
+    return libpastix.pastixRhsDoubletoSingle( dB, sB )
+
+def pypastix_pastixRhsSingleToDouble( sB, dB ):
+    libpastix.pastixRhsSingleToDouble.argtypes = [ c_void_p, c_void_p ]
+    libpastix.pastixRhsSingleToDouble.restype = c_int
+    return libpastix.pastixRhsSingleToDouble( sB, dB )
+
 def pypastix_pastixRhsFinalize( pastix_data, rhs ):
     libpastix.pastixRhsFinalize.argtypes = [ c_void_p, c_void_p ]
     libpastix.pastixRhsFinalize.restype = c_int

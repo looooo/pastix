@@ -157,8 +157,8 @@ pastix_subtask_refine( pastix_data_t *pastix_data,
         size_t shiftx, shiftb;
         int i;
 
-        shiftx = ldx * pastix_size_of( pastix_data->bcsc->flttype );
-        shiftb = ldb * pastix_size_of( pastix_data->bcsc->flttype );
+        shiftx = ldx * pastix_size_of( Xp->flttype );
+        shiftb = ldb * pastix_size_of( Bp->flttype );
         Bp->n  = 1;
         Xp->n  = 1;
 

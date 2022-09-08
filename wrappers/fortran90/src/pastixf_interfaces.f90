@@ -366,6 +366,28 @@ module pastixf_interfaces
      end subroutine pastixRhsInit_f08
   end interface pastixRhsInit
 
+  interface pastixRhsDoubletoSingle
+     subroutine pastixRhsDoubletoSingle_f08(dB, sB, info)
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_rhs_t
+       implicit none
+       type(pastix_rhs_t),  intent(in)            :: dB
+       type(pastix_rhs_t),  intent(in)            :: sB
+       integer(kind=c_int), intent(out), optional :: info
+     end subroutine pastixRhsDoubletoSingle_f08
+  end interface pastixRhsDoubletoSingle
+
+  interface pastixRhsSingleToDouble
+     subroutine pastixRhsSingleToDouble_f08(sB, dB, info)
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_rhs_t
+       implicit none
+       type(pastix_rhs_t),  intent(in)            :: sB
+       type(pastix_rhs_t),  intent(in)            :: dB
+       integer(kind=c_int), intent(out), optional :: info
+     end subroutine pastixRhsSingleToDouble_f08
+  end interface pastixRhsSingleToDouble
+
   interface pastixRhsFinalize
      subroutine pastixRhsFinalize_f08(pastix_data, rhs, info)
        use :: iso_c_binding, only : c_int

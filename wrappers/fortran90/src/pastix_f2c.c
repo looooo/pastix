@@ -263,6 +263,20 @@ pastixRhsInit_f2c( pastix_data_t *pastix_data,
 }
 
 int
+pastixRhsDoubletoSingle_f2c( const pastix_rhs_t dB,
+                             pastix_rhs_t       sB )
+{
+    return pastixRhsDoubletoSingle( dB, sB );
+}
+
+int
+pastixRhsSingleToDouble_f2c( const pastix_rhs_t sB,
+                             pastix_rhs_t       dB )
+{
+    return pastixRhsSingleToDouble( sB, dB );
+}
+
+int
 pastixRhsFinalize_f2c( pastix_data_t *pastix_data,
                        pastix_rhs_t   rhs )
 {

@@ -329,6 +329,26 @@ module pastixf_bindings
        type(c_ptr),  value :: rhs
      end function pastixRhsInit_f2c
 
+     function pastixRhsDoubletoSingle_f2c(dB, sB) &
+          bind(c, name='pastixRhsDoubletoSingle_f2c')
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_rhs_t
+       implicit none
+       integer(kind=c_int)       :: pastixRhsDoubletoSingle_f2c
+       type(pastix_rhs_t), value :: dB
+       type(pastix_rhs_t), value :: sB
+     end function pastixRhsDoubletoSingle_f2c
+
+     function pastixRhsSingleToDouble_f2c(sB, dB) &
+          bind(c, name='pastixRhsSingleToDouble_f2c')
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_rhs_t
+       implicit none
+       integer(kind=c_int)       :: pastixRhsSingleToDouble_f2c
+       type(pastix_rhs_t), value :: sB
+       type(pastix_rhs_t), value :: dB
+     end function pastixRhsSingleToDouble_f2c
+
      function pastixRhsFinalize_f2c(pastix_data, rhs) &
           bind(c, name='pastixRhsFinalize_f2c')
        use :: iso_c_binding, only : c_int, c_ptr

@@ -614,6 +614,40 @@ subroutine pastixRhsInit_f08(pastix_data, rhs, info)
 
 end subroutine pastixRhsInit_f08
 
+subroutine pastixRhsDoubletoSingle_f08(dB, sB, info)
+  use :: pastixf_interfaces, only : pastixRhsDoubletoSingle
+  use :: pastixf_bindings,   only : pastixRhsDoubletoSingle_f2c
+  use :: iso_c_binding,      only : c_int
+  use :: pastixf_enums,      only : pastix_rhs_t
+  implicit none
+  type(pastix_rhs_t),  intent(in)            :: dB
+  type(pastix_rhs_t),  intent(in)            :: sB
+  integer(kind=c_int), intent(out), optional :: info
+
+  integer(kind=c_int) :: x_info
+
+  x_info = pastixRhsDoubletoSingle_f2c(dB, sB)
+  if ( present(info) ) info = x_info
+
+end subroutine pastixRhsDoubletoSingle_f08
+
+subroutine pastixRhsSingleToDouble_f08(sB, dB, info)
+  use :: pastixf_interfaces, only : pastixRhsSingleToDouble
+  use :: pastixf_bindings,   only : pastixRhsSingleToDouble_f2c
+  use :: iso_c_binding,      only : c_int
+  use :: pastixf_enums,      only : pastix_rhs_t
+  implicit none
+  type(pastix_rhs_t),  intent(in)            :: sB
+  type(pastix_rhs_t),  intent(in)            :: dB
+  integer(kind=c_int), intent(out), optional :: info
+
+  integer(kind=c_int) :: x_info
+
+  x_info = pastixRhsSingleToDouble_f2c(sB, dB)
+  if ( present(info) ) info = x_info
+
+end subroutine pastixRhsSingleToDouble_f08
+
 subroutine pastixRhsFinalize_f08(pastix_data, rhs, info)
   use :: pastixf_interfaces, only : pastixRhsFinalize
   use :: pastixf_bindings,   only : pastixRhsFinalize_f2c
