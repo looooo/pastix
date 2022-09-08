@@ -415,10 +415,10 @@ program fmultilap
               ! 3- Permute the b pointer
               rhs%x(:,:) = rhs%b(:,:)
               call pastixRhsInit( matrix%pastix_data, rhs%bp, info )
-              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirForward, &
+              call pastix_subtask_applyorder( matrix%pastix_data, PastixDirForward, &
                    &                          matrix%spm%nexp, rhs%nrhs, rhs%b, matrix%spm%nexp, rhs%bp, info )
               call pastixRhsInit( matrix%pastix_data, rhs%xp, info )
-              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirForward, &
+              call pastix_subtask_applyorder( matrix%pastix_data, PastixDirForward, &
                    &                          matrix%spm%nexp, rhs%nrhs, rhs%x, matrix%spm%nexp, rhs%xp, info )
 
               ! 4- Solve the problem
@@ -431,11 +431,11 @@ program fmultilap
               call pastix_subtask_refine( matrix%pastix_data, rhs%bp, rhs%xp, info )
 
               ! 6- Apply the backward permutation on b and x
-              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
+              call pastix_subtask_applyorder( matrix%pastix_data, PastixDirBackward, &
                    &                          matrix%spm%nexp, rhs%nrhs, rhs%b, matrix%spm%nexp, rhs%bp, info )
               call pastixRhsFinalize( matrix%pastix_data, rhs%bp, info )
 
-              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
+              call pastix_subtask_applyorder( matrix%pastix_data, PastixDirBackward, &
                    &                          matrix%spm%nexp, rhs%nrhs, rhs%x, matrix%spm%nexp, rhs%xp, info )
               call pastixrhsfinalize( matrix%pastix_data, rhs%xp, info )
 

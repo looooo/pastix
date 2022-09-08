@@ -159,7 +159,7 @@ end
 end
 
 @cbindings libpastix begin
-    @cextern pastix_subtask_applyorder( pastix_data::Ptr{Pastix_data_t}, flttype::spm.spm_coeftype_t, dir::spm.spm_dir_t, m::Pastix_int_t, n::Pastix_int_t, B::Ptr{Cvoid}, ldb::Pastix_int_t, Bp::Pastix_rhs_t )::Cint
+    @cextern pastix_subtask_applyorder( pastix_data::Ptr{Pastix_data_t}, dir::spm.spm_dir_t, m::Pastix_int_t, n::Pastix_int_t, B::Ptr{Cvoid}, ldb::Pastix_int_t, Bp::Pastix_rhs_t )::Cint
 end
 
 @cbindings libpastix begin

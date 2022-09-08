@@ -354,8 +354,8 @@ int main (int argc, char **argv)
      */
     /* 1- Apply P to b */
     pastixRhsInit( pastix_data, &Xp );
-    pastix_subtask_applyorder( pastix_data, spm->flttype,
-                               PastixDirForward, spm->nexp, nrhs, x, ldb, Xp );
+    pastix_subtask_applyorder( pastix_data, PastixDirForward,
+                               spm->nexp, nrhs, x, ldb, Xp );
 
     /* 2- Forward solve on the non Schur complement part of the system */
     if ( iparm[IPARM_FACTORIZATION] == PastixFactPOTRF ) {
@@ -385,8 +385,8 @@ int main (int argc, char **argv)
     }
 
     /* 5- Apply P^t to x */
-    pastix_subtask_applyorder( pastix_data, spm->flttype,
-                               PastixDirBackward, spm->nexp, nrhs, x, ldb, Xp );
+    pastix_subtask_applyorder( pastix_data, PastixDirBackward,
+                               spm->nexp, nrhs, x, ldb, Xp );
     pastixRhsFinalize( pastix_data, Xp );
 
     if ( check )

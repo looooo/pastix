@@ -665,8 +665,8 @@ subroutine pastixRhsFinalize_f08(pastix_data, rhs, info)
 
 end subroutine pastixRhsFinalize_f08
 
-subroutine pastix_subtask_applyorder_f08(pastix_data, flttype, dir, m, n, B, &
-     ldb, Bp, info)
+subroutine pastix_subtask_applyorder_f08(pastix_data, dir, m, n, B, ldb, Bp, &
+     info)
   use :: pastixf_interfaces, only : pastix_subtask_applyorder
   use :: pastixf_bindings,   only : pastix_subtask_applyorder_f2c
   use :: iso_c_binding,      only : c_int, c_loc, c_ptr
@@ -674,7 +674,6 @@ subroutine pastix_subtask_applyorder_f08(pastix_data, flttype, dir, m, n, B, &
   use :: pastixf_enums,      only : pastix_data_t, pastix_int_t, pastix_rhs_t
   implicit none
   type(pastix_data_t),        intent(inout), target   :: pastix_data
-  integer(c_int),             intent(in)              :: flttype
   integer(c_int),             intent(in)              :: dir
   integer(kind=pastix_int_t), intent(in)              :: m
   integer(kind=pastix_int_t), intent(in)              :: n
@@ -688,8 +687,8 @@ subroutine pastix_subtask_applyorder_f08(pastix_data, flttype, dir, m, n, B, &
 
   x_B = pastixGetCptrFrom2dArray(B)
 
-  x_info = pastix_subtask_applyorder_f2c(c_loc(pastix_data), flttype, dir, m, &
-       n, x_B, ldb, Bp)
+  x_info = pastix_subtask_applyorder_f2c(c_loc(pastix_data), dir, m, n, x_B, &
+       ldb, Bp)
   if ( present(info) ) info = x_info
 
 end subroutine pastix_subtask_applyorder_f08

@@ -88,8 +88,6 @@ def rhsFinalize( pastix_data, rhs ):
     pypastix_pastixRhsFinalize( pastix_data, rhs )
 
 def subtask_applyorder( pastix_data, direction, b, Bp ):
-    flttype = spm.coeftype.getptype( b.dtype )
-
     m = b.shape[0]
     if b.ndim == 1:
         n = 1
@@ -97,7 +95,7 @@ def subtask_applyorder( pastix_data, direction, b, Bp ):
         n = b.shape[1]
     ldb = m
 
-    pypastix_pastix_subtask_applyorder( pastix_data, flttype, direction, m, n,
+    pypastix_pastix_subtask_applyorder( pastix_data, direction, m, n,
                                         b.ctypes.data_as(c_void_p), ldb, Bp )
 
 def subtask_trsm( pastix_data, side, uplo, trans, diag, b ):

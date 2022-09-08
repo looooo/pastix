@@ -341,10 +341,10 @@ z_bvec_applyorder_check ( pastix_data_t *pastix_data,
 
     /* Compute P * b_in */
     pastixRhsInit( pastix_data, &Bp );
-    pastix_subtask_applyorder( pastix_data, spm->flttype, PastixDirForward, m, nrhs, b_out, ldb, Bp );
+    pastix_subtask_applyorder( pastix_data, PastixDirForward, m, nrhs, b_out, ldb, Bp );
 
     /* Compute b_out = P^t * (P * b_in) */
-    pastix_subtask_applyorder( pastix_data, spm->flttype, PastixDirBackward, m, nrhs, b_out, ldb, Bp );
+    pastix_subtask_applyorder( pastix_data, PastixDirBackward, m, nrhs, b_out, ldb, Bp );
     pastixRhsFinalize( pastix_data, Bp );
 
     /* Checks the result. */

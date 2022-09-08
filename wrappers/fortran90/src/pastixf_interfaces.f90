@@ -400,14 +400,13 @@ module pastixf_interfaces
   end interface pastixRhsFinalize
 
   interface pastix_subtask_applyorder
-     subroutine pastix_subtask_applyorder_f08(pastix_data, flttype, dir, m, n, &
-          B, ldb, Bp, info)
+     subroutine pastix_subtask_applyorder_f08(pastix_data, dir, m, n, B, ldb, &
+          Bp, info)
        use :: iso_c_binding,    only : c_int, c_ptr
        use :: pastixf_bindings, only : pastixGetCptrFrom2dArray
        use :: pastixf_enums,    only : pastix_data_t, pastix_int_t, pastix_rhs_t
        implicit none
        type(pastix_data_t),        intent(inout), target   :: pastix_data
-       integer(c_int),             intent(in)              :: flttype
        integer(c_int),             intent(in)              :: dir
        integer(kind=pastix_int_t), intent(in)              :: m
        integer(kind=pastix_int_t), intent(in)              :: n

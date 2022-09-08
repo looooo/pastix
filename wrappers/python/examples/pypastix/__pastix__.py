@@ -269,15 +269,14 @@ def pypastix_pastixRhsFinalize( pastix_data, rhs ):
     libpastix.pastixRhsFinalize.restype = c_int
     return libpastix.pastixRhsFinalize( pastix_data, rhs )
 
-def pypastix_pastix_subtask_applyorder( pastix_data, flttype, dir, m, n, B, ldb,
-                                        Bp ):
-    libpastix.pastix_subtask_applyorder.argtypes = [ c_void_p, c_int, c_int,
+def pypastix_pastix_subtask_applyorder( pastix_data, dir, m, n, B, ldb, Bp ):
+    libpastix.pastix_subtask_applyorder.argtypes = [ c_void_p, c_int,
                                                      __pastix_int__,
                                                      __pastix_int__, c_void_p,
                                                      __pastix_int__, c_void_p ]
     libpastix.pastix_subtask_applyorder.restype = c_int
-    return libpastix.pastix_subtask_applyorder( pastix_data, flttype, dir, m, n,
-                                                B, ldb, Bp )
+    return libpastix.pastix_subtask_applyorder( pastix_data, dir, m, n, B, ldb,
+                                                Bp )
 
 def pypastix_pastix_subtask_trsm( pastix_data, side, uplo, trans, diag, b ):
     libpastix.pastix_subtask_trsm.argtypes = [ c_void_p, c_int, c_int, c_int,

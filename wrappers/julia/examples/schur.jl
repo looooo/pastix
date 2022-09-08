@@ -95,7 +95,7 @@ Xp_ptr = pointer_from_objref(Xp)
 PaStiX.pastixRhsInit( pastix_data, Xp_ptr )
 
 # 1- Apply P to b
-PaStiX.pastix_subtask_applyorder( pastix_data, A.flttype, spm.SpmDirForward,
+PaStiX.pastix_subtask_applyorder( pastix_data, spm.SpmDirForward,
                                   n, nrhs, X, n, Xp )
 
 if factotype == PaStiX.factlu
@@ -125,7 +125,7 @@ else
 end
 
 # 5- Apply P^t to x
-PaStiX.pastix_subtask_applyorder( pastix_data, A.flttype, spm.SpmDirBackward, n, nrhs, X, n, Xp )
+PaStiX.pastix_subtask_applyorder( pastix_data, spm.SpmDirBackward, n, nrhs, X, n, Xp )
 PaStiX.pastixRhsFinalize( pastix_data, Xp )
 
 # Check solution

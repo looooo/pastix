@@ -368,9 +368,6 @@ pastixRhsFinalize( pastix_data_t *pastix_data,
  * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.
  *
- * @param[in] flttype
- *          This arithmetic of the sparse matrix.
- *
  * @param[in] dir
  *          Forward or backword application of the permutation.
  *
@@ -407,20 +404,19 @@ pastixRhsFinalize( pastix_data_t *pastix_data,
  *
  *******************************************************************************/
 int
-pastix_subtask_applyorder( pastix_data_t    *pastix_data,
-                           pastix_coeftype_t flttype,
-                           pastix_dir_t      dir,
-                           pastix_int_t      m,
-                           pastix_int_t      n,
-                           void             *b,
-                           pastix_int_t      ldb,
-                           pastix_rhs_t      Bp )
+pastix_subtask_applyorder( pastix_data_t *pastix_data,
+                           pastix_dir_t   dir,
+                           pastix_int_t   m,
+                           pastix_int_t   n,
+                           void          *b,
+                           pastix_int_t   ldb,
+                           pastix_rhs_t   Bp )
 {
     pastix_int_t *perm = NULL;
     int ts;
 
     /*
-     * Check parameters
+     * Checks parameters.
      */
     if (pastix_data == NULL) {
         pastix_print_error( "pastix_subtask_applyorder: wrong pastix_data parameter" );
@@ -431,7 +427,7 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    /* Make sure ordering is 0 based */
+    /* Makes sure ordering is 0 based. */
     if ( pastix_data->ordemesh->baseval != 0 ) {
         pastix_print_error( "pastix_subtask_applyorder: ordermesh must be 0-based" );
         return PASTIX_ERR_BADPARAMETER;
@@ -439,7 +435,7 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
 
     if ( dir == PastixDirForward ) {
         Bp->allocated = 0;
-        Bp->flttype   = flttype;
+        Bp->flttype   = pastix_data->csc->flttype;
         Bp->m         = m;
         Bp->n         = n;
         Bp->ld        = Bp->m;
@@ -447,7 +443,7 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
     }
     else {
         assert( Bp->allocated >= 0 );
-        assert( Bp->flttype == flttype );
+        assert( Bp->flttype == pastix_data->csc->flttype );
         assert( Bp->b  == b );
         assert( Bp->m  == m );
         assert( Bp->n  == n );
@@ -458,7 +454,7 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
     perm = orderGetExpandedPeritab( pastix_data->ordemesh, pastix_data->csc );
 
     /* See also xlapmr and xlapmt */
-    switch( flttype ) {
+    switch( Bp->flttype ) {
     case PastixComplex64:
         bvec_zlapmr( ts, dir, m, n, b, ldb, perm );
         break;
@@ -1094,8 +1090,7 @@ pastix_task_solve( pastix_data_t *pastix_data,
         return rc;
     }
 
-    rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
-                                    PastixDirForward, m, nrhs, b, ldb, Bp );
+    rc = pastix_subtask_applyorder( pastix_data, PastixDirForward, m, nrhs, b, ldb, Bp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
@@ -1107,8 +1102,7 @@ pastix_task_solve( pastix_data_t *pastix_data,
     }
 
     /* Compute P^t * b */
-    rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
-                                    PastixDirBackward, m, nrhs, b, ldb, Bp );
+    rc = pastix_subtask_applyorder( pastix_data, PastixDirBackward, m, nrhs, b, ldb, Bp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
