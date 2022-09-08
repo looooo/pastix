@@ -3,7 +3,7 @@
 #  @copyright 2013-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.2.0
+#  @version 6.2.1
 #  @author Mathieu Faverge
 #  @author Esragul Korkmaz
 #  @author Florent Pruvost
@@ -11,7 +11,7 @@
 #  @author Pierre Ramet
 #  @author Tony Delarue
 #  @author Vincent Bridonneau
-#  @date 2021-02-12
+#  @date 2022-10-06
 #
 ###
 include(RulesPrecisions)
@@ -76,6 +76,7 @@ set (TESTS
   bcsc_norm_tests.c
   bcsc_spmv_tests.c
   bcsc_spmv_time.c
+  bvec_applyorder_tests.c
   bvec_gemv_tests.c
   bvec_tests.c
   )
@@ -110,6 +111,7 @@ list( APPEND BCSC_TESTS
 set( BVEC_TESTS
   bvec_gemv_tests
   bvec_tests
+  bvec_applyorder_tests
   )
 set( RUNTYPE shm )
 
