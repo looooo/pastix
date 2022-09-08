@@ -6,11 +6,11 @@
  * @copyright 2015-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2021-04-07
+ * @date 2022-10-11
  *
  * @ingroup pastix_examples
  * @code
@@ -139,7 +139,7 @@ int main (int argc, char **argv)
     /**
      * Solve the linear system (and perform the optional refinement)
      */
-    pastix_task_solve( pastix_data, nrhs, x, spm->nexp );
+    pastix_task_solve( pastix_data, spm->nexp, nrhs, x, spm->nexp );
     pastix_task_refine( pastix_data, spm->nexp, nrhs, b, spm->nexp, x, spm->nexp );
 
     if ( check )

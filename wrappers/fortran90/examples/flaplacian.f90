@@ -6,9 +6,9 @@
 ! @copyright 2015-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !                      Univ. Bordeaux. All rights reserved.
 !
-! @version 6.2.0
+! @version 6.2.1
 ! @author Mathieu Faverge
-! @date 2021-01-03
+! @date 2022-10-11
 !
 program flaplacian
   use iso_c_binding
@@ -146,7 +146,7 @@ program flaplacian
   call pastix_task_numfact( pastix_data, spm, info )
 
   ! 4- Solve the problem
-  call pastix_task_solve( pastix_data, nrhs, x, spm%nexp, info )
+  call pastix_task_solve( pastix_data, spm%nexp, nrhs, x, spm%nexp, info )
 
   ! 5- Refine the solution
   call pastix_task_refine( pastix_data, spm%nexp, nrhs, b, spm%nexp, x, spm%nexp, info )

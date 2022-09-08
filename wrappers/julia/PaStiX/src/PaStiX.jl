@@ -11,7 +11,7 @@
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2022-09-27
+ @date 2022-10-11
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -107,7 +107,7 @@ end
 end
 
 @cbindings libpastix begin
-    @cextern pastix_task_solve( pastix_data::Ptr{Pastix_data_t}, nrhs::Pastix_int_t, B::Ptr{Cvoid}, ldb::Pastix_int_t )::Cint
+    @cextern pastix_task_solve( pastix_data::Ptr{Pastix_data_t}, m::Pastix_int_t, nrhs::Pastix_int_t, B::Ptr{Cvoid}, ldb::Pastix_int_t )::Cint
 end
 
 @cbindings libpastix begin

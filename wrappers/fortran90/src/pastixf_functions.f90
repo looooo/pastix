@@ -10,7 +10,7 @@
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2022-09-27
+!> @date 2022-10-11
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -426,7 +426,7 @@ subroutine pastix_task_numfact_f08(pastix_data, spm, info)
 
 end subroutine pastix_task_numfact_f08
 
-subroutine pastix_task_solve_f08(pastix_data, nrhs, B, ldb, info)
+subroutine pastix_task_solve_f08(pastix_data, m, nrhs, B, ldb, info)
   use :: pastixf_interfaces, only : pastix_task_solve
   use :: pastixf_bindings,   only : pastix_task_solve_f2c
   use :: iso_c_binding,      only : c_int, c_loc, c_ptr
@@ -434,6 +434,7 @@ subroutine pastix_task_solve_f08(pastix_data, nrhs, B, ldb, info)
   use :: pastixf_enums,      only : pastix_data_t, pastix_int_t
   implicit none
   type(pastix_data_t),        intent(inout), target   :: pastix_data
+  integer(kind=pastix_int_t), intent(in)              :: m
   integer(kind=pastix_int_t), intent(in)              :: nrhs
   class(*),                   intent(inout), target   :: B(:,:)
   integer(kind=pastix_int_t), intent(in)              :: ldb
@@ -444,7 +445,7 @@ subroutine pastix_task_solve_f08(pastix_data, nrhs, B, ldb, info)
 
   x_B = pastixGetCptrFrom2dArray(B)
 
-  x_info = pastix_task_solve_f2c(c_loc(pastix_data), nrhs, x_B, ldb)
+  x_info = pastix_task_solve_f2c(c_loc(pastix_data), m, nrhs, x_B, ldb)
   if ( present(info) ) info = x_info
 
 end subroutine pastix_task_solve_f08

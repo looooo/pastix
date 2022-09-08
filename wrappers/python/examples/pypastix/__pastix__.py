@@ -12,7 +12,7 @@
  @author Mathieu Faverge
  @author Tony Delarue
  @author Selmane Lebdaoui
- @date 2022-09-27
+ @date 2022-10-11
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -196,11 +196,12 @@ def pypastix_pastix_task_numfact( pastix_data, spm ):
     libpastix.pastix_task_numfact.restype = c_int
     return libpastix.pastix_task_numfact( pastix_data, spm )
 
-def pypastix_pastix_task_solve( pastix_data, nrhs, B, ldb ):
-    libpastix.pastix_task_solve.argtypes = [ c_void_p, __pastix_int__, c_void_p,
+def pypastix_pastix_task_solve( pastix_data, m, nrhs, B, ldb ):
+    libpastix.pastix_task_solve.argtypes = [ c_void_p, __pastix_int__,
+                                             __pastix_int__, c_void_p,
                                              __pastix_int__ ]
     libpastix.pastix_task_solve.restype = c_int
-    return libpastix.pastix_task_solve( pastix_data, nrhs, B, ldb )
+    return libpastix.pastix_task_solve( pastix_data, m, nrhs, B, ldb )
 
 def pypastix_pastix_task_refine( pastix_data, n, nrhs, B, ldb, X, ldx ):
     libpastix.pastix_task_refine.argtypes = [ c_void_p, __pastix_int__,

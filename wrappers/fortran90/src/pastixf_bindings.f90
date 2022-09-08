@@ -10,7 +10,7 @@
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2022-09-27
+!> @date 2022-10-11
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -233,13 +233,14 @@ module pastixf_bindings
        type(c_ptr),  value :: spm
      end function pastix_task_numfact_f2c
 
-     function pastix_task_solve_f2c(pastix_data, nrhs, B, ldb) &
+     function pastix_task_solve_f2c(pastix_data, m, nrhs, B, ldb) &
           bind(c, name='pastix_task_solve_f2c')
        use :: iso_c_binding, only : c_int, c_ptr
        use :: pastixf_enums, only : pastix_int_t
        implicit none
        integer(kind=c_int)               :: pastix_task_solve_f2c
        type(c_ptr),                value :: pastix_data
+       integer(kind=pastix_int_t), value :: m
        integer(kind=pastix_int_t), value :: nrhs
        type(c_ptr),                value :: B
        integer(kind=pastix_int_t), value :: ldb

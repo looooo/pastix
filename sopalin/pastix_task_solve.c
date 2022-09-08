@@ -14,7 +14,7 @@
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Tony Delarue
- * @date 2022-10-06
+ * @date 2022-10-11
  *
  **/
 #define _GNU_SOURCE 1
@@ -379,7 +379,7 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
  *          The number of right-and-side vectors.
  *
  * @param[inout] b
- *          The right-and-side vector (can be multiple RHS).
+ *          The right-and-side vector (can be multiple rhs).
  *          On exit, the solution is stored in place of the right-hand-side vector.
  *
  * @param[in] ldb
@@ -392,12 +392,12 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
  *
  *******************************************************************************/
 int
-pastix_subtask_trsm( pastix_data_t    *pastix_data,
-                     pastix_side_t     side,
-                     pastix_uplo_t     uplo,
-                     pastix_trans_t    trans,
-                     pastix_diag_t     diag,
-                     pastix_rhs_t      Bp )
+pastix_subtask_trsm( pastix_data_t *pastix_data,
+                     pastix_side_t  side,
+                     pastix_uplo_t  uplo,
+                     pastix_trans_t trans,
+                     pastix_diag_t  diag,
+                     pastix_rhs_t   Bp )
 {
     sopalin_data_t    sopalin_data;
     pastix_int_t      nrhs, i, bs, ldb;
@@ -421,10 +421,10 @@ pastix_subtask_trsm( pastix_data_t    *pastix_data,
     }
 
     flttype = Bp->flttype;
-    nrhs = Bp->n;
-    b    = Bp->b;
-    ldb  = Bp->ld;
-    bs   = nrhs;
+    nrhs    = Bp->n;
+    b       = Bp->b;
+    ldb     = Bp->ld;
+    bs      = nrhs;
 #if defined(PASTIX_WITH_MPI)
     bs = 1;
 #endif
@@ -521,7 +521,7 @@ pastix_subtask_trsm( pastix_data_t    *pastix_data,
  *          The number of right-and-side vectors.
  *
  * @param[inout] b
- *          The right-and-side vector (can be multiple RHS).
+ *          The right-and-side vector (can be multiple rhs).
  *          On exit, the solution is stored in place of the right-hand-side vector.
  *
  * @param[in] ldb
@@ -560,9 +560,9 @@ pastix_subtask_diag( pastix_data_t *pastix_data,
     }
 
     flttype = Bp->flttype;
-    nrhs = Bp->n;
-    b    = Bp->b;
-    ldb  = Bp->ld;
+    nrhs    = Bp->n;
+    b       = Bp->b;
+    ldb     = Bp->ld;
 
     /*
      * Ensure that the scheduler is correct and is in the same
@@ -631,7 +631,7 @@ pastix_subtask_diag( pastix_data_t *pastix_data,
  *          The number of right-and-side vectors.
  *
  * @param[inout] b
- *          The right-and-side vectors (can be multiple RHS).
+ *          The right-and-side vectors (can be multiple rhs).
  *          On exit, the solution is stored in place of the right-hand-side vector.
  *
  * @param[in] ldb
@@ -800,7 +800,7 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
  *          The number of right-and-side vectors.
  *
  * @param[inout] b
- *          The right-and-side vectors (can be multiple RHS).
+ *          The right-and-side vectors (can be multiple rhs).
  *          On exit, the solution is stored in place of the right-hand-side vector.
  *
  * @param[in] ldb
@@ -836,11 +836,16 @@ pastix_subtask_solve( pastix_data_t *pastix_data,
  * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.
  *
+ * @param[in] m
+ *          The local number of rows of the right-and-side vectors.
+ *          If the spm is centralized or replicated, m must be equal to
+ *          spm->gNexp, otherwise m must be equal to spm->nexp.
+ *
  * @param[in] nrhs
  *          The number of right-and-side vectors.
  *
  * @param[inout] b
- *          The right-and-side vectors (can be multiple RHS).
+ *          The right-and-side vectors (can be multiple rhs).
  *          On exit, the solution is stored in place of the right-hand-side vector.
  *
  * @param[in] ldb
@@ -854,15 +859,17 @@ pastix_subtask_solve( pastix_data_t *pastix_data,
  *******************************************************************************/
 int
 pastix_task_solve( pastix_data_t *pastix_data,
+                   pastix_int_t   m,
                    pastix_int_t   nrhs,
                    void          *b,
                    pastix_int_t   ldb )
 {
-    pastix_bcsc_t *bcsc;
-    void          *bglob = NULL;
-    void          *tmp   = NULL;
-    void          *sb;
-    pastix_rhs_t   Bp;
+    const spmatrix_t *spm;
+    pastix_bcsc_t    *bcsc;
+    void             *bglob = NULL;
+    void             *tmp   = NULL;
+    void             *sb;
+    pastix_rhs_t      Bp;
 
     /*
      * Check parameters
@@ -877,21 +884,29 @@ pastix_task_solve( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
+    spm  = pastix_data->csc;
     bcsc = pastix_data->bcsc;
 
     /* The spm is distributed, so we have to gather the RHS */
-    if ( pastix_data->csc->loc2glob != NULL ) {
+    if ( spm->loc2glob != NULL ) {
+        assert( m == spm->nexp );
+
         if( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
             pastix_print( pastix_data->procnum, 0, "pastix_task_solve: the RHS has to be centralized for the moment\n" );
         }
 
         tmp = b;
-        bglob = malloc( pastix_data->csc->gNexp * nrhs * pastix_size_of( bcsc->flttype ) );
-        spmGatherRHS( nrhs, pastix_data->csc, b, ldb,
-                      -1, bglob, pastix_data->csc->gNexp );
+        bglob = malloc( (size_t)(spm->gNexp) * (size_t)nrhs * pastix_size_of( bcsc->flttype ) );
+        spmGatherRHS( nrhs, spm, b, ldb,
+                      -1, bglob, spm->gNexp );
         b   = bglob;
         ldb = pastix_data->csc->gNexp;
+        m   = ldb;
     }
+    else {
+        assert( m == spm->gNexp );
+    }
+    assert( m == bcsc->gN );
 
     /* Generating halved-precision vector */
     if ( pastix_data->iparm[IPARM_MIXED] &&
@@ -903,12 +918,12 @@ pastix_task_solve( pastix_data_t *pastix_data,
         switch(bcsc->flttype) {
         case PastixComplex64:
             sb = malloc( size * sizeof(pastix_complex32_t) );
-            rc = LAPACKE_zlag2c_work( LAPACK_COL_MAJOR, ldb, nrhs,
+            rc = LAPACKE_zlag2c_work( LAPACK_COL_MAJOR, m, nrhs,
                                       b, ldb, sb, ldb );
             break;
         case PastixDouble:
             sb = malloc( size * sizeof(float) );
-            rc = LAPACKE_dlag2s_work( LAPACK_COL_MAJOR, ldb, nrhs,
+            rc = LAPACKE_dlag2s_work( LAPACK_COL_MAJOR, m, nrhs,
                                       b, ldb, sb, ldb );
             break;
         default:
@@ -928,14 +943,14 @@ pastix_task_solve( pastix_data_t *pastix_data,
     /* Compute P * b */
     pastixRhsInit( pastix_data, &Bp );
     pastix_subtask_applyorder( pastix_data, pastix_data->solvmatr->flttype,
-                               PastixDirForward, bcsc->gN, nrhs, sb, ldb, Bp );
+                               PastixDirForward, m, nrhs, sb, ldb, Bp );
 
     /* Solve A x = b */
     pastix_subtask_solve( pastix_data, Bp );
 
     /* Compute P^t * b */
     pastix_subtask_applyorder( pastix_data, pastix_data->solvmatr->flttype,
-                               PastixDirBackward, bcsc->gN, nrhs, sb, ldb, Bp );
+                               PastixDirBackward, m, nrhs, sb, ldb, Bp );
     pastixRhsFinalize( pastix_data, Bp );
 
     /* Freeing mixed-precision vectors and reverting to given precision */
@@ -946,11 +961,11 @@ pastix_task_solve( pastix_data_t *pastix_data,
 
         switch(bcsc->flttype) {
         case PastixComplex64:
-            rc = LAPACKE_clag2z_work( LAPACK_COL_MAJOR, ldb, nrhs,
+            rc = LAPACKE_clag2z_work( LAPACK_COL_MAJOR, m, nrhs,
                                       sb, ldb, b, ldb );
             break;
         case PastixDouble:
-            rc = LAPACKE_slag2d_work( LAPACK_COL_MAJOR, ldb, nrhs,
+            rc = LAPACKE_slag2d_work( LAPACK_COL_MAJOR, m, nrhs,
                                       sb, ldb, b, ldb );
             break;
         default:
@@ -966,10 +981,10 @@ pastix_task_solve( pastix_data_t *pastix_data,
 
     if( tmp != NULL ) {
         pastix_int_t ldbglob = ldb;
-        ldb = pastix_data->csc->nexp;
+        ldb = spm->nexp;
         b   = tmp;
 
-        spmExtractLocalRHS( nrhs, pastix_data->csc, bglob, ldbglob, b, ldb );
+        spmExtractLocalRHS( nrhs, spm, bglob, ldbglob, b, ldb );
         memFree_null( bglob );
     }
 
