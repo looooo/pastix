@@ -38,57 +38,55 @@
 #include <spm/d_spm.h>
 #include <spm/s_spm.h>
 
-static volatile int32_t step = 0;
-
 static inline void
-dump_rhs( pastix_data_t  *pastix_data,
-          const char     *name,
-          spm_coeftype_t  flttype,
-          int             m,
-          int             n,
-          const void     *b,
-          int             ldb )
+pastix_rhs_dump( pastix_data_t *pastix_data,
+                 const char    *name,
+                 pastix_rhs_t   B )
 {
-    FILE *f;
-    f = pastix_fopenw( (pastix_data->dir_local == NULL) ? "." : pastix_data->dir_local,
-                       name, "w" );
+    static volatile int32_t step = 0;
 
-    switch( flttype ) {
+    int32_t lstep = pastix_atomic_inc_32b( &step );
+    char   *fullname;
+    FILE   *f;
+    int     rc;
+
+    rc = asprintf( &fullname, "%02d_%s.%02d.rhs",
+                   lstep, name, pastix_data->solvmatr->clustnum );
+    assert( rc != -1 );
+
+    f = pastix_fopenw( (pastix_data->dir_local == NULL) ? "." : pastix_data->dir_local,
+                       fullname, "w" );
+    free( fullname );
+
+    switch( B->flttype ) {
     case SpmComplex64:
-        z_spmDensePrint( f, m, n, b, ldb );
+        z_spmDensePrint( f, B->m, B->n, B->b, B->ld );
         break;
     case SpmComplex32:
-        c_spmDensePrint( f, m, n, b, ldb );
+        c_spmDensePrint( f, B->m, B->n, B->b, B->ld );
         break;
     case SpmDouble:
-        d_spmDensePrint( f, m, n, b, ldb );
+        d_spmDensePrint( f, B->m, B->n, B->b, B->ld );
         break;
     case SpmFloat:
-        s_spmDensePrint( f, m, n, b, ldb );
+        s_spmDensePrint( f, B->m, B->n, B->b, B->ld );
         break;
     case SpmPattern:
         ;
     }
 
     fclose(f);
+    (void)rc;
 }
 #else
 static inline void
-dump_rhs( pastix_data_t  *pastix_data,
-          const char     *name,
-          spm_coeftype_t  flttype,
-          int             m,
-          int             n,
-          const void     *b,
-          int             ldb )
+pastix_rhs_dump( pastix_data_t *pastix_data,
+                 const char    *name,
+                 pastix_rhs_t   B )
 {
     (void)pastix_data;
     (void)name;
-    (void)m;
-    (void)n;
-    (void)b;
-    (void)flttype;
-    (void)ldb;
+    (void)B;
 }
 #endif
 
@@ -450,6 +448,23 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
         assert( Bp->ld >= Bp->m );
     }
 
+#if defined(PASTIX_DEBUG_SOLVE)
+    if ( dir == PastixDirForward ) {
+        struct pastix_rhs_s rhsb = {
+            .allocated = 0,
+            .flttype   = Bp->flttype,
+            .m         = m,
+            .n         = n,
+            .b         = b,
+            .ld        = ldb,
+        };
+        pastix_rhs_dump( pastix_data, "applyorder_Forward_input", &rhsb );
+    }
+    else {
+        pastix_rhs_dump( pastix_data, "applyorder_Backward_input", Bp );
+    }
+#endif
+
     ts   = pastix_data->iparm[IPARM_APPLYPERM_WS];
     perm = orderGetExpandedPeritab( pastix_data->ordemesh, pastix_data->csc );
 
@@ -473,15 +488,19 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
     }
 
 #if defined(PASTIX_DEBUG_SOLVE)
-    {
-        char *fullname;
-        int32_t lstep = pastix_atomic_inc_32b( &step );
-        asprintf( &fullname, "solve_%02d_applyorder_%s.rhs", lstep,
-                  ( dir == PastixDirForward ) ? "Forward" : "Backward" );
-
-        dump_rhs( pastix_data, fullname,
-                  flttype, m, n, b, ldb );
-        free(fullname);
+    if ( dir == PastixDirForward ) {
+        pastix_rhs_dump( pastix_data, "applyorder_Forward_output", Bp );
+    }
+    else {
+        struct pastix_rhs_s rhsb = {
+            .allocated = 0,
+            .flttype   = Bp->flttype,
+            .m         = m,
+            .n         = n,
+            .b         = b,
+            .ld        = ldb,
+        };
+        pastix_rhs_dump( pastix_data, "applyorder_Backward_output", &rhsb );
     }
 #endif
 
@@ -639,15 +658,13 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
 #if defined(PASTIX_DEBUG_SOLVE)
     {
         char *fullname;
-        int32_t lstep = pastix_atomic_inc_32b( &step );
-        asprintf( &fullname, "solve_%02d_trsm_%c%c%c%c.rhs", lstep,
+        asprintf( &fullname, "solve_trsm_%c%c%c%c",
                   (side  == PastixLeft)  ? 'L' : 'R',
                   (uplo  == PastixUpper) ? 'U' : 'L',
                   (trans == PastixConjTrans) ? 'C' : (trans == PastixTrans ? 'T' : 'N'),
                   (diag  == PastixUnit)  ? 'U' : 'N' );
 
-        dump_rhs( pastix_data, fullname,
-                  flttype, pastix_data->bcsc->gN, nrhs, b, ldb );
+        pastix_rhs_dump( pastix_data, fullname, Bp );
         free(fullname);
     }
 #endif
@@ -745,17 +762,7 @@ pastix_subtask_diag( pastix_data_t *pastix_data,
         fprintf(stderr, "Unknown floating point arithmetic\n" );
     }
 
-#if defined(PASTIX_DEBUG_SOLVE)
-    {
-        char *fullname;
-        int32_t lstep = pastix_atomic_inc_32b( &step );
-        asprintf( &fullname, "solve_%02d_diag.rhs", lstep );
-
-        dump_rhs( pastix_data, fullname,
-                  flttype, pastix_data->bcsc->gN, nrhs, b, ldb );
-        free(fullname);
-    }
-#endif
+    pastix_rhs_dump( pastix_data, "solve_diag", Bp );
 
     return PASTIX_SUCCESS;
 }
