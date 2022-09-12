@@ -247,39 +247,14 @@ pastix_task_refine( pastix_data_t *pastix_data,
                     void          *x,
                     pastix_int_t   ldx )
 {
-    pastix_int_t  *iparm = pastix_data->iparm;
-    pastix_bcsc_t *bcsc  = pastix_data->bcsc;
-    pastix_rhs_t   Bp, Xp;
-    void          *bglob, *btmp = NULL;
-    void          *xglob, *xtmp = NULL;
-    int            rc;
+    pastix_int_t *iparm = pastix_data->iparm;
+    pastix_rhs_t  Bp, Xp;
+    int           rc;
 
     if ( (pastix_data->schur_n > 0) && (iparm[IPARM_SCHUR_SOLV_MODE] != PastixSolvModeLocal))
     {
         fprintf(stderr, "Refinement is not available with Schur complement when non local solve is required\n");
         return PASTIX_ERR_BADPARAMETER;
-    }
-
-    /* The spm is distributed, we have to gather it for the moment */
-    if ( pastix_data->csc->loc2glob != NULL ) {
-        if( iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
-            pastix_print( pastix_data->procnum, 0, "pastix_task_refine: the RHS has to be centralized for the moment\n" );
-        }
-        btmp = b;
-        xtmp = x;
-
-        m = pastix_data->csc->gNexp;
-
-        bglob = malloc( m * nrhs * pastix_size_of( bcsc->flttype ) );
-        xglob = malloc( m * nrhs * pastix_size_of( bcsc->flttype ) );
-
-        spmGatherRHS( nrhs, pastix_data->csc, b, ldb, -1, bglob, m );
-        spmGatherRHS( nrhs, pastix_data->csc, x, ldx, -1, xglob, m );
-
-        b = bglob;
-        x = xglob;
-        ldb = m;
-        ldx = m;
     }
 
     /* Compute P * b */
@@ -329,23 +304,6 @@ pastix_task_refine( pastix_data_t *pastix_data,
     rc = pastixRhsFinalize( Xp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
-    }
-
-    if ( btmp != NULL) {
-        pastix_int_t ldbglob = ldb;
-        ldb = pastix_data->csc->nexp;
-        b   = btmp;
-
-        spmExtractLocalRHS( nrhs, pastix_data->csc, bglob, ldbglob, b, ldb );
-        memFree_null( bglob );
-    }
-    if ( xtmp != NULL ) {
-        pastix_int_t ldxglob = ldx;
-        ldx = pastix_data->csc->nexp;
-        x   = xtmp;
-
-        spmExtractLocalRHS( nrhs, pastix_data->csc, xglob, ldxglob, x, ldx );
-        memFree_null( xglob );
     }
 
     (void)m;
@@ -412,12 +370,9 @@ pastix_task_solve_and_refine( pastix_data_t *pastix_data,
                               void          *x,
                               pastix_int_t   ldx )
 {
-    pastix_int_t  *iparm = pastix_data->iparm;
-    pastix_bcsc_t *bcsc  = pastix_data->bcsc;
-    pastix_rhs_t   Bp, Xp;
-    void          *bglob, *btmp = NULL;
-    void          *xglob, *xtmp = NULL;
-    int            rc;
+    pastix_int_t *iparm = pastix_data->iparm;
+    pastix_rhs_t  Bp, Xp;
+    int           rc;
 
     /*
      * Checks parameters
@@ -438,27 +393,6 @@ pastix_task_solve_and_refine( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    /* The spm is distributed, we have to gather it for the moment */
-    if ( pastix_data->csc->loc2glob != NULL ) {
-        if( iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
-            pastix_print( pastix_data->procnum, 0, "pastix_task_refine: the RHS has to be centralized for the moment\n" );
-        }
-        btmp = b;
-        xtmp = x;
-
-        m = pastix_data->csc->gNexp;
-
-        bglob = malloc( m * nrhs * pastix_size_of( bcsc->flttype ) );
-        xglob = malloc( m * nrhs * pastix_size_of( bcsc->flttype ) );
-
-        spmGatherRHS( nrhs, pastix_data->csc, b, ldb, -1, bglob, m );
-        spmGatherRHS( nrhs, pastix_data->csc, x, ldx, -1, xglob, m );
-
-        b = bglob;
-        x = xglob;
-        ldb = m;
-        ldx = m;
-    }
 
     /* Computes P * b */
     rc = pastixRhsInit( &Bp );
@@ -513,23 +447,6 @@ pastix_task_solve_and_refine( pastix_data_t *pastix_data,
     rc = pastixRhsFinalize( Xp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
-    }
-
-    if ( btmp != NULL) {
-        pastix_int_t ldbglob = ldb;
-        ldb = pastix_data->csc->nexp;
-        b   = btmp;
-
-        spmExtractLocalRHS( nrhs, pastix_data->csc, bglob, ldbglob, b, ldb );
-        memFree_null( bglob );
-    }
-    if ( xtmp != NULL ) {
-        pastix_int_t ldxglob = ldx;
-        ldx = pastix_data->csc->nexp;
-        x   = xtmp;
-
-        spmExtractLocalRHS( nrhs, pastix_data->csc, xglob, ldxglob, x, ldx );
-        memFree_null( xglob );
     }
 
     (void)m;
