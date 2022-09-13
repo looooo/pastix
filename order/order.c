@@ -408,7 +408,7 @@ void pastixOrderExpand( pastix_order_t   *ordeptr,
     baseval = spm->baseval;
     pastixOrderBase( ordeptr, 0 );
 
-    n = spm->nexp;
+    n = spm->gNexp;
 
     /*
      * Initialize inverse permutation and rangtab
