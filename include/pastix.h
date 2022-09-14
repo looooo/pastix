@@ -83,18 +83,21 @@ void pastixFinalize ( pastix_data_t **pastix_data );
 /*
  * Main steps of the solver
  */
-int pastix_task_analyze( pastix_data_t      *pastix_data,
-                         const spmatrix_t   *spm );
-int pastix_task_numfact( pastix_data_t      *pastix_data,
-                         spmatrix_t         *spm );
-int pastix_task_solve  ( pastix_data_t      *pastix_data,
-                         pastix_int_t        nrhs,
-                         void               *B,
-                         pastix_int_t        ldb );
-int pastix_task_refine( pastix_data_t *pastix_data,
-                        pastix_int_t n, pastix_int_t nrhs,
-                        void *B, pastix_int_t ldb,
-                        void *X, pastix_int_t ldx );
+int pastix_task_analyze( pastix_data_t    *pastix_data,
+                         const spmatrix_t *spm );
+int pastix_task_numfact( pastix_data_t    *pastix_data,
+                         spmatrix_t       *spm );
+int pastix_task_solve  ( pastix_data_t    *pastix_data,
+                         pastix_int_t      nrhs,
+                         void             *B,
+                         pastix_int_t      ldb );
+int pastix_task_refine ( pastix_data_t    *pastix_data,
+                         pastix_int_t      n,
+                         pastix_int_t      nrhs,
+                         void             *B,
+                         pastix_int_t      ldb,
+                         void             *X,
+                         pastix_int_t      ldx );
 
 /*
  * Analyze subtasks
@@ -174,9 +177,13 @@ int  pastixGetDiag( const pastix_data_t *pastix_data,
 /*
  * Function to provide a common way to read binary options in examples/testings
  */
-void pastixGetOptions( int argc, char **argv,
-                       pastix_int_t *iparm, double *dparm,
-                       int *check, spm_driver_t *driver, char **filename );
+void pastixGetOptions( int            argc,
+                       char         **argv,
+                       pastix_int_t  *iparm,
+                       double        *dparm,
+                       int           *check,
+                       spm_driver_t  *driver,
+                       char         **filename );
 
 /*
  * Function to provide a common way to output
