@@ -117,7 +117,7 @@ int main (int argc, char **argv)
      * numerical computations. This is required only if the dof is variadic as
      * this case is not yet fully supported.
      */
-    if ( spm->dof < 0 ) {
+    if ( spm->dof < 1 ) {
         pastixExpand( pastix_data, spm );
     }
 
