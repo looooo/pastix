@@ -204,9 +204,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                      * lcolidx of the RECV block must be shifted is the
                      * reception does not start at the firs column
                      */
-                    solvcblk->lcolidx = solvcblk->fcolnum;
-                    /* WARNING: Should be next line with distributed rhs */
-                    // solvcblk->lcolidx = nodenbr + solvcblk->fcolnum - fcolnum;
+                    solvcblk->lcolidx = nodenbr + solvcblk->fcolnum - fcolnum;
 
                     recvcnt++;
                     solvmtx->recvcnt++;
@@ -235,13 +233,9 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                 bcscidx++;
 
                 /* Store index for the RHS */
-                solvcblk->lcolidx = solvcblk->fcolnum;
-                /**
-                 * Correct version for MPI implementation:
-                 * solvcblk->lcolidx = nodenbr;
-                 * assert( ((solvmtx->clustnbr >  1) && (nodenbr <= solvcblk->fcolnum)) ||
-                 *         ((solvmtx->clustnbr == 1) && (nodenbr == solvcblk->fcolnum)) );
-                 */
+                solvcblk->lcolidx = nodenbr;
+                assert( ((solvmtx->clustnbr >  1) && (nodenbr <= solvcblk->fcolnum)) ||
+                        ((solvmtx->clustnbr == 1) && (nodenbr == solvcblk->fcolnum)) );
 
                 /* Update local statistics */
                 nbcols = cblk_colnbr( solvcblk );
@@ -358,9 +352,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
             solvMatGen_init_cblk( solvcblk, solvblok, candcblk, symbcblk,
                                   solvcblk[-1].lcolnum + 1, solvcblk[-1].lcolnum + 1,
                                   brownum, 0, -1, solvmtx->clustnum );
-            solvcblk->lcolidx = solvcblk->fcolnum;
-            /* WARNING: Should be next line with distributed rhs */
-            // solvcblk->lcolidx = nodenbr;
+            solvcblk->lcolidx = nodenbr;
         }
 
         /*  Add a virtual blok to avoid side effect in the loops on cblk bloks */
