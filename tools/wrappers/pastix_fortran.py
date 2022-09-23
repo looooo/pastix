@@ -60,6 +60,10 @@ enums = {
      type(c_ptr) :: ptr
   end type pastix_data_t
 
+  type, bind(c) :: pastix_rhs_t
+     type(c_ptr) :: ptr
+  end type pastix_rhs_t
+
   type, bind(c) :: pastix_graph_t
      type(c_ptr) :: ptr
   end type pastix_graph_t
@@ -296,6 +300,7 @@ types_dict = {
                             'ftype' : "complex(kind=c_float_complex)"  },
 
     "pastix_data_t":  { 'use' : "pastixf_enums", 'only' : "pastix_data_t",  'ftype' : "type(pastix_data_t)"        },
+    "pastix_rhs_t":   { 'use' : "pastixf_enums", 'only' : "pastix_rhs_t",   'ftype' : "type(pastix_rhs_t)"         },
     "pastix_int_t":   { 'use' : "pastixf_enums", 'only' : "pastix_int_t",   'ftype' : "integer(kind=pastix_int_t)" },
     "pastix_order_t": { 'use' : "pastixf_enums", 'only' : "pastix_order_t", 'ftype' : "type(pastix_order_t)"       },
     "pastix_graph_t": { 'use' : "pastixf_enums", 'only' : "pastix_graph_t", 'ftype' : "type(pastix_graph_t)"       },

@@ -162,6 +162,7 @@ types_dict = {
     "pastix_mtxtype_t":  ("c_int"),
     "pastix_int_t":      ("__pastix_int__"),
     "pastix_data_t":     ("c_void"),
+    "pastix_rhs_t":      ("c_void_p"),
     "pastix_order_t":    ("c_void"),
     "pastix_graph_t":    ("c_void"),
     "PASTIX_Comm":       ("pypastix_mpi_comm"),
