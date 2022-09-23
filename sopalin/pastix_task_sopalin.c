@@ -204,10 +204,10 @@ pastix_subtask_spm2bcsc( pastix_data_t *pastix_data,
 int
 pastix_subtask_bcsc2ctab( pastix_data_t *pastix_data )
 {
-    pastix_bcsc_t *bcsc;
-    pastix_lr_t   *lr;
-    Clock timer;
-    int mtxtype;
+    pastix_bcsc_t   *bcsc;
+    pastix_lr_t     *lr;
+    Clock            timer;
+    pastix_mtxtype_t mtxtype;
 
     /*
      * Check parameters

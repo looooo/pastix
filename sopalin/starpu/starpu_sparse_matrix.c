@@ -157,7 +157,7 @@ pastix_starpu_register_cblk( const starpu_sparse_matrix_desc_t *spmtx,
  ******************************************************************************/
 void
 starpu_sparse_matrix_init( SolverMatrix     *solvmtx,
-                           int               mtxtype,
+                           pastix_mtxtype_t  mtxtype,
                            int               nodes,
                            int               myrank,
                            pastix_coeftype_t flttype )

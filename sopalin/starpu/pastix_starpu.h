@@ -90,12 +90,12 @@ typedef struct starpu_cblk_s {
  * @brief StarPU descriptor stucture for the sparse matrix.
  */
 typedef struct starpu_sparse_matrix_desc_s {
-    int64_t         mpitag;         /**< MPI id of StarPU */
-    int             typesze;        /**< Arithmetic size                                                                              */
-    int             mtxtype;        /**< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.                         */
-    SolverMatrix   *solvmtx;        /**< Solver matrix structure that describes the problem and stores the original data              */
-    starpu_cblk_t  *cblktab_handle; /**< Array of 2D column-block handlers (NULL when using 1D kernels only)                          */
-    void          **gpu_blocktab;     /**< Pointer to GPU arrays that contains frownum,lrownum of each block for Fermi (NULL otherwise) */
+    int64_t          mpitag;         /**< MPI id of StarPU */
+    int              typesze;        /**< Arithmetic size                                                                              */
+    pastix_mtxtype_t mtxtype;        /**< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.                         */
+    SolverMatrix    *solvmtx;        /**< Solver matrix structure that describes the problem and stores the original data              */
+    starpu_cblk_t   *cblktab_handle; /**< Array of 2D column-block handlers (NULL when using 1D kernels only)                          */
+    void           **gpu_blocktab;   /**< Pointer to GPU arrays that contains frownum,lrownum of each block for Fermi (NULL otherwise) */
 } starpu_sparse_matrix_desc_t;
 
 /**
@@ -111,7 +111,7 @@ typedef struct starpu_dense_matrix_desc_s {
 } starpu_dense_matrix_desc_t;
 
 void starpu_sparse_matrix_init    ( SolverMatrix *solvmtx,
-                                    int mtxtype,
+                                    pastix_mtxtype_t mtxtype,
                                     int nodes, int myrank, pastix_coeftype_t flttype );
 void starpu_sparse_matrix_destroy ( starpu_sparse_matrix_desc_t *desc );
 void starpu_sparse_matrix_getoncpu( starpu_sparse_matrix_desc_t *desc );

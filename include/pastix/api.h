@@ -435,11 +435,10 @@ typedef enum pastix_trans_e {
  *
  * @remark Must match transposition.
  */
-typedef enum pastix_mtxtype_e {
-    PastixGeneral   = PastixNoTrans,   /**< The matrix is general   */
-    PastixSymmetric = PastixTrans,     /**< The matrix is symmetric */
-    PastixHermitian = PastixConjTrans  /**< The matrix is hermitian */
-} pastix_mtxtype_t;
+typedef spm_mtxtype_t pastix_mtxtype_t;
+#define PastixGeneral   SpmGeneral    /**< The matrix is general   */
+#define PastixSymmetric SpmSymmetric  /**< The matrix is symmetric */
+#define PastixHermitian SpmHermitian  /**< The matrix is hermitian */
 
 /**
  * @brief Upper/Lower part

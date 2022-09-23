@@ -848,6 +848,9 @@ bvec_zdotu_smp( pastix_data_t            *pastix_data,
  *          exploits an additional workspace, or the non thread-safe version
  *          that has no memory overhead.
  *
+ * @param[in] dir
+ *          The direction of the permutation.
+ *
  * @param[in] m
  *          The number of rows in the matrix A, and the number of elements in
  *          perm.
@@ -965,6 +968,7 @@ bvec_zlapmr( int thread_safe,
             perm[k] = - perm[k] - 1;
         }
     }
+
     return PASTIX_SUCCESS;
 }
 
@@ -1108,9 +1112,9 @@ bvec_zcopy_smp( pastix_data_t            *pastix_data,
  * @ingroup bcsc
  *
  * @brief Solve A x = b with A the sparse matrix
- * 
- * In Complex64 and Double precision and if mixed-precision is enabled, solve 
- * SA sx = sb with SA the sparse matrix previously initialized respectively 
+ *
+ * In Complex64 and Double precision and if mixed-precision is enabled, solve
+ * SA sx = sb with SA the sparse matrix previously initialized respectively
  * in Complex32 or Float precision.
  *
  *******************************************************************************
@@ -1134,32 +1138,34 @@ void bcsc_zspsv( pastix_data_t      *pastix_data,
                  pastix_complex64_t *b,
                  pastix_complex32_t *work )
 {
-    pastix_int_t n = pastix_data->bcsc->gN;
+    pastix_int_t n    = pastix_data->bcsc->n;
+    pastix_int_t nrhs = 1;
+    int          rc;
+
     pastix_data->iparm[IPARM_VERBOSE]--;
-    int rc;
-#if defined(PRECISION_c) || defined(PRECISION_s)
-    assert( !pastix_data->iparm[IPARM_MIXED] );
-    assert( work == NULL );
-    pastix_subtask_solve( pastix_data, 1, b, n );
-#else
-    if ( pastix_data->iparm[IPARM_MIXED] ) 
+
+#if defined(PRECISION_z) || defined(PRECISION_d)
+    if ( pastix_data->iparm[IPARM_MIXED] )
     {
         /* Copying b into work at half the precision */
-        rc = LAPACKE_zlag2c_work( LAPACK_COL_MAJOR, n, 1,
+        rc = LAPACKE_zlag2c_work( LAPACK_COL_MAJOR, n, nrhs,
                                   b, n, work, n );
         assert( rc == 0 );
-        pastix_subtask_solve( pastix_data, 1, work, n );
+
+        pastix_subtask_solve( pastix_data, nrhs, work, n );
+
         /* Reverting to normal precision after solving */
-        rc = LAPACKE_clag2z_work( LAPACK_COL_MAJOR, n, 1,
+        rc = LAPACKE_clag2z_work( LAPACK_COL_MAJOR, n, nrhs,
                                   work, n, b, n );
         assert( rc == 0 );
     }
     else
+#endif
     {
         assert(work == NULL);
-        pastix_subtask_solve( pastix_data, 1, b, n );
+        pastix_subtask_solve( pastix_data, nrhs, b, n );
     }
-#endif
+
     pastix_data->iparm[IPARM_VERBOSE]++;
     (void)rc;
     (void)work;

@@ -603,7 +603,7 @@ pastix_parsec_register_cblk( parsec_data_collection_t          *o,
  ******************************************************************************/
 void
 parsec_sparse_matrix_init( SolverMatrix *solvmtx,
-                           int typesize, int mtxtype,
+                           int typesize, pastix_mtxtype_t mtxtype,
                            int nodes, int myrank )
 {
     parsec_sparse_matrix_desc_t *spmtx = solvmtx->parsec_desc;
