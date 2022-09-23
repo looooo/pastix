@@ -50,7 +50,7 @@
 static inline void
 solver_copy( const SolverMatrix *solvin,
              SolverMatrix       *solvout,
-             int                 flttype )
+             pastix_coeftype_t   flttype )
 {
     SolverCblk *solvcblk;
     SolverBlok *solvblok;
@@ -88,7 +88,7 @@ solver_copy( const SolverMatrix *solvin,
         solvcblk->fblokptr = solvblok;
         solvblok += bloknbr;
 
-        if ( flttype == -1 ) {
+        if ( flttype == PastixPattern ) {
             solvcblk->lcoeftab = NULL;
             solvcblk->ucoeftab = NULL;
         }
@@ -169,7 +169,7 @@ solver_copy( const SolverMatrix *solvin,
  *******************************************************************************/
 SolverMatrix *
 solverCopy( const SolverMatrix *solvin,
-            int                 flttype )
+            pastix_coeftype_t   flttype )
 {
     SolverMatrix *solvout;
 
@@ -210,7 +210,7 @@ solverRealloc( SolverMatrix *solvmtx )
     /** copy general info **/
     memcpy(tmp, solvmtx, sizeof(SolverMatrix));
 
-    solver_copy( tmp, solvmtx, -1 );
+    solver_copy( tmp, solvmtx, PastixPattern );
 
     /** Free the former solver matrix **/
     solverExit(tmp);

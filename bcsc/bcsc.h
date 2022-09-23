@@ -68,16 +68,16 @@ typedef struct bcsc_proc_comm_s
  */
 typedef struct bcsc_handle_comm_s
 {
-    pastix_int_t     clustnbr;     /**< Number of processes in the cluster.                     */
-    pastix_int_t     clustnum;     /**< ID of the current process in the cluster.               */
-    PASTIX_Comm      comm;         /**< PaStiX MPI communicator used for the ordering step.         */
-    int              flttype;      /**< valtab datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64                          */
-    bcsc_proc_comm_t data_comm[1]; /**< Array of size clustnbr.                                     */
-                                   /* data_comm[c]: contains the data clustnum has to send to c     */
-                                   /*               and the amount of data clustnum will receive    */
-                                   /*               from c.                                         */
-                                   /* data_comm[clustnum]: contains the data clustnum will recevied */
-                                   /*                     from the other processors.                */
+    pastix_int_t      clustnbr;     /**< Number of processes in the cluster.                     */
+    pastix_int_t      clustnum;     /**< ID of the current process in the cluster.               */
+    PASTIX_Comm       comm;         /**< PaStiX MPI communicator used for the ordering step.         */
+    pastix_coeftype_t flttype;      /**< valtab datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64                          */
+    bcsc_proc_comm_t  data_comm[1]; /**< Array of size clustnbr.                                     */
+                                    /* data_comm[c]: contains the data clustnum has to send to c     */
+                                    /*               and the amount of data clustnum will receive    */
+                                    /*               from c.                                         */
+                                    /* data_comm[clustnum]: contains the data clustnum will recevied */
+                                    /*                     from the other processors.                */
 } bcsc_handle_comm_t;
 
 /**
@@ -93,15 +93,15 @@ typedef struct bcsc_cblk_s {
  * @brief Internal column block distributed CSC matrix.
  */
 struct pastix_bcsc_s {
-    int           gN;      /**< Global number of vertices                                                      */
-    int           n;       /**< Local number of vertices                                                       */
-    int           mtxtype; /**< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.           */
-    int           flttype; /**< valtab datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
-    pastix_int_t  cscfnbr; /**< Number of column blocks.                                                       */
-    bcsc_cblk_t  *cscftab; /**< Array of Block column structures of size cscfnbr. (<pastix_bcscFormat_t>)      */
-    pastix_int_t *rowtab;  /**< Array of rows in the matrix.                                                   */
-    void         *Lvalues; /**< Array of values of the matrix A                                                */
-    void         *Uvalues; /**< Array of values of the matrix A^t                                              */
+    pastix_int_t      gN;      /**< Global number of vertices                                                      */
+    pastix_int_t      n;       /**< Local number of vertices                                                       */
+    pastix_mtxtype_t  mtxtype; /**< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.           */
+    pastix_coeftype_t flttype; /**< valtab datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
+    pastix_int_t      cscfnbr; /**< Number of column blocks.                                                       */
+    bcsc_cblk_t      *cscftab; /**< Array of Block column structures of size cscfnbr. (<pastix_bcscFormat_t>)      */
+    pastix_int_t     *rowtab;  /**< Array of rows in the matrix.                                                   */
+    void             *Lvalues; /**< Array of values of the matrix A                                                */
+    void             *Uvalues; /**< Array of values of the matrix A^t                                              */
 };
 
 double bcscInit( const spmatrix_t     *spm,

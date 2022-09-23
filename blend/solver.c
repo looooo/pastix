@@ -499,7 +499,7 @@ solverRequestExit( SolverMatrix *solvmtx )
 void
 solverRecvInit( pastix_coefside_t side,
                 SolverMatrix     *solvmtx,
-                int               flttype )
+                pastix_coeftype_t flttype )
 {
     /* Compute the max size (in bytes) for the communication buffer */
     pastix_int_t size = pastix_size_of(flttype) * solvmtx->maxrecv;

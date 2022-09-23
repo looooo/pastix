@@ -189,7 +189,7 @@ struct solver_matrix_s {
     SolverCblk   * restrict cblktab;       /**< Array of solver column blocks [+1]                           */
     SolverBlok   * restrict bloktab;       /**< Array of solver blocks        [+1]                           */
     pastix_int_t * restrict browtab;       /**< Array of blocks                                              */
-    int                     flttype;       /**< valtab datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
+    pastix_coeftype_t       flttype;       /**< valtab datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
     int                     globalalloc;   /**< Boolean for global allocation of coeftab  */
 
     pastix_int_t           *gcbl2loc;      /**< Array of local cblknum corresponding to gcblknum */
@@ -470,7 +470,7 @@ int  solverSave( const SolverMatrix *solvptr,
 
 void          solverRealloc( SolverMatrix       *solvptr);
 SolverMatrix *solverCopy   ( const SolverMatrix *solvptr,
-                             int                 flttype );
+                             pastix_coeftype_t   flttype );
 
 int           solverCheck     ( const SolverMatrix *solvmtx );
 int           solverDraw      ( const SolverMatrix *solvptr,
@@ -482,10 +482,10 @@ void          solverPrintStats( const SolverMatrix *solvptr );
 void solverRequestInit( SolverMatrix *solvmtx );
 void solverRequestExit( SolverMatrix *solvmtx );
 
-void solverRecvInit( pastix_coefside_t side,
-                     SolverMatrix     *solvmtx,
-                     int               flttype );
-void solverRecvExit( SolverMatrix     *solvmtx );
+void solverRecvInit( pastix_coefside_t  side,
+                     SolverMatrix      *solvmtx,
+                     pastix_coeftype_t  flttype );
+void solverRecvExit( SolverMatrix      *solvmtx );
 
 /*
  * Solver backup
