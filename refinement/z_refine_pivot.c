@@ -46,12 +46,14 @@
  *******************************************************************************/
 pastix_int_t
 z_pivot_smp( pastix_data_t *pastix_data,
-             void *x,
-             void *b )
+             pastix_rhs_t   xp,
+             pastix_rhs_t   bp )
 {
     struct z_solver     solver;
     Clock               t0, t3, refine_clk;
     pastix_int_t        n, itermax;
+    pastix_complex64_t *x = (pastix_complex64_t*)(xp->b);
+    pastix_complex64_t *b = (pastix_complex64_t*)(bp->b);
     pastix_complex64_t *r, *dx;
     pastix_complex32_t *sb = NULL;
     double              eps, normb, normr;

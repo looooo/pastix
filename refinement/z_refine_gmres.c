@@ -45,10 +45,15 @@
  * @return Number of iterations
  *
  *******************************************************************************/
-pastix_int_t z_gmres_smp(pastix_data_t *pastix_data, void *x, void *b)
+pastix_int_t
+z_gmres_smp( pastix_data_t *pastix_data,
+             pastix_rhs_t   xp,
+             pastix_rhs_t   bp )
 {
     struct z_solver     solver;
     Clock               refine_clk;
+    pastix_complex64_t *x = (pastix_complex64_t*)(xp->b);
+    pastix_complex64_t *b = (pastix_complex64_t*)(bp->b);
     pastix_complex64_t *gmHi, *gmH;
     pastix_complex64_t *gmVi, *gmV;
     pastix_complex64_t *gmWi, *gmW;

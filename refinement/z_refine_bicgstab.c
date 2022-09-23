@@ -45,7 +45,10 @@
  * @return Number of iterations
  *
  *******************************************************************************/
-pastix_int_t z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
+pastix_int_t
+z_bicgstab_smp( pastix_data_t *pastix_data,
+                pastix_rhs_t   xp,
+                pastix_rhs_t   bp )
 {
     struct z_solver     solver;
     pastix_int_t        n;
@@ -55,6 +58,8 @@ pastix_int_t z_bicgstab_smp (pastix_data_t *pastix_data, void *x, void *b)
     int                 itermax;
     int                 nb_iter = 0;
     int                 precond = 1;
+    pastix_complex64_t *x = (pastix_complex64_t*)(xp->b);
+    pastix_complex64_t *b = (pastix_complex64_t*)(bp->b);
     pastix_complex64_t *gradr; /* Current solution */
     pastix_complex64_t *gradr2;
     pastix_complex64_t *gradp;
