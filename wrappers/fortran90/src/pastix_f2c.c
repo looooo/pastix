@@ -6,10 +6,10 @@
  * @copyright 2017-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 1.1.0
+ * @version 6.2.1
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2022-01-14
+ * @date 2022-09-27
  *
  * This file has been automatically generated with gen_wrappers.py
  *
@@ -255,71 +255,72 @@ pastix_subtask_sopalin_f2c( pastix_data_t *pastix_data )
 }
 
 int
+pastixRhsInit_f2c( pastix_data_t *pastix_data,
+                   pastix_rhs_t  *rhs )
+{
+    return pastixRhsInit( pastix_data, rhs );
+}
+
+int
+pastixRhsFinalize_f2c( pastix_data_t *pastix_data,
+                       pastix_rhs_t   rhs )
+{
+    return pastixRhsFinalize( pastix_data, rhs );
+}
+
+int
 pastix_subtask_applyorder_f2c( pastix_data_t    *pastix_data,
                                pastix_coeftype_t flttype,
                                pastix_dir_t      dir,
                                pastix_int_t      m,
                                pastix_int_t      n,
                                void             *B,
-                               pastix_int_t      ldb )
+                               pastix_int_t      ldb,
+                               pastix_rhs_t      Bp )
 {
-    return pastix_subtask_applyorder( pastix_data, flttype, dir, m, n, B, ldb );
+    return pastix_subtask_applyorder( pastix_data, flttype, dir, m, n, B, ldb,
+                                      Bp );
 }
 
 int
-pastix_subtask_trsm_f2c( pastix_data_t    *pastix_data,
-                         pastix_coeftype_t flttype,
-                         pastix_side_t     side,
-                         pastix_uplo_t     uplo,
-                         pastix_trans_t    trans,
-                         pastix_diag_t     diag,
-                         pastix_int_t      nrhs,
-                         void             *B,
-                         pastix_int_t      ldb )
+pastix_subtask_trsm_f2c( pastix_data_t *pastix_data,
+                         pastix_side_t  side,
+                         pastix_uplo_t  uplo,
+                         pastix_trans_t trans,
+                         pastix_diag_t  diag,
+                         pastix_rhs_t   b )
 {
-    return pastix_subtask_trsm( pastix_data, flttype, side, uplo, trans, diag,
-                                nrhs, B, ldb );
+    return pastix_subtask_trsm( pastix_data, side, uplo, trans, diag, b );
 }
 
 int
-pastix_subtask_diag_f2c( pastix_data_t    *pastix_data,
-                         pastix_coeftype_t flttype,
-                         pastix_int_t      nrhs,
-                         void             *B,
-                         pastix_int_t      ldb )
+pastix_subtask_diag_f2c( pastix_data_t *pastix_data,
+                         pastix_rhs_t   b )
 {
-    return pastix_subtask_diag( pastix_data, flttype, nrhs, B, ldb );
+    return pastix_subtask_diag( pastix_data, b );
 }
 
 int
 pastix_subtask_solve_f2c( pastix_data_t *pastix_data,
-                          pastix_int_t   nrhs,
-                          void          *B,
-                          pastix_int_t   ldb )
+                          pastix_rhs_t   b )
 {
-    return pastix_subtask_solve( pastix_data, nrhs, B, ldb );
+    return pastix_subtask_solve( pastix_data, b );
 }
 
 int
 pastix_subtask_refine_f2c( pastix_data_t *pastix_data,
-                           pastix_int_t   n,
-                           pastix_int_t   nrhs,
-                           const void    *B,
-                           pastix_int_t   ldb,
-                           void          *X,
-                           pastix_int_t   ldx )
+                           pastix_rhs_t   b,
+                           pastix_rhs_t   x )
 {
-    return pastix_subtask_refine( pastix_data, n, nrhs, B, ldb, X, ldx );
+    return pastix_subtask_refine( pastix_data, b, x );
 }
 
 int
 pastix_subtask_solve_adv_f2c( pastix_data_t *pastix_data,
                               pastix_trans_t transA,
-                              pastix_int_t   nrhs,
-                              void          *B,
-                              pastix_int_t   ldb )
+                              pastix_rhs_t   b )
 {
-    return pastix_subtask_solve_adv( pastix_data, transA, nrhs, B, ldb );
+    return pastix_subtask_solve_adv( pastix_data, transA, b );
 }
 
 void

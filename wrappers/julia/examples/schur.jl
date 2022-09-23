@@ -89,38 +89,44 @@ if factotype != PaStiX.factlu
     S += LinearAlgebra.transpose(LinearAlgebra.tril(S,-1))
 end
 
+# Permuted vector pointer
+Xp = zeros(Int64,1)
+Xp_ptr = pointer_from_objref(Xp)
+PaStiX.pastixRhsInit( pastix_data, Xp_ptr )
+
 # 1- Apply P to b
 PaStiX.pastix_subtask_applyorder( pastix_data, A.flttype, spm.SpmDirForward,
-                                  n, nrhs, X, n )
+                                  n, nrhs, X, n, Xp )
 
 if factotype == PaStiX.factlu
     # 2- Forward solve on the non Schur complement part of the system
-    PaStiX.pastix_subtask_trsm( pastix_data, A.flttype, PaStiX.left, PaStiX.lower,
-                                PaStiX.notrans, PaStiX.unit, nrhs, X, n )
+    PaStiX.pastix_subtask_trsm( pastix_data, PaStiX.left, PaStiX.lower,
+                                PaStiX.notrans, PaStiX.unit, Xp )
 
     # 3- Solve the Schur complement part
     X[n-nschur+1:n] = S \ X[n-nschur+1:n]
 
     # 4- Backward solve on the non Schur complement part of the system
-    PaStiX.pastix_subtask_trsm( pastix_data, A.flttype, PaStiX.left, PaStiX.upper,
-                                PaStiX.notrans,  PaStiX.nonunit, nrhs, X, n )
+    PaStiX.pastix_subtask_trsm( pastix_data, PaStiX.left, PaStiX.upper,
+                                PaStiX.notrans,  PaStiX.nonunit, Xp )
 else
     # 2- Forward solve on the non Schur complement part of the system
-    PaStiX.pastix_subtask_trsm( pastix_data, A.flttype, PaStiX.left, PaStiX.lower,
-                                PaStiX.notrans, PaStiX.nonunit, nrhs, X, n )
+    PaStiX.pastix_subtask_trsm( pastix_data, PaStiX.left, PaStiX.lower,
+                                PaStiX.notrans, PaStiX.nonunit, Xp )
 
     # 3- Solve the Schur complement part
     Xs = view( X, n-nschur+1:n, nrhs ) # Use a view to avoid the copy
     LinearAlgebra.LAPACK.posv!( 'L', S, Xs )
 
     # 4- Backward solve on the non Schur complement part of the system
-    PaStiX.pastix_subtask_trsm( pastix_data, A.flttype, PaStiX.left, PaStiX.lower,
-                                PaStiX.conjtrans,  PaStiX.nonunit, nrhs, X, n )
+    PaStiX.pastix_subtask_trsm( pastix_data, PaStiX.left, PaStiX.lower,
+                                PaStiX.conjtrans,  PaStiX.nonunit, Xp )
 
 end
 
 # 5- Apply P^t to x
-PaStiX.pastix_subtask_applyorder( pastix_data, A.flttype, spm.SpmDirBackward, n, nrhs, X, n )
+PaStiX.pastix_subtask_applyorder( pastix_data, A.flttype, spm.SpmDirBackward, n, nrhs, X, n, Xp )
+PaStiX.pastixRhsFinalize( pastix_data, Xp )
 
 # Check solution
 eps = dparm[PaStiX.dparm_epsilon_refinement]

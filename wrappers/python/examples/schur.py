@@ -79,30 +79,32 @@ if factotype != pastix.factotype.LU:
     S += la.tril(S, -1).T
 
 # 1- Apply P to b
-pastix.subtask_applyorder( pastix_data, pastix.dir.Forward, x )
+Px = pastix.rhsInit( pastix_data )
+pastix.subtask_applyorder( pastix_data, pastix.dir.Forward, x, Px )
 
 if factotype == pastix.factotype.LU:
     # 2- Forward solve on the non Schur complement part of the system
-    pastix.subtask_trsm( pastix_data, pastix.side.Left, pastix.uplo.Lower, pastix.trans.NoTrans, pastix.diag.Unit, x )
+    pastix.subtask_trsm( pastix_data, pastix.side.Left, pastix.uplo.Lower, pastix.trans.NoTrans, pastix.diag.Unit, Px )
 
     # 3- Solve the Schur complement part
     x[-nschur:] = la.solve(S, x[-nschur:], sym_pos=False)
 
     # 4- Backward solve on the non Schur complement part of the system
-    pastix.subtask_trsm( pastix_data, pastix.side.Left, pastix.uplo.Upper, pastix.trans.NoTrans, pastix.diag.NonUnit, x )
+    pastix.subtask_trsm( pastix_data, pastix.side.Left, pastix.uplo.Upper, pastix.trans.NoTrans, pastix.diag.NonUnit, Px )
 
 else:
     # 2- Forward solve on the non Schur complement part of the system
-    pastix.subtask_trsm( pastix_data, pastix.side.Left, pastix.uplo.Lower, pastix.trans.NoTrans, pastix.diag.NonUnit, x )
+    pastix.subtask_trsm( pastix_data, pastix.side.Left, pastix.uplo.Lower, pastix.trans.NoTrans, pastix.diag.NonUnit, Px )
 
     # 3- Solve the Schur complement part
     x[-nschur:] = la.solve(S, x[-nschur:], sym_pos=True, lower=True)
 
     # 4- Backward solve on the non Schur complement part of the system
-    pastix.subtask_trsm( pastix_data, pastix.side.Left, pastix.uplo.Lower, pastix.trans.ConjTrans, pastix.diag.NonUnit, x )
+    pastix.subtask_trsm( pastix_data, pastix.side.Left, pastix.uplo.Lower, pastix.trans.ConjTrans, pastix.diag.NonUnit, Px )
 
 # 5- Apply P^t to x
-pastix.subtask_applyorder( pastix_data, pastix.dir.Backward, x )
+pastix.subtask_applyorder( pastix_data, pastix.dir.Backward, x, Px )
+pastix.rhsFinalize( pastix_data, Px )
 
 # Check solution
 rc = spmA.checkAxb( x0, b, x )

@@ -27,7 +27,7 @@ def initParam():
     return iparm_, dparm_
 
 def init( iparm, dparm, comm=pypastix_default_comm ):
-    pastix_data = c_void_p();
+    pastix_data = c_void_p()
     pypastix_pastixInit( pastix_data, comm, iparm, dparm )
     return pastix_data
 
@@ -79,7 +79,15 @@ def task_refine( pastix_data, spm, b, x, nrhs=-1 ):
 #
 # Numerical solve subtasks
 #
-def subtask_applyorder( pastix_data, direction, b ):
+def rhsInit( pastix_data ):
+    rhs = c_void_p();
+    pypastix_pastixRhsInit( pastix_data, rhs )
+    return rhs
+
+def rhsFinalize( pastix_data, rhs ):
+    pypastix_pastixRhsFinalize( pastix_data, rhs )
+
+def subtask_applyorder( pastix_data, direction, b, Bp ):
     flttype = spm.coeftype.getptype( b.dtype )
 
     m = b.shape[0]
@@ -90,26 +98,13 @@ def subtask_applyorder( pastix_data, direction, b ):
     ldb = m
 
     pypastix_pastix_subtask_applyorder( pastix_data, flttype, direction, m, n,
-                                         b.ctypes.data_as(c_void_p), ldb )
+                                        b.ctypes.data_as(c_void_p), ldb, Bp )
 
-def subtask_trsm( pastix_data, side, uplo, trans, diag, b, nrhs=-1 ):
-    flttype = spm.coeftype.getptype( b.dtype )
+def subtask_trsm( pastix_data, side, uplo, trans, diag, b ):
+    pypastix_pastix_subtask_trsm( pastix_data, side, uplo, trans, diag, b )
 
-    n    = b.shape[0]
-    nrhs = __getnrhs( nrhs, b )
-    ldb  = n
-
-    pypastix_pastix_subtask_trsm( pastix_data, flttype, side, uplo, trans, diag, nrhs,
-                                  b.ctypes.data_as(c_void_p), ldb )
-
-def subtask_diag( pastix_data, b, nrhs=-1 ):
-    flttype = spm.coeftype.getptype( b.dtype )
-
-    ldb  = b.shape[0]
-    nrhs = __getnrhs( nrhs, b )
-
-    pypastix_pastix_subtask_diag( pastix_data, flttype, nrhs,
-                                  b.ctypes.data_as(c_void_p), ldb )
+def subtask_diag( pastix_data, b ):
+    pypastix_pastix_subtask_diag( pastix_data, nrhs, b )
 
 #
 # Schur complement manipulation routines.

@@ -70,6 +70,8 @@ program fmultilap
      complex(kind=c_double_complex), dimension(:,:), pointer :: b0    ! Array of the initial b, to restart at each iteration
      complex(kind=c_double_complex), dimension(:,:), pointer :: b     ! Array of the b vector
      complex(kind=c_double_complex), dimension(:,:), pointer :: x     ! Array of the x vector
+     type(pastix_rhs_t)                                      :: bp    ! Structure to hold the permuted b
+     type(pastix_rhs_t)                                      :: xp    ! Structure to hold the permuted x
   end type rhs_subset
 
   type sys_lin
@@ -411,31 +413,31 @@ program fmultilap
               end if
 
               ! 3- Permute the b pointer
-              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirForward, &
-                   &                          matrix%spm%nexp, rhs%nrhs, rhs%b, matrix%spm%nexp, info )
-
               rhs%x(:,:) = rhs%b(:,:)
+              call pastixRhsInit( matrix%pastix_data, rhs%bp, info )
+              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirForward, &
+                   &                          matrix%spm%nexp, rhs%nrhs, rhs%b, matrix%spm%nexp, rhs%bp, info )
+              call pastixRhsInit( matrix%pastix_data, rhs%xp, info )
+              call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirForward, &
+                   &                          matrix%spm%nexp, rhs%nrhs, rhs%x, matrix%spm%nexp, rhs%xp, info )
 
               ! 4- Solve the problem
-              call pastix_subtask_solve( matrix%pastix_data, rhs%nrhs, &
-                   & rhs%x, matrix%spm%nexp, info )
+              call pastix_subtask_solve( matrix%pastix_data, rhs%xp, info )
 
               dla_thread_stats(th, MULTILAP_SOLV_TIME) =  &
                    & dla_thread_stats(th,MULTILAP_SOLV_TIME) + matrix%dparm(DPARM_SOLV_TIME)
 
               ! 5- Refine the solution
-              call pastix_subtask_refine(            &
-                   & matrix%pastix_data,             &
-                   & matrix%spm%nexp, rhs%nrhs,         &
-                   & rhs%b, matrix%spm%nexp,            &
-                   & rhs%x, matrix%spm%nexp, info )
+              call pastix_subtask_refine( matrix%pastix_data, rhs%bp, rhs%xp, info )
 
               ! 6- Apply the backward permutation on b and x
               call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
-                   &                          matrix%spm%nexp, rhs%nrhs, rhs%b, matrix%spm%nexp, info )
+                   &                          matrix%spm%nexp, rhs%nrhs, rhs%b, matrix%spm%nexp, rhs%bp, info )
+              call pastixRhsFinalize( matrix%pastix_data, rhs%bp, info )
 
               call pastix_subtask_applyorder( matrix%pastix_data, SpmComplex64, PastixDirBackward, &
-                   &                          matrix%spm%nexp, rhs%nrhs, rhs%x, matrix%spm%nexp, info )
+                   &                          matrix%spm%nexp, rhs%nrhs, rhs%x, matrix%spm%nexp, rhs%xp, info )
+              call pastixrhsfinalize( matrix%pastix_data, rhs%xp, info )
 
            end do solve_loop2
         end do solve_loop
