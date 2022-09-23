@@ -154,6 +154,10 @@ typedef struct pastix_order_s pastix_order_t;
 struct solver_matrix_s;
 typedef struct solver_matrix_s SolverMatrix;
 
+/* Main structure to store a Right-Hand-Side in which the permutation has been applied */
+struct pastix_rhs_s;
+typedef struct pastix_rhs_s * pastix_rhs_t;
+
 END_C_DECLS
 
 #endif /* _pastix_datatypes_h_ */
