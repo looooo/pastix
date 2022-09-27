@@ -284,7 +284,7 @@ typedef enum pastix_refine_e {
  *
  * @{
  */
-#define pastix_coeftype_t spm_coeftype_t
+typedef spm_coeftype_t pastix_coeftype_t;
 #define PastixPattern   SpmPattern
 #define PastixFloat     SpmFloat
 #define PastixDouble    SpmDouble
