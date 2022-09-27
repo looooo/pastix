@@ -139,6 +139,7 @@ struct pastix_data_s {
  *
  */
 struct pastix_rhs_s {
+    int8_t            allocated;
     pastix_coeftype_t flttype;
     pastix_int_t      m;
     pastix_int_t      n;
