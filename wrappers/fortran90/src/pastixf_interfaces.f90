@@ -6,11 +6,11 @@
 !> @copyright 2017-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !>                      Univ. Bordeaux. All rights reserved.
 !>
-!> @version 6.2.0
+!> @version 6.2.1
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2022-01-13
+!> @date 2022-09-27
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -354,12 +354,34 @@ module pastixf_interfaces
      end subroutine pastix_subtask_sopalin_f08
   end interface pastix_subtask_sopalin
 
+  interface pastixRhsInit
+     subroutine pastixRhsInit_f08(pastix_data, rhs, info)
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_data_t, pastix_rhs_t
+       implicit none
+       type(pastix_data_t), intent(inout), target   :: pastix_data
+       type(pastix_rhs_t),  intent(inout), target   :: rhs
+       integer(kind=c_int), intent(out),   optional :: info
+     end subroutine pastixRhsInit_f08
+  end interface pastixRhsInit
+
+  interface pastixRhsFinalize
+     subroutine pastixRhsFinalize_f08(pastix_data, rhs, info)
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_data_t, pastix_rhs_t
+       implicit none
+       type(pastix_data_t), intent(inout), target   :: pastix_data
+       type(pastix_rhs_t),  intent(in)              :: rhs
+       integer(kind=c_int), intent(out),   optional :: info
+     end subroutine pastixRhsFinalize_f08
+  end interface pastixRhsFinalize
+
   interface pastix_subtask_applyorder
      subroutine pastix_subtask_applyorder_f08(pastix_data, flttype, dir, m, n, &
-          B, ldb, info)
+          B, ldb, Bp, info)
        use :: iso_c_binding,    only : c_int, c_ptr
        use :: pastixf_bindings, only : pastixGetCptrFrom2dArray
-       use :: pastixf_enums,    only : pastix_data_t, pastix_int_t
+       use :: pastixf_enums,    only : pastix_data_t, pastix_int_t, pastix_rhs_t
        implicit none
        type(pastix_data_t),        intent(inout), target   :: pastix_data
        integer(c_int),             intent(in)              :: flttype
@@ -368,91 +390,70 @@ module pastixf_interfaces
        integer(kind=pastix_int_t), intent(in)              :: n
        class(*),                   intent(inout), target   :: B(:,:)
        integer(kind=pastix_int_t), intent(in)              :: ldb
+       type(pastix_rhs_t),         intent(in)              :: Bp
        integer(kind=c_int),        intent(out),   optional :: info
      end subroutine pastix_subtask_applyorder_f08
   end interface pastix_subtask_applyorder
 
   interface pastix_subtask_trsm
-     subroutine pastix_subtask_trsm_f08(pastix_data, flttype, side, uplo, &
-          trans, diag, nrhs, B, ldb, info)
-       use :: iso_c_binding,    only : c_int, c_ptr
-       use :: pastixf_bindings, only : pastixGetCptrFrom2dArray
-       use :: pastixf_enums,    only : pastix_data_t, pastix_int_t
+     subroutine pastix_subtask_trsm_f08(pastix_data, side, uplo, trans, diag, &
+          b, info)
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_data_t, pastix_rhs_t
        implicit none
-       type(pastix_data_t),        intent(inout), target   :: pastix_data
-       integer(c_int),             intent(in)              :: flttype
-       integer(c_int),             intent(in)              :: side
-       integer(c_int),             intent(in)              :: uplo
-       integer(c_int),             intent(in)              :: trans
-       integer(c_int),             intent(in)              :: diag
-       integer(kind=pastix_int_t), intent(in)              :: nrhs
-       class(*),                   intent(inout), target   :: B(:,:)
-       integer(kind=pastix_int_t), intent(in)              :: ldb
-       integer(kind=c_int),        intent(out),   optional :: info
+       type(pastix_data_t), intent(inout), target   :: pastix_data
+       integer(c_int),      intent(in)              :: side
+       integer(c_int),      intent(in)              :: uplo
+       integer(c_int),      intent(in)              :: trans
+       integer(c_int),      intent(in)              :: diag
+       type(pastix_rhs_t),  intent(in)              :: b
+       integer(kind=c_int), intent(out),   optional :: info
      end subroutine pastix_subtask_trsm_f08
   end interface pastix_subtask_trsm
 
   interface pastix_subtask_diag
-     subroutine pastix_subtask_diag_f08(pastix_data, flttype, nrhs, B, ldb, &
-          info)
-       use :: iso_c_binding,    only : c_int, c_ptr
-       use :: pastixf_bindings, only : pastixGetCptrFrom2dArray
-       use :: pastixf_enums,    only : pastix_data_t, pastix_int_t
+     subroutine pastix_subtask_diag_f08(pastix_data, b, info)
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_data_t, pastix_rhs_t
        implicit none
-       type(pastix_data_t),        intent(inout), target   :: pastix_data
-       integer(c_int),             intent(in)              :: flttype
-       integer(kind=pastix_int_t), intent(in)              :: nrhs
-       class(*),                   intent(inout), target   :: B(:,:)
-       integer(kind=pastix_int_t), intent(in)              :: ldb
-       integer(kind=c_int),        intent(out),   optional :: info
+       type(pastix_data_t), intent(inout), target   :: pastix_data
+       type(pastix_rhs_t),  intent(in)              :: b
+       integer(kind=c_int), intent(out),   optional :: info
      end subroutine pastix_subtask_diag_f08
   end interface pastix_subtask_diag
 
   interface pastix_subtask_solve
-     subroutine pastix_subtask_solve_f08(pastix_data, nrhs, B, ldb, info)
-       use :: iso_c_binding,    only : c_int, c_ptr
-       use :: pastixf_bindings, only : pastixGetCptrFrom2dArray
-       use :: pastixf_enums,    only : pastix_data_t, pastix_int_t
+     subroutine pastix_subtask_solve_f08(pastix_data, b, info)
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_data_t, pastix_rhs_t
        implicit none
-       type(pastix_data_t),        intent(inout), target   :: pastix_data
-       integer(kind=pastix_int_t), intent(in)              :: nrhs
-       class(*),                   intent(inout), target   :: B(:,:)
-       integer(kind=pastix_int_t), intent(in)              :: ldb
-       integer(kind=c_int),        intent(out),   optional :: info
+       type(pastix_data_t), intent(inout), target   :: pastix_data
+       type(pastix_rhs_t),  intent(in)              :: b
+       integer(kind=c_int), intent(out),   optional :: info
      end subroutine pastix_subtask_solve_f08
   end interface pastix_subtask_solve
 
   interface pastix_subtask_refine
-     subroutine pastix_subtask_refine_f08(pastix_data, n, nrhs, B, ldb, X, &
-          ldx, info)
-       use :: iso_c_binding,    only : c_int, c_ptr
-       use :: pastixf_bindings, only : pastixGetCptrFrom2dArray
-       use :: pastixf_enums,    only : pastix_data_t, pastix_int_t
+     subroutine pastix_subtask_refine_f08(pastix_data, b, x, info)
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_data_t, pastix_rhs_t
        implicit none
-       type(pastix_data_t),        intent(inout), target   :: pastix_data
-       integer(kind=pastix_int_t), intent(in)              :: n
-       integer(kind=pastix_int_t), intent(in)              :: nrhs
-       class(*),                   intent(in),    target   :: B(:,:)
-       integer(kind=pastix_int_t), intent(in)              :: ldb
-       class(*),                   intent(inout), target   :: X(:,:)
-       integer(kind=pastix_int_t), intent(in)              :: ldx
-       integer(kind=c_int),        intent(out),   optional :: info
+       type(pastix_data_t), intent(inout), target   :: pastix_data
+       type(pastix_rhs_t),  intent(in)              :: b
+       type(pastix_rhs_t),  intent(in)              :: x
+       integer(kind=c_int), intent(out),   optional :: info
      end subroutine pastix_subtask_refine_f08
   end interface pastix_subtask_refine
 
   interface pastix_subtask_solve_adv
-     subroutine pastix_subtask_solve_adv_f08(pastix_data, transA, nrhs, B, &
-          ldb, info)
-       use :: iso_c_binding,    only : c_int, c_ptr
-       use :: pastixf_bindings, only : pastixGetCptrFrom2dArray
-       use :: pastixf_enums,    only : pastix_data_t, pastix_int_t
+     subroutine pastix_subtask_solve_adv_f08(pastix_data, transA, b, info)
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_data_t, pastix_rhs_t
        implicit none
-       type(pastix_data_t),        intent(inout), target   :: pastix_data
-       integer(c_int),             intent(in)              :: transA
-       integer(kind=pastix_int_t), intent(in)              :: nrhs
-       class(*),                   intent(inout), target   :: B(:,:)
-       integer(kind=pastix_int_t), intent(in)              :: ldb
-       integer(kind=c_int),        intent(out),   optional :: info
+       type(pastix_data_t), intent(inout), target   :: pastix_data
+       integer(c_int),      intent(in)              :: transA
+       type(pastix_rhs_t),  intent(in)              :: b
+       integer(kind=c_int), intent(out),   optional :: info
      end subroutine pastix_subtask_solve_adv_f08
   end interface pastix_subtask_solve_adv
 

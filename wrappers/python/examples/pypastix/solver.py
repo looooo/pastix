@@ -33,14 +33,14 @@ class solver(object):
             self.iparm[iparm.verbose] = verbose.No
 
         # Set default factotype based on Matrix properties
-        self.mtxtype = kwargs.setdefault("mtxtype", mtxtype.General)
-        if self.mtxtype == mtxtype.HerPosDef:
+        self.mtxtype = kwargs.setdefault("mtxtype", spm.mtxtype.General)
+        if self.mtxtype == spm.mtxtype.HerPosDef:
             self.factotype = factotype.LLH
-        elif self.mtxtype == mtxtype.SymPosDef:
+        elif self.mtxtype == spm.mtxtype.SymPosDef:
             self.factotype = factotype.LLT
-        elif self.mtxtype == mtxtype.Hermitian:
+        elif self.mtxtype == spm.mtxtype.Hermitian:
             self.factotype = factotype.LDLH
-        elif self.mtxtype == mtxtype.Symmetric:
+        elif self.mtxtype == spm.mtxtype.Symmetric:
             self.factotype = factotype.LDLT
         else:
             self.factotype = factotype.LU
@@ -118,23 +118,25 @@ class solver(object):
         x = b.copy()
 
         # 1- Apply P to b
-        subtask_applyorder( self.pastix_data, dir.Forward, x )
+        xp = rhsInit( self.pastix_data )
+        subtask_applyorder( self.pastix_data, dir.Forward, x, xp )
 
         # 2- Forward solve on the non Schur complement part of the system
         if self.factotype in (factotype.LLT, factotype.LLH):
             subtask_trsm( self.pastix_data, side.Left,
                           uplo.Lower, trans.NoTrans,
-                          diag.NonUnit, x )
+                          diag.NonUnit, xp )
         else:
             subtask_trsm( self.pastix_data, side.Left,
                           uplo.Lower, trans.NoTrans,
-                          diag.Unit, x )
+                          diag.Unit, xp )
 
         # 3- Apply the diagonal step if LDL factorization applied
         if self.factotype in (factotype.LDLT, factotype.LDLH):
-            subtask_diag( self.pastix_data, x )
+            subtask_diag( self.pastix_data, xp )
 
         self.x = x
+        self.xp = xp
         nschur = len(self.schur_list)
         return x[-nschur:]
 
@@ -149,31 +151,34 @@ class solver(object):
 
         nschur = len(self.schur_list)
         x = self.x
+        xp = self.xp
         x[-nschur:] = y
         # 4- Backward solve on the non Schur complement part of the system
         if self.factotype == factotype.LDLH:
             subtask_trsm( self.pastix_data, side.Left,
                           uplo.Lower, trans.ConjTrans,
-                          diag.Unit, x )
+                          diag.Unit, xp )
         elif self.factotype == factotype.LDLT:
             subtask_trsm( self.pastix_data, side.Left,
                           uplo.Lower, trans.Trans,
-                          diag.Unit, x )
+                          diag.Unit, xp )
         elif self.factotype == factotype.LLH:
             subtask_trsm( self.pastix_data, side.Left,
                           uplo.Lower, trans.ConjTrans,
-                          diag.NonUnit, x )
+                          diag.NonUnit, xp )
         elif self.factotype == factotype.LLT:
             subtask_trsm( self.pastix_data, side.Left,
                           uplo.Lower, trans.Trans,
-                          diag.NonUnit, x )
+                          diag.NonUnit, xp )
         else: # LU
             subtask_trsm( self.pastix_data, side.Left,
                           uplo.Upper, trans.NoTrans,
-                          diag.NonUnit, x )
+                          diag.NonUnit, xp )
 
         #  5- Apply P^t to x
-        subtask_applyorder( self.pastix_data, dir.Backward, x )
+        subtask_applyorder( self.pastix_data, dir.Backward, x, xp )
+        rhsFinalize( self.pastix_data, xp )
+        self.xp = None
 
         return x
 

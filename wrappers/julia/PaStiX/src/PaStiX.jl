@@ -7,11 +7,11 @@
  @copyright 2020-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.0
+ @version 6.2.1
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2022-01-13
+ @date 2022-09-27
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -143,27 +143,35 @@ end
 end
 
 @cbindings libpastix begin
-    @cextern pastix_subtask_applyorder( pastix_data::Ptr{Pastix_data_t}, flttype::spm.spm_coeftype_t, dir::spm.spm_dir_t, m::Pastix_int_t, n::Pastix_int_t, B::Ptr{Cvoid}, ldb::Pastix_int_t )::Cint
+    @cextern pastixRhsInit( pastix_data::Ptr{Pastix_data_t}, rhs::Ptr{Pastix_rhs_t} )::Cint
 end
 
 @cbindings libpastix begin
-    @cextern pastix_subtask_trsm( pastix_data::Ptr{Pastix_data_t}, flttype::spm.spm_coeftype_t, side::Cint, uplo::Cint, trans::Pastix_trans_t, diag::Pastix_diag_t, nrhs::Pastix_int_t, B::Ptr{Cvoid}, ldb::Pastix_int_t )::Cint
+    @cextern pastixRhsFinalize( pastix_data::Ptr{Pastix_data_t}, rhs::Pastix_rhs_t )::Cint
 end
 
 @cbindings libpastix begin
-    @cextern pastix_subtask_diag( pastix_data::Ptr{Pastix_data_t}, flttype::spm.spm_coeftype_t, nrhs::Pastix_int_t, B::Ptr{Cvoid}, ldb::Pastix_int_t )::Cint
+    @cextern pastix_subtask_applyorder( pastix_data::Ptr{Pastix_data_t}, flttype::spm.spm_coeftype_t, dir::spm.spm_dir_t, m::Pastix_int_t, n::Pastix_int_t, B::Ptr{Cvoid}, ldb::Pastix_int_t, Bp::Pastix_rhs_t )::Cint
 end
 
 @cbindings libpastix begin
-    @cextern pastix_subtask_solve( pastix_data::Ptr{Pastix_data_t}, nrhs::Pastix_int_t, B::Ptr{Cvoid}, ldb::Pastix_int_t )::Cint
+    @cextern pastix_subtask_trsm( pastix_data::Ptr{Pastix_data_t}, side::Cint, uplo::Cint, trans::Pastix_trans_t, diag::Pastix_diag_t, b::Pastix_rhs_t )::Cint
 end
 
 @cbindings libpastix begin
-    @cextern pastix_subtask_refine( pastix_data::Ptr{Pastix_data_t}, n::Pastix_int_t, nrhs::Pastix_int_t, B::Ptr{Cvoid}, ldb::Pastix_int_t, X::Ptr{Cvoid}, ldx::Pastix_int_t )::Cint
+    @cextern pastix_subtask_diag( pastix_data::Ptr{Pastix_data_t}, b::Pastix_rhs_t )::Cint
 end
 
 @cbindings libpastix begin
-    @cextern pastix_subtask_solve_adv( pastix_data::Ptr{Pastix_data_t}, transA::Pastix_trans_t, nrhs::Pastix_int_t, B::Ptr{Cvoid}, ldb::Pastix_int_t )::Cint
+    @cextern pastix_subtask_solve( pastix_data::Ptr{Pastix_data_t}, b::Pastix_rhs_t )::Cint
+end
+
+@cbindings libpastix begin
+    @cextern pastix_subtask_refine( pastix_data::Ptr{Pastix_data_t}, b::Pastix_rhs_t, x::Pastix_rhs_t )::Cint
+end
+
+@cbindings libpastix begin
+    @cextern pastix_subtask_solve_adv( pastix_data::Ptr{Pastix_data_t}, transA::Pastix_trans_t, b::Pastix_rhs_t )::Cint
 end
 
 @cbindings libpastix begin

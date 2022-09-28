@@ -10,7 +10,7 @@
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2022-09-03
+!> @date 2022-09-27
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -43,6 +43,10 @@ module pastixf_enums
   type, bind(c) :: pastix_data_t
      type(c_ptr) :: ptr
   end type pastix_data_t
+
+  type, bind(c) :: pastix_rhs_t
+     type(c_ptr) :: ptr
+  end type pastix_rhs_t
 
   type, bind(c) :: pastix_graph_t
      type(c_ptr) :: ptr
@@ -377,6 +381,7 @@ module pastixf_enums
      type(c_ptr)                :: selevtx
      integer(kind=pastix_int_t) :: sndenbr
      type(c_ptr)                :: sndetab
+     type(c_ptr)                :: peritab_exp
   end type pastix_order_t
 
 contains

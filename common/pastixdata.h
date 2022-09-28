@@ -127,4 +127,24 @@ struct pastix_data_s {
     pastix_int_t     pastix_id;          /*+ Id of the pastix instance (PID of first MPI task)                   */
 };
 
+/**
+ *
+ * @ingroup pastix_users
+ *
+ * @brief Main PaStiX RHS structure
+ *
+ * This structure holds all informations about a set of permuted
+ * right-hand-sides to be used in the solve/refinement steps.
+ * @warning This structure should not be modified directly by the user.
+ *
+ */
+struct pastix_rhs_s {
+    int8_t            allocated;
+    pastix_coeftype_t flttype;
+    pastix_int_t      m;
+    pastix_int_t      n;
+    pastix_int_t      ld;
+    void             *b;
+};
+
 #endif /* _pastixdata_h_ */

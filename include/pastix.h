@@ -120,40 +120,36 @@ int pastix_subtask_sopalin   ( pastix_data_t *pastix_data );
 /*
  * Numerical solve and refinement subtasks
  */
+int pastixRhsInit( pastix_data_t *pastix_data,
+                   pastix_rhs_t  *rhs );
+int pastixRhsFinalize( pastix_data_t *pastix_data,
+                       pastix_rhs_t   rhs );
+
 int pastix_subtask_applyorder( pastix_data_t    *pastix_data,
                                pastix_coeftype_t flttype,
                                pastix_dir_t      dir,
                                pastix_int_t      m,
                                pastix_int_t      n,
                                void             *B,
-                               pastix_int_t      ldb );
+                               pastix_int_t      ldb,
+                               pastix_rhs_t      Bp );
 int pastix_subtask_trsm( pastix_data_t    *pastix_data,
-                         pastix_coeftype_t flttype,
                          pastix_side_t     side,
                          pastix_uplo_t     uplo,
                          pastix_trans_t    trans,
                          pastix_diag_t     diag,
-                         pastix_int_t      nrhs,
-                         void             *B,
-                         pastix_int_t      ldb );
+                         pastix_rhs_t      b );
 int pastix_subtask_diag( pastix_data_t    *pastix_data,
-                         pastix_coeftype_t flttype,
-                         pastix_int_t      nrhs,
-                         void             *B,
-                         pastix_int_t      ldb );
+                         pastix_rhs_t      b );
 int pastix_subtask_solve( pastix_data_t *pastix_data,
-                          pastix_int_t   nrhs,
-                          void          *B,
-                          pastix_int_t   ldb );
+                          pastix_rhs_t   b );
 int pastix_subtask_refine( pastix_data_t *pastix_data,
-                           pastix_int_t n, pastix_int_t nrhs,
-                           const void *B, pastix_int_t ldb,
-                                 void *X, pastix_int_t ldx );
+                           pastix_rhs_t   b,
+                           pastix_rhs_t   x );
 int pastix_subtask_solve_adv( pastix_data_t *pastix_data,
                               pastix_trans_t transA,
-                              pastix_int_t   nrhs,
-                              void          *B,
-                              pastix_int_t   ldb );
+                              pastix_rhs_t   b );
+
 /*
  * Schur complement manipulation routines.
  */
@@ -164,8 +160,11 @@ int  pastixGetSchur           ( const pastix_data_t *pastix_data,
                                 void                *S,
                                 pastix_int_t         lds );
 
-void pastixExpand            ( const pastix_data_t *pastix_data,
-                               spmatrix_t          *spm );
+/*
+ * DoF subroutine to expand the problem.
+ */
+void pastixExpand( const pastix_data_t *pastix_data,
+                   spmatrix_t          *spm );
 
 /*
  * Function to provide access to the diagonal

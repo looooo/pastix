@@ -57,6 +57,9 @@ def function_prepare_arg( function, arg ):
     if arg['pointer'] > 1:
         py_call = "pointer( " + py_call + " )"
 
+    if arg['pointer'] > 0 and (arg['type'] == "pastix_rhs_t"):
+        py_call = "pointer( " + py_call + " )"
+
     # Call to communicators
     if arg['type'] == "MPI_Comm":
         py_call = "pypastix_convert_comm( " + py_call + " )"

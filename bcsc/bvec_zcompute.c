@@ -1138,8 +1138,13 @@ void bcsc_zspsv( pastix_data_t      *pastix_data,
                  pastix_complex64_t *b,
                  pastix_complex32_t *work )
 {
-    pastix_int_t n    = pastix_data->bcsc->n;
-    pastix_int_t nrhs = 1;
+    struct pastix_rhs_s rhsb = {
+        .flttype = PastixComplex64,
+        .m       = pastix_data->bcsc->gN,
+        .n       = 1,
+        .ld      = pastix_data->bcsc->gN,
+        .b       = b,
+    };
     int          rc;
 
     pastix_data->iparm[IPARM_VERBOSE]--;
@@ -1147,12 +1152,18 @@ void bcsc_zspsv( pastix_data_t      *pastix_data,
 #if defined(PRECISION_z) || defined(PRECISION_d)
     if ( pastix_data->iparm[IPARM_MIXED] )
     {
+        pastix_int_t n    = rhsb.m;
+        pastix_int_t nrhs = rhsb.n;
+
+        rhsb.flttype = PastixComplex32;
+        rhsb.b = work;
+
         /* Copying b into work at half the precision */
         rc = LAPACKE_zlag2c_work( LAPACK_COL_MAJOR, n, nrhs,
                                   b, n, work, n );
         assert( rc == 0 );
 
-        pastix_subtask_solve( pastix_data, nrhs, work, n );
+        pastix_subtask_solve( pastix_data, &rhsb );
 
         /* Reverting to normal precision after solving */
         rc = LAPACKE_clag2z_work( LAPACK_COL_MAJOR, n, nrhs,
@@ -1163,7 +1174,7 @@ void bcsc_zspsv( pastix_data_t      *pastix_data,
 #endif
     {
         assert(work == NULL);
-        pastix_subtask_solve( pastix_data, nrhs, b, n );
+        pastix_subtask_solve( pastix_data, &rhsb );
     }
 
     pastix_data->iparm[IPARM_VERBOSE]++;

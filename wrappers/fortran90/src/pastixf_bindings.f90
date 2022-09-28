@@ -6,11 +6,11 @@
 !> @copyright 2017-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !>                      Univ. Bordeaux. All rights reserved.
 !>
-!> @version 6.2.0
+!> @version 6.2.1
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2022-01-13
+!> @date 2022-09-27
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -319,11 +319,30 @@ module pastixf_bindings
        type(c_ptr),  value :: pastix_data
      end function pastix_subtask_sopalin_f2c
 
+     function pastixRhsInit_f2c(pastix_data, rhs) &
+          bind(c, name='pastixRhsInit_f2c')
+       use :: iso_c_binding, only : c_int, c_ptr
+       implicit none
+       integer(kind=c_int) :: pastixRhsInit_f2c
+       type(c_ptr),  value :: pastix_data
+       type(c_ptr),  value :: rhs
+     end function pastixRhsInit_f2c
+
+     function pastixRhsFinalize_f2c(pastix_data, rhs) &
+          bind(c, name='pastixRhsFinalize_f2c')
+       use :: iso_c_binding, only : c_int, c_ptr
+       use :: pastixf_enums, only : pastix_rhs_t
+       implicit none
+       integer(kind=c_int)       :: pastixRhsFinalize_f2c
+       type(c_ptr),        value :: pastix_data
+       type(pastix_rhs_t), value :: rhs
+     end function pastixRhsFinalize_f2c
+
      function pastix_subtask_applyorder_f2c(pastix_data, flttype, dir, m, n, &
-          B, ldb) &
+          B, ldb, Bp) &
           bind(c, name='pastix_subtask_applyorder_f2c')
        use :: iso_c_binding, only : c_int, c_ptr
-       use :: pastixf_enums, only : pastix_int_t
+       use :: pastixf_enums, only : pastix_int_t, pastix_rhs_t
        implicit none
        integer(kind=c_int)               :: pastix_subtask_applyorder_f2c
        type(c_ptr),                value :: pastix_data
@@ -333,77 +352,63 @@ module pastixf_bindings
        integer(kind=pastix_int_t), value :: n
        type(c_ptr),                value :: B
        integer(kind=pastix_int_t), value :: ldb
+       type(pastix_rhs_t),         value :: Bp
      end function pastix_subtask_applyorder_f2c
 
-     function pastix_subtask_trsm_f2c(pastix_data, flttype, side, uplo, trans, &
-          diag, nrhs, B, ldb) &
+     function pastix_subtask_trsm_f2c(pastix_data, side, uplo, trans, diag, b) &
           bind(c, name='pastix_subtask_trsm_f2c')
        use :: iso_c_binding, only : c_int, c_ptr
-       use :: pastixf_enums, only : pastix_int_t
+       use :: pastixf_enums, only : pastix_rhs_t
        implicit none
-       integer(kind=c_int)               :: pastix_subtask_trsm_f2c
-       type(c_ptr),                value :: pastix_data
-       integer(c_int),             value :: flttype
-       integer(c_int),             value :: side
-       integer(c_int),             value :: uplo
-       integer(c_int),             value :: trans
-       integer(c_int),             value :: diag
-       integer(kind=pastix_int_t), value :: nrhs
-       type(c_ptr),                value :: B
-       integer(kind=pastix_int_t), value :: ldb
+       integer(kind=c_int)       :: pastix_subtask_trsm_f2c
+       type(c_ptr),        value :: pastix_data
+       integer(c_int),     value :: side
+       integer(c_int),     value :: uplo
+       integer(c_int),     value :: trans
+       integer(c_int),     value :: diag
+       type(pastix_rhs_t), value :: b
      end function pastix_subtask_trsm_f2c
 
-     function pastix_subtask_diag_f2c(pastix_data, flttype, nrhs, B, ldb) &
+     function pastix_subtask_diag_f2c(pastix_data, b) &
           bind(c, name='pastix_subtask_diag_f2c')
        use :: iso_c_binding, only : c_int, c_ptr
-       use :: pastixf_enums, only : pastix_int_t
+       use :: pastixf_enums, only : pastix_rhs_t
        implicit none
-       integer(kind=c_int)               :: pastix_subtask_diag_f2c
-       type(c_ptr),                value :: pastix_data
-       integer(c_int),             value :: flttype
-       integer(kind=pastix_int_t), value :: nrhs
-       type(c_ptr),                value :: B
-       integer(kind=pastix_int_t), value :: ldb
+       integer(kind=c_int)       :: pastix_subtask_diag_f2c
+       type(c_ptr),        value :: pastix_data
+       type(pastix_rhs_t), value :: b
      end function pastix_subtask_diag_f2c
 
-     function pastix_subtask_solve_f2c(pastix_data, nrhs, B, ldb) &
+     function pastix_subtask_solve_f2c(pastix_data, b) &
           bind(c, name='pastix_subtask_solve_f2c')
        use :: iso_c_binding, only : c_int, c_ptr
-       use :: pastixf_enums, only : pastix_int_t
+       use :: pastixf_enums, only : pastix_rhs_t
        implicit none
-       integer(kind=c_int)               :: pastix_subtask_solve_f2c
-       type(c_ptr),                value :: pastix_data
-       integer(kind=pastix_int_t), value :: nrhs
-       type(c_ptr),                value :: B
-       integer(kind=pastix_int_t), value :: ldb
+       integer(kind=c_int)       :: pastix_subtask_solve_f2c
+       type(c_ptr),        value :: pastix_data
+       type(pastix_rhs_t), value :: b
      end function pastix_subtask_solve_f2c
 
-     function pastix_subtask_refine_f2c(pastix_data, n, nrhs, B, ldb, X, ldx) &
+     function pastix_subtask_refine_f2c(pastix_data, b, x) &
           bind(c, name='pastix_subtask_refine_f2c')
        use :: iso_c_binding, only : c_int, c_ptr
-       use :: pastixf_enums, only : pastix_int_t
+       use :: pastixf_enums, only : pastix_rhs_t
        implicit none
-       integer(kind=c_int)               :: pastix_subtask_refine_f2c
-       type(c_ptr),                value :: pastix_data
-       integer(kind=pastix_int_t), value :: n
-       integer(kind=pastix_int_t), value :: nrhs
-       type(c_ptr),                value :: B
-       integer(kind=pastix_int_t), value :: ldb
-       type(c_ptr),                value :: X
-       integer(kind=pastix_int_t), value :: ldx
+       integer(kind=c_int)       :: pastix_subtask_refine_f2c
+       type(c_ptr),        value :: pastix_data
+       type(pastix_rhs_t), value :: b
+       type(pastix_rhs_t), value :: x
      end function pastix_subtask_refine_f2c
 
-     function pastix_subtask_solve_adv_f2c(pastix_data, transA, nrhs, B, ldb) &
+     function pastix_subtask_solve_adv_f2c(pastix_data, transA, b) &
           bind(c, name='pastix_subtask_solve_adv_f2c')
        use :: iso_c_binding, only : c_int, c_ptr
-       use :: pastixf_enums, only : pastix_int_t
+       use :: pastixf_enums, only : pastix_rhs_t
        implicit none
-       integer(kind=c_int)               :: pastix_subtask_solve_adv_f2c
-       type(c_ptr),                value :: pastix_data
-       integer(c_int),             value :: transA
-       integer(kind=pastix_int_t), value :: nrhs
-       type(c_ptr),                value :: B
-       integer(kind=pastix_int_t), value :: ldb
+       integer(kind=c_int)       :: pastix_subtask_solve_adv_f2c
+       type(c_ptr),        value :: pastix_data
+       integer(c_int),     value :: transA
+       type(pastix_rhs_t), value :: b
      end function pastix_subtask_solve_adv_f2c
 
      subroutine pastixSetSchurUnknownList_f2c(pastix_data, n, list) &

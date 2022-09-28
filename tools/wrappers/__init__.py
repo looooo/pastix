@@ -36,11 +36,12 @@ return_variables_dict = {
     "char":           ("retval"),
     "void":           ("retval"),
     "pastix_order_t": ("order"),
+    "pastix_rhs_t":   ("rhs"),
     "spmatrix_t":     ("spmo"),
 }
 
 # global list used to determine derived types
-derived_types = [ 'spmatrix_t', 'spm_int_t', 'pastix_int_t', 'pastix_data_t', 'pastix_order_t', 'MPI_Comm' ]
+derived_types = [ 'spmatrix_t', 'spm_int_t', 'pastix_int_t', 'pastix_data_t', 'pastix_order_t', 'pastix_rhs_t', 'MPI_Comm' ]
 
 # name arrays which will be translated to assumed-size arrays, e.g. pA(*)
 arrays_names_2D = ["pA", "pB", "pC", "pAB", "pQ", "pX", "pAs", "A", "B", "C", "Bl", "Bg", "X", "X0", "S" ]

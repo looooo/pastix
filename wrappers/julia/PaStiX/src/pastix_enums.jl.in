@@ -11,7 +11,7 @@
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2022-09-03
+ @date 2022-09-27
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -22,6 +22,7 @@
 Pastix_int_t = @PASTIX_JULIA_INTEGER@
 pastix_mpi_enabled = @PASTIX_JULIA_MPI_ENABLED@
 const Pastix_data_t = Cvoid
+const Pastix_rhs_t = Ptr{Cvoid}
 const Pastix_graph_t = Ptr{Cvoid}
 
 using spm
@@ -342,5 +343,6 @@ end
     selevtx::Ptr{Int8}
     sndenbr::Pastix_int_t
     sndetab::Ptr{Pastix_int_t}
+    peritab_exp::Ptr{Pastix_int_t}
 }
 

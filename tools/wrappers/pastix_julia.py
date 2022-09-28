@@ -25,6 +25,7 @@ enums = {
 Pastix_int_t = @PASTIX_JULIA_INTEGER@
 pastix_mpi_enabled = @PASTIX_JULIA_MPI_ENABLED@
 const Pastix_data_t = Cvoid
+const Pastix_rhs_t = Ptr{Cvoid}
 const Pastix_graph_t = Ptr{Cvoid}
 
 using spm
@@ -115,6 +116,7 @@ types_dict = {
     "pastix_mtxtype_t":  ("Pastix_mtxtype_t"),
     "pastix_int_t":      ("Pastix_int_t"),
     "pastix_data_t":     ("Pastix_data_t"),
+    "pastix_rhs_t":      ("Pastix_rhs_t"),
     "pastix_ordering_t": ("Pastix_ordering_t"),
     "pastix_order_t":    ("Pastix_order_t"),
     "pastix_graph_t":    ("Pastix_graph_t"),

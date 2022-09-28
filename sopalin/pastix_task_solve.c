@@ -97,6 +97,109 @@ dump_rhs( pastix_data_t  *pastix_data,
  *
  * @ingroup pastix_solve
  *
+ * @brief Initialize an RHS data structure.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+ *
+ * @param[inout] B_ptr
+ *          On entry, an allocated pastix_rhs_t data structure.
+ *          On exit, the data is initialized to be used by the pastix_subtask_*
+ *          functions.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *
+ *******************************************************************************/
+int
+pastixRhsInit( pastix_data_t *pastix_data,
+               pastix_rhs_t  *B_ptr )
+{
+    pastix_rhs_t B;
+
+    if ( pastix_data == NULL ) {
+        pastix_print_error( "pastixRhsInit: wrong pastix_data parameter" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( B_ptr == NULL ) {
+        pastix_print_error( "pastixRhsInit: wrong B parameter" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    *B_ptr = malloc( sizeof(struct pastix_rhs_s) );
+    B = *B_ptr;
+
+    B->allocated = 0;
+    B->flttype   = PastixPattern;
+    B->m         = -1;
+    B->n         = -1;
+    B->ld        = -1;
+    B->b         = NULL;
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_solve
+ *
+ * @brief Cleanup an RHS data structure.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+ *
+ * @param[inout] B
+ *          On entry, the initialized pastix_rhs_t data structure.
+ *          On exit, the structure is destroyed and should no longer be used.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *
+ *******************************************************************************/
+int
+pastixRhsFinalize( pastix_data_t *pastix_data,
+                   pastix_rhs_t   B )
+{
+    if ( pastix_data == NULL ) {
+        pastix_print_error( "pastixRhsFinalize: wrong pastix_data parameter" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( B == NULL ) {
+        pastix_print_error( "pastixRhsFinalize: wrong B parameter" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    if ( B->b != NULL ) {
+        if ( B->allocated ) {
+            free( B->b );
+        }
+        else {
+            pastix_print_warning( "Calling pastixRhsFinalize before restoring the ordering of vector b.\n"
+                                  "Please call:\n"
+                                  "  pastix_subtask_applyorder( pastix_data, flttype, PastixDirBackward, m, n,\n"
+                                  "                             b, ldb, Bp );\n"
+                                  "prior to this call to restore it.\n" );
+        }
+    }
+
+    free( B );
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_solve
+ *
  * @brief Apply a permutation on the right-and-side vector before the solve step.
  *
  * This routine is affected by the following parameters:
@@ -120,10 +223,24 @@ dump_rhs( pastix_data_t  *pastix_data,
  *          Number of right-and-side vectors.
  *
  * @param[inout] b
- *          The right-and-side vectors (can be multiple RHS).
+ *          The right-and-side vectors of size ldb-by-n.
+ *          If dir == PastixDirForward, b is used as input to initialize the
+ *          permuted b. If the matrix is replicated on all nodes or in shared
+ *          memory, the permuted vector has the same size as b, and b is
+ *          modified in-place.
+ *          If dir == PastixDirBackward, b must be allocated on entry and is
+ *          filled by the reverse permutation of Bp. Note that if the matrix is
+ *          replicated on all nodes or in shared memory, b is modified in-place.
  *
  * @param[in] ldb
  *          The leading dimension of the right-and-side vectors.
+ *
+ * @param[inout] Bp
+ *          The right-and-side vectors of size ldb-by-n.  On entry, must be
+ *          initialized through pastixRhsInit(). On exit, contains the
+ *          information about the permuted vector when dir ==
+ *          PastixDirForward. When dir == PastixDirBackward, the data is used as
+ *          input to update b.
  *
  *******************************************************************************
  *
@@ -138,7 +255,8 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
                            pastix_int_t      m,
                            pastix_int_t      n,
                            void             *b,
-                           pastix_int_t      ldb )
+                           pastix_int_t      ldb,
+                           pastix_rhs_t      Bp )
 {
     pastix_int_t *perm = NULL;
     int ts;
@@ -150,8 +268,8 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
         pastix_print_error( "pastix_subtask_applyorder: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
-    if (b == NULL) {
-        pastix_print_error( "pastix_subtask_applyorder: wrong b parameter" );
+    if (Bp == NULL) {
+        pastix_print_error( "pastix_subtask_applyorder: wrong Bp parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_CSC2BCSC) ) {
@@ -163,6 +281,21 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
     if ( pastix_data->ordemesh->baseval != 0 ) {
         pastix_print_error( "pastix_subtask_applyorder: ordermesh must be 0-based" );
         return PASTIX_ERR_BADPARAMETER;
+    }
+
+    if ( dir == PastixDirForward ) {
+        Bp->flttype = flttype;
+        Bp->m       = m;
+        Bp->n       = n;
+        Bp->ld      = Bp->m;
+        Bp->b       = b;
+    }
+    else {
+        assert( Bp->flttype == flttype );
+        assert( Bp->b  == b );
+        assert( Bp->m  == m );
+        assert( Bp->n  == n );
+        assert( Bp->ld >= Bp->m );
     }
 
     ts   = pastix_data->iparm[IPARM_APPLYPERM_WS];
@@ -199,6 +332,19 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
         free(fullname);
     }
 #endif
+
+    if ( dir == PastixDirBackward ) {
+        if ( Bp->allocated ) {
+            free( Bp->b );
+        }
+
+        Bp->allocated = 0;
+        Bp->flttype   = PastixPattern;
+        Bp->m         = -1;
+        Bp->n         = -1;
+        Bp->ld        = -1;
+        Bp->b         = NULL;
+    }
 
     return PASTIX_SUCCESS;
 }
@@ -251,21 +397,16 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
  *******************************************************************************/
 int
 pastix_subtask_trsm( pastix_data_t    *pastix_data,
-                     pastix_coeftype_t flttype,
                      pastix_side_t     side,
                      pastix_uplo_t     uplo,
                      pastix_trans_t    trans,
                      pastix_diag_t     diag,
-                     pastix_int_t      nrhs,
-                     void             *b,
-                     pastix_int_t      ldb )
+                     pastix_rhs_t      Bp )
 {
-    sopalin_data_t sopalin_data;
-    int i, bs = nrhs;
-
-#if defined(PASTIX_WITH_MPI)
-    bs = 1;
-#endif
+    sopalin_data_t    sopalin_data;
+    pastix_int_t      nrhs, i, bs, ldb;
+    pastix_coeftype_t flttype;
+    void             *b;
 
     /*
      * Check parameters
@@ -274,14 +415,23 @@ pastix_subtask_trsm( pastix_data_t    *pastix_data,
         pastix_print_error( "pastix_subtask_trsm: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
-    if (b == NULL) {
-        pastix_print_error( "pastix_subtask_trsm: wrong b parameter" );
+    if (Bp == NULL) {
+        pastix_print_error( "pastix_subtask_trsm: wrong Bp parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
         pastix_print_error( "pastix_subtask_trsm: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
+
+    flttype = Bp->flttype;
+    nrhs = Bp->n;
+    b    = Bp->b;
+    ldb  = Bp->ld;
+    bs   = nrhs;
+#if defined(PASTIX_WITH_MPI)
+    bs = 1;
+#endif
 
     /*
      * Ensure that the scheduler is correct and is in the same
@@ -388,13 +538,14 @@ pastix_subtask_trsm( pastix_data_t    *pastix_data,
  *
  *******************************************************************************/
 int
-pastix_subtask_diag( pastix_data_t    *pastix_data,
-                     pastix_coeftype_t flttype,
-                     pastix_int_t      nrhs,
-                     void             *b,
-                     pastix_int_t      ldb )
+pastix_subtask_diag( pastix_data_t *pastix_data,
+                     pastix_rhs_t   Bp )
 {
     sopalin_data_t sopalin_data;
+    pastix_coeftype_t flttype;
+    pastix_int_t      nrhs;
+    void             *b;
+    pastix_int_t      ldb;
 
     /*
      * Check parameters
@@ -403,14 +554,19 @@ pastix_subtask_diag( pastix_data_t    *pastix_data,
         pastix_print_error( "pastix_subtask_diag: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
-    if (b == NULL) {
-        pastix_print_error( "pastix_subtask_diag: wrong b parameter" );
+    if (Bp == NULL) {
+        pastix_print_error( "pastix_subtask_diag: wrong Bp parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
         pastix_print_error( "pastix_subtask_trsm: All steps from pastix_task_init() to pastix_task_numfact() have to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
+
+    flttype = Bp->flttype;
+    nrhs = Bp->n;
+    b    = Bp->b;
+    ldb  = Bp->ld;
 
     /*
      * Ensure that the scheduler is correct and is in the same
@@ -494,9 +650,7 @@ pastix_subtask_diag( pastix_data_t    *pastix_data,
 int
 pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
                           pastix_trans_t  transA,
-                          pastix_int_t    nrhs,
-                          void           *b,
-                          pastix_int_t    ldb )
+                          pastix_rhs_t    Bp )
 {
     pastix_bcsc_t     *bcsc;
     pastix_factotype_t factotype;
@@ -579,9 +733,7 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
             diag = PastixUnit;
         }
 
-        pastix_subtask_trsm( pastix_data, pastix_data->solvmatr->flttype,
-                             PastixLeft, uplo, trans, diag,
-                             nrhs, b, ldb );
+        pastix_subtask_trsm( pastix_data, PastixLeft, uplo, trans, diag, Bp );
 
         /*
          * Solve the diagonal step
@@ -590,7 +742,7 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
             (factotype == PastixFactLDLH) )
         {
             /* Solve y = D z with z = ([L^t | L^h] P x) */
-            pastix_subtask_diag( pastix_data, pastix_data->solvmatr->flttype, nrhs, b, ldb );
+            pastix_subtask_diag( pastix_data, Bp );
         }
 
         /*
@@ -614,9 +766,8 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
             diag = PastixUnit;
         }
 
-        pastix_subtask_trsm( pastix_data, pastix_data->solvmatr->flttype,
-                             PastixLeft, uplo, trans, diag,
-                             nrhs, b, ldb );
+        pastix_subtask_trsm( pastix_data,
+                             PastixLeft, uplo, trans, diag, Bp );
 
         /* Stop Timer */
         clockSyncStop( timer, pastix_data->inter_node_comm );
@@ -667,13 +818,11 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
  *******************************************************************************/
 int
 pastix_subtask_solve( pastix_data_t *pastix_data,
-                      pastix_int_t   nrhs,
-                      void          *b,
-                      pastix_int_t   ldb )
+                      pastix_rhs_t   Bp )
 {
     return pastix_subtask_solve_adv( pastix_data,
                                      pastix_data->iparm[IPARM_TRANSPOSE_SOLVE],
-                                     nrhs, b, ldb );
+                                     Bp );
 }
 
 /**
@@ -717,6 +866,7 @@ pastix_task_solve( pastix_data_t *pastix_data,
     void          *bglob = NULL;
     void          *tmp   = NULL;
     void          *sb;
+    pastix_rhs_t   Bp;
 
     /*
      * Check parameters
@@ -780,15 +930,17 @@ pastix_task_solve( pastix_data_t *pastix_data,
     }
 
     /* Compute P * b */
+    pastixRhsInit( pastix_data, &Bp );
     pastix_subtask_applyorder( pastix_data, pastix_data->solvmatr->flttype,
-                               PastixDirForward, bcsc->gN, nrhs, sb, ldb );
+                               PastixDirForward, bcsc->gN, nrhs, sb, ldb, Bp );
 
     /* Solve A x = b */
-    pastix_subtask_solve( pastix_data, nrhs, sb, ldb );
+    pastix_subtask_solve( pastix_data, Bp );
 
     /* Compute P^t * b */
     pastix_subtask_applyorder( pastix_data, pastix_data->solvmatr->flttype,
-                               PastixDirBackward, bcsc->gN, nrhs, sb, ldb );
+                               PastixDirBackward, bcsc->gN, nrhs, sb, ldb, Bp );
+    pastixRhsFinalize( pastix_data, Bp );
 
     /* Freeing mixed-precision vectors and reverting to given precision */
     if ( pastix_data->iparm[IPARM_MIXED] &&

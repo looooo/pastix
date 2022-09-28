@@ -33,7 +33,8 @@
  * and the precision
  *
  *******************************************************************************/
-static pastix_int_t (*sopalinRefine[4][4])(pastix_data_t *pastix_data, void *x, void *b) =
+typedef pastix_int_t (*refine_fct_t)( pastix_data_t *, pastix_rhs_t, pastix_rhs_t );
+static refine_fct_t sopalinRefine[4][4] =
 {
     /* PastixRefineGMRES */
     {
@@ -113,13 +114,18 @@ static pastix_int_t (*sopalinRefine[4][4])(pastix_data_t *pastix_data, void *x, 
  *******************************************************************************/
 int
 pastix_subtask_refine( pastix_data_t *pastix_data,
-                       pastix_int_t n, pastix_int_t nrhs,
-                       const void *b, pastix_int_t ldb,
-                             void *x, pastix_int_t ldx )
+                       pastix_rhs_t   Bp,
+                       pastix_rhs_t   Xp )
 {
     pastix_int_t  *iparm = pastix_data->iparm;
     pastix_bcsc_t *bcsc  = pastix_data->bcsc;
     double         timer;
+    pastix_int_t   n    = Bp->m;
+    pastix_int_t   nrhs = Bp->n;
+    pastix_int_t   ldb  = Bp->ld;
+    pastix_int_t   ldx  = Xp->ld;
+    const void    *b    = Bp->b;
+    void          *x    = Xp->b;
 
     if (nrhs > 1)
     {
@@ -145,7 +151,7 @@ pastix_subtask_refine( pastix_data_t *pastix_data,
 
     clockSyncStart( timer, pastix_data->inter_node_comm );
     {
-        pastix_int_t (*refinefct)(pastix_data_t *, void *, void *) = sopalinRefine[iparm[IPARM_REFINEMENT]][pastix_data->bcsc->flttype -2];
+        refine_fct_t refinefct = sopalinRefine[iparm[IPARM_REFINEMENT]][pastix_data->bcsc->flttype -2];
         char *xptr = (char *)x;
         char *bptr = (char *)b;
         size_t shiftx, shiftb;
@@ -153,12 +159,21 @@ pastix_subtask_refine( pastix_data_t *pastix_data,
 
         shiftx = ldx * pastix_size_of( pastix_data->bcsc->flttype );
         shiftb = ldb * pastix_size_of( pastix_data->bcsc->flttype );
+        Bp->n = 1;
+        Xp->n = 1;
 
         for(i=0; i<nrhs; i++, xptr += shiftx, bptr += shiftb ) {
             pastix_int_t it;
-            it = refinefct( pastix_data, xptr, bptr );
+            Bp->b = bptr;
+            Xp->b = xptr;
+            it = refinefct( pastix_data, Xp, Bp );
             pastix_data->iparm[IPARM_NBITER] = pastix_imax( it, pastix_data->iparm[IPARM_NBITER] );
         }
+
+        Bp->n = nrhs;
+        Bp->b = (void*)b;
+        Xp->n = nrhs;
+        Xp->b = x;
     }
     clockSyncStop( timer, pastix_data->inter_node_comm );
 
@@ -230,6 +245,7 @@ pastix_task_refine( pastix_data_t *pastix_data,
 {
     pastix_int_t  *iparm = pastix_data->iparm;
     pastix_bcsc_t *bcsc  = pastix_data->bcsc;
+    pastix_rhs_t   Bp, Xp;
     int rc;
     void *bglob, *btmp = NULL;
     void *xglob, *xtmp = NULL;
@@ -263,35 +279,54 @@ pastix_task_refine( pastix_data_t *pastix_data,
     }
 
     /* Compute P * b */
+    rc = pastixRhsInit( pastix_data, &Bp );
+    if( rc != PASTIX_SUCCESS ) {
+        return rc;
+    }
+
     rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
-                                    PastixDirForward, bcsc->gN, nrhs, b, ldb );
+                                    PastixDirForward, bcsc->gN, nrhs, b, ldb, Bp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
 
     /* Compute P * x */
+    rc = pastixRhsInit( pastix_data, &Xp );
+    if( rc != PASTIX_SUCCESS ) {
+        return rc;
+    }
+
     rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
-                                    PastixDirForward, bcsc->gN, nrhs, x, ldx );
+                                    PastixDirForward, bcsc->gN, nrhs, x, ldx, Xp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
 
     /* Performe the iterative refinement */
-    rc = pastix_subtask_refine( pastix_data, n, nrhs, b, ldb, x, ldx );
+    rc = pastix_subtask_refine( pastix_data, Bp, Xp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
 
     /* Compute P * b */
     rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
-                                    PastixDirBackward, bcsc->gN, nrhs, b, ldb );
+                                    PastixDirBackward, bcsc->gN, nrhs, b, ldb, Bp );
+    if( rc != PASTIX_SUCCESS ) {
+        return rc;
+    }
+    rc = pastixRhsFinalize( pastix_data, Bp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
 
     /* Compute P * x */
     rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
-                                    PastixDirBackward, bcsc->gN, nrhs, x, ldx );
+                                    PastixDirBackward, bcsc->gN, nrhs, x, ldx, Xp );
+    if( rc != PASTIX_SUCCESS ) {
+        return rc;
+    }
+
+    rc = pastixRhsFinalize( pastix_data, Xp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
