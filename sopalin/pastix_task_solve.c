@@ -14,7 +14,7 @@
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Tony Delarue
- * @date 2022-07-07
+ * @date 2022-10-06
  *
  **/
 #define _GNU_SOURCE 1
@@ -270,10 +270,6 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
     }
     if (Bp == NULL) {
         pastix_print_error( "pastix_subtask_applyorder: wrong Bp parameter" );
-        return PASTIX_ERR_BADPARAMETER;
-    }
-    if ( !(pastix_data->steps & STEP_CSC2BCSC) ) {
-        pastix_print_error( "pastix_subtask_applyorder: All steps from pastix_task_init() to pastix_subtask_csc2bcsc() have to be called before calling this function" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
