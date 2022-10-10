@@ -7,10 +7,10 @@
  * @copyright 2018-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.3
+ * @version 6.2.1
  * @author Gregoire Pichon
  * @author Mathieu Faverge
- * @date 2019-12-05
+ * @date 2022-10-06
  *
  * @precisions normal z -> z c d s
  *
@@ -29,6 +29,16 @@ int z_bcsc_spmv_check( spm_trans_t trans, const spmatrix_t *spm, const pastix_da
 int z_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc );
 int z_bvec_gemv_check( pastix_data_t *pastix_data, int check, int m, int n );
 int z_bvec_check( pastix_data_t *pastix_data, pastix_int_t m );
+int z_bvec_compare( pastix_data_t            *pastix_data,
+                    pastix_int_t              m,
+                    pastix_int_t              n,
+                    const pastix_complex64_t *A,
+                    pastix_int_t              lda,
+                    const pastix_complex64_t *B,
+                    pastix_int_t              ldb );
+int z_bvec_applyorder_check ( pastix_data_t *pastix_data,
+                              spmatrix_t    *spm,
+                              pastix_int_t   nrhs );
 
 int  z_lowrank_genmat( int mode, double tolerance, double threshold, test_matrix_t *A );
 void z_lowrank_genmat_comp( const pastix_lr_t *lowrank, int mode, double threshold, test_matrix_t *A );

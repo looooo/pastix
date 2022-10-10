@@ -9,10 +9,10 @@
  * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.3
+ * @version 6.2.1
  * @author Vincent Bridonneau
  * @author Mathieu Faverge
- * @date 2019-12-05
+ * @date 2022-10-06
  *
  * @precisions normal z -> c d s
  *
@@ -272,6 +272,86 @@ z_bcsc_spmv_time( pastix_data_t    *pastix_data,
 
     free( x );
     free( y );
+
+    return rc;
+}
+
+int
+z_bvec_compare( pastix_data_t            *pastix_data,
+                pastix_int_t              m,
+                pastix_int_t              n,
+                const pastix_complex64_t *A,
+                pastix_int_t              lda,
+                const pastix_complex64_t *B,
+                pastix_int_t              ldb )
+{
+    pastix_int_t i, j;
+    int rc_loc  = 0;
+    int rc_glob = 0;
+
+    for ( j = 0; j < n; j++ ) {
+        for ( i = 0; i < m; i++, A++, B++ ) {
+            if ( *A != *B ) {
+                rc_loc++;
+                goto reduce;
+            }
+        }
+
+        A += lda - m;
+        B += ldb - m;
+    }
+
+  reduce:
+    MPI_Allreduce( &rc_loc, &rc_glob, 1, MPI_INT, MPI_SUM, pastix_data->inter_node_comm );
+
+    (void)pastix_data;
+    return rc_glob;
+}
+
+int
+z_bvec_applyorder_check ( pastix_data_t *pastix_data,
+                          spmatrix_t    *spm,
+                          pastix_int_t   nrhs )
+{
+    pastix_complex64_t *b_in, *b_out;
+    pastix_rhs_t        Bp;
+    size_t              size;
+    pastix_int_t        m, ldb;
+    int                 rc = 0;
+
+    /**
+     * Generates the b and x vector such that A * x = b
+     * Computes the norms of the initial vectors if checking purpose.
+     */
+    m     = spm->nexp;
+    ldb   = m + 10;
+    size  = ldb * nrhs;
+    b_in  = malloc( size * sizeof(pastix_complex64_t) );
+    b_out = malloc( size * sizeof(pastix_complex64_t) );
+
+    /* Generate B */
+    z_init( pastix_data, size, b_in );
+    memcpy( b_out, b_in, size * sizeof(pastix_complex64_t) );
+
+    /* Make sure internal peritab and spm are reset */
+    pastix_data->csc = spm;
+    if ( pastix_data->ordemesh->peritab_exp ) {
+        memFree_null( pastix_data->ordemesh->peritab_exp );
+    }
+
+    /* Compute P * b_in */
+    pastixRhsInit( pastix_data, &Bp );
+    pastix_subtask_applyorder( pastix_data, spm->flttype, PastixDirForward, m, nrhs, b_out, ldb, Bp );
+
+    /* Compute b_out = P^t * (P * b_in) */
+    pastix_subtask_applyorder( pastix_data, spm->flttype, PastixDirBackward, m, nrhs, b_out, ldb, Bp );
+    pastixRhsFinalize( pastix_data, Bp );
+
+    /* Checks the result. */
+    rc = z_bvec_compare( pastix_data, m, nrhs, b_in, ldb, b_out, ldb );
+
+    free( b_in );
+    free( b_out );
 
     return rc;
 }
