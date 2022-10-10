@@ -524,8 +524,8 @@ orderGetExpandedPeritab( pastix_order_t   *ordeptr,
 
     for ( i = 0; i < ordeptr->vertnbr; i++, peritab++ ) {
         if ( spm->dof <= 0 ) {
-            begin = dofs[ peritab[0] ] - baseval_spm;
-            end   = dofs[ peritab[1] ] - baseval_spm;
+            begin = dofs[ peritab[0]   ] - baseval_spm;
+            end   = dofs[ peritab[0]+1 ] - baseval_spm;
         }
         else {
             begin = (peritab[0] - baseval_ord) * spm->dof;
