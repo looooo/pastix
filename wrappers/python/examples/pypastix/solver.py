@@ -118,7 +118,7 @@ class solver(object):
         x = b.copy()
 
         # 1- Apply P to b
-        xp = rhsInit( self.pastix_data )
+        xp = rhsInit()
         subtask_applyorder( self.pastix_data, dir.Forward, x, xp )
 
         # 2- Forward solve on the non Schur complement part of the system
@@ -177,7 +177,7 @@ class solver(object):
 
         #  5- Apply P^t to x
         subtask_applyorder( self.pastix_data, dir.Backward, x, xp )
-        rhsFinalize( self.pastix_data, xp )
+        rhsFinalize( xp )
         self.xp = None
 
         return x

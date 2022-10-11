@@ -143,7 +143,11 @@ end
 end
 
 @cbindings libpastix begin
-    @cextern pastixRhsInit( pastix_data::Ptr{Pastix_data_t}, rhs::Ptr{Pastix_rhs_t} )::Cint
+    @cextern pastixRhsInit( rhs::Ptr{Pastix_rhs_t} )::Cint
+end
+
+@cbindings libpastix begin
+    @cextern pastixRhsFinalize( rhs::Pastix_rhs_t )::Cint
 end
 
 @cbindings libpastix begin
@@ -152,10 +156,6 @@ end
 
 @cbindings libpastix begin
     @cextern pastixRhsSingleToDouble( sB::Pastix_rhs_t, dB::Pastix_rhs_t )::Cint
-end
-
-@cbindings libpastix begin
-    @cextern pastixRhsFinalize( pastix_data::Ptr{Pastix_data_t}, rhs::Pastix_rhs_t )::Cint
 end
 
 @cbindings libpastix begin

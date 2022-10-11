@@ -99,9 +99,6 @@ pastix_rhs_dump( pastix_data_t *pastix_data,
  *
  *******************************************************************************
  *
- * @param[inout] pastix_data
- *          The pastix_data structure that describes the solver instance.
- *
  * @param[inout] B_ptr
  *          On entry, an allocated pastix_rhs_t data structure.
  *          On exit, the data is initialized to be used by the pastix_subtask_*
@@ -114,15 +111,10 @@ pastix_rhs_dump( pastix_data_t *pastix_data,
  *
  *******************************************************************************/
 int
-pastixRhsInit( pastix_data_t *pastix_data,
-               pastix_rhs_t  *B_ptr )
+pastixRhsInit( pastix_rhs_t  *B_ptr )
 {
     pastix_rhs_t B;
 
-    if ( pastix_data == NULL ) {
-        pastix_print_error( "pastixRhsInit: wrong pastix_data parameter" );
-        return PASTIX_ERR_BADPARAMETER;
-    }
     if ( B_ptr == NULL ) {
         pastix_print_error( "pastixRhsInit: wrong B parameter" );
         return PASTIX_ERR_BADPARAMETER;
@@ -308,9 +300,6 @@ pastixRhsSingleToDouble( const pastix_rhs_t sB,
  *
  *******************************************************************************
  *
- * @param[inout] pastix_data
- *          The pastix_data structure that describes the solver instance.
- *
  * @param[inout] B
  *          On entry, the initialized pastix_rhs_t data structure.
  *          On exit, the structure is destroyed and should no longer be used.
@@ -322,13 +311,8 @@ pastixRhsSingleToDouble( const pastix_rhs_t sB,
  *
  *******************************************************************************/
 int
-pastixRhsFinalize( pastix_data_t *pastix_data,
-                   pastix_rhs_t   B )
+pastixRhsFinalize( pastix_rhs_t B )
 {
-    if ( pastix_data == NULL ) {
-        pastix_print_error( "pastixRhsFinalize: wrong pastix_data parameter" );
-        return PASTIX_ERR_BADPARAMETER;
-    }
     if ( B == NULL ) {
         pastix_print_error( "pastixRhsFinalize: wrong B parameter" );
         return PASTIX_ERR_BADPARAMETER;
@@ -876,7 +860,7 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
         if ( pastix_data->iparm[IPARM_MIXED] &&
              ( ( Bp->flttype == PastixComplex64 ) || ( Bp->flttype == PastixDouble ) ) )
         {
-            pastixRhsInit( pastix_data, &sBp );
+            pastixRhsInit( &sBp );
             pastixRhsDoubletoSingle( Bp, sBp );
 
             B = sBp;
@@ -945,7 +929,7 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
              ( ( Bp->flttype == PastixComplex64 ) || ( Bp->flttype == PastixDouble ) ) )
         {
             pastixRhsSingleToDouble( sBp, Bp );
-            pastixRhsFinalize( pastix_data, sBp );
+            pastixRhsFinalize( sBp );
         }
 
         /* Stop Timer */
@@ -1092,7 +1076,7 @@ pastix_task_solve( pastix_data_t *pastix_data,
     assert( m == bcsc->gN );
 
     /* Compute P * b */
-    rc = pastixRhsInit( pastix_data, &Bp );
+    rc = pastixRhsInit( &Bp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
@@ -1114,7 +1098,7 @@ pastix_task_solve( pastix_data_t *pastix_data,
         return rc;
     }
 
-    rc = pastixRhsFinalize( pastix_data, Bp );
+    rc = pastixRhsFinalize( Bp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }

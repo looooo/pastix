@@ -282,7 +282,7 @@ pastix_task_refine( pastix_data_t *pastix_data,
     }
 
     /* Compute P * b */
-    rc = pastixRhsInit( pastix_data, &Bp );
+    rc = pastixRhsInit( &Bp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
@@ -293,7 +293,7 @@ pastix_task_refine( pastix_data_t *pastix_data,
     }
 
     /* Compute P * x */
-    rc = pastixRhsInit( pastix_data, &Xp );
+    rc = pastixRhsInit( &Xp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
@@ -314,7 +314,7 @@ pastix_task_refine( pastix_data_t *pastix_data,
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
-    rc = pastixRhsFinalize( pastix_data, Bp );
+    rc = pastixRhsFinalize( Bp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
@@ -325,7 +325,7 @@ pastix_task_refine( pastix_data_t *pastix_data,
         return rc;
     }
 
-    rc = pastixRhsFinalize( pastix_data, Xp );
+    rc = pastixRhsFinalize( Xp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }

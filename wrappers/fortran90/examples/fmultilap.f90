@@ -414,10 +414,10 @@ program fmultilap
 
               ! 3- Permute the b pointer
               rhs%x(:,:) = rhs%b(:,:)
-              call pastixRhsInit( matrix%pastix_data, rhs%bp, info )
+              call pastixRhsInit( rhs%bp, info )
               call pastix_subtask_applyorder( matrix%pastix_data, PastixDirForward, &
                    &                          matrix%spm%nexp, rhs%nrhs, rhs%b, matrix%spm%nexp, rhs%bp, info )
-              call pastixRhsInit( matrix%pastix_data, rhs%xp, info )
+              call pastixRhsInit( rhs%xp, info )
               call pastix_subtask_applyorder( matrix%pastix_data, PastixDirForward, &
                    &                          matrix%spm%nexp, rhs%nrhs, rhs%x, matrix%spm%nexp, rhs%xp, info )
 
@@ -433,11 +433,11 @@ program fmultilap
               ! 6- Apply the backward permutation on b and x
               call pastix_subtask_applyorder( matrix%pastix_data, PastixDirBackward, &
                    &                          matrix%spm%nexp, rhs%nrhs, rhs%b, matrix%spm%nexp, rhs%bp, info )
-              call pastixRhsFinalize( matrix%pastix_data, rhs%bp, info )
+              call pastixRhsFinalize( rhs%bp, info )
 
               call pastix_subtask_applyorder( matrix%pastix_data, PastixDirBackward, &
                    &                          matrix%spm%nexp, rhs%nrhs, rhs%x, matrix%spm%nexp, rhs%xp, info )
-              call pastixrhsfinalize( matrix%pastix_data, rhs%xp, info )
+              call pastixRhsfinalize( rhs%xp, info )
 
            end do solve_loop2
         end do solve_loop

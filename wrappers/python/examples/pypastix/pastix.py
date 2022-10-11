@@ -79,13 +79,13 @@ def task_refine( pastix_data, spm, b, x, nrhs=-1 ):
 #
 # Numerical solve subtasks
 #
-def rhsInit( pastix_data ):
+def rhsInit():
     rhs = c_void_p();
-    pypastix_pastixRhsInit( pastix_data, rhs )
+    pypastix_pastixRhsInit( rhs )
     return rhs
 
-def rhsFinalize( pastix_data, rhs ):
-    pypastix_pastixRhsFinalize( pastix_data, rhs )
+def rhsFinalize( rhs ):
+    pypastix_pastixRhsFinalize( rhs )
 
 def subtask_applyorder( pastix_data, direction, b, Bp ):
     m = b.shape[0]

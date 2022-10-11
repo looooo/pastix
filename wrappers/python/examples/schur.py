@@ -79,7 +79,7 @@ if factotype != pastix.factotype.LU:
     S += la.tril(S, -1).T
 
 # 1- Apply P to b
-Px = pastix.rhsInit( pastix_data )
+Px = pastix.rhsInit()
 pastix.subtask_applyorder( pastix_data, pastix.dir.Forward, x, Px )
 
 if factotype == pastix.factotype.LU:
@@ -104,7 +104,7 @@ else:
 
 # 5- Apply P^t to x
 pastix.subtask_applyorder( pastix_data, pastix.dir.Backward, x, Px )
-pastix.rhsFinalize( pastix_data, Px )
+pastix.rhsFinalize( Px )
 
 # Check solution
 rc = spmA.checkAxb( x0, b, x )

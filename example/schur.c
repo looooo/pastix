@@ -353,7 +353,7 @@ int main (int argc, char **argv)
      * Solve the linear system Ax = (P^tLUP)x = b
      */
     /* 1- Apply P to b */
-    pastixRhsInit( pastix_data, &Xp );
+    pastixRhsInit( &Xp );
     pastix_subtask_applyorder( pastix_data, PastixDirForward,
                                spm->nexp, nrhs, x, ldb, Xp );
 
@@ -365,8 +365,7 @@ int main (int argc, char **argv)
         diag = PastixUnit;
     }
 
-    pastix_subtask_trsm( pastix_data,
-                         PastixLeft, PastixLower, PastixNoTrans, diag, Xp );
+    pastix_subtask_trsm( pastix_data, PastixLeft, PastixLower, PastixNoTrans, diag, Xp );
 
     /* 3- Solve the Schur complement part */
     schurSolve( spm->flttype, iparm[IPARM_FACTORIZATION],
@@ -387,7 +386,7 @@ int main (int argc, char **argv)
     /* 5- Apply P^t to x */
     pastix_subtask_applyorder( pastix_data, PastixDirBackward,
                                spm->nexp, nrhs, x, ldb, Xp );
-    pastixRhsFinalize( pastix_data, Xp );
+    pastixRhsFinalize( Xp );
 
     if ( check )
     {

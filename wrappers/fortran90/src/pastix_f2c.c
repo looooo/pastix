@@ -256,10 +256,15 @@ pastix_subtask_sopalin_f2c( pastix_data_t *pastix_data )
 }
 
 int
-pastixRhsInit_f2c( pastix_data_t *pastix_data,
-                   pastix_rhs_t  *rhs )
+pastixRhsInit_f2c( pastix_rhs_t *rhs )
 {
-    return pastixRhsInit( pastix_data, rhs );
+    return pastixRhsInit( rhs );
+}
+
+int
+pastixRhsFinalize_f2c( pastix_rhs_t rhs )
+{
+    return pastixRhsFinalize( rhs );
 }
 
 int
@@ -274,13 +279,6 @@ pastixRhsSingleToDouble_f2c( const pastix_rhs_t sB,
                              pastix_rhs_t       dB )
 {
     return pastixRhsSingleToDouble( sB, dB );
-}
-
-int
-pastixRhsFinalize_f2c( pastix_data_t *pastix_data,
-                       pastix_rhs_t   rhs )
-{
-    return pastixRhsFinalize( pastix_data, rhs );
 }
 
 int

@@ -356,15 +356,24 @@ module pastixf_interfaces
   end interface pastix_subtask_sopalin
 
   interface pastixRhsInit
-     subroutine pastixRhsInit_f08(pastix_data, rhs, info)
+     subroutine pastixRhsInit_f08(rhs, info)
        use :: iso_c_binding, only : c_int
-       use :: pastixf_enums, only : pastix_data_t, pastix_rhs_t
+       use :: pastixf_enums, only : pastix_rhs_t
        implicit none
-       type(pastix_data_t), intent(inout), target   :: pastix_data
        type(pastix_rhs_t),  intent(inout), target   :: rhs
        integer(kind=c_int), intent(out),   optional :: info
      end subroutine pastixRhsInit_f08
   end interface pastixRhsInit
+
+  interface pastixRhsFinalize
+     subroutine pastixRhsFinalize_f08(rhs, info)
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_rhs_t
+       implicit none
+       type(pastix_rhs_t),  intent(in)            :: rhs
+       integer(kind=c_int), intent(out), optional :: info
+     end subroutine pastixRhsFinalize_f08
+  end interface pastixRhsFinalize
 
   interface pastixRhsDoubletoSingle
      subroutine pastixRhsDoubletoSingle_f08(dB, sB, info)
@@ -387,17 +396,6 @@ module pastixf_interfaces
        integer(kind=c_int), intent(out), optional :: info
      end subroutine pastixRhsSingleToDouble_f08
   end interface pastixRhsSingleToDouble
-
-  interface pastixRhsFinalize
-     subroutine pastixRhsFinalize_f08(pastix_data, rhs, info)
-       use :: iso_c_binding, only : c_int
-       use :: pastixf_enums, only : pastix_data_t, pastix_rhs_t
-       implicit none
-       type(pastix_data_t), intent(inout), target   :: pastix_data
-       type(pastix_rhs_t),  intent(in)              :: rhs
-       integer(kind=c_int), intent(out),   optional :: info
-     end subroutine pastixRhsFinalize_f08
-  end interface pastixRhsFinalize
 
   interface pastix_subtask_applyorder
      subroutine pastix_subtask_applyorder_f08(pastix_data, dir, m, n, B, ldb, &

@@ -92,7 +92,7 @@ end
 # Permuted vector pointer
 Xp = zeros(Int64,1)
 Xp_ptr = pointer_from_objref(Xp)
-PaStiX.pastixRhsInit( pastix_data, Xp_ptr )
+PaStiX.pastixRhsInit( Xp_ptr )
 
 # 1- Apply P to b
 PaStiX.pastix_subtask_applyorder( pastix_data, spm.SpmDirForward,
@@ -126,7 +126,7 @@ end
 
 # 5- Apply P^t to x
 PaStiX.pastix_subtask_applyorder( pastix_data, spm.SpmDirBackward, n, nrhs, X, n, Xp )
-PaStiX.pastixRhsFinalize( pastix_data, Xp )
+PaStiX.pastixRhsFinalize( Xp )
 
 # Check solution
 eps = dparm[PaStiX.dparm_epsilon_refinement]
