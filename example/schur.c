@@ -97,7 +97,6 @@ schurFactorize( pastix_coeftype_t  flttype,
 void
 schurSolve( pastix_coeftype_t  flttype,
             pastix_factotype_t factotype,
-            pastix_int_t       N,
             pastix_int_t       Nschur,
             pastix_int_t       NRHS,
             void              *S,
@@ -114,7 +113,6 @@ schurSolve( pastix_coeftype_t  flttype,
     case PastixFloat:
     {
         float *b = (float *)bptr;
-        b += N - Nschur;
 
         switch (factotype) {
         case PastixFactPOTRF:
@@ -131,7 +129,6 @@ schurSolve( pastix_coeftype_t  flttype,
     case PastixComplex32:
     {
         pastix_complex32_t *b = (pastix_complex32_t *)bptr;
-        b += N - Nschur;
 
         switch (factotype) {
         case PastixFactPOTRF:
@@ -148,7 +145,6 @@ schurSolve( pastix_coeftype_t  flttype,
     case PastixComplex64:
     {
         pastix_complex64_t *b = (pastix_complex64_t *)bptr;
-        b += N - Nschur;
 
         switch (factotype) {
         case PastixFactPOTRF:
@@ -165,7 +161,6 @@ schurSolve( pastix_coeftype_t  flttype,
     case PastixDouble:
     {
         double *b = (double *)bptr;
-        b += N - Nschur;
 
         switch (factotype) {
         case PastixFactPOTRF:
@@ -368,8 +363,20 @@ int main (int argc, char **argv)
     pastix_subtask_trsm( pastix_data, PastixLeft, PastixLower, PastixNoTrans, diag, Xp );
 
     /* 3- Solve the Schur complement part */
-    schurSolve( spm->flttype, iparm[IPARM_FACTORIZATION],
-                spm->nexp, nschur, nrhs, S, lds, x, ldb, &ipiv );
+    {
+        void *schur_x;
+
+        size = pastix_size_of( spm->flttype ) * nschur * nrhs;
+        schur_x = malloc( size );
+
+        pastixRhsSchurGet( pastix_data, nschur, nrhs, Xp, schur_x, nschur );
+
+        schurSolve( spm->flttype, iparm[IPARM_FACTORIZATION],
+                    nschur, nrhs, S, lds, schur_x, nschur, &ipiv );
+
+        pastixRhsSchurSet( pastix_data, nschur, nrhs, schur_x, nschur, Xp );
+        free( schur_x );
+    }
 
     /* 4- Backward solve on the non Schur complement part of the system */
     if ( iparm[IPARM_FACTORIZATION] == PastixFactPOTRF ) {

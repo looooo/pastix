@@ -11,7 +11,7 @@
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2022-10-11
+ @date 2022-10-17
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -188,6 +188,14 @@ end
 
 @cbindings libpastix begin
     @cextern pastixGetSchur( pastix_data::Ptr{Pastix_data_t}, S::Ptr{Cvoid}, lds::Pastix_int_t )::Cint
+end
+
+@cbindings libpastix begin
+    @cextern pastixRhsSchurGet( pastix_data::Ptr{Pastix_data_t}, m::Pastix_int_t, n::Pastix_int_t, rhsB::Pastix_rhs_t, B::Ptr{Cvoid}, ldb::Pastix_int_t )::Cint
+end
+
+@cbindings libpastix begin
+    @cextern pastixRhsSchurSet( pastix_data::Ptr{Pastix_data_t}, m::Pastix_int_t, n::Pastix_int_t, B::Ptr{Cvoid}, ldb::Pastix_int_t, rhsB::Pastix_rhs_t )::Cint
 end
 
 @cbindings libpastix begin

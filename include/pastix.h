@@ -163,6 +163,19 @@ int  pastixGetSchur           ( const pastix_data_t *pastix_data,
                                 void                *S,
                                 pastix_int_t         lds );
 
+int pastixRhsSchurGet( const pastix_data_t *pastix_data,
+                       pastix_int_t         m,
+                       pastix_int_t         n,
+                       pastix_rhs_t         rhsB,
+                       void                *B,
+                       pastix_int_t         ldb );
+int pastixRhsSchurSet( const pastix_data_t *pastix_data,
+                       pastix_int_t         m,
+                       pastix_int_t         n,
+                       void                *B,
+                       pastix_int_t         ldb,
+                       pastix_rhs_t         rhsB );
+
 /*
  * DoF subroutine to expand the problem.
  */

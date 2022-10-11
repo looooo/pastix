@@ -12,7 +12,7 @@
  @author Mathieu Faverge
  @author Tony Delarue
  @author Selmane Lebdaoui
- @date 2022-10-11
+ @date 2022-10-17
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -314,6 +314,20 @@ def pypastix_pastixGetSchur( pastix_data, S, lds ):
     libpastix.pastixGetSchur.argtypes = [ c_void_p, c_void_p, __pastix_int__ ]
     libpastix.pastixGetSchur.restype = c_int
     return libpastix.pastixGetSchur( pastix_data, S, lds )
+
+def pypastix_pastixRhsSchurGet( pastix_data, m, n, rhsB, B, ldb ):
+    libpastix.pastixRhsSchurGet.argtypes = [ c_void_p, __pastix_int__,
+                                             __pastix_int__, c_void_p, c_void_p,
+                                             __pastix_int__ ]
+    libpastix.pastixRhsSchurGet.restype = c_int
+    return libpastix.pastixRhsSchurGet( pastix_data, m, n, rhsB, B, ldb )
+
+def pypastix_pastixRhsSchurSet( pastix_data, m, n, B, ldb, rhsB ):
+    libpastix.pastixRhsSchurSet.argtypes = [ c_void_p, __pastix_int__,
+                                             __pastix_int__, c_void_p,
+                                             __pastix_int__, c_void_p ]
+    libpastix.pastixRhsSchurSet.restype = c_int
+    return libpastix.pastixRhsSchurSet( pastix_data, m, n, B, ldb, rhsB )
 
 def pypastix_pastixExpand( pastix_data, spm ):
     libpastix.pastixExpand.argtypes = [ c_void_p, POINTER(pyspm_spmatrix_t) ]

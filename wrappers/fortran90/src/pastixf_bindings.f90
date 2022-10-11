@@ -10,7 +10,7 @@
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2022-10-11
+!> @date 2022-10-17
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -449,6 +449,34 @@ module pastixf_bindings
        type(c_ptr),                value :: S
        integer(kind=pastix_int_t), value :: lds
      end function pastixGetSchur_f2c
+
+     function pastixRhsSchurGet_f2c(pastix_data, m, n, rhsB, B, ldb) &
+          bind(c, name='pastixRhsSchurGet_f2c')
+       use :: iso_c_binding, only : c_int, c_ptr
+       use :: pastixf_enums, only : pastix_int_t, pastix_rhs_t
+       implicit none
+       integer(kind=c_int)               :: pastixRhsSchurGet_f2c
+       type(c_ptr),                value :: pastix_data
+       integer(kind=pastix_int_t), value :: m
+       integer(kind=pastix_int_t), value :: n
+       type(pastix_rhs_t),         value :: rhsB
+       type(c_ptr),                value :: B
+       integer(kind=pastix_int_t), value :: ldb
+     end function pastixRhsSchurGet_f2c
+
+     function pastixRhsSchurSet_f2c(pastix_data, m, n, B, ldb, rhsB) &
+          bind(c, name='pastixRhsSchurSet_f2c')
+       use :: iso_c_binding, only : c_int, c_ptr
+       use :: pastixf_enums, only : pastix_int_t, pastix_rhs_t
+       implicit none
+       integer(kind=c_int)               :: pastixRhsSchurSet_f2c
+       type(c_ptr),                value :: pastix_data
+       integer(kind=pastix_int_t), value :: m
+       integer(kind=pastix_int_t), value :: n
+       type(c_ptr),                value :: B
+       integer(kind=pastix_int_t), value :: ldb
+       type(pastix_rhs_t),         value :: rhsB
+     end function pastixRhsSchurSet_f2c
 
      subroutine pastixExpand_f2c(pastix_data, spm) &
           bind(c, name='pastixExpand_f2c')

@@ -10,7 +10,7 @@
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2022-10-11
+!> @date 2022-10-17
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -818,6 +818,56 @@ subroutine pastixGetSchur_f08(pastix_data, S, lds, info)
   if ( present(info) ) info = x_info
 
 end subroutine pastixGetSchur_f08
+
+subroutine pastixRhsSchurGet_f08(pastix_data, m, n, rhsB, B, ldb, info)
+  use :: pastixf_interfaces, only : pastixRhsSchurGet
+  use :: pastixf_bindings,   only : pastixRhsSchurGet_f2c
+  use :: iso_c_binding,      only : c_int, c_loc, c_ptr
+  use :: pastixf_bindings,   only : pastixGetCptrFrom2dArray
+  use :: pastixf_enums,      only : pastix_data_t, pastix_int_t, pastix_rhs_t
+  implicit none
+  type(pastix_data_t),        intent(in),    target   :: pastix_data
+  integer(kind=pastix_int_t), intent(in)              :: m
+  integer(kind=pastix_int_t), intent(in)              :: n
+  type(pastix_rhs_t),         intent(in)              :: rhsB
+  class(*),                   intent(inout), target   :: B(:,:)
+  integer(kind=pastix_int_t), intent(in)              :: ldb
+  integer(kind=c_int),        intent(out),   optional :: info
+
+  type(c_ptr)         :: x_B
+  integer(kind=c_int) :: x_info
+
+  x_B = pastixGetCptrFrom2dArray(B)
+
+  x_info = pastixRhsSchurGet_f2c(c_loc(pastix_data), m, n, rhsB, x_B, ldb)
+  if ( present(info) ) info = x_info
+
+end subroutine pastixRhsSchurGet_f08
+
+subroutine pastixRhsSchurSet_f08(pastix_data, m, n, B, ldb, rhsB, info)
+  use :: pastixf_interfaces, only : pastixRhsSchurSet
+  use :: pastixf_bindings,   only : pastixRhsSchurSet_f2c
+  use :: iso_c_binding,      only : c_int, c_loc, c_ptr
+  use :: pastixf_bindings,   only : pastixGetCptrFrom2dArray
+  use :: pastixf_enums,      only : pastix_data_t, pastix_int_t, pastix_rhs_t
+  implicit none
+  type(pastix_data_t),        intent(in),    target   :: pastix_data
+  integer(kind=pastix_int_t), intent(in)              :: m
+  integer(kind=pastix_int_t), intent(in)              :: n
+  class(*),                   intent(inout), target   :: B(:,:)
+  integer(kind=pastix_int_t), intent(in)              :: ldb
+  type(pastix_rhs_t),         intent(in)              :: rhsB
+  integer(kind=c_int),        intent(out),   optional :: info
+
+  type(c_ptr)         :: x_B
+  integer(kind=c_int) :: x_info
+
+  x_B = pastixGetCptrFrom2dArray(B)
+
+  x_info = pastixRhsSchurSet_f2c(c_loc(pastix_data), m, n, x_B, ldb, rhsB)
+  if ( present(info) ) info = x_info
+
+end subroutine pastixRhsSchurSet_f08
 
 subroutine pastixExpand_f08(pastix_data, spm)
   use :: pastixf_interfaces, only : pastixExpand
