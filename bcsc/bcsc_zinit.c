@@ -13,7 +13,7 @@
  * @author Tony Delarue
  * @author Vincent Bridonneau
  * @author Alycia Lisito
- * @date 2022-07-07
+ * @date 2022-10-11
  *
  * @precisions normal z -> c d s
  *
@@ -188,12 +188,12 @@ bcsc_zstore_data( const spmatrix_t     *spm,
  *          The structure in which the sending and receiving data are stored.
  *
  *******************************************************************************/
-static inline void
+void
 bcsc_zexchange_values( bcsc_handle_comm_t *bcsc_comm )
 {
     pastix_int_t      c;
     pastix_int_t      clustnbr    = bcsc_comm->clustnbr;
-    pastix_int_t      clustnum     = bcsc_comm->clustnum;
+    pastix_int_t      clustnum    = bcsc_comm->clustnum;
     bcsc_proc_comm_t *data_comm   = bcsc_comm->data_comm;
     bcsc_proc_comm_t *data_local  = bcsc_comm->data_comm + clustnum;
     pastix_int_t      val_A_cnt   = 0;
@@ -258,25 +258,18 @@ bcsc_zexchange_values( bcsc_handle_comm_t *bcsc_comm )
  * @param[in] solvmtx
  *          The solver matrix structure which describes the data distribution.
  *
- * @param[in] col2cblk
- *          The array of matching columns with cblk indexes.
- *
  * @param[inout] bcsc
  *          On entry, the pointer to an allocated bcsc.
  *          On exit, the bcsc fields are updated.
- *
- * @param[in] bcsc_comm
- *          The structure which stores the exchanged data.
  *
  *******************************************************************************/
 static inline pastix_int_t
 bcsc_zadd_remote_A( const spmatrix_t         *spm,
                     const pastix_order_t     *ord,
                     const SolverMatrix       *solvmtx,
-                    const pastix_int_t       *col2cblk,
-                    pastix_bcsc_t            *bcsc,
-                    const bcsc_handle_comm_t *bcsc_comm)
+                    pastix_bcsc_t            *bcsc )
 {
+    bcsc_handle_comm_t *bcsc_comm = bcsc->bcsc_comm;
     pastix_int_t       *dofs = spm->dofs;
     pastix_int_t        dof  = spm->dof;
     SolverCblk         *cblk;
@@ -309,7 +302,7 @@ bcsc_zadd_remote_A( const spmatrix_t         *spm,
         dofi = (dof > 0) ? dof : dofs[ig+1] - dofs[ig];
         dofj = (dof > 0) ? dof : dofs[jg+1] - dofs[jg];
 
-        itercblk = col2cblk[ jpe ];
+        itercblk = bcsc->col2cblk[ jpe ];
         assert( itercblk >= 0 );
 
         /* Gets the block on which the data received will be added. */
@@ -357,9 +350,6 @@ bcsc_zadd_remote_A( const spmatrix_t         *spm,
  * @param[in] solvmtx
  *          The solver matrix structure which describes the data distribution.
  *
- * @param[in] col2cblk
- *          The array of matching columns with cblk indexes.
- *
  * @param[inout] rowtab
  *          The row tab of the bcsc or the row tab associated to At.
  *
@@ -367,19 +357,15 @@ bcsc_zadd_remote_A( const spmatrix_t         *spm,
  *          On entry, the pointer to an allocated bcsc.
  *          On exit, the bcsc fields are updated.
  *
- * @param[in] bcsc_comm
- *          The structure which stores the exchanged data.
- *
  *******************************************************************************/
 static inline pastix_int_t
 bcsc_zadd_remote_At( const spmatrix_t         *spm,
                      const pastix_order_t     *ord,
                      const SolverMatrix       *solvmtx,
-                     const pastix_int_t       *col2cblk,
                      pastix_int_t             *rowtab,
-                     pastix_bcsc_t            *bcsc,
-                     const bcsc_handle_comm_t *bcsc_comm )
+                     pastix_bcsc_t            *bcsc )
 {
+    bcsc_handle_comm_t *bcsc_comm = bcsc->bcsc_comm;
     pastix_int_t       *dofs = spm->dofs;
     pastix_int_t        dof  = spm->dof;
     SolverCblk         *cblk;
@@ -428,7 +414,7 @@ bcsc_zadd_remote_At( const spmatrix_t         *spm,
         dofi = (dof > 0) ? dof : dofs[ig+1] - dofs[ig];
         dofj = (dof > 0) ? dof : dofs[jg+1] - dofs[jg];
 
-        itercblk = col2cblk[ ipe ];
+        itercblk = bcsc->col2cblk[ ipe ];
         assert( itercblk >= 0 );
 
         /* Gets the block on which the data received will be added. */
@@ -479,25 +465,15 @@ bcsc_zadd_remote_At( const spmatrix_t         *spm,
  * @param[in] solvmtx
  *          The solver matrix structure which describes the data distribution.
  *
- * @param[in] col2cblk
- *          The array of matching columns with local cblk indexes. If the column
- *          k belongs to a remote block then col2cblk[k] = -(owner_proc + 1).
- *
  * @param[inout] bcsc
  *          On entry, the pointer to an allocated bcsc.
  *          On exit, the bcsc fields are updated.
- *
- * @param[inout] bcsc_comm
- *          On entry, an empty structure.
- *          On exit, stores the amount of data to send and allocates the
- *          reception buffer.
  *
  *******************************************************************************/
 static inline pastix_int_t
 bcsc_zinit_A( const spmatrix_t     *spm,
               const pastix_order_t *ord,
               const SolverMatrix   *solvmtx,
-              const pastix_int_t   *col2cblk,
               pastix_bcsc_t        *bcsc )
 {
     pastix_complex64_t *values   = (pastix_complex64_t*)(spm->values);
@@ -531,7 +507,7 @@ bcsc_zinit_A( const spmatrix_t     *spm,
         jpe  = ( dof > 0 ) ? jp * dof : dofs[ jg ] - baseval;
         dofj = ( dof > 0 ) ? dof : dofs[ jg+1 ] - dofs[ jg ];
 
-        itercblk = col2cblk[ jpe ];
+        itercblk = bcsc->col2cblk[ jpe ];
 
         /*
          * If MPI is used in shared memory, the block can belong to another
@@ -608,10 +584,6 @@ bcsc_zinit_A( const spmatrix_t     *spm,
  * @param[in] solvmtx
  *          The solver matrix structure which describes the data distribution.
  *
- * @param[in] col2cblk
- *          The array of matching columns with local cblk indexes. If the column
- *          k belongs to a remote block then col2cblk[k] = -(owner_proc + 1).
- *
  * @param[inout] rowtab
  *          The row tab of the bcsc or the row tab associated to At.
  *
@@ -619,16 +591,11 @@ bcsc_zinit_A( const spmatrix_t     *spm,
  *          On entry, the pointer to an allocated bcsc.
  *          On exit, the bcsc fields are updated.
  *
- * @param[inout] bcsc_comm
- *          On entry, contains the amount of data to send.
- *          On exit, the data have been exchanged and stored in the bcsc.
- *
  *******************************************************************************/
 static inline pastix_int_t
 bcsc_zinit_At( const spmatrix_t     *spm,
                const pastix_order_t *ord,
                const SolverMatrix   *solvmtx,
-               const pastix_int_t   *col2cblk,
                pastix_int_t         *rowtab,
                pastix_bcsc_t        *bcsc )
 {
@@ -701,7 +668,7 @@ bcsc_zinit_At( const spmatrix_t     *spm,
                 values += dofi * dofj;
                 continue;
             }
-            itercblk = col2cblk[ ipe ];
+            itercblk = bcsc->col2cblk[ ipe ];
 
             /*
              * If MPI is used in shared memory, the block can belong to another
@@ -815,9 +782,6 @@ bcsc_zsort( const pastix_bcsc_t *bcsc,
  * @param[in] solvmtx
  *          The solver matrix structure that describe the data distribution.
  *
- * @param[in] col2cblk
- *          Array of matching column with cblk indexes.
- *
  * @param[in] initAt
  *          A flag to enable/disable the initialization of A'.
  *
@@ -826,20 +790,22 @@ bcsc_zsort( const pastix_bcsc_t *bcsc,
  *          On exit, the bcsc stores the input spm with the permutation applied
  *          and grouped according to the distribution described in solvmtx.
  *
+ * @param[in] valuesize
+ *         The number of non zero unknowns in the matrix.
+ *
  *******************************************************************************/
 void
 bcsc_zinit( const spmatrix_t     *spm,
             const pastix_order_t *ord,
             const SolverMatrix   *solvmtx,
-            const pastix_int_t   *col2cblk,
             int                   initAt,
             pastix_bcsc_t        *bcsc,
-            bcsc_handle_comm_t   *bcsc_comm,
             pastix_int_t          valuesize )
 {
     pastix_int_t nbelt;
 #if defined(PASTIX_WITH_MPI)
     pastix_int_t nbelt_recv;
+    bcsc_handle_comm_t *bcsc_comm = bcsc->bcsc_comm;
 #endif
 
     /* Exchanges the data if the spm is distributed */
@@ -850,12 +816,12 @@ bcsc_zinit( const spmatrix_t     *spm,
 #endif
 
     /* Initializes the blocked structure of the matrix A. */
-    nbelt = bcsc_zinit_A( spm, ord, solvmtx, col2cblk, bcsc );
+    nbelt = bcsc_zinit_A( spm, ord, solvmtx, bcsc );
 
     /* Adds the received data of A if the spm is distributed */
 #if defined(PASTIX_WITH_MPI)
     if ( bcsc_comm != NULL ) {
-        nbelt_recv = bcsc_zadd_remote_A( spm, ord, solvmtx, col2cblk, bcsc, bcsc_comm );
+        nbelt_recv = bcsc_zadd_remote_A( spm, ord, solvmtx, bcsc );
         assert( nbelt_recv == bcsc_comm->data_comm[bcsc_comm->clustnum].nrecvs.val_A );
         nbelt += nbelt_recv;
     }
@@ -863,12 +829,12 @@ bcsc_zinit( const spmatrix_t     *spm,
 
     /* Initializes the blocked structure of the matrix At if the matrix is not general. */
     if ( spm->mtxtype != SpmGeneral ) {
-        nbelt += bcsc_zinit_At( spm, ord, solvmtx, col2cblk, bcsc->rowtab, bcsc );
+        nbelt += bcsc_zinit_At( spm, ord, solvmtx, bcsc->rowtab, bcsc );
 
         /* Adds the received data of At if the spm is distributed */
 #if defined(PASTIX_WITH_MPI)
         if ( bcsc_comm != NULL ) {
-            nbelt_recv = bcsc_zadd_remote_At( spm, ord, solvmtx, col2cblk, bcsc->rowtab, bcsc, bcsc_comm );
+            nbelt_recv = bcsc_zadd_remote_At( spm, ord, solvmtx, bcsc->rowtab, bcsc );
             assert( nbelt_recv == bcsc_comm->data_comm[bcsc_comm->clustnum].nrecvs.val_At );
             nbelt += nbelt_recv;
         }
@@ -892,10 +858,10 @@ bcsc_zinit( const spmatrix_t     *spm,
             for (i=0; i<valuesize; i++) {
                 trowtab[i] = -1;
             }
-            nbelt = bcsc_zinit_At( spm, ord, solvmtx, col2cblk, trowtab, bcsc );
+            nbelt = bcsc_zinit_At( spm, ord, solvmtx, trowtab, bcsc );
 #if defined(PASTIX_WITH_MPI)
             if ( bcsc_comm != NULL ) {
-                nbelt += bcsc_zadd_remote_At( spm, ord, solvmtx, col2cblk, trowtab, bcsc, bcsc_comm );
+                nbelt += bcsc_zadd_remote_At( spm, ord, solvmtx, trowtab, bcsc );
             }
 #endif
             /* Restores the correct coltab arrays */
@@ -911,7 +877,6 @@ bcsc_zinit( const spmatrix_t     *spm,
         bcsc->Uvalues = bcsc->Lvalues;
     }
 
-    (void) bcsc_comm;
     (void) nbelt;
 #if defined(PASTIX_WITH_MPI)
     (void) nbelt_recv;
