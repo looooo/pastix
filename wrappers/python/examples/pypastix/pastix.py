@@ -6,11 +6,11 @@
  @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.0
+ @version 6.2.1
  @author Pierre Ramet
  @author Mathieu Faverge
  @author Louis Poirel
- @date 2021-04-07
+ @date 2022-10-11
 
 """
 from ctypes import *
@@ -53,12 +53,12 @@ def task_numfact( pastix_data, spm ):
 
 def task_solve( pastix_data, spm, x, nrhs=-1 ):
 
-    n    = x.shape[0]
+    m    = x.shape[0]
     nrhs = __getnrhs( nrhs, x )
 
     x = np.asarray(x, spm.dtype)
 
-    pypastix_pastix_task_solve( pastix_data, nrhs, x.ctypes.data_as(c_void_p), n )
+    pypastix_pastix_task_solve( pastix_data, m, nrhs, x.ctypes.data_as(c_void_p), m )
 
 def task_refine( pastix_data, spm, b, x, nrhs=-1 ):
 

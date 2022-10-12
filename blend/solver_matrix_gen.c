@@ -223,7 +223,13 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                 bcscidx++;
 
                 /* Store index for the RHS */
-                solvcblk->lcolidx = solvcblk->fcolnum; // WARNING: Should be set to nodenbr when RHS will be distributed
+                solvcblk->lcolidx = solvcblk->fcolnum;
+                /**
+                 * Correct version for MPI implementation:
+                 * solvcblk->lcolidx = nodenbr;
+                 * assert( ((solvmtx->clustnbr >  1) && (nodenbr <= solvcblk->fcolnum)) ||
+                 *         ((solvmtx->clustnbr == 1) && (nodenbr == solvcblk->fcolnum)) );
+                 */
 
                 /* Update local statistics */
                 nbcols = cblk_colnbr( solvcblk );

@@ -13,7 +13,7 @@
  * @author Xavier Lacoste
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2022-07-07
+ * @date 2022-10-11
  *
  **/
 #include "common.h"
@@ -157,10 +157,10 @@ pastix_subtask_refine( pastix_data_t *pastix_data,
         size_t shiftx, shiftb;
         int i;
 
-        shiftx = ldx * pastix_size_of( pastix_data->bcsc->flttype );
-        shiftb = ldb * pastix_size_of( pastix_data->bcsc->flttype );
-        Bp->n = 1;
-        Xp->n = 1;
+        shiftx = ldx * pastix_size_of( Xp->flttype );
+        shiftb = ldb * pastix_size_of( Bp->flttype );
+        Bp->n  = 1;
+        Xp->n  = 1;
 
         for(i=0; i<nrhs; i++, xptr += shiftx, bptr += shiftb ) {
             pastix_int_t it;
@@ -173,7 +173,7 @@ pastix_subtask_refine( pastix_data_t *pastix_data,
         Bp->n = nrhs;
         Bp->b = (void*)b;
         Xp->n = nrhs;
-        Xp->b = x;
+        Xp->b = (void*)x;
     }
     clockSyncStop( timer, pastix_data->inter_node_comm );
 
@@ -206,7 +206,7 @@ pastix_subtask_refine( pastix_data_t *pastix_data,
  * @param[in] pastix_data
  *          The PaStiX data structure that describes the solver instance.
  *
- * @param[in] n
+ * @param[in] m
  *          The size of system to solve, and the number of rows of both
  *          matrices b and x.
  *
@@ -239,16 +239,19 @@ pastix_subtask_refine( pastix_data_t *pastix_data,
  *******************************************************************************/
 int
 pastix_task_refine( pastix_data_t *pastix_data,
-                    pastix_int_t n, pastix_int_t nrhs,
-                    void *b, pastix_int_t ldb,
-                    void *x, pastix_int_t ldx )
+                    pastix_int_t   m,
+                    pastix_int_t   nrhs,
+                    void          *b,
+                    pastix_int_t   ldb,
+                    void          *x,
+                    pastix_int_t   ldx )
 {
     pastix_int_t  *iparm = pastix_data->iparm;
     pastix_bcsc_t *bcsc  = pastix_data->bcsc;
     pastix_rhs_t   Bp, Xp;
-    int rc;
-    void *bglob, *btmp = NULL;
-    void *xglob, *xtmp = NULL;
+    void          *bglob, *btmp = NULL;
+    void          *xglob, *xtmp = NULL;
+    int            rc;
 
     if ( (pastix_data->schur_n > 0) && (iparm[IPARM_SCHUR_SOLV_MODE] != PastixSolvModeLocal))
     {
@@ -264,18 +267,18 @@ pastix_task_refine( pastix_data_t *pastix_data,
         btmp = b;
         xtmp = x;
 
-        n = pastix_data->csc->gNexp;
+        m = pastix_data->csc->gNexp;
 
-        bglob = malloc( n * nrhs * pastix_size_of( bcsc->flttype ) );
-        xglob = malloc( n * nrhs * pastix_size_of( bcsc->flttype ) );
+        bglob = malloc( m * nrhs * pastix_size_of( bcsc->flttype ) );
+        xglob = malloc( m * nrhs * pastix_size_of( bcsc->flttype ) );
 
-        spmGatherRHS( nrhs, pastix_data->csc, b, ldb, -1, bglob, n );
-        spmGatherRHS( nrhs, pastix_data->csc, x, ldx, -1, xglob, n );
+        spmGatherRHS( nrhs, pastix_data->csc, b, ldb, -1, bglob, m );
+        spmGatherRHS( nrhs, pastix_data->csc, x, ldx, -1, xglob, m );
 
         b = bglob;
         x = xglob;
-        ldb = n;
-        ldx = n;
+        ldb = m;
+        ldx = m;
     }
 
     /* Compute P * b */
@@ -285,7 +288,7 @@ pastix_task_refine( pastix_data_t *pastix_data,
     }
 
     rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
-                                    PastixDirForward, bcsc->gN, nrhs, b, ldb, Bp );
+                                    PastixDirForward, m, nrhs, b, ldb, Bp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
@@ -297,7 +300,7 @@ pastix_task_refine( pastix_data_t *pastix_data,
     }
 
     rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
-                                    PastixDirForward, bcsc->gN, nrhs, x, ldx, Xp );
+                                    PastixDirForward, m, nrhs, x, ldx, Xp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
@@ -310,7 +313,7 @@ pastix_task_refine( pastix_data_t *pastix_data,
 
     /* Compute P * b */
     rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
-                                    PastixDirBackward, bcsc->gN, nrhs, b, ldb, Bp );
+                                    PastixDirBackward, m, nrhs, b, ldb, Bp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
@@ -321,7 +324,7 @@ pastix_task_refine( pastix_data_t *pastix_data,
 
     /* Compute P * x */
     rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
-                                    PastixDirBackward, bcsc->gN, nrhs, x, ldx, Xp );
+                                    PastixDirBackward, m, nrhs, x, ldx, Xp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
@@ -348,6 +351,6 @@ pastix_task_refine( pastix_data_t *pastix_data,
         memFree_null( xglob );
     }
 
-    (void)n;
+    (void)m;
     return PASTIX_SUCCESS;
 }

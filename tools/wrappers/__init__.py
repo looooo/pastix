@@ -205,7 +205,7 @@ def parse_arg( string ):
 
     if "const" in string:
         arg['const'] = True
-        typestr = re.sub( r"const", "", typestr )
+        typestr = re.sub( r"const\s*", "", typestr )
 
     # Remove spaces between *
     typestr = re.sub( r"\*\s*\*", "**", typestr )

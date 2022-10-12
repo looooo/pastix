@@ -7,13 +7,13 @@
  * @copyright 2011-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Gregoire Pichon
  * @author Matias Hastaran
- * @date 2021-01-25
+ * @date 2022-10-11
  *
  **/
 #include "common.h"
@@ -374,7 +374,7 @@ pastix( pastix_data_t **pastix_data_ptr,
             pastix_data->b = malloc(size);
             memcpy(pastix_data->b, b, size);
         }
-        pastix_task_solve( pastix_data, nrhs, b, spm->n );
+        pastix_task_solve( pastix_data, spm->nexp, nrhs, b, spm->nexp );
         iparm[IPARM_START_TASK]++;
 
         /*

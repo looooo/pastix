@@ -7,7 +7,7 @@
  * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author David Goudin
  * @author Francois Pellegrini
  * @author Gregoire Pichon
@@ -17,7 +17,7 @@
  * @author Xavier Lacoste
  * @author Theophile Terraz
  * @author Tony Delarue
- * @date 2021-03-05
+ * @date 2022-10-11
  *
  **/
 #ifndef _pastix_h_
@@ -88,6 +88,7 @@ int pastix_task_analyze( pastix_data_t    *pastix_data,
 int pastix_task_numfact( pastix_data_t    *pastix_data,
                          spmatrix_t       *spm );
 int pastix_task_solve  ( pastix_data_t    *pastix_data,
+                         pastix_int_t      m,
                          pastix_int_t      nrhs,
                          void             *B,
                          pastix_int_t      ldb );
@@ -122,6 +123,10 @@ int pastix_subtask_sopalin   ( pastix_data_t *pastix_data );
  */
 int pastixRhsInit( pastix_data_t *pastix_data,
                    pastix_rhs_t  *rhs );
+int pastixRhsDoubletoSingle( const pastix_rhs_t dB,
+                             pastix_rhs_t       sB );
+int pastixRhsSingleToDouble( const pastix_rhs_t sB,
+                             pastix_rhs_t       dB );
 int pastixRhsFinalize( pastix_data_t *pastix_data,
                        pastix_rhs_t   rhs );
 

@@ -9,7 +9,7 @@
  * @version 6.2.1
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2022-09-27
+ * @date 2022-10-11
  *
  * This file has been automatically generated with gen_wrappers.py
  *
@@ -190,11 +190,12 @@ pastix_task_numfact_f2c( pastix_data_t *pastix_data,
 
 int
 pastix_task_solve_f2c( pastix_data_t *pastix_data,
+                       pastix_int_t   m,
                        pastix_int_t   nrhs,
                        void          *B,
                        pastix_int_t   ldb )
 {
-    return pastix_task_solve( pastix_data, nrhs, B, ldb );
+    return pastix_task_solve( pastix_data, m, nrhs, B, ldb );
 }
 
 int
@@ -259,6 +260,20 @@ pastixRhsInit_f2c( pastix_data_t *pastix_data,
                    pastix_rhs_t  *rhs )
 {
     return pastixRhsInit( pastix_data, rhs );
+}
+
+int
+pastixRhsDoubletoSingle_f2c( const pastix_rhs_t dB,
+                             pastix_rhs_t       sB )
+{
+    return pastixRhsDoubletoSingle( dB, sB );
+}
+
+int
+pastixRhsSingleToDouble_f2c( const pastix_rhs_t sB,
+                             pastix_rhs_t       dB )
+{
+    return pastixRhsSingleToDouble( sB, dB );
 }
 
 int

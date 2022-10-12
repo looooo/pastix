@@ -14,7 +14,7 @@
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Tony Delarue
- * @date 2022-10-06
+ * @date 2022-10-11
  *
  **/
 #define _GNU_SOURCE 1
@@ -133,12 +133,170 @@ pastixRhsInit( pastix_data_t *pastix_data,
     *B_ptr = malloc( sizeof(struct pastix_rhs_s) );
     B = *B_ptr;
 
-    B->allocated = 0;
+    B->allocated = -1;
     B->flttype   = PastixPattern;
     B->m         = -1;
     B->n         = -1;
     B->ld        = -1;
     B->b         = NULL;
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_solve
+ *
+ * @brief Reduces the precision of an RHS.
+ *
+ *******************************************************************************
+ *
+ * @param[in] dB
+ *          The allocated pastix_rhs_t data structure to convert to lower
+ *          precision.
+ *
+ * @param[out] sB
+ *          On entry, an allocated pastix_rhs_t data structure.
+ *          On exit, the reduced precision pastix_rhs_t of dB.
+ *          If sB->allocated == -1 on entry, the internal b vector is
+ *          automatically allocated by the function.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *
+ *******************************************************************************/
+int
+pastixRhsDoubletoSingle( const pastix_rhs_t dB,
+                               pastix_rhs_t sB )
+{
+    int rc;
+    int tofree = 0;
+
+    /* Generates halved-precision vector */
+    if ( ( dB->flttype != PastixComplex64 ) &&
+         ( dB->flttype != PastixDouble    ) )
+    {
+        pastix_print_error( "pastixRhsDoubletoSingle: Invalid float type for mixed-precision" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    if ( sB->allocated == -1 ) {
+        size_t size = dB->ld * dB->n;
+
+        memcpy( sB, dB, sizeof( struct pastix_rhs_s ) );
+
+        sB->allocated = 1;
+        sB->flttype   = dB->flttype - 1;
+        sB->b         = malloc( size * pastix_size_of( sB->flttype ) );
+        tofree        = 1;
+    }
+    assert( sB->allocated >= 0 );
+    assert( sB->flttype == (dB->flttype - 1) );
+    assert( sB->b       != NULL );
+    assert( sB->m       == dB->m );
+    assert( sB->n       == dB->n );
+
+    switch( dB->flttype ) {
+    case PastixComplex64:
+        rc = LAPACKE_zlag2c_work( LAPACK_COL_MAJOR, dB->m, dB->n, dB->b, dB->ld, sB->b, sB->ld );
+        break;
+    case PastixDouble:
+        rc = LAPACKE_dlag2s_work( LAPACK_COL_MAJOR, dB->m, dB->n, dB->b, dB->ld, sB->b, sB->ld );
+        break;
+    default:
+        rc = 1;
+        pastix_print_error( "pastixRhsDoubletoSingle: Invalid input float type for mixed-precision" );
+    }
+
+    if ( rc ) {
+        if ( tofree ) {
+            free( dB->b );
+            dB->b = NULL;
+        }
+        return PASTIX_ERR_INTERNAL;
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_solve
+ *
+ * @brief Increases the precision of an RHS.
+ *
+ *******************************************************************************
+ *
+ * @param[in] sB
+ *          The allocated pastix_rhs_t data structure to convert to higher
+ *          precision.
+ *
+ * @param[out] dB
+ *          On entry, an allocated pastix_rhs_t data structure.
+ *          On exit, the increased precision pastix_rhs_t of sB.
+ *          If dB->allocated == -1 on entry, the internal b vector is
+ *          automatically allocated by the function.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *
+ *******************************************************************************/
+int
+pastixRhsSingleToDouble( const pastix_rhs_t sB,
+                               pastix_rhs_t dB )
+{
+    int rc;
+    int tofree = 0;
+
+    /* Frees halved-precision vector */
+    if ( ( sB->flttype != PastixComplex32 ) &&
+         ( sB->flttype != PastixFloat     ) )
+    {
+        pastix_print_error( "pastixRhsSingleToDouble: Invalid input float type for mixed-precision" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    if ( dB->allocated == -1 ) {
+        size_t size = sB->ld * sB->n;
+
+        memcpy( dB, sB, sizeof( struct pastix_rhs_s ) );
+
+        dB->allocated = 1;
+        dB->flttype   = sB->flttype + 1;
+        dB->b         = malloc( size * pastix_size_of( dB->flttype ) );
+        tofree        = 1;
+    }
+    assert( dB->allocated >= 0 );
+    assert( dB->flttype == (sB->flttype + 1) );
+    assert( dB->b       != NULL );
+    assert( dB->m       == sB->m );
+    assert( dB->n       == sB->n );
+
+    switch( sB->flttype ) {
+    case PastixComplex32:
+        rc = LAPACKE_clag2z_work( LAPACK_COL_MAJOR, sB->m, sB->n, sB->b, sB->ld, dB->b, dB->ld );
+        break;
+    case PastixFloat:
+        rc = LAPACKE_slag2d_work( LAPACK_COL_MAJOR, sB->m, sB->n, sB->b, sB->ld, dB->b, dB->ld );
+        break;
+    default:
+        rc = 1;
+        pastix_print_error( "pastixRhsSingleToDouble: Invalid float type for mixed-precision" );
+    }
+
+    if ( rc ) {
+        if ( tofree ) {
+            free( sB->b );
+            sB->b = NULL;
+        }
+        return PASTIX_ERR_INTERNAL;
+    }
 
     return PASTIX_SUCCESS;
 }
@@ -179,7 +337,7 @@ pastixRhsFinalize( pastix_data_t *pastix_data,
     }
 
     if ( B->b != NULL ) {
-        if ( B->allocated ) {
+        if ( B->allocated > 0 ) {
             free( B->b );
         }
         else {
@@ -280,13 +438,15 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
     }
 
     if ( dir == PastixDirForward ) {
-        Bp->flttype = flttype;
-        Bp->m       = m;
-        Bp->n       = n;
-        Bp->ld      = Bp->m;
-        Bp->b       = b;
+        Bp->allocated = 0;
+        Bp->flttype   = flttype;
+        Bp->m         = m;
+        Bp->n         = n;
+        Bp->ld        = Bp->m;
+        Bp->b         = b;
     }
     else {
+        assert( Bp->allocated >= 0 );
         assert( Bp->flttype == flttype );
         assert( Bp->b  == b );
         assert( Bp->m  == m );
@@ -330,11 +490,11 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
 #endif
 
     if ( dir == PastixDirBackward ) {
-        if ( Bp->allocated ) {
+        if ( Bp->allocated > 0 ) {
             free( Bp->b );
         }
 
-        Bp->allocated = 0;
+        Bp->allocated = -1;
         Bp->flttype   = PastixPattern;
         Bp->m         = -1;
         Bp->n         = -1;
@@ -379,7 +539,7 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
  *          The number of right-and-side vectors.
  *
  * @param[inout] b
- *          The right-and-side vector (can be multiple RHS).
+ *          The right-and-side vector (can be multiple rhs).
  *          On exit, the solution is stored in place of the right-hand-side vector.
  *
  * @param[in] ldb
@@ -392,12 +552,12 @@ pastix_subtask_applyorder( pastix_data_t    *pastix_data,
  *
  *******************************************************************************/
 int
-pastix_subtask_trsm( pastix_data_t    *pastix_data,
-                     pastix_side_t     side,
-                     pastix_uplo_t     uplo,
-                     pastix_trans_t    trans,
-                     pastix_diag_t     diag,
-                     pastix_rhs_t      Bp )
+pastix_subtask_trsm( pastix_data_t *pastix_data,
+                     pastix_side_t  side,
+                     pastix_uplo_t  uplo,
+                     pastix_trans_t trans,
+                     pastix_diag_t  diag,
+                     pastix_rhs_t   Bp )
 {
     sopalin_data_t    sopalin_data;
     pastix_int_t      nrhs, i, bs, ldb;
@@ -421,10 +581,10 @@ pastix_subtask_trsm( pastix_data_t    *pastix_data,
     }
 
     flttype = Bp->flttype;
-    nrhs = Bp->n;
-    b    = Bp->b;
-    ldb  = Bp->ld;
-    bs   = nrhs;
+    nrhs    = Bp->n;
+    b       = Bp->b;
+    ldb     = Bp->ld;
+    bs      = nrhs;
 #if defined(PASTIX_WITH_MPI)
     bs = 1;
 #endif
@@ -521,7 +681,7 @@ pastix_subtask_trsm( pastix_data_t    *pastix_data,
  *          The number of right-and-side vectors.
  *
  * @param[inout] b
- *          The right-and-side vector (can be multiple RHS).
+ *          The right-and-side vector (can be multiple rhs).
  *          On exit, the solution is stored in place of the right-hand-side vector.
  *
  * @param[in] ldb
@@ -560,9 +720,9 @@ pastix_subtask_diag( pastix_data_t *pastix_data,
     }
 
     flttype = Bp->flttype;
-    nrhs = Bp->n;
-    b    = Bp->b;
-    ldb  = Bp->ld;
+    nrhs    = Bp->n;
+    b       = Bp->b;
+    ldb     = Bp->ld;
 
     /*
      * Ensure that the scheduler is correct and is in the same
@@ -631,7 +791,7 @@ pastix_subtask_diag( pastix_data_t *pastix_data,
  *          The number of right-and-side vectors.
  *
  * @param[inout] b
- *          The right-and-side vectors (can be multiple RHS).
+ *          The right-and-side vectors (can be multiple rhs).
  *          On exit, the solution is stored in place of the right-hand-side vector.
  *
  * @param[in] ldb
@@ -655,6 +815,8 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
     pastix_diag_t  diag;
     pastix_trans_t trans;
     pastix_trans_t transfact = PastixTrans;
+    pastix_rhs_t   sBp;
+    pastix_rhs_t   B;
 
     /*
      * Check parameters
@@ -708,6 +870,18 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
         /* Start timer */
         clockSyncStart( timer, pastix_data->inter_node_comm );
 
+        if ( pastix_data->iparm[IPARM_MIXED] &&
+             ( ( Bp->flttype == PastixComplex64 ) || ( Bp->flttype == PastixDouble ) ) )
+        {
+            pastixRhsInit( pastix_data, &sBp );
+            pastixRhsDoubletoSingle( Bp, sBp );
+
+            B = sBp;
+        }
+        else {
+            B = Bp;
+        }
+
         /*
          * Solve the first step
          */
@@ -729,7 +903,7 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
             diag = PastixUnit;
         }
 
-        pastix_subtask_trsm( pastix_data, PastixLeft, uplo, trans, diag, Bp );
+        pastix_subtask_trsm( pastix_data, PastixLeft, uplo, trans, diag, B );
 
         /*
          * Solve the diagonal step
@@ -738,7 +912,7 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
             (factotype == PastixFactLDLH) )
         {
             /* Solve y = D z with z = ([L^t | L^h] P x) */
-            pastix_subtask_diag( pastix_data, Bp );
+            pastix_subtask_diag( pastix_data, B );
         }
 
         /*
@@ -762,8 +936,14 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
             diag = PastixUnit;
         }
 
-        pastix_subtask_trsm( pastix_data,
-                             PastixLeft, uplo, trans, diag, Bp );
+        pastix_subtask_trsm( pastix_data, PastixLeft, uplo, trans, diag, B );
+
+        if ( pastix_data->iparm[IPARM_MIXED] &&
+             ( ( Bp->flttype == PastixComplex64 ) || ( Bp->flttype == PastixDouble ) ) )
+        {
+            pastixRhsSingleToDouble( sBp, Bp );
+            pastixRhsFinalize( pastix_data, sBp );
+        }
 
         /* Stop Timer */
         clockSyncStop( timer, pastix_data->inter_node_comm );
@@ -775,7 +955,7 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
         }
     }
 
-    return EXIT_SUCCESS;
+    return PASTIX_SUCCESS;
 }
 
 /**
@@ -800,7 +980,7 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
  *          The number of right-and-side vectors.
  *
  * @param[inout] b
- *          The right-and-side vectors (can be multiple RHS).
+ *          The right-and-side vectors (can be multiple rhs).
  *          On exit, the solution is stored in place of the right-hand-side vector.
  *
  * @param[in] ldb
@@ -836,11 +1016,16 @@ pastix_subtask_solve( pastix_data_t *pastix_data,
  * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.
  *
+ * @param[in] m
+ *          The local number of rows of the right-and-side vectors.
+ *          If the spm is centralized or replicated, m must be equal to
+ *          spm->gNexp, otherwise m must be equal to spm->nexp.
+ *
  * @param[in] nrhs
  *          The number of right-and-side vectors.
  *
  * @param[inout] b
- *          The right-and-side vectors (can be multiple RHS).
+ *          The right-and-side vectors (can be multiple rhs).
  *          On exit, the solution is stored in place of the right-hand-side vector.
  *
  * @param[in] ldb
@@ -854,15 +1039,17 @@ pastix_subtask_solve( pastix_data_t *pastix_data,
  *******************************************************************************/
 int
 pastix_task_solve( pastix_data_t *pastix_data,
+                   pastix_int_t   m,
                    pastix_int_t   nrhs,
                    void          *b,
                    pastix_int_t   ldb )
 {
-    pastix_bcsc_t *bcsc;
-    void          *bglob = NULL;
-    void          *tmp   = NULL;
-    void          *sb;
-    pastix_rhs_t   Bp;
+    const spmatrix_t *spm;
+    pastix_bcsc_t    *bcsc;
+    void             *bglob = NULL;
+    void             *tmp   = NULL;
+    pastix_rhs_t      Bp;
+    pastix_int_t      rc;
 
     /*
      * Check parameters
@@ -877,101 +1064,68 @@ pastix_task_solve( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
+    spm  = pastix_data->csc;
     bcsc = pastix_data->bcsc;
 
     /* The spm is distributed, so we have to gather the RHS */
-    if ( pastix_data->csc->loc2glob != NULL ) {
+    if ( spm->loc2glob != NULL ) {
+        assert( m == spm->nexp );
+
         if( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
             pastix_print( pastix_data->procnum, 0, "pastix_task_solve: the RHS has to be centralized for the moment\n" );
         }
 
         tmp = b;
-        bglob = malloc( pastix_data->csc->gNexp * nrhs * pastix_size_of( bcsc->flttype ) );
-        spmGatherRHS( nrhs, pastix_data->csc, b, ldb,
-                      -1, bglob, pastix_data->csc->gNexp );
+        bglob = malloc( (size_t)(spm->gNexp) * (size_t)nrhs * pastix_size_of( bcsc->flttype ) );
+        spmGatherRHS( nrhs, spm, b, ldb,
+                      -1, bglob, spm->gNexp );
         b   = bglob;
         ldb = pastix_data->csc->gNexp;
-    }
-
-    /* Generating halved-precision vector */
-    if ( pastix_data->iparm[IPARM_MIXED] &&
-         ((bcsc->flttype == PastixComplex64) || (bcsc->flttype == PastixDouble)) )
-    {
-        int    rc;
-        size_t size = ldb * nrhs;
-
-        switch(bcsc->flttype) {
-        case PastixComplex64:
-            sb = malloc( size * sizeof(pastix_complex32_t) );
-            rc = LAPACKE_zlag2c_work( LAPACK_COL_MAJOR, ldb, nrhs,
-                                      b, ldb, sb, ldb );
-            break;
-        case PastixDouble:
-            sb = malloc( size * sizeof(float) );
-            rc = LAPACKE_dlag2s_work( LAPACK_COL_MAJOR, ldb, nrhs,
-                                      b, ldb, sb, ldb );
-            break;
-        default:
-            rc = 1;
-            pastix_print_error( "pastix_task_solve: Invalid float type for mixed-precision" );
-        }
-
-        if ( rc ) {
-            free( sb );
-            return PASTIX_ERR_INTERNAL;
-        }
+        m   = ldb;
     }
     else {
-        sb = b;
+        assert( m == spm->gNexp );
     }
+    assert( m == bcsc->gN );
 
     /* Compute P * b */
-    pastixRhsInit( pastix_data, &Bp );
-    pastix_subtask_applyorder( pastix_data, pastix_data->solvmatr->flttype,
-                               PastixDirForward, bcsc->gN, nrhs, sb, ldb, Bp );
+    rc = pastixRhsInit( pastix_data, &Bp );
+    if( rc != PASTIX_SUCCESS ) {
+        return rc;
+    }
+
+    rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
+                                    PastixDirForward, m, nrhs, b, ldb, Bp );
+    if( rc != PASTIX_SUCCESS ) {
+        return rc;
+    }
 
     /* Solve A x = b */
-    pastix_subtask_solve( pastix_data, Bp );
+    rc = pastix_subtask_solve( pastix_data, Bp );
+    if( rc != PASTIX_SUCCESS ) {
+        return rc;
+    }
 
     /* Compute P^t * b */
-    pastix_subtask_applyorder( pastix_data, pastix_data->solvmatr->flttype,
-                               PastixDirBackward, bcsc->gN, nrhs, sb, ldb, Bp );
-    pastixRhsFinalize( pastix_data, Bp );
+    rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
+                                    PastixDirBackward, m, nrhs, b, ldb, Bp );
+    if( rc != PASTIX_SUCCESS ) {
+        return rc;
+    }
 
-    /* Freeing mixed-precision vectors and reverting to given precision */
-    if ( pastix_data->iparm[IPARM_MIXED] &&
-         ((bcsc->flttype == PastixComplex64) || (bcsc->flttype == PastixDouble)) )
-    {
-        int rc;
-
-        switch(bcsc->flttype) {
-        case PastixComplex64:
-            rc = LAPACKE_clag2z_work( LAPACK_COL_MAJOR, ldb, nrhs,
-                                      sb, ldb, b, ldb );
-            break;
-        case PastixDouble:
-            rc = LAPACKE_slag2d_work( LAPACK_COL_MAJOR, ldb, nrhs,
-                                      sb, ldb, b, ldb );
-            break;
-        default:
-            pastix_print_error( "pastix_task_solve: Invalid float type for mixed-precision" );
-        }
-
-        assert( b != sb );
-        free( sb );
-        if( rc ) {
-            return PASTIX_ERR_INTERNAL;
-        }
+    rc = pastixRhsFinalize( pastix_data, Bp );
+    if( rc != PASTIX_SUCCESS ) {
+        return rc;
     }
 
     if( tmp != NULL ) {
         pastix_int_t ldbglob = ldb;
-        ldb = pastix_data->csc->nexp;
+        ldb = spm->nexp;
         b   = tmp;
 
-        spmExtractLocalRHS( nrhs, pastix_data->csc, bglob, ldbglob, b, ldb );
+        spmExtractLocalRHS( nrhs, spm, bglob, ldbglob, b, ldb );
         memFree_null( bglob );
     }
 
-    return EXIT_SUCCESS;
+    return rc;
 }

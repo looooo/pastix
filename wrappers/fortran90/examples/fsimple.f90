@@ -6,9 +6,9 @@
 ! @copyright 2017-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !                      Univ. Bordeaux. All rights reserved.
 !
-! @version 6.2.0
+! @version 6.2.1
 ! @author Mathieu Faverge
-! @date 2020-07-16
+! @date 2022-10-11
 !
 program fsimple
   use iso_c_binding
@@ -71,7 +71,7 @@ program fsimple
   call pastix_task_numfact( pastix_data, spm, info )
 
   ! 4- Solve the problem
-  call pastix_task_solve( pastix_data, nrhs, x, spm%nexp, info )
+  call pastix_task_solve( pastix_data, spm%nexp, nrhs, x, spm%nexp, info )
 
   ! 5- Refine the solution
   call pastix_task_refine( pastix_data, spm%nexp, nrhs, b, spm%nexp, x, spm%nexp, info )

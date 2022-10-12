@@ -7,10 +7,10 @@
  @copyright 2019-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.0
+ @version 6.2.1
  @author Mathieu Faverge
  @author Selmane Lebdaoui
- @date 2020-07-16
+ @date 2022-10-11
 =#
 
 using Pkg
@@ -74,7 +74,7 @@ PaStiX.pastix_task_numfact( pastix_data, Aptr )
 
 # Perform solve
 X = copy(B)
-PaStiX.pastix_task_solve( pastix_data, nrhs, X, n )
+PaStiX.pastix_task_solve( pastix_data, n, nrhs, X, n )
 
 # Refine the solution
 PaStiX.pastix_task_refine( pastix_data, n, nrhs, B, n, X, n )
