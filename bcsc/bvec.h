@@ -25,6 +25,8 @@ void *bvec_malloc( size_t size );
 
 void  bvec_free( void *x );
 
+int bvecHandleCommExit( bvec_handle_comm_t *rhs_comm );
+
 #endif /* _bvec_h_ */
 /**
  * @}

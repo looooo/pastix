@@ -19,6 +19,7 @@
  **/
 #define _GNU_SOURCE 1
 #include "common.h"
+#include "bcsc/bvec.h"
 #include "bcsc/bcsc.h"
 #include "pastix/order.h"
 #include "order/order_internal.h"
@@ -130,6 +131,8 @@ pastixRhsInit( pastix_rhs_t  *B_ptr )
     B->ld        = -1;
     B->b         = NULL;
     B->cblkb     = NULL;
+    B->rhs_comm  = NULL;
+    B->cblk2col  = NULL;
 
     return PASTIX_SUCCESS;
 }
@@ -333,7 +336,14 @@ pastixRhsFinalize( pastix_rhs_t B )
     }
 
     if ( B->cblkb != NULL ) {
-        free( B->cblkb );
+        memFree_null( B->cblkb );
+    }
+    if ( B->rhs_comm != NULL ) {
+        bvecHandleCommExit( B->rhs_comm );
+        memFree_null( B->rhs_comm );
+    }
+    if ( B->cblk2col != NULL ) {
+        memFree_null( B->cblk2col );
     }
     free( B );
     return PASTIX_SUCCESS;
@@ -398,6 +408,10 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
                            pastix_int_t   ldb,
                            pastix_rhs_t   Bp )
 {
+    const spmatrix_t *spm;
+    SolverMatrix     *solvmatr;
+    pastix_bcsc_t    *bcsc;
+
     /*
      * Checks parameters.
      */
@@ -416,22 +430,43 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
+    spm      = pastix_data->csc;
+    solvmatr = pastix_data->solvmatr;
+    bcsc     = pastix_data->bcsc;
+
+    assert( ldb >= m );
     if ( dir == PastixDirForward ) {
-        Bp->allocated = 0;
-        Bp->flttype   = pastix_data->csc->flttype;
-        Bp->m         = m;
-        Bp->n         = n;
-        Bp->ld        = ldb;
-        Bp->b         = b;
+        Bp->flttype = spm->flttype;
+        Bp->m       = bcsc->n;
+        Bp->n       = n;
+
+        if ( solvmatr->clustnbr > 1 ) {
+            Bp->allocated = 1;
+            Bp->ld        = Bp->m;
+            Bp->b         = malloc( Bp->ld * Bp->n * pastix_size_of( Bp->flttype ) );
+        }
+        else {
+            assert( m == Bp->m );
+            Bp->allocated = 0;
+            Bp->ld        = ldb;
+            Bp->b         = b;
+        }
     }
 #if !defined(NDEBUG)
     else {
-        assert( Bp->allocated >= 0 );
-        assert( Bp->flttype == pastix_data->csc->flttype );
-        assert( Bp->b  == b );
-        assert( Bp->m  == m );
-        assert( Bp->n  == n );
-        assert( Bp->ld >= Bp->m );
+        assert( Bp->allocated >= 0            );
+        assert( Bp->flttype   == spm->flttype );
+        assert( Bp->m         == bcsc->n      );
+        assert( Bp->n         == n            );
+
+        if ( Bp->allocated == 0 ) {
+            assert( Bp->b  == b );
+            assert( Bp->ld == ldb );
+        }
+        else {
+            assert( Bp->b  != b );
+            assert( Bp->ld == Bp->m );
+        }
     }
 #endif
 
