@@ -121,23 +121,21 @@ int pastix_subtask_sopalin   ( pastix_data_t *pastix_data );
 /*
  * Numerical solve and refinement subtasks
  */
-int pastixRhsInit( pastix_data_t *pastix_data,
-                   pastix_rhs_t  *rhs );
+int pastixRhsInit( pastix_rhs_t *rhs );
+int pastixRhsFinalize( pastix_rhs_t rhs );
+
 int pastixRhsDoubletoSingle( const pastix_rhs_t dB,
                              pastix_rhs_t       sB );
 int pastixRhsSingleToDouble( const pastix_rhs_t sB,
                              pastix_rhs_t       dB );
-int pastixRhsFinalize( pastix_data_t *pastix_data,
-                       pastix_rhs_t   rhs );
 
-int pastix_subtask_applyorder( pastix_data_t    *pastix_data,
-                               pastix_coeftype_t flttype,
-                               pastix_dir_t      dir,
-                               pastix_int_t      m,
-                               pastix_int_t      n,
-                               void             *B,
-                               pastix_int_t      ldb,
-                               pastix_rhs_t      Bp );
+int pastix_subtask_applyorder( pastix_data_t *pastix_data,
+                               pastix_dir_t   dir,
+                               pastix_int_t   m,
+                               pastix_int_t   n,
+                               void          *B,
+                               pastix_int_t   ldb,
+                               pastix_rhs_t   Bp );
 int pastix_subtask_trsm( pastix_data_t    *pastix_data,
                          pastix_side_t     side,
                          pastix_uplo_t     uplo,

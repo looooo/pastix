@@ -256,10 +256,15 @@ pastix_subtask_sopalin_f2c( pastix_data_t *pastix_data )
 }
 
 int
-pastixRhsInit_f2c( pastix_data_t *pastix_data,
-                   pastix_rhs_t  *rhs )
+pastixRhsInit_f2c( pastix_rhs_t *rhs )
 {
-    return pastixRhsInit( pastix_data, rhs );
+    return pastixRhsInit( rhs );
+}
+
+int
+pastixRhsFinalize_f2c( pastix_rhs_t rhs )
+{
+    return pastixRhsFinalize( rhs );
 }
 
 int
@@ -277,24 +282,15 @@ pastixRhsSingleToDouble_f2c( const pastix_rhs_t sB,
 }
 
 int
-pastixRhsFinalize_f2c( pastix_data_t *pastix_data,
-                       pastix_rhs_t   rhs )
+pastix_subtask_applyorder_f2c( pastix_data_t *pastix_data,
+                               pastix_dir_t   dir,
+                               pastix_int_t   m,
+                               pastix_int_t   n,
+                               void          *B,
+                               pastix_int_t   ldb,
+                               pastix_rhs_t   Bp )
 {
-    return pastixRhsFinalize( pastix_data, rhs );
-}
-
-int
-pastix_subtask_applyorder_f2c( pastix_data_t    *pastix_data,
-                               pastix_coeftype_t flttype,
-                               pastix_dir_t      dir,
-                               pastix_int_t      m,
-                               pastix_int_t      n,
-                               void             *B,
-                               pastix_int_t      ldb,
-                               pastix_rhs_t      Bp )
-{
-    return pastix_subtask_applyorder( pastix_data, flttype, dir, m, n, B, ldb,
-                                      Bp );
+    return pastix_subtask_applyorder( pastix_data, dir, m, n, B, ldb, Bp );
 }
 
 int

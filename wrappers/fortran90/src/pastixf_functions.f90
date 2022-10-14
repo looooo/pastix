@@ -597,22 +597,37 @@ subroutine pastix_subtask_sopalin_f08(pastix_data, info)
 
 end subroutine pastix_subtask_sopalin_f08
 
-subroutine pastixRhsInit_f08(pastix_data, rhs, info)
+subroutine pastixRhsInit_f08(rhs, info)
   use :: pastixf_interfaces, only : pastixRhsInit
   use :: pastixf_bindings,   only : pastixRhsInit_f2c
   use :: iso_c_binding,      only : c_int, c_loc
-  use :: pastixf_enums,      only : pastix_data_t, pastix_rhs_t
+  use :: pastixf_enums,      only : pastix_rhs_t
   implicit none
-  type(pastix_data_t), intent(inout), target   :: pastix_data
   type(pastix_rhs_t),  intent(inout), target   :: rhs
   integer(kind=c_int), intent(out),   optional :: info
 
   integer(kind=c_int) :: x_info
 
-  x_info = pastixRhsInit_f2c(c_loc(pastix_data), c_loc(rhs))
+  x_info = pastixRhsInit_f2c(c_loc(rhs))
   if ( present(info) ) info = x_info
 
 end subroutine pastixRhsInit_f08
+
+subroutine pastixRhsFinalize_f08(rhs, info)
+  use :: pastixf_interfaces, only : pastixRhsFinalize
+  use :: pastixf_bindings,   only : pastixRhsFinalize_f2c
+  use :: iso_c_binding,      only : c_int
+  use :: pastixf_enums,      only : pastix_rhs_t
+  implicit none
+  type(pastix_rhs_t),  intent(in)            :: rhs
+  integer(kind=c_int), intent(out), optional :: info
+
+  integer(kind=c_int) :: x_info
+
+  x_info = pastixRhsFinalize_f2c(rhs)
+  if ( present(info) ) info = x_info
+
+end subroutine pastixRhsFinalize_f08
 
 subroutine pastixRhsDoubletoSingle_f08(dB, sB, info)
   use :: pastixf_interfaces, only : pastixRhsDoubletoSingle
@@ -648,25 +663,8 @@ subroutine pastixRhsSingleToDouble_f08(sB, dB, info)
 
 end subroutine pastixRhsSingleToDouble_f08
 
-subroutine pastixRhsFinalize_f08(pastix_data, rhs, info)
-  use :: pastixf_interfaces, only : pastixRhsFinalize
-  use :: pastixf_bindings,   only : pastixRhsFinalize_f2c
-  use :: iso_c_binding,      only : c_int, c_loc
-  use :: pastixf_enums,      only : pastix_data_t, pastix_rhs_t
-  implicit none
-  type(pastix_data_t), intent(inout), target   :: pastix_data
-  type(pastix_rhs_t),  intent(in)              :: rhs
-  integer(kind=c_int), intent(out),   optional :: info
-
-  integer(kind=c_int) :: x_info
-
-  x_info = pastixRhsFinalize_f2c(c_loc(pastix_data), rhs)
-  if ( present(info) ) info = x_info
-
-end subroutine pastixRhsFinalize_f08
-
-subroutine pastix_subtask_applyorder_f08(pastix_data, flttype, dir, m, n, B, &
-     ldb, Bp, info)
+subroutine pastix_subtask_applyorder_f08(pastix_data, dir, m, n, B, ldb, Bp, &
+     info)
   use :: pastixf_interfaces, only : pastix_subtask_applyorder
   use :: pastixf_bindings,   only : pastix_subtask_applyorder_f2c
   use :: iso_c_binding,      only : c_int, c_loc, c_ptr
@@ -674,7 +672,6 @@ subroutine pastix_subtask_applyorder_f08(pastix_data, flttype, dir, m, n, B, &
   use :: pastixf_enums,      only : pastix_data_t, pastix_int_t, pastix_rhs_t
   implicit none
   type(pastix_data_t),        intent(inout), target   :: pastix_data
-  integer(c_int),             intent(in)              :: flttype
   integer(c_int),             intent(in)              :: dir
   integer(kind=pastix_int_t), intent(in)              :: m
   integer(kind=pastix_int_t), intent(in)              :: n
@@ -688,8 +685,8 @@ subroutine pastix_subtask_applyorder_f08(pastix_data, flttype, dir, m, n, B, &
 
   x_B = pastixGetCptrFrom2dArray(B)
 
-  x_info = pastix_subtask_applyorder_f2c(c_loc(pastix_data), flttype, dir, m, &
-       n, x_B, ldb, Bp)
+  x_info = pastix_subtask_applyorder_f2c(c_loc(pastix_data), dir, m, n, x_B, &
+       ldb, Bp)
   if ( present(info) ) info = x_info
 
 end subroutine pastix_subtask_applyorder_f08

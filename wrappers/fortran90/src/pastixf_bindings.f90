@@ -320,14 +320,22 @@ module pastixf_bindings
        type(c_ptr),  value :: pastix_data
      end function pastix_subtask_sopalin_f2c
 
-     function pastixRhsInit_f2c(pastix_data, rhs) &
+     function pastixRhsInit_f2c(rhs) &
           bind(c, name='pastixRhsInit_f2c')
        use :: iso_c_binding, only : c_int, c_ptr
        implicit none
        integer(kind=c_int) :: pastixRhsInit_f2c
-       type(c_ptr),  value :: pastix_data
        type(c_ptr),  value :: rhs
      end function pastixRhsInit_f2c
+
+     function pastixRhsFinalize_f2c(rhs) &
+          bind(c, name='pastixRhsFinalize_f2c')
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_rhs_t
+       implicit none
+       integer(kind=c_int)       :: pastixRhsFinalize_f2c
+       type(pastix_rhs_t), value :: rhs
+     end function pastixRhsFinalize_f2c
 
      function pastixRhsDoubletoSingle_f2c(dB, sB) &
           bind(c, name='pastixRhsDoubletoSingle_f2c')
@@ -349,25 +357,14 @@ module pastixf_bindings
        type(pastix_rhs_t), value :: dB
      end function pastixRhsSingleToDouble_f2c
 
-     function pastixRhsFinalize_f2c(pastix_data, rhs) &
-          bind(c, name='pastixRhsFinalize_f2c')
-       use :: iso_c_binding, only : c_int, c_ptr
-       use :: pastixf_enums, only : pastix_rhs_t
-       implicit none
-       integer(kind=c_int)       :: pastixRhsFinalize_f2c
-       type(c_ptr),        value :: pastix_data
-       type(pastix_rhs_t), value :: rhs
-     end function pastixRhsFinalize_f2c
-
-     function pastix_subtask_applyorder_f2c(pastix_data, flttype, dir, m, n, &
-          B, ldb, Bp) &
+     function pastix_subtask_applyorder_f2c(pastix_data, dir, m, n, B, ldb, &
+          Bp) &
           bind(c, name='pastix_subtask_applyorder_f2c')
        use :: iso_c_binding, only : c_int, c_ptr
        use :: pastixf_enums, only : pastix_int_t, pastix_rhs_t
        implicit none
        integer(kind=c_int)               :: pastix_subtask_applyorder_f2c
        type(c_ptr),                value :: pastix_data
-       integer(c_int),             value :: flttype
        integer(c_int),             value :: dir
        integer(kind=pastix_int_t), value :: m
        integer(kind=pastix_int_t), value :: n

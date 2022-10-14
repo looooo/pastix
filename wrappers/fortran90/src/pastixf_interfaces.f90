@@ -356,15 +356,24 @@ module pastixf_interfaces
   end interface pastix_subtask_sopalin
 
   interface pastixRhsInit
-     subroutine pastixRhsInit_f08(pastix_data, rhs, info)
+     subroutine pastixRhsInit_f08(rhs, info)
        use :: iso_c_binding, only : c_int
-       use :: pastixf_enums, only : pastix_data_t, pastix_rhs_t
+       use :: pastixf_enums, only : pastix_rhs_t
        implicit none
-       type(pastix_data_t), intent(inout), target   :: pastix_data
        type(pastix_rhs_t),  intent(inout), target   :: rhs
        integer(kind=c_int), intent(out),   optional :: info
      end subroutine pastixRhsInit_f08
   end interface pastixRhsInit
+
+  interface pastixRhsFinalize
+     subroutine pastixRhsFinalize_f08(rhs, info)
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_rhs_t
+       implicit none
+       type(pastix_rhs_t),  intent(in)            :: rhs
+       integer(kind=c_int), intent(out), optional :: info
+     end subroutine pastixRhsFinalize_f08
+  end interface pastixRhsFinalize
 
   interface pastixRhsDoubletoSingle
      subroutine pastixRhsDoubletoSingle_f08(dB, sB, info)
@@ -388,26 +397,14 @@ module pastixf_interfaces
      end subroutine pastixRhsSingleToDouble_f08
   end interface pastixRhsSingleToDouble
 
-  interface pastixRhsFinalize
-     subroutine pastixRhsFinalize_f08(pastix_data, rhs, info)
-       use :: iso_c_binding, only : c_int
-       use :: pastixf_enums, only : pastix_data_t, pastix_rhs_t
-       implicit none
-       type(pastix_data_t), intent(inout), target   :: pastix_data
-       type(pastix_rhs_t),  intent(in)              :: rhs
-       integer(kind=c_int), intent(out),   optional :: info
-     end subroutine pastixRhsFinalize_f08
-  end interface pastixRhsFinalize
-
   interface pastix_subtask_applyorder
-     subroutine pastix_subtask_applyorder_f08(pastix_data, flttype, dir, m, n, &
-          B, ldb, Bp, info)
+     subroutine pastix_subtask_applyorder_f08(pastix_data, dir, m, n, B, ldb, &
+          Bp, info)
        use :: iso_c_binding,    only : c_int, c_ptr
        use :: pastixf_bindings, only : pastixGetCptrFrom2dArray
        use :: pastixf_enums,    only : pastix_data_t, pastix_int_t, pastix_rhs_t
        implicit none
        type(pastix_data_t),        intent(inout), target   :: pastix_data
-       integer(c_int),             intent(in)              :: flttype
        integer(c_int),             intent(in)              :: dir
        integer(kind=pastix_int_t), intent(in)              :: m
        integer(kind=pastix_int_t), intent(in)              :: n

@@ -282,25 +282,23 @@ pastix_task_refine( pastix_data_t *pastix_data,
     }
 
     /* Compute P * b */
-    rc = pastixRhsInit( pastix_data, &Bp );
+    rc = pastixRhsInit( &Bp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
 
-    rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
-                                    PastixDirForward, m, nrhs, b, ldb, Bp );
+    rc = pastix_subtask_applyorder( pastix_data, PastixDirForward, m, nrhs, b, ldb, Bp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
 
     /* Compute P * x */
-    rc = pastixRhsInit( pastix_data, &Xp );
+    rc = pastixRhsInit( &Xp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
 
-    rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
-                                    PastixDirForward, m, nrhs, x, ldx, Xp );
+    rc = pastix_subtask_applyorder( pastix_data, PastixDirForward, m, nrhs, x, ldx, Xp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
@@ -312,24 +310,22 @@ pastix_task_refine( pastix_data_t *pastix_data,
     }
 
     /* Compute P * b */
-    rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
-                                    PastixDirBackward, m, nrhs, b, ldb, Bp );
+    rc = pastix_subtask_applyorder( pastix_data, PastixDirBackward, m, nrhs, b, ldb, Bp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
-    rc = pastixRhsFinalize( pastix_data, Bp );
+    rc = pastixRhsFinalize( Bp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
 
     /* Compute P * x */
-    rc = pastix_subtask_applyorder( pastix_data, bcsc->flttype,
-                                    PastixDirBackward, m, nrhs, x, ldx, Xp );
+    rc = pastix_subtask_applyorder( pastix_data, PastixDirBackward, m, nrhs, x, ldx, Xp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
 
-    rc = pastixRhsFinalize( pastix_data, Xp );
+    rc = pastixRhsFinalize( Xp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
     }
