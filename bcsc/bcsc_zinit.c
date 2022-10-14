@@ -188,7 +188,7 @@ bcsc_zstore_data( const spmatrix_t     *spm,
  *          The structure in which the sending and receiving data are stored.
  *
  *******************************************************************************/
-void
+static inline void
 bcsc_zexchange_values( bcsc_handle_comm_t *bcsc_comm )
 {
     pastix_int_t      c;

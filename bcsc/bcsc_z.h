@@ -35,6 +35,7 @@ void bcsc_zstore_data( const spmatrix_t     *spm,
                        const pastix_order_t *ord,
                        const pastix_int_t   *col2cblk,
                        bcsc_handle_comm_t   *bcsc_comm );
+
 /**
  *   @}
  * @}
@@ -122,6 +123,13 @@ void bvec_zscal_smp( pastix_data_t      *pastix_data,
 
 #if defined( PASTIX_WITH_MPI )
 int bvec_zexchange_data_rep( pastix_data_t      *pastix_data,
+                             pastix_int_t        nrhs,
+                             pastix_complex64_t *b,
+                             pastix_int_t        ldb,
+                             pastix_rhs_t        Pb );
+int bvec_zallocate_buf_dst( bvec_handle_comm_t *rhs_comm );
+int bvec_zexchange_data_dst( pastix_data_t      *pastix_data,
+                             pastix_dir_t        dir,
                              pastix_int_t        nrhs,
                              pastix_complex64_t *b,
                              pastix_int_t        ldb,
