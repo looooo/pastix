@@ -129,6 +129,7 @@ pastixRhsInit( pastix_rhs_t  *B_ptr )
     B->n         = -1;
     B->ld        = -1;
     B->b         = NULL;
+    B->cblkb     = NULL;
 
     return PASTIX_SUCCESS;
 }
@@ -331,6 +332,9 @@ pastixRhsFinalize( pastix_rhs_t B )
         }
     }
 
+    if ( B->cblkb != NULL ) {
+        free( B->cblkb );
+    }
     free( B );
     return PASTIX_SUCCESS;
 }
@@ -558,6 +562,7 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
                      pastix_diag_t  diag,
                      pastix_rhs_t   Bp )
 {
+    SolverMatrix     *solvmtx;
     sopalin_data_t    sopalin_data;
     pastix_int_t      nrhs, i, bs, ldb;
     pastix_coeftype_t flttype;
@@ -587,6 +592,16 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
 #if defined(PASTIX_WITH_MPI)
     bs = 1;
 #endif
+    solvmtx = pastix_data->solvmatr;
+
+    if ( Bp->cblkb == NULL ) {
+        pastix_int_t nbbuffers;
+
+        nbbuffers = solvmtx->faninnbr + solvmtx->recvnbr;
+        if ( nbbuffers > 0 ) {
+            Bp->cblkb = calloc( nbbuffers, sizeof(void*) );
+        }
+    }
 
     /*
      * Ensure that the scheduler is correct and is in the same
@@ -594,7 +609,7 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
      */
     pastix_check_and_correct_scheduler( pastix_data );
 
-    sopalin_data.solvmtx = pastix_data->solvmatr;
+    sopalin_data.solvmtx = solvmtx;
 
     switch (flttype) {
     case PastixComplex64:

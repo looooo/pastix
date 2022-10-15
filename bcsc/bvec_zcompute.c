@@ -1145,6 +1145,7 @@ void bcsc_zspsv( pastix_data_t      *pastix_data,
         .n         = 1,
         .ld        = pastix_data->bcsc->gN,
         .b         = b,
+        .cblkb     = NULL,
     };
     int rc;
 
@@ -1178,6 +1179,9 @@ void bcsc_zspsv( pastix_data_t      *pastix_data,
         pastix_subtask_solve( pastix_data, &rhsb );
     }
 
+    if ( rhsb.cblkb != NULL ) {
+        free( rhsb.cblkb );
+    }
     pastix_data->iparm[IPARM_VERBOSE]++;
     (void)rc;
     (void)work;
