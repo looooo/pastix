@@ -100,7 +100,7 @@ solverCheck( const SolverMatrix *solvmtx )
             assert( cblk->ownerid != solvmtx->clustnum );
 
             /* No index in the bcsctab */
-            assert( -1 == cblk->bcscnum );
+            assert( cblk->bcscnum < 0 );
 
             /* It has to be included in the destination */
             assert( cblk->fcolnum >= fcblk->fcolnum );
@@ -137,7 +137,7 @@ solverCheck( const SolverMatrix *solvmtx )
             assert( fblok->browind == -1 );
 
             if ( cblk->cblktype & CBLK_FANIN ) {
-                assert( -1 == cblk->bcscnum );
+                assert( cblk->bcscnum < 0 );
 
                 /* It has to be remote */
                 assert( cblk->ownerid != solvmtx->clustnum );
@@ -152,7 +152,7 @@ solverCheck( const SolverMatrix *solvmtx )
                 /* Check that first diagonal block belongs to ourself */
                 assert( fblok->fcblknm == fblok->lcblknm );
 
-                assert( cblk->bcscnum != -1 );
+                assert( cblk->bcscnum >= 0 );
 
                 /* It has to be local */
                 assert( (solvmtx->gcbl2loc == NULL) ||
