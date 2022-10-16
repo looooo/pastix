@@ -273,6 +273,7 @@ pqueuePop2(pastix_queue_t *q, double *key1, double*key2)
 
     if (q->used == 0) {
         pastix_atomic_unlock( &(q->lock) );
+        pastix_yield();
         return -1;
     }
 

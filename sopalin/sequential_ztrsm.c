@@ -179,7 +179,7 @@ thread_ztrsm_static( isched_thread_t *ctx, void *args )
             cblk = datacode->cblktab + t->cblknum;
 
             /* Wait */
-            do { } while( cblk->ctrbcnt );
+            do { pastix_yield(); } while( cblk->ctrbcnt );
 
             solve_cblk_ztrsmsp_backward( mode, side, uplo, trans, diag,
                                          datacode, cblk, rhsb );
@@ -212,7 +212,7 @@ thread_ztrsm_static( isched_thread_t *ctx, void *args )
                 continue;
 
             /* Wait */
-            do { } while( cblk->ctrbcnt );
+            do { pastix_yield(); } while( cblk->ctrbcnt );
 
             solve_cblk_ztrsmsp_forward( mode, side, uplo, trans, diag,
                                         datacode, cblk, rhsb );
