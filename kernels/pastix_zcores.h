@@ -276,19 +276,17 @@ void cpucblk_zmpi_progress( pastix_coefside_t   side,
 
 void cpucblk_zsend_rhs_forward( const SolverMatrix *solvmtx,
                                 SolverCblk         *cblk,
-                                pastix_complex64_t *b );
+                                pastix_rhs_t        b );
 void cpucblk_zrecv_rhs_forward( const SolverMatrix *solvmtx,
                                 SolverCblk         *cblk,
                                 pastix_complex64_t *work,
-                                pastix_int_t        nrhs,
-                                pastix_complex64_t *b,
-                                pastix_int_t        ldb );
+                                pastix_rhs_t        b );
 void cpucblk_zsend_rhs_backward( const SolverMatrix *solvmtx,
                                  SolverCblk         *cblk,
-                                 pastix_complex64_t *b );
+                                 pastix_rhs_t        b );
 void cpucblk_zrecv_rhs_backward( const SolverMatrix *solvmtx,
                                  SolverCblk         *cblk,
-                                 pastix_complex64_t *b );
+                                 pastix_rhs_t        b );
 
 /**
  *    @}
@@ -331,11 +329,11 @@ void solve_blok_zgemm( pastix_side_t side, pastix_trans_t trans,
 void solve_cblk_ztrsmsp_forward( pastix_solv_mode_t mode, pastix_side_t side, pastix_uplo_t uplo,
                                  pastix_trans_t trans, pastix_diag_t diag,
                                  const SolverMatrix *datacode, const SolverCblk *cblk,
-                                 int nrhs, pastix_complex64_t *b, int ldb );
+                                 pastix_rhs_t b );
 void solve_cblk_ztrsmsp_backward( pastix_solv_mode_t mode, pastix_side_t side, pastix_uplo_t uplo,
                                   pastix_trans_t trans, pastix_diag_t diag,
                                   const SolverMatrix *datacode, SolverCblk *cblk,
-                                  int nrhs, pastix_complex64_t *b, int ldb );
+                                  pastix_rhs_t b );
 
 void solve_cblk_zdiag( const SolverCblk   *cblk,
                        int                 nrhs,

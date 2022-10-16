@@ -108,7 +108,7 @@ solve_blok_ztrsm( pastix_side_t       side,
  * @brief Apply a solve gemm update related to a single block of the matrix A.
  *
  *******************************************************************************
- * 
+ *
  * @param[in] side
  *          Specify whether the blok parameter belongs to cblk (PastixLeft), or
  *          to fcbk (PastixRight).
@@ -309,14 +309,9 @@ solve_blok_zgemm( pastix_side_t             side,
  *          must be the coeftab of this column block.
  *          Next column blok must be accessible through cblk[1].
  *
- * @param[in] nrhs
- *          The number of right hand side.
- *
- * @param[inout] b
- *          The pointer to vectors of the right hand side.
- *
- * @param[in] ldb
- *          The leading dimension of b.
+ * @param[inout] rhsb
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
  *
  *******************************************************************************/
 void
@@ -327,9 +322,7 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
                             pastix_diag_t       diag,
                             const SolverMatrix *datacode,
                             const SolverCblk   *cblk,
-                            int                 nrhs,
-                            pastix_complex64_t *b,
-                            int                 ldb )
+                            pastix_rhs_t        rhsb )
 {
     SolverCblk       *fcbk;
     const SolverBlok *blok;
@@ -338,6 +331,8 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
     const void               *dataA = NULL;
     const pastix_lrblock_t   *lrA;
     const pastix_complex64_t *A;
+    pastix_complex64_t       *B, *C;
+    pastix_int_t              ldb, ldc;
 
     if ( (side == PastixRight) && (uplo == PastixUpper) && (trans == PastixNoTrans) ) {
         /*  We store U^t, so we swap uplo and trans */
@@ -380,14 +375,15 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
         return;
     }
 
-    /* In sequential */
-    assert( cblk->fcolnum == cblk->lcolidx );
+    B   = rhsb->b;
+    B   = B + cblk->lcolidx;
+    ldb = rhsb->ld;
 
     /* Solve the diagonal block */
     solve_blok_ztrsm( side, PastixLower,
-                      tA, diag, cblk, nrhs,
+                      tA, diag, cblk, rhsb->n,
                       cblk_getdata( cblk, cs ),
-                      b + cblk->lcolidx, ldb );
+                      B, ldb );
 
     /* Apply the update */
     for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
@@ -396,6 +392,7 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
         if ( (fcbk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeLocal) ) {
             return;
         }
+        assert( !(fcbk->cblktype & CBLK_RECV) );
 
         /*
          * Make sure we get the correct pointer to the lrA, or to the right position in [lu]coeftab
@@ -412,11 +409,26 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
             dataA = A;
         }
 
-        solve_blok_zgemm( PastixLeft, tA, nrhs,
+        /*
+         * Make sure we get the correct pointer for the C matrix.
+         */
+        if ( fcbk->cblktype & CBLK_FANIN ) {
+            C   = rhsb->cblkb[ - fcbk->bcscnum - 1 ];
+            ldc = cblk_colnbr( fcbk );
+            if ( C == NULL ) {
+                rhsb->cblkb[ - fcbk->bcscnum - 1 ] = calloc( ldc * rhsb->n, sizeof( pastix_complex64_t ) );
+                C = rhsb->cblkb[ - fcbk->bcscnum - 1 ];
+            }
+        }
+        else {
+            C   = rhsb->b;
+            C   = C + fcbk->lcolidx;
+            ldc = rhsb->ld;
+        }
+
+        solve_blok_zgemm( PastixLeft, tA, rhsb->n,
                           cblk, blok, fcbk,
-                          dataA,
-                          b + cblk->lcolidx, ldb,
-                          b + fcbk->lcolidx, ldb );
+                          dataA, B, ldb, C, ldc );
         pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
     }
 }
@@ -457,14 +469,9 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
  *          must be the coeftab of this column block.
  *          Next column blok must be accessible through cblk[1].
  *
- * @param[in] nrhs
- *          The number of right hand side.
- *
- * @param[inout] b
- *          The pointer to vectors of the right hand side
- *
- * @param[in] ldb
- *          The leading dimension of b
+ * @param[inout] rhsb
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
  *
  *******************************************************************************/
 void
@@ -475,9 +482,7 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
                              pastix_diag_t       diag,
                              const SolverMatrix *datacode,
                              SolverCblk         *cblk,
-                             int                 nrhs,
-                             pastix_complex64_t *b,
-                             int                 ldb )
+                             pastix_rhs_t        rhsb )
 {
     SolverCblk       *fcbk;
     const SolverBlok *blok;
@@ -487,6 +492,8 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
     const void               *dataA = NULL;
     const pastix_lrblock_t   *lrA;
     const pastix_complex64_t *A;
+    pastix_complex64_t       *B, *C;
+    pastix_int_t              ldb, ldc;
 
     /*
      *  Left / Upper / NoTrans (Backward)
@@ -543,14 +550,28 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
         return;
     }
 
+    /*
+     * Make sure we get the correct pointer for the B matrix.
+     */
+    assert( !(cblk->cblktype & CBLK_RECV) );
+    if ( cblk->cblktype & CBLK_FANIN ) {
+        B   = rhsb->cblkb[ - cblk->bcscnum - 1 ];
+        ldb = cblk_colnbr( cblk );
+    }
+    else {
+        B   = rhsb->b;
+        B   = B + cblk->lcolidx;
+        ldb = rhsb->ld;
+    }
+
     if ( !(cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) &&
          (!(cblk->cblktype & CBLK_IN_SCHUR) || (mode == PastixSolvModeSchur)) )
     {
         /* Solve the diagonal block */
         solve_blok_ztrsm( side, PastixLower, tA, diag,
-                          cblk, nrhs,
+                          cblk, rhsb->n,
                           cblk_getdata( cblk, cs ),
-                          b + cblk->lcolidx, ldb );
+                          B, ldb );
 
     }
 
@@ -563,6 +584,7 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
            || (fcbk->cblktype & CBLK_RECV) ) {
             continue;
         }
+        assert( !(fcbk->cblktype & CBLK_FANIN) );
 
         /*
          * Make sure we get the correct pointer to the lrA, or to the right position in [lu]coeftab
@@ -579,12 +601,21 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
             dataA = A;
         }
 
-        solve_blok_zgemm( PastixRight, tA, nrhs,
+        /*
+         * Make sure we get the correct pointer for the C matrix.
+         */
+        C   = rhsb->b;
+        C   = C + fcbk->lcolidx;
+        ldc = rhsb->ld;
+
+        solve_blok_zgemm( PastixRight, tA, rhsb->n,
                           cblk, blok, fcbk,
-                          dataA,
-                          b + cblk->lcolidx, ldb,
-                          b + fcbk->lcolidx, ldb );
+                          dataA, B, ldb, C, ldc );
         pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
+    }
+
+    if ( cblk->cblktype & CBLK_FANIN ) {
+        memFree_null( rhsb->cblkb[ - cblk->bcscnum - 1 ] );
     }
 }
 

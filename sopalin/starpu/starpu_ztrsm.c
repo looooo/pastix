@@ -363,14 +363,9 @@ starpu_ztrsm_sp1dplus( pastix_data_t      *pastix_data,
  *          The data that provide the SolverMatrix structure from PaStiX, and
  *          descriptor of b (providing nrhs, b and ldb).
  *
- * @param[in] nrhs
- *          The number of right hand side.
- *
- * @param[inout] b
- *          The pointer to vectors of the right hand side.
- *
- * @param[in] ldb
- *          The leading dimension of b.
+ * @param[inout] rhsb
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
  *
  *******************************************************************************/
 void
@@ -380,9 +375,7 @@ starpu_ztrsm( pastix_data_t      *pastix_data,
               int                 trans,
               int                 diag,
               sopalin_data_t     *sopalin_data,
-              int                 nrhs,
-              pastix_complex64_t *b,
-              int                 ldb )
+              pastix_rhs_t        rhsb )
 {
     starpu_sparse_matrix_desc_t *sdesc = sopalin_data->solvmtx->starpu_desc;
     starpu_dense_matrix_desc_t  *ddesc;
@@ -407,7 +400,7 @@ starpu_ztrsm( pastix_data_t      *pastix_data,
 
     /* Create the dense matrix descriptor */
     starpu_dense_matrix_init( sopalin_data->solvmtx,
-                              nrhs, (char*)b, ldb,
+                              rhsb->n, rhsb->b, rhsb->ld,
                               sizeof(pastix_complex64_t),
                               pastix_data->inter_node_procnbr,
                               pastix_data->inter_node_procnum );
