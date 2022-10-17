@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/vscode-remote/devcontainer.json or this file's README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.128.0/containers/docker-existing-dockerfile
 {
-	"name": "tthor/distrib",
+	"name": "registry.gitlab.inria.fr/solverstack/docker/distrib",
 	// For MacOS : update the Remote > Containers: Workspace Mount Consistency property in settings to delegated or consistent (instead of cached)
 	// https://code.visualstudio.com/docs/remote/containers-advanced#_update-the-mount-consistency-to-delegated-for-macos
 
@@ -9,8 +9,9 @@
 	"context": "..",
 
 	// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
-	"image" : "tthor/distrib",
+	"image" : "registry.gitlab.inria.fr/solverstack/docker/distrib",
 	// "dockerFile": "Dockerfile",
+	// See https://gitlab.inria.fr/solverstack/docker
 
 	// Set *default* container specific settings.json values on container create.
 	// Remove your local .vscode/settings.json
@@ -64,7 +65,7 @@
 		"shardulm94.trailing-spaces",
 		"vscode-icons-team.vscode-icons",
 		// Emacs bindings
-		"hiro-sun.vscode-emacs"
+		// "hiro-sun.vscode-emacs"
 	]
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
