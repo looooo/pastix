@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/vscode-remote/devcontainer.json or this file's README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.128.0/containers/docker-existing-dockerfile
 {
-	"name": "hpclib/hiepacs",
+	"name": "registry.gitlab.inria.fr/solverstack/docker/distrib",
 	// For MacOS : update the Remote > Containers: Workspace Mount Consistency property in settings to delegated or consistent (instead of cached)
 	// https://code.visualstudio.com/docs/remote/containers-advanced#_update-the-mount-consistency-to-delegated-for-macos
 
@@ -9,8 +9,9 @@
 	"context": "..",
 
 	// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
-	"image" : "hpclib/hiepacs",
+	"image" : "registry.gitlab.inria.fr/solverstack/docker/distrib",
 	// "dockerFile": "Dockerfile",
+	// See https://gitlab.inria.fr/solverstack/docker
 
 	// Set *default* container specific settings.json values on container create.
 	// Remove your local .vscode/settings.json
@@ -46,34 +47,25 @@
 			"PYTHON_PATH": "${env.PYTHON_PATH}:${workspaceRoot}/build-docker/wrappers/python:${workspaceRoot}/build-docker/spm/wrappers/python"
 		},
 		"cmake.configureOnOpen": false,
-		"cmake.configureOnEdit": false,
-		// "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-		// "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
+		"cmake.configureOnEdit": false
 	},
 
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
-		"ms-vscode.cpptools",
-		"gocarlos.cmake-tools",
-		// "ms-vscode.cmake-tools",
-		"twxs.cmake",
-		"mitaki28.vscode-clang",
+		"ms-vscode.cpptools-extension-pack",
+		"ms-vscode.makefile-tools",
 		"ms-python.python",
+		"ms-python.vscode-pylance",
 		"julialang.language-julia",
-		"krvajalm.linter-gfortran",
-		"bbenoist.doxygen",
-		"cschlosser.doxdocgen",
-		"VisualStudioExptTeam.vscodeintellicode",
+		"fortran-lang.linter-gfortran",
 		"mhutchie.git-graph",
-		"donjayamanne.githistory",
 		"eamodio.gitlens",
 		"yzhang.markdown-all-in-one",
 		"redhat.vscode-yaml",
-		"hiro-sun.vscode-emacs",
-		"coenraads.bracket-pair-colorizer",
 		"shardulm94.trailing-spaces",
 		"vscode-icons-team.vscode-icons",
-		"shakram02.bash-beautify"
+		// Emacs bindings
+		// "hiro-sun.vscode-emacs"
 	]
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
