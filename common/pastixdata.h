@@ -139,12 +139,13 @@ struct pastix_data_s {
  *
  */
 struct pastix_rhs_s {
-    int8_t            allocated;
-    pastix_coeftype_t flttype;
-    pastix_int_t      m;
-    pastix_int_t      n;
-    pastix_int_t      ld;
-    void             *b;
+    int8_t            allocated; /**< Flag to know if the vector b is allocated internally or not   */
+    pastix_coeftype_t flttype;   /**< Floating type of the vector                                   */
+    pastix_int_t      m;         /**< Local number of rows in the right hand sides                  */
+    pastix_int_t      n;         /**< Number of columns in the right hand sides                     */
+    pastix_int_t      ld;        /**< Leading dimension of the right hand side matrix               */
+    void             *b;         /**< Right hand sides of size ldb-by-n                             */
+    void            **cblkb;     /**< Array to store the temporary buffers associated to fanin/recv */
 };
 
 #endif /* _pastixdata_h_ */

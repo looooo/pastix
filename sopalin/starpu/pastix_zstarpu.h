@@ -125,8 +125,6 @@ void starpu_ztrsm ( pastix_data_t      *pastix_data,
                     int                 trans,
                     int                 diag,
                     sopalin_data_t     *sopalin_data,
-                    int                 nrhs,
-                    pastix_complex64_t *b,
-                    int                 ldb );
+                    pastix_rhs_t        b );
 
 #endif /* _pastix_zstarpu_h_ */

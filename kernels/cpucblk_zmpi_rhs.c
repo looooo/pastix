@@ -17,6 +17,7 @@
  *
  **/
 #include "common/common.h"
+#include <lapacke.h>
 #include "blend/solver.h"
 #include "pastix_zcores.h"
 #include "pastix_zlrcores.h"
@@ -34,21 +35,26 @@
  * @param[in] cblk
  *          The cblk which defines the part to sent.
  *
- * @param[in] b
- *          The rhs that will be sent to the cblk->ownerid
+ * @param[in] rhsb
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
  *
  *******************************************************************************/
 void
 cpucblk_zsend_rhs_forward( const SolverMatrix *solvmtx,
                            SolverCblk         *cblk,
-                           pastix_complex64_t *b )
+                           pastix_rhs_t        rhsb )
 {
 #if defined(PASTIX_WITH_MPI)
-    pastix_int_t colnbr = cblk_colnbr(cblk);
-    int rc;
+    pastix_complex64_t *b;
+    pastix_int_t        colnbr = cblk_colnbr(cblk);
+    pastix_int_t        size   = colnbr * rhsb->n;
+    pastix_int_t        idx    = - cblk->bcscnum - 1;
+    int                 rc;
 
     assert( colnbr <= solvmtx->colmax );
     assert( cblk->cblktype & CBLK_FANIN );
+    assert( rhsb->cblkb[ idx ] != NULL );
 
 #if defined (PASTIX_DEBUG_MPI)
     fprintf( stderr, "[%2d] RHS Fwd: Send cblk %ld to %2d at index %ld of size %ld\n",
@@ -56,15 +62,20 @@ cpucblk_zsend_rhs_forward( const SolverMatrix *solvmtx,
              (long)cblk->lcolidx, (long)colnbr );
 #endif
 
-    rc = MPI_Send( b + cblk->lcolidx, colnbr, PASTIX_MPI_COMPLEX64,
+    b = (pastix_complex64_t*)(rhsb->cblkb[ idx ]);
+    assert( b != NULL );
+
+    rc = MPI_Send( b, size, PASTIX_MPI_COMPLEX64,
                    cblk->ownerid, cblk->gcblknum, solvmtx->solv_comm );
     assert( rc == MPI_SUCCESS );
+
+    memFree_null( rhsb->cblkb[ idx ] );
 
     (void)rc;
 #else
     (void)solvmtx;
     (void)cblk;
-    (void)b;
+    (void)rhsb;
 #endif
 }
 
@@ -81,21 +92,25 @@ cpucblk_zsend_rhs_forward( const SolverMatrix *solvmtx,
  * @param[in] cblk
  *          The cblk which defines the part to sent.
  *
- * @param[in] b
- *          The rhs that will be sent to the cblk->ownerid
+ * @param[in] rhsb
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
  *
  *******************************************************************************/
 void
 cpucblk_zsend_rhs_backward( const SolverMatrix *solvmtx,
                             SolverCblk         *cblk,
-                            pastix_complex64_t *b )
+                            pastix_rhs_t        rhsb )
 {
 #if defined(PASTIX_WITH_MPI)
-    pastix_int_t colnbr = cblk_colnbr(cblk);
+    pastix_complex64_t *b   = rhsb->b;
+    pastix_int_t        colnbr = cblk_colnbr(cblk);
+    pastix_int_t        idx  = - cblk->bcscnum - 1;
     int rc;
 
     assert( colnbr <= solvmtx->colmax );
     assert( cblk->cblktype & CBLK_RECV );
+    assert( rhsb->cblkb[ idx ] == NULL );
 
 #if defined (PASTIX_DEBUG_MPI)
     fprintf( stderr, "[%2d] RHS Bwd: Send cblk %ld to %2d at index %ld of size %ld\n",
@@ -103,15 +118,26 @@ cpucblk_zsend_rhs_backward( const SolverMatrix *solvmtx,
              (long)cblk->lcolidx, (long)colnbr );
 #endif
 
-    rc = MPI_Send( b + cblk->lcolidx, colnbr, PASTIX_MPI_COMPLEX64,
-                   cblk->ownerid, cblk->gcblknum, solvmtx->solv_comm );
+    b += cblk->lcolidx;
+    if ( rhsb->n > 1 ) {
+        rhsb->cblkb[ idx ] = malloc( colnbr * rhsb->n * sizeof(pastix_complex64_t) );
+        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', colnbr, rhsb->n, b, rhsb->ld, rhsb->cblkb[ idx ], colnbr );
+        b = rhsb->cblkb[ idx ];
+    }
 
+    rc = MPI_Send( b, colnbr * rhsb->n, PASTIX_MPI_COMPLEX64,
+                   cblk->ownerid, cblk->gcblknum, solvmtx->solv_comm );
     assert( rc == MPI_SUCCESS );
+
+    if ( rhsb->n > 1 ) {
+        memFree_null( rhsb->cblkb[ idx ] );
+    }
+
     (void)rc;
 #else
     (void)solvmtx;
     (void)cblk;
-    (void)b;
+    (void)rhsb;
 #endif
 }
 
@@ -128,18 +154,20 @@ cpucblk_zsend_rhs_backward( const SolverMatrix *solvmtx,
  * @param[in] cblk
  *          The cblk which may define the part to sent.
  *
- * @param[inout] b
- *          The rhs that will be receive from the cblk->ownerid.
+ * @param[inout] rhsb
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
  *
  *******************************************************************************/
 void
 cpucblk_zrecv_rhs_backward( const SolverMatrix *solvmtx,
                             SolverCblk         *cblk,
-                            pastix_complex64_t *b )
+                            pastix_rhs_t        rhsb )
 {
 #if defined(PASTIX_WITH_MPI)
     MPI_Status   status;
     pastix_int_t colnbr = cblk_colnbr(cblk);
+    pastix_int_t idx  = - cblk->bcscnum - 1;
     int rc;
 
     assert( colnbr <= solvmtx->colmax );
@@ -151,7 +179,10 @@ cpucblk_zrecv_rhs_backward( const SolverMatrix *solvmtx,
              (long)cblk->lcolidx, (long)colnbr );
 #endif
 
-    rc = MPI_Recv( b + cblk->lcolidx, colnbr, PASTIX_MPI_COMPLEX64,
+    assert( rhsb->cblkb[ idx ] == NULL );
+    rhsb->cblkb[ idx ] = malloc( colnbr * rhsb->n * sizeof(pastix_complex64_t) );
+
+    rc = MPI_Recv( rhsb->cblkb[ idx ], colnbr * rhsb->n, PASTIX_MPI_COMPLEX64,
                    cblk->ownerid, cblk->gcblknum, solvmtx->solv_comm, &status );
     assert( rc == MPI_SUCCESS );
 
@@ -164,7 +195,7 @@ cpucblk_zrecv_rhs_backward( const SolverMatrix *solvmtx,
 #else
     (void)solvmtx;
     (void)cblk;
-    (void)b;
+    (void)rhsb;
 #endif
 }
 
@@ -184,24 +215,21 @@ cpucblk_zrecv_rhs_backward( const SolverMatrix *solvmtx,
  * @param[inout] work
  *          The temporary buffer to receive the remote data
  *
- * @param[inout] b
- *          The rhs that will be updated by the reception.
- *
- * @param[in] ldb
- *          The leading dimension of the matrix b.
+ * @param[inout] rhsb
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
  *
  *******************************************************************************/
 void
 cpucblk_zrecv_rhs_forward( const SolverMatrix *solvmtx,
                            SolverCblk         *cblk,
                            pastix_complex64_t *work,
-                           pastix_int_t        nrhs,
-                           pastix_complex64_t *b,
-                           pastix_int_t        ldb )
+                           pastix_rhs_t        rhsb )
 {
 #if defined(PASTIX_WITH_MPI)
-    MPI_Status   status;
-    pastix_int_t colnbr = cblk_colnbr(cblk);
+    pastix_complex64_t *b      = rhsb->b;
+    pastix_int_t        colnbr = cblk_colnbr(cblk);
+    MPI_Status          status;
     int rc;
 
     assert( colnbr <= solvmtx->colmax );
@@ -213,7 +241,7 @@ cpucblk_zrecv_rhs_forward( const SolverMatrix *solvmtx,
              (long)cblk->lcolidx, (long)colnbr );
 #endif
 
-    rc = MPI_Recv( work, colnbr, PASTIX_MPI_COMPLEX64,
+    rc = MPI_Recv( work, colnbr * rhsb->n, PASTIX_MPI_COMPLEX64,
                    cblk->ownerid, cblk->gcblknum, solvmtx->solv_comm, &status );
     assert( rc == MPI_SUCCESS );
 
@@ -222,17 +250,16 @@ cpucblk_zrecv_rhs_forward( const SolverMatrix *solvmtx,
                      solvmtx->clustnum, (long)cblk->gcblknum, status.MPI_SOURCE );
 #endif
 
-    core_zgeadd( PastixNoTrans, colnbr, nrhs,
-                 1., work, ldb,
-                 1., b + cblk->lcolidx, ldb );
+    b += cblk->lcolidx;
+    core_zgeadd( PastixNoTrans, colnbr, rhsb->n,
+                 1., work, colnbr,
+                 1., b,    rhsb->ld );
 
     (void)rc;
 #else
     (void)solvmtx;
     (void)cblk;
     (void)work;
-    (void)nrhs;
-    (void)b;
-    (void)ldb;
+    (void)rhsb;
 #endif
 }

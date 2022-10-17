@@ -201,6 +201,8 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                     recvcnt++;
                     solvmtx->recvcnt++;
                     cblknum++;
+
+                    solvcblk->bcscnum = -( solvmtx->fanincnt + solvmtx->recvcnt );
                     solvcblk++;
 
                     {
@@ -254,6 +256,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                 /* Set to fan-in */
                 solvcblk->cblktype |= CBLK_FANIN;
                 solvmtx->fanincnt++;
+                solvcblk->bcscnum = -( solvmtx->fanincnt + solvmtx->recvcnt );
 
                 nbcols = cblk_colnbr( solvcblk );
 

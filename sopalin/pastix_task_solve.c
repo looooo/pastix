@@ -129,6 +129,7 @@ pastixRhsInit( pastix_rhs_t  *B_ptr )
     B->n         = -1;
     B->ld        = -1;
     B->b         = NULL;
+    B->cblkb     = NULL;
 
     return PASTIX_SUCCESS;
 }
@@ -331,6 +332,9 @@ pastixRhsFinalize( pastix_rhs_t B )
         }
     }
 
+    if ( B->cblkb != NULL ) {
+        free( B->cblkb );
+    }
     free( B );
     return PASTIX_SUCCESS;
 }
@@ -558,10 +562,9 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
                      pastix_diag_t  diag,
                      pastix_rhs_t   Bp )
 {
+    SolverMatrix     *solvmtx;
     sopalin_data_t    sopalin_data;
-    pastix_int_t      nrhs, i, bs, ldb;
     pastix_coeftype_t flttype;
-    void             *b;
 
     /*
      * Check parameters
@@ -580,13 +583,16 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
     }
 
     flttype = Bp->flttype;
-    nrhs    = Bp->n;
-    b       = Bp->b;
-    ldb     = Bp->ld;
-    bs      = nrhs;
-#if defined(PASTIX_WITH_MPI)
-    bs = 1;
-#endif
+    solvmtx = pastix_data->solvmatr;
+
+    if ( Bp->cblkb == NULL ) {
+        pastix_int_t nbbuffers;
+
+        nbbuffers = solvmtx->faninnbr + solvmtx->recvnbr;
+        if ( nbbuffers > 0 ) {
+            Bp->cblkb = calloc( nbbuffers, sizeof(void*) );
+        }
+    }
 
     /*
      * Ensure that the scheduler is correct and is in the same
@@ -594,45 +600,33 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
      */
     pastix_check_and_correct_scheduler( pastix_data );
 
-    sopalin_data.solvmtx = pastix_data->solvmatr;
+    sopalin_data.solvmtx = solvmtx;
 
     switch (flttype) {
     case PastixComplex64:
     {
-        pastix_complex64_t *lb = b;
-        for( i = 0; i < nrhs; i+=bs, lb += ldb ) {
-            sopalin_ztrsm( pastix_data, side, uplo, trans, diag,
-                           &sopalin_data, bs, lb, ldb );
-        }
+        sopalin_ztrsm( pastix_data, side, uplo, trans, diag,
+                       &sopalin_data, Bp );
     }
     break;
     case PastixComplex32:
     {
-        pastix_complex32_t *lb = b;
-        for( i = 0; i < nrhs; i+=bs, lb += ldb ) {
-            sopalin_ctrsm( pastix_data, side, uplo, trans, diag,
-                           &sopalin_data, bs, lb, ldb );
-        }
+        sopalin_ctrsm( pastix_data, side, uplo, trans, diag,
+                       &sopalin_data, Bp );
     }
     break;
     case PastixDouble:
     {
-        double *lb = b;
         trans = (trans == PastixConjTrans) ? PastixTrans : trans;
-        for( i = 0; i < nrhs; i+=bs, lb += ldb ) {
-            sopalin_dtrsm( pastix_data, side, uplo, trans, diag,
-                           &sopalin_data, bs, lb, ldb );
-        }
+        sopalin_dtrsm( pastix_data, side, uplo, trans, diag,
+                       &sopalin_data, Bp );
     }
     break;
     case PastixFloat:
     {
-        float *lb = b;
         trans = (trans == PastixConjTrans) ? PastixTrans : trans;
-        for( i = 0; i < nrhs; i+=bs, lb += ldb ) {
-            sopalin_strsm( pastix_data, side, uplo, trans, diag,
-                           &sopalin_data, bs, lb, ldb );
-        }
+        sopalin_strsm( pastix_data, side, uplo, trans, diag,
+                       &sopalin_data, Bp );
     }
     break;
     default:
