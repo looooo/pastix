@@ -106,7 +106,7 @@ class solver(object):
         if full_matrix and (self.factotype != factotype.LU):
             self.S += la.tril(self.S, -1).T
 
-    def schur_forward(self, b, solv_mode=solv_mode.Interface):
+    def schur_forward(self, x, solv_mode=solv_mode.Interface):
         """
         Solves the forward step of the Schur problem:
                A x = b with A = L S L^h
@@ -114,8 +114,6 @@ class solver(object):
         This step solves  L f = b with f = S L^h x
         """
         self.iparm[iparm.schur_solv_mode] = solv_mode
-
-        x = b.copy()
 
         # 1- Apply P to b
         xp = rhsInit()
@@ -135,12 +133,22 @@ class solver(object):
         if self.factotype in (factotype.LDLT, factotype.LDLH):
             subtask_diag( self.pastix_data, xp )
 
-        self.x = x
+        self.x  = x
         self.xp = xp
-        nschur = len(self.schur_list)
-        return x[-nschur:]
 
-    def schur_backward(self, y, b, solv_mode=solv_mode.Interface, refine=True):
+        if x.ndim == 1:
+            nrhs = 1
+        else:
+            nrhs = x.shape[1]
+
+        nschur = len(self.schur_list)
+        schurx = np.array( np.zeros( (nschur, nrhs) ), order='F', dtype=self.A.dtype )
+
+        rhsSchurGet( self.pastix_data, xp, schurx )
+
+        return schurx
+
+    def schur_backward(self, y, solv_mode=solv_mode.Interface, refine=True):
         """
         Solves the backward step of the Schur problem:
                A x = b with A = L S L^h
@@ -149,10 +157,11 @@ class solver(object):
         """
         self.iparm[iparm.schur_solv_mode] = solv_mode
 
-        nschur = len(self.schur_list)
-        x = self.x
+        x  = self.x
         xp = self.xp
-        x[-nschur:] = y
+
+        rhsSchurSet( self.pastix_data, y, xp )
+
         # 4- Backward solve on the non Schur complement part of the system
         if self.factotype == factotype.LDLH:
             subtask_trsm( self.pastix_data, side.Left,

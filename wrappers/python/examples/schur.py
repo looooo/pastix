@@ -78,6 +78,8 @@ pastix.getSchur( pastix_data, S )
 if factotype != pastix.factotype.LU:
     S += la.tril(S, -1).T
 
+schur_x = np.array( np.zeros( nschur ), order='F', dtype=spmA.dtype )
+
 # 1- Apply P to b
 Px = pastix.rhsInit()
 pastix.subtask_applyorder( pastix_data, pastix.dir.Forward, x, Px )
@@ -86,8 +88,12 @@ if factotype == pastix.factotype.LU:
     # 2- Forward solve on the non Schur complement part of the system
     pastix.subtask_trsm( pastix_data, pastix.side.Left, pastix.uplo.Lower, pastix.trans.NoTrans, pastix.diag.Unit, Px )
 
+    pastix.rhsSchurGet( pastix_data, Px, schur_x )
+
     # 3- Solve the Schur complement part
-    x[-nschur:] = la.solve(S, x[-nschur:], sym_pos=False)
+    schur_x = la.solve(S, schur_x, sym_pos=False)
+
+    pastix.rhsSchurSet( pastix_data, schur_x, Px )
 
     # 4- Backward solve on the non Schur complement part of the system
     pastix.subtask_trsm( pastix_data, pastix.side.Left, pastix.uplo.Upper, pastix.trans.NoTrans, pastix.diag.NonUnit, Px )
@@ -96,8 +102,12 @@ else:
     # 2- Forward solve on the non Schur complement part of the system
     pastix.subtask_trsm( pastix_data, pastix.side.Left, pastix.uplo.Lower, pastix.trans.NoTrans, pastix.diag.NonUnit, Px )
 
+    pastix.rhsSchurGet( pastix_data, Px, schur_x )
+
     # 3- Solve the Schur complement part
-    x[-nschur:] = la.solve(S, x[-nschur:], sym_pos=True, lower=True)
+    schur_x = la.solve(S, schur_x, sym_pos=True, lower=True)
+
+    pastix.rhsSchurSet( pastix_data, schur_x, Px )
 
     # 4- Backward solve on the non Schur complement part of the system
     pastix.subtask_trsm( pastix_data, pastix.side.Left, pastix.uplo.Lower, pastix.trans.ConjTrans, pastix.diag.NonUnit, Px )

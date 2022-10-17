@@ -10,7 +10,7 @@
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2022-10-11
+!> @date 2022-10-17
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -499,6 +499,38 @@ module pastixf_interfaces
        integer(kind=c_int),        intent(out),   optional :: info
      end subroutine pastixGetSchur_f08
   end interface pastixGetSchur
+
+  interface pastixRhsSchurGet
+     subroutine pastixRhsSchurGet_f08(pastix_data, m, n, rhsB, B, ldb, info)
+       use :: iso_c_binding,    only : c_int, c_ptr
+       use :: pastixf_bindings, only : pastixGetCptrFrom2dArray
+       use :: pastixf_enums,    only : pastix_data_t, pastix_int_t, pastix_rhs_t
+       implicit none
+       type(pastix_data_t),        intent(in),    target   :: pastix_data
+       integer(kind=pastix_int_t), intent(in)              :: m
+       integer(kind=pastix_int_t), intent(in)              :: n
+       type(pastix_rhs_t),         intent(in)              :: rhsB
+       class(*),                   intent(inout), target   :: B(:,:)
+       integer(kind=pastix_int_t), intent(in)              :: ldb
+       integer(kind=c_int),        intent(out),   optional :: info
+     end subroutine pastixRhsSchurGet_f08
+  end interface pastixRhsSchurGet
+
+  interface pastixRhsSchurSet
+     subroutine pastixRhsSchurSet_f08(pastix_data, m, n, B, ldb, rhsB, info)
+       use :: iso_c_binding,    only : c_int, c_ptr
+       use :: pastixf_bindings, only : pastixGetCptrFrom2dArray
+       use :: pastixf_enums,    only : pastix_data_t, pastix_int_t, pastix_rhs_t
+       implicit none
+       type(pastix_data_t),        intent(in),    target   :: pastix_data
+       integer(kind=pastix_int_t), intent(in)              :: m
+       integer(kind=pastix_int_t), intent(in)              :: n
+       class(*),                   intent(inout), target   :: B(:,:)
+       integer(kind=pastix_int_t), intent(in)              :: ldb
+       type(pastix_rhs_t),         intent(in)              :: rhsB
+       integer(kind=c_int),        intent(out),   optional :: info
+     end subroutine pastixRhsSchurSet_f08
+  end interface pastixRhsSchurSet
 
   interface pastixExpand
      subroutine pastixExpand_f08(pastix_data, spm)

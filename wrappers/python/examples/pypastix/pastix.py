@@ -102,7 +102,7 @@ def subtask_trsm( pastix_data, side, uplo, trans, diag, b ):
     pypastix_pastix_subtask_trsm( pastix_data, side, uplo, trans, diag, b )
 
 def subtask_diag( pastix_data, b ):
-    pypastix_pastix_subtask_diag( pastix_data, nrhs, b )
+    pypastix_pastix_subtask_diag( pastix_data, b )
 
 #
 # Schur complement manipulation routines.
@@ -117,3 +117,24 @@ def getSchur( pastix_data, S ):
     pypastix_pastixGetSchur( pastix_data,
                              S.ctypes.data_as(c_void_p),
                              S.shape[0] )
+
+def rhsSchurGet( pastix_data, rhsB, B ):
+    m = B.shape[0]
+    if B.ndim == 1:
+        n = 1
+    else:
+        n = B.shape[1]
+    ldb = m
+    pypastix_pastixRhsSchurGet( pastix_data, m, n, rhsB,
+                                B.ctypes.data_as(c_void_p), ldb )
+
+def rhsSchurSet( pastix_data, B, rhsB ):
+    m = B.shape[0]
+    if B.ndim == 1:
+        n = 1
+    else:
+        n = B.shape[1]
+    ldb = m
+    pypastix_pastixRhsSchurSet( pastix_data, m, n,
+                                B.ctypes.data_as(c_void_p), ldb, rhsB )
+

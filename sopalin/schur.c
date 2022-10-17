@@ -19,6 +19,7 @@
  **/
 #include "common.h"
 #include <spm.h>
+#include <lapacke.h>
 #include "blend/solver.h"
 #include "sopalin/coeftab_z.h"
 #include "sopalin/coeftab_c.h"
@@ -142,6 +143,206 @@ pastixGetSchur( const pastix_data_t *pastix_data,
 }
 
 /**
+ *******************************************************************************
+ *
+ * @ingroup pastix_solve
+ *
+ * @brief Get the vector in an RHS data structure.
+ *
+ *******************************************************************************
+ *
+ * @param[in] rhsB
+ *          The pastix_rhs_t data structure used to solve the system.
+ *
+ * @param[in] m
+ *          The number of rows of the vector b, must be equal to the number of
+ *          unknowns in the Schur complement.
+ *
+ * @param[in] n
+ *          The number of columns of the vector b.
+ *
+ * @param[inout] b
+ *          On entry, a vector of size ldb-by-n.
+ *          On exit, the m-by-n leading part contains the right hand side
+ *          related to the Schur part.
+ *
+ * @param[in] ldb
+ *          The leading dimension of the vector b.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *
+ *******************************************************************************/
+int
+pastixRhsSchurGet( const pastix_data_t *pastix_data,
+                   pastix_int_t         m,
+                   pastix_int_t         n,
+                   pastix_rhs_t         rhsB,
+                   void                *B,
+                   pastix_int_t         ldb )
+{
+    const SolverMatrix *solvmtx;
+    const SolverCblk   *cblk;
+    pastix_int_t        mschur;
+    char               *bptr;
+
+    if ( pastix_data == NULL ) {
+        pastix_print_error( "pastixRhsSchurGet: wrong pastix_data parameter" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( rhsB == NULL ) {
+        pastix_print_error( "pastixRhsSchurGet: wrong rhsB parameter" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( B == NULL ) {
+        pastix_print_error( "pastixRhsSchurGet: wrong b parameter" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    solvmtx = pastix_data->solvmatr;
+    cblk    = solvmtx->cblktab + solvmtx->cblkschur;
+    mschur  = solvmtx->nodenbr - cblk->fcolnum;
+
+    if ( m != mschur ) {
+        pastix_print_error( "pastixRhsSchurGet: wrong m parameter expecting %ld but was %ld\n",
+                            (long)mschur, (long)m );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( n != rhsB->n ) {
+        pastix_print_error( "pastixRhsSchurGet: wrong n parameter expecting %ld but was %ld\n",
+                            (long)rhsB->n, (long)n );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( ldb < m ) {
+        pastix_print_error( "pastixRhsSchurGet: wrong ldb parameter\n" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    bptr = rhsB->b;
+    bptr += cblk->lcolidx * pastix_size_of( rhsB->flttype );
+
+    switch( rhsB->flttype ) {
+    case SpmComplex64:
+        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, (pastix_complex64_t *)bptr, rhsB->ld, B, ldb );
+        break;
+    case SpmComplex32:
+        LAPACKE_clacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, (pastix_complex32_t *)bptr, rhsB->ld, B, ldb );
+        break;
+    case SpmDouble:
+        LAPACKE_dlacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, (double *)bptr, rhsB->ld, B, ldb );
+        break;
+    case SpmFloat:
+        LAPACKE_slacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, (float *)bptr, rhsB->ld, B, ldb );
+        break;
+    default:
+        pastix_print_error( "pastixRhsSchurGet: unknown flttype\n" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_solve
+ *
+ * @brief Set the vector in an RHS data structure.
+ *
+ *******************************************************************************
+ *
+ * @param[in] m
+ *          The number of rows of the vector b.
+ *
+ * @param[in] n
+ *          The number of columns of the vector b.
+ *
+ * @param[in] b
+ *          The vector b.
+ *
+ * @param[in] ldb
+ *          The leading dimension of the vector b.
+ *
+ * @param[out] rhsB
+ *          The pastix_rhs_t data structure which contains the vector b.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *
+ *******************************************************************************/
+int
+pastixRhsSchurSet( const pastix_data_t *pastix_data,
+                   pastix_int_t         m,
+                   pastix_int_t         n,
+                   void                *B,
+                   pastix_int_t         ldb,
+                   pastix_rhs_t         rhsB )
+{
+    const SolverMatrix *solvmtx;
+    const SolverCblk   *cblk;
+    pastix_int_t        mschur;
+    char               *bptr;
+
+    if ( pastix_data == NULL ) {
+        pastix_print_error( "pastixRhsSchurSet: wrong pastix_data parameter" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( rhsB == NULL ) {
+        pastix_print_error( "pastixRhsSchurSet: wrong rhsB parameter" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( B == NULL ) {
+        pastix_print_error( "pastixRhsSchurSet: wrong b parameter" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    solvmtx = pastix_data->solvmatr;
+    cblk    = solvmtx->cblktab + solvmtx->cblkschur;
+    mschur  = solvmtx->nodenbr - cblk->fcolnum;
+
+    if ( m != mschur ) {
+        pastix_print_error( "pastixRhsSchurSet: wrong m parameter expecting %ld but was %ld\n",
+                            (long)mschur, (long)m );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( n != rhsB->n ) {
+        pastix_print_error( "pastixRhsSchurSet: wrong n parameter expecting %ld but was %ld\n",
+                            (long)rhsB->n, (long)n );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+    if ( ldb < m ) {
+        pastix_print_error( "pastixRhsSchurSet: wrong ldb parameter\n" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    bptr = rhsB->b;
+    bptr += cblk->lcolidx * pastix_size_of( rhsB->flttype );
+
+    switch( rhsB->flttype ) {
+    case SpmComplex64:
+        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, B, ldb, (pastix_complex64_t *)bptr, rhsB->ld );
+        break;
+    case SpmComplex32:
+        LAPACKE_clacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, B, ldb, (pastix_complex32_t *)bptr, rhsB->ld );
+        break;
+    case SpmDouble:
+        LAPACKE_dlacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, B, ldb, (double *)bptr, rhsB->ld );
+        break;
+    case SpmFloat:
+        LAPACKE_slacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, B, ldb, (float *)bptr, rhsB->ld );
+        break;
+    default:
+        pastix_print_error( "pastixRhsSchurSet: unknown flttype\n" );
+        return PASTIX_ERR_BADPARAMETER;
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
  * @}
  */
-

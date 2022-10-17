@@ -103,8 +103,13 @@ if factotype == PaStiX.factlu
     PaStiX.pastix_subtask_trsm( pastix_data, PaStiX.left, PaStiX.lower,
                                 PaStiX.notrans, PaStiX.unit, Xp )
 
+    schur_Xp = zeros(Cdouble, (nschur, nrhs))
+    PaStiX.pastixRhsSchurGet( pastix_data, nschur, nrhs, Xp, schur_Xp, nschur )
+
     # 3- Solve the Schur complement part
-    X[n-nschur+1:n] = S \ X[n-nschur+1:n]
+    schur_Xp = S \ schur_Xp
+
+    PaStiX.pastixRhsSchurSet( pastix_data, nschur, nrhs, schur_Xp, nschur, Xp )
 
     # 4- Backward solve on the non Schur complement part of the system
     PaStiX.pastix_subtask_trsm( pastix_data, PaStiX.left, PaStiX.upper,
@@ -114,9 +119,13 @@ else
     PaStiX.pastix_subtask_trsm( pastix_data, PaStiX.left, PaStiX.lower,
                                 PaStiX.notrans, PaStiX.nonunit, Xp )
 
+    schur_Xp = zeros(Cdouble, (nschur, nrhs))
+    PaStiX.pastixRhsSchurGet( pastix_data, nschur, nrhs, Xp, schur_Xp, nschur )
+
     # 3- Solve the Schur complement part
-    Xs = view( X, n-nschur+1:n, nrhs ) # Use a view to avoid the copy
-    LinearAlgebra.LAPACK.posv!( 'L', S, Xs )
+    LinearAlgebra.LAPACK.posv!( 'L', S, schur_Xp )
+
+    PaStiX.pastixRhsSchurSet( pastix_data, nschur, nrhs, schur_Xp, nschur, Xp )
 
     # 4- Backward solve on the non Schur complement part of the system
     PaStiX.pastix_subtask_trsm( pastix_data, PaStiX.left, PaStiX.lower,

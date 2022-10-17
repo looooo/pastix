@@ -9,7 +9,7 @@
  * @version 6.2.1
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2022-10-11
+ * @date 2022-10-17
  *
  * This file has been automatically generated with gen_wrappers.py
  *
@@ -348,6 +348,28 @@ pastixGetSchur_f2c( const pastix_data_t *pastix_data,
                     pastix_int_t         lds )
 {
     return pastixGetSchur( pastix_data, S, lds );
+}
+
+int
+pastixRhsSchurGet_f2c( const pastix_data_t *pastix_data,
+                       pastix_int_t         m,
+                       pastix_int_t         n,
+                       pastix_rhs_t         rhsB,
+                       void                *B,
+                       pastix_int_t         ldb )
+{
+    return pastixRhsSchurGet( pastix_data, m, n, rhsB, B, ldb );
+}
+
+int
+pastixRhsSchurSet_f2c( const pastix_data_t *pastix_data,
+                       pastix_int_t         m,
+                       pastix_int_t         n,
+                       void                *B,
+                       pastix_int_t         ldb,
+                       pastix_rhs_t         rhsB )
+{
+    return pastixRhsSchurSet( pastix_data, m, n, B, ldb, rhsB );
 }
 
 void
