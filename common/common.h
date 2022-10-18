@@ -29,6 +29,14 @@
 #include <errno.h>
 #include <stdint.h>
 #include <limits.h>
+#include <sched.h>
+
+#if defined(PASTIX_DEBUG_VALGRIND)
+#define pastix_yield() sched_yield()
+#else
+#define pastix_yield() do {} while (0)
+#endif
+
 #include "sys/atomic.h"
 #include "memory.h"
 #include "integer.h"
