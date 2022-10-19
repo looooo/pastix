@@ -211,6 +211,8 @@ option(COMPACT_SMX
   "Optimization for solve computations (TODO: check if not obsolete because results don't converge)" OFF)
 
 # Options to increase verbosity while debuging
+option(PASTIX_DEBUG_VALGRIND
+  "Make the compilation valgrind compatible to avoid live-lock in infinite loops" OFF)
 option(PASTIX_DEBUG_GRAPH
   "Debug the graph data structure" OFF)
 option(PASTIX_DEBUG_ORDERING

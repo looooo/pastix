@@ -240,7 +240,7 @@ cpucblk_zinit( pastix_coefside_t    side,
         if ( solvmtx->clustnbr == 1 )
 #endif
         {
-            do {} while( cblk->ctrbcnt > 0 );
+            do { pastix_yield(); } while( cblk->ctrbcnt > 0 );
             coeftabComputeCblkILULevels( solvmtx, cblk );
         }
     }

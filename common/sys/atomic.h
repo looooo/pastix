@@ -97,6 +97,7 @@ static inline int32_t pastix_atomic_inc_32b( volatile int32_t *location )
 {
     uint32_t l;
     do {
+        pastix_yield();
         l = (uint32_t)*location;
     } while( !pastix_atomic_cas_32b( location, l, l+1 ) );
     return (int32_t)l+1;
@@ -114,6 +115,7 @@ static inline int32_t pastix_atomic_dec_32b( volatile int32_t *location )
 {
     uint32_t l;
     do {
+        pastix_yield();
         l = (uint32_t)*location;
     } while( !pastix_atomic_cas_32b( location, l, l-1 ) );
     return (int32_t)l-1;
@@ -127,6 +129,7 @@ static inline int32_t pastix_atomic_add_32b( volatile int32_t *location, int32_t
 {
     uint32_t l, n;
     do {
+        pastix_yield();
         l = *location;
         n = (uint32_t)((int32_t)l + d);
     } while( !pastix_atomic_cas_32b( location, l, n ) );
@@ -145,7 +148,8 @@ enum {
 
 static inline void pastix_atomic_lock( pastix_atomic_lock_t* atomic_lock )
 {
-    while( !pastix_atomic_cas( atomic_lock, 0, 1) )
+    while( !pastix_atomic_cas( atomic_lock, 0, 1) ) { pastix_yield(); }
+
         /* nothing */;
 }
 
@@ -164,6 +168,7 @@ static inline uint64_t pastix_atomic_add_64b( volatile uint64_t *location, uint6
 {
     uint64_t l, n;
     do {
+        pastix_yield();
         l = (*location);
         n = (l + d);
     } while( !pastix_atomic_cas_64b( location, l, n ) );

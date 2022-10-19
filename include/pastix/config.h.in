@@ -114,6 +114,7 @@
 #cmakedefine PASTIX_THREAD_COMM
 
 /* Debug */
+#cmakedefine PASTIX_DEBUG_VALGRIND
 #cmakedefine PASTIX_DEBUG_GRAPH
 #cmakedefine PASTIX_DEBUG_ORDERING
 #cmakedefine PASTIX_DEBUG_SYMBOL

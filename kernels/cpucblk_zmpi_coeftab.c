@@ -424,6 +424,7 @@ cpucblk_zmpi_progress( pastix_coefside_t   side,
     pthread_mutex_unlock( &pastix_comm_lock );
 
     if ( tid != pastix_comm_tid ) {
+        pastix_yield();
         return;
     }
 
@@ -464,6 +465,7 @@ cpucblk_zmpi_progress( pastix_coefside_t   side,
     }
 
     pastix_comm_tid = -1;
+    pastix_yield();
 }
 #endif /* defined(PASTIX_WITH_MPI) */
 
@@ -521,7 +523,7 @@ cpucblk_zincoming_deps( int                rank,
     }
 #else
     assert( !(cblk->cblktype & (CBLK_FANIN | CBLK_RECV)) );
-    do { } while( cblk->ctrbcnt > 0 );
+    do { pastix_yield(); } while( cblk->ctrbcnt > 0 );
 #endif
 
     (void)rank;
