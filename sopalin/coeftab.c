@@ -14,7 +14,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2022-08-06
+ * @date 2022-10-21
  *
  **/
 #include "common.h"
@@ -103,12 +103,12 @@ coeftabAlloc( pastix_data_t *pastix_data )
     char             *workL    = NULL;
     char             *workU    = NULL;
 
-    MALLOC_INTERN( workL, size, char );
+    workL = pastix_malloc_pinned( size );
     memset( workL, 0, size );
 
     /* Only allocates the U part if necessary */
     if ( pastix_data->iparm[IPARM_FACTORIZATION] == PastixFactLU ) {
-        MALLOC_INTERN( workU, size, char );
+        workU = pastix_malloc_pinned( size );
         memset( workU, 0, size );
     }
 
@@ -285,9 +285,9 @@ coeftabExit( SolverMatrix *solvmtx )
 
     /* If the coeftab is a single allocation, only free the first block */
     if ( solvmtx->globalalloc ) {
-        memFree_null( solvmtx->cblktab->lcoeftab );
+        pastix_free_pinned( solvmtx->cblktab->lcoeftab );
         if ( solvmtx->cblktab->ucoeftab ) {
-            memFree_null( solvmtx->cblktab->ucoeftab );
+            pastix_free_pinned( solvmtx->cblktab->ucoeftab );
         }
     }
 
