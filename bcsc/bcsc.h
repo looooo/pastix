@@ -122,18 +122,30 @@ void   bcscExit( pastix_bcsc_t *bcsc );
  * @addtogroup bcsc_internal
  * @{
  */
+void bcsc_init_struct( const spmatrix_t   *spm,
+                       const SolverMatrix *solvmtx,
+                       pastix_bcsc_t      *bcsc );
+void bcsc_exit_struct( pastix_bcsc_t *bcsc );
 pastix_int_t bcsc_init_coltab( const spmatrix_t     *spm,
                                const pastix_order_t *ord,
                                const SolverMatrix   *solvmtx,
                                pastix_bcsc_t        *bcsc );
 void bcsc_restore_coltab( pastix_bcsc_t *bcsc );
+pastix_int_t * bcsc_init_col2cblk_shm( const SolverMatrix  *solvmtx,
+                                       const pastix_bcsc_t *bcsc );
+pastix_int_t * bcsc_init_col2cblk( const SolverMatrix  *solvmtx,
+                                   const pastix_bcsc_t *bcsc,
+                                   const spmatrix_t    *spm );
+
+void bcsc_init_handle_comm( const SolverMatrix *solvmtx,
+                            pastix_bcsc_t      *bcsc );
+void bcsc_exit_handle_comm( bcsc_handle_comm_t *bcsc_comm );
 
 #if defined(PASTIX_WITH_MPI)
-void bcsc_handle_comm_init( const SolverMatrix *solvmtx,
-                            bcsc_handle_comm_t *bcsc_comm );
-void bcsc_handle_comm_exit( bcsc_handle_comm_t *bcsc_comm );
 void bcsc_exchange_amount_of_data( bcsc_handle_comm_t *bcsc_comm );
 void bcsc_exchange_indexes( bcsc_handle_comm_t   *bcsc_comm );
+pastix_int_t * bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
+                                       const pastix_bcsc_t *bcsc );
 #endif
 
 /**

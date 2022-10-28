@@ -398,9 +398,6 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
                            pastix_int_t   ldb,
                            pastix_rhs_t   Bp )
 {
-    pastix_int_t *perm = NULL;
-    int ts;
-
     /*
      * Checks parameters.
      */
@@ -424,9 +421,10 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
         Bp->flttype   = pastix_data->csc->flttype;
         Bp->m         = m;
         Bp->n         = n;
-        Bp->ld        = Bp->m;
+        Bp->ld        = ldb;
         Bp->b         = b;
     }
+#if !defined(NDEBUG)
     else {
         assert( Bp->allocated >= 0 );
         assert( Bp->flttype == pastix_data->csc->flttype );
@@ -435,6 +433,7 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
         assert( Bp->n  == n );
         assert( Bp->ld >= Bp->m );
     }
+#endif
 
 #if defined(PASTIX_DEBUG_SOLVE)
     if ( dir == PastixDirForward ) {
@@ -453,26 +452,27 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
     }
 #endif
 
-    ts   = pastix_data->iparm[IPARM_APPLYPERM_WS];
-    perm = orderGetExpandedPeritab( pastix_data->ordemesh, pastix_data->csc );
-
     /* See also xlapmr and xlapmt */
     switch( Bp->flttype ) {
     case PastixComplex64:
-        bvec_zlapmr( ts, dir, m, n, b, ldb, perm );
+        bvec_zlapmr( pastix_data, dir, m, n, b, ldb, Bp );
         break;
 
     case PastixComplex32:
-        bvec_clapmr( ts, dir, m, n, b, ldb, perm );
-        break;
-
-    case PastixFloat:
-        bvec_slapmr( ts, dir, m, n, b, ldb, perm );
+        bvec_clapmr( pastix_data, dir, m, n, b, ldb, Bp );
         break;
 
     case PastixDouble:
+        bvec_dlapmr( pastix_data, dir, m, n, b, ldb, Bp );
+        break;
+
+    case PastixFloat:
+        bvec_slapmr( pastix_data, dir, m, n, b, ldb, Bp );
+        break;
+
     default:
-        bvec_dlapmr( ts, dir, m, n, b, ldb, perm );
+        pastix_print_error( "The floating type of the rhs is not defined\n" );
+        return PASTIX_ERR_BADPARAMETER;
     }
 
 #if defined(PASTIX_DEBUG_SOLVE)

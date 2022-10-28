@@ -26,7 +26,6 @@
 #include "bcsc/bcsc_d.h"
 #include "bcsc/bcsc_s.h"
 
-#if defined(PASTIX_WITH_MPI)
 /**
  *******************************************************************************
  *
@@ -44,9 +43,16 @@
  *
  *******************************************************************************/
 void
-bcsc_handle_comm_init( const SolverMatrix *solvmtx,
-                       bcsc_handle_comm_t *bcsc_comm )
+bcsc_init_handle_comm( const SolverMatrix *solvmtx,
+                       pastix_bcsc_t      *bcsc )
 {
+    pastix_int_t        size = sizeof(bcsc_handle_comm_t) + (solvmtx->clustnbr-1)*sizeof(bcsc_proc_comm_t);
+    bcsc_handle_comm_t *bcsc_comm;
+
+    bcsc->bcsc_comm = (bcsc_handle_comm_t *)malloc( size );
+    bcsc_comm = bcsc->bcsc_comm;
+
+    bcsc_comm->flttype  = bcsc->flttype;
     bcsc_comm->clustnbr = solvmtx->clustnbr;
     bcsc_comm->clustnum = solvmtx->clustnum;
     bcsc_comm->comm     = solvmtx->solv_comm;
@@ -68,7 +74,7 @@ bcsc_handle_comm_init( const SolverMatrix *solvmtx,
  *
  *******************************************************************************/
 void
-bcsc_handle_comm_exit( bcsc_handle_comm_t *bcsc_comm )
+bcsc_exit_handle_comm( bcsc_handle_comm_t *bcsc_comm )
 {
     int c;
     int clustnbr = bcsc_comm->clustnbr;
@@ -87,10 +93,9 @@ bcsc_handle_comm_exit( bcsc_handle_comm_t *bcsc_comm )
             memFree_null(bcsc_comm->data_comm[c].values_At);
         }
     }
-    free( bcsc_comm );
-    bcsc_comm = NULL;
 }
 
+#if defined(PASTIX_WITH_MPI)
 /**
  *******************************************************************************
  *
@@ -157,17 +162,17 @@ bcsc_exchange_amount_of_data( bcsc_handle_comm_t *bcsc_comm )
         bcsc_proc_comm_t   *data   = bcsc_comm->data_comm + c;
         bcsc_data_amount_t *amount = ( c == clustnum ) ? &(data->nrecvs) : &(data->nsends);
 
-        if ( amount->idx_A != 0 ) {
+        if ( ( amount->idx_A != 0 ) && ( data->indexes_A == NULL ) ) {
             MALLOC_INTERN( data->indexes_A,  amount->idx_A , pastix_int_t );
         }
-        if ( amount->idx_At != 0 ) {
+        if ( ( amount->idx_At != 0 ) && ( data->indexes_At == NULL ) ) {
             MALLOC_INTERN( data->indexes_At, amount->idx_At, pastix_int_t );
         }
-        if ( amount->val_A != 0 ) {
+        if ( ( amount->val_A != 0 ) && ( data->values_A == NULL ) ) {
             size = amount->val_A * pastix_size_of( bcsc_comm->flttype );
             MALLOC_INTERN( data->values_A,  size, char );
         }
-        if ( amount->val_At != 0 ) {
+        if ( ( amount->val_At != 0 ) && ( data->values_At == NULL ) ) {
             size = amount->val_At * pastix_size_of( bcsc_comm->flttype );
             MALLOC_INTERN( data->values_At, size, char );
         }
@@ -203,7 +208,7 @@ bcsc_exchange_amount_of_data( bcsc_handle_comm_t *bcsc_comm )
  *         into the block structure.
  *
  *******************************************************************************/
-static inline pastix_int_t *
+pastix_int_t *
 bcsc_init_col2cblk_shm( const SolverMatrix  *solvmtx,
                         const pastix_bcsc_t *bcsc )
 {
@@ -262,13 +267,13 @@ bcsc_init_col2cblk_shm( const SolverMatrix  *solvmtx,
  *         into the block structure.
  *
  *******************************************************************************/
-static inline pastix_int_t *
+pastix_int_t *
 bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
                         const pastix_bcsc_t *bcsc )
 {
     pastix_int_t  n, nr = 0;
     pastix_int_t  k, j, c;
-    pastix_int_t  clustnum  = solvmtx->clustnum;
+    pastix_int_t  clustnum = solvmtx->clustnum;
     pastix_int_t  clustnbr = solvmtx->clustnbr;
     pastix_int_t  fcolnum, lcolnum, cblknum;
     pastix_int_t *col2cblk;
@@ -382,7 +387,7 @@ bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
  *         into the block structure.
  *
  *******************************************************************************/
-static inline pastix_int_t *
+pastix_int_t *
 bcsc_init_col2cblk( const SolverMatrix  *solvmtx,
                     const pastix_bcsc_t *bcsc,
                     const spmatrix_t    *spm )
@@ -995,16 +1000,12 @@ bcsc_init_global_coltab( const spmatrix_t     *spm,
     }
 #if defined(PASTIX_WITH_MPI)
     else {
-        /* Initializes bcsc_comm. */
-        bcsc_handle_comm_init( solvmtx, bcsc_comm );
-
         if ( spm->dof > 0 ) {
             bcsc_init_global_coltab_dst_cdof( spm, ord, col2cblk, globcol, bcsc_comm );
         }
         else {
             bcsc_init_global_coltab_dst_vdof( spm, ord, col2cblk, globcol, bcsc_comm );
         }
-
 
         /* Exchanges the amount of data which will be sent and received. */
         bcsc_exchange_amount_of_data( bcsc_comm );
@@ -1216,6 +1217,88 @@ bcsc_restore_coltab( pastix_bcsc_t *bcsc )
  * @param[in] spm
  *          The initial sparse matrix in the spm format.
  *
+ * @param[in] solvmtx
+ *          The solver matrix structure which describes the data distribution.
+ *
+ * @param[in] initAt
+ *          The test to know if At has to be initialized:
+ *          - if initAt = 0 then the matrix is symmetric of hermitian which
+ *            means that Lvalues = Uvalues so At does not need to be
+ *            initialised.
+ *          - if initAt = 1 then the matrix is general and which means that
+ *            At needs to be initialised and computed.
+ *
+ * @param[inout] bcsc
+ *          On entry, the pointer to an allocated bcsc.
+ *          On exit, the bcsc stores the input spm with the permutation applied
+ *          and grouped accordingly to the distribution described in solvmtx.
+ *
+ *******************************************************************************/
+void
+bcsc_init_struct( const spmatrix_t   *spm,
+                  const SolverMatrix *solvmtx,
+                  pastix_bcsc_t      *bcsc )
+{
+    pastix_int_t       *col2cblk  = NULL;
+
+    bcsc->mtxtype = spm->mtxtype;
+    bcsc->flttype = spm->flttype;
+    bcsc->gN      = spm->gNexp;
+    bcsc->n       = solvmtx->nodenbr;
+
+    /*
+     * Creates the col2cblk array which associates each column to a cblk
+     * (expanded).
+     */
+    col2cblk = bcsc_init_col2cblk( solvmtx, bcsc, spm );
+    bcsc->col2cblk = col2cblk;
+
+    /*
+     * Initializes the coltab array of the bcsc and allocates the rowtab and
+     * Lvalues arrays.
+     */
+    bcsc->bcsc_comm = NULL;
+    if ( spm->loc2glob != NULL ) {
+        bcsc_init_handle_comm( solvmtx, bcsc );
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Cleanup the bcsc struct. (symmetric of bcsc_init_struct)
+ *
+ *******************************************************************************
+ *
+ * @param[inout] bcsc
+ *          On entry, the pointer to the initialized bcsc.
+ *          On exit, the bcsc freed from the informations initialized by
+ *          bcsc_init_struct().
+ *
+ *******************************************************************************/
+void
+bcsc_exit_struct( pastix_bcsc_t *bcsc )
+{
+    if ( bcsc->col2cblk != NULL ) {
+        memFree_null( bcsc->col2cblk );
+    }
+
+    if ( bcsc->bcsc_comm != NULL ) {
+        bcsc_exit_handle_comm( bcsc->bcsc_comm );
+        memFree_null( bcsc->bcsc_comm );
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Initializes a block csc.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
  * @param[in] ord
  *          The ordering which needs to be applied on the spm to generate the
  *          block csc.
@@ -1244,32 +1327,9 @@ bcsc_init( const spmatrix_t     *spm,
            pastix_int_t          initAt,
            pastix_bcsc_t        *bcsc )
 {
-    pastix_int_t *col2cblk = NULL;
     pastix_int_t valuesize;
 
-    bcsc->mtxtype = spm->mtxtype;
-    bcsc->flttype = spm->flttype;
-    bcsc->gN      = spm->gNexp;
-    bcsc->n       = solvmtx->nodenbr;
-
-    /*
-     * Creates the col2cblk array which associates each column to a cblk
-     * (expanded).
-     */
-    col2cblk = bcsc_init_col2cblk( solvmtx, bcsc, spm );
-    bcsc->col2cblk = col2cblk;
-
-    /*
-     * Initializes the coltab array of the bcsc and allocates the rowtab and
-     * Lvalues arrays.
-     */
-    bcsc_handle_comm_t *bcsc_comm = NULL;
-    if ( spm->loc2glob != NULL ) {
-        pastix_int_t size = sizeof(bcsc_handle_comm_t) + (solvmtx->clustnbr-1)*sizeof(bcsc_proc_comm_t);
-        bcsc_comm = (bcsc_handle_comm_t *)malloc( size );
-        bcsc_comm->flttype = bcsc->flttype;
-    }
-    bcsc->bcsc_comm = bcsc_comm;
+    bcsc_init_struct( spm, solvmtx, bcsc );
     valuesize = bcsc_init_coltab( spm, ord, solvmtx, bcsc );
 
     /*
@@ -1388,13 +1448,5 @@ bcscExit( pastix_bcsc_t *bcsc )
 
     memFree_null( bcsc->Lvalues );
 
-    if ( bcsc->col2cblk != NULL ) {
-        memFree_null( bcsc->col2cblk );
-    }
-
-#if defined( PASTIX_WITH_MPI )
-    if ( bcsc->bcsc_comm != NULL ) {
-        bcsc_handle_comm_exit( bcsc->bcsc_comm );
-    }
-#endif
+    bcsc_exit_struct( bcsc );
 }

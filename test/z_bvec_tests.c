@@ -333,6 +333,12 @@ z_bvec_applyorder_check ( pastix_data_t *pastix_data,
     z_init( pastix_data, size, b_in );
     memcpy( b_out, b_in, size * sizeof(pastix_complex64_t) );
 
+    /* Forces the datatypes. */
+    spm->flttype = SpmComplex64;
+    if ( pastix_data->solvmatr != NULL ) {
+        pastix_data->solvmatr->flttype = SpmComplex64;
+    }
+
     /* Make sure internal peritab and spm are reset */
     pastix_data->csc = spm;
     if ( pastix_data->ordemesh->peritab_exp ) {

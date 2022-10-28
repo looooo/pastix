@@ -36,9 +36,9 @@
 #include "z_tests.h"
 
 int
-z_bcsc_spmv_check( spm_trans_t          trans,
-                   const spmatrix_t    *spm,
-                   const pastix_data_t *pastix_data )
+z_bcsc_spmv_check( spm_trans_t       trans,
+                   const spmatrix_t *spm,
+                   pastix_data_t    *pastix_data )
 {
     unsigned long long int seed = 35469;
     pastix_complex64_t *x, *y0, *ys, *yd;
@@ -81,13 +81,29 @@ z_bcsc_spmv_check( spm_trans_t          trans,
     }
 
     /* Compute the bcsc matrix-vector product */
-    bvec_zlapmr( 1, PastixDirBackward, pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
-    bvec_zlapmr( 1, PastixDirBackward, pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->permtab );
+    struct pastix_rhs_s Pyd = {
+        .allocated = 0,
+        .flttype   = PastixComplex64,
+        .m         = pastix_data->bcsc->gN,
+        .n         = 1,
+        .ld        = pastix_data->bcsc->gN,
+        .b         = yd,
+    };
+    struct pastix_rhs_s Px = {
+        .allocated = 0,
+        .flttype   = PastixComplex64,
+        .m         = pastix_data->bcsc->gN,
+        .n         = 1,
+        .ld        = pastix_data->bcsc->gN,
+        .b         = x,
+    };
+    bvec_zlapmr( pastix_data, PastixDirForward, pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, &Pyd );
+    bvec_zlapmr( pastix_data, PastixDirForward, pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, &Px  );
 
     bcsc_zspmv( pastix_data, (pastix_trans_t)trans, alpha, x, beta, yd );
 
-    bvec_zlapmr( 1, PastixDirBackward, pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
-    bvec_zlapmr( 1, PastixDirBackward, pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, pastix_data->ordemesh->peritab );
+    bvec_zlapmr( pastix_data, PastixDirBackward, pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, &Pyd );
+    bvec_zlapmr( pastix_data, PastixDirBackward, pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, &Px  );
 
     info_solution = 0;
     Anorm  = spmNorm( SpmInfNorm, spm );
