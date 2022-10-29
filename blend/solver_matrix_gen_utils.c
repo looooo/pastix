@@ -1031,7 +1031,7 @@ solvMatGen_register_remote_cblk( const symbol_matrix_t    *symbmtx,
                           fcolnum, lcolnum, brownum, stride,
                           gcblknm, recvcblk->ownerid );
 
-    solvcblk->lcolidx = fcolnum;
+    solvcblk->lcolidx = -1;
 
 #if defined(PASTIX_BLEND_FANIN_FR)
     if( solvcblk->cblktype & CBLK_COMPRESSED ) {
