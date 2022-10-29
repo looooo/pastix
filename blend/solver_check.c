@@ -90,7 +90,7 @@ solverCheck( const SolverMatrix *solvmtx )
              * block should match the index of the local cblk which refers to
              * the local non recv version of this cblk.
              */
-            assert( fcblk->lcolidx  == cblk->lcolidx  );
+            assert( fcblk->lcolidx  <= cblk->lcolidx  );
             assert( fcblk->sndeidx  == cblk->sndeidx  );
             assert( fcblk->gcblknum == cblk->gcblknum );
             assert( fcblk->fblokptr->lcblknm == fblok->fcblknm );
@@ -146,7 +146,7 @@ solverCheck( const SolverMatrix *solvmtx )
                 assert( fblok->fcblknm == -1 );
 
                 /* Uncomment when rhs will be distributed */
-                // assert( cblk->lcolidx == -1 );
+                assert( cblk->lcolidx == -1 );
             }
             else {
                 /* Check that first diagonal block belongs to ourself */
