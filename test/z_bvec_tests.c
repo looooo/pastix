@@ -38,51 +38,121 @@
 
 struct z_argument_init_s
 {
-    pastix_int_t        n;
-    pastix_complex64_t *x;
+    unsigned long long int seed;
+    pastix_int_t           gm;
+    pastix_int_t           lm;
+    pastix_int_t           n;
+    pastix_int_t           lda;
+    pastix_complex64_t    *A;
+    SolverMatrix          *solvmtx;
 };
+
+static inline void
+z_init_seq( struct z_argument_init_s *arg )
+{
+    pastix_complex64_t *A       = arg->A;
+    SolverMatrix       *solvmtx = arg->solvmtx;
+
+    if ( solvmtx != NULL ) {
+        SolverCblk         *cblk    = solvmtx->cblktab;
+        pastix_int_t        ii;
+
+        for( ii=0; ii<solvmtx->cblknbr; ii++, cblk++ )
+        {
+            if ( cblk->cblktype & (CBLK_FANIN | CBLK_RECV) ) {
+                continue;
+            }
+
+            core_zplrnt( cblk_colnbr( cblk ), arg->n, A + cblk->lcolidx, arg->lda,
+                         arg->gm, cblk->fcolnum, 0, arg->seed );
+        }
+    }
+    else {
+        core_zplrnt( arg->lm, arg->n, A, arg->lda,
+                     arg->gm, 0, 0, arg->seed );
+    }
+}
 
 static inline void
 z_init_smp( isched_thread_t *ctx,
             void            *args )
 {
-    struct z_argument_init_s *arg = (struct z_argument_init_s*)args;
-    pastix_int_t              n   = arg->n;
-    pastix_complex64_t       *x   = arg->x;
-    pastix_int_t              begin, end, rank, size, nn;
+    struct z_argument_init_s *arg     = (struct z_argument_init_s*)args;
+    pastix_complex64_t       *A       = arg->A;
+    SolverMatrix             *solvmtx = arg->solvmtx;
+    pastix_int_t              rank;
 
-    size  = ctx->global_ctx->world_size;
-    rank  = ctx->rank;
-    nn    = n / size;
+    rank = ctx->rank;
 
-    begin = nn * rank;
-    if ( rank == (size - 1) ) {
-        end = n;
+    if ( solvmtx != NULL ) {
+        pastix_int_t  ii, tid, tasknbr;
+        pastix_int_t *tasktab;
+        SolverMatrix *solvmtx = arg->solvmtx;
+        SolverCblk   *cblk;
+        Task         *task;
+
+        tasknbr = solvmtx->ttsknbr[rank];
+        tasktab = solvmtx->ttsktab[rank];
+
+        for (ii=0; ii<tasknbr; ii++)
+        {
+            tid  = tasktab[ii];
+            task = solvmtx->tasktab + tid;
+            cblk = solvmtx->cblktab + task->cblknum;
+
+            assert( !(cblk->cblktype & (CBLK_FANIN | CBLK_RECV)) );
+
+            core_zplrnt( cblk_colnbr( cblk ), arg->n, A + cblk->lcolidx, arg->lda,
+                         arg->gm, cblk->fcolnum, 0, arg->seed );
+        }
     }
     else {
-        end = nn * (rank + 1);
+        pastix_int_t begin, end, size, nn;
+
+        size = ctx->global_ctx->world_size;
+        nn   = arg->lm / size;
+
+        begin = nn * rank;
+        if ( rank == (size - 1) ) {
+            end = arg->lm;
+        }
+        else {
+            end = nn * (rank + 1);
+        }
+
+        assert( begin >= 0 );
+        assert( end <= arg->lm );
+        assert( begin < end );
+
+        core_zplrnt( (end-begin), arg->n, A + begin, arg->lda,
+                     arg->gm, begin, 0, arg->seed );
     }
-
-    assert( begin >= 0 );
-    assert( end <= n );
-    assert( begin < end );
-
-    core_zplrnt( (end-begin), 1, x + begin, n, n, begin, 0, 7213 );
 }
 
-static inline void
+void
 z_init( pastix_data_t      *pastix_data,
+        unsigned long long  seed,
         pastix_int_t        n,
-        pastix_complex64_t *x )
+        pastix_complex64_t *A,
+        pastix_int_t        lda )
 {
-    pastix_scheduler_t sched = pastix_data->iparm[IPARM_SCHEDULER];
+    pastix_scheduler_t       sched = pastix_data->iparm[IPARM_SCHEDULER];
+    pastix_bcsc_t           *bcsc  = pastix_data->bcsc;
+    struct z_argument_init_s args  = {
+        .seed    = seed,
+        .gm      = bcsc ? bcsc->gN : lda,
+        .lm      = bcsc ? bcsc->n  : lda,
+        .n       = n,
+        .lda     = lda,
+        .A       = A,
+        .solvmtx = pastix_data->solvmatr,
+    };
 
     if ( sched == PastixSchedSequential ) {
-        core_zplrnt( n, 1, x, n, n, 0, 0, 7213 );
+        z_init_seq( &args );
     }
     else {
-        struct z_argument_init_s args = { n, x };
-        isched_parallel_call ( pastix_data->isched, z_init_smp, &args );
+        isched_parallel_call( pastix_data->isched, z_init_smp, &args );
     }
 }
 
@@ -104,15 +174,16 @@ z_bvec_gemv_check( pastix_data_t *pastix_data,
     y = malloc( sizeof(pastix_complex64_t) * (size_t)m );
 
     /**
-     * generate matrice of size 'n * nrhs'
+     * generate matrice of size 'm * n'
      */
-    z_init( pastix_data, m * n, A );
+    z_init( pastix_data, 3839, n, A, m );
 
     /**
-     * generate vectors of size 'nrhs'
+     * generate vectors of size 'n' and 'm',
+     * y is distributed, x is small and always replicated on all nodes
      */
-    z_init( pastix_data, m, y );
-    z_init( pastix_data, n, x );
+    z_init( pastix_data, 2308, 1, y, m );
+    core_zplrnt( n, 1, x, n, n, 0, 0, 95753 );
 
     if ( check ) {
         double normA, normX, normY, normR, result;
@@ -166,10 +237,11 @@ z_bvec_gemv_check( pastix_data_t *pastix_data,
 }
 
 int
-z_bvec_check( pastix_data_t *pastix_data,
-              pastix_int_t m )
+z_bvec_check( pastix_data_t *pastix_data )
 {
-    Clock timer;
+    pastix_bcsc_t      *bcsc = pastix_data->bcsc;
+    Clock               timer;
+    pastix_int_t        lm, gm, n = 1;
     int                 i;
     int                 rc = 0;
     pastix_complex64_t *x, *y;
@@ -178,54 +250,76 @@ z_bvec_check( pastix_data_t *pastix_data,
 
     z_refine_init( &solver, pastix_data );
 
-    x = malloc( sizeof(pastix_complex64_t) * m );
-    y = malloc( sizeof(pastix_complex64_t) * m );
+    gm = bcsc->gN;
+    lm = bcsc->n;
+    lm = gm;
+
+    x = malloc( sizeof(pastix_complex64_t) * lm * n );
+    y = malloc( sizeof(pastix_complex64_t) * lm * n );
 
     /**
-     * generate vectors of size 'nrhs'
+     * generate vectors
      */
-    z_init( pastix_data, m, y );
-    z_init( pastix_data, m, x );
+    z_init( pastix_data, 3087, n, y, lm );
+    z_init( pastix_data, 8998, n, x, lm );
 
-    printf("========== copy function time ==========\n");
+    if ( pastix_data->procnum == 0 ) {
+        printf("========== copy function time ==========\n");
+    }
+
     timer = clockGetLocal();
     for( i=0; i<50; ++i ) {
-        solver.copy( pastix_data, m, x, y );
+        solver.copy( pastix_data, lm, x, y );
     }
     timer = clockGetLocal() - timer;
-    printf("    Time for copy (N= %ld)         : %e \n", (long)m, clockVal(timer)/50.);
 
-    printf("========== axpy function time ==========\n");
+    if ( pastix_data->procnum == 0 ) {
+        printf("    Time for copy (N= %ld)         : %e \n", (long)gm, clockVal(timer)/50.);
+        printf("========== axpy function time ==========\n");
+    }
+
     timer = clockGetLocal();
     for( i=0; i<50; ++i ) {
-        solver.axpy( pastix_data, m, alpha, x, y );
+        solver.axpy( pastix_data, lm, alpha, x, y );
     }
     timer = clockGetLocal() - timer;
-    printf("    Time for axpy (N= %ld)         : %e \n", (long)m, clockVal(timer)/50.);
 
-    printf("========== dot function time ==========\n");
+    if ( pastix_data->procnum == 0 ) {
+        printf("    Time for axpy (N= %ld)         : %e \n", (long)gm, clockVal(timer)/50.);
+        printf("========== dot function time ==========\n");
+    }
+
     timer = clockGetLocal();
     for( i=0; i<50; ++i ) {
-        solver.dot( pastix_data, m, x, y );
+        solver.dot( pastix_data, lm, x, y );
     }
     timer = clockGetLocal() - timer;
-    printf("    Time for dot  (N= %ld)         : %e \n", (long)m, clockVal(timer)/50.);
 
-    printf("========== norm function time ==========\n");
+    if ( pastix_data->procnum == 0 ) {
+        printf("    Time for dot  (N= %ld)         : %e \n", (long)gm, clockVal(timer)/50.);
+        printf("========== norm function time ==========\n");
+    }
+
     timer = clockGetLocal();
     for( i=0; i<50; ++i ) {
-        solver.norm( pastix_data, m, x );
+        solver.norm( pastix_data, lm, x );
     }
     timer = clockGetLocal() - timer;
-    printf("    Time for norm (N= %ld)         : %e \n", (long)m, clockVal(timer)/50.);
 
-    printf("========== scal function time ==========\n");
+    if ( pastix_data->procnum == 0 ) {
+        printf("    Time for norm (N= %ld)         : %e \n", (long)gm, clockVal(timer)/50.);
+        printf("========== scal function time ==========\n");
+    }
+
     timer = clockGetLocal();
     for( i=0; i<50; ++i ) {
-        solver.scal( pastix_data, m, alpha, x );
+        solver.scal( pastix_data, lm, alpha, x );
     }
     timer = clockGetLocal() - timer;
-    printf("    Time for scal (N= %ld)         : %e \n", (long)m, clockVal(timer)/50.);
+
+    if ( pastix_data->procnum == 0 ) {
+        printf("    Time for scal (N= %ld)         : %e \n", (long)gm, clockVal(timer)/50.);
+    }
 
     free( x );
     free( y );
@@ -255,8 +349,8 @@ z_bcsc_spmv_time( pastix_data_t    *pastix_data,
     /**
      * generate matrices
      */
-    z_init( pastix_data, spm->nexp * nrhs, x );
-    z_init( pastix_data, spm->nexp * nrhs, y );
+    z_init( pastix_data, 9794, nrhs, x, spm->nexp );
+    z_init( pastix_data, 7839, nrhs, y, spm->nexp );
 
     timer = clockGetLocal();
     for ( i = 0; i < 50 ; ++i) {
@@ -328,15 +422,28 @@ z_bvec_applyorder_check ( pastix_data_t *pastix_data,
     size  = ldb * nrhs;
     b_in  = malloc( size * sizeof(pastix_complex64_t) );
     b_out = malloc( size * sizeof(pastix_complex64_t) );
+    memset( b_in,  0xdead, sizeof(pastix_complex64_t) * size );
+    memset( b_out, 0xdead, sizeof(pastix_complex64_t) * size );
 
-    /* Generate B */
-    z_init( pastix_data, size, b_in );
+    /* Generate a replicated B */
+    if ( spm->loc2glob == NULL ) {
+        core_zplrnt( m, nrhs, b_in, ldb, m, 0, 0, 4978 );
+    }
+    else {
+        z_init( pastix_data, 4978, nrhs, b_in, ldb );
+    }
     memcpy( b_out, b_in, size * sizeof(pastix_complex64_t) );
 
     /* Forces the datatypes. */
     spm->flttype = SpmComplex64;
     if ( pastix_data->solvmatr != NULL ) {
         pastix_data->solvmatr->flttype = SpmComplex64;
+    }
+    if ( pastix_data->bcsc != NULL ) {
+        pastix_data->bcsc->flttype = SpmComplex64;
+        if ( pastix_data->bcsc->bcsc_comm != NULL ) {
+            pastix_data->bcsc->bcsc_comm->flttype = SpmComplex64;
+        }
     }
 
     /* Make sure internal peritab and spm are reset */

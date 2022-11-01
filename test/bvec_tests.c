@@ -78,7 +78,7 @@ int main ( int argc, char **argv )
     if ( driver == (spm_driver_t)-1 ) {
         driver = SpmDriverLaplacian;
         flttype = SpmDouble;
-        m = 10000;
+        m = 400;
         n = iparm[IPARM_GMRES_IM];
         rc = asprintf( &filename, "d:%d:%d", (int)m, (int)n );
         assert( rc != -1 );
@@ -108,12 +108,7 @@ int main ( int argc, char **argv )
     /**
      * Generate the blocked csc
      */
-    pastix_data->bcsc = malloc( sizeof(pastix_bcsc_t) );
-    bcscInit( spm,
-              pastix_data->ordemesh,
-              pastix_data->solvmatr,
-              spm->mtxtype == SpmGeneral,
-              pastix_data->bcsc );
+    pastix_subtask_spm2bcsc( pastix_data, spm );
 
     if ( check ) {
         for( s=PastixSchedSequential; s<=PastixSchedStatic; s++ )
@@ -121,24 +116,26 @@ int main ( int argc, char **argv )
             pastix_data->iparm[IPARM_SCHEDULER] = s;
             for( t=SpmFloat; t<=SpmComplex64; t++ )
             {
-                printf("  Case %s - %s:\n ",
-                       fltnames[t], schednames[s] );
+                if ( pastix_data->procnum == 0 ) {
+                    printf("  Case %s - %s:\n",
+                           fltnames[t], schednames[s] );
+                }
                 switch( t ){
                 case SpmComplex64:
-                    rc = z_bvec_check( pastix_data, m );
+                    rc = z_bvec_check( pastix_data );
                     break;
 
                 case SpmComplex32:
-                    rc = c_bvec_check( pastix_data, m );
+                    rc = c_bvec_check( pastix_data );
                     break;
 
                 case SpmFloat:
-                    rc = s_bvec_check( pastix_data, m );
+                    rc = s_bvec_check( pastix_data );
                     break;
 
                 case SpmDouble:
                 default:
-                    rc = d_bvec_check( pastix_data, m );
+                    rc = d_bvec_check( pastix_data );
                 }
             }
         }
@@ -146,25 +143,26 @@ int main ( int argc, char **argv )
     else {
         switch( flttype ){
         case SpmComplex64:
-            rc = z_bvec_check( pastix_data, m );
+            rc = z_bvec_check( pastix_data );
             break;
 
         case SpmComplex32:
-            rc = c_bvec_check( pastix_data, m );
+            rc = c_bvec_check( pastix_data );
             break;
 
         case SpmFloat:
-            rc = s_bvec_check( pastix_data, m );
+            rc = s_bvec_check( pastix_data );
             break;
 
         case SpmDouble:
         default:
-            rc = d_bvec_check( pastix_data, m );
+            rc = d_bvec_check( pastix_data );
         }
     }
 
-    spmExit( spm );
     pastixFinalize( &pastix_data );
+    spmExit( spm );
+    free( spm );
 
     return rc;
 }
