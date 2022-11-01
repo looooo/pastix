@@ -206,7 +206,7 @@ int main (int argc, char **argv)
             }
 
             if ( mpi_type > 0 ) {
-                bcscExit( pastix_data->bcsc );
+                bcsc_exit_struct( pastix_data->bcsc );
                 free( pastix_data->bcsc );
                 pastix_data->bcsc = NULL;
             }
@@ -231,9 +231,9 @@ int main (int argc, char **argv)
         }
     }
 
+    pastixFinalize( &pastix_data );
     spmExit( original );
     free( original );
-    pastixFinalize( &pastix_data );
 
     (void)clustnbr;
     return rc;
