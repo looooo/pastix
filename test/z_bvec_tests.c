@@ -240,6 +240,218 @@ int
 z_bvec_check( pastix_data_t *pastix_data )
 {
     pastix_bcsc_t      *bcsc = pastix_data->bcsc;
+    pastix_int_t        lm, gm, n = 1;
+    int                 lrc, grc, rc = 0;
+    pastix_complex64_t *x, *y;
+    pastix_complex64_t *x0, *y0;
+    pastix_complex64_t  alpha = 3.5;
+    struct z_solver     solver;
+    unsigned long long  seedX = 3927;
+    unsigned long long  seedY = 9846;
+    double              eps, result;
+
+    eps = LAPACKE_dlamch_work('e');
+
+    z_refine_init( &solver, pastix_data );
+
+    gm = bcsc->gN;
+    lm = bcsc->n;
+    lm = gm;
+
+    x = malloc( sizeof(pastix_complex64_t) * lm * n );
+    y = malloc( sizeof(pastix_complex64_t) * lm * n );
+    memset( x, 0xdead, sizeof(pastix_complex64_t) * lm * n );
+    memset( y, 0xdead, sizeof(pastix_complex64_t) * lm * n );
+
+    /*
+     * generate vectors
+     */
+    z_init( pastix_data, seedX, n, x, lm );
+
+    /*
+     * Check the copy
+     */
+    {
+        if ( pastix_data->procnum == 0 ) {
+            printf(" == Check copy function : ");
+        }
+        solver.copy( pastix_data, lm, x, y );
+
+        lrc = z_bvec_compare( pastix_data, lm, n, x, lm, y, lm );
+        MPI_Allreduce( &lrc, &grc, 1, MPI_INT, MPI_SUM, pastix_data->inter_node_comm );
+
+        if ( pastix_data->procnum == 0 ) {
+            printf( grc == 0 ? "SUCCESS\n" : "FAILURE\n" );
+        }
+        rc += grc;
+    }
+
+    /* Generate a backup of y to compute through cblas in order to compare with */
+    y0 = malloc( sizeof(pastix_complex64_t) * lm * n );
+    memset( y0, 0xdead, sizeof(pastix_complex64_t) * lm * n );
+    z_init( pastix_data, seedY, n, y,  lm );
+    z_init( pastix_data, seedY, n, y0, lm );
+
+    /*
+     * Check the axpy
+     */
+    {
+        if ( pastix_data->procnum == 0 ) {
+            printf(" == Check axpy function : ");
+        }
+        solver.axpy( pastix_data, lm, alpha, x, y );
+
+        cblas_zaxpy( lm * n, CBLAS_SADDR(alpha), x, 1, y0, 1 );
+
+        lrc = z_bvec_compare( pastix_data, lm, n, y, lm, y0, lm );
+        MPI_Allreduce( &lrc, &grc, 1, MPI_INT, MPI_SUM, pastix_data->inter_node_comm );
+
+        if ( pastix_data->procnum == 0 ) {
+            printf( grc == 0 ? "SUCCESS\n" : "FAILURE\n" );
+        }
+        rc += grc;
+    }
+
+    /* Restore y and y0 */
+    z_init( pastix_data, seedY, n, y,  lm );
+    z_init( pastix_data, seedY, n, y0, lm );
+
+    /*
+     * Check the scal
+     */
+    {
+        if ( pastix_data->procnum == 0 ) {
+            printf(" == Check scal function : ");
+        }
+
+        solver.scal( pastix_data, lm, alpha, y );
+
+        cblas_zscal( lm * n, CBLAS_SADDR(alpha), y0, 1 );
+
+        lrc = z_bvec_compare( pastix_data, lm, n, y, lm, y0, lm );
+        MPI_Allreduce( &lrc, &grc, 1, MPI_INT, MPI_SUM, pastix_data->inter_node_comm );
+
+        if ( pastix_data->procnum == 0 ) {
+            printf( grc == 0 ? "SUCCESS\n" : "FAILURE\n" );
+        }
+        rc += grc;
+    }
+
+    free( y0 );
+
+    /* Restore x0, y, and y0 */
+    z_init( pastix_data, seedY, n, y, lm );
+    if ( pastix_data->procnum == 0 ) {
+        x0 = malloc( sizeof(pastix_complex64_t) * gm );
+        y0 = malloc( sizeof(pastix_complex64_t) * gm );
+        core_zplrnt( gm, n, x0, gm, gm, 0, 0, seedX );
+        core_zplrnt( gm, n, y0, gm, gm, 0, 0, seedY );
+    }
+
+    /*
+     * Check the dot
+     */
+    {
+        pastix_complex64_t ldotc, gdotc;
+
+        if ( pastix_data->procnum == 0 ) {
+            printf(" == Check dot function : ");
+        }
+
+        /* Restore y */
+        ldotc = solver.dot( pastix_data, lm, x, y );
+
+        if ( pastix_data->procnum == 0 ) {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+            cblas_zdotc_sub( gm, x0, 1, y0, 1, &gdotc );
+#else
+            gdotc = cblas_zdotc( gm, x0, 1, y0, 1 );
+#endif
+        }
+
+        MPI_Bcast( &gdotc, 1, MPI_DOUBLE_COMPLEX, 0, pastix_data->inter_node_comm );
+        result = cabs(ldotc - gdotc) / (gm * eps);
+        if (  isinf(cabs(ldotc)) || isinf(cabs(ldotc)) ||
+              isnan(result) || isinf(result) || (result > 10.0) )
+        {
+            lrc = 1;
+        }
+        else {
+            lrc = 0;
+        }
+
+        MPI_Allreduce( &lrc, &grc, 1, MPI_INT, MPI_SUM, pastix_data->inter_node_comm );
+        if ( pastix_data->procnum == 0 ) {
+            if ( grc == 0 ) {
+                printf( "SUCCESS\n" );
+            }
+            else {
+#if defined(PRECISION_z) || defined(PRECISION_c)
+                printf( "FAILURE\n local dot = %e + i * %e, global dot = %e + i * %e ( %e )\n",
+                        creal(ldotc), cimag(ldotc), creal(gdotc), cimag(gdotc), result );
+#else
+                printf( "FAILURE\n local dot = %e, global dot = %e ( %e )\n",
+                        ldotc, gdotc, result );
+#endif
+            }
+        }
+        rc += grc;
+    }
+
+    /*
+     * Check the norm
+     */
+    {
+        double lnorm, gnorm;
+
+        if ( pastix_data->procnum == 0 ) {
+            printf(" == Check norm function : ");
+        }
+
+        lnorm = solver.norm( pastix_data, lm, x );
+
+        if ( pastix_data->procnum == 0 ) {
+            gnorm = cblas_dznrm2( gm, x0, 1 );
+        }
+
+        MPI_Bcast( &gnorm, 1, MPI_DOUBLE, 0, pastix_data->inter_node_comm );
+        result = fabs(lnorm - gnorm) / (gm * eps);
+        if (  isinf(lnorm) || isinf(lnorm) ||
+              isnan(result) || isinf(result) || (result > 10.0) ) {
+            lrc = 1;
+        }
+        else {
+            lrc = 0;
+        }
+
+        MPI_Allreduce( &lrc, &grc, 1, MPI_INT, MPI_SUM, pastix_data->inter_node_comm );
+        if ( pastix_data->procnum == 0 ) {
+            if ( grc == 0 ) {
+                printf( "SUCCESS\n" );
+            }
+            else {
+                printf( "FAILURE\n local norm = %e, global norm = %e ( %e )\n",
+                        lnorm, gnorm, result );
+            }
+        }
+        rc += grc;
+    }
+
+    if ( pastix_data->procnum == 0 ) {
+        free( x0 );
+        free( y0 );
+    }
+
+    free( x );
+    free( y );
+
+    return rc;
+}
+
+int
+z_bvec_time( pastix_data_t *pastix_data )
+{
+    pastix_bcsc_t      *bcsc = pastix_data->bcsc;
     Clock               timer;
     pastix_int_t        lm, gm, n = 1;
     int                 i;

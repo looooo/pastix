@@ -143,20 +143,20 @@ int main ( int argc, char **argv )
     else {
         switch( flttype ){
         case SpmComplex64:
-            rc = z_bvec_check( pastix_data );
+            rc = z_bvec_time( pastix_data );
             break;
 
         case SpmComplex32:
-            rc = c_bvec_check( pastix_data );
+            rc = c_bvec_time( pastix_data );
             break;
 
         case SpmFloat:
-            rc = s_bvec_check( pastix_data );
+            rc = s_bvec_time( pastix_data );
             break;
 
         case SpmDouble:
         default:
-            rc = d_bvec_check( pastix_data );
+            rc = d_bvec_time( pastix_data );
         }
     }
 
