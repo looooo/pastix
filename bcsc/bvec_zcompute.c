@@ -525,7 +525,7 @@ struct z_argument_dotc_s
  *
  * @ingroup bcsc
  *
- * @brief Compute the scalar product x.conj(y). (Sequential version)
+ * @brief Compute the scalar product conj(x).y (Sequential version)
  *
  *******************************************************************************
  *
@@ -544,7 +544,7 @@ struct z_argument_dotc_s
  *
  *******************************************************************************
  *
- * @retval the scalar product of x and conj(y).
+ * @retval the scalar product of conj(x) and y.
  *
  *******************************************************************************/
 pastix_complex64_t
@@ -570,7 +570,7 @@ bvec_zdotc_seq( pastix_data_t            *pastix_data,
         xptr = x + scblk->lcolidx;
         yptr = y + scblk->lcolidx;
         for( j=0; j<n; j++, xptr++, yptr++ ) {
-            r += (*xptr) * conj(*yptr);
+            r += conj(*xptr) * (*yptr);
         }
     }
 
@@ -587,7 +587,7 @@ bvec_zdotc_seq( pastix_data_t            *pastix_data,
  *
  * @ingroup bcsc_internal
  *
- * @brief Compute the scalar product x.conj(y). (Parallel version)
+ * @brief Compute the scalar product conj(x).y. (Parallel version)
  *
  *******************************************************************************
  *
@@ -625,7 +625,7 @@ pthread_bvec_zdotc( isched_thread_t *ctx,
 
     for ( i = begin; i < end; i++, xptr++, yptr++ )
     {
-        r += (*xptr) * conj(*yptr);
+        r += conj(*xptr) * (*yptr);
     }
 
     if ( cabs(r) > 0. ) {
@@ -640,7 +640,7 @@ pthread_bvec_zdotc( isched_thread_t *ctx,
  *
  * @ingroup bcsc
  *
- * @brief Compute a scalar product between complex vectors: x.conj(y)
+ * @brief Compute a scalar product between complex vectors: conj(x).y
  * (Parallel version)
  *
  *******************************************************************************
@@ -1164,7 +1164,8 @@ pthread_bvec_zgemv( isched_thread_t *ctx,
                     void            *args )
 {
     struct z_gemv_s          *arg   = (struct z_gemv_s*)args;
-    pastix_int_t              m     = arg->m, sub_m;
+    pastix_int_t              m     = arg->m;
+    pastix_int_t              sub_m;
     pastix_int_t              n     = arg->n;
     pastix_complex64_t        alpha = arg->alpha;
     const pastix_complex64_t *A     = arg->A;
