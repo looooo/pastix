@@ -219,6 +219,16 @@ bvec_znrm2_smp( pastix_data_t            *pastix_data,
     struct z_argument_nrm2_s arg = { n, x, PASTIX_ATOMIC_UNLOCKED, 0., 1. };
     isched_parallel_call( pastix_data->isched, pthread_bvec_znrm2, &arg );
 
+#if defined(PASTIX_WITH_MPI)
+    {
+        MPI_Op merge;
+
+        MPI_Op_create( (MPI_User_function *)bvec_zmpi_frb_merge, 1, &merge );
+        MPI_Allreduce( MPI_IN_PLACE, &(arg.scale), 2, MPI_DOUBLE, merge, pastix_data->solvmatr->solv_comm );
+        MPI_Op_free( &merge );
+    }
+#endif
+
     return arg.scale * sqrt( arg.sumsq );
 }
 
@@ -671,6 +681,11 @@ bvec_zdotc_smp( pastix_data_t            *pastix_data,
     struct z_argument_dotc_s arg = {n, x, y, PASTIX_ATOMIC_UNLOCKED, 0.0};
     isched_parallel_call( pastix_data->isched, pthread_bvec_zdotc, &arg );
 
+#if defined(PASTIX_WITH_MPI)
+    MPI_Allreduce( MPI_IN_PLACE, &(arg.sum), 1, PASTIX_MPI_COMPLEX64,
+                   MPI_SUM, pastix_data->solvmatr->solv_comm );
+#endif
+
     return arg.sum;
 }
 #endif
@@ -831,6 +846,11 @@ bvec_zdotu_smp( pastix_data_t            *pastix_data,
 {
     struct z_argument_dotc_s arg = {n, x, y, PASTIX_ATOMIC_UNLOCKED, 0.0};
     isched_parallel_call( pastix_data->isched, pthread_bvec_zdotu, &arg );
+
+#if defined(PASTIX_WITH_MPI)
+    MPI_Allreduce( MPI_IN_PLACE, &(arg.sum), 1, PASTIX_MPI_COMPLEX64,
+                   MPI_SUM, pastix_data->solvmatr->solv_comm );
+#endif
 
     return arg.sum;
 }
