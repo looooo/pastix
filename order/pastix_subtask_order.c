@@ -188,6 +188,10 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      * operations as symmetrizing the graph and removing the diagonal
      * coefficients
      */
+    if ( pastix_data->graph != NULL ) {
+        graphExit( pastix_data->graph );
+        memFree_null( pastix_data->graph );
+    }
     graphPrepare( pastix_data, spm, &(pastix_data->graph) );
     graph   = pastix_data->graph;
     spmbase = spmFindBase( spm );
