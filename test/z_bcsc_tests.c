@@ -40,13 +40,17 @@ z_bcsc_spmv_check( spm_trans_t       trans,
                    const spmatrix_t *spm,
                    pastix_data_t    *pastix_data )
 {
-    unsigned long long int seed = 35469;
-    pastix_complex64_t *x, *y0, *ys, *yd;
+    unsigned long long int seed  = 35469;
+    unsigned long long int seedX = 79243;
+    unsigned long long int seedY = 29037;
+    pastix_complex64_t *xd, *yd; /* The potentially distributed or replicated vectors    */
+    pastix_complex64_t *xr, *yr; /* The always replicated vectors to validate the result */
     pastix_complex64_t alpha, beta;
 
-    double Anorm, Xnorm, Y0norm, Ysnorm, Ydnorm, Rnorm;
+    double Anorm, Xnorm, Ynorm, Yrnorm, Ydnorm, Rnorm;
     double eps, result;
-    int rc, info_solution, start = 1;
+    int    rc, info_solution, start = 1;
+    int    nrhs = 1;
 
     eps = LAPACKE_dlamch_work('e');
 
@@ -59,72 +63,133 @@ z_bcsc_spmv_check( spm_trans_t       trans,
     beta  = creal( beta  );
 #endif
 
-    x = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
-    core_zplrnt( spm->gN, 1, x, spm->gN, 1, start, 0, seed ); start += spm->gN;
+    /* spm->nexp should always be of the correct size for both replicated and distributed vectors */
+    xd = (pastix_complex64_t*)malloc( spm->nexp  * sizeof(pastix_complex64_t) );
+    yd = (pastix_complex64_t*)malloc( spm->nexp  * sizeof(pastix_complex64_t) );
+    yr = (pastix_complex64_t*)malloc( spm->gNexp * sizeof(pastix_complex64_t) );
 
-    y0 = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
-    core_zplrnt( spm->gN, 1, y0, spm->gN, 1, start, 0, seed ); start += spm->gN;
+    if ( spm->loc2glob == NULL ) {
+        /* The vectors are replicated */
+        core_zplrnt( spm->nexp, nrhs, xd, spm->nexp, spm->gNexp, 0, 0, seedX );
+        core_zplrnt( spm->nexp, nrhs, yd, spm->nexp, spm->gNexp, 0, 0, seedY );
+        xr = xd;
+    }
+    else {
+        /* The vectors are distributed */
+        z_init( pastix_data, seedX, nrhs, xd, spm->nexp );
+        z_init( pastix_data, seedY, nrhs, yd, spm->nexp );
 
-    /* Allocate cs/cd */
-    ys = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
-    yd = (pastix_complex64_t*)malloc(spm->gN * sizeof(pastix_complex64_t));
+        xr = (pastix_complex64_t*)malloc( spm->gNexp * sizeof(pastix_complex64_t) );
+        core_zplrnt( spm->gNexp, nrhs, xr, spm->gNexp, spm->gNexp, 0, 0, seedX );
+    }
 
-    /* Initialize cs/cd */
-    memcpy( ys, y0, spm->gN * sizeof(pastix_complex64_t) );
-    memcpy( yd, y0, spm->gN * sizeof(pastix_complex64_t) );
+    core_zplrnt( spm->gNexp, nrhs, yr, spm->gNexp, spm->gNexp, 0, 0, seedY );
+
+    if ( trans == SpmNoTrans ) {
+        Anorm = spmNorm( SpmInfNorm, spm );
+    }
+    else {
+        Anorm = spmNorm( SpmOneNorm, spm );
+    }
+    Xnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gNexp, 1, xr, spm->gNexp );
+    Ynorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gNexp, 1, yr, spm->gNexp );
 
     /* Compute the spm matrix-vector product */
-    rc = spmMatVec( trans, alpha, spm, x, beta, ys );
-    if ( rc != SPM_SUCCESS ) {
-        info_solution = 1;
-        goto end;
+    {
+        rc = spmMatVec( trans, alpha, spm, xr, beta, yr );
+        if ( rc != SPM_SUCCESS ) {
+            info_solution = 1;
+            goto end;
+        }
     }
 
     /* Compute the bcsc matrix-vector product */
-    struct pastix_rhs_s Pyd = {
-        .allocated = 0,
-        .flttype   = PastixComplex64,
-        .m         = pastix_data->bcsc->gN,
-        .n         = 1,
-        .ld        = pastix_data->bcsc->gN,
-        .b         = yd,
-    };
-    struct pastix_rhs_s Px = {
-        .allocated = 0,
-        .flttype   = PastixComplex64,
-        .m         = pastix_data->bcsc->gN,
-        .n         = 1,
-        .ld        = pastix_data->bcsc->gN,
-        .b         = x,
-    };
-    bvec_zlapmr( pastix_data, PastixDirForward, pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, &Pyd );
-    bvec_zlapmr( pastix_data, PastixDirForward, pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, &Px  );
+    {
+        pastix_int_t m = pastix_data->bcsc->gN;
 
-    bcsc_zspmv( pastix_data, (pastix_trans_t)trans, alpha, x, beta, yd );
+        struct pastix_rhs_s Pxd = {
+            .allocated = 0,
+            .flttype   = PastixComplex64,
+            .m         = m,
+            .n         = nrhs,
+            .ld        = m,
+            .b         = xd,
+        };
+        struct pastix_rhs_s Pyd = {
+            .allocated = 0,
+            .flttype   = PastixComplex64,
+            .m         = m,
+            .n         = nrhs,
+            .ld        = m,
+            .b         = yd,
+        };
 
-    bvec_zlapmr( pastix_data, PastixDirBackward, pastix_data->bcsc->gN, 1, yd, pastix_data->bcsc->gN, &Pyd );
-    bvec_zlapmr( pastix_data, PastixDirBackward, pastix_data->bcsc->gN, 1, x,  pastix_data->bcsc->gN, &Px  );
+        bvec_zlapmr( pastix_data, PastixDirForward, spm->nexp, nrhs, xd, spm->nexp, &Pxd );
+        bvec_zlapmr( pastix_data, PastixDirForward, spm->nexp, nrhs, yd, spm->nexp, &Pyd );
+
+        bcsc_zspmv( pastix_data, (pastix_trans_t)trans, alpha, xd, beta, yd );
+
+        bvec_zlapmr( pastix_data, PastixDirBackward, spm->nexp, nrhs, xd, spm->nexp, &Pxd );
+        bvec_zlapmr( pastix_data, PastixDirBackward, spm->nexp, nrhs, yd, spm->nexp, &Pyd );
+    }
 
     info_solution = 0;
-    Anorm  = spmNorm( SpmInfNorm, spm );
-    Xnorm  = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1,  x, spm->gN );
-    Y0norm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1, y0, spm->gN );
-    Ysnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1, ys, spm->gN );
-    Ydnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gN, 1, yd, spm->gN );
+    Yrnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'I', spm->gNexp, nrhs, yr, spm->gNexp ); /* Spm computation  */
+    Ydnorm = spmNormMat( SpmInfNorm, spm, nrhs, yd, spm->nexp );                        /* bcsc computation */
 
-    core_zgeadd( PastixNoTrans, spm->gN, 1,
-                 -1., ys, spm->gN,
-                  1., yd, spm->gN );
-    Rnorm = LAPACKE_zlange( LAPACK_COL_MAJOR, 'M', spm->gN, 1, yd, spm->gN );
+    /* Compute the max norm of the difference of the two computations */
+    {
+        pastix_complex64_t *yref = yr;
+        pastix_complex64_t *ynew = yd;
+        pastix_int_t        i, j;
+        double              val;
+
+        Rnorm = 0.;
+
+        if ( spm->loc2glob == NULL ) {
+            for( j=0; j<nrhs; j++ ) {
+                for( i=0; i<spm->gNexp; i++, ynew++, yref++ ) {
+                    val = cabs(*yref - *ynew);
+
+                    if ( val > Rnorm ) {
+                        Rnorm = val;
+                    }
+                }
+            }
+        }
+        else {
+            pastix_int_t *loc2glob = spm->loc2glob;
+            pastix_int_t  ig, baseval = spm->baseval;
+
+            for( j=0; j<nrhs; j++ ) {
+                for( i=0; i<spm->nexp; i++, ynew++, loc2glob++ ) {
+                    ig  = *loc2glob - baseval;
+                    val = cabs(yref[ig] - *ynew);
+
+                    if ( val > Rnorm ) {
+                        Rnorm = val;
+                    }
+                }
+            }
+
+#if defined(PASTIX_WITH_MPI)
+            MPI_Allreduce( MPI_IN_PLACE, &Rnorm, 1, MPI_DOUBLE,
+                           MPI_MAX, pastix_data->inter_node_comm );
+#endif
+        }
+    }
 
     if ( 1 ) {
         printf("  ||A||_inf = %e, ||x||_inf = %e, ||y||_inf = %e\n"
                "  ||spm(a*A*x+b*y)||_inf = %e, ||bcsc(a*A*x+b*y)||_inf = %e, ||R||_m = %e\n",
-               Anorm, Xnorm, Y0norm, Ysnorm, Ydnorm, Rnorm);
+               Anorm, Xnorm, Ynorm, Yrnorm, Ydnorm, Rnorm);
     }
 
-    result = Rnorm / ((Anorm + Xnorm + Y0norm) * spm->gN* eps);
-    if (  isinf(Ydnorm) || isinf(Ysnorm) ||
+    /*
+     * Use the average degree as a limit, the exact max degree should be computed to be correct
+     */
+    result = Rnorm / ((Anorm + Xnorm + Ynorm) * ((double)spm->gnnzexp / (double)spm->gNexp) * eps);
+    if (  isinf(Ydnorm) || isinf(Yrnorm) ||
           isnan(result) || isinf(result) || (result > 10.0) ) {
         info_solution = 1;
     }
@@ -138,7 +203,10 @@ z_bcsc_spmv_check( spm_trans_t       trans,
                    MPI_SUM, pastix_data->inter_node_comm );
 #endif
 
-    free(x); free(y0); free(ys); free(yd);
+    if ( spm->loc2glob != NULL ) {
+        free( xr );
+    }
+    free(xd); free(yr); free(yd);
 
     return info_solution;
 }

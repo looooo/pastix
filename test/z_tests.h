@@ -23,12 +23,14 @@
 
 extern pastix_lr_t z_lowrank;
 
+void z_init( pastix_data_t *pastix_data, unsigned long long seed, pastix_int_t n, pastix_complex64_t *A, pastix_int_t lda );
 int z_bcsc_spmv_time( pastix_data_t *pastix_data, const spmatrix_t *spm, pastix_int_t nrhs );
 
 int z_bcsc_spmv_check( spm_trans_t trans, const spmatrix_t *spm, pastix_data_t *pastix_data );
 int z_bcsc_norm_check( const spmatrix_t   *spm, const pastix_bcsc_t *bcsc );
 int z_bvec_gemv_check( pastix_data_t *pastix_data, int check, int m, int n );
-int z_bvec_check( pastix_data_t *pastix_data, pastix_int_t m );
+int z_bvec_check( pastix_data_t *pastix_data );
+int z_bvec_time( pastix_data_t *pastix_data );
 int z_bvec_compare( pastix_data_t            *pastix_data,
                     pastix_int_t              m,
                     pastix_int_t              n,

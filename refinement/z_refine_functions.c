@@ -129,8 +129,7 @@ void z_refine_init( struct z_solver *solver, pastix_data_t *pastix_data )
 
     /* Basic operations */
     solver->spsv = &bcsc_zspsv;
-    if ( (sched == PastixSchedSequential)      ||
-         (pastix_data->inter_node_procnbr > 1) )
+    if ( sched == PastixSchedSequential )
     {
         solver->spmv = &bcsc_zspmv;
         solver->copy = &bvec_zcopy_seq;

@@ -219,6 +219,16 @@ bvec_znrm2_smp( pastix_data_t            *pastix_data,
     struct z_argument_nrm2_s arg = { n, x, PASTIX_ATOMIC_UNLOCKED, 0., 1. };
     isched_parallel_call( pastix_data->isched, pthread_bvec_znrm2, &arg );
 
+#if defined(PASTIX_WITH_MPI)
+    {
+        MPI_Op merge;
+
+        MPI_Op_create( (MPI_User_function *)bvec_zmpi_frb_merge, 1, &merge );
+        MPI_Allreduce( MPI_IN_PLACE, &(arg.scale), 2, MPI_DOUBLE, merge, pastix_data->solvmatr->solv_comm );
+        MPI_Op_free( &merge );
+    }
+#endif
+
     return arg.scale * sqrt( arg.sumsq );
 }
 
@@ -525,7 +535,7 @@ struct z_argument_dotc_s
  *
  * @ingroup bcsc
  *
- * @brief Compute the scalar product x.conj(y). (Sequential version)
+ * @brief Compute the scalar product conj(x).y (Sequential version)
  *
  *******************************************************************************
  *
@@ -544,7 +554,7 @@ struct z_argument_dotc_s
  *
  *******************************************************************************
  *
- * @retval the scalar product of x and conj(y).
+ * @retval the scalar product of conj(x) and y.
  *
  *******************************************************************************/
 pastix_complex64_t
@@ -570,7 +580,7 @@ bvec_zdotc_seq( pastix_data_t            *pastix_data,
         xptr = x + scblk->lcolidx;
         yptr = y + scblk->lcolidx;
         for( j=0; j<n; j++, xptr++, yptr++ ) {
-            r += (*xptr) * conj(*yptr);
+            r += conj(*xptr) * (*yptr);
         }
     }
 
@@ -587,7 +597,7 @@ bvec_zdotc_seq( pastix_data_t            *pastix_data,
  *
  * @ingroup bcsc_internal
  *
- * @brief Compute the scalar product x.conj(y). (Parallel version)
+ * @brief Compute the scalar product conj(x).y. (Parallel version)
  *
  *******************************************************************************
  *
@@ -625,7 +635,7 @@ pthread_bvec_zdotc( isched_thread_t *ctx,
 
     for ( i = begin; i < end; i++, xptr++, yptr++ )
     {
-        r += (*xptr) * conj(*yptr);
+        r += conj(*xptr) * (*yptr);
     }
 
     if ( cabs(r) > 0. ) {
@@ -640,7 +650,7 @@ pthread_bvec_zdotc( isched_thread_t *ctx,
  *
  * @ingroup bcsc
  *
- * @brief Compute a scalar product between complex vectors: x.conj(y)
+ * @brief Compute a scalar product between complex vectors: conj(x).y
  * (Parallel version)
  *
  *******************************************************************************
@@ -670,6 +680,11 @@ bvec_zdotc_smp( pastix_data_t            *pastix_data,
 {
     struct z_argument_dotc_s arg = {n, x, y, PASTIX_ATOMIC_UNLOCKED, 0.0};
     isched_parallel_call( pastix_data->isched, pthread_bvec_zdotc, &arg );
+
+#if defined(PASTIX_WITH_MPI)
+    MPI_Allreduce( MPI_IN_PLACE, &(arg.sum), 1, PASTIX_MPI_COMPLEX64,
+                   MPI_SUM, pastix_data->solvmatr->solv_comm );
+#endif
 
     return arg.sum;
 }
@@ -831,6 +846,11 @@ bvec_zdotu_smp( pastix_data_t            *pastix_data,
 {
     struct z_argument_dotc_s arg = {n, x, y, PASTIX_ATOMIC_UNLOCKED, 0.0};
     isched_parallel_call( pastix_data->isched, pthread_bvec_zdotu, &arg );
+
+#if defined(PASTIX_WITH_MPI)
+    MPI_Allreduce( MPI_IN_PLACE, &(arg.sum), 1, PASTIX_MPI_COMPLEX64,
+                   MPI_SUM, pastix_data->solvmatr->solv_comm );
+#endif
 
     return arg.sum;
 }
@@ -1164,7 +1184,8 @@ pthread_bvec_zgemv( isched_thread_t *ctx,
                     void            *args )
 {
     struct z_gemv_s          *arg   = (struct z_gemv_s*)args;
-    pastix_int_t              m     = arg->m, sub_m;
+    pastix_int_t              m     = arg->m;
+    pastix_int_t              sub_m;
     pastix_int_t              n     = arg->n;
     pastix_complex64_t        alpha = arg->alpha;
     const pastix_complex64_t *A     = arg->A;

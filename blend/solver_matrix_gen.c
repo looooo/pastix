@@ -163,7 +163,9 @@ solverMatrixGen( SolverMatrix          *solvmtx,
             tasks2D = candcblk->cblktype & CBLK_TASKS_2D;
 
             if ( simuctrl->cblktab[i].owned ) {
-                pastix_int_t cblksize;
+                pastix_int_t cblksize, fcolnum, lcolnum;
+
+                symbol_cblk_get_colnum( symbmtx, symbcblk, &fcolnum, &lcolnum );
 
                 /*
                  * Register reception cblk
@@ -197,6 +199,14 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                     solvMatGen_cblkIs2D( solvmtx, &nbcblk2d, &nbblok2d,
                                          (solvblok - solvcblk->fblokptr),
                                          tasks2D, cblknum );
+
+                    /*
+                     * lcolidx of the RECV block must be shifted is the
+                     * reception does not start at the firs column
+                     */
+                    solvcblk->lcolidx = solvcblk->fcolnum;
+                    /* WARNING: Should be next line with distributed rhs */
+                    // solvcblk->lcolidx = nodenbr + solvcblk->fcolnum - fcolnum;
 
                     recvcnt++;
                     solvmtx->recvcnt++;
@@ -257,6 +267,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                 solvcblk->cblktype |= CBLK_FANIN;
                 solvmtx->fanincnt++;
                 solvcblk->bcscnum = -( solvmtx->fanincnt + solvmtx->recvcnt );
+                solvcblk->fblokptr->fcblknm = -1; /* fcblknm has no meaning for fanin, so let's set it to -1 */
 
                 nbcols = cblk_colnbr( solvcblk );
 
@@ -347,6 +358,9 @@ solverMatrixGen( SolverMatrix          *solvmtx,
             solvMatGen_init_cblk( solvcblk, solvblok, candcblk, symbcblk,
                                   solvcblk[-1].lcolnum + 1, solvcblk[-1].lcolnum + 1,
                                   brownum, 0, -1, solvmtx->clustnum );
+            solvcblk->lcolidx = solvcblk->fcolnum;
+            /* WARNING: Should be next line with distributed rhs */
+            // solvcblk->lcolidx = nodenbr;
         }
 
         /*  Add a virtual blok to avoid side effect in the loops on cblk bloks */
@@ -557,6 +571,7 @@ solverMatrixGenSeq( SolverMatrix          *solvmtx,
             solvMatGen_init_cblk( solvcblk, solvblok, candcblk, symbcblk,
                                   solvcblk[-1].lcolnum + 1, solvcblk[-1].lcolnum + 1,
                                   symbcblk->brownum, 0, -1, ctrl->clustnum);
+            solvcblk->lcolidx = solvcblk->fcolnum;
         }
 
         /*  Add a virtual blok to avoid side effect in the loops on cblk bloks */
