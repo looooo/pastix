@@ -198,6 +198,8 @@ __bcsc_zspmv_loop( const SolverMatrix       *solvmtx,
         const SolverCblk   *solv_cblk = solvmtx->cblktab + cblk->cblknum;
         pastix_complex64_t *yptr      = y + solv_cblk->lcolidx;
 
+        assert( !(solv_cblk->cblktype & (CBLK_FANIN|CBLK_RECV)) );
+
         zspmv_Ax( bcsc, cblk, alpha, valptr, x, beta, yptr );
     }
 }
@@ -417,6 +419,7 @@ pthread_bcsc_zspmv_tasktab( isched_thread_t *ctx,
                 return;
             }
             __bcsc_zspmv_Ax_ind( bcsc, alpha, valptr, x, beta, y );
+            return;
         }
     }
 #if defined(PRECISION_z) || defined(PRECISION_c)
@@ -436,7 +439,7 @@ pthread_bcsc_zspmv_tasktab( isched_thread_t *ctx,
 
         solv_cblk = mtx->cblktab + t->cblknum;
         bcsc_cblk = bcsc->cscftab + solv_cblk->bcscnum;
-        yptr = y + solv_cblk->fcolnum;
+        yptr = y + solv_cblk->lcolidx;
 
         zspmv_Ax( bcsc, bcsc_cblk, alpha, valptr, x, beta, yptr );
     }
@@ -630,8 +633,9 @@ bcsc_zspmv( const pastix_data_t      *pastix_data,
             pastix_complex64_t        beta,
             pastix_complex64_t       *y )
 {
-    pastix_int_t   *iparm  = pastix_data->iparm;
-    pastix_trans_t  transA = iparm[IPARM_TRANSPOSE_SOLVE];
+    const pastix_complex64_t *xglobal;
+    const pastix_int_t       *iparm  = pastix_data->iparm;
+    pastix_trans_t            transA = iparm[IPARM_TRANSPOSE_SOLVE];
 
     /*
      * trans           | transA          | Final
@@ -658,15 +662,17 @@ bcsc_zspmv( const pastix_data_t      *pastix_data,
     }
 
     /* y is duplicated on all nodes. Set to 0 non local data */
-    bvec_znullify_remote( pastix_data, y );
+    xglobal = bvec_zgather_remote( pastix_data, x );
 
     if ( (iparm[IPARM_SCHEDULER] == PastixSchedStatic) ||
          (iparm[IPARM_SCHEDULER] == PastixSchedDynamic) ) {
-        bcsc_zspmv_smp( pastix_data, trans, alpha, x, beta, y );
+        bcsc_zspmv_smp( pastix_data, trans, alpha, xglobal, beta, y );
     }
     else {
-        bcsc_zspmv_seq( pastix_data, trans, alpha, x, beta, y );
+        bcsc_zspmv_seq( pastix_data, trans, alpha, xglobal, beta, y );
     }
 
-    bvec_zallreduce( pastix_data, y );
+    if ( x != xglobal ) {
+        free( (void*)xglobal );
+    }
 }
