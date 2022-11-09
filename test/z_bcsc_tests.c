@@ -111,13 +111,13 @@ z_bcsc_spmv_check( spm_trans_t       trans,
 
         pastixRhsInit( &Pxd );
         pastixRhsInit( &Pyd );
-        pastix_subtask_applyorder( pastix_data, PastixDirForward, spm->nexp, nrhs, xd, spm->nexp, Pxd );
-        pastix_subtask_applyorder( pastix_data, PastixDirForward, spm->nexp, nrhs, yd, spm->nexp, Pyd );
+        bvec_zlapmr( pastix_data, PastixDirForward, spm->nexp, nrhs, xd, spm->nexp, Pxd );
+        bvec_zlapmr( pastix_data, PastixDirForward, spm->nexp, nrhs, yd, spm->nexp, Pyd );
 
         bcsc_zspmv( pastix_data, (pastix_trans_t)trans, alpha, Pxd->b, beta, Pyd->b );
 
-        pastix_subtask_applyorder( pastix_data, PastixDirBackward, spm->nexp, nrhs, xd, spm->nexp, Pxd );
-        pastix_subtask_applyorder( pastix_data, PastixDirBackward, spm->nexp, nrhs, yd, spm->nexp, Pyd );
+        bvec_zlapmr( pastix_data, PastixDirBackward, spm->nexp, nrhs, xd, spm->nexp, Pxd );
+        bvec_zlapmr( pastix_data, PastixDirBackward, spm->nexp, nrhs, yd, spm->nexp, Pyd );
         pastixRhsFinalize( Pxd );
         pastixRhsFinalize( Pyd );
     }
