@@ -75,7 +75,8 @@ z_bcsc_spmv_check( spm_trans_t       trans,
         xr = xd;
     }
     else {
-        /* The vectors are distributed */
+        assert(0);
+        /* The vectors are distributed (TODO: Fix initialization based on spm instead of bcsc) */
         z_init( pastix_data, seedX, nrhs, xd, spm->nexp );
         z_init( pastix_data, seedY, nrhs, yd, spm->nexp );
 
@@ -105,32 +106,20 @@ z_bcsc_spmv_check( spm_trans_t       trans,
 
     /* Compute the bcsc matrix-vector product */
     {
-        pastix_int_t m = pastix_data->bcsc->n;
+        pastix_rhs_t Pxd;
+        pastix_rhs_t Pyd;
 
-        struct pastix_rhs_s Pxd = {
-            .allocated = 0,
-            .flttype   = PastixComplex64,
-            .m         = m,
-            .n         = nrhs,
-            .ld        = m,
-            .b         = xd,
-        };
-        struct pastix_rhs_s Pyd = {
-            .allocated = 0,
-            .flttype   = PastixComplex64,
-            .m         = m,
-            .n         = nrhs,
-            .ld        = m,
-            .b         = yd,
-        };
+        pastixRhsInit( &Pxd );
+        pastixRhsInit( &Pyd );
+        pastix_subtask_applyorder( pastix_data, PastixDirForward, spm->nexp, nrhs, xd, spm->nexp, Pxd );
+        pastix_subtask_applyorder( pastix_data, PastixDirForward, spm->nexp, nrhs, yd, spm->nexp, Pyd );
 
-        bvec_zlapmr( pastix_data, PastixDirForward, spm->nexp, nrhs, xd, spm->nexp, &Pxd );
-        bvec_zlapmr( pastix_data, PastixDirForward, spm->nexp, nrhs, yd, spm->nexp, &Pyd );
+        bcsc_zspmv( pastix_data, (pastix_trans_t)trans, alpha, Pxd->b, beta, Pyd->b );
 
-        bcsc_zspmv( pastix_data, (pastix_trans_t)trans, alpha, xd, beta, yd );
-
-        bvec_zlapmr( pastix_data, PastixDirBackward, spm->nexp, nrhs, xd, spm->nexp, &Pxd );
-        bvec_zlapmr( pastix_data, PastixDirBackward, spm->nexp, nrhs, yd, spm->nexp, &Pyd );
+        pastix_subtask_applyorder( pastix_data, PastixDirBackward, spm->nexp, nrhs, xd, spm->nexp, Pxd );
+        pastix_subtask_applyorder( pastix_data, PastixDirBackward, spm->nexp, nrhs, yd, spm->nexp, Pyd );
+        pastixRhsFinalize( Pxd );
+        pastixRhsFinalize( Pyd );
     }
 
     info_solution = 0;
@@ -180,9 +169,10 @@ z_bcsc_spmv_check( spm_trans_t       trans,
     }
 
     if ( 1 ) {
-        printf("  ||A||_inf = %e, ||x||_inf = %e, ||y||_inf = %e\n"
-               "  ||spm(a*A*x+b*y)||_inf = %e, ||bcsc(a*A*x+b*y)||_inf = %e, ||R||_m = %e\n",
-               Anorm, Xnorm, Ynorm, Yrnorm, Ydnorm, Rnorm);
+        printf("[%2d]  ||A||_inf = %e, ||x||_inf = %e, ||y||_inf = %e\n"
+               "[%2d]  ||spm(a*A*x+b*y)||_inf = %e, ||bcsc(a*A*x+b*y)||_inf = %e, ||R||_m = %e\n",
+               pastix_data->procnum, Anorm, Xnorm, Ynorm,
+               pastix_data->procnum, Yrnorm, Ydnorm, Rnorm );
     }
 
     /*
