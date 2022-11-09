@@ -104,11 +104,14 @@ int main (int argc, char **argv)
             {
                 continue;
             }
-            printf("   Case %s - %s - %s - %s:\n",
-                   schednames[s],
-                   fltnames[spm->flttype],
-                   mtxnames[spm->mtxtype - SpmGeneral],
-                   transnames[t - PastixNoTrans] );
+
+            if ( pastix_data->procnum == 0 ) {
+                printf("   Case %s - %s - %s - %s:\n",
+                       schednames[s],
+                       fltnames[spm->flttype],
+                       mtxnames[spm->mtxtype - SpmGeneral],
+                       transnames[t - PastixNoTrans] );
+            }
 
             switch( spm->flttype ){
             case SpmComplex64:
