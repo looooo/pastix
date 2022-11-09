@@ -408,9 +408,7 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
                            pastix_int_t   ldb,
                            pastix_rhs_t   Bp )
 {
-    const spmatrix_t *spm;
-    SolverMatrix     *solvmatr;
-    pastix_bcsc_t    *bcsc;
+    pastix_coeftype_t flttype;
 
     /*
      * Checks parameters.
@@ -430,51 +428,12 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    spm      = pastix_data->csc;
-    solvmatr = pastix_data->solvmatr;
-    bcsc     = pastix_data->bcsc;
-
-    assert( ldb >= m );
-    if ( dir == PastixDirForward ) {
-        Bp->flttype = spm->flttype;
-        Bp->m       = bcsc->n;
-        Bp->n       = n;
-
-        if ( solvmatr->clustnbr > 1 ) {
-            Bp->allocated = 1;
-            Bp->ld        = Bp->m;
-            Bp->b         = malloc( Bp->ld * Bp->n * pastix_size_of( Bp->flttype ) );
-        }
-        else {
-            assert( m == Bp->m );
-            Bp->allocated = 0;
-            Bp->ld        = ldb;
-            Bp->b         = b;
-        }
-    }
-#if !defined(NDEBUG)
-    else {
-        assert( Bp->allocated >= 0            );
-        assert( Bp->flttype   == spm->flttype );
-        assert( Bp->m         == bcsc->n      );
-        assert( Bp->n         == n            );
-
-        if ( Bp->allocated == 0 ) {
-            assert( Bp->b  == b );
-            assert( Bp->ld == ldb );
-        }
-        else {
-            assert( Bp->b  != b );
-            assert( Bp->ld == Bp->m );
-        }
-    }
-#endif
-
+    flttype = pastix_data->csc->flttype;
 #if defined(PASTIX_DEBUG_SOLVE)
     if ( dir == PastixDirForward ) {
         struct pastix_rhs_s rhsb = {
             .allocated = 0,
-            .flttype   = Bp->flttype,
+            .flttype   = flttype,
             .m         = m,
             .n         = n,
             .b         = b,
@@ -488,7 +447,7 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
 #endif
 
     /* See also xlapmr and xlapmt */
-    switch( Bp->flttype ) {
+    switch( flttype ) {
     case PastixComplex64:
         bvec_zlapmr( pastix_data, dir, m, n, b, ldb, Bp );
         break;
@@ -517,7 +476,7 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
     else {
         struct pastix_rhs_s rhsb = {
             .allocated = 0,
-            .flttype   = Bp->flttype,
+            .flttype   = flttype,
             .m         = m,
             .n         = n,
             .b         = b,
@@ -526,19 +485,6 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
         pastix_rhs_dump( pastix_data, "applyorder_Backward_output", &rhsb );
     }
 #endif
-
-    if ( dir == PastixDirBackward ) {
-        if ( Bp->allocated > 0 ) {
-            free( Bp->b );
-        }
-
-        Bp->allocated = -1;
-        Bp->flttype   = PastixPattern;
-        Bp->m         = -1;
-        Bp->n         = -1;
-        Bp->ld        = -1;
-        Bp->b         = NULL;
-    }
 
     return PASTIX_SUCCESS;
 }

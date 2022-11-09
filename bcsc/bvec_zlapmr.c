@@ -52,24 +52,8 @@
  * @param[in] pastix_data
  *          The pastix_data structure.
  *
- * @param[in] dir
- *          The direction of the permutation.
- *
- * @param[in] replicated
- *          True if the vector b is replicated on all the process, false if the
- *          vector is distributed.
- *
- * @param[in] m
- *          The number of rows in the matrix b.
- *
- * @param[in] nrhs
- *          The number of columns in the matrix b.
- *
- * @param[inout] b
- *          The matrix b ldb-by-nrhs.
- *
- * @param[in] ldb
- *          The leading dimension of b.
+ * @param[in] ig
+ *          Index global not permuted.
  *
  *******************************************************************************
  *
@@ -702,44 +686,43 @@ bvec_zlapmr_dst( __attribute__((unused)) pastix_data_t      *pastix_data,
  *
  *******************************************************************************/
 static inline int
-bvec_zlapmr_rep_vec2bvec( pastix_data_t      *pastix_data,
-                          pastix_int_t        m,
-                          pastix_int_t        nrhs,
-                          pastix_complex64_t *b,
-                          pastix_int_t        ldb,
-                          pastix_rhs_t        Pb  )
+bvec_zlapmr_rep_vec2bvec( const pastix_data_t      *pastix_data,
+                          pastix_int_t              m,
+                          pastix_int_t              nrhs,
+                          const pastix_complex64_t *b,
+                          pastix_int_t              ldb,
+                          pastix_rhs_t              Pb  )
 {
-    pastix_complex64_t  *pb;
-    const spmatrix_t    *spm    = pastix_data->csc;
-    const pastix_bcsc_t *bcsc   = pastix_data->bcsc;
-    pastix_int_t         dof    = spm->dof;
-    pastix_int_t        *dofs   = spm->dofs;
-    pastix_int_t         bcsc_n = bcsc->n;
-    pastix_int_t         ig, ige, dofi;
-    pastix_int_t         j, k, ldpb = Pb->ld;
+    pastix_complex64_t *pb;
+    const spmatrix_t   *spm  = pastix_data->csc;
+    pastix_int_t        dof  = spm->dof;
+    const pastix_int_t *dofs = spm->dofs;
+    pastix_int_t        ldpb = Pb->ld;
+    pastix_int_t        j, ig, ige, ipe, dofi;
 
     /* Check on b */
-    assert( m      == spm->gNexp );
-    // assert( m      == spm->nexp  ); Uncomment with dist2dist
-    assert( ldb    >= m          );
-    assert( bcsc_n == Pb->m      );
-    assert( bcsc_n == Pb->ld     );
+    assert( m == spm->gNexp );
+    assert( m <= ldb        );
+    //assert( m == spm->nexp  ); // Uncomment with dist2dist
+    assert( pastix_data->bcsc->n == Pb->m  );
+    assert( pastix_data->bcsc->n == Pb->ld );
 
     /*
      * Goes through b to fill the data_comm with the data to send and
      * fills pb with the local data.
      */
-    pb = Pb->b;
-    for ( ig = 0, ige = 0; ige < m; ige += dofi, ig++ ) {
-        k    = bvec_zglob2Ploc( pastix_data, ig );
+    pb  = Pb->b;
+    ige = 0;
+    for ( ig = 0; ig < spm->gN; ig++, ige += dofi ) {
         dofi = ( dof > 0 ) ? dof : dofs[ ig+1 ] - dofs[ ig ];
+        ipe  = bvec_zglob2Ploc( pastix_data, ig );
 
-        if ( k < 0 ) {
+        if ( ipe < 0 ) {
             continue;
         }
 
         for ( j = 0; j < nrhs; j++ ) {
-            memcpy( pb + k   + j * ldpb,
+            memcpy( pb + ipe + j * ldpb,
                     b  + ige + j * ldb,
                     dofi * sizeof(pastix_complex64_t) );
         }
@@ -1104,8 +1087,47 @@ bvec_zlapmr( pastix_data_t      *pastix_data,
              pastix_int_t        lda,
              pastix_rhs_t        PA )
 {
-    const spmatrix_t *spm = pastix_data->csc;
+    const spmatrix_t    *spm      = pastix_data->csc;
+    const pastix_bcsc_t *bcsc     = pastix_data->bcsc;
+    const SolverMatrix  *solvmatr = pastix_data->solvmatr;
     int rc;
+
+    assert( lda >= m );
+    if ( dir == PastixDirForward ) {
+        PA->flttype = PastixComplex64;
+        PA->m       = bcsc->n;
+        PA->n       = n;
+
+        if ( solvmatr->clustnbr > 1 ) {
+            PA->allocated = 1;
+            PA->ld        = PA->m;
+            PA->b         = malloc( PA->ld * PA->n * pastix_size_of( PA->flttype ) );
+        }
+        else {
+            assert( m == PA->m );
+            PA->allocated = 0;
+            PA->ld        = lda;
+            PA->b         = A;
+        }
+    }
+#if !defined(NDEBUG)
+    else {
+        assert( PA->allocated >= 0            );
+        assert( PA->flttype   == PastixComplex64 );
+        assert( PA->m         == bcsc->n      );
+        assert( PA->n         == n            );
+
+        if ( PA->allocated == 0 )
+        {
+            assert( PA->b  == A   );
+            assert( PA->ld == lda );
+        }
+        else {
+            assert( PA->b  != A     );
+            assert( PA->ld == PA->m );
+        }
+    }
+#endif
 
 #if defined(PASTIX_WITH_MPI)
     if ( spm->clustnbr > 1 ) {
@@ -1135,6 +1157,19 @@ bvec_zlapmr( pastix_data_t      *pastix_data,
          */
         rc = bvec_zlapmr_shm( pastix_data, dir, m, n, A, lda, PA );
         (void)spm;
+    }
+
+    if ( dir == PastixDirBackward ) {
+        if ( PA->allocated > 0 ) {
+            free( PA->b );
+        }
+
+        PA->allocated = -1;
+        PA->flttype   = PastixPattern;
+        PA->m         = -1;
+        PA->n         = -1;
+        PA->ld        = -1;
+        PA->b         = NULL;
     }
 
     return rc;
