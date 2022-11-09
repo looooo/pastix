@@ -18,7 +18,7 @@
  * @date 2022-07-07
  * @precisions normal z -> c d s
  *
- * This file implements the function bvec_zlapmr with the following hiearchy:
+ * This file implements the function bvec_zlapmr with the following hierarchy:
  *
  * bvec_zlapmr():
  *    - bvec_zlapmr_shm() for shared memory case
@@ -42,10 +42,10 @@
 /**
  *******************************************************************************
  *
- * @ingroup bcsc
+ * @ingroup bcsc_internal
  *
- * @brief Applies a row permutation (permtab) to the matrix b. It also
- * sends and receives the part of b according to the block repartition.
+ * @brief Gives the local permuted index corresponding to the global not
+ * permuted given in argument or the process to which it belongs to.
  *
  *******************************************************************************
  *
@@ -53,12 +53,12 @@
  *          The pastix_data structure.
  *
  * @param[in] ig
- *          Index global not permuted.
+ *          The global index not permuted.
  *
  *******************************************************************************
  *
- * @retval pb which correspond to the vector b permuted and with
- * the correct local data.
+ * @retval Returns the local permuted index or c = -(p+1) with p the process to
+ * which the local permuted column/row belongs to.
  *
  *******************************************************************************/
 static inline pastix_int_t
@@ -95,67 +95,54 @@ bvec_zglob2Ploc( const pastix_data_t *pastix_data,
 /**
  *******************************************************************************
  *
- * @ingroup bcsc
+ * @ingroup bcsc_internal
  *
- * @brief Applies a row permutation (permtab) to the matrix b. It also
- * sends and receives the part of b according to the block repartition.
+ * @brief Gives the local index not permuted corresponding to the global
+ * index permuted given in argument or the process to which it belongs to.
  *
  *******************************************************************************
  *
  * @param[in] pastix_data
  *          The pastix_data structure.
  *
- * @param[in] dir
- *          The direction of the permutation.
- *
  * @param[in] replicated
- *          True if the vector b is replicated on all the process, false if the
- *          vector is distributed.
+ *          If replicated case then equals to 1 and equals to 0 otherwise.
  *
- * @param[in] m
- *          The number of rows in the matrix b.
- *
- * @param[in] nrhs
- *          The number of columns in the matrix b.
- *
- * @param[inout] b
- *          The matrix b ldb-by-nrhs.
- *
- * @param[in] ldb
- *          The leading dimension of b.
+ * @param[in] igp
+ *          The global index permuted.
  *
  *******************************************************************************
  *
- * @retval pb which correspond to the vector b permuted and with
- * the correct local data.
+ * @retval Returns the local not permuted index or c = -(p+1) with p the process to
+ * which the local not permuted column/row belongs to.
  *
  *******************************************************************************/
 static inline pastix_int_t
 bvec_zPglob2loc( pastix_data_t *pastix_data,
                  int            replicated,
-                 pastix_int_t   idx_Pglob )
+                 pastix_int_t   igp )
 {
     const spmatrix_t *spm          = pastix_data->csc;
     pastix_order_t   *ord          = pastix_data->ordemesh;
     pastix_int_t     *perm         = NULL;
     pastix_int_t      baseval_ord  = ord->baseval;
-    pastix_int_t      idx_loc;
+    pastix_int_t      il;
 
     perm = orderGetExpandedPeritab( ord, spm );
 
-    idx_loc = perm[ idx_Pglob ] - baseval_ord;
+    il = perm[ igp ] - baseval_ord;
 
     (void)replicated;
-    return idx_loc;
+    return il;
 }
 
 /**
  *******************************************************************************
  *
- * @ingroup bcsc
+ * @ingroup bcsc_internal
  *
- * @brief Applies a row permutation (permtab) to the matrix b. It also
- * sends and receives the part of b according to the block repartition.
+ * @brief Computes the amount of data the current process will send to the
+ * other process.
  *
  *******************************************************************************
  *
@@ -166,16 +153,16 @@ bvec_zPglob2loc( pastix_data_t *pastix_data,
  *          The direction of the permutation.
  *
  * @param[in] replicated
- *          True if the vector b is replicated on all the process, false if the
- *          vector is distributed.
+ *          If replicated case then equals to 1 and equals to 0 otherwise.
  *
  * @param[inout] Pb
- *          The number of columns in the matrix b.
+ *          The initialized rhs structure that holds the permuted right hand
+ *          side matrix.
+ *          On exit, the rhs_comm field is initialized.
  *
  *******************************************************************************
  *
- * @retval pb which correspond to the vector b permuted and with
- * the correct local data.
+ * @retval PASTIX_SUCCESS
  *
  *******************************************************************************/
 static inline int
@@ -218,32 +205,22 @@ bvec_zcompute_amount_of_data_init( pastix_data_t *pastix_data,
 /**
  *******************************************************************************
  *
- * @ingroup bcsc
+ * @ingroup bcsc_internal
  *
- * @brief Applies a row permutation (permtab) to the matrix b. It also
- * sends and receives the part of b according to the block repartition.
- *
- *******************************************************************************
- *
- * @param[in] pastix_data
- *          The pastix_data structure.
- *
- * @param[in] dir
- *          The direction of the permutation.
- *
- * @param[in] nrhs
- *          The number of columns in the matrix b.
- *
- * @param[inout] b
- *          The matrix b lda-by-nrhs.
- *
- * @param[in] ldb
- *          The leading dimension of b.
+ * @brief Exchanges the amount of data.
  *
  *******************************************************************************
  *
- * @retval pb which correspond to the vector b permuted and with
- * the correct local data.
+ * @param[inout] rhs_comm
+ *          The rhs_comm of the permuted vector initialized on entry, rhs_comm
+ *          with the amount of data exchanged and array allocated at exit.
+ *
+ * @param[in] replicated
+ *          If replicated case then equals to 1 and equals to 0 otherwise.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
  *
  *******************************************************************************/
 static inline int
@@ -306,10 +283,11 @@ bvec_zexchange_amount_of_data( bvec_handle_comm_t *rhs_comm,
 /**
  *******************************************************************************
  *
- * @ingroup bcsc
+ * @ingroup bcsc_internal
  *
- * @brief Applies a row permutation (permtab) to the matrix b. It also
- * sends and receives the part of b according to the block repartition.
+ * @brief Computes and sends the amount of data the current process will
+ * send to the other process and receives the amount of data each processor
+ * will send to the current processor. Computes the cblk2col array.
  *
  *******************************************************************************
  *
@@ -320,32 +298,23 @@ bvec_zexchange_amount_of_data( bvec_handle_comm_t *rhs_comm,
  *          The direction of the permutation.
  *
  * @param[in] replicated
- *          True if the vector b is replicated on all the process, false if the
- *          vector is distributed.
+ *          If replicated case then equals to 1 and equals to 0 otherwise.
  *
- * @param[in] m
- *          The number of rows in the matrix b.
- *
- * @param[in] nrhs
- *          The number of columns in the matrix b.
- *
- * @param[inout] b
- *          The matrix b ldb-by-nrhs.
- *
- * @param[in] ldb
- *          The leading dimension of b.
+ * @param[inout] Pb
+ *          The initialized rhs structure that holds the permuted right hand
+ *          side matrix.
+ *          On exit, the rhs_comm field is initialized.
  *
  *******************************************************************************
  *
- * @retval pb which correspond to the vector b permuted and with
- * the correct local data.
+ * @retval PASTIX_SUCCESS
  *
  *******************************************************************************/
 static inline int
-bvec_zcompute_and_exchange_amount_of_data( pastix_data_t      *pastix_data,
-                                           pastix_dir_t        dir,
-                                           int                 replicated,
-                                           pastix_rhs_t        Pb )
+bvec_zcompute_and_exchange_amount_of_data( pastix_data_t *pastix_data,
+                                           pastix_dir_t   dir,
+                                           int            replicated,
+                                           pastix_rhs_t   Pb )
 {
     const spmatrix_t *spm      = pastix_data->csc;
     pastix_int_t     *col2cblk = pastix_data->bcsc->col2cblk;
@@ -381,32 +350,22 @@ bvec_zcompute_and_exchange_amount_of_data( pastix_data_t      *pastix_data,
 /**
  *******************************************************************************
  *
- * @ingroup bcsc
+ * @ingroup bcsc_internal
  *
- * @brief Applies a row permutation (permtab) to the matrix b. It also
- * sends and receives the part of b according to the block repartition.
- *
- *******************************************************************************
- *
- * @param[in] pastix_data
- *          The pastix_data structure.
- *
- * @param[in] dir
- *          The direction of the permutation.
- *
- * @param[in] nrhs
- *          The number of columns in the matrix b.
- *
- * @param[inout] b
- *          The matrix b lda-by-nrhs.
- *
- * @param[in] ldb
- *          The leading dimension of b.
+ * @brief Exchanges the data.
  *
  *******************************************************************************
  *
- * @retval pb which correspond to the vector b permuted and with
- * the correct local data.
+ * @param[inout] rhs_comm
+ *          The rhs_comm of the permuted vector initialized on entry, rhs_comm
+ *          with the data exchanged at exit.
+ *
+ * @param[in] replicated
+ *          If replicated case then equals to 1 and equals to 0 otherwise.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
  *
  *******************************************************************************/
 static inline int
@@ -458,10 +417,9 @@ bvec_zexchange_data( bvec_handle_comm_t *rhs_comm,
 /**
  *******************************************************************************
  *
- * @ingroup bcsc
+ * @ingroup bcsc_internal
  *
- * @brief Applies a row permutation (permtab) to the matrix b. It also
- * sends and receives the part of b according to the block repartition.
+ * @brief Copies the received data in the right hand side matrix b.
  *
  *******************************************************************************
  *
@@ -472,25 +430,30 @@ bvec_zexchange_data( bvec_handle_comm_t *rhs_comm,
  *          The direction of the permutation.
  *
  * @param[in] replicated
- *          True if the vector b is replicated on all the process, false if the
- *          vector is distributed.
- *
- * @param[in] m
- *          The number of rows in the matrix b.
+ *          If replicated case then equals to 1 and equals to 0 otherwise.
  *
  * @param[in] nrhs
  *          The number of columns in the matrix b.
  *
  * @param[inout] b
- *          The matrix b ldb-by-nrhs.
+ *          The right hand side matrix b of size ldb-by-nrhs on entry.
+ *          On exit, the matrix integrates the remote values at indexes positions.
  *
  * @param[in] ldb
  *          The leading dimension of b.
  *
+ * @param[in] indexes
+ *          The indexes array received.
+ *
+ * @param[in] values
+ *          The values array received.
+ *
+ * @param[in] size
+ *          The size of indexes.
+ *
  *******************************************************************************
  *
- * @retval pb which correspond to the vector b permuted and with
- * the correct local data.
+ * @retval PASTIX_SUCCESS
  *
  *******************************************************************************/
 static inline int
@@ -531,10 +494,9 @@ bvec_zhandle_received_data( pastix_data_t      *pastix_data,
 /**
  *******************************************************************************
  *
- * @ingroup bcsc
+ * @ingroup bcsc_internal
  *
- * @brief Applies a row permutation (permtab) to the matrix b. It also
- * sends and receives the part of b according to the block repartition.
+ * @brief Exchanges the data and copies the received data in the vector b.
  *
  *******************************************************************************
  *
@@ -545,25 +507,23 @@ bvec_zhandle_received_data( pastix_data_t      *pastix_data,
  *          The direction of the permutation.
  *
  * @param[in] replicated
- *          True if the vector b is replicated on all the process, false if the
- *          vector is distributed.
- *
- * @param[in] m
- *          The number of rows in the matrix b.
+ *          If replicated case then equals to 1 and equals to 0 otherwise.
  *
  * @param[in] nrhs
  *          The number of columns in the matrix b.
  *
  * @param[inout] b
- *          The matrix b ldb-by-nrhs.
+ *          The input right hand side matrix b of size ldb-by-nrhs.
  *
  * @param[in] ldb
  *          The leading dimension of b.
  *
+ * @param[inout] Pb
+ *          The rhs structure that stores the permuted right hand side matrix b.
+ *
  *******************************************************************************
  *
- * @retval pb which correspond to the vector b permuted and with
- * the correct local data.
+ * @retval PASTIX_SUCCESS
  *
  *******************************************************************************/
 static inline int
@@ -599,19 +559,20 @@ bvec_zexchange_and_handle_data( pastix_data_t      *pastix_data,
 /**
  *******************************************************************************
  *
- * @ingroup bcsc
+ * @ingroup bcsc_internal
  *
- * @brief Apply a row permutation to a matrix A (LAPACK xlatmr)
+ * @brief Apply a row permutation to a matrix A (LAPACK xlatmr) in the
+ * distributed case.
  *
  *******************************************************************************
  *
- * @param[in] thread_safe
- *          Boolean to switch between the thread-safe implementation that
- *          exploits an additional workspace, or the non thread-safe version
- *          that has no memory overhead.
+ * @param[in] pastix_data
+ *          The pastix_data structure.
  *
  * @param[in] dir
  *          The direction of the permutation.
+ *          If PastixDirForward, A is permuted into PA.
+ *          If PastixDirBackward, PA is permuted into A.
  *
  * @param[in] m
  *          The number of rows in the matrix A, and the number of elements in
@@ -622,17 +583,14 @@ bvec_zexchange_and_handle_data( pastix_data_t      *pastix_data,
  *
  * @param[inout] A
  *          A matrix of size lda-by-n.
- *          On exit, rowas are permuted and A contains P A.
+ *          Referenced as input if dir is PastixDirForward, as output otherwise.
  *
  * @param[in] lda
  *          The leading dimension of A.
  *
- * @param[inout] perm
- *          The permutation array. Must be 0 based.
- *          If thread_safe is true, then perm array is used only as input, and a
- *          temporary array is allocated to follow the cycles. If thread_safe is
- *          false, then perm array is modified during the swap and restored at
- *          the end of the call.
+ * @param[inout] PA
+ *          The rhs structure of the permuted matrix A.
+ *          Referenced as inout if dir is PastixDirForward, as input otherwise.
  *
  *******************************************************************************
  *
@@ -660,29 +618,36 @@ bvec_zlapmr_dst( __attribute__((unused)) pastix_data_t      *pastix_data,
 /**
  *******************************************************************************
  *
- * @ingroup bcsc
+ * @ingroup bcsc_internal
  *
- * @brief Applies a row permutation (permtab) to the matrix b. It also
- * sends and receives the part of b according to the block repartition.
+ * @brief Applies a row permutation (permtab) to the matrix b. and stores it
+ * in Pb.
  *
  *******************************************************************************
  *
  * @param[in] pastix_data
  *          The pastix_data structure.
  *
+ * @param[in] m
+ *          The number of rows in the matrix b.
+ *
  * @param[in] nrhs
  *          The number of columns in the matrix b.
  *
- * @param[inout] b
- *          The matrix b lda-by-nrhs.
+ * @param[in] b
+ *          A matrix of size ldb-by-n.
  *
  * @param[in] ldb
- *          The leading dimension of b.
+ *          The leading dimension of b >= m.
+ *
+ * @param[inout] Pb
+ *          The rhs structure of the permuted matrix b.
+ *          On entry, the structure is initialized. On exit, contains the
+ *          permuted matrix b.
  *
  *******************************************************************************
  *
- * @retval pb which correspond to the vector b permuted and with
- * the correct local data.
+ * @retval PASTIX_SUCCESS
  *
  *******************************************************************************/
 static inline int
@@ -734,29 +699,32 @@ bvec_zlapmr_rep_vec2bvec( const pastix_data_t      *pastix_data,
 /**
  *******************************************************************************
  *
- * @ingroup bcsc
+ * @ingroup bcsc_internal
  *
- * @brief Applies a row permutation (peritab) to the matrix b. It also sends
- * and receives the part of b according to the spm repartition.
+ * @brief Applies a row permutation (permtab) to the matrix b. and stores it
+ * in Pb.
  *
  *******************************************************************************
  *
  * @param[in] pastix_data
  *          The pastix_data structure.
  *
+ * @param[in] m
+ *          The number of rows in the matrix b.
+ *
  * @param[in] nrhs
  *          The number of columns in the matrix b.
  *
  * @param[inout] b
- *          The matrix b lda-by-nrhs.
+ *          A matrix of size ldb-by-n.
+ *          On entry, the allocated matrix.
+ *          On exit, contains the revers permutation of Pb.
  *
  * @param[in] ldb
- *          The leading dimension of b.
+ *          The leading dimension of b >= m.
  *
- *******************************************************************************
- *
- * @retval pb which correspond to the vector b expanded, permuted and with
- * the correct local data.
+ * @param[input] Pb
+ *          The rhs structure of the permuted matrix b.
  *
  *******************************************************************************/
 static inline int
@@ -826,19 +794,20 @@ bvec_zlapmr_rep_bvec2vec( pastix_data_t      *pastix_data,
 /**
  *******************************************************************************
  *
- * @ingroup bcsc
+ * @ingroup bcsc_internal
  *
- * @brief Apply a row permutation to a matrix A (LAPACK xlatmr)
+ * @brief Apply a row permutation to a matrix A (LAPACK xlatmr) in the
+ * replicated case.
  *
  *******************************************************************************
  *
- * @param[in] thread_safe
- *          Boolean to switch between the thread-safe implementation that
- *          exploits an additional workspace, or the non thread-safe version
- *          that has no memory overhead.
+ * @param[in] pastix_data
+ *          The pastix_data structure.
  *
  * @param[in] dir
  *          The direction of the permutation.
+ *          If PastixDirForward, A is permuted into PA.
+ *          If PastixDirBackward, PA is permuted into A.
  *
  * @param[in] m
  *          The number of rows in the matrix A, and the number of elements in
@@ -849,17 +818,14 @@ bvec_zlapmr_rep_bvec2vec( pastix_data_t      *pastix_data,
  *
  * @param[inout] A
  *          A matrix of size lda-by-n.
- *          On exit, rowas are permuted and A contains P A.
+ *          Referenced as input if dir is PastixDirForward, as output otherwise.
  *
  * @param[in] lda
  *          The leading dimension of A.
  *
- * @param[inout] perm
- *          The permutation array. Must be 0 based.
- *          If thread_safe is true, then perm array is used only as input, and a
- *          temporary array is allocated to follow the cycles. If thread_safe is
- *          false, then perm array is modified during the swap and restored at
- *          the end of the call.
+ * @param[inout] PA
+ *          The rhs structure of the permuted matrix A.
+ *          Referenced as inout if dir is PastixDirForward, as input otherwise.
  *
  *******************************************************************************
  *
@@ -887,19 +853,20 @@ bvec_zlapmr_rep( pastix_data_t      *pastix_data,
 /**
  *******************************************************************************
  *
- * @ingroup bcsc
+ * @ingroup bcsc_internal
  *
- * @brief Apply a row permutation to a matrix A (LAPACK xlatmr)
+ * @brief Apply a row permutation to a matrix A (LAPACK xlatmr) in the shared
+ * memory case.
  *
  *******************************************************************************
  *
- * @param[in] thread_safe
- *          Boolean to switch between the thread-safe implementation that
- *          exploits an additional workspace, or the non thread-safe version
- *          that has no memory overhead.
+ * @param[in] pastix_data
+ *          The pastix_data structure.
  *
  * @param[in] dir
  *          The direction of the permutation.
+ *          If PastixDirForward, A is permuted into PA.
+ *          If PastixDirBackward, PA is permuted into A.
  *
  * @param[in] m
  *          The number of rows in the matrix A, and the number of elements in
@@ -910,17 +877,14 @@ bvec_zlapmr_rep( pastix_data_t      *pastix_data,
  *
  * @param[inout] A
  *          A matrix of size lda-by-n.
- *          On exit, rowas are permuted and A contains P A.
+ *          Referenced as input if dir is PastixDirForward, as output otherwise.
  *
  * @param[in] lda
  *          The leading dimension of A.
  *
- * @param[inout] perm
- *          The permutation array. Must be 0 based.
- *          If thread_safe is true, then perm array is used only as input, and a
- *          temporary array is allocated to follow the cycles. If thread_safe is
- *          false, then perm array is modified during the swap and restored at
- *          the end of the call.
+ * @param[inout] PA
+ *          The rhs structure of the permuted matrix A.
+ *          Referenced as inout if dir is PastixDirForward, as input otherwise.
  *
  *******************************************************************************
  *
@@ -1038,19 +1002,19 @@ bvec_zlapmr_shm( pastix_data_t      *pastix_data,
 /**
  *******************************************************************************
  *
- * @ingroup bcsc
+ * @ingroup bcsc_internal
  *
  * @brief Apply a row permutation to a matrix A (LAPACK xlatmr)
  *
  *******************************************************************************
  *
- * @param[in] thread_safe
- *          Boolean to switch between the thread-safe implementation that
- *          exploits an additional workspace, or the non thread-safe version
- *          that has no memory overhead.
+ * @param[in] pastix_data
+ *          The pastix_data structure.
  *
  * @param[in] dir
  *          The direction of the permutation.
+ *          If PastixDirForward, A is permuted into PA.
+ *          If PastixDirBackward, PA is permuted into A.
  *
  * @param[in] m
  *          The number of rows in the matrix A, and the number of elements in
@@ -1061,17 +1025,14 @@ bvec_zlapmr_shm( pastix_data_t      *pastix_data,
  *
  * @param[inout] A
  *          A matrix of size lda-by-n.
- *          On exit, rowas are permuted and A contains P A.
+ *          Referenced as input if dir is PastixDirForward, as output otherwise.
  *
  * @param[in] lda
  *          The leading dimension of A.
  *
- * @param[inout] perm
- *          The permutation array. Must be 0 based.
- *          If thread_safe is true, then perm array is used only as input, and a
- *          temporary array is allocated to follow the cycles. If thread_safe is
- *          false, then perm array is modified during the swap and restored at
- *          the end of the call.
+ * @param[inout] PA
+ *          The rhs structure of the permuted matrix A.
+ *          Referenced as inout if dir is PastixDirForward, as input otherwise.
  *
  *******************************************************************************
  *
