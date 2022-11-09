@@ -69,7 +69,7 @@ z_pivot_smp( pastix_data_t *pastix_data,
         return -1;
     }
 
-    n       = pastix_data->bcsc->gN;
+    n       = pastix_data->bcsc->n;
     itermax = pastix_data->iparm[IPARM_ITERMAX];
     eps     = pastix_data->dparm[DPARM_EPSILON_REFINEMENT];
 

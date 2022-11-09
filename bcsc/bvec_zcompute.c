@@ -1024,9 +1024,9 @@ void bcsc_zspsv( pastix_data_t      *pastix_data,
     struct pastix_rhs_s rhsb = {
         .allocated = 0,
         .flttype   = PastixComplex64,
-        .m         = pastix_data->bcsc->gN,
+        .m         = pastix_data->bcsc->n,
         .n         = 1,
-        .ld        = pastix_data->bcsc->gN,
+        .ld        = pastix_data->bcsc->n,
         .b         = b,
         .cblkb     = NULL,
     };

@@ -82,7 +82,7 @@ z_bicgstab_smp( pastix_data_t *pastix_data,
         precond = 0;
     }
 
-    n       = pastix_data->bcsc->gN;
+    n       = pastix_data->bcsc->n;
     itermax = pastix_data->iparm[IPARM_ITERMAX];
     eps     = pastix_data->dparm[DPARM_EPSILON_REFINEMENT];
 
