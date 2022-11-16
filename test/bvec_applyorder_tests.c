@@ -114,11 +114,6 @@ int main (int argc, char **argv)
         return rc;
     }
 
-    /**
-     * Compute the ordering.
-     */
-    rc = pastix_subtask_order( pastix_data, original, NULL );
-
     MPI_Comm_rank( MPI_COMM_WORLD, &myrank );
     MPI_Comm_size( MPI_COMM_WORLD, &clustnbr );
     if ( clustnbr > 1 ) {
@@ -203,11 +198,9 @@ int main (int argc, char **argv)
                 }
             }
 
-            if ( mpi_type > 0 ) {
-                bcsc_exit_struct( pastix_data->bcsc );
-                free( pastix_data->bcsc );
-                pastix_data->bcsc = NULL;
-            }
+            bcsc_exit_struct( pastix_data->bcsc );
+            free( pastix_data->bcsc );
+            pastix_data->bcsc = NULL;
 
             if ( dof > 0 ) {
                 spmExit( spmdof );
