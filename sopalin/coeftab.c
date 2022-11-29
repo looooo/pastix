@@ -210,16 +210,18 @@ coeftabInit( pastix_data_t    *pastix_data,
     args.side     = side;
     args.mixed    = pastix_data->iparm[IPARM_MIXED];
 
-    if ( pastix_data->iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever ) {
-        pastix_print_warning( "Global allocation is not allowed with compression. It is disabled\n" );
-        pastix_data->solvmatr->globalalloc = 0;
-    }
-
     /* Allocates the coeftab matrix before multi-threading if global allocation is enabled */
-    if ( args.datacode->globalalloc ) {
-        /* Make sure there is no compression */
-        assert( pastix_data->iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever );
-        coeftabAlloc( pastix_data );
+    if ( args.datacode->globalalloc )
+    {
+        if ( pastix_data->iparm[IPARM_COMPRESS_WHEN] != PastixCompressNever ) {
+            pastix_print_warning( "Global allocation is not allowed with compression. It is disabled\n" );
+            pastix_data->solvmatr->globalalloc = 0;
+        }
+        else {
+            /* Make sure there is no compression */
+            assert( pastix_data->iparm[IPARM_COMPRESS_WHEN] == PastixCompressNever );
+            coeftabAlloc( pastix_data );
+        }
     }
 
 #if defined(PASTIX_DEBUG_DUMP_COEFTAB)
