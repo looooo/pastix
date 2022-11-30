@@ -99,6 +99,13 @@ int pastix_task_refine ( pastix_data_t    *pastix_data,
                          pastix_int_t      ldb,
                          void             *X,
                          pastix_int_t      ldx );
+int pastix_task_solve_and_refine ( pastix_data_t *pastix_data,
+                                   pastix_int_t   n,
+                                   pastix_int_t   nrhs,
+                                   void          *B,
+                                   pastix_int_t   ldb,
+                                   void          *X,
+                                   pastix_int_t   ldx );
 
 /*
  * Analyze subtasks
