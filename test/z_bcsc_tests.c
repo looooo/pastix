@@ -7,11 +7,11 @@
  * @copyright 2015-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.2.1
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Vincent Bridonneau
- * @date 2021-01-03
+ * @date 2022-12-05
  *
  * @precisions normal z -> c d s
  *
@@ -26,10 +26,9 @@
 #include <common.h>
 #include <spm.h>
 #include "bcsc/bcsc.h"
+#include "bcsc/bcsc_z.h"
 #include <lapacke.h>
 #include <spm/z_spm.h>
-#include "bcsc/bcsc_z.h"
-#include "bcsc/bcsc.h"
 #include <pastix/order.h>
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"

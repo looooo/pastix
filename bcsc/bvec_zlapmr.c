@@ -15,7 +15,7 @@
  * @author Theophile Terraz
  * @author Tony Delarue
  * @author Vincent Bridonneau
- * @date 2022-07-07
+ * @date 2022-12-05
  * @precisions normal z -> c d s
  *
  * This file implements the function bvec_zlapmr with the following hierarchy:
@@ -786,6 +786,9 @@ bvec_zlapmr_rep_bvec2vec( pastix_data_t      *pastix_data,
     assert( (valptr - ((pastix_complex64_t*)(data_send->valbuf))) == data_send->valcnt );
 
     bvec_zexchange_and_handle_data( pastix_data, PastixDirBackward, replicated, b, ldb, Pb );
+
+    bvecHandleCommExit( Pb->rhs_comm );
+    memFree_null( Pb->rhs_comm );
 
     (void)m;
     return PASTIX_SUCCESS;
