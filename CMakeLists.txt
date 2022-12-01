@@ -578,6 +578,7 @@ set(SOURCES
   bcsc/bcsc_zspmv.c
   bcsc/bvec_zcompute.c
   bcsc/bvec_zlapmr.c
+  bcsc/bvec_zmpi_comm.c
   )
 precisions_rules_py(generated_bcsc_sources
   "${SOURCES}"
