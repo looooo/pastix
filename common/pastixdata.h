@@ -150,7 +150,7 @@ struct pastix_rhs_s {
     void                *b;         /**< Right hand sides of size ldb-by-n.                                                    */
     void               **cblkb;     /**< Array to store the temporary buffers associated to fanin/recv.                        */
     bvec_handle_comm_t  *rhs_comm;  /**< Structure which handles the MPI communication (= NULL if PASTIX_WITH_MPI=OFF).        */
-    pastix_int_t        *cblk2col;  /**< Array containing the local permuted index corresponding to the global permuted index. */
+    pastix_int_t        *Ploc2Pglob;  /**< Array containing the local permuted index corresponding to the global permuted index. */
 };
 
 #endif /* _pastixdata_h_ */

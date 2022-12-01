@@ -163,7 +163,7 @@ int  pastixGetSchur           ( const pastix_data_t *pastix_data,
                                 pastix_int_t         lds );
 
 /*
- * Rhs routines.
+ * Right hand side routines.
  */
 int pastixRhsInit( pastix_rhs_t *rhs );
 int pastixRhsFinalize( pastix_rhs_t rhs );

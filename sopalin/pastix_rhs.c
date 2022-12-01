@@ -58,7 +58,7 @@ pastixRhsInit( pastix_rhs_t  *B_ptr )
     B->b         = NULL;
     B->cblkb     = NULL;
     B->rhs_comm  = NULL;
-    B->cblk2col  = NULL;
+    B->Ploc2Pglob  = NULL;
 
     return PASTIX_SUCCESS;
 }
@@ -107,8 +107,8 @@ pastixRhsFinalize( pastix_rhs_t B )
         memFree_null( B->cblkb );
     }
 
-    if ( B->cblk2col != NULL ) {
-        memFree_null( B->cblk2col );
+    if ( B->Ploc2Pglob != NULL ) {
+        memFree_null( B->Ploc2Pglob );
     }
     free( B );
     return PASTIX_SUCCESS;
