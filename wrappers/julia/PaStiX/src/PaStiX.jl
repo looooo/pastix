@@ -11,7 +11,7 @@
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2022-10-17
+ @date 2022-12-05
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -115,6 +115,10 @@ end
 end
 
 @cbindings libpastix begin
+    @cextern pastix_task_solve_and_refine( pastix_data::Ptr{Pastix_data_t}, n::Pastix_int_t, nrhs::Pastix_int_t, B::Ptr{Cvoid}, ldb::Pastix_int_t, X::Ptr{Cvoid}, ldx::Pastix_int_t )::Cint
+end
+
+@cbindings libpastix begin
     @cextern pastix_subtask_order( pastix_data::Ptr{Pastix_data_t}, spm::Ptr{spm.spmatrix_t}, myorder::Ptr{Pastix_order_t} )::Cint
 end
 
@@ -140,22 +144,6 @@ end
 
 @cbindings libpastix begin
     @cextern pastix_subtask_sopalin( pastix_data::Ptr{Pastix_data_t} )::Cint
-end
-
-@cbindings libpastix begin
-    @cextern pastixRhsInit( rhs::Ptr{Pastix_rhs_t} )::Cint
-end
-
-@cbindings libpastix begin
-    @cextern pastixRhsFinalize( rhs::Pastix_rhs_t )::Cint
-end
-
-@cbindings libpastix begin
-    @cextern pastixRhsDoubletoSingle( dB::Pastix_rhs_t, sB::Pastix_rhs_t )::Cint
-end
-
-@cbindings libpastix begin
-    @cextern pastixRhsSingleToDouble( sB::Pastix_rhs_t, dB::Pastix_rhs_t )::Cint
 end
 
 @cbindings libpastix begin
@@ -188,6 +176,22 @@ end
 
 @cbindings libpastix begin
     @cextern pastixGetSchur( pastix_data::Ptr{Pastix_data_t}, S::Ptr{Cvoid}, lds::Pastix_int_t )::Cint
+end
+
+@cbindings libpastix begin
+    @cextern pastixRhsInit( rhs::Ptr{Pastix_rhs_t} )::Cint
+end
+
+@cbindings libpastix begin
+    @cextern pastixRhsFinalize( rhs::Pastix_rhs_t )::Cint
+end
+
+@cbindings libpastix begin
+    @cextern pastixRhsDoubletoSingle( dB::Pastix_rhs_t, sB::Pastix_rhs_t )::Cint
+end
+
+@cbindings libpastix begin
+    @cextern pastixRhsSingleToDouble( sB::Pastix_rhs_t, dB::Pastix_rhs_t )::Cint
 end
 
 @cbindings libpastix begin

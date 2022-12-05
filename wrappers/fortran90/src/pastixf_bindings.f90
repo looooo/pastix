@@ -10,7 +10,7 @@
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2022-10-17
+!> @date 2022-12-05
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -261,6 +261,22 @@ module pastixf_bindings
        integer(kind=pastix_int_t), value :: ldx
      end function pastix_task_refine_f2c
 
+     function pastix_task_solve_and_refine_f2c(pastix_data, n, nrhs, B, ldb, &
+          X, ldx) &
+          bind(c, name='pastix_task_solve_and_refine_f2c')
+       use :: iso_c_binding, only : c_int, c_ptr
+       use :: pastixf_enums, only : pastix_int_t
+       implicit none
+       integer(kind=c_int)               :: pastix_task_solve_and_refine_f2c
+       type(c_ptr),                value :: pastix_data
+       integer(kind=pastix_int_t), value :: n
+       integer(kind=pastix_int_t), value :: nrhs
+       type(c_ptr),                value :: B
+       integer(kind=pastix_int_t), value :: ldb
+       type(c_ptr),                value :: X
+       integer(kind=pastix_int_t), value :: ldx
+     end function pastix_task_solve_and_refine_f2c
+
      function pastix_subtask_order_f2c(pastix_data, spm, myorder) &
           bind(c, name='pastix_subtask_order_f2c')
        use :: iso_c_binding, only : c_int, c_ptr
@@ -319,43 +335,6 @@ module pastixf_bindings
        integer(kind=c_int) :: pastix_subtask_sopalin_f2c
        type(c_ptr),  value :: pastix_data
      end function pastix_subtask_sopalin_f2c
-
-     function pastixRhsInit_f2c(rhs) &
-          bind(c, name='pastixRhsInit_f2c')
-       use :: iso_c_binding, only : c_int, c_ptr
-       implicit none
-       integer(kind=c_int) :: pastixRhsInit_f2c
-       type(c_ptr),  value :: rhs
-     end function pastixRhsInit_f2c
-
-     function pastixRhsFinalize_f2c(rhs) &
-          bind(c, name='pastixRhsFinalize_f2c')
-       use :: iso_c_binding, only : c_int
-       use :: pastixf_enums, only : pastix_rhs_t
-       implicit none
-       integer(kind=c_int)       :: pastixRhsFinalize_f2c
-       type(pastix_rhs_t), value :: rhs
-     end function pastixRhsFinalize_f2c
-
-     function pastixRhsDoubletoSingle_f2c(dB, sB) &
-          bind(c, name='pastixRhsDoubletoSingle_f2c')
-       use :: iso_c_binding, only : c_int
-       use :: pastixf_enums, only : pastix_rhs_t
-       implicit none
-       integer(kind=c_int)       :: pastixRhsDoubletoSingle_f2c
-       type(pastix_rhs_t), value :: dB
-       type(pastix_rhs_t), value :: sB
-     end function pastixRhsDoubletoSingle_f2c
-
-     function pastixRhsSingleToDouble_f2c(sB, dB) &
-          bind(c, name='pastixRhsSingleToDouble_f2c')
-       use :: iso_c_binding, only : c_int
-       use :: pastixf_enums, only : pastix_rhs_t
-       implicit none
-       integer(kind=c_int)       :: pastixRhsSingleToDouble_f2c
-       type(pastix_rhs_t), value :: sB
-       type(pastix_rhs_t), value :: dB
-     end function pastixRhsSingleToDouble_f2c
 
      function pastix_subtask_applyorder_f2c(pastix_data, dir, m, n, B, ldb, &
           Bp) &
@@ -449,6 +428,43 @@ module pastixf_bindings
        type(c_ptr),                value :: S
        integer(kind=pastix_int_t), value :: lds
      end function pastixGetSchur_f2c
+
+     function pastixRhsInit_f2c(rhs) &
+          bind(c, name='pastixRhsInit_f2c')
+       use :: iso_c_binding, only : c_int, c_ptr
+       implicit none
+       integer(kind=c_int) :: pastixRhsInit_f2c
+       type(c_ptr),  value :: rhs
+     end function pastixRhsInit_f2c
+
+     function pastixRhsFinalize_f2c(rhs) &
+          bind(c, name='pastixRhsFinalize_f2c')
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_rhs_t
+       implicit none
+       integer(kind=c_int)       :: pastixRhsFinalize_f2c
+       type(pastix_rhs_t), value :: rhs
+     end function pastixRhsFinalize_f2c
+
+     function pastixRhsDoubletoSingle_f2c(dB, sB) &
+          bind(c, name='pastixRhsDoubletoSingle_f2c')
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_rhs_t
+       implicit none
+       integer(kind=c_int)       :: pastixRhsDoubletoSingle_f2c
+       type(pastix_rhs_t), value :: dB
+       type(pastix_rhs_t), value :: sB
+     end function pastixRhsDoubletoSingle_f2c
+
+     function pastixRhsSingleToDouble_f2c(sB, dB) &
+          bind(c, name='pastixRhsSingleToDouble_f2c')
+       use :: iso_c_binding, only : c_int
+       use :: pastixf_enums, only : pastix_rhs_t
+       implicit none
+       integer(kind=c_int)       :: pastixRhsSingleToDouble_f2c
+       type(pastix_rhs_t), value :: sB
+       type(pastix_rhs_t), value :: dB
+     end function pastixRhsSingleToDouble_f2c
 
      function pastixRhsSchurGet_f2c(pastix_data, m, n, rhsB, B, ldb) &
           bind(c, name='pastixRhsSchurGet_f2c')
