@@ -144,9 +144,7 @@ solverCheck( const SolverMatrix *solvmtx )
 
                 /* Fanin targets do not contribute locally so we don't know the target */
                 assert( fblok->fcblknm == -1 );
-
-                /* Uncomment when rhs will be distributed */
-                assert( cblk->lcolidx == -1 );
+                assert( cblk->lcolidx  == -1 );
             }
             else {
                 /* Check that first diagonal block belongs to ourself */

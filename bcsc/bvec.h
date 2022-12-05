@@ -21,9 +21,62 @@
 
 #include <stdlib.h>
 
-void *bvec_malloc( size_t size );
+typedef enum bvec_tag_ {
+    PastixTagAmount,
+    PastixTagIndexes,
+    PastixTagValues,
+} bvec_tag_e;
 
+/**
+ * @brief Information about the amount of data exchanged to permute the pivots.
+ */
+typedef struct bvec_data_amount_s
+{
+    /* WARNING: the two counters must remain at the head of the structure to exchange
+       the volume of the communications between the processes. */
+    pastix_int_t  idxcnt; /**< Amount of indexes of b or x which will be exchanged. */
+    pastix_int_t  valcnt; /**< Amount of values of b or x which will be exchanged.  */
+    pastix_int_t *idxbuf; /**< Array of indexes of b or x to exchange.              */
+    void         *valbuf; /**< Array of values of b or x to exchange.
+                               The indexes and values array are sorted the following way:
+                               k is incremented -> k += dofk * j.
+                               indexes[k] = i.
+                               array[k]                -> corresponds to (i,     0).
+                               array[k + dofk * j]     -> corresponds to (i,     j).
+                               array[k + h + dofk * j] -> corresponds to (i + h, j).  */
+} bvec_data_amount_t;
+
+/**
+ * @brief Informations of the data exchanged with other processes.
+ */
+typedef struct bvec_proc_comm_s
+{
+    bvec_data_amount_t send; /**< Number of indexes and values to send to clustnum.      */
+    bvec_data_amount_t recv; /**< Number of indexes and values to receive from clustnum. */
+} bvec_proc_comm_t;
+
+/**
+ * @brief Structure to manage communications with distributed rhs.
+ */
+typedef struct bvec_handle_comm_s
+{
+    pastix_int_t      clustnbr;     /**< Number of processes in the communicator.                     */
+    pastix_int_t      clustnum;     /**< ID of the current process in the communicator.               */
+    PASTIX_Comm       comm;         /**< PaStiX MPI communicator used for the ordering step.          */
+    pastix_coeftype_t flttype;      /**< valtab datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
+    bvec_proc_comm_t  data_comm[1]; /**< Array of size clustnbr.                                      */
+                                    /* data_comm[c]: contains the data clustnum has to send to c in   */
+                                    /*               the distributed case and the amount of data      */
+                                    /*               clustnum will receive from c.                    */
+                                    /* data_comm[clustnum]: contains the data clustnum will send      */
+                                    /*                      to the other processors in the replicated */
+                                    /*                      case and is NULL in the distributed case. */
+} bvec_handle_comm_t;
+
+void *bvec_malloc( size_t size );
 void  bvec_free( void *x );
+
+int bvecHandleCommExit( bvec_handle_comm_t *rhs_comm );
 
 #endif /* _bvec_h_ */
 /**

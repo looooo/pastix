@@ -56,3 +56,45 @@ void bvec_free( void *x )
 {
     memFree_null(x);
 }
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_solve
+ *
+ * @brief Cleanup an RHS data structure.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] B
+ *          On entry, the initialized pastix_rhs_t data structure.
+ *          On exit, the structure is destroyed and should no longer be used.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS on successful exit,
+ * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
+ *
+ *******************************************************************************/
+int
+bvecHandleCommExit( bvec_handle_comm_t *rhs_comm )
+{
+    int c;
+    int clustnbr = rhs_comm->clustnbr;
+
+    for ( c = 0; c < clustnbr; c++ ) {
+        if ( rhs_comm->data_comm[c].send.idxbuf != NULL ) {
+            free( rhs_comm->data_comm[c].send.idxbuf );
+        }
+        if ( rhs_comm->data_comm[c].send.valbuf != NULL ) {
+            free( rhs_comm->data_comm[c].send.valbuf );
+        }
+        if ( rhs_comm->data_comm[c].recv.idxbuf != NULL ) {
+            free( rhs_comm->data_comm[c].recv.idxbuf );
+        }
+        if ( rhs_comm->data_comm[c].recv.valbuf != NULL ) {
+            free( rhs_comm->data_comm[c].recv.valbuf );
+        }
+    }
+    return PASTIX_SUCCESS;
+}

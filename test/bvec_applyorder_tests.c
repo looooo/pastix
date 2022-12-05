@@ -60,7 +60,7 @@ int main (int argc, char **argv)
     pastix_fixdbl_t alpha, beta;
     int             clustnbr, myrank;
     static int      dofmax = 4; /* Maximum degree of freedom for multi-dof cases. */
-    int             dmax   = 3; /* 0: one, 1: multi-constant, 2: multi-variadic   */
+    int             dmax   = 2; /* 0: one, 1: multi-constant, 2: multi-variadic   */
     int             check  = 1;
     int             rc     = 0;
     int             err    = 0;
@@ -114,11 +114,6 @@ int main (int argc, char **argv)
         return rc;
     }
 
-    /**
-     * Compute the ordering.
-     */
-    rc = pastix_subtask_order( pastix_data, original, NULL );
-
     MPI_Comm_rank( MPI_COMM_WORLD, &myrank );
     MPI_Comm_size( MPI_COMM_WORLD, &clustnbr );
     if ( clustnbr > 1 ) {
@@ -161,13 +156,11 @@ int main (int argc, char **argv)
             }
 
             /* Make sure internal spm is reset, and recompute symbfact and mapping for the new matrix */
-            if ( mpi_type > 0 ) {
-                pastix_data->csc = spmdof;
-                pastix_task_analyze( pastix_data, spmdof );
+            pastix_data->csc = spmdof;
+            pastix_task_analyze( pastix_data, spmdof );
 
-                pastix_data->bcsc = calloc( 1, sizeof( pastix_bcsc_t ) );
-                bcsc_init_struct( spmdof, pastix_data->solvmatr, pastix_data->bcsc );
-            }
+            pastix_data->bcsc = calloc( 1, sizeof( pastix_bcsc_t ) );
+            bcsc_init_struct( spmdof, pastix_data->solvmatr, pastix_data->bcsc );
 
             for ( nrhs = 1; nrhs <= 5; nrhs += 4 ) {
                 for ( type = SpmFloat; type <= SpmComplex64; type ++ ) {
@@ -205,11 +198,9 @@ int main (int argc, char **argv)
                 }
             }
 
-            if ( mpi_type > 0 ) {
-                bcsc_exit_struct( pastix_data->bcsc );
-                free( pastix_data->bcsc );
-                pastix_data->bcsc = NULL;
-            }
+            bcsc_exit_struct( pastix_data->bcsc );
+            free( pastix_data->bcsc );
+            pastix_data->bcsc = NULL;
 
             if ( dof > 0 ) {
                 spmExit( spmdof );

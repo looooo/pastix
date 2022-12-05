@@ -1024,9 +1024,9 @@ void bcsc_zspsv( pastix_data_t      *pastix_data,
     struct pastix_rhs_s rhsb = {
         .allocated = 0,
         .flttype   = PastixComplex64,
-        .m         = pastix_data->bcsc->gN,
+        .m         = pastix_data->bcsc->n,
         .n         = 1,
-        .ld        = pastix_data->bcsc->gN,
+        .ld        = pastix_data->bcsc->n,
         .b         = b,
         .cblkb     = NULL,
     };
@@ -1325,6 +1325,133 @@ bvec_znullify_remote( const pastix_data_t *pastix_data,
 #endif
     (void)pastix_data;
     (void)y;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc
+ *
+ * @brief Gather a distributed right hand side (bvec storage) on all nodes.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The information about sequential and parallel version (Number of
+ *          thread, ...).
+ *
+ * @param[inout] y
+ *          On entry, the local portion of the vector y.
+ *          On exit, the complete vector y.
+ *
+ *******************************************************************************/
+const pastix_complex64_t *
+bvec_zgather_remote( const pastix_data_t      *pastix_data,
+                     const pastix_complex64_t *y )
+{
+#if defined( PASTIX_WITH_MPI )
+    const SolverMatrix       *solvmtx = pastix_data->solvmatr;
+    const SolverCblk         *cblk    = solvmtx->cblktab;
+    pastix_complex64_t       *yglobal = NULL;
+    pastix_complex64_t       *yto, *ytmp;
+    const pastix_complex64_t *yfr;
+    pastix_int_t              c, i, cblki, cblknbr;
+    MPI_Request               request_c = MPI_REQUEST_NULL;
+    MPI_Request               request_n = MPI_REQUEST_NULL;
+    pastix_int_t             *all_n, *all_cblknbr, *indices;
+    pastix_int_t              max_n       = 0;
+    pastix_int_t              max_cblknbr = 0;
+    pastix_int_t              gn = pastix_data->bcsc->gN;
+    pastix_int_t              ln = pastix_data->bcsc->n;
+    pastix_int_t              lcblknbr, colnbr;
+
+    if ( ln != 0 ) {
+        yglobal = malloc( gn * sizeof(pastix_complex64_t) );
+#if !defined(NDEBUG)
+        memset( yglobal, 0xdead, gn * sizeof(pastix_complex64_t) );
+#endif
+    }
+    all_n       = malloc( pastix_data->procnbr * sizeof(pastix_int_t) );
+    all_cblknbr = malloc( pastix_data->procnbr * sizeof(pastix_int_t) );
+
+    MPI_Allgather( &ln, 1, PASTIX_MPI_INT,
+                   all_n, 1, PASTIX_MPI_INT, pastix_data->pastix_comm );
+    lcblknbr = solvmtx->cblknbr - solvmtx->faninnbr - solvmtx->recvnbr;
+    MPI_Allgather( &lcblknbr, 1, PASTIX_MPI_INT,
+                   all_cblknbr, 1, PASTIX_MPI_INT, pastix_data->pastix_comm );
+
+    for( c=0; c<pastix_data->procnbr; c++ )
+    {
+        max_n       = pastix_imax( max_n,       all_n[c]       );
+        max_cblknbr = pastix_imax( max_cblknbr, all_cblknbr[c] );
+    }
+
+    ytmp    = malloc( max_n * sizeof(pastix_complex64_t) );
+    indices = malloc( max_cblknbr * 2 * sizeof(pastix_int_t) );
+
+    for( c=0; c<pastix_data->procnbr; c++ )
+    {
+        if ( all_n[c] == 0 ) {
+            continue;
+        }
+
+        if ( c == pastix_data->procnum ) {
+            MPI_Ibcast( (pastix_complex64_t*)y, ln, PASTIX_MPI_COMPLEX64, c, pastix_data->pastix_comm, &request_n );
+
+            cblknbr = solvmtx->cblknbr;
+            cblk    = solvmtx->cblktab;
+            cblki   = 0;
+            for ( i = 0; i < cblknbr; i++, cblk++ ) {
+                if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) {
+                    continue;
+                }
+
+                yfr = y       + cblk->lcolidx;
+                yto = yglobal + cblk->fcolnum;
+
+                memcpy( yto, yfr, cblk_colnbr( cblk ) * sizeof( pastix_complex64_t ) );
+
+                indices[ 2*cblki   ] = cblk->fcolnum;
+                indices[ 2*cblki+1 ] = cblk->lcolnum;
+                cblki++;
+            }
+            assert( cblki == lcblknbr );
+
+            MPI_Ibcast( indices, 2 * lcblknbr, PASTIX_MPI_INT, c, pastix_data->pastix_comm, &request_c );
+            MPI_Wait( &request_n, MPI_STATUS_IGNORE );
+            MPI_Wait( &request_c, MPI_STATUS_IGNORE );
+        }
+        else {
+            MPI_Ibcast( ytmp, all_n[c], PASTIX_MPI_COMPLEX64, c, pastix_data->pastix_comm, &request_n );
+            MPI_Ibcast( indices, all_cblknbr[c] * 2, PASTIX_MPI_INT, c, pastix_data->pastix_comm, &request_c );
+            MPI_Wait( &request_n, MPI_STATUS_IGNORE );
+            MPI_Wait( &request_c, MPI_STATUS_IGNORE );
+
+            /* If ln = 0, there are no local computation so no need to store in yglobal */
+            if ( ln != 0 ) {
+                yfr = ytmp;
+                for ( i = 0; i < all_cblknbr[c]; i++ ) {
+                    yto = yglobal + indices[2*i];
+
+                    colnbr = indices[2*i+1] - indices[2*i] + 1;
+                    memcpy( yto, yfr, colnbr * sizeof( pastix_complex64_t ) );
+
+                    yfr += colnbr;
+                }
+            }
+        }
+    }
+
+    free( all_n );
+    free( all_cblknbr );
+    free( ytmp );
+    free( indices );
+
+    return yglobal;
+#else
+    (void)pastix_data;
+    return y;
+#endif
 }
 
 /**

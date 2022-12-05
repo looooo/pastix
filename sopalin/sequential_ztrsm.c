@@ -36,10 +36,9 @@ void
 sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
                   sopalin_data_t *sopalin_data, pastix_rhs_t rhsb )
 {
-    SolverMatrix       *datacode = sopalin_data->solvmtx;
-    SolverCblk         *cblk;
-    pastix_complex64_t *b;
-    pastix_int_t        i, cblknbr;
+    SolverMatrix *datacode = sopalin_data->solvmtx;
+    SolverCblk   *cblk;
+    pastix_int_t i, cblknbr;
 
     pastix_solv_mode_t mode = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
 
@@ -65,13 +64,6 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
             solve_cblk_ztrsmsp_backward( mode, side, uplo, trans, diag,
                                          datacode, cblk, rhsb );
         }
-
-        b = rhsb->b;
-        for( i=0; i<rhsb->n; i++ ) {
-            bvec_znullify_remote( pastix_data, b );
-            bvec_zallreduce( pastix_data, b );
-            b += rhsb->ld;
-        }
     }
     /* Forward like */
     else
@@ -84,12 +76,6 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
     {
         pastix_complex64_t *work;
         MALLOC_INTERN( work, datacode->colmax * rhsb->n, pastix_complex64_t );
-
-        b = rhsb->b;
-        for( i=0; i<rhsb->n; i++ ) {
-            bvec_znullify_remote( pastix_data, b );
-            b += rhsb->ld;
-        }
 
         cblknbr = (mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
         cblk = datacode->cblktab;
@@ -131,13 +117,14 @@ struct args_ztrsm_t
 };
 
 void
-thread_ztrsm_static( isched_thread_t *ctx, void *args )
+thread_ztrsm_static( isched_thread_t *ctx,
+                     void            *args )
 {
     struct args_ztrsm_t *arg = (struct args_ztrsm_t*)args;
-    pastix_data_t      *pastix_data  = arg->pastix_data;
-    sopalin_data_t     *sopalin_data = arg->sopalin_data;
-    SolverMatrix       *datacode     = sopalin_data->solvmtx;
-    pastix_rhs_t        rhsb         = arg->rhsb;
+    pastix_data_t       *pastix_data  = arg->pastix_data;
+    sopalin_data_t      *sopalin_data = arg->sopalin_data;
+    SolverMatrix        *datacode     = sopalin_data->solvmtx;
+    pastix_rhs_t         rhsb         = arg->rhsb;
     int side  = arg->side;
     int uplo  = arg->uplo;
     int trans = arg->trans;
