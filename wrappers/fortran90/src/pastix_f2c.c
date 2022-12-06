@@ -9,7 +9,7 @@
  * @version 6.2.1
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2022-10-17
+ * @date 2022-12-05
  *
  * This file has been automatically generated with gen_wrappers.py
  *
@@ -211,6 +211,18 @@ pastix_task_refine_f2c( pastix_data_t *pastix_data,
 }
 
 int
+pastix_task_solve_and_refine_f2c( pastix_data_t *pastix_data,
+                                  pastix_int_t   n,
+                                  pastix_int_t   nrhs,
+                                  void          *B,
+                                  pastix_int_t   ldb,
+                                  void          *X,
+                                  pastix_int_t   ldx )
+{
+    return pastix_task_solve_and_refine( pastix_data, n, nrhs, B, ldb, X, ldx );
+}
+
+int
 pastix_subtask_order_f2c( pastix_data_t    *pastix_data,
                           const spmatrix_t *spm,
                           pastix_order_t   *myorder )
@@ -253,32 +265,6 @@ int
 pastix_subtask_sopalin_f2c( pastix_data_t *pastix_data )
 {
     return pastix_subtask_sopalin( pastix_data );
-}
-
-int
-pastixRhsInit_f2c( pastix_rhs_t *rhs )
-{
-    return pastixRhsInit( rhs );
-}
-
-int
-pastixRhsFinalize_f2c( pastix_rhs_t rhs )
-{
-    return pastixRhsFinalize( rhs );
-}
-
-int
-pastixRhsDoubletoSingle_f2c( const pastix_rhs_t dB,
-                             pastix_rhs_t       sB )
-{
-    return pastixRhsDoubletoSingle( dB, sB );
-}
-
-int
-pastixRhsSingleToDouble_f2c( const pastix_rhs_t sB,
-                             pastix_rhs_t       dB )
-{
-    return pastixRhsSingleToDouble( sB, dB );
 }
 
 int
@@ -348,6 +334,32 @@ pastixGetSchur_f2c( const pastix_data_t *pastix_data,
                     pastix_int_t         lds )
 {
     return pastixGetSchur( pastix_data, S, lds );
+}
+
+int
+pastixRhsInit_f2c( pastix_rhs_t *rhs )
+{
+    return pastixRhsInit( rhs );
+}
+
+int
+pastixRhsFinalize_f2c( pastix_rhs_t rhs )
+{
+    return pastixRhsFinalize( rhs );
+}
+
+int
+pastixRhsDoubletoSingle_f2c( const pastix_rhs_t dB,
+                             pastix_rhs_t       sB )
+{
+    return pastixRhsDoubletoSingle( dB, sB );
+}
+
+int
+pastixRhsSingleToDouble_f2c( const pastix_rhs_t sB,
+                             pastix_rhs_t       dB )
+{
+    return pastixRhsSingleToDouble( sB, dB );
 }
 
 int

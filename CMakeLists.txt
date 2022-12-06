@@ -13,7 +13,7 @@
 #  @author Xavier Lacoste
 #  @author Nolan Bredel
 #  @author Tom Moenne-Loccoz
-#  @date 2022-07-07
+#  @date 2022-12-05
 #
 ###
 cmake_minimum_required (VERSION 3.3)
@@ -721,6 +721,7 @@ set(PASTIX_LIB_SRCS
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
   sopalin/pastix.c
+  sopalin/pastix_rhs.c
   #
   refinement/pastix_task_refine.c
   #
@@ -1100,6 +1101,7 @@ add_documented_files(
   sopalin/coeftab.c
   sopalin/schur.c
   sopalin/pastix.c
+  sopalin/pastix_rhs.c
   sopalin/pastix_task_sopalin.c
   sopalin/pastix_task_solve.c
   #

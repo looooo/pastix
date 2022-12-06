@@ -12,7 +12,7 @@
  @author Mathieu Faverge
  @author Tony Delarue
  @author Selmane Lebdaoui
- @date 2022-10-17
+ @date 2022-12-05
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -211,6 +211,18 @@ def pypastix_pastix_task_refine( pastix_data, n, nrhs, B, ldb, X, ldx ):
     libpastix.pastix_task_refine.restype = c_int
     return libpastix.pastix_task_refine( pastix_data, n, nrhs, B, ldb, X, ldx )
 
+def pypastix_pastix_task_solve_and_refine( pastix_data, n, nrhs, B, ldb, X, ldx ):
+    libpastix.pastix_task_solve_and_refine.argtypes = [ c_void_p,
+                                                        __pastix_int__,
+                                                        __pastix_int__,
+                                                        c_void_p,
+                                                        __pastix_int__,
+                                                        c_void_p,
+                                                        __pastix_int__ ]
+    libpastix.pastix_task_solve_and_refine.restype = c_int
+    return libpastix.pastix_task_solve_and_refine( pastix_data, n, nrhs, B, ldb,
+                                                   X, ldx )
+
 def pypastix_pastix_subtask_order( pastix_data, spm, myorder ):
     libpastix.pastix_subtask_order.argtypes = [ c_void_p,
                                                 POINTER(pyspm_spmatrix_t),
@@ -248,26 +260,6 @@ def pypastix_pastix_subtask_sopalin( pastix_data ):
     libpastix.pastix_subtask_sopalin.argtypes = [ c_void_p ]
     libpastix.pastix_subtask_sopalin.restype = c_int
     return libpastix.pastix_subtask_sopalin( pastix_data )
-
-def pypastix_pastixRhsInit( rhs ):
-    libpastix.pastixRhsInit.argtypes = [ POINTER(c_void_p) ]
-    libpastix.pastixRhsInit.restype = c_int
-    return libpastix.pastixRhsInit( pointer( rhs ) )
-
-def pypastix_pastixRhsFinalize( rhs ):
-    libpastix.pastixRhsFinalize.argtypes = [ c_void_p ]
-    libpastix.pastixRhsFinalize.restype = c_int
-    return libpastix.pastixRhsFinalize( rhs )
-
-def pypastix_pastixRhsDoubletoSingle( dB, sB ):
-    libpastix.pastixRhsDoubletoSingle.argtypes = [ c_void_p, c_void_p ]
-    libpastix.pastixRhsDoubletoSingle.restype = c_int
-    return libpastix.pastixRhsDoubletoSingle( dB, sB )
-
-def pypastix_pastixRhsSingleToDouble( sB, dB ):
-    libpastix.pastixRhsSingleToDouble.argtypes = [ c_void_p, c_void_p ]
-    libpastix.pastixRhsSingleToDouble.restype = c_int
-    return libpastix.pastixRhsSingleToDouble( sB, dB )
 
 def pypastix_pastix_subtask_applyorder( pastix_data, dir, m, n, B, ldb, Bp ):
     libpastix.pastix_subtask_applyorder.argtypes = [ c_void_p, c_int,
@@ -314,6 +306,26 @@ def pypastix_pastixGetSchur( pastix_data, S, lds ):
     libpastix.pastixGetSchur.argtypes = [ c_void_p, c_void_p, __pastix_int__ ]
     libpastix.pastixGetSchur.restype = c_int
     return libpastix.pastixGetSchur( pastix_data, S, lds )
+
+def pypastix_pastixRhsInit( rhs ):
+    libpastix.pastixRhsInit.argtypes = [ POINTER(c_void_p) ]
+    libpastix.pastixRhsInit.restype = c_int
+    return libpastix.pastixRhsInit( pointer( rhs ) )
+
+def pypastix_pastixRhsFinalize( rhs ):
+    libpastix.pastixRhsFinalize.argtypes = [ c_void_p ]
+    libpastix.pastixRhsFinalize.restype = c_int
+    return libpastix.pastixRhsFinalize( rhs )
+
+def pypastix_pastixRhsDoubletoSingle( dB, sB ):
+    libpastix.pastixRhsDoubletoSingle.argtypes = [ c_void_p, c_void_p ]
+    libpastix.pastixRhsDoubletoSingle.restype = c_int
+    return libpastix.pastixRhsDoubletoSingle( dB, sB )
+
+def pypastix_pastixRhsSingleToDouble( sB, dB ):
+    libpastix.pastixRhsSingleToDouble.argtypes = [ c_void_p, c_void_p ]
+    libpastix.pastixRhsSingleToDouble.restype = c_int
+    return libpastix.pastixRhsSingleToDouble( sB, dB )
 
 def pypastix_pastixRhsSchurGet( pastix_data, m, n, rhsB, B, ldb ):
     libpastix.pastixRhsSchurGet.argtypes = [ c_void_p, __pastix_int__,

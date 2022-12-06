@@ -5,11 +5,12 @@
  * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.1.0
+ * @version 6.2.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Vincent Bridonneau
- * @date 2019-11-12
+ * @author Alycia Lisito
+ * @date 2022-12-05
  *
  **/
 #include "common.h"
@@ -60,9 +61,9 @@ void bvec_free( void *x )
 /**
  *******************************************************************************
  *
- * @ingroup pastix_solve
+ * @ingroup bcsc
  *
- * @brief Cleanup an RHS data structure.
+ * @brief Cleanup the communicator part of the bvec data structure.
  *
  *******************************************************************************
  *

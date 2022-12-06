@@ -17,7 +17,7 @@
  * @author Xavier Lacoste
  * @author Theophile Terraz
  * @author Tony Delarue
- * @date 2022-10-11
+ * @date 2022-12-05
  *
  **/
 #ifndef _pastix_h_
@@ -128,14 +128,6 @@ int pastix_subtask_sopalin   ( pastix_data_t *pastix_data );
 /*
  * Numerical solve and refinement subtasks
  */
-int pastixRhsInit( pastix_rhs_t *rhs );
-int pastixRhsFinalize( pastix_rhs_t rhs );
-
-int pastixRhsDoubletoSingle( const pastix_rhs_t dB,
-                             pastix_rhs_t       sB );
-int pastixRhsSingleToDouble( const pastix_rhs_t sB,
-                             pastix_rhs_t       dB );
-
 int pastix_subtask_applyorder( pastix_data_t *pastix_data,
                                pastix_dir_t   dir,
                                pastix_int_t   m,
@@ -169,6 +161,16 @@ void pastixSetSchurUnknownList( pastix_data_t       *pastix_data,
 int  pastixGetSchur           ( const pastix_data_t *pastix_data,
                                 void                *S,
                                 pastix_int_t         lds );
+
+/*
+ * Rhs routines.
+ */
+int pastixRhsInit( pastix_rhs_t *rhs );
+int pastixRhsFinalize( pastix_rhs_t rhs );
+int pastixRhsDoubletoSingle( const pastix_rhs_t dB,
+                             pastix_rhs_t       sB );
+int pastixRhsSingleToDouble( const pastix_rhs_t sB,
+                             pastix_rhs_t       dB );
 
 int pastixRhsSchurGet( const pastix_data_t *pastix_data,
                        pastix_int_t         m,
