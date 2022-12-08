@@ -120,6 +120,14 @@ void bvec_zscal_smp( pastix_data_t      *pastix_data,
                      pastix_complex64_t  alpha,
                      pastix_complex64_t *x );
 
+#if defined( PASTIX_WITH_MPI )
+int bvec_zexchange_data_rep( pastix_data_t      *pastix_data,
+                             pastix_int_t        nrhs,
+                             pastix_complex64_t *b,
+                             pastix_int_t        ldb,
+                             pastix_rhs_t        Pb );
+#endif
+
 int bvec_zlapmr( pastix_data_t      *pastix_data,
                  pastix_dir_t        dir,
                  pastix_int_t        m,
