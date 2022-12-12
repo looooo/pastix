@@ -64,6 +64,7 @@ void bvec_free( void *x )
     memFree_null(x);
 }
 
+#if defined( PASTIX_WITH_MPI )
 /**
  *******************************************************************************
  *
@@ -153,8 +154,8 @@ bvec_handle_comm_exit( bvec_handle_comm_t *rhs_comm )
             memFree_null( data->recv.valbuf );
         }
     }
-    rhs_comm->max_idx  = 0;
-    rhs_comm->max_val  = 0;
+    rhs_comm->max_idx = 0;
+    rhs_comm->max_val = 0;
 
     return PASTIX_SUCCESS;
 }
@@ -198,17 +199,64 @@ bvec_glob2Ploc( const pastix_data_t *pastix_data,
     assert( ord->baseval == 0 );
 
     igp     = ord->permtab[ ig ];
-    igpe    = ( dof > 0 ) ? igp * dof : dofs[ ig ] - basespm/* vdof incorect */;
+    igpe    = ( dof > 0 ) ? igp * dof : dofs[ ig ] - basespm;/* vdof incorrect */
     cblknum = col2cblk[ igpe ];
     if ( cblknum >= 0 ) {
         cblk = solvmatr->cblktab + cblknum;
-        ilpe  = cblk->lcolidx + igpe - cblk->fcolnum;
+        ilpe = cblk->lcolidx + igpe - cblk->fcolnum;
     }
     else {
         ilpe = cblknum;
     }
 
     return ilpe;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Converts the permuted global index into the non permuted local one.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix_data structure.
+ *
+ * @param[in] igp
+ *          Index global permuted.
+ *
+ *******************************************************************************
+ *
+ * @retval Returns the local non permuted index or c = -(p+1) with p the process
+ * to which the local permuted column/row belongs to.
+ *
+ *******************************************************************************/
+pastix_int_t
+bvec_Pglob2loc( const pastix_data_t *pastix_data,
+                pastix_int_t         igp )
+{
+    const spmatrix_t     *spm      = pastix_data->csc;
+    const pastix_order_t *ord      = pastix_data->ordemesh;
+    const pastix_int_t   *glob2loc = spm->glob2loc;
+    pastix_int_t          basespm  = spm->baseval;
+    pastix_int_t          dof      = spm->dof;
+    const pastix_int_t   *dofs     = spm->dofs;
+    pastix_int_t          ig, il, ile;
+
+    assert( ord->baseval == 0 );
+
+    ig = ord->peritab[ igp ];
+    il = glob2loc[ig];
+    if ( il >= 0 ) {
+        ile = ( dof > 0 ) ? il * dof : dofs[ ig ] - basespm;/* vdof incorrect */
+    }
+    else {
+        ile = il;
+    }
+
+    return ile;
 }
 
 /**
@@ -234,8 +282,8 @@ bvec_glob2Ploc( const pastix_data_t *pastix_data,
  *
  *******************************************************************************/
 int
-bvec_Ploc2Pglob( pastix_data_t *pastix_data,
-                 pastix_rhs_t   Pb )
+bvec_compute_Ploc2Pglob( pastix_data_t *pastix_data,
+                         pastix_rhs_t   Pb )
 {
     const spmatrix_t *spm        = pastix_data->csc;
     pastix_int_t     *col2cblk   = pastix_data->bcsc->col2cblk;
@@ -279,7 +327,7 @@ bvec_Ploc2Pglob( pastix_data_t *pastix_data,
  *******************************************************************************
  *
  * @param[inout] rhs_comm
- *          On entry the rhs_comm of the permuted vector initialised.
+ *          On entry the rhs_comm of the permuted right hand side initialised.
  *          At exit rhs_comm is filled with the amount of data exchanged.
  *
  *******************************************************************************
@@ -331,3 +379,257 @@ bvec_exchange_amount_rep( bvec_handle_comm_t *rhs_comm )
 
     return PASTIX_SUCCESS;
 }
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Computes the amount of sending data in the distributed case.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix_data structure.
+ *
+ * @param[in] m
+ *          The number of rows of the right hand side b.
+ *
+ * @param[in] nrhs
+ *          The number of columns in the right hand side b.
+ *
+ * @param[inout] Pb
+ *          On entry the rhs structure initialised.
+ *          At exit the field rhs_comm is filled with the amount of sending
+ *          data.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
+static inline int
+bvec_compute_amount_dst( const pastix_data_t *pastix_data,
+                         pastix_int_t         m,
+                         pastix_int_t         nrhs,
+                         pastix_rhs_t         Pb )
+{
+    const spmatrix_t   *spm         = pastix_data->csc;
+    pastix_int_t        baseval_spm = spm->baseval;
+    pastix_int_t        dof         = spm->dof;
+    pastix_int_t       *dofs        = spm->dofs;
+    pastix_int_t       *loc2glob    = spm->loc2glob;
+    bvec_handle_comm_t *comm_rhs    = NULL;
+    bvec_proc_comm_t   *data_comm   = NULL;
+    pastix_int_t        il, ile, ilpe, ig, dofi, c;
+
+    bvec_handle_comm_init( pastix_data, Pb );
+    comm_rhs = Pb->rhs_comm;
+
+    /*
+     * Goes through b to fill the data_comm with the data to send and
+     * fills pb with the local data.
+     */
+    for ( il = 0, ile = 0; ile < m; ile += dofi, il++ ) {
+        ig   = loc2glob[ il ] - baseval_spm;
+        ilpe = bvec_glob2Ploc( pastix_data, ig );
+        dofi = ( dof > 0 ) ? dof : dofs[ ig+1 ] - dofs[ ig ];
+
+        if ( ilpe < 0 ) {
+            c         = - ( ilpe + 1 );
+            data_comm = comm_rhs->data_comm + c;
+
+            data_comm->send.idxcnt += 1;
+            data_comm->send.valcnt += dofi * nrhs;
+        }
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc
+ *
+ * @brief Computes the maximum size of the sending indexes and values buffers.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] rhs_comm
+ *         On entry the rhs_comm of the permuted right hand side initialized.
+ *         At exit the fields max_idx and max_val of rhs_comm are updated.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
+static inline int
+bvec_compute_max( bvec_handle_comm_t *rhs_comm )
+{
+    bvec_proc_comm_t *data     = NULL;
+    pastix_int_t      clustnbr = rhs_comm->clustnbr;
+    pastix_int_t      clustnum = rhs_comm->clustnum;
+    pastix_int_t      max_idx  = 0;
+    pastix_int_t      max_val  = 0;
+    pastix_int_t      idx_cnt, val_cnt, c;
+
+    /* Receives the amount of indexes and values. */
+    for ( c = 0; c < clustnbr; c++ ) {
+        data = rhs_comm->data_comm + c;
+        if ( c == clustnum ) {
+            continue;
+        }
+
+        idx_cnt = data->recv.idxcnt;
+        val_cnt = data->recv.valcnt;
+
+        if ( max_idx < idx_cnt ) {
+            max_idx = idx_cnt;
+        }
+        if ( max_val < val_cnt ) {
+            max_val = val_cnt;
+        }
+    }
+
+    assert( max_idx <= max_val );
+
+    rhs_comm->max_idx = max_idx;
+    rhs_comm->max_val = max_val;
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc
+ *
+ * @brief Switches the amount of the sending and receiving data in the
+ * distributed case.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] rhs_comm
+ *         On entry the rhs_comm of the permuted right hand side initialized.
+ *         At exit rhs_comm is updated with the right amount of sending and
+ *         receiving  data.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
+static inline int
+bvec_switch_amount_dst( bvec_handle_comm_t *rhs_comm )
+{
+    bvec_proc_comm_t *data     = NULL;
+    pastix_int_t      clustnbr = rhs_comm->clustnbr;
+    pastix_int_t      clustnum = rhs_comm->clustnum;
+    pastix_int_t      c, idx_tmp, val_tmp;
+
+    /* Sends the same amout of data to all process. */
+    for ( c = 0; c < clustnbr; c ++ ) {
+
+        data = rhs_comm->data_comm + c;
+
+        if ( c == clustnum ) {
+            continue;
+        }
+
+        idx_tmp           = data->send.idxcnt;
+        data->send.idxcnt = data->recv.idxcnt;
+        data->recv.idxcnt = idx_tmp;
+
+        val_tmp           = data->send.valcnt;
+        data->send.valcnt = data->recv.valcnt;
+        data->recv.valcnt = val_tmp;
+
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Exchanges the amount of data in the distributed case.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix_data structure.
+ *
+ * @param[in] dir
+ *          The direction of the permutation.
+ *          If PastixDirForward, b is permuted into Pb.
+ *          If PastixDirBackward, Pb is permuted into b.
+ *
+ * @param[in] m
+ *          If dir == PastixDirForward:
+ *              m is the number of rows of the right hand side b.
+ *          If dir == PastixDirBackward:
+ *              m is not used.
+ *
+ * @param[in] nrhs
+ *          The number of columns in the right hand side b.
+ *
+ * @param[inout] Pb
+ *          On entry the rhs structure initialised.
+ *          At exit the field rhs_comm is filled with the amount of data
+ *          exchanged.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
+int
+bvec_exchange_amount_dst( pastix_data_t *pastix_data,
+                          pastix_dir_t   dir,
+                          pastix_int_t   m,
+                          pastix_int_t   nrhs,
+                          pastix_rhs_t   Pb )
+{
+    bvec_handle_comm_t *rhs_comm    = Pb->rhs_comm;
+    bvec_proc_comm_t   *data_comm   = NULL;
+    pastix_int_t        clustnbr    = rhs_comm->clustnbr;
+    pastix_int_t        clustnum    = rhs_comm->clustnum;
+    pastix_int_t        counter_req = 0;
+    MPI_Status          statuses[(clustnbr-1)*2];
+    MPI_Request         requests[(clustnbr-1)*2];
+    pastix_int_t        c;
+
+    if ( dir == PastixDirBackward ) {
+        bvec_switch_amount_dst( Pb->rhs_comm );
+        bvec_compute_max( Pb->rhs_comm );
+        return PASTIX_SUCCESS;
+    }
+
+    bvec_compute_amount_dst( pastix_data, m, nrhs, Pb );
+    rhs_comm = Pb->rhs_comm;
+
+    /* Receives the amount of indexes and values. */
+    for ( c = 0; c < clustnbr; c++ ) {
+        data_comm = rhs_comm->data_comm + c;
+        if ( c == clustnum ) {
+            continue;
+        }
+
+        MPI_Irecv( &(data_comm->recv), 2, PASTIX_MPI_INT,
+                   c, PastixTagAmount, rhs_comm->comm, &requests[counter_req++] );
+
+        MPI_Isend( &(data_comm->send), 2, PASTIX_MPI_INT,
+                   c, PastixTagAmount, rhs_comm->comm, &requests[counter_req++] );
+    }
+
+    MPI_Waitall( counter_req, requests, statuses );
+
+    bvec_compute_max( rhs_comm );
+
+    return PASTIX_SUCCESS;
+}
+#endif
