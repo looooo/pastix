@@ -42,7 +42,7 @@
  *          The pastix_data structure.
  *
  * @param[in] nrhs
- *          The number of columns in the matrix b.
+ *          The number of columns in the right hand side b.
  *
  * @param[inout] b
  *          On entry the right hand side b not fully filled.
@@ -105,7 +105,8 @@ bvec_zhandle_recv_backward_rep( pastix_data_t      *pastix_data,
  *
  * @ingroup bcsc_internal
  *
- * @brief Exchanges the data and copies the received data in the vector b.
+ * @brief Exchanges the data and copies the received data in the right hand
+ * side b in the replicated case.
  *
  *******************************************************************************
  *
@@ -113,17 +114,17 @@ bvec_zhandle_recv_backward_rep( pastix_data_t      *pastix_data,
  *          The pastix_data structure.
  *
  * @param[in] nrhs
- *          The number of columns in the matrix b.
+ *          The number of columns in the right hand side b.
  *
  * @param[inout] b
- *          The matrix b ldb-by-nrhs.
+ *          The right hand side b ldb-by-nrhs.
  *
  * @param[in] ldb
  *          The leading dimension of b.
  *
  * @param[inout] rhs_comm
- *          The rhs_comm of the permuted vector initialised on entry, rhs_comm
- *          with the data exchanged at exit.
+ *          The rhs_comm of the permuted right hand side initialised on entry,
+ *          rhs_comm with the data exchanged at exit.
  *
  *******************************************************************************
  *
@@ -141,10 +142,10 @@ bvec_zexchange_data_rep( pastix_data_t      *pastix_data,
     bvec_proc_comm_t   *data_comm = rhs_comm->data_comm;
     pastix_int_t        clustnbr  = rhs_comm->clustnbr;
     pastix_int_t        clustnum  = rhs_comm->clustnum;
+    pastix_int_t       *idx_buf   = NULL;
+    pastix_complex64_t *val_buf   = NULL;
     bvec_data_amount_t *sends;
     bvec_data_amount_t *recvs;
-    pastix_int_t       *idx_buf;
-    pastix_complex64_t *val_buf;
     pastix_int_t        c;
 
     /* Allocates the receiving indexes and values buffers. */
@@ -155,8 +156,8 @@ bvec_zexchange_data_rep( pastix_data_t      *pastix_data,
 
     for ( c = 0; c < clustnbr; c++ ) {
         data_comm = rhs_comm->data_comm + c;
-        sends      = &( data_comm->send );
-        recvs      = &( data_comm->recv );
+        sends     = &( data_comm->send );
+        recvs     = &( data_comm->recv );
 
         if ( c == clustnum ) {
             /* Posts the emissions of the indexes and values. */
@@ -177,6 +178,365 @@ bvec_zexchange_data_rep( pastix_data_t      *pastix_data,
                                             recvs->idxcnt, recvs->valcnt );
         }
     }
+
+    /* Frees the receiving indexes and values buffers. */
+    if ( idx_buf != NULL ) {
+        memFree_null( idx_buf );
+        memFree_null( val_buf );
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc
+ *
+ * @brief Allocates the sending buffers in rhs_comm->data_comm. These buffer
+ * are filled with the sending values.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] rhs_comm
+ *         On entry the rhs_comm of the permuted right hand side initialized.
+ *         At exit the arrays of rhs_comm->data_comm->send are allocated.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
+int
+bvec_zallocate_buf_dst( bvec_handle_comm_t *rhs_comm )
+{
+    bvec_proc_comm_t   *data      = NULL;
+    bvec_data_amount_t *data_send = NULL;
+    pastix_int_t        clustnbr  = rhs_comm->clustnbr;
+    pastix_int_t        clustnum  = rhs_comm->clustnum;
+    pastix_int_t        c;
+
+    /* Sends the same amout of data to all process. */
+    for ( c = 0; c < clustnbr; c ++ ) {
+
+        data      = rhs_comm->data_comm + c;
+        data_send = &(data->send);
+
+        if ( c == clustnum ) {
+            continue;
+        }
+
+        MALLOC_INTERN( data_send->idxbuf, data_send->idxcnt, pastix_int_t );
+        MALLOC_INTERN( data_send->valbuf, data_send->valcnt, pastix_complex64_t );
+
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Copies the received data in the right hand side pb in the distributed
+ * case.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix_data structure.
+ *
+ * @param[in] nrhs
+ *          The number of columns in the right hand side pb.
+ *
+ * @param[inout] pb
+ *          On entry the right hand side pb not fully filled.
+ *          At exit pb is updated with the remote values.
+ *
+ * @param[in] ldpb
+ *          The leading dimension of pb.
+ *
+ * @param[in] indexes
+ *          The indexes array received.
+ *
+ * @param[in] values
+ *          The values array received.
+ *
+ * @param[in] size_idx
+ *          The size of indexes.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
+static inline int
+bvec_zhandle_recv_forward_dst( pastix_data_t      *pastix_data,
+                               pastix_int_t        nrhs,
+                               pastix_complex64_t *pb,
+                               pastix_int_t        ldpb,
+                               pastix_int_t       *indexes,
+                               pastix_complex64_t *values,
+                               pastix_int_t        size_idx )
+{
+    const spmatrix_t *spm  = pastix_data->csc;
+    pastix_int_t      dof  = spm->dof;
+    pastix_int_t     *dofs = spm->dofs;
+    pastix_int_t      ig, ilpe, idx, j, dofi;
+
+    for ( idx = 0; idx < size_idx; idx++, indexes++ ) {
+        ig   = indexes[ 0 ];
+        ilpe = bvec_glob2Ploc( pastix_data, ig );
+        assert( ilpe >= 0 );
+        dofi = ( dof > 0 ) ? dof : dofs[ig+1] - dofs[ig];
+
+        for ( j = 0; j < nrhs; j++, values += dofi ) {
+            memcpy( pb + ilpe + j * ldpb, values, dofi * sizeof(pastix_complex64_t) );
+        }
+    }
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Copies the received data in the right hand side b in the distributed
+ * case.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix_data structure.
+ *
+ * @param[in] nrhs
+ *          The number of columns in the right hand side b.
+ *
+ * @param[inout] b
+ *          On entry the right hand side b not fully filled.
+ *          At exit b is updated with the remote values.
+ *
+ * @param[in] ldb
+ *          The leading dimension of b.
+ *
+ * @param[in] indexes
+ *          The indexes array received.
+ *
+ * @param[in] values
+ *          The values array received.
+ *
+ * @param[in] size_idx
+ *          The size of indexes.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
+static inline int
+bvec_zhandle_recv_backward_dst( pastix_data_t      *pastix_data,
+                                pastix_int_t        nrhs,
+                                pastix_complex64_t *b,
+                                pastix_int_t        ldb,
+                                pastix_int_t       *indexes,
+                                pastix_complex64_t *values,
+                                pastix_int_t        size_idx )
+{
+    const spmatrix_t *spm = pastix_data->csc;
+    pastix_int_t      dof = spm->dof;
+    pastix_int_t      igp, ile, idx, j, dofi;
+
+    dofi = dof; /* vdof incorrect */
+    for ( idx = 0; idx < size_idx; idx++, indexes++ ) {
+        igp = indexes[ 0 ];
+        ile = bvec_Pglob2loc( pastix_data, igp);
+        assert( ile >= 0 );
+
+        for ( j = 0; j < nrhs; j++, values += dofi ) {
+            memcpy( b + ile + j * ldb, values, dofi * sizeof(pastix_complex64_t) );
+        }
+    }
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Copies the received data in the right hand side b or pb in the
+ * distributed case.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix_data structure.
+ *
+ * @param[in] dir
+ *          The direction of the permutation.
+ *          If PastixDirForward, b is permuted into Pb.
+ *          If PastixDirBackward, Pb is permuted into b.
+ *
+ * @param[in] nrhs
+ *          The number of columns in the right hand sides b and pb.
+ *
+ * @param[inout] b
+ *          If dir == PastixDirForward:
+ *              On entry the right hand side b not fully filled.
+ *              At exit b is updated with the remote values.
+ *          If dir == PastixDirBackward:
+ *              b is not modified.
+ *
+ * @param[in] ldb
+ *          The leading dimension of b.
+ *
+ * @param[inout] Pb
+ *          If dir == PastixDirForward:
+ *              On entry the structure of the permuted right hand side pb
+ *              not fully filled.
+ *              At exit pb is updated with the remote values.
+ *          If dir == PastixDirBackward:
+ *              Pb is not modified.
+ *
+ * @param[in] indexes
+ *          The indexes array received.
+ *
+ * @param[in] values
+ *          The values array received.
+ *
+ * @param[in] size_idx
+ *          The size of indexes.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
+static inline int
+bvec_zhandle_recv_dst( pastix_data_t      *pastix_data,
+                       pastix_dir_t        dir,
+                       pastix_int_t        nrhs,
+                       pastix_complex64_t *b,
+                       pastix_int_t        ldb,
+                       pastix_rhs_t        Pb,
+                       pastix_int_t       *indexes,
+                       pastix_complex64_t *values,
+                       pastix_int_t        size_idx )
+{
+    if ( dir == PastixDirForward ) {
+        bvec_zhandle_recv_forward_dst( pastix_data, nrhs, Pb->b, Pb->ld, indexes, values, size_idx );
+    }
+    else {
+        bvec_zhandle_recv_backward_dst( pastix_data, nrhs, b, ldb, indexes, values, size_idx );
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Exchanges the data and copies the received data in the right hand
+ * side b or pb in the distributed case.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix_data structure.
+ *
+ * @param[in] dir
+ *          The direction of the permutation.
+ *          If PastixDirForward, b is permuted into Pb.
+ *          If PastixDirBackward, Pb is permuted into b.
+ *
+ * @param[in] nrhs
+ *          The number of columns in the right hand side b.
+ *
+ * @param[inout] b
+ *          If dir == PastixDirForward:
+ *              On entry the right hand side b not fully filled.
+ *              At exit b is updated with the remote values.
+ *          If dir == PastixDirBackward:
+ *              b is not modified.
+ *
+ * @param[in] ldb
+ *          The leading dimension of b.
+ *
+ * @param[inout] Pb
+ *          If dir == PastixDirForward:
+ *              On entry the structure of the permuted right hand side pb
+ *              not fully filled.
+ *              At exit pb is updated with the remote values.
+ *          If dir == PastixDirBackward:
+ *              Pb is not modified.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
+int
+bvec_zexchange_data_dst( pastix_data_t      *pastix_data,
+                         pastix_dir_t        dir,
+                         pastix_int_t        nrhs,
+                         pastix_complex64_t *b,
+                         pastix_int_t        ldb,
+                         pastix_rhs_t        Pb )
+{
+    bvec_handle_comm_t *rhs_comm    = Pb->rhs_comm;
+    bvec_proc_comm_t   *data_comm   = rhs_comm->data_comm;
+    pastix_int_t        clustnbr    = rhs_comm->clustnbr;
+    pastix_int_t        clustnum    = rhs_comm->clustnum;
+    pastix_int_t       *idx_buf     = NULL;
+    pastix_complex64_t *val_buf     = NULL;
+    pastix_int_t        counter_req = 0;
+    MPI_Status          statuses[(clustnbr-1)*2];
+    MPI_Request         requests[(clustnbr-1)*2];
+    bvec_data_amount_t *sends;
+    bvec_data_amount_t *recvs;
+    pastix_int_t        c;
+
+    /* Allocates the receiving indexes and values buffers. */
+    if ( rhs_comm->max_idx != 0 ) {
+        MALLOC_INTERN( idx_buf, rhs_comm->max_idx, pastix_int_t );
+        MALLOC_INTERN( val_buf, rhs_comm->max_val, pastix_complex64_t );
+    }
+
+    for ( c = 0; c < clustnbr; c++ ) {
+        data_comm = rhs_comm->data_comm + c;
+        sends     = &( data_comm->send );
+        recvs     = &( data_comm->recv );
+
+        if ( c == clustnum ) {
+            continue;
+        }
+
+        /* Posts the emissions of the indexes. */
+        if ( sends->idxcnt != 0 ) {
+            MPI_Isend( data_comm->send.idxbuf,  data_comm->send.idxcnt, PASTIX_MPI_INT,      c,
+                       PastixTagIndexes, rhs_comm->comm, &requests[counter_req++] );
+            MPI_Isend( data_comm->send.valbuf, data_comm->send.valcnt, PASTIX_MPI_COMPLEX64, c,
+                       PastixTagValues,  rhs_comm->comm, &requests[counter_req++] );
+        }
+
+        /* Posts the receptions of the indexes and values. */
+        if ( recvs->idxcnt != 0 ) {
+            MPI_Recv( idx_buf, recvs->idxcnt, PASTIX_MPI_INT,       c, PastixTagIndexes,
+                      rhs_comm->comm, MPI_STATUS_IGNORE );
+            MPI_Recv( val_buf, recvs->valcnt, PASTIX_MPI_COMPLEX64, c, PastixTagValues,
+                      rhs_comm->comm, MPI_STATUS_IGNORE );
+
+            assert( recvs->idxcnt <= recvs->valcnt );
+            bvec_zhandle_recv_dst( pastix_data, dir, nrhs, b, ldb, Pb, idx_buf, val_buf,
+                                   recvs->idxcnt );
+        }
+    }
+
+    MPI_Waitall( counter_req, requests, statuses );
 
     /* Frees the receiving indexes and values buffers. */
     if ( idx_buf != NULL ) {
