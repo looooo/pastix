@@ -118,8 +118,8 @@ int main (int argc, char **argv)
     MPI_Comm_size( MPI_COMM_WORLD, &clustnbr );
     if ( clustnbr > 1 ) {
         mpi_begin = 1;
-        mpi_end   = 1; /* Distributed interface is not yet available */
-        dmax      = 2; /* Variadic is not working with MPI           */
+        mpi_end   = 2;
+        dmax      = 2; /* Variadic is not working with MPI */
     }
 
     for ( mpi_type = mpi_begin; mpi_type <= mpi_end; mpi_type++ ) {

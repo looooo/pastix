@@ -78,17 +78,26 @@ typedef struct bvec_handle_comm_s
 
 void *bvec_malloc( size_t size );
 void  bvec_free( void *x );
+
+#if defined( PASTIX_WITH_MPI )
 int bvec_handle_comm_init( const pastix_data_t *pastix_data,
                            pastix_rhs_t         Pb );
 int bvec_handle_comm_exit( bvec_handle_comm_t *rhs_comm );
 
 pastix_int_t bvec_glob2Ploc( const pastix_data_t *pastix_data,
                              pastix_int_t         ig );
-
-int bvec_Ploc2Pglob( pastix_data_t *pastix_data,
-                     pastix_rhs_t   Pb );
+pastix_int_t bvec_Pglob2loc( const pastix_data_t *pastix_data,
+                             pastix_int_t         igp );
+int bvec_compute_Ploc2Pglob( pastix_data_t *pastix_data,
+                             pastix_rhs_t   Pb );
 
 int bvec_exchange_amount_rep( bvec_handle_comm_t *rhs_comm );
+int bvec_exchange_amount_dst( pastix_data_t *pastix_data,
+                              pastix_dir_t   dir,
+                              pastix_int_t   m,
+                              pastix_int_t   nrhs,
+                              pastix_rhs_t   Pb );
+#endif
 
 #endif /* _bvec_h_ */
 /**

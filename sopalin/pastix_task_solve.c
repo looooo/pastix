@@ -747,12 +747,8 @@ pastix_task_solve( pastix_data_t *pastix_data,
                    void          *b,
                    pastix_int_t   ldb )
 {
-    const spmatrix_t *spm;
-    pastix_bcsc_t    *bcsc;
-    void             *bglob = NULL;
-    void             *tmp   = NULL;
-    pastix_rhs_t      Bp;
-    pastix_int_t      rc;
+    pastix_rhs_t Bp;
+    pastix_int_t rc;
 
     /*
      * Check parameters
@@ -766,30 +762,6 @@ pastix_task_solve( pastix_data_t *pastix_data,
         pastix_print_error( "pastix_task_solve: Numerical factorization hasn't been done." );
         return PASTIX_ERR_BADPARAMETER;
     }
-
-    spm  = pastix_data->csc;
-    bcsc = pastix_data->bcsc;
-
-    /* The spm is distributed, so we have to gather the RHS */
-    if ( spm->loc2glob != NULL ) {
-        assert( m == spm->nexp );
-
-        if( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNo ) {
-            pastix_print( pastix_data->procnum, 0, "pastix_task_solve: the RHS has to be centralized for the moment\n" );
-        }
-
-        tmp = b;
-        bglob = malloc( (size_t)(spm->gNexp) * (size_t)nrhs * pastix_size_of( bcsc->flttype ) );
-        spmGatherRHS( nrhs, spm, b, ldb,
-                      -1, bglob, spm->gNexp );
-        b   = bglob;
-        ldb = pastix_data->csc->gNexp;
-        m   = ldb;
-    }
-    else {
-        assert( m == spm->gNexp );
-    }
-    assert( m == bcsc->gN );
 
     /* Compute P * b */
     rc = pastixRhsInit( &Bp );
@@ -817,15 +789,6 @@ pastix_task_solve( pastix_data_t *pastix_data,
     rc = pastixRhsFinalize( Bp );
     if( rc != PASTIX_SUCCESS ) {
         return rc;
-    }
-
-    if( tmp != NULL ) {
-        pastix_int_t ldbglob = ldb;
-        ldb = spm->nexp;
-        b   = tmp;
-
-        spmExtractLocalRHS( nrhs, spm, bglob, ldbglob, b, ldb );
-        memFree_null( bglob );
     }
 
     return rc;

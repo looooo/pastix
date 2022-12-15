@@ -24,6 +24,7 @@
 #include "common/common.h"
 #include "common/flops.h"
 #include "bcsc/bcsc.h"
+#include "bcsc/bvec.h"
 #include "bcsc/bcsc_z.h"
 #include "blend/solver.h"
 #include "kernels/pastix_zcores.h"
@@ -622,6 +623,9 @@ z_bvec_applyorder_check ( pastix_data_t *pastix_data,
     size_t              size;
     pastix_int_t        m, ldb;
     int                 rc = 0;
+    pastix_int_t        sum_m, my_sum;
+    pastix_int_t        clustnum = spm->clustnum;
+    pastix_int_t        clustnbr = spm->clustnbr;
 
     /**
      * Generates the b and x vector such that A * x = b
@@ -635,12 +639,23 @@ z_bvec_applyorder_check ( pastix_data_t *pastix_data,
     memset( b_in,  0xdead, sizeof(pastix_complex64_t) * size );
     memset( b_out, 0xdead, sizeof(pastix_complex64_t) * size );
 
+    sum_m  = 0;
+    my_sum = 0;
+
+    if ( clustnum > 0 ) {
+        MPI_Recv( &my_sum, 1, PASTIX_MPI_INT, clustnum - 1, PastixTagAmount, spm->comm, MPI_STATUSES_IGNORE );
+    }
+    if ( clustnum < ( clustnbr - 1 ) ) {
+        sum_m = my_sum + m;
+        MPI_Send( &sum_m, 1, PASTIX_MPI_INT, clustnum + 1, PastixTagAmount, spm->comm );
+    }
+
     /* Generate a replicated B */
     if ( spm->loc2glob == NULL ) {
         core_zplrnt( m, nrhs, b_in, ldb, m, 0, 0, 4978 );
     }
     else {
-        z_init( pastix_data, 4978, nrhs, b_in, ldb );
+        core_zplrnt( m, nrhs, b_in, ldb, spm->gNexp, my_sum, 0, 4978 );
     }
     memcpy( b_out, b_in, size * sizeof(pastix_complex64_t) );
 
@@ -676,5 +691,6 @@ z_bvec_applyorder_check ( pastix_data_t *pastix_data,
     free( b_in );
     free( b_out );
 
+    (void)sum_m;
     return rc;
 }

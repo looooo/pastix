@@ -44,7 +44,254 @@
  *
  * @ingroup bcsc_internal
  *
- * @brief Apply a row permutation to a matrix A (LAPACK xlatmr) in the
+ * @brief Applies a row permutation (permtab) to the right hand side b and stores it
+ * in Pb in the distributed case. It also sends and receives the part of pb
+ * according to the bcsc partition.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix_data structure.
+ *
+ * @param[in] m
+ *          The number of rows in the right hand side b.
+ *
+ * @param[in] nrhs
+ *          The number of columns in the right hand side b.
+ *
+ * @param[in] b
+ *          A right hand side of size ldb-by-n.
+ *
+ * @param[in] ldb
+ *          The leading dimension of b >= m.
+ *
+ * @param[inout] Pb
+ *          The structure of the permuted right hand side b.
+ *          On entry, the structure is initialized. On exit, contains the
+ *          permuted right hand side b.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
+static inline int
+bvec_zlapmr_dst_vec2bvec( pastix_data_t      *pastix_data,
+                          pastix_int_t        m,
+                          pastix_int_t        nrhs,
+                          pastix_complex64_t *b,
+                          pastix_int_t        ldb,
+                          pastix_rhs_t        Pb )
+{
+    pastix_complex64_t  *pb          = Pb->b;
+    const spmatrix_t    *spm         = pastix_data->csc;
+    pastix_bcsc_t       *bcsc        = pastix_data->bcsc;
+    const SolverMatrix  *solvmatr    = pastix_data->solvmatr;
+    pastix_int_t         baseval_spm = spm->baseval;
+    pastix_int_t         dof         = spm->dof;
+    pastix_int_t        *dofs        = spm->dofs;
+    pastix_int_t        *loc2glob    = spm->loc2glob;
+    pastix_int_t         clustnbr    = solvmatr->clustnbr;
+    pastix_int_t         bcsc_n      = bcsc->n;
+    bvec_handle_comm_t  *comm_rhs    = NULL;
+    bvec_proc_comm_t    *data_comm   = NULL;
+    pastix_int_t         il, ile, ilpe, ig, dofi;
+    pastix_int_t         j, c;
+    pastix_int_t        *idx_cnt, *val_cnt;
+    pastix_complex64_t  *values_c;
+
+    assert( m             == spm->nexp );
+    assert( Pb->m         == bcsc_n    );
+    assert( Pb->allocated == 1         );
+    assert( Pb->ld        == bcsc_n    );
+    assert( b             != pb        );
+
+    bvec_handle_comm_init( pastix_data, Pb );
+
+    bvec_exchange_amount_dst( pastix_data, PastixDirForward, m, nrhs, Pb );
+    comm_rhs  = Pb->rhs_comm;
+
+    /* Allocates the indexes and values buffers. */
+    bvec_zallocate_buf_dst( comm_rhs );
+    data_comm = comm_rhs->data_comm;
+
+    /*
+     * Allocates and initialises the counters used to fill rhs_comm->values
+     * and rhs_comm->indexes.
+     */
+    MALLOC_INTERN( idx_cnt, clustnbr, pastix_int_t );
+    MALLOC_INTERN( val_cnt, clustnbr, pastix_int_t );
+    memset( idx_cnt, 0, clustnbr * sizeof(pastix_int_t) );
+    memset( val_cnt, 0, clustnbr * sizeof(pastix_int_t) );
+
+    /*
+     * Goes through b to fill the data_comm with the data to send and
+     * fills pb with the local data.
+     */
+    for ( il = 0, ile = 0; ile < m; ile += dofi, il++ ) {
+        ig   = loc2glob[ il ] - baseval_spm;
+        ilpe = bvec_glob2Ploc( pastix_data, ig );
+        dofi = ( dof > 0 ) ? dof : dofs[ ig+1 ] - dofs[ ig ];
+
+        if ( ilpe < 0 ) {
+            c         = - ( ilpe + 1 );
+            data_comm = comm_rhs->data_comm + c;
+
+            /* Stores the indexes to send to c: (ipe, j). */
+            data_comm->send.idxbuf[ idx_cnt[ c ] ] = ig;
+            idx_cnt[ c ] ++;
+
+            /* Stores the value to send to c. */
+            for ( j = 0; j < nrhs; j++ ) {
+                values_c = ((pastix_complex64_t*)(data_comm->send.valbuf)) + val_cnt[ c ];
+                memcpy( values_c, b + ile + j * ldb, dofi * sizeof(pastix_complex64_t) );
+                val_cnt[ c ] += dofi;
+            }
+        }
+        else {
+            for ( j = 0; j < nrhs; j++ ) {
+                memcpy( pb + ilpe + j * bcsc_n, b + ile + j * ldb, dofi * sizeof(pastix_complex64_t) );
+            }
+        }
+    }
+
+    bvec_zexchange_data_dst( pastix_data, PastixDirForward, nrhs, b, ldb, Pb );
+
+    bvec_handle_comm_exit( Pb->rhs_comm );
+
+    memFree_null( idx_cnt );
+    memFree_null( val_cnt );
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc
+ *
+ * @brief Applies a row permutation (peritab) to the right hand side pb and stores it in
+ * b in the distributed case. It also sends and receives the part of b according
+ * to the spm repartition.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix_data structure.
+ *
+ * @param[in] m
+ *          The number of rows in the right hand side b.
+ *
+ * @param[in] nrhs
+ *          The number of columns in the right hand side b.
+ *
+ * @param[inout] b
+ *          A right hand side of size ldb-by-n.
+ *          On entry, the allocated right hand side.
+ *          At exit, contains the reverse permutation of Pb.
+ *
+ * @param[in] ldb
+ *          The leading dimension of b >= m.
+ *
+ * @param[inout] Pb
+ *          The structure of the permuted right hand side b.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
+static inline int
+bvec_zlapmr_dst_bvec2vec( pastix_data_t      *pastix_data,
+                          pastix_int_t        m,
+                          pastix_int_t        nrhs,
+                          pastix_complex64_t *b,
+                          pastix_int_t        ldb,
+                          pastix_rhs_t        Pb )
+{
+    pastix_complex64_t *bp         = Pb->b;
+    const spmatrix_t   *spm        = pastix_data->csc;
+    pastix_int_t        dof        = spm->dof;
+    bvec_handle_comm_t *comm_rhs   = NULL;
+    pastix_int_t        clustnbr   = pastix_data->solvmatr->clustnbr;
+    pastix_int_t        bcsc_n     = Pb->m;
+    pastix_int_t       *Ploc2Pglob = Pb->Ploc2Pglob;
+    pastix_int_t        ilp, ilpe, igp, ile;
+    pastix_int_t        j, c, dofi;
+    bvec_proc_comm_t   *data_comm;
+    pastix_int_t       *idx_cnt, *val_cnt;
+    pastix_complex64_t *values_c;
+
+    assert( Pb->m == pastix_data->bcsc->n );
+    assert( m     == spm->nexp            );
+    assert( b     != NULL                 );
+    memset( b, 0, ldb * nrhs * sizeof( pastix_complex64_t) );
+
+    bvec_compute_Ploc2Pglob( pastix_data, Pb );
+    Ploc2Pglob = Pb->Ploc2Pglob;
+
+    bvec_exchange_amount_dst( pastix_data, PastixDirBackward, m, nrhs, Pb );
+    comm_rhs = Pb->rhs_comm;
+
+    /* Allocates the indexes and values buffers. */
+    bvec_zallocate_buf_dst( comm_rhs );
+    data_comm = comm_rhs->data_comm;
+
+    /*
+     * Allocates and initialises the counters used to fill bcsc_comm->values
+     * and bcsc_comm->indexes.
+     */
+    MALLOC_INTERN( idx_cnt, clustnbr, pastix_int_t );
+    MALLOC_INTERN( val_cnt, clustnbr, pastix_int_t );
+    memset( idx_cnt, 0, clustnbr * sizeof(pastix_int_t) );
+    memset( val_cnt, 0, clustnbr * sizeof(pastix_int_t) );
+
+    /*
+     * Goes through b to fill the data_comm with the data to send and
+     * fills pb with the local data.
+     */
+    ilp  = 0;
+    dofi = dof; /* vdof incorrect */
+    for ( ilpe = 0; ilpe < bcsc_n; ilpe += dofi, ilp ++ ) {
+        igp = Ploc2Pglob[ ilp ];
+        ile = bvec_Pglob2loc( pastix_data, igp);
+
+        if ( ile < 0 ) {
+            c = - ( ile + 1 );
+            data_comm = comm_rhs->data_comm + c;
+
+            /* Stores the indexes to send to c: (ipe, j). */
+            data_comm->send.idxbuf[ idx_cnt[ c ] ] = igp;
+            idx_cnt[ c ] ++;
+            /* Stores the value to send to c. */
+            for ( j = 0; j < nrhs; j++ ) {
+                values_c = ((pastix_complex64_t*)(data_comm->send.valbuf)) + val_cnt[ c ];
+                memcpy( values_c, bp + ilpe + j * Pb->ld, dofi * sizeof(pastix_complex64_t) );
+                val_cnt[ c ] += dofi;
+            }
+        }
+        else {
+            for ( j = 0; j < nrhs; j++ ) {
+                memcpy( b + ile + j * ldb, bp + ilpe + j * Pb->ld, dofi * sizeof(pastix_complex64_t) );
+            }
+        }
+    }
+
+    bvec_zexchange_data_dst( pastix_data, PastixDirBackward, nrhs, b, ldb, Pb );
+
+    bvec_handle_comm_exit( Pb->rhs_comm );
+
+    memFree_null( idx_cnt );
+    memFree_null( val_cnt );
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Apply a row permutation to a right hand side A (LAPACK xlatmr) in the
  * distributed case.
  *
  *******************************************************************************
@@ -58,21 +305,21 @@
  *          If PastixDirBackward, PA is permuted into A.
  *
  * @param[in] m
- *          The number of rows in the matrix A, and the number of elements in
+ *          The number of rows in the right hand side A, and the number of elements in
  *          perm.
  *
  * @param[in] n
- *          The number of columns in the matrix A.
+ *          The number of columns in the right hand side A.
  *
  * @param[inout] A
- *          A matrix of size lda-by-n.
+ *          A right hand side of size lda-by-n.
  *          Referenced as input if dir is PastixDirForward, as output otherwise.
  *
  * @param[in] lda
  *          The leading dimension of A.
  *
  * @param[inout] PA
- *          The rhs structure of the permuted matrix A.
+ *          The structure of the permuted right hand side A.
  *          Referenced as inout if dir is PastixDirForward, as input otherwise.
  *
  *******************************************************************************
@@ -81,20 +328,19 @@
  *
  *******************************************************************************/
 static inline int
-bvec_zlapmr_dst( __attribute__((unused)) pastix_data_t      *pastix_data,
-                 __attribute__((unused)) pastix_dir_t        dir,
-                 __attribute__((unused)) pastix_int_t        m,
-                 __attribute__((unused)) pastix_int_t        n,
-                 __attribute__((unused)) pastix_complex64_t *A,
-                 __attribute__((unused)) pastix_int_t        lda,
-                 __attribute__((unused)) pastix_rhs_t        PA )
+bvec_zlapmr_dst( pastix_data_t      *pastix_data,
+                 pastix_dir_t        dir,
+                 pastix_int_t        m,
+                 pastix_int_t        n,
+                 pastix_complex64_t *A,
+                 pastix_int_t        lda,
+                 pastix_rhs_t        PA )
 {
-    assert( 0 );
     if ( dir == PastixDirForward ) {
-        return 0; //bvec_zlapmr_dst_vec2bvec( pastix_data, m, n, A, lda, PA );
+        return bvec_zlapmr_dst_vec2bvec( pastix_data, m, n, A, lda, PA );
     }
     else {
-        return 0; //bvec_zlapmr_dst_bvec2vec( pastix_data, m, n, A, lda, PA );
+        return bvec_zlapmr_dst_bvec2vec( pastix_data, m, n, A, lda, PA );
     }
 }
 
@@ -103,8 +349,8 @@ bvec_zlapmr_dst( __attribute__((unused)) pastix_data_t      *pastix_data,
  *
  * @ingroup bcsc_internal
  *
- * @brief Applies a row permutation (permtab) to the matrix b. and stores it
- * in Pb.
+ * @brief Applies a row permutation (permtab) to the right hand side b and stores it
+ * in Pb in the replicated case.
  *
  *******************************************************************************
  *
@@ -112,21 +358,21 @@ bvec_zlapmr_dst( __attribute__((unused)) pastix_data_t      *pastix_data,
  *          The pastix_data structure.
  *
  * @param[in] m
- *          The number of rows in the matrix b.
+ *          The number of rows in the right hand side b.
  *
  * @param[in] nrhs
- *          The number of columns in the matrix b.
+ *          The number of columns in the right hand side b.
  *
  * @param[in] b
- *          A matrix of size ldb-by-n.
+ *          A right hand side of size ldb-by-n.
  *
  * @param[in] ldb
  *          The leading dimension of b >= m.
  *
  * @param[inout] Pb
- *          The rhs structure of the permuted matrix b.
+ *          The structure of the permuted right hand side b.
  *          On entry, the structure is initialized. On exit, contains the
- *          permuted matrix b.
+ *          permuted right hand side b.
  *
  *******************************************************************************
  *
@@ -153,11 +399,11 @@ bvec_zlapmr_rep_vec2bvec( const pastix_data_t      *pastix_data,
     bvec_handle_comm_t *comm_rhs;
 
     /* Check on b */
-    assert( m == spm->gNexp );
-    assert( m <= ldb        );
-    //assert( m == spm->nexp  ); // Uncomment with dist2dist
-    assert( pastix_data->bcsc->n == Pb->m  );
-    assert( pastix_data->bcsc->n == Pb->ld );
+    assert( m                    == spm->gNexp );
+    assert( m                    <= ldb        );
+    assert( m                    == spm->nexp  );
+    assert( pastix_data->bcsc->n == Pb->m      );
+    assert( pastix_data->bcsc->n == Pb->ld     );
 
     /*
      * Goes through b to fill the data_comm with the data to send and
@@ -186,8 +432,8 @@ bvec_zlapmr_rep_vec2bvec( const pastix_data_t      *pastix_data,
 
     bvec_handle_comm_init( pastix_data, Pb );
 
-    comm_rhs  = Pb->rhs_comm;
-    data = &(comm_rhs->data_comm[comm_rhs->clustnum].send);
+    comm_rhs     = Pb->rhs_comm;
+    data         = &(comm_rhs->data_comm[comm_rhs->clustnum].send);
     data->idxcnt = idx_cnt;
     data->valcnt = val_cnt;
 
@@ -202,7 +448,7 @@ bvec_zlapmr_rep_vec2bvec( const pastix_data_t      *pastix_data,
  *
  * @ingroup bcsc_internal
  *
- * @brief Applies a row permutation (permtab) to the matrix b. and stores it
+ * @brief Applies a row permutation (permtab) to the right hand side b. and stores it
  * in Pb.
  *
  *******************************************************************************
@@ -211,21 +457,21 @@ bvec_zlapmr_rep_vec2bvec( const pastix_data_t      *pastix_data,
  *          The pastix_data structure.
  *
  * @param[in] m
- *          The number of rows in the matrix b.
+ *          The number of rows in the right hand side b.
  *
  * @param[in] nrhs
- *          The number of columns in the matrix b.
+ *          The number of columns in the right hand side b.
  *
  * @param[inout] b
- *          A matrix of size ldb-by-n.
- *          On entry, the allocated matrix.
+ *          A right hand side of size ldb-by-n.
+ *          On entry, the allocated right hand side.
  *          On exit, contains the revers permutation of Pb.
  *
  * @param[in] ldb
  *          The leading dimension of b >= m.
  *
- * @param[input] Pb
- *          The rhs structure of the permuted matrix b.
+ * @param[inout] Pb
+ *          The structure of the permuted right hand side b.
  *
  *******************************************************************************/
 static inline int
@@ -250,11 +496,11 @@ bvec_zlapmr_rep_bvec2vec( pastix_data_t      *pastix_data,
     bvec_data_amount_t   *data_send;
     pastix_int_t         *idxptr;
 
-    assert( Pb->m == pastix_data->bcsc->n );
-    // assert( m     == spm->nexp ); Uncomment with dist2dist
-    assert( b     != NULL );
+    assert( Pb->m == pastix_data->bcsc->n   );
+    assert( m     == pastix_data->csc->nexp );
+    assert( b     != NULL                   );
 
-    bvec_Ploc2Pglob( pastix_data, Pb );
+    bvec_compute_Ploc2Pglob( pastix_data, Pb );
 
     Ploc2Pglob = Pb->Ploc2Pglob;
     data_send  = &(comm_rhs->data_comm[clustnum].send);
@@ -297,7 +543,6 @@ bvec_zlapmr_rep_bvec2vec( pastix_data_t      *pastix_data,
     bvec_zexchange_data_rep( pastix_data, nrhs, b, ldb, Pb );
 
     bvec_handle_comm_exit( Pb->rhs_comm );
-    memFree_null( Pb->rhs_comm );
 
     (void)m;
     return PASTIX_SUCCESS;
@@ -308,7 +553,7 @@ bvec_zlapmr_rep_bvec2vec( pastix_data_t      *pastix_data,
  *
  * @ingroup bcsc_internal
  *
- * @brief Apply a row permutation to a matrix A (LAPACK xlatmr) in the
+ * @brief Apply a row permutation to a right hand side A (LAPACK xlatmr) in the
  * replicated case.
  *
  *******************************************************************************
@@ -322,21 +567,21 @@ bvec_zlapmr_rep_bvec2vec( pastix_data_t      *pastix_data,
  *          If PastixDirBackward, PA is permuted into A.
  *
  * @param[in] m
- *          The number of rows in the matrix A, and the number of elements in
+ *          The number of rows in the right hand side A, and the number of elements in
  *          perm.
  *
  * @param[in] n
- *          The number of columns in the matrix A.
+ *          The number of columns in the right hand side A.
  *
  * @param[inout] A
- *          A matrix of size lda-by-n.
+ *          A right hand side of size lda-by-n.
  *          Referenced as input if dir is PastixDirForward, as output otherwise.
  *
  * @param[in] lda
  *          The leading dimension of A.
  *
  * @param[inout] PA
- *          The rhs structure of the permuted matrix A.
+ *          The structure of the permuted right hand side A.
  *          Referenced as inout if dir is PastixDirForward, as input otherwise.
  *
  *******************************************************************************
@@ -367,7 +612,7 @@ bvec_zlapmr_rep( pastix_data_t      *pastix_data,
  *
  * @ingroup bcsc_internal
  *
- * @brief Apply a row permutation to a matrix A (LAPACK xlatmr) in the shared
+ * @brief Apply a row permutation to a right hand side A (LAPACK xlatmr) in the shared
  * memory case.
  *
  *******************************************************************************
@@ -381,21 +626,21 @@ bvec_zlapmr_rep( pastix_data_t      *pastix_data,
  *          If PastixDirBackward, PA is permuted into A.
  *
  * @param[in] m
- *          The number of rows in the matrix A, and the number of elements in
+ *          The number of rows in the right hand side A, and the number of elements in
  *          perm.
  *
  * @param[in] n
- *          The number of columns in the matrix A.
+ *          The number of columns in the right hand side A.
  *
  * @param[inout] A
- *          A matrix of size lda-by-n.
+ *          A right hand side of size lda-by-n.
  *          Referenced as input if dir is PastixDirForward, as output otherwise.
  *
  * @param[in] lda
  *          The leading dimension of A.
  *
  * @param[inout] PA
- *          The rhs structure of the permuted matrix A.
+ *          The structure of the permuted right hand side A.
  *          Referenced as inout if dir is PastixDirForward, as input otherwise.
  *
  *******************************************************************************
@@ -516,7 +761,7 @@ bvec_zlapmr_shm( pastix_data_t      *pastix_data,
  *
  * @ingroup bcsc_internal
  *
- * @brief Apply a row permutation to a matrix A (LAPACK xlatmr)
+ * @brief Apply a row permutation to a right hand side A (LAPACK xlatmr)
  *
  *******************************************************************************
  *
@@ -529,21 +774,21 @@ bvec_zlapmr_shm( pastix_data_t      *pastix_data,
  *          If PastixDirBackward, PA is permuted into A.
  *
  * @param[in] m
- *          The number of rows in the matrix A, and the number of elements in
+ *          The number of rows in the right hand side A, and the number of elements in
  *          perm.
  *
  * @param[in] n
- *          The number of columns in the matrix A.
+ *          The number of columns in the right hand side A.
  *
  * @param[inout] A
- *          A matrix of size lda-by-n.
+ *          A right hand side of size lda-by-n.
  *          Referenced as input if dir is PastixDirForward, as output otherwise.
  *
  * @param[in] lda
  *          The leading dimension of A.
  *
  * @param[inout] PA
- *          The rhs structure of the permuted matrix A.
+ *          The structure of the permuted right hand side A.
  *          Referenced as inout if dir is PastixDirForward, as input otherwise.
  *
  *******************************************************************************
@@ -604,19 +849,16 @@ bvec_zlapmr( pastix_data_t      *pastix_data,
 
 #if defined(PASTIX_WITH_MPI)
     if ( spm->clustnbr > 1 ) {
-        #if 0
         if ( spm->loc2glob != NULL ) {
             /*
-             * The input vector is distributed, we redispatch it following the
+             * The input right hand side is distributed, we redispatch it following the
              * ordering.
              */
             rc = bvec_zlapmr_dst( pastix_data, dir, m, n, A, lda, PA );
         }
-        else
-        #endif
-        {
+        else {
             /*
-             * The input vector is replicated, we extract or collect the data
+             * The input right hand side is replicated, we extract or collect the data
              * following the ordering.
              */
             rc = bvec_zlapmr_rep( pastix_data, dir, m, n, A, lda, PA );
@@ -643,6 +885,10 @@ bvec_zlapmr( pastix_data_t      *pastix_data,
         PA->n         = -1;
         PA->ld        = -1;
         PA->b         = NULL;
+
+        if ( PA->rhs_comm != NULL ) {
+            memFree_null( PA->rhs_comm );
+        }
     }
 
     return rc;
