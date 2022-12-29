@@ -43,7 +43,7 @@
  *
  *******************************************************************************/
 void
-bcsc_init_handle_comm( const SolverMatrix *solvmtx,
+bcsc_handle_comm_init( const SolverMatrix *solvmtx,
                        pastix_bcsc_t      *bcsc )
 {
     pastix_int_t        size = sizeof(bcsc_handle_comm_t) + (solvmtx->clustnbr-1)*sizeof(bcsc_proc_comm_t);
@@ -74,7 +74,7 @@ bcsc_init_handle_comm( const SolverMatrix *solvmtx,
  *
  *******************************************************************************/
 void
-bcsc_exit_handle_comm( bcsc_handle_comm_t *bcsc_comm )
+bcsc_handle_comm_exit( bcsc_handle_comm_t *bcsc_comm )
 {
     int c;
     int clustnbr = bcsc_comm->clustnbr;
@@ -99,6 +99,241 @@ bcsc_exit_handle_comm( bcsc_handle_comm_t *bcsc_comm )
 /**
  *******************************************************************************
  *
+ * @ingroup bcsc
+ *
+ * @brief Computes the maximum size of the sending indexes and values buffers.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] bcsc_comm
+ *         On entry the bcsc_comm initialized.
+ *         At exit the fields max_idx and max_val of bcsc_comm are updated.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
+static inline int
+bcsc_compute_max( bcsc_handle_comm_t *bcsc_comm )
+{
+    bcsc_proc_comm_t *data       = NULL;
+    bcsc_proc_comm_t *data_local = NULL;
+    pastix_int_t      clustnbr   = bcsc_comm->clustnbr;
+    pastix_int_t      clustnum   = bcsc_comm->clustnum;
+    pastix_int_t      max_idx    = 0;
+    pastix_int_t      max_val    = 0;
+    pastix_int_t      idx_A_cnt  = 0;
+    pastix_int_t      val_A_cnt  = 0;
+    pastix_int_t      idx_At_cnt = 0;
+    pastix_int_t      val_At_cnt = 0;
+    pastix_int_t      idx_cnt_A, idx_cnt_At, val_cnt_A, val_cnt_At, c;
+
+    /* Receives the amount of indexes and values. */
+    for ( c = 0; c < clustnbr; c++ ) {
+        data = bcsc_comm->data_comm + c;
+        if ( c == clustnum ) {
+            data_local = data;
+            continue;
+        }
+
+        idx_cnt_A  = data->nrecvs.idx_A;
+        idx_cnt_At = data->nrecvs.idx_At;
+        val_cnt_A  = data->nrecvs.val_A;
+        val_cnt_At = data->nrecvs.val_At;
+
+        max_idx = pastix_imax( max_idx, idx_cnt_A);
+        max_idx = pastix_imax( max_idx, idx_cnt_At);
+        max_val = pastix_imax( max_val, val_cnt_A);
+        max_val = pastix_imax( max_val, val_cnt_At);
+
+        idx_A_cnt  += idx_cnt_A;
+        val_A_cnt  += val_cnt_A;
+        idx_At_cnt += idx_cnt_At;
+        val_At_cnt += val_cnt_At;
+    }
+
+    data_local->nrecvs.idx_A  = idx_A_cnt;
+    data_local->nrecvs.val_A  = val_A_cnt;
+    data_local->nrecvs.idx_At = idx_At_cnt;
+    data_local->nrecvs.val_At = val_At_cnt;
+
+    assert( max_idx <= 2 * max_val );
+
+    bcsc_comm->max_idx = max_idx;
+    bcsc_comm->max_val = max_val;
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc
+ *
+ * @brief Allocates the sending buffers in bcsc_comm->data_comm. These buffers
+ * are filled with the sending values.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] bcsc_comm
+ *         On entry the bcsc_comm initialized.
+ *         At exit the arrays of bcsc_comm->data_comm are allocated.
+ *
+ * @param[in] mode
+ *         If PastixTagMemRecvIdx: allocates receiving indexes A and At buffers.
+ *         If PastixTagMemSend: allocates sending indexes and values A and At
+ *                              buffers.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
+int
+bcsc_allocate_buf( bcsc_handle_comm_t *bcsc_comm,
+                   bcsc_tag_e          mode  )
+{
+    bcsc_proc_comm_t   *data     = NULL;
+    pastix_int_t        clustnbr = bcsc_comm->clustnbr;
+    pastix_int_t        clustnum = bcsc_comm->clustnum;
+    bcsc_data_amount_t  data_send;
+    bcsc_data_amount_t  data_recv;
+    pastix_int_t        c;
+    size_t              size;
+
+    if ( mode == PastixTagMemRecvIdx ) {
+        data      = bcsc_comm->data_comm + clustnum;
+        data_recv = data->nrecvs;
+        if ( data_recv.idx_A > 0 && data->indexes_A == NULL ) {
+            MALLOC_INTERN( data->indexes_A,  data_recv.idx_A , pastix_int_t );
+        }
+
+        if ( data_recv.idx_At > 0 && data->indexes_At == NULL ) {
+            MALLOC_INTERN( data->indexes_At, data_recv.idx_At, pastix_int_t );
+        }
+    }
+
+    if ( mode == PastixTagMemSend ) {
+        for ( c = 0; c < clustnbr; c ++ ) {
+            data      = bcsc_comm->data_comm + c;
+            data_send = data->nsends;
+
+            if ( c == clustnum ) {
+                continue;
+            }
+
+            if ( data_send.idx_A > 0 && data->indexes_A == NULL && data->values_A == NULL ) {
+                MALLOC_INTERN( data->indexes_A,  data_send.idx_A , pastix_int_t );
+                size = data_send.val_A * pastix_size_of( bcsc_comm->flttype );
+                MALLOC_INTERN( data->values_A,  size, char );
+            }
+
+            if ( data_send.idx_At > 0 && data->indexes_At == NULL && data->values_At == NULL ) {
+                MALLOC_INTERN( data->indexes_At, data_send.idx_At, pastix_int_t );
+                size = data_send.val_At * pastix_size_of( bcsc_comm->flttype );
+                MALLOC_INTERN( data->values_At, size, char );
+            }
+        }
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc
+ *
+ * @brief Frees the sending and receiving buffers in bcsc_comm->data_comm.
+ * These buffers are filled with the sending adn receiving values.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] bcsc_comm
+ *         On entry the bcsc_comm initialized.
+ *         At exit the arrays of bcsc_comm->data_comm are freed.
+ *
+ * @param[in] mode
+ *         If PastixTagMemSendIdx: frees sending indexes A and At buffers.
+ *         If PastixTagMemSendValA: frees sending values A buffers.
+ *         If PastixTagMemSendValAt: frees sending values At buffers.
+ *         If PastixTagMemRecvIdxA: frees receiving indexes A buffers.
+ *         If PastixTagMemRecvIdxAt: frees receiving indexes At buffers.
+ *
+ *******************************************************************************
+ *
+ * @retval PASTIX_SUCCESS
+ *
+ *******************************************************************************/
+int
+bcsc_free_buf( bcsc_handle_comm_t *bcsc_comm,
+               bcsc_tag_e          mode )
+{
+    bcsc_proc_comm_t   *data     = NULL;
+    pastix_int_t        clustnbr = bcsc_comm->clustnbr;
+    pastix_int_t        clustnum = bcsc_comm->clustnum;
+    pastix_int_t        c;
+
+    if ( mode == PastixTagMemSendIdx ) {
+        for ( c = 0; c < clustnbr; c ++ ) {
+            data = bcsc_comm->data_comm + c;
+            if ( c == clustnum ) {
+                continue;
+            }
+            if ( data->indexes_A != NULL ) {
+                memFree_null( data->indexes_A );
+            }
+            if ( data->indexes_At != NULL ) {
+                memFree_null( data->indexes_At );
+            }
+        }
+    }
+
+    if ( mode == PastixTagMemSendValA ) {
+        for ( c = 0; c < clustnbr; c ++ ) {
+            data = bcsc_comm->data_comm + c;
+            if ( c == clustnum ) {
+                continue;
+            }
+            if ( data->values_A != NULL ) {
+                memFree_null( data->values_A );
+            }
+        }
+    }
+
+    if ( mode == PastixTagMemSendValAt ) {
+        for ( c = 0; c < clustnbr; c ++ ) {
+            data = bcsc_comm->data_comm + c;
+            if ( c == clustnum ) {
+                continue;
+            }
+            if ( data->values_At != NULL ) {
+                memFree_null( data->values_At );
+            }
+        }
+    }
+
+    if ( mode == PastixTagMemRecvIdxA ) {
+        data = bcsc_comm->data_comm + clustnum;
+        if ( data->indexes_A != NULL ) {
+            memFree_null( data->indexes_A );
+        }
+    }
+
+    if ( mode == PastixTagMemRecvIdxAt ) {
+        data = bcsc_comm->data_comm + clustnum;
+        if ( data->indexes_At != NULL ) {
+            memFree_null( data->indexes_At );
+        }
+    }
+
+    return PASTIX_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
  * @ingroup bcsc_internal
  *
  * @brief Exchanges the amount of data the current processor will send to and
@@ -116,15 +351,10 @@ bcsc_exchange_amount_of_data( bcsc_handle_comm_t *bcsc_comm )
     int               c;
     int               clustnbr    = bcsc_comm->clustnbr;
     int               clustnum    = bcsc_comm->clustnum;
-    pastix_int_t      idx_A_cnt   = 0;
-    pastix_int_t      val_A_cnt   = 0;
-    pastix_int_t      idx_At_cnt  = 0;
-    pastix_int_t      val_At_cnt  = 0;
     pastix_int_t      counter_req = 0;
     bcsc_proc_comm_t *data_comm   = bcsc_comm->data_comm;
     MPI_Status        statuses[(clustnbr-1)*2];
     MPI_Request       requests[(clustnbr-1)*2];
-    size_t            size;
 
     /* Receives the amount of indexes and values. */
     for ( c = 0; c < clustnbr; c++ ) {
@@ -141,42 +371,7 @@ bcsc_exchange_amount_of_data( bcsc_handle_comm_t *bcsc_comm )
 
     MPI_Waitall( counter_req, requests, statuses );
 
-    /* Saves the total amount of indexes and values received. */
-    for ( c = 0; c < clustnbr; c++ ) {
-        if ( c == clustnum ) {
-            continue;
-        }
-
-        idx_A_cnt  += data_comm[c].nrecvs.idx_A;
-        val_A_cnt  += data_comm[c].nrecvs.val_A;
-        idx_At_cnt += data_comm[c].nrecvs.idx_At;
-        val_At_cnt += data_comm[c].nrecvs.val_At;
-    }
-    data_comm[clustnum].nrecvs.idx_A  = idx_A_cnt;
-    data_comm[clustnum].nrecvs.val_A  = val_A_cnt;
-    data_comm[clustnum].nrecvs.idx_At = idx_At_cnt;
-    data_comm[clustnum].nrecvs.val_At = val_At_cnt;
-
-    /* Allocates the indexes and values buffers. */
-    for ( c = 0; c < clustnbr; c++ ) {
-        bcsc_proc_comm_t   *data   = bcsc_comm->data_comm + c;
-        bcsc_data_amount_t *amount = ( c == clustnum ) ? &(data->nrecvs) : &(data->nsends);
-
-        if ( ( amount->idx_A != 0 ) && ( data->indexes_A == NULL ) ) {
-            MALLOC_INTERN( data->indexes_A,  amount->idx_A , pastix_int_t );
-        }
-        if ( ( amount->idx_At != 0 ) && ( data->indexes_At == NULL ) ) {
-            MALLOC_INTERN( data->indexes_At, amount->idx_At, pastix_int_t );
-        }
-        if ( ( amount->val_A != 0 ) && ( data->values_A == NULL ) ) {
-            size = amount->val_A * pastix_size_of( bcsc_comm->flttype );
-            MALLOC_INTERN( data->values_A,  size, char );
-        }
-        if ( ( amount->val_At != 0 ) && ( data->values_At == NULL ) ) {
-            size = amount->val_At * pastix_size_of( bcsc_comm->flttype );
-            MALLOC_INTERN( data->values_At, size, char );
-        }
-    }
+    bcsc_compute_max( bcsc_comm );
 
     return;
 }
@@ -828,6 +1023,8 @@ bcsc_exchange_indexes( bcsc_handle_comm_t *bcsc_comm )
     MPI_Status        statuses[(clustnbr-1)*4];
     MPI_Request       requests[(clustnbr-1)*4];
 
+    bcsc_allocate_buf( bcsc_comm, PastixTagMemRecvIdx );
+
     for ( c = 0; c < clustnbr; c++ ) {
         data_comm = bcsc_comm->data_comm + c;
         if ( c == clustnum ) {
@@ -862,6 +1059,7 @@ bcsc_exchange_indexes( bcsc_handle_comm_t *bcsc_comm )
     /* Checks the total amount of indexes and values received. */
     assert( data_local->nrecvs.idx_A  == idx_A_cnt  );
     assert( data_local->nrecvs.idx_At == idx_At_cnt );
+    bcsc_free_buf( bcsc_comm, PastixTagMemSendIdx );
 }
 
 /**
@@ -1259,7 +1457,7 @@ bcsc_init_struct( const spmatrix_t   *spm,
      */
     bcsc->bcsc_comm = NULL;
     if ( spm->loc2glob != NULL ) {
-        bcsc_init_handle_comm( solvmtx, bcsc );
+        bcsc_handle_comm_init( solvmtx, bcsc );
     }
 }
 
@@ -1284,7 +1482,7 @@ bcsc_exit_struct( pastix_bcsc_t *bcsc )
     }
 
     if ( bcsc->bcsc_comm != NULL ) {
-        bcsc_exit_handle_comm( bcsc->bcsc_comm );
+        bcsc_handle_comm_exit( bcsc->bcsc_comm );
         memFree_null( bcsc->bcsc_comm );
     }
 }
