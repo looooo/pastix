@@ -29,6 +29,13 @@ typedef enum bcsc_tag_ {
     PastixTagIndexesAt,
     PastixTagValuesA,
     PastixTagValuesAt,
+    PastixTagMemSendIdx,
+    PastixTagMemRecvIdx,
+    PastixTagMemSend,
+    PastixTagMemSendValA,
+    PastixTagMemSendValAt,
+    PastixTagMemRecvIdxA,
+    PastixTagMemRecvIdxAt,
 } bcsc_tag_e;
 
 /**
@@ -72,6 +79,8 @@ typedef struct bcsc_handle_comm_s
     pastix_int_t      clustnum;     /**< ID of the current process in the cluster.                   */
     PASTIX_Comm       comm;         /**< PaStiX MPI communicator used for the ordering step.         */
     pastix_coeftype_t flttype;      /**< valtab datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64 */
+    pastix_int_t      max_idx;      /**< Maximum amount of indexes received, used to allocate the receiving buffer.     */
+    pastix_int_t      max_val;      /**< Maximum amount of values received, used to allocate the receiving buffer.      */
     bcsc_proc_comm_t  data_comm[1]; /**< Array of size clustnbr.                                     */
                                     /* data_comm[c]: contains the data clustnum has to send to c     */
                                     /*               and the amount of data clustnum will receive    */
@@ -137,11 +146,15 @@ pastix_int_t * bcsc_init_col2cblk( const SolverMatrix  *solvmtx,
                                    const pastix_bcsc_t *bcsc,
                                    const spmatrix_t    *spm );
 
-void bcsc_init_handle_comm( const SolverMatrix *solvmtx,
+void bcsc_handle_comm_init( const SolverMatrix *solvmtx,
                             pastix_bcsc_t      *bcsc );
-void bcsc_exit_handle_comm( bcsc_handle_comm_t *bcsc_comm );
+void bcsc_handle_comm_exit( bcsc_handle_comm_t *bcsc_comm );
 
 #if defined(PASTIX_WITH_MPI)
+int bcsc_allocate_buf( bcsc_handle_comm_t *bcsc_comm,
+                       bcsc_tag_e          mode  );
+int bcsc_free_buf( bcsc_handle_comm_t *bcsc_comm,
+                   bcsc_tag_e          mode );
 void bcsc_exchange_amount_of_data( bcsc_handle_comm_t *bcsc_comm );
 void bcsc_exchange_indexes( bcsc_handle_comm_t   *bcsc_comm );
 pastix_int_t * bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
