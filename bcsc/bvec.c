@@ -141,17 +141,11 @@ bvec_handle_comm_exit( bvec_handle_comm_t *rhs_comm )
     for ( c = 0; c < clustnbr; c++ ) {
         data = rhs_comm->data_comm + c;
 
-        if ( data->send.idxbuf != NULL ) {
-            memFree_null( data->send.idxbuf );
+        if ( data->send_idxbuf != NULL ) {
+            memFree_null( data->send_idxbuf );
         }
-        if ( data->send.valbuf != NULL ) {
-            memFree_null( data->send.valbuf );
-        }
-        if ( data->recv.idxbuf != NULL ) {
-            memFree_null( data->recv.idxbuf );
-        }
-        if ( data->recv.valbuf != NULL ) {
-            memFree_null( data->recv.valbuf );
+        if ( data->send_valbuf != NULL ) {
+            memFree_null( data->send_valbuf );
         }
     }
     rhs_comm->max_idx = 0;
@@ -350,14 +344,14 @@ bvec_exchange_amount_rep( bvec_handle_comm_t *rhs_comm )
     for ( c = 0; c < clustnbr; c++ ) {
         data_comm = rhs_comm->data_comm + c;
         if ( c == clustnum ) {
-            MPI_Bcast( &(data_comm->send), 2, PASTIX_MPI_INT, c, rhs_comm->comm );
+            MPI_Bcast( &(data_comm->nsends), 2, PASTIX_MPI_INT, c, rhs_comm->comm );
             continue;
         }
 
-        MPI_Bcast( &(data_comm->recv), 2, PASTIX_MPI_INT, c, rhs_comm->comm );
+        MPI_Bcast( &(data_comm->nrecvs), 2, PASTIX_MPI_INT, c, rhs_comm->comm );
 
-        idx_cnt = data_comm->recv.idxcnt;
-        val_cnt = data_comm->recv.valcnt;
+        idx_cnt = data_comm->nrecvs.idxcnt;
+        val_cnt = data_comm->nrecvs.valcnt;
 
         assert( idx_cnt <= val_cnt );
         if ( idx_cnt == 0 ) {
@@ -420,7 +414,7 @@ bvec_compute_amount_dst( const pastix_data_t *pastix_data,
     pastix_int_t       *dofs        = spm->dofs;
     pastix_int_t       *loc2glob    = spm->loc2glob;
     bvec_handle_comm_t *comm_rhs    = NULL;
-    bvec_proc_comm_t   *data_comm   = NULL;
+    bvec_proc_comm_t   *data        = NULL;
     pastix_int_t        il, ile, ilpe, ig, dofi, c;
 
     bvec_handle_comm_init( pastix_data, Pb );
@@ -437,10 +431,10 @@ bvec_compute_amount_dst( const pastix_data_t *pastix_data,
 
         if ( ilpe < 0 ) {
             c         = - ( ilpe + 1 );
-            data_comm = comm_rhs->data_comm + c;
+            data = comm_rhs->data_comm + c;
 
-            data_comm->send.idxcnt += 1;
-            data_comm->send.valcnt += dofi * nrhs;
+            data->nsends.idxcnt += 1;
+            data->nsends.valcnt += dofi * nrhs;
         }
     }
 
@@ -482,8 +476,8 @@ bvec_compute_max( bvec_handle_comm_t *rhs_comm )
             continue;
         }
 
-        idx_cnt = data->recv.idxcnt;
-        val_cnt = data->recv.valcnt;
+        idx_cnt = data->nrecvs.idxcnt;
+        val_cnt = data->nrecvs.valcnt;
 
         if ( max_idx < idx_cnt ) {
             max_idx = idx_cnt;
@@ -538,13 +532,13 @@ bvec_switch_amount_dst( bvec_handle_comm_t *rhs_comm )
             continue;
         }
 
-        idx_tmp           = data->send.idxcnt;
-        data->send.idxcnt = data->recv.idxcnt;
-        data->recv.idxcnt = idx_tmp;
+        idx_tmp             = data->nsends.idxcnt;
+        data->nsends.idxcnt = data->nrecvs.idxcnt;
+        data->nrecvs.idxcnt = idx_tmp;
 
-        val_tmp           = data->send.valcnt;
-        data->send.valcnt = data->recv.valcnt;
-        data->recv.valcnt = val_tmp;
+        val_tmp             = data->nsends.valcnt;
+        data->nsends.valcnt = data->nrecvs.valcnt;
+        data->nrecvs.valcnt = val_tmp;
 
     }
 
@@ -622,8 +616,8 @@ bvec_exchange_amount_dst( pastix_data_t *pastix_data,
     for ( k = 0; k < clustnbr-1; k++ ) {
         data_send = data_comm + c_send;
         data_recv = data_comm + c_recv;
-        sends     = &( data_send->send );
-        recvs     = &( data_recv->recv );
+        sends     = &( data_send->nsends );
+        recvs     = &( data_recv->nrecvs );
         if ( c_send == clustnum ) {
             continue;
         }

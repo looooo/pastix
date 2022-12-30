@@ -156,14 +156,16 @@ bvec_zexchange_data_rep( pastix_data_t      *pastix_data,
 
     for ( c = 0; c < clustnbr; c++ ) {
         data_comm = rhs_comm->data_comm + c;
-        sends     = &( data_comm->send );
-        recvs     = &( data_comm->recv );
+        sends     = &( data_comm->nsends );
+        recvs     = &( data_comm->nrecvs );
 
         if ( c == clustnum ) {
             /* Posts the emissions of the indexes and values. */
             if ( sends->idxcnt > 0 ) {
-                MPI_Bcast( sends->idxbuf, sends->idxcnt, PASTIX_MPI_INT,       c, rhs_comm->comm );
-                MPI_Bcast( Pb->b,         sends->valcnt, PASTIX_MPI_COMPLEX64, c, rhs_comm->comm );
+                MPI_Bcast( data_comm->send_idxbuf, sends->idxcnt, PASTIX_MPI_INT,
+                           c, rhs_comm->comm );
+                MPI_Bcast( Pb->b,                  sends->valcnt, PASTIX_MPI_COMPLEX64,
+                           c, rhs_comm->comm );
             }
             continue;
         }
@@ -210,8 +212,8 @@ bvec_zexchange_data_rep( pastix_data_t      *pastix_data,
 int
 bvec_zallocate_buf_dst( bvec_handle_comm_t *rhs_comm )
 {
-    bvec_proc_comm_t   *data      = NULL;
-    bvec_data_amount_t *data_send = NULL;
+    bvec_proc_comm_t   *data_comm = NULL;
+    bvec_data_amount_t *sends     = NULL;
     pastix_int_t        clustnbr  = rhs_comm->clustnbr;
     pastix_int_t        clustnum  = rhs_comm->clustnum;
     pastix_int_t        c;
@@ -219,15 +221,15 @@ bvec_zallocate_buf_dst( bvec_handle_comm_t *rhs_comm )
     /* Sends the same amout of data to all process. */
     for ( c = 0; c < clustnbr; c ++ ) {
 
-        data      = rhs_comm->data_comm + c;
-        data_send = &(data->send);
+        data_comm = rhs_comm->data_comm + c;
+        sends     = &( data_comm->nsends );
 
         if ( c == clustnum ) {
             continue;
         }
 
-        MALLOC_INTERN( data_send->idxbuf, data_send->idxcnt, pastix_int_t );
-        MALLOC_INTERN( data_send->valbuf, data_send->valcnt, pastix_complex64_t );
+        MALLOC_INTERN( data_comm->send_idxbuf, sends->idxcnt, pastix_int_t );
+        MALLOC_INTERN( data_comm->send_valbuf, sends->valcnt, pastix_complex64_t );
 
     }
 
@@ -510,7 +512,7 @@ bvec_zexchange_data_dst( pastix_data_t      *pastix_data,
     c_send = (clustnum+1) % clustnbr;
     for ( k = 0; k < clustnbr-1; k++ ) {
         data_send = data_comm + c_send;
-        sends     = &( data_send->send );
+        sends     = &( data_send->nsends );
 
         if ( c_send == clustnum ) {
             continue;
@@ -518,9 +520,9 @@ bvec_zexchange_data_dst( pastix_data_t      *pastix_data,
 
         /* Posts the emissions of the indexes. */
         if ( sends->idxcnt > 0 ) {
-            MPI_Isend( sends->idxbuf, sends->idxcnt, PASTIX_MPI_INT,       c_send,
+            MPI_Isend( data_send->send_idxbuf, sends->idxcnt, PASTIX_MPI_INT,       c_send,
                        PastixTagIndexes, rhs_comm->comm, &requests[counter_req++] );
-            MPI_Isend( sends->valbuf, sends->valcnt, PASTIX_MPI_COMPLEX64, c_send,
+            MPI_Isend( data_send->send_valbuf, sends->valcnt, PASTIX_MPI_COMPLEX64, c_send,
                        PastixTagValues,  rhs_comm->comm, &requests[counter_req++] );
         }
         c_send = (c_send+1) % clustnbr;
@@ -529,7 +531,7 @@ bvec_zexchange_data_dst( pastix_data_t      *pastix_data,
     c_recv = (clustnum-1+clustnbr) % clustnbr;
     for ( k = 0; k < clustnbr-1; k++ ) {
         data_recv = data_comm + c_recv;
-        recvs     = &( data_recv->recv );
+        recvs     = &( data_recv->nrecvs );
         /* Posts the receptions of the indexes and values. */
         if ( ( rhs_comm->max_idx > 0 ) && ( recvs->idxcnt > 0 ) ) {
             MPI_Recv( idx_buf, recvs->idxcnt, PASTIX_MPI_INT,       c_recv, PastixTagIndexes,
