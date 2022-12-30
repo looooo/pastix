@@ -24,7 +24,8 @@
 #define _bcsc_h_
 
 typedef enum bcsc_tag_ {
-    PastixTagCount,
+    PastixTagCountA,
+    PastixTagCountAt,
     PastixTagIndexesA,
     PastixTagIndexesAt,
     PastixTagValuesA,
@@ -39,35 +40,37 @@ typedef enum bcsc_tag_ {
 } bcsc_tag_e;
 
 /**
- * @brief Information about the amount of data exchanged.
+ * @brief Information about the amount of data.
  */
 typedef struct bcsc_data_amount_s
 {
-    pastix_int_t  idx_A;  /**< Amount of indexes of A which will be exchanged.  */
-    pastix_int_t  val_A;  /**< Amount of values of A which will be exchanged.   */
-    pastix_int_t  idx_At; /**< Amount of indexes of At which will be exchanged. */
-    pastix_int_t  val_At; /**< Amount of values of At which will be exchanged.  */
+    pastix_int_t idxcnt; /**< Amount of indexes of A or At which will be exchanged. */
+    pastix_int_t valcnt; /**< Amount of values of A or At which will be exchanged.  */
 } bcsc_data_amount_t;
+
+/**
+ * @brief Information about the sending data.
+ */
+typedef struct bcsc_send_comm_s
+{
+    bcsc_data_amount_t  size;   /**< Amount of indexes of A which will be send to clustnum.             */
+    pastix_int_t       *idxbuf; /**< Array of indexes of A to send to clustnum.                         */
+                                /*   indexes_A[2*k]   = kth column index to send to proc clustnum.      */
+                                /*   indexes_A[2*k+1] = kth row index to send to proc clustnum.         */
+    void               *valbuf; /**< Array of values of A to send to clustnum.                          */
+                                /*   values_A is sorted the same way as the indexes_A, for each indexes */
+                                /*   there are dofi*dofj values.                                        */
+} bcsc_send_proc_t;
 
 /**
  * @brief Informations of the data exchanged with other processors.
  */
 typedef struct bcsc_proc_comm_s
 {
-    bcsc_data_amount_t nsends;       /**< Number of indexes and values to send to clustnum.                  */
-    bcsc_data_amount_t nrecvs;       /**< Number of indexes and values to receive from clustnum.             */
-    pastix_int_t      *indexes_A;    /**< Array of indexes of A to send to clustnum.                         */
-                                     /* indexes_A[2*k]   = kth column index to send to proc clustnum.        */
-                                     /* indexes_A[2*k+1] = kth row index to send to proc clustnum.           */
-    void              *values_A;     /**< Array of values of A to send to clustnum.                          */
-                                     /* values_A is sorted the same way as the indexes_A, for each indexes   */
-                                     /* there are dofi*dofj values.                                          */
-    pastix_int_t      *indexes_At;   /**< Array of indexes of At to send to clustnum.                        */
-                                     /* indexes_At[2*k]   = kth column index to send to proc clustnum.       */
-                                     /* indexes_At[2*k+1] = kth row index to send to proc clustnum.          */
-    void              *values_At;    /**< Array of values of At to send to clustnum.                         */
-                                     /* values_At is sorted the same way as the indexes_At, for each indexes */
-                                     /* there are dofi*dofj values.                                          */
+    bcsc_send_proc_t   sendA;  /**< Sending data of A.   */
+    bcsc_send_proc_t   sendAt; /**< Sending data of At.  */
+    bcsc_data_amount_t recvA;  /**< Receving data of A.  */
+    bcsc_data_amount_t recvAt; /**< Receving data of At. */
 } bcsc_proc_comm_t;
 
 /**

@@ -72,20 +72,20 @@ bcsc_zstore_data( const spmatrix_t     *spm,
                   const pastix_int_t   *col2cblk,
                   bcsc_handle_comm_t   *bcsc_comm )
 {
-    pastix_complex64_t *values   = (pastix_complex64_t*)(spm->values);
     pastix_complex64_t *values_c;
-    pastix_int_t       *colptr   = spm->colptr;
-    pastix_int_t       *rowptr   = spm->rowptr;
-    pastix_int_t       *loc2glob = spm->loc2glob;
-    pastix_int_t       *dofs     = spm->dofs;
-    pastix_int_t        dof      = spm->dof;
+    pastix_complex64_t *values    = (pastix_complex64_t*)(spm->values);
+    pastix_int_t       *colptr    = spm->colptr;
+    pastix_int_t       *rowptr    = spm->rowptr;
+    pastix_int_t       *loc2glob  = spm->loc2glob;
+    pastix_int_t       *dofs      = spm->dofs;
+    pastix_int_t        dof       = spm->dof;
+    bcsc_proc_comm_t   *data_comm = bcsc_comm->data_comm;
+    pastix_int_t        clustnbr  = bcsc_comm->clustnbr;
     pastix_int_t        k, j, ig, jg, ip, jp, ipe, jpe;
     pastix_int_t        itercblk_A, itercblk_At, baseval;
-    pastix_int_t        dofi, dofj;
-    pastix_int_t        c;
-    bcsc_data_amount_t *data_cnt;
-    bcsc_proc_comm_t   *data_comm   = bcsc_comm->data_comm;
-    pastix_int_t        clustnbr    = bcsc_comm->clustnbr;
+    pastix_int_t        dofi, dofj, c;
+    bcsc_send_proc_t   *data_send;
+    bcsc_data_amount_t *data_cntA, *data_cntAt;
 
     /* Allocates the indexes and values buffers. */
     bcsc_allocate_buf( bcsc_comm, PastixTagMemSend );
@@ -94,8 +94,9 @@ bcsc_zstore_data( const spmatrix_t     *spm,
      * Allocates and initialises the counters used to fill bcsc_comm->values
      * and bcsc_comm->indexes.
      */
-    MALLOC_INTERN( data_cnt, clustnbr, bcsc_data_amount_t );
-    memset( data_cnt, 0, clustnbr * sizeof(bcsc_data_amount_t) );
+    MALLOC_INTERN( data_cntA, 2 * clustnbr, bcsc_data_amount_t );
+    memset( data_cntA, 0, 2 * clustnbr * sizeof(bcsc_data_amount_t) );
+    data_cntAt = data_cntA + clustnbr;
 
     baseval = spm->baseval;
     /*
@@ -131,51 +132,53 @@ bcsc_zstore_data( const spmatrix_t     *spm,
             /* The block of the column jp does not belong to the current processor. */
             if ( itercblk_A < 0 ) {
                 /* Gets the owner of the block. */
-                c = - ( itercblk_A + 1 );
+                c         = - ( itercblk_A + 1 );
                 data_comm = bcsc_comm->data_comm + c;
+                data_send = &( data_comm->sendA );
 
                 /* Stores the indexes to send to c: (ip, jp). */
-                data_comm->indexes_A[data_cnt[c].idx_A  ] = ip;
-                data_comm->indexes_A[data_cnt[c].idx_A+1] = jp;
-                data_cnt[c].idx_A += 2;
+                data_send->idxbuf[data_cntA[c].idxcnt  ] = ip;
+                data_send->idxbuf[data_cntA[c].idxcnt+1] = jp;
+                data_cntA[c].idxcnt += 2;
 
                 /*
                  * Stores the values to send to c:
                  * dofi values in the row ip.
                  * dofj values in the column jp.
                  */
-                values_c = ((pastix_complex64_t*)(data_comm->values_A)) + data_cnt[c].val_A;
+                values_c = ((pastix_complex64_t*)(data_send->valbuf)) + data_cntA[c].valcnt;
 
                 memcpy( values_c, values, dofi * dofj * sizeof(pastix_complex64_t) );
-                data_cnt[c].val_A += dofi * dofj;
+                data_cntA[c].valcnt += dofi * dofj;
             }
 
             itercblk_At = col2cblk[ ipe ];
             /* The block of the row ip does not belong to the current processor. */
             if ( (itercblk_At < 0) && (ip != jp) ) {
                 /* Gets the owner of the block. */
-                c = - ( itercblk_At + 1 );
+                c         = - ( itercblk_At + 1 );
                 data_comm = bcsc_comm->data_comm + c;
+                data_send = &( data_comm->sendAt );
 
                 /* Stores the indexes to send to c: (jp, ip). */
-                data_comm->indexes_At[data_cnt[c].idx_At  ] = ip;
-                data_comm->indexes_At[data_cnt[c].idx_At+1] = jp;
-                data_cnt[c].idx_At += 2;
+                data_send->idxbuf[data_cntAt[c].idxcnt  ] = ip;
+                data_send->idxbuf[data_cntAt[c].idxcnt+1] = jp;
+                data_cntAt[c].idxcnt += 2;
 
                 /*
                  * Stores the values to send to c:
                  * dofi values in the row ip.
                  * dofj values in the column jp.
                  */
-                values_c = ((pastix_complex64_t*)(data_comm->values_At)) + data_cnt[c].val_At;
+                values_c = ((pastix_complex64_t*)(data_send->valbuf)) + data_cntAt[c].valcnt;
 
                 memcpy( values_c, values, dofi * dofj * sizeof(pastix_complex64_t) );
-                data_cnt[c].val_At += dofi * dofj;
+                data_cntAt[c].valcnt += dofi * dofj;
             }
             values += dofi * dofj;
         }
     }
-    memFree_null( data_cnt );
+    memFree_null( data_cntA );
 }
 
 /**
@@ -232,7 +235,7 @@ bcsc_zhandle_recv_A( const spmatrix_t     *spm,
     pastix_int_t        colidx, rowidx, pos;
     pastix_int_t        clustnum = bcsc_comm->clustnum;
     pastix_complex64_t *Values   = bcsc->Lvalues;
-    pastix_int_t       *indexes  = bcsc_comm->data_comm[clustnum].indexes_A;
+    pastix_int_t       *indexes  = bcsc_comm->data_comm[clustnum].sendA.idxbuf;
     pastix_int_t        nbelt    = 0;
 
     /*
@@ -339,7 +342,7 @@ bcsc_zhandle_recv_At( const spmatrix_t     *spm,
     pastix_int_t        idofi, idofj, dofi, dofj;
     pastix_int_t        colidx, rowidx, pos;
     pastix_int_t        clustnum = bcsc_comm->clustnum;
-    pastix_int_t       *indexes  = bcsc_comm->data_comm[clustnum].indexes_At;
+    pastix_int_t       *indexes  = bcsc_comm->data_comm[clustnum].sendAt.idxbuf;
     pastix_complex64_t *Values;
     pastix_complex64_t (*_bcsc_conj)(pastix_complex64_t) = __fct_id;
     pastix_int_t        nbelt     = 0;
@@ -452,6 +455,7 @@ bcsc_zexchange_values_A( const spmatrix_t     *spm,
     pastix_int_t        idx_cnt[clustnbr];
     MPI_Status          statuses[clustnbr-1];
     MPI_Request         requests[clustnbr-1];
+    bcsc_data_amount_t *sends, *recvs;
     pastix_int_t        c_send, c_recv, k;
 
     /* Allocates the receiving indexes and values buffers. */
@@ -465,20 +469,21 @@ bcsc_zexchange_values_A( const spmatrix_t     *spm,
             continue;
         }
         idx_cnt[ k ] = cnt;
-        cnt += data_comm[k].nrecvs.idx_A;
+        cnt += data_comm[k].recvA.idxcnt;
     }
 
     /* Sends the values. */
     c_send = (clustnum+1) % clustnbr;
     for ( k = 0; k < clustnbr-1; k++ ) {
         data_send = data_comm + c_send;
+        sends     = &( data_send->sendA.size );
         if ( c_send == clustnum ) {
             continue;
         }
 
         /* Posts the emissions of the values. */
-        if ( data_send->nsends.val_A != 0 ) {
-            MPI_Isend( data_send->values_A, data_send->nsends.val_A, PASTIX_MPI_COMPLEX64,
+        if ( sends->valcnt != 0 ) {
+            MPI_Isend( data_send->sendA.valbuf, sends->valcnt, PASTIX_MPI_COMPLEX64,
                        c_send, PastixTagValuesA, bcsc_comm->comm, &requests[counter_req++] );
         }
 	c_send = (c_send+1) % clustnbr;
@@ -488,15 +493,16 @@ bcsc_zexchange_values_A( const spmatrix_t     *spm,
     c_recv = (clustnum-1+clustnbr) % clustnbr;
     for ( k = 0; k < clustnbr-1; k++ ) {
         data_recv = data_comm + c_recv;
+        recvs     = &( data_recv->recvA );
         if ( c_recv == clustnum ) {
             continue;
         }
 
         /* Posts the receptions of the values. */
-        if ( data_recv->nrecvs.val_A != 0 ) {
-            MPI_Recv( val_buf, data_recv->nrecvs.val_A, PASTIX_MPI_COMPLEX64,
+        if ( recvs->valcnt != 0 ) {
+            MPI_Recv( val_buf, recvs->valcnt, PASTIX_MPI_COMPLEX64,
                       c_recv, PastixTagValuesA, bcsc_comm->comm, MPI_STATUS_IGNORE );
-            idx_size = data_recv->nrecvs.idx_A;
+            idx_size = recvs->idxcnt;
             nbelt_recv += bcsc_zhandle_recv_A( spm, ord, solvmtx, bcsc,
                                                val_buf, idx_cnt[c_recv], idx_size );
         }
@@ -505,7 +511,7 @@ bcsc_zexchange_values_A( const spmatrix_t     *spm,
 
     MPI_Waitall( counter_req, requests, statuses );
     free( val_buf );
-    assert( nbelt_recv == bcsc_comm->data_comm[bcsc_comm->clustnum].nrecvs.val_A );
+    assert( nbelt_recv == bcsc_comm->data_comm[clustnum].recvA.valcnt );
     bcsc_free_buf( bcsc_comm, PastixTagMemSendValA );
     bcsc_free_buf( bcsc_comm, PastixTagMemRecvIdxA );
     return nbelt_recv;
@@ -559,6 +565,7 @@ bcsc_zexchange_values_At( const spmatrix_t     *spm,
     pastix_int_t        idx_cnt[clustnbr];
     MPI_Status          statuses[clustnbr-1];
     MPI_Request         requests[clustnbr-1];
+    bcsc_data_amount_t *sends, *recvs;
     pastix_int_t        c_send, c_recv, k;
 
     /* Allocates the receiving indexes and values buffers. */
@@ -572,20 +579,21 @@ bcsc_zexchange_values_At( const spmatrix_t     *spm,
             continue;
         }
         idx_cnt[ k ] = cnt;
-        cnt += data_comm[k].nrecvs.idx_At;
+        cnt += data_comm[k].recvAt.idxcnt;
     }
 
     /* Sends the values. */
     c_send = (clustnum+1) % clustnbr;
     for ( k = 0; k < clustnbr-1; k++ ) {
         data_send = data_comm + c_send;
+        sends     = &( data_send->sendAt.size );
         if ( c_send == clustnum ) {
             continue;
         }
 
         /* Posts the emissions of the values. */
-        if ( data_send->nsends.val_At != 0 ) {
-            MPI_Isend( data_send->values_At, data_send->nsends.val_At, PASTIX_MPI_COMPLEX64,
+        if (  sends->valcnt != 0 ) {
+            MPI_Isend( data_send->sendAt.valbuf, sends->valcnt, PASTIX_MPI_COMPLEX64,
                        c_send, PastixTagValuesAt, bcsc_comm->comm, &requests[counter_req++] );
         }
         c_send = (c_send+1) % clustnbr;
@@ -595,15 +603,16 @@ bcsc_zexchange_values_At( const spmatrix_t     *spm,
     c_recv = (clustnum-1+clustnbr) % clustnbr;
     for ( k = 0; k < clustnbr-1; k++ ) {
         data_recv = data_comm + c_recv;
+        recvs     = &( data_recv->recvAt );
         if ( c_recv == clustnum ) {
             continue;
         }
 
         /* Posts the receptions of the values. */
-        if ( data_recv->nrecvs.val_At != 0 ) {
-            MPI_Recv( val_buf, data_recv->nrecvs.val_At, PASTIX_MPI_COMPLEX64,
+        if ( recvs->valcnt != 0 ) {
+            MPI_Recv( val_buf, recvs->valcnt, PASTIX_MPI_COMPLEX64,
                       c_recv, PastixTagValuesAt, bcsc_comm->comm, MPI_STATUS_IGNORE );
-            idx_size = data_recv->nrecvs.idx_At;
+            idx_size = recvs->idxcnt;
             nbelt_recv += bcsc_zhandle_recv_At( spm, ord, solvmtx, rowtab, bcsc,
                                                 val_buf, idx_cnt[c_recv], idx_size );
         }
@@ -612,7 +621,7 @@ bcsc_zexchange_values_At( const spmatrix_t     *spm,
 
     MPI_Waitall( counter_req, requests, statuses );
     free( val_buf );
-    assert( nbelt_recv == bcsc_comm->data_comm[bcsc_comm->clustnum].nrecvs.val_At );
+    assert( nbelt_recv == bcsc_comm->data_comm[clustnum].recvAt.valcnt );
     bcsc_free_buf( bcsc_comm, PastixTagMemSendValAt );
     bcsc_free_buf( bcsc_comm, PastixTagMemRecvIdxAt );
     return nbelt_recv;
