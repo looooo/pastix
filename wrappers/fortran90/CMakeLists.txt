@@ -39,11 +39,14 @@ target_include_directories( pastixf PRIVATE
   $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
   $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}>
   $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/common> )
+target_include_directories(pastixf INTERFACE
+  $<INSTALL_INTERFACE:include>
+  )
 
 set_target_properties( pastixf PROPERTIES VERSION ${PASTIX_VERSION} )
 set_target_properties( pastixf PROPERTIES SOVERSION ${PASTIX_VERSION_MAJOR} )
 
-target_link_libraries( pastixf PRIVATE pastix spmf )
+target_link_libraries( pastixf PRIVATE pastix SPM::spmf )
 
 if ( PASTIX_INT64 )
   set_source_files_properties( src/pastixf_enums.F90 PROPERTIES COMPILE_DEFINITIONS "PASTIX_INT_KIND=c_int64_t" )
@@ -94,7 +97,7 @@ foreach (_file ${EXAMPLES})
   add_documented_files( examples/${_file} )
 
   target_link_libraries(${_name_we} PRIVATE
-    pastixf spmf )
+    pastixf SPM::spmf )
   # Need this to use mpi and initialize it
   if ( PASTIX_WITH_MPI )
     target_compile_definitions( ${_name_we} PUBLIC "PASTIX_WITH_MPI=1" )
@@ -128,7 +131,7 @@ add_binary_to_completion( ${_name_we} )
 add_documented_files( examples/${_file} )
 
 target_link_libraries( ${_name_we} PRIVATE
-  pastixf spmf )
+  pastixf SPM::spmf )
 
 if ( PASTIX_WITH_MPI )
   target_compile_definitions( ${_name_we} PRIVATE "PASTIX_WITH_MPI=1" )
