@@ -264,6 +264,10 @@ ocs_compute_graph_ordering_mt( isched_thread_t *ctx, void *args )
         /* Enable this define to fix the SCOTCH random generator */
 #if defined(PASTIX_ORDERING_FIX_SEED)
         SCOTCH_contextRandomSeed( sctx, (SCOTCH_Num)(pastix_data->id) );
+#if defined(SCOTCH_OPTIONNUMDETERMINISTIC)
+        /* Makes scotch deterministic */
+        SCOTCH_contextOptionSetNum( sctx, SCOTCH_OPTIONNUMDETERMINISTIC, 1 );
+#endif
 #endif
 
         /*
@@ -351,9 +355,13 @@ orderComputeScotch( pastix_data_t  *pastix_data,
         return PASTIX_ERR_INTEGER_TYPE;
     }
 
-    /* Enable this define to fix the SCOTCH random generator */
-#if defined(PASTIX_ORDERING_FIX_SEED) && defined(PASTIX_ORDERING_SCOTCH_MT)
+    /*
+     * Enable this define to fix the SCOTCH random generator
+     * compiling with SCOTCH_DETERMINISTIC is nonetheless advised
+     */
+#if defined(PASTIX_ORDERING_FIX_SEED)
     SCOTCH_randomSeed( (SCOTCH_Num)(pastix_data->id) );
+    SCOTCH_randomReset();
 #endif
 
     /* Build The Scotch Graph */
