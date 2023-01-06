@@ -91,7 +91,7 @@ target_include_directories( pastix_kernels_cuda PUBLIC
   $<INSTALL_INTERFACE:include> )
 
 # TODO: Add PRIVATE dependency when updating the FindCUDA
-target_link_libraries( pastix_kernels_cuda spm )
+target_link_libraries( pastix_kernels_cuda SPM::spm )
 
 # export target pastix_kernels
 # ----------------------------

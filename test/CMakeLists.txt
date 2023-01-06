@@ -65,7 +65,7 @@ target_include_directories( bcsc_test PUBLIC
 target_link_libraries( bcsc_test PUBLIC
   pastix
   pastix_kernels
-  spm
+  SPM::spm
   MORSE::LAPACKE
   MORSE::CBLAS
   MORSE::M

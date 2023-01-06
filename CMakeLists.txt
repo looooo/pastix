@@ -255,11 +255,13 @@ option(PASTIX_LR_TESTINGS
 # PaStiX depends on the libm
 #---------------------------
 find_package(M REQUIRED)
+morse_export_imported_target(MORSE M m pastix)
 
 # PaStiX depends on LAPACKE and CBLAS
 #------------------------------------
 set( CBLAS_MT FALSE )
 find_package(CBLAS REQUIRED)
+morse_export_imported_target(MORSE CBLAS cblas pastix)
 
 ## Tests requires TMG lib to generate random matrices.
 set( LAPACKE_MT FALSE )
@@ -269,16 +271,24 @@ if (PASTIX_LR_TESTINGS)
 else()
   find_package(LAPACKE REQUIRED)
 endif()
+morse_export_imported_target(MORSE LAPACKE lapacke pastix)
 
 # PaStiX depends on HwLoc
 #---------------------------
 find_package(HWLOC)
+if (NOT BUILD_SHARED_LIBS)
+  morse_export_imported_target(MORSE HWLOC hwloc pastix)
+endif()
 set(HAVE_HWLOC ${HWLOC_FOUND})
 
 # PaStiX might depend on MPI
 #---------------------------
 if (PASTIX_WITH_MPI)
   find_package(MPI REQUIRED)
+  morse_export_imported_target(MPI MPI_C mpic pastix)
+  if (PASTIX_WITH_FORTRAN)
+    morse_export_imported_target(MPI MPI_Fortran mpif pastix)
+  endif()
 endif (PASTIX_WITH_MPI)
 
 # PaStiX might depend on CUDA
@@ -338,6 +348,8 @@ if( PASTIX_WITH_CUDA )
         "\n   CUDA_LIBRARIES to be found. Be sure you have"
         "\n   libcuda with your distribution of CUDA.")
     endif()
+    morse_export_imported_target(CUDA CUDA cuda pastix)
+    morse_export_imported_target(CUDA CUBLAS cublas pastix)
   endif (CUDA_FOUND)
 endif()
 
@@ -349,6 +361,7 @@ if (PASTIX_WITH_STARPU)
   set( PASTIX_STARPU_VERSION "1.3" CACHE STRING "oldest STARPU version desired" )
 
   find_package( STARPU ${PASTIX_STARPU_VERSION} REQUIRED )
+  morse_export_imported_target(MORSE STARPU starpu pastix)
 
   get_target_property(CMAKE_REQUIRED_LIBRARIES MORSE::STARPU INTERFACE_LINK_LIBRARIES)
   check_function_exists(starpu_sched_ctx_get_sched_policy_callback HAVE_STARPU_SCHED_POLICY_CALLBACK)
@@ -361,6 +374,7 @@ endif (PASTIX_WITH_STARPU)
 if (PASTIX_WITH_PARSEC)
 
   find_package( PARSEC REQUIRED )
+  morse_export_imported_target(MORSE PARSEC parsec pastix)
 
   # Add the index-array dep management option to PTGCC compilation flags.
   include(RulesJDF)
@@ -383,6 +397,9 @@ endif(PASTIX_WITH_EZTRACE)
 #----------------------------------------
 if (PASTIX_ORDERING_PTSCOTCH)
   find_package(PTSCOTCH)
+  if (NOT BUILD_SHARED_LIBS)
+    morse_export_imported_target(MORSE PTSCOTCH ptscotch pastix)
+  endif()
 
   if (PTSCOTCH_FOUND)
     # Check coherency for integer size
@@ -397,6 +414,9 @@ endif()
 
 if (PASTIX_ORDERING_SCOTCH)
   find_package(SCOTCH REQUIRED)
+  if (NOT BUILD_SHARED_LIBS)
+    morse_export_imported_target(MORSE SCOTCH scotch pastix)
+  endif()
 
   if (SCOTCH_FOUND)
     cmake_dependent_option(PASTIX_ORDERING_SCOTCH_MT
@@ -417,6 +437,9 @@ endif()
 #--------------------------------------
 if (PASTIX_ORDERING_METIS)
   find_package(METIS REQUIRED)
+  if (NOT BUILD_SHARED_LIBS)
+    morse_export_imported_target(MORSE METIS metis pastix)
+  endif()
 
   if (METIS_FOUND)
     # Check coherency for integer size
@@ -459,12 +482,7 @@ option( PASTIX_WITH_EXTERNAL_SPM "Force the use of an external SpM library that 
 set( PASTIX_SPM_VERSION "1.0.0" CACHE STRING "Minimal SPM API" )
 
 if ( PASTIX_WITH_EXTERNAL_SPM )
-  if ( PASTIX_WITH_FORTRAN )
-    find_package( SPM QUIET COMPONENTS FORTRAN )
-  else()
-    find_package( SPM QUIET )
-  endif()
-
+  find_package( SPM REQUIRED )
   if ( SPM_FOUND )
     if( (PASTIX_INT64 AND (NOT SPM_INTSIZE EQUAL 8)) OR (PASTIX_INT32 AND (NOT SPM_INTSIZE EQUAL 4)) )
       message( WARNING "PASTIX_INT64 is enabled and provided SPM does not have the same support. Internal SPM will be compiled.")
@@ -493,6 +511,8 @@ else()
   mark_as_advanced( SPM_WITH_MPI     )
   mark_as_advanced( SPM_WITH_SCOTCH  )
   add_subdirectory(spm)
+  add_library(SPM::spm ALIAS spm)
+  add_library(SPM::spmf ALIAS spmf)
 endif()
 
 # Disable restrict (temporary)
@@ -800,7 +820,7 @@ target_include_directories( pastix PUBLIC
   $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}/include>
   $<INSTALL_INTERFACE:include> )
 
-target_link_libraries( pastix PUBLIC  spm )
+target_link_libraries( pastix PUBLIC  SPM::spm )
 target_link_libraries( pastix PRIVATE pastix_kernels )
 target_link_libraries( pastix PRIVATE Threads::Threads )
 
@@ -1163,10 +1183,6 @@ install( FILES
   ${CMAKE_CURRENT_BINARY_DIR}/PASTIXConfig.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/PASTIXConfigVersion.cmake
   DESTINATION ${LIB_INSTALL_DIR}/cmake/pastix)
-
-# need MORSE Find modules: necessary files must be distributed in the install path
-set(morse_dependencies "M;BLASEXT;CBLAS;LAPACKEXT;TMG;LAPACKE;HWLOC;SCOTCH;PTSCOTCH;METIS;PARMETIS;PARSEC;STARPU;GTG;LITL;EZTRACE")
-morse_install_finds(morse_dependencies ${LIB_INSTALL_DIR}/cmake/pastix/find)
 
 #############################################################
 # Print Options

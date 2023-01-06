@@ -127,7 +127,7 @@ set(MIXED_SOURCES
 precisions_rules_py(generated_mixed_sources
   "${MIXED_SOURCES}"
   PRECISIONS "ds;zc")
-  
+
 set(kernels_sources
   ${generated_sources}
   ${generated_mixed_sources}
@@ -176,7 +176,7 @@ target_include_directories( pastix_kernels PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   $<INSTALL_INTERFACE:include> )
 
-target_link_libraries( pastix_kernels PUBLIC spm            )
+target_link_libraries( pastix_kernels PUBLIC SPM::spm       )
 target_link_libraries( pastix_kernels PUBLIC MORSE::LAPACKE )
 target_link_libraries( pastix_kernels PUBLIC MORSE::CBLAS   )
 target_link_libraries( pastix_kernels PUBLIC MORSE::M       )
