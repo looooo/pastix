@@ -87,6 +87,9 @@ bcsc_zstore_data( const spmatrix_t     *spm,
     bcsc_proc_comm_t   *data_comm   = bcsc_comm->data_comm;
     pastix_int_t        clustnbr    = bcsc_comm->clustnbr;
 
+    /* Allocates the indexes and values buffers. */
+    bcsc_allocate_buf( bcsc_comm, PastixTagMemSend );
+
     /*
      * Allocates and initialises the counters used to fill bcsc_comm->values
      * and bcsc_comm->indexes.
@@ -180,70 +183,6 @@ bcsc_zstore_data( const spmatrix_t     *spm,
  *
  * @ingroup bcsc_internal
  *
- * @brief Exchanges the values stored in the bcsc_comm structure.
- *
- *******************************************************************************
- *
- * @param[inout] bcsc_comm
- *          The structure in which the sending and receiving data are stored.
- *
- *******************************************************************************/
-static inline void
-bcsc_zexchange_values( bcsc_handle_comm_t *bcsc_comm )
-{
-    pastix_int_t      c;
-    pastix_int_t      clustnbr    = bcsc_comm->clustnbr;
-    pastix_int_t      clustnum    = bcsc_comm->clustnum;
-    bcsc_proc_comm_t *data_comm   = bcsc_comm->data_comm;
-    bcsc_proc_comm_t *data_local  = bcsc_comm->data_comm + clustnum;
-    pastix_int_t      val_A_cnt   = 0;
-    pastix_int_t      val_At_cnt  = 0;
-    pastix_int_t      counter_req = 0;
-    MPI_Status        statuses[(clustnbr-1)*4];
-    MPI_Request       requests[(clustnbr-1)*4];
-
-    /* Receives the values. */
-    for ( c = 0; c < clustnbr; c++ ) {
-        data_comm = bcsc_comm->data_comm + c;
-        if ( c == clustnum ) {
-            continue;
-        }
-
-        /* Posts the receptions of the values. */
-        if ( data_comm->nrecvs.val_A != 0 ) {
-            MPI_Irecv( ((pastix_complex64_t*)(data_local->values_A)) + val_A_cnt, data_comm->nrecvs.val_A,
-                       PASTIX_MPI_COMPLEX64, c, PastixTagValuesA, bcsc_comm->comm, &requests[counter_req++] );
-            val_A_cnt += data_comm->nrecvs.val_A;
-        }
-        if ( data_comm->nrecvs.val_At != 0 ) {
-            MPI_Irecv( ((pastix_complex64_t*)(data_local->values_At)) + val_At_cnt, data_comm->nrecvs.val_At,
-                       PASTIX_MPI_COMPLEX64, c, PastixTagValuesAt, bcsc_comm->comm, &requests[counter_req++] );
-            val_At_cnt += data_comm->nrecvs.val_At;
-        }
-
-        /* Posts the emissions of the values. */
-        if ( data_comm->nsends.val_A != 0 ) {
-            MPI_Isend( data_comm->values_A, data_comm->nsends.val_A,
-                       PASTIX_MPI_COMPLEX64, c, PastixTagValuesA, bcsc_comm->comm, &requests[counter_req++] );
-        }
-        if ( data_comm->nsends.val_At != 0 ) {
-            MPI_Isend( data_comm->values_At, data_comm->nsends.val_At,
-                       PASTIX_MPI_COMPLEX64, c, PastixTagValuesAt, bcsc_comm->comm, &requests[counter_req++] );
-        }
-    }
-
-    MPI_Waitall( counter_req, requests, statuses );
-
-    /* Checks the total amount of values and values received. */
-    assert( data_local->nrecvs.val_A  == val_A_cnt );
-    assert( data_local->nrecvs.val_At == val_At_cnt );
-}
-
-/**
- *******************************************************************************
- *
- * @ingroup bcsc_internal
- *
  * @brief Adds the remote data of A to the bcsc structure.
  *
  *******************************************************************************
@@ -262,12 +201,25 @@ bcsc_zexchange_values( bcsc_handle_comm_t *bcsc_comm )
  *          On entry, the pointer to an allocated bcsc.
  *          On exit, the bcsc fields are updated.
  *
+ * @param[in] values_buf
+ *          The array containing the remote values.
+ *
+ * @param[in] idx_cnt
+ *          The index for the begining of the indexes array buffer
+ *          corresponding to the values_buf.
+ *
+ * @param[in] idx_size
+ *          The number of indexes corresponding to the values_buf.
+ *
  *******************************************************************************/
 static inline pastix_int_t
-bcsc_zadd_remote_A( const spmatrix_t         *spm,
-                    const pastix_order_t     *ord,
-                    const SolverMatrix       *solvmtx,
-                    pastix_bcsc_t            *bcsc )
+bcsc_zhandle_recv_A( const spmatrix_t     *spm,
+                     const pastix_order_t *ord,
+                     const SolverMatrix   *solvmtx,
+                     pastix_bcsc_t        *bcsc,
+                     pastix_complex64_t   *values_buf,
+                     pastix_int_t          idx_cnt,
+                     pastix_int_t          idx_size )
 {
     bcsc_handle_comm_t *bcsc_comm = bcsc->bcsc_comm;
     pastix_int_t       *dofs = spm->dofs;
@@ -278,18 +230,17 @@ bcsc_zadd_remote_A( const spmatrix_t         *spm,
     pastix_int_t        itercblk;
     pastix_int_t        idofi, idofj, dofi, dofj;
     pastix_int_t        colidx, rowidx, pos;
-    pastix_int_t        clustnum  = bcsc_comm->clustnum;
-    pastix_complex64_t *Values    = bcsc->Lvalues;
-    pastix_int_t        size      = bcsc_comm->data_comm[clustnum].nrecvs.idx_A;
-    pastix_int_t       *indexes   = bcsc_comm->data_comm[clustnum].indexes_A;
-    pastix_complex64_t *rvalues   = bcsc_comm->data_comm[clustnum].values_A;
-    pastix_int_t        nbelt     = 0;
+    pastix_int_t        clustnum = bcsc_comm->clustnum;
+    pastix_complex64_t *Values   = bcsc->Lvalues;
+    pastix_int_t       *indexes  = bcsc_comm->data_comm[clustnum].indexes_A;
+    pastix_int_t        nbelt    = 0;
 
     /*
      * Goes through the received indexes in order to add the data
      * received.
      */
-    for ( k = 0; k < size; k+=2, indexes+=2 ) {
+    indexes += idx_cnt;
+    for ( k = 0; k < idx_size; k+=2, indexes+=2 ) {
         /* Gets received indexes jp and ip. */
         ip = indexes[0];
         jp = indexes[1];
@@ -314,13 +265,13 @@ bcsc_zadd_remote_A( const spmatrix_t         *spm,
         for ( idofj = 0; idofj < dofj; idofj++, colidx++ ) {
             rowidx = ipe;
             pos    = coltab[ colidx ];
-            for ( idofi = 0; idofi < dofi; idofi++, rowidx++, pos++, rvalues++ ) {
+            for ( idofi = 0; idofi < dofi; idofi++, rowidx++, pos++, values_buf++ ) {
                 /* Adds the row ip. */
                 assert( rowidx >= 0 );
                 assert( rowidx < spm->gNexp );
                 bcsc->rowtab[ pos ] = rowidx;
                 /* Adds the data at row ip and column jp. */
-                Values[ pos ]       = *rvalues;
+                Values[ pos ]       = *values_buf;
                 nbelt++;
             }
             coltab[ colidx ] += dofi;
@@ -357,13 +308,26 @@ bcsc_zadd_remote_A( const spmatrix_t         *spm,
  *          On entry, the pointer to an allocated bcsc.
  *          On exit, the bcsc fields are updated.
  *
+ * @param[in] values_buf
+ *          The array containing the remote values.
+ *
+ * @param[in] idx_cnt
+ *          The index for the begining of the indexes array buffer
+ *          corresponding to the values_buf.
+ *
+ * @param[in] idx_size
+ *          The number of indexes corresponding to the values_buf.
+ *
  *******************************************************************************/
 static inline pastix_int_t
-bcsc_zadd_remote_At( const spmatrix_t         *spm,
-                     const pastix_order_t     *ord,
-                     const SolverMatrix       *solvmtx,
-                     pastix_int_t             *rowtab,
-                     pastix_bcsc_t            *bcsc )
+bcsc_zhandle_recv_At( const spmatrix_t     *spm,
+                      const pastix_order_t *ord,
+                      const SolverMatrix   *solvmtx,
+                      pastix_int_t         *rowtab,
+                      pastix_bcsc_t        *bcsc,
+                      pastix_complex64_t   *values_buf,
+                      pastix_int_t          idx_cnt,
+                      pastix_int_t          idx_size )
 {
     bcsc_handle_comm_t *bcsc_comm = bcsc->bcsc_comm;
     pastix_int_t       *dofs = spm->dofs;
@@ -374,11 +338,9 @@ bcsc_zadd_remote_At( const spmatrix_t         *spm,
     pastix_int_t        itercblk;
     pastix_int_t        idofi, idofj, dofi, dofj;
     pastix_int_t        colidx, rowidx, pos;
-    pastix_int_t        clustnum  = bcsc_comm->clustnum;
+    pastix_int_t        clustnum = bcsc_comm->clustnum;
+    pastix_int_t       *indexes  = bcsc_comm->data_comm[clustnum].indexes_At;
     pastix_complex64_t *Values;
-    pastix_int_t        size      = bcsc_comm->data_comm[clustnum].nrecvs.idx_At;
-    pastix_int_t       *indexes   = bcsc_comm->data_comm[clustnum].indexes_At;
-    pastix_complex64_t *rvalues   = bcsc_comm->data_comm[clustnum].values_At;
     pastix_complex64_t (*_bcsc_conj)(pastix_complex64_t) = NULL;
     pastix_int_t        nbelt     = 0;
 
@@ -401,7 +363,8 @@ bcsc_zadd_remote_At( const spmatrix_t         *spm,
      * Goes through the received indexes in order to add the data
      * received.
      */
-    for ( k = 0; k < size; k+=2, indexes+=2 ) {
+    indexes += idx_cnt;
+    for ( k = 0; k < idx_size; k+=2, indexes+=2 ) {
         /* Gets received indexes ip and jp. */
         ip = indexes[0];
         jp = indexes[1];
@@ -426,7 +389,7 @@ bcsc_zadd_remote_At( const spmatrix_t         *spm,
             /* Gets the column ip. */
             rowidx = jpe + idofj;
             colidx = ipe - cblk->fcolnum;
-            for ( idofi = 0; idofi < dofi; idofi++, colidx++, rvalues++ ) {
+            for ( idofi = 0; idofi < dofi; idofi++, colidx++, values_buf++ ) {
                 pos = coltab[ colidx ];
 
                 /* Adds the row jp. */
@@ -435,7 +398,7 @@ bcsc_zadd_remote_At( const spmatrix_t         *spm,
                 rowtab[ pos ] = rowidx;
 
                 /* Adds the data at row jp and column ip. */
-                Values[ pos ] = _bcsc_conj( *rvalues );
+                Values[ pos ] = _bcsc_conj( *values_buf );
                 coltab[ colidx ] ++;
                 assert( coltab[colidx] <= coltab[colidx+1] );
                 nbelt++;
@@ -443,6 +406,183 @@ bcsc_zadd_remote_At( const spmatrix_t         *spm,
         }
     }
     return nbelt;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Exchanges and stores the remote values of A.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering which needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure which describes the data distribution.
+ *
+ * @param[inout] bcsc
+ *          On entry, the pointer to an allocated bcsc.
+ *          On exit, the bcsc fields are updated with the remote values of A.
+ *
+ *******************************************************************************/
+static inline pastix_int_t
+bcsc_zexchange_values_A( const spmatrix_t     *spm,
+                         const pastix_order_t *ord,
+                         const SolverMatrix   *solvmtx,
+                         pastix_bcsc_t        *bcsc )
+{
+    bcsc_handle_comm_t *bcsc_comm   = bcsc->bcsc_comm;
+    pastix_int_t        clustnbr    = bcsc_comm->clustnbr;
+    pastix_int_t        clustnum    = bcsc_comm->clustnum;
+    bcsc_proc_comm_t   *data_comm   = bcsc_comm->data_comm;
+    pastix_complex64_t *val_buf     = NULL;
+    pastix_int_t        idx_cnt     = 0;
+    pastix_int_t        idx_size    = 0;
+    pastix_int_t        counter_req = 0;
+    pastix_int_t        nbelt_recv  = 0;
+    pastix_int_t        c;
+    MPI_Status          statuses[(clustnbr-1)*4];
+    MPI_Request         requests[(clustnbr-1)*4];
+
+    /* Allocates the receiving indexes and values buffers. */
+    if ( bcsc_comm->max_idx != 0 ) {
+        MALLOC_INTERN( val_buf,  bcsc_comm->max_val, pastix_complex64_t );
+    }
+
+    /* Receives the values. */
+    for ( c = 0; c < clustnbr; c++ ) {
+        data_comm = bcsc_comm->data_comm + c;
+        if ( c == clustnum ) {
+            continue;
+        }
+
+        /* Posts the emissions of the values. */
+        if ( data_comm->nsends.val_A != 0 ) {
+            MPI_Isend( data_comm->values_A, data_comm->nsends.val_A, PASTIX_MPI_COMPLEX64,
+                       c, PastixTagValuesA, bcsc_comm->comm, &requests[counter_req++] );
+        }
+    }
+
+    for ( c = 0; c < clustnbr; c++ ) {
+        data_comm = bcsc_comm->data_comm + c;
+        if ( c == clustnum ) {
+            continue;
+        }
+
+        /* Posts the receptions of the values. */
+        if ( data_comm->nrecvs.val_A != 0 ) {
+            MPI_Recv( val_buf, data_comm->nrecvs.val_A, PASTIX_MPI_COMPLEX64,
+                      c, PastixTagValuesA, bcsc_comm->comm, MPI_STATUS_IGNORE );
+            idx_size = data_comm->nrecvs.idx_A;
+            nbelt_recv += bcsc_zhandle_recv_A( spm, ord, solvmtx, bcsc, val_buf, idx_cnt, idx_size );
+            idx_cnt += data_comm->nrecvs.idx_A;
+        }
+    }
+
+    MPI_Waitall( counter_req, requests, statuses );
+    free( val_buf );
+    assert( nbelt_recv == bcsc_comm->data_comm[bcsc_comm->clustnum].nrecvs.val_A );
+    bcsc_free_buf( bcsc_comm, PastixTagMemSendValA );
+    bcsc_free_buf( bcsc_comm, PastixTagMemRecvIdxA );
+    return nbelt_recv;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Exchanges and stores the remote values of At.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering which needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure which describes the data distribution.
+ *
+ * @param[inout] rowtab
+ *          The row tab of the bcsc or the row tab associated to At.
+ *
+ * @param[inout] bcsc
+ *          On entry, the pointer to an allocated bcsc.
+ *          On exit, the bcsc fields are updated with the remote values of At.
+ *
+ *******************************************************************************/
+static inline pastix_int_t
+bcsc_zexchange_values_At( const spmatrix_t     *spm,
+                          const pastix_order_t *ord,
+                          const SolverMatrix   *solvmtx,
+                          pastix_int_t         *rowtab,
+                          pastix_bcsc_t        *bcsc )
+{
+    bcsc_handle_comm_t *bcsc_comm   = bcsc->bcsc_comm;
+    pastix_int_t        clustnbr    = bcsc_comm->clustnbr;
+    pastix_int_t        clustnum    = bcsc_comm->clustnum;
+    bcsc_proc_comm_t   *data_comm   = bcsc_comm->data_comm;
+    pastix_complex64_t *val_buf     = NULL;
+    pastix_int_t        idx_cnt     = 0;
+    pastix_int_t        idx_size    = 0;
+    pastix_int_t        counter_req = 0;
+    pastix_int_t        nbelt_recv  = 0;
+    pastix_int_t        c;
+    MPI_Status          statuses[(clustnbr-1)*4];
+    MPI_Request         requests[(clustnbr-1)*4];
+
+    /* Allocates the receiving indexes and values buffers. */
+    if ( bcsc_comm->max_idx != 0 ) {
+        MALLOC_INTERN( val_buf, bcsc_comm->max_val, pastix_complex64_t );
+    }
+
+    /* Receives the values. */
+    for ( c = 0; c < clustnbr; c++ ) {
+        data_comm = bcsc_comm->data_comm + c;
+        if ( c == clustnum ) {
+            continue;
+        }
+
+        /* Posts the emissions of the values. */
+        if ( data_comm->nsends.val_At != 0 ) {
+            MPI_Isend( data_comm->values_At, data_comm->nsends.val_At, PASTIX_MPI_COMPLEX64,
+                       c, PastixTagValuesAt, bcsc_comm->comm, &requests[counter_req++] );
+        }
+    }
+
+    for ( c = 0; c < clustnbr; c++ ) {
+        data_comm = bcsc_comm->data_comm + c;
+        if ( c == clustnum ) {
+            continue;
+        }
+
+        /* Posts the receptions of the values. */
+        if ( data_comm->nrecvs.val_At != 0 ) {
+            MPI_Recv( val_buf, data_comm->nrecvs.val_At, PASTIX_MPI_COMPLEX64,
+                      c, PastixTagValuesAt, bcsc_comm->comm, MPI_STATUS_IGNORE );
+            idx_size = data_comm->nrecvs.idx_At;
+            nbelt_recv += bcsc_zhandle_recv_At( spm, ord, solvmtx, rowtab, bcsc, val_buf, idx_cnt, idx_size );
+            idx_cnt += data_comm->nrecvs.idx_At;
+        }
+
+    }
+
+    MPI_Waitall( counter_req, requests, statuses );
+    free( val_buf );
+    assert( nbelt_recv == bcsc_comm->data_comm[bcsc_comm->clustnum].nrecvs.val_At );
+    bcsc_free_buf( bcsc_comm, PastixTagMemSendValAt );
+    bcsc_free_buf( bcsc_comm, PastixTagMemRecvIdxAt );
+    return nbelt_recv;
 }
 #endif
 
@@ -802,40 +942,31 @@ bcsc_zinit( const spmatrix_t     *spm,
             pastix_bcsc_t        *bcsc,
             pastix_int_t          valuesize )
 {
-    pastix_int_t nbelt;
+    pastix_int_t nbelt = 0;
 #if defined(PASTIX_WITH_MPI)
-    pastix_int_t nbelt_recv;
+    pastix_int_t nbelt_recv = 0;
     bcsc_handle_comm_t *bcsc_comm = bcsc->bcsc_comm;
 #endif
 
-    /* Exchanges the data if the spm is distributed */
+    /* Exchanges the data if the spm is distributed and adds the received data of A. */
 #if defined(PASTIX_WITH_MPI)
     if ( bcsc_comm != NULL ) {
-        bcsc_zexchange_values( bcsc_comm );
+        nbelt_recv = bcsc_zexchange_values_A( spm, ord, solvmtx, bcsc );
+        nbelt = nbelt_recv;
     }
 #endif
 
     /* Initializes the blocked structure of the matrix A. */
-    nbelt = bcsc_zinit_A( spm, ord, solvmtx, bcsc );
-
-    /* Adds the received data of A if the spm is distributed */
-#if defined(PASTIX_WITH_MPI)
-    if ( bcsc_comm != NULL ) {
-        nbelt_recv = bcsc_zadd_remote_A( spm, ord, solvmtx, bcsc );
-        assert( nbelt_recv == bcsc_comm->data_comm[bcsc_comm->clustnum].nrecvs.val_A );
-        nbelt += nbelt_recv;
-    }
-#endif
+    nbelt += bcsc_zinit_A( spm, ord, solvmtx, bcsc );
 
     /* Initializes the blocked structure of the matrix At if the matrix is not general. */
     if ( spm->mtxtype != SpmGeneral ) {
         nbelt += bcsc_zinit_At( spm, ord, solvmtx, bcsc->rowtab, bcsc );
 
-        /* Adds the received data of At if the spm is distributed */
+        /* Exchanges the data if the spm is distributed and adds the received data of A. */
 #if defined(PASTIX_WITH_MPI)
         if ( bcsc_comm != NULL ) {
-            nbelt_recv = bcsc_zadd_remote_At( spm, ord, solvmtx, bcsc->rowtab, bcsc );
-            assert( nbelt_recv == bcsc_comm->data_comm[bcsc_comm->clustnum].nrecvs.val_At );
+            nbelt_recv = bcsc_zexchange_values_At( spm, ord, solvmtx, bcsc->rowtab, bcsc );
             nbelt += nbelt_recv;
         }
 #endif
@@ -861,7 +992,8 @@ bcsc_zinit( const spmatrix_t     *spm,
             nbelt = bcsc_zinit_At( spm, ord, solvmtx, trowtab, bcsc );
 #if defined(PASTIX_WITH_MPI)
             if ( bcsc_comm != NULL ) {
-                nbelt += bcsc_zadd_remote_At( spm, ord, solvmtx, trowtab, bcsc );
+                nbelt_recv = bcsc_zexchange_values_At( spm, ord, solvmtx, trowtab, bcsc );
+                nbelt += nbelt_recv;
             }
 #endif
             /* Restores the correct coltab arrays */
