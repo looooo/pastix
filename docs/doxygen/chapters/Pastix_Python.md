@@ -2,7 +2,7 @@
 
 This example is about the resolution of the Helmholtz equation with [PaStiX](https://gitlab.inria.fr/solverstack/pastix) a sparse direct solver.
 The Helmholtz equation:
-$$ -\Delta u - k^{2}u=f \text{ on } \Omega $$
+\f[ -\Delta u - k^{2}u=f \text{ on } \Omega \f]
 
 This example will show you how to create the matrix, solve the equation with PaStiX, and visualize the solution with [Paraview](https://www.paraview.org/).
 
@@ -66,7 +66,7 @@ Then the matrix is created in one of the three storage types of the *spm* librar
 The Dirichlet boundary conditions are used to fill the matrix. These conditions are easy to understand and coherent with the modelization of real-life objects with a 3D matrix.
 
 Dirichlet boundary conditions:
-$$u(x)=0 \text{ on } \partial \Omega$$
+\f[ u(x)=0 \text{ on } \partial \Omega \f]
 
 ```python
 valtab = np.zeros(nnz)

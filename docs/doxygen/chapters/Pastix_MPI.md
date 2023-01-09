@@ -17,7 +17,7 @@ memory with MPI between processes, and POSIX threads within a process.
 
 Even if PaStiX works in distributed, it is still under development.
 You can face either performance issues (without runtime) or memory
-issues (with StarPU or PaRSEC)
+issues (with StarPU or PaRSEC).
 
 **Requirements**
 
