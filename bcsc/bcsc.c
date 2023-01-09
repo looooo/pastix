@@ -133,7 +133,6 @@ bcsc_compute_max( bcsc_handle_comm_t *bcsc_comm )
     for ( c = 0; c < clustnbr; c++ ) {
         data = bcsc_comm->data_comm + c;
         if ( c == clustnum ) {
-            data_local = data;
             continue;
         }
 
@@ -153,6 +152,7 @@ bcsc_compute_max( bcsc_handle_comm_t *bcsc_comm )
         val_At_cnt += val_cnt_At;
     }
 
+    data_local = bcsc_comm->data_comm + clustnum;
     data_local->nrecvs.idx_A  = idx_A_cnt;
     data_local->nrecvs.val_A  = val_A_cnt;
     data_local->nrecvs.idx_At = idx_At_cnt;

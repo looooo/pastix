@@ -149,7 +149,7 @@ bvec_zexchange_data_rep( pastix_data_t      *pastix_data,
     pastix_int_t        c;
 
     /* Allocates the receiving indexes and values buffers. */
-    if ( rhs_comm->max_idx != 0 ) {
+    if ( rhs_comm->max_idx > 0 ) {
         MALLOC_INTERN( idx_buf, rhs_comm->max_idx, pastix_int_t );
         MALLOC_INTERN( val_buf, rhs_comm->max_val, pastix_complex64_t );
     }
@@ -161,7 +161,7 @@ bvec_zexchange_data_rep( pastix_data_t      *pastix_data,
 
         if ( c == clustnum ) {
             /* Posts the emissions of the indexes and values. */
-            if ( sends->idxcnt != 0 ) {
+            if ( sends->idxcnt > 0 ) {
                 MPI_Bcast( sends->idxbuf, sends->idxcnt, PASTIX_MPI_INT,       c, rhs_comm->comm );
                 MPI_Bcast( Pb->b,         sends->valcnt, PASTIX_MPI_COMPLEX64, c, rhs_comm->comm );
             }
@@ -169,7 +169,7 @@ bvec_zexchange_data_rep( pastix_data_t      *pastix_data,
         }
 
         /* Posts the receptions of the indexes and values. */
-        if ( recvs->idxcnt != 0 ) {
+        if ( ( rhs_comm->max_idx > 0 ) && ( recvs->idxcnt > 0 ) ) {
             MPI_Bcast( idx_buf, recvs->idxcnt, PASTIX_MPI_INT,       c, rhs_comm->comm );
             MPI_Bcast( val_buf, recvs->valcnt, PASTIX_MPI_COMPLEX64, c, rhs_comm->comm );
 
@@ -180,7 +180,7 @@ bvec_zexchange_data_rep( pastix_data_t      *pastix_data,
     }
 
     /* Frees the receiving indexes and values buffers. */
-    if ( idx_buf != NULL ) {
+    if ( rhs_comm->max_idx > 0 ) {
         memFree_null( idx_buf );
         memFree_null( val_buf );
     }
@@ -502,7 +502,7 @@ bvec_zexchange_data_dst( pastix_data_t      *pastix_data,
     pastix_int_t        c_send, c_recv, k;
 
     /* Allocates the receiving indexes and values buffers. */
-    if ( rhs_comm->max_idx != 0 ) {
+    if ( rhs_comm->max_idx > 0 ) {
         MALLOC_INTERN( idx_buf, rhs_comm->max_idx, pastix_int_t );
         MALLOC_INTERN( val_buf, rhs_comm->max_val, pastix_complex64_t );
     }
@@ -517,7 +517,7 @@ bvec_zexchange_data_dst( pastix_data_t      *pastix_data,
         }
 
         /* Posts the emissions of the indexes. */
-        if ( sends->idxcnt != 0 ) {
+        if ( sends->idxcnt > 0 ) {
             MPI_Isend( sends->idxbuf, sends->idxcnt, PASTIX_MPI_INT,       c_send,
                        PastixTagIndexes, rhs_comm->comm, &requests[counter_req++] );
             MPI_Isend( sends->valbuf, sends->valcnt, PASTIX_MPI_COMPLEX64, c_send,
@@ -531,7 +531,7 @@ bvec_zexchange_data_dst( pastix_data_t      *pastix_data,
         data_recv = data_comm + c_recv;
         recvs     = &( data_recv->recv );
         /* Posts the receptions of the indexes and values. */
-        if ( recvs->idxcnt != 0 ) {
+        if ( ( rhs_comm->max_idx > 0 ) && ( recvs->idxcnt > 0 ) ) {
             MPI_Recv( idx_buf, recvs->idxcnt, PASTIX_MPI_INT,       c_recv, PastixTagIndexes,
                       rhs_comm->comm, MPI_STATUS_IGNORE );
             MPI_Recv( val_buf, recvs->valcnt, PASTIX_MPI_COMPLEX64, c_recv, PastixTagValues,
@@ -547,7 +547,7 @@ bvec_zexchange_data_dst( pastix_data_t      *pastix_data,
     MPI_Waitall( counter_req, requests, statuses );
 
     /* Frees the receiving indexes and values buffers. */
-    if ( idx_buf != NULL ) {
+    if ( rhs_comm->max_idx > 0 ) {
         memFree_null( idx_buf );
         memFree_null( val_buf );
     }
