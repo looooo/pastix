@@ -260,8 +260,8 @@ z_bvec_check( pastix_data_t *pastix_data )
 
     x = malloc( sizeof(pastix_complex64_t) * lm * n );
     y = malloc( sizeof(pastix_complex64_t) * lm * n );
-    memset( x, 0xdead, sizeof(pastix_complex64_t) * lm * n );
-    memset( y, 0xdead, sizeof(pastix_complex64_t) * lm * n );
+    memset( x, 0xff, sizeof(pastix_complex64_t) * lm * n );
+    memset( y, 0xff, sizeof(pastix_complex64_t) * lm * n );
 
     /*
      * generate vectors
@@ -288,7 +288,7 @@ z_bvec_check( pastix_data_t *pastix_data )
 
     /* Generate a backup of y to compute through cblas in order to compare with */
     y0 = malloc( sizeof(pastix_complex64_t) * lm * n );
-    memset( y0, 0xdead, sizeof(pastix_complex64_t) * lm * n );
+    memset( y0, 0xff, sizeof(pastix_complex64_t) * lm * n );
     z_init( pastix_data, seedY, n, y,  lm );
     z_init( pastix_data, seedY, n, y0, lm );
 
@@ -636,8 +636,8 @@ z_bvec_applyorder_check ( pastix_data_t *pastix_data,
     size  = ldb * nrhs;
     b_in  = malloc( size * sizeof(pastix_complex64_t) );
     b_out = malloc( size * sizeof(pastix_complex64_t) );
-    memset( b_in,  0xdead, sizeof(pastix_complex64_t) * size );
-    memset( b_out, 0xdead, sizeof(pastix_complex64_t) * size );
+    memset( b_in,  0xff, sizeof(pastix_complex64_t) * size );
+    memset( b_out, 0xff, sizeof(pastix_complex64_t) * size );
 
     sum_m  = 0;
     my_sum = 0;
@@ -650,7 +650,7 @@ z_bvec_applyorder_check ( pastix_data_t *pastix_data,
         MPI_Send( &sum_m, 1, PASTIX_MPI_INT, clustnum + 1, PastixTagAmount, spm->comm );
     }
 
-    /* Generate a replicated B */
+    /* Generates a replicated B */
     if ( spm->loc2glob == NULL ) {
         core_zplrnt( m, nrhs, b_in, ldb, m, 0, 0, 4978 );
     }
@@ -661,15 +661,10 @@ z_bvec_applyorder_check ( pastix_data_t *pastix_data,
 
     /* Forces the datatypes. */
     spm->flttype = SpmComplex64;
-    if ( pastix_data->solvmatr != NULL ) {
-        pastix_data->solvmatr->flttype = SpmComplex64;
-    }
-    if ( pastix_data->bcsc != NULL ) {
-        pastix_data->bcsc->flttype = SpmComplex64;
-        if ( pastix_data->bcsc->bcsc_comm != NULL ) {
-            pastix_data->bcsc->bcsc_comm->flttype = SpmComplex64;
-        }
-    }
+    assert( pastix_data->solvmatr != NULL );
+    pastix_data->solvmatr->flttype = SpmComplex64;
+    assert( pastix_data->bcsc != NULL );
+    pastix_data->bcsc->flttype = SpmComplex64;
 
     /* Make sure internal peritab and spm are reset */
     pastix_data->csc = spm;
