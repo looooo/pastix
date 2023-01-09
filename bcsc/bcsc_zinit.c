@@ -442,48 +442,65 @@ bcsc_zexchange_values_A( const spmatrix_t     *spm,
     pastix_int_t        clustnbr    = bcsc_comm->clustnbr;
     pastix_int_t        clustnum    = bcsc_comm->clustnum;
     bcsc_proc_comm_t   *data_comm   = bcsc_comm->data_comm;
+    bcsc_proc_comm_t   *data_send   = NULL;
+    bcsc_proc_comm_t   *data_recv   = NULL;
     pastix_complex64_t *val_buf     = NULL;
-    pastix_int_t        idx_cnt     = 0;
     pastix_int_t        idx_size    = 0;
     pastix_int_t        counter_req = 0;
     pastix_int_t        nbelt_recv  = 0;
-    pastix_int_t        c;
-    MPI_Status          statuses[(clustnbr-1)*4];
-    MPI_Request         requests[(clustnbr-1)*4];
+    pastix_int_t        cnt         = 0;
+    pastix_int_t        idx_cnt[clustnbr];
+    MPI_Status          statuses[clustnbr-1];
+    MPI_Request         requests[clustnbr-1];
+    pastix_int_t        c_send, c_recv, k;
 
     /* Allocates the receiving indexes and values buffers. */
     if ( bcsc_comm->max_idx != 0 ) {
-        MALLOC_INTERN( val_buf,  bcsc_comm->max_val, pastix_complex64_t );
+        MALLOC_INTERN( val_buf, bcsc_comm->max_val, pastix_complex64_t );
     }
 
-    /* Receives the values. */
-    for ( c = 0; c < clustnbr; c++ ) {
-        data_comm = bcsc_comm->data_comm + c;
-        if ( c == clustnum ) {
+    for ( k = 0; k < clustnbr; k++ ) {
+        if ( k == clustnum ) {
+            idx_cnt[k] = 0;
+            continue;
+        }
+        idx_cnt[ k ] = cnt;
+        cnt += data_comm[k].nrecvs.idx_A;
+    }
+
+    /* Sends the values. */
+    c_send = (clustnum+1) % clustnbr;
+    for ( k = 0; k < clustnbr-1; k++ ) {
+        data_send = data_comm + c_send;
+        if ( c_send == clustnum ) {
             continue;
         }
 
         /* Posts the emissions of the values. */
-        if ( data_comm->nsends.val_A != 0 ) {
-            MPI_Isend( data_comm->values_A, data_comm->nsends.val_A, PASTIX_MPI_COMPLEX64,
-                       c, PastixTagValuesA, bcsc_comm->comm, &requests[counter_req++] );
+        if ( data_send->nsends.val_A != 0 ) {
+            MPI_Isend( data_send->values_A, data_send->nsends.val_A, PASTIX_MPI_COMPLEX64,
+                       c_send, PastixTagValuesA, bcsc_comm->comm, &requests[counter_req++] );
         }
+	c_send = (c_send+1) % clustnbr;
     }
 
-    for ( c = 0; c < clustnbr; c++ ) {
-        data_comm = bcsc_comm->data_comm + c;
-        if ( c == clustnum ) {
+    /* Receives the values. */
+    c_recv = (clustnum-1+clustnbr) % clustnbr;
+    for ( k = 0; k < clustnbr-1; k++ ) {
+        data_recv = data_comm + c_recv;
+        if ( c_recv == clustnum ) {
             continue;
         }
 
         /* Posts the receptions of the values. */
-        if ( data_comm->nrecvs.val_A != 0 ) {
-            MPI_Recv( val_buf, data_comm->nrecvs.val_A, PASTIX_MPI_COMPLEX64,
-                      c, PastixTagValuesA, bcsc_comm->comm, MPI_STATUS_IGNORE );
-            idx_size = data_comm->nrecvs.idx_A;
-            nbelt_recv += bcsc_zhandle_recv_A( spm, ord, solvmtx, bcsc, val_buf, idx_cnt, idx_size );
-            idx_cnt += data_comm->nrecvs.idx_A;
+        if ( data_recv->nrecvs.val_A != 0 ) {
+            MPI_Recv( val_buf, data_recv->nrecvs.val_A, PASTIX_MPI_COMPLEX64,
+                      c_recv, PastixTagValuesA, bcsc_comm->comm, MPI_STATUS_IGNORE );
+            idx_size = data_recv->nrecvs.idx_A;
+            nbelt_recv += bcsc_zhandle_recv_A( spm, ord, solvmtx, bcsc,
+                                               val_buf, idx_cnt[c_recv], idx_size );
         }
+        c_recv = (c_recv-1+clustnbr) % clustnbr;
     }
 
     MPI_Waitall( counter_req, requests, statuses );
@@ -532,49 +549,65 @@ bcsc_zexchange_values_At( const spmatrix_t     *spm,
     pastix_int_t        clustnbr    = bcsc_comm->clustnbr;
     pastix_int_t        clustnum    = bcsc_comm->clustnum;
     bcsc_proc_comm_t   *data_comm   = bcsc_comm->data_comm;
+    bcsc_proc_comm_t   *data_send   = NULL;
+    bcsc_proc_comm_t   *data_recv   = NULL;
     pastix_complex64_t *val_buf     = NULL;
-    pastix_int_t        idx_cnt     = 0;
     pastix_int_t        idx_size    = 0;
     pastix_int_t        counter_req = 0;
     pastix_int_t        nbelt_recv  = 0;
-    pastix_int_t        c;
-    MPI_Status          statuses[(clustnbr-1)*4];
-    MPI_Request         requests[(clustnbr-1)*4];
+    pastix_int_t        cnt         = 0;
+    pastix_int_t        idx_cnt[clustnbr];
+    MPI_Status          statuses[clustnbr-1];
+    MPI_Request         requests[clustnbr-1];
+    pastix_int_t        c_send, c_recv, k;
 
     /* Allocates the receiving indexes and values buffers. */
     if ( bcsc_comm->max_idx != 0 ) {
         MALLOC_INTERN( val_buf, bcsc_comm->max_val, pastix_complex64_t );
     }
 
-    /* Receives the values. */
-    for ( c = 0; c < clustnbr; c++ ) {
-        data_comm = bcsc_comm->data_comm + c;
-        if ( c == clustnum ) {
+    for ( k = 0; k < clustnbr; k++ ) {
+        if ( k == clustnum ) {
+            idx_cnt[k] = 0;
+            continue;
+        }
+        idx_cnt[ k ] = cnt;
+        cnt += data_comm[k].nrecvs.idx_At;
+    }
+
+    /* Sends the values. */
+    c_send = (clustnum+1) % clustnbr;
+    for ( k = 0; k < clustnbr-1; k++ ) {
+        data_send = data_comm + c_send;
+        if ( c_send == clustnum ) {
             continue;
         }
 
         /* Posts the emissions of the values. */
-        if ( data_comm->nsends.val_At != 0 ) {
-            MPI_Isend( data_comm->values_At, data_comm->nsends.val_At, PASTIX_MPI_COMPLEX64,
-                       c, PastixTagValuesAt, bcsc_comm->comm, &requests[counter_req++] );
+        if ( data_send->nsends.val_At != 0 ) {
+            MPI_Isend( data_send->values_At, data_send->nsends.val_At, PASTIX_MPI_COMPLEX64,
+                       c_send, PastixTagValuesAt, bcsc_comm->comm, &requests[counter_req++] );
         }
+        c_send = (c_send+1) % clustnbr;
     }
 
-    for ( c = 0; c < clustnbr; c++ ) {
-        data_comm = bcsc_comm->data_comm + c;
-        if ( c == clustnum ) {
+    /* Receives the values. */
+    c_recv = (clustnum-1+clustnbr) % clustnbr;
+    for ( k = 0; k < clustnbr-1; k++ ) {
+        data_recv = data_comm + c_recv;
+        if ( c_recv == clustnum ) {
             continue;
         }
 
         /* Posts the receptions of the values. */
-        if ( data_comm->nrecvs.val_At != 0 ) {
-            MPI_Recv( val_buf, data_comm->nrecvs.val_At, PASTIX_MPI_COMPLEX64,
-                      c, PastixTagValuesAt, bcsc_comm->comm, MPI_STATUS_IGNORE );
-            idx_size = data_comm->nrecvs.idx_At;
-            nbelt_recv += bcsc_zhandle_recv_At( spm, ord, solvmtx, rowtab, bcsc, val_buf, idx_cnt, idx_size );
-            idx_cnt += data_comm->nrecvs.idx_At;
+        if ( data_recv->nrecvs.val_At != 0 ) {
+            MPI_Recv( val_buf, data_recv->nrecvs.val_At, PASTIX_MPI_COMPLEX64,
+                      c_recv, PastixTagValuesAt, bcsc_comm->comm, MPI_STATUS_IGNORE );
+            idx_size = data_recv->nrecvs.idx_At;
+            nbelt_recv += bcsc_zhandle_recv_At( spm, ord, solvmtx, rowtab, bcsc,
+                                                val_buf, idx_cnt[c_recv], idx_size );
         }
-
+        c_recv = (c_recv-1+clustnbr) % clustnbr;
     }
 
     MPI_Waitall( counter_req, requests, statuses );

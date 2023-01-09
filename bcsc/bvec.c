@@ -595,13 +595,16 @@ bvec_exchange_amount_dst( pastix_data_t *pastix_data,
                           pastix_rhs_t   Pb )
 {
     bvec_handle_comm_t *rhs_comm    = Pb->rhs_comm;
-    bvec_proc_comm_t   *data_comm   = NULL;
     pastix_int_t        clustnbr    = rhs_comm->clustnbr;
     pastix_int_t        clustnum    = rhs_comm->clustnum;
+    bvec_proc_comm_t   *data_comm   = NULL;
+    bvec_proc_comm_t   *data_send   = NULL;
+    bvec_proc_comm_t   *data_recv   = NULL;
     pastix_int_t        counter_req = 0;
     MPI_Status          statuses[(clustnbr-1)*2];
     MPI_Request         requests[(clustnbr-1)*2];
-    pastix_int_t        c;
+    bvec_data_amount_t *sends, *recvs;
+    pastix_int_t        c_send, c_recv, k;
 
     if ( dir == PastixDirBackward ) {
         bvec_switch_amount_dst( Pb->rhs_comm );
@@ -610,20 +613,29 @@ bvec_exchange_amount_dst( pastix_data_t *pastix_data,
     }
 
     bvec_compute_amount_dst( pastix_data, m, nrhs, Pb );
-    rhs_comm = Pb->rhs_comm;
+    rhs_comm  = Pb->rhs_comm;
+    data_comm = rhs_comm->data_comm;
 
     /* Receives the amount of indexes and values. */
-    for ( c = 0; c < clustnbr; c++ ) {
-        data_comm = rhs_comm->data_comm + c;
-        if ( c == clustnum ) {
+    c_send = (clustnum+1) % clustnbr;
+    c_recv = (clustnum-1+clustnbr) % clustnbr;
+    for ( k = 0; k < clustnbr-1; k++ ) {
+        data_send = data_comm + c_send;
+        data_recv = data_comm + c_recv;
+        sends     = &( data_send->send );
+        recvs     = &( data_recv->recv );
+        if ( c_send == clustnum ) {
             continue;
         }
 
-        MPI_Irecv( &(data_comm->recv), 2, PASTIX_MPI_INT,
-                   c, PastixTagAmount, rhs_comm->comm, &requests[counter_req++] );
+        MPI_Irecv( recvs, 2, PASTIX_MPI_INT, c_recv, PastixTagAmount,
+                   rhs_comm->comm, &requests[counter_req++] );
 
-        MPI_Isend( &(data_comm->send), 2, PASTIX_MPI_INT,
-                   c, PastixTagAmount, rhs_comm->comm, &requests[counter_req++] );
+        MPI_Isend( sends, 2, PASTIX_MPI_INT, c_send, PastixTagAmount,
+                   rhs_comm->comm, &requests[counter_req++] );
+
+        c_send = (c_send+1) % clustnbr;
+        c_recv = (c_recv-1+clustnbr) % clustnbr;
     }
 
     MPI_Waitall( counter_req, requests, statuses );
