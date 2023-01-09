@@ -17,6 +17,10 @@
  * @date 2022-09-24
  * @precisions normal z -> c d s
  *
+ * @addtogroup pastix_dev_refine
+ * @{
+ *   @brief TODO.
+ *
  **/
 
 #ifndef _z_refine_functions_h_
@@ -25,6 +29,10 @@
 #include "common.h"
 #include "bcsc/bcsc.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+/**
+ * @brief TODO
+ */
 struct z_solver
 {
     pastix_int_t    (* getN   )   (pastix_data_t *);
@@ -50,6 +58,7 @@ struct z_solver
                     pastix_complex64_t, const pastix_complex64_t *, pastix_int_t,
                     const pastix_complex64_t *, pastix_complex64_t, pastix_complex64_t *);
 };
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 void z_refine_init(struct z_solver *, pastix_data_t*);
 
@@ -58,4 +67,7 @@ pastix_int_t z_grad_smp    ( pastix_data_t *pastix_data, pastix_rhs_t xp, pastix
 pastix_int_t z_pivot_smp   ( pastix_data_t *pastix_data, pastix_rhs_t xp, pastix_rhs_t bp );
 pastix_int_t z_bicgstab_smp( pastix_data_t *pastix_data, pastix_rhs_t xp, pastix_rhs_t bp );
 
+/**
+ * @}
+ */
 #endif /* _z_refine_functions_h_ */

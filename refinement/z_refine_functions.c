@@ -114,8 +114,12 @@ void z_refine_output_final( pastix_data_t      *pastix_data,
  * @param[out] solver
  *          The structure to be filled
  *
+ * @param[in] pastix_data
+ *          TODO
+ *
  *******************************************************************************/
-void z_refine_init( struct z_solver *solver, pastix_data_t *pastix_data )
+void z_refine_init( struct z_solver *solver,
+                    pastix_data_t   *pastix_data )
 {
     pastix_scheduler_t sched = pastix_data->iparm[IPARM_SCHEDULER];
 
