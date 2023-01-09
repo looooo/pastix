@@ -6,7 +6,7 @@
  * a parallel direct block solver. This is the block symbolic factorization
  * routine for graphs.
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.0
@@ -48,19 +48,8 @@
  * @param[inout] symbptr
  *          The symbolic matrix structure to fill in.
  *
- * @param[in] vertnbr
- *          The number of vertices.
- *
- * @param[in] verttab
- *          Array of size vertnbr+1
- *          The array of indirection to the edgetab for each vertex.
- *          edgetab[ verttab[i] ] to edgetab[ verttab[i+1] are the edges of the
- *          ith vertex.
- *
- * @param[in] edgetab
- *          Array of size edgenbr = verttab[vertnbr] - verttab[0]. The array of edges.
- *          edgetab[ verttab[i]   - verttab[0] ] to
- *          edgetab[ verttab[i+1] - verttab[0] ] are the edges of the ith vertex.
+ * @param[in] graphA
+ *          TODO
  *
  * @param[in] ordeptr
  *          The ordering structure that contains the permutation and inverse

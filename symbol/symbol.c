@@ -4,7 +4,7 @@
  *
  * PaStiX symbol structure routines
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.0
@@ -81,9 +81,6 @@ symbol_init_adddofs( const pastix_graph_t *graph,
 }
 
 /**
- * @addtogroup pastix_symbol
- * @{
- *
  *******************************************************************************
  *
  * @brief Initialize the symbol structure.
@@ -493,7 +490,3 @@ pastixSymbolPrintStats( const symbol_matrix_t *symbptr )
                  (long)cblksel );
     }
 }
-
-/**
- * @}
- */

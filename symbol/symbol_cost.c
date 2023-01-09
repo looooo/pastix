@@ -295,13 +295,11 @@ recursive_sum( pastix_int_t a, pastix_int_t b,
 
     return fval(fptr, symbmtx, a);
 }
+
 /**
- * @}
- *
  * @addtogroup pastix_symbol
  * @{
  */
-
 
 /**
  *******************************************************************************
