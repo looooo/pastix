@@ -121,7 +121,8 @@ cpucblk_zsend_rhs_backward( const SolverMatrix *solvmtx,
     b += cblk->lcolidx;
     if ( rhsb->n > 1 ) {
         rhsb->cblkb[ idx ] = malloc( colnbr * rhsb->n * sizeof(pastix_complex64_t) );
-        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', colnbr, rhsb->n, b, rhsb->ld, rhsb->cblkb[ idx ], colnbr );
+        rc = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', colnbr, rhsb->n, b, rhsb->ld, rhsb->cblkb[ idx ], colnbr );
+        assert( rc == 0 );
         b = rhsb->cblkb[ idx ];
     }
 
