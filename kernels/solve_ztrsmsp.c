@@ -47,18 +47,22 @@ static pastix_complex64_t mzone = -1.0;
  *          Specify the transposition used for the matrix A in the
  *          computation. It has to be either PastixTrans or PastixConjTrans.
  *
- * @param[in] nrhs
- *          The number of right hand side.
+ * @param[in] diag
+ *          Specify if the off-diagonal blocks are unit triangular. It has to be
+ *          either PastixUnit or PastixNonUnit.
  *
  * @param[in] cblk
  *          The cblk structure that corresponds to the A and B matrix.
+ *
+ * @param[in] nrhs
+ *          The number of right hand side.
  *
  * @param[in] dataA
  *          The pointer to the correct representation of the data of A.
  *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
  *          - pastix_lr_block if the block is compressed.
  *
- * @param[inout] B
+ * @param[inout] b
  *          The pointer to the matrix B, that is a portion of the right hand
  *          side to solve.
  *
@@ -117,10 +121,6 @@ solve_blok_ztrsm( pastix_side_t       side,
  *          Specify the transposition used for the matrix A in the
  *          computation. It has to be either PastixTrans or PastixConjTrans.
  *
- * @param[in] diag
- *          Specify if the off-diagonal blocks are unit triangular. It has to be
- *          either PastixUnit or PastixNonUnit.
- *
  * @param[in] nrhs
  *          The number of right hand side.
  *
@@ -150,7 +150,7 @@ solve_blok_ztrsm( pastix_side_t       side,
  *          The pointer to the matrix C, that is the updated portion of the
  *          right hand side.
  *
- * @param[in] ldb
+ * @param[in] ldc
  *          The leading dimension of C.
  *
  *******************************************************************************/

@@ -45,7 +45,9 @@
  *
  *******************************************************************************/
 size_t
-cpublok_zcompute_size_lr( pastix_coefside_t side, pastix_int_t N, const SolverBlok *blok )
+cpublok_zcompute_size_lr( pastix_coefside_t  side,
+                          pastix_int_t       N,
+                          const SolverBlok  *blok )
 {
     pastix_int_t M    = blok_rownbr( blok );
     pastix_int_t suv  = 0;
@@ -89,7 +91,8 @@ cpublok_zcompute_size_lr( pastix_coefside_t side, pastix_int_t N, const SolverBl
  *
  *******************************************************************************/
 pastix_uint_t
-cpucblk_zcompute_size_lr( pastix_coefside_t side, const SolverCblk *cblk )
+cpucblk_zcompute_size_lr( pastix_coefside_t  side,
+                          const SolverCblk  *cblk )
 {
     assert( cblk->cblktype & CBLK_COMPRESSED );
 
@@ -128,7 +131,8 @@ cpucblk_zcompute_size_lr( pastix_coefside_t side, const SolverCblk *cblk )
  *
  *******************************************************************************/
 size_t
-cpucblk_zcompute_size( pastix_coefside_t side, const SolverCblk *cblk )
+cpucblk_zcompute_size( pastix_coefside_t  side,
+                       const SolverCblk  *cblk )
 {
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
         return cpucblk_zcompute_size_lr( side, cblk );
@@ -170,7 +174,10 @@ cpucblk_zcompute_size( pastix_coefside_t side, const SolverCblk *cblk )
  *
  *******************************************************************************/
 char *
-cpublok_zpack_lr( pastix_coefside_t side, pastix_uint_t N, const SolverBlok *blok, char *buffer )
+cpublok_zpack_lr( pastix_coefside_t  side,
+                  pastix_uint_t      N,
+                  const SolverBlok  *blok,
+                  char              *buffer )
 {
     pastix_int_t M = blok_rownbr( blok );
 
@@ -210,7 +217,9 @@ cpublok_zpack_lr( pastix_coefside_t side, pastix_uint_t N, const SolverBlok *blo
  *
  *******************************************************************************/
 void *
-cpucblk_zpack_lr( pastix_coefside_t side, SolverCblk *cblk, size_t size )
+cpucblk_zpack_lr( pastix_coefside_t side,
+                  SolverCblk       *cblk,
+                  size_t            size )
 {
     assert( cblk->cblktype & CBLK_COMPRESSED );
 
@@ -260,7 +269,10 @@ cpucblk_zpack_lr( pastix_coefside_t side, SolverCblk *cblk, size_t size )
  *
  *******************************************************************************/
 char *
-cpublok_zunpack_lr( pastix_coefside_t side, pastix_int_t N, SolverBlok *blok, char *buffer )
+cpublok_zunpack_lr( pastix_coefside_t side,
+                    pastix_int_t      N,
+                    SolverBlok       *blok,
+                    char             *buffer )
 {
     pastix_int_t M = blok_rownbr( blok );
 
@@ -296,7 +308,9 @@ cpublok_zunpack_lr( pastix_coefside_t side, pastix_int_t N, SolverBlok *blok, ch
  *
  *******************************************************************************/
 void
-cpucblk_zunpack_lr( pastix_coefside_t side, SolverCblk *cblk, void *buffer )
+cpucblk_zunpack_lr( pastix_coefside_t  side,
+                    SolverCblk        *cblk,
+                    void              *buffer )
 {
     assert( cblk->cblktype & CBLK_COMPRESSED );
 
@@ -334,7 +348,8 @@ cpucblk_zunpack_lr( pastix_coefside_t side, SolverCblk *cblk, void *buffer )
  *
  *******************************************************************************/
 void *
-cpucblk_zpack_fr( pastix_coefside_t side, const SolverCblk *cblk )
+cpucblk_zpack_fr( pastix_coefside_t  side,
+                  const SolverCblk  *cblk )
 {
     assert( !( cblk->cblktype & CBLK_COMPRESSED ) );
 
@@ -362,7 +377,9 @@ cpucblk_zpack_fr( pastix_coefside_t side, const SolverCblk *cblk )
  *
  *******************************************************************************/
 void
-cpucblk_zunpack_fr( pastix_coefside_t side, SolverCblk *cblk, pastix_complex64_t *buffer )
+cpucblk_zunpack_fr( pastix_coefside_t   side,
+                    SolverCblk         *cblk,
+                    pastix_complex64_t *buffer )
 {
     assert( !( cblk->cblktype & CBLK_COMPRESSED ) );
 
@@ -388,8 +405,8 @@ cpucblk_zunpack_fr( pastix_coefside_t side, SolverCblk *cblk, pastix_complex64_t
  * @param[in] cblk
  *          The column block that will be sent.
  *
- * @param[inout] buffer
- *          Pointer on packed data.
+ * @param[in] size
+ *          TODO
  *
  *******************************************************************************
  *
@@ -397,7 +414,9 @@ cpucblk_zunpack_fr( pastix_coefside_t side, SolverCblk *cblk, pastix_complex64_t
  *
  *******************************************************************************/
 void *
-cpucblk_zpack( pastix_coefside_t side, SolverCblk *cblk, size_t size )
+cpucblk_zpack( pastix_coefside_t  side,
+               SolverCblk        *cblk,
+               size_t             size )
 {
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
         return cpucblk_zpack_lr( side, cblk, size );
@@ -428,7 +447,9 @@ cpucblk_zpack( pastix_coefside_t side, SolverCblk *cblk, size_t size )
  *
  *******************************************************************************/
 void
-cpucblk_zunpack( pastix_coefside_t side, SolverCblk *cblk, void *buffer )
+cpucblk_zunpack( pastix_coefside_t  side,
+                 SolverCblk        *cblk,
+                 void              *buffer )
 {
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
         cpucblk_zunpack_lr( side, cblk, buffer );

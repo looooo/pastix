@@ -59,6 +59,7 @@ pastix_fixdbl_t gpu_zgemmsp_fermi( const SolverMatrix *solvmatr,
 
 /**
  *    @}
+ * @}
  */
 #endif
 

@@ -2,7 +2,7 @@
  *
  * @file kernels_trace.c
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * PaStiX trace and modelling routines
@@ -13,23 +13,39 @@
  * @date 2021-01-03
  *
  **/
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include "common/common.h"
 #include "bcsc/bcsc.h"
 #include "blend/solver.h"
 #include "kernels_trace.h"
 
 /**
- * @brief Compute the maximal rank accepted for a given matrix size. The pointer is set according to the low-rank strategy used.
- * @param[in] M The number of rows of the matrix
- * @param[in] N The number of columns of the matrix
+ *******************************************************************************
+ *
+ * @brief Compute the maximal rank accepted for a given matrix size. The pointer
+ * is set according to the low-rank strategy used.
+ *
+ *******************************************************************************
+ *
+ * @param[in] M
+ *          The number of rows of the matrix
+ *
+ * @param[in] N
+ *          The number of columns of the matrix
+ *
+ *******************************************************************************
+ *
  * @return The maximal rank accepted for this matrix size.
- */
-pastix_int_t (*core_get_rklimit)( pastix_int_t, pastix_int_t ) = core_get_rklimit_end;
+ *
+ *******************************************************************************/
+pastix_int_t (*core_get_rklimit)( pastix_int_t M, pastix_int_t N ) = core_get_rklimit_end;
 
-volatile double  kernels_flops[PastixKernelLvl1Nbr];
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+volatile double kernels_flops[PastixKernelLvl1Nbr];
 
 volatile int32_t kernels_trace_started = 0;
 
@@ -49,6 +65,7 @@ int32_t               model_size        = 0;
 
 pastix_atomic_lock_t lock_flops = PASTIX_ATOMIC_UNLOCKED;
 double overall_flops[3] = { 0.0, 0.0, 0.0 };
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
@@ -154,6 +171,10 @@ kernelsTraceStart( const pastix_data_t *pastix_data )
  * @param[in] pastix_data
  *          The pastix_data structure of the problem to get input information
  *          for the different trace modes, and store output statistics.
+ *
+ *******************************************************************************
+ *
+ * @return TODO
  *
  *******************************************************************************/
 double

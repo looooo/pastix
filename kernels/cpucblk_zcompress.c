@@ -55,8 +55,9 @@
  *******************************************************************************/
 pastix_fixdbl_t
 cpublok_zcompress( const pastix_lr_t *lowrank,
-                   pastix_int_t M, pastix_int_t N,
-                   pastix_lrblock_t *lrA )
+                   pastix_int_t       M,
+                   pastix_int_t       N,
+                   pastix_lrblock_t  *lrA )
 {
     pastix_fixdbl_t     flops;
     pastix_complex64_t *A = lrA->u;
@@ -96,6 +97,9 @@ cpublok_zcompress( const pastix_lr_t *lowrank,
  *          @arg PastixLCoef if lower part only
  *          @arg PastixUCoef if upper part only
  *          @arg PastixLUCoef if both sides.
+ *
+ * @param[in] max_ilulvl
+ *          TODO
  *
  * @param[inout] cblk
  *          The column block to compress.

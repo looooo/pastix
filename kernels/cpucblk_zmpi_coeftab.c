@@ -146,8 +146,14 @@ cpucblk_zrequest_handle_fanin( pastix_coefside_t   side,
  * @param[inout] solvmtx
  *          The solver matrix structure.
  *
- * @param[inout] cblk
- *          The cblk concerned by the computation.
+ * @param[inout] threadid
+ *          TODO
+ *
+ * @param[inout] status
+ *          TODO
+ *
+ * @param[inout] recvbuf
+ *          TODO
  *
  *******************************************************************************/
 static inline void
@@ -246,6 +252,10 @@ cpucblk_zrequest_handle_recv( pastix_coefside_t   side,
  *
  * @param[in] statuses
  *          Array of statuses for the completed requests
+ *
+ *******************************************************************************
+ *
+ * @retval TODO
  *
  *******************************************************************************/
 static inline int
@@ -384,6 +394,7 @@ cpucblk_zupdate_reqtab( SolverMatrix *solvmtx )
 /**
  *******************************************************************************
  *
+ * @ingroup kernel_fact
  * @brief Progress communications for one process
  *
  * If a communication is completed, it will be treated.
@@ -472,15 +483,13 @@ cpucblk_zmpi_progress( pastix_coefside_t   side,
 /**
  *******************************************************************************
  *
- * @brief Wait for incoming dependencies, and return when cblk->ctrbcnt has reached 0.
+ * @brief Wait for incoming dependencies, and return when cblk->ctrbcnt has
+ * reached 0.
  *
  *******************************************************************************
  *
- * @param[in] mt_flag
- *          @arg 0, the function is called in a sequential environment, and we
- *                  can wait on each communication.
- *          @arg 1, the function is called in a multi-threaded environment, and
- *                  we need to test the communication to avoid dead locks.
+ * @param[in] rank
+ *          TODO
  *
  * @param[in] side
  *          Define which side of the cblk must be released.
@@ -493,6 +502,8 @@ cpucblk_zmpi_progress( pastix_coefside_t   side,
  *
  * @param[inout] cblk
  *          The column block that contribute to fcblk.
+ *
+ *******************************************************************************
  *
  * @return 1 if the cblk is a fanin, 0 otherwise
  *

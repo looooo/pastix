@@ -4,7 +4,7 @@
  *
  * @copyright 2012-2014 Univ. of Tennessee, Univ. of California Berkeley and
  *                      Univ. of Colorado Denver. All rights reserved.
- * @copyright 2012-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.1.0
@@ -76,9 +76,16 @@
  *
  ******************************************************************************/
 int
-core_ztradd( pastix_uplo_t uplo, pastix_trans_t trans, pastix_int_t M, pastix_int_t N,
-             pastix_complex64_t alpha, const pastix_complex64_t *A, pastix_int_t LDA,
-             pastix_complex64_t beta,        pastix_complex64_t *B, pastix_int_t LDB)
+core_ztradd( pastix_uplo_t             uplo,
+             pastix_trans_t            trans,
+             pastix_int_t              M,
+             pastix_int_t              N,
+             pastix_complex64_t        alpha,
+             const pastix_complex64_t *A,
+             pastix_int_t              LDA,
+             pastix_complex64_t        beta,
+             pastix_complex64_t       *B,
+             pastix_int_t              LDB )
 {
     int i, j;
 

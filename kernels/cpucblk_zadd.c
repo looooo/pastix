@@ -48,6 +48,15 @@
  *          On exit, cblkB coefficient arrays are overwritten by the result of
  *          alpha * A + B.
  *
+ * @param[in] work
+ *          TODO
+ *
+ * @param[in] lwork
+ *          TODO
+ *
+ * @param[in] lowrank
+ *          TODO
+ *
  *******************************************************************************
  *
  * @return The number of flops of the operation.
@@ -157,6 +166,15 @@ cpucblk_zadd_frlr( pastix_coefside_t   side,
  *          The column block of the B matrix
  *          On exit, cblkB coefficient arrays are overwritten by the result of
  *          alpha * A + B.
+ *
+ * @param[in] work
+ *          TODO
+ *
+ * @param[in] lwork
+ *          TODO
+ *
+ * @param[in] lowrank
+ *          TODO
  *
  *******************************************************************************
  *
@@ -352,6 +370,9 @@ cpucblk_zadd_frfr( pastix_coefside_t side,
  *          The column block of the B matrix
  *          On exit, cblkB coefficient arrays are overwritten by the result of
  *          alpha * A + B.
+ *
+ * @param[in] lowrank
+ *          TODO
  *
  *******************************************************************************/
 void

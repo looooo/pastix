@@ -26,7 +26,10 @@
 #include "pastix_zlrcores.h"
 #include "z_nan_check.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define PASTIX_SVD_2NORM 1
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+
 #if !defined(PASTIX_SVD_2NORM)
 #include "common/frobeniusupdate.h"
 
@@ -58,7 +61,9 @@
  *
  *******************************************************************************/
 static inline double
-core_dlassq( int n, const double *x, int incx )
+core_dlassq( int           n,
+             const double *x,
+             int           incx )
 {
     double scale = 1.;
     double sumsq = 0.;
@@ -84,6 +89,9 @@ static pastix_complex64_t zzero =  0.0;
  *
  *******************************************************************************
  *
+ * @param[in] use_reltol
+ *          TODO
+ *
  * @param[in] tol
  *          The tolerance used as a criterion to eliminate information from the
  *          full rank matrix.
@@ -101,7 +109,7 @@ static pastix_complex64_t zzero =  0.0;
  * @param[in] n
  *          Number of columns of the matrix A, and of the low rank matrix Alr.
  *
- * @param[in] A
+ * @param[in] Avoid
  *          The matrix of dimension lda-by-n that needs to be compressed
  *
  * @param[in] lda
@@ -111,11 +119,19 @@ static pastix_complex64_t zzero =  0.0;
  *          The low rank matrix structure that will store the low rank
  *          representation of A
  *
+ *******************************************************************************
+ *
+ * @return  TODO
+ *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zge2lr_svd( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
-                 pastix_int_t m, pastix_int_t n,
-                 const void *Avoid, pastix_int_t lda,
+core_zge2lr_svd( int               use_reltol,
+                 pastix_fixdbl_t   tol,
+                 pastix_int_t      rklimit,
+                 pastix_int_t      m,
+                 pastix_int_t      n,
+                 const void       *Avoid,
+                 pastix_int_t      lda,
                  pastix_lrblock_t *Alr )
 {
     const pastix_complex64_t *A = (const pastix_complex64_t*)Avoid;
@@ -304,7 +320,7 @@ core_zge2lr_svd( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
  *         @arg PastixNoTrans: No transpose, op( A ) = A;
  *         @arg PastixTrans:   Transpose, op( A ) = A';
  *
- * @param[in] alpha
+ * @param[in] alphaptr
  *          alpha * A is add to B
  *
  * @param[in] M1
@@ -337,10 +353,17 @@ core_zge2lr_svd( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
  *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
-                 pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                 pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                 pastix_int_t offx, pastix_int_t offy)
+core_zrradd_svd( const pastix_lr_t      *lowrank,
+                 pastix_trans_t          transA1,
+                 const void             *alphaptr,
+                 pastix_int_t            M1,
+                 pastix_int_t            N1,
+                 const pastix_lrblock_t *A,
+                 pastix_int_t            M2,
+                 pastix_int_t            N2,
+                 pastix_lrblock_t       *B,
+                 pastix_int_t            offx,
+                 pastix_int_t            offy)
 {
     pastix_int_t rank, M, N, minU, minV;
     pastix_int_t i, ret, lwork, new_rank;
@@ -513,7 +536,7 @@ core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void 
         /**
          * In relative tolerance, we can choose two solutions:
          *  1) The first one, more conservative, is to compress relatively to
-         *  the norm of the final matrix \[ \alpha A + B \]. In this kernel, we
+         *  the norm of the final matrix \f$ \alpha A + B \f$. In this kernel, we
          *  exploit the fact that the previous computed product contains all the
          *  information of the final matrix to do it as follow:
          *
@@ -529,7 +552,7 @@ core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void 
          *  with the first criterion, and rank null with the second.
          *  Note that here, we can only have an estimation that once again
          *  reduces the conservation of the criterion.
-         *  || \alpha A + B || <= |\alpha| ||A|| + ||B|| <= |\alpha| ||U_aV_a|| + ||U_bV_b||
+         *  \f[ || \alpha A + B || <= |\alpha| ||A|| + ||B|| <= |\alpha| ||U_aV_a|| + ||U_bV_b|| \f]
          *
          */
         double normA, normB;

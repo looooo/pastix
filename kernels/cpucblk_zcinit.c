@@ -26,6 +26,7 @@
 #include "pastix_zlrcores.h"
 #include <lapacke.h>
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #if defined(PRECISION_zc)
 #define cpucblk_zccheck_overflow( value, overflow )                                                       \
 {                                                                                                         \
@@ -46,6 +47,7 @@
     }                                                                                                     \
 }
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
@@ -69,6 +71,8 @@
  *
  * @param[in] itercblk
  *          The index of the cblk to fill in both bcsc and solvmtx structures.
+ *
+ *******************************************************************************
  *
  * @return 0 on success, 1 in case of overflow during initialization.
  *
@@ -188,6 +192,8 @@ cpucblk_zcfillin_fr( pastix_coefside_t    side,
  * @param[in] itercblk
  *          The index of the cblk to fill in both bcsc and solvmtx structures.
  *
+ *******************************************************************************
+ *
  * @return 0 on success, 1 in case of overflow during initialization.
  *
  *******************************************************************************/
@@ -302,6 +308,8 @@ cpucblk_zcfillin_lr( pastix_coefside_t    side,
  *
  * @param[in] itercblk
  *          The index of the cblk to fill in both bcsc and solvmtx structures.
+ *
+ *******************************************************************************
  *
  * @return 0 on success, 1 in case of overflow during initialization.
  *

@@ -443,6 +443,10 @@ cpucblk_ztrsmsp( pastix_side_t      side,
  *          The pointer to the fcblk.lcoeftab if the lower part is computed,
  *          fcblk.ucoeftab otherwise.
  *
+ *******************************************************************************
+ *
+ * @retval TODO
+ *
  *******************************************************************************/
 static inline pastix_fixdbl_t
 core_ztrsmsp_2dsub( pastix_side_t             side,
@@ -540,6 +544,10 @@ core_ztrsmsp_2dsub( pastix_side_t             side,
  *
  * @param[in] lowrank
  *          The structure with low-rank parameters.
+ *
+ *******************************************************************************
+ *
+ * @retval TODO
  *
  *******************************************************************************/
 static inline pastix_fixdbl_t
@@ -672,6 +680,10 @@ core_ztrsmsp_lrsub( pastix_side_t           side,
  *
  * @param[in] lowrank
  *          The structure with low-rank parameters.
+ *
+ *******************************************************************************
+ *
+ * @retval TODO
  *
  *******************************************************************************/
 pastix_fixdbl_t

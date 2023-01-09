@@ -138,6 +138,9 @@ cpucblk_zalloc_lrws( const SolverCblk   *cblk,
  * @param[inout] cblk
  *          The column block to allocate.
  *
+ * @param[in] rkmax
+ *          TODO
+ *
  *******************************************************************************/
 void
 cpucblk_zalloc_lr( pastix_coefside_t  side,

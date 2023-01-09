@@ -4,7 +4,7 @@
  *
  * PaStiX low-rank kernel to compute the norms of a low-rank block.
  *
- * @copyright 2016-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.0.3
@@ -27,6 +27,15 @@
  * @param[in] ntype
  *          The matrix norm to compute.
  *
+ * @param[in] transV
+ *          TODO
+ *
+ * @param[in] M
+ *          TODO
+ *
+ * @param[in] N
+ *          TODO
+ *
  * @param[in] A
  *          The low-rank matrix
  *
@@ -36,8 +45,10 @@
  *
  *******************************************************************************/
 double
-core_zlrnrm( pastix_normtype_t ntype, int transV,
-             pastix_int_t M, pastix_int_t N,
+core_zlrnrm( pastix_normtype_t       ntype,
+             int                     transV,
+             pastix_int_t            M,
+             pastix_int_t            N,
              const pastix_lrblock_t *A )
 {
     if ( ntype != PastixFrobeniusNorm ) {

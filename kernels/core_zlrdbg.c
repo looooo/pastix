@@ -183,9 +183,13 @@ core_zlrdbg_check_orthogonality( pastix_int_t              M,
  *
  *******************************************************************************/
 int
-core_zlrdbg_check_orthogonality_AB( pastix_int_t M, pastix_int_t NA, pastix_int_t NB,
-                                    const pastix_complex64_t *A, pastix_int_t lda,
-                                    const pastix_complex64_t *B, pastix_int_t ldb )
+core_zlrdbg_check_orthogonality_AB( pastix_int_t              M,
+                                    pastix_int_t              NA,
+                                    pastix_int_t              NB,
+                                    const pastix_complex64_t *A,
+                                    pastix_int_t              lda,
+                                    const pastix_complex64_t *B,
+                                    pastix_int_t              ldb )
 {
     pastix_complex64_t *Zero;
     double norm, res;

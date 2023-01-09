@@ -102,11 +102,19 @@ static pastix_complex64_t zzero =  0.0;
  *
  *******************************************************************************/
 int
-core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
-             pastix_int_t m, pastix_int_t n,
-             pastix_complex64_t *A, pastix_int_t lda,
-             pastix_int_t *jpvt, pastix_complex64_t *tau,
-             pastix_complex64_t *work, pastix_int_t lwork,  double *rwork )
+core_zpqrcp( double              tol,
+             pastix_int_t        maxrank,
+             int                 full_update,
+             pastix_int_t        nb,
+             pastix_int_t        m,
+             pastix_int_t        n,
+             pastix_complex64_t *A,
+             pastix_int_t        lda,
+             pastix_int_t       *jpvt,
+             pastix_complex64_t *tau,
+             pastix_complex64_t *work,
+             pastix_int_t        lwork,
+             double             *rwork )
 {
     pastix_int_t minMN, ldf, lwkopt;
     pastix_int_t j, k, jb, itemp, lsticc, pvt, ret;
@@ -438,11 +446,19 @@ core_zpqrcp( double tol, pastix_int_t maxrank, int full_update, pastix_int_t nb,
  *          The low rank matrix structure that will store the low rank
  *          representation of A
  *
+ *******************************************************************************
+ *
+ * @return TODO
+ *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zge2lr_pqrcp( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
-                   pastix_int_t m, pastix_int_t n,
-                   const void *A, pastix_int_t lda,
+core_zge2lr_pqrcp( int               use_reltol,
+                   pastix_fixdbl_t   tol,
+                   pastix_int_t      rklimit,
+                   pastix_int_t      m,
+                   pastix_int_t      n,
+                   const void       *A,
+                   pastix_int_t      lda,
                    pastix_lrblock_t *Alr )
 {
     return core_zge2lr_qrcp( core_zpqrcp, use_reltol, tol, rklimit,
@@ -470,7 +486,7 @@ core_zge2lr_pqrcp( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
  *         @arg PastixNoTrans:  No transpose, op( A ) = A;
  *         @arg PastixTrans:  Transpose, op( A ) = A';
  *
- * @param[in] alpha
+ * @param[in] alphaptr
  *          alpha * A is add to B
  *
  * @param[in] M1
@@ -504,10 +520,17 @@ core_zge2lr_pqrcp( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
  *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zrradd_pqrcp( const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
-                   pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                   pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                   pastix_int_t offx, pastix_int_t offy)
+core_zrradd_pqrcp( const pastix_lr_t      *lowrank,
+                   pastix_trans_t          transA1,
+                   const void             *alphaptr,
+                   pastix_int_t            M1,
+                   pastix_int_t            N1,
+                   const pastix_lrblock_t *A,
+                   pastix_int_t            M2,
+                   pastix_int_t            N2,
+                   pastix_lrblock_t       *B,
+                   pastix_int_t            offx,
+                   pastix_int_t            offy)
 {
     return core_zrradd_qr( core_zpqrcp, lowrank, transA1, alphaptr,
                            M1, N1, A, M2, N2, B, offx, offy );

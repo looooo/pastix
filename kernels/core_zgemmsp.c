@@ -101,14 +101,15 @@ static pastix_complex64_t zzero =  0.0;
  *
  *******************************************************************************/
 static inline void
-core_zgemmsp_1d1d( pastix_coefside_t sideA, pastix_trans_t trans,
+core_zgemmsp_1d1d( pastix_coefside_t         sideA,
+                   pastix_trans_t            trans,
                    const SolverCblk         *cblk,
                    const SolverBlok         *blok,
-                         SolverCblk         *fcblk,
+                   SolverCblk               *fcblk,
                    const pastix_complex64_t *A,
                    const pastix_complex64_t *B,
-                         pastix_complex64_t *C,
-                         pastix_complex64_t *work )
+                   pastix_complex64_t       *C,
+                   pastix_complex64_t       *work )
 {
     const SolverBlok *iterblok;
     const SolverBlok *fblok;
@@ -258,13 +259,14 @@ core_zgemmsp_1d1d( pastix_coefside_t sideA, pastix_trans_t trans,
  *
  *******************************************************************************/
 static inline void
-core_zgemmsp_1d2d( pastix_coefside_t sideA, pastix_trans_t trans,
+core_zgemmsp_1d2d( pastix_coefside_t         sideA,
+                   pastix_trans_t            trans,
                    const SolverCblk         *cblk,
                    const SolverBlok         *blok,
-                         SolverCblk         *fcblk,
+                   SolverCblk               *fcblk,
                    const pastix_complex64_t *A,
                    const pastix_complex64_t *B,
-                         pastix_complex64_t *C )
+                   pastix_complex64_t       *C )
 {
     const SolverBlok *iterblok;
     const SolverBlok *fblok;
@@ -397,13 +399,14 @@ core_zgemmsp_1d2d( pastix_coefside_t sideA, pastix_trans_t trans,
  *
  *******************************************************************************/
 static inline void
-core_zgemmsp_2d2d( pastix_coefside_t sideA, pastix_trans_t trans,
+core_zgemmsp_2d2d( pastix_coefside_t         sideA,
+                   pastix_trans_t            trans,
                    const SolverCblk         *cblk,
                    const SolverBlok         *blok,
-                         SolverCblk         *fcblk,
+                   SolverCblk               *fcblk,
                    const pastix_complex64_t *A,
                    const pastix_complex64_t *B,
-                         pastix_complex64_t *C )
+                   pastix_complex64_t       *C )
 {
     const SolverBlok *iterblok;
     const SolverBlok *fblok;
@@ -537,15 +540,15 @@ core_zgemmsp_2d2d( pastix_coefside_t sideA, pastix_trans_t trans,
  *
  *******************************************************************************/
 static inline pastix_fixdbl_t
-core_zgemmsp_block_frfr(       pastix_trans_t      trans,
-                               pastix_int_t        blok_mk,
-                               pastix_int_t        blok_kn,
-                               pastix_int_t        blok_mn,
+core_zgemmsp_block_frfr( pastix_trans_t            trans,
+                         pastix_int_t              blok_mk,
+                         pastix_int_t              blok_kn,
+                         pastix_int_t              blok_mn,
                          const SolverCblk         *cblk,
-                               SolverCblk         *fcblk,
+                         SolverCblk               *fcblk,
                          const pastix_complex64_t *A,
                          const pastix_complex64_t *B,
-                               pastix_complex64_t *C )
+                         pastix_complex64_t       *C )
 {
     const SolverBlok *blokA, *blokB, *blokC;
     const SolverBlok *bA, *bB, *bC;
@@ -708,10 +711,10 @@ core_zgemmsp_block_frlr( pastix_trans_t            transB,
                          pastix_int_t              blok_kn,
                          pastix_int_t              blok_mn,
                          const SolverCblk         *cblk,
-                               SolverCblk         *fcblk,
+                         SolverCblk               *fcblk,
                          const pastix_complex64_t *A,
                          const pastix_complex64_t *B,
-                               pastix_lrblock_t   *lrC,
+                         pastix_lrblock_t         *lrC,
                          const pastix_lr_t        *lowrank )
 {
     const SolverBlok *blokA, *blokB, *blokC;
@@ -1051,6 +1054,9 @@ core_zgemmsp_block_lrlr( pastix_trans_t          transB,
  * @param[in] work
  *          Temporary memory buffer.
  *
+ * @param[in] lwork
+ *          TODO
+ *
  * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
@@ -1064,12 +1070,12 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
                      pastix_trans_t            trans,
                      const SolverCblk         *cblk,
                      const SolverBlok         *blok,
-                           SolverCblk         *fcblk,
+                     SolverCblk               *fcblk,
                      const pastix_complex64_t *A,
                      const pastix_complex64_t *B,
-                           pastix_lrblock_t   *lrC,
-                           pastix_complex64_t *work,
-                           pastix_int_t        lwork,
+                     pastix_lrblock_t         *lrC,
+                     pastix_complex64_t       *work,
+                     pastix_int_t              lwork,
                      const pastix_lr_t        *lowrank )
 {
     const SolverBlok *iterblok;
@@ -1202,6 +1208,9 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
  * @param[in] work
  *          Temporary memory buffer.
  *
+ * @param[in] lwork
+ *          TODO
+ *
  * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
@@ -1211,17 +1220,17 @@ core_zgemmsp_fulllr( pastix_coefside_t         sideA,
  *
  *******************************************************************************/
 static inline pastix_fixdbl_t
-core_zgemmsp_lr(       pastix_coefside_t   sideA,
-                       pastix_trans_t      trans,
-                 const SolverCblk         *cblk,
-                 const SolverBlok         *blok,
-                       SolverCblk         *fcblk,
-                 const pastix_lrblock_t   *lrA,
-                 const pastix_lrblock_t   *lrB,
-                       pastix_lrblock_t   *lrC,
-                       pastix_complex64_t *work,
-                       pastix_int_t        lwork,
-                 const pastix_lr_t        *lowrank )
+core_zgemmsp_lr( pastix_coefside_t       sideA,
+                 pastix_trans_t          trans,
+                 const SolverCblk       *cblk,
+                 const SolverBlok       *blok,
+                 SolverCblk             *fcblk,
+                 const pastix_lrblock_t *lrA,
+                 const pastix_lrblock_t *lrB,
+                 pastix_lrblock_t       *lrC,
+                 pastix_complex64_t     *work,
+                 pastix_int_t            lwork,
+                 const pastix_lr_t      *lowrank )
 {
     const SolverBlok *iterblok;
     const SolverBlok *fblok;
@@ -1358,17 +1367,17 @@ core_zgemmsp_lr(       pastix_coefside_t   sideA,
  *
  *******************************************************************************/
 static inline pastix_fixdbl_t
-core_zgemmsp_lrfr( pastix_coefside_t         sideA,
-                   pastix_trans_t            trans,
-                   const SolverCblk         *cblk,
-                   const SolverBlok         *blok,
-                         SolverCblk         *fcblk,
-                   const pastix_lrblock_t   *lrA,
-                   const pastix_lrblock_t   *lrB,
-                         pastix_complex64_t *C,
-                         pastix_complex64_t *work,
-                         pastix_int_t        lwork,
-                   const pastix_lr_t        *lowrank )
+core_zgemmsp_lrfr( pastix_coefside_t       sideA,
+                   pastix_trans_t          trans,
+                   const SolverCblk       *cblk,
+                   const SolverBlok       *blok,
+                   SolverCblk             *fcblk,
+                   const pastix_lrblock_t *lrA,
+                   const pastix_lrblock_t *lrB,
+                   pastix_complex64_t     *C,
+                   pastix_complex64_t     *work,
+                   pastix_int_t            lwork,
+                   const pastix_lr_t      *lowrank )
 {
     const SolverBlok *iterblok;
     const SolverBlok *fblok;
@@ -1499,6 +1508,9 @@ core_zgemmsp_lrfr( pastix_coefside_t         sideA,
  * @param[in] work
  *          Temporary memory buffer.
  *
+ * @param[in] lwork
+ *          TODO
+ *
  * @param[in] lowrank
  *          The structure with low-rank parameters.
  *
@@ -1509,17 +1521,17 @@ core_zgemmsp_lrfr( pastix_coefside_t         sideA,
  *
  *******************************************************************************/
 pastix_fixdbl_t
-cpucblk_zgemmsp(       pastix_coefside_t   sideA,
-                       pastix_trans_t      trans,
-                 const SolverCblk         *cblk,
-                 const SolverBlok         *blok,
-                       SolverCblk         *fcblk,
-                       const void         *A,
-                       const void         *B,
-                             void         *C,
-                       pastix_complex64_t *work,
-                       pastix_int_t        lwork,
-                 const pastix_lr_t        *lowrank )
+cpucblk_zgemmsp( pastix_coefside_t   sideA,
+                 pastix_trans_t      trans,
+                 const SolverCblk   *cblk,
+                 const SolverBlok   *blok,
+                 SolverCblk         *fcblk,
+                 const void         *A,
+                 const void         *B,
+                 void               *C,
+                 pastix_complex64_t *work,
+                 pastix_int_t        lwork,
+                 const pastix_lr_t  *lowrank )
 {
     pastix_ktype_t ktype;
     pastix_fixdbl_t time, flops = 0.0;
@@ -1650,18 +1662,22 @@ cpucblk_zgemmsp(       pastix_coefside_t   sideA,
  * @param[in] lowrank
  *          The structure with the low-rank parameters.
  *
+ *******************************************************************************
+ *
+ * @return  TODO
+ *
  *******************************************************************************/
 pastix_fixdbl_t
-cpublok_zgemmsp(       pastix_trans_t      transB,
-                 const SolverCblk         *cblk,
-                       SolverCblk         *fcblk,
-                       pastix_int_t        blok_mk,
-                       pastix_int_t        blok_nk,
-                       pastix_int_t        blok_mn,
-                 const void               *A,
-                 const void               *B,
-                       void               *C,
-                 const pastix_lr_t        *lowrank )
+cpublok_zgemmsp( pastix_trans_t     transB,
+                 const SolverCblk  *cblk,
+                 SolverCblk        *fcblk,
+                 pastix_int_t       blok_mk,
+                 pastix_int_t       blok_nk,
+                 pastix_int_t       blok_mn,
+                 const void        *A,
+                 const void        *B,
+                 void              *C,
+                 const pastix_lr_t *lowrank )
 {
     if ( fcblk->cblktype & CBLK_COMPRESSED ) {
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
