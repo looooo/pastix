@@ -370,7 +370,7 @@ pastix_task_solve_and_refine( pastix_data_t *pastix_data,
                               void          *x,
                               pastix_int_t   ldx )
 {
-    pastix_int_t *iparm = pastix_data->iparm;
+    pastix_int_t *iparm;
     pastix_rhs_t  Bp, Xp;
     int           rc;
 
@@ -381,6 +381,7 @@ pastix_task_solve_and_refine( pastix_data_t *pastix_data,
         pastix_print_error( "pastix_task_solve_and_refine: wrong pastix_data parameter" );
         return PASTIX_ERR_BADPARAMETER;
     }
+    iparm = pastix_data->iparm;
 
     if ( !(pastix_data->steps & STEP_NUMFACT) ) {
         pastix_print_error( "pastix_task_solve_and_refine: Numerical factorization hasn't been done." );

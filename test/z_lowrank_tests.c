@@ -119,8 +119,9 @@ z_lowrank_genmat( int            mode,
     }
 
     if ( rank == 0 ) {
-        LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', m, n,
-                             0., 0., A, lda );
+        rc = LAPACKE_zlaset_work( LAPACK_COL_MAJOR, 'A', m, n,
+                                  0., 0., A, lda );
+        assert( rc == 0 );
         tA->norm = 0.;
         return 0;
     }
@@ -162,19 +163,23 @@ z_lowrank_genmat( int            mode,
             double *            superb = malloc( minMN * sizeof( double ) );
             double              alpha;
 
-            LAPACKE_zlarnv_work( 3, SEED, m * rank, O1 );
-            LAPACKE_zlarnv_work( 3, SEED, n * rank, O2 );
+            rc = LAPACKE_zlarnv_work( 3, SEED, m * rank, O1 );
+            assert( rc == 0 );
+            rc = LAPACKE_zlarnv_work( 3, SEED, n * rank, O2 );
+            assert( rc == 0 );
             cblas_zgemm( CblasColMajor, CblasNoTrans, CblasNoTrans,
                          m, n, rank,
                          CBLAS_SADDR( zone ),  O1, m,
                                                O2, pastix_imax(rank, 1),
                          CBLAS_SADDR( zzero ), A,  lda );
 
-            LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n, A, lda, A2, lda );
-            LAPACKE_zgesvd(
+            rc = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n, A, lda, A2, lda );
+            assert( rc == 0 );
+            rc = LAPACKE_zgesvd(
                 LAPACK_COL_MAJOR, 'n', 'n', m, n, A2, lda, S, NULL, 1, NULL, 1, superb );
-
-            LAPACKE_zlascl_work( LAPACK_COL_MAJOR, 'g', -1, -1, 1., S[0], m, n, A, lda );
+            assert( rc == 0 );
+            rc = LAPACKE_zlascl_work( LAPACK_COL_MAJOR, 'g', -1, -1, 1., S[0], m, n, A, lda );
+            assert( rc == 0 );
             alpha = 1. / S[0];
             cblas_dscal( minMN, alpha, S, 1 );
 
@@ -289,8 +294,9 @@ z_lowrank_genmat( int            mode,
     }
 
     /* Initialize A */
-    LAPACKE_zlatms_work( LAPACK_COL_MAJOR, m, n, 'U', ISEED, 'N', S, 0,
-                         rcond, dmax, m, n, 'N', A, lda, work );
+    rc = LAPACKE_zlatms_work( LAPACK_COL_MAJOR, m, n, 'U', ISEED, 'N', S, 0,
+                              rcond, dmax, m, n, 'N', A, lda, work );
+    assert( rc == 0 );
 
     tA->norm = LAPACKE_zlange_work( LAPACK_COL_MAJOR, 'f', m, n, A, lda, NULL );
 

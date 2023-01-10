@@ -341,7 +341,7 @@ bcsc_zhandle_recv_At( const spmatrix_t     *spm,
     pastix_int_t        clustnum = bcsc_comm->clustnum;
     pastix_int_t       *indexes  = bcsc_comm->data_comm[clustnum].indexes_At;
     pastix_complex64_t *Values;
-    pastix_complex64_t (*_bcsc_conj)(pastix_complex64_t) = NULL;
+    pastix_complex64_t (*_bcsc_conj)(pastix_complex64_t) = __fct_id;
     pastix_int_t        nbelt     = 0;
 
     /* Gets the right values in which the data will be added. */

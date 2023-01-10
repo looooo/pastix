@@ -1368,7 +1368,7 @@ bvec_zgather_remote( const pastix_data_t      *pastix_data,
     if ( ln != 0 ) {
         yglobal = malloc( gn * sizeof(pastix_complex64_t) );
 #if !defined(NDEBUG)
-        memset( yglobal, 0xdead, gn * sizeof(pastix_complex64_t) );
+        memset( yglobal, 0xff, gn * sizeof(pastix_complex64_t) );
 #endif
     }
     all_n       = malloc( pastix_data->procnbr * sizeof(pastix_int_t) );

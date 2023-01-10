@@ -187,6 +187,7 @@ pastixRhsSchurGet( const pastix_data_t *pastix_data,
     const SolverCblk   *cblk;
     pastix_int_t        mschur;
     char               *bptr;
+    int                 rc;
 
     if ( pastix_data == NULL ) {
         pastix_print_error( "pastixRhsSchurGet: wrong pastix_data parameter" );
@@ -225,23 +226,23 @@ pastixRhsSchurGet( const pastix_data_t *pastix_data,
 
     switch( rhsB->flttype ) {
     case SpmComplex64:
-        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, (pastix_complex64_t *)bptr, rhsB->ld, B, ldb );
+        rc = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, (pastix_complex64_t *)bptr, rhsB->ld, B, ldb );
         break;
     case SpmComplex32:
-        LAPACKE_clacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, (pastix_complex32_t *)bptr, rhsB->ld, B, ldb );
+        rc = LAPACKE_clacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, (pastix_complex32_t *)bptr, rhsB->ld, B, ldb );
         break;
     case SpmDouble:
-        LAPACKE_dlacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, (double *)bptr, rhsB->ld, B, ldb );
+        rc = LAPACKE_dlacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, (double *)bptr, rhsB->ld, B, ldb );
         break;
     case SpmFloat:
-        LAPACKE_slacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, (float *)bptr, rhsB->ld, B, ldb );
+        rc = LAPACKE_slacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, (float *)bptr, rhsB->ld, B, ldb );
         break;
     default:
         pastix_print_error( "pastixRhsSchurGet: unknown flttype\n" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    return PASTIX_SUCCESS;
+    return rc;
 }
 
 /**
@@ -286,6 +287,7 @@ pastixRhsSchurSet( const pastix_data_t *pastix_data,
     const SolverCblk   *cblk;
     pastix_int_t        mschur;
     char               *bptr;
+    int                 rc;
 
     if ( pastix_data == NULL ) {
         pastix_print_error( "pastixRhsSchurSet: wrong pastix_data parameter" );
@@ -324,23 +326,23 @@ pastixRhsSchurSet( const pastix_data_t *pastix_data,
 
     switch( rhsB->flttype ) {
     case SpmComplex64:
-        LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, B, ldb, (pastix_complex64_t *)bptr, rhsB->ld );
+        rc = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, B, ldb, (pastix_complex64_t *)bptr, rhsB->ld );
         break;
     case SpmComplex32:
-        LAPACKE_clacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, B, ldb, (pastix_complex32_t *)bptr, rhsB->ld );
+        rc = LAPACKE_clacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, B, ldb, (pastix_complex32_t *)bptr, rhsB->ld );
         break;
     case SpmDouble:
-        LAPACKE_dlacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, B, ldb, (double *)bptr, rhsB->ld );
+        rc = LAPACKE_dlacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, B, ldb, (double *)bptr, rhsB->ld );
         break;
     case SpmFloat:
-        LAPACKE_slacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, B, ldb, (float *)bptr, rhsB->ld );
+        rc = LAPACKE_slacpy_work( LAPACK_COL_MAJOR, 'A', mschur, n, B, ldb, (float *)bptr, rhsB->ld );
         break;
     default:
         pastix_print_error( "pastixRhsSchurSet: unknown flttype\n" );
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    return PASTIX_SUCCESS;
+    return rc;
 }
 
 /**
