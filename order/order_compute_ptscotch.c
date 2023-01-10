@@ -316,8 +316,9 @@ orderComputePTScotch( pastix_data_t  *pastix_data,
     }
 
     /* Enable this define to fix the SCOTCH random generator */
-#if defined(PASTIX_ORDERING_FIX_SEED) && defined(PASTIX_ORDERING_SCOTCH_MT)
+#if defined(PASTIX_ORDERING_FIX_SEED)
     SCOTCH_randomSeed( (SCOTCH_Num)(pastix_data->id) );
+    SCOTCH_randomReset();
 #endif
 
     /* Build The Scotch Dgraph */
