@@ -21,8 +21,19 @@
 #include "graph/graph.h"
 
 /**
+ *******************************************************************************
+ *
  * @brief Assign the new pointer to the temporary one
- */
+ *
+ *******************************************************************************
+ *
+ * @param[in] newptr
+ *          TODO
+ *
+ * @param[in] tmpptr
+ *          TODO
+ *
+ *******************************************************************************/
 static inline void
 graph_isolate_assign_ptr( pastix_int_t **newptr,
                           pastix_int_t  *tmpptr )
@@ -35,9 +46,22 @@ graph_isolate_assign_ptr( pastix_int_t **newptr,
 }
 
 /**
+ *******************************************************************************
  * @brief If isolate_n == n, everything needs to be isolated.
  *        That means that we just need an id permuation.
- */
+ *
+ *******************************************************************************
+ *
+ * @param[in] n
+ *          TODO
+ *
+ * @param[in] newperm
+ *          TODO
+ *
+ * @param[in] newinvp
+ *          TODO
+ *
+ *******************************************************************************/
 static inline void
 graph_isolate_everything( pastix_int_t   n,
                           pastix_int_t **newperm,
@@ -68,15 +92,38 @@ graph_isolate_everything( pastix_int_t   n,
 }
 
 /**
+ *******************************************************************************
+ *
  * @brief Init and fill the inverse permutation array.
- */
+ *
+ *******************************************************************************
+ *
+ * @param[in] n
+ *          TODO
+ *
+ * @param[in] isolate_n
+ *          TODO
+ *
+ * @param[in] isolate_list
+ *          TODO
+ *
+ * @param[in] permtab
+ *          TODO
+ *
+ * @param[in] invptab
+ *          TODO
+ *
+ * @param[in] baseval
+ *          TODO
+ *
+ *******************************************************************************/
 static inline void
-graph_isolate_permutations(       pastix_int_t  n,
-                                  pastix_int_t  isolate_n,
+graph_isolate_permutations( pastix_int_t        n,
+                            pastix_int_t        isolate_n,
                             const pastix_int_t *isolate_list,
-                                  pastix_int_t *permtab,
-                                  pastix_int_t *invptab,
-                                  pastix_int_t  baseval )
+                            pastix_int_t       *permtab,
+                            pastix_int_t       *invptab,
+                            pastix_int_t        baseval )
 {
     pastix_int_t *invp_isolate, *invp_nonisol;
     pastix_int_t  i;
@@ -118,8 +165,25 @@ graph_isolate_permutations(       pastix_int_t  n,
 }
 
 /**
+ *******************************************************************************
+ *
  * @brief Compress the local copy of the graph with only the kept unknowns.
- */
+ *
+ *******************************************************************************
+ *
+ * @param[in] oldgraph
+ *          TODO
+ *
+ * @param[in] newgraph
+ *          TODO
+ *
+ * @param[in] new_gn
+ *          TODO
+ *
+ * @param[in] permtab
+ *          TODO
+ *
+ *******************************************************************************/
 static inline void
 graph_isolate_compress( const pastix_graph_t *oldgraph,
                         pastix_graph_t       *newgraph,
@@ -232,16 +296,11 @@ graph_isolate_compress( const pastix_graph_t *oldgraph,
  *
  *******************************************************************************
  *
- * @param[in] n
- *          The number of columns of the original GRAPH matrix.
+ * @param[in] ingraph
+ *          TODO
  *
- * @param[in] colptr
- *          Array of size n+1.
- *          Index of first element of each column in rowptr array.
- *
- * @param[in] rowptr
- *          Array of size nnz = colptr[n] - colptr[0].
- *          Rows of each non zero entries.
+ * @param[in] outgraph
+ *          TODO
  *
  * @param[in] isolate_n
  *          The number of columns to isolate from the original graph.
@@ -250,18 +309,6 @@ graph_isolate_compress( const pastix_graph_t *oldgraph,
  *          Array of size isolate_n.
  *          List of columns to isolate. On exit, the list is sorted by ascending
  *          indexes. Must be based as the graph.
- *
- * @param[out] new_colptr
- *          Array of size n-isolate_n+1.
- *          Index of first element of each column in rows array for the new graph.
- *          If new_colptr == NULL, nothing is returned, otherwise the pointer to
- *          the allocated structure based as the input colptr.
- *
- * @param[out] new_rowptr
- *          Array of size new_nnz = (*new_colptr)[n] - (*new_colptr)[0].
- *          Rows of each non zero entries for the new graph.
- *          If new_rows == NULL, nothing is returned, otherwise the pointer to
- *          the allocated structure based as the input rows.
  *
  * @param[out] new_perm
  *          Array of size n-isolate_n.
@@ -341,17 +388,48 @@ int graphIsolate( const pastix_graph_t *ingraph,
 }
 
 /**
+ *******************************************************************************
+ *
  * @brief Fill the isolated colptr and rowptr.
- */
+ *
+ *******************************************************************************
+ *
+ * @param[in] graph
+ *          The original graph associated from which vertices and edges must be
+ *          extracted.
+ *
+ * @param[in] order
+ *          The ordering structure associated to the graph.
+ *
+ * @param[in] vec
+ *          TODO
+ *
+ * @param[inout] out_colptr
+ *          TODO
+ *
+ * @param[inout] out_rowptr
+ *          TODO
+ *
+ * @param[in] fnode
+ *          The index of the first node to extract in the inverse permutation.
+ *
+ * @param[in] lnode
+ *          The index (+1) of the last node to extract in the inverse permutation.
+ *
+ * @param[in] distance
+ *          Distance considered in number of edges to create an edge in isolated
+ *          graph.
+ *
+ *******************************************************************************/
 static inline void
-graph_iRange_fill_outptr( const pastix_graph_t  *graph,
-                          const pastix_order_t  *order,
-                                ExtendVectorINT *vec,
-                                pastix_int_t    *out_colptr,
-                                pastix_int_t    *out_rowptr,
-                                pastix_int_t     fnode,
-                                pastix_int_t     lnode,
-                                pastix_int_t     distance )
+graph_iRange_fill_outptr( const pastix_graph_t *graph,
+                          const pastix_order_t *order,
+                          ExtendVectorINT      *vec,
+                          pastix_int_t         *out_colptr,
+                          pastix_int_t         *out_rowptr,
+                          pastix_int_t          fnode,
+                          pastix_int_t          lnode,
+                          pastix_int_t          distance )
 {
     pastix_int_t *out_connected;
     pastix_int_t *colptr ,*rowptr, *rowtmp;
@@ -461,10 +539,10 @@ graph_iRange_fill_outptr( const pastix_graph_t  *graph,
 int
 graphIsolateRange( const pastix_graph_t *graph,
                    const pastix_order_t *order,
-                         pastix_graph_t *out_graph,
-                         pastix_int_t    fnode,
-                         pastix_int_t    lnode,
-                         pastix_int_t    distance )
+                   pastix_graph_t       *out_graph,
+                   pastix_int_t          fnode,
+                   pastix_int_t          lnode,
+                   pastix_int_t          distance )
 {
     ExtendVectorINT vec;
     pastix_int_t   *out_rowptr;

@@ -21,12 +21,14 @@
 #include "common.h"
 #include "graph/graph.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define assert_graph( _graph_ )                         \
     do {                                                \
         assert( (_graph_)->fmttype == SpmCSC     );     \
         assert( (_graph_)->flttype == SpmPattern );     \
         assert( (_graph_)->values  == NULL       );     \
     } while (0)
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
@@ -133,7 +135,7 @@ graphBase( pastix_graph_t *graph,
  *
  *******************************************************************************
  *
- * @param[output] graphdst
+ * @param[out] graphdst
  *          The destination graph. Must be allocated on entry.
  *
  * @param[in] graphsrc
@@ -226,10 +228,7 @@ graphScatterInPlace( pastix_graph_t *graph,
  *
  * @param[in] graph
  *          On entry, the distributed graph.
- *          On exit, the gathered graph
- *
- * @param[in] root
- *          The root where we want to gather the graph
+ *          On exit, the gathered graph.
  *
  *******************************************************************************
  *
@@ -367,7 +366,7 @@ graphUpdateComputedFields( pastix_graph_t *graph )
  * @param[inout] graph
  *          The destination graph.
  *
- * @param[in] graphsrc
+ * @param[in] spm
  *          The source Sparse Matrix.
  *
  *******************************************************************************

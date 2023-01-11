@@ -4,7 +4,7 @@
  *
  * PaStiX routines to compute kway on a given supernode
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.0
@@ -55,7 +55,7 @@
  *          On entry the number of components in the graph.
  *          On exit, the new number of components after K-way partitioning.
  *
- * @param[inout] comp_size
+ * @param[inout] comp_sze
  *          The size of each components in the graph.
  *          On entry, only the first comp_nbr sizes are initialized, others are 0.
  *          On exit, the array is extended to store the size of the new
