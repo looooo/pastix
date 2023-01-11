@@ -31,10 +31,12 @@ void bcsc_zinit( const spmatrix_t     *spm,
                  pastix_bcsc_t        *bcsc,
                  pastix_int_t          valuesize );
 
+#if defined(PASTIX_WITH_MPI)
 void bcsc_zstore_data( const spmatrix_t     *spm,
                        const pastix_order_t *ord,
                        const pastix_int_t   *col2cblk,
                        bcsc_handle_comm_t   *bcsc_comm );
+#endif
 
 /**
  *   @}

@@ -22,6 +22,9 @@
 
 #include <stdlib.h>
 
+/**
+ * @brief Tags used in MPI communications.
+ */
 typedef enum bvec_tag_ {
     PastixTagAmount,
     PastixTagIndexes,

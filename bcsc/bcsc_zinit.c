@@ -25,6 +25,7 @@
 #include "bcsc/bcsc.h"
 #include "bcsc_z.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static inline pastix_complex64_t
 __fct_id( pastix_complex64_t val ) {
     return val;
@@ -40,12 +41,11 @@ __fct_conj( pastix_complex64_t val ) {
     return val;
 #endif
 }
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 #if defined(PASTIX_WITH_MPI)
 /**
  *******************************************************************************
- *
- * @ingroup bcsc_internal
  *
  * @brief Stores the data the current processor has to send to the other processors
  *        in the bcsc_comm structure.
@@ -651,6 +651,10 @@ bcsc_zexchange_values_At( const spmatrix_t     *spm,
  *          On entry, the pointer to an allocated bcsc.
  *          On exit, the bcsc fields are updated.
  *
+ *******************************************************************************
+ *
+ * @retval TODO
+ *
  *******************************************************************************/
 static inline pastix_int_t
 bcsc_zinit_A( const spmatrix_t     *spm,
@@ -772,6 +776,10 @@ bcsc_zinit_A( const spmatrix_t     *spm,
  * @param[inout] bcsc
  *          On entry, the pointer to an allocated bcsc.
  *          On exit, the bcsc fields are updated.
+ *
+ *******************************************************************************
+ *
+ * @retval TODO
  *
  *******************************************************************************/
 static inline pastix_int_t

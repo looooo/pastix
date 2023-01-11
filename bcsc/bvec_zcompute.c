@@ -830,9 +830,6 @@ pthread_bvec_zdotu( isched_thread_t *ctx,
  * @param[in] y
  *          The second vector of the scalar product
  *
- * @param[out] r
- *          The result of the scalar product
- *
  *******************************************************************************
  *
  * @return The allocated vector
@@ -1343,6 +1340,10 @@ bvec_znullify_remote( const pastix_data_t *pastix_data,
  * @param[inout] y
  *          On entry, the local portion of the vector y.
  *          On exit, the complete vector y.
+ *
+ *******************************************************************************
+ *
+ * @retval TODO
  *
  *******************************************************************************/
 const pastix_complex64_t *
