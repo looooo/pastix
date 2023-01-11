@@ -71,6 +71,12 @@
  *          computed during the analyze steps and the parameters of the analyze
  *          step.
  *
+ * @param[in] comm
+ *          TODO
+ *
+ * @param[in] isched
+ *          TODO
+ *
  *******************************************************************************
  *
  * @retval PASTIX_SUCCESS if success.
@@ -427,6 +433,15 @@ solverMatrixGen( SolverMatrix          *solvmtx,
  *          The blend control structure that contains extra information
  *          computed during the analyze steps and the parameters of the analyze
  *          step.
+ *
+ * @param[in] comm
+ *          TODO
+ *
+ * @param[in] isched
+ *          TODO
+ *
+ * @param[in] is_dbg
+ *          TODO
  *
  *******************************************************************************
  *

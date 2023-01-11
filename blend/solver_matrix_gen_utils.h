@@ -183,6 +183,9 @@ solvMatGen_init_cblk( SolverCblk          *solvcblk,
  *
  *******************************************************************************
  *
+ * @param[inout] symbcblk
+ *          TODO
+ *
  * @param[inout] solvcblk
  *          The pointer to the cblk.
  *
@@ -192,6 +195,8 @@ solvMatGen_init_cblk( SolverCblk          *solvcblk,
  *
  * @param[in] ordeptr
  *          The ordering structure.
+ *
+ *******************************************************************************
  *
  * @return The supernode index of the given cblk. The value can be used in the
  *         future calls of the function to reduce its complexity cost.

@@ -4,7 +4,7 @@
  *
  * PaStiX simulation task basic functions.
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.0
@@ -38,6 +38,7 @@
 
 #include "extracblk.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static inline
 int pastix_blend_with_constant_split() {
     return pastix_env_is_set_to("PASTIX_BLEND_SPLIT", "CONSTANT");
@@ -54,6 +55,7 @@ int pastix_blend_split_percent() {
       pastix_getenv_get_value_int( "PASTIX_BLEND_SPLIT_AUTORIZED_PERCENTAGE",
                                     10);
 }
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
@@ -64,9 +66,6 @@ int pastix_blend_split_percent() {
  *
  * @param[in] ctrl
  *          The blend control structure with the parameters.
- *
- * @param[in] candnbr
- *          The number of candidates to compute the cblk.
  *
  * @param[in] width
  *          The width of a cblk to cut.
@@ -161,8 +160,10 @@ computeNbBlocksPerLine( const symbol_matrix_t *symbmtx,
     return nblocksperline;
 }
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 typedef pastix_int_t (*split_fct_t)( const pastix_int_t *,
                                      pastix_int_t, pastix_int_t, pastix_int_t, pastix_int_t );
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
@@ -181,6 +182,9 @@ typedef pastix_int_t (*split_fct_t)( const pastix_int_t *,
  * @param[in] step
  *          The starting cut to refine. 0 < step
  *
+ * @param[in] min
+ *          TODO
+ *
  * @param[in] max
  *          The size of the nblocksperline array. nmax > 0.
  *
@@ -194,10 +198,10 @@ typedef pastix_int_t (*split_fct_t)( const pastix_int_t *,
  *******************************************************************************/
 static inline pastix_int_t
 computeSmallestSplit( const pastix_int_t *nblocksperline,
-                      pastix_int_t step,
-                      pastix_int_t min,
-                      pastix_int_t max,
-                      pastix_int_t authorized_percent )
+                      pastix_int_t        step,
+                      pastix_int_t        min,
+                      pastix_int_t        max,
+                      pastix_int_t        authorized_percent )
 {
     pastix_int_t limit = pastix_iceil( step*authorized_percent, 100 );
     pastix_int_t i, lcolnum, nbsplit;
@@ -253,6 +257,9 @@ computeSmallestSplit( const pastix_int_t *nblocksperline,
  * @param[in] step
  *          The starting cut to refine. 0 < step
  *
+ * @param[in] min
+ *          TODO
+ *
  * @param[in] max
  *          The size of the nblocksperline array. nmax > 0.
  *
@@ -266,10 +273,10 @@ computeSmallestSplit( const pastix_int_t *nblocksperline,
  *******************************************************************************/
 static inline pastix_int_t
 computeSmallestSplit_max( const pastix_int_t *nblocksperline,
-                          pastix_int_t step,
-                          pastix_int_t min,
-                          pastix_int_t max,
-                          pastix_int_t authorized_percent )
+                          pastix_int_t        step,
+                          pastix_int_t        min,
+                          pastix_int_t        max,
+                          pastix_int_t        authorized_percent )
 {
     pastix_int_t limit = pastix_iceil( step*authorized_percent, 100 );
     pastix_int_t i, lcolnum, nbsplit;
@@ -313,6 +320,9 @@ computeSmallestSplit_max( const pastix_int_t *nblocksperline,
  * @param[in] step
  *          The starting cut to refine. 0 < step
  *
+ * @param[in] min
+ *          TODO
+ *
  * @param[in] max
  *          The size of the nblocksperline array. nmax > 0.
  *
@@ -326,10 +336,10 @@ computeSmallestSplit_max( const pastix_int_t *nblocksperline,
  *******************************************************************************/
 static inline pastix_int_t
 computeConstantSplit( const pastix_int_t *nblocksperline __attribute__((unused)),
-                      pastix_int_t step,
-                      pastix_int_t min __attribute__((unused)),
-                      pastix_int_t max,
-                      pastix_int_t authorized_percent __attribute__((unused)) )
+                      pastix_int_t        step,
+                      pastix_int_t        min __attribute__((unused)),
+                      pastix_int_t        max,
+                      pastix_int_t        authorized_percent __attribute__((unused)) )
 {
     if ( step >= max ) {
         return max-1;
@@ -361,9 +371,6 @@ computeConstantSplit( const pastix_int_t *nblocksperline __attribute__((unused))
  *          The initialized structure to store the newly created column
  *          blocks. (Blocks are generated later during merge operation, see
  *          extraCblkMerge()).
- *
- * @param[in] candtab
- *          The candidate array for the initial symbo matrix structure.
  *
  *******************************************************************************/
 void

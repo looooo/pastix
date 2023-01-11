@@ -22,11 +22,13 @@
 #ifndef _solver_h_
 #define _solver_h_
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 struct blendctrl_s;
 typedef struct blendctrl_s BlendCtrl;
 
 struct simuctrl_s;
 typedef struct simuctrl_s SimuCtrl;
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 #include "pastix_lowrank.h"
 
@@ -42,6 +44,7 @@ typedef struct simuctrl_s SimuCtrl;
  *   - 5th bit: The cblk is part of the Schur complement if set
  *   - 6th bit: The cblk is a local copy of a remote fanin to be received.
  */
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CBLK_FANIN      (1 << 0)
 #define CBLK_LAYOUT_2D  (1 << 1)
 #define CBLK_TASKS_2D   (1 << 2)
@@ -49,6 +52,7 @@ typedef struct simuctrl_s SimuCtrl;
 #define CBLK_IN_SCHUR   (1 << 4)
 #define CBLK_IN_LAST    (1 << 5)
 #define CBLK_RECV       (1 << 6)
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *@}
@@ -57,11 +61,13 @@ typedef struct simuctrl_s SimuCtrl;
 /*
  * The type and structure definitions.
  */
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define COMP_1D                     0
 #define DIAG                        1
 #define E1                          2
 #define E2                          3
 #define DRUNK                       4
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  * @brief Solver recv block structure.
@@ -98,8 +104,10 @@ typedef struct task_s {
 #endif
 } Task;
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define GPUID_UNDEFINED -2 /**< GPU still undefined       */
 #define GPUID_NONE      -1 /**< Block not computed on GPU */
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  * @brief Solver block structure.
@@ -147,6 +155,8 @@ typedef struct solver_cblk_s  {
     int                  threadid;   /**< Rank of the accessing thread            */
 } SolverCblk;
 
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 struct parsec_sparse_matrix_desc_s;
 typedef struct parsec_sparse_matrix_desc_s parsec_sparse_matrix_desc_t;
 
@@ -155,6 +165,7 @@ typedef struct starpu_sparse_matrix_desc_s starpu_sparse_matrix_desc_t;
 
 struct starpu_dense_matrix_desc_s;
 typedef struct starpu_dense_matrix_desc_s starpu_dense_matrix_desc_t;
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  * @brief Solver column block structure.
@@ -490,8 +501,10 @@ void solverRecvExit( SolverMatrix      *solvmtx );
 /*
  * Solver backup
  */
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 struct SolverBackup_s;
 typedef struct SolverBackup_s SolverBackup_t;
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 SolverBackup_t *solverBackupInit   ( const SolverMatrix *solvmtx                          );
 int             solverBackupRestore(       SolverMatrix *solvmtx, const SolverBackup_t *b );

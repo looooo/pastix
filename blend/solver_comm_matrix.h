@@ -47,6 +47,7 @@ solverCommMatrixAdd( SolverMatrix *solvmtx, int dest, size_t size )
 }
 
 #else
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static inline void
 solverComMatrixInit( __attribute__((unused)) SolverMatrix *solvmtx ) {}
 
@@ -61,6 +62,7 @@ solverCommMatrixAdd( __attribute__((unused)) SolverMatrix *solvmtx,
                      __attribute__((unused)) int           dest,
                      __attribute__((unused)) size_t        size )
 {}
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #endif
 
 #endif /* _solver_comm_matrix_h_ */

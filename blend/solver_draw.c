@@ -18,9 +18,11 @@
 #include "symbol/symbol.h"
 #include "blend/solver.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 /*+ Generic PostScript (tm) output definitions. +*/
 #define SOLVER_PSDPI      72    /*+ PostScript dots-per-inch            +*/
 #define SOLVER_PSPICTSIZE 6.6   /*+ PostScript picture size (in inches) +*/
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************

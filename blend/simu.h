@@ -4,7 +4,7 @@
  *
  * PaStiX simulation structure and basic functions.
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.1
@@ -134,9 +134,11 @@ pastix_int_t simuRealloc     ( SimuCtrl *, pastix_int_t, pastix_int_t );
 void         simuExit        ( SimuCtrl *, pastix_int_t, pastix_int_t, pastix_int_t );
 void         simuTaskBuild   ( SimuCtrl *, const symbol_matrix_t * );
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLUST2INDEX(n,c) ((c) + simuctrl->bloktab[n].ftgtnum - simuctrl->bloktab[n].fccandnum)
 #define INDEX2CLUST(r,s) ((r) - simuctrl->bloktab[s].ftgtnum + simuctrl->bloktab[s].fccandnum)
 #define TIMER(pr)        (&(simuctrl->proctab[pr].timer))
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif /* _simu_h_ */
 
