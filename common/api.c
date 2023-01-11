@@ -18,7 +18,9 @@
  * @date 2022-10-21
  *
  **/
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define _GNU_SOURCE 1
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include "common.h"
 #if defined(PASTIX_ORDERING_METIS)
 #include <metis.h>
@@ -38,11 +40,13 @@
 #include "sopalin/starpu/pastix_starpu.h"
 #endif
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #if defined(PASTIX_OS_WINDOWS)
 #define pastix_mkdir( __str ) mkdir( (__str) )
 #else
 #define pastix_mkdir( __str ) mkdir( (__str), 0700 )
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 #if defined(PASTIX_WITH_MPI)
 static int pastix_mpi_in_use = 0;  /**< Counter of the number of Pastix instances using MPI          */
