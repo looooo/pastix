@@ -17,7 +17,9 @@
  * @precisions normal z -> s d c
  *
  **/
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define _GNU_SOURCE 1
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include "common.h"
 #include "blend/solver.h"
 #include "bcsc/bcsc.h"
@@ -158,6 +160,20 @@ cpucblk_zdump( pastix_coefside_t side,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          TODO
+ *
+ * @param[in] cblk
+ *          TODO
+ *
+ *******************************************************************************/
 void coeftab_zcblkComputePreselect( const SolverMatrix *solvmtx, SolverCblk *cblk )
 {
     /* If there are off diagonal supernodes in the column */

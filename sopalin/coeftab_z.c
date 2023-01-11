@@ -19,7 +19,9 @@
  * @precisions normal z -> s d c
  *
  **/
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define _GNU_SOURCE 1
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include "common.h"
 #include "blend/solver.h"
 #include "lapacke.h"
@@ -45,7 +47,7 @@
  * @param[in] solvmtx
  *          The solver matrix to print.
  *
- * @param[in] filename
+ * @param[in] prefix
  *          The filename where to store the output matrix.
  *
  *******************************************************************************/

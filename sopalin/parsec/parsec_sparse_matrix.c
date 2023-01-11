@@ -444,6 +444,19 @@ parsec_sparse_matrix_key_to_string( parsec_data_collection_t *mat,
 #endif
 
 #if defined(PASTIX_CUDA_FERMI)
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *******************************************************************************
+ *
+ * @param[in] spmtx
+ *          TODO
+ *
+ * @param[in] solvmtx
+ *          TODO
+ *
+ ******************************************************************************/
 void
 parsec_sparse_matrix_init_fermi( parsec_sparse_matrix_desc_t *spmtx,
                                  const SolverMatrix   *solvmtx )
@@ -494,6 +507,16 @@ parsec_sparse_matrix_init_fermi( parsec_sparse_matrix_desc_t *spmtx,
     free(bloktab);
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *******************************************************************************
+ *
+ * @param[in] spmtx
+ *          TODO
+ *
+ ******************************************************************************/
 void
 parsec_sparse_matrix_destroy_fermi( parsec_sparse_matrix_desc_t *spmtx )
 {
@@ -516,6 +539,28 @@ parsec_sparse_matrix_destroy_fermi( parsec_sparse_matrix_desc_t *spmtx )
 }
 #endif /*defined(PASTIX_CUDA_FERMI)*/
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *******************************************************************************
+ *
+ * @param[in] o
+ *          TODO
+ *
+ * @param[in] handler
+ *          TODO
+ *
+ * @param[in] id
+ *          TODO
+ *
+ * @param[in] cblk
+ *          TODO
+ *
+ * @param[in] side
+ *          TODO
+ *
+ ******************************************************************************/
 static inline void
 pastix_parsec_register_cblk_lr( parsec_data_collection_t          *o,
                                 parsec_data_t                    **handler,
@@ -529,6 +574,31 @@ pastix_parsec_register_cblk_lr( parsec_data_collection_t          *o,
     parsec_data_create( handler, o, id, dataptr, size );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *******************************************************************************
+ *
+ * @param[in] o
+ *          TODO
+ *
+ * @param[in] handler
+ *          TODO
+ *
+ * @param[in] id
+ *          TODO
+ *
+ * @param[in] spmtx
+ *          TODO
+ *
+ * @param[in] cblk
+ *          TODO
+ *
+ * @param[in] side
+ *          TODO
+ *
+ ******************************************************************************/
 static inline void
 pastix_parsec_register_cblk_fr( parsec_data_collection_t          *o,
                                 parsec_data_t                    **handler,
@@ -543,6 +613,25 @@ pastix_parsec_register_cblk_fr( parsec_data_collection_t          *o,
     parsec_data_create( handler, o, id, dataptr, size );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *******************************************************************************
+ *
+ * @param[in] o
+ *          TODO
+ *
+ * @param[in] cblknum
+ *          TODO
+ *
+ * @param[in] spmtx
+ *          TODO
+ *
+ * @param[in] cblk
+ *          TODO
+ *
+ ******************************************************************************/
 static inline void
 pastix_parsec_register_cblk( parsec_data_collection_t          *o,
                              pastix_int_t                       cblknum,

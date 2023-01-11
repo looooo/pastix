@@ -32,6 +32,20 @@
 #include "starpu/pastix_zstarpu.h"
 #endif
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          TODO
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ *******************************************************************************/
 void
 sequential_zpotrf( pastix_data_t  *pastix_data,
                    sopalin_data_t *sopalin_data )
@@ -71,6 +85,20 @@ sequential_zpotrf( pastix_data_t  *pastix_data,
     memFree_null( work );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctx
+ *          TODO
+ *
+ * @param[in] args
+ *          TODO
+ *
+ *******************************************************************************/
 void
 thread_zpotrf_static( isched_thread_t *ctx, void *args )
 {
@@ -118,6 +146,20 @@ thread_zpotrf_static( isched_thread_t *ctx, void *args )
     memFree_null( work );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          TODO
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ *******************************************************************************/
 void
 static_zpotrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )
@@ -125,12 +167,29 @@ static_zpotrf( pastix_data_t  *pastix_data,
     isched_parallel_call( pastix_data->isched, thread_zpotrf_static, sopalin_data );
 }
 
+/**
+ * @brief TODO
+ */
 struct args_zpotrf_t
 {
     sopalin_data_t     *sopalin_data;
     volatile int32_t    taskcnt;
 };
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctx
+ *          TODO
+ *
+ * @param[in] args
+ *          TODO
+ *
+ *******************************************************************************/
 void
 thread_zpotrf_dynamic( isched_thread_t *ctx, void *args )
 {
@@ -220,6 +279,20 @@ thread_zpotrf_dynamic( isched_thread_t *ctx, void *args )
     memFree_null( computeQueue );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          TODO
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ *******************************************************************************/
 void
 dynamic_zpotrf( pastix_data_t  *pastix_data,
                 sopalin_data_t *sopalin_data )
@@ -237,6 +310,7 @@ dynamic_zpotrf( pastix_data_t  *pastix_data,
     memFree_null( datacode->computeQueue );
 }
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static void (*zpotrf_table[5])(pastix_data_t *, sopalin_data_t *) = {
     sequential_zpotrf,
     static_zpotrf,
@@ -252,7 +326,22 @@ static void (*zpotrf_table[5])(pastix_data_t *, sopalin_data_t *) = {
 #endif
     dynamic_zpotrf
 };
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          TODO
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ *******************************************************************************/
 void
 sopalin_zpotrf( pastix_data_t  *pastix_data,
                 sopalin_data_t *sopalin_data )

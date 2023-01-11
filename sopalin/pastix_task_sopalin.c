@@ -41,6 +41,7 @@
 #include "sopalin/starpu/pastix_starpu.h"
 #endif
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static void (*sopalinFacto[5][4])(pastix_data_t *, sopalin_data_t*) =
 {
     { sopalin_spotrf, sopalin_dpotrf, sopalin_cpotrf, sopalin_zpotrf },
@@ -49,6 +50,7 @@ static void (*sopalinFacto[5][4])(pastix_data_t *, sopalin_data_t*) =
     { sopalin_spotrf, sopalin_dpotrf, sopalin_cpxtrf, sopalin_zpxtrf },
     { sopalin_ssytrf, sopalin_dsytrf, sopalin_chetrf, sopalin_zhetrf }
 };
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************

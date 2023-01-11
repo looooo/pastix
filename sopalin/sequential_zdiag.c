@@ -2,7 +2,7 @@
  *
  * @file sequential_zdiag.c
  *
- * @copyright 2012-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.0
@@ -26,9 +26,35 @@
 #include "starpu/pastix_zstarpu.h"
 #endif
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          TODO
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ * @param[in] nrhs
+ *          TODO
+ *
+ * @param[in] b
+ *          TODO
+ *
+ * @param[in] ldb
+ *          TODO
+ *
+ *******************************************************************************/
 void
-sequential_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
-                  int nrhs, pastix_complex64_t *b, int ldb )
+sequential_zdiag( pastix_data_t      *pastix_data,
+                  sopalin_data_t     *sopalin_data,
+                  int                 nrhs,
+                  pastix_complex64_t *b,
+                  int                 ldb )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
     SolverCblk   *cblk;
@@ -46,6 +72,9 @@ sequential_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
     }
 }
 
+/**
+ * @brief TODO
+ */
 struct args_zdiag_t
 {
     pastix_data_t  *pastix_data;
@@ -56,8 +85,23 @@ struct args_zdiag_t
     volatile int32_t taskcnt;
 };
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctx
+ *          TODO
+ *
+ * @param[in] args
+ *          TODO
+ *
+ *******************************************************************************/
 void
-thread_zdiag_static( isched_thread_t *ctx, void *args )
+thread_zdiag_static( isched_thread_t *ctx,
+                     void            *args )
 {
     struct args_zdiag_t *arg = (struct args_zdiag_t*)args;
     pastix_data_t      *pastix_data  = arg->pastix_data;
@@ -93,16 +137,57 @@ thread_zdiag_static( isched_thread_t *ctx, void *args )
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          TODO
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ * @param[in] nrhs
+ *          TODO
+ *
+ * @param[in] b
+ *          TODO
+ *
+ * @param[in] ldb
+ *          TODO
+ *
+ *******************************************************************************/
 void
-static_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
-              int nrhs, pastix_complex64_t *b, int ldb )
+static_zdiag( pastix_data_t      *pastix_data,
+              sopalin_data_t     *sopalin_data,
+              int                 nrhs,
+              pastix_complex64_t *b,
+              int                 ldb )
 {
     struct args_zdiag_t args_zdiag = {pastix_data, sopalin_data, nrhs, b, ldb, 0};
     isched_parallel_call( pastix_data->isched, thread_zdiag_static, &args_zdiag );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctx
+ *          TODO
+ *
+ * @param[in] args
+ *          TODO
+ *
+ *******************************************************************************/
 void
-thread_zdiag_dynamic( isched_thread_t *ctx, void *args )
+thread_zdiag_dynamic( isched_thread_t *ctx,
+                      void            *args )
 {
     struct args_zdiag_t *arg = (struct args_zdiag_t*)args;
     pastix_data_t       *pastix_data  = arg->pastix_data;
@@ -167,9 +252,35 @@ thread_zdiag_dynamic( isched_thread_t *ctx, void *args )
     memFree_null( computeQueue );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          TODO
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ * @param[in] nrhs
+ *          TODO
+ *
+ * @param[in] b
+ *          TODO
+ *
+ * @param[in] ldb
+ *          TODO
+ *
+ *******************************************************************************/
 void
-dynamic_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
-              int nrhs, pastix_complex64_t *b, int ldb )
+dynamic_zdiag( pastix_data_t      *pastix_data,
+               sopalin_data_t     *sopalin_data,
+               int                 nrhs,
+               pastix_complex64_t *b,
+               int                 ldb )
 {
     pastix_solv_mode_t  mode = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
     pastix_int_t        tasknbr = (mode == PastixSolvModeSchur) ?
@@ -183,6 +294,7 @@ dynamic_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
     memFree_null( sopalin_data->solvmtx->computeQueue );
 }
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static void (*zdiag_table[5])(pastix_data_t *, sopalin_data_t *,
                               int, pastix_complex64_t *, int) = {
     sequential_zdiag,
@@ -199,10 +311,37 @@ static void (*zdiag_table[5])(pastix_data_t *, sopalin_data_t *,
 #endif
     dynamic_zdiag
 };
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          TODO
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ * @param[in] nrhs
+ *          TODO
+ *
+ * @param[in] b
+ *          TODO
+ *
+ * @param[in] ldb
+ *          TODO
+ *
+ *******************************************************************************/
 void
-sopalin_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data,
-               int nrhs, pastix_complex64_t *b, int ldb )
+sopalin_zdiag( pastix_data_t      *pastix_data,
+               sopalin_data_t     *sopalin_data,
+               int                 nrhs,
+               pastix_complex64_t *b,
+               int                 ldb )
 {
     int sched = pastix_data->iparm[IPARM_SCHEDULER];
     void (*zdiag)(pastix_data_t *, sopalin_data_t *, int, pastix_complex64_t *, int) = zdiag_table[ sched ];

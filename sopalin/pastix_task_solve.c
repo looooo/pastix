@@ -17,7 +17,9 @@
  * @date 2022-12-14
  *
  **/
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define _GNU_SOURCE 1
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include "common.h"
 #include "bcsc/bcsc.h"
 #include "pastix/order.h"
@@ -32,12 +34,31 @@
 
 #include <lapacke.h>
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #if defined(PASTIX_DEBUG_SOLVE)
 #include <spm/z_spm.h>
 #include <spm/c_spm.h>
 #include <spm/d_spm.h>
 #include <spm/s_spm.h>
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The pastix_data structure that describes the solver instance.
+ *
+ * @param[in] name
+ *          TODO
+ *
+ * @param[in] B
+ *          TODO
+ *
+ *******************************************************************************/
 static inline void
 pastix_rhs_dump( pastix_data_t *pastix_data,
                  const char    *name,
@@ -89,6 +110,7 @@ pastix_rhs_dump( pastix_data_t *pastix_data,
     (void)B;
 }
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
@@ -245,9 +267,6 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
  * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.
  *
- * @param[in] flttype
- *          This arithmetic of the sparse matrix.
- *
  * @param[in] side
  *          Left or right application.
  *
@@ -260,15 +279,9 @@ pastix_subtask_applyorder( pastix_data_t *pastix_data,
  * @param[in] diag
  *          Diagonal terms are unit or not.
  *
- * @param[in] nrhs
- *          The number of right-and-side vectors.
- *
- * @param[inout] b
+ * @param[inout] Bp
  *          The right-and-side vector (can be multiple rhs).
  *          On exit, the solution is stored in place of the right-hand-side vector.
- *
- * @param[in] ldb
- *          The leading dimension of the right-and-side vectors.
  *
  *******************************************************************************
  *
@@ -387,18 +400,9 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
  * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.
  *
- * @param[in] flttype
- *          This arithmetic of the sparse matrix.
- *
- * @param[in] nrhs
- *          The number of right-and-side vectors.
- *
- * @param[inout] b
+ * @param[inout] Bp
  *          The right-and-side vector (can be multiple rhs).
  *          On exit, the solution is stored in place of the right-hand-side vector.
- *
- * @param[in] ldb
- *          The leading dimension of the right-and-side vectors.
  *
  *******************************************************************************
  *
@@ -490,15 +494,9 @@ pastix_subtask_diag( pastix_data_t *pastix_data,
  *          PastixTrans:     A is transposed (CSR of symmetric/general matrix)
  *          PastixConjTrans: A is conjugate transposed (CSR of hermitian matrix)
  *
- * @param[in] nrhs
- *          The number of right-and-side vectors.
- *
- * @param[inout] b
+ * @param[inout] Bp
  *          The right-and-side vectors (can be multiple rhs).
  *          On exit, the solution is stored in place of the right-hand-side vector.
- *
- * @param[in] ldb
- *          The leading dimension of the right-and-side vectors.
  *
  *******************************************************************************
  *
@@ -679,15 +677,9 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
  * @param[inout] pastix_data
  *          The pastix_data structure that describes the solver instance.
  *
- * @param[in] nrhs
- *          The number of right-and-side vectors.
- *
- * @param[inout] b
+ * @param[inout] Bp
  *          The right-and-side vectors (can be multiple rhs).
  *          On exit, the solution is stored in place of the right-hand-side vector.
- *
- * @param[in] ldb
- *          The leading dimension of the right-and-side vectors.
  *
  *******************************************************************************
  *

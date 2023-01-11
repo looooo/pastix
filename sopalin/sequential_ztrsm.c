@@ -32,9 +32,43 @@
 #include "sopalin/coeftab.h"
 #endif
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          TODO
+ *
+ * @param[in] side
+ *          TODO
+ *
+ * @param[in] uplo
+ *          TODO
+ *
+ * @param[in] trans
+ *          TODO
+ *
+ * @param[in] diag
+ *          TODO
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ * @param[in] rhsb
+ *          TODO
+ *
+ *******************************************************************************/
 void
-sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
-                  sopalin_data_t *sopalin_data, pastix_rhs_t rhsb )
+sequential_ztrsm( pastix_data_t  *pastix_data,
+                  int             side,
+                  int             uplo,
+                  int             trans,
+                  int             diag,
+                  sopalin_data_t *sopalin_data,
+                  pastix_rhs_t    rhsb )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
     SolverCblk   *cblk;
@@ -108,6 +142,9 @@ sequential_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int
 #endif
 }
 
+/**
+ * @brief TODO
+ */
 struct args_ztrsm_t
 {
     pastix_data_t  *pastix_data;
@@ -116,6 +153,20 @@ struct args_ztrsm_t
     pastix_rhs_t    rhsb;
 };
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctx
+ *          TODO
+ *
+ * @param[in] args
+ *          TODO
+ *
+ *******************************************************************************/
 void
 thread_ztrsm_static( isched_thread_t *ctx,
                      void            *args )
@@ -207,18 +258,86 @@ thread_ztrsm_static( isched_thread_t *ctx,
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          TODO
+ *
+ * @param[in] side
+ *          TODO
+ *
+ * @param[in] uplo
+ *          TODO
+ *
+ * @param[in] trans
+ *          TODO
+ *
+ * @param[in] diag
+ *          TODO
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ * @param[in] rhsb
+ *          TODO
+ *
+ *******************************************************************************/
 void
-static_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
-              sopalin_data_t *sopalin_data, pastix_rhs_t rhsb )
+static_ztrsm( pastix_data_t  *pastix_data,
+              int             side,
+              int             uplo,
+              int             trans,
+              int             diag,
+              sopalin_data_t *sopalin_data,
+              pastix_rhs_t    rhsb  )
 {
     struct args_ztrsm_t args_ztrsm = { pastix_data, side, uplo, trans, diag, sopalin_data, rhsb };
     isched_parallel_call( pastix_data->isched, thread_ztrsm_static, &args_ztrsm );
 }
 
 #if defined(PASTIX_WITH_MPI)
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          TODO
+ *
+ * @param[in] side
+ *          TODO
+ *
+ * @param[in] uplo
+ *          TODO
+ *
+ * @param[in] trans
+ *          TODO
+ *
+ * @param[in] diag
+ *          TODO
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ * @param[in] rhsb
+ *          TODO
+ *
+ *******************************************************************************/
 void
-runtime_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
-               sopalin_data_t *sopalin_data, pastix_rhs_t rhsb )
+runtime_ztrsm( pastix_data_t  *pastix_data,
+               int             side,
+               int             uplo,
+               int             trans,
+               int             diag,
+               sopalin_data_t *sopalin_data,
+               pastix_rhs_t    rhsb  )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
     SolverCblk *cblk;
@@ -273,6 +392,7 @@ runtime_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int di
 }
 #endif
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static void (*ztrsm_table[5])(pastix_data_t *, int, int, int, int,
                               sopalin_data_t *, pastix_rhs_t) =
 {
@@ -290,10 +410,45 @@ static void (*ztrsm_table[5])(pastix_data_t *, int, int, int, int,
 #endif
     static_ztrsm
 };
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          TODO
+ *
+ * @param[in] side
+ *          TODO
+ *
+ * @param[in] uplo
+ *          TODO
+ *
+ * @param[in] trans
+ *          TODO
+ *
+ * @param[in] diag
+ *          TODO
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ * @param[in] rhsb
+ *          TODO
+ *
+ *******************************************************************************/
 void
-sopalin_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag,
-               sopalin_data_t *sopalin_data, pastix_rhs_t rhsb )
+sopalin_ztrsm( pastix_data_t  *pastix_data,
+               int             side,
+               int             uplo,
+               int             trans,
+               int             diag,
+               sopalin_data_t *sopalin_data,
+               pastix_rhs_t    rhsb  )
 {
     int sched = pastix_data->iparm[IPARM_SCHEDULER];
     void (*ztrsm)( pastix_data_t *, int, int, int, int,

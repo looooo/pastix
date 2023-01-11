@@ -19,7 +19,9 @@
  * @{
  *
  **/
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define _GNU_SOURCE
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include "common.h"
 #include "blend/solver.h"
 #include "sopalin/sopalin_data.h"
@@ -28,10 +30,10 @@
 #include "pastix_zstarpu.h"
 #include "codelets.h"
 
-/**
- * Cblk version
- */
 #if defined( PASTIX_STARPU_PROFILING )
+/**
+ * @brief Cblk version
+ */
 starpu_profile_t solve_cblk_zdiag_profile = {
     .next = NULL,
     .name = "solve_cblk_zdiag"
@@ -48,6 +50,7 @@ solve_cblk_zdiag_profile_register( void )
 }
 #endif
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 struct cl_solve_cblk_zdiag_args_s {
     profile_data_t  profile_data;
     SolverCblk     *cblk;
@@ -80,6 +83,7 @@ fct_solve_cblk_zdiag_cpu( void *descr[], void *cl_arg )
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
 CODELETS_CPU( solve_cblk_zdiag, 2 );
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************

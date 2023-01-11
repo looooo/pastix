@@ -151,8 +151,8 @@ pastixGetSchur( const pastix_data_t *pastix_data,
  *
  *******************************************************************************
  *
- * @param[in] rhsB
- *          The pastix_rhs_t data structure used to solve the system.
+ * @param[in] pastix_data
+ *          TODO
  *
  * @param[in] m
  *          The number of rows of the vector b, must be equal to the number of
@@ -161,7 +161,10 @@ pastixGetSchur( const pastix_data_t *pastix_data,
  * @param[in] n
  *          The number of columns of the vector b.
  *
- * @param[inout] b
+ * @param[in] rhsB
+ *          The pastix_rhs_t data structure used to solve the system.
+ *
+ * @param[inout] B
  *          On entry, a vector of size ldb-by-n.
  *          On exit, the m-by-n leading part contains the right hand side
  *          related to the Schur part.
@@ -254,13 +257,16 @@ pastixRhsSchurGet( const pastix_data_t *pastix_data,
  *
  *******************************************************************************
  *
+ * @param[in] pastix_data
+ *          TODO
+ *
  * @param[in] m
  *          The number of rows of the vector b.
  *
  * @param[in] n
  *          The number of columns of the vector b.
  *
- * @param[in] b
+ * @param[in] B
  *          The vector b.
  *
  * @param[in] ldb

@@ -12,7 +12,7 @@
  * @author Pierre Ramet
  * @date 2021-10-05
  *
- * @addtogroup pastix_starpu
+ * @ingroup pastix_starpu
  * @{
  *
  **/
@@ -187,5 +187,5 @@ starpu_dense_matrix_destroy( starpu_dense_matrix_desc_t *spmtx )
 }
 
 /**
- *@}
+ * @}
  */

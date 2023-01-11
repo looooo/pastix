@@ -14,7 +14,9 @@
  * @{
  *
  **/
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define _GNU_SOURCE
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include "common.h"
 #if !defined(PASTIX_WITH_STARPU)
 #error "This file should not be compiled if Starpu is not enabled"
@@ -27,14 +29,23 @@
 
 #if defined( PASTIX_STARPU_PROFILING )
 
-/*
+/**
  * @brief Chained list of measurement tables and their respective names.
  */
 starpu_profile_t *profile_list = NULL;
 
-/*
- * @brief Registers a measurement table contained in a starpu_profile_t cell into the profile_list.
- */
+/**
+ *******************************************************************************
+ *
+ * @brief Registers a measurement table contained in a starpu_profile_t cell
+ * into the profile_list.
+ *
+ *******************************************************************************
+ *
+ * @param[in] codelet
+ *          TODO
+ *
+ ******************************************************************************/
 void
 profiling_register_cl( starpu_profile_t *codelet )
 {
@@ -44,12 +55,18 @@ profiling_register_cl( starpu_profile_t *codelet )
     profile_list = codelet;
 }
 
-/*
+/**
+ *******************************************************************************
+ *
  * @brief Adds the measures of a codelet into its designated measurement tables.
  *
+ *******************************************************************************
+ *
  * @param[in] callback_arg
- *          The argument given to the codelet containing at least a profile_data_t as first field.
- */
+ *          The argument given to the codelet containing at least a
+ *          profile_data_t as first field.
+ *
+ ******************************************************************************/
 void
 cl_profiling_callback( void *callback_arg )
 {
@@ -71,12 +88,17 @@ cl_profiling_callback( void *callback_arg )
     measures[info->workerid].n    += 1;
 }
 
-/*
+/**
+ *******************************************************************************
+ *
  * @brief Display all collected profiling data of a given measurement table.
+ *
+ *******************************************************************************
  *
  * @param[in] codelet
  *          A measurement table to be displayed.
- */
+ *
+ ******************************************************************************/
 void
 profiling_display_info( starpu_profile_t *codelet )
 {
@@ -106,9 +128,13 @@ profiling_display_info( starpu_profile_t *codelet )
     }
 }
 
-/*
- * @brief Displays all profiling data collected into all measurements tables of the profile_list.
- */
+/**
+ *******************************************************************************
+ *
+ * @brief Displays all profiling data collected into all measurements tables of
+ * the profile_list.
+ *
+ ******************************************************************************/
 void
 profiling_display_allinfo()
 {
@@ -126,15 +152,20 @@ profiling_display_allinfo()
 FILE *profiling_log_file[STARPU_NMAXWORKERS];
 
 /**
+ *******************************************************************************
+ *
  * @brief Initializes the profiling_log functions.
  *
  * The function profiling_log_fini() must be called to end the profiling.
  * Opens a series of FILE* into the given directory for concurrent logging of
  * all individual tasks.
  *
+ *******************************************************************************
+ *
  * @param[in] dirname
  *          The path to the directory in which the profiling_log will be written.
- */
+ *
+ ******************************************************************************/
 void
 profiling_log_init( const char *dirname )
 {
@@ -153,27 +184,43 @@ profiling_log_init( const char *dirname )
 }
 
 /**
+ *******************************************************************************
+ *
  * @brief Registers a full observation of an individual task.
- *          Concurrent call to this function can be achieved on different STARPU_WORKERS.
+ * Concurrent call to this function can be achieved on different STARPU_WORKERS.
+ *
+ *******************************************************************************
  *
  * @param[in] task_name
  *          The unique name of the task.
+ *
  * @param[in] cl_name
  *          The name given to the codelet.
+ *
  * @param[in] m
  *          The m parameter of the kernel (used by xxTRF, TRSM, and GEMM).
+ *
  * @param[in] n
  *          The n parameter of the kernel (used by TRSM, and GEMM).
+ *
  * @param[in] k
  *          The k parameter of the kernel (used by GEMM).
+ *
  * @param[in] flops
  *          The number of flops of the kernel.
+ *
  * @param[in] speed
  *          The speed of computation achieved by the task (in GFLop/s).
- */
+ *
+ ******************************************************************************/
 void
-cl_profiling_log_register( const char *task_name, const char* cl_name,
-                                int m, int n, int k, double flops, double speed )
+cl_profiling_log_register( const char *task_name,
+                           const char *cl_name,
+                           int         m,
+                           int         n,
+                           int         k,
+                           double      flops,
+                           double      speed )
 {
     struct starpu_task                *task = starpu_task_get_current();
     struct starpu_profiling_task_info *info = task->profiling_info;
@@ -181,9 +228,11 @@ cl_profiling_log_register( const char *task_name, const char* cl_name,
 }
 
 /**
+ *******************************************************************************
+ *
  * @brief Terminates the profiling_log life cycle.
  *
- */
+ ******************************************************************************/
 void
 profiling_log_fini()
 {

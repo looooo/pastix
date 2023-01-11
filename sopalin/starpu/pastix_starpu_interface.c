@@ -22,6 +22,8 @@
 #include "kernels/pastix_slrcores.h"
 #include "pastix_starpu.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #if defined(PASTIX_STARPU_INTERFACE_DEBUG)
 #define pastix_starpu_logger fprintf( stderr, "pastix_starpu: %s\n", __func__ )
 #else
@@ -514,7 +516,14 @@ psi_copy_any_to_any( void    *src_interface,
 static const struct starpu_data_copy_methods psi_copy_methods = {
     .any_to_any = psi_copy_any_to_any,
 };
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+/**
+ * @ingroup pastix_starpu
+ * @{
+ *
+ * @brief TODO
+ */
 struct starpu_data_interface_ops pastix_starpu_interface_ops = {
     .register_data_handle  = psi_register_data_handle,
     .allocate_data_on_node = psi_allocate_data_on_node,
@@ -542,6 +551,12 @@ struct starpu_data_interface_ops pastix_starpu_interface_ops = {
     .name                  = "PASTIX_STARPU_INTERFACE"
 };
 
+/**
+ *******************************************************************************
+ *
+ * @brief Initialize the interface ID
+ *
+ ********************************************************************************/
 void
 pastix_starpu_interface_init()
 {
@@ -566,6 +581,12 @@ pastix_starpu_interface_init()
     }
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Finalize the interface and reset the ID
+ *
+ ********************************************************************************/
 void
 pastix_starpu_interface_fini()
 {
@@ -577,6 +598,31 @@ pastix_starpu_interface_fini()
     }
 }
 
+/**
+ *
+ *******************************************************************************
+ *
+ * @brief Register a cblk at the StarPU level
+ *
+ *******************************************************************************
+ *
+ * @param[out] handleptr
+ *      The StarPU data handle to the registered data. Space must be allocated on call.
+ *
+ * @param[in] home_node
+ *      The StarPU memory node enum to specify where the initial data is located
+ *      -1 if not local, STARPU_MAIN_RAM if local.
+ *
+ * @param[in] cblk
+ *      The cblk to register
+ *
+ * @param[in] side
+ *      Specify which part of the cblk (Upper or Lower) to register
+ *
+ * @param[in] flttype
+ *      Specify the arithmetic floating type of the coefficients
+ *
+ ********************************************************************************/
 void
 pastix_starpu_register( starpu_data_handle_t *handleptr,
                         int                   home_node,
@@ -630,3 +676,7 @@ pastix_starpu_register( starpu_data_handle_t *handleptr,
 
     starpu_data_register( handleptr, home_node, &interface, &pastix_starpu_interface_ops );
 }
+
+/**
+ * @}
+ */
