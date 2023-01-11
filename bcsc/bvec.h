@@ -35,16 +35,8 @@ typedef struct bvec_data_amount_s
 {
     /* WARNING: the two counters must remain at the head of the structure to exchange
        the volume of the communications between the processes. */
-    pastix_int_t  idxcnt; /**< Amount of indexes of b or x which will be exchanged. */
-    pastix_int_t  valcnt; /**< Amount of values of b or x which will be exchanged.  */
-    pastix_int_t *idxbuf; /**< Array of indexes of b or x to exchange.              */
-    void         *valbuf; /**< Array of values of b or x to exchange.
-                               The indexes and values array are sorted the following way:
-                               k is incremented -> k += dofk * j.
-                               indexes[k] = i.
-                               array[k]                -> corresponds to (i,     0).
-                               array[k + dofk * j]     -> corresponds to (i,     j).
-                               array[k + h + dofk * j] -> corresponds to (i + h, j).  */
+    pastix_int_t idxcnt; /**< Amount of indexes of b or x which will be exchanged. */
+    pastix_int_t valcnt; /**< Amount of values of b or x which will be exchanged.  */
 } bvec_data_amount_t;
 
 /**
@@ -52,8 +44,16 @@ typedef struct bvec_data_amount_s
  */
 typedef struct bvec_proc_comm_s
 {
-    bvec_data_amount_t send; /**< Number of indexes and values to send to clustnum.      */
-    bvec_data_amount_t recv; /**< Number of indexes and values to receive from clustnum. */
+    bvec_data_amount_t  nsends;      /**< Number of indexes and values to send to clustnum.          */
+    bvec_data_amount_t  nrecvs;      /**< Number of indexes and values to receive from clustnum.     */
+    pastix_int_t       *send_idxbuf; /**< Array of indexes of b or x to exchange.                    */
+    void               *send_valbuf; /**< Array of values of b or x to exchange.                     */
+                                     /*   The indexes and values array are sorted the following way: */
+                                     /*   k is incremented -> k += dofk * j.                         */
+                                     /*   indexes[k] = i.                                            */
+                                     /*   array[k]                -> corresponds to (i,     0).      */
+                                     /*   array[k + dofk * j]     -> corresponds to (i,     j).      */
+                                     /*   array[k + h + dofk * j] -> corresponds to (i + h, j).      */
 } bvec_proc_comm_t;
 
 /**

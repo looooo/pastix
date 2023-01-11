@@ -138,12 +138,12 @@ bvec_zlapmr_dst_vec2bvec( pastix_data_t      *pastix_data,
             data_comm = comm_rhs->data_comm + c;
 
             /* Stores the indexes to send to c: (ipe, j). */
-            data_comm->send.idxbuf[ idx_cnt[ c ] ] = ig;
+            data_comm->send_idxbuf[ idx_cnt[ c ] ] = ig;
             idx_cnt[ c ] ++;
 
             /* Stores the value to send to c. */
             for ( j = 0; j < nrhs; j++ ) {
-                values_c = ((pastix_complex64_t*)(data_comm->send.valbuf)) + val_cnt[ c ];
+                values_c = ((pastix_complex64_t*)(data_comm->send_valbuf)) + val_cnt[ c ];
                 memcpy( values_c, b + ile + j * ldb, dofi * sizeof(pastix_complex64_t) );
                 val_cnt[ c ] += dofi;
             }
@@ -260,11 +260,11 @@ bvec_zlapmr_dst_bvec2vec( pastix_data_t      *pastix_data,
             data_comm = comm_rhs->data_comm + c;
 
             /* Stores the indexes to send to c: (ipe, j). */
-            data_comm->send.idxbuf[ idx_cnt[ c ] ] = igp;
+            data_comm->send_idxbuf[ idx_cnt[ c ] ] = igp;
             idx_cnt[ c ] ++;
             /* Stores the value to send to c. */
             for ( j = 0; j < nrhs; j++ ) {
-                values_c = ((pastix_complex64_t*)(data_comm->send.valbuf)) + val_cnt[ c ];
+                values_c = ((pastix_complex64_t*)(data_comm->send_valbuf)) + val_cnt[ c ];
                 memcpy( values_c, bp + ilpe + j * Pb->ld, dofi * sizeof(pastix_complex64_t) );
                 val_cnt[ c ] += dofi;
             }
@@ -433,7 +433,7 @@ bvec_zlapmr_rep_vec2bvec( const pastix_data_t      *pastix_data,
     bvec_handle_comm_init( pastix_data, Pb );
 
     comm_rhs     = Pb->rhs_comm;
-    data         = &(comm_rhs->data_comm[comm_rhs->clustnum].send);
+    data         = &(comm_rhs->data_comm[comm_rhs->clustnum].nsends);
     data->idxcnt = idx_cnt;
     data->valcnt = val_cnt;
 
@@ -482,18 +482,19 @@ bvec_zlapmr_rep_bvec2vec( pastix_data_t      *pastix_data,
                           pastix_int_t        ldb,
                           pastix_rhs_t        Pb )
 {
-    pastix_complex64_t   *bp       = Pb->b;
-    bvec_handle_comm_t   *comm_rhs = Pb->rhs_comm;
-    const pastix_order_t *ord      = pastix_data->ordemesh;
-    const spmatrix_t     *spm      = pastix_data->csc;
-    pastix_int_t          dof      = spm->dof;
-    const pastix_int_t   *dofs     = spm->dofs;
+    pastix_complex64_t   *bp         = Pb->b;
+    bvec_handle_comm_t   *comm_rhs   = Pb->rhs_comm;
+    const pastix_order_t *ord        = pastix_data->ordemesh;
+    const spmatrix_t     *spm        = pastix_data->csc;
+    pastix_int_t          dof        = spm->dof;
+    const pastix_int_t   *dofs       = spm->dofs;
     pastix_int_t         *Ploc2Pglob = Pb->Ploc2Pglob;
-    pastix_int_t          clustnum = pastix_data->solvmatr->clustnum;
-    pastix_int_t          bcsc_n   = Pb->m;
+    pastix_int_t          clustnum   = pastix_data->solvmatr->clustnum;
+    pastix_int_t          bcsc_n     = Pb->m;
     pastix_int_t          ilpe, ilp, igp, ig, ige;
     pastix_int_t          j, dofi;
-    bvec_data_amount_t   *data_send;
+    bvec_proc_comm_t     *data_send;
+    bvec_data_amount_t   *sends;
     pastix_int_t         *idxptr;
 
     assert( Pb->m == pastix_data->bcsc->n   );
@@ -503,19 +504,20 @@ bvec_zlapmr_rep_bvec2vec( pastix_data_t      *pastix_data,
     bvec_compute_Ploc2Pglob( pastix_data, Pb );
 
     Ploc2Pglob = Pb->Ploc2Pglob;
-    data_send  = &(comm_rhs->data_comm[clustnum].send);
+    data_send  = comm_rhs->data_comm + clustnum;
+    sends      = &( data_send->nsends );
 
     /*
      * Allocates the sending indexes buffer.
      */
-    if ( ( data_send->idxcnt != 0 ) && ( data_send->idxbuf == NULL ) ) {
-        MALLOC_INTERN( data_send->idxbuf, data_send->idxcnt, pastix_int_t );
+    if ( ( sends->idxcnt != 0 ) && ( data_send->send_idxbuf == NULL ) ) {
+        MALLOC_INTERN( data_send->send_idxbuf, sends->idxcnt, pastix_int_t );
     }
 
     /*
      * Sets the counters used to fill indexes and values buffers.
      */
-    idxptr = data_send->idxbuf;
+    idxptr = data_send->send_idxbuf;
 
     /*
      * Goes through b to fill the data_comm with the data to send and
@@ -538,7 +540,7 @@ bvec_zlapmr_rep_bvec2vec( pastix_data_t      *pastix_data,
             memcpy( b + ige + j * ldb, bp + ilpe + j * Pb->ld, dofi * sizeof(pastix_complex64_t) );
         }
     }
-    assert( (idxptr - data_send->idxbuf) == data_send->idxcnt );
+    assert( (idxptr - data_send->send_idxbuf) == sends->idxcnt );
 
     bvec_zexchange_data_rep( pastix_data, nrhs, b, ldb, Pb );
 
