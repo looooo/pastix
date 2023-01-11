@@ -33,8 +33,10 @@
 
 BEGIN_C_DECLS
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 struct etree_s;
 typedef struct etree_s EliminTree;
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  * @brief Order structure.

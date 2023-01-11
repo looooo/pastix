@@ -32,6 +32,7 @@
 #include <assert.h>
 #include <math.h>
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #if defined(PASTIX_WITH_MPI)
 #include <mpi.h>
 typedef MPI_Comm PASTIX_Comm;
@@ -41,6 +42,7 @@ typedef uintptr_t PASTIX_Comm;
 #define MPI_COMM_WORLD 0
 #endif
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 #include "pastix/api.h"
 #include "pastix/datatypes.h"
@@ -194,9 +196,9 @@ void pastixExpand( const pastix_data_t *pastix_data,
 /*
  * Function to provide access to the diagonal
  */
-int  pastixGetDiag( const pastix_data_t *pastix_data,
-                    void                *x,
-                    pastix_int_t         incx );
+int pastixGetDiag( const pastix_data_t *pastix_data,
+                   void                *x,
+                   pastix_int_t         incx );
 
 /*
  * Function to provide a common way to read binary options in examples/testings
