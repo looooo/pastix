@@ -1,7 +1,7 @@
 /**
  *
  *  @file binding_for_multimpi.c
- *  @copyright 2013-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                       Univ. Bordeaux. All rights reserved.
  *
  *  @version 6.0.3
@@ -28,6 +28,7 @@
  */
 static hwloc_topology_t topology;
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 int isched_topo_init(void)
 {
     hwloc_topology_init(&topology);
@@ -40,6 +41,7 @@ int isched_topo_world_size()
     hwloc_obj_t obj = hwloc_get_obj_by_type( topology, HWLOC_OBJ_MACHINE, 0 );
     return hwloc_get_nbobjs_inside_cpuset_by_type(topology, obj->cpuset, HWLOC_OBJ_CORE);
 }
+
 /**
  * End of the extract
  */
@@ -132,3 +134,4 @@ int main( int argc, char *argv[] )
 
     return EXIT_SUCCESS;
 }
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
