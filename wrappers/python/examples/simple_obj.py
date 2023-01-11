@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
- @file simple_obj.py
+ @file examples/simple_obj.py
 
  PaStiX simple python example with the solver object
 
- @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.2.0
@@ -14,6 +14,7 @@
  @date 2021-04-07
 
 """
+##\cond
 import pypastix as pastix
 import scipy.sparse as sps
 import scipy.sparse.linalg
@@ -47,3 +48,4 @@ rc = solver.check( x, b, x0, eps=1e-12 )
 solver.finalize()
 
 exit(rc)
+##\endcond

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
- @file simple.py
+ @file examples/simple.py
 
  PaStiX simple python example
 
- @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.2.0
@@ -14,6 +14,7 @@
  @date 2020-07-16
 
 """
+##\cond
 import spm
 import pypastix as pastix
 import scipy.sparse as sps
@@ -63,3 +64,4 @@ rc = spmA.checkAxb( x0, b, x )
 pastix.finalize( pastix_data, iparm, dparm )
 
 exit(rc)
+##\endcond

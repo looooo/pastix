@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
- @file step-by-step.py
+ @file examples/step-by-step.py
 
  PaStiX step by step python example
 
- @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.2.0
@@ -15,6 +15,7 @@
  @date 2020-07-16
 
 """
+##\cond
 import pypastix as pastix
 import spm
 import scipy.sparse as sps
@@ -70,3 +71,4 @@ for nspb in range(1,3):
 pastix.finalize( pastix_data, iparm, dparm )
 
 exit(rc)
+##\endcond

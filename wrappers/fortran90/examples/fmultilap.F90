@@ -1,5 +1,5 @@
 !
-! @file fmultilap.f90
+! @file fmultilap.F90
 !
 ! Fortran 90 multiple rhs example.
 !
@@ -36,6 +36,8 @@
 ! @author Mathieu Faverge
 ! @date 2022-10-14
 !
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 program fmultilap
   use iso_c_binding
   use spmf
@@ -836,4 +838,4 @@ contains
 
 end program fmultilap
 
-
+#endif

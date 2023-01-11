@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 #=
- @file schur.jl
+ @file examples/schur.jl
 
  PaStiX Schur example
 

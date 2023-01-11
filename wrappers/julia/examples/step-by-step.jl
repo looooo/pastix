@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 #=
- @file step-by-step.jl
+ @file examples/step-by-step.jl
 
  PaStiX step by step example
 

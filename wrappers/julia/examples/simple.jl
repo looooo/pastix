@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 #=
- @file simple.jl
+ @file examples/simple.jl
 
  PaStiX simple example
 
