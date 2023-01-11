@@ -52,11 +52,6 @@
  *          that merges blocks in order to reduce the BLAS computational time
  *          (see amalgamate() for further informations).
  *
- * @param[inout] symbmtx
- *          The symbol matrix structure to construct. On entry, the initialized
- *          structure (see pastixSymbolInit()). On exit, the symbol matrix generated
- *          after the amalgamation process.
- *
  * @param[inout] csc
  *          The original csc for which the symbol matrix needs to be generated.
  *          Rebase to C numbering on exit.
@@ -80,13 +75,13 @@
  *******************************************************************************/
 int
 orderAmalgamate( int             verbose,
-                       int             ilu,
-                       int             levelk,
-                       int             rat_cblk,
-                       int             rat_blas,
-                       pastix_graph_t *csc,
-                       pastix_order_t *orderptr,
-                       PASTIX_Comm     pastix_comm )
+                 int             ilu,
+                 int             levelk,
+                 int             rat_cblk,
+                 int             rat_blas,
+                 pastix_graph_t *csc,
+                 pastix_order_t *orderptr,
+                 PASTIX_Comm     pastix_comm )
 {
     fax_csr_t     graphPA, graphL;
     pastix_int_t  n;

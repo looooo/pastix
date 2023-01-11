@@ -479,12 +479,13 @@ void pastixOrderExpand( pastix_order_t   *ordeptr,
  *
  *******************************************************************************
  *
- * @param[inout] pastix_data
- *          The pastix_data structure that holds the ordering structure.
- *          On exit, the peritab_exp pointer is updated if created.
+ * @param[inout] ordeptr
+ *          TODO
  *
  * @param[in] spm
  *          The sparse matrix structure providing the dof information.
+ *
+ *******************************************************************************
  *
  * @return The expanded peritab array.
  *
@@ -670,7 +671,7 @@ pastixOrderGet( const pastix_data_t * const pastix_data )
  * @param[in] root
  *          The node that will broadcast its ordemesh.
  *
- * @param[in] comm
+ * @param[in] pastix_comm
  *          The MPI communicator of the problem.
  *
  *******************************************************************************/
