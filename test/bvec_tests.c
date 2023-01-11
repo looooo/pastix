@@ -18,11 +18,12 @@
  * @author Tony Delarue
  * @date 2022-11-03
  *
-
  **/
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include <pastix.h>
 #include "refinement/z_refine_functions.h"
 #include "bcsc/bcsc.h"

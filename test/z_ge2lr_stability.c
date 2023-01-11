@@ -16,9 +16,11 @@
  *
  **/
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>

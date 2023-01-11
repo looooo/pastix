@@ -89,7 +89,7 @@ z_rradd_test( int mode, int use_reltol, double tolerance,
                               B->fr, B->ld, Cfr, C.ld );
     assert( rc == 0 );
 
-    /* C = B + \alpha * A */
+    /* \f$ C = B + \alpha * A \f$ */
     core_zgeadd( PastixNoTrans, A->m, A->n,
                  zalpha, A->fr,                    A->ld,
                     1.0, Cfr + offx + C.ld * offy, C.ld );
