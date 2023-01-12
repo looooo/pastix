@@ -2,17 +2,17 @@
  *
  * @file out.h
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * PaStiX memory tracking function.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Xavier Lacoste
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Gregoire Pichon
- * @date 2021-06-29
+ * @date 2021-12-21
  *
  */
 #ifndef _out_h_

@@ -4,14 +4,14 @@
 
  PaStiX Schur python example with an object oriented programing solution.
 
- @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.1.0
+ @version 6.3.0
  @author Pierre Ramet
  @author Mathieu Faverge
  @author Louis Poirel
- @date 2019-11-12
+ @date 2022-10-17
 
  This example shows how to use pastix solver to solve a system with a
  Schur complement.

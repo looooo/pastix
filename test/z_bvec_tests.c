@@ -6,13 +6,13 @@
  * Times is computed on the average of 50 calls to gemv function.
  * Size of the matrix is given by the size of a Laplacian.
  *
- * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Vincent Bridonneau
  * @author Mathieu Faverge
- * @date 2022-10-06
+ * @date 2023-01-10
  *
  * @precisions normal z -> c d s
  *

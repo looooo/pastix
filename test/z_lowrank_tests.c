@@ -4,14 +4,14 @@
  *
  * Test functions for the low-rank kernels.
  *
- * @copyright 2015-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.3.0
  * @author Gregoire Pichon
  * @author Mathieu Faverge
  * @author Esragul Korkmaz
- * @date 2021-01-03
+ * @date 2023-01-10
  *
  * @precisions normal z -> z c d s
  *

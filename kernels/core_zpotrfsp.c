@@ -4,16 +4,16 @@
  *
  * PaStiX kernel routines for Cholesky factorization.
  *
- * @copyright 2011-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2011-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Gregoire Pichon
  * @author Nolan Bredel
- * @date 2021-06-16
+ * @date 2021-12-21
  * @precisions normal z -> c d s
  *
  **/

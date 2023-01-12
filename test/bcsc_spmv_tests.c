@@ -2,19 +2,19 @@
  *
  * @file bcsc_spmv_tests.c
  *
- * @copyright 2011-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2011-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * Tests and validate the bcsc_spmv routines.
  *
- * @version 6.2.0
+ * @version 6.3.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Esragul Korkmaz
  * @author Pierre Ramet
  * @author Tony Delarue
  * @author Vincent Bridonneau
- * @date 2020-06-07
+ * @date 2022-12-05
  *
  **/
 #include <pastix.h>

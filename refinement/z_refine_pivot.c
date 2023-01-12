@@ -4,17 +4,17 @@
  *
  * PaStiX refinement functions implementations.
  *
- * @copyright 2015-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Gregoire Pichon
  * @author Theophile Terraz
  * @author Vincent Bridonneau
- * @date 2022-07-07
+ * @date 2022-12-03
  * @precisions normal z -> c d s
  *
  **/

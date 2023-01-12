@@ -4,15 +4,15 @@
  *
  * StarPU codelets for blas-like functions
  *
- * @copyright 2016-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Ian Masliah
  * @author Tom Moenne-Loccoz
- * @date 2021-06-21
+ * @date 2021-10-26
  *
  * @precisions normal z -> z c d s
  *

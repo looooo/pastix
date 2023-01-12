@@ -5,15 +5,15 @@
  * PaStiX analyse functions to manipulate candidates on the elimination tree
  * structure.
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Pascal Henon
  * @author Mathieu Faverge
  * @author Gregoire Pichon
  * @author Pierre Ramet
- * @date 2021-06-29
+ * @date 2021-12-21
  *
  * @addtogroup blend_dev_cand
  * @{

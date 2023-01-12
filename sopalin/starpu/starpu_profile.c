@@ -2,13 +2,13 @@
  *
  * @file starpu_profile.c
  *
- * @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Pierre Ramet
  * @author Mathieu Faverge
- * @date 2021-06-21
+ * @date 2021-10-18
  *
  * @addtogroup pastix_starpu
  * @{

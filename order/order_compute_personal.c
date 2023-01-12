@@ -4,15 +4,15 @@
  *
  * PaStiX order driver to perform ordering with personal algorithm.
  *
- * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.3.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2021-09-15
+ * @date 2022-06-29
  *
  **/
 #include "common.h"

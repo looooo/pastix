@@ -4,12 +4,12 @@
  *
  * PaStiX communication matrix handler.
  *
- * @copyright 1998-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 1998-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Nolan Bredel
- * @date 2021-07-02
+ * @date 2021-07-09
  *
  **/
 #include "common/common.h"

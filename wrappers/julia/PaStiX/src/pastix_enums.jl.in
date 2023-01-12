@@ -4,14 +4,14 @@
 
  PaStiX julia wrapper to define enums and datatypes
 
- @copyright 2020-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2020-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.1
+ @version 6.3.0
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2022-09-27
+ @date 2022-09-28
 
  This file has been automatically generated with gen_wrappers.py
 

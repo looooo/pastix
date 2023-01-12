@@ -2,17 +2,17 @@
  *
  * @file sequential_zhetrf.c
  *
- * @copyright 2012-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.3.0
  * @author Pascal Henon
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Esragul Korkmaz
  * @author Tony Delarue
- * @date 2021-04-07
+ * @date 2021-08-24
  *
  * @precisions normal z -> c
  *

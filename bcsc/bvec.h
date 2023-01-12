@@ -2,16 +2,16 @@
  *
  * @file bvec.h
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Vincent Bridonneau
  * @author Alycia Lisito
- * @date 2022-12-05
+ * @date 2023-01-10
  *
  * @addtogroup bcsc
  * @{

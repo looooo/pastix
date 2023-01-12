@@ -4,17 +4,17 @@
  *
  * PaStiX coefficient array initialization and free routines.
  *
- * @copyright 2015-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2022-10-21
+ * @date 2022-11-17
  *
  **/
 #include "common.h"

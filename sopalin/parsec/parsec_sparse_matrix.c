@@ -4,13 +4,13 @@
  *
  * PaStiX sparse matrix descriptor for parsec.
  *
- * @copyright 2016-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2022-07-07
+ * @date 2022-09-23
  *
  * @addtogroup pastix_parsec
  * @{

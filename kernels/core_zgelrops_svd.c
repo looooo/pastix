@@ -4,15 +4,15 @@
  *
  * PaStiX low-rank kernel routines using SVD based on Lapack ZGESVD.
  *
- * @copyright 2016-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Gregoire Pichon
  * @author Esragul Korkmaz
  * @author Mathieu Faverge
  * @author Nolan Bredel
- * @date 2022-07-07
+ * @date 2022-09-06
  * @precisions normal z -> c d s
  *
  **/

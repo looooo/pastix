@@ -4,15 +4,15 @@
  *
  * PaStiX order structure routines
  *
- * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.3.0
  * @author Francois Pellegrini
  * @author Mathieu Faverge
  * @author Gregoire Pichon
  * @author Pierre Ramet
- * @date 2021-01-14
+ * @date 2022-09-05
  *
  *
  * @addtogroup pastix_order

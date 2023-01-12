@@ -4,17 +4,17 @@
  *
  * PaStiX routines to check the correctness of the symbol structure.
  *
- * @copyright 1999-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 1999-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.3.0
  * @author Francois Pellegrini
  * @author David Goudin
  * @author Pascal Henon
  * @author Francois Pellegrini
  * @author Pierre Ramet
  * @author Mathieu Faverge
- * @date 2021-01-03
+ * @date 2021-12-21
  *
  **/
 #include "common.h"

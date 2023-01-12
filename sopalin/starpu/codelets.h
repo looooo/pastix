@@ -2,14 +2,14 @@
  *
  * @file codelets.h
  *
- * @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.1.0
+ * @version 6.3.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Ian Masliah
- * @date 2020-01-06
+ * @date 2021-10-18
  *
  * Macro helper to define the static codelet structures used to submit the tasks.
  *

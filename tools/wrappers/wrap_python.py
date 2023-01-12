@@ -7,15 +7,15 @@ Wrapper Python
 
  PaStiX generator for the python wrapper
 
- @copyright 2017-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.1
+ @version 6.3.0
  @author Mathieu Faverge
  @author Tony Delarue
  @author Esragul Korkmaz
  @author Selmane Lebdaoui
- @date 2022-07-07
+ @date 2022-09-27
 
 """
 import os
@@ -113,7 +113,7 @@ class wrap_python:
  @copyright 2017-''' + time.strftime( "%Y" ) + ''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.1
+ @version 6.3.0
  @author Pierre Ramet
  @author Mathieu Faverge
  @author Tony Delarue

@@ -4,15 +4,15 @@
  *
  * PaStiX order functions to read/write the order structure from/to the disk.
  *
- * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.3
+ * @version 6.3.0
  * @author Francois Pellegrini
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Mathieu Faverge
- * @date 2019-11-12
+ * @date 2022-06-29
  *
  **/
 #include "common.h"

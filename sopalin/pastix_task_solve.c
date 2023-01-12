@@ -4,17 +4,17 @@
  *
  *  PaStiX solve routines
  *
- * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Pascal Henon
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Alycia Lisito
- * @date 2022-12-05
+ * @date 2022-12-14
  *
  **/
 #define _GNU_SOURCE 1

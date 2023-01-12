@@ -1,12 +1,12 @@
 ###
 #
 #  @file scotch64.rb
-#  @copyright 2020-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2020-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @brief Homebrew formula for Scotch
 #
-#  @version 6.2.1
+#  @version 6.3.0
 #  @author Pierre Ramet
 #  @date 2022-04-06
 #

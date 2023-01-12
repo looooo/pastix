@@ -4,17 +4,17 @@
  *
  * PaStiX analyse blend subtask function
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Pascal Henon
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2021-07-01
+ * @date 2022-08-24
  *
  **/
 #include "common.h"

@@ -2,17 +2,17 @@
  *
  * @file datatypes.h
  *
- * @copyright 2013-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * Definitions of the datatypes used in PaStiX
  *
- * @version 6.2.0
+ * @version 6.3.0
  * @author Mathieu Faverge
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Tony Delarue
- * @date 2021-01-25
+ * @date 2022-09-23
  *
  */
 #ifndef _pastix_datatypes_h_

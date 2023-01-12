@@ -3,14 +3,14 @@
 !>
 !> PaStiX fortran 90 wrapper to define enums and datatypes
 !>
-!> @copyright 2017-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+!> @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !>                      Univ. Bordeaux. All rights reserved.
 !>
-!> @version 6.2.1
+!> @version 6.3.0
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2022-09-27
+!> @date 2022-09-28
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>

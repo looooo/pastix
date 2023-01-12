@@ -7,10 +7,10 @@ Wrapper Julia
 
  PaStiX generator for the  wrapper
 
- @copyright 2019-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2019-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.1
+ @version 6.3.0
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
@@ -98,7 +98,7 @@ class wrap_julia:
  @copyright 2020-''' + time.strftime( "%Y" ) + ''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.1
+ @version 6.3.0
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue

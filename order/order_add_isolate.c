@@ -4,14 +4,14 @@
  *
  * PaStiX order routines to add subset of isolated vertices.
  *
- * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.1.0
+ * @version 6.3.0
  * @author Xavier Lacoste
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2019-11-12
+ * @date 2022-09-05
  *
  **/
 #include "common.h"

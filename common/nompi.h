@@ -5,14 +5,14 @@
  * PaStiX header to redefine all MPI keywords in order to allow compilation
  * without MPI.
  *
- * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.1.0
+ * @version 6.3.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
- * @date 2019-12-05
+ * @date 2022-06-29
  *
  **/
 #ifndef _nompi_h_

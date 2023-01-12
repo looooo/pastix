@@ -4,17 +4,17 @@
  *
  * PaStiX configuration parameters
  *
- * @copyright 2016-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Gregoire Pichon
  * @author Tony Delarue
  * @author Nolan Bredel
  * @author Tom Moenne-Loccoz
- * @date 2022-07-07
+ * @date 2022-10-18
  *
  **/
 #ifndef _pastix_config_h_

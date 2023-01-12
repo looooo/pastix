@@ -4,14 +4,14 @@
  *
  * StarPU codelet for TRSM function
  *
- * @copyright 2016-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Vincent Bridonneau
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2021-06-21
+ * @date 2021-09-01
  *
  * @precisions normal z -> z c d s
  *

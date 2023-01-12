@@ -3,10 +3,10 @@
 
  Python PaStiX specific substitution rules for the Precision Generator script.
 
- @copyright 2019-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2019-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.1
+ @version 6.3.0
  @author Mathieu Faverge
  @author Esragul Korkmaz
  @author Tony Delarue

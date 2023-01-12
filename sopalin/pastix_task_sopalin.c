@@ -4,10 +4,10 @@
  *
  *  PaStiX factorization routines
  *
- * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Pascal Henon
  * @author Xavier Lacoste
  * @author Pierre Ramet
@@ -15,7 +15,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Theophile Terraz
- * @date 2022-07-07
+ * @date 2022-09-23
  *
  **/
 #include "common.h"

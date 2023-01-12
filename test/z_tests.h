@@ -4,13 +4,13 @@
  *
  * Tests functions header.
  *
- * @copyright 2018-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2018-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Gregoire Pichon
  * @author Mathieu Faverge
- * @date 2022-10-06
+ * @date 2022-11-03
  *
  * @precisions normal z -> z c d s
  *

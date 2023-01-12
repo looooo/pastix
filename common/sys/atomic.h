@@ -4,12 +4,12 @@
  *
  * @copyright 2009-2012 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
- * @copyright 2014-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2014-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.1.0
+ * @version 6.3.0
  * @author Mathieu Faverge
- * @date 2019-11-12
+ * @date 2022-10-18
  *
  **/
 #ifndef _pastix_atomic_h_

@@ -3,12 +3,12 @@
 
  Declaration of the iparm parameters.
 
- @copyright 2021-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2021-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.1
+ @version 6.3.0
  @author Tony Delarue
- @date 2022-08-02
+ @date 2022-08-06
 
  This file allows us to generate:
       - Documentation files

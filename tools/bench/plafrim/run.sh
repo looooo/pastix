@@ -2,13 +2,13 @@
 #
 #  @file run.sh
 #
-#  @copyright 2016-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.2.1
+#  @version 6.3.0
 #  @author Tony Delarue
 #  @author Florent Pruvost
-#  @date 2021-07-19
+#  @date 2022-08-09
 #
 # This script build the correct environment to benchmark PaStiX.
 #

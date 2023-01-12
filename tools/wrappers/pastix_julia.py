@@ -7,13 +7,13 @@ Wrapper Julia
 
  PaStiX Julia wrapper variables
 
- @copyright 2017-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 1.1.0
+ @version 6.3.0
  @author Mathieu Faverge
  @author Tony Delarue
- @date 2021-04-04
+ @date 2022-09-27
 
 """
 filename_prefix = "wrappers/julia/PaStiX/src/"

@@ -4,12 +4,12 @@
  Generate the pastix_completion.bash script that allows auto-completion
  of pastix execution.
 
- @copyright 2021-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2021-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.2.1
+ @version 6.3.0
  @author Tony Delarue
- @date 2021-10-13
+ @date 2021-10-19
 
 """
 import generation_utils as gu

@@ -4,16 +4,16 @@
  *
  * Mixed-Precision dependent coeficient array initialization routines.
  *
- * @copyright 2015-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Esragul Korkmaz
  * @author Brieuc Nicolas
- * @date 2022-08-06
+ * @date 2022-10-18
  *
  * @precisions mixed zc -> ds
  *

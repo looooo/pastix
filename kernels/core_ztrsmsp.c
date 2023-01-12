@@ -4,16 +4,16 @@
  *
  * PaStiX kernel routines
  *
- * @copyright 2012-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.3.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
- * @date 2021-03-30
+ * @date 2021-08-25
  * @precisions normal z -> c d s
  *
  **/

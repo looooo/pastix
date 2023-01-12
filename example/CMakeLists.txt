@@ -1,15 +1,15 @@
 ###
 #
-#  @copyright 2013-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.2.0
+#  @version 6.3.0
 #  @author Mathieu Faverge
 #  @author Gregoire Pichon
 #  @author Matias Hastaran
 #  @author Pierre Ramet
 #  @author Tony Delarue
-#  @date 2021-03-30
+#  @date 2022-12-05
 #
 ###
 include(GenPkgConfig)

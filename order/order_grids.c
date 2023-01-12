@@ -4,13 +4,13 @@
  *
  * PaStiX order grids routines
  *
- * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.0
+ * @version 6.3.0
  * @author Gregoire Pichon
  * @author Mathieu Faverge
- * @date 2021-01-03
+ * @date 2022-06-29
  *
  **/
 #include "common.h"

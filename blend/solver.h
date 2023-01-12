@@ -3,10 +3,10 @@
  *
  * PaStiX solver structure header.
  *
- * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author David Goudin
  * @author Pascal Henon
  * @author Francois Pellegrini
@@ -16,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2022-08-02
+ * @date 2022-09-23
  *
  **/
 #ifndef _solver_h_

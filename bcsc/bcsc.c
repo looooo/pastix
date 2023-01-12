@@ -2,17 +2,17 @@
  *
  * @file bcsc.c
  *
- * @copyright 2004-2022 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.2.1
+ * @version 6.3.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Theophile Terraz
  * @author Tony Delarue
  * @author Alycia Lisito
- * @date 2022-10-11
+ * @date 2023-01-11
  *
  **/
 #include "common.h"
