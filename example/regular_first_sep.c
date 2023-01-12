@@ -1,5 +1,5 @@
 /**
- * @file examples/regular_first_sep.c
+ * @file example/regular_first_sep.c
  *
  * @brief Set by hand the first separator (for regular cube only).
  *
