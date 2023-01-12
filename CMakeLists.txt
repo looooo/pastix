@@ -1009,6 +1009,7 @@ add_documented_files(
   docs/doxygen/chapters/Pastix_Runtime.md
   docs/doxygen/chapters/Pastix_GPU.md
   docs/doxygen/chapters/How_PaStiX_GPU.md
+  docs/doxygen/chapters/Pastix_Guide.md
   docs/doxygen/chapters/Pastix_benchmarking.md
   docs/doxygen/chapters/Pastix_Python.md
   tools/binding_for_multimpi.c
@@ -1025,6 +1026,7 @@ add_documented_files(
   graph/graph.c
   graph/graph_compute_kway.c
   graph/graph_compute_projection.c
+  graph/graph_connected_components.c
   graph/graph_io.c
   graph/graph_isolate.c
   graph/graph_prepare.c
@@ -1063,6 +1065,7 @@ add_documented_files(
   symbol/symbol_cost_flops.c
   symbol/symbol_cost_perfs.c
   symbol/symbol_draw.c
+  symbol/symbol_draw_map.c
   symbol/symbol_expand.c
   #symbol/symbol_fax.c Not documented: template file
   symbol/symbol_fax_direct.c
@@ -1121,6 +1124,7 @@ add_documented_files(
   #
   sopalin/coeftab.h
   sopalin/coeftab.c
+  sopalin/diag.c
   sopalin/schur.c
   sopalin/pastix.c
   sopalin/pastix_rhs.c
