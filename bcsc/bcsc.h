@@ -29,17 +29,24 @@
 typedef enum bcsc_tag_ {
     PastixTagCountA,
     PastixTagCountAt,
+    PastixTagCountAAt,
     PastixTagIndexesA,
     PastixTagIndexesAt,
+    PastixTagIndexesAAt,
     PastixTagValuesA,
     PastixTagValuesAt,
+    PastixTagValuesAAt,
     PastixTagMemSendIdx,
     PastixTagMemRecvIdx,
     PastixTagMemSend,
+    PastixTagMemRecvAAt,
     PastixTagMemSendValA,
     PastixTagMemSendValAt,
+    PastixTagMemSendValAAt,
     PastixTagMemRecvIdxA,
     PastixTagMemRecvIdxAt,
+    PastixTagMemRecvIdxAAt,
+    PastixTagMemRecvValAAt,
 } bcsc_tag_e;
 
 /**
@@ -54,7 +61,7 @@ typedef struct bcsc_data_amount_s
 /**
  * @brief Information about the sending data.
  */
-typedef struct bcsc_send_comm_s
+typedef struct bcsc_exch_comm_s
 {
     bcsc_data_amount_t  size;   /**< Amount of indexes of A which will be send to clustnum.             */
     pastix_int_t       *idxbuf; /**< Array of indexes of A to send to clustnum.                         */
@@ -63,17 +70,19 @@ typedef struct bcsc_send_comm_s
     void               *valbuf; /**< Array of values of A to send to clustnum.                          */
                                 /*   values_A is sorted the same way as the indexes_A, for each indexes */
                                 /*   there are dofi*dofj values.                                        */
-} bcsc_send_proc_t;
+} bcsc_exch_comm_t;
 
 /**
  * @brief Informations of the data exchanged with other processors.
  */
 typedef struct bcsc_proc_comm_s
 {
-    bcsc_send_proc_t   sendA;  /**< Sending data of A.   */
-    bcsc_send_proc_t   sendAt; /**< Sending data of At.  */
-    bcsc_data_amount_t recvA;  /**< Receving data of A.  */
-    bcsc_data_amount_t recvAt; /**< Receving data of At. */
+    bcsc_exch_comm_t   sendA;   /**< Sending data of A.         */
+    bcsc_exch_comm_t   sendAt;  /**< Sending data of At.        */
+    bcsc_exch_comm_t   sendAAt; /**< Sending data of A and At.  */
+    bcsc_data_amount_t recvA;   /**< Receving data of A.        */
+    bcsc_data_amount_t recvAt;  /**< Receving data of At.       */
+    bcsc_exch_comm_t   recvAAt; /**< Receving data of A and At. */
 } bcsc_proc_comm_t;
 
 /**

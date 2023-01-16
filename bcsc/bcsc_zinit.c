@@ -50,6 +50,27 @@ __fct_conj( pastix_complex64_t val ) {
  * @brief Stores the data the current processor has to send to the other processors
  *        in the bcsc_comm structure.
  *
+ * There are two cases:
+ *
+ *  - If the matrix is general: the full columns and rows of the blocks are stored
+ *    in Lvalues and Uvalues.
+ *    The local data of the current process which are in remote blocks after
+ *    the permutation need be to sent to the owner process. The data is stored
+ *    in sendA if it is sent for the column only, in sendAt if it is sent for
+ *    the row only and in sendAAt if it is sent for the row and column.
+ *
+ *  - If the matrix is Symmetric or Hermitian: only the full columns of the blocks
+ *    are stored in Lvalues (and Uvalues = Lvalues). Only half of the spm is
+ *    stored lower (or upper) triangular half, therefore we need to duplicate
+ *    the lower (or upper) data to fill the upper (or lower half of the matrix
+ *    in the blocks.
+ *    The local data of the current process which are in remote blocks after
+ *    the permutation need be to sent to the owner process. The data is stored
+ *    in sendA if it is sent for the lower (or upper) half or the column, in
+ *    sendAt if it is sent for the upper (or lower) half of the column and in
+ *    sendAAt if it is sent for both the lower and upper half of the column.
+ *    The diagonal values are stored in sendA only.
+ *
  *******************************************************************************
  *
  * @param[in] spm
@@ -81,109 +102,174 @@ bcsc_zstore_data( const spmatrix_t     *spm,
     pastix_int_t        dof       = spm->dof;
     bcsc_proc_comm_t   *data_comm = bcsc_comm->data_comm;
     pastix_int_t        clustnbr  = bcsc_comm->clustnbr;
-    int                 sym       = (spm->mtxtype == SpmSymmetric) ||
-                                    (spm->mtxtype == SpmHermitian);
-    pastix_int_t        k, j, ig, jg, ip, jp, ipe, jpe;
-    pastix_int_t        itercblk_A, itercblk_At, baseval;
-    pastix_int_t        dofi, dofj, c;
-    bcsc_send_proc_t   *data_send;
-    bcsc_data_amount_t *data_cntA, *data_cntAt;
+    pastix_int_t        il, jl, ig, jg, igp, jgp, igpe, jgpe;
+    pastix_int_t        ownerj, owneri, baseval;
+    pastix_int_t        dofi, dofj, frow, lrow;
+    bcsc_exch_comm_t   *data_sendA, *data_sendAt, *data_sendAAt;
+    bcsc_data_amount_t *data_cntA, *data_cntAt, *data_cntAAt;
+    int                 sym = (spm->mtxtype == SpmSymmetric) || (spm->mtxtype == SpmHermitian);
 
-    /* Allocates the indexes and values buffers. */
+    /* Allocates the sending indexes and values buffers. */
     bcsc_allocate_buf( bcsc_comm, PastixTagMemSend );
 
     /*
-     * Allocates and initialises the counters used to fill bcsc_comm->values
-     * and bcsc_comm->indexes.
+     * Allocates and initialises the counters used to fill the values
+     * and indexes buffers.
      */
-    MALLOC_INTERN( data_cntA, 2 * clustnbr, bcsc_data_amount_t );
-    memset( data_cntA, 0, 2 * clustnbr * sizeof(bcsc_data_amount_t) );
-    data_cntAt = data_cntA + clustnbr;
+    MALLOC_INTERN( data_cntA, 3 * clustnbr, bcsc_data_amount_t );
+    memset( data_cntA, 0, 3 * clustnbr * sizeof(bcsc_data_amount_t) );
+    data_cntAt  = data_cntA + clustnbr;
+    data_cntAAt = data_cntA + clustnbr * 2;
 
     baseval = spm->baseval;
-    /*
-     * Initializes the values of the matrix A in the blocked csc format. This
-     * applies the permutation to the values array.
-     *
-     * Goes through the columns of the spm.
-     * j is the initial local column index.
-     * jg is the initial global column index.
-     * jp is the "new" jg index -> the one resulting from the permutation.
-     * jpe is the final index in the expanded matrix after permutation.
-     */
-    for ( j = 0; j < spm->n; j++, colptr++, loc2glob++ ) {
+
+    /* Goes through the columns of spm. */
+    for ( jl = 0; jl < spm->n; jl++, colptr++, loc2glob++ ) {
         jg   = *loc2glob - baseval;
-        jp   = ord->permtab[jg];
-        jpe  = ( dof > 0 ) ? jp * dof : dofs[ jg ] - baseval;
+        jgp  = ord->permtab[jg];
+        jgpe = ( dof > 0 ) ? jgp * dof : dofs[ jg ] - baseval;
         dofj = ( dof > 0 ) ? dof : dofs[ jg+1 ] - dofs[ jg ];
 
-        itercblk_A = col2cblk[ jpe ];
+        frow = colptr[0] - baseval;
+        lrow = colptr[1] - baseval;
+        assert( (lrow - frow) >= 0 );
 
-        /*
-         * Goes through the row of the column j.
-         * ig is the initial global row index (for the row index local = global).
-         * ip is the "new" ig index -> the one resulting from the permutation.
-         * ipe is the final index in the expanded matrix after permutation.
-         */
-        for ( k = colptr[0]; k < colptr[1]; k++, rowptr++ ) {
-            ig   = *rowptr - baseval;
-            ip   = ord->permtab[ig];
-            ipe  = ( dof > 0 ) ? ip * dof : dofs[ ig ] - baseval;
-            dofi = ( dof > 0 ) ? dof : dofs[ ig+1 ] - dofs[ ig ];
+        ownerj = col2cblk[ jgpe ];
 
-            /* The block of the column jp does not belong to the current processor. */
-            if ( itercblk_A < 0 ) {
-                /* Gets the owner of the block. */
-                c         = - ( itercblk_A + 1 );
-                data_comm = bcsc_comm->data_comm + c;
-                data_send = &( data_comm->sendA );
+        /* The column jp belongs to another process. */
+        if ( ownerj < 0 ) {
+            ownerj     = - ownerj - 1;
+            data_comm  = bcsc_comm->data_comm + ownerj;
+            data_sendA = &( data_comm->sendA );
 
-                /* Stores the indexes to send to c: (ip, jp). */
-                data_send->idxbuf[data_cntA[c].idxcnt  ] = ip;
-                data_send->idxbuf[data_cntA[c].idxcnt+1] = jp;
-                data_cntA[c].idxcnt += 2;
+            /* Goes through the rows of jl. */
+            for ( il = frow; il < lrow; il++ ) {
+                ig     = rowptr[il] - baseval;
+                igp    = ord->permtab[ig];
+                igpe   = ( dof > 0 ) ? igp * dof : dofs[ ig ] - baseval;
+                dofi   = ( dof > 0 ) ? dof : dofs[ ig+1 ] - dofs[ ig ];
+                owneri = col2cblk[ igpe ];
 
                 /*
-                 * Stores the values to send to c:
-                 * dofi values in the row ip.
-                 * dofj values in the column jp.
+                 * The diagonal values (ip, jp) belong to the same process.
+                 * They are sent to owneri in the sym case for A only.
                  */
-                values_c = ((pastix_complex64_t*)(data_send->valbuf)) + data_cntA[c].valcnt;
+                if ( sym && ( ig == jg ) ) {
+                    data_sendA->idxbuf[data_cntA[ownerj].idxcnt  ] = igp;
+                    data_sendA->idxbuf[data_cntA[ownerj].idxcnt+1] = jgp;
+                    data_cntA[ownerj].idxcnt += 2;
 
-                memcpy( values_c, values, dofi * dofj * sizeof(pastix_complex64_t) );
-                data_cntA[c].valcnt += dofi * dofj;
-            }
+                    values_c = ((pastix_complex64_t*)(data_sendA->valbuf)) + data_cntA[ownerj].valcnt;
+                    memcpy( values_c, values, dofi * dofj * sizeof(pastix_complex64_t) );
+                    data_cntA[ownerj].valcnt += dofi * dofj;
 
-            itercblk_At = col2cblk[ ipe ];
-            /* The block of the row ip does not belong to the current processor. */
-            if ( itercblk_At < 0 ) {
-                if ( sym && ( ip == jp ) ) {
                     values += dofi * dofj;
                     continue;
                 }
-                /* Gets the owner of the block. */
-                c         = - ( itercblk_At + 1 );
-                data_comm = bcsc_comm->data_comm + c;
-                data_send = &( data_comm->sendAt );
 
-                /* Stores the indexes to send to c: (jp, ip). */
-                data_send->idxbuf[data_cntAt[c].idxcnt  ] = ip;
-                data_send->idxbuf[data_cntAt[c].idxcnt+1] = jp;
-                data_cntAt[c].idxcnt += 2;
+                /* The row ip belongs to another process. */
+                if ( owneri < 0 ) {
+                    owneri    = - owneri - 1;
+                    data_comm = bcsc_comm->data_comm + owneri;
+
+                    /*
+                     * The diagonal values (ip, jp) belong to the same process.
+                     * They are sent to owneri for AAt in the general cae.
+                     */
+                    if ( owneri == ownerj ) {
+                        data_sendAAt = &( data_comm->sendAAt );
+
+                        data_sendAAt->idxbuf[data_cntAAt[ownerj].idxcnt  ] = igp;
+                        data_sendAAt->idxbuf[data_cntAAt[ownerj].idxcnt+1] = jgp;
+                        data_cntAAt[ownerj].idxcnt += 2;
+
+                        values_c = ((pastix_complex64_t*)(data_sendAAt->valbuf)) + data_cntAAt[ownerj].valcnt;
+                        memcpy( values_c, values, dofi * dofj * sizeof(pastix_complex64_t) );
+                        data_cntAAt[ownerj].valcnt += dofi * dofj;
+                    }
+                    /*
+                     * The values (ip, jp) belong to different processes.
+                     * They are sent to owneri for At and to ownerj for A.
+                     */
+                    else {
+                        data_sendAt = &( data_comm->sendAt );
+
+                        data_sendAt->idxbuf[data_cntAt[owneri].idxcnt  ] = igp;
+                        data_sendAt->idxbuf[data_cntAt[owneri].idxcnt+1] = jgp;
+                        data_cntAt[owneri].idxcnt += 2;
+
+                        values_c = ((pastix_complex64_t*)(data_sendAt->valbuf)) + data_cntAt[owneri].valcnt;
+                        memcpy( values_c, values, dofi * dofj * sizeof(pastix_complex64_t) );
+                        data_cntAt[owneri].valcnt += dofi * dofj;
+
+                        data_sendA->idxbuf[data_cntA[ownerj].idxcnt  ] = igp;
+                        data_sendA->idxbuf[data_cntA[ownerj].idxcnt+1] = jgp;
+                        data_cntA[ownerj].idxcnt += 2;
+
+                        values_c = ((pastix_complex64_t*)(data_sendA->valbuf)) + data_cntA[ownerj].valcnt;
+                        memcpy( values_c, values, dofi * dofj * sizeof(pastix_complex64_t) );
+                        data_cntA[ownerj].valcnt += dofi * dofj;
+                    }
+                }
+                /* The row ip is local. */
+                else {
+                    /*
+                     * The values (ip, jp) belong to ownerj.
+                     * They are sent to ownerj for A.
+                     */
+                    data_sendA->idxbuf[data_cntA[ownerj].idxcnt  ] = igp;
+                    data_sendA->idxbuf[data_cntA[ownerj].idxcnt+1] = jgp;
+                    data_cntA[ownerj].idxcnt += 2;
+
+                    values_c = ((pastix_complex64_t*)(data_sendA->valbuf)) + data_cntA[ownerj].valcnt;
+                    memcpy( values_c, values, dofi * dofj * sizeof(pastix_complex64_t) );
+                    data_cntA[ownerj].valcnt += dofi * dofj;
+                }
+                values += dofi * dofj;
+            }
+        }
+        /* The column jp is local. */
+        else {
+            /* Goes through the rows of j. */
+            for ( il = frow; il < lrow; il++ ) {
+                ig     = rowptr[il] - baseval;
+                igp    = ord->permtab[ig];
+                igpe   = ( dof > 0 ) ? igp * dof : dofs[ ig ] - baseval;
+                dofi   = ( dof > 0 ) ? dof : dofs[ ig+1 ] - dofs[ ig ];
+                owneri = col2cblk[ igpe ];
 
                 /*
-                 * Stores the values to send to c:
-                 * dofi values in the row ip.
-                 * dofj values in the column jp.
+                 * The diagonal values (ip, jp) have already been
+                 * added to globcol in the sym case.
                  */
-                values_c = ((pastix_complex64_t*)(data_send->valbuf)) + data_cntAt[c].valcnt;
+                if ( sym && ( ig == jg ) ) {
+                    values += dofi * dofj;
+                    continue;
+                }
 
-                memcpy( values_c, values, dofi * dofj * sizeof(pastix_complex64_t) );
-                data_cntAt[c].valcnt += dofi * dofj;
+                /* The row ip belongs to another process. */
+                if ( owneri < 0 ) {
+                    owneri    = - owneri - 1;
+                    data_comm = bcsc_comm->data_comm + owneri;
+                    data_sendAt = &( data_comm->sendAt );
+
+                    /*
+                     * The values (ip, jp) belong to owneri.
+                     * They are sent to ownerj for At.
+                     */
+                    data_sendAt->idxbuf[data_cntAt[owneri].idxcnt  ] = igp;
+                    data_sendAt->idxbuf[data_cntAt[owneri].idxcnt+1] = jgp;
+                    data_cntAt[owneri].idxcnt += 2;
+
+                    values_c = ((pastix_complex64_t*)(data_sendAt->valbuf)) + data_cntAt[owneri].valcnt;
+                    memcpy( values_c, values, dofi * dofj * sizeof(pastix_complex64_t) );
+                    data_cntAt[owneri].valcnt += dofi * dofj;
+                }
+                values += dofi * dofj;
             }
-            values += dofi * dofj;
         }
     }
+
     memFree_null( data_cntA );
 }
 
@@ -220,6 +306,9 @@ bcsc_zstore_data( const spmatrix_t     *spm,
  * @param[in] idx_size
  *          The number of indexes corresponding to the values_buf.
  *
+ * @param[in] AAt
+ *          TODO
+ *
  *******************************************************************************/
 static inline pastix_int_t
 bcsc_zhandle_recv_A( const spmatrix_t     *spm,
@@ -228,20 +317,22 @@ bcsc_zhandle_recv_A( const spmatrix_t     *spm,
                      pastix_bcsc_t        *bcsc,
                      pastix_complex64_t   *values_buf,
                      pastix_int_t          idx_cnt,
-                     pastix_int_t          idx_size )
+                     pastix_int_t          idx_size,
+                     pastix_int_t          AAt )
 {
     bcsc_handle_comm_t *bcsc_comm = bcsc->bcsc_comm;
     pastix_int_t       *dofs = spm->dofs;
     pastix_int_t        dof  = spm->dof;
     SolverCblk         *cblk;
     pastix_int_t       *coltab;
-    pastix_int_t        k, ip, jp, ig, jg, ipe, jpe;
+    pastix_int_t        k, igp, jgp, ig, jg, igpe, jgpe;
     pastix_int_t        itercblk;
     pastix_int_t        idofi, idofj, dofi, dofj;
     pastix_int_t        colidx, rowidx, pos;
     pastix_int_t        clustnum = bcsc_comm->clustnum;
     pastix_complex64_t *Values   = bcsc->Lvalues;
-    pastix_int_t       *indexes  = bcsc_comm->data_comm[clustnum].sendA.idxbuf;
+    pastix_int_t       *indexes  = ( AAt == 0 ) ? bcsc_comm->data_comm[clustnum].sendA.idxbuf :
+                                                  bcsc_comm->data_comm[clustnum].sendAAt.idxbuf;
     pastix_int_t        nbelt    = 0;
 
     /*
@@ -250,36 +341,35 @@ bcsc_zhandle_recv_A( const spmatrix_t     *spm,
      */
     indexes += idx_cnt;
     for ( k = 0; k < idx_size; k+=2, indexes+=2 ) {
-        /* Gets received indexes jp and ip. */
-        ip = indexes[0];
-        jp = indexes[1];
+        /* Gets received indexes jgp and igp. */
+        igp = indexes[0];
+        jgp = indexes[1];
 
-        /* Gets dofi and dofj with ig and jg. */
-        ig   = ord->peritab[ip];
-        jg   = ord->peritab[jp];
-        ipe  = (dof > 0) ? ip * dof : dofs[ ig ] - spm->baseval;
-        jpe  = (dof > 0) ? jp * dof : dofs[ jg ] - spm->baseval;
+        ig   = ord->peritab[igp];
+        jg   = ord->peritab[jgp];
+        igpe = (dof > 0) ? igp * dof : dofs[ ig ] - spm->baseval;
+        jgpe = (dof > 0) ? jgp * dof : dofs[ jg ] - spm->baseval;
         dofi = (dof > 0) ? dof : dofs[ig+1] - dofs[ig];
         dofj = (dof > 0) ? dof : dofs[jg+1] - dofs[jg];
 
-        itercblk = bcsc->col2cblk[ jpe ];
+        itercblk = bcsc->col2cblk[ jgpe ];
         assert( itercblk >= 0 );
 
         /* Gets the block on which the data received will be added. */
         cblk   = solvmtx->cblktab + itercblk;
         coltab = bcsc->cscftab[cblk->bcscnum].coltab;
 
-        /* Goes through the values at (ip, jp). */
-        colidx = jpe - cblk->fcolnum;
+        /* Goes through the values at (igp, jgp). */
+        colidx = jgpe - cblk->fcolnum;
         for ( idofj = 0; idofj < dofj; idofj++, colidx++ ) {
-            rowidx = ipe;
+            rowidx = igpe;
             pos    = coltab[ colidx ];
             for ( idofi = 0; idofi < dofi; idofi++, rowidx++, pos++, values_buf++ ) {
-                /* Adds the row ip. */
+                /* Adds the row igp. */
                 assert( rowidx >= 0 );
                 assert( rowidx < spm->gNexp );
                 bcsc->rowtab[ pos ] = rowidx;
-                /* Adds the data at row ip and column jp. */
+                /* Adds the data at row igp and column jgp. */
                 Values[ pos ]       = *values_buf;
                 nbelt++;
             }
@@ -327,6 +417,9 @@ bcsc_zhandle_recv_A( const spmatrix_t     *spm,
  * @param[in] idx_size
  *          The number of indexes corresponding to the values_buf.
  *
+ * @param[in] AAt
+ *          TODO
+ *
  *******************************************************************************/
 static inline pastix_int_t
 bcsc_zhandle_recv_At( const spmatrix_t     *spm,
@@ -336,24 +429,26 @@ bcsc_zhandle_recv_At( const spmatrix_t     *spm,
                       pastix_bcsc_t        *bcsc,
                       pastix_complex64_t   *values_buf,
                       pastix_int_t          idx_cnt,
-                      pastix_int_t          idx_size )
+                      pastix_int_t          idx_size,
+                      pastix_int_t          AAt )
 {
     bcsc_handle_comm_t *bcsc_comm = bcsc->bcsc_comm;
     pastix_int_t       *dofs = spm->dofs;
     pastix_int_t        dof  = spm->dof;
     SolverCblk         *cblk;
     pastix_int_t       *coltab;
-    pastix_int_t        k, ip, jp, ig, jg, ipe, jpe;
+    pastix_int_t        k, igp, jgp, ig, jg, igpe, jgpe;
     pastix_int_t        itercblk;
     pastix_int_t        idofi, idofj, dofi, dofj;
     pastix_int_t        colidx, rowidx, pos;
     pastix_int_t        clustnum = bcsc_comm->clustnum;
-    pastix_int_t       *indexes  = bcsc_comm->data_comm[clustnum].sendAt.idxbuf;
+    pastix_int_t       *indexes  = ( AAt == 0 ) ? bcsc_comm->data_comm[clustnum].sendAt.idxbuf :
+                                                  bcsc_comm->data_comm[clustnum].sendAAt.idxbuf;
     pastix_complex64_t *Values;
     pastix_complex64_t (*_bcsc_conj)(pastix_complex64_t) = __fct_id;
     pastix_int_t        nbelt     = 0;
 
-    /* Gets the right values in which the data will be added. */
+    /* Gets the Uvalues in the general case and the Lvalues in the sym case. */
     if ( spm->mtxtype == SpmGeneral ) {
         _bcsc_conj = __fct_id;
         Values = (pastix_complex64_t*)(bcsc->Uvalues);
@@ -374,39 +469,36 @@ bcsc_zhandle_recv_At( const spmatrix_t     *spm,
      */
     indexes += idx_cnt;
     for ( k = 0; k < idx_size; k+=2, indexes+=2 ) {
-        /* Gets received indexes ip and jp. */
-        ip = indexes[0];
-        jp = indexes[1];
+        /* Gets received indexes igp and jgp. */
+        igp = indexes[0];
+        jgp = indexes[1];
 
-        /* Gets dofi and dofj with ig and jg. */
-        ig = ord->peritab[ip];
-        jg = ord->peritab[jp];
-        ipe  = (dof > 0) ? ip * dof : dofs[ ig ] - spm->baseval;
-        jpe  = (dof > 0) ? jp * dof : dofs[ jg ] - spm->baseval;
+        ig   = ord->peritab[igp];
+        jg   = ord->peritab[jgp];
+        igpe = (dof > 0) ? igp * dof : dofs[ ig ] - spm->baseval;
+        jgpe = (dof > 0) ? jgp * dof : dofs[ jg ] - spm->baseval;
         dofi = (dof > 0) ? dof : dofs[ig+1] - dofs[ig];
         dofj = (dof > 0) ? dof : dofs[jg+1] - dofs[jg];
 
-        itercblk = bcsc->col2cblk[ ipe ];
+        itercblk = bcsc->col2cblk[ igpe ];
         assert( itercblk >= 0 );
 
         /* Gets the block on which the data received will be added. */
         cblk   = solvmtx->cblktab + itercblk;
         coltab = bcsc->cscftab[cblk->bcscnum].coltab;
 
-        /* Goes through the values at (ip, jp). */
+        /* Goes through the values at (igp, jgp). */
         for ( idofj = 0; idofj < dofj; idofj++ ) {
-            /* Gets the column ip. */
-            rowidx = jpe + idofj;
-            colidx = ipe - cblk->fcolnum;
+            rowidx = jgpe + idofj;
+            colidx = igpe - cblk->fcolnum;
             for ( idofi = 0; idofi < dofi; idofi++, colidx++, values_buf++ ) {
                 pos = coltab[ colidx ];
-
-                /* Adds the row jp. */
+                /* Adds the row jgp. */
                 assert( rowidx >= 0 );
                 assert( rowidx < spm->gNexp );
                 rowtab[ pos ] = rowidx;
 
-                /* Adds the data at row jp and column ip. */
+                /* Adds the data at row jgp and column igp. */
                 Values[ pos ] = _bcsc_conj( *values_buf );
                 coltab[ colidx ] ++;
                 assert( coltab[colidx] <= coltab[colidx+1] );
@@ -414,6 +506,146 @@ bcsc_zhandle_recv_At( const spmatrix_t     *spm,
             }
         }
     }
+    return nbelt;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Adds the remote data of At to the bcsc structure.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering that needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure which describes the data distribution.
+ *
+ * @param[inout] rowtab
+ *          The row tab of the bcsc or the row tab associated to At.
+ *
+ * @param[inout] bcsc
+ *          On entry, the pointer to an allocated bcsc.
+ *          On exit, the bcsc fields are updated.
+ *
+ * @param[in] values_buf
+ *          The array containing the remote values.
+ *
+ * @param[in] idx_cnt
+ *          The index for the begining of the indexes array buffer
+ *          corresponding to the values_buf.
+ *
+ * @param[in] idx_size
+ *          The number of indexes corresponding to the values_buf.
+ *
+ *******************************************************************************/
+static inline pastix_int_t
+bcsc_zhandle_recv_AAt( const spmatrix_t     *spm,
+                       const pastix_order_t *ord,
+                       const SolverMatrix   *solvmtx,
+                       pastix_int_t         *rowtab,
+                       pastix_bcsc_t        *bcsc,
+                       pastix_complex64_t   *values_buf,
+                       pastix_int_t          idx_cnt,
+                       pastix_int_t          idx_size )
+{
+    bcsc_handle_comm_t *bcsc_comm = bcsc->bcsc_comm;
+    pastix_int_t       *dofs = spm->dofs;
+    pastix_int_t        dof  = spm->dof;
+    SolverCblk         *cblki, *cblkj;
+    pastix_int_t       *coltabi, *coltabj;
+    pastix_int_t        k, igp, jgp, ig, jg, igpe, jgpe;
+    pastix_int_t        itercblki, itercblkj;
+    pastix_int_t        idofi, idofj, dofi, dofj;
+    pastix_int_t        colj, rowj, posj;
+    pastix_int_t        coli, rowi, posi;
+    pastix_int_t        clustnum = bcsc_comm->clustnum;
+    pastix_int_t       *indexes  = bcsc_comm->data_comm[clustnum].sendAAt.idxbuf;
+    pastix_complex64_t *ValuesA, *ValuesAt;
+    pastix_complex64_t (*_bcsc_conj)(pastix_complex64_t) = __fct_id;
+    pastix_int_t        nbelt     = 0;
+
+    /* Gets the Uvalues in the general case and the Lvalues in the sym case. */
+    if ( spm->mtxtype == SpmGeneral ) {
+        _bcsc_conj = __fct_id;
+        ValuesAt = (pastix_complex64_t*)(bcsc->Uvalues);
+    }
+    else {
+        if( spm->mtxtype == SpmHermitian ) {
+            _bcsc_conj = __fct_conj;
+        }
+        if( spm->mtxtype == SpmSymmetric ) {
+            _bcsc_conj = __fct_id;
+        }
+        ValuesAt = (pastix_complex64_t*)(bcsc->Lvalues);
+    }
+    ValuesA = (pastix_complex64_t*)(bcsc->Lvalues);
+
+    /*
+     * Goes through the received indexes in order to add the data
+     * received.
+     */
+    indexes += idx_cnt;
+    for ( k = 0; k < idx_size; k+=2, indexes+=2 ) {
+        /* Gets received indexes igp and jgp. */
+        igp = indexes[0];
+        jgp = indexes[1];
+
+        ig   = ord->peritab[igp];
+        jg   = ord->peritab[jgp];
+        igpe = (dof > 0) ? igp * dof : dofs[ ig ] - spm->baseval;
+        jgpe = (dof > 0) ? jgp * dof : dofs[ jg ] - spm->baseval;
+        dofi = (dof > 0) ? dof : dofs[ig+1] - dofs[ig];
+        dofj = (dof > 0) ? dof : dofs[jg+1] - dofs[jg];
+
+        itercblki = bcsc->col2cblk[ igpe ];
+        itercblkj = bcsc->col2cblk[ jgpe ];
+        assert( itercblki >= 0 );
+        assert( itercblkj >= 0 );
+
+        /* Gets the block on which the data received will be added. */
+        cblki   = solvmtx->cblktab + itercblki;
+        cblkj   = solvmtx->cblktab + itercblkj;
+        coltabi = bcsc->cscftab[cblki->bcscnum].coltab;
+        coltabj = bcsc->cscftab[cblkj->bcscnum].coltab;
+
+        /* Goes through the values at (igp, jgp). */
+        colj = jgpe - cblkj->fcolnum;
+        for ( idofj = 0; idofj < dofj; idofj++ ) {
+            rowj = igpe;
+            posj = coltabj[ colj ];
+            rowi = jgpe + idofj;
+            coli = igpe - cblki->fcolnum;
+            for ( idofi = 0; idofi < dofi; idofi++, coli++, rowj++, posj++, values_buf++ ) {
+                posi = coltabi[ coli ];
+                /* Adds the row jgp /igp. */
+                assert( rowi >= 0 );
+                assert( rowj >= 0 );
+                assert( rowi < spm->gNexp );
+                assert( rowj < spm->gNexp );
+
+                rowtab[ posi ]       = rowi;
+                bcsc->rowtab[ posj ] = rowj;
+
+                /* Adds the data at row jgp and column igp. */
+                ValuesAt[ posi ] = _bcsc_conj( *values_buf );
+                ValuesA [ posj ] = *values_buf;
+                coltabi[ coli ] ++;
+                assert( coltabi[coli] <= coltabi[coli+1] );
+                nbelt++;
+            }
+            coltabj[ colj ] += dofi;
+            assert( coltabj[colj] <= coltabj[colj+1] );
+        }
+    }
+
     return nbelt;
 }
 
@@ -510,7 +742,7 @@ bcsc_zexchange_values_A( const spmatrix_t     *spm,
                       c_recv, PastixTagValuesA, bcsc_comm->comm, MPI_STATUS_IGNORE );
             idx_size = recvs->idxcnt;
             nbelt_recv += bcsc_zhandle_recv_A( spm, ord, solvmtx, bcsc,
-                                               val_buf, idx_cnt[c_recv], idx_size );
+                                               val_buf, idx_cnt[c_recv], idx_size, 0 );
         }
         c_recv = (c_recv-1+clustnbr) % clustnbr;
     }
@@ -620,7 +852,7 @@ bcsc_zexchange_values_At( const spmatrix_t     *spm,
                       c_recv, PastixTagValuesAt, bcsc_comm->comm, MPI_STATUS_IGNORE );
             idx_size = recvs->idxcnt;
             nbelt_recv += bcsc_zhandle_recv_At( spm, ord, solvmtx, rowtab, bcsc,
-                                                val_buf, idx_cnt[c_recv], idx_size );
+                                                val_buf, idx_cnt[c_recv], idx_size, 0 );
         }
         c_recv = (c_recv-1+clustnbr) % clustnbr;
     }
@@ -630,6 +862,155 @@ bcsc_zexchange_values_At( const spmatrix_t     *spm,
     assert( nbelt_recv == bcsc_comm->data_comm[clustnum].recvAt.valcnt );
     bcsc_free_buf( bcsc_comm, PastixTagMemSendValAt );
     bcsc_free_buf( bcsc_comm, PastixTagMemRecvIdxAt );
+    return nbelt_recv;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup bcsc_internal
+ *
+ * @brief Exchanges and stores the remote values of A.
+ *
+ *******************************************************************************
+ *
+ * @param[in] spm
+ *          The initial sparse matrix in the spm format.
+ *
+ * @param[in] ord
+ *          The ordering which needs to be applied on the spm to generate the
+ *          block csc.
+ *
+ * @param[in] solvmtx
+ *          The solver matrix structure which describes the data distribution.
+ *
+ * @param[inout] rowtab
+ *          The row tab of the bcsc or the row tab associated to At.
+ *
+ * @param[inout] bcsc
+ *          On entry, the pointer to an allocated bcsc.
+ *          On exit, the bcsc fields are updated with the remote values of A.
+ *
+ *******************************************************************************/
+static inline pastix_int_t
+bcsc_zexchange_values_AAt( const spmatrix_t     *spm,
+                           const pastix_order_t *ord,
+                           const SolverMatrix   *solvmtx,
+                           pastix_int_t         *rowtabAt,
+                           pastix_bcsc_t        *bcsc )
+{
+    bcsc_handle_comm_t *bcsc_comm   = bcsc->bcsc_comm;
+    pastix_int_t        clustnbr    = bcsc_comm->clustnbr;
+    pastix_int_t        clustnum    = bcsc_comm->clustnum;
+    bcsc_proc_comm_t   *data_comm   = bcsc_comm->data_comm;
+    bcsc_proc_comm_t   *data_send   = NULL;
+    bcsc_proc_comm_t   *data_recv   = NULL;
+    pastix_complex64_t *val_buf     = NULL;
+    pastix_int_t        idx_size    = 0;
+    pastix_int_t        counter_req = 0;
+    pastix_int_t        nbelt_recv  = 0;
+    pastix_int_t        cnt         = 0;
+    pastix_int_t        idx_cnt[clustnbr];
+    MPI_Status          statuses[clustnbr-1];
+    MPI_Request         requests[clustnbr-1];
+    bcsc_data_amount_t *sends;
+    bcsc_exch_comm_t   *recvs;
+    pastix_int_t        c_send, c_recv, k;
+
+    /* Allocates the receiving indexes and values buffers. */
+    if ( bcsc_comm->max_idx != 0 ) {
+        if ( spm->mtxtype != SpmGeneral ) {
+            MALLOC_INTERN( val_buf, bcsc_comm->max_val, pastix_complex64_t );
+        }
+        else {
+            if ( rowtabAt == bcsc->rowtab ) {
+                bcsc_allocate_buf( bcsc_comm, PastixTagMemRecvValAAt);
+            }
+        }
+    }
+
+    for ( k = 0; k < clustnbr; k++ ) {
+        if ( k == clustnum ) {
+            idx_cnt[k] = 0;
+            continue;
+        }
+        idx_cnt[ k ] = cnt;
+        cnt += data_comm[k].recvAAt.size.idxcnt;
+    }
+
+    /* Sends the values. */
+    c_send = (clustnum+1) % clustnbr;
+    for ( k = 0; k < clustnbr-1; k++ ) {
+        if ( rowtabAt != bcsc->rowtab ) {
+	        k = clustnbr;
+            continue;
+        }
+        data_send = data_comm + c_send;
+        sends     = &( data_send->sendAAt.size );
+        if ( c_send == clustnum ) {
+            continue;
+        }
+
+        /* Posts the emissions of the values. */
+        if ( sends->valcnt != 0 ) {
+            MPI_Isend( data_send->sendAAt.valbuf, sends->valcnt, PASTIX_MPI_COMPLEX64,
+                       c_send, PastixTagValuesAAt, bcsc_comm->comm, &requests[counter_req++] );
+        }
+	    c_send = (c_send+1) % clustnbr;
+    }
+
+    /* Receives the values. */
+    c_recv = (clustnum-1+clustnbr) % clustnbr;
+    for ( k = 0; k < clustnbr-1; k++ ) {
+        data_recv = data_comm + c_recv;
+        recvs     = &( data_recv->recvAAt );
+        if ( c_recv == clustnum ) {
+            continue;
+        }
+
+        /* Posts the receptions of the values. */
+        if ( recvs->size.valcnt != 0 ) {
+            if ( spm->mtxtype == SpmGeneral ) {
+                val_buf = recvs->valbuf;
+            }
+            if ( rowtabAt == bcsc->rowtab ) {
+                MPI_Recv( val_buf, recvs->size.valcnt, PASTIX_MPI_COMPLEX64,
+                        c_recv, PastixTagValuesAAt, bcsc_comm->comm, MPI_STATUS_IGNORE );
+            }
+            idx_size = recvs->size.idxcnt;
+
+            if ( spm->mtxtype != SpmGeneral ) {
+                nbelt_recv += bcsc_zhandle_recv_AAt( spm, ord, solvmtx, rowtabAt, bcsc,
+                                                     val_buf, idx_cnt[c_recv], idx_size );
+            }
+            else {
+                if ( rowtabAt == bcsc->rowtab ) {
+                    nbelt_recv += bcsc_zhandle_recv_A( spm, ord, solvmtx, bcsc, val_buf,
+                                                       idx_cnt[c_recv], idx_size, 1 );
+                }
+                else {
+                    nbelt_recv += bcsc_zhandle_recv_At( spm, ord, solvmtx, rowtabAt, bcsc,
+                                                        val_buf, idx_cnt[c_recv], idx_size, 1 );
+                }
+            }
+        }
+        c_recv = (c_recv-1+clustnbr) % clustnbr;
+    }
+
+    if ( rowtabAt == bcsc->rowtab ) {
+        MPI_Waitall( counter_req, requests, statuses );
+    }
+    if ( spm->mtxtype != SpmGeneral ) {
+        free( val_buf );
+    }
+    assert( nbelt_recv == bcsc_comm->data_comm[clustnum].recvAAt.size.valcnt );
+    if ( ( spm->mtxtype != SpmGeneral ) || ( rowtabAt != bcsc->rowtab ) ) {
+        bcsc_free_buf( bcsc_comm, PastixTagMemRecvIdxAAt );
+        bcsc_free_buf( bcsc_comm, PastixTagMemSendValAAt );
+    }
+    if ( ( spm->mtxtype == SpmGeneral ) && ( rowtabAt != bcsc->rowtab ) ) {
+        bcsc_free_buf( bcsc_comm, PastixTagMemRecvAAt );
+    }
     return nbelt_recv;
 }
 #endif
@@ -678,7 +1059,7 @@ bcsc_zinit_A( const spmatrix_t     *spm,
     pastix_int_t        nbelt    = 0;
     SolverCblk         *cblk;
     pastix_int_t       *coltab;
-    pastix_int_t        k, j, ig, jg, ip, jp, ipe, jpe;
+    pastix_int_t        k, j, ig, jg, igp, jgp, igpe, jgpe;
     pastix_int_t        itercblk, baseval;
     pastix_int_t        idofi, idofj, dofi, dofj;
     pastix_int_t        colidx, rowidx, pos;
@@ -691,21 +1072,21 @@ bcsc_zinit_A( const spmatrix_t     *spm,
      * Goes through the columns of the spm.
      * j is the initial local column index.
      * jg is the initial global column index.
-     * jp is the "new" jg index -> the one resulting from the permutation.
+     * jgpis the "new" jg index -> the one resulting from the permutation.
      */
     for ( j = 0; j < spm->n; j++, colptr++, loc2glob++ ) {
         jg   = ( spm->loc2glob == NULL ) ? j : *loc2glob - baseval;
-        jp   = ord->permtab[jg];
-        jpe  = ( dof > 0 ) ? jp * dof : dofs[ jg ] - baseval;
+        jgp  = ord->permtab[jg];
+        jgpe = ( dof > 0 ) ? jgp * dof : dofs[ jg ] - baseval;
         dofj = ( dof > 0 ) ? dof : dofs[ jg+1 ] - dofs[ jg ];
 
-        itercblk = bcsc->col2cblk[ jpe ];
+        itercblk = bcsc->col2cblk[ jgpe ];
 
         /*
          * If MPI is used in shared memory, the block can belong to another
-         * processor, in this case the column is skiped.
+         * processor, in this case the column is skigped.
          */
-        /* The block of the column jp belongs to the current processor. */
+        /* The block of the column jgpbelongs to the current processor. */
         if ( itercblk >= 0 ) {
             /* Gets the block in which the data will be added. */
             cblk   = solvmtx->cblktab + itercblk;
@@ -713,18 +1094,18 @@ bcsc_zinit_A( const spmatrix_t     *spm,
             /*
              * Goes through the row of the column j.
              * ig is the initial global row index (for the row index local = global).
-             * ip is the "new" ig index -> the one resulting from the permutation.
+             * igpis the "new" ig index -> the one resulting from the permutation.
              */
             for ( k = colptr[0]; k < colptr[1]; k++, rowptr++ ) {
                 ig   = *rowptr - baseval;
-                ip   = ord->permtab[ig];
-                ipe  = ( dof > 0 ) ? ip * dof : dofs[ ig ] - baseval;
+                igp  = ord->permtab[ig];
+                igpe = ( dof > 0 ) ? igp * dof : dofs[ ig ] - baseval;
                 dofi = ( dof > 0 ) ? dof : dofs[ ig+1 ] - dofs[ ig ];
 
-                /* Copies the values from element (ig, jg) to position (ipe, jpe) into expanded bcsc. */
-                colidx = jpe - cblk->fcolnum;
+                /* Copies the values from element (ig, jg) to position (igpe, jgpe) into expanded bcsc. */
+                colidx = jgpe - cblk->fcolnum;
                 for ( idofj = 0; idofj < dofj; idofj++, colidx++ ) {
-                    rowidx = ipe;
+                    rowidx = igpe;
                     pos    = coltab[ colidx ];
                     for ( idofi = 0; idofi < dofi; idofi++, rowidx++, pos++, values++ ) {
                         assert( rowidx >= 0 );
@@ -738,7 +1119,7 @@ bcsc_zinit_A( const spmatrix_t     *spm,
                 }
             }
         }
-        /* The block of the column jp belongs to another processor. */
+        /* The block of the column jgpbelongs to another processor. */
         else {
             for ( k = colptr[0]; k < colptr[1]; k++, rowptr++ ) {
                 ig   = *rowptr - baseval;
@@ -805,7 +1186,7 @@ bcsc_zinit_At( const spmatrix_t     *spm,
     pastix_int_t        nbelt    = 0;
     SolverCblk         *cblk;
     pastix_int_t       *coltab;
-    pastix_int_t        k, j, ig, jg, ip, jp, ipe, jpe;
+    pastix_int_t        k, j, ig, jg, igp, jgp, igpe, jgpe;
     pastix_int_t        itercblk, baseval;
     pastix_int_t        idofi, idofj, dofi, dofj;
     pastix_int_t        colidx, rowidx, pos;
@@ -840,23 +1221,23 @@ bcsc_zinit_At( const spmatrix_t     *spm,
      * Goes through the columns of the spm.
      * j is the initial local column index.
      * jg is the initial global column index.
-     * jp is the "new" jg index -> the one resulting from the permutation.
+     * jgpis the "new" jg index -> the one resulting from the permutation.
      */
     for ( j = 0; j < spm->n; j++, colptr++, loc2glob++ ) {
         jg   = ( spm->loc2glob == NULL ) ? j : *loc2glob - baseval;
-        jp   = ord->permtab[jg];
-        jpe  = ( dof > 0 ) ? jp * dof : dofs[ jg ] - baseval;
+        jgp  = ord->permtab[jg];
+        jgpe = ( dof > 0 ) ? jgp * dof : dofs[ jg ] - baseval;
         dofj = ( dof > 0 ) ? dof : dofs[ jg+1 ] - dofs[ jg ];
 
         /*
          * Goes through the row of the column j.
          * ig is the initial global row index (for the row index local = global).
-         * ip is the "new" ig index -> the one resulting from the permutation.
+         * igpis the "new" ig index -> the one resulting from the permutation.
          */
         for ( k = colptr[0]; k < colptr[1]; k++, rowptr++ ) {
             ig   = *rowptr - baseval;
-            ip   = ord->permtab[ig];
-            ipe  = ( dof > 0 ) ? ip * dof : dofs[ ig ] - baseval;
+            igp  = ord->permtab[ig];
+            igpe = ( dof > 0 ) ? igp * dof : dofs[ ig ] - baseval;
             dofi = ( dof > 0 ) ? dof : dofs[ ig+1 ] - dofs[ ig ];
 
             /* Diagonal block of a symmetric matrix. */
@@ -864,22 +1245,22 @@ bcsc_zinit_At( const spmatrix_t     *spm,
                 values += dofi * dofj;
                 continue;
             }
-            itercblk = bcsc->col2cblk[ ipe ];
+            itercblk = bcsc->col2cblk[ igpe ];
 
             /*
              * If MPI is used in shared memory, the block can belong to another
-             * processor, in this case the row is skiped.
+             * processor, in this case the row is skigped.
              */
-            /* The block of the row ip belongs to the current processor. */
+            /* The block of the row igpbelongs to the current processor. */
             if ( itercblk >= 0 ) {
                 /* Gets the block in which the data will be added. */
                 cblk   = solvmtx->cblktab + itercblk;
                 coltab = bcsc->cscftab[cblk->bcscnum].coltab;
 
-                /* Copies the values from element (ig, jg) to position (ipe, jpe) into expanded bcsc. */
+                /* Copies the values from element (ig, jg) to position (igpe, jgpe) into expanded bcsc. */
                 for ( idofj = 0; idofj < dofj; idofj++ ) {
-                    rowidx = jpe + idofj;
-                    colidx = ipe - cblk->fcolnum;
+                    rowidx = jgpe + idofj;
+                    colidx = igpe - cblk->fcolnum;
                     for ( idofi = 0; idofi < dofi; idofi++, colidx++, values++ ) {
                         pos = coltab[ colidx ];
 
@@ -894,7 +1275,7 @@ bcsc_zinit_At( const spmatrix_t     *spm,
                     }
                 }
             }
-            /* The block of the row ip belongs to another processor. */
+            /* The block of the row igpbelongs to another processor. */
             else {
                 values += dofi * dofj;
                 continue;
@@ -1007,8 +1388,9 @@ bcsc_zinit( const spmatrix_t     *spm,
     /* Exchanges the data if the spm is distributed and adds the received data of A. */
 #if defined(PASTIX_WITH_MPI)
     if ( bcsc_comm != NULL ) {
-        nbelt_recv = bcsc_zexchange_values_A( spm, ord, solvmtx, bcsc );
-        nbelt = nbelt_recv;
+        nbelt_recv  = bcsc_zexchange_values_A( spm, ord, solvmtx, bcsc );
+        nbelt_recv += bcsc_zexchange_values_AAt( spm, ord, solvmtx, bcsc->rowtab, bcsc );
+        nbelt += nbelt_recv;
     }
 #endif
 
@@ -1017,15 +1399,14 @@ bcsc_zinit( const spmatrix_t     *spm,
 
     /* Initializes the blocked structure of the matrix At if the matrix is not general. */
     if ( spm->mtxtype != SpmGeneral ) {
-        nbelt += bcsc_zinit_At( spm, ord, solvmtx, bcsc->rowtab, bcsc );
-
         /* Exchanges the data if the spm is distributed and adds the received data of A. */
 #if defined(PASTIX_WITH_MPI)
         if ( bcsc_comm != NULL ) {
-            nbelt_recv = bcsc_zexchange_values_At( spm, ord, solvmtx, bcsc->rowtab, bcsc );
+            nbelt_recv = bcsc_zexchange_values_At(  spm, ord, solvmtx, bcsc->rowtab, bcsc );
             nbelt += nbelt_recv;
         }
 #endif
+        nbelt += bcsc_zinit_At( spm, ord, solvmtx, bcsc->rowtab, bcsc );
     }
 
     /* Restores the correct coltab arrays. */
@@ -1048,7 +1429,8 @@ bcsc_zinit( const spmatrix_t     *spm,
             nbelt = bcsc_zinit_At( spm, ord, solvmtx, trowtab, bcsc );
 #if defined(PASTIX_WITH_MPI)
             if ( bcsc_comm != NULL ) {
-                nbelt_recv = bcsc_zexchange_values_At( spm, ord, solvmtx, trowtab, bcsc );
+                nbelt_recv  = bcsc_zexchange_values_At(  spm, ord, solvmtx, trowtab, bcsc );
+                nbelt_recv += bcsc_zexchange_values_AAt( spm, ord, solvmtx, trowtab, bcsc );
                 nbelt += nbelt_recv;
             }
 #endif

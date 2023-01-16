@@ -26,6 +26,8 @@
 #include "bcsc/bcsc_d.h"
 #include "bcsc/bcsc_s.h"
 
+#define BCSC_COMM_NBR 6
+
 /**
  *******************************************************************************
  *
@@ -95,6 +97,18 @@ bcsc_handle_comm_exit( bcsc_handle_comm_t *bcsc_comm )
         if( data->sendAt.valbuf != NULL ) {
             memFree_null( data->sendAt.valbuf );
         }
+        if( data->sendAAt.idxbuf != NULL ) {
+            memFree_null( data->sendAAt.idxbuf );
+        }
+        if( data->sendAAt.valbuf != NULL ) {
+            memFree_null( data->sendAAt.valbuf );
+        }
+        if( data->recvAAt.idxbuf != NULL ) {
+            memFree_null( data->recvAAt.idxbuf );
+        }
+        if( data->recvAAt.valbuf != NULL ) {
+            memFree_null( data->recvAAt.valbuf );
+        }
     }
 }
 
@@ -130,7 +144,9 @@ bcsc_compute_max( bcsc_handle_comm_t *bcsc_comm )
     pastix_int_t      valsum_A  = 0;
     pastix_int_t      idxsum_At = 0;
     pastix_int_t      valsum_At = 0;
-    pastix_int_t      idxcnt_A, idxcnt_At, valcnt_A, valcnt_At, c;
+    pastix_int_t      idxsum_AAt = 0;
+    pastix_int_t      valsum_AAt = 0;
+    pastix_int_t      idxcnt_A, idxcnt_At, idxcnt_AAt, valcnt_A, valcnt_At, valcnt_AAt, c;
 
     /* Receives the amount of indexes and values. */
     for ( c = 0; c < clustnbr; c++ ) {
@@ -139,27 +155,35 @@ bcsc_compute_max( bcsc_handle_comm_t *bcsc_comm )
             continue;
         }
 
-        idxcnt_A  = data->recvA.idxcnt;
-        idxcnt_At = data->recvAt.idxcnt;
-        valcnt_A  = data->recvA.valcnt;
-        valcnt_At = data->recvAt.valcnt;
+        idxcnt_A   = data->recvA.idxcnt;
+        idxcnt_At  = data->recvAt.idxcnt;
+        idxcnt_AAt = data->recvAAt.size.idxcnt;
+        valcnt_A   = data->recvA.valcnt;
+        valcnt_At  = data->recvAt.valcnt;
+        valcnt_AAt = data->recvAAt.size.valcnt;
 
         max_idx = pastix_imax( max_idx, idxcnt_A);
         max_idx = pastix_imax( max_idx, idxcnt_At);
+        max_idx = pastix_imax( max_idx, idxcnt_AAt);
         max_val = pastix_imax( max_val, valcnt_A);
         max_val = pastix_imax( max_val, valcnt_At);
+        max_val = pastix_imax( max_val, valcnt_AAt);
 
-        idxsum_A  += idxcnt_A;
-        valsum_A  += valcnt_A;
-        idxsum_At += idxcnt_At;
-        valsum_At += valcnt_At;
+        idxsum_A   += idxcnt_A;
+        valsum_A   += valcnt_A;
+        idxsum_At  += idxcnt_At;
+        valsum_At  += valcnt_At;
+        idxsum_AAt += idxcnt_AAt;
+        valsum_AAt += valcnt_AAt;
     }
 
     data_local = bcsc_comm->data_comm + clustnum;
-    data_local->recvA.idxcnt  = idxsum_A;
-    data_local->recvA.valcnt  = valsum_A;
-    data_local->recvAt.idxcnt = idxsum_At;
-    data_local->recvAt.valcnt = valsum_At;
+    data_local->recvA.idxcnt        = idxsum_A;
+    data_local->recvA.valcnt        = valsum_A;
+    data_local->recvAt.idxcnt       = idxsum_At;
+    data_local->recvAt.valcnt       = valsum_At;
+    data_local->recvAAt.size.idxcnt = idxsum_AAt;
+    data_local->recvAAt.size.valcnt = valsum_AAt;
 
     assert( max_idx <= 2 * max_val );
 
@@ -186,7 +210,9 @@ bcsc_compute_max( bcsc_handle_comm_t *bcsc_comm )
  * @param[in] mode
  *         If PastixTagMemRecvIdx: allocates receiving indexes A and At buffers.
  *         If PastixTagMemSend: allocates sending indexes and values A and At
- *                              buffers.
+ *              buffers.
+ *         If PastixTagMemRecvValAAt: allocates receiving values AAt buffers, it
+ *              used only if the spm is general.
  *
  *******************************************************************************
  *
@@ -206,12 +232,29 @@ bcsc_allocate_buf( bcsc_handle_comm_t *bcsc_comm,
     if ( mode == PastixTagMemRecvIdx ) {
         data = bcsc_comm->data_comm + clustnum;
 
-	if ( ( data->recvA.idxcnt > 0 ) && ( data->sendA.idxbuf == NULL ) ) {
-             MALLOC_INTERN( data->sendA.idxbuf, data->recvA.idxcnt,  pastix_int_t );
+        if ( ( data->recvA.idxcnt > 0 ) && ( data->sendA.idxbuf == NULL ) ) {
+            MALLOC_INTERN( data->sendA.idxbuf, data->recvA.idxcnt,  pastix_int_t );
         }
 
         if ( ( data->recvAt.idxcnt > 0 ) && ( data->sendAt.idxbuf == NULL ) ) {
-             MALLOC_INTERN(  data->sendAt.idxbuf, data->recvAt.idxcnt, pastix_int_t );
+            MALLOC_INTERN(  data->sendAt.idxbuf, data->recvAt.idxcnt, pastix_int_t );
+        }
+
+        if ( ( data->recvAAt.size.idxcnt > 0 ) && ( data->sendAAt.idxbuf == NULL ) ) {
+            MALLOC_INTERN(  data->sendAAt.idxbuf, data->recvAAt.size.idxcnt, pastix_int_t );
+        }
+    }
+
+    if ( mode == PastixTagMemRecvValAAt ) {
+        for ( c = 0; c < clustnbr; c ++ ) {
+            data = bcsc_comm->data_comm + c;
+            if ( c == clustnum ) {
+                continue;
+            }
+            if ( ( data->recvAAt.size.valcnt > 0 ) && ( data->recvAAt.valbuf == NULL ) ) {
+                size = data->recvAAt.size.valcnt * pastix_size_of( bcsc_comm->flttype );
+                MALLOC_INTERN( data->recvAAt.valbuf, size, char );
+            }
         }
     }
 
@@ -238,6 +281,14 @@ bcsc_allocate_buf( bcsc_handle_comm_t *bcsc_comm,
                 size = data->sendAt.size.valcnt * pastix_size_of( bcsc_comm->flttype );
                 MALLOC_INTERN( data->sendAt.valbuf, size, char );
             }
+
+            if ( ( data->sendAAt.size.idxcnt > 0 ) && ( data->sendAAt.idxbuf == NULL ) ) {
+                MALLOC_INTERN( data->sendAAt.idxbuf, data->sendAAt.size.idxcnt, pastix_int_t );
+            }
+            if ( ( data->sendAAt.size.valcnt > 0 ) && ( data->sendAAt.valbuf == NULL ) ) {
+                size = data->sendAAt.size.valcnt * pastix_size_of( bcsc_comm->flttype );
+                MALLOC_INTERN( data->sendAAt.valbuf, size, char );
+            }
         }
     }
 
@@ -259,11 +310,14 @@ bcsc_allocate_buf( bcsc_handle_comm_t *bcsc_comm,
  *         At exit the arrays of bcsc_comm->data_comm are freed.
  *
  * @param[in] mode
- *         If PastixTagMemSendIdx: frees sending indexes A and At buffers.
+ *         If PastixTagMemSendIdx: frees sending indexes A, At and AAt buffers.
  *         If PastixTagMemSendValA: frees sending values A buffers.
  *         If PastixTagMemSendValAt: frees sending values At buffers.
+ *         If PastixTagMemSendValAAt: frees sending values AAt buffers.
  *         If PastixTagMemRecvIdxA: frees receiving indexes A buffers.
  *         If PastixTagMemRecvIdxAt: frees receiving indexes At buffers.
+ *         If PastixTagMemRecvAAt:frees receiving indexes and values if the
+ *             spm is general AAt buffers.
  *
  *******************************************************************************
  *
@@ -290,6 +344,9 @@ bcsc_free_buf( bcsc_handle_comm_t *bcsc_comm,
             }
             if ( data->sendAt.idxbuf != NULL ) {
                 memFree_null( data->sendAt.idxbuf );
+            }
+            if ( data->sendAAt.idxbuf != NULL ) {
+                memFree_null( data->sendAAt.idxbuf );
             }
         }
     }
@@ -318,6 +375,18 @@ bcsc_free_buf( bcsc_handle_comm_t *bcsc_comm,
         }
     }
 
+    if ( mode == PastixTagMemSendValAAt ) {
+        for ( c = 0; c < clustnbr; c ++ ) {
+            data = bcsc_comm->data_comm + c;
+            if ( c == clustnum ) {
+                continue;
+            }
+            if ( data->sendAAt.valbuf != NULL ) {
+                memFree_null( data->sendAAt.valbuf );
+            }
+        }
+    }
+
     if ( mode == PastixTagMemRecvIdxA ) {
         data = bcsc_comm->data_comm + clustnum;
         if ( data->sendA.idxbuf != NULL ) {
@@ -329,6 +398,16 @@ bcsc_free_buf( bcsc_handle_comm_t *bcsc_comm,
         data = bcsc_comm->data_comm + clustnum;
         if ( data->sendAt.idxbuf != NULL ) {
             memFree_null(  data->sendAt.idxbuf );
+        }
+    }
+
+    if ( mode == PastixTagMemRecvAAt ) {
+        data = bcsc_comm->data_comm + clustnum;
+        if ( data->sendAAt.idxbuf != NULL ) {
+            memFree_null( data->sendAAt.idxbuf );
+        }
+        if ( data->recvAAt.valbuf != NULL ) {
+            memFree_null( data->recvAAt.valbuf );
         }
     }
 
@@ -358,12 +437,12 @@ bcsc_exchange_amount_of_data( bcsc_handle_comm_t *bcsc_comm )
     bcsc_proc_comm_t   *data_send   = NULL;
     bcsc_proc_comm_t   *data_recv   = NULL;
     pastix_int_t        counter_req = 0;
-    MPI_Status          statuses[(clustnbr-1)*4];
-    MPI_Request         requests[(clustnbr-1)*4];
+    MPI_Status          statuses[(clustnbr-1)*BCSC_COMM_NBR];
+    MPI_Request         requests[(clustnbr-1)*BCSC_COMM_NBR];
     bcsc_data_amount_t *sends, *recvs;
     pastix_int_t        c_send, c_recv, k;
 
-    /* Receives the amount of indexes and values. */
+    /* Exchanges the amount of indexes and values. */
     c_send = (clustnum+1) % clustnbr;
     c_recv = (clustnum-1+clustnbr) % clustnbr;
     for ( k = 0; k < clustnbr-1; k++ ) {
@@ -374,6 +453,7 @@ bcsc_exchange_amount_of_data( bcsc_handle_comm_t *bcsc_comm )
             continue;
         }
 
+        /* Exchanges the amount of indexes and values for A. */
         sends = &( data_send->sendA.size );
         recvs = &( data_recv->recvA );
         MPI_Irecv( recvs, 2, PASTIX_MPI_INT, c_recv,
@@ -382,6 +462,7 @@ bcsc_exchange_amount_of_data( bcsc_handle_comm_t *bcsc_comm )
         MPI_Isend( sends, 2, PASTIX_MPI_INT, c_send,
                    PastixTagCountA, bcsc_comm->comm, &requests[counter_req++] );
 
+        /* Exchanges the amount of indexes and values for At. */
         sends = &( data_send->sendAt.size );
         recvs = &( data_recv->recvAt );
         MPI_Irecv( recvs, 2, PASTIX_MPI_INT, c_recv,
@@ -389,6 +470,15 @@ bcsc_exchange_amount_of_data( bcsc_handle_comm_t *bcsc_comm )
 
         MPI_Isend( sends, 2, PASTIX_MPI_INT, c_send,
                    PastixTagCountAt, bcsc_comm->comm, &requests[counter_req++] );
+
+        /* Exchanges the amount of indexes and values for AAt. */
+        sends = &( data_send->sendAAt.size );
+        recvs = &( data_recv->recvAAt.size );
+        MPI_Irecv( recvs, 2, PASTIX_MPI_INT, c_recv,
+                   PastixTagCountAAt, bcsc_comm->comm, &requests[counter_req++] );
+
+        MPI_Isend( sends, 2, PASTIX_MPI_INT, c_send,
+                   PastixTagCountAAt, bcsc_comm->comm, &requests[counter_req++] );
 
         c_send = (c_send+1) % clustnbr;
         c_recv = (c_recv-1+clustnbr) % clustnbr;
@@ -654,7 +744,7 @@ bcsc_init_dofshift( const spmatrix_t     *spm,
     pastix_int_t *dofs;
     pastix_int_t  dof;
     pastix_int_t  idof, dofj, dofidx;
-    pastix_int_t  jg, jp;
+    pastix_int_t  jg, jgp;
 
     /* Allocates the dofshift array. */
     MALLOC_INTERN( dofshift, spm->gNexp, pastix_int_t );
@@ -663,12 +753,12 @@ bcsc_init_dofshift( const spmatrix_t     *spm,
     dof  = spm->dof;
     ptr  = dofshift;
     for ( jg = 0; jg < spm->gN; jg++ ) {
-        jp     = ord->permtab[jg];
-        dofidx = (dof > 0) ? jp * dof : dofs[jg];
+        jgp    = ord->permtab[jg];
+        dofidx = (dof > 0) ? jgp * dof : dofs[jg];
         ptr    = dofshift + dofidx;
         dofj   = (dof > 0) ? dof : dofs[jg+1] - dofs[jg];
         for ( idof = 0; idof < dofj; idof++, ptr++ ) {
-            *ptr = jp;
+            *ptr = jgp;
         }
     }
     return dofshift;
@@ -707,7 +797,7 @@ bcsc_init_global_coltab_shm_cdof( const spmatrix_t     *spm,
     pastix_int_t  dof      = spm->dof;
     pastix_int_t  baseval  = spm->baseval;
     pastix_int_t  frow, lrow;
-    pastix_int_t  k, j, ig, jg, ip, jp;
+    pastix_int_t  k, j, ig, jg, igp, jgp;
     int           sym = (spm->mtxtype == SpmSymmetric) || (spm->mtxtype == SpmHermitian);
 
     assert( dof > 0 );
@@ -716,12 +806,12 @@ bcsc_init_global_coltab_shm_cdof( const spmatrix_t     *spm,
     /* Goes through the column of the spm. */
     for ( j = 0; j < spm->n; j++, colptr++ ) {
         jg   = j;
-        jp   = ord->permtab[jg];
+        jgp  = ord->permtab[jg];
         frow = colptr[0] - baseval;
         lrow = colptr[1] - baseval;
         assert( (lrow - frow) >= 0 );
         /* Adds the number of values in the column jg. */
-        globcol[jp] += (lrow - frow) * dof;
+        globcol[jgp] += (lrow - frow) * dof;
 
         /*
          * Adds for At the number of values in the row ig and column jg. This
@@ -735,8 +825,8 @@ bcsc_init_global_coltab_shm_cdof( const spmatrix_t     *spm,
         for ( k = frow; k < lrow; k++ ) {
             ig = rowptr[k] - baseval;
             if ( ig != jg ) {
-                ip = ord->permtab[ig];
-                globcol[ip] += dof;
+                igp = ord->permtab[ig];
+                globcol[igp] += dof;
             }
         }
     }
@@ -777,7 +867,7 @@ bcsc_init_global_coltab_shm_vdof( const spmatrix_t     *spm,
     pastix_int_t *dofs     = spm->dofs;
     pastix_int_t  baseval  = spm->baseval;
     pastix_int_t  frow, lrow;
-    pastix_int_t  k, j, ig, jg, ip, jp;
+    pastix_int_t  k, j, ig, jg, igp, jgp;
     pastix_int_t  dofj, dofi;
     int           sym = (spm->mtxtype == SpmSymmetric) || (spm->mtxtype == SpmHermitian);
 
@@ -788,7 +878,7 @@ bcsc_init_global_coltab_shm_vdof( const spmatrix_t     *spm,
     for ( j=0; j<spm->n; j++, colptr++ ) {
         jg   = j;
         dofj = dofs[jg+1] - dofs[jg];
-        jp   = ord->permtab[jg];
+        jgp  = ord->permtab[jg];
         frow = colptr[0] - baseval;
         lrow = colptr[1] - baseval;
         assert( (lrow - frow) >= 0 );
@@ -797,12 +887,12 @@ bcsc_init_global_coltab_shm_vdof( const spmatrix_t     *spm,
             ig   = rowptr[k] - baseval;
             dofi = dofs[ig+1] - dofs[ig];
             /* Adds the number of values in the row ig and column jg. */
-            globcol[jp] += dofi;
+            globcol[jgp] += dofi;
 
             /* Adds for At the number of values in the row ig and column jg. */
             if ( sym && (ig != jg) ) {
-                ip = ord->permtab[ig];
-                globcol[ip] += dofj;
+                igp= ord->permtab[ig];
+                globcol[igp] += dofj;
             }
         }
     }
@@ -818,6 +908,33 @@ bcsc_init_global_coltab_shm_vdof( const spmatrix_t     *spm,
  *        the number of rows (expended) per column (non expended). This rountine
  *        is called when the matrix is distributed in the memory and the matrix's
  *        degree of liberty is constant.
+ *
+ * There are two cases:
+ *
+ * If the matrix is general: the full columns and rows of the blocks are stored
+ *      in Lvalues and Uvalues.
+ *      - The local data of the current process which are in remote blocks after
+ *        the permutation need be to sent to the owner process. The data is stored
+ *        in sendA if it is sent for the column only, in sendAt if it is sent for
+ *        the row only and in sendAAt if it is sent for the row and column.
+ *      - The local data of the current process which are in local column blocks
+ *        after the permutation need to be added in globcol.
+ *
+ * If the matrix is Symmetric or Hermitian: only the full columns of the blocks
+ *      are stored in Lvalues (and Uvalues = Lvalues). Only half of the spm is
+ *      stored lower (or upper) triangular half, therefore we need to duplicate
+ *      the lower (or upper) data to fill the upper (or lower half of the matrix
+ *      in the blocks.
+ *      - The local data of the current process which are in remote blocks after
+ *        the permutation need be to sent to the owner process. The data is stored
+ *        in sendA if it is sent for the lower (or upper) half or the column, in
+ *        sendAt if it is sent for the upper (or lower) half of the column and in
+ *        sendAAt if it is sent for both the lower and upper half of the column.
+ *        The diagonal values are stored in sendA only.
+ *      - The local data of the current process which are in column blocks after
+ *        the permutation need to be added in globcol twice: once for the lower
+ *        half and once for the upper half. The diagonal values need to be added
+ *        only once.
  *
  *******************************************************************************
  *
@@ -855,67 +972,137 @@ bcsc_init_global_coltab_dst_cdof( const spmatrix_t     *spm,
     pastix_int_t      dof       = spm->dof;
     pastix_int_t      baseval   = spm->baseval;
     bcsc_proc_comm_t *data_comm = bcsc_comm->data_comm;
-    bcsc_send_proc_t *data_send;
+    bcsc_exch_comm_t *data_sendA, *data_sendAt, *data_sendAAt;
     pastix_int_t      frow, lrow;
-    pastix_int_t      k, j, ig, jg, ip, jp;
+    pastix_int_t      il, jl, ig, jg, igp, jgp;
     int               sym = (spm->mtxtype == SpmSymmetric) || (spm->mtxtype == SpmHermitian);
-    pastix_int_t      owner;
+    pastix_int_t      ownerj, owneri;
 
     assert( dof > 0 );
 
     /* Goes through the columns of spm. */
-    for ( j = 0; j < spm->n; j++, colptr++, loc2glob++ ) {
-        jg = *loc2glob - baseval;
-        jp = ord->permtab[jg];
+    for ( jl = 0; jl < spm->n; jl++, colptr++, loc2glob++ ) {
+        jg  = *loc2glob - baseval;
+        jgp = ord->permtab[jg];
 
         frow = colptr[0] - baseval;
         lrow = colptr[1] - baseval;
         assert( (lrow - frow) >= 0 );
 
-        owner = col2cblk[jp * dof];
+        ownerj = col2cblk[jgp * dof];
 
-        /* The column is in a block which does not belong to the current processor. */
-        if ( owner < 0 ) {
-            owner     = - owner - 1;
-            data_comm = bcsc_comm->data_comm + owner;
-            data_send = &( data_comm->sendA );
-            /* Adds the number of indexes to send to the owner. */
-            data_send->size.idxcnt += ( lrow - frow ) * 2;
-            /* Adds the number of values to send to the owner. */
-            data_send->size.valcnt += ( lrow - frow ) * dof * dof;
+        /* The column jp belongs to another process. */
+        if ( ownerj < 0 ) {
+            ownerj     = - ownerj - 1;
+            data_comm  = bcsc_comm->data_comm + ownerj;
+            data_sendA = &( data_comm->sendA );
+
+            /* Goes through the rows of jl. */
+            for ( il = frow; il < lrow; il++ ) {
+                ig = rowptr[il] - baseval;
+
+                /*
+                 * The diagonal values (ip, jp) belong to the same process.
+                 * They are sent to owneri in the sym case for A only.
+                 */
+                if ( sym && ( ig == jg ) ) {
+                    data_sendA->size.idxcnt += 2;
+                    data_sendA->size.valcnt += dof * dof;
+                    continue;
+                }
+
+                igp    = ord->permtab[ig];
+                owneri = col2cblk[igp* dof];
+
+                /* The row ip belongs to another process. */
+                if ( owneri < 0 ) {
+                    owneri    = - owneri - 1;
+                    data_comm = bcsc_comm->data_comm + owneri;
+
+                    /*
+                     * The diagonal values (ip, jp) belong to the same process.
+                     * They are sent to owneri for AAt in the general cae.
+                     */
+                    if ( owneri == ownerj ) {
+                        data_sendAAt = &( data_comm->sendAAt );
+
+                        data_sendAAt->size.idxcnt += 2;
+                        data_sendAAt->size.valcnt += dof * dof;
+                    }
+                    /*
+                     * The values (ip, jp) belong to different processes.
+                     * They are sent to owneri for At and to ownerj for A.
+                     */
+                    else {
+                        data_sendAt = &( data_comm->sendAt );
+
+                        data_sendAt->size.idxcnt += 2;
+                        data_sendAt->size.valcnt += dof * dof;
+
+                        data_sendA->size.idxcnt += 2;
+                        data_sendA->size.valcnt += dof * dof;
+                    }
+                }
+                /* The row ip is local. */
+                else {
+                    /*
+                     * The values (ip, jp) belong to ownerj.
+                     * They are sent to ownerj for A.
+                     */
+                    data_sendA->size.idxcnt += 2;
+                    data_sendA->size.valcnt += dof * dof;
+                    /*
+                     * The values (ip, jp) are local.
+                     * In the sym case ther are added to globcol.
+                     */
+                    if ( sym ) {
+                        globcol[igp] += dof;
+                    }
+                }
+            }
         }
+        /* The column jp is local. */
         else {
-            /* Adds number of values in column jp. */
-            globcol[jp] += (lrow - frow) * dof;
-        }
+            /* The column is added to globcol. */
+            globcol[jgp] += dof * ( lrow - frow );
 
-        /*
-         * Adds for At the number of values in the row ig and column jg. This
-         * is not required for the general case as the spm has a symmetric
-         * pattern.
-         */
+            /* Goes through the rows of j. */
+            for ( il = frow; il < lrow; il++ ) {
+                ig = rowptr[il] - baseval;
 
-        for ( k = frow; k < lrow; k++ ) {
-            ig = rowptr[k] - baseval;
-            if ( sym && ( ig == jg ) ) {
-                continue;
-            }
-            ip    = ord->permtab[ig];
-            owner = col2cblk[ip * dof];
+                /*
+                 * The diagonal values (ip, jp) have already been
+                 * added to globcol in the sym case.
+                 */
+                if ( sym && ( ig == jg ) ) {
+                    continue;
+                }
 
-            if ( owner < 0 ) {
-                owner     = - owner - 1;
-                data_comm = bcsc_comm->data_comm + owner;
-                data_send = &( data_comm->sendAt );
-                /* Adds the number of indexes to send to owner. */
-                data_send->size.idxcnt += 2;
-                /* Adds the number of values to send to owner. */
-                data_send->size.valcnt += dof * dof;
-            }
-            else {
-                if ( sym ) {
-                    /* Adds for At the number of values in column jg and row ip. */
-                    globcol[ip] += dof;
+                igp    = ord->permtab[ig];
+                owneri = col2cblk[igp* dof];
+
+                /* The row ip belongs to another process. */
+                if ( owneri < 0 ) {
+                    owneri    = - owneri - 1;
+                    data_comm = bcsc_comm->data_comm + owneri;
+
+                    /*
+                     * The values (ip, jp) belong to owneri.
+                     * They are sent to ownerj for At.
+                     */
+                    data_sendAt = &( data_comm->sendAt );
+
+                    data_sendAt->size.idxcnt += 2;
+                    data_sendAt->size.valcnt += dof * dof;
+                }
+                else {
+                    /*
+                     * The values (ip, jp) are local.
+                     * In the sym case they are added to globcol.
+                     */
+                    if ( sym ) {
+                        globcol[igp] += dof;
+                    }
                 }
             }
         }
@@ -970,7 +1157,7 @@ bcsc_init_global_coltab_dst_vdof( __attribute__((unused)) const spmatrix_t     *
     // pastix_int_t  dof      = spm->dof;
     // pastix_int_t  baseval  = spm->baseval;
     // pastix_int_t  frow, lrow;
-    // pastix_int_t  k, j, ig, jg, ip, jp;
+    // pastix_int_t  k, j, ig, jg, igp, jgp;
     // pastix_int_t  dofj, dofi;
     // int           sym = (spm->mtxtype == SpmSymmetric) || (spm->mtxtype == SpmHermitian);
 
@@ -979,15 +1166,15 @@ bcsc_init_global_coltab_dst_vdof( __attribute__((unused)) const spmatrix_t     *
     // for ( j=0; j<spm->n; j++, colptr++, loc2glob++ )
     // {
     //     jg   = *loc2glob - baseval;
-    //     jp   = ord->permtab[jg];
+    //     jgp  = ord->permtab[jg];
     //     dofj = dofs[jg+1] - dofs[jg];
 
     //     frow = colptr[0] - baseval;
     //     lrow = colptr[1] - baseval;
     //     assert( (lrow - frow) >= 0 );
 
-    //     jpe    = ...;
-    //     ownerj = col2cblk[jpe]; // FAUX
+    //     jgpe    = ...;
+    //     ownerj = col2cblk[jgpe]; // FAUX
     //     localj = ( ownerj >= 0 );
     //     ownerj = - ownerj - 1;
 
@@ -998,7 +1185,7 @@ bcsc_init_global_coltab_dst_vdof( __attribute__((unused)) const spmatrix_t     *
 
     //         if ( localj ) {
     //             /* The column is local */
-    //             globcol[jp] += dofi;
+    //             globcol[jgp] += dofi;
     //         }
     //         else {
     //             /* The column is remote */
@@ -1006,12 +1193,12 @@ bcsc_init_global_coltab_dst_vdof( __attribute__((unused)) const spmatrix_t     *
     //         }
 
     //         if ( sym && (ig != jg) ) {
-    //             ip     = ord->permtab[ig];
-    //             ipe    = ...;
-    //             owneri = col2cblk[ipe]; // FAUX
+    //             igp    = ord->permtab[ig];
+    //             igpe    = ...;
+    //             owneri = col2cblk[igpe]; // FAUX
 
     //             if ( owneri >= 0 ) {
-    //                 globcol[ip] += dofj;
+    //                 globcol[igp] += dofj;
     //             }
     //             else {
     //                 owneri = - owneri - 1;
@@ -1041,21 +1228,24 @@ bcsc_init_global_coltab_dst_vdof( __attribute__((unused)) const spmatrix_t     *
 void
 bcsc_exchange_indexes( bcsc_handle_comm_t *bcsc_comm )
 {
-    pastix_int_t        clustnbr     = bcsc_comm->clustnbr;
-    pastix_int_t        clustnum     = bcsc_comm->clustnum;
-    bcsc_proc_comm_t   *data_comm    = bcsc_comm->data_comm;
-    bcsc_proc_comm_t   *data_local   = bcsc_comm->data_comm + clustnum;
-    bcsc_send_proc_t   *sendA_local  = &( data_local->sendA );
-    bcsc_send_proc_t   *sendAt_local = &( data_local->sendAt );
-    pastix_int_t        counter_req  = 0;
-    pastix_int_t        cntA         = 0;
-    pastix_int_t        cntAt        = 0;
+    pastix_int_t        clustnbr      = bcsc_comm->clustnbr;
+    pastix_int_t        clustnum      = bcsc_comm->clustnum;
+    bcsc_proc_comm_t   *data_comm     = bcsc_comm->data_comm;
+    bcsc_proc_comm_t   *data_local    = bcsc_comm->data_comm + clustnum;
+    bcsc_exch_comm_t   *sendA_local   = &( data_local->sendA );
+    bcsc_exch_comm_t   *sendAt_local  = &( data_local->sendAt );
+    bcsc_exch_comm_t   *sendAAt_local = &( data_local->sendAAt );
+    pastix_int_t        counter_req   = 0;
+    pastix_int_t        cntA          = 0;
+    pastix_int_t        cntAt         = 0;
+    pastix_int_t        cntAAt        = 0;
     pastix_int_t        idx_cnt_A[clustnbr];
     pastix_int_t        idx_cnt_At[clustnbr];
-    MPI_Status          statuses[(clustnbr-1)*4];
-    MPI_Request         requests[(clustnbr-1)*4];
+    pastix_int_t        idx_cnt_AAt[clustnbr];
+    MPI_Status          statuses[(clustnbr-1)*BCSC_COMM_NBR];
+    MPI_Request         requests[(clustnbr-1)*BCSC_COMM_NBR];
     bcsc_proc_comm_t   *data_send, *data_recv;
-    bcsc_send_proc_t   *send;
+    bcsc_exch_comm_t   *send;
     bcsc_data_amount_t *recv;
     pastix_int_t        c_send, c_recv, k;
 
@@ -1065,12 +1255,15 @@ bcsc_exchange_indexes( bcsc_handle_comm_t *bcsc_comm )
         if ( k == clustnum ) {
             idx_cnt_A[k]  = 0;
             idx_cnt_At[k] = 0;
+            idx_cnt_AAt[k] = 0;
             continue;
         }
         idx_cnt_A[ k ]  = cntA;
         cntA += data_comm[k].recvA.idxcnt;
         idx_cnt_At[ k ] = cntAt;
         cntAt += data_comm[k].recvAt.idxcnt;
+        idx_cnt_AAt[ k ] = cntAAt;
+        cntAAt += data_comm[k].recvAAt.size.idxcnt;
     }
 
     c_send = (clustnum+1) % clustnbr;
@@ -1095,6 +1288,12 @@ bcsc_exchange_indexes( bcsc_handle_comm_t *bcsc_comm )
                        PASTIX_MPI_INT, c_recv, PastixTagIndexesAt, bcsc_comm->comm,
                        &requests[counter_req++] );
         }
+        recv = &( data_recv->recvAAt.size );
+        if ( recv->idxcnt != 0 ) {
+            MPI_Irecv( sendAAt_local->idxbuf + idx_cnt_AAt[c_recv], recv->idxcnt,
+                       PASTIX_MPI_INT, c_recv, PastixTagIndexesAAt, bcsc_comm->comm,
+                       &requests[counter_req++] );
+        }
 
         /* Posts the emissions of the indexes. */
         send = &( data_send->sendA );
@@ -1106,6 +1305,11 @@ bcsc_exchange_indexes( bcsc_handle_comm_t *bcsc_comm )
         if ( send->size.idxcnt != 0 ) {
             MPI_Isend( send->idxbuf, send->size.idxcnt, PASTIX_MPI_INT, c_send,
                        PastixTagIndexesAt, bcsc_comm->comm, &requests[counter_req++] );
+        }
+        send = &( data_send->sendAAt );
+        if ( send->size.idxcnt != 0 ) {
+            MPI_Isend( send->idxbuf, send->size.idxcnt, PASTIX_MPI_INT, c_send,
+                       PastixTagIndexesAAt, bcsc_comm->comm, &requests[counter_req++] );
         }
         c_send = (c_send+1) % clustnbr;
         c_recv = (c_recv-1+clustnbr) % clustnbr;
@@ -1144,40 +1348,61 @@ bcsc_update_globcol( const spmatrix_t     *spm,
                      pastix_int_t         *globcol,
                      bcsc_handle_comm_t   *bcsc_comm )
 {
-    pastix_int_t     *dofs     = spm->dofs;
-    pastix_int_t      dof      = spm->dof;
-    pastix_int_t      k, ip, jp, jg, ig, baseval;
-    pastix_int_t      clustnum   = bcsc_comm->clustnum;
-    bcsc_proc_comm_t *data_local = bcsc_comm->data_comm + clustnum;
-    bcsc_send_proc_t *sendA_local  = &( data_local->sendA );
-    bcsc_send_proc_t *sendAt_local = &( data_local->sendAt );
+    pastix_int_t     *dofs          = spm->dofs;
+    pastix_int_t      dof           = spm->dof;
+    pastix_int_t      clustnum      = bcsc_comm->clustnum;
+    bcsc_proc_comm_t *data_local    = bcsc_comm->data_comm + clustnum;
+    bcsc_exch_comm_t *sendA_local   = &( data_local->sendA );
+    bcsc_exch_comm_t *sendAt_local  = &( data_local->sendAt );
+    bcsc_exch_comm_t *sendAAt_local = &( data_local->sendAAt );
+    pastix_int_t      k, igp, jgp, jg, ig, baseval;
     pastix_int_t     *indexes_A;
     pastix_int_t     *indexes_At;
+    pastix_int_t     *indexes_AAt;
 
     assert( ord->baseval == 0 );
     baseval = ord->baseval;
 
     /* Updates globcol. */
-    indexes_A  = sendA_local->idxbuf;
-    indexes_At = sendAt_local->idxbuf;
+    indexes_A   = sendA_local->idxbuf;
+    indexes_At  = sendAt_local->idxbuf;
+    indexes_AAt = sendAAt_local->idxbuf;
 
-    /* Goes through data_local->indexes_A. */
+    /* Goes through indexes_A. */
     for ( k = 0; k < data_local->recvA.idxcnt; k += 2, indexes_A += 2 ) {
-        /* Adds the element (ip, jp) received to column jp. */
-        ip = indexes_A[0];
-        jp = indexes_A[1];
-        ig = ord->peritab[ip] - baseval;
-        globcol[jp] += ( dof < 0 ) ? dofs[ ig+1 ] - dofs[ig] : dof;
+        igp = indexes_A[0];
+        jgp = indexes_A[1];
+        ig  = ord->peritab[igp] - baseval;
+
+        /* Adds the values (igp, jgp) to globcol. */
+        globcol[jgp] += ( dof < 0 ) ? dofs[ ig+1 ] - dofs[ig] : dof;
     }
 
-    /* Goes through data_local->indexes_At. */
+    /* Goes through indexes_At. */
     if ( spm->mtxtype != SpmGeneral ) {
         for ( k = 0; k < data_local->recvAt.idxcnt; k += 2, indexes_At += 2 ) {
-            /* Adds the element (ip, jp) received to column ip (transpose). */
-            ip = indexes_At[0];
-            jp = indexes_At[1];
-            jg = ord->peritab[jp] - baseval;
-            globcol[ip] += ( dof < 0 ) ? dofs[ jg+1 ] - dofs[jg] : dof;
+            igp = indexes_At[0];
+            jgp = indexes_At[1];
+            jg  = ord->peritab[jgp] - baseval;
+
+            /* Adds the values (igp, jgp) to globcol. */
+            globcol[igp] += ( dof < 0 ) ? dofs[ jg+1 ] - dofs[jg] : dof;
+        }
+    }
+
+    /* Goes through indexes_AAt. */
+    for ( k = 0; k < data_local->recvAAt.size.idxcnt; k += 2, indexes_AAt += 2 ) {
+        igp = indexes_AAt[0];
+        jgp = indexes_AAt[1];
+        ig  = ord->peritab[igp] - baseval;
+        jg  = ord->peritab[jgp] - baseval;
+
+        /* Adds the values (igp, jgp) to globcol. */
+        globcol[jgp] += ( dof < 0 ) ? dofs[ ig+1 ] - dofs[ig] : dof;
+
+        if ( spm->mtxtype != SpmGeneral ) {
+            /* Adds the values (igp, jgp) twice to globcol if sym. */
+            globcol[igp] += ( dof < 0 ) ? dofs[ jg+1 ] - dofs[jg] : dof;
         }
     }
 }
@@ -1402,9 +1627,9 @@ bcsc_init_coltab( const spmatrix_t     *spm,
         for ( iter = 0; iter < blockcol->colnbr; iter++ ) {
             nodeidx = dofshift[ cblk->fcolnum + iter ];
             colsize = globcol[nodeidx];
-            //jpe = cblk->fcolnum + iter;
-            //jp  = dofshift[ jpe ];
-            //colsize = globcol[jp];
+            //jgpe = cblk->fcolnum + iter;
+            //jgp  = dofshift[ jgpe ];
+            //colsize = globcol[jgp];
             blockcol->coltab[iter+1] = blockcol->coltab[iter] + colsize;
         }
         idxcol = blockcol->coltab[blockcol->colnbr];
