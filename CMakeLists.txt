@@ -3,7 +3,7 @@
 #  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.0
+#  @version 6.3.1
 #  @author Mathieu Faverge
 #  @author Gregoire Pichon
 #  @author Matias Hastaran
@@ -18,7 +18,7 @@
 #  @author Brieuc Nicolas
 #  @author Florent Pruvost
 #  @author Mohamed Aymane Kherraz
-#  @date 2023-08-01
+#  @date 2023-10-25
 #
 ###
 cmake_minimum_required (VERSION 3.5)
@@ -1047,15 +1047,18 @@ add_documented_files(
   docs/doxygen/chapters/Pastix_Guide.md
   docs/doxygen/chapters/Pastix_benchmarking.md
   docs/doxygen/chapters/Pastix_Python.md
+  #
   tools/binding_for_multimpi.c
-  kernels/pastix_lowrank.h
   #
   include/pastix.h
   include/pastix/api.h
+  include/pastix/datatypes.h
+  include/pastix/order.h
   common/api.c
   common/get_options.c
   common/models.c
   common/pastixdata.h
+  common/isched_hwloc.c
   #
   graph/graph.h
   graph/graph.c

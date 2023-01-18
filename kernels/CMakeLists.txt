@@ -3,12 +3,16 @@
 #  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.0
+#  @version 6.3.1
 #  @author Mathieu Faverge
 #  @author Esragul Korkmaz
 #  @author Gregoire Pichon
 #  @author Tony Delarue
-#  @date 2023-03-22
+#  @author Alycia Lisito
+#  @author Brieuc Nicolas
+#  @author Florent Pruvost
+#  @author Nolan Bredel
+#  @date 2023-10-25
 #
 ###
 include(RulesPrecisions)
@@ -227,7 +231,11 @@ add_documented_files(
 add_documented_files(
   # Headers
   kernels.h
+  kernels_enums.h
+  kernels_trace.h
   queue.h
+  pastix_cuda.h
+  pastix_lowrank.h
   # Source files
   kernels.c
   kernels_trace.c
