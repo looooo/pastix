@@ -20,7 +20,9 @@
  * @{
  *
  **/
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define _GNU_SOURCE
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include "common.h"
 #include "blend/solver.h"
 #include "sopalin/sopalin_data.h"
@@ -61,6 +63,7 @@ blok_zhetrfsp_profile_register( void )
     profiling_register_cl( &blok_zhetrfsp_profile );
 }
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #if defined(PASTIX_STARPU_PROFILING_LOG)
 static void
 cl_profiling_cb_blok_zhetrfsp( void *callback_arg )
@@ -91,19 +94,38 @@ static void (*blok_zhetrfsp_callback)(void*) = cl_profiling_cb_blok_zhetrfsp;
 #else
 static void (*blok_zhetrfsp_callback)(void*) = cl_profiling_callback;
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif /* defined(PASTIX_STARPU_PROFILING) */
 
 /**
+ *******************************************************************************
+ *
  * @brief Cost model function
  *
  * The user can switch from the pastix static model to an history based model
  * computed automatically.
- */
+ *
+ *******************************************************************************
+ *
+ * @param[in] task
+ *          TODO
+ *
+ * @param[in] arch
+ *          TODO
+ *
+ * @param[in] nimpl
+ *          TODO
+ *
+ *******************************************************************************
+ *
+ * @retval TODO
+ *
+ *******************************************************************************/
 static inline pastix_fixdbl_t
 fct_blok_zhetrfsp_cost( struct starpu_task           *task,
-                       struct starpu_perfmodel_arch *arch,
-                       unsigned                      nimpl )
+                        struct starpu_perfmodel_arch *arch,
+                        unsigned                      nimpl )
 {
     struct cl_blok_zhetrfsp_args_s *args = (struct cl_blok_zhetrfsp_args_s *)(task->cl_arg);
 
@@ -130,6 +152,7 @@ fct_blok_zhetrfsp_cost( struct starpu_task           *task,
     return cost;
 }
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static struct starpu_perfmodel starpu_blok_zhetrfsp_model = {
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
     .type               = STARPU_PER_ARCH,
@@ -139,11 +162,23 @@ static struct starpu_perfmodel starpu_blok_zhetrfsp_model = {
 #endif
     .symbol             = "blok_zhetrfsp",
 };
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 #if !defined(PASTIX_STARPU_SIMULATION)
 /**
+ *******************************************************************************
+ *
  * @brief StarPU CPU implementation
- */
+ *
+ *******************************************************************************
+ *
+ * @param[in] descr
+ *          TODO
+ *
+ * @param[in] cl_arg
+ *          TODO
+ *
+ *******************************************************************************/
 static void
 fct_blok_zhetrfsp_cpu( void *descr[], void *cl_arg )
 {
@@ -158,8 +193,27 @@ fct_blok_zhetrfsp_cpu( void *descr[], void *cl_arg )
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 CODELETS_CPU( blok_zhetrfsp, 1 );
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ * @param[in] cblk
+ *          TODO
+ *
+ * @param[in] prio
+ *          TODO
+ *
+ *******************************************************************************/
 void
 starpu_task_blok_zhetrf( sopalin_data_t *sopalin_data,
                          SolverCblk     *cblk,

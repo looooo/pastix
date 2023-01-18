@@ -13,7 +13,7 @@
  * @author Tony Delarue
  * @date 2022-09-23
  *
- * @addtogroup pastix_starpu
+ * @ingroup pastix_starpu
  * @{
  *
  **/
@@ -22,6 +22,7 @@
 #include "pastix_starpu.h"
 #include <starpu_data.h>
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static inline void
 pastix_starpu_filter_interface( void                      *father_interface,
                                 void                      *child_interface,
@@ -123,6 +124,7 @@ pastix_starpu_register_cblk( const starpu_sparse_matrix_desc_t *spmtx,
         pastix_starpu_register_interface( spmtx, cblk, myrank, PastixUCoef, flttype );
     }
 }
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
@@ -138,10 +140,6 @@ pastix_starpu_register_cblk( const starpu_sparse_matrix_desc_t *spmtx,
  *          The solver matrix structure that describes the sparse matrix for
  *          PaStiX.
  *
- * @param[in] typesize
- *          The memory size of the arithmetic used to store the matrix
- *          coefficients.
- *
  * @param[in] mtxtype
  *          The type of sparse matrix to describe.
  *          @arg PastixGeneral:   The sparse matrix is general.
@@ -153,6 +151,10 @@ pastix_starpu_register_cblk( const starpu_sparse_matrix_desc_t *spmtx,
  *
  * @param[in] myrank
  *          The rank of the calling process.
+ *
+ * @param[in] flttype
+ *          The memory size of the arithmetic used to store the matrix
+ *          coefficients.
  *
  ******************************************************************************/
 void
@@ -471,12 +473,16 @@ starpu_sparse_matrix_destroy( starpu_sparse_matrix_desc_t *spmtx )
  *
  * @brief TODO
  *
- * TODO
- *
  *******************************************************************************
  *
- * @param[in] spmtx
- *          The descriptor to free.
+ * @param[in] side
+ *          TODO
+ *
+ * @param[in] cblk
+ *          TODO
+ *
+ * @param[in] starpu_cblk
+ *          TODO
  *
  ******************************************************************************/
 void
@@ -496,12 +502,22 @@ pastix_starpu_partition_submit( pastix_coefside_t side,
  *
  * @brief TODO
  *
- * TODO
- *
  *******************************************************************************
  *
  * @param[in] spmtx
  *          The descriptor to free.
+ *
+ * @param[in] rank
+ *          TODO
+ *
+ * @param[in] side
+ *          TODO
+ *
+ * @param[in] cblk
+ *          TODO
+ *
+ * @param[in] starpu_cblk
+ *          TODO
  *
  ******************************************************************************/
 void
@@ -535,5 +551,5 @@ pastix_starpu_unpartition_submit( const starpu_sparse_matrix_desc_t *spmtx,
 }
 
 /**
- *@}
+ * @}
  */

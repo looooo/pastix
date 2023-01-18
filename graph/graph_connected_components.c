@@ -4,7 +4,7 @@
  *
  * PaStiX routines to isolate disconnected subgraphs
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.0
@@ -19,6 +19,7 @@
 #include "graph/graph.h"
 #include "pastix/order.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 typedef struct _Queue {
     pastix_int_t *tab;
     pastix_int_t size;
@@ -82,6 +83,7 @@ move_to_end( pastix_int_t  p1,
     assert( p2 - to == 0 );
     memcpy( A + to, W, p1 * sizeof(pastix_int_t) );
 }
+#endif
 
 /**
  *******************************************************************************
@@ -100,7 +102,7 @@ move_to_end( pastix_int_t  p1,
  *          Array of size n that hold the index of the component for each vertex
  *          of the graph.
  *
- * @param[inout] comp_size
+ * @param[inout] comp_sze
  *          The size of each components in the graph.
  *
  *******************************************************************************
@@ -110,8 +112,8 @@ move_to_end( pastix_int_t  p1,
  *******************************************************************************/
 pastix_int_t
 graphIsolateConnectedComponents( const pastix_graph_t *graph,
-                                 pastix_int_t *comp_vtx,
-                                 pastix_int_t *comp_sze )
+                                 pastix_int_t         *comp_vtx,
+                                 pastix_int_t         *comp_sze )
 {
     const pastix_int_t *colptr;
     const pastix_int_t *rowptr;

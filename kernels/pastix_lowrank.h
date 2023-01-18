@@ -3,7 +3,7 @@
  *
  * PaStiX kernel header.
  *
- * @copyright 2011-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2011-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.0
@@ -64,38 +64,92 @@ extern double pastix_lr_minratio;
 extern pastix_int_t pastix_lr_ortho;
 
 /**
+ *******************************************************************************
+ *
  * @brief Compute the maximal rank accepted for a given matrix size for testings
- * @param[in] M The number of rows of the matrix
- * @param[in] N The number of columns of the matrix
+ *
+ *******************************************************************************
+ *
+ * @param[in] M
+ *          The number of rows of the matrix
+ *
+ * @param[in] N
+ *          The number of columns of the matrix
+ *
+ *******************************************************************************
+ *
  * @return The maximal rank accepted for this matrix size.
- */
+ *
+ *******************************************************************************/
 static inline pastix_int_t
 core_get_rklimit_max( pastix_int_t M, pastix_int_t N ) {
     return pastix_imin( M, N );
 }
 
 /**
+ *******************************************************************************
+ *
  * @brief Compute the maximal rank accepted for a given matrix size for Just-In-Time strategy
- * @param[in] M The number of rows of the matrix
- * @param[in] N The number of columns of the matrix
+ *
+ *******************************************************************************
+ *
+ * @param[in] M
+ *          The number of rows of the matrix
+ *
+ * @param[in] N
+ *          The number of columns of the matrix
+ *
+ *******************************************************************************
+ *
  * @return The maximal rank accepted for this matrix size.
- */
+ *
+ *******************************************************************************/
 static inline pastix_int_t
 core_get_rklimit_end( pastix_int_t M, pastix_int_t N ) {
     return ( pastix_lr_minratio * pastix_imin( M, N ) ) / 4;
 }
 
 /**
+ *******************************************************************************
+ *
  * @brief Compute the maximal rank accepted for a given matrix size for Minimal-Memory strategy
- * @param[in] M The number of rows of the matrix
- * @param[in] N The number of columns of the matrix
+ *
+ *******************************************************************************
+ *
+ * @param[in] M
+ *          The number of rows of the matrix
+ *
+ * @param[in] N
+ *          The number of columns of the matrix
+ *
+ *******************************************************************************
+ *
  * @return The maximal rank accepted for this matrix size.
- */
+ *
+ *******************************************************************************/
 static inline pastix_int_t
 core_get_rklimit_begin( pastix_int_t M, pastix_int_t N ) {
     return ( pastix_lr_minratio * M * N ) / ( M + N );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] M
+ *          The number of rows of the matrix
+ *
+ * @param[in] N
+ *          The number of columns of the matrix
+ *
+ *******************************************************************************
+ *
+ * @return TODO
+ *
+ *******************************************************************************/
 static inline pastix_int_t
 core_get_rklimit_test( pastix_int_t M, pastix_int_t N ) {
     return pastix_imin( M, N );

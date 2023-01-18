@@ -218,8 +218,8 @@ And then, you can run your favorite example:
  ${PASTIX_DIR}/examples/simple -9 10:10:10
 ```
 
-You setup is ready to play with PaStiX. Please refer to section [How to
-to use PaStiX](todo.md) to get as best results as possible.
+Your setup is ready to play with PaStiX. Please refer to section [How to
+to use PaStiX](https://solverstack.gitlabpages.inria.fr/pastix/md_docs_doxygen_chapters_Pastix_Python.html) to get as best results as possible.
 
 ### How to link PaStiX within your code
 

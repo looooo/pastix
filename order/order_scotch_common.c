@@ -21,6 +21,7 @@
 #include "order/order_internal.h"
 #include "order_scotch_strats.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define STRAT_STR_MAX 1024
 
 #define STRAT_DIRECT(_isPTScotch_) ( (_isPTScotch_) ? PTSCOTCH_STRAT_DIRECT : SCOTCH_STRAT_DIRECT )
@@ -30,6 +31,7 @@
 #define OUTPUT_DIRECT(_isPTScotch_) ( (_isPTScotch_) ? "      PT-Scotch direct strategy\n"       : "      Scotch direct strategy\n" )
 #define OUTPUT_INCOMP(_isPTScotch_) ( (_isPTScotch_) ? "      PT-Scotch incomplete strategy\n"   : "      Scotch incomplete strategy\n" )
 #define OUTPUT_PERSON(_isPTScotch_) ( (_isPTScotch_) ? "      PT-Scotch personal strategy |%s|\n": "      Scotch personal strategy |%s|\n" )
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************

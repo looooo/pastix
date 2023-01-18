@@ -19,7 +19,9 @@
  * @{
  *
  **/
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define _GNU_SOURCE
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include "common.h"
 #include "blend/solver.h"
 #include "sopalin/sopalin_data.h"
@@ -28,10 +30,10 @@
 #include "pastix_zstarpu.h"
 #include "codelets.h"
 
-/**
- * Block version
- */
 #if defined( PASTIX_STARPU_PROFILING )
+/**
+ * @brief Block version
+ */
 starpu_profile_t blok_zscalo_profile = {
     .next = NULL,
     .name = "blok_zscalo"
@@ -48,6 +50,7 @@ blok_zscalo_profile_register( void )
 }
 #endif
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 struct cl_blok_zscalo_args_s {
     profile_data_t  profile_data;
     pastix_trans_t  trans;
@@ -80,7 +83,31 @@ fct_blok_zscalo_cpu( void *descr[], void *cl_arg )
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
 CODELETS_CPU( blok_zscalo, 3 );
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ * @param[in] trans
+ *          TODO
+ *
+ * @param[in] cblk
+ *          TODO
+ *
+ * @param[in] blok
+ *          TODO
+ *
+ * @param[in] prio
+ *          TODO
+ *
+ *******************************************************************************/
 void
 starpu_task_blok_zscalo( sopalin_data_t *sopalin_data,
                          pastix_trans_t  trans,

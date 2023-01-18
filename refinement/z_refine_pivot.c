@@ -33,10 +33,10 @@
  * @param[in] pastix_data
  *          The PaStiX data structure that describes the solver instance.
  *
- * @param[out] x
+ * @param[out] xp
  *          The solution vector.
  *
- * @param[in] b
+ * @param[in] bp
  *          The right hand side member (only one).
  *
  *******************************************************************************

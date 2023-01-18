@@ -76,10 +76,10 @@ install(TARGETS pastixf
 # Add examples
 # ------------
 set (EXAMPLES
-  fsimple.f90
-  flaplacian.f90
-  fstep-by-step.f90
-  fmultidof.f90
+  fsimple.F90
+  flaplacian.F90
+  fstep-by-step.F90
+  fmultidof.F90
   )
 
 # List of run types
@@ -123,7 +123,7 @@ endforeach()
 #
 # Add the fmultilap example using OpenMP only in shared memory
 #
-set( _file fmultilap.f90 )
+set( _file fmultilap.F90 )
 
 get_filename_component(_name_we ${_file} NAME_WE)
 add_executable(${_name_we} examples/${_file})

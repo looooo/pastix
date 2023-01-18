@@ -4,7 +4,7 @@
  *
  * PaStiX graph routine to compute projection of lower levels supernodes
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.0
@@ -20,19 +20,63 @@
 #include "blend/extendVector.h"
 #include "graph/graph.h"
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] graph
+ *          TODO
+ *
+ * @param[in] vertlvl
+ *          TODO
+ *
+ * @param[in] order
+ *          TODO
+ *
+ * @param[in] subgraph
+ *          TODO
+ *
+ * @param[in] suborder
+ *          TODO
+ *
+ * @param[in] fnode
+ *          TODO
+ *
+ * @param[in] lnode
+ *          TODO
+ *
+ * @param[in] sn_level
+ *          TODO
+ *
+ * @param[in] distance
+ *          TODO
+ *
+ * @param[in] maxdepth
+ *          TODO
+ *
+ * @param[in] maxwidth
+ *          TODO
+ *
+ * @param[in] depthsze
+ *          TODO
+ *
+ *******************************************************************************/
 void
 graphComputeProjection( const pastix_graph_t *graph,
                         const int            *vertlvl,
-                              pastix_order_t *order,
+                        pastix_order_t       *order,
                         const pastix_graph_t *subgraph,
-                              pastix_order_t *suborder,
-                              pastix_int_t    fnode,
-                              pastix_int_t    lnode,
-                              pastix_int_t    sn_level,
-                              pastix_int_t    distance,
-                              pastix_int_t    maxdepth,
-                              pastix_int_t    maxwidth,
-                              pastix_int_t   *depthsze )
+                        pastix_order_t       *suborder,
+                        pastix_int_t          fnode,
+                        pastix_int_t          lnode,
+                        pastix_int_t          sn_level,
+                        pastix_int_t          distance,
+                        pastix_int_t          maxdepth,
+                        pastix_int_t          maxwidth,
+                        pastix_int_t         *depthsze )
 {
     ExtendVectorINT vec;
     pastix_int_t baseval = graph->colptr[0];

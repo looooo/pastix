@@ -32,6 +32,20 @@
 #include "starpu/pastix_zstarpu.h"
 #endif
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          TODO
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ *******************************************************************************/
 void
 sequential_zsytrf( pastix_data_t  *pastix_data,
                    sopalin_data_t *sopalin_data )
@@ -82,8 +96,23 @@ sequential_zsytrf( pastix_data_t  *pastix_data,
     memFree_null( work2 );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctx
+ *          TODO
+ *
+ * @param[in] args
+ *          TODO
+ *
+ *******************************************************************************/
 void
-thread_zsytrf_static( isched_thread_t *ctx, void *args )
+thread_zsytrf_static( isched_thread_t *ctx,
+                      void            *args )
 {
     sopalin_data_t     *sopalin_data = (sopalin_data_t*)args;
     SolverMatrix       *datacode = sopalin_data->solvmtx;
@@ -140,6 +169,20 @@ thread_zsytrf_static( isched_thread_t *ctx, void *args )
     memFree_null( work2 );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          TODO
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ *******************************************************************************/
 void
 static_zsytrf( pastix_data_t  *pastix_data,
                sopalin_data_t *sopalin_data )
@@ -147,14 +190,32 @@ static_zsytrf( pastix_data_t  *pastix_data,
     isched_parallel_call( pastix_data->isched, thread_zsytrf_static, sopalin_data );
 }
 
+/**
+ * @brief TODO
+ */
 struct args_zsytrf_t
 {
     sopalin_data_t     *sopalin_data;
     volatile int32_t    taskcnt;
 };
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] ctx
+ *          TODO
+ *
+ * @param[in] args
+ *          TODO
+ *
+ *******************************************************************************/
 void
-thread_zsytrf_dynamic( isched_thread_t *ctx, void *args )
+thread_zsytrf_dynamic( isched_thread_t *ctx,
+                       void            *args )
 {
     struct args_zsytrf_t *arg = (struct args_zsytrf_t *)args;
     sopalin_data_t       *sopalin_data = arg->sopalin_data;
@@ -253,6 +314,20 @@ thread_zsytrf_dynamic( isched_thread_t *ctx, void *args )
     memFree_null( computeQueue );
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          TODO
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ *******************************************************************************/
 void
 dynamic_zsytrf( pastix_data_t  *pastix_data,
                  sopalin_data_t *sopalin_data )
@@ -268,9 +343,11 @@ dynamic_zsytrf( pastix_data_t  *pastix_data,
 
     memFree_null( datacode->computeQueue );
 }
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 /*
  * Need to uncomment
- * */
+ */
 static void (*zsytrf_table[5])(pastix_data_t *, sopalin_data_t *) = {
     sequential_zsytrf,
     static_zsytrf,
@@ -286,7 +363,22 @@ static void (*zsytrf_table[5])(pastix_data_t *, sopalin_data_t *) = {
 /* #endif */
     dynamic_zsytrf
 };
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          TODO
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ *******************************************************************************/
 void
 sopalin_zsytrf( pastix_data_t  *pastix_data,
                 sopalin_data_t *sopalin_data )

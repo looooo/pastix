@@ -284,12 +284,18 @@ typedef enum pastix_refine_e {
  *
  * @{
  */
+
+/**
+ * @brief TODO
+ */
 typedef spm_coeftype_t pastix_coeftype_t;
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define PastixPattern   SpmPattern
 #define PastixFloat     SpmFloat
 #define PastixDouble    SpmDouble
 #define PastixComplex32 SpmComplex32
 #define PastixComplex64 SpmComplex64
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 /**
  * @}
  */

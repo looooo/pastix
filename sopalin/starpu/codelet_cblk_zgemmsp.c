@@ -20,7 +20,9 @@
  * @{
  *
  **/
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define _GNU_SOURCE
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include "common.h"
 #include "blend/solver.h"
 #include "sopalin/sopalin_data.h"
@@ -45,6 +47,7 @@ struct cl_cblk_zgemmsp_args_s {
     SolverCblk       *fcblk;
 };
 
+#if defined( PASTIX_STARPU_PROFILING )
 /**
  * @brief Functions to profile the codelet
  *
@@ -52,7 +55,6 @@ struct cl_cblk_zgemmsp_args_s {
  *   1) A generic one that returns the flops per worker
  *   2) A more detailed one that generate logs of the performance for each kernel
  */
-#if defined( PASTIX_STARPU_PROFILING )
 starpu_profile_t cblk_zgemmsp_profile = {
     .next = NULL,
     .name = "cblk_zgemmsp"
@@ -68,6 +70,7 @@ cblk_zgemmsp_profile_register( void )
     profiling_register_cl( &cblk_zgemmsp_profile );
 }
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #if defined(PASTIX_STARPU_PROFILING_LOG)
 static void
 cl_profiling_cb_cblk_zgemmsp( void *callback_arg )
@@ -103,15 +106,34 @@ static void (*cblk_zgemmsp_callback)(void*) = cl_profiling_cb_cblk_zgemmsp;
 #else
 static void (*cblk_zgemmsp_callback)(void*) = cl_profiling_callback;
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif /* defined( PASTIX_STARPU_PROFILING ) */
 
 /**
+ *******************************************************************************
+ *
  * @brief Cost model function
  *
  * The user can switch from the pastix static model to an history based model
  * computed automatically.
- */
+ *
+ *******************************************************************************
+ *
+ * @param[in] task
+ *          TODO
+ *
+ * @param[in] arch
+ *          TODO
+ *
+ * @param[in] nimpl
+ *          TODO
+ *
+ *******************************************************************************
+ *
+ * @retval TODO
+ *
+ *******************************************************************************/
 static inline pastix_fixdbl_t
 fct_cblk_zgemmsp_cost( struct starpu_task           *task,
                        struct starpu_perfmodel_arch *arch,
@@ -147,6 +169,7 @@ fct_cblk_zgemmsp_cost( struct starpu_task           *task,
     return cost;
 }
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static struct starpu_perfmodel starpu_cblk_zgemmsp_model = {
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
     .type               = STARPU_PER_ARCH,
@@ -156,11 +179,23 @@ static struct starpu_perfmodel starpu_cblk_zgemmsp_model = {
 #endif
     .symbol             = "cblk_zgemmsp",
 };
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 #if !defined(PASTIX_STARPU_SIMULATION)
 /**
+ *******************************************************************************
+ *
  * @brief StarPU CPU implementation
- */
+ *
+ *******************************************************************************
+ *
+ * @param[in] descr
+ *          TODO
+ *
+ * @param[in] cl_arg
+ *          TODO
+ *
+ *******************************************************************************/
 static void
 fct_cblk_zgemmsp_cpu( void *descr[], void *cl_arg )
 {
@@ -208,8 +243,41 @@ fct_cblk_zgemmsp_gpu( void *descr[], void *cl_arg )
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 CODELETS_GPU( cblk_zgemmsp, 3, STARPU_CUDA_ASYNC );
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] sopalin_data
+ *          TODO
+ *
+ * @param[in] sideA
+ *          TODO
+ *
+ * @param[in] sideB
+ *          TODO
+ *
+ * @param[in] trans
+ *          TODO
+ *
+ * @param[in] cblk
+ *          TODO
+ *
+ * @param[in] blok
+ *
+ * @param[in] fcblk
+ *          TODO
+ *
+ * @param[in] prio
+ *          TODO
+ *
+ *******************************************************************************/
 void
 starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
                           pastix_coefside_t sideA,

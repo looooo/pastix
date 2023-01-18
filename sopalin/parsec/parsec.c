@@ -2,7 +2,7 @@
  *
  * @file parsec.c
  *
- * @copyright 2014-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2014-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * PaStiX PaRSEC routines
@@ -17,9 +17,11 @@
  * @{
  *
  **/
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include "common.h"
 #if !defined(PASTIX_WITH_PARSEC)
 #error "This file should not be compiled if PaRSEC is not enabled"

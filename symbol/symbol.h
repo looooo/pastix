@@ -33,9 +33,11 @@
 #ifndef _symbol_h_
 #define _symbol_h_
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define SYMBCBLK_NOTHING 0
 #define SYMBCBLK_PROJ    1
 #define SYMBCBLK_KWAY    2
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  * @brief Symbol column block structure.
@@ -104,7 +106,7 @@ typedef struct symbol_matrix_s {
  * @param[inout] fcolnum
  *          First column index of the current cblk.
  *
- * @param[inout] symbcblk
+ * @param[inout] lcolnum
  *          Last column index of the current cblk.
  *
  * @return The number of columns of the expanded cblk.
@@ -191,24 +193,27 @@ is_symbblock_inside_fblock( const symbol_blok_t *blok,
  * @name Symbol basic subroutines
  * @{
  */
-void pastixSymbolInit   ( const pastix_graph_t  *graph,
-                          const pastix_order_t  *order,
-                                symbol_matrix_t *symbptr );
-void pastixSymbolExit   (       symbol_matrix_t *symbptr );
-void pastixSymbolBase   (       symbol_matrix_t *symbptr,
-                          const pastix_int_t     baseval );
-void pastixSymbolRealloc(       symbol_matrix_t *symbptr );
-int  pastixSymbolCheck  ( const symbol_matrix_t *symbptr );
-void pastixSymbolExpand (       symbol_matrix_t *symbptr );
+void pastixSymbolInit( const pastix_graph_t  *graph,
+                       const pastix_order_t  *order,
+                       symbol_matrix_t       *symbptr );
+void pastixSymbolExit( symbol_matrix_t *symbptr );
+void pastixSymbolBase( symbol_matrix_t    *symbptr,
+                       const pastix_int_t  baseval );
+void pastixSymbolRealloc( symbol_matrix_t *symbptr );
+int pastixSymbolCheck ( const symbol_matrix_t *symbptr );
+void pastixSymbolExpand ( symbol_matrix_t *symbptr );
 
 /**
  * @}
  * @name Symbol IO subroutines
  * @{
  */
-int  pastixSymbolSave( const symbol_matrix_t *symbptr, FILE *stream );
-int  pastixSymbolLoad(       symbol_matrix_t *symbptr, FILE *stream );
-int  pastixSymbolDraw( const symbol_matrix_t *symbptr, FILE *stream );
+int  pastixSymbolSave( const symbol_matrix_t *symbptr,
+                       FILE                  *stream );
+int  pastixSymbolLoad( symbol_matrix_t *symbptr,
+                       FILE            *stream );
+int  pastixSymbolDraw( const symbol_matrix_t *symbptr,
+                       FILE                  *stream );
 void pastixSymbolDrawMap( pastix_data_t *pastix_data,
                           const char    *extname,
                           pastix_int_t   sndeidx );
@@ -244,15 +249,14 @@ void pastixSymbolReorderingPrintComplexity( const symbol_matrix_t *symbptr );
  * @name Symbol construction subroutines
  * @{
  */
-int          pastixSymbolFaxDirect ( symbol_matrix_t      *symbptr,
-                                     const pastix_graph_t *graphA,
-                                     const pastix_order_t *ordeptr );
-int          pastixSymbolFaxILUk   ( symbol_matrix_t      *symbptr,
-                                     pastix_int_t          levelk,
-                                     const pastix_graph_t *graphA,
-                                     const pastix_order_t *ordeptr );
-void         pastixSymbolRustine   ( symbol_matrix_t *symbptr, symbol_matrix_t *symbptr2 );
-void         pastixSymbolBuildRowtab( symbol_matrix_t *symbptr );
+int pastixSymbolFaxDirect( symbol_matrix_t      *symbptr,
+                           const pastix_graph_t *graphA,
+                           const pastix_order_t *ordeptr );
+int pastixSymbolFaxILUk( symbol_matrix_t      *symbptr,
+                         pastix_int_t          levelk,
+                         const pastix_graph_t *graphA,
+                         const pastix_order_t *ordeptr );
+void pastixSymbolBuildRowtab( symbol_matrix_t *symbptr );
 pastix_int_t pastixSymbolGetFacingBloknum( const symbol_matrix_t *symbptr,
                                            pastix_int_t           bloksrc,
                                            pastix_int_t           bloknum,

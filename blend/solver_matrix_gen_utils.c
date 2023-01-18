@@ -306,6 +306,10 @@ solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
  * @param[in] brownum
  *         Current brownum.
  *
+ *******************************************************************************
+ *
+ * @retval TODO
+ *
  *******************************************************************************/
 pastix_int_t
 solvMatGen_reorder_browtab( const symbol_matrix_t *symbmtx,

@@ -3,7 +3,7 @@
  *
  * PaStiX solver reception structure management.
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.0
@@ -32,14 +32,14 @@
  * @param[in] fcolnum
  *          The first column index of the contribution block.
  *
- * @param[in] fcolnum
+ * @param[in] lcolnum
  *          The last column index of the contribution block.
  *
  *******************************************************************************/
 static inline void
 solver_recv_update_cols( solver_cblk_recv_t *cblk,
-                         pastix_int_t fcolnum,
-                         pastix_int_t lcolnum )
+                         pastix_int_t        fcolnum,
+                         pastix_int_t        lcolnum )
 {
     cblk->fcolnum = pastix_imin( fcolnum, cblk->fcolnum );
     cblk->lcolnum = pastix_imax( lcolnum, cblk->lcolnum );
@@ -58,14 +58,14 @@ solver_recv_update_cols( solver_cblk_recv_t *cblk,
  * @param[in] frownum
  *          The first row index of the contribution block.
  *
- * @param[in] frownum
+ * @param[in] lrownum
  *          The last row index of the contribution block.
  *
  *******************************************************************************/
 static inline void
 solver_recv_update_rows( solver_blok_recv_t *blok,
-                         pastix_int_t frownum,
-                         pastix_int_t lrownum )
+                         pastix_int_t        frownum,
+                         pastix_int_t        lrownum )
 {
     blok->frownum = pastix_imin( frownum, blok->frownum );
     blok->lrownum = pastix_imax( lrownum, blok->lrownum );
@@ -83,6 +83,8 @@ solver_recv_update_rows( solver_blok_recv_t *blok,
  *
  * @param[in] cblk
  *          The symbol cblk used as a template to create the fanin/recv cblk.
+ *
+ *******************************************************************************
  *
  * @return The pointer to the recv/fanin cblk initialized with respect to the
  *         input symbcblk.
@@ -113,6 +115,29 @@ solver_recv_cblk_init( const symbol_matrix_t *symbmtx,
     return cblkrecv;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief TODO
+ *
+ *******************************************************************************
+ *
+ * @param[in] rcblk
+ *          TODO
+ *
+ * @param[in] symbmtx
+ *          TODO
+ *
+ * @param[in] cblk
+ *          TODO
+ *
+ * @param[in] blok
+ *          TODO
+ *
+ * @param[in] fcblk
+ *          TODO
+ *
+ *******************************************************************************/
 static inline void
 solver_recv_add_contrib( solver_cblk_recv_t    *rcblk,
                          const symbol_matrix_t *symbmtx,
@@ -270,6 +295,8 @@ solver_recv_update_recv( solver_cblk_recv_t   **recvptr,
  *
  * @param[in] symbblok
  *          The first symbol blok of the symbcblk.
+ *
+ *******************************************************************************
  *
  * @return The number of non empty blocks in the fan-in.
  *

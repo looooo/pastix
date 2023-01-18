@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
- @file schur_obj.py
+ @file examples/schur_obj.py
 
  PaStiX Schur python example with an object oriented programing solution.
 
@@ -17,6 +17,7 @@
  Schur complement.
 
 """
+##\cond
 import pypastix as pastix
 import scipy.sparse as sps
 import scipy.linalg as la
@@ -53,3 +54,4 @@ rc = solver.check( x, b, x0=x0 )
 solver.finalize()
 
 exit(rc)
+##\endcond

@@ -170,11 +170,13 @@ core_zlrfree( pastix_lrblock_t *A )
  *
  *******************************************************************************/
 int
-core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
+core_zlrsze( int               copy,
+             pastix_int_t      M,
+             pastix_int_t      N,
              pastix_lrblock_t *A,
-             pastix_int_t newrk,
-             pastix_int_t newrkmax,
-             pastix_int_t rklimit )
+             pastix_int_t      newrk,
+             pastix_int_t      newrkmax,
+             pastix_int_t      rklimit )
 {
     /* If no limit on the rank is given, let's take min(M, N) */
     rklimit = (rklimit == -1) ? core_get_rklimit( M, N ) : rklimit;
@@ -297,9 +299,12 @@ core_zlrsze( int copy, pastix_int_t M, pastix_int_t N,
  *
  *******************************************************************************/
 int
-core_zlr2ge( pastix_trans_t trans, pastix_int_t m, pastix_int_t n,
+core_zlr2ge( pastix_trans_t          trans,
+             pastix_int_t            m,
+             pastix_int_t            n,
              const pastix_lrblock_t *Alr,
-             pastix_complex64_t *A, pastix_int_t lda )
+             pastix_complex64_t     *A,
+             pastix_int_t            lda )
 {
     int ret = 0;
 
@@ -415,11 +420,17 @@ core_zlr2ge( pastix_trans_t trans, pastix_int_t m, pastix_int_t n,
  *
  *******************************************************************************/
 void
-core_zlrcpy( const pastix_lr_t *lowrank,
-             pastix_trans_t transAv, pastix_complex64_t alpha,
-             pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-             pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-             pastix_int_t offx, pastix_int_t offy )
+core_zlrcpy( const pastix_lr_t      *lowrank,
+             pastix_trans_t          transAv,
+             pastix_complex64_t      alpha,
+             pastix_int_t            M1,
+             pastix_int_t            N1,
+             const pastix_lrblock_t *A,
+             pastix_int_t            M2,
+             pastix_int_t            N2,
+             pastix_lrblock_t       *B,
+             pastix_int_t            offx,
+             pastix_int_t            offy )
 {
     pastix_complex64_t *u, *v;
     pastix_int_t ldau, ldav;
@@ -521,11 +532,14 @@ core_zlrcpy( const pastix_lr_t *lowrank,
  *
  *******************************************************************************/
 void
-core_zlrconcatenate_u( pastix_complex64_t alpha,
-                       pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                       pastix_int_t M2,                        pastix_lrblock_t *B,
-                       pastix_int_t offx,
-                       pastix_complex64_t *u1u2 )
+core_zlrconcatenate_u( pastix_complex64_t      alpha,
+                       pastix_int_t            M1,
+                       pastix_int_t            N1,
+                       const pastix_lrblock_t *A,
+                       pastix_int_t            M2,
+                       pastix_lrblock_t       *B,
+                       pastix_int_t            offx,
+                       pastix_complex64_t     *u1u2 )
 {
     pastix_complex64_t *tmp;
     pastix_int_t i, ret, rank;
@@ -630,11 +644,15 @@ core_zlrconcatenate_u( pastix_complex64_t alpha,
  *
  *******************************************************************************/
 void
-core_zlrconcatenate_v( pastix_trans_t transA1, pastix_complex64_t alpha,
-                       pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                                        pastix_int_t N2,       pastix_lrblock_t *B,
-                       pastix_int_t offy,
-                       pastix_complex64_t *v1v2 )
+core_zlrconcatenate_v( pastix_trans_t          transA1,
+                       pastix_complex64_t      alpha,
+                       pastix_int_t            M1,
+                       pastix_int_t            N1,
+                       const pastix_lrblock_t *A,
+                       pastix_int_t            N2,
+                       pastix_lrblock_t       *B,
+                       pastix_int_t            offy,
+                       pastix_complex64_t     *v1v2 )
 {
     pastix_complex64_t *tmp;
     pastix_int_t i, ret, rank;
@@ -724,6 +742,9 @@ core_zlrconcatenate_v( pastix_trans_t transA1, pastix_complex64_t alpha,
  *          QR decomposition function used to compute the rank revealing
  *          factorization and create the low-rank form of A.
  *
+ * @param[in] use_reltol
+ *          TODO
+ *
  * @param[in] tol
  *          The tolerance used as a criterion to eliminate information from the
  *          full rank matrix
@@ -738,7 +759,7 @@ core_zlrconcatenate_v( pastix_trans_t transA1, pastix_complex64_t alpha,
  * @param[in] n
  *          Number of columns of the matrix A, and of the low rank matrix Alr.
  *
- * @param[in] A
+ * @param[in] Avoid
  *          The matrix of dimension lda-by-n that needs to be compressed
  *
  * @param[in] lda
@@ -748,12 +769,20 @@ core_zlrconcatenate_v( pastix_trans_t transA1, pastix_complex64_t alpha,
  *          The low rank matrix structure that will store the low rank
  *          representation of A
  *
+ *******************************************************************************
+ *
+ * @return  TODO
+ *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct,
-                  int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
-                  pastix_int_t m, pastix_int_t n,
-                  const void *Avoid, pastix_int_t lda,
+core_zge2lr_qrcp( core_zrrqr_cp_t   rrqrfct,
+                  int               use_reltol,
+                  pastix_fixdbl_t   tol,
+                  pastix_int_t      rklimit,
+                  pastix_int_t      m,
+                  pastix_int_t      n,
+                  const void       *Avoid,
+                  pastix_int_t      lda,
                   pastix_lrblock_t *Alr )
 {
     int                 ret, newrk;
@@ -912,6 +941,9 @@ core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct,
  *          QR decomposition function used to compute the rank revealing
  *          factorization and create the low-rank form of A.
  *
+ * @param[in] use_reltol
+ *          TODO
+ *
  * @param[in] tol
  *          The tolerance used as a criterion to eliminate information from the
  *          full rank matrix
@@ -926,7 +958,7 @@ core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct,
  * @param[in] n
  *          Number of columns of the matrix A, and of the low rank matrix Alr.
  *
- * @param[in] A
+ * @param[in] Avoid
  *          The matrix of dimension lda-by-n that needs to be compressed
  *
  * @param[in] lda
@@ -936,12 +968,20 @@ core_zge2lr_qrcp( core_zrrqr_cp_t rrqrfct,
  *          The low rank matrix structure that will store the low rank
  *          representation of A
  *
+ *******************************************************************************
+ *
+ * @return  TODO
+ *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct,
-                  int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
-                  pastix_int_t m, pastix_int_t n,
-                  const void *Avoid, pastix_int_t lda,
+core_zge2lr_qrrt( core_zrrqr_rt_t   rrqrfct,
+                  int               use_reltol,
+                  pastix_fixdbl_t   tol,
+                  pastix_int_t      rklimit,
+                  pastix_int_t      m,
+                  pastix_int_t      n,
+                  const void       *Avoid,
+                  pastix_int_t      lda,
                   pastix_lrblock_t *Alr )
 {
     int                 ret, newrk;
@@ -1141,7 +1181,7 @@ core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct,
  *         @arg PastixNoTrans:  No transpose, op( A ) = A;
  *         @arg PastixTrans:  Transpose, op( A ) = A';
  *
- * @param[in] alpha
+ * @param[in] alphaptr
  *          alpha * A is add to B
  *
  * @param[in] M1
@@ -1175,11 +1215,18 @@ core_zge2lr_qrrt( core_zrrqr_rt_t rrqrfct,
  *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zrradd_qr( core_zrrqr_cp_t rrqrfct,
-                const pastix_lr_t *lowrank, pastix_trans_t transA1, const void *alphaptr,
-                pastix_int_t M1, pastix_int_t N1, const pastix_lrblock_t *A,
-                pastix_int_t M2, pastix_int_t N2,       pastix_lrblock_t *B,
-                pastix_int_t offx, pastix_int_t offy )
+core_zrradd_qr( core_zrrqr_cp_t         rrqrfct,
+                const pastix_lr_t      *lowrank,
+                pastix_trans_t          transA1,
+                const void             *alphaptr,
+                pastix_int_t            M1,
+                pastix_int_t            N1,
+                const pastix_lrblock_t *A,
+                pastix_int_t            M2,
+                pastix_int_t            N2,
+                pastix_lrblock_t       *B,
+                pastix_int_t            offx,
+                pastix_int_t            offy )
 {
     pastix_int_t rankA, rank, M, N, minV;
     pastix_int_t i, ret, new_rank, rklimit;
@@ -1382,7 +1429,7 @@ core_zrradd_qr( core_zrrqr_cp_t rrqrfct,
         /**
          * In relative tolerance, we can choose two solutions:
          *  1) The first one, more conservative, is to compress relatively to
-         *  the norm of the final matrix \[ \alpha A + B \]. In this kernel, we
+         *  the norm of the final matrix \f$ \alpha A + B \f$. In this kernel, we
          *  exploit the fact that the V part contains all the information while
          *  the U part is orthonormal, and compute it as follow:
          *
@@ -1398,7 +1445,7 @@ core_zrradd_qr( core_zrrqr_cp_t rrqrfct,
          *  with the first criterion, and rank null with the second.
          *  Note that here, we can only have an estimation that once again
          *  reduces the conservation of the criterion.
-         *  || \alpha A + B || <= |\alpha| ||A|| + ||B|| <= |\alpha| ||U_aV_a|| + ||U_bV_b||
+         *  \f[ || \alpha A + B || <= |\alpha| ||A|| + ||B|| <= |\alpha| ||U_aV_a|| + ||U_bV_b|| \f]
          *
          */
         double normA, normB;
@@ -1573,7 +1620,9 @@ core_zrradd_qr( core_zrrqr_cp_t rrqrfct,
  *
  *******************************************************************************/
 size_t
-core_zlrgetsize( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A )
+core_zlrgetsize( pastix_int_t      M,
+                 pastix_int_t      N,
+                 pastix_lrblock_t *A )
 {
     if ( A->rk != -1 ) {
         return A->rk * ( M + N );
@@ -1608,7 +1657,10 @@ core_zlrgetsize( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A )
  *
  *******************************************************************************/
 char *
-core_zlrpack( pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *A, char *buffer )
+core_zlrpack( pastix_int_t            M,
+              pastix_int_t            N,
+              const pastix_lrblock_t *A,
+              char                   *buffer )
 {
     int   rk    = A->rk;
     int   rkmax = A->rkmax;
@@ -1672,7 +1724,10 @@ core_zlrpack( pastix_int_t M, pastix_int_t N, const pastix_lrblock_t *A, char *b
  *
  *******************************************************************************/
 char *
-core_zlrunpack( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, char *buffer )
+core_zlrunpack( pastix_int_t      M,
+                pastix_int_t      N,
+                pastix_lrblock_t *A,
+                char             *buffer )
 {
     int rk;
     memcpy( &rk, buffer, sizeof( int ) );
@@ -1715,8 +1770,11 @@ core_zlrunpack( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, char *buffe
  * @param[in] A
  *          The low-rank representation of the matrix A.
  *
- * @param[inout] buffer
- *          Pointer on packed data
+ * @param[inout] input
+ *          TODO
+ *
+ * @param[inout] outptr
+ *          TODO
  *
  *******************************************************************************
  *
@@ -1724,8 +1782,11 @@ core_zlrunpack( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, char *buffe
  *
  *******************************************************************************/
 const char *
-core_zlrunpack2( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A,
-                 const char *input, char **outptr )
+core_zlrunpack2( pastix_int_t      M,
+                 pastix_int_t      N,
+                 pastix_lrblock_t *A,
+                 const char       *input,
+                 char            **outptr )
 {
     char  *output = *outptr;
     size_t size;

@@ -4,7 +4,7 @@
  *
  * PaStiX simulation basic functions.
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.0
@@ -248,11 +248,6 @@ simuRealloc(SimuCtrl     *simuctrl,
  *
  * @param[in] local_nbthrds
  *          The number of local workers per process.
- *
- *******************************************************************************
- *
- * @retval PASTIX_SUCCESS if success.
- * @retval PASTIX_ERR_OUTOFMEMORY if one of the malloc failed.
  *
  *******************************************************************************/
 void

@@ -35,6 +35,8 @@
  *
  *******************************************************************************/
 typedef pastix_int_t (*refine_fct_t)( pastix_data_t *, pastix_rhs_t, pastix_rhs_t );
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static refine_fct_t sopalinRefine[4][4] =
 {
     /* PastixRefineGMRES */
@@ -66,6 +68,7 @@ static refine_fct_t sopalinRefine[4][4] =
         z_bicgstab_smp
     }
 };
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
@@ -82,30 +85,16 @@ static refine_fct_t sopalinRefine[4][4] =
  * @param[in] pastix_data
  *          The PaStiX data structure that describes the solver instance.
  *
- * @param[in] n
- *          The size of system to solve, and the number of rows of both
- *          matrices b and x.
- *
- * @param[in] nrhs
- *          The number of right hand side members, and the number of columns of
- *          b and x.
- *
- * @param[inout] b
+ * @param[inout] Bp
  *          The right hand side matrix of size ldb-by-nrhs.
  *          B is noted as inout, as permutation might be performed on the
  *          matrix. On exit, the matrix is restored as it was on entry.
  *
- * @param[in] ldb
- *          The leading dimension of the matrix b. ldb >= n.
- *
- * @param[inout] x
+ * @param[inout] Xp
  *          The matrix x of size ldx-by-nrhs.
  *          On entry, the initial guess x0 for the refinement step, that may be
  *          the solution returned by the solve step or any other initial guess.
  *          On exit, contains the final solution after the iterative refinement.
- *
- * @param[in] ldx
- *          The leading dimension of the matrix x. ldx >= n.
  *
  *******************************************************************************
  *

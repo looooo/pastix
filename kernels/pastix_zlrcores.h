@@ -63,7 +63,7 @@ char *core_zlrunpack( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, char 
 const char * core_zlrunpack2( pastix_int_t M, pastix_int_t N, pastix_lrblock_t *A, const char *input, char **outptr );
 
 /**
- *     @}
+ *    @}
  * @}
  *
  * @addtogroup kernel_lr_lrmm
@@ -175,8 +175,9 @@ core_zlrmm_getws( core_zlrmm_t *params,
 }
 
 /**
- *      @name update_fr Functions to perform the update on a full-rank matrix
- *      @{
+ *    @}
+ *    @name update_fr Functions to perform the update on a full-rank matrix
+ *    @{
  */
 pastix_fixdbl_t core_zfrfr2fr( core_zlrmm_t *params );
 pastix_fixdbl_t core_zfrlr2fr( core_zlrmm_t *params );
@@ -184,9 +185,9 @@ pastix_fixdbl_t core_zlrfr2fr( core_zlrmm_t *params );
 pastix_fixdbl_t core_zlrlr2fr( core_zlrmm_t *params );
 
 /**
- *      @}
- *      @name update_lr Functions to prepare the AB product for an update on a low-rank matrix
- *      @{
+ *    @}
+ *    @name update_lr Functions to prepare the AB product for an update on a low-rank matrix
+ *    @{
  */
 pastix_fixdbl_t core_zfrfr2lr( core_zlrmm_t     *params,
                                pastix_lrblock_t *AB,
@@ -205,9 +206,9 @@ pastix_fixdbl_t core_zlrlr2lr( core_zlrmm_t     *params,
                                int              *infomask );
 
 /**
- *      @}
- *      @name add_lr Functions to add the AB contribution in a low-rank format to any C matrix
- *      @{
+ *    @}
+ *    @name add_lr Functions to add the AB contribution in a low-rank format to any C matrix
+ *    @{
  */
 pastix_fixdbl_t core_zlradd( core_zlrmm_t           *params,
                              const pastix_lrblock_t *AB,
@@ -215,13 +216,11 @@ pastix_fixdbl_t core_zlradd( core_zlrmm_t           *params,
                              int                     infomask );
 
 /**
- *       @}
+ *    @}
  */
-
 pastix_fixdbl_t core_zlrmm( core_zlrmm_t *params );
 
 /**
- *     @}
  * @}
  *
  * @addtogroup kernel_lr_svd
@@ -232,7 +231,6 @@ pastix_fixdbl_t core_zlrmm( core_zlrmm_t *params );
  *    @name PastixComplex64 SVD low-rank kernels
  *    @{
  */
-
 pastix_fixdbl_t core_zge2lr_svd( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
                                  pastix_int_t m, pastix_int_t n,
                                  const void *Avoid, pastix_int_t lda, pastix_lrblock_t *Alr );
@@ -254,24 +252,29 @@ pastix_fixdbl_t core_zrradd_svd( const pastix_lr_t *lowrank, pastix_trans_t tran
  *    @{
  */
 
+/**
+ * @brief TODO
+ */
 typedef int (*core_zrrqr_cp_t)( double tol, pastix_int_t maxrank, int refine, pastix_int_t nb,
                                 pastix_int_t m, pastix_int_t n,
                                 pastix_complex64_t *A, pastix_int_t lda,
                                 pastix_int_t *jpvt, pastix_complex64_t *tau,
                                 pastix_complex64_t *work, pastix_int_t lwork,  double *rwork );
 
+/**
+ * @brief TODO
+ */
 typedef int (*core_zrrqr_rt_t)( double tol, pastix_int_t maxrank, pastix_int_t nb,
                                 pastix_int_t m, pastix_int_t n,
                                 pastix_complex64_t *A, pastix_int_t lda, pastix_complex64_t *tau,
                                 pastix_complex64_t *B, pastix_int_t ldb, pastix_complex64_t *tau_b,
                                 pastix_complex64_t *work, pastix_int_t lwork,  double normA );
+
 /**
  *    @}
- *
  *    @name PastixComplex64 Rank Revealing QR kernels for low-rank
  *    @{
  */
-
 pastix_fixdbl_t core_zge2lr_pqrcp( int use_reltol, pastix_fixdbl_t tol, pastix_int_t rklimit,
                                    pastix_int_t m, pastix_int_t n,
                                    const void *Avoid, pastix_int_t lda, pastix_lrblock_t *Alr );
@@ -319,7 +322,7 @@ pastix_fixdbl_t core_zrradd_qr( core_zrrqr_cp_t rrqrfct,
                                 pastix_int_t offx, pastix_int_t offy );
 
 /**
- *     @}
+ *    @}
  * @}
  *
  * @addtogroup kernel_lr_debug
@@ -329,7 +332,6 @@ pastix_fixdbl_t core_zrradd_qr( core_zrrqr_cp_t rrqrfct,
  *    @name PastixComplex64 low-rank debug functions
  *    @{
  */
-
 void core_zlrdbg_printsvd( pastix_int_t              M,
                            pastix_int_t              N,
                            const pastix_complex64_t *A,
@@ -347,6 +349,6 @@ int  core_zlrdbg_check_orthogonality_AB( pastix_int_t M, pastix_int_t NA, pastix
 /**
  *    @}
  * @}
- *
  */
+
 #endif /* _pastix_zlrcores_h_ */

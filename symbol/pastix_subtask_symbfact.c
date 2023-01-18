@@ -45,7 +45,7 @@
  *  - If a direct factorization is performed, the structure is generated with
  * pastixSymbolFaxDirect() thanks to the information provided by the ordering
  * steps (permutation, partition, and elimination tree).
- * - If an ILU(k) factorization is performed, pastixSymbolFaxILUk() is used to
+ *  - If an ILU(k) factorization is performed, pastixSymbolFaxILUk() is used to
  * generate the symbol matrix structure. It requires an intermediate step to
  * generate the csr graph of L with incomplete factorization.
  *
@@ -80,10 +80,6 @@
  *
  * @retval PASTIX_SUCCESS on successful exit
  * @retval PASTIX_ERR_BADPARAMETER if one parameter is incorrect.
- * @retval PASTIX_ERR_OUTOFMEMORY if one allocation failed.
- * @retval PASTIX_ERR_INTEGER_TYPE if Scotch integer type is not the
- *         same size as PaStiX ones.
- * @retval PASTIX_ERR_INTERNAL if an error occurs internally to Scotch.
  *
  *******************************************************************************/
 int

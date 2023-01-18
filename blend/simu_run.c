@@ -17,9 +17,11 @@
  * @date 2022-09-07
  *
  **/
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -104,6 +106,7 @@ blendSubVar( int clustnum, varPrec time, const char*  type,
 
 #else
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define blendAddVar( clustnum, time, type, cont, val ) \
     do { } while (0)
 
@@ -111,6 +114,7 @@ blendSubVar( int clustnum, varPrec time, const char*  type,
     do { } while (0)
 
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  * @addtogroup blend_dev_simu

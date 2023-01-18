@@ -80,9 +80,13 @@ static pastix_complex64_t zzero =  0.0;
  *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zlrorthu_fullqr( pastix_int_t M,  pastix_int_t N, pastix_int_t rank,
-                      pastix_complex64_t *U, pastix_int_t ldu,
-                      pastix_complex64_t *V, pastix_int_t ldv )
+core_zlrorthu_fullqr( pastix_int_t        M,
+                      pastix_int_t        N,
+                      pastix_int_t        rank,
+                      pastix_complex64_t *U,
+                      pastix_int_t        ldu,
+                      pastix_complex64_t *V,
+                      pastix_int_t        ldv )
 {
     pastix_int_t minMK = pastix_imin( M, rank );
     pastix_int_t lwork = M * 32 + minMK;
@@ -190,11 +194,16 @@ core_zlrorthu_fullqr( pastix_int_t M,  pastix_int_t N, pastix_int_t rank,
  *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zlrorthu_partialqr( pastix_int_t M,  pastix_int_t N,
-                         pastix_int_t r1, pastix_int_t *r2ptr,
-                         pastix_int_t offx, pastix_int_t offy,
-                         pastix_complex64_t *U, pastix_int_t ldu,
-                         pastix_complex64_t *V, pastix_int_t ldv )
+core_zlrorthu_partialqr( pastix_int_t        M,
+                         pastix_int_t        N,
+                         pastix_int_t        r1,
+                         pastix_int_t       *r2ptr,
+                         pastix_int_t        offx,
+                         pastix_int_t        offy,
+                         pastix_complex64_t *U,
+                         pastix_int_t        ldu,
+                         pastix_complex64_t *V,
+                         pastix_int_t        ldv )
 {
     pastix_int_t r2 = *r2ptr;
     pastix_int_t minMN = pastix_imin( M, r2 );
@@ -418,12 +427,18 @@ core_zlrorthu_partialqr( pastix_int_t M,  pastix_int_t N,
  *
  *******************************************************************************/
 pastix_fixdbl_t
-core_zlrorthu_cgs( pastix_int_t M1,  pastix_int_t N1,
-                   pastix_int_t M2,  pastix_int_t N2,
-                   pastix_int_t r1, pastix_int_t *r2ptr,
-                   pastix_int_t offx, pastix_int_t offy,
-                   pastix_complex64_t *U, pastix_int_t ldu,
-                   pastix_complex64_t *V, pastix_int_t ldv )
+core_zlrorthu_cgs( pastix_int_t        M1,
+                   pastix_int_t        N1,
+                   pastix_int_t        M2,
+                   pastix_int_t        N2,
+                   pastix_int_t        r1,
+                   pastix_int_t       *r2ptr,
+                   pastix_int_t        offx,
+                   pastix_int_t        offy,
+                   pastix_complex64_t *U,
+                   pastix_int_t        ldu,
+                   pastix_complex64_t *V,
+                   pastix_int_t        ldv )
 {
     pastix_int_t r2 = *r2ptr;
     pastix_complex64_t *u1 = U;

@@ -136,15 +136,23 @@
  *
  ******************************************************************************/
 int
-core_zgemdm( pastix_trans_t transA, pastix_trans_t transB,
-             int M, int N, int K,
-                   pastix_complex64_t alpha,
-             const pastix_complex64_t *A,    int LDA,
-             const pastix_complex64_t *B,    int LDB,
-                   pastix_complex64_t beta,
-                   pastix_complex64_t *C,    int LDC,
-             const pastix_complex64_t *D,    int incD,
-                   pastix_complex64_t *WORK, int LWORK )
+core_zgemdm( pastix_trans_t            transA,
+             pastix_trans_t            transB,
+             int                       M,
+             int                       N,
+             int                       K,
+             pastix_complex64_t        alpha,
+             const pastix_complex64_t *A,
+             int                       LDA,
+             const pastix_complex64_t *B,
+             int                       LDB,
+             pastix_complex64_t        beta,
+             pastix_complex64_t       *C,
+             int                       LDC,
+             const pastix_complex64_t *D,
+             int                       incD,
+             pastix_complex64_t       *WORK,
+             int                       LWORK )
 {
     int j, Am, Bm, ret;
     pastix_complex64_t delta;

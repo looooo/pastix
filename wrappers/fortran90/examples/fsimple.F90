@@ -1,5 +1,5 @@
 !
-! @file fsimple.f90
+! @file fsimple.F90
 !
 ! Fortran 90 example using a matrix read with the spm driver.
 !

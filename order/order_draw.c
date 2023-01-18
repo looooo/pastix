@@ -4,7 +4,7 @@
  *
  * PaStiX order routines dedicated to split supernodes thanks to graph connectivity
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.0
@@ -14,7 +14,9 @@
  * @date 2021-01-25
  *
  */
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define _GNU_SOURCE 1
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include "common.h"
 #include "order_internal.h"
 #include "graph/graph.h"

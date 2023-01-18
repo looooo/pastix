@@ -132,6 +132,7 @@ add_documented_files(
   # Source files
   starpu.c
   starpu_sparse_matrix.c
+  starpu_tags.c
   starpu_dense_matrix.c
   pastix_starpu_interface.c
   )

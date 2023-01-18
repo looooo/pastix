@@ -43,8 +43,10 @@
  *
  *******************************************************************************/
 static inline void
-cpucblk_zgetschur_lr( const SolverCblk *cblk, int upper_part,
-                      pastix_complex64_t *S, pastix_int_t lds )
+cpucblk_zgetschur_lr( const SolverCblk   *cblk,
+                      int                 upper_part,
+                      pastix_complex64_t *S,
+                      pastix_int_t        lds )
 {
     SolverBlok *blok  = cblk[0].fblokptr;
     SolverBlok *lblok = cblk[1].fblokptr;
@@ -111,8 +113,10 @@ cpucblk_zgetschur_lr( const SolverCblk *cblk, int upper_part,
  *
  *******************************************************************************/
 static inline void
-cpucblk_zgetschur_fr( const SolverCblk *cblk, int upper_part,
-                      pastix_complex64_t *S, pastix_int_t lds )
+cpucblk_zgetschur_fr( const SolverCblk   *cblk,
+                      int                 upper_part,
+                      pastix_complex64_t *S,
+                      pastix_int_t        lds )
 {
     SolverBlok *blok  = cblk[0].fblokptr;
     SolverBlok *lblok = cblk[1].fblokptr;
@@ -175,8 +179,10 @@ cpucblk_zgetschur_fr( const SolverCblk *cblk, int upper_part,
  *
  *******************************************************************************/
 void
-cpucblk_zgetschur( const SolverCblk *cblk, int upper_part,
-                   pastix_complex64_t *S, pastix_int_t lds )
+cpucblk_zgetschur( const SolverCblk   *cblk,
+                   int                 upper_part,
+                   pastix_complex64_t *S,
+                   pastix_int_t        lds )
 {
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
         cpucblk_zgetschur_lr( cblk, upper_part, S, lds );

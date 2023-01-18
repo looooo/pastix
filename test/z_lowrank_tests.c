@@ -16,9 +16,11 @@
  * @precisions normal z -> z c d s
  *
  **/
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include <stdio.h>
 #include <cblas.h>
 #include <assert.h>
@@ -389,9 +391,9 @@ z_lowrank_genmat_comp( const pastix_lr_t *lowrank,
  * This routine compress a dense matrix into a low-rank form according to the
  * lowrank parameters, and check that the compressed form of the matrix respects
  * the relation:
- * \[ || A - c(A) || < \tau \], with
- *     \[ \tau = \eps \] in absolute compression, and
- *     \[ \tau = \eps * ||A|| \] in relative compression.
+ * \f$ || A - c(A) || < \tau \f$, with
+ *     \f$ \tau = \eps \f$ in absolute compression, and
+ *     \f$ \tau = \eps * ||A|| \f$ in relative compression.
  *
  *******************************************************************************
  *
@@ -494,23 +496,23 @@ z_lowrank_check_ge2lr( pastix_lr_t   *lowrank,
 /**
  *******************************************************************************
  *
- * @brief Check the operation \[ B = \alpha A + B \]
+ * @brief Check the operation \f$ B = \alpha A + B \f$
  *
  * This routine checks the addition of two low-rank matrices together.
  *
- *  Let's have \[ A = c(A) + r(A) \], such that \[ || A - c(A) || < \tau_A \],
- *             \[ B = c(B) + r(B) \], such that \[ || B - c(B) || < \tau_B \]
+ *  Let's have \f[ A = c(A) + r(A) \f$, such that \f$ || A - c(A) || < \tau_A \f],
+ *             \f[ B = c(B) + r(B) \f$, such that \f$ || B - c(B) || < \tau_B \f]
  *
- * We want to test the correctness of \[ c(C) = \alpha c(A) + c(B) \] with respect to
- * \[ C = \alpha A + B \]
+ * We want to test the correctness of \f$ c(C) = \alpha c(A) + c(B) \f$ with respect to
+ * \f$ C = \alpha A + B \f$
  *
  * For that let's check:
- *    \[ || C - c(C) || = || \alpha A + B - \alpha c(A) - c(B) || = || \alpha r(A) + r(B) || \]
+ *    \f[ || C - c(C) || = || \alpha A + B - \alpha c(A) - c(B) || = || \alpha r(A) + r(B) || \f]
  * So, we consider that the test is correct if:
- *   \[ || C - c(C) || < |\alpha| * ||r(A)|| + ||r(B)|| = \alpha * \tau_A + \tau_B \]
+ *    \f[ || C - c(C) || < |\alpha| * ||r(A)|| + ||r(B)|| = \alpha * \tau_A + \tau_B \f]
  *
- * Note that if we consider absolute compression, \[ \tau_A = \eps \],
- * otherwise \[ \tau_A = \eps * ||A|| \], and respectively for B.
+ * Note that if we consider absolute compression, \f$ \tau_A = \eps \f$,
+ * otherwise \f$ \tau_A = \eps * ||A|| \f$, and respectively for B.
  *
  *******************************************************************************
  *
@@ -543,7 +545,7 @@ z_lowrank_check_ge2lr( pastix_lr_t   *lowrank,
  * @param[in,out] C
  *          The matrix to test.
  *          On entry, m, n, ld, rk, and fr must be defined. C->fr must be set
- *          as the result of \alpha A + B in the full-rank form.
+ *          as the result of \f$ \alpha A + B \f$ in the full-rank form.
  *          During the test, C->lr is modified to store the low-rank form of
  *          alpha c(A) + c(B), and is freed on exit.
  *
@@ -599,8 +601,8 @@ z_lowrank_check_rradd( pastix_lr_t         *lowrank,
     timer = clockGetLocal() - timer;
 
     /*
-     * Check || (\alpha * A+B) - c( \alpha * c(A) + c(B) ) || < tol * (|\alpha| + 1)         (Absolute)
-     *    or || (\alpha * A+B) - c( \alpha * c(A) + c(B) ) || < tol * (|\alpha| ||A||+||B||) (Relative)
+     * Check \f[ || (\alpha * A+B) - c( \alpha * c(A) + c(B) ) || < tol * (|\alpha| + 1)         \f] (Absolute)
+     *    or \f[ || (\alpha * A+B) - c( \alpha * c(A) + c(B) ) || < tol * (|\alpha| ||A||+||B||) \f] (Relative)
      */
     Clr = malloc( C->m * C->n * sizeof( pastix_complex64_t ) );
 
@@ -666,22 +668,22 @@ z_lowrank_check_rradd( pastix_lr_t         *lowrank,
 /**
  *******************************************************************************
  *
- * @brief Check the operation \[ C = \alpha A B + \beta C \]
+ * @brief Check the operation \f$ C = \alpha A B + \beta C \f$
  *
  * This routine checks the addition of two low-rank matrices together.
  *
- *  Let's have \[ A = c(A) + r(A) \], such that \[ || A - c(A) || < \tau_A \]
+ *  Let's have \f[ A = c(A) + r(A) \f$, such that \f$ || A - c(A) || < \tau_A \f]
  *
- * We want to test the correctness of \[ \alpha c(A) c(B) + \beta c(C) \] with respect to
- * \[ \alpha A B + \beta C \]
+ * We want to test the correctness of \f$ \alpha c(A) c(B) + \beta c(C) \f$ with respect to
+ * \f$ \alpha A B + \beta C \f$
  *
  * For that let's check:
- *    \[ || C - c(C) || = \alpha * [ c(A)r(B) + r(A)c(B) + rA)r(B) ] + \beta r(C) \]
+ *    \f[ || C - c(C) || = \alpha * [ c(A)r(B) + r(A)c(B) + rA)r(B) ] + \beta r(C) \f]
  * So, we consider that the test is correct if:
- *   \[ || C - c(C) || < |\alpha| * ... + \beta \tau_C \]
+ *    \f[ || C - c(C) || < |\alpha| * ... + \beta \tau_C \f]
  *
- * Note that if we consider absolute compression, \[ \tau_A = \eps \],
- * otherwise \[ \tau_A = \eps * ||A|| \].
+ * Note that if we consider absolute compression, \f$ \tau_A = \eps \f$,
+ * otherwise \f$ \tau_A = \eps * ||A|| \f$.
  *
  *******************************************************************************
  *
@@ -717,7 +719,7 @@ z_lowrank_check_rradd( pastix_lr_t         *lowrank,
  * @param[in] C
  *          The matrix to test.
  *          On entry, m, n, ld, rk, and fr must be defined. C->fr must be set
- *          as the result of \alpha A B + \beta C in the full-rank form.
+ *          as the result of \f$ \alpha A B + \beta C \f$ in the full-rank form.
  *          C->lr must store the low-rank form of the matrix C before any
  *          computation.
  *

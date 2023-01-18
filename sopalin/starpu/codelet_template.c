@@ -20,7 +20,9 @@
  * @{
  *
  **/
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define _GNU_SOURCE
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include "common.h"
 #include "blend/solver.h"
 #include "sopalin/sopalin_data.h"
@@ -136,6 +138,7 @@ fct_template_cost( struct starpu_task           *task,
     return cost;
 }
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static struct starpu_perfmodel starpu_template_model = {
 #if defined(PASTIX_STARPU_COST_PER_ARCH)
     .type               = STARPU_PER_ARCH,
@@ -145,6 +148,7 @@ static struct starpu_perfmodel starpu_template_model = {
 #endif
     .symbol             = "template",
 };
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 #if !defined(PASTIX_STARPU_SIMULATION)
 /**
@@ -201,7 +205,9 @@ fct_template_gpu( void *descr[], void *cl_arg )
 #endif /* defined(PASTIX_WITH_CUDA) */
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 CODELETS_GPU( template, 3, STARPU_CUDA_ASYNC );
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 void
 starpu_task_template( sopalin_data_t   *sopalin_data,

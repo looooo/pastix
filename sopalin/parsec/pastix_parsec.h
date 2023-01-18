@@ -27,8 +27,10 @@
 /**
  * @name PaRSEC sparse matrix descriptor
  * @{
- *
- *   @brief PaRSEC descriptor stucture for the sparse matrix.
+ */
+
+/**
+ * @brief PaRSEC descriptor stucture for the sparse matrix.
  */
 typedef struct parsec_sparse_matrix_desc_s {
     parsec_data_collection_t  super;      /**< Every PaRSEC descriptors must inherit from parsec_desc_t                        */
@@ -42,24 +44,6 @@ void parsec_sparse_matrix_init( SolverMatrix *solvmtx,
                                 int typesize, pastix_mtxtype_t mtxtype,
                                 int nodes, int myrank );
 void parsec_sparse_matrix_destroy( parsec_sparse_matrix_desc_t *desc );
-
-/**
- * @}
- * @name PaRSEC vector descriptor
- * @{
- *
- *   @brief PaRSEC descriptor for the vectors linked to a given sparse matrix.
- */
-typedef struct parsec_sparse_vector_desc_t {
-    parsec_data_collection_t  super;  /**< Every PaRSEC descriptors must inherit from parsec_desc_t                        */
-    int                       typesze; /**< Arithmetic size                                                                 */
-    SolverMatrix             *solvmtx; /**< Solver matrix structure that describes the problem and stores the original data */
-} parsec_sparse_vector_desc_t;
-
-
-void parsec_sparse_vector_init( parsec_sparse_vector_desc_t *desc,
-                                int typesze, int nodes, int myrank );
-void parsec_sparse_vector_destroy( parsec_sparse_vector_desc_t *desc );
 
 /**
  * @}

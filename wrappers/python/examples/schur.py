@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
- @file schur.py
+ @file examples/schur.py
 
  PaStiX schur python example
 
@@ -14,6 +14,7 @@
  @date 2022-10-17
 
 """
+##\cond
 import pypastix as pastix
 import spm
 import scipy.sparse as sps
@@ -122,3 +123,4 @@ rc = spmA.checkAxb( x0, b, x )
 pastix.finalize( pastix_data, iparm, dparm )
 
 exit(rc)
+##\endcond

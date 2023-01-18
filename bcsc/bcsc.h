@@ -23,6 +23,9 @@
 #ifndef _bcsc_h_
 #define _bcsc_h_
 
+/**
+ * @brief Tags used in MPI communications.
+ */
 typedef enum bcsc_tag_ {
     PastixTagCountA,
     PastixTagCountAt,
@@ -110,7 +113,7 @@ struct pastix_bcsc_s {
     pastix_mtxtype_t    mtxtype;   /**< Matrix structure: PastixGeneral, PastixSymmetric or PastixHermitian.               */
     pastix_coeftype_t   flttype;   /**< valtab datatype: PastixFloat, PastixDouble, PastixComplex32 or PastixComplex64     */
     pastix_int_t        cscfnbr;   /**< Number of column blocks.                                                           */
-    bcsc_cblk_t        *cscftab;   /**< Array of Block column structures of size cscfnbr. (<pastix_bcscFormat_t>)          */
+    bcsc_cblk_t        *cscftab;   /**< Array of Block column structures of size cscfnbr. (pastix_bcscFormat_t)            */
     pastix_int_t       *rowtab;    /**< Array of rows in the matrix.                                                       */
     void               *Lvalues;   /**< Array of values of the matrix A                                                    */
     void               *Uvalues;   /**< Array of values of the matrix A^t                                                  */

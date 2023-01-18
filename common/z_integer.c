@@ -2,7 +2,7 @@
  *
  * @file z_integer.c
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.1.0
@@ -87,7 +87,7 @@
      Nothing
 
 */
-
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static size_t intsortsize[2] = { sizeof(pastix_int_t), sizeof(pastix_complex64_t) };
 #define INTSORTNAME            z_qsortIntFloatAsc
 #define INTSORTSIZE(x)         (intsortsize[x])
@@ -114,4 +114,4 @@ static size_t intsortsize[2] = { sizeof(pastix_int_t), sizeof(pastix_complex64_t
 #undef INTSORTSWAP
 #undef INTSORTCMP
 #undef INTSORTNTAB
-
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */

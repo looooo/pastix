@@ -23,6 +23,7 @@
 /*
  * Steps of the pastix solver
  */
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define STEP_INIT      (1 << 0)
 #define STEP_ORDERING  (1 << 1)
 #define STEP_SYMBFACT  (1 << 2)
@@ -32,10 +33,12 @@
 #define STEP_NUMFACT   (1 << 6)
 #define STEP_SOLVE     (1 << 7)
 #define STEP_REFINE    (1 << 8)
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /*
  * Scheduler family
  */
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define PASTIX_SCHED_FAMILY_RUNTIME ((1 << PastixSchedParsec) | (1 << PastixSchedStarPU))
 #define PASTIX_SCHED_FAMILY_PTHREAD ((1 << PastixSchedSequential) | (1 << PastixSchedStatic) | (1 << PastixSchedDynamic))
 
@@ -48,6 +51,7 @@ typedef struct pastix_bcsc_s pastix_bcsc_t;
 
 struct pastix_model_s;
 typedef struct pastix_model_s pastix_model_t;
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *
@@ -127,8 +131,10 @@ struct pastix_data_s {
     pastix_int_t     pastix_id;          /*+ Id of the pastix instance (PID of first MPI task)                   */
 };
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 struct bvec_handle_comm_s;
 typedef struct bvec_handle_comm_s bvec_handle_comm_t;
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *

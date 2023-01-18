@@ -47,6 +47,7 @@ coeftab_fct_memory_t coeftabMemory[4] =
     coeftab_smemory, coeftab_dmemory, coeftab_cmemory, coeftab_zmemory
 };
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static void (*initfunc[2][4])( pastix_coefside_t, const SolverMatrix*,
                                const pastix_bcsc_t*, pastix_int_t, const char *) =
 {
@@ -65,6 +66,7 @@ static void (*initfunc[2][4])( pastix_coefside_t, const SolverMatrix*,
         cpucblk_zcinit
     }
 };
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  * @brief Internal structure specific to the parallel call of pcoeftabInit()

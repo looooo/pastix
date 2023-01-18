@@ -1,5 +1,5 @@
 !
-! @file fmultidof.f90
+! @file fmultidof.F90
 !
 ! Fortran 90 example using a matrix read with the spm driver.
 !

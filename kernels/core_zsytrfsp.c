@@ -310,18 +310,13 @@ cpucblk_zsytrfsp1d_sytrf( SolverMatrix *solvmtx,
  * @param[inout] work
  *          Temporary buffer used in core_zgemdm().
  *
- *******************************************************************************
- *
- * @return
- *          The number of static pivoting during factorization of the diagonal block.
- *
  *******************************************************************************/
 void core_zsytrfsp1d_gemm( const SolverCblk         *cblk,
                            const SolverBlok         *blok,
-                                 SolverCblk         *fcblk,
+                           SolverCblk               *fcblk,
                            const pastix_complex64_t *L,
-                                 pastix_complex64_t *C,
-                                 pastix_complex64_t *work )
+                           pastix_complex64_t       *C,
+                           pastix_complex64_t       *work )
 {
     const SolverBlok *iterblok;
     const SolverBlok *fblok;

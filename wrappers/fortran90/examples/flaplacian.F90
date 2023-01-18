@@ -1,5 +1,5 @@
 !
-! @file flaplacian.f90
+! @file flaplacian.F90
 !
 ! Fortran 90 example using a laplacian matrix.
 !

@@ -1,6 +1,6 @@
 ###
 #
-#  @copyright 2017-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @version 6.2.0
@@ -34,7 +34,7 @@ if (BUILD_DOCUMENTATION)
 
       get_property(SRCS GLOBAL PROPERTY PASTIX_DOX_SRCS)
 
-      set(PASTIX_DOX_SRCS_DEPS "${PROJECT_SOURCE_DIR}/docs/doxygen/groups.dox;${SRCS}")
+      set(PASTIX_DOX_SRCS_DEPS "${PROJECT_SOURCE_DIR}/docs/doxygen/groups.dox;${PROJECT_SOURCE_DIR}/spm/docs/doxygen/groups.dox;${SRCS}")
       string (REPLACE ";" " " PASTIX_DOX_SRCS "${PASTIX_DOX_SRCS_DEPS}")
 
       #-- Configure the Template Doxyfile for our specific project

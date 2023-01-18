@@ -38,8 +38,8 @@
  * @param[in] solvmtx
  *          The solver matrix structure which describes the data distribution.
  *
- * @param[out] bcsc_comm
- *          The bcsc_handle_comm initialised.
+ * @param[out] bcsc
+ *          The bcsc.
  *
  *******************************************************************************/
 void
@@ -1472,14 +1472,6 @@ bcsc_restore_coltab( pastix_bcsc_t *bcsc )
  *
  * @param[in] solvmtx
  *          The solver matrix structure which describes the data distribution.
- *
- * @param[in] initAt
- *          The test to know if At has to be initialized:
- *          - if initAt = 0 then the matrix is symmetric of hermitian which
- *            means that Lvalues = Uvalues so At does not need to be
- *            initialised.
- *          - if initAt = 1 then the matrix is general and which means that
- *            At needs to be initialised and computed.
  *
  * @param[inout] bcsc
  *          On entry, the pointer to an allocated bcsc.

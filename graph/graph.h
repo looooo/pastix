@@ -77,10 +77,6 @@ int  graphIsolate   ( const pastix_graph_t *ingraph,
                       pastix_int_t        **new_perm,
                       pastix_int_t        **new_invp );
 
-int  graphApplyPerm ( const pastix_graph_t *graphA,
-                      const pastix_int_t   *perm,
-                            pastix_graph_t *graphPA );
-
 int graphIsolateRange( const pastix_graph_t *graphIn,
                        const pastix_order_t *order,
                              pastix_graph_t *graphOut,

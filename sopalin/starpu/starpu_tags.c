@@ -58,6 +58,10 @@ static int64_t starpu_tag_ub = 0;
  * @param[in] pastix
  *          The main pastix_data structure to provide the MPI communicator.
  *
+ *******************************************************************************
+ *
+ * @retval TODO
+ *
  ******************************************************************************/
 int
 pastix_starpu_tag_init( pastix_data_t *pastix )
@@ -97,10 +101,11 @@ pastix_starpu_tag_init( pastix_data_t *pastix )
  *          The number of tags required to register the sparse matrix or right
  *          hand side.
  *
+ *******************************************************************************
+ *
  * @return V, the minimal tag value to use. The range [V:V+nbtags-1] is booked.
  *
- *******************************************************************************
- */
+ ********************************************************************************/
 int64_t
 pastix_starpu_tag_book( int64_t nbtags )
 {
@@ -153,6 +158,8 @@ pastix_starpu_tag_book( int64_t nbtags )
  *
  * This function releases the range of tags that starts by the min value.
  *
+ *******************************************************************************
+ *
  * @param[in] min
  *          The initial value in the range
  *
@@ -193,16 +200,66 @@ pastix_starpu_tag_release( int64_t min )
 
 #else /* defined(PASTIX_WITH_MPI) */
 
+/**
+ *******************************************************************************
+ *
+ * @brief Initialize the StarPU tags manager.
+ *
+ *******************************************************************************
+ *
+ * @param[in] pastix_data
+ *          The main pastix_data structure to provide the MPI communicator.
+ *
+ *******************************************************************************
+ *
+ * @retval TODO
+ *
+ ******************************************************************************/
 int
 pastix_starpu_tag_init( __attribute__((unused)) pastix_data_t *pastix_data ) {
     return PASTIX_SUCCESS;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Book a range of StarPU unique tags of size nbtags.
+ *
+ * This function returns the minimal tag value available to allow the
+ * registration of nbtags data in a continuous range.
+ *
+ * Note that this function must be called exactly the same way on all nodes to
+ * make sure the tags are identical from one node to another.
+ *
+ *******************************************************************************
+ *
+ * @param[in] nbtags
+ *          The number of tags required to register the sparse matrix or right
+ *          hand side.
+ *
+ *******************************************************************************
+ *
+ * @return V, the minimal tag value to use. The range [V:V+nbtags-1] is booked.
+ *
+ ********************************************************************************/
 int64_t
 pastix_starpu_tag_book( __attribute__((unused)) int64_t nbtags ) {
     return 0;
 }
 
+/**
+ *******************************************************************************
+ *
+ * @brief Release the set of tags starting by min.
+ *
+ * This function releases the range of tags that starts by the min value.
+ *
+ *******************************************************************************
+ *
+ * @param[in] min
+ *          The initial value in the range
+ *
+ ******************************************************************************/
 void
 pastix_starpu_tag_release( __attribute__((unused)) int64_t min ) {
     return;

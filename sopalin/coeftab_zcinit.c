@@ -18,7 +18,9 @@
  * @precisions mixed zc -> ds
  *
  **/
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define _GNU_SOURCE 1
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include "common.h"
 #include "blend/solver.h"
 #include "bcsc/bcsc.h"

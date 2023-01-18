@@ -2,7 +2,7 @@
  *
  * @file symbol_reorder.c
  *
- * @copyright 2012-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2012-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.0
@@ -279,6 +279,10 @@ thread_preorder( isched_thread_t *ctx, void *args )
  * @param[in] cblk
  *          The cblk we want to compute the cost.
  *
+ *******************************************************************************
+ *
+ * @retval TODO
+ *
  *******************************************************************************/
 static inline double
 cost( symbol_cblk_t *cblk )
@@ -414,6 +418,7 @@ thread_reorder( pastix_data_t *pastix_data,
     memFree_null( args_reorder.tasktab );
 }
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static void (*reorder_table[5])(pastix_data_t *, pastix_int_t , pastix_int_t *) = {
     sequential_reorder,
     thread_reorder,
@@ -421,6 +426,7 @@ static void (*reorder_table[5])(pastix_data_t *, pastix_int_t , pastix_int_t *) 
     NULL,
     thread_reorder
 };
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************

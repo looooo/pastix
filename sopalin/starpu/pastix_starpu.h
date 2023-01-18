@@ -44,6 +44,7 @@
 #endif
 #endif
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 typedef struct starpu_conf starpu_conf_t;
 
 #if defined(PASTIX_STARPU_SYNC)
@@ -74,6 +75,7 @@ typedef enum heteroprio_bucket_order_e {
     BucketNumber
 } heteroprio_bucket_order_t;
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  * @brief Additional StarPU handlers for a column-block when using 2D kernels.
@@ -145,6 +147,7 @@ void pastix_starpu_unpartition_submit( const starpu_sparse_matrix_desc_t *spmtx,
                                        SolverCblk    *cblk,
                                        starpu_cblk_t *starpu_cblk );
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 struct measure_s;
 typedef struct measure_s measure_t;
 
@@ -155,7 +158,7 @@ struct measure_s {
 };
 
 /**
- * Helper function and variable for the testings
+ * @brief Helper function and variable for the testings
  */
 struct starpu_profile_s;
 typedef struct starpu_profile_s starpu_profile_t;
@@ -168,6 +171,7 @@ struct starpu_profile_s {
     const char       *name;                         /**< Short name of the function       */
     measure_t         measures[STARPU_NMAXWORKERS]; /**< Pointer to the array of measures */
 };
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  * @brief Base structure to all codelet arguments that include the profiling data
@@ -184,6 +188,13 @@ void cl_profiling_callback( void *callback_arg );
 void profiling_register_cl( starpu_profile_t *codelet );
 void profiling_display_allinfo();
 #else
+/**
+ *******************************************************************************
+ *
+ * @brief Displays all profiling data collected into all measurements tables of
+ * the profile_list.
+ *
+ ******************************************************************************/
 static inline void profiling_display_allinfo() {}
 #endif
 
@@ -194,12 +205,15 @@ void cl_profiling_log_register( const char *task_name, const char* cl_name,
 
 void profiling_log_fini();
 #else
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static inline void profiling_log_init( const char* dirname ) {
     (void) dirname;
 }
 static inline void profiling_log_fini() {}
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #endif
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #ifdef PASTIX_STARPU_STATS
 static inline void
 print_stats( double sub, double com, __attribute__((unused)) SolverMatrix *solvmtx )
@@ -211,6 +225,7 @@ print_stats( double sub, double com, __attribute__((unused)) SolverMatrix *solvm
     fprintf( stderr, "    Total time on node %d                  %e s\n", src, clockVal( sub ) + clockVal( com ) );
 }
 #endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  * @brief StarPU Interface to handle cblks and bloks
@@ -235,6 +250,7 @@ typedef struct pastix_starpu_interface_s {
     void                         *dataptr;   /**< Pointer on data                           */
 } pastix_starpu_interface_t;
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 static inline void *
 pastix_starpu_cblk_get_ptr( void *interface ) {
     return ((pastix_starpu_interface_t *)interface)->dataptr;
@@ -244,44 +260,18 @@ static inline void *
 pastix_starpu_blok_get_ptr( void *interface ) {
     return ((pastix_starpu_interface_t *)interface)->dataptr;
 }
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
-/**
- * @brief Register a cblk at the StarPU level
- *
- * @param[out] handleptr
- *      The StarPU data handle to the registered data. Space must be allocated on call.
- *
- * @param[in] home_node
- *      The StarPU memory node enum to specify where the initial data is located
- *      -1 if not local, STARPU_MAIN_RAM if local.
- *
- * @param[in] cblk
- *      The cblk to register
- *
- * @param[in] side
- *      Specify which part of the cblk (Upper or Lower) to register
- *
- * @param[in] flttype
- *      Specify the arithmetic floating type of the coefficients
- */
 void pastix_starpu_register( starpu_data_handle_t *handleptr,
                              int                   home_node,
                              SolverCblk           *cblk,
                              pastix_coefside_t     side,
                              pastix_coeftype_t     flttype );
-
-/**
- * @brief Initialize the interface ID
- */
 void pastix_starpu_interface_init();
-
-/**
- * @brief Finalize the interface and reset the ID
- */
 void pastix_starpu_interface_fini();
 
 #endif /* _pastix_starpu_h_ */
 
 /**
- *@}
+ * @}
  */

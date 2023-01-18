@@ -13,7 +13,7 @@
  * @author Xavier Lacoste
  * @date 2021-12-21
  *
- * @addtogroup pastix
+ * @addtogroup pastix_schur
  * @{
  *
  **/

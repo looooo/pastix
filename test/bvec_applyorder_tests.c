@@ -12,7 +12,9 @@
  * @date 2022-12-15
  *
  */
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define _GNU_SOURCE 1
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 #include <pastix.h>
 #include <stdlib.h>
 #include <stdio.h>

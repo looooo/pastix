@@ -8,7 +8,7 @@
  *
  * Contains basic functions to manipulate elimination tree structure.
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.1
@@ -31,8 +31,12 @@
  *
  *******************************************************************************
  *
- * @param[inout] etree
- *          The pointer to the allocated structure to initialize.
+ * @param[in] nodenbr
+ *          TODO
+ *
+ *******************************************************************************
+ *
+ * @retval TODO
  *
  *******************************************************************************/
 EliminTree *

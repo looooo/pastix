@@ -4,7 +4,7 @@
  *
  * PaStiX symbolic factorization routines for ILU(k)
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.0
@@ -29,21 +29,17 @@
  *
  *******************************************************************************
  *
- * @param[inout] P
- *          The non zero pattern of the factorized matrix. WARNING: on exit, the
- *          graph is destroyed.
+ * @param[in] symbptr
+ *          TODO
  *
- * @param[in] cblknbr
- *          The number of supernode. Must be equal to P->n.
+ * @param[in] levelk
+ *          TODO
  *
- * @param[in] rangtab
- *          Integer array of size cblknbr+1.
- *          Contains the supernode partition of the graph.
+ * @param[in] graphA
+ *          TODO
  *
- * @param[out] symbmtx
- *          On entry, an initialized structure of symbol matrix (see pastixSymbolInit()).
- *          On exit, contains the symbol matrix associated to the graph P and
- *          the supernode partition given.
+ * @param[out] ordeptr
+ *          TODO
  *
  *******************************************************************************
  *

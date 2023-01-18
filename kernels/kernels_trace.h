@@ -4,7 +4,7 @@
  *
  * Wrappers to trace kernels.
  *
- * @copyright 2004-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.2.0
@@ -59,8 +59,8 @@ extern int32_t               model_size;        /**< Size of the model_entries a
 
 #endif
 
-void   kernelsTraceStart( const pastix_data_t *pastix_data );
-double kernelsTraceStop(  const pastix_data_t *pastix_data );
+void kernelsTraceStart( const pastix_data_t *pastix_data );
+double kernelsTraceStop( const pastix_data_t *pastix_data );
 
 /**
  *******************************************************************************
