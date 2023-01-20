@@ -894,13 +894,10 @@ bcsc_init_global_coltab_dst_cdof( const spmatrix_t     *spm,
          * is not required for the general case as the spm has a symmetric
          * pattern.
          */
-        if ( !sym ) {
-            continue;
-        }
 
         for ( k = frow; k < lrow; k++ ) {
             ig = rowptr[k] - baseval;
-            if ( ig == jg ) {
+            if ( sym && ( ig == jg ) ) {
                 continue;
             }
             ip    = ord->permtab[ig];
@@ -916,8 +913,10 @@ bcsc_init_global_coltab_dst_cdof( const spmatrix_t     *spm,
                 data_send->size.valcnt += dof * dof;
             }
             else {
-                /* Adds for At the number of values in column jg and row ip. */
-                globcol[ip] += dof;
+                if ( sym ) {
+                    /* Adds for At the number of values in column jg and row ip. */
+                    globcol[ip] += dof;
+                }
             }
         }
     }
@@ -1287,6 +1286,7 @@ bcsc_init_global_coltab( const spmatrix_t     *spm,
         bcsc_update_globcol( spm, ord, globcol, bcsc_comm );
 
 #if !defined(NDEBUG)
+        /* Check that globcol contains the right information. */
         if ( spm->dof > 0 ) {
             pastix_int_t ig, ip, ipe, dofi;
             pastix_int_t nnzl = 0;
@@ -1302,15 +1302,22 @@ bcsc_init_global_coltab( const spmatrix_t     *spm,
                 dofi = ( spm->dof > 0 ) ? spm->dof: spm->dofs[ig+1] - spm->dofs[ig];
                 nnzl += globcol[ip] * dofi;
             }
-            MPI_Allreduce( &nnzl, &nnzg, 1, PASTIX_MPI_INT, MPI_SUM, bcsc_comm->comm );
+            MPI_Allreduce( &nnzl, &nnzg, 1, PASTIX_MPI_INT, MPI_SUM, spm->comm );
 
             if ( spm->mtxtype != SpmGeneral ) {
-                nnz = spm->gnnzexp * 2 - (spm->gN * spm->dof * spm->dof);
+                /*
+                * We can't check the exact number of elements if some diagonal
+                * values are missing (=0).
+                */
+                nnz = spm->gnnzexp * 2;
+                assert( nnzg <= nnz );
+                nnz = nnz - (spm->gN * spm->dof * spm->dof);
+                assert( nnzg >= nnz );
             }
             else {
                 nnz = spm->gnnzexp;
+                assert( nnzg == nnz );
             }
-            assert( nnzg == nnz );
         }
 #endif
     }
