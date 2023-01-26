@@ -52,7 +52,7 @@ test_mpi_sched:
   parallel:
     matrix:
       - SCHED: [0, 1, 2, 3, 4]
-        RUN: [shm, mpi]
+        RUN: [shm, mpi_rep, mpi_dst]
   dependencies:
     - build_pastix_mpi
   <<: *test_script_sched_mpi
