@@ -45,6 +45,9 @@ z_bcsc_spmv_check( spm_trans_t       trans,
     pastix_complex64_t *xd, *yd; /* The potentially distributed or replicated vectors    */
     pastix_complex64_t *xr, *yr; /* The always replicated vectors to validate the result */
     pastix_complex64_t alpha, beta;
+    pastix_int_t        sum_m, my_sum, m, ld;
+    pastix_int_t        clustnum = spm->clustnum;
+    pastix_int_t        clustnbr = spm->clustnbr;
 
     double Anorm, Xnorm, Ynorm, Yrnorm, Ydnorm, Rnorm;
     double eps, result;
@@ -65,25 +68,36 @@ z_bcsc_spmv_check( spm_trans_t       trans,
     /* spm->nexp should always be of the correct size for both replicated and distributed vectors */
     xd = (pastix_complex64_t*)malloc( spm->nexp  * sizeof(pastix_complex64_t) );
     yd = (pastix_complex64_t*)malloc( spm->nexp  * sizeof(pastix_complex64_t) );
-    yr = (pastix_complex64_t*)malloc( spm->gNexp * sizeof(pastix_complex64_t) );
+    yr = (pastix_complex64_t*)malloc( spm->nexp * sizeof(pastix_complex64_t) );
+
+    m      = spm->nexp;
+    ld     = spm->nexp;
+    sum_m  = 0;
+    my_sum = 0;
+
+    if ( ( clustnum > 0 ) && ( spm->loc2glob != NULL ) ) {
+        MPI_Recv( &my_sum, 1, PASTIX_MPI_INT, clustnum - 1, PastixTagCountA, spm->comm, MPI_STATUSES_IGNORE );
+    }
+    if ( ( clustnum < ( clustnbr - 1 ) ) && ( spm->loc2glob != NULL ) ) {
+        sum_m = my_sum + m;
+        MPI_Send( &sum_m, 1, PASTIX_MPI_INT, clustnum + 1, PastixTagCountA, spm->comm );
+    }
 
     if ( spm->loc2glob == NULL ) {
         /* The vectors are replicated */
-        core_zplrnt( spm->nexp, nrhs, xd, spm->nexp, spm->gNexp, 0, 0, seedX );
-        core_zplrnt( spm->nexp, nrhs, yd, spm->nexp, spm->gNexp, 0, 0, seedY );
+        core_zplrnt( m, nrhs, xd, ld, spm->gNexp, 0, 0, seedX );
+        core_zplrnt( m, nrhs, yd, ld, spm->gNexp, 0, 0, seedY );
         xr = xd;
     }
     else {
-        assert(0);
-        /* The vectors are distributed (TODO: Fix initialization based on spm instead of bcsc) */
-        z_init( pastix_data, seedX, nrhs, xd, spm->nexp );
-        z_init( pastix_data, seedY, nrhs, yd, spm->nexp );
+        core_zplrnt( m, nrhs, xd, ld, spm->gNexp, my_sum, 0, seedX );
+        core_zplrnt( m, nrhs, yd, ld, spm->gNexp, my_sum, 0, seedY );
 
-        xr = (pastix_complex64_t*)malloc( spm->gNexp * sizeof(pastix_complex64_t) );
-        core_zplrnt( spm->gNexp, nrhs, xr, spm->gNexp, spm->gNexp, 0, 0, seedX );
+        xr = (pastix_complex64_t*)malloc( spm->nexp * sizeof(pastix_complex64_t) );
+        core_zplrnt( m, nrhs, xr, ld, spm->gNexp, my_sum, 0, seedX );
     }
 
-    core_zplrnt( spm->gNexp, nrhs, yr, spm->gNexp, spm->gNexp, 0, 0, seedY );
+    core_zplrnt( m, nrhs, yr, ld, spm->gNexp, my_sum, 0, seedY );
 
     if ( trans == SpmNoTrans ) {
         Anorm = spmNorm( SpmInfNorm, spm );
@@ -134,37 +148,22 @@ z_bcsc_spmv_check( spm_trans_t       trans,
 
         Rnorm = 0.;
 
-        if ( spm->loc2glob == NULL ) {
-            for( j=0; j<nrhs; j++ ) {
-                for( i=0; i<spm->gNexp; i++, ynew++, yref++ ) {
-                    val = cabs(*yref - *ynew);
+        for( j=0; j<nrhs; j++ ) {
+            for( i=0; i<spm->nexp; i++, ynew++, yref++ ) {
+                val = cabs(*yref - *ynew);
 
-                    if ( val > Rnorm ) {
-                        Rnorm = val;
-                    }
+                if ( val > Rnorm ) {
+                    Rnorm = val;
                 }
             }
         }
-        else {
-            pastix_int_t *loc2glob = spm->loc2glob;
-            pastix_int_t  ig, baseval = spm->baseval;
-
-            for( j=0; j<nrhs; j++ ) {
-                for( i=0; i<spm->nexp; i++, ynew++, loc2glob++ ) {
-                    ig  = *loc2glob - baseval;
-                    val = cabs(yref[ig] - *ynew);
-
-                    if ( val > Rnorm ) {
-                        Rnorm = val;
-                    }
-                }
-            }
 
 #if defined(PASTIX_WITH_MPI)
+        if ( spm->loc2glob != NULL ) {
             MPI_Allreduce( MPI_IN_PLACE, &Rnorm, 1, MPI_DOUBLE,
-                           MPI_MAX, pastix_data->inter_node_comm );
-#endif
+                        MPI_MAX, pastix_data->inter_node_comm );
         }
+#endif
     }
 
     if ( 1 ) {
@@ -197,6 +196,7 @@ z_bcsc_spmv_check( spm_trans_t       trans,
     }
     free(xd); free(yr); free(yd);
 
+    (void)sum_m;
     return info_solution;
 }
 

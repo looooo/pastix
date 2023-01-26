@@ -16,6 +16,7 @@
  * @author Esragul Korkmaz
  * @author Mathieu Faverge
  * @author Tony Delarue
+ * @author Alycia Lisito
  * @date 2022-11-03
  *
  **/
@@ -48,7 +49,8 @@ int main ( int argc, char **argv )
     spm_driver_t        driver = (spm_driver_t)-1;
     spmatrix_t         *spm, spm2;
     char               *filename = NULL;
-    int                 check = 1;
+    int                 check    = 1;
+    int                 scatter  = 0;
     pastix_int_t        m, n, s, t;
     int rc = 0;
     pastix_int_t    dim3, dof;
@@ -68,7 +70,7 @@ int main ( int argc, char **argv )
     if ( argc > 1 ) {
         pastixGetOptions( argc, argv,
                           iparm, dparm,
-                          &check, &driver, &filename );
+                          &check, &scatter, &driver, &filename );
     }
 
     /**
@@ -92,7 +94,12 @@ int main ( int argc, char **argv )
      * Read the sparse matrix with the driver
      */
     spm = malloc( sizeof( spmatrix_t ) );
-    spmReadDriver( driver, filename, spm );
+    if ( scatter ) {
+        rc = spmReadDriverDist( driver, filename, spm, MPI_COMM_WORLD );
+    }
+    else {
+        rc = spmReadDriver( driver, filename, spm );
+    }
     free( filename );
 
     rc = spmCheckAndCorrect( spm, &spm2 );

@@ -53,41 +53,41 @@ int main (int argc, char **argv)
     double          dparm[DPARM_SIZE];  /*< Floating in/out parameters for pastix               */
     spm_driver_t    driver = (spm_driver_t)-1;
     char           *filename = NULL;
-    spmatrix_t     *original, *spm, *spmdof, spmtmp;
+    spmatrix_t     *original, *spm, *spmdof;
     int             variadic, mpi_type;
     pastix_int_t    m, n, nrhs, dim3, dof;
-    int             mpi_begin = 0;
-    int             mpi_end   = 0;
     spm_coeftype_t  type, flttype;
     pastix_fixdbl_t alpha, beta;
-    int             clustnbr, myrank;
-    static int      dofmax = 4; /* Maximum degree of freedom for multi-dof cases. */
-    int             dmax   = 2; /* 0: one, 1: multi-constant, 2: multi-variadic   */
-    int             check  = 1;
-    int             rc     = 0;
-    int             err    = 0;
+    int             clustnbr = 1;
+    int             myrank   = 0;
+    static int      dofmax   = 4; /* Maximum degree of freedom for multi-dof cases. */
+    int             dmax     = 2; /* 0: one, 1: multi-constant, 2: multi-variadic   */
+    int             check    = 1;
+    int             rc       = 0;
+    int             err      = 0;
+    int             scatter  = 0;
 
     /**
-     * Initialize parameters to default values
+     * Initializes parameters to default values.
      */
     pastixInitParam( iparm, dparm );
     iparm[IPARM_VERBOSE] = 0;
 
     /**
-     * Get options from command line
-     * Prevent from failing if no arguments is given
+     * Gets options from command line.
+     * Prevents from failing if no arguments is given.
      */
     if ( argc > 1 ) {
-        pastixGetOptions( argc, argv, iparm, dparm, &check, &driver, &filename );
+        pastixGetOptions( argc, argv, iparm, dparm, &check, &scatter, &driver, &filename );
     }
 
     /**
-     * Startup PaStiX
+     * Starts-up PaStiX.
      */
     pastixInit( &pastix_data, MPI_COMM_WORLD, iparm, dparm );
 
     /**
-     * Use the Laplacian driver to pass parameters to the test
+     * Uses the Laplacian driver to pass parameters to the test.
      */
     if ( driver == (spm_driver_t)-1 ) {
         driver  = SpmDriverLaplacian;
@@ -103,10 +103,16 @@ int main (int argc, char **argv)
     }
 
     /**
-     * Create the sparse matrix with the driver
+     * Creates the sparse matrix with the driver
      */
     original = malloc( sizeof( spmatrix_t ) );
-    rc       = spmReadDriver( driver, filename, original );
+    /* Scatters the spm if scatter. */
+    if ( scatter ) {
+        rc = spmReadDriverDist( driver, filename, original, MPI_COMM_WORLD );
+    }
+    else {
+        rc = spmReadDriver( driver, filename, original );
+    }
     free( filename );
 
     if ( rc != SPM_SUCCESS ) {
@@ -116,102 +122,87 @@ int main (int argc, char **argv)
         return rc;
     }
 
+    /* Computes mpi_type. */
+#if defined(PASTIX_WITH_MPI)
     MPI_Comm_rank( MPI_COMM_WORLD, &myrank );
     MPI_Comm_size( MPI_COMM_WORLD, &clustnbr );
-    if ( clustnbr > 1 ) {
-        mpi_begin = 1;
-        mpi_end   = 2;
-        dmax      = 2; /* Variadic is not working with MPI */
+    if ( scatter ) {
+        mpi_type = 2;
     }
+    else {
+        mpi_type = 1;
+    }
+#else
+    mpi_type = 0;
+#endif
 
-    for ( mpi_type = mpi_begin; mpi_type <= mpi_end; mpi_type++ ) {
+    spm = original;
 
-        /**
-         * Scatters the spm if distributed.
-         */
-        if ( mpi_type == 2 ) {
-            rc = spmScatter( &spmtmp, -1, original, -1, NULL, 1, MPI_COMM_WORLD );
-            if ( rc != SPM_SUCCESS ) {
-                fprintf( stderr, "Failed to scatter the spm\n" );
-                err++;
-                continue;
-            }
-            spm = &spmtmp;
+    /**
+     * Loops over dof configuration: None, Constant, Variadic.
+     */
+    for ( dof = 0; dof < dmax; dof++ ) {
+
+        /* Multidof. */
+        if ( dof > 0 ) {
+            spmdof   = malloc( sizeof(spmatrix_t) );
+            variadic = dof - 1;
+            rc       = spmDofExtend( spm, variadic, dofmax, spmdof );
         }
         else {
-            spm = original;
+            spmdof = spm;
         }
 
-        /**
-         * Loop over dof configuration: None, Constant, Variadic
-         */
-        for ( dof = 0; dof < dmax; dof++ ) {
+        /* Makes sure internal spm is reset, and recomputes symbfact and mapping for the new matrix. */
+        pastix_data->csc = spmdof;
+        pastix_task_analyze( pastix_data, spmdof );
 
-            /* Multidof. */
-            if ( dof > 0 ) {
-                spmdof   = malloc( sizeof(spmatrix_t) );
-                variadic = dof - 1;
-                rc       = spmDofExtend( spm, variadic, dofmax, spmdof );
-            }
-            else {
-                spmdof = spm;
-            }
+        pastix_data->bcsc = calloc( 1, sizeof( pastix_bcsc_t ) );
+        bcsc_init_struct( spmdof, pastix_data->solvmatr, pastix_data->bcsc );
 
-            /* Make sure internal spm is reset, and recompute symbfact and mapping for the new matrix */
-            pastix_data->csc = spmdof;
-            pastix_task_analyze( pastix_data, spmdof );
+        for ( nrhs = 1; nrhs <= 5; nrhs += 4 ) {
+            for ( type = SpmFloat; type <= SpmComplex64; type ++ ) {
 
-            pastix_data->bcsc = calloc( 1, sizeof( pastix_bcsc_t ) );
-            bcsc_init_struct( spmdof, pastix_data->solvmatr, pastix_data->bcsc );
-
-            for ( nrhs = 1; nrhs <= 5; nrhs += 4 ) {
-                for ( type = SpmFloat; type <= SpmComplex64; type ++ ) {
-
-                    if ( myrank == 0 ) {
-                        fprintf( stdout,
-                                 "  Check b == (P^t (P b)) / Case %-18s - %-13s - %-9s - %ld nrhs:  ",
-                                 dofs[dof], mpi[mpi_type], fltnames[type], (long)nrhs );
-                    }
-
-                    /* Checks the result. */
-                    switch ( type ) {
-                    case SpmFloat :
-                        rc = s_bvec_applyorder_check( pastix_data, spmdof, nrhs );
-                        break;
-                    case SpmDouble :
-                        rc = d_bvec_applyorder_check( pastix_data, spmdof, nrhs );
-                        break;
-                    case SpmComplex32 :
-                        rc = c_bvec_applyorder_check( pastix_data, spmdof, nrhs );
-                        break;
-                    case SpmComplex64 :
-                        rc = z_bvec_applyorder_check( pastix_data, spmdof, nrhs );
-                        break;
-                    default :
-                        fprintf( stderr, "bvec_applyorder_test: wrong flttype. \n" );
-                        break;
-                    }
-                    spmdof->flttype = SpmPattern;
-
-                    if ( myrank == 0 ) {
-                        PRINT_RES(rc);
-                    }
-                    err += rc;
+                if ( myrank == 0 ) {
+                    fprintf( stdout,
+                                "  Check b == (P^t (P b)) / Case %-18s - %-13s - %-9s - %ld nrhs:  ",
+                                dofs[dof], mpi[mpi_type], fltnames[type], (long)nrhs );
                 }
-            }
 
-            bcsc_exit_struct( pastix_data->bcsc );
-            free( pastix_data->bcsc );
-            pastix_data->bcsc = NULL;
+                /* Checks the result. */
+                switch ( type ) {
+                case SpmFloat :
+                    rc = s_bvec_applyorder_check( pastix_data, spmdof, nrhs );
+                    break;
+                case SpmDouble :
+                    rc = d_bvec_applyorder_check( pastix_data, spmdof, nrhs );
+                    break;
+                case SpmComplex32 :
+                    rc = c_bvec_applyorder_check( pastix_data, spmdof, nrhs );
+                    break;
+                case SpmComplex64 :
+                    rc = z_bvec_applyorder_check( pastix_data, spmdof, nrhs );
+                    break;
+                default :
+                    fprintf( stderr, "bvec_applyorder_test: wrong flttype. \n" );
+                    break;
+                }
+                spmdof->flttype = SpmPattern;
 
-            if ( dof > 0 ) {
-                spmExit( spmdof );
-                free( spmdof );
+                if ( myrank == 0 ) {
+                    PRINT_RES(rc);
+                }
+                err += rc;
             }
         }
 
-        if ( mpi_type == 2 ) {
-            spmExit( spm );
+        bcsc_exit_struct( pastix_data->bcsc );
+        free( pastix_data->bcsc );
+        pastix_data->bcsc = NULL;
+
+        if ( dof > 0 ) {
+            spmExit( spmdof );
+            free( spmdof );
         }
     }
 
