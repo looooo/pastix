@@ -81,6 +81,8 @@ bcsc_zstore_data( const spmatrix_t     *spm,
     pastix_int_t        dof       = spm->dof;
     bcsc_proc_comm_t   *data_comm = bcsc_comm->data_comm;
     pastix_int_t        clustnbr  = bcsc_comm->clustnbr;
+    int                 sym       = (spm->mtxtype == SpmSymmetric) ||
+                                    (spm->mtxtype == SpmHermitian);
     pastix_int_t        k, j, ig, jg, ip, jp, ipe, jpe;
     pastix_int_t        itercblk_A, itercblk_At, baseval;
     pastix_int_t        dofi, dofj, c;
@@ -154,7 +156,11 @@ bcsc_zstore_data( const spmatrix_t     *spm,
 
             itercblk_At = col2cblk[ ipe ];
             /* The block of the row ip does not belong to the current processor. */
-            if ( (itercblk_At < 0) && (ip != jp) ) {
+            if ( itercblk_At < 0 ) {
+                if ( sym && ( ip == jp ) ) {
+                    values += dofi * dofj;
+                    continue;
+                }
                 /* Gets the owner of the block. */
                 c         = - ( itercblk_At + 1 );
                 data_comm = bcsc_comm->data_comm + c;
