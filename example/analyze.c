@@ -14,6 +14,7 @@
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Tony Delarue
+ * @author Alycia Lisito
  * @date 2021-09-13
  *
  * @ingroup pastix_examples
@@ -33,6 +34,7 @@ int main (int argc, char **argv)
     char           *filename = NULL;
     spmatrix_t     *spm, spm2;
     int             rc;
+    int             scatter = 0;
 
     /**
      * Initialize parameters to default values
@@ -44,7 +46,7 @@ int main (int argc, char **argv)
      */
     pastixGetOptions( argc, argv,
                       iparm, dparm,
-                      NULL, &driver, &filename );
+                      NULL, &scatter, &driver, &filename );
 
     /**
      * Startup PaStiX
@@ -55,7 +57,12 @@ int main (int argc, char **argv)
      * Read the sparse matrix with the driver
      */
     spm = malloc( sizeof( spmatrix_t ) );
-    rc = spmReadDriver( driver, filename, spm );
+    if ( scatter ) {
+        rc = spmReadDriverDist( driver, filename, spm, MPI_COMM_WORLD );
+    }
+    else {
+        rc = spmReadDriver( driver, filename, spm );
+    }
     free( filename );
     if ( rc != SPM_SUCCESS ) {
         pastixFinalize( &pastix_data );

@@ -16,8 +16,8 @@ cmake_policy(SET CMP0054 NEW)
 
 ### CTest execution
 set( PASTIX_DRIVERS
-   # reentrant fails with Scotch parser !
-  analyze simple simple_solve_and_refine simple_trans step-by-step schur personal reentrant multidof old/old_simple old/old_step-by-step )
+  # reentrant fails with Scotch parser !
+  analyze simple simple_solve_and_refine simple_trans step-by-step schur personal reentrant multidof ) # old/old_simple old/old_step-by-step
 set( PASTIX_TESTS
   simple )
 set( PASTIX_REFINE
@@ -27,19 +27,19 @@ set( PASTIX_MIXED
 set( PASTIX_ALLOC
   simple step-by-step )
 set( PASTIX_FACTO
-     0 1 2 ) # LLh, LDLt, LU
+  0 1 2 ) # LLh, LDLt, LU
 set( PASTIX_SCHEDS
-     0 1 4 ) # sequential, static, dynamic
+  0 1 4 ) # sequential, static, dynamic
 set( PASTIX_COMPRESS_METHOD
-     svd
-     pqrcp
-     rqrcp
-     tqrcp
-     rqrrt )
+  svd
+  pqrcp
+  rqrcp
+  tqrcp
+  rqrrt )
 set( PASTIX_SPLIT_METHOD
-    not
-    kway
-    kwayprojections )
+  not
+  kway
+  kwayprojections )
 set( RUNTYPE shm )
 set( PASTIX_ORDER )
 
@@ -56,7 +56,7 @@ endif (PASTIX_WITH_STARPU)
 
 # Add runtype
 if( PASTIX_WITH_MPI )
-  list( APPEND RUNTYPE mpi )
+  list( APPEND RUNTYPE mpi_rep mpi_dst )
 endif()
 
 # Add orderings
@@ -71,12 +71,13 @@ if (PASTIX_ORDERING_METIS)
 endif (PASTIX_ORDERING_METIS)
 
 foreach( version ${RUNTYPE} )
-  unset( exe )
-  if( version STREQUAL "shm" )
-    set( exe "")
-  endif()
-  if( version STREQUAL "mpi" )
+  set( exe "" )
+  set( opt "" )
+  if( NOT version STREQUAL "shm" )
     set( exe mpiexec -n 4 )
+    if( version STREQUAL "mpi_dst" )
+      set( opt "-a 1" )
+    endif()
   endif()
 
   ### All drivers with Laplacian and default parameters
@@ -88,7 +89,7 @@ foreach( version ${RUNTYPE} )
       endif()
       foreach(facto ${factos} )
         set( _test_name c_${version}_example_${example}_lap_${arithm}_facto${facto} )
-        set( _test_cmd  ${exe} ./${example} -9 ${arithm}:10:10:10:2 -f ${facto} )
+        set( _test_cmd  ${exe} ./${example} ${opt} -9 ${arithm}:10:10:10:2 -f ${facto} )
         # Let's avoid testing with diagonal factorizations and Schur complement
         if ( NOT((facto IN_LIST _factodiag) AND (example STREQUAL "schur")) )
           if (example STREQUAL "multidof")
@@ -97,7 +98,7 @@ foreach( version ${RUNTYPE} )
               add_test(${_test_name}_var ${_test_cmd} -c 5)
             endif()
           else()
-            if( NOT ((version STREQUAL "mpi") AND ((example STREQUAL "reentrant") OR (example STREQUAL "schur"))) )
+            if( NOT ((NOT version STREQUAL "shm") AND ((example STREQUAL "reentrant") OR (example STREQUAL "schur"))) )
               add_test(${_test_name} ${_test_cmd} -c 2 )
             endif()
           endif()
@@ -110,40 +111,39 @@ foreach( version ${RUNTYPE} )
   foreach(example ${PASTIX_TESTS} )
     foreach(order ${PASTIX_ORDER} )
       set( _test_name c_${version}_example_${example}_${order} )
-      set( _test_cmd  ${exe} ./${example} -o ${order} )
+      set( _test_cmd  ${exe} ./${example} ${opt} -o ${order} )
+
       # RSA
-      if (PASTIX_WITH_FORTRAN)
-        add_test(${_test_name}_rsa ${_test_cmd} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1 -d dparm_epsilon_magn_ctrl 1e-14)
-      endif()
+      add_test(${_test_name}_rsa ${_test_cmd} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1 -d dparm_epsilon_magn_ctrl 1e-14)
       # Matrix Market
       add_test(${_test_name}_mm  ${_test_cmd} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx  -f 1)
       # Harwell Boeing
       add_test(${_test_name}_hb  ${_test_cmd} --hb  ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua   -f 2)
       # Matrix Market - Hermitian
-      add_test(${_test_name}_mm2 ${_test_cmd} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx -f 2)
+      add_test(${_test_name}_mm2 ${_test_cmd} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx -f 2 -d dparm_epsilon_magn_ctrl 1e-14 )
     endforeach()
   endforeach()
 
   ### Single Allocation
   foreach(example ${PASTIX_ALLOC} )
-      set( _test_name c_${version}_example_${example}_single )
-      set( _test_cmd  ${exe} ./${example} )
-      # RSA
-      if (PASTIX_WITH_FORTRAN)
-        add_test(${_test_name}_rsa ${_test_cmd} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1 -d dparm_epsilon_magn_ctrl 1e-14 -i iparm_global_allocation 1)
-      endif()
-      # Matrix Market
-      add_test(${_test_name}_mm  ${_test_cmd} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx  -f 1 -i iparm_global_allocation 1)
-      # Harwell Boeing
-      add_test(${_test_name}_hb  ${_test_cmd} --hb  ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua   -f 2 -i iparm_global_allocation 1)
-      # Matrix Market - Hermitian
-      add_test(${_test_name}_mm2 ${_test_cmd} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx -f 2 -i iparm_global_allocation 1)
+    set( _test_name c_${version}_example_${example}_single )
+    set( _test_cmd  ${exe} ./${example} ${opt} )
+
+    # RSA
+    add_test(${_test_name}_rsa ${_test_cmd} --rsa ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1 -d dparm_epsilon_magn_ctrl 1e-14 -i iparm_global_allocation 1)
+    # Matrix Market
+    add_test(${_test_name}_mm  ${_test_cmd} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx  -f 1 -i iparm_global_allocation 1)
+    # Harwell Boeing
+    add_test(${_test_name}_hb  ${_test_cmd} --hb  ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua   -f 2 -i iparm_global_allocation 1)
+    # Matrix Market - Hermitian
+    add_test(${_test_name}_mm2 ${_test_cmd} --mm  ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx -f 2 -d dparm_epsilon_magn_ctrl 1e-14 -i iparm_global_allocation 1)
   endforeach()
 
   ### Refinement
   foreach(example ${PASTIX_TESTS} )
     set( _test_name c_${version}_example_${example}_refine )
-    set( _test_cmd  ${exe} ./${example} )
+    set( _test_cmd  ${exe} ./${example} ${opt} )
+
     add_test(${_test_name}_cg       ${_test_cmd} --hb ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1 -i iparm_refinement pastixrefinecg -d dparm_epsilon_magn_ctrl 1e-14)
     add_test(${_test_name}_gmres    ${_test_cmd} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinegmres)
     add_test(${_test_name}_bicgstab ${_test_cmd} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinebicgstab)
@@ -153,8 +153,8 @@ foreach( version ${RUNTYPE} )
   foreach(example ${PASTIX_REFINE} )
     foreach(arithm ${PASTIX_PRECISIONS} )
       set( _test_name c_${version}_example_${example}_lap_${arithm}_refine )
-      set( _test_cmd_her  ${exe} ./${example} -x ${arithm}:10:10:10:2 )
-      set( _test_cmd_sym  ${exe} ./${example} -9 ${arithm}:10:10:10:2 )
+      set( _test_cmd_her  ${exe} ./${example} ${opt} -x ${arithm}:10:10:10:2 )
+      set( _test_cmd_sym  ${exe} ./${example} ${opt} -9 ${arithm}:10:10:10:2 )
       if (arithm IN_LIST _complex)
         add_test(${_test_name}_cg_her       ${_test_cmd_her} -i iparm_refinement pastixrefinecg)
         add_test(${_test_name}_gmres_her    ${_test_cmd_her} -i iparm_refinement pastixrefinegmres)
@@ -169,7 +169,7 @@ foreach( version ${RUNTYPE} )
   ### MIXED Precision
   foreach(example ${PASTIX_MIXED} )
     set( _test_name c_${version}_example_${example}_mixed_refine )
-    set( _test_cmd  ${exe} ./${example} -i iparm_mixed 1 )
+    set( _test_cmd  ${exe} ./${example} ${opt} -i iparm_mixed 1 )
     add_test(${_test_name}_cg       ${_test_cmd} --hb ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa  -f 1 -i iparm_refinement pastixrefinecg -d dparm_epsilon_magn_ctrl 1e-14 -d dparm_epsilon_refinement 1e-7)
     add_test(${_test_name}_gmres    ${_test_cmd} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinegmres)
     add_test(${_test_name}_bicgstab ${_test_cmd} --hb ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua -f 2 -i iparm_refinement pastixrefinebicgstab)
@@ -182,8 +182,7 @@ foreach( version ${RUNTYPE} )
       foreach(facto ${factos} )
         set( _test_name c_${version}_example_${example}_mixed_lap_${arithm_mixed}_facto${facto} )
         set( _test_cmd2  ${_test_cmd} -9 ${arithm_mixed}:10:10:10:2 -f ${facto} )
-        # Let's avoid testing with diagonal factorizations and Schur complement
-        if( NOT ((version STREQUAL "mpi")) )
+        if( version STREQUAL "shm" )
           add_test(${_test_name} ${_test_cmd2} -c 2 )
         endif()
       endforeach()
@@ -201,20 +200,26 @@ foreach( version ${RUNTYPE} )
     endforeach()
   endforeach()
 
+  ### distributed mpi does not work with StarPU and Parsec
+  set( schedulers ${PASTIX_SCHEDS} )
+  if ( ${version} STREQUAL "mpi_dst" )
+    remove( schedulers 2 3 )
+  endif()
+
   ### Scheduling
-  foreach(example ${PASTIX_TESTS} schur )
-    foreach(scheduler ${PASTIX_SCHEDS} )
-      foreach(arithm ${PASTIX_PRECISIONS} )
+  foreach( example ${PASTIX_TESTS} schur )
+    foreach( scheduler ${schedulers} )
+      foreach( arithm ${PASTIX_PRECISIONS} )
         set(factos ${PASTIX_FACTO})
         if (arithm IN_LIST _complex)
           list(APPEND factos 3 4)
         endif()
-        foreach(facto ${factos} )
-          if ( (example STREQUAL "schur") AND ((facto IN_LIST _factodiag) OR (version STREQUAL "mpi")) )
+        foreach( facto ${factos} )
+          if ( (example STREQUAL "schur") AND ((facto IN_LIST _factodiag) OR (NOT version STREQUAL "shm")) )
             continue()
           endif()
           set( _test_name ${version}_example_${example}_lap_${arithm}_facto${facto}_sched${scheduler} )
-          set( _test_cmd  ${exe} ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} )
+          set( _test_cmd  ${exe} ./${example} ${opt} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} )
           # 1D
           add_test(${_test_name}_1d  ${_test_cmd} -i iparm_tasks2d_level 0)
           if ((scheduler EQUAL 2) OR (scheduler EQUAL 3))
@@ -228,10 +233,17 @@ foreach( version ${RUNTYPE} )
     endforeach()
   endforeach()
 
-  # Low Rank
+  ### We do not need to test these configurations in both replicated
+  ### and distributed mpi cases for internal schedulers.
+  if ( ${version} STREQUAL "mpi_rep" )
+    set( schedulers ${PASTIX_SCHEDS} )
+    remove( schedulers 0 1 4 )
+  endif()
+
+  ### Low Rank
   foreach(example ${PASTIX_TESTS} )
-    foreach(scheduler ${PASTIX_SCHEDS} )
-      if( (version STREQUAL "mpi") AND ((scheduler EQUAL 2)) )
+    foreach(scheduler ${schedulers} )
+      if( (NOT version STREQUAL "shm") AND ((scheduler EQUAL 2)) )
         continue()
       endif()
       foreach(arithm ${PASTIX_PRECISIONS} )
@@ -247,7 +259,7 @@ foreach( version ${RUNTYPE} )
             foreach(split ${PASTIX_SPLIT_METHOD} )
               set( _lowrank_params -i iparm_compress_min_width 16 -i iparm_compress_min_height 16 -i iparm_splitting_strategy pastixsplit${split} -i iparm_compress_method pastixcompressmethod${method} )
               set( _test_name ${version}_example_${example}_lap_${arithm}_facto${facto}_sched${scheduler}_${split}_${method} )
-              set( _test_cmd  ${exe} ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} ${_lowrank_params})
+              set( _test_cmd  ${exe} ./${example} ${opt} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} ${_lowrank_params} )
 
               # Begin
               add_test(${_test_name}begin ${_test_cmd} -i iparm_compress_when pastixcompresswhenbegin)
@@ -260,7 +272,7 @@ foreach( version ${RUNTYPE} )
           set( method pqrcp )
           set( _lowrank_params -i iparm_compress_min_width 16 -i iparm_compress_min_height 16 -i iparm_splitting_strategy pastixsplit${split} -i iparm_compress_method pastixcompressmethod${method} )
           set( _test_name ${version}_example_${example}_lap_${arithm}_facto${facto}_sched${scheduler}_${split}_${method} )
-          set( _test_cmd  ${exe} ./${example} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} ${_lowrank_params})
+          set( _test_cmd  ${exe} ./${example} ${opt} -9 ${arithm}:10:10:10:2 -s ${scheduler} -f ${facto} ${_lowrank_params} )
           add_test(${_test_name}ilu0  ${_test_cmd} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_iluk 0)
           add_test(${_test_name}ilu1  ${_test_cmd} -i iparm_compress_when pastixcompresswhenbegin -i iparm_compress_iluk 1)
         endforeach()
@@ -268,32 +280,3 @@ foreach( version ${RUNTYPE} )
     endforeach()
   endforeach()
 endforeach()
-
-# Add scattered spm test. Only with MPI.
-if( PASTIX_WITH_MPI )
-  set(MPI_TESTS simple_dist)
-  set(NPROCS 1 4)
-
-  foreach(example ${MPI_TESTS})
-    foreach(nproc ${NPROCS})
-      foreach(arithm ${PASTIX_PRECISIONS} )
-        set(factos ${PASTIX_FACTO})
-        if (arithm IN_LIST _complex)
-          list(APPEND factos 3 4)
-        endif()
-        foreach(facto ${factos} )
-          set( _test_name c_mpi_example_${example}_${nproc}_lap_${arithm}_facto${facto} )
-          set( _test_cmd  mpiexec -n ${nproc} ./${example} -9 ${arithm}:10:10:10:2 -f ${facto} )
-          add_test(${_test_name} ${_test_cmd} -c 2 )
-        endforeach()
-      endforeach()
-      set( _test_name c_mpi_example_${example}_${nproc}_mat )
-      set( _test_cmd  mpiexec -n ${nproc} ./${example} )
-      add_test(${_test_name}_young4c  ${_test_cmd} -3 ${CMAKE_SOURCE_DIR}/test/matrix/young4c.mtx  -c 1 )
-      add_test(${_test_name}_orsirr   ${_test_cmd} -0 ${CMAKE_SOURCE_DIR}/test/matrix/orsirr.rua   -c 1 )
-      add_test(${_test_name}_mhd1280b ${_test_cmd} -3 ${CMAKE_SOURCE_DIR}/test/matrix/mhd1280b.mtx -d dparm_epsilon_magn_ctrl 1e-14 -c 1 )
-      add_test(${_test_name}_small    ${_test_cmd} -0 ${CMAKE_SOURCE_DIR}/test/matrix/small.rsa    -d dparm_epsilon_magn_ctrl 1e-14 -c 1 )
-    endforeach()
-  endforeach()
-
-endif()
