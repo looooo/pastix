@@ -10,7 +10,7 @@
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2022-12-05
+!> @date 2023-01-30
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -513,8 +513,8 @@ module pastixf_bindings
        integer(kind=pastix_int_t), value :: incx
      end function pastixGetDiag_f2c
 
-     subroutine pastixGetOptions_f2c(argc, argv, iparm, dparm, check, driver, &
-          filename) &
+     subroutine pastixGetOptions_f2c(argc, argv, iparm, dparm, check, scatter, &
+          driver, filename) &
           bind(c, name='pastixGetOptions_f2c')
        use :: iso_c_binding, only : c_int, c_ptr
        implicit none
@@ -523,6 +523,7 @@ module pastixf_bindings
        type(c_ptr),         value :: iparm
        type(c_ptr),         value :: dparm
        type(c_ptr),         value :: check
+       type(c_ptr),         value :: scatter
        type(c_ptr),         value :: driver
        type(c_ptr)                :: filename
      end subroutine pastixGetOptions_f2c

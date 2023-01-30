@@ -10,7 +10,7 @@
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2022-12-05
+!> @date 2023-01-30
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -934,8 +934,8 @@ subroutine pastixGetDiag_f08(pastix_data, x, incx, info)
 
 end subroutine pastixGetDiag_f08
 
-subroutine pastixGetOptions_f08(argc, argv, iparm, dparm, check, driver, &
-     filename)
+subroutine pastixGetOptions_f08(argc, argv, iparm, dparm, check, scatter, &
+     driver, filename)
   use :: pastixf_interfaces, only : pastixGetOptions
   use :: pastixf_bindings,   only : pastixGetOptions_f2c
   use :: iso_c_binding,      only : c_char, c_double, c_f_pointer, c_int, c_loc, c_ptr
@@ -946,6 +946,7 @@ subroutine pastixGetOptions_f08(argc, argv, iparm, dparm, check, driver, &
   integer(kind=pastix_int_t), intent(inout), target  :: iparm(:)
   real(kind=c_double),        intent(inout), target  :: dparm(:)
   integer(kind=c_int),        intent(inout), target  :: check
+  integer(kind=c_int),        intent(inout), target  :: scatter
   integer(c_int),             intent(inout), target  :: driver
   character(kind=c_char),     intent(inout), pointer :: filename
 
@@ -956,7 +957,7 @@ subroutine pastixGetOptions_f08(argc, argv, iparm, dparm, check, driver, &
   x_filename = c_loc(filename)
 
   call pastixGetOptions_f2c(argc, x_argv, c_loc(iparm), c_loc(dparm), &
-       c_loc(check), c_loc(driver), x_filename)
+       c_loc(check), c_loc(scatter), c_loc(driver), x_filename)
   call c_f_pointer(x_argv, argv)
   call c_f_pointer(x_filename, filename)
 

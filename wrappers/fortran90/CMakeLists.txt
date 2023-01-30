@@ -115,7 +115,7 @@ foreach (_file ${EXAMPLES})
       set( exe ${MPIEXEC_EXECUTABLE} -np 4 --host localhost:4 )
     endif()
 
-    add_test(fortran_${version}_${_name_we} ${exe} ./${_name_we})
+    add_test(fortran_${version}_${_name_we} ${exe} ./${_name_we} )
   endforeach()
 
 endforeach()

@@ -10,7 +10,7 @@
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2022-12-05
+!> @date 2023-01-30
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -574,8 +574,8 @@ module pastixf_interfaces
   end interface pastixGetDiag
 
   interface pastixGetOptions
-     subroutine pastixGetOptions_f08(argc, argv, iparm, dparm, check, driver, &
-          filename)
+     subroutine pastixGetOptions_f08(argc, argv, iparm, dparm, check, scatter, &
+          driver, filename)
        use :: iso_c_binding, only : c_char, c_double, c_int, c_ptr
        use :: pastixf_enums, only : pastix_int_t
        implicit none
@@ -584,6 +584,7 @@ module pastixf_interfaces
        integer(kind=pastix_int_t), intent(inout), target  :: iparm(:)
        real(kind=c_double),        intent(inout), target  :: dparm(:)
        integer(kind=c_int),        intent(inout), target  :: check
+       integer(kind=c_int),        intent(inout), target  :: scatter
        integer(c_int),             intent(inout), target  :: driver
        character(kind=c_char),     intent(inout), pointer :: filename
      end subroutine pastixGetOptions_f08

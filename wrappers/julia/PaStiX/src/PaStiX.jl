@@ -11,7 +11,7 @@
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2022-12-05
+ @date 2023-01-30
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -211,7 +211,7 @@ end
 end
 
 @cbindings libpastix begin
-    @cextern pastixGetOptions( argc::Cint, argv::Ptr{Cvoid}, iparm::Ptr{Pastix_int_t}, dparm::Ptr{Cdouble}, check::Ptr{Cint}, driver::Ptr{spm.spm_driver_t}, filename::Ptr{Cvoid} )::Cvoid
+    @cextern pastixGetOptions( argc::Cint, argv::Ptr{Cvoid}, iparm::Ptr{Pastix_int_t}, dparm::Ptr{Cdouble}, check::Ptr{Cint}, scatter::Ptr{Cint}, driver::Ptr{spm.spm_driver_t}, filename::Ptr{Cvoid} )::Cvoid
 end
 
 @cbindings libpastix begin
