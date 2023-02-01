@@ -93,14 +93,15 @@ bvec_handle_comm_init( const pastix_data_t *pastix_data,
 {
     const SolverMatrix *solvmtx  = pastix_data->solvmatr;
     bvec_handle_comm_t *rhs_comm = NULL;
-    pastix_int_t        size;
 
     /* Initializes bvec_comm. */
-    size = sizeof(bvec_handle_comm_t) + (solvmtx->clustnbr-1)*sizeof(bvec_proc_comm_t);
+    if ( Pb->rhs_comm == NULL ) {
+        size_t size = sizeof(bvec_handle_comm_t) + (solvmtx->clustnbr-1) * sizeof(bvec_proc_comm_t);
 
-    Pb->rhs_comm = (bvec_handle_comm_t *)malloc( size );
+        Pb->rhs_comm = (bvec_handle_comm_t *)malloc( size );
+    }
+
     rhs_comm = Pb->rhs_comm;
-
     rhs_comm->clustnbr = solvmtx->clustnbr;
     rhs_comm->clustnum = solvmtx->clustnum;
     rhs_comm->comm     = solvmtx->solv_comm;
