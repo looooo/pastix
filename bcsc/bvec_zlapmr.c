@@ -37,6 +37,7 @@
 #include "order/order_internal.h"
 #include "cblas.h"
 #include "blend/solver.h"
+#include "spm/src/common.h"
 
 #if defined( PASTIX_WITH_MPI )
 /**
@@ -155,7 +156,7 @@ bvec_zlapmr_dst_vec2bvec( pastix_data_t      *pastix_data,
         }
     }
 
-    bvec_zexchange_data_dst( pastix_data, PastixDirForward, nrhs, b, ldb, Pb );
+    bvec_zexchange_data_dst( pastix_data, PastixDirForward, nrhs, b, ldb, Pb, NULL );
 
     bvec_handle_comm_exit( Pb->rhs_comm );
 
@@ -215,6 +216,7 @@ bvec_zlapmr_dst_bvec2vec( pastix_data_t      *pastix_data,
     pastix_int_t        clustnbr   = pastix_data->solvmatr->clustnbr;
     pastix_int_t        bcsc_n     = Pb->m;
     pastix_int_t       *Ploc2Pglob = Pb->Ploc2Pglob;
+    pastix_int_t       *glob2loc   = NULL;
     pastix_int_t        ilp, ilpe, igp, ile;
     pastix_int_t        j, c, dofi;
     bvec_proc_comm_t   *data_comm;
@@ -229,6 +231,15 @@ bvec_zlapmr_dst_bvec2vec( pastix_data_t      *pastix_data,
     bvec_compute_Ploc2Pglob( pastix_data, Pb );
     Ploc2Pglob = Pb->Ploc2Pglob;
 
+    if ( spm->glob2loc == NULL ) {
+        spmatrix_t spmcpy;
+
+        memcpy( &spmcpy, spm, sizeof( spmatrix_t ) );
+        glob2loc = spm_get_glob2loc( &spmcpy );
+    }
+    else {
+        glob2loc = spm->glob2loc;
+    }
     bvec_exchange_amount_dst( pastix_data, PastixDirBackward, m, nrhs, Pb );
     comm_rhs = Pb->rhs_comm;
 
@@ -253,7 +264,7 @@ bvec_zlapmr_dst_bvec2vec( pastix_data_t      *pastix_data,
     dofi = dof; /* vdof incorrect */
     for ( ilpe = 0; ilpe < bcsc_n; ilpe += dofi, ilp ++ ) {
         igp = Ploc2Pglob[ ilp ];
-        ile = bvec_Pglob2loc( pastix_data, igp);
+        ile = bvec_Pglob2loc( pastix_data, glob2loc, igp );
 
         if ( ile < 0 ) {
             c = - ( ile + 1 );
@@ -276,10 +287,13 @@ bvec_zlapmr_dst_bvec2vec( pastix_data_t      *pastix_data,
         }
     }
 
-    bvec_zexchange_data_dst( pastix_data, PastixDirBackward, nrhs, b, ldb, Pb );
+    bvec_zexchange_data_dst( pastix_data, PastixDirBackward, nrhs, b, ldb, Pb, glob2loc );
 
     bvec_handle_comm_exit( Pb->rhs_comm );
 
+    if ( spm->glob2loc == NULL ) {
+        free( glob2loc );
+    }
     memFree_null( idx_cnt );
     memFree_null( val_cnt );
     return PASTIX_SUCCESS;

@@ -90,6 +90,7 @@ int bvec_handle_comm_exit( bvec_handle_comm_t *rhs_comm );
 pastix_int_t bvec_glob2Ploc( const pastix_data_t *pastix_data,
                              pastix_int_t         ig );
 pastix_int_t bvec_Pglob2loc( const pastix_data_t *pastix_data,
+                             const pastix_int_t  *glob2loc,
                              pastix_int_t         igp );
 int bvec_compute_Ploc2Pglob( pastix_data_t *pastix_data,
                              pastix_rhs_t   Pb );

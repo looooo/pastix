@@ -942,8 +942,7 @@ bcsc_zexchange_values_AAt( const spmatrix_t     *spm,
     c_send = (clustnum+1) % clustnbr;
     for ( k = 0; k < clustnbr-1; k++ ) {
         if ( rowtabAt != bcsc->rowtab ) {
-	        k = clustnbr;
-            continue;
+	        break;
         }
         data_send = data_comm + c_send;
         sends     = &( data_send->sendAAt.size );
