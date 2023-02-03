@@ -421,7 +421,16 @@ cpucblk_zfillin_fr( pastix_coefside_t    side,
         for (iterval=frow; iterval<lrow; iterval++)
         {
             pastix_int_t rownum = bcsc->rowtab[iterval];
-
+#if !defined(NDEBUG) && defined(PASTIX_DEBUG_DUMP_COEFTAB)
+            if ( isnan( (double)Lvalues[iterval] ) || isinf( (double)Lvalues[iterval] ) ) {
+                printf( "cpucblk_zfillin_fr: Lvalues not initialised correctly.\n" );
+                assert( 0 );
+            }
+            if ( isnan( (double)Uvalues[iterval] ) || isinf( (double)Uvalues[iterval] ) ) {
+                printf( "cpucblk_zfillin_fr: Uvalues not initialised correctly.\n" );
+                assert( 0 );
+            }
+#endif
             /* If values in the lower part of the matrix */
             if (rownum >= (solvcblk->fcolnum+itercoltab))
             {
@@ -530,6 +539,16 @@ cpucblk_zfillin_lr( pastix_coefside_t    side,
         {
             pastix_int_t rownum = bcsc->rowtab[iterval];
 
+#if !defined(NDEBUG)
+            if ( isnan( (double)Lvalues[iterval] ) || isinf( (double)Lvalues[iterval] ) ) {
+                printf( "cpucblk_zfillin_lr: Lvalues not initialised correctly.\n" );
+                assert( 0 );
+            }
+            if ( isnan( (double)Uvalues[iterval] ) || isinf( (double)Uvalues[iterval] ) ) {
+                printf( "cpucblk_zfillin_lr: Uvalues not initialised correctly.\n" );
+                assert( 0 );
+            }
+#endif
             /* If values in the lower part of the matrix */
             if (rownum >= (solvcblk->fcolnum+itercoltab))
             {
