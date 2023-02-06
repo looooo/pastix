@@ -171,24 +171,33 @@ void
 thread_ztrsm_static( isched_thread_t *ctx,
                      void            *args )
 {
-    struct args_ztrsm_t *arg = (struct args_ztrsm_t*)args;
+    struct args_ztrsm_t *arg          = (struct args_ztrsm_t*)args;
     pastix_data_t       *pastix_data  = arg->pastix_data;
     sopalin_data_t      *sopalin_data = arg->sopalin_data;
     SolverMatrix        *datacode     = sopalin_data->solvmtx;
     pastix_rhs_t         rhsb         = arg->rhsb;
-    int side  = arg->side;
-    int uplo  = arg->uplo;
-    int trans = arg->trans;
-    int diag  = arg->diag;
-    SolverCblk *cblk;
-    Task       *t;
-    pastix_int_t i, ii;
-    pastix_int_t tasknbr, *tasktab;
-    pastix_solv_mode_t mode = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
-    int rank = ctx->rank;
+    int                  side         = arg->side;
+    int                  uplo         = arg->uplo;
+    int                  trans        = arg->trans;
+    int                  diag         = arg->diag;
+    pastix_solv_mode_t   mode         = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
+    pastix_int_t         thrd_size    = (pastix_int_t)ctx->global_ctx->world_size;
+    pastix_int_t         thrd_rank    = (pastix_int_t)ctx->rank;
+    SolverCblk          *cblk;
+    Task                *t;
+    pastix_int_t         i, ii;
+    pastix_int_t         tasknbr, *tasktab;
+    pastix_int_t         cblkfirst, cblklast;
 
-    tasknbr = datacode->ttsknbr[rank];
-    tasktab = datacode->ttsktab[rank];
+    /* Computes range to update the ctrbnbr */
+    cblkfirst = (datacode->cblknbr / thrd_size ) * thrd_rank;
+    cblklast  = (datacode->cblknbr / thrd_size ) * (thrd_rank + 1);
+    if ( thrd_rank == (thrd_size-1) ) {
+        cblklast = datacode->cblknbr;
+    }
+
+    tasknbr = datacode->ttsknbr[thrd_rank];
+    tasktab = datacode->ttsktab[thrd_rank];
 
     /* Backward like */
     if ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
@@ -197,11 +206,8 @@ thread_ztrsm_static( isched_thread_t *ctx,
          ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) )
     {
         /* Init ctrbcnt in parallel */
-        for (ii=0; ii<tasknbr; ii++) {
-            i = tasktab[ii];
-            t = datacode->tasktab + i;
-            cblk = datacode->cblktab + t->cblknum;
-
+        cblk = datacode->cblktab + cblkfirst;
+        for (ii=cblkfirst; ii<cblklast; ii++, cblk++) {
             if ( (cblk->cblktype & CBLK_IN_SCHUR) && (mode != PastixSolvModeSchur) ) {
                 cblk->ctrbcnt = 0;
             }
@@ -216,9 +222,13 @@ thread_ztrsm_static( isched_thread_t *ctx,
             t = datacode->tasktab + i;
             cblk = datacode->cblktab + t->cblknum;
 
-            /* Wait */
-            do { pastix_yield(); } while( cblk->ctrbcnt );
+            /* Wait for incoming dependencies */
+            if ( cpucblk_zincoming_rhs_deps( thrd_rank, PastixSolveBackward,
+                                             datacode, cblk, rhsb ) ) {
+                continue;
+            }
 
+            /* Computes */
             solve_cblk_ztrsmsp_backward( mode, side, uplo, trans, diag,
                                          datacode, cblk, rhsb );
         }
@@ -233,10 +243,8 @@ thread_ztrsm_static( isched_thread_t *ctx,
          */
     {
         /* Init ctrbcnt in parallel */
-        for (ii=0; ii<tasknbr; ii++) {
-            i = tasktab[ii];
-            t = datacode->tasktab + i;
-            cblk = datacode->cblktab + t->cblknum;
+        cblk = datacode->cblktab + cblkfirst;
+        for (ii=cblkfirst; ii<cblklast; ii++, cblk++) {
             cblk->ctrbcnt = cblk[1].brownum - cblk[0].brownum;
         }
         isched_barrier_wait( &(ctx->global_ctx->barrier) );
@@ -246,12 +254,17 @@ thread_ztrsm_static( isched_thread_t *ctx,
             t = datacode->tasktab + i;
             cblk = datacode->cblktab + t->cblknum;
 
-            if ( (cblk->cblktype & CBLK_IN_SCHUR) && (mode != PastixSolvModeSchur) )
+            if ( (cblk->cblktype & CBLK_IN_SCHUR) &&
+                 (mode != PastixSolvModeSchur) ) {
                 continue;
+            }
 
-            /* Wait */
-            do { pastix_yield(); } while( cblk->ctrbcnt );
-
+            /* Wait for incoming dependencies */
+            if ( cpucblk_zincoming_rhs_deps( thrd_rank, PastixSolveForward,
+                                             datacode, cblk, rhsb ) ) {
+                continue;
+            }
+            /* Computes */
             solve_cblk_ztrsmsp_forward( mode, side, uplo, trans, diag,
                                         datacode, cblk, rhsb );
         }
@@ -451,6 +464,11 @@ sopalin_ztrsm( pastix_data_t  *pastix_data,
                pastix_rhs_t    rhsb  )
 {
     int sched = pastix_data->iparm[IPARM_SCHEDULER];
+    int solve_step = ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
+                       ( (side == PastixLeft)  && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
+                       ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
+                       ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) ) ?
+                      PastixSolveBackward : PastixSolveForward;
     void (*ztrsm)( pastix_data_t *, int, int, int, int,
                    sopalin_data_t *, pastix_rhs_t ) = ztrsm_table[ sched ];
 
@@ -464,15 +482,46 @@ sopalin_ztrsm( pastix_data_t  *pastix_data,
             ztrsm = runtime_ztrsm;
         }
         else {
-            /* Force sequential if MPI as no other runtime is supported yet */
-            ztrsm = sequential_ztrsm;
+            if ( sched == PastixSchedStatic ) {
+                if ( solve_step == PastixSolveBackward ) {
+                    ztrsm = sequential_ztrsm;
+                }
+                else {
+                    ztrsm = static_ztrsm;
+                }
+            }
+            else {
+                ztrsm = sequential_ztrsm;
+            }
         }
+    }
+#endif
+
+
+#if defined(PASTIX_WITH_MPI)
+    if ( ( pastix_data->inter_node_procnbr > 1 ) &&
+         ( sched      == PastixSchedStatic )     &&
+         ( solve_step == PastixSolveForward ) ) {
+        solverRequestInit( sopalin_data->solvmtx );
+        solverRhsRecvInit( sopalin_data->solvmtx, PastixComplex64 );
     }
 #endif
 
     ztrsm( pastix_data, side, uplo, trans, diag, sopalin_data, rhsb );
 
 #if defined(PASTIX_WITH_MPI)
+    if ( ( pastix_data->inter_node_procnbr > 1 ) &&
+         ( sched      == PastixSchedStatic )     &&
+         ( solve_step == PastixSolveForward ) ) {
+        cpucblk_zrequest_rhs_cleanup( PastixSolveForward, sched, sopalin_data->solvmtx, rhsb );
+        solverRequestExit( sopalin_data->solvmtx );
+        solverRhsRecvExit( sopalin_data->solvmtx );
+    }
+#endif
+
+#if defined(PASTIX_WITH_MPI)
    MPI_Barrier( pastix_data->inter_node_comm );
 #endif
+
+    (void)solve_step;
 }

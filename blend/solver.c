@@ -547,5 +547,100 @@ solverRecvExit( SolverMatrix *solvmtx )
 }
 
 /**
+ *******************************************************************************
+ *
+ * @brief Computes the max size of recv cblk.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The pointer to the solver matrix structure.
+ *
+ *******************************************************************************
+ *
+ * @return maximun recv size
+ *
+ *******************************************************************************/
+static inline pastix_int_t
+solverRhsRecvMax( SolverMatrix *solvmtx )
+{
+    pastix_int_t      cblknbr = solvmtx->cblknbr;
+    const SolverCblk *cblk;
+    pastix_int_t      k, max = 0;
+
+    cblk = solvmtx->cblktab;
+    for ( k = 0; k < cblknbr; k++, cblk++ ) {
+        if ( cblk->cblktype & CBLK_RECV ) {
+            max = pastix_imax( max, cblk_colnbr( cblk ) );
+        }
+    }
+
+    return max;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Allocates the reception buffer, and initiate the first persistant
+ * reception
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The pointer to the solver matrix structure.
+ *
+ * @param[in] flttype
+ *          Define which type are the coefficients.
+ *          @arg PastixFloat
+ *          @arg PastixDouble
+ *          @arg PastixComplex32
+ *          @arg PastixComplex64
+ *
+ *******************************************************************************/
+void
+solverRhsRecvInit( SolverMatrix     *solvmtx,
+                   pastix_coeftype_t flttype )
+{
+    /* Computes the max size (in bytes) for the communication buffer */
+    pastix_int_t size;
+
+    if( solvmtx->recvnbr == 0 ) {
+        return;
+    }
+
+    size = pastix_size_of(flttype) * solverRhsRecvMax( solvmtx );
+
+    /* Init communication */
+    MALLOC_INTERN( solvmtx->rcoeftab, size, char );
+    MPI_Recv_init( solvmtx->rcoeftab, size,
+                   MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG,
+                   solvmtx->solv_comm, solvmtx->reqtab );
+    MPI_Start( solvmtx->reqtab );
+
+    solvmtx->reqnum++;
+#if defined(PASTIX_DEBUG_MPI)
+    fprintf( stderr, "[%2d] Start persistant recv from any source (max = %ld B)\n",
+             solvmtx->clustnum, (long)size );
+#endif
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Frees the array linked to pending reception.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The pointer to the solver matrix structure.
+ *
+ *******************************************************************************/
+void
+solverRhsRecvExit( SolverMatrix *solvmtx )
+{
+    solverRecvExit( solvmtx );
+}
+
+/**
  *@}
  */

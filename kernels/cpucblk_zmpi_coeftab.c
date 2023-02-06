@@ -174,7 +174,7 @@ cpucblk_zrequest_handle_recv( pastix_coefside_t   side,
      * Let's look for the local cblk
      */
     fcbk = solvmtx->cblktab + solvmtx->gcbl2loc[ tag ];
-    cblk = fcbk--;
+    cblk = fcbk-1;
 
     /* Get through source */
     while( cblk->ownerid != src ) {
@@ -183,23 +183,27 @@ cpucblk_zrequest_handle_recv( pastix_coefside_t   side,
         assert( cblk->gcblknum == tag );
         assert( cblk->cblktype & CBLK_RECV );
     }
+    assert( fcbk == (solvmtx->cblktab + cblk->fblokptr->fcblknm) );
 
 #if defined(PASTIX_DEBUG_MPI)
     {
-        pastix_int_t size = (cblk_colnbr(cblk) * cblk->stride) * sizeof(pastix_complex64_t);
-        int count = 0;
+        int          rc;
+        int          count = 0;
+        pastix_int_t size  = (cblk_colnbr(cblk) * cblk->stride) * sizeof(pastix_complex64_t);
 
         if ( side != PastixLCoef ) {
             size *= 2;
         }
 
-        MPI_Get_count( status, MPI_CHAR, &count );
+        rc = MPI_Get_count( status, MPI_CHAR, &count );
+        assert( rc == MPI_SUCCESS );
         assert( (cblk->cblktype & CBLK_COMPRESSED) ||
                 (!(cblk->cblktype & CBLK_COMPRESSED) && (count == size)) );
 
         /* We can't know the sender easily, so we don't print it */
         fprintf( stderr, "[%2d] Irecv of size %d/%ld for cblk %ld (DONE)\n",
                  solvmtx->clustnum, count, (long)size, (long)cblk->gcblknum );
+        (void)rc;
     }
 #endif
 
@@ -332,7 +336,7 @@ cpucblk_zrequest_handle( pastix_coefside_t  side,
  *          The solver matrix structure with the updated arrays.
  *
  *******************************************************************************/
-static inline void
+void
 cpucblk_zupdate_reqtab( SolverMatrix *solvmtx )
 {
     /* Pointer to the compressed array of request */
@@ -489,7 +493,7 @@ cpucblk_zmpi_progress( pastix_coefside_t   side,
  *******************************************************************************
  *
  * @param[in] rank
- *          TODO
+ *          The rank of the current thread.
  *
  * @param[in] side
  *          Define which side of the cblk must be released.
@@ -633,7 +637,7 @@ cpucblk_zrequest_cleanup( pastix_coefside_t side,
     pastix_int_t i;
     int rc;
     SolverCblk  *cblk;
-    int          reqnbr =  solvmtx->reqnum;
+    int          reqnbr = solvmtx->reqnum;
     MPI_Status   status;
 
 #if defined(PASTIX_DEBUG_MPI)

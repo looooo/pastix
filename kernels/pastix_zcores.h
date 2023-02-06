@@ -437,11 +437,26 @@ void cpucblk_zrelease_deps( pastix_coefside_t  side,
 void cpucblk_zrequest_cleanup( pastix_coefside_t  side,
                                pastix_int_t       sched,
                                SolverMatrix      *solvmtx );
+void cpucblk_zupdate_reqtab( SolverMatrix *solvmtx );
 #if defined( PASTIX_WITH_MPI )
 void cpucblk_zmpi_progress( pastix_coefside_t  side,
                             SolverMatrix      *solvmtx,
                             int                threadid );
 #endif
+void cpucblk_zrelease_rhs_deps( solve_step_e       solve_step,
+                                SolverMatrix     *solvmtx,
+                                pastix_rhs_t      rhsb,
+                                const SolverCblk *cblk,
+                                SolverCblk       *fcbk );
+int cpucblk_zincoming_rhs_deps( int           rank,
+                                solve_step_e   solve_step,
+                                SolverMatrix *solvmtx,
+                                SolverCblk   *cblk,
+                                pastix_rhs_t  rhsb );
+void cpucblk_zrequest_rhs_cleanup( solve_step_e   solve_step,
+                                   pastix_int_t  sched,
+                                   SolverMatrix *solvmtx,
+                                   pastix_rhs_t  rhsb );
 void cpucblk_zsend_rhs_forward( const SolverMatrix *solvmtx,
                                 SolverCblk         *cblk,
                                 pastix_rhs_t        b );
@@ -514,7 +529,7 @@ void solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
                                  pastix_uplo_t       uplo,
                                  pastix_trans_t      trans,
                                  pastix_diag_t       diag,
-                                 const SolverMatrix *datacode,
+                                 SolverMatrix       *datacode,
                                  const SolverCblk   *cblk,
                                  pastix_rhs_t        b );
 void solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,

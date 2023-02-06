@@ -320,7 +320,7 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
                             pastix_uplo_t       uplo,
                             pastix_trans_t      trans,
                             pastix_diag_t       diag,
-                            const SolverMatrix *datacode,
+                            SolverMatrix       *datacode,
                             const SolverCblk   *cblk,
                             pastix_rhs_t        rhsb )
 {
@@ -416,8 +416,13 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
             C   = rhsb->cblkb[ - fcbk->bcscnum - 1 ];
             ldc = cblk_colnbr( fcbk );
             if ( C == NULL ) {
-                rhsb->cblkb[ - fcbk->bcscnum - 1 ] = calloc( ldc * rhsb->n, sizeof( pastix_complex64_t ) );
-                C = rhsb->cblkb[ - fcbk->bcscnum - 1 ];
+                C = calloc( ldc * rhsb->n, sizeof( pastix_complex64_t ) );
+                if ( !pastix_atomic_cas_xxb( &(rhsb->cblkb[ - fcbk->bcscnum - 1 ]),
+                                             (uint64_t)NULL, (uint64_t)C, sizeof(void*) ) )
+                {
+                    free( C );
+                    C = rhsb->cblkb[ - fcbk->bcscnum - 1 ];
+                }
             }
         }
         else {
@@ -429,7 +434,8 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
         solve_blok_zgemm( PastixLeft, tA, rhsb->n,
                           cblk, blok, fcbk,
                           dataA, B, ldb, C, ldc );
-        pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
+        cpucblk_zrelease_rhs_deps( PastixSolveForward, datacode,
+                                   rhsb, cblk, fcbk );
     }
 }
 
