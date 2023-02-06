@@ -17,7 +17,7 @@
              -R \"^${RUN}_.*_sched${SCHED}\"
              -D ExperimentalTest
              -D ExperimentalCoverage
-             | tee -a ../pastix-build-${VERSION}.log")
+             | tee -a ${CI_PROJECT_DIR}/pastix-build-${VERSION}.log")
     - lcov --capture --directory build
            -q --output-file pastix-${VERSION}-${RUN}-sched${SCHED}.lcov
            | tee -a pastix-gcov-${VERSION}-${RUN}-sched${SCHED}.log
@@ -51,8 +51,10 @@ test_mpi_sched:
   needs: [build_pastix_mpi]
   parallel:
     matrix:
-      - SCHED: [0, 1, 2, 3, 4]
+      - SCHED: [0, 1, 4]
         RUN: [shm, mpi_rep, mpi_dst]
+      - SCHED: [2, 3]
+        RUN: [shm, mpi_rep]
   dependencies:
     - build_pastix_mpi
   <<: *test_script_sched_mpi

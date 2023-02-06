@@ -15,7 +15,7 @@ coverity:
     - mkdir -p build-coverity
     - cd build-coverity
     - cmake -DPASTIX_CI_VERSION=${VERSION}
-            -C ../.gitlab/ci-test-initial-cache.cmake  ..
+            -C ${CI_PROJECT_DIR}/.gitlab/ci-test-initial-cache.cmake ${CI_PROJECT_DIR}
     - cov-build --dir ../cov-int make -j 4
     - cd ..
     - tar czvf pastix.tgz cov-int

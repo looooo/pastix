@@ -7,6 +7,6 @@ coverage:
   stage: analyse
   tags: ["docker"]
   script:
-    - tools/coverage.sh | tee -a pastix-gcov.log
+    - ${CI_PROJECT_DIR}/tools/coverage.sh | tee -a pastix-gcov.log
   only:
     - merge_requests

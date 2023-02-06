@@ -15,7 +15,7 @@ before_script:
   - git config --global --add safe.directory $CI_PROJECT_DIR/spm
   - git config --global --add safe.directory $CI_PROJECT_DIR/spm/cmake_modules/morse_cmake
   - git submodule update --init --recursive
-  - source .gitlab/env.sh ${VERSION}
+  - source ${CI_PROJECT_DIR}/.gitlab/env.sh ${VERSION}
   - unset SPM_DIR # Make sure we don't use the installed spm
   - if [ ! -z "$SPM_DIR" ]; then source $SPM_DIR/bin/spm_env.sh; fi
   - echo "VERSION=${VERSION}"
