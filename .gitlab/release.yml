@@ -6,4 +6,4 @@ package:
   only:
     - /^release-.*$/
   script:
-    - ./tools/release.sh
+    - ${CI_PROJECT_DIR}/tools/release.sh

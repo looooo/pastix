@@ -11,6 +11,7 @@
  * @author Matias Hastaran
  * @author Pierre Ramet
  * @author Tony Delarue
+ * @author Alycia Lisito
  * @date 2022-10-11
  *
  * @ingroup pastix_examples
@@ -33,6 +34,7 @@ typedef struct solve_param {
     char         *filename;
     spm_driver_t  driver;
     int           check;
+    int           scatter;
     int           id;
     int           rc;
 } solve_param_t;
@@ -53,6 +55,7 @@ static void *solve_smp(void *arg)
     void          *x, *b, *x0 = NULL;
     size_t         size;
     int            check;
+    int            scatter;
     int            rc;
     int            nrhs = 1;
     solve_param_t  param = *(solve_param_t *)arg;
@@ -60,7 +63,8 @@ static void *solve_smp(void *arg)
     if ( param.iparm[IPARM_THREAD_NBR] == -1) {
         param.iparm[IPARM_THREAD_NBR] = 2;
     }
-    check = param.check;
+    check   = param.check;
+    scatter = param.scatter;
 
     /**
      * Startup PaStiX
@@ -99,7 +103,12 @@ static void *solve_smp(void *arg)
      * Read the sparse matrix with the driver
      */
     spm = malloc( sizeof( spmatrix_t ) );
-    rc = spmReadDriver( param.driver, param.filename, spm );
+    if ( scatter ) {
+        rc = spmReadDriverDist( param.driver, param.filename, spm, MPI_COMM_WORLD );
+    }
+    else {
+        rc = spmReadDriver( param.driver, param.filename, spm );
+    }
     if ( rc != SPM_SUCCESS ) {
         pastixFinalize( &pastix_data );
         return NULL;
@@ -197,8 +206,10 @@ int main (int argc, char **argv)
     int            nbcallingthreads = 2;
     solve_param_t *solve_param;
     pthread_t     *threads;
-    int            i, check = 1;
-    int            rc = 0;
+    int            scatter = 0;
+    int            check   = 1;
+    int            rc      = 0;
+    int            i;
 
     /**
      * Initialize parameters to default values
@@ -210,7 +221,7 @@ int main (int argc, char **argv)
      */
     pastixGetOptions( argc, argv,
                       iparm, dparm,
-                      &check, &driver, &filename );
+                      &check, &scatter, &driver, &filename );
 
     /**
      *    Set parameters for each thread
@@ -223,6 +234,7 @@ int main (int argc, char **argv)
         memcpy(solve_param[i].iparm, iparm, sizeof(solve_param[i].iparm));
         memcpy(solve_param[i].dparm, dparm, sizeof(solve_param[i].dparm));
         solve_param[i].check    = check;
+        solve_param[i].scatter  = scatter;
         solve_param[i].id       = i;
         solve_param[i].driver   = driver;
         solve_param[i].filename = filename;

@@ -12,6 +12,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
+ * @author Alycia Lisito
  * @date 2021-06-17
  *
  */
@@ -40,6 +41,8 @@ pastix_usage(void)
             " -G --graph        : SCOTCH Graph file\n"
             "\n"
             "Architecture arguments:\n"
+            " -a --scatter      : Scatter the spm when PaStiX is with MPI (default: 0)\n"
+            "                     0: Replicate the spm, 1: Scatter the spm\n"
             " -t --threads      : Number of threads per node (default: -1 to use the number of cores available)\n"
             " -g --gpus         : Number of gpus per node (default: 0)\n"
             " -s --sched        : Set the default scheduler (default: 1)\n"
@@ -65,7 +68,7 @@ pastix_usage(void)
 /**
  * @brief Define the options and their requirement used by PaStiX
  */
-#define GETOPT_STRING "0:1:2:3:4:9:x:G:t:g:s:o:f:c:i:d:v::h"
+#define GETOPT_STRING "0:1:2:3:4:9:x:G:a:t:g:s:o:f:c:i:d:v::h"
 
 #if defined(HAVE_GETOPT_LONG)
 /**
@@ -82,6 +85,7 @@ static struct option long_options[] =
     {"xlap",        required_argument,  0, 'x'},
     {"graph",       required_argument,  0, 'G'},
 
+    {"scatter",     required_argument,  0, 'a'},
     {"threads",     required_argument,  0, 't'},
     {"gpus",        required_argument,  0, 'g'},
     {"sched",       required_argument,  0, 's'},
@@ -130,6 +134,9 @@ static struct option long_options[] =
  * @param[inout] check
  *          On exit, the value is updated by the value of the -c option.
  *
+ * @param[inout] scatter
+ *          On exit, the value is updated by the value of the -a option.
+ *
  * @param[inout] driver
  *          On exit, contains the driver type give as option. -1, if no driver
  *          is specified.
@@ -141,7 +148,7 @@ static struct option long_options[] =
 void
 pastixGetOptions( int argc, char **argv,
                   pastix_int_t *iparam, double *dparam,
-                  int *check, spm_driver_t *driver, char **filename )
+                  int *check, int *scatter, spm_driver_t *driver, char **filename )
 {
     int c;
     (void)dparam;
@@ -199,6 +206,20 @@ pastixGetOptions( int argc, char **argv,
         case 'G':
             *driver = SpmDriverGraph;
             *filename = strdup( optarg );
+            break;
+
+        case 'a': {
+            int scattervalue = atoi( optarg );
+            if ( (scattervalue >= 0) && (scattervalue < 6) ) {
+                if ( scatter != NULL ) {
+                    *scatter = scattervalue;
+                }
+            }
+            else {
+                fprintf(stderr, "\nInvalid value for scatter option: %s\n\n", optarg);
+                goto unknown_option;
+            }
+        }
             break;
 
         case 't': iparam[IPARM_THREAD_NBR] = atoi(optarg); break;

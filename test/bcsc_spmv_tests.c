@@ -14,6 +14,7 @@
  * @author Pierre Ramet
  * @author Tony Delarue
  * @author Vincent Bridonneau
+ * @author Alycia Lisito
  * @date 2022-12-05
  *
  **/
@@ -47,10 +48,11 @@ int main (int argc, char **argv)
     double          dparm[DPARM_SIZE];  /* floating parameters for pastix                   */
     spm_driver_t    driver;             /* Matrix driver(s) requested by user               */
     spmatrix_t     *spm, spm2;
-    char *filename;                     /* Filename(s) given by user                        */
-    int s, t;
-    int ret = PASTIX_SUCCESS;
-    int err = 0;
+    char           *filename;           /* Filename(s) given by user                        */
+    int             s, t;
+    int             scatter = 0;
+    int             ret = PASTIX_SUCCESS;
+    int             err = 0;
 
     /**
      * Initialize parameters to default values
@@ -62,7 +64,7 @@ int main (int argc, char **argv)
      */
     pastixGetOptions( argc, argv,
                       iparm, dparm,
-                      NULL, &driver, &filename );
+                      NULL, &scatter, &driver, &filename );
 
     /**
      * Initialize the PaStiX library
@@ -73,7 +75,12 @@ int main (int argc, char **argv)
      * Read the sparse matrix with the driver
      */
     spm = malloc( sizeof( spmatrix_t ) );
-    spmReadDriver( driver, filename, spm );
+    if ( scatter ) {
+        ret = spmReadDriverDist( driver, filename, spm, MPI_COMM_WORLD );
+    }
+    else {
+        ret = spmReadDriver( driver, filename, spm );
+    }
     free(filename);
 
     ret = spmCheckAndCorrect( spm, &spm2 );

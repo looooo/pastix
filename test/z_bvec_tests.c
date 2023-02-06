@@ -548,6 +548,9 @@ z_bcsc_spmv_time( pastix_data_t    *pastix_data,
     pastix_complex64_t *x, *y;
     pastix_complex64_t  alpha = 3.5;
     pastix_complex64_t  beta = -4.8;
+    pastix_int_t        sum_m, my_sum, m, ld;
+    pastix_int_t        clustnum = spm->clustnum;
+    pastix_int_t        clustnbr = spm->clustnbr;
     struct z_solver     solver;
     double t, flops;
     Clock timer;
@@ -557,11 +560,31 @@ z_bcsc_spmv_time( pastix_data_t    *pastix_data,
     x = malloc( sizeof(pastix_complex64_t) * spm->nexp * nrhs );
     y = malloc( sizeof(pastix_complex64_t) * spm->nexp * nrhs );
 
+    m      = spm->nexp;
+    ld     = spm->nexp;
+    sum_m  = 0;
+    my_sum = 0;
+
+    if ( clustnum > 0 ) {
+        MPI_Recv( &my_sum, 1, PASTIX_MPI_INT, clustnum - 1, PastixTagCountA, spm->comm, MPI_STATUSES_IGNORE );
+    }
+    if ( clustnum < ( clustnbr - 1 ) ) {
+        sum_m = my_sum + m;
+        MPI_Send( &sum_m, 1, PASTIX_MPI_INT, clustnum + 1, PastixTagCountA, spm->comm );
+    }
+
     /**
      * generate matrices
      */
-    z_init( pastix_data, 9794, nrhs, x, spm->nexp );
-    z_init( pastix_data, 7839, nrhs, y, spm->nexp );
+    if ( spm->loc2glob == NULL ) {
+        /* The vectors are replicated */
+        core_zplrnt( m, nrhs, x, ld, spm->gNexp, 0, 0, 9794 );
+        core_zplrnt( m, nrhs, y, ld, spm->gNexp, 0, 0, 7839 );
+    }
+    else {
+        core_zplrnt( m, nrhs, x, ld, spm->gNexp, my_sum, 0, 9794 );
+        core_zplrnt( m, nrhs, y, ld, spm->gNexp, my_sum, 0, 7839 );
+    }
 
     timer = clockGetLocal();
     for ( i = 0; i < 50 ; ++i) {
@@ -578,6 +601,7 @@ z_bcsc_spmv_time( pastix_data_t    *pastix_data,
     free( x );
     free( y );
 
+    (void)sum_m;
     return rc;
 }
 

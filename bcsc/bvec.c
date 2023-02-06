@@ -218,6 +218,9 @@ bvec_glob2Ploc( const pastix_data_t *pastix_data,
  * @param[in] pastix_data
  *          The pastix_data structure.
  *
+ * @param[in] glob2loc
+ *          The glob2loc array associated to the user spm stored in pastix_data.
+ *
  * @param[in] igp
  *          Index global permuted.
  *
@@ -229,11 +232,11 @@ bvec_glob2Ploc( const pastix_data_t *pastix_data,
  *******************************************************************************/
 pastix_int_t
 bvec_Pglob2loc( const pastix_data_t *pastix_data,
+                const pastix_int_t  *glob2loc,
                 pastix_int_t         igp )
 {
     const spmatrix_t     *spm      = pastix_data->csc;
     const pastix_order_t *ord      = pastix_data->ordemesh;
-    const pastix_int_t   *glob2loc = spm->glob2loc;
     pastix_int_t          basespm  = spm->baseval;
     pastix_int_t          dof      = spm->dof;
     const pastix_int_t   *dofs     = spm->dofs;

@@ -12,7 +12,7 @@
  @author Mathieu Faverge
  @author Tony Delarue
  @author Selmane Lebdaoui
- @date 2022-12-05
+ @date 2023-01-30
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -350,16 +350,16 @@ def pypastix_pastixGetDiag( pastix_data, x, incx ):
     libpastix.pastixGetDiag.restype = c_int
     return libpastix.pastixGetDiag( pastix_data, x, incx )
 
-def pypastix_pastixGetOptions( argc, argv, iparm, dparm, check, driver,
+def pypastix_pastixGetOptions( argc, argv, iparm, dparm, check, scatter, driver,
                                filename ):
     libpastix.pastixGetOptions.argtypes = [ c_int, c_char_p,
                                             POINTER(__pastix_int__),
                                             POINTER(c_double), c_int_p, c_int_p,
-                                            c_char_p ]
+                                            c_int_p, c_char_p ]
     libpastix.pastixGetOptions( argc, pointer( argv ),
                                 iparm.ctypes.data_as( POINTER(__pastix_int__) ),
                                 dparm.ctypes.data_as( POINTER(c_double) ),
-                                check, driver, pointer( filename ) )
+                                check, scatter, driver, pointer( filename ) )
 
 def pypastix_pastixDumpParam( pastix_data ):
     libpastix.pastixDumpParam.argtypes = [ c_void_p ]

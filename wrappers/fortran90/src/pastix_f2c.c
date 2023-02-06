@@ -9,7 +9,7 @@
  * @version 6.3.0
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2022-12-05
+ * @date 2023-01-30
  *
  * This file has been automatically generated with gen_wrappers.py
  *
@@ -405,10 +405,11 @@ pastixGetOptions_f2c( int           argc,
                       pastix_int_t *iparm,
                       double       *dparm,
                       int          *check,
+                      int          *scatter,
                       spm_driver_t *driver,
                       char        **filename )
 {
-    pastixGetOptions( argc, argv, iparm, dparm, check, driver, filename );
+    pastixGetOptions( argc, argv, iparm, dparm, check, scatter, driver, filename );
 }
 
 void

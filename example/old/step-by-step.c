@@ -13,6 +13,7 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Tony Delarue
+ * @author Alycia Lisito
  * @date 2022-06-29
  *
  **/
@@ -62,7 +63,7 @@ int main (int argc, char **argv)
      */
     pastixGetOptions( argc, argv,
                       iparm, dparm,
-                      &check, &driver, &filename );
+                      &check, NULL, &driver, &filename );
 
     /*
      * Read Matrice

@@ -27,7 +27,7 @@ precisions_rules_py(generated_headers
 
 set(tests_headers
   ${generated_headers}
-  )
+)
 
 add_custom_target(tests_headers_tgt
   DEPENDS ${tests_headers} )
@@ -42,16 +42,16 @@ set(LIB_SOURCES
 set(generated_libfiles "")
 
 precisions_rules_py(generated_libfiles
-   "${LIB_SOURCES}"
-   PRECISIONS "p;s;d;c;z")
+  "${LIB_SOURCES}"
+  PRECISIONS "p;s;d;c;z")
 
 add_library( bcsc_test
   ${generated_libfiles}
-  )
+)
 
 add_dependencies( bcsc_test
   tests_headers_tgt
-  )
+)
 
 target_include_directories( bcsc_test PRIVATE
   $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
@@ -69,7 +69,7 @@ target_link_libraries( bcsc_test PUBLIC
   MORSE::LAPACKE
   MORSE::CBLAS
   MORSE::M
-  )
+)
 
 ## Generate all test executables
 set (TESTS
@@ -79,7 +79,7 @@ set (TESTS
   bvec_applyorder_tests.c
   bvec_gemv_tests.c
   bvec_tests.c
-  )
+)
 
 foreach (_file ${TESTS})
   get_filename_component(_name_we ${_file} NAME_WE)
@@ -100,39 +100,40 @@ set( BCSC_TESTS )
 if ( NOT PASTIX_WITH_MPI )
   list( APPEND BCSC_TESTS
     bcsc_norm_tests
-    )
+  )
 endif()
 
 list( APPEND BCSC_TESTS
   bcsc_spmv_tests
   bcsc_spmv_time
-  )
+)
 
 set( BVEC_TESTS
   bvec_gemv_tests
   bvec_tests
   bvec_applyorder_tests
-  )
+)
 set( RUNTYPE shm )
 
 # Add runtype
 if (PASTIX_WITH_MPI)
-  list( APPEND RUNTYPE mpi )
+  list( APPEND RUNTYPE mpi_rep mpi_dst )
 endif()
 
 foreach( version ${RUNTYPE} )
-  unset( exe )
-  if( version STREQUAL "shm" )
-    set( exe "")
-  endif()
-  if( version STREQUAL "mpi" )
-    set( exe mpiexec -np 4 )
+  set( exe "" )
+  set( opt "" )
+  if( NOT version STREQUAL "shm" )
+    set( exe mpiexec -n 4 )
+    if( version STREQUAL "mpi_dst" )
+      set( opt "-a 1" )
+    endif()
   endif()
 
   # Bcsc tests
   foreach(example ${BCSC_TESTS} )
     set( _test_name bcsc_${version}_test_${example} )
-    set( _test_cmd  ${exe} ./${example} )
+    set( _test_cmd  ${exe} ./${example} ${opt} )
 
     # Laplacian
     foreach(arithm ${PASTIX_PRECISIONS} )
@@ -154,8 +155,11 @@ foreach( version ${RUNTYPE} )
 
   # Bvec tests
   foreach(example ${BVEC_TESTS} )
+    if ( (${version} STREQUAL "mpi_dst") AND (example STREQUAL "bvec_gemv_tests") )
+      continue()
+    endif()
     set( _test_name bcsc_${version}_test_${example} )
-    set( _test_cmd  ${exe} ./${example} )
+    set( _test_cmd  ${exe} ./${example} ${opt} )
 
     add_test(${_test_name} ${_test_cmd})
   endforeach()
@@ -170,7 +174,7 @@ if(PASTIX_LR_TESTINGS)
     ## Generate the test library files for all required precisions
     set(LRLIB_SOURCES
       z_lowrank_tests.c
-      )
+    )
 
     ## reset variables
     set(generated_lrlibfiles "")
@@ -182,11 +186,11 @@ if(PASTIX_LR_TESTINGS)
     add_library( pastix_lrtests
       ${generated_lrlibfiles}
       tests_auxiliary.c
-      )
+    )
 
     add_dependencies( pastix_lrtests
       tests_headers_tgt
-      )
+    )
 
     target_include_directories( pastix_lrtests PRIVATE
       $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
@@ -204,7 +208,7 @@ if(PASTIX_LR_TESTINGS)
       MORSE::TMG
       MORSE::CBLAS
       MORSE::M
-      )
+    )
 
     set(LR_TESTS_SOURCES
       z_ge2lr_performance.c
@@ -212,7 +216,7 @@ if(PASTIX_LR_TESTINGS)
       z_ge2lr_tests.c
       z_lrmm_tests.c
       z_rradd_tests.c
-      )
+    )
 
     ## reset variables
     set(generated_lrfiles)
@@ -228,7 +232,6 @@ if(PASTIX_LR_TESTINGS)
       get_filename_component(_name_we ${_file} NAME_WE)
       add_executable(${_name_we} ${_file})
 
-
       target_include_directories( ${_name_we} PRIVATE
         $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}>
         $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}>
@@ -238,14 +241,13 @@ if(PASTIX_LR_TESTINGS)
         $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/test>
         $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}/test> )
 
-
       target_link_libraries( ${_name_we} PRIVATE
         pastix_lrtests
         pastix_kernels
         MORSE::LAPACKE
         MORSE::CBLAS
         MORSE::M
-        )
+      )
 
       add_test( lr_shm_test_${_name_we} ./${_name_we} -n 300 -p 10 )
     endforeach()

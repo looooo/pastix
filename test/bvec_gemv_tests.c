@@ -80,7 +80,7 @@ int main ( int argc, char **argv )
     if ( argc > 1 ) {
         pastixGetOptions( argc, argv,
                           iparm, dparm,
-                          &check, &driver, &filename );
+                          &check, NULL, &driver, &filename );
     }
 
     /**

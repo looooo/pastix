@@ -274,13 +274,13 @@ bvec_zallocate_buf_dst( bvec_handle_comm_t *rhs_comm )
  *
  *******************************************************************************/
 static inline int
-bvec_zhandle_recv_forward_dst( pastix_data_t      *pastix_data,
-                               pastix_int_t        nrhs,
-                               pastix_complex64_t *pb,
-                               pastix_int_t        ldpb,
-                               pastix_int_t       *indexes,
-                               pastix_complex64_t *values,
-                               pastix_int_t        size_idx )
+bvec_zhandle_recv_forward_dst( pastix_data_t            *pastix_data,
+                               pastix_int_t              nrhs,
+                               pastix_complex64_t       *pb,
+                               pastix_int_t              ldpb,
+                               const pastix_int_t       *indexes,
+                               const pastix_complex64_t *values,
+                               pastix_int_t              size_idx )
 {
     const spmatrix_t *spm  = pastix_data->csc;
     pastix_int_t      dof  = spm->dof;
@@ -323,6 +323,9 @@ bvec_zhandle_recv_forward_dst( pastix_data_t      *pastix_data,
  * @param[in] ldb
  *          The leading dimension of b.
  *
+ * @param[in] glob2loc
+ *          The glob2loc array associated to the user spm stored in pastix_data.
+ *
  * @param[in] indexes
  *          The indexes array received.
  *
@@ -338,13 +341,14 @@ bvec_zhandle_recv_forward_dst( pastix_data_t      *pastix_data,
  *
  *******************************************************************************/
 static inline int
-bvec_zhandle_recv_backward_dst( pastix_data_t      *pastix_data,
-                                pastix_int_t        nrhs,
-                                pastix_complex64_t *b,
-                                pastix_int_t        ldb,
-                                pastix_int_t       *indexes,
-                                pastix_complex64_t *values,
-                                pastix_int_t        size_idx )
+bvec_zhandle_recv_backward_dst( pastix_data_t            *pastix_data,
+                                pastix_int_t              nrhs,
+                                pastix_complex64_t       *b,
+                                pastix_int_t              ldb,
+                                const pastix_int_t       *glob2loc,
+                                const pastix_int_t       *indexes,
+                                const pastix_complex64_t *values,
+                                pastix_int_t              size_idx )
 {
     const spmatrix_t *spm = pastix_data->csc;
     pastix_int_t      dof = spm->dof;
@@ -353,7 +357,7 @@ bvec_zhandle_recv_backward_dst( pastix_data_t      *pastix_data,
     dofi = dof; /* vdof incorrect */
     for ( idx = 0; idx < size_idx; idx++, indexes++ ) {
         igp = indexes[ 0 ];
-        ile = bvec_Pglob2loc( pastix_data, igp);
+        ile = bvec_Pglob2loc( pastix_data, glob2loc, igp );
         assert( ile >= 0 );
 
         for ( j = 0; j < nrhs; j++, values += dofi ) {
@@ -402,6 +406,9 @@ bvec_zhandle_recv_backward_dst( pastix_data_t      *pastix_data,
  *          If dir == PastixDirBackward:
  *              Pb is not modified.
  *
+ * @param[in] glob2loc
+ *          The glob2loc array associated to the user spm stored in pastix_data.
+ *
  * @param[in] indexes
  *          The indexes array received.
  *
@@ -417,21 +424,22 @@ bvec_zhandle_recv_backward_dst( pastix_data_t      *pastix_data,
  *
  *******************************************************************************/
 static inline int
-bvec_zhandle_recv_dst( pastix_data_t      *pastix_data,
-                       pastix_dir_t        dir,
-                       pastix_int_t        nrhs,
-                       pastix_complex64_t *b,
-                       pastix_int_t        ldb,
-                       pastix_rhs_t        Pb,
-                       pastix_int_t       *indexes,
-                       pastix_complex64_t *values,
-                       pastix_int_t        size_idx )
+bvec_zhandle_recv_dst( pastix_data_t            *pastix_data,
+                       pastix_dir_t              dir,
+                       pastix_int_t              nrhs,
+                       pastix_complex64_t       *b,
+                       pastix_int_t              ldb,
+                       pastix_rhs_t              Pb,
+                       const pastix_int_t       *glob2loc,
+                       const pastix_int_t       *indexes,
+                       const pastix_complex64_t *values,
+                       pastix_int_t              size_idx )
 {
     if ( dir == PastixDirForward ) {
         bvec_zhandle_recv_forward_dst( pastix_data, nrhs, Pb->b, Pb->ld, indexes, values, size_idx );
     }
     else {
-        bvec_zhandle_recv_backward_dst( pastix_data, nrhs, b, ldb, indexes, values, size_idx );
+        bvec_zhandle_recv_backward_dst( pastix_data, nrhs, b, ldb, glob2loc, indexes, values, size_idx );
     }
 
     return PASTIX_SUCCESS;
@@ -476,6 +484,9 @@ bvec_zhandle_recv_dst( pastix_data_t      *pastix_data,
  *          If dir == PastixDirBackward:
  *              Pb is not modified.
  *
+ * @param[in] glob2loc
+ *          The glob2loc array associated to the user spm stored in pastix_data.
+ *
  *******************************************************************************
  *
  * @retval PASTIX_SUCCESS
@@ -487,7 +498,8 @@ bvec_zexchange_data_dst( pastix_data_t      *pastix_data,
                          pastix_int_t        nrhs,
                          pastix_complex64_t *b,
                          pastix_int_t        ldb,
-                         pastix_rhs_t        Pb )
+                         pastix_rhs_t        Pb,
+                         const pastix_int_t *glob2loc )
 {
     bvec_handle_comm_t *rhs_comm    = Pb->rhs_comm;
     bvec_proc_comm_t   *data_comm   = rhs_comm->data_comm;
@@ -540,8 +552,8 @@ bvec_zexchange_data_dst( pastix_data_t      *pastix_data,
                       rhs_comm->comm, MPI_STATUS_IGNORE );
 
             assert( recvs->idxcnt <= recvs->valcnt );
-            bvec_zhandle_recv_dst( pastix_data, dir, nrhs, b, ldb, Pb, idx_buf, val_buf,
-                                   recvs->idxcnt );
+            bvec_zhandle_recv_dst( pastix_data, dir, nrhs, b, ldb, Pb, glob2loc,
+                                   idx_buf, val_buf, recvs->idxcnt );
         }
         c_recv = (c_recv-1+clustnbr) % clustnbr;
     }

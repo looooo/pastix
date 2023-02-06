@@ -18,8 +18,7 @@
 export INPUT_FILES=""
 for name in $( ls -1 pastix-*.lcov );
 do
-  lcov --remove $name '*spm/*' '*parsec/*trf_sp*'
-     -q --output-file /tmp/$name
+  lcov --remove $name '*spm/*' '*parsec/*trf_sp*' -q --output-file /tmp/$name
   mv /tmp/$name .;
   export INPUT_FILES="$INPUT_FILES -a $name";
 done

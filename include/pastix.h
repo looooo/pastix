@@ -208,6 +208,7 @@ void pastixGetOptions( int            argc,
                        pastix_int_t  *iparm,
                        double        *dparm,
                        int           *check,
+                       int           *scatter,
                        spm_driver_t  *driver,
                        char         **filename );
 

@@ -49,7 +49,6 @@ set (EXAMPLES
   simple.c
   simple_trans.c
   step-by-step.c
-  simple_dist.c
   simple_solve_and_refine.c
   )
 

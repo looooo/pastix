@@ -107,8 +107,8 @@ def genShortCompletion():
     return result
 
 def genNoCompletion() :
-    no_long  = "--rsa --hb --ijv --mm --spm --lap --xlap --graph --threads --gpus --help"
-    no_short = "-0 -1 -2 -3 -4 -9 -x -G -t -g -h"
+    no_long  = "--rsa --hb --ijv --mm --spm --lap --xlap --scatter --graph --threads --gpus --help"
+    no_short = "-0 -1 -2 -3 -4 -9 -x -G -a -t -g -h"
 
     indent = " " * 8
     result = indent + "# For remaining options, we don't suggest anything\n" + indent
@@ -147,9 +147,9 @@ def genCompletion( iparms, dparms, enums ) :
     """
     isize = len("    local LONG_OPTIONS=(\"") * " "
     long_opts  = '''--rsa --hb --ijv --mm --spm --lap --xlap --graph \\
-'''+ isize +'''--threads --gpus --sched --ord --fact --check --iparm --dparm --verbose --help'''
+'''+ isize +'''---scatter --threads --gpus --sched --ord --fact --check --iparm --dparm --verbose --help'''
     short_opts = '''-0 -1 -2 -3 -4 -9 -x -G \\
-'''+ isize +''' -t -g -s -o -f -c -i -d -v -h'''
+'''+ isize +'''-a -t -g -s -o -f -c -i -d -v -h'''
 
     result = '''#
 # @file pastix_completion.sh

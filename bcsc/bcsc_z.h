@@ -135,7 +135,8 @@ int bvec_zexchange_data_dst( pastix_data_t      *pastix_data,
                              pastix_int_t        nrhs,
                              pastix_complex64_t *b,
                              pastix_int_t        ldb,
-                             pastix_rhs_t        Pb );
+                             pastix_rhs_t        Pb,
+                             const pastix_int_t *glob2loc );
 #endif
 
 int bvec_zlapmr( pastix_data_t      *pastix_data,

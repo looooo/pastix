@@ -12,10 +12,10 @@
       - pastix-build-${VERSION}.log
   script:
     - cd build
-    - echo $VERSION | tee ../pastix-build-${VERSION}.log
+    - echo $VERSION | tee ${CI_PROJECT_DIR}/pastix-build-${VERSION}.log
     - cmake -DPASTIX_CI_VERSION=${VERSION}
             -DPASTIX_CI_BRANCH=${BRANCH}
-            -C ../.gitlab/ci-test-initial-cache.cmake  ..
+            -C ${CI_PROJECT_DIR}/.gitlab/ci-test-initial-cache.cmake ${CI_PROJECT_DIR}
     - make -j 4    | tee -a ../pastix-build-${VERSION}.log
     - make install | tee -a ../pastix-build-${VERSION}.log
   only:

@@ -13,6 +13,6 @@ sonar_pastix:
       - pastix-rats.xml
       - sonar.log
   script:
-    - ./tools/analysis.sh
+    - ${CI_PROJECT_DIR}/tools/analysis.sh
   extends:
     - .only-master

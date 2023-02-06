@@ -7,7 +7,7 @@
   before_script:
     - git submodule update --init --recursive
   script:
-    - ./tools/bench/plafrim/run.sh
+    - ${CI_PROJECT_DIR}/tools/bench/plafrim/run.sh
   only:
     - schedules
   timeout: 1 week

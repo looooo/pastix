@@ -11,6 +11,7 @@
  * @author Mathieu Faverge
  * @author Matias Hastaran
  * @author Tony Delarue
+ * @author Alycia Lisito
  * @date 2022-10-17
  *
  * @ingroup pastix_examples
@@ -200,9 +201,10 @@ int main (int argc, char **argv)
     spmatrix_t     *spm, spm2;
     void           *x, *b, *S, *x0 = NULL;
     size_t          size;
-    int             check = 1;
-    int             nrhs  = 1;
-    int             rc    = 0;
+    int             scatter = 0;
+    int             check   = 1;
+    int             nrhs    = 1;
+    int             rc      = 0;
     pastix_int_t    nschur, lds, ldb;
     int            *ipiv = NULL;
     pastix_diag_t   diag = PastixNonUnit;
@@ -218,7 +220,7 @@ int main (int argc, char **argv)
      */
     pastixGetOptions( argc, argv,
                       iparm, dparm,
-                      &check, &driver, &filename );
+                      &check, &scatter, &driver, &filename );
 
 
     if ( (iparm[IPARM_FACTORIZATION] == PastixFactLDLT) ||
@@ -237,7 +239,12 @@ int main (int argc, char **argv)
      * Read the sparse matrix with the driver
      */
     spm = malloc( sizeof( spmatrix_t ) );
-    rc = spmReadDriver( driver, filename, spm );
+    if ( scatter ) {
+        rc = spmReadDriverDist( driver, filename, spm, MPI_COMM_WORLD );
+    }
+    else {
+        rc = spmReadDriver( driver, filename, spm );
+    }
     free( filename );
     if ( rc != SPM_SUCCESS ) {
         pastixFinalize( &pastix_data );
