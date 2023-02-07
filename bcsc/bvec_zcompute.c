@@ -1019,13 +1019,15 @@ void bcsc_zspsv( pastix_data_t      *pastix_data,
                  pastix_complex32_t *work )
 {
     struct pastix_rhs_s rhsb = {
-        .allocated = 0,
-        .flttype   = PastixComplex64,
-        .m         = pastix_data->bcsc->n,
-        .n         = 1,
-        .ld        = pastix_data->bcsc->n,
-        .b         = b,
-        .cblkb     = NULL,
+        .allocated  = 0,
+        .flttype    = PastixComplex64,
+        .m          = pastix_data->bcsc->n,
+        .n          = 1,
+        .ld         = pastix_data->bcsc->n,
+        .b          = b,
+        .cblkb      = NULL,
+        .rhs_comm   = NULL,
+        .Ploc2Pglob = NULL,
     };
     int rc;
 

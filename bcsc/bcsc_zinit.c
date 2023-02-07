@@ -724,7 +724,7 @@ bcsc_zexchange_values_A( const spmatrix_t     *spm,
             MPI_Isend( data_send->sendA.valbuf, sends->valcnt, PASTIX_MPI_COMPLEX64,
                        c_send, PastixTagValuesA, bcsc_comm->comm, &requests[counter_req++] );
         }
-	c_send = (c_send+1) % clustnbr;
+        c_send = (c_send+1) % clustnbr;
     }
 
     /* Receives the values. */
@@ -942,7 +942,7 @@ bcsc_zexchange_values_AAt( const spmatrix_t     *spm,
     c_send = (clustnum+1) % clustnbr;
     for ( k = 0; k < clustnbr-1; k++ ) {
         if ( rowtabAt != bcsc->rowtab ) {
-	        break;
+            break;
         }
         data_send = data_comm + c_send;
         sends     = &( data_send->sendAAt.size );
@@ -955,7 +955,7 @@ bcsc_zexchange_values_AAt( const spmatrix_t     *spm,
             MPI_Isend( data_send->sendAAt.valbuf, sends->valcnt, PASTIX_MPI_COMPLEX64,
                        c_send, PastixTagValuesAAt, bcsc_comm->comm, &requests[counter_req++] );
         }
-	    c_send = (c_send+1) % clustnbr;
+        c_send = (c_send+1) % clustnbr;
     }
 
     /* Receives the values. */
@@ -974,7 +974,7 @@ bcsc_zexchange_values_AAt( const spmatrix_t     *spm,
             }
             if ( rowtabAt == bcsc->rowtab ) {
                 MPI_Recv( val_buf, recvs->size.valcnt, PASTIX_MPI_COMPLEX64,
-                        c_recv, PastixTagValuesAAt, bcsc_comm->comm, MPI_STATUS_IGNORE );
+                          c_recv, PastixTagValuesAAt, bcsc_comm->comm, MPI_STATUS_IGNORE );
             }
             idx_size = recvs->size.idxcnt;
 

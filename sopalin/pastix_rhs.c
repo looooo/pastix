@@ -110,6 +110,9 @@ pastixRhsFinalize( pastix_rhs_t B )
     if ( B->Ploc2Pglob != NULL ) {
         memFree_null( B->Ploc2Pglob );
     }
+    if ( B->rhs_comm != NULL ) {
+        memFree_null( B->rhs_comm );
+    }
     free( B );
     return PASTIX_SUCCESS;
 }
@@ -162,6 +165,7 @@ pastixRhsDoubletoSingle( const pastix_rhs_t dB,
         sB->allocated = 1;
         sB->flttype   = dB->flttype - 1;
         sB->b         = malloc( size * pastix_size_of( sB->flttype ) );
+        sB->rhs_comm  = NULL;
         tofree        = 1;
     }
     assert( sB->allocated >= 0 );
@@ -241,6 +245,7 @@ pastixRhsSingleToDouble( const pastix_rhs_t sB,
         dB->allocated = 1;
         dB->flttype   = sB->flttype + 1;
         dB->b         = malloc( size * pastix_size_of( dB->flttype ) );
+        dB->rhs_comm  = NULL;
         tofree        = 1;
     }
     assert( dB->allocated >= 0 );

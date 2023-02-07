@@ -703,15 +703,19 @@ bcsc_init_col2cblk( const SolverMatrix  *solvmtx,
                     const spmatrix_t    *spm )
 {
     pastix_int_t *col2cblk;
+
     /* Tests if the spm is in shared or distributed memory. */
-    if ( spm->loc2glob == NULL ) {
-        col2cblk = bcsc_init_col2cblk_shm( solvmtx, bcsc );
-    }
 #if defined(PASTIX_WITH_MPI)
-    else {
+    if ( spm->loc2glob != NULL ) {
         col2cblk = bcsc_init_col2cblk_dst( solvmtx, bcsc );
     }
+    else
 #endif
+    {
+        col2cblk = bcsc_init_col2cblk_shm( solvmtx, bcsc );
+    }
+
+    (void)spm;
     return col2cblk;
 }
 

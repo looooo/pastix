@@ -161,12 +161,13 @@ int
 z_bvec_gemv_check( pastix_data_t *pastix_data,
                    int check, int m, int n )
 {
-    int                 i;
-    int                 rc = 0;
-    pastix_complex64_t *A, *x, *y, *y0;
-    pastix_complex64_t  alpha = 3.5;
-    pastix_complex64_t  beta = -4.8;
-    struct z_solver     solver;
+    int                    i;
+    int                    rc = 0;
+    pastix_complex64_t    *A, *x, *y, *y0;
+    pastix_complex64_t     alpha = 3.5;
+    pastix_complex64_t     beta  = -4.8;
+    unsigned long long int seedX = 79243;
+    struct z_solver        solver;
 
     z_refine_init( &solver, pastix_data );
 
@@ -184,7 +185,7 @@ z_bvec_gemv_check( pastix_data_t *pastix_data,
      * y is distributed, x is small and always replicated on all nodes
      */
     z_init( pastix_data, 2308, 1, y, m );
-    core_zplrnt( n, 1, x, n, n, 0, 0, 95753 );
+    core_zplrnt( n, 1, x, n, n, 0, 0, seedX );
 
     if ( check ) {
         double normA, normX, normY, normR, result;
@@ -347,12 +348,17 @@ z_bvec_check( pastix_data_t *pastix_data )
         core_zplrnt( gm, n, x0, gm, gm, 0, 0, seedX );
         core_zplrnt( gm, n, y0, gm, gm, 0, 0, seedY );
     }
+    else {
+        x0 = NULL;
+        y0 = NULL;
+    }
 
     /*
      * Check the dot
      */
     {
-        pastix_complex64_t ldotc, gdotc;
+        pastix_complex64_t ldotc;
+        pastix_complex64_t gdotc = 0;
 
         if ( pastix_data->procnum == 0 ) {
             printf(" == Check dot function : ");
@@ -402,7 +408,8 @@ z_bvec_check( pastix_data_t *pastix_data )
      * Check the norm
      */
     {
-        double lnorm, gnorm;
+        double lnorm;
+        double gnorm = 0;
 
         if ( pastix_data->procnum == 0 ) {
             printf(" == Check norm function : ");
@@ -547,7 +554,9 @@ z_bcsc_spmv_time( pastix_data_t    *pastix_data,
     int                 rc = 0;
     pastix_complex64_t *x, *y;
     pastix_complex64_t  alpha = 3.5;
-    pastix_complex64_t  beta = -4.8;
+    pastix_complex64_t  beta  = -4.8;
+    unsigned long long  seedX = 3927;
+    unsigned long long  seedY = 9846;
     pastix_int_t        sum_m, my_sum, m, ld;
     pastix_int_t        clustnum = spm->clustnum;
     pastix_int_t        clustnbr = spm->clustnbr;
@@ -578,12 +587,12 @@ z_bcsc_spmv_time( pastix_data_t    *pastix_data,
      */
     if ( spm->loc2glob == NULL ) {
         /* The vectors are replicated */
-        core_zplrnt( m, nrhs, x, ld, spm->gNexp, 0, 0, 9794 );
-        core_zplrnt( m, nrhs, y, ld, spm->gNexp, 0, 0, 7839 );
+        core_zplrnt( m, nrhs, x, ld, spm->gNexp, 0, 0, seedX );
+        core_zplrnt( m, nrhs, y, ld, spm->gNexp, 0, 0, seedY );
     }
     else {
-        core_zplrnt( m, nrhs, x, ld, spm->gNexp, my_sum, 0, 9794 );
-        core_zplrnt( m, nrhs, y, ld, spm->gNexp, my_sum, 0, 7839 );
+        core_zplrnt( m, nrhs, x, ld, spm->gNexp, my_sum, 0, seedX );
+        core_zplrnt( m, nrhs, y, ld, spm->gNexp, my_sum, 0, seedY );
     }
 
     timer = clockGetLocal();
@@ -650,6 +659,7 @@ z_bvec_applyorder_check ( pastix_data_t *pastix_data,
     pastix_int_t        sum_m, my_sum;
     pastix_int_t        clustnum = spm->clustnum;
     pastix_int_t        clustnbr = spm->clustnbr;
+    unsigned long long  seedX = 3927;
 
     /**
      * Generates the b and x vector such that A * x = b
@@ -676,10 +686,10 @@ z_bvec_applyorder_check ( pastix_data_t *pastix_data,
 
     /* Generates a replicated B */
     if ( spm->loc2glob == NULL ) {
-        core_zplrnt( m, nrhs, b_in, ldb, m, 0, 0, 4978 );
+        core_zplrnt( m, nrhs, b_in, ldb, spm->gNexp, 0, 0, seedX );
     }
     else {
-        core_zplrnt( m, nrhs, b_in, ldb, spm->gNexp, my_sum, 0, 4978 );
+        core_zplrnt( m, nrhs, b_in, ldb, spm->gNexp, my_sum, 0, seedX );
     }
     memcpy( b_out, b_in, size * sizeof(pastix_complex64_t) );
 
