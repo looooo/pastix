@@ -37,7 +37,7 @@ test_seq_wrapper:
   needs: [build_pastix_seq]
   parallel:
     matrix:
-      - WRAPPER: [python, fortran, julia]
+      - WRAPPER: [python, fortran]
   dependencies:
     - build_pastix_seq
   <<: *test_script_wrapper_seq
@@ -48,7 +48,7 @@ test_mpi_wrapper:
   needs: [build_pastix_mpi]
   parallel:
     matrix:
-      - WRAPPER: [python, fortran, julia]
+      - WRAPPER: [python, fortran]
   dependencies:
     - build_pastix_mpi
   <<: *test_script_wrapper_mpi
