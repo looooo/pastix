@@ -507,6 +507,10 @@ sopalin_ztrsm( pastix_data_t  *pastix_data,
     }
 #endif
 
+    /* Restore recv and fanin nbr */
+    sopalin_data->solvmtx->fanincnt = sopalin_data->solvmtx->faninnbr;
+    sopalin_data->solvmtx->recvcnt  = sopalin_data->solvmtx->recvnbr;
+
     ztrsm( pastix_data, side, uplo, trans, diag, sopalin_data, rhsb );
 
 #if defined(PASTIX_WITH_MPI)
