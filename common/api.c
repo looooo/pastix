@@ -760,6 +760,11 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     pastix->iparm = iparm;
     pastix->dparm = dparm;
 
+    /*
+     * Set bits to flush subnormals in mixed-precision and avoid slow-downs
+     */
+    set_ftz();
+
     pastix->steps = 0;
     pastix->sched = PastixSchedDynamic;
 

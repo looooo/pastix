@@ -200,4 +200,31 @@ ssize_t getdelim(char **buf, size_t *bufsiz, int delimiter, FILE *fp);
 ssize_t getline(char **buf, size_t *bufsiz, FILE *fp);
 #endif
 
+/*
+ * Set the Flush to Zero bit to 1 so that there is no slow down due to denormals
+ */
+static inline void
+set_ftz( void )
+{
+
+/**
+ * The following x86 asm solution is proposed in :
+ * Mawussi Zounon, Nicholas J. Higham, Craig Lucas, and Françoise Tisseur.
+ * "Performance Evaluation of Mixed Precision Algorithms for Solving Sparse Linear Systems"
+ * https://www.semanticscholar.org/paper/Performance-Evaluation-of-Mixed-Precision-for-Zounon-Higham/44731cd2cd93aca8299a83ee04029deb7641b1a3
+ */
+#if defined(__x86_64)
+    asm( "stmxcsr -0x4(%rsp)\n\t"          /* store CSR register on stack */
+         "orl     $0x8040, -0x4(%rsp)\n\t" /* set bits 15( FTZ ) and 7( DAZ ) */
+         "ldmxcsr -0x4(%rsp)" );           /* load CSR register from stack */
+#endif
+
+#if defined(__arm64__) || defined(__aarch64__)
+    uint64_t fpcr;
+    asm( "mrs %0,   fpcr" : "=r"( fpcr ));
+    asm( "msr fpcr, %0"  :: "=r"( fpcr | (1 << 24) ));
+#endif
+
+}
+
 #endif /* _common_h_ */
