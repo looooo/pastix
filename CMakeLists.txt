@@ -520,6 +520,10 @@ endif()
 # Disable restrict (temporary)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Drestrict=")
 
+if( PASTIX_COMPILE_OPTIONS )
+  add_compile_options( ${PASTIX_COMPILE_OPTIONS} )
+endif()
+
 #Configuration header
 configure_file (
   "${CMAKE_CURRENT_SOURCE_DIR}/include/pastix/config.h.in"
@@ -797,7 +801,7 @@ if(PASTIX_COMMUNICATION_MATRIX)
     )
 endif()
 
-add_library(pastix
+add_library( pastix
   ${PASTIX_LIB_SRCS}
   )
 
