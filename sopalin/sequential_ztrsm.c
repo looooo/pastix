@@ -12,6 +12,7 @@
  * @author Mathieu Faverge
  * @author Tony Delarue
  * @author Vincent Bridonneau
+ * @author Alycia Lisito
  * @date 2022-12-03
  *
  * @precisions normal z -> s d c
@@ -35,30 +36,35 @@
 /**
  *******************************************************************************
  *
- * @brief TODO
+ * @brief Applies the Sequential Forward or Backward solve.
  *
  *******************************************************************************
  *
  * @param[in] pastix_data
- *          TODO
+ *          The pastix_data structure.
  *
  * @param[in] side
- *          TODO
+ *          Specify whether the off-diagonal blocks appear on the left or right
+ *          in the equation. It has to be either PastixLeft or PastixRight.
  *
  * @param[in] uplo
- *          TODO
+ *          Specify whether the off-diagonal blocks are upper or lower
+ *          triangular. It has to be either PastixUpper or PastixLower.
  *
  * @param[in] trans
- *          TODO
+ *          Specify the transposition used for the off-diagonal blocks. It has
+ *          to be either PastixTrans or PastixConjTrans.
  *
  * @param[in] diag
- *          TODO
+ *          Specify if the off-diagonal blocks are unit triangular. It has to be
+ *          either PastixUnit or PastixNonUnit.
  *
  * @param[in] sopalin_data
- *          TODO
+ *          The SolverMatrix structure from PaStiX.
  *
  * @param[in] rhsb
- *          TODO
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
  *
  *******************************************************************************/
 void
@@ -143,7 +149,7 @@ sequential_ztrsm( pastix_data_t  *pastix_data,
 }
 
 /**
- * @brief TODO
+ * @brief Arguments for the Static solve.
  */
 struct args_ztrsm_t
 {
@@ -156,15 +162,16 @@ struct args_ztrsm_t
 /**
  *******************************************************************************
  *
- * @brief TODO
+ * @brief Applies the Static Forward or Backward solve.
  *
  *******************************************************************************
  *
  * @param[in] ctx
- *          TODO
+ *          Thread structure of the execution context of one instance of the
+ *          scheduler.
  *
  * @param[in] args
- *          TODO
+ *          Arguments for the Static solve.
  *
  *******************************************************************************/
 void
@@ -223,8 +230,9 @@ thread_ztrsm_static( isched_thread_t *ctx,
             cblk = datacode->cblktab + t->cblknum;
 
             /* Wait for incoming dependencies */
-            if ( cpucblk_zincoming_rhs_deps( thrd_rank, PastixSolveBackward,
-                                             datacode, cblk, rhsb ) ) {
+            if ( cpucblk_zincoming_rhs_bwd_deps( thrd_rank, PastixSolveBackward,
+                                                 mode, side, uplo, trans, diag,
+                                                 datacode, cblk, rhsb ) ) {
                 continue;
             }
 
@@ -260,8 +268,8 @@ thread_ztrsm_static( isched_thread_t *ctx,
             }
 
             /* Wait for incoming dependencies */
-            if ( cpucblk_zincoming_rhs_deps( thrd_rank, PastixSolveForward,
-                                             datacode, cblk, rhsb ) ) {
+            if ( cpucblk_zincoming_rhs_fwd_deps( thrd_rank, PastixSolveForward,
+                                                 datacode, cblk, rhsb ) ) {
                 continue;
             }
             /* Computes */
@@ -274,30 +282,35 @@ thread_ztrsm_static( isched_thread_t *ctx,
 /**
  *******************************************************************************
  *
- * @brief TODO
+ * @brief Applies the Static Forward or Backward solve.
  *
  *******************************************************************************
  *
  * @param[in] pastix_data
- *          TODO
+ *          The pastix_data structure.
  *
  * @param[in] side
- *          TODO
+ *          Specify whether the off-diagonal blocks appear on the left or right
+ *          in the equation. It has to be either PastixLeft or PastixRight.
  *
  * @param[in] uplo
- *          TODO
+ *          Specify whether the off-diagonal blocks are upper or lower
+ *          triangular. It has to be either PastixUpper or PastixLower.
  *
  * @param[in] trans
- *          TODO
+ *          Specify the transposition used for the off-diagonal blocks. It has
+ *          to be either PastixTrans or PastixConjTrans.
  *
  * @param[in] diag
- *          TODO
+ *          Specify if the off-diagonal blocks are unit triangular. It has to be
+ *          either PastixUnit or PastixNonUnit.
  *
  * @param[in] sopalin_data
- *          TODO
+ *          The SolverMatrix structure from PaStiX.
  *
  * @param[in] rhsb
- *          TODO
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
  *
  *******************************************************************************/
 void
@@ -317,30 +330,35 @@ static_ztrsm( pastix_data_t  *pastix_data,
 /**
  *******************************************************************************
  *
- * @brief TODO
+ * @brief Applies the Reuntime Forward or Backward solve.
  *
  *******************************************************************************
  *
  * @param[in] pastix_data
- *          TODO
+ *          The pastix_data structure.
  *
  * @param[in] side
- *          TODO
+ *          Specify whether the off-diagonal blocks appear on the left or right
+ *          in the equation. It has to be either PastixLeft or PastixRight.
  *
  * @param[in] uplo
- *          TODO
+ *          Specify whether the off-diagonal blocks are upper or lower
+ *          triangular. It has to be either PastixUpper or PastixLower.
  *
  * @param[in] trans
- *          TODO
+ *          Specify the transposition used for the off-diagonal blocks. It has
+ *          to be either PastixTrans or PastixConjTrans.
  *
  * @param[in] diag
- *          TODO
+ *          Specify if the off-diagonal blocks are unit triangular. It has to be
+ *          either PastixUnit or PastixNonUnit.
  *
  * @param[in] sopalin_data
- *          TODO
+ *          The SolverMatrix structure from PaStiX.
  *
  * @param[in] rhsb
- *          TODO
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
  *
  *******************************************************************************/
 void
@@ -428,30 +446,36 @@ static void (*ztrsm_table[5])(pastix_data_t *, int, int, int, int,
 /**
  *******************************************************************************
  *
- * @brief TODO
+ * @brief Calls the sequential, static, dynamic or runtime solve according to
+ * scheduler.
  *
  *******************************************************************************
  *
  * @param[in] pastix_data
- *          TODO
+ *          The pastix_data structure.
  *
  * @param[in] side
- *          TODO
+ *          Specify whether the off-diagonal blocks appear on the left or right
+ *          in the equation. It has to be either PastixLeft or PastixRight.
  *
  * @param[in] uplo
- *          TODO
+ *          Specify whether the off-diagonal blocks are upper or lower
+ *          triangular. It has to be either PastixUpper or PastixLower.
  *
  * @param[in] trans
- *          TODO
+ *          Specify the transposition used for the off-diagonal blocks. It has
+ *          to be either PastixTrans or PastixConjTrans.
  *
  * @param[in] diag
- *          TODO
+ *          Specify if the off-diagonal blocks are unit triangular. It has to be
+ *          either PastixUnit or PastixNonUnit.
  *
  * @param[in] sopalin_data
- *          TODO
+ *          The SolverMatrix structure from PaStiX.
  *
  * @param[in] rhsb
- *          TODO
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
  *
  *******************************************************************************/
 void
@@ -483,12 +507,7 @@ sopalin_ztrsm( pastix_data_t  *pastix_data,
         }
         else {
             if ( sched == PastixSchedStatic ) {
-                if ( solve_step == PastixSolveBackward ) {
-                    ztrsm = sequential_ztrsm;
-                }
-                else {
-                    ztrsm = static_ztrsm;
-                }
+                ztrsm = static_ztrsm;
             }
             else {
                 ztrsm = sequential_ztrsm;
@@ -500,10 +519,9 @@ sopalin_ztrsm( pastix_data_t  *pastix_data,
 
 #if defined(PASTIX_WITH_MPI)
     if ( ( pastix_data->inter_node_procnbr > 1 ) &&
-         ( sched      == PastixSchedStatic )     &&
-         ( solve_step == PastixSolveForward ) ) {
-        solverRequestInit( sopalin_data->solvmtx );
-        solverRhsRecvInit( sopalin_data->solvmtx, PastixComplex64 );
+         ( sched == PastixSchedStatic ) ) {
+        solverRequestInit( solve_step, sopalin_data->solvmtx );
+        solverRhsRecvInit( solve_step, sopalin_data->solvmtx, PastixComplex64 );
     }
 #endif
 
@@ -515,9 +533,14 @@ sopalin_ztrsm( pastix_data_t  *pastix_data,
 
 #if defined(PASTIX_WITH_MPI)
     if ( ( pastix_data->inter_node_procnbr > 1 ) &&
-         ( sched      == PastixSchedStatic )     &&
-         ( solve_step == PastixSolveForward ) ) {
-        cpucblk_zrequest_rhs_cleanup( PastixSolveForward, sched, sopalin_data->solvmtx, rhsb );
+         ( sched == PastixSchedStatic ) )
+    {
+        if ( solve_step == PastixSolveForward ) {
+            cpucblk_zrequest_rhs_fwd_cleanup( solve_step, sched, sopalin_data->solvmtx, rhsb );
+        }
+        else {
+            cpucblk_zrequest_rhs_bwd_cleanup( solve_step, sched, sopalin_data->solvmtx, rhsb );
+        }
         solverRequestExit( sopalin_data->solvmtx );
         solverRhsRecvExit( sopalin_data->solvmtx );
     }

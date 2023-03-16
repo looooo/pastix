@@ -415,18 +415,30 @@ solverPrintStats( const SolverMatrix *solvptr )
  *
  *******************************************************************************
  *
+ * @param[in] solve_step
+ *          Define which step of the solve is concerned.
+ *          @arg PastixSolveForward
+ *          @arg PastixSolveBackward
+ *          @arg PastixFacto
+ *
  * @param[inout] solvmtx
  *          The pointer to the solver matrix structure.
  *
  *******************************************************************************/
 void
-solverRequestInit( SolverMatrix *solvmtx )
+solverRequestInit( solve_step_e  solve_step,
+                   SolverMatrix *solvmtx )
 {
     MPI_Request  *request;
     pastix_int_t *reqindx;
     pastix_int_t  i, reqnbr;
 
-    reqnbr = solvmtx->faninnbr + 1;
+    if ( solve_step == PastixSolveBackward ) {
+        reqnbr = solvmtx->recvnbr + 1;
+    }
+    else {
+        reqnbr = solvmtx->faninnbr + 1;
+    }
     solvmtx->reqnbr  = reqnbr;
     solvmtx->reqlock = PASTIX_ATOMIC_UNLOCKED;
 
@@ -441,6 +453,7 @@ solverRequestInit( SolverMatrix *solvmtx )
         *reqindx = -1;
     }
     solverComMatrixInit( solvmtx );
+
     return;
 }
 
@@ -518,6 +531,7 @@ solverRecvInit( pastix_coefside_t side,
                    solvmtx->solv_comm, solvmtx->reqtab );
     MPI_Start( solvmtx->reqtab );
 
+    assert( solvmtx->reqnum == 0 );
     solvmtx->reqnum++;
 #if defined(PASTIX_DEBUG_MPI)
     fprintf( stderr, "[%2d] Start persistant recv from any source\n",
@@ -570,7 +584,7 @@ solverRhsRecvMax( SolverMatrix *solvmtx )
 
     cblk = solvmtx->cblktab;
     for ( k = 0; k < cblknbr; k++, cblk++ ) {
-        if ( cblk->cblktype & CBLK_RECV ) {
+        if ( cblk->cblktype & (CBLK_RECV | CBLK_FANIN) ) {
             max = pastix_imax( max, cblk_colnbr( cblk ) );
         }
     }
@@ -586,6 +600,11 @@ solverRhsRecvMax( SolverMatrix *solvmtx )
  *
  *******************************************************************************
  *
+ * @param[in] solve_step
+ *          Define which step of the solve is concerned.
+ *          @arg PastixSolveForward
+ *          @arg PastixSolveBackward
+ *
  * @param[inout] solvmtx
  *          The pointer to the solver matrix structure.
  *
@@ -598,13 +617,16 @@ solverRhsRecvMax( SolverMatrix *solvmtx )
  *
  *******************************************************************************/
 void
-solverRhsRecvInit( SolverMatrix     *solvmtx,
+solverRhsRecvInit( solve_step_e      solve_step,
+                   SolverMatrix     *solvmtx,
                    pastix_coeftype_t flttype )
 {
     /* Computes the max size (in bytes) for the communication buffer */
     pastix_int_t size;
 
-    if( solvmtx->recvnbr == 0 ) {
+    if ( ( ( solve_step == PastixSolveForward  ) && ( solvmtx->recvnbr  == 0 ) ) ||
+         ( ( solve_step == PastixSolveBackward ) && ( solvmtx->faninnbr == 0 ) ) )
+    {
         return;
     }
 
@@ -617,6 +639,7 @@ solverRhsRecvInit( SolverMatrix     *solvmtx,
                    solvmtx->solv_comm, solvmtx->reqtab );
     MPI_Start( solvmtx->reqtab );
 
+    assert( solvmtx->reqnum == 0 );
     solvmtx->reqnum++;
 #if defined(PASTIX_DEBUG_MPI)
     fprintf( stderr, "[%2d] Start persistant recv from any source (max = %ld B)\n",

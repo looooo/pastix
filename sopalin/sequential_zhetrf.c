@@ -393,7 +393,7 @@ sopalin_zhetrf( pastix_data_t  *pastix_data,
          (sched == PastixSchedStatic)     ||
          (sched == PastixSchedDynamic) )
     {
-        solverRequestInit( sopalin_data->solvmtx );
+        solverRequestInit( PastixFacto, sopalin_data->solvmtx );
         solverRecvInit( PastixLCoef, sopalin_data->solvmtx, PastixComplex64 );
     }
 

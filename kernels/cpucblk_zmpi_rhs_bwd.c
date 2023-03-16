@@ -1,6 +1,6 @@
 /**
  *
- * @file cpucblk_zmpi_rhs.c
+ * @file cpucblk_zmpi_rhs_bwd.c
  *
  * Precision dependent routines to manag communications for the solve part.
  *
@@ -8,9 +8,8 @@
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.3.0
- * @author Pierre Ramet
  * @author Mathieu Faverge
- * @author Tony Delarue
+ * @author Alycia Lisito
  * @date 2023-01-10
  *
  * @precisions normal z -> s d c
@@ -25,272 +24,29 @@
 #include "pastix_zcores.h"
 #include "pastix_zlrcores.h"
 
-/**
- *******************************************************************************
- *
- * @brief Send the rhs associated to a cblk->lcolidx to the remote node.
- *
- *******************************************************************************
- *
- * @param[in] solvmtx
- *          The solver matrix holding the communicator.
- *
- * @param[in] cblk
- *          The cblk which defines the part to sent.
- *
- * @param[in] rhsb
- *          The pointer to the rhs data structure that holds the vectors of the
- *          right hand side.
- *
- *******************************************************************************/
-void
-cpucblk_zsend_rhs_forward( const SolverMatrix *solvmtx,
-                           SolverCblk         *cblk,
-                           pastix_rhs_t        rhsb )
-{
-#if defined(PASTIX_WITH_MPI)
-    pastix_complex64_t *b;
-    pastix_int_t        colnbr = cblk_colnbr(cblk);
-    pastix_int_t        size   = colnbr * rhsb->n;
-    pastix_int_t        idx    = - cblk->bcscnum - 1;
-    int                 rc;
-
-    assert( colnbr <= solvmtx->colmax );
-    assert( cblk->cblktype & CBLK_FANIN );
-    assert( rhsb->cblkb[ idx ] != NULL );
-
-#if defined (PASTIX_DEBUG_MPI)
-    fprintf( stderr, "[%2d] RHS Fwd: Send cblk %ld to %2d at index %ld of size %ld\n",
-             solvmtx->clustnum, (long)cblk->gcblknum, cblk->ownerid,
-             (long)cblk->lcolidx, (long)colnbr );
-#endif
-
-    b = (pastix_complex64_t*)(rhsb->cblkb[ idx ]);
-    assert( b != NULL );
-
-    rc = MPI_Send( b, size, PASTIX_MPI_COMPLEX64,
-                   cblk->ownerid, cblk->gcblknum, solvmtx->solv_comm );
-    assert( rc == MPI_SUCCESS );
-
-    memFree_null( rhsb->cblkb[ idx ] );
-
-    (void)rc;
-#else
-    (void)solvmtx;
-    (void)cblk;
-    (void)rhsb;
-#endif
-}
-
-/**
- *******************************************************************************
- *
- * @brief Send the rhs associated to a cblk->lcolidx to the remote node.
- *
- *******************************************************************************
- *
- * @param[in] solvmtx
- *          The solver matrix holding the communicator.
- *
- * @param[in] cblk
- *          The cblk which defines the part to sent.
- *
- * @param[in] rhsb
- *          The pointer to the rhs data structure that holds the vectors of the
- *          right hand side.
- *
- *******************************************************************************/
-void
-cpucblk_zsend_rhs_backward( const SolverMatrix *solvmtx,
-                            SolverCblk         *cblk,
-                            pastix_rhs_t        rhsb )
-{
-#if defined(PASTIX_WITH_MPI)
-    pastix_complex64_t *b   = rhsb->b;
-    pastix_int_t        colnbr = cblk_colnbr(cblk);
-    pastix_int_t        idx  = - cblk->bcscnum - 1;
-    int rc;
-
-    assert( colnbr <= solvmtx->colmax );
-    assert( cblk->cblktype & CBLK_RECV );
-    assert( rhsb->cblkb[ idx ] == NULL );
-
-#if defined (PASTIX_DEBUG_MPI)
-    fprintf( stderr, "[%2d] RHS Bwd: Send cblk %ld to %2d at index %ld of size %ld\n",
-             solvmtx->clustnum, (long)cblk->gcblknum, cblk->ownerid,
-             (long)cblk->lcolidx, (long)colnbr );
-#endif
-
-    b += cblk->lcolidx;
-    if ( rhsb->n > 1 ) {
-        rhsb->cblkb[ idx ] = malloc( colnbr * rhsb->n * sizeof(pastix_complex64_t) );
-        rc = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', colnbr, rhsb->n, b, rhsb->ld, rhsb->cblkb[ idx ], colnbr );
-        assert( rc == 0 );
-        b = rhsb->cblkb[ idx ];
-    }
-
-    rc = MPI_Send( b, colnbr * rhsb->n, PASTIX_MPI_COMPLEX64,
-                   cblk->ownerid, cblk->gcblknum, solvmtx->solv_comm );
-    assert( rc == MPI_SUCCESS );
-
-    if ( rhsb->n > 1 ) {
-        memFree_null( rhsb->cblkb[ idx ] );
-    }
-
-    (void)rc;
-#else
-    (void)solvmtx;
-    (void)cblk;
-    (void)rhsb;
-#endif
-}
-
-/**
- *******************************************************************************
- *
- * @brief Receive the rhs associated to a cblk->lcolidx to the remote node.
- *
- *******************************************************************************
- *
- * @param[in] solvmtx
- *          The solver matrix holding the communicator.
- *
- * @param[in] cblk
- *          The cblk which may define the part to sent.
- *
- * @param[inout] rhsb
- *          The pointer to the rhs data structure that holds the vectors of the
- *          right hand side.
- *
- *******************************************************************************/
-void
-cpucblk_zrecv_rhs_backward( const SolverMatrix *solvmtx,
-                            SolverCblk         *cblk,
-                            pastix_rhs_t        rhsb )
-{
-#if defined(PASTIX_WITH_MPI)
-    MPI_Status   status;
-    pastix_int_t colnbr = cblk_colnbr(cblk);
-    pastix_int_t idx  = - cblk->bcscnum - 1;
-    int rc;
-
-    assert( colnbr <= solvmtx->colmax );
-    assert( cblk->cblktype & CBLK_FANIN );
-
-#if defined (PASTIX_DEBUG_MPI)
-    fprintf( stderr, "[%2d] RHS Bwd: Recv cblk %ld from %ld at index %ld of size %ld\n",
-             solvmtx->clustnum, (long)cblk->gcblknum, (long)cblk->ownerid,
-             (long)cblk->lcolidx, (long)colnbr );
-#endif
-
-    assert( rhsb->cblkb[ idx ] == NULL );
-    rhsb->cblkb[ idx ] = malloc( colnbr * rhsb->n * sizeof(pastix_complex64_t) );
-
-    rc = MPI_Recv( rhsb->cblkb[ idx ], colnbr * rhsb->n, PASTIX_MPI_COMPLEX64,
-                   cblk->ownerid, cblk->gcblknum, solvmtx->solv_comm, &status );
-    assert( rc == MPI_SUCCESS );
-
-#if defined (PASTIX_DEBUG_MPI)
-    fprintf( stderr, "[%2d] RHS Bwd: Received cblk %ld from %2d\n",
-             solvmtx->clustnum, (long)cblk->gcblknum, status.MPI_SOURCE );
-#endif
-
-    (void)rc;
-#else
-    (void)solvmtx;
-    (void)cblk;
-    (void)rhsb;
-#endif
-}
-
-/**
- *******************************************************************************
- *
- * @brief Receive the rhs associated to a cblk->lcolidx to the remote node.
- *
- *******************************************************************************
- *
- * @param[in] solvmtx
- *          The solver matrix holding the communicator.
- *
- * @param[in] cblk
- *          The cblk which may define the part to sent.
- *
- * @param[inout] work
- *          The temporary buffer to receive the remote data
- *
- * @param[inout] rhsb
- *          The pointer to the rhs data structure that holds the vectors of the
- *          right hand side.
- *
- *******************************************************************************/
-void
-cpucblk_zrecv_rhs_forward( const SolverMatrix *solvmtx,
-                           SolverCblk         *cblk,
-                           pastix_complex64_t *work,
-                           pastix_rhs_t        rhsb )
-{
-#if defined(PASTIX_WITH_MPI)
-    pastix_complex64_t *b      = rhsb->b;
-    pastix_int_t        colnbr = cblk_colnbr(cblk);
-    MPI_Status          status;
-    int rc;
-
-    assert( colnbr <= solvmtx->colmax );
-    assert( cblk->cblktype & CBLK_RECV );
-
-#if defined (PASTIX_DEBUG_MPI)
-    fprintf( stderr, "[%2d] RHS Fwd: Recv cblk %ld from %ld at index %ld of size %ld\n",
-             solvmtx->clustnum, (long)cblk->gcblknum, (long)cblk->ownerid,
-             (long)cblk->lcolidx, (long)colnbr );
-#endif
-
-    rc = MPI_Recv( work, colnbr * rhsb->n, PASTIX_MPI_COMPLEX64,
-                   cblk->ownerid, cblk->gcblknum, solvmtx->solv_comm, &status );
-    assert( rc == MPI_SUCCESS );
-
-#if defined (PASTIX_DEBUG_MPI)
-    fprintf( stderr, "[%2d] RHS Fwd: Received cblk %ld from %2d\n",
-                     solvmtx->clustnum, (long)cblk->gcblknum, status.MPI_SOURCE );
-#endif
-
-    b += cblk->lcolidx;
-    core_zgeadd( PastixNoTrans, colnbr, rhsb->n,
-                 1., work, colnbr,
-                 1., b,    rhsb->ld );
-
-    (void)rc;
-#else
-    (void)solvmtx;
-    (void)cblk;
-    (void)work;
-    (void)rhsb;
-#endif
-}
-
 #if defined( PASTIX_WITH_MPI )
 /**
  *******************************************************************************
  *
- * @brief Asynchronously sends the rhs associated to cblk->ownerid
+ * @brief Asynchronously sends the rhs associated to a cblk->lcolidx to the remote node.
  *
  *******************************************************************************
  *
- * @param[inout] solvmtx
- *          The solver matrix structure.
+ * @param[in] solvmtx
+ *          The solver matrix holding the communicator.
  *
  * @param[in] rhsb
  *          The pointer to the rhs data structure that holds the vectors of the
  *          right hand side.
  *
  * @param[in] cblk
- *          The column block that will be sent.
+ *          The cblk which defines the part to sent.
  *
  *******************************************************************************/
 void
-cpucblk_zisend_rhs_forward( SolverMatrix *solvmtx,
-                            pastix_rhs_t  rhsb,
-                            SolverCblk   *cblk )
+cpucblk_zisend_rhs_bwd( SolverMatrix *solvmtx,
+                        pastix_rhs_t  rhsb,
+                        SolverCblk   *cblk )
 {
     MPI_Request         request;
     pastix_complex64_t *b;
@@ -300,23 +56,35 @@ cpucblk_zisend_rhs_forward( SolverMatrix *solvmtx,
     int                 rc;
 
     assert( colnbr <= solvmtx->colmax );
-    assert( cblk->cblktype & CBLK_FANIN );
-    assert( rhsb->cblkb[ idx ] != NULL );
+    assert( cblk->cblktype & CBLK_RECV );
 
-#if defined(PASTIX_DEBUG_MPI)
-    fprintf( stderr, "[%2d] RHS Fwd: Post Isend cblk %ld to %2d at index %ld of size %ld\n",
+#if defined (PASTIX_DEBUG_MPI)
+    fprintf( stderr, "[%2d] RHS Bwd: Post Isend cblk %ld to %2d at index %ld of size %ld\n",
              solvmtx->clustnum, (long)cblk->gcblknum, cblk->ownerid,
-             (long)cblk->lcolidx, (long)(size * sizeof(pastix_complex64_t) ) );
+             (long)cblk->lcolidx, (long)colnbr );
 #endif
 
-    b = (pastix_complex64_t*)(rhsb->cblkb[ idx ]);
-    assert( b != NULL );
+    /* Get the pointer to the right hand side */
+    b = rhsb->b;
+    b += cblk->lcolidx;
 
-    rc = MPI_Isend( b, size, PASTIX_MPI_COMPLEX64, cblk->ownerid, cblk->gcblknum,
-                    solvmtx->solv_comm, &request );
+    /* Pack the data into a temporary buffer if non-contiguous */
+    assert( rhsb->cblkb[ idx ] == NULL );
+    if ( rhsb->n > 1 ) {
+        rhsb->cblkb[ idx ] = malloc( size * sizeof(pastix_complex64_t) );
+
+        rc = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', colnbr, rhsb->n,
+                                  b, rhsb->ld, rhsb->cblkb[ idx ], colnbr );
+        assert( rc == 0 );
+
+        b = rhsb->cblkb[ idx ];
+    }
+
+    rc = MPI_Isend( b, size, PASTIX_MPI_COMPLEX64,
+                    cblk->ownerid, cblk->gcblknum, solvmtx->solv_comm, &request );
     assert( rc == MPI_SUCCESS );
 
-    solverCommMatrixAdd( solvmtx, cblk->ownerid, size );
+    solverCommMatrixAdd( solvmtx, cblk->ownerid, size * sizeof(pastix_complex64_t) );
 
     /* Register the request to make it progress */
     pastix_atomic_lock( &(solvmtx->reqlock) );
@@ -357,27 +125,30 @@ cpucblk_zisend_rhs_forward( SolverMatrix *solvmtx,
  *          The cblk concerned by the computation.
  *
  *******************************************************************************/
-static inline void
-cpucblk_zrequest_rhs_handle_fanin( solve_step_e       solve_step,
-                                   SolverMatrix     *solvmtx,
-                                   pastix_rhs_t      rhsb,
-                                   const SolverCblk *cblk )
+void
+cpucblk_zrequest_rhs_bwd_handle_send( solve_step_e      solve_step,
+                                      SolverMatrix     *solvmtx,
+                                      pastix_rhs_t      rhsb,
+                                      const SolverCblk *cblk )
 {
     pastix_int_t idx = - cblk->bcscnum - 1;
-    assert( cblk->cblktype & CBLK_FANIN );
+
+    assert( cblk->cblktype & CBLK_RECV );
+    assert( solve_step == PastixSolveBackward );
 
 #if defined(PASTIX_DEBUG_MPI)
     {
         size_t cblksize = cblk_colnbr( cblk ) * rhsb->n * sizeof(pastix_complex64_t);
 
-        fprintf( stderr, "[%2d] RHS Fwd: Isend for cblk %ld toward %2d ( %ld Bytes ) (DONE)\n",
+        fprintf( stderr, "[%2d] RHS Bwd: Isend for cblk %ld toward %2d ( %ld Bytes ) (DONE)\n",
                  solvmtx->clustnum, (long)cblk->gcblknum, cblk->ownerid, (long)cblksize );
     }
 #endif
 
-    memFree_null( rhsb->cblkb[ idx ] );
+    if ( rhsb->cblkb[ idx ] ) {
+        memFree_null( rhsb->cblkb[ idx ] );
+    }
     (void)solvmtx;
-    (void)solve_step;
 }
 
 /**
@@ -391,6 +162,27 @@ cpucblk_zrequest_rhs_handle_fanin( solve_step_e       solve_step,
  *          Define which step of the solve is concerned.
  *          @arg PastixSolveForward
  *          @arg PastixSolveBackward
+ *
+ * @param[in] mode
+ *          Specify whether the schur complement and interface are applied to
+ *          the right-hand-side. It has to be either PastixSolvModeLocal,
+ *          PastixSolvModeInterface or PastixSolvModeSchur
+ *
+ * @param[in] side
+ *          Specify whether the off-diagonal blocks appear on the left or right
+ *          in the equation. It has to be either PastixLeft or PastixRight.
+ *
+ * @param[in] uplo
+ *          Specify whether the off-diagonal blocks are upper or lower
+ *          triangular. It has to be either PastixUpper or PastixLower.
+ *
+ * @param[in] trans
+ *          Specify the transposition used for the off-diagonal blocks. It has
+ *          to be either PastixTrans or PastixConjTrans.
+ *
+ * @param[in] diag
+ *          Specify if the off-diagonal blocks are unit triangular. It has to be
+ *          either PastixUnit or PastixNonUnit.
  *
  * @param[inout] solvmtx
  *          The solver matrix structure.
@@ -410,18 +202,22 @@ cpucblk_zrequest_rhs_handle_fanin( solve_step_e       solve_step,
  *
  *******************************************************************************/
 static inline void
-cpucblk_zrequest_rhs_handle_recv( solve_step_e         solve_step,
-                                  SolverMatrix       *solvmtx,
-                                  pastix_rhs_t        rhsb,
-                                  int                 threadid,
-                                  const MPI_Status   *status,
-                                  pastix_complex64_t *recvbuf )
+cpucblk_zrequest_rhs_bwd_handle_recv( solve_step_e        solve_step,
+                                      pastix_solv_mode_t  mode,
+                                      int                 side,
+                                      int                 uplo,
+                                      int                 trans,
+                                      int                 diag,
+                                      SolverMatrix       *solvmtx,
+                                      pastix_rhs_t        rhsb,
+                                      int                 threadid,
+                                      const MPI_Status   *status,
+                                      pastix_complex64_t *recvbuf )
 {
-    SolverCblk   *cblk, *fcbk;
-    pastix_int_t  colnbr;
+    SolverCblk   *cblk;
     int           src  = status->MPI_SOURCE;
     int           tag  = status->MPI_TAG;
-    int           nrhs = rhsb->n;
+    pastix_int_t  idx;
 
     assert( ( 0 <= src ) && ( src < solvmtx->clustnbr ) );
     assert( ( 0 <= tag ) && ( tag < solvmtx->gcblknbr ) );
@@ -429,53 +225,40 @@ cpucblk_zrequest_rhs_handle_recv( solve_step_e         solve_step,
     /*
      * Let's look for the local cblk
      */
-    fcbk = solvmtx->cblktab + solvmtx->gcbl2loc[ tag ];
-    cblk = fcbk-1;
+    cblk = solvmtx->cblktab + solvmtx->gcbl2loc[ tag ];
+    assert( cblk->cblktype & CBLK_FANIN );
 
-    /* Get through source */
-    while( cblk->ownerid != src ) {
-        cblk--;
-        assert( cblk >= solvmtx->cblktab );
-        assert( cblk->gcblknum == tag );
-        assert( cblk->cblktype & CBLK_RECV );
-    }
-    assert( fcbk == (solvmtx->cblktab + cblk->fblokptr->fcblknm) );
-
-    colnbr = cblk_colnbr( cblk );
 #if defined(PASTIX_DEBUG_MPI)
     {
+        pastix_int_t colnbr;
+        pastix_int_t size;
         int          rc;
         int          count = 0;
-        pastix_int_t size  = colnbr * nrhs * sizeof(pastix_complex64_t);
+
+        colnbr = cblk_colnbr( cblk );
+        size   = colnbr * rhsb->n * sizeof(pastix_complex64_t);
 
         rc = MPI_Get_count( status, MPI_CHAR, &count );
         assert( rc == MPI_SUCCESS );
         assert( count == size );
 
         /* We can't know the sender easily, so we don't print it */
-        fprintf( stderr, "[%2d] RHS Fwd  : recv of size %d/%ld for cblk %ld (DONE)\n",
+        fprintf( stderr, "[%2d] RHS Bwd : recv of size %d/%ld for cblk %ld (DONE)\n",
                  solvmtx->clustnum, count, (long)size, (long)cblk->gcblknum );
     }
 #endif
 
-    /* Initialize the cblk with the reception buffer */
-    cblk->threadid = (fcbk->threadid == -1) ? threadid : fcbk->threadid;
+    idx = - cblk->bcscnum - 1;
+    rhsb->cblkb[ idx ] = recvbuf;
 
-    {
-        pastix_complex64_t *b = rhsb->b;
-        b += cblk->lcolidx;
-        pastix_cblk_lock( fcbk );
-        core_zgeadd( PastixNoTrans, colnbr, nrhs,
-                     1., recvbuf, colnbr,
-                     1., b,       rhsb->ld );
-        pastix_cblk_unlock( fcbk );
-    }
+    solve_cblk_ztrsmsp_backward( mode, side, uplo, trans, diag,
+                                 solvmtx, cblk, rhsb );
 
-    /* Receptions cblks contribute to themselves */
-    cpucblk_zrelease_rhs_deps( solve_step, solvmtx, rhsb, cblk, fcbk );
+    /* Check it has been freed */
+    assert( rhsb->cblkb[ idx ] == NULL );
 
-    /* Free the CBLK_RECV */
-    memFree_null( recvbuf );
+    (void)solve_step;
+    (void)threadid;
 }
 
 /**
@@ -492,6 +275,27 @@ cpucblk_zrequest_rhs_handle_recv( solve_step_e         solve_step,
  *          Define which step of the solve is concerned.
  *          @arg PastixSolveForward
  *          @arg PastixSolveBackward
+ *
+ * @param[in] mode
+ *          Specify whether the schur complement and interface are applied to
+ *          the right-hand-side. It has to be either PastixSolvModeLocal,
+ *          PastixSolvModeInterface or PastixSolvModeSchur
+ *
+ * @param[in] side
+ *          Specify whether the off-diagonal blocks appear on the left or right
+ *          in the equation. It has to be either PastixLeft or PastixRight.
+ *
+ * @param[in] uplo
+ *          Specify whether the off-diagonal blocks are upper or lower
+ *          triangular. It has to be either PastixUpper or PastixLower.
+ *
+ * @param[in] trans
+ *          Specify the transposition used for the off-diagonal blocks. It has
+ *          to be either PastixTrans or PastixConjTrans.
+ *
+ * @param[in] diag
+ *          Specify if the off-diagonal blocks are unit triangular. It has to be
+ *          either PastixUnit or PastixNonUnit.
  *
  * @param[inout] solvmtx
  *          The solver matrix structure.
@@ -518,13 +322,18 @@ cpucblk_zrequest_rhs_handle_recv( solve_step_e         solve_step,
  *
  *******************************************************************************/
 static inline int
-cpucblk_zrequest_rhs_handle( solve_step_e       solve_step,
-                             SolverMatrix     *solvmtx,
-                             pastix_rhs_t      rhsb,
-                             int               threadid,
-                             int               outcount,
-                             const int        *indexes,
-                             const MPI_Status *statuses )
+cpucblk_zrequest_rhs_bwd_handle( solve_step_e        solve_step,
+                                 pastix_solv_mode_t  mode,
+                                 int                 side,
+                                 int                 uplo,
+                                 int                 trans,
+                                 int                 diag,
+                                 SolverMatrix       *solvmtx,
+                                 pastix_rhs_t        rhsb,
+                                 int                 threadid,
+                                 int                 outcount,
+                                 const int          *indexes,
+                                 const MPI_Status   *statuses )
 {
     pastix_int_t i, reqid;
     int          nbrequest = outcount;
@@ -547,11 +356,11 @@ cpucblk_zrequest_rhs_handle( solve_step_e       solve_step,
             MALLOC_INTERN( recvbuf, size, pastix_complex64_t );
             memcpy( recvbuf, solvmtx->rcoeftab, size * sizeof(pastix_complex64_t) );
 
-            solvmtx->recvcnt--;
+            solvmtx->fanincnt--;
 
             /* Let's restart the communication */
-            assert( solvmtx->recvcnt >= 0 );
-            if ( solvmtx->recvcnt > 0 ) {
+            assert( solvmtx->fanincnt >= 0 );
+            if ( solvmtx->fanincnt > 0 ) {
                 MPI_Start( solvmtx->reqtab + reqid );
                 nbrequest--;
             }
@@ -560,22 +369,23 @@ cpucblk_zrequest_rhs_handle( solve_step_e       solve_step,
                 solvmtx->reqtab[reqid] = MPI_REQUEST_NULL;
             }
 
-            cpucblk_zrequest_rhs_handle_recv( solve_step, solvmtx, rhsb,
-                                              threadid, &status, recvbuf );
+            cpucblk_zrequest_rhs_bwd_handle_recv( solve_step, mode, side, uplo, trans,
+                                                  diag, solvmtx, rhsb,
+                                                  threadid, &status, recvbuf );
         }
         /*
          * Handle the emission
          */
         else {
             SolverCblk *cblk = solvmtx->cblktab + solvmtx->reqidx[ reqid ];
-            assert( cblk->cblktype & CBLK_FANIN );
+            assert( cblk->cblktype & CBLK_RECV );
 
-            cpucblk_zrequest_rhs_handle_fanin( solve_step, solvmtx, rhsb, cblk );
+            cpucblk_zrequest_rhs_bwd_handle_send( solve_step, solvmtx, rhsb, cblk );
 
 #if !defined(NDEBUG)
             solvmtx->reqidx[ reqid ] = -1;
 #endif
-            solvmtx->fanincnt--;
+            solvmtx->recvcnt--;
         }
     }
 
@@ -599,6 +409,27 @@ cpucblk_zrequest_rhs_handle( solve_step_e       solve_step,
  *          @arg PastixSolveForward
  *          @arg PastixSolveBackward
  *
+ * @param[in] mode
+ *          Specify whether the schur complement and interface are applied to
+ *          the right-hand-side. It has to be either PastixSolvModeLocal,
+ *          PastixSolvModeInterface or PastixSolvModeSchur
+ *
+ * @param[in] side
+ *          Specify whether the off-diagonal blocks appear on the left or right
+ *          in the equation. It has to be either PastixLeft or PastixRight.
+ *
+ * @param[in] uplo
+ *          Specify whether the off-diagonal blocks are upper or lower
+ *          triangular. It has to be either PastixUpper or PastixLower.
+ *
+ * @param[in] trans
+ *          Specify the transposition used for the off-diagonal blocks. It has
+ *          to be either PastixTrans or PastixConjTrans.
+ *
+ * @param[in] diag
+ *          Specify if the off-diagonal blocks are unit triangular. It has to be
+ *          either PastixUnit or PastixNonUnit.
+ *
  * @param[inout] solvmtx
  *          The solver matrix structure.
  *
@@ -610,11 +441,16 @@ cpucblk_zrequest_rhs_handle( solve_step_e       solve_step,
  *          Id of the thread calling this method.
  *
  *******************************************************************************/
-void
-cpucblk_zmpi_rhs_progress( solve_step_e   solve_step,
-                           SolverMatrix *solvmtx,
-                           pastix_rhs_t  rhsb,
-                           int           threadid )
+static inline void
+cpucblk_zmpi_rhs_bwd_progress( solve_step_e        solve_step,
+                               pastix_solv_mode_t  mode,
+                               int                 side,
+                               int                 uplo,
+                               int                 trans,
+                               int                 diag,
+                               SolverMatrix       *solvmtx,
+                               pastix_rhs_t        rhsb,
+                               int                 threadid )
 {
     pthread_t  tid = pthread_self();
     int        outcount = 1;
@@ -654,8 +490,9 @@ cpucblk_zmpi_rhs_progress( solve_step_e   solve_step,
 
         /* Handle all the completed requests */
         if ( outcount > 0 ) {
-            nbfree = cpucblk_zrequest_rhs_handle( solve_step, solvmtx, rhsb, threadid,
-                                                  outcount, indexes, statuses );
+            nbfree = cpucblk_zrequest_rhs_bwd_handle( solve_step, mode, side, uplo, trans,
+                                                      diag, solvmtx, rhsb, threadid,
+                                                      outcount, indexes, statuses );
         }
 
         /*
@@ -691,6 +528,27 @@ cpucblk_zmpi_rhs_progress( solve_step_e   solve_step,
  *          @arg PastixSolveForward
  *          @arg PastixSolveBackward
  *
+ * @param[in] mode
+ *          Specify whether the schur complement and interface are applied to
+ *          the right-hand-side. It has to be either PastixSolvModeLocal,
+ *          PastixSolvModeInterface or PastixSolvModeSchur
+ *
+ * @param[in] side
+ *          Specify whether the off-diagonal blocks appear on the left or right
+ *          in the equation. It has to be either PastixLeft or PastixRight.
+ *
+ * @param[in] uplo
+ *          Specify whether the off-diagonal blocks are upper or lower
+ *          triangular. It has to be either PastixUpper or PastixLower.
+ *
+ * @param[in] trans
+ *          Specify the transposition used for the off-diagonal blocks. It has
+ *          to be either PastixTrans or PastixConjTrans.
+ *
+ * @param[in] diag
+ *          Specify if the off-diagonal blocks are unit triangular. It has to be
+ *          either PastixUnit or PastixNonUnit.
+ *
  * @param[inout] solvmtx
  *          The solver matrix structure.
  *
@@ -707,11 +565,16 @@ cpucblk_zmpi_rhs_progress( solve_step_e   solve_step,
  *
  *******************************************************************************/
 int
-cpucblk_zincoming_rhs_deps( int           rank,
-                            solve_step_e   solve_step,
-                            SolverMatrix *solvmtx,
-                            SolverCblk   *cblk,
-                            pastix_rhs_t  rhsb )
+cpucblk_zincoming_rhs_bwd_deps( int                 rank,
+                                solve_step_e        solve_step,
+                                pastix_solv_mode_t  mode,
+                                int                 side,
+                                int                 uplo,
+                                int                 trans,
+                                int                 diag,
+                                SolverMatrix       *solvmtx,
+                                SolverCblk         *cblk,
+                                pastix_rhs_t        rhsb )
 {
 #if defined(PASTIX_WITH_MPI)
     if ( cblk->cblktype & CBLK_FANIN ) {
@@ -729,7 +592,8 @@ cpucblk_zincoming_rhs_deps( int           rank,
 
     /* Make sure we receive every contribution */
     while( cblk->ctrbcnt > 0 ) {
-        cpucblk_zmpi_rhs_progress( solve_step, solvmtx, rhsb, rank );
+        cpucblk_zmpi_rhs_bwd_progress( solve_step, mode, side, uplo, trans,
+                                       diag, solvmtx, rhsb, rank );
     }
 #else
     assert( !(cblk->cblktype & (CBLK_FANIN | CBLK_RECV)) );
@@ -738,6 +602,11 @@ cpucblk_zincoming_rhs_deps( int           rank,
 
     (void)rank;
     (void)solve_step;
+    (void)mode;
+    (void)side;
+    (void)uplo;
+    (void)trans;
+    (void)diag;
     (void)solvmtx;
     (void)rhsb;
 
@@ -771,23 +640,21 @@ cpucblk_zincoming_rhs_deps( int           rank,
  *
  *******************************************************************************/
 void
-cpucblk_zrelease_rhs_deps( solve_step_e       solve_step,
-                           SolverMatrix     *solvmtx,
-                           pastix_rhs_t      rhsb,
-                           const SolverCblk *cblk,
-                           SolverCblk       *fcbk )
+cpucblk_zrelease_rhs_bwd_deps( solve_step_e      solve_step,
+                               SolverMatrix     *solvmtx,
+                               pastix_rhs_t      rhsb,
+                               const SolverCblk *cblk,
+                               SolverCblk       *fcbk )
 {
     int32_t ctrbcnt;
     ctrbcnt = pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
     if ( !ctrbcnt ) {
 #if defined(PASTIX_WITH_MPI)
-        if ( ( fcbk->cblktype & CBLK_FANIN ) &&
-             ( solve_step == PastixSolveForward ) ) {
-                cpucblk_zisend_rhs_forward( solvmtx, rhsb, fcbk );
-                return;
+        if ( fcbk->cblktype & CBLK_RECV ) {
+            cpucblk_zisend_rhs_bwd( solvmtx, rhsb, fcbk );
+            return;
         }
 #else
-        (void)solve_step;
         (void)rhsb;
 #endif
         if ( solvmtx->computeQueue ) {
@@ -795,6 +662,7 @@ cpucblk_zrelease_rhs_deps( solve_step_e       solve_step,
             pqueuePush1( queue, fcbk - solvmtx->cblktab, queue->size );
         }
     }
+    (void)solve_step;
 }
 
 /**
@@ -828,10 +696,10 @@ cpucblk_zrelease_rhs_deps( solve_step_e       solve_step,
  *
  *******************************************************************************/
 void
-cpucblk_zrequest_rhs_cleanup( solve_step_e   solve_step,
-                              pastix_int_t  sched,
-                              SolverMatrix *solvmtx,
-                              pastix_rhs_t  rhsb )
+cpucblk_zrequest_rhs_bwd_cleanup( solve_step_e  solve_step,
+                                  pastix_int_t  sched,
+                                  SolverMatrix *solvmtx,
+                                  pastix_rhs_t  rhsb )
 {
     if ( (sched != PastixSchedSequential) &&
          (sched != PastixSchedStatic)     &&
@@ -841,7 +709,7 @@ cpucblk_zrequest_rhs_cleanup( solve_step_e   solve_step,
     }
 #if defined(PASTIX_WITH_MPI)
     pastix_int_t i;
-    int rc;
+    int          rc;
     SolverCblk  *cblk;
     int          reqnbr = solvmtx->reqnum;
     MPI_Status   status;
@@ -866,10 +734,10 @@ cpucblk_zrequest_rhs_cleanup( solve_step_e   solve_step,
 
         cblk = solvmtx->cblktab + solvmtx->reqidx[i];
 
-        /* We should wait only for fanin */
-        assert( cblk->cblktype & CBLK_FANIN );
+        /* We should wait only for recv */
+        assert( cblk->cblktype & CBLK_RECV );
 
-        cpucblk_zrequest_rhs_handle_fanin( solve_step, solvmtx, rhsb, cblk );
+        cpucblk_zrequest_rhs_bwd_handle_send( solve_step, solvmtx, rhsb, cblk );
 
         solvmtx->reqnum--;
     }

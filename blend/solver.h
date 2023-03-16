@@ -75,6 +75,7 @@ typedef struct simuctrl_s SimuCtrl;
 typedef enum solve_step_ {
     PastixSolveForward,
     PastixSolveBackward,
+    PastixFacto,
 } solve_step_e;
 
 /**
@@ -498,14 +499,17 @@ int           solverDraw      ( const SolverMatrix *solvptr,
                                 const char         *directory );
 void          solverPrintStats( const SolverMatrix *solvptr );
 
-void solverRequestInit( SolverMatrix *solvmtx );
+void solverRequestInit( solve_step_e  solve_step,
+                        SolverMatrix *solvmtx );
 void solverRequestExit( SolverMatrix *solvmtx );
 
 void solverRecvInit( pastix_coefside_t  side,
                      SolverMatrix      *solvmtx,
                      pastix_coeftype_t  flttype );
 void solverRecvExit( SolverMatrix      *solvmtx );
-void solverRhsRecvInit( SolverMatrix      *solvmtx,
+
+void solverRhsRecvInit( solve_step_e       solve_step,
+                        SolverMatrix      *solvmtx,
                         pastix_coeftype_t  flttype );
 void solverRhsRecvExit( SolverMatrix      *solvmtx );
 

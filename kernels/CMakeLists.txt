@@ -110,7 +110,8 @@ set(SOURCES
   cpucblk_zschur.c
   # MPI operations
   cpucblk_zmpi_coeftab.c
-  cpucblk_zmpi_rhs.c
+  cpucblk_zmpi_rhs_fwd.c
+  cpucblk_zmpi_rhs_bwd.c
   cpucblk_zpack.c
   # Solve operation
   solve_ztrsmsp.c
