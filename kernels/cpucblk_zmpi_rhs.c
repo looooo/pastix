@@ -306,7 +306,7 @@ cpucblk_zisend_rhs_forward( SolverMatrix *solvmtx,
 #if defined(PASTIX_DEBUG_MPI)
     fprintf( stderr, "[%2d] RHS Fwd: Post Isend cblk %ld to %2d at index %ld of size %ld\n",
              solvmtx->clustnum, (long)cblk->gcblknum, cblk->ownerid,
-             (long)cblk->lcolidx, (long)colnbr );
+             (long)cblk->lcolidx, (long)(size * sizeof(pastix_complex64_t) ) );
 #endif
 
     b = (pastix_complex64_t*)(rhsb->cblkb[ idx ]);
@@ -370,7 +370,7 @@ cpucblk_zrequest_rhs_handle_fanin( solve_step_e       solve_step,
     {
         size_t cblksize = cblk_colnbr( cblk ) * rhsb->n * sizeof(pastix_complex64_t);
 
-        fprintf( stderr, "[%2d] RHS Isend for cblk %ld toward %2d ( %ld Bytes ) (DONE)\n",
+        fprintf( stderr, "[%2d] RHS Fwd: Isend for cblk %ld toward %2d ( %ld Bytes ) (DONE)\n",
                  solvmtx->clustnum, (long)cblk->gcblknum, cblk->ownerid, (long)cblksize );
     }
 #endif
@@ -453,7 +453,7 @@ cpucblk_zrequest_rhs_handle_recv( solve_step_e         solve_step,
         assert( count == size );
 
         /* We can't know the sender easily, so we don't print it */
-        fprintf( stderr, "[%2d] RHS Irecv of size %d/%ld for cblk %ld (DONE)\n",
+        fprintf( stderr, "[%2d] RHS Fwd  : recv of size %d/%ld for cblk %ld (DONE)\n",
                  solvmtx->clustnum, count, (long)size, (long)cblk->gcblknum );
     }
 #endif
