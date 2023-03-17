@@ -294,6 +294,7 @@ cpucblk_zrequest_handle( pastix_coefside_t  side,
             solvmtx->recvcnt--;
 
             /* Let's restart the communication */
+            assert( solvmtx->recvcnt >= 0 );
             if ( solvmtx->recvcnt > 0 ) {
                 MPI_Start( solvmtx->reqtab + reqid );
                 nbrequest--;
