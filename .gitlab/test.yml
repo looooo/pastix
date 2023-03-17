@@ -2,26 +2,30 @@
 .test_script_sched_template: &test_script_sched
   stage: test
   tags: ["large", "docker"]
-  artifacts:
-    name: pastix_test_${VERSION}_${RUN}_sched${SCHED}
-    expire_in: 180 minutes
-    paths:
-      - pastix-${VERSION}-${RUN}-sched${SCHED}.lcov
-      - pastix-gcov-${VERSION}-${RUN}-sched${SCHED}.log
-    reports:
-      junit: report.xml
   script:
+    - export LOGNAME=pastix-${VERSION}-${RUN}-sched${SCHED}
     - source install-${VERSION}/bin/pastix_env.sh
     - (cd build &&
-       eval "ctest
+       eval "ctest --nocompress-output
              -R \"^${RUN}_.*_sched${SCHED}\"
-             -D ExperimentalTest
-             -D ExperimentalCoverage
-             | tee -a ${CI_PROJECT_DIR}/pastix-build-${VERSION}.log")
-    - lcov --capture --directory build
-           -q --output-file pastix-${VERSION}-${RUN}-sched${SCHED}.lcov
-           | tee -a pastix-gcov-${VERSION}-${RUN}-sched${SCHED}.log
-    - xsltproc -o report.xml /home/gitlab/ctest-to-junit.xsl build/Testing/**/Test.xml
+             -T Test
+             --output-junit ../${LOGNAME}.junit
+             | tee -a ../${LOGNAME}.log")
+    - gcovr --xml-pretty --exclude-unreachable-branches --print-summary -o ${LOGNAME}.cov --root ${CI_PROJECT_DIR}
+    - lcov --directory build --capture --output-file ${LOGNAME}.lcov
+    - cp ${LOGNAME}.junit junit.xml
+    - cp ${LOGNAME}.cov coverage.xml
+  coverage: /^\s*lines:\s*\d+.\d+\%/
+  artifacts:
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+    expire_in: 2 days
+    untracked: true
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+      junit: junit.xml
 
 .test_script_sched_template_seq: &test_script_sched_seq
   extends:

@@ -6,9 +6,11 @@ stages:
   - build
   - test
   - analyse
-  - sonar
   - deploy
 
+# git config --global have been added to get around the issue related in
+# https://github.com/actions/checkout/issues/760 for github
+# Does not seem to be fixed for gitlab-runner yet
 before_script:
   - git config --global --add safe.directory $CI_PROJECT_DIR
   - git config --global --add safe.directory $CI_PROJECT_DIR/cmake_modules/morse_cmake

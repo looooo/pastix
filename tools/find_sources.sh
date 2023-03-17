@@ -1,11 +1,16 @@
 #!/usr/bin/env sh
 ###
 #
-#  @file filelist.sh
+#  @file find_sources.sh
 #  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @brief Generate the filelist for the static analysis
+#
+# filter sources:
+# - consider generated files in ${BUILDDIR}
+# - exclude base *z* files to avoid duplication
+# - exclude cblas.h and lapacke-.h because not really part of pastix and make cppcheck analysis too long
 #
 #  @version 6.3.0
 #  @author Mathieu Faverge
