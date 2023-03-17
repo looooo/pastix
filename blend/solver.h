@@ -70,6 +70,14 @@ typedef struct simuctrl_s SimuCtrl;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
+ * @brief Tags used in MPI communications.
+ */
+typedef enum solve_step_ {
+    PastixSolveForward,
+    PastixSolveBackward,
+} solve_step_e;
+
+/**
  * @brief Solver recv block structure.
  */
 typedef struct solver_blok_recv_s {
@@ -497,6 +505,9 @@ void solverRecvInit( pastix_coefside_t  side,
                      SolverMatrix      *solvmtx,
                      pastix_coeftype_t  flttype );
 void solverRecvExit( SolverMatrix      *solvmtx );
+void solverRhsRecvInit( SolverMatrix      *solvmtx,
+                        pastix_coeftype_t  flttype );
+void solverRhsRecvExit( SolverMatrix      *solvmtx );
 
 /*
  * Solver backup
