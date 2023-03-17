@@ -62,6 +62,17 @@ cpucblk_zisend( pastix_coefside_t side,
     bufsize = cpucblk_zcompute_size( side, cblk );
     buffer  = cpucblk_zpack( side, cblk, bufsize );
 
+    /* Backup buffer pointer when packed */
+    if ( cblk->cblktype & CBLK_COMPRESSED ) {
+        cpucblk_zfree( side, cblk );
+        if ( side != PastixUCoef ) {
+            cblk->lcoeftab = buffer;
+        }
+        else {
+            cblk->ucoeftab = buffer;
+        }
+    }
+
 #if defined(PASTIX_DEBUG_MPI)
     fprintf( stderr, "[%2d] Post Isend for cblk %ld toward %2d ( %ld Bytes )\n",
              solvmtx->clustnum, (long)cblk->gcblknum, cblk->ownerid, bufsize );
@@ -125,7 +136,20 @@ cpucblk_zrequest_handle_fanin( pastix_coefside_t   side,
                  solvmtx->clustnum, (long)cblk->gcblknum, cblk->ownerid, (long)cblksize );
     }
 #endif
-    cpucblk_zfree( side, cblk );
+
+    if ( cblk->cblktype & CBLK_COMPRESSED ) {
+        /* Free the packed buffer */
+        if ( side != PastixUCoef ) {
+            memFree_null( cblk->lcoeftab );
+        }
+        else {
+            memFree_null( cblk->ucoeftab );
+        }
+    }
+    else {
+        /* Free the cblk */
+        cpucblk_zfree( side, cblk );
+    }
 
     (void)solvmtx;
 }
@@ -294,6 +318,7 @@ cpucblk_zrequest_handle( pastix_coefside_t  side,
             solvmtx->recvcnt--;
 
             /* Let's restart the communication */
+            assert( solvmtx->recvcnt >= 0 );
             if ( solvmtx->recvcnt > 0 ) {
                 MPI_Start( solvmtx->reqtab + reqid );
                 nbrequest--;

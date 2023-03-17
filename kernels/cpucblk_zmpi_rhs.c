@@ -550,6 +550,7 @@ cpucblk_zrequest_rhs_handle( solve_step_e       solve_step,
             solvmtx->recvcnt--;
 
             /* Let's restart the communication */
+            assert( solvmtx->recvcnt >= 0 );
             if ( solvmtx->recvcnt > 0 ) {
                 MPI_Start( solvmtx->reqtab + reqid );
                 nbrequest--;
