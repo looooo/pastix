@@ -40,7 +40,13 @@ export UNDEFINITIONS="$UNDEFINITIONS -UBUILDING_STARPU -UPASTIX_WITH_STARPU_DIST
 export UNDEFINITIONS="$UNDEFINITIONS -UNAPA_SOPALIN"
 
 # run cppcheck analysis
-cppcheck -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingInclude ${UNDEFINITIONS} --file-list=./filelist-c.txt 2> ${PROJECT}_cppcheck.xml
+CPPCHECK_OPT=" -v -f --language=c --platform=unix64 --enable=all --xml --xml-version=2 --suppress=missingInclude ${UNDEFINITIONS}"
+cppcheck $CPPCHECK_OPT --file-list=./filelist_none.txt 2> ${PROJECT}_cppcheck.xml
+cppcheck $CPPCHECK_OPT -DPRECISION_s -UPRECISION_d -UPRECISION_c -UPRECISION_z -UPRECISION_z --file-list=./filelist_s.txt 2>> ${PROJECT}_cppcheck.xml
+cppcheck $CPPCHECK_OPT -UPRECISION_s -DPRECISION_d -UPRECISION_c -UPRECISION_z -UPRECISION_z --file-list=./filelist_d.txt 2>> ${PROJECT}_cppcheck.xml
+cppcheck $CPPCHECK_OPT -UPRECISION_s -UPRECISION_d -DPRECISION_c -UPRECISION_z -UPRECISION_z --file-list=./filelist_c.txt 2>> ${PROJECT}_cppcheck.xml
+cppcheck $CPPCHECK_OPT -UPRECISION_s -UPRECISION_d -UPRECISION_c -DPRECISION_z -UPRECISION_z --file-list=./filelist_z.txt 2>> ${PROJECT}_cppcheck.xml
+cppcheck $CPPCHECK_OPT -UPRECISION_s -UPRECISION_d -UPRECISION_c -UPRECISION_z -DPRECISION_p --file-list=./filelist_p.txt 2>> ${PROJECT}_cppcheck.xml
 
 # Set the default for the project key
 SONARQUBE_PROJECTKEY=${SONARQUBE_PROJECTKEY:-topal:$CI_PROJECT_NAMESPACE:$PROJECT}
@@ -72,7 +78,7 @@ sonar.cxx.file.suffixes=.h,.c
 sonar.cxx.errorRecoveryEnabled=true
 sonar.cxx.gcc.encoding=UTF-8
 sonar.cxx.gcc.regex=(?<file>.*):(?<line>[0-9]+):[0-9]+:\\\x20warning:\\\x20(?<message>.*)\\\x20\\\[(?<id>.*)\\\]
-sonar.cxx.gcc.reportPaths=$PROJECT_build*.log
+sonar.cxx.gcc.reportPaths=${PROJECT}_build*.log
 sonar.cxx.xunit.reportPaths=*.junit
 sonar.cxx.cobertura.reportPaths=*.cov
 sonar.cxx.cppcheck.reportPaths=${PROJECT}_cppcheck.xml
