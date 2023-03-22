@@ -11,4 +11,5 @@ preliminary_checks:
     - ${CI_PROJECT_DIR}/.gitlab/check_ci.sh $TEST
   only:
     - merge_requests
+  interruptible: true
 

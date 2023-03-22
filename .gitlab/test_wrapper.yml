@@ -9,17 +9,29 @@
       - pastix-${VERSION}-${WRAPPER}.lcov
       - pastix-gcov-${VERSION}-${WRAPPER}.log
   script:
+    - export LOGNAME=pastix-${VERSION}-${WRAPPER}
     - source install-${VERSION}/bin/pastix_env.sh
     - (cd build &&
-       eval "ctest
-             -E \"sched\" -R \"^${WRAPPER}_\"
-             -D ExperimentalTest
-             -D ExperimentalCoverage
-             | tee -a ../pastix-test-${VERSION}-${WRAPPER}.log")
-    - lcov --capture --directory build
-           -q --output-file pastix-${VERSION}-${WRAPPER}.lcov
-           | tee -a pastix-gcov-${VERSION}-${WRAPPER}.log
-    - xsltproc -o report.xml /home/gitlab/ctest-to-junit.xsl build/Testing/**/Test.xml
+       eval "ctest --nocompress-output
+             -R \"^${RUN}_.*_sched${SCHED}\"
+             -T Test
+             --output-junit ${CI_PROJECT_DIR}/${LOGNAME}.junit
+             | tee -a ${CI_PROJECT_DIR}/${LOGNAME}.log")
+    - gcovr --xml-pretty --exclude-unreachable-branches --print-summary -o ${CI_PROJECT_DIR}/${LOGNAME}.cov --root ${CI_PROJECT_DIR}
+    - lcov --directory build --capture --output-file ${LOGNAME}.lcov
+    - cp ${LOGNAME}.junit junit.xml
+    - cp ${LOGNAME}.cov coverage.xml
+  coverage: /^\s*lines:\s*\d+.\d+\%/
+  artifacts:
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+    expire_in: 2 days
+    untracked: true
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+      junit: junit.xml
 
 .test_script_wrapper_template_seq: &test_script_wrapper_seq
   extends:

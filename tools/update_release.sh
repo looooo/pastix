@@ -71,11 +71,16 @@ do
 done
 
 #
-# 5) Update manually the version number in CMakeLists.txt
+# 5a) Update manually the version number in CMakeLists.txt
 #
 sed -i "s/set( PASTIX_VERSION_MAJOR [0-9] )/set( PASTIX_VERSION_MAJOR $majorversion )/" CMakeLists.txt
 sed -i "s/set( PASTIX_VERSION_MINOR [0-9] )/set( PASTIX_VERSION_MINOR $minorversion )/" CMakeLists.txt
 sed -i "s/set( PASTIX_VERSION_MICRO [0-9][0-9]* )/set( PASTIX_VERSION_MICRO $microversion )/" CMakeLists.txt
+
+#
+# 5b) Update manually the analysis.sh script
+#
+sed -i "s/sonar.projectVersion=.*$/sonar.projectVersion=$version/" tools/analysis.sh
 
 #
 # 6) If necessary, update the copyright information
