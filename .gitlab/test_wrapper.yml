@@ -13,7 +13,7 @@
     - source install-${VERSION}/bin/pastix_env.sh
     - (cd build &&
        eval "ctest --nocompress-output
-             -R \"^${RUN}_.*_sched${SCHED}\"
+             -E \"sched\" -R \"^${WRAPPER}_\"
              -T Test
              --output-junit ${CI_PROJECT_DIR}/${LOGNAME}.junit
              | tee -a ${CI_PROJECT_DIR}/${LOGNAME}.log")
