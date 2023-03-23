@@ -669,7 +669,7 @@ pastix_starpu_register( starpu_data_handle_t *handleptr,
 
 #if defined(PASTIX_STARPU_INTERFACE_DEBUG)
     fprintf( stderr,
-             "cblk (%9s, size=%8ld, nbblok=%2ld )\n",
+             "cblk (%9s, size=%8zu, nbblok=%2ld )\n",
              cblk->cblktype & CBLK_COMPRESSED ? "Low-rank" : "Full-rank",
              interface.allocsize, (long)(interface.nbblok) );
 #endif
