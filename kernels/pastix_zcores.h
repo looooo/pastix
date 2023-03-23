@@ -13,6 +13,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
+ * @author Alycia Lisito
  * @date 2022-10-17
  * @precisions normal z -> c d s
  *
@@ -442,21 +443,44 @@ void cpucblk_zupdate_reqtab( SolverMatrix *solvmtx );
 void cpucblk_zmpi_progress( pastix_coefside_t  side,
                             SolverMatrix      *solvmtx,
                             int                threadid );
+void cpucblk_zisend_rhs_bwd( SolverMatrix *solvmtx,
+                             pastix_rhs_t  rhsb,
+                             SolverCblk   *cblk );
 #endif
-void cpucblk_zrelease_rhs_deps( solve_step_e       solve_step,
-                                SolverMatrix     *solvmtx,
-                                pastix_rhs_t      rhsb,
-                                const SolverCblk *cblk,
-                                SolverCblk       *fcbk );
-int cpucblk_zincoming_rhs_deps( int           rank,
-                                solve_step_e   solve_step,
-                                SolverMatrix *solvmtx,
-                                SolverCblk   *cblk,
-                                pastix_rhs_t  rhsb );
-void cpucblk_zrequest_rhs_cleanup( solve_step_e   solve_step,
-                                   pastix_int_t  sched,
-                                   SolverMatrix *solvmtx,
-                                   pastix_rhs_t  rhsb );
+void cpucblk_zrelease_rhs_fwd_deps( solve_step_e      solve_step,
+                                    SolverMatrix     *solvmtx,
+                                    pastix_rhs_t      rhsb,
+                                    const SolverCblk *cblk,
+                                    SolverCblk       *fcbk );
+int cpucblk_zincoming_rhs_fwd_deps( int           rank,
+                                    solve_step_e  solve_step,
+                                    SolverMatrix *solvmtx,
+                                    SolverCblk   *cblk,
+                                    pastix_rhs_t  rhsb );
+void cpucblk_zrequest_rhs_fwd_cleanup( solve_step_e  solve_step,
+                                       pastix_int_t  sched,
+                                       SolverMatrix *solvmtx,
+                                       pastix_rhs_t  rhsb );
+
+void cpucblk_zrelease_rhs_bwd_deps( solve_step_e      solve_step,
+                                    SolverMatrix     *solvmtx,
+                                    pastix_rhs_t      rhsb,
+                                    const SolverCblk *cblk,
+                                    SolverCblk       *fcbk );
+int cpucblk_zincoming_rhs_bwd_deps( int                rank,
+                                    solve_step_e       solve_step,
+                                    pastix_solv_mode_t mode,
+                                    int                side,
+                                    int                uplo,
+                                    int                trans,
+                                    int                diag,
+                                    SolverMatrix      *solvmtx,
+                                    SolverCblk        *cblk,
+                                    pastix_rhs_t       rhsb );
+void cpucblk_zrequest_rhs_bwd_cleanup( solve_step_e  solve_step,
+                                       pastix_int_t  sched,
+                                       SolverMatrix *solvmtx,
+                                       pastix_rhs_t  rhsb );
 void cpucblk_zsend_rhs_forward( const SolverMatrix *solvmtx,
                                 SolverCblk         *cblk,
                                 pastix_rhs_t        b );
@@ -537,7 +561,7 @@ void solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
                                   pastix_uplo_t       uplo,
                                   pastix_trans_t      trans,
                                   pastix_diag_t       diag,
-                                  const SolverMatrix *datacode,
+                                  SolverMatrix       *datacode,
                                   SolverCblk         *cblk,
                                   pastix_rhs_t        b );
 

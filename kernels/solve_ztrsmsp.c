@@ -13,6 +13,7 @@
  * @author Xavier Lacoste
  * @author Tony Delarue
  * @author Vincent Bridonneau
+ * @author Alycia Lisito
  * @date 2022-10-17
  * @precisions normal z -> c d s
  *
@@ -434,8 +435,8 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
         solve_blok_zgemm( PastixLeft, tA, rhsb->n,
                           cblk, blok, fcbk,
                           dataA, B, ldb, C, ldc );
-        cpucblk_zrelease_rhs_deps( PastixSolveForward, datacode,
-                                   rhsb, cblk, fcbk );
+        cpucblk_zrelease_rhs_fwd_deps( PastixSolveForward, datacode,
+                                       rhsb, cblk, fcbk );
     }
 }
 
@@ -486,7 +487,7 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
                              pastix_uplo_t       uplo,
                              pastix_trans_t      trans,
                              pastix_diag_t       diag,
-                             const SolverMatrix *datacode,
+                             SolverMatrix       *datacode,
                              SolverCblk         *cblk,
                              pastix_rhs_t        rhsb )
 {
@@ -551,7 +552,8 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
             if ( fcbk->cblktype & CBLK_IN_SCHUR ) {
                 break;
             }
-            pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
+            cpucblk_zrelease_rhs_bwd_deps( PastixSolveBackward, datacode,
+                                           rhsb, cblk, fcbk );
         }
         return;
     }
@@ -586,8 +588,16 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
         blok = datacode->bloktab + datacode->browtab[j];
         fcbk = datacode->cblktab + blok->lcblknm;
 
-        if ( ((fcbk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeInterface))
-           || (fcbk->cblktype & CBLK_RECV) ) {
+        if ( (fcbk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeInterface) ) {
+            continue;
+        }
+
+        if ( fcbk->cblktype & CBLK_RECV ) {
+#if defined( PASTIX_WITH_MPI )
+            if ( datacode->reqtab != NULL ) {
+                cpucblk_zisend_rhs_bwd( datacode, rhsb, fcbk );
+            }
+#endif
             continue;
         }
         assert( !(fcbk->cblktype & CBLK_FANIN) );
@@ -617,7 +627,8 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
         solve_blok_zgemm( PastixRight, tA, rhsb->n,
                           cblk, blok, fcbk,
                           dataA, B, ldb, C, ldc );
-        pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
+        cpucblk_zrelease_rhs_bwd_deps( PastixSolveBackward, datacode,
+                                       rhsb, cblk, fcbk );
     }
 
     if ( cblk->cblktype & CBLK_FANIN ) {
