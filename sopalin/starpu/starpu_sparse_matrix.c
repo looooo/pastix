@@ -84,7 +84,7 @@ pastix_starpu_filter_interface( void                      *father_interface,
 
     assert( child->allocsize > 0 );
 
-    child->dataptr = father->dataptr + childoff;
+    child->dataptr = ((char*)father->dataptr) + childoff;
 
     (void)nchunks;
 }
