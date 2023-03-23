@@ -144,7 +144,8 @@ int main (int argc, char **argv)
             assert( index == dim1 * dim2 * mp );
         }
         else {
-            fprintf(stderr, "We do not handle cases with dim3 < 3\n" );
+            fprintf( stderr, "We do not handle cases with dim3 < 3\n" );
+            free( list );
             return EXIT_FAILURE;
         }
         pastixSetSchurUnknownList( pastix_data, nschur, list );
