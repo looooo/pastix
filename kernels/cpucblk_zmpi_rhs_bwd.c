@@ -251,6 +251,7 @@ cpucblk_zrequest_rhs_bwd_handle_recv( solve_step_e        solve_step,
     idx = - cblk->bcscnum - 1;
     rhsb->cblkb[ idx ] = recvbuf;
 
+    cblk->threadid = threadid;
     solve_cblk_ztrsmsp_backward( mode, side, uplo, trans, diag,
                                  solvmtx, cblk, rhsb );
 
@@ -258,7 +259,6 @@ cpucblk_zrequest_rhs_bwd_handle_recv( solve_step_e        solve_step,
     assert( rhsb->cblkb[ idx ] == NULL );
 
     (void)solve_step;
-    (void)threadid;
 }
 
 /**
@@ -441,7 +441,7 @@ cpucblk_zrequest_rhs_bwd_handle( solve_step_e        solve_step,
  *          Id of the thread calling this method.
  *
  *******************************************************************************/
-static inline void
+void
 cpucblk_zmpi_rhs_bwd_progress( solve_step_e        solve_step,
                                pastix_solv_mode_t  mode,
                                int                 side,

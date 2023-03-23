@@ -447,6 +447,10 @@ void cpucblk_zisend_rhs_bwd( SolverMatrix *solvmtx,
                              pastix_rhs_t  rhsb,
                              SolverCblk   *cblk );
 #endif
+void cpucblk_zmpi_rhs_fwd_progress( solve_step_e  solve_step,
+                                    SolverMatrix *solvmtx,
+                                    pastix_rhs_t  rhsb,
+                                    int           threadid );
 void cpucblk_zrelease_rhs_fwd_deps( solve_step_e      solve_step,
                                     SolverMatrix     *solvmtx,
                                     pastix_rhs_t      rhsb,
@@ -462,6 +466,15 @@ void cpucblk_zrequest_rhs_fwd_cleanup( solve_step_e  solve_step,
                                        SolverMatrix *solvmtx,
                                        pastix_rhs_t  rhsb );
 
+void cpucblk_zmpi_rhs_bwd_progress( solve_step_e        solve_step,
+                                    pastix_solv_mode_t  mode,
+                                    int                 side,
+                                    int                 uplo,
+                                    int                 trans,
+                                    int                 diag,
+                                    SolverMatrix       *solvmtx,
+                                    pastix_rhs_t        rhsb,
+                                    int                 threadid );
 void cpucblk_zrelease_rhs_bwd_deps( solve_step_e      solve_step,
                                     SolverMatrix     *solvmtx,
                                     pastix_rhs_t      rhsb,

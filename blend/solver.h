@@ -510,7 +510,8 @@ void solverRecvExit( SolverMatrix      *solvmtx );
 
 void solverRhsRecvInit( solve_step_e       solve_step,
                         SolverMatrix      *solvmtx,
-                        pastix_coeftype_t  flttype );
+                        pastix_coeftype_t  flttype,
+                        pastix_rhs_t       rhsb   );
 void solverRhsRecvExit( SolverMatrix      *solvmtx );
 
 /*

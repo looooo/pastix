@@ -439,6 +439,11 @@ solverRequestInit( solve_step_e  solve_step,
     else {
         reqnbr = solvmtx->faninnbr + 1;
     }
+
+    /* Restore recv and fanin nbr */
+    solvmtx->fanincnt = solvmtx->faninnbr;
+    solvmtx->recvcnt  = solvmtx->recvnbr;
+
     solvmtx->reqnbr  = reqnbr;
     solvmtx->reqlock = PASTIX_ATOMIC_UNLOCKED;
 
@@ -615,11 +620,16 @@ solverRhsRecvMax( SolverMatrix *solvmtx )
  *          @arg PastixComplex32
  *          @arg PastixComplex64
  *
+ * @param[inout] rhsb
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
+ *
  *******************************************************************************/
 void
 solverRhsRecvInit( solve_step_e      solve_step,
                    SolverMatrix     *solvmtx,
-                   pastix_coeftype_t flttype )
+                   pastix_coeftype_t flttype,
+                   pastix_rhs_t      rhsb  )
 {
     /* Computes the max size (in bytes) for the communication buffer */
     pastix_int_t size;
@@ -630,7 +640,7 @@ solverRhsRecvInit( solve_step_e      solve_step,
         return;
     }
 
-    size = pastix_size_of(flttype) * solverRhsRecvMax( solvmtx );
+    size = pastix_size_of(flttype) * solverRhsRecvMax( solvmtx ) * rhsb->n;
 
     /* Init communication */
     MALLOC_INTERN( solvmtx->rcoeftab, size, char );
