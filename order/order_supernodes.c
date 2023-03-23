@@ -45,9 +45,9 @@
  *          The integer array of parameters.
  *
  * @param[in] do_schur
- *          If do_schur is not zero, the last cblk represents the schur. Thus, 
+ *          If do_schur is not zero, the last cblk represents the schur. Thus,
  *          neither k-way nor projection applied on it. If do_schur is zero,
- *          both k-way and projection can be performed everywhere. 
+ *          both k-way and projection can be performed everywhere.
  *
  *******************************************************************************
  *
@@ -492,8 +492,7 @@ orderSupernodes( const pastix_graph_t *graph,
 
     /* Update the rangtab */
     free(order->rangtab);
-    new_rangtab = realloc( new_rangtab, (new_cblknbr+1) * sizeof( pastix_int_t ) );
-    order->rangtab = new_rangtab;
+    order->rangtab = realloc( new_rangtab, (new_cblknbr+1) * sizeof( pastix_int_t ) );
 
     order->cblknbr = new_cblknbr;
     order->selevtx = realloc( new_selevtx, new_cblknbr * sizeof(int8_t) );
