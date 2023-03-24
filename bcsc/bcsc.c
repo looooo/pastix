@@ -605,8 +605,12 @@ bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
             MPI_Bcast( &n, 1, PASTIX_MPI_INT, c, solvmtx->solv_comm );
 
             if ( n > nr ) {
+                pastix_int_t *tmp;
                 nr = n;
-                col2cblk_bcast = (pastix_int_t *)realloc( col2cblk_bcast, nr * sizeof(pastix_int_t) );
+                tmp = (pastix_int_t *)realloc( col2cblk_bcast, nr * sizeof(pastix_int_t) );
+                if ( tmp != NULL ) {
+                    col2cblk_bcast = tmp;
+                }
             }
 
             colcount = 0;
@@ -639,8 +643,12 @@ bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
             MPI_Bcast( &n, 1, PASTIX_MPI_INT, c, solvmtx->solv_comm );
 
             if ( n > nr ) {
+                pastix_int_t *tmp;
                 nr = n;
-                col2cblk_bcast = (pastix_int_t *)realloc( col2cblk_bcast, nr * sizeof(pastix_int_t) );
+                tmp = (pastix_int_t *)realloc( col2cblk_bcast, nr * sizeof(pastix_int_t) );
+                if ( tmp != NULL ) {
+                    col2cblk_bcast = tmp;
+                }
             }
 
             if ( n == 0 ) {

@@ -189,7 +189,7 @@ pastixRhsSchurGet( const pastix_data_t *pastix_data,
     const SolverMatrix *solvmtx;
     const SolverCblk   *cblk;
     pastix_int_t        mschur;
-    char               *bptr;
+    void               *bptr;
     int                 rc;
 
     if ( pastix_data == NULL ) {
@@ -224,8 +224,7 @@ pastixRhsSchurGet( const pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    bptr = rhsB->b;
-    bptr += cblk->lcolidx * pastix_size_of( rhsB->flttype );
+    bptr = ((char *)rhsB->b) + cblk->lcolidx * pastix_size_of( rhsB->flttype );
 
     switch( rhsB->flttype ) {
     case SpmComplex64:

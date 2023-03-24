@@ -77,14 +77,14 @@ pastix_starpu_filter_interface( void                      *father_interface,
 
 #if defined(PASTIX_STARPU_INTERFACE_DEBUG)
     fprintf( stderr,
-             "blok (%9s, size=%8ld, nbblok=%2ld )\n",
+             "blok (%9s, size=%8zu, nbblok=%2ld )\n",
              child->cblk->cblktype & CBLK_COMPRESSED ? "Low-rank" : "Full-rank",
              child->allocsize, (long)(child->nbblok) );
 #endif
 
     assert( child->allocsize > 0 );
 
-    child->dataptr = father->dataptr + childoff;
+    child->dataptr = ((char*)father->dataptr) + childoff;
 
     (void)nchunks;
 }

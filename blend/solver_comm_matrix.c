@@ -94,7 +94,7 @@ solverComMatrixGather( SolverMatrix *solvmtx )
 
         int i;
         for ( i = 0; i < ( solvmtx->clustnbr * solvmtx->clustnbr ); i++ ) {
-            fprintf( file, "%lu, ", com_matrix[i] );
+            fprintf( file, "%zu, ", com_matrix[i] );
             if ( ( ( i + 1 ) % solvmtx->clustnbr ) == 0 ) {
                 fprintf( file, "\n" );
             }
