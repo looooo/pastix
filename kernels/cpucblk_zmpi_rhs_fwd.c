@@ -612,7 +612,7 @@ cpucblk_zrequest_rhs_fwd_handle( solve_step_e      solve_step,
  *          Id of the thread calling this method.
  *
  *******************************************************************************/
-static inline void
+void
 cpucblk_zmpi_rhs_fwd_progress( solve_step_e  solve_step,
                                SolverMatrix *solvmtx,
                                pastix_rhs_t  rhsb,
