@@ -34,6 +34,18 @@
 #endif
 
 /**
+ * @brief Arguments for the solve.
+ */
+struct args_ztrsm_t
+{
+    pastix_data_t    *pastix_data;
+    enums_trsm_t     *enum_list;
+    sopalin_data_t   *sopalin_data;
+    pastix_rhs_t      rhsb;
+    volatile int32_t  taskcnt;
+};
+
+/**
  *******************************************************************************
  *
  * @brief Applies the Sequential Forward or Backward solve.
@@ -43,21 +55,8 @@
  * @param[in] pastix_data
  *          The pastix_data structure.
  *
- * @param[in] side
- *          Specify whether the off-diagonal blocks appear on the left or right
- *          in the equation. It has to be either PastixLeft or PastixRight.
- *
- * @param[in] uplo
- *          Specify whether the off-diagonal blocks are upper or lower
- *          triangular. It has to be either PastixUpper or PastixLower.
- *
- * @param[in] trans
- *          Specify the transposition used for the off-diagonal blocks. It has
- *          to be either PastixTrans or PastixConjTrans.
- *
- * @param[in] diag
- *          Specify if the off-diagonal blocks are unit triangular. It has to be
- *          either PastixUnit or PastixNonUnit.
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[in] sopalin_data
  *          The SolverMatrix structure from PaStiX.
@@ -69,26 +68,17 @@
  *******************************************************************************/
 void
 sequential_ztrsm( pastix_data_t  *pastix_data,
-                  int             side,
-                  int             uplo,
-                  int             trans,
-                  int             diag,
+                  enums_trsm_t   *enums,
                   sopalin_data_t *sopalin_data,
                   pastix_rhs_t    rhsb )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
     SolverCblk   *cblk;
-    pastix_int_t i, cblknbr;
-
-    pastix_solv_mode_t mode = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
+    pastix_int_t  i, cblknbr;
 
     /* Backward like */
-    if ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
-         ( (side == PastixLeft)  && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
-         ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
-         ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) )
-    {
-        cblknbr = (mode == PastixSolvModeLocal) ? datacode->cblkschur : datacode->cblknbr;
+    if ( enums->solve_step == PastixSolveBackward ) {
+        cblknbr = (enums->mode == PastixSolvModeLocal) ? datacode->cblkschur : datacode->cblknbr;
 
         cblk = datacode->cblktab + cblknbr - 1;
         for (i=0; i<cblknbr; i++, cblk--){
@@ -101,23 +91,15 @@ sequential_ztrsm( pastix_data_t  *pastix_data,
                 cpucblk_zrecv_rhs_backward( datacode, cblk, rhsb );
             }
 
-            solve_cblk_ztrsmsp_backward( mode, side, uplo, trans, diag,
-                                         datacode, cblk, rhsb );
+            solve_cblk_ztrsmsp_backward( enums, datacode, cblk, rhsb );
         }
     }
     /* Forward like */
-    else
-        /**
-         * ( (side == PastixRight) && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
-         * ( (side == PastixRight) && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
-         * ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
-         * ( (side == PastixLeft)  && (uplo == PastixLower) && (trans == PastixNoTrans) )
-         */
-    {
+    else {
         pastix_complex64_t *work;
         MALLOC_INTERN( work, datacode->colmax * rhsb->n, pastix_complex64_t );
 
-        cblknbr = (mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
+        cblknbr = (enums->mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
         cblk = datacode->cblktab;
         for (i=0; i<cblknbr; i++, cblk++){
             if( cblk->cblktype & CBLK_FANIN ){
@@ -130,8 +112,7 @@ sequential_ztrsm( pastix_data_t  *pastix_data,
                 continue;
             }
 
-            solve_cblk_ztrsmsp_forward( mode, side, uplo, trans, diag,
-                                        datacode, cblk, rhsb );
+            solve_cblk_ztrsmsp_forward( enums, datacode, cblk, rhsb );
         }
 
         memFree_null(work);
@@ -146,19 +127,8 @@ sequential_ztrsm( pastix_data_t  *pastix_data,
         }
     }
 #endif
+    (void)pastix_data;
 }
-
-/**
- * @brief Arguments for the Static solve.
- */
-struct args_ztrsm_t
-{
-    pastix_data_t   *pastix_data;
-    int              side, uplo, trans, diag;
-    sopalin_data_t  *sopalin_data;
-    pastix_rhs_t     rhsb;
-    volatile int32_t taskcnt;
-};
 
 /**
  *******************************************************************************
@@ -180,15 +150,10 @@ thread_ztrsm_static( isched_thread_t *ctx,
                      void            *args )
 {
     struct args_ztrsm_t *arg          = (struct args_ztrsm_t*)args;
-    pastix_data_t       *pastix_data  = arg->pastix_data;
     sopalin_data_t      *sopalin_data = arg->sopalin_data;
     SolverMatrix        *datacode     = sopalin_data->solvmtx;
     pastix_rhs_t         rhsb         = arg->rhsb;
-    int                  side         = arg->side;
-    int                  uplo         = arg->uplo;
-    int                  trans        = arg->trans;
-    int                  diag         = arg->diag;
-    pastix_solv_mode_t   mode         = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
+    enums_trsm_t        *enums        = arg->enum_list;
     pastix_int_t         thrd_size    = (pastix_int_t)ctx->global_ctx->world_size;
     pastix_int_t         thrd_rank    = (pastix_int_t)ctx->rank;
     SolverCblk          *cblk;
@@ -208,15 +173,11 @@ thread_ztrsm_static( isched_thread_t *ctx,
     tasktab = datacode->ttsktab[thrd_rank];
 
     /* Backward like */
-    if ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
-         ( (side == PastixLeft)  && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
-         ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
-         ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) )
-    {
+    if ( enums->solve_step == PastixSolveBackward ) {
         /* Init ctrbcnt in parallel */
         cblk = datacode->cblktab + cblkfirst;
         for (ii=cblkfirst; ii<cblklast; ii++, cblk++) {
-            if ( (cblk->cblktype & CBLK_IN_SCHUR) && (mode != PastixSolvModeSchur) ) {
+            if ( (cblk->cblktype & CBLK_IN_SCHUR) && (enums->mode != PastixSolvModeSchur) ) {
                 cblk->ctrbcnt = 0;
             }
             else {
@@ -231,26 +192,16 @@ thread_ztrsm_static( isched_thread_t *ctx,
             cblk = datacode->cblktab + t->cblknum;
 
             /* Wait for incoming dependencies */
-            if ( cpucblk_zincoming_rhs_bwd_deps( thrd_rank, PastixSolveBackward,
-                                                 mode, side, uplo, trans, diag,
-                                                 datacode, cblk, rhsb ) ) {
+            if ( cpucblk_zincoming_rhs_bwd_deps( thrd_rank, enums, datacode, cblk, rhsb ) ) {
                 continue;
             }
 
             /* Computes */
-            solve_cblk_ztrsmsp_backward( mode, side, uplo, trans, diag,
-                                         datacode, cblk, rhsb );
+            solve_cblk_ztrsmsp_backward( enums, datacode, cblk, rhsb );
         }
     }
     /* Forward like */
-    else
-        /**
-         * ( (side == PastixRight) && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
-         * ( (side == PastixRight) && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
-         * ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
-         * ( (side == PastixLeft)  && (uplo == PastixLower) && (trans == PastixNoTrans) )
-         */
-    {
+    else {
         /* Init ctrbcnt in parallel */
         cblk = datacode->cblktab + cblkfirst;
         for (ii=cblkfirst; ii<cblklast; ii++, cblk++) {
@@ -264,18 +215,17 @@ thread_ztrsm_static( isched_thread_t *ctx,
             cblk = datacode->cblktab + t->cblknum;
 
             if ( (cblk->cblktype & CBLK_IN_SCHUR) &&
-                 (mode != PastixSolvModeSchur) ) {
+                 (enums->mode != PastixSolvModeSchur) ) {
                 continue;
             }
 
             /* Wait for incoming dependencies */
-            if ( cpucblk_zincoming_rhs_fwd_deps( thrd_rank, PastixSolveForward,
+            if ( cpucblk_zincoming_rhs_fwd_deps( thrd_rank, enums,
                                                  datacode, cblk, rhsb ) ) {
                 continue;
             }
             /* Computes */
-            solve_cblk_ztrsmsp_forward( mode, side, uplo, trans, diag,
-                                        datacode, cblk, rhsb );
+            solve_cblk_ztrsmsp_forward( enums, datacode, cblk, rhsb );
         }
     }
 }
@@ -290,21 +240,8 @@ thread_ztrsm_static( isched_thread_t *ctx,
  * @param[in] pastix_data
  *          The pastix_data structure.
  *
- * @param[in] side
- *          Specify whether the off-diagonal blocks appear on the left or right
- *          in the equation. It has to be either PastixLeft or PastixRight.
- *
- * @param[in] uplo
- *          Specify whether the off-diagonal blocks are upper or lower
- *          triangular. It has to be either PastixUpper or PastixLower.
- *
- * @param[in] trans
- *          Specify the transposition used for the off-diagonal blocks. It has
- *          to be either PastixTrans or PastixConjTrans.
- *
- * @param[in] diag
- *          Specify if the off-diagonal blocks are unit triangular. It has to be
- *          either PastixUnit or PastixNonUnit.
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[in] sopalin_data
  *          The SolverMatrix structure from PaStiX.
@@ -316,17 +253,13 @@ thread_ztrsm_static( isched_thread_t *ctx,
  *******************************************************************************/
 void
 static_ztrsm( pastix_data_t  *pastix_data,
-              int             side,
-              int             uplo,
-              int             trans,
-              int             diag,
+              enums_trsm_t   *enums,
               sopalin_data_t *sopalin_data,
               pastix_rhs_t    rhsb  )
 {
-    struct args_ztrsm_t args_ztrsm = { pastix_data, side, uplo, trans, diag, sopalin_data, rhsb, 0 };
+    struct args_ztrsm_t args_ztrsm = { pastix_data, enums, sopalin_data, rhsb, 0 };
     isched_parallel_call( pastix_data->isched, thread_ztrsm_static, &args_ztrsm );
 }
-
 
 /**
  *******************************************************************************
@@ -351,12 +284,8 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
     pastix_data_t       *pastix_data   = arg->pastix_data;
     sopalin_data_t      *sopalin_data  = arg->sopalin_data;
     SolverMatrix        *datacode      = sopalin_data->solvmtx;
+    enums_trsm_t        *enums         = arg->enum_list;
     pastix_rhs_t         rhsb          = arg->rhsb;
-    int                  side          = arg->side;
-    int                  uplo          = arg->uplo;
-    int                  trans         = arg->trans;
-    int                  diag          = arg->diag;
-    pastix_solv_mode_t   mode          = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
     pastix_int_t         thrd_size     = (pastix_int_t)ctx->global_ctx->world_size;
     pastix_int_t         thrd_rank     = (pastix_int_t)ctx->rank;
     int32_t              dest          = (thrd_rank + 1)%thrd_size;
@@ -383,15 +312,11 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
     pqueueInit( computeQueue, tasknbr );
 
     /* Backward like */
-    if ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
-         ( (side == PastixLeft)  && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
-         ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
-         ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) )
-    {
+    if ( enums->solve_step == PastixSolveBackward ) {
         /* Init ctrbcnt in parallel */
         cblk = datacode->cblktab + cblkfirst;
         for (ii=cblkfirst; ii<cblklast; ii++, cblk++) {
-            if ( (cblk->cblktype & CBLK_IN_SCHUR) && (mode != PastixSolvModeSchur) ) {
+            if ( (cblk->cblktype & CBLK_IN_SCHUR) && (enums->mode != PastixSolvModeSchur) ) {
                 cblk->ctrbcnt = 0;
             }
             else {
@@ -417,8 +342,7 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
 #if defined(PASTIX_WITH_MPI)
             /* Nothing to do, let's make progress on communications */
             if ( ( pastix_data->inter_node_procnbr > 1 ) && ( cblknum == -1 ) ) {
-                cpucblk_zmpi_rhs_bwd_progress( PastixSolveBackward, mode, side, uplo, trans, diag,
-                                               datacode, rhsb, thrd_rank );
+                cpucblk_zmpi_rhs_bwd_progress( enums, datacode, rhsb, thrd_rank );
                 cblknum = pqueuePop(computeQueue);
             }
 #endif
@@ -429,8 +353,7 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
                     pastix_atomic_sub_32b( &(arg->taskcnt), local_taskcnt );
                     local_taskcnt = 0;
                 }
-                cblknum = stealQueue( datacode, thrd_rank, &dest,
-                                      thrd_size );
+                cblknum = stealQueue( datacode, thrd_rank, &dest, thrd_size );
             }
 
             /* Still no job, let's loop again */
@@ -442,20 +365,12 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
             cblk->threadid = thrd_rank;
 
             /* Computes */
-            solve_cblk_ztrsmsp_backward( mode, side, uplo, trans, diag,
-                                         datacode, cblk, rhsb );
+            solve_cblk_ztrsmsp_backward( enums, datacode, cblk, rhsb );
             local_taskcnt++;
         }
     }
     /* Forward like */
-    else
-        /**
-         * ( (side == PastixRight) && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
-         * ( (side == PastixRight) && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
-         * ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
-         * ( (side == PastixLeft)  && (uplo == PastixLower) && (trans == PastixNoTrans) )
-         */
-    {
+    else {
         /* Init ctrbcnt in parallel */
         cblk = datacode->cblktab + cblkfirst;
         for (ii=cblkfirst; ii<cblklast; ii++, cblk++) {
@@ -480,7 +395,7 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
 #if defined(PASTIX_WITH_MPI)
             /* Nothing to do, let's make progress on communications */
             if ( ( pastix_data->inter_node_procnbr > 1 ) && ( cblknum == -1 ) ) {
-                cpucblk_zmpi_rhs_fwd_progress( PastixSolveForward, datacode, rhsb, thrd_rank );
+                cpucblk_zmpi_rhs_fwd_progress( enums, datacode, rhsb, thrd_rank );
                 cblknum = pqueuePop(computeQueue);
             }
 #endif
@@ -504,13 +419,12 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
             cblk->threadid = thrd_rank;
 
             if ( (cblk->cblktype & CBLK_IN_SCHUR) &&
-                 (mode != PastixSolvModeSchur) ) {
+                 (enums->mode != PastixSolvModeSchur) ) {
                 continue;
             }
 
             /* Computes */
-            solve_cblk_ztrsmsp_forward( mode, side, uplo, trans, diag,
-                                        datacode, cblk, rhsb );
+            solve_cblk_ztrsmsp_forward( enums, datacode, cblk, rhsb );
             local_taskcnt++;
         }
     }
@@ -519,6 +433,8 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
     assert( computeQueue->used == 0 );
     pqueueExit( computeQueue );
     memFree_null( computeQueue );
+
+    (void)pastix_data;
 }
 
 /**
@@ -531,21 +447,8 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
  * @param[in] pastix_data
  *          The pastix_data structure.
  *
- * @param[in] side
- *          Specify whether the off-diagonal blocks appear on the left or right
- *          in the equation. It has to be either PastixLeft or PastixRight.
- *
- * @param[in] uplo
- *          Specify whether the off-diagonal blocks are upper or lower
- *          triangular. It has to be either PastixUpper or PastixLower.
- *
- * @param[in] trans
- *          Specify the transposition used for the off-diagonal blocks. It has
- *          to be either PastixTrans or PastixConjTrans.
- *
- * @param[in] diag
- *          Specify if the off-diagonal blocks are unit triangular. It has to be
- *          either PastixUnit or PastixNonUnit.
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[in] sopalin_data
  *          The SolverMatrix structure from PaStiX.
@@ -557,24 +460,16 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
  *******************************************************************************/
 void
 dynamic_ztrsm( pastix_data_t  *pastix_data,
-               int             side,
-               int             uplo,
-               int             trans,
-               int             diag,
+               enums_trsm_t   *enums,
                sopalin_data_t *sopalin_data,
                pastix_rhs_t    rhsb  )
 {
     SolverMatrix        *datacode   = sopalin_data->solvmtx;
     int32_t              taskcnt    = datacode->tasknbr - (datacode->cblknbr - datacode->cblkschur);
-    struct args_ztrsm_t  args_ztrsm = { pastix_data, side, uplo, trans, diag,
-                                        sopalin_data, rhsb, taskcnt };
+    struct args_ztrsm_t  args_ztrsm = { pastix_data, enums, sopalin_data, rhsb, taskcnt };
 
     /* Reintroduce Schur tasks in the counter for backward */
-    if ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
-         ( (side == PastixLeft)  && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
-         ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
-         ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) )
-    {
+    if ( enums->solve_step == PastixSolveBackward ) {
         args_ztrsm.taskcnt += (datacode->cblknbr - datacode->cblkschur);
     }
 
@@ -598,21 +493,8 @@ dynamic_ztrsm( pastix_data_t  *pastix_data,
  * @param[in] pastix_data
  *          The pastix_data structure.
  *
- * @param[in] side
- *          Specify whether the off-diagonal blocks appear on the left or right
- *          in the equation. It has to be either PastixLeft or PastixRight.
- *
- * @param[in] uplo
- *          Specify whether the off-diagonal blocks are upper or lower
- *          triangular. It has to be either PastixUpper or PastixLower.
- *
- * @param[in] trans
- *          Specify the transposition used for the off-diagonal blocks. It has
- *          to be either PastixTrans or PastixConjTrans.
- *
- * @param[in] diag
- *          Specify if the off-diagonal blocks are unit triangular. It has to be
- *          either PastixUnit or PastixNonUnit.
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[in] sopalin_data
  *          The SolverMatrix structure from PaStiX.
@@ -624,52 +506,35 @@ dynamic_ztrsm( pastix_data_t  *pastix_data,
  *******************************************************************************/
 void
 runtime_ztrsm( pastix_data_t  *pastix_data,
-               int             side,
-               int             uplo,
-               int             trans,
-               int             diag,
+               enums_trsm_t   *enums,
                sopalin_data_t *sopalin_data,
-               pastix_rhs_t    rhsb  )
+               pastix_rhs_t    rhsb )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
-    SolverCblk *cblk;
-    pastix_int_t i, cblknbr;
+    SolverCblk   *cblk;
+    pastix_int_t  i, cblknbr;
 
     /* Collect the matrix on node 0 */
     coeftab_gather( datacode, datacode->solv_comm, 0, PastixComplex64 );
 
     if ( sopalin_data->solvmtx->clustnum == 0 ) {
-        pastix_solv_mode_t mode = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
 
         /* Backward like */
-        if ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
-             ( (side == PastixLeft)  && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
-             ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
-             ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) )
-        {
-            cblknbr = (mode == PastixSolvModeLocal) ? datacode->cblkschur : datacode->cblknbr;
+        if ( enums->solve_step == PastixSolveBackward ) {
+            cblknbr = (enums->mode == PastixSolvModeLocal) ? datacode->cblkschur : datacode->cblknbr;
 
             cblk = datacode->cblktab + cblknbr - 1;
             for ( i=0; i<cblknbr; i++, cblk-- ) {
                 assert( !(cblk->cblktype & (CBLK_FANIN | CBLK_RECV)) );
-                solve_cblk_ztrsmsp_backward( mode, side, uplo, trans, diag,
-                                             datacode, cblk, rhsb );
+                solve_cblk_ztrsmsp_backward( enums, datacode, cblk, rhsb );
             }
         }
         /* Forward like */
-        else
-            /**
-             * ( (side == PastixRight) && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
-             * ( (side == PastixRight) && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
-             * ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
-             * ( (side == PastixLeft)  && (uplo == PastixLower) && (trans == PastixNoTrans) )
-             */
-        {
-            cblknbr = (mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
+        else {
+            cblknbr = (enums->mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
             cblk = datacode->cblktab;
             for (i=0; i<cblknbr; i++, cblk++){
-                solve_cblk_ztrsmsp_forward( mode, side, uplo, trans, diag,
-                                            datacode, cblk, rhsb );
+                solve_cblk_ztrsmsp_forward( enums, datacode, cblk, rhsb );
             }
         }
 
@@ -685,7 +550,7 @@ runtime_ztrsm( pastix_data_t  *pastix_data,
 #endif
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-static void (*ztrsm_table[5])(pastix_data_t *, int, int, int, int,
+static void (*ztrsm_table[5])(pastix_data_t *, enums_trsm_t *,
                               sopalin_data_t *, pastix_rhs_t) =
 {
     sequential_ztrsm,
@@ -703,6 +568,47 @@ static void (*ztrsm_table[5])(pastix_data_t *, int, int, int, int,
     dynamic_ztrsm
 };
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
+
+/**
+ *******************************************************************************
+ *
+ * @brief Computes the current solve step.
+ *
+ *******************************************************************************
+ *
+ * @param[in] side
+ *          Specify whether the off-diagonal blocks appear on the left or right
+ *          in the equation. It has to be either PastixLeft or PastixRight.
+ *
+ * @param[in] uplo
+ *          Specify whether the off-diagonal blocks are upper or lower
+ *          triangular. It has to be either PastixUpper or PastixLower.
+ *
+ * @param[in] trans
+ *          Specify the transposition used for the off-diagonal blocks. It has
+ *          to be either PastixTrans or PastixConjTrans.
+ *
+ *******************************************************************************
+ *
+ * @return PastixSolveForward or PastixSolveBackward
+ *
+ *******************************************************************************/
+static inline solve_step_t
+compute_solve_step( pastix_side_t  side,
+                    pastix_uplo_t  uplo,
+                    pastix_trans_t trans )
+{
+    if ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
+         ( (side == PastixLeft)  && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
+         ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
+         ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) )
+    {
+        return PastixSolveBackward;
+    }
+    else {
+        return PastixSolveForward;
+    }
+}
 
 /**
  *******************************************************************************
@@ -741,21 +647,25 @@ static void (*ztrsm_table[5])(pastix_data_t *, int, int, int, int,
  *******************************************************************************/
 void
 sopalin_ztrsm( pastix_data_t  *pastix_data,
-               int             side,
-               int             uplo,
-               int             trans,
-               int             diag,
+               pastix_side_t   side,
+               pastix_uplo_t   uplo,
+               pastix_trans_t  trans,
+               pastix_diag_t   diag,
                sopalin_data_t *sopalin_data,
                pastix_rhs_t    rhsb  )
 {
     int sched = pastix_data->iparm[IPARM_SCHEDULER];
-    int solve_step = ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
-                       ( (side == PastixLeft)  && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
-                       ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
-                       ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) ) ?
-                      PastixSolveBackward : PastixSolveForward;
-    void (*ztrsm)( pastix_data_t *, int, int, int, int,
+    void (*ztrsm)( pastix_data_t *, enums_trsm_t *,
                    sopalin_data_t *, pastix_rhs_t ) = ztrsm_table[ sched ];
+    solve_step_t  solve_step = compute_solve_step( side, uplo, trans );
+    enums_trsm_t *enum_list = malloc( sizeof( enums_trsm_t ) );
+
+    enum_list->solve_step = solve_step;
+    enum_list->mode       = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
+    enum_list->side       = side;
+    enum_list->uplo       = uplo;
+    enum_list->trans      = trans;
+    enum_list->diag       = diag;
 
     if (ztrsm == NULL) {
         ztrsm = static_ztrsm;
@@ -778,16 +688,16 @@ sopalin_ztrsm( pastix_data_t  *pastix_data,
         solverRhsRecvInit( solve_step, sopalin_data->solvmtx, PastixComplex64, rhsb );
     }
 
-    ztrsm( pastix_data, side, uplo, trans, diag, sopalin_data, rhsb );
+    ztrsm( pastix_data, enum_list, sopalin_data, rhsb );
 
     if ( (sched == PastixSchedStatic)     ||
          (sched == PastixSchedDynamic) )
     {
         if ( solve_step == PastixSolveForward ) {
-            cpucblk_zrequest_rhs_fwd_cleanup( solve_step, sched, sopalin_data->solvmtx, rhsb );
+            cpucblk_zrequest_rhs_fwd_cleanup( enum_list, sched, sopalin_data->solvmtx, rhsb );
         }
         else {
-            cpucblk_zrequest_rhs_bwd_cleanup( solve_step, sched, sopalin_data->solvmtx, rhsb );
+            cpucblk_zrequest_rhs_bwd_cleanup( enum_list, sched, sopalin_data->solvmtx, rhsb );
         }
         solverRequestExit( sopalin_data->solvmtx );
         solverRhsRecvExit( sopalin_data->solvmtx );
@@ -796,6 +706,5 @@ sopalin_ztrsm( pastix_data_t  *pastix_data,
 #if defined(PASTIX_WITH_MPI)
    MPI_Barrier( pastix_data->inter_node_comm );
 #endif
-
-    (void)solve_step;
+    free(enum_list);
 }

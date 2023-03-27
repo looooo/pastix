@@ -447,53 +447,43 @@ void cpucblk_zisend_rhs_bwd( SolverMatrix *solvmtx,
                              pastix_rhs_t  rhsb,
                              SolverCblk   *cblk );
 #endif
-void cpucblk_zmpi_rhs_fwd_progress( solve_step_e  solve_step,
-                                    SolverMatrix *solvmtx,
-                                    pastix_rhs_t  rhsb,
-                                    int           threadid );
-void cpucblk_zrelease_rhs_fwd_deps( solve_step_e      solve_step,
+void cpucblk_zmpi_rhs_fwd_progress( enums_trsm_t  *enums,
+                                    SolverMatrix  *solvmtx,
+                                    pastix_rhs_t   rhsb,
+                                    int            threadid );
+void cpucblk_zrelease_rhs_fwd_deps( enums_trsm_t     *enums,
                                     SolverMatrix     *solvmtx,
                                     pastix_rhs_t      rhsb,
                                     const SolverCblk *cblk,
                                     SolverCblk       *fcbk );
-int cpucblk_zincoming_rhs_fwd_deps( int           rank,
-                                    solve_step_e  solve_step,
-                                    SolverMatrix *solvmtx,
-                                    SolverCblk   *cblk,
-                                    pastix_rhs_t  rhsb );
-void cpucblk_zrequest_rhs_fwd_cleanup( solve_step_e  solve_step,
-                                       pastix_int_t  sched,
-                                       SolverMatrix *solvmtx,
-                                       pastix_rhs_t  rhsb );
+int cpucblk_zincoming_rhs_fwd_deps( int            rank,
+                                    enums_trsm_t  *enums,
+                                    SolverMatrix  *solvmtx,
+                                    SolverCblk    *cblk,
+                                    pastix_rhs_t   rhsb );
+void cpucblk_zrequest_rhs_fwd_cleanup( enums_trsm_t  *enums,
+                                       pastix_int_t   sched,
+                                       SolverMatrix  *solvmtx,
+                                       pastix_rhs_t   rhsb );
 
-void cpucblk_zmpi_rhs_bwd_progress( solve_step_e        solve_step,
-                                    pastix_solv_mode_t  mode,
-                                    int                 side,
-                                    int                 uplo,
-                                    int                 trans,
-                                    int                 diag,
-                                    SolverMatrix       *solvmtx,
-                                    pastix_rhs_t        rhsb,
-                                    int                 threadid );
-void cpucblk_zrelease_rhs_bwd_deps( solve_step_e      solve_step,
+void cpucblk_zmpi_rhs_bwd_progress( enums_trsm_t  *enums,
+                                    SolverMatrix  *solvmtx,
+                                    pastix_rhs_t   rhsb,
+                                    int            threadid );
+void cpucblk_zrelease_rhs_bwd_deps( enums_trsm_t     *enums,
                                     SolverMatrix     *solvmtx,
                                     pastix_rhs_t      rhsb,
                                     const SolverCblk *cblk,
                                     SolverCblk       *fcbk );
-int cpucblk_zincoming_rhs_bwd_deps( int                rank,
-                                    solve_step_e       solve_step,
-                                    pastix_solv_mode_t mode,
-                                    int                side,
-                                    int                uplo,
-                                    int                trans,
-                                    int                diag,
-                                    SolverMatrix      *solvmtx,
-                                    SolverCblk        *cblk,
-                                    pastix_rhs_t       rhsb );
-void cpucblk_zrequest_rhs_bwd_cleanup( solve_step_e  solve_step,
-                                       pastix_int_t  sched,
-                                       SolverMatrix *solvmtx,
-                                       pastix_rhs_t  rhsb );
+int cpucblk_zincoming_rhs_bwd_deps( int            rank,
+                                    enums_trsm_t  *enums,
+                                    SolverMatrix  *solvmtx,
+                                    SolverCblk    *cblk,
+                                    pastix_rhs_t   rhsb );
+void cpucblk_zrequest_rhs_bwd_cleanup( enums_trsm_t  *enums,
+                                       pastix_int_t   sched,
+                                       SolverMatrix  *solvmtx,
+                                       pastix_rhs_t   rhsb );
 void cpucblk_zsend_rhs_forward( const SolverMatrix *solvmtx,
                                 SolverCblk         *cblk,
                                 pastix_rhs_t        b );
@@ -561,22 +551,14 @@ void solve_blok_zgemm( pastix_side_t             side,
                        pastix_complex64_t       *C,
                        pastix_int_t              ldc );
 
-void solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
-                                 pastix_side_t       side,
-                                 pastix_uplo_t       uplo,
-                                 pastix_trans_t      trans,
-                                 pastix_diag_t       diag,
-                                 SolverMatrix       *datacode,
-                                 const SolverCblk   *cblk,
-                                 pastix_rhs_t        b );
-void solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
-                                  pastix_side_t       side,
-                                  pastix_uplo_t       uplo,
-                                  pastix_trans_t      trans,
-                                  pastix_diag_t       diag,
-                                  SolverMatrix       *datacode,
-                                  SolverCblk         *cblk,
-                                  pastix_rhs_t        b );
+void solve_cblk_ztrsmsp_forward( enums_trsm_t     *enums,
+                                 SolverMatrix     *datacode,
+                                 const SolverCblk *cblk,
+                                 pastix_rhs_t      b );
+void solve_cblk_ztrsmsp_backward( enums_trsm_t *enums,
+                                  SolverMatrix *datacode,
+                                  SolverCblk   *cblk,
+                                  pastix_rhs_t  b );
 
 void solve_cblk_zdiag( const SolverCblk   *cblk,
                        int                 nrhs,

@@ -72,11 +72,24 @@ typedef struct simuctrl_s SimuCtrl;
 /**
  * @brief Tags used in MPI communications.
  */
-typedef enum solve_step_ {
+typedef enum solve_step_e {
     PastixSolveForward,
     PastixSolveBackward,
     PastixFacto,
-} solve_step_e;
+} solve_step_t;
+
+/**
+ * @brief Arguments for the solve.
+ */
+typedef struct enums_trsm_s
+{
+    solve_step_t        solve_step;
+    pastix_solv_mode_t  mode;
+    pastix_side_t       side;
+    pastix_uplo_t       uplo;
+    pastix_trans_t      trans;
+    pastix_diag_t       diag;
+} enums_trsm_t;
 
 /**
  * @brief Solver recv block structure.
@@ -499,7 +512,7 @@ int           solverDraw      ( const SolverMatrix *solvptr,
                                 const char         *directory );
 void          solverPrintStats( const SolverMatrix *solvptr );
 
-void solverRequestInit( solve_step_e  solve_step,
+void solverRequestInit( solve_step_t  solve_step,
                         SolverMatrix *solvmtx );
 void solverRequestExit( SolverMatrix *solvmtx );
 
@@ -508,7 +521,7 @@ void solverRecvInit( pastix_coefside_t  side,
                      pastix_coeftype_t  flttype );
 void solverRecvExit( SolverMatrix      *solvmtx );
 
-void solverRhsRecvInit( solve_step_e       solve_step,
+void solverRhsRecvInit( solve_step_t       solve_step,
                         SolverMatrix      *solvmtx,
                         pastix_coeftype_t  flttype,
                         pastix_rhs_t       rhsb   );

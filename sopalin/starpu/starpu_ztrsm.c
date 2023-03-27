@@ -32,28 +32,10 @@
  * @brief Apply a forward solve related to one cblk to all the right hand side.
  *        (StarPU version)
  *
- ******************************************************************************* *
+ ********************************************************************************
  *
- * @param[in] mode
- *          Specify whether the schur complement and interface are applied to
- *          the right-hand-side. It has to be either PastixSolvModeLocal,
- *          PastixSolvModeInterface or PastixSolvModeSchur.
- *
- * @param[in] side
- *          Specify whether the off-diagonal blocks appear on the left or right
- *          in the equation. It has to be either PastixLeft or PastixRight.
- *
- * @param[in] uplo
- *          Specify whether the off-diagonal blocks are upper or lower
- *          triangular. It has to be either PastixUpper or PastixLower.
- *
- * @param[in] trans
- *          Specify the transposition used for the off-diagonal blocks. It has
- *          to be either PastixTrans or PastixConjTrans.
- *
- * @param[in] diag
- *          Specify if the off-diagonal blocks are unit triangular. It has to be
- *          either PastixUnit or PastixNonUnit.
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[in] sopalin_data
  *          The data that provide the SolverMatrix structure from PaStiX, and
@@ -69,20 +51,21 @@
  *
  *******************************************************************************/
 void
-starpu_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
-                             pastix_side_t       side,
-                             pastix_uplo_t       uplo,
-                             pastix_trans_t      trans,
-                             pastix_diag_t       diag,
-                             sopalin_data_t     *sopalin_data,
-                             const SolverCblk   *cblk,
-                             pastix_int_t        prio )
+starpu_cblk_ztrsmsp_forward( enums_trsm_t     *enums,
+                             sopalin_data_t   *sopalin_data,
+                             const SolverCblk *cblk,
+                             pastix_int_t      prio )
 {
-    pastix_coefside_t  cs;
-    SolverMatrix      *datacode = sopalin_data->solvmtx;
-    SolverCblk        *fcbk;
-    SolverBlok        *blok;
-    pastix_trans_t     tA;
+    pastix_coefside_t   cs;
+    SolverMatrix       *datacode = sopalin_data->solvmtx;
+    SolverCblk         *fcbk;
+    SolverBlok         *blok;
+    pastix_trans_t      tA;
+    pastix_side_t       side  = enums->side;
+    pastix_uplo_t       uplo  = enums->uplo;
+    pastix_trans_t      trans = enums->trans;
+    pastix_diag_t       diag  = enums->diag;
+    pastix_solv_mode_t  mode  = enums->mode;
 
     if ( (cblk->cblktype & CBLK_IN_SCHUR) && (mode != PastixSolvModeSchur) ) {
         return;
@@ -149,26 +132,8 @@ starpu_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
  *
  *******************************************************************************
  *
- * @param[in] mode
- *          Specify whether the schur complement and interface are applied to
- *          the right-hand-side. It has to be either PastixSolvModeLocal,
- *          PastixSolvModeInterface or PastixSolvModeSchur.
- *
- * @param[in] side
- *          Specify whether the off-diagonal blocks appear on the left or right
- *          in the equation. It has to be either PastixLeft or PastixRight.
- *
- * @param[in] uplo
- *          Specify whether the off-diagonal blocks are upper or lower
- *          triangular. It has to be either PastixUpper or PastixLower.
- *
- * @param[in] trans
- *          Specify the transposition used for the off-diagonal blocks. It has
- *          to be either PastixTrans or PastixConjTrans.
- *
- * @param[in] diag
- *          Specify if the off-diagonal blocks are unit triangular. It has to be
- *          either PastixUnit or PastixNonUnit.
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[in] sopalin_data
  *          The data that provide the SolverMatrix structure from PaStiX, and
@@ -184,21 +149,22 @@ starpu_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
  *
  *******************************************************************************/
 void
-starpu_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
-                              pastix_side_t       side,
-                              pastix_uplo_t       uplo,
-                              pastix_trans_t      trans,
-                              pastix_diag_t       diag,
-                              sopalin_data_t     *sopalin_data,
-                              const SolverCblk   *cblk,
-                              pastix_int_t        prio )
+starpu_cblk_ztrsmsp_backward( enums_trsm_t     *enums,
+                              sopalin_data_t   *sopalin_data,
+                              const SolverCblk *cblk,
+                              pastix_int_t      prio )
 {
-    pastix_coefside_t  cs;
-    SolverMatrix      *datacode = sopalin_data->solvmtx;
-    SolverCblk        *fcbk;
-    SolverBlok        *blok;
-    pastix_int_t       j;
-    pastix_trans_t     tA;
+    pastix_coefside_t   cs;
+    SolverMatrix       *datacode = sopalin_data->solvmtx;
+    SolverCblk         *fcbk;
+    SolverBlok         *blok;
+    pastix_int_t        j;
+    pastix_trans_t      tA;
+    pastix_side_t       side  = enums->side;
+    pastix_uplo_t       uplo  = enums->uplo;
+    pastix_trans_t      trans = enums->trans;
+    pastix_diag_t       diag  = enums->diag;
+    pastix_solv_mode_t  mode  = enums->mode;
 
     /*
      *  Left / Upper / NoTrans (Backward)
@@ -270,67 +236,38 @@ starpu_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
  *          The data that provide the SolverMatrix structure from PaStiX., and
  *          descriptor of b (providing nrhs, b and ldb).
  *
- * @param[in] side
- *          Specify whether the off-diagonal blocks appear on the left or right
- *          in the equation. It has to be either PastixLeft or PastixRight.
- *
- * @param[in] uplo
- *          Specify whether the off-diagonal blocks are upper or lower
- *          triangular. It has to be either PastixUpper or PastixLower.
- *
- * @param[in] trans
- *          Specify the transposition used for the off-diagonal blocks. It has
- *          to be either PastixTrans or PastixConjTrans.
- *
- * @param[in] diag
- *          Specify if the off-diagonal blocks are unit triangular. It has to be
- *          either PastixUnit or PastixNonUnit.
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  *******************************************************************************/
 void
-starpu_ztrsm_sp1dplus( pastix_data_t      *pastix_data,
-                       sopalin_data_t     *sopalin_data,
-                       int                 side,
-                       int                 uplo,
-                       int                 trans,
-                       int                 diag )
+starpu_ztrsm_sp1dplus( pastix_data_t  *pastix_data,
+                       sopalin_data_t *sopalin_data,
+                       enums_trsm_t   *enums )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
-    SolverCblk *cblk;
-    pastix_int_t i, cblknbr;
-    pastix_solv_mode_t mode = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
+    SolverCblk   *cblk;
+    pastix_int_t  i, cblknbr;
 
     /* Backward like */
-    if ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
-         ( (side == PastixLeft)  && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
-         ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
-         ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) )
-    {
-        cblknbr = (mode == PastixSolvModeLocal) ? datacode->cblkschur : datacode->cblknbr;
+    if ( enums->solve_step == PastixSolveBackward ) {
+        cblknbr = (enums->mode == PastixSolvModeLocal) ? datacode->cblkschur : datacode->cblknbr;
 
         cblk    = datacode->cblktab + cblknbr - 1;
         for (i=0; i<cblknbr; i++, cblk--){
-            starpu_cblk_ztrsmsp_backward( mode, side, uplo, trans, diag,
-                                          sopalin_data, cblk, cblknbr - i );
+            starpu_cblk_ztrsmsp_backward( enums, sopalin_data, cblk, cblknbr - i );
         }
     }
     /* Forward like */
-    else
-        /*
-         * ( (side == PastixRight) && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
-         * ( (side == PastixRight) && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
-         * ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
-         * ( (side == PastixLeft)  && (uplo == PastixLower) && (trans == PastixNoTrans) )
-         */
-    {
-        cblknbr = (mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
+    else {
+        cblknbr = (enums->mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
 
         cblk    = datacode->cblktab;
         for (i=0; i<cblknbr; i++, cblk++){
-            starpu_cblk_ztrsmsp_forward( mode, side, uplo, trans, diag,
-                                         sopalin_data, cblk, cblknbr - i );
+            starpu_cblk_ztrsmsp_forward( enums, sopalin_data, cblk, cblknbr - i );
         }
     }
+    (void)pastix_data;
 }
 
 /**
@@ -343,21 +280,8 @@ starpu_ztrsm_sp1dplus( pastix_data_t      *pastix_data,
  * @param[in] pastix_data
  *          Provide informations about starpu and the schur solving mode.
  *
- * @param[in] side
- *          Specify whether the off-diagonal blocks appear on the left or right
- *          in the equation. It has to be either PastixLeft or PastixRight.
- *
- * @param[in] uplo
- *          Specify whether the off-diagonal blocks are upper or lower
- *          triangular. It has to be either PastixUpper or PastixLower.
- *
- * @param[in] trans
- *          Specify the transposition used for the off-diagonal blocks. It has
- *          to be either PastixTrans or PastixConjTrans.
- *
- * @param[in] diag
- *          Specify if the off-diagonal blocks are unit triangular. It has to be
- *          either PastixUnit or PastixNonUnit.
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[in] sopalin_data
  *          The data that provide the SolverMatrix structure from PaStiX, and
@@ -369,13 +293,10 @@ starpu_ztrsm_sp1dplus( pastix_data_t      *pastix_data,
  *
  *******************************************************************************/
 void
-starpu_ztrsm( pastix_data_t      *pastix_data,
-              int                 side,
-              int                 uplo,
-              int                 trans,
-              int                 diag,
-              sopalin_data_t     *sopalin_data,
-              pastix_rhs_t        rhsb )
+starpu_ztrsm( pastix_data_t  *pastix_data,
+              enums_trsm_t   *enums,
+              sopalin_data_t *sopalin_data,
+              pastix_rhs_t    rhsb )
 {
     starpu_sparse_matrix_desc_t *sdesc = sopalin_data->solvmtx->starpu_desc;
     starpu_dense_matrix_desc_t  *ddesc;
@@ -412,7 +333,7 @@ starpu_ztrsm( pastix_data_t      *pastix_data,
     }
 #endif
     starpu_resume();
-    starpu_ztrsm_sp1dplus( pastix_data, sopalin_data, side, uplo, trans, diag );
+    starpu_ztrsm_sp1dplus( pastix_data, sopalin_data, enums );
 
     starpu_sparse_matrix_getoncpu( sdesc );
     starpu_dense_matrix_getoncpu( ddesc );

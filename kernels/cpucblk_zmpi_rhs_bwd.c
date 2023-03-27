@@ -109,10 +109,8 @@ cpucblk_zisend_rhs_bwd( SolverMatrix *solvmtx,
  *
  *******************************************************************************
  *
- * @param[in] solve_step
- *          Define which step of the solve is concerned.
- *          @arg PastixSolveForward
- *          @arg PastixSolveBackward
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[in] solvmtx
  *          The solver matrix structure.
@@ -126,7 +124,7 @@ cpucblk_zisend_rhs_bwd( SolverMatrix *solvmtx,
  *
  *******************************************************************************/
 void
-cpucblk_zrequest_rhs_bwd_handle_send( solve_step_e      solve_step,
+cpucblk_zrequest_rhs_bwd_handle_send( enums_trsm_t     *enums,
                                       SolverMatrix     *solvmtx,
                                       pastix_rhs_t      rhsb,
                                       const SolverCblk *cblk )
@@ -134,7 +132,7 @@ cpucblk_zrequest_rhs_bwd_handle_send( solve_step_e      solve_step,
     pastix_int_t idx = - cblk->bcscnum - 1;
 
     assert( cblk->cblktype & CBLK_RECV );
-    assert( solve_step == PastixSolveBackward );
+    assert( enums->solve_step == PastixSolveBackward );
 
 #if defined(PASTIX_DEBUG_MPI)
     {
@@ -158,31 +156,8 @@ cpucblk_zrequest_rhs_bwd_handle_send( solve_step_e      solve_step,
  *
  *******************************************************************************
  *
- * @param[in] solve_step
- *          Define which step of the solve is concerned.
- *          @arg PastixSolveForward
- *          @arg PastixSolveBackward
- *
- * @param[in] mode
- *          Specify whether the schur complement and interface are applied to
- *          the right-hand-side. It has to be either PastixSolvModeLocal,
- *          PastixSolvModeInterface or PastixSolvModeSchur
- *
- * @param[in] side
- *          Specify whether the off-diagonal blocks appear on the left or right
- *          in the equation. It has to be either PastixLeft or PastixRight.
- *
- * @param[in] uplo
- *          Specify whether the off-diagonal blocks are upper or lower
- *          triangular. It has to be either PastixUpper or PastixLower.
- *
- * @param[in] trans
- *          Specify the transposition used for the off-diagonal blocks. It has
- *          to be either PastixTrans or PastixConjTrans.
- *
- * @param[in] diag
- *          Specify if the off-diagonal blocks are unit triangular. It has to be
- *          either PastixUnit or PastixNonUnit.
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[inout] solvmtx
  *          The solver matrix structure.
@@ -202,12 +177,7 @@ cpucblk_zrequest_rhs_bwd_handle_send( solve_step_e      solve_step,
  *
  *******************************************************************************/
 static inline void
-cpucblk_zrequest_rhs_bwd_handle_recv( solve_step_e        solve_step,
-                                      pastix_solv_mode_t  mode,
-                                      int                 side,
-                                      int                 uplo,
-                                      int                 trans,
-                                      int                 diag,
+cpucblk_zrequest_rhs_bwd_handle_recv( enums_trsm_t       *enums,
                                       SolverMatrix       *solvmtx,
                                       pastix_rhs_t        rhsb,
                                       int                 threadid,
@@ -252,13 +222,10 @@ cpucblk_zrequest_rhs_bwd_handle_recv( solve_step_e        solve_step,
     rhsb->cblkb[ idx ] = recvbuf;
 
     cblk->threadid = threadid;
-    solve_cblk_ztrsmsp_backward( mode, side, uplo, trans, diag,
-                                 solvmtx, cblk, rhsb );
+    solve_cblk_ztrsmsp_backward( enums, solvmtx, cblk, rhsb );
 
     /* Check it has been freed */
     assert( rhsb->cblkb[ idx ] == NULL );
-
-    (void)solve_step;
 }
 
 /**
@@ -271,31 +238,8 @@ cpucblk_zrequest_rhs_bwd_handle_recv( solve_step_e        solve_step,
  *
  *******************************************************************************
  *
- * @param[in] solve_step
- *          Define which step of the solve is concerned.
- *          @arg PastixSolveForward
- *          @arg PastixSolveBackward
- *
- * @param[in] mode
- *          Specify whether the schur complement and interface are applied to
- *          the right-hand-side. It has to be either PastixSolvModeLocal,
- *          PastixSolvModeInterface or PastixSolvModeSchur
- *
- * @param[in] side
- *          Specify whether the off-diagonal blocks appear on the left or right
- *          in the equation. It has to be either PastixLeft or PastixRight.
- *
- * @param[in] uplo
- *          Specify whether the off-diagonal blocks are upper or lower
- *          triangular. It has to be either PastixUpper or PastixLower.
- *
- * @param[in] trans
- *          Specify the transposition used for the off-diagonal blocks. It has
- *          to be either PastixTrans or PastixConjTrans.
- *
- * @param[in] diag
- *          Specify if the off-diagonal blocks are unit triangular. It has to be
- *          either PastixUnit or PastixNonUnit.
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[inout] solvmtx
  *          The solver matrix structure.
@@ -322,18 +266,13 @@ cpucblk_zrequest_rhs_bwd_handle_recv( solve_step_e        solve_step,
  *
  *******************************************************************************/
 static inline int
-cpucblk_zrequest_rhs_bwd_handle( solve_step_e        solve_step,
-                                 pastix_solv_mode_t  mode,
-                                 int                 side,
-                                 int                 uplo,
-                                 int                 trans,
-                                 int                 diag,
-                                 SolverMatrix       *solvmtx,
-                                 pastix_rhs_t        rhsb,
-                                 int                 threadid,
-                                 int                 outcount,
-                                 const int          *indexes,
-                                 const MPI_Status   *statuses )
+cpucblk_zrequest_rhs_bwd_handle( enums_trsm_t     *enums,
+                                 SolverMatrix     *solvmtx,
+                                 pastix_rhs_t      rhsb,
+                                 int               threadid,
+                                 int               outcount,
+                                 const int        *indexes,
+                                 const MPI_Status *statuses )
 {
     pastix_int_t i, reqid;
     int          nbrequest = outcount;
@@ -369,8 +308,7 @@ cpucblk_zrequest_rhs_bwd_handle( solve_step_e        solve_step,
                 solvmtx->reqtab[reqid] = MPI_REQUEST_NULL;
             }
 
-            cpucblk_zrequest_rhs_bwd_handle_recv( solve_step, mode, side, uplo, trans,
-                                                  diag, solvmtx, rhsb,
+            cpucblk_zrequest_rhs_bwd_handle_recv( enums, solvmtx, rhsb,
                                                   threadid, &status, recvbuf );
         }
         /*
@@ -380,7 +318,7 @@ cpucblk_zrequest_rhs_bwd_handle( solve_step_e        solve_step,
             SolverCblk *cblk = solvmtx->cblktab + solvmtx->reqidx[ reqid ];
             assert( cblk->cblktype & CBLK_RECV );
 
-            cpucblk_zrequest_rhs_bwd_handle_send( solve_step, solvmtx, rhsb, cblk );
+            cpucblk_zrequest_rhs_bwd_handle_send( enums, solvmtx, rhsb, cblk );
 
 #if !defined(NDEBUG)
             solvmtx->reqidx[ reqid ] = -1;
@@ -404,31 +342,8 @@ cpucblk_zrequest_rhs_bwd_handle( solve_step_e        solve_step,
  *
  *******************************************************************************
  *
- * @param[in] solve_step
- *          Define which step of the solve is concerned.
- *          @arg PastixSolveForward
- *          @arg PastixSolveBackward
- *
- * @param[in] mode
- *          Specify whether the schur complement and interface are applied to
- *          the right-hand-side. It has to be either PastixSolvModeLocal,
- *          PastixSolvModeInterface or PastixSolvModeSchur
- *
- * @param[in] side
- *          Specify whether the off-diagonal blocks appear on the left or right
- *          in the equation. It has to be either PastixLeft or PastixRight.
- *
- * @param[in] uplo
- *          Specify whether the off-diagonal blocks are upper or lower
- *          triangular. It has to be either PastixUpper or PastixLower.
- *
- * @param[in] trans
- *          Specify the transposition used for the off-diagonal blocks. It has
- *          to be either PastixTrans or PastixConjTrans.
- *
- * @param[in] diag
- *          Specify if the off-diagonal blocks are unit triangular. It has to be
- *          either PastixUnit or PastixNonUnit.
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[inout] solvmtx
  *          The solver matrix structure.
@@ -442,15 +357,10 @@ cpucblk_zrequest_rhs_bwd_handle( solve_step_e        solve_step,
  *
  *******************************************************************************/
 void
-cpucblk_zmpi_rhs_bwd_progress( solve_step_e        solve_step,
-                               pastix_solv_mode_t  mode,
-                               int                 side,
-                               int                 uplo,
-                               int                 trans,
-                               int                 diag,
-                               SolverMatrix       *solvmtx,
-                               pastix_rhs_t        rhsb,
-                               int                 threadid )
+cpucblk_zmpi_rhs_bwd_progress( enums_trsm_t  *enums,
+                               SolverMatrix  *solvmtx,
+                               pastix_rhs_t   rhsb,
+                               int            threadid )
 {
     pthread_t  tid = pthread_self();
     int        outcount = 1;
@@ -490,8 +400,7 @@ cpucblk_zmpi_rhs_bwd_progress( solve_step_e        solve_step,
 
         /* Handle all the completed requests */
         if ( outcount > 0 ) {
-            nbfree = cpucblk_zrequest_rhs_bwd_handle( solve_step, mode, side, uplo, trans,
-                                                      diag, solvmtx, rhsb, threadid,
+            nbfree = cpucblk_zrequest_rhs_bwd_handle( enums, solvmtx, rhsb, threadid,
                                                       outcount, indexes, statuses );
         }
 
@@ -523,31 +432,8 @@ cpucblk_zmpi_rhs_bwd_progress( solve_step_e        solve_step,
  * @param[in] rank
  *          The rank of the current thread.
  *
- * @param[in] solve_step
- *          Define which step of the solve is concerned.
- *          @arg PastixSolveForward
- *          @arg PastixSolveBackward
- *
- * @param[in] mode
- *          Specify whether the schur complement and interface are applied to
- *          the right-hand-side. It has to be either PastixSolvModeLocal,
- *          PastixSolvModeInterface or PastixSolvModeSchur
- *
- * @param[in] side
- *          Specify whether the off-diagonal blocks appear on the left or right
- *          in the equation. It has to be either PastixLeft or PastixRight.
- *
- * @param[in] uplo
- *          Specify whether the off-diagonal blocks are upper or lower
- *          triangular. It has to be either PastixUpper or PastixLower.
- *
- * @param[in] trans
- *          Specify the transposition used for the off-diagonal blocks. It has
- *          to be either PastixTrans or PastixConjTrans.
- *
- * @param[in] diag
- *          Specify if the off-diagonal blocks are unit triangular. It has to be
- *          either PastixUnit or PastixNonUnit.
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[inout] solvmtx
  *          The solver matrix structure.
@@ -565,16 +451,11 @@ cpucblk_zmpi_rhs_bwd_progress( solve_step_e        solve_step,
  *
  *******************************************************************************/
 int
-cpucblk_zincoming_rhs_bwd_deps( int                 rank,
-                                solve_step_e        solve_step,
-                                pastix_solv_mode_t  mode,
-                                int                 side,
-                                int                 uplo,
-                                int                 trans,
-                                int                 diag,
-                                SolverMatrix       *solvmtx,
-                                SolverCblk         *cblk,
-                                pastix_rhs_t        rhsb )
+cpucblk_zincoming_rhs_bwd_deps( int            rank,
+                                enums_trsm_t  *enums,
+                                SolverMatrix  *solvmtx,
+                                SolverCblk    *cblk,
+                                pastix_rhs_t   rhsb )
 {
 #if defined(PASTIX_WITH_MPI)
     if ( cblk->cblktype & CBLK_FANIN ) {
@@ -592,8 +473,7 @@ cpucblk_zincoming_rhs_bwd_deps( int                 rank,
 
     /* Make sure we receive every contribution */
     while( cblk->ctrbcnt > 0 ) {
-        cpucblk_zmpi_rhs_bwd_progress( solve_step, mode, side, uplo, trans,
-                                       diag, solvmtx, rhsb, rank );
+        cpucblk_zmpi_rhs_bwd_progress( enums, solvmtx, rhsb, rank );
     }
 #else
     assert( !(cblk->cblktype & (CBLK_FANIN | CBLK_RECV)) );
@@ -601,12 +481,7 @@ cpucblk_zincoming_rhs_bwd_deps( int                 rank,
 #endif
 
     (void)rank;
-    (void)solve_step;
-    (void)mode;
-    (void)side;
-    (void)uplo;
-    (void)trans;
-    (void)diag;
+    (void)enums;
     (void)solvmtx;
     (void)rhsb;
 
@@ -620,10 +495,8 @@ cpucblk_zincoming_rhs_bwd_deps( int                 rank,
  *
  *******************************************************************************
  *
- * @param[in] solve_step
- *          Define which step of the solve is concerned.
- *          @arg PastixSolveForward
- *          @arg PastixSolveBackward
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[inout] solvmtx
  *          The solver matrix structure.
@@ -640,7 +513,7 @@ cpucblk_zincoming_rhs_bwd_deps( int                 rank,
  *
  *******************************************************************************/
 void
-cpucblk_zrelease_rhs_bwd_deps( solve_step_e      solve_step,
+cpucblk_zrelease_rhs_bwd_deps( enums_trsm_t     *enums,
                                SolverMatrix     *solvmtx,
                                pastix_rhs_t      rhsb,
                                const SolverCblk *cblk,
@@ -662,7 +535,7 @@ cpucblk_zrelease_rhs_bwd_deps( solve_step_e      solve_step,
             pqueuePush1( queue, fcbk - solvmtx->cblktab, queue->size );
         }
     }
-    (void)solve_step;
+    (void)enums;
 }
 
 /**
@@ -675,10 +548,8 @@ cpucblk_zrelease_rhs_bwd_deps( solve_step_e      solve_step,
  *
  *******************************************************************************
  *
- * @param[in] solve_step
- *          Define which step of the solve is concerned.
- *          @arg PastixSolveForward
- *          @arg PastixSolveBackward
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[in] sched
  *          Define which sched is used
@@ -696,10 +567,10 @@ cpucblk_zrelease_rhs_bwd_deps( solve_step_e      solve_step,
  *
  *******************************************************************************/
 void
-cpucblk_zrequest_rhs_bwd_cleanup( solve_step_e  solve_step,
-                                  pastix_int_t  sched,
-                                  SolverMatrix *solvmtx,
-                                  pastix_rhs_t  rhsb )
+cpucblk_zrequest_rhs_bwd_cleanup( enums_trsm_t  *enums,
+                                  pastix_int_t   sched,
+                                  SolverMatrix  *solvmtx,
+                                  pastix_rhs_t   rhsb )
 {
     if ( (sched != PastixSchedSequential) &&
          (sched != PastixSchedStatic)     &&
@@ -737,14 +608,14 @@ cpucblk_zrequest_rhs_bwd_cleanup( solve_step_e  solve_step,
         /* We should wait only for recv */
         assert( cblk->cblktype & CBLK_RECV );
 
-        cpucblk_zrequest_rhs_bwd_handle_send( solve_step, solvmtx, rhsb, cblk );
+        cpucblk_zrequest_rhs_bwd_handle_send( enums, solvmtx, rhsb, cblk );
 
         solvmtx->reqnum--;
     }
     assert( solvmtx->reqnum == 0 );
     (void)rc;
 #else
-    (void)solve_step;
+    (void)enums;
     (void)solvmtx;
     (void)rhsb;
 #endif

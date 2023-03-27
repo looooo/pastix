@@ -281,26 +281,8 @@ solve_blok_zgemm( pastix_side_t             side,
  *
  *******************************************************************************
  *
- * @param[in] mode
- *          Specify whether the schur complement and interface are applied to
- *          the right-hand-side. It has to be either PastixSolvModeLocal,
- *          PastixSolvModeInterface or PastixSolvModeSchur.
- *
- * @param[in] side
- *          Specify whether the off-diagonal blocks appear on the left or right
- *          in the equation. It has to be either PastixLeft or PastixRight.
- *
- * @param[in] uplo
- *          Specify whether the off-diagonal blocks are upper or lower
- *          triangular. It has to be either PastixUpper or PastixLower.
- *
- * @param[in] trans
- *          Specify the transposition used for the off-diagonal blocks. It has
- *          to be either PastixTrans or PastixConjTrans.
- *
- * @param[in] diag
- *          Specify if the off-diagonal blocks are unit triangular. It has to be
- *          either PastixUnit or PastixNonUnit.
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[in] datacode
  *          The SolverMatrix structure from PaStiX.
@@ -316,24 +298,25 @@ solve_blok_zgemm( pastix_side_t             side,
  *
  *******************************************************************************/
 void
-solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
-                            pastix_side_t       side,
-                            pastix_uplo_t       uplo,
-                            pastix_trans_t      trans,
-                            pastix_diag_t       diag,
-                            SolverMatrix       *datacode,
-                            const SolverCblk   *cblk,
-                            pastix_rhs_t        rhsb )
+solve_cblk_ztrsmsp_forward( enums_trsm_t     *enums,
+                            SolverMatrix     *datacode,
+                            const SolverCblk *cblk,
+                            pastix_rhs_t      rhsb )
 {
-    SolverCblk       *fcbk;
-    const SolverBlok *blok;
-    pastix_trans_t    tA;
-    pastix_coefside_t cs;
+    SolverCblk               *fcbk;
+    const SolverBlok         *blok;
+    pastix_trans_t            tA;
+    pastix_coefside_t         cs;
     const void               *dataA = NULL;
     const pastix_lrblock_t   *lrA;
     const pastix_complex64_t *A;
     pastix_complex64_t       *B, *C;
     pastix_int_t              ldb, ldc;
+    pastix_side_t             side  = enums->side;
+    pastix_uplo_t             uplo  = enums->uplo;
+    pastix_trans_t            trans = enums->trans;
+    pastix_diag_t             diag  = enums->diag;
+    pastix_solv_mode_t        mode  = enums->mode;
 
     if ( (side == PastixRight) && (uplo == PastixUpper) && (trans == PastixNoTrans) ) {
         /*  We store U^t, so we swap uplo and trans */
@@ -435,7 +418,7 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
         solve_blok_zgemm( PastixLeft, tA, rhsb->n,
                           cblk, blok, fcbk,
                           dataA, B, ldb, C, ldc );
-        cpucblk_zrelease_rhs_fwd_deps( PastixSolveForward, datacode,
+        cpucblk_zrelease_rhs_fwd_deps( enums, datacode,
                                        rhsb, cblk, fcbk );
     }
 }
@@ -447,26 +430,8 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
  *
  *******************************************************************************
  *
- * @param[in] mode
- *          Specify whether the schur complement and interface are applied to
- *          the right-hand-side. It has to be either PastixSolvModeLocal,
- *          PastixSolvModeInterface or PastixSolvModeSchur.
- *
- * @param[in] side
- *          Specify whether the off-diagonal blocks appear on the left or right
- *          in the equation. It has to be either PastixLeft or PastixRight.
- *
- * @param[in] uplo
- *          Specify whether the off-diagonal blocks are upper or lower
- *          triangular. It has to be either PastixUpper or PastixLower.
- *
- * @param[in] trans
- *          Specify the transposition used for the off-diagonal blocks. It has
- *          to be either PastixTrans or PastixConjTrans.
- *
- * @param[in] diag
- *          Specify if the off-diagonal blocks are unit triangular. It has to be
- *          either PastixUnit or PastixNonUnit.
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[in] datacode
  *          The SolverMatrix structure from PaStiX.
@@ -482,25 +447,26 @@ solve_cblk_ztrsmsp_forward( pastix_solv_mode_t  mode,
  *
  *******************************************************************************/
 void
-solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
-                             pastix_side_t       side,
-                             pastix_uplo_t       uplo,
-                             pastix_trans_t      trans,
-                             pastix_diag_t       diag,
-                             SolverMatrix       *datacode,
-                             SolverCblk         *cblk,
-                             pastix_rhs_t        rhsb )
+solve_cblk_ztrsmsp_backward( enums_trsm_t  *enums,
+                             SolverMatrix  *datacode,
+                             SolverCblk    *cblk,
+                             pastix_rhs_t   rhsb )
 {
-    SolverCblk       *fcbk;
-    const SolverBlok *blok;
-    pastix_int_t      j;
-    pastix_trans_t    tA;
-    pastix_coefside_t cs;
+    SolverCblk               *fcbk;
+    const SolverBlok         *blok;
+    pastix_int_t              j;
+    pastix_trans_t            tA;
+    pastix_coefside_t         cs;
     const void               *dataA = NULL;
     const pastix_lrblock_t   *lrA;
     const pastix_complex64_t *A;
     pastix_complex64_t       *B, *C;
     pastix_int_t              ldb, ldc;
+    pastix_side_t             side  = enums->side;
+    pastix_uplo_t             uplo  = enums->uplo;
+    pastix_trans_t            trans = enums->trans;
+    pastix_diag_t             diag  = enums->diag;
+    pastix_solv_mode_t        mode  = enums->mode;
 
     /*
      *  Left / Upper / NoTrans (Backward)
@@ -552,7 +518,7 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
             if ( fcbk->cblktype & CBLK_IN_SCHUR ) {
                 break;
             }
-            cpucblk_zrelease_rhs_bwd_deps( PastixSolveBackward, datacode,
+            cpucblk_zrelease_rhs_bwd_deps( enums, datacode,
                                            rhsb, cblk, fcbk );
         }
         return;
@@ -627,7 +593,7 @@ solve_cblk_ztrsmsp_backward( pastix_solv_mode_t  mode,
         solve_blok_zgemm( PastixRight, tA, rhsb->n,
                           cblk, blok, fcbk,
                           dataA, B, ldb, C, ldc );
-        cpucblk_zrelease_rhs_bwd_deps( PastixSolveBackward, datacode,
+        cpucblk_zrelease_rhs_bwd_deps( enums, datacode,
                                        rhsb, cblk, fcbk );
     }
 

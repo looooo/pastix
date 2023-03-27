@@ -27,10 +27,10 @@ struct sopalin_data_s {
 };
 typedef struct sopalin_data_s sopalin_data_t;
 
-void sopalin_ztrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, pastix_rhs_t rhsb );
-void sopalin_ctrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, pastix_rhs_t rhsb );
-void sopalin_dtrsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, pastix_rhs_t rhsb );
-void sopalin_strsm( pastix_data_t *pastix_data, int side, int uplo, int trans, int diag, sopalin_data_t *sopalin_data, pastix_rhs_t rhsb );
+void sopalin_ztrsm( pastix_data_t *pastix_data, pastix_side_t side, pastix_uplo_t uplo, pastix_trans_t trans, pastix_diag_t diag, sopalin_data_t *sopalin_data, pastix_rhs_t rhsb );
+void sopalin_ctrsm( pastix_data_t *pastix_data, pastix_side_t side, pastix_uplo_t uplo, pastix_trans_t trans, pastix_diag_t diag, sopalin_data_t *sopalin_data, pastix_rhs_t rhsb );
+void sopalin_dtrsm( pastix_data_t *pastix_data, pastix_side_t side, pastix_uplo_t uplo, pastix_trans_t trans, pastix_diag_t diag, sopalin_data_t *sopalin_data, pastix_rhs_t rhsb );
+void sopalin_strsm( pastix_data_t *pastix_data, pastix_side_t side, pastix_uplo_t uplo, pastix_trans_t trans, pastix_diag_t diag, sopalin_data_t *sopalin_data, pastix_rhs_t rhsb );
 
 void sopalin_zdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data, int nrhs, pastix_complex64_t *b, int ldb );
 void sopalin_cdiag( pastix_data_t *pastix_data, sopalin_data_t *sopalin_data, int nrhs, pastix_complex32_t *b, int ldb );
