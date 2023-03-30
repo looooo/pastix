@@ -290,11 +290,11 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
     pastix_int_t         thrd_rank     = (pastix_int_t)ctx->rank;
     int32_t              dest          = (thrd_rank + 1)%thrd_size;
     int32_t              local_taskcnt = 0;
+    pastix_int_t         gcblknbr      = datacode->gcblknbr;
     SolverCblk          *cblk;
-    Task                *t;
     pastix_queue_t      *computeQueue;
-    pastix_int_t         i, ii;
-    pastix_int_t         tasknbr, *tasktab;
+    pastix_int_t         ii;
+    pastix_int_t         tasknbr;
     pastix_int_t         cblkfirst, cblklast, cblknum;
 
     /* Computes range to update the ctrbnbr */
@@ -307,7 +307,6 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
     MALLOC_INTERN( datacode->computeQueue[thrd_rank], 1, pastix_queue_t );
 
     tasknbr      = datacode->ttsknbr[thrd_rank];
-    tasktab      = datacode->ttsktab[thrd_rank];
     computeQueue = datacode->computeQueue[thrd_rank];
     pqueueInit( computeQueue, tasknbr );
 
@@ -322,16 +321,8 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
             else {
                 cblk->ctrbcnt = cblk[1].fblokptr - cblk[0].fblokptr - 1;
             }
-        }
-        isched_barrier_wait( &(ctx->global_ctx->barrier) );
-
-        for (ii=tasknbr-1; ii>=0; ii--) {
-            i    = tasktab[ii];
-            t    = datacode->tasktab + i;
-            cblk = datacode->cblktab + t->cblknum;
-
-            if ( !(cblk->ctrbcnt) ) {
-                pqueuePush1( computeQueue, t->cblknum, t->prionum );
+            if ( !(cblk->ctrbcnt) && !(cblk->cblktype & (CBLK_FANIN | CBLK_RECV)) ) {
+                pqueuePush1( computeQueue, ii, gcblknbr - cblk->gcblknum );
             }
         }
         isched_barrier_wait( &(ctx->global_ctx->barrier) );
@@ -375,16 +366,10 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
         cblk = datacode->cblktab + cblkfirst;
         for (ii=cblkfirst; ii<cblklast; ii++, cblk++) {
             cblk->ctrbcnt = cblk[1].brownum - cblk[0].brownum;
-        }
-        isched_barrier_wait( &(ctx->global_ctx->barrier) );
-
-        for (ii=0; ii<tasknbr; ii++) {
-            i    = tasktab[ii];
-            t    = datacode->tasktab + i;
-            cblk = datacode->cblktab + t->cblknum;
-
             if ( !(cblk->ctrbcnt) ) {
-                pqueuePush1( computeQueue, t->cblknum, t->prionum );
+                if  (!(cblk->cblktype & (CBLK_FANIN|CBLK_RECV)) ) {
+                    pqueuePush1( computeQueue, ii, cblk->gcblknum );
+                }
             }
         }
         isched_barrier_wait( &(ctx->global_ctx->barrier) );
