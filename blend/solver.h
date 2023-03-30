@@ -81,7 +81,7 @@ typedef enum solve_step_e {
 /**
  * @brief Arguments for the solve.
  */
-typedef struct enums_trsm_s
+typedef struct args_solve_s
 {
     solve_step_t        solve_step;
     pastix_solv_mode_t  mode;
@@ -89,7 +89,7 @@ typedef struct enums_trsm_s
     pastix_uplo_t       uplo;
     pastix_trans_t      trans;
     pastix_diag_t       diag;
-} enums_trsm_t;
+} args_solve_t;
 
 /**
  * @brief Solver recv block structure.
@@ -271,6 +271,47 @@ struct solver_matrix_s {
 
     PASTIX_Comm               solv_comm;            /*+ Copy of the pastix_data->inter_node_comm       +*/
 };
+
+/**
+ *******************************************************************************
+ *
+ * @brief Computes the current solve step.
+ *
+ *******************************************************************************
+ *
+ * @param[in] side
+ *          Specify whether the off-diagonal blocks appear on the left or right
+ *          in the equation. It has to be either PastixLeft or PastixRight.
+ *
+ * @param[in] uplo
+ *          Specify whether the off-diagonal blocks are upper or lower
+ *          triangular. It has to be either PastixUpper or PastixLower.
+ *
+ * @param[in] trans
+ *          Specify the transposition used for the off-diagonal blocks. It has
+ *          to be either PastixTrans or PastixConjTrans.
+ *
+ *******************************************************************************
+ *
+ * @return PastixSolveForward or PastixSolveBackward
+ *
+ *******************************************************************************/
+static inline solve_step_t
+compute_solve_step( pastix_side_t  side,
+                    pastix_uplo_t  uplo,
+                    pastix_trans_t trans )
+{
+    if ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
+         ( (side == PastixLeft)  && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
+         ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
+         ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) )
+    {
+        return PastixSolveBackward;
+    }
+    else {
+        return PastixSolveForward;
+    }
+}
 
 /**
  * @brief     Compute the number of columns in a column block.

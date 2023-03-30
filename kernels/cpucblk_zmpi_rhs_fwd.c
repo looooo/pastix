@@ -357,7 +357,7 @@ cpucblk_zisend_rhs_fwd( SolverMatrix *solvmtx,
  *
  *******************************************************************************/
 void
-cpucblk_zrequest_rhs_fwd_handle_send( enums_trsm_t     *enums,
+cpucblk_zrequest_rhs_fwd_handle_send( args_solve_t     *enums,
                                       SolverMatrix     *solvmtx,
                                       pastix_rhs_t      rhsb,
                                       const SolverCblk *cblk )
@@ -408,7 +408,7 @@ cpucblk_zrequest_rhs_fwd_handle_send( enums_trsm_t     *enums,
  *
  *******************************************************************************/
 static inline void
-cpucblk_zrequest_rhs_fwd_handle_recv( enums_trsm_t       *enums,
+cpucblk_zrequest_rhs_fwd_handle_recv( args_solve_t       *enums,
                                       SolverMatrix       *solvmtx,
                                       pastix_rhs_t        rhsb,
                                       int                 threadid,
@@ -514,7 +514,7 @@ cpucblk_zrequest_rhs_fwd_handle_recv( enums_trsm_t       *enums,
  *
  *******************************************************************************/
 static inline int
-cpucblk_zrequest_rhs_fwd_handle( enums_trsm_t     *enums,
+cpucblk_zrequest_rhs_fwd_handle( args_solve_t     *enums,
                                  SolverMatrix     *solvmtx,
                                  pastix_rhs_t      rhsb,
                                  int               threadid,
@@ -605,10 +605,10 @@ cpucblk_zrequest_rhs_fwd_handle( enums_trsm_t     *enums,
  *
  *******************************************************************************/
 void
-cpucblk_zmpi_rhs_fwd_progress( enums_trsm_t  *enums,
-                               SolverMatrix  *solvmtx,
-                               pastix_rhs_t   rhsb,
-                               int            threadid )
+cpucblk_zmpi_rhs_fwd_progress( args_solve_t *enums,
+                               SolverMatrix *solvmtx,
+                               pastix_rhs_t  rhsb,
+                               int           threadid )
 {
     pthread_t  tid = pthread_self();
     int        outcount = 1;
@@ -699,11 +699,11 @@ cpucblk_zmpi_rhs_fwd_progress( enums_trsm_t  *enums,
  *
  *******************************************************************************/
 int
-cpucblk_zincoming_rhs_fwd_deps( int            rank,
-                                enums_trsm_t  *enums,
-                                SolverMatrix  *solvmtx,
-                                SolverCblk    *cblk,
-                                pastix_rhs_t   rhsb )
+cpucblk_zincoming_rhs_fwd_deps( int           rank,
+                                args_solve_t *enums,
+                                SolverMatrix *solvmtx,
+                                SolverCblk   *cblk,
+                                pastix_rhs_t  rhsb )
 {
 #if defined(PASTIX_WITH_MPI)
     if ( cblk->cblktype & CBLK_FANIN ) {
@@ -761,7 +761,7 @@ cpucblk_zincoming_rhs_fwd_deps( int            rank,
  *
  *******************************************************************************/
 void
-cpucblk_zrelease_rhs_fwd_deps( enums_trsm_t     *enums,
+cpucblk_zrelease_rhs_fwd_deps( args_solve_t     *enums,
                                SolverMatrix     *solvmtx,
                                pastix_rhs_t      rhsb,
                                const SolverCblk *cblk,
@@ -816,10 +816,10 @@ cpucblk_zrelease_rhs_fwd_deps( enums_trsm_t     *enums,
  *
  *******************************************************************************/
 void
-cpucblk_zrequest_rhs_fwd_cleanup( enums_trsm_t  *enums,
-                                  pastix_int_t   sched,
-                                  SolverMatrix  *solvmtx,
-                                  pastix_rhs_t   rhsb )
+cpucblk_zrequest_rhs_fwd_cleanup( args_solve_t *enums,
+                                  pastix_int_t  sched,
+                                  SolverMatrix *solvmtx,
+                                  pastix_rhs_t  rhsb )
 {
     if ( (sched != PastixSchedSequential) &&
          (sched != PastixSchedStatic)     &&

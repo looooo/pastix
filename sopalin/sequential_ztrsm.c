@@ -39,7 +39,7 @@
 struct args_ztrsm_t
 {
     pastix_data_t    *pastix_data;
-    enums_trsm_t     *enum_list;
+    args_solve_t     *enum_list;
     sopalin_data_t   *sopalin_data;
     pastix_rhs_t      rhsb;
     volatile int32_t  taskcnt;
@@ -68,7 +68,7 @@ struct args_ztrsm_t
  *******************************************************************************/
 void
 sequential_ztrsm( pastix_data_t  *pastix_data,
-                  enums_trsm_t   *enums,
+                  args_solve_t   *enums,
                   sopalin_data_t *sopalin_data,
                   pastix_rhs_t    rhsb )
 {
@@ -153,7 +153,7 @@ thread_ztrsm_static( isched_thread_t *ctx,
     sopalin_data_t      *sopalin_data = arg->sopalin_data;
     SolverMatrix        *datacode     = sopalin_data->solvmtx;
     pastix_rhs_t         rhsb         = arg->rhsb;
-    enums_trsm_t        *enums        = arg->enum_list;
+    args_solve_t        *enums        = arg->enum_list;
     pastix_int_t         thrd_size    = (pastix_int_t)ctx->global_ctx->world_size;
     pastix_int_t         thrd_rank    = (pastix_int_t)ctx->rank;
     SolverCblk          *cblk;
@@ -253,7 +253,7 @@ thread_ztrsm_static( isched_thread_t *ctx,
  *******************************************************************************/
 void
 static_ztrsm( pastix_data_t  *pastix_data,
-              enums_trsm_t   *enums,
+              args_solve_t   *enums,
               sopalin_data_t *sopalin_data,
               pastix_rhs_t    rhsb  )
 {
@@ -284,7 +284,7 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
     pastix_data_t       *pastix_data   = arg->pastix_data;
     sopalin_data_t      *sopalin_data  = arg->sopalin_data;
     SolverMatrix        *datacode      = sopalin_data->solvmtx;
-    enums_trsm_t        *enums         = arg->enum_list;
+    args_solve_t        *enums         = arg->enum_list;
     pastix_rhs_t         rhsb          = arg->rhsb;
     pastix_int_t         thrd_size     = (pastix_int_t)ctx->global_ctx->world_size;
     pastix_int_t         thrd_rank     = (pastix_int_t)ctx->rank;
@@ -460,7 +460,7 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
  *******************************************************************************/
 void
 dynamic_ztrsm( pastix_data_t  *pastix_data,
-               enums_trsm_t   *enums,
+               args_solve_t   *enums,
                sopalin_data_t *sopalin_data,
                pastix_rhs_t    rhsb  )
 {
@@ -506,7 +506,7 @@ dynamic_ztrsm( pastix_data_t  *pastix_data,
  *******************************************************************************/
 void
 runtime_ztrsm( pastix_data_t  *pastix_data,
-               enums_trsm_t   *enums,
+               args_solve_t   *enums,
                sopalin_data_t *sopalin_data,
                pastix_rhs_t    rhsb )
 {
@@ -550,7 +550,7 @@ runtime_ztrsm( pastix_data_t  *pastix_data,
 #endif
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-static void (*ztrsm_table[5])(pastix_data_t *, enums_trsm_t *,
+static void (*ztrsm_table[5])(pastix_data_t *, args_solve_t *,
                               sopalin_data_t *, pastix_rhs_t) =
 {
     sequential_ztrsm,
@@ -568,47 +568,6 @@ static void (*ztrsm_table[5])(pastix_data_t *, enums_trsm_t *,
     dynamic_ztrsm
 };
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
-
-/**
- *******************************************************************************
- *
- * @brief Computes the current solve step.
- *
- *******************************************************************************
- *
- * @param[in] side
- *          Specify whether the off-diagonal blocks appear on the left or right
- *          in the equation. It has to be either PastixLeft or PastixRight.
- *
- * @param[in] uplo
- *          Specify whether the off-diagonal blocks are upper or lower
- *          triangular. It has to be either PastixUpper or PastixLower.
- *
- * @param[in] trans
- *          Specify the transposition used for the off-diagonal blocks. It has
- *          to be either PastixTrans or PastixConjTrans.
- *
- *******************************************************************************
- *
- * @return PastixSolveForward or PastixSolveBackward
- *
- *******************************************************************************/
-static inline solve_step_t
-compute_solve_step( pastix_side_t  side,
-                    pastix_uplo_t  uplo,
-                    pastix_trans_t trans )
-{
-    if ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
-         ( (side == PastixLeft)  && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
-         ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
-         ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) )
-    {
-        return PastixSolveBackward;
-    }
-    else {
-        return PastixSolveForward;
-    }
-}
 
 /**
  *******************************************************************************
@@ -655,10 +614,10 @@ sopalin_ztrsm( pastix_data_t  *pastix_data,
                pastix_rhs_t    rhsb  )
 {
     int sched = pastix_data->iparm[IPARM_SCHEDULER];
-    void (*ztrsm)( pastix_data_t *, enums_trsm_t *,
+    void (*ztrsm)( pastix_data_t *, args_solve_t *,
                    sopalin_data_t *, pastix_rhs_t ) = ztrsm_table[ sched ];
     solve_step_t  solve_step = compute_solve_step( side, uplo, trans );
-    enums_trsm_t *enum_list = malloc( sizeof( enums_trsm_t ) );
+    args_solve_t *enum_list = malloc( sizeof( args_solve_t ) );
 
     enum_list->solve_step = solve_step;
     enum_list->mode       = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
