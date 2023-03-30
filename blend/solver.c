@@ -426,7 +426,7 @@ solverPrintStats( const SolverMatrix *solvptr )
  *
  *******************************************************************************/
 void
-solverRequestInit( solve_step_e  solve_step,
+solverRequestInit( solve_step_t  solve_step,
                    SolverMatrix *solvmtx )
 {
     MPI_Request  *request;
@@ -626,7 +626,7 @@ solverRhsRecvMax( SolverMatrix *solvmtx )
  *
  *******************************************************************************/
 void
-solverRhsRecvInit( solve_step_e      solve_step,
+solverRhsRecvInit( solve_step_t      solve_step,
                    SolverMatrix     *solvmtx,
                    pastix_coeftype_t flttype,
                    pastix_rhs_t      rhsb  )

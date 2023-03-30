@@ -342,10 +342,8 @@ cpucblk_zisend_rhs_fwd( SolverMatrix *solvmtx,
  *
  *******************************************************************************
  *
- * @param[in] solve_step
- *          Define which step of the solve is concerned.
- *          @arg PastixSolveForward
- *          @arg PastixSolveBackward
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[in] solvmtx
  *          The solver matrix structure.
@@ -359,15 +357,15 @@ cpucblk_zisend_rhs_fwd( SolverMatrix *solvmtx,
  *
  *******************************************************************************/
 void
-cpucblk_zrequest_rhs_fwd_handle_send( solve_step_e      solve_step,
-                                      SolverMatrix     *solvmtx,
-                                      pastix_rhs_t      rhsb,
-                                      const SolverCblk *cblk )
+cpucblk_zrequest_rhs_fwd_handle_send( const args_solve_t *enums,
+                                      SolverMatrix       *solvmtx,
+                                      pastix_rhs_t        rhsb,
+                                      const SolverCblk   *cblk )
 {
     pastix_int_t idx = - cblk->bcscnum - 1;
 
     assert( cblk->cblktype & CBLK_FANIN );
-    assert( solve_step == PastixSolveForward );
+    assert( enums->solve_step == PastixSolveForward );
 
 #if defined(PASTIX_DEBUG_MPI)
     {
@@ -389,10 +387,8 @@ cpucblk_zrequest_rhs_fwd_handle_send( solve_step_e      solve_step,
  *
  *******************************************************************************
  *
- * @param[in] solve_step
- *          Define which step of the solve is concerned.
- *          @arg PastixSolveForward
- *          @arg PastixSolveBackward
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[inout] solvmtx
  *          The solver matrix structure.
@@ -412,7 +408,7 @@ cpucblk_zrequest_rhs_fwd_handle_send( solve_step_e      solve_step,
  *
  *******************************************************************************/
 static inline void
-cpucblk_zrequest_rhs_fwd_handle_recv( solve_step_e        solve_step,
+cpucblk_zrequest_rhs_fwd_handle_recv( const args_solve_t *enums,
                                       SolverMatrix       *solvmtx,
                                       pastix_rhs_t        rhsb,
                                       int                 threadid,
@@ -474,7 +470,7 @@ cpucblk_zrequest_rhs_fwd_handle_recv( solve_step_e        solve_step,
     }
 
     /* Receptions cblks contribute to themselves */
-    cpucblk_zrelease_rhs_fwd_deps( solve_step, solvmtx, rhsb, cblk, fcbk );
+    cpucblk_zrelease_rhs_fwd_deps( enums, solvmtx, rhsb, cblk, fcbk );
 
     /* Free the CBLK_RECV */
     memFree_null( recvbuf );
@@ -490,10 +486,8 @@ cpucblk_zrequest_rhs_fwd_handle_recv( solve_step_e        solve_step,
  *
  *******************************************************************************
  *
- * @param[in] solve_step
- *          Define which step of the solve is concerned.
- *          @arg PastixSolveForward
- *          @arg PastixSolveBackward
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[inout] solvmtx
  *          The solver matrix structure.
@@ -520,13 +514,13 @@ cpucblk_zrequest_rhs_fwd_handle_recv( solve_step_e        solve_step,
  *
  *******************************************************************************/
 static inline int
-cpucblk_zrequest_rhs_fwd_handle( solve_step_e      solve_step,
-                                 SolverMatrix     *solvmtx,
-                                 pastix_rhs_t      rhsb,
-                                 int               threadid,
-                                 int               outcount,
-                                 const int        *indexes,
-                                 const MPI_Status *statuses )
+cpucblk_zrequest_rhs_fwd_handle( const args_solve_t *enums,
+                                 SolverMatrix       *solvmtx,
+                                 pastix_rhs_t        rhsb,
+                                 int                 threadid,
+                                 int                 outcount,
+                                 const int          *indexes,
+                                 const MPI_Status   *statuses )
 {
     pastix_int_t i, reqid;
     int          nbrequest = outcount;
@@ -562,7 +556,7 @@ cpucblk_zrequest_rhs_fwd_handle( solve_step_e      solve_step,
                 solvmtx->reqtab[reqid] = MPI_REQUEST_NULL;
             }
 
-            cpucblk_zrequest_rhs_fwd_handle_recv( solve_step, solvmtx, rhsb,
+            cpucblk_zrequest_rhs_fwd_handle_recv( enums, solvmtx, rhsb,
                                                   threadid, &status, recvbuf );
         }
         /*
@@ -572,7 +566,7 @@ cpucblk_zrequest_rhs_fwd_handle( solve_step_e      solve_step,
             SolverCblk *cblk = solvmtx->cblktab + solvmtx->reqidx[ reqid ];
             assert( cblk->cblktype & CBLK_FANIN );
 
-            cpucblk_zrequest_rhs_fwd_handle_send( solve_step, solvmtx, rhsb, cblk );
+            cpucblk_zrequest_rhs_fwd_handle_send( enums, solvmtx, rhsb, cblk );
 
 #if !defined(NDEBUG)
             solvmtx->reqidx[ reqid ] = -1;
@@ -596,10 +590,8 @@ cpucblk_zrequest_rhs_fwd_handle( solve_step_e      solve_step,
  *
  *******************************************************************************
  *
- * @param[in] solve_step
- *          Define which step of the solve is concerned.
- *          @arg PastixSolveForward
- *          @arg PastixSolveBackward
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[inout] solvmtx
  *          The solver matrix structure.
@@ -613,10 +605,10 @@ cpucblk_zrequest_rhs_fwd_handle( solve_step_e      solve_step,
  *
  *******************************************************************************/
 void
-cpucblk_zmpi_rhs_fwd_progress( solve_step_e  solve_step,
-                               SolverMatrix *solvmtx,
-                               pastix_rhs_t  rhsb,
-                               int           threadid )
+cpucblk_zmpi_rhs_fwd_progress( const args_solve_t *enums,
+                               SolverMatrix       *solvmtx,
+                               pastix_rhs_t        rhsb,
+                               int                 threadid )
 {
     pthread_t  tid = pthread_self();
     int        outcount = 1;
@@ -656,7 +648,7 @@ cpucblk_zmpi_rhs_fwd_progress( solve_step_e  solve_step,
 
         /* Handle all the completed requests */
         if ( outcount > 0 ) {
-            nbfree = cpucblk_zrequest_rhs_fwd_handle( solve_step, solvmtx, rhsb, threadid,
+            nbfree = cpucblk_zrequest_rhs_fwd_handle( enums, solvmtx, rhsb, threadid,
                                                       outcount, indexes, statuses );
         }
 
@@ -688,10 +680,8 @@ cpucblk_zmpi_rhs_fwd_progress( solve_step_e  solve_step,
  * @param[in] rank
  *          The rank of the current thread.
  *
- * @param[in] solve_step
- *          Define which step of the solve is concerned.
- *          @arg PastixSolveForward
- *          @arg PastixSolveBackward
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[inout] solvmtx
  *          The solver matrix structure.
@@ -709,11 +699,11 @@ cpucblk_zmpi_rhs_fwd_progress( solve_step_e  solve_step,
  *
  *******************************************************************************/
 int
-cpucblk_zincoming_rhs_fwd_deps( int           rank,
-                                solve_step_e  solve_step,
-                                SolverMatrix *solvmtx,
-                                SolverCblk   *cblk,
-                                pastix_rhs_t  rhsb )
+cpucblk_zincoming_rhs_fwd_deps( int                 rank,
+                                const args_solve_t *enums,
+                                SolverMatrix       *solvmtx,
+                                SolverCblk         *cblk,
+                                pastix_rhs_t        rhsb )
 {
 #if defined(PASTIX_WITH_MPI)
     if ( cblk->cblktype & CBLK_FANIN ) {
@@ -731,7 +721,7 @@ cpucblk_zincoming_rhs_fwd_deps( int           rank,
 
     /* Make sure we receive every contribution */
     while( cblk->ctrbcnt > 0 ) {
-        cpucblk_zmpi_rhs_fwd_progress( solve_step, solvmtx, rhsb, rank );
+        cpucblk_zmpi_rhs_fwd_progress( enums, solvmtx, rhsb, rank );
     }
 #else
     assert( !(cblk->cblktype & (CBLK_FANIN | CBLK_RECV)) );
@@ -739,7 +729,7 @@ cpucblk_zincoming_rhs_fwd_deps( int           rank,
 #endif
 
     (void)rank;
-    (void)solve_step;
+    (void)enums;
     (void)solvmtx;
     (void)rhsb;
 
@@ -753,10 +743,8 @@ cpucblk_zincoming_rhs_fwd_deps( int           rank,
  *
  *******************************************************************************
  *
- * @param[in] solve_step
- *          Define which step of the solve is concerned.
- *          @arg PastixSolveForward
- *          @arg PastixSolveBackward
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[inout] solvmtx
  *          The solver matrix structure.
@@ -773,23 +761,23 @@ cpucblk_zincoming_rhs_fwd_deps( int           rank,
  *
  *******************************************************************************/
 void
-cpucblk_zrelease_rhs_fwd_deps( solve_step_e      solve_step,
-                               SolverMatrix     *solvmtx,
-                               pastix_rhs_t      rhsb,
-                               const SolverCblk *cblk,
-                               SolverCblk       *fcbk )
+cpucblk_zrelease_rhs_fwd_deps( const args_solve_t *enums,
+                               SolverMatrix       *solvmtx,
+                               pastix_rhs_t        rhsb,
+                               const SolverCblk   *cblk,
+                               SolverCblk         *fcbk )
 {
     int32_t ctrbcnt;
     ctrbcnt = pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
     if ( !ctrbcnt ) {
 #if defined(PASTIX_WITH_MPI)
         if ( ( fcbk->cblktype & CBLK_FANIN ) &&
-             ( solve_step == PastixSolveForward ) ) {
+             ( enums->solve_step == PastixSolveForward ) ) {
                 cpucblk_zisend_rhs_fwd( solvmtx, rhsb, fcbk );
                 return;
         }
 #else
-        (void)solve_step;
+        (void)enums;
         (void)rhsb;
 #endif
         if ( solvmtx->computeQueue ) {
@@ -809,10 +797,8 @@ cpucblk_zrelease_rhs_fwd_deps( solve_step_e      solve_step,
  *
  *******************************************************************************
  *
- * @param[in] solve_step
- *          Define which step of the solve is concerned.
- *          @arg PastixSolveForward
- *          @arg PastixSolveBackward
+ * @param[in] enums
+ *          Enums needed for the solve.
  *
  * @param[in] sched
  *          Define which sched is used
@@ -830,10 +816,10 @@ cpucblk_zrelease_rhs_fwd_deps( solve_step_e      solve_step,
  *
  *******************************************************************************/
 void
-cpucblk_zrequest_rhs_fwd_cleanup( solve_step_e  solve_step,
-                                  pastix_int_t  sched,
-                                  SolverMatrix *solvmtx,
-                                  pastix_rhs_t  rhsb )
+cpucblk_zrequest_rhs_fwd_cleanup( const args_solve_t *enums,
+                                  pastix_int_t        sched,
+                                  SolverMatrix       *solvmtx,
+                                  pastix_rhs_t        rhsb )
 {
     if ( (sched != PastixSchedSequential) &&
          (sched != PastixSchedStatic)     &&
@@ -871,14 +857,14 @@ cpucblk_zrequest_rhs_fwd_cleanup( solve_step_e  solve_step,
         /* We should wait only for fanin */
         assert( cblk->cblktype & CBLK_FANIN );
 
-        cpucblk_zrequest_rhs_fwd_handle_send( solve_step, solvmtx, rhsb, cblk );
+        cpucblk_zrequest_rhs_fwd_handle_send( enums, solvmtx, rhsb, cblk );
 
         solvmtx->reqnum--;
     }
     assert( solvmtx->reqnum == 0 );
     (void)rc;
 #else
-    (void)solve_step;
+    (void)enums;
     (void)solvmtx;
     (void)rhsb;
 #endif

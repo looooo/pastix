@@ -120,10 +120,7 @@ void starpu_zhetrf( pastix_data_t  *pastix_data,
 void starpu_zsytrf( pastix_data_t  *pastix_data,
                     sopalin_data_t *sopalin_data );
 void starpu_ztrsm ( pastix_data_t      *pastix_data,
-                    int                 side,
-                    int                 uplo,
-                    int                 trans,
-                    int                 diag,
+                    const args_solve_t *enums,
                     sopalin_data_t     *sopalin_data,
                     pastix_rhs_t        b );
 

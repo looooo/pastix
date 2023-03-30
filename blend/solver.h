@@ -72,11 +72,24 @@ typedef struct simuctrl_s SimuCtrl;
 /**
  * @brief Tags used in MPI communications.
  */
-typedef enum solve_step_ {
+typedef enum solve_step_e {
     PastixSolveForward,
     PastixSolveBackward,
     PastixFacto,
-} solve_step_e;
+} solve_step_t;
+
+/**
+ * @brief Arguments for the solve.
+ */
+typedef struct args_solve_s
+{
+    solve_step_t        solve_step;
+    pastix_solv_mode_t  mode;
+    pastix_side_t       side;
+    pastix_uplo_t       uplo;
+    pastix_trans_t      trans;
+    pastix_diag_t       diag;
+} args_solve_t;
 
 /**
  * @brief Solver recv block structure.
@@ -258,6 +271,47 @@ struct solver_matrix_s {
 
     PASTIX_Comm               solv_comm;            /*+ Copy of the pastix_data->inter_node_comm       +*/
 };
+
+/**
+ *******************************************************************************
+ *
+ * @brief Computes the current solve step.
+ *
+ *******************************************************************************
+ *
+ * @param[in] side
+ *          Specify whether the off-diagonal blocks appear on the left or right
+ *          in the equation. It has to be either PastixLeft or PastixRight.
+ *
+ * @param[in] uplo
+ *          Specify whether the off-diagonal blocks are upper or lower
+ *          triangular. It has to be either PastixUpper or PastixLower.
+ *
+ * @param[in] trans
+ *          Specify the transposition used for the off-diagonal blocks. It has
+ *          to be either PastixTrans or PastixConjTrans.
+ *
+ *******************************************************************************
+ *
+ * @return PastixSolveForward or PastixSolveBackward
+ *
+ *******************************************************************************/
+static inline solve_step_t
+compute_solve_step( pastix_side_t  side,
+                    pastix_uplo_t  uplo,
+                    pastix_trans_t trans )
+{
+    if ( ( (side == PastixLeft)  && (uplo == PastixUpper) && (trans == PastixNoTrans) ) ||
+         ( (side == PastixLeft)  && (uplo == PastixLower) && (trans != PastixNoTrans) ) ||
+         ( (side == PastixRight) && (uplo == PastixUpper) && (trans != PastixNoTrans) ) ||
+         ( (side == PastixRight) && (uplo == PastixLower) && (trans == PastixNoTrans) ) )
+    {
+        return PastixSolveBackward;
+    }
+    else {
+        return PastixSolveForward;
+    }
+}
 
 /**
  * @brief     Compute the number of columns in a column block.
@@ -499,7 +553,7 @@ int           solverDraw      ( const SolverMatrix *solvptr,
                                 const char         *directory );
 void          solverPrintStats( const SolverMatrix *solvptr );
 
-void solverRequestInit( solve_step_e  solve_step,
+void solverRequestInit( solve_step_t  solve_step,
                         SolverMatrix *solvmtx );
 void solverRequestExit( SolverMatrix *solvmtx );
 
@@ -508,7 +562,7 @@ void solverRecvInit( pastix_coefside_t  side,
                      pastix_coeftype_t  flttype );
 void solverRecvExit( SolverMatrix      *solvmtx );
 
-void solverRhsRecvInit( solve_step_e       solve_step,
+void solverRhsRecvInit( solve_step_t       solve_step,
                         SolverMatrix      *solvmtx,
                         pastix_coeftype_t  flttype,
                         pastix_rhs_t       rhsb   );
