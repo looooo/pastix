@@ -38,11 +38,11 @@
  */
 struct args_ztrsm_t
 {
-    pastix_data_t    *pastix_data;
-    args_solve_t     *enum_list;
-    sopalin_data_t   *sopalin_data;
-    pastix_rhs_t      rhsb;
-    volatile int32_t  taskcnt;
+    pastix_data_t      *pastix_data;
+    const args_solve_t *enum_list;
+    sopalin_data_t     *sopalin_data;
+    pastix_rhs_t        rhsb;
+    volatile int32_t    taskcnt;
 };
 
 /**
@@ -68,7 +68,7 @@ struct args_ztrsm_t
  *******************************************************************************/
 void
 sequential_ztrsm( pastix_data_t  *pastix_data,
-                  args_solve_t   *enums,
+                  const args_solve_t   *enums,
                   sopalin_data_t *sopalin_data,
                   pastix_rhs_t    rhsb )
 {
@@ -153,7 +153,7 @@ thread_ztrsm_static( isched_thread_t *ctx,
     sopalin_data_t      *sopalin_data = arg->sopalin_data;
     SolverMatrix        *datacode     = sopalin_data->solvmtx;
     pastix_rhs_t         rhsb         = arg->rhsb;
-    args_solve_t        *enums        = arg->enum_list;
+    const args_solve_t  *enums        = arg->enum_list;
     pastix_int_t         thrd_size    = (pastix_int_t)ctx->global_ctx->world_size;
     pastix_int_t         thrd_rank    = (pastix_int_t)ctx->rank;
     SolverCblk          *cblk;
@@ -252,10 +252,10 @@ thread_ztrsm_static( isched_thread_t *ctx,
  *
  *******************************************************************************/
 void
-static_ztrsm( pastix_data_t  *pastix_data,
-              args_solve_t   *enums,
-              sopalin_data_t *sopalin_data,
-              pastix_rhs_t    rhsb  )
+static_ztrsm( pastix_data_t      *pastix_data,
+              const args_solve_t *enums,
+              sopalin_data_t     *sopalin_data,
+              pastix_rhs_t        rhsb  )
 {
     struct args_ztrsm_t args_ztrsm = { pastix_data, enums, sopalin_data, rhsb, 0 };
     isched_parallel_call( pastix_data->isched, thread_ztrsm_static, &args_ztrsm );
@@ -284,7 +284,7 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
     pastix_data_t       *pastix_data   = arg->pastix_data;
     sopalin_data_t      *sopalin_data  = arg->sopalin_data;
     SolverMatrix        *datacode      = sopalin_data->solvmtx;
-    args_solve_t        *enums         = arg->enum_list;
+    const args_solve_t  *enums         = arg->enum_list;
     pastix_rhs_t         rhsb          = arg->rhsb;
     pastix_int_t         thrd_size     = (pastix_int_t)ctx->global_ctx->world_size;
     pastix_int_t         thrd_rank     = (pastix_int_t)ctx->rank;
@@ -459,10 +459,10 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
  *
  *******************************************************************************/
 void
-dynamic_ztrsm( pastix_data_t  *pastix_data,
-               args_solve_t   *enums,
-               sopalin_data_t *sopalin_data,
-               pastix_rhs_t    rhsb  )
+dynamic_ztrsm( pastix_data_t      *pastix_data,
+               const args_solve_t *enums,
+               sopalin_data_t     *sopalin_data,
+               pastix_rhs_t        rhsb  )
 {
     SolverMatrix        *datacode   = sopalin_data->solvmtx;
     int32_t              taskcnt    = datacode->tasknbr - (datacode->cblknbr - datacode->cblkschur);
@@ -505,10 +505,10 @@ dynamic_ztrsm( pastix_data_t  *pastix_data,
  *
  *******************************************************************************/
 void
-runtime_ztrsm( pastix_data_t  *pastix_data,
-               args_solve_t   *enums,
-               sopalin_data_t *sopalin_data,
-               pastix_rhs_t    rhsb )
+runtime_ztrsm( pastix_data_t      *pastix_data,
+               const args_solve_t *enums,
+               sopalin_data_t     *sopalin_data,
+               pastix_rhs_t        rhsb )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
     SolverCblk   *cblk;
@@ -550,7 +550,7 @@ runtime_ztrsm( pastix_data_t  *pastix_data,
 #endif
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-static void (*ztrsm_table[5])(pastix_data_t *, args_solve_t *,
+static void (*ztrsm_table[5])(pastix_data_t *, const args_solve_t *,
                               sopalin_data_t *, pastix_rhs_t) =
 {
     sequential_ztrsm,
@@ -614,7 +614,7 @@ sopalin_ztrsm( pastix_data_t  *pastix_data,
                pastix_rhs_t    rhsb  )
 {
     int sched = pastix_data->iparm[IPARM_SCHEDULER];
-    void (*ztrsm)( pastix_data_t *, args_solve_t *,
+    void (*ztrsm)( pastix_data_t *, const args_solve_t *,
                    sopalin_data_t *, pastix_rhs_t ) = ztrsm_table[ sched ];
     solve_step_t  solve_step = compute_solve_step( side, uplo, trans );
     args_solve_t *enum_list = malloc( sizeof( args_solve_t ) );

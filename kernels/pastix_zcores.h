@@ -447,43 +447,43 @@ void cpucblk_zisend_rhs_bwd( SolverMatrix *solvmtx,
                              pastix_rhs_t  rhsb,
                              SolverCblk   *cblk );
 #endif
-void cpucblk_zmpi_rhs_fwd_progress( args_solve_t  *enums,
-                                    SolverMatrix  *solvmtx,
-                                    pastix_rhs_t   rhsb,
-                                    int            threadid );
-void cpucblk_zrelease_rhs_fwd_deps( args_solve_t     *enums,
-                                    SolverMatrix     *solvmtx,
-                                    pastix_rhs_t      rhsb,
-                                    const SolverCblk *cblk,
-                                    SolverCblk       *fcbk );
-int cpucblk_zincoming_rhs_fwd_deps( int            rank,
-                                    args_solve_t  *enums,
-                                    SolverMatrix  *solvmtx,
-                                    SolverCblk    *cblk,
-                                    pastix_rhs_t   rhsb );
-void cpucblk_zrequest_rhs_fwd_cleanup( args_solve_t  *enums,
-                                       pastix_int_t   sched,
-                                       SolverMatrix  *solvmtx,
-                                       pastix_rhs_t   rhsb );
+void cpucblk_zmpi_rhs_fwd_progress( const args_solve_t *enums,
+                                    SolverMatrix       *solvmtx,
+                                    pastix_rhs_t        rhsb,
+                                    int                 threadid );
+void cpucblk_zrelease_rhs_fwd_deps( const args_solve_t *enums,
+                                    SolverMatrix       *solvmtx,
+                                    pastix_rhs_t        rhsb,
+                                    const SolverCblk   *cblk,
+                                    SolverCblk         *fcbk );
+int cpucblk_zincoming_rhs_fwd_deps( int                 rank,
+                                    const args_solve_t *enums,
+                                    SolverMatrix       *solvmtx,
+                                    SolverCblk         *cblk,
+                                    pastix_rhs_t        rhsb );
+void cpucblk_zrequest_rhs_fwd_cleanup( const args_solve_t *enums,
+                                       pastix_int_t        sched,
+                                       SolverMatrix       *solvmtx,
+                                       pastix_rhs_t        rhsb );
 
-void cpucblk_zmpi_rhs_bwd_progress( args_solve_t  *enums,
-                                    SolverMatrix  *solvmtx,
-                                    pastix_rhs_t   rhsb,
-                                    int            threadid );
-void cpucblk_zrelease_rhs_bwd_deps( args_solve_t     *enums,
-                                    SolverMatrix     *solvmtx,
-                                    pastix_rhs_t      rhsb,
-                                    const SolverCblk *cblk,
-                                    SolverCblk       *fcbk );
-int cpucblk_zincoming_rhs_bwd_deps( int            rank,
-                                    args_solve_t  *enums,
-                                    SolverMatrix  *solvmtx,
-                                    SolverCblk    *cblk,
-                                    pastix_rhs_t   rhsb );
-void cpucblk_zrequest_rhs_bwd_cleanup( args_solve_t  *enums,
-                                       pastix_int_t   sched,
-                                       SolverMatrix  *solvmtx,
-                                       pastix_rhs_t   rhsb );
+void cpucblk_zmpi_rhs_bwd_progress( const args_solve_t *enums,
+                                    SolverMatrix       *solvmtx,
+                                    pastix_rhs_t        rhsb,
+                                    int                 threadid );
+void cpucblk_zrelease_rhs_bwd_deps( const args_solve_t *enums,
+                                    SolverMatrix       *solvmtx,
+                                    pastix_rhs_t        rhsb,
+                                    const SolverCblk   *cblk,
+                                    SolverCblk         *fcbk );
+int cpucblk_zincoming_rhs_bwd_deps( int                 rank,
+                                    const args_solve_t *enums,
+                                    SolverMatrix       *solvmtx,
+                                    SolverCblk         *cblk,
+                                    pastix_rhs_t        rhsb );
+void cpucblk_zrequest_rhs_bwd_cleanup( const args_solve_t *enums,
+                                       pastix_int_t        sched,
+                                       SolverMatrix       *solvmtx,
+                                       pastix_rhs_t        rhsb );
 void cpucblk_zsend_rhs_forward( const SolverMatrix *solvmtx,
                                 SolverCblk         *cblk,
                                 pastix_rhs_t        b );
@@ -551,14 +551,14 @@ void solve_blok_zgemm( pastix_side_t             side,
                        pastix_complex64_t       *C,
                        pastix_int_t              ldc );
 
-void solve_cblk_ztrsmsp_forward( args_solve_t     *enums,
-                                 SolverMatrix     *datacode,
-                                 const SolverCblk *cblk,
-                                 pastix_rhs_t      b );
-void solve_cblk_ztrsmsp_backward( args_solve_t *enums,
-                                  SolverMatrix *datacode,
-                                  SolverCblk   *cblk,
-                                  pastix_rhs_t  b );
+void solve_cblk_ztrsmsp_forward( const args_solve_t *enums,
+                                 SolverMatrix       *datacode,
+                                 const SolverCblk   *cblk,
+                                 pastix_rhs_t        b );
+void solve_cblk_ztrsmsp_backward( const args_solve_t *enums,
+                                  SolverMatrix       *datacode,
+                                  SolverCblk         *cblk,
+                                  pastix_rhs_t        b );
 
 void solve_cblk_zdiag( const SolverCblk   *cblk,
                        int                 nrhs,

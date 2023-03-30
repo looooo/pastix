@@ -298,10 +298,10 @@ solve_blok_zgemm( pastix_side_t             side,
  *
  *******************************************************************************/
 void
-solve_cblk_ztrsmsp_forward( args_solve_t     *enums,
-                            SolverMatrix     *datacode,
-                            const SolverCblk *cblk,
-                            pastix_rhs_t      rhsb )
+solve_cblk_ztrsmsp_forward( const args_solve_t *enums,
+                            SolverMatrix       *datacode,
+                            const SolverCblk   *cblk,
+                            pastix_rhs_t        rhsb )
 {
     SolverCblk               *fcbk;
     const SolverBlok         *blok;
@@ -447,10 +447,10 @@ solve_cblk_ztrsmsp_forward( args_solve_t     *enums,
  *
  *******************************************************************************/
 void
-solve_cblk_ztrsmsp_backward( args_solve_t *enums,
-                             SolverMatrix *datacode,
-                             SolverCblk   *cblk,
-                             pastix_rhs_t  rhsb )
+solve_cblk_ztrsmsp_backward( const args_solve_t *enums,
+                             SolverMatrix       *datacode,
+                             SolverCblk         *cblk,
+                             pastix_rhs_t        rhsb )
 {
     SolverCblk               *fcbk;
     const SolverBlok         *blok;

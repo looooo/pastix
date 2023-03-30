@@ -124,10 +124,10 @@ cpucblk_zisend_rhs_bwd( SolverMatrix *solvmtx,
  *
  *******************************************************************************/
 void
-cpucblk_zrequest_rhs_bwd_handle_send( args_solve_t     *enums,
-                                      SolverMatrix     *solvmtx,
-                                      pastix_rhs_t      rhsb,
-                                      const SolverCblk *cblk )
+cpucblk_zrequest_rhs_bwd_handle_send( const args_solve_t *enums,
+                                      SolverMatrix       *solvmtx,
+                                      pastix_rhs_t        rhsb,
+                                      const SolverCblk   *cblk )
 {
     pastix_int_t idx = - cblk->bcscnum - 1;
 
@@ -177,7 +177,7 @@ cpucblk_zrequest_rhs_bwd_handle_send( args_solve_t     *enums,
  *
  *******************************************************************************/
 static inline void
-cpucblk_zrequest_rhs_bwd_handle_recv( args_solve_t       *enums,
+cpucblk_zrequest_rhs_bwd_handle_recv( const args_solve_t *enums,
                                       SolverMatrix       *solvmtx,
                                       pastix_rhs_t        rhsb,
                                       int                 threadid,
@@ -266,13 +266,13 @@ cpucblk_zrequest_rhs_bwd_handle_recv( args_solve_t       *enums,
  *
  *******************************************************************************/
 static inline int
-cpucblk_zrequest_rhs_bwd_handle( args_solve_t     *enums,
-                                 SolverMatrix     *solvmtx,
-                                 pastix_rhs_t      rhsb,
-                                 int               threadid,
-                                 int               outcount,
-                                 const int        *indexes,
-                                 const MPI_Status *statuses )
+cpucblk_zrequest_rhs_bwd_handle( const args_solve_t *enums,
+                                 SolverMatrix       *solvmtx,
+                                 pastix_rhs_t        rhsb,
+                                 int                 threadid,
+                                 int                 outcount,
+                                 const int          *indexes,
+                                 const MPI_Status   *statuses )
 {
     pastix_int_t i, reqid;
     int          nbrequest = outcount;
@@ -357,10 +357,10 @@ cpucblk_zrequest_rhs_bwd_handle( args_solve_t     *enums,
  *
  *******************************************************************************/
 void
-cpucblk_zmpi_rhs_bwd_progress( args_solve_t *enums,
-                               SolverMatrix *solvmtx,
-                               pastix_rhs_t  rhsb,
-                               int           threadid )
+cpucblk_zmpi_rhs_bwd_progress( const args_solve_t *enums,
+                               SolverMatrix       *solvmtx,
+                               pastix_rhs_t        rhsb,
+                               int                 threadid )
 {
     pthread_t  tid = pthread_self();
     int        outcount = 1;
@@ -451,11 +451,11 @@ cpucblk_zmpi_rhs_bwd_progress( args_solve_t *enums,
  *
  *******************************************************************************/
 int
-cpucblk_zincoming_rhs_bwd_deps( int           rank,
-                                args_solve_t *enums,
-                                SolverMatrix *solvmtx,
-                                SolverCblk   *cblk,
-                                pastix_rhs_t  rhsb )
+cpucblk_zincoming_rhs_bwd_deps( int                 rank,
+                                const args_solve_t *enums,
+                                SolverMatrix       *solvmtx,
+                                SolverCblk         *cblk,
+                                pastix_rhs_t        rhsb )
 {
 #if defined(PASTIX_WITH_MPI)
     if ( cblk->cblktype & CBLK_FANIN ) {
@@ -513,11 +513,11 @@ cpucblk_zincoming_rhs_bwd_deps( int           rank,
  *
  *******************************************************************************/
 void
-cpucblk_zrelease_rhs_bwd_deps( args_solve_t     *enums,
-                               SolverMatrix     *solvmtx,
-                               pastix_rhs_t      rhsb,
-                               const SolverCblk *cblk,
-                               SolverCblk       *fcbk )
+cpucblk_zrelease_rhs_bwd_deps( const args_solve_t *enums,
+                               SolverMatrix       *solvmtx,
+                               pastix_rhs_t        rhsb,
+                               const SolverCblk   *cblk,
+                               SolverCblk         *fcbk )
 {
     int32_t ctrbcnt;
     ctrbcnt = pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
@@ -567,10 +567,10 @@ cpucblk_zrelease_rhs_bwd_deps( args_solve_t     *enums,
  *
  *******************************************************************************/
 void
-cpucblk_zrequest_rhs_bwd_cleanup( args_solve_t *enums,
-                                  pastix_int_t  sched,
-                                  SolverMatrix *solvmtx,
-                                  pastix_rhs_t  rhsb )
+cpucblk_zrequest_rhs_bwd_cleanup( const args_solve_t *enums,
+                                  pastix_int_t        sched,
+                                  SolverMatrix       *solvmtx,
+                                  pastix_rhs_t        rhsb )
 {
     if ( (sched != PastixSchedSequential) &&
          (sched != PastixSchedStatic)     &&

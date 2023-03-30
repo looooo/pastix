@@ -149,10 +149,10 @@ starpu_cblk_ztrsmsp_forward( args_solve_t     *enums,
  *
  *******************************************************************************/
 void
-starpu_cblk_ztrsmsp_backward( args_solve_t     *enums,
-                              sopalin_data_t   *sopalin_data,
-                              const SolverCblk *cblk,
-                              pastix_int_t      prio )
+starpu_cblk_ztrsmsp_backward( const args_solve_t *enums,
+                              sopalin_data_t     *sopalin_data,
+                              const SolverCblk   *cblk,
+                              pastix_int_t        prio )
 {
     pastix_coefside_t   cs;
     SolverMatrix       *datacode = sopalin_data->solvmtx;
@@ -241,9 +241,9 @@ starpu_cblk_ztrsmsp_backward( args_solve_t     *enums,
  *
  *******************************************************************************/
 void
-starpu_ztrsm_sp1dplus( pastix_data_t  *pastix_data,
-                       sopalin_data_t *sopalin_data,
-                       args_solve_t   *enums )
+starpu_ztrsm_sp1dplus( pastix_data_t      *pastix_data,
+                       sopalin_data_t     *sopalin_data,
+                       const args_solve_t *enums )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
     SolverCblk   *cblk;
@@ -293,10 +293,10 @@ starpu_ztrsm_sp1dplus( pastix_data_t  *pastix_data,
  *
  *******************************************************************************/
 void
-starpu_ztrsm( pastix_data_t  *pastix_data,
-              args_solve_t   *enums,
-              sopalin_data_t *sopalin_data,
-              pastix_rhs_t    rhsb )
+starpu_ztrsm( pastix_data_t      *pastix_data,
+              const args_solve_t *enums,
+              sopalin_data_t     *sopalin_data,
+              pastix_rhs_t        rhsb )
 {
     starpu_sparse_matrix_desc_t *sdesc = sopalin_data->solvmtx->starpu_desc;
     starpu_dense_matrix_desc_t  *ddesc;
