@@ -59,6 +59,9 @@
 #cmakedefine HAVE_BUILTIN_EXPECT
 #cmakedefine HAVE_GETLINE
 #cmakedefine HAVE_MKDTEMP
+#cmakedefine HAVE_MM_SETCSR
+#cmakedefine HAVE_FTZ_MACROS
+#cmakedefine HAVE_DAZ_MACROS
 
 /* Architecture */
 #cmakedefine PASTIX_ARCH_X86

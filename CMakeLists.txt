@@ -87,6 +87,7 @@ include(RulesPrecisions)
 
 ### System parameter detection
 include(CheckSystem)
+include(CheckSubnormals)
 
 # Set the RPATH config
 # --------------------
