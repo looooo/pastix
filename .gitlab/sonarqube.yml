@@ -4,6 +4,8 @@ sonarqube:
   tags: ["docker"]
   extends:
     - .only-master
+  except:
+    - schedules
   script:
     - cat pastix_build*.log > pastix_build.log
     - ls -l build/*.json
