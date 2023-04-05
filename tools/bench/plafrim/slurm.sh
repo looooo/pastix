@@ -22,7 +22,10 @@ env |grep ^CI
 env |grep ^SLURM
 env |grep ^JUBE
 env |grep ^MPI
+env |grep ^STARPU
 env |grep ^PASTIX
+
+set -x
 
 function wait_completion {
     # Wait for completion of jobs

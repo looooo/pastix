@@ -12,12 +12,15 @@
 #
 # This script build the correct environment to benchmark PaStiX.
 #
-
 echo "######################### PaStiX environment benchmarks #########################"
+set -x
 
 # Unset the binding environment of the CI for this specific case
 unset STARPU_MPI_NOBIND
 unset STARPU_WORKERS_NOBIND
+
+# Set it to current directory if not run through the CI
+CI_PROJECT_DIR=${CI_PROJECT_DIR:-.}
 
 # to avoid a lock during fetching pastix branch in parallel
 export XDG_CACHE_HOME=/tmp/guix-$$
@@ -53,26 +56,25 @@ then
   GUIX_ADHOC_MPI="openssh openmpi"
 fi
 
-GUIX_ADHOC="coreutils gawk grep jube perl python python-click python-gitpython python-elasticsearch python-certifi sed slurm@19 mkl libltdl zlib"
+GUIX_ADHOC="coreutils gawk grep jube perl python python-click python-certifi python-elasticsearch python-gitpython python-matplotlib python-pandas python-seaborn r-ggplot2 r-plyr r-reshape2 sed slurm mkl libltdl zlib"
+GUIX_RULE="-D $GUIX_ENV $GUIX_ENV_MPI $GUIX_ADHOC $GUIX_ADHOC_MPI"
 
-GUIX_RULE="$GUIX_ENV $GUIX_ENV_MPI --ad-hoc $GUIX_ADHOC $GUIX_ADHOC_MPI"
+# Create envrionment and submit jobs
+exec guix shell --pure \
+                --preserve=PLATFORM \
+                --preserve=NODE \
+                --preserve=LD_PRELOAD \
+                --preserve=^CI \
+                --preserve=^SLURM \
+                --preserve=^JUBE \
+                --preserve=^MPI \
+                --preserve=^STARPU \
+                --preserve=^PARSEC \
+                --preserve=^PASTIX \
+                $GUIX_RULE \
+                -- /bin/bash --norc ./tools/bench/plafrim/slurm.sh
 
-# Create envrironment and submit jobs
-exec guix environment --pure \
-                      --preserve=PLATFORM \
-                      --preserve=NODE \
-                      --preserve=LD_PRELOAD \
-                      --preserve=^CI \
-                      --preserve=^SLURM \
-                      --preserve=^JUBE \
-                      --preserve=^MPI \
-                      --preserve=^STARPU \
-                      --preserve=^PARSEC \
-                      --preserve=^PASTIX \
-                      $GUIX_RULE \
-                      -- /bin/bash --norc ./tools/bench/plafrim/slurm.sh
+echo "####################### End PaStiX benchmarks #######################"
 
-echo "####################### End PaStiX environment benchmarks #######################"
-
-# Clean tmp
+# clean tmp
 rm -rf /tmp/guix-$$
