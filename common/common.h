@@ -31,6 +31,16 @@
 #include <limits.h>
 #include <sched.h>
 
+#if defined(HAVE_MM_SETCSR)
+#include <immintrin.h>
+#endif
+#if defined(HAVE_FTZ_MACROS)
+#include <xmmintrin.h>
+#endif
+#if defined(HAVE_DAZ_MACROS)
+#include <pmmintrin.h>
+#endif
+
 #if defined(PASTIX_DEBUG_VALGRIND)
 #define pastix_yield() sched_yield()
 #else
@@ -214,15 +224,22 @@ set_ftz( void )
  * https://www.semanticscholar.org/paper/Performance-Evaluation-of-Mixed-Precision-for-Zounon-Higham/44731cd2cd93aca8299a83ee04029deb7641b1a3
  */
 #if defined(__x86_64)
+#if defined(HAVE_FTZ_MACROS) && defined(HAVE_DAZ_MACROS)
+    _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+#elif defined(HAVE_MM_SET_CSR)
+    _mm_setcsr(_mm_getcsr() & ~0x8040);
+#else
     asm( "stmxcsr -0x4(%rsp)\n\t"          /* store CSR register on stack */
          "orl     $0x8040, -0x4(%rsp)\n\t" /* set bits 15( FTZ ) and 7( DAZ ) */
          "ldmxcsr -0x4(%rsp)" );           /* load CSR register from stack */
+#endif
 #endif
 
 #if defined(__arm64__) || defined(__aarch64__)
     uint64_t fpcr;
     asm( "mrs %0,   fpcr" : "=r"( fpcr ));
-    asm( "msr fpcr, %0"  :: "=r"( fpcr | (1 << 24) ));
+    asm( "msr fpcr, %0"   :: "r"( fpcr | (1 << 24) ));
 #endif
 
 }
