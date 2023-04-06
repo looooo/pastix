@@ -1,6 +1,17 @@
-# Documentation: https://docs.brew.sh/Formula-Cookbook
-#                https://rubydoc.brew.sh/Formula
-# PLEASE REMOVE ALL GENERATED COMMENTS BEFORE SUBMITTING YOUR PULL REQUEST!
+###
+#
+#  @file starpu.rb
+#  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @brief Homebrew formula for StarPU 1.3.*
+#
+#  @version 1.3.10
+#  @author Pierre Ramet
+#  @author Mathieu Faverge
+#  @date 2023-04-06
+#
+###
 class Starpu < Formula
   desc "StarPU is a task programming library for hybrid architectures"
   homepage "https://starpu.gitlabpages.inria.fr/"
