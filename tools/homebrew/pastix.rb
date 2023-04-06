@@ -1,15 +1,15 @@
 ###
 #
 #  @file pastix.rb
-#  @copyright 2013-2021 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @brief Homebrew formula for PaStiX 6.*
 #
-#  @version 6.2.1
+#  @version 6.2.2
 #  @author Pierre Ramet
 #  @author Mathieu Faverge
-#  @date 2022-04-06
+#  @date 2023-04-06
 #
 ###
 class Pastix < Formula
