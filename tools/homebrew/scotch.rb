@@ -1,16 +1,3 @@
-###
-#
-#  @file scotch.rb
-#  @copyright 2020-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
-#                       Univ. Bordeaux. All rights reserved.
-#
-#  @brief Homebrew formula for Scotch
-#
-#  @version 6.3.0
-#  @author Pierre Ramet
-#  @date 2022-04-06
-#
-###
 class Scotch < Formula
   desc "Package for graph and mesh partitioning"
   homepage "https://gitlab.inria.fr/scotch/scotch"
@@ -51,7 +38,7 @@ class Scotch < Formula
 
       if OS.mac?
         make_args << "LIB=.dylib"
-          make_args << "ARFLAGS=-dynamiclib -Wl,-single_module -install_name #{lib}/$(notdir $@) -undefined dynamic_lookup -o "
+        make_args << "ARFLAGS=-dynamiclib -Wl,-single_module -install_name #{lib}/$(notdir $@) -undefined dynamic_lookup -o "
         if MacOS.version >= :mojave
           make_args << "AR=#{ENV["CC"]}"
         else
@@ -65,7 +52,6 @@ class Scotch < Formula
 
       system "make", "scotch", "VERBOSE=ON", *make_args
       system "make", "ptscotch", "VERBOSE=ON", *make_args
-      system "make", "esmumps", "VERBOSE=ON", *make_args
       system "make", "install", "prefix=#{prefix}", *make_args
       system "make", "check", "ptcheck", "EXECP=mpirun -np 2", *make_args unless build.without? "test"
     end
