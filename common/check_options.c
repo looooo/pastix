@@ -16,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2022-08-06
+ * @date 2023-04-07
  *
  */
 #include "common.h"
@@ -781,6 +781,14 @@ iparm_mixed_check_value( pastix_int_t iparm )
 }
 
 static inline int
+iparm_ftz_check_value( pastix_int_t iparm )
+{
+    /* TODO : Check range iparm[IPARM_FTZ] */
+    (void)iparm;
+    return 0;
+}
+
+static inline int
 iparm_modify_parameter_check_value( pastix_int_t iparm )
 {
     /* TODO : Check range iparm[IPARM_MODIFY_PARAMETER] */
@@ -942,6 +950,7 @@ iparm_check_values( const pastix_int_t *iparm )
     error += iparm_compress_preselect_check_value( iparm[IPARM_COMPRESS_PRESELECT] );
     error += iparm_compress_iluk_check_value( iparm[IPARM_COMPRESS_ILUK] );
     error += iparm_mixed_check_value( iparm[IPARM_MIXED] );
+    error += iparm_ftz_check_value( iparm[IPARM_FTZ] );
     error += iparm_modify_parameter_check_value( iparm[IPARM_MODIFY_PARAMETER] );
     error += iparm_start_task_check_value( iparm[IPARM_START_TASK] );
     error += iparm_float_check_value( iparm[IPARM_FLOAT] );

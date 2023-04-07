@@ -18,7 +18,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2022-09-27
+ * @date 2023-04-07
  *
  * @addtogroup pastix_api
  * @{
@@ -135,6 +135,7 @@ typedef enum pastix_iparm_e {
 
     /* mixed-precision parameters */
     IPARM_MIXED,                          /**< Enables/Disables mixed-precision                               Default: 0                         IN  */
+    IPARM_FTZ,                            /**< Enables/Disables Flush-To-Zero for denormal numbers            Default: 0                         IN  */
 
     /* MPI modes */
     IPARM_MPI_THREAD_LEVEL,               /**< MPI thread level support                                       Default: PastixMpiNone             OUT */
