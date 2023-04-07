@@ -6,7 +6,7 @@
 #
 #  @brief Homebrew formula for Scotch 6.*
 #
-#  @version 6.1.1
+#  @version 6.2.2
 #  @author Pierre Ramet
 #  @author Mathieu Faverge
 #  @date 2023-04-06

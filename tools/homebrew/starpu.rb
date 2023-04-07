@@ -6,7 +6,7 @@
 #
 #  @brief Homebrew formula for StarPU 1.3.*
 #
-#  @version 1.3.10
+#  @version 6.2.2
 #  @author Pierre Ramet
 #  @author Mathieu Faverge
 #  @date 2023-04-06
