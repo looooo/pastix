@@ -1,30 +1,28 @@
 ###
 #
 #  @file starpu.rb
-#  @copyright 2020-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @brief Homebrew formula for StarPU
+#  @brief Homebrew formula for StarPU 1.3.*
 #
-#  @version 6.2.1
+#  @version 6.2.2
 #  @author Pierre Ramet
-#  @date 2021-04-25
+#  @author Mathieu Faverge
+#  @date 2023-04-06
 #
 ###
-# Documentation: https://docs.brew.sh/Formula-Cookbook
-#                https://rubydoc.brew.sh/Formula
-# PLEASE REMOVE ALL GENERATED COMMENTS BEFORE SUBMITTING YOUR PULL REQUEST!
 class Starpu < Formula
   desc "StarPU is a task programming library for hybrid architectures"
   homepage "https://starpu.gitlabpages.inria.fr/"
-  url "https://files.inria.fr/starpu/starpu-1.3.7/starpu-1.3.7.tar.gz"
-  sha256 "1d7e01567fbd4a66b7e563626899374735e37883226afb96c8952fea1dab77c2"
+  url "https://files.inria.fr/starpu/starpu-1.3.10/starpu-1.3.10.tar.gz"
+  sha256 "757cd9a54f53751d37364965ac36102461a85df3a50b776447ac0acc0e1e2612"
   license "GNU GPL v2.1"
 
   depends_on "autoconf" => :build
   depends_on "automake" => :build
   depends_on "libtool" => :build
-  depends_on "pkg-config" => :build
+  depends_on "pkg-config" => [:build, :test]
   depends_on "hwloc"
   depends_on "openmpi"
 
@@ -40,25 +38,26 @@ class Starpu < Formula
       #include <stdlib.h>
       #include <starpu.h>
 
+      struct starpu_codelet cl =
+      {
+        .where = STARPU_NOWHERE,
+      };
 
-      int main(int argc, char* argv[]) {
-        /* initialize StarPU */
-        starpu_init(NULL);
-        struct starpu_task *task = starpu_task_create();
-        task->cl = &cl; /* Pointer to the codelet defined above */
-        /* starpu_task_submit will be a blocking call. If unset,
-        starpu_task_wait() needs to be called after submitting the task. */
-        task->synchronous = 1;
-        /* submit the task to StarPU */
-        starpu_task_submit(task);
-        /* terminate StarPU */
+      int main(int argc, char* argv[])
+      {
+        int ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+        ret = starpu_task_insert(&cl, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+        ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
         starpu_shutdown();
-          return 0;
+        return 0;
       }
     EOS
 
-    system ENV.cc, "test.c", "-I#{include}", "-L#{lib}", "-lstarpu",
-                   "-o", "test"
-    system "./test"
+    pkg_config_flags = `pkg-config --cflags --libs starpu-1.3`.chomp.split
+    system ENV.cc, "test.c", *pkg_config_flags
+    system "./a.out"
   end
 end

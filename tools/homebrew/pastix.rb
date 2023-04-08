@@ -6,17 +6,17 @@
 #
 #  @brief Homebrew formula for PaStiX 6.*
 #
-#  @version 6.3.0
+#  @version 6.2.2
 #  @author Pierre Ramet
 #  @author Mathieu Faverge
-#  @date 2022-05-06
+#  @date 2023-04-06
 #
 ###
 class Pastix < Formula
   desc "Parallel solver for sparse linear systems based on direct methods"
   homepage "https://gitlab.inria.fr/solverstack/pastix"
-  url "https://gitlab.inria.fr/solverstack/pastix//uploads/3fc798eb3ca6282e21506349df7f9da2/pastix-6.2.1.tar.gz"
-  sha256 "b680cbfc265df8cba18d3a7093fcc02e260198c4a2d6a86d1e684bb291e309dd"
+  url "https://gitlab.inria.fr/solverstack/pastix/uploads/d579e932b415103974ced5d216481332/pastix-6.2.2.tar.gz"
+  sha256 "cce9a1fe4678b5733c9f1a5a52f77b040eadc3e254418c6fb03d8ab37dede508"
   head "https://gitlab.inria.fr/solverstack/pastix.git"
   license "LGPL"
 
@@ -35,6 +35,7 @@ class Pastix < Formula
     args = ["-DCMAKE_INSTALL_PREFIX=#{prefix}",
             "-DBUILD_SHARED_LIBS=ON",
             "-DBUILD_DOCUMENTATION=OFF",
+            "-DBUILD_64bits=OFF",
             "-DPASTIX_INT64=OFF",
             "-DPASTIX_ORDERING_SCOTCH=ON",
             "-DPASTIX_WITH_FORTRAN=ON",

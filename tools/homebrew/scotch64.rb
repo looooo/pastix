@@ -1,14 +1,15 @@
 ###
 #
 #  @file scotch64.rb
-#  @copyright 2020-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @brief Homebrew formula for Scotch
+#  @brief Homebrew formula for Scotch 6.*
 #
-#  @version 6.3.0
+#  @version 6.2.2
 #  @author Pierre Ramet
-#  @date 2022-04-06
+#  @author Mathieu Faverge
+#  @date 2023-04-06
 #
 ###
 class Scotch64 < Formula
@@ -66,7 +67,6 @@ class Scotch64 < Formula
 
       system "make", "scotch", "VERBOSE=ON", *make_args
       system "make", "ptscotch", "VERBOSE=ON", *make_args
-      system "make", "esmumps", "VERBOSE=ON", *make_args
       system "make", "install", "prefix=#{prefix}", *make_args
       system "make", "check", "ptcheck", "EXECP=mpirun -np 2", *make_args unless build.without? "test"
     end

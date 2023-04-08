@@ -6,10 +6,10 @@
 #
 #  @brief Homebrew formula for PaStiX 6.*
 #
-#  @version 6.3.0
+#  @version 6.2.2
 #  @author Pierre Ramet
 #  @author Mathieu Faverge
-#  @date 2022-04-06
+#  @date 2023-04-06
 #
 ###
 class Pastix64 < Formula
