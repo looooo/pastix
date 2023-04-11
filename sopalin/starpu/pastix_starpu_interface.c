@@ -531,7 +531,6 @@ struct starpu_data_interface_ops pastix_starpu_interface_ops = {
     .init                  = psi_init,
     .copy_methods          = &psi_copy_methods,
     .to_pointer            = psi_to_pointer,
-    .pointer_is_inside     = NULL,
     .get_size              = psi_get_size,
     .get_alloc_size        = psi_get_alloc_size,
     .footprint             = psi_footprint,
