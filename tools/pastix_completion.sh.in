@@ -15,7 +15,7 @@
 # @author Esragul Korkmaz
 # @author Gregoire Pichon
 # @author Tony Delarue
-# @date 2022-08-06
+# @date 2023-04-07
 #
 #!/usr/bin/env bash
 
@@ -97,7 +97,8 @@ _pastix_completion()
                                      iparm_compress_reltol \
                                      iparm_compress_preselect \
                                      iparm_compress_iluk \
-                                     iparm_mixed" -- $cur))
+                                     iparm_mixed \
+                                     iparm_ftz" -- $cur))
             ;;
 
         -d|--dparm)
@@ -214,15 +215,15 @@ _pastix_completion()
             COMPREPLY=($(compgen -W "0 1 2 3 4" -- $cur))
             ;;
         -c|--check)
-            COMPREPLY=($(compgen -W "0 1 2 3 4 5 6" -- $cur))
+            COMPREPLY=($(compgen -W "0 1 2" -- $cur))
             ;;
         -a|--scatter)
-            COMPREPLY=($(compgen -W "0 1 2 3 4 5 6" -- $cur))
+            COMPREPLY=($(compgen -W "0 1" -- $cur))
             ;;
 
         # For remaining options, we don't suggest anything
-        -0|-1|-2|-3|-4|-9|-x|-G|-t|-g|-h| \
-        --rsa|--hb|--ijv|--mm|--spm|--lap|--xlap|--graph|--threads|--gpus|--help| \
+        -0|-1|-2|-3|-4|-9|-x|-G|-a|-t|-g|-h| \
+        --rsa|--hb|--ijv|--mm|--spm|--lap|--xlap|--scatter|--graph|--threads|--gpus|--help| \
         iparm_*|dparm_*)
             COMPREPLY=($(compgen -W "" -- $cur))
             ;;

@@ -234,13 +234,20 @@ def gen_coeftype( enum ) :
     @out The string that declare the pastix_coeftype_t in api.h
     """
     result = gen_enum_documentation( enum )
-    result += "#define pastix_coeftype_t spm_coeftype_t\n"
-
+    result += """
+/**
+ * @brief TODO
+ */
+typedef spm_coeftype_t pastix_coeftype_t;
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+"""
     maxsize = max( list( map( lambda x : len(x["name"]) + 1, enum["values"] ) ) )
 
     for value in enum["values"] :
         result += "#define "+ value["name"] + ( maxsize - len(value["name"]) ) * " " + str(value['value']) +"\n"
+    result += "#endif /* DOXYGEN_SHOULD_SKIP_THIS */\n"
     result += close_bracket + "\n"
+
     return result
 
 def genEnumsDeclaration( enums ) :

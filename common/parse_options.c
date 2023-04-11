@@ -16,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2022-08-06
+ * @date 2023-04-07
  *
  */
 #include "common.h"
@@ -130,6 +130,7 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_compress_iluk",                  iparm)) { return IPARM_COMPRESS_ILUK; }
 
     if(0 == strcasecmp("iparm_mixed",                          iparm)) { return IPARM_MIXED; }
+    if(0 == strcasecmp("iparm_ftz",                            iparm)) { return IPARM_FTZ; }
 
     if(0 == strcasecmp("iparm_modify_parameter",               iparm)) { return IPARM_MODIFY_PARAMETER; }
     if(0 == strcasecmp("iparm_start_task",                     iparm)) { return IPARM_START_TASK; }
@@ -852,6 +853,7 @@ pastix_param2csv( const pastix_data_t *pastix_data,
     fprintf( csv, "%s,%ld\n", "iparm_compress_iluk",       (long)iparm[IPARM_COMPRESS_ILUK] );
 
     fprintf( csv, "%s,%ld\n", "iparm_mixed", (long)iparm[IPARM_MIXED] );
+    fprintf( csv, "%s,%ld\n", "iparm_ftz",   (long)iparm[IPARM_FTZ] );
 
     fprintf( csv, "%s,%s\n",  "iparm_mpi_thread_level",  pastix_mpithreadmode_getstr(iparm[IPARM_MPI_THREAD_LEVEL]) );
 

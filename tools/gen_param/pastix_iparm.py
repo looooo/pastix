@@ -999,9 +999,21 @@ It should only be used on Complex64 and Double matrices
 ''',
 }
 
+iparm_ftz = {
+    "name" : "iparm_ftz",
+    "default" : "0",
+    "brief" : "Enables/Disables Flush-To-Zero for denormal numbers",
+    "access" : "IN",
+    "description" : r'''
+Enables Flush-To-Zero mode for denormal numbers that may appear during the factorization, and
+are susceptible significantly to slow the computation.
+''',
+}
+
 iparm_mixed_group = {
     "subgroup" : [
         iparm_mixed,
+        iparm_ftz,
     ],
     "name" : "mixed-precision",
     "brief" : "mixed-precision parameters",
