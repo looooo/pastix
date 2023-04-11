@@ -31,10 +31,10 @@
 #endif
 
 static inline void
-psi_register_data_handle( starpu_data_handle_t handle, unsigned home_node, void *data_interface )
+psi_register_data_handle( starpu_data_handle_t handle, int home_node, void *data_interface )
 {
     pastix_starpu_interface_t *interface = (pastix_starpu_interface_t *)data_interface;
-    unsigned                   node;
+    int                        node;
 
     pastix_starpu_logger;
 
