@@ -31,10 +31,10 @@
 #endif
 
 static inline void
-psi_register_data_handle( starpu_data_handle_t handle, unsigned home_node, void *data_interface )
+psi_register_data_handle( starpu_data_handle_t handle, int home_node, void *data_interface )
 {
     pastix_starpu_interface_t *interface = (pastix_starpu_interface_t *)data_interface;
-    unsigned                   node;
+    int                        node;
 
     pastix_starpu_logger;
 
@@ -531,7 +531,6 @@ struct starpu_data_interface_ops pastix_starpu_interface_ops = {
     .init                  = psi_init,
     .copy_methods          = &psi_copy_methods,
     .to_pointer            = psi_to_pointer,
-    .pointer_is_inside     = NULL,
     .get_size              = psi_get_size,
     .get_alloc_size        = psi_get_alloc_size,
     .footprint             = psi_footprint,
