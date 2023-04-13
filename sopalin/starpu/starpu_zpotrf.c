@@ -80,6 +80,7 @@ starpu_zpotrf_sp1dplus( sopalin_data_t              *sopalin_data,
                                       cblk, blok, fcblk,
                                       cblknbr - pastix_imin( k + m, cblk_n ) );
         }
+        starpu_sparse_cblk_wont_use( PastixLCoef, cblk );
     }
     (void)desc;
 }
@@ -134,7 +135,7 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
         starpu_task_cblk_zpotrfsp( sopalin_data, cblk,
                                    cblknbr - k );
 
-        blok = cblk->fblokptr + 1; /* this diagonal block */
+        blok = cblk->fblokptr + 1; /* this diagonal block     */
         lblk = cblk[1].fblokptr;   /* the next diagonal block */
 
         /* if there are off-diagonal supernodes in the column */
@@ -147,6 +148,7 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
                                       cblk, blok, fcblk,
                                       cblknbr - pastix_imin( k + m, cblk_n ) );
         }
+        starpu_sparse_cblk_wont_use( PastixLCoef, cblk );
     }
 
     /* Now we submit all 2D tasks */
@@ -199,6 +201,7 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
                 blokA++;
             }
         }
+        starpu_sparse_cblk_wont_use( PastixLCoef, cblk );
     }
     (void)desc;
 }
