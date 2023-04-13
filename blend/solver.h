@@ -143,7 +143,6 @@ typedef struct solver_blok_s {
     pastix_int_t lrownum;    /**< Last row index (inclusive)               */
     pastix_int_t coefind;    /**< Index in coeftab                         */
     pastix_int_t browind;    /**< Index in browtab                         */
-    int8_t       gpuid;      /**< Store on which GPU the block is computed */
     int8_t       inlast;     /**< Index of the block among last separator (2), coupling with last separator (1) or other blocks (0) */
     int          iluklvl;    /**< The block ILU(k) level */
 
@@ -158,7 +157,6 @@ typedef struct solver_cblk_s  {
     pastix_atomic_lock_t lock;       /**< Lock to protect computation on the cblk         */
     volatile int32_t     ctrbcnt;    /**< Number of contribution to receive               */
     int8_t               cblktype;   /**< Type of cblk                                    */
-    int8_t               gpuid;      /**< Store on which GPU the cblk is computed         */
     pastix_int_t         fcolnum;    /**< First column index (Global numbering)           */
     pastix_int_t         lcolnum;    /**< Last column index (Global numbering, inclusive) */
     SolverBlok          *fblokptr;   /**< First block in column (diagonal)                */

@@ -89,7 +89,6 @@ solvMatGen_init_blok( SolverBlok  *solvblok,
     solvblok->lrownum    = lrownum;
     solvblok->coefind    = layout2D ? stride * nbcols : stride;
     solvblok->browind    = -1;
-    solvblok->gpuid      = GPUID_UNDEFINED;
     solvblok->inlast     = 0;
     solvblok->LRblock[0] = NULL;
     solvblok->LRblock[1] = NULL;
@@ -155,7 +154,6 @@ solvMatGen_init_cblk( SolverCblk          *solvcblk,
     solvcblk->lock       = PASTIX_ATOMIC_UNLOCKED;
     solvcblk->ctrbcnt    = -1;
     solvcblk->cblktype   = (cblknum == -1) ? 0 : candcblk->cblktype;
-    solvcblk->gpuid      = GPUID_UNDEFINED;
     solvcblk->fcolnum    = fcolnum;
     solvcblk->lcolnum    = lcolnum;
     solvcblk->fblokptr   = fblokptr;
