@@ -398,6 +398,96 @@ starpu_sparse_matrix_getoncpu( starpu_sparse_matrix_desc_t *spmtx )
     }
 }
 
+#if !defined(DOXYGEN_SHOULD_SKIP_THIS)
+#if !defined(HAVE_STARPU_DATA_PARTITION_CLEAN_NODE)
+/**
+ *******************************************************************************
+ *
+ * @brief StarPU function only avalaible with StarPU >= 1.4.0
+ *
+ ******************************************************************************/
+static inline void
+pastix_starpu_data_partition_clean_node( int                   unpartition,
+                                         starpu_data_handle_t  root_handle,
+                                         unsigned              nparts,
+                                         starpu_data_handle_t *children,
+                                         int                   gather_node )
+{
+    if ( unpartition ) {
+        starpu_data_unpartition_submit( root_handle, nparts, children, gather_node );
+    }
+    starpu_data_partition_clean( root_handle, nparts, children );
+}
+#else
+static inline void
+pastix_starpu_data_partition_clean_node( int                   unpartition __attribute__((unused)),
+                                         starpu_data_handle_t  root_handle,
+                                         unsigned              nparts,
+                                         starpu_data_handle_t *children,
+                                         int                   gather_node )
+{
+    starpu_data_partition_clean_node( root_handle, nparts, children, gather_node );
+}
+#endif
+#endif
+
+/**
+ *******************************************************************************
+ *
+ * @brief Destroy a single cblk StarPU data structure of the sparse matrix
+ *
+ *******************************************************************************
+ *
+ * @param[in] is_owner
+ *          Boolean to specify if the calling process owns the cblk or not
+ *
+ * @param[in,out] cblk
+ *          Pointer to the cblk data structure
+ *
+ * @param[in,out] starpu_cblk
+ *          Pointer to the starpu data structure associated to the cblk
+ *
+ ******************************************************************************/
+void
+pastix_starpu_cblk_destroy( int            is_owner,
+                            SolverCblk    *cblk,
+                            starpu_cblk_t *cblkhandle )
+{
+    if ( cblk->cblktype & CBLK_TASKS_2D ) {
+        /*
+         * First, let's unpartition ourself as long as StarPU does not use the
+         * correct gather_node in starpu_data_partition_clean()
+         */
+        if ( cblk->handler[0] ) {
+            pastix_starpu_data_partition_clean_node( !is_owner && (cblk->partitioned & (PastixLCoef + 1)),
+                                                     cblk->handler[0],
+                                                     cblkhandle->handlenbr,
+                                                     cblkhandle->handletab,
+                                                     is_owner ? STARPU_MAIN_RAM : -1 );
+        }
+
+        if ( cblk->handler[1] ) {
+            pastix_starpu_data_partition_clean_node( !is_owner && (cblk->partitioned & (PastixUCoef + 1)),
+                                                     cblk->handler[1],
+                                                     cblkhandle->handlenbr,
+                                                     cblkhandle->handletab + cblkhandle->handlenbr,
+                                                     is_owner ? STARPU_MAIN_RAM : -1 );
+        }
+
+        free( cblkhandle->handletab );
+        cblkhandle->handletab = NULL;
+    }
+
+    if ( cblk->handler[0] ) {
+        starpu_data_unregister( cblk->handler[0] );
+    }
+    if ( cblk->handler[1] ) {
+        starpu_data_unregister( cblk->handler[1] );
+    }
+    cblk->handler[0] = NULL;
+    cblk->handler[1] = NULL;
+}
+
 /**
  *******************************************************************************
  *
@@ -418,47 +508,17 @@ starpu_sparse_matrix_destroy( starpu_sparse_matrix_desc_t *spmtx )
     starpu_cblk_t *cblkhandle;
     SolverCblk    *cblk;
     pastix_int_t   i, cblkmin2d;
+    pastix_int_t   rank = spmtx->solvmtx->clustnum;
 
     cblkmin2d = spmtx->solvmtx->cblkmin2d;
     cblk      = spmtx->solvmtx->cblktab;
     for ( i = 0; i < cblkmin2d; i++, cblk++ ) {
-        if ( cblk->handler[0] ) {
-            starpu_data_unregister( cblk->handler[0] );
-
-            if ( cblk->handler[1] ) {
-                starpu_data_unregister( cblk->handler[1] );
-            }
-        }
-
-        cblk->handler[0] = NULL;
-        cblk->handler[1] = NULL;
+        pastix_starpu_cblk_destroy( cblk->ownerid == rank, cblk, NULL );
     }
 
     cblkhandle = spmtx->cblktab_handle;
     for ( i = cblkmin2d; i < spmtx->solvmtx->cblknbr; i++, cblk++, cblkhandle++ ) {
-        if ( cblk->cblktype & CBLK_TASKS_2D ) {
-            if ( cblk->handler[0] ) {
-                starpu_data_partition_clean(
-                    cblk->handler[0], cblkhandle->handlenbr, cblkhandle->handletab );
-
-                if ( cblk->handler[1] ) {
-                    starpu_data_partition_clean( cblk->handler[1],
-                                                 cblkhandle->handlenbr,
-                                                 cblkhandle->handletab + cblkhandle->handlenbr );
-                }
-                free( cblkhandle->handletab );
-            }
-        }
-
-        if ( cblk->handler[0] ) {
-            starpu_data_unregister( cblk->handler[0] );
-            if ( cblk->handler[1] ) {
-                starpu_data_unregister( cblk->handler[1] );
-            }
-        }
-
-        cblk->handler[0] = NULL;
-        cblk->handler[1] = NULL;
+        pastix_starpu_cblk_destroy( cblk->ownerid == rank, cblk, cblkhandle );
     }
 
     if ( spmtx->cblktab_handle != NULL ) {
