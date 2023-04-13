@@ -374,26 +374,20 @@ starpu_sparse_matrix_getoncpu( starpu_sparse_matrix_desc_t *spmtx )
     for ( i = 0; i < spmtx->solvmtx->cblknbr; i++, cblk++ ) {
         assert( cblk->handler[0] );
 
-#if defined( PASTIX_WITH_MPI )
-        starpu_mpi_cache_flush( spmtx->solvmtx->solv_comm, cblk->handler[0] );
-#endif
-        if ( cblk->ownerid == spmtx->solvmtx->clustnum ) {
-            starpu_data_acquire_cb( cblk->handler[0],
-                                    STARPU_R,
-                                    ( void( * )( void * ) ) & starpu_data_release,
-                                    cblk->handler[0] );
+        if ( cblk->ownerid != spmtx->solvmtx->clustnum ) {
+            continue;
         }
 
+        starpu_data_acquire_cb( cblk->handler[0],
+                                STARPU_R,
+                                ( void( * )( void * ) ) & starpu_data_release,
+                                cblk->handler[0] );
+
         if ( cblk->ucoeftab ) {
-#if defined( PASTIX_WITH_MPI )
-            starpu_mpi_cache_flush( spmtx->solvmtx->solv_comm, cblk->handler[1] );
-#endif
-            if ( cblk->ownerid == spmtx->solvmtx->clustnum ) {
-                starpu_data_acquire_cb( cblk->handler[1],
-                                        STARPU_R,
-                                        ( void( * )( void * ) ) & starpu_data_release,
-                                        cblk->handler[1] );
-            }
+            starpu_data_acquire_cb( cblk->handler[1],
+                                    STARPU_R,
+                                    ( void( * )( void * ) ) & starpu_data_release,
+                                    cblk->handler[1] );
         }
     }
 }
