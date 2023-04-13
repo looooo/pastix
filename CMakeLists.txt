@@ -365,7 +365,11 @@ if (PASTIX_WITH_STARPU)
   morse_export_imported_target(MORSE STARPU starpu pastix)
 
   get_target_property(CMAKE_REQUIRED_LIBRARIES MORSE::STARPU INTERFACE_LINK_LIBRARIES)
+
+  # Check for specific functions
   check_function_exists(starpu_sched_ctx_get_sched_policy_callback HAVE_STARPU_SCHED_POLICY_CALLBACK)
+  check_function_exists(starpu_data_partition_clean_node HAVE_STARPU_DATA_PARTITION_CLEAN_NODE)
+
   unset(CMAKE_REQUIRED_LIBRARIES)
 
 endif (PASTIX_WITH_STARPU)
