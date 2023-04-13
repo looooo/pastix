@@ -360,6 +360,33 @@ starpu_sparse_matrix_init( SolverMatrix     *solvmtx,
  *
  *******************************************************************************
  *
+ * @param[in] side
+ *          The cblk for which the data needs to be flushed.
+ *
+ * @param[inout] cblk
+ *          The cblk for which the data needs to be flushed.
+ *
+ ******************************************************************************/
+void
+starpu_sparse_cblk_wont_use( pastix_coefside_t side, SolverCblk *cblk )
+{
+    if ( side != PastixUCoef ) {
+        assert( cblk->handler[0] );
+        starpu_data_wont_use( cblk->handler[0] );
+    }
+    if ( side != PastixLCoef ) {
+        assert( cblk->handler[1] );
+        starpu_data_wont_use( cblk->handler[1] );
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Submit asynchronous calls to retrieve the data on main memory.
+ *
+ *******************************************************************************
+ *
  * @param[inout] spmtx
  *          The sparse matrix descriptor to retrieve on main memory.
  *

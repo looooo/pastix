@@ -124,6 +124,7 @@ void starpu_dense_matrix_init     ( SolverMatrix *solvmtx,
 void starpu_dense_matrix_destroy  ( starpu_dense_matrix_desc_t *desc );
 void starpu_dense_matrix_getoncpu ( starpu_dense_matrix_desc_t *desc );
 
+void starpu_sparse_cblk_wont_use( pastix_coefside_t coef, SolverCblk *cblk );
 void pastix_starpu_init( pastix_data_t *pastix,
                          int *argc, char **argv[],
                          const int *bindtab );
