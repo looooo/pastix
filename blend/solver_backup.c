@@ -93,6 +93,7 @@ solverBackupInit( const SolverMatrix *solvmtx )
         for (i=0; i<solvmtx->cblknbr; i++, cblk++)
         {
             cblk->ctrbcnt = cblk[1].brownum - cblk[0].brownum;
+            cblk->partitioned = 0;
         }
     }
 

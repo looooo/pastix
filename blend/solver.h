@@ -154,25 +154,26 @@ typedef struct solver_blok_s {
  * @brief Solver column block structure.
  */
 typedef struct solver_cblk_s  {
-    pastix_atomic_lock_t lock;       /**< Lock to protect computation on the cblk         */
-    volatile int32_t     ctrbcnt;    /**< Number of contribution to receive               */
-    int8_t               cblktype;   /**< Type of cblk                                    */
-    pastix_int_t         fcolnum;    /**< First column index (Global numbering)           */
-    pastix_int_t         lcolnum;    /**< Last column index (Global numbering, inclusive) */
-    SolverBlok          *fblokptr;   /**< First block in column (diagonal)                */
-    pastix_int_t         stride;     /**< Column block stride                             */
-    pastix_int_t         lcolidx;    /**< First column index (Local numbering), used for the rhs vectors      */
-    pastix_int_t         brownum;    /**< First block in row facing the diagonal block in browtab, 0-based    */
-    pastix_int_t         brown2d;    /**< First 2D-block in row facing the diagonal block in browtab, 0-based */
-    pastix_int_t         sndeidx;    /**< Global index of the original supernode the cblk belongs to          */
-    pastix_int_t         gcblknum;   /**< Global column block index                                           */
-    pastix_int_t         bcscnum;    /**< Index in the bcsctab if local cblk, -1 otherwise (FANIN | RECV)      */
-    void                *lcoeftab;   /**< Coefficients access vector, lower part  */
-    void                *ucoeftab;   /**< Coefficients access vector, upper part  */
-    void                *handler[2]; /**< Runtime data handler                    */
-    pastix_int_t         selevtx;    /**< Index to identify selected cblk for which intra-separator contributions are not compressed */
-    int                  ownerid;    /**< Rank of the owner                       */
-    int                  threadid;   /**< Rank of the accessing thread            */
+    pastix_atomic_lock_t lock;        /**< Lock to protect computation on the cblk         */
+    volatile int32_t     ctrbcnt;     /**< Number of contribution to receive               */
+    int8_t               cblktype;    /**< Type of cblk                                    */
+    int8_t               partitioned; /**< Bitmask to know if one of the side has been partitioned or not */
+    pastix_int_t         fcolnum;     /**< First column index (Global numbering)           */
+    pastix_int_t         lcolnum;     /**< Last column index (Global numbering, inclusive) */
+    SolverBlok          *fblokptr;    /**< First block in column (diagonal)                */
+    pastix_int_t         stride;      /**< Column block stride                             */
+    pastix_int_t         lcolidx;     /**< First column index (Local numbering), used for the rhs vectors      */
+    pastix_int_t         brownum;     /**< First block in row facing the diagonal block in browtab, 0-based    */
+    pastix_int_t         brown2d;     /**< First 2D-block in row facing the diagonal block in browtab, 0-based */
+    pastix_int_t         sndeidx;     /**< Global index of the original supernode the cblk belongs to          */
+    pastix_int_t         gcblknum;    /**< Global column block index                                           */
+    pastix_int_t         bcscnum;     /**< Index in the bcsctab if local cblk, -1 otherwise (FANIN | RECV)      */
+    void                *lcoeftab;    /**< Coefficients access vector, lower part  */
+    void                *ucoeftab;    /**< Coefficients access vector, upper part  */
+    void                *handler[2];  /**< Runtime data handler                    */
+    pastix_int_t         selevtx;     /**< Index to identify selected cblk for which intra-separator contributions are not compressed */
+    int                  ownerid;     /**< Rank of the owner                       */
+    int                  threadid;    /**< Rank of the accessing thread            */
 } SolverCblk;
 
 
