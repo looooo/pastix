@@ -124,6 +124,7 @@ void starpu_dense_matrix_init     ( SolverMatrix *solvmtx,
 void starpu_dense_matrix_destroy  ( starpu_dense_matrix_desc_t *desc );
 void starpu_dense_matrix_getoncpu ( starpu_dense_matrix_desc_t *desc );
 
+void starpu_sparse_cblk_wont_use( pastix_coefside_t coef, SolverCblk *cblk );
 void pastix_starpu_init( pastix_data_t *pastix,
                          int *argc, char **argv[],
                          const int *bindtab );
@@ -135,17 +136,6 @@ void pastix_starpu_finalize( pastix_data_t *pastix );
 int     pastix_starpu_tag_init( pastix_data_t *pastix );
 int64_t pastix_starpu_tag_book( int64_t nbtags );
 void    pastix_starpu_tag_release( int64_t min );
-
-/**
- * Data partition management
- */
-void pastix_starpu_partition_submit( pastix_coefside_t side,
-                                     SolverCblk       *cblk,
-                                     starpu_cblk_t    *starpu_cblk );
-void pastix_starpu_unpartition_submit( const starpu_sparse_matrix_desc_t *spmtx,
-                                       int rank, pastix_coefside_t side,
-                                       SolverCblk    *cblk,
-                                       starpu_cblk_t *starpu_cblk );
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 struct measure_s;

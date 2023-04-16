@@ -93,6 +93,7 @@ solverBackupInit( const SolverMatrix *solvmtx )
         for (i=0; i<solvmtx->cblknbr; i++, cblk++)
         {
             cblk->ctrbcnt = cblk[1].brownum - cblk[0].brownum;
+            cblk->partitioned = 0;
         }
     }
 
@@ -168,19 +169,10 @@ solverBackupRestore( SolverMatrix         *solvmtx,
 
         for (i=0; i<solvmtx->bloknbr; i++, blok++) {
             blok->fcblknm = b->symbol_cblknum[i];
-            blok->gpuid = GPUID_UNDEFINED;
-        }
-    }
-    solvmtx->nodenbr = b->symbol_nodenbr;
-
-    if (solvmtx->cblknbr) {
-        SolverCblk *cblk = solvmtx->cblktab;
-
-        for (i=0; i<solvmtx->cblknbr; i++, cblk++) {
-            cblk->gpuid = GPUID_UNDEFINED;
         }
     }
 
+    solvmtx->nodenbr  = b->symbol_nodenbr;
     solvmtx->recvcnt  = b->recvcnt;
     solvmtx->fanincnt = b->fanincnt;
 

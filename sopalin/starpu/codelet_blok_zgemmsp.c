@@ -287,7 +287,7 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
                           pastix_coefside_t sideA,
                           pastix_coefside_t sideB,
                           pastix_trans_t    trans,
-                          const SolverCblk *cblk,
+                          SolverCblk       *cblk,
                           SolverCblk       *fcblk,
                           const SolverBlok *blokA,
                           const SolverBlok *blokB,
@@ -359,6 +359,12 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
             return;
         }
     }
+#endif
+
+#if !defined(HAVE_STARPU_DATA_PARTITION_CLEAN_NODE)
+    /* Mark the read cblk as partitionned */
+    cblk->partitioned |= (sideA + 1);
+    cblk->partitioned |= (sideB + 1);
 #endif
 
     /*

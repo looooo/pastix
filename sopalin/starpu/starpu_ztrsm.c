@@ -51,10 +51,10 @@
  *
  *******************************************************************************/
 void
-starpu_cblk_ztrsmsp_forward( args_solve_t     *enums,
-                             sopalin_data_t   *sopalin_data,
-                             const SolverCblk *cblk,
-                             pastix_int_t      prio )
+starpu_cblk_ztrsmsp_forward( const args_solve_t *enums,
+                             sopalin_data_t     *sopalin_data,
+                             const SolverCblk   *cblk,
+                             pastix_int_t        prio )
 {
     pastix_coefside_t   cs;
     SolverMatrix       *datacode = sopalin_data->solvmtx;
