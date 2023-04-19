@@ -10,7 +10,7 @@
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2022-09-28
+!> @date 2023-04-19
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -98,40 +98,42 @@ module pastixf_enums
      enumerator :: IPARM_INCOMPLETE                     = 42
      enumerator :: IPARM_LEVEL_OF_FILL                  = 43
      enumerator :: IPARM_FACTORIZATION                  = 44
-     enumerator :: IPARM_STATIC_PIVOTING                = 45
-     enumerator :: IPARM_FREE_CSCUSER                   = 46
-     enumerator :: IPARM_SCHUR_FACT_MODE                = 47
-     enumerator :: IPARM_TRANSPOSE_SOLVE                = 48
-     enumerator :: IPARM_SCHUR_SOLV_MODE                = 49
-     enumerator :: IPARM_APPLYPERM_WS                   = 50
-     enumerator :: IPARM_REFINEMENT                     = 51
-     enumerator :: IPARM_NBITER                         = 52
-     enumerator :: IPARM_ITERMAX                        = 53
-     enumerator :: IPARM_GMRES_IM                       = 54
-     enumerator :: IPARM_SCHEDULER                      = 55
-     enumerator :: IPARM_THREAD_NBR                     = 56
-     enumerator :: IPARM_AUTOSPLIT_COMM                 = 57
-     enumerator :: IPARM_GPU_NBR                        = 58
-     enumerator :: IPARM_GPU_MEMORY_PERCENTAGE          = 59
-     enumerator :: IPARM_GPU_MEMORY_BLOCK_SIZE          = 60
-     enumerator :: IPARM_GLOBAL_ALLOCATION              = 61
-     enumerator :: IPARM_COMPRESS_MIN_WIDTH             = 62
-     enumerator :: IPARM_COMPRESS_MIN_HEIGHT            = 63
-     enumerator :: IPARM_COMPRESS_WHEN                  = 64
-     enumerator :: IPARM_COMPRESS_METHOD                = 65
-     enumerator :: IPARM_COMPRESS_ORTHO                 = 66
-     enumerator :: IPARM_COMPRESS_RELTOL                = 67
-     enumerator :: IPARM_COMPRESS_PRESELECT             = 68
-     enumerator :: IPARM_COMPRESS_ILUK                  = 69
-     enumerator :: IPARM_MIXED                          = 70
-     enumerator :: IPARM_MPI_THREAD_LEVEL               = 71
-     enumerator :: IPARM_MODIFY_PARAMETER               = 72
-     enumerator :: IPARM_START_TASK                     = 73
-     enumerator :: IPARM_END_TASK                       = 74
-     enumerator :: IPARM_FLOAT                          = 75
-     enumerator :: IPARM_MTX_TYPE                       = 76
-     enumerator :: IPARM_DOF_NBR                        = 77
-     enumerator :: IPARM_SIZE                           = 77
+     enumerator :: IPARM_FACTO_LOOK_SIDE                = 45
+     enumerator :: IPARM_STATIC_PIVOTING                = 46
+     enumerator :: IPARM_FREE_CSCUSER                   = 47
+     enumerator :: IPARM_SCHUR_FACT_MODE                = 48
+     enumerator :: IPARM_TRANSPOSE_SOLVE                = 49
+     enumerator :: IPARM_SCHUR_SOLV_MODE                = 50
+     enumerator :: IPARM_APPLYPERM_WS                   = 51
+     enumerator :: IPARM_REFINEMENT                     = 52
+     enumerator :: IPARM_NBITER                         = 53
+     enumerator :: IPARM_ITERMAX                        = 54
+     enumerator :: IPARM_GMRES_IM                       = 55
+     enumerator :: IPARM_SCHEDULER                      = 56
+     enumerator :: IPARM_THREAD_NBR                     = 57
+     enumerator :: IPARM_AUTOSPLIT_COMM                 = 58
+     enumerator :: IPARM_GPU_NBR                        = 59
+     enumerator :: IPARM_GPU_MEMORY_PERCENTAGE          = 60
+     enumerator :: IPARM_GPU_MEMORY_BLOCK_SIZE          = 61
+     enumerator :: IPARM_GLOBAL_ALLOCATION              = 62
+     enumerator :: IPARM_COMPRESS_MIN_WIDTH             = 63
+     enumerator :: IPARM_COMPRESS_MIN_HEIGHT            = 64
+     enumerator :: IPARM_COMPRESS_WHEN                  = 65
+     enumerator :: IPARM_COMPRESS_METHOD                = 66
+     enumerator :: IPARM_COMPRESS_ORTHO                 = 67
+     enumerator :: IPARM_COMPRESS_RELTOL                = 68
+     enumerator :: IPARM_COMPRESS_PRESELECT             = 69
+     enumerator :: IPARM_COMPRESS_ILUK                  = 70
+     enumerator :: IPARM_MIXED                          = 71
+     enumerator :: IPARM_FTZ                            = 72
+     enumerator :: IPARM_MPI_THREAD_LEVEL               = 73
+     enumerator :: IPARM_MODIFY_PARAMETER               = 74
+     enumerator :: IPARM_START_TASK                     = 75
+     enumerator :: IPARM_END_TASK                       = 76
+     enumerator :: IPARM_FLOAT                          = 77
+     enumerator :: IPARM_MTX_TYPE                       = 78
+     enumerator :: IPARM_DOF_NBR                        = 79
+     enumerator :: IPARM_SIZE                           = 79
   end enum
 
   ! enum dparm
@@ -233,6 +235,12 @@ module pastixf_enums
      enumerator :: PastixFactLU    = 2
      enumerator :: PastixFactLLT   = 3
      enumerator :: PastixFactLDLH  = 4
+  end enum
+
+  ! enum factolookside
+  enum, bind(C)
+     enumerator :: PastixFactLeftLooking  = 0
+     enumerator :: PastixFactRightLooking = 1
   end enum
 
   ! enum scheduler
