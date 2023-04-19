@@ -97,6 +97,7 @@ typedef enum pastix_iparm_e {
 
     /* Factorization */
     IPARM_FACTORIZATION,                  /**< Factorization mode                                             Default: PastixFactLU              IN  */
+    IPARM_FACTO_LOOK_SIDE,                /**< Factorization looking side                                     Default: PastixFactRightLooking    IN  */
     IPARM_STATIC_PIVOTING,                /**< Static pivoting                                                Default: -                         OUT */
     IPARM_FREE_CSCUSER,                   /**< Free user CSC                                                  Default: 0                         IN  */
     IPARM_SCHUR_FACT_MODE,                /**< Specify if the Schur is factorized (@see pastix_fact_mode_t)   Default: PastixFactModeLocal       IN  */
@@ -316,6 +317,14 @@ typedef enum pastix_factotype_e {
     PastixFactLLT   = 3, /**< LL^t factorization                       */
     PastixFactLDLH  = 4  /**< LDL^h factorization for complex matrices */
 } pastix_factotype_t;
+
+/**
+ * @brief Factorization looking side available for IPARM_FACTO_LOOK_SIDE parameter
+ */
+typedef enum pastix_factolookside_e {
+    PastixFactLeftLooking  = 0, /**< Left Looking factorization  */
+    PastixFactRightLooking = 1, /**< Right Looking factorization */
+} pastix_factolookside_t;
 
 /**
  * @brief Scheduler
