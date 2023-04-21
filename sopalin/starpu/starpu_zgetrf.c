@@ -48,8 +48,8 @@
  *
  ******************************************************************************/
 void
-starpu_zgetrf_sp1dplus( sopalin_data_t              *sopalin_data,
-                        starpu_sparse_matrix_desc_t *desc )
+starpu_zgetrf_sp1dplus_rl( sopalin_data_t              *sopalin_data,
+                           starpu_sparse_matrix_desc_t *desc )
 {
     const SolverMatrix *solvmtx = sopalin_data->solvmtx;
     SolverCblk         *cblk, *fcblk;
@@ -89,6 +89,84 @@ starpu_zgetrf_sp1dplus( sopalin_data_t              *sopalin_data,
             }
         }
         starpu_sparse_cblk_wont_use( PastixLUCoef, cblk );
+    }
+    (void)desc;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Perform a sparse LU factorization with 1D kernels.
+ *
+ * The function performs the LU factorization of a sparse general matrix A.
+ * The factorization has the form
+ *
+ *    \f[ A = L\times U \f]
+ *
+ * where L is a sparse lower triangular matrix, and U a sparse upper triangular
+ * with the same pattern as L^t.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] sopalin_data
+ *          Solver matrix information structure that will guide the algorithm.
+ *
+ * @param[inout] desc
+ *          StarPU descriptor of the sparse matrix.
+ *
+ ******************************************************************************/
+void
+starpu_zgetrf_sp1dplus_ll( sopalin_data_t              *sopalin_data,
+                           starpu_sparse_matrix_desc_t *desc )
+{
+    const SolverMatrix *solvmtx = sopalin_data->solvmtx;
+    SolverCblk         *cblk, *fcblk, *lcblk;
+    SolverBlok         *blok, *lblk;
+    pastix_int_t        k, m, cblknbr, cblk_n;
+
+    cblknbr = solvmtx->cblknbr;
+    cblk = solvmtx->cblktab;
+    for (k=0; k<solvmtx->cblknbr; k++, cblk++){
+
+        for ( m = cblk[0].brownum; m < cblk[1].brownum; m++ ) {
+            blok  = solvmtx->bloktab + solvmtx->browtab[m];
+            lcblk = solvmtx->cblktab + blok->lcblknm;
+
+            if ( lcblk->cblktype & CBLK_IN_SCHUR ) {
+                break;
+            }
+
+            fcblk  = solvmtx->cblktab + blok->fcblknm;
+            cblk_n = fcblk - solvmtx->cblktab;
+
+            assert( fcblk == cblk );
+
+            /* Update on L */
+            starpu_task_cblk_zgemmsp( sopalin_data, PastixLCoef, PastixUCoef, PastixTrans,
+                                      lcblk, blok, cblk,
+                                      cblknbr - pastix_imin( k + m, cblk_n ) );
+
+            lblk = fcblk[1].fblokptr;
+
+            /* Update on U */
+            if ( blok+1 < lblk ) {
+                starpu_task_cblk_zgemmsp( sopalin_data, PastixUCoef, PastixLCoef, PastixTrans,
+                                          lcblk, blok, cblk,
+                                          cblknbr - pastix_imin( k + m, cblk_n ) );
+            }
+        }
+
+        if ( cblk->cblktype & CBLK_IN_SCHUR ) {
+            continue;
+        }
+
+        starpu_task_cblk_zgetrfsp( sopalin_data, cblk,
+                                   cblknbr - k );
+    }
+
+    cblk = solvmtx->cblktab;
+    for ( k = 0; k < solvmtx->cblknbr; k++, cblk++ ) {
+        starpu_sparse_cblk_wont_use( PastixLCoef, cblk );
     }
     (void)desc;
 }
@@ -310,7 +388,12 @@ starpu_zgetrf( pastix_data_t  *pastix_data,
     }
     else
     {
-        starpu_zgetrf_sp1dplus( sopalin_data, sdesc );
+        if ( pastix_data->iparm[IPARM_FACTO_LOOK_SIDE] == PastixFactLeftLooking ) {
+            starpu_zgetrf_sp1dplus_ll( sopalin_data, sdesc );
+        }
+        else {
+             starpu_zgetrf_sp1dplus_rl( sopalin_data, sdesc );
+        }
     }
 
     starpu_sparse_matrix_getoncpu( sdesc );

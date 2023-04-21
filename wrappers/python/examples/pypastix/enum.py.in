@@ -12,7 +12,7 @@
  @author Mathieu Faverge
  @author Tony Delarue
  @author Selmane Lebdaoui
- @date 2022-09-28
+ @date 2023-04-19
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -71,40 +71,42 @@ class iparm:
     incomplete                     = 41
     level_of_fill                  = 42
     factorization                  = 43
-    static_pivoting                = 44
-    free_cscuser                   = 45
-    schur_fact_mode                = 46
-    transpose_solve                = 47
-    schur_solv_mode                = 48
-    applyperm_ws                   = 49
-    refinement                     = 50
-    nbiter                         = 51
-    itermax                        = 52
-    gmres_im                       = 53
-    scheduler                      = 54
-    thread_nbr                     = 55
-    autosplit_comm                 = 56
-    gpu_nbr                        = 57
-    gpu_memory_percentage          = 58
-    gpu_memory_block_size          = 59
-    global_allocation              = 60
-    compress_min_width             = 61
-    compress_min_height            = 62
-    compress_when                  = 63
-    compress_method                = 64
-    compress_ortho                 = 65
-    compress_reltol                = 66
-    compress_preselect             = 67
-    compress_iluk                  = 68
-    mixed                          = 69
-    mpi_thread_level               = 70
-    modify_parameter               = 71
-    start_task                     = 72
-    end_task                       = 73
-    float                          = 74
-    mtx_type                       = 75
-    dof_nbr                        = 76
-    size                           = 77
+    facto_look_side                = 44
+    static_pivoting                = 45
+    free_cscuser                   = 46
+    schur_fact_mode                = 47
+    transpose_solve                = 48
+    schur_solv_mode                = 49
+    applyperm_ws                   = 50
+    refinement                     = 51
+    nbiter                         = 52
+    itermax                        = 53
+    gmres_im                       = 54
+    scheduler                      = 55
+    thread_nbr                     = 56
+    autosplit_comm                 = 57
+    gpu_nbr                        = 58
+    gpu_memory_percentage          = 59
+    gpu_memory_block_size          = 60
+    global_allocation              = 61
+    compress_min_width             = 62
+    compress_min_height            = 63
+    compress_when                  = 64
+    compress_method                = 65
+    compress_ortho                 = 66
+    compress_reltol                = 67
+    compress_preselect             = 68
+    compress_iluk                  = 69
+    mixed                          = 70
+    ftz                            = 71
+    mpi_thread_level               = 72
+    modify_parameter               = 73
+    start_task                     = 74
+    end_task                       = 75
+    float                          = 76
+    mtx_type                       = 77
+    dof_nbr                        = 78
+    size                           = 79
 
 class dparm:
     fill_in            = 0
@@ -188,6 +190,10 @@ class factotype:
     LU    = 2
     LLT   = 3
     LDLH  = 4
+
+class factolookside:
+    FactLeftLooking  = 0
+    FactRightLooking = 1
 
 class scheduler:
     Sequential = 0

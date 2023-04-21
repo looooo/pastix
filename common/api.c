@@ -494,6 +494,7 @@ pastixInitParam( pastix_int_t *iparm,
 
     /* Factorization */
     iparm[IPARM_FACTORIZATION]         = PastixFactLU;
+    iparm[IPARM_FACTO_LOOK_SIDE]       = PastixFactRightLooking;
     iparm[IPARM_STATIC_PIVOTING]       = 0;
     iparm[IPARM_FREE_CSCUSER]          = 0;
     iparm[IPARM_SCHUR_FACT_MODE]       = PastixFactModeLocal;

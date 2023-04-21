@@ -11,7 +11,7 @@
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2022-09-28
+ @date 2023-04-19
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -86,40 +86,42 @@ end
     iparm_incomplete                     = 42,
     iparm_level_of_fill                  = 43,
     iparm_factorization                  = 44,
-    iparm_static_pivoting                = 45,
-    iparm_free_cscuser                   = 46,
-    iparm_schur_fact_mode                = 47,
-    iparm_transpose_solve                = 48,
-    iparm_schur_solv_mode                = 49,
-    iparm_applyperm_ws                   = 50,
-    iparm_refinement                     = 51,
-    iparm_nbiter                         = 52,
-    iparm_itermax                        = 53,
-    iparm_gmres_im                       = 54,
-    iparm_scheduler                      = 55,
-    iparm_thread_nbr                     = 56,
-    iparm_autosplit_comm                 = 57,
-    iparm_gpu_nbr                        = 58,
-    iparm_gpu_memory_percentage          = 59,
-    iparm_gpu_memory_block_size          = 60,
-    iparm_global_allocation              = 61,
-    iparm_compress_min_width             = 62,
-    iparm_compress_min_height            = 63,
-    iparm_compress_when                  = 64,
-    iparm_compress_method                = 65,
-    iparm_compress_ortho                 = 66,
-    iparm_compress_reltol                = 67,
-    iparm_compress_preselect             = 68,
-    iparm_compress_iluk                  = 69,
-    iparm_mixed                          = 70,
-    iparm_mpi_thread_level               = 71,
-    iparm_modify_parameter               = 72,
-    iparm_start_task                     = 73,
-    iparm_end_task                       = 74,
-    iparm_float                          = 75,
-    iparm_mtx_type                       = 76,
-    iparm_dof_nbr                        = 77,
-    iparm_size                           = 77,
+    iparm_facto_look_side                = 45,
+    iparm_static_pivoting                = 46,
+    iparm_free_cscuser                   = 47,
+    iparm_schur_fact_mode                = 48,
+    iparm_transpose_solve                = 49,
+    iparm_schur_solv_mode                = 50,
+    iparm_applyperm_ws                   = 51,
+    iparm_refinement                     = 52,
+    iparm_nbiter                         = 53,
+    iparm_itermax                        = 54,
+    iparm_gmres_im                       = 55,
+    iparm_scheduler                      = 56,
+    iparm_thread_nbr                     = 57,
+    iparm_autosplit_comm                 = 58,
+    iparm_gpu_nbr                        = 59,
+    iparm_gpu_memory_percentage          = 60,
+    iparm_gpu_memory_block_size          = 61,
+    iparm_global_allocation              = 62,
+    iparm_compress_min_width             = 63,
+    iparm_compress_min_height            = 64,
+    iparm_compress_when                  = 65,
+    iparm_compress_method                = 66,
+    iparm_compress_ortho                 = 67,
+    iparm_compress_reltol                = 68,
+    iparm_compress_preselect             = 69,
+    iparm_compress_iluk                  = 70,
+    iparm_mixed                          = 71,
+    iparm_ftz                            = 72,
+    iparm_mpi_thread_level               = 73,
+    iparm_modify_parameter               = 74,
+    iparm_start_task                     = 75,
+    iparm_end_task                       = 76,
+    iparm_float                          = 77,
+    iparm_mtx_type                       = 78,
+    iparm_dof_nbr                        = 79,
+    iparm_size                           = 79,
 }
 
 @cenum Pastix_dparm_t {
@@ -212,6 +214,11 @@ end
     factlu    = 2,
     factllt   = 3,
     factldlh  = 4,
+}
+
+@cenum Pastix_factolookside_t {
+    factleftlooking  = 0,
+    factrightlooking = 1,
 }
 
 @cenum Pastix_scheduler_t {

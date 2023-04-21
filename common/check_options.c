@@ -565,6 +565,14 @@ iparm_factorization_check_value( pastix_int_t iparm )
 }
 
 static inline int
+iparm_facto_look_side_check_value( pastix_int_t iparm )
+{
+    /* TODO : Check range iparm[IPARM_FACTO_LOOK_SIDE] */
+    (void)iparm;
+    return 0;
+}
+
+static inline int
 iparm_free_cscuser_check_value( pastix_int_t iparm )
 {
     /* TODO : Check range iparm[IPARM_FREE_CSCUSER] */
@@ -926,6 +934,7 @@ iparm_check_values( const pastix_int_t *iparm )
     error += iparm_incomplete_check_value( iparm[IPARM_INCOMPLETE] );
     error += iparm_level_of_fill_check_value( iparm[IPARM_LEVEL_OF_FILL] );
     error += iparm_factorization_check_value( iparm[IPARM_FACTORIZATION] );
+    error += iparm_facto_look_side_check_value( iparm[IPARM_FACTO_LOOK_SIDE] );
     error += iparm_free_cscuser_check_value( iparm[IPARM_FREE_CSCUSER] );
     error += iparm_schur_fact_mode_check_value( iparm[IPARM_SCHUR_FACT_MODE] );
     error += iparm_transpose_solve_check_value( iparm[IPARM_TRANSPOSE_SOLVE] );

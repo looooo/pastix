@@ -100,6 +100,7 @@ parse_iparm( const char *iparm )
     if(0 == strcasecmp("iparm_level_of_fill",                  iparm)) { return IPARM_LEVEL_OF_FILL; }
 
     if(0 == strcasecmp("iparm_factorization",                  iparm)) { return IPARM_FACTORIZATION; }
+    if(0 == strcasecmp("iparm_facto_look_side",                iparm)) { return IPARM_FACTO_LOOK_SIDE; }
     if(0 == strcasecmp("iparm_free_cscuser",                   iparm)) { return IPARM_FREE_CSCUSER; }
     if(0 == strcasecmp("iparm_schur_fact_mode",                iparm)) { return IPARM_SCHUR_FACT_MODE; }
 
@@ -456,6 +457,19 @@ pastix_factotype_getstr( pastix_factotype_t value )
         return "PastixFactLDLH";
     default :
         return "Bad factotype given";
+    }
+}
+
+const char*
+pastix_factolookside_getstr( pastix_factolookside_t value )
+{
+    switch( value ) {
+    case PastixFactLeftLooking:
+        return "PastixFactLeftLooking";
+    case PastixFactRightLooking:
+        return "PastixFactRightLooking";
+    default :
+        return "Bad facto looking side given";
     }
 }
 
@@ -821,6 +835,7 @@ pastix_param2csv( const pastix_data_t *pastix_data,
     fprintf( csv, "%s,%ld\n", "iparm_level_of_fill", (long)iparm[IPARM_LEVEL_OF_FILL] );
 
     fprintf( csv, "%s,%s\n",  "iparm_factorization",    pastix_factotype_getstr(iparm[IPARM_FACTORIZATION]) );
+    fprintf( csv, "%s,%s\n",  "iparm_facto_look_side",  pastix_factolookside_getstr(iparm[IPARM_FACTO_LOOK_SIDE]) );
     fprintf( csv, "%s,%ld\n", "iparm_static_pivoting", (long)iparm[IPARM_STATIC_PIVOTING] );
     fprintf( csv, "%s,%ld\n", "iparm_free_cscuser",    (long)iparm[IPARM_FREE_CSCUSER] );
     fprintf( csv, "%s,%s\n",  "iparm_schur_fact_mode",  pastix_fact_mode_getstr(iparm[IPARM_SCHUR_FACT_MODE]) );
