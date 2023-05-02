@@ -228,6 +228,12 @@ foreach( version ${RUNTYPE} )
             # 1D/2D
             add_test(${_test_name}_1d2D ${_test_cmd} -i iparm_tasks2d_width 16)
           endif()
+          # left looking
+          if (scheduler EQUAL 3)
+            add_test(${_test_name}_1d_ll   ${_test_cmd} -i iparm_tasks2d_level 0  -i iparm_facto_look_side 0)
+            add_test(${_test_name}_2d_ll   ${_test_cmd} -i iparm_tasks2d_width 0  -i iparm_facto_look_side 0)
+            add_test(${_test_name}_1d2D_ll ${_test_cmd} -i iparm_tasks2d_width 16 -i iparm_facto_look_side 0)
+          endif()
         endforeach()
       endforeach()
     endforeach()
