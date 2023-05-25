@@ -54,11 +54,9 @@ starpu_task_potrf_zgemmsp( sopalin_data_t   *sopalin_data,
                            SolverCblk       *fcblk,
                            int               prio )
 {
-    const SolverMatrix *solvmtx = sopalin_data->solvmtx;
-    SolverBlok         *blokA, *lblk;
+    const SolverBlok *blokA, *lblk;
 
     if ( cblk->cblktype & CBLK_TASKS_2D ) {
-
         lblk = cblk[1].fblokptr;
         for ( blokA = blokB; blokA < lblk; blokA++ ) {
 
@@ -115,7 +113,7 @@ starpu_task_zpotrfsp( sopalin_data_t *sopalin_data,
                                       PastixConjTrans, PastixNonUnit,
                                       cblk, blok, prio );
 
-            /* Skip A blocks facing the same cblk */
+            /* Skip blocks facing the same cblk */
             while ( ( blok < lblk ) &&
                     ( blok[0].fcblknm == blok[1].fcblknm ) &&
                     ( blok[0].lcblknm == blok[1].lcblknm ) )
@@ -217,37 +215,31 @@ starpu_zpotrf_sp1dplus_ll( sopalin_data_t              *sopalin_data,
                            starpu_sparse_matrix_desc_t *desc )
 {
     const SolverMatrix *solvmtx = sopalin_data->solvmtx;
-    SolverCblk         *cblk, *fcblk, *lcblk;
+    SolverCblk         *cblk, *fcblk;
     SolverBlok         *blok;
-    pastix_int_t        k, m, cblknbr, cblk_n;
+    pastix_int_t        k, m, cblknbr;
 
     cblknbr = solvmtx->cblknbr;
-    cblk    = solvmtx->cblktab;
-    for ( k = 0; k < solvmtx->cblknbr; k++, cblk++ ) {
+    fcblk   = solvmtx->cblktab;
+    for ( k = 0; k < solvmtx->cblknbr; k++, fcblk++ ) {
 
-        for ( m = cblk[0].brownum; m < cblk[1].brownum; m++ ) {
-            blok  = solvmtx->bloktab + solvmtx->browtab[m];
-            lcblk = solvmtx->cblktab + blok->lcblknm;
+        for ( m = fcblk[0].brownum; m < fcblk[1].brownum; m++ ) {
+            blok = solvmtx->bloktab + solvmtx->browtab[m];
+            cblk = solvmtx->cblktab + blok->lcblknm;
 
-            if ( lcblk->cblktype & CBLK_IN_SCHUR ) {
+            if ( cblk->cblktype & CBLK_IN_SCHUR ) {
                 break;
             }
 
-            fcblk  = solvmtx->cblktab + blok->fcblknm;
-            cblk_n = fcblk - solvmtx->cblktab;
-
-            assert( fcblk == cblk );
-
             starpu_task_cblk_zgemmsp( sopalin_data, PastixLCoef, PastixLCoef, PastixConjTrans,
-                                      lcblk, blok, cblk,
-                                      cblknbr - pastix_imin( k + m, cblk_n ) );
+                                      cblk, blok, fcblk, cblknbr - k );
         }
 
-        if ( cblk->cblktype & CBLK_IN_SCHUR ) {
+        if ( fcblk->cblktype & CBLK_IN_SCHUR ) {
             continue;
         }
 
-        starpu_task_cblk_zpotrfsp( sopalin_data, cblk,
+        starpu_task_cblk_zpotrfsp( sopalin_data, fcblk,
                                    cblknbr - k );
     }
 
@@ -282,8 +274,8 @@ starpu_zpotrf_sp1dplus_ll( sopalin_data_t              *sopalin_data,
  *
  ******************************************************************************/
 void
-starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
-                    starpu_sparse_matrix_desc_t *desc )
+starpu_zpotrf_sp2d_rl( sopalin_data_t              *sopalin_data,
+                       starpu_sparse_matrix_desc_t *desc )
 {
     const SolverMatrix *solvmtx = sopalin_data->solvmtx;
     SolverCblk         *cblk, *fcblk;
@@ -306,7 +298,7 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
 
         starpu_task_zpotrfsp( sopalin_data, cblk, cblknbr - k );
 
-        lblk = cblk[1].fblokptr;   /* the next diagonal block */
+        lblk = cblk[1].fblokptr; /* the next diagonal block */
 
         for ( blok = cblk->fblokptr + 1, m = 0; blok < lblk; blok++, m++ ) {
             fcblk  = ( solvmtx->cblktab + blok->fcblknm );
@@ -332,7 +324,7 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
 
         starpu_task_zpotrfsp( sopalin_data, cblk, cblknbr - k );
 
-        lblk = cblk[1].fblokptr;   /* the next diagonal block */
+        lblk = cblk[1].fblokptr; /* the next diagonal block */
 
         for ( blok = cblk->fblokptr + 1, m = 0; blok < lblk; blok++, m++ ) {
             fcblk  = ( solvmtx->cblktab + blok->fcblknm );
@@ -349,6 +341,79 @@ starpu_zpotrf_sp2d( sopalin_data_t              *sopalin_data,
                 blok++;
             }
         }
+        starpu_sparse_cblk_wont_use( PastixLCoef, cblk );
+    }
+
+    (void)desc;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Perform a sparse Cholesky factorization with 1D and 2D kernels.
+ *
+ * The function performs the Cholesky factorization of a sparse symmetric
+ * positive definite (or Hermitian positive definite in the complex case) matrix
+ * A.
+ * The factorization has the form
+ *
+ *    \f[ A = L\times L^H \f]
+ *
+ * where L is a sparse lower triangular matrix.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] sopalin_data
+ *          Solver matrix information structure that will guide the algorithm.
+ *
+ * @param[inout] desc
+ *          StarPU descriptor of the sparse matrix.
+ *
+ ******************************************************************************/
+void
+starpu_zpotrf_sp2d_ll( sopalin_data_t              *sopalin_data,
+                       starpu_sparse_matrix_desc_t *desc )
+{
+    const SolverMatrix *solvmtx = sopalin_data->solvmtx;
+    SolverCblk         *cblk, *fcblk;
+    SolverBlok         *blok = NULL;
+    SolverBlok         *blok_prev;
+    pastix_int_t        k, m, cblknbr;
+
+    cblknbr = solvmtx->cblknbr;
+    fcblk   = solvmtx->cblktab;
+    for ( k = 0; k < cblknbr; k++, fcblk++ ) {
+
+        for ( m = fcblk[0].brownum; m < fcblk[1].brownum; m++ ) {
+            blok_prev = blok;
+            blok = solvmtx->bloktab + solvmtx->browtab[m];
+            cblk = solvmtx->cblktab + blok->lcblknm;
+
+            if ( cblk->cblktype & CBLK_IN_SCHUR ) {
+                continue;
+            }
+
+            if( ( cblk->cblktype & CBLK_TASKS_2D )      &&
+                ( blok_prev          != NULL          ) &&
+                ( blok_prev->fcblknm == blok->fcblknm ) &&
+                ( blok_prev->lcblknm == blok->lcblknm ) )
+            {
+                continue;
+            }
+
+            starpu_task_potrf_zgemmsp( sopalin_data, cblk, blok, fcblk,
+                                       cblknbr - k );
+        }
+
+        if ( fcblk->cblktype & CBLK_IN_SCHUR ) {
+            continue;
+        }
+
+       starpu_task_zpotrfsp( sopalin_data, fcblk, cblknbr - k );
+    }
+
+    cblk = solvmtx->cblktab;
+    for ( k = 0; k < solvmtx->cblknbr; k++, cblk++ ) {
         starpu_sparse_cblk_wont_use( PastixLCoef, cblk );
     }
 
@@ -424,7 +489,12 @@ starpu_zpotrf( pastix_data_t  *pastix_data,
      */
     if ( pastix_data->iparm[IPARM_TASKS2D_LEVEL] != 0 )
     {
-        starpu_zpotrf_sp2d( sopalin_data, sdesc );
+        if ( pastix_data->iparm[IPARM_FACTO_LOOK_SIDE] == PastixFactLeftLooking ) {
+            starpu_zpotrf_sp2d_ll( sopalin_data, sdesc );
+        }
+        else {
+            starpu_zpotrf_sp2d_rl( sopalin_data, sdesc );
+        }
     }
     else
     {
