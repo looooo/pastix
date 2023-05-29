@@ -3,10 +3,12 @@
 #  @copyright 2019-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.0
+#  @version 6.3.1
 #  @author Mathieu Faverge
 #  @author Selmane Lebdaoui
-#  @date 2023-01-17
+#  @author Alycia Lisito
+#  @author Florent Pruvost
+#  @date 2023-10-25
 #
 ###
 
@@ -69,7 +71,7 @@ install(FILES
   examples/simple.jl
   examples/step-by-step.jl
   examples/schur.jl
-  DESTINATION lib/julia/PaStiX/examples )
+  DESTINATION share/doc/pastix/examples/julia )
 
 # Documentation
 # -------------

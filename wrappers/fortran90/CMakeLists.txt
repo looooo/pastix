@@ -3,10 +3,12 @@
 #  @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.0
+#  @version 6.3.1
 #  @author Mathieu Faverge
 #  @author Tony Delarue
-#  @date 2023-02-06
+#  @author Alycia Lisito
+#  @author Florent Pruvost
+#  @date 2023-10-25
 #
 ###
 cmake_minimum_required (VERSION 3.1)
@@ -22,7 +24,8 @@ endif()
 
 # Coherce CMake to install the generated .mod files
 set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod_files)
-install( DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/ DESTINATION include )
+install( DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/
+  DESTINATION include/pastix )
 
 set( pastixf_sources
   src/pastix_f2c.c
@@ -69,9 +72,9 @@ install(EXPORT pastixfTargets
 # ------------
 install(TARGETS pastixf
         EXPORT pastixfTargets
-        RUNTIME DESTINATION bin
         ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib)
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin )
 
 # Add examples
 # ------------
@@ -103,8 +106,8 @@ foreach (_file ${EXAMPLES})
     target_compile_definitions( ${_name_we} PUBLIC "PASTIX_WITH_MPI=1" )
   endif()
 
-  install(TARGETS ${_name_we}       RUNTIME DESTINATION examples )
-  install(FILES   examples/${_file}         DESTINATION examples )
+  install(TARGETS ${_name_we}       RUNTIME DESTINATION share/doc/pastix/examples/fortran )
+  install(FILES   examples/${_file}         DESTINATION share/doc/pastix/examples/fortran )
 
   foreach( version ${RUNTYPE} )
     unset( exe )
@@ -137,10 +140,10 @@ if ( PASTIX_WITH_MPI )
   target_compile_definitions( ${_name_we} PRIVATE "PASTIX_WITH_MPI=1" )
 endif()
 
-install(TARGETS ${_name_we}       RUNTIME DESTINATION examples )
-install(FILES   examples/${_file}         DESTINATION examples )
-install(FILES   examples/test_seq.in      DESTINATION examples )
-install(FILES   examples/test_mt.in       DESTINATION examples )
+install(TARGETS ${_name_we}       RUNTIME DESTINATION share/doc/pastix/examples/fortran )
+install(FILES   examples/${_file}         DESTINATION share/doc/pastix/examples/fortran )
+install(FILES   examples/test_seq.in      DESTINATION share/doc/pastix/examples/fortran )
+install(FILES   examples/test_mt.in       DESTINATION share/doc/pastix/examples/fortran )
 
 # Add OpenMP if available
 find_package(OpenMP)

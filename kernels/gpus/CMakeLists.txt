@@ -3,10 +3,11 @@
 #  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.0
+#  @version 6.3.1
 #  @author Mathieu Faverge
 #  @author Tony Delarue
-#  @date 2023-01-13
+#  @author Florent Pruvost
+#  @date 2023-10-25
 #
 ###
 include(RulesPrecisions)
@@ -104,7 +105,9 @@ install(EXPORT pastix_kernels_cudaTargets
 # ------------
 install(TARGETS pastix_kernels_cuda
         EXPORT pastix_kernels_cudaTargets
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib)
+        ARCHIVE       DESTINATION lib
+        LIBRARY       DESTINATION lib
+        RUNTIME       DESTINATION bin
+        PUBLIC_HEADER DESTINATION include )
 
 cuda_build_clean_target()

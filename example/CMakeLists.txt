@@ -3,13 +3,14 @@
 #  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.0
+#  @version 6.3.1
 #  @author Mathieu Faverge
 #  @author Gregoire Pichon
 #  @author Matias Hastaran
 #  @author Pierre Ramet
 #  @author Tony Delarue
-#  @date 2023-02-06
+#  @author Alycia Lisito
+#  @date 2023-10-25
 #
 ###
 include(GenPkgConfig)
@@ -63,8 +64,8 @@ foreach (_file ${EXAMPLES})
   target_link_libraries( ${_name_we} PRIVATE
     pastix )
 
-  install(TARGETS ${_name_we} RUNTIME DESTINATION examples )
-  install(FILES   ${_file}            DESTINATION examples )
+  install(TARGETS ${_name_we} RUNTIME DESTINATION share/doc/pastix/examples )
+  install(FILES   ${_file}            DESTINATION share/doc/pastix/examples )
 endforeach()
 
 target_link_libraries( schur     PRIVATE MORSE::LAPACKE )
@@ -81,6 +82,6 @@ configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/Makefile.in"
   "${CMAKE_CURRENT_BINARY_DIR}/make/Makefile" @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/make/Makefile"
-  DESTINATION examples)
+  DESTINATION share/doc/pastix/examples)
 
 include(CTestLists.txt)

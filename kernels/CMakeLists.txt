@@ -214,9 +214,10 @@ install(EXPORT pastix_kernelsTargets
 # ------------
 install(TARGETS pastix_kernels
         EXPORT pastix_kernelsTargets
-        ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
-        LIBRARY DESTINATION ${LIB_INSTALL_DIR}
-        RUNTIME DESTINATION ${BIN_INSTALL_DIR})
+        ARCHIVE       DESTINATION lib
+        LIBRARY       DESTINATION lib
+        RUNTIME       DESTINATION bin
+        PUBLIC_HEADER DESTINATION include )
 
 ### Add generated files to the global property
 add_documented_files(
