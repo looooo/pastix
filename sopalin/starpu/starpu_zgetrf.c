@@ -324,8 +324,8 @@ starpu_zgetrf_sp1dplus_ll( sopalin_data_t              *sopalin_data,
  *
  ******************************************************************************/
 void
-starpu_zgetrf_sp2d( sopalin_data_t              *sopalin_data,
-                    starpu_sparse_matrix_desc_t *desc )
+starpu_zgetrf_sp2d_rl( sopalin_data_t              *sopalin_data,
+                       starpu_sparse_matrix_desc_t *desc )
 {
     const SolverMatrix *solvmtx = sopalin_data->solvmtx;
     SolverCblk         *cblk, *fcblk;
@@ -403,6 +403,79 @@ starpu_zgetrf_sp2d( sopalin_data_t              *sopalin_data,
 /**
  *******************************************************************************
  *
+ * @brief Perform a sparse LU factorization with 1D and 2D kernels.
+ *
+ * The function performs the LU factorization of a sparse general matrix A.
+ * The factorization has the form
+ *
+ *    \f[ A = L\times U \f]
+ *
+ * where L is a sparse lower triangular matrix, and U a sparse upper triangular
+ * with the same pattern as L^t.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] sopalin_data
+ *          Solver matrix information structure that will guide the algorithm.
+ *
+ * @param[inout] desc
+ *          StarPU descriptor of the sparse matrix.
+ *
+ ******************************************************************************/
+void
+starpu_zgetrf_sp2d_ll( sopalin_data_t              *sopalin_data,
+                       starpu_sparse_matrix_desc_t *desc )
+{
+    const SolverMatrix *solvmtx = sopalin_data->solvmtx;
+    SolverCblk         *cblk, *fcblk;
+    SolverBlok         *blok = NULL;
+    SolverBlok         *blok_prev;
+    pastix_int_t        k, m, cblknbr;
+
+    cblknbr = solvmtx->cblknbr;
+    fcblk   = solvmtx->cblktab;
+
+    for ( k = 0; k < cblknbr; k++, fcblk++ ) {
+
+        for ( m = fcblk[0].brownum; m < fcblk[1].brownum; m++ ) {
+            blok_prev = blok;
+            blok = solvmtx->bloktab + solvmtx->browtab[m];
+            cblk = solvmtx->cblktab + blok->lcblknm;
+
+            if ( cblk->cblktype & CBLK_IN_SCHUR ) {
+                continue;
+            }
+
+            if( ( cblk->cblktype & CBLK_TASKS_2D )      &&
+                ( blok_prev          != NULL          ) &&
+                ( blok_prev->fcblknm == blok->fcblknm ) &&
+                ( blok_prev->lcblknm == blok->lcblknm ) )
+            {
+                continue;
+            }
+
+            starpu_task_getrf_zgemmsp( sopalin_data, cblk, blok, fcblk,
+                                       cblknbr - k );
+        }
+
+        if ( fcblk->cblktype & CBLK_IN_SCHUR ) {
+            continue;
+        }
+
+        starpu_task_zgetrfsp( sopalin_data, fcblk, cblknbr - k );
+    }
+
+    cblk = solvmtx->cblktab;
+    for ( k = 0; k < solvmtx->cblknbr; k++, cblk++ ) {
+        starpu_sparse_cblk_wont_use( PastixLUCoef, cblk );
+    }
+
+    (void)desc;
+}
+
+/**
+ *******************************************************************************
+ *
  * @brief Perform a sparse LU factorization using StarPU runtime.
  *
  * The function performs the LU factorization of a sparse general matrix A.
@@ -468,7 +541,12 @@ starpu_zgetrf( pastix_data_t  *pastix_data,
      */
     if ( pastix_data->iparm[IPARM_TASKS2D_LEVEL] != 0 )
     {
-        starpu_zgetrf_sp2d( sopalin_data, sdesc );
+        if ( pastix_data->iparm[IPARM_FACTO_LOOK_SIDE] == PastixFactLeftLooking ) {
+            starpu_zgetrf_sp2d_ll( sopalin_data, sdesc );
+        }
+        else {
+            starpu_zgetrf_sp2d_rl( sopalin_data, sdesc );
+        }
     }
     else
     {
