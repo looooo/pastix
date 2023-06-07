@@ -279,8 +279,8 @@ starpu_task_template( sopalin_data_t   *sopalin_data,
                );
 #endif
 
-    starpu_insert_task(
-        pastix_codelet(&cl_template_any),
+    pastix_starpu_insert_task(
+        &cl_template_any,
         STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_template_args_s ),
         STARPU_EXECUTE_WHERE,           execute_where,
 #if defined(PASTIX_STARPU_PROFILING)

@@ -274,8 +274,8 @@ starpu_task_cblk_zgetrfsp( sopalin_data_t *sopalin_data,
               (long)(cblk - sopalin_data->solvmtx->cblktab) );
 #endif
 
-    starpu_insert_task(
-        pastix_codelet(&cl_cblk_zgetrfsp_cpu),
+    pastix_starpu_insert_task(
+        &cl_cblk_zgetrfsp_cpu,
         STARPU_CL_ARGS,                 cl_arg,                 sizeof( struct cl_cblk_zgetrfsp_args_s ),
 #if defined(PASTIX_STARPU_PROFILING)
         STARPU_CALLBACK_WITH_ARG_NFREE, cblk_zgetrfsp_callback, cl_arg,
