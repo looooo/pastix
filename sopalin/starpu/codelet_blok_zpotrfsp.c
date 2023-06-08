@@ -266,8 +266,8 @@ starpu_task_blok_zpotrf( sopalin_data_t *sopalin_data,
               (long)(cblk - sopalin_data->solvmtx->cblktab) );
 #endif
 
-    starpu_insert_task(
-        pastix_codelet(&cl_blok_zpotrfsp_cpu),
+    pastix_starpu_insert_task(
+        &cl_blok_zpotrfsp_cpu,
         STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_blok_zpotrfsp_args_s ),
 #if defined(PASTIX_STARPU_PROFILING)
         STARPU_CALLBACK_WITH_ARG_NFREE, blok_zpotrfsp_callback, cl_arg,

@@ -181,8 +181,8 @@ starpu_stask_blok_ztrsm( sopalin_data_t   *sopalin_data,
               (long)(cblknum) );
 #endif
 
-    starpu_insert_task(
-        pastix_codelet(&cl_solve_blok_ztrsm_cpu),
+    pastix_starpu_insert_task(
+        &cl_solve_blok_ztrsm_cpu,
         STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_solve_blok_ztrsm_args_s ),
 #if defined(PASTIX_STARPU_PROFILING)
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,

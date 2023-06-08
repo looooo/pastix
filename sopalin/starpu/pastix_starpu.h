@@ -47,17 +47,26 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 typedef struct starpu_conf starpu_conf_t;
 
-#if defined(PASTIX_STARPU_SYNC)
-#define TASK_SYNCHRONOUS , STARPU_TASK_SYNCHRONOUS, 1
+#if defined(PASTIX_WITH_MPI)
+
+#if defined(PASTIX_RUNTIME_SYNC)
+#define pastix_starpu_insert_task( _codelet_, ... )                         \
+    starpu_mpi_insert_task( sopalin_data->solvmtx->solv_comm, _codelet_, STARPU_TASK_SYNCHRONOUS, 1, ##__VA_ARGS__ )
 #else
-#define TASK_SYNCHRONOUS
+#define pastix_starpu_insert_task( _codelet_, ... )                         \
+    starpu_mpi_insert_task( sopalin_data->solvmtx->solv_comm, _codelet_, ##__VA_ARGS__ )
 #endif
 
-#if defined(PASTIX_WITH_MPI)
-#define starpu_insert_task starpu_mpi_insert_task
-#define pastix_codelet(_codelet_) sopalin_data->solvmtx->solv_comm, _codelet_ TASK_SYNCHRONOUS
 #else
-#define pastix_codelet(_codelet_) _codelet_ TASK_SYNCHRONOUS
+
+#if defined(PASTIX_RUNTIME_SYNC)
+#define pastix_starpu_insert_task( _codelet_, ... )                         \
+    starpu_insert_task( _codelet_, STARPU_TASK_SYNCHRONOUS, 1, ##__VA_ARGS__ )
+#else
+#define pastix_starpu_insert_task( _codelet_, ... )                         \
+    starpu_insert_task( _codelet_, ##__VA_ARGS__ )
+#endif
+
 #endif
 
 #if defined( PASTIX_STARPU_HETEROPRIO )

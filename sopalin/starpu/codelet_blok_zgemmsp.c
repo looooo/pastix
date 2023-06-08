@@ -404,8 +404,8 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
               (long)sideA );
 #endif
 
-    starpu_insert_task(
-        pastix_codelet(&cl_blok_zgemmsp_any),
+    pastix_starpu_insert_task(
+        &cl_blok_zgemmsp_any,
         STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_blok_zgemmsp_args_s ),
         STARPU_EXECUTE_WHERE,           execute_where,
 #if defined(PASTIX_STARPU_PROFILING)

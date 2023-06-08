@@ -345,8 +345,8 @@ starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
               (long)coef );
 #endif
 
-    starpu_insert_task(
-        pastix_codelet(&cl_blok_ztrsmsp_any),
+    pastix_starpu_insert_task(
+        &cl_blok_ztrsmsp_any,
         STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_blok_ztrsmsp_args_s ),
         STARPU_EXECUTE_WHERE,           execute_where,
 #if defined(PASTIX_STARPU_PROFILING)

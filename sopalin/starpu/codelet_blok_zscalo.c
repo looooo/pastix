@@ -173,8 +173,8 @@ starpu_task_blok_zscalo( sopalin_data_t *sopalin_data,
               (long)(blok - sopalin_data->solvmtx->bloktab) );
 #endif
 
-    starpu_insert_task(
-        pastix_codelet(&cl_blok_zscalo_cpu),
+    pastix_starpu_insert_task(
+        &cl_blok_zscalo_cpu,
         STARPU_CL_ARGS,                 cl_arg,                sizeof( struct cl_blok_zscalo_args_s ),
 #if defined(PASTIX_STARPU_PROFILING)
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
