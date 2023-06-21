@@ -20,7 +20,7 @@
  * @author nbredel
  * @author Nolan Bredel
  * @author Tony Delarue
- * @date 2023-11-06
+ * @date 2023-11-09
  *
  **/
 #include "common.h"
@@ -500,8 +500,10 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
         factofct = sopalinFacto[ pastix_data->iparm[IPARM_FACTORIZATION] ][pastix_data->solvmatr->flttype-2];
         assert(factofct);
 
-        kernelsTraceStart( pastix_data );
         papiEnergyStart();
+        if ( pastix_data->iparm[IPARM_TRACE] & PastixTraceNumfact ) {
+            kernelsTraceStart();
+        }
         clockSyncStart( timer, pastix_comm );
         clockStart(timer_local);
 
@@ -509,8 +511,10 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
 
         clockStop(timer_local);
         clockSyncStop( timer, pastix_comm );
+        if ( pastix_data->iparm[IPARM_TRACE] & PastixTraceNumfact ) {
+            kernelsTraceStop();
+        }
         energy = papiEnergyStop();
-        kernelsTraceStop( pastix_data );
 
         /* Output time, flops, energy and power */
         pastix_data->dparm[DPARM_FACT_TIME] = clockVal(timer);

@@ -15,7 +15,7 @@
  * @author Vincent Bridonneau
  * @author Alycia Lisito
  * @author Nolan Bredel
- * @date 2023-11-06
+ * @date 2023-11-09
  * @precisions normal z -> c d s
  *
  **/
@@ -312,12 +312,17 @@ solve_cblk_ztrsmsp_forward( const args_solve_t *enums,
     const pastix_lrblock_t   *lrA;
     const pastix_complex64_t *A;
     pastix_complex64_t       *B, *C;
-    pastix_int_t              ldb, ldc;
-    pastix_side_t             side  = enums->side;
-    pastix_uplo_t             uplo  = enums->uplo;
-    pastix_trans_t            trans = enums->trans;
-    pastix_diag_t             diag  = enums->diag;
-    pastix_solv_mode_t        mode  = enums->mode;
+    pastix_int_t              ldb, ldc, k;
+    pastix_fixdbl_t           time;
+    pastix_fixdbl_t           flops_lvl1 = 0;
+    pastix_fixdbl_t           flops_lvl2 = 0;
+    pastix_side_t             side       = enums->side;
+    pastix_uplo_t             uplo       = enums->uplo;
+    pastix_trans_t            trans      = enums->trans;
+    pastix_diag_t             diag       = enums->diag;
+    pastix_solv_mode_t        mode       = enums->mode;
+
+    time = kernel_trace_start( PastixKernelTRSMForw );
 
     if ( (side == PastixRight) && (uplo == PastixUpper) && (trans == PastixNoTrans) ) {
         /*  We store U^t, so we swap uplo and trans */
@@ -363,12 +368,17 @@ solve_cblk_ztrsmsp_forward( const args_solve_t *enums,
     B   = rhsb->b;
     B   = B + cblk->lcolidx;
     ldb = rhsb->ld;
+    k   = cblk_colnbr( cblk );
 
     /* Solve the diagonal block */
+    flops_lvl2 = FLOPS_ZTRSM( side, k, rhsb->n );
+    kernel_trace_start_lvl2( PastixKernelLvl2_FR_TRSM );
     solve_blok_ztrsm( side, PastixLower,
                       tA, diag, cblk, rhsb->n,
                       cblk_getdata( cblk, cs ),
                       B, ldb );
+    kernel_trace_stop_lvl2( flops_lvl2 );
+    flops_lvl1 += flops_lvl2;
 
     /* Apply the update */
     for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
@@ -416,12 +426,19 @@ solve_cblk_ztrsmsp_forward( const args_solve_t *enums,
             ldc = rhsb->ld;
         }
 
+        flops_lvl2 = FLOPS_ZGEMM( blok_rownbr( blok ), rhsb->n, k );
+        kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
         solve_blok_zgemm( PastixLeft, tA, rhsb->n,
                           cblk, blok, fcbk,
                           dataA, B, ldb, C, ldc );
+        kernel_trace_stop_lvl2( flops_lvl2 );
+        flops_lvl1 += flops_lvl2;
+
         cpucblk_zrelease_rhs_fwd_deps( enums, datacode,
                                        rhsb, cblk, fcbk );
     }
+    kernel_trace_stop( cblk->fblokptr->inlast, PastixKernelTRSMForw,
+                       cblk_rownbr(cblk), rhsb->n, k, flops_lvl1, time );
 }
 
 /**
@@ -462,13 +479,17 @@ solve_cblk_ztrsmsp_backward( const args_solve_t *enums,
     const pastix_lrblock_t   *lrA;
     const pastix_complex64_t *A;
     pastix_complex64_t       *B, *C;
-    pastix_int_t              ldb, ldc;
-    pastix_side_t             side  = enums->side;
-    pastix_uplo_t             uplo  = enums->uplo;
-    pastix_trans_t            trans = enums->trans;
-    pastix_diag_t             diag  = enums->diag;
-    pastix_solv_mode_t        mode  = enums->mode;
+    pastix_int_t              ldb, ldc, k;
+    pastix_fixdbl_t           time;
+    pastix_fixdbl_t           flops_lvl1 = 0;
+    pastix_fixdbl_t           flops_lvl2 = 0;
+    pastix_side_t             side       = enums->side;
+    pastix_uplo_t             uplo       = enums->uplo;
+    pastix_trans_t            trans      = enums->trans;
+    pastix_diag_t             diag       = enums->diag;
+    pastix_solv_mode_t        mode       = enums->mode;
 
+    time = kernel_trace_start( PastixKernelTRSMBack );
     /*
      *  Left / Upper / NoTrans (Backward)
      */
@@ -538,16 +559,20 @@ solve_cblk_ztrsmsp_backward( const args_solve_t *enums,
         B   = B + cblk->lcolidx;
         ldb = rhsb->ld;
     }
+    k = cblk_colnbr( cblk );
 
     if ( !(cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) &&
          (!(cblk->cblktype & CBLK_IN_SCHUR) || (mode == PastixSolvModeSchur)) )
     {
         /* Solve the diagonal block */
+        flops_lvl2 = FLOPS_ZTRSM( side, k, rhsb->n );
+        kernel_trace_start_lvl2( PastixKernelLvl2_FR_TRSM );
         solve_blok_ztrsm( side, PastixLower, tA, diag,
                           cblk, rhsb->n,
                           cblk_getdata( cblk, cs ),
                           B, ldb );
-
+        kernel_trace_stop_lvl2( flops_lvl2 );
+        flops_lvl1 += flops_lvl2;
     }
 
     /* Apply the update */
@@ -591,9 +616,14 @@ solve_cblk_ztrsmsp_backward( const args_solve_t *enums,
         C   = C + fcbk->lcolidx;
         ldc = rhsb->ld;
 
+        flops_lvl2 = FLOPS_ZGEMM( blok_rownbr( blok ), rhsb->n, k );
+        kernel_trace_start_lvl2( PastixKernelLvl2_FR_GEMM );
         solve_blok_zgemm( PastixRight, tA, rhsb->n,
                           cblk, blok, fcbk,
                           dataA, B, ldb, C, ldc );
+        kernel_trace_stop_lvl2( flops_lvl2 );
+        flops_lvl1 += flops_lvl2;
+
         cpucblk_zrelease_rhs_bwd_deps( enums, datacode,
                                        rhsb, cblk, fcbk );
     }
@@ -601,6 +631,7 @@ solve_cblk_ztrsmsp_backward( const args_solve_t *enums,
     if ( cblk->cblktype & CBLK_FANIN ) {
         memFree_null( rhsb->cblkb[ - cblk->bcscnum - 1 ] );
     }
+    kernel_trace_stop( cblk->fblokptr->inlast, PastixKernelTRSMBack, cblk_rownbr( cblk ), rhsb->n, k, flops_lvl1, time );
 }
 
 /**
