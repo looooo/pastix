@@ -7,11 +7,12 @@
  * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Gregoire Pichon
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2023-01-16
+ * @author Alycia Lisito
+ * @date 2023-11-08
  *
  */
 #define _GNU_SOURCE
@@ -73,6 +74,8 @@ define_kernels_properties()
     kernels_lvl1[PastixKernelSCALOCblk] = (kernels_t) {"lvl1_scalo_cblk", GTG_SEABLUE};
     kernels_lvl1[PastixKernelSCALOBlok] = (kernels_t) {"lvl1_scalo_blok", GTG_GREEN};
 
+    kernels_lvl1[PastixKernelTRSMForw    ] = (kernels_t) {"lvl1_trsm_forw", GTG_ORANGE};
+    kernels_lvl1[PastixKernelTRSMBack    ] = (kernels_t) {"lvl1_trsm_back", GTG_PURPLE};
     kernels_lvl1[PastixKernelTRSMCblk1d  ] = (kernels_t) {"lvl1_trsm_cblk_1d", GTG_BLUE};
     kernels_lvl1[PastixKernelTRSMCblk2d  ] = (kernels_t) {"lvl1_trsm_cblk_2d", GTG_BLUE};
     kernels_lvl1[PastixKernelTRSMCblkLR  ] = (kernels_t) {"lvl1_trsm_cblk_lr", GTG_BLUE};

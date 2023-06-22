@@ -7,10 +7,11 @@
  *
  * PaStiX trace and modelling routines
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Gregoire Pichon
  * @author Mathieu Faverge
- * @date 2023-01-16
+ * @author Alycia Lisito
+ * @date 2023-11-08
  *
  **/
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -53,6 +54,17 @@ volatile int32_t kernels_trace_started = 0;
 
 int pastix_eztrace_level = 1;
 
+/**
+ * @brief Status of the trace.
+ * @warning This is a set of bits for bitmask operations.
+ */
+typedef enum trace_status_e {
+    PastixTraceInitialised  = 1,
+    PastixTraceRunning      = 2
+} trace_status_t;
+
+static trace_status_t trace_status = 0;
+
 #endif
 
 #if defined(PASTIX_GENERATE_MODEL)
@@ -65,12 +77,57 @@ int32_t               model_size        = 0;
 
 pastix_atomic_lock_t lock_flops = PASTIX_ATOMIC_UNLOCKED;
 double overall_flops[3] = { 0.0, 0.0, 0.0 };
+
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  *******************************************************************************
  *
- * @brief Start the trace module
+ * @brief Resumes the trace module
+ *
+ *******************************************************************************/
+void
+kernelsTraceStart( )
+{
+#if defined(PASTIX_WITH_EZTRACE)
+    /*
+     * If the trace has been initialised (PastixTraceInitialised)
+     * If the trace is not currently running (!PastixTraceRunning)
+     */
+    if ( ( trace_status & PastixTraceInitialised ) &&
+       ! ( trace_status & PastixTraceRunning ) ) {
+        trace_status |= PastixTraceRunning;
+        eztrace_resume ();
+    }
+#endif
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Pauses the trace module
+ *
+ *******************************************************************************/
+void
+kernelsTraceStop( )
+{
+#if defined(PASTIX_WITH_EZTRACE)
+    /*
+     * If the trace has been initialised (PastixTraceInitialised)
+     * If the trace is currently running (PastixTraceRunning)
+     */
+    if ( ( trace_status & PastixTraceInitialised ) &&
+         ( trace_status & PastixTraceRunning ) ) {
+        trace_status &= ~PastixTraceRunning;
+        eztrace_pause ();
+    }
+#endif
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Starts the trace module
  *
  *******************************************************************************
  *
@@ -78,9 +135,17 @@ double overall_flops[3] = { 0.0, 0.0, 0.0 };
  *          The pastix_data structure of the problem to give input information
  *          to the different trace modes.
  *
+ * @param[in] trace
+ *          Value of iparm_trace :
+ *            - PastixTraceNot = no trace
+ *            - PastixTraceNumfact = only traces the facto
+ *            - PastixTraceSolve = only traces the solve
+ *            - PastixTraceFactAndSolve = traces facto and solve
+ *
  *******************************************************************************/
 void
-kernelsTraceStart( const pastix_data_t *pastix_data )
+kernelsTraceInit( const pastix_data_t *pastix_data,
+                  pastix_trace_t       trace )
 {
     const SolverMatrix *solvmtx = pastix_data->solvmatr;
     int32_t nbstart;
@@ -94,6 +159,12 @@ kernelsTraceStart( const pastix_data_t *pastix_data )
 
 #if defined(PASTIX_WITH_EZTRACE)
     {
+    /*
+     * If the trace is not activated (!PastixTraceNot)
+     * If the trace has not already been initialised (!PastixTraceInitialised)
+     */
+    if ( ( trace != PastixTraceNot ) &&
+         ! ( trace_status & PastixTraceInitialised ) ) {
         char *level = pastix_getenv("PASTIX_EZTRACE_LEVEL");
         if (level != NULL) {
             pastix_eztrace_level = atoi(level);
@@ -103,7 +174,17 @@ kernelsTraceStart( const pastix_data_t *pastix_data )
         if ( pastix_data->dir_global != NULL ) {
             pastix_setenv( "EZTRACE_TRACE_DIR", pastix_data->dir_global, 1 );
         }
+
+        /* Starts at the initialisation */
         eztrace_start ();
+
+        /*
+         * Pauses at the initialisation, will resume at factorisation
+         * and/or solve.
+         */
+        eztrace_pause ();
+        trace_status |= PastixTraceInitialised;
+    }
     }
 #endif /* defined(PASTIX_WITH_EZTRACE) */
 
@@ -157,6 +238,7 @@ kernelsTraceStart( const pastix_data_t *pastix_data )
     kernels_trace_started = 1;
 
     (void)solvmtx;
+    (void)trace;
     pastix_atomic_unlock( &lock_flops );
     return;
 }
@@ -164,7 +246,7 @@ kernelsTraceStart( const pastix_data_t *pastix_data )
 /**
  *******************************************************************************
  *
- * @brief Stop the trace module
+ * @brief Stops the trace module
  *
  *******************************************************************************
  *
@@ -172,27 +254,28 @@ kernelsTraceStart( const pastix_data_t *pastix_data )
  *          The pastix_data structure of the problem to get input information
  *          for the different trace modes, and store output statistics.
  *
- *******************************************************************************
- *
- * @return TODO
- *
  *******************************************************************************/
-double
-kernelsTraceStop( const pastix_data_t *pastix_data )
+void
+kernelsTraceFinalize( const pastix_data_t *pastix_data )
 {
-    double total_flops = 0.0;
     int32_t nbstart;
 
-    assert( kernels_trace_started > 0 );
     pastix_atomic_lock( &lock_flops );
+    assert( kernels_trace_started > 0 );
     nbstart = pastix_atomic_dec_32b( &(kernels_trace_started) );
     if ( nbstart > 0 ) {
         pastix_atomic_unlock( &lock_flops );
-        return total_flops;
+        return;
     }
 
 #if defined(PASTIX_WITH_EZTRACE)
-    eztrace_stop ();
+    /*
+     * If the trace has been initialised (PastixTraceInitialised)
+     */
+    if ( ( trace_status & PastixTraceInitialised ) ) {
+        eztrace_stop ();
+        trace_status = 0;
+    }
 #endif
 
 #if defined(PASTIX_GENERATE_MODEL)
@@ -283,5 +366,4 @@ kernelsTraceStop( const pastix_data_t *pastix_data )
     kernels_trace_started = 0;
     pastix_atomic_unlock( &lock_flops );
     (void)pastix_data;
-    return total_flops;
 }

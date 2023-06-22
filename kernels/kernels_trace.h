@@ -7,11 +7,12 @@
  * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Gregoire Pichon
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2023-01-16
+ * @author Alycia Lisito
+ * @date 2023-11-08
  *
  * @addtogroup eztrace_dev
  * @{
@@ -59,8 +60,11 @@ extern int32_t               model_size;        /**< Size of the model_entries a
 
 #endif
 
-void kernelsTraceStart( const pastix_data_t *pastix_data );
-double kernelsTraceStop( const pastix_data_t *pastix_data );
+void kernelsTraceInit( const pastix_data_t *pastix_data,
+                       pastix_trace_t       trace );
+void kernelsTraceFinalize( const pastix_data_t *pastix_data );
+void kernelsTraceStop();
+void kernelsTraceStart();
 
 /**
  *******************************************************************************

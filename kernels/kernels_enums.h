@@ -7,11 +7,12 @@
  * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Gregoire Pichon
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2023-01-16
+ * @author Alycia Lisito
+ * @date 2023-11-08
  *
  * @addtogroup eztrace_dev
  * @{
@@ -51,6 +52,8 @@ typedef enum pastix_ktype_e {
     PastixKernelSYTRF,        /**< LDLt diagonal block kernel           */
     PastixKernelSCALOCblk,    /**< Scaling out-of-place of a panel      */
     PastixKernelSCALOBlok,    /**< Scaling out-of-place of a block      */
+    PastixKernelTRSMForw,     /**< Solve forward TRSM block kernel      */
+    PastixKernelTRSMBack,     /**< Solve backward TRSM block kernel     */
     PastixKernelTRSMCblk1d,   /**< TRSM applied to a panel in 1d layout */
     PastixKernelTRSMCblk2d,   /**< TRSM applied to a panel in 2d layout */
     PastixKernelTRSMCblkLR,   /**< TRSM applied to a panel in low-rank  */
