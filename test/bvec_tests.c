@@ -101,6 +101,10 @@ int main ( int argc, char **argv )
         rc = spmReadDriver( driver, filename, spm );
     }
     free( filename );
+    if ( rc != SPM_SUCCESS ) {
+        pastixFinalize( &pastix_data );
+        return rc;
+    }
 
     rc = spmCheckAndCorrect( spm, &spm2 );
     if ( rc != 0 ) {
