@@ -16,10 +16,10 @@ branch. Note that PaStiX contains two `git submodule` for **spm** and **morse_cm
 To get sources please use these commands:
 
     # if git version >= 1.9
-      git clone --recursive git@gitlab.inria.fr:solverstack/pastix.git
+      git clone --recursive https://gitlab.inria.fr/solverstack/pastix.git
       cd pastix
     # else
-      git clone git@gitlab.inria.fr:solverstack/pastix.git
+      git clone https://gitlab.inria.fr/solverstack/pastix.git
       cd pastix
       git submodule init
       git submodule update
