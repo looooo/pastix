@@ -68,13 +68,16 @@ int main ( int argc, char **argv )
         rc = spmReadDriver( driver, filename, spm );
     }
     free( filename );
+    if ( rc != SPM_SUCCESS ) {
+        pastixFinalize( &pastix_data );
+        return rc;
+    }
     spmPrintInfo( spm, stdout );
 
     rc = spmCheckAndCorrect( spm, &spm2 );
     if ( rc != 0 ) {
         spmExit( spm );
         *spm = spm2;
-        rc = 0;
     }
 
     if ( spm->flttype == SpmPattern ) {

@@ -470,7 +470,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
             else {
                 eps = LAPACKE_dlamch_work( 'e' );
             }
-            threshold = sqrt(eps) * dparm[DPARM_A_NORM];
+            threshold = eps * dparm[DPARM_A_NORM];
         }
         else {
             threshold = dparm[ DPARM_EPSILON_MAGN_CTRL ] * dparm[DPARM_A_NORM];
