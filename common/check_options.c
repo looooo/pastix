@@ -9,14 +9,16 @@
  * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2023-08-04
+ * @author Alycia Lisito
+ * @author Brieuc Nicolas
+ * @date 2023-11-09
  *
  */
 #include "common.h"
@@ -50,8 +52,10 @@ pastix_io_check_value( pastix_io_t value )
 static inline int
 pastix_trace_check_value( pastix_trace_t value )
 {
-    if( (value == PastixTraceNumfact) ||
-        (value == PastixTraceSolve) ) {
+    if( (value == PastixTraceNot) ||
+        (value == PastixTraceNumfact) ||
+        (value == PastixTraceSolve) ||
+        (value == PastixTraceFactAndSolve) ) {
         return 0;
     }
     return 1;

@@ -7,11 +7,13 @@
  @copyright 2020-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.3.0
+ @version 6.3.1
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2023-08-02
+ @author Alycia Lisito
+ @author Tom Moenne-Loccoz
+ @date 2023-11-09
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -99,29 +101,30 @@ end
     iparm_gmres_im                       = 55,
     iparm_scheduler                      = 56,
     iparm_thread_nbr                     = 57,
-    iparm_autosplit_comm                 = 58,
-    iparm_gpu_nbr                        = 59,
-    iparm_gpu_memory_percentage          = 60,
-    iparm_gpu_memory_block_size          = 61,
-    iparm_global_allocation              = 62,
-    iparm_compress_min_width             = 63,
-    iparm_compress_min_height            = 64,
-    iparm_compress_when                  = 65,
-    iparm_compress_method                = 66,
-    iparm_compress_ortho                 = 67,
-    iparm_compress_reltol                = 68,
-    iparm_compress_preselect             = 69,
-    iparm_compress_iluk                  = 70,
-    iparm_mixed                          = 71,
-    iparm_ftz                            = 72,
-    iparm_mpi_thread_level               = 73,
-    iparm_modify_parameter               = 74,
-    iparm_start_task                     = 75,
-    iparm_end_task                       = 76,
-    iparm_float                          = 77,
-    iparm_mtx_type                       = 78,
-    iparm_dof_nbr                        = 79,
-    iparm_size                           = 79,
+    iparm_socket_nbr                     = 58,
+    iparm_autosplit_comm                 = 59,
+    iparm_gpu_nbr                        = 60,
+    iparm_gpu_memory_percentage          = 61,
+    iparm_gpu_memory_block_size          = 62,
+    iparm_global_allocation              = 63,
+    iparm_compress_min_width             = 64,
+    iparm_compress_min_height            = 65,
+    iparm_compress_when                  = 66,
+    iparm_compress_method                = 67,
+    iparm_compress_ortho                 = 68,
+    iparm_compress_reltol                = 69,
+    iparm_compress_preselect             = 70,
+    iparm_compress_iluk                  = 71,
+    iparm_mixed                          = 72,
+    iparm_ftz                            = 73,
+    iparm_mpi_thread_level               = 74,
+    iparm_modify_parameter               = 75,
+    iparm_start_task                     = 76,
+    iparm_end_task                       = 77,
+    iparm_float                          = 78,
+    iparm_mtx_type                       = 79,
+    iparm_dof_nbr                        = 80,
+    iparm_size                           = 80,
 }
 
 @cenum Pastix_dparm_t {
@@ -166,8 +169,10 @@ end
 }
 
 @cenum Pastix_trace_t {
-    tracenumfact = 16,
-    tracesolve   = 32,
+    tracenot          = 0,
+    tracenumfact      = 16,
+    tracesolve        = 32,
+    tracefactandsolve = 48,
 }
 
 @cenum Pastix_verbose_t {
@@ -301,12 +306,6 @@ end
     conjtrans = 113,
 }
 
-@cenum Pastix_mtxtype_t {
-    general   = notrans,
-    symmetric = trans,
-    hermitian = conjtrans,
-}
-
 @cenum Pastix_uplo_t {
     upper      = 121,
     lower      = 122,
@@ -339,6 +338,12 @@ end
 @cenum Pastix_dir_t {
     dirforward  = 391,
     dirbackward = 392,
+}
+
+@cenum Pastix_mtxtype_t {
+    general   = notrans,
+    symmetric = trans,
+    hermitian = conjtrans,
 }
 
 @cstruct Pastix_order_t {

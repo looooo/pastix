@@ -7,7 +7,7 @@
  * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
@@ -18,7 +18,7 @@
  * @author Alycia Lisito
  * @author Brieuc Nicolas
  * @author Tom Moenne-Loccoz
- * @date 2023-08-01
+ * @date 2023-11-09
  *
  **/
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -422,7 +422,7 @@ pastixInitParam( pastix_int_t *iparm,
     iparm[IPARM_NNZEROS_BLOCK_LOCAL]   = 0;
     iparm[IPARM_ALLOCATED_TERMS]       = 0;
     iparm[IPARM_PRODUCE_STATS]         = 0;
-    iparm[IPARM_TRACE]                 = PastixTraceNumfact;
+    iparm[IPARM_TRACE]                 = PastixTraceNot;
 
     /* Scaling */
     iparm[IPARM_MC64]                  = 0;
@@ -862,6 +862,11 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
 
     papiEnergyInit( pastix->iparm[IPARM_SOCKET_NBR] );
 
+    /* If PASTIX_WITH_EZTRACE starts (and pauses) trace. */
+#if defined(PASTIX_WITH_EZTRACE)
+    kernelsTraceInit( pastix, pastix->iparm[IPARM_TRACE] );
+#endif
+
     *pastix_data = pastix;
 }
 
@@ -916,6 +921,11 @@ pastixFinalize( pastix_data_t **pastix_data )
     pastix_data_t *pastix = *pastix_data;
 
     papiEnergyFinalize();
+
+    /* If PASTIX_WITH_EZTRACE stops trace. */
+#if defined(PASTIX_WITH_EZTRACE)
+    kernelsTraceFinalize( *pastix_data );
+#endif
 
     pastixSummary( *pastix_data );
 

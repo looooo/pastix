@@ -9,7 +9,7 @@
  * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -18,7 +18,7 @@
  * @author Tony Delarue
  * @author Alycia Lisito
  * @author Tom Moenne-Loccoz
- * @date 2023-08-01
+ * @date 2023-11-09
  *
  */
 #ifndef _parse_options_h_

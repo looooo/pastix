@@ -6,11 +6,12 @@
  @copyright 2021-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.3.0
+ @version 6.3.1
  @author Tony Delarue
  @author Mathieu Faverge
  @author Tom Moenne-Loccoz
- @date 2023-08-01
+ @author Alycia Lisito
+ @date 2023-11-09
 
  This file allows us to generate:
       - Documentation files
@@ -103,6 +104,11 @@ trace = {
         "brief" : "Steps to trace.",
     },
     "values" : [
+        {
+            "name": "PastixTraceNot",
+            "value": 0,
+            "brief": "No trace"
+        },
         # {
         #     "name": "PastixTraceInit",
         #     "value": 1
@@ -121,11 +127,18 @@ trace = {
         # },
         {
             "name": "PastixTraceNumfact",
-            "value": 16
+            "value": 16,
+            "brief": "Trace of the factorisation only"
         },
         {
             "name": "PastixTraceSolve",
-            "value": 32
+            "value": 32,
+            "brief": "Trace of the solve only"
+        },
+        {
+            "name": "PastixTraceFactAndSolve",
+            "value": 48,
+            "brief": "Trace of the fcatorisation and solve"
         }
         # {
         #     "name": "PastixTraceRefine",
@@ -742,22 +755,24 @@ mtxtype = {
         "brief" : "Matrix symmetry type property.",
         "details" : r'''
 @remark Must match transposition.
+
+@sa spm_mtxtype_t
 ''',
     },
     "values" : [
         {
             "name": "PastixGeneral",
-            "value": "PastixNoTrans",
+            "value": "SpmGeneral",
             "brief": "The matrix is general"
         },
         {
             "name": "PastixSymmetric",
-            "value": "PastixTrans",
+            "value": "SpmSymmetric",
             "brief": "The matrix is symmetric"
         },
         {
             "name": "PastixHermitian",
-            "value": "PastixConjTrans",
+            "value": "SpmHermitian",
             "brief": "The matrix is hermitian"
         }
     ]

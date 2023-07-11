@@ -10,12 +10,13 @@
  @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.3.0
+ @version 6.3.1
  @author Pierre Ramet
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2023-01-13
+ @author Alycia Lisito
+ @date 2023-11-09
 
 """
 import os
@@ -76,6 +77,9 @@ def main():
 
     # register all enums
     enum_list = wrappers.parse_enums( preprocessed_list )
+
+    # Adds mtxtype in enum list.
+    enum_list += [[ 'mtxtype', [ ['PastixGeneral', 'PastixNoTrans'], ['PastixSymmetric', 'PastixTrans'], ['PastixHermitian', 'PastixConjTrans'] ] ]]
 
     # register all structs
     struct_list = wrappers.parse_structs( preprocessed_list )

@@ -18,7 +18,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2023-08-04
+ * @date 2023-11-10
  *
  * @addtogroup pastix_api
  * @{
@@ -41,7 +41,7 @@ typedef enum pastix_iparm_e {
     IPARM_NNZEROS_BLOCK_LOCAL,            /**< Number of nonzero entries in the local block factorized matrix Default: -                         OUT */
     IPARM_ALLOCATED_TERMS,                /**< Maximum memory allocated for matrix terms                      Default: -                         OUT */
     IPARM_PRODUCE_STATS,                  /**< Compute some statistiques (such as precision error)            Default: 0                         IN  */
-    IPARM_TRACE,                          /**< Bitmask of the steps to trace                                  Default: PastixTraceNumfact        IN  */
+    IPARM_TRACE,                          /**< Bitmask of the steps to trace                                  Default: PastixTraceNot            IN  */
 
     /* Scaling */
     IPARM_MC64,                           /**< MC64 operation                                                 Default: 0                         IN  */
@@ -207,8 +207,10 @@ typedef enum pastix_task_e {
  * @brief Steps to trace.
  */
 typedef enum pastix_trace_e {
-    PastixTraceNumfact = 16,
-    PastixTraceSolve   = 32
+    PastixTraceNot          = 0,  /**< No trace                             */
+    PastixTraceNumfact      = 16, /**< Trace of the factorisation only      */
+    PastixTraceSolve        = 32, /**< Trace of the solve only              */
+    PastixTraceFactAndSolve = 48  /**< Trace of the fcatorisation and solve */
 } pastix_trace_t;
 
 /**
@@ -288,10 +290,6 @@ typedef enum pastix_refine_e {
  * @sa spm_coeftype_t
  *
  * @{
- */
-
-/**
- * @brief TODO
  */
 typedef spm_coeftype_t pastix_coeftype_t;
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -453,6 +451,8 @@ typedef enum pastix_trans_e {
  * @brief Matrix symmetry type property.
  *
  * @remark Must match transposition.
+ *
+ * @sa spm_mtxtype_t
  */
 typedef spm_mtxtype_t pastix_mtxtype_t;
 #define PastixGeneral   SpmGeneral    /**< The matrix is general   */

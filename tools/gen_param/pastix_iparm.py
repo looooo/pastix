@@ -6,12 +6,13 @@
  @copyright 2021-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.3.0
+ @version 6.3.1
  @author Tony Delarue
  @author Brieuc Nicolas
  @author Mathieu Faverge
  @author Tom Moenne-Loccoz
- @date 2023-08-01
+ @author Alycia Lisito
+ @date 2023-11-09
 
  This file allows us to generate:
       - Documentation files
@@ -117,7 +118,7 @@ A long description in the doxygen format
 
 iparm_trace = {
     "name" : "iparm_trace",
-    "default" : "PastixTraceNumfact",
+    "default" : "PastixTraceNot",
     "brief" : "Bitmask of the steps to trace",
     "access" : "IN",
     "description" : r'''

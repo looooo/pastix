@@ -6,9 +6,12 @@
  @copyright 2021-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.3.0
+ @version 6.3.1
  @author Tony Delarue
- @date 2023-04-11
+ @author Alycia Lisito
+ @author Brieuc Nicolas
+ @author Mathieu Faverge
+ @date 2023-11-09
 
 """
 from generation_utils import headerFileEnd, const_str
@@ -234,11 +237,7 @@ def gen_coeftype( enum ) :
     @out The string that declare the pastix_coeftype_t in api.h
     """
     result = gen_enum_documentation( enum )
-    result += """
-/**
- * @brief TODO
- */
-typedef spm_coeftype_t pastix_coeftype_t;
+    result += """typedef spm_coeftype_t pastix_coeftype_t;
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 """
     maxsize = max( list( map( lambda x : len(x["name"]) + 1, enum["values"] ) ) )
@@ -247,6 +246,29 @@ typedef spm_coeftype_t pastix_coeftype_t;
         result += "#define "+ value["name"] + ( maxsize - len(value["name"]) ) * " " + str(value['value']) +"\n"
     result += "#endif /* DOXYGEN_SHOULD_SKIP_THIS */\n"
     result += close_bracket + "\n"
+
+    return result
+
+def gen_mtxtype( enum ) :
+    """
+    pastix_mtxtype_t is not an enum but a define, we have to generate it differently
+
+    @in  enum : The enum containing pastix_mtxtype_t.
+    @out The string that declare the pastix_mtxtype_t in api.h
+    """
+    result = gen_enum_documentation( enum )
+    result += """typedef spm_mtxtype_t pastix_mtxtype_t;
+"""
+    values = enum['values']
+    valueMaxSize = max( list( map( lambda x : len(x["name"]) + 1, values ) ) )
+    briefMaxSize = max(list( map(lambda x : len(x['brief']), values) ))
+
+    for value in values :
+        result += "#define "+ value["name"] + ( valueMaxSize - len(value["name"]) ) * " " + str(value['value'])
+        result += ( valueMaxSize - len(value["name"]) ) * " " + " /**< "
+        result += value['brief'] + " " * ( briefMaxSize - len(value['brief']) ) + " */"
+        result += "\n"
+    result += "\n"
 
     return result
 
@@ -264,6 +286,10 @@ def genEnumsDeclaration( enums ) :
         name = enum["name"]
         if name == "coeftype" :
             headerFile += gen_coeftype( enum )
+            continue
+
+        if name == "mtxtype" :
+            headerFile += gen_mtxtype( enum )
             continue
 
         # Begin BLAS-like enums
