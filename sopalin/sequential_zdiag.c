@@ -221,7 +221,8 @@ thread_zdiag_dynamic( isched_thread_t *ctx,
         if ( t->cblknum >= cblknbr ) {
             continue;
         }
-        pqueuePush1( computeQueue, t->cblknum, t->prionum );
+        cblk = datacode->cblktab + t->cblknum;
+        pqueuePush1( computeQueue, t->cblknum, cblk->priority );
     }
 
     /* Make sure that all computeQueues are allocated */

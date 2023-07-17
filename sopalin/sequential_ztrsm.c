@@ -290,7 +290,6 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
     pastix_int_t         thrd_rank     = (pastix_int_t)ctx->rank;
     int32_t              dest          = (thrd_rank + 1)%thrd_size;
     int32_t              local_taskcnt = 0;
-    pastix_int_t         gcblknbr      = datacode->gcblknbr;
     SolverCblk          *cblk;
     pastix_queue_t      *computeQueue;
     pastix_int_t         ii;
@@ -322,7 +321,7 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
                 cblk->ctrbcnt = cblk[1].fblokptr - cblk[0].fblokptr - 1;
             }
             if ( !(cblk->ctrbcnt) && !(cblk->cblktype & (CBLK_FANIN | CBLK_RECV)) ) {
-                pqueuePush1( computeQueue, ii, gcblknbr - cblk->gcblknum );
+                pqueuePush1( computeQueue, ii, - cblk->priority );
             }
         }
         isched_barrier_wait( &(ctx->global_ctx->barrier) );
@@ -368,7 +367,7 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
             cblk->ctrbcnt = cblk[1].brownum - cblk[0].brownum;
             if ( !(cblk->ctrbcnt) ) {
                 if  (!(cblk->cblktype & (CBLK_FANIN|CBLK_RECV)) ) {
-                    pqueuePush1( computeQueue, ii, cblk->gcblknum );
+                    pqueuePush1( computeQueue, ii, cblk->priority );
                 }
             }
         }

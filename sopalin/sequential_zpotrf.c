@@ -226,7 +226,9 @@ thread_zpotrf_dynamic( isched_thread_t *ctx, void *args )
         t = datacode->tasktab + i;
 
         if ( !(t->ctrbcnt) ) {
-            pqueuePush1( computeQueue, t->cblknum, t->prionum );
+            cblk = datacode->cblktab + t->cblknum;
+            assert( t->prionum == cblk->priority );
+            pqueuePush1( computeQueue, t->cblknum, cblk->priority );
         }
     }
 
