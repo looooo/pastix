@@ -454,7 +454,7 @@ dynamic_ztrsm( pastix_data_t      *pastix_data,
 
     /* Reintroduce Schur tasks in the counter for backward */
     if ( enums->solve_step == PastixSolveBackward ) {
-        args_ztrsm.taskcnt += (datacode->cblknbr - datacode->cblkschur);
+        args_ztrsm.taskcnt = datacode->cblknbr - datacode->recvnbr;
     }
 
     /* Allocates the computeQueue */
