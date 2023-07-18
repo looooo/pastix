@@ -189,6 +189,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                     /* Initialize missing fields and set to RECV */
                     solvcblk->brown2d   = brownum;
                     solvcblk->cblktype |= CBLK_RECV;
+                    solvcblk->priority  = -1;
 
                     /* Update colmax is necessary */
                     solvmtx->colmax = pastix_imax( solvmtx->colmax, cblk_colnbr(solvcblk) );
@@ -265,6 +266,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
 
                 /* Set to fan-in */
                 solvcblk->cblktype |= CBLK_FANIN;
+                solvcblk->priority  = -1;
                 solvmtx->fanincnt++;
                 solvcblk->bcscnum = -( solvmtx->fanincnt + solvmtx->recvcnt );
                 solvcblk->fblokptr->fcblknm = -1; /* fcblknm has no meaning for fanin, so let's set it to -1 */

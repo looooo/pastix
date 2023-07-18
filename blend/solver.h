@@ -174,6 +174,7 @@ typedef struct solver_cblk_s  {
     pastix_int_t         selevtx;     /**< Index to identify selected cblk for which intra-separator contributions are not compressed */
     int                  ownerid;     /**< Rank of the owner                       */
     int                  threadid;    /**< Rank of the accessing thread            */
+    pastix_int_t         priority;    /**< Priority of the cblk                    */
 } SolverCblk;
 
 

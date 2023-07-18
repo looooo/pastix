@@ -636,6 +636,7 @@ solvMatGen_fill_tasktab( SolverMatrix       *solvmtx,
 {
     Task        *solvtask;
     SimuTask    *simutask = simuctrl->tasktab;
+    SolverCblk  *solvcblk = solvmtx->cblktab;
     pastix_int_t tasknum  = 0;
     pastix_int_t i;
 
@@ -655,6 +656,8 @@ solvMatGen_fill_tasktab( SolverMatrix       *solvmtx,
             solvtask->bloknum = simutask->bloknum;
             solvtask->ctrbcnt = simutask->ctrbcnt;
 
+            solvcblk[solvtask->cblknum].priority = solvtask->prionum;
+
             tasknum++; solvtask++;
         }
     }
@@ -671,6 +674,8 @@ solvMatGen_fill_tasktab( SolverMatrix       *solvmtx,
                 solvtask->cblknum = cblklocalnum[ simutask->cblknum ];
                 solvtask->bloknum = bloklocalnum[ simutask->bloknum ];
                 solvtask->ctrbcnt = simutask->ctrbcnt;
+
+                solvcblk[solvtask->cblknum].priority = solvtask->prionum;
 
                 tasknum++; solvtask++;
             }
