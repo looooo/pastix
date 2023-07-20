@@ -615,7 +615,8 @@ cpucblk_zrelease_deps( pastix_coefside_t  side,
 #endif
         if ( solvmtx->computeQueue ) {
             pastix_queue_t *queue = solvmtx->computeQueue[ cblk->threadid ];
-            pqueuePush1( queue, fcbk - solvmtx->cblktab, queue->size );
+            assert( fcbk->priority != -1 );
+            pqueuePush1( queue, fcbk - solvmtx->cblktab, fcbk->priority );
         }
     }
 }

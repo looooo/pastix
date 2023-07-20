@@ -782,7 +782,8 @@ cpucblk_zrelease_rhs_fwd_deps( const args_solve_t *enums,
 #endif
         if ( solvmtx->computeQueue ) {
             pastix_queue_t *queue = solvmtx->computeQueue[ cblk->threadid ];
-            pqueuePush1( queue, fcbk - solvmtx->cblktab, queue->size );
+            assert( fcbk->priority != -1 );
+            pqueuePush1( queue, fcbk - solvmtx->cblktab, fcbk->priority );
         }
     }
 }

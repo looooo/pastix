@@ -222,10 +222,18 @@ cpucblk_zrequest_rhs_bwd_handle_recv( const args_solve_t *enums,
     rhsb->cblkb[ idx ] = recvbuf;
 
     cblk->threadid = threadid;
-    solve_cblk_ztrsmsp_backward( enums, solvmtx, cblk, rhsb );
+    if ( solvmtx->computeQueue ) {
+        pastix_queue_t   *queue = solvmtx->computeQueue[ cblk->threadid ];
+        const SolverBlok *blok  = solvmtx->bloktab + solvmtx->browtab[ cblk[1].brownum-1 ];
+        const SolverCblk *fcbk  = solvmtx->cblktab + blok->lcblknm;
 
-    /* Check it has been freed */
-    assert( rhsb->cblkb[ idx ] == NULL );
+        pqueuePush1( queue, cblk - solvmtx->cblktab, - fcbk->priority );
+    }
+    else {
+        solve_cblk_ztrsmsp_backward( enums, solvmtx, cblk, rhsb );
+        /* Check it has been freed */
+        assert( rhsb->cblkb[ idx ] == NULL );
+    }
 }
 
 /**
@@ -532,7 +540,8 @@ cpucblk_zrelease_rhs_bwd_deps( const args_solve_t *enums,
 #endif
         if ( solvmtx->computeQueue ) {
             pastix_queue_t *queue = solvmtx->computeQueue[ cblk->threadid ];
-            pqueuePush1( queue, fcbk - solvmtx->cblktab, queue->size );
+            assert( fcbk->priority != -1 );
+            pqueuePush1( queue, fcbk - solvmtx->cblktab, - fcbk->priority );
         }
     }
     (void)enums;
