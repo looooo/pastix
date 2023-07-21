@@ -1,3 +1,32 @@
+# pastix-6.3.0
+
+- Improve forward and backward solve step
+  - Add dynamic version
+  - Add static distributed backward solve
+- Add mixed precision functionality
+  - Add Flush-To-Zero an iparm option
+  - Fix subnormal flush for ARM, added macros and check what version compiles
+  - Add mixed precision subtasks to convert the right hand sides
+- Distributed permutation for matrix and vector
+  - Support partially variadic multidofs
+- SPM: support version 1.2.0
+- StarPU:
+  - Adapt function ptototype to StarPU 1.4.x
+  - Implement left and right looking factorization
+  - Fix interface for low-rank communications
+  - Improve Profiling
+  - Add Heteroprio
+  - Refactor codelets
+  - temporary disable LDL[th] factorization
+- LR: Fix memory leak in compressed communications
+- cmake_morse: update submodule to fix mpi issue
+- Documentation: add a Python Helmholtz tutorial
+- Scotch:
+  - Make multi-threaded deterministic
+  - Add PT-Scotch test
+- MKL: bug fix and CBALS/LAPACK_COL_MAJOR
+- Adapt graphGather/scatter to pastix_subtask_order
+
 # pastix-6.2.2
 
 - Integrate SPM 1.1.1 to fix int32 bits allocation on border cases
