@@ -321,6 +321,33 @@ pastix_print_unit( double flops )
     return units[unit];
 }
 
+static inline double
+pastix_print_value_deci( double value ) {
+    static double ratio = 1e3;
+    int unit = 0;
+
+    while ((value >= ratio) && (unit < 8)) {
+        value /= ratio;
+        unit++;
+    }
+
+    return value;
+}
+
+static inline char
+pastix_print_unit_deci( double value ) {
+    static char units[9] = {' ', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'};
+    static double ratio = 1e3;
+    int unit = 0;
+
+    while ((value >= ratio) && (unit < 8)) {
+        value /= ratio;
+        unit++;
+    }
+
+    return units[unit];
+}
+
 static inline char *
 pastixFactotypeStr( pastix_factotype_t ft ) {
     switch( ft ) {
