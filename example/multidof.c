@@ -17,7 +17,7 @@
  * @author Mathieu Faverge
  * @author Tony Delarue
  * @author Alycia Lisito
- * @date 2022-10-13
+ * @date 2023-02-06
  *
  * @ingroup pastix_examples
  * @code

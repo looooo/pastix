@@ -7,11 +7,11 @@
  * @copyright 2015-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.1.0
+ * @version 6.3.0
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2020-01-29
+ * @date 2023-01-16
  *
  **/
 #include "common.h"

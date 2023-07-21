@@ -14,7 +14,7 @@
  * @author Gregoire Pichon
  * @author Vincent Bridonneau
  * @author Xavier Lacoste
- * @date 2022-09-07
+ * @date 2023-01-13
  *
  **/
 #ifndef DOXYGEN_SHOULD_SKIP_THIS

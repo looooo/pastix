@@ -17,7 +17,7 @@
  * @author Xavier Lacoste
  * @author Theophile Terraz
  * @author Tony Delarue
- * @date 2022-12-08
+ * @date 2023-02-06
  *
  **/
 #ifndef _pastix_h_

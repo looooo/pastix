@@ -15,7 +15,7 @@
  * @author Theophile Terraz
  * @author Tony Delarue
  * @author Alycia Lisito
- * @date 2021-09-13
+ * @date 2023-02-06
  *
  * @ingroup pastix_examples
  * @code

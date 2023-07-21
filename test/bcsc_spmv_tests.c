@@ -15,7 +15,7 @@
  * @author Tony Delarue
  * @author Vincent Bridonneau
  * @author Alycia Lisito
- * @date 2022-12-05
+ * @date 2023-07-11
  *
  **/
 #include <pastix.h>

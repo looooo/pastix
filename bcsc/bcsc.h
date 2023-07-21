@@ -10,7 +10,7 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Alycia Lisito
- * @date 2023-01-11
+ * @date 2023-02-01
  *
  * @addtogroup bcsc
  * @{

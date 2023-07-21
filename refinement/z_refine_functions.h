@@ -14,7 +14,7 @@
  * @author Gregoire Pichon
  * @author Theophile Terraz
  * @author Vincent Bridonneau
- * @date 2022-09-24
+ * @date 2023-01-16
  * @precisions normal z -> c d s
  *
  * @addtogroup pastix_dev_refine

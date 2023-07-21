@@ -9,9 +9,9 @@
  *
  * PaStiX internal scheduler barrier routines.
  *
- * @version 6.1.0
+ * @version 6.3.0
  * @author Mathieu Faverge
- * @date 2019-11-12
+ * @date 2023-01-13
  *
  */
 #ifndef _isched_barrier_h_

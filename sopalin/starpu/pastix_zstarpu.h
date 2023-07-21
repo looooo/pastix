@@ -11,7 +11,7 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Vincent Bridonneau
- * @date 2022-10-17
+ * @date 2023-04-13
  *
  * @precisions normal z -> z c d s
  *

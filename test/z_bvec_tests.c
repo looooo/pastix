@@ -12,7 +12,7 @@
  * @version 6.3.0
  * @author Vincent Bridonneau
  * @author Mathieu Faverge
- * @date 2023-01-10
+ * @date 2023-02-07
  *
  * @precisions normal z -> c d s
  *

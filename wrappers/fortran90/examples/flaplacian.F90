@@ -8,7 +8,7 @@
 !
 ! @version 6.3.0
 ! @author Mathieu Faverge
-! @date 2022-10-11
+! @date 2023-01-17
 !
 program flaplacian
   use iso_c_binding

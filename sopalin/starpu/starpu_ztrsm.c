@@ -11,7 +11,7 @@
  * @author Vincent Bridonneau
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2022-10-17
+ * @date 2023-04-13
  * @precisions normal z -> s d c
  *
  * @addtogroup starpu_trsm_solve

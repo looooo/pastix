@@ -13,7 +13,7 @@
  * @author Mathieu Faverge
  * @author Gregoire Pichon
  * @author Pierre Ramet
- * @date 2021-12-21
+ * @date 2023-01-13
  *
  * @addtogroup blend_dev_cand
  * @{

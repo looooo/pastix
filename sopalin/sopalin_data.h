@@ -10,7 +10,7 @@
  * @author Xavier Lacoste
  * @author Pascal Henon
  * @author Mathieu Faverge
- * @date 2022-10-17
+ * @date 2023-03-27
  *
  **/
 #ifndef _sopalin_data_h_

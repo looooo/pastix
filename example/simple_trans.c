@@ -16,7 +16,7 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Alycia Lisito
- * @date 2022-10-11
+ * @date 2023-02-06
  *
  * @ingroup pastix_examples
  * @code

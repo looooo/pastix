@@ -9,7 +9,7 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Vincent Bridonneau
- * @date 2022-12-15
+ * @date 2023-02-06
  *
  * @precisions normal z -> c d s
  *

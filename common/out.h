@@ -12,7 +12,7 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Gregoire Pichon
- * @date 2021-12-21
+ * @date 2023-01-13
  *
  */
 #ifndef _out_h_

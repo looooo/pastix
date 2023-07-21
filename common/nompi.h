@@ -12,7 +12,7 @@
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
- * @date 2022-06-29
+ * @date 2023-01-13
  *
  **/
 #ifndef _nompi_h_

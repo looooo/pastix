@@ -13,7 +13,7 @@ Wrapper Python
  @version 6.3.0
  @author Mathieu Faverge
  @author Tony Delarue
- @date 2022-09-27
+ @date 2023-01-13
 
 """
 filename_prefix = "wrappers/python/examples/pypastix/"

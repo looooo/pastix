@@ -9,10 +9,10 @@
  *
  * PaStiX thread binding routines.
  *
- * @version 6.2.0
+ * @version 6.3.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2021-01-06
+ * @date 2023-01-13
  *
  */
 #include "common.h"

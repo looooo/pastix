@@ -12,7 +12,7 @@
  * @author Pierre Ramet
  * @author Ian Masliah
  * @author Tom Moenne-Loccoz
- * @date 2021-10-26
+ * @date 2023-06-07
  *
  * @precisions normal z -> z c d s
  *

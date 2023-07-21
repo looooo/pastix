@@ -13,7 +13,7 @@
  * @author Pierre Ramet
  * @author Tony Delarue
  * @author Alycia Lisito
- * @date 2022-06-29
+ * @date 2023-02-06
  *
  **/
 #include <pastix.h>

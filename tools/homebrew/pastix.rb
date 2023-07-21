@@ -6,7 +6,7 @@
 #
 #  @brief Homebrew formula for PaStiX 6.*
 #
-#  @version 6.2.2
+#  @version 6.3.0
 #  @author Pierre Ramet
 #  @author Mathieu Faverge
 #  @date 2023-04-06

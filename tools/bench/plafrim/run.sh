@@ -8,7 +8,7 @@
 #  @version 6.3.0
 #  @author Tony Delarue
 #  @author Florent Pruvost
-#  @date 2022-08-09
+#  @date 2023-04-05
 #
 # This script build the correct environment to benchmark PaStiX.
 #

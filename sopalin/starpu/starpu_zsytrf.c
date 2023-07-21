@@ -10,7 +10,7 @@
  * @version 6.3.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2021-10-18
+ * @date 2023-04-21
  * @precisions normal z -> s d c
  *
  * @addtogroup starpu_sytrf

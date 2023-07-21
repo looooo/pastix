@@ -9,9 +9,9 @@
  *
  * PaStiX thread binding routines with hwloc header.
  *
- * @version 6.2.0
+ * @version 6.3.0
  * @author Mathieu Faverge
- * @date 2021-01-06
+ * @date 2023-01-13
  *
  **/
 #ifndef _isched_hwloc_h_

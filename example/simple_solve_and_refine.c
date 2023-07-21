@@ -8,7 +8,7 @@
  *
  * @version 6.3.0
  * @author Alycia Lisito
- * @date 2022-12-05
+ * @date 2023-02-06
  *
  * @ingroup pastix_examples
  * @code

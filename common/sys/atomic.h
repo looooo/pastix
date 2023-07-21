@@ -9,7 +9,7 @@
  *
  * @version 6.3.0
  * @author Mathieu Faverge
- * @date 2022-10-18
+ * @date 2023-01-13
  *
  **/
 #ifndef _pastix_atomic_h_

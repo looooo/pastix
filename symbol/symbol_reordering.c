@@ -12,7 +12,7 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Vincent Bridonneau
- * @date 2022-09-06
+ * @date 2023-01-13
  *
  **/
 #include "common.h"

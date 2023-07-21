@@ -10,7 +10,7 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
- * @date 2021-08-25
+ * @date 2023-01-16
  * @precisions normal z -> c d s
  *
  */

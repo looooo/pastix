@@ -7,10 +7,10 @@
  * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.3
+ * @version 6.3.0
  * @author Pascal Henon
  * @author Mathieu Faverge
- * @date 2019-12-05
+ * @date 2023-01-17
  *
  * @addtogroup symbol_dev_csr
  * @{

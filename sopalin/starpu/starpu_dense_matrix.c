@@ -10,7 +10,7 @@
  * @version 6.3.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2021-10-05
+ * @date 2023-01-17
  *
  * @ingroup pastix_starpu
  * @{

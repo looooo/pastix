@@ -12,7 +12,7 @@
  * @author Gregoire Pichon
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2022-09-05
+ * @date 2023-01-13
  *
  **/
 #include <string.h>

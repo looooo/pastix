@@ -11,7 +11,7 @@
  @author Pierre Ramet
  @author Mathieu Faverge
  @author Louis Poirel
- @date 2022-10-17
+ @date 2023-01-17
 
  This example shows how to use pastix solver to solve a system with a
  Schur complement.

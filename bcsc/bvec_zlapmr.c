@@ -15,7 +15,7 @@
  * @author Theophile Terraz
  * @author Tony Delarue
  * @author Vincent Bridonneau
- * @date 2023-01-10
+ * @date 2023-02-06
  * @precisions normal z -> c d s
  *
  * This file implements the function bvec_zlapmr with the following hierarchy:

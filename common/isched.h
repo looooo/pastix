@@ -9,10 +9,10 @@
  *
  * PaStiX thread binding routines header.
  *
- * @version 6.0.3
+ * @version 6.3.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2020-01-29
+ * @date 2023-01-13
  *
  **/
 #ifndef _isched_h_

@@ -12,7 +12,7 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Gregoire Pichon
- * @date 2021-08-24
+ * @date 2023-01-16
  * @precisions normal z -> c d s
  *
  **/

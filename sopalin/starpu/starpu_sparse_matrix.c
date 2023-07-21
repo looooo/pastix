@@ -11,7 +11,7 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Tony Delarue
- * @date 2022-09-23
+ * @date 2023-04-13
  *
  * @ingroup pastix_starpu
  * @{

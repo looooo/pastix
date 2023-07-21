@@ -5,10 +5,10 @@
  * @copyright 2019-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.0.3
+ * @version 6.3.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2019-11-12
+ * @date 2023-01-13
  *
  * NetBSD implementation of the getline function for portability of windows
  * systems.

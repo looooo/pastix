@@ -6,7 +6,7 @@
 #
 #  @version 6.3.0
 #  @author Mathieu Faverge
-#  @date 2022-06-29
+#  @date 2023-01-13
 #
 # This script check that basic informations is present and correct in
 # headers of source files.

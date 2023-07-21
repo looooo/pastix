@@ -11,7 +11,7 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
- * @date 2021-12-21
+ * @date 2023-01-17
  *
  * @addtogroup pastix_schur
  * @{

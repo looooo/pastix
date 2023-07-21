@@ -11,7 +11,7 @@
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2021-08-06
+ * @date 2023-01-16
  *
  * @precisions normal z -> s d c
  *

@@ -9,7 +9,7 @@
 #  @author Matias Hastaran
 #  @author Pierre Ramet
 #  @author Tony Delarue
-#  @date 2022-12-05
+#  @date 2023-02-06
 #
 ###
 include(GenPkgConfig)

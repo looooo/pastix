@@ -10,7 +10,7 @@
  * @version 6.3.0
  * @author Gregoire Pichon
  * @author Mathieu Faverge
- * @date 2022-11-03
+ * @date 2023-01-13
  *
  * @precisions normal z -> z c d s
  *

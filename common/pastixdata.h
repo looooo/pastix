@@ -10,7 +10,7 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Tony Delarue
- * @date 2022-12-08
+ * @date 2023-01-13
  *
  **/
 #ifndef _pastixdata_h_

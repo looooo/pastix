@@ -10,7 +10,7 @@
  * @version 6.3.0
  * @author Mathieu Faverge
  * @author Esragul Korkmaz
- * @date 2022-09-07
+ * @date 2023-01-17
  *
  * @precisions normal z -> z c d s
  *

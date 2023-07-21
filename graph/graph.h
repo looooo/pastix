@@ -12,7 +12,7 @@
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2021-10-26
+ * @date 2023-01-16
  *
  *
  * @addtogroup pastix_graph

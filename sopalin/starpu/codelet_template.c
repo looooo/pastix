@@ -9,7 +9,7 @@
  *
  * @version 6.3.0
  * @author Mathieu Faverge
- * @date 2021-10-18
+ * @date 2023-06-07
  *
  * @precisions normal z -> z c d s
  *

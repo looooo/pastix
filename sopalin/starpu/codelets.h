@@ -9,7 +9,7 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Ian Masliah
- * @date 2021-10-18
+ * @date 2023-01-13
  *
  * Macro helper to define the static codelet structures used to submit the tasks.
  *

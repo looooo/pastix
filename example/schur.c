@@ -12,7 +12,7 @@
  * @author Matias Hastaran
  * @author Tony Delarue
  * @author Alycia Lisito
- * @date 2022-10-17
+ * @date 2023-07-11
  *
  * @ingroup pastix_examples
  * @code

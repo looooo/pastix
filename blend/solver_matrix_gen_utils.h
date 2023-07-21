@@ -14,7 +14,7 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Mathieu Faverge
- * @date 2022-08-25
+ * @date 2023-04-13
  *
  * @addtogroup blend_dev_solver
  * @{

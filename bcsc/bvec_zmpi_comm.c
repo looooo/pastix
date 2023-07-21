@@ -10,7 +10,7 @@
  *
  * @version 6.3.0
  * @author Alycia Lisito
- * @date 2023-01-10
+ * @date 2023-02-06
  * @precisions normal z -> c d s
  *
  * This file implements the communication functions used in bvec_zlapmr

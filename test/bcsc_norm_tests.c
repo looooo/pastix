@@ -7,13 +7,13 @@
  *
  * Tests and validate the bcsc_norm routines.
  *
- * @version 6.2.0
+ * @version 6.3.0
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Pierre Ramet
  * @author Tony Delarue
  * @author Alycia Lisito
- * @date 2021-01-03
+ * @date 2023-07-11
  *
  **/
 #include <stdint.h>

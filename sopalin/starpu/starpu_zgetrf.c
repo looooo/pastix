@@ -11,7 +11,7 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Alycia Lisito
- * @date 2023-06-06
+ * @date 2023-06-08
  * @precisions normal z -> s d c
  *
  * @addtogroup starpu_getrf

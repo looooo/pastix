@@ -11,7 +11,7 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Tom Moenne-Loccoz
- * @date 2021-10-18
+ * @date 2023-06-07
  *
  * @precisions normal z -> z c d s
  *

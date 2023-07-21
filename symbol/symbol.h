@@ -16,7 +16,7 @@
  * @author Gregoire Pichon
  * @author Tony Delarue
  * @author Vincent Bridonneau
- * @date 2022-08-24
+ * @date 2023-01-17
  *
  * @addtogroup pastix_symbol
  * @{
