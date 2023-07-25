@@ -13,7 +13,9 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Tony Delarue
- * @date 2023-04-06
+ * @author Brieuc Nicolas
+ * @author Mohamed Aymane Kherraz
+ * @date 2023-08-01
  *
  **/
 #ifndef _common_h_
@@ -54,6 +56,7 @@
 #include "pastixdata.h"
 #include "out.h"
 #include "parse_options.h"
+#include "pastix_papi.h"
 
 #if defined(HAVE_BUILTIN_EXPECT)
 #define pastix_likely( _x_ )   __builtin_expect( (_x_), 1 )

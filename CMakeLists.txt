@@ -13,7 +13,12 @@
 #  @author Xavier Lacoste
 #  @author Nolan Bredel
 #  @author Tom Moenne-Loccoz
-#  @date 2023-04-13
+#  @author Alban Bellot
+#  @author Alycia Lisito
+#  @author Brieuc Nicolas
+#  @author Florent Pruvost
+#  @author Mohamed Aymane Kherraz
+#  @date 2023-08-01
 #
 ###
 cmake_minimum_required (VERSION 3.3)
@@ -129,6 +134,9 @@ cmake_dependent_option(PASTIX_CUDA_FERMI
 ### Tracing parameters
 option(PASTIX_WITH_EZTRACE
   "Enable Eztrace for tracing CPU and GPU kernels" OFF)
+
+option(PASTIX_WITH_PAPI
+  "Enable PAPI for energy and power consumption" OFF)
 
 ### Runtime engines
 option(PASTIX_WITH_STARPU
@@ -397,6 +405,12 @@ if(PASTIX_WITH_EZTRACE)
   endif()
   find_package(LITL REQUIRED)
 endif(PASTIX_WITH_EZTRACE)
+
+# PaStiX depends on PAPI
+#---------------------------
+if ( PASTIX_WITH_PAPI )
+  find_package(PAPI REQUIRED)
+endif ()
 
 # PaStiX might depend on Scotch/PT-Scotch
 #----------------------------------------
@@ -806,6 +820,13 @@ if(PASTIX_COMMUNICATION_MATRIX)
     )
 endif()
 
+if(PASTIX_WITH_PAPI)
+  list(APPEND PASTIX_LIB_SRCS
+    common/pastix_papi.c
+  )
+endif()
+
+
 add_library( pastix
   ${PASTIX_LIB_SRCS}
   )
@@ -847,6 +868,9 @@ if(PASTIX_ORDERING_SCOTCH)
 endif()
 if(PASTIX_ORDERING_METIS)
   target_link_libraries( pastix PRIVATE MORSE::METIS )
+endif()
+if(PASTIX_WITH_PAPI)
+  target_link_libraries( pastix PRIVATE MORSE::PAPI )
 endif()
 
 if(PASTIX_WITH_PARSEC)
