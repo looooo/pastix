@@ -15,7 +15,10 @@
  * @author Gregoire Pichon
  * @author Matias Hastaran
  * @author Tony Delarue
- * @date 2023-04-19
+ * @author Alycia Lisito
+ * @author Brieuc Nicolas
+ * @author Tom Moenne-Loccoz
+ * @date 2023-08-01
  *
  **/
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -555,11 +558,13 @@ pastixInitParam( pastix_int_t *iparm,
     dparm[DPARM_FACT_FLOPS]         =  0.;
     dparm[DPARM_FACT_THFLOPS]       =  0.;
     dparm[DPARM_FACT_RLFLOPS]       =  0.;
+    dparm[DPARM_FACT_ENERGY]        =  0.;
     dparm[DPARM_MEM_FR]             =  0.;
     dparm[DPARM_MEM_LR]             =  0.;
     dparm[DPARM_SOLV_FLOPS]         =  0.;
     dparm[DPARM_SOLV_THFLOPS]       =  0.;
     dparm[DPARM_SOLV_RLFLOPS]       =  0.;
+    dparm[DPARM_SOLV_ENERGY]        =  0.;
     dparm[DPARM_REFINE_TIME]        =  0.;
     dparm[DPARM_A_NORM]             = -1.;
     dparm[DPARM_COMPRESS_TOLERANCE] =  1e-8;

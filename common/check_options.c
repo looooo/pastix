@@ -16,7 +16,9 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2023-04-19
+ * @author Alycia Lisito
+ * @author Brieuc Nicolas
+ * @date 2023-08-01
  *
  */
 #include "common.h"
@@ -89,6 +91,16 @@ pastix_factotype_check_value( pastix_factotype_t value )
         (value == PastixFactLU) ||
         (value == PastixFactLLT) ||
         (value == PastixFactLDLH) ) {
+        return 0;
+    }
+    return 1;
+}
+
+static inline int
+pastix_factolookside_check_value( pastix_factolookside_t value )
+{
+    if( (value == PastixFactLeftLooking) ||
+        (value == PastixFactRightLooking) ) {
         return 0;
     }
     return 1;
@@ -567,9 +579,12 @@ iparm_factorization_check_value( pastix_int_t iparm )
 static inline int
 iparm_facto_look_side_check_value( pastix_int_t iparm )
 {
-    /* TODO : Check range iparm[IPARM_FACTO_LOOK_SIDE] */
-    (void)iparm;
-    return 0;
+    int rc;
+    rc = pastix_factolookside_check_value( iparm );
+    if ( rc == 1 ) {
+        fprintf(stderr, "IPARM_FACTO_LOOK_SIDE: The value is incorrect\n");
+    }
+    return rc;
 }
 
 static inline int

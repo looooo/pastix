@@ -8,7 +8,9 @@
 
  @version 6.3.0
  @author Tony Delarue
- @date 2023-01-13
+ @author Alycia Lisito
+ @author Mathieu Faverge
+ @date 2023-08-01
 
  This file allows us to generate:
       - Documentation files
@@ -191,6 +193,17 @@ A long description in the doxygen format
 }
 dparm.append(dparm_fact_rlflops)
 
+dparm_fact_energy = {
+    "name" : "dparm_fact_energy",
+    "default" : "-",
+    "brief" : "Energy for task Factorization",
+    "access" : "OUT",
+    "description" : r'''
+A long description in the doxygen format
+'''
+}
+dparm.append(dparm_fact_energy)
+
 dparm_mem_fr = {
     "name" : "dparm_mem_fr",
     "default" : "-",
@@ -256,6 +269,17 @@ A long description in the doxygen format
 '''
 }
 dparm.append(dparm_solv_rlflops)
+
+dparm_solv_energy = {
+    "name" : "dparm_solv_energy",
+    "default" : "-",
+    "brief" : "Energy for task Solve",
+    "access" : "OUT",
+    "description" : r'''
+A long description in the doxygen format
+'''
+}
+dparm.append(dparm_solv_energy)
 
 dparm_refine_time = {
     "name" : "dparm_refine_time",
