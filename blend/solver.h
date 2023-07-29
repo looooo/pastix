@@ -457,8 +457,6 @@ cblk_rownbr( const SolverCblk *cblk )
  *            The pointer to the solverMatrix.
  * @param[in] rank
  *            Rank of the computeQueue.
- * @param[inout] dest
- *            Rank of the stolen queue.
  * @param[in] nbthreads
  *            Total amount of threads in the node.
  * @return    The concerned cblk if it exists. -1 otherwhise.
@@ -466,10 +464,9 @@ cblk_rownbr( const SolverCblk *cblk )
 static inline pastix_int_t
 stealQueue( SolverMatrix *solvmtx,
             int           rank,
-            int          *dest,
             int           nbthreads )
 {
-    int rk = *dest;
+    int rk = (rank + 1)%nbthreads;
     pastix_queue_t *stoleQueue;
     pastix_int_t    cblknum = -1;
     while( rk != rank )
@@ -477,7 +474,6 @@ stealQueue( SolverMatrix *solvmtx,
         assert( solvmtx->computeQueue[ rk ] );
         stoleQueue = solvmtx->computeQueue[ rk ];
         if( (cblknum = pqueuePop(stoleQueue)) != -1 ){
-            *dest = rk;
             return cblknum;
         }
         rk = (rk + 1)%nbthreads;

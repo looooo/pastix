@@ -288,7 +288,6 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
     pastix_rhs_t         rhsb          = arg->rhsb;
     pastix_int_t         thrd_size     = (pastix_int_t)ctx->global_ctx->world_size;
     pastix_int_t         thrd_rank     = (pastix_int_t)ctx->rank;
-    int32_t              dest          = (thrd_rank + 1)%thrd_size;
     int32_t              local_taskcnt = 0;
     SolverCblk          *cblk;
     pastix_queue_t      *computeQueue;
@@ -343,7 +342,7 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
                     pastix_atomic_sub_32b( &(arg->taskcnt), local_taskcnt );
                     local_taskcnt = 0;
                 }
-                cblknum = stealQueue( datacode, thrd_rank, &dest, thrd_size );
+                cblknum = stealQueue( datacode, thrd_rank, thrd_size );
             }
 
             /* Still no job, let's loop again */
@@ -390,7 +389,7 @@ thread_ztrsm_dynamic( isched_thread_t *ctx,
                     pastix_atomic_sub_32b( &(arg->taskcnt), local_taskcnt );
                     local_taskcnt = 0;
                 }
-                cblknum = stealQueue( datacode, thrd_rank, &dest,
+                cblknum = stealQueue( datacode, thrd_rank,
                                       thrd_size );
             }
 

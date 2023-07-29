@@ -204,7 +204,6 @@ thread_zpotrf_dynamic( isched_thread_t *ctx, void *args )
     pastix_int_t          tasknbr, *tasktab, cblknum;
     int32_t               local_taskcnt = 0;
     int                   rank = ctx->rank;
-    int                   dest = (ctx->rank + 1)%ctx->global_ctx->world_size;
 
     lwork = datacode->gemmmax;
     if ( (datacode->lowrank.compress_when != PastixCompressNever) &&
@@ -253,7 +252,7 @@ thread_zpotrf_dynamic( isched_thread_t *ctx, void *args )
                 pastix_atomic_sub_32b( &(arg->taskcnt), local_taskcnt );
                 local_taskcnt = 0;
             }
-            cblknum = stealQueue( datacode, rank, &dest,
+            cblknum = stealQueue( datacode, rank,
                                   ctx->global_ctx->world_size );
         }
 

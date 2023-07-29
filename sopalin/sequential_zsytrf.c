@@ -228,7 +228,6 @@ thread_zsytrf_dynamic( isched_thread_t *ctx,
     pastix_int_t          tasknbr, *tasktab, cblknum;
     int32_t               local_taskcnt = 0;
     int                   rank = ctx->rank;
-    int                   dest = (ctx->rank + 1)%ctx->global_ctx->world_size;
 
     lwork1 = datacode->offdmax;
     lwork2 = pastix_imax( datacode->gemmmax, datacode->blokmax );
@@ -278,7 +277,7 @@ thread_zsytrf_dynamic( isched_thread_t *ctx,
                 pastix_atomic_sub_32b( &(arg->taskcnt), local_taskcnt );
                 local_taskcnt = 0;
             }
-            cblknum = stealQueue( datacode, rank, &dest,
+            cblknum = stealQueue( datacode, rank,
                                   ctx->global_ctx->world_size );
         }
 
