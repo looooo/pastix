@@ -174,8 +174,8 @@ static_zgetrf( pastix_data_t  *pastix_data,
  */
 struct args_zgetrf_t
 {
-    sopalin_data_t     *sopalin_data;
-    volatile int32_t    taskcnt;
+    sopalin_data_t   *sopalin_data;
+    volatile int32_t  taskcnt;
 };
 
 /**
@@ -207,7 +207,6 @@ thread_zgetrf_dynamic( isched_thread_t *ctx,
     pastix_int_t          tasknbr, *tasktab, cblknum;
     int32_t               local_taskcnt = 0;
     int                   rank = ctx->rank;
-    int                   dest = (ctx->rank + 1)%ctx->global_ctx->world_size;
 
     lwork = datacode->gemmmax;
     if ( (datacode->lowrank.compress_when != PastixCompressNever) &&
@@ -255,7 +254,7 @@ thread_zgetrf_dynamic( isched_thread_t *ctx,
                 pastix_atomic_sub_32b( &(arg->taskcnt), local_taskcnt );
                 local_taskcnt = 0;
             }
-            cblknum = stealQueue( datacode, rank, &dest,
+            cblknum = stealQueue( datacode, rank,
                                   ctx->global_ctx->world_size );
         }
 

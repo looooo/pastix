@@ -204,7 +204,6 @@ thread_zdiag_dynamic( isched_thread_t *ctx,
     int         nrhs = arg->nrhs;
     int         ldb  = arg->ldb;
     int         rank = ctx->rank;
-    int         dest = (ctx->rank +1)%ctx->global_ctx->world_size;
 
     MALLOC_INTERN( datacode->computeQueue[rank], 1, pastix_queue_t );
 
@@ -237,7 +236,7 @@ thread_zdiag_dynamic( isched_thread_t *ctx,
                 pastix_atomic_sub_32b( &(arg->taskcnt), local_taskcnt );
                 local_taskcnt = 0;
             }
-            cblknum = stealQueue( datacode, rank, &dest,
+            cblknum = stealQueue( datacode, rank,
                                   ctx->global_ctx->world_size );
         }
         if( cblknum != -1 ){
