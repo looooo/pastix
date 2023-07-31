@@ -854,6 +854,8 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     /* Initialization step done, overwrite anything done before */
     pastix->steps = STEP_INIT;
 
+    papiEnergyInit();
+
     *pastix_data = pastix;
 }
 
@@ -906,6 +908,8 @@ void
 pastixFinalize( pastix_data_t **pastix_data )
 {
     pastix_data_t *pastix = *pastix_data;
+
+    papiEnergyFinalize();
 
     pastixSummary( *pastix_data );
 

@@ -14,7 +14,9 @@
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Alycia Lisito
- * @date 2023-01-17
+ * @author Brieuc Nicolas
+ * @author Tony Delarue
+ * @date 2023-08-01
  *
  **/
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -26,6 +28,7 @@
 #include "order/order_internal.h"
 #include "blend/solver.h"
 #include "sopalin/sopalin_data.h"
+#include "pastix_papi.h"
 
 #include "bcsc/bcsc_z.h"
 #include "bcsc/bcsc_c.h"
@@ -567,7 +570,10 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
     }
 
     {
-        double timer;
+        double timer, energy;
+
+        papiEnergyStart();
+
         /* Start timer */
         clockSyncStart( timer, pastix_data->inter_node_comm );
 
@@ -649,10 +655,21 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
         /* Stop Timer */
         clockSyncStop( timer, pastix_data->inter_node_comm );
 
-        pastix_data->dparm[DPARM_SOLV_TIME] = clockVal(timer);
+        energy = papiEnergyStop();
+
+        pastix_data->dparm[DPARM_SOLV_TIME]   = clockVal(timer);
+        pastix_data->dparm[DPARM_SOLV_ENERGY] = energy;
+
         if ( pastix_data->iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
             pastix_print( pastix_data->inter_node_procnum, 0, OUT_TIME_SOLV,
                           pastix_data->dparm[DPARM_SOLV_TIME] );
+#if defined(PASTIX_WITH_PAPI)
+            pastix_print( pastix_data->inter_node_procnum, 0, OUT_SOLVE_ENERGY,
+                          pastix_print_value_deci( pastix_data->dparm[DPARM_SOLV_ENERGY] ),
+                          pastix_print_unit_deci(  pastix_data->dparm[DPARM_SOLV_ENERGY] ),
+                          pastix_print_value_deci( pastix_data->dparm[DPARM_SOLV_ENERGY] / pastix_data->dparm[DPARM_SOLV_TIME] ),
+                          pastix_print_unit_deci(  pastix_data->dparm[DPARM_SOLV_ENERGY] / pastix_data->dparm[DPARM_SOLV_TIME] ) );
+#endif
         }
     }
 
