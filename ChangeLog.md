@@ -1,3 +1,8 @@
+# pastix-6.3.1
+
+- Facto/solve: Fix issue with work stealing in dynamic scheduler
+- Info: Add energy consumption information when linked against PAPI
+
 # pastix-6.3.0
 
 - Improve forward and backward solve step
