@@ -6,11 +6,11 @@
 #
 #  @version 6.3.0
 #  @author Mathieu Faverge
-#  @date 2023-03-22
+#  @date 2023-08-01
 #
 #!/usr/bin/env sh
 
-tag=5632fb1c
+tag=$1
 #tag=v6.2.0
 majorversion=6
 minorversion=3
@@ -21,7 +21,8 @@ version="$majorversion.$minorversion.$microversion"
 #for i in $( git diff v6.0.2 --name-only ); do if [ -f $i ]; then sed -i 's/@version [0-9].[0-9].[0-9]/@version 6.3.0/' $i; fi; done
 if [ ! -z "$tag" ]
 then
-    fileslist=$( git diff $tag --name-only )
+    #fileslist=$( git diff $tag --name-only )
+    fileslist=$( git diff --name-only HEAD~1 )
 else
     fileslist=$( git ls-files )
 fi
@@ -93,6 +94,7 @@ do
     fi
 
     year=$( git log -1 --format=%cd --date=format:%Y $f )
+    year=$( date +%Y )
     toto=$( grep -E " @copyright [0-9]{4}-$year Bordeaux INP" $f )
 
     if [ $? -ne 0 ]

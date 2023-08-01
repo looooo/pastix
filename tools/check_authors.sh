@@ -6,7 +6,7 @@
 #
 #  @version 6.3.0
 #  @author Mathieu Faverge
-#  @date 2023-01-17
+#  @date 2023-08-01
 #
 # This script check that basic informations is present and correct in
 # headers of source files.
@@ -55,7 +55,7 @@ get_authors_list()
     error=0
     output="---- $file ----"
 
-    git blame $file | awk -F "[()]" '{ print $2 }' | sed -e 's/^\(.*\w\)\s*[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .*$/\1/' | sort -u >> /tmp/full_author_list.txt
+    git blame $file  | grep -v "@author" | grep -v "@version" | grep -v "@date" | awk -F "[()]" '{ print $2 }' | sed -e 's/^\(.*\w\)\s*[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .*$/\1/' | sort -u >> /tmp/full_author_list.txt
 }
 
 check_authors_list()
@@ -81,7 +81,7 @@ check_authors_list()
 
     while read -r author
     do
-        grep "@author $author" $file
+        grep "@author $author" $file > /dev/null
         rc=$?
         if [ $rc -ne 0 ]
         then
@@ -118,22 +118,24 @@ check_authors_list()
 
     while read -r author
     do
-        rc=$( grep "$author" /tmp/author_list.txt )
-        if [ $? -ne 0 ]
+        grep "$author" /tmp/author_list.txt > /dev/null
+        rc=$?
+        if [ $rc -ne 0 ]
         then
             error=1
             output="${output}\n$author is an extra"
-            sed -i "/@author $author/d" $file
+            #sed -i "/@author $author/d" $file
         fi
     done < /tmp/author_list2.txt
 
-    if [ $error -eq 1 ]
-    then
-        echo $output
-    fi
+    echo $output
 }
 
-files=$( git ls-files )
+files=$( git diff --name-only HEAD~1 )
+if [ $# -gt 0 ]
+then
+    files=$*
+fi
 
 rm -f /tmp/full_author_list.txt
 for i in $files
@@ -146,13 +148,17 @@ cat /tmp/full_author_list.txt
 
 for i in $files
 do
-    if [ $i == "tools/check_authors.sh" ]
+    if [ "$i" = "tools/check_authors.sh" ]
     then
         continue;
     fi
-    if [ $i == "tools/check_header.sh" ]
+    if [ "$i" = "tools/check_header.sh" ]
     then
         continue;
     fi
+#    if [ "$i" = "tools/fix_doxygen_date.sh" ]
+#    then
+#        continue;
+#    fi
     check_authors_list $i
 done
