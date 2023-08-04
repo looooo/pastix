@@ -200,11 +200,12 @@ thread_zgetrf_dynamic( isched_thread_t *ctx,
     sopalin_data_t       *sopalin_data = arg->sopalin_data;
     SolverMatrix         *datacode = sopalin_data->solvmtx;
     SolverCblk           *cblk;
+    SolverBlok           *blok;
     Task                 *t;
     pastix_queue_t       *computeQueue;
     pastix_complex64_t   *work;
     pastix_int_t          i, ii, lwork;
-    pastix_int_t          tasknbr, *tasktab, cblknum;
+    pastix_int_t          tasknbr, *tasktab, cblknum, bloknum;
     int32_t               local_taskcnt = 0;
     int                   rank = ctx->rank;
 
@@ -238,13 +239,13 @@ thread_zgetrf_dynamic( isched_thread_t *ctx,
 
     while( arg->taskcnt > 0 )
     {
-        cblknum = pqueuePop(computeQueue);
+        cblknum = pqueuePop( computeQueue );
 
 #if defined(PASTIX_WITH_MPI)
         /* Nothing to do, let's make progress on communications */
         if( cblknum == -1 ) {
             cpucblk_zmpi_progress( PastixLUCoef, datacode, rank );
-            cblknum = pqueuePop(computeQueue);
+            cblknum = pqueuePop( computeQueue );
         }
 #endif
 
@@ -263,15 +264,27 @@ thread_zgetrf_dynamic( isched_thread_t *ctx,
             continue;
         }
 
-        cblk = datacode->cblktab + cblknum;
-        if ( cblk->cblktype & CBLK_IN_SCHUR ) {
-            continue;
-        }
-        cblk->threadid = rank;
+        if ( cblknum >= 0 ) {
+            cblk = datacode->cblktab + cblknum;
+            if ( cblk->cblktype & CBLK_IN_SCHUR ) {
+                continue;
+            }
+            cblk->threadid = rank;
 
-        /* Compute */
-        cpucblk_zgetrfsp1d( datacode, cblk,
-                            work, lwork );
+            /* Compute */
+            if ( cblk->cblktype & CBLK_TASKS_2D ) {
+                cpucblk_zgetrfsp1dplus( datacode, cblk );
+            }
+            else {
+                cpucblk_zgetrfsp1d( datacode, cblk,
+                                    work, lwork );
+            }
+        }
+        else {
+            bloknum = - cblknum - 1;
+            blok    = datacode->bloktab + bloknum;
+            cpucblk_zgetrfsp1dplus_update( datacode, blok, work, lwork );
+        }
         local_taskcnt++;
     }
     memFree_null( work );
@@ -300,9 +313,9 @@ void
 dynamic_zgetrf( pastix_data_t  *pastix_data,
                 sopalin_data_t *sopalin_data )
 {
-    SolverMatrix        *datacode = sopalin_data->solvmtx;
-    int32_t              taskcnt = datacode->tasknbr - (datacode->cblknbr - datacode->cblkschur);
-    struct args_zgetrf_t args_zgetrf = { sopalin_data, taskcnt };
+    SolverMatrix         *datacode    = sopalin_data->solvmtx;
+    int32_t               taskcnt     = datacode->tasknbr_1dp;
+    struct args_zgetrf_t  args_zgetrf = { sopalin_data, taskcnt };
 
     /* Allocate the computeQueue */
     MALLOC_INTERN( datacode->computeQueue,
