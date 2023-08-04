@@ -516,6 +516,7 @@ pastixInitParam( pastix_int_t *iparm,
     /* Context */
     iparm[IPARM_SCHEDULER]             = PastixSchedDynamic;
     iparm[IPARM_THREAD_NBR]            = -1;
+    iparm[IPARM_SOCKET_NBR]            = -1;
     iparm[IPARM_AUTOSPLIT_COMM]        = 0;
 
     /* GPU */
@@ -805,6 +806,11 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     pastix->isched = ischedInit( pastix->iparm[IPARM_THREAD_NBR], bindtab );
     pastix->iparm[IPARM_THREAD_NBR] = pastix->isched->world_size;
 
+    if ( ( pastix->iparm[IPARM_SOCKET_NBR] == -1 ) ||
+         ( pastix->iparm[IPARM_SOCKET_NBR] > pastix->isched->socketsnbr ) ) {
+        pastix->iparm[IPARM_SOCKET_NBR] = pastix->isched->socketsnbr;
+    }
+
     /*
      * Start PaRSEC if compiled with it and scheduler set to PaRSEC
      */
@@ -854,7 +860,7 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     /* Initialization step done, overwrite anything done before */
     pastix->steps = STEP_INIT;
 
-    papiEnergyInit();
+    papiEnergyInit( pastix->iparm[IPARM_SOCKET_NBR] );
 
     *pastix_data = pastix;
 }

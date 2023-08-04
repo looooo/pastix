@@ -45,6 +45,7 @@ typedef struct isched_thread_s {
  */
 struct isched_s {
     int              world_size;
+    int              socketsnbr;
 
     isched_barrier_t barrier;
     pthread_mutex_t  statuslock;
@@ -65,12 +66,14 @@ struct isched_s {
 #define isched_topo_bind_on_core_index isched_hwloc_bind_on_core_index
 #define isched_topo_unbind             isched_hwloc_unbind
 #define isched_topo_world_size         isched_hwloc_world_size
+#define isched_topo_socketsnbr         isched_hwloc_socketsnbr
 #else
 #define isched_topo_init               isched_nohwloc_init
 #define isched_topo_destroy            isched_nohwloc_destroy
 #define isched_topo_bind_on_core_index isched_nohwloc_bind_on_core_index
 #define isched_topo_unbind             isched_nohwloc_unbind
 #define isched_topo_world_size         isched_nohwloc_world_size
+#define isched_topo_socketsnbr         isched_nohwloc_socketsnbr
 #endif
 
 int  isched_topo_init(void);
@@ -78,6 +81,7 @@ int  isched_topo_destroy(void);
 int  isched_topo_bind_on_core_index(int);
 int  isched_topo_unbind();
 int  isched_topo_world_size();
+int  isched_topo_socketsnbr();
 
 static inline void
 isched_parallel_call( isched_t *isched, void (*func)(isched_thread_t*, void*), void *args )

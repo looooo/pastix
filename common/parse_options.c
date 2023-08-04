@@ -16,10 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @author Alycia Lisito
- * @author Brieuc Nicolas
- * @author Tom Moenne-Loccoz
- * @date 2023-08-01
+ * @date 2023-08-04
  *
  */
 #include "common.h"
@@ -117,6 +114,7 @@ parse_iparm( const char *iparm )
 
     if(0 == strcasecmp("iparm_scheduler",                      iparm)) { return IPARM_SCHEDULER; }
     if(0 == strcasecmp("iparm_thread_nbr",                     iparm)) { return IPARM_THREAD_NBR; }
+    if(0 == strcasecmp("iparm_socket_nbr",                     iparm)) { return IPARM_SOCKET_NBR; }
     if(0 == strcasecmp("iparm_autosplit_comm",                 iparm)) { return IPARM_AUTOSPLIT_COMM; }
 
     if(0 == strcasecmp("iparm_gpu_nbr",                        iparm)) { return IPARM_GPU_NBR; }
@@ -857,6 +855,7 @@ pastix_param2csv( const pastix_data_t *pastix_data,
 
     fprintf( csv, "%s,%s\n",  "iparm_scheduler",       pastix_scheduler_getstr(iparm[IPARM_SCHEDULER]) );
     fprintf( csv, "%s,%ld\n", "iparm_thread_nbr",     (long)iparm[IPARM_THREAD_NBR] );
+    fprintf( csv, "%s,%ld\n", "iparm_socket_nbr",     (long)iparm[IPARM_SOCKET_NBR] );
     fprintf( csv, "%s,%ld\n", "iparm_autosplit_comm", (long)iparm[IPARM_AUTOSPLIT_COMM] );
 
     fprintf( csv, "%s,%ld\n", "iparm_gpu_nbr",               (long)iparm[IPARM_GPU_NBR] );

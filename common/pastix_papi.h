@@ -18,17 +18,23 @@
 #if defined(PASTIX_WITH_PAPI)
 #include <papi.h>
 
-int    papiEnergyInit();
+int    papiEnergyInit( pastix_int_t nbr_socks );
 void   papiEnergyStart();
 double papiEnergyStop();
 void   papiEnergyFinalize();
 
 #else
 
-static inline int    papiEnergyInit() { return 0; }
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+static inline int    papiEnergyInit( pastix_int_t nbr_socks )
+{
+    (void)nbr_socks;
+    return 0;
+}
 static inline void   papiEnergyStart() {}
 static inline double papiEnergyStop() { return 0.; }
 static inline void   papiEnergyFinalize() {}
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif
 

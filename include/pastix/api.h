@@ -18,10 +18,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @author Alycia Lisito
- * @author Brieuc Nicolas
- * @author Tom Moenne-Loccoz
- * @date 2023-08-01
+ * @date 2023-08-04
  *
  * @addtogroup pastix_api
  * @{
@@ -119,6 +116,7 @@ typedef enum pastix_iparm_e {
     /* Context */
     IPARM_SCHEDULER,                      /**< Scheduler mode                                                 Default: PastixSchedDynamic        IN  */
     IPARM_THREAD_NBR,                     /**< Number of threads per process (-1 for auto detect)             Default: -1                        IN  */
+    IPARM_SOCKET_NBR,                     /**< Number of sockets for papi energy measure (default: 0)         Default: 0                         IN  */
     IPARM_AUTOSPLIT_COMM,                 /**< Automaticaly split communicator to have one MPI task by node   Default: 0                         IN  */
 
     /* GPU */

@@ -16,9 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @author Alycia Lisito
- * @author Brieuc Nicolas
- * @date 2023-08-01
+ * @date 2023-08-04
  *
  */
 #include "common.h"
@@ -683,6 +681,14 @@ iparm_thread_nbr_check_value( pastix_int_t iparm )
 }
 
 static inline int
+iparm_socket_nbr_check_value( pastix_int_t iparm )
+{
+    /* TODO : Check range iparm[IPARM_SOCKET_NBR] */
+    (void)iparm;
+    return 0;
+}
+
+static inline int
 iparm_autosplit_comm_check_value( pastix_int_t iparm )
 {
     /* TODO : Check range iparm[IPARM_AUTOSPLIT_COMM] */
@@ -960,6 +966,7 @@ iparm_check_values( const pastix_int_t *iparm )
     error += iparm_gmres_im_check_value( iparm[IPARM_GMRES_IM] );
     error += iparm_scheduler_check_value( iparm[IPARM_SCHEDULER] );
     error += iparm_thread_nbr_check_value( iparm[IPARM_THREAD_NBR] );
+    error += iparm_socket_nbr_check_value( iparm[IPARM_SOCKET_NBR] );
     error += iparm_autosplit_comm_check_value( iparm[IPARM_AUTOSPLIT_COMM] );
     error += iparm_gpu_nbr_check_value( iparm[IPARM_GPU_NBR] );
     error += iparm_gpu_memory_percentage_check_value( iparm[IPARM_GPU_MEMORY_PERCENTAGE] );

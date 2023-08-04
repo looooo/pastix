@@ -820,6 +820,16 @@ A long description in the doxygen format
 ''',
 }
 
+iparm_socket_nbr = {
+    "name" : "iparm_socket_nbr",
+    "default" : "0",
+    "brief" : "Number of sockets for papi energy measure (default: 0)",
+    "access" : "IN",
+    "description" : r'''
+A long description in the doxygen format
+''',
+}
+
 iparm_autosplit_comm = {
     "name" : "iparm_autosplit_comm",
     "default" : "0",
@@ -834,6 +844,7 @@ iparm_context_group = {
     "subgroup" : [
         iparm_scheduler,
         iparm_thread_nbr,
+        iparm_socket_nbr,
         iparm_autosplit_comm,
     ],
     "name" : "context",

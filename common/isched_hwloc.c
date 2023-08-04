@@ -94,6 +94,18 @@ int isched_hwloc_destroy(void)
     return 0;
 }
 
+unsigned int isched_hwloc_nb_sockets_per_obj( hwloc_obj_type_t type, int index )
+{
+    hwloc_obj_t obj = hwloc_get_obj_by_type(topology, type, index);
+    assert( obj != NULL );
+    return hwloc_get_nbobjs_inside_cpuset_by_type(topology, obj->cpuset, HWLOC_OBJ_PACKAGE);
+}
+
+int isched_hwloc_socketsnbr()
+{
+    return isched_hwloc_nb_sockets_per_obj( HWLOC_OBJ_MACHINE, 0 );
+}
+
 unsigned int isched_hwloc_nb_cores_per_obj( hwloc_obj_type_t type, int index )
 {
     hwloc_obj_t obj = hwloc_get_obj_by_type(topology, type, index);

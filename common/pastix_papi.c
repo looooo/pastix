@@ -24,41 +24,11 @@ static const char *_pastix_papi_event_names[] =
 };
 
 static int _pastix_papi_N_EVTS      = 2;
-static int _pastix_papi_N_SOCK      = 2;
+static int _pastix_papi_N_SOCK      = 0;
 static int _pastix_papi_initialized = 0;
-static int _pastix_papi_EventSet    = 0;
+static int _pastix_papi_EventSet    = PAPI_NULL;
 
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
-
-/**
- *******************************************************************************
- *
- * @brief Prints the energy consumption results to the console after the energy
- * trace is complete.
- *
- *******************************************************************************
- *
- * @param[in] values
- *          Atable used for storing energy values for each event and socket.
- *
- * @param[in] task_time
- *          Represents the total time taken to complete a specific task or
- *          operation.
- *
- *******************************************************************************/
-void
-pastix_papi_print_energy( long long *values,
-                          double     task_time )
-{
-    for ( int k = 0; k < _pastix_papi_N_SOCK * _pastix_papi_N_EVTS; k++ ) {
-        char buf[255];
-        sprintf( buf, _pastix_papi_event_names[k % 2], k / 2 );
-        printf( "%-40s%e J\t(Average Power %eW)\n",
-                buf,
-                (double)values[k] * 1e-9,
-                (double)values[k] * 1e-9 / task_time );
-    }
-}
 
 /**
  *******************************************************************************
@@ -122,9 +92,14 @@ pastix_papi_add_event( int EventSet,
  *
  * @brief Init the PAPI energy counters.
  *
+ *******************************************************************************
+ *
+ * @param[in] nbr_socks
+ *          The number of sockets.
+ *
  *******************************************************************************/
 int
-papiEnergyInit()
+papiEnergyInit( pastix_int_t nbr_socks )
 {
     int i, retval;
 
@@ -145,6 +120,7 @@ papiEnergyInit()
     }
 
     /* TODO: Check how to detect the number of sockets */
+    _pastix_papi_N_SOCK = nbr_socks;
 
     /* Add the event code for each socket */
     for ( i = 0; i < _pastix_papi_N_SOCK; i++ ) {
