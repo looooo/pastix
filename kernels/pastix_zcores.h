@@ -589,6 +589,15 @@ void core_zsytrfsp1d_gemm( const SolverCblk         *cblk,
                            pastix_complex64_t       *C,
                            pastix_complex64_t       *work );
 
+int
+cpucblk_zpotrfsp1dplus( SolverMatrix *solvmtx,
+                        SolverCblk   *cblk );
+void
+cpucblk_zpotrfsp1dplus_update( SolverMatrix       *solvmtx,
+                               SolverBlok         *blok,
+                               pastix_complex64_t *work,
+                               pastix_int_t        lwork );
+
 /**
  * @}
  */
