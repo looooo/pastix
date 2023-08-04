@@ -605,6 +605,16 @@ cpucblk_zgetrfsp1dplus_update( SolverMatrix       *solvmtx,
                                SolverBlok         *blok,
                                pastix_complex64_t *work,
                                pastix_int_t        lwork );
+#if defined(PRECISION_z) || defined(PRECISION_c)
+int
+cpucblk_zpxtrfsp1dplus( SolverMatrix *solvmtx,
+                        SolverCblk   *cblk );
+void
+cpucblk_zpxtrfsp1dplus_update( SolverMatrix       *solvmtx,
+                               SolverBlok         *blok,
+                               pastix_complex64_t *work,
+                               pastix_int_t        lwork );
+#endif
 
 /**
  * @}
