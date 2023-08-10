@@ -14,7 +14,8 @@
  * @author Gregoire Pichon
  * @author Tony Delarue
  * @author Alycia Lisito
- * @date 2023-03-30
+ * @author Nolan Bredel
+ * @date 2023-10-25
  * @precisions normal z -> c d s
  *
  */
@@ -597,6 +598,13 @@ cpucblk_zpotrfsp1dplus_update( SolverMatrix       *solvmtx,
                                SolverBlok         *blok,
                                pastix_complex64_t *work,
                                pastix_int_t        lwork );
+int
+cpucblk_zsytrfsp1dplus( SolverMatrix *solvmtx,
+                        SolverCblk   *cblk );
+void
+cpucblk_zsytrfsp1dplus_update( SolverMatrix       *solvmtx,
+                               SolverBlok         *blok,
+                               pastix_complex64_t *work );
 int
 cpucblk_zgetrfsp1dplus( SolverMatrix *solvmtx,
                         SolverCblk   *cblk );
