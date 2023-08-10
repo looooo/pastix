@@ -622,6 +622,13 @@ cpucblk_zpxtrfsp1dplus_update( SolverMatrix       *solvmtx,
                                SolverBlok         *blok,
                                pastix_complex64_t *work,
                                pastix_int_t        lwork );
+int
+cpucblk_zhetrfsp1dplus( SolverMatrix *solvmtx,
+                        SolverCblk   *cblk );
+void
+cpucblk_zhetrfsp1dplus_update( SolverMatrix       *solvmtx,
+                               SolverBlok         *blok,
+                               pastix_complex64_t *work );
 #endif
 
 /**

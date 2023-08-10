@@ -12,7 +12,8 @@
  * @author Mathieu Faverge
  * @author Esragul Korkmaz
  * @author Tony Delarue
- * @date 2023-07-20
+ * @author Alycia Lisito
+ * @date 2023-10-25
  *
  * @precisions normal z -> c
  *
@@ -221,11 +222,12 @@ thread_zhetrf_dynamic( isched_thread_t *ctx,
     sopalin_data_t       *sopalin_data = arg->sopalin_data;
     SolverMatrix         *datacode = sopalin_data->solvmtx;
     SolverCblk           *cblk;
+    SolverBlok           *blok;
     Task                 *t;
     pastix_queue_t       *computeQueue;
     pastix_complex64_t   *work1, *work2;
     pastix_int_t          N, i, ii, lwork1, lwork2;
-    pastix_int_t          tasknbr, *tasktab, cblknum;
+    pastix_int_t          tasknbr, *tasktab, cblknum, bloknum;
     int32_t               local_taskcnt = 0;
     int                   rank = ctx->rank;
 
@@ -267,7 +269,7 @@ thread_zhetrf_dynamic( isched_thread_t *ctx,
         /* Nothing to do, let's make progress on communications */
         if( cblknum == -1 ) {
             cpucblk_zmpi_progress( PastixLCoef, datacode, rank );
-            cblknum = pqueuePop(computeQueue);
+            cblknum = pqueuePop( computeQueue );
         }
 #endif
 
@@ -286,23 +288,35 @@ thread_zhetrf_dynamic( isched_thread_t *ctx,
             continue;
         }
 
-        cblk = datacode->cblktab + cblknum;
-        if ( cblk->cblktype & CBLK_IN_SCHUR ) {
-            continue;
+        if ( cblknum >= 0 ) {
+            cblk = datacode->cblktab + cblknum;
+            if ( cblk->cblktype & CBLK_IN_SCHUR ) {
+                continue;
+            }
+            cblk->threadid = rank;
+
+            N = cblk_colnbr( cblk );
+
+            /* Compute */
+            if ( cblk->cblktype & CBLK_TASKS_2D ) {
+                cpucblk_zhetrfsp1dplus( datacode, cblk );
+            }
+            else {
+                cpucblk_zhetrfsp1d( datacode, cblk,
+                                    /*
+                                    * Workspace size has been computed without the
+                                    * diagonal block, thus in order to work with generic
+                                    * TRSM and GEMM kernels, we must shift the DLh workspace
+                                    * by the diagonal block size
+                                    */
+                                    work1 - (N*N), work2, lwork2 );
+            }
         }
-        cblk->threadid = rank;
-
-        N = cblk_colnbr( cblk );
-
-        /* Compute */
-        cpucblk_zhetrfsp1d( datacode, cblk,
-                            /*
-                             * Workspace size has been computed without the
-                             * diagonal block, thus in order to work with generic
-                             * TRSM and GEMM kernels, we must shift the DLh workspace
-                             * by the diagonal block size
-                             */
-                            work1 - (N*N), work2, lwork2 );
+        else {
+            bloknum = - cblknum - 1;
+            blok    = datacode->bloktab + bloknum;
+            cpucblk_zhetrfsp1dplus_update( datacode, blok, work2 );
+        }
         local_taskcnt++;
     }
     memFree_null( work1 );
@@ -332,9 +346,9 @@ void
 dynamic_zhetrf( pastix_data_t  *pastix_data,
                 sopalin_data_t *sopalin_data )
 {
-    SolverMatrix        *datacode = sopalin_data->solvmtx;
-    int32_t              taskcnt = datacode->tasknbr - (datacode->cblknbr - datacode->cblkschur);
-    struct args_zhetrf_t args_zhetrf = { sopalin_data, taskcnt };
+    SolverMatrix         *datacode    = sopalin_data->solvmtx;
+    int32_t               taskcnt     = datacode->tasknbr_1dp;
+    struct args_zhetrf_t  args_zhetrf = { sopalin_data, taskcnt };
 
     /* Allocate the computeQueue */
     MALLOC_INTERN( datacode->computeQueue,
@@ -346,6 +360,9 @@ dynamic_zhetrf( pastix_data_t  *pastix_data,
 }
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+/*
+ * Need to uncomment
+ */
 static void (*zhetrf_table[5])(pastix_data_t *, sopalin_data_t *) = {
     sequential_zhetrf,
     static_zhetrf,
@@ -384,7 +401,7 @@ sopalin_zhetrf( pastix_data_t  *pastix_data,
     int sched = pastix_data->iparm[IPARM_SCHEDULER];
     void (*zhetrf)(pastix_data_t *, sopalin_data_t *) = zhetrf_table[ sched ];
 
-    if (zhetrf == NULL) {
+    if ( zhetrf == NULL ) {
         sched  = PastixSchedDynamic;
         zhetrf = dynamic_zhetrf;
     }
