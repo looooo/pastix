@@ -634,11 +634,13 @@ solvMatGen_fill_tasktab( SolverMatrix       *solvmtx,
                          pastix_int_t        clustnum,
                          int                 is_dbg )
 {
-    Task        *solvtask;
-    SimuTask    *simutask = simuctrl->tasktab;
-    SolverCblk  *solvcblk = solvmtx->cblktab;
-    pastix_int_t tasknum  = 0;
-    pastix_int_t i;
+    Task         *solvtask;
+    SolverBlok   *blok, *lblk;
+    SimuTask     *simutask    = simuctrl->tasktab;
+    SolverCblk   *solvcblk    = solvmtx->cblktab;
+    pastix_int_t  tasknum     = 0;
+    pastix_int_t  tasknbr_1dp = 0;
+    pastix_int_t  i;
 
     MALLOC_INTERN( solvmtx->tasktab, solvmtx->tasknbr+1, Task );
     solvtask = solvmtx->tasktab;
@@ -648,16 +650,40 @@ solvMatGen_fill_tasktab( SolverMatrix       *solvmtx,
     {
         for(i=0; i<simuctrl->tasknbr; i++, simutask++)
         {
-            assert( tasknum == i );
-
             solvtask->taskid  = COMP_1D;
             solvtask->prionum = simutask->prionum;
             solvtask->cblknum = simutask->cblknum;
             solvtask->bloknum = simutask->bloknum;
             solvtask->ctrbcnt = simutask->ctrbcnt;
 
-            solvcblk[solvtask->cblknum].priority = solvtask->prionum;
+            solvcblk = solvmtx->cblktab + solvtask->cblknum;
+            solvcblk->priority = solvtask->prionum;
 
+            /* Schur, fanin and recv are counted only in static */
+            if ( solvcblk->cblktype & (CBLK_IN_SCHUR | CBLK_FANIN | CBLK_RECV ) ) {
+                tasknum++; solvtask++;
+                continue;
+            }
+
+            /* Count the number of additional tasks in 1D+ mode */
+            if ( solvcblk->cblktype & CBLK_TASKS_2D )
+            {
+                blok = solvcblk[0].fblokptr + 1; /* first off-diagonal block */
+                lblk = solvcblk[1].fblokptr;     /* the next diagonal block  */
+
+                /* if there are off-diagonal supernodes in the column */
+                for( ; blok < lblk; blok++ ) {
+                    tasknbr_1dp++;
+                    /* Skip blocks facing the same cblk */
+                    while ( ( blok < lblk ) &&
+                            ( blok[0].fcblknm == blok[1].fcblknm ) &&
+                            ( blok[0].lcblknm == blok[1].lcblknm ) )
+                    {
+                        blok++;
+                    }
+                }
+            }
+            tasknbr_1dp++;
             tasknum++; solvtask++;
         }
     }
@@ -665,23 +691,53 @@ solvMatGen_fill_tasktab( SolverMatrix       *solvmtx,
     {
         for(i=0; i<simuctrl->tasknbr; i++, simutask++)
         {
-            if( simuctrl->bloktab[ simutask->bloknum ].ownerclust == clustnum )
+            if( simuctrl->bloktab[ simutask->bloknum ].ownerclust != clustnum )
             {
-                assert( tasknum == tasklocalnum[i] );
-
-                solvtask->taskid  = COMP_1D;
-                solvtask->prionum = simutask->prionum;
-                solvtask->cblknum = cblklocalnum[ simutask->cblknum ];
-                solvtask->bloknum = bloklocalnum[ simutask->bloknum ];
-                solvtask->ctrbcnt = simutask->ctrbcnt;
-
-                solvcblk[solvtask->cblknum].priority = solvtask->prionum;
-
-                tasknum++; solvtask++;
+                continue;
             }
+
+            assert( tasknum == tasklocalnum[i] );
+
+            solvtask->taskid  = COMP_1D;
+            solvtask->prionum = simutask->prionum;
+            solvtask->cblknum = cblklocalnum[ simutask->cblknum ];
+            solvtask->bloknum = bloklocalnum[ simutask->bloknum ];
+            solvtask->ctrbcnt = simutask->ctrbcnt;
+
+            solvcblk = solvmtx->cblktab + solvtask->cblknum;
+            solvcblk->priority = solvtask->prionum;
+
+            /* Schur, fanin and recv are counted only in static */
+            if ( solvcblk->cblktype & (CBLK_IN_SCHUR | CBLK_FANIN | CBLK_RECV ) ) {
+                tasknum++; solvtask++;
+                continue;
+            }
+
+            /* Count the number of additional tasks in 1D+ mode */
+            if ( solvcblk->cblktype & CBLK_TASKS_2D )
+            {
+                blok = solvcblk[0].fblokptr + 1; /* first off-diagonal block */
+                lblk = solvcblk[1].fblokptr;     /* the next diagonal block  */
+
+                /* if there are off-diagonal supernodes in the column */
+                for( ; blok < lblk; blok++ ) {
+                    tasknbr_1dp++;
+                    /* Skip blocks facing the same cblk */
+                    while ( ( blok < lblk ) &&
+                            ( blok[0].fcblknm == blok[1].fcblknm ) &&
+                            ( blok[0].lcblknm == blok[1].lcblknm ) )
+                    {
+                        blok++;
+                    }
+                }
+            }
+
+            tasknbr_1dp++;
+            tasknum++; solvtask++;
         }
     }
     assert(tasknum == solvmtx->tasknbr);
+    solvmtx->tasknbr_1dp = tasknbr_1dp;
 
     /* One more task to avoid side effect */
     solvtask->taskid  = -1;
