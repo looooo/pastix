@@ -12,7 +12,7 @@
  @author Mathieu Faverge
  @author Tony Delarue
  @author Selmane Lebdaoui
- @date 2023-04-21
+ @date 2023-08-02
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -123,17 +123,19 @@ class dparm:
     fact_flops         = 11
     fact_thflops       = 12
     fact_rlflops       = 13
-    mem_fr             = 14
-    mem_lr             = 15
-    solv_time          = 16
-    solv_flops         = 17
-    solv_thflops       = 18
-    solv_rlflops       = 19
-    refine_time        = 20
-    a_norm             = 21
-    compress_tolerance = 22
-    compress_min_ratio = 23
-    size               = 24
+    fact_energy        = 14
+    mem_fr             = 15
+    mem_lr             = 16
+    solv_time          = 17
+    solv_flops         = 18
+    solv_thflops       = 19
+    solv_rlflops       = 20
+    solv_energy        = 21
+    refine_time        = 22
+    a_norm             = 23
+    compress_tolerance = 24
+    compress_min_ratio = 25
+    size               = 26
 
 class task:
     Init     = 0

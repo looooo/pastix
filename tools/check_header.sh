@@ -6,7 +6,7 @@
 #
 #  @version 6.3.0
 #  @author Mathieu Faverge
-#  @date 2023-01-13
+#  @date 2023-08-01
 #
 # This script check that basic informations is present and correct in
 # headers of source files.
@@ -52,6 +52,7 @@ check_header_copyright()
     basename=$( basename $filename )
 
     year=$( git log -1 --format=%cd --date=format:%Y $filename )
+    year=$( date +%Y )
     toto=$( grep -E " @copyright [0-9]{4}-$year Bordeaux INP" $filename )
 
     if [ $? -ne 0 ]
@@ -170,8 +171,10 @@ check_header()
 files=$( git ls-files                     |
              grep -v "^\."                |
              grep -v ".*\.md"             |
+             grep -v ChangeLog            |
              grep -v ".*\.xml"            |
              grep -v LICENSE              |
+             grep -v LICENCE              |
              grep -v ".*\.cmake"          |
              grep -v "common/sys/atomic-" |
              grep -v docs/doxygen         |
@@ -183,7 +186,8 @@ files=$( git ls-files                     |
              grep -v "wrappers/fortran90/examples/test_.*\.in" |
              grep -v "wrappers/julia/PaStiX/Project\..*\.toml" |
              grep -v "tools/bench/jube/requirements.txt"       |
-             grep -v test/matrix          )
+             grep -v test/matrix          |
+             grep -v "\.org"              )
 if [ $# -gt 0 ]
 then
     files=$*

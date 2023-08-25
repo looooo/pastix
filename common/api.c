@@ -15,7 +15,10 @@
  * @author Gregoire Pichon
  * @author Matias Hastaran
  * @author Tony Delarue
- * @date 2023-04-19
+ * @author Alycia Lisito
+ * @author Brieuc Nicolas
+ * @author Tom Moenne-Loccoz
+ * @date 2023-08-01
  *
  **/
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -513,6 +516,7 @@ pastixInitParam( pastix_int_t *iparm,
     /* Context */
     iparm[IPARM_SCHEDULER]             = PastixSchedDynamic;
     iparm[IPARM_THREAD_NBR]            = -1;
+    iparm[IPARM_SOCKET_NBR]            = -1;
     iparm[IPARM_AUTOSPLIT_COMM]        = 0;
 
     /* GPU */
@@ -555,11 +559,13 @@ pastixInitParam( pastix_int_t *iparm,
     dparm[DPARM_FACT_FLOPS]         =  0.;
     dparm[DPARM_FACT_THFLOPS]       =  0.;
     dparm[DPARM_FACT_RLFLOPS]       =  0.;
+    dparm[DPARM_FACT_ENERGY]        =  0.;
     dparm[DPARM_MEM_FR]             =  0.;
     dparm[DPARM_MEM_LR]             =  0.;
     dparm[DPARM_SOLV_FLOPS]         =  0.;
     dparm[DPARM_SOLV_THFLOPS]       =  0.;
     dparm[DPARM_SOLV_RLFLOPS]       =  0.;
+    dparm[DPARM_SOLV_ENERGY]        =  0.;
     dparm[DPARM_REFINE_TIME]        =  0.;
     dparm[DPARM_A_NORM]             = -1.;
     dparm[DPARM_COMPRESS_TOLERANCE] =  1e-8;
@@ -800,6 +806,11 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
     pastix->isched = ischedInit( pastix->iparm[IPARM_THREAD_NBR], bindtab );
     pastix->iparm[IPARM_THREAD_NBR] = pastix->isched->world_size;
 
+    if ( ( pastix->iparm[IPARM_SOCKET_NBR] == -1 ) ||
+         ( pastix->iparm[IPARM_SOCKET_NBR] > pastix->isched->socketsnbr ) ) {
+        pastix->iparm[IPARM_SOCKET_NBR] = pastix->isched->socketsnbr;
+    }
+
     /*
      * Start PaRSEC if compiled with it and scheduler set to PaRSEC
      */
@@ -848,6 +859,8 @@ pastixInitWithAffinity( pastix_data_t **pastix_data,
 
     /* Initialization step done, overwrite anything done before */
     pastix->steps = STEP_INIT;
+
+    papiEnergyInit( pastix->iparm[IPARM_SOCKET_NBR] );
 
     *pastix_data = pastix;
 }
@@ -901,6 +914,8 @@ void
 pastixFinalize( pastix_data_t **pastix_data )
 {
     pastix_data_t *pastix = *pastix_data;
+
+    papiEnergyFinalize();
 
     pastixSummary( *pastix_data );
 

@@ -8,7 +8,9 @@
 
  @version 6.3.0
  @author Tony Delarue
- @date 2023-01-13
+ @author Mathieu Faverge
+ @author Tom Moenne-Loccoz
+ @date 2023-08-01
 
  This file allows us to generate:
       - Documentation files
@@ -394,6 +396,26 @@ factotype = {
     ]
 }
 enums.append(factotype)
+
+factolookside = {
+    "name" : "factolookside",
+    "doc" : {
+        "brief" : "Factorization looking side available for IPARM_FACTO_LOOK_SIDE parameter",
+    },
+    "values" : [
+        {
+            "name": "PastixFactLeftLooking",
+            "value": 0,
+            "brief": "Left Looking factorization"
+        },
+        {
+            "name": "PastixFactRightLooking",
+            "value": 1,
+            "brief": "Right Looking factorization"
+        }
+    ]
+}
+enums.append(factolookside)
 
 scheduler = {
     "name" : "scheduler",

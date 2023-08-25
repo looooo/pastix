@@ -16,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2023-04-19
+ * @date 2023-08-04
  *
  */
 #include "common.h"
@@ -89,6 +89,16 @@ pastix_factotype_check_value( pastix_factotype_t value )
         (value == PastixFactLU) ||
         (value == PastixFactLLT) ||
         (value == PastixFactLDLH) ) {
+        return 0;
+    }
+    return 1;
+}
+
+static inline int
+pastix_factolookside_check_value( pastix_factolookside_t value )
+{
+    if( (value == PastixFactLeftLooking) ||
+        (value == PastixFactRightLooking) ) {
         return 0;
     }
     return 1;
@@ -567,9 +577,12 @@ iparm_factorization_check_value( pastix_int_t iparm )
 static inline int
 iparm_facto_look_side_check_value( pastix_int_t iparm )
 {
-    /* TODO : Check range iparm[IPARM_FACTO_LOOK_SIDE] */
-    (void)iparm;
-    return 0;
+    int rc;
+    rc = pastix_factolookside_check_value( iparm );
+    if ( rc == 1 ) {
+        fprintf(stderr, "IPARM_FACTO_LOOK_SIDE: The value is incorrect\n");
+    }
+    return rc;
 }
 
 static inline int
@@ -663,6 +676,14 @@ static inline int
 iparm_thread_nbr_check_value( pastix_int_t iparm )
 {
     /* TODO : Check range iparm[IPARM_THREAD_NBR] */
+    (void)iparm;
+    return 0;
+}
+
+static inline int
+iparm_socket_nbr_check_value( pastix_int_t iparm )
+{
+    /* TODO : Check range iparm[IPARM_SOCKET_NBR] */
     (void)iparm;
     return 0;
 }
@@ -945,6 +966,7 @@ iparm_check_values( const pastix_int_t *iparm )
     error += iparm_gmres_im_check_value( iparm[IPARM_GMRES_IM] );
     error += iparm_scheduler_check_value( iparm[IPARM_SCHEDULER] );
     error += iparm_thread_nbr_check_value( iparm[IPARM_THREAD_NBR] );
+    error += iparm_socket_nbr_check_value( iparm[IPARM_SOCKET_NBR] );
     error += iparm_autosplit_comm_check_value( iparm[IPARM_AUTOSPLIT_COMM] );
     error += iparm_gpu_nbr_check_value( iparm[IPARM_GPU_NBR] );
     error += iparm_gpu_memory_percentage_check_value( iparm[IPARM_GPU_MEMORY_PERCENTAGE] );

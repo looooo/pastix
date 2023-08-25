@@ -18,7 +18,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2023-04-19
+ * @date 2023-08-04
  *
  * @addtogroup pastix_api
  * @{
@@ -97,7 +97,7 @@ typedef enum pastix_iparm_e {
 
     /* Factorization */
     IPARM_FACTORIZATION,                  /**< Factorization mode                                             Default: PastixFactLU              IN  */
-    IPARM_FACTO_LOOK_SIDE,                /**< Factorization looking side                                     Default: PastixFactRightLooking    IN  */
+    IPARM_FACTO_LOOK_SIDE,                /**< Factorization looking variant algorithm                        Default: PastixFactRightLooking    IN  */
     IPARM_STATIC_PIVOTING,                /**< Static pivoting                                                Default: -                         OUT */
     IPARM_FREE_CSCUSER,                   /**< Free user CSC                                                  Default: 0                         IN  */
     IPARM_SCHUR_FACT_MODE,                /**< Specify if the Schur is factorized (@see pastix_fact_mode_t)   Default: PastixFactModeLocal       IN  */
@@ -116,6 +116,7 @@ typedef enum pastix_iparm_e {
     /* Context */
     IPARM_SCHEDULER,                      /**< Scheduler mode                                                 Default: PastixSchedDynamic        IN  */
     IPARM_THREAD_NBR,                     /**< Number of threads per process (-1 for auto detect)             Default: -1                        IN  */
+    IPARM_SOCKET_NBR,                     /**< Number of sockets for papi energy measure (default: 0)         Default: 0                         IN  */
     IPARM_AUTOSPLIT_COMM,                 /**< Automaticaly split communicator to have one MPI task by node   Default: 0                         IN  */
 
     /* GPU */
@@ -170,12 +171,14 @@ typedef enum pastix_dparm_e {
     DPARM_FACT_FLOPS,         /**< Factorization GFlops/s                            Default: -    OUT */
     DPARM_FACT_THFLOPS,       /**< Factorization theoretical Flops                   Default: -    OUT */
     DPARM_FACT_RLFLOPS,       /**< Factorization performed Flops                     Default: -    OUT */
+    DPARM_FACT_ENERGY,        /**< Energy for task Factorization                     Default: -    OUT */
     DPARM_MEM_FR,             /**< Memory used by the matrix in full-rank format     Default: -    OUT */
     DPARM_MEM_LR,             /**< Memory used by the matrix in low-rank format      Default: -    OUT */
     DPARM_SOLV_TIME,          /**< Time for task Solve (wallclock)                   Default: -    OUT */
     DPARM_SOLV_FLOPS,         /**< Solve GFlops/s                                    Default: -    OUT */
     DPARM_SOLV_THFLOPS,       /**< Solve theoretical Flops                           Default: -    OUT */
     DPARM_SOLV_RLFLOPS,       /**< Solve performed Flops                             Default: -    OUT */
+    DPARM_SOLV_ENERGY,        /**< Energy for task Solve                             Default: -    OUT */
     DPARM_REFINE_TIME,        /**< Time for task refinement (wallclock)              Default: -    OUT */
     DPARM_A_NORM,             /**< (||A||_f) norm                                    Default: -    OUT */
     DPARM_COMPRESS_TOLERANCE, /**< Tolerance for low-rank kernels                    Default: 0.01 IN  */
@@ -323,7 +326,7 @@ typedef enum pastix_factotype_e {
  */
 typedef enum pastix_factolookside_e {
     PastixFactLeftLooking  = 0, /**< Left Looking factorization  */
-    PastixFactRightLooking = 1, /**< Right Looking factorization */
+    PastixFactRightLooking = 1  /**< Right Looking factorization */
 } pastix_factolookside_t;
 
 /**

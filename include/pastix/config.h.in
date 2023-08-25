@@ -14,7 +14,9 @@
  * @author Tony Delarue
  * @author Nolan Bredel
  * @author Tom Moenne-Loccoz
- * @date 2023-04-13
+ * @author Brieuc Nicolas
+ * @author Mohamed Aymane Kherraz
+ * @date 2023-08-01
  *
  **/
 #ifndef _pastix_config_h_
@@ -28,6 +30,7 @@
 #cmakedefine PASTIX_WITH_MPI
 #cmakedefine PASTIX_WITH_CUDA
 #cmakedefine PASTIX_WITH_EZTRACE
+#cmakedefine PASTIX_WITH_PAPI
 
 /* system */
 #cmakedefine HAVE_SCHED_SETAFFINITY

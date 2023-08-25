@@ -15,7 +15,12 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Theophile Terraz
- * @date 2023-07-11
+ * @author Alycia Lisito
+ * @author Brieuc Nicolas
+ * @author nbredel
+ * @author Nolan Bredel
+ * @author Tony Delarue
+ * @date 2023-08-01
  *
  **/
 #include "common.h"
@@ -32,6 +37,7 @@
 #include "kernels/pastix_dlrcores.h"
 #include "kernels/pastix_slrcores.h"
 #include "kernels/kernels_trace.h"
+#include "pastix_papi.h"
 
 #if defined(PASTIX_WITH_PARSEC)
 #include "sopalin/parsec/pastix_parsec.h"
@@ -489,12 +495,13 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
     pastix_data->solvmatr->restore = 2;
     {
         void (*factofct)( pastix_data_t *, sopalin_data_t *);
-        double timer, timer_local, flops, flops_g = 0.;
+        double timer, timer_local, flops, flops_g, energy = 0.;
 
         factofct = sopalinFacto[ pastix_data->iparm[IPARM_FACTORIZATION] ][pastix_data->solvmatr->flttype-2];
         assert(factofct);
 
         kernelsTraceStart( pastix_data );
+        papiEnergyStart();
         clockSyncStart( timer, pastix_comm );
         clockStart(timer_local);
 
@@ -502,12 +509,14 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
 
         clockStop(timer_local);
         clockSyncStop( timer, pastix_comm );
+        energy = papiEnergyStop();
         kernelsTraceStop( pastix_data );
 
-        /* Output time and flops */
+        /* Output time, flops, energy and power */
         pastix_data->dparm[DPARM_FACT_TIME] = clockVal(timer);
         flops = pastix_data->dparm[DPARM_FACT_THFLOPS] / pastix_data->dparm[DPARM_FACT_TIME];
         pastix_data->dparm[DPARM_FACT_FLOPS] = ((flops / 1024.) / 1024.) / 1024.;
+        pastix_data->dparm[DPARM_FACT_ENERGY] = energy;
 
         /* Compute the number of flops performed (may be different from THFLOPS for low-rank) */
         {
@@ -531,6 +540,13 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
                           pastix_print_value( flops_g ),
                           pastix_print_unit(  flops_g ),
                           (long)pastix_data->iparm[IPARM_STATIC_PIVOTING] );
+#if defined(PASTIX_WITH_PAPI)
+            pastix_print( pastix_data->inter_node_procnum, 0, OUT_SOPALIN_ENERGY,
+                          pastix_print_value_deci( pastix_data->dparm[DPARM_FACT_ENERGY] ),
+                          pastix_print_unit_deci(  pastix_data->dparm[DPARM_FACT_ENERGY] ),
+                          pastix_print_value_deci( pastix_data->dparm[DPARM_FACT_ENERGY] / pastix_data->dparm[DPARM_FACT_TIME] ),
+                          pastix_print_unit_deci(  pastix_data->dparm[DPARM_FACT_ENERGY] / pastix_data->dparm[DPARM_FACT_TIME] ) );
+#endif
         }
 
 #if defined(PASTIX_WITH_PARSEC) && defined(PASTIX_DEBUG_PARSEC)

@@ -234,6 +234,8 @@ isched_t *ischedInit(int cores, const int *coresbind)
     /* Init number of cores and topology */
     isched_topo_init();
 
+    isched->socketsnbr = isched_topo_socketsnbr();
+
     /* Set number of cores */
     if ( cores < 1 ) {
         isched->world_size = pastix_getenv_get_value_int("PASTIX_NUM_THREADS", -1);

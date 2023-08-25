@@ -88,6 +88,15 @@ int isched_nohwloc_world_size()
     return sys_corenbr;
 }
 
+int isched_nohwloc_socketsnbr()
+{
+    pastix_warning( "The socket number can not be automatically detected \
+                     if hwloc is not activated. If you want to compute \
+                     the energy with papi please define the number of \
+                     sockets with iparm_socket_nbr." );
+    return 0;
+}
+
 int isched_nohwloc_bind_on_core_index(int cpu)
 {
     if( -1 == cpu ) { /* Don't try binding if not required */

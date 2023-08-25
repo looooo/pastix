@@ -16,7 +16,9 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2023-04-11
+ * @author Alycia Lisito
+ * @author Tom Moenne-Loccoz
+ * @date 2023-08-01
  *
  */
 #ifndef _parse_options_h_
@@ -37,6 +39,7 @@ const char* pastix_solv_mode_getstr( pastix_solv_mode_t value );
 const char* pastix_refine_getstr( pastix_refine_t value );
 const char* pastix_coeftype_getstr( pastix_coeftype_t value );
 const char* pastix_factotype_getstr( pastix_factotype_t value );
+const char* pastix_factolookside_getstr( pastix_factolookside_t value );
 const char* pastix_scheduler_getstr( pastix_scheduler_t value );
 const char* pastix_ordering_getstr( pastix_ordering_t value );
 const char* pastix_mpithreadmode_getstr( pastix_mpithreadmode_t value );

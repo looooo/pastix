@@ -12,7 +12,8 @@
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Gregoire Pichon
- * @date 2023-01-13
+ * @author Mohamed Aymane Kherraz
+ * @date 2023-08-01
  *
  */
 #ifndef _out_h_
@@ -177,6 +178,10 @@
     "    Number of operations                       %5.2lf %cFlops\n"   \
     "    Number of static pivots               %8ld\n"
 
+#define OUT_SOPALIN_ENERGY                                      \
+    "    Energy consumed during factorization: %e %cJ\n"        \
+    "    Average power during factorization:   %e %cW\n"
+
 #define OUT_LOWRANK_SUMMARY                                     \
     "    Compression:\n"                                        \
     "      Elements removed             %8ld / %8ld\n"          \
@@ -245,6 +250,10 @@
 #define OUT_TIME_FACT         "   Time to factorize                            %.3g s  (%.3g %s)\n"
 #define OUT_FLOPS_FACT        "   FLOPS during factorization                   %.5g %s\n"
 #define OUT_TIME_SOLV         "    Time to solve                         %e s\n"
+#define OUT_SOLVE_ENERGY                                 \
+    "    Energy consumed during solve:         %e %cJ\n" \
+    "    Average power during solve:           %e %cW\n"
+
 #define OUT_REFINE_ITER_NORM  "    Refinement                            %ld iterations, norm=%e\n"
 #define OUT_PREC1             "    ||b-Ax||/||b||                        %e\n"
 #define OUT_PREC2             "    max_i(|b-Ax|_i/(|b| + |A||x|)_i       %e\n"
@@ -318,6 +327,33 @@ pastix_print_unit( double flops )
         flops /= ratio;
         unit++;
     }
+    return units[unit];
+}
+
+static inline double
+pastix_print_value_deci( double value ) {
+    static double ratio = 1e3;
+    int unit = 0;
+
+    while ((value >= ratio) && (unit < 8)) {
+        value /= ratio;
+        unit++;
+    }
+
+    return value;
+}
+
+static inline char
+pastix_print_unit_deci( double value ) {
+    static char units[9] = {' ', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'};
+    static double ratio = 1e3;
+    int unit = 0;
+
+    while ((value >= ratio) && (unit < 8)) {
+        value /= ratio;
+        unit++;
+    }
+
     return units[unit];
 }
 

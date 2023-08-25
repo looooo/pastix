@@ -8,7 +8,10 @@
 
  @version 6.3.0
  @author Tony Delarue
- @date 2023-04-11
+ @author Brieuc Nicolas
+ @author Mathieu Faverge
+ @author Tom Moenne-Loccoz
+ @date 2023-08-01
 
  This file allows us to generate:
       - Documentation files
@@ -636,6 +639,17 @@ A long description in the doxygen format
     "enum" : "factotype",
 }
 
+iparm_facto_look_side = {
+    "name" : "iparm_facto_look_side",
+    "default" : "PastixFactRightLooking",
+    "brief" : "Factorization looking variant algorithm",
+    "access" : "IN",
+    "description" : r'''
+A long description in the doxygen format
+''',
+    "enum" : "factolookside",
+}
+
 iparm_static_pivoting = {
     "name" : "iparm_static_pivoting",
     "default" : "-",
@@ -670,6 +684,7 @@ A long description in the doxygen format
 iparm_factorization_group = {
     "subgroup" : [
         iparm_factorization,
+        iparm_facto_look_side,
         iparm_static_pivoting,
         iparm_free_cscuser,
         iparm_schur_fact_mode,
@@ -805,6 +820,16 @@ A long description in the doxygen format
 ''',
 }
 
+iparm_socket_nbr = {
+    "name" : "iparm_socket_nbr",
+    "default" : "0",
+    "brief" : "Number of sockets for papi energy measure (default: 0)",
+    "access" : "IN",
+    "description" : r'''
+A long description in the doxygen format
+''',
+}
+
 iparm_autosplit_comm = {
     "name" : "iparm_autosplit_comm",
     "default" : "0",
@@ -819,6 +844,7 @@ iparm_context_group = {
     "subgroup" : [
         iparm_scheduler,
         iparm_thread_nbr,
+        iparm_socket_nbr,
         iparm_autosplit_comm,
     ],
     "name" : "context",

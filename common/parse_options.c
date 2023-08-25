@@ -16,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2023-04-19
+ * @date 2023-08-04
  *
  */
 #include "common.h"
@@ -114,6 +114,7 @@ parse_iparm( const char *iparm )
 
     if(0 == strcasecmp("iparm_scheduler",                      iparm)) { return IPARM_SCHEDULER; }
     if(0 == strcasecmp("iparm_thread_nbr",                     iparm)) { return IPARM_THREAD_NBR; }
+    if(0 == strcasecmp("iparm_socket_nbr",                     iparm)) { return IPARM_SOCKET_NBR; }
     if(0 == strcasecmp("iparm_autosplit_comm",                 iparm)) { return IPARM_AUTOSPLIT_COMM; }
 
     if(0 == strcasecmp("iparm_gpu_nbr",                        iparm)) { return IPARM_GPU_NBR; }
@@ -232,6 +233,9 @@ parse_enums( const char *string )
     if(0 == strcasecmp("pastixfactlu",    string)) { return PastixFactLU; }
     if(0 == strcasecmp("pastixfactllt",   string)) { return PastixFactLLT; }
     if(0 == strcasecmp("pastixfactldlh",  string)) { return PastixFactLDLH; }
+
+    if(0 == strcasecmp("pastixfactleftlooking",  string)) { return PastixFactLeftLooking; }
+    if(0 == strcasecmp("pastixfactrightlooking", string)) { return PastixFactRightLooking; }
 
     if(0 == strcasecmp("pastixfactmodelocal", string)) { return PastixFactModeLocal; }
     if(0 == strcasecmp("pastixfactmodeschur", string)) { return PastixFactModeSchur; }
@@ -469,7 +473,7 @@ pastix_factolookside_getstr( pastix_factolookside_t value )
     case PastixFactRightLooking:
         return "PastixFactRightLooking";
     default :
-        return "Bad facto looking side given";
+        return "Bad factolookside given";
     }
 }
 
@@ -851,6 +855,7 @@ pastix_param2csv( const pastix_data_t *pastix_data,
 
     fprintf( csv, "%s,%s\n",  "iparm_scheduler",       pastix_scheduler_getstr(iparm[IPARM_SCHEDULER]) );
     fprintf( csv, "%s,%ld\n", "iparm_thread_nbr",     (long)iparm[IPARM_THREAD_NBR] );
+    fprintf( csv, "%s,%ld\n", "iparm_socket_nbr",     (long)iparm[IPARM_SOCKET_NBR] );
     fprintf( csv, "%s,%ld\n", "iparm_autosplit_comm", (long)iparm[IPARM_AUTOSPLIT_COMM] );
 
     fprintf( csv, "%s,%ld\n", "iparm_gpu_nbr",               (long)iparm[IPARM_GPU_NBR] );
@@ -893,12 +898,14 @@ pastix_param2csv( const pastix_data_t *pastix_data,
     fprintf( csv, "%s,%e\n",  "dparm_fact_flops",         dparm[DPARM_FACT_FLOPS] );
     fprintf( csv, "%s,%e\n",  "dparm_fact_thflops",       dparm[DPARM_FACT_THFLOPS] );
     fprintf( csv, "%s,%e\n",  "dparm_fact_rlflops",       dparm[DPARM_FACT_RLFLOPS] );
+    fprintf( csv, "%s,%e\n",  "dparm_fact_energy",        dparm[DPARM_FACT_ENERGY] );
     fprintf( csv, "%s,%e\n",  "dparm_mem_fr",             dparm[DPARM_MEM_FR] );
     fprintf( csv, "%s,%e\n",  "dparm_mem_lr",             dparm[DPARM_MEM_LR] );
     fprintf( csv, "%s,%e\n",  "dparm_solv_time",          dparm[DPARM_SOLV_TIME] );
     fprintf( csv, "%s,%e\n",  "dparm_solv_flops",         dparm[DPARM_SOLV_FLOPS] );
     fprintf( csv, "%s,%e\n",  "dparm_solv_thflops",       dparm[DPARM_SOLV_THFLOPS] );
     fprintf( csv, "%s,%e\n",  "dparm_solv_rlflops",       dparm[DPARM_SOLV_RLFLOPS] );
+    fprintf( csv, "%s,%e\n",  "dparm_solv_energy",        dparm[DPARM_SOLV_ENERGY] );
     fprintf( csv, "%s,%e\n",  "dparm_refine_time",        dparm[DPARM_REFINE_TIME] );
     fprintf( csv, "%s,%e\n",  "dparm_a_norm",             dparm[DPARM_A_NORM] );
     fprintf( csv, "%s,%e\n",  "dparm_compress_tolerance", dparm[DPARM_COMPRESS_TOLERANCE] );
