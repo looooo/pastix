@@ -147,6 +147,7 @@ cpucblk_zrequest_rhs_bwd_handle_send( const args_solve_t *enums,
         memFree_null( rhsb->cblkb[ idx ] );
     }
     (void)solvmtx;
+    (void)enums;
 }
 
 /**

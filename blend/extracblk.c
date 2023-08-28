@@ -229,7 +229,6 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
     pastix_int_t  addblok = 0;
     pastix_int_t *newnum      = NULL;
     pastix_int_t *extranewnum = NULL;
-    pastix_int_t  facing_splitted_cnt = 0;
 
     symbol_matrix_t *oldsymb;
 
@@ -490,10 +489,7 @@ extraCblkMerge( const ExtraCblk_t *extracblk,
                         curblok++; curbloknum++;
 
                         frownum = newfcblk->lcolnum+1;
-                        facing_splitted_cnt++;
                     }
-                    /* Remove one for previously existing block */
-                    facing_splitted_cnt--;
                 }
                 else
                 {

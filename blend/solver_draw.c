@@ -173,8 +173,6 @@ solverDraw ( const SolverMatrix * const  solvptr,
 
     /* Plot numbers */
     if (verbose > 4){
-        int nb_bloks = 0;
-        int nb_cblks = 0;
         FILE  *fd1, *fd2, *fd3;
         int    original_cblk = 1;
         double color         = 0.2;
@@ -247,8 +245,6 @@ solverDraw ( const SolverMatrix * const  solvptr,
 
                     gain = 1.0 * conso_dense / conso_LR;
                 }
-                nb_bloks++;
-
                 fprintf(fd3, "%d\n%f\n", nb_contrib, gain);
             }
 
@@ -260,7 +256,6 @@ solverDraw ( const SolverMatrix * const  solvptr,
                     color = 0.2;
                 }
             }
-            nb_cblks++;
         }
         fclose(fd1);
         fclose(fd2);
