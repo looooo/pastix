@@ -504,7 +504,7 @@ cpucblk_zmpi_progress( pastix_coefside_t   side,
         pastix_atomic_unlock( &(solvmtx->reqlock) );
     }
 
-    pastix_comm_tid = -1;
+    pastix_comm_tid = (pthread_t)-1;
     pastix_yield();
 }
 #endif /* defined(PASTIX_WITH_MPI) */

@@ -141,7 +141,7 @@ if ( Julia_ENABLE_TESTS )
 
     if (PASTIX_WITH_MPI)
       set( _test_name_ julia_mpi_${_test_suffix_} )
-      add_test( ${_test_name_} ${MPIEXEC_EXECUTABLE} -np 4 --host localhost:4 ${Julia_EXECUTABLE} ${_test_file_} )
+      add_test( ${_test_name_} ${MPIEXEC_EXECUTABLE} -np 4 --oversubscribe ${Julia_EXECUTABLE} ${_test_file_} )
       set_tests_properties( ${_test_name_}
         PROPERTIES ENVIRONMENT "${Julia_ENVIRONEMENT}" )
     endif()

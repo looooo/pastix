@@ -112,7 +112,7 @@ foreach (_file ${EXAMPLES})
       set( exe "")
     endif()
     if( version STREQUAL "mpi" )
-      set( exe ${MPIEXEC_EXECUTABLE} -np 4 --host localhost:4 )
+      set( exe ${MPIEXEC_EXECUTABLE} -np 4 --oversubscribe )
     endif()
 
     add_test(fortran_${version}_${_name_we} ${exe} ./${_name_we} )

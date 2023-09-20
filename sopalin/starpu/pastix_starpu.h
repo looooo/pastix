@@ -251,13 +251,13 @@ typedef struct pastix_starpu_interface_s {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static inline void *
-pastix_starpu_cblk_get_ptr( void *interface ) {
-    return ((pastix_starpu_interface_t *)interface)->dataptr;
+pastix_starpu_cblk_get_ptr( void *interf ) {
+    return ((pastix_starpu_interface_t *)interf)->dataptr;
 }
 
 static inline void *
-pastix_starpu_blok_get_ptr( void *interface ) {
-    return ((pastix_starpu_interface_t *)interface)->dataptr;
+pastix_starpu_blok_get_ptr( void *interf ) {
+    return ((pastix_starpu_interface_t *)interf)->dataptr;
 }
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 

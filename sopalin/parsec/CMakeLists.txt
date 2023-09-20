@@ -122,8 +122,9 @@ install(EXPORT pastix_parsecTargets
 # ------------
 install(TARGETS pastix_parsec
         EXPORT pastix_parsecTargets
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib)
+        ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
+        LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+        RUNTIME DESTINATION ${BIN_INSTALL_DIR})
 
 ### Add non-generated documented files to the global property
 add_documented_files(

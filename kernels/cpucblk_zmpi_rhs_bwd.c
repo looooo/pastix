@@ -425,7 +425,7 @@ cpucblk_zmpi_rhs_bwd_progress( const args_solve_t *enums,
         pastix_atomic_unlock( &(solvmtx->reqlock) );
     }
 
-    pastix_comm_tid = -1;
+    pastix_comm_tid = (pthread_t)-1;
     pastix_yield();
 }
 #endif /* defined(PASTIX_WITH_MPI) */

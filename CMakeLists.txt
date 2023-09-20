@@ -21,7 +21,7 @@
 #  @date 2023-08-01
 #
 ###
-cmake_minimum_required (VERSION 3.3)
+cmake_minimum_required (VERSION 3.5)
 
 if( ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR} )
   message(FATAL_ERROR "

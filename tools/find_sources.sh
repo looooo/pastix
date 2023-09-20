@@ -56,6 +56,9 @@ do
     sed -i "/$name\.[ch]/d" filelist.txt
 done
 
+# Remove Julia wrapper files
+sed -i '/build\/wrappers\/julia\/depot\/.*/d' filelist.txt
+
 # Remove installed files
 sed -i '/^install.*/d' filelist.txt
 

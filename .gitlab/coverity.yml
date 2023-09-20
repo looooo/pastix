@@ -1,12 +1,13 @@
 ---
 coverity:
-  extends: .only-master
-  stage: analyse
+  stage: qa
   tags: ["docker", "large"]
+  extends: .only-master-mr
+  when: manual
   dependencies: []
   artifacts:
     name: pastix_coverity
-    expire_in: 1 week
+    expire_in: 180 minutes
     paths:
       - pastix.tgz
   variables:
@@ -25,5 +26,3 @@ coverity:
            --form version="`git rev-parse --short HEAD`"
            --form description=""
            https://scan.coverity.com/builds?project=PaStiX
-  except:
-    - schedules

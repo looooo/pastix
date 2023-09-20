@@ -24,5 +24,4 @@ do
 done
 lcov $INPUT_FILES -o pastix.lcov
 lcov --summary pastix.lcov
-lcov_cobertura pastix.lcov --output pastix_coverage.xml
-gcovr --xml-pretty --exclude-unreachable-branches --print-summary -o coverage.xml --root ${CI_PROJECT_DIR}
+lcov_cobertura pastix.lcov --output pastix-coverage.xml

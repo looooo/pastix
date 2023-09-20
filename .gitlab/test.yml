@@ -1,64 +1,105 @@
 ---
-.test_script_sched_template: &test_script_sched
-  stage: test
-  tags: ["large", "docker"]
-  script:
-    - export LOGNAME=pastix-${VERSION}-${RUN}-sched${SCHED}
-    - source install-${VERSION}/bin/pastix_env.sh
-    - (cd build &&
-       eval "ctest --nocompress-output
-             -R \"^${RUN}_.*_sched${SCHED}\"
-             -T Test
-             --output-junit ../${LOGNAME}.junit
-             | tee -a ../${LOGNAME}.log")
-    - gcovr --xml-pretty --exclude-unreachable-branches --print-summary -o ${LOGNAME}.cov --root ${CI_PROJECT_DIR}
-    - lcov --directory build --capture --output-file ${LOGNAME}.lcov
-    - cp ${LOGNAME}.junit junit.xml
-    - cp ${LOGNAME}.cov coverage.xml
-  coverage: /^\s*lines:\s*\d+.\d+\%/
-  artifacts:
-    name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
-    expire_in: 2 days
-    untracked: true
-    when: always
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
-      junit: junit.xml
+include: .gitlab/common.yml
 
-.test_script_sched_template_seq: &test_script_sched_seq
-  extends:
-    - .test_script_sched_template
-    - .only-branches-seq
-
-.test_script_sched_template_mpi: &test_script_sched_mpi
-  extends:
-    - .test_script_sched_template
-    - .only-branches-mpi
-
-test_seq_sched:
-  variables:
-    VERSION: seq
-  needs: [build_pastix_seq]
+test_seq_sched_linux:
+  extends: .test_script_linux
+  dependencies: [build_seq]
+  needs: [build_seq]
   parallel:
     matrix:
       - SCHED: [0, 1, 2, 3, 4]
         RUN: shm
-  dependencies:
-    - build_pastix_seq
-  <<: *test_script_sched_seq
-
-test_mpi_sched:
   variables:
-    VERSION: mpi
-  needs: [build_pastix_mpi]
+    SYSTEM: linux
+    VERSION: seq
+    LOGNAME: "pastix-test-${SYSTEM}-${VERSION}-${RUN}-sched${SCHED}"
+    TESTS_RESTRICTION: "-R ^${RUN}_.*_sched${SCHED}"
+
+test_mpi_sched_linux:
+  extends: .test_script_linux
+  dependencies: [build_mpi]
+  needs: [build_mpi]
   parallel:
     matrix:
       - SCHED: [0, 1, 4]
         RUN: [shm, mpi_rep, mpi_dst]
       - SCHED: [2, 3]
         RUN: [shm, mpi_rep]
-  dependencies:
-    - build_pastix_mpi
-  <<: *test_script_sched_mpi
+  variables:
+    SYSTEM: linux
+    VERSION: mpi
+    LOGNAME: "pastix-test-${SYSTEM}-${VERSION}-${RUN}-sched${SCHED}"
+    TESTS_RESTRICTION: "-R ^${RUN}_.*_sched${SCHED}"
+
+.test_script_macosx:
+  stage: test
+  tags: ["macosx"]
+  extends: .only-master-mr
+  script:
+    - bash .gitlab/test.sh | tee ${LOGNAME}.log
+  artifacts:
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+    expire_in: 180 minutes
+    paths:
+      - ${LOGNAME}.log
+    reports:
+      junit: ${LOGNAME}-junit.xml
+  cache:
+    key: "${SYSTEM}-${VERSION}-$CI_COMMIT_REF_SLUG"
+    untracked: true
+    policy: pull
+
+test_seq_shm_macosx:
+  extends: .test_script_macosx
+  dependencies: [build_seq_macosx]
+  needs: [build_seq_macosx]
+  variables:
+    SYSTEM: macosx
+    RUN: shm
+    VERSION: seq
+    LOGNAME: "pastix-test-${SYSTEM}-${VERSION}-${RUN}"
+    TESTS_RESTRICTION: "-R ^${RUN}"
+
+# FIXME: some tests are segfaulting
+.test_mpi_dist_macosx:
+  extends: .test_script_macosx
+  dependencies: [build_mpi_macosx]
+  needs: [build_mpi_macosx]
+  variables:
+    SYSTEM: macosx
+    RUN: mpi_dst
+    VERSION: mpi
+    LOGNAME: "pastix-test-${SYSTEM}-${VERSION}-${RUN}"
+    TESTS_RESTRICTION: "-R ^${RUN}"
+
+.test_script_windows:
+  stage: test
+  tags: ["windows"]
+  extends: .only-master-mr
+  script:
+    - bash -lc .gitlab/test.sh | tee "$env:LOGNAME.log"
+  artifacts:
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+    expire_in: 180 minutes
+    paths:
+      - ${LOGNAME}.log
+    reports:
+      junit: ${LOGNAME}-junit.xml
+  cache:
+    key: "${SYSTEM}-${VERSION}-$CI_COMMIT_REF_SLUG"
+    untracked: true
+    policy: pull
+
+# FIXME: some tests are blocking reaching the ctest timeout of 1500s
+.test_seq_shm_windows:
+  extends: .test_script_windows
+  dependencies: [build_seq_windows]
+  needs: [build_seq_windows]
+  variables:
+    SYSTEM: windows
+    CHERE_INVOKING: "yes"
+    MSYSTEM: UCRT64
+    RUN: shm
+    VERSION: seq
+    LOGNAME: "pastix-test-${SYSTEM}-${VERSION}-${RUN}"
+    TESTS_RESTRICTION: "-R ^${RUN}"

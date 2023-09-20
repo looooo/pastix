@@ -11,7 +11,7 @@
 #  @date 2023-05-15
 #
 ###
-cmake_minimum_required (VERSION 3.3)
+cmake_minimum_required (VERSION 3.5)
 cmake_policy(SET CMP0054 NEW)
 
 ### CTest execution
@@ -74,7 +74,7 @@ foreach( version ${RUNTYPE} )
   set( exe "" )
   set( opt "" )
   if( NOT version STREQUAL "shm" )
-    set( exe mpiexec -n 4 )
+    set( exe mpiexec -n 4 --oversubscribe )
     if( version STREQUAL "mpi_dst" )
       set( opt "-a 1" )
     endif()
