@@ -33,7 +33,7 @@
 static inline void
 psi_register_data_handle( starpu_data_handle_t handle, int home_node, void *data_interface )
 {
-    pastix_starpu_interface_t *interface = (pastix_starpu_interface_t *)data_interface;
+    pastix_starpu_interface_t *interf = (pastix_starpu_interface_t *)data_interface;
     int                        node;
 
     pastix_starpu_logger;
@@ -42,7 +42,7 @@ psi_register_data_handle( starpu_data_handle_t handle, int home_node, void *data
         pastix_starpu_interface_t *local_interface =
             (pastix_starpu_interface_t *)starpu_data_get_interface_on_node( handle, node );
 
-        memcpy( local_interface, interface, sizeof( pastix_starpu_interface_t ) );
+        memcpy( local_interface, interf, sizeof( pastix_starpu_interface_t ) );
 
         if ( node != home_node ) {
             local_interface->dataptr = NULL;
@@ -53,14 +53,14 @@ psi_register_data_handle( starpu_data_handle_t handle, int home_node, void *data
 static inline starpu_ssize_t
 psi_allocate_data_on_node( void *data_interface, unsigned node )
 {
-    pastix_starpu_interface_t *interface = (pastix_starpu_interface_t *)data_interface;
+    pastix_starpu_interface_t *interf = (pastix_starpu_interface_t *)data_interface;
     starpu_ssize_t             allocated_memory;
     uintptr_t                  addr = 0;
     uintptr_t                  handle;
 
     pastix_starpu_logger;
 
-    allocated_memory = interface->allocsize;
+    allocated_memory = interf->allocsize;
     if ( allocated_memory <= 0 ) {
         return 0;
     }
@@ -75,25 +75,25 @@ psi_allocate_data_on_node( void *data_interface, unsigned node )
     }
 
     /* update the data properly */
-    interface->dataptr = (void *)addr;
+    interf->dataptr = (void *)addr;
 
     /* /\* Allocate the workspace for the low-rank blocks *\/ */
-    /* if ( interface->cblk->cblktype & CBLK_COMPRESSED ) */
+    /* if ( interf->cblk->cblktype & CBLK_COMPRESSED ) */
     /* { */
-    /*     SolverBlok       *blok    = interface->cblk->fblokptr; */
-    /*     pastix_lrblock_t *LRblock = interface->dataptr; */
-    /*     int               offset  = pastix_imax( 0, interface->offset ); */
+    /*     SolverBlok       *blok    = interf->cblk->fblokptr; */
+    /*     pastix_lrblock_t *LRblock = interf->dataptr; */
+    /*     int               offset  = pastix_imax( 0, interf->offset ); */
     /*     int               i, ncols, M; */
 
     /*     assert( node == STARPU_MAIN_RAM ); */
 
-    /*     ncols = cblk_colnbr( interface->cblk ); */
+    /*     ncols = cblk_colnbr( interf->cblk ); */
     /*     blok += offset; */
-    /*     for ( i = 0; i < interface->nbblok; i++, blok++, LRblock++ ) { */
+    /*     for ( i = 0; i < interf->nbblok; i++, blok++, LRblock++ ) { */
     /*         M = blok_rownbr( blok ); */
 
     /*         /\* Allocate the LR block to its max space *\/ */
-    /*         switch ( interface->flttype ) { */
+    /*         switch ( interf->flttype ) { */
     /*             case PastixComplex64: */
     /*                 core_zlralloc( M, ncols, -1, LRblock ); */
     /*                 break; */
@@ -118,23 +118,23 @@ psi_allocate_data_on_node( void *data_interface, unsigned node )
 static inline void
 psi_free_data_on_node( void *data_interface, unsigned node )
 {
-    pastix_starpu_interface_t *interface = (pastix_starpu_interface_t *)data_interface;
+    pastix_starpu_interface_t *interf = (pastix_starpu_interface_t *)data_interface;
 
-    /* SolverCblk *cblk = interface->cblk; */
+    /* SolverCblk *cblk = interf->cblk; */
 
     pastix_starpu_logger;
 
-    starpu_free_on_node( node, (uintptr_t)interface->dataptr, interface->allocsize );
+    starpu_free_on_node( node, (uintptr_t)interf->dataptr, interf->allocsize );
 
-    interface->dataptr = NULL;
+    interf->dataptr = NULL;
 }
 
 static inline void
 psi_init( void *data_interface )
 {
-    pastix_starpu_interface_t *interface = data_interface;
-    interface->id                        = PASTIX_STARPU_INTERFACE_ID;
-    interface->allocsize                 = -1;
+    pastix_starpu_interface_t *interf = data_interface;
+    interf->id                        = PASTIX_STARPU_INTERFACE_ID;
+    interf->allocsize                 = -1;
 
     pastix_starpu_logger;
 }
@@ -143,29 +143,29 @@ static inline void *
 psi_to_pointer( void *data_interface, unsigned node )
 {
     (void)node;
-    pastix_starpu_interface_t *interface = (pastix_starpu_interface_t *)data_interface;
+    pastix_starpu_interface_t *interf = (pastix_starpu_interface_t *)data_interface;
 
     pastix_starpu_logger;
 
-    return interface->dataptr;
+    return interf->dataptr;
 }
 
 static inline size_t
 psi_get_size( starpu_data_handle_t handle )
 {
-    pastix_starpu_interface_t *interface =
+    pastix_starpu_interface_t *interf =
         starpu_data_get_interface_on_node( handle, STARPU_MAIN_RAM );
     size_t       size;
-    SolverCblk  *cblk  = interface->cblk;
+    SolverCblk  *cblk  = interf->cblk;
     pastix_int_t ncols = cblk_colnbr( cblk );
     size_t       nrows;
 
-    if ( interface->offset == -1 ) {
+    if ( interf->offset == -1 ) {
         nrows = cblk->stride;
     }
     else {
-        SolverBlok *fblok = interface->cblk->fblokptr + interface->offset;
-        SolverBlok *lblok = fblok + interface->nbblok;
+        SolverBlok *fblok = interf->cblk->fblokptr + interf->offset;
+        SolverBlok *lblok = fblok + interf->nbblok;
 
         nrows = 0;
         for( ; fblok < lblok; fblok++ ) {
@@ -176,7 +176,7 @@ psi_get_size( starpu_data_handle_t handle )
     size = ncols * nrows;
 
 #ifdef STARPU_DEBUG
-    STARPU_ASSERT_MSG( interface->id == PASTIX_STARPU_INTERFACE_ID,
+    STARPU_ASSERT_MSG( interf->id == PASTIX_STARPU_INTERFACE_ID,
                        "psi_get_size: The given data is not a pastix interface for starpu." );
 #endif
 
@@ -186,43 +186,43 @@ psi_get_size( starpu_data_handle_t handle )
 static inline size_t
 psi_get_alloc_size( starpu_data_handle_t handle )
 {
-    pastix_starpu_interface_t *interface =
+    pastix_starpu_interface_t *interf =
         starpu_data_get_interface_on_node( handle, STARPU_MAIN_RAM );
 
     pastix_starpu_logger;
 
 #ifdef STARPU_DEBUG
-    STARPU_ASSERT_MSG( interface->id == PASTIX_STARPU_INTERFACE_ID,
+    STARPU_ASSERT_MSG( interf->id == PASTIX_STARPU_INTERFACE_ID,
                        "psi_get_alloc_size: The given data is not a pastix interface for starpu." );
 #endif
 
-    STARPU_ASSERT_MSG( interface->allocsize != (size_t)-1,
+    STARPU_ASSERT_MSG( interf->allocsize != (size_t)-1,
                        "psi_get_alloc_size: The allocation size needs to be defined" );
 
-    return interface->allocsize;
+    return interf->allocsize;
 }
 
 static inline uint32_t
 psi_footprint( starpu_data_handle_t handle )
 {
-    pastix_starpu_interface_t *interface =
+    pastix_starpu_interface_t *interf =
         starpu_data_get_interface_on_node( handle, STARPU_MAIN_RAM );
-    SolverCblk *cblk = interface->cblk;
+    SolverCblk *cblk = interf->cblk;
 
     pastix_starpu_logger;
 
-    return starpu_hash_crc32c_be( cblk->gcblknum, interface->offset + 1 );
+    return starpu_hash_crc32c_be( cblk->gcblknum, interf->offset + 1 );
 }
 
 static inline uint32_t
 psi_alloc_footprint( starpu_data_handle_t handle )
 {
-    pastix_starpu_interface_t *interface =
+    pastix_starpu_interface_t *interf =
         starpu_data_get_interface_on_node( handle, STARPU_MAIN_RAM );
 
     pastix_starpu_logger;
 
-    return starpu_hash_crc32c_be( interface->allocsize, 0 );
+    return starpu_hash_crc32c_be( interf->allocsize, 0 );
 }
 
 static inline int
@@ -255,38 +255,38 @@ psi_alloc_compare( void *data_interface_a, void *data_interface_b )
 static inline void
 psi_display( starpu_data_handle_t handle, FILE *f )
 {
-    pastix_starpu_interface_t *interface =
+    pastix_starpu_interface_t *interf =
         (pastix_starpu_interface_t *)starpu_data_get_interface_on_node( handle, STARPU_MAIN_RAM );
 
-    SolverCblk *cblk = interface->cblk;
+    SolverCblk *cblk = interf->cblk;
 
     pastix_starpu_logger;
 
-    if ( interface->offset == -1 ) {
+    if ( interf->offset == -1 ) {
         fprintf( f, "Cblk%ld", (long)( cblk->gcblknum ) );
     }
     else {
-        fprintf( f, "Cblk%ldBlok%ld", (long)( cblk->gcblknum ), (long)( interface->offset ) );
+        fprintf( f, "Cblk%ldBlok%ld", (long)( cblk->gcblknum ), (long)( interf->offset ) );
     }
 }
 
 static inline size_t
-psi_compute_size_lr( pastix_starpu_interface_t *interface )
+psi_compute_size_lr( pastix_starpu_interface_t *interf )
 {
-    assert( interface->cblk->cblktype & CBLK_COMPRESSED );
+    assert( interf->cblk->cblktype & CBLK_COMPRESSED );
 
-    size_t            elemsize = pastix_size_of( interface->flttype );
-    pastix_lrblock_t *LRblock  = interface->dataptr;
-    pastix_int_t      N        = cblk_colnbr( interface->cblk );
+    size_t            elemsize = pastix_size_of( interf->flttype );
+    pastix_lrblock_t *LRblock  = interf->dataptr;
+    pastix_int_t      N        = cblk_colnbr( interf->cblk );
     pastix_int_t      suv, M;
 
-    SolverBlok *blok = interface->cblk->fblokptr + pastix_imax( 0, interface->offset );
+    SolverBlok *blok = interf->cblk->fblokptr + pastix_imax( 0, interf->offset );
 
     pastix_starpu_logger;
 
     suv = 0;
     int    i;
-    for ( i = 0; i < interface->nbblok; i++, blok++, LRblock++ ) {
+    for ( i = 0; i < interf->nbblok; i++, blok++, LRblock++ ) {
         M = blok_rownbr( blok );
         suv += sizeof( int ) + core_zlrgetsize( M, N, LRblock ) * elemsize;
     }
@@ -294,34 +294,34 @@ psi_compute_size_lr( pastix_starpu_interface_t *interface )
 }
 
 static inline size_t
-psi_compute_size_fr( pastix_starpu_interface_t *interface )
+psi_compute_size_fr( pastix_starpu_interface_t *interf )
 {
-    assert( !( interface->cblk->cblktype & CBLK_COMPRESSED ) );
+    assert( !( interf->cblk->cblktype & CBLK_COMPRESSED ) );
 
     pastix_starpu_logger;
 
-    return interface->allocsize;
+    return interf->allocsize;
 }
 
 static inline void
-psi_pack_lr( pastix_starpu_interface_t *interface, void **ptr )
+psi_pack_lr( pastix_starpu_interface_t *interf, void **ptr )
 {
-    assert( interface->cblk->cblktype & CBLK_COMPRESSED );
+    assert( interf->cblk->cblktype & CBLK_COMPRESSED );
 
     char             *tmp      = *ptr;
-    pastix_lrblock_t *LRblock  = interface->dataptr;
-    int               N        = cblk_colnbr( interface->cblk );
+    pastix_lrblock_t *LRblock  = interf->dataptr;
+    int               N        = cblk_colnbr( interf->cblk );
     int               j        = 0;
     int               M;
 
-    SolverBlok *blok = interface->cblk->fblokptr + pastix_imax( 0, interface->offset );
+    SolverBlok *blok = interf->cblk->fblokptr + pastix_imax( 0, interf->offset );
 
     pastix_starpu_logger;
 
-    for ( ; j < interface->nbblok; j++, blok++, LRblock++ ) {
+    for ( ; j < interf->nbblok; j++, blok++, LRblock++ ) {
         M = blok_rownbr( blok );
 
-        switch ( interface->flttype ) {
+        switch ( interf->flttype ) {
         case PastixComplex64:
             tmp = core_zlrpack( M, N, LRblock, tmp );
             break;
@@ -341,13 +341,13 @@ psi_pack_lr( pastix_starpu_interface_t *interface, void **ptr )
 }
 
 static inline void
-psi_pack_fr( pastix_starpu_interface_t *interface, void **ptr, starpu_ssize_t *count )
+psi_pack_fr( pastix_starpu_interface_t *interf, void **ptr, starpu_ssize_t *count )
 {
-    assert( !( interface->cblk->cblktype & CBLK_COMPRESSED ) );
+    assert( !( interf->cblk->cblktype & CBLK_COMPRESSED ) );
 
     pastix_starpu_logger;
 
-    memcpy( *ptr, interface->dataptr, *count );
+    memcpy( *ptr, interf->dataptr, *count );
 }
 
 static inline int
@@ -355,28 +355,28 @@ psi_pack_data( starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ss
 {
     STARPU_ASSERT( starpu_data_test_if_allocated_on_node( handle, node ) );
 
-    pastix_starpu_interface_t *interface =
+    pastix_starpu_interface_t *interf =
         (pastix_starpu_interface_t *)starpu_data_get_interface_on_node( handle, node );
 
-    SolverCblk *cblk = interface->cblk;
+    SolverCblk *cblk = interf->cblk;
 
     pastix_starpu_logger;
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        *count = psi_compute_size_lr( interface );
+        *count = psi_compute_size_lr( interf );
     }
     else {
-        *count = psi_compute_size_fr( interface );
+        *count = psi_compute_size_fr( interf );
     }
 
     if ( ptr != NULL ) {
         *ptr = (void *)starpu_malloc_on_node_flags( node, *count, 0 );
 
         if ( cblk->cblktype & CBLK_COMPRESSED ) {
-            psi_pack_lr( interface, ptr );
+            psi_pack_lr( interf, ptr );
         }
         else {
-            psi_pack_fr( interface, ptr, count );
+            psi_pack_fr( interf, ptr, count );
         }
     }
 
@@ -384,36 +384,36 @@ psi_pack_data( starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ss
 }
 
 static inline void
-psi_unpack_lr( pastix_starpu_interface_t *interface, unsigned node, const void *ptr, size_t count )
+psi_unpack_lr( pastix_starpu_interface_t *interf, unsigned node, const void *ptr, size_t count )
 {
-    SolverBlok       *blok    = interface->cblk->fblokptr + pastix_imax( 0, interface->offset );
+    SolverBlok       *blok    = interf->cblk->fblokptr + pastix_imax( 0, interf->offset );
     pastix_lrblock_t *LRblock;
     const char       *input   = ptr;
     char             *output;
-    size_t            lrsize  = interface->nbblok * sizeof( pastix_lrblock_t );
-    int               N       = cblk_colnbr( interface->cblk );
+    size_t            lrsize  = interf->nbblok * sizeof( pastix_lrblock_t );
+    int               N       = cblk_colnbr( interf->cblk );
     int               i;
 
     pastix_starpu_logger;
 
-    assert( interface->cblk->cblktype & CBLK_COMPRESSED );
-    assert( interface->allocsize == 0 );
+    assert( interf->cblk->cblktype & CBLK_COMPRESSED );
+    assert( interf->allocsize == 0 );
 
     /* Remove the size of all the rk */
-    count -= interface->nbblok * sizeof( int );
+    count -= interf->nbblok * sizeof( int );
 
-    interface->allocsize = count + lrsize;
-    psi_allocate_data_on_node( interface, node );
+    interf->allocsize = count + lrsize;
+    psi_allocate_data_on_node( interf, node );
 
-    LRblock = interface->dataptr;
-    output  = interface->dataptr;
+    LRblock = interf->dataptr;
+    output  = interf->dataptr;
     output += lrsize;
 
-    for ( i=0; i < interface->nbblok; i++, blok++, LRblock++ ) {
+    for ( i=0; i < interf->nbblok; i++, blok++, LRblock++ ) {
         int M = blok_rownbr( blok );
 
         /* Allocate the LR block to its tight space */
-        switch ( interface->flttype ) {
+        switch ( interf->flttype ) {
             case PastixComplex64:
                 input = core_zlrunpack2( M, N, LRblock, input, &output );
                 break;
@@ -433,29 +433,29 @@ psi_unpack_lr( pastix_starpu_interface_t *interface, unsigned node, const void *
 }
 
 static inline void
-psi_unpack_fr( pastix_starpu_interface_t *interface, void *ptr, size_t count )
+psi_unpack_fr( pastix_starpu_interface_t *interf, void *ptr, size_t count )
 {
     pastix_starpu_logger;
 
-    assert( count == interface->allocsize );
-    memcpy( interface->dataptr, ptr, count );
+    assert( count == interf->allocsize );
+    memcpy( interf->dataptr, ptr, count );
 }
 
 static inline int
 psi_peek_data( starpu_data_handle_t handle, unsigned node, void *ptr, size_t count )
 {
-    pastix_starpu_interface_t *interface =
+    pastix_starpu_interface_t *interf =
         (pastix_starpu_interface_t *)starpu_data_get_interface_on_node( handle, node );
 
     STARPU_ASSERT( starpu_data_test_if_allocated_on_node( handle, node ) );
 
     pastix_starpu_logger;
 
-    if ( interface->cblk->cblktype & CBLK_COMPRESSED ) {
-        psi_unpack_lr( interface, node, ptr, count );
+    if ( interf->cblk->cblktype & CBLK_COMPRESSED ) {
+        psi_unpack_lr( interf, node, ptr, count );
     }
     else {
-        psi_unpack_fr( interface, ptr, count );
+        psi_unpack_fr( interf, ptr, count );
     }
 
     return 0;
@@ -477,8 +477,8 @@ psi_unpack_data( starpu_data_handle_t handle, unsigned node, void *ptr, size_t c
 static inline starpu_ssize_t
 psi_describe( void *data_interface, char *buf, size_t size )
 {
-    pastix_starpu_interface_t *interface = (pastix_starpu_interface_t *)data_interface;
-    SolverCblk                *cblk      = interface->cblk;
+    pastix_starpu_interface_t *interf = (pastix_starpu_interface_t *)data_interface;
+    SolverCblk                *cblk      = interf->cblk;
 
     pastix_starpu_logger;
 
@@ -629,7 +629,7 @@ pastix_starpu_register( starpu_data_handle_t *handleptr,
                         pastix_coefside_t     side,
                         pastix_coeftype_t     flttype )
 {
-    pastix_starpu_interface_t interface = {
+    pastix_starpu_interface_t interf = {
         .id        = PASTIX_STARPU_INTERFACE_ID,
         .flttype   = flttype,
         .offset    = -1,
@@ -653,27 +653,27 @@ pastix_starpu_register( starpu_data_handle_t *handleptr,
      */
     if ( !( cblk->cblktype & CBLK_COMPRESSED ) ) {
         size              = cblk->stride * cblk_colnbr( cblk ) * pastix_size_of( flttype );
-        interface.dataptr = side == PastixLCoef ? cblk->lcoeftab : cblk->ucoeftab;
+        interf.dataptr = side == PastixLCoef ? cblk->lcoeftab : cblk->ucoeftab;
     }
     else {
         if ( home_node != -1 )
         {
             size = ( lblok - fblok ) * sizeof( pastix_lrblock_t );
         }
-        interface.dataptr = cblk->fblokptr->LRblock[side];
+        interf.dataptr = cblk->fblokptr->LRblock[side];
     }
 
-    interface.nbblok    = lblok - fblok;
-    interface.allocsize = size;
+    interf.nbblok    = lblok - fblok;
+    interf.allocsize = size;
 
 #if defined(PASTIX_STARPU_INTERFACE_DEBUG)
     fprintf( stderr,
              "cblk (%9s, size=%8zu, nbblok=%2ld )\n",
              cblk->cblktype & CBLK_COMPRESSED ? "Low-rank" : "Full-rank",
-             interface.allocsize, (long)(interface.nbblok) );
+             interf.allocsize, (long)(interf.nbblok) );
 #endif
 
-    starpu_data_register( handleptr, home_node, &interface, &pastix_starpu_interface_ops );
+    starpu_data_register( handleptr, home_node, &interf, &pastix_starpu_interface_ops );
 }
 
 /**

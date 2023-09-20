@@ -1,45 +1,80 @@
 ---
-.build_script_template: &build_script
+.build_script_linux:
   stage: build
   tags: ["docker", "large"]
+  extends: .only-master-mr
+  script:
+    - bash .gitlab/build.sh | tee ${LOGNAME}.log
   artifacts:
-    name: pastix_build_${VERSION}
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     expire_in: 180 minutes
     untracked: true
-    paths:
-      - install-${VERSION}
-      - build
-      - pastix_build_${VERSION}.log
-  script:
-    - echo $VERSION | tee pastix_build_${VERSION}.log
-    - cd build
-    - cmake -DPASTIX_CI_VERSION=${VERSION}
-            -DPASTIX_CI_BRANCH=${BRANCH}
-            -C ${CI_PROJECT_DIR}/.gitlab/ci-test-initial-cache.cmake ${CI_PROJECT_DIR}
-    - cp compile_commands.json compile_commands-${VERSION}.json
-    - make -j 4    | tee -a ../pastix_build_${VERSION}.log
-    - make install | tee -a ../pastix_build_${VERSION}.log
-  only:
-    - branches
-    - master@pastix/pastix
-    - master@solverstack/pastix
 
-.build_script_template_seq: &build_script_seq
-  extends:
-    - .build_script_template
-    - .only-branches-seq
-
-.build_script_template_mpi: &build_script_mpi
-  extends:
-    - .build_script_template
-    - .only-branches-mpi
-
-build_pastix_seq:
-  <<: *build_script_seq
+build_seq:
+  extends: .build_script_linux
   variables:
+    SYSTEM: linux
     VERSION: seq
+    LOGNAME: "pastix-build-${SYSTEM}-${VERSION}"
 
-build_pastix_mpi:
-  <<: *build_script_mpi
+build_mpi:
+  extends: .build_script_linux
   variables:
+    SYSTEM: linux
     VERSION: mpi
+    LOGNAME: "pastix-build-${SYSTEM}-${VERSION}"
+
+.build_script_macosx:
+  stage: build
+  tags: ["macosx"]
+  extends: .only-master-mr
+  script:
+    - bash .gitlab/build.sh | tee ${LOGNAME}.log
+  artifacts:
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+    expire_in: 180 minutes
+    paths:
+      - ${LOGNAME}.log
+  cache:
+    key: "${SYSTEM}-${VERSION}-$CI_COMMIT_REF_SLUG"
+    untracked: true
+    policy: push
+
+build_seq_macosx:
+  extends: .build_script_macosx
+  variables:
+    SYSTEM: macosx
+    VERSION: seq
+    LOGNAME: "pastix-build-${SYSTEM}-${VERSION}"
+
+build_mpi_macosx:
+  extends: .build_script_macosx
+  variables:
+    SYSTEM: macosx
+    VERSION: mpi
+    LOGNAME: "pastix-build-${SYSTEM}-${VERSION}"
+
+.build_script_windows:
+  stage: build
+  tags: ['windows']
+  extends: .only-master-mr
+  script:
+    - bash -lc .gitlab/build.sh | tee "$env:LOGNAME.log"
+  artifacts:
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+    expire_in: 180 minutes
+    paths:
+      - ${LOGNAME}.log
+  cache:
+    key: "${SYSTEM}-${VERSION}-$CI_COMMIT_REF_SLUG"
+    untracked: true
+    policy: push
+
+build_seq_windows:
+  extends: .build_script_windows
+  variables:
+    SYSTEM: windows
+    CHERE_INVOKING: "yes"
+    MSYSTEM: UCRT64
+    VERSION: seq
+    LOGNAME: "pastix-build-${SYSTEM}-${VERSION}"

@@ -12,4 +12,3 @@ preliminary_checks:
   only:
     - merge_requests
   interruptible: true
-
