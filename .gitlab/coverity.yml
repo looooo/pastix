@@ -1,9 +1,13 @@
 ---
 coverity:
-  stage: qa
+  stage: analyze
   tags: ["docker", "large"]
-  extends: .only-master-mr
-  when: manual
+  interruptible: true
+  rules:
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH =~ /^ci-.*$/) && $CI_PIPELINE_SOURCE != "schedule"
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
+      when: manual
+      allow_failure: true
   dependencies: []
   artifacts:
     name: pastix_coverity

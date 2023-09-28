@@ -1,13 +1,17 @@
 ---
 sonarqube:
-  stage: qa
+  stage: analyze
   tags: ["docker"]
-  extends: .only-master-mr
-  when: manual
-  dependencies: [build_mpi,
-                 test_seq,test_mpi,test_seq_sched_linux,test_mpi_sched_linux,
-                 test_seq_wrapper_linux,test_mpi_wrapper_linux,
-                 coverage]
+  interruptible: true
+  rules:
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH =~ /^ci-.*$/) && $CI_PIPELINE_SOURCE != "schedule"
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
+      when: manual
+      allow_failure: true
+  needs: [build_mpi,
+          test_seq,test_mpi,test_seq_sched_linux,test_mpi_sched_linux,
+          test_seq_wrapper_linux,test_mpi_wrapper_linux,
+          coverage]
   script:
     - ls -l build/*.json
     - ls -l pastix-build*.log

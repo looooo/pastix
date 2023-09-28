@@ -2,26 +2,27 @@
 # This file describes the common rules for the stages
 #
 ---
+# push event: executed only if the source branch name is master or starts with ci-
+# schedule event: not executed
 .only-master:
   interruptible: true
-  variables:
-    BRANCH: master
-  except:
-    - schedules
-  only:
-    - master@solverstack/pastix
-    - master@pastix/pastix
+  rules:
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH =~ /^ci-.*$/) && $CI_PIPELINE_SOURCE != "schedule"
 
+# push event: executed only if the source branch name is master or starts with ci-
+# merge request event: executed if the source branch name does not start with notest-
+# schedule event: not executed
 .only-master-mr:
   interruptible: true
-  variables:
-    BRANCH: branch
-  except:
-    - schedules
-  only:
-    - merge_requests
-    - master@pastix/pastix
-    - master@solverstack/pastix
+  rules:
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH =~ /^ci-.*$/) && $CI_PIPELINE_SOURCE != "schedule"
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
+
+# merge request event: executed if the source branch name does not start with notest-
+.only-mr:
+  interruptible: true
+  rules:
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
 
 .test_script_linux:
   stage: test
