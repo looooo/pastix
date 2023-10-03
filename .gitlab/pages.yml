@@ -2,6 +2,7 @@
 pages:
   stage: deploy
   tags: ["docker"]
+  extends: .only-master
   dependencies: []
   artifacts:
     paths:
@@ -14,5 +15,3 @@ pages:
     - make -j5
     - make docs | tee pastix-doc.log
     - mv docs/out/html ../public/
-  extends:
-    - .only-master

@@ -8,8 +8,6 @@ coverage:
   extends: .only-master-mr
   needs: [test_seq,test_mpi,test_seq_sched_linux,test_mpi_sched_linux,
           test_seq_wrapper_linux,test_mpi_wrapper_linux]
-  dependencies: [test_seq,test_mpi,test_seq_sched_linux,test_mpi_sched_linux,
-                 test_seq_wrapper_linux,test_mpi_wrapper_linux]
   script:
     - ${CI_PROJECT_DIR}/tools/coverage.sh
   coverage: /^\s*lines......:\s*\d+.\d+\%/

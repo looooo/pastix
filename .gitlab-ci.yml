@@ -6,7 +6,8 @@ stages:
   - build
   - test
   - coverage
-  - qa
+  - analyze
+  - validate
   - deploy
 
 # git config --global have been added to get around the issue related in
@@ -21,13 +22,14 @@ before_script:
 
 include:
   - .gitlab/preliminary.yml
-  - .gitlab/benchmark.yml
   - .gitlab/common.yml
   - .gitlab/build.yml
   - .gitlab/test.yml
   - .gitlab/test_wrapper.yml
   - .gitlab/coverage.yml
+  - .gitlab/coverity.yml
   - .gitlab/sonarqube.yml
+  - .gitlab/validate.yml
+  - .gitlab/benchmark.yml
   - .gitlab/pages.yml
   - .gitlab/release.yml
-  - .gitlab/coverity.yml

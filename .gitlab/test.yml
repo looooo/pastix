@@ -3,7 +3,6 @@ include: .gitlab/common.yml
 
 test_seq_sched_linux:
   extends: .test_script_linux
-  dependencies: [build_seq]
   needs: [build_seq]
   parallel:
     matrix:
@@ -17,7 +16,6 @@ test_seq_sched_linux:
 
 test_mpi_sched_linux:
   extends: .test_script_linux
-  dependencies: [build_mpi]
   needs: [build_mpi]
   parallel:
     matrix:
@@ -51,7 +49,6 @@ test_mpi_sched_linux:
 
 test_seq_shm_macosx:
   extends: .test_script_macosx
-  dependencies: [build_seq_macosx]
   needs: [build_seq_macosx]
   variables:
     SYSTEM: macosx
@@ -63,7 +60,6 @@ test_seq_shm_macosx:
 # FIXME: some tests are segfaulting
 .test_mpi_dist_macosx:
   extends: .test_script_macosx
-  dependencies: [build_mpi_macosx]
   needs: [build_mpi_macosx]
   variables:
     SYSTEM: macosx
@@ -93,7 +89,6 @@ test_seq_shm_macosx:
 # FIXME: some tests are blocking reaching the ctest timeout of 1500s
 .test_seq_shm_windows:
   extends: .test_script_windows
-  dependencies: [build_seq_windows]
   needs: [build_seq_windows]
   variables:
     SYSTEM: windows

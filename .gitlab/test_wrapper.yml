@@ -3,7 +3,6 @@ include: .gitlab/common.yml
 
 test_seq_wrapper_linux:
   extends: .test_script_linux
-  dependencies: [build_seq]
   needs: [build_seq]
   parallel:
     matrix:
@@ -16,7 +15,6 @@ test_seq_wrapper_linux:
 
 test_mpi_wrapper_linux:
   extends: .test_script_linux
-  dependencies: [build_mpi]
   needs: [build_mpi]
   parallel:
     matrix:
@@ -29,7 +27,6 @@ test_mpi_wrapper_linux:
 
 test_seq:
   extends: .test_script_linux
-  dependencies: [build_seq]
   needs: [build_seq]
   parallel:
     matrix:
@@ -42,7 +39,6 @@ test_seq:
 
 test_mpi:
   extends: .test_script_linux
-  dependencies: [build_mpi]
   needs: [build_mpi]
   parallel:
     matrix:
