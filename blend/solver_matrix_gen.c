@@ -93,12 +93,14 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                  PASTIX_Comm            comm,
                  isched_t              *isched )
 {
-    pastix_int_t          i;
-    pastix_int_t         *cblklocalnum;
-    pastix_int_t         *bloklocalnum;
-    pastix_int_t         *tasklocalnum;
-    pastix_int_t         *browtmp;
+    pastix_int_t         i;
+    pastix_int_t        *cblklocalnum;
+    pastix_int_t        *bloklocalnum;
+    pastix_int_t        *tasklocalnum;
+    pastix_int_t        *browtmp;
     solver_cblk_recv_t **ftgttab = NULL;
+    pastix_int_t        *faninnbr_tab = NULL;
+    pastix_int_t         clustnbr = ctrl->clustnbr;
     (void)ordeptr;
 
     assert( symbmtx->baseval == 0 );
@@ -109,7 +111,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
     solvmtx->btree = ctrl->btree;
 #endif
     solvmtx->clustnum  = ctrl->clustnum;
-    solvmtx->clustnbr  = ctrl->clustnbr;
+    solvmtx->clustnbr  = clustnbr;
     solvmtx->procnbr   = ctrl->total_nbcores;
     solvmtx->thrdnbr   = ctrl->local_nbthrds;
     solvmtx->bublnbr   = ctrl->local_nbctxts;
@@ -122,14 +124,27 @@ solverMatrixGen( SolverMatrix          *solvmtx,
     MALLOC_INTERN( ftgttab,      symbmtx->cblknbr,  solver_cblk_recv_t* );
     memset( ftgttab, 0, symbmtx->cblknbr * sizeof(solver_cblk_recv_t*) );
 
+    if ( clustnbr > 1 ) {
+        /*
+         * k is the proc number
+         * - faninnbr_tab[2*k]              corresponds to the first index of clbk fanin for k.
+         * - faninnbr_tab[2*k+1]            corresponds to the first index of blok fanin for k.
+         * - faninnbr_tab[2*clustnbr+2*k]   corresponds to the first index of clbk recv  for k.
+         * - faninnbr_tab[2*clustnbr+2*k+1] corresponds to the first index of blok recv  for k.
+         */
+        MALLOC_INTERN( faninnbr_tab, clustnbr * 4, pastix_int_t );
+        memset( faninnbr_tab, 0, clustnbr * 4 * sizeof( pastix_int_t ) );
+    }
+
     /* Compute local indexes to compress the symbol information into solver */
     solvMatGen_fill_localnums( symbmtx, simuctrl, solvmtx,
                                cblklocalnum, bloklocalnum, tasklocalnum,
-                               ftgttab );
+                               ftgttab, faninnbr_tab );
 
     solvmtx->cblkmin2d  = solvmtx->cblknbr;
     solvmtx->cblkschur  = solvmtx->cblknbr;
     solvmtx->gcblknbr   = symbmtx->cblknbr;
+    solvmtx->gbloknbr   = symbmtx->bloknbr;
 
     /***************************************************************************
      * Fill in the local bloktab and cblktab
@@ -182,10 +197,15 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                     assert( (ftgtcblk->ownerid != -1) &&
                             (ftgtcblk->ownerid != ctrl->clustnum) );
 
-                    solvblok = solvMatGen_register_remote_cblk( symbmtx, ftgtcblk,
+                    /*
+                     * solvcblk->cblktype set to CBLK_RECV temporarily for the blok
+                     * faninnm initialisation.
+                     */
+                    solvcblk->cblktype = CBLK_RECV;
+                    solvblok = solvMatGen_register_remote_cblk( solvmtx, symbmtx, ftgtcblk,
                                                                 candcblk, cblklocalnum,
                                                                 solvcblk, solvblok,
-                                                                cblknum, brownum, i );
+                                                                cblknum, brownum, i, faninnbr_tab );
 
                     /* Initialize missing fields and set to RECV */
                     solvcblk->brown2d   = brownum;
@@ -219,6 +239,8 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                     cblknum++;
 
                     solvcblk->bcscnum = -( solvmtx->fanincnt + solvmtx->recvcnt );
+                    solvcblk->gfaninnum = faninnbr_tab[2 * (clustnbr + ftgtcblk->ownerid)] + solvmtx->gcblknbr;
+                    faninnbr_tab[2 * (clustnbr + ftgtcblk->ownerid)]++;
                     solvcblk++;
 
                     {
@@ -242,8 +264,8 @@ solverMatrixGen( SolverMatrix          *solvmtx,
 
                 /* Store index for the RHS */
                 solvcblk->lcolidx = nodenbr;
-                assert( ((solvmtx->clustnbr >  1) && (nodenbr <= solvcblk->fcolnum)) ||
-                        ((solvmtx->clustnbr == 1) && (nodenbr == solvcblk->fcolnum)) );
+                assert( ((clustnbr >  1) && (nodenbr <= solvcblk->fcolnum)) ||
+                        ((clustnbr == 1) && (nodenbr == solvcblk->fcolnum)) );
 
                 /* Update local statistics */
                 nbcols = cblk_colnbr( solvcblk );
@@ -260,16 +282,23 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                 assert( (ftgtcblk->ownerid != -1) &&
                         (ftgtcblk->ownerid != ctrl->clustnum) );
 
-                solvblok = solvMatGen_register_remote_cblk( symbmtx, ftgtcblk,
+                /*
+                    * solvcblk->cblktype set to CBLK_FANIN temporarily for the blok
+                    * faninnm initialisation.
+                    */
+                solvcblk->cblktype = CBLK_FANIN;
+                solvblok = solvMatGen_register_remote_cblk( solvmtx, symbmtx, ftgtcblk,
                                                             candcblk, cblklocalnum,
                                                             solvcblk, solvblok,
-                                                            cblknum, brownum, i );
+                                                            cblknum, brownum, i, faninnbr_tab );
 
                 /* Set to fan-in */
                 solvcblk->cblktype |= CBLK_FANIN;
                 solvcblk->priority  = -1;
                 solvmtx->fanincnt++;
                 solvcblk->bcscnum = -( solvmtx->fanincnt + solvmtx->recvcnt );
+                solvcblk->gfaninnum = faninnbr_tab[2 * ftgtcblk->ownerid] + solvmtx->gcblknbr;
+                faninnbr_tab[2 * ftgtcblk->ownerid]++;
 
                 nbcols = cblk_colnbr( solvcblk );
 
@@ -285,7 +314,7 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                                  (solvblok - solvcblk->fblokptr), tasks2D, cblknum );
 
 #if defined(PASTIX_WITH_MPI)
-            if ( solvmtx->clustnbr > 1 ) {
+            if ( clustnbr > 1 ) {
 #if defined(PASTIX_BLEND_FANIN_FR)
                 if ( ( solvcblk->cblktype & CBLK_COMPRESSED ) &&
                      ( solvcblk->cblktype & ( CBLK_FANIN | CBLK_RECV ) ) ) {
@@ -394,6 +423,10 @@ solverMatrixGen( SolverMatrix          *solvmtx,
     memFree_null(bloklocalnum);
     memFree_null(tasklocalnum);
     memFree_null(ftgttab);
+
+    if ( clustnbr > 1 ) {
+        memFree_null( faninnbr_tab );
+    }
 
     /* Compute the maximum area of the temporary buffer */
     solvMatGen_max_buffers( solvmtx );

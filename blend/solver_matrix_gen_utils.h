@@ -14,7 +14,9 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Mathieu Faverge
- * @date 2023-07-21
+ * @author Alycia Lisito
+ * @author Nolan Bredel
+ * @date 2023-11-06
  *
  * @addtogroup blend_dev_solver
  * @{
@@ -85,6 +87,7 @@ solvMatGen_init_blok( SolverBlok  *solvblok,
     solvblok->handler[1] = NULL;
     solvblok->fcblknm    = fcblknm;
     solvblok->lcblknm    = lcblknm;
+    solvblok->gfaninnm   = -1;
     solvblok->frownum    = frownum;
     solvblok->lrownum    = lrownum;
     solvblok->coefind    = layout2D ? stride * nbcols : stride;
@@ -162,6 +165,7 @@ solvMatGen_init_cblk( SolverCblk          *solvcblk,
     solvcblk->brownum    = brownum;
     solvcblk->gcblknum   = cblknum;
     solvcblk->bcscnum    = -1;
+    solvcblk->gfaninnum  = -1;
     solvcblk->selevtx    = (symbcblk->selevtx == SYMBCBLK_PROJ) ? 1 : 0;
     solvcblk->ownerid    = ownerid;
     solvcblk->lcoeftab   = NULL;
@@ -289,7 +293,8 @@ void solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
                                 pastix_int_t          *cblklocalnum,
                                 pastix_int_t          *bloklocalnum,
                                 pastix_int_t          *tasklocalnum,
-                                solver_cblk_recv_t   **ftgttab );
+                                solver_cblk_recv_t   **ftgttab,
+                                pastix_int_t          *faninnbr_tab );
 
 SolverBlok* solvMatGen_register_local_cblk( const symbol_matrix_t *symbmtx,
                                             const Cand            *candcblk,
@@ -301,7 +306,8 @@ SolverBlok* solvMatGen_register_local_cblk( const symbol_matrix_t *symbmtx,
                                             pastix_int_t           gcblknm,
                                             pastix_int_t           ownerid );
 
-SolverBlok* solvMatGen_register_remote_cblk( const symbol_matrix_t    *symbmtx,
+SolverBlok* solvMatGen_register_remote_cblk( const SolverMatrix       *solvmtx,
+                                             const symbol_matrix_t    *symbmtx,
                                              const solver_cblk_recv_t *recvcblk,
                                              const Cand               *candcblk,
                                              const pastix_int_t       *cblklocalnum,
@@ -309,7 +315,8 @@ SolverBlok* solvMatGen_register_remote_cblk( const symbol_matrix_t    *symbmtx,
                                              SolverBlok               *solvblok,
                                              pastix_int_t              lcblknm,
                                              pastix_int_t              brownum,
-                                             pastix_int_t              gcblknm );
+                                             pastix_int_t              gcblknm,
+                                             pastix_int_t             *faninnbr_tab  );
 
 pastix_int_t solvMatGen_reorder_browtab( const symbol_matrix_t *symbmtx,
                                          const symbol_cblk_t   *symbcblk,

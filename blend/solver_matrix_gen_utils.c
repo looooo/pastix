@@ -70,24 +70,26 @@ solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
                            pastix_int_t          *cblklocalnum,
                            pastix_int_t          *bloklocalnum,
                            pastix_int_t          *tasklocalnum,
-                           solver_cblk_recv_t   **ftgttab )
+                           solver_cblk_recv_t   **ftgttab,
+                           pastix_int_t          *faninnbr_tab )
 {
     pastix_int_t  *localindex;
     symbol_cblk_t *symbcblk;
     symbol_blok_t *symbblok;
     pastix_int_t   cblknum, brownum, brownbr;
-    pastix_int_t   faninnbr, recvnbr;
+    pastix_int_t   faninnbr, recvnbr, faninbloknbr;
     pastix_int_t   i, j, k, c, fc;
     pastix_int_t   flaglocal;
     pastix_int_t   clustnum = solvmtx->clustnum;
+    pastix_int_t   clustnbr = solvmtx->clustnbr;
 
     /* Initialize the set of cluster candidates for each cblk */
-    MALLOC_INTERN( localindex,   solvmtx->clustnbr, pastix_int_t );
+    MALLOC_INTERN( localindex, clustnbr, pastix_int_t );
 
     /*
      * Compute local number of tasks on each cluster
      */
-    memset( localindex, 0, solvmtx->clustnbr * sizeof(pastix_int_t) );
+    memset( localindex, 0, clustnbr * sizeof(pastix_int_t) );
     for ( i = 0; i < simuctrl->tasknbr; i++ ) {
         c = simuctrl->bloktab[ simuctrl->tasktab[i].bloknum ].ownerclust;
 
@@ -100,12 +102,13 @@ solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
      * Compute the local numbering of the fan-in and recv cblks on each cluster
      */
     /* Reset the array to compute local informations */
-    memset( localindex, 0, solvmtx->clustnbr * sizeof( pastix_int_t ) );
+    memset( localindex, 0, clustnbr * sizeof( pastix_int_t ) );
 
-    cblknum  = 0;
-    brownum  = 0;
-    recvnbr  = 0;
-    faninnbr = 0;
+    cblknum      = 0;
+    brownum      = 0;
+    recvnbr      = 0;
+    faninnbr     = 0;
+    faninbloknbr = 0;
     symbcblk = symbmtx->cblktab;
     for ( i = 0; i < symbmtx->cblknbr; i++, symbcblk++ ) {
         brownbr = symbcblk[1].brownum - symbcblk[0].brownum;
@@ -236,6 +239,8 @@ solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
 
                 symbblok = symbmtx->bloktab + symbcblk->bloknum;
                 faninnbr++;
+                /* Adds a fanin cblk to ftgtcblk->ownerid cblk fanin counter. */
+                faninnbr_tab[2 * ftgtcblk->ownerid]++;
                 ftgtblok = ftgtcblk->bloktab;
                 for ( j=symbcblk[0].bloknum; j<symbcblk[1].bloknum; j++, symbblok++, ftgtblok++ )
                 {
@@ -247,6 +252,9 @@ solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
                     {
                         bloklocalnum[j] = localindex[clustnum];
                         localindex[clustnum]++;
+                        faninbloknbr++;
+                        /* Adds a fanin blok to ftgtcblk->ownerid blok fanin counter. */
+                        faninnbr_tab[2 * ftgtcblk->ownerid + 1]++;
                     }
                     else {
                         bloklocalnum[j] = -1;
@@ -271,6 +279,66 @@ solvMatGen_fill_localnums( const symbol_matrix_t *symbmtx,
     /* Reallocate recv_sources tab to diminish it's size */
     solvmtx->recvnbr  = recvnbr;
     solvmtx->faninnbr = faninnbr;
+
+#if defined(PASTIX_WITH_MPI)
+    if ( clustnbr > 1 ) {
+        pastix_int_t fanincnt, fanin_tmp;
+        pastix_int_t faninblokcnt, faninblok_tmp;
+        pastix_int_t gfaninnbr[2];
+        pastix_int_t fanin_tab[4];
+
+        fanin_tab[0] = faninnbr;
+        fanin_tab[1] = faninbloknbr;
+        fanin_tab[2] = 0;
+        fanin_tab[3] = 0;
+
+        if ( clustnum != 0 ) {
+            /* Receives global number of cblk fanin: fanin_tab[2] and blok fanin: fanin_tab[3]. */
+            MPI_Recv( &fanin_tab[2], 2, PASTIX_MPI_INT, clustnum-1, clustnum-1,
+                      solvmtx->solv_comm, MPI_STATUS_IGNORE);
+            fanin_tab[0] += fanin_tab[2];
+            fanin_tab[1] += fanin_tab[3];
+        }
+        if ( clustnum != clustnbr - 1 ) {
+            /* Sends global number of cblk fanin: fanin_tab[1] and blok fanin: fanin_tab[2]. */
+            MPI_Send( &fanin_tab[0], 2, PASTIX_MPI_INT, clustnum+1, clustnum,
+                      solvmtx->solv_comm );
+        }
+
+        /* Shares the global number of fanin. */
+        gfaninnbr[0] = fanin_tab[0];
+        gfaninnbr[1] = fanin_tab[1];
+        MPI_Bcast( &gfaninnbr, 2, PASTIX_MPI_INT, clustnbr-1, solvmtx->solv_comm );
+        solvmtx->gfanincblknbr = gfaninnbr[0];
+        solvmtx->gfaninbloknbr = gfaninnbr[1];
+
+        fanincnt     = fanin_tab[2];
+        faninblokcnt = fanin_tab[3];
+        for ( k = 0; k < clustnbr; k++ ) {
+            if ( faninnbr_tab[2 * k] == 0 ) {
+                /* No fanin cblk for k. */
+                faninnbr_tab[2 * k]     = -1;
+                /* No fanin blok for k. */
+                faninnbr_tab[2 * k + 1] = -1;
+            }
+            /* Adds fanin cblk (and blok) indexes for k. */
+            if ( faninnbr_tab[2 * k] != -1 ) {
+                /* Adds fanin cblk index for k. */
+                fanin_tmp = faninnbr_tab[2 * k];
+                faninnbr_tab[ 2 * k] = fanincnt;
+                fanincnt += fanin_tmp;
+                /* Adds fanin blok index for k. */
+                faninblok_tmp = faninnbr_tab[2 * k + 1];
+                faninnbr_tab[ 2 * k + 1] = faninblokcnt;
+                faninblokcnt += faninblok_tmp;
+            }
+        }
+
+        /* Exchanges fanin cblk and blok indexes. */
+        MPI_Alltoall( faninnbr_tab, 2, PASTIX_MPI_INT, faninnbr_tab+2*clustnbr,
+                      2, PASTIX_MPI_INT, solvmtx->solv_comm );
+    }
+#endif
 
     memFree_null( localindex );
 }
@@ -995,6 +1063,9 @@ solvMatGen_register_local_cblk( const symbol_matrix_t *symbmtx,
  *
  *******************************************************************************
  *
+ * @param[inout] solvmtx
+ *          The solver matrix.
+ *
  * @param[in] symbmtx
  *          The pointer to the symbol matrix.
  *
@@ -1024,11 +1095,17 @@ solvMatGen_register_local_cblk( const symbol_matrix_t *symbmtx,
  * @param[in] gcblknm
  *          The global index of the current cblk.
  *
+ * @param[in] faninnbr_tab
+ *          The fanin indexes array.
+ *
+ *******************************************************************************
+ *
  * @return The pointer to the next solver block to register.
  *
  *******************************************************************************/
 SolverBlok*
-solvMatGen_register_remote_cblk( const symbol_matrix_t    *symbmtx,
+solvMatGen_register_remote_cblk( const SolverMatrix       *solvmtx,
+                                 const symbol_matrix_t    *symbmtx,
                                  const solver_cblk_recv_t *recvcblk,
                                  const Cand               *candcblk,
                                  const pastix_int_t       *cblklocalnum,
@@ -1036,15 +1113,18 @@ solvMatGen_register_remote_cblk( const symbol_matrix_t    *symbmtx,
                                  SolverBlok               *solvblok,
                                  pastix_int_t              lcblknm,
                                  pastix_int_t              brownum,
-                                 pastix_int_t              gcblknm )
+                                 pastix_int_t              gcblknm,
+                                 pastix_int_t             *faninnbr_tab )
 {
     const solver_blok_recv_t *recvblok = recvcblk->bloktab;
-    symbol_cblk_t *symbcblk = symbmtx->cblktab + gcblknm;
-    symbol_blok_t *symbblok = symbmtx->bloktab + symbcblk->bloknum;
-    SolverBlok    *fblokptr = solvblok;
-    pastix_int_t   stride   = 0;
-    pastix_int_t   layout2D = candcblk->cblktype & CBLK_LAYOUT_2D;
-    pastix_int_t   fcolnum, lcolnum, nbcols, j;
+    symbol_cblk_t            *symbcblk = symbmtx->cblktab + gcblknm;
+    symbol_blok_t            *symbblok = symbmtx->bloktab + symbcblk->bloknum;
+    SolverBlok               *fblokptr = solvblok;
+    pastix_int_t              stride   = 0;
+    pastix_int_t              layout2D = candcblk->cblktype & CBLK_LAYOUT_2D;
+    pastix_int_t              clustnbr = solvmtx->clustnbr;
+    pastix_int_t              ownerid  = recvcblk->ownerid;
+    pastix_int_t              fcolnum, lcolnum, nbcols, j;
 
     assert( solvblok != NULL );
     assert( brownum >= 0 );
@@ -1091,12 +1171,21 @@ solvMatGen_register_remote_cblk( const symbol_matrix_t    *symbmtx,
                               layout2D );
         solvblok->gbloknm = j;
         stride += nbrows;
+
+        if ( solvcblk->cblktype & CBLK_FANIN ) {
+            solvblok->gfaninnm = faninnbr_tab[2 * ownerid + 1] + solvmtx->gbloknbr;
+            faninnbr_tab[2 * ownerid + 1]++;
+        }
+        if ( solvcblk->cblktype & CBLK_RECV ) {
+            solvblok->gfaninnm = faninnbr_tab[2 * (clustnbr + ownerid) + 1] + solvmtx->gbloknbr;
+            faninnbr_tab[2 * (clustnbr + ownerid) + 1]++;
+        }
         solvblok++;
     }
 
     solvMatGen_init_cblk( solvcblk, fblokptr, candcblk, symbcblk,
                           fcolnum, lcolnum, brownum, stride,
-                          gcblknm, recvcblk->ownerid );
+                          gcblknm, ownerid );
 
     solvcblk->lcolidx = -1;
 
