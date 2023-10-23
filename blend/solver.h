@@ -253,7 +253,8 @@ struct solver_matrix_s {
     /* BubbleTree   * restrict   btree;                /\*+ Bubbles tree                              +*\/ */
 
     Task         * restrict   tasktab;              /*+ Task access vector                        +*/
-    pastix_int_t              tasknbr;              /*+ Number of Tasks                           +*/
+    pastix_int_t              tasknbr;              /*+ Number of Tasks in 1d mode                +*/
+    pastix_int_t              tasknbr_1dp;          /*+ Number of Tasks in 1d plus mode           +*/
     pastix_int_t **           ttsktab;              /*+ Task access vector by thread              +*/
     pastix_int_t *            ttsknbr;              /*+ Number of tasks by thread                 +*/
     pastix_queue_t **         computeQueue;         /*+ Queue of task to compute by thread        +*/

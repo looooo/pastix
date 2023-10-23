@@ -50,7 +50,7 @@ pastix_usage(void)
             "\n"
             "Optional arguments:\n"
             " -f --fact                     : Choose factorization method (default: LU)\n"
-            "                                 0: Cholesky, 1: LDL^[th], 2: LU, 3:LL^t, 4:LDL^t\n"
+            "                                 0: Cholesky / LL^[th], 1: sytrf / LDL^t, 2: getrf / LU, 3: LL^t, 4: hetrf / LDL^h\n"
             "                                 3 and 4 are for complex matrices only\n"
             " -c --check                    : Choose the level of check to perform (default: 1)\n"
             "                                 0: None, 1: Backward error, 2: Backward and forward errors\n"

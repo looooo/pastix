@@ -198,7 +198,7 @@ core_zpxtrfsp( pastix_int_t        n,
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
  * @param[inout] dataL
- *          The pointer to the correct representation of the lower part the data.
+ *          The pointer to the correct representation of the lower part of the data.
  *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
  *          - pastix_lr_block if the block is compressed.
  *
@@ -270,7 +270,7 @@ cpucblk_zpxtrfsp1d_pxtrf( SolverMatrix *solvmtx,
  *          cblktab array.  Next column blok must be accessible through cblk[1].
  *
  * @param[inout] L
- *          The pointer to the correct representation of the lower part the data.
+ *          The pointer to the correct representation of the lower part of the data.
  *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
  *          - pastix_lr_block if the block is compressed.
  *
@@ -341,7 +341,7 @@ cpucblk_zpxtrfsp1d( SolverMatrix       *solvmtx,
     /* If there are off-diagonal blocks, perform the updates */
     for( ; blok < lblk; blok++ )
     {
-        fcblk = (solvmtx->cblktab + blok->fcblknm);
+        fcblk = solvmtx->cblktab + blok->fcblknm;
 
         if ( fcblk->cblktype & CBLK_FANIN ) {
             cpucblk_zalloc( PastixLCoef, fcblk );
@@ -356,4 +356,111 @@ cpucblk_zpxtrfsp1d( SolverMatrix       *solvmtx,
    }
 
     return nbpivots;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Perform the LL^t factorization of a given panel.
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          Solver Matrix structure of the problem
+ *
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array. Next column blok must be accessible through cblk[1].
+ *
+ *******************************************************************************
+ *
+ * @return The number of static pivoting during factorization of the diagonal
+ * block.
+ *
+ *******************************************************************************/
+int
+cpucblk_zpxtrfsp1dplus( SolverMatrix *solvmtx,
+                        SolverCblk   *cblk )
+{
+    void        *L = cblk_getdataL( cblk );
+    SolverCblk  *fcblk;
+    SolverBlok  *blok, *lblk;
+    pastix_int_t i, nbpivots;
+    pastix_queue_t *queue = solvmtx->computeQueue[ cblk->threadid ];
+
+    assert( cblk->cblktype & CBLK_TASKS_2D );
+    nbpivots = cpucblk_zpxtrfsp1d_panel( solvmtx, cblk, L );
+
+    blok = cblk->fblokptr + 1; /* this diagonal block */
+    lblk = cblk[1].fblokptr;   /* the next diagonal block */
+
+    /* if there are off-diagonal supernodes in the column */
+    for( i=0; blok < lblk; i++, blok++ )
+    {
+        fcblk = solvmtx->cblktab + blok->fcblknm;
+
+        assert( !(fcblk->cblktype & CBLK_RECV) );
+        pqueuePush1( queue, - (blok - solvmtx->bloktab) - 1, cblk->priority + i );
+
+        /* Skip blocks facing the same cblk */
+        while ( ( blok < lblk ) &&
+                ( blok[0].fcblknm == blok[1].fcblknm ) &&
+                ( blok[0].lcblknm == blok[1].lcblknm ) )
+        {
+            blok++;
+        }
+    }
+
+    return nbpivots;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Apply the updates of the LL^t factorisation of a given panel.
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          Solver Matrix structure of the problem
+ *
+ * @param[in] blok
+ *          Pointer to the blok where the update start.
+ *
+ * @param[in] work
+ *          Temporary memory buffer.
+ *
+ * @param[in] lwork
+ *          Temporary workspace dimension.
+ *
+ *******************************************************************************/
+void
+cpucblk_zpxtrfsp1dplus_update( SolverMatrix       *solvmtx,
+                               SolverBlok         *blok,
+                               pastix_complex64_t *work,
+                               pastix_int_t        lwork )
+{
+    SolverCblk *cblk = solvmtx->cblktab + blok->lcblknm;
+    SolverCblk *fcbk = solvmtx->cblktab + blok->fcblknm;
+    SolverBlok *lblk = cblk[1].fblokptr;   /* the next diagonal block */
+    void       *L    = cblk_getdataL( cblk );
+
+    if ( fcbk->cblktype & CBLK_FANIN ) {
+        cpucblk_zalloc( PastixLCoef, fcbk );
+    }
+
+    do
+    {
+        /* Update on L */
+        cpucblk_zgemmsp( PastixLCoef, PastixTrans,
+                         cblk, blok, fcbk,
+                         L, L, cblk_getdataL( fcbk ),
+                         work, lwork, &(solvmtx->lowrank) );
+
+        cpucblk_zrelease_deps( PastixLCoef, solvmtx, cblk, fcbk );
+        blok++;
+    }
+    while ( ( blok < lblk ) &&
+            ( blok[-1].fcblknm == blok[0].fcblknm ) &&
+            ( blok[-1].lcblknm == blok[0].lcblknm ) );
 }
