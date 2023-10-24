@@ -33,6 +33,7 @@ list_cleanup()
     sed -i 's/Mathias Hastaran/Matias Hastaran/'        $cfile
     sed -i 's/tdelarue/Tony Delarue/'                   $cfile
     sed -i 's/François Pellegrini/Francois Pellegrini/' $cfile
+    sed -i 's/LISITO Alycia/Alycia Lisito/'             $cfile
 
     cat $cfile | sort -u > ${cfile}.tmp
     mv ${cfile}.tmp $cfile
