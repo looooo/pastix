@@ -12,7 +12,8 @@
  * @author Mathieu Faverge
  * @author Esragul Korkmaz
  * @author Tony Delarue
- * @date 2023-07-20
+ * @author Alycia Lisito
+ * @date 2023-10-25
  *
  * @precisions normal z -> s d c
  *
@@ -362,7 +363,7 @@ sopalin_zpotrf( pastix_data_t  *pastix_data,
     int sched = pastix_data->iparm[IPARM_SCHEDULER];
     void (*zpotrf)(pastix_data_t *, sopalin_data_t *) = zpotrf_table[ sched ];
 
-    if (zpotrf == NULL) {
+    if ( zpotrf == NULL ) {
         sched  = PastixSchedDynamic;
         zpotrf = dynamic_zpotrf;
     }

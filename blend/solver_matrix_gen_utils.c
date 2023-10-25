@@ -14,7 +14,9 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Mathieu Faverge
- * @date 2023-07-20
+ * @author Alycia Lisito
+ * @author Nolan Bredel
+ * @date 2023-10-25
  *
  * @addtogroup blend_dev_solver
  * @{
@@ -838,7 +840,10 @@ solvMatGen_max_buffers( SolverMatrix *solvmtx )
                     cblk_m = solvblok->fcblknm;
                     acc_m = k;
                 }
-                blokmax = pastix_imax( n * acc_m, blokmax );
+                /*
+                 * acc_m+1 to store the diagonal in case of GEMDM
+                 */
+                blokmax = pastix_imax( n * (acc_m+1), blokmax );
             }
             m -= k;
         }

@@ -13,7 +13,9 @@
  * @author Mathieu Faverge
  * @author Esragul Korkmaz
  * @author Tony Delarue
- * @date 2023-02-07
+ * @author Alycia Lisito
+ * @author Nolan Bredel
+ * @date 2023-10-25
  *
  * @precisions normal z -> s d c
  *
@@ -76,7 +78,7 @@ cpublok_zalloc_lrws( const SolverCblk   *cblk,
 /**
  *******************************************************************************
  *
- * @brief Initialize lrblock structure from a workspace from all blocks of the cblk associated.
+ * @brief Initialize lrblock structure from a workspace for all blocks of the cblk associated.
  *
  * The lrblock structure must be allocated before.
  *

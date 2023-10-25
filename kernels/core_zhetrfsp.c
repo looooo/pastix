@@ -12,7 +12,9 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Gregoire Pichon
- * @date 2023-01-16
+ * @author Alycia Lisito
+ * @author Nolan Bredel
+ * @date 2023-10-25
  * @precisions normal z -> c
  *
  **/
@@ -254,10 +256,10 @@ cpucblk_zhetrfsp1d_hetrf( SolverMatrix *solvmtx,
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
         /* dataL is a LRblock */
         lrL = (pastix_lrblock_t *)dataL;
-        assert( lrL->rk == -1 );
-        L = lrL->u;
+        L   = lrL->u;
         stride = ncols;
 
+        assert( lrL->rk == -1 );
         assert( stride == lrL->rkmax );
     } else {
         L = (pastix_complex64_t *)dataL;
@@ -390,9 +392,9 @@ void core_zhetrfsp1d_gemm( const SolverCblk         *cblk,
             ret = core_zgemdm( PastixNoTrans, PastixConjTrans,
                                M, N, K,
                                -1.0, blokA, lda,
-                                    blokB, ldb,
+                                     blokB, ldb,
                                 1.0, blokC, ldc,
-                                    blokD, ldd,
+                                     blokD, ldd,
                                work, ldw );
             pastix_cblk_unlock( fcblk );
             assert(ret == PASTIX_SUCCESS);
@@ -421,8 +423,8 @@ void core_zhetrfsp1d_gemm( const SolverCblk         *cblk,
  *          - pastix_lr_block if the block is compressed.
  *
  * @param[inout] DLh
- *           The pointer to the correct representation of Dlh matrix
- *           (stored in the upper part bu default).
+ *           The pointer to the correct representation of DLh matrix
+ *           (stored in the upper part by default).
  *          - coeftab if the block is in full rank. Must be of size cblk.stride -by- cblk.width.
  *          - pastix_lr_block if the block is compressed.
  *
@@ -528,7 +530,7 @@ cpucblk_zhetrfsp1d( SolverMatrix       *solvmtx,
         }
 
         /* Update on L */
-        if (DLh == NULL) {
+        if ( DLh == NULL ) {
             core_zhetrfsp1d_gemm( cblk, blok, fcblk,
                                   dataL, fcblk->lcoeftab,
                                   work );
@@ -543,4 +545,110 @@ cpucblk_zhetrfsp1d( SolverMatrix       *solvmtx,
     }
 
     return nbpivots;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Perform the LDL^h factorization of a given panel and submit tasks
+ * for the subsequent updates.
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          Solver Matrix structure of the problem
+ *
+ * @param[in] cblk
+ *          Pointer to the structure representing the panel to factorize in the
+ *          cblktab array.  Next column blok must be accessible through cblk[1].
+ *
+ *******************************************************************************
+ *
+ * @return The number of static pivoting during factorization of the diagonal
+ * block.
+ *
+ *******************************************************************************/
+int
+cpucblk_zhetrfsp1dplus( SolverMatrix *solvmtx,
+                        SolverCblk   *cblk )
+{
+    void           *dataL   = cblk_getdataL( cblk );
+    SolverCblk     *fcblk;
+    SolverBlok     *blok, *lblk;
+    pastix_int_t    i, nbpivots;
+    pastix_queue_t *queue    = solvmtx->computeQueue[ cblk->threadid ];
+
+    assert( cblk->cblktype & CBLK_TASKS_2D );
+    nbpivots = cpucblk_zhetrfsp1d_panel( solvmtx, cblk, dataL, NULL );
+
+    blok = cblk->fblokptr + 1; /* this diagonal block */
+    lblk = cblk[1].fblokptr;   /* the next diagonal block */
+
+    /* if there are off-diagonal supernodes in the column */
+    for( i=0; blok < lblk; i++, blok++ )
+    {
+        fcblk = solvmtx->cblktab + blok->fcblknm;
+
+        assert( !(fcblk->cblktype & CBLK_RECV) );
+        pqueuePush1( queue, - (blok - solvmtx->bloktab) - 1, cblk->priority + i );
+
+        /* Skip blocks facing the same cblk */
+        while ( ( blok < lblk ) &&
+                ( blok[0].fcblknm == blok[1].fcblknm ) &&
+                ( blok[0].lcblknm == blok[1].lcblknm ) )
+        {
+            blok++;
+        }
+    }
+
+    return nbpivots;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief Apply the updates of the LDL^h factorisation of a given panel.
+ *
+ *******************************************************************************
+ *
+ * @param[in] solvmtx
+ *          Solver Matrix structure of the problem
+ *
+ * @param[in] blok
+ *          Pointer to the blok where the update start.
+ *
+ * @param[in] work
+ *          Temporary memory buffer.
+ *
+ * @param[in] lwork
+ *          Temporary workspace dimension.
+ *
+ *******************************************************************************/
+void
+cpucblk_zhetrfsp1dplus_update( SolverMatrix       *solvmtx,
+                               SolverBlok         *blok,
+                               pastix_complex64_t *work )
+{
+    SolverCblk *cblk  = solvmtx->cblktab + blok->lcblknm;
+    SolverCblk *fcbk  = solvmtx->cblktab + blok->fcblknm;
+    SolverBlok *lblk  = cblk[1].fblokptr;   /* the next diagonal block */
+    void       *dataL = cblk_getdataL( cblk );
+
+    if ( fcbk->cblktype & CBLK_FANIN ) {
+        cpucblk_zalloc( PastixLCoef, fcbk );
+    }
+
+    do
+    {
+        /* Update on L (3 terms) */
+        core_zhetrfsp1d_gemm( cblk, blok, fcbk,
+                              dataL, fcbk->lcoeftab,
+                              work );
+
+        cpucblk_zrelease_deps( PastixLCoef, solvmtx, cblk, fcbk );
+        blok++;
+    }
+    while ( ( blok < lblk ) &&
+            ( blok[-1].fcblknm == blok[0].fcblknm ) &&
+            ( blok[-1].lcblknm == blok[0].lcblknm ) );
 }
