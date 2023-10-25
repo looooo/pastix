@@ -3,20 +3,23 @@
 #  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.0
+#  @version 6.3.1
 #  @author Mathieu Faverge
 #  @author Ian Masliah
 #  @author Pierre Ramet
 #  @author Tony Delarue
 #  @author Vincent Bridonneau
-#  @date 2023-01-17
+#  @author Alycia Lisito
+#  @author Florent Pruvost
+#  @author Nolan Bredel
+#  @author Tom Moenne-Loccoz
+#  @date 2023-10-25
 #
 ###
 include(RulesPrecisions)
 
 # reset variables
 set(generated_sources "")
-set(generated_jdf     "")
 set(generated_headers "")
 
 set(EXTRA_SOURCES
@@ -122,9 +125,10 @@ install(EXPORT pastix_starpuTargets
 # ------------
 install(TARGETS pastix_starpu
         EXPORT pastix_starpuTargets
-        ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
-        LIBRARY DESTINATION ${LIB_INSTALL_DIR}
-        RUNTIME DESTINATION ${BIN_INSTALL_DIR})
+        ARCHIVE       DESTINATION lib
+        LIBRARY       DESTINATION lib
+        RUNTIME       DESTINATION bin
+        PUBLIC_HEADER DESTINATION include)
 
 ### Add non-generated documented files to the global property
 add_documented_files(

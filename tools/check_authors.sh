@@ -4,9 +4,9 @@
 #  @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.0
+#  @version 6.3.1
 #  @author Mathieu Faverge
-#  @date 2023-08-01
+#  @date 2023-10-25
 #
 # This script check that basic informations is present and correct in
 # headers of source files.
@@ -17,23 +17,26 @@ list_cleanup()
 {
     cfile=$1
 
+    sed -i 's/\w\+/\L\u&/g' $cfile
     sed -i '/Not Committed Yet/d'                       $cfile
-    sed -i 's/BRIDONNEAU Vincent/Vincent Bridonneau/'   $cfile
-    sed -i 's/DELARUE Tony/Tony Delarue/'               $cfile
+    sed -i 's/Bridonneau Vincent/Vincent Bridonneau/'   $cfile
+    sed -i 's/Delarue Tony/Tony Delarue/'               $cfile
     sed -i 's/Grégoire Pichon/Gregoire Pichon/'         $cfile
-    sed -i 's/KORKMAZ Esragul/Esragul Korkmaz/'         $cfile
-    sed -i 's/KUHN Matthieu/Matthieu Kuhn/'             $cfile
-    sed -i 's/MASLIAH Ian/Ian Masliah/'                 $cfile
-    sed -i 's/POIREL Louis/Louis Poirel/'               $cfile
-    sed -i 's/PRUVOST Florent/Florent Pruvost/'         $cfile
-    sed -i 's/RAMET Pierre/Pierre Ramet/'               $cfile
+    sed -i 's/Korkmaz Esragul/Esragul Korkmaz/'         $cfile
+    sed -i 's/Kuhn Matthieu/Matthieu Kuhn/'             $cfile
+    sed -i 's/Masliah Ian/Ian Masliah/'                 $cfile
+    sed -i 's/Poirel Louis/Louis Poirel/'               $cfile
+    sed -i 's/Pruvost Florent/Florent Pruvost/'         $cfile
+    sed -i 's/Ramet Pierre/Pierre Ramet/'               $cfile
     sed -i 's/^Grégoire$/Gregoire Pichon/'              $cfile
-    sed -i 's/matias hastaran/Matias Hastaran/'         $cfile
     sed -i 's/Hastaran Matias/Matias Hastaran/'         $cfile
     sed -i 's/Mathias Hastaran/Matias Hastaran/'        $cfile
-    sed -i 's/tdelarue/Tony Delarue/'                   $cfile
+    sed -i 's/Tdelarue/Tony Delarue/'                   $cfile
+    sed -i 's/Nbredel/Nolan Bredel/'                    $cfile
+    sed -i 's/Bredel Nolan/Nolan Bredel/'               $cfile
     sed -i 's/François Pellegrini/Francois Pellegrini/' $cfile
-    sed -i 's/LISITO Alycia/Alycia Lisito/'             $cfile
+    sed -i 's/Lisito Alycia/Alycia Lisito/'             $cfile
+    sed -i 's/Mohamed Kherraz/Mohamed Aymane Kherraz/'  $cfile
 
     cat $cfile | sort -u > ${cfile}.tmp
     mv ${cfile}.tmp $cfile

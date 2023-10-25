@@ -3,9 +3,10 @@
 #  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.0
+#  @version 6.3.1
 #  @author Mathieu Faverge
-#  @date 2023-01-16
+#  @author Alycia Lisito
+#  @date 2023-10-25
 #
 ###
 
@@ -19,8 +20,8 @@ foreach (_file ${EXAMPLES})
   add_executable("old_${_name_we}" ${_file})
   target_link_libraries("old_${_name_we}" pastix)
 
-  install(TARGETS old_${_name_we} RUNTIME DESTINATION examples/old )
-  install(FILES   ${_file}                DESTINATION examples/old )
+  install(TARGETS old_${_name_we} RUNTIME DESTINATION share/doc/pastix/examples/old )
+  install(FILES   ${_file}                DESTINATION share/doc/pastix/examples/old )
 endforeach()
 
 ### Install a makefile for user compilation test
@@ -34,5 +35,5 @@ configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/Makefile.in"
   "${CMAKE_CURRENT_BINARY_DIR}/make/Makefile" @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/make/Makefile"
-  DESTINATION examples/old )
+  DESTINATION share/doc/pastix/examples/old )
 

@@ -1,7 +1,11 @@
 # pastix-6.3.1
 
-- Facto/solve: Fix issue with work stealing in dynamic scheduler
+- Dynamic scheduler:
+  + Fix an issue with the work stealing that was quickly disabled during factorization and solve
+  + Re-enable finer task grain for better scalability as in the previous 5.x releases
 - Info: Add energy consumption information when linked against PAPI
+- cmake: Reorganize cmake to make it build on mingw and macos
+- cmake: cleanup the installation directories
 
 # pastix-6.3.0
 

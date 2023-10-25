@@ -3,7 +3,7 @@
 #  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.0
+#  @version 6.3.1
 #  @author Mathieu Faverge
 #  @author Gregoire Pichon
 #  @author Matias Hastaran
@@ -18,7 +18,7 @@
 #  @author Brieuc Nicolas
 #  @author Florent Pruvost
 #  @author Mohamed Aymane Kherraz
-#  @date 2023-08-01
+#  @date 2023-10-25
 #
 ###
 cmake_minimum_required (VERSION 3.5)
@@ -547,7 +547,9 @@ endif()
 configure_file (
   "${CMAKE_CURRENT_SOURCE_DIR}/include/pastix/config.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/include/pastix/config.h")
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/include/pastix/config.h" DESTINATION include/pastix)
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/include/pastix/config.h"
+  DESTINATION include/pastix )
 
 # Sub modules
 set(modules kernels refinement) #csc kernels sopalin common)
@@ -920,7 +922,8 @@ set(PASTIX_HDRS
 install(FILES
   include/pastix.h
   DESTINATION include )
-install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
+install(FILES ${PASTIX_HDRS}
+  DESTINATION include/pastix )
 
 # export target pastix
 install(EXPORT pastixTargets
@@ -930,11 +933,12 @@ install(EXPORT pastixTargets
 
 # Installation
 # ------------
-install(TARGETS pastix
-        EXPORT pastixTargets
-        RUNTIME DESTINATION bin
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib)
+install( TARGETS pastix
+  EXPORT pastixTargets
+  RUNTIME DESTINATION bin
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  PUBLIC_HEADER DESTINATION include )
 
 ## Executable and tests
 enable_testing()
@@ -1015,7 +1019,7 @@ configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/tools/pastix_completion.sh.in"
   "${CMAKE_CURRENT_BINARY_DIR}/bin/pastix_completion.sh" @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/bin/pastix_completion.sh"
-  DESTINATION bin)
+  DESTINATION bin )
 
 #
 # Add uninstall target to remove installed files
@@ -1047,15 +1051,18 @@ add_documented_files(
   docs/doxygen/chapters/Pastix_Guide.md
   docs/doxygen/chapters/Pastix_benchmarking.md
   docs/doxygen/chapters/Pastix_Python.md
+  #
   tools/binding_for_multimpi.c
-  kernels/pastix_lowrank.h
   #
   include/pastix.h
   include/pastix/api.h
+  include/pastix/datatypes.h
+  include/pastix/order.h
   common/api.c
   common/get_options.c
   common/models.c
   common/pastixdata.h
+  common/isched_hwloc.c
   #
   graph/graph.h
   graph/graph.c
@@ -1212,7 +1219,7 @@ set(LIB_INSTALL_DIR "lib/"     CACHE STRING "where to install libraries relative
 
 configure_package_config_file( cmake_modules/PASTIXConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/PASTIXConfig.cmake
-  INSTALL_DESTINATION ${LIB_INSTALL_DIR}/cmake/pastix
+  INSTALL_DESTINATION lib/cmake/pastix
   PATH_VARS BIN_INSTALL_DIR INC_INSTALL_DIR LIB_INSTALL_DIR)
 write_basic_package_version_file(PASTIXConfigVersion.cmake
   VERSION ${PASTIX_VERSION}
@@ -1222,7 +1229,7 @@ write_basic_package_version_file(PASTIXConfigVersion.cmake
 install( FILES
   ${CMAKE_CURRENT_BINARY_DIR}/PASTIXConfig.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/PASTIXConfigVersion.cmake
-  DESTINATION ${LIB_INSTALL_DIR}/cmake/pastix)
+  DESTINATION lib/cmake/pastix)
 
 #############################################################
 # Print Options

@@ -3,10 +3,12 @@
 #  @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.0
+#  @version 6.3.1
 #  @author Mathieu Faverge
 #  @author Tony Delarue
-#  @date 2023-02-06
+#  @author Alycia Lisito
+#  @author Florent Pruvost
+#  @date 2023-10-25
 #
 ###
 
@@ -60,7 +62,7 @@ install(FILES
   examples/schur.py
   examples/schur_obj.py
   examples/step-by-step.py
-  DESTINATION examples/python
+  DESTINATION share/doc/pastix/examples/python
   )
 
 # Documentation
