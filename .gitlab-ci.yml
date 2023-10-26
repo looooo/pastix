@@ -2,9 +2,10 @@
 image: registry.gitlab.inria.fr/solverstack/docker/distrib
 
 stages:
-  - bench
+  - pre
   - build
   - test
+  - bench
   - coverage
   - analyze
   - validate

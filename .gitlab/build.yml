@@ -78,10 +78,3 @@ build_seq_windows:
     MSYSTEM: UCRT64
     VERSION: seq
     LOGNAME: "pastix-build-${SYSTEM}-${VERSION}"
-
-nobuild:
-  stage: build
-  rules:
-    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^notest-.*$/)
-  script:
-    - echo "This is a job only to make the pipeline succeed"
