@@ -13,7 +13,7 @@
 #  @author Florent Pruvost
 #  @author Nolan Bredel
 #  @author Tom Moenne-Loccoz
-#  @date 2023-10-25
+#  @date 2023-12-01
 #
 ###
 include(RulesPrecisions)
@@ -57,6 +57,7 @@ set(SOURCES
   codelet_blok_zscalo.c
   codelet_blok_zsytrfsp.c
   codelet_blok_ztrsmsp.c
+  codelet_cblk_zadd.c
   codelet_cblk_zgemmsp.c
   codelet_cblk_zgetrfsp.c
   codelet_cblk_zhetrfsp.c

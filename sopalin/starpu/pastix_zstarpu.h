@@ -12,7 +12,7 @@
  * @author Pierre Ramet
  * @author Vincent Bridonneau
  * @author Alycia Lisito
- * @date 2023-11-07
+ * @date 2023-12-01
  *
  * @precisions normal z -> z c d s
  *
@@ -79,6 +79,15 @@ void starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
                                const SolverBlok *blok,
                                SolverCblk       *fcblk,
                                int               prio );
+void starpu_task_cblk_zadd_recv( sopalin_data_t    *sopalin_data,
+                                 pastix_coefside_t  side,
+                                 const SolverCblk  *cblk,
+                                 SolverCblk        *fcblk,
+                                 int                prio );
+void starpu_task_cblk_zadd_fanin( sopalin_data_t    *sopalin_data,
+                                  pastix_coefside_t  side,
+                                  const SolverCblk  *cblk,
+                                  int                prio );
 void starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
                                pastix_coefside_t sideA,
                                pastix_coefside_t sideB,
