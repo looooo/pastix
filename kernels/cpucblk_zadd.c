@@ -7,11 +7,13 @@
  * @copyright 2015-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2023-01-16
+ * @author Alycia Lisito
+ * @author Nolan Bredel
+ * @date 2023-11-06
  *
  * @precisions normal z -> s d c
  *
@@ -375,7 +377,7 @@ cpucblk_zadd_frfr( pastix_coefside_t side,
  *          TODO
  *
  *******************************************************************************/
-void
+pastix_fixdbl_t
 cpucblk_zadd( pastix_coefside_t  side,
               double             alpha,
               const SolverCblk  *cblkA,
@@ -418,5 +420,6 @@ cpucblk_zadd( pastix_coefside_t  side,
     }
 
     kernel_trace_stop( cblkB->fblokptr->inlast, ktype, m, n, 0, flops, time );
+    return flops;
 }
 
