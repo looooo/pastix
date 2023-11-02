@@ -10,7 +10,8 @@
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Tony Delarue
- * @date 2023-07-21
+ * @author Alycia Lisito
+ * @date 2023-11-06
  *
  **/
 #ifndef _pastixdata_h_
@@ -39,8 +40,8 @@
  * Scheduler family
  */
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-#define PASTIX_SCHED_FAMILY_RUNTIME ((1 << PastixSchedParsec) | (1 << PastixSchedStarPU))
-#define PASTIX_SCHED_FAMILY_PTHREAD ((1 << PastixSchedSequential) | (1 << PastixSchedStatic) | (1 << PastixSchedDynamic))
+#define PASTIX_SCHED_FAMILY_RUNTIME ((1 << PastixSchedParsec))
+#define PASTIX_SCHED_FAMILY_PTHREAD ((1 << PastixSchedSequential) | (1 << PastixSchedStatic) | (1 << PastixSchedDynamic) | (1 << PastixSchedStarPU))
 
 #define isSchedRuntime( _runtime_ ) ( (1 << (_runtime_)) & PASTIX_SCHED_FAMILY_RUNTIME )
 #define isSchedPthread( _runtime_ ) ( (1 << (_runtime_)) & PASTIX_SCHED_FAMILY_PTHREAD )
