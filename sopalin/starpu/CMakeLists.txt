@@ -23,6 +23,7 @@ set(generated_sources "")
 set(generated_headers "")
 
 set(EXTRA_SOURCES
+  codelet_fanin_init.c
   starpu.c
   starpu_tags.c
   starpu_sparse_matrix.c
