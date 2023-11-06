@@ -3,6 +3,8 @@
 - Dynamic scheduler:
   + Fix an issue with the work stealing that was quickly disabled during factorization and solve
   + Re-enable finer task grain for better scalability as in the previous 5.x releases
+- StarPU version:
+  + Re-enable LDLt and LDLh factorization that were disabled due to workspace management issues
 - Info: Add energy consumption information when linked against PAPI
 - cmake: Reorganize cmake to make it build on mingw and macos
 - cmake: cleanup the installation directories
