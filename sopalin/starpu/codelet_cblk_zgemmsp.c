@@ -7,12 +7,13 @@
  * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Ian Masliah
  * @author Tom Moenne-Loccoz
- * @date 2023-06-07
+ * @author Alycia Lisito
+ * @date 2023-11-06
  *
  * @precisions normal z -> z c d s
  *
@@ -304,7 +305,9 @@ starpu_task_cblk_zgemmsp( sopalin_data_t   *sopalin_data,
         if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
             need_submit = 1;
         }
-        if ( fcblk->ownerid == sopalin_data->solvmtx->clustnum ) {
+        if ( (fcblk->cblktype & CBLK_FANIN) ||
+             (fcblk->ownerid == sopalin_data->solvmtx->clustnum) )
+        {
             need_submit = 1;
         }
         else {

@@ -7,10 +7,14 @@
  * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2023-06-07
+ * @author Alycia Lisito
+ * @author Florent Pruvost
+ * @author Nolan Bredel
+ * @author Tom Moenne-Loccoz
+ * @date 2023-11-06
  *
  * @addtogroup pastix_starpu
  * @{
@@ -49,7 +53,7 @@ typedef struct starpu_conf starpu_conf_t;
 
 #if defined(PASTIX_WITH_MPI)
 
-#if defined(PASTIX_RUNTIME_SYNC)
+#if defined(PASTIX_STARPU_SYNC)
 #define pastix_starpu_insert_task( _codelet_, ... )                         \
     starpu_mpi_insert_task( sopalin_data->solvmtx->solv_comm, _codelet_, STARPU_TASK_SYNCHRONOUS, 1, ##__VA_ARGS__ )
 #else
@@ -59,7 +63,7 @@ typedef struct starpu_conf starpu_conf_t;
 
 #else
 
-#if defined(PASTIX_RUNTIME_SYNC)
+#if defined(PASTIX_STARPU_SYNC)
 #define pastix_starpu_insert_task( _codelet_, ... )                         \
     starpu_insert_task( _codelet_, STARPU_TASK_SYNCHRONOUS, 1, ##__VA_ARGS__ )
 #else

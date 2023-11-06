@@ -6,7 +6,7 @@
  * @copyright 2011-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -15,7 +15,7 @@
  * @author Tony Delarue
  * @author Alycia Lisito
  * @author Nolan Bredel
- * @date 2023-10-25
+ * @date 2023-11-06
  * @precisions normal z -> c d s
  *
  */
@@ -417,11 +417,11 @@ void cpucblk_zdump( pastix_coefside_t  side,
 int cpucblk_zdiff( pastix_coefside_t  side,
                    const SolverCblk  *cblkA,
                    SolverCblk        *cblkB );
-void cpucblk_zadd( pastix_coefside_t  side,
-                   double             alpha,
-                   const SolverCblk  *cblkA,
-                   SolverCblk        *cblkB,
-                   const pastix_lr_t *lowrank );
+pastix_fixdbl_t cpucblk_zadd( pastix_coefside_t  side,
+                              double             alpha,
+                              const SolverCblk  *cblkA,
+                              SolverCblk        *cblkB,
+                              const pastix_lr_t *lowrank );
 
 /**
  *    @}
