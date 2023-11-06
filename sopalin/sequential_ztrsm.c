@@ -13,7 +13,7 @@
  * @author Tony Delarue
  * @author Vincent Bridonneau
  * @author Alycia Lisito
- * @date 2023-07-29
+ * @date 2023-11-06
  *
  * @precisions normal z -> s d c
  *
@@ -601,6 +601,14 @@ sopalin_ztrsm( pastix_data_t  *pastix_data,
                    sopalin_data_t *, pastix_rhs_t ) = ztrsm_table[ sched ];
     solve_step_t  solve_step = compute_solve_step( side, uplo, trans );
     args_solve_t *enum_list = malloc( sizeof( args_solve_t ) );
+
+    /* Temporary fix for the solve when the facto has been done with StarPU */
+    if( pastix_data->inter_node_procnbr > 1 ) {
+        if ( sched == PastixSchedStarPU ) {
+            sched = PastixSchedDynamic;
+            ztrsm = dynamic_ztrsm;
+        }
+    }
 
     enum_list->solve_step = solve_step;
     enum_list->mode       = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
