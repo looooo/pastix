@@ -7,7 +7,7 @@
  * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Pascal Henon
  * @author Xavier Lacoste
  * @author Pierre Ramet
@@ -20,7 +20,7 @@
  * @author nbredel
  * @author Nolan Bredel
  * @author Tony Delarue
- * @date 2023-08-01
+ * @date 2023-11-06
  *
  **/
 #include "common.h"
@@ -521,7 +521,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
         /* Compute the number of flops performed (may be different from THFLOPS for low-rank) */
         {
             double flops_l = pastix_data->dparm[DPARM_FACT_RLFLOPS];
-            MPI_Reduce( &flops_l, &flops_g, 1, MPI_DOUBLE, MPI_SUM, 0, pastix_data->inter_node_comm );
+            MPI_Allreduce( &flops_l, &flops_g, 1, MPI_DOUBLE, MPI_SUM, pastix_data->inter_node_comm );
         }
 
         /* Reduce the number of pivots */
