@@ -233,9 +233,9 @@ static unsigned int intrandseed = 1;              /*+ Random seed               
 void
 intRandInit (void)
 {
-    if (intrandflag == 0) {                         /* If generator not yet initialized */
+    if (intrandflag == 0) {                          /* If generator not yet initialized */
 #if ! ((defined COMMON_DEBUG) || (defined COMMON_RANDOM_FIXED_SEED) || (defined SCOTCH_DETERMINISTIC))
-        intrandseed = time (NULL);                    /* Set random seed if needed */
+        intrandseed = (unsigned int)( time(NULL) );  /* Set random seed if needed */
 #endif /* ((defined COMMON_DEBUG) || (defined COMMON_RANDOM_FIXED_SEED)) */
 #ifdef COMMON_RANDOM_RAND
         srand (intrandseed);
