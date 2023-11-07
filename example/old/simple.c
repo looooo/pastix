@@ -33,7 +33,7 @@ int main (int argc, char **argv)
     void           *x, *x0 = NULL;
     size_t          size;
     int             check = 1;
-    int             ret   = PASTIX_SUCCESS;
+    int             rc    = PASTIX_SUCCESS;
 
 #if defined(PASTIX_WITH_MPI)
     {
@@ -61,16 +61,19 @@ int main (int argc, char **argv)
      * Read Matrice
      */
     spm = malloc( sizeof( spmatrix_t ) );
-    spmReadDriver( driver, filename, spm );
+    rc = spmReadDriver( driver, filename, spm );
     free( filename );
+    if ( rc != SPM_SUCCESS ) {
+        return rc;
+    }
 
     spmPrintInfo( spm, stdout );
 
     /*
      * Check Matrix format
      */
-    ret = spmCheckAndCorrect( spm, &spm2 );
-    if ( ret != 0 ) {
+    rc = spmCheckAndCorrect( spm, &spm2 );
+    if ( rc != 0 ) {
         spmExit( spm );
         *spm = spm2;
     }
@@ -123,12 +126,12 @@ int main (int argc, char **argv)
      */
     iparm[IPARM_START_TASK] = API_TASK_INIT;
     iparm[IPARM_END_TASK]   = API_TASK_CLEAN;
-    ret = pastix( &pastix_data, MPI_COMM_WORLD,
-                  spm->nexp, spm->colptr, spm->rowptr, spm->values,
-                  NULL, NULL, x, nrhs, iparm, dparm );
+    rc = pastix( &pastix_data, MPI_COMM_WORLD,
+                 spm->nexp, spm->colptr, spm->rowptr, spm->values,
+                 NULL, NULL, x, nrhs, iparm, dparm );
 
-    if (ret != PASTIX_SUCCESS) {
-        return ret;
+    if (rc != PASTIX_SUCCESS) {
+        return rc;
     }
 
     /*
@@ -136,8 +139,8 @@ int main (int argc, char **argv)
      */
     if ( check )
     {
-        ret = spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm,
-                           x0, spm->nexp, b, spm->nexp, x, spm->nexp );
+        rc = spmCheckAxb( dparm[DPARM_EPSILON_REFINEMENT], nrhs, spm,
+                          x0, spm->nexp, b, spm->nexp, x, spm->nexp );
         if ( x0 ) {
             free( x0 );
         }
@@ -152,5 +155,5 @@ int main (int argc, char **argv)
     MPI_Finalize();
 #endif
 
-    return ret;
+    return rc;
 }

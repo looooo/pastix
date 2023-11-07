@@ -35,10 +35,10 @@ int main (int argc, char **argv)
     int             scatter = 0;
     int             check   = 1;
     int             nrhs    = 10;
-    int             rc      = 0;
+    int             rc      = PASTIX_SUCCESS;
     int             nfact   = 2;
     int             nsolv   = 2;
-    long            i,j;
+    long            i, j;
 
     /**
      * Initialize parameters to default values
