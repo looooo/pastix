@@ -13,7 +13,7 @@
  * @author Tony Delarue
  * @author Alycia Lisito
  * @author Nolan Bredel
- * @date 2023-11-06
+ * @date 2023-12-01
  *
  * @precisions normal z -> s d c
  *
@@ -33,11 +33,6 @@
  *              B <- alpha * A + B
  *
  *******************************************************************************
- *
- * @param[in] side
- *          Define which side of the cblk must be tested.
- *          @arg PastixLCoef if lower part
- *          @arg PastixUCoef if upper part
  *
  * @param[in] alpha
  *          The scalar alpha
@@ -65,20 +60,19 @@
  *
  *******************************************************************************/
 static inline pastix_fixdbl_t
-cpucblk_zadd_frlr( pastix_coefside_t   side,
-                   pastix_int_t        alpha,
-                   const SolverCblk   *cblkA,
-                   SolverCblk         *cblkB,
-                   pastix_complex64_t *work,
-                   pastix_int_t        lwork,
-                   const pastix_lr_t  *lowrank )
+cpucblk_zadd_frlr( pastix_int_t              alpha,
+                   const SolverCblk         *cblkA,
+                   SolverCblk               *cblkB,
+                   const pastix_complex64_t *A,
+                   pastix_lrblock_t         *lrB,
+                   pastix_complex64_t       *work,
+                   pastix_int_t              lwork,
+                   const pastix_lr_t        *lowrank )
 {
     const SolverBlok   *blokA  = cblkA->fblokptr;
     const SolverBlok   *blokB  = cblkB->fblokptr;
     const SolverBlok   *lblokA = cblkA[1].fblokptr;
     const SolverBlok   *lblokB = cblkB[1].fblokptr;
-    pastix_complex64_t *A;
-    pastix_int_t        shift;
     pastix_fixdbl_t     flops = 0.;
     core_zlrmm_t        params;
     pastix_lrblock_t    lrA;
@@ -86,15 +80,6 @@ cpucblk_zadd_frlr( pastix_coefside_t   side,
     assert( !(cblkA->cblktype & CBLK_COMPRESSED) );
     assert(   cblkB->cblktype & CBLK_COMPRESSED  );
     assert(   cblkA->cblktype & CBLK_LAYOUT_2D   );
-
-    if ( side == PastixUCoef ) {
-        A = cblkA->ucoeftab;
-        shift = 1;
-    }
-    else {
-        A = cblkA->lcoeftab;
-        shift = 0;
-    }
 
     assert( A != NULL );
 
@@ -123,19 +108,19 @@ cpucblk_zadd_frlr( pastix_coefside_t   side,
 
         /* Find facing bloknum */
         while ( !is_block_inside_fblock( blokA, blokB ) && (blokB < lblokB) ) {
-            blokB++;
+            blokB++; lrB++;
         }
 
         assert( is_block_inside_fblock( blokA, blokB ) && (blokB <= lblokB) );
 
-        lrA.u     = A + blokA->coefind;
+        lrA.u     = (pastix_complex64_t*)A + blokA->coefind;
         lrA.rkmax = blok_rownbr( blokA );
 
         /* Dimensions on M */
         params.M    = blok_rownbr( blokA );
         params.Cm   = blok_rownbr( blokB );
         params.offx = blokA->frownum - blokB->frownum;
-        params.C    = blokB->LRblock[shift];
+        params.C    = lrB;
 
         flops += core_zlradd( &params, &lrA,
                               PastixNoTrans, 0 );
@@ -152,11 +137,6 @@ cpucblk_zadd_frlr( pastix_coefside_t   side,
  *              B <- alpha * A + B
  *
  *******************************************************************************
- *
- * @param[in] side
- *          Define which side of the cblk must be tested.
- *          @arg PastixLCoef if lower part
- *          @arg PastixUCoef if upper part
  *
  * @param[in] alpha
  *          The scalar alpha
@@ -184,26 +164,24 @@ cpucblk_zadd_frlr( pastix_coefside_t   side,
  *
  *******************************************************************************/
 static inline pastix_fixdbl_t
-cpucblk_zadd_lrlr( pastix_coefside_t   side,
-                   pastix_int_t        alpha,
-                   const SolverCblk   *cblkA,
-                   SolverCblk         *cblkB,
-                   pastix_complex64_t *work,
-                   pastix_int_t        lwork,
-                   const pastix_lr_t  *lowrank )
+cpucblk_zadd_lrlr( pastix_int_t            alpha,
+                   const SolverCblk       *cblkA,
+                   SolverCblk             *cblkB,
+                   const pastix_lrblock_t *lrA,
+                   pastix_lrblock_t       *lrB,
+                   pastix_complex64_t     *work,
+                   pastix_int_t            lwork,
+                   const pastix_lr_t      *lowrank )
 {
     const SolverBlok   *blokA  = cblkA->fblokptr;
     const SolverBlok   *blokB  = cblkB->fblokptr;
     const SolverBlok   *lblokA = cblkA[1].fblokptr;
     const SolverBlok   *lblokB = cblkB[1].fblokptr;
-    pastix_int_t        shift;
     pastix_fixdbl_t     flops = 0.;
     core_zlrmm_t        params;
 
     assert( (cblkA->cblktype & CBLK_COMPRESSED) );
     assert( (cblkB->cblktype & CBLK_COMPRESSED) );
-
-    shift = (side == PastixUCoef) ? 1 : 0;
 
     params.lowrank = lowrank;
     params.transA  = PastixNoTrans; /* Unused */
@@ -223,11 +201,11 @@ cpucblk_zadd_lrlr( pastix_coefside_t   side,
     params.Cn   = cblk_colnbr( cblkB );
     params.offy = cblkA->fcolnum - cblkB->fcolnum;
 
-    for (; blokA < lblokA; blokA++) {
+    for (; blokA < lblokA; blokA++, lrA++) {
 
         /* Find facing bloknum */
         while ( !is_block_inside_fblock( blokA, blokB ) && (blokB < lblokB) ) {
-            blokB++;
+            blokB++; lrB++;
         }
 
         assert( is_block_inside_fblock( blokA, blokB ) && (blokB <= lblokB) );
@@ -236,8 +214,8 @@ cpucblk_zadd_lrlr( pastix_coefside_t   side,
         params.M    = blok_rownbr( blokA );
         params.Cm   = blok_rownbr( blokB );
         params.offx = blokA->frownum - blokB->frownum;
-        params.C    = blokB->LRblock[shift];
-        flops += core_zlradd( &params, blokA->LRblock[shift], PastixNoTrans, PASTIX_LRM3_ORTHOU );
+        params.C    = lrB;
+        flops += core_zlradd( &params, lrA, PastixNoTrans, PASTIX_LRM3_ORTHOU );
     }
     return flops;
 }
@@ -251,11 +229,6 @@ cpucblk_zadd_lrlr( pastix_coefside_t   side,
  *              B <- alpha * A + B
  *
  *******************************************************************************
- *
- * @param[in] side
- *          Define which side of the cblk must be tested.
- *          @arg PastixLCoef if lower part
- *          @arg PastixUCoef if upper part
  *
  * @param[in] alpha
  *          The scalar alpha
@@ -274,27 +247,18 @@ cpucblk_zadd_lrlr( pastix_coefside_t   side,
  *
  *******************************************************************************/
 static inline pastix_fixdbl_t
-cpucblk_zadd_frfr( pastix_coefside_t side,
-                   pastix_int_t      alpha,
-                   const SolverCblk *cblkA,
-                   SolverCblk       *cblkB )
+cpucblk_zadd_frfr( pastix_int_t              alpha,
+                   const SolverCblk         *cblkA,
+                   SolverCblk               *cblkB,
+                   const pastix_complex64_t *A,
+                   pastix_complex64_t       *B )
 {
-    pastix_complex64_t *A, *B;
-    pastix_int_t        n = cblk_colnbr( cblkA );
-    pastix_int_t        m = cblkA->stride;
-    pastix_fixdbl_t     flops = m * n;
+    pastix_int_t    n = cblk_colnbr( cblkA );
+    pastix_int_t    m = cblkA->stride;
+    pastix_fixdbl_t flops = m * n;
 
     assert( !(cblkA->cblktype & CBLK_COMPRESSED) );
     assert( !(cblkB->cblktype & CBLK_COMPRESSED) );
-
-    if ( side == PastixUCoef ) {
-        A = cblkA->ucoeftab;
-        B = cblkB->ucoeftab;
-    }
-    else {
-        A = cblkA->lcoeftab;
-        B = cblkB->lcoeftab;
-    }
 
     assert( (A != NULL) && (B != NULL) );
 
@@ -309,12 +273,13 @@ cpucblk_zadd_frfr( pastix_coefside_t side,
         pastix_cblk_unlock( cblkB );
     }
     else {
-        pastix_complex64_t *bA, *bB;
-        const SolverBlok   *blokA  = cblkA->fblokptr;
-        const SolverBlok   *blokB  = cblkB->fblokptr;
-        const SolverBlok   *lblokA = cblkA[1].fblokptr;
-        const SolverBlok   *lblokB = cblkB[1].fblokptr;
-        pastix_int_t        lda, ldb;
+        const pastix_complex64_t *bA;
+        pastix_complex64_t       *bB;
+        const SolverBlok         *blokA  = cblkA->fblokptr;
+        const SolverBlok         *blokB  = cblkB->fblokptr;
+        const SolverBlok         *lblokA = cblkA[1].fblokptr;
+        const SolverBlok         *lblokB = cblkB[1].fblokptr;
+        pastix_int_t              lda, ldb;
 
         /* Both cblk A and B must be stored in 2D */
         assert( cblkA->cblktype & CBLK_LAYOUT_2D );
@@ -357,11 +322,6 @@ cpucblk_zadd_frfr( pastix_coefside_t side,
  *
  *******************************************************************************
  *
- * @param[in] side
- *          Define which side of the cblk must be tested.
- *          @arg PastixLCoef if lower part only
- *          @arg PastixUCoef if upper part only
- *
  * @param[in] alpha
  *          The scalar alpha
  *
@@ -378,10 +338,13 @@ cpucblk_zadd_frfr( pastix_coefside_t side,
  *
  *******************************************************************************/
 pastix_fixdbl_t
-cpucblk_zadd( pastix_coefside_t  side,
-              double             alpha,
-              const SolverCblk  *cblkA,
-              SolverCblk        *cblkB,
+cpucblk_zadd( double              alpha,
+              const SolverCblk   *cblkA,
+              SolverCblk         *cblkB,
+              const void         *A,
+              void               *B,
+              pastix_complex64_t *work,
+              pastix_int_t        lwork,
               const pastix_lr_t *lowrank )
 {
     pastix_ktype_t ktype = PastixKernelGEADDCblkFRFR;
@@ -389,33 +352,29 @@ cpucblk_zadd( pastix_coefside_t  side,
     pastix_int_t m = cblkA->stride;
     pastix_int_t n = cblk_colnbr( cblkA );
 
-    if ( side == PastixLUCoef ) {
-        n *= 2;
-    }
-
     if ( cblkB->cblktype & CBLK_COMPRESSED ) {
         if ( cblkA->cblktype & CBLK_COMPRESSED ) {
             ktype = PastixKernelGEADDCblkLRLR;
             time  = kernel_trace_start( ktype );
-            flops = cpucblk_zadd_lrlr( side, alpha, cblkA, cblkB,
-                                       NULL, 0, lowrank );
+            flops = cpucblk_zadd_lrlr( alpha, cblkA, cblkB,
+                                       A, B, work, lwork, lowrank );
         }
         else {
             ktype = PastixKernelGEADDCblkFRLR;
             time  = kernel_trace_start( ktype );
-            flops = cpucblk_zadd_frlr( side, alpha, cblkA, cblkB,
-                                       NULL, 0, lowrank );
+            flops = cpucblk_zadd_frlr( alpha, cblkA, cblkB,
+                                       A, B, work, lwork, lowrank );
         }
     }
     else {
         if ( cblkA->cblktype & CBLK_COMPRESSED ) {
-            assert(0 /* We do not add a compressed cblk to a non compressed cblk */);
-            time  = kernel_trace_start( ktype );
+            assert(0); /* We do not add a compressed cblk to a non compressed cblk */
+            return 0.; /* Avoids compilation and coverity warning */
         }
         else {
             ktype = PastixKernelGEADDCblkFRFR;
             time  = kernel_trace_start( ktype );
-            flops = cpucblk_zadd_frfr( side, alpha, cblkA, cblkB );
+            flops = cpucblk_zadd_frfr( alpha, cblkA, cblkB, A, B );
         }
     }
 
