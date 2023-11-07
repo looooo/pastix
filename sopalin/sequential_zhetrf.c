@@ -5,7 +5,7 @@
  * @copyright 2012-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Pascal Henon
  * @author Xavier Lacoste
  * @author Pierre Ramet
@@ -13,7 +13,7 @@
  * @author Esragul Korkmaz
  * @author Tony Delarue
  * @author Alycia Lisito
- * @date 2023-10-25
+ * @date 2023-11-06
  *
  * @precisions normal z -> c
  *
@@ -366,16 +366,16 @@ dynamic_zhetrf( pastix_data_t  *pastix_data,
 static void (*zhetrf_table[5])(pastix_data_t *, sopalin_data_t *) = {
     sequential_zhetrf,
     static_zhetrf,
-/* #if defined(PASTIX_WITH_PARSEC)
-    parsec_zhetrf,
-#else */
-    NULL,
-/* #endif
-#if defined(PASTIX_WITH_STARPU)
-    starpu_zhetrf,
-#else */
+/* #if defined(PASTIX_WITH_PARSEC) */
+/*     parsec_zhetrf, */
+/* #else */
     NULL,
 /* #endif */
+#if defined(PASTIX_WITH_STARPU)
+    starpu_zhetrf,
+#else
+    NULL,
+#endif
     dynamic_zhetrf
 };
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */

@@ -7,14 +7,14 @@
  * @copyright 2011-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Gregoire Pichon
  * @author Alycia Lisito
  * @author Nolan Bredel
- * @date 2023-10-25
+ * @date 2023-11-06
  * @precisions normal z -> c
  *
  **/
@@ -90,6 +90,7 @@ core_zhetf2sp( pastix_int_t        n,
 
         zalpha = 1.0 / (*Akk);
 
+        /* Transpose the column before scaling */
         cblas_zcopy( m, Amk, 1, Akm, lda );
         ret = LAPACKE_zlacgv_work( m, Akm, 1 );
         assert( ret == 0 );
@@ -496,7 +497,7 @@ cpucblk_zhetrfsp1d( SolverMatrix       *solvmtx,
                     pastix_complex64_t *work,
                     pastix_int_t        lwork )
 {
-    void        *dataL = cblk_getdataL( cblk );
+    void        *dataL   = cblk_getdataL( cblk );
     void        *dataDLh = cblk_getdataU( cblk );
     SolverCblk  *fcblk;
     SolverBlok  *blok, *lblk;
@@ -532,7 +533,7 @@ cpucblk_zhetrfsp1d( SolverMatrix       *solvmtx,
         /* Update on L */
         if ( DLh == NULL ) {
             core_zhetrfsp1d_gemm( cblk, blok, fcblk,
-                                  dataL, fcblk->lcoeftab,
+                                  dataL, cblk_getdataL( fcblk ),
                                   work );
         }
         else {

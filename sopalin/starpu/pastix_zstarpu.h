@@ -7,11 +7,12 @@
  * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Vincent Bridonneau
- * @date 2023-04-13
+ * @author Alycia Lisito
+ * @date 2023-11-06
  *
  * @precisions normal z -> z c d s
  *
@@ -99,10 +100,10 @@ void starpu_task_blok_ztrsmsp( sopalin_data_t   *sopalin_data,
                                int               prio );
 
 void starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
-                              pastix_trans_t  trans,
-                              SolverCblk     *cblk,
-                              SolverBlok     *blok,
-                              int             prio );
+                              pastix_trans_t    trans,
+                              const SolverCblk *cblk,
+                              SolverBlok       *blok,
+                              int               prio );
 
 void starpu_zdiag ( pastix_data_t      *pastix_data,
                     sopalin_data_t     *sopalin_data,

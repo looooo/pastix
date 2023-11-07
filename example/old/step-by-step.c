@@ -41,7 +41,7 @@ int main (int argc, char **argv)
     void           *x0          = NULL;
     size_t          size;
     int             check       = 1;
-    int             rc          = 0;
+    int             rc          = PASTIX_SUCCESS;
 
 #if defined(PASTIX_WITH_MPI)
     {
@@ -69,9 +69,11 @@ int main (int argc, char **argv)
      * Read Matrice
      */
     spm = malloc( sizeof( spmatrix_t ) );
-    spmReadDriver( driver, filename, spm );
+    rc = spmReadDriver( driver, filename, spm );
     free( filename );
-
+    if ( rc != SPM_SUCCESS ) {
+        return rc;
+    }
     spmPrintInfo( spm, stdout );
 
     /*

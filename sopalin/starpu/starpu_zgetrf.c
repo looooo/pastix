@@ -7,11 +7,13 @@
  * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Alycia Lisito
- * @date 2023-06-08
+ * @author Nolan Bredel
+ * @author Tom Moenne-Loccoz
+ * @date 2023-11-06
  * @precisions normal z -> s d c
  *
  * @addtogroup starpu_getrf
@@ -554,7 +556,7 @@ starpu_zgetrf( pastix_data_t  *pastix_data,
             starpu_zgetrf_sp1dplus_ll( sopalin_data, sdesc );
         }
         else {
-             starpu_zgetrf_sp1dplus_rl( sopalin_data, sdesc );
+            starpu_zgetrf_sp1dplus_rl( sopalin_data, sdesc );
         }
     }
 

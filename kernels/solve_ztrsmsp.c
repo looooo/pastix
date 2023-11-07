@@ -7,14 +7,15 @@
  * @copyright 2012-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Tony Delarue
  * @author Vincent Bridonneau
  * @author Alycia Lisito
- * @date 2023-03-30
+ * @author Nolan Bredel
+ * @date 2023-11-06
  * @precisions normal z -> c d s
  *
  **/
@@ -82,20 +83,20 @@ solve_blok_ztrsm( pastix_side_t       side,
                   pastix_complex64_t *b,
                   int                 ldb )
 {
-    pastix_int_t        n, lda;
-    pastix_lrblock_t   *lrA;
-    pastix_complex64_t *A;
+    const pastix_complex64_t *A;
+    pastix_int_t              n;
+    pastix_int_t              lda;
 
     n = cblk_colnbr( cblk );
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        lrA = (pastix_lrblock_t *)dataA;
+        const pastix_lrblock_t *lrA = (const pastix_lrblock_t *)dataA;
         assert( lrA->rk == -1 );
         A   = lrA->u;
         lda = n;
     }
     else {
-        A   = (pastix_complex64_t *)dataA;
+        A   = (const pastix_complex64_t *)dataA;
         lda = (cblk->cblktype & CBLK_LAYOUT_2D) ? n : cblk->stride;
     }
 
@@ -628,12 +629,14 @@ solve_cblk_ztrsmsp_backward( const args_solve_t *enums,
  *******************************************************************************/
 void
 solve_cblk_zdiag( const SolverCblk   *cblk,
+                  const void         *dataA,
                   int                 nrhs,
                   pastix_complex64_t *b,
                   int                 ldb,
                   pastix_complex64_t *work )
 {
-    pastix_complex64_t *A, *tmp;
+    const pastix_complex64_t *A;
+    pastix_complex64_t *tmp;
     pastix_int_t k, j, tempn, lda;
 
     tempn = cblk->lcolnum - cblk->fcolnum + 1;
@@ -641,11 +644,12 @@ solve_cblk_zdiag( const SolverCblk   *cblk,
     assert( blok_rownbr( cblk->fblokptr ) == tempn );
 
     if ( cblk->cblktype & CBLK_COMPRESSED ) {
-        A = (pastix_complex64_t*)(cblk->fblokptr->LRblock[0]->u);
-        assert( cblk->fblokptr->LRblock[0]->rkmax == lda );
+        const pastix_lrblock_t *lrA = (const pastix_lrblock_t*)dataA;
+        A = lrA->u;
+        assert( lrA->rkmax == lda );
     }
     else {
-        A = (pastix_complex64_t*)(cblk->lcoeftab);
+        A = (const pastix_complex64_t*)dataA;
     }
 
     /* Add shift for diagonal elements */

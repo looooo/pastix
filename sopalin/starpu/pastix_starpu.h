@@ -249,7 +249,7 @@ typedef struct pastix_starpu_interface_s {
     int                           offset;    /**< -1 for cblk, blok offset for the subdatas */
     int                           nbblok;    /**< Number of blocks                          */
     size_t                        allocsize; /**< size currently allocated                  */
-    SolverCblk                   *cblk;      /**< Internal structure used to store the cblk */
+    const SolverCblk             *cblk;      /**< Internal structure used to store the cblk */
     void                         *dataptr;   /**< Pointer on data                           */
 } pastix_starpu_interface_t;
 
@@ -265,12 +265,47 @@ pastix_starpu_blok_get_ptr( void *interf ) {
 }
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+/**
+ * @brief Register a cblk at the StarPU level
+ *
+ * @param[out] handleptr
+ *      The StarPU data handle to the registered data. Space must be allocated on call.
+ *
+ * @param[in] home_node
+ *      The StarPU memory node enum to specify where the initial data is located
+ *      -1 if not local, STARPU_MAIN_RAM if local.
+ *
+ * @param[in] cblk
+ *      The cblk to register
+ *
+ * @param[in] side
+ *      Specify which part of the cblk (Upper or Lower) to register
+ *
+ * @param[in] flttype
+ *      Specify the arithmetic floating type of the coefficients
+ */
 void pastix_starpu_register( starpu_data_handle_t *handleptr,
-                             int                   home_node,
-                             SolverCblk           *cblk,
+                             const SolverCblk     *cblk,
                              pastix_coefside_t     side,
                              pastix_coeftype_t     flttype );
+
+void pastix_starpu_register_ws( starpu_data_handle_t *handleptr,
+                                const SolverCblk     *cblk,
+                                pastix_coeftype_t     flttype );
+
+void pastix_starpu_register_blok( starpu_data_handle_t *handleptr,
+                                  const SolverCblk     *cblk,
+                                  const SolverBlok     *blok,
+                                  pastix_coeftype_t     flttype );
+
+/**
+ * @brief Initialize the interface ID
+ */
 void pastix_starpu_interface_init();
+
+/**
+ * @brief Finalize the interface and reset the ID
+ */
 void pastix_starpu_interface_fini();
 
 #endif /* _pastix_starpu_h_ */

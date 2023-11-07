@@ -257,7 +257,7 @@ void cpucblk_ztrsmsp( pastix_side_t      side,
                       void              *C,
                       const pastix_lr_t *lowrank );
 void cpucblk_zscalo ( pastix_trans_t     trans,
-                      SolverCblk        *cblk,
+                      const SolverCblk  *cblk,
                       void              *dataL,
                       void              *dataLD );
 
@@ -280,12 +280,12 @@ pastix_fixdbl_t cpublok_ztrsmsp( pastix_side_t      side,
                                  const void        *A,
                                  void              *C,
                                  const pastix_lr_t *lowrank );
-void cpublok_zscalo ( pastix_trans_t  trans,
-                      SolverCblk     *cblk,
-                      pastix_int_t    blok_m,
-                      const void     *A,
-                      const void     *dataD,
-                      void           *dataB );
+void cpublok_zscalo ( pastix_trans_t    trans,
+                      const SolverCblk *cblk,
+                      pastix_int_t      blok_m,
+                      const void       *A,
+                      const void       *dataD,
+                      void             *dataB );
 
 /**
  *    @}
@@ -562,6 +562,7 @@ void solve_cblk_ztrsmsp_backward( const args_solve_t *enums,
                                   pastix_rhs_t        b );
 
 void solve_cblk_zdiag( const SolverCblk   *cblk,
+                       const void         *dataA,
                        int                 nrhs,
                        pastix_complex64_t *b,
                        int                 ldb,
