@@ -425,6 +425,16 @@ pastix_fixdbl_t cpucblk_zadd( pastix_complex64_t  alpha,
                               pastix_complex64_t *work,
                               pastix_int_t        lwork,
                               const pastix_lr_t  *lowrank );
+pastix_fixdbl_t cpublok_zadd( double              alpha,
+                              const SolverCblk   *cblkA,
+                              SolverCblk         *cblkB,
+                              pastix_int_t        blokA_m,
+                              pastix_int_t        blokB_m,
+                              const void         *A,
+                              void               *B,
+                              pastix_complex64_t *work,
+                              pastix_int_t        lwork,
+                              const pastix_lr_t *lowrank );
 
 /**
  *    @}

@@ -12,7 +12,7 @@
 #  @author Brieuc Nicolas
 #  @author Florent Pruvost
 #  @author Nolan Bredel
-#  @date 2023-10-25
+#  @date 2023-12-01
 #
 ###
 include(RulesPrecisions)
@@ -112,6 +112,7 @@ set(SOURCES
   cpucblk_zdiff.c
   cpucblk_zadd.c
   cpucblk_zschur.c
+  cpublok_zadd.c
   # MPI operations
   cpucblk_zmpi_coeftab.c
   cpucblk_zmpi_rhs_fwd.c
