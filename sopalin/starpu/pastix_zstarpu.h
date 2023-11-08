@@ -88,6 +88,18 @@ void starpu_task_cblk_zadd_fanin( sopalin_data_t    *sopalin_data,
                                   pastix_coefside_t  side,
                                   const SolverCblk  *cblk,
                                   int                prio );
+void starpu_task_blok_zadd_recv( sopalin_data_t    *sopalin_data,
+                                 pastix_coefside_t  side,
+                                 const SolverCblk  *cblk,
+                                 const SolverBlok  *blok,
+                                 SolverCblk        *fcblk,
+                                 SolverBlok        *fblok,
+                                 int                prio );
+void starpu_task_blok_zadd_fanin( sopalin_data_t    *sopalin_data,
+                                  pastix_coefside_t  side,
+                                  const SolverCblk  *cblk,
+                                  const SolverBlok  *blok,
+                                  int                prio );
 void starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
                                pastix_coefside_t sideA,
                                pastix_coefside_t sideB,
