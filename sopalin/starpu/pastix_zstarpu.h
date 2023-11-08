@@ -126,6 +126,31 @@ void starpu_task_blok_zscalo( sopalin_data_t   *sopalin_data,
                               SolverBlok       *blok,
                               int               prio );
 
+void starpu_task_zadd_1dp_fanin( sopalin_data_t    *sopalin_data,
+                                 pastix_coefside_t  side,
+                                 const SolverCblk  *cblk,
+                                 int                prio );
+void starpu_task_zadd_1dp_recv( sopalin_data_t    *sopalin_data,
+                                pastix_coefside_t  side,
+                                const SolverCblk  *cblk,
+                                int                prio );
+void starpu_task_zadd_2d_fanin( sopalin_data_t    *sopalin_data,
+                                pastix_coefside_t  side,
+                                const SolverCblk  *cblk,
+                                int                prio );
+void starpu_task_zadd_2d_recv( sopalin_data_t    *sopalin_data,
+                               pastix_coefside_t  side,
+                               const SolverCblk  *cblk,
+                               int                prio );
+void starpu_task_zadd_fanin( sopalin_data_t    *sopalin_data,
+                             pastix_coefside_t  side,
+                             const SolverCblk  *cblk,
+                             int                prio );
+void starpu_task_zadd_recv( sopalin_data_t    *sopalin_data,
+                            pastix_coefside_t  side,
+                            const SolverCblk  *cblk,
+                            int                prio );
+
 void starpu_zdiag ( pastix_data_t      *pastix_data,
                     sopalin_data_t     *sopalin_data,
                     int                 nrhs,

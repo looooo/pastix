@@ -69,6 +69,7 @@ set(SOURCES
   codelet_solve_zdiag.c
   codelet_solve_zgemm.c
   codelet_solve_ztrsm.c
+  starpu_task_zadd.c
   starpu_zdiag.c
   starpu_zgetrf.c
   starpu_zhetrf.c
