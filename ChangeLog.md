@@ -8,6 +8,10 @@
 - Info: Add energy consumption information when linked against PAPI
 - cmake: Reorganize cmake to make it build on mingw and macos
 - cmake: cleanup the installation directories
+- trace:
+  + Enable the traces for the solve steps
+  + Solve issue with the generation of traces with EZtrace in distributed
+- wrappers: Fix issues whith the generation of enum redefined from the spm library
 
 # pastix-6.3.0
 
