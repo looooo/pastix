@@ -8,14 +8,16 @@
 # @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                      Univ. Bordeaux. All rights reserved.
 #
-# @version 6.3.0
+# @version 6.3.1
 # @author Mathieu Faverge
 # @author Pierre Ramet
 # @author Xavier Lacoste
 # @author Esragul Korkmaz
 # @author Gregoire Pichon
 # @author Tony Delarue
-# @date 2023-08-22
+# @author Alycia Lisito
+# @author Brieuc Nicolas
+# @date 2023-11-09
 #
 #!/usr/bin/env bash
 
@@ -125,8 +127,10 @@ _pastix_completion()
                                      pastixiosavecsc" -- $cur))
             ;;
         iparm_trace)
-            COMPREPLY=($(compgen -W "pastixtracenumfact \
-                                     pastixtracesolve" -- $cur))
+            COMPREPLY=($(compgen -W "pastixtracenot \
+                                     pastixtracenumfact \
+                                     pastixtracesolve \
+                                     pastixtracefactandsolve" -- $cur))
             ;;
         iparm_ordering)
             COMPREPLY=($(compgen -W "pastixorderscotch \

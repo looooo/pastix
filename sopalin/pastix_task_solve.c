@@ -7,7 +7,7 @@
  * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Pascal Henon
  * @author Xavier Lacoste
  * @author Pierre Ramet
@@ -16,7 +16,7 @@
  * @author Alycia Lisito
  * @author Brieuc Nicolas
  * @author Tony Delarue
- * @date 2023-08-01
+ * @date 2023-11-09
  *
  **/
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -573,7 +573,9 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
         double timer, energy;
 
         papiEnergyStart();
-
+        if ( pastix_data->iparm[IPARM_TRACE] & PastixTraceSolve ) {
+            kernelsTraceStart();
+        }
         /* Start timer */
         clockSyncStart( timer, pastix_data->inter_node_comm );
 
@@ -654,7 +656,9 @@ pastix_subtask_solve_adv( pastix_data_t  *pastix_data,
 
         /* Stop Timer */
         clockSyncStop( timer, pastix_data->inter_node_comm );
-
+        if ( pastix_data->iparm[IPARM_TRACE] & PastixTraceSolve ) {
+            kernelsTraceStop();
+        }
         energy = papiEnergyStop();
 
         pastix_data->dparm[DPARM_SOLV_TIME]   = clockVal(timer);

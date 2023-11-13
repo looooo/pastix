@@ -6,11 +6,14 @@
 !> @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !>                      Univ. Bordeaux. All rights reserved.
 !>
-!> @version 6.3.0
+!> @version 6.3.1
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2023-08-02
+!> @author Alycia Lisito
+!> @author Esragul Korkmaz
+!> @author Tom Moenne-Loccoz
+!> @date 2023-11-09
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -111,29 +114,30 @@ module pastixf_enums
      enumerator :: IPARM_GMRES_IM                       = 55
      enumerator :: IPARM_SCHEDULER                      = 56
      enumerator :: IPARM_THREAD_NBR                     = 57
-     enumerator :: IPARM_AUTOSPLIT_COMM                 = 58
-     enumerator :: IPARM_GPU_NBR                        = 59
-     enumerator :: IPARM_GPU_MEMORY_PERCENTAGE          = 60
-     enumerator :: IPARM_GPU_MEMORY_BLOCK_SIZE          = 61
-     enumerator :: IPARM_GLOBAL_ALLOCATION              = 62
-     enumerator :: IPARM_COMPRESS_MIN_WIDTH             = 63
-     enumerator :: IPARM_COMPRESS_MIN_HEIGHT            = 64
-     enumerator :: IPARM_COMPRESS_WHEN                  = 65
-     enumerator :: IPARM_COMPRESS_METHOD                = 66
-     enumerator :: IPARM_COMPRESS_ORTHO                 = 67
-     enumerator :: IPARM_COMPRESS_RELTOL                = 68
-     enumerator :: IPARM_COMPRESS_PRESELECT             = 69
-     enumerator :: IPARM_COMPRESS_ILUK                  = 70
-     enumerator :: IPARM_MIXED                          = 71
-     enumerator :: IPARM_FTZ                            = 72
-     enumerator :: IPARM_MPI_THREAD_LEVEL               = 73
-     enumerator :: IPARM_MODIFY_PARAMETER               = 74
-     enumerator :: IPARM_START_TASK                     = 75
-     enumerator :: IPARM_END_TASK                       = 76
-     enumerator :: IPARM_FLOAT                          = 77
-     enumerator :: IPARM_MTX_TYPE                       = 78
-     enumerator :: IPARM_DOF_NBR                        = 79
-     enumerator :: IPARM_SIZE                           = 79
+     enumerator :: IPARM_SOCKET_NBR                     = 58
+     enumerator :: IPARM_AUTOSPLIT_COMM                 = 59
+     enumerator :: IPARM_GPU_NBR                        = 60
+     enumerator :: IPARM_GPU_MEMORY_PERCENTAGE          = 61
+     enumerator :: IPARM_GPU_MEMORY_BLOCK_SIZE          = 62
+     enumerator :: IPARM_GLOBAL_ALLOCATION              = 63
+     enumerator :: IPARM_COMPRESS_MIN_WIDTH             = 64
+     enumerator :: IPARM_COMPRESS_MIN_HEIGHT            = 65
+     enumerator :: IPARM_COMPRESS_WHEN                  = 66
+     enumerator :: IPARM_COMPRESS_METHOD                = 67
+     enumerator :: IPARM_COMPRESS_ORTHO                 = 68
+     enumerator :: IPARM_COMPRESS_RELTOL                = 69
+     enumerator :: IPARM_COMPRESS_PRESELECT             = 70
+     enumerator :: IPARM_COMPRESS_ILUK                  = 71
+     enumerator :: IPARM_MIXED                          = 72
+     enumerator :: IPARM_FTZ                            = 73
+     enumerator :: IPARM_MPI_THREAD_LEVEL               = 74
+     enumerator :: IPARM_MODIFY_PARAMETER               = 75
+     enumerator :: IPARM_START_TASK                     = 76
+     enumerator :: IPARM_END_TASK                       = 77
+     enumerator :: IPARM_FLOAT                          = 78
+     enumerator :: IPARM_MTX_TYPE                       = 79
+     enumerator :: IPARM_DOF_NBR                        = 80
+     enumerator :: IPARM_SIZE                           = 80
   end enum
 
   ! enum dparm
@@ -181,8 +185,10 @@ module pastixf_enums
 
   ! enum trace
   enum, bind(C)
-     enumerator :: PastixTraceNumfact = 16
-     enumerator :: PastixTraceSolve   = 32
+     enumerator :: PastixTraceNot          = 0
+     enumerator :: PastixTraceNumfact      = 16
+     enumerator :: PastixTraceSolve        = 32
+     enumerator :: PastixTraceFactAndSolve = 48
   end enum
 
   ! enum verbose
@@ -333,13 +339,6 @@ module pastixf_enums
      enumerator :: PastixConjTrans = 113
   end enum
 
-  ! enum mtxtype
-  enum, bind(C)
-     enumerator :: PastixGeneral   = PastixNoTrans
-     enumerator :: PastixSymmetric = PastixTrans
-     enumerator :: PastixHermitian = PastixConjTrans
-  end enum
-
   ! enum uplo
   enum, bind(C)
      enumerator :: PastixUpper      = 121
@@ -378,6 +377,13 @@ module pastixf_enums
   enum, bind(C)
      enumerator :: PastixDirForward  = 391
      enumerator :: PastixDirBackward = 392
+  end enum
+
+  ! enum mtxtype
+  enum, bind(C)
+     enumerator :: PastixGeneral   = PastixNoTrans
+     enumerator :: PastixSymmetric = PastixTrans
+     enumerator :: PastixHermitian = PastixConjTrans
   end enum
 
   type, bind(c) :: pastix_order_t

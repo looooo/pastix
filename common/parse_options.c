@@ -9,14 +9,17 @@
  * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2023-08-04
+ * @author Alycia Lisito
+ * @author Brieuc Nicolas
+ * @author Tom Moenne-Loccoz
+ * @date 2023-11-09
  *
  */
 #include "common.h"
@@ -210,8 +213,10 @@ parse_enums( const char *string )
     if(0 == strcasecmp("pastixioloadcsc",   string)) { return PastixIOLoadCSC; }
     if(0 == strcasecmp("pastixiosavecsc",   string)) { return PastixIOSaveCSC; }
 
-    if(0 == strcasecmp("pastixtracenumfact", string)) { return PastixTraceNumfact; }
-    if(0 == strcasecmp("pastixtracesolve",   string)) { return PastixTraceSolve; }
+    if(0 == strcasecmp("pastixtracenot",          string)) { return PastixTraceNot; }
+    if(0 == strcasecmp("pastixtracenumfact",      string)) { return PastixTraceNumfact; }
+    if(0 == strcasecmp("pastixtracesolve",        string)) { return PastixTraceSolve; }
+    if(0 == strcasecmp("pastixtracefactandsolve", string)) { return PastixTraceFactAndSolve; }
 
     if(0 == strcasecmp("pastixorderscotch",   string)) { return PastixOrderScotch; }
     if(0 == strcasecmp("pastixordermetis",    string)) { return PastixOrderMetis; }
@@ -332,10 +337,14 @@ const char*
 pastix_trace_getstr( pastix_trace_t value )
 {
     switch( value ) {
+    case PastixTraceNot:
+        return "PastixTraceNot";
     case PastixTraceNumfact:
         return "PastixTraceNumfact";
     case PastixTraceSolve:
         return "PastixTraceSolve";
+    case PastixTraceFactAndSolve:
+        return "PastixTraceFactAndSolve";
     default :
         return "Bad trace given";
     }
