@@ -16,7 +16,7 @@
  * @author Mathieu Faverge
  * @author Alycia Lisito
  * @author Nolan Bredel
- * @date 2023-10-25
+ * @date 2023-12-01
  *
  * @addtogroup blend_dev_solver
  * @{
@@ -1066,7 +1066,7 @@ solvMatGen_register_remote_cblk( const symbol_matrix_t    *symbmtx,
     /*
      * Register all the local blocks
      */
-    for ( j=symbcblk[0].bloknum; j<symbcblk[1].bloknum; j++, recvblok++ )
+    for ( j=symbcblk[0].bloknum; j<symbcblk[1].bloknum; j++, recvblok++, symbblok++ )
     {
         pastix_int_t frownum, lrownum, nbrows;
 
@@ -1086,16 +1086,13 @@ solvMatGen_register_remote_cblk( const symbol_matrix_t    *symbmtx,
 
         /* Init the blok */
         solvMatGen_init_blok( solvblok,
-                              lcblknm, -1,
+                              lcblknm, cblklocalnum[symbblok->fcblknm],
                               frownum, lrownum, stride, nbcols,
                               layout2D );
         solvblok->gbloknm = j;
         stride += nbrows;
         solvblok++;
     }
-
-    /* Overwrite the fcblknm of the first block */
-    fblokptr->fcblknm = cblklocalnum[symbblok->fcblknm];
 
     solvMatGen_init_cblk( solvcblk, fblokptr, candcblk, symbcblk,
                           fcolnum, lcolnum, brownum, stride,
