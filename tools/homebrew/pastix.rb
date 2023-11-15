@@ -15,13 +15,14 @@
 class Pastix < Formula
   desc "Parallel solver for sparse linear systems based on direct methods"
   homepage "https://gitlab.inria.fr/solverstack/pastix"
-  url "https://gitlab.inria.fr/solverstack/pastix/uploads/d579e932b415103974ced5d216481332/pastix-6.2.2.tar.gz"
-  sha256 "cce9a1fe4678b5733c9f1a5a52f77b040eadc3e254418c6fb03d8ab37dede508"
+  url "https://gitlab.inria.fr/solverstack/pastix//uploads/ad8f528a3f6c012762e9a903b28315f8/pastix-6.3.1.tar.gz"
+  sha256 "290464d73b7d43356e4735a29932bf6f23a88e94ec7139ba7744c21e42c52681"
   head "https://gitlab.inria.fr/solverstack/pastix.git"
   license "LGPL"
 
   depends_on "openblas"
   depends_on "openmpi"
+  depends_on "gfortran"
   depends_on "hwloc"               # Could be optional but strongly recommanded
   depends_on "scotch"              # Could be optional but strongly recommanded
   depends_on "metis"  => :optional # Enable METIS ordering
@@ -32,10 +33,10 @@ class Pastix < Formula
   conflicts_with "pastix64", because: "not compatible"
 
   def install
+    ENV.append "LDFLAGS", "-Wl,-ld_classic"
     args = ["-DCMAKE_INSTALL_PREFIX=#{prefix}",
             "-DBUILD_SHARED_LIBS=ON",
             "-DBUILD_DOCUMENTATION=OFF",
-            "-DBUILD_64bits=OFF",
             "-DPASTIX_INT64=OFF",
             "-DPASTIX_ORDERING_SCOTCH=ON",
             "-DPASTIX_WITH_FORTRAN=ON",
