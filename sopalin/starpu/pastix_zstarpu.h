@@ -12,7 +12,7 @@
  * @author Pierre Ramet
  * @author Vincent Bridonneau
  * @author Alycia Lisito
- * @date 2023-11-06
+ * @date 2023-11-07
  *
  * @precisions normal z -> z c d s
  *

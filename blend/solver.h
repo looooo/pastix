@@ -6,7 +6,7 @@
  * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author David Goudin
  * @author Pascal Henon
  * @author Francois Pellegrini
@@ -16,7 +16,7 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2023-07-20
+ * @date 2023-10-23
  *
  **/
 #ifndef _solver_h_

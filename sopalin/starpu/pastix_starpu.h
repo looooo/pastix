@@ -14,7 +14,7 @@
  * @author Florent Pruvost
  * @author Nolan Bredel
  * @author Tom Moenne-Loccoz
- * @date 2023-11-06
+ * @date 2023-11-07
  *
  * @addtogroup pastix_starpu
  * @{

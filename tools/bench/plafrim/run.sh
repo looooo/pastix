@@ -5,10 +5,10 @@
 #  @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.0
+#  @version 6.3.1
 #  @author Tony Delarue
 #  @author Florent Pruvost
-#  @date 2023-04-05
+#  @date 2023-07-21
 #
 # This script build the correct environment to benchmark PaStiX.
 #

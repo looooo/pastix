@@ -7,11 +7,11 @@
  *
  * PaStiX PaRSEC routines
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge
- * @date 2023-01-17
+ * @date 2023-07-21
  *
  * @addtogroup pastix_parsec
  * @{

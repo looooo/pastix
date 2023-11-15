@@ -7,7 +7,7 @@
  * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Pierre Ramet
  * @author Mathieu Faverge
  * @author Gregoire Pichon
@@ -16,7 +16,7 @@
  * @author Tom Moenne-Loccoz
  * @author Brieuc Nicolas
  * @author Mohamed Aymane Kherraz
- * @date 2023-08-01
+ * @date 2023-08-03
  *
  **/
 #ifndef _pastix_config_h_

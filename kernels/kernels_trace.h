@@ -12,7 +12,7 @@
  * @author Mathieu Faverge
  * @author Tony Delarue
  * @author Alycia Lisito
- * @date 2023-11-08
+ * @date 2023-11-10
  *
  * @addtogroup eztrace_dev
  * @{

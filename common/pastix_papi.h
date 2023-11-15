@@ -7,9 +7,9 @@
  *
  * PaStiX memory tracking function.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Mohamed Aymane Kherraz
- * @date 2023-08-01
+ * @date 2023-08-25
  *
  */
 #ifndef _pastix_papi_h_

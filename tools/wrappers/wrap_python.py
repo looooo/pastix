@@ -10,12 +10,12 @@ Wrapper Python
  @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.3.0
+ @version 6.3.1
  @author Mathieu Faverge
  @author Tony Delarue
  @author Esragul Korkmaz
  @author Selmane Lebdaoui
- @date 2023-01-13
+ @date 2023-07-21
 
 """
 import os
@@ -113,7 +113,7 @@ class wrap_python:
  @copyright 2017-''' + time.strftime( "%Y" ) + ''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.3.0
+ @version 6.3.1
  @author Pierre Ramet
  @author Mathieu Faverge
  @author Tony Delarue

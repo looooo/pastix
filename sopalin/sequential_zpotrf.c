@@ -5,7 +5,7 @@
  * @copyright 2012-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Pascal Henon
  * @author Xavier Lacoste
  * @author Pierre Ramet

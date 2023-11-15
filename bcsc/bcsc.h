@@ -5,12 +5,12 @@
  * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Alycia Lisito
- * @date 2023-02-01
+ * @date 2023-07-21
  *
  * @addtogroup bcsc
  * @{

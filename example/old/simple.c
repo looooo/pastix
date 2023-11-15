@@ -8,12 +8,12 @@
  * reads the matrix, checks if it is correct and corrects it if needed,
  * and then runs pastix in one call.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Tony Delarue
  * @author Alycia Lisito
- * @date 2023-02-06
+ * @date 2023-11-07
  *
  **/
 #include <pastix.h>

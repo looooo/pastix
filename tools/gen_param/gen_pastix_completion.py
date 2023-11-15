@@ -7,9 +7,9 @@
  @copyright 2021-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.3.0
+ @version 6.3.1
  @author Tony Delarue
- @date 2023-04-11
+ @date 2023-07-21
 
 """
 import generation_utils as gu

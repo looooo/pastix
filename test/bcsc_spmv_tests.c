@@ -7,7 +7,7 @@
  *
  * Tests and validate the bcsc_spmv routines.
  *
- * @version 6.3.0
+ * @version 6.3.1
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Esragul Korkmaz
@@ -15,7 +15,7 @@
  * @author Tony Delarue
  * @author Vincent Bridonneau
  * @author Alycia Lisito
- * @date 2023-07-11
+ * @date 2023-07-21
  *
  **/
 #include <pastix.h>

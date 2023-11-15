@@ -13,7 +13,7 @@
  * @author Alycia Lisito
  * @author Nolan Bredel
  * @author Tom Moenne-Loccoz
- * @date 2023-11-06
+ * @date 2023-11-07
  * @precisions normal z -> s d c
  *
  * @addtogroup starpu_sytrf

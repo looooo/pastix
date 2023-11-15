@@ -6,11 +6,11 @@
  @copyright 2021-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.3.0
+ @version 6.3.1
  @author Tony Delarue
  @author Alycia Lisito
  @author Mathieu Faverge
- @date 2023-08-01
+ @date 2023-08-03
 
  This file allows us to generate:
       - Documentation files
