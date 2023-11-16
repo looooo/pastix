@@ -13,7 +13,7 @@
  * @author Alycia Lisito
  * @author Florent Pruvost
  * @author Tom Moenne-Loccoz
- * @date 2023-11-07
+ * @date 2023-12-01
  *
  **/
 #include "common/common.h"
@@ -640,9 +640,9 @@ pastix_starpu_register( starpu_data_handle_t *handleptr,
         .cblk      = cblk,
         .dataptr   = NULL,
     };
-    SolverBlok *fblok = cblk[0].fblokptr;
-    SolverBlok *lblok = cblk[1].fblokptr;
-    size_t      size  = 0;
+    SolverBlok *fblok     = cblk[0].fblokptr;
+    SolverBlok *lblok     = cblk[1].fblokptr;
+    size_t      size      = 0;
     int         home_node = -1;
 
     assert( side != PastixLUCoef );
@@ -655,7 +655,7 @@ pastix_starpu_register( starpu_data_handle_t *handleptr,
      * else lrblock
      */
     if ( !( cblk->cblktype & CBLK_COMPRESSED ) ) {
-        size              = cblk->stride * cblk_colnbr( cblk ) * pastix_size_of( flttype );
+        size           = cblk->stride * cblk_colnbr( cblk ) * pastix_size_of( flttype );
         interf.dataptr = side == PastixLCoef ? cblk->lcoeftab : cblk->ucoeftab;
         if ( interf.dataptr != NULL ) {
             home_node = STARPU_MAIN_RAM;
@@ -665,7 +665,7 @@ pastix_starpu_register( starpu_data_handle_t *handleptr,
         interf.dataptr = cblk->fblokptr->LRblock[side];
         if ( interf.dataptr != NULL )
         {
-            size = ( lblok - fblok ) * sizeof( pastix_lrblock_t );
+            size      = ( lblok - fblok ) * sizeof( pastix_lrblock_t );
             home_node = STARPU_MAIN_RAM;
         }
     }
@@ -709,7 +709,7 @@ pastix_starpu_register_ws( starpu_data_handle_t *handleptr,
      * Get the correct size to allocate
      */
     interf.nbblok = lblok - fblok;
-    if ( (M - N) > 0 )
+    if ( (M - N) > 0 ) /* Check for useless cases where we have only a diagonal block */
     {
         if ( (cblk->cblktype & CBLK_COMPRESSED) &&
              (cblk_getdataL( cblk ) != NULL) )
