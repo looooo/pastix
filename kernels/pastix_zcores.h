@@ -417,7 +417,7 @@ void cpucblk_zdump( pastix_coefside_t  side,
 int cpucblk_zdiff( pastix_coefside_t  side,
                    const SolverCblk  *cblkA,
                    SolverCblk        *cblkB );
-pastix_fixdbl_t cpucblk_zadd( double              alpha,
+pastix_fixdbl_t cpucblk_zadd( pastix_complex64_t  alpha,
                               const SolverCblk   *cblkA,
                               SolverCblk         *cblkB,
                               const void         *A,

@@ -27,7 +27,8 @@
 /**
  *******************************************************************************
  *
- * @brief Add two column bloks in full rank format.
+ * @brief Add a column blok in full rank format to a column blok in low rank
+ * format.
  *
  * The second cblk is overwritten by the sum of the two column blocks.
  *              B <- alpha * A + B
@@ -45,14 +46,23 @@
  *          On exit, cblkB coefficient arrays are overwritten by the result of
  *          alpha * A + B.
  *
+ * @param[inout] A
+ *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
+ *          coefficients of the panel when the Lower part is computed,
+ *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] lrB
+ *          Pointer to the low-rank representation of the column block B.
+ *          Must be followed by the low-rank representation of the following blocks.
+ *
  * @param[in] work
- *          TODO
+ *          Temporary memory buffer.
  *
  * @param[in] lwork
- *          TODO
+ *          Temporary workspace dimension.
  *
  * @param[in] lowrank
- *          TODO
+ *          The structure with low-rank parameters.
  *
  *******************************************************************************
  *
@@ -60,7 +70,7 @@
  *
  *******************************************************************************/
 static inline pastix_fixdbl_t
-cpucblk_zadd_frlr( pastix_int_t              alpha,
+cpucblk_zadd_frlr( pastix_complex64_t        alpha,
                    const SolverCblk         *cblkA,
                    SolverCblk               *cblkB,
                    const pastix_complex64_t *A,
@@ -131,7 +141,7 @@ cpucblk_zadd_frlr( pastix_int_t              alpha,
 /**
  *******************************************************************************
  *
- * @brief Add two column bloks in full rank format.
+ * @brief Add two column bloks in low rank format.
  *
  * The second cblk is overwritten by the sum of the two column blocks.
  *              B <- alpha * A + B
@@ -149,14 +159,22 @@ cpucblk_zadd_frlr( pastix_int_t              alpha,
  *          On exit, cblkB coefficient arrays are overwritten by the result of
  *          alpha * A + B.
  *
+ * @param[in] lrA
+ *          Pointer to the low-rank representation of the column block A.
+ *          Must be followed by the low-rank representation of the following blocks.
+ *
+ * @param[in] lrB
+ *          Pointer to the low-rank representation of the column block B.
+ *          Must be followed by the low-rank representation of the following blocks.
+ *
  * @param[in] work
- *          TODO
+ *          Temporary memory buffer.
  *
  * @param[in] lwork
- *          TODO
+ *          Temporary workspace dimension.
  *
  * @param[in] lowrank
- *          TODO
+ *          The structure with low-rank parameters.
  *
  *******************************************************************************
  *
@@ -164,7 +182,7 @@ cpucblk_zadd_frlr( pastix_int_t              alpha,
  *
  *******************************************************************************/
 static inline pastix_fixdbl_t
-cpucblk_zadd_lrlr( pastix_int_t            alpha,
+cpucblk_zadd_lrlr( pastix_complex64_t      alpha,
                    const SolverCblk       *cblkA,
                    SolverCblk             *cblkB,
                    const pastix_lrblock_t *lrA,
@@ -241,13 +259,24 @@ cpucblk_zadd_lrlr( pastix_int_t            alpha,
  *          On exit, cblkB coefficient arrays are overwritten by the result of
  *          alpha * A + B.
  *
+ * @param[inout] A
+ *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
+ *          coefficients of the panel when the Lower part is computed,
+ *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[inout] B
+ *          The pointer to the coeftab of the cblk.lcoeftab matrix storing
+ *          the coefficients of the panel, if Symmetric/Hermitian cases or if
+ *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
+ *          cblk.stride -by- cblk.width
+ *
  *******************************************************************************
  *
  * @return The number of flops of the operation.
  *
  *******************************************************************************/
 static inline pastix_fixdbl_t
-cpucblk_zadd_frfr( pastix_int_t              alpha,
+cpucblk_zadd_frfr( pastix_complex64_t        alpha,
                    const SolverCblk         *cblkA,
                    SolverCblk               *cblkB,
                    const pastix_complex64_t *A,
@@ -333,19 +362,40 @@ cpucblk_zadd_frfr( pastix_int_t              alpha,
  *          On exit, cblkB coefficient arrays are overwritten by the result of
  *          alpha * A + B.
  *
+ * @param[inout] A
+ *          The pointer to the coeftab of the cblk.lcoeftab matrix storing the
+ *          coefficients of the panel when the Lower part is computed,
+ *          cblk.ucoeftab otherwise. Must be of size cblk.stride -by- cblk.width
+ *
+ * @param[in] B
+ *          The pointer to the coeftab of the cblk.lcoeftab matrix storing
+ *          the coefficients of the panel, if Symmetric/Hermitian cases or if
+ *          upper part is computed; cblk.ucoeftab otherwise. Must be of size
+ *          cblk.stride -by- cblk.width
+ *
+ * @param[in] work
+ *          Temporary memory buffer.
+ *
+ * @param[in] lwork
+ *          Temporary workspace dimension.
+ *
  * @param[in] lowrank
- *          TODO
+ *          The structure with low-rank parameters.
+ *
+ *******************************************************************************
+ *
+ * @return The number of flops of the operation.
  *
  *******************************************************************************/
 pastix_fixdbl_t
-cpucblk_zadd( double              alpha,
+cpucblk_zadd( pastix_complex64_t  alpha,
               const SolverCblk   *cblkA,
               SolverCblk         *cblkB,
               const void         *A,
               void               *B,
               pastix_complex64_t *work,
               pastix_int_t        lwork,
-              const pastix_lr_t *lowrank )
+              const pastix_lr_t  *lowrank )
 {
     pastix_ktype_t ktype = PastixKernelGEADDCblkFRFR;
     pastix_fixdbl_t time, flops = 0.0;
