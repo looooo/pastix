@@ -24,9 +24,9 @@
 /**
  *******************************************************************************
  *
- * @brief Add two column bloks in full rank format.
+ * @brief Add a blok in full rank format to a blok in low rank format.
  *
- * The second cblk is overwritten by the sum of the two column blocks.
+ * The second cblk is overwritten by the sum of the two blocks.
  *              B <- alpha * A + B
  *
  *******************************************************************************
@@ -72,7 +72,7 @@
  *
  *******************************************************************************/
 static inline pastix_fixdbl_t
-cpublok_zadd_frlr( pastix_int_t              alpha,
+cpublok_zadd_frlr( pastix_complex64_t        alpha,
                    const SolverCblk         *cblkA,
                    SolverCblk               *cblkB,
                    pastix_int_t              blokA_m,
@@ -156,9 +156,9 @@ cpublok_zadd_frlr( pastix_int_t              alpha,
 /**
  *******************************************************************************
  *
- * @brief Add two column bloks in full rank format.
+ * @brief Add two column bloks in low rank format.
  *
- * The second cblk is overwritten by the sum of the two column blocks.
+ * The second cblk is overwritten by the sum of the two blocks.
  *              B <- alpha * A + B
  *
  *******************************************************************************
@@ -203,7 +203,7 @@ cpublok_zadd_frlr( pastix_int_t              alpha,
  *
  *******************************************************************************/
 static inline pastix_fixdbl_t
-cpublok_zadd_lrlr( pastix_int_t            alpha,
+cpublok_zadd_lrlr( pastix_complex64_t      alpha,
                    const SolverCblk       *cblkA,
                    SolverCblk             *cblkB,
                    pastix_int_t            blokA_m,
@@ -270,9 +270,9 @@ cpublok_zadd_lrlr( pastix_int_t            alpha,
 /**
  *******************************************************************************
  *
- * @brief Add two column bloks in full rank format.
+ * @brief Add two bloks in full rank format.
  *
- * The second cblk is overwritten by the sum of the two column blocks.
+ * The second cblk is overwritten by the sum of the two blocks.
  *              B <- alpha * A + B
  *
  *******************************************************************************
@@ -311,7 +311,7 @@ cpublok_zadd_lrlr( pastix_int_t            alpha,
  *
  *******************************************************************************/
 static inline pastix_fixdbl_t
-cpublok_zadd_frfr( pastix_int_t              alpha,
+cpublok_zadd_frfr( pastix_complex64_t        alpha,
                    const SolverCblk         *cblkA,
                    SolverCblk               *cblkB,
                    pastix_int_t              blokA_m,
@@ -378,9 +378,9 @@ cpublok_zadd_frfr( pastix_int_t              alpha,
 /**
  *******************************************************************************
  *
- * @brief Add two column bloks in full rank format.
+ * @brief Add two bloks.
  *
- * The second cblk is overwritten by the sum of the two column blocks.
+ * The second cblk is overwritten by the sum of the two blocks.
  *              B <- alpha * A + B
  *
  *******************************************************************************
@@ -428,7 +428,7 @@ cpublok_zadd_frfr( pastix_int_t              alpha,
  *
  *******************************************************************************/
 pastix_fixdbl_t
-cpublok_zadd( double              alpha,
+cpublok_zadd( pastix_complex64_t  alpha,
               const SolverCblk   *cblkA,
               SolverCblk         *cblkB,
               pastix_int_t        blokA_m,
