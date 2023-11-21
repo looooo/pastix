@@ -11,6 +11,13 @@
 #  @date 2023-10-25
 #
 ###
+cmake_minimum_required(VERSION 3.12)
+
+find_package (Python3 COMPONENTS Interpreter QUIET)
+
+if(NOT Python3_FOUND)
+  return()
+endif()
 
 # Configure enum.py
 if (PASTIX_INT64)
@@ -46,6 +53,10 @@ file(COPY
   examples/step-by-step.py
   DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/examples )
 
+if ( NOT PYTHON_SITE_PACKAGES_DIR )
+  set(PYTHON_SITE_PACKAGES_DIR lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages CACHE STRING "Python packages installation path" FORCE)
+endif()
+
 # Install python package
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/examples/pypastix/__init__.py
@@ -53,7 +64,7 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/examples/pypastix/pastix.py
   ${CMAKE_CURRENT_BINARY_DIR}/examples/pypastix/enum.py
   ${CMAKE_CURRENT_BINARY_DIR}/examples/pypastix/solver.py
-  DESTINATION lib/python/pypastix )
+  DESTINATION ${PYTHON_SITE_PACKAGES_DIR}/spm )
 
 # Install python examples
 install(FILES
@@ -62,8 +73,7 @@ install(FILES
   examples/schur.py
   examples/schur_obj.py
   examples/step-by-step.py
-  DESTINATION share/doc/pastix/examples/python
-  )
+  DESTINATION share/doc/pastix/examples/python)
 
 # Documentation
 # -------------
@@ -76,7 +86,6 @@ add_documented_files(
 )
 
 ## CTest execution
-find_package (Python3 COMPONENTS Interpreter QUIET)
 if (Python3_Interpreter_FOUND)
   set( PYTHON_TESTS
     simple step-by-step simple_obj )
