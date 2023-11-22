@@ -126,7 +126,7 @@ pastix_starpu_tag_book( int64_t nbtags )
 
     if ( (max - min) < nbtags ) {
         pastix_print_error( "pastix_starpu_tag_book: No space left in tags (looking for %ld tags)\n",
-                            nbtags );
+                            (long)nbtags );
         return -1;
     }
 
@@ -144,7 +144,7 @@ pastix_starpu_tag_book( int64_t nbtags )
 
 #if defined(PASTIX_DEBUG_STARPU)
     fprintf( stderr, "pastix_starpu_tag: Book %ld - %ld\n",
-             min, min + nbtags );
+             (long)min, (long)(min + nbtags) );
 #endif
 
     assert( pst_first != NULL );
@@ -190,7 +190,7 @@ pastix_starpu_tag_release( int64_t min )
 
 #if defined(PASTIX_DEBUG_STARPU)
     fprintf( stderr, "pastix_starpu_tag: Release %ld - %ld\n",
-             current->min, current->max );
+             (long)current->min, (long)current->max );
 #endif
 
     free( current );
