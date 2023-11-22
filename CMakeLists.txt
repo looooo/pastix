@@ -298,6 +298,9 @@ if (PASTIX_WITH_MPI)
   if (PASTIX_WITH_FORTRAN)
     morse_export_imported_target(MPI MPI_Fortran mpif pastix)
   endif()
+
+  set(pastix_mpiexec ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 4 --bind-to none --host localhost:4 )
+
 endif (PASTIX_WITH_MPI)
 
 # PaStiX might depend on CUDA
@@ -1013,13 +1016,26 @@ generate_pkgconfig_files(
 generate_env_file( PROJECTNAME PASTIX )
 
 # PaStiX auto-completion file
-# ---------------------------
+# (see https://github.com/scop/bash-completion)
+# ---------------------------------------------
 get_property( PASTIX_COMP_BINARIES GLOBAL PROPERTY PASTIX_COMP_BINARIES )
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/tools/pastix_completion.sh.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/bin/pastix_completion.sh" @ONLY)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/bin/pastix_completion.sh"
-  DESTINATION bin )
+  "${CMAKE_CURRENT_BINARY_DIR}/bash-completion/pastix" @ONLY)
+
+find_package(bash-completion QUIET)
+if(BASH_COMPLETION_FOUND)
+  message(STATUS
+    "Using bash completion dir ${BASH_COMPLETION_COMPLETIONSDIR}")
+
+  install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/bash-completion/pastix"
+    DESTINATION ${BASH_COMPLETION_COMPLETIONSDIR})
+
+else()
+  message (STATUS
+    "Could not find bash-completion - Completion file ${CMAKE_CURRENT_BINARY_DIR}/bash-completion/pastix will not be installed")
+endif()
 
 #
 # Add uninstall target to remove installed files

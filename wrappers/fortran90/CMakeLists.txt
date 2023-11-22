@@ -11,7 +11,7 @@
 #  @date 2023-10-25
 #
 ###
-cmake_minimum_required (VERSION 3.1)
+cmake_minimum_required (VERSION 3.12)
 
 if ( NOT PASTIX_WITH_FORTRAN )
   return()
@@ -71,10 +71,11 @@ install(EXPORT pastixfTargets
 # Installation
 # ------------
 install(TARGETS pastixf
-        EXPORT pastixfTargets
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib
-        RUNTIME DESTINATION bin )
+  EXPORT pastixfTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  PUBLIC_HEADER DESTINATION include)
 
 # Add examples
 # ------------
@@ -115,7 +116,7 @@ foreach (_file ${EXAMPLES})
       set( exe "")
     endif()
     if( version STREQUAL "mpi" )
-      set( exe ${MPIEXEC_EXECUTABLE} -np 4 --oversubscribe )
+      set( exe ${pastix_mpiexec} )
     endif()
 
     add_test(fortran_${version}_${_name_we} ${exe} ./${_name_we} )

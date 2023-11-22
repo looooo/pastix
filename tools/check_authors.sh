@@ -148,8 +148,10 @@ do
 done
 
 list_cleanup /tmp/full_author_list.txt
+echo "==== Contributors list ===="
 cat /tmp/full_author_list.txt
 
+echo "==== Start checking ===="
 for i in $files
 do
     if [ "$i" = "tools/check_authors.sh" ]

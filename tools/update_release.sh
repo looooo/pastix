@@ -19,26 +19,24 @@ majorversion=6
 minorversion=3
 microversion=1
 
-version="$majorversion.$minorversion.$microversion"
-
 remotelogin=faverge
 locallogin=mathieu
 
 while [ $# -gt 0 ]
 do
     case $1 in
-	--major )
-	    shift
-	    majorversion="$1"
-	    ;;
-	--minor )
-	    shift
-	    minorversion="$1"
-	    ;;
-	--micro )
-	    shift
-	    microversion="$1"
-	    ;;
+        --major )
+            shift
+            majorversion="$1"
+            ;;
+        --minor )
+            shift
+            minorversion="$1"
+            ;;
+        --micro )
+            shift
+            microversion="$1"
+            ;;
         --all )
             subset="ls-files"
             ;;
@@ -47,17 +45,17 @@ do
             release="yes"
             ;;
         --rlogin )
-	    shift
+            shift
             remotelogin="$1"
             ;;
         --llogin )
-	    shift
+            shift
             locallogin="$1"
             ;;
-	*)
+        *)
             # Let's consider that anything else is a tag or a list of commit to study
-	    subset="diff --name-only $1"
-	    ;;
+            subset="diff --name-only $1"
+            ;;
     esac
     shift
 done
@@ -171,4 +169,3 @@ fi
 #
 # 8) Update homebrew formula (only after release)
 #
-
