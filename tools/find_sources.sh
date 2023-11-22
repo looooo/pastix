@@ -81,7 +81,7 @@ do
 done
 
 # Generate separated list of files for generated files and non generated files
-rm -f filelist_*.txt
+rm -f filelist_[sdcz].txt
 for name in $(cat filelist.txt)
 do
     test=$(grep "@generated" $name | wc -l)
