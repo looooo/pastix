@@ -8,12 +8,15 @@
  *
  * @version 6.3.1
  * @author Mohamed Aymane Kherraz
- * @date 2023-08-25
+ * @author Alycia Lisito
+ * @author Mathieu Faverge
+ * @date 2023-11-22
  *
  * @code
  *
  */
 #include "common.h"
+#include <papi.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -23,10 +26,11 @@ static const char *_pastix_papi_event_names[] =
     "rapl::RAPL_ENERGY_DRAM:cpu=%d"
 };
 
-static int _pastix_papi_N_EVTS      = 2;
-static int _pastix_papi_N_SOCK      = 0;
-static int _pastix_papi_initialized = 0;
-static int _pastix_papi_EventSet    = PAPI_NULL;
+static int _pastix_papi_N_EVTS       = 2;
+static int _pastix_papi_ActiveEvents = 0;
+static int _pastix_papi_N_SOCK       = 0;
+static int _pastix_papi_initialized  = 0;
+static int _pastix_papi_EventSet     = PAPI_NULL;
 
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
@@ -82,7 +86,9 @@ pastix_papi_add_event( int EventSet,
         if ( retval != PAPI_OK ) {
             pastix_print_warning( "Failed to add PAPI event %s to the eventset\n", buf );
             rc = PASTIX_ERR_INTERNAL;
+            continue;
         }
+        _pastix_papi_ActiveEvents++;
     }
     return rc;
 }
@@ -142,7 +148,7 @@ papiEnergyStart()
 {
     int retval;
 
-    if ( _pastix_papi_initialized < 1 ) {
+    if (( _pastix_papi_initialized < 1 ) || (_pastix_papi_ActiveEvents == 0)) {
         return;
     }
 
@@ -172,8 +178,8 @@ papiEnergyStart()
 double
 papiEnergyStop()
 {
-    long long energy = 0;
-    long long values[_pastix_papi_N_EVTS * _pastix_papi_N_SOCK];
+    double    energy = 0.;
+    long long values[_pastix_papi_ActiveEvents * _pastix_papi_N_SOCK];
     int       retval, k;
 
     if ( _pastix_papi_initialized < 2 ) {
@@ -193,8 +199,9 @@ papiEnergyStop()
     _pastix_papi_initialized = 1;
 
     energy = 0;
-    for ( k = 0; k < _pastix_papi_N_EVTS * _pastix_papi_N_SOCK; k++ ) {
-        energy = energy + values[k];
+    for ( k = 0; k < _pastix_papi_ActiveEvents * _pastix_papi_N_SOCK; k++ ) {
+        double lenergy = ((double)values[k]) / 1.e9;
+        energy = energy + lenergy;
     }
 
     return (double)energy;
@@ -215,4 +222,5 @@ papiEnergyFinalize( )
         PAPI_shutdown();
     }
     _pastix_papi_initialized = 0;
+    _pastix_papi_ActiveEvents = 0;
 }

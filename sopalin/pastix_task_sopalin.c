@@ -20,7 +20,7 @@
  * @author nbredel
  * @author Nolan Bredel
  * @author Tony Delarue
- * @date 2023-11-10
+ * @date 2023-11-22
  *
  **/
 #include "common.h"
@@ -545,11 +545,15 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
                           pastix_print_unit(  flops_g ),
                           (long)pastix_data->iparm[IPARM_STATIC_PIVOTING] );
 #if defined(PASTIX_WITH_PAPI)
-            pastix_print( pastix_data->inter_node_procnum, 0, OUT_SOPALIN_ENERGY,
-                          pastix_print_value_deci( pastix_data->dparm[DPARM_FACT_ENERGY] ),
-                          pastix_print_unit_deci(  pastix_data->dparm[DPARM_FACT_ENERGY] ),
-                          pastix_print_value_deci( pastix_data->dparm[DPARM_FACT_ENERGY] / pastix_data->dparm[DPARM_FACT_TIME] ),
-                          pastix_print_unit_deci(  pastix_data->dparm[DPARM_FACT_ENERGY] / pastix_data->dparm[DPARM_FACT_TIME] ) );
+            {
+                double energy = pastix_data->dparm[DPARM_FACT_ENERGY];
+                double power  = energy / pastix_data->dparm[DPARM_FACT_TIME];
+                pastix_print( pastix_data->inter_node_procnum, 0, OUT_SOPALIN_ENERGY,
+                              pastix_print_value_deci( energy ),
+                              pastix_print_unit_deci(  energy ),
+                              pastix_print_value_deci( power ),
+                              pastix_print_unit_deci(  power ) );
+            }
 #endif
         }
 

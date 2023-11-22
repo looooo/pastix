@@ -1,3 +1,7 @@
+# pastix-6.3.2
+
+ - papi: Fix management of counters to disable the counters that have not been initialized
+
 # pastix-6.3.1
 
 - Dynamic scheduler:
