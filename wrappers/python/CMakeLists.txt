@@ -110,7 +110,7 @@ if (Python3_Interpreter_FOUND)
 
     if (PASTIX_WITH_MPI)
       set( _test_name_ python_mpi_${_test_suffix_} )
-      add_test( ${_test_name_} ${MPIEXEC_EXECUTABLE} -np 4 --oversubscribe ${Python3_EXECUTABLE} ${_test_file_} )
+      add_test( ${_test_name_} ${pastix_mpiexec} ${Python3_EXECUTABLE} ${_test_file_} )
       set_tests_properties( ${_test_name_}
         PROPERTIES ENVIRONMENT "${TEST_ENV_LIST}" )
     endif()

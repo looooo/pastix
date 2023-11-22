@@ -298,6 +298,9 @@ if (PASTIX_WITH_MPI)
   if (PASTIX_WITH_FORTRAN)
     morse_export_imported_target(MPI MPI_Fortran mpif pastix)
   endif()
+
+  set(pastix_mpiexec ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 4 --bind-to none --host localhost:4 )
+
 endif (PASTIX_WITH_MPI)
 
 # PaStiX might depend on CUDA
