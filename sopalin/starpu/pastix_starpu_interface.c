@@ -73,6 +73,20 @@ psi_allocate_data_on_node( void *data_interface, unsigned node )
         return -ENOMEM;
     }
 
+#if defined(PASTIX_DEBUG_STARPU)
+    {
+        const SolverCblk *cblk = interf->cblk;
+        if ( cblk->cblktype & CBLK_FANIN ) {
+            fprintf( stderr, "allocate fanin %d [%p](%ld)\n",
+                     cblk->gfaninnum, (void*)handle, allocated_memory );
+        }
+        if ( cblk->cblktype & CBLK_RECV ) {
+            fprintf( stderr, "allocate recv %d [%p](%ld)\n",
+                     cblk->gfaninnum, (void*)handle, allocated_memory );
+        }
+    }
+#endif
+
     if ( starpu_node_get_kind( node ) != STARPU_OPENCL_RAM ) {
         addr = handle;
     }
@@ -667,6 +681,12 @@ pastix_starpu_register( starpu_data_handle_t *handleptr,
         {
             size      = ( lblok - fblok ) * sizeof( pastix_lrblock_t );
             home_node = STARPU_MAIN_RAM;
+        }
+        /* FANIN / 1D */
+        if ( (cblk->cblktype & CBLK_FANIN ) &&
+             !(cblk->cblktype & CBLK_TASKS_2D) )
+        {
+            size = ( lblok - fblok ) * sizeof( pastix_lrblock_t );
         }
     }
 
