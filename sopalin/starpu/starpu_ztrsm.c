@@ -7,11 +7,14 @@
  * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Vincent Bridonneau
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2023-07-21
+ * @author Alycia Lisito
+ * @author Nolan Bredel
+ * @author Tom Moenne-Loccoz
+ * @date 2023-12-18
  * @precisions normal z -> s d c
  *
  * @addtogroup starpu_trsm_solve
@@ -108,9 +111,6 @@ starpu_cblk_ztrsmsp_forward( const args_solve_t *enums,
         assert(0);
         return;
     }
-
-    /* In sequential */
-    assert( cblk->fcolnum == cblk->lcolidx );
 
     /* Solve the diagonal block */
     starpu_stask_blok_ztrsm( sopalin_data, rhsb, cs, side, PastixLower,
@@ -261,8 +261,8 @@ starpu_ztrsm_sp1dplus( pastix_data_t      *pastix_data,
                        const args_solve_t *enums )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
-    SolverCblk   *cblk;
-    pastix_int_t  i, cblknbr;
+    SolverCblk   *cblk, *fcblk;
+    pastix_int_t  i, cblknbr, prio;
 
     /* Backward like */
     if ( enums->solve_step == PastixSolveBackward ) {
@@ -276,10 +276,29 @@ starpu_ztrsm_sp1dplus( pastix_data_t      *pastix_data,
     /* Forward like */
     else {
         cblknbr = (enums->mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
-
         cblk    = datacode->cblktab;
-        for (i=0; i<cblknbr; i++, cblk++){
-            starpu_cblk_ztrsmsp_forward( enums, sopalin_data, rhsb, cblk, cblknbr - i );
+
+        for ( i = 0; i < cblknbr; i++, cblk++ ) {
+            prio = cblknbr - i;
+
+            /* If this is a fanin, let's submit the send */
+            if ( cblk->cblktype & CBLK_FANIN ) {
+                starpu_mpi_data_migrate( datacode->solv_comm,
+                                         rhsb->starpu_desc->handletab[i],
+                                         cblk->ownerid );
+                continue;
+            }
+
+            /* If this is a recv, let's locally sum the accumulation received */
+            if ( cblk->cblktype & CBLK_RECV ) {
+                starpu_mpi_data_migrate( datacode->solv_comm,
+                                         rhsb->starpu_desc->handletab[i],
+                                         datacode->clustnum );
+                fcblk = datacode->cblktab + cblk->fblokptr->fcblknm;
+                starpu_stask_blok_zadd_fwd_recv( sopalin_data, rhsb, cblk, fcblk, prio );
+                continue;
+            }
+            starpu_cblk_ztrsmsp_forward( enums, sopalin_data, rhsb, cblk, prio );
         }
     }
     (void)pastix_data;

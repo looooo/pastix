@@ -5,7 +5,7 @@
  * @copyright 2012-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Pascal Henon
  * @author Xavier Lacoste
  * @author Pierre Ramet
@@ -13,7 +13,7 @@
  * @author Tony Delarue
  * @author Vincent Bridonneau
  * @author Alycia Lisito
- * @date 2023-11-06
+ * @date 2023-12-18
  *
  * @precisions normal z -> s d c
  *
@@ -604,7 +604,9 @@ sopalin_ztrsm( pastix_data_t  *pastix_data,
 
     /* Temporary fix for the solve when the facto has been done with StarPU */
     if( pastix_data->inter_node_procnbr > 1 ) {
-        if ( sched == PastixSchedStarPU ) {
+        if ( ( sched == PastixSchedStarPU ) &&
+             ( solve_step == PastixSolveBackward ) )
+        {
             sched = PastixSchedDynamic;
             ztrsm = dynamic_ztrsm;
         }
@@ -625,7 +627,7 @@ sopalin_ztrsm( pastix_data_t  *pastix_data,
        parsec with mpi in distributed and replicated cases */
 #if defined ( PASTIX_WITH_MPI )
     if( pastix_data->inter_node_procnbr > 1 ) {
-        if( (sched == PastixSchedStarPU) || (sched == PastixSchedParsec) ) {
+        if( sched == PastixSchedParsec ) {
             ztrsm = runtime_ztrsm;
         }
     }
