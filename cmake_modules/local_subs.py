@@ -6,13 +6,13 @@
  @copyright 2019-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.3.2
+ @version 6.4.0
  @author Mathieu Faverge
  @author Esragul Korkmaz
  @author Tony Delarue
  @author Alycia Lisito
  @author Brieuc Nicolas
- @date 2023-12-01
+ @date 2023-12-18
 
 """
 subs = {
@@ -73,6 +73,7 @@ subs = {
         ('runtime_p',            'runtime_s',            'runtime_d',            'runtime_c',            'runtime_z'           ),
         ('vec_p',                'vec_s',                'vec_d',                'vec_c',                'vec_z'               ),
         ('task_p',               'task_s',               'task_d',               'task_c',               'task_z'              ),
+        ('solve_p',              'solve_s',              'solve_d',              'solve_c',              'solve_z'             ),
         ('',                     'slag2d',               'slag2d',               'clag2z',               'clag2z'              ),
     ], #end normal
 

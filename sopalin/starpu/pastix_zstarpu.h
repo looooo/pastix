@@ -7,12 +7,12 @@
  * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Vincent Bridonneau
  * @author Alycia Lisito
- * @date 2023-12-01
+ * @date 2023-12-18
  *
  * @precisions normal z -> z c d s
  *
@@ -153,6 +153,11 @@ void starpu_task_zadd_recv( sopalin_data_t    *sopalin_data,
                             pastix_coefside_t  side,
                             const SolverCblk  *cblk,
                             int                prio );
+void starpu_stask_blok_zadd_fwd_recv( sopalin_data_t   *sopalin_data,
+                                      pastix_rhs_t      rhsb,
+                                      const SolverCblk *cblk,
+                                      SolverCblk       *fcblk,
+                                      int               prio );
 
 void starpu_zdiag ( pastix_data_t  *pastix_data,
                     sopalin_data_t *sopalin_data,
