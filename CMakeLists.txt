@@ -96,6 +96,7 @@ include(CheckSubnormals)
 
 # Set the RPATH config
 # --------------------
+set(CMAKE_MACOSX_RPATH 1)
 
 # For fPIC when build static
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
