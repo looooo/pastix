@@ -602,16 +602,6 @@ sopalin_ztrsm( pastix_data_t  *pastix_data,
     solve_step_t  solve_step = compute_solve_step( side, uplo, trans );
     args_solve_t *enum_list = malloc( sizeof( args_solve_t ) );
 
-    /* Temporary fix for the solve when the facto has been done with StarPU */
-    if( pastix_data->inter_node_procnbr > 1 ) {
-        if ( ( sched == PastixSchedStarPU ) &&
-             ( solve_step == PastixSolveBackward ) )
-        {
-            sched = PastixSchedDynamic;
-            ztrsm = dynamic_ztrsm;
-        }
-    }
-
     enum_list->solve_step = solve_step;
     enum_list->mode       = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
     enum_list->side       = side;

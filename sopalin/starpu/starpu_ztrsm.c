@@ -211,8 +211,11 @@ starpu_cblk_ztrsmsp_backward( const args_solve_t *enums,
         assert(0);
         return;
     }
+    assert( !(cblk->cblktype & CBLK_RECV) );
 
-    if ( !(cblk->cblktype & CBLK_IN_SCHUR) || (mode == PastixSolvModeSchur) ) {
+    if ( ( !(cblk->cblktype & CBLK_IN_SCHUR) || (mode == PastixSolvModeSchur) ) &&
+         ( !(cblk->cblktype & CBLK_FANIN) ) )
+    {
         /* Solve the diagonal block */
         starpu_stask_blok_ztrsm( sopalin_data, rhsb, cs, side, PastixLower,
                                  tA, diag, cblk, prio );
@@ -224,6 +227,9 @@ starpu_cblk_ztrsmsp_backward( const args_solve_t *enums,
         fcbk = datacode->cblktab + blok->lcblknm;
 
         if ( (fcbk->cblktype & CBLK_IN_SCHUR) && (mode == PastixSolvModeInterface) ) {
+            continue;
+        }
+        if ( fcbk->cblktype & CBLK_RECV ) {
             continue;
         }
 
@@ -267,10 +273,29 @@ starpu_ztrsm_sp1dplus( pastix_data_t      *pastix_data,
     /* Backward like */
     if ( enums->solve_step == PastixSolveBackward ) {
         cblknbr = (enums->mode == PastixSolvModeLocal) ? datacode->cblkschur : datacode->cblknbr;
-
         cblk    = datacode->cblktab + cblknbr - 1;
-        for (i=0; i<cblknbr; i++, cblk--){
-            starpu_cblk_ztrsmsp_backward( enums, sopalin_data, rhsb, cblk, cblknbr - i );
+
+        for ( i = cblknbr-1; i >= 0; i--, cblk-- ) {
+            prio = i;
+
+            /* If this is a recv, let's locally copy and send the accumulation */
+            if ( cblk->cblktype & CBLK_RECV ) {
+                fcblk = datacode->cblktab + cblk->fblokptr->fcblknm;
+                starpu_stask_blok_zcpy_bwd_recv( sopalin_data, rhsb, cblk, fcblk, prio );
+                starpu_mpi_data_migrate( datacode->solv_comm,
+                                         rhsb->starpu_desc->handletab[i],
+                                         cblk->ownerid );
+               continue;
+            }
+
+            /* If this is a fanin, let's submit the receive */
+            if ( cblk->cblktype & CBLK_FANIN ) {
+                starpu_mpi_data_migrate( datacode->solv_comm,
+                                         rhsb->starpu_desc->handletab[i],
+                                         datacode->clustnum );
+            }
+
+            starpu_cblk_ztrsmsp_backward( enums, sopalin_data, rhsb, cblk, prio );
         }
     }
     /* Forward like */
@@ -300,6 +325,10 @@ starpu_ztrsm_sp1dplus( pastix_data_t      *pastix_data,
             }
             starpu_cblk_ztrsmsp_forward( enums, sopalin_data, rhsb, cblk, prio );
         }
+    }
+
+    for ( i = 0; i < cblknbr; i++ ) {
+        starpu_data_wont_use( rhsb->starpu_desc->handletab[i] );
     }
     (void)pastix_data;
 }
