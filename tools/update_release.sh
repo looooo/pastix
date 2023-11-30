@@ -61,6 +61,8 @@ do
 done
 version="$majorversion.$minorversion.$microversion"
 
+version="$majorversion.$minorversion.$microversion"
+
 # Let's get the list of files to update
 fileslist=$( git $subset )
 
