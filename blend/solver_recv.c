@@ -9,7 +9,8 @@
  * @version 6.3.2
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2023-07-21
+ * @author Alycia Lisito
+ * @date 2023-12-01
  *
  * @addtogroup blend_dev_solver
  * @{
