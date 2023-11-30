@@ -235,6 +235,8 @@ cpucblk_zrequest_rhs_bwd_handle_recv( const args_solve_t *enums,
         /* Check it has been freed */
         assert( rhsb->cblkb[ idx ] == NULL );
     }
+
+    (void)src;
 }
 
 /**
