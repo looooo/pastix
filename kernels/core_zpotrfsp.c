@@ -392,7 +392,6 @@ cpucblk_zpotrfsp1dplus( SolverMatrix *solvmtx,
                         SolverCblk   *cblk )
 {
     void        *L = cblk_getdataL( cblk );
-    SolverCblk  *fcblk;
     SolverBlok  *blok, *lblk;
     pastix_int_t i, nbpivots;
     pastix_queue_t *queue = solvmtx->computeQueue[ cblk->threadid ];
@@ -406,9 +405,7 @@ cpucblk_zpotrfsp1dplus( SolverMatrix *solvmtx,
     /* if there are off-diagonal supernodes in the column */
     for( i=0; blok < lblk; i++, blok++ )
     {
-        fcblk = solvmtx->cblktab + blok->fcblknm;
-
-        assert( !(fcblk->cblktype & CBLK_RECV) );
+        assert( !((solvmtx->cblktab + blok->fcblknm)->cblktype & CBLK_RECV) );
         pqueuePush1( queue, - (blok - solvmtx->bloktab) - 1, cblk->priority + i );
 
         /* Skip blocks facing the same cblk */
