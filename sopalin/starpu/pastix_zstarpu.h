@@ -159,6 +159,12 @@ void starpu_stask_blok_zadd_fwd_recv( sopalin_data_t   *sopalin_data,
                                       SolverCblk       *fcblk,
                                       int               prio );
 
+void starpu_stask_blok_zcpy_bwd_recv( sopalin_data_t   *sopalin_data,
+                                      pastix_rhs_t      rhsb,
+                                      SolverCblk       *cblk,
+                                      const SolverCblk *fcblk,
+                                      int               prio );
+
 void starpu_zdiag ( pastix_data_t  *pastix_data,
                     sopalin_data_t *sopalin_data,
                     pastix_rhs_t    rhsb );

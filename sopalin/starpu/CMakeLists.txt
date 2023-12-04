@@ -67,6 +67,7 @@ set(SOURCES
   codelet_cblk_zpxtrfsp.c
   codelet_cblk_zsytrfsp.c
   codelet_solve_zadd.c
+  codelet_solve_zcpy.c
   codelet_solve_zdiag.c
   codelet_solve_zgemm.c
   codelet_solve_ztrsm.c
