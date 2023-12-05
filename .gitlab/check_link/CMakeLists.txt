@@ -1,3 +1,14 @@
+###
+#
+#  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @version 6.3.1
+#  @author Mathieu Faverge
+#  @author Florent Pruvost
+#  @date 2023-11-29
+#
+###
 cmake_minimum_required(VERSION 3.5)
 
 project(LINK_PASTIX C Fortran)

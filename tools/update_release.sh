@@ -6,7 +6,7 @@
 #
 #  @version 6.3.1
 #  @author Mathieu Faverge
-#  @date 2023-10-25
+#  @date 2023-11-29
 #
 #!/usr/bin/env sh
 
@@ -59,6 +59,7 @@ do
     esac
     shift
 done
+version="$majorversion.$minorversion.$microversion"
 
 # Let's get the list of files to update
 fileslist=$( git $subset )

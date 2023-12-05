@@ -1,4 +1,16 @@
 #!/usr/bin/env bash
+###
+#
+#  @file build.sh
+#  @copyright 2023-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @version 6.3.1
+#  @author Mathieu Faverge
+#  @author Florent Pruvost
+#  @date 2023-11-29
+#
+###
 
 fatal() {
     echo "$0: error occurred, exit"
@@ -7,6 +19,9 @@ fatal() {
 
 set -x
 
+#
+# Build the project
+#
 if [[ "$SYSTEM" != "windows" ]]; then
   if [[ "$SYSTEM" == "macosx" ]]; then
     if brew ls --versions scotch > /dev/null; then
@@ -49,8 +64,12 @@ fi
 cmake --build build -j 4 || fatal
 cmake --install build || fatal
 
+#
 # Check link to pastix
+#
 cd .gitlab/check_link/
+
+# Set the compiler
 if [[ "$SYSTEM" == "macosx" ]]; then
   export CC=clang
   if brew ls --versions pastix > /dev/null; then brew remove --force --ignore-dependencies pastix; fi
@@ -59,6 +78,8 @@ else
   export CC=gcc
 fi
 export FC=gfortran
+
+# Set the path variables
 if [[ "$SYSTEM" == "linux" ]]; then
   export LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LIBRARY_PATH
   export LD_LIBRARY_PATH=$PWD/../../install-${VERSION}/lib:$LD_LIBRARY_PATH
@@ -69,8 +90,11 @@ elif [[ "$SYSTEM" == "windows" ]]; then
   export PATH="/c/Windows/WinSxS/x86_microsoft-windows-m..namespace-downlevel_31bf3856ad364e35_10.0.19041.1_none_21374cb0681a6320":$PATH
   export PATH=$PWD/../../install-${VERSION}/bin:$PATH
 fi
+
 # 1) using cmake:
 ./link_cmake.sh $PWD/../../install-${VERSION} || fatal
 # 2) using pkg-config:
 ./link_pkgconfig.sh $PWD/../../install-${VERSION} || fatal
+
+# Clean the check build
 rm -r build || fatal

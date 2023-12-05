@@ -1,4 +1,16 @@
 #!/usr/bin/env bash
+###
+#
+#  @file test.sh
+#  @copyright 2023-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @version 6.3.1
+#  @author Florent Pruvost
+#  @author Mathieu Faverge
+#  @date 2023-11-29
+#
+###
 
 fatal() {
     echo "$0: error occurred, exit"
