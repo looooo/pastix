@@ -1,24 +1,25 @@
 #
-# Rule to generate the full coverage of the testings in the branches.
+# Rule to gather the coverages from the different branches
 #
 ---
 coverage:
   stage: coverage
   tags: ["docker"]
   extends: .only-master-mr
-  needs: [test_seq,test_mpi,test_seq_sched_linux,test_mpi_sched_linux,
-          test_seq_wrapper_linux,test_mpi_wrapper_linux]
+  needs: [test_seq, test_mpi,
+          test_seq_sched_linux, test_mpi_sched_linux,
+          test_seq_wrapper_linux, test_mpi_wrapper_linux]
   script:
-    - ${CI_PROJECT_DIR}/tools/coverage.sh
+    - ${CI_PROJECT_DIR}/tools/coverage.sh ${CI_PROJECT_NAME}
   coverage: /^\s*lines......:\s*\d+.\d+\%/
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     expire_in: 180 minutes
     paths:
-      - pastix-*.lcov
-      - pastix.lcov
-      - pastix-coverage.xml
+      - ${CI_PROJECT_NAME}-*.lcov
+      - ${CI_PROJECT_NAME}.lcov
+      - ${CI_PROJECT_NAME}-coverage.xml
     reports:
       coverage_report:
         coverage_format: cobertura
-        path: pastix-coverage.xml
+        path: ${CI_PROJECT_NAME}-coverage.xml

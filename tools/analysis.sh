@@ -13,7 +13,7 @@
 
 set -x
 
-PROJECT=pastix
+PROJECT=$CI_PROJECT_NAME
 
 # Performs an analysis of the project source code:
 # - we consider to be in the project's source code root
