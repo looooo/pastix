@@ -222,7 +222,7 @@ graphScatterInPlace( pastix_graph_t *graph,
  *
  * @ingroup pastix_graph
  *
- * @brief This routine gather a distributed graph on each note in place.
+ * @brief This routine gather a distributed graph on each node in place.
  *
  *******************************************************************************
  *
