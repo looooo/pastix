@@ -371,7 +371,7 @@ endif()
 if (PASTIX_WITH_STARPU)
 
   # Specify the minimum version
-  set( PASTIX_STARPU_VERSION "1.3" CACHE STRING "oldest STARPU version desired" )
+  set( PASTIX_STARPU_VERSION "1.4" CACHE STRING "oldest STARPU version desired" )
 
   find_package( STARPU ${PASTIX_STARPU_VERSION} REQUIRED )
   morse_export_imported_target(MORSE STARPU starpu pastix)
