@@ -346,7 +346,8 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
         if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
             need_submit = 1;
         }
-        if ( fcblk->ownerid == sopalin_data->solvmtx->clustnum ) {
+        if ( (fcblk->cblktype & CBLK_FANIN) ||
+             (fcblk->ownerid == sopalin_data->solvmtx->clustnum) ) {
             need_submit = 1;
         }
         else {
