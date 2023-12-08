@@ -96,6 +96,7 @@ include(CheckSubnormals)
 
 # Set the RPATH config
 # --------------------
+set(CMAKE_MACOSX_RPATH 1)
 
 # For fPIC when build static
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
@@ -370,7 +371,7 @@ endif()
 if (PASTIX_WITH_STARPU)
 
   # Specify the minimum version
-  set( PASTIX_STARPU_VERSION "1.3" CACHE STRING "oldest STARPU version desired" )
+  set( PASTIX_STARPU_VERSION "1.4" CACHE STRING "oldest STARPU version desired" )
 
   find_package( STARPU ${PASTIX_STARPU_VERSION} REQUIRED )
   morse_export_imported_target(MORSE STARPU starpu pastix)
@@ -1023,19 +1024,9 @@ configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/tools/pastix_completion.sh.in"
   "${CMAKE_CURRENT_BINARY_DIR}/bash-completion/pastix" @ONLY)
 
-find_package(bash-completion QUIET)
-if(BASH_COMPLETION_FOUND)
-  message(STATUS
-    "Using bash completion dir ${BASH_COMPLETION_COMPLETIONSDIR}")
-
-  install(FILES
+install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/bash-completion/pastix"
-    DESTINATION ${BASH_COMPLETION_COMPLETIONSDIR})
-
-else()
-  message (STATUS
-    "Could not find bash-completion - Completion file ${CMAKE_CURRENT_BINARY_DIR}/bash-completion/pastix will not be installed")
-endif()
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/bash-completion/completions/pastix")
 
 #
 # Add uninstall target to remove installed files

@@ -58,6 +58,7 @@ else()
 endif()
 
 if ( PASTIX_WITH_MPI )
+  target_compile_definitions(pastixf INTERFACE "PASTIX_WITH_MPI")
   target_link_libraries( pastixf PUBLIC MPI::MPI_Fortran)
 endif()
 
@@ -102,10 +103,6 @@ foreach (_file ${EXAMPLES})
 
   target_link_libraries(${_name_we} PRIVATE
     pastixf SPM::spmf )
-  # Need this to use mpi and initialize it
-  if ( PASTIX_WITH_MPI )
-    target_compile_definitions( ${_name_we} PUBLIC "PASTIX_WITH_MPI=1" )
-  endif()
 
   install(TARGETS ${_name_we}       RUNTIME DESTINATION share/doc/pastix/examples/fortran )
   install(FILES   examples/${_file}         DESTINATION share/doc/pastix/examples/fortran )
@@ -136,10 +133,6 @@ add_documented_files( examples/${_file} )
 
 target_link_libraries( ${_name_we} PRIVATE
   pastixf SPM::spmf )
-
-if ( PASTIX_WITH_MPI )
-  target_compile_definitions( ${_name_we} PRIVATE "PASTIX_WITH_MPI=1" )
-endif()
 
 install(TARGETS ${_name_we}       RUNTIME DESTINATION share/doc/pastix/examples/fortran )
 install(FILES   examples/${_file}         DESTINATION share/doc/pastix/examples/fortran )

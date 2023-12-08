@@ -2,27 +2,52 @@
 # This file describes the common rules for the stages
 #
 ---
-# push event: executed only if the source branch name is master or starts with ci-
+# push event: executed only if the source branch is the default one on
+#   the root repository (solverstack), or on on the repository of the
+#   same name
+#   If the branch starts with ci-, it is considered as a CI validation
+#   test on the main branch
 # schedule event: not executed
 .only-master:
   interruptible: true
   rules:
-    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH =~ /^ci-.*$/) && $CI_PIPELINE_SOURCE != "schedule"
+    - if: ($CI_PIPELINE_SOURCE == "schedule" )
+      when: never
+    - if: ($CI_COMMIT_BRANCH =~ /^ci-.*$/)
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) &&
+          (($CI_PROJECT_ROOT_NAMESPACE == "solverstack"   ) ||
+           ($CI_PROJECT_ROOT_NAMESPACE == $CI_PROJECT_NAME))
+  variables:
+    BRANCH: master
 
-# push event: executed only if the source branch name is master or starts with ci-
-# merge request event: executed if the source branch name does not start with notest-
+# push event: executed only if the source branch name is master or
+#   starts with ci-
+# merge request event: executed if the source branch name does not
+#   start with notest-
 # schedule event: not executed
 .only-master-mr:
   interruptible: true
   rules:
-    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH =~ /^ci-.*$/) && $CI_PIPELINE_SOURCE != "schedule"
-    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
+    - if: ($CI_PIPELINE_SOURCE == "schedule" )
+      when: never
+    - if: ($CI_COMMIT_BRANCH =~ /^ci-.*$/)
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) &&
+          (($CI_PROJECT_ROOT_NAMESPACE == "solverstack"   ) ||
+           ($CI_PROJECT_ROOT_NAMESPACE == $CI_PROJECT_NAME))
+    - if: (($CI_PIPELINE_SOURCE == "merge_request_event") &&
+           ($CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/))
+  variables:
+    BRANCH: branch
 
-# merge request event: executed if the source branch name does not start with notest-
+# merge request event: executed if the source branch name does not
+#   start with notest-
 .only-mr:
   interruptible: true
   rules:
-    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/)
+    - if: (($CI_PIPELINE_SOURCE == "merge_request_event") &&
+           ($CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^notest-.*$/))
+  variables:
+    BRANCH: branch
 
 .test_script_linux:
   stage: test

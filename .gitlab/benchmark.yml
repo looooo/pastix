@@ -1,5 +1,5 @@
 ---
-.bench_plafrim_common :
+.bench_plafrim_common:
   stage: bench
   tags: ['plafrim']
   variables:
