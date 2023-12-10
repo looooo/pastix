@@ -172,14 +172,15 @@ pastix_subtask_blend( pastix_data_t *pastix_data )
     }
 
     /* Cleanup the solver structure if we already computed it */
-    if ( pastix_data->solvmatr != NULL ) {
-        solverExit( pastix_data->solvmatr );
-        memFree_null( pastix_data->solvmatr );
+    if ( pastix_data->solvloc != NULL ) {
+        solverExit( pastix_data->solvloc );
+        memFree_null( pastix_data->solvloc );
     }
     if ( pastix_data->solvglob != NULL ) {
         solverExit( pastix_data->solvglob );
         memFree_null( pastix_data->solvglob );
     }
+    pastix_data->solvmatr = NULL;
 
     solvmtx_loc  = (SolverMatrix*)malloc(sizeof(SolverMatrix));
     solvmtx_glob = (SolverMatrix*)malloc(sizeof(SolverMatrix));
