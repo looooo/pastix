@@ -230,9 +230,9 @@ solverPrintStats( const SolverMatrix *solvptr )
     {
         pastix_int_t colnbr = cblk->lcolnum - cblk->fcolnum + 1;
         pastix_int_t rownbr = cblk->stride;
-        pastix_int_t bcol_size  = (cblk[1].fblokptr - cblk[0].fblokptr);
-        pastix_int_t brow_size[3];
-        pastix_int_t brow_csze[3] = { 0, 0, 0 };
+        int64_t      bcol_size  = cblk[1].fblokptr - cblk[0].fblokptr;
+        int64_t      brow_size[3];
+        int64_t      brow_csze[3] = { 0, 0, 0 };
         int64_t      nbpblok = 0;
 
         brow_size[0] = cblk[1].brownum - cblk[0].brownum;
