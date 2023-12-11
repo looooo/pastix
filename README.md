@@ -42,20 +42,20 @@ Future releases will be available on this gitlab project.
 
 * Features available in hybrid shared/distributed memory with MPI between processes, and POSIX threads within a process.
 
-|                         | Seq   | Static | Dyn   | StarPU    | PaRSEC    |
-|-------------------------|-------|--------|-------|-----------|-----------|
-| POTRF (Cholesky)        | FR    | FR     | FR    | FR/GPU    | FR/GPU    |
-| PXTRF (LL^t for complex)| FR    | FR     | FR    | FR/GPU    | FR/GPU    |
-| HETRF (LDL^h)           | FR    | FR     | FR    | FR/GPU    | FR/GPU    |
-| SYTRF (LDL^t)           | FR    | FR     | FR    | FR/GPU    | FR/GPU    |
-| GETRF (LU)              | FR    | FR     | FR    | FR/GPU    | FR/GPU    |
-| TRSM                    | FR    | FR     | FR    | FR        | -         |
-| DIAG                    | FR    | FR     | FR    | FR        | -         |
+|                          | Seq   | Static | Dyn   | StarPU | PaRSEC |
+|--------------------------|-------|--------|-------|--------|--------|
+| POTRF (Cholesky)         | FR/LR | FR/LR  | FR/LR | FR/GPU | FR/GPU |
+| PXTRF (LL^t for complex) | FR/LR | FR/LR  | FR/LR | FR/GPU | FR/GPU |
+| HETRF (LDL^h)            | FR/LR | FR/LR  | FR/LR | FR/GPU | FR/GPU |
+| SYTRF (LDL^t)            | FR/LR | FR/LR  | FR/LR | FR/GPU | FR/GPU |
+| GETRF (LU)               | FR/LR | FR/LR  | FR/LR | FR/GPU | FR/GPU |
+| TRSM                     | FR/LR | FR/LR  | FR/LR | FR     | -      |
+| DIAG                     | FR/LR | FR/LR  | FR/LR | FR     | -      |
 
 * FR means Full-Rank computations without compression techniques
 * LR means Low-Rank compression technique to reduce the memory footprint and/or the time-to-solution
 * *WARNING* GPU kernels are not available on compressed supernodes
-* *WARNING* Low-rank compression and Schur complement are not available with MPI yet.
+* *WARNING* Schur complement is not available with MPI yet.
 
 ## Documentation
 
