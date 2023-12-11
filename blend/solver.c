@@ -232,7 +232,6 @@ solverPrintStats( const SolverMatrix *solvptr )
         pastix_int_t rownbr = cblk->stride;
         int64_t      bcol_size  = cblk[1].fblokptr - cblk[0].fblokptr;
         int64_t      brow_size[3];
-        int64_t      brow_csze[3] = { 0, 0, 0 };
         int64_t      nbpblok = 0;
 
         brow_size[0] = cblk[1].brownum - cblk[0].brownum;
@@ -247,9 +246,13 @@ solverPrintStats( const SolverMatrix *solvptr )
         gemm_nopart_hybrid += brow_size[1] + (brow_size[2] * bcol_size);
 
         /* Compute the compressed version of the brow size */
+#if !defined(NDEBUG)
         {
-            pastix_int_t b, lcblk = -1;
-            pastix_int_t *browptr = solvptr->browtab + cblk[0].brownum;
+            pastix_int_t  b;
+            pastix_int_t  lcblk        = -1;
+            pastix_int_t *browptr      = solvptr->browtab + cblk[0].brownum;
+            int64_t       brow_csze[3] = { 0, 0, 0 };
+
             for ( b = cblk[0].brownum; b < cblk[1].brownum; b++, browptr++ ) {
                 blok = solvptr->bloktab + (*browptr);
                 if ( blok->lcblknm != lcblk ) {
@@ -269,6 +272,7 @@ solverPrintStats( const SolverMatrix *solvptr )
             assert( brow_csze[1] <= brow_size[1] );
             assert( brow_csze[2] <= brow_size[2] );
         }
+#endif
 
         /*
          * Compute the compressed version of the bcol size
