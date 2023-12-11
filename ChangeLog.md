@@ -3,6 +3,7 @@
  - papi: Fix management of counters to disable the counters that have not been initialized
  - ci: Add tests to validate link with cmake and pkg-config files
  - pkg-config: Fix pkg-config file generation
+ - python: Add interface to get access to the perm and invp array from the order structure
 
 # pastix-6.3.1
 

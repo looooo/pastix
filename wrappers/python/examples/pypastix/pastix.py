@@ -43,6 +43,30 @@ def __getnrhs(nrhs, x):
     return nrhs
 
 #
+# Order structure
+#
+def orderGet( pastix_data ):
+    return pypastix_pastixOrderGet( pastix_data )
+
+def orderGetPermtab( pastix_data, order = None ):
+    if not order:
+        order = orderGet( pastix_data )
+
+    pyorder = cast( order, POINTER(pypastix_order_t) ).contents
+
+    perm = np.frombuffer( (__pastix_int__ * (pyorder.vertnbr)).from_address( cast(pyorder.permtab, c_void_p).value ), dtype=__pastix_int__ )
+    return perm
+
+def orderGetPeritab( pastix_data, order = None ):
+    if not order:
+        order = orderGet( pastix_data )
+
+    pyorder = cast( order, POINTER(pypastix_order_t) ).contents
+
+    invp = np.frombuffer( (__pastix_int__ * (pyorder.vertnbr)).from_address( cast(pyorder.peritab, c_void_p).value ), dtype=__pastix_int__ )
+    return invp
+
+#
 # Pastix Tasks
 #
 def task_analyze( pastix_data, spm ):
