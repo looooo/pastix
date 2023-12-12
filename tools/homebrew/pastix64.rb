@@ -9,14 +9,14 @@
 #  @version 6.3.2
 #  @author Pierre Ramet
 #  @author Mathieu Faverge
-#  @date 2023-11-15
+#  @date 2023-07-21
 #
 ###
 class Pastix64 < Formula
   desc "Parallel solver for sparse linear systems based on direct methods"
   homepage "https://gitlab.inria.fr/solverstack/pastix"
-  url "https://gitlab.inria.fr/solverstack/pastix//uploads/ad8f528a3f6c012762e9a903b28315f8/pastix-6.3.1.tar.gz"
-  sha256 "290464d73b7d43356e4735a29932bf6f23a88e94ec7139ba7744c21e42c52681"
+  url "https://files.inria.fr/pastix/releases/v6/pastix-6.3.2.tar.gz"
+  sha256 "c4da8802d1933eecf8c09d7e63c014c81ccf353fe623142e9f5c5fc65ed82ee0"
   head "https://gitlab.inria.fr/solverstack/pastix.git"
   license "LGPL"
 
