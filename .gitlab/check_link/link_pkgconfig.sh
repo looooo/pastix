@@ -5,10 +5,10 @@
 #  @copyright 2023-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.1
+#  @version 6.3.2
 #  @author Florent Pruvost
 #  @author Mathieu Faverge
-#  @date 2023-11-29
+#  @date 2023-12-07
 #
 # Check that linking with the project is ok when using pkg-config.
 #

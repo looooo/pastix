@@ -3,12 +3,12 @@
 #  @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.1
+#  @version 6.3.2
 #  @author Mathieu Faverge
 #  @author Tony Delarue
 #  @author Alycia Lisito
 #  @author Florent Pruvost
-#  @date 2023-10-25
+#  @date 2023-11-22
 #
 ###
 cmake_minimum_required(VERSION 3.12)

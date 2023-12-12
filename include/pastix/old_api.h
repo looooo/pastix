@@ -7,7 +7,7 @@
  *
  * file to keep compatibility with older API.
  *
- * @version 6.3.1
+ * @version 6.3.2
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Gregoire Pichon

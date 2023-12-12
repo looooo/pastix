@@ -7,7 +7,7 @@
  *
  * PaStiX memory tracking function.
  *
- * @version 6.3.1
+ * @version 6.3.2
  * @author Xavier Lacoste
  * @author Mathieu Faverge
  * @author Pierre Ramet

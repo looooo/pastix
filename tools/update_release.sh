@@ -4,9 +4,9 @@
 #  @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.1
+#  @version 6.3.2
 #  @author Mathieu Faverge
-#  @date 2023-11-29
+#  @date 2023-12-11
 #
 #!/usr/bin/env sh
 
@@ -16,8 +16,8 @@ subset="diff --name-only HEAD~1"
 release="no"
 
 majorversion=6
-minorversion=3
-microversion=1
+minorversion=4
+microversion=0
 
 remotelogin=faverge
 locallogin=mathieu
@@ -59,8 +59,6 @@ do
     esac
     shift
 done
-version="$majorversion.$minorversion.$microversion"
-
 version="$majorversion.$minorversion.$microversion"
 
 # Let's get the list of files to update

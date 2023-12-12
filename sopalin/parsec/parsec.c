@@ -7,7 +7,7 @@
  *
  * PaStiX PaRSEC routines
  *
- * @version 6.3.1
+ * @version 6.3.2
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Mathieu Faverge

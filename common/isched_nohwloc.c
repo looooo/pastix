@@ -9,7 +9,7 @@
  *
  * PaStiX thread binding routines without hwloc.
  *
- * @version 6.3.1
+ * @version 6.3.2
  * @author Mathieu Faverge
  * @date 2023-08-25
  *

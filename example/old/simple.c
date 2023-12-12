@@ -8,7 +8,7 @@
  * reads the matrix, checks if it is correct and corrects it if needed,
  * and then runs pastix in one call.
  *
- * @version 6.3.1
+ * @version 6.3.2
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Tony Delarue

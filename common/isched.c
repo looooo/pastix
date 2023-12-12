@@ -10,7 +10,7 @@
  * PaStiX Internal Thread System routines
  * Contains basic functions to handle threads for internal schedulings.
  *
- * @version 6.3.1
+ * @version 6.3.2
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @date 2023-08-25

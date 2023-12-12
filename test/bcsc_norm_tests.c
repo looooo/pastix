@@ -7,7 +7,7 @@
  *
  * Tests and validate the bcsc_norm routines.
  *
- * @version 6.3.1
+ * @version 6.3.2
  * @author Mathieu Faverge
  * @author Theophile Terraz
  * @author Pierre Ramet
