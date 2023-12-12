@@ -13,7 +13,9 @@
  * @author Xavier Lacoste
  * @author Gregoire Pichon
  * @author Nolan Bredel
- * @date 2023-07-21
+ * @author Alycia Lisito
+ * @author Tom Moenne-Loccoz
+ * @date 2023-12-01
  * @precisions normal z -> c d s
  *
  **/
@@ -590,6 +592,7 @@ core_zgemmsp_block_frfr( pastix_trans_t            trans,
 
     blokC = fblokN + blok_mn;
     offsetC = blokC->coefind;
+    assert( blokC->lcblknm == cblk_n );
     assert( blokC->fcblknm == cblk_m );
 
     K = cblk_colnbr( cblk );
@@ -765,6 +768,7 @@ core_zgemmsp_block_frlr( pastix_trans_t            transB,
     lblokN = fcblk[1].fblokptr;
 
     blokC = fblokN + blok_mn;
+    assert( blokC->lcblknm == cblk_n );
     assert( blokC->fcblknm == cblk_m );
 
     full_m = 0;
@@ -948,6 +952,7 @@ core_zgemmsp_block_lrlr( pastix_trans_t          transB,
     lblokN = fcblk[1].fblokptr;
 
     blokC = fblokN + blok_mn;
+    assert( blokC->lcblknm == cblk_n );
     assert( blokC->fcblknm == cblk_m );
 
     full_m = 0;

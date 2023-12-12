@@ -13,7 +13,7 @@
 #  @author Florent Pruvost
 #  @author Nolan Bredel
 #  @author Tom Moenne-Loccoz
-#  @date 2023-10-25
+#  @date 2023-12-01
 #
 ###
 include(RulesPrecisions)
@@ -23,6 +23,7 @@ set(generated_sources "")
 set(generated_headers "")
 
 set(EXTRA_SOURCES
+  codelet_fanin_init.c
   starpu.c
   starpu_tags.c
   starpu_sparse_matrix.c
@@ -49,6 +50,7 @@ add_custom_target(starpu_headers_tgt
 
 ### Generate the pastix_parsec wrappers for all required precisions
 set(SOURCES
+  codelet_blok_zadd.c
   codelet_blok_zgemmsp.c
   codelet_blok_zgetrfsp.c
   codelet_blok_zhetrfsp.c
@@ -57,6 +59,7 @@ set(SOURCES
   codelet_blok_zscalo.c
   codelet_blok_zsytrfsp.c
   codelet_blok_ztrsmsp.c
+  codelet_cblk_zadd.c
   codelet_cblk_zgemmsp.c
   codelet_cblk_zgetrfsp.c
   codelet_cblk_zhetrfsp.c
@@ -66,6 +69,7 @@ set(SOURCES
   codelet_solve_zdiag.c
   codelet_solve_zgemm.c
   codelet_solve_ztrsm.c
+  starpu_task_zadd.c
   starpu_zdiag.c
   starpu_zgetrf.c
   starpu_zhetrf.c

@@ -12,7 +12,9 @@
  * @author Mathieu Faverge
  * @author Tony Delarue
  * @author Nolan Bredel
- * @date 2023-09-20
+ * @author Alycia Lisito
+ * @author Florent Pruvost
+ * @date 2023-12-01
  *
  * @precisions normal z -> s d c
  *
@@ -236,11 +238,11 @@ cpucblk_zrequest_handle_recv( pastix_coefside_t   side,
     cpucblk_zunpack( side, cblk, recvbuf );
 
     fcbk = solvmtx->cblktab + cblk->fblokptr->fcblknm;
-    cpucblk_zadd( PastixLCoef, 1., cblk, fcbk, &solvmtx->lowrank );
+    cpucblk_zadd( 1., cblk, fcbk, cblk_getdataL( cblk ), cblk_getdataL( fcbk ), NULL, 0, &solvmtx->lowrank );
 
     /* If side is LU, let's add the U part too */
     if ( side != PastixLCoef ) {
-        cpucblk_zadd( PastixUCoef, 1., cblk, fcbk, &solvmtx->lowrank );
+        cpucblk_zadd( 1., cblk, fcbk, cblk_getdataU( cblk ), cblk_getdataU( fcbk ), NULL, 0, &solvmtx->lowrank );
     }
 
     /* Receptions cblks contribute to themselves */

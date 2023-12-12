@@ -14,7 +14,7 @@
  * @author Florent Pruvost
  * @author Nolan Bredel
  * @author Tom Moenne-Loccoz
- * @date 2023-11-07
+ * @date 2023-12-01
  *
  * @addtogroup pastix_starpu
  * @{
@@ -307,6 +307,11 @@ void pastix_starpu_interface_init();
  * @brief Finalize the interface and reset the ID
  */
 void pastix_starpu_interface_fini();
+
+/**
+ * @brief Main structure for all tasks of fanin_init type
+ */
+extern struct starpu_codelet cl_fanin_init_cpu;
 
 #endif /* _pastix_starpu_h_ */
 

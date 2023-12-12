@@ -13,7 +13,7 @@
  * @author Tony Delarue
  * @author Alycia Lisito
  * @author Nolan Bredel
- * @date 2023-11-07
+ * @date 2023-12-01
  *
  * @ingroup pastix_starpu
  * @{
@@ -469,6 +469,12 @@ pastix_starpu_cblk_destroy( int            is_owner,
                             starpu_cblk_t *cblkhandle )
 {
     if ( cblk->cblktype & CBLK_TASKS_2D ) {
+        int gather_node = -1;
+
+        if ( is_owner && !(cblk->cblktype & CBLK_FANIN) ) {
+            gather_node = STARPU_MAIN_RAM;
+        }
+
         /*
          * First, let's unpartition ourself as long as StarPU does not use the
          * correct gather_node in starpu_data_partition_clean()
@@ -478,7 +484,7 @@ pastix_starpu_cblk_destroy( int            is_owner,
                                                      cblk->handler[0],
                                                      cblkhandle->handlenbr,
                                                      cblkhandle->handletab,
-                                                     is_owner ? STARPU_MAIN_RAM : -1 );
+                                                     gather_node );
         }
 
         if ( cblk->handler[1] ) {
@@ -486,7 +492,7 @@ pastix_starpu_cblk_destroy( int            is_owner,
                                                      cblk->handler[1],
                                                      cblkhandle->handlenbr,
                                                      cblkhandle->handletab + cblkhandle->handlenbr,
-                                                     is_owner ? STARPU_MAIN_RAM : -1 );
+                                                     gather_node );
         }
 
         free( cblkhandle->handletab );

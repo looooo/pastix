@@ -15,7 +15,8 @@
  * @author Mathieu Faverge
  * @author Gregoire Pichon
  * @author Nolan Bredel
- * @date 2023-07-21
+ * @author Alycia Lisito
+ * @date 2023-12-01
  *
  **/
 #include <stdio.h>
@@ -269,7 +270,6 @@ solverMatrixGen( SolverMatrix          *solvmtx,
                 solvcblk->priority  = -1;
                 solvmtx->fanincnt++;
                 solvcblk->bcscnum = -( solvmtx->fanincnt + solvmtx->recvcnt );
-                solvcblk->fblokptr->fcblknm = -1; /* fcblknm has no meaning for fanin, so let's set it to -1 */
 
                 nbcols = cblk_colnbr( solvcblk );
 

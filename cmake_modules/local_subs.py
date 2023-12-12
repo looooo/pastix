@@ -10,7 +10,9 @@
  @author Mathieu Faverge
  @author Esragul Korkmaz
  @author Tony Delarue
- @date 2023-07-21
+ @author Alycia Lisito
+ @author Brieuc Nicolas
+ @date 2023-12-01
 
 """
 subs = {
@@ -70,6 +72,7 @@ subs = {
         ('dynamic_p',            'dynamic_s',            'dynamic_d',            'dynamic_c',            'dynamic_z'           ),
         ('runtime_p',            'runtime_s',            'runtime_d',            'runtime_c',            'runtime_z'           ),
         ('vec_p',                'vec_s',                'vec_d',                'vec_c',                'vec_z'               ),
+        ('task_p',               'task_s',               'task_d',               'task_c',               'task_z'              ),
         ('',                     'slag2d',               'slag2d',               'clag2z',               'clag2z'              ),
     ], #end normal
 

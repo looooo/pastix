@@ -9,7 +9,8 @@
  * @version 6.3.2
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2023-07-21
+ * @author Alycia Lisito
+ * @date 2023-12-01
  *
  * @addtogroup blend_dev_solver
  * @{
@@ -163,7 +164,7 @@ solver_recv_add_contrib( solver_cblk_recv_t    *rcblk,
             assert( fcblk[0].bloknum + i < fcblk[1].bloknum );
         }
 
-        /* Update the rows in the recev block */
+        /* Update the rows in the recv block */
         solver_recv_update_rows( &(rcblk->bloktab[i]), blok->frownum, blok->lrownum );
     }
 }
