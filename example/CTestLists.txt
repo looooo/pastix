@@ -203,7 +203,7 @@ foreach( version ${RUNTYPE} )
   ### distributed mpi does not work with StarPU and Parsec
   set( schedulers ${PASTIX_SCHEDS} )
   if ( ${version} STREQUAL "mpi_dst" )
-    remove( schedulers 2 3 )
+    remove( schedulers 2 )
   endif()
 
   ### Scheduling
