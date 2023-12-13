@@ -1,3 +1,6 @@
+# pastix-6.3.3
+ - python: Fix installation path
+
 # pastix-6.3.2
 
  - papi: Fix management of counters to disable the counters that have not been initialized

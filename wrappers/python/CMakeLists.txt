@@ -53,8 +53,12 @@ file(COPY
   examples/step-by-step.py
   DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/examples )
 
+#
+# Let's define the installation directory by building something similar to what
+# sysconfig.get_path('platlib') returns
+#
 if ( NOT PYTHON_SITE_PACKAGES_DIR )
-  set(PYTHON_SITE_PACKAGES_DIR lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages CACHE STRING "Python packages installation path" FORCE)
+  set(PYTHON_SITE_PACKAGES_DIR lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages CACHE STRING "Python packages installation path" FORCE)
 endif()
 
 # Install python package
@@ -64,7 +68,7 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/examples/pypastix/pastix.py
   ${CMAKE_CURRENT_BINARY_DIR}/examples/pypastix/enum.py
   ${CMAKE_CURRENT_BINARY_DIR}/examples/pypastix/solver.py
-  DESTINATION ${PYTHON_SITE_PACKAGES_DIR}/spm )
+  DESTINATION ${PYTHON_SITE_PACKAGES_DIR}/pastix )
 
 # Install python examples
 install(FILES
