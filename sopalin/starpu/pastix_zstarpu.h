@@ -56,6 +56,7 @@ void starpu_stask_cblk_zdiag( sopalin_data_t *sopalin_data,
                               SolverCblk     *cblk,
                               int             prio );
 void starpu_stask_blok_zgemm( sopalin_data_t   *sopalin_data,
+                              pastix_rhs_t      rhsb,
                               pastix_coefside_t coef,
                               pastix_side_t     side,
                               pastix_trans_t    trans,
@@ -64,6 +65,7 @@ void starpu_stask_blok_zgemm( sopalin_data_t   *sopalin_data,
                               SolverCblk       *fcbk,
                               pastix_int_t      prio );
 void starpu_stask_blok_ztrsm( sopalin_data_t   *sopalin_data,
+                              pastix_rhs_t      rhsb,
                               pastix_coefside_t coef,
                               pastix_side_t     side,
                               pastix_uplo_t     uplo,
@@ -168,6 +170,6 @@ void starpu_zsytrf( pastix_data_t  *pastix_data,
 void starpu_ztrsm ( pastix_data_t      *pastix_data,
                     const args_solve_t *enums,
                     sopalin_data_t     *sopalin_data,
-                    pastix_rhs_t        b );
+                    pastix_rhs_t        rhsb );
 
 #endif /* _pastix_zstarpu_h_ */

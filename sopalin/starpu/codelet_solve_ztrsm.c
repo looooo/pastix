@@ -96,6 +96,14 @@ CODELETS_CPU( solve_blok_ztrsm, 2 );
  *
  *******************************************************************************
  *
+ * @param[in] sopalin_data
+ *          The data that provide the SolverMatrix structure from PaStiX, and
+ *          descriptor of b (providing nrhs, b and ldb).
+ *
+ * @param[inout] rhsb
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
+ *
  * @param[in] coef
  *          Specify whether the computation are made with the L part, or the U
  *          part of A. It has to be either PastixLCoef, or PastixUCoef.
@@ -116,10 +124,6 @@ CODELETS_CPU( solve_blok_ztrsm, 2 );
  *
  * @param[in] cblk
  *          The cblk structure that corresponds to the A and B matrix.
- *
- * @param[in] sopalin_data
- *          The data that provide the SolverMatrix structure from PaStiX, and
- *          descriptor of b (providing nrhs, b and ldb).
 
  * @param[in] prio
  *          The priority of the task in th DAG.
@@ -127,6 +131,7 @@ CODELETS_CPU( solve_blok_ztrsm, 2 );
  *******************************************************************************/
 void
 starpu_stask_blok_ztrsm( sopalin_data_t   *sopalin_data,
+                         pastix_rhs_t      rhsb,
                          pastix_coefside_t coef,
                          pastix_side_t     side,
                          pastix_uplo_t     uplo,
@@ -152,7 +157,7 @@ starpu_stask_blok_ztrsm( sopalin_data_t   *sopalin_data,
         if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
             need_submit = 1;
         }
-        if ( starpu_mpi_cached_receive( solvmtx->starpu_desc_rhs->handletab[cblknum] ) ) {
+        if ( starpu_mpi_cached_receive( rhsb->starpu_desc->handletab[cblknum] ) ) {
             need_submit = 1;
         }
         if ( !need_submit ) {
@@ -188,7 +193,7 @@ starpu_stask_blok_ztrsm( sopalin_data_t   *sopalin_data,
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
 #endif
         STARPU_R,                       handle,
-        STARPU_RW,                      solvmtx->starpu_desc_rhs->handletab[cblknum],
+        STARPU_RW,                      rhsb->starpu_desc->handletab[cblknum],
 #if defined(PASTIX_DEBUG_STARPU)
         STARPU_NAME,                    task_name,
 #endif
