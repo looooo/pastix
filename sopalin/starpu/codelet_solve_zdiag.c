@@ -97,6 +97,10 @@ CODELETS_CPU( solve_cblk_zdiag, 2 );
  * @param[inout] sopalin_data
  *          The structure providing descriptor about b and the A matrix.
  *
+ * @param[inout] rhsb
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
+ *
  * @param[in] cblk
  *          The cblk structure to which diagonal block belongs to.
  *
@@ -106,6 +110,7 @@ CODELETS_CPU( solve_cblk_zdiag, 2 );
  *******************************************************************************/
 void
 starpu_stask_cblk_zdiag( sopalin_data_t *sopalin_data,
+                         pastix_rhs_t    rhsb,
                          SolverCblk     *cblk,
                          int             prio )
 {
@@ -126,7 +131,7 @@ starpu_stask_cblk_zdiag( sopalin_data_t *sopalin_data,
         if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
             need_submit = 1;
         }
-        if ( starpu_mpi_cached_receive( solvmtx->starpu_desc_rhs->handletab[cblknum] ) ) {
+        if ( starpu_mpi_cached_receive( rhsb->starpu_desc->handletab[cblknum] ) ) {
             need_submit = 1;
         }
         if ( !need_submit ) {
@@ -160,7 +165,7 @@ starpu_stask_cblk_zdiag( sopalin_data_t *sopalin_data,
         STARPU_CALLBACK_WITH_ARG_NFREE, cl_profiling_callback, cl_arg,
 #endif
         STARPU_R,                       handle,
-        STARPU_RW,                      solvmtx->starpu_desc_rhs->handletab[cblknum],
+        STARPU_RW,                      rhsb->starpu_desc->handletab[cblknum],
 #if defined(PASTIX_DEBUG_STARPU)
         STARPU_NAME,                    task_name,
 #endif

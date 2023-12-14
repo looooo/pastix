@@ -40,10 +40,15 @@
  *          Provide descriptor of b and the sparse matrix and the SolverMatrix
  *          structure.
  *
+ * @param[inout] rhsb
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
+ *
  *******************************************************************************/
 void
-starpu_zdiag_sp1dplus( pastix_data_t               *pastix_data,
-                       sopalin_data_t              *sopalin_data )
+starpu_zdiag_sp1dplus( pastix_data_t  *pastix_data,
+                       sopalin_data_t *sopalin_data,
+                       pastix_rhs_t    rhsb )
 {
     SolverMatrix       *datacode = sopalin_data->solvmtx;
     SolverCblk         *cblk;
@@ -56,7 +61,7 @@ starpu_zdiag_sp1dplus( pastix_data_t               *pastix_data,
         if ( cblk->ownerid != datacode->clustnum ) {
             continue;
         }
-        starpu_stask_cblk_zdiag( sopalin_data, cblk, cblknbr - k );
+        starpu_stask_cblk_zdiag( sopalin_data, rhsb, cblk, cblknbr - k );
     }
 }
 
@@ -74,25 +79,18 @@ starpu_zdiag_sp1dplus( pastix_data_t               *pastix_data,
  *          Provide descriptor of b and the sparse matrix and the SolverMatrix
  *          structure.
  *
- * @param[in] nrhs
- *          The number of right hand side
- *
- * @param[inout] b
- *          The pointer to vectors of the right hand side
- *
- * @param[in] ldb
- *          The leading dimension of b
+ * @param[inout] rhsb
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
  *
  *******************************************************************************/
 void
-starpu_zdiag( pastix_data_t      *pastix_data,
-              sopalin_data_t     *sopalin_data,
-              int                 nrhs,
-              pastix_complex64_t *b,
-              int                 ldb )
+starpu_zdiag( pastix_data_t  *pastix_data,
+              sopalin_data_t *sopalin_data,
+              pastix_rhs_t    rhsb )
 {
     starpu_sparse_matrix_desc_t *sdesc = sopalin_data->solvmtx->starpu_desc;
-    starpu_dense_matrix_desc_t  *ddesc;
+    starpu_rhs_desc_t           *ddesc = rhsb->starpu_desc;
 
     /*
      * Start StarPU if not already started
@@ -112,13 +110,14 @@ starpu_zdiag( pastix_data_t      *pastix_data,
         sdesc = sopalin_data->solvmtx->starpu_desc;
     }
 
-    /* Create the dense matrix descriptor */
-    starpu_dense_matrix_init( sopalin_data->solvmtx,
-                              nrhs, (char*)b, ldb,
-                              sizeof(pastix_complex64_t),
-                              pastix_data->inter_node_procnbr,
-                              pastix_data->inter_node_procnum );
-    ddesc = sopalin_data->solvmtx->starpu_desc_rhs;
+    if ( ddesc == NULL ) {
+        /* Create the dense matrix descriptor */
+        starpu_rhs_init( pastix_data->solvmatr, rhsb,
+                         PastixComplex64,
+                         pastix_data->inter_node_procnbr,
+                         pastix_data->inter_node_procnum );
+        ddesc = rhsb->starpu_desc;
+    }
 
 #if defined(STARPU_USE_FXT)
     if (pastix_data->iparm[IPARM_TRACE] & PastixTraceSolve) {
@@ -126,10 +125,10 @@ starpu_zdiag( pastix_data_t      *pastix_data,
     }
 #endif
     starpu_resume();
-    starpu_zdiag_sp1dplus( pastix_data, sopalin_data );
+    starpu_zdiag_sp1dplus( pastix_data, sopalin_data, rhsb );
 
     starpu_sparse_matrix_getoncpu( sdesc );
-    starpu_dense_matrix_getoncpu( ddesc );
+    starpu_rhs_getoncpu( ddesc );
     starpu_task_wait_for_all();
 #if defined(PASTIX_WITH_MPI)
     starpu_mpi_wait_for_all( pastix_data->pastix_comm );

@@ -52,6 +52,7 @@ void starpu_task_blok_zsytrf( sopalin_data_t *sopalin_data,
                               SolverCblk     *cblk,
                               int             prio );
 void starpu_stask_cblk_zdiag( sopalin_data_t *sopalin_data,
+                              pastix_rhs_t    rhsb,
                               SolverCblk     *cblk,
                               int             prio );
 void starpu_stask_blok_zgemm( sopalin_data_t   *sopalin_data,
@@ -151,11 +152,9 @@ void starpu_task_zadd_recv( sopalin_data_t    *sopalin_data,
                             const SolverCblk  *cblk,
                             int                prio );
 
-void starpu_zdiag ( pastix_data_t      *pastix_data,
-                    sopalin_data_t     *sopalin_data,
-                    int                 nrhs,
-                    pastix_complex64_t *b,
-                    int                 ldb );
+void starpu_zdiag ( pastix_data_t  *pastix_data,
+                    sopalin_data_t *sopalin_data,
+                    pastix_rhs_t    rhsb );
 void starpu_zpotrf( pastix_data_t  *pastix_data,
                     sopalin_data_t *sopalin_data );
 void starpu_zpxtrf( pastix_data_t  *pastix_data,
