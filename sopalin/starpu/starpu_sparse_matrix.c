@@ -132,6 +132,17 @@ pastix_starpu_register_cblk( const starpu_sparse_matrix_desc_t *spmtx,
                              SolverCblk                        *cblk,
                              pastix_coeftype_t                  flttype )
 {
+    /* Temporary fix for the factorisation with 2D cblk. */
+    if ( ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) &&
+         ( cblk->cblktype & CBLK_TASKS_2D ) ) {
+        if ( spmtx->mtxtype == PastixGeneral ) {
+            cpucblk_zalloc( PastixLUCoef, cblk );
+        }
+        else {
+            cpucblk_zalloc( PastixLCoef, cblk );
+        }
+    }
+
     pastix_starpu_register_interface( spmtx, cblk, PastixLCoef, flttype );
     if ( spmtx->mtxtype == PastixGeneral ) {
         pastix_starpu_register_interface( spmtx, cblk, PastixUCoef, flttype );
