@@ -362,12 +362,6 @@ starpu_task_blok_zgemmsp( sopalin_data_t   *sopalin_data,
     }
 #endif
 
-#if !defined(HAVE_STARPU_DATA_PARTITION_CLEAN_NODE)
-    /* Mark the read cblk as partitionned */
-    cblk->partitioned |= (sideA + 1);
-    cblk->partitioned |= (sideB + 1);
-#endif
-
     /*
      * Create the arguments array
      */

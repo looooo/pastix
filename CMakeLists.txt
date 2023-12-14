@@ -380,7 +380,6 @@ if (PASTIX_WITH_STARPU)
 
   # Check for specific functions
   check_function_exists(starpu_sched_ctx_get_sched_policy_callback HAVE_STARPU_SCHED_POLICY_CALLBACK)
-  check_function_exists(starpu_data_partition_clean_node HAVE_STARPU_DATA_PARTITION_CLEAN_NODE)
 
   unset(CMAKE_REQUIRED_LIBRARIES)
 

@@ -298,11 +298,6 @@ starpu_task_blok_zadd_recv( sopalin_data_t    *sopalin_data,
 
     assert( blok->fcblknm == fblok->fcblknm );
 
-#if !defined(HAVE_STARPU_DATA_PARTITION_CLEAN_NODE)
-    /* Mark the facing cblk as partitionned */
-    fcblk->partitioned |= (side + 1);
-#endif
-
     /*
      * Create the arguments array
      */
