@@ -27,7 +27,7 @@ set(EXTRA_SOURCES
   starpu.c
   starpu_tags.c
   starpu_sparse_matrix.c
-  starpu_dense_matrix.c
+  starpu_rhs.c
   starpu_profile.c
   pastix_starpu_interface.c
 )
@@ -142,6 +142,6 @@ add_documented_files(
   starpu.c
   starpu_sparse_matrix.c
   starpu_tags.c
-  starpu_dense_matrix.c
+  starpu_rhs.c
   pastix_starpu_interface.c
   )
