@@ -22,6 +22,7 @@
 #include "common.h"
 #include "blend/solver.h"
 #include "pastix_starpu.h"
+#include "pastix_zcores.h"
 #include <starpu_data.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -97,14 +98,32 @@ pastix_starpu_register_interface( const starpu_sparse_matrix_desc_t *spmtx,
                                   int                                side,
                                   pastix_coeftype_t                  flttype )
 {
-    starpu_data_handle_t *handler  = ( (starpu_data_handle_t *)( cblk->handler ) ) + side;
-    int64_t               tag_cblk = 2 * cblk->gcblknum + side;
+    starpu_data_handle_t *handler = ( (starpu_data_handle_t *)( cblk->handler ) ) + side;
 
     pastix_starpu_register( handler, cblk, side, flttype );
 #if defined( PASTIX_WITH_MPI )
-    starpu_mpi_data_register( *handler, spmtx->mpitag + tag_cblk, cblk->ownerid );
+    int64_t tag_cblk;
+    if ( cblk->cblktype & CBLK_FANIN ) {
+        tag_cblk = 2 * cblk->gfaninnum + side;
+        starpu_mpi_data_register( *handler, spmtx->mpitag + tag_cblk, spmtx->solvmtx->clustnum );
+        starpu_data_set_reduction_methods( *handler, NULL, &cl_fanin_init_cpu );
+    }
+    else {
+        if ( cblk->cblktype & CBLK_RECV ) {
+            tag_cblk = 2 * cblk->gfaninnum + side;
+        }
+        else {
+            tag_cblk = 2 * cblk->gcblknum + side;
+        }
+        starpu_mpi_data_register( *handler, spmtx->mpitag + tag_cblk, cblk->ownerid );
+    }
+#if defined(PASTIX_DEBUG_STARPU)
+    fprintf( stderr, "[%2d][pastix][%s] Matrix cblk=%d, owner=%d, tag=%ld, size=%ld\n",
+             spmtx->solvmtx->clustnum, __func__, cblk->gcblknum, cblk->ownerid,
+             spmtx->mpitag + tag_cblk,
+             cblk->stride * cblk_colnbr( cblk ) * pastix_size_of( spmtx->solvmtx->flttype ) );
 #endif
-    (void)tag_cblk;
+#endif
     (void)spmtx;
 }
 
@@ -113,11 +132,63 @@ pastix_starpu_register_cblk( const starpu_sparse_matrix_desc_t *spmtx,
                              SolverCblk                        *cblk,
                              pastix_coeftype_t                  flttype )
 {
+    /* Temporary fix for the factorisation with 2D cblk. */
+    if ( ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) &&
+         ( cblk->cblktype & CBLK_TASKS_2D ) ) {
+        if ( spmtx->mtxtype == PastixGeneral ) {
+            cpucblk_zalloc( PastixLUCoef, cblk );
+        }
+        else {
+            cpucblk_zalloc( PastixLCoef, cblk );
+        }
+    }
+
     pastix_starpu_register_interface( spmtx, cblk, PastixLCoef, flttype );
     if ( spmtx->mtxtype == PastixGeneral ) {
         pastix_starpu_register_interface( spmtx, cblk, PastixUCoef, flttype );
     }
 }
+
+#if defined( PASTIX_WITH_MPI )
+static inline void
+pastix_starpu_mpi_register_blok( const starpu_sparse_matrix_desc_t *spmtx,
+                                 const SolverCblk                  *cblk,
+                                 SolverBlok                        *blok,
+                                 int64_t                            tag_desc )
+{
+    int64_t tag;
+    int     ownerid = cblk->ownerid;
+
+    if ( cblk->cblktype & CBLK_FANIN ) {
+        tag = tag_desc + 2 * blok->gfaninnm;
+        ownerid = spmtx->solvmtx->clustnum;
+    }
+    else if ( cblk->cblktype & CBLK_RECV ) {
+        tag = tag_desc + 2 * blok->gfaninnm;
+    }
+    else {
+        tag = tag_desc + 2 * blok->gbloknm;
+    }
+
+    starpu_mpi_data_register( blok->handler[0], tag, ownerid );
+    if ( spmtx->mtxtype == PastixGeneral ) {
+        tag = tag + 1;
+        starpu_mpi_data_register( blok->handler[1], tag, ownerid );
+    }
+}
+#else
+static inline void
+pastix_starpu_mpi_register_blok( const starpu_sparse_matrix_desc_t *spmtx,
+                                 const SolverCblk                  *cblk,
+                                 SolverBlok                        *blok,
+                                 int64_t                            tag_desc )
+{
+    (void)spmtx;
+    (void)cblk;
+    (void)blok;
+    (void)tag_desc;
+}
+#endif
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
@@ -166,9 +237,6 @@ starpu_sparse_matrix_init( SolverMatrix     *solvmtx,
     pastix_int_t nbrow;
     size_t       size;
     int64_t      tag_desc;
-#if defined( PASTIX_WITH_MPI )
-    int64_t      tag;
-#endif
 
     starpu_sparse_matrix_desc_t *spmtx = solvmtx->starpu_desc;
     if ( spmtx != NULL ) {
@@ -178,9 +246,9 @@ starpu_sparse_matrix_init( SolverMatrix     *solvmtx,
         spmtx = (starpu_sparse_matrix_desc_t *)malloc( sizeof( starpu_sparse_matrix_desc_t ) );
     }
 
-    tag_desc              = ( (int64_t) (solvmtx->gcblknbr + solvmtx->bloknbr) ) * 2;
+    tag_desc              = ( (int64_t) (solvmtx->gcblknbr + solvmtx->gbloknbr + solvmtx->gfanincblknbr + solvmtx->gfaninbloknbr) ) * 2;
     spmtx->mpitag         = pastix_starpu_tag_book( tag_desc );
-    tag_desc              = spmtx->mpitag + 2 * solvmtx->gcblknbr;
+    tag_desc              = spmtx->mpitag + 2 * ( solvmtx->gcblknbr + solvmtx->gfanincblknbr );
     spmtx->typesze        = pastix_size_of( flttype );
     spmtx->mtxtype        = mtxtype;
     spmtx->solvmtx        = solvmtx;
@@ -218,7 +286,7 @@ starpu_sparse_matrix_init( SolverMatrix     *solvmtx,
               cblknum++, n++, cblk++, cblkhandle++ ) {
             pastix_starpu_register_cblk( spmtx, cblk, flttype );
 
-            if ( !( cblk->cblktype & CBLK_TASKS_2D ) ) {
+            if ( !(cblk->cblktype & CBLK_TASKS_2D) ) {
                 continue;
             }
 
@@ -287,20 +355,13 @@ starpu_sparse_matrix_init( SolverMatrix     *solvmtx,
              * Diagonal block
              */
             blok->handler[0] = cblkhandle->handletab[nchildren];
-#if defined( PASTIX_WITH_MPI )
-            tag = tag_desc + 2 * ( blok - solvmtx->bloktab );
-            starpu_mpi_data_register( blok->handler[0], tag, cblk->ownerid );
-#endif
             if ( mtxtype == PastixGeneral ) {
                 blok->handler[1] = cblkhandle->handletab[cblkhandle->handlenbr + nchildren];
-#if defined( PASTIX_WITH_MPI )
-                tag = tag_desc + 2 * ( blok - solvmtx->bloktab ) + 1;
-                starpu_mpi_data_register( blok->handler[1], tag, cblk->ownerid );
-#endif
             }
             else {
                 blok->handler[1] = NULL;
             }
+            pastix_starpu_mpi_register_blok( spmtx, cblk, blok, tag_desc );
             nchildren++;
 
             /*
@@ -309,20 +370,13 @@ starpu_sparse_matrix_init( SolverMatrix     *solvmtx,
             blok++;
             for ( ; blok < lblok; blok++ ) {
                 blok->handler[0] = cblkhandle->handletab[nchildren];
-#if defined( PASTIX_WITH_MPI )
-                tag = tag_desc + 2 * ( blok - solvmtx->bloktab );
-                starpu_mpi_data_register( blok->handler[0], tag, cblk->ownerid );
-#endif
                 if ( mtxtype == PastixGeneral ) {
                     blok->handler[1] = cblkhandle->handletab[cblkhandle->handlenbr + nchildren];
-#if defined( PASTIX_WITH_MPI )
-                    tag = tag_desc + 2 * ( blok - solvmtx->bloktab ) + 1;
-                    starpu_mpi_data_register( blok->handler[1], tag, cblk->ownerid );
-#endif
                 }
                 else {
                     blok->handler[1] = NULL;
                 }
+                pastix_starpu_mpi_register_blok( spmtx, cblk, blok, tag_desc );
                 nchildren++;
 
                 while ( ( blok < lblok ) && ( blok[0].fcblknm == blok[1].fcblknm ) &&
@@ -413,39 +467,6 @@ starpu_sparse_matrix_getoncpu( starpu_sparse_matrix_desc_t *spmtx )
     }
 }
 
-#if !defined(DOXYGEN_SHOULD_SKIP_THIS)
-#if !defined(HAVE_STARPU_DATA_PARTITION_CLEAN_NODE)
-/**
- *******************************************************************************
- *
- * @brief StarPU function only avalaible with StarPU >= 1.4.0
- *
- ******************************************************************************/
-static inline void
-pastix_starpu_data_partition_clean_node( int                   unpartition,
-                                         starpu_data_handle_t  root_handle,
-                                         unsigned              nparts,
-                                         starpu_data_handle_t *children,
-                                         int                   gather_node )
-{
-    if ( unpartition ) {
-        starpu_data_unpartition_submit( root_handle, nparts, children, gather_node );
-    }
-    starpu_data_partition_clean( root_handle, nparts, children );
-}
-#else
-static inline void
-pastix_starpu_data_partition_clean_node( int                   unpartition __attribute__((unused)),
-                                         starpu_data_handle_t  root_handle,
-                                         unsigned              nparts,
-                                         starpu_data_handle_t *children,
-                                         int                   gather_node )
-{
-    starpu_data_partition_clean_node( root_handle, nparts, children, gather_node );
-}
-#endif
-#endif
-
 /**
  *******************************************************************************
  *
@@ -480,19 +501,17 @@ pastix_starpu_cblk_destroy( int            is_owner,
          * correct gather_node in starpu_data_partition_clean()
          */
         if ( cblk->handler[0] ) {
-            pastix_starpu_data_partition_clean_node( !is_owner && (cblk->partitioned & (PastixLCoef + 1)),
-                                                     cblk->handler[0],
-                                                     cblkhandle->handlenbr,
-                                                     cblkhandle->handletab,
-                                                     gather_node );
+            starpu_data_partition_clean_node( cblk->handler[0],
+                                              cblkhandle->handlenbr,
+                                              cblkhandle->handletab,
+                                              gather_node );
         }
 
         if ( cblk->handler[1] ) {
-            pastix_starpu_data_partition_clean_node( !is_owner && (cblk->partitioned & (PastixUCoef + 1)),
-                                                     cblk->handler[1],
-                                                     cblkhandle->handlenbr,
-                                                     cblkhandle->handletab + cblkhandle->handlenbr,
-                                                     gather_node );
+            starpu_data_partition_clean_node( cblk->handler[1],
+                                              cblkhandle->handlenbr,
+                                              cblkhandle->handletab + cblkhandle->handlenbr,
+                                              gather_node );
         }
 
         free( cblkhandle->handletab );

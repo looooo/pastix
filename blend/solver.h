@@ -16,7 +16,10 @@
  * @author Esragul Korkmaz
  * @author Gregoire Pichon
  * @author Tony Delarue
- * @date 2023-10-23
+ * @author Alycia Lisito
+ * @author Brieuc Nicolas
+ * @author Nolan Bredel
+ * @date 2023-11-06
  *
  **/
 #ifndef _solver_h_
@@ -139,6 +142,7 @@ typedef struct solver_blok_s {
     pastix_int_t lcblknm;    /**< Local column block                       */
     pastix_int_t fcblknm;    /**< Facing column block                      */
     pastix_int_t gbloknm;    /**< Index in global bloktab (UNUSED)         */
+    pastix_int_t gfaninnm;   /**< Global fanin block index, -1 if cblk not (FANIN | RECV) */
     pastix_int_t frownum;    /**< First row index                          */
     pastix_int_t lrownum;    /**< Last row index (inclusive)               */
     pastix_int_t coefind;    /**< Index in coeftab                         */
@@ -167,7 +171,8 @@ typedef struct solver_cblk_s  {
     pastix_int_t         brown2d;     /**< First 2D-block in row facing the diagonal block in browtab, 0-based */
     pastix_int_t         sndeidx;     /**< Global index of the original supernode the cblk belongs to          */
     pastix_int_t         gcblknum;    /**< Global column block index                                           */
-    pastix_int_t         bcscnum;     /**< Index in the bcsctab if local cblk, -1 otherwise (FANIN | RECV)      */
+    pastix_int_t         bcscnum;     /**< Index in the bcsctab if local cblk, -1 otherwise (FANIN | RECV)     */
+    pastix_int_t         gfaninnum;   /**< Global fanin column block index, -1 if not (FANIN | RECV)           */
     void                *lcoeftab;    /**< Coefficients access vector, lower part  */
     void                *ucoeftab;    /**< Coefficients access vector, upper part  */
     void                *handler[2];  /**< Runtime data handler                    */
@@ -206,6 +211,7 @@ struct solver_matrix_s {
     pastix_int_t            coefnbr;       /**< Number of locally stored values (after dof extension)        */
     pastix_int_t            gcblknbr;      /**< Global number of column blocks                               */
     pastix_int_t            cblknbr;       /**< Local number of column blocks                                */
+    pastix_int_t            gfanincblknbr; /**< Global number of fanin column blocks                         */
     pastix_int_t            faninnbr;      /**< Local number of fanin cblk (included in cblknbr)             */
     pastix_int_t            fanincnt;      /**< Number of sends to realize                                   */
     pastix_int_t            maxrecv;       /**< Maximum blok size for a cblk_recv                            */
@@ -218,6 +224,8 @@ struct solver_matrix_s {
     pastix_int_t            nb2dcblk;      /**< Number of 2D cblks                                           */
     pastix_int_t            nb2dblok;      /**< Number of 2D blocks                                          */
     pastix_int_t            bloknbr;       /**< Number of blocks                                             */
+    pastix_int_t            gbloknbr;      /**< Global number of blocks                                      */
+    pastix_int_t            gfaninbloknbr; /**< Global number of fanin blocks                                */
     pastix_int_t            brownbr;       /**< Size of the browtab array                                    */
     SolverCblk   * restrict cblktab;       /**< Array of solver column blocks [+1]                           */
     SolverBlok   * restrict bloktab;       /**< Array of solver blocks        [+1]                           */

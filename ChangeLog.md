@@ -1,3 +1,6 @@
+# pastix-6.4.0
+ - starpu: Fix distributed starpu
+
 # pastix-6.3.3
  - python: Fix installation path
 

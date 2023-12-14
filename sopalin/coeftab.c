@@ -301,9 +301,6 @@ coeftabExit( SolverMatrix *solvmtx )
         SolverCblk *cblk = solvmtx->cblktab;
 
         for ( i = 0; i < solvmtx->cblknbr; i++, cblk++ ) {
-            if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) {
-                continue;
-            }
             /* If the blocks are already freed set them to NULL, else free them */
             if ( solvmtx->globalalloc ) {
                 cblk->lcoeftab = NULL;
