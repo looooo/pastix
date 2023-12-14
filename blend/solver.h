@@ -189,9 +189,6 @@ typedef struct parsec_sparse_matrix_desc_s parsec_sparse_matrix_desc_t;
 
 struct starpu_sparse_matrix_desc_s;
 typedef struct starpu_sparse_matrix_desc_s starpu_sparse_matrix_desc_t;
-
-struct starpu_dense_matrix_desc_s;
-typedef struct starpu_dense_matrix_desc_s starpu_dense_matrix_desc_t;
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
@@ -245,7 +242,6 @@ struct solver_matrix_s {
 #endif
 #if defined(PASTIX_WITH_STARPU)
     starpu_sparse_matrix_desc_t *starpu_desc;
-    starpu_dense_matrix_desc_t  *starpu_desc_rhs;
 #endif
 
     pastix_int_t              offdmax;              /*+ Maximum size of the off-diagonal blocks for hetrf/sytrf temporary buffers +*/

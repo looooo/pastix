@@ -135,8 +135,12 @@ struct pastix_data_s {
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 struct bvec_handle_comm_s;
 typedef struct bvec_handle_comm_s bvec_handle_comm_t;
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
+#if defined(PASTIX_WITH_STARPU)
+struct starpu_rhs_desc_s;
+typedef struct starpu_rhs_desc_s starpu_rhs_desc_t;
+#endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 /**
  *
  * @ingroup pastix_users
@@ -149,15 +153,18 @@ typedef struct bvec_handle_comm_s bvec_handle_comm_t;
  *
  */
 struct pastix_rhs_s {
-    int8_t               allocated; /**< Flag to know if the vector b is allocated internally or not.                          */
-    pastix_coeftype_t    flttype;   /**< Floating type of the vector.                                                          */
-    pastix_int_t         m;         /**< Local number of rows in the right hand sides.                                         */
-    pastix_int_t         n;         /**< Number of columns in the right hand sides.                                            */
-    pastix_int_t         ld;        /**< Leading dimension of the right hand side matrix.                                      */
-    void                *b;         /**< Right hand sides of size ldb-by-n.                                                    */
-    void               **cblkb;     /**< Array to store the temporary buffers associated to fanin/recv.                        */
-    bvec_handle_comm_t  *rhs_comm;  /**< Structure which handles the MPI communication (= NULL if PASTIX_WITH_MPI=OFF).        */
+    int8_t               allocated;   /**< Flag to know if the vector b is allocated internally or not.                          */
+    pastix_coeftype_t    flttype;     /**< Floating type of the vector.                                                          */
+    pastix_int_t         m;           /**< Local number of rows in the right hand sides.                                         */
+    pastix_int_t         n;           /**< Number of columns in the right hand sides.                                            */
+    pastix_int_t         ld;          /**< Leading dimension of the right hand side matrix.                                      */
+    void                *b;           /**< Right hand sides of size ldb-by-n.                                                    */
+    void               **cblkb;       /**< Array to store the temporary buffers associated to fanin/recv.                        */
+    bvec_handle_comm_t  *rhs_comm;    /**< Structure which handles the MPI communication (= NULL if PASTIX_WITH_MPI=OFF).        */
     pastix_int_t        *Ploc2Pglob;  /**< Array containing the local permuted index corresponding to the global permuted index. */
+#if defined(PASTIX_WITH_STARPU)
+    starpu_rhs_desc_t   *starpu_desc; /**< StarPU strcuture to store all the rhs data and handles. */
+#endif
 };
 
 #endif /* _pastixdata_h_ */

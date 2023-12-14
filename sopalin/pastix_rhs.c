@@ -15,6 +15,9 @@
  **/
 #include "common.h"
 #include "bcsc/bvec.h"
+#if defined(PASTIX_WITH_STARPU)
+#include "starpu/pastix_starpu.h"
+#endif
 #include <lapacke.h>
 
 /**
@@ -38,7 +41,7 @@
  *
  *******************************************************************************/
 int
-pastixRhsInit( pastix_rhs_t  *B_ptr )
+pastixRhsInit( pastix_rhs_t *B_ptr )
 {
     pastix_rhs_t B;
 
@@ -50,15 +53,18 @@ pastixRhsInit( pastix_rhs_t  *B_ptr )
     *B_ptr = malloc( sizeof(struct pastix_rhs_s) );
     B = *B_ptr;
 
-    B->allocated = -1;
-    B->flttype   = PastixPattern;
-    B->m         = -1;
-    B->n         = -1;
-    B->ld        = -1;
-    B->b         = NULL;
-    B->cblkb     = NULL;
-    B->rhs_comm  = NULL;
+    B->allocated   = -1;
+    B->flttype     = PastixPattern;
+    B->m           = -1;
+    B->n           = -1;
+    B->ld          = -1;
+    B->b           = NULL;
+    B->cblkb       = NULL;
+    B->rhs_comm    = NULL;
     B->Ploc2Pglob  = NULL;
+#if defined(PASTIX_WITH_STARPU)
+    B->starpu_desc = NULL;
+#endif
 
     return PASTIX_SUCCESS;
 }
@@ -113,6 +119,16 @@ pastixRhsFinalize( pastix_rhs_t B )
     if ( B->rhs_comm != NULL ) {
         memFree_null( B->rhs_comm );
     }
+
+#if defined(PASTIX_WITH_STARPU)
+    {
+        if ( B->starpu_desc != NULL ) {
+            starpu_rhs_destroy( B->starpu_desc );
+            free( B->starpu_desc );
+        }
+        B->starpu_desc = NULL;
+    }
+#endif
     free( B );
     return PASTIX_SUCCESS;
 }
