@@ -170,15 +170,6 @@ solverExit(SolverMatrix *solvmtx)
         }
     }
     memFree_null(solvmtx->ttsktab);
-#if defined(PASTIX_WITH_STARPU)
-    {
-        if ( solvmtx->starpu_desc_rhs != NULL ) {
-            starpu_dense_matrix_destroy( solvmtx->starpu_desc_rhs );
-            free( solvmtx->starpu_desc_rhs );
-        }
-        solvmtx->starpu_desc_rhs = NULL;
-    }
-#endif
 }
 
 /**

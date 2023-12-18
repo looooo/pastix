@@ -116,31 +116,36 @@ typedef struct starpu_sparse_matrix_desc_s {
 /**
  * @brief StarPU descriptor for the vectors linked to a given sparse matrix.
  */
-typedef struct starpu_dense_matrix_desc_s {
+typedef struct starpu_rhs_desc_s {
     int64_t               mpitag;    /**< MPI id of StarPU */
     int                   ncol;      /**< Number of columns of the matrix                                                 */
     int                   typesze;   /**< Arithmetic size                                                                 */
     SolverMatrix         *solvmtx;   /**< Solver matrix structure that describes the problem and stores the original data */
     starpu_data_handle_t *handletab; /**< Array of handlers for the blocks */
     void                 *dataptr;   /**< Store the main data pointer to check that the descriptor matches the reference  */
-} starpu_dense_matrix_desc_t;
+} starpu_rhs_desc_t;
 
-void starpu_sparse_matrix_init    ( SolverMatrix *solvmtx,
-                                    pastix_mtxtype_t mtxtype,
-                                    int nodes, int myrank, pastix_coeftype_t flttype );
-void starpu_sparse_matrix_destroy ( starpu_sparse_matrix_desc_t *desc );
+void starpu_sparse_matrix_init( SolverMatrix      *solvmtx,
+                                pastix_mtxtype_t   mtxtype,
+                                int                nodes,
+                                int                myrank,
+                                pastix_coeftype_t  flttype );
+void starpu_sparse_matrix_destroy( starpu_sparse_matrix_desc_t *desc );
 void starpu_sparse_matrix_getoncpu( starpu_sparse_matrix_desc_t *desc );
 
-void starpu_dense_matrix_init     ( SolverMatrix *solvmtx,
-                                    pastix_int_t ncol, char *A, pastix_int_t lda,
-                                    int typesze, int nodes, int myrank );
-void starpu_dense_matrix_destroy  ( starpu_dense_matrix_desc_t *desc );
-void starpu_dense_matrix_getoncpu ( starpu_dense_matrix_desc_t *desc );
+void starpu_rhs_init( SolverMatrix *solvmtx,
+                      pastix_rhs_t  rhsb,
+                      int           typesze,
+                      int           nodes,
+                      int           myrank );
+void starpu_rhs_destroy( starpu_rhs_desc_t *desc );
+void starpu_rhs_getoncpu( starpu_rhs_desc_t *desc );
 
 void starpu_sparse_cblk_wont_use( pastix_coefside_t coef, SolverCblk *cblk );
 void pastix_starpu_init( pastix_data_t *pastix,
-                         int *argc, char **argv[],
-                         const int *bindtab );
+                         int           *argc,
+                         char         **argv[],
+                         const int     *bindtab );
 void pastix_starpu_finalize( pastix_data_t *pastix );
 
 /**

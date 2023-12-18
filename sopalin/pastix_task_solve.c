@@ -418,10 +418,6 @@ pastix_subtask_diag( pastix_data_t *pastix_data,
                      pastix_rhs_t   Bp )
 {
     sopalin_data_t sopalin_data;
-    pastix_coeftype_t flttype;
-    pastix_int_t      nrhs;
-    void             *b;
-    pastix_int_t      ldb;
 
     /*
      * Check parameters
@@ -439,11 +435,6 @@ pastix_subtask_diag( pastix_data_t *pastix_data,
         return PASTIX_ERR_BADPARAMETER;
     }
 
-    flttype = Bp->flttype;
-    nrhs    = Bp->n;
-    b       = Bp->b;
-    ldb     = Bp->ld;
-
     /*
      * Ensure that the scheduler is correct and is in the same
      * family that the one used for the factorization.
@@ -452,18 +443,18 @@ pastix_subtask_diag( pastix_data_t *pastix_data,
 
     sopalin_data.solvmtx = pastix_data->solvmatr;
 
-    switch (flttype) {
+    switch ( Bp->flttype ) {
     case PastixComplex64:
-        sopalin_zdiag( pastix_data, &sopalin_data, nrhs, (pastix_complex64_t *)b, ldb );
+        sopalin_zdiag( pastix_data, &sopalin_data, Bp );
         break;
     case PastixComplex32:
-        sopalin_cdiag( pastix_data, &sopalin_data, nrhs, (pastix_complex32_t *)b, ldb );
+        sopalin_cdiag( pastix_data, &sopalin_data, Bp );
         break;
     case PastixDouble:
-        sopalin_ddiag( pastix_data, &sopalin_data, nrhs, (double *)b, ldb );
+        sopalin_ddiag( pastix_data, &sopalin_data, Bp );
         break;
     case PastixFloat:
-        sopalin_sdiag( pastix_data, &sopalin_data, nrhs, (float *)b, ldb );
+        sopalin_sdiag( pastix_data, &sopalin_data, Bp );
         break;
     default:
         fprintf(stderr, "Unknown floating point arithmetic\n" );

@@ -41,6 +41,10 @@
  *          The data that provide the SolverMatrix structure from PaStiX, and
  *          descriptor of b (providing nrhs, b and ldb).
  *
+ * @param[inout] rhsb
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
+ *
  * @param[in] cblk
  *          The cblk structure to which block belongs to. The A and B pointers
  *          must be the coeftab of this column block.
@@ -53,6 +57,7 @@
 void
 starpu_cblk_ztrsmsp_forward( const args_solve_t *enums,
                              sopalin_data_t     *sopalin_data,
+                             pastix_rhs_t        rhsb,
                              const SolverCblk   *cblk,
                              pastix_int_t        prio )
 {
@@ -108,8 +113,8 @@ starpu_cblk_ztrsmsp_forward( const args_solve_t *enums,
     assert( cblk->fcolnum == cblk->lcolidx );
 
     /* Solve the diagonal block */
-    starpu_stask_blok_ztrsm(
-        sopalin_data, cs, side, PastixLower, tA, diag, cblk, prio );
+    starpu_stask_blok_ztrsm( sopalin_data, rhsb, cs, side, PastixLower,
+                             tA, diag, cblk, prio );
 
     /* Apply the update */
     for (blok = cblk[0].fblokptr+1; blok < cblk[1].fblokptr; blok++ ) {
@@ -119,7 +124,7 @@ starpu_cblk_ztrsmsp_forward( const args_solve_t *enums,
             return;
         }
 
-        starpu_stask_blok_zgemm( sopalin_data, cs, PastixLeft, tA,
+        starpu_stask_blok_zgemm( sopalin_data, rhsb, cs, PastixLeft, tA,
                                  cblk, blok, fcbk, prio );
     }
 }
@@ -139,6 +144,10 @@ starpu_cblk_ztrsmsp_forward( const args_solve_t *enums,
  *          The data that provide the SolverMatrix structure from PaStiX, and
  *          descriptor of b (providing nrhs, b and ldb).
  *
+ * @param[inout] rhsb
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
+ *
  * @param[in] cblk
  *          The cblk structure to which block belongs to. The A and B pointers
  *          must be the coeftab of this column block.
@@ -151,6 +160,7 @@ starpu_cblk_ztrsmsp_forward( const args_solve_t *enums,
 void
 starpu_cblk_ztrsmsp_backward( const args_solve_t *enums,
                               sopalin_data_t     *sopalin_data,
+                              pastix_rhs_t        rhsb,
                               const SolverCblk   *cblk,
                               pastix_int_t        prio )
 {
@@ -204,8 +214,8 @@ starpu_cblk_ztrsmsp_backward( const args_solve_t *enums,
 
     if ( !(cblk->cblktype & CBLK_IN_SCHUR) || (mode == PastixSolvModeSchur) ) {
         /* Solve the diagonal block */
-        starpu_stask_blok_ztrsm(
-            sopalin_data, cs, side, PastixLower, tA, diag, cblk, prio );
+        starpu_stask_blok_ztrsm( sopalin_data, rhsb, cs, side, PastixLower,
+                                 tA, diag, cblk, prio );
     }
 
     /* Apply the update */
@@ -217,7 +227,7 @@ starpu_cblk_ztrsmsp_backward( const args_solve_t *enums,
             continue;
         }
 
-        starpu_stask_blok_zgemm( sopalin_data, cs, PastixRight, tA,
+        starpu_stask_blok_zgemm( sopalin_data, rhsb, cs, PastixRight, tA,
                                  cblk, blok, fcbk, prio );
     }
 }
@@ -236,6 +246,10 @@ starpu_cblk_ztrsmsp_backward( const args_solve_t *enums,
  *          The data that provide the SolverMatrix structure from PaStiX., and
  *          descriptor of b (providing nrhs, b and ldb).
  *
+ * @param[inout] rhsb
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
+ *
  * @param[in] enums
  *          Enums needed for the solve.
  *
@@ -243,6 +257,7 @@ starpu_cblk_ztrsmsp_backward( const args_solve_t *enums,
 void
 starpu_ztrsm_sp1dplus( pastix_data_t      *pastix_data,
                        sopalin_data_t     *sopalin_data,
+                       pastix_rhs_t        rhsb,
                        const args_solve_t *enums )
 {
     SolverMatrix *datacode = sopalin_data->solvmtx;
@@ -255,7 +270,7 @@ starpu_ztrsm_sp1dplus( pastix_data_t      *pastix_data,
 
         cblk    = datacode->cblktab + cblknbr - 1;
         for (i=0; i<cblknbr; i++, cblk--){
-            starpu_cblk_ztrsmsp_backward( enums, sopalin_data, cblk, cblknbr - i );
+            starpu_cblk_ztrsmsp_backward( enums, sopalin_data, rhsb, cblk, cblknbr - i );
         }
     }
     /* Forward like */
@@ -264,7 +279,7 @@ starpu_ztrsm_sp1dplus( pastix_data_t      *pastix_data,
 
         cblk    = datacode->cblktab;
         for (i=0; i<cblknbr; i++, cblk++){
-            starpu_cblk_ztrsmsp_forward( enums, sopalin_data, cblk, cblknbr - i );
+            starpu_cblk_ztrsmsp_forward( enums, sopalin_data, rhsb, cblk, cblknbr - i );
         }
     }
     (void)pastix_data;
@@ -299,7 +314,7 @@ starpu_ztrsm( pastix_data_t      *pastix_data,
               pastix_rhs_t        rhsb )
 {
     starpu_sparse_matrix_desc_t *sdesc = sopalin_data->solvmtx->starpu_desc;
-    starpu_dense_matrix_desc_t  *ddesc;
+    starpu_rhs_desc_t           *ddesc = rhsb->starpu_desc;
 
     /*
      * Start StarPU if not already started
@@ -319,13 +334,14 @@ starpu_ztrsm( pastix_data_t      *pastix_data,
         sdesc = sopalin_data->solvmtx->starpu_desc;
     }
 
-    /* Create the dense matrix descriptor */
-    starpu_dense_matrix_init( sopalin_data->solvmtx,
-                              rhsb->n, rhsb->b, rhsb->ld,
-                              sizeof(pastix_complex64_t),
-                              pastix_data->inter_node_procnbr,
-                              pastix_data->inter_node_procnum );
-    ddesc = sopalin_data->solvmtx->starpu_desc_rhs;
+    if ( ddesc == NULL ) {
+        /* Create the dense matrix descriptor */
+        starpu_rhs_init( pastix_data->solvmatr, rhsb,
+                         PastixComplex64,
+                         pastix_data->inter_node_procnbr,
+                         pastix_data->inter_node_procnum );
+        ddesc = rhsb->starpu_desc;
+    }
 
 #if defined(STARPU_USE_FXT)
     if (pastix_data->iparm[IPARM_TRACE] & PastixTraceSolve) {
@@ -333,10 +349,10 @@ starpu_ztrsm( pastix_data_t      *pastix_data,
     }
 #endif
     starpu_resume();
-    starpu_ztrsm_sp1dplus( pastix_data, sopalin_data, enums );
+    starpu_ztrsm_sp1dplus( pastix_data, sopalin_data, rhsb, enums );
 
     starpu_sparse_matrix_getoncpu( sdesc );
-    starpu_dense_matrix_getoncpu( ddesc );
+    starpu_rhs_getoncpu( ddesc );
     starpu_task_wait_for_all();
 #if defined(PASTIX_WITH_MPI)
     starpu_mpi_wait_for_all( pastix_data->pastix_comm );

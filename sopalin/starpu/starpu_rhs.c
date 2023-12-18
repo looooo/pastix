@@ -1,6 +1,6 @@
 /**
  *
- * @file starpu_dense_matrix.c
+ * @file starpu_rhs.c
  *
  * PaStiX dense matrix descriptor for StarPU.
  *
@@ -35,15 +35,9 @@
  *          The solver matrix structure that describes the dense matrix for
  *          PaStiX.
  *
- * @param[in] ncol
- *          The number of columns of the given matrix. The number of rows is
- *          given by the solvmtx structure.
- *
- * @param[in] A
- *          The pointer to the matrix.
- *
- * @param[in] lda
- *          The leading dimension of the matrix A.
+ * @param[inout] rhsb
+ *          The pointer to the rhs data structure that holds the vectors of the
+ *          right hand side.
  *
  * @param[in] typesize
  *          The memory size of the arithmetic used to store the matrix
@@ -57,39 +51,40 @@
  *
  ******************************************************************************/
 void
-starpu_dense_matrix_init( SolverMatrix *solvmtx,
-                          pastix_int_t ncol, char *A, pastix_int_t lda,
-                          int typesize, int nodes, int myrank )
+starpu_rhs_init( SolverMatrix *solvmtx,
+                 pastix_rhs_t  rhsb,
+                 int           typesize,
+                 int           nodes,
+                 int           myrank )
 {
     starpu_data_handle_t *handler;
-    SolverCblk   *cblk;
-    pastix_int_t  cblknbr, cblknum;
-    pastix_int_t  nrow;
+    SolverCblk           *cblk;
+    pastix_int_t          cblknbr, cblknum, nrow;
+    pastix_int_t          ncol = rhsb->n;
 
-    starpu_dense_matrix_desc_t *spmtx = solvmtx->starpu_desc_rhs;
-    if ( spmtx != NULL ) {
-        if ( (ncol == spmtx->ncol) &&
-             (A    == spmtx->dataptr) ) {
+    starpu_rhs_desc_t *rhsdesc = rhsb->starpu_desc;
+    if ( rhsdesc != NULL ) {
+        if ( ( ncol    == rhsdesc->ncol ) &&
+             ( rhsb->b == rhsdesc->dataptr ) ) {
             return;
         }
-        starpu_dense_matrix_destroy( spmtx );
+        starpu_rhs_destroy( rhsdesc );
     }
     else {
-        spmtx = (starpu_dense_matrix_desc_t*)malloc(sizeof(starpu_dense_matrix_desc_t));
+        rhsdesc = (starpu_rhs_desc_t*)malloc(sizeof(starpu_rhs_desc_t));
     }
 
     cblknbr = solvmtx->cblknbr;
 
-    spmtx->mpitag  = pastix_starpu_tag_book( solvmtx->gcblknbr );
-    spmtx->ncol    = ncol;
-    spmtx->typesze = typesize;
-    spmtx->solvmtx = solvmtx;
-    spmtx->handletab = malloc( cblknbr * sizeof(starpu_data_handle_t) );
-    spmtx->dataptr   = A;
+    rhsdesc->ncol      = ncol;
+    rhsdesc->typesze   = pastix_size_of( typesize );
+    rhsdesc->solvmtx   = solvmtx;
+    rhsdesc->handletab = malloc( cblknbr * sizeof(starpu_data_handle_t) );
+    rhsdesc->dataptr   = rhsb->b;
 
     /* Initialize 1D cblk handlers */
-    cblk    = spmtx->solvmtx->cblktab;
-    handler = spmtx->handletab;
+    cblk    = rhsdesc->solvmtx->cblktab;
+    handler = rhsdesc->handletab;
     for( cblknum = 0;
          cblknum < cblknbr;
          cblknum++, cblk++, handler++ )
@@ -98,19 +93,20 @@ starpu_dense_matrix_init( SolverMatrix *solvmtx,
 
         if( cblk->ownerid == myrank ) {
             starpu_matrix_data_register( handler, STARPU_MAIN_RAM,
-                                         (uintptr_t)(A + (cblk->lcolidx * typesize)),
-                                         lda, nrow, ncol, typesize );
+                                         (uintptr_t)(rhsb->b + (cblk->lcolidx * rhsdesc->typesze)),
+                                         rhsb->ld, nrow, ncol, rhsdesc->typesze );
         }
         else {
             starpu_matrix_data_register( handler, -1, 0,
-                                         lda, nrow, ncol, typesize );
+                                         rhsb->ld, nrow, ncol, rhsdesc->typesze );
         }
 #if defined(PASTIX_WITH_MPI)
-        starpu_mpi_data_register( *handler, spmtx->mpitag + ((int64_t)cblknum), cblk->ownerid );
+        rhsdesc->mpitag = pastix_starpu_tag_book( solvmtx->gcblknbr );
+        starpu_mpi_data_register( *handler, rhsdesc->mpitag + ((int64_t)cblknum), cblk->ownerid );
 #endif
     }
 
-    solvmtx->starpu_desc_rhs = spmtx;
+    rhsb->starpu_desc = rhsdesc;
 
     (void)nodes;
     (void)myrank;
@@ -123,27 +119,27 @@ starpu_dense_matrix_init( SolverMatrix *solvmtx,
  *
  *******************************************************************************
  *
- * @param[inout] spmtx
+ * @param[inout] rhsdesc
  *          The dense matrix descriptor to retrieve on main memory.
  *
  ******************************************************************************/
 void
-starpu_dense_matrix_getoncpu( starpu_dense_matrix_desc_t *spmtx )
+starpu_rhs_getoncpu( starpu_rhs_desc_t *rhsdesc )
 {
-    starpu_data_handle_t *handler = spmtx->handletab;
+    starpu_data_handle_t *handler = rhsdesc->handletab;
     SolverCblk *cblk;
     pastix_int_t cblknbr, cblknum;
 
-    cblk    = spmtx->solvmtx->cblktab;
-    cblknbr = spmtx->solvmtx->cblknbr;
+    cblk    = rhsdesc->solvmtx->cblktab;
+    cblknbr = rhsdesc->solvmtx->cblknbr;
     for(cblknum=0; cblknum<cblknbr; cblknum++, cblk++, handler++)
     {
         assert( handler );
 
 #if defined(PASTIX_WITH_MPI)
-        starpu_mpi_cache_flush( spmtx->solvmtx->solv_comm, *handler );
+        starpu_mpi_cache_flush( rhsdesc->solvmtx->solv_comm, *handler );
 #endif
-        if ( cblk->ownerid == spmtx->solvmtx->clustnum ) {
+        if ( cblk->ownerid == rhsdesc->solvmtx->clustnum ) {
             starpu_data_acquire_cb( *handler, STARPU_R,
                                     (void (*)(void*))&starpu_data_release,
                                     *handler );
@@ -161,29 +157,28 @@ starpu_dense_matrix_getoncpu( starpu_dense_matrix_desc_t *spmtx )
  *
  *******************************************************************************
  *
- * @param[inout] spmtx
+ * @param[inout] rhsdesc
  *          The descriptor to free.
  *
  ******************************************************************************/
 void
-starpu_dense_matrix_destroy( starpu_dense_matrix_desc_t *spmtx )
+starpu_rhs_destroy( starpu_rhs_desc_t *rhsdesc )
 {
-    starpu_data_handle_t *handler = spmtx->handletab;
+    starpu_data_handle_t *handler = rhsdesc->handletab;
     SolverCblk *cblk;
     pastix_int_t cblknbr, cblknum;
 
-    cblk    = spmtx->solvmtx->cblktab;
-    cblknbr = spmtx->solvmtx->cblknbr;
-    for(cblknum=0; cblknum<cblknbr; cblknum++, cblk++, handler++)
-    {
+    cblk    = rhsdesc->solvmtx->cblktab;
+    cblknbr = rhsdesc->solvmtx->cblknbr;
+    for( cblknum = 0; cblknum < cblknbr; cblknum++, cblk++, handler++ ) {
         assert( handler );
         starpu_data_unregister( *handler );
     }
 
-    free( spmtx->handletab );
-    spmtx->handletab = NULL;
+    free( rhsdesc->handletab );
+    rhsdesc->handletab = NULL;
 
-     pastix_starpu_tag_release( spmtx->mpitag );
+    pastix_starpu_tag_release( rhsdesc->mpitag );
 }
 
 /**
