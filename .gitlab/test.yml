@@ -6,8 +6,8 @@ test_seq_sched_linux:
   needs: [build_seq]
   parallel:
     matrix:
-      - SCHED: [0, 1, 2, 3, 4]
-        RUN: shm
+      - RUN: shm
+        SCHED: [0, 1, 2, 3, 4]
   variables:
     SYSTEM: linux
     VERSION: seq
@@ -19,10 +19,12 @@ test_mpi_sched_linux:
   needs: [build_mpi]
   parallel:
     matrix:
-      - SCHED: [0, 1, 4]
-        RUN: [shm, mpi_rep, mpi_dst]
-      - SCHED: [2, 3]
-        RUN: [shm, mpi_rep]
+      - RUN: [shm]
+        SCHED: [0, 1, 2, 3, 4]
+      - RUN: [mpi_rep]
+        SCHED: [2, 4]
+      - RUN: [mpi_dst]
+        SCHED: [0, 1, 3, 4]
   variables:
     SYSTEM: linux
     VERSION: mpi

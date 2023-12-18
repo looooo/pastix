@@ -7,10 +7,11 @@
  * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2023-07-21
+ * @author Alycia Lisito
+ * @date 2023-12-18
  *
  * @ingroup pastix_starpu
  * @{
@@ -20,6 +21,102 @@
 #include "blend/solver.h"
 #include "pastix_starpu.h"
 #include <starpu_data.h>
+
+/**
+ *******************************************************************************
+ *
+ * @brief Generate the StarPU descriptor of the dense matrix.
+ *
+ * This function creates the StarPU descriptor that will provide tha data
+ * mapping and memory location to StarPU for the computation.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] solvmtx
+ *          The solver matrix structure that describes the dense matrix for
+ *          PaStiX.
+ *
+ * @param[inout] mpitag
+ *          The mpitag.
+ *
+ * @param[inout] clustnum
+ *          The clustnum.
+ *
+ * @param[in] ncol
+ *          The number of columns of the given matrix. The number of rows is
+ *          given by the solvmtx structure.
+ *
+ * @param[in] A
+ *          The pointer to the matrix.
+ *
+ * @param[in] lda
+ *          The leading dimension of the matrix A.
+ *
+ * @param[in] typesize
+ *          The memory size of the arithmetic used to store the matrix
+ *          coefficients.
+ *
+ * @param[in] nodes
+ *          The number of processes used to solve the problem.
+ *
+ * @param[in] myrank
+ *          The rank of the calling process.
+ *
+ ******************************************************************************/
+void
+pastix_starpu_rhs_data_register( starpu_data_handle_t *handleptr,
+                                 int64_t               mpitag,
+                                 int                   clustnum,
+                                 const SolverCblk     *cblk,
+                                 size_t                typesize,
+                                 pastix_int_t          m,
+                                 pastix_int_t          n,
+                                 char                 *A,
+                                 pastix_int_t          lda )
+{
+    int       home_node = STARPU_MAIN_RAM;
+    uintptr_t ptr       = (uintptr_t)A;
+    int64_t   tag_cblk;
+
+    if ( cblk->cblktype & ( CBLK_FANIN | CBLK_RECV ) ) {
+        home_node = -1;
+        lda       = m;
+        ptr       = 0;
+    }
+    else {
+        assert( ptr != 0 );
+    }
+
+    /* The default StarPU dense matrix type is used to describe the rhs. */
+    starpu_matrix_data_register( handleptr, home_node, ptr, lda, m, n, typesize );
+
+#if defined(PASTIX_WITH_MPI)
+    if ( cblk->cblktype & CBLK_FANIN ) {
+        starpu_data_set_reduction_methods( *handleptr, NULL, &cl_rhs_init_cpu );
+        tag_cblk = mpitag + cblk->gfaninnum;
+        starpu_mpi_data_register( *handleptr, tag_cblk, clustnum );
+    }
+    else {
+        if ( cblk->cblktype & CBLK_RECV ) {
+            starpu_data_set_reduction_methods( *handleptr, NULL, &cl_rhs_init_cpu );
+            tag_cblk = mpitag + cblk->gfaninnum;
+        }
+        else {
+            tag_cblk = mpitag + cblk->gcblknum;
+        }
+        starpu_mpi_data_register( *handleptr, tag_cblk, cblk->ownerid );
+    }
+#endif
+
+#if defined(PASTIX_DEBUG_STARPU)
+        fprintf( stderr, "[%2d][pastix][%s] Solve cblk=%d, owner=%d, tag=%ld, size=%ld\n",
+                 clustnum, __func__, cblk->gcblknum, cblk->ownerid, tag_cblk,
+                 n * cblk_colnbr( cblk ) * pastix_size_of( solvmtx->flttype ) );
+#endif
+
+    (void)mpitag;
+    (void)clustnum;
+}
 
 /**
  *******************************************************************************
@@ -61,6 +158,7 @@ starpu_rhs_init( SolverMatrix *solvmtx,
     SolverCblk           *cblk;
     pastix_int_t          cblknbr, cblknum, nrow;
     pastix_int_t          ncol = rhsb->n;
+    int64_t               tag_desc;
 
     starpu_rhs_desc_t *rhsdesc = rhsb->starpu_desc;
     if ( rhsdesc != NULL ) {
@@ -76,6 +174,10 @@ starpu_rhs_init( SolverMatrix *solvmtx,
 
     cblknbr = solvmtx->cblknbr;
 
+#if defined(PASTIX_WITH_MPI)
+    tag_desc           = ( (int64_t) ( solvmtx->gcblknbr + solvmtx->gfanincblknbr ) );
+    rhsdesc->mpitag    = pastix_starpu_tag_book( tag_desc );
+#endif
     rhsdesc->ncol      = ncol;
     rhsdesc->typesze   = pastix_size_of( typesize );
     rhsdesc->solvmtx   = solvmtx;
@@ -85,25 +187,11 @@ starpu_rhs_init( SolverMatrix *solvmtx,
     /* Initialize 1D cblk handlers */
     cblk    = rhsdesc->solvmtx->cblktab;
     handler = rhsdesc->handletab;
-    for( cblknum = 0;
-         cblknum < cblknbr;
-         cblknum++, cblk++, handler++ )
-    {
+    for( cblknum = 0; cblknum < cblknbr; cblknum++, cblk++, handler++ ) {
         nrow = cblk_colnbr( cblk );
 
-        if( cblk->ownerid == myrank ) {
-            starpu_matrix_data_register( handler, STARPU_MAIN_RAM,
-                                         (uintptr_t)(rhsb->b + (cblk->lcolidx * rhsdesc->typesze)),
-                                         rhsb->ld, nrow, ncol, rhsdesc->typesze );
-        }
-        else {
-            starpu_matrix_data_register( handler, -1, 0,
-                                         rhsb->ld, nrow, ncol, rhsdesc->typesze );
-        }
-#if defined(PASTIX_WITH_MPI)
-        rhsdesc->mpitag = pastix_starpu_tag_book( solvmtx->gcblknbr );
-        starpu_mpi_data_register( *handler, rhsdesc->mpitag + ((int64_t)cblknum), cblk->ownerid );
-#endif
+        pastix_starpu_rhs_data_register( handler, rhsdesc->mpitag, solvmtx->clustnum, cblk, rhsdesc->typesze,
+                                         nrow, ncol, rhsb->b + (cblk->lcolidx * rhsdesc->typesze), rhsb->ld );
     }
 
     rhsb->starpu_desc = rhsdesc;

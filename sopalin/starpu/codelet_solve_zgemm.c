@@ -7,11 +7,14 @@
  * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Vincent Bridonneau
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2023-07-21
+ * @author Alycia Lisito
+ * @author Nolan Bredel
+ * @author Tom Moenne-Loccoz
+ * @date 2023-12-18
  *
  * @precisions normal z -> z c d s
  *
@@ -141,7 +144,6 @@ CODELETS_CPU( solve_blok_zgemm, 3 );
  *
  * @param[inout] fcbk
  *          The cblk structure that corresponds to the C matrix.
-
  *
  * @param[in] sopalin_data
  *          The data that provide the SolverMatrix structure from PaStiX, and
@@ -177,10 +179,14 @@ starpu_stask_blok_zgemm( sopalin_data_t   *sopalin_data,
 #if defined(PASTIX_WITH_MPI)
     {
         int need_submit = 0;
-        if ( cblk->ownerid == sopalin_data->solvmtx->clustnum ) {
+        if ( (cblk->cblktype & CBLK_FANIN) ||
+             (cblk->ownerid == sopalin_data->solvmtx->clustnum) )
+        {
             need_submit = 1;
         }
-        if ( fcbk->ownerid == sopalin_data->solvmtx->clustnum ) {
+        if ( (fcbk->cblktype & CBLK_FANIN) ||
+             (fcbk->ownerid == sopalin_data->solvmtx->clustnum) )
+        {
             need_submit = 1;
         }
         if ( starpu_mpi_cached_receive( rhsb->starpu_desc->handletab[fcbknum] ) ) {
@@ -190,6 +196,12 @@ starpu_stask_blok_zgemm( sopalin_data_t   *sopalin_data,
             return;
         }
     }
+#endif
+
+#if defined(PASTIX_DEBUG_STARPU)
+    fprintf( stderr, "[%2d][%s] cblk = %d, fcblk = %d, ownerid = %d, handler = %p, size = %ld\n",
+             solvmtx->clustnum, __func__, cblk->gcblknum, fcbk->gcblknum, cblk->ownerid, solvmtx->starpu_desc_rhs->handletab[cblknum],
+             cblk_colnbr( cblk ) * sizeof(pastix_complex64_t) );
 #endif
 
     /*

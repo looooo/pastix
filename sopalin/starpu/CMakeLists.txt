@@ -3,7 +3,7 @@
 #  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.2
+#  @version 6.4.0
 #  @author Mathieu Faverge
 #  @author Ian Masliah
 #  @author Pierre Ramet
@@ -13,7 +13,7 @@
 #  @author Florent Pruvost
 #  @author Nolan Bredel
 #  @author Tom Moenne-Loccoz
-#  @date 2023-12-01
+#  @date 2023-12-18
 #
 ###
 include(RulesPrecisions)
@@ -66,6 +66,8 @@ set(SOURCES
   codelet_cblk_zpotrfsp.c
   codelet_cblk_zpxtrfsp.c
   codelet_cblk_zsytrfsp.c
+  codelet_solve_zadd.c
+  codelet_solve_zcpy.c
   codelet_solve_zdiag.c
   codelet_solve_zgemm.c
   codelet_solve_ztrsm.c

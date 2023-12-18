@@ -7,14 +7,14 @@
  * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Alycia Lisito
  * @author Florent Pruvost
  * @author Nolan Bredel
  * @author Tom Moenne-Loccoz
- * @date 2023-12-01
+ * @date 2023-12-18
  *
  * @addtogroup pastix_starpu
  * @{
@@ -317,6 +317,11 @@ void pastix_starpu_interface_fini();
  * @brief Main structure for all tasks of fanin_init type
  */
 extern struct starpu_codelet cl_fanin_init_cpu;
+
+/**
+ * @brief Main structure for all tasks of rhs_init type
+ */
+extern struct starpu_codelet cl_rhs_init_cpu;
 
 #endif /* _pastix_starpu_h_ */
 
