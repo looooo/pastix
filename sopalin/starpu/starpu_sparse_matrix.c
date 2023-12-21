@@ -418,10 +418,16 @@ starpu_sparse_cblk_wont_use( pastix_coefside_t side, SolverCblk *cblk )
 {
     if ( side != PastixUCoef ) {
         assert( cblk->handler[0] );
+#if defined(PASTIX_WITH_MPI)
+        starpu_mpi_cache_flush( MPI_COMM_WORLD, cblk->handler[0] );
+#endif
         starpu_data_wont_use( cblk->handler[0] );
     }
     if ( side != PastixLCoef ) {
         assert( cblk->handler[1] );
+#if defined(PASTIX_WITH_MPI)
+        starpu_mpi_cache_flush( MPI_COMM_WORLD, cblk->handler[1] );
+#endif
         starpu_data_wont_use( cblk->handler[1] );
     }
 }
