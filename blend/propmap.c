@@ -202,6 +202,13 @@ propMappSubtree( const propmap_t *pmptr,
      */
     sonsnbr = pmptr->etree->nodetab[rootnum].sonsnbr;
 
+    if ( sonsnbr == 1 ) {
+        /* Go on to subtree */
+        propMappSubtree( pmptr, eTreeSonI(pmptr->etree, rootnum, 0),
+                         fcandnum, lcandnum, cluster, cost_remain );
+        return;
+    }
+
     /* Create the list of sons sorted by descending order of cost */
     MALLOC_INTERN(queue_tree, 1, pastix_queue_t);
     pqueueInit(queue_tree, sonsnbr);
