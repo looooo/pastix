@@ -52,10 +52,6 @@ pastix_starpu_filter_interface( void                      *father_interface,
 
     assert( child->offset >= 0 );
 
-    if ( father->dataptr == NULL ) {
-        return;
-    }
-
     if ( father->cblk->cblktype & CBLK_COMPRESSED ) {
         childoff         = sizetab[id]   * sizeof( pastix_lrblock_t );
         child->allocsize = child->nbblok * sizeof( pastix_lrblock_t );
@@ -87,7 +83,9 @@ pastix_starpu_filter_interface( void                      *father_interface,
 
     assert( child->allocsize > 0 );
 
-    child->dataptr = ((char*)father->dataptr) + childoff;
+    if ( father->dataptr != NULL ) {
+        child->dataptr = ((char*)father->dataptr) + childoff;
+    }
 
     (void)nchunks;
 }
