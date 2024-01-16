@@ -80,9 +80,9 @@ cl_profiling_cb_template( void *callback_arg )
     }
 
     struct cl_template_args_s *args     = (struct cl_template_args_s *) callback_arg;
-    pastix_fixdbl_t                flops    = args->profile_data.flops;
-    pastix_fixdbl_t                duration = starpu_timing_timespec_delay_us( &info->start_time, &info->end_time );
-    pastix_fixdbl_t                speed    = flops / ( 1000.0 * duration );
+    pastix_fixdbl_t            flops    = args->profile_data.flops;
+    pastix_fixdbl_t            duration = starpu_timing_timespec_delay_us( &info->start_time, &info->end_time );
+    pastix_fixdbl_t            speed    = flops / ( 1000.0 * duration );
 
     pastix_int_t M = ;
     pastix_int_t N = ;

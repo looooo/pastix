@@ -900,7 +900,7 @@ endif()
 
 if (PASTIX_BLEND_GENTRACE)
   target_link_libraries(pastix PRIVATE
-    ${GTG_LIBRARIES}
+    MORSE::GTG
     )
 endif()
 

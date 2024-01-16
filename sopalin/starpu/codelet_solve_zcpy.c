@@ -71,6 +71,7 @@ fct_solve_blok_zcpy_cpu( void *descr[], void *cl_arg )
     pastix_complex64_t               *B;
     pastix_int_t                      m, n, lda, ldb;
     struct cl_solve_blok_zcpy_args_s *args = (struct cl_solve_blok_zcpy_args_s *)cl_arg;
+    int                               rc;
 
 #if defined(PASTIX_DEBUG_STARPU)
     fprintf( stderr, "[pastix][%s] Add copy cblk into recv = %d ok\n", __func__, args->cblk->gcblknum );
@@ -88,7 +89,10 @@ fct_solve_blok_zcpy_cpu( void *descr[], void *cl_arg )
 
     A += (args->cblk->lcolidx - args->fcblk->lcolidx);
 
-    LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n, A, lda, B, ldb );
+    rc = LAPACKE_zlacpy_work( LAPACK_COL_MAJOR, 'A', m, n, A, lda, B, ldb );
+    assert( rc == 0 );
+
+    (void)rc;
 }
 #endif /* !defined(PASTIX_STARPU_SIMULATION) */
 

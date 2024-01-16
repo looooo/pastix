@@ -1173,10 +1173,12 @@ solvMatGen_register_remote_cblk( const SolverMatrix       *solvmtx,
         stride += nbrows;
 
         if ( solvcblk->cblktype & CBLK_FANIN ) {
+            assert( faninnbr_tab );
             solvblok->gfaninnm = faninnbr_tab[2 * ownerid + 1] + solvmtx->gbloknbr;
             faninnbr_tab[2 * ownerid + 1]++;
         }
         if ( solvcblk->cblktype & CBLK_RECV ) {
+            assert( faninnbr_tab );
             solvblok->gfaninnm = faninnbr_tab[2 * (clustnbr + ownerid) + 1] + solvmtx->gbloknbr;
             faninnbr_tab[2 * (clustnbr + ownerid) + 1]++;
         }

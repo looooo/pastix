@@ -261,8 +261,8 @@ kernelsTraceFinalize( const pastix_data_t *pastix_data )
     int32_t nbstart;
 
     pastix_atomic_lock( &lock_flops );
-    assert( kernels_trace_started > 0 );
     nbstart = pastix_atomic_dec_32b( &(kernels_trace_started) );
+    assert( nbstart >= 0 );
     if ( nbstart > 0 ) {
         pastix_atomic_unlock( &lock_flops );
         return;

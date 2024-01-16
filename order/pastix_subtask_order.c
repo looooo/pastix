@@ -397,8 +397,8 @@ pastix_subtask_order(       pastix_data_t  *pastix_data,
      * and for the reordering algorithm
      */
     orderApplyLevelOrder( ordemesh,
-                                iparm[IPARM_TASKS2D_LEVEL],
-                                iparm[IPARM_TASKS2D_WIDTH] );
+                          iparm[IPARM_TASKS2D_LEVEL],
+                          iparm[IPARM_TASKS2D_WIDTH] );
 
 #if !defined(NDEBUG) && defined(PASTIX_DEBUG_ORDERING)
     assert( pastixOrderCheck( ordemesh ) == PASTIX_SUCCESS );
