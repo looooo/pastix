@@ -76,7 +76,7 @@ pastix_starpu_rhs_data_register( starpu_data_handle_t *handleptr,
 {
     int       home_node = STARPU_MAIN_RAM;
     uintptr_t ptr       = (uintptr_t)A;
-    int64_t   tag_cblk;
+    int64_t   tag_cblk  = -1;
 
     if ( cblk->cblktype & ( CBLK_FANIN | CBLK_RECV ) ) {
         home_node = -1;
@@ -116,6 +116,7 @@ pastix_starpu_rhs_data_register( starpu_data_handle_t *handleptr,
 
     (void)mpitag;
     (void)clustnum;
+    (void)tag_cblk;
 }
 
 /**
