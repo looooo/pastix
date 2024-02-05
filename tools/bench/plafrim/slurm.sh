@@ -12,7 +12,6 @@
 #
 # This script launch the slurm jobs to benchmark PaStiX.
 #
-
 echo "######################### PaStiX job benchmarks #########################"
 
 # Check the environment
@@ -24,8 +23,6 @@ env |grep ^JUBE
 env |grep ^MPI
 env |grep ^STARPU
 env |grep ^PASTIX
-
-set -x
 
 function wait_completion {
     # Wait for completion of jobs
@@ -48,8 +45,10 @@ function wait_completion {
     done
 }
 
+set -x
+
 # Parameters of the Slurm jobs
-TIME=04:00:00
+TIME=01:30:00
 PART=routage
 NP=$SLURM_NP
 CORES=$SLURM_CORES

@@ -13,6 +13,7 @@
 # This script compiles, runs and analyzes PaStiX experiments
 # for benchmarking purpose.
 #
+set -x
 
 # Configure and build PaStiX
 mkdir -p $CI_PROJECT_DIR/build-$NODE-$MPI
@@ -23,8 +24,10 @@ make -j20
 export PASTIX_BUILD=$PWD
 
 # clean old benchmarks
-cd $CI_PROJECT_DIR/tools/bench/$PLATFORM/results
-jube remove --force --id $JUBE_ID
+if [ -d "$CI_PROJECT_DIR/tools/bench/$PLATFORM/results" ]; then
+  cd $CI_PROJECT_DIR/tools/bench/$PLATFORM/results
+  jube remove --force --id $JUBE_ID
+fi
 
 # Execute jube benchmarks
 cd $CI_PROJECT_DIR/tools/bench/$PLATFORM/
