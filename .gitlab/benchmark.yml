@@ -38,15 +38,12 @@ bench_plafrim_bora_getrf_lr:
     JUBE_RUN: "getrf_lr"
   extends: .bench_plafrim_bora
 
-#########################################################
-#   Will be used when we will be sure that pastix-gpu   #
-#                  works on guix.                       #
-#########################################################
-# bench_plafrim_sirocco_openmpi:
-#   variables:
-#     NODE: sirocco
-#     MPI: openmpi
-#     SLURM_NP: 1
-#     SLURM_CORES: 40
-#     JUBE_ID: "000004"
-#   extends: .bench_plafrim_common
+bench_plafrim_sirocco_openmpi:
+  variables:
+    NODE: sirocco
+    MPI: openmpi
+    SLURM_NP: 1
+    SLURM_CORES: 40
+    JUBE_ID: "000004"
+    JUBE_RUN: "potrf getrf"
+  extends: .bench_plafrim_common

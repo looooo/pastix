@@ -189,7 +189,8 @@ files=$( git ls-files                     |
              grep -v "wrappers/julia/PaStiX/Project\..*\.toml" |
              grep -v "tools/bench/jube/requirements.txt"       |
              grep -v test/matrix          |
-             grep -v "\.org"              )
+             grep -v "\.org"              |
+             grep -v "\.scm")
 if [ $# -gt 0 ]
 then
     files=$*

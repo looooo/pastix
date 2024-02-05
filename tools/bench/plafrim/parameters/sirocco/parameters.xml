@@ -3,7 +3,7 @@
     <parameterset name="param_facto_potrf">
         <parameter name="hostname"  type="string"              >sirocco</parameter>
         <parameter name="algorithm" type="string"              >PastixFactLLT</parameter>
-        <parameter name="scheduler" type="int"                 >2, 3</parameter>
+        <parameter name="scheduler" type="int"                 >2</parameter>
         <parameter name="when"      type="string"              >never</parameter>
         <parameter name="nmpi"      type="int"                 >1</parameter>
         <parameter name="nthr"      type="int"    mode="python">[40, (39-$ngpu)][$scheduler - 2]</parameter>
@@ -12,17 +12,16 @@
         <parameter name="options"   type="string"              >
             -v 2 -t $nthr -g $ngpu -s $scheduler \
             -i iparm_factorization $algorithm \
-            -i iparm_splitting_strategy pastixsplit$split \
             -i iparm_compress_when pastixcompress$when \
             -d dparm_compress_tolerance 1.e-10
         </parameter>
         <parameter name="matrix"    type="string"              >--mm /projets/matrix/GHS_psdef/audikw_1/audikw_1.mtx</parameter>
-        <parameter name="command"   type="string"              >$binary $options $matrix</parameter>
+        <parameter name="command"   type="string"              >mpiexec $MPI_OPTIONS -np $nmpi $binary $options $matrix</parameter>
     </parameterset>
     <parameterset name="param_facto_getrf">
         <parameter name="hostname"  type="string"              >sirocco</parameter>
         <parameter name="algorithm" type="string"              >PastixFactLU</parameter>
-        <parameter name="scheduler" type="int"                 >2, 3</parameter>
+        <parameter name="scheduler" type="int"                 >2</parameter>
         <parameter name="when"      type="string"              >never</parameter>
         <parameter name="nmpi"      type="int"                 >1</parameter>
         <parameter name="nthr"      type="int"    mode="python">[40, (39-$ngpu)][$scheduler - 2]</parameter>
@@ -31,11 +30,10 @@
         <parameter name="options"   type="string"              >
             -v 2 -t $nthr -g $ngpu -s $scheduler \
             -i iparm_factorization $algorithm \
-            -i iparm_splitting_strategy pastixsplit$split \
             -i iparm_compress_when pastixcompress$when \
             -d dparm_compress_tolerance 1.e-10
         </parameter>
         <parameter name="matrix"    type="string"              >--hb /projets/pastix/matrices/real/matr5.rua</parameter>
-        <parameter name="command"   type="string"              >$binary $options $matrix</parameter>
+        <parameter name="command"   type="string"              >mpiexec $MPI_OPTIONS -np $nmpi $binary $options $matrix</parameter>
     </parameterset>
 </jube>
