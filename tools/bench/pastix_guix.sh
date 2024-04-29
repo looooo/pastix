@@ -13,32 +13,33 @@
 # This script compiles, runs and analyzes PaStiX experiments
 # for benchmarking purpose.
 #
-set -x
+set -ex
 
 # Configure and build PaStiX
-mkdir -p $CI_PROJECT_DIR/build-$NODE-$MPI
-cd $CI_PROJECT_DIR/build-$NODE-$MPI
-rm CMake* -rf
-cmake $PASTIX_BUILD_OPTIONS ..
-make -j20
-export PASTIX_BUILD=$PWD
+if [ -d build-$NODE-$MPI ]; then
+  rm build-$NODE-$MPI -r
+fi
+cmake -B build-$NODE-$MPI $PASTIX_BUILD_OPTIONS
+cmake --build build-$NODE-$MPI -j20 --verbose
+export PASTIX_BUILD=$PWD/build-$NODE-$MPI
 
 # clean old benchmarks
-if [ -d "$CI_PROJECT_DIR/tools/bench/$PLATFORM/results" ]; then
-  cd $CI_PROJECT_DIR/tools/bench/$PLATFORM/results
-  jube remove --force --id $JUBE_ID
+if [ -d tools/bench/$PLATFORM/results ]; then
+  rm tools/bench/$PLATFORM/results -r
 fi
 
 # Execute jube benchmarks
-cd $CI_PROJECT_DIR/tools/bench/$PLATFORM/
-jube run pastix.xml --tag $JUBE_RUN --include-path parameters/$NODE --id $JUBE_ID
+#jube run tools/bench/$PLATFORM/pastix.xml --tag $JUBE_RUN --include-path tools/bench/$PLATFORM/parameters/$NODE --id $JUBE_ID
+jube run tools/bench/$PLATFORM/pastix-test.xml --tag $JUBE_RUN --include-path tools/bench/$PLATFORM/parameters/$NODE --id $JUBE_ID
 
 # jube analysis
-jube analyse results --id $JUBE_ID
+jube analyse tools/bench/$PLATFORM/results --id $JUBE_ID
 
 # jube report
-jube result results --id $JUBE_ID > pastix_$JUBE_ID.csv
+jube result tools/bench/$PLATFORM/results --id $JUBE_ID > pastix_$JUBE_ID.csv
+cat pastix_$JUBE_ID.csv
 
 # send results to the elasticsearch server
-cp $CI_PROJECT_DIR/guix.json .
-python3 $CI_PROJECT_DIR/tools/bench/jube/add_result.py -e https://elasticsearch.bordeaux.inria.fr -t hiepacs -p "pastix" -h $NODE -m $MPI pastix_$JUBE_ID.csv
+#ls guix.json
+#python3 tools/bench/jube/add_result.py -e https://elasticsearch.bordeaux.inria.fr -t hiepacs -p "pastix" pastix_$JUBE_ID.csv
+python3 tools/bench/jube/add_result.py -e https://elasticsearch.bordeaux.inria.fr -t hiepacs -p "pastix-test" pastix_$JUBE_ID.csv

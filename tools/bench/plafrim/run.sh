@@ -12,7 +12,6 @@
 #
 # This script build the correct environment to benchmark PaStiX.
 #
-echo "######################### PaStiX environment benchmarks #########################"
 set -x
 
 # Unset the binding environment of the CI for this specific case
@@ -26,7 +25,8 @@ CI_PROJECT_DIR=${CI_PROJECT_DIR:-.}
 export XDG_CACHE_HOME=/tmp/guix-$$
 
 # save guix commits
-guix time-machine -C ./tools/bench/guix-channels.scm -- describe --format=json > guix.json
+#guix time-machine -C ./tools/bench/guix-channels.scm -- describe --format=json > guix.json
+guix describe --format=json > guix.json
 
 GUIX_ENV="pastix"
 export MPI_OPTIONS=""
@@ -51,21 +51,17 @@ fi
 export STARPU_HOSTNAME=$NODE
 export PARSEC_HOSTNAME=$NODE
 
-if [ "$MPI" = "openmpi" ]
-then
-  GUIX_ENV_MPI=""
-  GUIX_ADHOC_MPI="openssh"
-fi
-
-GUIX_ADHOC="coreutils gawk grep jube mkl perl python-click python-certifi python-elasticsearch python-gitpython python-matplotlib python-pandas python-seaborn r-ggplot2 r-plyr r-reshape2 sed slurm zlib"
-GUIX_RULE="-D $GUIX_ENV $GUIX_ENV_MPI $GUIX_ADHOC $GUIX_ADHOC_MPI"
+GUIX_ADHOC="coreutils gawk grep jube mkl nss-certs openssh perl python-click python-certifi python-elasticsearch python-gitpython python-matplotlib python-pandas python-seaborn r-ggplot2 r-plyr r-reshape2 sed slurm zlib"
+GUIX_RULE="-D $GUIX_ENV $GUIX_ADHOC"
 
 # Create envrionment and submit jobs
-exec guix time-machine -C ./tools/bench/guix-channels.scm -- shell --pure \
+#exec guix time-machine -C ./tools/bench/guix-channels.scm -- shell --pure \
+exec guix shell --pure \
        --preserve=PLATFORM \
        --preserve=NODE \
        --preserve=LD_PRELOAD \
        --preserve=^CI \
+       --preserve=proxy$ \
        --preserve=^SLURM \
        --preserve=^JUBE \
        --preserve=^MPI \
@@ -74,8 +70,10 @@ exec guix time-machine -C ./tools/bench/guix-channels.scm -- shell --pure \
        --preserve=^PASTIX \
        $GUIX_RULE \
        -- /bin/bash --norc ./tools/bench/plafrim/slurm.sh
-
-echo "####################### End PaStiX benchmarks #######################"
+err=$?
 
 # clean tmp
 rm -rf /tmp/guix-$$
+
+# exit with error code from the guix command
+exit $err
