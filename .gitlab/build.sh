@@ -24,18 +24,11 @@ set -x
 #
 if [[ "$SYSTEM" != "windows" ]]; then
   if [[ "$SYSTEM" == "macosx" ]]; then
-    if brew ls --versions scotch > /dev/null; then
-      echo "Scotch is already installed with brew";
-    else
-      echo "Start installing Scotch with brew";
-      brew install scotch;
-    fi
-    if brew ls --versions starpu > /dev/null; then
-      echo "Starpu is already installed with brew";
-    else
-      echo "Start installing Starpu with brew";
-      brew install --build-from-source ~/brew-repo/starpu.rb;
-    fi
+    # ensure to get a fresh install of last scotch and starpu releases
+    brew install scotch
+    brew remove --force --ignore-dependencies starpu
+    brew install --build-from-source ~/brew-repo/starpu.rb
+
     # clang is used on macosx and it is not compatible with MORSE_ENABLE_COVERAGE=ON
     # to avoid the Accelerate framework and get Openblas we use BLA_PREFER_PKGCONFIG
     # we do not have parsec installed on the macosx machine
