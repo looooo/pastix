@@ -239,7 +239,6 @@ def main(
             "AnalyzeTime" : {"type" : "float"}
         }
     }
-
     es.indices.put_mapping(index=es_index, body=mapping_input)
 
     repo = Repo(directory, search_parent_directories=True)
@@ -279,7 +278,6 @@ def main(
     # call this if mapping must be changed (e.g. add a new field)
     mapping_input_stats = {
         "properties": {
-        "properties": {
             "Commit_date_pastix": {"type": "date", "format": "yyyy-MM-dd' 'HH:mm:ss"},
             "Commit_sha_pastix": {"type": "keyword"},
             "Commit_sha_guix": {"type": "keyword"},
@@ -302,7 +300,6 @@ def main(
             "AnalyzeTime" : {"type" : "float"},
             "mean": {"type" : "float"},
             "stdev": {"type" : "float"}
-        }
         }
     }
     es.indices.put_mapping(index=es_index_stats, body=mapping_input_stats)

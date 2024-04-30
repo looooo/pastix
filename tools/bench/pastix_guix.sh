@@ -29,8 +29,8 @@ if [ -d tools/bench/$PLATFORM/results ]; then
 fi
 
 # Execute jube benchmarks
-#jube run tools/bench/$PLATFORM/pastix.xml --tag $JUBE_RUN --include-path tools/bench/$PLATFORM/parameters/$NODE --id $JUBE_ID
-jube run tools/bench/$PLATFORM/pastix-test.xml --tag $JUBE_RUN --include-path tools/bench/$PLATFORM/parameters/$NODE --id $JUBE_ID
+jube run tools/bench/$PLATFORM/pastix.xml --tag $JUBE_RUN --include-path tools/bench/$PLATFORM/parameters/$NODE --id $JUBE_ID
+#jube run tools/bench/$PLATFORM/pastix-test.xml --tag $JUBE_RUN --include-path tools/bench/$PLATFORM/parameters/$NODE --id $JUBE_ID
 
 # jube analysis
 jube analyse tools/bench/$PLATFORM/results --id $JUBE_ID
@@ -41,5 +41,5 @@ cat pastix_$JUBE_ID.csv
 
 # send results to the elasticsearch server
 #ls guix.json
-#python3 tools/bench/jube/add_result.py -e https://elasticsearch.bordeaux.inria.fr -t hiepacs -p "pastix" pastix_$JUBE_ID.csv
-python3 tools/bench/jube/add_result.py -e https://elasticsearch.bordeaux.inria.fr -t hiepacs -p "pastix-test" pastix_$JUBE_ID.csv
+python3 tools/bench/jube/add_result.py -e https://elasticsearch.bordeaux.inria.fr -t hiepacs -p "pastix" pastix_$JUBE_ID.csv
+#python3 tools/bench/jube/add_result.py -e https://elasticsearch.bordeaux.inria.fr -t hiepacs -p "pastix-test" pastix_$JUBE_ID.csv

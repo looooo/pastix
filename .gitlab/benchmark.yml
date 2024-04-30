@@ -25,7 +25,7 @@
   variables:
     NODE: bora
     MPI: openmpi
-    SLURM_NP: 2
+    SLURM_NP: 8
     SLURM_CORES: 36
   extends: .bench_plafrim_common
 

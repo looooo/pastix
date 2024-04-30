@@ -25,24 +25,23 @@ CI_PROJECT_DIR=${CI_PROJECT_DIR:-.}
 export XDG_CACHE_HOME=/tmp/guix-$$
 
 # save guix commits
-#guix time-machine -C ./tools/bench/guix-channels.scm -- describe --format=json > guix.json
-guix describe --format=json > guix.json
+#guix describe --format=json > guix.json
+guix time-machine -C ./tools/bench/guix-channels.scm -- describe --format=json > guix.json
 
-GUIX_ENV="pastix"
-export MPI_OPTIONS=""
 # define env var depending on the node type
 if [ "$NODE" = "bora" ]
 then
   export SLURM_CONSTRAINTS="bora,omnipath"
   export PASTIX_BUILD_OPTIONS="-DPASTIX_WITH_MPI=ON -DCMAKE_BUILD_TYPE=Release -DPASTIX_WITH_STARPU=ON -DPASTIX_WITH_PARSEC=ON"
   export MPI_OPTIONS="--map-by ppr:1:node:pe=36"
+  GUIX_MANIFEST="./tools/bench/guix-manifest-openmpi.scm"
 elif [ "$NODE" = "sirocco" ]
 then
   export SLURM_CONSTRAINTS="sirocco,omnipath,v100"
   export PASTIX_BUILD_OPTIONS="-DPASTIX_WITH_MPI=ON -DPASTIX_WITH_CUDA=ON -DCMAKE_BUILD_TYPE=Release -DPASTIX_WITH_STARPU=ON -DPASTIX_WITH_PARSEC=ON"
   export MPI_OPTIONS="--map-by ppr:1:node:pe=40"
   export LD_PRELOAD="/usr/lib64/libcuda.so"
-  GUIX_ENV="pastix-cuda"
+  GUIX_MANIFEST="./tools/bench/guix-manifest-openmpi-cuda.scm"
 else
   echo "$0: Please set the NODE environnement variable to bora or sirocco."
   exit -1
@@ -51,12 +50,8 @@ fi
 export STARPU_HOSTNAME=$NODE
 export PARSEC_HOSTNAME=$NODE
 
-GUIX_ADHOC="coreutils gawk grep jube mkl nss-certs openssh perl python-click python-certifi python-elasticsearch python-gitpython python-matplotlib python-pandas python-seaborn r-ggplot2 r-plyr r-reshape2 sed slurm zlib"
-GUIX_RULE="-D $GUIX_ENV $GUIX_ADHOC"
-
 # Create envrionment and submit jobs
-#exec guix time-machine -C ./tools/bench/guix-channels.scm -- shell --pure \
-exec guix shell --pure \
+exec guix time-machine -C ./tools/bench/guix-channels.scm -- shell --pure \
        --preserve=PLATFORM \
        --preserve=NODE \
        --preserve=LD_PRELOAD \
@@ -68,7 +63,7 @@ exec guix shell --pure \
        --preserve=^STARPU \
        --preserve=^PARSEC \
        --preserve=^PASTIX \
-       $GUIX_RULE \
+       -m $GUIX_MANIFEST \
        -- /bin/bash --norc ./tools/bench/plafrim/slurm.sh
 err=$?
 
