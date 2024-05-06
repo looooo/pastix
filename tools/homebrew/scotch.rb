@@ -13,73 +13,102 @@
 #
 ###
 class Scotch < Formula
-  desc "Package for graph and mesh partitioning"
+  desc "Package for graph partitioning, graph clustering, and sparse matrix ordering"
   homepage "https://gitlab.inria.fr/scotch/scotch"
-  url "https://gitlab.inria.fr/scotch/scotch/-/archive/v6.1.1/scotch-v6.1.1.tar.gz"
-  sha256 "14daf151399fc67f83fd3ff2933854f5e8d2207c7d35dd66a05660bf0bbd583c"
-  revision 1
+  url "https://gitlab.inria.fr/scotch/scotch/-/archive/v7.0.4/scotch-v7.0.4.tar.bz2"
+  sha256 "97dbe0445231a7ad818ad3615c0128814c9b3e2514d10af0a9a89840888a487e"
+  license "CECILL-C"
+  head "https://gitlab.inria.fr/scotch/scotch.git", branch: "master"
 
-  option "without-test", "skip build-time tests (not recommended)"
-  deprecated_option "without-check" => "without-test"
+  livecheck do
+    url :stable
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
+  end
 
+  bottle do
+    sha256 cellar: :any,                 arm64_ventura:  "4e955eb59faa64c6eaac17ac90a5f81f5964c07cc30043220402fca109dbdae7"
+    sha256 cellar: :any,                 arm64_monterey: "f7ff675ff26315f13cd6791fd0c360bf330a8c7ab4f17053cc3dc056be235925"
+    sha256 cellar: :any,                 arm64_big_sur:  "d4ba89fe8aa9288e63f51e21700bb47761f52430ee8ebe84651b8e4cb7f2a7ea"
+    sha256 cellar: :any,                 ventura:        "8c8f68140b68c8c1753a57cec616275db2606d9b04e378ac0e7178c3b830380a"
+    sha256 cellar: :any,                 monterey:       "78eb8974aa3dcc0a19a39465e6d2e3528169e7f7ae103cd0384015f52c13af8a"
+    sha256 cellar: :any,                 big_sur:        "84cebae59eb1307765ad6314e6557e01d4300980cdc94b18b6f31711e8702699"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   "4fb598235fa27e3dd3169df39cddfa434a592fd0750eea410100b875e8b148ad"
+  end
+
+  depends_on "bison" => :build
   depends_on "open-mpi"
-  depends_on "xz" => :optional # Provides lzma compression.
 
-  conflicts_with "scotch64", because: "not compatible"
+  uses_from_macos "flex" => :build
+  uses_from_macos "zlib"
 
   def install
+    makefile_inc_suffix = OS.mac? ? "i686_mac_darwin10" : "x86-64_pc_linux2"
+    (buildpath/"src").install_symlink "Make.inc/Makefile.inc.#{makefile_inc_suffix}" => "Makefile.inc"
+
     cd "src" do
-      ln_s "Make.inc/Makefile.inc.i686_mac_darwin10", "Makefile.inc"
-      # MPI implementation is not threadsafe, do not use DSCOTCH_PTHREAD
+      inreplace_files = ["Makefile.inc"]
+      inreplace_files << "Make.inc/Makefile.inc.#{makefile_inc_suffix}.shlib" unless OS.mac?
 
-      cflags   = %w[-O3 -fPIC -Drestrict=__restrict -DCOMMON_PTHREAD_BARRIER
-                    -DCOMMON_PTHREAD
-                    -DSCOTCH_CHECK_AUTO -DCOMMON_RANDOM_FIXED_SEED
-                    -DCOMMON_TIMING_OLD -DSCOTCH_RENAME
-                    -DCOMMON_FILE_COMPRESS_BZ2 -DCOMMON_FILE_COMPRESS_GZ]
-      ldflags  = %w[-lm -lz -lpthread -lbz2]
-
-      cflags  += %w[-DCOMMON_FILE_COMPRESS_LZMA]   if build.with? "xz"
-      ldflags += %W[-L#{Formula["xz"].lib} -llzma] if build.with? "xz"
-
-      make_args = ["CCS=#{ENV["CC"]}",
-                   "CCP=mpicc",
-                   "CCD=mpicc",
-                   "FC=gfortran",
-                   "RANLIB=echo",
-                   "CFLAGS=#{cflags.join(" ")}",
-                   "LDFLAGS=#{ldflags.join(" ")}"]
-
-      if OS.mac?
-        make_args << "LIB=.dylib"
-        make_args << "ARFLAGS=-dynamiclib -Wl,-single_module -install_name #{lib}/$(notdir $@) -undefined dynamic_lookup -o "
-        if MacOS.version >= :mojave
-          make_args << "AR=#{ENV["CC"]}"
-        else
-          make_args << "AR=libtool"
-        end
-      else
-       make_args << "LIB=.so"
-       make_args << "ARCH=ar"
-       make_args << "ARCHFLAGS=-ruv"
+      inreplace inreplace_files do |s|
+        s.change_make_var! "CCS", ENV.cc
+        s.change_make_var! "CCP", "mpicc"
+        s.change_make_var! "CCD", "mpicc"
       end
 
-      system "make", "scotch", "VERBOSE=ON", *make_args
-      system "make", "ptscotch", "VERBOSE=ON", *make_args
-      system "make", "install", "prefix=#{prefix}", *make_args
-      system "make", "check", "ptcheck", "EXECP=mpirun -np 2", *make_args unless build.without? "test"
+      system "make", "libscotch", "libptscotch"
+      lib.install buildpath.glob("lib/*.a")
+      system "make", "realclean"
+
+      # Build shared libraries. See `Makefile.inc.*.shlib`.
+      if OS.mac?
+        inreplace "Makefile.inc" do |s|
+          s.change_make_var! "LIB", ".dylib"
+          s.change_make_var! "AR", ENV.cc
+          s.change_make_var! "ARFLAGS", "-shared -Wl,-undefined,dynamic_lookup -o"
+          s.change_make_var! "CLIBFLAGS", "-shared -fPIC"
+          s.change_make_var! "RANLIB", "true"
+        end
+      else
+        Pathname("Makefile.inc").unlink
+        ln_sf "Make.inc/Makefile.inc.#{makefile_inc_suffix}.shlib", "Makefile.inc"
+      end
+
+      system "make", "scotch", "ptscotch"
+      system "make", "prefix=#{prefix}", "install"
+
+      pkgshare.install "check/test_strat_seq.c"
+      pkgshare.install "check/test_strat_par.c"
     end
 
-    # Install documentation + sample graphs and grids.
-    doc.install Dir["doc/*"]
-    (share / "scotch").install "grf", "tgt"
+    # License file has a non-standard filename
+    prefix.install buildpath.glob("LICEN[CS]E_*.txt")
+    doc.install (buildpath/"doc").children
   end
 
   test do
-    mktemp do
-      system "echo cmplt 7 | #{bin}/gmap #{share}/scotch/grf/bump.grf.gz - bump.map"
-      system "#{bin}/gmk_m2 32 32 | #{bin}/gmap - #{share}/scotch/tgt/h8.tgt brol.map"
-      system "#{bin}/gout -Mn -Oi #{share}/scotch/grf/4elt.grf.gz #{share}/scotch/grf/4elt.xyz.gz - graph.iv"
-    end
+    (testpath/"test.c").write <<~EOS
+      #include <stdlib.h>
+      #include <stdio.h>
+      #include <scotch.h>
+      int main(void) {
+        int major, minor, patch;
+        SCOTCH_version(&major, &minor, &patch);
+        printf("%d.%d.%d", major, minor, patch);
+        return 0;
+      }
+    EOS
+    system ENV.cc, "test.c", "-L#{lib}", "-lscotch", "-lscotcherr",
+                             "-pthread", "-L#{Formula["zlib"].opt_lib}", "-lz", "-lm"
+    assert_match version.to_s, shell_output("./a.out")
+
+    system ENV.cc, pkgshare/"test_strat_seq.c", "-o", "test_strat_seq",
+                   "-I#{include}", "-L#{lib}", "-lscotch", "-lscotcherr", "-lm", "-pthread",
+                   "-L#{Formula["zlib"].opt_lib}", "-lz"
+    assert_match "Sequential mapping strategy, SCOTCH_STRATDEFAULT", shell_output("./test_strat_seq")
+
+    system "mpicc", pkgshare/"test_strat_par.c", "-o", "test_strat_par",
+                    "-I#{include}", "-L#{lib}", "-lptscotch", "-lscotch", "-lptscotcherr", "-lm", "-pthread",
+                    "-L#{Formula["zlib"].opt_lib}", "-lz", "-Wl,-rpath,#{lib}"
+    assert_match "Parallel mapping strategy, SCOTCH_STRATDEFAULT", shell_output("./test_strat_par")
   end
 end

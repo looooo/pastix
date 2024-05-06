@@ -15,8 +15,8 @@
 class Starpu < Formula
   desc "StarPU is a task programming library for hybrid architectures"
   homepage "https://starpu.gitlabpages.inria.fr/"
-  url "https://files.inria.fr/starpu/starpu-1.3.10/starpu-1.3.10.tar.gz"
-  sha256 "757cd9a54f53751d37364965ac36102461a85df3a50b776447ac0acc0e1e2612"
+  url "https://files.inria.fr/starpu/starpu-1.4.5/starpu-1.4.5.tar.gz"
+  sha256 "28f389b34df57a2a4e4743b40554b0f8d098ff2199e9eb8fbbe20aa377b64541"
   license "GNU GPL v2.1"
 
   depends_on "autoconf" => :build
@@ -56,7 +56,7 @@ class Starpu < Formula
       }
     EOS
 
-    pkg_config_flags = `pkg-config --cflags --libs starpu-1.3`.chomp.split
+    pkg_config_flags = `pkg-config --cflags --libs starpu-1.4`.chomp.split
     system ENV.cc, "test.c", *pkg_config_flags
     system "./a.out"
   end
