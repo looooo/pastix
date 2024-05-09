@@ -2,15 +2,24 @@
 .bench_plafrim_common:
   stage: bench
   tags: ['plafrim']
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  timeout: 1 week
   variables:
     PLATFORM: plafrim
   before_script:
     - git submodule update --init --recursive
   script:
     - ${CI_PROJECT_DIR}/tools/bench/plafrim/run.sh
-  only:
-    - schedules
-  timeout: 1 week
+  allow_failure: true
+  artifacts:
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+    expire_in: 1 week
+    when: always
+    paths:
+      - "pastix-$NODE-$MPI-$SLURM_NP.err"
+      - "pastix-$NODE-$MPI-$SLURM_NP.out"
+      - "pastix_$JUBE_ID.csv"
 
 .bench_plafrim_bora:
   variables:
