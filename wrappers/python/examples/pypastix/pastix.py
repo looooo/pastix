@@ -134,8 +134,7 @@ def subtask_diag( pastix_data, b ):
 def setSchurUnknownList( pastix_data, schur_list ):
     n = schur_list.shape[0]
     schur_list = np.array(schur_list, dtype=__pastix_int__)
-    pypastix_pastixSetSchurUnknownList( pastix_data, n,
-                                        schur_list.ctypes.data_as(POINTER(__pastix_int__)) )
+    pypastix_pastixSetSchurUnknownList( pastix_data, n, schur_list )
 
 def getSchur( pastix_data, S ):
     pypastix_pastixGetSchur( pastix_data,

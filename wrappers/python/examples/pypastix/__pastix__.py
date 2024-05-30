@@ -4,7 +4,7 @@
 
  PaStiX python wrapper
 
- @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.3.2
@@ -12,7 +12,7 @@
  @author Mathieu Faverge
  @author Tony Delarue
  @author Selmane Lebdaoui
- @date 2023-07-21
+ @date 2024-05-30
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -300,7 +300,8 @@ def pypastix_pastix_subtask_solve_adv( pastix_data, transA, b ):
 def pypastix_pastixSetSchurUnknownList( pastix_data, n, list ):
     libpastix.pastixSetSchurUnknownList.argtypes = [ c_void_p, __pastix_int__,
                                                      POINTER(__pastix_int__) ]
-    libpastix.pastixSetSchurUnknownList( pastix_data, n, list )
+    libpastix.pastixSetSchurUnknownList( pastix_data, n,
+                                         list.ctypes.data_as( POINTER(__pastix_int__) ) )
 
 def pypastix_pastixGetSchur( pastix_data, S, lds ):
     libpastix.pastixGetSchur.argtypes = [ c_void_p, c_void_p, __pastix_int__ ]

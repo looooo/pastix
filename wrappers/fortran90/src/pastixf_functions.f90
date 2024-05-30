@@ -3,14 +3,14 @@
 !>
 !> PaStiX Fortran interface implementation
 !>
-!> @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+!> @copyright 2017-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !>                      Univ. Bordeaux. All rights reserved.
 !>
 !> @version 6.3.2
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2023-07-21
+!> @date 2024-05-30
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -756,7 +756,7 @@ subroutine pastixSetSchurUnknownList_f08(pastix_data, n, list)
   implicit none
   type(pastix_data_t),        intent(inout), target :: pastix_data
   integer(kind=pastix_int_t), intent(in)            :: n
-  integer(kind=pastix_int_t), intent(in),    target :: list
+  integer(kind=pastix_int_t), intent(in),    target :: list(:)
 
   call pastixSetSchurUnknownList_f2c(c_loc(pastix_data), n, c_loc(list))
 end subroutine pastixSetSchurUnknownList_f08

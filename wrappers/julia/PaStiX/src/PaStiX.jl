@@ -4,14 +4,14 @@
 
  PaStiX julia wrapper
 
- @copyright 2020-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2020-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.3.2
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2023-07-21
+ @date 2024-05-30
 
  This file has been automatically generated with gen_wrappers.py
 

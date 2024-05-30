@@ -47,7 +47,7 @@ derived_types = [ 'spmatrix_t', 'spm_int_t', 'pastix_int_t', 'pastix_data_t', 'p
 arrays_names_2D = ["pA", "pB", "pC", "pAB", "pQ", "pX", "pAs", "A", "B", "C", "Bl", "Bg", "X", "X0", "S" ]
 arrays_names_1D = ["colptr", "rowptr", "loc2glob", "dofs", "row", "values",
                    "iparm", "dparm", "bindtab", "perm", "invp", "schur_list",
-                   "rang", "tree", "x0", "x", "y", "b" ]
+                   "rang", "tree", "x0", "x", "y", "b", "list" ]
 
 def polish_file(whole_file):
     """Preprocessing and cleaning of the header file.
